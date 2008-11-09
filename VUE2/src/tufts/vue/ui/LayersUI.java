@@ -37,7 +37,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.37 $ / $Date: 2008-11-09 22:59:51 $ / $Author: sfraize $
+ * @version $Revision: 1.38 $ / $Date: 2008-11-09 23:09:13 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -1501,8 +1501,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 
             if (true) {
                 JPanel fixed = new JPanel(new BorderLayout());
-                if (DEBUG.BOXES) fixed.setBorder(new LineBorder(Color.red, 1));
                 fixed.setOpaque(false);
+                fixed.setBorder(GUI.makeSpace(3,1,3,1));
                 fixed.setMinimumSize(new Dimension(70, 0));
                 
                 fixed.add(exclusive, BorderLayout.WEST);
