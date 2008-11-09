@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.234 $ / $Date: 2008-10-10 19:39:23 $ / $Author: sfraize $
+ * @version $Revision: 1.235 $ / $Date: 2008-11-09 23:00:47 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2263,11 +2263,18 @@ public class LWNode extends LWContainer
             // Level-Of-Detail rendering -- increases speed when lots of nodes rendered
             // all we do is fill the shape
                 
-            if (isSelected())
+            final boolean hasFill = !isTransparent();
+            if (isSelected()) {
                 dc.g.setColor(COLOR_SELECTION);
                 //dc.g.setColor(Color.green);
-            else
-                dc.g.setColor(mFillColor.get());
+            } else {
+                if (hasFill) {
+                    dc.g.setColor(mFillColor.get());
+                } else {
+                    dc.g.setStroke(new BasicStroke(getStrokeWidth())); // todo: from cache
+                    dc.g.setColor(mStrokeColor.get());
+                }
+            }
             //if (isSelected() || getHeight() * dc.zoom > 5)
             if (getHeight() * renderScale > 5) {
                 // filling shapes slower than drawing rectangles, tho not as much an improvement
@@ -2277,14 +2284,20 @@ public class LWNode extends LWContainer
                 // in which case, hava MapViewer set up parameters for this in the DrawContext
                 // and check those flags here.  Also, the selectio stroke is completely useless
                 // when zoomed out -- it's being draw at scale.
-                dc.g.fill(getZeroShape());
+                if (hasFill)
+                    dc.g.fill(getZeroShape());
+                else
+                    dc.g.draw(getZeroShape());
 
                 if (hasChildren())
                     super.drawChildren(dc);
                 
             } else {
                 //dc.setAntiAlias(false);
-                dc.g.fillRect(0, 0, (int)getWidth(), (int)getHeight());
+                if (hasFill)
+                    dc.g.fillRect(0, 0, (int)getWidth(), (int)getHeight());
+                else
+                    dc.g.drawRect(0, 0, (int)getWidth(), (int)getHeight());
             }
                 
             // now we skip drawing text / decorations / children -- just skipping
