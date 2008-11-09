@@ -29,7 +29,7 @@ import com.google.common.collect.Multisets;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.99 $ / $Date: 2008-10-08 18:51:14 $ / $Author: sfraize $
+ * @version $Revision: 1.100 $ / $Date: 2008-11-09 22:58:03 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -573,13 +573,20 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         }
     }
 
-    private void resetStatistics() {
+    public void resetStatistics() {
         mBounds = null;
         mTypes.clear();
         mParents.clear();
         mEditablePropertyKeys = 0; // set to recompute
         if (size() > 0) {
             if (DEBUG.Enabled) Log.debug("RECOMPUTING STATISTICS");
+            
+            // TODO: ideally, we would listen for hierarchy change events on the
+            // selection contents, and auto-recompute mParents whenever a change was
+            // detected -- otherwise, mParents immediately becomes incorrect if a user
+            // action reparents any of the selection contents. This currently has to be
+            // watched for manually by calling resetStatistics (e.g., see LayersUI).
+            
             for (LWComponent c : this) {
                 mParents.add(c.getParent());
                 mTypes.add(c.getClass());
