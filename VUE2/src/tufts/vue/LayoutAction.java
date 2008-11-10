@@ -60,6 +60,7 @@ public abstract  class LayoutAction extends Actions.LWCAction {
     void act(LWSelection selection)   {
         try {
             layout.layout(selection);
+            Actions.ZoomFit.act();
         } catch(Exception ex) {
             
         }
