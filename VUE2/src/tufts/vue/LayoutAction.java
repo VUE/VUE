@@ -32,6 +32,7 @@ import javax.swing.Action;
 // contains layout actions. based on ArrangeAction. The default layout is random layout
 
 public abstract  class LayoutAction extends Actions.LWCAction {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LayoutAction.class);
     private Layout layout = new edu.tufts.vue.layout.ListRandomLayout();
     
     private LayoutAction(edu.tufts.vue.layout.Layout layout, String name,int keyCode) {
@@ -61,8 +62,9 @@ public abstract  class LayoutAction extends Actions.LWCAction {
         try {
             layout.layout(selection);
             Actions.ZoomFit.act();
-        } catch(Exception ex) {
-            
+        } catch(Throwable t) {
+            Log.debug("LayoutAction.act: "+t.getMessage());
+             tufts.Util.printStackTrace(t);
         }
     }
     // random layout. scatters nodes at random
