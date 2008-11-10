@@ -35,9 +35,15 @@ import edu.tufts.vue.metadata.MetadataList;
 import edu.tufts.vue.metadata.VueMetadataElement;
 import edu.tufts.vue.dataset.*;
 
+/* ListRandomLaout - This layout scatters all the nodes at random in a square
+ * by default the area of the square is propotional to the number of nodes in 
+ * selection. 
+ */
 
 public class ListRandomLayout extends Layout {
     public static String DEFAULT_METADATA_LABEL = "default";
+    double nodeSize = 100; // assume the node size to be 100. this can be calculated or set
+        
     /** Creates a new instance of ListRandomLayout */
     public ListRandomLayout() {
     }
@@ -59,13 +65,7 @@ public class ListRandomLayout extends Layout {
             LWNode node1;
             if(!nodeMap.containsKey(node1Label)) {
                 node1 = new LWNode(node1Label);
-                // add the ont type
-                //               VueMetadataElement vmOnt = new VueMetadataElement();
-                //               vmOnt.setValue(ds.getBaseClass());
-//                vmOnt.setType(VueMetadataElement.ONTO_TYPE);
-//                node1.getMetadataList().addElement(vmOnt);
-                
-                for(int i=1;i<row.size();i++ ) {
+                 for(int i=1;i<row.size();i++ ) {
                     String value = row.get(i);
                     String key = ((ds.getHeading()==null) || ds.getHeading().size() <i)?DEFAULT_METADATA_LABEL:ds.getHeading().get(i);
                     //                   System.out.println("i="+i+" key="+key+" value ="+value);
@@ -117,10 +117,13 @@ public class ListRandomLayout extends Layout {
     }
     
     public void layout(LWSelection selection) {
-        double minX =10000;
-        double minY = 10000;
+        // determine the left corner of the selection and and use that as the 
+        // center for layout.  We assume the selection is a rectangle. 
+        // also compute the total number of nodes in the selection
+        double minX = Double.POSITIVE_INFINITY;
+        double minY = Double.POSITIVE_INFINITY;
         int total = 0;
-         Iterator<LWComponent> i = selection.iterator(); 
+        Iterator<LWComponent> i = selection.iterator(); 
         while (i.hasNext()) {
             LWComponent c = i.next();
             if(c instanceof LWNode) {
@@ -132,13 +135,13 @@ public class ListRandomLayout extends Layout {
         }
         double x = minX;
         double y = minY;
-        double size = Math.sqrt(total)* 100;
+        double size = Math.sqrt(total)* nodeSize;
         i = selection.iterator();
          while (i.hasNext()) {
             LWComponent c = i.next();
             if(c instanceof LWNode) {
                 LWNode node = (LWNode)c;
-                node.setLocation(minX+size*(Math.random()-0.5),minY+size*(Math.random()-0.5));
+                node.setLocation(minX+size*(Math.random()-0.5),minY+size*(Math.random()-0.5)); 
             }
         }
     }
