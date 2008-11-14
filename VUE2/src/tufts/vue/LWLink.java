@@ -43,7 +43,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.199 $ / $Date: 2008-09-30 15:43:38 $ / $Author: sfraize $
+ * @version $Revision: 1.200 $ / $Date: 2008-11-14 20:27:40 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -540,13 +540,26 @@ public class LWLink extends LWComponent
     public void setTailPoint(float x, float y) {
         tail.setPoint(this, x, y, KEY_LinkTailPoint);
     }
+
+    // TODO: setting SKIP_NODE_ENPOINT_PRUNE to true is probably a
+    // better tradeoff, tho even better would probably be to reverse
+    // the endpoint effect of the prune controls, where the link
+    // itself is pruned down to a stub at the node you want to have
+    // more focus on, including an action to prune ALL outbound links
+    // on that node, and then users could re-enabled just the stubs
+    // they're interested in.  See VUE-1239 for what prompted this.
+    private static final boolean SKIP_NODE_ENDPOINT_PRUNE = false;
     
     /** interface ControlListener handler */
     public void controlPointPressed(int index, MapMouseEvent e) {
         if (index == CPruneHead && head.hasNode()) {
             toggleHeadPrune();
+            if (SKIP_NODE_ENDPOINT_PRUNE) // may have no model effect of no outbound links on pruned node
+                notify(LWKey.Repaint);
         } else if (index == CPruneTail && tail.hasNode()) {
             toggleTailPrune();
+            if (SKIP_NODE_ENDPOINT_PRUNE)
+                notify(LWKey.Repaint);
         }
     }
 
@@ -631,10 +644,14 @@ public class LWLink extends LWComponent
 
     
     public Collection<LWComponent> getEndpointChain(LWComponent endpoint) {
-        HashSet set = new HashSet();
+        final HashSet set = new HashSet();
+        // pre-add us to the set, so we can't back up through our other endpoint:
         set.add(this);
-        // pre-add us to the set, so we can't back up through our other endpoint
-        return endpoint.getLinkChain(set);
+        //return endpoint.getLinkChain(set);
+        endpoint.getLinkChain(set);
+        if (SKIP_NODE_ENDPOINT_PRUNE)
+            set.remove(endpoint);
+        return set;
     }
     
     /**
