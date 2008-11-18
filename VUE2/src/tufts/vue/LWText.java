@@ -22,8 +22,12 @@ import java.awt.geom.Point2D;
 import java.awt.geom.RectangularShape;
 import java.awt.geom.Point2D.Float;
 
+import javax.swing.text.AttributeSet;
 import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.Style;
+import javax.swing.text.html.CSS;
 import javax.swing.text.html.HTML;
+import javax.swing.text.html.HTMLDocument;
 
 import com.lightdev.app.shtm.SHTMLDocument;
 import com.lightdev.app.shtm.VueStyleSheet;
@@ -372,12 +376,45 @@ public class LWText extends LWComponent {
     
     @Override
     public float getHeight() {
+      
     	//The line height is always off by a 1 line..
         if (richLabelBox == null)
-            return super.getHeight();
+        {int diff = 0;
+		
+			if (VUE.getFormattingPanel() != null && VUE.getFormattingPanel().getTextPropsPane() !=null)
+			{	
+				Object o = VUE.getFormattingPanel().getTextPropsPane().getFontEditorPanel().mSizeField.getSelectedItem();
+				Integer i = new Integer(o.toString());
+				diff = i.intValue();
+			//	System.out.println("DIFFF : " + diff);
+			}
+			//MK445
+            return super.getHeight();// - diff;
+        }
         else
-            return richLabelBox.getHeight();
+        { 
+        	
+        		return (int)richLabelBox.getHeight();
+        }
+
     }
+    /* 
+     * (non-Javadoc)
+     * @see tufts.vue.LWComponent#getLocalWidth()
+     * 
+        	Style  style = (Style) ((HTMLDocument)richLabelBox.getDocument()).getStyleSheet().getStyle("body");
+        //	System.out.println(style.getAttributeNames().toString());
+        	Object a = style.getAttribute(javax.swing.text.html.CSS.Attribute.FONT_SIZE);
+        	
+       
+        	//System.out.println(a.getClass());
+        	if (a !=null)
+        	{
+        		Integer i = new Integer(a.toString());
+        		return (int)richLabelBox.getHeight() - i.intValue();
+        	}
+        	else	
+     */
 
     @Override
     public float getLocalWidth()       { return (float) (getWidth() * getScale()); }
@@ -592,7 +629,7 @@ public class LWText extends LWComponent {
 		// setAutomaticAutoSized(true);
 
 		final float newWidth;
-		final float newHeight;
+		float newHeight;
 
 	
 	
@@ -613,6 +650,9 @@ public class LWText extends LWComponent {
 			//System.out.println("NEW WIDTH : " + newWidth);
 			//System.out.println("NEW HEIGHT : " + newHeight);
 	
+
+		
+			
 		setSizeNoLayout(newWidth, newHeight);
 
 		// layout label last in case size is bigger than min and label is
@@ -695,9 +735,12 @@ public class LWText extends LWComponent {
 		final Size min = new Size();
 		final Size text = getMinimumTextSize();
 
-		min.width = 150;//text.width;
+		min.width = text.width;
 		
+			
 		min.height = EdgePadY + text.height + EdgePadY;
+	//	System.out.println("MIN : " + min.height + " << " + text.height);
+		//min.height = Math.max(min.height, text.height);
 		//System.out.println("Text.height : " + text.height);
 		// *** set icon Y position in all cases to a centered vertical
 		// position, but never such that baseline is below bottom of

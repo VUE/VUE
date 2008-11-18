@@ -15,43 +15,56 @@
 
 package tufts.vue;
 
+import tufts.Util;
 import tufts.vue.gui.ColorMenuButton;
 import tufts.vue.gui.DockWindow;
 import tufts.vue.gui.GUI;
 import tufts.vue.gui.TextRow;
+
+import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.Event;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Font;
 import java.awt.Color;
+import java.awt.BasicStroke;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.util.Date;
-import java.util.Enumeration;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.JComboBox;
-import javax.swing.JTextField;
-import javax.swing.SwingConstants;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+import javax.swing.JTextPane;
+import javax.swing.TransferHandler;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.plaf.TextUI;
 import javax.swing.text.*;
 import javax.swing.text.html.CSS;
 import javax.swing.text.html.HTML;
-import javax.swing.text.html.HTMLEditorKit;
-import javax.swing.text.html.StyleSheet;
+import javax.swing.text.html.HTMLDocument;
 
-import com.lightdev.app.shtm.SHTMLDocument;
 import com.lightdev.app.shtm.SHTMLEditorKit;
+
+//import java.awt.font.LineBreakMeasurer;
+//import java.awt.font.TextAttribute;
 
 /**
  * A multi-line editable text object that supports left/center/right
@@ -96,7 +109,7 @@ import com.lightdev.app.shtm.SHTMLEditorKit;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.29 $ / $Date: 2008-06-30 20:52:54 $ / $Author: mike $
+ * @version $Revision: 1.30 $ / $Date: 2008-11-18 15:28:28 $ / $Author: mike $
  *
  */
 
@@ -105,10 +118,14 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
                , FocusListener
                , KeyListener
                , DocumentListener
+               , MouseListener
+               , ActionListener
 {
-   
-    private static final Color SelectionColor =GUI.getTextHighlightColor();// VueResources.getColor("mapViewer.textBox.selection.color");
-    
+// todo: duplicate not working[? for wrap only? ]
+
+    private static final boolean WrapText = true;
+    private static final Color SelectionColor = GUI.getTextHighlightColor();//VueResources.getColor("mapViewer.textBox.selection.color");
+    private boolean revert = false;
     private static boolean TestDebug = false;
     private static boolean TestHarness = false;
     
@@ -116,7 +133,12 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
     /** bounds: generally used by the component as local coordinates (relative to the coordinate 0,0)
      * The width/height are set here in TextBox */
     private final Rectangle2D.Float mBounds = new Rectangle2D.Float();
-    private boolean wasOpaque; /** were we opaque before we started an edit? */  
+    private boolean wasOpaque; /** were we opaque before we started an edit? */
+    private MutableAttributeSet mAttributeSet;
+    private float mMaxCharWidth;
+    private float mMaxWordWidth;
+    
+    private boolean mKeepHeight = false;
     
     RichTextBox(LWComponent lwc)
     {
@@ -158,6 +180,7 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
         if (TestDebug||DEBUG.TEXT) out("constructed " + getSize());
     }
 
+
     /*
     public String getText() {
         //java.io.ByteArrayOutputStream buf = new java.io.ByteArrayOutputStream();
@@ -177,7 +200,13 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
     }
     */
 
-  
+    public float getMaxCharWidth() {
+        return mMaxCharWidth;
+    }
+
+    public float getMaxWordWidth() {
+        return mMaxWordWidth;
+    }
 
     LWComponent getLWC() {
         return this.lwc;
@@ -199,7 +228,7 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
     private String mUnchangedText;
     private Dimension mUnchangedSize;
     private boolean keyWasPressed = false;
-    //private static final int MinEditSize = 11; // todo: prefs
+    private static final int MinEditSize = 11; // todo: prefs
     // todo bug: on PC, font edits at size < 11 are failing produce the
     // right selection or cursor coordinates, and what you see
     // is NOT what you get anymore.  ACTUALLY, this may be due
@@ -211,24 +240,118 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
     // tho it does have only 3 lines -- ugh, this is going
     // to require alot of fiddling and testing.
 
-    public void setBounds(Rectangle r)
-    {
-    	super.setBounds(r);
-    }
-    
-    
+
     /** called by MapViewer before we go active on the map */
     void saveCurrentState()
     {
-        mUnchangedText = getRichText();
-        mUnchangedSize = getPreferredSize();
+        mUnchangedText = getText();
+        mUnchangedSize = getSize();
     }
     
     /** deprecated */
     void saveCurrentText() {
         saveCurrentState();
     }
-    
+    /*
+    @Override
+    public void addNotify()
+    {
+        if (TestDebug||DEBUG.TEXT) out("*** ADDNOTIFY ***");
+        if (getText().length() < 1)
+            setText("<label>");
+        keyWasPressed = false;
+        Dimension size = getSize();
+        super.addNotify();
+        // note: we get a a flash/move if we add the border before the super.addNotify()
+        if (false && TestDebug)
+            ; //setBorder(javax.swing.BorderFactory.createLineBorder(Color.green));
+        else {
+            // ADDING THIS BORDER INCREASES THE PREFERRED SIZE
+            // Width goes up by 4 pix and height goes up by a line because
+            // actual getSize width no longer fits.  Very convoluted.
+            //setBorder(javax.swing.border.LineBorder.createGrayLineBorder());
+        }
+        java.awt.Container parent = getParent();
+        if (parent instanceof MapViewer) { // todo: could be a scroller?
+            double zoom = ((MapViewer)parent).getZoomFactor();
+            zoom *= lwc.getMapScale();
+            if (zoom != 1.0) {
+                final Font f = lwc.getFont();
+                float zoomedPointSize = (float) (f.getSize() * zoom);
+                if (zoomedPointSize < MinEditSize)
+                    zoomedPointSize = MinEditSize;
+                preZoomFont = f;
+                final Font screenFont = f.deriveFont(f.getStyle(), zoomedPointSize);
+                setDocumentFont(screenFont);
+                if (TestDebug||DEBUG.TEXT) {
+                    out("derived temporary screen font:"
+                        + "\n\t   net zoom: " + zoom
+                        + "\n\t  node font: " + f
+                        + "\n\tscreen font: " + screenFont + " size2D=" + screenFont.getSize2D()
+                        );
+                }
+                if (WrapText) {
+                    double boxZoom = zoomedPointSize / preZoomFont.getSize();
+                    size.width *= boxZoom;
+                    size.height *= boxZoom;
+                } else {
+                    setSize(getPreferredSize());
+                }
+            } else {
+                // this forces the AWT to redraw this component
+                // (just calling repaint doesn't do it).
+                // When zoomed we must do this (see above), so
+                // in that case it's already handled.
+                setDocumentFont(lwc.getFont());
+            }
+        }
+            
+        wasOpaque = isOpaque();
+        Color background = lwc.getRenderFillColor(null);
+        //if (c == null && lwc.getParent() != null && lwc.getParent() instanceof LWNode)
+        final LWContainer nodeParent = lwc.getParent();
+        if (background == null && nodeParent != null)
+            background = nodeParent.getRenderFillColor(null); // todo: only handles 1 level transparent embed!
+        // todo: could also consider using map background if the node itself
+        // is transpatent (has no fill color)
+
+        // TODO: this workaround until we can recursively find a real fill color
+        // node that for SLIDES, we'd have to get awfully fancy and
+        // usually pull the color of the master slide (unless the slide
+        // happened to have it's own special color).  Only super clean
+        // way to do this would be to have established some kind of
+        // rendering pipeline record... (yeah, right)
+        if (background == null) background = Color.gray;
+        //out("BACKGROUND COLOR " + background);
+
+        // TODO: the *selection* color always appears to be gray in for edits
+        // in the slide viewer on the mac, even if we manually set the selection
+        // color (which works in the main MapViewer) -- this is an oddity...
+        
+        if (background != null) {
+            // note that if we set opaque to false, interaction speed is
+            // noticably slowed down in edit mode because it has to consider
+            // repainting the entire map each cursor blink as the object
+            // is transparent, and thus it's background is the displayed
+            // map.  So if we can guess at a reasonable fill color in edit mode,
+            // we temporarily set us to opaque.
+            setOpaque(true);
+            setBackground(background);
+        }
+        setSize(size);
+
+        Dimension preferred = getPreferredSize();
+        int w = getWidth() + 1;
+        if (w < preferred.width)
+            mKeepTextWidth = true;
+        else
+            mKeepTextWidth = false;
+        if (TestDebug||DEBUG.TEXT) out("width+1=" + w + " < preferred.width=" + preferred.width + " fixedWidth=" + mKeepTextWidth);
+        
+        if (TestDebug||DEBUG.TEXT) out("addNotify end: insets="+getInsets());
+        mFirstAfterAddNotify = true;
+    }
+    */
     @Override
     public void addNotify()
     {
@@ -276,18 +399,7 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
             setBackground(background);
         }
         setSize(getPreferredSize());
-/*
-        Dimension preferred = getPreferredSize();
-        int w = getWidth() + 1;
-        if (w < preferred.width)
-            mKeepTextWidth = true;
-        else
-            mKeepTextWidth = false;
-        if (TestDebug||DEBUG.TEXT) out("width+1=" + w + " < preferred.width=" + preferred.width + " fixedWidth=" + mKeepTextWidth);
-        
-        if (TestDebug||DEBUG.TEXT) out("addNotify end: insets="+getInsets());
-        mFirstAfterAddNotify = true;
-    */
+
     }
    
     /*
@@ -309,20 +421,30 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
         
         super.removeNotify();
 
-     /*   if (mFirstAfterAddNotify == false) {
+        if (mFirstAfterAddNotify == false) {
             // if cleared, it was used
             out("restoring expanded width");
             setSize(new Dimension(getWidth()-1, getHeight()));
             //out("SKPPING restoring expanded width");
         } else
             mFirstAfterAddNotify = false;
-       */ 
+        
         setBorder(null);
-        /*if (preZoomFont != null) {
+        if (preZoomFont != null) {
             setDocumentFont(preZoomFont);
             preZoomFont = null;
-            setSize(getPreferredSize());                       
-        }*/
+        //    if (WrapText) {
+          //      adjustSizeDynamically();
+            //} else {
+                setSize(getPreferredSize());
+                // WE MUST DO THIS A SECOND TIME TO MAKE SURE THIS WORKS:
+                // JTextPane can actually produce inconsistent results
+                // when getPreferredSize() is called, especially if it's
+                // results were just use to set the size of the object.
+                // A second get/set produces more reliable results.
+                setSize(getPreferredSize());
+           // }
+        }
         
         if (wasOpaque != isOpaque())
             setOpaque(wasOpaque);
@@ -334,6 +456,7 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
         // location, thus clearing the selection.
         setCaretPosition(getCaretPosition());
     }
+
 
     @Override
     public void setText(String text)
@@ -351,42 +474,32 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
     
     public void setXMLText(String text)
     {
-        super.setText(text);
-     
-        
-    
-    	
+        super.setText(text);	
     }
 
-   
+    public boolean keepHeight() {
+        if (mKeepHeight) {
+            mKeepHeight = false;
+            return true;
+        } else
+            return false;
+    }
 
 
     private void setDocumentFont(Font f)
     {
-     //   if (DEBUG.TEXT) out("setDocumentFont " + f);
-     //   SimpleAttributeSet a = new SimpleAttributeSet();
-     //   setFontAttributes(a, f);
-     //   SHTMLDocument doc = (SHTMLDocument)this.getDocument();
-     //   doc.setParagraphAttributes(0, doc.getEndPosition().getOffset(), a, false);
-     //   computeMinimumWidth(f, lwc.getLabel());
-     //   mKeepHeight = true;
+        
     }
 
     private void setDocumentColor(Color c)
     {
-    //	System.out.println("Rich text set DOcument color to :" + c.toString());
-    //    StyleConstants.setForeground(mAttributeSet, c);
-    //    SHTMLDocument doc = (SHTMLDocument)this.getDocument();
-    //    doc.setParagraphAttributes(0, doc.getEndPosition().getOffset(), mAttributeSet, true);
+        
     }
 
 
     private static void setFontAttributes(MutableAttributeSet a, Font f)
     {
-    //    StyleConstants.setFontFamily(a, f.getFamily());
-    //    StyleConstants.setFontSize(a, f.getSize());
-    //    StyleConstants.setItalic(a, f.isItalic());
-    //    StyleConstants.setBold(a, f.isBold());
+       
     }
 
     
@@ -394,35 +507,101 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
     // the font style encoded in our owning LWComponent
     void copyStyle(LWComponent c)
     {
-      /*  if (DEBUG.TEXT) out("copyStyle " + c);
-        SimpleAttributeSet a = new SimpleAttributeSet();
-        if (TestHarness || c instanceof LWNode && ((LWNode)c).isTextNode())
-            StyleConstants.setAlignment(a, StyleConstants.ALIGN_LEFT);
-        else
-            StyleConstants.setAlignment(a, StyleConstants.ALIGN_CENTER);
-        StyleConstants.setForeground(a, c.getTextColor());
-        final Font font = c.getFont();
-        setFontAttributes(a, font);
-
-        SHTMLDocument doc = (SHTMLDocument)this.getDocument();
-        if (DEBUG.TEXT) getPreferredSize();
-        doc.setParagraphAttributes(0, doc.getEndPosition().getOffset(), a, false);
-        if (DEBUG.TEXT) getPreferredSize();
-        computeMinimumWidth(font, lwc.getLabel());
-        mKeepHeight = true;
-        mAttributeSet = a;
-
-        if (WrapText) {
-            // adjust WIDTH ONLY (or: attempt to keep aspect)
-            //adjustSize(false);
-        } else {
-            setSize(getPreferredSize());
-            setSize(getPreferredSize());
-        }
-        */
+      
     }
 
-      /** override Container.doLayout: only called when we've been added to a map for interactive editing.
+
+    /** compute mMaxWordWidth and mMaxCharWidth */
+    private void computeMinimumWidth(Font font, String text) {
+        mMaxCharWidth = (float) font.getMaxCharBounds(DefaultFontContext).getWidth();
+        try {
+            mMaxWordWidth = maxWordWidth(font, text);
+        } catch (Exception e) {
+            mMaxWordWidth = mMaxCharWidth;
+        }
+    }
+
+    private static final boolean DebugWord = false;
+    private static final int BigWordLen = 9;
+    private float maxWordWidth(Font font, String text) {
+
+        if (text == null || text.length() == 0)
+            return mMaxCharWidth;
+
+        if (text.length() > 512) // provide a rough figure if string is long
+            return mMaxCharWidth * BigWordLen;
+
+        if (text.indexOf(' ') < 0 && text.indexOf('\n') < 0) // if no spaces, specal case no wrapping
+            return (float) font.getStringBounds(text, DefaultFontContext).getWidth();
+
+        int maxRunIdx = 0;
+        int maxRunLen = 0;
+        int curRunIdx = 0;
+        int curRunLen = 0;
+        boolean lastWasBreak = false;
+        float maxWidth = 0;
+        final int len = text.length();
+
+        for (int i = 0; i <= len; i++) {
+            char c;
+            if (i < len) {
+                c = text.charAt(i);
+                curRunLen++;
+            } else
+                c = 0;
+
+            if (DebugWord) out("char[" + c + "] ci="+curRunIdx + " cl=" + curRunLen);
+
+            // add '/' as word break character if no whitespace?
+            if (c == 0 || Character.isWhitespace(c) || c == '.' || c == ',')
+                ; // treat as a word break
+            else
+                continue;
+                
+            if (c != 0) { // if we're not at the end
+                try {
+                    char whiteChar;
+                    do {
+                        curRunLen++;
+                        whiteChar = text.charAt(++i);
+                        if (DebugWord) out("char{" + whiteChar + "} ci="+curRunIdx + " cl=" + curRunLen);
+                    } while (Character.isWhitespace(whiteChar));
+                } catch (StringIndexOutOfBoundsException e) {
+                    if (DebugWord) out("charEOS ci="+curRunIdx + " cl=" + curRunLen);
+                }
+                curRunLen--;
+                i--;
+            }
+            float wordWidth = (float)
+                font.getStringBounds(text,
+                                     curRunIdx,
+                                     curRunIdx + curRunLen,
+                                     DefaultFontContext).getWidth();
+            
+            if (DebugWord) out("word[" + text.substring(curRunIdx, curRunIdx + curRunLen) + "] w=" + wordWidth);
+                
+            if (wordWidth > maxWidth) {
+                if (c == 0 && curRunIdx == 0) {
+                    // If no whitespace in the whole thing, allow some breaking (should never happen currently)
+                    return wordWidth < mMaxCharWidth * BigWordLen ? wordWidth : mMaxCharWidth * BigWordLen;
+                } else {
+                    maxWidth = wordWidth;
+                    maxRunIdx = curRunIdx;
+                    maxRunLen = curRunLen;
+                    if (DebugWord) out("MI="+curRunIdx + " ML=" + curRunLen + " w=" + wordWidth);
+                }
+            }
+            curRunIdx = i + 1;
+            curRunLen = 0;
+        }
+        
+        if (DebugWord || DEBUG.TEXT) out("maxWord[" + text.substring(maxRunIdx, maxRunIdx + maxRunLen) + "] w=" + maxWidth);
+
+        return maxWidth;
+    }
+
+    
+    /** override Container.doLayout: only called when we've been added to a map for interactive editing.
      * Is called during interactive edit's after each modification.
      */
     public void doLayout()
@@ -434,35 +613,29 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
             // here so that the box size doesn't
             // temporarily flash bigger on every update.
             if (TestDebug || DEBUG.LAYOUT) out("doLayout w/adjustSizeDynamically");
-         //   if (false)
-         //       out("skipping size fix-up");
-         //   else {
-                //if (WrapText)
-                
-                    //adjustSizeDynamically();
-                //else {
+            if (false)
+                out("skipping size fix-up");
+            else {
+          //      if (WrapText)
+           //         adjustSizeDynamically();
+            //    else {
                     setSize(getPreferredSize());
                     setSize(getPreferredSize());
-               // }
-           // }
+              //  }
+            }
         } else {
             if (!TestHarness)
                 new Throwable(this + " UNPARENTED doLayout").printStackTrace();
-            
         }
         //super.layout();
     }
 
     private boolean mFirstAfterAddNotify = false;
     private boolean mKeepTextWidth = false;
-   
-    public void keyReleased(KeyEvent e) 
-    { 
-    	setSize(getPreferredSize());
-    	lwc.notify(this, LWKey.Repaint);
-    	e.consume();
-    }
-    public void keyTyped(KeyEvent e) {    	
+    
+    
+    public void keyReleased(KeyEvent e) { e.consume(); }
+    public void keyTyped(KeyEvent e) {
         // todo: would be nice if centered labels stayed center as you typed them
         //setLocation((int)lwc.getLabelX(), (int)lwc.getLabelY());
         // needs something else, plus can't work at zoom because
@@ -471,10 +644,6 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
         // Man, it would be REALLY nice if we could paint the
         // real component in a scaled GC w/out the font tweaking --
         // problems like this would go away.
-    	//setSize(getPreferredSize());
-    	//lwc.notify(this, LWKey.Repaint);
-    	//e.consume();
-    	//System.out.println("KEY TYPED");
     }
     private static boolean isFinishEditKeyPress(KeyEvent e) {
         // if we hit return key either on numpad ("enter" key), or
@@ -487,9 +656,17 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
              )
             == true;
         //== false; // reversed logic of below description
-        
-    }   
-    private boolean revert = false;
+    }
+
+    private Container removeAsEdit() {
+        Container parent = getParent();
+        if (parent != null)
+            parent.remove(this);
+        else
+            out("FAILED TO FIND PARENT ATTEMPTING TO REMOVE SELF");
+        return parent;
+    }
+    
     public void keyPressed(KeyEvent e)
     {
         if (DEBUG.KEYS) out(e.toString());
@@ -498,18 +675,13 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
         //if (VueUtil.isAbortKey(e)) // check for ESCAPE for CTRL-Z or OPTION-Z if on mac
         if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
             e.consume();
-       
-       //     System.out.println(mUnchangedText);
-            //setText(mUnchangedText);
-            revert = true;
             getParent().remove(this); // will trigger a save (via focusLost)
-            return;
-           // setSize(mUnchangedSize); // todo: won't be good enough if we ever resize the actual node as we type
+            super.setText(mUnchangedText); 
+            setSize(mUnchangedSize); // todo: won't be good enough if we ever resize the actual node as we type
         } else if (isFinishEditKeyPress(e)) {
             keyWasPressed = true;
             e.consume();
             getParent().remove(this); // will trigger a save (via focusLost)
-            VUE.getFormattingPanel().getTextPropsPane().getFontEditorPanel().updateFormatControlsTB(this);
         } else if (e.getKeyCode() == KeyEvent.VK_U && e.isMetaDown()) {
             e.consume();
             String t = getText();
@@ -520,12 +692,9 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
         } else
             keyWasPressed = true;
 
-        setSize(getPreferredSize());
-        
         // action keys will be ignored if we consume this here!
         // (e.g., "enter" does nothing)
         //e.consume();
-        
     }
 
     /**
@@ -589,10 +758,11 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
             //	setText(text);
             }
             lwc.setLabel0(text, false);
-           
+            
             VUE.getUndoManager().mark();
         }
         setSize(getPreferredSize());
+      //  lwc.setSize(mBounds.width, mBounds.height);
         if (lwc.getParent() !=null && lwc.getParent() instanceof LWNode)
     		lwc.getParent().layout();
         lwc.notify(this, LWKey.Repaint);
@@ -609,22 +779,42 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
         if (true||TestDebug) out("setPreferred " + preferredSize);
         super.setPreferredSize(preferredSize);
     }
+    /*@Override
+    public Dimension getPreferredSize() {
+        Dimension s = super.//getPreferredSize();
+        //getMinimumSize();//debug
+        //s.width = (int) lwc.getWidth();
+        //System.out.println("MTP lwcWidth " + lwc.getWidth());
+        if (getParent() != null)
+            s.width += 1; // leave room for cursor, which at least on mac gets clipped if at EOL
+        //if (getParent() == null)
+        //    s.width += 10;//fudge factor for understated string widths (don't do this here -- need best accuracy here)
+        if (TestDebug) out("getPrefer", s);
+        //if (TestDebug && DEBUG.META) new Throwable("getPreferredSize").printStackTrace();
+        return s;
+    }
+*/
     
+    /*
+     *    Style  style = ((HTMLDocument) getDocument()).getStyleSheet().getStyle("body");
+    	Object a = style.getAttribute(javax.swing.text.html.CSS.Attribute.FONT_SIZE);
     	
-    //private Dimension prevDim = null;
-    @Override
+    	if (a !=null)
+    	{	if (DEBUG.TEXT)
+    			out("got style");
+    		int diff =0;
+    		Integer i = new Integer(a.toString());
+    		diff = i.intValue();
+    		minS.height = minS.height - diff;
+    	}
+     */
     public Dimension getPreferredSize() 
     {
-      
    		Dimension s = super.getPreferredSize();
-   	
-   		
-   		
-   		   		
-   			
    	
         Dimension minS = super.getMinimumSize();
               
+     
         //System.out.println(javax.swing.SwingUtilities.getLocalBounds(this));
         //if (TestDebug||DEBUG.TEXT) out("getPrefer", s);
         
@@ -640,12 +830,13 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
         //how to figure out what line you're on.
        
         Dimension min = new Dimension();
-        min.width = 150;//text.width;
+    	final Dimension text = getMinimumSize();
+        min.width = text.width;
     	
-        int EdgePadY = 4; // Was 3 in VUE 1.5
+        int EdgePadY = 0; // Was 3 in VUE 1.5
         int LabelPadLeft = 8; // Was 6 in VUE 1.5; fixed
         
-		min.height = EdgePadY + min.height + EdgePadY;
+	
 		//System.out.println("Text.height : " + text.height);
 		// *** set icon Y position in all cases to a centered vertical
 		// position, but never such that baseline is below bottom of
@@ -680,11 +871,11 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
 		//	this.getPreferredScrollableViewportSize().width
 		//	
 		//	
-		
+	
 	     View ui = getUI().getRootView(this);
 	     ui = ui.createFragment(this.getSelectionStart(), this.getSelectionEnd());
 	     //System.out.println("min span: " + ui.getMinimumSpan(View.X_AXIS));
-	     
+	    
 //**	     int start = getSelectionStart();
 //**	     int end = getSelectionEnd();
 //**	    float f = ui.getPreferredSpan(View.X_AXIS);
@@ -712,7 +903,7 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
 //**		//if (p2 != null)
 //**			//System.out.println("Selection end rect : " + p2.x);
 //**		
-        if (mBounds.width > 0)
+    if (mBounds.width > 0)
         {
 //**        	if (p2 != null && p2.x > mBounds.width)
 //**        		mBounds.width = p2.x;
@@ -727,6 +918,7 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
                 	
         int		height = s.height;//Math.max(s.height, 48);
         	
+      
         	if (position !=null)
         	{
         		
@@ -752,7 +944,7 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
         	System.out.println("width ratio : " + widthRatio);
        		System.out.println("height ratio : " + heightRatio);
        	*/	
-        /*	if (this.getGraphics() != null)
+      /*  	if (this.getGraphics() != null)
         	System.out.println("FONT HEIGHT : " +this.getGraphics().getFontMetrics().getMaxAscent());
         	System.out.println("===================================");
         	System.out.println("super pref height : " + s.height);
@@ -784,25 +976,61 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
         	}*/
         	
         }
-        
-        return s;
+       // s.width = (int)(s.width * VUE.getActiveViewer().getZoomFactor());
+     //   s.height = (int)(s.height * VUE.getActiveViewer().getZoomFactor());
+    //	s.height=(int) this.getBoxBounds().getHeight();
+   if (s.height < this.getBoxBounds().getHeight())
+   {
+    	s.height = (int)this.getBoxBounds().getHeight();
+   
+   }
+   
+   
+	
+	
+	//MK - Subtracting here causes a shrinking box every activation, ugh.
+	
+   
+	return s;//this.getBoxBounds();
     }
 
     public void setSize(Size s) {
         setSize(s.dim());
     }
 
-
-    public void setSize(Dimension s) 
-    {
+    public void setSize(Dimension s) {
+        if (TestDebug||DEBUG.TEXT) out("setSize", s);
+        super.setSize(s);
+        mBounds.width = s.width;
+        mBounds.height = s.height;
+        Style  style = ((HTMLDocument) getDocument()).getStyleSheet().getStyle("body");
+    	Object a = style.getAttribute(javax.swing.text.html.CSS.Attribute.FONT_SIZE);
     	
-    		if (TestDebug||DEBUG.TEXT) out("setSize", s);
-    		super.setSize(s);
-    		mBounds.width = s.width;
-    		mBounds.height = s.height;
+    	if (a !=null)
+    	{	if (DEBUG.TEXT)
+    			out("got style");
+    		int diff =0;
+    		Integer i = new Integer(a.toString());
+    		diff = i.intValue();
+    		//s.height = s.height - diff;
+    		//mBounds.height=s.height;
+    	}
     	
-
+//         if (preZoomFont == null) {
+//             // preZoomFont only set if we had to zoom the font
+//             //this.mapWidth = s.width;
+//             //this.mapHeight = s.height;
+//             mBounds.width = s.width;
+//             mBounds.height = s.height;
+            
+//         }
     }
+    /*
+    public void setHeight(int h) {
+        // todo: may need to all the above setSize for font code
+        super.setSize(getWidth(), h);
+    }
+    */
 
     /**
      * Set the size to the given size, increasing or decreasing height as
@@ -825,7 +1053,6 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
         
         final Dimension s = getPreferredSize();
         s.width = getWidth();
-        
         if (TestDebug||DEBUG.TEXT) out("flexHeigt", s);
         super.setSize(s.width, s.height);
     }
@@ -837,11 +1064,11 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
     public void setPreferredSize(float w, float h) {
         setPreferredSize(new Dimension((int)w, (int)h));
     }
-    
+   
     public Dimension getSize() {
         Dimension s = super.getSize();
         //s.width = (int) lwc.getWidth();
-        if (TestDebug||DEBUG.TEXT) out("getSize", s);
+        if (TestDebug) out("getSize", s);
         //if (DEBUG.TEXT&&DEBUG.META) new Throwable("getSize").printStackTrace();
         return s;
     }
@@ -860,13 +1087,29 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
     }
     public Dimension getMinimumSize() {
         Dimension s = super.getMinimumSize();
-        if (TestDebug||DEBUG.TEXT) out("getMinimumSize", s);
+    
+		
+    	Style  style = ((HTMLDocument) getDocument()).getStyleSheet().getStyle("body");
+    	Object a = style.getAttribute(javax.swing.text.html.CSS.Attribute.FONT_SIZE);
+    	
+    	if (a !=null)
+    	{	if (DEBUG.TEXT)
+    			out("got style");
+    		int diff =0;
+    		Integer i = new Integer(a.toString());
+    		diff = i.intValue();
+    	//	s.height = s.height - diff;
+    	}
+		
+		//At smaller size font the label size is more off.
+		//if (diff > 16)
+			//diff = 0;
+		if (TestDebug||DEBUG.TEXT) out("getMinimumSize", s);
         return s;
     }
 
     @Override
     public void reshape(int x, int y, int w, int h) {
-    //	System.out.println("RESHAPE : " + mBounds.width + " " + mBounds.height);
         if (TestDebug||DEBUG.TEXT) {
             boolean change = getX() != x || getY() != y || getWidth() != w || getHeight() != h;
             if (change) {
@@ -877,8 +1120,6 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
             if (DEBUG.META && change)
                 new Throwable("reshape").printStackTrace();
         }
-        boolean change = getX() != x || getY() != y || getWidth() != w || getHeight() != h;
-    //    out("  reshape " + w + "x" + h + " " + x + "," + y + (change ? "" : " (no change)"));
         super.reshape(x, y, w, h);
         if (TestDebug||DEBUG.TEXT) {
             Rectangle b = getBounds();
@@ -930,21 +1171,20 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
     public float getBoxHeight() { return mBounds.height; }
     public float getBoxX() { return mBounds.x; };
     public float getBoxY() { return mBounds.y; }
-      
-
-    public int getHeight()
-    {
-    	
-    	//The line height is always off by a 1 line..
-    	/*if (this.isEditable() && this.getCaret().getMagicCaretPosition() != null)
-    	{
-    		System.out.println("MAGIC CURSOR " );
-    		return super.getHeight();
-    	}
-    	else*/
-    		return super.getHeight();
-    }
     
+    /*
+    void resizeToWidth(float w)
+    {
+        int width = (int) (w + 0.5f);
+        setSize(new Dimension(width, 999));  // can set height to 1 as we're ignore the set-size
+        // now the preferred height will be set to the real
+        // total text height at that width -- pull it back out and set actual size to same
+        Dimension ps = getPreferredSize();
+        setSize(new Dimension(width, (int)ps.getHeight()));
+    }
+    */
+
+
     public void Xpaint(Graphics g) {
         super.paint(g);
         g.setColor(Color.gray);
@@ -956,7 +1196,7 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
     {
         if (TestDebug||DEBUG.TEXT) out("paintComponent @ " + getX() + "," + getY() + " parent=" + getParent());
 
-        MapViewer viewer = (MapViewer) javax.swing.SwingUtilities.getAncestorOfClass(MapViewer.class, this);
+        final MapViewer viewer = (MapViewer) javax.swing.SwingUtilities.getAncestorOfClass(MapViewer.class, this);
         if (viewer != null)
             ((Graphics2D)g).setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, viewer.AA_ON);
         // turn on anti-aliasing -- the cursor repaint loop doesn't
@@ -970,15 +1210,19 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
             final int ypad = 1;
             g.drawRect(-xpad,-ypad, getWidth()+xpad*2-1, getHeight()+ypad*2-1);
         }
-      //  System.out.println(g.getClipBounds());
-      //  Graphics2D g2d =((Graphics2D)g);
-       // System.out.println(g2d.getDeviceConfiguration().getBounds());
-        
-    }  
-   
+    }
+
+    private static final BasicStroke MinStroke = new BasicStroke(1/8f);
+    private static final BasicStroke MinStroke2 = new BasicStroke(1/24f);
+
+    /** @return true if hue value of Color is black, ignoring any alpha */
+    private boolean isBlack(Color c) {
+        return c != null && (c.getRGB() & 0xFFFFFF) == 0;
+    }
+    
     public void draw(DrawContext dc)
     {
-        if (TestDebug||DEBUG.TEXT) out("draw");
+        if (TestDebug) out("draw");
 
         if (getParent() != null)
             System.err.println("Warning: 2nd draw of an AWT drawn component!");
@@ -998,18 +1242,17 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
             }
         }
 
-        //boolean inverted;
-        //if (dc.isBlackWhiteReversed() &&
-          //  (dc.isPresenting() || lwc.isTransparent() /*|| isBlack(lwc.getFillColor())*/) &&
-           // isBlack(lwc.getTextColor())) {
-            //System.out.println("reversing color to white for " + this);
-         //   setDocumentColor(Color.white);
-           // inverted = true;
-       // } else
-         //   inverted = false;
-        
         boolean restoreTextColor = false;
         
+//         if (dc.isBlackWhiteReversed() &&
+//             (dc.isPresenting() || lwc.isTransparent() /*|| isBlack(lwc.getFillColor())*/) &&
+//             isBlack(lwc.getTextColor())) {
+//             //System.out.println("reversing color to white for " + this);
+//             setDocumentColor(Color.white);
+//             inverted = true;
+//         } else
+//             inverted = false;
+
         if (dc.isPresenting() && lwc.isTransparent()) {
             // if the text color equals the background color when in a presentation
             // (e.g. the master slide has a black background), and the text box
@@ -1017,21 +1260,36 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
             // the text color to white or black so it can be seen.
             if (lwc.mTextColor.equals(dc.getBackgroundFill())) {
                 restoreTextColor = true;
-                if (lwc.mTextColor.brightness() > 0.5)
-                    setDocumentColor(Color.black);
-                else
-                    setDocumentColor(Color.white);
+                if (lwc.mTextColor.brightness() > 0.5) {
+                    setDocumentColor(DEBUG.Enabled ? Color.blue  : Color.black);
+                } else {
+                    setDocumentColor(DEBUG.Enabled ? Color.green : Color.white);
+                }
             }
         }
         
         //super.paintBorder(g);
+        
+//         // As of least Mac OS X 10.4.10 w/JVM 1.5.0_07 on 2007-08-13,
+//         // it appears there's no way to NOT render anti-aliased text,
+//         // unless there's some other way to override it in JTextPane/JTextComponent
+//         // Not a big deal -- we'd only like the option for a slight speed up
+//         // during animations.
+//         dc.g.setRenderingHint(java.awt.RenderingHints.KEY_TEXT_ANTIALIASING,
+//                               java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+//         dc.g.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING,
+//                               java.awt.RenderingHints.VALUE_ANTIALIAS_OFF);
+//         // Even this doesn't appear to help:
+//         putClientProperty(com.sun.java.swing.SwingUtilities2.AA_TEXT_PROPERTY_KEY, Boolean.FALSE);
+        
+        
         super.paintComponent(dc.g);
         //super.paint(g);
-        if (restoreTextColor) 
+
+        if (restoreTextColor) {
             // return document color to black
             setDocumentColor(lwc.mTextColor.get());
-      //  if (inverted)
-     //       setDocumentColor(Color.black);
+        }
 
         // draw a border for links -- why?
         // and even if, better to handle in LWLink
@@ -1073,78 +1331,77 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
 
     }
 
-    public void overrideTextColor(Color c)
-    {
-    	//System.out.println("OVERRIDE TEXT COLOR : " + c.toString());
-    	SimpleAttributeSet set = new SimpleAttributeSet();
-   	        String colorString = "#" + Integer.toHexString(
-   	                c.getRGB()).substring(2);
-   	        com.lightdev.app.shtm.Util.styleSheet().addCSSAttribute(set,
-   	                CSS.Attribute.COLOR, colorString);
-   	        
-   	            set.addAttribute(HTML.Attribute.COLOR, colorString);
-   	            this.applyAttributesGlobally(set, true,false);
+    private void handleChange() {
+        // appears to be happening too late for dynamic size adjust -- current character isnt include
     }
-  
     public void removeUpdate(DocumentEvent de) {
-        if (TestDebug||DEBUG.TEXT)
-        	out("removeUpdate " + de);
-    	
-        //Having both this setSize/repaint and the getParent layout causes some
-        //weird state that results in an array indesx out of bounds in some cases...
-        //the layout() makes sure the parent node is resized properly which wasn't
-        //previously happening when just hte setSize and the lwc notify were getting called.
-    		//setSize(getPreferredSize());   		
-    		//lwc.notify(this, LWKey.Repaint);
-    		
-        if (lwc.getParent() !=null)
-        {
-    		lwc.getParent().layout();
-      //  System.out.println("FULL CONTAINS CHILDREN : " + lwc.getParent().fullyContainsChildren());
-        }
-    //	setSize(getPreferredSize());
-    	lwc.notify(this, LWKey.Repaint);
+        if (TestDebug||DEBUG.TEXT) out("removeUpdate " + de);
+        handleChange();
     }
     public void changedUpdate(DocumentEvent de) {
-        if (TestDebug||DEBUG.TEXT) 
-        	out("changeUpdate " + de.getType() + " len=" + de.getLength());
-
-			//setSize(getPreferredSize());
-        	//lwc.notify(this, LWKey.Repaint);
-        	
-        	if (lwc.getParent() !=null){
-        		lwc.getParent().layout();
-        
-        	//System.out.println("FULL CONTAINS CHILDREN : " + lwc.getParent().fullyContainsChildren());
-        	}
-      //   	setSize(getPreferredSize());
-        	lwc.notify(this, LWKey.Repaint);
-        	
+        if (TestDebug||DEBUG.TEXT) out("changeUpdate " + de.getType() + " len=" + de.getLength());
+        handleChange();
     }
     public void insertUpdate(DocumentEvent de) {
-        if (TestDebug||DEBUG.TEXT) 
-        	out("insertUpdate " + de);
-
-	//	setSize(getPreferredSize());
-		//lwc.notify(this, LWKey.Repaint);
-		
-        if (lwc.getParent() !=null){
-    		lwc.getParent().layout();
-       // System.out.println("FULL CONTAINS CHILDREN : " + lwc.getParent().fullyContainsChildren());
-        }
-    	//setSize(getPreferredSize());
-    	lwc.notify(this, LWKey.Repaint);
+        if (TestDebug||DEBUG.TEXT) out("insertUpdate " + de);
+        handleChange();
     }
-    
+
     public String toString()
     {
-        return "RTB[" + lwc + "]";
+        return "RichTextBox[" + lwc + "]";
     }
+
+    @Override
+    public int getHeight() 
+    {  
+        	Style  style = ((HTMLDocument) getDocument()).getStyleSheet().getStyle("body");
+        	Object a = style.getAttribute(javax.swing.text.html.CSS.Attribute.FONT_SIZE);
+        	
+        	if (a !=null)
+        	{
+        		int diff =0;
+        		Integer i = new Integer(a.toString());
+        		diff = i.intValue();
+        		//diff=0;
+        		return (int)super.getHeight() ;//- diff;
+        	}
+        	else	
+        	{
+        		int diff = 0;
+        		
+        		if (VUE.getFormattingPanel() != null && VUE.getFormattingPanel().getTextPropsPane() !=null)
+        		{	
+        			Object o = VUE.getFormattingPanel().getTextPropsPane().getFontEditorPanel().mSizeField.getSelectedItem();
+        			Integer i = new Integer(o.toString());
+        			diff = i.intValue();
+        		}
+        		diff=0;
+        		return (int)super.getHeight() - diff;        
+        	}
+    }
+ 
    
     private String id() {
         return Integer.toHexString(System.identityHashCode(this));
     }
 
+    private void out(String s) {
+        System.out.println("TextBox@" + id() + " [" + getText() + "] " + s);
+        //System.out.println("TextBox@" + id() + " " + s);
+    }
+    private void out(String s, Dimension d) {
+        out(VueUtil.pad(' ', 9, s, true) + " " + tufts.Util.out(d));
+    }
+    
+    private void out(String s, Dimension d, String s2) {
+        out(VueUtil.pad(' ', 9, s, true) + " " + tufts.Util.out(d) + " " + s2);
+    }
+    
+    private void outc(String s) {
+        System.out.println(this + " " + id() + " " + s);
+    }
+    
     public String getRichText()
     {
     	String html = super.getText();
@@ -1181,15 +1438,89 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
         
       }
     
-    private void out(String s) {
-        System.out.println("RTB@" + id() + " [" + getText() + "] " + s);
+    public void overrideTextColor(Color c)
+    {
+    	//System.out.println("OVERRIDE TEXT COLOR : " + c.toString());
+    	SimpleAttributeSet set = new SimpleAttributeSet();
+   	        String colorString = "#" + Integer.toHexString(
+   	                c.getRGB()).substring(2);
+   	        com.lightdev.app.shtm.Util.styleSheet().addCSSAttribute(set,
+   	                CSS.Attribute.COLOR, colorString);
+   	        
+   	            set.addAttribute(HTML.Attribute.COLOR, colorString);
+   	            this.applyAttributesGlobally(set, true,false);
     }
+
+	public void mouseClicked(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void mouseEntered(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void mouseExited(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void mousePressed(MouseEvent e) 
+	{					      	
+			 if (GUI.isMenuPopup(e))
+			 {
+				 displayContextMenu(e);
+				 return;
+			 }		
+	}
+	
+	private void displayContextMenu(MouseEvent e) {
+        getPopup(e).show(e.getComponent(), e.getX(), e.getY());
+	}
+	private JPopupMenu m = null;
+	private final JMenuItem copyItem = new JMenuItem("Copy");
+	private final JMenuItem pasteItem = new JMenuItem("Paste");
+	private JPopupMenu getPopup(MouseEvent e) 
+	{			        
+		if (m == null)
+		{
+			m = new JPopupMenu("Textbox Menu");
+			
+			//copyItem.addActionListener(this);
+			//pasteItem.addActionListener(this);
+			//If you let this be focusable you'll loose the text box when
+			//the menu gets raised.
+			m.setFocusable(false);
+			m.add(copyItem);
+	    	m.add(pasteItem);
+	    	
+	    	copyItem.addActionListener(new ActionListener() {
+	    	      public void actionPerformed(ActionEvent e) {
+	    	    	  RichTextBox.this.copy();
+	    	      }
+	    	    });
+	    	    pasteItem.addActionListener(new ActionListener() {
+	    	      public void actionPerformed(ActionEvent e) {	    	      	    	        	    
+	    	    	  RichTextBox.this.paste();
+	    	    	  setSize(getPreferredSize());
+	    	      } 
+	    	    });
+	    
+		}
+		
+
+		return m;
+	}
+	public void mouseReleased(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void actionPerformed(ActionEvent e) {
+		// TODO Auto-generated method stub
+		//if (e.getSource().equals(copyItem))
+	}
     
-    private void out(String s, Dimension d) {
-        out(VueUtil.pad(' ', 9, s, true) + " " + tufts.Util.out(d));
-    }     
-    
-    private void outc(String s) {
-        System.out.println(this + " " + id() + " " + s);
-    }         
+
 }

@@ -14,11 +14,26 @@
  */
 package tufts.vue;
 
+import static tufts.Util.grow;
+
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Point;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.html.CSS;
+import javax.swing.text.html.HTML;
+
+import tufts.vue.NodeTool.NodeModeTool;
+
 // import java.util.*;
 // import javax.swing.*;
 
 public class RichTextTool extends VueTool
 {
+	private  LWText creationNode = null;
     public RichTextTool() {}
 
 
@@ -75,18 +90,44 @@ public class RichTextTool extends VueTool
         */
     
     // todo: do we really want to do this?
-        /*
+     
+
+
     
-    public void handleSelectorRelease(java.awt.geom.Rectangle2D mapRect)
+    @Override
+	public boolean handleSelectorRelease(MapMouseEvent e)
     {
-        LWNode node = NodeTool.createTextNode("new text");
-        node.setAutoSized(false);
-        node.setFrame(mapRect);
-        VUE.getActiveMap().addNode(node);
-        VUE.getSelection().setTo(node);
-        VUE.getActiveViewer().activateLabelEdit(node);
+    	 LWText node = NodeModeTool.buildRichTextNode("new text");
+         node.getRichLabelBox(true).overrideTextColor(FontEditorPanel.mTextColorButton.getColor());
+         node.setAutoSized(false);
+         node.setFrame(e.getMapSelectorBox());
+         MapViewer viewer = e.getViewer();
+         viewer.getFocal().addChild(node);
+         VUE.getUndoManager().mark("New Rich Text");
+         VUE.getSelection().setTo(node);
+       //  viewer.activateLabelEdit(node);
+        
+        return true;
     }
-        */
-    
+        
+    @Override
+    public void drawSelector(DrawContext dc, java.awt.Rectangle r)
+    {
+        dc.g.draw(r);
+        
+        // TODO: doesn't handle zoom
+        // Also, handleSelectorRelease can now just dupe the creationNode
+    	if (creationNode == null)
+    	{
+    		creationNode = NodeModeTool.buildRichTextNode(null);
+    	}
+        creationNode.setFillColor(VueConstants.COLOR_HIGHLIGHT);
+        creationNode.setFrame(r);
+    	dc.g.setColor(VueConstants.COLOR_HIGHLIGHT);
+      
+
+        creationNode.draw(dc);
+  
+    }    
 
 }
