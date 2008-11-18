@@ -403,8 +403,7 @@ public class NodeTool extends VueTool
         LWText node = buildRichTextNode(text);
         node.getRichLabelBox(true).overrideTextColor(FontEditorPanel.mTextColorButton.getColor());
         node.setAutoSized(false);
-        node.setSize(150,1);        
-       // node.setWidth(150);
+        node.setSize(150,5);        
         return node;
     }
         
