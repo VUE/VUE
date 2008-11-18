@@ -40,7 +40,7 @@ import javax.swing.tree.*;
 
 /**
  *
- * @version $Revision: 1.16 $ / $Date: 2008-11-07 15:07:28 $ / $Author: sfraize $
+ * @version $Revision: 1.17 $ / $Date: 2008-11-18 17:13:40 $ / $Author: anoop $
  * @author  Scott Fraize
  */
 
@@ -418,8 +418,22 @@ public class DataTree extends javax.swing.JTree
                 }
             }
 
-            if (nodes.size() > 1) {
-                tufts.vue.LayoutAction.table.act(nodes);
+           
+            
+            //for (LWComponent c : nodes)c.setToNaturalSize();
+            // todo: some problem editing template values: auto-size not being handled on label length shrinkage
+
+            if (links != null && links.size() > 0)
+                VUE.getActiveMap().getInternalLayer("*Data Links*").addChildren(links);
+            GUI.invokeAfterAWT(new Runnable() { public void run() {  
+             if (nodes.size() > 1) {
+                if (treeNode.isSchematic()) {
+                    tufts.vue.LayoutAction.table.act(nodes);
+                } else {
+                    tufts.vue.LayoutAction.cluster.act(nodes);
+                }
+             }
+            }});
                 //Actions.MakeCluster.act(nodes); // todo: broken
                 //Actions.MakeColumn.act(nodes);
                 // Actions.ZoomFit.fire(this); not added to map yet
@@ -433,14 +447,7 @@ public class DataTree extends javax.swing.JTree
 //                     Actions.ZoomFit.fire(this); 
 //                 }});
 
-            }
             
-            //for (LWComponent c : nodes)c.setToNaturalSize();
-            // todo: some problem editing template values: auto-size not being handled on label length shrinkage
-
-            if (links != null && links.size() > 0)
-                VUE.getActiveMap().getInternalLayer("*Data Links*").addChildren(links);
-
             return nodes;
         }
 
