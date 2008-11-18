@@ -143,7 +143,7 @@ public class ClusterLayout  extends Layout {
                 }
             }
         }
-        
+       
         Iterator<LWComponent> iter = selection.iterator();
         while (iter.hasNext()) {
             LWComponent c = iter.next();
@@ -172,6 +172,7 @@ public class ClusterLayout  extends Layout {
                 }
                 count++;
                 node.setLocation(x,y);
+                System.out.println("Placed node: "+node.getLabel()+" at "+x+","+y);
                 // set linked nodes
                 int totalLinked = clusterMap.get(node).size();
                 int countLinked = 0;
