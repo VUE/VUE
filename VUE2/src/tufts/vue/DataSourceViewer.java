@@ -99,7 +99,7 @@ public class DataSourceViewer extends JPanel
     org.osid.shared.Type searchType = new edu.tufts.vue.util.Type("mit.edu","search","keyword");
     org.osid.shared.Type thumbnailType = new edu.tufts.vue.util.Type("mit.edu","partStructure","thumbnail");
     ImageIcon noImageIcon;
-    
+    private JPanel dummyPanel = new JPanel();
     private org.osid.OsidContext context = new org.osid.OsidContext();
     //org.osid.registry.Provider checked[];
     
@@ -1825,10 +1825,32 @@ public class DataSourceViewer extends JPanel
             
             final PropertyMap dsProps = buildPropertyMap(ds);
             
-            configMetaData.loadProperties(dsProps);
-            editInfoStack.addPane(configMetaData, 1f);
+            configMetaData.loadProperties(dsProps);            
+            editInfoStack.addPane(configMetaData, 2.0f);
             
             doLoad(ds, ds.getRepositoryDisplayName());
+            
+            
+            //This is for Adding default veritcal expander  
+            
+        	GridBagConstraints c = new GridBagConstraints();        	
+        	c.fill = GridBagConstraints.BOTH;
+            //c.anchor = GridBagConstraints.NORTH;
+            c.weighty = 0.01;           
+            JLabel label = new JLabel("WidgetStack: default veritcal expander",JLabel.CENTER);
+            if (DEBUG.BOXES) {            	
+            	dummyPanel.setOpaque(true);
+            	dummyPanel.setBackground(Color.darkGray);            	
+            	dummyPanel.setForeground(Color.white);
+            	dummyPanel.setMinimumSize(new Dimension(0,0));
+	            //label.setPreferredSize(new Dimension(0,0));
+            	dummyPanel.add(label);   
+            }  
+            dummyPanel.setSize(0,0);
+            dummyPanel.setMinimumSize(new Dimension(0,0));
+            dummyPanel.setPreferredSize(new Dimension(0,0)); 
+            editInfoStack.add(dummyPanel,c);     
+            
         }
     }
     
