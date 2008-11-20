@@ -83,7 +83,7 @@ public class VueDataSourceManager
         marshall(new File(this.xmlFilename), this);
     }
     
-    public static void load() {
+    private static void load() {
         try {
             File f = new File(xmlFilename);
             if (f.exists()) {
@@ -107,6 +107,8 @@ public class VueDataSourceManager
     
     public edu.tufts.vue.dsm.DataSource[] getDataSources() {
         synchronized (DataSources) {
+            if (DataSources.isEmpty())
+                load();
             return DataSources.toArray(new DataSource[DataSources.size()]);
         }
     }
