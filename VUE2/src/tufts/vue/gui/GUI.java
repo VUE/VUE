@@ -57,7 +57,7 @@ import sun.awt.shell.ShellFolder;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.128 $ / $Date: 2008-11-07 14:31:58 $ / $Author: sfraize $
+ * @version $Revision: 1.129 $ / $Date: 2008-11-20 17:42:56 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1868,15 +1868,11 @@ public class GUI
         public int getIconHeight() { return icon.getIconHeight(); }
     }
     
-    
-    public static final class EmptyIcon implements Icon {
+    private static class IconImpl implements Icon {
         final int width, height;
-        public EmptyIcon(int w, int h) {
+        public IconImpl(int w, int h) {
             width = w;
             height = h;
-        }
-        public EmptyIcon(Icon icon) {
-            this(icon.getIconWidth(), icon.getIconHeight());
         }
         public void paintIcon(java.awt.Component c, java.awt.Graphics g, int x, int y) {
             if (DEBUG.BOXES) {
@@ -1886,8 +1882,46 @@ public class GUI
         }
         public int getIconWidth() { return width; }
         public int getIconHeight() { return height; }
-        public String toString() { return "EmptyIcon" + width + "x" + height; }
+        public String toString() { return getClass().getSimpleName() + " " + width + "x" + height; }
     }
+    
+    
+    public static final class EmptyIcon extends IconImpl {
+        public EmptyIcon(int w, int h) {
+            super(w, h);
+        }
+        public EmptyIcon(Icon icon) {
+            this(icon.getIconWidth(), icon.getIconHeight());
+        }
+    }
+    
+    public static final class ResizedIcon extends IconImpl {
+        final Icon icon;
+        public ResizedIcon(Icon icon, int w, int h) {
+            super(w, h);
+            this.icon = icon;
+        }
+
+        public Icon getOriginal() {
+            return icon;
+        }
+        
+        @Override
+        public void paintIcon(java.awt.Component c, java.awt.Graphics g, int x, int y) {
+
+            // attempt to center into the desired icon size region
+
+            final int offx = (width - icon.getIconWidth()) / 2;
+            final int offy = (height - icon.getIconHeight()) / 2;
+            icon.paintIcon(c, g, x + offx, y + offy);
+        }
+        
+    }
+
+    public static Icon reframeIcon(Icon i, int w, int h) {
+        return new ResizedIcon(i, w, h);
+    }
+
     
     public static final Icon EmptyIcon16 = new EmptyIcon(16,16);
     public static final Icon NO_ICON = new EmptyIcon(0,0);
