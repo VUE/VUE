@@ -37,7 +37,7 @@ import javax.swing.ImageIcon;
  *  objects, displaying their content, and fetching their data.
 
  *
- * @version $Revision: 1.82 $ / $Date: 2008-09-16 12:25:13 $ / $Author: sfraize $
+ * @version $Revision: 1.83 $ / $Date: 2008-11-20 17:36:54 $ / $Author: sfraize $
  */
 
 public abstract class Resource implements Cloneable
@@ -212,7 +212,7 @@ public abstract class Resource implements Cloneable
     };
 
     /** the metadata property map -- should be final, but not because of clone support **/
-    /*final*/ protected PropertyMap mProperties = new PropertyMap();
+    /*final*/ protected MetaMap mProperties = new MetaMap();
 
     static final long SIZE_UNKNOWN = -1;
 
@@ -235,7 +235,9 @@ public abstract class Resource implements Cloneable
         if (DEBUG.RESOURCE) dumpField("setByteSize", size);
         mByteSize = size;
     }
-    
+
+    // todo: generic inteferace setClientData / getClientData (the LWComponent can use also),
+    // that uses a key/value map with only a single value per key (NOT a multi-map) 
     
     /**
      * Set the given property value.
@@ -293,7 +295,6 @@ public abstract class Resource implements Cloneable
         setProperty(DEBUG_PREFIX + key, value);
     }
 
-    
 
     /** @return any prior value stored for this key, null otherwise */
     public Object removeProperty(String key) {
@@ -302,19 +303,27 @@ public abstract class Resource implements Cloneable
         return o;
     }
 
-    /**
-     * Add a property with the given key.  If a key already exists
-     * with this name, the key will be modified with an index.
-     */
-    public String addProperty(String desiredKey, Object value) {
-        if (DEBUG.DATA) dumpKV("addProperty", desiredKey, value);
-        return mProperties.addProperty(desiredKey, value);
+    public void addProperty(String key, Object value) {
+        if (DEBUG.DATA) dumpKV("addProperty", key, value);
+        mProperties.add(key, value);
     }
+//     /**
+//      * Add a property with the given key.  If a key already exists
+//      * with this name, the key will be modified with an index.
+//      */
+//     public String addProperty(String desiredKey, Object value) {
+//         if (DEBUG.DATA) dumpKV("addProperty", desiredKey, value);
+//         return mProperties.addProperty(desiredKey, value);
+//     }
 
-    public String addPropertyIfContent(String desiredKey, Object value) {
-        if (DEBUG.DATA) dumpKV("addPropertyIf", desiredKey, value);
-        return mProperties.addIfContent(desiredKey, value);
+    public void addPropertyIfContent(String key, Object value) {
+        if (DEBUG.DATA) dumpKV("addPropertyIf", key, value);
+        mProperties.addNonEmpty(key, value);
     }
+//     public String addPropertyIfContent(String desiredKey, Object value) {
+//         if (DEBUG.DATA) dumpKV("addPropertyIf", desiredKey, value);
+//         return mProperties.addIfContent(desiredKey, value);
+//     }
     
     
     public Object getPropertyValue(String key) {
@@ -357,7 +366,7 @@ public abstract class Resource implements Cloneable
         return mProperties.containsKey(key);
     }
     
-    public PropertyMap getProperties() {
+    public MetaMap getProperties() {
         return mProperties;
     }
 
