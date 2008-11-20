@@ -90,19 +90,14 @@
     <field name="width" direct="true"><bind-xml node="attribute"/></field>
     <field name="height" direct="true"><bind-xml node="attribute"/></field>
   </class>
-  
-  <!--
-  <class name="tufts.vue.LWNode$NodeShape">
-    <map-to xml="nodeShape"/>
-    <field name="equalAspect" type="boolean">
-      <bind-xml node="attribute"/>
-    </field>
-    <field name="shape">
-      <bind-xml node="element"/>
+
+  <class name="tufts.vue.MetaMap">
+    <field name="persistEntries" type="tufts.vue.PropertyEntry" collection="collection">
+      <bind-xml name="data" node="element"/>
     </field>
   </class>
-  -->
-  
+
+
   <class name="edu.tufts.vue.metadata.VueMetadataElement">
       <field name="value" type="java.lang.String"/>
       <field name="key" type="java.lang.String"/>
@@ -127,6 +122,12 @@
 		<field name="resource" type="tufts.vue.Resource">
 			<bind-xml name="resource" node="element"/>
 		</field>
+
+		<!--field name="persistDataMap" collection="collection"-->
+		<field name="persistDataMap" type="tufts.vue.MetaMap">
+                  <bind-xml name="dataMap" node="element"/>
+                </field>
+                
 
 		<field name="x" type="float">   <bind-xml node="attribute"/></field>
 		<field name="y" type="float">   <bind-xml node="attribute"/></field>
@@ -568,6 +569,7 @@
 		</field>
 		-->
 	</class>
+
 	
         <class name="tufts.vue.MapResource" extends="tufts.vue.URLResource"></class>
         
@@ -807,4 +809,19 @@
 <class name="edu.tufts.vue.ontology.RDFSOntology" extends="edu.tufts.vue.ontology.Ontology"  auto-complete="false"> 
     <map-to xml="edu.tufts.vue.ontology.RDFSOntology "/>
 </class>
+
 </mapping>
+
+  
+  <!--
+  <class name="tufts.vue.LWNode$NodeShape">
+    <map-to xml="nodeShape"/>
+    <field name="equalAspect" type="boolean">
+      <bind-xml node="attribute"/>
+    </field>
+    <field name="shape">
+      <bind-xml node="element"/>
+    </field>
+  </class>
+  -->
+  
