@@ -1094,6 +1094,25 @@ public class Util
         }
     }
 
+    private static final class SkipNullsArrayList<T> extends ArrayList<T> {
+        SkipNullsArrayList() {}
+
+        @Override
+        public boolean add(T c) {
+            if (c == null) {
+                //Util.printStackTrace("null not allowed");
+            } else {
+                super.add(c);
+            }
+            return true;
+        }
+    }
+
+    public static ArrayList skipNullsArrayList() {
+        return new SkipNullsArrayList();
+    }
+    
+
     public static <A, T extends A> int countTypes(final Iterable<A> list, final Class<T> clazz) {
         int count = 0;
         for (A item: list)
