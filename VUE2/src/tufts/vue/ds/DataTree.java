@@ -43,7 +43,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.19 $ / $Date: 2008-11-20 19:11:29 $ / $Author: sfraize $
+ * @version $Revision: 1.20 $ / $Date: 2008-11-20 19:17:23 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -86,17 +86,17 @@ public class DataTree extends javax.swing.JTree
 
     @Override
     protected void setExpandedState(final TreePath path, final boolean state) {
-        Log.debug("setExpandedState " + path + " = " + state);
+        if (DEBUG.Enabled) Log.debug("setExpandedState " + path + " = " + state);
         // we can interrupt tree expansion here on our double-clicks for searches
         // (which may obviate part of the workaround we needed with the ClearSearchMouseListener,
         // tho not for the JScrollPane problem if that is really happening)
 
         GUI.invokeAfterAWT(new Runnable() { public void run() {
             if (!inDoubleClick) {
-                Log.debug("setExpandedState " + path + " = " + state + " RELAYING");
+                if (DEBUG.Enabled) Log.debug("setExpandedState " + path + " = " + state + " RELAYING");
                 DataTree.super.setExpandedState(path, state);
             } else 
-                Log.debug("setExpandedState " + path + " = " + state + " SKIPPING");
+                if (DEBUG.Enabled) Log.debug("setExpandedState " + path + " = " + state + " SKIPPING");
             inDoubleClick = false;
         }});
     }
@@ -110,7 +110,7 @@ public class DataTree extends javax.swing.JTree
         @Override
         public void mousePressed(java.awt.event.MouseEvent e) {
             mClickPath = getPathForLocation(e.getX(), e.getY());
-            Log.debug("MOUSE PRESSED ON " + Util.tags(mClickPath));
+            if (DEBUG.Enabled) Log.debug("MOUSE PRESSED ON " + Util.tags(mClickPath));
             
             // it's possible that the node under the mouse changes from the time of the
             // first press, to the time mouseClicked is called (e.g., due to tree
@@ -119,7 +119,7 @@ public class DataTree extends javax.swing.JTree
             // class for JTree's.
 
             inDoubleClick = GUI.isDoubleClick(e);
-            Log.debug("IN DOUBLE CLICK = " + inDoubleClick);
+            if (DEBUG.Enabled) Log.debug("IN DOUBLE CLICK = " + inDoubleClick);
             
         }
                 
@@ -138,7 +138,7 @@ public class DataTree extends javax.swing.JTree
                 return;
 
             final DataNode treeNode = (DataNode) mClickPath.getLastPathComponent();
-            Log.debug("ACTIONABLE DOUBLE CLICK ON " + Util.tags(treeNode));
+            if (DEBUG.Enabled) Log.debug("ACTIONABLE DOUBLE CLICK ON " + Util.tags(treeNode));
             
             final DataTree tree = DataTree.this;
             
@@ -179,7 +179,7 @@ public class DataTree extends javax.swing.JTree
                 }
             }
             final tufts.vue.LWSelection selection = VUE.getSelection();
-            Log.debug("hits=" + hits.size());
+            if (DEBUG.Enabled) Log.debug("hits=" + hits.size());
             if (hits.size() > 0 || e.isShiftDown()) {
                 if (hits.size() == 0)
                     return;
@@ -253,6 +253,7 @@ public class DataTree extends javax.swing.JTree
 
         // using nodesChanged instead of reload preserves the expanded state of nodes in the tree
 
+        Log.debug("REFRESHING " + mRootNode);
         refreshAllChildren(mRootNode);
         for (TreeNode n : mRootNode.getChildren())
             if (!n.isLeaf())
@@ -271,7 +272,7 @@ public class DataTree extends javax.swing.JTree
             childIndexes[i] = i; // why there's isn't an API to do this automatically, i don't know...
 
         // using nodesChanged instead of mTreeModel.reload preserves the expanded state of nodes in the tree
-        if (DEBUG.Enabled) Log.debug("refreshing " + childIndexes.length + " children of " + node);
+        if (DEBUG.META) Log.debug("refreshing " + childIndexes.length + " children of " + node);
         mTreeModel.nodesChanged(node, childIndexes);
     }
     
