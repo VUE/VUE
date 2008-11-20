@@ -29,7 +29,7 @@ import com.google.common.collect.Multisets;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.100 $ / $Date: 2008-11-09 22:58:03 $ / $Author: sfraize $
+ * @version $Revision: 1.101 $ / $Date: 2008-11-20 17:31:52 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -58,6 +58,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
 
     private Object source;
     private LWComponent focal; // root of selection tree
+    private String mDescription;
 
     private long mEditablePropertyKeys;
 
@@ -292,14 +293,30 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         add(c);
         
     }
-    
-    public void setTo(Iterable bag)
-    {
-        if (DEBUG.SELECTION||DEBUG.PERF) Log.debug("setTo: " + Util.tags(bag));
-        setTo(bag.iterator());
+
+    public void setDescription(String s) {
+        mDescription = s;
     }
     
-    public synchronized void setTo(Iterator i)
+    public String getDescription() {
+        return mDescription;
+    }
+    
+    public void setTo(Iterable bag) {
+        setTo(bag, "");
+    }
+    
+    public void setTo(Iterable bag, String description)
+    {
+        if (DEBUG.SELECTION||DEBUG.PERF) Log.debug("setTo: " + Util.tags(bag));
+        setTo(bag.iterator(), description);
+    }
+    
+    public void setTo(Iterator i) {
+        setTo(i, "");
+    }
+            
+    private synchronized void setTo(Iterator i, String description)
     {
         if (notifyUnderway())
             return;
@@ -307,6 +324,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         final boolean hadContents = !isEmpty();
         
         clearSilent();
+        setDescription(description);
         add(i);
 
         if (hadContents && isEmpty()) {
@@ -318,7 +336,8 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         
     }
     
-    synchronized public boolean add(LWComponent c)
+    @Override
+    public synchronized boolean add(LWComponent c)
     {
         if (notifyUnderway())
             return false;
@@ -514,6 +533,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
             LWSelection reselecting = lastSelection;
             lastSelection = null;
             clearSilent();
+            setDescription(lastSelection.getDescription()); // TODO: NOT WORKING
             add(reselecting);
         } else 
             clear();
@@ -521,6 +541,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
 
     private synchronized boolean clearSilent()
     {
+        mDescription = "";
         if (isEmpty())
             return false;
         if (notifyUnderway())
@@ -647,6 +668,10 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     {
         return size() == 0 ? null : (LWComponent) get(size()-1);
     }
+
+    public Multiset<Class> getTypes() {
+        return mTypes;
+    }
     
     public int count(Class<? extends LWComponent> clazz)
     {
@@ -731,6 +756,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         // if anybody tries to use these we want a NPE
         copy.listeners = null;
         copy.controlListeners = null;
+        copy.mDescription = mDescription;
         // not that statistics are currently shared in the clone!
         return copy;
     }
