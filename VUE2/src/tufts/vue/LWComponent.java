@@ -47,7 +47,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.442 $ / $Date: 2008-10-21 15:52:26 $ / $Author: sfraize $
+ * @version $Revision: 1.443 $ / $Date: 2008-11-20 17:34:05 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -254,6 +254,8 @@ public class LWComponent
     
     /** properties for use by model clients (e.g., UI components) */
     protected transient HashMap mClientProperties;
+    // need MetaMap (a multi-map) for XML data-sets that can have more than one value per key
+    protected transient MetaMap mDataMap;
     
     // todo memory perf: mEntries should subclass ArrayList and implement this iter
     // so they can be allocated together, instead of leaving this slot here unused
@@ -1694,14 +1696,116 @@ u                    getSlot(c).setFromString((String)value);
     
     public UserMapType getUserMapType() { throw new UnsupportedOperationException("deprecated"); }
 
-    public void addMetaData(String key, Object value) {
+    //public void setDataInstanceValue(String key, Object value) {
+    public void setDataInstanceValue(tufts.vue.ds.Field field, Object value) {
+        //getMetadataList().add(key, value.toString());
+        final String key = field.getName();
         getMetadataList().add(key, value.toString());
+        getDataMap().put(key, value);
+        getDataMap().put("@Schema", field.getSchema());
+        getDataMap().put("@Schema.field", field.getName());
     }
 
-    public String getDataValue(String key) {
-        VueMetadataElement vme = getMetadataList().get(key);
-        return vme == null ? null : vme.getValue();
+    private MetaMap getDataMap() {
+        if (mDataMap == null) {
+            mDataMap = new MetaMap();
+        }
+        return mDataMap;
     }
+
+    /** for castor peristance */
+    public MetaMap getPersistDataMap() {
+        if (mXMLRestoreUnderway)
+            return getDataMap();
+        else
+            return mDataMap; // if null on save, nothing to persist
+    }
+    /** for castor peristance */
+    public void setPersistDataMap(MetaMap dataMap) {
+        mDataMap = dataMap;
+    }
+
+    public TableBag getDataTable() {
+        return mDataMap;
+    }
+
+    
+//     public Collection<Map.Entry<String,Object>> getPersistDataMap() {
+//         if (mXMLRestoreUnderway)
+//             return getDataMap().entries();
+//         else if (mDataMap != null)
+//             return mDataMap.entries();
+//         else
+//             return null;
+//     }
+
+    public void addDataValues(final Iterable<Map.Entry<String,String>> entries) {
+        getMetadataList().add(entries);
+        getDataMap().putAll(entries);
+    }
+
+    public void addDataValue(String key, String value) {
+        getMetadataList().add(key, value);
+        getDataMap().add(key, value);
+    }    
+
+    public String getDataValue(String key) {
+        if (mDataMap == null)
+            return null;
+        return mDataMap.getFirstValue(key);
+        
+//         VueMetadataElement vme = getMetadataList().get(key);
+//         return vme == null ? null : vme.getValue();
+            
+    }
+    
+    private String extractTemplateValue(String key) {
+
+        String value = getDataValue(key);
+
+        if (value == null && hasResource())
+            value = getResource().getProperty(key);
+        
+        if (value == null) {
+            VueMetadataElement vme = getMetadataList().get(key);
+            value = (vme == null ? null : vme.getValue());
+        }
+        
+        return value;
+    }
+
+    public boolean isSchematicFieldNode() {
+        return mDataMap != null && mDataMap.containsKey("@Schema");
+    }
+    
+    public String getSchematicFieldName() {
+        if (mDataMap == null)
+            return null;
+        String name = mDataMap.getString("@Schema.field");
+        if (name == null && isSchematicFieldNode()) {
+            // backward compat before @schema.field stored, and only @schema was stored.
+            // The first entry should always be the schmatic field.
+            // todo: remove this eventually
+            final Map.Entry firstEntry = mDataMap.entries().iterator().next();
+            name = (String) firstEntry.getKey();
+        }
+        return name;
+    }
+    
+    public boolean isSchematicField(String name) {
+        return name.equals(getSchematicFieldName());
+    }
+
+    public boolean hasDataValue(String key, String value) {
+        return mDataMap != null && mDataMap.containsEntry(key, value);
+        //return isSchematicFieldNode() && mDataMap.containsEntry(key, value);
+//         if (mDataMap == null)
+//             return false;
+//         return mDataMap.containsKey("@Schema") && mDataMap.containsEntry(key, value);
+// //         VueMetadataElement vme = getMetadataList().get(key);
+// //         return vme == null ? false : value.equals(vme.getValue());
+    }
+    
     
 //     public void containsMetaData(String key, Object value) {
 //         getMetadataList().add(key, value.toString());
@@ -1888,7 +1992,7 @@ u                    getSlot(c).setFromString((String)value);
             if (iopen == 0 && iclose > 1) {
                 String var = s.substring(1, iclose).trim();
                 //Log.debug("got variable[" + var + "]");
-                String val = getDataValue(var);
+                String val = extractTemplateValue(var);
                 if (val != null) {
                     buf.append(val);
                 } else {
@@ -2048,9 +2152,10 @@ u                    getSlot(c).setFromString((String)value);
         int id = -1;
         try {
             id = Integer.parseInt(idStr);
-        } catch (Exception e) {
-            System.err.println(e + " invalid ID: '" + idStr + "'");
-            e.printStackTrace();
+        } catch (Throwable t) {
+            Log.warn("non-numeric ID: '" + idStr + "' " + t);
+//             System.err.println(e + " invalid ID: '" + idStr + "'");
+//             e.printStackTrace();
         }
         return id;
     }
@@ -2083,9 +2188,13 @@ u                    getSlot(c).setFromString((String)value);
      * in it, replace them with spaces.
      */
     public String getDisplayLabel() {
-        if (hasLabel())
-            return getLabel().replace('\n', ' ');
-        else
+        if (hasLabel()) {
+            try {
+                return getLabel().replace('\n', ' ');
+            } catch (Throwable t) {
+                return getUniqueComponentTypeLabel() + "[" + t + "]";
+            }
+        } else
             return getUniqueComponentTypeLabel();
     }
     
@@ -5794,7 +5903,8 @@ u                    getSlot(c).setFromString((String)value);
 
     private boolean isStyling(Key key) {
         return supportsProperty(key)
-            && (key.isStyleProperty() || (key == LWKey.Label && hasFlag(Flag.DATA_STYLE)));
+            //&& (key.isStyleProperty() || key == LWKey.Label); 
+        && (key.isStyleProperty() || (key == LWKey.Label && hasFlag(Flag.DATA_STYLE))); // todo: is DATA_STYLE persisted?
     }
 
     protected synchronized void notifyLWCListeners(LWCEvent e)
