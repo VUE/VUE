@@ -37,7 +37,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.38 $ / $Date: 2008-11-09 23:09:13 $ / $Author: sfraize $
+ * @version $Revision: 1.39 $ / $Date: 2008-11-20 17:46:23 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -488,7 +488,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         }
     }
 
-    private boolean layerReparentingSeen;
+    //private boolean layerReparentingSeen;
 
     public void LWCChanged(LWCEvent e) {
 
@@ -496,24 +496,26 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         // (as we're only interested in changes to map layers)
         
         if (e.key == LWKey.UserActionCompleted) {
-            if (layerReparentingSeen) {
-                VUE.getSelection().resetStatistics();
-                updateGrabEnabledForSelection(VUE.getSelection());
-                layerReparentingSeen = false;
-            }
+//             if (layerReparentingSeen) {
+//                 VUE.getSelection().resetStatistics();
+//                 updateGrabEnabledForSelection(VUE.getSelection());
+//                 layerReparentingSeen = false;
+//             }
             repaint(); // repaint the previews
         }
         else if (mShowAll.isSelected() || e.getSource() == mMap) {
             if (e.getName().startsWith("hier.")) {
                 loadLayers(mMap);
             }
-        } else if (e.getSource() instanceof Layer && e.getName().startsWith("hier.")) {
-            // tho we only really need to track this for changes to any components
-            // that are in the selection, we just track it for everything right
-            // now -- we especially need this to handle updating grab enabled
-            // states when undoing grabs
-            layerReparentingSeen = true;
         }
+// [ below now handled by calling selectionChanged at end of grabFromSelection after selection stat reset ]
+//         else if (e.getSource() instanceof Layer && e.getName().startsWith("hier.")) {
+//             // tho we only really need to track this for changes to any components
+//             // that are in the selection, we just track it for everything right
+//             // now -- we especially need this to handle updating grab enabled
+//             // states when undoing grabs
+//             layerReparentingSeen = true;
+//         }
     }
     
     private final Color AlphaWhite = new Color(255,255,255,128);
@@ -612,10 +614,10 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             if (disable) {
                 row.grab.setEnabled(false);
             } else if (parents.size() == 1 && parents.contains(row.layer)) {
-                Log.debug("DISABLE GRAB IN " + row);
+                //Log.debug("DISABLE GRAB IN " + row);
                 row.grab.setEnabled(false);
             } else  {
-                Log.debug(" ENABLE GRAB IN " + row);
+                //Log.debug(" ENABLE GRAB IN " + row);
                 row.grab.setEnabled(true);
             }
         }
@@ -647,7 +649,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         
     }
     
-    private static void grabFromSelection(Layer layer) {
+    private void grabFromSelection(Layer layer) {
         final LWSelection selection = VUE.getSelection();
         
         final java.util.List grabbing = new ArrayList();
@@ -662,6 +664,10 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         layer.addChildren(grabbing);
 
         selection.resetStatistics();
+
+        selectionChanged(selection);
+
+        //indicateActiveLayers(selection.getParents());
     }
     
 
