@@ -27,18 +27,21 @@ import com.google.common.collect.*;
 /**
  * A general HashMap for storing property values: e.g., meta-data.
  *
- * @version $Revision: 1.1 $ / $Date: 2008-09-16 12:14:04 $ / $Author: sfraize $
+ * @version $Revision: 1.2 $ / $Date: 2008-11-20 17:34:43 $ / $Author: sfraize $
  */
 
-//public class PropertyMap //extends java.util.HashMap<String,Object>
-// TODO: need to be able to specify a prefix, and maybe some special handling for nesting, tho what would that even be?
-// having a list of maps w/different prefixes should be enough for most impls -- oh, yeah, tho we'd like a single
-// FLAT property-map outer view of all the contained property maps.
+// TODO: handle case-independence in keys
 
-// Holy crap: what if had an introspecting PropertyMap impl?  (or Map impl, or Multimap impl, or whatever)
-// could specify which fields you want bound to what to use just a sub-set (e.g., LWComponent properties)
-// Or in meantime, could just make use of our existing LWComponent.Key class to make it even easier.
-// Might NOT want that to just be called the "node." sub-set: maybe something more semantic like "ui." or "display."
+// TODO: need to be able to specify a prefix, and maybe some special handling for
+// nesting, tho what would that even be?  having a list of maps w/different prefixes
+// should be enough for most impls -- oh, yeah, tho we'd like a single FLAT property-map
+// outer view of all the contained property maps.
+
+// Holy crap: what if had an introspecting PropertyMap impl?  (or Map impl, or Multimap
+// impl, or whatever) could specify which fields you want bound to what to use just a
+// sub-set (e.g., LWComponent properties) Or in meantime, could just make use of our
+// existing LWComponent.Key class to make it even easier.  Might NOT want that to just
+// be called the "node." sub-set: maybe something more semantic like "ui." or "display."
 
 // TODO: this type of map should not be used for internal runtime properties that want
 // to be set and re-set, for possibly including SoftReference'd properties, etc -- to
@@ -84,35 +87,27 @@ import com.google.common.collect.*;
 // in handy, providing unique Key objects.
 
 
-public class MetaMap implements TableBag
+public class MetaMap implements TableBag, XMLUnmarshalListener
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(MetaMap.class);
+
+    // Note: LinkedHashMultimap preserves the order of all "KEY+VALUE" additions, not just the KEY --
+    // this is good for preserving semantics of incoming data, as the order is often good information
+    // (especially if the source is XML data).  We could potentially hack this impl to even preserve
+    // some kind of decoration that allows duplicate key-value pairs (good for XML again).
+    // e.g.: wrap the value in something that disguises it.
+    
+    // If we want to impl the optimization of only creating a collection
+    // upon the second value entry for a key, we'll have to toss that out and
+    // handle it all in our own impl.
+    
+    private final Multimap<String,Object> mData = Multimaps.newLinkedHashMultimap();
 
     //private final Multimap<String,Object> mData = Multimaps.newHashMultimap();
     //private final Multimap<String,Object> mData = Multimaps.newLinkedListMultimap();
     //private final Multimap<String,Object> mData = new TreeMultimap(); // attempting "dumb" comparators just made worse
-    
-    private final Multimap<String,Object> mData = Multimaps.newLinkedHashMultimap();
-
     //private final Map<String,Collection> mData = new LinkedHashMap();
 
-    // Ideally we want a linked hash multi map (preserve key insertion order), with sorted-set values
-    // -- looks like we'll need to create our own version for this.
-    // Could do thus by subclassing LinkedHashMultimap, and overriding createCollection() to return
-    // a new TreeSet()
-
-    // Crap: LinkedHashMultimap preserves the order of all "KEY+VALUE" additions, not just the KEY...
-    // So a StandardSortedSetMultimap impl should help us, but then create the key-container as a LinkedHashSet
-    // -- could hack TreeMultimap for this, or perhaps LinkedHashMultimap to use a set for it's values
-    
-    // Also: do we really need the maps to be key-hashable?  Only rarely to we query by key, and that's
-    // mostly internal Resource class usage, which should be using it's own set of (hashable) properties.
-    // Oh -- YOU WANT THE KEYS TO BE HASHABLE: otherwise, building the property set will be very
-    // slow in cases such as Resources that contain 500+ entries for the key "Subject", or "Keywords"
-
-    // Google collections issues: creates lots of extra objects, provides no way to iterate
-    // just through the keys.
-    
 //     public interface Listener {
 //         void metaMapChanged(MetaMap p);
 //     }
@@ -120,7 +115,7 @@ public class MetaMap implements TableBag
     private volatile SortedMapModel mTableModel;
     private Object mTableModel_LOCK = new Object();
     private boolean mHoldingChanges = false;
-    private int mTotalSize = 0;
+    //private int mTotalSize = 0;
     private int mChanges;
     private List listeners;
     
@@ -128,58 +123,42 @@ public class MetaMap implements TableBag
     
     public MetaMap() {}
 
-//     /** erase any other values for given key */
-    public synchronized Object put(final String key, final Object value) {
-        // backward compat for now
-        return add(key, value);
-    }
-    
-    
-    //@Override
-    public synchronized Object add(final String key, final Object value) {
-        
-        // TODO: we want to *preserve* case for display, but not differentiate based on it...
-        //if (k instanceof String) k = ((String)k).toLowerCase();
-        
-        //            if (v instanceof String)
-        //v = org.apache.commons.lang.StringEscapeUtils.unescapeHtml((String)v);
-        
-        //final Object prior = super.put(k, v == null ? NULL_MASK : v);
-        //final Object prior = mData.put(k, v == null ? NULL_MASK : v);
-        
-        final Collection prior = mData.get(key);
-        final boolean added;
-        if (prior == null) {
-            Collection bag = createCollection();
-            bag.add(value);
-            mData.put(key, bag);
-            mTotalSize++;
-        } else {
-            if (prior.add(value))
-                mTotalSize++;
+// Won't work: repeat values being dropped out in DataRow.addValue -- could use a MetaMap there instead of just multi-map
+//     private static final class RepeatHiddenValue {
+//         Object value;
+//         RepeatHiddenValue(Object o) { value = o; }
+//         @Override public String toString() {
+//             return value.toString();
+//         }
+//         /** @return false: these objects don't need to be found or matched by any means */
+//         @Override public boolean equals(Object o) {
+//             return false;
+//         }
+//     }
+
+    public synchronized void put(final String key, final Object value)
+    {
+        if (mData.put(key, value)) {
+            if (mHoldingChanges)
+                mChanges++;
+            else if (mTableModel != null)
+                mTableModel.reload();
         }
-        
-        // todo: this a bit overkill: could have a higher level
-        // trigger for this, instead of triggering any table listeners
-        // every time.  Our hold/release deals with specific batch
-        // loads, which is good enough for now.
-        
-        if (mHoldingChanges)
-            mChanges++;
-        else if (mTableModel != null)
-            mTableModel.reload();
-        
-        return prior;
+        //else mData.put(key, new RepeatValue(value));
+    }
+    
+    public void putAll(final Iterable<Map.Entry<String,String>> entries) {
+        for (Map.Entry<String,String> e : entries)
+            put(e.getKey(), e.getValue());
     }
 
-    private Collection createCollection() {
-        // todo: okay, don't sort -- actually keep in order, but provide
-        // a sorted caching collection-value fetcher
-        return new TreeSet();
+    
+    /** backward compat for now: same as put */
+    public void add(final String key, final Object value) {
+        put(key, value);
     }
 
-    private static boolean hasContent(Object v) {
-
+    private static boolean isEmpty(Object v) {
         if (v == null)
             return false;
         else if (v.getClass() == String.class && v.toString().length() == 0)
@@ -188,15 +167,16 @@ public class MetaMap implements TableBag
             return false;
         else
             return true;
-
-    }
-
-    public Object addIfContent(String k, Object v) {
-        return hasContent(v) ? add(k, v) : null;
     }
     
+    /** add the given key/value, only if the value is considered "non-empty"
+     * Empty values currently include null, zero length Strings, and empty Collections */
+    public void addNonEmpty(String key, Object value) {
+        if (!isEmpty(value))
+            put(key, value);
+    }
 
-    //@Override
+    /** remove ALL values having the given key */
     public synchronized Object remove(Object key) {
 
         //final Object prior = super.remove(key);
@@ -205,7 +185,7 @@ public class MetaMap implements TableBag
 
         if (prior != null) {
 
-            mTotalSize--;
+            //mTotalSize--;
             //Util.printStackTrace("remove used; key=" + Util.tags(key) + "; prior=" + Util.tags(prior));
             
             if (mHoldingChanges)
@@ -217,7 +197,9 @@ public class MetaMap implements TableBag
         return prior;
     }
     
-    public synchronized Object get(String key) {
+    /** @return the first value found for the given key */
+    // todo performance: impl could be faster
+    public synchronized Object getFirst(String key) {
         Object o = mData.get(key);
         if (o instanceof Collection) {
             Collection bag = (Collection) o;
@@ -232,6 +214,16 @@ public class MetaMap implements TableBag
             return o;
         //return super.get(k);
     }
+
+    public String getFirstValue(String key) {
+        final Object o = getFirst(key);
+        return o == null ? null : o.toString();
+    }
+    
+    public Object get(String key) {
+        return getFirst(key);
+    }
+    
     
     /** @return the property value for the given key, dereferened if an instanceof java.lang.ref.Reference is found */
     public Object getValue(String key) {
@@ -240,53 +232,40 @@ public class MetaMap implements TableBag
             
         if (o instanceof Reference) {
             o = ((Reference)o).get();
-            if (DEBUG.Enabled && o == null)
-                Log.debug("value was GC'd for key: " + key);
+            if (o == null) {
+                if (DEBUG.Enabled) Log.debug("value was GC'd for key: " + key);
+                mData.remove(key, o); // don't need to see it again
+            }
         }
         
         return o;
     }
 
-
-    public String getProperty(String key) {
-        Object v = get(key);
-        return v == null ? null : v.toString();
+    public String getString(String key) {
+        return getFirstValue(key);
+//         Object v = get(key);
+//         return v == null ? null : v.toString();
     }
-    
-//     /** Set the value for the given key, overwriting any existing value. */
-//     public void setProperty(String key, String value) {
-//         put(key, value);
-//     }
 
-//     /**
-//      * Add a property with the given key.  If a key already exists
-//      * with this name, the key will be modified with an index.
-//      * @return - the key actually created
-//      */
-//     public synchronized String addProperty(final String desiredKey, Object value) {
-//         String key = desiredKey;
-//         int index = 1;
-//         while (containsKey(key))
-//             key = String.format("%s.%03d", desiredKey, index++);
-//         put(key, value);
-//         return key;
-//     }
-
+    /** TableBag impl */
     public int size() {
-        //return mTotalSize;
         return mData.size();
     }
+    
     public boolean containsKey(String key) {
         return mData.containsKey(key);
     }
+    public boolean containsEntry(String key, String value) {
+        return mData.containsEntry(key, value);
+    }
+    
     public Set keySet() {
         return mData.keySet();
     }
-    // consider just having this impl map -- tho semantics may be very different
-    public Map asMap() {
-        //return mData;
-        return mData.asMap();
-    }
+    
+//     public Map<String,?> asMap() {
+//         return mData.asMap();
+//     }
 
 //     /** @return a set of entries that presents a flattened view of all key-value pairs */
 //     public Collection<Map.Entry<String,Object>> entrySet() {
@@ -297,20 +276,54 @@ public class MetaMap implements TableBag
 //         //return mData.entrySet();
 //     }
     
-    public Collection<Map.Entry<String,Collection<Object>>> entrySet() {
-        //return mData.entrySet();
-        return mData.asMap().entrySet();
-    }
-
-    public Iterable<Map.Entry<String,Object>> entries() {
+//     private Collection<Map.Entry<String,Collection<?>>> collectionEntrySet() {
+//         return mData.asMap().entrySet();
+//     }
+    
+    /** @return a flat collection of key-value pairs -- modifications to the collection will modify the map */
+    public Collection<Map.Entry<String,Object>> entries() {
         return mData.entries();
     }
+
+    private Collection<Map.Entry<String,Object>> mPersistEntries;
+    
+    /** for castor persistance of k/v pairs */
+    public Collection<Map.Entry<String,Object>> getPersistEntries() {
+        if (mPersistEntries == null)
+            mPersistEntries = new ArrayList();
+        
+        if (mData.size() > 0) {
+            mPersistEntries.clear();
+            if (DEBUG.XML) Log.debug("LOADING ENTRIES n=" + mData.size() + "; in " + Util.tag(this));
+            for (Map.Entry e : entries())
+                mPersistEntries.add(new PropertyEntry(e));
+        }
+        
+        return mPersistEntries;
+    }
+
+    public void XML_initialized(Object context) {}
+    public void XML_completed(Object context) {
+        if (DEBUG.XML) Log.debug("UNPACKING ENTRIES IN " + this + " context=" + context);
+        for (Map.Entry<String,?> e : mPersistEntries) {
+            if (DEBUG.XML) Log.debug("UNPACKING " + e);
+            put(e.getKey(), e.getValue());
+        }
+        if (DEBUG.XML) Log.debug("UNPACKED " + this);
+    }
+    public void XML_fieldAdded(Object context, String name, Object child) {}
+    public void XML_addNotify(Object context, String name, Object parent) {}
+
+    
+//     public Iterable<Map.Entry<String,Object>> entries() {
+//         return mData.entries();
+//     }
     
 //     public Util.Itering<Map.Entry<String,?>> entries() {
 //         return new FlatteningIterator(mData);
 //     }
     
-    public static Util.Itering<Map.Entry<String,?>> entries(Map map) {
+    private static Util.Itering<Map.Entry<String,?>> entries(Map<String,Collection> map) {
         return new FlatteningIterator(map);
     }
 
@@ -356,21 +369,6 @@ public class MetaMap implements TableBag
             return entry;
         }
     }
-    
-
-
-//     public synchronized void addIfContent(final String key, Object value) {
-//         if (hasContent(value))
-//             add(key, value);
-//     }
-
-//     public synchronized String addIfContent(final String desiredKey, Object value) {
-//         if (hasContent(value))
-//             return addProperty(desiredKey, value);
-//         else
-//             return null;
-//     }
-    
 
     /** No listeners will be updated until releaseChanges is called.  Multiple
      * overlapping holds are okay. */
@@ -397,13 +395,12 @@ public class MetaMap implements TableBag
     }
 
     public synchronized java.util.Properties asProperties() {
-        java.util.Properties props = new java.util.Properties();
-        // todo: this not totally safe: values may not all be strings
+        final java.util.Properties props = new java.util.Properties();
 
-        Util.printStackTrace("asProperties returning empty");
-        
-        //props.putAll(mData.asMap());
-        //props.putAll(this);
+        for (Map.Entry<String,?> e : entries())  {
+            put(e.getKey(), e.getValue().toString());
+        }
+
         return props;
     }
 
@@ -479,13 +476,15 @@ public class MetaMap implements TableBag
                                 (o==null?"null":o.toString())));
     }
 
+    @Override
     public String toString() {
-        return "PropertyMap@" + Integer.toHexString(hashCode()) + super.toString();
+        return String.format("MetaMap@%x[n=%d]", System.identityHashCode(this), size());
     }
 
-    public int hashCode() {
-        return mTableModel == null ? 0 : mTableModel.hashCode(); // doesn't change depending on contents
-    }
+//     @Override
+//     public int hashCode() {
+//         return mTableModel == null ? 0 : mTableModel.hashCode(); // doesn't change depending on contents
+//     }
 
 
     @Override
@@ -504,8 +503,8 @@ public class MetaMap implements TableBag
         final boolean priority;
         
         Entry(Map.Entry e, boolean priority) {
-            //this.key = tufts.Util.upperCaseWords((String) e.getKey());
-            this.key = (String) e.getKey();
+            this.key = tufts.Util.upperCaseWords((String) e.getKey());
+            //this.key = (String) e.getKey();
             this.value = e.getValue();
             this.priority = priority;
         }
@@ -527,10 +526,18 @@ public class MetaMap implements TableBag
         }
     }
 
-    // TODO: move this out to viewer
-    
     private class SortedMapModel extends javax.swing.table.AbstractTableModel {
 
+        // TODO: we can get get rid of this now -- we're not doing the sort any more, as
+        // the order is being preserved magically in the data-map itself.  The
+        // MetaDataPane viewer can provide differently sorted views on its own if it
+        // likes.  HOWEVER, we may still want to keep some delegate like this to prevent
+        // concurrent mod exceptions while iterating in the MetaDataPane in case of
+        // changes while loading (e.g., additional image data has arrived) We may even
+        // want to leave the table model in case we ever want to show this in a table,
+        // tho iterating will always be slow unless we create a new flat array for
+        // iteration every time the data map updates.
+    
         private Entry[] mEntries;
         private int mEntryCount;
         
@@ -551,10 +558,16 @@ public class MetaMap implements TableBag
             //final Collection<Map.Entry<String,Object>> entries = mData.entries();
             //out("entries: " + Util.tags(entries) + "; size=" + entries.size());
 
+//             final Collection etest = MetaMap.this.entries();
+//             final Object itest = etest.iterator();
+//             Log.debug("COLLECTION: " + Util.tags(etest));
+//             Log.debug("  ITERATOR: " + Util.tags(itest));
+
             int ei = 0;
-            //for (Map.Entry<String,?> e : entrySet()) {
-            for (Map.Entry<String,?> e : entries()) {
+            for (Map.Entry<String,?> e : MetaMap.this.entries()) {
                 final String key = e.getKey().toLowerCase();
+
+                //Log.debug("     ENTRY: " + Util.tags(e));
 
                 //Log.info(String.format("sorting key %03d %-20s = %s", ei, Util.tags(key), Util.tags(e.getValue())));
                 
@@ -567,7 +580,7 @@ public class MetaMap implements TableBag
 
                 mEntries[ei++] = new Entry(e, priority);
             }
-            mEntryCount = ei - 1;
+            mEntryCount = ei;
 
             //Arrays.sort(mEntries);
             
