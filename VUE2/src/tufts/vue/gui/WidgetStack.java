@@ -35,7 +35,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.47 $ / $Date: 2008-09-16 21:53:16 $ / $Author: sfraize $
+ * @version $Revision: 1.48 $ / $Date: 2008-11-20 17:43:40 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class WidgetStack extends Widget
@@ -160,7 +160,7 @@ public class WidgetStack extends Widget
         _gbc.weighty = 0;
         _gbc.fill = GridBagConstraints.HORIZONTAL;
         _gbc.insets = ExpandedTitleBarInsets;
-        if (!isBooleanTrue(widget, TITLE_HIDDEN_KEY))
+        if (!isBooleanTrue(widget, TITLE_HIDDEN_KEY) && !title.startsWith("_"))
             mGridBag.add(titleBar, _gbc);
         
         _gbc.gridy++;
@@ -549,24 +549,54 @@ public class WidgetStack extends Widget
             // todo: title-hidden currently only takes effect at init-time -- no dynamic update
             mTitleVisible = !isBooleanTrue(widget, TITLE_HIDDEN_KEY);
             
-            Object expanded = widget.getClientProperty(EXPANSION_KEY);
-            if (expanded != null) {
-                propertyChange(new PropertyChangeEvent(this, EXPANSION_KEY, null, expanded));
-            } else {
+//             final Object expanded = widget.getClientProperty(EXPANSION_KEY);
+//             if (expanded != null) {
+//                 propertyChange(new PropertyChangeEvent(this, EXPANSION_KEY, null, expanded));
+//             } else {
+//                 // expanded by default
+//                 setBoolean(widget, EXPANSION_KEY, true);
+//                 handleWidgetDisplayChange(true); 
+//             }
+//             final Object hidden = widget.getClientProperty(Widget.HIDDEN_KEY);
+//             if (hidden != null) {
+//                 propertyChange(new PropertyChangeEvent(this, HIDDEN_KEY, null, hidden));
+//             } else {
+//                 // not hidden by default
+//                 setBoolean(widget, HIDDEN_KEY, false);
+//             }
+
+            if (!handlePresetProperty(EXPANSION_KEY)) {
                 // expanded by default
                 setBoolean(widget, EXPANSION_KEY, true);
                 handleWidgetDisplayChange(true); 
             }
                 
-            Object hidden = widget.getClientProperty(Widget.HIDDEN_KEY);
-            if (hidden != null) {
-                propertyChange(new PropertyChangeEvent(this, HIDDEN_KEY, null, hidden));
-            } else {
+            if (!handlePresetProperty(HIDDEN_KEY)) {
                 // not hidden by default
                 setBoolean(widget, HIDDEN_KEY, false);
             }
 
+            handlePresetProperty(REFRESH_ACTION_KEY);
+            // shouldn't we be handling all of these?  DataSourceViewer current sets help & misc actions,
+            // but I don't think those property sets could ever have effect...
+            //handlePresetProperty(MISC_ACTION_KEY);
+            //handlePresetProperty(HELP_ACTION_KEY);
+
             widget.addPropertyChangeListener(this);
+            
+        }
+
+        /** @return true if the given property key was found with an already set value
+         * (if found, will simulate a property change event to handle the property) */
+        private boolean handlePresetProperty(String key) {
+
+            final Object value = mWidget.getClientProperty(key);
+            if (value != null) {
+                propertyChange(new PropertyChangeEvent(this, key, null, value));
+                return true;
+            } else {
+                return false;
+            }
             
         }
 
