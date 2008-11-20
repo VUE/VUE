@@ -20,18 +20,20 @@ import java.util.*;
 import java.lang.ref.*;
 
 /**
+ * @deprecated -- replaced by MetaMap Nov 2008
+ * 
  * A general HashMap for storing property values: e.g., meta-data.
  *
- * @version $Revision: 1.26 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $
+ * @version $Revision: 1.27 $ / $Date: 2008-11-20 17:35:58 $ / $Author: sfraize $
  */
 
-public class PropertyMap extends java.util.HashMap<String,Object>
+public class PropertyMap extends java.util.HashMap<String,Object> implements TableBag
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(PropertyMap.class);
     
-    public interface Listener {
-        void propertyMapChanged(PropertyMap p);
-    }
+//     public interface Listener {
+//         void propertyMapChanged(PropertyMap p);
+//     }
 
     private volatile SortedMapModel mTableModel;
     private Object mTableModel_LOCK = new Object();
@@ -84,7 +86,7 @@ public class PropertyMap extends java.util.HashMap<String,Object>
     private Object putIfContent(String k, Object v) {
         return hasContent(v) ? put(k, v) : null;
     }
-    
+
 
     @Override
     public synchronized Object remove(Object key) {
@@ -243,7 +245,7 @@ public class PropertyMap extends java.util.HashMap<String,Object>
                 // MetaDataPane, and waiting to lock this object (locked by an
                 // ImageLoader thread) to enter removeListener above.
                 
-                l.propertyMapChanged(this); 
+                l.tableBagChanged(this); 
             }
             if (DEBUG.RESOURCE || DEBUG.THREAD) out("notifyListeners completed " + listeners.size());
         }
