@@ -52,6 +52,14 @@ import org.xml.sax.InputSource;
 
 import tufts.vue.gui.*;
 
+/**
+ * This class wraps a DataSourceList, and handles communicating user
+ * selection events on the list to other panes, such as search or browse,
+ * as well as requesting browse components and loading them into the browse pane.
+ * Also handles the big task of kicking off parallel searches for multiple sources
+ * in multiple threads (full parallel federated search).
+ */
+
 public class DataSourceViewer extends JPanel
     implements KeyListener, edu.tufts.vue.fsm.event.SearchListener, ActionListener
 {
@@ -107,7 +115,8 @@ public class DataSourceViewer extends JPanel
 
     private static DataSourceViewer singleton;
     
-    public DataSourceViewer(DRBrowser drBrowser) {
+    public DataSourceViewer(DRBrowser drBrowser)
+    {
         VUE.diagPush("DSV");
 
         if (editInfoDockWindow == null)
@@ -126,8 +135,21 @@ public class DataSourceViewer extends JPanel
         setPopup();
         addListeners();
         
-        add(dataSourceList);
-            
+        if (true) {
+            add(dataSourceList);
+        } else {
+            // this no good: needs to be done at higher level (DRBrowser, refactored)
+            JTabbedPane tabs = new JTabbedPane();
+            //tabs.setBackground(Color.white);
+            tabs.add("Data", new JLabel("DATA"));
+            tabs.add("Resources", dataSourceList);
+            add(tabs);
+        }
+        
+        // TODO: can any of these (beyond refresh), ever have an effect?  These properties
+        // are being set before addNotify, so I don't think they're generated the needed
+        // propertyChangeEvents to be seen, and aren't currently being handled in
+        // the WidgetStack.WidgetTitle constructor
         Widget.setHelpAction(DRB.librariesPanel,VueResources.getString("dockWindow.Content.libraryPane.helpText"));;
         Widget.setMiscAction(DRB.librariesPanel, new MiscActionMouseListener(), "dockWindow.addButton");
         Widget.setHelpAction(DRB.browsePane,VueResources.getString("dockWindow.Content.browsePane.helpText"));;
@@ -152,6 +174,8 @@ public class DataSourceViewer extends JPanel
         Widget.setExpanded(DRB.browsePane, false); // working: why expanded sometimes?
         
         singleton = this;
+
+        if (DEBUG.BOXES) setBorder(new LineBorder(Color.red, 4));
     }
 
 //     private static boolean OSIDsLoaded;
@@ -217,9 +241,9 @@ public class DataSourceViewer extends JPanel
             dataSourceManager = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
             Log.info("loading Installed data sources via Data Source Manager");
 
-            VUE.diagPush("LD");
-            edu.tufts.vue.dsm.impl.VueDataSourceManager.load();
-            VUE.diagPop();
+//             VUE.diagPush("LD");
+//             edu.tufts.vue.dsm.impl.VueDataSourceManager.load();
+//             VUE.diagPop();
             
             dataSources = dataSourceManager.getDataSources();
             Log.info("finished loading data sources.");
@@ -359,7 +383,7 @@ public class DataSourceViewer extends JPanel
                         refreshEditInfo(ds);
                     } else {
                         int index = ((JList)e.getSource()).getSelectedIndex();
-                        o = dataSourceList.getContents().getElementAt(index-1);
+                        o = dataSourceList.getModelContents().getElementAt(index-1);
                         if (o instanceof tufts.vue.DataSource) {
                             DataSource ds = (DataSource)o;
                             DataSourceViewer.this.setActiveDataSource(ds);
@@ -444,7 +468,7 @@ public class DataSourceViewer extends JPanel
         Widget.setExpanded(DRB.browsePane, true);
     }
     
-    private void refreshBrowser()
+    void refreshBrowser()
     {
         if (browserDS == null || browserDS.isLoading())
             return;
@@ -848,8 +872,8 @@ public class DataSourceViewer extends JPanel
                         String displayName = ds.getRepositoryDisplayName();
                         
                         //figure out which one of the results needs to be deleted
-                        DefaultListModel listComponents = dataSourceList.getContents();
-                        int index = dataSourceList.getContents().indexOf(ds);
+                        DefaultListModel listComponents = dataSourceList.getModelContents();
+                        int index = dataSourceList.getModelContents().indexOf(ds);
                         int instanceIndex = 0;
                         for (int p=0; p< index; p++) {
                             edu.tufts.vue.dsm.impl.VueDataSource o2 = (edu.tufts.vue.dsm.impl.VueDataSource)listComponents.get(p);
@@ -874,7 +898,7 @@ public class DataSourceViewer extends JPanel
                                     tufts.Util.printStackTrace(t);
                                 }
                             }});
-                            dataSourceList.getContents().removeElement(ds);
+                            dataSourceList.getModelContents().removeElement(ds);
                             saveDataSourceViewer();
                             
                             //delete it
@@ -905,7 +929,7 @@ public class DataSourceViewer extends JPanel
                                 "Do you really want to delete " + displayName,
                                 "Delete Resource",
                                 javax.swing.JOptionPane.OK_CANCEL_OPTION) == javax.swing.JOptionPane.YES_OPTION) {
-                            dataSourceList.getContents().removeElement(ds);
+                            dataSourceList.getModelContents().removeElement(ds);
                             saveDataSourceViewer();
                         }
                         DRB.browsePane.remove(ds.getResourceViewer());
@@ -1051,10 +1075,10 @@ public class DataSourceViewer extends JPanel
     private void loadDefaultDataSources() {
         try {
             String breakTag = "";
-            //dataSourceList.getContents().addElement(breakTag);
+            //dataSourceList.getModelContents().addElement(breakTag);
             DataSource ds1 = new FavoritesDataSource("My Saved Content");
             dataSourceList.addOrdered(ds1);
-            //dataSourceList.getContents().addElement(breakTag);
+            //dataSourceList.getModelContents().addElement(breakTag);
             DataSource ds2 = new LocalFileDataSource("My Computer","");
             dataSourceList.addOrdered(ds2);
             // default selection
@@ -1706,7 +1730,7 @@ public class DataSourceViewer extends JPanel
     private static WidgetStack editInfoStack; // static hack: is needed before this class is constructed
     private static final JLabel NoConfig = new JLabel("No Configuration", JLabel.CENTER);
     
-    private final MetaDataPane configMetaData = new MetaDataPane(true);
+    private final MetaDataPane configMetaData = new MetaDataPane("Config Properties", true);
     private Object loadedDataSource;
     
     static void initUI() {
@@ -1825,7 +1849,7 @@ public class DataSourceViewer extends JPanel
             
             final PropertyMap dsProps = buildPropertyMap(ds);
             
-            configMetaData.loadProperties(dsProps);            
+            configMetaData.loadTable(dsProps);
             editInfoStack.addPane(configMetaData, 2.0f);
             
             doLoad(ds, ds.getRepositoryDisplayName());
@@ -1887,7 +1911,7 @@ public class DataSourceViewer extends JPanel
     public static Vector getPublishableDataSources(int i) {
         Vector mDataSources = new Vector();
         if (dataSourceList != null) {
-            Enumeration e = dataSourceList.getContents().elements();
+            Enumeration e = dataSourceList.getModelContents().elements();
             while(e.hasMoreElements() ) {
                 Object mDataSource = e.nextElement();
                 if(mDataSource instanceof Publishable)
@@ -1901,7 +1925,7 @@ public class DataSourceViewer extends JPanel
      * returns the default favorites resources.  This is will be used to add favorites and perform search
      */
     public static org.osid.repository.Repository getDefualtFavoritesRepository() {
-        DefaultListModel model = dataSourceList.getContents();
+        DefaultListModel model = dataSourceList.getModelContents();
         
         try {
             for(int i = 0; i<model.size();i++){
@@ -1923,7 +1947,7 @@ public class DataSourceViewer extends JPanel
     }
     
     public static FavoritesDataSource getDefualtFavoritesDS() {
-        DefaultListModel model = dataSourceList.getContents();
+        DefaultListModel model = dataSourceList.getModelContents();
         
         try {
             for(int i = 0; i<model.size();i++){
@@ -1937,6 +1961,7 @@ public class DataSourceViewer extends JPanel
         }
         return null;
     }
+    
     public static void saveDataSourceViewer() {
         if (dataSourceList == null) {
             System.err.println("DataSourceViewer: No dataSourceList to save.");
