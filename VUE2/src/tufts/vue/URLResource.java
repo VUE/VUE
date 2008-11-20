@@ -57,7 +57,7 @@ import sun.awt.shell.ShellFolder;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.78 $ / $Date: 2008-09-16 12:22:29 $ / $Author: sfraize $
+ * @version $Revision: 1.79 $ / $Date: 2008-11-20 17:37:27 $ / $Author: sfraize $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -1622,7 +1622,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
 
             mXMLpropertyList = new ArrayList(mProperties.size());
             
-            for (Map.Entry<String,?> e : mProperties.entrySet())
+            for (Map.Entry<String,?> e : mProperties.entries())
                 mXMLpropertyList.add(new PropertyEntry(e));
             
             // E.g., if using a multi-map: (or provide an asMap() view)
