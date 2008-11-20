@@ -53,7 +53,7 @@ import org.xml.sax.*;
 
 
 /**
- * @version $Revision: 1.4 $ / $Date: 2008-10-10 04:57:46 $ / $Author: sfraize $
+ * @version $Revision: 1.5 $ / $Date: 2008-11-20 17:41:41 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -229,7 +229,7 @@ class XMLIngest {
         // For more on the complexity of this issue, see:
         // http://diveintomark.org/archives/2004/02/13/xml-media-types
         
-        final XmlSchema schema = new XmlSchema(input.getSystemId(), itemKey);
+        final XmlSchema schema = new XmlSchema(input, itemKey);
         
         final Document doc = parseXML(input, false);
 
