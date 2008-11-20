@@ -44,9 +44,32 @@ import tufts.oki.localFiling.*;
  * A List that is droppable for the datasources. Only My favorites will
  * take a drop.
  *
- * @version $Revision: 1.59 $ / $Date: 2008-07-07 19:49:30 $ / $Author: sfraize $
+ * This class assocates the DataSourceListCellRenderer with this list,
+ * includes "addOrdered" for adding to the model yet maintaining an
+ * internal sort order based on type, and provides a DropTarget with
+ * drag/drop code for indicating droppable items in the list on
+ * drag-over and accepting drops.  Most of the code in this class is
+ * some hairy drop code, especially for parsing out dropped
+ * Resources/Files, that should be elsewhere: e.g., right in the
+ * data-source that accept drops: FavoritesDataSource (and potentially
+ * someday: RSSDataSource).
+ *
+ * Note that this currently creates it's own DefaultListModel to keep
+ * the data sources ordered as it would like, and is a list made of up
+ * of both tufts.vue.DataSource's and edu.tufts.vue.dsm.DataSource's,
+ * which are obtained via separate API calls. his would be better
+ * handled if it was directly backed by re-orderable list(s) of
+ * data sources that comes from the VueDataSourceManager (which
+ * already handles persistance of the lists).  This would also allow
+ * user re-ordering of the data sources, which would automatically be
+ * persistent.
+ * 
+ * @version $Revision: 1.60 $ / $Date: 2008-11-20 17:33:04 $ / $Author: sfraize $
  * @author Ranjani Saigal
  */
+
+// TODO: remove constructor reference to DataSourceViewer: handle via globally posted events
+// (this handle is only used in one place here).
 
 public class DataSourceList extends JList implements DropTargetListener
 {
@@ -56,12 +79,13 @@ public class DataSourceList extends JList implements DropTargetListener
     
     private static final boolean debug = true;
     
-    private final DataSourceViewer dsViewer;
     private static final int ACCEPTABLE_DROP_TYPES = 0
             | DnDConstants.ACTION_COPY
             | DnDConstants.ACTION_LINK
             | DnDConstants.ACTION_MOVE
             ;
+    
+    private final DataSourceViewer dsViewer;
     
     public DataSourceList(DataSourceViewer dsViewer) {
         super(new DefaultListModel());
@@ -142,7 +166,7 @@ public class DataSourceList extends JList implements DropTargetListener
         }
     }
     
-    public DefaultListModel getContents() {
+    public DefaultListModel getModelContents() {
         return (DefaultListModel) getModel();
     }
     
@@ -170,6 +194,21 @@ public class DataSourceList extends JList implements DropTargetListener
         }
     }
 
+    public void dragEnter(DropTargetDragEvent e) {
+        if (DEBUG.DND) out("dragEnter");
+        setIndicated(null);
+        e.acceptDrag(ACCEPTABLE_DROP_TYPES);
+    }
+    
+    public void dragExit(DropTargetEvent e) {
+        if (DEBUG.DND) out("dragExit");
+        setIndicated(null);
+    }
+    
+    public void dropActionChanged( DropTargetDragEvent e ) {
+        e.acceptDrag(ACCEPTABLE_DROP_TYPES);
+    }
+    
     public void drop(DropTargetDropEvent e) {
         setIndicated(null);
         
@@ -228,7 +267,7 @@ public class DataSourceList extends JList implements DropTargetListener
 //         }
 //         DataSource ds = (DataSource)getSelectedValue();
 
-        DataSource ds = (DataSource) over;
+        final tufts.vue.DataSource ds = (DataSource) over;
         
         if (DEBUG.DND) out("DROP ON DATA SOURCE: " + ds.getDisplayName());
         try {
@@ -291,7 +330,7 @@ public class DataSourceList extends JList implements DropTargetListener
                                 CabinetResource res = CabinetResource.create(cab);
                                 CabinetEntry entry = res.getEntry();
                                 if (file.getPath().toLowerCase().endsWith(".url")) {
-                                    String url = convertWindowsURLShortCutToURL(file);
+                                    String url = MapDropTarget.convertWindowsURLShortCutToURL(file);
                                     if (url != null) {
                                         res.setSpec(url);
                                         String resName;
@@ -347,7 +386,7 @@ public class DataSourceList extends JList implements DropTargetListener
                                 if (file.getPath().toLowerCase().endsWith(".url")) {
                                     // Search a windows .url file (an internet shortcut)
                                     // for the actual web reference.
-                                    String url = convertWindowsURLShortCutToURL(file);
+                                    String url = MapDropTarget.convertWindowsURLShortCutToURL(file);
                                     if (url != null) {
                                         //resourceSpec = url;
                                         res.setSpec(url);
@@ -389,8 +428,10 @@ public class DataSourceList extends JList implements DropTargetListener
             favoritesTree.expandRow(0);
             favoritesTree.setRootVisible(false);
 
-            if (dsViewer.getBrowsedDataSource() == null)
+            if (dsViewer.getBrowsedDataSource() == null) {
                 dsViewer.setActiveDataSource(ds);
+                //VUE.setActiveDataSource(ds);
+            }
             
 // Very annoying if you want to drag items from search results into My Favorites:
 //             else if (dsViewer.getBrowsedDataSource() == ds)
@@ -402,71 +443,6 @@ public class DataSourceList extends JList implements DropTargetListener
             //this.setSelectedIndex(current);
             VueUtil.alert(null, "You can only add resources to a Favorites Datasource","Resource Not Added");
         }
-    }
-    private static final Pattern URL_Line = Pattern.compile(".*^URL=([^\r\n]+).*", Pattern.MULTILINE|Pattern.DOTALL);
-    
-    private String convertWindowsURLShortCutToURL(File file) {
-        String url = null;
-        try {
-            if (debug) System.out.println("*** Searching for URL in: " + file);
-            FileInputStream is = new FileInputStream(file);
-            byte[] buf = new byte[2048]; // if not in first 2048, don't bother
-            int len = is.read(buf);
-            is.close();
-            String str = new String(buf, 0, len);
-            if (debug) System.out.println("*** size="+str.length() +"["+str+"]");
-            Matcher m = URL_Line.matcher(str);
-            if (m.lookingAt()) {
-                url = m.group(1);
-                if (url != null)
-                    url = url.trim();
-                if (debug) System.out.println("*** FOUND URL ["+url+"]");
-                int i = url.indexOf("|/");
-                if (i > -1) {
-                    // odd: have found "file:///D|/dir/file.html" example
-                    // where '|' is where ':' should be -- still works
-                    // for Windows 2000 as a shortcut, but NOT using
-                    // Windows 2000 url DLL, so VUE can't open it.
-                    url = url.substring(0,i) + ":" + url.substring(i+1);
-                    // System.out.println("**PATCHED URL ["+url+"]");
-                }
-                // if this is a file:/// url to a local html page,
-                // AND we can determine that we're on another computer
-                // accessing this file via the network (can we?)
-                // then we should not covert this shortcut.
-                // Okay, this is good enough for now, tho it also
-                // won't end up converting a bad shortcut, and
-                // ideally that wouldn't be our decision.
-                // [this is not worth it]
-                /*
-                URL u = new URL(url);
-                if (u.getProtocol().equals("file")) {
-                    File f = new File(u.getFile());
-                    if (!f.exists()) {
-                        url = null;
-                        System.out.println("***  BAD FILE ["+f+"]");
-                    }
-                }
-                 */
-            }
-        } catch (Exception e) {
-            //System.out.println(e);
-        }
-        return url;
-    }
-    
-    public void dragEnter(DropTargetDragEvent e) {
-        if (DEBUG.DND) out("dragEnter");
-        setIndicated(null);
-        e.acceptDrag(ACCEPTABLE_DROP_TYPES);
-    }
-    public void dragExit(DropTargetEvent e) {
-        if (DEBUG.DND) out("dragExit");
-        setIndicated(null);
-    }
-    
-    public void dropActionChanged( DropTargetDragEvent e ) {
-        e.acceptDrag(ACCEPTABLE_DROP_TYPES);
     }
     
     private void out(String s) {
