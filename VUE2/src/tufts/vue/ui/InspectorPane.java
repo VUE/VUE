@@ -40,7 +40,7 @@ import edu.tufts.vue.fsm.event.SearchListener;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.98 $ / $Date: 2008-10-10 17:11:34 $ / $Author: mike $
+ * @version $Revision: 1.99 $ / $Date: 2008-11-20 17:45:29 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends WidgetStack
@@ -56,7 +56,7 @@ public class InspectorPane extends WidgetStack
 
     private final boolean isMacAqua = GUI.isMacAqua();
 
-    private static final boolean EASY_READING_DESCRIPTION = VUE.VUE3;
+    //private static final boolean EASY_READING_DESCRIPTION = VUE.VUE3;
 
     //-------------------------------------------------------
     // Node panes
@@ -71,9 +71,12 @@ public class InspectorPane extends WidgetStack
     //-------------------------------------------------------
     // Resource panes
     //-------------------------------------------------------
-    private final MetaDataPane mResourceMetaData = new MetaDataPane(false);
+    private final MetaDataPane mResourceMetaData = new MetaDataPane("Properties", false);
+    private final MetaDataPane mDataSetData = new MetaDataPane("Data Set Fields", false);
     private final Widget mDescription = new Widget("contentInfo"); // for GUI.init property applicaton (use same as meta-data pane)
     private final Preview mPreview = new Preview();
+    
+    private final JLabel mSelectionInfo = new JLabel("", JLabel.CENTER);
     
     private final WidgetStack stack;
     
@@ -117,16 +120,17 @@ public class InspectorPane extends WidgetStack
         final float EXACT_SIZE = 0f;
         final float EXPANDER = 1f;
 
-        if (EASY_READING_DESCRIPTION) {
-            mDescription.setBorder(GUI.WidgetInsetBorder);
-            mDescription.setOpaque(true);
-            mDescription.setBackground(Color.white);
-        }
+        mDescription.setBorder(GUI.WidgetInsetBorder);
+        mDescription.setOpaque(true);
+        mDescription.setBackground(Color.white);
 
+        mSelectionInfo.setFont(VueConstants.LargeFont);
+
+        new Pane("_multi-selection-info",  mSelectionInfo,      EXPANDER,    0);
         new Pane("Label",                  mLabelPane,          EXACT_SIZE,  INFO+NOTES+KEYWORD);
         new Pane("Content Preview",        mPreview,            EXACT_SIZE,  RESOURCE);
-        if (EASY_READING_DESCRIPTION)
         new Pane("Content Summary",        mDescription,        0.5f,        RESOURCE);
+        new Pane("Data Set Fields",        mDataSetData,        EXACT_SIZE,  INFO+NOTES+KEYWORD);
         new Pane("Content Info",           mResourceMetaData,   EXACT_SIZE,  RESOURCE);
         new Pane("Notes",                  mNotes,              EXPANDER,    INFO+NOTES);
         new Pane("Pathway Notes",          mPathwayNotes,       EXPANDER,    INFO+NOTES);
@@ -324,6 +328,9 @@ public class InspectorPane extends WidgetStack
         if (s.size() == 0) {
             
             hideAll();
+            mSelectionInfo.setText("nothing selected");
+            Widget.setHidden(mSelectionInfo, false);        
+            setVisible(true);
             
         } else if (s.size() == 1) {
 
@@ -342,6 +349,8 @@ public class InspectorPane extends WidgetStack
     
     private void loadSingleSelection(LWComponent c)
     {
+        Widget.setHidden(mSelectionInfo, true);
+        
         showNodePanes(true);
 
         if (c instanceof LWSlide || c.hasAncestorOfType(LWSlide.class)) {
@@ -371,6 +380,17 @@ public class InspectorPane extends WidgetStack
         loadedEntry = null;
         hideAllPanes();
         mKeywords.loadKeywords(null);
+        // todo: actually pull mTypes out of LWSelection to count types of each kind
+        String txt = String.format("%d items selected", s.size());
+        setTitleItem(txt);
+        //String txt = String.format("<html><center>%d items selected", s.size());
+        if (s.getDescription().length() > 0)
+            txt = "<html>" + txt + " " + s.getDescription();
+            //txt = txt + " " + s.getDescription();
+        //txt = "<html><center>" + txt + " " + s.getDescription();
+        mSelectionInfo.setText(txt);
+        Widget.setHidden(mLabelPane, false); // connect up to schematic-field style node?
+        Widget.setHidden(mSelectionInfo, false);
       //Widget.setExpanded(mKeywords, true);
         Widget.setHidden(mKeywords, false);
     }
@@ -413,6 +433,15 @@ public class InspectorPane extends WidgetStack
             mLabelPane.load(c);
         else
             mLabelPane.load(slideTitle, c);
+
+
+        if (c.getDataTable() == null) {
+            Widget.setHidden(mDataSetData, true);
+        } else {
+            mDataSetData.loadTable(c.getDataTable());
+            Widget.setHidden(mDataSetData, false);
+        }
+        
         mKeywords.loadKeywords(c);
         
         if (DEBUG.Enabled)
@@ -435,50 +464,48 @@ public class InspectorPane extends WidgetStack
         component.setName(title);
     }
 
-    private static final String DESCRIPTION_VIEWER_KEY = Resource.HIDDEN_RUNTIME_PREFIX + "inspector-content";
+//     //-----------------------------------------------------------------------------
+//     // experimental code to export to PropertyMap:
+//     private static final class Key<T> {
+//         final String name;
+//         //Key(T t) { type = t; }
+//         Key(String s) { name = s; }
+//         //Key() { name = T.class; } // can't query type for class
+//         @Override
+//         public String toString() {
+//             return name;
+//         }
+
+//         public T cast(Object o) { // would this be needed / handy?  (would it even work to throw a cast-class, or is this all type-erased?)
+//             return (T) o;
+//         }
+//     }
     
-    //-----------------------------------------------------------------------------
-    // experimental code to export to PropertyMap:
-    private static final class Key<T> {
-        final String name;
-        //Key(T t) { type = t; }
-        Key(String s) { name = s; }
-        //Key() { name = T.class; } // can't query type for class
-        @Override
-        public String toString() {
-            return name;
-        }
+//     //private static final Key<JComponent> DESCRIPTION_VIEWER = new Key(JComponent.class);
+//     private static final Key<JComponent> DESCRIPTION_VIEWER = new Key("description_viewer");
+//     private static final Key<Integer> DESCRIPTION_VIEWER_N = new Key("test_int");
 
-        public T cast(Object o) { // would this be needed / handy?  (would it even work to throw a cast-class, or is this all type-erased?)
-            return (T) o;
-        }
-    }
-    
-    //private static final Key<JComponent> DESCRIPTION_VIEWER = new Key(JComponent.class);
-    private static final Key<JComponent> DESCRIPTION_VIEWER = new Key("description_viewer");
-    private static final Key<Integer> DESCRIPTION_VIEWER_N = new Key("test_int");
+//     private static <T> T get(Key<T> key) { return (T) null; }
 
-    private static <T> T get(Key<T> key) { return (T) null; }
+//     // or could infer a new key from arguments? (of course, would need to cache the keys tho)
+//     //private static <T> void put(Class<T> type, String name, T value) {
+//     private static <T> T put(String name, T value) {
+//         Key<T> key = new Key(name);
 
-    // or could infer a new key from arguments? (of course, would need to cache the keys tho)
-    //private static <T> void put(Class<T> type, String name, T value) {
-    private static <T> T put(String name, T value) {
-        Key<T> key = new Key(name);
+//         return get(key);
+//     }
 
-        return get(key);
-    }
-
-    static {
-//         int x = put("foo", 1);
-//         long z = put("foo", 1);
-//         char c = put("foo", 'x');
-//         JLabel l = put("bar", new JLabel("baz"));
-//         //JLabel m = put("bar", new JPanel()); // error, as appropriate
+//     static {
+// //         int x = put("foo", 1);
+// //         long z = put("foo", 1);
+// //         char c = put("foo", 'x');
+// //         JLabel l = put("bar", new JLabel("baz"));
+// //         //JLabel m = put("bar", new JPanel()); // error, as appropriate
         
-//         JComponent foo = get(DESCRIPTION_VIEWER);
-//         int i = get(DESCRIPTION_VIEWER_N);
-    }    
-    //-----------------------------------------------------------------------------
+// //         JComponent foo = get(DESCRIPTION_VIEWER);
+// //         int i = get(DESCRIPTION_VIEWER_N);
+//     }    
+//     //-----------------------------------------------------------------------------
 
     private void loadResource(final Resource r) {
         
@@ -488,55 +515,60 @@ public class InspectorPane extends WidgetStack
             return;
 
         mResource = r;
-        mResourceMetaData.loadResource(r);
+        //mResourceMetaData.loadResource(r);
+        mResourceMetaData.loadTable(r.getProperties());
         mPreview.loadResource(r);
-        
-        if (EASY_READING_DESCRIPTION) {
 
-            JComponent descriptionView = (JComponent) r.getPropertyValue(DESCRIPTION_VIEWER_KEY);
+        loadContentSummary(r);
+
+    }
+
+    private static final String DESCRIPTION_VIEWER_KEY = Resource.HIDDEN_RUNTIME_PREFIX + "inspector-content";
+    
+
+    private void loadContentSummary(Resource r) {
+        JComponent descriptionView = (JComponent) r.getPropertyValue(DESCRIPTION_VIEWER_KEY);
             
-            if (descriptionView == null) {
+        if (descriptionView == null) {
 
-                // TODO: MAKE CASE INDEPENDENT
-                String desc = r.getProperty("description");
-                if (desc == null)
-                    desc = r.getProperty("Description");
+            // TODO: MAKE CASE INDEPENDENT
+            String desc = r.getProperty("description");
+            if (desc == null)
+                desc = r.getProperty("Description");
                 
-                // desc may still be null at this point,
-                // in which case one will be constructed
-                // from the Resource
+            // desc may still be null at this point,
+            // in which case one will be constructed
+            // from the Resource
 
-                boolean gotView = false;
+            boolean gotView = false;
 
-                try {
-                    descriptionView = buildDescription(r, desc);
-                    gotView = true;
-                } catch (Throwable t) {
-                    Log.error("loadResource " + r, t);
-                    // html will enable text-wrap
-                    descriptionView = new JLabel("<html>"+ r + "<p>" + t.toString()); 
-                }
-                
-                // todo: the below should ideally be auto-cleared when any change to the
-                // resource is made and/or any change to it's component properties.
-                // (would need to separate "real" meta-data properties from runtime
-                // client properties such as this one in that case).  It would be nice
-                // if resource properties could individually be specified as having
-                // these special attributes themselves.  (e.g., "soft" or
-                // "auto-clear-on-change")
-
-                if (gotView)
-                    r.setProperty(DESCRIPTION_VIEWER_KEY, new java.lang.ref.SoftReference(descriptionView));
-                // r.putSoft
-                // r.data.putSoft
+            try {
+                descriptionView = buildDescription(r, desc);
+                gotView = true;
+            } catch (Throwable t) {
+                Log.error("loadResource " + r, t);
+                // html will enable text-wrap
+                descriptionView = new JLabel("<html>"+ r + "<p>" + t.toString()); 
             }
+                
+            // todo: the below should ideally be auto-cleared when any change to the
+            // resource is made and/or any change to it's component properties.
+            // (would need to separate "real" meta-data properties from runtime
+            // client properties such as this one in that case).  It would be nice
+            // if resource properties could individually be specified as having
+            // these special attributes themselves.  (e.g., "soft" or
+            // "auto-clear-on-change")
 
-            mDescription.removeAll();
-            mDescription.add(descriptionView);
-            mDescription.repaint();
+            if (gotView)
+                r.setProperty(DESCRIPTION_VIEWER_KEY, new java.lang.ref.SoftReference(descriptionView));
+            // r.putSoft
+            // r.data.putSoft
         }
 
-
+        mDescription.removeAll();
+        mDescription.add(descriptionView);
+        mDescription.repaint();
+        
     }
 
     private static final HyperlinkListener DefaultHyperlinkListener =
@@ -705,7 +737,7 @@ public class InspectorPane extends WidgetStack
 //             }
 
             //mDescription.setToolTipText(reformatted);
-            if (DEBUG.Enabled) r.setProperty("~reformatted", reformatted);
+            if (DEBUG.META) r.setProperty("~reformatted", reformatted);
         } else {
             final StringBuilder b = new StringBuilder(128);
             final String title = r.getTitle();
@@ -857,7 +889,7 @@ public class InspectorPane extends WidgetStack
         
         hideAllPanes();
 
-        setTitleItem(null);
+        setTitleItem("(nothing selected)");
     }
     
         
@@ -888,8 +920,10 @@ public class InspectorPane extends WidgetStack
     
     
     private void showNodePanes(boolean visible) {
+        // todo: should be using setPanesVisible here
         Widget.setHidden(mLabelPane, !visible);        
         Widget.setHidden(mNotes, !visible);
+        Widget.setHidden(mDataSetData, !visible);
 
         Widget.setHidden(mKeywords, !visible);
         Widget.setHidden(ontologicalMetadata, !visible);
