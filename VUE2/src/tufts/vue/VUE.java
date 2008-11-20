@@ -66,7 +66,7 @@ import org.xml.sax.InputSource;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.582 $ / $Date: 2008-10-10 19:48:30 $ / $Author: sfraize $ 
+ * @version $Revision: 1.583 $ / $Date: 2008-11-20 17:39:26 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -459,6 +459,19 @@ public class VUE
         }
     };
 
+    /**
+     * For the currently active tufts.vue.DataSource
+     */
+    private static final ActiveInstance<tufts.vue.DataSource>
+        ActiveDataSourceHandler = new ActiveInstance<tufts.vue.DataSource>(tufts.vue.DataSource.class) {
+        @Override
+        protected void onChange(ActiveEvent<tufts.vue.DataSource> e) {
+            // perhaps set active tufts.vue.BrowseDataSource
+            
+        }
+    };
+    
+
 
     public static LWMap getActiveMap() { return ActiveMapHandler.getActive(); }
     public static LWPathway getActivePathway() { return ActivePathwayHandler.getActive(); }
@@ -467,6 +480,7 @@ public class VUE
     public static LWComponent getActiveComponent() { return ActiveComponentHandler.getActive(); }
     public static Resource getActiveResource() { return ActiveResourceHandler.getActive(); }
     public static LWMap.Layer getActiveLayer() { return ActiveLayerHandler.getActive(); }
+    public static tufts.vue.DataSource getActiveDataSource() { return ActiveDataSourceHandler.getActive(); }
 
     public static LWComponent getActiveFocal() {
         MapViewer viewer = getActiveViewer();
@@ -1728,8 +1742,10 @@ public class VUE
         if (DR_BROWSER_DOCK == null || VUE.isApplet())
         {
         	DR_BROWSER_DOCK = GUI.createDockWindow("Resources");
+
+                final DockWindow dataFinderDock = GUI.createDockWindow("DataFinder");
         	//DockWindow searchDock = GUI.createDockWindow("Search");
-        	DockWindow searchDock = null;
+        	//DockWindow searchDock = null;
         	if (!SKIP_DR) {
             
         		// TODO: DRBrowser init needs to load all it's content/viewers in a threaded
@@ -1739,9 +1755,67 @@ public class VUE
         		// their contents -- every 1st & 2nd level file is polled and initialized at
         		// startup).  SMF 2007-10-05
             
-        		DR_BROWSER = new DRBrowser(true, DR_BROWSER_DOCK, searchDock);
+        		DR_BROWSER = new DRBrowser(true, DR_BROWSER_DOCK, null);
+                        
         		DR_BROWSER_DOCK.setSize(300, (int) (GUI.GScreenHeight * 0.75));
+
         	}
+
+                if (true || DEBUG.Enabled /* && !SKIP_DR */) {
+                    final DataFinder DATA_FINDER_DEFAULTS =
+                        new DataFinder("resources", null,
+                                       new Class[] {
+                                           tufts.vue.ds.XmlDataSource.class,
+                                           edu.tufts.vue.rss.RSSDataSource.class }
+                                       );
+                    final DataFinder DATA_FINDER_XML
+                        = new DataFinder("xml", new Class[] { tufts.vue.ds.XmlDataSource.class }, null);
+                    final DataFinder DATA_FINDER_RSS
+                        = new DataFinder("rss", new Class[] { edu.tufts.vue.rss.RSSDataSource.class }, null);
+                            
+                    final JTabbedPane tabs = new JTabbedPane();
+
+                    JScrollPane sp0, sp1, sp2;
+                            
+                    // data on top for the moment as we're working on it -- move to last tab eventually
+                    tabs.add("Data", sp2 = new JScrollPane(DATA_FINDER_XML,
+                                                     JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                                                     JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+                                                     ));
+                    tabs.add("Resources", sp0 = new JScrollPane(DATA_FINDER_DEFAULTS,
+                                                          JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                                                          JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+                                                          ));
+                    tabs.add("RSS", sp1 = new JScrollPane(DATA_FINDER_RSS,
+                                                     JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                                                     JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+                                                     ));
+
+                    // Scroll panes inside of the JTabbedPane lose the special
+                    // width-tracking capability provided by DockWindow JScrollPane's...
+                    // (e.g., the icons in data-sources list don't align right, etc) --
+                    // setting these special client properties on an instance of
+                    // WidgetStack enable this.  This also appears to dramatically
+                    // speed things up when switching tabs and doing general UI updates.
+                    // (The slowness may have to do with some kind of unbounded layout
+                    // problem, attempting to lay things out without enough constraints
+                    // to limit the algorithms).
+                    DATA_FINDER_DEFAULTS.putClientProperty("VUE.sizeTrack", sp0.getViewport());
+                    DATA_FINDER_RSS.putClientProperty("VUE.sizeTrack", sp1.getViewport());
+                    DATA_FINDER_XML.putClientProperty("VUE.sizeTrack", sp2.getViewport());
+                            
+                    dataFinderDock.setContent(tabs);
+                            
+                    dataFinderDock.setSize(300, (int) (GUI.GScreenHeight * 0.75));
+                    dataFinderDock.setVisible(true);
+
+                    GUI.invokeAfterAWT(new Runnable() { public void run() {
+                        //DATA_FINDER_DEFAULTS.loadDataSourceViewer();
+                        //DATA_FINDER_RSS.loadDataSourceViewer();
+                        DATA_FINDER_XML.loadDataSourceViewer();
+                    }});
+                }
+                
         }
         //-----------------------------------------------------------------------------
         // Map Inspector
