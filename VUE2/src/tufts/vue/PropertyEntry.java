@@ -93,11 +93,17 @@ class KVEntry<K,V> implements Map.Entry<K,V> {
  */
 public final class PropertyEntry extends KVEntry<String,Object> {
     
+    /** will currently convert the Entry Object value to a String value */
     public PropertyEntry(Map.Entry<String,?> e) {
-        super((Map.Entry<String,Object>)e);
+        this(e.getKey(), e.getValue());
     }
+    /** will currently convert the Object value to a String value, or empty string if null */
     public PropertyEntry(String key, Object value) {
-        super(key, value);
+        super(key, value == null ? "" : value.toString());
+    }
+    /** will currently convert the key and value Objects to String values, or empty string if null */
+    public PropertyEntry(Object key, Object value) {
+        super(key.toString(), value == null ? "" : value.toString());
     }
     /** must have for persistance */
     public PropertyEntry() {}
@@ -115,9 +121,32 @@ public final class PropertyEntry extends KVEntry<String,Object> {
     }
     
     public void setEntryValue(Object entryValue) {
+        
+//         if (DEBUG.Enabled && entryValue instanceof String) {
+//             super.setValue(stripBrackets((String)entryValue));
+//             return;
+//         }
+            
         super.setValue(entryValue);
     }
 
+    // for debug: some property lists were wrapped in one or more '[]' bracket pairs --
+    // each time they'd been persisted as a collection
+    private static String stripBrackets(String s) {
+
+        if (s == null || s.length() < 2 || s.charAt(0) != '[' || s.charAt(s.length() - 1) != ']')
+            return s;
+
+        while (s.charAt(0) == '[' && s.charAt(s.length() - 1) == ']') {
+            System.err.println("stripping " + s);
+            s = s.substring(1, s.length() - 1);
+        }
+        
+        System.err.println("strippedTo " + s);
+        return s;
+    }
+
+    @Override
     public String toString() {
         return "PropertyEntry[" + key + "=" + value + "]";
     }
