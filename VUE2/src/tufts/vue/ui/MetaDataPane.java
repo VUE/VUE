@@ -45,7 +45,7 @@ import javax.swing.text.View;
 
 import tufts.Util;
 import tufts.vue.DEBUG;
-import tufts.vue.PropertyMap;
+import tufts.vue.TableBag;
 import tufts.vue.Resource;
 import tufts.vue.VUE;
 import tufts.vue.gui.GUI;
@@ -61,7 +61,7 @@ import javax.swing.JButton;
 *
 */
 public class MetaDataPane extends tufts.vue.gui.Widget
-   implements PropertyMap.Listener, Runnable
+   implements TableBag.Listener, Runnable
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(MetaDataPane.class);
     
@@ -72,14 +72,17 @@ public class MetaDataPane extends tufts.vue.gui.Widget
     private JScrollPane mScrollPane;
     private boolean inScroll;
     
-    /** The current PropertyMap we're displaying and listening to updates from */
-    private PropertyMap mProperties;
+    /** The current MetaMap we're displaying and listening to updates from */
+    private TableBag mProperties;
+
+    private final String mLabel;
  	  
 //     /** If the displayed properties were from a Resource, this will be set to it, otherwise null */
 //     private Resource mResource;
     
-    public MetaDataPane(boolean scroll) {
+    public MetaDataPane(String label, boolean scroll) {
         super("contentInfo");
+        mLabel = label;
         inOwnedScroll = scroll;
         ensureSlots(20);
        
@@ -96,7 +99,7 @@ public class MetaDataPane extends tufts.vue.gui.Widget
        
         addLabelTextRows(0, mLabels, mValues, mGridBag, null, null);
 
-        if (scroll) {
+        if (inOwnedScroll) {
             mScrollPane = new JScrollPane();
             mScrollPane.setViewportView(mGridBag);
             mScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
@@ -331,16 +334,17 @@ public class MetaDataPane extends tufts.vue.gui.Widget
     }
 
 
-    public void loadResource(Resource r) {
-        if (DEBUG.RESOURCE) out("loadResource:  " + r);
-        loadProperties(r.getProperties());
-    }
+//     public void loadResource(Resource r) {
+//         if (DEBUG.RESOURCE) out("loadResource:  " + r);
+//         loadProperties(r.getProperties());
+//     }
+
    
-    /** PropertyMap.Listener event delivery: do not synchronize this method,
+    /** MetaMap.Listener event delivery: do not synchronize this method,
      * as the call is usually coming from an ImgLoader thread, and
      * we must not synchronize or we risk deadlock */
     
-    public void propertyMapChanged(final PropertyMap source) {
+    public void tableBagChanged(final TableBag source) {
         
         // Note: we can deadlock here obtaining lock held by AWT (if we synchronize this method)
         // This is normally called NOT from an AWT thread (e.g., from an ImageLoader)
@@ -349,18 +353,18 @@ public class MetaDataPane extends tufts.vue.gui.Widget
 
         // Thread-AWT is trying to load new properties (a ResourceSelection change has
         // lead to MetaDataPane.loadProperties), and locks the singleton MetaDataPane to
-        // do so.  It has not yet attempted to obtain any PropertyMap locks.
+        // do so.  It has not yet attempted to obtain any MetaMap locks.
         
-        // Thread-ImageLoader updated PropertyMap-X (e.g., called releaseChanges()), and
-        // has locked PropertyMap-X to notify all it's listeners of the change (in this
+        // Thread-ImageLoader updated MetaMap-X (e.g., called releaseChanges()), and
+        // has locked MetaMap-X to notify all it's listeners of the change (in this
         // case, call MetaDataPane.propertyMapChanged).
 
         // The call in Thread-ImageLoader to propertyMapChanged cannot complete until
         // the AWT lock on MetaDataPane is released.
 
         // The call in Thread-AWT, already locking AWT on MetaDataPane, now attempting to
-        // lock PropertyMap-X to remove us as a listener, cannot complete until Thread-ImageLoader
-        // releases the lock on PropertyMap-X, which is attempting to notify all it's listeners.
+        // lock MetaMap-X to remove us as a listener, cannot complete until Thread-ImageLoader
+        // releases the lock on MetaMap-X, which is attempting to notify all it's listeners.
 
         // Thus, we hava a classic deadlock.
 
@@ -387,7 +391,7 @@ public class MetaDataPane extends tufts.vue.gui.Widget
         // if (DEBUG.IMAGE) Log.info("propertyMapChanged exit  " + Util.tag(source));
     }
 
-    public void loadProperties(final PropertyMap propertyMap) {
+    public void loadTable(final TableBag propertyMap) {
 
         if (DEBUG.THREAD) Log.debug("loadProperties: " + Util.tag(propertyMap));
                                     
@@ -414,13 +418,13 @@ public class MetaDataPane extends tufts.vue.gui.Widget
    
     // as we guarantee that we only ever run this in the AWT thread, this method
     // doesn't need to be synchronized
-    private void loadPropertiesAWT(PropertyMap propertyMap)
+    private void loadPropertiesAWT(TableBag propertyMap)
     {
         if (DEBUG.THREAD || DEBUG.RESOURCE || DEBUG.IMAGE) out("loadPropertiesAWT: " + propertyMap.size() + " key/value pairs");
        
         try {
 
-            // Note: if another thread has a lock on mProperties (e.g., PropertyMap is
+            // Note: if another thread has a lock on mProperties (e.g., MetaMap is
             // in the middle of delivering an update to us about the same mProperties),
             // we could dead-lock in propertyMapChanged above if it was a synchronized
             // method (which is why it is not).
@@ -441,7 +445,7 @@ public class MetaDataPane extends tufts.vue.gui.Widget
 
     // Note: should only be called on AWT Event Dispatch Thread.
     // If it were synchronized, and this method is was from a non-AWT thread, we could risk deadlock.
-    private void updateDisplayAWT(final PropertyMap properties)
+    private void updateDisplayAWT(final TableBag properties)
     {
         if (mProperties != properties) {
             if (DEBUG.Enabled) Log.debug("too late for update to " + properties);
@@ -465,10 +469,13 @@ public class MetaDataPane extends tufts.vue.gui.Widget
 
             if (DEBUG.RESOURCE || DEBUG.THREAD) out("updateDisplay: getTableModel() on " + tufts.Util.tag(properties));
            
-            // Note: PropertyMap.getTableModel() is synchronized, as is PropertyMap.addListener/removeListener,
-            // so if this (or they) are called while we already hold a lock on the PropertyMap
+            // Note: MetaMap.getTableModel() is synchronized, as is MetaMap.addListener/removeListener,
+            // so if this (or they) are called while we already hold a lock on the MetaMap
             // from another thread, we'll deadlock.
             final TableModel model = properties.getTableModel();
+
+            // TODO: get as raw collection instead: old PropertyMap impl can
+            // provide a collection view of a table-model if need be for backward compat.
 
             if (DEBUG.RESOURCE) out("updateDisplay: model=" + model
                                     + " modelSlots=" + model.getRowCount()
@@ -483,7 +490,7 @@ public class MetaDataPane extends tufts.vue.gui.Widget
             loadAllRows(model);
 
             if (DEBUG.Enabled)
-                setTitle("Properties (" + properties.size() + ")");
+                setTitle(mLabel + " (" + properties.size() + ")");
             
             GUI.invokeAfterAWT(this);
 
@@ -561,6 +568,9 @@ public class MetaDataPane extends tufts.vue.gui.Widget
         }
 
         int rowIdx = 0;
+
+        mLastLabel = null;
+        
         for (int row = 0; row < maxRow; row++) {
             final Object label =  model.getValueAt(row, 0);
             final String labelText = "" + label;
@@ -585,12 +595,15 @@ public class MetaDataPane extends tufts.vue.gui.Widget
                 }
             }
 
+            boolean loaded = false;
+
             try {
-                loadRow(rowIdx, labelText, value, valueText);
+                loaded = loadRow(rowIdx, labelText, value, valueText);
             } catch (Throwable t) {
                 Log.error("Failed to load row " + row + "; label= " + Util.tags(label) + "; value=" + Util.tags(value), new Throwable());
             }
-            rowIdx++;
+            if (loaded)
+                rowIdx++;
         }
 
         for (; rowIdx < mLabels.length; rowIdx++) {
@@ -627,20 +640,65 @@ public class MetaDataPane extends tufts.vue.gui.Widget
 
     private final Color ObjectColor = new Color(128,0,0);
 
-    private void loadRow(int row, final String labelText, final Object value, final String valueText) {
+    private String mLastLabel = null;
+    private JTextArea mLastValue = null;
+
+    private boolean loadRow(int row, final String labelText, final Object value, final String valueText) {
         if (DEBUG.RESOURCE && DEBUG.META) out("adding row " + row + " " + labelText + "=[" + valueText + "]");
 
-        JLabel label = mLabels[row];
-        JTextArea field = mValues[row];       
+        //Log.debug(String.format("lastLabel[%s], thisLabel[%s]", mLastLabel, labelText));
+        
+        if (mLastLabel != null && mLastValue != null && labelText.startsWith(mLastLabel + "@")) {
+            
+            // This hack removes Foo@attribute-name repeats in list -- is just a decoration
+            // tweak for now -- ultimately, this should be represtented in the MetaMap as an
+            // association between keys (will need sub-keys), which will be required to
+            // accurately represent XML data, which will currently cause a repeated
+            // key-value pair to be ignored: e.g., if a jira item had multiple comments,
+            // each with an "author=<username>" key-value with it, only the first unique
+            // instance will appear in the map: e.g., only the first "author=melanie" would
+            // appear -- subsequent comments by user melanie would have no author associated
+            // with them, as our data-map, although it allows multple values per key, is still
+            // flat and only allows one instance of key-value pair.
+            
+            String attributeLabel = labelText.substring(mLastLabel.length() + 1);
+            mLastValue.setText(String.format("%s [%s=%s]", mLastValue.getText(), attributeLabel, value));
+            if (!DEBUG.DR) return false;
+        }
+
+        final JLabel label = mLabels[row];
+        final JTextArea field = mValues[row];
 
         if (EasyReading2) {
             label.setText(labelText);
         } else {
-            StringBuffer labelBuf = new StringBuffer(labelText.length() + 1);
-            labelBuf.append(labelText);
-            labelBuf.append(':');
-            label.setText(labelBuf.toString());
+            String txt = labelText;
+            
+            //-----------------------------------------------------------------------------
+            // hack to trim some long XML names in RSS feeds until UI can wrap keys as
+            // well as labels.
+            final String trim1 = "Media:group.media:content.media:";
+            final String trim2 = "Media:group.media:";
+            if (labelText.startsWith(trim1)) {
+                txt = "media" + txt.substring(trim1.length()-1);
+                //txt = "MGMCM" + txt.substring(trim1.length()-1);
+            } else if (labelText.startsWith(trim2)) {
+                txt = "media" + txt.substring(trim2.length()-1);
+                //txt = "MGM" + txt.substring(trim2.length()-1);
+            } else if (labelText.equals("Comments.comment")) {
+                // hack for jira comments
+                txt = "Comment";
+            }
+            //-----------------------------------------------------------------------------
+            
+            final StringBuilder buf = new StringBuilder(txt.length() + 1);
+            buf.append(txt);
+            buf.append(':');
+            label.setText(buf.toString());
         }
+
+        mLastLabel = labelText;
+        mLastValue = field;
 
         if (Resource.looksLikeURLorFile(valueText)) {
             //field.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
@@ -686,6 +744,8 @@ public class MetaDataPane extends tufts.vue.gui.Widget
        
         label.setVisible(true);
         field.setVisible(true);
+
+        return true;
        
     }
     
@@ -875,7 +935,7 @@ public class MetaDataPane extends tufts.vue.gui.Widget
    	}
 
 
-//     public void loadProperties(final PropertyMap resourceProperties) {
+//     public void loadProperties(final MetaMap resourceProperties) {
 
 //         if (DEBUG.THREAD) Log.debug("loadProperties: " + Util.tag(resourceProperties));
                                     
@@ -911,7 +971,7 @@ public class MetaDataPane extends tufts.vue.gui.Widget
 //         }
 //     }
    
-//    private synchronized void doLoadProperties(PropertyMap rsrcProps)
+//    private synchronized void doLoadProperties(MetaMap rsrcProps)
 //    {
 //        // TODO: loops if we don't do this first: not safe!  we should be loading
 //        // directly from the props themselves, and by synchronized on them...  tho is
@@ -933,7 +993,7 @@ public class MetaDataPane extends tufts.vue.gui.Widget
 
 //        try {
 //            // Description of a dead-lock that has been fixed by having
-//            // PropertyMap.getTableModel() sync on it's own lock:
+//            // MetaMap.getTableModel() sync on it's own lock:
            
 //            // Example: VUE-ImageLoader49 holds changes on the props, then goes to notify
 //            // us here in the MetaData pane.  But The AWT thread had already put is in
@@ -943,10 +1003,10 @@ public class MetaDataPane extends tufts.vue.gui.Widget
 //            // a problem, because the update would have been skipped above in
 //            // propertyMapChanged.
 
-//            // Put another way: the PropertyMap is trying to notify us, but is waiting
+//            // Put another way: the MetaMap is trying to notify us, but is waiting
 //            // for us to break out of this method for the lock to release, so
 //            // propertyMapChanged can be called, but then we call getTableModel(), which
-//            // is locked on that same PropertyMap that is waiting for us, and thus
+//            // is locked on that same MetaMap that is waiting for us, and thus
 //            // deadlock...
 
 //            if (DEBUG.RESOURCE || DEBUG.THREAD) out("loadProperties: getTableModel() on " + tufts.Util.tag(rsrcProps));
@@ -960,7 +1020,7 @@ public class MetaDataPane extends tufts.vue.gui.Widget
            
 //            if (mProperties != rsrcProps) {
 //                if (mProperties != null)
-//                    mProperties.removeListener(this); // *AWT* THREAD: CAN DEADLOCK IN PropertyMap.java line 175 (ImageLoader-26 contention)
+//                    mProperties.removeListener(this); // *AWT* THREAD: CAN DEADLOCK IN MetaMap.java line 175 (ImageLoader-26 contention)
 //                mProperties = rsrcProps;
 //                mProperties.addListener(this);
 //            }
