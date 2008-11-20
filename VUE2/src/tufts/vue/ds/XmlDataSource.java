@@ -32,7 +32,7 @@ import au.com.bytecode.opencsv.CSVReader;
 
 
 /**
- * @version $Revision: 1.6 $ / $Date: 2008-11-07 15:09:28 $ / $Author: sfraize $
+ * @version $Revision: 1.7 $ / $Date: 2008-11-20 17:42:39 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class XmlDataSource extends BrowseDataSource
@@ -136,10 +136,10 @@ public class XmlDataSource extends BrowseDataSource
         String[] values = reader.readNext();
 
         if (schema == null) {
-            schema = new Schema(file);
+            schema = new Schema(Resource.instance(file));
         } else {
             schema.flushData();
-            schema.setSource(file);
+            schema.setSource(Resource.instance(file));
         }
         
         if (values == null)
@@ -212,7 +212,9 @@ public class XmlDataSource extends BrowseDataSource
             final Resource r;
             if (link != null) {
                 r = Resource.instance(link);
-                r.setTitle(row.getValue("title"));
+                final String title = row.getValue("title");
+                r.setProperty("Title", title);                
+                r.setTitle(title);
             } else {
                 String value = row.getValue(getItemKey());
                 if (value != null && value.startsWith("http:")) {
@@ -245,7 +247,7 @@ public class XmlDataSource extends BrowseDataSource
 
         StringWriter debug = new StringWriter();
         schema.dumpSchema(new PrintWriter(debug));
-        top.setProperty("Description", "<pre>" + debug.toString());
+        //top.setProperty("Description", "<pre>" + debug.toString());
 
         if (mItems.size() == 0)
             throw new DataSourceException("[Empty XML feed]");
