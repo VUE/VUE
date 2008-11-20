@@ -19,6 +19,7 @@ import tufts.Util;
 
 import java.text.DateFormat;
 import tufts.vue.LWComponent;
+import tufts.vue.DEBUG;
 
 import com.google.common.collect.*;
 
@@ -32,7 +33,7 @@ import java.util.*;
  * types and doing some data-type analysis.  It also includes the ability to
  * associate a LWComponent node style with specially marked values.
  * 
- * @version $Revision: 1.1 $ / $Date: 2008-11-20 17:48:30 $ / $Author: sfraize $
+ * @version $Revision: 1.2 $ / $Date: 2008-11-20 19:11:16 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -91,7 +92,7 @@ public class Field
             mContextValues = Multisets.newHashMultiset();
         else
             mContextValues.clear();
-        Log.debug("MARKING INCLUDED VALUES AGAINST " + nodes.size() + " NODES for " + this);
+        if (DEBUG.Enabled) Log.debug("MARKING INCLUDED VALUES AGAINST " + nodes.size() + " NODES for " + this);
         //final Set<String> valuesToCheck = new HashSet(mValues.keySet());
         //final Set<String> valuesToCheck = mValues.keySet();
         final Set<String> valuesToCheck = mValues.elementSet();

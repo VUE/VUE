@@ -43,7 +43,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.18 $ / $Date: 2008-11-20 17:40:50 $ / $Author: sfraize $
+ * @version $Revision: 1.19 $ / $Date: 2008-11-20 19:11:29 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -271,7 +271,7 @@ public class DataTree extends javax.swing.JTree
             childIndexes[i] = i; // why there's isn't an API to do this automatically, i don't know...
 
         // using nodesChanged instead of mTreeModel.reload preserves the expanded state of nodes in the tree
-        Log.debug("refreshing " + childIndexes.length + " children of " + node);
+        if (DEBUG.Enabled) Log.debug("refreshing " + childIndexes.length + " children of " + node);
         mTreeModel.nodesChanged(node, childIndexes);
     }
     
@@ -333,7 +333,7 @@ public class DataTree extends javax.swing.JTree
     /** build the model and return the root node */
     private TreeNode buildTree(final Schema schema)
     {
-        final DataNode template = new TemplateNode(schema, this);
+        final DataNode rowNodeTemplate = new TemplateNode(schema, this);
         
         final DataNode root =
             new DataNode(null, null, "Data Set: " + schema.getName());
@@ -342,7 +342,7 @@ public class DataTree extends javax.swing.JTree
 //                                        schema.getName(),
 //                                        schema.getRowCount(),
 //                                        "items"//isCSV ? "rows" : "items"));
-        root.add(template);
+        root.add(rowNodeTemplate);
         mRootNode = root;
         
         for (Field field : schema.getFields()) {
@@ -525,8 +525,8 @@ public class DataTree extends javax.swing.JTree
             if (linkField != null) {
                 node.setResource(row.getValue(linkField));
                 final tufts.vue.Resource r = node.getResource();
-                if (descField != null) // now redundant with data fields, may want to leave out for brevity
-                    r.setProperty("Description", row.getValue(descField));
+//                 if (descField != null) // now redundant with data fields, may want to leave out for brevity
+//                     r.setProperty("Description", row.getValue(descField));
                 if (titleField != null) {
                     String title = row.getValue(titleField);
                     r.setTitle(title);
