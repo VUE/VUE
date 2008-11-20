@@ -20,15 +20,17 @@ import tufts.Util;
 import java.util.*;
 import java.io.*;
 import java.net.URL;
-import java.text.DateFormat;
 
+import tufts.vue.Resource;
 import tufts.vue.LWComponent;
+
+import org.xml.sax.InputSource;
 
 import com.google.common.collect.*;
 
 
 /**
- * @version $Revision: 1.7 $ / $Date: 2008-11-07 15:08:30 $ / $Author: sfraize $
+ * @version $Revision: 1.8 $ / $Date: 2008-11-20 17:41:27 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -48,22 +50,40 @@ public class Schema {
     private final List<DataRow> mRows = new ArrayList();
 
     private Object mSource;
+    private Resource mResource;
     
     protected int mLongestFieldName = 10;
 
     private String mName;
 
     private LWComponent mStyleNode;
-        
-    /** construct an empty schema */
-    public Schema() {}
+
+    private final String UUID;
+
+//     /** construct an empty schema */
+//     public Schema() {}
     
     public Schema(Object source) {
         // would be very handy if source was a Resource and Resources had IO methods
         setSource(source);
+        UUID = edu.tufts.vue.util.GUID.generate();
+    }
+
+    public void annotateFor(Collection<LWComponent> nodes) {
+            for (Field field : mFields.values()) {
+                field.markIncludedValues(nodes);
+//                 for (String value : field.getValues()) {
+//                     for (LWComponent node : nodes) {
+//                         if (node.hasDataValue(value)) {
+//                     }
+//                 }
+//            }
+        }
+        
     }
 
     public void flushData() {
+        Log.debug("flushing " + this);
         mRows.clear();
         mLongestFieldName = 10;
         for (Field f : mFields.values()) {
@@ -71,8 +91,10 @@ public class Schema {
         }
     }
 
+    @Override
     public String toString() {
-        return getName() + ": " + getSource();
+        //return getName() + "; " + getSource() + "; " + UUID;
+        return getName() + "; " + getResource() + "; " + UUID;
     }
 
     public void setStyleNode(LWComponent style) {
@@ -89,7 +111,36 @@ public class Schema {
     
     public void setSource(Object src) {
         mSource = src;
+
+        try {
+            setResource(src);
+        } catch (Throwable t) {
+            Log.warn(t);
+        }
     }
+
+    private void setResource(Object r) {
+    
+        if (r instanceof Resource)
+            mResource = (Resource) r;
+        else if (r instanceof InputSource)
+            mResource = Resource.instance(((InputSource)r).getSystemId());
+        else if (r instanceof File)
+            mResource = Resource.instance((File)r);
+        else if (r instanceof URL)
+            mResource = Resource.instance((URL)r);
+        else if (r instanceof String)
+            mResource = Resource.instance((String)r);
+    }
+
+    public void setResource(Resource r) {
+        mResource = r;
+    }
+    public Resource getResource() {
+        return mResource;
+    }
+    
+                                          
 
     public int getRowCount() {
         return mRows.size();
@@ -242,6 +293,8 @@ public class Schema {
         return false;
     }
 
+    
+
     // temp hack: if we keep this, move to elsewhere and/or have it populate an existing container
 //     public LWMap.Layer createSchematicLayer() {
 
@@ -311,302 +364,7 @@ public class Schema {
 
 }
 
-
-    class Field
-    {
-        private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(Field.class);
-
-        public static final String TYPE_UNKNOWN = "?";
-        public static final String TYPE_TEXT = "TEXT";
-        public static final String TYPE_NUMBER = "NUMBER";
-        public static final String TYPE_DATE = "DATE";
-        
-        //static final int MAX_ENUM_VALUE_LENGTH = 54;
-        static final int MAX_ENUM_VALUE_LENGTH = 144;
-        static final int MAX_DATE_VALUE_LENGTH = 40;
-        static final DateFormat DateParser = DateFormat.getDateTimeInstance();
-
-        final String name;
-
-        boolean allValuesUnique;
-        int valueCount;
-        boolean enumDisabled;
-        int maxValueLen;
-        boolean isNumeric;
-
-        final Schema schema;
-
-        LWComponent nodeStyle;
-
-//         long minValue;
-//         long maxValue;
-
-        String type = TYPE_UNKNOWN;
-        
-        /** map of all possible unique values for enumeration tracking */
-        Map<String,Integer> values;
-
-        Field(String n, Schema schema) {
-            this.name = n.trim();
-            this.schema = schema;
-            flushStats();
-            if (Schema.DEBUG) Log.debug("(created field \"" + name + "\")");
-        }
-
-        protected void flushStats() {
-            // reset to initial defaults
-            allValuesUnique = true;
-            valueCount = 0;
-            enumDisabled = false;
-            maxValueLen = 0;
-            isNumeric = true;
-            if (values != null)
-                values.clear();
-            // keep nodeStyle -- the whole reason we use a flush instead of
-            // just creating new Schema+Field objects when reloading
-        }
-
-        public void setStyleNode(LWComponent style) {
-            if (nodeStyle != null)
-                Log.warn("resetting field style " + this + " to " + style);
-            nodeStyle = style;
-        }
-
-        public boolean hasStyleNode() {
-            return nodeStyle != null;
-        }
-        
-        
-        public LWComponent getStyleNode() {
-            return nodeStyle;
-        }
-
-        public String getName() {
-            return name;
-        }
-        
-        public Schema getSchema() {
-            return schema;
-        }
-
-        public String getType() {
-            return type;
-        }
-
-        public String toString() {
-            //if (isNumeric) type=TYPE_NUMERIC; // HACK: NEED ANALYSIS PHASE
-            //return getName();
-            if (valueCount() == 1)
-                //return String.format("<html><code>%s</code>:<br>\"%s\"", getName(), getValues().toArray()[0]);
-                return String.format("%s=\"%s\"", getName(), getValues().toArray()[0]);
-            else if (allValuesUnique)
-                return String.format("%s (%d)/%s/%s", getName(), valueCount(), type, isNumeric);
-            else
-                return String.format("%s [%d]/%s/%s", getName(), uniqueValueCount(), type, isNumeric);
-        }
-
-        public boolean isPossibleKeyField() {
-            //return allValuesUnique && valueCount == schema.getRowCount() && !(type == TYPE_DATE);
-            return !enumDisabled
-                && allValuesUnique
-                && uniqueValueCount() == valueCount()
-                && valueCount() == schema.getRowCount()
-                && !(type == TYPE_DATE);
-        }
-
-        public boolean isKeyField() {
-            return isPossibleKeyField();
-        }
-
-        public boolean isLenghtyValue() {
-            return enumDisabled;
-        }
-        
-        /** @return true if all the values for this Field have been fully tracked and recorded, and more than one
-         * unique value was found */
-        public boolean isEnumerated() {
-            return !enumDisabled && uniqueValueCount() > 1;
-        }
-
-        /** @return true if this field appeared a single time in the entire data set, with a single value
-         * This can generally only be true for fields from an XML data-set, in which a single-value
-         * "column" is in effect created by an XML key that only appears once.
-         */
-            
-        public boolean isSingleton() {
-            return allValuesUnique && (values != null && values.size() < 2);
-        }
-        
-        /** @return true if every value found for this field has the same value.
-         * Will always be true if isSingleton() is true
-         */
-        public boolean isUniqueValue() {
-            return uniqueValueCount() == 1;
-        }
-
-        protected int valueCount() {
-            //return values == null ? 0 : values.size();
-            return valueCount;
-        }
-        
-        protected int uniqueValueCount() {
-            return values == null ? valueCount() : values.size();
-        }
-        
-
-        public int getMaxValueLength() {
-            return maxValueLen;
-        }
-
-        public Set<String> getValues() {
-            return values == null ? Collections.EMPTY_SET : values.keySet();
-        }
-        
-        public Map<String,Integer> getValueMap() {
-            return values == null ? Collections.EMPTY_MAP : values;
-        }
-
-        // todo: may want to move this to a separate analysis code set
-        void trackValue(String value) {
-
-            valueCount++;
-
-            if (value == null)
-                return;
-
-            final int valueLen = value.length();
-
-            if (valueLen > maxValueLen)
-                maxValueLen = valueLen;
-
-            //             if (valueCount > 8 && type == TYPE_DATE) {
-            //                 enumDisabled = true;
-            //                 unique = false; // can't know unique if not tracking all values
-            //             }
-                
-            if (enumDisabled)
-                return;
-            
-            if (valueLen > 0) {
-                
-                if (valueCount > 1 && value.length() > MAX_ENUM_VALUE_LENGTH) {
-                    values = null;
-                    enumDisabled = true;
-                    isNumeric = false;
-                    return;
-                }
-                
-                int count = 1;
-                if (values == null) {
-                    values = new HashMap();
-                }
-                else if (values.containsKey(value)) {
-                    count = values.get(value);
-                    count++;
-                    allValuesUnique = false;
-                }
-                values.put(value, count);
-
-                if (type == TYPE_UNKNOWN && value.length() <= MAX_DATE_VALUE_LENGTH) {
-
-                    if (value.indexOf(':') > 0) {
-                        Date date = null;
-
-                        try {
-                            date = new Date(value);
-                        } catch (Throwable t) {
-                            Log.debug("Failed to parse [" + value + "] as date: " + t);
-                            type = TYPE_TEXT;
-                        }
-                    
-                        //                     try {
-                        //                         date = DateParser.parse(value);
-                        //                     } catch (java.text.ParseException e) {
-                        //                         eoutln("Failed to parse [" + value + "] as date: " + e);
-                        //                         type = TYPE_TEXT;
-                        //                     }
-                    
-                        if (date != null) {
-                            type = TYPE_DATE;
-                            Log.debug("PARSED DATE: " + Util.tags(date) + " from " + value);
-                        }
-
-                        if (type == TYPE_UNKNOWN && isNumeric) {
-                            for (int i = 0; i < value.length(); i++) {
-                                if (!Character.isDigit(value.charAt(i))) {
-                                    isNumeric = false;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-                            
-
-
-//                 if (type == TYPE_UNKNOWN) {
-// //                     long lval;
-// //                     try {
-// //                         lval = Long.parseLong(value);
-// //                     } catch (NumberFormatException e) {
-// //                     }
-//                 }
-//             }
-        }
-
-
-        private String sampleValues(boolean unique) {
-
-            if (values.size() <= 20)
-                return unique ? values.keySet().toString() : values.toString();
-                
-            StringBuffer buf = new StringBuffer("[examples: ");
-
-            int count = 0;
-            for (String s : values.keySet()) {
-                buf.append('"');
-                buf.append(s);
-                buf.append('"');
-                if (++count >= 3)
-                    break;
-                buf.append(", ");
-            }
-            buf.append("]");
-            return buf.toString();
-        }
-
-        public String valuesDebug() {
-            if (values == null) {
-                if (valueCount == 0)
-                    return "(empty)";
-                else
-                    return String.format("%5d values (un-tracked; max-len%6d)", valueCount, maxValueLen);
-            }
-            else if (isSingleton()) {
-                return "singleton" + values.keySet();
-            }
-            else if (allValuesUnique) {
-                if (values.size() > 1) {
-                    return String.format("%5d unique, single-instance values; %s", values.size(), sampleValues(true));
-                    //                    String s = String.format("%2d unique, single-instance values", values.size());
-                    //                     if (values.size() < 16)
-                    //                         //return s + "; " + values.keySet();
-                    //                         return s + "; " + values.toString();
-                    //                     else
-                    //                         return s + "; " + sampleValues();
-                }
-                else
-                    return "<empty>?";
-            }
-            else 
-                return String.format("%5d values, %4d unique: %s", valueCount(), values.size(), sampleValues(false));
-            //return String.format("%5d unique values in %5d; %s", values.size(), valueCount(), sampleValues(false));
-                
-        }
-    }
-
-    
+/** a row impl that handles flat tables as well as Xml style variable "rows" or item groups */
 class DataRow {
 
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(DataRow.class);
@@ -620,6 +378,8 @@ class DataRow {
     //             columns = new ArrayList(approxSize);
     //             values = new ArrayList(approxSize);
     //         }
+
+    // this impl is overkill for handling flat tabular data
 
     final Map<Field,String> values;
     //final Map<String,String> asText;
