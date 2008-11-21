@@ -66,7 +66,7 @@ import org.xml.sax.InputSource;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.583 $ / $Date: 2008-11-20 17:39:26 $ / $Author: sfraize $ 
+ * @version $Revision: 1.584 $ / $Date: 2008-11-21 14:08:43 $ / $Author: sraphe01 $ 
  */
 
 public class VUE
@@ -113,6 +113,8 @@ public class VUE
     private static PathwayPanel pathwayPanel = null;
     private static MapInspectorPanel mapInspectorPanel = null;
     private static JButton returnToMapButton = null;
+    private static MetadataSearchMainGUI metadataSearchMainPanel = null;
+    
     
     public static void finalizeDocks()
     {
@@ -131,6 +133,7 @@ public class VUE
     	
     //	mapInspectorPanel.removeAll();
     	mapInspectorPanel = null;
+    	metadataSearchMainPanel = null;
     	//returnToMapButton = null;
     	
     	//DR_BROWSER.removeAll();
@@ -147,7 +150,7 @@ public class VUE
     	outlineDock = null;
     	floatingZoomDock = null;
     	layersDock = null;
-
+    	metadataSearchMainPanel = null;
 
     }
     /** simplest form of threadsafe static lazy initializer: for CategoryModel */
@@ -779,6 +782,7 @@ public class VUE
     private static DockWindow outlineDock;
     private static DockWindow floatingZoomDock;
     private static DockWindow layersDock;
+    private static DockWindow metaDataSearchDock;
 
     
     static {
@@ -1596,6 +1600,9 @@ public class VUE
           */
         if (!MapInspector.getWindowProperties().isEnabled() || !MapInspector.getWindowProperties().isWindowVisible())
         	acrossTopList.add(MapInspector);
+        
+        if (!metaDataSearchDock.getWindowProperties().isEnabled() || !metaDataSearchDock.getWindowProperties().isWindowVisible())
+        	acrossTopList.add(metaDataSearchDock);
           
         if (!pathwayDock.getWindowProperties().isEnabled() || !pathwayDock.getWindowProperties().isWindowVisible())
         	acrossTopList.add(pathwayDock);
@@ -1645,6 +1652,7 @@ public class VUE
         		slideDock.positionWindowFromProperties();
         	pannerDock.positionWindowFromProperties();
         	MapInspector.positionWindowFromProperties();
+        	metaDataSearchDock.positionWindowFromProperties();
         	ObjectInspector.positionWindowFromProperties();
         	if (outlineDock != null)
         		outlineDock.positionWindowFromProperties();       
@@ -1826,6 +1834,15 @@ public class VUE
         	mapInspectorPanel = new MapInspectorPanel(MapInspector);
         	//        MapInspector.setContent(mapInspectorPanel.getMapInfoStack());
         	//      MapInspector.setHeight(450);
+        }
+        //-----------------------------------------------------------------------------
+        // Meta data Search
+        //-----------------------------------------------------------------------------
+        if (metaDataSearchDock == null || VUE.isApplet())
+        {
+        	metaDataSearchDock = GUI.createDockWindow("Search");
+        	metadataSearchMainPanel = new MetadataSearchMainGUI(metaDataSearchDock);
+        	
         }
         //-----------------------------------------------------------------------------
         // Object Inspector / Resource Inspector
@@ -2039,11 +2056,21 @@ public class VUE
     public static MapInspectorPanel getMapInspectorPanel()
     {
     	return mapInspectorPanel;
-    }
+    }    
     
     public static DockWindow getMapInfoDock()
     {
     	return MapInspector;
+    }
+    
+    public static MetadataSearchMainGUI getMetadataSearchMainPanel()
+    {
+    	return metadataSearchMainPanel;
+    }    
+    
+    public static DockWindow getMetadataSearchMainGUI()
+    {
+    	return metaDataSearchDock;
     }
     
     public static DockWindow getFormatDock()
@@ -2424,6 +2451,7 @@ public class VUE
         pannerDock.saveWindowProperties();
         MapInspector.saveWindowProperties();
         ObjectInspector.saveWindowProperties();
+        metaDataSearchDock.saveWindowProperties();
         if (outlineDock != null)
             outlineDock.saveWindowProperties();
         if (layersDock != null)

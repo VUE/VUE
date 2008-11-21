@@ -19,6 +19,7 @@ package tufts.vue.gui;
 import tufts.Util;
 import tufts.vue.DEBUG;
 import tufts.vue.VueResources;
+import tufts.vue.VueUtil;
 
 import java.beans.PropertyChangeEvent;
 import java.util.*;
@@ -35,7 +36,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.48 $ / $Date: 2008-11-20 17:43:40 $ / $Author: sfraize $
+ * @version $Revision: 1.49 $ / $Date: 2008-11-21 14:08:44 $ / $Author: sraphe01 $
  * @author Scott Fraize
  */
 public class WidgetStack extends Widget
@@ -142,7 +143,7 @@ public class WidgetStack extends Widget
         if (isExpander)
             mExpanderCount++;
         
-        WidgetTitle titleBar = new WidgetTitle(title, widget, isExpander);
+        WidgetTitle titleBar = new WidgetTitle(title, widget, isExpander);        
         mWidgets.add(titleBar);
         //mMinSize.height = mWidgets.size() * (TitleHeight + 1);
         //setMinimumSize(mMinSize);
@@ -458,9 +459,10 @@ public class WidgetStack extends Widget
             if (localName != null) {
             	//if the name contains spaces use the type instead
             	
-                String localKey = "gui.widget.title." + localName;
+                String localKey = "gui.widget.title." + localName;                
                 GUI.init(mTitle, localKey);
                 mTopColor = VueResources.getColor(localKey + ".background.top");
+               
                 if (mTopColor != null) {
                     Color botColor = VueResources.getColor(localKey + ".background.bottom", BottomGradient);
                     mGradient = new GradientPaint(0,           0, mTopColor,
@@ -474,8 +476,7 @@ public class WidgetStack extends Widget
 
             if (mTopColor == null)
                 mTopColor = TopGradient;
-
-
+            
             // TODO: merge with DockWindow for offset / std property
             add(Box.createHorizontalStrut(isMac ? 17 : 6));
 //             int iconHeight = 10;
@@ -522,7 +523,7 @@ public class WidgetStack extends Widget
             helpButton = new HelpButton(null);
             add(helpButton);
             
-        //    add(Box.createHorizontalStrut(isMac ? 1 : 2));
+        //    add(Box.createHorizontalStrut(isMac ? 1 : 2));            
             
             mMenuButton = new MenuButton(null);
             add(mMenuButton);
@@ -897,29 +898,42 @@ public class WidgetStack extends Widget
 
     private static final Color defaultColor = GUI.isMacAqua() ? Color.white : Color.black;
     private static final Color activeColor = GUI.isMacAqua() ? TopGradient.brighter() : Color.white;
+    
     class MenuButton extends JButton {
 
-        MenuButton(Action[] actions) {
+    	MenuButton(Action[] actions) {
             //super(iconChar, 18, defaultColor, TitleHeight, TitleHeight);
         	super();
-                setName(WidgetStack.this.getName());
-        	setIcon(VueResources.getImageIcon("dockWindow.menuIcon.raw"));
+            setName(WidgetStack.this.getName());            
+            setText(VueResources.getString("option"));           
+        	//setIcon(VueResources.getImageIcon("dockWindow.menuIcon.raw"));
         	setRolloverEnabled(true);
-        	setRolloverIcon(VueResources.getImageIcon("dockWindow.menuIcon.hover"));
+        	//setRolloverIcon(VueResources.getImageIcon("dockWindow.menuIcon.hover"));
         	Insets noInsets=new Insets(5,0,0,0);
         	//store the icon you want to display in imageIcon		        		
         	setMargin(noInsets);			
         //	setBorder(BorderFactory.createEmptyBorder());
         	setContentAreaFilled(false);
-            //setAlignmentY(0.5f);
+        //  setAlignmentY(0.5f);
             // todo: to keep manually picking a height and a bottom pad to get this
             // middle aligned is no good: will eventually want to use a TextLayout to
             // get precise bounds for center, and create as a real Icon
             setBorder(GUI.makeSpace(3,3,3,3));
             setMenuActions(actions);
-            
+            Font macFont = new Font("Lucinda Grande", Font.BOLD, 11);
+    		Font windowsFont = new Font("Lucida Sans Unicode", Font.BOLD, 11);
+    		boolean isWindows = VueUtil.isWindowsPlatform();
+    		setForeground(Color.white);	    		
+    		if(isWindows){
+    			setFont(windowsFont);
+    		}else{
+    			setFont(macFont);
+    		}
+    		setOpaque(true);
+    		Color color = new Color(94,115,158);
+    		//Color color = new Color(81,98,136);
+    		setBackground(color);
         }
-
         void setMenuActions(Action[] actions) {
             clearMenuActions();
 
@@ -932,8 +946,16 @@ public class WidgetStack extends Widget
             setVisible(true);
 
             new GUI.PopupMenuHandler(this, GUI.buildMenu(actions)) {
-                public void mouseEntered(MouseEvent e) { setForeground(activeColor); }
-                public void mouseExited(MouseEvent e) { setForeground(defaultColor); }
+                public void mouseEntered(MouseEvent e) { 
+                	Color color = new Color(122,139,175);
+            		setBackground(color);
+                	setForeground(Color.white);                  	
+                }
+                public void mouseExited(MouseEvent e) { 
+                	Color color = new Color(94,115,158);
+            		setBackground(color);
+                	setForeground(Color.white);                	               	
+                }
                 public int getMenuX(Component c) { return c.getWidth(); }
                 public int getMenuY(Component c) { return -getY(); } // 0 in parent
             };
@@ -947,9 +969,7 @@ public class WidgetStack extends Widget
                 if (ml[i] instanceof GUI.PopupMenuHandler)
                     removeMouseListener(ml[i]);
             }
-        }
-
-        
+        }        
     }
     
 // // Todo: the below classes are all doing something almost identical to this: refactor
