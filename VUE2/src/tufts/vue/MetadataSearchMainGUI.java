@@ -72,7 +72,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.1 $ / $Date: 2008-11-21 14:08:43 $ / $Author: Sheejo
+ * @version $Revision: 1.2 $ / $Date: 2008-11-21 14:57:20 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -468,14 +468,27 @@ public class MetadataSearchMainGUI extends JPanel
 			JButton resetButton = new JButton("Reset Map");
 			JButton saveButton = new JButton("Save");
 			saveButton.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
+				public void actionPerformed(ActionEvent e) {					
+					SearchData data = new SearchData();
+					data.setSearchType(searchTypeCmbBox.getSelectedItem()
+							.toString().trim());
+					data.setMapType(mapCmbBox.getSelectedItem().toString()
+							.trim());
+					data.setResultType(resultCmbBox.getSelectedItem()
+							.toString().trim());
+					data.setSearchType(searchTypeCmbBox.getSelectedItem()
+							.toString().trim());
+					// TO DO have to and/or						
+					ArrayList<String> searchKeyWordsArrLst = new ArrayList<String>();
+					for (int iCount = 0; iCount < searchTerms.size(); iCount++) {
+						searchKeyWordsArrLst.add(((String[]) (searchTerms.get(iCount)).getObject())[1]);						
+					}
+					data.setDataList(searchKeyWordsArrLst);
+					searchDataList.add(data);
+					searchResultModel.addRow(data);
 					WriteSearchXMLData xc = new WriteSearchXMLData(
 							searchDataList);
 					xc.runSearchWriteToFile();
-					for (int iCount = 0; iCount < searchDataList.size(); iCount++) {
-						SearchData data = searchDataList.get(iCount);
-						searchResultModel.addRow(data);
-					}
 				}
 			});
 
@@ -609,18 +622,7 @@ public class MetadataSearchMainGUI extends JPanel
 					component.setIcon(tufts.vue.VueResources
 							.getImageIcon("metadata.editor.add.up"));
 					component.setBorder(BorderFactory.createEmptyBorder(ROW_GAP,
-							ROW_INSET, ROW_GAP, ROW_INSET - 5));
-					SearchData data = new SearchData();
-					data.setSearchType(searchTypeCmbBox.getSelectedItem()
-							.toString().trim());
-					data.setMapType(mapCmbBox.getSelectedItem().toString()
-							.trim());
-					data.setResultType(resultCmbBox.getSelectedItem()
-							.toString().trim());
-					data.setSearchType(searchTypeCmbBox.getSelectedItem()
-							.toString().trim());
-					// TO DO have to and/or
-					searchDataList.add(data);
+							ROW_INSET, ROW_GAP, ROW_INSET - 5));					
 					VueMetadataElement newElement = new VueMetadataElement();
 					String statementObject[] = {
 							VueResources.getString("metadata.vue.url")

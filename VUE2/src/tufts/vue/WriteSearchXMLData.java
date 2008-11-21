@@ -210,7 +210,7 @@ public class WriteSearchXMLData {
 				      NodeList andOrNmElmntLst = searchTypeElmnt.getElementsByTagName("AndOr");
 				      Element andOrNmElmnt = (Element) andOrNmElmntLst.item(0);
 				      NodeList andOrNm = andOrNmElmnt.getChildNodes();
-				      Log.info("AndOr : " + ((Node) andOrNm.item(0)).getNodeValue());
+				      //Log.info("AndOr : " + ((Node) andOrNm.item(0)).getNodeValue());
 				    }
 				}
 
