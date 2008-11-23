@@ -88,8 +88,8 @@ public class SavedSearchTableRenderer extends DefaultTableCellRenderer{
     			searchPanel.setFont(macFont);
     		}
 			return searchPanel;
-		}else{
-			String runStr = "<html><body><font color=\"Blue\"><u>run</u></font></body></html>";		
+		}else{			
+			String runStr = "<html><body><font color=\"Blue\"><u><b>run</b></u></font></body></html>";		
 			JLabel runLbl = new JLabel();
 			runLbl.setText(runStr);		
 			runLbl.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));

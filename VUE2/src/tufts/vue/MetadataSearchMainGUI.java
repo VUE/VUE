@@ -50,11 +50,11 @@ import javax.swing.JPopupMenu;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableColumn;
 
 import tufts.vue.gui.DockWindow;
 import tufts.vue.gui.VueTextPane;
@@ -72,7 +72,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.2 $ / $Date: 2008-11-21 14:57:20 $ / $Author: Sheejo
+ * @version $Revision: 1.3 $ / $Date: 2008-11-23 23:54:47 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -128,6 +128,7 @@ public class MetadataSearchMainGUI extends JPanel
 	public final static int EVERYTHING = 0;
 	public final static int LABEL = 1;
 	public final static int KEYWORD = 2;
+	public final static int CATEGORY = 3;
 	private JPanel fieldsPanel;
 	private JButton advancedSearch;
 	private String[] locationTypes = { SELECTED_MAP_STRING, ALL_MAPS_STRING };
@@ -165,9 +166,10 @@ public class MetadataSearchMainGUI extends JPanel
 	private final String SAVED_SEARCH_STR = "Saved Searches";
 	private final String SAVE_SEARCH_STR = "Save Search";
 	private final String RUN_SEARCH_STR = "Run Search";
-	private JTable headerTbl;
+	private JTable searchHeaderTbl;
 	private JTable searchResultTbl;
-
+    private JComboBox andOrCmbBox = new JComboBox(andOrTypes);
+    private String strAndOrType  = "and";
 	public MetadataSearchMainGUI(DockWindow w) {
 		super();
 		JPopupMenu popup = new JPopupMenu();
@@ -227,8 +229,7 @@ public class MetadataSearchMainGUI extends JPanel
 	 **/
 	public class MetaSearchPanel extends JPanel implements
 			PropertyChangeListener, FocusListener {
-		public MetaSearchPanel() {
-			searchDataList = new ArrayList<SearchData>();
+		public MetaSearchPanel() {			
 			setLayout(new BorderLayout());
 			topPanel = new JPanel();
 			topPanel.setLayout(new GridBagLayout());
@@ -328,59 +329,52 @@ public class MetadataSearchMainGUI extends JPanel
 
 			optionsPanel.setLayout(new GridBagLayout());
 			GridBagConstraints gBC = new GridBagConstraints();
-			gBC.fill = GridBagConstraints.BOTH;
+			gBC.fill = GridBagConstraints.HORIZONTAL;
 
 			// First Row
-			JLabel searchTypeLbl = new JLabel("Search Type:");
-			// searchTypeLbl.setMaximumSize(new Dimension(30,50));
-			// searchTypeLbl.setMinimumSize(new Dimension(30,50));
-			gBC.fill = GridBagConstraints.NONE;
-			gBC.ipadx = GridBagConstraints.NONE;
-			gBC.anchor = GridBagConstraints.EAST;
+			JLabel searchTypeLbl = new JLabel("Search Type:", SwingConstants.RIGHT);			
 			gBC.gridx = 0;
-			gBC.gridy = 0;
+		    gBC.gridy = 0;
+		    gBC.weightx = 0.0;
 			optionsPanel.add(searchTypeLbl, gBC);
 
 			searchTypeCmbBox = getCombo(searchTypes, searchTypesListener);
-			gBC.weightx = 0.5;
-			gBC.fill = GridBagConstraints.HORIZONTAL;
-			gBC.insets = new java.awt.Insets(0, 5, 5, 0);
-			gBC.gridx = 1;
-			gBC.gridy = 0;
+			gBC.insets = new Insets(0, 5, 5, 0);
+
+	        gBC.gridx = 1;
+	        gBC.gridy = 0;
+	        gBC.weightx = 1.0;
 			optionsPanel.add(searchTypeCmbBox, gBC);
 
 			// Second Row
-			JLabel mapsLbl = new JLabel("Maps:");
-			// mapsLbl.setMaximumSize(new Dimension(30,50));
-			gBC.fill = GridBagConstraints.NONE;
-			gBC.anchor = GridBagConstraints.EAST;
+			JLabel mapsLbl = new JLabel("Maps:", SwingConstants.RIGHT);			
 			gBC.gridx = 0;
-			gBC.gridy = 1;
+	        gBC.gridy = 1;
+	        gBC.weightx = 0.0;
 			optionsPanel.add(mapsLbl, gBC);
 
 			mapCmbBox = getCombo(locationTypes, locationChoiceListener);
-			gBC.weightx = 0.5;
-			gBC.fill = GridBagConstraints.HORIZONTAL;
-			gBC.insets = new java.awt.Insets(0, 5, 5, 0);
-			gBC.gridx = 1;
-			gBC.gridy = 1;
+			gBC.weightx = 1.0;
+		    gBC.insets = new Insets(0, 5, 5, 0);
+
+		    gBC.gridx = 1;
+		    gBC.gridy = 1;
 			optionsPanel.add(mapCmbBox, gBC);
 
 			// Third Row
-			JLabel resultsLbl = new JLabel("Results:");
-			// resultsLbl.setMaximumSize(new Dimension(30,50));
-			gBC.anchor = GridBagConstraints.EAST;
-			gBC.fill = GridBagConstraints.NONE;
-			gBC.gridx = 0;
-			gBC.gridy = 2;
+			JLabel resultsLbl = new JLabel("Results:", SwingConstants.RIGHT);			
+			gBC.weightx = 0.0;
+
+	        gBC.gridx = 0;
+	        gBC.gridy = 2;
 			optionsPanel.add(resultsLbl, gBC);
 
 			resultCmbBox = getCombo(currentMapResultsTypes, resultsTypeListener);
-			gBC.weightx = 0.5;
-			gBC.fill = GridBagConstraints.HORIZONTAL;
-			gBC.insets = new java.awt.Insets(0, 5, 5, 0);
-			gBC.gridx = 1;
-			gBC.gridy = 2;
+			gBC.weightx = 1.0;
+	        gBC.insets = new Insets(0, 5, 5, 0);
+
+	        gBC.gridx = 1;
+	        gBC.gridy = 2;
 			optionsPanel.add(resultCmbBox, gBC);
 
 			searchTermsTable = new JTable(new SearchTermsTableModel());				
@@ -398,19 +392,7 @@ public class MetadataSearchMainGUI extends JPanel
 			searchTermsTable.setGridColor(new java.awt.Color(getBackground()
 					.getRed(), getBackground().getBlue(), getBackground()
 					.getGreen(), 0));
-			searchTermsTable.setBackground(getBackground());
-			// Default Values
-			SearchData data = new SearchData();
-			data.setSearchType(searchTypeCmbBox.getSelectedItem().toString()
-					.trim());
-			data.setMapType(mapCmbBox.getSelectedItem().toString().trim());
-			data
-					.setResultType(resultCmbBox.getSelectedItem().toString()
-							.trim());
-			data.setSearchType(searchTypeCmbBox.getSelectedItem().toString()
-					.trim());
-			// TO DO have to and/or
-			searchDataList.add(data);			
+			searchTermsTable.setBackground(getBackground());		
 
 			JPanel corner = new JPanel();
 			corner.setOpaque(true);
@@ -422,28 +404,29 @@ public class MetadataSearchMainGUI extends JPanel
 
 			JPanel tablePanel = new JPanel();
 			tablePanel.setLayout(new BorderLayout());
-			headerTbl = new JTable(new SearchHeaderTableModel());
-			headerTbl.setOpaque(false);
-			headerTbl.getColumnModel().getColumn(0).setCellRenderer(
+			searchHeaderTbl = new JTable(new SearchHeaderTableModel());
+			searchHeaderTbl.setOpaque(false);
+			searchHeaderTbl.getColumnModel().getColumn(0).setCellRenderer(
 					new SearchTermsTableHeaderRenderer());
-			headerTbl.getColumnModel().getColumn(1).setCellRenderer(
-					new ComboBoxAndOrRenderer(andOrTypes));
-			headerTbl.getColumnModel().getColumn(2).setCellRenderer(
+			searchHeaderTbl.getColumnModel().getColumn(1).setCellRenderer(
+					new ComboBoxAndOrRenderer(andOrCmbBox));
+			
+			searchHeaderTbl.getColumnModel().getColumn(2).setCellRenderer(
 					new SearchTermsTableHeaderRenderer());
 			// headerTbl.getColumnModel().getColumn(0).setMinWidth(170);
-			headerTbl.getColumnModel().getColumn(1).setMaxWidth(60);
-			headerTbl.getColumnModel().getColumn(1).setMinWidth(60);
-			headerTbl.getColumnModel().getColumn(2).setMaxWidth(40);
-			headerTbl.getColumnModel().getColumn(2).setMinWidth(40);
+			searchHeaderTbl.getColumnModel().getColumn(1).setMaxWidth(60);
+			searchHeaderTbl.getColumnModel().getColumn(1).setMinWidth(60);
+			searchHeaderTbl.getColumnModel().getColumn(2).setMaxWidth(40);
+			searchHeaderTbl.getColumnModel().getColumn(2).setMinWidth(40);
 			// headerTbl.setDefaultEditor(java.lang.Object.class,new
 			// SearchTermsTableEditor());
-			headerTbl.getColumnModel().getColumn(1).setCellEditor(
-					new ComboBoxAndOrEditor(andOrTypes));
-			headerTbl.getColumnModel().getColumn(2).setCellEditor(
+			searchHeaderTbl.getColumnModel().getColumn(1).setCellEditor(
+					new ComboBoxAndOrEditor(andOrCmbBox));
+			searchHeaderTbl.getColumnModel().getColumn(2).setCellEditor(
 					new AddButtonTableCellEditor());
-			headerTbl.setRowHeight(25);
-			headerTbl.setShowGrid(false);
-			tablePanel.add(headerTbl, BorderLayout.NORTH);
+			searchHeaderTbl.setRowHeight(25);
+			searchHeaderTbl.setShowGrid(false);
+			tablePanel.add(searchHeaderTbl, BorderLayout.NORTH);
 
 			tablePanel.add(searchTermsTable);
 
@@ -470,20 +453,16 @@ public class MetadataSearchMainGUI extends JPanel
 			saveButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {					
 					SearchData data = new SearchData();
+					searchDataList = new ArrayList<SearchData>();
 					data.setSearchType(searchTypeCmbBox.getSelectedItem()
 							.toString().trim());
 					data.setMapType(mapCmbBox.getSelectedItem().toString()
 							.trim());
 					data.setResultType(resultCmbBox.getSelectedItem()
-							.toString().trim());
-					data.setSearchType(searchTypeCmbBox.getSelectedItem()
-							.toString().trim());
+							.toString().trim());					
+					data.setAndOrType(strAndOrType);					
 					// TO DO have to and/or						
-					ArrayList<String> searchKeyWordsArrLst = new ArrayList<String>();
-					for (int iCount = 0; iCount < searchTerms.size(); iCount++) {
-						searchKeyWordsArrLst.add(((String[]) (searchTerms.get(iCount)).getObject())[1]);						
-					}
-					data.setDataList(searchKeyWordsArrLst);
+					data.setDataList(searchTerms);
 					searchDataList.add(data);
 					searchResultModel.addRow(data);
 					WriteSearchXMLData xc = new WriteSearchXMLData(
@@ -528,8 +507,7 @@ public class MetadataSearchMainGUI extends JPanel
 								int selectedRow = searchTermsTable
 										.getSelectedRow();
 								if (searchTermsTable.getSelectedColumn() == buttonColumn
-										&& searchTerms.size() > selectedRow) {
-									searchDataList.remove(selectedRow);
+										&& searchTerms.size() > selectedRow) {									
 									searchTerms.remove(selectedRow);
 									searchTermsTable.repaint();
 									requestFocusInWindow();
@@ -564,8 +542,8 @@ public class MetadataSearchMainGUI extends JPanel
 
 			Component combo = null;
 
-			public ComboBoxAndOrRenderer(String[] items) {
-				combo = new JComboBox(items);
+			public ComboBoxAndOrRenderer(JComboBox combo) {
+				this.combo = combo;
 			}
 
 			public Component getTableCellRendererComponent(JTable table,
@@ -586,12 +564,22 @@ public class MetadataSearchMainGUI extends JPanel
 		}
 
 		public class ComboBoxAndOrEditor extends DefaultCellEditor {
-			public ComboBoxAndOrEditor(String[] items) {
-				super(new JComboBox(items));
+			JComboBox combo; 
+			public ComboBoxAndOrEditor(JComboBox combo) {				
+				super(combo);
+				this.combo = combo;
 			}
 			public Component getTableCellEditorComponent(JTable table,
 					Object value, boolean isSelected, int rowIndex,
 					int vColIndex) {
+				if(isSelected){
+					if(this.combo.getSelectedItem().toString().equals("and")){
+						strAndOrType = "or";
+					}else{
+						strAndOrType = "and";
+					}									
+				}
+				
 				JLabel label = new JLabel("");
 				if(vColIndex == 1){					
 					SearchTermsTableModel model = (SearchTermsTableModel) searchTermsTable
@@ -599,9 +587,9 @@ public class MetadataSearchMainGUI extends JPanel
 					if(model.getRowCount()<2){						
 						return label;
 					}else{
-						return new JComboBox(andOrTypes);
+						return this.combo;
 					}
-				}
+				}				
 			  return label;
 			}
 		}
@@ -635,7 +623,7 @@ public class MetadataSearchMainGUI extends JPanel
 					searchTerms.add(newElement);
 					((SearchTermsTableModel) searchTermsTable.getModel())
 							.refresh();
-					((SearchHeaderTableModel) headerTbl.getModel()).refresh();					
+					((SearchHeaderTableModel) searchHeaderTbl.getModel()).refresh();					
 				}
 				// Return the configured component
 				return component;
@@ -722,6 +710,7 @@ public class MetadataSearchMainGUI extends JPanel
 					.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 			searchResultTbl.setDefaultRenderer(java.lang.Object.class,
 					new SavedSearchTableRenderer());
+			searchResultTbl.setCellEditor( new SearchResultTableEditor());
 			
 			((DefaultCellEditor) searchResultTbl
 					.getDefaultEditor(java.lang.Object.class))
@@ -744,15 +733,16 @@ public class MetadataSearchMainGUI extends JPanel
 			searchResultTbl.addMouseListener(popupListener);
 
 			searchResultTbl.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-			
-			searchResultTbl.getColumnModel().getColumn(0).setMaxWidth(30);
-			searchResultTbl.getColumnModel().getColumn(0).setMinWidth(30);
-			searchResultTbl.getColumnModel().getColumn(0).setPreferredWidth(30);
-			
-			searchResultTbl.setOpaque(true);
-			searchResultTbl.setShowGrid(false);
+			searchResultTbl.setShowGrid(false);			
 			searchResultTbl.setRowHeight(30);
 			searchResultTbl.setBackground(this.getBackground());
+
+			searchResultTbl.getColumnModel().getColumn(1).setMaxWidth(30);
+			searchResultTbl.getColumnModel().getColumn(1).setMinWidth(30);
+			searchResultTbl.getColumnModel().getColumn(1).setPreferredWidth(30);
+			
+			//searchResultTbl.setOpaque(true);
+			
 			// searchResultTbl.setMinimumSize(new Dimension(300,80));
 
 			setLayout(new GridBagLayout());
@@ -782,7 +772,19 @@ public class MetadataSearchMainGUI extends JPanel
 		}
 
 	}
-
+	class SearchResultTableEditor extends DefaultCellEditor {
+		public SearchResultTableEditor() {
+			super(new JTextField());
+		}
+		public java.awt.Component getTableCellEditorComponent(JTable table,
+				Object value, boolean isSelected, int row, int col) {			
+			if(col == 0){
+				System.err.println("val::::"+ value);
+				
+			}
+			return new JLabel();
+		}
+	}
 	class SearchTermsTableModel extends AbstractTableModel {
 		
 		private int columns = 3;
@@ -899,26 +901,26 @@ public class MetadataSearchMainGUI extends JPanel
 			searchTermsTable.getColumnModel().getColumn(2).setMinWidth(50);			
 			searchTermsTable.getColumnModel().getColumn(3).setMaxWidth(
 					BUTTON_COL_WIDTH);
-			searchTermsTable.getColumnModel().getColumn(3).setMaxWidth(
-					BUTTON_COL_WIDTH);
-			searchTermsTable.getColumnModel().getColumn(0).setMaxWidth(
-					editorWidth / 2 - BUTTON_COL_WIDTH / 2);
-			searchTermsTable.getColumnModel().getColumn(1).setMaxWidth(
-					editorWidth / 2 - BUTTON_COL_WIDTH / 2);
-			searchTermsTable.getColumnModel().getColumn(2).setMaxWidth(50);
-			searchTermsTable.getColumnModel().getColumn(3).setMaxWidth(
-					BUTTON_COL_WIDTH);
+//			searchTermsTable.getColumnModel().getColumn(3).setMaxWidth(
+//					BUTTON_COL_WIDTH);
+//			searchTermsTable.getColumnModel().getColumn(0).setMaxWidth(
+//					editorWidth / 2 - BUTTON_COL_WIDTH / 2);
+//			searchTermsTable.getColumnModel().getColumn(1).setMaxWidth(
+//					editorWidth / 2 - BUTTON_COL_WIDTH / 2);
+//			searchTermsTable.getColumnModel().getColumn(2).setMaxWidth(50);
+//			searchTermsTable.getColumnModel().getColumn(3).setMaxWidth(
+//					BUTTON_COL_WIDTH);
 		} else {
 		
-			searchTermsTable.getColumnModel().getColumn(0).setMaxWidth(
-					editorWidth / 3 - BUTTON_COL_WIDTH / 3);
-			searchTermsTable.getColumnModel().getColumn(1).setMaxWidth(
-					editorWidth / 3 - BUTTON_COL_WIDTH / 3);
-			searchTermsTable.getColumnModel().getColumn(2).setMaxWidth(
-					editorWidth / 3 - BUTTON_COL_WIDTH / 3);
-			searchTermsTable.getColumnModel().getColumn(3).setMaxWidth(50);
-			searchTermsTable.getColumnModel().getColumn(4).setMaxWidth(
-					BUTTON_COL_WIDTH);
+//			searchTermsTable.getColumnModel().getColumn(0).setMaxWidth(
+//					editorWidth / 3 - BUTTON_COL_WIDTH / 3);
+//			searchTermsTable.getColumnModel().getColumn(1).setMaxWidth(
+//					editorWidth / 3 - BUTTON_COL_WIDTH / 3);
+//			searchTermsTable.getColumnModel().getColumn(2).setMaxWidth(
+//					editorWidth / 3 - BUTTON_COL_WIDTH / 3);
+//			searchTermsTable.getColumnModel().getColumn(3).setMaxWidth(50);
+//			searchTermsTable.getColumnModel().getColumn(4).setMaxWidth(
+//					BUTTON_COL_WIDTH);
 		}
 	}
 
@@ -949,8 +951,9 @@ public class MetadataSearchMainGUI extends JPanel
 
 	public void setCategorySearch() {
 		singleLine = false;
+		searchType = CATEGORY;
 		SearchTermsTableModel model = (SearchTermsTableModel) searchTermsTable
-				.getModel();
+				.getModel();		
 		buttonColumn = 3;
 		comboColumn = 2;
 		valueColumn = 1;
@@ -996,7 +999,11 @@ public class MetadataSearchMainGUI extends JPanel
 	}
 
 	public int getSelectedOperator() {
-		return SearchAction.AND;		
+		if(strAndOrType.equals("and")){
+			return SearchAction.AND;
+		}else{
+			return SearchAction.OR;
+		}			
 	}
 
 	public void setLabelSearch() {
@@ -1094,12 +1101,8 @@ public class MetadataSearchMainGUI extends JPanel
 			JLabel comp = new JLabel();
 			comp.setFont(tufts.vue.gui.GUI.LabelFace);
 
-			if (singleLine == true && (col == (valueColumn))) {
-				comp.setText("Keywords:");
-			}
-			if (singleLine == true && (col == (buttonColumn))) {
-				comp.setText("");
-			} else if (col == buttonColumn && singleLine == false) {
+			
+			if (col == buttonColumn && singleLine == false) {
 				comp.setIcon(tufts.vue.VueResources
 						.getImageIcon("metadata.editor.add.up"));
 			} else if (table.getModel().getColumnCount() == 3
@@ -1115,6 +1118,10 @@ public class MetadataSearchMainGUI extends JPanel
 				if (searchType == KEYWORD) {
 					comp.setText("Keywords:");
 				}
+				if(searchType == CATEGORY){					
+					comp.setText("Category:");	
+				}
+				
 
 			} else if ((table.getModel().getColumnCount() == 4 || table
 					.getModel().getColumnCount() == 5)
@@ -1134,7 +1141,7 @@ public class MetadataSearchMainGUI extends JPanel
 			if (comp.getText().equals("Category:")
 					|| comp.getText().equals("Operator")) {
 				comp.setBorder(BorderFactory.createEmptyBorder(ROW_GAP,
-						5 + ROW_INSET, ROW_GAP, ROW_INSET - 5));
+						ROW_INSET, ROW_GAP, ROW_INSET - 5));
 			} else {
 				comp.setBorder(BorderFactory.createEmptyBorder(ROW_GAP,
 						ROW_INSET, ROW_GAP, ROW_INSET - 5));
@@ -1274,8 +1281,7 @@ public class MetadataSearchMainGUI extends JPanel
 			comp.add(conditionCombo);
 		} 
 		comp.setBorder(BorderFactory
-				.createEmptyBorder(5, ROW_INSET, 0, 0));
-
+				.createEmptyBorder(5, ROW_INSET, 0, 0));		
 		return comp;
 	}
 

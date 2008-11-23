@@ -15,58 +15,91 @@
 
 package tufts.vue;
 
-import tufts.Util;
-import tufts.vue.NodeTool.NodeModeTool;
-import tufts.vue.action.*;
-import tufts.vue.gui.*;
-import tufts.vue.ui.InspectorPane;
-
-import java.util.*;
-import java.util.List;
-import java.util.prefs.*;
-import java.io.*;
-import java.net.URL;
-
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.event.*;
-import javax.swing.*;
-import javax.swing.plaf.metal.MetalLookAndFeel;
-import javax.swing.border.*;
-
+import java.applet.AppletContext;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Frame;
+import java.awt.GraphicsConfiguration;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Toolkit;
+import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.File;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
 
-import java.applet.AppletContext;
+import javax.swing.AbstractAction;
+import javax.swing.AbstractButton;
+import javax.swing.Action;
+import javax.swing.BorderFactory;
+import javax.swing.JApplet;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.JWindow;
+import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
+import javax.swing.ToolTipManager;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathFactory;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Level;
 import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.WriterAppender;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
-import org.apache.log4j.LogManager;
+import org.apache.log4j.WriterAppender;
+import org.xml.sax.InputSource;
 
+import tufts.Util;
+import tufts.vue.NodeTool.NodeModeTool;
+import tufts.vue.action.AboutAction;
+import tufts.vue.action.ExitAction;
+import tufts.vue.action.OpenAction;
+import tufts.vue.action.SaveAction;
+import tufts.vue.gui.DockWindow;
+import tufts.vue.gui.FullScreen;
+import tufts.vue.gui.GUI;
+import tufts.vue.gui.VueFrame;
+import tufts.vue.gui.VueMenuBar;
+import tufts.vue.ui.InspectorPane;
 import edu.tufts.vue.preferences.implementations.MetadataSchemaPreference;
 import edu.tufts.vue.preferences.implementations.ShowAgainDialog;
 import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
-
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathFactory;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.namespace.NamespaceContext;
-import javax.xml.XMLConstants;
-import org.w3c.dom.NodeList;
-import org.w3c.dom.Node;
-import org.w3c.dom.Element;
-import org.xml.sax.InputSource;
 /**
  * Vue application class.
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.584 $ / $Date: 2008-11-21 14:08:43 $ / $Author: sraphe01 $ 
+ * @version $Revision: 1.585 $ / $Date: 2008-11-23 23:54:47 $ / $Author: sraphe01 $ 
  */
 
 public class VUE
@@ -114,7 +147,7 @@ public class VUE
     private static MapInspectorPanel mapInspectorPanel = null;
     private static JButton returnToMapButton = null;
     private static MetadataSearchMainGUI metadataSearchMainPanel = null;
-    
+    private static JPopupMenu popup;
     
     public static void finalizeDocks()
     {
@@ -1319,7 +1352,7 @@ public class VUE
         	if (ToolbarAtTopScreen) {
                  toolbarDock = GUI.createToolbar("Toolbar", toolbar);
              } else {
-                 ApplicationFrame.addComp(toolbarPanel, BorderLayout.NORTH);
+                ApplicationFrame.addComp(toolbarPanel, BorderLayout.NORTH);
              }
         }
         
@@ -1379,10 +1412,12 @@ public class VUE
         	ApplicationFrame.setJMenuBar(VueMenuBar.RootMenuBar = new VueMenuBar(/*VUE.ToolWindows*/));
         	if (DEBUG.INIT) out("VueMenuBar installed.");;
         
-        	if (true)
+        	if (true){
         		ApplicationFrame.addComp(mViewerSplit, BorderLayout.CENTER);
-        	else
+        	}
+        	else{
         		ApplicationFrame.addComp(mMapTabsLeft, BorderLayout.CENTER);
+        	}
         
         	//         JPanel resources = DR_BROWSER_DOCK.getContentPanel();
         	//         resources.setMinimumSize(new Dimension(500,500));
@@ -1975,12 +2010,20 @@ public class VUE
     protected static JPanel constructToolPanel(JComponent toolbar)
     {
     	JPanel toolbarPanel = new JPanel();
-        
+    	toolbarPanel.setLayout(new GridBagLayout());
         FlowLayout flowLayout = new FlowLayout(FlowLayout.LEFT);
         flowLayout.setVgap(0);
         //toolbarPanel.
-        toolbarPanel.setLayout(flowLayout);
-        toolbarPanel.add(toolbar);
+        //toolbarPanel.setLayout(flowLayout);
+        GridBagConstraints gBC = new GridBagConstraints();
+        gBC.fill = GridBagConstraints.BOTH;			
+		gBC.gridx = 0;
+		gBC.gridy = 0;
+		gBC.weightx = 1.0;
+		gBC.insets = new Insets(0, 0, 0, 0);
+		//add(searchResultTbl, gBC);
+        //toolbarPanel.add(returnToMapButton,gBC);
+        toolbarPanel.add(toolbar,gBC);
         returnToMapButton = new JButton(VueResources.getString("returnToMap.label"));
         returnToMapButton.addActionListener(new ActionListener(){
         	public void actionPerformed(ActionEvent e)
@@ -2005,8 +2048,89 @@ public class VUE
 			}
         }); 
         returnToMapButton.setVisible(false);
-        toolbarPanel.add(returnToMapButton);
-       
+        
+		gBC.fill = GridBagConstraints.BOTH;			
+		gBC.gridx = 1;
+		gBC.gridy = 0;
+		gBC.weightx = 1.0;
+		gBC.insets = new Insets(2, 0, 0, 0);		
+        toolbarPanel.add(returnToMapButton,gBC);        
+     
+        JPanel searchPnl = new JPanel(new FlowLayout(FlowLayout.LEFT,0,0));
+        JLabel searchLbl = new JLabel();
+        JLabel arrowLbl = new JLabel();
+        JLabel clearLbl = new JLabel();
+        final JTextField valueTxt = new JTextField();        
+        valueTxt.setMinimumSize(new Dimension(100,23));
+        valueTxt.setPreferredSize(new Dimension(100,23));
+        searchLbl.setIcon(tufts.vue.VueResources
+				.getImageIcon("search.toolbar.find"));
+        searchLbl.addMouseListener(new MouseAdapter()
+		{			   
+		    public void mouseClicked(MouseEvent e)
+		    {
+		       //TO DO
+		       System.err.println("Clicked on Search Icon:::::");
+		    }
+		});
+        arrowLbl.setIcon(tufts.vue.VueResources
+				.getImageIcon("search.toolbar.arrow"));	 
+        arrowLbl.addMouseListener(new MouseAdapter()
+		{			   
+		    public void mouseClicked(MouseEvent e)
+		    {
+		       //TO DO
+		       System.err.println("Clicked on Down Arrow:::::");
+		    }
+		});
+        clearLbl.setIcon(tufts.vue.VueResources
+				.getImageIcon("search.toolbar.clear"));	 
+        clearLbl.addMouseListener(new MouseAdapter()
+		{       	
+        	 public void mouseClicked(MouseEvent e)
+ 		    {        		
+        		valueTxt.setText("");  		
+        		
+ 		    }        	 
+		});
+        searchPnl.add(searchLbl);
+        searchPnl.add(arrowLbl);
+        valueTxt.setBorder(BorderFactory.createMatteBorder(
+                1, 0, 1, 0, Color.gray));
+        valueTxt.addMouseListener(new MouseAdapter()
+		{			   
+		    public void mouseClicked(MouseEvent e)
+		    {
+		    	popup = new JPopupMenu();
+		    	
+		    	JMenuItem searcheveryWhereMenuItem = new JMenuItem("Search everywhere");
+				popup.add(searcheveryWhereMenuItem);
+				
+				JMenuItem deleteMenuItem = new JMenuItem("Labels");
+				popup.add(deleteMenuItem);	
+				
+				JMenuItem keywordMenuItem = new JMenuItem("Keywords");
+				popup.add(keywordMenuItem);	
+				
+				JMenuItem categoriesMenuItem = new JMenuItem("Categories");
+				popup.add(categoriesMenuItem);	
+				
+				JMenuItem categoryKeywordMenuItem = new JMenuItem("Categories + Keywords");
+				popup.add(categoryKeywordMenuItem);	
+				popup.addSeparator();
+				JMenuItem editSettingsMenuItem = new JMenuItem("Edit Search Settings");
+				popup.add(editSettingsMenuItem);
+				
+				popup.show(e.getComponent(), e.getX()+10, e.getY()+5);				
+		    }
+		});
+        searchPnl.add(valueTxt);
+        searchPnl.add(clearLbl);
+        searchPnl.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0)); 
+        searchPnl.setPreferredSize(new Dimension(155,23));
+        searchPnl.setSize(new Dimension(155,23));
+        searchPnl.setMaximumSize(new Dimension(155,23));
+        toolbarPanel.add(searchPnl, SwingConstants.LEFT); 
         
         if (DEBUG.INIT) out("created ToolBar");
         

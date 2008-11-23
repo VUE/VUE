@@ -1,35 +1,23 @@
 package tufts.vue;
 
 import java.io.File;
-
 import java.io.FileOutputStream;
-
 import java.io.IOException;
-
 import java.util.ArrayList;
-
 import java.util.Iterator;
-
 import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
-
 import javax.xml.parsers.DocumentBuilderFactory;
-
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
-import org.w3c.dom.Element;
-
 import org.w3c.dom.Text;
 
-import tufts.vue.gui.WidgetStack;
-
 import com.sun.org.apache.xml.internal.serialize.OutputFormat;
-
 import com.sun.org.apache.xml.internal.serialize.XMLSerializer;
 
 public class WriteSearchXMLData {
@@ -113,7 +101,6 @@ public class WriteSearchXMLData {
 	private Element createSearchElement(SearchData search) {
 
 		Element searchElement = dom.createElement("Search");		
-		search.setAndOrType("and");//To be removed
 		Element searchTypeElement = dom.createElement("SearchType");
 		Text searchTypeText = dom.createTextNode(search.getSearchType());		
 		searchTypeElement.appendChild(searchTypeText);

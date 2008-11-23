@@ -41,13 +41,15 @@ import tufts.vue.SearchData;
         }
         
         public boolean isCellEditable(int row,int col)
-        {        	
+        { 
+        	if(col == 0 ){
+        		return true;
+        	}
             return false;
         }
         
         public Object getValueAt(int row,int col)
-        {        	
-        	
+        {       	
            return "";
         }
         

@@ -1,7 +1,8 @@
 package tufts.vue;
 
-import java.util.ArrayList;
+import java.util.List;
 
+import edu.tufts.vue.metadata.VueMetadataElement;
 public class SearchData {
 
 	private String searchType;
@@ -12,14 +13,14 @@ public class SearchData {
 
 	private String andOrType;
 
-	private ArrayList<String> dataList;
+	private List<VueMetadataElement> dataList;
 
 	public SearchData() {
 
 	}
 
 	public SearchData(String searchType, String mapType, String resultType,
-			String andOrType, ArrayList<String> dataList) {
+			String andOrType, List<VueMetadataElement> dataList) {
 
 		super();
 
@@ -83,13 +84,13 @@ public class SearchData {
 
 	}
 
-	public ArrayList<String> getDataList() {
+	public List<VueMetadataElement> getDataList() {
 
 		return dataList;
 
 	}
 
-	public void setDataList(ArrayList<String> dataList) {
+	public void setDataList(List<VueMetadataElement> dataList) {
 
 		this.dataList = dataList;
 
