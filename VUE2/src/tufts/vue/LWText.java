@@ -16,19 +16,10 @@ package tufts.vue;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Font;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.RectangularShape;
 import java.awt.geom.Point2D.Float;
-
-import javax.swing.text.AttributeSet;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.Style;
-import javax.swing.text.html.CSS;
-import javax.swing.text.html.HTML;
-import javax.swing.text.html.HTMLDocument;
-
 import com.lightdev.app.shtm.SHTMLDocument;
 import com.lightdev.app.shtm.VueStyleSheet;
 
@@ -284,6 +275,7 @@ public class LWText extends LWComponent {
 			// But also, even if this node is filtered, we still draw any
 			// children who are
 			// NOT filtered -- we just drop out the parent background.
+			// dc.g.clipRect(0, 0,(int) getWidth(), getAdjustedHeight());
 			drawNode(dc);
 		}
 
@@ -337,33 +329,10 @@ public class LWText extends LWComponent {
 	}
 	protected Size getTextSize() {
 
-	//	if (WrapText) {
-	//		Size s = new Size(getRichLabelBox().getSize());
-//			// s.width += 3;
-//			return s;
-//		} else {
-
-			// TODO: Check if this hack still needed in current JVM's
-
-			// getSize somtimes a bit bigger thatn preferred size & more
-			// accurate
-			// This is gross, but gives us best case data: we want the largest
-			// in width,
-			// and smallest in height, as reported by BOTH getSize and
-			// getPreferredSize.
-
 			Size s = new Size(getRichLabelBox().getPreferredSize());
-			//Size ps = new Size(getRichLabelBox().getSize());
-			// if (ps.width > s.width)
-			// s.width = s.width; // what the hell
-			//System.out.println("PS : " + ps.height);
-			//MKSystem.out.println("S:" + s.height);
-			//if (ps.height < s.height)
-			//	s.height = ps.height;
 			s.width *= TextWidthFudgeFactor;
 			s.width += 3;
 			return s;
-	//	}
 	}
 
     @Override
@@ -374,48 +343,21 @@ public class LWText extends LWComponent {
             return richLabelBox.getWidth();
     }
     
-    @Override
-    public float getHeight() {
-      
+   
+   public float getHeight()
+    {
     	//The line height is always off by a 1 line..
         if (richLabelBox == null)
-        {int diff = 0;
-		
-			if (VUE.getFormattingPanel() != null && VUE.getFormattingPanel().getTextPropsPane() !=null)
-			{	
-				Object o = VUE.getFormattingPanel().getTextPropsPane().getFontEditorPanel().mSizeField.getSelectedItem();
-				Integer i = new Integer(o.toString());
-				diff = i.intValue();
-			//	System.out.println("DIFFF : " + diff);
-			}
-			//MK445
-            return super.getHeight();// - diff;
+        {
+            return super.getHeight();
         }
         else
         { 
-        	
-        		return (int)richLabelBox.getHeight();
-        }
-
+        	return (float)richLabelBox.getHeight();
+       		
+        }	
     }
-    /* 
-     * (non-Javadoc)
-     * @see tufts.vue.LWComponent#getLocalWidth()
-     * 
-        	Style  style = (Style) ((HTMLDocument)richLabelBox.getDocument()).getStyleSheet().getStyle("body");
-        //	System.out.println(style.getAttributeNames().toString());
-        	Object a = style.getAttribute(javax.swing.text.html.CSS.Attribute.FONT_SIZE);
-        	
-       
-        	//System.out.println(a.getClass());
-        	if (a !=null)
-        	{
-        		Integer i = new Integer(a.toString());
-        		return (int)richLabelBox.getHeight() - i.intValue();
-        	}
-        	else	
-     */
-
+   
     @Override
     public float getLocalWidth()       { return (float) (getWidth() * getScale()); }
     @Override
@@ -482,6 +424,7 @@ public class LWText extends LWComponent {
     public void setXMLlabel(String text)
     {
         setLabel(text);
+        System.out.println("XML LABELS");
     }
 	  @Override
 	  public void setLabel(String label)
@@ -643,21 +586,26 @@ public class LWText extends LWComponent {
 			
 			//MK
 			newHeight = Math.max(min.height,request.height);
+				
+			this.getRichLabelBox();
+			
+			/*if (richLabelBox !=null )
+			{
+				newHeight = Math.max(newHeight,richLabelBox.getHeight());
+			}*/
+		//	newHeight = request.height;
 			//newHeight = min.height;
 			//System.out.println("MIN.WIDTH : " + min.width);
-			//System.out.println("MIN.HEIGHT : " + min.height);
+		//	System.out.println("MIN.HEIGHT : " + min.height);
 
 			//System.out.println("NEW WIDTH : " + newWidth);
-			//System.out.println("NEW HEIGHT : " + newHeight);
-	
-
-		
+		//	System.out.println("NEW HEIGHT : " + newHeight);
 			
 		setSizeNoLayout(newWidth, newHeight);
 
 		// layout label last in case size is bigger than min and label is
 		// centered
-		layoutBoxed_label();
+		//layoutBoxed_label();
 
 		if (richLabelBox != null)
 			richLabelBox.setBoxLocation(0,0);
@@ -669,7 +617,7 @@ public class LWText extends LWComponent {
                     //System.out.println("layout parent");
 		}
                 if (!isAutoSized())
-	            notify(LWKey.Size, min); // todo perf: can we optimize this event out?
+                	notify(LWKey.Size, min); // todo perf: can we optimize this event out?
 		   //System.out.println("OUT OF LAYOUT*************");
 		inLayout = false;
 	}
@@ -677,8 +625,10 @@ public class LWText extends LWComponent {
 	private void setSizeNoLayout(float w, float h) {
 		//if (DEBUG.LAYOUT)
 			out("*** setSizeNoLayout " + w + "x" + h);
-		setSize(w, h);
-		richLabelBox.setSize(w,h);
+			setSize(w, h);
+			richLabelBox.setSize(w,h);
+				
+	
 		//mShape.setFrame(0, 0, getWidth(), getHeight());
 	}
 
@@ -689,30 +639,6 @@ public class LWText extends LWComponent {
 	// irregular
 	// node
 	// shapes
-
-	/** set mLabelPos */
-	private void layoutBoxed_label() {
-		Size text = getTextSize();
-
-		// only need this in case of small font sizes and an icon
-		// is showing -- if so, center label vertically in row with the first
-		// icon
-		// Actually, no: center in whole node -- gak, we really want both,
-		// but only to a certian threshold -- what a hack!
-		// float textHeight = getLabelBox().getPreferredSize().height;
-		// mLabelPos.y = (this.height - textHeight) / 2;
-		mLabelPos.y = (this.height - text.height) / 2;
-
-		// -------------------------------------------------------
-		// horizontally center if no icons
-		// -------------------------------------------------------
-		// if (WrapText)
-		// mLabelPos.x = (this.width - text.width) / 2 + 1;
-		// else
-		mLabelPos.x = 200; // marked bad because unused in this case
-		// }
-
-	}
 
 	private Size layoutBoxed(Size request, Size oldSize, Object triggerKey) {
 		final Size min;
