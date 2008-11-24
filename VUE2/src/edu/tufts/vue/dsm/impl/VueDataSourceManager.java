@@ -83,7 +83,7 @@ public class VueDataSourceManager
         marshall(new File(this.xmlFilename), this);
     }
     
-    private static void load() {
+    public static void load() {
         try {
             File f = new File(xmlFilename);
             if (f.exists()) {
