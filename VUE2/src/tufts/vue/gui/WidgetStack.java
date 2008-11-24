@@ -36,7 +36,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.49 $ / $Date: 2008-11-21 14:08:44 $ / $Author: sraphe01 $
+ * @version $Revision: 1.50 $ / $Date: 2008-11-24 15:47:05 $ / $Author: sraphe01 $
  * @author Scott Fraize
  */
 public class WidgetStack extends Widget
@@ -523,11 +523,11 @@ public class WidgetStack extends Widget
             helpButton = new HelpButton(null);
             add(helpButton);
             
-        //    add(Box.createHorizontalStrut(isMac ? 1 : 2));            
+            //    add(Box.createHorizontalStrut(isMac ? 1 : 2));        
             
             mMenuButton = new MenuButton(null);
+            mMenuButton.setOpaque(false);
             add(mMenuButton);
-                        
             setPreferredSize(new Dimension(50, TitleHeight));
             setMaximumSize(new Dimension(Short.MAX_VALUE, TitleHeight));
             setMinimumSize(new Dimension(50, TitleHeight));

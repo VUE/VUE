@@ -36,7 +36,7 @@ public class SavedSearchTableRenderer extends DefaultTableCellRenderer{
 		JPanel linePanel = new JPanel() {
             protected void paintComponent(java.awt.Graphics g) {
             	//setSize(300,20);
-                g.setColor(java.awt.Color.DARK_GRAY);                       
+                g.setColor(java.awt.Color.GRAY);                       
                 //g.drawLine(5,getHeight()/2, getWidth()-15, getHeight()/2);
                 int x1 = -5;
                 int x2 = getWidth();
