@@ -72,7 +72,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.3 $ / $Date: 2008-11-23 23:54:47 $ / $Author: Sheejo
+ * @version $Revision: 1.4 $ / $Date: 2008-11-24 15:58:03 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -175,7 +175,7 @@ public class MetadataSearchMainGUI extends JPanel
 		JPopupMenu popup = new JPopupMenu();
 		mapInfoStack = new WidgetStack(SEARCH_STR);		
 		// VUE.addActiveListener(LWMap.class, this);
-		setMinimumSize(new Dimension(300, 300));
+		setMinimumSize(new Dimension(320, 300));
 		setLayout(new BorderLayout());
 		mInfoPanel = new MetaSearchPanel();
 		mInfoPanel.setName(SEARCH_STR);
@@ -214,7 +214,7 @@ public class MetadataSearchMainGUI extends JPanel
 				runSearchAction, renameAction, deleteAction });
 		w.setContent(mapInfoStack);
 		w.setHeight(350);
-		w.setWidth(265);
+		w.setWidth(320);
 		validate();
 		setVisible(true);
 	}
@@ -704,7 +704,7 @@ public class MetadataSearchMainGUI extends JPanel
 		PropertiesEditor propertiesEditor = null;
 
 		public MetadataPanel() {
-			searchResultTbl = new JTable(searchResultModel);
+			searchResultTbl = new JTable(searchResultModel);			
 			searchResultTbl.setOpaque(true);			
 			searchResultTbl
 					.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -719,12 +719,19 @@ public class MetadataSearchMainGUI extends JPanel
 			popupMenu.add(renameMenuItem);
 			popupMenu.addSeparator();
 			JMenuItem deleteMenuItem = new JMenuItem(DELETE_STR);
-			popupMenu.add(deleteMenuItem);
+			popupMenu.add(deleteMenuItem);			
 			deleteMenuItem.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent event) {
 					int selectedIndex = searchResultTbl.getSelectedRow();
 					if (selectedIndex != -1)
 						searchResultModel.removeRow(selectedIndex);
+				}
+			});
+			renameMenuItem.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent event) {
+					int selectedIndex = searchResultTbl.getSelectedRow();
+					if (selectedIndex != -1)
+						searchResultTbl.editCellAt(selectedIndex, 0);
 				}
 			});
 			// add the listener to the jtable
@@ -737,9 +744,9 @@ public class MetadataSearchMainGUI extends JPanel
 			searchResultTbl.setRowHeight(30);
 			searchResultTbl.setBackground(this.getBackground());
 
-			searchResultTbl.getColumnModel().getColumn(1).setMaxWidth(30);
-			searchResultTbl.getColumnModel().getColumn(1).setMinWidth(30);
-			searchResultTbl.getColumnModel().getColumn(1).setPreferredWidth(30);
+			//searchResultTbl.getColumnModel().getColumn(1).setMaxWidth(30);
+			//searchResultTbl.getColumnModel().getColumn(1).setMinWidth(30);
+			searchResultTbl.getColumnModel().getColumn(1).setPreferredWidth(20);
 			
 			//searchResultTbl.setOpaque(true);
 			
@@ -777,7 +784,8 @@ public class MetadataSearchMainGUI extends JPanel
 			super(new JTextField());
 		}
 		public java.awt.Component getTableCellEditorComponent(JTable table,
-				Object value, boolean isSelected, int row, int col) {			
+				Object value, boolean isSelected, int row, int col) {	
+			System.err.println("val::::"+ value);
 			if(col == 0){
 				System.err.println("val::::"+ value);
 				
