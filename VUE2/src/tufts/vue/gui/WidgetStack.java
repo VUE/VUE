@@ -20,7 +20,6 @@ import tufts.Util;
 import tufts.vue.DEBUG;
 import tufts.vue.VueResources;
 import tufts.vue.VueUtil;
-
 import java.beans.PropertyChangeEvent;
 import java.util.*;
 import java.awt.*;
@@ -36,7 +35,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.50 $ / $Date: 2008-11-24 15:47:05 $ / $Author: sraphe01 $
+ * @version $Revision: 1.51 $ / $Date: 2008-11-25 22:09:32 $ / $Author: sraphe01 $
  * @author Scott Fraize
  */
 public class WidgetStack extends Widget
@@ -526,8 +525,8 @@ public class WidgetStack extends Widget
             //    add(Box.createHorizontalStrut(isMac ? 1 : 2));        
             
             mMenuButton = new MenuButton(null);
-            mMenuButton.setOpaque(false);
-            add(mMenuButton);
+            mMenuButton.setOpaque(false);           
+            add(mMenuButton);            
             setPreferredSize(new Dimension(50, TitleHeight));
             setMaximumSize(new Dimension(Short.MAX_VALUE, TitleHeight));
             setMinimumSize(new Dimension(50, TitleHeight));
@@ -585,8 +584,9 @@ public class WidgetStack extends Widget
 
             widget.addPropertyChangeListener(this);
             
-        }
+        }  
 
+      
         /** @return true if the given property key was found with an already set value
          * (if found, will simulate a property change event to handle the property) */
         private boolean handlePresetProperty(String key) {
@@ -900,12 +900,16 @@ public class WidgetStack extends Widget
     private static final Color activeColor = GUI.isMacAqua() ? TopGradient.brighter() : Color.white;
     
     class MenuButton extends JButton {
+    	private boolean mouse_over = false;
+    	MenuButton thisbutton;
 
     	MenuButton(Action[] actions) {
             //super(iconChar, 18, defaultColor, TitleHeight, TitleHeight);
         	super();
-            setName(WidgetStack.this.getName());            
-            setText(VueResources.getString("option"));           
+        	thisbutton = this;
+            setName(WidgetStack.this.getName());   
+            setSize(new Dimension(100,25));
+            setText(" "+VueResources.getString("option")+" ");           
         	//setIcon(VueResources.getImageIcon("dockWindow.menuIcon.raw"));
         	setRolloverEnabled(true);
         	//setRolloverIcon(VueResources.getImageIcon("dockWindow.menuIcon.hover"));
@@ -918,7 +922,7 @@ public class WidgetStack extends Widget
             // todo: to keep manually picking a height and a bottom pad to get this
             // middle aligned is no good: will eventually want to use a TextLayout to
             // get precise bounds for center, and create as a real Icon
-            setBorder(GUI.makeSpace(3,3,3,3));
+            //setBorder(GUI.makeSpace(3,3,3,3));
             setMenuActions(actions);
             Font macFont = new Font("Lucinda Grande", Font.BOLD, 11);
     		Font windowsFont = new Font("Lucida Sans Unicode", Font.BOLD, 11);
@@ -930,9 +934,20 @@ public class WidgetStack extends Widget
     			setFont(macFont);
     		}
     		setOpaque(true);
-    		Color color = new Color(94,115,158);
-    		//Color color = new Color(81,98,136);
-    		setBackground(color);
+//    		Color color = new Color(94,115,158);
+//    		//Color color = new Color(81,98,136);
+//    		setBackground(color);  
+    		addMouseListener(new MouseAdapter() 
+    	      {
+    	      public void mouseEntered(MouseEvent e) {
+    	    	  mouse_over=true;
+    	    	  thisbutton.repaint();
+    	      }
+    	      public void mouseExited(MouseEvent e) {
+    	    	  mouse_over=false;
+    	    	  thisbutton.repaint();}
+    	      });
+    		setBorder(null);
         }
         void setMenuActions(Action[] actions) {
             clearMenuActions();
@@ -969,7 +984,39 @@ public class WidgetStack extends Widget
                 if (ml[i] instanceof GUI.PopupMenuHandler)
                     removeMouseListener(ml[i]);
             }
-        }        
+        } 
+        protected void paintComponent(Graphics g) {
+            // Paint the default look of the button.
+            super.paintComponent(g);
+            // Your custom painting here.
+            int w = getWidth();
+            int h = getHeight(); 
+            Image centerImg = VueResources.getImageIcon("dockWindow.panner.menu.raw.center").getImage();
+            Image leftImg = VueResources.getImageIcon("dockWindow.panner.menu.raw.leftcap").getImage();   
+            Image rightImg = VueResources.getImageIcon("dockWindow.panner.menu.raw.rightcap").getImage();
+            Font macFont = new Font("Lucinda Grande", Font.BOLD, 11);
+    		Font windowsFont = new Font("Lucida Sans Unicode", Font.BOLD, 11);
+    		boolean isWindows = VueUtil.isWindowsPlatform();
+    		setForeground(Color.white);	
+    		Font font = null;
+    		if(isWindows){
+    			font = windowsFont;
+    		}else{
+    			font = macFont;
+    		}    		
+            if(mouse_over)
+            {
+            	centerImg = VueResources.getImageIcon("dockWindow.panner.menu.raw.center_ov").getImage();
+            	leftImg = VueResources.getImageIcon("dockWindow.panner.menu.raw.leftcap.hover").getImage();
+            	rightImg = VueResources.getImageIcon("dockWindow.panner.menu.raw.rightcap.hover").getImage();       	 
+            	
+            }
+            g.drawImage(leftImg,0,0, 10 , h, this);
+        	g.drawImage(centerImg,10,0, w-15 , h, this);
+        	g.drawImage(rightImg,w-10,w-10, 10 , h, this);
+            g.setFont(font);
+            g.drawString("options>>",5,h-5);            
+        }
     }
     
 // // Todo: the below classes are all doing something almost identical to this: refactor
@@ -1284,6 +1331,6 @@ public class WidgetStack extends Widget
         
         GUI.createDockWindow("WidgetStack Test", s).setVisible(true);
     }
-        
+
 }    
 

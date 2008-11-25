@@ -99,7 +99,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.585 $ / $Date: 2008-11-23 23:54:47 $ / $Author: sraphe01 $ 
+ * @version $Revision: 1.586 $ / $Date: 2008-11-25 22:09:31 $ / $Author: sraphe01 $ 
  */
 
 public class VUE
@@ -2097,7 +2097,8 @@ public class VUE
         searchPnl.add(arrowLbl);
         valueTxt.setBorder(BorderFactory.createMatteBorder(
                 1, 0, 1, 0, Color.gray));
-        valueTxt.addMouseListener(new MouseAdapter()
+        
+        arrowLbl.addMouseListener(new MouseAdapter()
 		{			   
 		    public void mouseClicked(MouseEvent e)
 		    {
