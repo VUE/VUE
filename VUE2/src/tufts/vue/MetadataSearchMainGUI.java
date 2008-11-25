@@ -72,7 +72,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.4 $ / $Date: 2008-11-24 15:58:03 $ / $Author: Sheejo
+ * @version $Revision: 1.5 $ / $Date: 2008-11-25 05:09:35 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -704,8 +704,9 @@ public class MetadataSearchMainGUI extends JPanel
 		PropertiesEditor propertiesEditor = null;
 
 		public MetadataPanel() {
-			searchResultTbl = new JTable(searchResultModel);			
-			searchResultTbl.setOpaque(true);			
+			searchResultTbl = new JTable(searchResultModel);	
+			searchResultModel.setEditableFlag(false);
+			//searchResultTbl.setOpaque(true);			
 			searchResultTbl
 					.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 			searchResultTbl.setDefaultRenderer(java.lang.Object.class,
@@ -729,9 +730,12 @@ public class MetadataSearchMainGUI extends JPanel
 			});
 			renameMenuItem.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent event) {
+					searchResultModel.setEditableFlag(true);
 					int selectedIndex = searchResultTbl.getSelectedRow();
-					if (selectedIndex != -1)
+					if (selectedIndex != -1){
 						searchResultTbl.editCellAt(selectedIndex, 0);
+						searchResultModel.setEditableFlag(false);
+					}
 				}
 			});
 			// add the listener to the jtable
@@ -742,11 +746,11 @@ public class MetadataSearchMainGUI extends JPanel
 			searchResultTbl.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 			searchResultTbl.setShowGrid(false);			
 			searchResultTbl.setRowHeight(30);
-			searchResultTbl.setBackground(this.getBackground());
+			//searchResultTbl.setBackground(this.getBackground());
 
 			//searchResultTbl.getColumnModel().getColumn(1).setMaxWidth(30);
 			//searchResultTbl.getColumnModel().getColumn(1).setMinWidth(30);
-			searchResultTbl.getColumnModel().getColumn(1).setPreferredWidth(20);
+			searchResultTbl.getColumnModel().getColumn(1).setPreferredWidth(100);
 			
 			//searchResultTbl.setOpaque(true);
 			

@@ -11,7 +11,7 @@ import tufts.vue.SearchData;
         
         private java.util.List<SearchData> searchResultArrLst = new java.util.ArrayList<SearchData>();
         private int columns = 2;       
-      
+        private boolean editFlg;
         public int getRowCount()
         {
             return searchResultArrLst.size();
@@ -42,12 +42,15 @@ import tufts.vue.SearchData;
         
         public boolean isCellEditable(int row,int col)
         { 
-        	if(col == 0 ){
+        	if(editFlg && col == 0 ){
         		return true;
         	}
             return false;
         }
-        
+        public void setValueAt(Object aValue, int rowIndex, int columnIndex)
+        {
+        	
+        }
         public Object getValueAt(int row,int col)
         {       	
            return "";
@@ -56,6 +59,10 @@ import tufts.vue.SearchData;
         public void refresh()
         {
             fireTableDataChanged();
-        }        
+        }
+		public void setEditableFlag(boolean b) {
+			// TODO Auto-generated method stub
+			editFlg = b;
+		}        
     }
 
