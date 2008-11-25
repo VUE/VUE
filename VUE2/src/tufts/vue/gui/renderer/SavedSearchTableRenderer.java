@@ -5,6 +5,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Font;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
@@ -12,14 +13,20 @@ import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 
+import tufts.vue.SearchData;
 import tufts.vue.VueUtil;
 
 public class SavedSearchTableRenderer extends DefaultTableCellRenderer{
-
+	SearchResultTableModel searchResultTableModel;
+	public SavedSearchTableRenderer(SearchResultTableModel searchResultTableModel){
+		this.searchResultTableModel = searchResultTableModel;
+	}
 	public java.awt.Component getTableCellRendererComponent(JTable table,Object value,boolean isSelected,boolean hasFocus,int row,int col)
     {		
 		JPanel searchPanel = new JPanel();
-		searchPanel.setLayout(new BorderLayout());
+		searchPanel.setLayout(new BorderLayout());		
+		//java.util.List<SearchData> searchResultArrLst = (List<SearchData>) searchResultTableModel.getData(row);
+		SearchData data = searchResultTableModel.getData(row);   		
 		JPanel runPanel = new JPanel();
 		runPanel.setLayout(new BorderLayout());
 		Font macFont = new Font("Lucinda Grande", Font.BOLD, 11);
@@ -74,7 +81,7 @@ public class SavedSearchTableRenderer extends DefaultTableCellRenderer{
             }
 		};
 		if(col == 0){			
-			String lblStr = "Search"+" "+row;
+			String lblStr = data.getSearchSaveName();
 			JLabel searchLbl = new JLabel();
 			searchLbl.setText(lblStr);
 			searchLbl.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));			

@@ -5,6 +5,8 @@ import java.util.List;
 import edu.tufts.vue.metadata.VueMetadataElement;
 public class SearchData {
 
+	private String searchSaveName;
+	
 	private String searchType;
 
 	private String mapType;
@@ -19,11 +21,13 @@ public class SearchData {
 
 	}
 
-	public SearchData(String searchType, String mapType, String resultType,
+	public SearchData(String searchSaveName, String searchType, String mapType, String resultType,
 			String andOrType, List<VueMetadataElement> dataList) {
 
 		super();
-
+		
+		this.searchSaveName = searchSaveName;
+		
 		this.searchType = searchType;
 
 		this.mapType = mapType;
@@ -35,7 +39,19 @@ public class SearchData {
 		this.dataList = dataList;
 
 	}
+	
+	public String getSearchSaveName() {
 
+		return searchSaveName;
+
+	}
+
+	public void setSearchSaveName(String searchSaveName) {
+
+		this.searchSaveName = searchSaveName;
+
+	}
+	
 	public String getSearchType() {
 
 		return searchType;

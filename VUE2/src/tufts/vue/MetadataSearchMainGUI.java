@@ -72,7 +72,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.5 $ / $Date: 2008-11-25 05:09:35 $ / $Author: Sheejo
+ * @version $Revision: 1.6 $ / $Date: 2008-11-25 14:25:23 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -453,7 +453,8 @@ public class MetadataSearchMainGUI extends JPanel
 			saveButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {					
 					SearchData data = new SearchData();
-					searchDataList = new ArrayList<SearchData>();
+					searchDataList = new ArrayList<SearchData>();					
+					data.setSearchSaveName("Search" + " "+ searchResultModel.getRowCount());
 					data.setSearchType(searchTypeCmbBox.getSelectedItem()
 							.toString().trim());
 					data.setMapType(mapCmbBox.getSelectedItem().toString()
@@ -710,8 +711,8 @@ public class MetadataSearchMainGUI extends JPanel
 			searchResultTbl
 					.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 			searchResultTbl.setDefaultRenderer(java.lang.Object.class,
-					new SavedSearchTableRenderer());
-			searchResultTbl.setCellEditor( new SearchResultTableEditor());
+					new SavedSearchTableRenderer(searchResultModel));
+			//searchResultTbl.setCellEditor( new SearchResultTableEditor());
 			
 			((DefaultCellEditor) searchResultTbl
 					.getDefaultEditor(java.lang.Object.class))
