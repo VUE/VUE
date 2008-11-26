@@ -100,7 +100,7 @@ import com.lightdev.app.shtm.SHTMLEditorKit;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.32 $ / $Date: 2008-11-26 18:05:27 $ / $Author: mike $
+ * @version $Revision: 1.33 $ / $Date: 2008-11-26 18:08:39 $ / $Author: mike $
  *
  */
 
@@ -155,7 +155,7 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
         setMargin(null);
         setOpaque(false); // don't bother to paint background
         setVisible(true);
-     
+        addMouseListener(this);
         addKeyListener(this);
         addFocusListener(this);
         getDocument().addDocumentListener(this);
