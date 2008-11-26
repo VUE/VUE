@@ -100,7 +100,7 @@ import com.lightdev.app.shtm.SHTMLEditorKit;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.31 $ / $Date: 2008-11-24 18:43:54 $ / $Author: mike $
+ * @version $Revision: 1.32 $ / $Date: 2008-11-26 18:05:27 $ / $Author: mike $
  *
  */
 
@@ -519,13 +519,18 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
         //if (VueUtil.isAbortKey(e)) // check for ESCAPE for CTRL-Z or OPTION-Z if on mac
         if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
             e.consume();
+       
+       //     System.out.println(mUnchangedText);
+            //setText(mUnchangedText);
+            revert = true;
             getParent().remove(this); // will trigger a save (via focusLost)
-            super.setText(mUnchangedText); 
-            setSize(mUnchangedSize); // todo: won't be good enough if we ever resize the actual node as we type
+            return;
+           // setSize(mUnchangedSize); // todo: won't be good enough if we ever resize the actual node as we type
         } else if (isFinishEditKeyPress(e)) {
             keyWasPressed = true;
             e.consume();
             getParent().remove(this); // will trigger a save (via focusLost)
+            VUE.getFormattingPanel().getTextPropsPane().getFontEditorPanel().updateFormatControlsTB(this);
         } else if (e.getKeyCode() == KeyEvent.VK_U && e.isMetaDown()) {
             e.consume();
             String t = getText();
@@ -536,11 +541,13 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
         } else
             keyWasPressed = true;
 
+        //setSize(getPreferredSize());
+        
         // action keys will be ignored if we consume this here!
         // (e.g., "enter" does nothing)
-        //e.consume();
+        //e.consume();   
     }
-
+    
     /**
      * This is what triggers the final save of the new text value to the LWComponent,
      * and notify's the UndoManager that a user action was completed.
