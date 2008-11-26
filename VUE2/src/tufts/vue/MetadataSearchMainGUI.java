@@ -16,6 +16,7 @@
 package tufts.vue;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -72,7 +73,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.7 $ / $Date: 2008-11-25 22:09:31 $ / $Author: Sheejo
+ * @version $Revision: 1.8 $ / $Date: 2008-11-26 17:11:29 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -813,18 +814,16 @@ public class MetadataSearchMainGUI extends JPanel
 			searchHeaderTbl.getColumnModel().getColumn(2).setCellRenderer(
 					new ComboBoxAndOrRenderer(andOrCmbBox));			
 			searchHeaderTbl.getColumnModel().getColumn(3).setCellRenderer(
-					new SearchTermsTableHeaderRenderer());
-			
+					new SearchTermsTableHeaderRenderer());			
 			searchHeaderTbl.getColumnModel().getColumn(2).setCellEditor(
 					new ComboBoxAndOrEditor(andOrCmbBox));
 			searchHeaderTbl.getColumnModel().getColumn(3).setCellEditor(
 					new AddButtonTableCellEditor());
-			
-			searchHeaderTbl.getColumnModel().getColumn(0).setMinWidth(100);
-			searchHeaderTbl.getColumnModel().getColumn(1).setMinWidth(80);
-			searchHeaderTbl.getColumnModel().getColumn(2).setMaxWidth(50);
-			searchHeaderTbl.getColumnModel().getColumn(2).setMinWidth(50);			
-			searchHeaderTbl.getColumnModel().getColumn(3).setMaxWidth(BUTTON_COL_WIDTH);
+			searchHeaderTbl.getColumnModel().getColumn(0).setPreferredWidth(145);
+			searchHeaderTbl.getColumnModel().getColumn(2).setMaxWidth(60);
+			searchHeaderTbl.getColumnModel().getColumn(2).setMinWidth(60);			
+			searchHeaderTbl.getColumnModel().getColumn(3).setMaxWidth(40);
+			searchHeaderTbl.getColumnModel().getColumn(3).setMinWidth(40);
 		}
 	}
 	public class ComboBoxAndOrEditor extends DefaultCellEditor {
@@ -842,10 +841,9 @@ public class MetadataSearchMainGUI extends JPanel
 				}else{
 					strAndOrType = "and";
 				}									
-			}
-			
+			}			
 			JLabel label = new JLabel("");
-			if(vColIndex == 1){					
+			if(vColIndex == 1 || vColIndex == 2){					
 				SearchTermsTableModel model = (SearchTermsTableModel) searchTermsTable
 				.getModel();
 				if(model.getRowCount()<2){						
@@ -936,10 +934,13 @@ public class MetadataSearchMainGUI extends JPanel
 
 		} else if (searchTermsTable.getModel().getColumnCount() == 4) {
 		
-			searchTermsTable.getColumnModel().getColumn(0).setMinWidth(100);
-			searchTermsTable.getColumnModel().getColumn(1).setMinWidth(125);
-			searchTermsTable.getColumnModel().getColumn(2).setMaxWidth(35);
-			searchTermsTable.getColumnModel().getColumn(2).setMinWidth(35);			
+			searchTermsTable.getColumnModel().getColumn(0).setPreferredWidth(80);
+			//searchTermsTable.getColumnModel().getColumn(1).setPreferredWidth(150);
+			searchTermsTable.getColumnModel().getColumn(2).setMaxWidth(0);
+			searchTermsTable.getColumnModel().getColumn(2).setMinWidth(0);	
+			searchTermsTable.getColumnModel().getColumn(2).setPreferredWidth(0);
+			searchTermsTable.getColumnModel().getColumn(3).setMaxWidth(40);
+			searchTermsTable.getColumnModel().getColumn(3).setMinWidth(40);
 		
 		} 
 	}
@@ -1195,8 +1196,13 @@ public class MetadataSearchMainGUI extends JPanel
 			
 			if (comp.getText().equals("Category:")
 					|| comp.getText().equals("Operator")) {
-				comp.setBorder(BorderFactory.createEmptyBorder(ROW_GAP,
-						ROW_INSET, ROW_GAP, ROW_INSET - 5));
+				if(col == headerButtonColumn){
+					comp.setBorder(BorderFactory.createEmptyBorder(ROW_GAP,
+							ROW_INSET, ROW_GAP, 5));
+				}else{
+					comp.setBorder(BorderFactory.createEmptyBorder(ROW_GAP,
+							ROW_INSET, ROW_GAP, ROW_INSET - 5));
+				}
 			} else {
 				comp.setBorder(BorderFactory.createEmptyBorder(ROW_GAP,
 						ROW_INSET, ROW_GAP, ROW_INSET - 5));
