@@ -20,12 +20,16 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.Frame;
+import java.awt.Graphics;
 import java.awt.GraphicsConfiguration;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -33,7 +37,11 @@ import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -50,6 +58,7 @@ import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
+import javax.swing.Icon;
 import javax.swing.JApplet;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -68,6 +77,12 @@ import javax.swing.JWindow;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.ToolTipManager;
+import javax.swing.border.Border;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.PlainDocument;
+import javax.swing.text.AbstractDocument.DefaultDocumentEvent;
+import javax.swing.undo.CannotUndoException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
@@ -99,7 +114,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.586 $ / $Date: 2008-11-25 22:09:31 $ / $Author: sraphe01 $ 
+ * @version $Revision: 1.587 $ / $Date: 2008-12-01 21:10:31 $ / $Author: sraphe01 $ 
  */
 
 public class VUE
@@ -148,7 +163,8 @@ public class VUE
     private static JButton returnToMapButton = null;
     private static MetadataSearchMainGUI metadataSearchMainPanel = null;
     private static JPopupMenu popup;
-    
+    private static SearchTextField mSearchtextFld = new SearchTextField();
+    public static final int FIRST_TAB_STOP = 6;
     public static void finalizeDocks()
     {
     
@@ -1340,7 +1356,7 @@ public class VUE
         DockWindow toolbarDock = null;
 
         final JComponent toolbar;
-        JPanel toolbarPanel = null;
+        JPanel toolbarPanel = null;        
         if (!VUE.isApplet())
         {
         	 if (VueToolPanel.IS_CONTEXTUAL_TOOLBAR_ENABLED)
@@ -2096,46 +2112,294 @@ public class VUE
         searchPnl.add(searchLbl);
         searchPnl.add(arrowLbl);
         valueTxt.setBorder(BorderFactory.createMatteBorder(
-                1, 0, 1, 0, Color.gray));
+                1, 0, 1, 0, Color.gray));       
         
-        arrowLbl.addMouseListener(new MouseAdapter()
-		{			   
-		    public void mouseClicked(MouseEvent e)
-		    {
-		    	popup = new JPopupMenu();
-		    	
-		    	JMenuItem searcheveryWhereMenuItem = new JMenuItem("Search everywhere");
-				popup.add(searcheveryWhereMenuItem);
-				
-				JMenuItem deleteMenuItem = new JMenuItem("Labels");
-				popup.add(deleteMenuItem);	
-				
-				JMenuItem keywordMenuItem = new JMenuItem("Keywords");
-				popup.add(keywordMenuItem);	
-				
-				JMenuItem categoriesMenuItem = new JMenuItem("Categories");
-				popup.add(categoriesMenuItem);	
-				
-				JMenuItem categoryKeywordMenuItem = new JMenuItem("Categories + Keywords");
-				popup.add(categoryKeywordMenuItem);	
-				popup.addSeparator();
-				JMenuItem editSettingsMenuItem = new JMenuItem("Edit Search Settings");
-				popup.add(editSettingsMenuItem);
-				
-				popup.show(e.getComponent(), e.getX()+10, e.getY()+5);				
-		    }
-		});
         searchPnl.add(valueTxt);
         searchPnl.add(clearLbl);
         searchPnl.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0)); 
         searchPnl.setPreferredSize(new Dimension(155,23));
         searchPnl.setSize(new Dimension(155,23));
         searchPnl.setMaximumSize(new Dimension(155,23));
-        toolbarPanel.add(searchPnl, SwingConstants.LEFT); 
+//        toolbarPanel.add(searchPnl, SwingConstants.LEFT); 
+        JPanel searchPanel = new JPanel();
+        searchPanel.setPreferredSize(new Dimension(200,25));
+        searchPanel.setSize(new Dimension(200,25));
+        searchPanel.setMaximumSize(new Dimension(200,25));        
+       
+        searchPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));        
         
+        //searchPanel.setBorder(BorderFactory.createLineBorder(Color.red,1));
+        JPanel panel = new JPanel();
+        boolean isWindows = VueUtil.isWindowsPlatform();
+        if(!isWindows){
+        	TabStopDocument tabStopDocument = new TabStopDocument(mSearchtextFld, FIRST_TAB_STOP);
+        	mSearchtextFld.setDocument(tabStopDocument);
+        }
+        panel.add(mSearchtextFld);
+        panel.add(new JLabel(" "));
+		toolbarPanel.add( panel  , SwingConstants.LEFT);		
         if (DEBUG.INIT) out("created ToolBar");
         
         return toolbarPanel;
+
+    }
+    static class SearchTextField extends JTextField {
+    	private boolean mouse_over = false;
+    	SearchTextField thisTxtFld;
+    	boolean isWindows = VueUtil.isWindowsPlatform();
+    	SearchTextField() {
+    		super(13);
+            //super(iconChar, 18, defaultColor, TitleHeight, TitleHeight);        	
+        	thisTxtFld = this; 
+        	//String defaultStr = "\t"+"search";
+        	setText("");
+        	if(!isWindows){
+        		putClientProperty("JTextField.variant", "search");
+        		//super.setMargin(new Insets(0,65,0,0));
+        	} else{        		
+        		setText("search");
+        		addFocusListener(new FocusAdapter() {
+          		  public void focusLost(FocusEvent e) {
+          			
+          		  }
+          		  public void focusGained(FocusEvent e) {
+          			  setText("");
+          		  }
+          		});
+        		//setOpaque(false);
+        		Insets noInsets=new Insets(0,0,0,35); 
+        		setMargin(noInsets);
+        		
+        		addMouseListener(new MouseAdapter() 
+	      	      {
+	      	      public void mouseClicked(MouseEvent e) {	
+	      	    	  int arrowWidth = getWidth()-18;	      	    	
+	      	    	setCursor(Cursor.DEFAULT_CURSOR);
+	      	    	  if(e.getX()>arrowWidth){
+	      	    		setCursor(Cursor.HAND_CURSOR);	      	    		
+	      	    		popup = new JPopupMenu();	    		    	
+	    		    	JMenuItem searcheveryWhereMenuItem = new JMenuItem("Search everywhere");
+	    				popup.add(searcheveryWhereMenuItem);
+	    				
+	    				JMenuItem deleteMenuItem = new JMenuItem("Labels");
+	    				popup.add(deleteMenuItem);	
+	    				
+	    				JMenuItem keywordMenuItem = new JMenuItem("Keywords");
+	    				popup.add(keywordMenuItem);	
+	    				
+	    				JMenuItem categoriesMenuItem = new JMenuItem("Categories");
+	    				popup.add(categoriesMenuItem);	
+	    				
+	    				JMenuItem categoryKeywordMenuItem = new JMenuItem("Categories + Keywords");
+	    				popup.add(categoryKeywordMenuItem);	
+	    				popup.addSeparator();
+	    				JMenuItem editSettingsMenuItem = new JMenuItem("Edit Search Settings");
+	    				popup.add(editSettingsMenuItem);
+	    				
+	    				popup.show(e.getComponent(), e.getX()+10, e.getY()+5); 
+	      	    	  }	else if(e.getX()<arrowWidth && e.getX() > arrowWidth-23){
+	      	    		    setCursor(Cursor.HAND_CURSOR);
+		      	    		System.err.println("Search Icon>>>>>");
+		      	      } else{
+		      	    	setCursor(Cursor.DEFAULT_CURSOR);
+		      	      }
+	      	      }
+	      	      public void mouseExited(MouseEvent e) {
+	      	    	setCursor(Cursor.DEFAULT_CURSOR);
+	      	      }
+	      	    public void mouseEntered(MouseEvent e) {
+	      	    	int arrowWidth = getWidth()-18;	   	
+	      	    	
+	      	    	  if(e.getX()>arrowWidth){	      	    		
+	      	    		setCursor(Cursor.HAND_CURSOR);	  
+	      	    	  }else if(e.getX()<arrowWidth && e.getX() > arrowWidth-23){	      	    		
+	      	    		setCursor(Cursor.HAND_CURSOR);		      	    		
+		      	      } else{		      	    	
+		      	    	setCursor(Cursor.DEFAULT_CURSOR);  
+		      	      }
+	      	      }
+	      	      });
+        	} 
+
+        }       
+        
+		protected void paintComponent(Graphics g) {
+            // Paint the default look of the button.
+            super.paintComponent(g);
+            Image arrowImg = VueResources.getImageIcon("search.downarrowicon").getImage();
+            //Image clearImg = VueResources.getImageIcon("search.closeicon").getImage();
+            Image searchImg = VueResources.getImageIcon("search.searchicon").getImage();
+            int h = getHeight(); 
+            int w = getWidth();
+            if(!isWindows){
+            	g.setColor(Color.white);
+            	g.drawImage(arrowImg,30,h/2-5, arrowImg.getWidth(null) , arrowImg.getHeight(null), this); 
+            	g.drawString("search",55,h-10); 
+            }else{             	        	
+            	g.drawImage(searchImg,w-35,h/2-7, searchImg.getWidth(null) , searchImg.getHeight(null)-2, this); 
+            	g.drawImage(arrowImg,w-15,h/2-5, arrowImg.getWidth(null) , arrowImg.getHeight(null), this);            	
+            }        
+        
+        }
+		protected void setCursor(int cursorState) {
+	    	setCursor(new Cursor(cursorState));			
+		}
+    }    
+    static class TabStopDocument extends PlainDocument {
+
+    	  JTextField textField;
+
+    	  int tabStop;
+
+    	  TabStopDocument(JTextField textField, int tabStop){
+
+    	    this.textField = textField;
+
+    	    this.tabStop = tabStop;
+
+    	  }
+
+    	 
+
+    	  private String tabStopString(){
+
+    	    String tabStopString = "";
+
+    	    for(int i=0; i<tabStop; ++i){
+
+    	      tabStopString += " ";
+
+    	    }
+
+    	    return tabStopString;
+
+    	  }
+
+    	 
+
+    	  protected void insertUpdate(DefaultDocumentEvent chng, AttributeSet attr) {
+    		
+    	    int offset = chng.getOffset();
+
+    	    if ( offset <= tabStop){
+
+    	      return;
+
+    	    }
+
+    	    super.insertUpdate(chng, attr);
+
+    	  }
+
+    	 
+
+    	  protected void removeUpdate(DefaultDocumentEvent chng) {
+
+    		  int offset = chng.getOffset()+1;
+
+    		    if ( offset <= tabStop){
+    		    
+    			try {
+    				if(chng.getDocument().getText(0, chng.getLength()).trim().length()!=0){
+    				  chng.undo();
+    				  textField.setCaretPosition(0);
+    				}
+    			} catch (CannotUndoException e) {
+    				
+    			} catch (BadLocationException e) {
+    				
+    			}
+    		    return;
+
+    		    }   		 
+
+    		    super.removeUpdate(chng);
+
+    	  }
+
+    	 
+
+    	  public void insertString(int offset, String str, AttributeSet attr) throws BadLocationException {
+
+    	 
+
+    	    if (str == null)
+
+    	      return;
+
+    	    if (textField.getText().trim().length() == 0 && offset <= tabStop) {
+
+    	      str = tabStopString() + str;
+
+    	    }   	 
+
+    	    if (textField.getText().trim().length() != 0 && offset <= tabStop) {
+
+    	      return;
+
+    	    }
+
+    	    super.insertString(offset, str, attr);
+
+    	  }
+    }
+    static public class SubtleSquareBorder implements Border
+    {
+	    protected int m_w = 6;
+	    protected int m_h = 6;
+	    protected Color m_topColor = Color.gray;
+	    protected Color m_bottomColor = Color.gray;
+	    protected boolean roundc = false; // Do we want rounded corners on the border?
+	
+	    public SubtleSquareBorder(boolean round_corners)
+	    {	
+	      roundc = round_corners;
+	    }
+	
+	    public Insets getBorderInsets(Component c)
+	    {
+	    return new Insets(m_h, m_w, m_h, m_w);
+	    }
+	
+	    public boolean isBorderOpaque()
+	    {
+	    return true;
+	    }
+	
+	    public void paintBorder(Component c, Graphics g, int x, int y, int w, int h)
+	    {
+	    w = w - 3;
+	    h = h - 3;
+	    x ++;
+	    y ++;
+	
+	    // Rounded corners
+	    if(roundc)
+	    {
+	    g.setColor(m_topColor);
+	    g.drawLine(x, y + 2, x, y + h - 2);
+	    g.drawLine(x + 2, y, x + w - 2, y);
+	    g.drawLine(x, y + 2, x + 2, y); // Top left diagonal
+	    g.drawLine(x, y + h - 2, x + 2, y + h); // Bottom left diagonal
+	    g.setColor(m_bottomColor);
+	    g.drawLine(x + w, y + 2, x + w, y + h - 2);
+	    g.drawLine(x + 2, y + h, x + w -2, y + h);
+	    g.drawLine(x + w - 2, y, x + w, y + 2); // Top right diagonal
+	    g.drawLine(x + w, y + h - 2, x + w -2, y + h); // Bottom right diagonal	    
+	    }
+	
+	    // Square corners
+	    else
+	    {
+	    g.setColor(m_topColor);
+	    g.drawLine(x, y, x, y + h);
+	    g.drawLine(x, y, x + w, y);
+	    g.setColor(m_bottomColor);
+	    g.drawLine(x + w, y, x + w, y + h);
+	    g.drawLine(x, y + h, x + w, y + h);
+	    }
+	
+	    }
 
     }
     public static FormatPanel getFormattingPanel()
