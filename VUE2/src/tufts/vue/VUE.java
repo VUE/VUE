@@ -23,7 +23,6 @@ import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Font;
 import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.GraphicsConfiguration;
@@ -39,6 +38,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -58,9 +59,9 @@ import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
-import javax.swing.Icon;
 import javax.swing.JApplet;
 import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -81,8 +82,6 @@ import javax.swing.border.Border;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.PlainDocument;
-import javax.swing.text.AbstractDocument.DefaultDocumentEvent;
-import javax.swing.undo.CannotUndoException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
@@ -114,7 +113,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.588 $ / $Date: 2008-12-02 16:31:26 $ / $Author: sraphe01 $ 
+ * @version $Revision: 1.589 $ / $Date: 2008-12-02 22:17:50 $ / $Author: sraphe01 $ 
  */
 
 public class VUE
@@ -165,6 +164,7 @@ public class VUE
     private static JPopupMenu popup;
     private static SearchTextField mSearchtextFld = new SearchTextField();
     public static final int FIRST_TAB_STOP = 6;
+    public static JCheckBoxMenuItem  searcheveryWhereMenuItem;
     public static void finalizeDocks()
     {
     
@@ -2121,13 +2121,13 @@ public class VUE
         searchPnl.setSize(new Dimension(155,23));
         searchPnl.setMaximumSize(new Dimension(155,23));
 //        toolbarPanel.add(searchPnl, SwingConstants.LEFT); 
-        JPanel searchPanel = new JPanel();
-        searchPanel.setPreferredSize(new Dimension(200,25));
-        searchPanel.setSize(new Dimension(200,25));
-        searchPanel.setMaximumSize(new Dimension(200,25));        
-       
-        searchPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));        
-        
+//        JPanel searchPanel = new JPanel();
+//        searchPanel.setPreferredSize(new Dimension(200,25));
+//        searchPanel.setSize(new Dimension(200,25));
+//        searchPanel.setMaximumSize(new Dimension(200,25));        
+//       
+//        searchPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));        
+//        
         //searchPanel.setBorder(BorderFactory.createLineBorder(Color.red,1));
         JPanel panel = new JPanel();
         boolean isWindows = VueUtil.isWindowsPlatform();
@@ -2150,46 +2150,22 @@ public class VUE
     	SearchTextField thisTxtFld;
     	boolean isWindows = VueUtil.isWindowsPlatform();
     	SearchTextField() {
-    		super("search",13);
-    		//setText("Search");
-            //super(iconChar, 18, defaultColor, TitleHeight, TitleHeight);        	
-        	thisTxtFld = this; 
-        	//String defaultStr = "\t"+"search";        	
+    		super(VueResources.getString("search.text.default"),13);    		     	
+        	thisTxtFld = this;         	
+        	GUI.init();
         	if(!isWindows){
-        		putClientProperty("JTextField.variant", "search");        		
-        		addMouseListener(new MouseAdapter() 
-	      	      {
-	      	      public void mouseClicked(MouseEvent e) {		
-	      	    	  if(getText().trim().equals("search")){
-	      	    		  setText("");  
-	      	    	  }
-	      	    	popup = new JPopupMenu();	    		    	
-    		    	JMenuItem searcheveryWhereMenuItem = new JMenuItem("Search everywhere");
-    				popup.add(searcheveryWhereMenuItem);
-    				
-    				JMenuItem deleteMenuItem = new JMenuItem("Labels");
-    				popup.add(deleteMenuItem);	
-    				
-    				JMenuItem keywordMenuItem = new JMenuItem("Keywords");
-    				popup.add(keywordMenuItem);	
-    				
-    				JMenuItem categoriesMenuItem = new JMenuItem("Categories");
-    				popup.add(categoriesMenuItem);	
-    				
-    				JMenuItem categoryKeywordMenuItem = new JMenuItem("Categories + Keywords");
-    				popup.add(categoryKeywordMenuItem);	
-    				popup.addSeparator();
-    				JMenuItem editSettingsMenuItem = new JMenuItem("Edit Search Settings");
-    				popup.add(editSettingsMenuItem);
-    				
-    				popup.show(e.getComponent(), e.getX()+10, e.getY()+5); 
-	      	      }
-	      	      public void mouseExited(MouseEvent e) {
-	      	    	
-	      	      }
-	      	      public void mouseEntered(MouseEvent e) {
-	      	      }
-	      	      });
+        		putClientProperty("JTextField.variant", "search");
+        		Insets noInsets=new Insets(0,15,0,25);
+        		popup = new JPopupMenu(); 
+        		createPopupMenu();
+        		addMouseListener(new MouseAdapter() {
+		            public void mouseClicked(MouseEvent e) {		            	
+		     		    boolean isWindows = VueUtil.isWindowsPlatform();
+		     		     if(!isWindows){	    	 
+		     		    	 popup.show(e.getComponent(), e.getX(), e.getY());
+		     		     }		     		   
+		            }
+				});
         		
         	} else{  		
         		
@@ -2200,63 +2176,65 @@ public class VUE
           		  public void focusGained(FocusEvent e) {
           			  setText("");
           		  }
-          		});
-        		//setOpaque(false);
-        		Insets noInsets=new Insets(0,0,0,35); 
-        		setMargin(noInsets);
+          		});        		
         		
-        		addMouseListener(new MouseAdapter() 
-	      	      {
-	      	      public void mouseClicked(MouseEvent e) {	
-	      	    	  setText("");
-	      	    	  int arrowWidth = getWidth()-18;	      	    	
-	      	    	setCursor(Cursor.DEFAULT_CURSOR);
-	      	    	  if(e.getX()>arrowWidth){
-	      	    		setCursor(Cursor.HAND_CURSOR);	      	    		
-	      	    		popup = new JPopupMenu();	    		    	
-	    		    	JMenuItem searcheveryWhereMenuItem = new JMenuItem("Search everywhere");
-	    				popup.add(searcheveryWhereMenuItem);
-	    				
-	    				JMenuItem deleteMenuItem = new JMenuItem("Labels");
-	    				popup.add(deleteMenuItem);	
-	    				
-	    				JMenuItem keywordMenuItem = new JMenuItem("Keywords");
-	    				popup.add(keywordMenuItem);	
-	    				
-	    				JMenuItem categoriesMenuItem = new JMenuItem("Categories");
-	    				popup.add(categoriesMenuItem);	
-	    				
-	    				JMenuItem categoryKeywordMenuItem = new JMenuItem("Categories + Keywords");
-	    				popup.add(categoryKeywordMenuItem);	
-	    				popup.addSeparator();
-	    				JMenuItem editSettingsMenuItem = new JMenuItem("Edit Search Settings");
-	    				popup.add(editSettingsMenuItem);
-	    				
-	    				popup.show(e.getComponent(), e.getX()+10, e.getY()+5); 
-	      	    	  }	else if(e.getX()<arrowWidth && e.getX() > arrowWidth-23){
-	      	    		    setCursor(Cursor.HAND_CURSOR);		      	    		
-		      	      } else{
-		      	    	setCursor(Cursor.DEFAULT_CURSOR);
-		      	      }
-	      	      }
-	      	      public void mouseExited(MouseEvent e) {
-	      	    	setCursor(Cursor.DEFAULT_CURSOR);
-	      	      }
-	      	    public void mouseEntered(MouseEvent e) {
-	      	    	int arrowWidth = getWidth()-18;	   	
-	      	    	
-	      	    	  if(e.getX()>arrowWidth){	      	    		
-	      	    		setCursor(Cursor.HAND_CURSOR);	  
-	      	    	  }else if(e.getX()<arrowWidth && e.getX() > arrowWidth-23){	      	    		
-	      	    		setCursor(Cursor.HAND_CURSOR);		      	    		
-		      	      } else{		      	    	
-		      	    	setCursor(Cursor.DEFAULT_CURSOR);  
-		      	      }
-	      	      }
-	      	      });
+        		Insets noInsets=new Insets(0,15,0,25); 
+        		setMargin(noInsets);
+        		popup = new JPopupMenu();       		
+				createPopupMenu();        		  	    
+				addMouseListener(new MouseAdapter() {
+		            public void mouseClicked(MouseEvent e) { 	     		    
+		     		     if((e.getX()< 23) ){			     		    	
+		     		    	 popup.show(e.getComponent(), e.getX()+5, e.getY());
+		     		     }		     		   
+		            }
+				});
         	} 
         }     
-        
+    	
+		private void createPopupMenu() {
+			JMenuItem searchMenuItem = new JMenuItem(VueResources.getString("search.popup.search"));
+			searchMenuItem.setEnabled(false);
+			popup.add(searchMenuItem);
+			
+    		JCheckBoxMenuItem searcheveryWhereMenuItem = new JCheckBoxMenuItem(VueResources.getString("search.popup.searcheverywhere"), true);
+			popup.add(searcheveryWhereMenuItem);
+			
+			JCheckBoxMenuItem  labelMenuItem = new JCheckBoxMenuItem (VueResources.getString("search.popup.labels"));
+			popup.add(labelMenuItem);	
+			
+			JCheckBoxMenuItem  keywordMenuItem = new JCheckBoxMenuItem (VueResources.getString("search.popup.keywords"));
+			popup.add(keywordMenuItem);	
+			
+			JCheckBoxMenuItem  categoriesMenuItem = new JCheckBoxMenuItem (VueResources.getString("search.popup.categories"));
+			popup.add(categoriesMenuItem);	
+			
+			JCheckBoxMenuItem  categoryKeywordMenuItem = new JCheckBoxMenuItem (VueResources.getString("search.popup.categories")+" + "+VueResources.getString("search.popup.keywords"));
+			popup.add(categoryKeywordMenuItem);	
+			
+			
+			JCheckBoxMenuItem  editSettingsMenuItem = new JCheckBoxMenuItem(VueResources.getString("search.popup.edit.search.settings"));
+			popup.add(editSettingsMenuItem);
+			
+			popup.addSeparator();
+			
+			JMenuItem selectMenuItem = new JMenuItem(VueResources.getString("search.popup.select.all"));
+			popup.add(selectMenuItem);
+			
+			JMenuItem cutMenuItem = new JMenuItem(VueResources.getString("search.popup.cut"));
+			popup.add(cutMenuItem);
+			
+			JMenuItem copyMenuItem = new JMenuItem(VueResources.getString("search.popup.copy"));
+			popup.add(copyMenuItem);
+			
+			JMenuItem pasteMenuItem = new JMenuItem(VueResources.getString("search.popup.paste"));
+			popup.add(pasteMenuItem);
+			
+			JMenuItem clearMenuItem = new JMenuItem(VueResources.getString("search.popup.clear"));
+			popup.add(clearMenuItem);
+			
+		}
+
 		protected void paintComponent(Graphics g) {
             // Paint the default look of the button.
             super.paintComponent(g);
@@ -2269,8 +2247,8 @@ public class VUE
             	//g.drawImage(arrowImg,30,h/2-5, arrowImg.getWidth(null) , arrowImg.getHeight(null), this); 
             	//g.drawString("search",55,h-10); 
             }else{             	        	
-            	g.drawImage(searchImg,w-35,h/2-7, searchImg.getWidth(null) , searchImg.getHeight(null)-2, this); 
-            	g.drawImage(arrowImg,w-15,h/2-5, arrowImg.getWidth(null) , arrowImg.getHeight(null), this);            	
+            	g.drawImage(arrowImg,5,h/2-5, arrowImg.getWidth(null) , arrowImg.getHeight(null), this); 
+            	g.drawImage(searchImg,w-20,h/2-8, searchImg.getWidth(null) , searchImg.getHeight(null), this);            	
             }        
         
         }
@@ -3842,5 +3820,5 @@ public class VUE
 			return VUE.getActiveMap().getPresentationBackgroundValue();
 		else
 			return defaultColor;
-	}
+	}	
 }
