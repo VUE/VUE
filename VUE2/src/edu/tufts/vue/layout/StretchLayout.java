@@ -64,25 +64,8 @@ public class StretchLayout extends Layout {
         double outerA = a*ratio*EXPAND;
         double outerB = b*ratio*EXPAND;
         
-        System.out.println("ELLIPSE: a:"+a+" b: "+b+" xRrange:" + xRange+" yRange:"+yRange+" ratio:"+ratio);
-        System.out.printf("center: %.2f,%.2f\n",centerX,centerY);
-        Point2D topLeft =  new Point();
-        topLeft.setLocation(minX,minY );
-        Point2D bottomLeft =  new Point();
-        bottomLeft.setLocation(minX ,maxY);
-        Point2D topRight =  new Point();
-        topRight.setLocation(maxX,minY);
-        Point2D bottomRight =  new Point();
-        bottomRight.setLocation( maxX ,maxY );
-        Point2D center = new Point();
-        center.setLocation(boundingRect.getCenterX(),boundingRect.getCenterY());
-        Line2D slopeDown = new Line2D.Double(topLeft,bottomRight);
-        Line2D slopeUp = new Line2D.Double(bottomLeft,topRight);
-        Line2D top = new Line2D.Double(topLeft,topRight);
-        Line2D left = new Line2D.Double(topLeft,bottomLeft);
-        Line2D right = new Line2D.Double(topRight,bottomRight);
-        Line2D bottom = new Line2D.Double(bottomLeft,bottomRight);
-        
+        //       System.out.println("ELLIPSE: a:"+a+" b: "+b+" xRrange:" + xRange+" yRange:"+yRange+" ratio:"+ratio);
+//        System.out.printf("center: %.2f,%.2f\n",centerX,centerY);
         
         // move all nodes around the selection
         Iterator<LWComponent> i = VUE.getActiveMap().getAllDescendents(LWContainer.ChildKind.PROPER).iterator();
@@ -108,7 +91,6 @@ public class StretchLayout extends Layout {
                     double yInnerEllipse = centerY-b*Math.sin(angle);
                     double xOuterEllipse = centerX+outerA*Math.cos(angle);
                     double yOuterEllipse = centerY-outerB*Math.sin(angle);
-                    
                     double distInner = Point2D.distance(centerX,centerY,xInnerEllipse,yInnerEllipse);
                     double distOuter = Point2D.distance(centerX,centerY,xOuterEllipse,yOuterEllipse);
                     double distPoint = Point2D.distance(centerX,centerY,x,y);
@@ -118,24 +100,7 @@ public class StretchLayout extends Layout {
                         double newB = outerB*factor;
                         newX = centerX-X_PADDING+newA*Math.cos(angle);
                         newY = centerY-Y_PADDING-newB*Math.sin(angle);
-                        
                     }
-                    
-                    /*
-                    double distance = Point2D.distance(x,y,centerX,centerY);
-                    double xInnerEllipse = centerX+a*Math.cos(angle);
-                    double yInnerEllipse = centerY+b*Math.sin(angle);
-                    double distEllipse = Point2D.distance(x,y,xInnerEllipse,yInnerEllipse);
-                    double distPoint = Point2D.distance(xInnerEllipse,yInnerEllipse,centerX,centerY);
-                    System.out.printf("distPoint:%.2f,distEllipse:%.2f,%s\n",distPoint,distEllipse,c.getLabel());
-                    if(distEllipse<SHIFT_RANGE_PCT*distPoint) {
-                        double factor =1+ (SHIFT_RANGE_PCT -distEllipse/distPoint)*MAX_SHIFT_PCT/SHIFT_RANGE_PCT;
-                        newX = centerX+outerA*factor*Math.cos(angle);
-                       newY = centerY+outerB*factor*Math.sin(angle);
-                       System.out.println("Shifting node: "+c.getLabel());
-                       System.out.printf("factor: %3.2f, x:%3.2f,y:%3.2f,newX:%3.2f,newY:%3.2f ",factor,x,y,newX,newY);
-                    }
-                     */
                 }
                 c.setLocation(newX,newY);
             }
