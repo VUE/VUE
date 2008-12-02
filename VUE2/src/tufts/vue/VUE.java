@@ -114,7 +114,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.587 $ / $Date: 2008-12-01 21:10:31 $ / $Author: sraphe01 $ 
+ * @version $Revision: 1.588 $ / $Date: 2008-12-02 16:31:26 $ / $Author: sraphe01 $ 
  */
 
 public class VUE
@@ -2131,9 +2131,11 @@ public class VUE
         //searchPanel.setBorder(BorderFactory.createLineBorder(Color.red,1));
         JPanel panel = new JPanel();
         boolean isWindows = VueUtil.isWindowsPlatform();
-        if(!isWindows){
-        	TabStopDocument tabStopDocument = new TabStopDocument(mSearchtextFld, FIRST_TAB_STOP);
-        	mSearchtextFld.setDocument(tabStopDocument);
+        if(!isWindows){        	
+        	//TabStopDocument tabStopDocument = new TabStopDocument(mSearchtextFld, FIRST_TAB_STOP);        	
+        	//mSearchtextFld.setDocument(tabStopDocument);
+        	//mSearchtextFld.setText("Search");
+        	
         }
         panel.add(mSearchtextFld);
         panel.add(new JLabel(" "));
@@ -2148,16 +2150,49 @@ public class VUE
     	SearchTextField thisTxtFld;
     	boolean isWindows = VueUtil.isWindowsPlatform();
     	SearchTextField() {
-    		super(13);
+    		super("search",13);
+    		//setText("Search");
             //super(iconChar, 18, defaultColor, TitleHeight, TitleHeight);        	
         	thisTxtFld = this; 
-        	//String defaultStr = "\t"+"search";
-        	setText("");
+        	//String defaultStr = "\t"+"search";        	
         	if(!isWindows){
-        		putClientProperty("JTextField.variant", "search");
-        		//super.setMargin(new Insets(0,65,0,0));
-        	} else{        		
-        		setText("search");
+        		putClientProperty("JTextField.variant", "search");        		
+        		addMouseListener(new MouseAdapter() 
+	      	      {
+	      	      public void mouseClicked(MouseEvent e) {		
+	      	    	  if(getText().trim().equals("search")){
+	      	    		  setText("");  
+	      	    	  }
+	      	    	popup = new JPopupMenu();	    		    	
+    		    	JMenuItem searcheveryWhereMenuItem = new JMenuItem("Search everywhere");
+    				popup.add(searcheveryWhereMenuItem);
+    				
+    				JMenuItem deleteMenuItem = new JMenuItem("Labels");
+    				popup.add(deleteMenuItem);	
+    				
+    				JMenuItem keywordMenuItem = new JMenuItem("Keywords");
+    				popup.add(keywordMenuItem);	
+    				
+    				JMenuItem categoriesMenuItem = new JMenuItem("Categories");
+    				popup.add(categoriesMenuItem);	
+    				
+    				JMenuItem categoryKeywordMenuItem = new JMenuItem("Categories + Keywords");
+    				popup.add(categoryKeywordMenuItem);	
+    				popup.addSeparator();
+    				JMenuItem editSettingsMenuItem = new JMenuItem("Edit Search Settings");
+    				popup.add(editSettingsMenuItem);
+    				
+    				popup.show(e.getComponent(), e.getX()+10, e.getY()+5); 
+	      	      }
+	      	      public void mouseExited(MouseEvent e) {
+	      	    	
+	      	      }
+	      	      public void mouseEntered(MouseEvent e) {
+	      	      }
+	      	      });
+        		
+        	} else{  		
+        		
         		addFocusListener(new FocusAdapter() {
           		  public void focusLost(FocusEvent e) {
           			
@@ -2173,6 +2208,7 @@ public class VUE
         		addMouseListener(new MouseAdapter() 
 	      	      {
 	      	      public void mouseClicked(MouseEvent e) {	
+	      	    	  setText("");
 	      	    	  int arrowWidth = getWidth()-18;	      	    	
 	      	    	setCursor(Cursor.DEFAULT_CURSOR);
 	      	    	  if(e.getX()>arrowWidth){
@@ -2198,8 +2234,7 @@ public class VUE
 	    				
 	    				popup.show(e.getComponent(), e.getX()+10, e.getY()+5); 
 	      	    	  }	else if(e.getX()<arrowWidth && e.getX() > arrowWidth-23){
-	      	    		    setCursor(Cursor.HAND_CURSOR);
-		      	    		System.err.println("Search Icon>>>>>");
+	      	    		    setCursor(Cursor.HAND_CURSOR);		      	    		
 		      	      } else{
 		      	    	setCursor(Cursor.DEFAULT_CURSOR);
 		      	      }
@@ -2220,8 +2255,7 @@ public class VUE
 	      	      }
 	      	      });
         	} 
-
-        }       
+        }     
         
 		protected void paintComponent(Graphics g) {
             // Paint the default look of the button.
@@ -2230,11 +2264,10 @@ public class VUE
             //Image clearImg = VueResources.getImageIcon("search.closeicon").getImage();
             Image searchImg = VueResources.getImageIcon("search.searchicon").getImage();
             int h = getHeight(); 
-            int w = getWidth();
-            if(!isWindows){
-            	g.setColor(Color.white);
-            	g.drawImage(arrowImg,30,h/2-5, arrowImg.getWidth(null) , arrowImg.getHeight(null), this); 
-            	g.drawString("search",55,h-10); 
+            int w = getWidth();            
+            if(!isWindows){            	
+            	//g.drawImage(arrowImg,30,h/2-5, arrowImg.getWidth(null) , arrowImg.getHeight(null), this); 
+            	//g.drawString("search",55,h-10); 
             }else{             	        	
             	g.drawImage(searchImg,w-35,h/2-7, searchImg.getWidth(null) , searchImg.getHeight(null)-2, this); 
             	g.drawImage(arrowImg,w-15,h/2-5, arrowImg.getWidth(null) , arrowImg.getHeight(null), this);            	
@@ -2268,7 +2301,6 @@ public class VUE
     	    for(int i=0; i<tabStop; ++i){
 
     	      tabStopString += " ";
-
     	    }
 
     	    return tabStopString;
@@ -2278,7 +2310,7 @@ public class VUE
     	 
 
     	  protected void insertUpdate(DefaultDocumentEvent chng, AttributeSet attr) {
-    		
+
     	    int offset = chng.getOffset();
 
     	    if ( offset <= tabStop){
@@ -2286,7 +2318,6 @@ public class VUE
     	      return;
 
     	    }
-
     	    super.insertUpdate(chng, attr);
 
     	  }
@@ -2295,53 +2326,51 @@ public class VUE
 
     	  protected void removeUpdate(DefaultDocumentEvent chng) {
 
-    		  int offset = chng.getOffset()+1;
+    	    int offset = chng.getOffset()+1;
 
-    		    if ( offset <= tabStop){
-    		    
-    			try {
-    				if(chng.getDocument().getText(0, chng.getLength()).trim().length()!=0){
-    				  chng.undo();
-    				  textField.setCaretPosition(0);
-    				}
-    			} catch (CannotUndoException e) {
-    				
-    			} catch (BadLocationException e) {
-    				
-    			}
-    		    return;
+    	    if ( offset <= tabStop){
 
-    		    }   		 
-
-    		    super.removeUpdate(chng);
-
-    	  }
-
-    	 
-
-    	  public void insertString(int offset, String str, AttributeSet attr) throws BadLocationException {
-
-    	 
-
-    	    if (str == null)
+    	      chng.undo();
 
     	      return;
 
-    	    if (textField.getText().trim().length() == 0 && offset <= tabStop) {
+    	    }  	 
 
-    	      str = tabStopString() + str;
-
-    	    }   	 
-
-    	    if (textField.getText().trim().length() != 0 && offset <= tabStop) {
-
-    	      return;
-
-    	    }
-
-    	    super.insertString(offset, str, attr);
+    	    super.removeUpdate(chng);
 
     	  }
+    	 
+
+    	  public void insertString(int offset, String str, AttributeSet attr) throws BadLocationException {    		  
+
+    		    if (str == null)
+
+    		      return;
+
+    		    if (textField.getText().trim().length() == 0 ){
+
+    		      if ( textField.getText().length() == tabStop){
+    		       
+
+    		      } else {
+
+    		        if (textField.getText().trim().length() == 0 && offset <= tabStop) {
+
+    		          str = tabStopString() + str;
+
+    		        }
+
+    		      }
+
+    		    }      		 
+
+    		    if (textField.getText().trim().length() != 0 && offset <= tabStop) {
+
+    		      return;
+
+    		    }
+    		    super.insertString(offset, str, attr);
+    	}
     }
     static public class SubtleSquareBorder implements Border
     {

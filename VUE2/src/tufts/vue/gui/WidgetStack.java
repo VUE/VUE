@@ -35,7 +35,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.51 $ / $Date: 2008-11-25 22:09:32 $ / $Author: sraphe01 $
+ * @version $Revision: 1.52 $ / $Date: 2008-12-02 16:31:25 $ / $Author: sraphe01 $
  * @author Scott Fraize
  */
 public class WidgetStack extends Widget
@@ -896,9 +896,7 @@ public class WidgetStack extends Widget
         //System.err.println(GUI.name(this) + " " + (o==null?"null":o.toString()));
     }
 
-    private static final Color defaultColor = GUI.isMacAqua() ? Color.white : Color.black;
-    private static final Color activeColor = GUI.isMacAqua() ? TopGradient.brighter() : Color.white;
-    
+   
     class MenuButton extends JButton {
     	private boolean mouse_over = false;
     	MenuButton thisbutton;
@@ -906,9 +904,9 @@ public class WidgetStack extends Widget
     	MenuButton(Action[] actions) {
             //super(iconChar, 18, defaultColor, TitleHeight, TitleHeight);
         	super();
-        	thisbutton = this;
+        	thisbutton = this;        	
             setName(WidgetStack.this.getName());   
-            setSize(new Dimension(100,25));
+            //setSize(new Dimension(100,25));
             setText(" "+VueResources.getString("option")+" ");           
         	//setIcon(VueResources.getImageIcon("dockWindow.menuIcon.raw"));
         	setRolloverEnabled(true);
@@ -933,7 +931,7 @@ public class WidgetStack extends Widget
     		}else{
     			setFont(macFont);
     		}
-    		setOpaque(true);
+    		//setOpaque(false);
 //    		Color color = new Color(94,115,158);
 //    		//Color color = new Color(81,98,136);
 //    		setBackground(color);  
@@ -947,7 +945,7 @@ public class WidgetStack extends Widget
     	    	  mouse_over=false;
     	    	  thisbutton.repaint();}
     	      });
-    		setBorder(null);
+    		setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
         }
         void setMenuActions(Action[] actions) {
             clearMenuActions();
@@ -962,13 +960,13 @@ public class WidgetStack extends Widget
 
             new GUI.PopupMenuHandler(this, GUI.buildMenu(actions)) {
                 public void mouseEntered(MouseEvent e) { 
-                	Color color = new Color(122,139,175);
-            		setBackground(color);
+                	//Color color = new Color(122,139,175);
+            		//setBackground(color);
                 	setForeground(Color.white);                  	
                 }
                 public void mouseExited(MouseEvent e) { 
-                	Color color = new Color(94,115,158);
-            		setBackground(color);
+                	//Color color = new Color(94,115,158);
+            		//setBackground(color);
                 	setForeground(Color.white);                	               	
                 }
                 public int getMenuX(Component c) { return c.getWidth(); }
@@ -997,7 +995,7 @@ public class WidgetStack extends Widget
             Font macFont = new Font("Lucinda Grande", Font.BOLD, 11);
     		Font windowsFont = new Font("Lucida Sans Unicode", Font.BOLD, 11);
     		boolean isWindows = VueUtil.isWindowsPlatform();
-    		setForeground(Color.white);	
+    		///setForeground(Color.white);	
     		Font font = null;
     		if(isWindows){
     			font = windowsFont;
@@ -1008,14 +1006,22 @@ public class WidgetStack extends Widget
             {
             	centerImg = VueResources.getImageIcon("dockWindow.panner.menu.raw.center_ov").getImage();
             	leftImg = VueResources.getImageIcon("dockWindow.panner.menu.raw.leftcap.hover").getImage();
-            	rightImg = VueResources.getImageIcon("dockWindow.panner.menu.raw.rightcap.hover").getImage();       	 
-            	
+            	rightImg = VueResources.getImageIcon("dockWindow.panner.menu.raw.rightcap.hover").getImage();      	 
+      	
+            }            
+            if(isWindows){
+            	g.drawImage(leftImg,0,0, 10 , h, this);
+            	g.drawImage(centerImg,10,0, w-rightImg.getWidth(null) , h, this);
+            	g.drawImage(rightImg,w-3,h/2-7, rightImg.getWidth(null) , rightImg.getHeight(null), this);            	
+                g.setFont(font);
+            	g.drawString(VueResources.getString("option"),10,h-5);     
+            }else{
+            	g.drawImage(leftImg,0,0, 10 , h, this);
+            	g.drawImage(centerImg,10,0, w-rightImg.getWidth(null) , h, this);
+            	g.drawImage(rightImg,w-3,h/2-7, rightImg.getWidth(null) , rightImg.getHeight(null), this);            	
+                g.setFont(font);            	  
+            	g.drawString(VueResources.getString("option"),10,h-5);  
             }
-            g.drawImage(leftImg,0,0, 10 , h, this);
-        	g.drawImage(centerImg,10,0, w-15 , h, this);
-        	g.drawImage(rightImg,w-10,w-10, 10 , h, this);
-            g.setFont(font);
-            g.drawString("options>>",5,h-5);            
         }
     }
     
