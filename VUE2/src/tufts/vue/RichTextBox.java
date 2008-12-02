@@ -104,7 +104,7 @@ import com.lightdev.app.shtm.Util;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.34 $ / $Date: 2008-12-02 15:10:05 $ / $Author: mike $
+ * @version $Revision: 1.35 $ / $Date: 2008-12-02 15:23:41 $ / $Author: mike $
  *
  */
 
@@ -569,7 +569,7 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
     // the font style encoded in our owning LWComponent
     void copyStyle(LWComponent c)
     {
-//    	 if (DEBUG.TEXT) 
+    	 if (DEBUG.TEXT) 
     		 out("copyStyle " + c);
   
     		 	 

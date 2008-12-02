@@ -435,7 +435,6 @@ public class LWText extends LWComponent {
     public void setXMLlabel(String text)
     {
         setLabel(text);
-        System.out.println("XML LABELS");
     }
 	  @Override
 	  public void setLabel(String label)
@@ -471,7 +470,7 @@ public class LWText extends LWComponent {
 	                //getLabelBox();
 	            } else if (setDocument) {
 	                getRichLabelBox().setText(newLabel);
-	                System.out.println("SETTING DOCUMENT ON RESTORE : " + newLabel);
+	              //  System.out.println("SETTING DOCUMENT ON RESTORE : " + newLabel);
 	            }
 	        }
 	        layout();
