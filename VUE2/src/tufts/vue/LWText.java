@@ -67,6 +67,16 @@ public class LWText extends LWComponent {
 		return richLabelBox.getRichText();
 	}
 	
+	 /** Apply all style properties from styleSource to this component */
+    public void copyStyle(LWComponent styleSource) {
+        super.copyStyle(styleSource, ~0L);
+
+        if (styleSource == null)
+            return;
+        else
+        	this.getRichLabelBox().copyStyle(styleSource);
+    }
+	
 	public void setRichText(String text)
 	{
 	//	super.label = text;
@@ -90,9 +100,10 @@ public class LWText extends LWComponent {
 
     private void initText() {
         //enableProperty(KEY_Alignment);
-        disablePropertyTypes(KeyType.STYLE);
-        enableProperty(LWKey.FillColor);
-        
+       //
+    	disableProperty(LWKey.StrokeColor);
+    	disableProperty(LWKey.StrokeStyle);
+    	disableProperty(LWKey.StrokeWidth);
         //mShape = new java.awt.geom.Rectangle2D.Float();
     }
 

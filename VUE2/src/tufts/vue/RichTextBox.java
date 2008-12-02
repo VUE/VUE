@@ -15,6 +15,7 @@
 
 package tufts.vue;
 
+import tufts.vue.LWComponent.Key;
 import tufts.vue.gui.ColorMenuButton;
 import tufts.vue.gui.DockWindow;
 import tufts.vue.gui.GUI;
@@ -39,6 +40,7 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.Enumeration;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -52,7 +54,9 @@ import javax.swing.text.html.CSS;
 import javax.swing.text.html.HTML;
 import javax.swing.text.html.HTMLDocument;
 
+import com.lightdev.app.shtm.SHTMLDocument;
 import com.lightdev.app.shtm.SHTMLEditorKit;
+import com.lightdev.app.shtm.Util;
 
 //import java.awt.font.LineBreakMeasurer;
 //import java.awt.font.TextAttribute;
@@ -100,7 +104,7 @@ import com.lightdev.app.shtm.SHTMLEditorKit;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.33 $ / $Date: 2008-11-26 18:08:39 $ / $Author: mike $
+ * @version $Revision: 1.34 $ / $Date: 2008-12-02 15:10:05 $ / $Author: mike $
  *
  */
 
@@ -444,12 +448,287 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
        
     }
 
-    
+    /***********
+     *******NOTES FROM FONT EDITOR PANEL TO HELP WITH COPY/PASTE OF STYLES.
+        globalSizeListener = new ActionListener(){
+        
+        	public void actionPerformed(ActionEvent fe) 
+        	{
+        		
+        		if (suspendItemListeners)
+        			return;
+        		
+        		if (lwtext == null)
+        			return;
+
+        		lwtext.richLabelBox.selectAll();
+        		final String textSize = mSizeField.getSelectedItem().toString();
+        		SHTMLDocument doc = (SHTMLDocument)lwtext.richLabelBox.getDocument();
+        		SimpleAttributeSet set = new SimpleAttributeSet();
+                Util.styleSheet().addCSSAttribute(set, CSS.Attribute.FONT_SIZE,
+            				 textSize);
+                set.addAttribute(HTML.Attribute.SIZE, textSize);
+                lwtext.richLabelBox.applyAttributes(set, false);
+                
+        		lwtext.richLabelBox.select(0,0);
+        		//lwtext.setLabel0(lwtext.richLabelBox.getRichText(), false);
+        		lwtext.richLabelBox.setSize(lwtext.richLabelBox.getPreferredSize());        		        	         		
+         		
+         		   if (lwtext.getParent() !=null)
+         	    		lwtext.getParent().layout();         		           		           		 
+      	        
+         		lwtext.notify(lwtext.richLabelBox, LWKey.Repaint);            		   
+         		
+         		
+        	}
+         };
+            		   
+          globalFaceListener = new ActionListener(){ 
+          	public void actionPerformed(ActionEvent fe) 
+          	{          		
+          		if (suspendItemListeners)
+        			return;
+        		
+          		if (lwtext == null)
+        			return;
+          		lwtext.richLabelBox.selectAll();
+        		SHTMLDocument doc = (SHTMLDocument)lwtext.richLabelBox.getDocument();
+        		SimpleAttributeSet set = new SimpleAttributeSet();
+                Util.styleSheet().addCSSAttribute(set, CSS.Attribute.FONT_FAMILY,
+            				 mFontCombo.getSelectedItem().toString());
+                set.addAttribute(HTML.Attribute.FACE, mFontCombo.getSelectedItem().toString());
+                lwtext.richLabelBox.applyAttributes(set, false);
+                
+        		lwtext.richLabelBox.select(0,0);
+       
+        		lwtext.richLabelBox.setSize(lwtext.richLabelBox.getPreferredSize());        		        	         		
+         		
+         		   if (lwtext.getParent() !=null)
+         	    		lwtext.getParent().layout();
+         		  
+         		  
+         		 
+      	        
+         		lwtext.notify(lwtext.richLabelBox, LWKey.Repaint); 
+          	}
+           };
+           
+             private final PropertyChangeListener RichTextColorChangeListener =
+        new PropertyChangeListener() {
+            public void propertyChange(PropertyChangeEvent e) {
+
+                if (e instanceof LWPropertyChangeEvent == false)
+                    return;
+                
+                final RichTextBox activeRTB = (RichTextBox) VUE.getActive(RichTextBox.class);
+                
+                
+                if (activeRTB == null && lwtext == null) {
+                    // no problem: just ignore if there's no active edit
+                    //tufts.Util.printStackTrace("FEP propertyChange: no active RichTextBox: " + e);
+                    return;
+                }
+                
+                if (lwtext !=null)
+                	lwtext.richLabelBox.selectAll();
+                
+               
+                final Color color = (Color) e.getNewValue();
+                final SimpleAttributeSet set = new SimpleAttributeSet();
+                final String colorString = "#" + Integer.toHexString(color.getRGB()).substring(2);
+                toggleBulletsAction.setColor(colorString);
+                toggleNumbersAction.setColor(colorString);
+                Util.styleSheet().addCSSAttribute(set, CSS.Attribute.COLOR, colorString);
+                
+                set.addAttribute(HTML.Attribute.COLOR, colorString);
+                if (activeRTB != null)
+                	activeRTB.applyAttributes(set, false);
+                else
+                	lwtext.richLabelBox.applyAttributes(set, false);
+                
+                if (lwtext !=null)
+                {
+                	lwtext.richLabelBox.select(0,0);
+                    
+                	lwtext.richLabelBox.select(0,0);
+            		//lwtext.setLabel0(lwtext.richLabelBox.getRichText(), false);
+            		lwtext.richLabelBox.setSize(lwtext.richLabelBox.getPreferredSize());        		        	         		
+             		
+             		   if (lwtext.getParent() !=null)
+             	    		lwtext.getParent().layout();
+             		  
+             		  
+             		 
+          	        
+             		lwtext.notify(lwtext.richLabelBox, LWKey.Repaint); 
+                }
+            }
+        };
+     ************/
     // this called every time setText is called to ensure we get
     // the font style encoded in our owning LWComponent
     void copyStyle(LWComponent c)
     {
-      
+//    	 if (DEBUG.TEXT) 
+    		 out("copyStyle " + c);
+  
+    		 	 
+      /*   SimpleAttributeSet a = new SimpleAttributeSet();
+
+         for (Key key : Key.AllKeys)
+         {
+        	 if (c.isStyling(key))
+        	 {
+        		 //Apply the necessary style here.
+        		 System.out.println(key.toString());
+        	 }
+         }*/
+    	
+    	//Basic Setup
+        LWText srcText = (LWText)c;
+    	RichTextBox srcBox = srcText.getRichLabelBox();   	 
+    	selectAll();
+    	SHTMLDocument srcDoc = (SHTMLDocument)srcBox.getDocument();  
+    	SHTMLDocument doc = (SHTMLDocument)getDocument();
+  		SimpleAttributeSet set = new SimpleAttributeSet();
+    	//Gather source information
+
+    	Element paragraphElement = srcDoc.getParagraphElement(0);
+		
+		if (paragraphElement.getName().equals("p-implied")) //we're in a list item
+			paragraphElement = paragraphElement.getParentElement();
+	    
+		AttributeSet paragraphAttributeSet = paragraphElement.getAttributes();
+		
+		Element charElem = srcDoc.getCharacterElement(1);
+	    AttributeSet charSet = charElem.getAttributes();
+	    Enumeration characterAttributeEnum = charSet.getAttributeNames();
+	    Enumeration elementEnum = paragraphAttributeSet.getAttributeNames();
+	    
+    	//Apply some attributes
+	    
+	    while (elementEnum.hasMoreElements())
+	    {	
+	    	Object o = elementEnum.nextElement();
+	    
+	    	boolean isAlignSet = false;
+	       	if (o.toString().equals("text-align") && paragraphAttributeSet.getAttribute(o).toString().equals("left") && !isAlignSet)
+	       	{
+	       		//Left Align
+	       		Util.styleSheet().addCSSAttribute(set, CSS.Attribute.TEXT_ALIGN, paragraphAttributeSet.getAttribute(o).toString());
+        		set.addAttribute(HTML.Attribute.ALIGN, paragraphAttributeSet.getAttribute(o).toString());
+	       	}
+	       	else if (o.toString().equals("text-align") && paragraphAttributeSet.getAttribute(o).toString().equals("center")&& !isAlignSet)
+	       	{
+	       		//Center Align
+	       		Util.styleSheet().addCSSAttribute(set, CSS.Attribute.TEXT_ALIGN, paragraphAttributeSet.getAttribute(o).toString());
+        		set.addAttribute(HTML.Attribute.ALIGN, paragraphAttributeSet.getAttribute(o).toString());
+	       	}
+	       	else if	(o.toString().equals("text-align") && paragraphAttributeSet.getAttribute(o).toString().equals("right")&& !isAlignSet)
+	       	{
+	       		//Right Align
+	       		Util.styleSheet().addCSSAttribute(set, CSS.Attribute.TEXT_ALIGN, paragraphAttributeSet.getAttribute(o).toString());
+        		set.addAttribute(HTML.Attribute.ALIGN, paragraphAttributeSet.getAttribute(o).toString());
+	       	}
+	       	
+	       	if ((o.toString().equals("font-size")) ||(o.toString().equals("size")))
+	       	{
+	       		//Font Size
+	       		Util.styleSheet().addCSSAttribute(set, CSS.Attribute.FONT_SIZE, paragraphAttributeSet.getAttribute(o).toString());
+        		set.addAttribute(HTML.Attribute.SIZE, paragraphAttributeSet.getAttribute(o).toString());
+	       	}
+	        			
+	       	else if ((o.toString().equals("font-family")) || (o.toString().equals("font-face")) || (o.toString().equals("face")))
+	       	{
+	       		//Font Face
+        		Util.styleSheet().addCSSAttribute(set, CSS.Attribute.FONT_FAMILY, paragraphAttributeSet.getAttribute(o).toString());
+        		set.addAttribute(HTML.Attribute.FACE, paragraphAttributeSet.getAttribute(o).toString());
+
+	       	}	       		       	 	        
+	    }
+	    
+	
+		
+	    while (characterAttributeEnum.hasMoreElements())
+	    {
+	    
+	      	Object o = characterAttributeEnum.nextElement();
+	      	//System.out.println("Character element : " + o.toString() + " , " + charSet.getAttribute(o));
+        	if ((o.toString().equals("color")))        
+        	{
+        		//Color
+        		Util.styleSheet().addCSSAttribute(set, CSS.Attribute.COLOR, charSet.getAttribute(o).toString());
+        		set.addAttribute(HTML.Attribute.COLOR, charSet.getAttribute(o).toString());
+        	}
+        	if ((o.toString().equals("font-size")) ||(o.toString().equals("size")))
+        	{
+        		//Font Size
+        		Util.styleSheet().addCSSAttribute(set, CSS.Attribute.FONT_SIZE, charSet.getAttribute(o).toString());
+        		set.addAttribute(HTML.Attribute.SIZE, charSet.getAttribute(o).toString());
+        	}        		
+	        			
+        	if ((o.toString().equals("font-family")) || (o.toString().equals("font-face")) || (o.toString().equals("face")))
+        	{
+        		//Font Face
+        		Util.styleSheet().addCSSAttribute(set, CSS.Attribute.FONT_FAMILY, charSet.getAttribute(o).toString());
+        		set.addAttribute(HTML.Attribute.FACE, charSet.getAttribute(o).toString());
+        	}
+        	
+        	if ((o.toString().equals("font-weight") && charSet.getAttribute(o).toString().equals("bold")) || o.toString().equals("b"))
+        	{	
+        		//Bold
+        	//	Util.styleSheet().addCSSAttribute(set, CSS.Attribute.Bo, charSet.getAttribute(o).toString());
+        	//	set.addAttribute(HTML.Attribute.FACE, charSet.getAttribute(o).toString());
+        	}		
+	        if ((o.toString().equals("font-style") && charSet.getAttribute(o).toString().equals("italic")) || o.toString().equals("i"))	       
+	        {
+	        	//Italic
+	        }
+	        if ((o.toString().equals("text-decoration") && charSet.getAttribute(o).toString().equals("underline")) || o.toString().equals("u"))	        		        
+	        {
+	        	//Underline
+	        }
+        }//done looking at character attributes	        	   	        	        	      
+	
+	
+  
+  	
+  	
+        applyAttributes(set, false);
+        lwc.notify(this, LWKey.Repaint); 
+        clearSelection();
+        try{
+    	setSize(getPreferredSize());
+        }
+        catch(NullPointerException npe){}
+  /*      set = new SimpleAttributeSet();
+        final String colorString = "#" + Integer.toHexString(color.getRGB()).substring(2);
+        toggleBulletsAction.setColor(colorString);
+        toggleNumbersAction.setColor(colorString);
+        Util.styleSheet().addCSSAttribute(set, CSS.Attribute.COLOR, colorString);
+        
+        set.addAttribute(HTML.Attribute.COLOR, colorString);
+        if (activeRTB != null)
+        	activeRTB.applyAttributes(set, false);
+        else
+        	lwtext.richLabelBox.applyAttributes(set, false);
+        
+        if (lwtext !=null)
+        {
+        	lwtext.richLabelBox.select(0,0);
+            
+        	lwtext.richLabelBox.select(0,0);
+    		//lwtext.setLabel0(lwtext.richLabelBox.getRichText(), false);
+    		lwtext.richLabelBox.setSize(lwtext.richLabelBox.getPreferredSize());        		        	         		
+     		
+     		   if (lwtext.getParent() !=null)
+     	    		lwtext.getParent().layout();
+     		  
+     		  
+     		 
+  	        
+     		lwtext.notify(lwtext.richLabelBox, LWKey.Repaint); 
+        }*/
     }
 
     /** override Container.doLayout: only called when we've been added to a map for interactive editing.
