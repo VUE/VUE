@@ -104,7 +104,7 @@ import com.lightdev.app.shtm.Util;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.35 $ / $Date: 2008-12-02 15:23:41 $ / $Author: mike $
+ * @version $Revision: 1.36 $ / $Date: 2008-12-02 18:31:49 $ / $Author: mike $
  *
  */
 
@@ -571,18 +571,6 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
     {
     	 if (DEBUG.TEXT) 
     		 out("copyStyle " + c);
-  
-    		 	 
-      /*   SimpleAttributeSet a = new SimpleAttributeSet();
-
-         for (Key key : Key.AllKeys)
-         {
-        	 if (c.isStyling(key))
-        	 {
-        		 //Apply the necessary style here.
-        		 System.out.println(key.toString());
-        	 }
-         }*/
     	
     	//Basic Setup
         LWText srcText = (LWText)c;
@@ -591,9 +579,10 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
     	SHTMLDocument srcDoc = (SHTMLDocument)srcBox.getDocument();  
     	SHTMLDocument doc = (SHTMLDocument)getDocument();
   		SimpleAttributeSet set = new SimpleAttributeSet();
+  		SimpleAttributeSet alignSet = new SimpleAttributeSet();
     	//Gather source information
 
-    	Element paragraphElement = srcDoc.getParagraphElement(0);
+    	Element paragraphElement = srcDoc.getParagraphElement(1);
 		
 		if (paragraphElement.getName().equals("p-implied")) //we're in a list item
 			paragraphElement = paragraphElement.getParentElement();
@@ -606,29 +595,30 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
 	    Enumeration elementEnum = paragraphAttributeSet.getAttributeNames();
 	    
     	//Apply some attributes
-	    
+	   // System.out.println(paragraphElement.toString());
 	    while (elementEnum.hasMoreElements())
 	    {	
 	    	Object o = elementEnum.nextElement();
 	    
 	    	boolean isAlignSet = false;
+	    	//System.out.println("P :: " +o.toString());
 	       	if (o.toString().equals("text-align") && paragraphAttributeSet.getAttribute(o).toString().equals("left") && !isAlignSet)
 	       	{
 	       		//Left Align
-	       		Util.styleSheet().addCSSAttribute(set, CSS.Attribute.TEXT_ALIGN, paragraphAttributeSet.getAttribute(o).toString());
-        		set.addAttribute(HTML.Attribute.ALIGN, paragraphAttributeSet.getAttribute(o).toString());
+	       		Util.styleSheet().addCSSAttribute(alignSet, CSS.Attribute.TEXT_ALIGN, paragraphAttributeSet.getAttribute(o).toString());
+        		alignSet.addAttribute(HTML.Attribute.ALIGN, paragraphAttributeSet.getAttribute(o).toString());
 	       	}
 	       	else if (o.toString().equals("text-align") && paragraphAttributeSet.getAttribute(o).toString().equals("center")&& !isAlignSet)
 	       	{
 	       		//Center Align
-	       		Util.styleSheet().addCSSAttribute(set, CSS.Attribute.TEXT_ALIGN, paragraphAttributeSet.getAttribute(o).toString());
-        		set.addAttribute(HTML.Attribute.ALIGN, paragraphAttributeSet.getAttribute(o).toString());
+	       		Util.styleSheet().addCSSAttribute(alignSet, CSS.Attribute.TEXT_ALIGN, paragraphAttributeSet.getAttribute(o).toString());
+        		alignSet.addAttribute(HTML.Attribute.ALIGN, paragraphAttributeSet.getAttribute(o).toString());
 	       	}
 	       	else if	(o.toString().equals("text-align") && paragraphAttributeSet.getAttribute(o).toString().equals("right")&& !isAlignSet)
 	       	{
 	       		//Right Align
-	       		Util.styleSheet().addCSSAttribute(set, CSS.Attribute.TEXT_ALIGN, paragraphAttributeSet.getAttribute(o).toString());
-        		set.addAttribute(HTML.Attribute.ALIGN, paragraphAttributeSet.getAttribute(o).toString());
+	       		Util.styleSheet().addCSSAttribute(alignSet, CSS.Attribute.TEXT_ALIGN, paragraphAttributeSet.getAttribute(o).toString());
+        		alignSet.addAttribute(HTML.Attribute.ALIGN, paragraphAttributeSet.getAttribute(o).toString());
 	       	}
 	       	
 	       	if ((o.toString().equals("font-size")) ||(o.toString().equals("size")))
@@ -651,8 +641,9 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
 		
 	    while (characterAttributeEnum.hasMoreElements())
 	    {
-	    
+
 	      	Object o = characterAttributeEnum.nextElement();
+	    	//System.out.println("C :: " +o.toString());
 	      	//System.out.println("Character element : " + o.toString() + " , " + charSet.getAttribute(o));
         	if ((o.toString().equals("color")))        
         	{
@@ -695,7 +686,9 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
   	
   	
         applyAttributes(set, false);
-        lwc.notify(this, LWKey.Repaint); 
+        lwc.notify(this, LWKey.Repaint);
+        applyAttributes(alignSet, true);
+        lwc.notify(this, LWKey.Repaint);
         clearSelection();
         try{
     	setSize(getPreferredSize());
