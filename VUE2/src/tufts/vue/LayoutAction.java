@@ -88,12 +88,20 @@ public abstract  class LayoutAction extends Actions.LWCAction {
         boolean supportsSingleMover() { return false; }
     };
     
+     public static final LayoutAction ripple = new LayoutAction(new RippleLayout(),"Ripple",KeyEvent.VK_7) {
+        boolean supportsSingleMover() { return false; }
+    };
+    public static final LayoutAction stretch = new LayoutAction(new StretchLayout(),"Stretch",KeyEvent.VK_8) {
+        boolean supportsSingleMover() { return false; }
+    };
     public static final Action[] LAYOUT_ACTIONS = {
         random,
         table,
         circle,
         filledCircle,
         force,
-        cluster
+        cluster,
+        ripple,
+        stretch
     };
 }
