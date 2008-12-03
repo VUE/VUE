@@ -73,7 +73,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.8 $ / $Date: 2008-11-26 17:11:29 $ / $Author: Sheejo
+ * @version $Revision: 1.9 $ / $Date: 2008-12-03 22:41:17 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -908,6 +908,7 @@ public class MetadataSearchMainGUI extends JPanel
 				int row, int column) {
 			if (searchTermsTable.getModel().getRowCount() > 1) {
 				combo.setVisible(true);
+				combo.setFont(tufts.vue.gui.GUI.LabelFace);
 				table.revalidate();
 				table.repaint();
 			} else {

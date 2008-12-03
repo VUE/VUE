@@ -113,7 +113,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.589 $ / $Date: 2008-12-02 22:17:50 $ / $Author: sraphe01 $ 
+ * @version $Revision: 1.590 $ / $Date: 2008-12-03 22:41:00 $ / $Author: sraphe01 $ 
  */
 
 public class VUE
@@ -162,6 +162,7 @@ public class VUE
     private static JButton returnToMapButton = null;
     private static MetadataSearchMainGUI metadataSearchMainPanel = null;
     private static JPopupMenu popup;
+    private static JPopupMenu editPopup;
     private static SearchTextField mSearchtextFld = new SearchTextField();
     public static final int FIRST_TAB_STOP = 6;
     public static JCheckBoxMenuItem  searcheveryWhereMenuItem;
@@ -2155,9 +2156,8 @@ public class VUE
         	GUI.init();
         	if(!isWindows){
         		putClientProperty("JTextField.variant", "search");
-        		Insets noInsets=new Insets(0,15,0,25);
-        		popup = new JPopupMenu(); 
-        		createPopupMenu();
+        		Insets noInsets=new Insets(0,15,0,25);        		
+        		createPopupMenu(isWindows);        		
         		addMouseListener(new MouseAdapter() {
 		            public void mouseClicked(MouseEvent e) {		            	
 		     		    boolean isWindows = VueUtil.isWindowsPlatform();
@@ -2166,6 +2166,16 @@ public class VUE
 		     		     }		     		   
 		            }
 				});
+        		addFocusListener(new FocusAdapter() {
+            		  public void focusLost(FocusEvent e) {
+            			
+            		  }
+            		  public void focusGained(FocusEvent e) {
+            			 if(getText().trim().equals(VueResources.getString("search.text.default")) ){
+            				 setText("");
+            			 }
+            		  }
+            		});  
         		
         	} else{  		
         		
@@ -2179,62 +2189,90 @@ public class VUE
           		});        		
         		
         		Insets noInsets=new Insets(0,15,0,25); 
-        		setMargin(noInsets);
-        		popup = new JPopupMenu();       		
-				createPopupMenu();        		  	    
+        		setMargin(noInsets);        			        		  	    
 				addMouseListener(new MouseAdapter() {
 		            public void mouseClicked(MouseEvent e) { 	     		    
-		     		     if((e.getX()< 23) ){			     		    	
+		     		     if((e.getX()< 23) ){		     		    	 		
+		     		    	 createPopupMenu(isWindows);
 		     		    	 popup.show(e.getComponent(), e.getX()+5, e.getY());
-		     		     }		     		   
+		     		     }else{		     		    			
+		     		    	createEditPopupMenu();
+		     		    	editPopup.show(e.getComponent(), e.getX()+5, e.getY());
+		     		     }
 		            }
 				});
         	} 
         }     
     	
-		private void createPopupMenu() {
-			JMenuItem searchMenuItem = new JMenuItem(VueResources.getString("search.popup.search"));
-			searchMenuItem.setEnabled(false);
-			popup.add(searchMenuItem);
-			
-    		JCheckBoxMenuItem searcheveryWhereMenuItem = new JCheckBoxMenuItem(VueResources.getString("search.popup.searcheverywhere"), true);
-			popup.add(searcheveryWhereMenuItem);
-			
-			JCheckBoxMenuItem  labelMenuItem = new JCheckBoxMenuItem (VueResources.getString("search.popup.labels"));
-			popup.add(labelMenuItem);	
-			
-			JCheckBoxMenuItem  keywordMenuItem = new JCheckBoxMenuItem (VueResources.getString("search.popup.keywords"));
-			popup.add(keywordMenuItem);	
-			
-			JCheckBoxMenuItem  categoriesMenuItem = new JCheckBoxMenuItem (VueResources.getString("search.popup.categories"));
-			popup.add(categoriesMenuItem);	
-			
-			JCheckBoxMenuItem  categoryKeywordMenuItem = new JCheckBoxMenuItem (VueResources.getString("search.popup.categories")+" + "+VueResources.getString("search.popup.keywords"));
-			popup.add(categoryKeywordMenuItem);	
-			
-			
-			JCheckBoxMenuItem  editSettingsMenuItem = new JCheckBoxMenuItem(VueResources.getString("search.popup.edit.search.settings"));
-			popup.add(editSettingsMenuItem);
-			
-			popup.addSeparator();
-			
-			JMenuItem selectMenuItem = new JMenuItem(VueResources.getString("search.popup.select.all"));
-			popup.add(selectMenuItem);
-			
-			JMenuItem cutMenuItem = new JMenuItem(VueResources.getString("search.popup.cut"));
-			popup.add(cutMenuItem);
-			
-			JMenuItem copyMenuItem = new JMenuItem(VueResources.getString("search.popup.copy"));
-			popup.add(copyMenuItem);
-			
-			JMenuItem pasteMenuItem = new JMenuItem(VueResources.getString("search.popup.paste"));
-			popup.add(pasteMenuItem);
-			
-			JMenuItem clearMenuItem = new JMenuItem(VueResources.getString("search.popup.clear"));
-			popup.add(clearMenuItem);
+		private void createPopupMenu(boolean isWindow) {
+			if(popup==null){
+				popup = new JPopupMenu();
+				JMenuItem searchMenuItem = new JMenuItem(VueResources.getString("search.popup.search"));
+				searchMenuItem.setEnabled(false);
+				popup.add(searchMenuItem);
+				
+	    		JCheckBoxMenuItem searcheveryWhereMenuItem = new JCheckBoxMenuItem(VueResources.getString("search.popup.searcheverywhere"), true);
+				popup.add(searcheveryWhereMenuItem);
+				
+				JCheckBoxMenuItem  labelMenuItem = new JCheckBoxMenuItem (VueResources.getString("search.popup.labels"));
+				popup.add(labelMenuItem);	
+				
+				JCheckBoxMenuItem  keywordMenuItem = new JCheckBoxMenuItem (VueResources.getString("search.popup.keywords"));
+				popup.add(keywordMenuItem);	
+				
+				JCheckBoxMenuItem  categoriesMenuItem = new JCheckBoxMenuItem (VueResources.getString("search.popup.categories"));
+				popup.add(categoriesMenuItem);	
+				
+				JCheckBoxMenuItem  categoryKeywordMenuItem = new JCheckBoxMenuItem (VueResources.getString("search.popup.categories")+" + "+VueResources.getString("search.popup.keywords"));
+				popup.add(categoryKeywordMenuItem);	
+				
+				
+				JCheckBoxMenuItem  editSettingsMenuItem = new JCheckBoxMenuItem(VueResources.getString("search.popup.edit.search.settings"));
+				popup.add(editSettingsMenuItem);				
+				
+				if(!isWindow){
+					popup.addSeparator();
+					
+					JMenuItem selectMenuItem = new JMenuItem(VueResources.getString("search.popup.select.all"));
+					popup.add(selectMenuItem);
+					
+					JMenuItem cutMenuItem = new JMenuItem(VueResources.getString("search.popup.cut"));
+					popup.add(cutMenuItem);
+					
+					JMenuItem copyMenuItem = new JMenuItem(VueResources.getString("search.popup.copy"));
+					popup.add(copyMenuItem);
+					
+					JMenuItem pasteMenuItem = new JMenuItem(VueResources.getString("search.popup.paste"));
+					popup.add(pasteMenuItem);
+					
+					JMenuItem clearMenuItem = new JMenuItem(VueResources.getString("search.popup.clear"));
+					popup.add(clearMenuItem);	
+				}
+				
+			}			
 			
 		}
-
+		private void createEditPopupMenu() {	
+			if(editPopup==null){
+				editPopup = new JPopupMenu();
+			
+				editPopup = new JPopupMenu();
+				JMenuItem selectMenuItem = new JMenuItem(VueResources.getString("search.popup.select.all"));
+				editPopup.add(selectMenuItem);
+				
+				JMenuItem cutMenuItem = new JMenuItem(VueResources.getString("search.popup.cut"));
+				editPopup.add(cutMenuItem);
+				
+				JMenuItem copyMenuItem = new JMenuItem(VueResources.getString("search.popup.copy"));
+				editPopup.add(copyMenuItem);
+				
+				JMenuItem pasteMenuItem = new JMenuItem(VueResources.getString("search.popup.paste"));
+				editPopup.add(pasteMenuItem);
+				
+				JMenuItem clearMenuItem = new JMenuItem(VueResources.getString("search.popup.clear"));
+				editPopup.add(clearMenuItem);		
+			}
+		}
 		protected void paintComponent(Graphics g) {
             // Paint the default look of the button.
             super.paintComponent(g);
