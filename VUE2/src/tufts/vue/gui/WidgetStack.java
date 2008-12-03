@@ -35,7 +35,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.53 $ / $Date: 2008-12-03 17:54:56 $ / $Author: sraphe01 $
+ * @version $Revision: 1.54 $ / $Date: 2008-12-03 19:07:53 $ / $Author: sraphe01 $
  * @author Scott Fraize
  */
 public class WidgetStack extends Widget
@@ -1015,57 +1015,8 @@ public class WidgetStack extends Widget
                 g.setFont(font);            	  
             	g.drawString(VueResources.getString("option"),10,h-3);             	
             }
-            thisbutton.repaint();
         }
-    }
-    
-// // Todo: the below classes are all doing something almost identical to this: refactor
-//     private static class RolloverButton extends JLabel implements MouseListener {
-//     	private final String iconNormal;
-//     	private final String iconRollover;
-    
-//         RolloverButton(String iconName, MouseListener action) {
-//             this.iconName = iconName;
-//             setAlignmentY(0.5f);
-//             addMouseListener(this);
-//             setAction(action);
-//             mouseExited(null); // initialie icon
-//         }
-
-//         public void setAction(MouseListener action) 
-//         {
-//             clearAction();
-
-//             if (action == null) {
-//                 setVisible(false);
-//                 return;
-//             }
-//             else
-//             {            	
-//             	addMouseListener(this);
-//             	addMouseListener(action);
-//             	setVisible(true);
-//             }
-
-//         }
-//         private void clearAction() {
-//             MouseListener[] ml = getMouseListeners();
-//             for (int i = 0; i < ml.length; i++) {                
-//                     removeMouseListener(ml[i]);
-//             }
-//         }
-//         public void mouseEntered(MouseEvent arg0) {
-//             setIcon(VueResources.getImageIcon(iconName+".hover"));
-//         }
-
-//         public void mouseExited(MouseEvent arg0) {
-//             setIcon(VueResources.getImageIcon(iconName+".raw"));
-//         }
-//         public void mouseClicked(MouseEvent arg0) {}
-//         public void mousePressed(MouseEvent arg0) {}
-//         public void mouseReleased(MouseEvent arg0) {}
-
-//     }
+    }   
 
 
     static class HelpButton extends VueLabel implements MouseListener {
