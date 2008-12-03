@@ -35,7 +35,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.52 $ / $Date: 2008-12-02 16:31:25 $ / $Author: sraphe01 $
+ * @version $Revision: 1.53 $ / $Date: 2008-12-03 17:54:56 $ / $Author: sraphe01 $
  * @author Scott Fraize
  */
 public class WidgetStack extends Widget
@@ -911,7 +911,7 @@ public class WidgetStack extends Widget
         	//setIcon(VueResources.getImageIcon("dockWindow.menuIcon.raw"));
         	setRolloverEnabled(true);
         	//setRolloverIcon(VueResources.getImageIcon("dockWindow.menuIcon.hover"));
-        	Insets noInsets=new Insets(5,0,0,0);
+        	Insets noInsets=new Insets(5,5,5,5);
         	//store the icon you want to display in imageIcon		        		
         	setMargin(noInsets);			
         //	setBorder(BorderFactory.createEmptyBorder());
@@ -931,10 +931,7 @@ public class WidgetStack extends Widget
     		}else{
     			setFont(macFont);
     		}
-    		//setOpaque(false);
-//    		Color color = new Color(94,115,158);
-//    		//Color color = new Color(81,98,136);
-//    		setBackground(color);  
+
     		addMouseListener(new MouseAdapter() 
     	      {
     	      public void mouseEntered(MouseEvent e) {
@@ -960,13 +957,9 @@ public class WidgetStack extends Widget
 
             new GUI.PopupMenuHandler(this, GUI.buildMenu(actions)) {
                 public void mouseEntered(MouseEvent e) { 
-                	//Color color = new Color(122,139,175);
-            		//setBackground(color);
-                	setForeground(Color.white);                  	
+                 	setForeground(Color.white);                  	
                 }
                 public void mouseExited(MouseEvent e) { 
-                	//Color color = new Color(94,115,158);
-            		//setBackground(color);
                 	setForeground(Color.white);                	               	
                 }
                 public int getMenuX(Component c) { return c.getWidth(); }
@@ -1010,18 +1003,19 @@ public class WidgetStack extends Widget
       	
             }            
             if(isWindows){
-            	g.drawImage(leftImg,0,0, 10 , h, this);
-            	g.drawImage(centerImg,10,0, w-rightImg.getWidth(null) , h, this);
-            	g.drawImage(rightImg,w-3,h/2-7, rightImg.getWidth(null) , rightImg.getHeight(null), this);            	
+            	g.drawImage(leftImg,0,1, 10 , h-1, this);
+            	g.drawImage(centerImg,10,1, w - (rightImg.getWidth(null)+13) , h-1, this);
+            	g.drawImage(rightImg,w-7,h/2-7, rightImg.getWidth(null) , rightImg.getHeight(null), this);            	
                 g.setFont(font);
-            	g.drawString(VueResources.getString("option"),10,h-5);     
+            	g.drawString(VueResources.getString("option"),10,h-5);            	
             }else{
-            	g.drawImage(leftImg,0,0, 10 , h, this);
-            	g.drawImage(centerImg,10,0, w-rightImg.getWidth(null) , h, this);
-            	g.drawImage(rightImg,w-3,h/2-7, rightImg.getWidth(null) , rightImg.getHeight(null), this);            	
+            	g.drawImage(leftImg,0,0, 10 , h+1, this);
+            	g.drawImage(centerImg,10,0, w-(rightImg.getWidth(null)+13) , h+1, this);
+            	g.drawImage(rightImg,w-7,h/2-7, rightImg.getWidth(null) , rightImg.getHeight(null)+1, this);            	
                 g.setFont(font);            	  
-            	g.drawString(VueResources.getString("option"),10,h-5);  
+            	g.drawString(VueResources.getString("option"),10,h-3);             	
             }
+            thisbutton.repaint();
         }
     }
     
