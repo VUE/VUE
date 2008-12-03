@@ -104,7 +104,7 @@ import com.lightdev.app.shtm.Util;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.36 $ / $Date: 2008-12-02 18:31:49 $ / $Author: mike $
+ * @version $Revision: 1.37 $ / $Date: 2008-12-03 15:17:59 $ / $Author: mike $
  *
  */
 
@@ -638,12 +638,15 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
 	    }
 	    
 	
+	    boolean isBold = false;
+	    boolean isItalic = false;
+	    boolean isUnderline = false;
 		
 	    while (characterAttributeEnum.hasMoreElements())
 	    {
 
 	      	Object o = characterAttributeEnum.nextElement();
-	    	//System.out.println("C :: " +o.toString());
+	    	//System.out.println("C :: " +o.toString() + "XXX " + charSet.getAttribute(o).toString());
 	      	//System.out.println("Character element : " + o.toString() + " , " + charSet.getAttribute(o));
         	if ((o.toString().equals("color")))        
         	{
@@ -651,6 +654,7 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
         		Util.styleSheet().addCSSAttribute(set, CSS.Attribute.COLOR, charSet.getAttribute(o).toString());
         		set.addAttribute(HTML.Attribute.COLOR, charSet.getAttribute(o).toString());
         	}
+     
         	if ((o.toString().equals("font-size")) ||(o.toString().equals("size")))
         	{
         		//Font Size
@@ -667,17 +671,15 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
         	
         	if ((o.toString().equals("font-weight") && charSet.getAttribute(o).toString().equals("bold")) || o.toString().equals("b"))
         	{	
-        		//Bold
-        	//	Util.styleSheet().addCSSAttribute(set, CSS.Attribute.Bo, charSet.getAttribute(o).toString());
-        	//	set.addAttribute(HTML.Attribute.FACE, charSet.getAttribute(o).toString());
+        		Util.styleSheet().addCSSAttribute(set,CSS.Attribute.FONT_WEIGHT,charSet.getAttribute(o).toString());
         	}		
 	        if ((o.toString().equals("font-style") && charSet.getAttribute(o).toString().equals("italic")) || o.toString().equals("i"))	       
 	        {
-	        	//Italic
+	        	Util.styleSheet().addCSSAttribute(set,CSS.Attribute.FONT_STYLE,charSet.getAttribute(o).toString());
 	        }
 	        if ((o.toString().equals("text-decoration") && charSet.getAttribute(o).toString().equals("underline")) || o.toString().equals("u"))	        		        
 	        {
-	        	//Underline
+	        	Util.styleSheet().addCSSAttribute(set,CSS.Attribute.TEXT_DECORATION,charSet.getAttribute(o).toString());
 	        }
         }//done looking at character attributes	        	   	        	        	      
 	
