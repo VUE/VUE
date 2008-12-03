@@ -44,7 +44,7 @@ import com.lightdev.app.shtm.Util;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.81 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $
+ * @version $Revision: 1.82 $ / $Date: 2008-12-03 15:18:31 $ / $Author: mike $
  *
  */
 public class FontEditorPanel extends JPanel
@@ -53,6 +53,7 @@ public class FontEditorPanel extends JPanel
                //implements LWEditor
 //    implements ActionListener, VueConstants//, PropertyChangeListener//implements PropertyChangeListener
 {
+    private boolean DEBUG_FONTPANEL=false;
     private static String[] sFontSizes;
     
     /** the font list **/
@@ -98,6 +99,9 @@ public class FontEditorPanel extends JPanel
     
     private ActionListener globalSizeListener=null;
     private ActionListener globalFaceListener=null;
+    private ActionListener globalBoldListener=null;
+    private ActionListener globalItalicListener=null;
+    private ActionListener globalUnderlineListener=null;	
     private static boolean suspendItemListeners = false;
 	
     private LWText lwtext = null;
@@ -166,6 +170,138 @@ public class FontEditorPanel extends JPanel
 //                 }
 //             });
         /* LWText ActionListeners Start */
+       
+        globalBoldListener = new ActionListener(){
+            
+        	public void actionPerformed(ActionEvent fe) 
+        	{
+        		if (lwtext == null)
+        			return;
+
+        		//System.out.println("BOLD : " + countf++);
+        		lwtext.richLabelBox.selectAll();
+        		
+        		//Do Some basic set up.
+        		SimpleAttributeSet set = new SimpleAttributeSet();
+        		SHTMLDocument srcDoc = (SHTMLDocument)lwtext.richLabelBox.getDocument();
+        		Element charElem = srcDoc.getCharacterElement(1);
+        	    AttributeSet charSet = charElem.getAttributes();
+        	    Enumeration characterAttributeEnum = charSet.getAttributeNames();
+        	  
+        	    boolean isBold = false;
+        	    while (characterAttributeEnum.hasMoreElements())
+        	    {
+        	      	Object o = characterAttributeEnum.nextElement();
+        	      	
+        	    	if ((o.toString().equals("font-weight") && charSet.getAttribute(o).toString().equals("bold")) || o.toString().equals("b"))
+            		{	
+        	    		isBold = true;
+            		}
+        	    }
+        	    String bold = !isBold ? "bold" : "normal";
+        	    //System.out.println("bold? : "+ !isBold + " ,, " + bold);
+        		Util.styleSheet().addCSSAttribute(set,CSS.Attribute.FONT_WEIGHT,bold);
+        	//	set.addAttribute(HTML.Attribute.TEXT_WEIGHT, );
+        		lwtext.richLabelBox.applyAttributes(set, false);
+        		lwtext.richLabelBox.select(0,0);
+        	
+        		lwtext.richLabelBox.setSize(lwtext.richLabelBox.getPreferredSize());        		        	         		
+         		
+         		   if (lwtext.getParent() !=null)
+         	    		lwtext.getParent().layout();         		           		           		 
+      	        
+         		lwtext.notify(lwtext.richLabelBox, LWKey.Repaint);            		   
+         		
+         		
+        	}
+         };  
+         globalItalicListener = new ActionListener(){
+             
+         	public void actionPerformed(ActionEvent fe) 
+         	{
+         		
+         		if (lwtext == null)
+        			return;
+
+        		//System.out.println("BOLD : " + countf++);
+        		lwtext.richLabelBox.selectAll();
+        		
+        		//Do Some basic set up.
+        		SimpleAttributeSet set = new SimpleAttributeSet();
+        		SHTMLDocument srcDoc = (SHTMLDocument)lwtext.richLabelBox.getDocument();
+        		Element charElem = srcDoc.getCharacterElement(1);
+        	    AttributeSet charSet = charElem.getAttributes();
+        	    Enumeration characterAttributeEnum = charSet.getAttributeNames();
+        	  
+        	    boolean isBold = false;
+        	    while (characterAttributeEnum.hasMoreElements())
+        	    {
+        	      	Object o = characterAttributeEnum.nextElement();
+        	      	
+        	    	if ((o.toString().equals("font-style") && charSet.getAttribute(o).toString().equals("italic")) || o.toString().equals("i"))
+            		{	
+        	    		isBold = true;
+            		}
+        	    }
+        	    String bold = !isBold ? "italic" : "normal";
+        	    //System.out.println("bold? : "+ !isBold + " ,, " + bold);
+        		Util.styleSheet().addCSSAttribute(set,CSS.Attribute.FONT_STYLE,bold);
+        	//	set.addAttribute(HTML.Attribute.TEXT_WEIGHT, );
+        		lwtext.richLabelBox.applyAttributes(set, false);
+        		lwtext.richLabelBox.select(0,0);
+        	
+        		lwtext.richLabelBox.setSize(lwtext.richLabelBox.getPreferredSize());        		        	         		
+         		
+         		   if (lwtext.getParent() !=null)
+         	    		lwtext.getParent().layout();         		           		           		 
+      	        
+         		lwtext.notify(lwtext.richLabelBox, LWKey.Repaint);       
+          		
+         	}
+          };  
+          globalUnderlineListener = new ActionListener(){
+              
+          	public void actionPerformed(ActionEvent fe) 
+          	{
+          		
+          		if (lwtext == null)
+        			return;
+
+        		//System.out.println("BOLD : " + countf++);
+        		lwtext.richLabelBox.selectAll();
+        		
+        		//Do Some basic set up.
+        		SimpleAttributeSet set = new SimpleAttributeSet();
+        		SHTMLDocument srcDoc = (SHTMLDocument)lwtext.richLabelBox.getDocument();
+        		Element charElem = srcDoc.getCharacterElement(1);
+        	    AttributeSet charSet = charElem.getAttributes();
+        	    Enumeration characterAttributeEnum = charSet.getAttributeNames();
+        	  
+        	    boolean isBold = false;
+        	    while (characterAttributeEnum.hasMoreElements())
+        	    {
+        	      	Object o = characterAttributeEnum.nextElement();
+        	      	
+        	    	if ((o.toString().equals("text-decoration") && charSet.getAttribute(o).toString().equals("underline")) || o.toString().equals("u"))
+            		{	
+        	    		isBold = true;
+            		}
+        	    }
+        	    String bold = !isBold ? "underline" : "normal";
+        	    //System.out.println("bold? : "+ !isBold + " ,, " + bold);
+        		Util.styleSheet().addCSSAttribute(set,CSS.Attribute.TEXT_DECORATION,bold);
+        	//	set.addAttribute(HTML.Attribute.TEXT_WEIGHT, );
+        		lwtext.richLabelBox.applyAttributes(set, false);
+        		lwtext.richLabelBox.select(0,0);
+        	
+        		lwtext.richLabelBox.setSize(lwtext.richLabelBox.getPreferredSize());        		        	         		
+         		
+         		   if (lwtext.getParent() !=null)
+         	    		lwtext.getParent().layout();         		           		           		 
+      	        
+         		lwtext.notify(lwtext.richLabelBox, LWKey.Repaint);       
+          	}
+           };
         globalSizeListener = new ActionListener(){
         
         	public void actionPerformed(ActionEvent fe) 
@@ -334,7 +470,7 @@ public class FontEditorPanel extends JPanel
                 public void setEnabled(boolean enabled) {
                     mBoldButton.setEnabled(enabled);
                     mItalicButton.setEnabled(enabled);
-                    //mUnderlineButton.setEnabled(enabled);
+                    mUnderlineButton.setEnabled(enabled);
                 }
         };
  		
@@ -535,7 +671,8 @@ public class FontEditorPanel extends JPanel
         VUE.getFormatDock().setFocusable(true);
    		VUE.getFormatDock().setFocusableWindowState(true);
     }
-
+    static int countf = 0;
+   
     public static ColorMenuButton getTextColorButton()
     {
     	return mTextColorButton;
@@ -979,6 +1116,8 @@ public class FontEditorPanel extends JPanel
     
     private void establishLWTextListeners(LWComponent activeText)
     {
+    	if (DEBUG_FONTPANEL)
+    		System.out.println("ESTABLISH LWT Listeners");
     	suspendItemListeners=true;
     	breakdownDefaultListeners();
     	//clearAlignmentSelection();
@@ -1004,6 +1143,10 @@ public class FontEditorPanel extends JPanel
         
         //EditorManager.unregisterEditor(sizeHandler);
         //EditorManager.unregisterEditor(fontPropertyHandler);
+
+        mBoldButton.addActionListener(globalBoldListener);
+        mUnderlineButton.addActionListener(globalUnderlineListener);
+        mItalicButton.addActionListener(globalItalicListener);
         
         mSizeField.addActionListener(globalSizeListener);
         mFontCombo.addActionListener(globalFaceListener);
@@ -1013,6 +1156,8 @@ public class FontEditorPanel extends JPanel
     
     private void breakdownLWTextListeners()
     {
+    	if (DEBUG_FONTPANEL)
+    		System.out.println("BREAKDOWN LWT Listeners");
     	lwtext=null;
     	suspendItemListeners=true;
 		//System.out.println("lost lw text");
@@ -1020,11 +1165,15 @@ public class FontEditorPanel extends JPanel
     	mLeftAlignButton.setEnabled(false);
       	mCenterAlignButton.setEnabled(false);
       	mRightAlignButton.setEnabled(false);
-		mSizeField.removeActionListener(globalSizeListener);
+		
+    
+      	mSizeField.removeActionListener(globalSizeListener);
         mFontCombo.removeActionListener(globalFaceListener);
-        
-   //     mFontCombo.addActionListener(fontPropertyHandler);
-    //    mSizeField.addActionListener(fontPropertyHandler);
+        stripAllListeners(mBoldButton);
+        stripAllListeners(mItalicButton);
+        stripAllListeners(mUnderlineButton);
+    
+          //    mSizeField.addActionListener(fontPropertyHandler);
         
     //    if (!EditorManager.isRegistered(sizeHandler))
     //    	EditorManager.registerEditor(sizeHandler);
@@ -1038,7 +1187,9 @@ public class FontEditorPanel extends JPanel
     
     private void breakdownRichTextListeners()
     {
-    	
+    
+    	if (DEBUG_FONTPANEL)
+    		System.out.println("BREAKDOWN RTB Listeners");
     	suspendItemListeners=true;
     	//System.out.println("lost rtb rich text box");
         disableSpecialEditors();
@@ -1049,17 +1200,11 @@ public class FontEditorPanel extends JPanel
     	
         VUE.getFormatDock().setFocusable(true);
 		VUE.getFormatDock().setFocusableWindowState(true);
-        
-		mBoldButton.removeActionListener(richBoldAction);
-      //  mBoldButton.addActionListener(styleChangeHandler);
-        
-  //      if (!EditorManager.isRegistered(sizeHandler))
-   //     	EditorManager.registerEditor(sizeHandler);
-    //    if (!EditorManager.isRegistered(fontPropertyHandler))
-     //   	EditorManager.registerEditor(fontPropertyHandler);
-        
-        mItalicButton.removeActionListener(richItalicAction);
-     //   mItalicButton.addActionListener(styleChangeHandler);
+		
+		stripAllListeners(mBoldButton);
+	    stripAllListeners(mItalicButton);
+	    stripAllListeners(mUnderlineButton);
+	        
         
         mFontCombo.removeActionListener(fontFamilyAction);
       //  mFontCombo.addActionListener(fontPropertyHandler);
@@ -1075,9 +1220,19 @@ public class FontEditorPanel extends JPanel
         suspendItemListeners=false;
     }
     
+    private void stripAllListeners(AbstractButton b)
+    {
+    	  ActionListener[] l = b.getListeners(ActionListener.class);
+          for (int i=0;i<l.length;i++)
+          	b.removeActionListener(l[i]);
+          
+          return;
+    }
      
     private void establishRichTextListeners(RichTextBox activeText)
     {
+    	if (DEBUG_FONTPANEL)
+    		System.out.println("ESTABLISH RTB Listeners");
     	suspendItemListeners=true;
     	breakdownDefaultListeners();
     	
@@ -1092,20 +1247,11 @@ public class FontEditorPanel extends JPanel
         activeText.setToggleBulletList(toggleBulletsAction);
         activeText.setNumberList(toggleNumbersAction);
         
-     //   EditorManager.unregisterEditor(sizeHandler);
-      //  EditorManager.unregisterEditor(fontPropertyHandler);
-        
-        //shuffle listeners...
-      //  mBoldButton.removeActionListener(styleChangeHandler);
         mBoldButton.addActionListener(richBoldAction);			
-        
-       // mItalicButton.removeActionListener(styleChangeHandler);
         mItalicButton.addActionListener(richItalicAction);			
+		mUnderlineButton.addActionListener(richUnderlineAction);
 		
         mFontCombo.addActionListener(fontFamilyAction);
-       // mFontCombo.removeActionListener(fontPropertyHandler);       
-        
-	//	mSizeField.removeActionListener(fontPropertyHandler);
         mSizeField.addActionListener(fontSizeAction);
         
         mLeftAlignButton.addActionListener(paraAlignLeftAction);
@@ -1119,6 +1265,9 @@ public class FontEditorPanel extends JPanel
     
     public void establishDefaultListeners()
     {              
+    	
+    	if (DEBUG_FONTPANEL)
+    		System.out.println("ESTABLISH Default Listeners");
     	suspendItemListeners=true;
       VUE.getFormatDock().setFocusable(true);
   	  VUE.getFormatDock().setFocusableWindowState(true);
@@ -1142,9 +1291,11 @@ public class FontEditorPanel extends JPanel
       defaultListenersAdded=true;
       suspendItemListeners=false;
     }
-    
+
     public void breakdownDefaultListeners()
     {
+    	if (DEBUG_FONTPANEL)
+    		System.out.println("BREAKDOWN Default Listeners");
     	suspendItemListeners=true;
      EditorManager.unregisterEditor(sizeHandler);
      EditorManager.unregisterEditor(fontPropertyHandler);
@@ -1156,8 +1307,11 @@ public class FontEditorPanel extends JPanel
      mLeftAlignButton.removeActionListener(alignmentHandler);
      mCenterAlignButton.removeActionListener(alignmentHandler);
      mRightAlignButton.removeActionListener(alignmentHandler);
-     mBoldButton.removeActionListener(styleChangeHandler);
-     mItalicButton.removeActionListener(styleChangeHandler);
+     
+     stripAllListeners(mBoldButton);
+     stripAllListeners(mItalicButton);
+     stripAllListeners(mUnderlineButton);
+     
      mFontCombo.removeActionListener(fontPropertyHandler);
      mSizeField.removeActionListener(fontPropertyHandler);
      defaultListenersAdded=false;
