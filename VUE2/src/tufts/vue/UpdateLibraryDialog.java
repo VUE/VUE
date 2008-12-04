@@ -21,7 +21,7 @@
 package tufts.vue;
 
 /**
-* @version $Revision: 1.26 $ / $Date: 2008-11-20 17:38:11 $ / $Author: sfraize $
+* @version $Revision: 1.27 $ / $Date: 2008-12-04 03:16:46 $ / $Author: sfraize $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -373,11 +373,17 @@ public class UpdateLibraryDialog extends JDialog implements ListSelectionListene
 				}
 			}
 			if (proceed) {
-				dataSourceList.addOrdered(this.newDataSource);
-				dataSourceManager.add(this.newDataSource);
-				dataSourceList.getModelContents().removeElement(dataSourceThatWasSelectedForUpdate);
-				dataSourceManager.remove(dataSourceThatWasSelectedForUpdate.getId());
-				providerListRenderer.setChecked(addLibraryList.getSelectedIndex());
+                            
+                            // TODO: someday, the only thing we should need to do is
+                            // update the data source mananger (the model), the any
+                            // viewers should be listening for changes and automatically
+                            // update themseleves.
+                            
+                            dataSourceList.addOrdered(this.newDataSource);
+                            dataSourceManager.add(this.newDataSource);
+                            dataSourceList.getModelContents().removeElement(dataSourceThatWasSelectedForUpdate);
+                            dataSourceManager.remove(dataSourceThatWasSelectedForUpdate.getId());
+                            providerListRenderer.setChecked(addLibraryList.getSelectedIndex());
 			}
 		} catch (Throwable t) {
 			t.printStackTrace();

@@ -60,6 +60,12 @@ import tufts.vue.gui.*;
  * in multiple threads (full parallel federated search).
  */
 
+// TODO: in order to keep backward compat with old DataSourceViewer code (unless we're
+// ready to just throw the swtich), we'll need an interface that both DataSourceViewer
+// and DataSourceHandler can implement, that includes at least a setActiveDataSource for
+// the two types, plus addOrdered / getModelContents, or some new pairs of clearear and
+// more symmetrical calls that allows adding/remove items from the list.
+
 public class DataSourceHandler extends JPanel
     implements KeyListener, edu.tufts.vue.fsm.event.SearchListener, ActionListener
 {
@@ -815,6 +821,7 @@ public class DataSourceHandler extends JPanel
                     if (providerIterator.hasNextProvider()) {
                         if (updateLibraryDialog == null) {
                             Log.error(new Throwable("UNIMPLEMENTED"));
+                            //updateLibraryDialog = new UpdateLibraryDialog(null, null);
 //                             updateLibraryDialog = new UpdateLibraryDialog(dataSourceList,
 //                                     ((edu.tufts.vue.dsm.DataSource)dataSourceList.getSelectedValue()));
                         } else {
