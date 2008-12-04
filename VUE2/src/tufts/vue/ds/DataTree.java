@@ -17,6 +17,7 @@ package tufts.vue.ds;
 
 import tufts.vue.VUE;
 import tufts.vue.DEBUG;
+import tufts.vue.Resource;
 import tufts.vue.VueResources;
 import tufts.vue.LWComponent;
 import static tufts.vue.LWComponent.Flag;
@@ -32,6 +33,7 @@ import tufts.Util;
 
 import java.util.List;
 import java.util.*;
+import java.net.URL;
 import java.awt.*;
 import java.awt.dnd.*;
 import javax.swing.*;
@@ -43,7 +45,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.20 $ / $Date: 2008-11-20 19:17:23 $ / $Author: sfraize $
+ * @version $Revision: 1.21 $ / $Date: 2008-12-04 03:18:16 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -55,15 +57,15 @@ public class DataTree extends javax.swing.JTree
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(DataTree.class);
     
-    private final Schema schema;
+    private final Schema mSchema;
 
     private DataNode mRootNode;
     private final DefaultTreeModel mTreeModel;
 
     private LWMap mActiveMap;
 
-    public static JComponent create(Schema s) {
-        final DataTree tree = new DataTree(s);
+    public static JComponent create(Schema schema) {
+        final DataTree tree = new DataTree(schema);
 
         //tree.setBorder(new LineBorder(Color.red, 4));
         
@@ -73,14 +75,52 @@ public class DataTree extends javax.swing.JTree
         if (false) {
             return tree;
         } else {
-            JPanel p = new JPanel(new BorderLayout());
+            final JPanel wrap = new JPanel(new BorderLayout());
+            final JPanel toolbar = new JPanel();
+            toolbar.setOpaque(true);
+            toolbar.setBackground(Color.white);
+            //toolbar.setLayout(new BoxLayout(toolbar, BoxLayout.Y_AXIS));
+            toolbar.setLayout(new BorderLayout());
             //p.add(new JLabel(s.getSource().toString()), BorderLayout.NORTH);
+
             AbstractButton addNew = new JButton("Add New Items to Map");
             addNew.setIcon(NewToMapIcon);
-            p.add(addNew, BorderLayout.NORTH);
+            //addNew.setBorderPainted(false);
+            addNew.setOpaque(false);
+            
+            JLabel dataSourceLabel = null;
+            
+            String imagePath = schema.getSingletonValue("rss.channel.image.url");
+            if (imagePath == null)
+                imagePath = schema.getSingletonValue("rdf:RDF.image.url");
+            if (imagePath != null) {
+                URL imageURL = Resource.makeURL(imagePath);
+                if (imageURL != null) {
+                    dataSourceLabel = new JLabel(new ImageIcon(imageURL));
+                    dataSourceLabel.setBorder(GUI.makeSpace(2,2,1,0));
+                }
+                //addNew.setIcon(new ImageIcon(imageURL));
+                //addNew.setLabel(imageURL);
+            }
+
+            if (dataSourceLabel == null) {
+//                 dataSourceLabel = new JLabel(schema.getName());
+//                 dataSourceLabel.setFont(tufts.vue.VueConstants.SmallFont);
+//                 dataSourceLabel.setBorder(GUI.makeSpace(0,2,0,0));
+//                 toolbar.add(dataSourceLabel, BorderLayout.WEST);
+//                 toolbar.add(addNew, BorderLayout.EAST);
+                toolbar.add(addNew, BorderLayout.CENTER);
+            } else {
+                toolbar.add(dataSourceLabel, BorderLayout.WEST);
+                toolbar.add(addNew, BorderLayout.EAST);
+            }
+            
+            toolbar.setBorder(new MatteBorder(0,0,1,0, Color.gray));
+            
+            wrap.add(toolbar, BorderLayout.NORTH);
             // todo: if save entire schema with map, include date of creation (last refresh before save)
-            p.add(tree, BorderLayout.CENTER);
-            return p;
+            wrap.add(tree, BorderLayout.CENTER);
+            return wrap;
         }
     }
 
@@ -155,7 +195,7 @@ public class DataTree extends javax.swing.JTree
             //tree.setSelectionPath(path);
                 
             final String fieldName = field.getName();
-            final Collection<LWComponent> hits = new ArrayList();
+            final List<LWComponent> hits = new ArrayList();
             boolean matching = false;
             String desc = "";
             if (treeNode.isField()) {
@@ -174,12 +214,17 @@ public class DataTree extends javax.swing.JTree
                 desc = String.format("<b>%s: <i>%s</i>", fieldName, fieldValue);
                 Log.debug("searching for " + fieldName + "=" + fieldValue + " in " + tree.mActiveMap);
                 for (LWComponent c : tree.mActiveMap.getAllDescendents()) {
-                    if (c.hasDataValue(fieldName, fieldValue) && !c.isSchematicFieldNode())
+                    if (c.hasDataValue(fieldName, fieldValue) && !c.isSchematicField())
                         hits.add(c);
                 }
             }
             final tufts.vue.LWSelection selection = VUE.getSelection();
-            if (DEBUG.Enabled) Log.debug("hits=" + hits.size());
+            if (DEBUG.Enabled) {
+                if (hits.size() == 1)
+                    Log.debug("hits=" + hits.get(0));
+                else
+                    Log.debug("hits=" + hits.size());
+            }
             if (hits.size() > 0 || e.isShiftDown()) {
                 if (hits.size() == 0)
                     return;
@@ -230,7 +275,7 @@ public class DataTree extends javax.swing.JTree
         else
             allNodes = map.getAllDescendents();
 
-        schema.annotateFor(allNodes);
+        mSchema.annotateFor(allNodes);
 
         if (map != null) {
             final String annot = map.getLabel();
@@ -279,12 +324,12 @@ public class DataTree extends javax.swing.JTree
 
     @Override
     public String toString() {
-        return String.format("DataTree[%s]", schema.toString());
+        return String.format("DataTree[%s]", mSchema.toString());
     }
 
-    private DataTree(Schema schema) {
+    private DataTree(final Schema schema) {
 
-        this.schema = schema;
+        mSchema = schema;
 
         setCellRenderer(new DataRenderer());
         //setSelectionModel(null);
@@ -331,6 +376,19 @@ public class DataTree extends javax.swing.JTree
         return b.toString();
     }
 
+    private static int sortPriority(Field f) {
+        if (f.isSingleton())
+            return -4;
+        else if (f.isSingleValue())
+            return -3;
+        else if (f.isUntrackedValue())
+            return -2;
+        else if (f.getName().contains(":") && !f.getName().startsWith("dc:"))
+            return -1;
+        else
+            return 0;
+    }
+
     /** build the model and return the root node */
     private TreeNode buildTree(final Schema schema)
     {
@@ -345,9 +403,23 @@ public class DataTree extends javax.swing.JTree
 //                                        "items"//isCSV ? "rows" : "items"));
         root.add(rowNodeTemplate);
         mRootNode = root;
+
+        final Field sortedFields[] = new Field[schema.getFieldCount()];
+
+        schema.getFields().toArray(sortedFields);        
+
+        Arrays.sort(sortedFields, new Comparator<Field>() {
+                public int compare(Field f1, Field f2) {
+                    return sortPriority(f2) - sortPriority(f1);
+                }
+            });
+                    
         
-        for (Field field : schema.getFields()) {
+        for (Field field : sortedFields) {
             
+//             if (field.isSingleton())
+//                 continue;
+
             DataNode fieldNode = new DataNode(field, this, null);
             root.add(fieldNode);
             
@@ -363,60 +435,64 @@ public class DataTree extends javax.swing.JTree
             // probably makes more sense.
             
             if (values.size() > 1) {
-
-                //final Map<String,Integer> valueCounts = field.getValueMap();
-                final Multiset<String> valueCounts = field.getValueSet();
-                
-                //-----------------------------------------------------------------------------
-                // Add the enumerated values
-                //-----------------------------------------------------------------------------
-                
-                //for (Map.Entry<String,Integer> e : valueCounts.entrySet()) {
-                for (Multiset.Entry<String> e : valueCounts.entrySet()) {
-
-                    final String value = e.getElement();
-                    final ValueNode valueNode;
-                    
-                    if (field.isPossibleKeyField()) {
-                        
-                        valueNode = new ValueNode(field, value, value);
-                        
-                    } else {
-                        final String count = String.format("%3d", e.getCount()).replaceAll(" ", "&nbsp;");
-                        final String display = String.format(HTML("<code>%s</code> <b>%s</b>"),
-                                                             count,
-                                                             value);
-//                         final String display = String.format(HTML("<code>%3d</code> <b>(%s)</b>"),
-//                                                              e.getValue(),
-//                                                              e.getKey());
-
-                        valueNode = new ValueNode(field, value, display);
-                
-                    }
-
-                    fieldNode.add(valueNode);
-                    
-                    //fmt = HTML("<b>%s</b> [%d]");
-
-//                     fieldNode.add(new ValueNode(field,
-//                                                 e.getKey(),
-//                                                 String.format(fmt, e.getValue(), e.getKey())));
-//                     //String.format(fmt, e.getKey(), e.getValue())));
-                    
-                    //fieldNode.add(new ValueNode(field, e.getKey(), String.format("<html>%s%s</b> (%s)", bold, e.getKey(), e.getValue())));
-
-//                     if (e.getValue() == 1) {
-//                         fieldNode.add(new ValueNode(field, e.getKey(), String.format("<html>%s%s", bold, e.getKey())));
-//                     } else {
-//                         fieldNode.add(new ValueNode(field, e.getKey(), String.format("<html>%s%s</b> (%s)", bold, e.getKey(), e.getValue())));
-//                     }
-                }
+                buildValueChildren(field, fieldNode);
             }
             
         }
     
         return root;
     }
+
+    private static void buildValueChildren(Field field, DataNode fieldNode)
+    {
+
+        final Multiset<String> valueCounts = field.getValueSet();
+                
+        //-----------------------------------------------------------------------------
+        // Add the enumerated values
+        //-----------------------------------------------------------------------------
+                
+        for (Multiset.Entry<String> e : valueCounts.entrySet()) {
+
+            final String value = e.getElement();
+            final ValueNode valueNode;
+                    
+            if (field.isPossibleKeyField()) {
+                        
+                valueNode = new ValueNode(field, value, value);
+                        
+            } else {
+                final String count = String.format("%3d", e.getCount()).replaceAll(" ", "&nbsp;");
+                final String display = String.format(HTML("<code>%s</code> <b>%s</b>"),
+                                                     count,
+                                                     value);
+//                 final String display = String.format(HTML("<code>%3d</code> <b>(%s)</b>"),
+//                                                      e.getValue(),
+//                                                      e.getKey());
+
+                valueNode = new ValueNode(field, value, display);
+                
+            }
+
+            fieldNode.add(valueNode);
+                    
+//             //fmt = HTML("<b>%s</b> [%d]");
+
+//             fieldNode.add(new ValueNode(field,
+//                                         e.getKey(),
+//                                         String.format(fmt, e.getValue(), e.getKey())));
+//             //String.format(fmt, e.getKey(), e.getValue())));
+                    
+//             fieldNode.add(new ValueNode(field, e.getKey(), String.format("<html>%s%s</b> (%s)", bold, e.getKey(), e.getValue())));
+
+//             if (e.getValue() == 1) {
+//                 fieldNode.add(new ValueNode(field, e.getKey(), String.format("<html>%s%s", bold, e.getKey())));
+//             } else {
+//                 fieldNode.add(new ValueNode(field, e.getKey(), String.format("<html>%s%s</b> (%s)", bold, e.getKey(), e.getValue())));
+//             }
+        }
+    }
+    
 
     public void dragGestureRecognized(DragGestureEvent e) {
         if (getSelectionPath() != null) {
@@ -962,16 +1038,25 @@ public class DataTree extends javax.swing.JTree
         TemplateNode(Schema schema, LWComponent.Listener repainter) {
             super(null,
                   repainter,
-                  //String.format("<html><b>All Data Nodes in '%s' (%d)", schema.getName(), schema.getRowCount()));
-                  String.format(HTML("<b><font color=red>All Data Nodes in '%s' (%d)"), schema.getName(), schema.getRowCount()));
+                  String.format(HTML("<b><font color=red>All Data Nodes (%d)"), schema.getRowCount()));
+            //String.format("<html><b>All Data Nodes in '%s' (%d)", schema.getName(), schema.getRowCount()));
+            //String.format(HTML("<b><font color=red>All Data Nodes in '%s' (%d)"), schema.getName(), schema.getRowCount()));
+            
             this.schema = schema;
             
 //             LWComponent style = new LWNode();
 //             style.setFlag(Flag.INTERNAL);
 //             style.setFlag(Flag.DATA_STYLE);
             final LWComponent style = initStyleNode(new LWNode());
+
+            String titleField;
+
+            if (schema.getRowCount() <= 25 && schema.hasField("title"))
+                titleField = "title";
+            else
+                titleField = schema.getKeyFieldGuess().getName();
             
-            style.setLabel(String.format("${%s}", schema.getKeyFieldGuess().getName()));
+            style.setLabel(String.format("${%s}", titleField));
             
             style.setFont(DataFont);
             style.setTextColor(Color.white);
@@ -1003,9 +1088,10 @@ public class DataTree extends javax.swing.JTree
     private static final int IconHeight = 20;
 
     //private static final Border TopBorder = BorderFactory.createLineBorder(Color.gray);
-    private static final Border TopBorder = new CompoundBorder(new MatteBorder(3,0,3,0, Color.white),
-                                                               new CompoundBorder(new LineBorder(Color.gray),
-                                                                                  GUI.makeSpace(1,0,1,2)));
+//     private static final Border TopBorder = new CompoundBorder(new MatteBorder(3,0,3,0, Color.white),
+//                                                                new CompoundBorder(new LineBorder(Color.gray),
+//                                                                                   GUI.makeSpace(1,0,1,2)));
+    private static final Border TopBorder = GUI.makeSpace(3,0,2,0);
 
     private static final Border TopTierBorder = GUI.makeSpace(0,0,2,0);
     private static final Border LeafBorder = GUI.makeSpace(0,IconWidth-16,2,0);
@@ -1060,8 +1146,12 @@ public class DataTree extends javax.swing.JTree
                 setIcon(FieldIconPainter.load(node.getStyle(),
                                               selected ? backgroundSelectionColor : null));
             } else {
+                
+                final Field field = node.getField();
 
-                if (node.isValue()) {
+                if (field != null && field.isSingleton()) {
+                    setIcon(null);
+                } else if (node.isValue()) {
                     setIconTextGap(1);
                     if (node.isMapPresent())
                         setIcon(IncludedInMapIcon);
