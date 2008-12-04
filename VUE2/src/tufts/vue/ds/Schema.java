@@ -30,7 +30,7 @@ import com.google.common.collect.*;
 
 
 /**
- * @version $Revision: 1.10 $ / $Date: 2008-12-04 06:09:23 $ / $Author: sfraize $
+ * @version $Revision: 1.11 $ / $Date: 2008-12-04 06:13:10 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -45,7 +45,7 @@ public class Schema {
 
     static final boolean DEBUG = true;
 
-    private final Map<String,Field> mFields = new LinkedHashMap(); // "columns"
+    protected final Map<String,Field> mFields = new LinkedHashMap(); // "columns"
     private Field mKeyField;
 
     private final List<DataRow> mRows = new ArrayList();
@@ -53,7 +53,7 @@ public class Schema {
     private Object mSource;
     private Resource mResource;
     
-    private int mLongestFieldName = 10;
+    protected int mLongestFieldName = 10;
 
     private String mName;
 
