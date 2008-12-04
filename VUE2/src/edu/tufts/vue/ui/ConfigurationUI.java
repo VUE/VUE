@@ -348,7 +348,8 @@ public class ConfigurationUI extends javax.swing.JPanel {
                         if (defaultValue != null) {
                             textField9.setText(defaultValue);
                         }
-                        textField9.setEditable(false);
+                        //textField9.setEditable(false);
+                        textField9.setEnabled(false);
                         populateField(prompt,textField9, limitWidth);
                         break;
                     case MULTI_LINE_TEXT_CONTROL:
@@ -655,8 +656,9 @@ public class ConfigurationUI extends javax.swing.JPanel {
                     case SINGLE_LINE_NONEDITABLE_TEXT_CONTROL:
                         javax.swing.JTextField field9 = (javax.swing.JTextField)fieldVector.elementAt(i);
                         field9.setText(value);
-                        field9.setEditable(false);
-                        System.out.println("Setting Field"+field9.getText());
+                        //field9.setEditable(false);
+                        field9.setEnabled(false);
+                        System.out.println(this + " setting Field"+field9.getText());
                         break;
                         //TO DO:  add more support for other property types
                 }
