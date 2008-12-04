@@ -33,7 +33,7 @@ import java.util.*;
  * types and doing some data-type analysis.  It also includes the ability to
  * associate a LWComponent node style with specially marked values.
  * 
- * @version $Revision: 1.2 $ / $Date: 2008-11-20 19:11:16 $ / $Author: sfraize $
+ * @version $Revision: 1.3 $ / $Date: 2008-12-04 03:19:28 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -82,7 +82,10 @@ public class Field
         if (Schema.DEBUG) Log.debug("(created field \"" + name + "\")");
     }
 
-    void markIncludedValues(final Collection<LWComponent> nodes) {
+//     private Multiset getContextValues() {
+//     }
+
+    void annotateIncludedValues(final Collection<LWComponent> nodes) {
         if (mValues == null || count(mValues) < 1) {
             if (mContextValues != null)
                 mContextValues.clear();
@@ -92,15 +95,15 @@ public class Field
             mContextValues = Multisets.newHashMultiset();
         else
             mContextValues.clear();
-        if (DEBUG.Enabled) Log.debug("MARKING INCLUDED VALUES AGAINST " + nodes.size() + " NODES for " + this);
+        if (DEBUG.META) Log.debug("MARKING INCLUDED VALUES AGAINST " + nodes.size() + " NODES for " + this);
         //final Set<String> valuesToCheck = new HashSet(mValues.keySet());
         //final Set<String> valuesToCheck = mValues.keySet();
         final Set<String> valuesToCheck = mValues.elementSet();
         for (LWComponent c : nodes) {
             for (String value : valuesToCheck) {
-                //if (c.isSchematicFieldNode() && c.hasDataValue(this.name, value)) {
                 if (c.hasDataValue(this.name, value)) {
-                    mContextValues.add(value);
+                    if (!c.isSchematicField())
+                        mContextValues.add(value);
                     //Log.debug(String.format("found in context: %s=[%s], count=%d", this.name, value, mContextValues.count(value)));
                 }
             }
@@ -216,9 +219,10 @@ public class Field
         return isPossibleKeyField();
     }
 
-    public boolean isLenghtyValue() {
+    public boolean isUntrackedValue() {
         return enumDisabled;
     }
+
         
     /** @return true if all the values for this Field have been fully tracked and recorded, and more than one
      * unique value was found */
@@ -226,11 +230,11 @@ public class Field
         return !enumDisabled && uniqueValueCount() > 1;
     }
 
-    /** @return true if this field appeared a single time in the entire data set, with a single value
+    /** @return true if this field appeared a single time in the entire data set.
      * This can generally only be true for fields from an XML data-set, in which a single-value
-     * "column" is in effect created by an XML key that only appears once.
+     * "column" is in effect created by an XML key that only appears once, such as keys
+     * that apply to the entire feed.
      */
-            
     public boolean isSingleton() {
         return allValuesUnique && (mValues != null && count(mValues) < 2);
     }
@@ -278,7 +282,6 @@ public class Field
 
     private static final Multiset EMPTY_MULTISET = Multisets.unmodifiableMultiset(Multisets.newHashMultiset());
         
-    // todo: make a multi-set
     public Multiset<String> getValueSet() {
         return mValues == null ? EMPTY_MULTISET : Multisets.unmodifiableMultiset(mValues);
         //return mValues == null ? EMPTY_MULTISET : mValues;
