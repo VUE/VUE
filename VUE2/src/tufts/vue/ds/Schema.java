@@ -30,7 +30,7 @@ import com.google.common.collect.*;
 
 
 /**
- * @version $Revision: 1.8 $ / $Date: 2008-11-20 17:41:27 $ / $Author: sfraize $
+ * @version $Revision: 1.9 $ / $Date: 2008-12-04 03:19:55 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -71,7 +71,7 @@ public class Schema {
 
     public void annotateFor(Collection<LWComponent> nodes) {
             for (Field field : mFields.values()) {
-                field.markIncludedValues(nodes);
+                field.annotateIncludedValues(nodes);
 //                 for (String value : field.getValues()) {
 //                     for (LWComponent node : nodes) {
 //                         if (node.hasDataValue(value)) {
@@ -140,8 +140,6 @@ public class Schema {
         return mResource;
     }
     
-                                          
-
     public int getRowCount() {
         return mRows.size();
     }
@@ -153,6 +151,11 @@ public class Schema {
     public Field getField(String name) {
         return mFields.get(name);
     }
+
+    public boolean hasField(String name) {
+        return mFields.containsKey(name);
+    }
+    
     
     public String getName() {
 
@@ -287,6 +290,20 @@ public class Schema {
     public Collection<Field> getFields() {
         return mFields.values();
     }
+    
+    public int getFieldCount() {
+        return mFields.size();
+    }
+
+    /** if a singleton exists with the given name, return it's value, otherwise null */
+    public String getSingletonValue(String name) {
+        Field f = mFields.get(name);
+        if (f != null && f.isSingleton())
+            return f.getValueSet().iterator().next();
+        else
+            return null;
+    }
+    
 
     // todo: factor out XML impl reference
     public boolean isXMLKeyFold() {
