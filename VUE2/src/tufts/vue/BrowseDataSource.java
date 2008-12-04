@@ -23,7 +23,7 @@ package tufts.vue;
  * on the configuration.  E.g., a local directory, a list of user favorites, a remote FTP
  * site, an RSS feed, etc.
  * 
- * @version $Revision: 1.4 $ / $Date: 2008-10-03 16:09:46 $ / $Author: sfraize $
+ * @version $Revision: 1.5 $ / $Date: 2008-12-04 06:10:47 $ / $Author: sfraize $
  * @author  rsaigal
  * @author  sfraize
  */
@@ -76,11 +76,13 @@ public abstract class BrowseDataSource implements DataSource
         public int uiControl = ConfigurationUI.SINGLE_LINE_CLEAR_TEXT_CONTROL;
         public int maxLen;
 
-        public ConfigField(String k, String t, String d, String v) {
+        public ConfigField(String k, String t, String d, String v, int... type) {
             key = k;
             title = t;
             description = d;
             value = v;
+            if (type.length > 0)
+                uiControl = type[0];
         }
     }
 
