@@ -40,7 +40,7 @@ import edu.tufts.vue.fsm.event.SearchListener;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.99 $ / $Date: 2008-11-20 17:45:29 $ / $Author: sfraize $
+ * @version $Revision: 1.100 $ / $Date: 2008-12-04 03:20:24 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends WidgetStack
@@ -71,7 +71,7 @@ public class InspectorPane extends WidgetStack
     //-------------------------------------------------------
     // Resource panes
     //-------------------------------------------------------
-    private final MetaDataPane mResourceMetaData = new MetaDataPane("Properties", false);
+    private final MetaDataPane mResourceMetaData = new MetaDataPane("Resource Properties", false);
     private final MetaDataPane mDataSetData = new MetaDataPane("Data Set Fields", false);
     private final Widget mDescription = new Widget("contentInfo"); // for GUI.init property applicaton (use same as meta-data pane)
     private final Preview mPreview = new Preview();
@@ -243,7 +243,7 @@ public class InspectorPane extends WidgetStack
         //if (DEBUG.RESOURCE) out("resource selected: " + e.selected);
         showNodePanes(false);
         showResourcePanes(true);
-        loadResource(resource);
+        loadResource(resource, null);
         setVisible(true);
         stack.setTitleItem("Content");
         displayRelease();
@@ -367,7 +367,8 @@ public class InspectorPane extends WidgetStack
         loadData(c);
              	
         if (c.hasResource()) {
-            loadResource(c.getResource());
+            //loadResource(c.getResource());
+            loadResource(c.getResource(), c);
             showResourcePanes(true);
         } else {
             showResourcePanes(false);
@@ -507,7 +508,7 @@ public class InspectorPane extends WidgetStack
 //     }    
 //     //-----------------------------------------------------------------------------
 
-    private void loadResource(final Resource r) {
+    private void loadResource(final Resource r, LWComponent node) {
         
         if (DEBUG.RESOURCE) out("loadResource: " + r);
         
@@ -519,31 +520,28 @@ public class InspectorPane extends WidgetStack
         mResourceMetaData.loadTable(r.getProperties());
         mPreview.loadResource(r);
 
-        loadContentSummary(r);
+        Widget.setHidden(mSelectionInfo, true);
+        loadContentSummary(r, node);
 
     }
 
-    private static final String DESCRIPTION_VIEWER_KEY = Resource.HIDDEN_RUNTIME_PREFIX + "inspector-content";
-    
+    private static final String DESCRIPTION_VIEWER_KEY = Resource.HIDDEN_RUNTIME_PREFIX + "ipCache";
 
-    private void loadContentSummary(Resource r) {
+
+    private void loadContentSummary(Resource r, LWComponent node) {
         JComponent descriptionView = (JComponent) r.getPropertyValue(DESCRIPTION_VIEWER_KEY);
             
         if (descriptionView == null) {
 
-            // TODO: MAKE CASE INDEPENDENT
-            String desc = r.getProperty("description");
-            if (desc == null)
-                desc = r.getProperty("Description");
-                
-            // desc may still be null at this point,
-            // in which case one will be constructed
-            // from the Resource
+            final String desc = findProperty(r, node, "description");
+            
+            // desc may still be null at this point, in which case one will be
+            // constructed from the Resource
 
             boolean gotView = false;
 
             try {
-                descriptionView = buildDescription(r, desc);
+                descriptionView = buildDescription(r, node, desc);
                 gotView = true;
             } catch (Throwable t) {
                 Log.error("loadResource " + r, t);
@@ -591,7 +589,26 @@ public class InspectorPane extends WidgetStack
             }
         };
 
-    private JComponent buildDescription(final Resource r, String desc)
+    private String findProperty(Resource r, LWComponent node, String... keys) {
+        // todo: could also handle some case hacking until we support case independent keys
+        for (String k : keys) {
+            String value = null;
+            if (r != null) {
+                value = r.getProperty(k);
+                if (value != null)
+                    return value;
+            }
+            if (node != null) {
+                value = node.getDataValue(k);
+                if (value != null)
+                    return value;
+            }
+        }
+        return null;
+    }
+    
+
+    private JComponent buildDescription(final Resource r, final LWComponent node, String desc)
     {
         //Thread loader = null;
 
@@ -627,24 +644,20 @@ public class InspectorPane extends WidgetStack
             final String title = r.getTitle();
                 
             if (desc.indexOf("<style") < 0) {
-                // only add a title of now style sheet present ("complex content" e.g., jackrabbit jira)
+                // only add a title if no style sheet present ("complex content" e.g., jackrabbit jira)
 
                 buf.append("<b><font size=+1>");
                 buf.append(title);
                 buf.append("</font></b>");
 
-                Object published = r.getProperty("Published");
-                if (published == null)
-                    published = r.getProperty("pubDate");
+                String published = findProperty(r, node, "published", "pubDate", "dc:date", "date");
                 
                 if (published != null) {
                     buf.append("<br>\n");
                     //buf.append("<font size=-1 color=808080>");
                     buf.append("<font color=B0B0B0><b>");
                     buf.append(published);
-                    String author = r.getProperty("Author");
-                    if (author == null)
-                        author = r.getProperty("dc:creator");
+                    String author = findProperty(r, node, "author", "dc:creator", "creator", "publisher");
                     if (author != null) {
                         buf.append(" - ");
                         buf.append(author);
@@ -1586,7 +1599,7 @@ public class InspectorPane extends WidgetStack
         
         if (c != null) {
             if (c.hasResource()) {
-                loadResource(c.getResource());
+                loadResource(c.getResource(), null);
                 showNodePanes(true);
                 showResourcePanes(true);                
             }
