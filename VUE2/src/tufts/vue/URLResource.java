@@ -57,7 +57,7 @@ import sun.awt.shell.ShellFolder;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.79 $ / $Date: 2008-11-20 17:37:27 $ / $Author: sfraize $
+ * @version $Revision: 1.80 $ / $Date: 2008-12-04 03:16:27 $ / $Author: sfraize $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -452,9 +452,25 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         
         for (KVEntry entry : mXMLpropertyList) {
             
-            final Object key = entry.getKey();
+            String key = (String) entry.getKey();
             final Object value = entry.getValue();
 
+            // TODO: for older property maps (how to tell?) we want to re-sort the keys...
+            // (and possible collapse the old keyname.### uniqified key names)
+            // Todo: detect via content inspection: if contains a URL or Title, and they're
+            // not at the top, do a sort.
+            
+            if (DEBUG.Enabled) {
+                // todo: just check for keyname.###$ pattern, and somehow annotate new
+                // MetaMaps so we only do this for the old ones
+                final String lowKey = key.toLowerCase();
+                //Log.debug("inspecting key [" +  lowKey + "]");
+                if (lowKey.startsWith("subject."))
+                    key = "Subject";
+                else if (lowKey.startsWith("keywords."))
+                    key = "Keywords";
+            }
+            
             try {
                 
                 // probably faster to do single set of hashed lookups at end:
@@ -465,8 +481,8 @@ public class URLResource extends Resource implements XMLUnmarshalListener
                     if (DEBUG.RESOURCE) dumpField("processing key", key);
                     setURL_Thumb((String) value);
                 } else {
-                    setProperty((String)key, value);
-                    //addProperty((String)key, value);
+                    //setProperty(key, value);
+                    addProperty(key, value);
                 }
                 
             } catch (Throwable t) {
@@ -1622,7 +1638,8 @@ public class URLResource extends Resource implements XMLUnmarshalListener
 
             mXMLpropertyList = new ArrayList(mProperties.size());
             
-            for (Map.Entry<String,?> e : mProperties.entries())
+            //for (Map.Entry<String,?> e : mProperties.entries())
+            for (Map.Entry e : mProperties.entries())
                 mXMLpropertyList.add(new PropertyEntry(e));
             
             // E.g., if using a multi-map: (or provide an asMap() view)
