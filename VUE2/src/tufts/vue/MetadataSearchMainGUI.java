@@ -73,7 +73,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.9 $ / $Date: 2008-12-03 22:41:17 $ / $Author: Sheejo
+ * @version $Revision: 1.10 $ / $Date: 2008-12-04 18:04:09 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -286,7 +286,6 @@ public class MetadataSearchMainGUI extends JPanel
 				public void itemStateChanged(ItemEvent e) {
 					if (e.getStateChange() == ItemEvent.SELECTED) {
 						String type = e.getItem().toString();
-
 						if (type.equals(ALL_MAPS_STRING)) {
 							allSearch
 									.setLocationType(SearchAction.SEARCH_ALL_OPEN_MAPS);
@@ -637,10 +636,11 @@ public class MetadataSearchMainGUI extends JPanel
 			MouseListener popupListener = new PopupListener();
 			// add the listener specifically to the header
 			searchResultTbl.addMouseListener(popupListener);
-
+			searchResultTbl.setIntercellSpacing(new Dimension(0,1));
 			searchResultTbl.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 			searchResultTbl.setShowGrid(false);			
-			searchResultTbl.setRowHeight(30);
+			searchResultTbl.setRowHeight(23);
+			
 			//searchResultTbl.setBackground(this.getBackground());
 
 			//searchResultTbl.getColumnModel().getColumn(1).setMaxWidth(30);
@@ -908,7 +908,9 @@ public class MetadataSearchMainGUI extends JPanel
 				int row, int column) {
 			if (searchTermsTable.getModel().getRowCount() > 1) {
 				combo.setVisible(true);
-				combo.setFont(tufts.vue.gui.GUI.LabelFace);
+				combo.setFont(tufts.vue.gui.GUI.LabelFace);				
+				combo.repaint();
+				combo.invalidate();
 				table.revalidate();
 				table.repaint();
 			} else {
