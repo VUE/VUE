@@ -32,7 +32,7 @@ import au.com.bytecode.opencsv.CSVReader;
 
 
 /**
- * @version $Revision: 1.7 $ / $Date: 2008-11-20 17:42:39 $ / $Author: sfraize $
+ * @version $Revision: 1.8 $ / $Date: 2008-12-04 06:08:51 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class XmlDataSource extends BrowseDataSource
@@ -42,8 +42,10 @@ public class XmlDataSource extends BrowseDataSource
     private final List<Resource> mItems = new ArrayList();
 
     private static final String ITEM_PATH_KEY = "item_path";
+    private static final String KEY_FIELD_KEY = "key_field";
 
     private String itemKey;
+    private String keyField;
     
     public XmlDataSource() {}
     
@@ -64,12 +66,20 @@ public class XmlDataSource extends BrowseDataSource
 
     @Override public void setConfiguration(java.util.Properties p) {
 
+        if (DEBUG.DR) Log.debug(this + " setConfiguration " + p);
+
         super.setConfiguration(p);
         
         String val = null;
         try {
             if ((val = p.getProperty(ITEM_PATH_KEY)) != null)
                 setItemKey(val);
+        } catch (Throwable t) {
+            Log.error("val=" + val, t);
+        }
+        try {
+            if ((val = p.getProperty(KEY_FIELD_KEY)) != null)
+                setKeyField(val);
         } catch (Throwable t) {
             Log.error("val=" + val, t);
         }
@@ -89,8 +99,15 @@ public class XmlDataSource extends BrowseDataSource
         unloadViewer();
     }
     
+    public String getKeyField() {
+        return keyField;
+    }
 
-
+    public void setKeyField(String k) {
+        keyField = k;
+        unloadViewer();
+    }
+    
     @Override public java.util.List<ConfigField> getConfigurationUIFields() {
         
         ConfigField path
@@ -99,8 +116,16 @@ public class XmlDataSource extends BrowseDataSource
                               "XML node path of interest",
                               getItemKey()); // current value is inserted here
 
+        ConfigField keyField
+            = new ConfigField(KEY_FIELD_KEY
+                              ,"Key Field"
+                              ,"Field with a unique value for each item"
+                              ,getKeyField() // current value
+                              ,edu.tufts.vue.ui.ConfigurationUI.SINGLE_LINE_NONEDITABLE_TEXT_CONTROL);
+
         List<ConfigField> fields = super.getConfigurationUIFields();
         fields.add(path);
+        fields.add(keyField);
         return fields;
     }
 
@@ -186,11 +211,12 @@ public class XmlDataSource extends BrowseDataSource
 
         schema.setName(getDisplayName());
 
+        //-----------------------------------------------------------------------------
+        //
+
         if (true) return DataTree.create(schema);
 
-        //-----------------------------------------------------------------------------
-        // HACK
-        //VUE.getActiveMap().add(schema.createSchematicLayer());
+        //
         //-----------------------------------------------------------------------------
 
         mItems.clear();
