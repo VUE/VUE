@@ -16,7 +16,6 @@
 package tufts.vue;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -46,6 +45,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
@@ -73,7 +73,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.10 $ / $Date: 2008-12-04 18:04:09 $ / $Author: Sheejo
+ * @version $Revision: 1.11 $ / $Date: 2008-12-04 18:56:20 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -205,14 +205,31 @@ public class MetadataSearchMainGUI extends JPanel
 		};
 		renameAction = new AbstractAction(RENAME_STR) {
 			public void actionPerformed(ActionEvent e) {
-				//System.err.println("Enter in Rename>>>>");
+				searchResultModel.setEditableFlag(true);
+				int selectedIndex = searchResultTbl.getSelectedRow();
+				if (selectedIndex != -1){
+					searchResultTbl.editCellAt(selectedIndex, 0);
+					searchResultModel.setEditableFlag(false);
+				}else{					
+					JOptionPane.showMessageDialog((Component)mapInfoStack,
+						    "Please select a Row",
+						    "Message",
+						    JOptionPane.WARNING_MESSAGE);
+
+				}
 			}
 		};
 		deleteAction = new AbstractAction(DELETE_STR) {
 			public void actionPerformed(ActionEvent e) {
 				int selectedIndex = searchResultTbl.getSelectedRow();
-				if (selectedIndex != -1)
+				if (selectedIndex != -1){
 					searchResultModel.removeRow(selectedIndex);
+				}else{
+					JOptionPane.showMessageDialog((Component)mapInfoStack,
+						    "Please select a Row",
+						    "Message",
+						    JOptionPane.WARNING_MESSAGE);
+				}
 			}
 		};
 		Widget.setMenuActions(metadataPanel, new Action[] { saveSearchAction,
@@ -618,8 +635,14 @@ public class MetadataSearchMainGUI extends JPanel
 			deleteMenuItem.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent event) {
 					int selectedIndex = searchResultTbl.getSelectedRow();
-					if (selectedIndex != -1)
+					if (selectedIndex != -1){
 						searchResultModel.removeRow(selectedIndex);
+					}else{
+						JOptionPane.showMessageDialog((Component)mapInfoStack,
+							    "Please select a Row",
+							    "Message",
+							    JOptionPane.WARNING_MESSAGE);
+					}
 				}
 			});
 			renameMenuItem.addActionListener(new ActionListener() {
@@ -629,6 +652,11 @@ public class MetadataSearchMainGUI extends JPanel
 					if (selectedIndex != -1){
 						searchResultTbl.editCellAt(selectedIndex, 0);
 						searchResultModel.setEditableFlag(false);
+					}else{
+						JOptionPane.showMessageDialog((Component)mapInfoStack,
+							    "Please select a Row",
+							    "Message",
+							    JOptionPane.WARNING_MESSAGE);
 					}
 				}
 			});
@@ -1446,13 +1474,15 @@ public class MetadataSearchMainGUI extends JPanel
 
 	class PopupListener extends MouseAdapter {
 		public void mousePressed(MouseEvent e) {
+			if(e.getX()>(searchResultTbl.getWidth()-40)){
+				System.err.println("Clicked on Run");
+			}
 			showPopup(e);
 		}
 
 		public void mouseReleased(MouseEvent e) {
 			showPopup(e);
 		}
-
 		private void showPopup(MouseEvent e) {
 			if (e.isPopupTrigger()) {
 				popupMenu.show(e.getComponent(), e.getX(), e.getY());
