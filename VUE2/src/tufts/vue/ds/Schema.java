@@ -30,7 +30,7 @@ import com.google.common.collect.*;
 
 
 /**
- * @version $Revision: 1.9 $ / $Date: 2008-12-04 03:19:55 $ / $Author: sfraize $
+ * @version $Revision: 1.10 $ / $Date: 2008-12-04 06:09:23 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -45,14 +45,15 @@ public class Schema {
 
     static final boolean DEBUG = true;
 
-    final Map<String,Field> mFields = new LinkedHashMap(); // "columns"
+    private final Map<String,Field> mFields = new LinkedHashMap(); // "columns"
+    private Field mKeyField;
 
     private final List<DataRow> mRows = new ArrayList();
 
     private Object mSource;
     private Resource mResource;
     
-    protected int mLongestFieldName = 10;
+    private int mLongestFieldName = 10;
 
     private String mName;
 
@@ -105,6 +106,20 @@ public class Schema {
         return mStyleNode;
     }
     
+    public Field getKeyField() {
+        if (mKeyField == null)
+            mKeyField = getKeyFieldGuess();
+        return mKeyField;
+    }
+    
+    public void setKeyField(Field f) {
+        mKeyField = f;
+    }
+    
+    public void setKeyField(String name) {
+        setKeyField(getField(name));
+    }
+        
     public Object getSource() {
         return mSource;
     }
@@ -217,6 +232,16 @@ public class Schema {
     /** look at all the Fields and make a guess as to which is the most likely key field
      * This currently will always return *some* field, even if it's not a possible key field. */
     public Field getKeyFieldGuess() {
+
+        // Many RSS feeds can be covered by checking "guid" and "link"
+        
+        Field f;
+        if ((f = getField("guid")) != null && f.isPossibleKeyField())
+            return f;
+        if ((f = getField("key")) != null && f.isPossibleKeyField())
+            return f;
+        if ((f = getField("link")) != null && f.isPossibleKeyField())
+            return f;
 
         Field firstField = null;
         Field shortestField = null;
@@ -386,69 +411,48 @@ class DataRow {
 
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(DataRow.class);
     
-    //         final List<Field> columns;
-    //         final List<String> values;
-
-    //         VRow(int approxSize) {
-    //             if (approxSize < 1)
-    //                 approxSize = 10;
-    //             columns = new ArrayList(approxSize);
-    //             values = new ArrayList(approxSize);
-    //         }
-
     // this impl is overkill for handling flat tabular data
 
-    final Map<Field,String> values;
-    //final Map<String,String> asText;
-    //final MetaMap asText = new MetaMap();
+    //final Map<Field,String> values;
     final Multimap mData = Multimaps.newLinkedHashMultimap();
 
     DataRow() {
-        values = new HashMap();
+        //values = new HashMap();
     }
-
-    //         int size() {
-    //             return values.size();
-    //         }
 
     void addValue(Field f, String value) {
         value = value.trim();
-        final String existing = values.put(f, value);
-        if (existing != null && Schema.DEBUG)
-            Log.debug("ROW SUB-KEY COLLISION " + f);
+//         final String existing = values.put(f, value);
+//         if (existing != null && Schema.DEBUG)
+//             Log.debug("ROW SUB-KEY COLLISION " + f);
             
-        //errout("ROW SUB-KEY COLLISION " + f + "; " + existing);
-        //asText.put(f.name, value);
-        mData.put(f.name, value);
+        mData.put(f.getName(), value);
         f.trackValue(value);
     }
 
-    String getValue(Field f) {
-        return values.get(f);
-    }
-    String getValue(String key) {
-        Object o = mData.get(key);
-        if (o instanceof Collection) {
-            final Collection bag = (Collection) o;
-            if (bag.size() == 0)
-                return null;
-            else if (bag instanceof List)
-                return (String) ((List)bag).get(0);
-            else
-                return (String) Iterators.get(bag.iterator(), 0);
-        }
-        else
-            return (String) o;
-        //return (String) Iterators.get(mData.get(key).iterator(), 0);
-        //return (String) asText.get(key);
-    }
-        
-    //         Map<String,String> asMap() {
-    //             return mData.asMap();
-    //         }
-        
     Iterable<Map.Entry<String,String>> entries() {
         return mData.entries();
     }
+    
+//     String getValue(Field f) {
+//         return values.get(f);
+//     }
+//     String getValue(String key) {
+//         Object o = mData.get(key);
+//         if (o instanceof Collection) {
+//             final Collection bag = (Collection) o;
+//             if (bag.size() == 0)
+//                 return null;
+//             else if (bag instanceof List)
+//                 return (String) ((List)bag).get(0);
+//             else
+//                 return (String) Iterators.get(bag.iterator(), 0);
+//         }
+//         else
+//             return (String) o;
+//         //return (String) Iterators.get(mData.get(key).iterator(), 0);
+//         //return (String) asText.get(key);
+//     }
+        
 }
 
