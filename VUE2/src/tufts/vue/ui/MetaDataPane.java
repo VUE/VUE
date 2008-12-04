@@ -584,10 +584,12 @@ public class MetaDataPane extends tufts.vue.gui.Widget
             //if (label.indexOf(".") < 0) 
             //value = "<html>"+value;
 
-            if (! DEBUG.Enabled) {
-                // If we're not in debug mode, make sure hidden properties stay hidden
-               
-                if (Resource.isHiddenPropertyKey(labelText)) {
+            if (Resource.isHiddenPropertyKey(labelText)) {
+
+                if (DEBUG.DR || DEBUG.DATA) {
+                    // Allow hidden properties to be seen
+                } else {
+                    // default: hide the hidden property
                     //mLabels[row].setVisible(false);
                     //mValues[row].setVisible(false);
                     // we skip loading the row completely -- keep alternating colors in order
@@ -616,7 +618,7 @@ public class MetaDataPane extends tufts.vue.gui.Widget
             // prior to java 1.6, GridBag has serious bug in that it completely fails
             // if more than 512 items are loaded into it.  This merges all rows
             // > 512 into a single field.
-            StringBuffer mergeRow = new StringBuffer();
+            final StringBuilder mergeRow = new StringBuilder();
             for (int r = maxRow - 1; r < rows; r++) {
                 final Object label = model.getValueAt(r, 0);
                 final Object value = model.getValueAt(r, 1);
@@ -672,23 +674,26 @@ public class MetaDataPane extends tufts.vue.gui.Widget
         if (EasyReading2) {
             label.setText(labelText);
         } else {
-            String txt = labelText;
-            
+            final String txt;
+
             //-----------------------------------------------------------------------------
             // hack to trim some long XML names in RSS feeds until UI can wrap keys as
-            // well as labels.
-            final String trim1 = "Media:group.media:content.media:";
-            final String trim2 = "Media:group.media:";
-            if (labelText.startsWith(trim1)) {
-                txt = "media" + txt.substring(trim1.length()-1);
+            // well as labels (e.g. NY Times XML news items sometimes have an associated image)
+            final String trim1 = "media:group.media:content.media:";
+            final String trim2 = "media:group.media:";
+            final String lowText = labelText.toLowerCase();
+            if (lowText.startsWith(trim1)) {
+                txt = "Media" + labelText.substring(trim1.length()-1);
                 //txt = "MGMCM" + txt.substring(trim1.length()-1);
-            } else if (labelText.startsWith(trim2)) {
-                txt = "media" + txt.substring(trim2.length()-1);
+            } else if (lowText.startsWith(trim2)) {
+                txt = "Media" + labelText.substring(trim2.length()-1);
                 //txt = "MGM" + txt.substring(trim2.length()-1);
-            } else if (labelText.equals("Comments.comment")) {
+            } else if (lowText.equals("comments.comment")) {
                 // hack for jira comments
                 txt = "Comment";
-            }
+            } else
+                txt = Util.upperCaseWords(labelText);
+                
             //-----------------------------------------------------------------------------
             
             final StringBuilder buf = new StringBuilder(txt.length() + 1);
