@@ -719,6 +719,9 @@
     <field name="itemKey" type="string">
           <bind-xml name="itemKey" node="element" />
     </field>
+    <field name="keyField" type="string">
+          <bind-xml name="keyField" node="element" />
+    </field>
  </class>
 <!--
 
