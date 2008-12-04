@@ -93,9 +93,9 @@ class KVEntry<K,V> implements Map.Entry<K,V> {
  */
 public final class PropertyEntry extends KVEntry<String,Object> {
     
-    /** will currently convert the Entry Object value to a String value */
-    public PropertyEntry(Map.Entry<String,?> e) {
-        this(e.getKey(), e.getValue());
+    /** will convert the key and value to their String values */
+    public PropertyEntry(Map.Entry e) {
+        this(e.getKey().toString(), e.getValue().toString());
     }
     /** will currently convert the Object value to a String value, or empty string if null */
     public PropertyEntry(String key, Object value) {
