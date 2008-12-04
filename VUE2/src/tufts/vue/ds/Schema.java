@@ -30,7 +30,7 @@ import com.google.common.collect.*;
 
 
 /**
- * @version $Revision: 1.11 $ / $Date: 2008-12-04 06:13:10 $ / $Author: sfraize $
+ * @version $Revision: 1.12 $ / $Date: 2008-12-04 06:16:14 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -406,6 +406,7 @@ public class Schema {
 
 }
 
+
 /** a row impl that handles flat tables as well as Xml style variable "rows" or item groups */
 class DataRow {
 
@@ -413,18 +414,18 @@ class DataRow {
     
     // this impl is overkill for handling flat tabular data
 
-    //final Map<Field,String> values;
+    final Map<Field,String> values;
     final Multimap mData = Multimaps.newLinkedHashMultimap();
 
     DataRow() {
-        //values = new HashMap();
+        values = new HashMap();
     }
 
     void addValue(Field f, String value) {
         value = value.trim();
-//         final String existing = values.put(f, value);
-//         if (existing != null && Schema.DEBUG)
-//             Log.debug("ROW SUB-KEY COLLISION " + f);
+        final String existing = values.put(f, value);
+        if (existing != null && Schema.DEBUG)
+            Log.debug("ROW SUB-KEY COLLISION " + f);
             
         mData.put(f.getName(), value);
         f.trackValue(value);
@@ -434,25 +435,25 @@ class DataRow {
         return mData.entries();
     }
     
-//     String getValue(Field f) {
-//         return values.get(f);
-//     }
-//     String getValue(String key) {
-//         Object o = mData.get(key);
-//         if (o instanceof Collection) {
-//             final Collection bag = (Collection) o;
-//             if (bag.size() == 0)
-//                 return null;
-//             else if (bag instanceof List)
-//                 return (String) ((List)bag).get(0);
-//             else
-//                 return (String) Iterators.get(bag.iterator(), 0);
-//         }
-//         else
-//             return (String) o;
-//         //return (String) Iterators.get(mData.get(key).iterator(), 0);
-//         //return (String) asText.get(key);
-//     }
+    String getValue(Field f) {
+        return values.get(f);
+    }
+    String getValue(String key) {
+        Object o = mData.get(key);
+        if (o instanceof Collection) {
+            final Collection bag = (Collection) o;
+            if (bag.size() == 0)
+                return null;
+            else if (bag instanceof List)
+                return (String) ((List)bag).get(0);
+            else
+                return (String) Iterators.get(bag.iterator(), 0);
+        }
+        else
+            return (String) o;
+        //return (String) Iterators.get(mData.get(key).iterator(), 0);
+        //return (String) asText.get(key);
+    }
         
 }
 
