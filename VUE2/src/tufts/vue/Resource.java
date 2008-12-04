@@ -37,7 +37,7 @@ import javax.swing.ImageIcon;
  *  objects, displaying their content, and fetching their data.
 
  *
- * @version $Revision: 1.83 $ / $Date: 2008-11-20 17:36:54 $ / $Author: sfraize $
+ * @version $Revision: 1.84 $ / $Date: 2008-12-04 03:15:55 $ / $Author: sfraize $
  */
 
 public abstract class Resource implements Cloneable
@@ -248,18 +248,21 @@ public abstract class Resource implements Cloneable
         if (key == null)
             return;
 
-        if (value != null) {
-            if (DEBUG.DATA) dumpKV("setProperty", key, value);
-            if (!(value instanceof String && ((String)value).length() < 1))
-                mProperties.put(key, value);
-        } else {
-            if (DEBUG.Enabled) {
-                if (mProperties.containsKey(key)) {
-                    Object o = mProperties.get(key);
-                    dumpKV("setProperty(null)overwite?", key, o);
-                }
-            }
-        }
+        if (DEBUG.DATA) dumpKV("setProperty", key, value);
+        mProperties.setNonEmpty(key, value);
+
+//         if (value != null) {
+//             if (DEBUG.DATA) dumpKV("setProperty", key, value);
+//             if (!(value instanceof String && ((String)value).length() < 1))
+//                 mProperties.put(key, value);
+//         } else {
+//             if (DEBUG.Enabled) {
+//                 if (mProperties.containsKey(key)) {
+//                     Object o = mProperties.get(key);
+//                     dumpKV("setProperty(null)overwite?", key, o);
+//                 }
+//             }
+//         }
     }
 
     public void setProperty(String key, long value) {
@@ -318,7 +321,7 @@ public abstract class Resource implements Cloneable
 
     public void addPropertyIfContent(String key, Object value) {
         if (DEBUG.DATA) dumpKV("addPropertyIf", key, value);
-        mProperties.addNonEmpty(key, value);
+        mProperties.putNonEmpty(key, value);
     }
 //     public String addPropertyIfContent(String desiredKey, Object value) {
 //         if (DEBUG.DATA) dumpKV("addPropertyIf", desiredKey, value);
@@ -341,6 +344,11 @@ public abstract class Resource implements Cloneable
         final Object value = getPropertyValue(key);
         return value == null ? null : value.toString();
     }
+    
+//     /** @return the value found for the first key finding a non-null value */
+//     public String getProperty(String... keys) {
+//         return mProperties.getValue(keys);
+//     }
 
     public int getProperty(String key, int notFoundValue) {
         final Object value = mProperties.get(key);
@@ -856,15 +864,13 @@ public abstract class Resource implements Cloneable
         return getSpec();
     }
     
+    @Override
     public String toString() {
         return asDebug();
     }
 
+    @Override
     public Resource clone() {
-
-        // TODO: properties need to be cloned also -- will need
-        // to make mProperties non-final though (java limitation)
-        
         try {
             final Resource clone = (Resource) super.clone();
             clone.mProperties = mProperties.clone();
