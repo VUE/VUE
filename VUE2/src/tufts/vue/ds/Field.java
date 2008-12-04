@@ -33,12 +33,11 @@ import java.util.*;
  * types and doing some data-type analysis.  It also includes the ability to
  * associate a LWComponent node style with specially marked values.
  * 
- * @version $Revision: 1.3 $ / $Date: 2008-12-04 03:19:28 $ / $Author: sfraize $
+ * @version $Revision: 1.4 $ / $Date: 2008-12-04 06:09:55 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
 public class Field
-    
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(Field.class);
 
@@ -47,33 +46,31 @@ public class Field
     public static final String TYPE_NUMBER = "NUMBER";
     public static final String TYPE_DATE = "DATE";
         
-    //static final int MAX_ENUM_VALUE_LENGTH = 54;
-    static final int MAX_ENUM_VALUE_LENGTH = 144;
-    static final int MAX_DATE_VALUE_LENGTH = 40;
-    static final DateFormat DateParser = DateFormat.getDateTimeInstance();
+    private static final int MAX_ENUM_VALUE_LENGTH = 192;
+    private static final int MAX_DATE_VALUE_LENGTH = 40;
+    private static final DateFormat DateParser = DateFormat.getDateTimeInstance();
 
-    final String name;
+    private final Schema schema;
+    private final String name;
 
-    boolean allValuesUnique;
-    int valueCount;
-    boolean enumDisabled;
-    int maxValueLen;
-    boolean isNumeric;
+    private boolean allValuesUnique;
+    private int valueCount;
+    private boolean enumDisabled;
+    private boolean isNumeric;
+    private int maxValueLen;
 
-    final Schema schema;
+    //long minValue; // for possible range tracking
+    //long maxValue;
 
-    LWComponent nodeStyle;
+    private LWComponent nodeStyle;
 
-    //         long minValue;
-    //         long maxValue;
-
-    String type = TYPE_UNKNOWN;
+    private String type = TYPE_UNKNOWN;
         
     /** map of all possible unique values for enumeration tracking */
-    Multiset<String> mValues;
+    private Multiset<String> mValues;
 
     /** map of values currently present in a given context (e.g., a VUE map) */
-    Multiset<String> mContextValues;
+    private Multiset<String> mContextValues;
 
     Field(String n, Schema schema) {
         this.name = n.trim();
@@ -215,8 +212,9 @@ public class Field
             && !(type == TYPE_DATE);
     }
 
+    /** @return true if this is the schema's unique key field */
     public boolean isKeyField() {
-        return isPossibleKeyField();
+        return schema.getKeyField() == this;
     }
 
     public boolean isUntrackedValue() {
