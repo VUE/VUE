@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.*;
 import java.net.URL;
 import java.awt.*;
+import java.awt.event.*;
 import java.awt.dnd.*;
 import javax.swing.*;
 import javax.swing.border.*;
@@ -45,7 +46,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.21 $ / $Date: 2008-12-04 03:18:16 $ / $Author: sfraize $
+ * @version $Revision: 1.22 $ / $Date: 2008-12-04 06:10:25 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -73,56 +74,93 @@ public class DataTree extends javax.swing.JTree
         VUE.addActiveListener(LWMap.class, tree);
 
         if (false) {
+
             return tree;
+
         } else {
-            final JPanel wrap = new JPanel(new BorderLayout());
-            final JPanel toolbar = new JPanel();
-            toolbar.setOpaque(true);
-            toolbar.setBackground(Color.white);
-            //toolbar.setLayout(new BoxLayout(toolbar, BoxLayout.Y_AXIS));
-            toolbar.setLayout(new BorderLayout());
-            //p.add(new JLabel(s.getSource().toString()), BorderLayout.NORTH);
 
-            AbstractButton addNew = new JButton("Add New Items to Map");
-            addNew.setIcon(NewToMapIcon);
-            //addNew.setBorderPainted(false);
-            addNew.setOpaque(false);
+            return buildControllerUI(tree);
             
-            JLabel dataSourceLabel = null;
-            
-            String imagePath = schema.getSingletonValue("rss.channel.image.url");
-            if (imagePath == null)
-                imagePath = schema.getSingletonValue("rdf:RDF.image.url");
-            if (imagePath != null) {
-                URL imageURL = Resource.makeURL(imagePath);
-                if (imageURL != null) {
-                    dataSourceLabel = new JLabel(new ImageIcon(imageURL));
-                    dataSourceLabel.setBorder(GUI.makeSpace(2,2,1,0));
-                }
-                //addNew.setIcon(new ImageIcon(imageURL));
-                //addNew.setLabel(imageURL);
-            }
-
-            if (dataSourceLabel == null) {
-//                 dataSourceLabel = new JLabel(schema.getName());
-//                 dataSourceLabel.setFont(tufts.vue.VueConstants.SmallFont);
-//                 dataSourceLabel.setBorder(GUI.makeSpace(0,2,0,0));
-//                 toolbar.add(dataSourceLabel, BorderLayout.WEST);
-//                 toolbar.add(addNew, BorderLayout.EAST);
-                toolbar.add(addNew, BorderLayout.CENTER);
-            } else {
-                toolbar.add(dataSourceLabel, BorderLayout.WEST);
-                toolbar.add(addNew, BorderLayout.EAST);
-            }
-            
-            toolbar.setBorder(new MatteBorder(0,0,1,0, Color.gray));
-            
-            wrap.add(toolbar, BorderLayout.NORTH);
-            // todo: if save entire schema with map, include date of creation (last refresh before save)
-            wrap.add(tree, BorderLayout.CENTER);
-            return wrap;
         }
     }
+
+    private static JComponent buildControllerUI(final DataTree tree)
+    {
+        final Schema schema = tree.mSchema;
+        final JPanel wrap = new JPanel(new BorderLayout());
+        final JPanel toolbar = new JPanel();
+        toolbar.setOpaque(true);
+        toolbar.setBackground(Color.white);
+        toolbar.setLayout(new BoxLayout(toolbar, BoxLayout.X_AXIS));
+        //toolbar.setLayout(new BorderLayout());
+        //p.add(new JLabel(s.getSource().toString()), BorderLayout.NORTH);
+
+        AbstractButton addNew = new JButton("Add New Items to Map");
+        addNew.setIcon(NewToMapIcon);
+        //addNew.setBorderPainted(false);
+        addNew.setOpaque(false);
+            
+        JLabel dataSourceLabel = null;
+            
+        String imagePath = schema.getSingletonValue("rss.channel.image.url");
+        if (imagePath == null)
+            imagePath = schema.getSingletonValue("rdf:RDF.image.url");
+        if (imagePath != null) {
+            URL imageURL = Resource.makeURL(imagePath);
+            if (imageURL != null) {
+                dataSourceLabel = new JLabel(new ImageIcon(imageURL));
+                dataSourceLabel.setBorder(GUI.makeSpace(2,2,1,0));
+            }
+            //addNew.setIcon(new ImageIcon(imageURL));
+            //addNew.setLabel(imageURL);
+        }
+
+        List<String> possibleKeyFields = new ArrayList();
+
+        for (Field field : schema.getFields())
+            if (field.isPossibleKeyField())
+                possibleKeyFields.add(field.getName());
+
+        JComboBox keyBox = new JComboBox(possibleKeyFields.toArray());
+        keyBox.setOpaque(false);
+        keyBox.setSelectedItem(schema.getKeyField().getName());
+
+        keyBox.addItemListener(new ItemListener() {
+        	public void itemStateChanged(ItemEvent e) {
+                    if (e.getStateChange() == ItemEvent.SELECTED) {
+                        schema.setKeyField((String) e.getItem());
+                        tree.refreshRoot();
+                    }
+        	}
+            });
+        
+
+        toolbar.add(keyBox, BorderLayout.WEST);
+        toolbar.add(addNew, BorderLayout.EAST);
+
+        if (dataSourceLabel != null)
+            wrap.add(dataSourceLabel, BorderLayout.SOUTH);
+            
+//         if (dataSourceLabel == null) {
+//             //                 dataSourceLabel = new JLabel(schema.getName());
+//             //                 dataSourceLabel.setFont(tufts.vue.VueConstants.SmallFont);
+//             //                 dataSourceLabel.setBorder(GUI.makeSpace(0,2,0,0));
+//             //                 toolbar.add(dataSourceLabel, BorderLayout.WEST);
+//             //                 toolbar.add(addNew, BorderLayout.EAST);
+//             toolbar.add(addNew, BorderLayout.CENTER);
+//         } else {
+//             toolbar.add(dataSourceLabel, BorderLayout.WEST);
+//             toolbar.add(addNew, BorderLayout.EAST);
+//         }
+            
+        toolbar.setBorder(new MatteBorder(0,0,1,0, Color.gray));
+            
+        wrap.add(toolbar, BorderLayout.NORTH);
+        // todo: if save entire schema with map, include date of creation (last refresh before save)
+        wrap.add(tree, BorderLayout.CENTER);
+        return wrap;
+    }
+    
 
     @Override
     protected void setExpandedState(final TreePath path, final boolean state) {
@@ -294,16 +332,26 @@ public class DataTree extends javax.swing.JTree
 //             }
         }
 
-        //mTreeModel.reload(mRootNode);
+        refreshAll();
+    }
 
+    private void refreshRoot() {
+        Log.debug("REFRESHING " + Util.tags(mRootNode));
+        refreshAllChildren(mRootNode);
+    }
+
+    private void refreshAll()
+    {
+        //mTreeModel.reload(mRootNode);
+        
         // using nodesChanged instead of reload preserves the expanded state of nodes in the tree
 
-        Log.debug("REFRESHING " + mRootNode);
-        refreshAllChildren(mRootNode);
+        refreshRoot();
+        Log.debug("REFRESHING " + Util.tags(mRootNode.getChildren()));
         for (TreeNode n : mRootNode.getChildren())
             if (!n.isLeaf())
                 refreshAllChildren(n);
-            
+
         // This gets close, but doesn't always handle updating NON expanded nodes, plus
         // it often leaves labels truncated with "..."
         // invalidate();
@@ -585,8 +633,7 @@ public class DataTree extends javax.swing.JTree
         final Field descField = schema.getField("description");
         final Field titleField = schema.getField("title");
         final Field mediaField = schema.getField("media:group.media:content.media:url");
-        
-        
+
         Log.debug("PRODUCING ALL DATA NODES FOR " + schema);
         int i = 0;
         LWNode node;
@@ -609,8 +656,12 @@ public class DataTree extends javax.swing.JTree
                     r.setTitle(title);
                     r.setProperty("Title", title);
                 }
-                if (mediaField != null)
+                if (mediaField != null) {
+                    // todo: if no per-item media field, use any per-schema media field found
+                    // (e.g., RSS content provider icon image)
+                    // todo: refactor so cast not required
                     ((tufts.vue.URLResource)r).setURL_Thumb(row.getValue(mediaField));
+                }
                 
             }
             
@@ -1103,6 +1154,8 @@ public class DataTree extends javax.swing.JTree
 //     private static final GUI.ResizedIcon NewToMapIcon =
 //         new GUI.ResizedIcon(VueResources.getIcon(GUI.class, "icons/MacSmallCloseIcon.gif"), 16, 16);
 
+    private static final Color KeyFieldColor = Color.green.darker();
+
 
     private class DataRenderer extends DefaultTreeCellRenderer {
 
@@ -1125,6 +1178,7 @@ public class DataTree extends javax.swing.JTree
         {
             //Log.debug(Util.tags(value));
             final DataNode node = (DataNode) value;
+            final Field field = node.getField();
             
 //             if (node.isField() && !leaf) {
 //                 if (node.field.isPossibleKeyField())
@@ -1136,7 +1190,11 @@ public class DataTree extends javax.swing.JTree
 //                 setForeground(Color.black);
 //             }
 
-            setForeground(Color.black); // must do every time for some reason, or de-selected text goes invisible
+            if (field != null && field.isKeyField())
+                setForeground(KeyFieldColor);
+            else
+                setForeground(Color.black); // must do every time for some reason, or de-selected text goes invisible
+            
             setIconTextGap(4);
 
             super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
@@ -1147,8 +1205,6 @@ public class DataTree extends javax.swing.JTree
                                               selected ? backgroundSelectionColor : null));
             } else {
                 
-                final Field field = node.getField();
-
                 if (field != null && field.isSingleton()) {
                     setIcon(null);
                 } else if (node.isValue()) {
