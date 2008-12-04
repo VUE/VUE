@@ -1750,8 +1750,8 @@ public class Util
     {
         //if (DEBUG) out("UCW in["+s+"]");
 
-        StringBuffer result = new StringBuffer(s.length());
-        String[] words = s.split(" ");
+        final StringBuilder result = new StringBuilder(s.length());
+        final String[] words = s.split(" ");
         for (int i = 0; i < words.length; i++) {
             String word = words[i];
             //if (DEBUG) out("word" + i + "["+word+"]");
