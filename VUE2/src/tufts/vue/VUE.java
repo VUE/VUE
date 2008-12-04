@@ -113,7 +113,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.590 $ / $Date: 2008-12-03 22:41:00 $ / $Author: sraphe01 $ 
+ * @version $Revision: 1.591 $ / $Date: 2008-12-04 19:28:38 $ / $Author: sraphe01 $ 
  */
 
 public class VUE
@@ -2195,9 +2195,11 @@ public class VUE
 		     		     if((e.getX()< 23) ){		     		    	 		
 		     		    	 createPopupMenu(isWindows);
 		     		    	 popup.show(e.getComponent(), e.getX()+5, e.getY());
-		     		     }else{		     		    			
+		     		     }else if(e.getX() < getWidth()-23){		     		    			
 		     		    	createEditPopupMenu();
 		     		    	editPopup.show(e.getComponent(), e.getX()+5, e.getY());
+		     		     }else{
+		     		    	 //TO DO for Search Button Action
 		     		     }
 		            }
 				});
