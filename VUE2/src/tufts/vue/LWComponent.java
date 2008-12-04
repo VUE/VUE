@@ -47,7 +47,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.443 $ / $Date: 2008-11-20 17:34:05 $ / $Author: sfraize $
+ * @version $Revision: 1.444 $ / $Date: 2008-12-04 03:12:14 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1752,7 +1752,7 @@ u                    getSlot(c).setFromString((String)value);
     public String getDataValue(String key) {
         if (mDataMap == null)
             return null;
-        return mDataMap.getFirstValue(key);
+        return mDataMap.getString(key);
         
 //         VueMetadataElement vme = getMetadataList().get(key);
 //         return vme == null ? null : vme.getValue();
@@ -1774,22 +1774,22 @@ u                    getSlot(c).setFromString((String)value);
         return value;
     }
 
-    public boolean isSchematicFieldNode() {
-        return mDataMap != null && mDataMap.containsKey("@Schema");
-    }
-    
     public String getSchematicFieldName() {
         if (mDataMap == null)
             return null;
         String name = mDataMap.getString("@Schema.field");
-        if (name == null && isSchematicFieldNode()) {
+        if (name == null && isSchematicField()) {
             // backward compat before @schema.field stored, and only @schema was stored.
             // The first entry should always be the schmatic field.
             // todo: remove this eventually
             final Map.Entry firstEntry = mDataMap.entries().iterator().next();
-            name = (String) firstEntry.getKey();
+            name = firstEntry.getKey().toString();
         }
         return name;
+    }
+    
+    public boolean isSchematicField() {
+        return mDataMap != null && mDataMap.containsKey("@Schema");
     }
     
     public boolean isSchematicField(String name) {
