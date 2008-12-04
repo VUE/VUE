@@ -50,7 +50,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.445 $ / $Date: 2008-12-04 18:50:56 $ / $Author: mike $
+ * @version $Revision: 1.446 $ / $Date: 2008-12-04 19:15:46 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -954,19 +954,36 @@ u                    getSlot(c).setFromString((String)value);
             super(key);
             value = VueConstants.FONT_DEFAULT;
         }
-        final void setBy(String s) { set(Font.decode(s)); }
+        final void setBy(String s) { 
+        	//check for underline
+        	
+        	String p = s.substring(s.indexOf("-")+1,s.length());
+        	p = p.substring(0,p.indexOf("-"));
+        	
+        	if (p.endsWith("underline"))
+        	{	//do something
+        		LWComponent.this.mFontUnderline.set("underline");
+        		s= s.replaceAll(p, p.substring(0,p.indexOf("underline")));
+        	}	
+        	Font f = Font.decode(s);
+        	
+        	set(f); 
+        	}
         final String asString() {
             //if (this.font == null || this.font == getParent().getFont())
             //return null;
 
             final Font font = get();
-            final String strStyle;
+            String strStyle;
             
             if (font.isBold()) {
                 strStyle = font.isItalic() ? "bolditalic" : "bold";
             } else {
                 strStyle = font.isItalic() ? "italic" : "plain";
             }
+            
+            if (LWComponent.this.mFontUnderline.get().equals("underline"))
+            	strStyle = strStyle.concat("underline");
             return font.getName() + "-" + strStyle + "-" + font.getSize();
         }
     }
