@@ -28,6 +28,7 @@ import java.awt.Color;
 import java.awt.BasicStroke;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
+import java.awt.font.TextAttribute;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D;
 import java.awt.datatransfer.Clipboard;
@@ -98,7 +99,7 @@ import javax.swing.text.*;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.65 $ / $Date: 2008-06-30 20:52:54 $ / $Author: mike $
+ * @version $Revision: 1.66 $ / $Date: 2008-12-04 18:50:56 $ / $Author: mike $
  *
  */
 
@@ -434,7 +435,8 @@ public class TextBox extends JTextPane
 
     private void setDocumentFont(Font f)
     {
-        if (DEBUG.TEXT) out("setDocumentFont " + f);
+        if (DEBUG.TEXT)
+        	out("setDocumentFont " + f);
         SimpleAttributeSet a = new SimpleAttributeSet();
         setFontAttributes(a, f);
         StyledDocument doc = getStyledDocument();
@@ -450,13 +452,28 @@ public class TextBox extends JTextPane
         doc.setParagraphAttributes(0, doc.getEndPosition().getOffset(), mAttributeSet, true);
     }
 
-
     private static void setFontAttributes(MutableAttributeSet a, Font f)
     {
+    	setFontAttributes(a,f,null);
+    }
+    private static void setFontAttributes(MutableAttributeSet a, Font f, LWComponent c)
+    {
+    	if (DEBUG.TEXT)
+    		System.out.println("setFontAttribnutes " + f);
         StyleConstants.setFontFamily(a, f.getFamily());
         StyleConstants.setFontSize(a, f.getSize());
         StyleConstants.setItalic(a, f.isItalic());
         StyleConstants.setBold(a, f.isBold());
+       if (c !=null)
+       {
+    	   String s =  c.mFontUnderline.get();
+    	   if (s.equals("underline"))
+    	   	   StyleConstants.setUnderline(a, true);
+    	   
+    	   else
+    		   StyleConstants.setUnderline(a, false);
+    	   
+       }
     }
 
     
@@ -464,7 +481,8 @@ public class TextBox extends JTextPane
     // the font style encoded in our owning LWComponent
     void copyStyle(LWComponent c)
     {
-        if (DEBUG.TEXT) out("copyStyle " + c);
+        if (DEBUG.TEXT) 
+        	out("copyStyle " + c);
         SimpleAttributeSet a = new SimpleAttributeSet();
         if (TestHarness || c instanceof LWNode && ((LWNode)c).isTextNode())
             StyleConstants.setAlignment(a, StyleConstants.ALIGN_LEFT);
@@ -472,7 +490,7 @@ public class TextBox extends JTextPane
             StyleConstants.setAlignment(a, StyleConstants.ALIGN_CENTER);
         StyleConstants.setForeground(a, c.getTextColor());
         final Font font = c.getFont();
-        setFontAttributes(a, font);
+        setFontAttributes(a, font,c);
 
         StyledDocument doc = getStyledDocument();
         if (DEBUG.TEXT) getPreferredSize();

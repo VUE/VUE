@@ -42,6 +42,7 @@ public interface LWKey {
     public LWComponent.Key StrokeStyle = LWComponent.KEY_StrokeStyle;
     public LWComponent.Key Font =  LWComponent.KEY_Font;
     public LWComponent.Key FontSize =  LWComponent.KEY_FontSize;
+    public LWComponent.Key FontUnderline =  LWComponent.KEY_FontUnderline;
     public LWComponent.Key FontName =  LWComponent.KEY_FontName;
     public LWComponent.Key FontStyle =  LWComponent.KEY_FontStyle;
     public LWComponent.Key Alignment =  LWComponent.KEY_Alignment;

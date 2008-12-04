@@ -27,12 +27,15 @@ import java.awt.BasicStroke;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.AlphaComposite;
+import java.awt.font.TextAttribute;
 import java.awt.geom.*;
 import java.awt.image.BufferedImage;
 
 import java.util.*;
 import java.util.regex.*;
 import java.net.*;
+
+import javax.swing.text.StyleConstants;
 //import tufts.vue.beans.UserMapType; // remove: old SB stuff we never used
 import tufts.vue.filter.*;
 
@@ -47,7 +50,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.444 $ / $Date: 2008-12-04 03:12:14 $ / $Author: sfraize $
+ * @version $Revision: 1.445 $ / $Date: 2008-12-04 18:50:56 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -270,9 +273,6 @@ public class LWComponent
     protected transient boolean mXMLRestoreUnderway = false; // are we in the middle of a restore?
     
     protected transient BufferedImage mCachedImage;
-
-    
-    
 
     public static final Comparator XSorter = new Comparator<LWComponent>() {
             public int compare(LWComponent c1, LWComponent c2) {
@@ -801,10 +801,19 @@ u                    getSlot(c).setFromString((String)value);
             set(newValue);
         }
         
+        boolean isChanged(T newValue)
+        {
+        	if (this.value == newValue || (newValue != null && newValue.equals(this.value)))
+        		return false;
+        	else 
+        		return true;
+        }
+        
         void set(T newValue) {
             //final Object old = get(); // if "get" actually does anything tho, this is a BAD idea; if needbe, create a "curValue"
-            if (this.value == newValue || (newValue != null && newValue.equals(this.value)))
-                return;
+         
+        	if (!isChanged(newValue))
+        		return;
             final Object oldValue = this.value;
             take(newValue);
             onChange();
@@ -918,6 +927,7 @@ u                    getSlot(c).setFromString((String)value);
     
     
     private static final Integer _DefaultInteger = new Integer(0);
+    
     public class IntProperty extends NumberProperty<java.lang.Integer> {
         IntProperty(Key key, Integer defaultValue) {
             super(key);
@@ -1162,6 +1172,7 @@ u                    getSlot(c).setFromString((String)value);
     public static final Key KEY_Font = new Key("font", KeyType.STYLE)                   { final Property getSlot(LWComponent c) { return c.mFont; } };
     public static final Key KEY_FontSize  = new Key("font.size", KeyType.SUB_STYLE)     { final Property getSlot(LWComponent c) { return c.mFontSize; } };
     public static final Key KEY_FontStyle = new Key("font.style", KeyType.SUB_STYLE)    { final Property getSlot(LWComponent c) { return c.mFontStyle; } };
+    public static final Key KEY_FontUnderline = new Key("font.underline", KeyType.SUB_STYLE)    { final Property getSlot(LWComponent c) { return c.mFontUnderline; } };
     public static final Key KEY_FontName  = new Key("font.name", KeyType.SUB_STYLE)     { final Property getSlot(LWComponent c) { return c.mFontName; } };
     
     public final ColorProperty mFillColor = new ColorProperty(KEY_FillColor);
@@ -1234,27 +1245,46 @@ u                    getSlot(c).setFromString((String)value);
         layout();*/
     }
 
-
+  
     public final IntProperty mFontStyle = new CSSFontStyleProperty(KEY_FontStyle)       { void onChange() { rebuildFont(); } };
     public final IntProperty mFontSize = new IntProperty(KEY_FontSize)                  { void onChange() { rebuildFont(); } };
     public final StringProperty mFontName = new CSSFontFamilyProperty(KEY_FontName)     { void onChange() { rebuildFont(); } };
+    public final StringProperty mFontUnderline = new StringProperty(KEY_FontUnderline)     {  
+    	
+    	boolean isChanged(String newValue) {
+    		return true;
+    	} 
+    	
+    	void onChange() { rebuildFont();
+    	 if (labelBox != null)
+             labelBox.copyStyle(LWComponent.this);
+         layout(this.key); // could make this generic: add a key bit that says "layout needed on-change";
+    	
+    	} 
+    	
+    	};
 
     private boolean fontIsRebuilding; // hack till we cleanup the old font code in gui tools (it's only all-at-once)
     private void rebuildFont() {
         // This so at least for now we have backward compat with the old font property (esp. for tools & persistance)
-        fontIsRebuilding = true;
+    	fontIsRebuilding = true;
         try  {
-            mFont.set(new Font(mFontName.get(), mFontStyle.get(), mFontSize.get()));
+        	Font f =new Font(mFontName.get(), mFontStyle.get(), mFontSize.get());
+            mFont.set(f);
+           
         } finally {
             fontIsRebuilding = false;
         }
     }
     
     public final FontProperty mFont = new FontProperty(KEY_Font) {
+    
             void onChange() {
                 if (!fontIsRebuilding) {
                     final Font f = get();
+                
                     mFontStyle.take(f.getStyle());
+                    
                     mFontSize.take(f.getSize());
                     mFontName.take(f.getName());
                 }

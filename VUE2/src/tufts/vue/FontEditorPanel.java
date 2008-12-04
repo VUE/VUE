@@ -19,6 +19,7 @@ import tufts.vue.gui.*;
 import tufts.vue.gui.formattingpalette.AlignmentDropDown;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.font.TextAttribute;
 import java.util.*;
 import java.beans.*;
 import javax.swing.*;
@@ -44,7 +45,7 @@ import com.lightdev.app.shtm.Util;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.82 $ / $Date: 2008-12-03 15:18:31 $ / $Author: mike $
+ * @version $Revision: 1.83 $ / $Date: 2008-12-04 18:50:56 $ / $Author: mike $
  *
  */
 public class FontEditorPanel extends JPanel
@@ -79,6 +80,7 @@ public class FontEditorPanel extends JPanel
     private final ButtonGroup buttonGroup = new ButtonGroup();
     //plain text action listener
     final ActionListener styleChangeHandler;
+    final ActionListener underlineChangeHandler;
     ActionListener alignmentHandler;      
     private FontPropertyHandler fontPropertyHandler = null;
     
@@ -450,6 +452,7 @@ public class FontEditorPanel extends JPanel
         //mSizeField.setMaximumSize(mSizeField.getPreferredSize());
         //mSizeField.setBackground(VueTheme.getVueColor());
 
+        
         styleChangeHandler =
             new LWPropertyHandler<Integer>(LWKey.FontStyle) {
                 public Integer produceValue() {
@@ -470,14 +473,40 @@ public class FontEditorPanel extends JPanel
                 public void setEnabled(boolean enabled) {
                     mBoldButton.setEnabled(enabled);
                     mItalicButton.setEnabled(enabled);
+                   
+                }
+        };
+        
+        underlineChangeHandler =
+            new LWPropertyHandler<String>(LWKey.FontUnderline) {
+                public String produceValue() {                
+                	String style="";
+                    if (mUnderlineButton.isSelected())
+                    	style="underline";
+                    else
+                    	style="normal";
+                    return style;
+                }
+                
+
+                public void setEnabled(boolean enabled) {
+              
                     mUnderlineButton.setEnabled(enabled);
                 }
+				public void displayValue(String propertyValue) {
+					 final String style = propertyValue;
+					 if (style.equals("underline"))
+	                    mUnderlineButton.setSelected(true);
+					 else
+						 mUnderlineButton.setSelected(false);
+					
+				}
         };
  		
         mBoldButton = new VueButton.Toggle("font.button.bold",styleChangeHandler);
         
         mItalicButton = new VueButton.Toggle("font.button.italic", styleChangeHandler);
-        mUnderlineButton = new VueButton.Toggle("font.button.underline"); // regular components don't support this style
+        mUnderlineButton = new VueButton.Toggle("font.button.underline",underlineChangeHandler); // regular components don't support this style
         //mUnderlineButton = new VueButton.Toggle("font.button.underline", styleChangeHandler);
         //alignmentButton = new AlignmentDropDown();
         mLeftAlignButton = new VueButton.Toggle("list.button.leftalignment");
@@ -1282,7 +1311,8 @@ public class FontEditorPanel extends JPanel
     	 EditorManager.registerEditor(fontPropertyHandler);
     	        
       mBoldButton.addActionListener(styleChangeHandler);
-      mItalicButton.addActionListener(styleChangeHandler);    	            	
+      mItalicButton.addActionListener(styleChangeHandler);  
+      mUnderlineButton.addActionListener(underlineChangeHandler);  
       mFontCombo.addActionListener(fontPropertyHandler);    	          	
       mSizeField.addActionListener(fontPropertyHandler);
       mLeftAlignButton.addActionListener(alignmentHandler);
