@@ -40,7 +40,7 @@ import edu.tufts.vue.fsm.event.SearchListener;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.100 $ / $Date: 2008-12-04 03:20:24 $ / $Author: sfraize $
+ * @version $Revision: 1.101 $ / $Date: 2008-12-04 06:08:30 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends WidgetStack
@@ -750,7 +750,7 @@ public class InspectorPane extends WidgetStack
 //             }
 
             //mDescription.setToolTipText(reformatted);
-            if (DEBUG.META) r.setProperty("~reformatted", reformatted);
+            if (DEBUG.DATA) r.setProperty("~reformatted", reformatted);
         } else {
             final StringBuilder b = new StringBuilder(128);
             final String title = r.getTitle();
@@ -860,7 +860,7 @@ public class InspectorPane extends WidgetStack
             b.append("</a>");
             htmlText.setText(b.toString());
 
-            if (DEBUG.Enabled) r.setProperty("~reformatted", b.toString());
+            if (DEBUG.DATA) r.setProperty("~reformatted", b.toString());
             
         }
 
