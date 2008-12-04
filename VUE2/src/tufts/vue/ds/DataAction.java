@@ -8,7 +8,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 import java.util.*;
 
 /**
- * @version $Revision: 1.1 $ / $Date: 2008-11-20 17:52:42 $ / $Author: sfraize $
+ * @version $Revision: 1.2 $ / $Date: 2008-12-04 03:17:02 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -40,7 +40,7 @@ public class DataAction
                 // if the target node c is schematic at all, it should only have
                 // one piece of meta-data, and it should be an exact match already
                 //boolean sameField = fieldName.equals(c.getSchematicFieldName());
-                final boolean sameField = c.isSchematicFieldNode();
+                final boolean sameField = c.isSchematicField();
                 links.add(makeLink(node, c, fieldName, fieldValue, sameField));
             }
                 
