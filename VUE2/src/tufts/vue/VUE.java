@@ -38,11 +38,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -104,6 +101,7 @@ import tufts.vue.gui.FullScreen;
 import tufts.vue.gui.GUI;
 import tufts.vue.gui.VueFrame;
 import tufts.vue.gui.VueMenuBar;
+import tufts.vue.gui.renderer.TCPopupEventQueue.BasicAction;
 import tufts.vue.ui.InspectorPane;
 import edu.tufts.vue.preferences.implementations.MetadataSchemaPreference;
 import edu.tufts.vue.preferences.implementations.ShowAgainDialog;
@@ -113,7 +111,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.591 $ / $Date: 2008-12-04 19:28:38 $ / $Author: sraphe01 $ 
+ * @version $Revision: 1.592 $ / $Date: 2008-12-05 22:42:03 $ / $Author: sraphe01 $ 
  */
 
 public class VUE
@@ -2148,7 +2146,7 @@ public class VUE
     }
     static class SearchTextField extends JTextField {
     	private boolean mouse_over = false;
-    	SearchTextField thisTxtFld;
+    	SearchTextField thisTxtFld;    	
     	boolean isWindows = VueUtil.isWindowsPlatform();
     	SearchTextField() {
     		super(VueResources.getString("search.text.default"),13);    		     	
@@ -2184,7 +2182,9 @@ public class VUE
           			
           		  }
           		  public void focusGained(FocusEvent e) {
-          			  setText("");
+          			if(getText().trim().equals(VueResources.getString("search.text.default")) ){
+       				 setText("");
+          			}
           		  }
           		});        		
         		
@@ -2234,47 +2234,80 @@ public class VUE
 				
 				if(!isWindow){
 					popup.addSeparator();
-					
+					ActionListener actionListener = new PopupActionListener();
 					JMenuItem selectMenuItem = new JMenuItem(VueResources.getString("search.popup.select.all"));
+					selectMenuItem.addActionListener(actionListener);
+					//selectMenuItem.setActionCommand(DefaultEditorKit.selectAllAction);
 					popup.add(selectMenuItem);
 					
 					JMenuItem cutMenuItem = new JMenuItem(VueResources.getString("search.popup.cut"));
+					cutMenuItem.addActionListener(actionListener);
+					//cutMenuItem.setActionCommand(DefaultEditorKit.cutAction);
 					popup.add(cutMenuItem);
 					
 					JMenuItem copyMenuItem = new JMenuItem(VueResources.getString("search.popup.copy"));
+					copyMenuItem.addActionListener(actionListener);
+					//copyMenuItem.setActionCommand(DefaultEditorKit.copyAction);
 					popup.add(copyMenuItem);
 					
 					JMenuItem pasteMenuItem = new JMenuItem(VueResources.getString("search.popup.paste"));
+					pasteMenuItem.addActionListener(actionListener);
+					//pasteMenuItem.setActionCommand(DefaultEditorKit.pasteAction);
 					popup.add(pasteMenuItem);
 					
 					JMenuItem clearMenuItem = new JMenuItem(VueResources.getString("search.popup.clear"));
+					clearMenuItem.addActionListener(actionListener);
 					popup.add(clearMenuItem);	
 				}
 				
 			}			
 			
 		}
+		class PopupActionListener implements ActionListener {
+			  public void actionPerformed(ActionEvent actionEvent) {
+			    if(VueResources.getString("search.popup.select.all").equals(actionEvent.getActionCommand().toString())){			    	
+			    	thisTxtFld.selectAll();
+			    }else if(VueResources.getString("search.popup.cut").equals(actionEvent.getActionCommand().toString())){			    	
+			    	thisTxtFld.cut();
+			    }else if(VueResources.getString("search.popup.copy").equals(actionEvent.getActionCommand().toString())){			    	
+			    	thisTxtFld.copy();
+			    }else if(VueResources.getString("search.popup.paste").equals(actionEvent.getActionCommand().toString())){			    	
+			    	thisTxtFld.paste();
+			    }else if(VueResources.getString("search.popup.clear").equals(actionEvent.getActionCommand().toString())){			    	
+			    	thisTxtFld.setText("");
+			    }
+			    
+			  }
+		}
 		private void createEditPopupMenu() {	
 			if(editPopup==null){
 				editPopup = new JPopupMenu();
-			
-				editPopup = new JPopupMenu();
+				ActionListener actionListener = new PopupActionListener();
 				JMenuItem selectMenuItem = new JMenuItem(VueResources.getString("search.popup.select.all"));
+				selectMenuItem.addActionListener(actionListener);
 				editPopup.add(selectMenuItem);
 				
 				JMenuItem cutMenuItem = new JMenuItem(VueResources.getString("search.popup.cut"));
+				cutMenuItem.addActionListener(actionListener);
+				//cutMenuItem.setActionCommand(DefaultEditorKit.cutAction);
 				editPopup.add(cutMenuItem);
 				
 				JMenuItem copyMenuItem = new JMenuItem(VueResources.getString("search.popup.copy"));
+				copyMenuItem.addActionListener(actionListener);
+				//copyMenuItem.setActionCommand(DefaultEditorKit.copyAction);
 				editPopup.add(copyMenuItem);
 				
 				JMenuItem pasteMenuItem = new JMenuItem(VueResources.getString("search.popup.paste"));
+				pasteMenuItem.addActionListener(actionListener);
+				//pasteMenuItem.setActionCommand(DefaultEditorKit.pasteAction);
 				editPopup.add(pasteMenuItem);
 				
 				JMenuItem clearMenuItem = new JMenuItem(VueResources.getString("search.popup.clear"));
+				clearMenuItem.addActionListener(actionListener);
 				editPopup.add(clearMenuItem);		
 			}
 		}
+		
 		protected void paintComponent(Graphics g) {
             // Paint the default look of the button.
             super.paintComponent(g);
