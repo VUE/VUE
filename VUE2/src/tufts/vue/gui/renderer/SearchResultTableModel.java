@@ -16,8 +16,8 @@ public class SearchResultTableModel extends AbstractTableModel {
 		return searchResultArrLst.size();
 	}
 
-	public void addRow(SearchData data) {
-		searchResultArrLst.add(data);
+	public void addRow(SearchData data) {			
+		searchResultArrLst.add(data);		
 		fireTableStructureChanged();
 	}
 
@@ -55,8 +55,12 @@ public class SearchResultTableModel extends AbstractTableModel {
 		}
 	}
 
-	public SearchData getData(int row) {
-		SearchData data = searchResultArrLst.get(row);
+	public SearchData getData(int row) {		
+		SearchData data = searchResultArrLst.get(row);			
+		return data;
+	}
+	public SearchData getSearchData(int row) {		
+		SearchData data = searchResultArrLst.get(row);		
 		return data;
 	}
 

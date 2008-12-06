@@ -73,7 +73,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.11 $ / $Date: 2008-12-04 18:56:20 $ / $Author: Sheejo
+ * @version $Revision: 1.12 $ / $Date: 2008-12-06 21:42:34 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -174,7 +174,7 @@ public class MetadataSearchMainGUI extends JPanel
 	private JTable searchHeaderTbl;
 	private JTable searchResultTbl;
     private JComboBox andOrCmbBox = new JComboBox(andOrTypes);
-    private String strAndOrType  = "and";
+    private String strAndOrType  = "or";
 	public MetadataSearchMainGUI(DockWindow w) {
 		super();
 		JPopupMenu popup = new JPopupMenu();
@@ -215,7 +215,6 @@ public class MetadataSearchMainGUI extends JPanel
 						    "Please select a Row",
 						    "Message",
 						    JOptionPane.WARNING_MESSAGE);
-
 				}
 			}
 		};
@@ -449,12 +448,13 @@ public class MetadataSearchMainGUI extends JPanel
 			termsAction = new SearchAction(searchTerms);
 			// SearchAction.revertGlobalSearchSelection();
 			// termsAction.setResultsType(resultsTypeChoice.getSelectedItem().toString());
-
-			searchButton = new JButton(termsAction);
+			termsAction.setOperator(SearchAction.OR);
+			searchButton = new JButton(termsAction);			
 			buttonPanel.setOpaque(true);
 			buttonPanel.setBackground(getBackground());
 			JButton resetButton = new JButton("Reset Map");
 			JButton saveButton = new JButton("Save");
+			searchResultModel = new  SearchResultTableModel();
 			saveButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {					
 					SearchData data = new SearchData();
@@ -469,8 +469,9 @@ public class MetadataSearchMainGUI extends JPanel
 					data.setAndOrType(strAndOrType);					
 					// TO DO have to and/or						
 					data.setDataList(searchTerms);
-					searchDataList.add(data);
+					searchDataList.add(data);					
 					searchResultModel.addRow(data);
+					searchTerms = new ArrayList<VueMetadataElement>();
 					WriteSearchXMLData xc = new WriteSearchXMLData(
 							searchDataList);
 					xc.runSearchWriteToFile();
@@ -735,7 +736,7 @@ public class MetadataSearchMainGUI extends JPanel
 				return false;
 		}
 
-		public Object getValueAt(int row, int col) {
+		public Object getValueAt(int row, int col) {			
 			if (row == 0 && searchTerms.size() == 0) {
 				VueMetadataElement vme = new VueMetadataElement();				
 				String statementObject[] = {
@@ -743,21 +744,22 @@ public class MetadataSearchMainGUI extends JPanel
 						"",
 						edu.tufts.vue.rdf.Query.Qualifier.CONTAINS.toString() };
 				vme.setObject(statementObject);
-				vme.setType(VueMetadataElement.SEARCH_STATEMENT);
-
+				vme.setType(VueMetadataElement.SEARCH_STATEMENT);				
 				searchTerms.add(vme);
-			}
+			}			
 			if (col == buttonColumn)
 				return "delete button";
 			else if (col == valueColumn)
 				return searchTerms.get(row).getValue();
 			else if (col == conditionColumn) {
 				String[] statement = (String[]) searchTerms.get(row)
-						.getObject();
-				if (statement.length > 2)
+						.getObject();				
+				if (statement.length > 2){					
 					return ((String[]) (searchTerms.get(row)).getObject())[2];
-				else
+				}
+				else{
 					return "";
+				}
 			} else
 				return searchTerms.get(row).getKey();
 		}
@@ -907,8 +909,8 @@ public class MetadataSearchMainGUI extends JPanel
 						edu.tufts.vue.rdf.Query.Qualifier.STARTS_WITH
 								.toString() };
 				newElement.setObject(statementObject);
-				newElement.setType(VueMetadataElement.SEARCH_STATEMENT);
-				searchTerms.add(newElement);
+				newElement.setType(VueMetadataElement.SEARCH_STATEMENT);				
+				searchTerms.add(newElement);				
 				((SearchTermsTableModel) searchTermsTable.getModel())
 						.refresh();
 				((SearchHeaderTableModel) searchHeaderTbl.getModel()).refresh();					
@@ -990,7 +992,7 @@ public class MetadataSearchMainGUI extends JPanel
 		headerComboColumn = 1;
 		headerCategoryColumn = -1;
 		headerValueColumn = 0;
-		termsAction = new SearchAction(searchTerms);
+		//termsAction = new SearchAction(searchTerms);
 		adjustHeaderTableColumnModel();
 		// treatNoneSpecially = true;
 		termsAction.setNoneIsSpecial(true);
@@ -1024,7 +1026,7 @@ public class MetadataSearchMainGUI extends JPanel
 		headerCategoryColumn = 0;
 		headerValueColumn = 1;
 		adjustHeaderTableColumnModel();
-		// termsAction = new SearchAction(searchTerms);
+		//termsAction = new SearchAction(searchTerms);
 
 		termsAction.setBasic(false);
 		termsAction.setTextOnly(false);
@@ -1055,7 +1057,7 @@ public class MetadataSearchMainGUI extends JPanel
 		headerComboColumn = 1;
 		headerCategoryColumn = -1;
 		headerValueColumn = 0;
-		termsAction = new SearchAction(searchTerms);
+		//termsAction = new SearchAction(searchTerms);
 
 		termsAction.setBasic(false);
 		termsAction.setTextOnly(true);
@@ -1095,7 +1097,7 @@ public class MetadataSearchMainGUI extends JPanel
 		headerValueColumn = 0;
 		adjustColumnModel();
 		adjustHeaderTableColumnModel();
-		termsAction = new SearchAction(searchTerms);
+		//termsAction = new SearchAction(searchTerms);
 		termsAction.setBasic(true);
 		termsAction.setTextOnly(false);
 		termsAction.setMetadataOnly(false);
@@ -1126,7 +1128,7 @@ public class MetadataSearchMainGUI extends JPanel
 		model.setColumns(3);
 		adjustColumnModel();
 		adjustHeaderTableColumnModel();
-		termsAction = new SearchAction(searchTerms);
+		//termsAction = new SearchAction(searchTerms);
 
 		termsAction.setBasic(false);
 		termsAction.setTextOnly(true);
@@ -1152,7 +1154,7 @@ public class MetadataSearchMainGUI extends JPanel
 		model.setColumns(5);
 		adjustColumnModel();
 		adjustHeaderTableColumnModel();
-		termsAction = new SearchAction(searchTerms);
+		//termsAction = new SearchAction(searchTerms);
 		termsAction.setBasic(false);
 		termsAction.setTextOnly(false);
 		termsAction.setMetadataOnly(false);
@@ -1266,27 +1268,28 @@ public class MetadataSearchMainGUI extends JPanel
 
 	public java.awt.Component createRendererComponent(JTable table,
 			Object value, final int row, int col) {
-		JPanel comp = new JPanel();
-
+		JPanel comp = new JPanel();	
+		if(table.isEditing()){
+			//table.getCellEditor().stopCellEditing();
+		}
 		comp.setLayout(new java.awt.BorderLayout());
 		if (col == (valueColumn)) {
 			final JTextField field = new JTextField();
 			field.setFont(tufts.vue.gui.GUI.LabelFace);
 			field.addFocusListener(new FocusAdapter() {
-				public void focusLost(FocusEvent fe) {
-					VueMetadataElement searchTerm = searchTerms.get(row);
+				public void focusLost(FocusEvent fe) {					
+					VueMetadataElement searchTerm = searchTerms.get(row);					
 					// Object searchTerm = searchTerms.get(row).getObject();
 					if (searchTerm.getObject() instanceof String[]) {						
 						String[] newStatement = {
 								((String[]) searchTerms.get(row).getObject())[0],
 								field.getText(),
-								((String[]) searchTerms.get(row).getObject())[2] };
+								((String[]) searchTerms.get(row).getObject())[2] };						
 						searchTerm.setObject(newStatement);						
 					}
-				}
-			});
-			
-			String val = ((String[]) searchTerms.get(row).getObject())[1];
+				}					
+			});			
+			String val = ((String[]) searchTerms.get(row).getObject())[1];			
 			field.setText(val);
 			// #VUE-887 -- whoops -- metadataeditor not here
 			comp.add(field);
@@ -1311,7 +1314,7 @@ public class MetadataSearchMainGUI extends JPanel
 
 						VueMetadataElement ele = new VueMetadataElement();
 						ele.setObject(statement);
-						ele.setType(VueMetadataElement.SEARCH_STATEMENT);
+						ele.setType(VueMetadataElement.SEARCH_STATEMENT);						
 						searchTerms.set(row, ele);
 
 					}
@@ -1351,6 +1354,7 @@ public class MetadataSearchMainGUI extends JPanel
 						VueMetadataElement ele = new VueMetadataElement();
 						ele.setObject(statement);
 						ele.setType(VueMetadataElement.SEARCH_STATEMENT);
+						System.err.println("2#");
 						searchTerms.set(row, ele);
 					}
 				}
@@ -1469,17 +1473,38 @@ public class MetadataSearchMainGUI extends JPanel
 				box.setSelectedItem(0);
 			}
 		}
-
 	}
-
 	class PopupListener extends MouseAdapter {
 		public void mousePressed(MouseEvent e) {
-			if(e.getX()>(searchResultTbl.getWidth()-40)){
-				System.err.println("Clicked on Run");
+			if(e.getClickCount()==2 && e.getX()>(searchResultTbl.getWidth()-40)){
+				
+//				SearchAction.revertGlobalSearchSelectionFromMSGUI();
+//				VUE.getActiveViewer().repaint();
+				
+				SearchData data = new SearchData();
+				int selectedRow = searchResultTbl.getSelectedRow();
+//				System.err.println("searchResultModel:::"+searchResultModel.getRowCount());
+				data = searchResultModel.getSearchData(selectedRow);	
+				searchTerms = data.getDataList();
+				termsAction = new SearchAction(searchTerms);
+				termsAction.setBasic(false);
+//				termsAction.setTextOnly(true);
+//				termsAction.setMetadataOnly(false);
+				int iAndOr = 0;
+				String andOrStr = data.getAndOrType();				
+				if(andOrStr.equals("and")){
+					iAndOr = SearchAction.AND;
+				}else{
+					iAndOr =  SearchAction.OR;
+				}	
+				termsAction.setOperator(iAndOr);
+				termsAction.setEverything(false);
+				// termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
+				searchButton.setAction(termsAction);
+				searchButton.doClick();
 			}
 			showPopup(e);
 		}
-
 		public void mouseReleased(MouseEvent e) {
 			showPopup(e);
 		}
@@ -1489,5 +1514,4 @@ public class MetadataSearchMainGUI extends JPanel
 			}
 		}
 	}
-
 }
