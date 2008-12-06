@@ -101,7 +101,6 @@ import tufts.vue.gui.FullScreen;
 import tufts.vue.gui.GUI;
 import tufts.vue.gui.VueFrame;
 import tufts.vue.gui.VueMenuBar;
-import tufts.vue.gui.renderer.TCPopupEventQueue.BasicAction;
 import tufts.vue.ui.InspectorPane;
 import edu.tufts.vue.preferences.implementations.MetadataSchemaPreference;
 import edu.tufts.vue.preferences.implementations.ShowAgainDialog;
@@ -111,7 +110,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.592 $ / $Date: 2008-12-05 22:42:03 $ / $Author: sraphe01 $ 
+ * @version $Revision: 1.593 $ / $Date: 2008-12-06 03:22:00 $ / $Author: sraphe01 $ 
  */
 
 public class VUE
