@@ -110,7 +110,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.593 $ / $Date: 2008-12-06 03:22:00 $ / $Author: sraphe01 $ 
+ * @version $Revision: 1.594 $ / $Date: 2008-12-07 18:57:42 $ / $Author: sraphe01 $ 
  */
 
 public class VUE
@@ -2129,10 +2129,12 @@ public class VUE
         //searchPanel.setBorder(BorderFactory.createLineBorder(Color.red,1));
         JPanel panel = new JPanel();
         boolean isWindows = VueUtil.isWindowsPlatform();
-        if(!isWindows){        	
-        	//TabStopDocument tabStopDocument = new TabStopDocument(mSearchtextFld, FIRST_TAB_STOP);        	
-        	//mSearchtextFld.setDocument(tabStopDocument);
-        	//mSearchtextFld.setText("Search");
+        if(!isWindows){  
+        	if (Util.isMacTiger()){
+	        	TabStopDocument tabStopDocument = new TabStopDocument(mSearchtextFld, FIRST_TAB_STOP);        	
+	        	mSearchtextFld.setDocument(tabStopDocument);
+	        	mSearchtextFld.setText(VueResources.getString("search.text.default"));
+        	}
         	
         }
         panel.add(mSearchtextFld);
@@ -2148,12 +2150,13 @@ public class VUE
     	SearchTextField thisTxtFld;    	
     	boolean isWindows = VueUtil.isWindowsPlatform();
     	SearchTextField() {
-    		super(VueResources.getString("search.text.default"),13);    		     	
+    		super(VueResources.getString("search.text.default"),15);    		     	
         	thisTxtFld = this;         	
         	GUI.init();
         	if(!isWindows){
         		putClientProperty("JTextField.variant", "search");
-        		Insets noInsets=new Insets(0,15,0,25);        		
+        		Insets noInsets=new Insets(0,30,0,25); 
+        		setMargin(noInsets);
         		createPopupMenu(isWindows);        		
         		addMouseListener(new MouseAdapter() {
 		            public void mouseClicked(MouseEvent e) {		            	
@@ -2311,11 +2314,15 @@ public class VUE
             // Paint the default look of the button.
             super.paintComponent(g);
             Image arrowImg = VueResources.getImageIcon("search.downarrowicon").getImage();
-            //Image clearImg = VueResources.getImageIcon("search.closeicon").getImage();
+            Image clearImg = VueResources.getImageIcon("search.closeicon").getImage();
             Image searchImg = VueResources.getImageIcon("search.searchicon").getImage();
             int h = getHeight(); 
             int w = getWidth();            
-            if(!isWindows){            	
+            if(!isWindows){  
+            	if (Util.isMacTiger()){
+            		g.drawImage(searchImg,5,h/2-7, searchImg.getWidth(null) , searchImg.getHeight(null), this);
+            		g.drawImage(clearImg,w-20,h/2-8, clearImg.getWidth(null) , clearImg.getHeight(null), this);
+            	}
             	//g.drawImage(arrowImg,30,h/2-5, arrowImg.getWidth(null) , arrowImg.getHeight(null), this); 
             	//g.drawString("search",55,h-10); 
             }else{             	        	
@@ -2330,14 +2337,21 @@ public class VUE
     }    
     static class TabStopDocument extends PlainDocument {
 
-    	  JTextField textField;
+    	  final JTextField textField;
 
     	  int tabStop;
 
     	  TabStopDocument(JTextField textField, int tabStop){
 
     	    this.textField = textField;
-
+    	    this.textField.addFocusListener(new FocusAdapter() {
+        		  public void focusLost(FocusEvent e) {
+        			
+        		  }
+        		  public void focusGained(FocusEvent e) {
+        			  
+        		  }
+        	});     
     	    this.tabStop = tabStop;
 
     	  }
@@ -2419,7 +2433,7 @@ public class VUE
     		      return;
 
     		    }
-    		    super.insertString(offset, str, attr);
+    		 super.insertString(offset, str, attr);
     	}
     }
     static public class SubtleSquareBorder implements Border
