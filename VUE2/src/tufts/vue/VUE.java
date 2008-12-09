@@ -102,6 +102,7 @@ import tufts.vue.gui.GUI;
 import tufts.vue.gui.VueFrame;
 import tufts.vue.gui.VueMenuBar;
 import tufts.vue.ui.InspectorPane;
+import edu.tufts.vue.metadata.ui.MetadataSearchGUI;
 import edu.tufts.vue.preferences.implementations.MetadataSchemaPreference;
 import edu.tufts.vue.preferences.implementations.ShowAgainDialog;
 import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
@@ -110,7 +111,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.594 $ / $Date: 2008-12-07 18:57:42 $ / $Author: sraphe01 $ 
+ * @version $Revision: 1.595 $ / $Date: 2008-12-09 00:14:36 $ / $Author: sraphe01 $ 
  */
 
 public class VUE
@@ -2128,15 +2129,7 @@ public class VUE
 //        
         //searchPanel.setBorder(BorderFactory.createLineBorder(Color.red,1));
         JPanel panel = new JPanel();
-        boolean isWindows = VueUtil.isWindowsPlatform();
-        if(!isWindows){  
-        	if (Util.isMacTiger()){
-	        	TabStopDocument tabStopDocument = new TabStopDocument(mSearchtextFld, FIRST_TAB_STOP);        	
-	        	mSearchtextFld.setDocument(tabStopDocument);
-	        	mSearchtextFld.setText(VueResources.getString("search.text.default"));
-        	}
-        	
-        }
+
         panel.add(mSearchtextFld);
         panel.add(new JLabel(" "));
 		toolbarPanel.add( panel  , SwingConstants.LEFT);		
@@ -2147,22 +2140,62 @@ public class VUE
     }
     static class SearchTextField extends JTextField {
     	private boolean mouse_over = false;
-    	SearchTextField thisTxtFld;    	
+    	SearchTextField thisTxtFld;    
+    	JTextField fieldTxt ;
     	boolean isWindows = VueUtil.isWindowsPlatform();
     	SearchTextField() {
-    		super(VueResources.getString("search.text.default"),15);    		     	
+    		super(VueResources.getString("search.text.default"),15);     		
         	thisTxtFld = this;         	
         	GUI.init();
         	if(!isWindows){
+        		if (Util.isMacTiger()){
+        			thisTxtFld.setText("");
+        			fieldTxt = new JTextField(12);  
+            		fieldTxt.setBorder(null);
+            		fieldTxt.setText(VueResources.getString("search.text.default"));
+            		createPopupMenu(isWindows);  
+            		addMouseListener(new MouseAdapter() {
+    		            public void mouseClicked(MouseEvent e) {     		            
+    		            	 if(e.getX() > getWidth()-23){   		     		     	
+   		     		     		fieldTxt.setText("");
+   		     		     	}
+    		            }
+    				});
+            		
+            		fieldTxt.addMouseListener(new MouseAdapter() {
+    		            public void mouseReleased(MouseEvent e) {     		            	
+    		            	if(e.isPopupTrigger()){
+    		            		popup.show(e.getComponent(), e.getX(), e.getY()); 
+    		            	}
+    		     		    
+    		            }
+    				});
+            		fieldTxt.addFocusListener(new FocusAdapter() {
+                		  public void focusLost(FocusEvent e) {
+                			
+                		  }
+                		  public void focusGained(FocusEvent e) {                			  
+                			 if(fieldTxt.getText().trim().equals(VueResources.getString("search.text.default")) ){
+                				 fieldTxt.setText("");
+                			 }
+                		  }
+                		});  
+            		thisTxtFld.setEditable(false);
+        			thisTxtFld.setLayout(new FlowLayout(FlowLayout.CENTER, 1, 0));
+        			thisTxtFld.add(fieldTxt, BorderLayout.CENTER);        			
+        		}else{
+        		setEditable(true);
         		putClientProperty("JTextField.variant", "search");
         		Insets noInsets=new Insets(0,30,0,25); 
         		setMargin(noInsets);
         		createPopupMenu(isWindows);        		
         		addMouseListener(new MouseAdapter() {
-		            public void mouseClicked(MouseEvent e) {		            	
+		            public void mouseReleased(MouseEvent e) {		            	
 		     		    boolean isWindows = VueUtil.isWindowsPlatform();
-		     		     if(!isWindows){	    	 
+		     		     if(!isWindows){
+		     		    	//if(e.isPopupTrigger()){
 		     		    	 popup.show(e.getComponent(), e.getX(), e.getY());
+		     		    	//}
 		     		     }		     		   
 		            }
 				});
@@ -2176,9 +2209,9 @@ public class VUE
             			 }
             		  }
             		});  
-        		
+        		}
         	} else{  		
-        		
+        		setEditable(true);
         		addFocusListener(new FocusAdapter() {
           		  public void focusLost(FocusEvent e) {
           			
@@ -2188,12 +2221,14 @@ public class VUE
        				 setText("");
           			}
           		  }
-          		});        		
+          		});  	
         		
+    			
         		Insets noInsets=new Insets(0,15,0,25); 
         		setMargin(noInsets);        			        		  	    
 				addMouseListener(new MouseAdapter() {
-		            public void mouseClicked(MouseEvent e) { 	     		    
+		            public void mouseReleased(MouseEvent e) { 
+		            	//if(e.isPopupTrigger()){
 		     		     if((e.getX()< 23) ){		     		    	 		
 		     		    	 createPopupMenu(isWindows);
 		     		    	 popup.show(e.getComponent(), e.getX()+5, e.getY());
@@ -2203,6 +2238,7 @@ public class VUE
 		     		     }else{
 		     		    	 //TO DO for Search Button Action
 		     		     }
+		            	//}
 		            }
 				});
         	} 
@@ -2211,11 +2247,13 @@ public class VUE
 		private void createPopupMenu(boolean isWindow) {
 			if(popup==null){
 				popup = new JPopupMenu();
+				ActionListener actionListener = new PopupActionListener();
 				JMenuItem searchMenuItem = new JMenuItem(VueResources.getString("search.popup.search"));
 				searchMenuItem.setEnabled(false);
 				popup.add(searchMenuItem);
 				
 	    		JCheckBoxMenuItem searcheveryWhereMenuItem = new JCheckBoxMenuItem(VueResources.getString("search.popup.searcheverywhere"), true);
+	    		searcheveryWhereMenuItem.addActionListener(actionListener);
 				popup.add(searcheveryWhereMenuItem);
 				
 				JCheckBoxMenuItem  labelMenuItem = new JCheckBoxMenuItem (VueResources.getString("search.popup.labels"));
@@ -2235,8 +2273,7 @@ public class VUE
 				popup.add(editSettingsMenuItem);				
 				
 				if(!isWindow){
-					popup.addSeparator();
-					ActionListener actionListener = new PopupActionListener();
+					popup.addSeparator();					
 					JMenuItem selectMenuItem = new JMenuItem(VueResources.getString("search.popup.select.all"));
 					selectMenuItem.addActionListener(actionListener);
 					//selectMenuItem.setActionCommand(DefaultEditorKit.selectAllAction);
@@ -2267,16 +2304,33 @@ public class VUE
 		}
 		class PopupActionListener implements ActionListener {
 			  public void actionPerformed(ActionEvent actionEvent) {
-			    if(VueResources.getString("search.popup.select.all").equals(actionEvent.getActionCommand().toString())){			    	
+			    if(VueResources.getString("search.popup.select.all").equals(actionEvent.getActionCommand().toString())){
+			    	if (Util.isMacTiger()){
+			    		fieldTxt.selectAll();
+			    	}else
 			    	thisTxtFld.selectAll();
-			    }else if(VueResources.getString("search.popup.cut").equals(actionEvent.getActionCommand().toString())){			    	
+			    }else if(VueResources.getString("search.popup.cut").equals(actionEvent.getActionCommand().toString())){
+			    	if (Util.isMacTiger()){
+			    		fieldTxt.cut();
+			    	}else
 			    	thisTxtFld.cut();
-			    }else if(VueResources.getString("search.popup.copy").equals(actionEvent.getActionCommand().toString())){			    	
+			    }else if(VueResources.getString("search.popup.copy").equals(actionEvent.getActionCommand().toString())){
+			    	if (Util.isMacTiger()){
+			    		fieldTxt.copy();
+			    	}else
 			    	thisTxtFld.copy();
-			    }else if(VueResources.getString("search.popup.paste").equals(actionEvent.getActionCommand().toString())){			    	
+			    }else if(VueResources.getString("search.popup.paste").equals(actionEvent.getActionCommand().toString())){
+			    	if (Util.isMacTiger()){
+			    		fieldTxt.paste();
+			    	}else
 			    	thisTxtFld.paste();
-			    }else if(VueResources.getString("search.popup.clear").equals(actionEvent.getActionCommand().toString())){			    	
+			    }else if(VueResources.getString("search.popup.clear").equals(actionEvent.getActionCommand().toString())){
+			    	if (Util.isMacTiger()){
+			    		fieldTxt.setText("");
+			    	}else
 			    	thisTxtFld.setText("");
+			    }else if(VueResources.getString("search.popup.searcheverywhere").equals(actionEvent.getActionCommand().toString())){
+					metadataSearchMainPanel.setEveryThingSearchMenuAction(thisTxtFld);
 			    }
 			    
 			  }
@@ -2316,15 +2370,15 @@ public class VUE
             Image arrowImg = VueResources.getImageIcon("search.downarrowicon").getImage();
             Image clearImg = VueResources.getImageIcon("search.closeicon").getImage();
             Image searchImg = VueResources.getImageIcon("search.searchicon").getImage();
+            //Image searchTigerImg = VueResources.getImageIcon("search.tiger.searchicon").getImage();
+            
             int h = getHeight(); 
             int w = getWidth();            
             if(!isWindows){  
             	if (Util.isMacTiger()){
             		g.drawImage(searchImg,5,h/2-7, searchImg.getWidth(null) , searchImg.getHeight(null), this);
             		g.drawImage(clearImg,w-20,h/2-8, clearImg.getWidth(null) , clearImg.getHeight(null), this);
-            	}
-            	//g.drawImage(arrowImg,30,h/2-5, arrowImg.getWidth(null) , arrowImg.getHeight(null), this); 
-            	//g.drawString("search",55,h-10); 
+            	}            	
             }else{             	        	
             	g.drawImage(arrowImg,5,h/2-5, arrowImg.getWidth(null) , arrowImg.getHeight(null), this); 
             	g.drawImage(searchImg,w-20,h/2-8, searchImg.getWidth(null) , searchImg.getHeight(null), this);            	

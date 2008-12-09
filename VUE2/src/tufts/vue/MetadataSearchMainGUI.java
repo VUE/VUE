@@ -73,7 +73,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.12 $ / $Date: 2008-12-06 21:42:34 $ / $Author: Sheejo
+ * @version $Revision: 1.13 $ / $Date: 2008-12-09 00:14:12 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -117,7 +117,7 @@ public class MetadataSearchMainGUI extends JPanel
 	private int conditionColumn = -1;
 	private int searchType = EVERYTHING;
 	private JButton searchButton;
-	private static String[] andOrTypes = { "and", "or" };
+	private static String[] andOrTypes = {"or","and" };
 	private static final boolean DEBUG_LOCAL = false;
 	private JPanel topPanel;
 	private JPanel innerTopPanel;
@@ -445,11 +445,13 @@ public class MetadataSearchMainGUI extends JPanel
 			// topPanel.add(fieldsPanel);
 
 			buttonPanel = new JPanel(new BorderLayout());
+			
 			termsAction = new SearchAction(searchTerms);
-			// SearchAction.revertGlobalSearchSelection();
-			// termsAction.setResultsType(resultsTypeChoice.getSelectedItem().toString());
+	        //SearchAction.revertGlobalSearchSelection();
+	        //termsAction.setResultsType(resultsTypeChoice.getSelectedItem().toString());
 			termsAction.setOperator(SearchAction.OR);
-			searchButton = new JButton(termsAction);			
+	        searchButton = new JButton(termsAction);
+	        
 			buttonPanel.setOpaque(true);
 			buttonPanel.setBackground(getBackground());
 			JButton resetButton = new JButton("Reset Map");
@@ -1057,7 +1059,8 @@ public class MetadataSearchMainGUI extends JPanel
 		headerComboColumn = 1;
 		headerCategoryColumn = -1;
 		headerValueColumn = 0;
-		//termsAction = new SearchAction(searchTerms);
+		
+		termsAction = new SearchAction(searchTerms);
 
 		termsAction.setBasic(false);
 		termsAction.setTextOnly(true);
@@ -1065,9 +1068,15 @@ public class MetadataSearchMainGUI extends JPanel
 		termsAction.setOperator(getSelectedOperator());
 		termsAction.setEverything(true);
 		// termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
-		searchButton.setAction(termsAction);
+		searchButton.setAction(termsAction);		
 	}
-
+	public void setEveryThingSearchMenuAction(JTextField searchField){
+		searchButton = new JButton(new SearchAction(searchField));
+		termsAction = new SearchAction(searchTerms);      
+        searchButton = new JButton(termsAction);        	
+	}
+	
+	
 	public int getSelectedOperator() {
 		if(strAndOrType.equals("and")){
 			return SearchAction.AND;
@@ -1128,7 +1137,7 @@ public class MetadataSearchMainGUI extends JPanel
 		model.setColumns(3);
 		adjustColumnModel();
 		adjustHeaderTableColumnModel();
-		//termsAction = new SearchAction(searchTerms);
+//		termsAction = new SearchAction(searchTerms);
 
 		termsAction.setBasic(false);
 		termsAction.setTextOnly(true);
@@ -1354,7 +1363,6 @@ public class MetadataSearchMainGUI extends JPanel
 						VueMetadataElement ele = new VueMetadataElement();
 						ele.setObject(statement);
 						ele.setType(VueMetadataElement.SEARCH_STATEMENT);
-						System.err.println("2#");
 						searchTerms.set(row, ele);
 					}
 				}
@@ -1476,33 +1484,35 @@ public class MetadataSearchMainGUI extends JPanel
 	}
 	class PopupListener extends MouseAdapter {
 		public void mousePressed(MouseEvent e) {
-			if(e.getClickCount()==2 && e.getX()>(searchResultTbl.getWidth()-40)){
-				
-//				SearchAction.revertGlobalSearchSelectionFromMSGUI();
-//				VUE.getActiveViewer().repaint();
-				
-				SearchData data = new SearchData();
-				int selectedRow = searchResultTbl.getSelectedRow();
-//				System.err.println("searchResultModel:::"+searchResultModel.getRowCount());
-				data = searchResultModel.getSearchData(selectedRow);	
-				searchTerms = data.getDataList();
-				termsAction = new SearchAction(searchTerms);
-				termsAction.setBasic(false);
-//				termsAction.setTextOnly(true);
-//				termsAction.setMetadataOnly(false);
-				int iAndOr = 0;
-				String andOrStr = data.getAndOrType();				
-				if(andOrStr.equals("and")){
-					iAndOr = SearchAction.AND;
-				}else{
-					iAndOr =  SearchAction.OR;
-				}	
-				termsAction.setOperator(iAndOr);
-				termsAction.setEverything(false);
-				// termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
-				searchButton.setAction(termsAction);
-				searchButton.doClick();
-			}
+			if(e.getClickCount()==2 && e.getX()>(searchResultTbl.getWidth()-40)){				
+				 SearchData data = new SearchData();
+				 int selectedRow = searchResultTbl.getSelectedRow();
+				 data = searchResultModel.getSearchData(selectedRow);
+				 
+				 //searchTerms = data.getDataList();
+//				 for(int i=0;i< data.getDataList().size();i++){
+//				   System.err.println("@@@"+((String[]) (data.getDataList().get(i)).getObject())[1]);
+//				 }
+				 if(data.getDataList()!=null){
+					 termsAction = new SearchAction(data.getDataList());
+				 }
+				 termsAction.setBasic(false);
+				 termsAction.setTextOnly(true);
+				 termsAction.setMetadataOnly(false);
+				 int iAndOr = 0;
+				 String andOrStr = data.getAndOrType();
+				 if(andOrStr.equals("and")){
+				 iAndOr = SearchAction.AND;
+				 }else{
+				 iAndOr =  SearchAction.OR;
+				 }
+				 termsAction.setResultsType(data.getResultType());				 
+				 termsAction.setOperator(iAndOr);
+				 termsAction.setEverything(true);
+				 // termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
+				 searchButton.setAction(termsAction);
+				 searchButton.doClick(); 
+			}			
 			showPopup(e);
 		}
 		public void mouseReleased(MouseEvent e) {
