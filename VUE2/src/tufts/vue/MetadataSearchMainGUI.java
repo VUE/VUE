@@ -17,6 +17,7 @@ package tufts.vue;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -42,6 +43,7 @@ import javax.swing.BorderFactory;
 import javax.swing.DefaultCellEditor;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
@@ -62,6 +64,7 @@ import tufts.vue.gui.VueTextPane;
 import tufts.vue.gui.Widget;
 import tufts.vue.gui.WidgetStack;
 import tufts.vue.gui.renderer.SavedSearchTableRenderer;
+import tufts.vue.gui.renderer.SearchResultTableEditor;
 import tufts.vue.gui.renderer.SearchResultTableModel;
 import edu.tufts.vue.metadata.VueMetadataElement;
 import edu.tufts.vue.metadata.action.SearchAction;
@@ -73,7 +76,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.13 $ / $Date: 2008-12-09 00:14:12 $ / $Author: Sheejo
+ * @version $Revision: 1.14 $ / $Date: 2008-12-09 18:11:14 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -210,11 +213,6 @@ public class MetadataSearchMainGUI extends JPanel
 				if (selectedIndex != -1){
 					searchResultTbl.editCellAt(selectedIndex, 0);
 					searchResultModel.setEditableFlag(false);
-				}else{					
-					JOptionPane.showMessageDialog((Component)mapInfoStack,
-						    "Please select a Row",
-						    "Message",
-						    JOptionPane.WARNING_MESSAGE);
 				}
 			}
 		};
@@ -223,11 +221,6 @@ public class MetadataSearchMainGUI extends JPanel
 				int selectedIndex = searchResultTbl.getSelectedRow();
 				if (selectedIndex != -1){
 					searchResultModel.removeRow(selectedIndex);
-				}else{
-					JOptionPane.showMessageDialog((Component)mapInfoStack,
-						    "Please select a Row",
-						    "Message",
-						    JOptionPane.WARNING_MESSAGE);
 				}
 			}
 		};
@@ -449,7 +442,7 @@ public class MetadataSearchMainGUI extends JPanel
 			termsAction = new SearchAction(searchTerms);
 	        //SearchAction.revertGlobalSearchSelection();
 	        //termsAction.setResultsType(resultsTypeChoice.getSelectedItem().toString());
-			termsAction.setOperator(SearchAction.OR);
+			termsAction.setOperator(getSelectedOperator());
 	        searchButton = new JButton(termsAction);
 	        
 			buttonPanel.setOpaque(true);
@@ -483,7 +476,6 @@ public class MetadataSearchMainGUI extends JPanel
 			resetButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					SearchAction.revertGlobalSearchSelectionFromMSGUI();
-
 					VUE.getActiveViewer().repaint();
 				}
 			});
@@ -625,7 +617,7 @@ public class MetadataSearchMainGUI extends JPanel
 					.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 			searchResultTbl.setDefaultRenderer(java.lang.Object.class,
 					new SavedSearchTableRenderer(searchResultModel));
-			//searchResultTbl.setCellEditor( new SearchResultTableEditor());
+			//searchResultTbl.setCellEditor( new SearchResultTableEditor(new JCheckBox()));
 			
 			((DefaultCellEditor) searchResultTbl
 					.getDefaultEditor(java.lang.Object.class))
@@ -640,11 +632,6 @@ public class MetadataSearchMainGUI extends JPanel
 					int selectedIndex = searchResultTbl.getSelectedRow();
 					if (selectedIndex != -1){
 						searchResultModel.removeRow(selectedIndex);
-					}else{
-						JOptionPane.showMessageDialog((Component)mapInfoStack,
-							    "Please select a Row",
-							    "Message",
-							    JOptionPane.WARNING_MESSAGE);
 					}
 				}
 			});
@@ -655,11 +642,6 @@ public class MetadataSearchMainGUI extends JPanel
 					if (selectedIndex != -1){
 						searchResultTbl.editCellAt(selectedIndex, 0);
 						searchResultModel.setEditableFlag(false);
-					}else{
-						JOptionPane.showMessageDialog((Component)mapInfoStack,
-							    "Please select a Row",
-							    "Message",
-							    JOptionPane.WARNING_MESSAGE);
 					}
 				}
 			});
@@ -1482,17 +1464,16 @@ public class MetadataSearchMainGUI extends JPanel
 			}
 		}
 	}
-	class PopupListener extends MouseAdapter {
+	class PopupListener extends MouseAdapter {		
 		public void mousePressed(MouseEvent e) {
-			if(e.getClickCount()==2 && e.getX()>(searchResultTbl.getWidth()-40)){				
+			if(e.getClickCount()==2 && e.getX()>(searchResultTbl.getWidth()-40)){				 
 				 SearchData data = new SearchData();
-				 int selectedRow = searchResultTbl.getSelectedRow();
-				 data = searchResultModel.getSearchData(selectedRow);
-				 
+				 int selectedRow = searchResultTbl.getSelectedRow();				 
+				 data = searchResultModel.getSearchData(selectedRow);				 
 				 //searchTerms = data.getDataList();
 //				 for(int i=0;i< data.getDataList().size();i++){
 //				   System.err.println("@@@"+((String[]) (data.getDataList().get(i)).getObject())[1]);
-//				 }
+//				 }				 
 				 if(data.getDataList()!=null){
 					 termsAction = new SearchAction(data.getDataList());
 				 }
@@ -1510,8 +1491,9 @@ public class MetadataSearchMainGUI extends JPanel
 				 termsAction.setOperator(iAndOr);
 				 termsAction.setEverything(true);
 				 // termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
-				 searchButton.setAction(termsAction);
-				 searchButton.doClick(); 
+				 JButton btn = new JButton();
+				 btn.setAction(termsAction);
+				 btn.doClick(); 
 			}			
 			showPopup(e);
 		}
