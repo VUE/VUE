@@ -111,7 +111,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.595 $ / $Date: 2008-12-09 00:14:36 $ / $Author: sraphe01 $ 
+ * @version $Revision: 1.596 $ / $Date: 2008-12-09 15:38:28 $ / $Author: sraphe01 $ 
  */
 
 public class VUE
@@ -2163,12 +2163,18 @@ public class VUE
     				});
             		
             		fieldTxt.addMouseListener(new MouseAdapter() {
-    		            public void mouseReleased(MouseEvent e) {     		            	
-    		            	if(e.isPopupTrigger()){
-    		            		popup.show(e.getComponent(), e.getX(), e.getY()); 
-    		            	}
-    		     		    
-    		            }
+            			public void mousePressed(MouseEvent e) {
+            		        evaluatePopup(e);
+            		     }
+            		     public void mouseReleased(MouseEvent e) {
+            		        evaluatePopup(e);
+            		     }
+            		     private void evaluatePopup(MouseEvent e) {
+            		        if (e.isPopupTrigger()) {
+            		        	popup.show(e.getComponent(), e.getX(), e.getY()); 
+            		        }
+            		     }
+
     				});
             		fieldTxt.addFocusListener(new FocusAdapter() {
                 		  public void focusLost(FocusEvent e) {
@@ -2190,14 +2196,19 @@ public class VUE
         		setMargin(noInsets);
         		createPopupMenu(isWindows);        		
         		addMouseListener(new MouseAdapter() {
-		            public void mouseReleased(MouseEvent e) {		            	
-		     		    boolean isWindows = VueUtil.isWindowsPlatform();
-		     		     if(!isWindows){
-		     		    	//if(e.isPopupTrigger()){
-		     		    	 popup.show(e.getComponent(), e.getX(), e.getY());
-		     		    	//}
-		     		     }		     		   
-		            }
+        		    public void mousePressed(MouseEvent e) {
+        		        evaluatePopup(e);
+        		     }
+        		     public void mouseReleased(MouseEvent e) {
+        		        evaluatePopup(e);
+        		     }
+        		     private void evaluatePopup(MouseEvent e) {
+        		        if (e.isPopupTrigger()) {
+        		        	popup.show(e.getComponent(), e.getX(), e.getY());
+        		        }
+
+        		     }
+
 				});
         		addFocusListener(new FocusAdapter() {
             		  public void focusLost(FocusEvent e) {
@@ -2228,7 +2239,7 @@ public class VUE
         		setMargin(noInsets);        			        		  	    
 				addMouseListener(new MouseAdapter() {
 		            public void mouseReleased(MouseEvent e) { 
-		            	//if(e.isPopupTrigger()){
+		            	if(e.isPopupTrigger()){
 		     		     if((e.getX()< 23) ){		     		    	 		
 		     		    	 createPopupMenu(isWindows);
 		     		    	 popup.show(e.getComponent(), e.getX()+5, e.getY());
@@ -2238,7 +2249,7 @@ public class VUE
 		     		     }else{
 		     		    	 //TO DO for Search Button Action
 		     		     }
-		            	//}
+		            	}
 		            }
 				});
         	} 
@@ -2370,13 +2381,13 @@ public class VUE
             Image arrowImg = VueResources.getImageIcon("search.downarrowicon").getImage();
             Image clearImg = VueResources.getImageIcon("search.closeicon").getImage();
             Image searchImg = VueResources.getImageIcon("search.searchicon").getImage();
-            //Image searchTigerImg = VueResources.getImageIcon("search.tiger.searchicon").getImage();
+            Image searchTigerImg = VueResources.getImageIcon("search.tiger.searchicon").getImage();
             
             int h = getHeight(); 
             int w = getWidth();            
             if(!isWindows){  
             	if (Util.isMacTiger()){
-            		g.drawImage(searchImg,5,h/2-7, searchImg.getWidth(null) , searchImg.getHeight(null), this);
+            		g.drawImage(searchTigerImg,5,h/2-7, searchTigerImg.getWidth(null) , searchTigerImg.getHeight(null), this);
             		g.drawImage(clearImg,w-20,h/2-8, clearImg.getWidth(null) , clearImg.getHeight(null), this);
             	}            	
             }else{             	        	
