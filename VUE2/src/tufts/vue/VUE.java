@@ -102,6 +102,8 @@ import tufts.vue.gui.GUI;
 import tufts.vue.gui.VueFrame;
 import tufts.vue.gui.VueMenuBar;
 import tufts.vue.ui.InspectorPane;
+import edu.tufts.vue.metadata.VueMetadataElement;
+import edu.tufts.vue.metadata.action.SearchAction;
 import edu.tufts.vue.metadata.ui.MetadataSearchGUI;
 import edu.tufts.vue.preferences.implementations.MetadataSchemaPreference;
 import edu.tufts.vue.preferences.implementations.ShowAgainDialog;
@@ -111,7 +113,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.596 $ / $Date: 2008-12-09 15:38:28 $ / $Author: sraphe01 $ 
+ * @version $Revision: 1.597 $ / $Date: 2008-12-09 22:46:26 $ / $Author: sraphe01 $ 
  */
 
 public class VUE
@@ -163,7 +165,12 @@ public class VUE
     private static JPopupMenu editPopup;
     private static SearchTextField mSearchtextFld = new SearchTextField();
     public static final int FIRST_TAB_STOP = 6;
-    public static JCheckBoxMenuItem  searcheveryWhereMenuItem;
+    public static JCheckBoxMenuItem  searcheveryWhereMenuItem;  
+    public static JCheckBoxMenuItem  labelMenuItem;
+    public static JCheckBoxMenuItem  keywordMenuItem;
+    public static JCheckBoxMenuItem  categoriesMenuItem;
+    public static JCheckBoxMenuItem  categoryKeywordMenuItem;
+    public static JCheckBoxMenuItem  editSettingsMenuItem;
     public static void finalizeDocks()
     {
     
@@ -2263,24 +2270,30 @@ public class VUE
 				searchMenuItem.setEnabled(false);
 				popup.add(searchMenuItem);
 				
-	    		JCheckBoxMenuItem searcheveryWhereMenuItem = new JCheckBoxMenuItem(VueResources.getString("search.popup.searcheverywhere"), true);
+	    		searcheveryWhereMenuItem = new JCheckBoxMenuItem(VueResources.getString("search.popup.searcheverywhere"), true);
 	    		searcheveryWhereMenuItem.addActionListener(actionListener);
 				popup.add(searcheveryWhereMenuItem);
 				
-				JCheckBoxMenuItem  labelMenuItem = new JCheckBoxMenuItem (VueResources.getString("search.popup.labels"));
+				 labelMenuItem = new JCheckBoxMenuItem (VueResources.getString("search.popup.labels"));
+				labelMenuItem.addActionListener(actionListener);
 				popup.add(labelMenuItem);	
 				
-				JCheckBoxMenuItem  keywordMenuItem = new JCheckBoxMenuItem (VueResources.getString("search.popup.keywords"));
+				keywordMenuItem = new JCheckBoxMenuItem (VueResources.getString("search.popup.keywords"));
+				keywordMenuItem.addActionListener(actionListener);
 				popup.add(keywordMenuItem);	
 				
-				JCheckBoxMenuItem  categoriesMenuItem = new JCheckBoxMenuItem (VueResources.getString("search.popup.categories"));
+				categoriesMenuItem = new JCheckBoxMenuItem (VueResources.getString("search.popup.categories"));
+				categoriesMenuItem.addActionListener(actionListener);
 				popup.add(categoriesMenuItem);	
 				
-				JCheckBoxMenuItem  categoryKeywordMenuItem = new JCheckBoxMenuItem (VueResources.getString("search.popup.categories")+" + "+VueResources.getString("search.popup.keywords"));
-				popup.add(categoryKeywordMenuItem);	
+				categoryKeywordMenuItem = new JCheckBoxMenuItem (VueResources.getString("search.popup.categories")+" + "+VueResources.getString("search.popup.keywords"));
+				categoryKeywordMenuItem.addActionListener(actionListener);
+				popup.add(categoryKeywordMenuItem);
 				
+				popup.addSeparator();
 				
-				JCheckBoxMenuItem  editSettingsMenuItem = new JCheckBoxMenuItem(VueResources.getString("search.popup.edit.search.settings"));
+				editSettingsMenuItem = new JCheckBoxMenuItem(VueResources.getString("search.popup.edit.search.settings"));
+				editSettingsMenuItem.addActionListener(actionListener);
 				popup.add(editSettingsMenuItem);				
 				
 				if(!isWindow){
@@ -2341,10 +2354,188 @@ public class VUE
 			    	}else
 			    	thisTxtFld.setText("");
 			    }else if(VueResources.getString("search.popup.searcheverywhere").equals(actionEvent.getActionCommand().toString())){
-					metadataSearchMainPanel.setEveryThingSearchMenuAction(thisTxtFld);
+			    	
+			    	searcheveryWhereMenuItem.setSelected(true);		    	
+			    	keywordMenuItem.setSelected(false);
+			    	categoriesMenuItem.setSelected(false);
+			    	categoryKeywordMenuItem.setSelected(false);			    		    	
+			    	labelMenuItem.setSelected(false);			    			    			    	
+			    	editSettingsMenuItem.setSelected(false);
+			    	
+			    	List<VueMetadataElement> searchTerms = new ArrayList<VueMetadataElement>();
+			    	VueMetadataElement vme = new VueMetadataElement();				
+					String statementObject[] = {
+							VueResources.getString("metadata.vue.url") + "#none",
+							thisTxtFld.getText().trim(),
+							edu.tufts.vue.rdf.Query.Qualifier.CONTAINS.toString() };
+					vme.setObject(statementObject);
+					vme.setType(VueMetadataElement.SEARCH_STATEMENT);				
+					searchTerms.add(vme);					
+			    	 SearchAction termsAction = new SearchAction(searchTerms);
+			    	 termsAction.setBasic(false);
+					 termsAction.setTextOnly(true);
+					 termsAction.setMetadataOnly(false);
+					 termsAction.setOperator(getMetadataSearchMainPanel()
+										.getSelectedOperator());
+					if (getMetadataSearchMainPanel() != null) {						
+						setTermsAction(termsAction);
+					}
+					// termsAction.setResultsType("Select");
+					JButton btn = new JButton();
+					btn.setAction(termsAction);
+					btn.doClick(); 
+					//metadataSearchMainPanel.searchButtonAction();
+			    }else if(VueResources.getString("search.popup.edit.search.settings").equals(actionEvent.getActionCommand().toString())){
+			    	searcheveryWhereMenuItem.setSelected(false);		    	
+			    	keywordMenuItem.setSelected(false);
+			    	categoriesMenuItem.setSelected(false);
+			    	categoryKeywordMenuItem.setSelected(false);			    		    	
+			    	labelMenuItem.setSelected(false);			    			    			    	
+			    	editSettingsMenuItem.setSelected(true);		    	
+			    	getMetadataSearchMainGUI().setVisible(true); 
+			    }else if(VueResources.getString("search.popup.labels").equals(actionEvent.getActionCommand().toString())){
+			    	searcheveryWhereMenuItem.setSelected(false);		    	
+			    	keywordMenuItem.setSelected(false);
+			    	categoriesMenuItem.setSelected(false);
+			    	categoryKeywordMenuItem.setSelected(false);			    		    	
+			    	labelMenuItem.setSelected(true);			    			    			    	
+			    	editSettingsMenuItem.setSelected(false);			    	
+			    	List<VueMetadataElement> searchTerms = new ArrayList<VueMetadataElement>();
+			    	VueMetadataElement vme = new VueMetadataElement();				
+					String statementObject[] = {
+							VueResources.getString("metadata.vue.url") + "#none",
+							thisTxtFld.getText().trim(),
+							edu.tufts.vue.rdf.Query.Qualifier.CONTAINS.toString() };
+					vme.setObject(statementObject);
+					vme.setType(VueMetadataElement.SEARCH_STATEMENT);				
+					searchTerms.add(vme);		
+					SearchAction termsAction = new SearchAction(searchTerms);
+					termsAction.setBasic(true);
+					termsAction.setTextOnly(false);
+					termsAction.setMetadataOnly(false);
+					termsAction.setOperator(getMetadataSearchMainPanel().getSelectedOperator());
+					termsAction.setEverything(false);
+					if (getMetadataSearchMainPanel() != null) {						
+						setTermsAction(termsAction);
+					}
+					JButton btn = new JButton();
+					btn.setAction(termsAction);
+					btn.doClick();
+			    }else if(VueResources.getString("search.popup.keywords").equals(actionEvent.getActionCommand().toString())){
+			    	searcheveryWhereMenuItem.setSelected(false);		    	
+			    	keywordMenuItem.setSelected(true);
+			    	categoriesMenuItem.setSelected(false);
+			    	categoryKeywordMenuItem.setSelected(false);			    		    	
+			    	labelMenuItem.setSelected(false);			    			    			    	
+			    	editSettingsMenuItem.setSelected(false);
+			    	List<VueMetadataElement> searchTerms = new ArrayList<VueMetadataElement>();
+			    	VueMetadataElement vme = new VueMetadataElement();				
+					String statementObject[] = {
+							VueResources.getString("metadata.vue.url") + "#none",
+							thisTxtFld.getText().trim(),
+							edu.tufts.vue.rdf.Query.Qualifier.CONTAINS.toString() };
+					vme.setObject(statementObject);
+					vme.setType(VueMetadataElement.SEARCH_STATEMENT);				
+					searchTerms.add(vme);		
+					SearchAction termsAction = new SearchAction(searchTerms);
+					termsAction.setBasic(false);
+					termsAction.setTextOnly(true);
+					termsAction.setMetadataOnly(true);
+					termsAction.setOperator(getMetadataSearchMainPanel().getSelectedOperator());
+					termsAction.setEverything(false);					
+					if (getMetadataSearchMainPanel() != null) {						
+						setTermsAction(termsAction);
+					}
+					JButton btn = new JButton();
+					btn.setAction(termsAction);
+					btn.doClick();
+			    }else if((VueResources.getString("search.popup.categories")+" + "+VueResources.getString("search.popup.keywords")).equals(actionEvent.getActionCommand().toString())){
+			    	searcheveryWhereMenuItem.setSelected(false);		    	
+			    	keywordMenuItem.setSelected(false);
+			    	categoriesMenuItem.setSelected(false);
+			    	categoryKeywordMenuItem.setSelected(true);			    		    	
+			    	labelMenuItem.setSelected(false);			    			    			    	
+			    	editSettingsMenuItem.setSelected(false);
+			    	List<VueMetadataElement> searchTerms = new ArrayList<VueMetadataElement>();
+			    	VueMetadataElement vme = new VueMetadataElement();				
+					String statementObject[] = {
+							VueResources.getString("metadata.vue.url") + "#none",
+							thisTxtFld.getText().trim(),
+							edu.tufts.vue.rdf.Query.Qualifier.CONTAINS.toString() };
+					vme.setObject(statementObject);
+					vme.setType(VueMetadataElement.SEARCH_STATEMENT);				
+					searchTerms.add(vme);		
+					SearchAction termsAction = new SearchAction(searchTerms);
+					termsAction.setBasic(false);
+					termsAction.setTextOnly(false);
+					termsAction.setMetadataOnly(false);
+					termsAction.setOperator(getMetadataSearchMainPanel().getSelectedOperator());
+					termsAction.setEverything(false);			
+					if (getMetadataSearchMainPanel() != null) {						
+						setTermsAction(termsAction);
+					}
+					JButton btn = new JButton();
+					btn.setAction(termsAction);
+					btn.doClick();
+			    }else if(VueResources.getString("search.popup.categories").equals(actionEvent.getActionCommand().toString())){
+			    	searcheveryWhereMenuItem.setSelected(false);		    	
+			    	keywordMenuItem.setSelected(false);
+			    	categoriesMenuItem.setSelected(true);
+			    	categoryKeywordMenuItem.setSelected(false);			    		    	
+			    	labelMenuItem.setSelected(false);			    			    			    	
+			    	editSettingsMenuItem.setSelected(false);
+			    	List<VueMetadataElement> searchTerms = new ArrayList<VueMetadataElement>();
+			    	VueMetadataElement vme = new VueMetadataElement();				
+					String statementObject[] = {
+							VueResources.getString("metadata.vue.url") + "#none",
+							thisTxtFld.getText().trim(),
+							edu.tufts.vue.rdf.Query.Qualifier.CONTAINS.toString() };
+					vme.setObject(statementObject);
+					vme.setType(VueMetadataElement.SEARCH_STATEMENT);				
+					searchTerms.add(vme);		
+					SearchAction termsAction = new SearchAction(searchTerms);
+					termsAction.setNoneIsSpecial(true);
+
+					termsAction.setTextOnly(false);
+					termsAction.setBasic(false);
+					termsAction.setMetadataOnly(false);
+					termsAction.setOperator(getMetadataSearchMainPanel().getSelectedOperator());
+					termsAction.setEverything(false);			
+					if (getMetadataSearchMainPanel() != null) {						
+						setTermsAction(termsAction);
+					}
+					JButton btn = new JButton();
+					btn.setAction(termsAction);
+					btn.doClick();
 			    }
 			    
 			  }
+		}
+		private void setTermsAction(SearchAction termsAction){
+			if (getMetadataSearchMainPanel().mapCmbBox != null
+					&& getMetadataSearchMainPanel().mapCmbBox
+							.getSelectedItem() != null
+					&& getMetadataSearchMainPanel().mapCmbBox
+							.getSelectedItem()
+							.toString()
+							.trim()
+							.equals(
+									getMetadataSearchMainPanel().ALL_MAPS_STRING)) {
+				termsAction
+						.setLocationType(SearchAction.SEARCH_ALL_OPEN_MAPS);
+			} else {
+				termsAction
+						.setLocationType(SearchAction.SEARCH_SELECTED_MAP);
+			}
+			if (getMetadataSearchMainPanel().resultCmbBox != null
+					&& getMetadataSearchMainPanel().resultCmbBox
+							.getSelectedItem() != null) {
+				String resultsTypeChoice = getMetadataSearchMainPanel().resultCmbBox
+						.getSelectedItem().toString().trim();
+				termsAction.setResultsType(resultsTypeChoice);
+			}else{
+				termsAction.setResultsType("Select");
+			}
 		}
 		private void createEditPopupMenu() {	
 			if(editPopup==null){
@@ -3971,5 +4162,6 @@ public class VUE
 			return VUE.getActiveMap().getPresentationBackgroundValue();
 		else
 			return defaultColor;
-	}	
+	}		
+	
 }

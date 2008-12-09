@@ -72,7 +72,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.15 $ / $Date: 2008-12-09 19:26:27 $ / $Author: Sheejo
+ * @version $Revision: 1.16 $ / $Date: 2008-12-09 22:46:07 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -158,9 +158,9 @@ public class MetadataSearchMainGUI extends JPanel
 	static AbstractAction runSearchAction;
 	static AbstractAction renameAction;
 	static AbstractAction deleteAction;
-	private JComboBox searchTypeCmbBox;
-	private JComboBox mapCmbBox;
-	private JComboBox resultCmbBox;
+	public JComboBox searchTypeCmbBox;
+	public JComboBox mapCmbBox;
+	public JComboBox resultCmbBox;
 	private List<SearchData> searchDataList = new ArrayList<SearchData>();
 	private List<JComboBox> comboBoxes = new ArrayList<JComboBox>();
 	private JPopupMenu popupMenu = new JPopupMenu();
