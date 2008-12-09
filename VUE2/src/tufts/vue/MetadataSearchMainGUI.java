@@ -17,7 +17,6 @@ package tufts.vue;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -43,11 +42,9 @@ import javax.swing.BorderFactory;
 import javax.swing.DefaultCellEditor;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
@@ -64,7 +61,6 @@ import tufts.vue.gui.VueTextPane;
 import tufts.vue.gui.Widget;
 import tufts.vue.gui.WidgetStack;
 import tufts.vue.gui.renderer.SavedSearchTableRenderer;
-import tufts.vue.gui.renderer.SearchResultTableEditor;
 import tufts.vue.gui.renderer.SearchResultTableModel;
 import edu.tufts.vue.metadata.VueMetadataElement;
 import edu.tufts.vue.metadata.action.SearchAction;
@@ -76,7 +72,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.14 $ / $Date: 2008-12-09 18:11:14 $ / $Author: Sheejo
+ * @version $Revision: 1.15 $ / $Date: 2008-12-09 19:26:27 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -1467,33 +1463,7 @@ public class MetadataSearchMainGUI extends JPanel
 	class PopupListener extends MouseAdapter {		
 		public void mousePressed(MouseEvent e) {
 			if(e.getClickCount()==2 && e.getX()>(searchResultTbl.getWidth()-40)){				 
-				 SearchData data = new SearchData();
-				 int selectedRow = searchResultTbl.getSelectedRow();				 
-				 data = searchResultModel.getSearchData(selectedRow);				 
-				 //searchTerms = data.getDataList();
-//				 for(int i=0;i< data.getDataList().size();i++){
-//				   System.err.println("@@@"+((String[]) (data.getDataList().get(i)).getObject())[1]);
-//				 }				 
-				 if(data.getDataList()!=null){
-					 termsAction = new SearchAction(data.getDataList());
-				 }
-				 termsAction.setBasic(false);
-				 termsAction.setTextOnly(true);
-				 termsAction.setMetadataOnly(false);
-				 int iAndOr = 0;
-				 String andOrStr = data.getAndOrType();
-				 if(andOrStr.equals("and")){
-				 iAndOr = SearchAction.AND;
-				 }else{
-				 iAndOr =  SearchAction.OR;
-				 }
-				 termsAction.setResultsType(data.getResultType());				 
-				 termsAction.setOperator(iAndOr);
-				 termsAction.setEverything(true);
-				 // termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
-				 JButton btn = new JButton();
-				 btn.setAction(termsAction);
-				 btn.doClick(); 
+				searchButtonAction(); 
 			}			
 			showPopup(e);
 		}
@@ -1505,5 +1475,31 @@ public class MetadataSearchMainGUI extends JPanel
 				popupMenu.show(e.getComponent(), e.getX(), e.getY());
 			}
 		}
+	}
+	public void searchButtonAction(){
+		SearchData data = new SearchData();
+		 int selectedRow = searchResultTbl.getSelectedRow();				 
+		 data = searchResultModel.getSearchData(selectedRow);				 
+		 //searchTerms = data.getDataList();			 
+		 if(data.getDataList()!=null){
+			 termsAction = new SearchAction(data.getDataList());
+		 }
+		 termsAction.setBasic(false);
+		 termsAction.setTextOnly(true);
+		 termsAction.setMetadataOnly(false);
+		 int iAndOr = 0;
+		 String andOrStr = data.getAndOrType();
+		 if(andOrStr.equals("and")){
+		 iAndOr = SearchAction.AND;
+		 }else{
+		 iAndOr =  SearchAction.OR;
+		 }
+		 termsAction.setResultsType(data.getResultType());				 
+		 termsAction.setOperator(iAndOr);
+		 termsAction.setEverything(true);
+		 // termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
+		 JButton btn = new JButton();
+		 btn.setAction(termsAction);
+		 btn.doClick(); 
 	}
 }
