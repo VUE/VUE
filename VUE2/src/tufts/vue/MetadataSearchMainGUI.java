@@ -72,7 +72,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.17 $ / $Date: 2008-12-10 14:36:54 $ / $Author: Sheejo
+ * @version $Revision: 1.18 $ / $Date: 2008-12-10 22:58:57 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -450,8 +450,7 @@ public class MetadataSearchMainGUI extends JPanel
 		    		   }else{
 		    			   termsAction
 							.setLocationType(SearchAction.SEARCH_SELECTED_MAP);
-		    		   }
-		    		  
+		    		   }		    		  
 		    		   if (searchTypeCmbBox.getSelectedItem().toString().trim().equals(SEARCH_EVERYTHING)) {
 							setEverythingSearch();
 					   }else if (searchTypeCmbBox.getSelectedItem().toString().trim().equals(SEARCH_LABELS_ONLY)) {
@@ -462,7 +461,9 @@ public class MetadataSearchMainGUI extends JPanel
 						}
 					   else if (searchTypeCmbBox.getSelectedItem().toString().trim().equals(SEARCH_CATEGORIES_AND_KEYWORDS)) {
 							setCategorySearch();
-						}		    		   
+						}else{
+							setEverythingSearch();
+						}
 		    	   }
 		     });
 	        
@@ -870,13 +871,13 @@ public class MetadataSearchMainGUI extends JPanel
 		public Component getTableCellEditorComponent(JTable table,
 				Object value, boolean isSelected, int rowIndex,
 				int vColIndex) {
-			if(isSelected){
-				if(this.combo.getSelectedItem().toString().equals("and")){
+			//if(isSelected){				
+				if(this.combo.getSelectedItem().toString().equals("and")){					
 					strAndOrType = "or";
-				}else{
+				}else{					
 					strAndOrType = "and";
 				}									
-			}			
+			//}			
 			JLabel label = new JLabel("");
 			if(vColIndex == 1 || vColIndex == 2){					
 				SearchTermsTableModel model = (SearchTermsTableModel) searchTermsTable
@@ -1035,7 +1036,7 @@ public class MetadataSearchMainGUI extends JPanel
 
 		termsAction.setBasic(false);
 		termsAction.setTextOnly(false);
-		termsAction.setMetadataOnly(false);
+		termsAction.setMetadataOnly(false);		
 		termsAction.setOperator(getSelectedOperator());
 		termsAction.setEverything(false);
 		// termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
@@ -1067,7 +1068,7 @@ public class MetadataSearchMainGUI extends JPanel
 
 		termsAction.setBasic(false);
 		termsAction.setTextOnly(true);
-		termsAction.setMetadataOnly(false);
+		termsAction.setMetadataOnly(false);		
 		termsAction.setOperator(getSelectedOperator());
 		termsAction.setEverything(true);
 		// termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
@@ -1080,7 +1081,7 @@ public class MetadataSearchMainGUI extends JPanel
 	}
 	
 	
-	public int getSelectedOperator() {
+	public int getSelectedOperator() {		
 		if(strAndOrType.equals("and")){
 			return SearchAction.AND;
 		}else{
