@@ -104,7 +104,6 @@ import tufts.vue.gui.VueMenuBar;
 import tufts.vue.ui.InspectorPane;
 import edu.tufts.vue.metadata.VueMetadataElement;
 import edu.tufts.vue.metadata.action.SearchAction;
-import edu.tufts.vue.metadata.ui.MetadataSearchGUI;
 import edu.tufts.vue.preferences.implementations.MetadataSchemaPreference;
 import edu.tufts.vue.preferences.implementations.ShowAgainDialog;
 import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
@@ -113,7 +112,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.597 $ / $Date: 2008-12-09 22:46:26 $ / $Author: sraphe01 $ 
+ * @version $Revision: 1.598 $ / $Date: 2008-12-10 16:58:48 $ / $Author: sraphe01 $ 
  */
 
 public class VUE
@@ -2145,6 +2144,10 @@ public class VUE
         return toolbarPanel;
 
     }
+    /**
+     * @author sraphe01
+     *
+     */
     static class SearchTextField extends JTextField {
     	private boolean mouse_over = false;
     	SearchTextField thisTxtFld;    
@@ -2154,21 +2157,14 @@ public class VUE
     		super(VueResources.getString("search.text.default"),15);     		
         	thisTxtFld = this;         	
         	GUI.init();
+        	initMenuSettings();
         	if(!isWindows){
         		if (Util.isMacTiger()){
         			thisTxtFld.setText("");
         			fieldTxt = new JTextField(12);  
             		fieldTxt.setBorder(null);
             		fieldTxt.setText(VueResources.getString("search.text.default"));
-            		createPopupMenu(isWindows);  
-            		addMouseListener(new MouseAdapter() {
-    		            public void mouseClicked(MouseEvent e) {     		            
-    		            	 if(e.getX() > getWidth()-23){   		     		     	
-   		     		     		fieldTxt.setText("");
-   		     		     	}
-    		            }
-    				});
-            		
+            		createPopupMenu(isWindows);            		
             		fieldTxt.addMouseListener(new MouseAdapter() {
             			public void mousePressed(MouseEvent e) {
             		        evaluatePopup(e);
@@ -2179,20 +2175,15 @@ public class VUE
             		     private void evaluatePopup(MouseEvent e) {
             		        if (e.isPopupTrigger()) {
             		        	popup.show(e.getComponent(), e.getX(), e.getY()); 
+            		        }else{
+            		        	if(fieldTxt.getText().trim().equals(VueResources.getString("search.text.default")) ){
+                   				 fieldTxt.setText("");
+                   			 	}
             		        }
             		     }
 
     				});
-            		fieldTxt.addFocusListener(new FocusAdapter() {
-                		  public void focusLost(FocusEvent e) {
-                			
-                		  }
-                		  public void focusGained(FocusEvent e) {                			  
-                			 if(fieldTxt.getText().trim().equals(VueResources.getString("search.text.default")) ){
-                				 fieldTxt.setText("");
-                			 }
-                		  }
-                		});  
+ 
             		thisTxtFld.setEditable(false);
         			thisTxtFld.setLayout(new FlowLayout(FlowLayout.CENTER, 1, 0));
         			thisTxtFld.add(fieldTxt, BorderLayout.CENTER);        			
@@ -2212,36 +2203,19 @@ public class VUE
         		     private void evaluatePopup(MouseEvent e) {
         		        if (e.isPopupTrigger()) {
         		        	popup.show(e.getComponent(), e.getX(), e.getY());
+        		        }else{
+        		        	if(getText().trim().equals(VueResources.getString("search.text.default")) ){
+		          				 setText("");
+		             		}
         		        }
 
         		     }
 
 				});
-        		addFocusListener(new FocusAdapter() {
-            		  public void focusLost(FocusEvent e) {
-            			
-            		  }
-            		  public void focusGained(FocusEvent e) {
-            			 if(getText().trim().equals(VueResources.getString("search.text.default")) ){
-            				 setText("");
-            			 }
-            		  }
-            		});  
+        		
         		}
         	} else{  		
-        		setEditable(true);
-        		addFocusListener(new FocusAdapter() {
-          		  public void focusLost(FocusEvent e) {
-          			
-          		  }
-          		  public void focusGained(FocusEvent e) {
-          			if(getText().trim().equals(VueResources.getString("search.text.default")) ){
-       				 setText("");
-          			}
-          		  }
-          		});  	
-        		
-    			
+        		setEditable(true);    			
         		Insets noInsets=new Insets(0,15,0,25); 
         		setMargin(noInsets);        			        		  	    
 				addMouseListener(new MouseAdapter() {
@@ -2254,45 +2228,78 @@ public class VUE
 		     		    	createEditPopupMenu();
 		     		    	editPopup.show(e.getComponent(), e.getX()+5, e.getY());
 		     		     }else{
-		     		    	 //TO DO for Search Button Action
+		     		    	 
 		     		     }
 		            	}
+		            	if((e.getX()< 23) ){		     		    	 		
+		     		    	//TO DO for Arrow Label 
+		     		     }else if(e.getX() < getWidth()-23){		     		    			
+		     		    	if(getText().trim().equals(VueResources.getString("search.text.default")) ){
+		          				 setText("");
+		             		}
+		     		     }else{
+		     		    	if(searcheveryWhereMenuItem.isSelected()){
+		    			    	setSearchEverywhereAction();					
+		    			    }else if(editSettingsMenuItem.isSelected()){
+		    			    	setEditSettingsAction();
+		    			    }else if(labelMenuItem.isSelected()){
+		    			    	setLabelSettingsAction();
+		    			    }else if(keywordMenuItem.isSelected()){
+		    			    	setKeywordSettingsAction();
+		    			    }else if(categoryKeywordMenuItem.isSelected()){
+		    			    	setKeywordCategorySettingsAction();
+		    			    }else if(categoriesMenuItem.isSelected()){
+		    			    	setCategorySettingsAction();
+		    			    }else{
+		    			    	setSearchEverywhereAction();
+		    			    }
+		     		     }
 		            }
 				});
         	} 
         }     
     	
+		private void initMenuSettings() {
+			searcheveryWhereMenuItem = new JCheckBoxMenuItem(VueResources.getString("search.popup.searcheverywhere"), true);
+			labelMenuItem = new JCheckBoxMenuItem (VueResources.getString("search.popup.labels"));
+			keywordMenuItem = new JCheckBoxMenuItem (VueResources.getString("search.popup.keywords"));
+			categoriesMenuItem = new JCheckBoxMenuItem (VueResources.getString("search.popup.categories"));
+			categoryKeywordMenuItem = new JCheckBoxMenuItem (VueResources.getString("search.popup.categories")+" + "+VueResources.getString("search.popup.keywords"));
+			editSettingsMenuItem = new JCheckBoxMenuItem(VueResources.getString("search.popup.edit.search.settings"));
+			
+		}
+
+		/**
+		 * This method is for Generating Popup menu
+		 * @param isWindow
+		 */
 		private void createPopupMenu(boolean isWindow) {
 			if(popup==null){
 				popup = new JPopupMenu();
 				ActionListener actionListener = new PopupActionListener();
 				JMenuItem searchMenuItem = new JMenuItem(VueResources.getString("search.popup.search"));
 				searchMenuItem.setEnabled(false);
-				popup.add(searchMenuItem);
-				
-	    		searcheveryWhereMenuItem = new JCheckBoxMenuItem(VueResources.getString("search.popup.searcheverywhere"), true);
+				popup.add(searchMenuItem);				
+	    		
 	    		searcheveryWhereMenuItem.addActionListener(actionListener);
 				popup.add(searcheveryWhereMenuItem);
 				
-				 labelMenuItem = new JCheckBoxMenuItem (VueResources.getString("search.popup.labels"));
+				 
 				labelMenuItem.addActionListener(actionListener);
 				popup.add(labelMenuItem);	
 				
-				keywordMenuItem = new JCheckBoxMenuItem (VueResources.getString("search.popup.keywords"));
+				
 				keywordMenuItem.addActionListener(actionListener);
-				popup.add(keywordMenuItem);	
+				popup.add(keywordMenuItem);					
 				
-				categoriesMenuItem = new JCheckBoxMenuItem (VueResources.getString("search.popup.categories"));
 				categoriesMenuItem.addActionListener(actionListener);
-				popup.add(categoriesMenuItem);	
+				popup.add(categoriesMenuItem);					
 				
-				categoryKeywordMenuItem = new JCheckBoxMenuItem (VueResources.getString("search.popup.categories")+" + "+VueResources.getString("search.popup.keywords"));
 				categoryKeywordMenuItem.addActionListener(actionListener);
 				popup.add(categoryKeywordMenuItem);
 				
-				popup.addSeparator();
+				popup.addSeparator();				
 				
-				editSettingsMenuItem = new JCheckBoxMenuItem(VueResources.getString("search.popup.edit.search.settings"));
 				editSettingsMenuItem.addActionListener(actionListener);
 				popup.add(editSettingsMenuItem);				
 				
@@ -2354,162 +2361,207 @@ public class VUE
 			    	}else
 			    	thisTxtFld.setText("");
 			    }else if(VueResources.getString("search.popup.searcheverywhere").equals(actionEvent.getActionCommand().toString())){
-			    	
-			    	searcheveryWhereMenuItem.setSelected(true);		    	
-			    	keywordMenuItem.setSelected(false);
-			    	categoriesMenuItem.setSelected(false);
-			    	categoryKeywordMenuItem.setSelected(false);			    		    	
-			    	labelMenuItem.setSelected(false);			    			    			    	
-			    	editSettingsMenuItem.setSelected(false);
-			    	
-			    	List<VueMetadataElement> searchTerms = new ArrayList<VueMetadataElement>();
-			    	VueMetadataElement vme = new VueMetadataElement();				
-					String statementObject[] = {
-							VueResources.getString("metadata.vue.url") + "#none",
-							thisTxtFld.getText().trim(),
-							edu.tufts.vue.rdf.Query.Qualifier.CONTAINS.toString() };
-					vme.setObject(statementObject);
-					vme.setType(VueMetadataElement.SEARCH_STATEMENT);				
-					searchTerms.add(vme);					
-			    	 SearchAction termsAction = new SearchAction(searchTerms);
-			    	 termsAction.setBasic(false);
-					 termsAction.setTextOnly(true);
-					 termsAction.setMetadataOnly(false);
-					 termsAction.setOperator(getMetadataSearchMainPanel()
-										.getSelectedOperator());
-					if (getMetadataSearchMainPanel() != null) {						
-						setTermsAction(termsAction);
-					}
-					// termsAction.setResultsType("Select");
-					JButton btn = new JButton();
-					btn.setAction(termsAction);
-					btn.doClick(); 
-					//metadataSearchMainPanel.searchButtonAction();
+			    	setSearchEverywhereAction();					
 			    }else if(VueResources.getString("search.popup.edit.search.settings").equals(actionEvent.getActionCommand().toString())){
-			    	searcheveryWhereMenuItem.setSelected(false);		    	
-			    	keywordMenuItem.setSelected(false);
-			    	categoriesMenuItem.setSelected(false);
-			    	categoryKeywordMenuItem.setSelected(false);			    		    	
-			    	labelMenuItem.setSelected(false);			    			    			    	
-			    	editSettingsMenuItem.setSelected(true);		    	
-			    	getMetadataSearchMainGUI().setVisible(true); 
+			    	setEditSettingsAction();
 			    }else if(VueResources.getString("search.popup.labels").equals(actionEvent.getActionCommand().toString())){
-			    	searcheveryWhereMenuItem.setSelected(false);		    	
-			    	keywordMenuItem.setSelected(false);
-			    	categoriesMenuItem.setSelected(false);
-			    	categoryKeywordMenuItem.setSelected(false);			    		    	
-			    	labelMenuItem.setSelected(true);			    			    			    	
-			    	editSettingsMenuItem.setSelected(false);			    	
-			    	List<VueMetadataElement> searchTerms = new ArrayList<VueMetadataElement>();
-			    	VueMetadataElement vme = new VueMetadataElement();				
-					String statementObject[] = {
-							VueResources.getString("metadata.vue.url") + "#none",
-							thisTxtFld.getText().trim(),
-							edu.tufts.vue.rdf.Query.Qualifier.CONTAINS.toString() };
-					vme.setObject(statementObject);
-					vme.setType(VueMetadataElement.SEARCH_STATEMENT);				
-					searchTerms.add(vme);		
-					SearchAction termsAction = new SearchAction(searchTerms);
-					termsAction.setBasic(true);
-					termsAction.setTextOnly(false);
-					termsAction.setMetadataOnly(false);
-					termsAction.setOperator(getMetadataSearchMainPanel().getSelectedOperator());
-					termsAction.setEverything(false);
-					if (getMetadataSearchMainPanel() != null) {						
-						setTermsAction(termsAction);
-					}
-					JButton btn = new JButton();
-					btn.setAction(termsAction);
-					btn.doClick();
+			    	setLabelSettingsAction();
 			    }else if(VueResources.getString("search.popup.keywords").equals(actionEvent.getActionCommand().toString())){
-			    	searcheveryWhereMenuItem.setSelected(false);		    	
-			    	keywordMenuItem.setSelected(true);
-			    	categoriesMenuItem.setSelected(false);
-			    	categoryKeywordMenuItem.setSelected(false);			    		    	
-			    	labelMenuItem.setSelected(false);			    			    			    	
-			    	editSettingsMenuItem.setSelected(false);
-			    	List<VueMetadataElement> searchTerms = new ArrayList<VueMetadataElement>();
-			    	VueMetadataElement vme = new VueMetadataElement();				
-					String statementObject[] = {
-							VueResources.getString("metadata.vue.url") + "#none",
-							thisTxtFld.getText().trim(),
-							edu.tufts.vue.rdf.Query.Qualifier.CONTAINS.toString() };
-					vme.setObject(statementObject);
-					vme.setType(VueMetadataElement.SEARCH_STATEMENT);				
-					searchTerms.add(vme);		
-					SearchAction termsAction = new SearchAction(searchTerms);
-					termsAction.setBasic(false);
-					termsAction.setTextOnly(true);
-					termsAction.setMetadataOnly(true);
-					termsAction.setOperator(getMetadataSearchMainPanel().getSelectedOperator());
-					termsAction.setEverything(false);					
-					if (getMetadataSearchMainPanel() != null) {						
-						setTermsAction(termsAction);
-					}
-					JButton btn = new JButton();
-					btn.setAction(termsAction);
-					btn.doClick();
+			    	setKeywordSettingsAction();
 			    }else if((VueResources.getString("search.popup.categories")+" + "+VueResources.getString("search.popup.keywords")).equals(actionEvent.getActionCommand().toString())){
-			    	searcheveryWhereMenuItem.setSelected(false);		    	
-			    	keywordMenuItem.setSelected(false);
-			    	categoriesMenuItem.setSelected(false);
-			    	categoryKeywordMenuItem.setSelected(true);			    		    	
-			    	labelMenuItem.setSelected(false);			    			    			    	
-			    	editSettingsMenuItem.setSelected(false);
-			    	List<VueMetadataElement> searchTerms = new ArrayList<VueMetadataElement>();
-			    	VueMetadataElement vme = new VueMetadataElement();				
-					String statementObject[] = {
-							VueResources.getString("metadata.vue.url") + "#none",
-							thisTxtFld.getText().trim(),
-							edu.tufts.vue.rdf.Query.Qualifier.CONTAINS.toString() };
-					vme.setObject(statementObject);
-					vme.setType(VueMetadataElement.SEARCH_STATEMENT);				
-					searchTerms.add(vme);		
-					SearchAction termsAction = new SearchAction(searchTerms);
-					termsAction.setBasic(false);
-					termsAction.setTextOnly(false);
-					termsAction.setMetadataOnly(false);
-					termsAction.setOperator(getMetadataSearchMainPanel().getSelectedOperator());
-					termsAction.setEverything(false);			
-					if (getMetadataSearchMainPanel() != null) {						
-						setTermsAction(termsAction);
-					}
-					JButton btn = new JButton();
-					btn.setAction(termsAction);
-					btn.doClick();
+			    	setKeywordCategorySettingsAction();
 			    }else if(VueResources.getString("search.popup.categories").equals(actionEvent.getActionCommand().toString())){
-			    	searcheveryWhereMenuItem.setSelected(false);		    	
-			    	keywordMenuItem.setSelected(false);
-			    	categoriesMenuItem.setSelected(true);
-			    	categoryKeywordMenuItem.setSelected(false);			    		    	
-			    	labelMenuItem.setSelected(false);			    			    			    	
-			    	editSettingsMenuItem.setSelected(false);
-			    	List<VueMetadataElement> searchTerms = new ArrayList<VueMetadataElement>();
-			    	VueMetadataElement vme = new VueMetadataElement();				
-					String statementObject[] = {
-							VueResources.getString("metadata.vue.url") + "#none",
-							thisTxtFld.getText().trim(),
-							edu.tufts.vue.rdf.Query.Qualifier.CONTAINS.toString() };
-					vme.setObject(statementObject);
-					vme.setType(VueMetadataElement.SEARCH_STATEMENT);				
-					searchTerms.add(vme);		
-					SearchAction termsAction = new SearchAction(searchTerms);
-					termsAction.setNoneIsSpecial(true);
-
-					termsAction.setTextOnly(false);
-					termsAction.setBasic(false);
-					termsAction.setMetadataOnly(false);
-					termsAction.setOperator(getMetadataSearchMainPanel().getSelectedOperator());
-					termsAction.setEverything(false);			
-					if (getMetadataSearchMainPanel() != null) {						
-						setTermsAction(termsAction);
-					}
-					JButton btn = new JButton();
-					btn.setAction(termsAction);
-					btn.doClick();
+			    	setCategorySettingsAction();
 			    }
 			    
 			  }
+		}
+		public void setCategorySettingsAction(){
+			searcheveryWhereMenuItem.setSelected(false);		    	
+	    	keywordMenuItem.setSelected(false);
+	    	categoriesMenuItem.setSelected(true);
+	    	categoryKeywordMenuItem.setSelected(false);			    		    	
+	    	labelMenuItem.setSelected(false);			    			    			    	
+	    	editSettingsMenuItem.setSelected(false);
+	    	List<VueMetadataElement> searchTerms = new ArrayList<VueMetadataElement>();
+	    	VueMetadataElement vme = new VueMetadataElement();	
+	    	String getTxtStr = "";	    	
+	    	if (Util.isMacTiger()){
+	    		getTxtStr = fieldTxt.getText().trim();
+	    	}else{
+	    		getTxtStr = thisTxtFld.getText().trim();
+	    	}
+			String statementObject[] = {
+					VueResources.getString("metadata.vue.url") + "#none",
+					getTxtStr,
+					edu.tufts.vue.rdf.Query.Qualifier.CONTAINS.toString() };
+			vme.setObject(statementObject);
+			vme.setType(VueMetadataElement.SEARCH_STATEMENT);				
+			searchTerms.add(vme);		
+			SearchAction termsAction = new SearchAction(searchTerms);
+			termsAction.setNoneIsSpecial(true);
+
+			termsAction.setTextOnly(false);
+			termsAction.setBasic(false);
+			termsAction.setMetadataOnly(false);
+			termsAction.setOperator(getMetadataSearchMainPanel().getSelectedOperator());
+			termsAction.setEverything(false);			
+			if (getMetadataSearchMainPanel() != null) {						
+				setTermsAction(termsAction);
+			}
+			JButton btn = new JButton();
+			btn.setAction(termsAction);
+			btn.doClick();
+		}
+		public void setKeywordCategorySettingsAction(){
+			searcheveryWhereMenuItem.setSelected(false);		    	
+	    	keywordMenuItem.setSelected(false);
+	    	categoriesMenuItem.setSelected(false);
+	    	categoryKeywordMenuItem.setSelected(true);			    		    	
+	    	labelMenuItem.setSelected(false);			    			    			    	
+	    	editSettingsMenuItem.setSelected(false);
+	    	List<VueMetadataElement> searchTerms = new ArrayList<VueMetadataElement>();
+	    	VueMetadataElement vme = new VueMetadataElement();	
+	    	String getTxtStr = "";	    	
+	    	if (Util.isMacTiger()){
+	    		getTxtStr = fieldTxt.getText().trim();
+	    	}else{
+	    		getTxtStr = thisTxtFld.getText().trim();
+	    	}
+			String statementObject[] = {
+					VueResources.getString("metadata.vue.url") + "#none",
+					getTxtStr,
+					edu.tufts.vue.rdf.Query.Qualifier.CONTAINS.toString() };
+			vme.setObject(statementObject);
+			vme.setType(VueMetadataElement.SEARCH_STATEMENT);				
+			searchTerms.add(vme);		
+			SearchAction termsAction = new SearchAction(searchTerms);
+			termsAction.setBasic(false);
+			termsAction.setTextOnly(false);
+			termsAction.setMetadataOnly(false);
+			termsAction.setOperator(getMetadataSearchMainPanel().getSelectedOperator());
+			termsAction.setEverything(false);			
+			if (getMetadataSearchMainPanel() != null) {						
+				setTermsAction(termsAction);
+			}
+			JButton btn = new JButton();
+			btn.setAction(termsAction);
+			btn.doClick();
+		}
+		public void setKeywordSettingsAction(){
+			searcheveryWhereMenuItem.setSelected(false);		    	
+	    	keywordMenuItem.setSelected(true);
+	    	categoriesMenuItem.setSelected(false);
+	    	categoryKeywordMenuItem.setSelected(false);			    		    	
+	    	labelMenuItem.setSelected(false);			    			    			    	
+	    	editSettingsMenuItem.setSelected(false);
+	    	List<VueMetadataElement> searchTerms = new ArrayList<VueMetadataElement>();
+	    	VueMetadataElement vme = new VueMetadataElement();
+	    	String getTxtStr = "";	    	
+	    	if (Util.isMacTiger()){
+	    		getTxtStr = fieldTxt.getText().trim();
+	    	}else{
+	    		getTxtStr = thisTxtFld.getText().trim();
+	    	}
+			String statementObject[] = {
+					VueResources.getString("metadata.vue.url") + "#none",
+					getTxtStr,
+					edu.tufts.vue.rdf.Query.Qualifier.CONTAINS.toString() };
+			vme.setObject(statementObject);
+			vme.setType(VueMetadataElement.SEARCH_STATEMENT);				
+			searchTerms.add(vme);		
+			SearchAction termsAction = new SearchAction(searchTerms);
+			termsAction.setBasic(false);
+			termsAction.setTextOnly(true);
+			termsAction.setMetadataOnly(true);
+			termsAction.setOperator(getMetadataSearchMainPanel().getSelectedOperator());
+			termsAction.setEverything(false);					
+			if (getMetadataSearchMainPanel() != null) {						
+				setTermsAction(termsAction);
+			}
+			JButton btn = new JButton();
+			btn.setAction(termsAction);
+			btn.doClick();
+		}
+		public void setLabelSettingsAction(){
+			searcheveryWhereMenuItem.setSelected(false);		    	
+	    	keywordMenuItem.setSelected(false);
+	    	categoriesMenuItem.setSelected(false);
+	    	categoryKeywordMenuItem.setSelected(false);			    		    	
+	    	labelMenuItem.setSelected(true);			    			    			    	
+	    	editSettingsMenuItem.setSelected(false);			    	
+	    	List<VueMetadataElement> searchTerms = new ArrayList<VueMetadataElement>();
+	    	VueMetadataElement vme = new VueMetadataElement();	
+	    	String getTxtStr = "";	    	
+	    	if (Util.isMacTiger()){
+	    		getTxtStr = fieldTxt.getText().trim();
+	    	}else{
+	    		getTxtStr = thisTxtFld.getText().trim();
+	    	}
+			String statementObject[] = {
+					VueResources.getString("metadata.vue.url") + "#none",
+					getTxtStr,
+					edu.tufts.vue.rdf.Query.Qualifier.CONTAINS.toString() };
+			vme.setObject(statementObject);
+			vme.setType(VueMetadataElement.SEARCH_STATEMENT);				
+			searchTerms.add(vme);		
+			SearchAction termsAction = new SearchAction(searchTerms);
+			termsAction.setBasic(true);
+			termsAction.setTextOnly(false);
+			termsAction.setMetadataOnly(false);
+			termsAction.setOperator(getMetadataSearchMainPanel().getSelectedOperator());
+			termsAction.setEverything(false);
+			if (getMetadataSearchMainPanel() != null) {						
+				setTermsAction(termsAction);
+			}
+			JButton btn = new JButton();
+			btn.setAction(termsAction);
+			btn.doClick();
+		}
+		public void setEditSettingsAction(){
+			searcheveryWhereMenuItem.setSelected(false);		    	
+	    	keywordMenuItem.setSelected(false);
+	    	categoriesMenuItem.setSelected(false);
+	    	categoryKeywordMenuItem.setSelected(false);			    		    	
+	    	labelMenuItem.setSelected(false);			    			    			    	
+	    	editSettingsMenuItem.setSelected(true);		    	
+	    	getMetadataSearchMainGUI().setVisible(true); 
+		}
+		public void setSearchEverywhereAction(){
+			searcheveryWhereMenuItem.setSelected(true);		    	
+	    	keywordMenuItem.setSelected(false);
+	    	categoriesMenuItem.setSelected(false);
+	    	categoryKeywordMenuItem.setSelected(false);			    		    	
+	    	labelMenuItem.setSelected(false);			    			    			    	
+	    	editSettingsMenuItem.setSelected(false);
+	    	
+	    	List<VueMetadataElement> searchTerms = new ArrayList<VueMetadataElement>();
+	    	VueMetadataElement vme = new VueMetadataElement();
+	    	String getTxtStr = "";	    	
+	    	if (Util.isMacTiger()){
+	    		getTxtStr = fieldTxt.getText().trim();
+	    	}else{
+	    		getTxtStr = thisTxtFld.getText().trim();
+	    	}
+			String statementObject[] = {
+					VueResources.getString("metadata.vue.url") + "#none",
+					getTxtStr,
+					edu.tufts.vue.rdf.Query.Qualifier.CONTAINS.toString() };
+			vme.setObject(statementObject);
+			vme.setType(VueMetadataElement.SEARCH_STATEMENT);				
+			searchTerms.add(vme);					
+	    	 SearchAction termsAction = new SearchAction(searchTerms);
+	    	 termsAction.setBasic(false);
+			 termsAction.setTextOnly(true);
+			 termsAction.setMetadataOnly(false);
+			 termsAction.setOperator(getMetadataSearchMainPanel()
+								.getSelectedOperator());
+			if (getMetadataSearchMainPanel() != null) {						
+				setTermsAction(termsAction);
+			}					
+			JButton btn = new JButton();
+			btn.setAction(termsAction);
+			btn.doClick(); 
 		}
 		private void setTermsAction(SearchAction termsAction){
 			if (getMetadataSearchMainPanel().mapCmbBox != null
