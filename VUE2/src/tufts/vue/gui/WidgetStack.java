@@ -35,7 +35,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.54 $ / $Date: 2008-12-03 19:07:53 $ / $Author: sraphe01 $
+ * @version $Revision: 1.55 $ / $Date: 2008-12-10 18:04:23 $ / $Author: sraphe01 $
  * @author Scott Fraize
  */
 public class WidgetStack extends Widget
@@ -1005,13 +1005,13 @@ public class WidgetStack extends Widget
             if(isWindows){
             	g.drawImage(leftImg,0,1, 10 , h-1, this);
             	g.drawImage(centerImg,10,1, w - (rightImg.getWidth(null)+13) , h-1, this);
-            	g.drawImage(rightImg,w-7,h/2-7, rightImg.getWidth(null) , rightImg.getHeight(null), this);            	
+            	g.drawImage(rightImg,w-11,h/2-7, rightImg.getWidth(null) , rightImg.getHeight(null), this);            	
                 g.setFont(font);
             	g.drawString(VueResources.getString("option"),10,h-5);            	
             }else{
             	g.drawImage(leftImg,0,0, 10 , h+1, this);
             	g.drawImage(centerImg,10,0, w-(rightImg.getWidth(null)+13) , h+1, this);
-            	g.drawImage(rightImg,w-7,h/2-7, rightImg.getWidth(null) , rightImg.getHeight(null)+1, this);            	
+            	g.drawImage(rightImg,w-8,h/2-7, rightImg.getWidth(null) , rightImg.getHeight(null)+1, this);            	
                 g.setFont(font);            	  
             	g.drawString(VueResources.getString("option"),10,h-3);             	
             }
