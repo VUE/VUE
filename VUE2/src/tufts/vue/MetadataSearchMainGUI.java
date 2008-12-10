@@ -72,7 +72,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.16 $ / $Date: 2008-12-09 22:46:07 $ / $Author: Sheejo
+ * @version $Revision: 1.17 $ / $Date: 2008-12-10 14:36:54 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -293,7 +293,7 @@ public class MetadataSearchMainGUI extends JPanel
 						String type = e.getItem().toString();
 						if (type.equals(ALL_MAPS_STRING)) {
 							allSearch
-									.setLocationType(SearchAction.SEARCH_ALL_OPEN_MAPS);
+									.setLocationType(SearchAction.SEARCH_ALL_OPEN_MAPS);							
 							termsAction
 									.setLocationType(SearchAction.SEARCH_ALL_OPEN_MAPS);
 							optionsPanel.switchChoices(RESULTS,
@@ -438,8 +438,33 @@ public class MetadataSearchMainGUI extends JPanel
 			termsAction = new SearchAction(searchTerms);
 	        //SearchAction.revertGlobalSearchSelection();
 	        //termsAction.setResultsType(resultsTypeChoice.getSelectedItem().toString());
-			termsAction.setOperator(getSelectedOperator());
-	        searchButton = new JButton(termsAction);
+			 termsAction = new SearchAction(searchTerms);
+		     searchButton = new JButton(termsAction);
+		     searchButton.addActionListener(new ActionListener() {
+		    	   public void actionPerformed(ActionEvent e) {
+		    		   termsAction = new SearchAction(searchTerms);
+		    		   String resultsTypeChoice = resultCmbBox.getSelectedItem().toString().trim();
+		    		   termsAction.setResultsType(resultsTypeChoice);
+		    		   if(mapCmbBox.getSelectedItem().toString().trim().equals(ALL_MAPS_STRING)){
+		    			   termsAction.setLocationType(SearchAction.SEARCH_ALL_OPEN_MAPS);
+		    		   }else{
+		    			   termsAction
+							.setLocationType(SearchAction.SEARCH_SELECTED_MAP);
+		    		   }
+		    		  
+		    		   if (searchTypeCmbBox.getSelectedItem().toString().trim().equals(SEARCH_EVERYTHING)) {
+							setEverythingSearch();
+					   }else if (searchTypeCmbBox.getSelectedItem().toString().trim().equals(SEARCH_LABELS_ONLY)) {
+							setLabelSearch();
+						}
+					   else if (searchTypeCmbBox.getSelectedItem().toString().trim().equals(SEARCH_ALL_KEYWORDS)) {
+							setAllMetadataSearch();
+						}
+					   else if (searchTypeCmbBox.getSelectedItem().toString().trim().equals(SEARCH_CATEGORIES_AND_KEYWORDS)) {
+							setCategorySearch();
+						}		    		   
+		    	   }
+		     });
 	        
 			buttonPanel.setOpaque(true);
 			buttonPanel.setBackground(getBackground());
@@ -1038,7 +1063,7 @@ public class MetadataSearchMainGUI extends JPanel
 		headerCategoryColumn = -1;
 		headerValueColumn = 0;
 		
-		termsAction = new SearchAction(searchTerms);
+		//termsAction = new SearchAction(searchTerms);
 
 		termsAction.setBasic(false);
 		termsAction.setTextOnly(true);
