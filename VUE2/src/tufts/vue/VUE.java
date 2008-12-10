@@ -112,7 +112,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.598 $ / $Date: 2008-12-10 16:58:48 $ / $Author: sraphe01 $ 
+ * @version $Revision: 1.599 $ / $Date: 2008-12-10 19:00:21 $ / $Author: sraphe01 $ 
  */
 
 public class VUE
@@ -2219,6 +2219,18 @@ public class VUE
         		Insets noInsets=new Insets(0,15,0,25); 
         		setMargin(noInsets);        			        		  	    
 				addMouseListener(new MouseAdapter() {
+					public void mouseEntered(MouseEvent e){
+						if((e.getX()< 23) ){							
+							setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR)); 
+		     		     }else if(e.getX() < getWidth()-23){		     		    	
+		     		    	setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
+		     		     }else{		     		    	
+		     		    	setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR)); 
+		     		     }
+					}
+					public void mouseExited(MouseEvent e){						
+						setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR)); 		     		    
+					}
 		            public void mouseReleased(MouseEvent e) { 
 		            	if(e.isPopupTrigger()){
 		     		     if((e.getX()< 23) ){		     		    	 		
