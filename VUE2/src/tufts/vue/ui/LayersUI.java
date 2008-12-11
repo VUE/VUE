@@ -37,7 +37,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.41 $ / $Date: 2008-12-11 17:45:34 $ / $Author: sraphe01 $
+ * @version $Revision: 1.42 $ / $Date: 2008-12-11 19:48:26 $ / $Author: sraphe01 $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -229,10 +229,10 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 }
             },
             
-            LAYER_DUMMY = new LayerAction("Dummy", "Dummy Space") {
+            LAYER_FILTER = new LayerAction("Filter", "Filter") {
                 @Override
                 boolean enabledWith(Layer layer) {
-                    return false;
+                    return true;
                 }
                 @Override
                 public void act() {
@@ -243,7 +243,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             LAYER_LOCK = new LayerAction("Lock", "Lock") {
                 @Override
                 boolean enabledWith(Layer layer) {
-                    return false;
+                    return true;
                 }
                 @Override
                 public void act() {
@@ -302,10 +302,22 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         addButton(LAYER_DUPLICATE);
         //addButton(LAYER_MERGE);
         addButton(LAYER_MERGE_DOWN);
-        addButton(LAYER_DUMMY);
+        addButton(LAYER_FILTER);
         addButton(LAYER_LOCK);
         addButton(LAYER_DELETE);
-        
+        gBC.weightx = 0.5;
+        gBC.gridx = 1;
+        gBC.gridy = 0; 
+        JPanel panel = new JPanel(){
+        	 public void paintComponent(Graphics g)
+        	 {
+        		 // call paintComponent to ensure the panel displays correctly
+        		 super.paintComponent(g);
+        		 g.drawLine(5, 5, 5, 25);        		 
+        	 }        	
+        };
+        panel.setPreferredSize(new Dimension(10,25));         
+        mToolbar.add(panel,gBC);  
         if (DEBUG.Enabled) {
             mShowAll.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
@@ -354,7 +366,12 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             ;//b.putClientProperty("JButton.buttonType", "roundRect"); // for Mac Leopard Java
         else
         b.putClientProperty("JButton.buttonType", "textured"); // for Mac Leopard Java        
-        b.setFont(VueConstants.SmallFont);
+        
+        Font defaultFont = getFont();
+        Font boldFont = defaultFont.deriveFont(Font.BOLD);
+        Font smallFont = defaultFont.deriveFont((float) boldFont.getSize()-2);
+        b.setFont(smallFont);
+        
         b.setFocusable(false);
         if(b.getAction().equals(LAYER_NEW)){
         	
@@ -381,7 +398,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         	b.setBorderPainted(false);
         	b.setContentAreaFilled(false);
         	gBC.weightx = 0.5;
-            gBC.gridx = 1;
+            gBC.gridx = 2;
             gBC.gridy = 0; 
         }else if(b.getAction().equals(LAYER_MERGE_DOWN)){
         	b.setText("");
@@ -393,7 +410,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         	b.setBorderPainted(false);
         	b.setContentAreaFilled(false);
         	gBC.weightx = 0.5;
-        	gBC.gridx = 2;
+        	gBC.gridx = 3;
             gBC.gridy = 0;
         }else if(b.getAction().equals(LAYER_DELETE)){
         	b.setText("");
@@ -404,18 +421,18 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         	//b.setHorizontalAlignment(JButton.LEADING); // optional
         	b.setBorderPainted(false);
         	b.setContentAreaFilled(false);
-        	gBC.gridx = 5;
+        	gBC.gridx = 6;
             gBC.gridy = 0;
-        }else if(b.getAction().equals(LAYER_DUMMY)){
+        }else if(b.getAction().equals(LAYER_FILTER)){
         	b.setText("");
-        	b.setIcon(tufts.vue.VueResources.getImageIcon("presentationDialog.button.liveMap.raw"));
+        	b.setIcon(tufts.vue.VueResources.getImageIcon("layer.filter.on"));
         	b.setRolloverEnabled(true);
-        	b.setRolloverIcon(VueResources.getImageIcon("metadata.editor.add.down"));
+        	b.setRolloverIcon(VueResources.getImageIcon("layer.filter.off"));
         	b.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
         	//b.setHorizontalAlignment(JButton.LEADING); // optional
         	b.setBorderPainted(false);
         	b.setContentAreaFilled(false);
-        	gBC.gridx = 3;
+        	gBC.gridx = 4;
             gBC.gridy = 0;
         }else if(b.getAction().equals(LAYER_LOCK)){
         	b.setText("");
@@ -426,10 +443,9 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         	//b.setHorizontalAlignment(JButton.LEADING); // optional
         	b.setBorderPainted(false);
         	b.setContentAreaFilled(false);
-        	gBC.gridx = 4;
+        	gBC.gridx = 5;
             gBC.gridy = 0;
-        } 
-        
+        }        
         mToolbar.setLayout(gridbag);
         mToolbar.add(b,gBC);        
 
@@ -2003,8 +2019,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         if(roundc)
         {
         g.setColor(m_topColor);
-        g.drawLine(x, y + 3, x, y + h - 2);
-        g.drawLine(x+90, y + 3, x+90, y + h - 2);// for drawing line after add button
+        g.drawLine(x, y + 3, x, y + h - 2);        
         g.drawLine(x + 2, y, x + w - 2, y);
         g.drawLine(x, y + 2, x + 2, y); // Top left diagonal
         g.drawLine(x, y + h - 2, x + 2, y + h); // Bottom left diagonal
