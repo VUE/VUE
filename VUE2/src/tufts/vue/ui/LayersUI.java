@@ -37,7 +37,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.42 $ / $Date: 2008-12-11 19:48:26 $ / $Author: sraphe01 $
+ * @version $Revision: 1.43 $ / $Date: 2008-12-11 23:11:14 $ / $Author: sraphe01 $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -866,7 +866,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         if (!rows.isEmpty()) {  
             
             for (JComponent row : rows) {
-                c.insets.left = (((Row)row).layer.getDepth() - 1) * 56; // refactoring: note Row cast                
+                c.insets.left = (((Row)row).layer.getDepth() - 1) * 56; // refactoring: note Row cast
+                row.setOpaque(true);
                 container.add(row, c);
                 c.gridy++;
             }
@@ -1396,7 +1397,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             addMouseMotionListener(this);
             
             if (layer instanceof Layer)
-                defaultBackground = null;
+                defaultBackground = Color.white;// Changed for Background
             else
                 defaultBackground = Color.white; // debug/test case
             setBackground(defaultBackground);
