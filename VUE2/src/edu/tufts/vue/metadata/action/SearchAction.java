@@ -173,8 +173,10 @@ public class SearchAction extends AbstractAction {
                     }
              }    
              else // default is SEARCH_SELECTED_MAP
-             {    
+             {
+            	 if(VUE.getActiveMap()!=null){
                     index.index(VUE.getActiveMap(),metadataOnly,everything,true);
+            	 }
              }
                 
             }
