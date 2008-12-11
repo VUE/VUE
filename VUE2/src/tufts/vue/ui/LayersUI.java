@@ -37,7 +37,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.40 $ / $Date: 2008-12-11 15:33:25 $ / $Author: sraphe01 $
+ * @version $Revision: 1.41 $ / $Date: 2008-12-11 17:45:34 $ / $Author: sraphe01 $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -674,20 +674,24 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                         //row.layer.setSelected(true);
                         if (row.layer == activeLayer){
                             row.setBackground(ActiveBG);
-                            //row.setBorder(BorderFactory.createLineBorder(Color.red, 2));
+                            row.setBorder(BorderFactory.createLineBorder(Color.red, 2));
                         }
                         else{
                             row.setBackground(IncludedBG);
+                            row.setBorder(new CompoundBorder(new MatteBorder(1,0,1,0, Color.lightGray),
+                                    GUI.makeSpace(3,7,3,7)));
                             //row.setBorder(null);
                         }
                     } else {
                         //row.layer.setSelected(false);
                         if (row.layer == activeLayer){
                             row.setBackground(ActiveBG);
-                            //row.setBorder(BorderFactory.createLineBorder(Color.red, 2));
+                            row.setBorder(BorderFactory.createLineBorder(Color.red, 2));
                         }
                         else{
                             row.setBackground(null);
+                            row.setBorder(new CompoundBorder(new MatteBorder(1,0,1,0, Color.lightGray),
+                                    GUI.makeSpace(3,7,3,7)));
                             //row.setBorder(null);
                         }
                     }
