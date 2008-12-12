@@ -37,7 +37,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.45 $ / $Date: 2008-12-12 20:10:04 $ / $Author: sfraize $
+ * @version $Revision: 1.46 $ / $Date: 2008-12-12 20:20:44 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -657,8 +657,13 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
     private void indicateActiveLayers(Collection<LWContainer> parents) {
 
         final Layer activeLayer = getActiveLayer();
-
+        
         if (parents == null) {
+
+            // update the active layer indication based on a change
+            // in the active layer -- not a change in a selection
+            // this will see to it that only one layer is indicated,
+            // and all other layers are not.
 
             for (Row row : mRows) {
 
@@ -684,6 +689,9 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 
         } else {
 
+
+            // update the active layer indication based on a change
+            // in the selection (hilite *any* layers found in the selection)
 
             final Set<Layer> layersInSelection = new HashSet(parents.size());
             
