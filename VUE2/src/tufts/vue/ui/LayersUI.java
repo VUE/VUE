@@ -37,7 +37,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.44 $ / $Date: 2008-12-12 18:42:44 $ / $Author: sraphe01 $
+ * @version $Revision: 1.45 $ / $Date: 2008-12-12 20:10:04 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -318,15 +318,15 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         };
         panel.setPreferredSize(new Dimension(10,25));         
         mToolbar.add(panel,gBC);  
-        if (DEBUG.Enabled) {
-            mShowAll.addActionListener(new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        loadLayers(mMap);
-                    }});
-            addButton(mShowAll);
-            addButton(Actions.Group);
-            addButton(Actions.Undo);
-        }
+//         if (DEBUG.Enabled) {
+//             mShowAll.addActionListener(new ActionListener() {
+//                     public void actionPerformed(ActionEvent e) {
+//                         loadLayers(mMap);
+//                     }});
+//             addButton(mShowAll);
+//             addButton(Actions.Group);
+//             addButton(Actions.Undo);
+//         }
         mToolbar.setBorder(new SubtleSquareBorder(true));
         add(mToolbar, BorderLayout.NORTH);
         if (SCROLLABLE) {
@@ -373,7 +373,9 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         b.setFont(smallFont);
         
         b.setFocusable(false);
-        if(b.getAction().equals(LAYER_NEW)){
+        if(b.getAction() == null) {
+            ;
+        } else if(b.getAction().equals(LAYER_NEW)){
         	
         	b.setText("New Layer");
         	b.setIcon(tufts.vue.VueResources.getImageIcon("metadata.editor.add.up"));
@@ -668,6 +670,16 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 }
                 else
                     row.setBackground(null);
+                
+                if (row.layer == activeLayer) {
+                    row.setBorder(BorderFactory.createLineBorder(Color.red, 2));
+                }
+                else {
+                    row.setBorder(new CompoundBorder(new MatteBorder(1,0,1,0, Color.lightGray),
+                                                     GUI.makeSpace(3,7,3,7)));
+                }
+
+                
             }
 
         } else {
