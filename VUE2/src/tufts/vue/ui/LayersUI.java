@@ -37,7 +37,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.43 $ / $Date: 2008-12-11 23:11:14 $ / $Author: sraphe01 $
+ * @version $Revision: 1.44 $ / $Date: 2008-12-12 18:42:44 $ / $Author: sraphe01 $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -425,9 +425,9 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             gBC.gridy = 0;
         }else if(b.getAction().equals(LAYER_FILTER)){
         	b.setText("");
-        	b.setIcon(tufts.vue.VueResources.getImageIcon("layer.filter.on"));
+        	b.setIcon(tufts.vue.VueResources.getImageIcon("layer.filter.off"));
         	b.setRolloverEnabled(true);
-        	b.setRolloverIcon(VueResources.getImageIcon("layer.filter.off"));
+        	b.setRolloverIcon(VueResources.getImageIcon("layer.filter.on"));
         	b.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
         	//b.setHorizontalAlignment(JButton.LEADING); // optional
         	b.setBorderPainted(false);
@@ -685,12 +685,13 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 //row.activeIcon.setEnabled(row.layer == activeLayer);
                 
                 if (row.layer instanceof Layer) {
-
                     if (layersInSelection.contains(row.layer)) {
                         //row.layer.setSelected(true);
                         if (row.layer == activeLayer){
-                            row.setBackground(ActiveBG);
-                            row.setBorder(BorderFactory.createLineBorder(Color.red, 2));
+                            row.setBackground(ActiveBG); 
+                            if(layersInSelection.size()>1){
+                            	row.setBorder(BorderFactory.createLineBorder(Color.red, 2));
+                            }
                         }
                         else{
                             row.setBackground(IncludedBG);
@@ -702,7 +703,9 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                         //row.layer.setSelected(false);
                         if (row.layer == activeLayer){
                             row.setBackground(ActiveBG);
-                            row.setBorder(BorderFactory.createLineBorder(Color.red, 2));
+                            if(layersInSelection.size()>1){
+                            	row.setBorder(BorderFactory.createLineBorder(Color.red, 2));
+                            }
                         }
                         else{
                             row.setBackground(null);
@@ -865,7 +868,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 
         if (!rows.isEmpty()) {  
             
-            for (JComponent row : rows) {
+            for (JComponent row : rows) {            	
                 c.insets.left = (((Row)row).layer.getDepth() - 1) * 56; // refactoring: note Row cast
                 row.setOpaque(true);
                 container.add(row, c);
