@@ -31,7 +31,7 @@ import com.google.common.collect.*;
 
 
 /**
- * @version $Revision: 1.13 $ / $Date: 2008-12-15 17:00:32 $ / $Author: sfraize $
+ * @version $Revision: 1.14 $ / $Date: 2008-12-15 22:24:54 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -109,7 +109,7 @@ public class Schema {
 
                 final MetaMap rawData = row.getData();
                 final MetaMap mapData = node.getRawData();
-                Log.debug("comparing:\n" + rawData.values() + " to:\n" + mapData.values());
+                //Log.debug("comparing:\n" + rawData.values() + " to:\n" + mapData.values());
                 row.setContextChanged(!rawData.equals(mapData));
                 
 
@@ -333,8 +333,6 @@ public class Schema {
         return shortestField == null ? firstField : shortestField;
     }
         
-        
-
     public void dumpSchema(PrintStream ps) {
         dumpSchema(new PrintWriter(new OutputStreamWriter(ps)));
     }

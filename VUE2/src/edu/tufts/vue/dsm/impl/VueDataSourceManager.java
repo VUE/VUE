@@ -193,7 +193,7 @@ public class VueDataSourceManager
                 if (ds.isIncludedInSearch()) {
                     Repository r = ds.getRepository();
                     if (r == null)
-                        Log.warn("data source has no repository; not included: " + ds);
+                        Log.debug("has no repository; not included: " + ds);
                     else
                         included.add(r);
                 }
