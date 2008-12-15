@@ -113,7 +113,7 @@ public class DataSourceViewer extends JPanel
     
     private final java.util.List<SearchThread> mSearchThreads = java.util.Collections.synchronizedList(new java.util.LinkedList<SearchThread>());
 
-    private static DataSourceViewer singleton;
+    private static volatile DataSourceViewer singleton;
     
     public DataSourceViewer(DRBrowser drBrowser)
     {
@@ -194,7 +194,7 @@ public class DataSourceViewer extends JPanel
             
         for (final edu.tufts.vue.dsm.DataSource ds : dataSources) {
             if (ds instanceof VueDataSource) {
-                Log.info("configure: " + ds);
+                Log.debug("configure: " + ds);
                 new Thread("CONFIG: " + ds) {
                     @Override
                     public void run() {
@@ -204,7 +204,11 @@ public class DataSourceViewer extends JPanel
                             Log.error("configuring;", t);
                             //Log.error("configuring: " + ds + ";", t);
                         }
-                        singleton.repaint();
+                        Log.info("CONFIGURED");
+                        if (singleton != null)
+                            singleton.repaint();
+                        else
+                            Log.warn("config complete, no UI to update");
                     }
                 }.start();
             } else {
@@ -274,6 +278,18 @@ public class DataSourceViewer extends JPanel
         federatedSearchManager = edu.tufts.vue.fsm.impl.VueFederatedSearchManager.getInstance();
         sourcesAndTypesManager = edu.tufts.vue.fsm.impl.VueSourcesAndTypesManager.getInstance();
         if (DEBUG.Enabled) Log.debug("sourcesAndTypesManager: " + Util.tags(sourcesAndTypesManager));
+
+        // TODO: redesign: loadOSIDDataSources asks for a query editor, which triggers
+        // the creation of an edu.tufts.vue.ui.DefaultQueryEditor, which asks VDSM for
+        // included repositories, but now that repositories are not configured until
+        // later in case of hangs, they often all have a null repository reference, and
+        // are thus not included when DefaultQueryEditor asks for them.  In practice
+        // this shouldn't currently be hanging us up, as we refresh the query edtior
+        // later early and often, which re-asks for included repositories, but it
+        // indicates a circular dependency during initialization that could someday be
+        // problematic. A delayed or lazy create of the queryEditor reference should fix
+        // this.
+        
         queryEditor = federatedSearchManager.getQueryEditorForType(searchType);
         queryEditor.addSearchListener(this);
 
