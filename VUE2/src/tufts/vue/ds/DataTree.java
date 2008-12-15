@@ -46,21 +46,19 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.22 $ / $Date: 2008-12-04 06:10:25 $ / $Author: sfraize $
+ * @version $Revision: 1.23 $ / $Date: 2008-12-15 16:55:10 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
 public class DataTree extends javax.swing.JTree
-    implements DragGestureListener
-               , LWComponent.Listener
-               //,DragSourceListener
-               //,TreeSelectionListener
+    implements DragGestureListener, LWComponent.Listener
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(DataTree.class);
     
     private final Schema mSchema;
 
     private DataNode mRootNode;
+    private DataNode mRowNodeParent;
     private final DefaultTreeModel mTreeModel;
 
     private LWMap mActiveMap;
@@ -84,6 +82,38 @@ public class DataTree extends javax.swing.JTree
         }
     }
 
+    private void addNewRowsToMap() {
+
+        final LWMap map = mActiveMap;
+
+        // make certian we're current to the active map:
+        annotateForMap(map);
+
+        List<DataRow> newRows = new ArrayList();
+
+        for (DataNode n : mRowNodeParent.getChildren()) {
+            if (!n.isMapPresent()) {
+                //Log.debug("ADDING TO MAP: " + n);
+                newRows.add(n.getRow());
+            }
+        }
+
+        final List<LWComponent> nodes = makeRowNodes(mSchema, newRows);
+
+        addDataLinksForNewNodes(map, nodes, null);
+
+        if (nodes.size() > 0) {
+            map.getOrCreateLayer("New Data Nodes").addChildren(nodes);
+            // re-annotate given the newly added nodes;
+            annotateForMap(map);
+
+            if (nodes.size() > 1)
+                tufts.vue.LayoutAction.table.act(nodes);
+
+            VUE.getSelection().setTo(nodes);
+        }
+    }
+
     private static JComponent buildControllerUI(final DataTree tree)
     {
         final Schema schema = tree.mSchema;
@@ -99,6 +129,11 @@ public class DataTree extends javax.swing.JTree
         addNew.setIcon(NewToMapIcon);
         //addNew.setBorderPainted(false);
         addNew.setOpaque(false);
+        addNew.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    tree.addNewRowsToMap();
+                }
+            });
             
         JLabel dataSourceLabel = null;
             
@@ -128,7 +163,9 @@ public class DataTree extends javax.swing.JTree
         keyBox.addItemListener(new ItemListener() {
         	public void itemStateChanged(ItemEvent e) {
                     if (e.getStateChange() == ItemEvent.SELECTED) {
-                        schema.setKeyField((String) e.getItem());
+                        String newKey = (String) e.getItem();
+                        //Log.debug("KEY FIELD SELECTED: " + newKey);
+                        schema.setKeyField(newKey);
                         tree.refreshRoot();
                     }
         	}
@@ -171,10 +208,10 @@ public class DataTree extends javax.swing.JTree
 
         GUI.invokeAfterAWT(new Runnable() { public void run() {
             if (!inDoubleClick) {
-                if (DEBUG.Enabled) Log.debug("setExpandedState " + path + " = " + state + " RELAYING");
+                if (DEBUG.FOCUS) Log.debug("setExpandedState " + path + " = " + state + " RELAYING");
                 DataTree.super.setExpandedState(path, state);
             } else 
-                if (DEBUG.Enabled) Log.debug("setExpandedState " + path + " = " + state + " SKIPPING");
+                if (DEBUG.FOCUS) Log.debug("setExpandedState " + path + " = " + state + " SKIPPING");
             inDoubleClick = false;
         }});
     }
@@ -220,14 +257,18 @@ public class DataTree extends javax.swing.JTree
             
             final DataTree tree = DataTree.this;
             
-            if (tree.mActiveMap == null)
+            if (mActiveMap == null)
                 return;
 
-            final Field field = treeNode.getField();
+            Field field = treeNode.getField();
 
             if (field == null) {
-                // todo: must be root node: select a row-node items
-                return;
+                if (treeNode == mRowNodeParent || treeNode instanceof RowNode) {
+                    field = mSchema.getKeyField();
+                } else {
+                    // todo: must be root node: select a row-node items
+                    return;
+                }
             }
 
             //tree.setSelectionPath(path);
@@ -236,10 +277,30 @@ public class DataTree extends javax.swing.JTree
             final List<LWComponent> hits = new ArrayList();
             boolean matching = false;
             String desc = "";
-            if (treeNode.isField()) {
+
+            final Collection<LWComponent> searchSet = mActiveMap.getAllDescendents();
+            
+            if (treeNode == mRowNodeParent) {
+                // search for any row-node in the schema
+                desc = String.format("from data set<br>'%s'", mSchema.getName());
+                for (LWComponent c : searchSet) {
+                    if (c.hasDataKey(fieldName)) //if (c.isDataRow(mSchema))
+                        hits.add(c);
+                }
+            }
+            else if (treeNode instanceof RowNode) {
+                // search for a particular row-node in the schema based on the key field
+                final String keyValue = treeNode.getRow().getValue(fieldName);
+                for (LWComponent c : searchSet) {
+                    if (c.hasDataValue(fieldName, keyValue))
+                        hits.add(c);
+                }
+            }
+            else if (treeNode.isField()) {
+                // search for all nodes anchoring a particular value for the given Field
                 desc = String.format("anchoring field <b>%s", fieldName);
                 Log.debug("searching for " + fieldName + " in " + tree.mActiveMap);
-                for (LWComponent c : tree.mActiveMap.getAllDescendents()) {
+                for (LWComponent c : searchSet) {
                     if (c.isSchematicField(fieldName))
                         hits.add(c);
                 }
@@ -251,7 +312,7 @@ public class DataTree extends javax.swing.JTree
                 //desc = String.format("matching<br><b>%s: <i>%s", fieldName, fieldValue);
                 desc = String.format("<b>%s: <i>%s</i>", fieldName, fieldValue);
                 Log.debug("searching for " + fieldName + "=" + fieldValue + " in " + tree.mActiveMap);
-                for (LWComponent c : tree.mActiveMap.getAllDescendents()) {
+                for (LWComponent c : searchSet) {
                     if (c.hasDataValue(fieldName, fieldValue) && !c.isSchematicField())
                         hits.add(c);
                 }
@@ -306,14 +367,23 @@ public class DataTree extends javax.swing.JTree
 //             node.setAnnotation(annot);
 //         }
 
-        final Collection<LWComponent> allNodes;
+        // when annotating field nodes, could sort the DefaultMutableTreeNode child vector
+        // based on the occurance counts so most frequently appearing bubble to the top.
 
-        if (map == null)
-            allNodes = Collections.EMPTY_LIST;
-        else
-            allNodes = map.getAllDescendents();
+        final Collection<LWComponent> allDataNodes;
 
-        mSchema.annotateFor(allNodes);
+        if (map == null) {
+            allDataNodes = Collections.EMPTY_LIST;
+        } else {
+            final Collection<LWComponent> allNodes = map.getAllDescendents();
+            allDataNodes = new ArrayList(allNodes.size());
+            for (LWComponent c : allNodes)
+                if (c.isDataNode())
+                    allDataNodes.add(c);
+        }
+
+
+        mSchema.annotateFor(allDataNodes);
 
         if (map != null) {
             final String annot = map.getLabel();
@@ -407,6 +477,17 @@ public class DataTree extends javax.swing.JTree
                             VUE.getSelection().setSelectionSourceFocal(null); // prevents from ever drawing through on map
                             VUE.getSelection().setTo(treeNode.getStyle());
                         }
+                        else if (treeNode instanceof RowNode) {
+                            VUE.setActive(tufts.vue.MetaMap.class,
+                                          DataTree.this,
+                                          treeNode.getRow().getData());
+                        }
+                        else if (treeNode instanceof ValueNode && treeNode.getField().isPossibleKeyField()) {
+                            DataRow row = mSchema.findRow(treeNode.getField(), treeNode.getValue());
+                            VUE.setActive(tufts.vue.MetaMap.class,
+                                          DataTree.this,
+                                          row.getData());
+                        }
                         //VUE.setActive(LWComponent.class, this, node.styleNode);
                     }
                 }
@@ -440,16 +521,28 @@ public class DataTree extends javax.swing.JTree
     /** build the model and return the root node */
     private TreeNode buildTree(final Schema schema)
     {
-        final DataNode rowNodeTemplate = new TemplateNode(schema, this);
+        mRowNodeParent = new TemplateNode(schema, this);
         
         final DataNode root =
-            new DataNode(null, null, "Data Set: " + schema.getName());
+            new DataNode("Data Set: " + schema.getName());
+            //new VauleNode("Data Set: " + schema.getName());
 //             new DataNode(null, null,
 //                          String.format("%s [%d %s]",
 //                                        schema.getName(),
 //                                        schema.getRowCount(),
 //                                        "items"//isCSV ? "rows" : "items"));
-        root.add(rowNodeTemplate);
+
+        final Field keyField = schema.getKeyField();
+        Field labelField = schema.getField("title");
+        if (labelField == null)
+            labelField = keyField;
+        for (DataRow row : schema.getRows()) {
+            mRowNodeParent.add(new RowNode(row, labelField));
+            //String label = row.getValue(labelField);
+            //rowNodeTemplate.add(new ValueNode(keyField, row.getValue(keyField), label));
+        }
+        
+        root.add(mRowNodeParent);
         mRootNode = root;
 
         final Field sortedFields[] = new Field[schema.getFieldCount()];
@@ -468,7 +561,7 @@ public class DataTree extends javax.swing.JTree
 //             if (field.isSingleton())
 //                 continue;
 
-            DataNode fieldNode = new DataNode(field, this, null);
+            DataNode fieldNode = new FieldNode(field, this, null);
             root.add(fieldNode);
             
 //             if (field.uniqueValueCount() == schema.getRowCount()) {
@@ -558,31 +651,37 @@ public class DataTree extends javax.swing.JTree
             // DIFFERENTLY to the data source panel.
 
             final LWComponent dragNode;
-            final Field field = treeNode.field;
+            final Field field = treeNode.getField();
 
             if (treeNode.isValue()) {
                 //dragNode = new LWNode(String.format(" %s: %s", field.getName(), treeNode.value));
                 dragNode = makeValueNode(field, treeNode.getValue());
                 //dragNode.setLabel(String.format(" %s: %s ", field.getName(), treeNode.value));
                 //dragNode.setLabel(String.format(" %s ", field.getName());
+                dragNode.copyStyle(treeNode.getStyle(), ~LWKey.Label.bit);
             } else if (treeNode.isField()) {
 //                 if (field.isPossibleKeyField())
 //                     return;
                 dragNode = new LWNode(String.format("  %d unique  \n  '%s'  \n  values  ",
                                                     field.uniqueValueCount(),
                                                     field.getName()));
-                dragNode.setClientData(java.awt.datatransfer.DataFlavor.stringFlavor,
-                                       " ${" + field.getName() + "}");
+//                 dragNode.setClientData(java.awt.datatransfer.DataFlavor.stringFlavor,
+//                                        " ${" + field.getName() + "}");
+                
+            } else if (treeNode instanceof RowNode) {
+                
+                dragNode = makeRowNodes(treeNode.getSchema(), ((RowNode)treeNode).getRow()).get(0);
+                                        
             } else {
-                assert treeNode instanceof TemplateNode;
+                //assert treeNode instanceof TemplateNode;
                 final Schema schema = treeNode.getSchema();
                 dragNode = new LWNode(String.format("  '%s'  \n  dataset  \n  (%d items)  ",
                                                     schema.getName(),
                                                     schema.getRowCount()
                                                     ));
+                dragNode.copyStyle(treeNode.getStyle(), ~LWKey.Label.bit);
             }
                          
-            dragNode.copyStyle(treeNode.getStyle(), ~LWKey.Label.bit);
             //dragNode.setFillColor(null);
             //dragNode.setStrokeWidth(0);
             if (!treeNode.isValue()) {
@@ -591,8 +690,8 @@ public class DataTree extends javax.swing.JTree
 //                 dragNode.setClientData(LWComponent.ListFactory.class,
 //                                        new NodeProducer(treeNode));
             }
-            dragNode.setClientData(LWComponent.ListFactory.class,
-                                   new NodeProducer(treeNode));
+            dragNode.setClientData(LWComponent.Producer.class,
+                                   new NodeProducer(treeNode, DataTree.this));
                          
             tufts.vue.gui.GUI.startRecognizedDrag(e, dragNode);
                          
@@ -601,7 +700,10 @@ public class DataTree extends javax.swing.JTree
 
     private static String makeLabel(Field f, Object value) {
 
+        assert value != null;
+
         return value.toString();
+        //return value == null ? (f + "<null-value>") : value.toString();
         
 //         //return String.format("%s:\n%s", f.getName(), value.toString());
 //         if (f.isKeyField())
@@ -625,7 +727,25 @@ public class DataTree extends javax.swing.JTree
 
     }
 
-    private static List<LWComponent> makeAllDataNodes(Schema schema)
+    private static List<LWComponent> makeRowNodes(Schema schema, DataRow singleRow) {
+
+        Log.debug("PRODUCING SINGLE ROW NODE FOR " + schema + "; row=" + singleRow);
+
+        List<DataRow> rows = Collections.singletonList(singleRow);
+
+        return makeRowNodes(schema, rows);
+        
+    }
+    
+    private static List<LWComponent> makeRowNodes(Schema schema) {
+
+        Log.debug("PRODUCING ALL DATA NODES FOR " + schema + "; rowCount=" + schema.getRows().size());
+
+        return makeRowNodes(schema, schema.getRows());
+        
+    }
+
+    private static List<LWComponent> makeRowNodes(Schema schema, final Collection<DataRow> rows)
     {
         final java.util.List<LWComponent> nodes = new ArrayList();
 
@@ -634,16 +754,28 @@ public class DataTree extends javax.swing.JTree
         final Field titleField = schema.getField("title");
         final Field mediaField = schema.getField("media:group.media:content.media:url");
 
-        Log.debug("PRODUCING ALL DATA NODES FOR " + schema);
+//         final Collection<DataRow> rows;
+
+//         if (singleRow != null) {
+//             Log.debug("PRODUCING SINGLE ROW NODE FOR " + schema + "; row=" + singleRow);
+//             rows = Collections.singletonList(singleRow);
+//         } else {
+//             Log.debug("PRODUCING ALL DATA NODES FOR " + schema + "; rowCount=" + schema.getRows().size());
+//             rows = schema.getRows();
+//         }
+
+        Log.debug("PRODUCING ROW NODE(S) FOR " + schema + "; " + Util.tags(rows));
+        
+        
         int i = 0;
         LWNode node;
-        for (DataRow row : schema.getRows()) {
-            
+        for (DataRow row : rows) {
+
             node = LWNode.createRaw();
             // node.setFlag(Flag.EVENT_SILENT); // todo performance: have nodes do this by default during init
             //node.setClientData(Schema.class, schema);
             //node.getMetadataList().add(row.entries());
-            node.addDataValues(row.entries());
+            node.addDataValues(row.dataEntries());
             node.setStyle(schema.getStyleNode()); // must have meta-data set first to pick up label template
 
             if (linkField != null) {
@@ -664,44 +796,91 @@ public class DataTree extends javax.swing.JTree
                 }
                 
             }
+
+            //Log.debug("produced node " + node);
             
             nodes.add(node);
         }
-        Log.debug("PRODUCED ALL DATA NODES FOR " + schema);
+        
+        Log.debug("PRODUCED NODE(S) FOR " + schema + "; count=" + nodes.size());
         
         return nodes;
     }
-    
-    
-    private static class NodeProducer implements LWComponent.ListFactory {
 
-        private final DataNode treeNode;
-
-        NodeProducer(DataNode n) {
-            treeNode = n;
+    private static List<LWLink> makeDataLinksForNodes(LWMap map, List<LWComponent> nodes, Field field)
+    {
+        final Collection linkTargets = Util.extractType(map.getAllDescendents(), LWNode.class);
+        
+        java.util.List<LWComponent> links = null;
+        
+        if (linkTargets.size() > 0) {
+            links = new ArrayList();
+            for (LWComponent c : nodes) {
+                links.addAll(DataAction.makeLinks(linkTargets, c, field));
+            }
         }
 
-        public java.util.List<LWComponent> produceNodes()
+        return links == null ? Collections.EMPTY_LIST : links;
+    }
+
+
+    private static void addDataLinksForNewNodes(LWMap map, List<LWComponent> nodes, Field field) {
+        
+        List<LWLink> links = makeDataLinksForNodes(map, nodes, field);
+
+        if (links.size() > 0)
+            map.getInternalLayer("*Data Links*").addChildren(links);
+    }
+    
+    
+    private static class NodeProducer implements LWComponent.Producer, Runnable {
+
+        private final DataNode treeNode;
+        private final DataTree tree;
+
+        NodeProducer(DataNode n, DataTree tree) {
+            this.treeNode = n;
+            this.tree = tree;
+        }
+
+        public java.util.List<LWComponent> produceNodes(final LWMap map)
         {
-            Log.debug("PRODUCING NODES FOR " + treeNode.field);
-            
-            final Field field = treeNode.field;
+            final Field field = treeNode.getField();
             final Schema schema = treeNode.getSchema();
+            
+            Log.debug("PRODUCING NODES FOR FIELD: " + field);
+            Log.debug("                IN SCHEMA: " + schema);
+            
             final java.util.List<LWComponent> nodes;
 
             LWNode n = null;
 
-            if (treeNode.isSchematic()) {
+            if (treeNode instanceof RowNode) {
 
-                nodes = makeAllDataNodes(schema);
+                nodes = makeRowNodes(schema, treeNode.getRow());
+                
+            } else if (treeNode.isSchematic()) {
+
+                List<LWComponent> _nodes = null;
+                Log.debug("PRODUCING ALL DATA NODES");
+                try {
+                    _nodes = makeRowNodes(schema);
+                    Log.debug("PRODUCED ALL DATA NODES; nodeCount="+_nodes.size());
+                } catch (Throwable t) {
+                    Util.printStackTrace(t);
+                }
+
+                nodes = _nodes;
                 
             } else if (treeNode.isValue()) {
                 
+                Log.debug("PRODUCING A SINGLE VALUE NODE");
                 // is a single value from a column
                 nodes = Collections.singletonList(makeValueNode(field, treeNode.getValue()));
                     
             } else {
 
+                Log.debug("PRODUCING ALL VALUE NODES FOR FIELD: " + field);
                 nodes = new ArrayList();
 
                 // handle all the enumerated values for a column
@@ -710,49 +889,46 @@ public class DataTree extends javax.swing.JTree
                     nodes.add(makeValueNode(field, value));
             }
 
-            final LWMap map = VUE.getActiveMap(); // hack
-            final Collection linkTargets = Util.extractType(map.getAllDescendents(), LWNode.class);
-
-            java.util.List<LWComponent> links = null;
-
-            if (linkTargets.size() > 0) {
-                links = new ArrayList();
-                for (LWComponent c : nodes) {
-                    links.addAll(DataAction.makeLinks(linkTargets, c, field));
-                }
-            }
-
-           
-            
             //for (LWComponent c : nodes)c.setToNaturalSize();
             // todo: some problem editing template values: auto-size not being handled on label length shrinkage
 
-            if (links != null && links.size() > 0)
-                VUE.getActiveMap().getInternalLayer("*Data Links*").addChildren(links);
-            GUI.invokeAfterAWT(new Runnable() { public void run() {  
-             if (nodes.size() > 1) {
+            addDataLinksForNewNodes(map, nodes, field);
+
+            this.nodes = nodes;
+            this.map = map;
+
+            // todo: should be handle by LWComponent.Producer interface callback at the
+            // appropriate time (after the nodes have been added to their context)
+            GUI.invokeAfterAWT(this); 
+
+            return nodes;
+        }
+
+        private LWMap map;
+        private List<LWComponent> nodes;
+        public void run() { adjustNodesAfterAdding(map, nodes); }
+
+        // todo: add this to LWComponent.Producer interface
+        public void adjustNodesAfterAdding(final LWMap map, List<LWComponent> nodes) {
+
+            if (nodes.size() > 1) {
                 if (treeNode.isSchematic()) {
                     tufts.vue.LayoutAction.table.act(nodes);
                 } else {
                     tufts.vue.LayoutAction.cluster.act(nodes);
                 }
-             }
-            }});
-                //Actions.MakeCluster.act(nodes); // todo: broken
-                //Actions.MakeColumn.act(nodes);
-                // Actions.ZoomFit.fire(this); not added to map yet
-                
-                // TODO: below should be a post-add action to be called
-                // on the list-factory
-//                 GUI.invokeAfterAWT(new Runnable() { public void run() {
-//                     // todo: we want a zoom-fit action that will zoom-fit
-//                     // only if MORE space is needed, but not zoom IN if
-//                     // everything is already visible
-//                     Actions.ZoomFit.fire(this); 
-//                 }});
+            }
 
+            // todo: this would be more precisely handled by the DataTree having a
+            // listener on the active map for any hierarchy events that involve the
+            // creation/deletion of any data-holding nodes, and running an annotate
+            // at the end if any are detected -- adding a cleanup task the first time
+            // (and checking for before adding another: standard cleanup task semantics)
+            // should handle our run-once needs.
+
+            if (map == VUE.getActiveMap()) // only if is still the active map
+                tree.annotateForMap(map);
             
-            return nodes;
         }
     }
 
@@ -878,22 +1054,15 @@ public class DataTree extends javax.swing.JTree
 
     private static class DataNode extends DefaultMutableTreeNode {
 
-        final Field field;
+        //final Field field;
         String display;
         
-        DataNode(Field field, LWComponent.Listener repainter, String description) {
-            this.field = field;
-
-            if (description == null) {
-                if (field != null)
-                    setDisplay(makeFieldLabel(field));
-            } else
-                setDisplay(description);
-
-            //if (field != null && field.isEnumerated() && !field.isPossibleKeyField())
-            if (field != null && !field.hasStyleNode() && !field.isSingleValue() && field.isEnumerated())
-                field.setStyleNode(createStyleNode(field, repainter));
+        //DataNode(Field field, LWComponent.Listener repainter, String description) {
+        protected DataNode(String description) {
+            setDisplay(description);
         }
+
+        protected DataNode() {}
 
         Vector<DataNode> getChildren() {
             return super.children;
@@ -904,12 +1073,15 @@ public class DataTree extends javax.swing.JTree
 //             setDisplay(description);
 //         }
 
-        protected DataNode(Field field) {
-            this.field = field;
-        }
 
         Schema getSchema() {
-            return field.getSchema();
+            Util.printStackTrace("getSchema: unimplemented");
+            return null;
+        }
+
+        DataRow getRow() {
+            Util.printStackTrace("getRow: unimplemented");
+            return null;
         }
 
         String getValue() {
@@ -917,7 +1089,8 @@ public class DataTree extends javax.swing.JTree
         }
 
         Field getField() {
-            return field;
+            //Util.printStackTrace("getField: unimplemented");
+            return null;
         }
 
         void setDisplay(String s) {
@@ -926,7 +1099,7 @@ public class DataTree extends javax.swing.JTree
         }
 
         void annotate(LWMap map) {
-            if (field != null) {
+            if (getField() != null) {
 
                 // skip this summary entirely for now: we'd need Field to track
                 // instances of schematic field nodes for it to work anyway
@@ -1002,17 +1175,15 @@ public class DataTree extends javax.swing.JTree
         
 
         LWComponent getStyle() {
-            return field == null ? null : field.getStyleNode();
+            return null;
         }
 
         boolean hasStyle() {
-            //return isField();
-            return field != null && field.getStyleNode() != null;
+            return false;
         }
 
         boolean isField() {
-            return field != null;
-            //return value == null && field != null;
+            return false;
         }
         
         boolean isValue() {
@@ -1020,8 +1191,13 @@ public class DataTree extends javax.swing.JTree
             return !isField();
         }
 
+        /** @return true if this node is tracked for presence in the active map */
+        boolean isMapTracked() {
+            return isValue();
+        }
+        
         boolean isSchematic() {
-            return field == null;
+            return getField() == null;
         }
 
         boolean isMapPresent() {
@@ -1030,9 +1206,106 @@ public class DataTree extends javax.swing.JTree
 
     }
 
-    private static final class ValueNode extends DataNode {
+    private final class RowNode extends DataNode {
 
-        String value;
+        final DataRow row;
+        boolean isMapPresent;
+
+        RowNode(DataRow row, Field labelField) {
+            this.row = row;
+            //setDisplay(row.getValue(labelField));
+            setDisplay(row.toString());
+        }
+
+
+        @Override
+        void annotate(LWMap map) {
+            final Field keyField = getSchema().getKeyField();
+            final String keyValue = row.getValue(keyField);
+
+            isMapPresent = keyField.countContextValue(keyValue) > 0;
+        }
+
+        
+        @Override
+        boolean isMapPresent() {
+            return isMapPresent;
+        }
+
+        @Override
+        DataRow getRow() {
+            return row;
+        }
+
+        @Override boolean isMapTracked() { return true; }
+        @Override boolean isField() { return false; }
+        @Override boolean isValue() { return false; }
+        @Override Schema getSchema() {
+            // return row.getSchema() -- row's don't currently encode the schema
+            // if pull a schema stored in the root template node from parent.parent,
+            // could skip making this an inner class, and save 4 bytes per row-node at runtime
+            return mSchema;
+        }
+                
+    }
+
+    private static class FieldNode extends DataNode {
+
+        final Field field;
+
+        FieldNode(Field field, LWComponent.Listener repainter, String description) {
+            this.field = field;
+
+            if (description == null) {
+                if (field != null)
+                    setDisplay(makeFieldLabel(field));
+            } else
+                setDisplay(description);
+
+            //if (field != null && field.isEnumerated() && !field.isPossibleKeyField())
+            if (field != null && !field.hasStyleNode() && !field.isSingleValue() && field.isEnumerated())
+                field.setStyleNode(createStyleNode(field, repainter));
+        }
+
+        protected FieldNode(Field field) {
+            this.field = field;
+        }
+
+        @Override
+        Schema getSchema() {
+            return field.getSchema();
+        }
+
+        @Override
+        Field getField() {
+            return field;
+        }
+        
+        @Override
+        LWComponent getStyle() {
+            return field == null ? null : field.getStyleNode();
+        }
+
+        @Override
+        boolean hasStyle() {
+            //return isField();
+            return field != null && field.getStyleNode() != null;
+        }
+
+        @Override
+        boolean isField() {
+            return field != null;
+            //return value == null && field != null;
+        }
+        
+        
+        
+    }
+    
+
+    private static final class ValueNode extends FieldNode {
+
+        final String value;
         boolean isMapPresent;
 
         ValueNode(Field field, String value, String label) {
@@ -1041,13 +1314,14 @@ public class DataTree extends javax.swing.JTree
             this.value = value;
         }
         
+        @Override
         String getValue() {
             return value;
         }
 
         @Override
         void annotate(LWMap map) {
-            
+
             final int count = field.countContextValue(value);
             if (count > 0) {
                 isMapPresent = true;
@@ -1079,10 +1353,13 @@ public class DataTree extends javax.swing.JTree
         boolean isMapPresent() {
             return isMapPresent;
         }
+
+//         @Override
+//         public String toString() { return "ValueNode[" + super.toString() + "; value=" + getValue() + "]"; }
         
     }
 
-    private static final class TemplateNode extends DataNode {
+    private static final class TemplateNode extends FieldNode {
 
         Schema schema;
 
@@ -1149,6 +1426,7 @@ public class DataTree extends javax.swing.JTree
     
     //private static final Icon IncludedInMapIcon = VueResources.getImageIcon("vueIcon16");
     private static final Icon IncludedInMapIcon = VueResources.getIcon(VUE.class, "images/data_onmap.png");
+    private static final Icon DifferentInMapIcon = VueResources.getIcon(VUE.class, "images/data_new-hack.gif");
     //private static final Icon IncludedInMapIcon = GUI.reframeIcon(VueResources.getIcon(VUE.class, "images/data_onmap.png"), 8, 16);
     private static final Icon NewToMapIcon = VueResources.getIcon(VUE.class, "images/data_offmap.png");
 //     private static final GUI.ResizedIcon NewToMapIcon =
@@ -1207,11 +1485,14 @@ public class DataTree extends javax.swing.JTree
                 
                 if (field != null && field.isSingleton()) {
                     setIcon(null);
-                } else if (node.isValue()) {
+                } else if (node.isMapTracked()) {
                     setIconTextGap(1);
-                    if (node.isMapPresent())
-                        setIcon(IncludedInMapIcon);
-                    else
+                    if (node.isMapPresent()) {
+                        if (node instanceof RowNode && ((RowNode)node).getRow().isContextChanged())
+                            setIcon(DifferentInMapIcon);
+                        else
+                            setIcon(IncludedInMapIcon);
+                    } else
                         setIcon(NewToMapIcon);
                 }
 
@@ -1237,7 +1518,7 @@ public class DataTree extends javax.swing.JTree
                 //setFont(null);
                 //setBorder(leaf ? LeafBorder : null);
                 if (leaf) {
-                    if (node.isField() && node.field.isSingleton())
+                    if (node.isField() && node.getField().isSingleton())
                         setBorder(TopTierBorder);
                     else
                         setBorder(LeafBorder);
