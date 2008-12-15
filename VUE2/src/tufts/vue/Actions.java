@@ -377,17 +377,20 @@ public class Actions implements VueConstants
         new VueAction("Search") {
     		
             public void act() {
-                if(tufts.vue.ui.InspectorPane.META_VERSION == tufts.vue.ui.InspectorPane.OLD)
-                {    
-            	  VUE.getMapInfoDock().setVisible(true);
-            	  VUE.getMapInspectorPanel().activateFilterTab();
-                }
-                else
-                {
-//                  tufts.vue.gui.DockWindow searchWindow = tufts.vue.MetadataSearchMainGUI.getDockWindow();
-//                  searchWindow.setVisible(true);
-                	VUE.getMetadataSearchMainGUI().setVisible(true);              	    
-                }
+
+                VUE.getMetadataSearchMainGUI().setVisible(true);
+                
+//                 if(tufts.vue.ui.InspectorPane.META_VERSION == tufts.vue.ui.InspectorPane.OLD)
+//                 {    
+//             	  VUE.getMapInfoDock().setVisible(true);
+//             	  VUE.getMapInspectorPanel().activateFilterTab();
+//                 }
+//                 else
+//                 {
+// //                  tufts.vue.gui.DockWindow searchWindow = tufts.vue.MetadataSearchMainGUI.getDockWindow();
+// //                  searchWindow.setVisible(true);
+//                 	VUE.getMetadataSearchMainGUI().setVisible(true);              	    
+//                 }
             }
         };
 
