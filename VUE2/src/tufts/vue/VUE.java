@@ -112,7 +112,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.600 $ / $Date: 2008-12-11 15:32:09 $ / $Author: sraphe01 $ 
+ * @version $Revision: 1.601 $ / $Date: 2008-12-15 16:54:15 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -313,7 +313,7 @@ public class VUE
     };
 
     /**
-     *
+     * Global active Layer handler for the active layer within the active map.
      */
     private static final ActiveInstance<LWMap.Layer>
         ActiveLayerHandler = new ActiveInstance<LWMap.Layer>(LWMap.Layer.class) {
@@ -334,8 +334,7 @@ public class VUE
     
 
     /**
-     * active LWComponent handler (the active single-selection, if there is one).
-     * Will guess at and update the active pathway entry if it can.
+     * Global active Resource handler.
      */
     private static final ActiveInstance<Resource>
         ActiveResourceHandler = new ActiveInstance<Resource>(Resource.class) {
@@ -1825,7 +1824,7 @@ public class VUE
 
         	}
 
-                if (true || DEBUG.Enabled /* && !SKIP_DR */) {
+                if (DEBUG.Enabled /* && !SKIP_DR */) {
                     final DataFinder DATA_FINDER_DEFAULTS =
                         new DataFinder("resources", null,
                                        new Class[] {
@@ -1874,8 +1873,11 @@ public class VUE
                     dataFinderDock.setVisible(true);
 
                     GUI.invokeAfterAWT(new Runnable() { public void run() {
-                        //DATA_FINDER_DEFAULTS.loadDataSourceViewer();
-                        //DATA_FINDER_RSS.loadDataSourceViewer();
+//                         if (!SKIP_DR) {
+                        // will currently deadlock if DEBUG is NOT enabled, presumably when caching is attempted
+//                             DATA_FINDER_DEFAULTS.loadDataSourceViewer();
+//                             DATA_FINDER_RSS.loadDataSourceViewer();
+//                         }
                         DATA_FINDER_XML.loadDataSourceViewer();
                     }});
                 }
