@@ -31,7 +31,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, duplication, adding/removing and reordering (z-order) of children.
  *
- * @version $Revision: 1.151 $ / $Date: 2008-10-22 15:37:27 $ / $Author: sfraize $
+ * @version $Revision: 1.152 $ / $Date: 2008-12-15 16:47:10 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -267,7 +267,7 @@ public abstract class LWContainer extends LWComponent
 //     }
 
 
-    protected List<LWComponent> sortForIncomingZOrder(List<LWComponent> toAdd)
+    protected List<? extends LWComponent> sortForIncomingZOrder(List<? extends LWComponent> toAdd)
     {
         // Do what we can to preserve any meaninful order already
         // present in the new incoming children.
@@ -330,7 +330,7 @@ public abstract class LWContainer extends LWComponent
      * Special case: if we're a Group, we sort by z-order to preserve visual layer.
      */
     @Override
-    public void addChildren(List<LWComponent> toAdd, Object context)
+    public void addChildren(List<? extends LWComponent> toAdd, Object context)
     {
         if (DEBUG.PARENTING) Log.debug(this + ":addChildren/"+context + ": " + toAdd);
 
@@ -1009,7 +1009,7 @@ public abstract class LWContainer extends LWComponent
     
     
 
-    protected static LWComponent[] sort(Collection<LWComponent> bag, Comparator comparator)
+    protected static LWComponent[] sort(Collection<? extends LWComponent> bag, Comparator comparator)
     {
         LWComponent[] array = new LWComponent[bag.size()];
         bag.toArray(array);
