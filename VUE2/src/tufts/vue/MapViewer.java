@@ -75,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.579 $ / $Date: 2008-12-15 16:50:27 $ / $Author: sfraize $ 
+ * @version $Revision: 1.580 $ / $Date: 2008-12-15 19:16:43 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1463,14 +1463,18 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             return true;
         }
         
-        final LWComponent parent = mFocal.getParent();
+        LWComponent parent = mFocal.getParent();
         if (parent instanceof LWPathway)
             switchFocal(parent.getMap(), animate);
         else if (mFocal instanceof LWSlide && mFocal.isPathwayOwned())
             switchFocal(parent.getMap(), animate);
         else if (parent != null)
+        {
+        	if (parent instanceof LWMap.Layer)
+        		parent = parent.getMap();
             switchFocal(parent, animate);
-        else
+        
+        }else
             return false;
         
         return true;
