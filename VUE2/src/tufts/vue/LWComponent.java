@@ -50,7 +50,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.446 $ / $Date: 2008-12-04 19:15:46 $ / $Author: mike $
+ * @version $Revision: 1.447 $ / $Date: 2008-12-15 16:45:50 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -193,9 +193,15 @@ public class LWComponent
         public void LWCChanged(LWCEvent e);
     }
     
-    public interface ListFactory {
-        public java.util.List<LWComponent> produceNodes();
+    /** a context-sensitive list-factory for nodes */
+    public interface Producer {
+        public java.util.List<LWComponent> produceNodes(LWMap map);
+        
+        public static final java.awt.datatransfer.DataFlavor DataFlavor =
+            tufts.vue.gui.GUI.makeDataFlavor(Producer.class);
     }
+
+    
 
     /*
      * Meta-data persistant information
@@ -1627,6 +1633,9 @@ u                    getSlot(c).setFromString((String)value);
         if (hasNotes())
             c.setNotes(getNotes());
 
+        if (mDataMap != null)
+            c.mDataMap = mDataMap.clone();
+
         if (cc.patcher != null)
             cc.patcher.track(this, c);
                 
@@ -1786,9 +1795,10 @@ u                    getSlot(c).setFromString((String)value);
 //             return null;
 //     }
 
-    public void addDataValues(final Iterable<Map.Entry<String,String>> entries) {
+    //public void addDataValues(final Iterable<Map.Entry<String,String>> entries) {
+    public void addDataValues(final Iterable<Map.Entry> entries) {
         getMetadataList().add(entries);
-        getDataMap().putAll(entries);
+        getDataMap().putAllStrings(entries);
     }
 
     public void addDataValue(String key, String value) {
@@ -1805,7 +1815,7 @@ u                    getSlot(c).setFromString((String)value);
 //         return vme == null ? null : vme.getValue();
             
     }
-    
+
     private String extractTemplateValue(String key) {
 
         String value = getDataValue(key);
@@ -1841,6 +1851,26 @@ u                    getSlot(c).setFromString((String)value);
     
     public boolean isSchematicField(String name) {
         return name.equals(getSchematicFieldName());
+    }
+    
+    /**
+     * @return true if this is a data-row node from the given schema.
+     * todo: schema checking is currently weak -- only checks for key field
+     */
+    public boolean isDataRow(tufts.vue.ds.Schema schema) {
+        return hasDataKey(schema.getKeyField().getName()) && !isSchematicField();
+    }
+
+    public MetaMap getRawData() {
+        return mDataMap;
+    }
+
+    public boolean isDataNode() {
+        return mDataMap != null;
+    }
+
+    public boolean hasDataKey(String key) {
+        return mDataMap != null && mDataMap.containsKey(key);
     }
 
     public boolean hasDataValue(String key, String value) {
@@ -3084,7 +3114,7 @@ u                    getSlot(c).setFromString((String)value);
         addChildren(Collections.singletonList(c), ADD_PASTE);
     }
 
-    public final void addChildren(List<LWComponent> children) {
+    public final void addChildren(List<? extends LWComponent> children) {
         addChildren(children, ADD_DEFAULT);
     }
 
@@ -3093,7 +3123,7 @@ u                    getSlot(c).setFromString((String)value);
      * this method appears here for typing convenience and debug.  If a non LWContainer subclass
      * calls this, it's a no-op, and a diagnostic stack trace is dumped to the console.
      */
-    public void addChildren(List<LWComponent> children, Object context) {
+    public void addChildren(List<? extends LWComponent> children, Object context) {
         Util.printStackTrace(this + ": can't take children; ignored: " + Util.tags(children) + "; context=" + context);
     }
 
