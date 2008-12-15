@@ -33,7 +33,7 @@ import tufts.vue.gui.*;
  * A tabbed-pane collection of property sheets that apply
  * globally to a given map.
  *
- * @version $Revision: 1.67 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $ 
+ * @version $Revision: 1.68 $ / $Date: 2008-12-15 16:49:01 $ / $Author: sfraize $ 
  *
  */
 public class MapInspectorPanel extends JPanel
@@ -364,10 +364,10 @@ public class MapInspectorPanel extends JPanel
             //linePanel.setBorder(BorderFactory.createEmptyBorder(10,0,0,0));
             propertiesEditor = new PropertiesEditor(true);
             JPanel metadataPanel = new JPanel(new BorderLayout());
-            if(tufts.vue.ui.InspectorPane.META_VERSION == tufts.vue.ui.InspectorPane.OLD)
-            {
-              metadataPanel.add(propertiesEditor,BorderLayout.CENTER);
-            }
+//             if(tufts.vue.ui.InspectorPane.META_VERSION == tufts.vue.ui.InspectorPane.OLD)
+//             {
+//               metadataPanel.add(propertiesEditor,BorderLayout.CENTER);
+//             }
             //metadataPanel.setBorder(BorderFactory.createEmptyBorder(0,9,0,6));
             
             
