@@ -90,7 +90,7 @@ public class MetadataList {
     }
     
     /** attempt at high-performace bulk load that triggers no GUI updates */
-    public void add(Iterable<Map.Entry<String,String>> kvEntries) {
+    public void add(Iterable<Map.Entry> kvEntries) {
 
         disableEvents = true;
         // oddly, firing list changed events get much slower as amount of total meta-data increases        
@@ -98,8 +98,8 @@ public class MetadataList {
         // the categoryList updates still trigger the updates, so we turn them off with
         // a flag for now
         
-        for (Map.Entry<String,?> e : kvEntries)
-            categoryList.add(new VueMetadataElement(e.getKey(), e.getValue().toString()));
+        for (Map.Entry e : kvEntries)
+            categoryList.add(new VueMetadataElement(e.getKey().toString(), e.getValue().toString()));
         disableEvents = false;
         fireListChanged();
         
