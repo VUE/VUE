@@ -23,7 +23,7 @@ package tufts.vue;
  * on the configuration.  E.g., a local directory, a list of user favorites, a remote FTP
  * site, an RSS feed, etc.
  * 
- * @version $Revision: 1.5 $ / $Date: 2008-12-04 06:10:47 $ / $Author: sfraize $
+ * @version $Revision: 1.6 $ / $Date: 2008-12-15 16:44:08 $ / $Author: sfraize $
  * @author  rsaigal
  * @author  sfraize
  */
@@ -146,7 +146,7 @@ public abstract class BrowseDataSource implements DataSource
     public final void setAddress(String newAddress) {
         if (newAddress != null)
             newAddress = newAddress.trim();
-        out("setAddress[" + newAddress + "]");
+        if (DEBUG.DR) out("setAddress[" + newAddress + "]");
         if (newAddress != null && !newAddress.equals(address)) {
             this.address = newAddress;
             // any time we change the address, rebuild the viewer
@@ -168,7 +168,7 @@ public abstract class BrowseDataSource implements DataSource
     }
 
     public void setAuthenticationCookie(String s) {
-        Log.debug("setAuthenticationCookie[" + s + "]");
+        //if (DEBUG.DR) Log.debug("setAuthenticationCookie[" + s + "]");
         if (s == authenticationCookie || (s != null && s.equals(authenticationCookie))) {
             return;
         } else {
