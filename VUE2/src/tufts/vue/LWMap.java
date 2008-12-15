@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.219 $ / $Date: 2008-12-15 16:47:43 $ / $Author: sfraize $
+ * @version $Revision: 1.220 $ / $Date: 2008-12-15 22:05:59 $ / $Author: sraphe01 $
  */
 
 public class LWMap extends LWContainer
@@ -2419,5 +2419,17 @@ public class LWMap extends LWContainer
     public static final Key KEY_PresentationColor = new Key("presentation.color", KeyType.STYLE)
         { final Property getSlot(LWMap c) { return c.mPresentationColor; } };
     
-    
+    private List searchArrLst = new ArrayList();
+
+	public List getSearchArrLst() {
+		if (DEBUG.Enabled)
+			System.out.println("get : " +searchArrLst.toString());
+		return searchArrLst;
+	}
+
+	public void setSearchArrLst(List searchArrLst) {
+		if (DEBUG.Enabled)
+			System.out.println("set : " +searchArrLst.toString());
+		this.searchArrLst = searchArrLst;
+	}
 }
