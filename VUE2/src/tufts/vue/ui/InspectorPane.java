@@ -40,17 +40,17 @@ import edu.tufts.vue.fsm.event.SearchListener;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.101 $ / $Date: 2008-12-04 06:08:30 $ / $Author: sfraize $
+ * @version $Revision: 1.102 $ / $Date: 2008-12-15 16:52:56 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends WidgetStack
-    implements VueConstants, /*ResourceSelection.Listener,*/ LWSelection.Listener, SearchListener, Runnable
+    implements VueConstants, LWSelection.Listener, SearchListener, Runnable
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(InspectorPane.class);
     
-    public static final int META_VERSION = VueResources.getInt("metadata.version");
-    /** meta-data */ public static final int OLD = 0;
-    /** meta-data */ public static final int NEW = 1;
+//     public static final int META_VERSION = VueResources.getInt("metadata.version");
+//     /** meta-data */ public static final int OLD = 0;
+//     /** meta-data */ public static final int NEW = 1;
     
     private final Image NoImage = VueResources.getImage("NoImage");
 
@@ -107,6 +107,7 @@ public class InspectorPane extends WidgetStack
     private static final int NOTES = 2;
     private static final int KEYWORD = 4;
     private static final int RESOURCE = 8;
+    private static final int DATA = 16;
   
     public InspectorPane()
     {
@@ -130,7 +131,7 @@ public class InspectorPane extends WidgetStack
         new Pane("Label",                  mLabelPane,          EXACT_SIZE,  INFO+NOTES+KEYWORD);
         new Pane("Content Preview",        mPreview,            EXACT_SIZE,  RESOURCE);
         new Pane("Content Summary",        mDescription,        0.5f,        RESOURCE);
-        new Pane("Data Set Fields",        mDataSetData,        EXACT_SIZE,  INFO+NOTES+KEYWORD);
+        new Pane("Data Set Fields",        mDataSetData,        EXACT_SIZE,  INFO+NOTES+KEYWORD+DATA);
         new Pane("Content Info",           mResourceMetaData,   EXACT_SIZE,  RESOURCE);
         new Pane("Notes",                  mNotes,              EXPANDER,    INFO+NOTES);
         new Pane("Pathway Notes",          mPathwayNotes,       EXPANDER,    INFO+NOTES);
@@ -144,6 +145,7 @@ public class InspectorPane extends WidgetStack
         VUE.addActiveListener(LWComponent.class, this);
         VUE.addActiveListener(Resource.class, this);
         VUE.addActiveListener(LWPathway.Entry.class, this);
+        VUE.addActiveListener(MetaMap.class, this);
         //VUE.getResourceSelection().addListener(this);
         
         Widget.setHelpAction(mLabelPane,VueResources.getString("dockWindow.Info.summaryPane.helpText"));;
@@ -226,8 +228,6 @@ public class InspectorPane extends WidgetStack
            
     }
     
-
-    //public void resourceSelectionChanged(ResourceSelection.Event e)
     public void activeChanged(final tufts.vue.ActiveEvent e, final Resource resource)
     {    	
         if (resource == null)
@@ -241,13 +241,30 @@ public class InspectorPane extends WidgetStack
         
         displayHold();
         //if (DEBUG.RESOURCE) out("resource selected: " + e.selected);
-        showNodePanes(false);
-        showResourcePanes(true);
+//         showNodePanes(false);
+//         showResourcePanes(true);
+        displayPanes(RESOURCE);
         loadResource(resource, null);
         setVisible(true);
         stack.setTitleItem("Content");
         displayRelease();
     }
+
+    public void activeChanged(final tufts.vue.ActiveEvent e, final MetaMap dataMap)
+    {    	
+        if (dataMap == null)
+            return;
+
+        // todo: below essentially repeats Resource active changed
+        
+        displayHold();
+        displayPanes(DATA);
+        mDataSetData.loadTable(dataMap);
+        setVisible(true);
+        stack.setTitleItem("Data");
+        displayRelease();
+    }
+    
 
     private LWComponent activeEntrySelectionSync;
     private LWPathway.Entry loadedEntry; // not needed at the moment
@@ -351,6 +368,7 @@ public class InspectorPane extends WidgetStack
     {
         Widget.setHidden(mSelectionInfo, true);
         
+        //displayPanes(NODE);
         showNodePanes(true);
 
         if (c instanceof LWSlide || c.hasAncestorOfType(LWSlide.class)) {
@@ -925,10 +943,33 @@ public class InspectorPane extends WidgetStack
 
     private void setPanesVisible(int type, boolean visible) {
 
+        //boolean anyVisible = false;
         for (Pane p : Pane.AllPanes) {
-            if ((p.bits & type) != 0)
+            if ((p.bits & type) != 0) {
                 Widget.setHidden(p.widget, !visible);
+//                 if (visible)
+//                     anyVisible = true;
+            }
         }
+
+//         if (anyVisible)
+//             Widget.setHidden(mSelectionInfo, true);
+    }
+    
+    private void displayPanes(int type) {
+
+        boolean anyVisible = false;
+        for (Pane p : Pane.AllPanes) {
+            if ((p.bits & type) != 0) {
+                Widget.setHidden(p.widget, false);
+                anyVisible = true;
+            } else
+                Widget.setHidden(p.widget, true);
+                
+        }
+
+        if (anyVisible)
+            Widget.setHidden(mSelectionInfo, true);
     }
     
     
@@ -1133,11 +1174,7 @@ public class InspectorPane extends WidgetStack
         public UserMetaData()
         {
             super("Keywords");
-            setLayout(new BorderLayout());
-          
-            if(META_VERSION == NEW)
-                setLayout(new BoxLayout(this,BoxLayout.Y_AXIS));
-            //setBorder( BorderFactory.createEmptyBorder(10,10,10,6));
+            setLayout(new BoxLayout(this,BoxLayout.Y_AXIS));
 
             // todo in VUE to create map before adding panels or have a model that
             // has selection loaded when map is added.
