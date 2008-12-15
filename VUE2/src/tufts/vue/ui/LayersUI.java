@@ -37,7 +37,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.46 $ / $Date: 2008-12-12 20:20:44 $ / $Author: sfraize $
+ * @version $Revision: 1.47 $ / $Date: 2008-12-15 21:30:06 $ / $Author: sraphe01 $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -486,10 +486,13 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         //if (DEBUG.Enabled) Log.debug("SET-ACTIVE: " + c);
         if (layer != null)
             mMap.setClientData(Layer.class, "last", mMap.getActiveLayer());
-        mMap.setActiveLayer(layer);
+        mMap.setActiveLayer(layer);        
         if (update)
             indicateActiveLayers(null);
-
+        else{
+        	LWSelection selection = VUE.getSelection(); 
+        	indicateActiveLayers(selection.getParents());
+        }
         updateLayerActionEnabled(layer);
 
 //         if (DEBUG.Enabled) {
@@ -562,7 +565,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
     
     public void selectionChanged(LWSelection s) {
 
-        //Log.debug("selectionChanged: " + s + "; size=" + s.size() + "; " + Arrays.asList(s.toArray()) + "; parents=" + s.getParents());
+//        System.err.println("selectionChanged: " + s + "; size=" + s.size() + "; " + Arrays.asList(s.toArray()) + "; parents=" + s.getParents());
 
         updateGrabEnabledForSelection(s);
 
@@ -580,9 +583,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 //             setActiveLayer(s.first().getLayer());
 //         } else if (s.getParents().size() == 1 && s.first().getParent() instanceof Layer) {
 //             //if (DEBUG.Enabled) Log.debug("selectionChanged: one parent in selection; active parent " + s.first().getParent());
-//             setActiveLayer((Layer) s.first().getParent());
-//         }
-
+//             setActiveLayer((Layer) s.first().getParent());//         }
+        
         indicateActiveLayers(s.getParents());
 
 //         // for debug / child-list mode:
@@ -655,7 +657,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
     private final Color SelectedBG = VueConstants.COLOR_SELECTION.brighter();
     
     private void indicateActiveLayers(Collection<LWContainer> parents) {
-
+    	
         final Layer activeLayer = getActiveLayer();
         
         if (parents == null) {
@@ -666,24 +668,21 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             // and all other layers are not.
 
             for (Row row : mRows) {
-
-                //row.activeIcon.setEnabled(row.layer == activeLayer);
-                
-                if (row.layer.isSelected() || row.layer == activeLayer){
+                //row.activeIcon.setEnabled(row.layer == activeLayer);               
+                if (row.layer.isSelected() || row.layer == activeLayer){                	
                 //if (row.layer.isSelected())
                     row.setBackground(row.layer instanceof Layer ? ActiveBG : SelectedBG);                    
                 }
-                else
+                else 
                     row.setBackground(null);
                 
-                if (row.layer == activeLayer) {
-                    row.setBorder(BorderFactory.createLineBorder(Color.red, 2));
-                }
-                else {
-                    row.setBorder(new CompoundBorder(new MatteBorder(1,0,1,0, Color.lightGray),
-                                                     GUI.makeSpace(3,7,3,7)));
-                }
-
+//                if (row.layer == activeLayer) {
+//                    row.setBorder(BorderFactory.createLineBorder(Color.red, 2));
+//                }
+//                else {
+//                    row.setBorder(new CompoundBorder(new MatteBorder(1,0,1,0, Color.lightGray),
+//                                                     GUI.makeSpace(3,7,3,7)));
+//                }
                 
             }
 
@@ -715,7 +714,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                         }
                         else{
                             row.setBackground(IncludedBG);
-                            row.setBorder(new CompoundBorder(new MatteBorder(1,0,1,0, Color.lightGray),
+                            row.setBorder(new CompoundBorder(new MatteBorder(1,1,1,1, Color.lightGray),
                                     GUI.makeSpace(3,7,3,7)));
                             //row.setBorder(null);
                         }
@@ -729,7 +728,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                         }
                         else{
                             row.setBackground(null);
-                            row.setBorder(new CompoundBorder(new MatteBorder(1,0,1,0, Color.lightGray),
+                            row.setBorder(new CompoundBorder(new MatteBorder(1,1,1,1, Color.lightGray),
                                     GUI.makeSpace(3,7,3,7)));
                             //row.setBorder(null);
                         }
@@ -737,8 +736,9 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                     
                 } else if (row.layer.isSelected()) {
                     row.setBackground(SelectedBG);
-                } else
+                } else{
                     row.setBackground(null);
+                }
             }
             
             
@@ -818,7 +818,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             if (layerCanGrab(layer, c))
                 grabbing.add(c);
         }
-
+      
         // todo perf: remove all old layer in one swoop, then add to new
         
         layer.addChildren(grabbing);
@@ -1822,16 +1822,25 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         }
         
         
-        public void mouseClicked(MouseEvent e) {
+        public void mouseClicked(MouseEvent e) {        	
             if (GUI.isDoubleClick(e)) {
-                VUE.getSelection().setTo(layer.getAllDescendents());
+            	if(e.isShiftDown()){  
+            		if (VUE.getSelection() !=null)
+            			VUE.getSelection().add(layer.getChildren());
+            		else
+            			VUE.getSelection().setTo(new LWSelection(layer.getChildren()));             		
+            		          		
+            		setActiveLayer((Layer) layer, !UPDATE);
+            		
+            	}else{
+            		VUE.getSelection().setTo(layer.getAllDescendents());
+            	}
             }
         }
 
         public void mousePressed(MouseEvent e) {
 
-            Log.debug(e);
-            
+            Log.debug(e);             
             if (layer instanceof Layer) {
 // //                 if (e.isShiftDown())
 // //                     mSelection.toggle(layer);
@@ -1840,15 +1849,16 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 
 //                 if (inExclusiveMode()) // exlusive mode is no longer globally modal
 //                     setExclusive(true);
-//                 else
-                    if (!AUTO_ADJUST_ACTIVE_LAYER || layer.isVisible()) 
+//                 else            	
+            		if (!AUTO_ADJUST_ACTIVE_LAYER || layer.isVisible()) 
                     setActiveLayer((Layer) layer, UPDATE);
+            		
 //                 if (VUE.getSelection().isEmpty() || VUE.getSelection().only() instanceof Layer)
-//                     VUE.getSelection().setTo(layer);
+//                     VUE.getSelection().setTo(layer);                   
             } else {
                 // this case for debug/test only: we shouldn't normally
                 // see regular objects a the top level of the map anymore
-                VUE.getSelection().setTo(layer);
+                VUE.getSelection().setTo(layer);                
             }
             //LayersUI.this.requestFocus();
             isDragUnderway = false;
