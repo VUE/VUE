@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.218 $ / $Date: 2008-10-10 19:38:28 $ / $Author: sfraize $
+ * @version $Revision: 1.219 $ / $Date: 2008-12-15 16:47:43 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -964,16 +964,29 @@ public class LWMap extends LWContainer
     
     /** @return the internal layer of the given name.  Internal layers start at the back, intially locked */
     public Layer getInternalLayer(String name) {
+
+        // todo: this code same as getOrCreate, but need special bits set before doing the addChild
+        
         for (Layer layer : Util.extractType(getChildren(), Layer.class))
             if (name.equals(layer.getLabel()))
                 return layer;
         Layer layer = new Layer(name);
-        layer.setLocked(true);
+        layer.setLocked(true); 
         layer.setFlag(Flag.INTERNAL);
         addChild(layer);
         sendToBack(layer);
         return layer;
     }
+
+    public Layer getOrCreateLayer(String name) {
+        for (Layer layer : Util.extractType(getChildren(), Layer.class))
+            if (name.equals(layer.getLabel()))
+                return layer;
+        Layer layer = new Layer(name);
+        addChild(layer);
+        return layer;
+    }
+
 
 //     public Layer getInternalLayer() {
 //         return mInternalLayer;
@@ -1924,7 +1937,7 @@ public class LWMap extends LWContainer
     }
     
     @Override
-    public void addChildren(List<LWComponent> children, Object context) {
+    public void addChildren(List<? extends LWComponent> children, Object context) {
         if (children.size() == 1 && children.get(0) instanceof LWMap.Layer) {
             isLayered = true;
             super.addChildren(children, context);
