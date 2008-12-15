@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.235 $ / $Date: 2008-11-09 23:00:47 $ / $Author: sfraize $
+ * @version $Revision: 1.236 $ / $Date: 2008-12-15 16:47:58 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -896,7 +896,7 @@ public class LWNode extends LWContainer
     }
 
     @Override
-    public void addChildren(java.util.List<LWComponent> children, Object context)
+    public void addChildren(java.util.List<? extends LWComponent> children, Object context)
     {
         if (!mXMLRestoreUnderway && !hasResource() && !hasChildren() && children.size() == 1) {
             final LWComponent first = children.get(0);
@@ -928,7 +928,7 @@ public class LWNode extends LWContainer
     }
 
     @Override
-    protected List<LWComponent> sortForIncomingZOrder(List<LWComponent> toAdd)
+    protected List<LWComponent> sortForIncomingZOrder(List<? extends LWComponent> toAdd)
     {
         // Use the YSorter -- as we stack out children, this will then
         // display them in the same vertical order they had wherever
