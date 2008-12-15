@@ -37,7 +37,7 @@ import javax.swing.ImageIcon;
  *  objects, displaying their content, and fetching their data.
 
  *
- * @version $Revision: 1.84 $ / $Date: 2008-12-04 03:15:55 $ / $Author: sfraize $
+ * @version $Revision: 1.85 $ / $Date: 2008-12-15 22:42:17 $ / $Author: sfraize $
  */
 
 public abstract class Resource implements Cloneable
@@ -1227,9 +1227,12 @@ public abstract class Resource implements Cloneable
      * @see java.net.URLDecoder
      *
      **/
-    public static java.net.URL makeURL(final String s)
+    public static java.net.URL makeURL(String s)
     {
         try {
+
+            if (s != null && s.startsWith("feed:"))
+                s = "http:" + s.substring(5);
 
             URL url = null;
 
