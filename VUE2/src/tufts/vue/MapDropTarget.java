@@ -50,7 +50,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.107 $ / $Date: 2008-11-07 14:31:02 $ / $Author: sfraize $  
+ * @version $Revision: 1.108 $ / $Date: 2008-12-15 16:48:42 $ / $Author: sfraize $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -690,6 +690,14 @@ class MapDropTarget
             {
                 dropType = DROP_ONTOLOGY_TYPE;
                 foundData = extractData(transfer, edu.tufts.vue.ontology.ui.TypeList.DataFlavor);
+                
+            } else if (transfer.isDataFlavorSupported(LWComponent.Producer.DataFlavor)) {
+
+                foundFlavor = LWComponent.Producer.DataFlavor;
+                LWComponent.Producer factory = extractData(transfer, foundFlavor, LWComponent.Producer.class);
+                foundData = factory.produceNodes(mViewer.getMap());
+                dropType = DROP_NODE_LIST;
+                dropItems = (List) foundData;
                 
             } else if (transfer.isDataFlavorSupported(LWComponent.DataFlavor)) {
                 
