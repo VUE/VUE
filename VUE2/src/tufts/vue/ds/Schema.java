@@ -16,6 +16,7 @@
 package tufts.vue.ds;
 
 import tufts.Util;
+import tufts.vue.MetaMap;
 
 import java.util.*;
 import java.io.*;
@@ -30,7 +31,7 @@ import com.google.common.collect.*;
 
 
 /**
- * @version $Revision: 1.12 $ / $Date: 2008-12-04 06:16:14 $ / $Author: sfraize $
+ * @version $Revision: 1.13 $ / $Date: 2008-12-15 17:00:32 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -71,14 +72,61 @@ public class Schema {
     }
 
     public void annotateFor(Collection<LWComponent> nodes) {
-            for (Field field : mFields.values()) {
-                field.annotateIncludedValues(nodes);
-//                 for (String value : field.getValues()) {
-//                     for (LWComponent node : nodes) {
-//                         if (node.hasDataValue(value)) {
-//                     }
+
+        for (Field field : mFields.values())
+            field.annotateIncludedValues(nodes);
+
+        // is probably a faster way to track this by handling the key field specially
+        // during annotateIncludedValues above and process the rows v.s. the values,
+        // or just refactoring the whole process to go DataRow by DataRow.
+
+        final Field keyField = getKeyField();
+        final String keyFieldName = keyField.getName();
+
+//         // crap: this is where we should be comparing the actual data sourced schema.
+//         for (LWComponent node : nodes) {
+//             if (node.hasDataKey(keyFieldName) && !node.isSchematicField()) {
+//                 final DataRow row = findRow(keyField, node.getDataValue(keyFieldName));
+//                 if (row == null) {
+//                     Log.warn("no raw data found for node " + node);
+//                     continue;
 //                 }
-//            }
+//                 final MetaMap rawData = row.getData();
+//                 final MetaMap mapData = node.getRawData();
+
+                
+//             }
+//         }
+        
+        for (DataRow row : mRows) {
+
+            final String rowKey = row.getValue(keyField);
+
+            for (LWComponent node : nodes) {
+
+                if (!node.hasDataValue(keyFieldName, rowKey))
+                    continue;
+
+                final MetaMap rawData = row.getData();
+                final MetaMap mapData = node.getRawData();
+                Log.debug("comparing:\n" + rawData.values() + " to:\n" + mapData.values());
+                row.setContextChanged(!rawData.equals(mapData));
+                
+
+                // test if this node is a row node from this schema -- currently an imperfect test: only
+                // checks for presence of the same key field.
+                //if (node.hasDataKey(keyFieldName) && !node.isSchematicField()) {
+
+//                 if (node.hasDataValue(keyFieldName) && !node.isSchematicField()) {
+//                     final MetaMap rawData = row.getData();
+//                     final MetaMap mapData = node.getRawData();
+//                     Log.debug("comparing:\n" + rawData.values() + " to:\n" + mapData.values());
+//                     row.setContextChanged(!rawData.equals(mapData));
+//                 } else {
+//                     // could set to a "present" status -- context changed state is now technically undefined...
+//                     row.setContextChanged(false);
+//                 }
+            }
         }
         
     }
@@ -92,10 +140,18 @@ public class Schema {
         }
     }
 
+    public DataRow findRow(Field field, String value) {
+        for (DataRow row : mRows)
+            if (row.contains(field, value))
+                return row;
+        return null;
+    }
+
     @Override
     public String toString() {
         //return getName() + "; " + getSource() + "; " + UUID;
-        return getName() + "; " + getResource() + "; " + UUID;
+        //return getName() + "; " + getResource() + "; " + UUID;
+        return getName();
     }
 
     public void setStyleNode(LWComponent style) {
@@ -113,6 +169,7 @@ public class Schema {
     }
     
     public void setKeyField(Field f) {
+        //Log.debug("setKeyField " + Util.tags(f));
         mKeyField = f;
     }
     
@@ -164,7 +221,10 @@ public class Schema {
     }
 
     public Field getField(String name) {
-        return mFields.get(name);
+        //return mFields.get(name);
+        Field f = mFields.get(name);
+        if (f == null) Log.debug(String.format("%s; no field named '%s' in %s", this, name, mFields.keySet()));
+        return f;
     }
 
     public boolean hasField(String name) {
@@ -196,8 +256,11 @@ public class Schema {
 
     public void ensureFields(String[] names) {
         for (String name : names) {
-            if (!mFields.containsKey(name))
-                mFields.put(name, new Field(name, this));
+            if (!mFields.containsKey(name)) {
+                final Field f = new Field(name, this);
+                // note: Field may have trimmed the name: refetch
+                mFields.put(f.getName(), f);
+            }
         }
     }
     
@@ -337,6 +400,124 @@ public class Schema {
 
     
 
+}
+
+/** a row impl that handles flat tables as well as Xml style variable "rows" or item groups */
+//class DataRow extends tufts.vue.MetaMap {
+final class DataRow {
+
+    final tufts.vue.MetaMap mmap = new tufts.vue.MetaMap();
+
+    boolean isContextChanged;
+
+    void setContextChanged(boolean t) {
+        isContextChanged = t;
+    }
+
+    boolean isContextChanged() {
+        return isContextChanged;
+    }
+        
+
+    void addValue(Field f, String value) {
+        value = value.trim();
+        
+//         final String existing = values.put(f, value);
+//         if (existing != null && Schema.DEBUG)
+//             Log.debug("ROW SUB-KEY COLLISION " + f);
+            
+        //super.put(f.getName(), value);
+        mmap.put(f.getName(), value);
+        f.trackValue(value);
+    }
+
+    Iterable<Map.Entry> dataEntries() {
+        return mmap.entries();
+    }
+
+    //@Override public String getValue(String key) {
+    public String getValue(String key) {
+        return mmap.getString(key);
+        //return super.getString(key);
+    }
+
+    String getValue(Field f) {
+        return mmap.getString(f.getName());
+        //return super.getString(f.getName());
+    }
+
+    boolean contains(Field field, Object value) {
+        return value != null && value.equals(getValue(field));
+    }
+
+    @Override public String toString() {
+        return mmap.values().toString();
+    }
+
+    tufts.vue.MetaMap getData() {
+        return mmap;
+    }
+    
+    
+}
+
+// /** a row impl that handles flat tables as well as Xml style variable "rows" or item groups */
+// class DataRow {
+
+//     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(DataRow.class);
+    
+//     // this impl is overkill for handling flat tabular data
+
+//     final Map<Field,String> values; // isn't this just duplicated in mData???
+//     final Multimap mData = Multimaps.newLinkedHashMultimap();
+
+//     DataRow() {
+//         values = new HashMap();
+//     }
+
+//     void addValue(Field f, String value) {
+//         value = value.trim();
+//         final String existing = values.put(f, value);
+//         if (existing != null && Schema.DEBUG)
+//             Log.debug("ROW SUB-KEY COLLISION " + f);
+            
+//         mData.put(f.getName(), value);
+//         f.trackValue(value);
+//     }
+
+//     //Iterable<Map.Entry<String,String>> entries() {
+//     Iterable<Map.Entry> dataEntries() {
+//         return mData.entries();
+//     }
+    
+//     String getValue(Field f) {
+//         return values.get(f);
+//     }
+//     String getValue(String key) {
+//         Object o = mData.get(key);
+//         if (o instanceof Collection) {
+//             final Collection bag = (Collection) o;
+//             if (bag.size() == 0)
+//                 return null;
+//             else if (bag instanceof List)
+//                 return (String) ((List)bag).get(0);
+//             else
+//                 return (String) Iterators.get(bag.iterator(), 0);
+//         }
+//         else
+//             return (String) o;
+//         //return (String) Iterators.get(mData.get(key).iterator(), 0);
+//         //return (String) asText.get(key);
+//     }
+        
+// }
+
+
+
+
+
+
+
     // temp hack: if we keep this, move to elsewhere and/or have it populate an existing container
 //     public LWMap.Layer createSchematicLayer() {
 
@@ -403,57 +584,3 @@ public class Schema {
 
 //         return layer;
 //     }
-
-}
-
-
-/** a row impl that handles flat tables as well as Xml style variable "rows" or item groups */
-class DataRow {
-
-    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(DataRow.class);
-    
-    // this impl is overkill for handling flat tabular data
-
-    final Map<Field,String> values;
-    final Multimap mData = Multimaps.newLinkedHashMultimap();
-
-    DataRow() {
-        values = new HashMap();
-    }
-
-    void addValue(Field f, String value) {
-        value = value.trim();
-        final String existing = values.put(f, value);
-        if (existing != null && Schema.DEBUG)
-            Log.debug("ROW SUB-KEY COLLISION " + f);
-            
-        mData.put(f.getName(), value);
-        f.trackValue(value);
-    }
-
-    Iterable<Map.Entry<String,String>> entries() {
-        return mData.entries();
-    }
-    
-    String getValue(Field f) {
-        return values.get(f);
-    }
-    String getValue(String key) {
-        Object o = mData.get(key);
-        if (o instanceof Collection) {
-            final Collection bag = (Collection) o;
-            if (bag.size() == 0)
-                return null;
-            else if (bag instanceof List)
-                return (String) ((List)bag).get(0);
-            else
-                return (String) Iterators.get(bag.iterator(), 0);
-        }
-        else
-            return (String) o;
-        //return (String) Iterators.get(mData.get(key).iterator(), 0);
-        //return (String) asText.get(key);
-    }
-        
-}
-
