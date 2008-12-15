@@ -32,7 +32,7 @@ import au.com.bytecode.opencsv.CSVReader;
 
 
 /**
- * @version $Revision: 1.8 $ / $Date: 2008-12-04 06:08:51 $ / $Author: sfraize $
+ * @version $Revision: 1.9 $ / $Date: 2008-12-15 17:01:14 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class XmlDataSource extends BrowseDataSource
@@ -265,14 +265,13 @@ public class XmlDataSource extends BrowseDataSource
 //                 r.addProperty(e.getKey(), e.getValue());
             
             //for (Map.Entry<String,?> e : tufts.vue.MetaMap.entries(row.asMap()))
-            for (Map.Entry<String,?> e : row.entries())
-                r.addProperty(e.getKey(), e.getValue());
+            for (Map.Entry e : row.dataEntries())
+                r.addProperty(e.getKey().toString(), e.getValue().toString());
             
             mItems.add(r);
         }
 
-        StringWriter debug = new StringWriter();
-        schema.dumpSchema(new PrintWriter(debug));
+        //schema.dumpSchema(new PrintWriter(debug));
         //top.setProperty("Description", "<pre>" + debug.toString());
 
         if (mItems.size() == 0)
