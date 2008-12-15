@@ -33,7 +33,7 @@ import java.util.*;
  * types and doing some data-type analysis.  It also includes the ability to
  * associate a LWComponent node style with specially marked values.
  * 
- * @version $Revision: 1.4 $ / $Date: 2008-12-04 06:09:55 $ / $Author: sfraize $
+ * @version $Revision: 1.5 $ / $Date: 2008-12-15 16:57:20 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -215,6 +215,10 @@ public class Field
     /** @return true if this is the schema's unique key field */
     public boolean isKeyField() {
         return schema.getKeyField() == this;
+
+//         boolean t = (schema.getKeyField() == this);
+//         Log.debug(String.format("isKeyField=%s %s", t ? "YES" : "no", Util.tags(this)));
+//         return t;
     }
 
     public boolean isUntrackedValue() {
@@ -319,7 +323,8 @@ public class Field
             }
                 
             if (mValues == null) {
-                mValues = Multisets.newHashMultiset();
+                //mValues = Multisets.newHashMultiset();
+                mValues = new LinkedHashMultiset();
             } else if (mValues.contains(value)) {
                 allValuesUnique = false;
             }
