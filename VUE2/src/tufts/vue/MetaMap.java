@@ -34,7 +34,7 @@ import com.google.common.collect.Iterators;
  * The insertion order of each key/value is preserved, even for each use of
  * the same key with different values.
  *
- * @version $Revision: 1.3 $ / $Date: 2008-12-04 03:14:25 $ / $Author: sfraize $
+ * @version $Revision: 1.4 $ / $Date: 2008-12-15 16:52:03 $ / $Author: sfraize $
  */
 
 public class MetaMap implements TableBag, XMLUnmarshalListener
@@ -64,6 +64,13 @@ public class MetaMap implements TableBag, XMLUnmarshalListener
     public MetaMap() {}
 
     private static final boolean TEST_MODE = false;
+
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof MetaMap == false)
+            return false;
+        return mData.equals( ((MetaMap)o).mData );
+    }
     
     /**
      *
@@ -175,12 +182,13 @@ public class MetaMap implements TableBag, XMLUnmarshalListener
         markChange();
     }
     
-    public synchronized void putAll(final Iterable<Map.Entry<String,String>> entries) {
+    /** Will add the String values of all key/value pairs */
+    public synchronized void putAllStrings(final Iterable<Map.Entry> entries) {
         final boolean onHold = mHoldingChanges;
         if (!onHold)
             holdChanges();
-        for (Map.Entry<String,String> e : entries)
-            put(e.getKey(), e.getValue());
+        for (Map.Entry e : entries)
+            put(e.getKey().toString(), e.getValue().toString());
         if (!onHold)
             releaseChanges();
     }
@@ -350,8 +358,13 @@ public class MetaMap implements TableBag, XMLUnmarshalListener
 //     }
     
     /** @return a flat collection of key-value pairs -- modifications to the collection will modify the map */
-    public Collection<Map.Entry<Key,Object>> entries() {
+    //public Collection<Map.Entry<Key,Object>> entries() {
+    public Collection<Map.Entry> entries() {
         return mData.entries();
+    }
+    
+    public Collection values() {
+        return mData.values();
     }
 
     private Collection<Map.Entry<String,Object>> mPersistEntries;
