@@ -50,7 +50,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.108 $ / $Date: 2008-12-15 16:48:42 $ / $Author: sfraize $  
+ * @version $Revision: 1.109 $ / $Date: 2008-12-15 22:26:29 $ / $Author: sfraize $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -328,6 +328,7 @@ class MapDropTarget
         //final Collection items;         // bag of Objects in the drop
         final List items;   // convience reference to items if it is a List
         final String text;              // only one of items+list or text
+        final LWComponent.Producer producer;
 
         //Object data;
         
@@ -343,7 +344,8 @@ class MapDropTarget
                     List items,
                     String text,
                     LWComponent hit,
-                    boolean isLinkAction)
+                    boolean isLinkAction,
+                    LWComponent.Producer producer)
         {
             this.transfer = t;
             this.location = mapLocation;
@@ -351,6 +353,7 @@ class MapDropTarget
             this.items = items;
             this.text = text;
             this.hit = hit;
+            this.producer = producer;
 
 //             if (items instanceof java.util.List)
 //                 list = (List) items;
@@ -571,6 +574,7 @@ class MapDropTarget
             
         DataFlavor foundFlavor = null;
         Object foundData = null;
+        LWComponent.Producer foundProducer = null;
         String dropText = null;
         List dropItems = null;
         
@@ -696,6 +700,7 @@ class MapDropTarget
                 foundFlavor = LWComponent.Producer.DataFlavor;
                 LWComponent.Producer factory = extractData(transfer, foundFlavor, LWComponent.Producer.class);
                 foundData = factory.produceNodes(mViewer.getMap());
+                foundProducer = factory;
                 dropType = DROP_NODE_LIST;
                 dropItems = (List) foundData;
                 
@@ -813,7 +818,8 @@ class MapDropTarget
                             dropItems,
                             dropText,
                             dropTarget,
-                            isLinkAction);
+                            isLinkAction,
+                            foundProducer);
 
         boolean success = false;
 
@@ -861,6 +867,14 @@ class MapDropTarget
             
         } catch (Throwable t) {
             Util.printStackTrace(t, "drop processing failed");
+        }
+
+        if (foundProducer != null) {
+            try {
+                foundProducer.postProcessNodes();
+            } catch (Throwable t) {
+                Log.error("Exception in postProcess for with node producer " + foundProducer, t);
+            }
         }
 
         // Even if we had an exception during processing,

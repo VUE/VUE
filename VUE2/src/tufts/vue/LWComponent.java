@@ -50,7 +50,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.447 $ / $Date: 2008-12-15 16:45:50 $ / $Author: sfraize $
+ * @version $Revision: 1.448 $ / $Date: 2008-12-15 22:26:29 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -196,6 +196,7 @@ public class LWComponent
     /** a context-sensitive list-factory for nodes */
     public interface Producer {
         public java.util.List<LWComponent> produceNodes(LWMap map);
+        public void postProcessNodes();
         
         public static final java.awt.datatransfer.DataFlavor DataFlavor =
             tufts.vue.gui.GUI.makeDataFlavor(Producer.class);

@@ -46,7 +46,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.23 $ / $Date: 2008-12-15 16:55:10 $ / $Author: sfraize $
+ * @version $Revision: 1.24 $ / $Date: 2008-12-15 22:26:30 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -112,6 +112,8 @@ public class DataTree extends javax.swing.JTree
 
             VUE.getSelection().setTo(nodes);
         }
+
+        map.getUndoManager().mark("Add New Data Nodes");
     }
 
     private static JComponent buildControllerUI(final DataTree tree)
@@ -837,6 +839,8 @@ public class DataTree extends javax.swing.JTree
 
         private final DataNode treeNode;
         private final DataTree tree;
+        private LWMap mMap;
+        private List<LWComponent> mNodes;
 
         NodeProducer(DataNode n, DataTree tree) {
             this.treeNode = n;
@@ -892,24 +896,25 @@ public class DataTree extends javax.swing.JTree
             //for (LWComponent c : nodes)c.setToNaturalSize();
             // todo: some problem editing template values: auto-size not being handled on label length shrinkage
 
-            addDataLinksForNewNodes(map, nodes, field);
+            //addDataLinksForNewNodes(map, nodes, field);
 
-            this.nodes = nodes;
-            this.map = map;
+            mNodes = nodes;
+            mMap = map;
 
-            // todo: should be handle by LWComponent.Producer interface callback at the
-            // appropriate time (after the nodes have been added to their context)
-            GUI.invokeAfterAWT(this); 
+            //GUI.invokeAfterAWT(this); 
 
             return nodes;
         }
 
-        private LWMap map;
-        private List<LWComponent> nodes;
-        public void run() { adjustNodesAfterAdding(map, nodes); }
+
+        public void postProcessNodes() { adjustNodesAfterAdding(mMap, mNodes); }
 
         // todo: add this to LWComponent.Producer interface
-        public void adjustNodesAfterAdding(final LWMap map, List<LWComponent> nodes) {
+        private void adjustNodesAfterAdding(final LWMap map, List<LWComponent> nodes) {
+
+            // Currently, links must be added before the LayoutActions
+            // are called, or they fail to work and/or throw NPE
+            addDataLinksForNewNodes(map, nodes, treeNode.getField());
 
             if (nodes.size() > 1) {
                 if (treeNode.isSchematic()) {
@@ -919,17 +924,24 @@ public class DataTree extends javax.swing.JTree
                 }
             }
 
+            // for re-annotating the tree
+            GUI.invokeAfterAWT(this); 
+
+            
+        }
+
+        public void run() {
+
             // todo: this would be more precisely handled by the DataTree having a
             // listener on the active map for any hierarchy events that involve the
             // creation/deletion of any data-holding nodes, and running an annotate
             // at the end if any are detected -- adding a cleanup task the first time
             // (and checking for before adding another: standard cleanup task semantics)
             // should handle our run-once needs.
-
-            if (map == VUE.getActiveMap()) // only if is still the active map
-                tree.annotateForMap(map);
             
-        }
+            if (mMap == VUE.getActiveMap()) // only if is still the active map
+                tree.annotateForMap(mMap);
+        }        
     }
 
     private static String makeFieldLabel(final Field field)
