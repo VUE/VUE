@@ -75,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.578 $ / $Date: 2008-10-22 15:37:57 $ / $Author: sfraize $ 
+ * @version $Revision: 1.579 $ / $Date: 2008-12-15 16:50:27 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -4742,7 +4742,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             //URLFlavor, // try text/uri-list
         };
 
-        public static class LWTransfer implements Transferable
+
+    // Any reason this still needs to be in MapViewer?
+    public static class LWTransfer implements Transferable
         {
             private final LWComponent LWC;
             private final MapViewer viewer;
@@ -4770,6 +4772,14 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 if (flavor == LWComponent.DataFlavor && LWC instanceof LWMap) {
                     // prevent the dropping of the entire map onto itself
                     return false;
+                }
+
+                if (flavor == LWComponent.Producer.DataFlavor && LWC.hasClientData(LWComponent.Producer.class)) {
+                    // note this is a bit convoluted: the producer is currently only passed within an
+                    // LWComponent.  This needn't be true, but our current usage depends on it.
+                    // (We want an LWComponent available as the drag image).  We could easily
+                    // extend LWTransfer to support a producer directly and allowing for a null LWC.
+                    return true;
                 }
                 
                 if (flavor == Resource.DataFlavor && LWC.getResource() == null)
@@ -4832,6 +4842,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     
                     data = LWC.getAsImage();
                     
+                } else if (LWComponent.Producer.DataFlavor.equals(flavor)) {
+                    
+                    data = LWC.getClientData(LWComponent.Producer.class);
+                    
                 } else if (LWComponent.DataFlavor.equals(flavor)) {
                     
                     final java.util.Collection duplicates;
@@ -4843,9 +4857,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                         // don't send the actual map just yet...
                         duplicates = Actions.duplicatePreservingLinks(LWC.getChildren());
                     }
-                    else if (LWC.getClientData(LWComponent.ListFactory.class) != null) {
+                    else if (LWC.hasClientData(LWComponent.Producer.class)) {
                         
-                        duplicates = LWC.getClientData(LWComponent.ListFactory.class).produceNodes();
+                        Util.printStackTrace("deprecated use of node producer");
+                        //duplicates = LWC.getClientData(LWComponent.ListFactory.class).produceNodes(null);
+                        duplicates = LWC.getClientData(LWComponent.Producer.class).produceNodes(null);
                     }
 //                     else if (LWC.hasFlag(LWComponent.Flag.INTERNAL) /*&& LWC.getClientProperty(Field.class) != null*/) {
 //                         // don't send the actual map just yet...
