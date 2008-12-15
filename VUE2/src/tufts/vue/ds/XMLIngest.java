@@ -53,11 +53,13 @@ import org.xml.sax.*;
 
 
 /**
- * @version $Revision: 1.5 $ / $Date: 2008-11-20 17:41:41 $ / $Author: sfraize $
+ * @version $Revision: 1.6 $ / $Date: 2008-12-15 21:45:21 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
 class XMLIngest {
+
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(XMLIngest.class);
 
     private static final boolean XML_DEBUG = false;
 
@@ -234,13 +236,15 @@ class XMLIngest {
         final Document doc = parseXML(input, false);
 
         //doc.normalizeDocument();
-        errout("GOT DOC " + Util.tag(doc) + " " + doc);
-        //errout("InputEncoding: " + doc.getInputEncoding()); // AbstractMethodError ?
-        //errout("xmlEncoding: " + doc.getXmlEncoding());
-        //errout("xmlVersion: " + doc.getXmlVersion());
-        errout("docType: " + Util.tags(doc.getDoctype()));
-        errout("impl: " + Util.tags(doc.getImplementation().getClass()));
-        errout("docElement: " + Util.tags(doc.getDocumentElement().getClass())); // toString() can dump whole document!
+        if (DEBUG.DR) {
+            errout("GOT DOC " + Util.tag(doc) + " " + doc);
+            //errout("InputEncoding: " + doc.getInputEncoding()); // AbstractMethodError ?
+            //errout("xmlEncoding: " + doc.getXmlEncoding());
+            //errout("xmlVersion: " + doc.getXmlVersion());
+            errout("docType: " + Util.tags(doc.getDoctype()));
+            errout("impl: " + Util.tags(doc.getImplementation().getClass()));
+            errout("docElement: " + Util.tags(doc.getDocumentElement().getClass())); // toString() can dump whole document!
+        }
         //out("element: " + Util.tags(doc.getDocumentElement()));
 
         //outln("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>");
@@ -251,7 +255,7 @@ class XMLIngest {
         else
             scanNode(schema, doc.getDocumentElement(), null, null);
 
-        schema.dumpSchema(System.err);
+        if (DEBUG.DR) schema.dumpSchema(System.err);
         return schema;
     }
 
@@ -679,7 +683,8 @@ class XMLIngest {
         //System.out.println(s == null ? "null" : s);
     }
     public static void errout(String s) {
-        System.err.println(s == null ? "null" : s);
+        Log.debug(s == null ? "null" : s);
+        //System.err.println(s == null ? "null" : s);
     }
 
 
