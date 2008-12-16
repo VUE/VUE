@@ -42,7 +42,7 @@ import javax.swing.JComponent;
  * PropertyChangeEvents (e.g., expand/collapse, hide/show).
  
  *
- * @version $Revision: 1.20 $ / $Date: 2008-06-30 20:53:05 $ / $Author: mike $
+ * @version $Revision: 1.21 $ / $Date: 2008-12-16 23:14:44 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Widget extends javax.swing.JPanel
@@ -80,6 +80,14 @@ public class Widget extends javax.swing.JPanel
         else
             setHiddenImpl(c, hidden);
     }
+    
+    public static void show(JComponent c) {
+        setHidden(c, false);
+    }
+    public static void hide(JComponent c) {
+        setHidden(c, true);
+    }
+    
     protected static void setHiddenImpl(JComponent c, boolean hidden) {
         if (DEBUG.WIDGET) System.out.println(GUI.name(c) + " Widget.setHidden " + hidden);
         setBoolean(c, HIDDEN_KEY, hidden);
