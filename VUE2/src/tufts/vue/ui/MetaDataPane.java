@@ -685,13 +685,26 @@ public class MetaDataPane extends tufts.vue.gui.Widget
             if (lowText.startsWith(trim1)) {
                 txt = "Media" + labelText.substring(trim1.length()-1);
                 //txt = "MGMCM" + txt.substring(trim1.length()-1);
-            } else if (lowText.startsWith(trim2)) {
+            }
+            else if (lowText.startsWith(trim2)) {
                 txt = "Media" + labelText.substring(trim2.length()-1);
                 //txt = "MGM" + txt.substring(trim2.length()-1);
-            } else if (lowText.equals("comments.comment")) {
+            }
+            else if (lowText.equals("comments.comment")) {
                 // hack for jira comments
                 txt = "Comment";
-            } else
+            }
+//             else if (lowText.indexOf("@") > 0) {
+//                 txt = "<html>" + lowText + "<br>newline";
+//             }
+            else if (labelText.length() > 20) {
+                final int len = labelText.length();
+                final int half = len / 2 + 1;
+                txt = "<html>"
+                    + labelText.substring(0,half) + "<br>"
+                    + labelText.substring(half,len);
+            }
+            else
                 txt = Util.upperCaseWords(labelText);
                 
             //-----------------------------------------------------------------------------
