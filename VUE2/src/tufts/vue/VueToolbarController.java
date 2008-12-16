@@ -34,7 +34,7 @@ import tufts.vue.LinkTool.LinkModeTool;
  * This could use a re-write, along with VueToolPanel, VueTool, and the way
  * contextual toolbars are handled.
  *
- * @version $Revision: 1.78 $ / $Date: 2008-12-16 19:03:38 $ / $Author: sfraize $
+ * @version $Revision: 1.79 $ / $Date: 2008-12-16 23:14:22 $ / $Author: sfraize $
  *
  **/
 public class VueToolbarController  
@@ -278,7 +278,7 @@ public class VueToolbarController
      **/
     final void handleToolSelection(VueTool pTool)
     {
-        if (DEBUG.TOOL) out("handleToolSelection " + pTool);
+        if (DEBUG.TOOL) Log.debug(String.format("[%s] handleToolSelection:: %s", mSelectedTool, pTool));
         
         VueTool rootTool = pTool;
 		
@@ -585,9 +585,10 @@ public class VueToolbarController
 
 
     private void out(String s) {
-        System.out.println(this + " " + s);
+        Log.debug(String.format("[%s] %s", mSelectedTool, s));
     }
 
+    @Override
     public String toString() {
         return "VueToolbarController[" + mSelectedTool + "]";
     }
