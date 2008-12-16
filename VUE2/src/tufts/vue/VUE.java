@@ -112,7 +112,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.601 $ / $Date: 2008-12-15 16:54:15 $ / $Author: sfraize $ 
+ * @version $Revision: 1.602 $ / $Date: 2008-12-16 19:01:30 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -1869,7 +1869,7 @@ public class VUE
                             
                     dataFinderDock.setContent(tabs);
                             
-                    dataFinderDock.setSize(300, (int) (GUI.GScreenHeight * 0.75));
+                    dataFinderDock.setSize(400, (int) (GUI.GScreenHeight * 0.90));
                     dataFinderDock.setVisible(true);
 
                     GUI.invokeAfterAWT(new Runnable() { public void run() {
@@ -3769,6 +3769,7 @@ public class VUE
             mMapTabsLeft.addViewer(leftViewer);
             if (mMapTabsRight != null)
             	mMapTabsRight.addViewer(rightViewer);
+
         }
         
         if (isActiveViewerOnLeft()) {
