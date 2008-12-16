@@ -23,6 +23,7 @@ import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.GraphicsConfiguration;
@@ -49,6 +50,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 
@@ -67,6 +69,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
+import javax.swing.JSlider;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
@@ -76,6 +79,8 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.ToolTipManager;
 import javax.swing.border.Border;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.PlainDocument;
@@ -112,7 +117,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.602 $ / $Date: 2008-12-16 19:01:30 $ / $Author: sfraize $ 
+ * @version $Revision: 1.603 $ / $Date: 2008-12-16 22:28:55 $ / $Author: sraphe01 $ 
  */
 
 public class VUE
@@ -170,6 +175,7 @@ public class VUE
     public static JCheckBoxMenuItem  categoriesMenuItem;
     public static JCheckBoxMenuItem  categoryKeywordMenuItem;
     public static JCheckBoxMenuItem  editSettingsMenuItem;
+    public static JSlider depthSelectionSlider = new JSlider(JSlider.HORIZONTAL,1, 6, 6);
     public static void finalizeDocks()
     {
     
@@ -2136,10 +2142,33 @@ public class VUE
 //        searchPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));        
 //        
         //searchPanel.setBorder(BorderFactory.createLineBorder(Color.red,1));
-        JPanel panel = new JPanel();
+        JPanel panel = new JPanel(new FlowLayout());        
+         
+        depthSelectionSlider.setFont(new Font("SansSerif", Font.PLAIN, 4));
+        Hashtable labelTable = new Hashtable();
+        labelTable.put( new Integer( 1 ), new JLabel("1") );
+        labelTable.put( new Integer( 2 ), new JLabel("|") );
+        labelTable.put( new Integer( 3 ), new JLabel("|") );
+        labelTable.put( new Integer( 4 ), new JLabel("|") );
+        labelTable.put( new Integer( 5 ), new JLabel("5") );
+        labelTable.put( new Integer( 6 ), new JLabel("All"));
+        depthSelectionSlider.setLabelTable( labelTable );
 
+        //framesPerSecond.setMajorTickSpacing(6);
+        //framesPerSecond.setMinorTickSpacing(1);
+
+        //framesPerSecond.setPaintTicks(true);
+        depthSelectionSlider.setPaintLabels(true);
+        depthSelectionSlider.setPreferredSize(new Dimension(200,35));
+        SliderActionListener lst = new SliderActionListener();
+        depthSelectionSlider.addChangeListener(lst);
+        
+        //panel.setBorder(BorderFactory.createLineBorder(Color.red, 1));
+        panel.add(depthSelectionSlider);
+        panel.add(new JLabel(" "));
         panel.add(mSearchtextFld);
         panel.add(new JLabel(" "));
+        
 		toolbarPanel.add( panel  , SwingConstants.LEFT);		
         if (DEBUG.INIT) out("created ToolBar");
         
@@ -4229,6 +4258,16 @@ public class VUE
 			return VUE.getActiveMap().getPresentationBackgroundValue();
 		else
 			return defaultColor;
-	}		
+	}	
 	
+	static class SliderActionListener implements ChangeListener {
+		SliderActionListener() {
+
+		}
+
+		public synchronized void stateChanged(ChangeEvent e) {
+			int depth = depthSelectionSlider.getValue();
+			//TO DO implement the logic
+		}
+	}
 }
