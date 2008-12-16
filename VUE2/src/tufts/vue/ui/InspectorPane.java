@@ -40,7 +40,7 @@ import edu.tufts.vue.fsm.event.SearchListener;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.102 $ / $Date: 2008-12-15 16:52:56 $ / $Author: sfraize $
+ * @version $Revision: 1.103 $ / $Date: 2008-12-16 18:52:35 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends WidgetStack
@@ -551,15 +551,10 @@ public class InspectorPane extends WidgetStack
             
         if (descriptionView == null) {
 
-            final String desc = findProperty(r, node, "description");
-            
-            // desc may still be null at this point, in which case one will be
-            // constructed from the Resource
-
             boolean gotView = false;
 
             try {
-                descriptionView = buildDescription(r, node, desc);
+                descriptionView = buildSummary(r, node);
                 gotView = true;
             } catch (Throwable t) {
                 Log.error("loadResource " + r, t);
@@ -607,169 +602,46 @@ public class InspectorPane extends WidgetStack
             }
         };
 
-    private String findProperty(Resource r, LWComponent node, String... keys) {
-        // todo: could also handle some case hacking until we support case independent keys
+    private static String findProperty(Resource r, LWComponent node, String... keys) {
+        
         for (String k : keys) {
             String value = null;
-            if (r != null) {
-                value = r.getProperty(k);
-                if (value != null)
-                    return value;
-            }
             if (node != null) {
                 value = node.getDataValue(k);
                 if (value != null)
                     return value;
             }
+            if (r != null) {
+                value = r.getProperty(k);
+                if (value != null)
+                    return value;
+            }
         }
+        
         return null;
     }
     
 
-    private JComponent buildDescription(final Resource r, final LWComponent node, String desc)
+    private static JComponent buildSummary(final Resource r, final LWComponent node)
     {
-        //Thread loader = null;
-
         final JTextPane htmlText = new JTextPane();
         htmlText.setEditable(false);
         htmlText.setContentType("text/html");
         htmlText.setName("description:" + r);
         htmlText.addHyperlinkListener(DefaultHyperlinkListener);
+
+        final String desc = findProperty(r, node, "description", "summary");
             
         if (desc != null) {
-            final StringBuilder buf = new StringBuilder(desc.length() + 128);
+            
+            htmlText.setText(buildSummaryWithDescription(r, node, desc));
 
-            //int si = desc.indexOf("</style>");
-            //                if (si > 0) {
-            //                    buf.append(desc, 0, si);
-            //                    desc = desc.substring(si);
-            //                }
-
-            // text pane doesn't handle (e.g. <br/> is very common)
-            desc = desc.replaceAll("/>", ">");
-                
-            // remote some initial space + breaks
-            desc = desc.replaceAll("^\\s*<br>\\s*", "");
-            desc = desc.replaceAll("^\\s*<br>\\s*", "");
-            desc = desc.replaceAll("^\\s*<br>\\s*", "");
-
-            // remote some trailing space + breaks
-            desc = desc.replaceAll("\\s*<br>\\s*$", "");
-            desc = desc.replaceAll("\\s*<br>\\s*$", "");
-            desc = desc.replaceAll("\\s*<br>\\s*$", "");
-                
-                
-            final String title = r.getTitle();
-                
-            if (desc.indexOf("<style") < 0) {
-                // only add a title if no style sheet present ("complex content" e.g., jackrabbit jira)
-
-                buf.append("<b><font size=+1>");
-                buf.append(title);
-                buf.append("</font></b>");
-
-                String published = findProperty(r, node, "published", "pubDate", "dc:date", "date");
-                
-                if (published != null) {
-                    buf.append("<br>\n");
-                    //buf.append("<font size=-1 color=808080>");
-                    buf.append("<font color=B0B0B0><b>");
-                    buf.append(published);
-                    String author = findProperty(r, node, "author", "dc:creator", "creator", "publisher");
-                    if (author != null) {
-                        buf.append(" - ");
-                        buf.append(author);
-                    }
-                    buf.append("</b></font>");
-                    //buf.append("Published " + r.getProperty("Published"));
-                }
-
-                //             if (r.hasProperty("Published")) {
-                //                 buf.append("<p>");
-                //                 //buf.append("<font size=-1 color=808080>");
-                //                 buf.append("<font color=B0B0B0><b>");
-                //                 buf.append(r.getProperty("Published"));
-                //                 //buf.append("Published " + r.getProperty("Published"));
-                //             }
-
-                
-                // first, handle white-space around breaks so as not to overbreak later handling newlines
-                desc = desc.replaceAll("<br>\\s*<br>\\s*", "<p>");
-                    
-                // now handle common paragraph breaks
-                desc = desc.replaceAll("\n\n", "<p>");
-
-                if (!desc.startsWith("<p>"))
-                    buf.append("<p>\n");
-
-            }
-
-            final boolean willDoNetworkIO;
-
-            if (DEBUG.Enabled)
-                willDoNetworkIO = desc.indexOf("<img") >= 0;
-            else
-                willDoNetworkIO = false;
-                
-            if (!desc.equals(title)) {
-                // some OSID's create with spec same as title (!?) e.g., NCBI
-                // (URL property is set, but the spec is not)
-
-                if (DEBUG.IO) {
-                    // some images don't seem to appear:
-                    desc = desc.replaceAll("<img", "<i>[IO:IMAGE]</i><img");
-                    // actually, those appear to be embedded invisible refs
-                    // so content providers know when their content is displayed
-                } else {
-                    // display the image tag and let it display for debugging:
-                    //desc = desc.replaceAll("<img ", "");
-                }
-
-                // not all HTML entities are handled by JTextPane, for example: &mdash; &euro;
-                buf.append(org.apache.commons.lang.StringEscapeUtils.unescapeHtml(desc));
-            }
-
-            final String reformatted = buf.toString();
-                
-            htmlText.setText(reformatted);
-                
-//             if (! willDoNetworkIO) {
-                    
-//                 htmlText.setText(reformatted);
-                    
-//             } else {
-
-//                 // TODO: this can hang if the network is down while the new
-//                 // StyledDocument is being created.  Trying to set the new document
-//                 // in another thread is of no help, in that AWT still then just
-//                 // hangs when it attempts to paint the component.
-                    
-//                 //mDescription.setText("Loading...");
-//                 loader =
-//                     new Thread("loadHTML " + r) {
-//                         @Override
-//                         public void run() {
-//                             Log.debug("SET-TEXT...");
-//                             try {
-//                                 Document doc = mDescription.getDocument();
-//                                 doc.remove(0, doc.getLength());
-//                                 Reader r = new StringReader(reformatted);
-//                                 EditorKit kit = mDescription.getEditorKit();
-//                                 kit.read(r, doc, 0); // no help: just hangs here
-//                                 GUI.setDocumentFont(mDescription, GUI.ContentFace);
-//                             } catch (Throwable t) {
-//                                 Log.error(t);
-//                             }
-//                             Log.debug("SET-TEXT COMPLETED.");
-                                
-//                             //mDescription.setText(reformatted);
-//                         }
-//                     };
-//             }
-
-            //mDescription.setToolTipText(reformatted);
-            if (DEBUG.DATA) r.setProperty("~reformatted", reformatted);
         } else {
+
+            //------------------------------------------------------------------
+            // No description was found: build a summary from just the Resource
+            //------------------------------------------------------------------
+            
             final StringBuilder b = new StringBuilder(128);
             final String title = r.getTitle();
             if (title != null) {
@@ -899,6 +771,147 @@ public class InspectorPane extends WidgetStack
                     
             
     }
+
+    private static String buildSummaryWithDescription(final Resource r,
+                                                    final LWComponent node,
+                                                    String desc)
+    {
+
+        final StringBuilder buf = new StringBuilder(desc.length() + 128);
+
+        //int si = desc.indexOf("</style>");
+        //                if (si > 0) {
+        //                    buf.append(desc, 0, si);
+        //                    desc = desc.substring(si);
+        //                }
+
+        // text pane doesn't handle (e.g. <br/> is very common)
+        desc = desc.replaceAll("/>", ">");
+                
+        // remote some initial space + breaks
+        desc = desc.replaceAll("^\\s*<br>\\s*", "");
+        desc = desc.replaceAll("^\\s*<br>\\s*", "");
+        desc = desc.replaceAll("^\\s*<br>\\s*", "");
+
+        // remote some trailing space + breaks
+        desc = desc.replaceAll("\\s*<br>\\s*$", "");
+        desc = desc.replaceAll("\\s*<br>\\s*$", "");
+        desc = desc.replaceAll("\\s*<br>\\s*$", "");
+                
+                
+        String title = findProperty(r, node, "title");
+        if (title == null)
+            title = r.getTitle();
+                
+        if (desc.indexOf("<style") < 0) {
+            // only add a title if no style sheet present ("complex content" e.g., jackrabbit jira)
+
+            buf.append("<b><font size=+1>");
+            buf.append(title);
+            buf.append("</font></b>");
+
+            String published = findProperty(r, node, "published", "pubDate", "dc:date", "date", "created");
+                
+            if (published != null) {
+                buf.append("<br>\n");
+                //buf.append("<font size=-1 color=808080>");
+                buf.append("<font color=B0B0B0><b>");
+                buf.append(published);
+                String author = findProperty(r, node, "author", "dc:creator", "creator", "publisher", "reporter");
+                if (author != null) {
+                    buf.append(" - ");
+                    buf.append(author);
+                }
+                buf.append("</b></font>");
+                //buf.append("Published " + r.getProperty("Published"));
+            }
+
+            //             if (r.hasProperty("Published")) {
+            //                 buf.append("<p>");
+            //                 //buf.append("<font size=-1 color=808080>");
+            //                 buf.append("<font color=B0B0B0><b>");
+            //                 buf.append(r.getProperty("Published"));
+            //                 //buf.append("Published " + r.getProperty("Published"));
+            //             }
+
+                
+            // first, handle white-space around breaks so as not to overbreak later handling newlines
+            desc = desc.replaceAll("<br>\\s*<br>\\s*", "<p>");
+                    
+            // now handle common paragraph breaks
+            desc = desc.replaceAll("\n\n", "<p>");
+
+            if (!desc.startsWith("<p>"))
+                buf.append("<p>\n");
+
+        }
+
+//         final boolean willDoNetworkIO;
+
+//         if (DEBUG.Enabled)
+//             willDoNetworkIO = desc.indexOf("<img") >= 0;
+//         else
+//             willDoNetworkIO = false;
+                
+        if (!desc.equals(title)) {
+            // some OSID's create with spec same as title (!?) e.g., NCBI
+            // (URL property is set, but the spec is not)
+
+            if (DEBUG.IO) {
+                // some images don't seem to appear:
+                desc = desc.replaceAll("<img", "<i>[IO:IMAGE]</i><img");
+                // actually, those appear to be embedded invisible refs
+                // so content providers know when their content is displayed
+            } else {
+                // display the image tag and let it display for debugging:
+                //desc = desc.replaceAll("<img ", "");
+            }
+
+            // not all HTML entities are handled by JTextPane, for example: &mdash; &euro;
+            buf.append(org.apache.commons.lang.StringEscapeUtils.unescapeHtml(desc));
+        }
+
+        //if (DEBUG.DATA && r != null) r.setProperty("~reformatted", reformatted);
+        
+        return buf.toString();
+                
+//         if (! willDoNetworkIO) {
+                    
+//             htmlText.setText(reformatted);
+                    
+//         } else {
+
+//             // TODO: this can hang if the network is down while the new
+//             // StyledDocument is being created.  Trying to set the new document
+//             // in another thread is of no help, in that AWT still then just
+//             // hangs when it attempts to paint the component.
+                    
+//             //mDescription.setText("Loading...");
+//             loader =
+//                 new Thread("loadHTML " + r) {
+//                     @Override
+//                     public void run() {
+//                         Log.debug("SET-TEXT...");
+//                         try {
+//                             Document doc = mDescription.getDocument();
+//                             doc.remove(0, doc.getLength());
+//                             Reader r = new StringReader(reformatted);
+//                             EditorKit kit = mDescription.getEditorKit();
+//                             kit.read(r, doc, 0); // no help: just hangs here
+//                             GUI.setDocumentFont(mDescription, GUI.ContentFace);
+//                         } catch (Throwable t) {
+//                             Log.error(t);
+//                         }
+//                         Log.debug("SET-TEXT COMPLETED.");
+                                
+//                         //mDescription.setText(reformatted);
+//                     }
+//                 };
+//         }
+
+        //mDescription.setToolTipText(reformatted);
+    }
+    
     
     public void removeAll()
     {
