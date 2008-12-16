@@ -40,7 +40,7 @@ import edu.tufts.vue.fsm.event.SearchListener;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.103 $ / $Date: 2008-12-16 18:52:35 $ / $Author: sfraize $
+ * @version $Revision: 1.104 $ / $Date: 2008-12-16 23:15:10 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends WidgetStack
@@ -282,7 +282,7 @@ public class InspectorPane extends WidgetStack
         
         if (index < 1 || entry.pathway.isShowingSlides()) {
             
-            mPathwayNotes.setHidden(true);
+            Widget.hide(mPathwayNotes);
             mPathwayNotes.detach();
             activeEntrySelectionSync = null;
 
@@ -304,8 +304,7 @@ public class InspectorPane extends WidgetStack
                 mPathwayNotes.setTitle("Pathway Notes (" + entry.pathway.getLabel() + ": #" + index + ")");
 //          }
 
-            
-            mPathwayNotes.setHidden(false);
+            Widget.show(mPathwayNotes);
         }
 
         displayRelease(); // can optimize out: should be able to rely on follow-on selectionChanged...
@@ -346,7 +345,7 @@ public class InspectorPane extends WidgetStack
             
             hideAll();
             mSelectionInfo.setText("nothing selected");
-            Widget.setHidden(mSelectionInfo, false);        
+            Widget.show(mSelectionInfo);
             setVisible(true);
             
         } else if (s.size() == 1) {
@@ -366,31 +365,31 @@ public class InspectorPane extends WidgetStack
     
     private void loadSingleSelection(LWComponent c)
     {
-        Widget.setHidden(mSelectionInfo, true);
+        Widget.hide(mSelectionInfo);
         
         //displayPanes(NODE);
         showNodePanes(true);
 
         if (c instanceof LWSlide || c.hasAncestorOfType(LWSlide.class)) {
-            mKeywords.setHidden(true);
-            Widget.setHidden(ontologicalMetadata, true);
+            Widget.hide(mKeywords);
+            Widget.hide(ontologicalMetadata);
         }
 
         if (activeEntrySelectionSync != c) {
-            mPathwayNotes.setHidden(true);
+            Widget.hide(mPathwayNotes);
             loadedEntry = null;
         } 
         activeEntrySelectionSync = null;
 
-        loadData(c);
+        loadAllNodePanes(c);
              	
-        if (c.hasResource()) {
-            //loadResource(c.getResource());
-            loadResource(c.getResource(), c);
-            showResourcePanes(true);
-        } else {
-            showResourcePanes(false);
-        }
+//         if (c.hasResource()) {
+//             //loadResource(c.getResource());
+//             loadResource(c.getResource(), c);
+//             showResourcePanes(true);
+//         } else {
+//             showResourcePanes(false);
+//         }
         
     }
 
@@ -408,14 +407,14 @@ public class InspectorPane extends WidgetStack
             //txt = txt + " " + s.getDescription();
         //txt = "<html><center>" + txt + " " + s.getDescription();
         mSelectionInfo.setText(txt);
-        Widget.setHidden(mLabelPane, false); // connect up to schematic-field style node?
-        Widget.setHidden(mSelectionInfo, false);
+        Widget.show(mLabelPane); // connect up to schematic-field style node?
+        Widget.show(mSelectionInfo);
       //Widget.setExpanded(mKeywords, true);
-        Widget.setHidden(mKeywords, false);
+        Widget.show(mKeywords);
     }
     
 
-    private void loadData(LWComponent c) {
+    private void loadAllNodePanes(LWComponent c) {
 
         LWComponent slideTitle = null;
 
@@ -455,10 +454,18 @@ public class InspectorPane extends WidgetStack
 
 
         if (c.getDataTable() == null) {
-            Widget.setHidden(mDataSetData, true);
+            Widget.hide(mDataSetData);
         } else {
             mDataSetData.loadTable(c.getDataTable());
-            Widget.setHidden(mDataSetData, false);
+            Widget.show(mDataSetData);
+        }
+        
+        if (c.hasResource()) {
+            //loadResource(c.getResource());
+            loadResource(c.getResource(), c);
+            showResourcePanes(true);
+        } else {
+            showResourcePanes(false);
         }
         
         mKeywords.loadKeywords(c);
@@ -470,9 +477,14 @@ public class InspectorPane extends WidgetStack
     }
 
 
-    private void setTypeName(JComponent component, LWComponent c, String suffix)
+    private static void setTypeName(JComponent component, LWComponent c, String suffix)
     {
-        final String type = c.getComponentTypeLabel();
+        final String type;
+
+        if (DEBUG.Enabled)
+            type = c.getUniqueComponentTypeLabel();
+        else
+            type = c.getComponentTypeLabel();
         
         String title;
         if (suffix != null)
@@ -538,7 +550,7 @@ public class InspectorPane extends WidgetStack
         mResourceMetaData.loadTable(r.getProperties());
         mPreview.loadResource(r);
 
-        Widget.setHidden(mSelectionInfo, true);
+        Widget.hide(mSelectionInfo);
         loadContentSummary(r, node);
 
     }
@@ -806,10 +818,10 @@ public class InspectorPane extends WidgetStack
         if (desc.indexOf("<style") < 0) {
             // only add a title if no style sheet present ("complex content" e.g., jackrabbit jira)
 
-            buf.append("<b><font size=+1>");
+            buf.append("<b><font size=+1>"); // note: h1/h2 are useless here.  font+1 a bit more than we want tho...
             buf.append(title);
             buf.append("</font></b>");
-
+            
             String published = findProperty(r, node, "published", "pubDate", "dc:date", "date", "created");
                 
             if (published != null) {
