@@ -76,7 +76,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.582 $ / $Date: 2008-12-16 20:06:20 $ / $Author: sfraize $ 
+ * @version $Revision: 1.583 $ / $Date: 2008-12-16 23:17:45 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -211,6 +211,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     //private final NodeTool NodeTool = (NodeTool) VueTool.getInstance(tufts.vue.NodeTool.class);
     private final VueTool NodeModeTool = VueTool.getInstance(tufts.vue.NodeTool.NodeModeTool.class);
     private final VueTool RichTextTool =VueTool.getInstance(tufts.vue.RichTextTool.class);
+    private final VueTool BrowseTool = VueTool.getInstance(tufts.vue.SelectionTool.Browse.class);
     private final VueTool ToolPresentation = VueTool.getInstance(tufts.vue.PresentationTool.class);
     
     //-------------------------------------------------------
@@ -247,7 +248,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     public MapViewer(LWMap map, String instanceName)
     {
         this.instanceName = instanceName;
-        this.activeTool = VUE.getActiveTool();
+        this.activeTool = VUE.getActiveSubTool();
         if (activeTool == null) {
             // default tool is first in list
             activeTool = VueTool.getTools().get(0);
@@ -488,7 +489,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         else if (oldTool != null && oldTool.hasDecorations() || tool.hasDecorations())
             repaint();
 
-        VUE.setActive(VueTool.class, this, tool);
+        VUE.setActive(VueTool.class, this, activeTool);
     }
     
     @Override
@@ -2913,6 +2914,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         final LWSelection s = VueSelection;
 
+        // TODO: separate the drawing of selection ghosts, which would normally always be
+        // wanted, even for the BrowseTool, from the drawing of the resize handles +
+        // selection bounding-box, so can turn off just the latter for the BrowseTool.
+
         if (s == null || s.isEmpty() || !activeTool.supportsResizeControls() || isAnimating) {
             //if (DEBUG.Enabled) out("SKIPPING RESIZE CONTROL on SELECTION; sel=" + s);
             resizeControl.active = false;
@@ -4092,12 +4097,31 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     protected void selectionToggle(LWComponent c) {
         VueSelection.setSource(this);
         VueSelection.setSelectionSourceFocal(getFocal());
-        if (c.isSelected())
-            selectionRemove(c);
-        else
-            selectionAdd(c);
+
+        if (activeTool == BrowseTool && VueSelection.only() == c) {
+            
+            // a hack to do this here -- should be a straight special modifier
+            // key when Browse tool does a selection.
+            
+            // todo: handle this via a selection api in the tool
+            // would also want to pass in the InputEvent for checking modifiers
+            
+            if (c instanceof LWLink) {
+                LWLink link = (LWLink) c;
+                if (link.getHead() != null)
+                    VueSelection.add(link.getHead());
+                if (link.getTail() != null)
+                    VueSelection.add(link.getTail());
+                    
+            }
+        } else {
+            if (c.isSelected())
+                selectionRemove(c);
+            else
+                selectionAdd(c);
+        }
     }
-    //protected void selectionToggle(java.util.Iterator i) {
+
     protected void selectionToggle(Iterable<LWComponent> i) {
         VueSelection.setSource(this);
         VueSelection.setSelectionSourceFocal(getFocal());
