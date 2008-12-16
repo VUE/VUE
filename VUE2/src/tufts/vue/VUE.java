@@ -117,7 +117,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.603 $ / $Date: 2008-12-16 22:28:55 $ / $Author: sraphe01 $ 
+ * @version $Revision: 1.604 $ / $Date: 2008-12-16 23:16:20 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -552,7 +552,24 @@ public class VUE
             return null;
     }
 
+    /** @return the active tool as reported by the toolbar controller, which may only be a top-level tool*/
     public static VueTool getActiveTool() { return VueToolbarController.getActiveTool(); }
+    
+    // TODO: refactor this so that the only place that makes a distinction between a top
+    // level tool and a sub tool (e.g., SelectionTool v.s. SelectionTool.Direct) is in the toolbar
+    // controller.
+    /** @return the active subtool, or the active top-level tool if it has no active sub-tool */
+    public static VueTool getActiveSubTool() { 
+
+        final VueTool tool = getActiveTool();
+        final VueTool subTool = tool == null ? null : tool.getSelectedSubTool();
+        
+        if (subTool != null && subTool.getClass() != VueSimpleTool.class)
+            return subTool;
+        else
+            return tool;
+    }
+    
     
     public static void setActive(Class clazz, Object source, Object newActive) {
         if (DEBUG.EVENTS && DEBUG.META) {
