@@ -43,7 +43,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.200 $ / $Date: 2008-11-14 20:27:40 $ / $Author: sfraize $
+ * @version $Revision: 1.201 $ / $Date: 2008-12-16 23:11:43 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -620,7 +620,11 @@ public class LWLink extends LWComponent
 
         if (dc.focal == this) {
             
-            // special case: draw us plus our endpoints: focal bounds should have been getFanBounds()
+            //-------------------------------------------------------
+            // SPECIAL CASE: draw the link PLUS its individual endpoints.
+            // The focal bounds should have already been getFanBounds(),
+            // so we should be drawing into the appropriate region.
+            //-------------------------------------------------------
             
             dc.setClipOptimized(false);
             transformZero(dc.g); // we'll be in the parent context
@@ -629,14 +633,22 @@ public class LWLink extends LWComponent
             // todo: if endpoint is in another parent, handle the partial transformation
             // to get there and draw it (or go back up to map and back down)
 
-            if (head.hasNode() && head.node.getParent() == getParent()) {
-                // no need to transform: already in the parent context
-                head.node.draw(dc.push()); dc.pop();
+            final boolean atTopLevel = getParent().isTopLevel();
+
+            if (head.hasNode()) {
+                if (head.node.getParent() == getParent() ||
+                    (atTopLevel && head.node.getParent().isTopLevel()))
+                    // no need to transform: already in the parent context or
+                    // at the top-level, meaning we're registered in the
+                    // same coordinate space (e.g., a layer)
+                    head.node.draw(dc.push()); dc.pop();
             }
                 
-            if (tail.hasNode() && tail.node.getParent() == getParent()) {
-                // no need to transform: already in the parent context
-                tail.node.draw(dc.push()); dc.pop();
+            if (tail.hasNode()) {
+                if (tail.node.getParent() == getParent() ||
+                    (atTopLevel && tail.node.getParent().isTopLevel()))
+                    // no need to transform: same as above case
+                    tail.node.draw(dc.push()); dc.pop();
             }
         } else
             super.draw(dc);
