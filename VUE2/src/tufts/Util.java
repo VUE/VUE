@@ -1153,7 +1153,7 @@ public class Util
         return new IteratorTypeFilter<A,T>(iterable, clazz);
     }
 
-    private static final class IteratorTypeFilter<A,T extends A> implements Iterable<T>, Iterator<T> {
+    private static final class IteratorTypeFilter<A,T extends A> extends AbstractItering<T> {
 
         private static final Object NEXT_NEEDED = new Object();
         private static final Object EOL = new Object();
@@ -1206,9 +1206,6 @@ public class Util
             return (T) result;
         }
         
-        public void remove() { throw new UnsupportedOperationException(); }
-        
-        public Iterator<T> iterator() { return this; }
     };
 
 //     /** Flatten's a Map who's values are collections: returns a key/value for each value in each collection */
