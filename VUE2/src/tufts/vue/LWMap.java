@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.220 $ / $Date: 2008-12-15 22:05:59 $ / $Author: sraphe01 $
+ * @version $Revision: 1.221 $ / $Date: 2008-12-16 16:09:33 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -965,40 +965,36 @@ public class LWMap extends LWContainer
     /** @return the internal layer of the given name.  Internal layers start at the back, intially locked */
     public Layer getInternalLayer(String name) {
 
-        // todo: this code same as getOrCreate, but need special bits set before doing the addChild
-        
-        for (Layer layer : Util.extractType(getChildren(), Layer.class))
-            if (name.equals(layer.getLabel()))
-                return layer;
-        Layer layer = new Layer(name);
-        layer.setLocked(true); 
-        layer.setFlag(Flag.INTERNAL);
-        addChild(layer);
-        sendToBack(layer);
+        Layer layer = findLayer(name);
+        if (layer == null) {
+            layer = new Layer(name);
+            layer.setLocked(true); 
+            layer.setFlag(Flag.INTERNAL);
+            addChild(layer);
+            sendToBack(layer);
+        }
         return layer;
     }
 
     public Layer getOrCreateLayer(String name) {
-        for (Layer layer : Util.extractType(getChildren(), Layer.class))
-            if (name.equals(layer.getLabel()))
-                return layer;
-        Layer layer = new Layer(name);
-        addChild(layer);
+        Layer layer = findLayer(name);
+        if (layer == null) {
+            layer = new Layer(name);
+            addChild(layer);
+        }
         return layer;
     }
-
-
-//     public Layer getInternalLayer() {
-//         return mInternalLayer;
-//     }
-
-//     /** add a component for internal use we want saved with the map. It will never be visible on the map. */
-//     public LWComponent addInternal(LWComponent c) {
-//         getInternalLayer().addChild(c);
-//         //c.setFlag(Flag.INTERNAL);
-//         return c;
-//     }
     
+    /** @return Layer if one by the given name is found */
+    public Layer findLayer(String name) {
+        for (Layer layer : Util.typeFilter(getChildren(), Layer.class)) {
+            if (name.equals(layer.getLabel())) {
+                return layer;
+            }
+        }
+        return null;
+    }
+
     public void setActiveLayer(LWComponent layer) {
         if (!VUE.VUE3_LAYERS) return;
         if (DEBUG.Enabled) out("setActiveLayer: " + layer);
@@ -1059,7 +1055,7 @@ public class LWMap extends LWContainer
 
         if (mLayers.size() > 0) {
 
-            Log.debug("restoring: found existing layers in " + this);
+            if (DEBUG.Enabled) Log.debug("restoring: found existing layers in " + this);
 
             for (Layer layer : mLayers) {
                 for (LWComponent c : mChildren) {
@@ -1082,8 +1078,6 @@ public class LWMap extends LWContainer
             mChildren.clear();
             mChildren.addAll(orphans);
 
-            setActiveLayer(mLayers.get(0));
-
         } else {
 
             Log.debug("restoring: creating default layers in " + this);
@@ -1093,8 +1087,19 @@ public class LWMap extends LWContainer
 
         }
 
-
         mChildren.addAll(mLayers);
+
+        if (!addedLayers) {
+            // findLayer won't work until the above mChildren.addAll
+            final Layer defaultLayer = findLayer("Default");
+            if (defaultLayer != null)
+                setActiveLayer(defaultLayer);
+            else if (mLayers.size() > 1)
+                setActiveLayer(mLayers.get(1));
+            else
+                setActiveLayer(mLayers.get(0));
+
+        }
 
         // mLayers is only needed during restore
         mLayers = null;
