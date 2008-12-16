@@ -37,7 +37,7 @@ import org.apache.log4j.NDC;
 /**
  * Code for providing, entering and exiting VUE full screen modes.
  *
- * @version $Revision: 1.38 $ / $Date: 2008-10-10 21:24:36 $ / $Author: mike $
+ * @version $Revision: 1.39 $ / $Date: 2008-12-16 23:14:30 $ / $Author: sfraize $
  *
  */
 
@@ -524,6 +524,12 @@ public class FullScreen
         }
         else if (!goNative)
         {
+
+            // TODO: this is problematic: this will unexepectly switch the user to a
+            // different tool when they enter full screen mode.  The floating tool panel is
+            // not being synced with the main VUE tool panel (it may not be capable of this
+            // -- it has it's own smaller sub-set of tools on it).
+            
             tufts.vue.VueToolbarController.getController()
                 .setSelectedTool(VUE.getFloatingZoomPanel().getSelectedTool());
             // Is causing event loop:
