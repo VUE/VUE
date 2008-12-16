@@ -2107,7 +2107,7 @@ public class Actions implements VueConstants
     };
 
     public static class NudgeAction extends LWCAction {
-        final int osdx, osdy; // on-screen delta-x, deltay-y
+        final int osdx, osdy; // on-screen delta-x, delta-y
         NudgeAction(int dx, int dy, String name, KeyStroke stroke) {
             super(name, stroke);
             osdx = dx;
@@ -2123,7 +2123,7 @@ public class Actions implements VueConstants
         }
 
         @Override
-        void act(LWComponent c) { nudgeOrReorder(c,  osdx, osdy); }
+        void act(LWComponent c) { nudgeOrReorder(c, osdx, osdy); }
         
         private void nudgeOrReorder(LWComponent c, int x, int y) {
             if (c.getParent() instanceof LWNode) { // TODO: a more abstract test... inVisuallyOrderedContainer?

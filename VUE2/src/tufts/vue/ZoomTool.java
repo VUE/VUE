@@ -34,7 +34,7 @@ import javax.swing.*;
  * zoom needed to display an arbitraty map region into an arbitrary
  * pixel region.
  *
- * @version $Revision: 1.84 $ / $Date: 2008-11-07 15:12:17 $ / $Author: sfraize $
+ * @version $Revision: 1.85 $ / $Date: 2008-12-16 19:03:38 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -77,6 +77,7 @@ public class ZoomTool extends VueTool
         super.drawSelector(dc, r);
     }
 
+    @Override
     public boolean usesRightClick()
     {
         return true;
@@ -99,8 +100,10 @@ public class ZoomTool extends VueTool
         return getSelectedSubTool().getID().equals("zoomTool.zoomIn");
     }
 
+    @Override
     public boolean supportsSelection() { return false; }
 
+    @Override
     public boolean supportsDraggedSelector(MapMouseEvent e)
     {
         if (false && e.getPicked() != null) // is causing a pick traversal for ever mouse drag event: too slow

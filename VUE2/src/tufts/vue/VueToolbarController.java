@@ -34,7 +34,7 @@ import tufts.vue.LinkTool.LinkModeTool;
  * This could use a re-write, along with VueToolPanel, VueTool, and the way
  * contextual toolbars are handled.
  *
- * @version $Revision: 1.77 $ / $Date: 2008-10-06 22:06:06 $ / $Author: mike $
+ * @version $Revision: 1.78 $ / $Date: 2008-12-16 19:03:38 $ / $Author: sfraize $
  *
  **/
 public class VueToolbarController  
@@ -241,6 +241,11 @@ public class VueToolbarController
         else
             return getToolbar().getSelectedTool();
     }
+
+    /** introspected listener callback */
+    public void activeChanged(ActiveEvent e, VueTool tool) {
+        setSelectedTool(tool);
+    }
 	 
     /**
      * This method sets teh slected VueTool
@@ -266,10 +271,40 @@ public class VueToolbarController
         }
         handleToolSelection( pTool);
     }
-	
-    public void activeChanged(ActiveEvent e, VueTool tool) {
-        setSelectedTool(tool);
+
+    /**
+     * This method is called when a tool selection event happens.
+     * It will notify all toolbar
+     **/
+    final void handleToolSelection(VueTool pTool)
+    {
+        if (DEBUG.TOOL) out("handleToolSelection " + pTool);
+        
+        VueTool rootTool = pTool;
+		
+        // TODO: need to seriously refactor this code: the tools shouldn't be self activating
+        // -- e.g., their installing their cursor even if the tool change is denied, so
+        // we're going to allow the tool selection for now...
+        if (mSelectedTool != null && !mSelectedTool.permitsToolChange()) {
+            Log.warn("tool change not permitted to: " + pTool + "; active tool denies: " + mSelectedTool);
+        }
+        
+       if (pTool.getParentTool() != null && pTool.getClass() == tufts.vue.VueSimpleTool.class)          
+           rootTool = pTool.getParentTool();
+		
+        final VueTool oldActive = mSelectedTool;
+
+        mSelectedTool = rootTool;
+
+        // notify listeners
+        VUE.setActive(VueTool.class, this, rootTool);
+        
+        if (oldActive != null && oldActive != mSelectedTool)
+            oldActive.handleToolSelection(false, mSelectedTool);
+        mSelectedTool.handleToolSelection(true, oldActive);
     }
+    
+    
 	
     /**
      * @return the instance of a known tool
@@ -306,78 +341,71 @@ public class VueToolbarController
     }
     */
 	  
-	  
-    /**
-     * This method is called when a tool selection event happens.
-     * It will notify all toolbar
-     **/
-    protected void handleToolSelection(VueTool pTool)
-    {
-        if (DEBUG.TOOL) out("handleToolSelection " + pTool);
+//     protected void handleToolSelection(VueTool pTool)
+//     {
+//         if (DEBUG.TOOL) out("handleToolSelection " + pTool);
         
-        VueTool rootTool = pTool;
+//         VueTool rootTool = pTool;
 		
-        // TODO: need to seriously refactor this code: the tools shouldn't be self activating
-        // -- e.g., their installing their cursor even if the tool change is denied, so
-        // we're going to allow the tool selection for now...
-        if (mSelectedTool != null && !mSelectedTool.permitsToolChange()) {
-            Log.warn("tool change not permitted to: " + pTool + "; active tool denies: " + mSelectedTool);
-            //return;
-        }
+//         // TODO: need to seriously refactor this code: the tools shouldn't be self activating
+//         // -- e.g., their installing their cursor even if the tool change is denied, so
+//         // we're going to allow the tool selection for now...
+//         if (mSelectedTool != null && !mSelectedTool.permitsToolChange()) {
+//             Log.warn("tool change not permitted to: " + pTool + "; active tool denies: " + mSelectedTool);
+//             //return;
+//         }
         
-       if (pTool.getParentTool() != null && pTool.getClass() == tufts.vue.VueSimpleTool.class)          
-        		rootTool = pTool.getParentTool();
+//        if (pTool.getParentTool() != null && pTool.getClass() == tufts.vue.VueSimpleTool.class)          
+//         		rootTool = pTool.getParentTool();
 		
-    //    String selectionID = pTool.getSelectionID();
+//     //    String selectionID = pTool.getSelectionID();
         
-        /*
-        // check to see if it is the same selection...
-        if (mCurSelectionID.equals(selectionID)) {
-            if (DEBUG.TOOL) out("same selection: noop");
-            return;
-        }
-        if (rootTool == mSelectedTool) {
-            if (DEBUG.TOOL) out("same root tool: noop");
-            return;
-        }
-        */
-        // allow re-selection of existing tool: handy for use as "apply" to a current selection
-        // if the changing the active sub-tool can have an effect on selected objects
-        //mCurSelectionID = selectionID;	  	
+//         /*
+//         // check to see if it is the same selection...
+//         if (mCurSelectionID.equals(selectionID)) {
+//             if (DEBUG.TOOL) out("same selection: noop");
+//             return;
+//         }
+//         if (rootTool == mSelectedTool) {
+//             if (DEBUG.TOOL) out("same root tool: noop");
+//             return;
+//         }
+//         */
+//         // allow re-selection of existing tool: handy for use as "apply" to a current selection
+//         // if the changing the active sub-tool can have an effect on selected objects
+//         //mCurSelectionID = selectionID;	  	
 
-        // update contextual panel
-        //updateContextualToolPanel();
-        /** OLD CODE
-            JPanel contextualPanel = rootTool.getContextualPanel();
-            if( contextualPanel == null) {
-            contextualPanel = getContextualToolForSelection();
-            }
-            getToolbar().setContextualToolPanel( contextualPanel );
-            END OLD CODE ****/
+//         // update contextual panel
+//         //updateContextualToolPanel();
+//         /** OLD CODE
+//             JPanel contextualPanel = rootTool.getContextualPanel();
+//             if( contextualPanel == null) {
+//             contextualPanel = getContextualToolForSelection();
+//             }
+//             getToolbar().setContextualToolPanel( contextualPanel );
+//             END OLD CODE ****/
 		
-        final VueTool oldActive = mSelectedTool;
+//         final VueTool oldActive = mSelectedTool;
 
-        
-        
-        mSelectedTool = rootTool;
+//         mSelectedTool = rootTool;
 
-        // notify listeners
-        VUE.setActive(VueTool.class, this, rootTool);
+//         // notify listeners
+//         VUE.setActive(VueTool.class, this, rootTool);
         
-        if (oldActive != null && oldActive != mSelectedTool)
-            oldActive.handleToolSelection(false, mSelectedTool);
-        mSelectedTool.handleToolSelection(true, oldActive);
+//         if (oldActive != null && oldActive != mSelectedTool)
+//             oldActive.handleToolSelection(false, mSelectedTool);
+//         mSelectedTool.handleToolSelection(true, oldActive);
         
-        /*
-        int size = mToolSelectionListeners.size();
-        for (int i = 0; i < size; i++) {
-            VueToolSelectionListener listener = (VueToolSelectionListener) mToolSelectionListeners.get(i);
-            if (DEBUG.TOOL) System.out.println("\tVueToolbarController -> toolSelected " + listener);
-            listener.toolSelected(rootTool);
-        }
-        */
+//         /*
+//         int size = mToolSelectionListeners.size();
+//         for (int i = 0; i < size; i++) {
+//             VueToolSelectionListener listener = (VueToolSelectionListener) mToolSelectionListeners.get(i);
+//             if (DEBUG.TOOL) System.out.println("\tVueToolbarController -> toolSelected " + listener);
+//             listener.toolSelected(rootTool);
+//         }
+//         */
 
-    }
+//     }
 
 	 
     /*

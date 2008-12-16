@@ -33,7 +33,7 @@ import java.awt.event.*;
  * that usage is probably on it's way out when we get around
  * to cleaning up the VueTool code & it's supporting GUI classes.
  *
- * @version $Revision: 1.84 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $
+ * @version $Revision: 1.85 $ / $Date: 2008-12-16 19:03:38 $ / $Author: sfraize $
  */
 
 public abstract class VueTool extends AbstractAction
@@ -344,18 +344,23 @@ public abstract class VueTool extends AbstractAction
         mLinkedButton = b;
     }
 
-    /** @return true of this tool supports any edit actions */
-    public boolean supportsEditActions() { return true; }
-    
     /** supports the click-selection of objects */
     public boolean supportsSelection() { return true; }
 
-    /** does tool make use of a dragged box for selecting objects or regions of the map? */
+    /** @return true of this tool supports any map editing actions (e.g., add new node) */
+    public boolean supportsEditActions() { return supportsSelection(); }
+    
+    /** @return true of this tool supports double-click for on-map label edit */
+    public boolean supportsEditLabel() { return supportsEditActions(); }
+    
+    /** @return true by deafult if tool supports drag operations -- override to change */
+    public boolean supportsDrag(InputEvent e) { return supportsEditActions(); }
+    
+    /** does tool make use of a dragged box for selecting objects or regions of the map, for any purpose
+     * (e.g., may not just be for selection)
+     */
     public boolean supportsDraggedSelector(MapMouseEvent e) { return true; }
 
-    /** @return true by deafult if tool supports drag operations -- override to change */
-    public boolean supportsDrag(MapMouseEvent e) { return true; }
-    
     
     /** does tool make use of the resize controls? If false, They will still be drawn, but
      * will not respond to mouse drags.*/

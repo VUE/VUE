@@ -33,9 +33,13 @@ public class ImageTool extends VueTool
         super();
     }
     
-    public boolean supportsDraggedSelector(java.awt.event.MouseEvent e) { return true; }
+    @Override
+    public boolean supportsDraggedSelector(MapMouseEvent e) { return true; }
+    @Override
     public boolean supportsSelection() { return true; }
+    @Override
     public boolean hasDecorations() { return true; }
+    @Override
     public Class getSelectionType() { return LWImage.class; }
 
     public JPanel createToolPanel() {

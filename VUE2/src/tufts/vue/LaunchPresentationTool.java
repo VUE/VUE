@@ -33,24 +33,29 @@ public class LaunchPresentationTool extends VueSimpleTool
         
     }
     
+    @Override
     public boolean handleKeyPressed(java.awt.event.KeyEvent e)  {
         return false;
     }
     
+    @Override
     public boolean handleMousePressed(MapMouseEvent e)
     {
             return false;
     }
 
     
+    @Override
     public void actionPerformed(ActionEvent e) {
         Actions.LaunchPresentation.fire(this, e);
         return;
     }
 
 
+    @Override
     public boolean supportsSelection() { return false; }
 
     // todo: need selection, but no drag, and click-to-deselect still working
+    @Override
     public boolean supportsDraggedSelector(MapMouseEvent e) { return false; }
 }

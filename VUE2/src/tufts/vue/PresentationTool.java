@@ -3089,7 +3089,7 @@ public class PresentationTool extends VueTool
     /** @return false */
     public boolean supportsResizeControls() { return false; }
     /** @return false */
-    public boolean supportsDrag(MapMouseEvent e) { return false; }
+    public boolean supportsDrag(InputEvent e) { return false; }
     /** @return false */
     public boolean supportsDraggedSelector(MapMouseEvent e) { return false; }
     /** @return true */

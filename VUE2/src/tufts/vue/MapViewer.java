@@ -34,6 +34,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.awt.*;
 import java.awt.event.*;
+import static java.awt.event.KeyEvent.*;
 import java.awt.dnd.*;
 import java.awt.datatransfer.*;
 import java.awt.geom.*;
@@ -75,7 +76,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.580 $ / $Date: 2008-12-15 19:16:43 $ / $Author: mike $ 
+ * @version $Revision: 1.581 $ / $Date: 2008-12-16 19:03:38 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -246,7 +247,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     public MapViewer(LWMap map, String instanceName)
     {
         this.instanceName = instanceName;
-        this.activeTool = VueToolbarController.getActiveTool();
+        this.activeTool = VUE.getActiveTool();
         if (activeTool == null) {
             // default tool is first in list
             activeTool = VueTool.getTools().get(0);
@@ -406,6 +407,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             setMapOriginOffset(p.getX(), p.getY());
         }
 
+        activateTool(VUE.getActiveTool());
+
         requestFocus();
         //VUE.invokeAfterAWT(new Runnable() { public void run() { ensureMapVisible(); }});
 
@@ -450,6 +453,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
      **/
     private void activateTool(VueTool tool, boolean temporary)
     {
+        //Log.warn("ACTIVATE " + tool + " in " + this, new Throwable("HERE"));
+        
         if (DEBUG.FOCUS && VUE.getActiveViewer() == this) out("activateTool: " + tool.getID());
         
         if (tool == null) {
@@ -462,7 +467,17 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
         
         VueTool oldTool = activeTool; // might be safer to pull this from the ActiveEvent
-        activeTool = tool;
+
+        // Figuring the actual active tool is a bit hairy due to the wierd VueTool
+        // architecture: there is a selected "root" tool, which may have a sub-selected
+        // tools.  The MapViewer is interested in the actual sub-selected tool, if
+        // there is one.
+        
+        if (tool.getSelectedSubTool() != null)
+            activeTool = tool.getSelectedSubTool();
+        else
+            activeTool = tool;
+        
         activeTool.setTemporary(temporary);
         setMapCursor(activeTool.getCursor());
         
@@ -3318,10 +3333,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         if (!lwc.supportsUserLabel() || !lwc.supportsProperty(LWKey.Label))
             return;
 
-        if (activeTool == ToolPresentation) {
-            if (DEBUG.Enabled) out("activateLabelEdit denied w/pres tool");
+        if (!activeTool.supportsEditLabel())
             return;
-        }
+
+//         if (activeTool == ToolPresentation) {
+//             if (DEBUG.Enabled) out("activateLabelEdit denied w/pres tool");
+//             return;
+//         }
 
         clearRollover();
         
@@ -4904,7 +4922,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         //if (s.only() instanceof LWSlide) s.clear(); // okay, this stopped us from picking up the slide, but too soon: can't change BG color
         if (isAnimating) {
             if (DEBUG.Enabled) Util.printStackTrace("drag not allowed: animating");
-        } if (s.size() > 0 && s.first().isMoveable() && activeTool.supportsSelection() && s.first() != mFocal) {
+        } if (s.size() > 0 && s.first().isMoveable() && activeTool.supportsDrag(null) && s.first() != mFocal) {
             if (DEBUG.WORK) out("set to drag " + s);
             draggedSelectionGroup.useSelection(s);
             setDragger(draggedSelectionGroup);
@@ -5123,21 +5141,64 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 case KeyEvent.VK_DOWN:
                 case KeyEvent.VK_LEFT:
                 case KeyEvent.VK_RIGHT:
+
+                    if (!getSelection().isEmpty() && !e.isAltDown() && !e.isMetaDown() && !e.isControlDown()) {
+                        
+                        if (getSelection().size() == 1 && !activeTool.supportsDrag(e) && activeTool.supportsSelection()) {
+                            
+                            final LWComponent selected = getSelection().first();
+                            final int dir;
+
+                            if (keyCode == VK_UP || keyCode == VK_LEFT)
+                                dir = -1;
+                            else
+                                dir = 1;
+
+                            if (selected.getParent() instanceof LWNode) { // todo: more abstract test for ordered children
+                                final int newIndex = selected.getIndex() + dir;
+                                if (newIndex >= 0 && newIndex < selected.getParent().numChildren())
+                                    selectionSet(selected.getParent().getChild(newIndex));
+                            } else {
+
+                                // search for nearby nodes
+
+                                final LWComponent near;
+                                final LWComponent c = selected;
+
+                                // very crude up/down test for now -- ideal would find nearest
+                                // nodes, the pick nearest with y is less and y is more
+                                // (and x is less/x is more for left/right)
+                                
+                                if (dir < 0) {
+                                    near = pickNode(c.getMapCenterX(),
+                                                    c.getMapY() - c.getMapHeight()/2f);
+                                } else {
+                                    near = pickNode(c.getMapCenterX(),
+                                                    c.getMapY() + c.getMapHeight() * 1.5f);
+                                }
+
+                                if (near != null)
+                                    selectionSet(near);
+                                
+                            }
+                            
+                            
+                        } else {                        
                     
-                    if (!VueSelection.isEmpty() && !e.isAltDown() && !e.isMetaDown() && !e.isControlDown()) {
-                    
-                        // there's something in the selection, and only shift might be down: apply big or small nudge
-                        if (e.isShiftDown()) {
-                                 if (keyCode == KeyEvent.VK_UP)    Actions.BigNudgeUp.fire(e);
-                            else if (keyCode == KeyEvent.VK_DOWN)  Actions.BigNudgeDown.fire(e);
-                            else if (keyCode == KeyEvent.VK_LEFT)  Actions.BigNudgeLeft.fire(e);
-                            else if (keyCode == KeyEvent.VK_RIGHT) Actions.BigNudgeRight.fire(e);
-                        } else {
-                                 if (keyCode == KeyEvent.VK_UP)    Actions.NudgeUp.fire(e);
-                            else if (keyCode == KeyEvent.VK_DOWN)  Actions.NudgeDown.fire(e);
-                            else if (keyCode == KeyEvent.VK_LEFT)  Actions.NudgeLeft.fire(e);
-                            else if (keyCode == KeyEvent.VK_RIGHT) Actions.NudgeRight.fire(e);
+                            // there's something in the selection, and only shift might be down: apply big or small nudge
+                            if (e.isShiftDown()) {
+                                     if (keyCode == KeyEvent.VK_UP)    Actions.BigNudgeUp.fire(e);
+                                else if (keyCode == KeyEvent.VK_DOWN)  Actions.BigNudgeDown.fire(e);
+                                else if (keyCode == KeyEvent.VK_LEFT)  Actions.BigNudgeLeft.fire(e);
+                                else if (keyCode == KeyEvent.VK_RIGHT) Actions.BigNudgeRight.fire(e);
+                            } else {
+                                     if (keyCode == KeyEvent.VK_UP)    Actions.NudgeUp.fire(e);
+                                else if (keyCode == KeyEvent.VK_DOWN)  Actions.NudgeDown.fire(e);
+                                else if (keyCode == KeyEvent.VK_LEFT)  Actions.NudgeLeft.fire(e);
+                                else if (keyCode == KeyEvent.VK_RIGHT) Actions.NudgeRight.fire(e);
+                            }
                         }
+                        
                     } else
                         handled = false;
                     break;
@@ -5684,7 +5745,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     //if (VueSelection.size() > 1) {
                     // pick up a group selection for dragging
 
-                    setToDrag(VUE.getSelection());                   
+                    setToDrag(getSelection());                   
                     //} else {
                     // [ We never drag just single components anymore --
                     // just the entire selection ]
@@ -5711,7 +5772,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     // the bounds of an existing selection, pick it
                     // up for dragging.
                     //-------------------------------------------------------
-                   setToDrag(VUE.getSelection());
+                   setToDrag(getSelection());
                 
                     //draggedSelectionGroup.useSelection(VueSelection);
                     //setDragger(draggedSelectionGroup);
@@ -6969,6 +7030,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             //out("EX MODIFIERS ACCORDING TO InputEvent [" + InputEvent.getModifiersExText(e.getModifiersEx()) + "]");
             //out("EX MODIFIERS ACCORDING TO MouseEvent [" + MouseEvent.getMouseModifiersText(e.getModifiersEx()) + "]");
             // button is 0 (!) on the PC, which is why <= 1 compare for getB
+
+            if (!activeTool.supportsDrag(e))
+                return false;
 
             if (VueSelection != null && VueSelection.size() == 1 && VueSelection.first().supportsCopyOnDrag())            
                 return true;            

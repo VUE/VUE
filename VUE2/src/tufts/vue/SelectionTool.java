@@ -66,7 +66,7 @@ public class SelectionTool extends VueTool
     }
 
 
-    static class Direct extends SelectionTool {
+    static final class Direct extends SelectionTool {
         @Override
         public PickContext initPick(PickContext pc, float x, float y) {
             pc.pickDepth = 1;
@@ -74,11 +74,28 @@ public class SelectionTool extends VueTool
         }
 
         /** undo SelectionTool version */
-        @Override
-        public char getBackwardCompatShortcutKey() {
-            return 0;
-        }
+        @Override public char getBackwardCompatShortcutKey() { return 0; }
         
     }
+
+    static final class Browse extends SelectionTool {
+
+        /** @return false */
+        @Override public boolean supportsResizeControls() { return false; }
+
+        /** @return false */
+        @Override public boolean supportsDrag(java.awt.event.InputEvent e) { return false; }
+
+        /** @return false */
+        @Override public boolean supportsEditLabel() { return false; }
+
+        /** @return true -- will force repaint on tool change so selection handles show/hide */
+        @Override public boolean hasDecorations() { return true; }
+        
+        /** undo SelectionTool version */
+        @Override public char getBackwardCompatShortcutKey() { return 0; }
+
+    }
+    
     
 }
