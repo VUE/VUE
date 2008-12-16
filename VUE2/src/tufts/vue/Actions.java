@@ -2115,9 +2115,14 @@ public class Actions implements VueConstants
         }
 
         public static boolean enabledOn(LWSelection s) {
-            return s.size() > 0 && s.first().isMoveable() && VUE.getActiveViewer().isFocusOwner();
+            return s.size() > 0
+                && s.first().isMoveable()
+                && VUE.getActiveViewer().isFocusOwner()
+                && !(VUE.getActiveSubTool() instanceof tufts.vue.SelectionTool.Browse)
+                ;
         }
         
+        @Override
         boolean enabledFor(LWSelection s) {
             return enabledOn(s);
         }
@@ -2126,6 +2131,12 @@ public class Actions implements VueConstants
         void act(LWComponent c) { nudgeOrReorder(c, osdx, osdy); }
         
         private void nudgeOrReorder(LWComponent c, int x, int y) {
+
+//             if (VUE.getActiveSubTool() instanceof tufts.vue.SelectionTool.Browse) {
+//                 Log.debug("nudge disabled during browse");
+//                 return;
+//             }
+            
             if (c.getParent() instanceof LWNode) { // TODO: a more abstract test... inVisuallyOrderedContainer?
                 if (x < 0 || y < 0)
                     c.getParent().sendBackward(c);
