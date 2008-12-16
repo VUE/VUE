@@ -46,7 +46,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.24 $ / $Date: 2008-12-15 22:26:30 $ / $Author: sfraize $
+ * @version $Revision: 1.25 $ / $Date: 2008-12-16 16:14:18 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -893,25 +893,22 @@ public class DataTree extends javax.swing.JTree
                     nodes.add(makeValueNode(field, value));
             }
 
-            //for (LWComponent c : nodes)c.setToNaturalSize();
-            // todo: some problem editing template values: auto-size not being handled on label length shrinkage
-
-            //addDataLinksForNewNodes(map, nodes, field);
-
             mNodes = nodes;
             mMap = map;
-
-            //GUI.invokeAfterAWT(this); 
 
             return nodes;
         }
 
 
+        /** interface LWComponent.Producer impl */
         public void postProcessNodes() { adjustNodesAfterAdding(mMap, mNodes); }
 
-        // todo: add this to LWComponent.Producer interface
+        /** add data-links, layout nodes, and update (re-annotate) the DataTree */
         private void adjustNodesAfterAdding(final LWMap map, List<LWComponent> nodes) {
 
+            //for (LWComponent c : nodes)c.setToNaturalSize();
+            // todo: some problem editing template values: auto-size not being handled on label length shrinkage
+            
             // Currently, links must be added before the LayoutActions
             // are called, or they fail to work and/or throw NPE
             addDataLinksForNewNodes(map, nodes, treeNode.getField());
@@ -926,18 +923,17 @@ public class DataTree extends javax.swing.JTree
 
             // for re-annotating the tree
             GUI.invokeAfterAWT(this); 
-
-            
         }
 
         public void run() {
 
             // todo: this would be more precisely handled by the DataTree having a
             // listener on the active map for any hierarchy events that involve the
-            // creation/deletion of any data-holding nodes, and running an annotate
-            // at the end if any are detected -- adding a cleanup task the first time
-            // (and checking for before adding another: standard cleanup task semantics)
-            // should handle our run-once needs.
+            // creation/deletion of any data-holding nodes, and running an annotate at
+            // the end if any are detected -- adding a cleanup task the first time (and
+            // checking for before adding another: standard cleanup task semantics)
+            // should handle our run-once needs.  E.g., undoing this action will fail to
+            // update the tree unless we have an impl such as this.
             
             if (mMap == VUE.getActiveMap()) // only if is still the active map
                 tree.annotateForMap(mMap);
