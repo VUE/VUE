@@ -1,6 +1,7 @@
 package tufts.vue.gui.renderer;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.table.AbstractTableModel;
 
@@ -11,7 +12,10 @@ public class SearchResultTableModel extends AbstractTableModel {
 	private java.util.List<SearchData> searchResultArrLst = new java.util.ArrayList<SearchData>();
 	private int columns = 2;
 	private boolean editFlg;
-
+	
+	public SearchResultTableModel(){
+		
+	}
 	public int getRowCount() {
 		return searchResultArrLst.size();
 	}
@@ -28,8 +32,9 @@ public class SearchResultTableModel extends AbstractTableModel {
 		fireTableStructureChanged();
 	}
 
-	public void setData(ArrayList dataLst) {
+	public void setData(ArrayList dataLst) {		
 		searchResultArrLst = dataLst;
+		fireTableStructureChanged();
 	}
 
 	public int getColumnCount() {
@@ -63,7 +68,10 @@ public class SearchResultTableModel extends AbstractTableModel {
 		SearchData data = searchResultArrLst.get(row);		
 		return data;
 	}
-
+	public List getData(){
+		return searchResultArrLst;
+	}
+	
 	public Object getValueAt(int row, int col) {
 		SearchData data = searchResultArrLst.get(row);
 		return data.getSearchSaveName();

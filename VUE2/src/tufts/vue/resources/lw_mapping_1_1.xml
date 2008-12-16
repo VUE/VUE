@@ -299,7 +299,10 @@
 		</field>
 		<field name="userOrigin">
 			<bind-xml name="userOrigin" node="element"/>
-		</field>
+		</field>		
+		 	<field name="searchArrLst" type="tufts.vue.SearchData" collection="arraylist">
+                <bind-xml name="searchArrLst"/>
+            </field>
 			<field name="presentationBackground">
 			<bind-xml name="presentationBackground" node="element"/>
 		</field>		

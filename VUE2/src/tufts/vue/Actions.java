@@ -15,41 +15,43 @@
 
 package tufts.vue;
 
-import java.util.Iterator;
-
-import tufts.Util;
-import tufts.vue.NodeTool.NodeModeTool;
-import static tufts.vue.LWComponent.Flag;
-import tufts.vue.LWComponent.ChildKind;
-import java.util.*;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Event;
-import java.awt.Point;
 import java.awt.Font;
-import java.awt.Rectangle;
+import java.awt.Point;
 import java.awt.datatransfer.Clipboard;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
-import java.awt.geom.*;
+import java.awt.geom.Line2D;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+import java.awt.geom.RectangularShape;
 import java.io.File;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 
+import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.Icon;
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
-import javax.swing.AbstractAction;
-import javax.swing.Icon;
-import edu.tufts.vue.preferences.ui.PreferencesDialog;
-import tufts.vue.action.SaveAction;
+
+import tufts.Util;
+import tufts.vue.LWComponent.ChildKind;
+import tufts.vue.LWComponent.Flag;
+import tufts.vue.NodeTool.NodeModeTool;
 import tufts.vue.gui.DeleteSlideDialog;
 import tufts.vue.gui.GUI;
 import tufts.vue.gui.VueFileChooser;
-import tufts.vue.gui.WindowDisplayAction;
+import tufts.vue.gui.renderer.SearchResultTableModel;
+import edu.tufts.vue.preferences.ui.PreferencesDialog;
 
 /**
  * VUE actions, all subclassed from VueAction, of generally these types:
@@ -379,6 +381,7 @@ public class Actions implements VueConstants
             public void act() {
 
                 VUE.getMetadataSearchMainGUI().setVisible(true);
+                VUE.getMetadataSearchMainPanel().fillSavedSearch();
                 
 //                 if(tufts.vue.ui.InspectorPane.META_VERSION == tufts.vue.ui.InspectorPane.OLD)
 //                 {    
@@ -394,7 +397,7 @@ public class Actions implements VueConstants
             }
         };
 
-    
+       
     //-------------------------------------------------------
     // Alternative View actions
     //-------------------------------------------------------
