@@ -76,7 +76,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.581 $ / $Date: 2008-12-16 19:03:38 $ / $Author: sfraize $ 
+ * @version $Revision: 1.582 $ / $Date: 2008-12-16 20:06:20 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -471,10 +471,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // Figuring the actual active tool is a bit hairy due to the wierd VueTool
         // architecture: there is a selected "root" tool, which may have a sub-selected
         // tools.  The MapViewer is interested in the actual sub-selected tool, if
-        // there is one.
+        // there is one, UNLESS it's just an auto-created VueSimpleTool.
+
+        final VueTool subTool = tool.getSelectedSubTool();
         
-        if (tool.getSelectedSubTool() != null)
-            activeTool = tool.getSelectedSubTool();
+        if (subTool != null && subTool.getClass() != VueSimpleTool.class)
+            activeTool = subTool;
         else
             activeTool = tool;
         
