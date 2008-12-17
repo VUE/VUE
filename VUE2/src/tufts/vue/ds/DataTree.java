@@ -46,7 +46,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.25 $ / $Date: 2008-12-16 16:14:18 $ / $Author: sfraize $
+ * @version $Revision: 1.26 $ / $Date: 2008-12-17 04:42:10 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -280,7 +280,7 @@ public class DataTree extends javax.swing.JTree
             boolean matching = false;
             String desc = "";
 
-            final Collection<LWComponent> searchSet = mActiveMap.getAllDescendents();
+            final Iterable<LWComponent> searchSet = mActiveMap.getAllDescendents();
             
             if (treeNode == mRowNodeParent) {
                 // search for any row-node in the schema
@@ -333,9 +333,9 @@ public class DataTree extends javax.swing.JTree
                 selection.setSelectionSourceFocal(VUE.getActiveFocal());
                 // now set the selection, along with a description
                 if (e.isShiftDown()) {
-                    //                         String moreDesc = selection.getDescription();
-                    //                         if (moreDesc.endsWith("matching"))
-                    //                             moreDesc = moreDesc.substring(0, moreDesc.length() - 8);
+                    //String moreDesc = selection.getDescription();
+                    //if (moreDesc.endsWith("matching"))
+                    //  moreDesc = moreDesc.substring(0, moreDesc.length() - 8);
                     selection.setDescription(selection.getDescription() + "<br>" + desc);
                     selection.add(hits);
                     //selection.setTo(hits, selection.getDescription() + "; " + desc);

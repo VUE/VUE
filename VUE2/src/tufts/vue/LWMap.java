@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.222 $ / $Date: 2008-12-16 23:11:58 $ / $Author: sfraize $
+ * @version $Revision: 1.223 $ / $Date: 2008-12-17 04:41:06 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -741,6 +741,13 @@ public class LWMap extends LWContainer
         return 1;
     }
     
+    /**
+     * A map will always have at least one layer, and may have any number of layers.
+     * All layers within the map share exactly the same coordinate space.  
+     * Layers are intended to be drawn visually one on top of another.  "Upper"
+     * layers appear on top, and will be picked first.  Hiding a layer hides
+     * all objects in the layer, and locking a layer locks all objects in a layer.
+     */
     public static final class Layer extends LWContainer {
 
         /** for persistance only */
