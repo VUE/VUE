@@ -40,7 +40,7 @@ import edu.tufts.vue.fsm.event.SearchListener;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.105 $ / $Date: 2008-12-17 04:43:07 $ / $Author: sfraize $
+ * @version $Revision: 1.106 $ / $Date: 2008-12-17 04:58:39 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends WidgetStack
@@ -482,15 +482,20 @@ public class InspectorPane extends WidgetStack
     {
         final String type;
 
-        if (DEBUG.Enabled)
+        if (c == null)
+            type = null;
+        else if (DEBUG.Enabled)
             type = c.getUniqueComponentTypeLabel();
         else
             type = c.getComponentTypeLabel();
         
         String title;
-        if (suffix != null)
-            title = type + " " + suffix;
-        else
+        if (suffix != null) {
+            if (type == null)
+                title = suffix;
+            else
+                title = type + " " + suffix;
+        } else
             title = type;
         
         component.setName(title);
@@ -1306,7 +1311,6 @@ public class InspectorPane extends WidgetStack
                 protected void applyText(String text) {
                     if (selection != null) {
                         for (LWComponent c : selection) {
-                            Log.debug("APPLYING TEXT " + text);
                             c.setLabel(text);
                         }
                     } else {
@@ -1320,22 +1324,19 @@ public class InspectorPane extends WidgetStack
         LabelPane() {
             super(new BorderLayout());
 
-            final int si = 5; // size inner
+            final int insetInner = 5;
 
             if (Util.isMacPlatform()) {
                 final int so = 7; // size outer
                 // be sure to fetch and include the existing border, in case it's a special mac hilighting border
-                //labelValue.setBorder(new CompoundBorder(new EmptyBorder(so,so,so,so),
                 labelValue.setBorder(new CompoundBorder(new MatteBorder(so,so,so,so,SystemColor.control),
                                                         new CompoundBorder(labelValue.getBorder(),
-                                                                           new EmptyBorder(si,si,si,si)
+                                                                           GUI.makeSpace(insetInner)
                                                                            )));
             } else {
-                final int so = 5; // size outer
-                setBorder(new EmptyBorder(so,so,so,so));
+                setBorder(GUI.makeSpace(5));
                 labelValue.setBorder(new CompoundBorder(new EtchedBorder(EtchedBorder.LOWERED),
-                                                        //new BevelBorder(BevelBorder.LOWERED),
-                                                        new EmptyBorder(si,si,si,si)));
+                                                        GUI.makeSpace(insetInner)));
             }
             setName("nodeLabel");
             add(labelValue);
@@ -1345,6 +1346,8 @@ public class InspectorPane extends WidgetStack
             labelValue.detachProperty();
             labelValue.setEditable(true);
             labelValue.loadText(String.format("<changes will apply to all %d nodes>", s.size()));
+            //setTypeName(this, null, "Multiple Labels");
+            setName("Multiple Labels");
             selection = s;
         }
         
