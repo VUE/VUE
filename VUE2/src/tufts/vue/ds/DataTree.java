@@ -46,7 +46,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.26 $ / $Date: 2008-12-17 04:42:10 $ / $Author: sfraize $
+ * @version $Revision: 1.27 $ / $Date: 2008-12-17 23:14:23 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -157,6 +157,15 @@ public class DataTree extends javax.swing.JTree
         for (Field field : schema.getFields())
             if (field.isPossibleKeyField())
                 possibleKeyFields.add(field.getName());
+
+        if (possibleKeyFields.size() == 0) {
+            // add them all: some data rows are probably duplicates, and we can't
+            // identify a key field
+            for (Field field : schema.getFields())
+                if (!field.isSingleton())
+                    possibleKeyFields.add(field.getName());
+        }
+                
 
         JComboBox keyBox = new JComboBox(possibleKeyFields.toArray());
         keyBox.setOpaque(false);
@@ -1387,10 +1396,13 @@ public class DataTree extends javax.swing.JTree
 
             String titleField;
 
-            if (schema.getRowCount() <= 25 && schema.hasField("title"))
+            if (schema.getRowCount() <= 42 && schema.hasField("title")) {
+                // if we have hundreds of nodes, title may be too long to use -- the key
+                // field may well be shorter.
                 titleField = "title";
-            else
+            } else {
                 titleField = schema.getKeyFieldGuess().getName();
+            }
             
             style.setLabel(String.format("${%s}", titleField));
             
