@@ -117,7 +117,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.605 $ / $Date: 2008-12-17 04:41:43 $ / $Author: sfraize $ 
+ * @version $Revision: 1.606 $ / $Date: 2008-12-17 16:34:33 $ / $Author: sraphe01 $ 
  */
 
 public class VUE
@@ -1923,6 +1923,7 @@ public class VUE
         {
         	metaDataSearchDock = GUI.createDockWindow("Search");
         	metadataSearchMainPanel = new MetadataSearchMainGUI(metaDataSearchDock);
+        	GUI.setAlwaysOnTop(metaDataSearchDock.window(), true);
         	
         }
         //-----------------------------------------------------------------------------
