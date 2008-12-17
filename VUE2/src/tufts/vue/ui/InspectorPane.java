@@ -40,7 +40,7 @@ import edu.tufts.vue.fsm.event.SearchListener;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.106 $ / $Date: 2008-12-17 04:58:39 $ / $Author: sfraize $
+ * @version $Revision: 1.107 $ / $Date: 2008-12-17 05:08:00 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends WidgetStack
@@ -1310,9 +1310,12 @@ public class InspectorPane extends WidgetStack
                 @Override
                 protected void applyText(String text) {
                     if (selection != null) {
-                        for (LWComponent c : selection) {
-                            c.setLabel(text);
+                        if (text != null && text.trim().length() > 0) {
+                            for (LWComponent c : selection) {
+                                c.setLabel(text);
+                            }
                         }
+                        VUE.markUndo(selection.size() + " Labels");
                     } else {
                         super.applyText(text);
                     }
@@ -1345,9 +1348,9 @@ public class InspectorPane extends WidgetStack
         void loadLabel(LWSelection s) {
             labelValue.detachProperty();
             labelValue.setEditable(true);
-            labelValue.loadText(String.format("<changes will apply to all %d nodes>", s.size()));
+            //labelValue.loadText(String.format("<changes will apply to all %d nodes>", s.size()));
             //setTypeName(this, null, "Multiple Labels");
-            setName("Multiple Labels");
+            setName(String.format("Multiple Labels (changes apply to %d nodes)", s.size()));
             selection = s;
         }
         
