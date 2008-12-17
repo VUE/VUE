@@ -40,7 +40,7 @@ import edu.tufts.vue.fsm.event.SearchListener;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.104 $ / $Date: 2008-12-16 23:15:10 $ / $Author: sfraize $
+ * @version $Revision: 1.105 $ / $Date: 2008-12-17 04:43:07 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends WidgetStack
@@ -407,6 +407,7 @@ public class InspectorPane extends WidgetStack
             //txt = txt + " " + s.getDescription();
         //txt = "<html><center>" + txt + " " + s.getDescription();
         mSelectionInfo.setText(txt);
+        mLabelPane.loadLabel(s);
         Widget.show(mLabelPane); // connect up to schematic-field style node?
         Widget.show(mSelectionInfo);
       //Widget.setExpanded(mKeywords, true);
@@ -448,9 +449,9 @@ public class InspectorPane extends WidgetStack
         }
 
         if (slideTitle == null)
-            mLabelPane.load(c);
+            mLabelPane.loadLabel(c);
         else
-            mLabelPane.load(slideTitle, c);
+            mLabelPane.loadLabel(slideTitle, c);
 
 
         if (c.getDataTable() == null) {
@@ -1299,7 +1300,22 @@ public class InspectorPane extends WidgetStack
 
     public class LabelPane extends tufts.Util.JPanelAA
     {
-        final VueTextPane labelValue = new VueTextPane();
+        
+        private final VueTextPane labelValue = new VueTextPane() {
+                @Override
+                protected void applyText(String text) {
+                    if (selection != null) {
+                        for (LWComponent c : selection) {
+                            Log.debug("APPLYING TEXT " + text);
+                            c.setLabel(text);
+                        }
+                    } else {
+                        super.applyText(text);
+                    }
+                }
+            };
+
+        private LWSelection selection;
         
         LabelPane() {
             super(new BorderLayout());
@@ -1325,11 +1341,19 @@ public class InspectorPane extends WidgetStack
             add(labelValue);
         }
 
-        void load(LWComponent c) {
-            load(c, c);
+        void loadLabel(LWSelection s) {
+            labelValue.detachProperty();
+            labelValue.setEditable(true);
+            labelValue.loadText(String.format("<changes will apply to all %d nodes>", s.size()));
+            selection = s;
         }
         
-        void load(LWComponent c, LWComponent editType) {
+        void loadLabel(LWComponent c) {
+            loadLabel(c, c);
+        }
+        
+        void loadLabel(LWComponent c, LWComponent editType) {
+            selection = null;
             setTypeName(this, editType, "Label");
             if (c instanceof LWText)
             	labelValue.setEditable(false);
