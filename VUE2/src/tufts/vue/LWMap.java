@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.223 $ / $Date: 2008-12-17 04:41:06 $ / $Author: sfraize $
+ * @version $Revision: 1.224 $ / $Date: 2008-12-17 23:10:27 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -743,10 +743,12 @@ public class LWMap extends LWContainer
     
     /**
      * A map will always have at least one layer, and may have any number of layers.
-     * All layers within the map share exactly the same coordinate space.  
-     * Layers are intended to be drawn visually one on top of another.  "Upper"
-     * layers appear on top, and will be picked first.  Hiding a layer hides
-     * all objects in the layer, and locking a layer locks all objects in a layer.
+     * All layers within the map share exactly the same coordinate space -- this is an
+     * inherent property of the layer implementation. Beyond that, how layers appear is
+     * determined by the LWMap and the view controller (e.g., a MapViewer).  That said,
+     * generally speaking they're intended to be drawn visually one on top of another.
+     * "Upper" layers appear on top, and will be picked first.  Hiding a layer hides all
+     * objects in the layer, and locking a layer locks all objects in a layer.
      */
     public static final class Layer extends LWContainer {
 
