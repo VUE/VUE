@@ -28,7 +28,7 @@ import javax.swing.text.*;
  * and enters an undo entry.
  *
  * @author Scott Fraize
- * @version $Revision: 1.14 $ / $Date: 2008-06-30 20:53:06 $ / $Author: mike $
+ * @version $Revision: 1.15 $ / $Date: 2008-12-17 04:42:45 $ / $Author: sfraize $
  */
 
 // todo: create an abstract class for handling property & undo code, and subclass this and VueTextField from it.
@@ -141,33 +141,56 @@ public class VueTextPane extends JTextPane
                                   + "\n\t" + this
                                   + "\n\tcurText=[" + currentText + "]"
                                   );
-        if (lwc != null && (keyWasPressed || !currentText.equals(loadedText))) {
-            if (DEBUG.KEYS||DEBUG.TEXT) Log.debug("SAVING TEXT: " + this);
-            /*
-            Document doc = getDocument();
-            String text = null;
-            try {
-                if (DEBUG.KEYS) System.out.println(this + " saveText [" + doc.getText(0, doc.getLength()) + "]");
-                java.io.ByteArrayOutputStream buf = new java.io.ByteArrayOutputStream();                
-                //java.io.CharArrayWriter buf = new java.io.CharArrayWriter(); // RTFEditorKit won't write 16 bit characters.
-                // But it turns out it still handles unicode via self-encoding the special chars.
-                getEditorKit().write(buf, doc, 0, doc.getLength());
-                text = buf.toString();
-                if (DEBUG.KEYS) System.out.println(this + " EDITOR KIT OUTPUT [" + text + "]");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            lwc.setProperty(propertyKey, text);
-            */
-            lwc.setProperty(propertyKey, currentText);
-            loadedText = currentText;
-            if (undoName != null)
-                VUE.markUndo(undoName);
-            else
-                VUE.markUndo();
+
+        if (keyWasPressed || !currentText.equals(loadedText)) {
+        //if (lwc != null && (keyWasPressed || !currentText.equals(loadedText))) {
+            if (DEBUG.KEYS||DEBUG.TEXT) Log.debug("APPLYING TEXT: " + this);
+
+            // rtfTestHack();
+
+            applyText(currentText);
+            
         }	
     }
+    
+    public void loadText(String text) {
+        setText(text);
+        loadedText = text;
+    }
 
+    protected void applyText(String text) {
+
+        if (lwc == null)
+            return;
+        
+        lwc.setProperty(propertyKey, text);
+        loadedText = text;
+        if (undoName != null)
+            VUE.markUndo(undoName);
+        else
+            VUE.markUndo();
+    }
+
+
+
+//     private void rtfTestHack() {
+//         Document doc = getDocument();
+//         String text = null;
+//         try {
+//             if (DEBUG.KEYS) System.out.println(this + " saveText [" + doc.getText(0, doc.getLength()) + "]");
+//             java.io.ByteArrayOutputStream buf = new java.io.ByteArrayOutputStream();                
+//             //java.io.CharArrayWriter buf = new java.io.CharArrayWriter(); // RTFEditorKit won't write 16 bit characters.
+//             // But it turns out it still handles unicode via self-encoding the special chars.
+//             getEditorKit().write(buf, doc, 0, doc.getLength());
+//             text = buf.toString();
+//             if (DEBUG.KEYS) System.out.println(this + " EDITOR KIT OUTPUT [" + text + "]");
+//         } catch (Exception e) {
+//             e.printStackTrace();
+//         }
+//         lwc.setProperty(propertyKey, text);
+//     }
+
+    
     private void loadPropertyValue() {
         String text = null;
         if (lwc != null) {
@@ -181,11 +204,9 @@ public class VueTextPane extends JTextPane
             setEnabled(false);
         }
         if (text == null) {
-            setText("");
-            loadedText = "";
+            loadText("");
         } else {
-            setText(text);
-            loadedText = text;
+            loadText(text);
         }
     }
     
