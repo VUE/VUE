@@ -57,7 +57,7 @@ import sun.awt.shell.ShellFolder;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.129 $ / $Date: 2008-11-20 17:42:56 $ / $Author: sfraize $
+ * @version $Revision: 1.130 $ / $Date: 2008-12-17 04:58:33 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2264,6 +2264,10 @@ public class GUI
         }
     }
 
+    public static Border makeSpace(int inset) {
+        return makeSpace(inset, inset, inset, inset);
+    }
+    
     public static Border makeSpace(Insets i) {
         return makeSpace(i.top, i.left, i.bottom, i.right);
     }
