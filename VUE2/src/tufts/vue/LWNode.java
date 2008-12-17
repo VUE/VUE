@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.237 $ / $Date: 2008-12-17 23:27:11 $ / $Author: sfraize $
+ * @version $Revision: 1.238 $ / $Date: 2008-12-17 23:50:43 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2348,7 +2348,7 @@ public class LWNode extends LWContainer
         if (isCollapsed()) {
             dc.g.setStroke(STROKE_ONE);
             dc.g.setColor(getRenderFillColor(dc));
-            final int bottom = (int) (getHeight() + getStrokeWidth() / 2f + 3.5f);
+            final int bottom = (int) (getHeight() + getStrokeWidth() / 2f + 2.5f);
             dc.g.drawLine(1, bottom, (int) (getWidth() - 0.5f), bottom);
             return;
         } else
