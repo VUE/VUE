@@ -22,7 +22,7 @@ import javax.swing.JScrollPane;
 /**
  * Produce a shortcuts window.
  *
- * @version $Revision: 1.12 $ / $Date: 2008-05-31 19:12:51 $ / $Author: sfraize $
+ * @version $Revision: 1.13 $ / $Date: 2008-12-17 22:20:00 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class ShortcutsAction extends tufts.vue.VueAction
@@ -401,9 +401,9 @@ public class ShortcutsAction extends tufts.vue.VueAction
         
         final javax.swing.JLabel t = new javax.swing.JLabel();
             
-        if (DEBUG.Enabled)
-            t.setFont(VueConstants.LargeFont);
-        else
+//         if (DEBUG.Enabled)
+//             t.setFont(VueConstants.LargeFont);
+//         else
             t.setFont(VueConstants.MediumFont);
 
         if (DEBUG.Enabled) Log.debug("HTML size: " + ShortcutsAction.html.length());
