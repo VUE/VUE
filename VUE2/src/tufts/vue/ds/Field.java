@@ -33,7 +33,7 @@ import java.util.*;
  * types and doing some data-type analysis.  It also includes the ability to
  * associate a LWComponent node style with specially marked values.
  * 
- * @version $Revision: 1.5 $ / $Date: 2008-12-15 16:57:20 $ / $Author: sfraize $
+ * @version $Revision: 1.6 $ / $Date: 2008-12-17 23:14:46 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -339,7 +339,7 @@ public class Field
                     try {
                         date = new Date(value);
                     } catch (Throwable t) {
-                        Log.debug("Failed to parse [" + value + "] as date: " + t);
+                        if (DEBUG.DATA) Log.debug("Failed to parse [" + value + "] as date: " + t);
                         type = TYPE_TEXT;
                     }
                     
@@ -352,7 +352,7 @@ public class Field
                     
                     if (date != null) {
                         type = TYPE_DATE;
-                        Log.debug("PARSED DATE: " + Util.tags(date) + " from " + value);
+                        if (DEBUG.Enabled) Log.debug("PARSED DATE: " + Util.tags(date) + " from " + value);
                     }
 
                     if (type == TYPE_UNKNOWN && isNumeric) {
