@@ -117,7 +117,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.604 $ / $Date: 2008-12-16 23:16:20 $ / $Author: sfraize $ 
+ * @version $Revision: 1.605 $ / $Date: 2008-12-17 04:41:43 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -1892,7 +1892,7 @@ public class VUE
                             
                     dataFinderDock.setContent(tabs);
                             
-                    dataFinderDock.setSize(400, (int) (GUI.GScreenHeight * 0.90));
+                    dataFinderDock.setSize(350, (int) (GUI.GScreenHeight * 0.85));
                     dataFinderDock.setVisible(true);
 
                     GUI.invokeAfterAWT(new Runnable() { public void run() {
