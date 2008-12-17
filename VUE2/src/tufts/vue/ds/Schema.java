@@ -31,7 +31,7 @@ import com.google.common.collect.*;
 
 
 /**
- * @version $Revision: 1.14 $ / $Date: 2008-12-15 22:24:54 $ / $Author: sfraize $
+ * @version $Revision: 1.15 $ / $Date: 2008-12-17 23:13:36 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -289,7 +289,7 @@ public class Schema {
     private static boolean isUnlikelyKeyField(Field f) {
         // hack for dublin-core fields (e.g., dc:creator), which may often
         // all be unique (e.g., short RSS feed), but are unlikely to be useful keys.
-        return f.getName().startsWith("dc:") && !f.getName().equals("dc:identifier");
+        return f.isSingleValue() || (f.getName().startsWith("dc:") && !f.getName().equals("dc:identifier"));
     }
     
     /** look at all the Fields and make a guess as to which is the most likely key field
@@ -303,13 +303,16 @@ public class Schema {
             return f;
         if ((f = getField("key")) != null && f.isPossibleKeyField())
             return f;
-        if ((f = getField("link")) != null && f.isPossibleKeyField())
+        //if ((f = getField("link")) != null && f.isPossibleKeyField()) // some rss news feeds have dupe entries
+        if ((f = getField("link")) != null && !f.isSingleValue())
             return f;
 
+        // todo: identifying the shortest field isn't such a good strategy
+            
         Field firstField = null;
         Field shortestField = null;
         int shortestFieldLen = Integer.MAX_VALUE;
-            
+
         for (Field field : getFields()) {
             if (firstField == null)
                 firstField = field;
@@ -321,14 +324,14 @@ public class Schema {
             }
         }
 
-        if (shortestField == null) {
-            for (Field field : getFields()) {
-                if (field.getMaxValueLength() < shortestFieldLen) {
-                    shortestField = field;
-                    shortestFieldLen = field.getMaxValueLength();
-                }
-            }
-        }
+//         if (shortestField == null) {
+//             for (Field field : getFields()) {
+//                 if (field.getMaxValueLength() < shortestFieldLen) {
+//                     shortestField = field;
+//                     shortestFieldLen = field.getMaxValueLength();
+//                 }
+//             }
+//         }
 
         return shortestField == null ? firstField : shortestField;
     }
