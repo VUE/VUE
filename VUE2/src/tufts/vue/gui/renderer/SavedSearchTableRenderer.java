@@ -85,9 +85,7 @@ public class SavedSearchTableRenderer extends DefaultTableCellRenderer{
 			JLabel searchLbl = new JLabel();
 			searchLbl.setText(lblStr);
 			searchLbl.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));			
-			searchPanel.add(searchLbl, BorderLayout.WEST);
-			searchPanel.add(linePanel,BorderLayout.SOUTH);	
-			
+			searchPanel.add(searchLbl, BorderLayout.WEST);			
     		boolean isWindows = VueUtil.isWindowsPlatform();    		    		
     		if(isWindows){
     			searchPanel.setFont(windowsFont);
@@ -101,7 +99,7 @@ public class SavedSearchTableRenderer extends DefaultTableCellRenderer{
 			runLbl.setText(runStr);		
 			runLbl.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
 			runPanel.add(runLbl, BorderLayout.EAST);			
-			runPanel.add(linePanel,BorderLayout.SOUTH);			
+			//runPanel.add(linePanel,BorderLayout.SOUTH);			
     		boolean isWindows = VueUtil.isWindowsPlatform();    		    		
     		if(isWindows){
     			runPanel.setFont(windowsFont);
