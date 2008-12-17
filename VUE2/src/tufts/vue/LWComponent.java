@@ -50,7 +50,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.448 $ / $Date: 2008-12-15 22:26:29 $ / $Author: sfraize $
+ * @version $Revision: 1.449 $ / $Date: 2008-12-17 23:27:11 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -124,7 +124,12 @@ public class LWComponent
             /** we've been hidden by a pathway that is in the process of revealing */
             PATH_UNREVEALED (true),
             /** we've been hidden because the current pathway is all we we want to see, and we're not on it */
-            NOT_ON_CURRENT_PATH (true); 
+            NOT_ON_CURRENT_PATH (true),
+
+//             /** we've been because our parent is collapsed */
+//             COLLAPSED ();
+
+                ;
 
             
         final int bit = 1 << ordinal();
@@ -159,6 +164,9 @@ public class LWComponent
             
             /** this component should NOT broadast change events */
             EVENT_SILENT,
+            
+            /** this component is in a "collapsed" or closed view state */
+            COLLAPSED,
 
 //             /** if temporarily changing locked state, can save old value here (layers use this) */
 //             WAS_LOCKED,
@@ -1198,6 +1206,17 @@ u                    getSlot(c).setFromString((String)value);
     public static final Key KEY_FontStyle = new Key("font.style", KeyType.SUB_STYLE)    { final Property getSlot(LWComponent c) { return c.mFontStyle; } };
     public static final Key KEY_FontUnderline = new Key("font.underline", KeyType.SUB_STYLE)    { final Property getSlot(LWComponent c) { return c.mFontUnderline; } };
     public static final Key KEY_FontName  = new Key("font.name", KeyType.SUB_STYLE)     { final Property getSlot(LWComponent c) { return c.mFontName; } };
+
+    public static final Key KEY_Collapsed =
+        new Key<LWComponent,Boolean>("collapsed") {
+        @Override public void setValue(LWComponent c, Boolean collapsed) {
+            c.setCollapsed(collapsed);
+        }
+        @Override public Boolean getValue(LWComponent c) {
+            return c.isCollapsed() ? Boolean.TRUE : Boolean.FALSE;
+        }
+    };
+    
     
     public final ColorProperty mFillColor = new ColorProperty(KEY_FillColor);
     public final ColorProperty mTextColor = new ColorProperty(KEY_TextColor, java.awt.Color.black) {
@@ -3165,7 +3184,7 @@ u                    getSlot(c).setFromString((String)value);
     }
     
     public boolean hasPicks() {
-        return hasChildren() || hasEntries();
+        return (hasChildren() && !isCollapsed()) || hasEntries();
     }
 
     /** ordered for drawing and picking */
@@ -3285,7 +3304,8 @@ u                    getSlot(c).setFromString((String)value);
         if (pc.root != this && hasEntries() && (seenSlides = seenSlideIcons(pc.dc)) != Util.EmptyIterable) {
             // todo performance: see LWTraversal for comments: change impl to return a ReverseListIterator, etc.a
             stored.clear();
-            stored.addAll(getChildren());
+            if (!isCollapsed())
+                stored.addAll(getChildren());
             for (LWSlide s : seenSlides)
                 stored.add(s);
             return stored;
@@ -6187,6 +6207,11 @@ u                    getSlot(c).setFromString((String)value);
     {
         notifyLWCListeners(new LWCEvent(this, this, key, oldValue));
     }
+    
+    protected void notify(Key key, boolean oldValue)
+    {
+        notify(key, oldValue ? Boolean.TRUE : Boolean.FALSE);
+    }
 
     protected void notify(String what)
     {
@@ -6320,6 +6345,16 @@ u                    getSlot(c).setFromString((String)value);
     
     public boolean isLocked() {
         return hasFlag(Flag.LOCKED);
+    }
+
+    public void setCollapsed(boolean collapsed) {
+        // Default does nothing: only LWNode impl currebntly allows a collapsed state.
+        // Move up the LWNode impl (which is generic) if we want more
+        // than just LWNode's to support a collapsed state.
+    }
+    
+    public boolean isCollapsed() {
+        return hasFlag(Flag.COLLAPSED);
     }
 
     public Boolean getXMLlocked() {

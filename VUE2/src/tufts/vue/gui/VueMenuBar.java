@@ -45,7 +45,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.121 $ / $Date: 2008-10-10 18:56:56 $ / $Author: mike $
+ * @version $Revision: 1.122 $ / $Date: 2008-12-17 23:27:12 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -536,6 +536,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
         formatMenu.add(alignMenu);
         formatMenu.add(layoutMenu);
         formatMenu.add(extendMenu);
+        formatMenu.addSeparator();
+        formatMenu.add(Actions.Collapse);
         formatMenu.addSeparator();
         formatMenu.add(Actions.Group);
         formatMenu.add(Actions.Ungroup);

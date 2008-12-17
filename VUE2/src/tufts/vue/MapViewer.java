@@ -76,7 +76,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.583 $ / $Date: 2008-12-16 23:17:45 $ / $Author: sfraize $ 
+ * @version $Revision: 1.584 $ / $Date: 2008-12-17 23:27:11 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1842,7 +1842,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             if (e.getComponent().isHidden() && e.getComponent().isSelected()) {
                 // This is important for pruning, and maybe filtering?
                 // Tho it could cause major havoc with layers if we use them in the
-                // selection.
+                // selection.  TODO: this would make more sense directly handled in the selection.
                 selectionRemove(e.getComponent());
             }
             repaint();
@@ -7177,6 +7177,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 if (activeToolIsText()) {
                     activateLabelEdit(hit);
                     handled = true;
+                } else if (activeTool == BrowseTool) {
+                    hit.setCollapsed(!hit.isCollapsed());
                 } else {
                     // TODO: nodes need to check this because they need to distinguish between
                     // a double-click on the text region for label editing, and a double-click

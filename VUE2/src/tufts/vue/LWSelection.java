@@ -29,7 +29,7 @@ import com.google.common.collect.Multisets;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.102 $ / $Date: 2008-12-15 16:48:10 $ / $Author: sfraize $
+ * @version $Revision: 1.103 $ / $Date: 2008-12-17 23:27:11 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -470,6 +470,23 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         resetStatistics();
         notifyListeners();
     }
+
+    @Override
+    public LWComponent[] toArray() {
+	return super.toArray(new LWComponent[size()]);
+    }
+    
+
+    /** find and remove from the selection any hidden/collapsed nodes */
+    public synchronized void removeHidden()
+    {
+        for (LWComponent c : toArray())
+            if (c.isHidden() || c.getParent().isCollapsed())
+                removeSilent(c);
+        resetStatistics();
+        notifyListeners();
+    }
+    
 
     /**
      *

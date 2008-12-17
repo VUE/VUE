@@ -43,7 +43,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.201 $ / $Date: 2008-12-16 23:11:43 $ / $Author: sfraize $
+ * @version $Revision: 1.202 $ / $Date: 2008-12-17 23:27:11 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -2529,33 +2529,6 @@ public class LWLink extends LWComponent
         if (mRecompute)
             computeLink();
 
-        //if (dc.drawAbsoluteLinks) dc.setAbsoluteDrawing(true);
-
-        //super.draw(dc);
-
-        //BasicStroke stroke = this.stroke;
-
-        // If either end of this link is scaled, scale stroke
-        // to smallest of the scales (even better: render the stroke
-        // in a variable width narrowing as it went...)
-        // todo: cache this scaled stroke
-        // todo: do we really even want this functionality?
-        /*
-        if (head.hasNode() && tail.hasNode()) { // todo cleanup
-        if ((head.hasNode() && head.getScale() != 1f) || (tail.hasNode() && tail.getScale() != 1f)) {
-            float strokeWidth = getStrokeWidth();
-            if (head.getScale() < tail.getScale())
-                strokeWidth *= head.getScale();
-            else
-                strokeWidth *= tail.getScale();
-            //g.setStroke(new BasicStroke(strokeWidth));
-            stroke = new BasicStroke(strokeWidth);
-        } else {
-            //g.setStroke(this.stroke);
-            stroke = this.stroke;
-        }
-        }
-        */
         final Graphics2D g = dc.g;
         
         if (isSelected() && dc.isInteractive()) {

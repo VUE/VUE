@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.236 $ / $Date: 2008-12-15 16:47:58 $ / $Author: sfraize $
+ * @version $Revision: 1.237 $ / $Date: 2008-12-17 23:27:11 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1490,7 +1490,7 @@ public class LWNode extends LWContainer
                 // move label to right to make room for icon block at left
                 rLabel.x += mIconBlock.width;
             }
-            if (hasChildren()) {
+            if (hasChildren() && !isCollapsed()) {
                 Size children = layoutChildren(new Size(), 0f, true);
                 //float childx = rLabel.x + ChildPadX;
                 float childx = rLabel.x;
@@ -1636,7 +1636,7 @@ public class LWNode extends LWContainer
             //width += IconPadLeft;
         }
 
-        if (hasChildren()) {
+        if (hasChildren() && !isCollapsed()) {
             if (DEBUG.LAYOUT) out("*** textSize b4 layoutBoxed_children: " + text);
             layoutBoxed_children(min, text);
         }
@@ -2290,7 +2290,7 @@ public class LWNode extends LWContainer
                     dc.g.draw(getZeroShape());
 
                 if (hasChildren())
-                    super.drawChildren(dc);
+                    drawChildren(dc);
                 
             } else {
                 //dc.setAntiAlias(false);
@@ -2323,9 +2323,36 @@ public class LWNode extends LWContainer
             
             if (hasChildren()) {
                 //if (isZoomedFocus()) dc.g.setComposite(ZoomTransparency);
-                super.drawChildren(dc);
+                drawChildren(dc);
             }
         }
+    }
+    
+    @Override
+    public void setCollapsed(boolean collapsed) {
+        if (hasFlag(Flag.COLLAPSED) != collapsed) {
+            setFlag(Flag.COLLAPSED, collapsed);
+            layout(KEY_Collapsed);
+            notify(KEY_Collapsed, !collapsed);
+        }
+
+        // if we run into problems with children being visible / pickable anywhere, we
+        // could always make them all additionally hidden via a new HideCause.COLLAPSED,
+        // but they're currently being successfully truncated by an appropriatly false
+        // return in from LWComponent.hasPicks(), or a excluded from the list returned
+        // by LWComponent.getPickList()
+    }
+    
+    @Override
+    protected void drawChildren(DrawContext dc) {
+        if (isCollapsed()) {
+            dc.g.setStroke(STROKE_ONE);
+            dc.g.setColor(getRenderFillColor(dc));
+            final int bottom = (int) (getHeight() + getStrokeWidth() / 2f + 3.5f);
+            dc.g.drawLine(1, bottom, (int) (getWidth() - 0.5f), bottom);
+            return;
+        } else
+            super.drawChildren(dc);
     }
 
     protected void drawNode(DrawContext dc)
