@@ -1455,7 +1455,7 @@ public class DataSourceViewer extends JPanel
             int resultCount = 0;
             if (assetIterator != null) {
                 try {
-                    while (assetIterator.hasNextAsset()) {
+                    while (assetIterator.hasNextAsset() && (resultCount < maxResult)) {
                         org.osid.repository.Asset asset = assetIterator.nextAsset();
                         if (++resultCount > maxResult)
                             continue;
