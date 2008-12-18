@@ -117,7 +117,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.607 $ / $Date: 2008-12-18 16:03:39 $ / $Author: sraphe01 $ 
+ * @version $Revision: 1.608 $ / $Date: 2008-12-18 23:41:25 $ / $Author: sraphe01 $ 
  */
 
 public class VUE
@@ -3642,7 +3642,8 @@ public class VUE
         try {
             loadedMap = OpenAction.loadMap(file.getAbsolutePath());
             if (loadedMap != null)
-                VUE.displayMap(loadedMap);
+                VUE.displayMap(loadedMap);            
+            VUE.getMetadataSearchMainPanel().fillSavedSearch();
         } catch (Throwable t) {
             Util.printStackTrace(t, "failed to load map[" + file + "]");
             VUE.clearWaitCursor();
@@ -4011,7 +4012,13 @@ public class VUE
             	JLabel vLabel = new  JLabel("<html>A newer version of VUE is available ("
                                             + newVersion
                                             + ") &nbsp; <font color=\"#20316A\"><u>Get the latest version</u></font></html");
-            	panel.setPreferredSize(new Dimension(430,25));
+            	if(Util.isMacPlatform()){
+            		panel.setPreferredSize(new Dimension(425,25));
+            		panel.setSize(new Dimension(425,25));
+            		panel.setMinimumSize(new Dimension(425,25));
+            	}else{
+            		panel.setPreferredSize(new Dimension(425,25));
+            	}
         	    panel.add(vLabel);
         	    sad.setContentPanel(panel);
                 
