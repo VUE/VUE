@@ -117,7 +117,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.606 $ / $Date: 2008-12-17 16:34:33 $ / $Author: sraphe01 $ 
+ * @version $Revision: 1.607 $ / $Date: 2008-12-18 16:03:39 $ / $Author: sraphe01 $ 
  */
 
 public class VUE
@@ -2173,7 +2173,7 @@ public class VUE
         depthSelectionSlider.setLabelTable( labelTable );
 
         //framesPerSecond.setMajorTickSpacing(6);
-        //framesPerSecond.setMinorTickSpacing(1);
+        //depthSelectionSlider.setMinorTickSpacing(1);
 
         //framesPerSecond.setPaintTicks(true);
         depthSelectionSlider.setPaintLabels(true);
@@ -4011,6 +4011,7 @@ public class VUE
             	JLabel vLabel = new  JLabel("<html>A newer version of VUE is available ("
                                             + newVersion
                                             + ") &nbsp; <font color=\"#20316A\"><u>Get the latest version</u></font></html");
+            	panel.setPreferredSize(new Dimension(430,25));
         	    panel.add(vLabel);
         	    sad.setContentPanel(panel);
                 
