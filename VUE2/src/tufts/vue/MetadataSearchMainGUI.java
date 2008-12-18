@@ -16,6 +16,7 @@
 package tufts.vue;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -73,7 +74,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.20 $ / $Date: 2008-12-18 00:02:02 $ / $Author: Sheejo
+ * @version $Revision: 1.21 $ / $Date: 2008-12-18 15:29:46 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -743,7 +744,8 @@ public class MetadataSearchMainGUI extends JPanel
             searchResultTbl.addMouseListener(popupListener);
             searchResultTbl.setIntercellSpacing(new Dimension(0,1));
             searchResultTbl.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-            searchResultTbl.setShowGrid(false);            
+            searchResultTbl.setShowGrid(true); 
+            searchResultTbl.setGridColor(Color.LIGHT_GRAY);
             searchResultTbl.setRowHeight(23);
             
             //searchResultTbl.setBackground(this.getBackground());
