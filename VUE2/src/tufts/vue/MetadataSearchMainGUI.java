@@ -45,6 +45,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
@@ -72,7 +73,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.19 $ / $Date: 2008-12-16 17:41:28 $ / $Author: Sheejo
+ * @version $Revision: 1.20 $ / $Date: 2008-12-18 00:02:02 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -536,21 +537,24 @@ public class MetadataSearchMainGUI extends JPanel
                     }
                     SearchData data = new SearchData();
                     searchDataList = new ArrayList<SearchData>();                    
-                    data.setSearchSaveName("Search" + " "+ searchResultModel.getRowCount());
-                    data.setSearchType(searchTypeCmbBox.getSelectedItem()
-                            .toString().trim());
-                    data.setMapType(mapCmbBox.getSelectedItem().toString()
-                            .trim());
-                    data.setResultType(resultCmbBox.getSelectedItem()
-                            .toString().trim());                    
-                    data.setAndOrType(strAndOrType);     
-                                          
-                    data.setDataList(searchTerms);
-                    searchDataList.add(data);                    
-                    searchResultModel.addRow(data);
-                    searchTerms = new ArrayList<VueMetadataElement>();
-                    if(searchResultModel.getData()!=null && VUE.getActiveMap()!=null){
-                    	VUE.getActiveMap().setSearchArrLst(searchResultModel.getData());
+                    String searchName = getSearchName(searchResultModel.getRowCount());
+                    if(searchName!= null){
+	                    data.setSearchSaveName(searchName);
+	                    data.setSearchType(searchTypeCmbBox.getSelectedItem()
+	                            .toString().trim());
+	                    data.setMapType(mapCmbBox.getSelectedItem().toString()
+	                            .trim());
+	                    data.setResultType(resultCmbBox.getSelectedItem()
+	                            .toString().trim());                    
+	                    data.setAndOrType(strAndOrType);     
+	                                          
+	                    data.setDataList(searchTerms);
+	                    searchDataList.add(data);                    
+	                    searchResultModel.addRow(data);
+	                    searchTerms = new ArrayList<VueMetadataElement>();
+	                    if(searchResultModel.getData()!=null && VUE.getActiveMap()!=null){
+	                    	VUE.getActiveMap().setSearchArrLst(searchResultModel.getData());
+	                    }
                     }
                 }
             });
@@ -620,7 +624,13 @@ public class MetadataSearchMainGUI extends JPanel
             add(topPanel);
             add(buttonPanel, BorderLayout.SOUTH);
         }
-        
+        public String getSearchName(int rowCount){        	
+        	String inputValue = (String) JOptionPane.showInputDialog(null,null,"Please Enter Search Name",JOptionPane.PLAIN_MESSAGE,null,null,("Search" + " "+ (rowCount+1)));
+        	if(inputValue!=null && inputValue.trim().length()==0){
+        		inputValue = "Search" + " "+ (rowCount+1);
+        	}
+            return inputValue;
+        }
 
         
 
@@ -746,21 +756,20 @@ public class MetadataSearchMainGUI extends JPanel
             
             // searchResultTbl.setMinimumSize(new Dimension(300,80));
 
-            setLayout(new GridBagLayout());
+            GridBagLayout gridBag = new GridBagLayout();
             GridBagConstraints gBC = new GridBagConstraints();
-            gBC.fill = GridBagConstraints.BOTH;            
+            gBC.fill = GridBagConstraints.HORIZONTAL;
+            JPanel panel = new JPanel(); 
+            panel.setLayout(new BorderLayout());
+           
             gBC.gridx = 0;
-            gBC.gridy = 0;
-            gBC.weightx = 1.0;
-            gBC.insets = new Insets(0, 0, 0, 0);
-            add(searchResultTbl, gBC);
-
-            gBC.fill = GridBagConstraints.BOTH;
-            gBC.gridx = 0;
-            gBC.gridy = 1;
-            gBC.weightx = 1.0;
-            gBC.insets = new Insets(55, 0, 10, 0);
-            add(new JLabel(""), gBC);
+    	    gBC.gridy = 0;
+    	    gBC.weightx = 1.0;	    
+            gridBag.setConstraints(searchResultTbl, gBC);
+            panel.add(searchResultTbl,BorderLayout.NORTH);
+            panel.add(new JLabel(" "),BorderLayout.SOUTH);
+            setLayout(new BorderLayout());
+            add(panel);
 
             // add(searchResultTbl);
             setName("Keywords");
