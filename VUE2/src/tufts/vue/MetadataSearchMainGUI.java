@@ -74,7 +74,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.22 $ / $Date: 2008-12-18 20:02:15 $ / $Author: Sheejo
+ * @version $Revision: 1.23 $ / $Date: 2008-12-18 23:40:34 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -197,25 +197,34 @@ public class MetadataSearchMainGUI extends JPanel
         saveSearchAction = new AbstractAction(SAVE_SEARCH_STR) {
             public void actionPerformed(ActionEvent e) {
                 
+            	if(searchTermsTable.isEditing()){
+            		searchTermsTable.getCellEditor().stopCellEditing();
+                }
                 SearchData data = new SearchData();
-                searchDataList = new ArrayList<SearchData>();                    
-                data.setSearchSaveName("Search" + " "+ searchResultModel.getRowCount());
-                data.setSearchType(searchTypeCmbBox.getSelectedItem()
-                        .toString().trim());
-                data.setMapType(mapCmbBox.getSelectedItem().toString()
-                        .trim());
-                data.setResultType(resultCmbBox.getSelectedItem()
-                        .toString().trim());                    
-                data.setAndOrType(strAndOrType);                    
-                // TO DO have to and/or                        
-                data.setDataList(searchTerms);                
-                searchDataList.add(data);                    
-                searchResultModel.addRow(data);
-                searchTerms = new ArrayList<VueMetadataElement>();                    
-                VUE.getActiveMap().setSearchArrLst(searchDataList);
-//                WriteSearchXMLData xc = new WriteSearchXMLData(
-//                        searchDataList);
-//                xc.runSearchWriteToFile();
+                searchDataList = new ArrayList<SearchData>();   
+                int rowCount = searchResultModel.getRowCount();
+                String searchName = (String) JOptionPane.showInputDialog(null,null,"Please Enter Search Name",JOptionPane.PLAIN_MESSAGE,null,null,("Search" + " "+ (rowCount+1)));
+            	if(searchName!=null && searchName.trim().length()==0){
+            		searchName = "Search" + " "+ (searchResultModel.getRowCount()+1);
+            	}                
+                if(searchName!= null){
+                    data.setSearchSaveName(searchName);
+                    data.setSearchType(searchTypeCmbBox.getSelectedItem()
+                            .toString().trim());
+                    data.setMapType(mapCmbBox.getSelectedItem().toString()
+                            .trim());
+                    data.setResultType(resultCmbBox.getSelectedItem()
+                            .toString().trim());                    
+                    data.setAndOrType(strAndOrType);     
+                                          
+                    data.setDataList(searchTerms);
+                    searchDataList.add(data);                    
+                    searchResultModel.addRow(data);
+                    searchTerms = new ArrayList<VueMetadataElement>();
+                    if(searchResultModel.getData()!=null && VUE.getActiveMap()!=null){
+                    	VUE.getActiveMap().setSearchArrLst(searchResultModel.getData());
+                    }
+                }
             }
         };
         runSearchAction = new AbstractAction(RUN_SEARCH_STR) {
@@ -462,68 +471,73 @@ public class MetadataSearchMainGUI extends JPanel
              searchButton = new JButton(termsAction);
              searchButton.addActionListener(new ActionListener() {
                    public void actionPerformed(ActionEvent e) {
-                   if(searchTermsTable.isEditing()){
-                   searchTermsTable.getCellEditor().stopCellEditing();
-                       }
-                       termsAction = new SearchAction(searchTerms);
-                       String resultsTypeChoice = resultCmbBox.getSelectedItem().toString().trim();
-                       termsAction.setResultsType(resultsTypeChoice);                       
-                       if(mapCmbBox.getSelectedItem().toString().trim().equals(ALL_MAPS_STRING)){
-                           termsAction.setLocationType(SearchAction.SEARCH_ALL_OPEN_MAPS);
-                       }else{
-                           termsAction
-                            .setLocationType(SearchAction.SEARCH_SELECTED_MAP);
-                       }                      
-                       if (searchTypeCmbBox.getSelectedItem().toString().trim().equals(SEARCH_EVERYTHING)) {                            
-                           searchType = EVERYTHING;
-                            termsAction.setBasic(false);
-                            termsAction.setTextOnly(true);
-                            termsAction.setMetadataOnly(false);        
-                            termsAction.setOperator(getSelectedOperator());
-                            termsAction.setEverything(true);
-                            // termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
-                            searchButton.setAction(termsAction);
-                       }else if (searchTypeCmbBox.getSelectedItem().toString().trim().equals(SEARCH_LABELS_ONLY)) {
-                           searchType = LABEL;
-                           termsAction.setBasic(true);
-                            termsAction.setTextOnly(false);
-                            termsAction.setMetadataOnly(false);
-                            termsAction.setOperator(getSelectedOperator());
-                            termsAction.setEverything(false);
-                            // termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
-                            searchButton.setAction(termsAction);
-                        }
-                       else if (searchTypeCmbBox.getSelectedItem().toString().trim().equals(SEARCH_ALL_KEYWORDS)) {
-                           searchType = KEYWORD;
-                           termsAction.setBasic(false);
-                           termsAction.setTextOnly(true);
-                           termsAction.setMetadataOnly(true);
-                            termsAction.setOperator(getSelectedOperator());
-                            termsAction.setEverything(false);
-                            // termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
-                            searchButton.setAction(termsAction);
-                        }
-                       else if (searchTypeCmbBox.getSelectedItem().toString().trim().equals(SEARCH_CATEGORIES_AND_KEYWORDS)) {
-                            searchType = CATEGORY;
-                            termsAction.setBasic(false);
-                            termsAction.setTextOnly(false);
-                            termsAction.setMetadataOnly(false);        
-                            termsAction.setOperator(getSelectedOperator());
-                            termsAction.setEverything(false);
-                            // termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
-                            searchButton.setAction(termsAction);
-                        }else{
-                            searchType = EVERYTHING;
-                            termsAction.setBasic(false);
-                            termsAction.setTextOnly(true);
-                            termsAction.setMetadataOnly(false);        
-                            termsAction.setOperator(getSelectedOperator());
-                            termsAction.setEverything(true);
-                            // termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
-                            searchButton.setAction(termsAction);
-                        }                       
-                   }
-             });
+                   if (searchTermsTable.isEditing()) {
+						searchTermsTable.getCellEditor().stopCellEditing();
+					}                  
+					termsAction = new SearchAction(searchTerms);
+					String resultsTypeChoice = resultCmbBox.getSelectedItem()
+							.toString().trim();
+					termsAction.setResultsType(resultsTypeChoice);
+					if (mapCmbBox.getSelectedItem().toString().trim().equals(
+							ALL_MAPS_STRING)) {
+						termsAction
+								.setLocationType(SearchAction.SEARCH_ALL_OPEN_MAPS);
+					} else {
+						termsAction
+								.setLocationType(SearchAction.SEARCH_SELECTED_MAP);
+					}
+					if (searchTypeCmbBox.getSelectedItem().toString().trim()
+							.equals(SEARCH_EVERYTHING)) {
+						searchType = EVERYTHING;
+						termsAction.setBasic(false);
+						termsAction.setTextOnly(true);
+						termsAction.setMetadataOnly(false);
+						termsAction.setOperator(getSelectedOperator());
+						termsAction.setEverything(true);
+						// termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
+						searchButton.setAction(termsAction);
+					} else if (searchTypeCmbBox.getSelectedItem().toString()
+							.trim().equals(SEARCH_LABELS_ONLY)) {
+						searchType = LABEL;
+						termsAction.setBasic(true);
+						termsAction.setTextOnly(false);
+						termsAction.setMetadataOnly(false);
+						termsAction.setOperator(getSelectedOperator());
+						termsAction.setEverything(false);
+						// termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
+						searchButton.setAction(termsAction);
+					} else if (searchTypeCmbBox.getSelectedItem().toString()
+							.trim().equals(SEARCH_ALL_KEYWORDS)) {
+						searchType = KEYWORD;
+						termsAction.setBasic(false);
+						termsAction.setTextOnly(true);
+						termsAction.setMetadataOnly(true);
+						termsAction.setOperator(getSelectedOperator());
+						termsAction.setEverything(false);
+						// termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
+						searchButton.setAction(termsAction);
+					} else if (searchTypeCmbBox.getSelectedItem().toString()
+							.trim().equals(SEARCH_CATEGORIES_AND_KEYWORDS)) {
+						searchType = CATEGORY;
+						termsAction.setBasic(false);
+						termsAction.setTextOnly(false);
+						termsAction.setMetadataOnly(false);
+						termsAction.setOperator(getSelectedOperator());
+						termsAction.setEverything(false);
+						// termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
+						searchButton.setAction(termsAction);
+					} else {
+						searchType = EVERYTHING;
+						termsAction.setBasic(false);
+						termsAction.setTextOnly(true);
+						termsAction.setMetadataOnly(false);
+						termsAction.setOperator(getSelectedOperator());
+						termsAction.setEverything(true);
+						// termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
+						searchButton.setAction(termsAction);
+					}
+				}
+			});
             
             buttonPanel.setOpaque(true);
             buttonPanel.setBackground(getBackground());
@@ -1662,9 +1676,11 @@ public class MetadataSearchMainGUI extends JPanel
         }
     }
     public void fillSavedSearch() {        	
-    	List savedList = VUE.getActiveMap().getSearchArrLst();   		
+    	List savedList = VUE.getActiveMap().getSearchArrLst();    	
 		if(savedList!=null){
 			searchResultModel.setData((ArrayList)savedList);
+		}else{			
+			searchResultModel.setData(null);
 		}
 	}
     public void searchButtonAction(){

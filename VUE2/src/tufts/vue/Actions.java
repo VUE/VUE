@@ -380,8 +380,7 @@ public class Actions implements VueConstants
     		
             public void act() {
 
-                VUE.getMetadataSearchMainGUI().setVisible(true);
-                VUE.getMetadataSearchMainPanel().fillSavedSearch();
+                VUE.getMetadataSearchMainGUI().setVisible(true);                
                 
 //                 if(tufts.vue.ui.InspectorPane.META_VERSION == tufts.vue.ui.InspectorPane.OLD)
 //                 {    
