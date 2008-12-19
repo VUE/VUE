@@ -45,7 +45,7 @@ import com.lightdev.app.shtm.Util;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.84 $ / $Date: 2008-12-19 16:01:03 $ / $Author: sraphe01 $
+ * @version $Revision: 1.85 $ / $Date: 2008-12-19 16:42:34 $ / $Author: sraphe01 $
  *
  */
 public class FontEditorPanel extends JPanel
@@ -648,6 +648,10 @@ public class FontEditorPanel extends JPanel
         gbc.gridy=1;
         gbc.gridx=1;
         mTextColorButton.setPreferredSize(new Dimension(20,20));
+        boolean isWindows = VueUtil.isWindowsPlatform();    		    		
+		if(!isWindows){
+			gbc.insets=new Insets(0,5,0,0);
+		}
         add(mTextColorButton,gbc);
         
         gbc.gridy=1;
