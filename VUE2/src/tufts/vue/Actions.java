@@ -912,7 +912,7 @@ public class Actions implements VueConstants
         
             void act(LWSelection s) {
 
-                s.removeAncestorSelected();
+                s.clearAncestorSelected();
 
                 // the selection will now only contain the top levels in the
                 // the hierarchy of what's selected.
@@ -949,7 +949,7 @@ public class Actions implements VueConstants
             }
             
 //             void act(LWSelection s) {
-//                 s.removeAncestorSelected();
+//                 s.clearAncestorSelected();
 //                 act(s.iterator());
 //                 selection().clear();
 //             }
@@ -1868,15 +1868,6 @@ public class Actions implements VueConstants
     /** this will toggle the collapsed state flag */
     public static final LWCAction Collapse =
     new LWCAction("Collapse", keyStroke(KeyEvent.VK_X, SHIFT+LEFT_OF_SPACE)) {
-        
-        @Override void act(LWSelection s) {
-            super.act(s);
-            // todo: below isn't really good enough: should be happening at the model
-            // level -- e.g., undo manager could note if any Hidden or Collapsed events
-            // of any kind were seen, and on user action completed, call this on the
-            // global selection.
-            s.removeHidden();
-        }
         @Override void act(LWComponent c) {
             c.setCollapsed(!c.isCollapsed());
         }

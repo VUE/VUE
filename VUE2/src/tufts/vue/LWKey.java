@@ -50,6 +50,7 @@ public interface LWKey {
 
     public LWComponent.Key Label = LWComponent.KEY_Label;
     public LWComponent.Key Notes = LWComponent.KEY_Notes;
+    public LWComponent.Key Collapsed = LWComponent.KEY_Collapsed;
     
     // a handy hack: if we want a "key" type more specific than object, but
     // can also refer to a String (which is a final class), String implements
@@ -65,11 +66,8 @@ public interface LWKey {
     public String Hidden = "hidden";
 
 
-    public String Created = "new.component"; // any LWComponets creation event
-    //public String Added = "added"; // a child components add-notify
-    //public String ChildAdded = "childAdded";// the parent component's add-notify
+    public String Created = "new.component"; // any LWComponent's creation event
     public String ChildrenAdded = "hier.childrenAdded";// the parent component's group add-notify
-    //public String ChildRemoved = "hier.childRemoved";// the parent component's remove-notify
     public String ChildrenRemoved = "hier.childrenRemoved";// the parent component's group remove-notify
     public String HierarchyChanging = "hier.changing"; // pre-change event for any hierarchy change
     public String HierarchyChanged = "hier.changed"; // post-change event for hierarchy changes during undo operations

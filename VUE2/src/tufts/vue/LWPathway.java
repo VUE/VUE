@@ -46,7 +46,7 @@ import javax.swing.Icon;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.222 $ / $Date: 2008-07-23 15:25:59 $ / $Author: sfraize $
+ * @version $Revision: 1.223 $ / $Date: 2008-12-19 00:38:11 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -1232,6 +1232,7 @@ public class LWPathway extends LWContainer
      * been deleted (must get rid of LWComponent references to this
      * pathway)
      */
+    @Override
     protected void removeFromModel()
     {
         super.removeFromModel();
@@ -1239,6 +1240,7 @@ public class LWPathway extends LWContainer
             e.removeFromModel();
     }
 
+    @Override
     protected void restoreToModel()
     {
         super.restoreToModel();

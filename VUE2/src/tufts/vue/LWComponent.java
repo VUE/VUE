@@ -50,7 +50,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.449 $ / $Date: 2008-12-17 23:27:11 $ / $Author: sfraize $
+ * @version $Revision: 1.450 $ / $Date: 2008-12-19 00:38:11 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -726,6 +726,7 @@ u                    getSlot(c).setFromString((String)value);
                 else if (curValue instanceof Long)      setValue(c, (TValue) Long.valueOf(stringValue));
                 else if (curValue instanceof Float)     setValue(c, (TValue) Float.valueOf(stringValue));
                 else if (curValue instanceof Double)    setValue(c, (TValue) Double.valueOf(stringValue));
+                else if (curValue instanceof Boolean)   setValue(c, (TValue) Boolean.valueOf(stringValue));
                 else
                     tufts.Util.printStackTrace(this + ":setValue(" + stringValue + "); no slot provided for parsing string value");
             }
@@ -1307,7 +1308,7 @@ u                    getSlot(c).setFromString((String)value);
     	
     	};
 
-    private boolean fontIsRebuilding; // hack till we cleanup the old font code in gui tools (it's only all-at-once)
+    private boolean fontIsRebuilding; // todo: use a bit flag
     private void rebuildFont() {
         // This so at least for now we have backward compat with the old font property (esp. for tools & persistance)
     	fontIsRebuilding = true;
@@ -3652,7 +3653,7 @@ u                    getSlot(c).setFromString((String)value);
     }
 
     public boolean hasAncestor(LWComponent c) {
-        LWComponent parent = getParent();
+        final LWComponent parent = getParent();
         if (parent == null)
             return false;
         else if (c == parent)
@@ -4609,7 +4610,7 @@ u                    getSlot(c).setFromString((String)value);
 
     
     /** take the given map bounds, and add the scaled stroke width plus any extra if given */
-    protected Rectangle2D.Float addStrokeToBounds(Rectangle2D.Float r, float extra)
+    private Rectangle2D.Float addStrokeToBounds(Rectangle2D.Float r, float extra)
     {
         float strokeWidth = getStrokeWidth() + extra;
         
@@ -4632,7 +4633,7 @@ u                    getSlot(c).setFromString((String)value);
         return r;
     }
 
-    protected Rectangle2D.Float addLocalStrokeToBounds(Rectangle2D.Float r)
+    private Rectangle2D.Float addLocalStrokeToBounds(Rectangle2D.Float r)
     {
         float strokeWidth = getStrokeWidth();
         
@@ -6230,7 +6231,8 @@ u                    getSlot(c).setFromString((String)value);
     /**
      * Do final cleanup needed now that this LWComponent has
      * been removed from the model.  Calling this on an already
-     * deleted LWComponent has no effect.
+     * deleted LWComponent has no effect. This will raise
+     * an LWKey.Deleting event before the component is actually deleted.
      */
     protected void removeFromModel()
     {
@@ -6259,6 +6261,11 @@ u                    getSlot(c).setFromString((String)value);
     /** undelete */
     protected void restoreToModel()
     {
+        // TODO: UNDELETING flag may be functionally vestigal at this point.
+        // Also, would want to split this in to a final restoreToModel and
+        // an overridable restoreToModelImpl wrapped by the calls that
+        // force having the UNDELETING bit set, if we really want to rely on it.
+        
         setFlag(Flag.UNDELETING);
         
         if (DEBUG.PARENTING||DEBUG.EVENTS) out("restoreToModel: " + this);
@@ -6356,6 +6363,18 @@ u                    getSlot(c).setFromString((String)value);
     public boolean isCollapsed() {
         return hasFlag(Flag.COLLAPSED);
     }
+
+    public boolean isAncestorCollapsed()
+    {
+        if (parent != null) {
+            if (parent.isCollapsed())
+                return true;
+            else
+                return parent.isAncestorCollapsed();
+        } else
+            return false;
+    }
+    
 
     public Boolean getXMLlocked() {
         return isLocked() ? Boolean.TRUE : null;
@@ -6466,7 +6485,7 @@ u                    getSlot(c).setFromString((String)value);
         setVisible(!b.booleanValue());
     }
 
-    
+    // todo: this is no longer referenced in requiredPaint -- confusing inconsistency
     public boolean isDrawn() {
         return isVisible() && !isFiltered();
     }

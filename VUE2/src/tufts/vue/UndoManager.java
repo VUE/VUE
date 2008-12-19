@@ -181,18 +181,18 @@ public class UndoManager
                 }
             }
 
-            boolean hierarchyChanged = false;
+            //boolean hierarchyChanged = false; // now handled in fireUserActionCompleted
             
             //-------------------------------------------------------
             // First, process all hierarchy events
             //-------------------------------------------------------
             
-            ListIterator i = undoSequence.listIterator(undoSequence.size());
+            ListIterator<UndoItem> i = undoSequence.listIterator(undoSequence.size());
             while (i.hasPrevious()) {
-                UndoItem undoItem = (UndoItem) i.previous();
+                UndoItem undoItem = i.previous();
                 if (undoItem.propKey == LWKey.HierarchyChanging) {
                     undoItem.undo();
-                    hierarchyChanged = true;
+                    //hierarchyChanged = true;
                 }
             }
 
@@ -202,13 +202,13 @@ public class UndoManager
             
             i = undoSequence.listIterator(undoSequence.size());
             while (i.hasPrevious()) {
-                UndoItem undoItem = (UndoItem) i.previous();
+                UndoItem undoItem = i.previous();
                 if (undoItem.propKey != LWKey.HierarchyChanging)
                     undoItem.undo();
             }
             
-            if (hierarchyChanged)
-                VUE.getSelection().clearDeleted();
+//             if (hierarchyChanged)
+//                 VUE.getSelection().clearDeleted();
         }
 
         String getName() {
@@ -457,7 +457,7 @@ public class UndoManager
         // for different components, so whichever one comes last is the one it ends up being parented to...
 
         
-        private void undoHierarchyChange(LWContainer parent, Object oldValue)
+        private static void undoHierarchyChange(final LWContainer parent, final Object oldValue)
         {
             if (DEBUG.UNDO) System.out.println("\trestoring children of " + parent + " to " + oldValue);
 
@@ -487,24 +487,71 @@ public class UndoManager
                     childrenRemoved.removeAll(newChildList);
             }
 
+            //-------------------------------------------------------
             // Do the swap in of the old list of children:
+            //-------------------------------------------------------
+            
             parent.mChildren = (List) oldValue;
-            // now make sure all the children are properly parented,
+
+            //-------------------------------------------------------
+            // Now make sure all the children are properly parented,
             // and none of them are marked as deleted.
+            //-------------------------------------------------------
+
+            // TODO: this apparently never handled the REDO DELETE case, which would
+            // ensure objects were once again removed from the model.  The problem is
+            // that just because a node is in the childrenRemoved list, it doesn't mean
+            // it's being deleted -- it may just be in the process of being reparented
+            // elsewhere.  This means that REDO of deletes are leaving orphaned objects
+            // out there with a non-null parent reference, and a missing DELETED bit,
+            // which also means they're not getting cleared from the selection on a REDO
+            // DELETE.
+
+            // This could be handled via tracking LWKey.Deleted events, but that would
+            // be a ton of extra events to record for large deletes.  The best way would
+            // be to add a ChildrenDeleted event, issued in place of or in addition to
+            // ChildrenRemoved, which could easily be done in LWContainer.removeChildren
+            // when context == REMOVE_DELETE.
+
+            // When we get around to fixing this, may want to see if we can do away with
+            // the ChildrenAdded/ChildrenRemoved events, which are somewhat redundant
+            // with the HierarchyChanged event, and rarely listened for (tho LWContainer
+            // currently does NOT issue HierarchyChanged on adds/removes -- just
+            // ChildrenAdded/ChildrenRemoved!).  The only place we currently listen
+            // for ChildrenAdded/ChildrenRemoved that couldn't immediately be replaced
+            // by HierarchyChanged is in the OutlineViewHierarchyModel impl.
+            
             if (parent.mChildren != LWComponent.NO_CHILDREN) {
-                for (LWComponent child : parent.mChildren) {
-                    if (parent instanceof LWPathway) {
-                        // Special case for pathways. todo: something cleaner (pathways don't "own" their children)
-                        //((LWPathway)parent).addChildRefs(child);
-                        Util.printStackTrace("LWPathway's don't have real children: " + parent + "; for child " + child);
-                    } else {
+
+                if (parent instanceof LWPathway) {
+                    
+                    // Special case for pathways. todo: something cleaner (pathways don't "own" their children)
+                    Log.error("LWPathway's don't have real children: " + parent + "; for children " + parent.mChildren);
+                    
+                } else {
+
+                    for (LWComponent child : parent.mChildren) {
                         if (child.isDeleted())
-                            child.restoreToModel();
+                            child.restoreToModel(); // todo: take parent as argument, skip setParent
                         child.setParent(parent);
-                        //child.reparentNotify(parent);
                     }
+                    
+//                 for (LWComponent child : parent.mChildren) {
+//                     if (parent instanceof LWPathway) {
+//                         // Special case for pathways. todo: something cleaner (pathways don't "own" their children)
+//                         //((LWPathway)parent).addChildRefs(child);
+//                         Util.printStackTrace("LWPathway's don't have real children: " + parent + "; for child " + child);
+//                     } else {
+//                         if (child.isDeleted())
+//                             child.restoreToModel(); // todo: take parent as argument, skip setParent
+//                         child.setParent(parent);
+//                         //child.reparentNotify(parent);
+//                     }
+//                 }
+                    
                 }
             }
+
             parent.layout();
             // issue synthesized ChildrenAddded and/or ChildrenRemoved events
             if (childrenAdded.size() > 0) {
@@ -659,11 +706,11 @@ public class UndoManager
                 mRedoUnderway = false;
             }
             UndoList.advance();
-            mMap.notify(this, LWKey.UserActionCompleted);
+            fireUserActionCompleted();
         }
         updateGlobalActionLabels();
     }
-    
+
     public synchronized void undo()
     {
         checkAndHandleUnmarkedChanges();
@@ -680,7 +727,7 @@ public class UndoManager
                 mUndoUnderway = false;
             }
             RedoList.add(collectChangesAsUndoAction(undoAction.name));
-            mMap.notify(this, LWKey.UserActionCompleted);
+            fireUserActionCompleted();
         }
         updateGlobalActionLabels();
         // We've undo everything: we can mark the map as having no modifications
@@ -1001,7 +1048,7 @@ public class UndoManager
         
         UndoList.add(collectChangesAsUndoAction(name));
         RedoList.clear();
-        mMap.notify(this, LWKey.UserActionCompleted);
+        fireUserActionCompleted();
         updateGlobalActionLabels();
     }
 
@@ -1181,15 +1228,44 @@ public class UndoManager
     }
     */
 
+    private boolean selectionCleanupForHidden;
+    private boolean selectionCleanupForDeleted;
+
+    private void fireUserActionCompleted() {
+
+        if (selectionCleanupForHidden) {
+            selectionCleanupForHidden = false;
+            VUE.getSelection().clearHidden();
+        }
+        if (selectionCleanupForDeleted) {
+            selectionCleanupForDeleted = false;
+            VUE.getSelection().clearDeleted();
+        }
+
+        mMap.notify(this, LWKey.UserActionCompleted);        
+    }
+    
     /**
-     * Every event anywhere in the map we're listening to will
-     * get delivered to us here.  If the event has an old
-     * value in it, we save it for later undo.  If it's
-     * a hierarchy event (add/remove/delete/forward/back, etc)
-     * we handle it specially.
+     * Every event anywhere in the map we're listening to, including events as a result of
+     * an Undo or Redo, will get delivered to us here.  If the event has an old value in
+     * it and we're not in a Redo, we save it for later Undo/Redo (this includes if the
+     * event is a result of a current Undo).  If it's a hierarchy event (e.g., add /
+     * remove / delete / forward / back, etc) we handle it specially.
      */
 
-    public void LWCChanged(LWCEvent e) {
+    public void LWCChanged(final LWCEvent e) {
+
+        if (e.key == LWKey.Hidden || e.key == LWKey.Collapsed) {
+            // technically, we only need to flag this if the LWComponent in the event is
+            // also currently selected, tho theoretically there could be a list of
+            // components marked as hidden all at once (each of which we'd have to
+            // check), even tho we only currently fire list-based LWCEvent's for
+            // hierarchy events.
+            selectionCleanupForHidden = true;
+        } else if (e.key == LWKey.HierarchyChanging) {
+            // todo: better to check LWKey.Deleting?
+            selectionCleanupForDeleted = true;
+        }
 
         if (mRedoUnderway) // ignore everything during redo
             return;
@@ -1240,10 +1316,10 @@ public class UndoManager
             }
         }
         mEventsSeenSinceLastMark++;
-        processEvent(e);
+        captureEvent(e);
     }
 
-    private void processEvent(LWCEvent e)
+    private void captureEvent(LWCEvent e)
     {
         if (e.key == LWKey.HierarchyChanging || e.getName().startsWith("hier.")) {
             recordEvent(e, true);

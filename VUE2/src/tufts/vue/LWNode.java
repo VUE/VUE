@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.238 $ / $Date: 2008-12-17 23:50:43 $ / $Author: sfraize $
+ * @version $Revision: 1.239 $ / $Date: 2008-12-19 00:38:11 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2337,10 +2337,12 @@ public class LWNode extends LWContainer
         }
 
         // if we run into problems with children being visible / pickable anywhere, we
-        // could always make them all additionally hidden via a new HideCause.COLLAPSED,
-        // but they're currently being successfully truncated by an appropriatly false
-        // return in from LWComponent.hasPicks(), or a excluded from the list returned
-        // by LWComponent.getPickList()
+        // could always make all descendents additionally hidden via a new
+        // HideCause.COLLAPSED, but they're currently being successfully truncated by an
+        // appropriatly false return in from LWComponent.hasPicks(), or a excluded from
+        // the list returned by LWComponent.getPickList().  The drawback to apply
+        // an additional HideCause to all descendents would be the generation of
+        // lots of events on collapse, tho we would no longer need isAncestorCollapsed().
     }
     
     @Override

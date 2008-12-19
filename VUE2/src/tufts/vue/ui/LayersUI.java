@@ -37,7 +37,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.47 $ / $Date: 2008-12-15 21:30:06 $ / $Author: sraphe01 $
+ * @version $Revision: 1.48 $ / $Date: 2008-12-19 00:38:12 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -203,7 +203,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                     mMap.setActiveLayer(null);
                     //setActiveLayer(null, true);
                     attemptAlternativeActiveLayer(); // better if this tried to find the nearest layer, and not check last-active
-                    VUE.getSelection().clearDeleted(); // in case any in delete layer were in selection
+                    //VUE.getSelection().clearDeleted(); // in case any in delete layer were in selection [no auto-handled in UndoManager]
                 }
             },
         

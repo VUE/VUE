@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.224 $ / $Date: 2008-12-17 23:10:27 $ / $Author: sfraize $
+ * @version $Revision: 1.225 $ / $Date: 2008-12-19 00:38:11 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -168,17 +168,19 @@ public class LWMap extends LWContainer
 // //         addChild(mInternalLayer);
     }
 
-    // if/when we support maps embedded in maps, we'll want to have these return something real
-    @Override
-    public float getX() { return 0; }
-    @Override
-    public float getY() { return 0; }
-    @Override
-    public float getMapX() { return 0; }
-    @Override
-    public float getMapY() { return 0; }
+    // if/when we support maps embedded in maps, we'll want to have these return something real / make not final
+    @Override public final float getX() { return 0; }
+    @Override public final float getY() { return 0; }
+    @Override public final float getMapX() { return 0; }
+    @Override public final float getMapY() { return 0; }
+    @Override protected final double getMapXPrecise() { return 0; }
+    @Override protected final double getMapYPrecise() { return 0; }
+    @Override public final boolean isCollapsed() { return false; }
+    @Override public final boolean isAncestorCollapsed() { return false; }
 
-
+    /** @return 1 -- currently for performance: remove this impl if we embed maps-in-maps and allow them to have their own scale */
+    @Override public final double getMapScale() { return 1; }
+    
     /** Override LWContainer draw to always call drawInParent (even tho we have absolute children, we
      * don't want to just call draw, as LWContainer would).
      */
@@ -511,6 +513,7 @@ public class LWMap extends LWContainer
         mPathways.setMap(this);
     }
 
+    /** @return true */
     @Override
     public final boolean isTopLevel() {
         return true;
@@ -735,11 +738,6 @@ public class LWMap extends LWContainer
         }
     }
 
-    /** @return 1 -- currently for performance: remove this impl if we embed maps-in-maps and allow them to have their own scale */
-    @Override
-    public final double getMapScale() {
-        return 1;
-    }
     
     /**
      * A map will always have at least one layer, and may have any number of layers.
@@ -779,18 +777,18 @@ public class LWMap extends LWContainer
         @Override public String getXMLstrokeColor() { return null; }
         @Override public String getXMLfont() { return null; }
 
+        @Override public boolean isCollapsed() { return false; }
+        @Override public boolean isAncestorCollapsed() { return false; }
+
 
         /** @return true */
-        @Override
-        public boolean isTopLevel() { return true; }
+        @Override public boolean isTopLevel() { return true; }
         
         /** @return this */
-        @Override
-        public Layer getLayer() { return this; }
+        @Override public Layer getLayer() { return this; }
         
         /** @return null */
-        @Override
-        public Layer getPersistLayer() {return null; }
+        @Override public Layer getPersistLayer() {return null; }
 
         @Override
         protected void setParent(LWContainer p) {

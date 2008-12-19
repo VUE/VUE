@@ -31,7 +31,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, duplication, adding/removing and reordering (z-order) of children.
  *
- * @version $Revision: 1.152 $ / $Date: 2008-12-15 16:47:10 $ / $Author: sfraize $
+ * @version $Revision: 1.153 $ / $Date: 2008-12-19 00:38:11 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -370,6 +370,13 @@ public abstract class LWContainer extends LWComponent
         }
 
         notify(LWKey.ChildrenAdded, added);
+
+        // todo: for consistency, we should also be issuing a general HierarchyChanged
+        // event.  Note we'll have to check into how this effects the UndoManager
+        // implemention.  Also: consider an impl that gets rid of
+        // ChildrenAdded/ChildrenRemoved completely, and handles it via an internal
+        // setChildren that just issues a HierarchyChanged event (simlar to the design
+        // of LWPathway.setEntries)
         
         layout();
     }
@@ -603,13 +610,15 @@ public abstract class LWContainer extends LWComponent
                 if (permanent)
                     c.removeFromModel();
                 
-            } else if (!permanent)
-                throw new IllegalStateException(this + " asked to remove child it doesn't own: " + c);
+            } else if (!permanent) {
+                Log.error(this + " asked to de-parent child it doesn't own: " + c);
+            }
         }
         if (removedChildren.size() > 0) {
             notify(LWKey.ChildrenRemoved, removedChildren);
             layout();
         }
+        // todo: for consistency, we should also be issuing a general HierarchyChanged event.
     }
 
     public final void deleteChildrenPermanently(Iterable<LWComponent> iterable)

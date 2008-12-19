@@ -43,7 +43,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.202 $ / $Date: 2008-12-17 23:27:11 $ / $Author: sfraize $
+ * @version $Revision: 1.203 $ / $Date: 2008-12-19 00:38:11 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -614,6 +614,18 @@ public class LWLink extends LWComponent
     public Rectangle2D.Float getFocalBounds() {
         return getFanBounds(new Rectangle2D.Float());
     }
+
+//     @Override
+//     public boolean isDrawn() { // no longer referenced by requiresPaint, and isHidden not overridable
+//         if (!super.isDrawn())
+//             return false;
+//         final LWComponent c = parentInParentChildLink();
+//         if (c != null && c.isCollapsed())
+//             return false;
+//         else
+//             return true;
+//     }
+    
     
     @Override
     public void draw(DrawContext dc) {
@@ -1221,13 +1233,27 @@ public class LWLink extends LWComponent
         mRecompute = true; // for some reason cached label position is off on restore
     }
 
+    private LWComponent parentInParentChildLink()
+    {
+        if (head.node == null || tail.node == null)
+            return null;
+        if (head.node.getParent() == tail.node)
+            return tail.node;
+        if (tail.node.getParent() == head.node)
+            return head.node;
+        return null;
+    }
+    
     /** Is this link between a parent and a child? */
     public boolean isParentChildLink()
     {
         if (head.node == null || tail.node == null)
             return false;
         return head.node.getParent() == tail.node || tail.node.getParent() == head.node;
+        //return parentInParentChildLink() != null;
     }
+
+    
 
     /** @return true of this link has any links to the given component, or has it as one of our endpoints.
      */

@@ -29,7 +29,7 @@ import com.google.common.collect.Multisets;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.103 $ / $Date: 2008-12-17 23:27:11 $ / $Author: sfraize $
+ * @version $Revision: 1.104 $ / $Date: 2008-12-19 00:38:11 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -278,10 +278,6 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         return this.listeners;
     }
 
-//     public void setTo(LWComponent c) {
-//         setTo(c, null);
-//     }
-//     public synchronized void setTo(LWComponent c, Object source)
     public synchronized void setTo(LWComponent c)
     {
         if (size() == 1 && first() == c)
@@ -291,7 +287,6 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
 
         clearSilent();
         add(c);
-        
     }
 
     public void setDescription(String s) {
@@ -478,24 +473,55 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     
 
     /** find and remove from the selection any hidden/collapsed nodes */
-    public synchronized void removeHidden()
+    public synchronized void clearHidden()
     {
-        for (LWComponent c : toArray())
-            if (c.isHidden() || c.getParent().isCollapsed())
+        if (DEBUG.SELECTION) debug("clearHidden");
+        boolean removed = false;
+        for (LWComponent c : toArray()) {
+            if (c.isHidden() || c.isAncestorCollapsed()) {
+                if (DEBUG.SELECTION) Log.debug("clearHidden: clearing " + c);
                 removeSilent(c);
-        resetStatistics();
-        notifyListeners();
+                removed = true;
+            }
+        }
+        if (removed) {
+            resetStatistics();
+            notifyListeners();
+        }
     }
     
 
+    /** Remove from selection anything that's been deleted */
+    public synchronized void clearDeleted()
+    {
+        // This is special case code called by the UndoManager during an undo whenever
+        // there are any hierarchy changes.  Would be cleaner to for the selection to
+        // listen to all it's members for deletion events (expensive to always
+        // add/remove all those listeners), or listen to the map for all deletion events
+        // and and check if any are on our members.
+
+        if (DEBUG.SELECTION) debug("clearDeleted");
+        boolean removed = false;
+        for (LWComponent c : toArray()) {
+            if (DEBUG.SELECTION) Log.debug("clearDeleted: checking " + c);
+            if (c.isDeleted()) {
+                if (DEBUG.SELECTION) Log.debug("clearDeleted: clearing " + c);
+                removeSilent(c);
+                removed = true;
+            }
+        }
+        if (removed) {
+            resetStatistics();
+            notifyListeners();
+        }
+    }
+
     /**
-     *
      * special case: does not currently issue any notifications, tho
      * will recompute statistics -- selection must be cleared after
      * using this to be restored to a sane state
-     *
      */
-    public synchronized void removeAncestorSelected() {
+    public synchronized void clearAncestorSelected() {
             
         boolean removed = false;
         Iterator<LWComponent> i = iterator();
@@ -504,7 +530,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
             if (c.isAncestorSelected()) {
                 i.remove();
                 c.setSelected(false);
-                if (DEBUG.Enabled) debug("pruned " + c);
+                if (DEBUG.SELECTION) debug("removedAncestorSelected " + c);
                 removed = true;
             }
         }
@@ -582,42 +608,13 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         return true;
     }
 
-    /** Remove from selection anything that's been deleted */
-
-
-    public synchronized void clearDeleted()
-    {
-        // This is special case code called by the UndoManager during an undo whenever
-        // there are any hierarchy changes.  Would be cleaner to for the selection to
-        // listen to all it's members for deletion events (expensive to always
-        // add/remove all those listeners), or listen to the map for all deletion events
-        // and and check if any are on our members.
-
-        if (DEBUG.SELECTION) debug("clearDeleted");
-        boolean removed = false;
-        LWComponent[] elements = new LWComponent[size()];
-        toArray(elements);
-        for (int i = 0; i < elements.length; i++) {
-            LWComponent c = elements[i];
-            if (c.isDeleted()) {
-                if (DEBUG.SELECTION) debug("clearDeleted: clearing " + c);
-                removeSilent(c);
-                removed = true;
-            }
-        }
-        if (removed) {
-            resetStatistics();
-            notifyListeners();
-        }
-    }
-
     public void resetStatistics() {
         mBounds = null;
         mTypes.clear();
         mParents.clear();
         mEditablePropertyKeys = 0; // set to recompute
         if (size() > 0) {
-            if (DEBUG.Enabled) Log.debug("RECOMPUTING STATISTICS");
+            if (DEBUG.Enabled) Log.debug("RECOMPUTING STATISTICS; n=" + size());
             
             // TODO: ideally, we would listen for hierarchy change events on the
             // selection contents, and auto-recompute mParents whenever a change was

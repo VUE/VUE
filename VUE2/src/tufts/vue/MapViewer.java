@@ -76,7 +76,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.584 $ / $Date: 2008-12-17 23:27:11 $ / $Author: sfraize $ 
+ * @version $Revision: 1.585 $ / $Date: 2008-12-19 00:38:11 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1838,28 +1838,33 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 clearRollover();
 //         } else if (e.key == LWKey.FillColor && e.getComponent() == mMap && mFocal == mMap) {
 //             setBackground(mMap.getFillColor());
-        } else if (e.key == LWKey.Hidden) {
-            if (e.getComponent().isHidden() && e.getComponent().isSelected()) {
-                // This is important for pruning, and maybe filtering?
-                // Tho it could cause major havoc with layers if we use them in the
-                // selection.  TODO: this would make more sense directly handled in the selection.
-                selectionRemove(e.getComponent());
-            }
-            repaint();
-            return;
         }
+
+// this case now handled in UndoManager        
+//         else if (e.key == LWKey.Hidden) {
+//             if (e.getComponent().isHidden() && e.getComponent().isSelected()) {
+//                 // This is important for pruning, and maybe filtering?
+//                 // Tho it could cause major havoc with layers if we use them in the
+//                 // selection.  TODO: this would make more sense directly handled in the selection.
+//                 selectionRemove(e.getComponent());
+//             }
+//             repaint();
+//             return;
+//         }
 
         if (e.key == LWKey.RepaintComponent) {
             Rectangle r = mapToScreenRect(e.getComponent().getBounds());
             super.paintImmediately(r);
             //super.repaint(0,r.x,r.y,r.width,r.height);            
         } else if (OPTIMIZED_REPAINT == false) {
-            LWComponent singleSrc = e.onlyComponent();
+            final LWComponent singleSrc = e.onlyComponent();
             // todo: these conditions require too much knowlege about the way things
             // work outside of MapViewer -- refactor.
             if (singleSrc != null && e.isModelSourced() && singleSrc.isHidden() && !(singleSrc instanceof LWPathway)) {
                 // todo: some kind of semantic check that knows pathway visibility
                 // is irrelevant here, as opposed to the type check.
+                // todo: this is confusing -- why do we have this condition?  Appears to have something
+                // to do with ignoring lots of events coming from hidden components.
                 if (DEBUG.Enabled) out("skipping update from hidden component: " + e);
                 //if (DEBUG.Enabled) Util.printStackTrace("skipping update from hidden component: " + e);
             } else
