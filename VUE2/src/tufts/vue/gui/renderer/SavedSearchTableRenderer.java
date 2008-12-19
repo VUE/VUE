@@ -15,6 +15,8 @@ import javax.swing.table.DefaultTableCellRenderer;
 
 import tufts.vue.SearchData;
 import tufts.vue.VueUtil;
+import tufts.vue.gui.GUI;
+import tufts.vue.gui.WidgetStack;
 
 public class SavedSearchTableRenderer extends DefaultTableCellRenderer{
 	SearchResultTableModel searchResultTableModel;
@@ -36,9 +38,9 @@ public class SavedSearchTableRenderer extends DefaultTableCellRenderer{
 			runPanel.setBackground(new Color(188,212,255));	
         } else {
         	searchPanel.setBackground(Color.white);
-        	searchPanel.setForeground(table.getForeground());
+        	searchPanel.setForeground(WidgetStack.BottomGradient);
         	runPanel.setBackground(Color.white);
-        	runPanel.setForeground(table.getForeground());
+        	runPanel.setForeground(WidgetStack.BottomGradient);
         }
 		JPanel linePanel = new JPanel() {
             protected void paintComponent(java.awt.Graphics g) {
@@ -83,12 +85,14 @@ public class SavedSearchTableRenderer extends DefaultTableCellRenderer{
 		if(col == 0){			
 			String lblStr = data.getSearchSaveName();
 			JLabel searchLbl = new JLabel();
+			searchLbl.setFont(GUI.TitleFace);
+			searchLbl.setForeground(WidgetStack.BottomGradient);
 			searchLbl.setText(lblStr);
 			searchLbl.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));			
 			searchPanel.add(searchLbl, BorderLayout.WEST);			
     		boolean isWindows = VueUtil.isWindowsPlatform();    		    		
     		if(isWindows){
-    			searchPanel.setFont(windowsFont);
+    			searchPanel.setFont(GUI.TitleFace);
     		}else{
     			searchPanel.setFont(macFont);
     		}
@@ -102,7 +106,7 @@ public class SavedSearchTableRenderer extends DefaultTableCellRenderer{
 			//runPanel.add(linePanel,BorderLayout.SOUTH);			
     		boolean isWindows = VueUtil.isWindowsPlatform();    		    		
     		if(isWindows){
-    			runPanel.setFont(windowsFont);
+    			runPanel.setFont(GUI.TitleFace);
     		}else{
     			runPanel.setFont(macFont);
     		}
