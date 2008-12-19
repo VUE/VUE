@@ -45,7 +45,7 @@ import com.lightdev.app.shtm.Util;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.83 $ / $Date: 2008-12-04 18:50:56 $ / $Author: mike $
+ * @version $Revision: 1.84 $ / $Date: 2008-12-19 16:01:03 $ / $Author: sraphe01 $
  *
  */
 public class FontEditorPanel extends JPanel
@@ -635,7 +635,7 @@ public class FontEditorPanel extends JPanel
         gbc.ipadx=0;
         gbc.ipady=0;
         gbc.insets=new Insets(0,1,1,1);
-        add(mTextColorButton,gbc);
+        //add(mTextColorButton,gbc);
         
         gbc.fill=GridBagConstraints.NONE;
         gbc.anchor=GridBagConstraints.WEST;
@@ -645,29 +645,33 @@ public class FontEditorPanel extends JPanel
         gbc.gridx=0;        
         add(styleLabel,gbc);
         
-        
         gbc.gridy=1;
         gbc.gridx=1;
-        add(mBoldButton,gbc);
+        mTextColorButton.setPreferredSize(new Dimension(20,20));
+        add(mTextColorButton,gbc);
         
         gbc.gridy=1;
         gbc.gridx=2;
+        add(mBoldButton,gbc);
+        
+        gbc.gridy=1;
+        gbc.gridx=3;
         add(mItalicButton,gbc);
      
         gbc.gridy=1;
-        gbc.gridx=3;        
+        gbc.gridx=4;        
         gbc.fill=GridBagConstraints.NONE;
         mUnderlineButton.setEnabled(false);
         add(mUnderlineButton,gbc);
         
         gbc.gridy=1;
-        gbc.gridx=4;        
+        gbc.gridx=5;        
         gbc.fill=GridBagConstraints.NONE;
         orderedListButton.setEnabled(false);
         add(orderedListButton,gbc);
         
         gbc.gridy=1;
-        gbc.gridx=5;        
+        gbc.gridx=6;        
         gbc.fill=GridBagConstraints.NONE;
         unorderedListButton.setEnabled(false);
         add(unorderedListButton,gbc);
@@ -680,14 +684,14 @@ public class FontEditorPanel extends JPanel
         add(mLeftAlignButton,gbc);
         
         gbc.gridy=1;
-        gbc.gridx=7;
+        gbc.gridx=8;
         gbc.insets=new Insets(1,1,1,1);
         gbc.anchor=GridBagConstraints.EAST;
         gbc.fill=GridBagConstraints.NONE;
         add(mCenterAlignButton,gbc);
         
         gbc.gridy=1;
-        gbc.gridx=8;
+        gbc.gridx=9;
         gbc.anchor=GridBagConstraints.WEST;
         gbc.fill=GridBagConstraints.NONE;
         add(mRightAlignButton,gbc);
