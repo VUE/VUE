@@ -106,7 +106,7 @@ import com.lightdev.app.shtm.Util;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.38 $ / $Date: 2008-12-19 06:10:49 $ / $Author: mike $
+ * @version $Revision: 1.39 $ / $Date: 2008-12-19 06:17:47 $ / $Author: mike $
  *
  */
 
@@ -314,10 +314,9 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
         
       //  System.out.println("pref Height : " + getHeight());
        // System.out.println("pref : " + getHeight()/zoomFactor);
-       if (zoomFactor >=1)
+     
         preAddDimension.height = (int)(getHeight() / zoomFactor);
-       else
-    	   preAddDimension.height = (int)(getHeight());
+       
         preAddDimension.width = (int)(getWidth() / zoomFactor);
         
         	
