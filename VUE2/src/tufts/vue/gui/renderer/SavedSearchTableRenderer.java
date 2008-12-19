@@ -5,6 +5,8 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Font;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -13,13 +15,16 @@ import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 
+import tufts.Util;
 import tufts.vue.SearchData;
+import tufts.vue.VUE;
 import tufts.vue.VueUtil;
 import tufts.vue.gui.GUI;
 import tufts.vue.gui.WidgetStack;
 
 public class SavedSearchTableRenderer extends DefaultTableCellRenderer{
 	SearchResultTableModel searchResultTableModel;
+	String runStr = "<html><body><b><u>run</u></b></body></html>";
 	public SavedSearchTableRenderer(SearchResultTableModel searchResultTableModel){
 		this.searchResultTableModel = searchResultTableModel;
 	}
@@ -84,29 +89,28 @@ public class SavedSearchTableRenderer extends DefaultTableCellRenderer{
 		};
 		if(col == 0){			
 			String lblStr = data.getSearchSaveName();
-			JLabel searchLbl = new JLabel();
-			searchLbl.setFont(GUI.TitleFace);
-			searchLbl.setForeground(WidgetStack.BottomGradient);
+			JLabel searchLbl = new JLabel();			
 			searchLbl.setText(lblStr);
 			searchLbl.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));			
 			searchPanel.add(searchLbl, BorderLayout.WEST);			
     		boolean isWindows = VueUtil.isWindowsPlatform();    		    		
     		if(isWindows){
-    			searchPanel.setFont(GUI.TitleFace);
+    			searchPanel.setFont(windowsFont);
     		}else{
     			searchPanel.setFont(macFont);
     		}
 			return searchPanel;
 		}else{			
-			String runStr = "<html><body><font color=\"Blue\"><u><b>run</b></u></font></body></html>";		
+						
 			JLabel runLbl = new JLabel();
-			runLbl.setText(runStr);		
+			runLbl.setFont(GUI.TitleFace);
+			runLbl.setForeground(WidgetStack.BottomGradient);			
+			runLbl.setText(runStr);			
 			runLbl.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
-			runPanel.add(runLbl, BorderLayout.EAST);			
-			//runPanel.add(linePanel,BorderLayout.SOUTH);			
+			runPanel.add(runLbl, BorderLayout.EAST);						
     		boolean isWindows = VueUtil.isWindowsPlatform();    		    		
     		if(isWindows){
-    			runPanel.setFont(GUI.TitleFace);
+    			runPanel.setFont(windowsFont);
     		}else{
     			runPanel.setFont(macFont);
     		}

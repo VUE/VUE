@@ -59,6 +59,7 @@ import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
 import tufts.vue.gui.DockWindow;
+import tufts.vue.gui.GUI;
 import tufts.vue.gui.VueTextPane;
 import tufts.vue.gui.Widget;
 import tufts.vue.gui.WidgetStack;
@@ -74,7 +75,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.23 $ / $Date: 2008-12-18 23:40:34 $ / $Author: Sheejo
+ * @version $Revision: 1.24 $ / $Date: 2008-12-19 15:11:39 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -181,7 +182,7 @@ public class MetadataSearchMainGUI extends JPanel
         JPopupMenu popup = new JPopupMenu();
         mapInfoStack = new WidgetStack(SEARCH_STR);        
         // VUE.addActiveListener(LWMap.class, this);
-        setMinimumSize(new Dimension(320, 300));
+        setMinimumSize(new Dimension(300, 350));
         setLayout(new BorderLayout());
         mInfoPanel = new MetaSearchPanel();
         mInfoPanel.setName(SEARCH_STR);
@@ -254,7 +255,7 @@ public class MetadataSearchMainGUI extends JPanel
                 runSearchAction, renameAction, deleteAction });
         w.setContent(mapInfoStack);
         w.setHeight(350);
-        w.setWidth(320);
+        w.setWidth(300);
         validate();
         setVisible(true);
     }
@@ -759,8 +760,7 @@ public class MetadataSearchMainGUI extends JPanel
             searchResultTbl.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
             searchResultTbl.setShowGrid(true); 
             searchResultTbl.setGridColor(Color.LIGHT_GRAY);
-            searchResultTbl.setRowHeight(23);
-            
+            searchResultTbl.setRowHeight(23);           
             //searchResultTbl.setBackground(this.getBackground());
 
             //searchResultTbl.getColumnModel().getColumn(1).setMaxWidth(30);
