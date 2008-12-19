@@ -287,7 +287,8 @@ public class LWText extends LWComponent {
 			// children who are
 			// NOT filtered -- we just drop out the parent background.
 			// dc.g.clipRect(0, 0,(int) getWidth(), getAdjustedHeight());
-			drawNode(dc);
+		//	if (!((SHTMLDocument)this.getRichLabelBox().getDocument()).isEditing())
+				drawNode(dc);
 		}
 
 	}
@@ -351,7 +352,14 @@ public class LWText extends LWComponent {
         if (richLabelBox == null)
             return super.getWidth();
         else
-            return richLabelBox.getWidth();
+        {
+        	SHTMLDocument doc = (SHTMLDocument)richLabelBox.getDocument();
+        	
+        	if (doc !=null && doc.isEditing())
+        		return (float)richLabelBox.getUnscaledWidth();
+        	else
+        		return richLabelBox.getWidth();
+        }
     }
     
    
@@ -364,7 +372,12 @@ public class LWText extends LWComponent {
         }
         else
         { 
-        	return (float)richLabelBox.getHeight();
+        	SHTMLDocument doc = (SHTMLDocument)richLabelBox.getDocument();
+        	
+        	if (doc !=null && doc.isEditing())
+        		return (float)richLabelBox.getUnscaledHeight();
+        	else
+        		return richLabelBox.getHeight();
        		
         }	
     }
