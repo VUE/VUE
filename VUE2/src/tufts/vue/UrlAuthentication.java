@@ -170,7 +170,7 @@ public class UrlAuthentication
             }
         }
 
-        final boolean debug = DEBUG.IMAGE || DEBUG.IO;
+        final boolean debug = DEBUG.IMAGE || DEBUG.IO || DEBUG.DR;
 
         final Map<String,String> sessionKeys = UrlAuthentication.getRequestProperties(url);
 

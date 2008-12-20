@@ -57,7 +57,7 @@ import sun.awt.shell.ShellFolder;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.80 $ / $Date: 2008-12-04 03:16:27 $ / $Author: sfraize $
+ * @version $Revision: 1.81 $ / $Date: 2008-12-20 17:55:53 $ / $Author: sfraize $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -1182,7 +1182,12 @@ public class URLResource extends Resource implements XMLUnmarshalListener
             if (mURL == null && getClientType() != NONE) {
                 // If clientType is NONE, this is normal: e.g., a C:\file\path resource
                 // opened on a Mac.
-                Log.warn("mURL == null;", new IllegalStateException(toString()));
+                // This can also happen if we're point to a missing local file.
+                if (DEBUG.RESOURCE) {
+                    Log.warn("mURL == null;", new Throwable(toString()));
+                } else {
+                    Log.warn("mURL == null; " + this);
+                }
             }
             
             return mURL;
