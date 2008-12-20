@@ -1277,7 +1277,8 @@ public class Util
         return new ReverseListIterator<T>(list);
     }
     
-    /** Convenience class: provides a reversed list iteration.  List should not modified during iteration. */
+    /** Convenience class: provides a reversed list iteration.  List should not modified during iteration.
+        Currently does NOT provide fail-fast behaviour. */
     // could provide a standard fail-fast on concurrent modification by internally using a ListIterator
     private static final class ReverseListIterator<T> implements java.util.Iterator<T>, Iterable<T> {
         private final java.util.List<T> list;
