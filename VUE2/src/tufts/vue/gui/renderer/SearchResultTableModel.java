@@ -17,7 +17,12 @@ public class SearchResultTableModel extends AbstractTableModel {
 		
 	}
 	public int getRowCount() {
-		return searchResultArrLst.size();
+		if(searchResultArrLst!=null){
+			return searchResultArrLst.size();
+		}else{
+			return 0;
+		}
+		
 	}
 
 	public void addRow(SearchData data) {			
