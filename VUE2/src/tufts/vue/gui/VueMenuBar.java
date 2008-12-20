@@ -42,10 +42,12 @@ import javax.swing.event.PopupMenuListener;
 import edu.tufts.vue.preferences.VuePrefEvent;
 import edu.tufts.vue.preferences.VuePrefListener;
 
+import edu.tufts.vue.dsm.impl.VueDataSourceManager;
+
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.122 $ / $Date: 2008-12-17 23:27:12 $ / $Author: sfraize $
+ * @version $Revision: 1.123 $ / $Date: 2008-12-20 20:05:21 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -161,6 +163,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
     private final JMenu windowMenu = makeMenu("Windows");
     private final OntologyControlsOpenAction ontcontrls = new OntologyControlsOpenAction("Ontologies");
 
+    private static final java.util.concurrent.atomic.AtomicInteger PublishRebuildCount = new java.util.concurrent.atomic.AtomicInteger();
+
     public VueMenuBar()
     {
         final int metaMask = tufts.vue.Actions.COMMAND;
@@ -239,46 +243,71 @@ public class VueMenuBar extends javax.swing.JMenuBar
         });
         // create menu for dataset import
        
-         
+        // Note: now that repositories are configured after loading, this gets called
+        // each time a new repository completes its configuration, which is a bit
+        // overkill for the normal case where everything loads immediately without
+        // problem -- we're resetting the menu once for every data source.  Importantly,
+        // this code is idempotent, so it can be re-run as many times as needed.  It
+        // must stay this way.
         
         edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance().addDataSourceListener(new edu.tufts.vue.dsm.DataSourceListener() {
-            public void changed(edu.tufts.vue.dsm.DataSource[] dataSource) {
-                if (DEBUG.Enabled) Log.debug("DataSourceListener: data sources changed");
+            public void changed(edu.tufts.vue.dsm.DataSource[] dataSource, Object state, edu.tufts.vue.dsm.DataSource changed) {
+                if (DEBUG.Enabled) Log.debug("data sources changed; " + state);
+
+                if (state == VueDataSourceManager.DS_CONFIGURED || state == VueDataSourceManager.DS_ALL_CONFIGURED) {
+                    // go ahead and rebuild the publish menu
+                    // note that we don't wait for just DS_ALL_CONFIGURED, as it's possible that may never come
+                } else {
+                    return;
+                }
+                    
+
+                final List<Action> typeActions = new java.util.ArrayList();
            
                 int count = 0;
-                publishMenu.removeAll();
+                //publishMenu.removeAll();
                 boolean fedoraFlag = false;
                 boolean sakaiFlag = false;
                 for(int i =0;i<dataSource.length &&  !(fedoraFlag && sakaiFlag);i++) {
                  try {
                      final org.osid.repository.Repository r = dataSource[i].getRepository();
                      if (r == null) {
-                         Log.warn("null repository in " + dataSource[i]);
+                         if (DEBUG.DR) Log.debug("null repository in " + dataSource[i]);
                          continue;
                      }
+                     //if (DEBUG.Enabled) Log.debug(" inspecting: " + dataSource[i]);
                      if (r.getType().isEqual(edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE)) {
-                       fedoraFlag = true;
+                         typeActions.add(PublishActionFactory.createPublishAction(edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE));
+                         fedoraFlag = true;
+                         if (DEBUG.DR) Log.debug("PUBLISHABLE: " + dataSource[i]);
                      } else if (r.getType().isEqual(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE)) {
+                         typeActions.add(PublishActionFactory.createPublishAction(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE));
                          sakaiFlag = true;
+                         if (DEBUG.DR) Log.debug("PUBLISHABLE: " + dataSource[i]);
                      }
                  } catch(org.osid.repository.RepositoryException ex) {
-                     Log.error("changed:", ex);
+                     Log.error("changed:"+dataSource[i], ex);
                  }
                 }
-                if(fedoraFlag) publishMenu.add(PublishActionFactory.createPublishAction(edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE));
-                if(sakaiFlag) publishMenu.add(PublishActionFactory.createPublishAction(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE));
+                //if(fedoraFlag) publishMenu.add(PublishActionFactory.createPublishAction(edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE));
+                //if(sakaiFlag) publishMenu.add(PublishActionFactory.createPublishAction(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE));
+
+                final List<Action> publishActions = new java.util.ArrayList();
+                
                 if(fedoraFlag || sakaiFlag) {
-                    publishMenu.addSeparator();    
+                    //publishMenu.addSeparator();    
                     for(int i =0;i<dataSource.length;i++) {
                         try {
                             final org.osid.repository.Repository r = dataSource[i].getRepository();
                             if (r == null) {
-                                Log.warn("null repository in " + dataSource[i]);
+                                if (DEBUG.DR) Log.debug("null repository in " + dataSource[i]);
                                 continue;
                             }
                             if (r.getType().isEqual(edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE) ||
                                     r.getType().isEqual(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE)) {
-                                publishMenu.add(PublishActionFactory.createPublishAction(dataSource[i]));
+                                if (DEBUG.DR) Log.debug("ADDING MENU: " + dataSource[i]);
+                                //publishMenu.add(PublishActionFactory.createPublishAction(dataSource[i]));
+                                publishActions.add(PublishActionFactory.createPublishAction(dataSource[i]));
                                 count++;
                             }
                         } catch(org.osid.repository.RepositoryException ex) {
@@ -286,11 +315,60 @@ public class VueMenuBar extends javax.swing.JMenuBar
                         }
                     }
                 } else {
-                    publishMenu.add((createWindowItem(VUE.getContentDock(),KeyEvent.VK_5, "Add publishable resources through Resource Window")));
+                    //publishMenu.add((createWindowItem(VUE.getContentDock(),KeyEvent.VK_5, "Add publishable resources through Resource Window")));
                 }
-                publishMenu.setEnabled(true);
-                fileMenu.remove(publishMenu);
-                fileMenu.add(publishMenu,11);
+//                 publishMenu.setEnabled(true);
+//                 fileMenu.remove(publishMenu);
+//                 fileMenu.add(publishMenu,11);
+
+                final int rebuildCount = PublishRebuildCount.incrementAndGet();
+
+                // todo: could create an GUI MostRecentOnly Runnable with an exec that is only called
+                // if it's the most recent -- would be very handy -- tho how to collate with various
+                // types?  Would need to have a HashMap of all class instances (the inner anonomous
+                // one generated) containing atomic counts for each instance -- eithar that or require
+                // passing in a constant AtomicLong for each instancing group -- that'd be easier.
+
+                GUI.invokeAfterAWT(new Runnable() { public void run() {
+
+                    final int curCount = PublishRebuildCount.get();
+
+                    if (rebuildCount < curCount) {
+                        if (DEBUG.Enabled) Log.debug("skipping rebuild; runnable count " + rebuildCount + " < " + curCount);
+                        return;
+                    } else {
+                        Log.info("rebuilding with " + publishActions.size()
+                                 + " publishable data source(s) after "
+                                 + curCount
+                                 + " updates");
+                    }
+
+                    // rebuild the menus on the AWT thread for thread safety
+
+                    publishMenu.removeAll();
+
+                    if (typeActions.size() > 0) {
+                        
+                        for (Action a : typeActions)
+                            publishMenu.add(a);
+                        
+                        if (publishActions.size() > 0) {
+                            publishMenu.addSeparator();    
+                            for (Action a : publishActions)
+                                publishMenu.add(a);
+                        }
+                        
+                    } else {
+                        
+                        // no accelerator key for this menu
+                        publishMenu.add(createWindowItem(VUE.getContentDock(), 0, "Add publishable resources through Resource Window"));
+                    }
+
+                    publishMenu.setEnabled(true);
+                    fileMenu.remove(publishMenu);
+                    fileMenu.add(publishMenu,11);
+                    
+                }});
                 
             }
         });

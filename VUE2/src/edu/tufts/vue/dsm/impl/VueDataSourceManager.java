@@ -14,9 +14,6 @@
  */
 package edu.tufts.vue.dsm.impl;
 
-/**
- * This class loads and saves Data Source content from an XML file
- */
 import java.io.*;
 import java.util.*;
 import java.net.*;
@@ -36,9 +33,31 @@ import org.exolab.castor.mapping.Mapping;
 import org.exolab.castor.mapping.MappingException;
 import org.xml.sax.InputSource;
 
+/**
+ *
+ * This class loads and saves Data Source content from an XML file, provides
+ * for multi-threaded hang-proof initialization (repository configuration),
+ * and event delivery to track the progress of loading.
+ *
+ * @version $Revision: 1.47 $ / $Date: 2008-12-20 20:05:21 $ / $Author: sfraize $  
+ */
 public class VueDataSourceManager
     implements edu.tufts.vue.dsm.DataSourceManager
 {
+    /** if true, all data sources will block until their repositories are found and configured,
+     * which can result in a hang if there is a problem with any repository.  We're keeping this
+     * flag until we're sure our more complex impl's (VUE init, UI updates, etc) for handling the
+     * more complex non-blocking case are fully tested. SMF 2008-12-20 
+     */
+    public static final boolean BLOCKING_OSID_LOAD = false;
+    
+    /* states for DataSourceListener callbacks */
+    public static final String DS_UNMARSHALLED = "DS_UNMARSHALLED";
+    public static final String DS_CONFIGURED = "DS_CONFIGURED";
+    public static final String DS_ERROR = "DS_ERROR";
+    public static final String DS_ALL_CONFIGURED = "DS_ALL_CONFIGURED";
+    public static final String DS_SAVING = "DS_SAVING";
+    
     public static final String PASS = "pass"; // a key that cotains this string is encrypted.
     
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(VueDataSourceManager.class);
@@ -57,21 +76,24 @@ public class VueDataSourceManager
      *
      * -- SMF 10/2007
      */
-    
     private static final Set<DataSource> DataSources = new LinkedHashSet();
 
     /** This is only used marshalling and unmarshalling */
     private static final Vector<DataSource> dataSourceVector = new Vector();
     
-    private static edu.tufts.vue.dsm.DataSourceManager dataSourceManager = new VueDataSourceManager();
+    private static VueDataSourceManager dataSourceManager = new VueDataSourceManager();
 
     private static final File userFolder = tufts.vue.VueUtil.getDefaultUserFolder();
     private static final String xmlFilename  = userFolder.getAbsolutePath() + "/" + tufts.vue.VueResources.getString("dataSourceSaveToXmlFilename");
-    private static final List<edu.tufts.vue.dsm.DataSourceListener> dataSourceListeners = new ArrayList<edu.tufts.vue.dsm.DataSourceListener>();
+    private static final List<edu.tufts.vue.dsm.DataSourceListener> dataSourceListeners
+        = new java.util.concurrent.CopyOnWriteArrayList<edu.tufts.vue.dsm.DataSourceListener>();
     
     private static volatile boolean marshalling = false;
     
-    public static edu.tufts.vue.dsm.DataSourceManager getInstance() {
+    // Todo: this class doesn't always appear to be threadsafe.
+    // And do we we really want getInstance to return an empty default DSM instance,
+    // that changes after load is called?
+    public static VueDataSourceManager getInstance() {
         return dataSourceManager;
     }
     
@@ -79,10 +101,12 @@ public class VueDataSourceManager
     public VueDataSourceManager() {}
     
     public void save() {
-        notifyDataSourceListeners();
+        // why do we notify on save? keeping this only in case something is
+        // currently depending on this...
+        notifyDataSourceListeners(DS_SAVING); 
         marshall(new File(this.xmlFilename), this);
     }
-    
+
     public static void load() {
         try {
             File f = new File(xmlFilename);
@@ -94,8 +118,15 @@ public class VueDataSourceManager
                 // However, should member variables be added in the future, we'll need
                 // the existing semantics.
                 
-                dataSourceManager = unMarshall(f); 
-                dataSourceManager.notifyDataSourceListeners();
+                dataSourceManager = unMarshall(f);
+                if (BLOCKING_OSID_LOAD) {
+                    // they're already fully configured at this point
+                    getInstance().notifyDataSourceListeners(DS_ALL_CONFIGURED);
+                } else {
+                    getInstance().notifyDataSourceListeners(DS_UNMARSHALLED);
+                    // DS_ALL_CONFIGURED will come later
+                }
+                    
             } else {
                 debug("Installed datasources not found");
             }
@@ -104,7 +135,109 @@ public class VueDataSourceManager
             Log.warn("In load via Castor", t);
         }
     }
+
+    /**
+     * Assign repository configurations to loaded DataSources.  Currently only handles
+     * VueDataSource impls.  This will spawn a thread for each assignment, as the
+     * RepositoryManager implementation for each source can possibly hang while
+     * assigning configuration, and there's no need to hang the whole application during
+     * startup for a single hung DataSource / Repository failing to respond.
+     *
+     * @param clientUI -- if non-null, repaint() will be called on this each time a
+     * DataSource completes configuration as a very simple callback, in addition to
+     * notifications to any DataSourceListeners
+     */
+
+    public void startRepositoryConfiguration(final java.awt.Component clientUI) {
+        Log.info("configuring data sources; n=" + DataSources.size());
+        
+        final edu.tufts.vue.dsm.DataSource dataSources[] = getDataSources();
+
+        final java.util.concurrent.atomic.AtomicInteger RunCount =
+            new java.util.concurrent.atomic.AtomicInteger(dataSources.length);
+
+        for (final edu.tufts.vue.dsm.DataSource ds : dataSources) {
+            if (ds instanceof VueDataSource == false) {
+                Log.warn("unhandled DataSource impl, cannot configure: " + Util.tags(ds));
+                RunCount.decrementAndGet();
+            }
+        }
+            
+        for (final edu.tufts.vue.dsm.DataSource ds : dataSources) {
+
+            if (ds instanceof VueDataSource == false)
+                continue;
+            
+            Log.debug("configure: " + ds);
+            
+            new Thread(String.format("%s@%07x %8.8s",
+                                     ds.getClass().getSimpleName(),
+                                     System.identityHashCode(ds),
+                                     ds.getRepositoryDisplayName()))
+            {
+                @Override public void run() {
+
+                    try {
+                        
+                        try {
+                        
+                            ((VueDataSource)ds).assignRepositoryConfiguration();
+                            
+                            Log.info("configured " + ds);
+
+                            if (ds.getRepository() == null)
+                                notifyDataSourceListeners(DS_ERROR, ds);
+                            else
+                                notifyDataSourceListeners(DS_CONFIGURED, ds);
+
+                            if (ds.getRepositoryDisplayName().startsWith("Conn")) // test
+                            try { Thread.sleep(5000); } catch (Throwable t) {}
+
+                        } catch (Throwable t) {
+                            Log.error("configuration error: " + Util.tags(ds), t);
+                            notifyDataSourceListeners(DS_ERROR, ds);
+                        }
+                    
+
+                        // TODO: VueDataSource accessors accessed during client painting
+                        // (in AWT thread) or are not fully thread-safe against the
+                        // above assignRepositoryConfiguration in this config thread.
+                        
+                        if (clientUI != null)
+                            clientUI.repaint();
+                        //else Log.debug("config complete, no UI to update");
+                    
+                    } catch (Throwable t) {
+                        
+                        Log.error("configuring", t);
+                        
+                    } finally {
+                        
+                        if (RunCount.decrementAndGet() <= 0) {
+
+                            // Whichever thread finishes last will deliver the DS_ALL_CONFIGURED
+                            // event. If any thread should hang, this will never be delivered, so
+                            // listeners should ideally be designed to provide at least some
+                            // functionality based only on the delivery of the DS_CONFIGURED events
+                            // as the come in.
+                            
+                            notifyDataSourceListeners(DS_ALL_CONFIGURED);
+                        }
+                        
+                    }
+                }
+            }.start();
+            
+        }
+    }
     
+    
+    /**
+     * Return the list of found DataSources.  Will trigger a blocking file I/O load if none are
+     * present.  Some or all of the returned DataSources may be in an "unconfigured" state (without
+     * a repository), requiring a later call to startRepositoryConfiguration before they can be
+     * used.
+     */
     public edu.tufts.vue.dsm.DataSource[] getDataSources() {
         synchronized (DataSources) {
             if (DataSources.isEmpty())
@@ -275,17 +408,29 @@ public class VueDataSourceManager
 //     }
     
     public void addDataSourceListener(edu.tufts.vue.dsm.DataSourceListener listener) {
+        // threadsafe: is CopyOnWriteArrayList
         dataSourceListeners.add(listener);
     }
     
     public void removeDataSourceListener(edu.tufts.vue.dsm.DataSourceListener listener) {
-        if(dataSourceListeners.contains(listener))
-            dataSourceListeners.remove(listener);
+        // threadsafe: is CopyOnWriteArrayList
+        dataSourceListeners.remove(listener);
     }
     
-    public  void notifyDataSourceListeners() {
-        for(edu.tufts.vue.dsm.DataSourceListener listener: dataSourceListeners) {
-            listener.changed(getDataSources());
+    public void notifyDataSourceListeners(Object state) {
+        notifyDataSourceListeners(state, null);
+    }
+    
+    public synchronized void notifyDataSourceListeners(Object state, DataSource changed) {
+        // synchronized so notifications from different threads are at least atomic
+        // to the state of all DataSources for each notification batch
+        final edu.tufts.vue.dsm.DataSource dataSources[] = getDataSources();
+        for (edu.tufts.vue.dsm.DataSourceListener listener: dataSourceListeners) {
+            try {
+                listener.changed(dataSources, state, changed);
+            } catch (Throwable t) {
+                Log.error("DataSourceListener failure: " + Util.tags(listener), t);
+            }
         }
     }
     
@@ -345,8 +490,7 @@ public class VueDataSourceManager
                org.exolab.castor.mapping.MappingException,
                org.exolab.castor.xml.ValidationException
     {
-        if (tufts.vue.DEBUG.DR) Log.info("Unmarshalling: " + file);
-        //System.out.println("UnMarshalling: file -"+ file.getAbsolutePath());
+        Log.info("Unmarshalling: " + file);
         
         Unmarshaller unmarshaller = tufts.vue.action.ActionUtil.getDefaultUnmarshaller(file.toString());
         unmarshaller.setUnmarshalListener(new PropertyEntryUnMarshalListener());

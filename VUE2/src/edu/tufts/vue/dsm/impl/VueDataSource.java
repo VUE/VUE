@@ -19,8 +19,6 @@ import java.util.*;
 
 public class VueDataSource implements edu.tufts.vue.dsm.DataSource
 {
-    public static final boolean BLOCKING_OSID_LOAD = true; // VUE publish menu currently can't handle the non-blocking case
-    
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(VueDataSource.class);
     
     private edu.tufts.vue.dsm.OsidFactory factory = null;
@@ -514,7 +512,7 @@ public class VueDataSource implements edu.tufts.vue.dsm.DataSource
      * the XML deserialize is "done" */
     public void setDone(boolean done) {
         edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance().add(this);
-        if (BLOCKING_OSID_LOAD) {
+        if (VueDataSourceManager.BLOCKING_OSID_LOAD) {
             try {
                 assignRepositoryConfiguration();
             } catch (Throwable t) {
@@ -523,7 +521,7 @@ public class VueDataSource implements edu.tufts.vue.dsm.DataSource
         }
     }
     
-    public void assignRepositoryConfiguration()
+    public synchronized void assignRepositoryConfiguration()
         throws org.osid.OsidException
     {
         final Properties properties = getPropertyConfiguration(_propertyList);
@@ -534,9 +532,9 @@ public class VueDataSource implements edu.tufts.vue.dsm.DataSource
 //             Log.debug("  properties: " + properties);
         
         if (this.repositoryManager == null) {
-            Log.error("setDone: null repositoryManager unmarshalling " + this + "; skipping assignConfiguration.");
+            Log.error("null repositoryManager unmarshalling " + this + "; skipping assignConfiguration.");
         } else {
-            // This may try network access / hang:
+            // This is what may try network access and can possibly hang if there's a problem:
             this.repositoryManager.assignConfiguration(properties);
         }
         setRelatedValues();

@@ -184,42 +184,58 @@ public class DataSourceViewer extends JPanel
 //             singleton.loadOSIDDataSources();
 //     }
 
-    static void configureOSIDs() {
-        Log.info("configuring data sources");
+//     static void configureOSIDs() {
         
-        VUE.diagPush("config");
+//         VUE.diagPush("config");
 
-        final edu.tufts.vue.dsm.DataSource dataSources[] =
-            edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance().getDataSources();
+//         Log.info("configuring data sources");
+        
+//         edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance()
+//             .startRepositoryConfiguration(singleton);
             
-        for (final edu.tufts.vue.dsm.DataSource ds : dataSources) {
-            if (ds instanceof VueDataSource) {
-                Log.debug("configure: " + ds);
-                new Thread("CONFIG: " + ds) {
-                    @Override
-                    public void run() {
-                        try {
-                            ((VueDataSource)ds).assignRepositoryConfiguration();
-                        } catch (Throwable t) {
-                            Log.error("configuring;", t);
-                            //Log.error("configuring: " + ds + ";", t);
-                        }
-                        Log.info("CONFIGURED");
-                        if (singleton != null)
-                            singleton.repaint();
-                        else
-                            Log.warn("config complete, no UI to update");
-                    }
-                }.start();
-            } else {
-                Log.info("unknown DataSource, cannot configure: " + Util.tags(ds));
-            }
-        }
-        //UrlAuthentication.getInstance(); // VUE-879
+//         //UrlAuthentication.getInstance(); // VUE-879
 
-        VUE.diagPop();
+//         VUE.diagPop();
+//     }
+    
+//     static void configureOSIDs() {
+//         Log.info("configuring data sources");
         
-    }
+//         VUE.diagPush("config");
+
+//         final edu.tufts.vue.dsm.DataSource dataSources[] =
+//             edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance().getDataSources();
+            
+//         for (final edu.tufts.vue.dsm.DataSource ds : dataSources) {
+//             if (ds instanceof VueDataSource) {
+//                 Log.debug("configure: " + ds);
+//                 new Thread("CONFIG: " + ds) {
+//                     @Override
+//                     public void run() {
+//                         try {
+//                             ((VueDataSource)ds).assignRepositoryConfiguration();
+//                         } catch (Throwable t) {
+//                             Log.error("configuring;", t);
+//                             //Log.error("configuring: " + ds + ";", t);
+//                         }
+//                         Log.info("CONFIGURED");
+//                         if (singleton != null) {
+//                             // TODO: VueDataSource accessors used during painting (in AWT thread) not fully thread-safe
+//                             // against the above assignRepositoryConfiguration -- we're relying on luck at the moment.
+//                             singleton.repaint();
+//                         } else
+//                             Log.warn("config complete, no UI to update");
+//                     }
+//                 }.start();
+//             } else {
+//                 Log.info("unknown DataSource, cannot configure: " + Util.tags(ds));
+//             }
+//         }
+//         //UrlAuthentication.getInstance(); // VUE-879
+
+//         VUE.diagPop();
+        
+//     }
     
 
     private void loadBrowseableDataSources()

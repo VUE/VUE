@@ -64,7 +64,7 @@ import tufts.oki.localFiling.*;
  * user re-ordering of the data sources, which would automatically be
  * persistent.
  * 
- * @version $Revision: 1.60 $ / $Date: 2008-11-20 17:33:04 $ / $Author: sfraize $
+ * @version $Revision: 1.61 $ / $Date: 2008-12-20 20:05:21 $ / $Author: sfraize $
  * @author Ranjani Saigal
  */
 
@@ -103,7 +103,9 @@ public class DataSourceList extends JList implements DropTargetListener
         if (!VUE.BLOCKING_OSID_LOAD) {
             edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance().addDataSourceListener
                 (new edu.tufts.vue.dsm.DataSourceListener() {
-                        public void changed(edu.tufts.vue.dsm.DataSource[] dataSource) {
+                        public void changed(edu.tufts.vue.dsm.DataSource[] dataSource,
+                                            Object state,
+                                            edu.tufts.vue.dsm.DataSource changed) {
                             if (DEBUG.Enabled) Log.debug("data sources changed: repaint");
                             repaint();
                         }

@@ -18,14 +18,13 @@ public class SakaiExport
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(SakaiExport.class);
     
-	private org.osid.shared.Type _collectionAssetType = new edu.tufts.vue.util.Type("sakaiproject.org","asset","siteCollection");
-	private org.osid.shared.Type _sakaiRepositoryType = new edu.tufts.vue.util.Type("sakaiproject.org","repository","contentHosting");
-	private edu.tufts.vue.dsm.DataSourceManager _dsm = null;
+    private final org.osid.shared.Type _collectionAssetType = new edu.tufts.vue.util.Type("sakaiproject.org","asset","siteCollection");
+    private final org.osid.shared.Type _sakaiRepositoryType = new edu.tufts.vue.util.Type("sakaiproject.org","repository","contentHosting");
+    private final edu.tufts.vue.dsm.DataSourceManager _dsm;
 
-	public SakaiExport(edu.tufts.vue.dsm.DataSourceManager dsm)
-	{
-		_dsm = dsm;
-	}
+    public SakaiExport(edu.tufts.vue.dsm.DataSourceManager dsm) {
+        _dsm = dsm;
+    }
 	
 	public edu.tufts.vue.dsm.DataSource[] getSakaiDataSources()
 		throws org.osid.repository.RepositoryException

@@ -112,12 +112,15 @@ import edu.tufts.vue.metadata.action.SearchAction;
 import edu.tufts.vue.preferences.implementations.MetadataSchemaPreference;
 import edu.tufts.vue.preferences.implementations.ShowAgainDialog;
 import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
+
+import edu.tufts.vue.dsm.impl.VueDataSourceManager;
+
 /**
  * Vue application class.
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.608 $ / $Date: 2008-12-18 23:41:25 $ / $Author: sraphe01 $ 
+ * @version $Revision: 1.609 $ / $Date: 2008-12-20 20:05:21 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -129,7 +132,7 @@ public class VUE
     // We would like to move to non-blocking (threaded) loading -- when blocking (current impl), a hang in
     // any OSID init or server access will hang VUE during startup.
     // SMF 2008-10-10: blocking impl turned off -- was seeing deadlocks on startup: TODO: VUE-879 may now be an active bug again
-    public static boolean BLOCKING_OSID_LOAD = edu.tufts.vue.dsm.impl.VueDataSource.BLOCKING_OSID_LOAD;
+    public static boolean BLOCKING_OSID_LOAD = edu.tufts.vue.dsm.impl.VueDataSourceManager.BLOCKING_OSID_LOAD;
     
     /** This is the root logger for all classes named tufts.* */
     private static final Logger TuftsLog = Logger.getLogger("tufts");
@@ -959,25 +962,38 @@ public class VUE
         Log.info("startup completed.");
         
         //-------------------------------------------------------
-        // Load the OSID's and set up UrlAuthentication
+        // Trigger the load the OSID's and set up UrlAuthentication
         //-------------------------------------------------------
         
-        if (BLOCKING_OSID_LOAD)
-            initDataSources();
+        initDataSources();
+        
+        //-------------------------------------------------------
+        // Handle any outstanding file (map) open requests.
+        //-------------------------------------------------------
         
         try {
             
             // this must now happen AFTER data-sources are loaded, as it's possible that
             // they will be providing authentication that will be required to get
             // content on the maps that will be opened [VUE-879]
+
+            // Todo: if BLOCKING_OSID_LOAD is false (the current defalut), the OSID's
+            // repository configuration threads in the VDSM will be in a race with the
+            // the below map open below if it contains any URL's.  The first URL access
+            // will trigger an init of UrlAuthentication, which will cache for the rest
+            // of the session only those DataSources that are already configured.  To
+            // eliminate this risk, the UrlAuthentication impl needs to be re-written to
+            // handle dynamic updates from VDSM instead of it's current
+            // run-once-and-be-done design.
             
             // todo: someday, resources can be tagged as requiring authentication (or
             // actually reference some kind of repository object that knows this, god
             // forbid), so we could wait for one of those to request content and then
-            // block on loading all the OSID's before continuing, and then we could
-            // again let all the OSID's load in the background right after startup
-            // (which would be the common case, as most require no dynamic authentication,
-            // only pre-config authentication used for searches, not HTTP content fetches)
+            // block on loading all the OSID's (or the appropriate OSID) before
+            // continuing, and then we could again let all the OSID's load in the
+            // background right after startup (which would be the common case, as most
+            // require no dynamic authentication, only pre-config authentication used
+            // for searches, not HTTP content fetches)
             
             handleOutstandingVueMapFileOpenRequests();
             
@@ -1000,16 +1016,16 @@ public class VUE
             System.exit(0);
         }
 
-        if (BLOCKING_OSID_LOAD == false) {
-            initDataSources();
-            DataSourceViewer.configureOSIDs();
-        }
+//         if (!BLOCKING_OSID_LOAD ) {
+//             initDataSources();
+//             //DataSourceViewer.configureOSIDs();
+//         }
 
         // Kick-off tufts.vue.VueDataSource viewer build threads: must
         // be done in AWT to be threadsafe, as involves
         // non-synhcronized code in tufts.vue.VueDataSource while
         // setting up the threads
-        if (!DEBUG.Enabled)
+        if (false && !DEBUG.Enabled)
             GUI.invokeAfterAWT(new Runnable() { public void run() {
                 DataSourceViewer.cacheDataSourceViewers();
             }});
@@ -1057,19 +1073,84 @@ public class VUE
         Log.info("main complete");
     }
 
-    private static boolean didInitDR = false;
+    private static volatile boolean didInitDR = false;
+
+    /**
+     * Load the DataSource Viewer(s).
+     * If the VDSM is not in blocking startup mode (allowed to hang us), also:
+     *   1 - kick off OSID configuration threads, which will normally complete right away
+     *   2 - Init UrlAuthentication, which will query all the loaded + already configured
+     *       data sources for ones that can provide authentication.
+     */
     private static synchronized void initDataSources() {
+        
         if (didInitDR == false && SKIP_DR == false && DR_BROWSER != null && !VUE.isApplet()) {
+            
+            VUE.diagPush("initDS");
+            
             Log.debug("initDataSources: started");
+            
             try {
-                DR_BROWSER.loadDataSourceViewer();
-                if (BLOCKING_OSID_LOAD)
-                    UrlAuthentication.getInstance(); // VUE-879
+                _initDataSources();
                 didInitDR = true;
             } catch (Throwable t) {
                 Log.error("failed to init data sources", t);
             }
+            
             Log.debug("initDataSources: completed");
+            
+            VUE.diagPop();
+        }
+        
+    }
+
+    private static void _initDataSources()
+    {
+        // if non-blocking OSID load is enabled, loadDataSourceViewer will trigger a
+        // load (unmarshalling) of DataSources, left in an unconfigured state.
+        DR_BROWSER.loadDataSourceViewer(); 
+        
+        if (BLOCKING_OSID_LOAD) {
+            
+            // if blocking, we can call this, as we know all configuration has been completed,
+            // and authentication keys are available for discovery and caching
+            UrlAuthentication.getInstance(); // VUE-879
+            
+        } else {
+
+            final VueDataSourceManager VDSM = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
+                
+            VDSM.addDataSourceListener(new edu.tufts.vue.dsm.DataSourceListener() {
+                    public void changed(edu.tufts.vue.dsm.DataSource[] dataSource,
+                                        Object state,
+                                        edu.tufts.vue.dsm.DataSource changed)
+                    {
+                        //Log.info("VDSM: " + state + "; changed=" + changed);
+
+                        if (state == VueDataSourceManager.DS_ALL_CONFIGURED) {
+                            Log.info(VDSM.getClass().getName() + ": " + state);
+                            UrlAuthentication.getInstance(); // VUE-879
+                        }
+
+                        // Note that we'll never get DS_ALL_CONFIGURED if any single DataSource /
+                        // Repository should hang. Normally, they will all load just fine, and this
+                        // init of UrlAuthentiction is just a caching action -- it would happen
+                        // anyway the first time UrlAuthentication is accessed. But if it runs before
+                        // all DataSources are configured, it will miss loading any authentication keys
+                        // from the unconfigured sources.
+
+                        // The problem VUE-879 refers to could still happen if a map that has content
+                        // requiring access to an authenticating source (e.g., a an image from a Sakai
+                        // server) is opened before the Sakai DataSource has been loaded. In our
+                        // currently UrlAuthentication impl, it will also disable authentication for
+                        // that DataSource for the remainder of the the VUE sesssion -- as it will have
+                        // initiailized its authentication cache (on the first URL based content access
+                        // during map load) before the Sakai DataSource was available to inspect for
+                        // authentication keys.
+                    }
+                });
+
+            VDSM.startRepositoryConfiguration(null);
         }
     }
     
@@ -1896,11 +1977,11 @@ public class VUE
                     dataFinderDock.setVisible(true);
 
                     GUI.invokeAfterAWT(new Runnable() { public void run() {
-//                         if (!SKIP_DR) {
-                        // will currently deadlock if DEBUG is NOT enabled, presumably when caching is attempted
-//                             DATA_FINDER_DEFAULTS.loadDataSourceViewer();
-//                             DATA_FINDER_RSS.loadDataSourceViewer();
-//                         }
+                        if (!SKIP_DR) {
+                            // still an issue?: [will currently deadlock if DEBUG is NOT enabled, presumably when caching is attempted]
+                            DATA_FINDER_DEFAULTS.loadDataSourceViewer();
+                            DATA_FINDER_RSS.loadDataSourceViewer();
+                        }
                         DATA_FINDER_XML.loadDataSourceViewer();
                     }});
                 }

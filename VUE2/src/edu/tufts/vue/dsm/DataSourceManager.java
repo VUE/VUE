@@ -52,5 +52,5 @@ public interface DataSourceManager {
     
     public void removeDataSourceListener(edu.tufts.vue.dsm.DataSourceListener listener);
     
-    public void  notifyDataSourceListeners();
+    //public void  notifyDataSourceListeners();
 }

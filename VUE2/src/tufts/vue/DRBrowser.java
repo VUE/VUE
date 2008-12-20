@@ -59,7 +59,7 @@ import javax.swing.border.*;
  * We'd probably need a delegating impl tho to handle that.
  *
  *
- * @version $Revision: 1.71 $ / $Date: 2008-09-15 23:03:11 $ / $Author: sfraize $ 
+ * @version $Revision: 1.72 $ / $Date: 2008-12-20 20:05:21 $ / $Author: sfraize $ 
  */
 public class DRBrowser extends JPanel
 {
@@ -462,7 +462,9 @@ public class DRBrowser extends JPanel
             DataSourceViewer.cacheDataSourceViewers();
         }});
 
-        DataSourceViewer.configureOSIDs();
+        edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance()
+            .startRepositoryConfiguration(null);
+                //DataSourceViewer.configureOSIDs();
 
         //-------------------------------------------------------
         // TODO: mods to the data-sources might wipe out the saved
