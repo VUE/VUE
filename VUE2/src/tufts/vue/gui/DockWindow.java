@@ -54,7 +54,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.138 $ / $Date: 2008-09-15 23:01:23 $ / $Author: sfraize $
+ * @version $Revision: 1.139 $ / $Date: 2008-12-21 21:09:49 $ / $Author: sraphe01 $
  * @author Scott Fraize
  */
 
@@ -1740,7 +1740,7 @@ public class DockWindow
 //         }
         
         int curHeight = getHeight();
-
+        int curWidth = getWidth();
         if (height != curHeight) {
 
             // If we're shrinking, move up our child before we shrink up,
@@ -1748,10 +1748,18 @@ public class DockWindow
             // whatever is under the window stack from peeking through as
             // the stack adjusts.
 
-            if (height < curHeight) {
-                updateAllChildLocations(height, getY());
-                _peer.peer_setBounds(x, y, width, height);
-            } else {
+            if (height < curHeight) {            	
+                updateAllChildLocations(height, getY());                
+                if(width < curWidth){                	
+                	_peer.peer_setBounds(x, y, width, height);
+                }else{  
+                	if(width == DefaultWidth ){
+                		_peer.peer_setBounds(x, y, width, height);
+                	}else{                		
+                		_peer.peer_setBounds(x, y, curWidth, height);
+                	}
+                }                
+            } else {            	
                 _peer.peer_setBounds(x, y, width, height);
                 updateAllChildLocations(height, getY());
             }
