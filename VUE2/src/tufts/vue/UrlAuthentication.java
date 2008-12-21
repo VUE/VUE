@@ -31,6 +31,8 @@ import org.apache.axis.client.Call;
 import org.apache.axis.client.Service;
 import org.osid.OsidException;
 
+import edu.tufts.vue.dsm.impl.VueDataSourceManager;
+
 /**
  * The purpose of this class is to resolve authentication on images stored in
  * protected repositories.
@@ -39,65 +41,121 @@ import org.osid.OsidException;
  * in Sakai by getting a session id through the Sakai web service, and passing that session id
  * in the header of the http request.
  * 
- * Since getSessionId() is called for every(?) image resource, most of which are not stored 
+ * Since getRequestProperties is called for every URL image resource, most of which are not stored 
  * in Sakai, the default behavior of this method should be as lightweight as possible.
  * 
- *  A goal is to generalize this class so that it is not Sakai specific.
+ * A future goal is to generalize this class so that it is not Sakai specific.
  *  
  */
-public class UrlAuthentication 
+public class UrlAuthentication implements edu.tufts.vue.dsm.DataSourceListener
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(UrlAuthentication.class);
     
-    private static final Map<String, Map<String,String>> HostMap = new HashMap();
+    private static final Map<String, Map<String,String>> HostMap = new java.util.concurrent.ConcurrentHashMap();
     private static final UrlAuthentication ua = new UrlAuthentication();
     
+    /** Note: this must be called the first time before the VDSM has configured any DataSources */
     public static UrlAuthentication getInstance() {
         return ua;
     }
-    
-    /**
-     * Currently stores only Sakai hosts
-     */
-    private UrlAuthentication() 
-    {
-        edu.tufts.vue.dsm.DataSourceManager dsm;
-        edu.tufts.vue.dsm.DataSource dataSources[] = null;
-				
-        try {
-            // load new data sources
-            Log.info("Fetching VueDataSourceManager");
-            dsm = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
-			
-            Log.info("Fetching Sakai data sources from VDSM");
-            
-            // Sakai specific code begins
-            SakaiExport se = new SakaiExport(dsm);
-            dataSources = se.getSakaiDataSources();
-			
-            for (int i = 0; i < dataSources.length; i++) {
-                if (dataSources[i].hasConfiguration()) {
-                    Log.info("asking sakai data source for any needed credentials: " + dataSources[i]);
-                    Properties configuration = dataSources[i].getConfiguration();
-                    loadHostMap(configuration);
-                    //VUE.Log .info("Sakai session id = " + _sessionId);
-                }
-            }
 
-            Log.info("Done loading authentication keys.");
+    public void changed(final edu.tufts.vue.dsm.DataSource[] dataSources,
+                        final Object state,
+                        final edu.tufts.vue.dsm.DataSource changed)
+    {
+        if (state == VueDataSourceManager.DS_CONFIGURED) {
+
+            if (DEBUG.DR) Log.debug("CONFIGURED: " + changed);
+
+            scanForCredentials(changed);
+
+        } else if (state == VueDataSourceManager.DS_ALL_CONFIGURED) {
+
+            if (VueDataSourceManager.BLOCKING_OSID_LOAD) {
+                for (edu.tufts.vue.dsm.DataSource ds : dataSources)
+                    scanForCredentials(ds);
+            }
             
+            if (true||DEBUG.Enabled)
+                Log.info("Done scanning for authentication keys: " + HostMap);
+            else
+                Log.info("Done scanning for authentication keys.");
+        }
+
+    }
+
+    private void scanForCredentials(edu.tufts.vue.dsm.DataSource ds) {
+        if (DEBUG.DR) Log.debug("scanning " + ds);
+        try {
+            if (SakaiExport.isSakaiSource(ds)) {
+                Log.info("asking sakai data source for any needed credentials: " + ds); 
+                loadHostMap(ds.getConfiguration());
+            }
         } catch (OsidException e) {
             Log.error(e);
-            // VueUtil.alert("Error loading Resource", "Error");
+        }
+    }
+
+    
+    /** This must be instanced before the VDSM has configured any DataSources */
+    private UrlAuthentication() 
+    {
+        try {
+            edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance()
+                .addDataSourceListener(this);
+            Log.info("instanced; listening to VDSM");
         } catch (Throwable t) {
-            // Even if we fail to load any needed authorization keys for any web hosts,
-            // make sure UrlAuthentication successfully initializes, otherwise every
-            // single URL data fetch (e.g., for images at open access on the web)
-            // could fail, as their data fetches all go through this code to check
-            // for possible needed authorization.  SMF 2008-02-28
+            // Even if we fail for any reason, make sure UrlAuthentication successfully
+            // initializes, otherwise every single URL data fetch (e.g., for images at
+            // open access on the web) could fail, as their data fetches all go through
+            // this code to check for possible needed authorization.
             Log.error(t);
         }
     }
+    
+    
+//     /**
+//      * Currently stores only Sakai hosts
+//      */
+//     private UrlAuthentication() 
+//     {
+//         edu.tufts.vue.dsm.DataSourceManager dsm;
+//         edu.tufts.vue.dsm.DataSource dataSources[] = null;
+				
+//         try {
+//             // load new data sources
+//             Log.info("Fetching VueDataSourceManager");
+//             dsm = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
+			
+//             Log.info("Fetching Sakai data sources from VDSM");
+            
+//             // Sakai specific code begins
+//             SakaiExport se = new SakaiExport(dsm);
+//             dataSources = se.getSakaiDataSources();
+			
+//             for (int i = 0; i < dataSources.length; i++) {
+//                 if (dataSources[i].hasConfiguration()) {
+//                     Log.info("asking sakai data source for any needed credentials: " + dataSources[i]);
+//                     Properties configuration = dataSources[i].getConfiguration();
+//                     loadHostMap(configuration);
+//                     //VUE.Log .info("Sakai session id = " + _sessionId);
+//                 }
+//             }
+
+//             Log.info("Done loading authentication keys.");
+            
+//         } catch (OsidException e) {
+//             Log.error(e);
+//             // VueUtil.alert("Error loading Resource", "Error");
+//         } catch (Throwable t) {
+//             // Even if we fail to load any needed authorization keys for any web hosts,
+//             // make sure UrlAuthentication successfully initializes, otherwise every
+//             // single URL data fetch (e.g., for images at open access on the web)
+//             // could fail, as their data fetches all go through this code to check
+//             // for possible needed authorization.  SMF 2008-02-28
+//             Log.error(t);
+//         }
+//     }
 	
     /** 
      * @param url The URL of map resource 
@@ -264,95 +322,97 @@ public class UrlAuthentication
     }
 
 
-	/** 
-	 * Extract credentials from configuration of installed datasources
-	 * and use those credentials to generate a session id.  Note that 
-	 * though the configuration information supports the OSID search, 
-	 * this code doesn't use OSIDs to generate a session id.
-	 * @param configuration
-	 * @return 
-	 */
-	private void loadHostMap(Properties configuration)
-	{
-		String username = configuration.getProperty("sakaiUsername");
-		String password = configuration.getProperty("sakaiPassword");
-		String host     = configuration.getProperty("sakaiHost");
-		String port     = configuration.getProperty("sakaiPort");
+    /** 
+     * Extract credentials from configuration of installed datasources and use those
+     * credentials to generate a session id.  Note that though the configuration
+     * information supports the OSID search, this code doesn't use OSIDs to generate a
+     * session id.
+     * @param configuration
+     * @return 
+     */
+    private void loadHostMap(Properties configuration)
+    {
+        if (DEBUG.DR) Log.debug("loading " + configuration);
+            
+        String username = configuration.getProperty("sakaiUsername");
+        String password = configuration.getProperty("sakaiPassword");
+        String host     = configuration.getProperty("sakaiHost");
+        String port     = configuration.getProperty("sakaiPort");
 
-		String sessionId;
-		boolean debug = false;
+        String sessionId;
+        boolean debug = false;
 
-		// show web services errors?
-		String debugString = configuration.getProperty("sakaiAuthenticationDebug");
-		if (debugString != null) {
-			debug = (debugString.trim().toLowerCase().equals("true"));
-		}
+        // show web services errors?
+        String debugString = configuration.getProperty("sakaiAuthenticationDebug");
+        if (debugString != null) {
+            debug = (debugString.trim().toLowerCase().equals("true"));
+        }
 		
-		// System.out.println("username " + this.username);
-		// System.out.println("password " + this.password);
-		// System.out.println("host " + this.host);
-		// System.out.println("port " + this.port);
+        // System.out.println("username " + this.username);
+        // System.out.println("password " + this.password);
+        // System.out.println("host " + this.host);
+        // System.out.println("port " + this.port);
 
-                final String hostname;
+        final String hostname;
 
-                if (host.startsWith("http://")) {
-                    hostname = host.substring(7);
-                } else {
-                    hostname = host;
-                    // add http if it is not present
-                    host = "http://" + host;
-                }
+        if (host.startsWith("http://")) {
+            hostname = host.substring(7);
+        } else {
+            hostname = host;
+            // add http if it is not present
+            host = "http://" + host;
+        }
                 
-		try {
-                    String endpoint = host + ":" + port + "/sakai-axis/SakaiLogin.jws";
-                    Service  service = new Service();
-                    Call call = (Call) service.createCall();
+        try {
+            String endpoint = host + ":" + port + "/sakai-axis/SakaiLogin.jws";
+            Service  service = new Service();
+            Call call = (Call) service.createCall();
                     
-                    call.setTargetEndpointAddress (new java.net.URL(endpoint) );
-                    call.setOperationName(new QName(host + port + "/", "login"));
+            call.setTargetEndpointAddress (new java.net.URL(endpoint) );
+            call.setOperationName(new QName(host + port + "/", "login"));
                     
-                    sessionId = (String) call.invoke( new Object[] { username, password } );
+            sessionId = (String) call.invoke( new Object[] { username, password } );
 
-                    // todo: the ".vue-sakai" should presumably come from the web service,
-                    // or at least from some internal config.
-                    sessionId = "JSESSIONID=" + sessionId + ".vue-sakai";
+            // todo: the ".vue-sakai" should presumably come from the web service,
+            // or at least from some internal config.
+            sessionId = "JSESSIONID=" + sessionId + ".vue-sakai";
 
-                    final String hostPortKey;
+            final String hostPortKey;
 
-                    if ("80".equals(port)) {
-                        // 80 is the default port -- not encoded
-                        hostPortKey = hostname;
-                    } else {
-                        hostPortKey = hostname + ":" + port;
-                    }
+            if ("80".equals(port)) {
+                // 80 is the default port -- not encoded
+                hostPortKey = hostname;
+            } else {
+                hostPortKey = hostname + ":" + port;
+            }
                     
 
-                    Map<String,String> httpRequestProperties;
+            Map<String,String> httpRequestProperties;
 
-                    if ("vue-dl.tccs.tufts.edu".equals(hostname) && "8180".equals(port)) {
-                        httpRequestProperties = new HashMap();
-                        httpRequestProperties.put("Cookie", sessionId);
-                        // Special case for tufts Sakai server? Do all Sakai servers
-                        // need this?
-                        httpRequestProperties.put("Host", "vue-dl.tccs.tufts.edu:8180");
-                        httpRequestProperties = Collections.unmodifiableMap(httpRequestProperties);
-                    } else {
-                        httpRequestProperties = Collections.singletonMap("Cookie", sessionId);
-                    }
-                    HostMap.put(hostPortKey, httpRequestProperties);
-                    Log.info("cached auth keys for [" + hostPortKey + "]; " + httpRequestProperties);
-//                     if (DEBUG.Enabled)
-//                         System.out.println("URLAuthentication: cached auth keys for [" + hostPortKey + "]; "
-//                                            + httpRequestProperties);
-		}
-		catch( MalformedURLException e ) {
+            if ("vue-dl.tccs.tufts.edu".equals(hostname) && "8180".equals(port)) {
+                httpRequestProperties = new HashMap();
+                httpRequestProperties.put("Cookie", sessionId);
+                // Special case for tufts Sakai server? Do all Sakai servers
+                // need this?
+                httpRequestProperties.put("Host", "vue-dl.tccs.tufts.edu:8180");
+                httpRequestProperties = Collections.unmodifiableMap(httpRequestProperties);
+            } else {
+                httpRequestProperties = Collections.singletonMap("Cookie", sessionId);
+            }
+            HostMap.put(hostPortKey, httpRequestProperties);
+            Log.info("cached auth keys for [" + hostPortKey + "]; " + httpRequestProperties);
+//             if (DEBUG.Enabled)
+//                 System.out.println("URLAuthentication: cached auth keys for [" + hostPortKey + "]; "
+//                                    + httpRequestProperties);
+        }
+        catch( MalformedURLException e ) {
 			
-		}
-		catch( RemoteException e ) {
+        }
+        catch( RemoteException e ) {
 			
-		}
-		catch( ServiceException e ) {
+        }
+        catch( ServiceException e ) {
 			
-		}
-	}
+        }
+    }
 }

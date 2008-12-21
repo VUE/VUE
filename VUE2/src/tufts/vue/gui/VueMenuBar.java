@@ -47,7 +47,7 @@ import edu.tufts.vue.dsm.impl.VueDataSourceManager;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.123 $ / $Date: 2008-12-20 20:05:21 $ / $Author: sfraize $
+ * @version $Revision: 1.124 $ / $Date: 2008-12-21 19:25:22 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -254,9 +254,13 @@ public class VueMenuBar extends javax.swing.JMenuBar
             public void changed(edu.tufts.vue.dsm.DataSource[] dataSource, Object state, edu.tufts.vue.dsm.DataSource changed) {
                 if (DEBUG.Enabled) Log.debug("data sources changed; " + state);
 
-                if (state == VueDataSourceManager.DS_CONFIGURED || state == VueDataSourceManager.DS_ALL_CONFIGURED) {
-                    // go ahead and rebuild the publish menu
-                    // note that we don't wait for just DS_ALL_CONFIGURED, as it's possible that may never come
+                if (state == VueDataSourceManager.DS_CONFIGURED) {
+                    // Rebuild the publish menu.  Note that we don't wait for just
+                    // DS_ALL_CONFIGURED, as it's possible that may never come
+                } else if (state == VueDataSourceManager.DS_ALL_CONFIGURED && VUE.BLOCKING_OSID_LOAD) {
+                    // Rebuild the publish menu.  If OSID load is blocking, we won't get
+                    // any DS_CONFIGURED events -- only the DS_ALL_CONFIGURED at the
+                    // end.
                 } else {
                     return;
                 }

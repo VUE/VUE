@@ -39,15 +39,16 @@ import org.xml.sax.InputSource;
  * for multi-threaded hang-proof initialization (repository configuration),
  * and event delivery to track the progress of loading.
  *
- * @version $Revision: 1.47 $ / $Date: 2008-12-20 20:05:21 $ / $Author: sfraize $  
+ * @version $Revision: 1.48 $ / $Date: 2008-12-21 19:25:18 $ / $Author: sfraize $  
  */
 public class VueDataSourceManager
     implements edu.tufts.vue.dsm.DataSourceManager
 {
-    /** if true, all data sources will block until their repositories are found and configured,
-     * which can result in a hang if there is a problem with any repository.  We're keeping this
-     * flag until we're sure our more complex impl's (VUE init, UI updates, etc) for handling the
-     * more complex non-blocking case are fully tested. SMF 2008-12-20 
+    /** If true, all data sources will block until their repositories are found and
+     * configured, which can result in a hang if there is a problem with any repository.
+     * This is the original implementation, and remains as a fallback impl in case of
+     * threading issues at startup, but VUE's relevant impl's should now fully handle
+     * the multi-threaded dynamic event delivery required by the non-blocking case.
      */
     public static final boolean BLOCKING_OSID_LOAD = false;
     
@@ -91,8 +92,12 @@ public class VueDataSourceManager
     private static volatile boolean marshalling = false;
     
     // Todo: this class doesn't always appear to be threadsafe.
-    // And do we we really want getInstance to return an empty default DSM instance,
-    // that changes after load is called?
+    
+    // Do we we really want getInstance to return an empty default DSM
+    // instance, that changes after load is called? Currently this
+    // doesn't matter, VDSM has no member variables -- all are static,
+    // but it isn't a very clean way to do it.
+
     public static VueDataSourceManager getInstance() {
         return dataSourceManager;
     }
@@ -107,7 +112,8 @@ public class VueDataSourceManager
         marshall(new File(this.xmlFilename), this);
     }
 
-    public static void load() {
+    private static VueDataSourceManager load() {
+
         try {
             File f = new File(xmlFilename);
             if (f.exists()) {
@@ -128,12 +134,16 @@ public class VueDataSourceManager
                 }
                     
             } else {
-                debug("Installed datasources not found");
+                debug("Installed datasources not found; missing " + f);
+                return null;
             }
         }  catch (Throwable t) {
-            tufts.vue.VueUtil.alert("Error instantiating Provider support","Error");
+            // todo: should not be popping a dialog here...
+            tufts.vue.VueUtil.alert("Error instantiating Provider support", "Error");
             Log.warn("In load via Castor", t);
+            return null;
         }
+        return dataSourceManager;
     }
 
     /**
@@ -176,7 +186,6 @@ public class VueDataSourceManager
                                      ds.getRepositoryDisplayName()))
             {
                 @Override public void run() {
-
                     try {
                         
                         try {
@@ -190,9 +199,9 @@ public class VueDataSourceManager
                             else
                                 notifyDataSourceListeners(DS_CONFIGURED, ds);
 
-                            if (ds.getRepositoryDisplayName().startsWith("Conn")) // test
-                            try { Thread.sleep(5000); } catch (Throwable t) {}
-
+//                             if (ds.getRepositoryDisplayName().startsWith("Conn")) // test
+//                             try { Thread.sleep(5000); } catch (Throwable t) {}
+  
                         } catch (Throwable t) {
                             Log.error("configuration error: " + Util.tags(ds), t);
                             notifyDataSourceListeners(DS_ERROR, ds);
@@ -220,7 +229,9 @@ public class VueDataSourceManager
                             // listeners should ideally be designed to provide at least some
                             // functionality based only on the delivery of the DS_CONFIGURED events
                             // as the come in.
-                            
+
+                            setName(getName().toUpperCase()); // tweak the thread name for debug
+
                             notifyDataSourceListeners(DS_ALL_CONFIGURED);
                         }
                         

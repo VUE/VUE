@@ -18,47 +18,83 @@ public class SakaiExport
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(SakaiExport.class);
     
-    private final org.osid.shared.Type _collectionAssetType = new edu.tufts.vue.util.Type("sakaiproject.org","asset","siteCollection");
-    private final org.osid.shared.Type _sakaiRepositoryType = new edu.tufts.vue.util.Type("sakaiproject.org","repository","contentHosting");
+    private static final org.osid.shared.Type _collectionAssetType = new edu.tufts.vue.util.Type("sakaiproject.org","asset","siteCollection");
+    private static final org.osid.shared.Type _sakaiRepositoryType = new edu.tufts.vue.util.Type("sakaiproject.org","repository","contentHosting");
     private final edu.tufts.vue.dsm.DataSourceManager _dsm;
+
+    public static boolean isSakaiSource(edu.tufts.vue.dsm.DataSource ds)
+        throws org.osid.repository.RepositoryException
+    {
+        final org.osid.repository.Repository repository = ds.getRepository();
+        final String rname = (repository == null ? "<null!>" : repository.getDisplayName());
+        if (DEBUG.DR) Log.debug("Examining data source: " + ds + "; repository=" + rname);
+
+        //final String name = (repository == null ? "<null-repository>" : repository.getDisplayName());
+        //if (DEBUG.DR) Log.debug(" Which has repository: " + repository + "; name=" + name);
+                    
+        if (ds.supportsUpdate() && repository != null) {
+            if (DEBUG.DR) Log.info("Supports Update, Now Checking Type");
+            if (DEBUG.DR) Log.info("checking type " + repository.getType().getAuthority() );
+            if (repository.getType().isEqual(_sakaiRepositoryType)) {
+                if (DEBUG.DR) Log.info("checking type worked" );
+                return true;
+            }
+        }
+        return false;
+    }
 
     public SakaiExport(edu.tufts.vue.dsm.DataSourceManager dsm) {
         _dsm = dsm;
     }
 	
-	public edu.tufts.vue.dsm.DataSource[] getSakaiDataSources()
-		throws org.osid.repository.RepositoryException
-	{
-		java.util.Vector dataSourceVector = new java.util.Vector();
-		edu.tufts.vue.dsm.DataSource result[] = new edu.tufts.vue.dsm.DataSource[0];
+    // this no longer needed by UrlAuthentication -- do we still need it?
+    public java.util.List<edu.tufts.vue.dsm.DataSource> getSakaiDataSources()
+        throws org.osid.repository.RepositoryException
+    {
+        final java.util.List<edu.tufts.vue.dsm.DataSource> sakaiSources = new java.util.ArrayList();
+        
+        for (edu.tufts.vue.dsm.DataSource ds : _dsm.getDataSources())
+            if (isSakaiSource(ds))
+                sakaiSources.add(ds);
+
+        return sakaiSources;
+        //return sakaiSources.toArray(new edu.tufts.vue.dsm.DataSource[sakaiSources.size()]);
+        
+    }
+    
+// 	public edu.tufts.vue.dsm.DataSource[] getSakaiDataSources()
+// 		throws org.osid.repository.RepositoryException
+// 	{
+// 		java.util.Vector dataSourceVector = new java.util.Vector();
+// 		edu.tufts.vue.dsm.DataSource result[] = new edu.tufts.vue.dsm.DataSource[0];
 		
-		edu.tufts.vue.dsm.DataSource dataSources[] = _dsm.getDataSources();
-		for (int i=0; i < dataSources.length; i++) {
+// 		edu.tufts.vue.dsm.DataSource dataSources[] = _dsm.getDataSources();
+// 		for (int i=0; i < dataSources.length; i++) {
                     
-                    final org.osid.repository.Repository repository = dataSources[i].getRepository();
-                    final String rname = (repository == null ? "<null!>" : repository.getDisplayName());
-                    if (DEBUG.DR) Log.debug("Examining data source: " + dataSources[i] + "; repository=" + rname);
+//                     final org.osid.repository.Repository repository = dataSources[i].getRepository();
+//                     final String rname = (repository == null ? "<null!>" : repository.getDisplayName());
+//                     if (DEBUG.DR) Log.debug("Examining data source: " + dataSources[i] + "; repository=" + rname);
                     
-//                     final String name = (repository == null ? "<null-repository>" : repository.getDisplayName());
-//                     if (DEBUG.DR) Log.debug(" Which has repository: " + repository + "; name=" + name);
+// //                     final String name = (repository == null ? "<null-repository>" : repository.getDisplayName());
+// //                     if (DEBUG.DR) Log.debug(" Which has repository: " + repository + "; name=" + name);
                     
-                    if (dataSources[i].supportsUpdate() && repository != null) {
-                        if (DEBUG.DR) Log.info("Supports Update, Now Checking Type");
-                        if (DEBUG.DR) Log.info("checking type " + repository.getType().getAuthority() );
-                        if (repository.getType().isEqual(_sakaiRepositoryType)) {
-                            if (DEBUG.DR) Log.info("checking type worked" );
-                            dataSourceVector.addElement(dataSources[i]);
-                        }
-                    }
-		}
-		// convert to array for return
-		int size = dataSourceVector.size();
-		result = new edu.tufts.vue.dsm.DataSource[size];
-		for (int i=0; i < size; i++) {
-			result[i] = (edu.tufts.vue.dsm.DataSource)dataSourceVector.elementAt(i);
-		}
-		return result;
-	}
+//                     if (dataSources[i].supportsUpdate() && repository != null) {
+//                         if (DEBUG.DR) Log.info("Supports Update, Now Checking Type");
+//                         if (DEBUG.DR) Log.info("checking type " + repository.getType().getAuthority() );
+//                         if (repository.getType().isEqual(_sakaiRepositoryType)) {
+//                             if (DEBUG.DR) Log.info("checking type worked" );
+//                             dataSourceVector.addElement(dataSources[i]);
+//                         }
+//                     }
+// 		}
+// 		// convert to array for return
+// 		int size = dataSourceVector.size();
+// 		result = new edu.tufts.vue.dsm.DataSource[size];
+// 		for (int i=0; i < size; i++) {
+// 			result[i] = (edu.tufts.vue.dsm.DataSource)dataSourceVector.elementAt(i);
+// 		}
+// 		return result;
+// 	}
 
 	// if array is empty, configuration was incomplete, server was not responding, permission was denied
 	public SakaiCollection[] getCollections(edu.tufts.vue.dsm.DataSource dataSource)

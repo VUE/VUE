@@ -253,7 +253,6 @@ public class DataSourceViewer extends JPanel
 
     private void loadOSIDDataSources()
     {
-        //OSIDsLoaded = true;
         edu.tufts.vue.dsm.DataSource dataSources[] = null;
         
         try {
@@ -272,7 +271,7 @@ public class DataSourceViewer extends JPanel
             for (int i = 0; i < dataSources.length; i++) {
                 final int index = i;
                 final edu.tufts.vue.dsm.DataSource ds = dataSources[i];
-                Log.info("adding to the UI: " + ds);
+                Log.info("  add to UI: " + ds);
                 dataSourceList.addOrdered(ds);
 //                 GUI.invokeAfterAWT(new Runnable() { public void run() {
 //                     try {
