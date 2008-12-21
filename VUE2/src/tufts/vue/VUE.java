@@ -120,7 +120,7 @@ import edu.tufts.vue.dsm.impl.VueDataSourceManager;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.609 $ / $Date: 2008-12-20 20:05:21 $ / $Author: sfraize $ 
+ * @version $Revision: 1.610 $ / $Date: 2008-12-21 00:56:08 $ / $Author: sraphe01 $ 
  */
 
 public class VUE
@@ -178,7 +178,7 @@ public class VUE
     public static JCheckBoxMenuItem  categoriesMenuItem;
     public static JCheckBoxMenuItem  categoryKeywordMenuItem;
     public static JCheckBoxMenuItem  editSettingsMenuItem;
-    public static JSlider depthSelectionSlider = new JSlider(JSlider.HORIZONTAL,1, 6, 6);
+    public static JSlider depthSelectionSlider = new JSlider(JSlider.HORIZONTAL,1, 16, 16);
     public static void finalizeDocks()
     {
     
@@ -2244,13 +2244,43 @@ public class VUE
         JPanel panel = new JPanel(new FlowLayout());        
          
         depthSelectionSlider.setFont(new Font("SansSerif", Font.PLAIN, 4));
+        //depthSelectionSlider.putClientProperty("JSlider.isFilled", Boolean.TRUE);
         Hashtable labelTable = new Hashtable();
+        JLabel linePanel = new JLabel() {
+            protected void paintComponent(java.awt.Graphics g) {
+                 //setSize(40,20);
+                g.setColor(java.awt.Color.DARK_GRAY);
+                g.drawLine(0, 0, 0,
+                        10);
+            }            
+        };
+        JLabel halfLinePanel = new JLabel() {
+            protected void paintComponent(java.awt.Graphics g) {
+                 //setSize(40,20);
+                g.setColor(java.awt.Color.DARK_GRAY);
+                g.drawLine(0, 0, 0,
+                        5);
+            }            
+        };
+        linePanel.setBorder(BorderFactory.createLineBorder(panel.getBackground(), 1));
+        halfLinePanel.setBorder(BorderFactory.createLineBorder(panel.getBackground(), 1));
+
         labelTable.put( new Integer( 1 ), new JLabel("1") );
-        labelTable.put( new Integer( 2 ), new JLabel("|") );
-        labelTable.put( new Integer( 3 ), new JLabel("|") );
-        labelTable.put( new Integer( 4 ), new JLabel("|") );
-        labelTable.put( new Integer( 5 ), new JLabel("5") );
-        labelTable.put( new Integer( 6 ), new JLabel("All"));
+        labelTable.put( new Integer( 2 ), halfLinePanel);
+        labelTable.put( new Integer( 3 ), halfLinePanel);
+        labelTable.put( new Integer( 4 ), linePanel );
+        labelTable.put( new Integer( 5 ), halfLinePanel);
+        labelTable.put( new Integer( 6 ), halfLinePanel);
+        labelTable.put( new Integer( 7 ), linePanel );
+        labelTable.put( new Integer( 8 ), halfLinePanel);
+        labelTable.put( new Integer( 9 ), halfLinePanel);
+        labelTable.put( new Integer( 10 ), linePanel );
+        labelTable.put( new Integer( 11 ), halfLinePanel);
+        labelTable.put( new Integer( 12 ), halfLinePanel);
+        labelTable.put( new Integer( 13 ), new JLabel("5") );
+        labelTable.put( new Integer( 14 ), halfLinePanel);
+        labelTable.put( new Integer( 15 ), halfLinePanel);
+        labelTable.put( new Integer( 16 ), new JLabel("All"));
         depthSelectionSlider.setLabelTable( labelTable );
 
         //framesPerSecond.setMajorTickSpacing(6);
