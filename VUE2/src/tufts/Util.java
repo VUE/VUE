@@ -1042,6 +1042,12 @@ public class Util
         return new ExposedArrayList(array);
     }
     
+//     public static <T> T[] toArray(Collection<T> bag) {
+//         // return (T[]) bag.toArray(); class cast exception
+//         // can't create a new instance of the array w/out a known type -- unreliable to pull from collection (and could be empty)
+//         //return bag.toArray((T[])java.lang.reflect.Array.newInstance(?.getClass().getComponentType(), bag.size()));
+//     }
+    
     /**
      * Identical to Arrays.asList, except that toArray() returns the internal array,
      * which allows for Collection.addAll(ExposedArrayList) to be used w/out triggering an array clone
