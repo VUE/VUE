@@ -39,6 +39,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
@@ -53,6 +55,7 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
+import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
@@ -120,7 +123,7 @@ import edu.tufts.vue.dsm.impl.VueDataSourceManager;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.612 $ / $Date: 2008-12-22 21:39:27 $ / $Author: sfraize $ 
+ * @version $Revision: 1.613 $ / $Date: 2008-12-22 22:10:16 $ / $Author: sraphe01 $ 
  */
 
 public class VUE
@@ -175,7 +178,8 @@ public class VUE
     public static JCheckBoxMenuItem  categoriesMenuItem;
     public static JCheckBoxMenuItem  categoryKeywordMenuItem;
     public static JCheckBoxMenuItem  editSettingsMenuItem;
-    public static JSlider depthSelectionSlider = new JSlider(JSlider.HORIZONTAL,1, 16, 16);
+    //public static JCheckBoxMenuItem  resetSettingsMenuItem;
+    public static JSlider depthSelectionSlider = new JSlider(JSlider.HORIZONTAL,1, 6, 6);
     public static void finalizeDocks()
     {
     
@@ -2173,7 +2177,7 @@ public class VUE
 		    public void mouseClicked(MouseEvent e)
 		    {
 		       //TO DO
-		       System.err.println("Clicked on Search Icon:::::");
+//		       System.err.println("Clicked on Search Icon:::::");
 		    }
 		});
         arrowLbl.setIcon(tufts.vue.VueResources
@@ -2183,7 +2187,7 @@ public class VUE
 		    public void mouseClicked(MouseEvent e)
 		    {
 		       //TO DO
-		       System.err.println("Clicked on Down Arrow:::::");
+//		       System.err.println("Clicked on Down Arrow:::::");
 		    }
 		});
         clearLbl.setIcon(tufts.vue.VueResources
@@ -2218,7 +2222,9 @@ public class VUE
         //searchPanel.setBorder(BorderFactory.createLineBorder(Color.red,1));
         JPanel panel = new JPanel(new FlowLayout());        
          
-        depthSelectionSlider.setFont(new Font("SansSerif", Font.PLAIN, 4));
+        depthSelectionSlider.setFont(new Font("SansSerif", Font.PLAIN, 1));
+        depthSelectionSlider.setSize(new Dimension(0,20));
+        //depthSelectionSlider.setPaintTicks(true);
         //depthSelectionSlider.putClientProperty("JSlider.isFilled", Boolean.TRUE);
         Hashtable labelTable = new Hashtable();
         JLabel linePanel = new JLabel() {
@@ -2241,21 +2247,21 @@ public class VUE
         halfLinePanel.setBorder(BorderFactory.createLineBorder(panel.getBackground(), 1));
 
         labelTable.put( new Integer( 1 ), new JLabel("1") );
-        labelTable.put( new Integer( 2 ), halfLinePanel);
-        labelTable.put( new Integer( 3 ), halfLinePanel);
+//        labelTable.put( new Integer( 2 ), halfLinePanel);
+//        labelTable.put( new Integer( 3 ), halfLinePanel);
+        labelTable.put( new Integer( 2 ), linePanel );
+//        labelTable.put( new Integer( 5 ), halfLinePanel);
+//        labelTable.put( new Integer( 6 ), halfLinePanel);
+        labelTable.put( new Integer( 3 ), linePanel );
+//        labelTable.put( new Integer( 8 ), halfLinePanel);
+//        labelTable.put( new Integer( 9 ), halfLinePanel);
         labelTable.put( new Integer( 4 ), linePanel );
-        labelTable.put( new Integer( 5 ), halfLinePanel);
-        labelTable.put( new Integer( 6 ), halfLinePanel);
-        labelTable.put( new Integer( 7 ), linePanel );
-        labelTable.put( new Integer( 8 ), halfLinePanel);
-        labelTable.put( new Integer( 9 ), halfLinePanel);
-        labelTable.put( new Integer( 10 ), linePanel );
-        labelTable.put( new Integer( 11 ), halfLinePanel);
-        labelTable.put( new Integer( 12 ), halfLinePanel);
-        labelTable.put( new Integer( 13 ), new JLabel("5") );
-        labelTable.put( new Integer( 14 ), halfLinePanel);
-        labelTable.put( new Integer( 15 ), halfLinePanel);
-        labelTable.put( new Integer( 16 ), new JLabel("All"));
+//        labelTable.put( new Integer( 11 ), halfLinePanel);
+//        labelTable.put( new Integer( 12 ), halfLinePanel);
+        labelTable.put( new Integer( 5 ), new JLabel("5") );
+//        labelTable.put( new Integer( 14 ), halfLinePanel);
+//        labelTable.put( new Integer( 15 ), halfLinePanel);
+        labelTable.put( new Integer( 6 ), new JLabel("All"));
         depthSelectionSlider.setLabelTable( labelTable );
 
         //framesPerSecond.setMajorTickSpacing(6);
@@ -2264,7 +2270,7 @@ public class VUE
         //framesPerSecond.setPaintTicks(true);
         depthSelectionSlider.setPaintLabels(true);
         depthSelectionSlider.setPreferredSize(new Dimension(200,35));
-        SliderActionListener lst = new SliderActionListener();
+        SliderActionListener lst = new SliderActionListener();        
         depthSelectionSlider.addChangeListener(lst);
         
         //panel.setBorder(BorderFactory.createLineBorder(Color.red, 1));
@@ -2290,7 +2296,8 @@ public class VUE
     	boolean isWindows = VueUtil.isWindowsPlatform();
     	SearchTextField() {
     		super(VueResources.getString("search.text.default"),15);     		
-        	thisTxtFld = this;         	
+        	thisTxtFld = this;    
+        	thisTxtFld.setPreferredSize(new Dimension(0,23));
         	GUI.init();
         	initMenuSettings();
         	if(!isWindows){
@@ -2316,9 +2323,63 @@ public class VUE
                    			 	}
             		        }
             		     }
+            		     public void mouseEntered(MouseEvent e){
+            		    	 
+            		     }
+            		     public void mouseExited(MouseEvent e){
+            		    	 
+            		     }
 
     				});
- 
+//            		addMouseListener(new MouseAdapter() {            			
+//            		     public void mouseEntered(MouseEvent e){
+//            		    	 if((e.getX()< 23) ){								
+//     							mouse_over = true;     							
+//     							repaint();
+//     		     		     }else if(e.getX() < getWidth()-23){			     		    	
+//     		     		    	mouse_over = false;     		     		    	
+//     		     		    	repaint();
+//     		     		     }else{			     		    	
+//     		     		    	mouse_over = false;     		     		    	
+//     		     		    	repaint();		     		    	 
+//     		     		     }
+//            		     }
+//            		     public void mouseExited(MouseEvent e){
+//            		    	 if((e.getX()< 23) ){								
+//     							mouse_over = false;     							
+//     							repaint();
+//     		     		     }else if(e.getX() < getWidth()-23){			     		    	
+//     		     		    	mouse_over = false;     		     		    	
+//     		     		    	repaint();
+//     		     		     }else{			     		    	
+//     		     		    	mouse_over = false;     		     		    	
+//     		     		    	repaint();		     		    	 
+//     		     		     }
+//            		     }
+//
+//    				});
+            		fieldTxt.addKeyListener(new KeyAdapter() {
+    				    public void keyReleased(KeyEvent ke) {					    
+    				       if (ke.getKeyCode() == KeyEvent.VK_ENTER) {				    	   
+    				    	   if(searcheveryWhereMenuItem.isSelected()){
+    		    			    	setSearchEverywhereAction();					
+    		    			    }else if(editSettingsMenuItem.isSelected()){
+    		    			    	setEditSettingsAction();
+    		    			    }else if(labelMenuItem.isSelected()){
+    		    			    	setLabelSettingsAction();
+    		    			    }else if(keywordMenuItem.isSelected()){
+    		    			    	setKeywordSettingsAction();
+    		    			    }else if(categoryKeywordMenuItem.isSelected()){
+    		    			    	setKeywordCategorySettingsAction();
+    		    			    }else if(categoriesMenuItem.isSelected()){
+    		    			    	setCategorySettingsAction();
+    		    			    }else{
+    		    			    	setSearchEverywhereAction();
+    		    			    }
+    				         } 
+    				     }
+    				    });		
+            		
             		thisTxtFld.setEditable(false);
         			thisTxtFld.setLayout(new FlowLayout(FlowLayout.CENTER, 1, 0));
         			thisTxtFld.add(fieldTxt, BorderLayout.CENTER);        			
@@ -2343,10 +2404,29 @@ public class VUE
 		          				 setText("");
 		             		}
         		        }
-
         		     }
-
 				});
+        		addKeyListener(new KeyAdapter() {
+				    public void keyReleased(KeyEvent ke) {					    
+				       if (ke.getKeyCode() == KeyEvent.VK_ENTER) {				    	   
+				    	   if(searcheveryWhereMenuItem.isSelected()){
+		    			    	setSearchEverywhereAction();					
+		    			    }else if(editSettingsMenuItem.isSelected()){
+		    			    	setEditSettingsAction();
+		    			    }else if(labelMenuItem.isSelected()){
+		    			    	setLabelSettingsAction();
+		    			    }else if(keywordMenuItem.isSelected()){
+		    			    	setKeywordSettingsAction();
+		    			    }else if(categoryKeywordMenuItem.isSelected()){
+		    			    	setKeywordCategorySettingsAction();
+		    			    }else if(categoriesMenuItem.isSelected()){
+		    			    	setCategorySettingsAction();
+		    			    }else{
+		    			    	setSearchEverywhereAction();
+		    			    }
+				         } 
+				     }
+				    });		
         		
         		}
         	} else{  		
@@ -2355,22 +2435,42 @@ public class VUE
         		setMargin(noInsets);        			        		  	    
 				addMouseListener(new MouseAdapter() {
 					public void mouseEntered(MouseEvent e){
-						if((e.getX()< 23) ){							
+						if((e.getX()< 23) ){								
+							mouse_over = false;
 							setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR)); 
-		     		     }else if(e.getX() < getWidth()-23){		     		    	
+							repaint();
+		     		     }else if(e.getX() < getWidth()-23){			     		    	
+		     		    	mouse_over = false;
 		     		    	setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
-		     		     }else{		     		    	
-		     		    	setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR)); 
+		     		    	repaint();
+		     		     }else{			     		    	
+		     		    	mouse_over = true;
+		     		    	setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+		     		    	repaint();		     		    	 
 		     		     }
 					}
-					public void mouseExited(MouseEvent e){						
-						setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR)); 		     		    
+					public void mouseExited(MouseEvent e){	
+						if((e.getX()< 23) ){							
+							mouse_over = false; 
+		     		    	setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR)); 
+							repaint();
+		     		     }else if(e.getX() < getWidth()-23){		     		    	
+		     		    	mouse_over = false; 
+		     		    	setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR)); 
+							repaint();
+		     		     }else{		     		    	
+		     		    	mouse_over = false; 
+		     		    	setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR)); 
+							repaint();
+		     		     }
+						
+						
+								     		    
 					}
 		            public void mouseReleased(MouseEvent e) { 
 		            	if(e.isPopupTrigger()){
-		     		     if((e.getX()< 23) ){		     		    	 		
-		     		    	 createPopupMenu(isWindows);
-		     		    	 popup.show(e.getComponent(), e.getX()+5, e.getY());
+		     		     if((e.getX()< 23) ){	     		    	 		
+		     		    	 
 		     		     }else if(e.getX() < getWidth()-23){		     		    			
 		     		    	createEditPopupMenu();
 		     		    	editPopup.show(e.getComponent(), e.getX()+5, e.getY());
@@ -2379,7 +2479,8 @@ public class VUE
 		     		     }
 		            	}
 		            	if((e.getX()< 23) ){		     		    	 		
-		     		    	//TO DO for Arrow Label 
+		            		createPopupMenu(isWindows);
+		     		    	 popup.show(e.getComponent(), e.getX()+5, e.getY());
 		     		     }else if(e.getX() < getWidth()-23){		     		    			
 		     		    	if(getText().trim().equals(VueResources.getString("search.text.default")) ){
 		          				 setText("");
@@ -2403,6 +2504,30 @@ public class VUE
 		     		     }
 		            }
 				});
+				   addKeyListener(new KeyAdapter() {
+					    public void keyReleased(KeyEvent ke) {					    
+					       if (ke.getKeyCode() == KeyEvent.VK_ENTER) {
+					    	   
+					    	   if(searcheveryWhereMenuItem.isSelected()){
+			    			    	setSearchEverywhereAction();					
+			    			    }else if(editSettingsMenuItem.isSelected()){
+			    			    	setEditSettingsAction();
+			    			    }else if(labelMenuItem.isSelected()){
+			    			    	setLabelSettingsAction();
+			    			    }else if(keywordMenuItem.isSelected()){
+			    			    	setKeywordSettingsAction();
+			    			    }else if(categoryKeywordMenuItem.isSelected()){
+			    			    	setKeywordCategorySettingsAction();
+			    			    }else if(categoriesMenuItem.isSelected()){
+			    			    	setCategorySettingsAction();
+			    			    }else{
+			    			    	setSearchEverywhereAction();
+			    			    }
+					         } 
+					     }
+					    });					    
+					
+
         	} 
         }     
     	
@@ -2424,6 +2549,7 @@ public class VUE
 			if(popup==null){
 				popup = new JPopupMenu();
 				ActionListener actionListener = new PopupActionListener();
+				
 				JMenuItem searchMenuItem = new JMenuItem(VueResources.getString("search.popup.search"));
 				searchMenuItem.setEnabled(false);
 				popup.add(searchMenuItem);				
@@ -2443,7 +2569,7 @@ public class VUE
 				popup.add(categoriesMenuItem);					
 				
 				categoryKeywordMenuItem.addActionListener(actionListener);
-				popup.add(categoryKeywordMenuItem);
+				popup.add(categoryKeywordMenuItem);				
 				
 				popup.addSeparator();				
 				
@@ -2451,7 +2577,16 @@ public class VUE
 				popup.add(editSettingsMenuItem);				
 				
 				if(!isWindow){
-					popup.addSeparator();					
+					popup.addSeparator();
+					
+					JMenuItem clearMenuItem = new JMenuItem(VueResources.getString("search.popup.clear"));
+					clearMenuItem.addActionListener(actionListener);
+					popup.add(clearMenuItem);
+					
+					JMenuItem resetSettingsMenuItem = new JMenuItem(VueResources.getString("search.popup.reset"));
+					resetSettingsMenuItem.addActionListener(actionListener);
+					popup.add(resetSettingsMenuItem);
+					
 					JMenuItem selectMenuItem = new JMenuItem(VueResources.getString("search.popup.select.all"));
 					selectMenuItem.addActionListener(actionListener);
 					//selectMenuItem.setActionCommand(DefaultEditorKit.selectAllAction);
@@ -2472,9 +2607,7 @@ public class VUE
 					//pasteMenuItem.setActionCommand(DefaultEditorKit.pasteAction);
 					popup.add(pasteMenuItem);
 					
-					JMenuItem clearMenuItem = new JMenuItem(VueResources.getString("search.popup.clear"));
-					clearMenuItem.addActionListener(actionListener);
-					popup.add(clearMenuItem);	
+						
 				}
 				
 			}			
@@ -2517,6 +2650,8 @@ public class VUE
 			    	setKeywordSettingsAction();
 			    }else if((VueResources.getString("search.popup.categories")+" + "+VueResources.getString("search.popup.keywords")).equals(actionEvent.getActionCommand().toString())){
 			    	setKeywordCategorySettingsAction();
+			    }else if(VueResources.getString("search.popup.reset").equals(actionEvent.getActionCommand().toString())){
+			    	setResetSettingsAction();
 			    }else if(VueResources.getString("search.popup.categories").equals(actionEvent.getActionCommand().toString())){
 			    	setCategorySettingsAction();
 			    }
@@ -2530,6 +2665,7 @@ public class VUE
 	    	categoryKeywordMenuItem.setSelected(false);			    		    	
 	    	labelMenuItem.setSelected(false);			    			    			    	
 	    	editSettingsMenuItem.setSelected(false);
+	    	//resetSettingsMenuItem.setSelected(false);
 	    	List<VueMetadataElement> searchTerms = new ArrayList<VueMetadataElement>();
 	    	VueMetadataElement vme = new VueMetadataElement();	
 	    	String getTxtStr = "";	    	
@@ -2560,6 +2696,17 @@ public class VUE
 			btn.setAction(termsAction);
 			btn.doClick();
 		}
+		public void setResetSettingsAction(){
+			searcheveryWhereMenuItem.setSelected(false);		    	
+	    	keywordMenuItem.setSelected(false);
+	    	categoriesMenuItem.setSelected(false);
+	    	categoryKeywordMenuItem.setSelected(false);			    		    	
+	    	labelMenuItem.setSelected(false);			    			    			    	
+	    	editSettingsMenuItem.setSelected(false);
+	    	//resetSettingsMenuItem.setSelected(true);
+			SearchAction.revertGlobalSearchSelectionFromMSGUI();
+            VUE.getActiveViewer().repaint();
+		}
 		public void setKeywordCategorySettingsAction(){
 			searcheveryWhereMenuItem.setSelected(false);		    	
 	    	keywordMenuItem.setSelected(false);
@@ -2567,6 +2714,7 @@ public class VUE
 	    	categoryKeywordMenuItem.setSelected(true);			    		    	
 	    	labelMenuItem.setSelected(false);			    			    			    	
 	    	editSettingsMenuItem.setSelected(false);
+	    	//resetSettingsMenuItem.setSelected(false);
 	    	List<VueMetadataElement> searchTerms = new ArrayList<VueMetadataElement>();
 	    	VueMetadataElement vme = new VueMetadataElement();	
 	    	String getTxtStr = "";	    	
@@ -2602,6 +2750,7 @@ public class VUE
 	    	categoryKeywordMenuItem.setSelected(false);			    		    	
 	    	labelMenuItem.setSelected(false);			    			    			    	
 	    	editSettingsMenuItem.setSelected(false);
+	    	//resetSettingsMenuItem.setSelected(false);
 	    	List<VueMetadataElement> searchTerms = new ArrayList<VueMetadataElement>();
 	    	VueMetadataElement vme = new VueMetadataElement();
 	    	String getTxtStr = "";	    	
@@ -2636,7 +2785,8 @@ public class VUE
 	    	categoriesMenuItem.setSelected(false);
 	    	categoryKeywordMenuItem.setSelected(false);			    		    	
 	    	labelMenuItem.setSelected(true);			    			    			    	
-	    	editSettingsMenuItem.setSelected(false);			    	
+	    	editSettingsMenuItem.setSelected(false);
+	    	//resetSettingsMenuItem.setSelected(false);
 	    	List<VueMetadataElement> searchTerms = new ArrayList<VueMetadataElement>();
 	    	VueMetadataElement vme = new VueMetadataElement();	
 	    	String getTxtStr = "";	    	
@@ -2671,7 +2821,8 @@ public class VUE
 	    	categoriesMenuItem.setSelected(false);
 	    	categoryKeywordMenuItem.setSelected(false);			    		    	
 	    	labelMenuItem.setSelected(false);			    			    			    	
-	    	editSettingsMenuItem.setSelected(true);		    	
+	    	editSettingsMenuItem.setSelected(true);	
+	    	//resetSettingsMenuItem.setSelected(false);
 	    	getMetadataSearchMainGUI().setVisible(true); 
 		}
 		public void setSearchEverywhereAction(){
@@ -2681,7 +2832,7 @@ public class VUE
 	    	categoryKeywordMenuItem.setSelected(false);			    		    	
 	    	labelMenuItem.setSelected(false);			    			    			    	
 	    	editSettingsMenuItem.setSelected(false);
-	    	
+	    	//resetSettingsMenuItem.setSelected(false);
 	    	List<VueMetadataElement> searchTerms = new ArrayList<VueMetadataElement>();
 	    	VueMetadataElement vme = new VueMetadataElement();
 	    	String getTxtStr = "";	    	
@@ -2740,6 +2891,15 @@ public class VUE
 			if(editPopup==null){
 				editPopup = new JPopupMenu();
 				ActionListener actionListener = new PopupActionListener();
+				
+				JMenuItem clearMenuItem = new JMenuItem(VueResources.getString("search.popup.clear"));
+				clearMenuItem.addActionListener(actionListener);
+				editPopup.add(clearMenuItem);
+				
+				JMenuItem resetSettingsMenuItem = new JMenuItem(VueResources.getString("search.popup.reset"));
+				resetSettingsMenuItem.addActionListener(actionListener);
+				editPopup.add(resetSettingsMenuItem);
+				
 				JMenuItem selectMenuItem = new JMenuItem(VueResources.getString("search.popup.select.all"));
 				selectMenuItem.addActionListener(actionListener);
 				editPopup.add(selectMenuItem);
@@ -2759,30 +2919,43 @@ public class VUE
 				//pasteMenuItem.setActionCommand(DefaultEditorKit.pasteAction);
 				editPopup.add(pasteMenuItem);
 				
-				JMenuItem clearMenuItem = new JMenuItem(VueResources.getString("search.popup.clear"));
-				clearMenuItem.addActionListener(actionListener);
-				editPopup.add(clearMenuItem);		
+						
 			}
 		}
 		
 		protected void paintComponent(Graphics g) {
             // Paint the default look of the button.
-            super.paintComponent(g);
+            super.paintComponent(g);            
             Image arrowImg = VueResources.getImageIcon("search.downarrowicon").getImage();
             Image clearImg = VueResources.getImageIcon("search.closeicon").getImage();
             Image searchImg = VueResources.getImageIcon("search.searchicon").getImage();
+            Image searchOVImg = VueResources.getImageIcon("search.searchicon.ov").getImage();
             Image searchTigerImg = VueResources.getImageIcon("search.tiger.searchicon").getImage();
-            
+            Image searchTigerImgOv = VueResources.getImageIcon("search.tiger.searchicon.ov").getImage();
+            //Image clearImgOv = VueResources.getImageIcon("search.closeicon.ov").getImage();
             int h = getHeight(); 
             int w = getWidth();            
             if(!isWindows){  
             	if (Util.isMacTiger()){
             		g.drawImage(searchTigerImg,5,h/2-7, searchTigerImg.getWidth(null) , searchTigerImg.getHeight(null), this);
             		g.drawImage(clearImg,w-20,h/2-8, clearImg.getWidth(null) , clearImg.getHeight(null), this);
+//            		if(mouse_over){
+//            			g.drawImage(searchTigerImgOv,5,h/2-7, searchTigerImg.getWidth(null) , searchTigerImg.getHeight(null), this);
+//                		g.drawImage(clearImg,w-20,h/2-8, clearImg.getWidth(null) , clearImg.getHeight(null), this);
+//            		}else{
+//            			g.drawImage(searchTigerImg,5,h/2-7, searchTigerImg.getWidth(null) , searchTigerImg.getHeight(null), this);
+//                		g.drawImage(clearImg,w-20,h/2-8, clearImg.getWidth(null) , clearImg.getHeight(null), this);
+//            		}
+            		
             	}            	
             }else{             	        	
-            	g.drawImage(arrowImg,5,h/2-5, arrowImg.getWidth(null) , arrowImg.getHeight(null), this); 
-            	g.drawImage(searchImg,w-20,h/2-8, searchImg.getWidth(null) , searchImg.getHeight(null), this);            	
+            	g.drawImage(arrowImg,5,h/2-5, arrowImg.getWidth(null) , arrowImg.getHeight(null), this);            	
+            	if(!mouse_over){            		
+            		g.drawImage(searchImg,w-20,h/2-8, searchImg.getWidth(null) , searchImg.getHeight(null), this);
+            	}
+            	else{            		
+            		g.drawImage(searchOVImg,w-20,h/2-8, searchOVImg.getWidth(null) , searchOVImg.getHeight(null), this);
+            	}
             }        
         
         }
@@ -4380,9 +4553,33 @@ public class VUE
 
 		}
 
-		public synchronized void stateChanged(ChangeEvent e) {
-			int depth = depthSelectionSlider.getValue();
-			//TO DO implement the logic
+		public synchronized void stateChanged(ChangeEvent e) {			
+			JSlider source = (JSlider)e.getSource();
+		    if (!source.getValueIsAdjusting()) {
+		    	depthSelectionSlider.setValue(Integer.valueOf(getSliderValueMappedToPref()));
+		    	depthSelectionSlider.updateUI();		    	
+		    }		    
+
 		}
+		public int getSliderValueMappedToPref()
+		{
+			int val = depthSelectionSlider.getValue();			
+			switch (val)
+			{
+				case 1:
+					return 1;
+				case 2:
+					return 2;
+				case 3:
+					return 3;
+				case 4:
+					return 4;
+				case 5:
+					return 5;
+				case 6:
+					return 6;					
+			}			
+			return 6;
+		}		
 	}
 }
