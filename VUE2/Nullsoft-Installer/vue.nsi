@@ -50,7 +50,7 @@ var ICONS_GROUP
 ; MUI end ------
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
-OutFile "Setup.exe"
+OutFile "VUE.exe"
 Icon "VUE.ico"
 InstallDir "$PROGRAMFILES\VUE"
 ShowInstDetails show
