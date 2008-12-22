@@ -39,7 +39,7 @@ import org.xml.sax.InputSource;
  * for multi-threaded hang-proof initialization (repository configuration),
  * and event delivery to track the progress of loading.
  *
- * @version $Revision: 1.48 $ / $Date: 2008-12-21 19:25:18 $ / $Author: sfraize $  
+ * @version $Revision: 1.49 $ / $Date: 2008-12-22 18:41:52 $ / $Author: anoop $  
  */
 public class VueDataSourceManager
     implements edu.tufts.vue.dsm.DataSourceManager
@@ -112,7 +112,7 @@ public class VueDataSourceManager
         marshall(new File(this.xmlFilename), this);
     }
 
-    private static VueDataSourceManager load() {
+  public  static VueDataSourceManager load() {
 
         try {
             File f = new File(xmlFilename);
