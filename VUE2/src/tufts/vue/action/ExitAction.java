@@ -136,7 +136,8 @@ public class ExitAction extends AbstractAction
             if (model.getElementAt(i) instanceof FavoritesDataSource) {
                 ds = (DataSource)model.getElementAt(i) ;
                 FavoritesWindow fw = (FavoritesWindow)ds.getResourceViewer();
-                fw.save();
+                if (fw != null)
+                	fw.save();
                
             }
         }
