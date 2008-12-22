@@ -1042,17 +1042,17 @@ public class Util
         return new ExposedArrayList(array);
     }
     
-//     public static <T> T[] toArray(Collection<T> bag) {
-//         // return (T[]) bag.toArray(); class cast exception
-//         // can't create a new instance of the array w/out a known type -- unreliable to pull from collection (and could be empty)
-//         //return bag.toArray((T[])java.lang.reflect.Array.newInstance(?.getClass().getComponentType(), bag.size()));
-//     }
+    public static <T> T[] toArray(Collection<? extends T> bag, Class<T> clazz) {
+        // return (T[]) bag.toArray(); class cast exception
+        // can't create a new instance of the array w/out a known type -- unreliable to pull from collection (and could be empty)
+        //return bag.toArray((T[])java.lang.reflect.Array.newInstance(?.getClass(), bag.size()));
+        return bag.toArray((T[])java.lang.reflect.Array.newInstance(clazz, bag.size()));
+    }
     
     /**
      * Identical to Arrays.asList, except that toArray() returns the internal array,
      * which allows for Collection.addAll(ExposedArrayList) to be used w/out triggering an array clone
      */
-
     private static final class ExposedArrayList<E> extends AbstractList<E>
 	implements RandomAccess
     {
@@ -1476,6 +1476,26 @@ public class Util
             //System.out.println((x<10?" ":"") + x + ": " + i.next());
             System.out.format("\t%2d: %s\n", x, i.next());
             x++;
+        }
+    }
+
+    public static RuntimeException wrapIfChecked(String msg, Throwable t) {
+        if (t instanceof RuntimeException)
+            throw (RuntimeException) t;
+        else
+            throw wrapException(msg, t);
+    }
+    
+    public static RuntimeException wrapException(String msg, Throwable t) {
+        return new WrappedException("(" + msg + ") ", t);
+    }
+
+    private static class WrappedException extends RuntimeException {
+        WrappedException(String msg, Throwable cause) {
+            super(msg, cause);
+        }
+        @Override public String toString() {
+            return getMessage() + getCause().toString();
         }
     }
 

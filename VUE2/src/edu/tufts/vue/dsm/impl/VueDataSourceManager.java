@@ -39,11 +39,13 @@ import org.xml.sax.InputSource;
  * for multi-threaded hang-proof initialization (repository configuration),
  * and event delivery to track the progress of loading.
  *
- * @version $Revision: 1.49 $ / $Date: 2008-12-22 18:41:52 $ / $Author: anoop $  
+ * @version $Revision: 1.50 $ / $Date: 2008-12-22 21:39:23 $ / $Author: sfraize $  
  */
 public class VueDataSourceManager
     implements edu.tufts.vue.dsm.DataSourceManager
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(VueDataSourceManager.class);
+    
     /** If true, all data sources will block until their repositories are found and
      * configured, which can result in a hang if there is a problem with any repository.
      * This is the original implementation, and remains as a fallback impl in case of
@@ -55,14 +57,18 @@ public class VueDataSourceManager
     /* states for DataSourceListener callbacks */
     public static final String DS_UNMARSHALLED = "DS_UNMARSHALLED";
     public static final String DS_CONFIGURED = "DS_CONFIGURED";
+    public static final String DS_ADDED = "DS_ADDED";
     public static final String DS_ERROR = "DS_ERROR";
     public static final String DS_ALL_CONFIGURED = "DS_ALL_CONFIGURED";
     public static final String DS_SAVING = "DS_SAVING";
     
-    public static final String PASS = "pass"; // a key that cotains this string is encrypted.
+    protected static final String PASS = "pass"; // a key that cotains this string is encrypted.
     
-    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(VueDataSourceManager.class);
+    private static final File userFolder = tufts.vue.VueUtil.getDefaultUserFolder();
+    private static final String xmlFilename  = userFolder.getAbsolutePath() + "/" + tufts.vue.VueResources.getString("dataSourceSaveToXmlFilename");
     
+    private static final VueDataSourceManager singleton = new VueDataSourceManager(true);
+
     /**
      * This set will only maintain uniqueness based on the hashCode, which is currently
      * defaulting to the System.identityHashCode for known implemented data sources
@@ -70,26 +76,24 @@ public class VueDataSourceManager
      * would require DataSource.hashCode() to return the getId().getIdString() (and then
      * we could also use a HashMap for referencing by ID string).
      *
-     * We need a set because upon creation, VueDataSources always attempt to add
-     * themselves to the global data source list (in setDone, called by castor during
-     * unmarshalling).  Don't know if we need that behavior, but this impl allows that
-     * to happen w/out putting duplicates in the global list.
+     * [ Old as of 12/22/08: We need a set because upon creation, VueDataSources always
+     * attempt to add themselves to the global data source list (in setDone, called by
+     * castor during unmarshalling).  Don't know if we need that behavior, but this impl
+     * allows that to happen w/out putting duplicates in the global list. ]
      *
      * -- SMF 10/2007
      */
-    private static final Set<DataSource> DataSources = new LinkedHashSet();
+    private final Set<DataSource> DataSources;
 
     /** This is only used marshalling and unmarshalling */
-    private static final Vector<DataSource> dataSourceVector = new Vector();
+    private final Vector<DataSource> marshallingVector = new Vector();
     
-    private static VueDataSourceManager dataSourceManager = new VueDataSourceManager();
-
-    private static final File userFolder = tufts.vue.VueUtil.getDefaultUserFolder();
-    private static final String xmlFilename  = userFolder.getAbsolutePath() + "/" + tufts.vue.VueResources.getString("dataSourceSaveToXmlFilename");
-    private static final List<edu.tufts.vue.dsm.DataSourceListener> dataSourceListeners
+    private final List<edu.tufts.vue.dsm.DataSourceListener> dataSourceListeners
         = new java.util.concurrent.CopyOnWriteArrayList<edu.tufts.vue.dsm.DataSourceListener>();
     
-    private static volatile boolean marshalling = false;
+    private volatile boolean isMarshalling;
+    
+    private boolean isLoaded;
     
     // Todo: this class doesn't always appear to be threadsafe.
     
@@ -99,51 +103,85 @@ public class VueDataSourceManager
     // but it isn't a very clean way to do it.
 
     public static VueDataSourceManager getInstance() {
-        return dataSourceManager;
+        return singleton;
     }
     
     /** this is public for castor persistance support only */
-    public VueDataSourceManager() {}
+    public VueDataSourceManager() {
+        isMarshalling = true;
+        DataSources = null; // so will deliberately NPE if use is attempted
+    }
     
-    public void save() {
+    private VueDataSourceManager(boolean isSingleton) {
+        DataSources = new LinkedHashSet();        
+    }
+    
+    public synchronized void save() {
         // why do we notify on save? keeping this only in case something is
         // currently depending on this...
         notifyDataSourceListeners(DS_SAVING); 
-        marshall(new File(this.xmlFilename), this);
+        marshall(new File(this.xmlFilename));
     }
 
-  public  static VueDataSourceManager load() {
+    
+    public synchronized void reload() {
+        isLoaded = false;
+        load();
+    }
+    
+    public synchronized void load() {
+
+        if (isLoaded)
+            return;
 
         try {
-            File f = new File(xmlFilename);
-            if (f.exists()) {
 
-                // Note: this class has no member variables, so assigning the new
-                // dataSourceManager here has no effect -- it might as well be a final
-                // constant for now (e.g., getInstance() isn't needed at the moment).
-                // However, should member variables be added in the future, we'll need
-                // the existing semantics.
+            // if (true) throw new Error("oh my"); // exception test
+            
+            final File file = new File(xmlFilename);
+            if (file.exists()) {
+
+                DataSources.clear();
                 
-                dataSourceManager = unMarshall(f);
+                final VueDataSourceManager unmarshalled = unMarshall(file);
+
+                // currently, we really only need the list of DataSources from
+                // the unmarshalled VDSM instance -- we'd could just marshall
+                // a list of items.  We throw away the newly marshalled
+                // VDSM and copy the result into our singleton, so that
+                // it can be a final constant initialized at class load.
+
+                DataSources.addAll(unmarshalled.marshallingVector);
+
+                isLoaded = true;
+                
                 if (BLOCKING_OSID_LOAD) {
+
+                    for (edu.tufts.vue.dsm.DataSource ds : DataSources) {
+                        try {
+                            if (ds instanceof VueDataSource)
+                                ((VueDataSource)ds).assignRepositoryConfiguration();
+                        } catch (Throwable t) {
+                            Log.error(t);
+                        }
+                    }
+                    
                     // they're already fully configured at this point
-                    getInstance().notifyDataSourceListeners(DS_ALL_CONFIGURED);
+                    notifyDataSourceListeners(DS_ALL_CONFIGURED);
+                    
                 } else {
-                    getInstance().notifyDataSourceListeners(DS_UNMARSHALLED);
+                    
+                    notifyDataSourceListeners(DS_UNMARSHALLED);
                     // DS_ALL_CONFIGURED will come later
                 }
                     
             } else {
-                debug("Installed datasources not found; missing " + f);
-                return null;
+                debug("Installed DataSources not found; missing " + file);
             }
-        }  catch (Throwable t) {
-            // todo: should not be popping a dialog here...
-            tufts.vue.VueUtil.alert("Error instantiating Provider support", "Error");
-            Log.warn("In load via Castor", t);
-            return null;
+        } catch (Throwable t) {
+            Log.warn("unmarshalling;", t);
+            throw Util.wrapException("unmarshalling", t);
         }
-        return dataSourceManager;
     }
 
     /**
@@ -158,7 +196,7 @@ public class VueDataSourceManager
      * notifications to any DataSourceListeners
      */
 
-    public void startRepositoryConfiguration(final java.awt.Component clientUI) {
+    public synchronized void startRepositoryConfiguration(final java.awt.Component clientUI) {
         Log.info("configuring data sources; n=" + DataSources.size());
         
         final edu.tufts.vue.dsm.DataSource dataSources[] = getDataSources();
@@ -178,7 +216,7 @@ public class VueDataSourceManager
             if (ds instanceof VueDataSource == false)
                 continue;
             
-            Log.debug("configure: " + ds);
+            Log.debug("configuring " + ds);
             
             new Thread(String.format("%s@%07x %8.8s",
                                      ds.getClass().getSimpleName(),
@@ -190,18 +228,21 @@ public class VueDataSourceManager
                         
                         try {
                         
+                            //if (ds.getRepositoryDisplayName().startsWith("(Conn"))
+                            //try { Thread.sleep(5000); } catch (Throwable t) {}
+  
                             ((VueDataSource)ds).assignRepositoryConfiguration();
                             
-                            Log.info("configured " + ds);
+                            Log.info(String.format("configured %-30s %s",
+                                                   '"' + ds.getRepositoryDisplayName() + '"',
+                                                   ds.getRepository()));
+                            //getRepositoryID(ds);
 
                             if (ds.getRepository() == null)
                                 notifyDataSourceListeners(DS_ERROR, ds);
                             else
                                 notifyDataSourceListeners(DS_CONFIGURED, ds);
 
-//                             if (ds.getRepositoryDisplayName().startsWith("Conn")) // test
-//                             try { Thread.sleep(5000); } catch (Throwable t) {}
-  
                         } catch (Throwable t) {
                             Log.error("configuration error: " + Util.tags(ds), t);
                             notifyDataSourceListeners(DS_ERROR, ds);
@@ -228,7 +269,7 @@ public class VueDataSourceManager
                             // event. If any thread should hang, this will never be delivered, so
                             // listeners should ideally be designed to provide at least some
                             // functionality based only on the delivery of the DS_CONFIGURED events
-                            // as the come in.
+                            // as they come in.
 
                             setName(getName().toUpperCase()); // tweak the thread name for debug
 
@@ -249,27 +290,22 @@ public class VueDataSourceManager
      * a repository), requiring a later call to startRepositoryConfiguration before they can be
      * used.
      */
-    public edu.tufts.vue.dsm.DataSource[] getDataSources() {
-        synchronized (DataSources) {
-            if (DataSources.isEmpty())
-                load();
-            return DataSources.toArray(new DataSource[DataSources.size()]);
-        }
+    public synchronized edu.tufts.vue.dsm.DataSource[] getDataSources() {
+        if (!isLoaded)
+            load();
+        return Util.toArray(DataSources, DataSource.class);
     }
     
     /**
      * Add the given data source to the global list if it isn't already there.
      * Will immediately save if it was added.
      */
-    public void add(edu.tufts.vue.dsm.DataSource dataSource) {
-
-        synchronized (DataSources) {
-            if (DataSources.add(dataSource)) {
-                Log.info("add data src: " + dataSource);
-                //Log.info("added data source: " + dataSource);
-                if (!marshalling)
-                    save();
-            }
+    public synchronized void add(edu.tufts.vue.dsm.DataSource ds) {
+        if (DataSources.add(ds)) {
+            Log.info("add data src: " + ds);
+            notifyDataSourceListeners(DS_CONFIGURED, ds);  // *should* be configured...
+            if (!isMarshalling)
+                save();
         }
     }
     
@@ -285,7 +321,7 @@ public class VueDataSourceManager
             return;
         }
 
-        synchronized (DataSources) {
+        synchronized (this) {
             boolean removed = false;
             try {
                 Iterator<DataSource> i = DataSources.iterator();
@@ -305,7 +341,7 @@ public class VueDataSourceManager
                 Log.error("remove " + Util.tags(id), t);
             }
 
-            if (removed && !marshalling)
+            if (removed && !isMarshalling)
                 save();
         }
     }
@@ -315,7 +351,7 @@ public class VueDataSourceManager
     public edu.tufts.vue.dsm.DataSource getDataSource(org.osid.shared.Id dataSourceId) {
 
         try {
-            synchronized (DataSources) {
+            synchronized (this) {
                 for (DataSource ds : DataSources)
                     if (dataSourceId.isEqual(ds.getId()))
                         return ds;
@@ -332,24 +368,24 @@ public class VueDataSourceManager
 
         final List<Repository> included = new ArrayList();
 
-        synchronized (DataSources) {
+        synchronized (this) {
             for (DataSource ds : DataSources)
                 if (ds.isIncludedInSearch()) {
                     Repository r = ds.getRepository();
-                    if (r == null)
-                        Log.debug("has no repository; not included: " + ds);
-                    else
+                    if (r == null) {
+                        if (tufts.vue.DEBUG.DR) Log.debug("has no repository; not included: " + ds);
+                    } else
                         included.add(r);
                 }
         }
 
-        return included.toArray(new Repository[included.size()]);
+        return Util.toArray(included, Repository.class);
         
 //         removeDuplicatesFromVector();
 //         java.util.Vector results = new java.util.Vector();
-//         int size = dataSourceVector.size();
+//         int size = marshallingVector.size();
 //         for (int i=0; i < size; i++) {
-//             edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)dataSourceVector.elementAt(i);
+//             edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)marshallingVector.elementAt(i);
 //             if (ds.isIncludedInSearch()) {
 //                 try {
 //                     debug("Getting included data sourceA " + tufts.Util.tag(ds));
@@ -380,13 +416,13 @@ public class VueDataSourceManager
 
         final List<DataSource> included = new ArrayList();
 
-        synchronized (DataSources) {
+        synchronized (this) {
             for (DataSource ds : DataSources)
                 if (ds.isIncludedInSearch())
                     included.add(ds);
         }
 
-        return included.toArray(new DataSource[included.size()]);
+        return Util.toArray(included, DataSource.class);
     }
     
     
@@ -411,11 +447,11 @@ public class VueDataSourceManager
     /** for castor persistance only -- should not be used for fetching the data source list
      * This will normally return null except during marshalling */
     public Vector getDataSourceVector() {
-        return marshalling ? dataSourceVector : null;
+        return isMarshalling ? marshallingVector : null;
     }
     
 //     public void setDataSourceVector(Vector dsv) {
-//         dataSourceVector = dsv;
+//         marshallingVector = dsv;
 //     }
     
     public void addDataSourceListener(edu.tufts.vue.dsm.DataSourceListener listener) {
@@ -436,7 +472,7 @@ public class VueDataSourceManager
         // synchronized so notifications from different threads are at least atomic
         // to the state of all DataSources for each notification batch
         final edu.tufts.vue.dsm.DataSource dataSources[] = getDataSources();
-        for (edu.tufts.vue.dsm.DataSourceListener listener: dataSourceListeners) {
+        for (edu.tufts.vue.dsm.DataSourceListener listener : dataSourceListeners) {
             try {
                 listener.changed(dataSources, state, changed);
             } catch (Throwable t) {
@@ -445,25 +481,22 @@ public class VueDataSourceManager
         }
     }
     
-    public static synchronized void marshall(File file,VueDataSourceManager dsm)
+    private synchronized void marshall(File file)
     {
         //System.out.println("Marshalling: file -"+ file.getAbsolutePath());
 
-        dataSourceVector.clear();
-        synchronized (DataSources) {
-            dataSourceVector.addAll(DataSources);
-        }
+        marshallingVector.clear();
+        marshallingVector.addAll(DataSources);
 
-        for (DataSource ds : dataSourceVector) {
+        for (DataSource ds : marshallingVector) {
             try {
-                debug("Marshalling:  " + ds + "; RepositoryID=" + getRepositoryID(ds));
+                Log.info("marshalling:  " + ds + "; RepositoryID=" + getRepositoryID(ds));
             } catch (Throwable t) {
                 Log.warn("Marshalling:", t);
             }
         }
-        
 
-        marshalling = true;
+        isMarshalling = true;
         try {
             Mapping mapping = tufts.vue.action.ActionUtil.getDefaultMapping();
             FileWriter writer = new FileWriter(file);
@@ -471,14 +504,14 @@ public class VueDataSourceManager
             marshaller.setMapping(mapping);
             marshaller.setMarshalListener(new PropertyEntryMarshalListener());
             Log.debug("Marshalling to " + file + "...");
-            marshaller.marshal(dsm);
+            marshaller.marshal(this);
             writer.flush();
             writer.close();
             Log.info(" Marshalled to " + file);
         } catch (Throwable t) {
             Log.error("marshall to " + file, t);
         } finally {
-            marshalling = false;
+            isMarshalling = false;
         }
     }
 
@@ -496,7 +529,7 @@ public class VueDataSourceManager
     }
         
     
-    public static synchronized VueDataSourceManager unMarshall(File file)
+    private static synchronized VueDataSourceManager unMarshall(File file)
         throws java.io.IOException, org.exolab.castor.xml.MarshalException,
                org.exolab.castor.mapping.MappingException,
                org.exolab.castor.xml.ValidationException
@@ -505,42 +538,25 @@ public class VueDataSourceManager
         
         Unmarshaller unmarshaller = tufts.vue.action.ActionUtil.getDefaultUnmarshaller(file.toString());
         unmarshaller.setUnmarshalListener(new PropertyEntryUnMarshalListener());
-        VueDataSourceManager dsm = null;
-        marshalling = true;
-        try {
             
-            final FileReader reader = new FileReader(file);
-            dataSourceVector.clear();
-            dsm = (VueDataSourceManager) unmarshaller.unmarshal(new InputSource(reader));
-            reader.close();
+        final FileReader reader = new FileReader(file);
+        final VueDataSourceManager vdsm =
+            (VueDataSourceManager) unmarshaller.unmarshal(new InputSource(reader));
+        reader.close();
 
-            // Note that we do NOT clear DataSources here -- thus multiple unmarshalls
-            // may load DataSources with multiple instances (as we're currently
-            // only unique via identity hash code) -- this was the old behavior.
-            // Si if we were ever to unmarshall more than once during a runtime, the impl
-            // will need to handle full uniqueness based on ID, or again we'll
-            // get repeats, even in the DataSources set.
-            
-            synchronized (DataSources) {
-                for (DataSource ds : dataSourceVector) {
-                    if (tufts.vue.DEBUG.DR) {
-                        try {
-                            Log.info("Unmarshalled: " + ds + "; RepositoryID=" + getRepositoryID(ds));
-                        } catch (Throwable t) {
-                            Log.warn("Unmarshalling:", t);
-                        }
-                    }
-                    DataSources.add(ds);
-                }
+        for (DataSource ds : vdsm.marshallingVector) {
+            try {
+                Log.info("unmarshalled: " + ds);
+            } catch (Throwable t) {
+                Log.warn(t);
             }
-        } finally {
-            marshalling = false;
         }
+        
         Log.debug("unmarshall: done.");
         
-//         int size = dataSourceVector.size();
+//         int size = marshallingVector.size();
 //         for (int i=0; i < size; i++) {
-//             edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)dataSourceVector.elementAt(i);
+//             edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)marshallingVector.elementAt(i);
 //             try {
 //                 debug("Unmarshalled data sourceA #" + i + " " + tufts.Util.tag(ds));
 //                 debug("Unmarshalled data sourceB " + tufts.Util.tags(ds.getId()));
@@ -552,7 +568,7 @@ public class VueDataSourceManager
 //             }
 //         }
 	
-        return dsm;
+        return vdsm;
     }
 
     

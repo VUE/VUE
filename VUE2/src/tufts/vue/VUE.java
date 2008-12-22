@@ -120,7 +120,7 @@ import edu.tufts.vue.dsm.impl.VueDataSourceManager;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.611 $ / $Date: 2008-12-21 19:25:21 $ / $Author: sfraize $ 
+ * @version $Revision: 1.612 $ / $Date: 2008-12-22 21:39:27 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -956,13 +956,7 @@ public class VUE
         
         VUE.isStartupUnderway = false;
 
-        Log.info("startup completed.");
-        
-        //-------------------------------------------------------
-        // Trigger the load of the OSID's and set up UrlAuthentication
-        //-------------------------------------------------------
-        
-        initDataSources();
+        Log.info("UI startup completed.");
         
         //-------------------------------------------------------
         // Handle any outstanding file (map) open requests.
@@ -1017,14 +1011,26 @@ public class VUE
             System.exit(0);
         }
 
-        // Kick-off tufts.vue.VueDataSource viewer build threads: must
-        // be done in AWT to be threadsafe, as involves
-        // non-synhcronized code in tufts.vue.VueDataSource while
-        // setting up the threads
-        if (false && !DEBUG.Enabled)
-            GUI.invokeAfterAWT(new Runnable() { public void run() {
-                DataSourceViewer.cacheDataSourceViewers();
-            }});
+        //-------------------------------------------------------
+        // Trigger the load of the OSID's and set up UrlAuthentication
+        //-------------------------------------------------------
+        
+        initDataSources();
+        
+        GUI.invokeAfterAWT(new Runnable() { public void run() {
+            
+            if (DR_BROWSER != null)
+                DR_BROWSER.loadDataSourceViewer();
+            
+            // Kick-off tufts.vue.VueDataSource viewer build threads:
+            // must be done in AWT to be threadsafe, as involves
+            // non-synhcronized code in tufts.vue.VueDataSource while
+            // setting up the threads
+
+            // DataSourceViewer.cacheDataSourceViewers();
+            
+        }});
+
                 
         //-------------------------------------------------------
         // complete the rest of our tasks at min priority
@@ -1036,7 +1042,7 @@ public class VUE
             // start in another thread as may pop dialog
             // that will block further progress on the
             // run-out of main
-            Thread versionThread = new Thread("version-check") {
+            final Thread versionThread = new Thread("version-check") {
                     public void run() {
                         if (DEBUG.THREAD) Log.debug("version-check kicked off");
                         checkLatestVersion();
@@ -1044,7 +1050,10 @@ public class VUE
                 };
             versionThread.setPriority(Thread.MIN_PRIORITY);
             versionThread.setDaemon(true);
-            versionThread.start();
+            // delay kickoff until after any already outstanding AWT invocations (e.g., map open's, data source loads)
+            GUI.invokeAfterAWT(new Runnable() { public void run() {            
+                versionThread.start();
+            }});
         }
 
 //         try {
@@ -1069,18 +1078,16 @@ public class VUE
         Log.info("main complete");
     }
 
-    private static volatile boolean didInitDR = false;
+    private static boolean didDataInit = false;
 
     /**
-     * Load the DataSource Viewer(s).
-     * If the VDSM is not in blocking startup mode (allowed to hang us), also:
-     *   1 - init UrlAuthentication, which will listen for configuring DataSources
-     *       and scan them for authentication keys
-     *   2 - kick off OSID configuration threads, which will normally complete right away
+     * Unmarshall the user installed data sources and get them configured with their
+     * repositories, and ensure UrlAuthentication is initialized, which will listen for
+     * configuring DataSources and scan them for authentication keys
      */
     private static synchronized void initDataSources() {
         
-        if (didInitDR == false && SKIP_DR == false && DR_BROWSER != null && !VUE.isApplet()) {
+        if (!didDataInit && SKIP_DR == false && !VUE.isApplet()) {
             
             VUE.diagPush("initDS");
             
@@ -1088,7 +1095,7 @@ public class VUE
             
             try {
                 _initDataSources();
-                didInitDR = true;
+                didDataInit = true;
             } catch (Throwable t) {
                 Log.error("failed to init data sources", t);
             }
@@ -1107,8 +1114,11 @@ public class VUE
         // each DataSource as it's configured for any authentication credentials.
         UrlAuthentication.getInstance();
             
-        // we could ensure all data sources are at least unmarshaleld before doing anything
-        //final VueDataSourceManager VDSM = edu.tufts.vue.dsm.impl.VueDataSourceManager.load();
+        final VueDataSourceManager VDSM =
+            edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
+
+        // unmarshall the installed data sources
+        VDSM.load();
             
         // As of 2008-12-21: This will instance a DataSourceViewer, which calls
         // VDSM.getDataSources(), which will will trigger a load (unmarshalling) of
@@ -1116,12 +1126,11 @@ public class VUE
         // won't return until they're all configured.  If false, it will return right
         // away, returning the list of unconfigured DataSources, which will normally be
         // quickly configured on separate threads and issue callbacks.
-        DR_BROWSER.loadDataSourceViewer();
+        //DR_BROWSER.loadDataSourceViewer();
 
         if (!BLOCKING_OSID_LOAD) {
             // Will deliver DS_CONFIGURED events to UrlAuthentication as they come in
-            edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance().
-                startRepositoryConfiguration(null);
+            VDSM.startRepositoryConfiguration(null);
         }
     }
 
@@ -1262,9 +1271,13 @@ public class VUE
         if (FilesToOpen.size() > 0) {
             Log.info("outstanding file open requests: " + FilesToOpen);
             
-            // in case not already loaded, make absolutely sure all data
-            // sources are loaded (VUE-879)
-            initDataSources();
+            // [OLD: in case not already loaded, make absolutely sure
+            // all data sources are loaded (VUE-879), so any needed
+            // authentication keys have been found] -- We don't
+            // actually need this until the map is displayed, as no
+            // content should be requested until then. SMF 2008-12-21
+            //
+            // initDataSources();
             
             try {
                 Iterator i = FilesToOpen.iterator();
@@ -1315,14 +1328,6 @@ public class VUE
             displayMap(map2);
             //toolPanel.add(new JLabel("Empty Label"), BorderLayout.CENTER);
         }
-
-        /*
-        if (drBrowser != null) {
-            drBrowser.loadDataSourceViewer();
-            //if (VUE.TUFTS) // leave collapsed if NarraVision
-            //splitPane.resetToPreferredSizes();
-        }
-        */
 
         //VUE.clearWaitCursor();
     }
@@ -3624,7 +3629,7 @@ public class VUE
      * Otherwise, open it anew and display it.
      */
     public static void displayMap(File file) {
-        if (DEBUG.INIT || DEBUG.IO) Log.debug("displayMap " + Util.tags(file));
+        if (VUE.isStartupUnderway() || DEBUG.INIT || DEBUG.IO) Log.info("displayMap " + Util.tags(file));
 
         // Call initDataSources again just in case a user can make it to the file
         // open-recent menu before the data sources finish loading on the remaining
@@ -3745,7 +3750,7 @@ public class VUE
      * Otherwise, open it anew and display it.
      */
     public static void displayMap(java.net.URL url) {
-        if (DEBUG.INIT || DEBUG.IO) Log.debug("displayMap " + Util.tags(url));
+        if (VUE.isStartupUnderway() || DEBUG.INIT || DEBUG.IO) Log.info("displayMap " + Util.tags(url));
 
         // Call initDataSources again just in case a user can make it to the file
         // open-recent menu before the data sources finish loading on the remaining
@@ -3851,7 +3856,7 @@ public class VUE
      * Create a new viewer and display the given map in it.
      */
     public static MapViewer displayMap(LWMap pMap) {
-        if (DEBUG.Enabled) out("displayMap " + pMap);
+        if (VUE.isStartupUnderway() || DEBUG.Enabled) out("displayMap " + pMap);
         diagPush("displayMap");
         if (DEBUG.INIT) out(pMap.toString());
         MapViewer leftViewer = null;
@@ -3869,6 +3874,8 @@ public class VUE
                 //break;
             }
         }
+
+        
 
         
         if (leftViewer == null) {
@@ -4357,7 +4364,8 @@ public class VUE
     }
 
     static protected void out(Object o) {
-        System.out.println(o == null ? "null" : o.toString());
+        //System.out.println(o == null ? "null" : o.toString());
+        Log.info(o == null ? "null" : o.toString());
     }
 	public static Color getPresentationBackground() {
 		final Color defaultColor= new Color(32,32,32);

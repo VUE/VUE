@@ -54,7 +54,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.139 $ / $Date: 2008-12-21 21:09:49 $ / $Author: sraphe01 $
+ * @version $Revision: 1.140 $ / $Date: 2008-12-22 21:39:30 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -4033,7 +4033,7 @@ public class DockWindow
         void setWidget(JComponent widget, boolean scrolled, boolean scrollAlways) {
             mContent.removeAll();
 
-            if (DEBUG.Enabled) out("setWidget " + GUI.name(widget));
+            if (DEBUG.DOCK || DEBUG.WIDGET || DEBUG.INIT) out("setWidget " + GUI.name(widget));
 
             //if (GUI.isMacBrushedMetal() && isToolbar)
             if (isToolbar) {

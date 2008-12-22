@@ -785,9 +785,6 @@
      <field name="propertyList" type="tufts.vue.PropertyEntry" collection="vector">
 		<bind-xml name="propertyEntry" />
      </field>
-     <field name="done" type="boolean">
-        <bind-xml name="done" node="element" />
-      </field>
 </class>
 
 <!-- mapping pertaining to saving ontolologies -->

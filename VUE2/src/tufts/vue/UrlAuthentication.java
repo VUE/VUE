@@ -85,7 +85,7 @@ public class UrlAuthentication implements edu.tufts.vue.dsm.DataSourceListener
     }
 
     private void scanForCredentials(edu.tufts.vue.dsm.DataSource ds) {
-        if (DEBUG.DR) Log.debug("scanning " + ds);
+        if (DEBUG.Enabled) Log.debug("scanning " + ds);
         try {
             if (SakaiExport.isSakaiSource(ds)) {
                 Log.info("asking sakai data source for any needed credentials: " + ds); 

@@ -52,6 +52,8 @@ import org.xml.sax.InputSource;
 
 import tufts.vue.gui.*;
 
+import edu.tufts.vue.dsm.impl.VueDataSourceManager;
+
 /**
  * This class wraps a DataSourceList, and handles communicating user
  * selection events on the list to other panes, such as search or browse,
@@ -67,7 +69,10 @@ import tufts.vue.gui.*;
 // more symmetrical calls that allows adding/remove items from the list.
 
 public class DataSourceHandler extends JPanel
-    implements KeyListener, edu.tufts.vue.fsm.event.SearchListener, ActionListener
+    implements edu.tufts.vue.dsm.DataSourceListener,
+               edu.tufts.vue.fsm.event.SearchListener,
+               KeyListener,
+               ActionListener
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(DataSourceHandler.class);
     //private static final boolean UseFederatedSearchManager = false;
@@ -78,7 +83,7 @@ public class DataSourceHandler extends JPanel
     
     public final static int ADD_MODE = 0;
     public final static int EDIT_MODE = 1;
-    public static final org.osid.shared.Type favoritesRepositoryType = new edu.tufts.vue.util.Type("edu.tufts","favorites","Favorites");
+    public final static org.osid.shared.Type favoritesRepositoryType = new edu.tufts.vue.util.Type("edu.tufts","favorites","Favorites");
     
     private JPopupMenu popup;
     
@@ -91,7 +96,7 @@ public class DataSourceHandler extends JPanel
     private AbstractAction removeLibraryAction;
     
     //public static DataSourceList dataSourceList;
-    public static BasicSourcesList dataSourceList;
+    public BasicSourcesList dataSourceList;
     
     private static DockWindow editInfoDockWindow; // hack for now: need this set before DSV is created
 
@@ -124,14 +129,19 @@ public class DataSourceHandler extends JPanel
         public DefaultListModel getModelContents() {
             return (DefaultListModel) getModel();
         }
+        // todo: does not maintain groupings on later OSID add update should list contain both OSIDs & VUE local DataSources
         public boolean addOrdered(Object o) {
             if (excludedSources.contains(o.getClass()))
                 return false;
             if (includedSources.size() > 0 && !includedSources.contains(o.getClass()))
                 return false;
             final DefaultListModel model = getModelContents();
-            model.addElement(o);
-            return true;
+            if (!model.contains(o)) {
+                model.addElement(o);
+                return true;
+            } else {
+                return false;
+            }
         }
     }
 
@@ -158,6 +168,7 @@ public class DataSourceHandler extends JPanel
         
         Widget.setExpanded(DRB.browsePane, false); // working: why expanded sometimes?
 
+        loadOSIDSearch();
         loadOSIDDataSources();
 
         loadBrowseableDataSources();
@@ -184,47 +195,10 @@ public class DataSourceHandler extends JPanel
 //             singleton = this;
 
         if (DEBUG.BOXES) setBorder(new LineBorder(Color.red, 4));
+
+        edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance().addDataSourceListener(this);
+        
     }
-
-//     private static boolean OSIDsLoaded;
-//     static void loadOSIDs() {
-//         if (singleton != null && !OSIDsLoaded)
-//             singleton.loadOSIDDataSources();
-//     }
-
-//     static void configureOSIDs() {
-//         Log.info("configuring data sources");
-        
-//         VUE.diagPush("config");
-
-//         final edu.tufts.vue.dsm.DataSource dataSources[] =
-//             edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance().getDataSources();
-            
-//         for (final edu.tufts.vue.dsm.DataSource ds : dataSources) {
-//             if (ds instanceof VueDataSource) {
-//                 Log.info("configure: " + ds);
-//                 new Thread("CONFIG: " + ds) {
-//                     @Override
-//                     public void run() {
-//                         try {
-//                             ((VueDataSource)ds).assignRepositoryConfiguration();
-//                         } catch (Throwable t) {
-//                             Log.error("configuring;", t);
-//                             //Log.error("configuring: " + ds + ";", t);
-//                         }
-//                         singleton.repaint();
-//                     }
-//                 }.start();
-//             } else {
-//                 Log.info("unknown DataSource, cannot configure: " + Util.tags(ds));
-//             }
-//         }
-//         //UrlAuthentication.getInstance(); // VUE-879
-
-//         VUE.diagPop();
-        
-//     }
-    
 
     private void loadBrowseableDataSources()
     {
@@ -239,15 +213,32 @@ public class DataSourceHandler extends JPanel
         }
     }
 
+    public void changed(final edu.tufts.vue.dsm.DataSource[] dataSources,
+                        final Object state,
+                        final edu.tufts.vue.dsm.DataSource changed)
+    {
+        if (state == VueDataSourceManager.DS_CONFIGURED) {
+            Log.info("loading configured " + changed);
+            dataSourceList.addOrdered(changed);
+        }
+//         else if (state == VueDataSourceManager.DS_ADDED) {
+//             dataSourceList.addOrdered(changed);
+//         }
+        repaint();
+    }
+    
+
     private void loadOSIDDataSources()
     {
+        //if (true) return;
+        
         //OSIDsLoaded = true;
         edu.tufts.vue.dsm.DataSource dataSources[] = null;
         
         try {
             // load new data sources
             dataSourceManager = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
-            Log.info("loading Installed data sources via Data Source Manager");
+            Log.info("requesting installed data sources via Data Source Manager");
 
 //             VUE.diagPush("LD");
 //             // TODO: THIS NEEDS TO BE GLOBALLY STATIC: WE ONLY WANT TO LOAD ONCE!  Is
@@ -258,13 +249,13 @@ public class DataSourceHandler extends JPanel
 //             VUE.diagPop();
             
             dataSources = dataSourceManager.getDataSources();
-            Log.info("finished loading data sources.");
+            Log.info("got data sources; n=" + dataSources.length);
             VUE.diagPush("UI");
             
             for (int i = 0; i < dataSources.length; i++) {
                 final int index = i;
                 final edu.tufts.vue.dsm.DataSource ds = dataSources[i];
-                Log.info("adding to the UI: " + ds);
+                Log.info(String.format("@%x: adding to the UI: %s", System.identityHashCode(this), ds));
                 dataSourceList.addOrdered(ds);
 //                 GUI.invokeAfterAWT(new Runnable() { public void run() {
 //                     try {
@@ -279,10 +270,16 @@ public class DataSourceHandler extends JPanel
             VUE.diagPop();
             
         } catch (Throwable t) {
-            //Util.printStackTrace(t, "DataSourceViewer construct");
-            VueUtil.alert("Error loading Resource","Error");
+            Log.error(t);
+            VueUtil.alert("Error loading OSID DataSources:\n" + t, "Error");
         }
-        
+        // select the first new data source, if any
+        if (activeDataSource == null && dataSources != null && dataSources.length > 0)
+            setActiveDataSource(dataSources[0]);
+    }
+
+    private void loadOSIDSearch()
+    {
         federatedSearchManager = edu.tufts.vue.fsm.impl.VueFederatedSearchManager.getInstance();
         sourcesAndTypesManager = edu.tufts.vue.fsm.impl.VueSourcesAndTypesManager.getInstance();
         if (DEBUG.Enabled) Log.debug("sourcesAndTypesManager: " + Util.tags(sourcesAndTypesManager));
@@ -298,12 +295,6 @@ public class DataSourceHandler extends JPanel
         queryEditor.addSearchListener(VUE.getInspectorPane());
         //this.previewPanel = previewDockWindow.getWidgetPanel();
         //resultSetDockWindow = DRB.searchDock;
-        
-        // select the first new data source, if any
-        if (activeDataSource == null && dataSources != null && dataSources.length > 0)
-            setActiveDataSource(dataSources[0]);
-
-        
     }
     
     
@@ -1921,63 +1912,37 @@ public class DataSourceHandler extends JPanel
     }
     
     
-    /**
-     * static method that returns all the datasource where Maps can be published.
-     * Only FEDORA @ Tufts is available at present
-     */
-    public static Vector getPublishableDataSources(int i) {
-        Vector mDataSources = new Vector();
-        if (dataSourceList != null) {
-            Enumeration e = dataSourceList.getModelContents().elements();
-            while(e.hasMoreElements() ) {
-                Object mDataSource = e.nextElement();
-                if(mDataSource instanceof Publishable)
-                    mDataSources.add(mDataSource);
-            }
-        }
-        return mDataSources;
+//     /**
+//      * static method that returns all the datasource where Maps can be published.
+//      * Only FEDORA @ Tufts is available at present
+//      */
+//     public static Vector getPublishableDataSources(int i) {
+//         Vector mDataSources = new Vector();
+//         if (dataSourceList != null) {
+//             Enumeration e = dataSourceList.getModelContents().elements();
+//             while(e.hasMoreElements() ) {
+//                 Object mDataSource = e.nextElement();
+//                 if(mDataSource instanceof Publishable)
+//                     mDataSources.add(mDataSource);
+//             }
+//         }
+//         return mDataSources;
         
-    }
-    /**
-     * returns the default favorites resources.  This is will be used to add favorites and perform search
-     */
-    public static org.osid.repository.Repository getDefualtFavoritesRepository() {
-        DefaultListModel model = dataSourceList.getModelContents();
+//     public static FavoritesDataSource getDefualtFavoritesDS() {
+//         DefaultListModel model = dataSourceList.getModelContents();
         
-        try {
-            for(int i = 0; i<model.size();i++){
-                Object o = model.getElementAt(i);
-                if(o instanceof edu.tufts.vue.dsm.DataSource){
-                    edu.tufts.vue.dsm.DataSource datasource = (edu.tufts.vue.dsm.DataSource)o;
-                    org.osid.repository.Repository repository = datasource.getRepository();
-                    if (repository == null) {
-                        Log.warn("looking for default favorites: repository unavailable in: " + Util.tags(o));
-                    } else if (repository.getType().isEqual(favoritesRepositoryType)) {
-                        return repository;
-                    }
-                }
-            }
-        } catch(Throwable t) {
-            Log.error("searching " + model, t);
-        }
-        return null;
-    }
-    
-    public static FavoritesDataSource getDefualtFavoritesDS() {
-        DefaultListModel model = dataSourceList.getModelContents();
-        
-        try {
-            for(int i = 0; i<model.size();i++){
-                Object o = model.getElementAt(i);
-                if(o instanceof FavoritesDataSource){
-                    return (FavoritesDataSource)o;
-                }
-            }
-        } catch(Throwable t) {
-            t.printStackTrace();
-        }
-        return null;
-    }
+//         try {
+//             for(int i = 0; i<model.size();i++){
+//                 Object o = model.getElementAt(i);
+//                 if(o instanceof FavoritesDataSource){
+//                     return (FavoritesDataSource)o;
+//                 }
+//             }
+//         } catch(Throwable t) {
+//             t.printStackTrace();
+//         }
+//         return null;
+//     }
     
     public static void saveDataSourceViewer() {
         Log.error(new Throwable("SAVE DISABLED -- NEED TO MAKE SURE LISTS ARE JOINED TO SAVE"));

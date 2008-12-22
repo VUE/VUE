@@ -258,20 +258,20 @@ public class DataSourceViewer extends JPanel
         try {
             // load new data sources
             dataSourceManager = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
-            Log.info("loading Installed data sources via Data Source Manager");
+            Log.info("requesting installed data sources from VDSM");
 
 //             VUE.diagPush("LD");
 //             edu.tufts.vue.dsm.impl.VueDataSourceManager.load();
 //             VUE.diagPop();
             
             dataSources = dataSourceManager.getDataSources();
-            Log.info("finished loading data sources.");
+            //Log.info("finished loading data sources.");
             VUE.diagPush("UI");
             
             for (int i = 0; i < dataSources.length; i++) {
                 final int index = i;
                 final edu.tufts.vue.dsm.DataSource ds = dataSources[i];
-                Log.info("  add to UI: " + ds);
+                if (DEBUG.DR) Log.info("  add to UI: " + ds);
                 dataSourceList.addOrdered(ds);
 //                 GUI.invokeAfterAWT(new Runnable() { public void run() {
 //                     try {
@@ -286,8 +286,8 @@ public class DataSourceViewer extends JPanel
             VUE.diagPop();
             
         } catch (Throwable t) {
-            //Util.printStackTrace(t, "DataSourceViewer construct");
-            VueUtil.alert("Error loading Resource","Error");
+            Log.error(t);
+            VueUtil.alert("Error loading OSID DataSources:\n" + t, "Error");
         }
         
         federatedSearchManager = edu.tufts.vue.fsm.impl.VueFederatedSearchManager.getInstance();

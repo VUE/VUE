@@ -184,10 +184,14 @@ public class VueDataSource implements edu.tufts.vue.dsm.DataSource
         }
         
         try {
+            //Log.info("searching for repository with ID [" + repositoryId.getIdString() + "]");
             this.repository = this.repositoryManager.getRepository(this.repositoryId);
-//			System.out.println("got repository");
+            //System.out.println("got repository " + repostiory);
         } catch (Throwable t) {
-            Log.warn("Load by key failed, " + this.osidLoadKey + " trying a check of all repositories; " + t);
+            Log.warn(String.format("Find repository by ID [%s] failed; osidLoadKey=[%s]; trying a check of all repositories...",
+                                   idString(repositoryId),
+                                   this.osidLoadKey),
+                     t);
             // special case for when the Manager implementation doesn't offer this method
             try {
                 org.osid.repository.RepositoryIterator repositoryIterator = this.repositoryManager.getRepositories();
@@ -195,9 +199,10 @@ public class VueDataSource implements edu.tufts.vue.dsm.DataSource
                     repository = repositoryIterator.nextRepository();
                     if (repositoryId.isEqual(repository.getId())) {
                         this.repository = repository;
-						//System.out.println("Set repository " + this.repository);
+                        //System.out.println("Set repository " + this.repository);
                     }
                 }
+                //if (repository != null) Log.info("Check of all repositories found " + repository);
             } catch (Throwable t1) {
                 Log.error("Load by check of all repositories failed:", t);
                 //throw new org.osid.provider.ProviderException(org.osid.shared.SharedException.UNKNOWN_ID);
@@ -324,6 +329,19 @@ public class VueDataSource implements edu.tufts.vue.dsm.DataSource
     public org.osid.shared.Id getRepositoryId() {
         return this.repositoryId;
     }
+
+    public static String idString(org.osid.shared.Id id) {
+        String idString = "<null-id>";
+        if (id != null) {
+            try {
+                idString = id.getIdString();
+            } catch (Throwable t) {
+                idString = "<idString? " + t + ">";
+            }
+        }
+        return idString;
+    }
+    
     
     public org.osid.shared.Type getRepositoryType() {
         return this.repositoryType;
@@ -504,22 +522,22 @@ public class VueDataSource implements edu.tufts.vue.dsm.DataSource
         
     }
     
-    public boolean getDone() {
-        return this.done;
-    }
+//     public boolean getDone() {
+//         return this.done;
+//     }
     
-    /** called only by castor persistance: when this final value is "set", we know
-     * the XML deserialize is "done" */
-    public void setDone(boolean done) {
-        edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance().add(this);
-        if (VueDataSourceManager.BLOCKING_OSID_LOAD) {
-            try {
-                assignRepositoryConfiguration();
-            } catch (Throwable t) {
-                Log.error("setDone; " + this, t);
-            }
-        }
-    }
+//     /** called only by castor persistance: when this final value is "set", we know
+//      * the XML deserialize is "done" */
+//     public void setDone(boolean done) {
+//         edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance().add(this);
+//         if (VueDataSourceManager.BLOCKING_OSID_LOAD) {
+//             try {
+//                 assignRepositoryConfiguration();
+//             } catch (Throwable t) {
+//                 Log.error("setDone; " + this, t);
+//             }
+//         }
+//     }
     
     public synchronized void assignRepositoryConfiguration()
         throws org.osid.OsidException
@@ -544,12 +562,17 @@ public class VueDataSource implements edu.tufts.vue.dsm.DataSource
     @Override
     public String toString() {
         try {
-            return String.format("%s@%07x[%38s; %-30s; %s]",
+            return String.format("%s@%07x[%-30s; %s]",
                                  getClass().getSimpleName(),
                                  System.identityHashCode(this),
-                                 getId().getIdString(),
                                  '"' + getRepositoryDisplayName() + '"',
                                  getRepository());
+//             return String.format("%s@%07x[%38s; %-30s; %s]",
+//                                  getClass().getSimpleName(),
+//                                  System.identityHashCode(this),
+//                                  getId().getIdString(),
+//                                  '"' + getRepositoryDisplayName() + '"',
+//                                  getRepository());
         } catch (Throwable t) {
             return "VueDataSource[" + t + "]";
         }

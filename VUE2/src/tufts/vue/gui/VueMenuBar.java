@@ -47,7 +47,7 @@ import edu.tufts.vue.dsm.impl.VueDataSourceManager;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.124 $ / $Date: 2008-12-21 19:25:22 $ / $Author: sfraize $
+ * @version $Revision: 1.125 $ / $Date: 2008-12-22 21:39:30 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -252,7 +252,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         
         edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance().addDataSourceListener(new edu.tufts.vue.dsm.DataSourceListener() {
             public void changed(edu.tufts.vue.dsm.DataSource[] dataSource, Object state, edu.tufts.vue.dsm.DataSource changed) {
-                if (DEBUG.Enabled) Log.debug("data sources changed; " + state);
+                if (DEBUG.DR) Log.debug("data sources changed; " + state);
 
                 if (state == VueDataSourceManager.DS_CONFIGURED) {
                     // Rebuild the publish menu.  Note that we don't wait for just
@@ -265,7 +265,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
                     return;
                 }
                     
-
+                //final int rebuildCount = PublishRebuildCount.incrementAndGet();
                 final List<Action> typeActions = new java.util.ArrayList();
            
                 int count = 0;
@@ -325,13 +325,17 @@ public class VueMenuBar extends javax.swing.JMenuBar
 //                 fileMenu.remove(publishMenu);
 //                 fileMenu.add(publishMenu,11);
 
-                final int rebuildCount = PublishRebuildCount.incrementAndGet();
-
                 // todo: could create an GUI MostRecentOnly Runnable with an exec that is only called
                 // if it's the most recent -- would be very handy -- tho how to collate with various
                 // types?  Would need to have a HashMap of all class instances (the inner anonomous
                 // one generated) containing atomic counts for each instance -- eithar that or require
                 // passing in a constant AtomicLong for each instancing group -- that'd be easier.
+
+                final int rebuildCount = PublishRebuildCount.incrementAndGet();
+                // technically, would be most efficient to increment this counter
+                // above at the moment we know we'll be issuing a new AWT invocation,
+                // tho any exception between then and here would have to be caught
+                // to ensure the menu was rebuilt no matter what.
 
                 GUI.invokeAfterAWT(new Runnable() { public void run() {
 

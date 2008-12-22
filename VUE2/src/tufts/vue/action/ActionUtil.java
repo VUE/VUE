@@ -65,7 +65,7 @@ import java.net.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistence thru castor XML.
  *
- * @version $Revision: 1.122 $ / $Date: 2008-07-14 17:09:09 $ / $Author: sfraize $
+ * @version $Revision: 1.123 $ / $Date: 2008-12-22 21:39:28 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -1090,7 +1090,7 @@ public class ActionUtil
             
             reader.close();
 
-            Log.debug("unmarshalled: " + map);
+            Log.info("unmarshalled: " + map);
 
             // The below three notify calls must be called in exact sequence (file, then version, then completed)
 
