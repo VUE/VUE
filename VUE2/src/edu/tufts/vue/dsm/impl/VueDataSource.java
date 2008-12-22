@@ -188,10 +188,8 @@ public class VueDataSource implements edu.tufts.vue.dsm.DataSource
             this.repository = this.repositoryManager.getRepository(this.repositoryId);
             //System.out.println("got repository " + repostiory);
         } catch (Throwable t) {
-            Log.warn(String.format("Find repository by ID [%s] failed; osidLoadKey=[%s]; trying a check of all repositories...",
-                                   idString(repositoryId),
-                                   this.osidLoadKey),
-                     t);
+            Log.warn("getRepository(" + idString(repositoryId) + "); " + t);
+            Log.warn(String.format("repositoryManager.getRepository(ID) failed; loadKey[%s]; manually searching", this.osidLoadKey));
             // special case for when the Manager implementation doesn't offer this method
             try {
                 org.osid.repository.RepositoryIterator repositoryIterator = this.repositoryManager.getRepositories();
