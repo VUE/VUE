@@ -62,7 +62,7 @@ Section "MainSection" SEC01
   SetOutPath "$INSTDIR"
   SetOverwrite ifnewer
   File ".\VUE.ico"
-  File ".\VUE.jar"
+  File "..\src\build\VUE.jar"
   File ".\VUE-launcher.exe"
 ; File Associations
   ${registerExtension} "$INSTDIR\VUE.jar" ".vue" "VUE Map File"
