@@ -64,9 +64,11 @@ Section "MainSection" SEC01
   File ".\VUE.ico"
   File "..\src\build\VUE.jar"
   File ".\VUE-launcher.exe"
+
 ; File Associations
-  ${registerExtension} "$INSTDIR\VUE.jar" ".vue" "VUE Map File"
-  ${registerExtension} "$INSTDIR\VUE.jar" ".vpk" "VUE Package File"
+  ${registerExtension} "$INSTDIR\VUE-Launcher.exe" ".vue" "VUE Map File"
+  ${registerExtension} "$INSTDIR\VUE-Launcher.exe" ".vpk" "VUE Package File"
+ 
 ; Shortcuts
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
   !insertmacro MUI_STARTMENU_WRITE_END

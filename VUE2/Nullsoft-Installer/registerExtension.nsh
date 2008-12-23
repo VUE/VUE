@@ -28,9 +28,9 @@ Function registerExtension
 	WriteRegStr HKCR "$R0\shell" "" "open"
 	WriteRegStr HKCR "$R0\DefaultIcon" "" "$R2,0"
 "${Index}-Skip:"
-  WriteRegStr HKCR "$R0\shell\open\command" "" '$R2 "%1"'
+  WriteRegStr HKCR "$R0\shell\open\command" "" '"$R2" "%1"'
   WriteRegStr HKCR "$R0\shell\edit" "" "Edit $R0"
-  WriteRegStr HKCR "$R0\shell\edit\command" "" '$R2 "%1"'
+  WriteRegStr HKCR "$R0\shell\edit\command" "" '"$R2" "%1"'
   pop $0
   pop $1
 !undef Index
