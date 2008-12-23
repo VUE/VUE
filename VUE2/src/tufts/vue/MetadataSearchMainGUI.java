@@ -75,7 +75,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.26 $ / $Date: 2008-12-20 18:34:56 $ / $Author: Sheejo
+ * @version $Revision: 1.27 $ / $Date: 2008-12-23 20:23:07 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -169,6 +169,7 @@ public class MetadataSearchMainGUI extends JPanel
     private JPopupMenu popupMenu = new JPopupMenu();
     private final String RENAME_STR = "Rename";
     private final String DELETE_STR = "Delete";
+    private final String RESET_STR = "Reset Map";
     private final String SEARCH_STR = "Search";
     private final String SAVED_SEARCH_STR = "Saved Searches";
     private final String SAVE_SEARCH_STR = "Save Search";
@@ -729,6 +730,15 @@ public class MetadataSearchMainGUI extends JPanel
             ((DefaultCellEditor) searchResultTbl
                     .getDefaultEditor(java.lang.Object.class))
                     .setClickCountToStart(1);
+            JMenuItem resetMenuItem = new JMenuItem(RESET_STR);
+            popupMenu.add(resetMenuItem);
+            popupMenu.addSeparator();
+            resetMenuItem.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent event) {
+                	SearchAction.revertGlobalSearchSelectionFromMSGUI();
+                    VUE.getActiveViewer().repaint();
+                }
+            });
             JMenuItem renameMenuItem = new JMenuItem(RENAME_STR);
             popupMenu.add(renameMenuItem);
             popupMenu.addSeparator();
