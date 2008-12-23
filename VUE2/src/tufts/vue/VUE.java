@@ -123,7 +123,7 @@ import edu.tufts.vue.dsm.impl.VueDataSourceManager;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.613 $ / $Date: 2008-12-22 22:10:16 $ / $Author: sraphe01 $ 
+ * @version $Revision: 1.614 $ / $Date: 2008-12-23 15:48:34 $ / $Author: sraphe01 $ 
  */
 
 public class VUE
@@ -2223,7 +2223,8 @@ public class VUE
         JPanel panel = new JPanel(new FlowLayout());        
          
         depthSelectionSlider.setFont(new Font("SansSerif", Font.PLAIN, 1));
-        depthSelectionSlider.setSize(new Dimension(0,20));
+        depthSelectionSlider.setSize(new Dimension(0,23));
+        //depthSelectionSlider.setMaximumSize(new Dimension(0,23));
         //depthSelectionSlider.setPaintTicks(true);
         //depthSelectionSlider.putClientProperty("JSlider.isFilled", Boolean.TRUE);
         Hashtable labelTable = new Hashtable();
@@ -2274,11 +2275,14 @@ public class VUE
         depthSelectionSlider.addChangeListener(lst);
         
         //panel.setBorder(BorderFactory.createLineBorder(Color.red, 1));
+//        panel.setFont(new Font("SansSerif", Font.PLAIN, 15));
+//        depthSelectionSlider.setForeground(Color.DARK_GRAY);
+//        panel.setForeground(Color.DARK_GRAY);
         panel.add(depthSelectionSlider);
         panel.add(new JLabel(" "));
         panel.add(mSearchtextFld);
         panel.add(new JLabel(" "));
-        
+        //panel.setPreferredSize(new Dimension(430,40));
 		toolbarPanel.add( panel  , SwingConstants.LEFT);		
         if (DEBUG.INIT) out("created ToolBar");
         
@@ -2296,8 +2300,7 @@ public class VUE
     	boolean isWindows = VueUtil.isWindowsPlatform();
     	SearchTextField() {
     		super(VueResources.getString("search.text.default"),15);     		
-        	thisTxtFld = this;    
-        	thisTxtFld.setPreferredSize(new Dimension(0,23));
+        	thisTxtFld = this;        	
         	GUI.init();
         	initMenuSettings();
         	if(!isWindows){
@@ -2387,7 +2390,7 @@ public class VUE
         		setEditable(true);
         		putClientProperty("JTextField.variant", "search");
         		Insets noInsets=new Insets(0,30,0,25); 
-        		setMargin(noInsets);
+        		//setMargin(noInsets);
         		createPopupMenu(isWindows);        		
         		addMouseListener(new MouseAdapter() {
         		    public void mousePressed(MouseEvent e) {
@@ -2931,7 +2934,7 @@ public class VUE
             Image searchImg = VueResources.getImageIcon("search.searchicon").getImage();
             Image searchOVImg = VueResources.getImageIcon("search.searchicon.ov").getImage();
             Image searchTigerImg = VueResources.getImageIcon("search.tiger.searchicon").getImage();
-            Image searchTigerImgOv = VueResources.getImageIcon("search.tiger.searchicon.ov").getImage();
+            //Image searchTigerImgOv = VueResources.getImageIcon("search.tiger.searchicon.ov").getImage();
             //Image clearImgOv = VueResources.getImageIcon("search.closeicon.ov").getImage();
             int h = getHeight(); 
             int w = getWidth();            
