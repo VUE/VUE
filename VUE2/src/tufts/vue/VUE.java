@@ -123,7 +123,7 @@ import edu.tufts.vue.dsm.impl.VueDataSourceManager;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.614 $ / $Date: 2008-12-23 15:48:34 $ / $Author: sraphe01 $ 
+ * @version $Revision: 1.615 $ / $Date: 2008-12-23 20:04:00 $ / $Author: sraphe01 $ 
  */
 
 public class VUE
@@ -2220,22 +2220,29 @@ public class VUE
 //        searchPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));        
 //        
         //searchPanel.setBorder(BorderFactory.createLineBorder(Color.red,1));
-        JPanel panel = new JPanel(new FlowLayout());        
-         
-        depthSelectionSlider.setFont(new Font("SansSerif", Font.PLAIN, 1));
-        depthSelectionSlider.setSize(new Dimension(0,23));
-        //depthSelectionSlider.setMaximumSize(new Dimension(0,23));
-        //depthSelectionSlider.setPaintTicks(true);
-        //depthSelectionSlider.putClientProperty("JSlider.isFilled", Boolean.TRUE);
+        JPanel panel = new JPanel(new FlowLayout());         
+       
         Hashtable labelTable = new Hashtable();
-        JLabel linePanel = new JLabel() {
+        JLabel linePanel = null;
+        if(VueUtil.isMacPlatform()){
+         linePanel = new JLabel() {
             protected void paintComponent(java.awt.Graphics g) {
                  //setSize(40,20);
                 g.setColor(java.awt.Color.DARK_GRAY);
                 g.drawLine(0, 0, 0,
-                        10);
+                        7);
             }            
         };
+        }else{
+        	linePanel = new JLabel() {
+                protected void paintComponent(java.awt.Graphics g) {
+                     //setSize(40,20);
+                    g.setColor(java.awt.Color.DARK_GRAY);
+                    g.drawLine(0, 4, 0,
+                            11);
+                }            
+            };
+        }
         JLabel halfLinePanel = new JLabel() {
             protected void paintComponent(java.awt.Graphics g) {
                  //setSize(40,20);
@@ -2246,23 +2253,23 @@ public class VUE
         };
         linePanel.setBorder(BorderFactory.createLineBorder(panel.getBackground(), 1));
         halfLinePanel.setBorder(BorderFactory.createLineBorder(panel.getBackground(), 1));
-
-        labelTable.put( new Integer( 1 ), new JLabel("1") );
-//        labelTable.put( new Integer( 2 ), halfLinePanel);
-//        labelTable.put( new Integer( 3 ), halfLinePanel);
+        JLabel oneLabel = new JLabel("1");
+        oneLabel.setFont(JSliderSmallFixedFont);
+        oneLabel.setForeground(Color.DARK_GRAY);
+        labelTable.put( new Integer( 1 ), oneLabel);
         labelTable.put( new Integer( 2 ), linePanel );
-//        labelTable.put( new Integer( 5 ), halfLinePanel);
-//        labelTable.put( new Integer( 6 ), halfLinePanel);
         labelTable.put( new Integer( 3 ), linePanel );
-//        labelTable.put( new Integer( 8 ), halfLinePanel);
-//        labelTable.put( new Integer( 9 ), halfLinePanel);
         labelTable.put( new Integer( 4 ), linePanel );
-//        labelTable.put( new Integer( 11 ), halfLinePanel);
-//        labelTable.put( new Integer( 12 ), halfLinePanel);
-        labelTable.put( new Integer( 5 ), new JLabel("5") );
-//        labelTable.put( new Integer( 14 ), halfLinePanel);
-//        labelTable.put( new Integer( 15 ), halfLinePanel);
-        labelTable.put( new Integer( 6 ), new JLabel("All"));
+        JLabel fiveLabel = new JLabel("5");
+        fiveLabel.setFont(JSliderSmallFixedFont);
+        fiveLabel.setForeground(Color.DARK_GRAY);
+        labelTable.put( new Integer( 5 ), fiveLabel );
+
+        JLabel allLabel = new JLabel("All");
+        allLabel.setFont(JSliderSmallFixedFont);
+        allLabel.setForeground(Color.DARK_GRAY);
+        labelTable.put( new Integer( 6 ),allLabel);
+        
         depthSelectionSlider.setLabelTable( labelTable );
 
         //framesPerSecond.setMajorTickSpacing(6);
@@ -2272,12 +2279,8 @@ public class VUE
         depthSelectionSlider.setPaintLabels(true);
         depthSelectionSlider.setPreferredSize(new Dimension(200,35));
         SliderActionListener lst = new SliderActionListener();        
-        depthSelectionSlider.addChangeListener(lst);
-        
-        //panel.setBorder(BorderFactory.createLineBorder(Color.red, 1));
-//        panel.setFont(new Font("SansSerif", Font.PLAIN, 15));
-//        depthSelectionSlider.setForeground(Color.DARK_GRAY);
-//        panel.setForeground(Color.DARK_GRAY);
+        depthSelectionSlider.addChangeListener(lst);        
+             
         panel.add(depthSelectionSlider);
         panel.add(new JLabel(" "));
         panel.add(mSearchtextFld);
