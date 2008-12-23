@@ -62,13 +62,17 @@ Section "MainSection" SEC01
   SetOutPath "$INSTDIR"
   SetOverwrite ifnewer
   File ".\VUE.ico"
+  File ".\vuedoc.ico"
   File "..\src\build\VUE.jar"
   File ".\VUE-launcher.exe"
 
 ; File Associations
   ${registerExtension} "$INSTDIR\VUE-Launcher.exe" ".vue" "VUE Map File"
   ${registerExtension} "$INSTDIR\VUE-Launcher.exe" ".vpk" "VUE Package File"
- 
+ DeleteRegKey HKCR "VUE Map File\DefaultIcon"
+ DeleteRegKey HKCR "VUE Package File\DefaultIcon"
+ WriteRegStr HKCR "VUE Map File\DefaultIcon" "" "$INSTDIR\vuedoc.ico"
+ WriteRegStr HKCR "VUE Package File\DefaultIcon" "" "$INSTDIR\vuedoc.ico"
 ; Shortcuts
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
   !insertmacro MUI_STARTMENU_WRITE_END
@@ -133,6 +137,7 @@ Section Uninstall
   Delete "$INSTDIR\VUE.jar"
   Delete "$INSTDIR\*.exe"
   Delete "$INSTDIR\VUE.ico"
+  Delete "$INSTDIR\vuedoc.ico"
 ; File Associations
   ${unregisterExtension} ".vue" "VUE Map File"
   ${unregisterExtension} ".vpk" "VUE Package File"
