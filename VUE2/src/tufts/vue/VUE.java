@@ -23,7 +23,6 @@ import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Font;
 import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.GraphicsConfiguration;
@@ -55,7 +54,6 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
-import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
@@ -110,20 +108,19 @@ import tufts.vue.gui.GUI;
 import tufts.vue.gui.VueFrame;
 import tufts.vue.gui.VueMenuBar;
 import tufts.vue.ui.InspectorPane;
+import edu.tufts.vue.dsm.impl.VueDataSourceManager;
 import edu.tufts.vue.metadata.VueMetadataElement;
 import edu.tufts.vue.metadata.action.SearchAction;
 import edu.tufts.vue.preferences.implementations.MetadataSchemaPreference;
 import edu.tufts.vue.preferences.implementations.ShowAgainDialog;
 import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
 
-import edu.tufts.vue.dsm.impl.VueDataSourceManager;
-
 /**
  * Vue application class.
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.615 $ / $Date: 2008-12-23 20:04:00 $ / $Author: sraphe01 $ 
+ * @version $Revision: 1.616 $ / $Date: 2008-12-23 20:37:35 $ / $Author: sraphe01 $ 
  */
 
 public class VUE
@@ -1983,8 +1980,11 @@ public class VUE
         {
         	metaDataSearchDock = GUI.createDockWindow("Search");
         	metadataSearchMainPanel = new MetadataSearchMainGUI(metaDataSearchDock);
-        	GUI.setAlwaysOnTop(metaDataSearchDock.window(), true);
-        	
+        	if (metadataSearchMainPanel.getParent() == GUI.HiddenDialogParent) {
+                GUI.setAlwaysOnTop(metaDataSearchDock.window(), true);
+            }
+        	//GUI.setAlwaysOnTop(metaDataSearchDock.window(), true);
+        
         }
         //-----------------------------------------------------------------------------
         // Object Inspector / Resource Inspector
