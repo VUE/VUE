@@ -120,7 +120,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.617 $ / $Date: 2009-01-05 16:30:50 $ / $Author: mike $ 
+ * @version $Revision: 1.618 $ / $Date: 2009-01-05 17:39:45 $ / $Author: sraphe01 $ 
  */
 
 public class VUE
@@ -2254,19 +2254,19 @@ public class VUE
         linePanel.setBorder(BorderFactory.createLineBorder(panel.getBackground(), 1));
         halfLinePanel.setBorder(BorderFactory.createLineBorder(panel.getBackground(), 1));
         JLabel oneLabel = new JLabel("1");
-        oneLabel.setFont(GUI.SmallFixedFont);
+        oneLabel.setFont(JSliderSmallFixedFont);
         oneLabel.setForeground(Color.DARK_GRAY);
         labelTable.put( new Integer( 1 ), oneLabel);
         labelTable.put( new Integer( 2 ), linePanel );
         labelTable.put( new Integer( 3 ), linePanel );
         labelTable.put( new Integer( 4 ), linePanel );
         JLabel fiveLabel = new JLabel("5");
-        fiveLabel.setFont(GUI.SmallFixedFont);
+        fiveLabel.setFont(JSliderSmallFixedFont);
         fiveLabel.setForeground(Color.DARK_GRAY);
         labelTable.put( new Integer( 5 ), fiveLabel );
 
         JLabel allLabel = new JLabel("All");
-        allLabel.setFont(GUI.SmallFixedFont);
+        allLabel.setFont(JSliderSmallFixedFont);
         allLabel.setForeground(Color.DARK_GRAY);
         labelTable.put( new Integer( 6 ),allLabel);
         

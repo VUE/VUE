@@ -26,7 +26,7 @@ import java.awt.font.FontRenderContext;
  *
  * Is an interface so can be "implemented" as virtual java 1.5 static import.
  *
- * @version $Revision: 1.62 $ / $Date: 2008-11-20 17:39:38 $ / $Author: sfraize $ 
+ * @version $Revision: 1.63 $ / $Date: 2009-01-05 17:39:45 $ / $Author: sraphe01 $ 
  */
 
 // todo: rename GUI constants & move to GUI
@@ -54,6 +54,11 @@ public interface VueConstants
     static Font SmallFixedBoldFont = VueUtil.isMacPlatform()
         ? new Font("Monaco", Font.BOLD, 11)
         : new Font("Lucida Console", Font.BOLD, 10);
+        
+        static Font JSliderSmallFixedFont = VueUtil.isMacPlatform()
+        ? new Font("Lucida Console", Font.PLAIN, 10) // a fixed-width mac font that shows propertly shows special mac character glyphs (needed for Leopard)
+        : new Font("SansSerif", Font.PLAIN, 11); // will not show special character glyphs on mac, nor will be anti-aliased
+
 
     // Note that "Lucida Console" on Mac OS X gets mapped to "Monaco" in any case
     
