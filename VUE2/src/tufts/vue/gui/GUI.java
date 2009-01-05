@@ -57,7 +57,7 @@ import sun.awt.shell.ShellFolder;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.130 $ / $Date: 2008-12-17 04:58:33 $ / $Author: sfraize $
+ * @version $Revision: 1.131 $ / $Date: 2009-01-05 16:49:10 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -1021,7 +1021,7 @@ public class GUI
         return dw;
     }
 
-    static Frame HiddenDialogParent = null;
+    public static Frame HiddenDialogParent = null;
 
     // based on SwingUtilities.getSharedOwnerFrame() 
     public static Frame getHiddenDialogParentFrame() { 
