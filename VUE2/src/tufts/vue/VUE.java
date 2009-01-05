@@ -120,7 +120,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.619 $ / $Date: 2009-01-05 21:00:52 $ / $Author: sraphe01 $ 
+ * @version $Revision: 1.620 $ / $Date: 2009-01-05 21:39:17 $ / $Author: sraphe01 $ 
  */
 
 public class VUE
@@ -2275,7 +2275,7 @@ public class VUE
 
         //framesPerSecond.setPaintTicks(true);
         depthSelectionSlider.setPaintLabels(true);
-        depthSelectionSlider.setPreferredSize(new Dimension(200,35));
+        depthSelectionSlider.setPreferredSize(new Dimension(130,35));
         SliderActionListener lst = new SliderActionListener();        
         depthSelectionSlider.addChangeListener(lst);        
              
