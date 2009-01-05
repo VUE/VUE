@@ -27,6 +27,8 @@ import java.util.Iterator;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+
+import tufts.Util;
 import tufts.vue.*;
 import tufts.vue.gui.*;
 
@@ -371,9 +373,8 @@ public class OntologyBrowser extends JPanel {
         stack.addPane(populatePane,0f);
         Widget.setMiscAction(ontologiesPanel,new MiscWidgetAction() , "dockWindow.addButton");
         ontologyDock.setContent(stack);
-        //GUI.setAlwaysOnTop(ontologyDock.window(),true);
-        if (ontologiesPanel.getParent() == GUI.HiddenDialogParent) {
-            GUI.setAlwaysOnTop(ontologyDock.window(), true);
+        if(Util.isMacPlatform()){
+        	GUI.setAlwaysOnTop(ontologyDock.window(),true);  
         }
     }
     
