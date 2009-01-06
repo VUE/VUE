@@ -32,7 +32,7 @@ import au.com.bytecode.opencsv.CSVReader;
 
 
 /**
- * @version $Revision: 1.9 $ / $Date: 2008-12-15 17:01:14 $ / $Author: sfraize $
+ * @version $Revision: 1.10 $ / $Date: 2009-01-06 17:35:02 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class XmlDataSource extends BrowseDataSource
@@ -46,6 +46,8 @@ public class XmlDataSource extends BrowseDataSource
 
     private String itemKey;
     private String keyField;
+
+    private boolean isCSV; // hack while XmlDataSource supports both XML and flat-files
     
     public XmlDataSource() {}
     
@@ -104,7 +106,16 @@ public class XmlDataSource extends BrowseDataSource
     }
 
     public void setKeyField(String k) {
-        keyField = k;
+        if (DEBUG.DR) Log.debug("setKeyField[" + k + "]");
+        if (k != null) {
+            k = k.trim();
+            if (k.length() < 1)
+                keyField = null;
+            else
+                keyField = k;
+        } else {
+            keyField = null;
+        }
         unloadViewer();
     }
     
@@ -116,15 +127,27 @@ public class XmlDataSource extends BrowseDataSource
                               "XML node path of interest",
                               getItemKey()); // current value is inserted here
 
+        String keyFieldName = getKeyField();
+        Vector possibleKeyFieldValues = null;
+
+        if (mSchema != null) {
+            if (keyFieldName == null)
+                keyFieldName = mSchema.getKeyField().getName();
+            possibleKeyFieldValues = mSchema.getPossibleKeyFieldNames();
+        }
+
         ConfigField keyField
             = new ConfigField(KEY_FIELD_KEY
                               ,"Key Field"
                               ,"Field with a unique value for each item"
-                              ,getKeyField() // current value
-                              ,edu.tufts.vue.ui.ConfigurationUI.SINGLE_LINE_NONEDITABLE_TEXT_CONTROL);
+                              ,keyFieldName // current value
+                              ,edu.tufts.vue.ui.ConfigurationUI.COMBO_BOX_CONTROL);
+        keyField.values = possibleKeyFieldValues;
+        //,edu.tufts.vue.ui.ConfigurationUI.SINGLE_LINE_NONEDITABLE_TEXT_CONTROL);
 
         List<ConfigField> fields = super.getConfigurationUIFields();
-        fields.add(path);
+        if (!isCSV)
+            fields.add(path);
         fields.add(keyField);
         return fields;
     }
@@ -203,11 +226,15 @@ public class XmlDataSource extends BrowseDataSource
         if (getAddress().endsWith(".csv")) {
             schema = ingestCSV(mSchema, getAddress(), true);
             mSchema = schema;
-            //isCSV = true;
+            isCSV = true;
         } else {
             schema = XMLIngest.ingestXML(openInput(), getItemKey());
+            mSchema = schema;
             //schema = XMLIngest.ingestXML(openAddress(), getItemKey());
         }
+
+        if (getKeyField() != null)
+            mSchema.setKeyField(getKeyField());
 
         schema.setName(getDisplayName());
 

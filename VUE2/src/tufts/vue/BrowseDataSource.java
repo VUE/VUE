@@ -23,15 +23,14 @@ package tufts.vue;
  * on the configuration.  E.g., a local directory, a list of user favorites, a remote FTP
  * site, an RSS feed, etc.
  * 
- * @version $Revision: 1.6 $ / $Date: 2008-12-15 16:44:08 $ / $Author: sfraize $
+ * @version $Revision: 1.7 $ / $Date: 2009-01-06 17:35:02 $ / $Author: sfraize $
  * @author  rsaigal
  * @author  sfraize
  */
 
 import tufts.vue.DEBUG;
 
-import java.util.Map;
-import java.util.List;
+import java.util.*;
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
@@ -69,12 +68,13 @@ public abstract class BrowseDataSource implements DataSource
 
     /** parameter block that can be used for generating XML in EditLibraryPanel to add fields to the data-source UI */
     public static class ConfigField {
-        public String key;
-        public String title;
-        public String description;
-        public String value;
+        public final String key;
+        public final String title;
+        public final String description;
+        public final String value;
         public int uiControl = ConfigurationUI.SINGLE_LINE_CLEAR_TEXT_CONTROL;
         public int maxLen;
+        public Vector<String> values;
 
         public ConfigField(String k, String t, String d, String v, int... type) {
             key = k;
@@ -226,11 +226,13 @@ public abstract class BrowseDataSource implements DataSource
 
     // call from AWT only
     protected void unloadViewer() {
-        if (DEBUG.DR) out("unloadViewer");
+        //if (DEBUG.DR) out("unloadViewer");
         if (mLoadThread != null)
             setLoadThread(null);
-        if (_viewer != null)
+        if (_viewer != null) {
+            if (DEBUG.DR) out("unloadViewer " + tufts.vue.gui.GUI.name(_viewer));
             setViewer(null);
+        }
         setAvailable(false);
     }
 

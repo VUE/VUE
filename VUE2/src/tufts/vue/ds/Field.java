@@ -33,7 +33,7 @@ import java.util.*;
  * types and doing some data-type analysis.  It also includes the ability to
  * associate a LWComponent node style with specially marked values.
  * 
- * @version $Revision: 1.6 $ / $Date: 2008-12-17 23:14:46 $ / $Author: sfraize $
+ * @version $Revision: 1.7 $ / $Date: 2009-01-06 17:35:02 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -258,7 +258,16 @@ public class Field
     }
         
     protected int uniqueValueCount() {
-        return mValues == null ? valueCount() : mValues.entrySet().size();
+        if (mValues == null) {
+            if (maxValueLen == 0)
+                return 0;
+            else
+                return valueCount();
+        } else {
+            return mValues.entrySet().size();
+        }
+
+        //return mValues == null ? valueCount() : mValues.entrySet().size();
     }
     
     private static int count(Multiset m) {
@@ -295,8 +304,6 @@ public class Field
     // todo: may want to move this to a separate analysis code set
     void trackValue(String value) {
 
-        valueCount++;
-
         if (value == null)
             return;
 
@@ -313,60 +320,61 @@ public class Field
         if (enumDisabled)
             return;
             
-        if (valueLen > 0) {
+        if (valueLen == 0)
+            return;
+        
+        valueCount++;
                 
-            if (valueCount > 1 && value.length() > MAX_ENUM_VALUE_LENGTH) {
-                mValues = null;
-                enumDisabled = true;
-                isNumeric = false;
-                return;
-            }
+        if (valueCount > 1 && value.length() > MAX_ENUM_VALUE_LENGTH) {
+            mValues = null;
+            enumDisabled = true;
+            isNumeric = false;
+            return;
+        }
                 
-            if (mValues == null) {
-                //mValues = Multisets.newHashMultiset();
-                mValues = new LinkedHashMultiset();
-            } else if (mValues.contains(value)) {
-                allValuesUnique = false;
-            }
-            mValues.add(value);
-            //Log.debug(this + " added " + value + "; size=" + count(mValues));
+        if (mValues == null) {
+            //mValues = Multisets.newHashMultiset();
+            mValues = new LinkedHashMultiset();
+        } else if (mValues.contains(value)) {
+            allValuesUnique = false;
+        }
+        mValues.add(value);
+        //Log.debug(this + " added " + value + "; size=" + count(mValues));
 
-            if (type == TYPE_UNKNOWN && value.length() <= MAX_DATE_VALUE_LENGTH) {
+        if (type == TYPE_UNKNOWN && value.length() <= MAX_DATE_VALUE_LENGTH) {
 
-                if (value.indexOf(':') > 0) {
-                    Date date = null;
+            if (value.indexOf(':') > 0) {
+                Date date = null;
 
-                    try {
-                        date = new Date(value);
-                    } catch (Throwable t) {
-                        if (DEBUG.DATA) Log.debug("Failed to parse [" + value + "] as date: " + t);
-                        type = TYPE_TEXT;
-                    }
+                try {
+                    date = new Date(value);
+                } catch (Throwable t) {
+                    if (DEBUG.DATA) Log.debug("Failed to parse [" + value + "] as date: " + t);
+                    type = TYPE_TEXT;
+                }
                     
-                    //                     try {
-                    //                         date = DateParser.parse(value);
-                    //                     } catch (java.text.ParseException e) {
-                    //                         eoutln("Failed to parse [" + value + "] as date: " + e);
-                    //                         type = TYPE_TEXT;
-                    //                     }
+                //                     try {
+                //                         date = DateParser.parse(value);
+                //                     } catch (java.text.ParseException e) {
+                //                         eoutln("Failed to parse [" + value + "] as date: " + e);
+                //                         type = TYPE_TEXT;
+                //                     }
                     
-                    if (date != null) {
-                        type = TYPE_DATE;
-                        if (DEBUG.Enabled) Log.debug("PARSED DATE: " + Util.tags(date) + " from " + value);
-                    }
+                if (date != null) {
+                    type = TYPE_DATE;
+                    if (DEBUG.Enabled) Log.debug("PARSED DATE: " + Util.tags(date) + " from " + value);
+                }
 
-                    if (type == TYPE_UNKNOWN && isNumeric) {
-                        for (int i = 0; i < value.length(); i++) {
-                            if (!Character.isDigit(value.charAt(i))) {
-                                isNumeric = false;
-                                break;
-                            }
+                if (type == TYPE_UNKNOWN && isNumeric) {
+                    for (int i = 0; i < value.length(); i++) {
+                        if (!Character.isDigit(value.charAt(i))) {
+                            isNumeric = false;
+                            break;
                         }
                     }
                 }
             }
         }
-                            
 
 
         //                 if (type == TYPE_UNKNOWN) {

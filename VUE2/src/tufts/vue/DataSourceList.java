@@ -64,7 +64,7 @@ import tufts.oki.localFiling.*;
  * user re-ordering of the data sources, which would automatically be
  * persistent.
  * 
- * @version $Revision: 1.62 $ / $Date: 2008-12-21 19:25:20 $ / $Author: sfraize $
+ * @version $Revision: 1.63 $ / $Date: 2009-01-06 17:35:02 $ / $Author: sfraize $
  * @author Ranjani Saigal
  */
 
@@ -177,7 +177,7 @@ public class DataSourceList extends JList implements DropTargetListener
         }
     }
 
-    private static final boolean ALLOW_FEED_DROPS = false;
+    private static final boolean ALLOW_FEED_DROPS = true;
     
     public void dragOver(DropTargetDragEvent e) {
         Object over = locationToValue(e.getLocation());
@@ -240,9 +240,13 @@ public class DataSourceList extends JList implements DropTargetListener
                     String txt = MapDropTarget.extractData(transfer, DataFlavor.stringFlavor, String.class);
                     if (txt.startsWith("feed:")) {
                         BrowseDataSource feed = new edu.tufts.vue.rss.RSSDataSource(txt, txt);
+
+                        // crap: this is a local data source -- we have no central model
+                        // for the local data sources -- only for OSID *installed* data sources
+                        // edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance().add(feed);
                         addOrdered(feed);
                         DataSourceViewer.saveDataSourceViewer();
-                        DataSourceViewer.cacheDataSourceViewers(); // start it loading
+                        //DataSourceViewer.cacheDataSourceViewers(); // start it loading
                         return;
                     }
                 }

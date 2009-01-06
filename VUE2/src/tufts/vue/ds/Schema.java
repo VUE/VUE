@@ -31,7 +31,7 @@ import com.google.common.collect.*;
 
 
 /**
- * @version $Revision: 1.15 $ / $Date: 2008-12-17 23:13:36 $ / $Author: sfraize $
+ * @version $Revision: 1.16 $ / $Date: 2009-01-06 17:35:02 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -291,6 +291,26 @@ public class Schema {
         // all be unique (e.g., short RSS feed), but are unlikely to be useful keys.
         return f.isSingleValue() || (f.getName().startsWith("dc:") && !f.getName().equals("dc:identifier"));
     }
+
+    // this returns a Vector so can be fed directly to a JComboBox if desired
+    public Vector<String> getPossibleKeyFieldNames() {
+        final Vector<String> possibleKeyFields = new Vector();
+
+        for (Field field : getFields())
+            if (field.isPossibleKeyField())
+                possibleKeyFields.add(field.getName());
+
+        if (possibleKeyFields.size() == 0) {
+            // add them all: some data rows are probably duplicates, and we can't
+            // identify a key field
+            for (Field field : getFields())
+                if (!field.isSingleton())
+                    possibleKeyFields.add(field.getName());
+        }
+
+        return possibleKeyFields;
+    }
+    
     
     /** look at all the Fields and make a guess as to which is the most likely key field
      * This currently will always return *some* field, even if it's not a possible key field. */

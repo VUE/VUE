@@ -20,6 +20,7 @@ import tufts.vue.BrowseDataSource.ConfigField;
 import javax.swing.*;
 import java.awt.event.*;
 import java.awt.*;
+import java.util.*;
 
 import static edu.tufts.vue.ui.ConfigurationUI.*;
 
@@ -60,6 +61,12 @@ public class EditLibraryPanel extends JPanel implements ActionListener
             Log.error("init", t);
         }
     }
+
+    private static class UIParams {
+        String xml;
+        // possible enumerated types, indexed by key field
+        Map<String,Vector> extraValuesByKey = Collections.EMPTY_MAP;
+    }
     
     public EditLibraryPanel(DataSourceViewer dsv, tufts.vue.DataSource dataSource)
     {
@@ -68,11 +75,15 @@ public class EditLibraryPanel extends JPanel implements ActionListener
         this.oldStyleDataSource = dataSource;
                         
         try {
-            final String xml = getXMLforOldStyleDataSource(dataSource);
+            //final String xml = getXMLforOldStyleDataSource(dataSource);
+            
+            final UIParams uiParams = getXMLforOldStyleDataSource(dataSource);
+            final String xml = uiParams.xml;
             
             if (DEBUG.DR) Log.debug("VUE-XML: " + xml);
             
-            cui = new edu.tufts.vue.ui.ConfigurationUI(new java.io.ByteArrayInputStream(xml.getBytes()));
+            cui = new edu.tufts.vue.ui.ConfigurationUI(new java.io.ByteArrayInputStream(xml.getBytes()),
+                                                       uiParams.extraValuesByKey);
             
             updateButton.addActionListener(this);
 
@@ -84,10 +95,9 @@ public class EditLibraryPanel extends JPanel implements ActionListener
     }
 	
 
-    private String getXMLforOldStyleDataSource(tufts.vue.DataSource dataSource)
+    private UIParams getXMLforOldStyleDataSource(tufts.vue.DataSource dataSource)
     {
-        // use canned configurations
-
+        final UIParams params = new UIParams();
         final StringBuilder b = new StringBuilder();
         final String name = dataSource.getDisplayName();
         //final String address = dataSource.getAddress();
@@ -99,6 +109,7 @@ public class EditLibraryPanel extends JPanel implements ActionListener
                             
         if (dataSource instanceof LocalFileDataSource) {
 
+            // use canned configuration
             addField(b, "address",
                      "Starting Path",
                      "The path to start from",
@@ -112,6 +123,8 @@ public class EditLibraryPanel extends JPanel implements ActionListener
             
         } else if (dataSource instanceof RemoteFileDataSource) {
 
+            // use canned configuration
+            
             final RemoteFileDataSource ds = (RemoteFileDataSource) dataSource;
             
             addField(b, "address", "Address", "FTP Address", ds.getAddress(), SINGLE_LINE_CLEAR_TEXT_CONTROL, 0);
@@ -123,29 +136,22 @@ public class EditLibraryPanel extends JPanel implements ActionListener
                             
             final tufts.vue.BrowseDataSource ds = (tufts.vue.BrowseDataSource) dataSource;
             
-//             addField(b,
-//                      "address",
-//                      "Address",
-//                      ds.getTypeName() + " URL",
-//                      dataSource.getAddress(),
-//                      SINGLE_LINE_CLEAR_TEXT_CONTROL,
-//                      0);
-//             addField(b,
-//                      tufts.vue.BrowseDataSource.AUTHENTICATION_COOKIE_KEY,
-//                      "Authentication",
-//                      "Any required authentication cookie (optional)",
-//                      ds.getAuthenticationCookie(),
-//                      SINGLE_LINE_CLEAR_TEXT_CONTROL,
-//                      0);
-
-            for (ConfigField f : ds.getConfigurationUIFields()) 
+            final java.util.Map<String,Vector> extraValuesMap = new java.util.HashMap();
+            for (ConfigField f : ds.getConfigurationUIFields()) {
                 addField(b, f.key, f.title, f.description, f.value, f.uiControl, f.maxLen);
+                if (f.values != null)
+                    extraValuesMap.put(f.key, f.values);
+            }
+            params.extraValuesByKey = extraValuesMap;
 
         }
 
         b.append("</configuration>");
+
+        params.xml = b.toString();
         
-        return b.toString();
+        //return b.toString();
+        return params;
     }
 
     

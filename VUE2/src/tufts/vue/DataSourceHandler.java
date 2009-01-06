@@ -1675,70 +1675,6 @@ public class DataSourceHandler extends JPanel
 //         }
 //     }
     
-    private PropertyMap buildPropertyMap(edu.tufts.vue.dsm.DataSource dataSource) {
-        PropertyMap map = new PropertyMap();
-        
-        try {
-            org.osid.repository.Repository repository = dataSource.getRepository();
-            
-            
-            
-            map.addProperty("Repository Id",(Object)repository.getId().getIdString());
-            map.addProperty("Name",(Object)repository.getDisplayName());
-            map.addProperty("Description",(Object)repository.getDescription());
-            map.addProperty("Type",(Object)edu.tufts.vue.util.Utilities.typeToString(repository.getType()));
-            map.addProperty("Creator",(Object)dataSource.getCreator());
-            map.addProperty("Publisher",(Object)dataSource.getPublisher());
-            map.addProperty("Release Date",(Object)edu.tufts.vue.util.Utilities.dateToString(dataSource.getReleaseDate()));
-            map.addProperty("Provider Id",(Object)dataSource.getProviderId().getIdString());
-            String osidName = dataSource.getOsidName() + " " + dataSource.getOsidVersion();
-            map.addProperty("Osid Service",(Object)osidName);
-            map.addProperty("Osid Load Key",(Object)dataSource.getOsidLoadKey());
-            map.addProperty("Provider Display Name",(Object)dataSource.getProviderDisplayName());
-            map.addProperty("Provider Description",(Object)dataSource.getProviderDescription());
-            String online = dataSource.isOnline() ? "Yes" : "No";
-            map.addProperty("Online?",(Object)online);
-            String supportsUpd = dataSource.supportsUpdate() ? "The Resource Supports Updating" : "The Resource Is Read Only";
-            map.addProperty("Supports Update?",(Object)supportsUpd);
-            
-            org.osid.shared.TypeIterator typeIterator = repository.getAssetTypes();
-            StringBuffer assetTypes = new StringBuffer();
-            while (typeIterator.hasNextType()) {
-                assetTypes.append(edu.tufts.vue.util.Utilities.typeToString(typeIterator.nextType()));
-                assetTypes.append(", ");
-            }
-            
-            if (assetTypes.length() > 0)
-                assetTypes.delete(assetTypes.length()-2,assetTypes.length()-1);
-            
-            map.addProperty("Asset Types",(Object)assetTypes.toString());
-            
-            typeIterator = repository.getSearchTypes();
-            StringBuffer searchTypes = new StringBuffer();
-            while (typeIterator.hasNextType()) {
-                searchTypes.append(edu.tufts.vue.util.Utilities.typeToString(typeIterator.nextType()));
-                searchTypes.append(", ");
-                
-            }
-            if (searchTypes.length() > 0)
-                searchTypes.delete(searchTypes.length()-2,searchTypes.length()-1);
-            
-            map.addProperty("Search Types",(Object)searchTypes.toString());
-            
-            
-/*			java.awt.Image image = null;
-                        if ( (image = dataSource.getIcon16x16()) != null ) {
-                                gbConstraints.gridx = 0;
-                                gbConstraints.gridy++;
-                                add(new javax.swing.JLabel(new javax.swing.ImageIcon(image)),gbConstraints);
-                        }*/
-        } catch (Throwable t) {
-            //t.printStackTrace();
-            System.out.println(t.getMessage());
-        }
-        
-        return map;
-    }
 
     private static WidgetStack editInfoStack; // static hack: is needed before this class is constructed
     private static final JLabel NoConfig = new JLabel("No Configuration", JLabel.CENTER);
@@ -1876,7 +1812,7 @@ public class DataSourceHandler extends JPanel
                 }
             }
             
-            final PropertyMap dsProps = buildPropertyMap(ds);
+            final PropertyMap dsProps = DataSourceViewer.buildPropertyMap(ds);
             
             configMetaData.loadTable(dsProps);
             editInfoStack.addPane(configMetaData, 1f);

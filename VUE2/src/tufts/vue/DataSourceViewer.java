@@ -1692,56 +1692,58 @@ public class DataSourceViewer extends JPanel
 //             }
 //         }
 //     }
+
     
-    private PropertyMap buildPropertyMap(edu.tufts.vue.dsm.DataSource dataSource) {
-        PropertyMap map = new PropertyMap();
+    static PropertyMap buildPropertyMap(final edu.tufts.vue.dsm.DataSource ds) {
+        final PropertyMap map = new PropertyMap();
         
         try {
-            org.osid.repository.Repository repository = dataSource.getRepository();
+            final org.osid.repository.Repository r = ds.getRepository();
             
-            
-            
-            map.addProperty("Repository Id",(Object)repository.getId().getIdString());
-            map.addProperty("Name",(Object)repository.getDisplayName());
-            map.addProperty("Description",(Object)repository.getDescription());
-            map.addProperty("Type",(Object)edu.tufts.vue.util.Utilities.typeToString(repository.getType()));
-            map.addProperty("Creator",(Object)dataSource.getCreator());
-            map.addProperty("Publisher",(Object)dataSource.getPublisher());
-            map.addProperty("Release Date",(Object)edu.tufts.vue.util.Utilities.dateToString(dataSource.getReleaseDate()));
-            map.addProperty("Provider Id",(Object)dataSource.getProviderId().getIdString());
-            String osidName = dataSource.getOsidName() + " " + dataSource.getOsidVersion();
-            map.addProperty("Osid Service",(Object)osidName);
-            map.addProperty("Osid Load Key",(Object)dataSource.getOsidLoadKey());
-            map.addProperty("Provider Display Name",(Object)dataSource.getProviderDisplayName());
-            map.addProperty("Provider Description",(Object)dataSource.getProviderDescription());
-            String online = dataSource.isOnline() ? "Yes" : "No";
-            map.addProperty("Online?",(Object)online);
-            String supportsUpd = dataSource.supportsUpdate() ? "The Resource Supports Updating" : "The Resource Is Read Only";
-            map.addProperty("Supports Update?",(Object)supportsUpd);
-            
-            org.osid.shared.TypeIterator typeIterator = repository.getAssetTypes();
-            StringBuffer assetTypes = new StringBuffer();
-            while (typeIterator.hasNextType()) {
-                assetTypes.append(edu.tufts.vue.util.Utilities.typeToString(typeIterator.nextType()));
-                assetTypes.append(", ");
+            if (r != null) {
+                map.addProperty("Repository Id", r.getId().getIdString());
+                map.addProperty("Name", r.getDisplayName());
+                map.addProperty("Description", r.getDescription());
+                map.addProperty("Type", edu.tufts.vue.util.Utilities.typeToString(r.getType()));
+            } else {
+                map.addProperty("Repository Id (DS)", ds.getRepositoryId());
             }
             
-            if (assetTypes.length() > 0)
-                assetTypes.delete(assetTypes.length()-2,assetTypes.length()-1);
+            map.addProperty("Creator", ds.getCreator());
+            map.addProperty("Publisher", ds.getPublisher());
+            map.addProperty("Release Date", edu.tufts.vue.util.Utilities.dateToString(ds.getReleaseDate()));
+            map.addProperty("Provider Id", ds.getProviderId().getIdString());
+            String osidName = ds.getOsidName() + " " + ds.getOsidVersion();
+            map.addProperty("Osid Service", osidName);
+            map.addProperty("Osid Load Key", ds.getOsidLoadKey());
+            map.addProperty("Provider Display Name", ds.getProviderDisplayName());
+            map.addProperty("Provider Description", ds.getProviderDescription());
+            map.addProperty("Online?", ds.isOnline() ? "Yes" : "No");
+            String supportsUpd = ds.supportsUpdate() ? "The Resource Supports Updating" : "The Resource Is Read Only";
+            map.addProperty("Supports Update?", supportsUpd);
             
-            map.addProperty("Asset Types",(Object)assetTypes.toString());
+            if (r != null) {
+                org.osid.shared.TypeIterator typeIterator = r.getAssetTypes();
+                final StringBuilder assetTypes = new StringBuilder();
+                if (typeIterator.hasNextType())
+                    assetTypes.append(edu.tufts.vue.util.Utilities.typeToString(typeIterator.nextType()));
+                while (typeIterator.hasNextType()) {
+                    assetTypes.append(", ");
+                    assetTypes.append(edu.tufts.vue.util.Utilities.typeToString(typeIterator.nextType()));
+                }
+                map.addProperty("Asset Types", assetTypes.toString());
+
             
-            typeIterator = repository.getSearchTypes();
-            StringBuffer searchTypes = new StringBuffer();
-            while (typeIterator.hasNextType()) {
-                searchTypes.append(edu.tufts.vue.util.Utilities.typeToString(typeIterator.nextType()));
-                searchTypes.append(", ");
-                
-            }
-            if (searchTypes.length() > 0)
-                searchTypes.delete(searchTypes.length()-2,searchTypes.length()-1);
-            
-            map.addProperty("Search Types",(Object)searchTypes.toString());
+                typeIterator = r.getSearchTypes();
+                final StringBuilder searchTypes = new StringBuilder();
+                if (typeIterator.hasNextType())
+                    searchTypes.append(edu.tufts.vue.util.Utilities.typeToString(typeIterator.nextType()));
+                while (typeIterator.hasNextType()) {
+                    searchTypes.append(", ");
+                    searchTypes.append(edu.tufts.vue.util.Utilities.typeToString(typeIterator.nextType()));
+                }
+                map.addProperty("Search Types", searchTypes.toString());
+            }            
             
             
 /*			java.awt.Image image = null;
@@ -1752,7 +1754,8 @@ public class DataSourceViewer extends JPanel
                         }*/
         } catch (Throwable t) {
             //t.printStackTrace();
-            System.out.println(t.getMessage());
+            //System.out.println(t.getMessage());
+            Log.warn("buildPropertyMap", t);
         }
         
         return map;

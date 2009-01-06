@@ -46,7 +46,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.27 $ / $Date: 2008-12-17 23:14:23 $ / $Author: sfraize $
+ * @version $Revision: 1.28 $ / $Date: 2009-01-06 17:35:02 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -123,8 +123,8 @@ public class DataTree extends javax.swing.JTree
         final JPanel toolbar = new JPanel();
         toolbar.setOpaque(true);
         toolbar.setBackground(Color.white);
-        toolbar.setLayout(new BoxLayout(toolbar, BoxLayout.X_AXIS));
-        //toolbar.setLayout(new BorderLayout());
+        //toolbar.setLayout(new BoxLayout(toolbar, BoxLayout.X_AXIS));
+        toolbar.setLayout(new BorderLayout());
         //p.add(new JLabel(s.getSource().toString()), BorderLayout.NORTH);
 
         AbstractButton addNew = new JButton("Add New Items to Map");
@@ -152,39 +152,23 @@ public class DataTree extends javax.swing.JTree
             //addNew.setLabel(imageURL);
         }
 
-        List<String> possibleKeyFields = new ArrayList();
-
-        for (Field field : schema.getFields())
-            if (field.isPossibleKeyField())
-                possibleKeyFields.add(field.getName());
-
-        if (possibleKeyFields.size() == 0) {
-            // add them all: some data rows are probably duplicates, and we can't
-            // identify a key field
-            for (Field field : schema.getFields())
-                if (!field.isSingleton())
-                    possibleKeyFields.add(field.getName());
-        }
-                
-
-        JComboBox keyBox = new JComboBox(possibleKeyFields.toArray());
-        keyBox.setOpaque(false);
-        keyBox.setSelectedItem(schema.getKeyField().getName());
-
-        keyBox.addItemListener(new ItemListener() {
-        	public void itemStateChanged(ItemEvent e) {
-                    if (e.getStateChange() == ItemEvent.SELECTED) {
-                        String newKey = (String) e.getItem();
-                        //Log.debug("KEY FIELD SELECTED: " + newKey);
-                        schema.setKeyField(newKey);
-                        tree.refreshRoot();
-                    }
-        	}
-            });
+//         JComboBox keyBox = new JComboBox(schema.getPossibleKeyFieldNames());
+//         keyBox.setOpaque(false);
+//         keyBox.setSelectedItem(schema.getKeyField().getName());
+//         keyBox.addItemListener(new ItemListener() {
+//         	public void itemStateChanged(ItemEvent e) {
+//                     if (e.getStateChange() == ItemEvent.SELECTED) {
+//                         String newKey = (String) e.getItem();
+//                         //Log.debug("KEY FIELD SELECTED: " + newKey);
+//                         schema.setKeyField(newKey);
+//                         tree.refreshRoot();
+//                     }
+//         	}
+//             });
+//         toolbar.add(keyBox, BorderLayout.WEST);
+//         toolbar.add(addNew, BorderLayout.EAST);
         
-
-        toolbar.add(keyBox, BorderLayout.WEST);
-        toolbar.add(addNew, BorderLayout.EAST);
+        toolbar.add(addNew);
 
         if (dataSourceLabel != null)
             wrap.add(dataSourceLabel, BorderLayout.SOUTH);
