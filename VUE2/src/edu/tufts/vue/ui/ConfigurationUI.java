@@ -31,6 +31,9 @@ import tufts.vue.gui.VueButton;
 import tufts.vue.gui.VueFileChooser;
 
 public class ConfigurationUI extends javax.swing.JPanel {
+
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(ConfigurationUI.class);
+    
     private static String xmlFilename = null;
     private static final String FILE_NOT_FOUND_MESSAGE = "Cannot find or open ";
     
@@ -53,6 +56,9 @@ public class ConfigurationUI extends javax.swing.JPanel {
     public static final int DURATION_CONTROL = 7;
     public static final int FILECHOOSER_CONTROL = 8;
     public static final int SINGLE_LINE_NONEDITABLE_TEXT_CONTROL = 9;
+    public static final int COMBO_BOX_CONTROL = 10;
+
+    private static final int MAX_CONTROL_CODE = COMBO_BOX_CONTROL;
     
     private java.util.Vector defaultValueVector = new java.util.Vector();
     private java.util.Vector descriptionVector = new java.util.Vector();
@@ -70,17 +76,21 @@ public class ConfigurationUI extends javax.swing.JPanel {
     private JTextField textField8;
     
     private String errorMessage = null;
+    private final java.util.Map<String,Vector> extraValuesByKey;
     
     public ConfigurationUI(java.io.InputStream stream) {
+        this(stream, java.util.Collections.EMPTY_MAP);
+    }
+    
+    public ConfigurationUI(java.io.InputStream stream, java.util.Map<String,Vector> extraValues) {
     	this.setFocusCycleRoot(true);
-    	
+        this.extraValuesByKey = extraValues;
     	
         getXML(stream);
         if (errorMessage != null) {
-            System.out.println("Error: " + this.errorMessage);
+            Log.error(this.errorMessage);
         } else {
             populatePanel();
-            
         }
     }
     
@@ -202,12 +212,13 @@ public class ConfigurationUI extends javax.swing.JPanel {
                 try {
                     uiCode = new Integer(ui);
                     int n = uiCode.intValue();
-                    if ( (n < 0) || (n > 9) ) {
-                        this.errorMessage = "Invalid UI control code";
+                    if ( (n < 0) || (n > MAX_CONTROL_CODE) ) {
+                        this.errorMessage = "Invalid UI control code: " + n;
                         return;
                     }
                 } catch (Exception ex) {
                     this.errorMessage = "Invalid UI control code";
+                    //Log.warn(errorMessage, ex);
                     return;
                 }
                 
@@ -295,8 +306,9 @@ public class ConfigurationUI extends javax.swing.JPanel {
             order = new Vector<Component>(this.uiVector.size());
             
             for (int i = 0, size = this.uiVector.size(); i < size; i++) {
-                int uiCode = ((Integer)uiVector.elementAt(i)).intValue();
-                String defaultValue = (String)defaultValueVector.elementAt(i);
+                final String key = (String) keyVector.elementAt(i);
+                final int uiCode = ((Integer)uiVector.elementAt(i)).intValue();
+                final String defaultValue = (String)defaultValueVector.elementAt(i);
                 
                 // if default value from Provider is null, check that there is not a value already set
                 
@@ -313,11 +325,29 @@ public class ConfigurationUI extends javax.swing.JPanel {
                 final javax.swing.JLabel prompt = new javax.swing.JLabel(title + ": ");
 
                 if (tufts.vue.DEBUG.DR)
-                    System.out.println("CONFIGURATION - Title:"+title+" prompt:"+prompt+" numChars:"+numChars+" uiCode:"+uiCode);
+                    Log.debug(String.format("numChars(%d) uiCode%2d key[%-27s title[%s] default[%s]",
+                                            numChars, uiCode, key+"]", title, defaultValue));
+                //Log.debug("Title"+title+" prompt:"+prompt+" numChars:"+numChars+" uiCode:"+uiCode);
                 switch (uiCode) {
                     // create appropriate field
                     // add to panel
                     // update vectors for when we want to get the values out
+                    case COMBO_BOX_CONTROL:
+                        final javax.swing.JComboBox comboBox;
+                        final Vector extraValues = this.extraValuesByKey.get(key);
+                        Log.info(String.format("creating JComboBox: default=[%s]; extra fields for key [%s]: %s",
+                                               defaultValue,
+                                               key,
+                                               extraValues == null ? "<null>" : extraValues));
+                        if (extraValues != null && extraValues.size() > 0) {
+                            comboBox = new javax.swing.JComboBox(extraValues);
+                        } else {
+                            comboBox = new javax.swing.JComboBox();
+                        }
+                        if (defaultValue != null)
+                            comboBox.setSelectedItem(defaultValue);
+                        populateField(prompt, comboBox, false);
+                        break;
                     case SINGLE_LINE_CLEAR_TEXT_CONTROL:
                         javax.swing.JTextField textField0 = new javax.swing.JTextField();
                         if (numChars > 0) {
@@ -572,6 +602,12 @@ public class ConfigurationUI extends javax.swing.JPanel {
             String key = (String)keyVector.elementAt(i);
             
             switch( uiCode) {
+                case COMBO_BOX_CONTROL:
+                    javax.swing.JComboBox combo = (javax.swing.JComboBox)fieldVector.elementAt(i);
+                    String value = (String) combo.getSelectedItem();
+                    if (value != null)
+                        properties.setProperty(key, value);
+                    break;
                 case SINGLE_LINE_CLEAR_TEXT_CONTROL:
                     javax.swing.JTextField field0 = (javax.swing.JTextField)fieldVector.elementAt(i);
                     String field0Value = field0.getText();
