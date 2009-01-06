@@ -14,6 +14,7 @@
  */
 package edu.tufts.vue.dsm.impl;
 
+import tufts.Util;
 import tufts.vue.PropertyEntry;
 import java.util.*;
 
@@ -99,10 +100,22 @@ public class VueDataSource implements edu.tufts.vue.dsm.DataSource
 		}
 	}
 	
-    private void setProviderValues()
+    private boolean setProviderValues()
     throws org.osid.provider.ProviderException {
-        org.osid.provider.Provider provider = null;
-        provider = this.factory.getInstalledProvider(this.providerId);
+
+        //Log.info(this + "; SET-PROVIDER-VALUES; providerId="+idString(providerId), new Throwable("HERE"));
+
+        final org.osid.provider.Provider provider;
+
+        try {
+            provider = this.factory.getInstalledProvider(this.providerId);
+        } catch (org.osid.provider.ProviderException pe) {
+            Log.error(this + " no Provider with Id " + idString(providerId) + "; " + pe);
+            return false;
+        }
+        
+        //Log.info(this + "; SET-PROVIDER-VALUES; provider="+Util.tags(provider));
+        
         this.osidName = provider.getOsidName();
         this.osidBindingVersion = provider.getOsidBindingVersion();
         this.providerDisplayName = provider.getDisplayName();
@@ -144,8 +157,14 @@ public class VueDataSource implements edu.tufts.vue.dsm.DataSource
                 }
             }
         } catch (Throwable t) {
-            
+            Log.warn(t);
         }
+
+        return true;
+        
+
+        //Log.info(this + "; SET-PROVIDER-VALUES-COMPLETED; providerId="+idString(providerId));
+        
     }
     
     private String replaceAll(String original, String old, String replacement) {
@@ -193,14 +212,28 @@ public class VueDataSource implements edu.tufts.vue.dsm.DataSource
             // special case for when the Manager implementation doesn't offer this method
             try {
                 org.osid.repository.RepositoryIterator repositoryIterator = this.repositoryManager.getRepositories();
+                org.osid.repository.Repository last = null;
+                org.osid.repository.Repository found = null;
                 while (repositoryIterator.hasNextRepository()) {
-                    repository = repositoryIterator.nextRepository();
-                    if (repositoryId.isEqual(repository.getId())) {
-                        this.repository = repository;
-                        //System.out.println("Set repository " + this.repository);
-                    }
+                    final org.osid.repository.Repository r = repositoryIterator.nextRepository();
+                    last = r; // this duplicates original broken code behaviour (isEqual test was always true) just in case
+                    if (repositoryId.isEqual(r.getId())) {
+                        Log.info("   matches: " + idString(r.getId()));
+                        found = repository;
+                        // NOT breaking once we find a matching repository duplicates the original
+                        // broken code behaviour (isEqual test was always true: was testing same
+                        // object against itself), which we're keeping for now just in case.
+                    } else 
+                        Log.info("  no match: " + idString(r.getId()));
                 }
-                //if (repository != null) Log.info("Check of all repositories found " + repository);
+                if (found == null) {
+                    if (last != null) {
+                        Log.warn("using last: " + idString(last.getId()) + " (no match found)");
+                        found = last;
+                    } else
+                        Log.error("no match found for " + idString(repositoryId));
+                }
+                this.repository = found;                
             } catch (Throwable t1) {
                 Log.error("Load by check of all repositories failed:", t);
                 //throw new org.osid.provider.ProviderException(org.osid.shared.SharedException.UNKNOWN_ID);
@@ -299,6 +332,12 @@ public class VueDataSource implements edu.tufts.vue.dsm.DataSource
     
     public void setProviderDisplayName(String providerDisplayName) {
         this.providerDisplayName = providerDisplayName;
+        if (this.osidName == null) {
+            // this is debug so we can see the provider name when the desired provider wasn't found
+            Log.warn(this + " no OSID for " + Util.tags(providerDisplayName));
+        }
+        
+        
     }
     public String getProviderDescription() {
         return this.providerDescription;
@@ -332,7 +371,7 @@ public class VueDataSource implements edu.tufts.vue.dsm.DataSource
         String idString = "<null-id>";
         if (id != null) {
             try {
-                idString = id.getIdString();
+                idString = String.format("ID[\"%s\"]", id.getIdString());
             } catch (Throwable t) {
                 idString = "<idString? " + t + ">";
             }
@@ -348,7 +387,7 @@ public class VueDataSource implements edu.tufts.vue.dsm.DataSource
     public String getRepositoryDisplayName() {
         if (this.repositoryDisplayName == null || this.repositoryDisplayName.trim().length() < 1) {
             if (this.providerDisplayName == null) {
-                return "(Repository Name Unknown)";
+                return "(repository-name-unknown)";
             } else
                 return "(" + providerDisplayName + ": unconfigured)";
             //return "(Name Unknown; Provider: " + providerDisplayName + ")";
@@ -434,13 +473,27 @@ public class VueDataSource implements edu.tufts.vue.dsm.DataSource
     
     public void setProviderIdString(String providerIdString) {
         try {
-            providerId =  edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getIdManagerInstance().getId(providerIdString);
-            setProviderValues(); // must come first
+            this.providerIdString = providerIdString;
+            this.providerId = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getIdManagerInstance().getId(providerIdString);
+            if (!setProviderValues()) // must come first
+                return;
             setRepositoryManager();
         } catch (Throwable t) {
-            Log.error("loading data sources from XML.  Cannot locate Provider with Id [" + providerId + "; XML=" + providerIdString + "];", t);
-            //edu.tufts.vue.util.Logger.log(t,"loading data sources from XML.  Cannot locate Provider with Id " + providerIdString);
-            //System.out.println("Error loading data sources from XML.  Cannot locate Provider with Id " + providerIdString);
+            Log.error(this + " setProviderIdString " + Util.tags(providerIdString) + " failed;", t);
+        }
+        
+    }
+    
+    public void setDataSourceIdString(String dataSourceIdString) {
+        try {
+            this.dataSourceId = factory.getIdManagerInstance().getId(dataSourceIdString);
+            if (!setProviderValues()) // must come first
+                return;
+            setRepositoryManager();
+//         } catch (org.osid.provider.ProviderException pe) {
+//             Log.error(this + " setDataSourceIdString; " + pe);
+        } catch (Throwable t) {
+            Log.error(this + " setDataSourceIdString[" + dataSourceIdString + "];", t);
         }
     }
     
@@ -454,17 +507,6 @@ public class VueDataSource implements edu.tufts.vue.dsm.DataSource
             }
         }
         return dataSourceIdString;
-    }
-    
-    public void setDataSourceIdString(String dataSourceIdString) {
-        try {
-            this.dataSourceId =  factory.getIdManagerInstance().getId(dataSourceIdString);
-            setProviderValues(); // must come first
-            setRepositoryManager();
-        } catch (Throwable t) {
-            Log.error("loading data sources from XML; dataSourceIdString[" + dataSourceIdString + "];", t);
-            //edu.tufts.vue.util.Logger.log(t,"loading data sources from XML");
-        }
     }
     
     public void setConfiguration(java.util.Properties properties)
@@ -548,7 +590,7 @@ public class VueDataSource implements edu.tufts.vue.dsm.DataSource
 //             Log.debug("  properties: " + properties);
         
         if (this.repositoryManager == null) {
-            Log.error("null repositoryManager unmarshalling " + this + "; skipping assignConfiguration.");
+            Log.error("null repositoryManager; " + this + "; skipping assignConfiguration.");
         } else {
             // This is what may try network access and can possibly hang if there's a problem:
             this.repositoryManager.assignConfiguration(properties);
@@ -560,7 +602,7 @@ public class VueDataSource implements edu.tufts.vue.dsm.DataSource
     @Override
     public String toString() {
         try {
-            return String.format("%s@%07x[%-30s; %s]",
+            return String.format("%s@%07x[%-32s; %s]",
                                  getClass().getSimpleName(),
                                  System.identityHashCode(this),
                                  '"' + getRepositoryDisplayName() + '"',

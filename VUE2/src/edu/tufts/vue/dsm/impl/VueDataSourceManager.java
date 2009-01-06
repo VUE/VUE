@@ -39,7 +39,7 @@ import org.xml.sax.InputSource;
  * for multi-threaded hang-proof initialization (repository configuration),
  * and event delivery to track the progress of loading.
  *
- * @version $Revision: 1.50 $ / $Date: 2008-12-22 21:39:23 $ / $Author: sfraize $  
+ * @version $Revision: 1.51 $ / $Date: 2009-01-06 17:30:51 $ / $Author: sfraize $  
  */
 public class VueDataSourceManager
     implements edu.tufts.vue.dsm.DataSourceManager
@@ -233,7 +233,11 @@ public class VueDataSourceManager
   
                             ((VueDataSource)ds).assignRepositoryConfiguration();
                             
-                            Log.info(String.format("configured %-30s %s",
+                            if (tufts.vue.DEBUG.DR)
+                            Log.info(String.format("configured %-32s %s",
+                                                   '"' + ds.getRepositoryDisplayName() + '"',
+                                                   VueDataSource.idString(ds.getRepositoryId())));
+                            Log.info(String.format("configured %-32s %s",
                                                    '"' + ds.getRepositoryDisplayName() + '"',
                                                    ds.getRepository()));
                             //getRepositoryID(ds);
@@ -303,7 +307,7 @@ public class VueDataSourceManager
     public synchronized void add(edu.tufts.vue.dsm.DataSource ds) {
         if (DataSources.add(ds)) {
             Log.info("add data src: " + ds);
-            notifyDataSourceListeners(DS_CONFIGURED, ds);  // *should* be configured...
+            notifyDataSourceListeners(DS_CONFIGURED, ds);
             if (!isMarshalling)
                 save();
         }
@@ -381,7 +385,6 @@ public class VueDataSourceManager
 
         return Util.toArray(included, Repository.class);
         
-//         removeDuplicatesFromVector();
 //         java.util.Vector results = new java.util.Vector();
 //         int size = marshallingVector.size();
 //         for (int i=0; i < size; i++) {
@@ -554,20 +557,6 @@ public class VueDataSourceManager
         
         Log.debug("unmarshall: done.");
         
-//         int size = marshallingVector.size();
-//         for (int i=0; i < size; i++) {
-//             edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)marshallingVector.elementAt(i);
-//             try {
-//                 debug("Unmarshalled data sourceA #" + i + " " + tufts.Util.tag(ds));
-//                 debug("Unmarshalled data sourceB " + tufts.Util.tags(ds.getId()));
-//                 debug("Unmarshalled data source0 " + ds.getId().getIdString());
-//                 debug("Unmarshalled data source1 " + ds.getRepository());
-//                 debug("Unmarshalled data source2 " + ds.getRepository().getDisplayName());
-//                 debug("Unmarshalled data source3 " + ds.getRepository().getId().getIdString());
-//             } catch (Throwable t) {
-//             }
-//         }
-	
         return vdsm;
     }
 
