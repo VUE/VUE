@@ -120,7 +120,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.620 $ / $Date: 2009-01-05 21:39:17 $ / $Author: sraphe01 $ 
+ * @version $Revision: 1.621 $ / $Date: 2009-01-06 17:34:07 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -1886,7 +1886,6 @@ public class VUE
         {
         	DR_BROWSER_DOCK = GUI.createDockWindow("Resources");
 
-                final DockWindow dataFinderDock = GUI.createDockWindow("DataFinder");
         	//DockWindow searchDock = GUI.createDockWindow("Search");
         	//DockWindow searchDock = null;
         	if (!SKIP_DR) {
@@ -1904,7 +1903,9 @@ public class VUE
 
         	}
 
-                if (DEBUG.Enabled /* && !SKIP_DR */) {
+                if (false&&DEBUG.Enabled /* && !SKIP_DR */) {
+                    
+                    final DockWindow dataFinderDock = GUI.createDockWindow("DataFinder");
                     final DataFinder DATA_FINDER_DEFAULTS =
                         new DataFinder("resources", null,
                                        new Class[] {
