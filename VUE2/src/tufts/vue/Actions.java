@@ -378,9 +378,9 @@ public class Actions implements VueConstants
     public static final Action SearchFilterAction =
         new VueAction("Search") {
     		
-            public void act() {
-
-                VUE.getMetadataSearchMainGUI().setVisible(true);                
+            public void act() {             	
+                VUE.getMetadataSearchMainGUI().setVisible(true);   
+               
                 
 //                 if(tufts.vue.ui.InspectorPane.META_VERSION == tufts.vue.ui.InspectorPane.OLD)
 //                 {    
@@ -2372,22 +2372,22 @@ public class Actions implements VueConstants
     public static final LWCAction BigNudgeRight = new NudgeAction( 10,   0, "Big Nudge Right", keyStroke(KeyEvent.VK_RIGHT, SHIFT));
         
     
-    public static final ArrangeAction AlignTopEdges = new ArrangeAction("Align Top Edges", KeyEvent.VK_UP) {
+    public static final ArrangeAction AlignTopEdges = new ArrangeAction("Top Edges", KeyEvent.VK_UP) {
         void arrange(LWComponent c) { c.setLocation(c.getX(), minY); }
     };
-    public static final ArrangeAction AlignBottomEdges = new ArrangeAction("Align Bottom Edges", KeyEvent.VK_DOWN) {
+    public static final ArrangeAction AlignBottomEdges = new ArrangeAction("Bottom Edges", KeyEvent.VK_DOWN) {
         void arrange(LWComponent c) { c.setLocation(c.getX(), maxY - c.getHeight()); }
     };
-    public static final ArrangeAction AlignLeftEdges = new ArrangeAction("Align Left Edges", KeyEvent.VK_LEFT) {
+    public static final ArrangeAction AlignLeftEdges = new ArrangeAction("Left Edges", KeyEvent.VK_LEFT) {
         void arrange(LWComponent c) { c.setLocation(minX, c.getY()); }
     };
-    public static final ArrangeAction AlignRightEdges = new ArrangeAction("Align Right Edges", KeyEvent.VK_RIGHT) {
+    public static final ArrangeAction AlignRightEdges = new ArrangeAction("Right Edges", KeyEvent.VK_RIGHT) {
         void arrange(LWComponent c) { c.setLocation(maxX - c.getWidth(), c.getY()); }
     };
-    public static final ArrangeAction AlignCentersRow = new ArrangeAction("Align Centers in Row", KeyEvent.VK_R) {
+    public static final ArrangeAction AlignCentersRow = new ArrangeAction("Centers in Row", KeyEvent.VK_R) {
         void arrange(LWComponent c) { c.setLocation(c.getX(), centerY - c.getHeight()/2); }
     };
-    public static final ArrangeAction AlignCentersColumn = new ArrangeAction("Align Centers in Column", KeyEvent.VK_C) {
+    public static final ArrangeAction AlignCentersColumn = new ArrangeAction("Centers in Column", KeyEvent.VK_C) {
         void arrange(LWComponent c) { c.setLocation(centerX - c.getWidth()/2, c.getY()); }
     };
     
