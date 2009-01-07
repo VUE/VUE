@@ -28,6 +28,7 @@ import java.awt.Graphics;
 import java.awt.GraphicsConfiguration;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Point;
@@ -120,7 +121,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.621 $ / $Date: 2009-01-06 17:34:07 $ / $Author: sfraize $ 
+ * @version $Revision: 1.622 $ / $Date: 2009-01-07 21:32:51 $ / $Author: sraphe01 $ 
  */
 
 public class VUE
@@ -1734,11 +1735,8 @@ public class VUE
         };
           */
         if (!MapInspector.getWindowProperties().isEnabled() || !MapInspector.getWindowProperties().isWindowVisible())
-        	acrossTopList.add(MapInspector);
-        
-        if (!metaDataSearchDock.getWindowProperties().isEnabled() || !metaDataSearchDock.getWindowProperties().isWindowVisible())
-        	acrossTopList.add(metaDataSearchDock);
-          
+        	acrossTopList.add(MapInspector);        
+       
         if (!pathwayDock.getWindowProperties().isEnabled() || !pathwayDock.getWindowProperties().isWindowVisible())
         	acrossTopList.add(pathwayDock);
         
@@ -1746,6 +1744,10 @@ public class VUE
         	acrossTopList.add(DR_BROWSER_DOCK);        
         if (!ObjectInspector.getWindowProperties().isEnabled() || !ObjectInspector.getWindowProperties().isWindowVisible())
         	acrossTopList.add(ObjectInspector);
+        
+        if (!metaDataSearchDock.getWindowProperties().isEnabled() || !metaDataSearchDock.getWindowProperties().isWindowVisible())
+        	acrossTopList.add(metaDataSearchDock);
+        
         
         final DockWindow[] acrossTop = acrossTopList.toArray(new DockWindow[acrossTopList.size()]);
         
@@ -1885,7 +1887,7 @@ public class VUE
         if (DR_BROWSER_DOCK == null || VUE.isApplet())
         {
         	DR_BROWSER_DOCK = GUI.createDockWindow("Resources");
-
+               
         	//DockWindow searchDock = GUI.createDockWindow("Search");
         	//DockWindow searchDock = null;
         	if (!SKIP_DR) {
@@ -1978,12 +1980,9 @@ public class VUE
         // Meta data Search
         //-----------------------------------------------------------------------------
         if (metaDataSearchDock == null || VUE.isApplet())
-        {
-        	metaDataSearchDock = GUI.createDockWindow("Search");
-        	metadataSearchMainPanel = new MetadataSearchMainGUI(metaDataSearchDock);
-        	if(Util.isMacPlatform()){
-        		GUI.setAlwaysOnTop(metaDataSearchDock.window(), true); 
-            }
+        {        	
+        	metaDataSearchDock = GUI.createDockWindow("Search");        	
+        	metadataSearchMainPanel = new MetadataSearchMainGUI(metaDataSearchDock);       	
         }
         //-----------------------------------------------------------------------------
         // Object Inspector / Resource Inspector
@@ -2257,7 +2256,9 @@ public class VUE
         oneLabel.setForeground(Color.DARK_GRAY);
         labelTable.put( new Integer( 1 ), oneLabel);
         labelTable.put( new Integer( 2 ), linePanel );
-        labelTable.put( new Integer( 3 ), linePanel );
+        JLabel threeLabel = new JLabel("3");
+        threeLabel.setFont(JSliderSmallFixedFont);
+        labelTable.put( new Integer( 3 ), threeLabel );
         labelTable.put( new Integer( 4 ), linePanel );
         JLabel fiveLabel = new JLabel("5");
         fiveLabel.setFont(JSliderSmallFixedFont);
@@ -2381,7 +2382,7 @@ public class VUE
     		    			    }else{
     		    			    	setSearchEverywhereAction();
     		    			    }
-    				         } 
+    				         }     				       
     				     }
     				    });		
             		
@@ -2429,7 +2430,7 @@ public class VUE
 		    			    }else{
 		    			    	setSearchEverywhereAction();
 		    			    }
-				         } 
+				         }				       
 				     }
 				    });		
         		
@@ -2505,7 +2506,7 @@ public class VUE
 		    			    	setCategorySettingsAction();
 		    			    }else{
 		    			    	setSearchEverywhereAction();
-		    			    }
+		    			    }		     		    	
 		     		     }
 		            }
 				});
@@ -2528,7 +2529,7 @@ public class VUE
 			    			    }else{
 			    			    	setSearchEverywhereAction();
 			    			    }
-					         } 
+					         } 					       
 					     }
 					    });					    
 					
@@ -3798,7 +3799,16 @@ public class VUE
     			if (mMapTabsRight != null)
     				mMapTabsRight.closeMap(map);
     		}	
+    	}    	
+    	int selectedIndex = mMapTabsRight.getTabCount();
+    	if(selectedIndex>0){
+    		VueMenuBar.RootMenuBar.saveAction.setEnabled(true);
+        	VueMenuBar.RootMenuBar.saveAsAction.setEnabled(true);
+    	}else{
+    		VueMenuBar.RootMenuBar.saveAction.setEnabled(false);
+        	VueMenuBar.RootMenuBar.saveAsAction.setEnabled(false);
     	}
+
     }
     
     
@@ -3921,6 +3931,13 @@ public class VUE
         if (loadedMap == null && !alerted)
             VueUtil.alert("Failed to load map: " + file + "  \n", "Map error: " + file);
         
+        if(getActiveMap()==null){
+        	VueMenuBar.RootMenuBar.saveAction.setEnabled(false);
+        	VueMenuBar.RootMenuBar.saveAsAction.setEnabled(false);
+        }else{
+        	VueMenuBar.RootMenuBar.saveAction.setEnabled(true);
+        	VueMenuBar.RootMenuBar.saveAsAction.setEnabled(true);
+        }
     }
 
     /**
@@ -4028,6 +4045,14 @@ public class VUE
         if (loadedMap == null && !alerted)
             VueUtil.alert("Failed to load map: " + url + "  \n", "Map error: " + url);
         
+        if(getActiveMap()==null){
+        	VueMenuBar.RootMenuBar.saveAction.setEnabled(false);
+        	VueMenuBar.RootMenuBar.saveAsAction.setEnabled(false);
+        }else{
+        	VueMenuBar.RootMenuBar.saveAction.setEnabled(true);
+        	VueMenuBar.RootMenuBar.saveAsAction.setEnabled(true);
+        }
+        
     }
 
     /**
@@ -4098,7 +4123,7 @@ public class VUE
         {
         	if (LWPathway.isShowingSlideIcons())
         		LWPathway.toggleSlideIcons();
-        }
+        }        
         return leftViewer;
     }
 
@@ -4274,10 +4299,10 @@ public class VUE
             if (!isHigherVersion(currentVersion, newVersion))
             {
             	final ShowAgainDialog sad = new ShowAgainDialog(VUE.getApplicationFrame(),"checkForNewVersion2","New Release Available","Remind me later",(String)null);
-            	JPanel panel = new JPanel();
+            	JPanel panel = new JPanel(new GridLayout(1,1));
             	JLabel vLabel = new  JLabel("<html>A newer version of VUE is available ("
                                             + newVersion
-                                            + ") &nbsp; <font color=\"#20316A\"><u>Get the latest version</u></font></html");
+                                            + ") &nbsp; <font color=\"#20316A\"><u>Get the latest version</u></font></html", JLabel.LEFT);
             	if(Util.isMacPlatform()){
             		panel.setPreferredSize(new Dimension(425,25));
             		panel.setSize(new Dimension(425,25));
@@ -4285,7 +4310,9 @@ public class VUE
             	}else{
             		panel.setPreferredSize(new Dimension(425,25));
             	}
-        	    panel.add(vLabel);
+            	//vLabel.setBorder(BorderFactory.createLineBorder(Color.red, 1));
+            	//panel.setBorder(BorderFactory.createLineBorder(Color.green, 1));
+        	    panel.add(vLabel, FlowLayout.LEFT);
         	    sad.setContentPanel(panel);
                 
                 vLabel.addMouseListener(new javax.swing.event.MouseInputAdapter() {
