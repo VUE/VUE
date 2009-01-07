@@ -47,7 +47,7 @@ import edu.tufts.vue.dsm.impl.VueDataSourceManager;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.125 $ / $Date: 2008-12-22 21:39:30 $ / $Author: sfraize $
+ * @version $Revision: 1.126 $ / $Date: 2009-01-07 21:47:14 $ / $Author: sraphe01 $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -57,6 +57,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
     
     public static VueMenuBar RootMenuBar;
     private static JCheckBoxMenuItem fullScreenToolbarItem = null;
+    public static SaveAction saveAction = null;
+    public static SaveAction saveAsAction = null;
     // this may be created multiple times as a workaround for the inability
     // to support a single JMenuBar for the whole application on the Mac
 /*    public VueMenuBar()
@@ -208,8 +210,10 @@ public class VueMenuBar extends javax.swing.JMenuBar
         // Initialize Actions
         ////////////////////////////////////////////////////////////////////////////////////
                 
-        final SaveAction saveAction = new SaveAction("Save", false);
-        final SaveAction saveAsAction = new SaveAction("Save As...");
+        saveAction = new SaveAction("Save", false); 
+        saveAction.setEnabled(false);
+        saveAsAction = new SaveAction("Save As...");
+        saveAsAction.setEnabled(false);
         //final SaveAction exportAction = new SaveAction("Export ...",true,true);
         final OpenAction openAction = new OpenAction("Open...");
         final OpenURLAction openFromURLAction = new OpenURLAction("Open From URL...");
@@ -931,12 +935,15 @@ public class VueMenuBar extends javax.swing.JMenuBar
         	windowMenu.add(createWindowItem(VUE.getContentDock(),KeyEvent.VK_8, "Resources"));
         if (VUE.getLayersDock() != null)	
             windowMenu.add(createWindowItem(VUE.getLayersDock(), 0, "Layers"));
-                
+        if (VUE.getMetadataSearchMainGUI()!= null && !VUE.isApplet()){
+            windowMenu.add(createWindowItem(VUE.getMetadataSearchMainGUI(), KeyEvent.VK_9, "Search"));            
+        }
+        
                 
            
-        final KeyStroke acceleratorKey = KeyStroke.getKeyStroke(KeyEvent.VK_9, Actions.COMMAND);
-    	Actions.SearchFilterAction.putValue(Action.ACCELERATOR_KEY, acceleratorKey);
-        windowMenu.add(Actions.SearchFilterAction);
+//        final KeyStroke acceleratorKey = KeyStroke.getKeyStroke(KeyEvent.VK_9, Actions.COMMAND);
+//    	Actions.SearchFilterAction.putValue(Action.ACCELERATOR_KEY, acceleratorKey);
+//        windowMenu.add(Actions.SearchFilterAction);
         windowMenu.addSeparator();
         if (VUE.getFloatingZoomDock()!=null)
         {
@@ -1000,8 +1007,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
     	if (text !=null)
     		windowAction.setTitle(text);
     	
-    	JCheckBoxMenuItem checkBox = new JCheckBoxMenuItem(windowAction);
-    	
+    	JCheckBoxMenuItem checkBox = new JCheckBoxMenuItem(windowAction);    	
     	
     		//checkBox.setText(text);
     	windowAction.setLinkedButton(checkBox);
