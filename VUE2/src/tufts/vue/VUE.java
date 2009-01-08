@@ -121,7 +121,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.622 $ / $Date: 2009-01-07 21:32:51 $ / $Author: sraphe01 $ 
+ * @version $Revision: 1.623 $ / $Date: 2009-01-08 14:18:53 $ / $Author: sraphe01 $ 
  */
 
 public class VUE
@@ -2709,6 +2709,7 @@ public class VUE
 	    	categoryKeywordMenuItem.setSelected(false);			    		    	
 	    	labelMenuItem.setSelected(false);			    			    			    	
 	    	editSettingsMenuItem.setSelected(false);
+	    	getMetadataSearchMainGUI().setVisible(false);
 	    	//resetSettingsMenuItem.setSelected(true);
 			SearchAction.revertGlobalSearchSelectionFromMSGUI();
             VUE.getActiveViewer().repaint();
@@ -2720,6 +2721,7 @@ public class VUE
 	    	categoryKeywordMenuItem.setSelected(true);			    		    	
 	    	labelMenuItem.setSelected(false);			    			    			    	
 	    	editSettingsMenuItem.setSelected(false);
+	    	getMetadataSearchMainGUI().setVisible(false);
 	    	//resetSettingsMenuItem.setSelected(false);
 	    	List<VueMetadataElement> searchTerms = new ArrayList<VueMetadataElement>();
 	    	VueMetadataElement vme = new VueMetadataElement();	
@@ -2756,6 +2758,7 @@ public class VUE
 	    	categoryKeywordMenuItem.setSelected(false);			    		    	
 	    	labelMenuItem.setSelected(false);			    			    			    	
 	    	editSettingsMenuItem.setSelected(false);
+	    	getMetadataSearchMainGUI().setVisible(false);
 	    	//resetSettingsMenuItem.setSelected(false);
 	    	List<VueMetadataElement> searchTerms = new ArrayList<VueMetadataElement>();
 	    	VueMetadataElement vme = new VueMetadataElement();
@@ -2792,6 +2795,7 @@ public class VUE
 	    	categoryKeywordMenuItem.setSelected(false);			    		    	
 	    	labelMenuItem.setSelected(true);			    			    			    	
 	    	editSettingsMenuItem.setSelected(false);
+	    	getMetadataSearchMainGUI().setVisible(false);
 	    	//resetSettingsMenuItem.setSelected(false);
 	    	List<VueMetadataElement> searchTerms = new ArrayList<VueMetadataElement>();
 	    	VueMetadataElement vme = new VueMetadataElement();	
@@ -2838,6 +2842,7 @@ public class VUE
 	    	categoryKeywordMenuItem.setSelected(false);			    		    	
 	    	labelMenuItem.setSelected(false);			    			    			    	
 	    	editSettingsMenuItem.setSelected(false);
+	    	getMetadataSearchMainGUI().setVisible(false);
 	    	//resetSettingsMenuItem.setSelected(false);
 	    	List<VueMetadataElement> searchTerms = new ArrayList<VueMetadataElement>();
 	    	VueMetadataElement vme = new VueMetadataElement();
