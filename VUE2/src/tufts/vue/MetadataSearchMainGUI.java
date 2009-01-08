@@ -75,7 +75,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.28 $ / $Date: 2009-01-07 21:16:42 $ / $Author: Sheejo
+ * @version $Revision: 1.29 $ / $Date: 2009-01-08 15:03:30 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -304,15 +304,31 @@ public class MetadataSearchMainGUI extends JPanel
 
                         if (ie.getItem().equals(SEARCH_EVERYTHING)) {
                             setEverythingSearch();
+                            VUE.searcheveryWhereMenuItem.setSelected(true);	
+                            VUE.labelMenuItem.setSelected(false);
+                            VUE.keywordMenuItem.setSelected(false);
+                            VUE.categoryKeywordMenuItem.setSelected(false); 
                         }
                         if (ie.getItem().equals(SEARCH_LABELS_ONLY)) {
                             setLabelSearch();
+                            VUE.searcheveryWhereMenuItem.setSelected(false);	
+                            VUE.labelMenuItem.setSelected(true);
+                            VUE.keywordMenuItem.setSelected(false);
+                            VUE.categoryKeywordMenuItem.setSelected(false); 
                         }
                         if (ie.getItem().equals(SEARCH_ALL_KEYWORDS)) {
                             setAllMetadataSearch();
+                            VUE.searcheveryWhereMenuItem.setSelected(false);	
+                            VUE.labelMenuItem.setSelected(false);
+                            VUE.keywordMenuItem.setSelected(true);
+                            VUE.categoryKeywordMenuItem.setSelected(false); 
                         }
                         if (ie.getItem().equals(SEARCH_CATEGORIES_AND_KEYWORDS)) {
                             setCategorySearch();
+                            VUE.searcheveryWhereMenuItem.setSelected(false);	
+                            VUE.labelMenuItem.setSelected(false);
+                            VUE.keywordMenuItem.setSelected(false);
+                            VUE.categoryKeywordMenuItem.setSelected(true);                          
                         }
 
                     }
