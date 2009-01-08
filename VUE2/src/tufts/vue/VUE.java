@@ -121,7 +121,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.623 $ / $Date: 2009-01-08 14:18:53 $ / $Author: sraphe01 $ 
+ * @version $Revision: 1.624 $ / $Date: 2009-01-08 16:40:53 $ / $Author: sraphe01 $ 
  */
 
 public class VUE
@@ -3809,9 +3809,13 @@ public class VUE
     	if(selectedIndex>0){
     		VueMenuBar.RootMenuBar.saveAction.setEnabled(true);
         	VueMenuBar.RootMenuBar.saveAsAction.setEnabled(true);
+        	VueMenuBar.RootMenuBar.publishMenu.setEnabled(true);
+        	Actions.Revert.setEnabled(true);
     	}else{
     		VueMenuBar.RootMenuBar.saveAction.setEnabled(false);
         	VueMenuBar.RootMenuBar.saveAsAction.setEnabled(false);
+        	VueMenuBar.RootMenuBar.publishMenu.setEnabled(false);
+        	Actions.Revert.setEnabled(false);
     	}
 
     }
@@ -3939,9 +3943,13 @@ public class VUE
         if(getActiveMap()==null){
         	VueMenuBar.RootMenuBar.saveAction.setEnabled(false);
         	VueMenuBar.RootMenuBar.saveAsAction.setEnabled(false);
+        	VueMenuBar.RootMenuBar.publishMenu.setEnabled(false);
+        	Actions.Revert.setEnabled(false);
         }else{
         	VueMenuBar.RootMenuBar.saveAction.setEnabled(true);
         	VueMenuBar.RootMenuBar.saveAsAction.setEnabled(true);
+        	VueMenuBar.RootMenuBar.publishMenu.setEnabled(true);
+        	Actions.Revert.setEnabled(true);
         }
     }
 
@@ -4053,9 +4061,13 @@ public class VUE
         if(getActiveMap()==null){
         	VueMenuBar.RootMenuBar.saveAction.setEnabled(false);
         	VueMenuBar.RootMenuBar.saveAsAction.setEnabled(false);
+        	VueMenuBar.RootMenuBar.publishMenu.setEnabled(false);
+        	Actions.Revert.setEnabled(false);
         }else{
         	VueMenuBar.RootMenuBar.saveAction.setEnabled(true);
         	VueMenuBar.RootMenuBar.saveAsAction.setEnabled(true);
+        	VueMenuBar.RootMenuBar.publishMenu.setEnabled(true);
+        	Actions.Revert.setEnabled(true);
         }
         
     }

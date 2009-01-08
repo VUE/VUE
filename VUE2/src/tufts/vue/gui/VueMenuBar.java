@@ -47,7 +47,7 @@ import edu.tufts.vue.dsm.impl.VueDataSourceManager;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.126 $ / $Date: 2009-01-07 21:47:14 $ / $Author: sraphe01 $
+ * @version $Revision: 1.127 $ / $Date: 2009-01-08 16:40:52 $ / $Author: sraphe01 $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -59,6 +59,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
     private static JCheckBoxMenuItem fullScreenToolbarItem = null;
     public static SaveAction saveAction = null;
     public static SaveAction saveAsAction = null;
+    public static JMenu publishMenu = null;
     // this may be created multiple times as a workaround for the inability
     // to support a single JMenuBar for the whole application on the Mac
 /*    public VueMenuBar()
@@ -218,7 +219,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         final OpenAction openAction = new OpenAction("Open...");
         final OpenURLAction openFromURLAction = new OpenURLAction("Open From URL...");
         final ExitAction exitAction = new ExitAction("Quit");
-        final JMenu publishMenu = makeMenu("Publish");
+        publishMenu = makeMenu("Publish");        
         final  edu.tufts.vue.dataset.DatasetAction dataAction = new edu.tufts.vue.dataset.DatasetAction();
         //final JMenu publishAction =  Publish.getPublishMenu();
         final RDFOpenAction rdfOpen = new RDFOpenAction();
@@ -376,7 +377,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
                         publishMenu.add(createWindowItem(VUE.getContentDock(), 0, "Add publishable resources through Resource Window"));
                     }
 
-                    publishMenu.setEnabled(true);
+                    publishMenu.setEnabled(false);
                     fileMenu.remove(publishMenu);
                     fileMenu.add(publishMenu,11);
                     
@@ -433,6 +434,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         fileMenu.add(saveAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, metaMask));
         fileMenu.add(saveAsAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, metaMask+Event.SHIFT_MASK));                
         fileMenu.add(Actions.Revert);
+        Actions.Revert.setEnabled(false);
         fileMenu.addSeparator();   
         fileMenu.add(dataAction);
         String includeText = VueResources.getString("text.file.menu.include");
@@ -442,7 +444,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         }
         //fileMenu.add(exportAction);
         fileMenu.add(rdfOpen);
-        publishMenu.setEnabled(false);
+        //publishMenu.setEnabled(false);
         if (!VUE.isApplet())
         	fileMenu.add(publishMenu);
         
@@ -904,7 +906,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
         }
         
         if (RootMenuBar == null)
-            RootMenuBar = this;
+            RootMenuBar = this;       
+       
     }
 
     public void rebuildWindowsMenu()
