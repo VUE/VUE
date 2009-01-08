@@ -121,7 +121,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.624 $ / $Date: 2009-01-08 16:40:53 $ / $Author: sraphe01 $ 
+ * @version $Revision: 1.625 $ / $Date: 2009-01-08 17:30:26 $ / $Author: sraphe01 $ 
  */
 
 public class VUE
@@ -2369,9 +2369,9 @@ public class VUE
     				       if (ke.getKeyCode() == KeyEvent.VK_ENTER) {				    	   
     				    	   if(searcheveryWhereMenuItem.isSelected()){
     		    			    	setSearchEverywhereAction();					
-    		    			    }else if(editSettingsMenuItem.isSelected()){
+    		    			    }/*else if(editSettingsMenuItem.isSelected()){
     		    			    	setEditSettingsAction();
-    		    			    }else if(labelMenuItem.isSelected()){
+    		    			    }*/else if(labelMenuItem.isSelected()){
     		    			    	setLabelSettingsAction();
     		    			    }else if(keywordMenuItem.isSelected()){
     		    			    	setKeywordSettingsAction();
@@ -2417,9 +2417,9 @@ public class VUE
 				       if (ke.getKeyCode() == KeyEvent.VK_ENTER) {				    	   
 				    	   if(searcheveryWhereMenuItem.isSelected()){
 		    			    	setSearchEverywhereAction();					
-		    			    }else if(editSettingsMenuItem.isSelected()){
+		    			    }/*else if(editSettingsMenuItem.isSelected()){
 		    			    	setEditSettingsAction();
-		    			    }else if(labelMenuItem.isSelected()){
+		    			    }*/else if(labelMenuItem.isSelected()){
 		    			    	setLabelSettingsAction();
 		    			    }else if(keywordMenuItem.isSelected()){
 		    			    	setKeywordSettingsAction();
@@ -2494,9 +2494,9 @@ public class VUE
 		     		     }else{
 		     		    	if(searcheveryWhereMenuItem.isSelected()){
 		    			    	setSearchEverywhereAction();					
-		    			    }else if(editSettingsMenuItem.isSelected()){
+		    			    }/*else if(editSettingsMenuItem.isSelected()){
 		    			    	setEditSettingsAction();
-		    			    }else if(labelMenuItem.isSelected()){
+		    			    }*/else if(labelMenuItem.isSelected()){
 		    			    	setLabelSettingsAction();
 		    			    }else if(keywordMenuItem.isSelected()){
 		    			    	setKeywordSettingsAction();
@@ -2516,9 +2516,9 @@ public class VUE
 					    	   
 					    	   if(searcheveryWhereMenuItem.isSelected()){
 			    			    	setSearchEverywhereAction();					
-			    			    }else if(editSettingsMenuItem.isSelected()){
+			    			    }/*else if(editSettingsMenuItem.isSelected()){
 			    			    	setEditSettingsAction();
-			    			    }else if(labelMenuItem.isSelected()){
+			    			    }*/else if(labelMenuItem.isSelected()){
 			    			    	setLabelSettingsAction();
 			    			    }else if(keywordMenuItem.isSelected()){
 			    			    	setKeywordSettingsAction();
@@ -2830,10 +2830,16 @@ public class VUE
 	    	keywordMenuItem.setSelected(false);
 	    	categoriesMenuItem.setSelected(false);
 	    	categoryKeywordMenuItem.setSelected(false);			    		    	
-	    	labelMenuItem.setSelected(false);			    			    			    	
-	    	editSettingsMenuItem.setSelected(true);	
+	    	labelMenuItem.setSelected(false);
+	    	if(editSettingsMenuItem.isSelected()){
+	    		editSettingsMenuItem.setSelected(true);	
+	    		getMetadataSearchMainGUI().setVisible(true); 
+	    	}else{
+	    		editSettingsMenuItem.setSelected(false);
+	    		getMetadataSearchMainGUI().setVisible(false); 
+	    	}
 	    	//resetSettingsMenuItem.setSelected(false);
-	    	getMetadataSearchMainGUI().setVisible(true); 
+	    	
 		}
 		public void setSearchEverywhereAction(){
 			searcheveryWhereMenuItem.setSelected(true);		    	
