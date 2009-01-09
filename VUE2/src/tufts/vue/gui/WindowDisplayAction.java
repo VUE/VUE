@@ -16,6 +16,7 @@ package tufts.vue.gui;
 
 import tufts.Util;
 import tufts.vue.DEBUG;
+import tufts.vue.SearchTextField;
 import tufts.vue.VUE;
 
 import java.awt.Window;
@@ -31,7 +32,7 @@ import javax.swing.AbstractButton;
  * An action for displaying a Window and tracking it's displayed state,
  * keeping in synchronized with a somebody's button (such a checkbox in a menu).
  *
- * @version $Revision: 1.9 $ / $Date: 2009-01-07 21:51:17 $ / $Author: sraphe01 $
+ * @version $Revision: 1.10 $ / $Date: 2009-01-09 19:41:53 $ / $Author: sraphe01 $
  * @author Scott Fraize
  */
 public class WindowDisplayAction extends javax.swing.AbstractAction
@@ -186,8 +187,8 @@ public class WindowDisplayAction extends javax.swing.AbstractAction
         if (doShowWindow) {
             boolean isMac = Util.isMacPlatform();            
             if(mWindow.getName().trim().equals("Search")){
-            	if(VUE.editSettingsMenuItem != null){
-                	VUE.editSettingsMenuItem.setSelected(true);
+            	if(SearchTextField.editSettingsMenuItem != null){
+            		SearchTextField.editSettingsMenuItem.setSelected(true);
                 }
             }
             // if (isMac) tufts.Util.invoke(mWindow.getPeer(), "setAlpha", new Float(0.5));
