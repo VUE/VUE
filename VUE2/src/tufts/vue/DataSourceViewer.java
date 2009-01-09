@@ -1466,7 +1466,7 @@ public class DataSourceViewer extends JPanel
 
             final java.util.List resourceList = new java.util.ArrayList();
             
-            final int maxResult = 10000;
+            final int maxResult = 500;
             int resultCount = 0;
             if (assetIterator != null) {
                 try {
