@@ -114,7 +114,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.626 $ / $Date: 2009-01-09 19:41:53 $ / $Author: sraphe01 $ 
+ * @version $Revision: 1.627 $ / $Date: 2009-01-10 18:01:33 $ / $Author: sraphe01 $ 
  */
 
 public class VUE
@@ -3621,11 +3621,15 @@ public class VUE
             final String newVersion = version.trim();
             if (!isHigherVersion(currentVersion, newVersion))
             {
-            	final ShowAgainDialog sad = new ShowAgainDialog(VUE.getApplicationFrame(),"checkForNewVersion2","New Release Available","Remind me later",(String)null);
+            	//final ShowAgainDialog sad = new ShowAgainDialog(VUE.getApplicationFrame(),"checkForNewVersion2","New Release Available","Remind me later",(String)null);
+            	final ShowAgainDialog sad = new ShowAgainDialog(VUE.getApplicationFrame(),"checkForNewVersion2","New Release Available","Get latest version","Close Window");
             	JPanel panel = new JPanel(new GridLayout(1,1));
-            	JLabel vLabel = new  JLabel("<html>A newer version of VUE is available ("
+            	/*JLabel vLabel = new  JLabel("<html>A newer version of VUE is available ("
                                             + newVersion
-                                            + ") &nbsp; <font color=\"#20316A\"><u>Get the latest version</u></font></html", JLabel.LEFT);
+                                            + ") &nbsp; <font color=\"#20316A\"><u>Get the latest version</u></font></html", JLabel.LEFT);*/
+            	JLabel vLabel = new  JLabel("<html>A newer version of VUE is available ("
+                        + newVersion
+                        + ") &nbsp; <font color=\"#20316A\"></html", JLabel.LEFT);
             	if(Util.isMacPlatform()){
             		panel.setPreferredSize(new Dimension(425,25));
             		panel.setSize(new Dimension(425,25));

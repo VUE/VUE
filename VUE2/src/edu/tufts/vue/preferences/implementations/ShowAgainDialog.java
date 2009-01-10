@@ -27,6 +27,7 @@ import tufts.vue.MasterSlide;
 import tufts.vue.PathwayTableModel;
 import tufts.vue.VUE;
 import tufts.vue.VueResources;
+import tufts.vue.VueUtil;
 
 public class ShowAgainDialog  extends JDialog implements ActionListener, KeyListener
 {
@@ -147,14 +148,25 @@ public class ShowAgainDialog  extends JDialog implements ActionListener, KeyList
         if (DEBUG.PATHWAY) System.out.println(this + " " + e);
         if (e.getSource() == okButton)
         {
-        	okCancel = true;
-        	showAgainPref.setValue(new Boolean(!showAgainBox.isSelected()));
-        	dispose();
+        	if(okLabel.equals("Get latest version")){        		
+        		try {
+                    VueUtil.openURL(VueResources.getString("vue.download.url"));
+                    this.setVisible(false);
+                    this.dispose();
+                }catch (Throwable t) { t.printStackTrace();}
+        	}else{
+        		okCancel = true;
+        		showAgainPref.setValue(new Boolean(!showAgainBox.isSelected()));
+        		dispose();
+        	}
         }
         else if (e.getSource() == cancelButton)
-        {
-        	okCancel = false;
-            dispose();
+        { 
+        	if(cancelLabel.equals("Close Window")){ 
+        		showAgainPref.setValue(new Boolean(!showAgainBox.isSelected()));
+        	}
+        	   okCancel = false;
+               dispose();          
         }
     }
         //key events for the dialog box
