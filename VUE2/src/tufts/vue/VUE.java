@@ -114,7 +114,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.628 $ / $Date: 2009-01-12 19:42:23 $ / $Author: mike $ 
+ * @version $Revision: 1.629 $ / $Date: 2009-01-12 22:31:17 $ / $Author: sraphe01 $ 
  */
 
 public class VUE
@@ -476,13 +476,22 @@ public class VUE
     private static final ActiveInstance<LWMap>
         ActiveMapHandler = new ActiveInstance<LWMap>(LWMap.class) {
         @Override
-        protected void onChange(ActiveEvent<LWMap> e) {
+        protected void onChange(ActiveEvent<LWMap> e) {          	
             if (e.active != null) {
                 ActivePathwayHandler.setActive(e, e.active.getActivePathway());
+                VueMenuBar.RootMenuBar.saveAction.setEnabled(true);
+            	VueMenuBar.RootMenuBar.saveAsAction.setEnabled(true);
+            	VueMenuBar.RootMenuBar.publishMenu.setEnabled(true);
+            	Actions.Revert.setEnabled(true);
                 if (e.active.getUndoManager() != null)
                     e.active.getUndoManager().updateGlobalActionLabels();
-            } else
+            } else{
                 ActivePathwayHandler.setActive(e, null);
+                VueMenuBar.RootMenuBar.saveAction.setEnabled(false);
+            	VueMenuBar.RootMenuBar.saveAsAction.setEnabled(false);
+            	VueMenuBar.RootMenuBar.publishMenu.setEnabled(false);
+            	Actions.Revert.setEnabled(false);
+            }
         }
     };
     
@@ -3118,17 +3127,19 @@ public class VUE
     		}	
     	}    	
     	int selectedIndex = mMapTabsRight.getTabCount();
-    	if(selectedIndex>0){
-    		VueMenuBar.RootMenuBar.saveAction.setEnabled(true);
-        	VueMenuBar.RootMenuBar.saveAsAction.setEnabled(true);
-        	VueMenuBar.RootMenuBar.publishMenu.setEnabled(true);
-        	Actions.Revert.setEnabled(true);
-    	}else{
-    		VueMenuBar.RootMenuBar.saveAction.setEnabled(false);
-        	VueMenuBar.RootMenuBar.saveAsAction.setEnabled(false);
-        	VueMenuBar.RootMenuBar.publishMenu.setEnabled(false);
-        	Actions.Revert.setEnabled(false);
-    	}
+    	
+
+//    	if(selectedIndex>0){
+//    		VueMenuBar.RootMenuBar.saveAction.setEnabled(true);
+//        	VueMenuBar.RootMenuBar.saveAsAction.setEnabled(true);
+//        	VueMenuBar.RootMenuBar.publishMenu.setEnabled(true);
+//        	Actions.Revert.setEnabled(true);
+//    	}else{
+//    		VueMenuBar.RootMenuBar.saveAction.setEnabled(false);
+//        	VueMenuBar.RootMenuBar.saveAsAction.setEnabled(false);
+//        	VueMenuBar.RootMenuBar.publishMenu.setEnabled(false);
+//        	Actions.Revert.setEnabled(false);
+//    	}
 
     }
     
@@ -3250,19 +3261,20 @@ public class VUE
             VUE.clearWaitCursor();
         }
         if (loadedMap == null && !alerted)
-            VueUtil.alert("Failed to load map: " + file + "  \n", "Map error: " + file);
+            VueUtil.alert("Failed to load map: " + file + "  \n", "Map error: " + file);    
+       
         
-        if(getActiveMap()==null){
-        	VueMenuBar.RootMenuBar.saveAction.setEnabled(false);
-        	VueMenuBar.RootMenuBar.saveAsAction.setEnabled(false);
-        	VueMenuBar.RootMenuBar.publishMenu.setEnabled(false);
-        	Actions.Revert.setEnabled(false);
-        }else{
-        	VueMenuBar.RootMenuBar.saveAction.setEnabled(true);
-        	VueMenuBar.RootMenuBar.saveAsAction.setEnabled(true);
-        	VueMenuBar.RootMenuBar.publishMenu.setEnabled(true);
-        	Actions.Revert.setEnabled(true);
-        }
+//        if(getActiveMap()==null){
+//        	VueMenuBar.RootMenuBar.saveAction.setEnabled(false);
+//        	VueMenuBar.RootMenuBar.saveAsAction.setEnabled(false);
+//        	VueMenuBar.RootMenuBar.publishMenu.setEnabled(false);
+//        	Actions.Revert.setEnabled(false);
+//        }else{
+//        	VueMenuBar.RootMenuBar.saveAction.setEnabled(true);
+//        	VueMenuBar.RootMenuBar.saveAsAction.setEnabled(true);
+//        	VueMenuBar.RootMenuBar.publishMenu.setEnabled(true);
+//        	Actions.Revert.setEnabled(true);
+//        }
     }
 
     /**
@@ -3370,17 +3382,17 @@ public class VUE
         if (loadedMap == null && !alerted)
             VueUtil.alert("Failed to load map: " + url + "  \n", "Map error: " + url);
         
-        if(getActiveMap()==null){
-        	VueMenuBar.RootMenuBar.saveAction.setEnabled(false);
-        	VueMenuBar.RootMenuBar.saveAsAction.setEnabled(false);
-        	VueMenuBar.RootMenuBar.publishMenu.setEnabled(false);
-        	Actions.Revert.setEnabled(false);
-        }else{
-        	VueMenuBar.RootMenuBar.saveAction.setEnabled(true);
-        	VueMenuBar.RootMenuBar.saveAsAction.setEnabled(true);
-        	VueMenuBar.RootMenuBar.publishMenu.setEnabled(true);
-        	Actions.Revert.setEnabled(true);
-        }
+//        if(getActiveMap()==null){
+//        	VueMenuBar.RootMenuBar.saveAction.setEnabled(false);
+//        	VueMenuBar.RootMenuBar.saveAsAction.setEnabled(false);
+//        	VueMenuBar.RootMenuBar.publishMenu.setEnabled(false);
+//        	Actions.Revert.setEnabled(false);
+//        }else{
+//        	VueMenuBar.RootMenuBar.saveAction.setEnabled(true);
+//        	VueMenuBar.RootMenuBar.saveAsAction.setEnabled(true);
+//        	VueMenuBar.RootMenuBar.publishMenu.setEnabled(true);
+//        	Actions.Revert.setEnabled(true);
+//        }
         
     }
 
