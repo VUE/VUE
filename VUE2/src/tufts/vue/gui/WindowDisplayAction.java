@@ -32,7 +32,7 @@ import javax.swing.AbstractButton;
  * An action for displaying a Window and tracking it's displayed state,
  * keeping in synchronized with a somebody's button (such a checkbox in a menu).
  *
- * @version $Revision: 1.10 $ / $Date: 2009-01-09 19:41:53 $ / $Author: sraphe01 $
+ * @version $Revision: 1.11 $ / $Date: 2009-01-12 20:10:12 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class WindowDisplayAction extends javax.swing.AbstractAction
@@ -203,9 +203,20 @@ public class WindowDisplayAction extends javax.swing.AbstractAction
             // has to do with validation in some way.
                 
             //mWindow.validate();
+            
+            if (Util.isMacLeopard() && VUE.getAnchorDock().isVisible())
+            {
+            	VUE.getAnchorDock().setVisible(false);
+            
+            }
             mWindow.setVisible(true);
             mWindow.toFront();
 
+            if (Util.isMacLeopard())
+            {	
+            	VUE.getAnchorDock().setVisible(true);
+            	VUE.getAnchorDock().toFront();
+            }
             // could always set off screen and not move back until AWT cleared
 
             /*

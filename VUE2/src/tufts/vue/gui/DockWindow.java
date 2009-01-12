@@ -54,7 +54,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.140 $ / $Date: 2008-12-22 21:39:30 $ / $Author: sfraize $
+ * @version $Revision: 1.141 $ / $Date: 2009-01-12 20:10:12 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -1189,7 +1189,7 @@ public class DockWindow
     }
 
     //@Override
-    private void toFront() {
+    void toFront() {
 
         //tufts.Util.printClassTrace(DockWindow.class, "RAISING");
         if (isVisible()) {
