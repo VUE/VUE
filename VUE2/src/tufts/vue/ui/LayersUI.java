@@ -37,7 +37,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.48 $ / $Date: 2008-12-19 00:38:12 $ / $Author: sfraize $
+ * @version $Revision: 1.49 $ / $Date: 2009-01-12 16:12:34 $ / $Author: sraphe01 $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -313,9 +313,10 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         	 {
         		 // call paintComponent to ensure the panel displays correctly
         		 super.paintComponent(g);
-        		 g.drawLine(5, 5, 5, 25);        		 
+        		 g.drawLine(5, 5, 5, 25);         		
         	 }        	
-        };
+        };  
+        panel.setForeground(Color.gray);
         panel.setPreferredSize(new Dimension(10,25));         
         mToolbar.add(panel,gBC);  
 //         if (DEBUG.Enabled) {
