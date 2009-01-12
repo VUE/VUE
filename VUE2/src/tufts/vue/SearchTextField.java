@@ -193,7 +193,7 @@ public class SearchTextField extends JTextField {
 			setEditable(true);
 			setPreferredSize(new Dimension(200,23));
 			Insets noInsets = new Insets(0, 15, 0, 25);
-			setMargin(noInsets);
+			setMargin(noInsets);			
 			addMouseListener(new MouseAdapter() {
 				public void mouseEntered(MouseEvent e) {
 					if ((e.getX() < 23)) {
@@ -201,16 +201,19 @@ public class SearchTextField extends JTextField {
 						setCursor(Cursor
 								.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 						repaint();
+						revalidate();
 					} else if (e.getX() < getWidth() - 23) {
 						mouse_over = false;
 						setCursor(Cursor
 								.getPredefinedCursor(Cursor.TEXT_CURSOR));
 						repaint();
+						revalidate();
 					} else {
 						mouse_over = true;
 						setCursor(Cursor
 								.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 						repaint();
+						revalidate();
 					}
 				}
 
@@ -220,16 +223,19 @@ public class SearchTextField extends JTextField {
 						setCursor(Cursor
 								.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 						repaint();
+						revalidate();
 					} else if (e.getX() < getWidth() - 23) {
 						mouse_over = false;
 						setCursor(Cursor
 								.getPredefinedCursor(Cursor.TEXT_CURSOR));
 						repaint();
+						revalidate();
 					} else {
 						mouse_over = false;
 						setCursor(Cursor
 								.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 						repaint();
+						revalidate();
 					}
 
 				}
@@ -401,9 +407,12 @@ public class SearchTextField extends JTextField {
 			if (VueResources.getString("search.popup.select.all").equals(
 					actionEvent.getActionCommand().toString())) {
 				if (Util.isMacTiger()) {
+					fieldTxt.grabFocus();
 					fieldTxt.selectAll();
-				} else
+				} else{
+					thisTxtFld.grabFocus();
 					thisTxtFld.selectAll();
+				}
 			} else if (VueResources.getString("search.popup.cut").equals(
 					actionEvent.getActionCommand().toString())) {
 				if (Util.isMacTiger()) {
@@ -794,7 +803,7 @@ public class SearchTextField extends JTextField {
 		} else {
 			g.drawImage(arrowImg, 5, h / 2 - 5, arrowImg.getWidth(null),
 					arrowImg.getHeight(null), this);
-			if (!mouse_over) {
+			if (!mouse_over) {				
 				g.drawImage(searchImg, w - 20, h / 2 - 8, searchImg
 						.getWidth(null), searchImg.getHeight(null), this);
 			} else {
