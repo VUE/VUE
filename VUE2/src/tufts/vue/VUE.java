@@ -114,7 +114,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.627 $ / $Date: 2009-01-10 18:01:33 $ / $Author: sraphe01 $ 
+ * @version $Revision: 1.628 $ / $Date: 2009-01-12 19:42:23 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -848,6 +848,7 @@ public class VUE
     private static DockWindow floatingZoomDock;
     private static DockWindow layersDock;
     private static DockWindow metaDataSearchDock;
+    private static DockWindow anchor;
 
     
     static {
@@ -2091,7 +2092,7 @@ public class VUE
             JTextArea t = new JTextArea("Do Not Close This Window.\nSee http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6373178");
             t.setFont(VueConstants.SmallFont);
             t.setEditable(false);
-            DockWindow anchor = GUI.createDockWindow("VUE-leopard-anchor", t);
+            anchor = GUI.createDockWindow("VUE-leopard-anchor", t);
             if (!DEBUG.DOCK)
                 GUI.setOffScreen(anchor.window());
             anchor.pack();
@@ -2503,6 +2504,11 @@ public class VUE
     public static DockWindow getFormatDock()
     {
     	return formatDock;
+    }
+    
+    public static DockWindow getAnchorDock()
+    {
+    	return anchor;
     }
     
     public static DockWindow getPresentationDock()
