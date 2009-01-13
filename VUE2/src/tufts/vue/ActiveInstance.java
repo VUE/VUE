@@ -41,7 +41,7 @@ import static tufts.Util.*;
 
 
  * @author Scott Fraize 2007-05-05
- * @version $Revision: 1.23 $ / $Date: 2008-07-07 18:34:48 $ / $Author: sfraize $
+ * @version $Revision: 1.24 $ / $Date: 2009-01-13 17:15:49 $ / $Author: sfraize $
  */
 
 public class ActiveInstance<T>
@@ -236,7 +236,11 @@ public class ActiveInstance<T>
         }
     }
 
-    protected void onChange(ActiveEvent<T> e) {}
+    protected void onChange(ActiveEvent<T> e) {
+        onChange(e, e.active);
+    }
+    
+    protected void onChange(ActiveEvent<T> e, T nowActive) {}
 
     protected void notifyListeners(ActiveEvent<T> e) {
         if (inNotify) {
