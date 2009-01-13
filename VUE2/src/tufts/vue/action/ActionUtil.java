@@ -65,7 +65,7 @@ import java.net.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistence thru castor XML.
  *
- * @version $Revision: 1.123 $ / $Date: 2008-12-22 21:39:28 $ / $Author: sfraize $
+ * @version $Revision: 1.124 $ / $Date: 2009-01-13 22:26:36 $ / $Author: sraphe01 $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -128,6 +128,7 @@ public class ActionUtil
 				{
 				
 					String baseName = null;
+					String extension = ((VueFileFilter)saveChooser.getFileFilter()).getExtensions()[0];  
 			        if (VUE.getActiveMap().getFile() == null)
 			        	baseName = VUE.getActiveMap().getLabel();
 			        else
@@ -135,12 +136,12 @@ public class ActionUtil
 			        	baseName = VUE.getActiveMap().getLabel();
 			    		if (baseName.indexOf(".") > 0)
 			    			baseName = VUE.getActiveMap().getLabel().substring(0, baseName.lastIndexOf("."));
-			    		baseName = baseName.replaceAll("\\*","") + "-copy";
+			    		baseName = baseName.replaceAll("\\*","") + "-copy"+"."+extension;			    		
 			        }
 			     
 			        if (fileType == null)
-			        {
-			        	ActionUtil.saveChooser.setSelectedFile(new File(baseName.replaceAll("\\*", "")));
+			        {			        	
+			        	ActionUtil.saveChooser.setSelectedFile(new File(baseName.replaceAll("\\*", "")));			        	
 			        }
 				}
 			}
@@ -188,6 +189,10 @@ public class ActionUtil
             picked = saveChooser.getSelectedFile();
             
             String fileName = picked.getAbsolutePath();
+            int start = fileName.indexOf(".");			        	
+        	if(fileName.length()!=0 && start != -1){
+        		fileName = fileName.substring(0,start);
+        	}        	
             //String extension = chooser.getFileFilter().getDescription();
               String extension = ((VueFileFilter)saveChooser.getFileFilter()).getExtensions()[0];  
             //if it isn't a file name with the right extension 
@@ -196,12 +201,14 @@ public class ActionUtil
                 picked = new File(fileName);
             }
             
-            if (picked.exists()) {
+            if (picked.exists()) {            	
                 int n = JOptionPane.showConfirmDialog(null, VueResources.getString("replaceFile.text") + " \'" + picked.getName() + "\'", 
                         VueResources.getString("replaceFile.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
                   
-                if (n == JOptionPane.NO_OPTION)
-                    picked = null;
+                if (n == JOptionPane.NO_OPTION){
+                	picked = null;                	
+                	saveChooser.showDialog(VUE.getDialogParentAsFrame(), "Save");                	
+                }
             } 
             
             if (picked != null)

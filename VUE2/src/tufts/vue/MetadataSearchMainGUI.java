@@ -49,6 +49,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
@@ -75,7 +76,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.30 $ / $Date: 2009-01-09 19:42:15 $ / $Author: Sheejo
+ * @version $Revision: 1.31 $ / $Date: 2009-01-13 22:25:57 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -189,12 +190,13 @@ public class MetadataSearchMainGUI extends JPanel
         mInfoPanel.setName(SEARCH_STR);
         metadataPanel = new MetadataPanel();
         metadataPanel.setName(SAVED_SEARCH_STR);
-        Widget.setWantsScroller(mapInfoStack, true);
+        Widget.setWantsScroller(mapInfoStack, true);        
         adjustHeaderTableColumnModel();
         // mTabbedPane.addTab(metadataPanel.getName(),metadataPanel);
-        mapInfoStack.addPane(mInfoPanel, 1f);
-        mapInfoStack.addPane(metadataPanel, 2f);        
-        
+//        mapInfoStack.addPane(mInfoPanel, 1f);
+//        mapInfoStack.addPane(metadataPanel, 2f);  
+        mapInfoStack.addPane(SEARCH_STR,mInfoPanel);
+        mapInfoStack.addPane(metadataPanel, 2f);
         // Widget.setWantsScroller(mapInfoStack, true);
         saveSearchAction = new AbstractAction(SAVE_SEARCH_STR) {
             public void actionPerformed(ActionEvent e) {
@@ -253,7 +255,9 @@ public class MetadataSearchMainGUI extends JPanel
             }
         };
         Widget.setMenuActions(metadataPanel, new Action[] { saveSearchAction,
-                runSearchAction, renameAction, deleteAction });
+                runSearchAction, renameAction, deleteAction });        
+//        JScrollPane sp = new JScrollPane(mapInfoStack);
+//        sp.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         w.setContent(mapInfoStack);
         w.setHeight(350);
         w.setWidth(300);
