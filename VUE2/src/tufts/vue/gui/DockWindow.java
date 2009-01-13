@@ -54,7 +54,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.141 $ / $Date: 2009-01-12 20:10:12 $ / $Author: mike $
+ * @version $Revision: 1.142 $ / $Date: 2009-01-13 17:31:49 $ / $Author: sraphe01 $
  * @author Scott Fraize
  */
 
@@ -4572,7 +4572,7 @@ public class DockWindow
     }
 
 
-    private class MenuButton extends JLabel implements MouseListener 
+    private class MenuButton extends JButton //implements MouseListener 
     {
 
 
@@ -4580,8 +4580,10 @@ public class DockWindow
         {
         	super();        	
         	setFocusable(true);
+        	
         	setIcon(VueResources.getIcon("dockWindow.panner.menu.raw"));        	
-        
+        	setRolloverEnabled(true);
+        	setRolloverIcon(VueResources.getImageIcon("dockWindow.panner.menu.raw.over"));
             setName(DockWindow.this._win.getName());
             setFont(new Font("Arial", Font.PLAIN, 18));
         
@@ -4599,24 +4601,15 @@ public class DockWindow
 
             if (false) setMaximumSize(new Dimension(30,TitleHeight));
 
-            setMenuActions(actions);
-        }
-            
-            
-    		public void mouseEntered(MouseEvent arg0) {    			
-    			setIcon(VueResources.getImageIcon("dockWindow.panner.menu.hover"));
-    		}
-
-    		public void mouseExited(MouseEvent arg0) {
-    			setIcon(VueResources.getImageIcon("dockWindow.panner.menu.raw"));    			
-    			
-    		}       
-
+            	setMenuActions(actions);
+        	}  
+     
+    		
 
         void setMenuActions(Action[] actions)
         {
             clearMenuActions();
-            addMouseListener(this);
+            //addMouseListener(this);
             new GUI.PopupMenuHandler(this, GUI.buildMenu(actions)) {
                 /*
                   public void mouseEntered(MouseEvent e) {
@@ -4644,22 +4637,22 @@ public class DockWindow
         }
 
 
-		public void mouseClicked(MouseEvent arg0) {
-			// TODO Auto-generated method stub
-			
-		}
-
-
-		public void mousePressed(MouseEvent arg0) {
-			// TODO Auto-generated method stub
-			
-		}
-
-
-		public void mouseReleased(MouseEvent arg0) {
-			// TODO Auto-generated method stub
-			
-		}	
+//		public void mouseClicked(MouseEvent arg0) {
+//			// TODO Auto-generated method stub
+//			
+//		}
+//
+//
+//		public void mousePressed(MouseEvent arg0) {
+//			// TODO Auto-generated method stub
+//			
+//		}
+//
+//
+//		public void mouseReleased(MouseEvent arg0) {
+//			// TODO Auto-generated method stub			
+//		}	
+		 
 
     }
     
