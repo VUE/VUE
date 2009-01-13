@@ -61,7 +61,7 @@ import osid.dr.Asset;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.106 $ / $Date: 2008-07-11 16:47:39 $ / $Author: sfraize $
+ * @version $Revision: 1.107 $ / $Date: 2009-01-13 16:45:56 $ / $Author: sraphe01 $
  */
 
 public class PathwayTable extends JTable
@@ -844,7 +844,7 @@ public class PathwayTable extends JTable
             	 g.drawString(emptyString, 0, 33);
          }
     }
-    private final Border iconBorder = new EmptyBorder(5,3,0,0);
+    private final Border iconBorder = new EmptyBorder(3,0,5,5);
     private final Border NodeIconBorder = new EmptyBorder(1,0,0,0);
     private class ImageRenderer extends DefaultTableCellRenderer {
         
