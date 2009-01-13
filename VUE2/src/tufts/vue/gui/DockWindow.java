@@ -19,6 +19,7 @@ package tufts.vue.gui;
 import tufts.Util;
 import tufts.macosx.MacOSX;
 
+import tufts.vue.SearchTextField;
 import tufts.vue.VUE;
 import tufts.vue.DEBUG;
 import tufts.vue.VueUtil;
@@ -54,7 +55,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.142 $ / $Date: 2009-01-13 17:31:49 $ / $Author: sraphe01 $
+ * @version $Revision: 1.143 $ / $Date: 2009-01-13 22:27:20 $ / $Author: sraphe01 $
  * @author Scott Fraize
  */
 
@@ -315,7 +316,12 @@ public class DockWindow
         public void peer_addNotify() { super.addNotify(); }
         public void peer_validate() { super.validate(); }
         public void peer_invalidate() { super.invalidate(); }
-        public void peer_setVisible(boolean v) { super.setVisible(v); }
+        public void peer_setVisible(boolean v) {
+        	super.setVisible(v); 
+        	if(getName().equals("Search") && v==false){
+        		SearchTextField.editSettingsMenuItem.setSelected(false);
+        	}        	
+        }
         public void peer_setBounds(int x, int y, int w, int h) { super.setBounds(x, y, w, h); }
 
         public String toString() { return GUI.name(this); }
