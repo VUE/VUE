@@ -43,13 +43,15 @@ public class SearchTextField extends JTextField {
 
 	SearchTextField() {
 		// super(VueResources.getString("search.text.default"),15);
-		super(15);
+		//super(11);
+		
 		thisTxtFld = this;		
 		thisTxtFld.setText(VueResources.getString("search.text.default"));
 		GUI.init();
 		initMenuSettings();
 		if (!isWindows) {
 			if (Util.isMacTiger()) {
+				setColumns(15);
 				thisTxtFld.setText("");
 				fieldTxt = new JTextField(12);
 				fieldTxt.setBorder(null);
@@ -139,6 +141,7 @@ public class SearchTextField extends JTextField {
 				thisTxtFld.setLayout(new FlowLayout(FlowLayout.CENTER, 1, 0));
 				thisTxtFld.add(fieldTxt, BorderLayout.CENTER);
 			} else {
+				setColumns(11);
 				setEditable(true);
 				putClientProperty("JTextField.variant", "search");
 				Insets noInsets = new Insets(0, 30, 0, 25);
@@ -191,7 +194,7 @@ public class SearchTextField extends JTextField {
 			}
 		} else {
 			setEditable(true);
-			setPreferredSize(new Dimension(200,23));
+			setPreferredSize(new Dimension(180,23));
 			Insets noInsets = new Insets(0, 15, 0, 25);
 			setMargin(noInsets);			
 			addMouseListener(new MouseAdapter() {
