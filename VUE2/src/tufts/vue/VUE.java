@@ -114,7 +114,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.629 $ / $Date: 2009-01-12 22:31:17 $ / $Author: sraphe01 $ 
+ * @version $Revision: 1.630 $ / $Date: 2009-01-13 17:14:56 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -476,24 +476,26 @@ public class VUE
     private static final ActiveInstance<LWMap>
         ActiveMapHandler = new ActiveInstance<LWMap>(LWMap.class) {
         @Override
-        protected void onChange(ActiveEvent<LWMap> e) {          	
-            if (e.active != null) {
-                ActivePathwayHandler.setActive(e, e.active.getActivePathway());
-                VueMenuBar.RootMenuBar.saveAction.setEnabled(true);
-            	VueMenuBar.RootMenuBar.saveAsAction.setEnabled(true);
-            	VueMenuBar.RootMenuBar.publishMenu.setEnabled(true);
-            	Actions.Revert.setEnabled(true);
-                if (e.active.getUndoManager() != null)
-                    e.active.getUndoManager().updateGlobalActionLabels();
-            } else{
+        protected void onChange(ActiveEvent<LWMap> e, final LWMap nowActive) {
+            if (nowActive != null) {
+                ActivePathwayHandler.setActive(e, nowActive.getActivePathway());
+                setMapActionsEnabled(true);
+                if (nowActive.getUndoManager() != null)
+                    nowActive.getUndoManager().updateGlobalActionLabels();
+            } else {
                 ActivePathwayHandler.setActive(e, null);
-                VueMenuBar.RootMenuBar.saveAction.setEnabled(false);
-            	VueMenuBar.RootMenuBar.saveAsAction.setEnabled(false);
-            	VueMenuBar.RootMenuBar.publishMenu.setEnabled(false);
-            	Actions.Revert.setEnabled(false);
+                setMapActionsEnabled(false);
             }
         }
     };
+
+    private static void setMapActionsEnabled(boolean enable) {
+        //Util.printStackTrace("ENABLED MAP ACTIONS " + enable);
+        VueMenuBar.RootMenuBar.saveAction.setEnabled(enable);
+        VueMenuBar.RootMenuBar.saveAsAction.setEnabled(enable);
+        VueMenuBar.RootMenuBar.publishMenu.setEnabled(enable);
+        Actions.Revert.setEnabled(enable);
+    }
     
     /**
      * For the currently active viewer (e.g., is visible
@@ -1902,7 +1904,7 @@ public class VUE
 
         	}
 
-                if (false&&DEBUG.Enabled /* && !SKIP_DR */) {
+                if (DEBUG.WORK /* && !SKIP_DR */) {
                     
                     final DockWindow dataFinderDock = GUI.createDockWindow("DataFinder");
                     final DataFinder DATA_FINDER_DEFAULTS =
