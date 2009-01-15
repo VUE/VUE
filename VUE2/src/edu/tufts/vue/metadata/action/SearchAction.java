@@ -99,7 +99,7 @@ public class SearchAction extends AbstractAction {
     private boolean metadataOnly = false;
     
     private boolean everything = false;
-    
+    private boolean searchBtnClicked = false;
     public SearchAction(JTextField searchInput) {
         super("Search");
         this.searchInput = searchInput;
@@ -341,15 +341,17 @@ public class SearchAction extends AbstractAction {
     
     // note: performSearch determines if this is actually a seperate thread
     public void runSearchThread(int searchLocationType)
-    {
-        
-        if(searchType == QUERY && crossTermOperator == AND)
-        {
+    {      	
+    	if(VUE.getMetadataSearchMainPanel().isSearchBtnClick){
+    		searchTerms = VUE.getMetadataSearchMainPanel().searchTerms;
+    	}
+        if(searchType == QUERY && VUE.getMetadataSearchMainPanel().getSelectedOperator() == AND)
+        {        	
             createQuery();
         }
         else // todo: AND in first query
-        if(searchType == QUERY && crossTermOperator == OR)
-        {
+        if(searchType == QUERY && VUE.getMetadataSearchMainPanel().getSelectedOperator() == OR)
+        {      
             createQueries();
         }
        // else // todo: for gathering text into its own list
@@ -412,11 +414,11 @@ public class SearchAction extends AbstractAction {
         {
             //System.out.println("query result " + index.search(query) + " for query " + query.createSPARQLQuery());
             
-            if(actualCriteriaAdded && crossTermOperator == AND)
+            if(actualCriteriaAdded && VUE.getMetadataSearchMainPanel().getSelectedOperator() == AND)
             {    
               finds.add(index.search(query));
             }
-            else if(actualCriteriaAdded && crossTermOperator == OR)
+            else if(actualCriteriaAdded && VUE.getMetadataSearchMainPanel().getSelectedOperator() == OR)
             {
               Iterator<Query> queries = queryList.iterator();
               while(queries.hasNext())
@@ -1099,5 +1101,5 @@ public class SearchAction extends AbstractAction {
         if(globalResultsType == SHOW_ACTION)
           showHiddenComponents(globalHides);
     }
-    
+	
 }

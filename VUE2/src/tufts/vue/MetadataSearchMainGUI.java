@@ -76,7 +76,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.31 $ / $Date: 2009-01-13 22:25:57 $ / $Author: Sheejo
+ * @version $Revision: 1.32 $ / $Date: 2009-01-15 23:52:18 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -101,7 +101,7 @@ public class MetadataSearchMainGUI extends JPanel
     public final static int BUTTON_COL_WIDTH = 35;
     public final static int ROW_HEIGHT = 30;
     public final static int ROW_GAP = 7;
-    private List<VueMetadataElement> searchTerms = new ArrayList<VueMetadataElement>();
+    public List<VueMetadataElement> searchTerms = new ArrayList<VueMetadataElement>();
     public final static int ROW_INSET = 5;
     private JTextField allSearchField = new JTextField();
     private SearchAction allSearch = new SearchAction(allSearchField);
@@ -179,6 +179,7 @@ public class MetadataSearchMainGUI extends JPanel
     private JTable searchResultTbl;
     private JComboBox andOrCmbBox = new JComboBox(andOrTypes);
     private String strAndOrType  = "or";
+    public boolean isSearchBtnClick = false;
     public MetadataSearchMainGUI(DockWindow w) {
         super();        
         JPopupMenu popup = new JPopupMenu();
@@ -497,8 +498,10 @@ public class MetadataSearchMainGUI extends JPanel
 						searchTermsTable.getCellEditor().stopCellEditing();
 					}                  
 					termsAction = new SearchAction(searchTerms);
+					isSearchBtnClick = true;
 					String resultsTypeChoice = resultCmbBox.getSelectedItem()
-							.toString().trim();
+							.toString().trim();					
+					searchButton = new JButton(termsAction);
 					termsAction.setResultsType(resultsTypeChoice);
 					if (mapCmbBox.getSelectedItem().toString().trim().equals(
 							ALL_MAPS_STRING)) {
@@ -1070,7 +1073,7 @@ public class MetadataSearchMainGUI extends JPanel
 
         Component combo = null;
 
-        public ComboBoxAndOrRenderer(JComboBox combo) {
+        public ComboBoxAndOrRenderer(JComboBox combo) {        	
             this.combo = combo;
         }
 
@@ -1079,7 +1082,7 @@ public class MetadataSearchMainGUI extends JPanel
                 int row, int column) {
             if (searchTermsTable.getModel().getRowCount() > 1) {
                 combo.setVisible(true);
-                combo.setFont(tufts.vue.gui.GUI.LabelFace);                
+                combo.setFont(tufts.vue.gui.GUI.LabelFace);                 
                 combo.repaint();
                 combo.invalidate();
                 table.revalidate();
@@ -1090,6 +1093,7 @@ public class MetadataSearchMainGUI extends JPanel
                 label.setEnabled(false);
                 return label;
             }
+            
             return combo;
         }
     }
@@ -1718,10 +1722,11 @@ public class MetadataSearchMainGUI extends JPanel
 	}
     public void searchButtonAction(){
         SearchData data = new SearchData();
+        isSearchBtnClick = false;
          int selectedRow = searchResultTbl.getSelectedRow();                 
          data = searchResultModel.getSearchData(selectedRow);                 
          //searchTerms = data.getDataList();             
-         if(data.getDataList()!=null){
+         if(data.getDataList()!=null){        	 
              termsAction = new SearchAction(data.getDataList());
          }
          termsAction.setBasic(false);
