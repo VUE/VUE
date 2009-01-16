@@ -76,7 +76,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.32 $ / $Date: 2009-01-15 23:52:18 $ / $Author: Sheejo
+ * @version $Revision: 1.33 $ / $Date: 2009-01-16 20:24:02 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -191,7 +191,7 @@ public class MetadataSearchMainGUI extends JPanel
         mInfoPanel.setName(SEARCH_STR);
         metadataPanel = new MetadataPanel();
         metadataPanel.setName(SAVED_SEARCH_STR);
-        Widget.setWantsScroller(mapInfoStack, true);        
+        //Widget.setWantsScroller(mapInfoStack, true);        
         adjustHeaderTableColumnModel();
         // mTabbedPane.addTab(metadataPanel.getName(),metadataPanel);
 //        mapInfoStack.addPane(mInfoPanel, 1f);
@@ -257,9 +257,9 @@ public class MetadataSearchMainGUI extends JPanel
         };
         Widget.setMenuActions(metadataPanel, new Action[] { saveSearchAction,
                 runSearchAction, renameAction, deleteAction });        
-//        JScrollPane sp = new JScrollPane(mapInfoStack);
-//        sp.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-        w.setContent(mapInfoStack);
+        Widget.setWantsScroller(mapInfoStack, true);
+        Widget.setWantsScrollerAlways(mapInfoStack, true);
+        w.setContent(mapInfoStack);       
         w.setHeight(350);
         w.setWidth(300);
         validate();
