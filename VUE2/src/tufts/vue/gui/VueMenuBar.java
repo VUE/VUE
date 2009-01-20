@@ -47,7 +47,7 @@ import edu.tufts.vue.dsm.impl.VueDataSourceManager;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.127 $ / $Date: 2009-01-08 16:40:52 $ / $Author: sraphe01 $
+ * @version $Revision: 1.128 $ / $Date: 2009-01-20 20:53:56 $ / $Author: sraphe01 $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -60,6 +60,15 @@ public class VueMenuBar extends javax.swing.JMenuBar
     public static SaveAction saveAction = null;
     public static SaveAction saveAsAction = null;
     public static JMenu publishMenu = null;
+    public static PrintAction printAction  = null;
+    public static JMenu pdfExportMenu = null;
+    public static JMenu transformMenu = null;
+    public static JMenu arrangeMenu = null;
+    public static JMenu alignMenu = null;
+    public static JMenu layoutMenu = null;
+    public static JMenu linkMenu = null;
+    public static JMenu playbackMenu = null;
+    public boolean isMenuEnableFontFlg = false;
     // this may be created multiple times as a workaround for the inability
     // to support a single JMenuBar for the whole application on the Mac
 /*    public VueMenuBar()
@@ -181,21 +190,30 @@ public class VueMenuBar extends javax.swing.JMenuBar
         final JMenu editMenu = makeMenu("Edit");
         final JMenu viewMenu = makeMenu("View");
         final JMenu formatMenu = makeMenu("Format");
-        final JMenu transformMenu = makeMenu("Font");
-        final JMenu arrangeMenu = makeMenu("Arrange");
+        transformMenu = makeMenu("Font");
+        transformMenu.setEnabled(false);
+        arrangeMenu = makeMenu("Arrange");
+        arrangeMenu.setEnabled(false);
+        
         final JMenu contentMenu = makeMenu("Content");
         final JMenu presentationMenu = makeMenu(VueResources.getString("menu.pathway.label"));
         final JMenu analysisMenu = makeMenu("Analysis");
       
-        final JMenu alignMenu = makeMenu("Align");
-        final JMenu layoutMenu = makeMenu("Layout");
+        alignMenu = makeMenu("Align");
+        alignMenu.setEnabled(false);
+        
+        layoutMenu = makeMenu("Layout");
+        layoutMenu.setEnabled(false);        
+        
         final JMenu extendMenu = makeMenu("Extend");
-        final JMenu linkMenu = makeMenu("Link");
+        linkMenu = makeMenu("Link");
+        linkMenu.setEnabled(false); 
         final JMenu helpMenu = add(makeMenu("Help"));
         
       //  final JMenu slidePreviewMenu = new JMenu("Slide preview");
         final JMenu notesMenu = new JMenu("Handouts and Notes");
-        final JMenu playbackMenu = new JMenu(VueResources.getString("menu.playback.play.label"));
+        playbackMenu = new JMenu(VueResources.getString("menu.playback.play.label"));
+        playbackMenu.setEnabled(false); 
         ////////////////////////////////////////////////////////////////////////////////////
         // Initialize Actions
         ////////////////////////////////////////////////////////////////////////////////////
@@ -229,7 +247,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
         final AnalyzeCM analyzeCMAction = new AnalyzeCM("Merge Maps...");
      
         // Actions added by the power team
-        final PrintAction printAction = PrintAction.getPrintAction();
+        printAction = PrintAction.getPrintAction();
+        printAction.setEnabled(false);
     //    final PDFTransform pdfAction = new PDFTransform("PDF");
     /*    final HTMLConversion htmlAction = new HTMLConversion("HTML");
         final ImageConversion imageAction = new ImageConversion("JPEG");
@@ -447,8 +466,9 @@ public class VueMenuBar extends javax.swing.JMenuBar
         //publishMenu.setEnabled(false);
         if (!VUE.isApplet())
         	fileMenu.add(publishMenu);
-        
-        final JMenu pdfExportMenu = new JMenu("Export Handouts and Notes (PDF)");
+        	
+        pdfExportMenu = new JMenu("Export Handouts and Notes (PDF)");
+        pdfExportMenu.setEnabled(false);
         //pdfExportMenu.add(Actions.MapAsPDF);
         final JMenuItem fullPageSlideNotesItem = new JMenuItem(Actions.FullPageSlideNotes);
         final JMenuItem slides8PerPageItem = new JMenuItem(Actions.Slides8PerPage);
@@ -671,11 +691,17 @@ public class VueMenuBar extends javax.swing.JMenuBar
 				
 				if (selection.count(LWText.class) > 0)
 				{
-					transformMenu.setEnabled(false);
+					if(!isMenuEnableFontFlg){
+						transformMenu.setEnabled(isMenuEnableFontFlg);
+					}
 				}
 				else
 				{
-					transformMenu.setEnabled(true);
+					if(!isMenuEnableFontFlg){
+						transformMenu.setEnabled(false);
+					}else{
+						transformMenu.setEnabled(true);
+					}
 				}
 				
 			}});
@@ -1244,6 +1270,12 @@ public class VueMenuBar extends javax.swing.JMenuBar
         new ShortcutsAction().act();
 
     }
+
+
+	public void setMenuEnableFlg(boolean enable) {
+		isMenuEnableFontFlg = enable;
+		
+	}
     
 
     

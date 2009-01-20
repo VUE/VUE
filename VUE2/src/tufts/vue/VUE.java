@@ -62,6 +62,7 @@ import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -114,7 +115,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.630 $ / $Date: 2009-01-13 17:14:56 $ / $Author: sfraize $ 
+ * @version $Revision: 1.631 $ / $Date: 2009-01-20 20:53:56 $ / $Author: sraphe01 $ 
  */
 
 public class VUE
@@ -490,11 +491,44 @@ public class VUE
     };
 
     private static void setMapActionsEnabled(boolean enable) {
-        //Util.printStackTrace("ENABLED MAP ACTIONS " + enable);
+        //Util.printStackTrace("ENABLED MAP ACTIONS " + enable);    	
         VueMenuBar.RootMenuBar.saveAction.setEnabled(enable);
         VueMenuBar.RootMenuBar.saveAsAction.setEnabled(enable);
         VueMenuBar.RootMenuBar.publishMenu.setEnabled(enable);
+        Actions.CloseMap.setEnabled(enable);
+        VueMenuBar.RootMenuBar.printAction.setEnabled(enable);
+        VueMenuBar.RootMenuBar.pdfExportMenu.setEnabled(enable);  
+        Actions.Undo.setEnabled(enable);
+        Actions.Redo.setEnabled(enable);
+        Actions.Paste.setEnabled(enable);
+        Actions.SelectAll.setEnabled(enable);
+        Actions.SelectAllNodes.setEnabled(enable);
+        Actions.SelectAllLinks.setEnabled(enable);
+        Actions.Reselect.setEnabled(enable);
         Actions.Revert.setEnabled(enable);
+        
+        Actions.ZoomIn.setEnabled(enable);
+        Actions.ZoomOut.setEnabled(enable);
+        Actions.ZoomFit.setEnabled(enable);
+        Actions.ZoomActual.setEnabled(enable);
+        Actions.ToggleFullScreen.setEnabled(enable);
+        Actions.ToggleSplitScreen.setEnabled(enable);
+        Actions.ToggleSlideIcons.setEnabled(enable);
+        Actions.TogglePruning.setEnabled(enable);
+        Actions.ToggleAutoZoom.setEnabled(enable);
+        
+       	VueMenuBar.RootMenuBar.setMenuEnableFlg(enable);
+        
+        VueMenuBar.RootMenuBar.transformMenu.setEnabled(enable); 
+        VueMenuBar.RootMenuBar.arrangeMenu.setEnabled(enable); 
+        VueMenuBar.RootMenuBar.alignMenu.setEnabled(enable); 
+        VueMenuBar.RootMenuBar.layoutMenu.setEnabled(enable); 
+        VueMenuBar.RootMenuBar.linkMenu.setEnabled(enable); 
+       
+        Actions.NewNode.setEnabled(enable);
+        Actions.NewText.setEnabled(enable);
+        
+        VueMenuBar.RootMenuBar.playbackMenu.setEnabled(enable);
     }
     
     /**
@@ -3129,7 +3163,11 @@ public class VUE
     		}	
     	}    	
     	int selectedIndex = mMapTabsRight.getTabCount();
-    	
+    	if(selectedIndex>0){
+    		setMapActionsEnabled(true);
+    	}else{
+    		setMapActionsEnabled(false);
+    	}
 
 //    	if(selectedIndex>0){
 //    		VueMenuBar.RootMenuBar.saveAction.setEnabled(true);
