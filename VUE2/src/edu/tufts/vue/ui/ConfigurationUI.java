@@ -294,7 +294,7 @@ public class ConfigurationUI extends javax.swing.JPanel {
     private void populatePanel() {
         try {
             // setup panel layout
-            gbConstraints.anchor = java.awt.GridBagConstraints.WEST;
+            gbConstraints.anchor = java.awt.GridBagConstraints.EAST;
             gbConstraints.insets = new java.awt.Insets(2,2,2,2);
             //gbConstraints.weighty = 1;
             gbConstraints.weighty = 0;
@@ -500,7 +500,7 @@ public class ConfigurationUI extends javax.swing.JPanel {
         
         //gbConstraints.weighty = 0;
         
-        gbConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gbConstraints.anchor = java.awt.GridBagConstraints.EAST;
         gbConstraints.fill = java.awt.GridBagConstraints.NONE;
         gbConstraints.gridwidth = 1;
         gbConstraints.gridx = 0;
