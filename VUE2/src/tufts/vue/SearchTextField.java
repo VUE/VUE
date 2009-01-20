@@ -194,24 +194,63 @@ public class SearchTextField extends JTextField {
 			}
 		} else {
 			setEditable(true);
+			fieldTxt = new JTextField();
+			fieldTxt.setBorder(null);
+			fieldTxt.setText(VueResources.getString("search.text.default"));
+			fieldTxt.setPreferredSize(new Dimension(135,18));
 			setPreferredSize(new Dimension(180,23));
 			Insets noInsets = new Insets(0, 15, 0, 25);
 			setMargin(noInsets);			
-			addMouseListener(new MouseAdapter() {
+			fieldTxt.addMouseListener(new MouseAdapter() {
 				public void mouseEntered(MouseEvent e) {
-					if ((e.getX() < 23)) {
+					mouse_over = false;
+					setCursor(Cursor
+							.getPredefinedCursor(Cursor.TEXT_CURSOR));
+					repaint();
+					revalidate();
+				}
+
+				public void mouseExited(MouseEvent e) {					
+					mouse_over = false;
+					setCursor(Cursor
+							.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+					repaint();
+					revalidate();
+				}
+				public void mouseClicked(MouseEvent e) {
+					if (fieldTxt.getText().trim().equals(
+							VueResources.getString("search.text.default"))) {
+						fieldTxt.setText("");
+					}
+				}
+				public void mouseReleased(MouseEvent e) {
+//					if (fieldTxt.getText().trim().equals(
+//							VueResources.getString("search.text.default"))) {
+//						setText("");
+//					}
+					if (e.isPopupTrigger()) {
+						createEditPopupMenu();
+						editPopup.show(e.getComponent(), e.getX() + 5, e
+								.getY());
+					}
+				}
+			});
+			addMouseListener(new MouseAdapter() {
+				public void mouseEntered(MouseEvent e) {					
+					if ((e.getX() < 23)) {						
 						mouse_over = false;
 						setCursor(Cursor
 								.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 						repaint();
 						revalidate();
-					} else if (e.getX() < getWidth() - 23) {
+					} /*else if (e.getX() < getWidth() - 23) {
+						System.err.println("1");
 						mouse_over = false;
 						setCursor(Cursor
 								.getPredefinedCursor(Cursor.TEXT_CURSOR));
 						repaint();
 						revalidate();
-					} else {
+					}*/ else {						
 						mouse_over = true;
 						setCursor(Cursor
 								.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
@@ -220,7 +259,9 @@ public class SearchTextField extends JTextField {
 					}
 				}
 
-				public void mouseExited(MouseEvent e) {
+				public void mouseExited(MouseEvent e) {		
+					
+					
 					if ((e.getX() < 23)) {
 						mouse_over = false;
 						setCursor(Cursor
@@ -242,8 +283,9 @@ public class SearchTextField extends JTextField {
 					}
 
 				}
-
+				
 				public void mouseReleased(MouseEvent e) {
+					
 					if (e.isPopupTrigger()) {
 						if ((e.getX() < 23)) {
 
@@ -283,10 +325,9 @@ public class SearchTextField extends JTextField {
 					}
 				}
 			});
-			addKeyListener(new KeyAdapter() {
+			fieldTxt.addKeyListener(new KeyAdapter() {
 				public void keyReleased(KeyEvent ke) {
-					if (ke.getKeyCode() == KeyEvent.VK_ENTER) {
-
+					if (ke.getKeyCode() == KeyEvent.VK_ENTER) {                  
 						if (searcheveryWhereMenuItem.isSelected()) {
 							setSearchEverywhereAction();
 						}/*
@@ -306,7 +347,9 @@ public class SearchTextField extends JTextField {
 					}
 				}
 			});
-
+			thisTxtFld.setEditable(true);
+			thisTxtFld.setLayout(new FlowLayout(FlowLayout.CENTER, 1, 0));
+			thisTxtFld.add(fieldTxt, BorderLayout.CENTER);
 		}
 	}
 
@@ -409,7 +452,7 @@ public class SearchTextField extends JTextField {
 		public void actionPerformed(ActionEvent actionEvent) {
 			if (VueResources.getString("search.popup.select.all").equals(
 					actionEvent.getActionCommand().toString())) {
-				if (Util.isMacTiger()) {
+				if (Util.isMacTiger() || Util.isWindowsPlatform()) {
 					fieldTxt.grabFocus();
 					fieldTxt.selectAll();
 				} else{
@@ -418,25 +461,25 @@ public class SearchTextField extends JTextField {
 				}
 			} else if (VueResources.getString("search.popup.cut").equals(
 					actionEvent.getActionCommand().toString())) {
-				if (Util.isMacTiger()) {
+				if (Util.isMacTiger() || Util.isWindowsPlatform()) {
 					fieldTxt.cut();
 				} else
 					thisTxtFld.cut();
 			} else if (VueResources.getString("search.popup.copy").equals(
 					actionEvent.getActionCommand().toString())) {
-				if (Util.isMacTiger()) {
+				if (Util.isMacTiger() || Util.isWindowsPlatform()) {
 					fieldTxt.copy();
 				} else
 					thisTxtFld.copy();
 			} else if (VueResources.getString("search.popup.paste").equals(
 					actionEvent.getActionCommand().toString())) {
-				if (Util.isMacTiger()) {
+				if (Util.isMacTiger() || Util.isWindowsPlatform()) {
 					fieldTxt.paste();
 				} else
 					thisTxtFld.paste();
 			} else if (VueResources.getString("search.popup.clear").equals(
 					actionEvent.getActionCommand().toString())) {
-				if (Util.isMacTiger()) {
+				if (Util.isMacTiger() || Util.isWindowsPlatform()) {
 					fieldTxt.setText("");
 				} else
 					thisTxtFld.setText("");
@@ -479,7 +522,7 @@ public class SearchTextField extends JTextField {
 		List<VueMetadataElement> searchTerms = new ArrayList<VueMetadataElement>();
 		VueMetadataElement vme = new VueMetadataElement();
 		String getTxtStr = "";
-		if (Util.isMacTiger()) {
+		if (Util.isMacTiger() || Util.isWindowsPlatform()) {
 			getTxtStr = fieldTxt.getText().trim();
 		} else {
 			getTxtStr = thisTxtFld.getText().trim();
@@ -534,7 +577,7 @@ public class SearchTextField extends JTextField {
 		List<VueMetadataElement> searchTerms = new ArrayList<VueMetadataElement>();
 		VueMetadataElement vme = new VueMetadataElement();
 		String getTxtStr = "";
-		if (Util.isMacTiger()) {
+		if (Util.isMacTiger() || Util.isWindowsPlatform()) {
 			getTxtStr = fieldTxt.getText().trim();
 		} else {
 			getTxtStr = thisTxtFld.getText().trim();
@@ -574,7 +617,7 @@ public class SearchTextField extends JTextField {
 		List<VueMetadataElement> searchTerms = new ArrayList<VueMetadataElement>();
 		VueMetadataElement vme = new VueMetadataElement();
 		String getTxtStr = "";
-		if (Util.isMacTiger()) {
+		if (Util.isMacTiger() || Util.isWindowsPlatform()) {
 			getTxtStr = fieldTxt.getText().trim();
 		} else {
 			getTxtStr = thisTxtFld.getText().trim();
@@ -614,7 +657,7 @@ public class SearchTextField extends JTextField {
 		List<VueMetadataElement> searchTerms = new ArrayList<VueMetadataElement>();
 		VueMetadataElement vme = new VueMetadataElement();
 		String getTxtStr = "";
-		if (Util.isMacTiger()) {
+		if (Util.isMacTiger() || Util.isWindowsPlatform()) {
 			getTxtStr = fieldTxt.getText().trim();
 		} else {
 			getTxtStr = thisTxtFld.getText().trim();
@@ -672,7 +715,7 @@ public class SearchTextField extends JTextField {
 		List<VueMetadataElement> searchTerms = new ArrayList<VueMetadataElement>();
 		VueMetadataElement vme = new VueMetadataElement();
 		String getTxtStr = "";
-		if (Util.isMacTiger()) {
+		if (Util.isMacTiger() || Util.isWindowsPlatform()) {
 			getTxtStr = fieldTxt.getText().trim();
 		} else {
 			getTxtStr = thisTxtFld.getText().trim();
