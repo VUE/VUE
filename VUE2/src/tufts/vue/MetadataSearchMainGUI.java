@@ -19,6 +19,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -59,6 +60,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
+import tufts.Util;
 import tufts.vue.gui.DockWindow;
 import tufts.vue.gui.GUI;
 import tufts.vue.gui.VueTextPane;
@@ -76,7 +78,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.33 $ / $Date: 2009-01-16 20:24:02 $ / $Author: Sheejo
+ * @version $Revision: 1.34 $ / $Date: 2009-01-21 17:06:59 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -604,16 +606,32 @@ public class MetadataSearchMainGUI extends JPanel
                     VUE.getActiveViewer().repaint();
                 }
             });
-            JPanel searchPanel = new JPanel();
+            JPanel searchPanel = null;
+            if(Util.isWindowsPlatform()){
+            	searchPanel = new JPanel();
+            }else{
+            	searchPanel = new JPanel(new FlowLayout(0,0,0));
+            }
+            
             searchPanel.add(saveButton);
             searchPanel.add(resetButton);
             searchPanel.add(searchButton);
             searchPanel.setOpaque(true);
             searchPanel.setBackground(getBackground());
+            //searchPanel.setBorder(BorderFactory.createLineBorder(Color.red, 1));
             // buttonPanel.add(resetButton);
-            searchPanel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
-            buttonPanel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 5));
-            buttonPanel.add(BorderLayout.EAST, searchPanel);
+            if(Util.isWindowsPlatform()){
+            	searchPanel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
+            	buttonPanel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 8));
+            	buttonPanel.add(BorderLayout.EAST, searchPanel);
+            }else{
+            	buttonPanel.add(BorderLayout.CENTER, searchPanel);
+            }
+            //else
+            	//searchPanel.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
+            
+            //buttonPanel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 5));
+            
 
             // add(BorderLayout.NORTH,searchField);
 
