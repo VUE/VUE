@@ -78,7 +78,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.34 $ / $Date: 2009-01-21 17:06:59 $ / $Author: Sheejo
+ * @version $Revision: 1.35 $ / $Date: 2009-01-21 19:52:49 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -682,7 +682,7 @@ public class MetadataSearchMainGUI extends JPanel
             add(buttonPanel, BorderLayout.SOUTH);
         }
         public String getSearchName(int rowCount){        	
-        	String inputValue = (String) JOptionPane.showInputDialog(null,null,"Please Enter Search Name",JOptionPane.PLAIN_MESSAGE,null,null,("Search" + " "+ (rowCount+1)));
+        	String inputValue = (String) JOptionPane.showInputDialog(null,null,"Enter Search Name",JOptionPane.PLAIN_MESSAGE,null,null,("Search" + " "+ (rowCount+1)));
         	if(inputValue!=null && inputValue.trim().length()==0){
         		inputValue = "Search" + " "+ (rowCount+1);
         	}
