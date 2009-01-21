@@ -244,7 +244,9 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 		gbConstraints.fill = java.awt.GridBagConstraints.NONE;
 		gbConstraints.weightx = 0;
 		gbConstraints.anchor = java.awt.GridBagConstraints.EAST;
-		add(new javax.swing.JLabel("Keyword:"),gbConstraints);
+		javax.swing.JLabel keywordLbl = new javax.swing.JLabel("Keyword:");
+		keywordLbl.setFont(tufts.vue.gui.GUI.LabelFace);
+		add(keywordLbl,gbConstraints);
 		
 		gbConstraints.gridx = 1;
 		gbConstraints.gridy = 0;
@@ -258,7 +260,9 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 		gbConstraints.fill = java.awt.GridBagConstraints.NONE;
 		gbConstraints.weightx = 0;
 		gbConstraints.ipadx = 10;
-		add(new javax.swing.JLabel("More options:"),gbConstraints);
+		javax.swing.JLabel moreOptionLbl = new javax.swing.JLabel("More options:");
+		moreOptionLbl.setFont(tufts.vue.gui.GUI.LabelFace);
+		add(moreOptionLbl,gbConstraints);
 
 		gbConstraints.gridx = 1;
 		gbConstraints.weightx = 1;

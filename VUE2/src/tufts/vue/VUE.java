@@ -115,7 +115,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.631 $ / $Date: 2009-01-20 20:53:56 $ / $Author: sraphe01 $ 
+ * @version $Revision: 1.632 $ / $Date: 2009-01-21 16:03:34 $ / $Author: sraphe01 $ 
  */
 
 public class VUE
@@ -2260,8 +2260,9 @@ public class VUE
             protected void paintComponent(java.awt.Graphics g) {
                  //setSize(40,20);
                 g.setColor(java.awt.Color.DARK_GRAY);
-                g.drawLine(0, 0, 0,
-                        7);
+                g.setFont(tufts.vue.gui.GUI.LabelFace);
+                g.drawLine(0, 1, 0,
+                        10);
             }            
         };
         }else{
@@ -2269,6 +2270,7 @@ public class VUE
                 protected void paintComponent(java.awt.Graphics g) {
                      //setSize(40,20);
                     g.setColor(java.awt.Color.DARK_GRAY);
+                    g.setFont(tufts.vue.gui.GUI.LabelFace);
                     g.drawLine(0, 4, 0,
                             11);
                 }            
@@ -2278,6 +2280,7 @@ public class VUE
             protected void paintComponent(java.awt.Graphics g) {
                  //setSize(40,20);
                 g.setColor(java.awt.Color.DARK_GRAY);
+                g.setFont(tufts.vue.gui.GUI.LabelFace);
                 g.drawLine(0, 0, 0,
                         5);
             }            
@@ -2285,21 +2288,22 @@ public class VUE
         linePanel.setBorder(BorderFactory.createLineBorder(panel.getBackground(), 1));
         halfLinePanel.setBorder(BorderFactory.createLineBorder(panel.getBackground(), 1));
         JLabel oneLabel = new JLabel("1");
-        oneLabel.setFont(JSliderSmallFixedFont);
+        oneLabel.setFont(tufts.vue.gui.GUI.LabelFace);
         oneLabel.setForeground(Color.DARK_GRAY);
         labelTable.put( new Integer( 1 ), oneLabel);
         labelTable.put( new Integer( 2 ), linePanel );
         JLabel threeLabel = new JLabel("3");
-        threeLabel.setFont(JSliderSmallFixedFont);
+        threeLabel.setFont(tufts.vue.gui.GUI.LabelFace);
         labelTable.put( new Integer( 3 ), threeLabel );
         labelTable.put( new Integer( 4 ), linePanel );
         JLabel fiveLabel = new JLabel("5");
-        fiveLabel.setFont(JSliderSmallFixedFont);
+        fiveLabel.setFont(tufts.vue.gui.GUI.LabelFace);
         fiveLabel.setForeground(Color.DARK_GRAY);
         labelTable.put( new Integer( 5 ), fiveLabel );
 
         JLabel allLabel = new JLabel("All");
-        allLabel.setFont(JSliderSmallFixedFont);
+        allLabel.setFont(tufts.vue.gui.GUI.LabelFace);
+        //allLabel.setFont(JSliderSmallFixedFont);
         allLabel.setForeground(Color.DARK_GRAY);
         labelTable.put( new Integer( 6 ),allLabel);
         

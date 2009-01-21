@@ -52,7 +52,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.133 $ / $Date: 2008-10-10 18:56:43 $ / $Author: mike $
+ * @version $Revision: 1.134 $ / $Date: 2009-01-21 16:03:34 $ / $Author: sraphe01 $
  */
 
 public class PathwayPanel extends JPanel
@@ -252,7 +252,8 @@ public class PathwayPanel extends JPanel
         c.gridheight=1;
         c.gridwidth=1;
         JLabel createPres = new JLabel(VueResources.getString("presentationDiaaog.presentationName.text"));
-        createPres.setFont(smallFont);
+        //createPres.setFont(smallFont);
+        createPres.setFont(tufts.vue.gui.GUI.LabelFace);
         add(createPres,c);
 
 
@@ -265,6 +266,7 @@ public class PathwayPanel extends JPanel
         c.gridheight=1;
         c.gridwidth=1;
         JLabel lblPlay = new JLabel(VueResources.getString("presentationDialog.playback.label"));
+        lblPlay.setFont(tufts.vue.gui.GUI.LabelFace);
         lblPlay.setLabelFor(btnPlay);
         
         add(btnPlay,c);
@@ -278,7 +280,7 @@ public class PathwayPanel extends JPanel
         c.gridwidth=1;
         c.gridy=0;
         c.gridx=3;
-        lblPlay.setFont(smallFont);
+        //lblPlay.setFont(smallFont);
         add(lblPlay,c);
         if (VUE.isApplet())
         	lblPlay.setEnabled(false);

@@ -37,7 +37,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.49 $ / $Date: 2009-01-12 16:12:34 $ / $Author: sraphe01 $
+ * @version $Revision: 1.50 $ / $Date: 2009-01-21 16:03:35 $ / $Author: sraphe01 $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -313,7 +313,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         	 {
         		 // call paintComponent to ensure the panel displays correctly
         		 super.paintComponent(g);
-        		 g.drawLine(5, 5, 5, 25);         		
+        		 g.drawLine(10, 5, 10, 25);         		
         	 }        	
         };  
         panel.setForeground(Color.gray);
@@ -368,23 +368,23 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         else
         b.putClientProperty("JButton.buttonType", "textured"); // for Mac Leopard Java        
         
-        Font defaultFont = getFont();
-        Font boldFont = defaultFont.deriveFont(Font.BOLD);
-        Font smallFont = defaultFont.deriveFont((float) boldFont.getSize()-2);
-        b.setFont(smallFont);
-        
+//        Font defaultFont = getFont();
+//        Font boldFont = defaultFont.deriveFont(Font.BOLD);
+//        Font smallFont = defaultFont.deriveFont((float) boldFont.getSize()-2);
+//        b.setFont(smallFont);
+        b.setFont(tufts.vue.gui.GUI.LabelFace);
         b.setFocusable(false);
         if(b.getAction() == null) {
             ;
         } else if(b.getAction().equals(LAYER_NEW)){
         	
-        	b.setText("New Layer");
+        	b.setText("New Layer");        	
         	b.setIcon(tufts.vue.VueResources.getImageIcon("metadata.editor.add.up"));
         	b.setRolloverEnabled(true);
-        	b.setPreferredSize(new Dimension(80,30));
-        	b.setMinimumSize(new Dimension(80,30));
+        	b.setPreferredSize(new Dimension(90,30));
+        	//b.setMinimumSize(new Dimension(90,30));
         	b.setRolloverIcon(VueResources.getImageIcon("metadata.editor.add.down"));
-        	b.setBorder(BorderFactory.createEmptyBorder(2,10,2,2));
+        	b.setBorder(BorderFactory.createEmptyBorder(2,5,2,2));
         	b.setHorizontalAlignment(JButton.LEADING); // optional
         	b.setBorderPainted(false);
         	b.setContentAreaFilled(false);
