@@ -22,6 +22,9 @@
 package tufts.vue;
 
 import javax.swing.*;
+
+import tufts.Util;
+
 import java.awt.event.*;
 import java.awt.*;
 
@@ -40,7 +43,11 @@ public class PathwayDialog extends JDialog implements ActionListener, KeyListene
     {
         super(parentFrame, VueResources.getString("presentationDialog.title"), false);
         this.tableModel = model;
-        setSize(250, 100);
+        if(Util.isWindowsPlatform()){
+        	setSize(250, 110);
+        }else{
+        	setSize(250, 100);
+        }
         this.setFocusable(true);
         setLocation(location);    
         setAlwaysOnTop(true);
@@ -72,17 +79,17 @@ public class PathwayDialog extends JDialog implements ActionListener, KeyListene
         Insets i = okButton.getMargin();
         i.left=i.left+6;
         i.right=i.right+6;
-        okButton.setMargin(i);
+        //okButton.setMargin(i);
         okButton.addKeyListener(this);
         cancelButton.addActionListener(this);
         cancelButton.addKeyListener(this);
-
+        
         textField = new JTextField(VueResources.getString("presentationDiaaog.presentationName.text")+" " + newcnt++, 18);
         textField.addKeyListener(this);
         textField.setPreferredSize(new Dimension(40, 20));
 
         JPanel buttons = new JPanel();
-        buttons.setLayout(new FlowLayout());
+        buttons.setLayout(new FlowLayout(FlowLayout.RIGHT));       
         
         buttons.add(cancelButton);
         buttons.add(okButton);
@@ -93,7 +100,9 @@ public class PathwayDialog extends JDialog implements ActionListener, KeyListene
 
         Container dialogContentPane = getContentPane();
         dialogContentPane.setLayout(new BorderLayout());
-
+        JLabel tempLbl = new JLabel("");
+        tempLbl.setPreferredSize(new Dimension(20,10));
+        dialogContentPane.add(tempLbl, BorderLayout.NORTH);
         dialogContentPane.add(textPanel, BorderLayout.CENTER);
         dialogContentPane.add(buttons, BorderLayout.SOUTH);
        
