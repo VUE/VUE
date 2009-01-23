@@ -32,7 +32,7 @@ import javax.swing.AbstractButton;
  * An action for displaying a Window and tracking it's displayed state,
  * keeping in synchronized with a somebody's button (such a checkbox in a menu).
  *
- * @version $Revision: 1.11 $ / $Date: 2009-01-12 20:10:12 $ / $Author: mike $
+ * @version $Revision: 1.12 $ / $Date: 2009-01-23 17:18:52 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class WindowDisplayAction extends javax.swing.AbstractAction
@@ -204,7 +204,7 @@ public class WindowDisplayAction extends javax.swing.AbstractAction
                 
             //mWindow.validate();
             
-            if (Util.isMacLeopard() && VUE.getAnchorDock().isVisible())
+            if (!VUE.isApplet() && Util.isMacLeopard() && VUE.getAnchorDock().isVisible())
             {
             	VUE.getAnchorDock().setVisible(false);
             
@@ -212,7 +212,7 @@ public class WindowDisplayAction extends javax.swing.AbstractAction
             mWindow.setVisible(true);
             mWindow.toFront();
 
-            if (Util.isMacLeopard())
+            if (!VUE.isApplet() && Util.isMacLeopard())
             {	
             	VUE.getAnchorDock().setVisible(true);
             	VUE.getAnchorDock().toFront();
