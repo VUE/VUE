@@ -43,7 +43,7 @@ import tufts.vue.gui.VueMenuBar;
 /**
  * Experimental VUE applet.
  * 
- * @version $Revision: 1.11 $ / $Date: 2008-11-03 14:12:26 $ / $Author: mike $
+ * @version $Revision: 1.12 $ / $Date: 2009-01-23 17:22:32 $ / $Author: mike $
  */
 public class VueApplet extends JApplet implements Runnable {
 
@@ -74,10 +74,11 @@ public class VueApplet extends JApplet implements Runnable {
 		
 		msg("init\n\tapplet=" + Integer.toHexString(hashCode())
 				+ "\n\tcontext=" + getAppletContext());
-		if (!GUI.isGUIInited())
-		{	VUE.initUI();		
+	//	if (!GUI.isGUIInited())
+		//{
+			VUE.initUI();		
 			VUE.initApplication();
-		}
+		//}
 	
 	//	new Thread(this).start();
 		loadViewer();
