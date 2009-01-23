@@ -115,7 +115,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.632 $ / $Date: 2009-01-21 16:03:34 $ / $Author: sraphe01 $ 
+ * @version $Revision: 1.633 $ / $Date: 2009-01-23 17:19:48 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -3166,11 +3166,27 @@ public class VUE
     				mMapTabsRight.closeMap(map);
     		}	
     	}    	
-    	int selectedIndex = mMapTabsRight.getTabCount();
-    	if(selectedIndex>0){
-    		setMapActionsEnabled(true);
-    	}else{
+    	if (mMapTabsRight !=null)
+    	{
+    		int selectedIndex = mMapTabsRight.getTabCount();
+    		if(selectedIndex>0){
+    			setMapActionsEnabled(true);
+    		}else{
     		setMapActionsEnabled(false);
+    		}
+    	}
+    	else if (mMapTabsLeft == null)
+    	{
+    		setMapActionsEnabled(false);    		
+    	}
+    	else
+    	{
+    		int selectedIndex = mMapTabsLeft.getTabCount();
+    		if(selectedIndex>0){
+    			setMapActionsEnabled(true);
+    		}else{
+    		setMapActionsEnabled(false);
+    		}
     	}
 
 //    	if(selectedIndex>0){
