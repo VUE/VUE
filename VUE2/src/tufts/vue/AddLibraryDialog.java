@@ -21,7 +21,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.78 $ / $Date: 2008-10-06 14:35:03 $ / $Author: sfraize $
+ * @version $Revision: 1.79 $ / $Date: 2009-01-26 20:55:22 $ / $Author: anoop $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -388,7 +388,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                     this.oldDataSource = ds;
                 } else if (s.equals(DS_RSS)) {
                     RSSDataSource ds = new RSSDataSource("", null);
-                    xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><configuration><field><key>name</key><title>Display Name</title><description>Namee for this datasource</description><default>DEFAULT_NAME</default><mandatory>true</mandatory><maxChars></maxChars><ui>0</ui></field><field><key>address</key><title>Address</title><description>RSS Url</description><default>DEFAULT_ADDRESS</default><mandatory>true</mandatory><maxChars>1000</maxChars><ui>0</ui></field></configuration>";
+                    xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><configuration><field><key>name</key><title>Display Name</title><description>Name for this datasource</description><default>DEFAULT_NAME</default><mandatory>true</mandatory><maxChars></maxChars><ui>0</ui></field><field><key>address</key><title>Address</title><description>RSS Url</description><default>DEFAULT_ADDRESS</default><mandatory>true</mandatory><maxChars>1000</maxChars><ui>0</ui></field></configuration>";
                     String name = ds.getDisplayName();
                     if (name == null) name = "";
                     String address = ds.getAddress();
@@ -399,7 +399,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                 } else if (s.equals(DS_XML)) {
                     // TODO: get rid of all this duplicate code: e.g., this is copy of RSS case
                     XmlDataSource ds = new XmlDataSource("", null);
-                    xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><configuration><field><key>name</key><title>Display Name</title><description>Namee for this datasource</description><default>DEFAULT_NAME</default><mandatory>true</mandatory><maxChars></maxChars><ui>0</ui></field><field><key>address</key><title>Address</title><description>RSS Url</description><default>DEFAULT_ADDRESS</default><mandatory>true</mandatory><maxChars>1000</maxChars><ui>0</ui></field></configuration>";
+                    xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><configuration><field><key>name</key><title>Display Name</title><description>Name for this datasource</description><default>DEFAULT_NAME</default><mandatory>true</mandatory><maxChars></maxChars><ui>0</ui></field><field><key>address</key><title>Address</title><description>RSS Url</description><default>DEFAULT_ADDRESS</default><mandatory>true</mandatory><maxChars>1000</maxChars><ui>8</ui></field></configuration>";
                     String name = ds.getDisplayName();
                     if (name == null) name = "";
                     String address = ds.getAddress();
@@ -409,8 +409,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                     this.oldDataSource = ds;
                 }
             } else {
-                org.osid.provider.Provider provider = (org.osid.provider.Provider)o;
-                
+                org.osid.provider.Provider provider = (org.osid.provider.Provider)o;  
                 edu.tufts.vue.dsm.DataSource ds = null;
                 // show dialog containing license, if any
                 try {
