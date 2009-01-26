@@ -37,7 +37,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.50 $ / $Date: 2009-01-21 16:03:35 $ / $Author: sraphe01 $
+ * @version $Revision: 1.51 $ / $Date: 2009-01-26 21:33:09 $ / $Author: sraphe01 $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -74,7 +74,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
     private Row mDragRow;
     private GridBagLayout gridbag = new GridBagLayout();
     private GridBagConstraints gBC = new GridBagConstraints();
-    
+    private int selectedIndex = -1;
    
     //private static final Collection<VueAction> _selectionWatchers = new java.util.ArrayList();
 
@@ -173,8 +173,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 boolean enabledWith(Layer layer) {
                     return mMap != null;
                 }
-                public void act() {
-                    mMap.addLayer("New Layer " + NewLayerCount++);
+                public void act() {                	
+                    mMap.addLayer("New Layer " + NewLayerCount++);                   
                 }
                 @Override
                 public String getUndoName() { return "New Layer"; }
@@ -198,13 +198,14 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                     return mRows.size() > 1;
                 }
                 @Override
-                public void act() {
-                    mMap.deleteChildPermanently(active); // todo: LWMap should setActiveLayer(null) if active is deleted
-                    mMap.setActiveLayer(null);
+                public void act() {                 	
+                	selectedIndex = active.getIndex();
+                	mMap.deleteChildPermanently(active); // todo: LWMap should setActiveLayer(null) if active is deleted
+                	mMap.setActiveLayer(null);
                     //setActiveLayer(null, true);
-                    attemptAlternativeActiveLayer(); // better if this tried to find the nearest layer, and not check last-active
+                    attemptAlternativeActiveLayer(true); // better if this tried to find the nearest layer, and not check last-active
                     //VUE.getSelection().clearDeleted(); // in case any in delete layer were in selection [no auto-handled in UndoManager]
-                }
+                }				           
             },
         
         LAYER_MERGE_DOWN = new LayerAction("Merge Down", "Merge into layer below") {
@@ -283,7 +284,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 //             },
         
         ;
-    
+         
     public LayersUI() {
         super("layers");
         setName("layersUI");
@@ -517,14 +518,23 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 
     private static final boolean AUTO_ADJUST_ACTIVE_LAYER = false;
     
-    private void attemptAlternativeActiveLayer() {
+    private void attemptAlternativeActiveLayer(boolean isDeleteFlg) {
 
         //if (!AUTO_ADJUST_ACTIVE_LAYER) return;
-
+    	Layer lastActive = null;
         final Layer curActive = getActiveLayer();
-        final Layer lastActive = mMap.getClientData(Layer.class, "last");
-
-        if (canBeActive(lastActive)) {
+        
+        if(!isDeleteFlg){
+        	lastActive = mMap.getClientData(Layer.class, "last"); 
+        }else{
+        	if(selectedIndex > 0)
+        		lastActive = (Layer) mMap.getChild(selectedIndex-1);
+        	else{
+        		lastActive = mMap.getClientData(Layer.class, "last"); 
+        	}
+        }
+       
+        if (canBeActive(lastActive)) {        	       	
             setActiveLayer(lastActive, UPDATE);
             return;
         }
@@ -1447,7 +1457,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                         locked.setBorderPainted(locked.isSelected());
                         layer.setLocked(locked.isSelected());
                         if (layer == getActiveLayer() && !canBeActive(layer))
-                            if (AUTO_ADJUST_ACTIVE_LAYER) attemptAlternativeActiveLayer();
+                            if (AUTO_ADJUST_ACTIVE_LAYER) attemptAlternativeActiveLayer(false);
                     }});
             
 
@@ -1458,7 +1468,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                         locked.setEnabled(layer.isVisible());
                         label.setEnabled(layer.isVisible());
                         if (layer == getActiveLayer() && !canBeActive(layer))
-                            if (AUTO_ADJUST_ACTIVE_LAYER) attemptAlternativeActiveLayer();
+                            if (AUTO_ADJUST_ACTIVE_LAYER) attemptAlternativeActiveLayer(false);
                             
                     }});
 
