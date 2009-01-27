@@ -39,7 +39,7 @@ public class Osid2AssetResource extends URLResource
     private static final org.osid.shared.Type ThumbnailPartType2 = new edu.tufts.vue.util.Type("mit.edu","partStructure","thumbnailURL");
     private static final org.osid.shared.Type LargeImagePartType = new edu.tufts.vue.util.Type("mit.edu","partStructure","largeImage");
     private static final org.osid.shared.Type LargeImagePartType2 = new edu.tufts.vue.util.Type("mit.edu","partStructure","largeImageURL");
-
+    private static final org.osid.shared.Type LargeThumbnailPartType = new edu.tufts.vue.util.Type("mit.edu","partStructure","largeThumbnailURL");
 
     // SEE Fedora Impl: edu/tufts/osidimpl/repository/fedora_2_0/ImageRecordStructure.java
     private static final org.osid.shared.Type FedoraImagePartType = // TODO: temporary hack for Fedora (also: note differing authority conventions!
@@ -262,7 +262,7 @@ public class Osid2AssetResource extends URLResource
                           //this.icon = new javax.swing.ImageIcon((java.awt.Image)ser);
                           }
                         */
-                    } else if (LargeImagePartType.isEqual(partStructureType) || FedoraImagePartType.isEqual(partStructureType) || LargeImagePartType2.isEqual(partStructureType)) {
+                    } else if (LargeImagePartType.isEqual(partStructureType) || FedoraImagePartType.isEqual(partStructureType) || LargeImagePartType2.isEqual(partStructureType) || LargeThumbnailPartType.isEqual(partStructureType)) {
                         setURL_Image(value.toString());
                         // handle large image
                     }
