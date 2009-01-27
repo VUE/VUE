@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.173 $ / $Date: 2008-12-22 19:25:45 $ / $Author: anoop $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.173 2008-12-22 19:25:45 anoop Exp $ -->
+<!-- $Revision: 1.174 $ / $Date: 2009-01-27 15:00:21 $ / $Author: mike $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.174 2009-01-27 15:00:21 mike Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -133,8 +133,13 @@
        and completely blowing out the java VM when it tries (out of memory)-->
   <!-- 2007-01-01 SMF: updated castor to version castor-1.0.5-xml.jar -->
   <!-- 2007-09-30 SMF: updated castor to version castor-1.1.2.1-xml.jar -->
-  <!-- 2008-07-23 SMF: added google collections -->
-  
+  <!-- 2008-07-23 SMF: added google collections 
+  		2009-01-26 MK: Added the gdata client, because of an OSID classpath problem, the gdata stuff uses .getPackage which 
+  		inturn uses VUE's classloader instead of the OSID's classloader so the classes need to be in VUE in order
+  		to work properly-->
+	<property name="applet.jarfiles.names"
+		value="castor-1.1.2.1-xml.jar"
+	/>
   <property name="thirdparty.jarfiles.names"
             value="google-collect-snapshot-20080820.jar
                    MERLOTOsid-1.0.jar
@@ -206,7 +211,7 @@
                    rome-0.9.jar
                    okiSID_rc6_1.jar
                    okiSIDimpl.jar
-                      opencsv-1.8.jar 
+                   opencsv-1.8.jar 
 				   OsidProvider.jar
 				   OsidRegistry.jar
                    saxon6.5.jar
@@ -223,6 +228,8 @@
                    simplyhtml2.jar    
                    gnu-regexp-1.1.4.jar
   				   looks-2.1.4.jar
+  				   gdata-client-1.0.jar
+  				   gdata-core-1.0.jar
                    "/>
 
 <!-- added quaqua-filechooser-only.jar to the above on 2006-12-08 MK -->
@@ -383,7 +390,8 @@
     <pathelement path="${lib.home}/itext-2.0.4.jar" />    
     <pathelement path="${lib.home}/simplyhtml2.jar" />   
   	<pathelement path="${lib.home}/looks-2.1.4.jar" />   
-	   
+  	<pathelement path="${lib.home}/gdata-client-1.0.jar" />
+  	<pathelement path="${lib.home}/gdata-core-1.0.jar" />
     <pathelement path="${lib.home}/gnu-regexp-1.1.4.jar"/>
     <!-- I'm not sure it's safe to include a prior build's class files in the current build's
          classpath - can we remove this? SMF 8/5/05.
@@ -779,6 +787,7 @@
 
   <target name="run-jar-core">
     <jar zipfile="${vue-core.jar}" update="false" compress="false" index="true" duplicate="preserve">
+  	  <zipgroupfileset dir="${lib.home}" includes="${applet.jarfiles.names}"/>
       <fileset dir="${src}">
         <!-- exclude data/narravision?  2mb of meta-data... -->
         <exclude name="**/old/**"/>
@@ -803,9 +812,161 @@
         <include name="tufts/vue/gui/icons/**"/>
       </fileset>
       <fileset dir="${build.class}"/>
+    	
+    	  <indexjars>
+    		      	<fileset dir="${lib.home}"/>	
+    		      </indexjars>
     </jar>
   </target>
-  
+  <target name="jar-core-applet"
+     depends="compile,compile-linux"
+	 description="Create VUE-core.jar - a jar file containing all the VUE classes, resources and config files from the CVS tree.">
+	 <echo message="build.class is ${build.class}"/>
+	 <antcall target="run-jar-core-applet"/>
+  </target>
+  <target name="run-jar-core-applet">
+    <jar zipfile="${vue-core.jar}" update="false" compress="true" index="true" duplicate="preserve">
+      <fileset dir="${src}">
+        <!-- exclude data/narravision?  2mb of meta-data... -->
+        <exclude name="**/old/**"/>
+        <exclude name="**/tmp/**"/>
+        <exclude name="altView/**"/>
+        <exclude name="build.xml"/>
+      	<exclude name="test/**"/>
+      	<exclude name="linux/**"/>
+      	<exclude name="data.narravision/**"/>
+      	<exclude name="MacOS/**"/>      
+      	<exclude name="maclib/**"/>
+      	<exclude name="java15/**"/>
+        <include name="**/*.xml"/>
+        <include name="**/*.conf"/>
+        <include name="**/*.css"/>
+        <include name="**/*.rdfs" />
+        <include name="**/*.rdf" />
+        <include name="**/*.owl" />
+        <include name="**/*.properties"/>
+        <include name="tufts/vue/resources/**"/>
+        <include name="tufts/vue/images/**"/>
+        <include name="tufts/vue/gui/icons/**"/>
+      </fileset>
+      <fileset dir="${build.class}">
+    	<exclude name="edu/tufts/osidimpl/**"/>
+      </fileset>
+      <indexjars>
+      	<fileset dir="${lib.home}"/>	
+      </indexjars>
+    </jar>
+  </target>	
+  <target name="sign-applet-jars">
+ 	<signjar
+	  	alias="mykey"
+	  	storepass="vuevue"
+	  	keystore="${keystore}"
+	  	jar="./VUE-core.jar">
+	</signjar>
+  	<signjar
+  		alias="mykey"
+  		storepass="vuevue"
+  		keystore="${keystore}"
+  		jar="./build/VUE.jar">
+    </signjar>
+  	<signjar
+  	  alias="mykey"
+  	  storepass="vuevue"
+  	  keystore="${keystore}"
+  	  jar="../lib/google-collect-snapshot-20080530.jar">
+  	</signjar>
+  	<signjar
+  	  alias="mykey"
+  	  storepass="vuevue"
+  	  keystore="${keystore}"
+  	  jar="../lib/jaxrpc-api-unsigned.jar">
+  	</signjar>
+  	<signjar
+  	  alias="mykey"
+  	  storepass="vuevue"
+  	  keystore="${keystore}"
+  	  jar="../lib/MITAuthenticationTypes.jar">
+  	</signjar>
+  	<signjar
+  	  alias="mykey"
+  	  storepass="vuevue"
+  	  keystore="${keystore}"
+  	  jar="../lib/MITRepositoryTypes.jar">
+  	</signjar>
+  	<signjar
+  	  alias="mykey"
+  	  storepass="vuevue"
+  	  keystore="${keystore}"
+  	  jar="../lib/jena-2.5.3.jar">
+  	</signjar>
+  	<signjar
+  	  alias="mykey"
+  	  storepass="vuevue"
+  	  keystore="${keystore}"
+  	  jar="../lib/OsidProvider.jar">
+  	</signjar>
+  	<signjar
+  	  alias="mykey"
+  	  storepass="vuevue"
+  	  keystore="${keystore}"
+  	  jar="../lib/commons-discovery.jar">
+  	</signjar>
+  	<signjar
+  	  alias="mykey"
+  	  storepass="vuevue"
+  	  keystore="${keystore}"
+  	  jar="../lib/castor-1.1.2.1-xml.jar">
+  	</signjar>
+ 	<signjar
+  	  alias="mykey"
+  	  storepass="vuevue"
+  	  keystore="${keystore}"
+  	  jar="../lib/castor-0.9.7-xml.jar">
+  	</signjar>
+ 	<signjar
+  	  alias="mykey"
+  	  storepass="vuevue"
+  	  keystore="${keystore}"
+  	  jar="../lib/castor-1.0.5-xml.jar">
+  	</signjar>
+  	<signjar
+  	  alias="mykey"
+  	  storepass="vuevue"
+  	  keystore="${keystore}"
+  	  jar="../lib/xercesImpl-2.7.1.jar">
+	</signjar>
+  	<signjar
+  	  alias="mykey"
+  	  storepass="vuevue"
+  	  keystore="${keystore}"
+  	  jar="../lib/commons-logging.jar">
+    </signjar>
+  	<signjar
+  	  alias="mykey"
+  	  storepass="vuevue"
+  	  keystore="${keystore}"
+  	  jar="../lib/commons-lang-2.4.jar">
+    </signjar>
+  	<signjar
+  	  alias="mykey"
+  	  storepass="vuevue"
+  	  keystore="${keystore}"
+  	  jar="../lib/MITSearchTypes.jar">
+  	</signjar>
+  	<signjar
+      alias="mykey"
+  	  storepass="vuevue"
+  	  keystore="${keystore}"
+  	  jar="../lib/VUE-MacOSX.jar">
+    </signjar>
+  	<signjar
+      alias="mykey"
+      storepass="vuevue"
+      keystore="${keystore}"
+  	  jar="../lib/looks-2.1.4.jar">
+    </signjar>
+  </target>
   <target name="run-jar-core-old">
     <jar zipfile="${vue-core.jar}" update="true" compress="false" index="true">
       <fileset dir="${src}" includes="**/*.xml"/>
@@ -949,9 +1110,10 @@
   		keystore="${keystore}"
   		jar="${vueapplet.jar}">
   	</signjar>
-<!--
+  	
+  	<!--
     <pack200 src="${vueapplet.jar}"
-    		 destfile="${vueapplet-pack.jar}"
+    		 destfile="${vue-pack.jar}"
     		 effort="9"
     	 	 modificationtime="latest"
     		 deflatehint="false"
