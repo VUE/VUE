@@ -106,7 +106,7 @@ import com.lightdev.app.shtm.Util;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.39 $ / $Date: 2008-12-19 06:17:47 $ / $Author: mike $
+ * @version $Revision: 1.40 $ / $Date: 2009-01-27 15:16:54 $ / $Author: mike $
  *
  */
 
@@ -212,22 +212,38 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
     }
       public double getScaledWidth()
     {
-    	return getWidth() * VUE.getActiveViewer().getZoomFactor();
+    	java.awt.Container parent = getParent();
+        double zoom = ((MapViewer)parent).getZoomFactor();
+        zoom *= lwc.getMapScale();
+          
+    	return getWidth() * zoom;
     }
     
     public double getScaledHeight()
     {
-    	return  getHeight() * VUE.getActiveViewer().getZoomFactor();
+    	java.awt.Container parent = getParent();
+        double zoom = ((MapViewer)parent).getZoomFactor();
+        zoom *= lwc.getMapScale();
+         
+    	return  getHeight() * zoom;
     }
     
     public double getUnscaledWidth()
     {
-    	return getSize().width / VUE.getActiveViewer().getZoomFactor();
+    	java.awt.Container parent = getParent();
+        double zoom = ((MapViewer)parent).getZoomFactor();
+        zoom *= lwc.getMapScale();
+    	
+        return getSize().width / zoom;
     }
     
     public double getUnscaledHeight()
     {
-    	return getSize().height / VUE.getActiveViewer().getZoomFactor();
+    	java.awt.Container parent = getParent();
+        double zoom = ((MapViewer)parent).getZoomFactor();
+        zoom *= lwc.getMapScale();
+         
+    	return getSize().height / zoom;
     }
     
     Dimension preAddDimension= null;
@@ -240,7 +256,12 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
         keyWasPressed = false;
         //Dimension size = getPreferredSize();
         ((SHTMLDocument)getDocument()).setEditing(true);
-        ((SHTMLDocument)getDocument()).setZoomFactor(VUE.getActiveViewer().getZoomFactor());
+    //  System.out.println("ZOOM : " + VUE.getActiveViewer().getZoomFactor());
+      java.awt.Container parent = getParent();
+      double zoom = ((MapViewer)parent).getZoomFactor();
+      zoom *= lwc.getMapScale();
+      
+      ((SHTMLDocument)getDocument()).setZoomFactor(zoom);
     
         super.addNotify();                         
         preAddDimension= new Dimension((int)getWidth(),(int)getHeight());
@@ -307,17 +328,21 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
       
         super.removeNotify();
         ((SHTMLDocument)getDocument()).setEditing(false);
-        ((SHTMLDocument)getDocument()).setZoomFactor(VUE.getActiveViewer().getZoomFactor());
+        
+        java.awt.Container parent = getParent();
+        double zoom = ((MapViewer)parent).getZoomFactor();
+        zoom *= lwc.getMapScale();
+        
+        ((SHTMLDocument)getDocument()).setZoomFactor(zoom);
    
       
-        double zoomFactor = VUE.getActiveViewer().getZoomFactor();
         
       //  System.out.println("pref Height : " + getHeight());
        // System.out.println("pref : " + getHeight()/zoomFactor);
      
-        preAddDimension.height = (int)(getHeight() / zoomFactor);
+        preAddDimension.height = (int)(getHeight() / zoom);
        
-        preAddDimension.width = (int)(getWidth() / zoomFactor);
+        preAddDimension.width = (int)(getWidth() / zoom);
         
         	
        this.setSize(preAddDimension);
@@ -1007,8 +1032,14 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
        		diff = i.intValue();
        		//minS.height = minS.height - diff;
        		if (VUE.getActiveViewer() !=null)
-       			diff *= VUE.getActiveViewer().getZoomFactor();
-       		height = height - diff;
+       		{
+       		  java.awt.Container parent = getParent();
+       	      double zoom = ((MapViewer)parent).getZoomFactor();
+       	      zoom *= lwc.getMapScale();
+       	      
+       			diff *= zoom;
+       		}
+       			height = height - diff;
        	}
         	
       
@@ -1165,8 +1196,22 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
     		Integer i = new Integer(a.toString());
     		diff = i.intValue();
     		if (VUE.getActiveViewer()!=null)
-    			diff *= VUE.getActiveViewer().getZoomFactor();
-    	
+    		{
+    			  java.awt.Container parent = getParent();
+    			  
+    			  double zoom = 1.0;
+    			  if (parent !=null)
+    			  {
+    				  zoom = ((MapViewer)parent).getZoomFactor();
+    				  zoom *= lwc.getMapScale();
+    			  }
+    			  else
+    			  {
+    			     return new Dimension(0,0);
+    			  }
+    			  
+    			 diff *= zoom;
+    		}
     			
     		s.height = s.height - diff;
     	}
