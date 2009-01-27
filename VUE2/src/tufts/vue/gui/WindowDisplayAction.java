@@ -32,7 +32,7 @@ import javax.swing.AbstractButton;
  * An action for displaying a Window and tracking it's displayed state,
  * keeping in synchronized with a somebody's button (such a checkbox in a menu).
  *
- * @version $Revision: 1.12 $ / $Date: 2009-01-23 17:18:52 $ / $Author: mike $
+ * @version $Revision: 1.13 $ / $Date: 2009-01-27 16:20:53 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class WindowDisplayAction extends javax.swing.AbstractAction
@@ -209,14 +209,16 @@ public class WindowDisplayAction extends javax.swing.AbstractAction
             	VUE.getAnchorDock().setVisible(false);
             
             }
-            mWindow.setVisible(true);
-            mWindow.toFront();
+           
+           
 
             if (!VUE.isApplet() && Util.isMacLeopard())
             {	
             	VUE.getAnchorDock().setVisible(true);
             	VUE.getAnchorDock().toFront();
             }
+            mWindow.setVisible(true);
+            mWindow.toFront();
             // could always set off screen and not move back until AWT cleared
 
             /*
@@ -228,8 +230,23 @@ public class WindowDisplayAction extends javax.swing.AbstractAction
             */
 
             //VUE.ensureToolWindowVisibility(mTitle);
-        } else {        	
+        } else {       
+        	 if (!VUE.isApplet() && Util.isMacLeopard())
+             {	
+             	VUE.getAnchorDock().setVisible(true);
+             	VUE.getAnchorDock().toFront();
+             }
             mWindow.setVisible(false);
+            if (!VUE.isApplet() && Util.isMacLeopard() && VUE.getAnchorDock().isVisible())
+            {
+            	VUE.getAnchorDock().setVisible(false);
+            
+            }
+            if (!Util.isMacLeopard() && Util.isMacLeopard())
+            {	
+            	VUE.getAnchorDock().setVisible(true);
+            	VUE.getAnchorDock().toFront();
+            }
             //VUE.ensureToolWindowVisibility(null);
         }
     }
