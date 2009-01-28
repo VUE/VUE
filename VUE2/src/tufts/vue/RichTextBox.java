@@ -106,7 +106,7 @@ import com.lightdev.app.shtm.Util;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.40 $ / $Date: 2009-01-27 15:16:54 $ / $Author: mike $
+ * @version $Revision: 1.41 $ / $Date: 2009-01-28 16:09:59 $ / $Author: mike $
  *
  */
 
@@ -1189,7 +1189,7 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
     	Style  style = ((HTMLDocument) getDocument()).getStyleSheet().getStyle("body");
     	Object a = style.getAttribute(javax.swing.text.html.CSS.Attribute.FONT_SIZE);
     	
-    	if (a !=null)
+   	if (a !=null)
     	{	if (DEBUG.TEXT)
     			out("got style");
     		int diff =0;
@@ -1197,24 +1197,47 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
     		diff = i.intValue();
     		if (VUE.getActiveViewer()!=null)
     		{
-    			  java.awt.Container parent = getParent();
-    			  
+    			  java.awt.Container parent = getParent();    			      			  
     			  double zoom = 1.0;
+    			  
+    			 // System.out.println("SHEIGHT : " + s.height);
     			  if (parent !=null)
     			  {
     				  zoom = ((MapViewer)parent).getZoomFactor();
     				  zoom *= lwc.getMapScale();
+    				  diff *= zoom;
+    				  
+    				//  System.out.println("if ::: " + diff);
     			  }
     			  else
     			  {
-    			     return new Dimension(0,0);
+    				  if (VUE.getActiveViewer()!=null)
+    		    			diff *= VUE.getActiveViewer().getZoomFactor();
+    		    	
+    				  diff *=lwc.getMapScale();
+    				//  System.out.println("else ::: " + diff);
+    			  
     			  }
     			  
-    			 diff *= zoom;
+    			
     		}
+
+    	/*if (a !=null)
+    	{	if (DEBUG.TEXT)
+    			out("got style");
+    		int diff =0;
+    		Integer i = new Integer(a.toString());
+    		diff = i.intValue();
+    		if (VUE.getActiveViewer()!=null)
+    			diff *= VUE.getActiveViewer().getZoomFactor();
+    	
     			
     		s.height = s.height - diff;
-    	}
+    	}*/
+		
+	
+    		s.height = s.height - diff;
+    }
 		
 	
 		if (TestDebug||DEBUG.TEXT) out("getMinimumSize", s);
