@@ -35,7 +35,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.55 $ / $Date: 2008-12-10 18:04:23 $ / $Author: sraphe01 $
+ * @version $Revision: 1.56 $ / $Date: 2009-01-28 20:07:45 $ / $Author: sraphe01 $
  * @author Scott Fraize
  */
 public class WidgetStack extends Widget
@@ -67,7 +67,7 @@ public class WidgetStack extends Widget
         mLayout = new GridBagLayout();
         setLayout(mLayout);
         init();
-
+        
         if (DEBUG.BOXES) setBorder(new javax.swing.border.LineBorder(Color.cyan, 4));
 
         // We now add a component "guaranteed" to be at the bottom of the stack
@@ -90,7 +90,7 @@ public class WidgetStack extends Widget
         if (DEBUG.BOXES) {
             mDefaultExpander.setOpaque(true);
             mDefaultExpander.setBackground(Color.darkGray);
-            JLabel l = new JLabel("WidgetStack: default veritcal expander", JLabel.CENTER);
+            JLabel l = new JLabel("WidgetStack: default vertical expander", JLabel.CENTER);
             l.setForeground(Color.white);
             mDefaultExpander.add(l);
         }
@@ -345,10 +345,11 @@ public class WidgetStack extends Widget
         addPane(c, 1f);
     }
 
-    private void updateDefaultExpander() {
+    private void updateDefaultExpander() {    	
         //System.out.println("EXPANDERS OPEN: " + mExpandersOpen);
-        if (mExpandersOpen == 0)
+        if (mExpandersOpen == 0){        	
             mDefaultExpander.setVisible(true);
+        }
         else
             mDefaultExpander.setVisible(false);
     }
@@ -767,6 +768,7 @@ public class WidgetStack extends Widget
          * down to 0, we need to add a default expander to take up the remaining space.
          */
         private void handleWidgetDisplayChange(boolean visible) {
+        	
             if (!isExpander)
                 return;
 
@@ -841,10 +843,9 @@ public class WidgetStack extends Widget
 
             handleWidgetDisplayChange(mExpanded);
 
-            GridBagConstraints c = mLayout.getConstraints(this);
+            GridBagConstraints c = mLayout.getConstraints(this);            
             c.insets = expanded ? ExpandedTitleBarInsets : CollapsedTitleBarInsets;
-            mLayout.setConstraints(this, c);
-
+            mLayout.setConstraints(this, c);           
             mWidget.setVisible(expanded);
 
             revalidate();
