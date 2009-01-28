@@ -44,15 +44,16 @@ public class PathwayDialog extends JDialog implements ActionListener, KeyListene
         super(parentFrame, VueResources.getString("presentationDialog.title"), false);
         this.tableModel = model;
         if(Util.isWindowsPlatform()){
-        	setSize(250, 110);
+        	setSize(300, 114);
         }else{
-        	setSize(250, 100);
+        	setSize(300, 112);
         }
         this.setFocusable(true);
         setLocation(location);    
-        setAlwaysOnTop(true);
+        //setAlwaysOnTop(true);
+        setModal(true);
         setUpUI();
-      
+        super.setResizable(false);
     }
     public void setVisible(boolean b)
     {
@@ -77,19 +78,27 @@ public class PathwayDialog extends JDialog implements ActionListener, KeyListene
 
         okButton.addActionListener(this);
         Insets i = okButton.getMargin();
-        i.left=i.left+6;
-        i.right=i.right+6;
+        i.left=i.left+12;
+        i.right=i.right+12;
         //okButton.setMargin(i);
         okButton.addKeyListener(this);
         cancelButton.addActionListener(this);
         cancelButton.addKeyListener(this);
-        
-        textField = new JTextField(VueResources.getString("presentationDiaaog.presentationName.text")+" " + newcnt++, 18);
+        if(Util.isWindowsPlatform()){
+        	textField = new JTextField(VueResources.getString("presentationDiaaog.presentationName.text")+" " + newcnt++, 33);
+        }else{
+        	textField = new JTextField(VueResources.getString("presentationDiaaog.presentationName.text")+" " + newcnt++, 22);
+        }
         textField.addKeyListener(this);
-        textField.setPreferredSize(new Dimension(40, 20));
+        //textField.setPreferredSize(new Dimension(140, 20));
 
         JPanel buttons = new JPanel();
-        buttons.setLayout(new FlowLayout(FlowLayout.RIGHT));       
+        buttons.setLayout(new FlowLayout(FlowLayout.RIGHT));  
+        if(!Util.isWindowsPlatform()){
+        	buttons.setBorder(BorderFactory.createEmptyBorder(0, 0, 6, 3));
+        }else{
+        	buttons.setBorder(BorderFactory.createEmptyBorder(0, 0, 6, 6));
+        }
         
         buttons.add(cancelButton);
         buttons.add(okButton);
