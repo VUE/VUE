@@ -1347,6 +1347,7 @@ public class Actions implements VueConstants
             			//VUE.getActiveViewer().setMapOriginOffset(originOffset.getX(), originOffset.getY());
             		ZoomTool.setZoomFitRegion(VUE.getActiveMap().getTempBounds());
             		VUE.getReturnToMapButton().setVisible(false);
+            		VUE.depthSelectionSlider.setVisible(true);
             	}
             	else
             	{
@@ -1356,6 +1357,7 @@ public class Actions implements VueConstants
             		//	VUE.getActiveMap().setTempZoom(VUE.getActiveViewer().getZoomFactor());            			
             			VUE.getActiveMap().setTempZoom(VUE.getActiveViewer().getZoomFactor());
                 		VUE.getReturnToMapButton().setVisible(true);
+                		VUE.depthSelectionSlider.setVisible(false);
                 		VUE.getActiveMap().setTempBounds(VUE.getActiveViewer().getVisibleMapBounds());
             		//	VUE.getActiveMap().setTempUserOrigin(VUE.getActiveViewer().getOriginLocation());
             		}
@@ -1410,6 +1412,7 @@ public class Actions implements VueConstants
                 if (VUE.getActiveMap().getTempBounds() != null)
                     ZoomTool.setZoomFitRegion(VUE.getActiveMap().getTempBounds());
                 VUE.getReturnToMapButton().setVisible(false);
+                VUE.depthSelectionSlider.setVisible(true);
                 //ZoomTool.setZoom(zoomFactor);
             	    
 
@@ -1420,6 +1423,7 @@ public class Actions implements VueConstants
                 if (VUE.getActiveMap().getTempBounds() != null)
                     ZoomTool.setZoomFitRegion(VUE.getActiveMap().getTempBounds());
                 VUE.getReturnToMapButton().setVisible(false);
+                VUE.depthSelectionSlider.setVisible(true);
             }
         }
 
@@ -1455,6 +1459,7 @@ public class Actions implements VueConstants
             		if (VUE.getActiveMap().getTempBounds() != null)
             			ZoomTool.setZoomFitRegion(VUE.getActiveMap().getTempBounds());
             		VUE.getReturnToMapButton().setVisible(false);
+            		VUE.depthSelectionSlider.setVisible(true);
             		//ZoomTool.setZoom(zoomFactor);
             	    
 
@@ -1465,6 +1470,7 @@ public class Actions implements VueConstants
             		
             		VUE.getActiveMap().setTempZoom(VUE.getActiveViewer().getZoomFactor());
             		VUE.getReturnToMapButton().setVisible(true);
+            		VUE.depthSelectionSlider.setVisible(false);
             		VUE.getActiveMap().setTempBounds(VUE.getActiveViewer().getVisibleMapBounds());
             		//VUE.getActiveMap().setTempUserOrigin(VUE.getActiveViewer().getOriginLocation());
             		

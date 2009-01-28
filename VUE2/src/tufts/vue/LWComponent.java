@@ -50,7 +50,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.450 $ / $Date: 2008-12-19 00:38:11 $ / $Author: sfraize $
+ * @version $Revision: 1.451 $ / $Date: 2009-01-28 22:49:44 $ / $Author: sraphe01 $
  * @author Scott Fraize
  */
 
@@ -6544,6 +6544,7 @@ u                    getSlot(c).setFromString((String)value);
             // MapViewer "null remote focal" code would need fixing to enable selection if a portal is the focal
             // (the selected objects are not children of the focal, so they don't look like we should be seeing them)
             VUE.getReturnToMapButton().setVisible(true);
+            VUE.depthSelectionSlider.setVisible(false);
             return doZoomingDoubleClick(e);
         } else
             return false;

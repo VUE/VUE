@@ -115,7 +115,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.633 $ / $Date: 2009-01-23 17:19:48 $ / $Author: mike $ 
+ * @version $Revision: 1.634 $ / $Date: 2009-01-28 22:49:44 $ / $Author: sraphe01 $ 
  */
 
 public class VUE
@@ -166,6 +166,7 @@ public class VUE
     public static final int FIRST_TAB_STOP = 6;   
     //public static JCheckBoxMenuItem  resetSettingsMenuItem;
     public static JSlider depthSelectionSlider = new JSlider(JSlider.HORIZONTAL,1, 6, 6);
+    public static JPanel sliderSearchPanel = new JPanel(new FlowLayout());  
     public static void finalizeDocks()
     {
     
@@ -2162,7 +2163,7 @@ public class VUE
 		//add(searchResultTbl, gBC);
         //toolbarPanel.add(returnToMapButton,gBC);
         toolbarPanel.add(toolbar,gBC);
-        returnToMapButton = new JButton(VueResources.getString("returnToMap.label"));
+        returnToMapButton = new JButton(VueResources.getString("returnToMap.label"));        
         returnToMapButton.addActionListener(new ActionListener(){
         	public void actionPerformed(ActionEvent e)
         	{
@@ -2178,20 +2179,21 @@ public class VUE
 								VUE.getActiveViewer().getFocal() instanceof MasterSlide || 
 								VUE.getActiveViewer().getFocal() instanceof LWGroup))
 				{
-					returnToMapButton.setVisible(true);		
+					returnToMapButton.setVisible(true);					
+					depthSelectionSlider.setVisible(false);
 				}
 				else
-					returnToMapButton.setVisible(false);
-				
+					returnToMapButton.setVisible(false);				    
+				    depthSelectionSlider.setVisible(true);
 			}
         }); 
         returnToMapButton.setVisible(false);
-        
+        depthSelectionSlider.setVisible(true);
 		gBC.fill = GridBagConstraints.BOTH;			
 		gBC.gridx = 1;
 		gBC.gridy = 0;
-		gBC.weightx = 1.0;
-		gBC.insets = new Insets(2, 0, 0, 0);		
+		gBC.weightx = 0.0;
+		gBC.insets = new Insets(5, 0, 5, 0);		
         toolbarPanel.add(returnToMapButton,gBC);        
      
         JPanel searchPnl = new JPanel(new FlowLayout(FlowLayout.LEFT,0,0));
@@ -2251,7 +2253,7 @@ public class VUE
 //        searchPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));        
 //        
         //searchPanel.setBorder(BorderFactory.createLineBorder(Color.red,1));
-        JPanel panel = new JPanel(new FlowLayout());         
+        //sliderSearchPanel = new JPanel(new FlowLayout());         
        
         Hashtable labelTable = new Hashtable();
         JLabel linePanel = null;
@@ -2285,8 +2287,8 @@ public class VUE
                         5);
             }            
         };
-        linePanel.setBorder(BorderFactory.createLineBorder(panel.getBackground(), 1));
-        halfLinePanel.setBorder(BorderFactory.createLineBorder(panel.getBackground(), 1));
+        linePanel.setBorder(BorderFactory.createLineBorder(sliderSearchPanel.getBackground(), 1));
+        halfLinePanel.setBorder(BorderFactory.createLineBorder(sliderSearchPanel.getBackground(), 1));
         JLabel oneLabel = new JLabel("1");
         oneLabel.setFont(tufts.vue.gui.GUI.LabelFace);
         oneLabel.setForeground(Color.DARK_GRAY);
@@ -2318,13 +2320,13 @@ public class VUE
         SliderActionListener lst = new SliderActionListener();        
         depthSelectionSlider.addChangeListener(lst);        
              
-        panel.add(depthSelectionSlider);
-        panel.add(new JLabel(" "));
+        sliderSearchPanel.add(depthSelectionSlider);
+        sliderSearchPanel.add(new JLabel(" "));
         //mSearchtextFld.setPreferredSize(new Dimension(200,23));
-        panel.add(mSearchtextFld);
-        panel.add(new JLabel(" "));
+        sliderSearchPanel.add(mSearchtextFld);
+        sliderSearchPanel.add(new JLabel(" "));
         //panel.setPreferredSize(new Dimension(430,40));
-		toolbarPanel.add( panel  , SwingConstants.LEFT);		
+		toolbarPanel.add( sliderSearchPanel  , SwingConstants.LEFT);		
         if (DEBUG.INIT) out("created ToolBar");
         
         return toolbarPanel;
