@@ -20,6 +20,7 @@ import tufts.vue.LWComponent.ColorProperty;
 import tufts.vue.LWComponent.Key;
 import tufts.vue.LWComponent.Property;
 import tufts.vue.filter.*;
+import tufts.vue.ds.Schema;
 
 import java.net.URI;
 import java.util.*;
@@ -58,7 +59,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.225 $ / $Date: 2008-12-19 00:38:11 $ / $Author: sfraize $
+ * @version $Revision: 1.226 $ / $Date: 2009-01-29 17:40:40 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -628,10 +629,9 @@ public class LWMap extends LWContainer
         //return hasLabel() && getLabel().endsWith(".vpk");
     }
 
-    
-    private int nextID = 1;
-    protected synchronized String getNextUniqueID() {
-        return Integer.toString(nextID++, 10);
+    private final java.util.concurrent.atomic.AtomicInteger mNextID = new java.util.concurrent.atomic.AtomicInteger();
+    protected String getNextUniqueID() {
+        return Integer.toString(mNextID.getAndIncrement(), 10);
     }
 
 //     private static void changeAbsoluteToRelativeCoords(LWContainer container, HashSet<LWComponent> processed) {
@@ -1185,7 +1185,7 @@ public class LWMap extends LWContainer
         if (mPathways == null)
             mPathways = new LWPathwayList(this);
 
-        this.nextID = findGreatestID(allRestored) + 1;
+        mNextID.set(findGreatestID(allRestored) + 1);
 
         if (addedLayers) {
             // if we created any layers, ensure their ID's now, after
@@ -1352,7 +1352,7 @@ public class LWMap extends LWContainer
         }
         
         
-        if (DEBUG.INIT || DEBUG.IO || DEBUG.XML) Log.debug("RESTORE COMPLETED; nextID=" + nextID);
+        if (DEBUG.INIT || DEBUG.IO || DEBUG.XML) Log.debug("RESTORE COMPLETED; nextID=" + mNextID.get());
         
         mXMLRestoreUnderway = false;
         //setEventsResumed();
@@ -1477,6 +1477,25 @@ public class LWMap extends LWContainer
 
         recordRelativeLocations(getAllResources(), file.getParentFile());
 
+    }
+
+    private Collection<Schema> findAllSchemas() {
+        final Set<Schema> allSchemas = new HashSet();
+
+        for (LWComponent c : getAllDescendents()) {
+            Schema s = c.getDataSchema();
+            if (s != null)
+                allSchemas.add(s);
+        }
+
+        return allSchemas;
+    }
+
+    public Collection<Schema> getIncludedSchemas() {
+        return findAllSchemas();
+    }
+    public void setIncludedSchemas(Collection<Schema> schemas) {
+        Log.debug("SETTING SCHEMAS " + schemas);
     }
 
     private void recordRelativeLocations(Collection<Resource> resources, File mapSaveDirectory)
