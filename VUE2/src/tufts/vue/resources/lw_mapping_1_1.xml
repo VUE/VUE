@@ -92,6 +92,9 @@
   </class>
 
   <class name="tufts.vue.MetaMap">
+    <field name="schema">
+      <bind-xml name="schema" node="attribute" reference="true"/>
+    </field>
     <field name="persistEntries" type="tufts.vue.PropertyEntry" collection="collection">
       <bind-xml name="data" node="element"/>
     </field>
@@ -300,17 +303,22 @@
 		<field name="userOrigin">
 			<bind-xml name="userOrigin" node="element"/>
 		</field>		
-		 	<field name="searchArrLst" type="tufts.vue.SearchData" collection="arraylist">
-                <bind-xml name="searchArrLst"/>
-            </field>
-			<field name="presentationBackground">
-			<bind-xml name="presentationBackground" node="element"/>
+		<field name="searchArrLst" type="tufts.vue.SearchData" collection="arraylist">
+                  <bind-xml name="searchArrLst"/>
+                </field>
+		<field name="presentationBackground">
+		  <bind-xml name="presentationBackground" node="element"/>
 		</field>		
 		<!-- field name="Pathways" type="tufts.vue.LWPathwayList" -->
 
 		<field name="PathwayList">
 			<bind-xml name="PathwayList" node="element"/>
 		</field>
+                
+		<field name="includedSchemas" type="tufts.vue.ds.Schema" collection="collection">
+		  <bind-xml name="schema"/>
+		</field>
+                
                 <field name="author">
                     <bind-xml name="author" node="element"/>
                 </field>
@@ -540,13 +548,28 @@
 
         
 	<class name="tufts.vue.URLResource">
-            <!-- map-to xml="cabinetResource"/ could use this as part of  getting rid of CabinetResource,
-              tho then everythying would persist that way... -->
-	    
-		<field name="referenceCreated"  type="long">    <bind-xml name="referenceCreated" node="attribute"/></field>
-		<field name="accessAttempted"   type="long">    <bind-xml name="accessAttempted" node="attribute"/></field>
-		<field name="accessSuccessful"  type="long">    <bind-xml name="accessSuccessful" node="attribute"/></field>
-		<field name="byteSize"          type="long">    <bind-xml name="size" node="attribute"/></field>
+          
+          
+          <!-- this would allow us to rename "referenceCreated" to just "created" (by changing bind-xml below), but keeping in case of backward compat for now -->
+          <!--field name="IgnoredName4" type="long" set-method="setReferenceCreated" get-method="getNull">
+              <bind-xml name="referenceCreated" node="attribute"/>
+          </field-->
+                
+		<field name="referenceCreated" type="long">
+                  <bind-xml name="referenceCreated" node="attribute"/>
+                </field>
+                
+		<field name="persistAccessAttempted">
+                  <bind-xml name="accessAttempted" node="attribute"/>
+                </field>
+		<field name="persistAccessSuccessful">
+                  <bind-xml name="accessSuccessful" node="attribute"/>
+                </field>
+                
+		<field name="byteSize" get-method="getPersistByteSize">
+                  <bind-xml name="size" node="attribute"/>
+                </field>
+                
 		<!-- field name="spec"              type="string">  <bind-xml name="spec" node="attribute"/></field -->
 		<field name="spec" type="string" set-method="XML_setSpec" get-method="getSpec">
                   <bind-xml name="spec" node="attribute"/>
@@ -675,8 +698,8 @@
 </class>
 <class name = "tufts.vue.BrowseDataSource">
        <map-to xml="tufts.vue.BrowseDataSource" />
-       <field name = "id" type = "string">
-            <bind-xml name ="id" node = "element" />
+       <field name="GUID" type="string">
+         <bind-xml name="guid" node="element" />
        </field>     
        
        <field name = "displayName" type = "string">
@@ -812,6 +835,22 @@
 <class name="edu.tufts.vue.ontology.RDFSOntology" extends="edu.tufts.vue.ontology.Ontology"  auto-complete="false"> 
     <map-to xml="edu.tufts.vue.ontology.RDFSOntology "/>
 </class>
+
+<class name="tufts.vue.ds.Schema" identity="mapLocalID">
+  <field name="mapLocalID">
+    <bind-xml name="ID" node="attribute"/>
+  </field>  
+  <field name="GUID" node="attribute" type="string">
+    <bind-xml name="guid"/>
+  </field>
+  <field name="name" node="attribute" type="string">
+    <bind-xml name="name"/>
+  </field>
+  <field name="resource" node="element" type="tufts.vue.Resource">
+    <bind-xml name="resource"/>
+  </field>
+</class>
+
 
 </mapping>
 
