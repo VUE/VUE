@@ -49,8 +49,8 @@ public class ExitAction extends AbstractAction
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(ExitAction.class);
     
-    private static String  FAVORITES_MAPPING;
-    private static String  DATASOURCES_MAPPING;
+//     private static String  FAVORITES_MAPPING;
+//     private static String  DATASOURCES_MAPPING;
     
     /** Creates a new instance of exitAction */
     public ExitAction(String s) 
@@ -127,7 +127,7 @@ public class ExitAction extends AbstractAction
     public static void saveResources() {
         DataSource ds;
         if (tufts.vue.DataSourceViewer.dataSourceList == null) {
-            System.err.println("dataSourceList is null; no resources to save.");
+            Log.warn("dataSourceList is null; no resources to save.");
             return;
         }
         ListModel model = tufts.vue.DataSourceViewer.dataSourceList.getModel();
@@ -137,7 +137,7 @@ public class ExitAction extends AbstractAction
                 ds = (DataSource)model.getElementAt(i) ;
                 FavoritesWindow fw = (FavoritesWindow)ds.getResourceViewer();
                 if (fw != null)
-                	fw.save();
+                    fw.save();
                
             }
         }
