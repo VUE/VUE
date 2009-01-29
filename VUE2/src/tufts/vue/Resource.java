@@ -37,7 +37,7 @@ import javax.swing.ImageIcon;
  *  objects, displaying their content, and fetching their data.
 
  *
- * @version $Revision: 1.85 $ / $Date: 2008-12-15 22:42:17 $ / $Author: sfraize $
+ * @version $Revision: 1.86 $ / $Date: 2009-01-29 17:31:35 $ / $Author: sfraize $
  */
 
 public abstract class Resource implements Cloneable
@@ -231,6 +231,11 @@ public abstract class Resource implements Cloneable
         return mByteSize;
     }
     
+    /** @return null if SIZE_UNKOWN, otherwise a valid Long */
+    public Long getPersistByteSize() {
+        return mByteSize == SIZE_UNKNOWN ? null : Long.valueOf(mByteSize);
+    }
+    
     protected void setByteSize(long size) {
         if (DEBUG.RESOURCE) dumpField("setByteSize", size);
         mByteSize = size;
@@ -383,10 +388,14 @@ public abstract class Resource implements Cloneable
     
     public long getAccessAttempted() { return mAccessAttempted; }
     public void setAccessAttempted(long attempted) { mAccessAttempted = attempted; }
+    public Long getPersistAccessAttempted() { return mAccessAttempted == 0 ? null : Long.valueOf(mAccessAttempted); }
+    public void setPersistAccessAttempted(Long l) { setAccessAttempted(l == null ? 0 : l.longValue()); }
     
     public long getAccessSuccessful() { return mAccessSuccessful; }
     public void setAccessSuccessful(long succeeded) { mAccessSuccessful = succeeded; }
-
+    public Long getPersistAccessSuccessful() { return mAccessSuccessful == 0 ? null : Long.valueOf(mAccessSuccessful); }
+    public void setPersistAccessSuccessful(Long l) { setAccessSuccessful(l == null ? 0 : l.longValue()); }
+    
     protected void markAccessAttempt() {
         setAccessAttempted(System.currentTimeMillis());
     }
@@ -394,7 +403,8 @@ public abstract class Resource implements Cloneable
         setAccessSuccessful(System.currentTimeMillis());
     }
 
-    
+    /** for castor hacks */ public Object getNull() { return null; }
+
     //public abstract boolean isImage();
     
     private boolean isImage;
