@@ -92,7 +92,7 @@ public class RichTextTool extends VueTool
     // todo: do we really want to do this?
      
 
-
+    
     
     @Override
 	public boolean handleSelectorRelease(MapMouseEvent e)
@@ -103,6 +103,13 @@ public class RichTextTool extends VueTool
          node.setFrame(e.getMapSelectorBox());
          MapViewer viewer = e.getViewer();
          viewer.getFocal().addChild(node);
+        // node.setLocation(e.getMapSelectorBox().getX(),e.getMapSelectorBox().getY());
+//         e.getMapSelectorBox()\
+   //  node.setLocation(e.getDeltaPressX(),e.getDeltaPressY());
+         if (e.getFocal() instanceof LWSlide)
+         {	 
+         	node.setFrame(e.getSelectorBox());
+         }
          VUE.getUndoManager().mark("New Rich Text");
          VUE.getSelection().setTo(node);
        //  viewer.activateLabelEdit(node);
