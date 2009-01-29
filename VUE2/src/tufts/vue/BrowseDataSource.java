@@ -23,7 +23,7 @@ package tufts.vue;
  * on the configuration.  E.g., a local directory, a list of user favorites, a remote FTP
  * site, an RSS feed, etc.
  * 
- * @version $Revision: 1.7 $ / $Date: 2009-01-06 17:35:02 $ / $Author: sfraize $
+ * @version $Revision: 1.8 $ / $Date: 2009-01-29 17:45:59 $ / $Author: sfraize $
  * @author  rsaigal
  * @author  sfraize
  */
@@ -59,11 +59,23 @@ public abstract class BrowseDataSource implements DataSource
     private volatile JComponent _viewer; // volatile should be overkill, but just in case
     private boolean isAvailable;
     private String hostName;
+
+    private String guid;
     
     public BrowseDataSource() {}
     
     public BrowseDataSource(String name) {
         setDisplayName(name);
+    }
+
+    public synchronized String getGUID() {
+        if (guid == null)
+            setGUID(edu.tufts.vue.util.GUID.generate());
+        return guid;
+    }
+    
+    public void setGUID(String s) {
+        guid = s;
     }
 
     /** parameter block that can be used for generating XML in EditLibraryPanel to add fields to the data-source UI */
@@ -281,14 +293,6 @@ public abstract class BrowseDataSource implements DataSource
         this.isAutoConnect = false;
     }
      
-    public String getId() {
-        return this.Id; 
-    }
-   
-    public void setId(String Id) {
-        this.Id = Id;
-    }
-    
     public int getPublishMode() {
         return this.publishMode;   
     }
