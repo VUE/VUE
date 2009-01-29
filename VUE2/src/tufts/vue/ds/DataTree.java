@@ -46,7 +46,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.29 $ / $Date: 2009-01-29 17:42:07 $ / $Author: sfraize $
+ * @version $Revision: 1.30 $ / $Date: 2009-01-29 19:42:08 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -982,6 +982,7 @@ public class DataTree extends javax.swing.JTree
     private static final int SecondRotationColor = 18;
     private static int NextColor = FirstRotationColor;
     private static boolean FirstRotation = true;
+    private static final Color DataNodeColor = new Color(155,219,83);
 
     private static LWComponent initStyleNode(LWComponent style) {
         style.setFlag(Flag.INTERNAL);
@@ -998,7 +999,7 @@ public class DataTree extends javax.swing.JTree
 
             style = new LWNode(); // creates a rectangular node
             //style.setLabel(" ---");
-            style.setFillColor(Color.gray);
+            style.setFillColor(Color.darkGray);
             style.setFont(DataFont);
         } else {
             //style = new LWNode(" ---"); // creates a round-rect node
@@ -1368,7 +1369,7 @@ public class DataTree extends javax.swing.JTree
         TemplateNode(Schema schema, LWComponent.Listener repainter) {
             super(null,
                   repainter,
-                  String.format(HTML("<b><font color=red>All Data Nodes (%d)"), schema.getRowCount()));
+                  String.format(HTML("<b><font color=red>All Records in %s (%d)"), schema.getName(), schema.getRowCount()));
             //String.format("<html><b>All Data Nodes in '%s' (%d)", schema.getName(), schema.getRowCount()));
             //String.format(HTML("<b><font color=red>All Data Nodes in '%s' (%d)"), schema.getName(), schema.getRowCount()));
             
@@ -1392,8 +1393,8 @@ public class DataTree extends javax.swing.JTree
             style.setLabel(String.format("${%s}", titleField));
             
             style.setFont(DataFont);
-            style.setTextColor(Color.white);
-            style.setFillColor(Color.darkGray);
+            style.setTextColor(Color.black);
+            style.setFillColor(DataNodeColor);
             style.setStrokeWidth(0);
             //style.disableProperty(LWKey.Notes);
             style.setNotes("Style for all " + schema.getRowCount() + " data items in " + schema.getName()
