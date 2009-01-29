@@ -53,7 +53,7 @@ import org.xml.sax.*;
 
 
 /**
- * @version $Revision: 1.6 $ / $Date: 2008-12-15 21:45:21 $ / $Author: sfraize $
+ * @version $Revision: 1.7 $ / $Date: 2009-01-29 17:44:12 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -74,7 +74,7 @@ class XMLIngest {
 
         public XmlSchema(Object source, String itemPath) 
         {
-            super(source);
+            super.setSource(source);
             this.itemPath = itemPath;
             if (itemPath == null || itemPath.length() == 0)
                 itemPathLen = 0;
@@ -120,7 +120,7 @@ class XMLIngest {
             if (name.equals(getRowStartNode())) {
                 //errout("OPEN " + name);
                 // curRow = new VRow(fields.size()); // fields includes non-row-extraction values
-                curRow = new DataRow();
+                curRow = new DataRow(this);
                 addRow(curRow);
             }
         }
