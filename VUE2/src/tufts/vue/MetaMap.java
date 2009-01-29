@@ -18,6 +18,8 @@ package tufts.vue;
 
 import tufts.Util;
 
+import tufts.vue.ds.Schema;
+
 import java.util.*;
 import java.lang.ref.Reference;
 
@@ -34,7 +36,7 @@ import com.google.common.collect.Iterators;
  * The insertion order of each key/value is preserved, even for each use of
  * the same key with different values.
  *
- * @version $Revision: 1.4 $ / $Date: 2008-12-15 16:52:03 $ / $Author: sfraize $
+ * @version $Revision: 1.5 $ / $Date: 2009-01-29 17:41:17 $ / $Author: sfraize $
  */
 
 public class MetaMap implements TableBag, XMLUnmarshalListener
@@ -61,9 +63,28 @@ public class MetaMap implements TableBag, XMLUnmarshalListener
 
     private static final Map<String,Key> KEY_MAP = new java.util.concurrent.ConcurrentHashMap();
 
+    private static final boolean TEST_MODE = false;
+
+    private Schema mSchema;
+    
     public MetaMap() {}
 
-    private static final boolean TEST_MODE = false;
+    public void setSchema(Schema schema) {
+        mSchema = schema;
+    }
+    
+    public Schema getSchema() {
+        Log.debug("getSchema returns " + mSchema);
+        return mSchema;
+    }
+    
+//     public int getSchemaID() {
+//         if (mSchema == null)
+//             return 0;
+//         else
+//             return mSchema.getMapLocalID();
+//     }
+
 
     @Override
     public boolean equals(Object o) {
@@ -612,6 +633,7 @@ public class MetaMap implements TableBag, XMLUnmarshalListener
     public MetaMap clone() {
         final MetaMap clone = new MetaMap();
         clone.mData.putAll(mData);
+        clone.mSchema = mSchema;
         return clone;
     }
     
