@@ -51,12 +51,14 @@ import javax.swing.JMenu;
  *
  * Does not currently traverse into children of popup menus.
  *
- * @version $Revision: 1.15 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $
+ * @version $Revision: 1.16 $ / $Date: 2009-01-29 17:30:16 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
 public abstract class EventRaiser<T>
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(EventRaiser.class);
+
     private int depth = 0;
 
     public static boolean INCLUDE_MENUS = true;
@@ -233,7 +235,7 @@ public abstract class EventRaiser<T>
                                                   
 
     private void out(String s) {
-        System.out.println("EventRaiser: " + s);
+        Log.debug(s);
     }
 
     protected void eout(String s) {

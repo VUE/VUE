@@ -47,7 +47,7 @@ import edu.tufts.vue.dsm.impl.VueDataSourceManager;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.128 $ / $Date: 2009-01-20 20:53:56 $ / $Author: sraphe01 $
+ * @version $Revision: 1.129 $ / $Date: 2009-01-29 17:33:01 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -366,7 +366,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
                     final int curCount = PublishRebuildCount.get();
 
                     if (rebuildCount < curCount) {
-                        if (DEBUG.Enabled) Log.debug("skipping rebuild; runnable count " + rebuildCount + " < " + curCount);
+                        if (DEBUG.INIT || DEBUG.DR) Log.debug("skipping rebuild; runnable count " + rebuildCount + " < " + curCount);
                         return;
                     } else {
                         Log.info("rebuilding with " + publishActions.size()

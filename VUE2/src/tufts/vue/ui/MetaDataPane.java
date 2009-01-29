@@ -48,6 +48,7 @@ import tufts.vue.DEBUG;
 import tufts.vue.TableBag;
 import tufts.vue.Resource;
 import tufts.vue.VUE;
+import tufts.vue.MetaMap;
 import tufts.vue.gui.GUI;
 
 import javax.swing.JButton;
@@ -487,7 +488,7 @@ public class MetaDataPane extends tufts.vue.gui.Widget
                 addLabelTextRows(0, mLabels, mValues, mGridBag, null, null);
             }
            
-            loadAllRows(model);
+            loadAllRows(model, properties instanceof MetaMap ? (MetaMap) properties : null);
 
             if (DEBUG.Enabled)
                 setTitle(mLabel + " (" + properties.size() + ")");
@@ -552,7 +553,7 @@ public class MetaDataPane extends tufts.vue.gui.Widget
             return value.toString();
     }
 
-    private void loadAllRows(TableModel model) {
+    private void loadAllRows(TableModel model, MetaMap dataMap) {
         final int rows = model.getRowCount();
         final int maxRow;
 
@@ -607,6 +608,11 @@ public class MetaDataPane extends tufts.vue.gui.Widget
             if (loaded)
                 rowIdx++;
         }
+
+        if (DEBUG.Enabled && dataMap != null) {
+            loadRow(rowIdx++, "SCHEMA", null, ""+dataMap.getSchema());
+        }
+          
 
         for (; rowIdx < mLabels.length; rowIdx++) {
             //out(" clear row " + row);
