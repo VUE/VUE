@@ -50,7 +50,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.451 $ / $Date: 2009-01-28 22:49:44 $ / $Author: sraphe01 $
+ * @version $Revision: 1.452 $ / $Date: 2009-01-29 17:38:23 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1817,9 +1817,14 @@ u                    getSlot(c).setFromString((String)value);
 //     }
 
     //public void addDataValues(final Iterable<Map.Entry<String,String>> entries) {
-    public void addDataValues(final Iterable<Map.Entry> entries) {
-        getMetadataList().add(entries);
-        getDataMap().putAllStrings(entries);
+//     public void addDataValues(final Iterable<Map.Entry> entries) {
+//         getMetadataList().add(entries);
+//         getDataMap().putAllStrings(entries);
+//     }
+
+    public void setDataValues(MetaMap map) {
+        setPersistDataMap(map);
+        getMetadataList().add(map.entries()); // duplicate in old meta-data for now
     }
 
     public void addDataValue(String key, String value) {
@@ -1892,6 +1897,13 @@ u                    getSlot(c).setFromString((String)value);
 
     public boolean hasDataKey(String key) {
         return mDataMap != null && mDataMap.containsKey(key);
+    }
+
+    public tufts.vue.ds.Schema getDataSchema() {
+        if (mDataMap != null)
+            return mDataMap.getSchema();
+        else
+            return null;
     }
 
     public boolean hasDataValue(String key, String value) {
@@ -2702,6 +2714,9 @@ u                    getSlot(c).setFromString((String)value);
     
     final void layout(Object triggerKey) {
         if (mXMLRestoreUnderway == false) {
+            
+            validateCoordinates();
+            
             layoutImpl(triggerKey);
 
             if (triggerKey == LWMap.NODE_INIT_LAYOUT)
@@ -2710,6 +2725,31 @@ u                    getSlot(c).setFromString((String)value);
             //if (mSlideIconBounds != null)
             //    mSlideIconBounds.x = Float.NaN; // invalidate
         }
+    }
+
+    protected boolean validateCoordinates() {
+        boolean bad = false;
+        if (Float.isNaN(x)) {
+            Log.warn(this + " bad x");
+            x = 0;
+            bad = true;
+        }
+        if (Float.isNaN(y)) {
+            Log.warn(this + " bad y");
+            y = 0;
+            bad = true;
+        }
+        if (Float.isNaN(width)) {
+            Log.warn(this + " bad width");
+            width = 0;
+            bad = true;
+        }
+        if (Float.isNaN(height)) {
+            Log.warn(this + " bad height");
+            height = 0;
+            bad = true;
+        }
+        return bad;
     }
 
     protected void layoutImpl(Object triggerKey) {}
