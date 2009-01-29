@@ -32,7 +32,7 @@ import au.com.bytecode.opencsv.CSVReader;
 
 
 /**
- * @version $Revision: 1.10 $ / $Date: 2009-01-06 17:35:02 $ / $Author: sfraize $
+ * @version $Revision: 1.11 $ / $Date: 2009-01-29 17:44:28 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class XmlDataSource extends BrowseDataSource
@@ -179,12 +179,12 @@ public class XmlDataSource extends BrowseDataSource
         //final CSVReader reader = new CSVReader(new FileReader(file));
         // TODO: need an encoding Win/Mac encoding toggle
         // TODO: need handle this in BrowseDataSource openReader (encoding provided by user in data-source config)
-        final CSVReader reader = new CSVReader(new InputStreamReader(new FileInputStream(file), "windows-1252"));
+        final CSVReader lineReader = new CSVReader(new InputStreamReader(new FileInputStream(file), "windows-1252"));
 
-        String[] values = reader.readNext();
+        String[] values = lineReader.readNext();
 
         if (schema == null) {
-            schema = new Schema(Resource.instance(file));
+            schema = Schema.instance(Resource.instance(file));
         } else {
             schema.flushData();
             schema.setSource(Resource.instance(file));
@@ -195,7 +195,7 @@ public class XmlDataSource extends BrowseDataSource
 
         if (hasColumnTitles) {
             schema.ensureFields(values);
-            values = reader.readNext();            
+            values = lineReader.readNext();            
         } else {
             schema.ensureFields(values.length);
         }
@@ -207,9 +207,9 @@ public class XmlDataSource extends BrowseDataSource
 
             schema.addRow(values);
             
-        } while ((values = reader.readNext()) != null);
+        } while ((values = lineReader.readNext()) != null);
 
-        reader.close();
+        lineReader.close();
 
         return schema;
     }
