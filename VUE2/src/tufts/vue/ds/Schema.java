@@ -31,7 +31,7 @@ import com.google.common.collect.*;
 
 
 /**
- * @version $Revision: 1.16 $ / $Date: 2009-01-06 17:35:02 $ / $Author: sfraize $
+ * @version $Revision: 1.17 $ / $Date: 2009-01-29 17:43:36 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -60,15 +60,47 @@ public class Schema {
 
     private LWComponent mStyleNode;
 
-    private final String UUID;
+    private String GUID;
 
 //     /** construct an empty schema */
 //     public Schema() {}
+
+    /** id used for within-map reference for persisting the relationship between a MetaMap and a schema */
+    private final String mLocalID;
+
+    private static final java.util.concurrent.atomic.AtomicInteger NextLocalId = new java.util.concurrent.atomic.AtomicInteger();
+
+    public static Schema instance(Object source) {
+        final Schema s = new Schema();
+        s.setSource(source);
+        s.setGUID(edu.tufts.vue.util.GUID.generate());
+        return s;
+    }
     
-    public Schema(Object source) {
-        // would be very handy if source was a Resource and Resources had IO methods
-        setSource(source);
-        UUID = edu.tufts.vue.util.GUID.generate();
+//     private Schema(Object source) {
+//         // would be very handy if source was a Resource and Resources had IO methods
+//         setSource(source);
+//         setGUID(edu.tufts.vue.util.GUID.generate());
+//         mLocalID = nextLocalID();
+//     }
+
+    /** for castor de-serialization only */
+    public Schema() {
+        mLocalID = nextLocalID();
+    }
+
+    private static String nextLocalID() {
+        // must differentiate this from the the codes used for persisting nodes (just integer strings),
+        // as castor apparently uses a global mapping for all object types, instead of an id reference
+        // cache per-type (class).
+        return String.format("S%d", NextLocalId.incrementAndGet());
+    }
+
+    public final String getMapLocalID() {
+        return mLocalID;
+    }
+    public final void setMapLocalID(int i) {
+        // noop
     }
 
     public void annotateFor(Collection<LWComponent> nodes) {
@@ -151,7 +183,16 @@ public class Schema {
     public String toString() {
         //return getName() + "; " + getSource() + "; " + UUID;
         //return getName() + "; " + getResource() + "; " + UUID;
-        return getName();
+        //return getName();
+        return String.format("Schema[%s; \"%s\" %s]", getMapLocalID(), getName(), getResource());
+    }
+
+    public String getGUID() {
+        return GUID;
+    }
+
+    public void setGUID(String s) {
+        GUID = s;
     }
 
     public void setStyleNode(LWComponent style) {
@@ -383,7 +424,7 @@ public class Schema {
     
     protected void addRow(String[] values) {
 
-        DataRow row = new DataRow();
+        DataRow row = new DataRow(this);
         int i = 0;
         for (Field field : getFields()) {
             final String value = values[i++];
@@ -430,6 +471,10 @@ final class DataRow {
     final tufts.vue.MetaMap mmap = new tufts.vue.MetaMap();
 
     boolean isContextChanged;
+
+    DataRow(Schema s) {
+        mmap.setSchema(s);
+    }
 
     void setContextChanged(boolean t) {
         isContextChanged = t;
