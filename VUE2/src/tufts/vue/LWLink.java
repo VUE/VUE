@@ -43,7 +43,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.203 $ / $Date: 2008-12-19 00:38:11 $ / $Author: sfraize $
+ * @version $Revision: 1.204 $ / $Date: 2009-01-29 17:39:11 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -2277,6 +2277,8 @@ public class LWLink extends LWComponent
         // leave out the control points in computing our bounds.
         
         final Rectangle2D.Float bounds = new Rectangle2D.Float(head.x, head.y, 0, 0);
+
+        final boolean badCurve;
         
         if (mCurveControls == 1) {
 
@@ -2314,6 +2316,8 @@ public class LWLink extends LWComponent
             mCurveCenterX = (ctrlx1 + ctrlx2) / 2;
             mCurveCenterY = (ctrly1 + ctrly2) / 2;
 
+            if (badCurve = badCurve(mQuad))
+                Log.warn(this + "; bad curve: " + Util.fmt(mQuad));
 
             if (IncludeControlPointsInBounds)
                 bounds.add(mQuad.ctrlx, mQuad.ctrly);
@@ -2339,6 +2343,9 @@ public class LWLink extends LWComponent
             mCurveCenterX = (ctrlx12 + ctrlx21) / 2;
             mCurveCenterY = (ctrly12 + ctrly21) / 2;
 
+            if (badCurve = badCurve(mCubic))
+                Log.warn(this + "; bad curve: " + Util.fmt(mCubic));
+            
             if (IncludeControlPointsInBounds) {
                 // Add the centers of the two control lines, where we put the controllers.
                 bounds.add((mCubic.ctrlx1 + head.x) / 2,
@@ -2346,9 +2353,9 @@ public class LWLink extends LWComponent
                 bounds.add((mCubic.ctrlx2 + tail.x) / 2,
                            (mCubic.ctrly2 + tail.y) / 2);
             }
-                
-            
-        }
+
+        } else
+            badCurve = false;
 
 
         //---------------------------------------------------------------------------------------------------
@@ -2364,8 +2371,9 @@ public class LWLink extends LWComponent
 
         // Flatten the curve into a bunch of segments for hit detection.
 
-        if (mCurve.getBounds().isEmpty()) {
-            if (DEBUG.Enabled) out("empty curve " + mCurve + " " + mCurve.getBounds());
+        if (badCurve || mCurve.getBounds().isEmpty()) {
+            if (!badCurve)
+                Log.warn(this + "; empty curve " + Util.fmt(mCurve) + " " + mCurve.getBounds());
             //tufts.Util.printStackTrace("empty curve " + mCurve + " " + mCurve.getBounds());
             return bounds;
         }
@@ -2550,6 +2558,47 @@ public class LWLink extends LWComponent
     }
 
     @Override
+    protected boolean validateCoordinates() {
+
+        // TODO: VALIDATE ENDPOINTS & CONTROL POINTS
+        
+        if (super.validateCoordinates()) {
+            Log.warn(this + "; was bad: recomputing");
+            mRecompute = true;
+            return true;
+        } else
+            return false;
+    }
+
+    private static boolean badCurve(QuadCurve2D.Float c) {
+        if (Float.isNaN(c.x1) ||
+            Float.isNaN(c.y1) ||
+            Float.isNaN(c.x2) ||
+            Float.isNaN(c.y2) ||
+            Float.isNaN(c.ctrlx) ||
+            Float.isNaN(c.ctrly)
+            )
+            return true;
+        else
+            return false;
+    }
+    
+    private static boolean badCurve(CubicCurve2D.Float c) {
+        if (Float.isNaN(c.x1) ||
+            Float.isNaN(c.y1) ||
+            Float.isNaN(c.x2) ||
+            Float.isNaN(c.y2) ||
+            Float.isNaN(c.ctrlx1) ||
+            Float.isNaN(c.ctrly1) ||
+            Float.isNaN(c.ctrlx2) ||
+            Float.isNaN(c.ctrly2)
+            )
+            return true;
+        else
+            return false;
+    }
+
+    @Override
     protected void drawImpl(DrawContext dc)
     {
         if (mRecompute)
@@ -2632,7 +2681,15 @@ public class LWLink extends LWComponent
             // draw the curve
             //-------------------------------------------------------
 
-            g.draw(mCurve);
+            if (mCurve == mQuad && badCurve(mQuad)) {
+                Log.warn("BAD QUAD CURVE " + this + "; " + Util.fmt(mQuad));
+            } else if (mCurve == mCubic && badCurve(mCubic)) {
+                Log.warn("BAD CUBIC CURVE " + this + "; " + Util.fmt(mCubic));
+            } else {
+                Log.debug(this + "; drawing " + Util.tags(mCurve));
+                g.draw(mCurve);
+                Log.debug(this + ";    drew " + Util.tags(mCurve));
+            }
             
             if (DEBUG.BOXES) {
 
