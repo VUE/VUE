@@ -57,7 +57,7 @@ public interface DataSource {
      *Returns an id for the DataSource. 
      *
      */
-    public String getId();
+    public String getGUID();
     /**
      *Return a integer defining the  PublishMode
      *
