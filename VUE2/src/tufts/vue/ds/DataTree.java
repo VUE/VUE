@@ -46,7 +46,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.28 $ / $Date: 2009-01-06 17:35:02 $ / $Author: sfraize $
+ * @version $Revision: 1.29 $ / $Date: 2009-01-29 17:42:07 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -770,7 +770,8 @@ public class DataTree extends javax.swing.JTree
             // node.setFlag(Flag.EVENT_SILENT); // todo performance: have nodes do this by default during init
             //node.setClientData(Schema.class, schema);
             //node.getMetadataList().add(row.entries());
-            node.addDataValues(row.dataEntries());
+            //node.addDataValues(row.dataEntries());
+            node.setDataValues(row.getData());
             node.setStyle(schema.getStyleNode()); // must have meta-data set first to pick up label template
 
             if (linkField != null) {
