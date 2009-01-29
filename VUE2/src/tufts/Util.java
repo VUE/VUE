@@ -1859,6 +1859,30 @@ public class Util
         
     }
 
+    public static String fmt(QuadCurve2D.Float c) {
+        return String.format("QuadCurveF[%.1f,%.1f %.1f,%,1f %.1f,%.1f]",
+                             c.x1, c.y1,
+                             c.x2, c.y2,
+                             c.ctrlx, c.ctrly);
+    }
+    
+    public static String fmt(CubicCurve2D.Float c) {
+        return String.format("CubicCurveF[%.1f,%.1f %.1f,%,1f %.1f,%.1f %.1f,%.1f]",
+                             c.x1, c.y1,
+                             c.x2, c.y2,
+                             c.ctrlx1, c.ctrly1,
+                             c.ctrlx2, c.ctrly2);
+    }
+    
+//     public static String fmt(CubicCurve2D c) {
+//         return String.format("QuadCurve[%.1f,.1f %.1f,%,1f %.1f,%.1f]",
+//                              c.getX1(), c.getY1(),
+//                              c.getX2(), c.getY2(),
+//                              c.getCtrlX1(), c.getCtrlY1(),
+//                              c.getCtrlX2(), c.getCtrlY2());
+//     }
+    
+
     public static String fmt(final java.awt.Color c) {
         if (c == null)
             return "<null-Color>";
