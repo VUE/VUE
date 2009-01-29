@@ -2035,6 +2035,7 @@ public class DataSourceViewer extends JPanel
             marshaller = new Marshaller(writer);
             marshaller.setMapping(tufts.vue.action.ActionUtil.getDefaultMapping());
             if (DEBUG.DR) Log.debug("marshallMap: marshalling " + dataSourceViewer + " to " + file + "...");
+            marshaller.setNoNamespaceSchemaLocation("none");
             marshaller.marshal(dataSourceViewer);
             if (DEBUG.DR) Log.debug("marshallMap: done marshalling.");
             writer.flush();
