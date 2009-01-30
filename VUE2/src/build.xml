@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.175 $ / $Date: 2009-01-30 19:45:23 $ / $Author: mike $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.175 2009-01-30 19:45:23 mike Exp $ -->
+<!-- $Revision: 1.176 $ / $Date: 2009-01-30 21:59:57 $ / $Author: sfraize $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.176 2009-01-30 21:59:57 sfraize Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -42,19 +42,21 @@
   affect where the build process stores its outputs.
 -->
   <property name="top.dir"     value="./.."/>
+  <property name="top"     value=".."/>
   <property name="src"         value="${basedir}"/>
-  <property name="build.home"  value="${basedir}/build"/>
+  <property name="build.top"  value="${basedir}"/>
+  <property name="build.home"  value="${build.top}/build"/>
   <property name="build.class" value="${build.home}/classes" />
   <property name="dist.home"   value="${basedir}/dist"/>
   <property name="dist.src"    value="${dist.home}/src"/>
   <property name="keystore"	   value="${top.dir}/keystore/keystore.key"/>
   <property name="release.home" value="${basedir}/release"/>
-  <property name="lib.home"    value="../lib"/>
-  <property name="linux.src"    value="../linux/src"/>
-  <property name="linux.class"    value="../linux/classes"/>
-  <property name="jnilib.home"    value="../jnilibs"/>	
-  <property name="vue-core.jar" value="${basedir}/VUE-core.jar"/>
-  <property name="vue-lib.jar"  value="${basedir}/VUE-lib.jar"/>
+  <property name="lib.home"    value="${top}/lib"/>
+  <property name="linux.src"    value="${top}/linux/src"/>
+  <property name="linux.class"    value="${top}/linux/classes"/>
+  <property name="jnilib.home"    value="${top}/jnilibs"/>	
+  <property name="vue-core.jar" value="${build.top}/VUE-core.jar"/>
+  <property name="vue-lib.jar"  value="${build.top}/VUE-lib.jar"/>
   <property name="test.home"   value="${top.dir}/test" />
   <property name="test.lib"   value="${test.home}/lib" />
   <property name="junit.jar"   value="${test.lib}/junit.jar" />
@@ -857,13 +859,13 @@
 	  	alias="mykey"
 	  	storepass="vuevue"
 	  	keystore="${keystore}"
-	  	jar="./VUE-core.jar">
+	  	jar="${vue-core.jar}">
 	</signjar>
   	<signjar
   		alias="mykey"
   		storepass="vuevue"
   		keystore="${keystore}"
-  		jar="./build/VUE.jar">
+  		jar="${vue.jar}">
     </signjar>
   	<signjar
   	  alias="mykey"
@@ -978,7 +980,7 @@
          already older than the current VUE.jar (meaning, we don't need to rebuild VUE.jar) -->
     <uptodate property="vue.jar.current" targetfile="${vue.jar}">
       <srcfiles dir="${lib.home}" includes="${thirdparty.jarfiles.names}"/>
-      <srcfiles dir="." includes="VUE-core.jar"/>
+      <srcfiles dir="." includes="${vue-core.jar}"/>
     </uptodate>
   </target>
   
@@ -1006,7 +1008,7 @@
         <attribute name="Main-Class" value="tufts.vue.VUE"/>
       </manifest>
         <!-- zipfileset src="${basedir}/VUE-core.jar" excludes="**/*.properties"/ example excludes that works for one file -->
-        <zipfileset src="${basedir}/VUE-core.jar"/>
+        <zipfileset src="${vue-core.jar}"/>
         <zipgroupfileset dir="${lib.home}" includes="${thirdparty.jarfiles.names}"
         	excludes="org/apache/tools/ant/**"/>
         <!-- may be able to modify this to exclude README's, .txt files, etc -->
@@ -1041,7 +1043,7 @@
         <attribute name="Build-Platform" value="${os.name} ${os.version} ${os.arch}"/>
         <attribute name="Main-Class" value="tufts.vue.VUE"/>
       </manifest>
-      <zipfileset src="${basedir}/VUE-core.jar"/>
+      <zipfileset src="${vue-core.jar}"/>
       <zipgroupfileset dir="${lib.home}" includes="${thirdparty.jarfiles.names}"/>
       <zipfileset src="${lib.home}/BlackShipsImages.jar"/> <!-- try exporting blackships startup file as a vue zip archive... -->
       <!-- zipfileset src="${build.home}/VUE.jar"/>  this is a crazy slow method of doing this: it's file compressed from 50mb -->
@@ -1057,7 +1059,7 @@
     <!-- There is a bunch of of crap in the lib file we really don't need: figure out how to exclude. -->
     <!-- Stuff like .java sources, .html files and .txt files, and from axis-ant.jar, a big fat js.jar (javascript) & bsf.jar files? -->
     <!-- Also: do we really need the /hyph/*.hyp files?  Are these Hyphenation Dictionaries? -->
-    <jar destfile="VUE-lib.jar" compress="false" index="true" update="false" duplicate="preserve">
+    <jar destfile="${vue-lib.jar}" compress="false" index="true" update="false" duplicate="preserve">
       <!-- zipgroupfileset is extremely picky and limited: each one can name one dir & one string represeting names from that dir,
         and cannont include sub-items, such as a filelist, which would have been a bit cleaner for an ordered set of jar files. -->
       <zipgroupfileset dir="${lib.home}" includes="${thirdparty.jarfiles.names}"/>
@@ -1123,7 +1125,7 @@
           description="Delete all build and intermediate files, leaving only the sources.">
     <delete dir="${build.home}"/>
     <delete dir="${linux.class}"/>
-    <delete file="VUE-core.jar"/>
+    <delete file="${vue-core.jar}"/>
     <!--delete file="VUE-lib.jar"/-->
     <delete file="VUE-lib-minimal.jar"/>
   </target>
