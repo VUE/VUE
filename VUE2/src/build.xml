@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.174 $ / $Date: 2009-01-27 15:00:21 $ / $Author: mike $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.174 2009-01-27 15:00:21 mike Exp $ -->
+<!-- $Revision: 1.175 $ / $Date: 2009-01-30 19:45:23 $ / $Author: mike $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.175 2009-01-30 19:45:23 mike Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -787,7 +787,6 @@
 
   <target name="run-jar-core">
     <jar zipfile="${vue-core.jar}" update="false" compress="false" index="true" duplicate="preserve">
-  	  <zipgroupfileset dir="${lib.home}" includes="${applet.jarfiles.names}"/>
       <fileset dir="${src}">
         <!-- exclude data/narravision?  2mb of meta-data... -->
         <exclude name="**/old/**"/>
@@ -812,10 +811,6 @@
         <include name="tufts/vue/gui/icons/**"/>
       </fileset>
       <fileset dir="${build.class}"/>
-    	
-    	  <indexjars>
-    		      	<fileset dir="${lib.home}"/>	
-    		      </indexjars>
     </jar>
   </target>
   <target name="jar-core-applet"
