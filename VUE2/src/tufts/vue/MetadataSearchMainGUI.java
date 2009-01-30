@@ -59,7 +59,6 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
-
 import tufts.Util;
 import tufts.vue.gui.DockWindow;
 import tufts.vue.gui.GUI;
@@ -78,7 +77,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.35 $ / $Date: 2009-01-21 19:52:49 $ / $Author: Sheejo
+ * @version $Revision: 1.36 $ / $Date: 2009-01-30 17:10:15 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -1089,7 +1088,7 @@ public class MetadataSearchMainGUI extends JPanel
     }
     public class ComboBoxAndOrRenderer implements TableCellRenderer {
 
-        Component combo = null;
+        JComboBox combo = null;
 
         public ComboBoxAndOrRenderer(JComboBox combo) {        	
             this.combo = combo;
@@ -1099,7 +1098,14 @@ public class MetadataSearchMainGUI extends JPanel
                 Object value, boolean isSelected, boolean hasFocus,
                 int row, int column) {
             if (searchTermsTable.getModel().getRowCount() > 1) {
+             
+               //Don't ask me how or why but this makes the combo box paint correctly on leopard.
+            	
+               if (Util.isMacLeopard())
+            	   combo.putClientProperty("JComboBox.isTableCellEditor",Boolean.FALSE);
                 combo.setVisible(true);
+             
+      
                 combo.setFont(tufts.vue.gui.GUI.LabelFace);                 
                 combo.repaint();
                 combo.invalidate();
@@ -1115,6 +1121,7 @@ public class MetadataSearchMainGUI extends JPanel
             return combo;
         }
     }
+   
     public void adjustColumnModel() {
 
         if (searchTermsTable == null)
