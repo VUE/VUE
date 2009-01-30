@@ -50,7 +50,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.452 $ / $Date: 2009-01-29 17:38:23 $ / $Author: sfraize $
+ * @version $Revision: 1.453 $ / $Date: 2009-01-30 21:39:27 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2715,12 +2715,16 @@ u                    getSlot(c).setFromString((String)value);
     final void layout(Object triggerKey) {
         if (mXMLRestoreUnderway == false) {
             
-            validateCoordinates();
+            //validateCoordinates();
             
             layoutImpl(triggerKey);
 
-            if (triggerKey == LWMap.NODE_INIT_LAYOUT)
+            if (triggerKey == LWMap.NODE_INIT_LAYOUT) {
+                validateCoordinates();
                 layoutSlideIcons(null);
+            } else if (triggerKey == LWMap.LINK_INIT_LAYOUT) {
+                validateCoordinates();
+            }
             // need a reshape/reshapeImpl for this (size/location changes)
             //if (mSlideIconBounds != null)
             //    mSlideIconBounds.x = Float.NaN; // invalidate
