@@ -43,11 +43,13 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.204 $ / $Date: 2009-01-29 17:39:11 $ / $Author: sfraize $
+ * @version $Revision: 1.205 $ / $Date: 2009-01-30 21:45:49 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
 {
+    protected static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LWLink.class);
+    
     // Ideally, we want this to be false: it's a more accurate representation of
     // what's displayed: the control points only show up when selected.
     private static final boolean IncludeControlPointsInBounds = false;
@@ -1173,6 +1175,14 @@ public class LWLink extends LWComponent
 
     public void setCtrlPoint0(float x, float y)
     {
+        if (Float.isNaN(x)) {
+            Log.warn("setCtrlPoint0/x; NaN not allowed");
+            x = NEEDS_DEFAULT;
+        }
+        if (Float.isNaN(y)) {
+            Log.warn("setCtrlPoint0/y; NaN not allowed");
+            y = NEEDS_DEFAULT;
+        }
 
         //IS THIS WORKING FOR UNDO???
             
@@ -1200,6 +1210,14 @@ public class LWLink extends LWComponent
     }
     public void setCtrlPoint1(float x, float y)
     {
+        if (Float.isNaN(x)) {
+            Log.warn("setCtrlPoint1/x; NaN not allowed");
+            x = NEEDS_DEFAULT;
+        }
+        if (Float.isNaN(y)) {
+            Log.warn("setCtrlPoint1/y; NaN not allowed");
+            y = NEEDS_DEFAULT;
+        }
         if (mCurveControls < 2) {
             setControlCount(2);
             if (DEBUG.UNDO) System.out.println("implied cubic curved link by setting a control point 1 " + this);
@@ -2560,14 +2578,61 @@ public class LWLink extends LWComponent
     @Override
     protected boolean validateCoordinates() {
 
-        // TODO: VALIDATE ENDPOINTS & CONTROL POINTS
+
+        boolean wasBad = false;
+
+        // VALIDATE ENDPOINTS
+        
+        if (Float.isNaN(head.x)) {
+            head.x = 0;
+            wasBad = true;
+            Log.warn(this + "; head x bad");
+        }
+        if (Float.isNaN(head.y)) {
+            head.y = 0;
+            wasBad = true;
+            Log.warn(this + "; head y bad");
+        }
+        if (Float.isNaN(tail.x)) {
+            tail.x = 0;
+            wasBad = true;
+            Log.warn(this + "; tail x bad");
+        }
+        if (Float.isNaN(tail.y)) {
+            tail.y = 0;
+            wasBad = true;
+            Log.warn(this + "; tail y bad");
+        }
+
+        // VALIDATE CONTROL POINTS
+
+//         if (mCurve == mQuad) {
+//             if (Float.isNaN(mQuad.ctrlx)) {
+//                 Log.warn(this + "; quad ctrlx bad");
+//                 mQuad.ctrlx = 0;
+//                 wasBad = true;
+//             }
+//             if (Float.isNaN(mQuad.ctrly)) {
+//                 Log.warn(this + "; quad ctrly bad");
+//                 mQuad.ctrly= 0;
+//                 wasBad = true;
+//             }
+//         }
+        
         
         if (super.validateCoordinates()) {
-            Log.warn(this + "; was bad: recomputing");
-            mRecompute = true;
-            return true;
-        } else
-            return false;
+            Log.warn(this + "; coordinates bad");
+            wasBad = true;
+        }
+
+//         if (wasBad) {
+//             mRecompute = true;
+//             Log.warn(this + "; was bad, recomputing");
+//         }
+
+        return wasBad;
+            
+
     }
 
     private static boolean badCurve(QuadCurve2D.Float c) {
