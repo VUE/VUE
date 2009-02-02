@@ -1,6 +1,7 @@
 package tufts.vue;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -47,6 +48,7 @@ public class SearchTextField extends JTextField {
 		
 		thisTxtFld = this;		
 		thisTxtFld.setText(VueResources.getString("search.text.default"));
+		thisTxtFld.setForeground(Color.gray);
 		GUI.init();
 		initMenuSettings();
 		if (!isWindows) {
@@ -56,6 +58,7 @@ public class SearchTextField extends JTextField {
 				fieldTxt = new JTextField(12);
 				fieldTxt.setBorder(null);
 				fieldTxt.setText(VueResources.getString("search.text.default"));
+				fieldTxt.setForeground(Color.gray);
 				createPopupMenu(isWindows);
 				fieldTxt.addMouseListener(new MouseAdapter() {
 					public void mousePressed(MouseEvent e) {
@@ -74,6 +77,7 @@ public class SearchTextField extends JTextField {
 									VueResources
 											.getString("search.text.default"))) {
 								fieldTxt.setText("");
+								fieldTxt.setForeground(Color.black);
 							}
 						}
 					}
@@ -164,6 +168,7 @@ public class SearchTextField extends JTextField {
 									VueResources
 											.getString("search.text.default"))) {
 								setText("");
+								setForeground(Color.black);
 							}
 						}
 					}
@@ -197,6 +202,7 @@ public class SearchTextField extends JTextField {
 			fieldTxt = new JTextField();
 			fieldTxt.setBorder(null);
 			fieldTxt.setText(VueResources.getString("search.text.default"));
+			fieldTxt.setForeground(Color.gray);
 			fieldTxt.setPreferredSize(new Dimension(135,18));
 			setPreferredSize(new Dimension(180,23));
 			Insets noInsets = new Insets(0, 15, 0, 25);
@@ -221,6 +227,8 @@ public class SearchTextField extends JTextField {
 					if (fieldTxt.getText().trim().equals(
 							VueResources.getString("search.text.default"))) {
 						fieldTxt.setText("");
+						fieldTxt.setForeground(Color.black);
+
 					}
 				}
 				public void mouseReleased(MouseEvent e) {
@@ -304,6 +312,8 @@ public class SearchTextField extends JTextField {
 						if (getText().trim().equals(
 								VueResources.getString("search.text.default"))) {
 							setText("");
+							setForeground(Color.black);
+
 						}
 					} else {
 						if (searcheveryWhereMenuItem.isSelected()) {
@@ -450,6 +460,9 @@ public class SearchTextField extends JTextField {
 
 	class PopupActionListener implements ActionListener {
 		public void actionPerformed(ActionEvent actionEvent) {
+			fieldTxt.setForeground(Color.black);
+			thisTxtFld.setForeground(Color.black);
+
 			if (VueResources.getString("search.popup.select.all").equals(
 					actionEvent.getActionCommand().toString())) {
 				if (Util.isMacTiger() || Util.isWindowsPlatform()) {
