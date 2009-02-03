@@ -115,7 +115,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.634 $ / $Date: 2009-01-28 22:49:44 $ / $Author: sraphe01 $ 
+ * @version $Revision: 1.635 $ / $Date: 2009-02-03 17:14:03 $ / $Author: sraphe01 $ 
  */
 
 public class VUE
@@ -2319,8 +2319,8 @@ public class VUE
         depthSelectionSlider.setPreferredSize(new Dimension(130,35));
         SliderActionListener lst = new SliderActionListener();        
         depthSelectionSlider.addChangeListener(lst);        
-             
-        sliderSearchPanel.add(depthSelectionSlider);
+        //For hiding deep search slider bar     
+        //sliderSearchPanel.add(depthSelectionSlider);
         sliderSearchPanel.add(new JLabel(" "));
         //mSearchtextFld.setPreferredSize(new Dimension(200,23));
         sliderSearchPanel.add(mSearchtextFld);
