@@ -77,7 +77,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.37 $ / $Date: 2009-02-04 15:31:17 $ / $Author: Sheejo
+ * @version $Revision: 1.38 $ / $Date: 2009-02-04 16:20:08 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -979,9 +979,13 @@ public class MetadataSearchMainGUI extends JPanel
             searchHeaderTbl.getColumnModel().getColumn(2).setCellEditor(
                     new AddButtonTableCellEditor());
             
-            
-            searchHeaderTbl.getColumnModel().getColumn(1).setMaxWidth(80);
-            searchHeaderTbl.getColumnModel().getColumn(1).setMinWidth(80);
+           if(Util.isMacLeopard()) {
+        	   searchHeaderTbl.getColumnModel().getColumn(1).setMaxWidth(75);
+        	   searchHeaderTbl.getColumnModel().getColumn(1).setMinWidth(75);
+           }else{
+        	   searchHeaderTbl.getColumnModel().getColumn(1).setMaxWidth(60);
+        	   searchHeaderTbl.getColumnModel().getColumn(1).setMinWidth(60);
+           }
             searchHeaderTbl.getColumnModel().getColumn(2).setMaxWidth(40);
             searchHeaderTbl.getColumnModel().getColumn(2).setMinWidth(40);
 
