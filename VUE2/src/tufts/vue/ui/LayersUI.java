@@ -37,7 +37,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.52 $ / $Date: 2009-02-04 00:39:29 $ / $Author: sraphe01 $
+ * @version $Revision: 1.53 $ / $Date: 2009-02-04 23:24:44 $ / $Author: sraphe01 $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -331,12 +331,13 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 //         }
         mToolbar.setBorder(new SubtleSquareBorder(true));
         add(mToolbar, BorderLayout.NORTH);
-        if (SCROLLABLE) {
-            final JScrollPane sp = new JScrollPane(mRowList);
+        if (SCROLLABLE) {        	
+            JScrollPane sp = new JScrollPane(mRowList);
+            sp.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
             //sp.setBorder(null);
             add(sp, BorderLayout.CENTER);
             sp.addMouseListener(RowMouseEnterExitTracker); // doesn't always work
-        } else {
+        } else {        	
             //mRowList.setSize(300, 40);
             //mRowList.setMaximumSize(new Dimension(300, 40));
             add(mRowList, BorderLayout.NORTH);
@@ -1182,7 +1183,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         private void mouseClicked(MouseEvent e)
         {
             if (GUI.isDoubleClick(e)) {
-                if (DEBUG.MOUSE) Log.debug("DOUBLE CLICK " + this);
+                if (DEBUG.MOUSE) Log.debug("DOUBLE CLICK " + this);                
                 setEditable(true);
                 requestFocus();
             }
@@ -1286,7 +1287,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         }
     }
 
-    private static final Insets LockedInsets = new Insets(4,4,4,4);
+    private static final Insets LockedInsets = new Insets(4,4,4,0);
     private static final Dimension LayerHeight = new Dimension(0, 38);
     private static final Dimension DefaultHeight = new Dimension(0, 28);
 
@@ -1417,7 +1418,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             setName(layer.toString());
             setLayout(new GridBagLayout());
             setBorder(new CompoundBorder(new MatteBorder(1,0,1,0, Color.lightGray),
-                                         GUI.makeSpace(3,7,3,7)));
+                                         GUI.makeSpace(3,7,3,0)));
             if (SCROLLABLE) {
                 if (layer instanceof Layer)
                     setPreferredSize(LayerHeight);
@@ -1446,7 +1447,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 locked.setIcon(VueResources.getImageIcon("lockOpen"));
                 locked.setSelectedIcon(VueResources.getImageIcon("lock"));
                 locked.setMargin(LockedInsets);
-                //locked.setBorder(GUI.makeSpace(1,5,5,1)); // no effect
+                locked.setBorder(GUI.makeSpace(1,5,5,1)); // no effect
             }
             
             locked.setSelected(layer.isLocked());
@@ -1454,7 +1455,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             locked.setOpaque(false);
             locked.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
-                        locked.setBorderPainted(locked.isSelected());
+                        //locked.setBorderPainted(locked.isSelected());
                         layer.setLocked(locked.isSelected());
                         if (layer == getActiveLayer() && !canBeActive(layer))
                             if (AUTO_ADJUST_ACTIVE_LAYER) attemptAlternativeActiveLayer(false);
@@ -1466,6 +1467,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                     public void actionPerformed(ActionEvent e) {
                         layer.setVisible(visible.isSelected());
                         locked.setEnabled(layer.isVisible());
+                        locked.setBorder(BorderFactory.createLineBorder(Color.red, 1));
                         label.setEnabled(layer.isVisible());
                         if (layer == getActiveLayer() && !canBeActive(layer))
                             if (AUTO_ADJUST_ACTIVE_LAYER) attemptAlternativeActiveLayer(false);
@@ -1492,7 +1494,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             
                 //grab = new JButton("Grab");
                 //grab.setFont(VueConstants.SmallFont);
-                grab = new JButton();
+                grab = new JRadioButton();                
                 grab.setName("grab");
                 grab.setToolTipText("Move selection to this layer");
                 grab.setBorderPainted(false);
@@ -1609,7 +1611,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 
                 c.weightx = 1;
                 c.fill = GridBagConstraints.HORIZONTAL;
-                c.insets.right = 4;
+                c.insets.right = 0;
                 add(box, c);
                 c.insets.left = 0;
                 //c.insets.right = 0;
@@ -1639,7 +1641,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             
             //add(Box.createHorizontalGlue(), c);
 
-            if (layer.hasFlag(INTERNAL)) {
+            if (layer.hasFlag(INTERNAL)) {            	
                 add(locked, c);
                 preview = null;
                 return;
@@ -1679,23 +1681,24 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 
             if (true) {
                 JPanel fixed = new JPanel(new BorderLayout());
-                fixed.setOpaque(false);
+                fixed.setOpaque(true);                
                 fixed.setBorder(GUI.makeSpace(3,1,3,1));
-                fixed.setMinimumSize(new Dimension(70, 0));
+                fixed.setMinimumSize(new Dimension(50, 0));
                 
                 //fixed.add(exclusive, BorderLayout.WEST);
+                grab.setMinimumSize(new Dimension(25, 0));
+                locked.setMinimumSize(new Dimension(25, 0));                            
                 fixed.add(grab, BorderLayout.CENTER);
-                fixed.add(locked, BorderLayout.EAST);
-                
+                fixed.add(locked, BorderLayout.EAST);                
                 c.fill = GridBagConstraints.BOTH;
                 add(fixed, c);
-            } else {
+            } else {            	
                 // old-style before we added hiding these on mouse roll-off
                 //add(activeIcon, c);
                 add(grab, c);
                 add(locked, c);
             }
-
+            //setBorder(BorderFactory.createLineBorder(Color.red, 1));
             // set initial visibility states by simulating a mouse roll-off
             rollOff(); 
 
@@ -1816,16 +1819,19 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 grab.setVisible(true);
                 //grab.setFocusable(false); // NO HELP ON IGNORING MOUSE-MOTION
             }
-            if (locked != null)
+            if (locked != null){
+            	//locked.setBorder(BorderFactory.createEmptyBorder(0, 35, 0, 0));
                 locked.setVisible(true);
+            }
             if (exclusive != null)
                 exclusive.setVisible(true);
 
         }
         
-        void rollOff() {
-            if (grab != null)
-                grab.setVisible(false);
+        void rollOff() {        	
+            if (grab != null){            	
+                grab.setVisible(false);                
+            }
             if (locked != null && !locked.isSelected())
                 locked.setVisible(false);
             if (exclusive != null && !exclusive.isSelected())
