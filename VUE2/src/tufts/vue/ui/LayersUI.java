@@ -37,7 +37,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.51 $ / $Date: 2009-01-26 21:33:09 $ / $Author: sraphe01 $
+ * @version $Revision: 1.52 $ / $Date: 2009-02-04 00:39:29 $ / $Author: sraphe01 $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -174,14 +174,14 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                     return mMap != null;
                 }
                 public void act() {                	
-                    mMap.addLayer("New Layer " + NewLayerCount++);                   
+                    mMap.addLayer("New Layer " + NewLayerCount++);                    
                 }
                 @Override
                 public String getUndoName() { return "New Layer"; }
             },
         
         
-        LAYER_DUPLICATE = new LayerAction("Duplicate", "Create a copy of a layer") {
+        LAYER_DUPLICATE = new LayerAction("Duplicate", "Duplicate Layer") {
 //                 public void act() {
 //                     for (LWComponent c : reverse(selection()))
 //                         mMap.addChild(c.duplicate());
@@ -230,7 +230,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 }
             },
             
-            LAYER_FILTER = new LayerAction("Filter", "Filter") {
+            LAYER_FILTER = new LayerAction("Filter", "Filter: Hide unselected layers") {
                 @Override
                 boolean enabledWith(Layer layer) {
                     return true;
@@ -304,7 +304,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         //addButton(LAYER_MERGE);
         addButton(LAYER_MERGE_DOWN);
         addButton(LAYER_FILTER);
-        addButton(LAYER_LOCK);
+        //addButton(LAYER_LOCK);
         addButton(LAYER_DELETE);
         gBC.weightx = 0.5;
         gBC.gridx = 1;
@@ -357,7 +357,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         VUE.getSelection().addListener(this);
         //VUE.addActiveListener(Layer.class, this);
         //VUE.addActiveListener(LWComponent.class, this);
-        setMinimumSize(new Dimension(300,120+40));
+        //setMinimumSize(new Dimension(300,260));      
     }
 
     private void addButton(Action a) {
@@ -438,7 +438,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         	b.setContentAreaFilled(false);
         	gBC.gridx = 4;
             gBC.gridy = 0;
-        }else if(b.getAction().equals(LAYER_LOCK)){
+        }/*else if(b.getAction().equals(LAYER_LOCK)){
         	b.setText("");
         	b.setIcon(tufts.vue.VueResources.getImageIcon("lockOpen"));
         	b.setRolloverEnabled(true);
@@ -449,7 +449,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         	b.setContentAreaFilled(false);
         	gBC.gridx = 5;
             gBC.gridy = 0;
-        }        
+        }  */      
         mToolbar.setLayout(gridbag);
         mToolbar.add(b,gBC);        
 
@@ -1683,7 +1683,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 fixed.setBorder(GUI.makeSpace(3,1,3,1));
                 fixed.setMinimumSize(new Dimension(70, 0));
                 
-                fixed.add(exclusive, BorderLayout.WEST);
+                //fixed.add(exclusive, BorderLayout.WEST);
                 fixed.add(grab, BorderLayout.CENTER);
                 fixed.add(locked, BorderLayout.EAST);
                 
