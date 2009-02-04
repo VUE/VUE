@@ -77,7 +77,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.36 $ / $Date: 2009-01-30 17:10:15 $ / $Author: Sheejo
+ * @version $Revision: 1.37 $ / $Date: 2009-02-04 15:31:17 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -980,8 +980,8 @@ public class MetadataSearchMainGUI extends JPanel
                     new AddButtonTableCellEditor());
             
             
-            searchHeaderTbl.getColumnModel().getColumn(1).setMaxWidth(60);
-            searchHeaderTbl.getColumnModel().getColumn(1).setMinWidth(60);
+            searchHeaderTbl.getColumnModel().getColumn(1).setMaxWidth(80);
+            searchHeaderTbl.getColumnModel().getColumn(1).setMinWidth(80);
             searchHeaderTbl.getColumnModel().getColumn(2).setMaxWidth(40);
             searchHeaderTbl.getColumnModel().getColumn(2).setMinWidth(40);
 
@@ -1103,12 +1103,13 @@ public class MetadataSearchMainGUI extends JPanel
             	
                if (Util.isMacLeopard())
             	   combo.putClientProperty("JComboBox.isTableCellEditor",Boolean.FALSE);
-                combo.setVisible(true);
+                
              
-      
-                combo.setFont(tufts.vue.gui.GUI.LabelFace);                 
-                combo.repaint();
-                combo.invalidate();
+          //      combo.setPreferredSize(new Dimension(60,30));
+                combo.setFont(tufts.vue.gui.GUI.LabelFace);        
+                combo.setVisible(true);
+                //combo.repaint();
+               // combo.invalidate();
                 table.revalidate();
                 table.repaint();
             } else {
