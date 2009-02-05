@@ -37,7 +37,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.53 $ / $Date: 2009-02-04 23:24:44 $ / $Author: sraphe01 $
+ * @version $Revision: 1.54 $ / $Date: 2009-02-05 21:13:01 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -188,7 +188,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 //                 }
                 public void act() {
                     final Layer dupe = (Layer) active.duplicate();
-                    mMap.addChild(dupe);
+                    mMap.addOnTop(active, dupe);
+                    setActiveLayer(dupe); // make the new duplicate layer the active layer
                 }
             },
         
