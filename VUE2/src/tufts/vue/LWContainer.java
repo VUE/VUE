@@ -31,7 +31,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, duplication, adding/removing and reordering (z-order) of children.
  *
- * @version $Revision: 1.153 $ / $Date: 2008-12-19 00:38:11 $ / $Author: sfraize $
+ * @version $Revision: 1.154 $ / $Date: 2009-02-05 21:11:01 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -318,6 +318,22 @@ public abstract class LWContainer extends LWComponent
 //             }
 //         }
 //     }
+
+    public void addOnTop(LWComponent existingChild, LWComponent newChild) {
+
+        final int index = indexOf(existingChild);
+
+        final Object context;
+
+        if (index < 0) {
+            Log.warn("not an existing child: " + existingChild);
+            context = ADD_DEFAULT;
+        } else {
+            context = Integer.valueOf(index + 1);
+        }
+
+        addChildren(Collections.singletonList(newChild), context);
+    }
     
     /**
      * This will add the contents of the iterable as children to the LWContainer.  If
@@ -437,7 +453,12 @@ public abstract class LWContainer extends LWComponent
         if (mChildren == NO_CHILDREN)
             mChildren = new ArrayList();
         
-        mChildren.add(c);
+        if (context.getClass() == Integer.class) {
+            // if context is an Integer, it means a specific index to add at 
+            mChildren.add( (Integer)context, c);
+        } else {
+            mChildren.add(c);
+        }
 
         // consider a real notifyAdd, or notifyAdding/notifyAdded
 
