@@ -47,7 +47,7 @@ import edu.tufts.vue.dsm.impl.VueDataSourceManager;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.129 $ / $Date: 2009-01-29 17:33:01 $ / $Author: sfraize $
+ * @version $Revision: 1.130 $ / $Date: 2009-02-05 21:49:38 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -158,10 +158,20 @@ public class VueMenuBar extends javax.swing.JMenuBar
 // //         }
 //     }
 
+    private static JCheckBoxMenuItem makeCheckBox(Action a) {
+        return makeCheckBox((VueAction) a);
+    }
+    
     private static JCheckBoxMenuItem makeCheckBox(VueAction a) {
+        return makeCheckBox(a, a.isToggler() ? a.getToggleState() : false);
+    }
+    
+    private static JCheckBoxMenuItem makeCheckBox(VueAction a, boolean initialState) {
         final JCheckBoxMenuItem item = new JCheckBoxMenuItem(a);
         //final JCheckBoxMenuItem item = new JCheckBoxMenuItem(a.getPermanentActionName());
-        item.setAccelerator(a.getKeyStroke());
+        if (a.getKeyStroke() != null)
+            item.setAccelerator(a.getKeyStroke());
+        item.setSelected(initialState);
         return item;
     }
     private static JCheckBoxMenuItem makeLinkedCheckBox(VueAction a) {
@@ -218,12 +228,12 @@ public class VueMenuBar extends javax.swing.JMenuBar
         // Initialize Actions
         ////////////////////////////////////////////////////////////////////////////////////
 
-        final JMenuItem splitScreenItem = new JCheckBoxMenuItem(Actions.ToggleSplitScreen);
+        final JMenuItem splitScreenItem = makeCheckBox(Actions.ToggleSplitScreen);
         final JMenuItem toggleSlideIconsItem = makeLinkedCheckBox(Actions.ToggleSlideIcons);
-        final JMenuItem togglePruningItem = new JCheckBoxMenuItem(Actions.TogglePruning);
-
+        final JMenuItem togglePruningItem = makeCheckBox(Actions.TogglePruning);
+        final JMenuItem toggleLinkLabelsItem = makeCheckBox(Actions.ToggleLinkLabels, LWLink.isDisplayLabelsEnabled());
         final JMenuItem toggleAutoZoomItem = makeCheckBox(Actions.ToggleAutoZoom);
-        toggleAutoZoomItem.setSelected(Actions.ToggleAutoZoom.getToggleState());
+        //toggleAutoZoomItem.setSelected(Actions.ToggleAutoZoom.getToggleState());
 
         ////////////////////////////////////////////////////////////////////////////////////
         // Initialize Actions
@@ -594,6 +604,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         	viewMenu.addSeparator();
         }
         viewMenu.add(togglePruningItem);
+        viewMenu.add(toggleLinkLabelsItem);
         
         // JAVA BUG: ADDING A JMenuItem (maybe just JCheckBoxMenuItem)
         // already constructe, instead of letting the menu code do it

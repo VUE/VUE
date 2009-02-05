@@ -2768,6 +2768,23 @@ public class Actions implements VueConstants
         }
     };
 
+    public static final VueAction ToggleLinkLabels =
+        new VueAction("Link Labels") {
+        public void act() {
+            boolean enabled = LWLink.isDisplayLabelsEnabled();
+
+            // Currently, this action is ONLY fired via a menu item.  If other code
+            // points might set this directly, this should be changed to a toggleState
+            // action (impl getToggleState), and those code points should call this
+            // action to do the toggle, so the menu item checkbox state will stay
+            // synced.
+
+            LWLink.setDisplayLabelsEnabled(!enabled);
+
+            VUE.getActiveViewer().repaint();
+        }
+    };
+    
     public static final VueAction ToggleAutoZoom =
         
         // 'E' chosen for temporary mac shortcut until we find a workaround for not

@@ -35,7 +35,7 @@ import javax.swing.Icon;
  * Base class for VueActions that don't use the selection.
  * @see Actions.LWCAction for actions that use the selection
  *
- * @version $Revision: 1.44 $ / $Date: 2008-07-30 19:32:05 $ / $Author: sfraize $ 
+ * @version $Revision: 1.45 $ / $Date: 2009-02-05 21:49:37 $ / $Author: sfraize $ 
  */
 public class VueAction extends javax.swing.AbstractAction
 {
@@ -215,6 +215,10 @@ public class VueAction extends javax.swing.AbstractAction
         return IS_NOT_A_TOGGLER;
     }
 
+    public boolean isToggler() {
+        return getToggleState() != IS_NOT_A_TOGGLER;
+    }
+
     private void setIcon(String iconSpec) {
         Icon icon = null;
         if (iconSpec.startsWith(":")) {
@@ -348,7 +352,7 @@ public class VueAction extends javax.swing.AbstractAction
                 act();
 
                 final Boolean state = getToggleState();
-                if (getToggleState() != IS_NOT_A_TOGGLER) {
+                if (state != IS_NOT_A_TOGGLER) {
                     //if (DEBUG.EVENTS) out("new toggle state: " + Util.tags(state));
                     updateTogglers(state);
                 }

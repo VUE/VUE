@@ -43,12 +43,15 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.205 $ / $Date: 2009-01-30 21:45:49 $ / $Author: sfraize $
+ * @version $Revision: 1.206 $ / $Date: 2009-02-05 21:49:37 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
 {
     protected static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LWLink.class);
+
+    private static boolean PruneControlsEnabled = false;
+    private static boolean DisplayLabels = true;
     
     // Ideally, we want this to be false: it's a more accurate representation of
     // what's displayed: the control points only show up when selected.
@@ -258,6 +261,30 @@ public class LWLink extends LWComponent
         setTail(tail);
         computeLink();
     }
+
+    public static void setPruningEnabled(boolean enabled) {
+        PruneControlsEnabled = enabled;
+    }
+    
+    public static boolean isPruningEnabled() {
+        return PruneControlsEnabled;
+    }
+
+
+    public static void setDisplayLabelsEnabled(boolean display) {
+        DisplayLabels = display;
+    }
+
+    public static boolean isDisplayLabelsEnabled() {
+        return DisplayLabels;
+    }
+
+    
+    @Override
+    public boolean hasLabel() {
+        return DisplayLabels && super.hasLabel();
+    }
+    
 
     private void initLink() {
         disableProperty(KEY_FillColor);
@@ -938,16 +965,6 @@ public class LWLink extends LWComponent
         return mControlPoints;
     }
 
-    private static boolean PruneControlsEnabled = false;
-
-    public static void setPruningEnabled(boolean enabled) {
-        PruneControlsEnabled = enabled;
-    }
-    
-    public static boolean isPruningEnabled() {
-        return PruneControlsEnabled;
-    }
-    
     
     /** This cleaup task can run so often, we put it right on the LWLink to prevent
      * all the extra new object creation.  If the endpoints of the link have
@@ -2751,9 +2768,13 @@ public class LWLink extends LWComponent
             } else if (mCurve == mCubic && badCurve(mCubic)) {
                 Log.warn("BAD CUBIC CURVE " + this + "; " + Util.fmt(mCubic));
             } else {
-                Log.debug(this + "; drawing " + Util.tags(mCurve));
-                g.draw(mCurve);
-                Log.debug(this + ";    drew " + Util.tags(mCurve));
+                if (DEBUG.LINK) {
+                    Log.debug(this + "; drawing " + Util.tags(mCurve));
+                    g.draw(mCurve);
+                    Log.debug(this + ";    drew " + Util.tags(mCurve));
+                } else {
+                    g.draw(mCurve);
+                }
             }
             
             if (DEBUG.BOXES) {
@@ -2893,7 +2914,7 @@ public class LWLink extends LWComponent
         //-------------------------------------------------------
         
         
-        if (hasLabel() && getLabelBox().getParent() == null) {
+        if (DisplayLabels && hasLabel() && getLabelBox().getParent() == null) {
             // todo perf minor: only get/check label box once (also done in drawLabel)
             // only draw if we have a label, and it's not an active edit on the map (parent == null)
             drawLabel(dc);
