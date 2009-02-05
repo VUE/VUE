@@ -37,7 +37,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.54 $ / $Date: 2009-02-05 21:13:01 $ / $Author: sfraize $
+ * @version $Revision: 1.55 $ / $Date: 2009-02-05 23:08:14 $ / $Author: sraphe01 $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -188,7 +188,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 //                 }
                 public void act() {
                     final Layer dupe = (Layer) active.duplicate();
-                    mMap.addOnTop(active, dupe);
+                     mMap.addOnTop(active, dupe);
                     setActiveLayer(dupe); // make the new duplicate layer the active layer
                 }
             },
@@ -1033,17 +1033,15 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         final Row row;
         
         public TextEdit(final Row row) {
-            this.row = row;
-
+            this.row = row;            
             setDragEnabled(false);
             setPreferredSize(MaxSize);
             setMaximumSize(MaxSize);
             
             setText(row.layer.getDisplayLabel());
-
+            setToolTipText(row.layer.getDisplayLabel());
             enableEvents(AWTEvent.MOUSE_EVENT_MASK);
-            enableEvents(AWTEvent.MOUSE_MOTION_EVENT_MASK);
-
+            enableEvents(AWTEvent.MOUSE_MOTION_EVENT_MASK);            
             addFocusListener(this);
             addKeyListener(new KeyAdapter() {
                     public void keyPressed(KeyEvent e) {
@@ -1069,8 +1067,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                             // text is wider than the display area.
                             
                             return;
-                        }
-                        
+                        }                        
                         setText(text);
                         setScrollOffset(0);
                         // also do this later just in case: somes helps, tho
@@ -1124,13 +1121,13 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 
         private void makeEditable(boolean edit) {
             if (DEBUG.Enabled) Log.debug("MAKE EDITABLE " + Util.tags(this) + " " + edit);
-            if (edit) {
+            if (edit) {            	
                 setFocusable(true);
                 setBorder(activeBorder);
                 setBackground(Color.white);
                 if (!TransparentHack)
                     setOpaque(true);
-            } else {
+            } else {            	
                 setFocusable(false);
                 setBorder(inactiveBorder);
                 if (TransparentHack) {
@@ -1188,8 +1185,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 setEditable(true);
                 requestFocus();
             }
-        }
-
+        }        
 
         public String toString() {
             return "TextEdit[" + row + "]";
@@ -1416,6 +1412,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         {
             this.layer = layer;
             label = new TextEdit(this);
+            setToolTipText(label.getText());
             setName(layer.toString());
             setLayout(new GridBagLayout());
             setBorder(new CompoundBorder(new MatteBorder(1,0,1,0, Color.lightGray),
@@ -1467,16 +1464,14 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             visible.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         layer.setVisible(visible.isSelected());
-                        locked.setEnabled(layer.isVisible());
-                        locked.setBorder(BorderFactory.createLineBorder(Color.red, 1));
-                        label.setEnabled(layer.isVisible());
+                        locked.setEnabled(layer.isVisible());                        
+                        label.setEnabled(layer.isVisible());                        
                         if (layer == getActiveLayer() && !canBeActive(layer))
                             if (AUTO_ADJUST_ACTIVE_LAYER) attemptAlternativeActiveLayer(false);
                             
                     }});
 
-            label.setEnabled(layer.isVisible());
-            
+            label.setEnabled(layer.isVisible());            
             
             if (layer instanceof Layer) {
 
@@ -1529,7 +1524,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             final JLabel info = new JLabel()
                 //{ public Dimension getMinimumSize() { return GUI.ZeroSize; } }
                 ;
-            
+            info.setMinimumSize(new Dimension(40,30));
             if (layer.supportsChildren()) {
                 
                 // This might slow down undo of some large-set operations in large maps,
@@ -1551,7 +1546,12 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                                 counts += nChild;
                             if (allChildren != nChild)
                                 counts += "/" + allChildren;
-                            info.setText(counts);
+                            
+                            if(counts.length()==0){
+                            	info.setText("");
+                            }else{
+                            	info.setText("("+counts+")");
+                            }
                             //if (DEBUG.Enabled) { Row.this.validate(); GUI.paintNow(Row.this); } // slower
                             // above will usually cause a deadlock tho when dropping images and this UI is visible
                             //if (DEBUG.Enabled) { Row.this.validate(); GUI.paintNow(info); } // faster
@@ -1596,7 +1596,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 // in all rows will always have the same width, keeping everything
                 // in alignment
                 
-                info.setMinimumSize(GUI.ZeroSize);
+                info.setMinimumSize(new Dimension(40,23));                
+                label.setCaretPosition(0);                
                 //info.addMouseListener(RowMouseEnterExitTracker);
                 Box box = new Box(BoxLayout.X_AXIS);
                 //JPanel box = new JPanel();
@@ -1815,7 +1816,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             
         }
 
-        void rollOn() {
+        void rollOn() { 
+        	
             if (grab != null) {
                 grab.setVisible(true);
                 //grab.setFocusable(false); // NO HELP ON IGNORING MOUSE-MOTION
@@ -1829,7 +1831,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 
         }
         
-        void rollOff() {        	
+        void rollOff() { 
+        	
             if (grab != null){            	
                 grab.setVisible(false);                
             }
