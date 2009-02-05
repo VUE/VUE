@@ -2781,7 +2781,7 @@ public class Actions implements VueConstants
 
             LWLink.setDisplayLabelsEnabled(!enabled);
 
-            VUE.getActiveViewer().repaint();
+            VUE.getActiveMap().notify(this, LWKey.Repaint);
         }
     };
     
