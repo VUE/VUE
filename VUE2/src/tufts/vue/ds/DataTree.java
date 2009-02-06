@@ -37,6 +37,7 @@ import java.net.URL;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.dnd.*;
+import java.awt.geom.RectangularShape;
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.event.*;
@@ -46,7 +47,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.30 $ / $Date: 2009-01-29 19:42:08 $ / $Author: sfraize $
+ * @version $Revision: 1.31 $ / $Date: 2009-02-06 15:51:25 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -820,12 +821,15 @@ public class DataTree extends javax.swing.JTree
     }
 
 
-    private static void addDataLinksForNewNodes(LWMap map, List<LWComponent> nodes, Field field) {
+    private static boolean addDataLinksForNewNodes(LWMap map, List<LWComponent> nodes, Field field) {
         
         List<LWLink> links = makeDataLinksForNodes(map, nodes, field);
 
-        if (links.size() > 0)
+        if (links.size() > 0) {
             map.getInternalLayer("*Data Links*").addChildren(links);
+            return true;
+        } else
+            return false;
     }
     
     
@@ -857,7 +861,7 @@ public class DataTree extends javax.swing.JTree
 
                 nodes = makeRowNodes(schema, treeNode.getRow());
                 
-            } else if (treeNode.isSchematic()) {
+            } else if (treeNode.isRecordNode()) {
 
                 List<LWComponent> _nodes = null;
                 Log.debug("PRODUCING ALL DATA NODES");
@@ -903,16 +907,16 @@ public class DataTree extends javax.swing.JTree
             //for (LWComponent c : nodes)c.setToNaturalSize();
             // todo: some problem editing template values: auto-size not being handled on label length shrinkage
             
-            // Currently, links must be added before the LayoutActions
-            // are called, or they fail to work and/or throw NPE
-            addDataLinksForNewNodes(map, nodes, treeNode.getField());
+            final boolean addedLinks = addDataLinksForNewNodes(map, nodes, treeNode.getField());
 
             if (nodes.size() > 1) {
-                if (treeNode.isSchematic()) {
-                    tufts.vue.LayoutAction.table.act(nodes);
-                } else {
+                if (treeNode.isRecordNode()) {
+                    tufts.vue.LayoutAction.random.act(nodes);
+                } else if (addedLinks) {
+                    // cluster will currently fail (NPE) if no data-links exist
                     tufts.vue.LayoutAction.cluster.act(nodes);
-                }
+                } else
+                    tufts.vue.LayoutAction.circle.act(nodes);
             }
 
             // for re-annotating the tree
@@ -1199,7 +1203,7 @@ public class DataTree extends javax.swing.JTree
             return isValue();
         }
         
-        boolean isSchematic() {
+        boolean isRecordNode() {
             return getField() == null;
         }
 
@@ -1539,20 +1543,26 @@ public class DataTree extends javax.swing.JTree
 
     private static final java.awt.geom.Rectangle2D IconSize
         = new java.awt.geom.Rectangle2D.Float(0,0,IconWidth,IconHeight);
+//     private static final java.awt.geom.Rectangle2D IconInsetSize
+//         = new java.awt.geom.Rectangle2D.Float(1,2,IconWidth-2,IconHeight-4);
     
     private static final NodeIconPainter FieldIconPainter = new NodeIconPainter();
 
     private static final Icon EmptyIcon = new GUI.EmptyIcon(IconWidth, IconHeight);
+
+    private static final double ViewScaleDown = 0.5;
+    private static final double ViewScale = 1 / ViewScaleDown;
+    private static final java.awt.geom.Rectangle2D IconViewSize
+        = new java.awt.geom.Rectangle2D.Double(1*ViewScale,
+                                              3*ViewScale,
+                                              (IconWidth-2) * ViewScale,
+                                              (IconHeight-6) * ViewScale);
     
     
     private static class NodeIconPainter implements Icon {
 
         LWComponent node;
         Color fill;
-
-//         NodeIcon(LWComponent c) {
-//             node = c;
-//         }
 
         public Icon load(LWComponent c, Color fill) {
             this.node = c;
@@ -1563,10 +1573,12 @@ public class DataTree extends javax.swing.JTree
         public int getIconWidth() { return IconWidth; }
         public int getIconHeight() { return IconHeight; }
         
-        public void paintIcon(Component c, Graphics g, int x, int y) {
+        public void paintIcon(Component c, Graphics _g, int x, int y) {
             //Log.debug("x="+x+", y="+y);
             
-            ((java.awt.Graphics2D)g).setRenderingHint
+            java.awt.Graphics2D g = (java.awt.Graphics2D) _g;
+            
+            g.setRenderingHint
                 (java.awt.RenderingHints.KEY_ANTIALIASING,
                  java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
 
@@ -1580,11 +1592,22 @@ public class DataTree extends javax.swing.JTree
                     g.fillRect(0,0,IconWidth+8,IconHeight+8);
                 }
             }
+
+            // we should only be seeing LWNode's, which always have RectanularShape
+            final RectangularShape shape = (RectangularShape) node.getZeroShape();
+
+            shape.setFrame(IconViewSize);
+            g.setColor(node.getFillColor());
+            g.scale(ViewScaleDown, ViewScaleDown);
+            g.fill(shape);
+            g.scale(ViewScale, ViewScale);
+
+            //node.setSize(IconSize);
             
-            node.drawFit(new DrawContext(g.create(), node),
-                         IconSize,
-                         2);
-            //node.drawFit(g, x, y);
+//             node.drawFit(new DrawContext(g.create(), node),
+//                          IconSize,
+//                          2);
+//             //node.drawFit(g, x, y);
         }
     
     }

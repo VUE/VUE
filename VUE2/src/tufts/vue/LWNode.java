@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.239 $ / $Date: 2008-12-19 00:38:11 $ / $Author: sfraize $
+ * @version $Revision: 1.240 $ / $Date: 2009-02-06 15:51:24 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -341,7 +341,7 @@ public class LWNode extends LWContainer
     }
     
     @Override
-    public Shape getZeroShape() {
+    public RectangularShape getZeroShape() {
         return mShape;
     }
 
