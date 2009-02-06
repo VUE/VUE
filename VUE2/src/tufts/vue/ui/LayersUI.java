@@ -37,7 +37,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.55 $ / $Date: 2009-02-05 23:08:14 $ / $Author: sraphe01 $
+ * @version $Revision: 1.56 $ / $Date: 2009-02-06 22:35:57 $ / $Author: sraphe01 $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -131,6 +131,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         protected void updateSelectionWatchers() {
             super.updateSelectionWatchers();
             updateLayerActionEnabled(getActiveLayer());
+            
         }
 
         @Override
@@ -232,14 +233,35 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             },
             
             LAYER_FILTER = new LayerAction("Filter", "Filter: Hide unselected layers") {
+            	boolean flg = true;
                 @Override
                 boolean enabledWith(Layer layer) {
                     return true;
                 }
                 @Override
                 public void act() {
-                   
+                	//sheejo     
+                	if(flg){	                	
+	                	((JButton)mToolbar.getComponent(3)).setBorderPainted(true);
+	                	((JButton)mToolbar.getComponent(3)).setContentAreaFilled(true);	
+	                	//super.updateSelectionWatchers();	                	
+	                	Layer layer = getActiveLayer();
+	                	setActiveLayer((Layer) layer, !UPDATE);
+	                	VUE.getSelection().setTo(layer.getAllDescendents());
+//	                	if (VUE.getSelection() !=null)
+//	            			VUE.getSelection().add(layer.getChildren());
+//	            		else
+//	            			VUE.getSelection().setTo(new LWSelection(layer.getChildren()));    		
+	            		          		
+	            		
+	                	flg = !flg;
+                	}else{
+                		((JButton)mToolbar.getComponent(3)).setBorderPainted(false);
+	                	((JButton)mToolbar.getComponent(3)).setContentAreaFilled(false);
+	                	flg = !flg;
+                	}
                 }
+                
             },
             
             LAYER_LOCK = new LayerAction("Lock", "Lock") {
@@ -288,8 +310,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
          
     public LayersUI() {
         super("layers");
-        setName("layersUI");
-        
+        setName("layersUI");        
         //setLayout(new GridBagLayout());
 
         mToolbar.setName("layersUI.tool");
@@ -429,12 +450,12 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         	b.setContentAreaFilled(false);
         	gBC.gridx = 6;
             gBC.gridy = 0;
-        }else if(b.getAction().equals(LAYER_FILTER)){
+        }else if(b.getAction().equals(LAYER_FILTER)){        	
         	b.setText("");
         	b.setIcon(tufts.vue.VueResources.getImageIcon("layer.filter.off"));
         	b.setRolloverEnabled(true);
         	b.setRolloverIcon(VueResources.getImageIcon("layer.filter.on"));
-        	b.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
+        	b.setBorder(BorderFactory.createEmptyBorder(1,1,1,1));
         	//b.setHorizontalAlignment(JButton.LEADING); // optional
         	b.setBorderPainted(false);
         	b.setContentAreaFilled(false);
@@ -1855,8 +1876,11 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             		
             	}else{
             		VUE.getSelection().setTo(layer.getAllDescendents());
-            	}
+            	}            	
             }
+            if(((JButton)mToolbar.getComponent(3)).isBorderPainted()){
+        		VUE.getSelection().setTo(layer.getAllDescendents());
+        	}
         }
 
         public void mousePressed(MouseEvent e) {
