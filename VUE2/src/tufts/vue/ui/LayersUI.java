@@ -17,6 +17,7 @@ package tufts.vue.ui;
 
 import tufts.vue.*;
 import tufts.vue.ActiveEvent;
+import tufts.vue.MouseAdapter;
 import static tufts.vue.LWComponent.Flag.*;
 import static tufts.vue.LWComponent.HideCause.*;
 import static tufts.vue.LWComponent.ChildKind;
@@ -35,9 +36,11 @@ import java.awt.geom.Rectangle2D;
 import javax.swing.*;
 import javax.swing.border.*;
 
+import edu.tufts.vue.metadata.action.SearchAction;
+
 
 /**
- * @version $Revision: 1.56 $ / $Date: 2009-02-06 22:35:57 $ / $Author: sraphe01 $
+ * @version $Revision: 1.57 $ / $Date: 2009-02-08 21:48:12 $ / $Author: sraphe01 $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -79,7 +82,11 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
     //private static final Collection<VueAction> _selectionWatchers = new java.util.ArrayList();
 
     private static final Collection<LayerAction> AllLayerActions = new java.util.ArrayList();
-    
+    private JPopupMenu popupMenu = new JPopupMenu();
+    private JMenuItem renameMenuItem;
+    private JMenuItem duplicateMenuItem;
+    private JMenuItem lockMenuItem;
+    private JMenuItem deleteMenuItem;
     //private class LayerAction extends Actions.LWCAction {
     private class LayerAction extends VueAction {
 
@@ -243,7 +250,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 	//sheejo     
                 	if(flg){	                	
 	                	((JButton)mToolbar.getComponent(3)).setBorderPainted(true);
-	                	((JButton)mToolbar.getComponent(3)).setContentAreaFilled(true);	
+	                	((JButton)mToolbar.getComponent(3)).setContentAreaFilled(false);	
+	                	((JButton)mToolbar.getComponent(3)).setBorder(BorderFactory.createEtchedBorder(1));
 	                	//super.updateSelectionWatchers();	                	
 	                	Layer layer = getActiveLayer();
 	                	setActiveLayer((Layer) layer, !UPDATE);
@@ -380,7 +388,52 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         VUE.getSelection().addListener(this);
         //VUE.addActiveListener(Layer.class, this);
         //VUE.addActiveListener(LWComponent.class, this);
-        //setMinimumSize(new Dimension(300,260));      
+        //setMinimumSize(new Dimension(300,260));  
+        renameMenuItem = new JMenuItem("Re-Name");
+        popupMenu.add(renameMenuItem);
+        popupMenu.addSeparator();
+        renameMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent event) {
+            	System.err.println("Rename");
+            }
+        });
+        duplicateMenuItem = new JMenuItem("Duplicate");        
+        popupMenu.add(duplicateMenuItem);
+        popupMenu.addSeparator();
+        duplicateMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent event) {
+            	 Layer active = getActiveLayer();
+            	 final Layer dupe = (Layer) active.duplicate();
+                 mMap.addOnTop(active, dupe);
+                 setActiveLayer(dupe); // make the new duplicate layer the active layer
+            }
+        });
+        lockMenuItem = new JMenuItem("Lock");
+        popupMenu.add(lockMenuItem);
+        popupMenu.addSeparator();
+        lockMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent event) {
+            	System.err.println("Duplicate");
+            }
+        });
+        deleteMenuItem = new JMenuItem("Delete");                
+        popupMenu.add(deleteMenuItem);        
+        deleteMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent event) { 
+            	deleteMenuItem.setEnabled(true) ;
+            	Layer active = getActiveLayer();
+            	if(!active.isLocked()){
+	            	selectedIndex = active.getIndex();
+	            	mMap.deleteChildPermanently(active); // todo: LWMap should setActiveLayer(null) if active is deleted
+	            	mMap.setActiveLayer(null);                
+	                attemptAlternativeActiveLayer(true); // better if this tried to find the nearest layer, and not check last-active
+	                //VUE.getSelection().clearDeleted(); // in case any in delete layer were in selection [no auto-handled in UndoManager]
+	                if(mRows.size() == 1){
+	                	deleteMenuItem.setEnabled(false) ;
+	            	}
+            	}
+            }
+        });
     }
 
     private void addButton(Action a) {
@@ -408,7 +461,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         	b.setPreferredSize(new Dimension(90,30));
         	//b.setMinimumSize(new Dimension(90,30));
         	b.setRolloverIcon(VueResources.getImageIcon("metadata.editor.add.down"));
-        	b.setBorder(BorderFactory.createEmptyBorder(2,5,2,2));
+        	b.setBorder(BorderFactory.createEmptyBorder(2,5,2,2));        	
         	b.setHorizontalAlignment(JButton.LEADING); // optional
         	b.setBorderPainted(false);
         	b.setContentAreaFilled(false);
@@ -1562,7 +1615,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                             String counts = "";
                             final int nChild = layer.numChildren();
                             final int allChildren = layer.getDescendentCount();
-                                
+                            info.setForeground(Color.gray);   
                             if (nChild > 0)
                                 counts += nChild;
                             if (allChildren != nChild)
@@ -1861,8 +1914,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 locked.setVisible(false);
             if (exclusive != null && !exclusive.isSelected())
                 exclusive.setVisible(false);
-        }
-        
+        }        
         
         public void mouseClicked(MouseEvent e) {        	
             if (GUI.isDoubleClick(e)) {
@@ -1881,8 +1933,42 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             if(((JButton)mToolbar.getComponent(3)).isBorderPainted()){
         		VUE.getSelection().setTo(layer.getAllDescendents());
         	}
+            Layer active = getActiveLayer(); 
+            setActiveLayer((Layer) layer, !UPDATE);
+        	MouseListener popupListener = new PopupListener(active.isLocked());
+        	addMouseListener(popupListener);
+        	
+            
+        }        
+        class PopupListener extends MouseAdapter { 
+        	boolean lockFlg = true;
+        	PopupListener(boolean lockFlg){
+        		this.lockFlg = lockFlg;
+        	}
+            public void mousePressed(MouseEvent e) {            	
+                showPopup(e);
+            }
+            public void mouseReleased(MouseEvent e) {            	
+                showPopup(e);
+            }
+            private void showPopup(MouseEvent e) {
+                if (e.isPopupTrigger()) {              	            	
+                	if(lockFlg){
+                		setPopEnabled(false); 
+                	}else{
+                		setPopEnabled(true); 
+                	}
+                	popupMenu.show(e.getComponent(), e.getX(), e.getY());
+                	
+                }
+            }
+            private void setPopEnabled(boolean isFlg){
+            	duplicateMenuItem.setEnabled(isFlg);
+        		renameMenuItem.setEnabled(isFlg);                		
+        		lockMenuItem.setEnabled(isFlg); 
+        		deleteMenuItem.setEnabled(isFlg); 
+            }
         }
-
         public void mousePressed(MouseEvent e) {
 
             Log.debug(e);             
