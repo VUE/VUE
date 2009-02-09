@@ -122,6 +122,24 @@ public class MetadataList {
       fireListChanged();
     }
     
+    public int size()
+    {
+    	return metadataList.size();
+
+    }
+    
+    public void remove(int i)
+    {
+    	metadataList.remove(i);
+    	fireListChanged();
+    }
+    
+    
+    public VueMetadataElement get(int i)
+    {
+    	return metadataList.get(i);
+    }
+
     public void modify(VueMetadataElement element)
     {
       if(element.getType() == VueMetadataElement.CATEGORY)
