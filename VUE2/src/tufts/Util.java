@@ -20,6 +20,7 @@ import tufts.macosx.MacOSX;
 import java.io.*;
 import java.net.*;
 import java.lang.ref.*;
+import java.text.BreakIterator;
 import java.util.*;
 import java.util.List;
 import java.util.jar.*;
@@ -159,6 +160,40 @@ public class Util
         System.err.println("tufts.Util: " + s);
         Log.error(s);
     }
+
+    public static String formatLines(String target, int maxLength)
+    {
+    	 Locale currentLocale = new Locale ("en","US");
+
+    	return formatLines(target,maxLength,currentLocale);
+    }
+    
+    public static String formatLines(String target, int maxLength, 
+            Locale currentLocale) {
+    	String s ="";
+    	
+		BreakIterator boundary = BreakIterator.getLineInstance(currentLocale);
+		boundary.setText(target);
+		int start = boundary.first();
+		int end = boundary.next();
+		int lineLength = 0;
+		
+		while (end != BreakIterator.DONE) {
+			String word = target.substring(start,end);
+			lineLength = lineLength + word.length();
+			if (lineLength >= maxLength) {
+				s+="\n";
+				System.out.println();
+				lineLength = word.length();
+			}
+			
+			s+=word;
+			System.out.print(word);
+			start = end;
+			end = boundary.next();
+		}
+		return s;
+    } 
 
     /*
      * Be sure to compare this value to a constant *float*
