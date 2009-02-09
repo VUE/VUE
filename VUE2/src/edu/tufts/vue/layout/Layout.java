@@ -16,14 +16,12 @@
  * or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
-
-
 /**
  *
  * @author akumar03
  */
-
 package edu.tufts.vue.layout;
+
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -33,13 +31,19 @@ import tufts.vue.*;
 import edu.tufts.vue.dataset.*;
 
 public abstract class Layout {
-    public  double  MAP_SIZE = 500;
-    public  int MAX_SIZE =5000;
+
+    public double MAP_SIZE = 500;
+    public int MAX_SIZE = 5000;
+    public static final double X_COL_SIZE = 100;
+    public static final double Y_COL_SIZE = 30;
+    public static final double X_SPACING = 15;
+    public static final double Y_SPACING = 12;
+
     /** Creates a new instance of Layout */
     public Layout() {
     }
-    public abstract LWMap createMap(Dataset ds,String mapName) throws Exception;
-    
+
+    public abstract LWMap createMap(Dataset ds, String mapName) throws Exception;
+
     public abstract void layout(LWSelection s) throws Exception;
-    
 }

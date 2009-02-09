@@ -40,10 +40,7 @@ import edu.tufts.vue.dataset.*;
  */
 public class TabularLayout extends Layout {
 
-    public static final double X_COL_SIZE = 100;
-    public static final double Y_COL_SIZE = 30;
-    public static final double X_SPACING = 15;
-    public static final double Y_SPACING = 12;
+
     public static final int DEFAULT_COL = 4;
 
     /** Creates a new instance of TabularLayout */
