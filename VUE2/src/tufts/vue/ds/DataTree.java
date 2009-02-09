@@ -47,7 +47,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.31 $ / $Date: 2009-02-06 15:51:25 $ / $Author: sfraize $
+ * @version $Revision: 1.32 $ / $Date: 2009-02-09 21:51:03 $ / $Author: mike $
  * @author  Scott Fraize
  */
 
@@ -697,7 +697,7 @@ public class DataTree extends javax.swing.JTree
     private static String makeLabel(Field f, Object value) {
 
         assert value != null;
-
+       
         return value.toString();
         //return value == null ? (f + "<null-value>") : value.toString();
         
@@ -719,6 +719,11 @@ public class DataTree extends javax.swing.JTree
             node.setStyle(field.getStyleNode());
 //         else
 //             tufts.vue.EditorManager.targetAndApplyCurrentProperties(node);
+        String target = node.getLabel();
+        
+        target = Util.formatLines(target, VueResources.getInt("dataNode.labelLength"));
+        
+        node.setLabel(target);
         return node;
 
     }
@@ -795,7 +800,11 @@ public class DataTree extends javax.swing.JTree
             }
 
             //Log.debug("produced node " + node);
+            String label = node.getLabel();
+
             
+            label = Util.formatLines(label, VueResources.getInt("dataNode.labelLength"));
+            node.setLabel(label);
             nodes.add(node);
         }
         
