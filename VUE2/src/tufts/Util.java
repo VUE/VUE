@@ -183,12 +183,12 @@ public class Util
 			lineLength = lineLength + word.length();
 			if (lineLength >= maxLength) {
 				s+="\n";
-				System.out.println();
+				//System.out.println();
 				lineLength = word.length();
 			}
 			
 			s+=word;
-			System.out.print(word);
+			//System.out.print(word);
 			start = end;
 			end = boundary.next();
 		}
