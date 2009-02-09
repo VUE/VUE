@@ -55,7 +55,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.143 $ / $Date: 2009-01-13 22:27:20 $ / $Author: sraphe01 $
+ * @version $Revision: 1.144 $ / $Date: 2009-02-09 16:44:54 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -1550,16 +1550,39 @@ public class DockWindow
                             if (wpp.isRolledUp())
                                 {        			
                                     mUnrolledShape = new Rectangle((int)p.getX(),(int)p.getY(),(int)size.getWidth(),(int)size.getHeight());
+                                    flickerAnchorDock();
                                     showRolledUp();
+                                    
+
                                 }
                             else
-                                setVisible(wpp.isWindowVisible());
+                            {
+                            	flickerAnchorDock();
+                            	setVisible(wpp.isWindowVisible());
+                            }
                         }    	
     			
                 }
         }    	
     }
     
+    private void flickerAnchorDock()
+    {
+    	  if (!VUE.isApplet() && Util.isMacLeopard() && VUE.getAnchorDock().isVisible())
+          {
+          	VUE.getAnchorDock().setVisible(false);
+          
+          }
+         
+         
+
+          if (!VUE.isApplet() && Util.isMacLeopard())
+          {	
+          	VUE.getAnchorDock().setVisible(true);
+          	VUE.getAnchorDock().toFront();
+          }
+          return;
+    }
     private boolean isPointFullyOnScreen(Point p, Dimension size, Dimension screenSize)
     {
     	int rightCorner =  (int)p.getX() + (int)size.getWidth();
