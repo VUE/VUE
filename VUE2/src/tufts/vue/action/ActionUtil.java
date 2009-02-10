@@ -65,7 +65,7 @@ import java.net.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistence thru castor XML.
  *
- * @version $Revision: 1.124 $ / $Date: 2009-01-13 22:26:36 $ / $Author: sraphe01 $
+ * @version $Revision: 1.125 $ / $Date: 2009-02-10 20:07:43 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -665,16 +665,32 @@ public class ActionUtil
         Log.debug("marshalling " + map + " ...");
         //map.addNode(new tufts.vue.LWNode("Hello World:"+((char)11)));
         try {
+
+            //-----------------------------------------------------------------------------
+            //-----------------------------------------------------------------------------
             // try the test map first
             // TODO: DOES NOT ACTUALLY DO A TEST WRITE FIRST
             // It will still completely blow away the user's map if there is any kind of error.
+            // Was this ever tested?
+            //-----------------------------------------------------------------------------
+            //-----------------------------------------------------------------------------
+
             marshaller.marshal(map);
             Log.debug("marshalled " + map + " to " + writer + "; file=" + file);
             writer.flush();
         } catch (Throwable t) {
             Log.error(file + "; " + map, t);
-            // TODO: This is a bad message.  This describes just one of many, many errors that may occur.
-            VueUtil.alert("The map contains characters that are not supported. Reverting to earlier saved version","Save Error");
+
+            //-----------------------------------------------------------------------------
+            // This was a poor choice of message.  This describes just one of many,
+            // many errors that may occur, and can be entirely misleading.
+            // VueUtil.alert("The map contains characters that are not supported. Reverting to earlier saved version",
+            //-----------------------------------------------------------------------------
+
+            VueUtil.alert("Save error; map file may now be corrupted -- try undoing until save works.\n\n"
+                          + "Problem description:\n" + Util.formatLines(t.toString(), 80),
+                          "Save Error");
+            
             try {
                 if (file != null) {
                     // revert map model version & save file
@@ -682,7 +698,7 @@ public class ActionUtil
                     map.setFile(oldSaveFile);
                 }
             } catch (Throwable tx) {
-                VueUtil.alert("This map cannot be saved.","Save Error");    
+                VueUtil.alert(Util.formatLines(tx.toString(), 80), "Internal Save Error");    
                 Util.printStackTrace(tx);
             } finally {
                 throw new WrappedMarshallException(t);
