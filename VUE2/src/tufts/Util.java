@@ -1499,7 +1499,9 @@ public class Util
         }
         
     }
-    
+    public static void dumpArray(Object[] a) {
+        dumpCollection(Arrays.asList(a));
+    }
 
     public static void dumpCollection(Collection c) {
         System.out.println("Collection of size: " + c.size() + " (" + c.getClass().getName() + ")");
@@ -1509,7 +1511,7 @@ public class Util
         int x = 0;
         while (i.hasNext()) {
             //System.out.println((x<10?" ":"") + x + ": " + i.next());
-            System.out.format("\t%2d: %s\n", x, i.next());
+            System.out.format("\t%2d: \"%s\"\n", x, i.next());
             x++;
         }
     }
