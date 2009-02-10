@@ -57,7 +57,7 @@ import sun.awt.shell.ShellFolder;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.131 $ / $Date: 2009-01-05 16:49:10 $ / $Author: mike $
+ * @version $Revision: 1.132 $ / $Date: 2009-02-10 19:29:23 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -1068,7 +1068,9 @@ public class GUI
                 out(GUI.name(c) + " showing containing window " + GUI.name(w));
                 if (DEBUG.META) tufts.Util.printStackTrace("showing containing window " + GUI.name(w));
             }
+            DockWindow.flickerAnchorDock();
             w.setVisible(true);
+            w.toFront();
         }
     }
 
