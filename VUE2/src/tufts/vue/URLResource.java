@@ -57,7 +57,7 @@ import sun.awt.shell.ShellFolder;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.81 $ / $Date: 2008-12-20 17:55:53 $ / $Author: sfraize $
+ * @version $Revision: 1.82 $ / $Date: 2009-02-10 20:07:12 $ / $Author: sfraize $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -787,7 +787,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
 
         if (root.getScheme() == null || !root.getScheme().equals(absURI.getScheme())) {
             //if (DEBUG.Enabled) out("differing schemes: " + root + " - " + absURI + "; can't be relative");
-            if (DEBUG.Enabled) Log.info(this + "; scheme=" + absURI.getScheme() + "; different scheme: " + root + "; can't be relative");
+            if (DEBUG.RESOURCE) Log.info(this + "; scheme=" + absURI.getScheme() + "; different scheme: " + root + "; can't be relative");
             return null;
         }
         
