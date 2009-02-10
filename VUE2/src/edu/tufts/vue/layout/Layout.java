@@ -34,8 +34,8 @@ public abstract class Layout {
 
     public double MAP_SIZE = 500;
     public int MAX_SIZE = 5000;
-    public static final double X_COL_SIZE = 100;
-    public static final double Y_COL_SIZE = 30;
+    public static final double X_COL_SIZE = 50;
+    public static final double Y_COL_SIZE = 20;
     public static final double X_SPACING = 15;
     public static final double Y_SPACING = 12;
 

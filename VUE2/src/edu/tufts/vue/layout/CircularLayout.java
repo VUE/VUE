@@ -52,33 +52,33 @@ public class CircularLayout extends Layout {
     }
     
     public   void layout(LWSelection selection) throws Exception {
-        double minX =10000;
-        double minY = 10000;
-        int nodeSize = 100; // we assume node size is 100 which needs to be fixed.
+        double minX = Double.POSITIVE_INFINITY;
+        double minY = Double.POSITIVE_INFINITY;
+        double xAdd = X_COL_SIZE; // default horizontal distance between the nodes
+        double  yAdd = Y_COL_SIZE; //default vertical distance between nodes
+
         int count = 0;
         int total = 0;
-        int mod = 4;
-        int xAdd = 100;
-        int yAdd = 50;
         Iterator<LWComponent> i = selection.iterator();
-        
         while (i.hasNext()) {
             LWComponent c = i.next();
             if(c instanceof LWNode) {
                 LWNode node = (LWNode)c;
                 minX = node.getLocation().getX()<minX?node.getLocation().getX():minX;
                 minY =node.getLocation().getY()<minY?node.getLocation().getY():minY;
+                xAdd = xAdd > node.getWidth() ? xAdd : node.getWidth();
+                yAdd = yAdd > node.getHeight() ? yAdd : node.getHeight();
                 total++;
 //               System.out.println(node.getLabel()+"X= "+node.getLocation().getX()+" Y= "+node.getLocation().getY()+" MIN: "+minX+" : "+minY);
             }
         }
         double x = minX;
         double y = minY;
-        double size = Math.sqrt(total)* nodeSize;
-        double radius = size/2;
+        double size = total* xAdd/4;
+        double radius = size;
         double centerX = x+radius;
         double centerY = y+radius;
-       i = selection.iterator();
+        i = selection.iterator();
         double angle = 0.0;
         while (i.hasNext()) {
             LWComponent c = i.next();
