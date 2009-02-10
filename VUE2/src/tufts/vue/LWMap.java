@@ -59,7 +59,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.226 $ / $Date: 2009-01-29 17:40:40 $ / $Author: sfraize $
+ * @version $Revision: 1.227 $ / $Date: 2009-02-10 20:06:59 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -975,7 +975,7 @@ public class LWMap extends LWContainer
         Layer layer = findLayer(name);
         if (layer == null) {
             layer = new Layer(name);
-            layer.setLocked(true); 
+            //layer.setLocked(true); 
             layer.setFlag(Flag.INTERNAL);
             addChild(layer);
             sendToBack(layer);
