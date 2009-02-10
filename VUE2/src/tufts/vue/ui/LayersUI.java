@@ -40,7 +40,7 @@ import edu.tufts.vue.metadata.action.SearchAction;
 
 
 /**
- * @version $Revision: 1.57 $ / $Date: 2009-02-08 21:48:12 $ / $Author: sraphe01 $
+ * @version $Revision: 1.58 $ / $Date: 2009-02-10 00:09:09 $ / $Author: sraphe01 $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -207,13 +207,18 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                     return mRows.size() > 1;
                 }
                 @Override
-                public void act() {                 	
-                	selectedIndex = active.getIndex();
-                	mMap.deleteChildPermanently(active); // todo: LWMap should setActiveLayer(null) if active is deleted
-                	mMap.setActiveLayer(null);
-                    //setActiveLayer(null, true);
-                    attemptAlternativeActiveLayer(true); // better if this tried to find the nearest layer, and not check last-active
-                    //VUE.getSelection().clearDeleted(); // in case any in delete layer were in selection [no auto-handled in UndoManager]
+                public void act() {      
+                	String message = "Are you sure you want to delete this layer and its content?";               
+                    if (JOptionPane.showConfirmDialog(null,
+                    		message, "Confirmation",
+                            JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION){
+	                	selectedIndex = active.getIndex();
+	                	mMap.deleteChildPermanently(active); // todo: LWMap should setActiveLayer(null) if active is deleted
+	                	mMap.setActiveLayer(null);
+	                    //setActiveLayer(null, true);
+	                    attemptAlternativeActiveLayer(true); // better if this tried to find the nearest layer, and not check last-active
+	                    //VUE.getSelection().clearDeleted(); // in case any in delete layer were in selection [no auto-handled in UndoManager]
+                    }
                 }				           
             },
         
@@ -394,6 +399,14 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         popupMenu.addSeparator();
         renameMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent event) {
+            	Layer layer = getActiveLayer();
+            	Row row = new Row(layer); 
+            	System.err.println("rename:::"+row.label.getText());
+            	//row.locked.setIcon(VueResources.getImageIcon("lock"));            	
+            	row.label.setVisible(true);
+            	row.label.setEnabled(true);
+            	row.label.setEditable(true);
+            	row.label.requestFocus();            	
             	System.err.println("Rename");
             }
         });
@@ -413,25 +426,40 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         popupMenu.addSeparator();
         lockMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent event) {
-            	System.err.println("Duplicate");
+            	Layer layer = getActiveLayer();
+            	Row row = new Row(layer); 
+            	System.err.println("row:::"+row.locked);
+            	//row.locked.setIcon(VueResources.getImageIcon("lock"));
+            	row.locked.setBorder(BorderFactory.createLineBorder(Color.red, 1));
+            	row.locked.revalidate();
+            	layer.setLocked(true);
+            	//System.err.println("layer:::"+layer.);
+                if (layer == getActiveLayer() && !canBeActive(layer))
+                    if (AUTO_ADJUST_ACTIVE_LAYER) attemptAlternativeActiveLayer(false);
             }
         });
         deleteMenuItem = new JMenuItem("Delete");                
         popupMenu.add(deleteMenuItem);        
         deleteMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent event) { 
-            	deleteMenuItem.setEnabled(true) ;
-            	Layer active = getActiveLayer();
-            	if(!active.isLocked()){
-	            	selectedIndex = active.getIndex();
-	            	mMap.deleteChildPermanently(active); // todo: LWMap should setActiveLayer(null) if active is deleted
-	            	mMap.setActiveLayer(null);                
-	                attemptAlternativeActiveLayer(true); // better if this tried to find the nearest layer, and not check last-active
-	                //VUE.getSelection().clearDeleted(); // in case any in delete layer were in selection [no auto-handled in UndoManager]
-	                if(mRows.size() == 1){
-	                	deleteMenuItem.setEnabled(false) ;
-	            	}
-            	}
+            	deleteMenuItem.setEnabled(true);
+            	// Modal dialog with OK button
+                String message = "Are you sure you want to delete this layer and its content?";               
+                if (JOptionPane.showConfirmDialog(null,
+                		message, "Confirmation",
+                        JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION){                
+                	Layer active = getActiveLayer();
+                	if(!active.isLocked()){
+    	            	selectedIndex = active.getIndex();
+    	            	mMap.deleteChildPermanently(active); // todo: LWMap should setActiveLayer(null) if active is deleted
+    	            	mMap.setActiveLayer(null);                
+    	                attemptAlternativeActiveLayer(true); // better if this tried to find the nearest layer, and not check last-active
+    	                //VUE.getSelection().clearDeleted(); // in case any in delete layer were in selection [no auto-handled in UndoManager]
+    	                if(mRows.size() == 1){
+    	                	deleteMenuItem.setEnabled(false) ;
+    	            	}
+                	}
+                }            	
             }
         });
     }
@@ -794,9 +822,9 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                     if (layersInSelection.contains(row.layer)) {
                         //row.layer.setSelected(true);
                         if (row.layer == activeLayer){
-                            row.setBackground(ActiveBG); 
+                            row.setBackground(ActiveBG);                             
                             if(layersInSelection.size()>1){
-                            	row.setBorder(BorderFactory.createLineBorder(Color.red, 2));
+                            	row.setBorder(BorderFactory.createLineBorder(Color.blue, 2));
                             }
                         }
                         else{
@@ -809,8 +837,9 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                         //row.layer.setSelected(false);
                         if (row.layer == activeLayer){
                             row.setBackground(ActiveBG);
+                            Color blockColor = new Color(183,219,255);
                             if(layersInSelection.size()>1){
-                            	row.setBorder(BorderFactory.createLineBorder(Color.red, 2));
+                            	row.setBorder(BorderFactory.createLineBorder(Color.blue, 2));
                             }
                         }
                         else{
@@ -1527,7 +1556,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             locked.setOpaque(false);
             locked.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
-                        //locked.setBorderPainted(locked.isSelected());
+                        //locked.setBorderPainted(locked.isSelected());                    	
                         layer.setLocked(locked.isSelected());
                         if (layer == getActiveLayer() && !canBeActive(layer))
                             if (AUTO_ADJUST_ACTIVE_LAYER) attemptAlternativeActiveLayer(false);
@@ -1933,8 +1962,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             if(((JButton)mToolbar.getComponent(3)).isBorderPainted()){
         		VUE.getSelection().setTo(layer.getAllDescendents());
         	}
-            Layer active = getActiveLayer(); 
-            setActiveLayer((Layer) layer, !UPDATE);
+            Layer active = getActiveLayer();            
         	MouseListener popupListener = new PopupListener(active.isLocked());
         	addMouseListener(popupListener);
         	
