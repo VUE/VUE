@@ -55,7 +55,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.144 $ / $Date: 2009-02-09 16:44:54 $ / $Author: mike $
+ * @version $Revision: 1.145 $ / $Date: 2009-02-10 19:17:50 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -1397,6 +1397,7 @@ public class DockWindow
     
     //@Override
     public void setVisible(boolean show) {
+    	
         setVisible(show, true);
     }
 
@@ -1550,14 +1551,14 @@ public class DockWindow
                             if (wpp.isRolledUp())
                                 {        			
                                     mUnrolledShape = new Rectangle((int)p.getX(),(int)p.getY(),(int)size.getWidth(),(int)size.getHeight());
-                                    flickerAnchorDock();
+                                    DockWindow.flickerAnchorDock();
                                     showRolledUp();
                                     
 
                                 }
                             else
                             {
-                            	flickerAnchorDock();
+                            	DockWindow.flickerAnchorDock();
                             	setVisible(wpp.isWindowVisible());
                             }
                         }    	
@@ -1566,7 +1567,7 @@ public class DockWindow
         }    	
     }
     
-    private void flickerAnchorDock()
+    public static void flickerAnchorDock()
     {
     	  if (!VUE.isApplet() && Util.isMacLeopard() && VUE.getAnchorDock().isVisible())
           {

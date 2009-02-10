@@ -115,7 +115,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.637 $ / $Date: 2009-02-10 19:05:10 $ / $Author: mike $ 
+ * @version $Revision: 1.638 $ / $Date: 2009-02-10 19:17:57 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -1852,7 +1852,7 @@ public class VUE
         	formatDock.setLocation(GUI.GInsets.left+VueResources.getInt("formatting.location.x"),
                     			   GUI.GInsets.top +VueResources.getInt("formatting.location.y"));        	
         	
-            	
+            DockWindow.flickerAnchorDock();
         	formatDock.setVisible(true);
         	//DR_BROWSER_DOCK.setVisible(true);
             
