@@ -40,7 +40,7 @@ import edu.tufts.vue.dataset.*;
 public class ListRandomLayout extends Layout {
 
     public static String DEFAULT_METADATA_LABEL = "default";
-    public static final double FACTOR = 1.50;
+    public static final double FACTOR = 1.5;
     public static final int MAX_COLLISION_CHECK = 20; // check number of times to check for collisions
 
     /** Creates a new instance of ListRandomLayout */
@@ -120,6 +120,8 @@ public class ListRandomLayout extends Layout {
         // also compute the total number of nodes in the selection
         double minX = Double.POSITIVE_INFINITY;
         double minY = Double.POSITIVE_INFINITY;
+        double xAdd = X_COL_SIZE; // default horizontal distance between the nodes
+        double yAdd = Y_COL_SIZE; //default vertica
         int total = 0;
         Iterator<LWComponent> i = selection.iterator();
         while (i.hasNext()) {
@@ -128,12 +130,14 @@ public class ListRandomLayout extends Layout {
                 LWNode node = (LWNode) c;
                 minX = node.getLocation().getX() < minX ? node.getLocation().getX() : minX;
                 minY = node.getLocation().getY() < minY ? node.getLocation().getY() : minY;
+                 xAdd = xAdd > node.getWidth() ? xAdd : node.getWidth();
+                yAdd = yAdd > node.getHeight() ? yAdd : node.getHeight();
                 total++;
             }
         }
 
-        double xSize = Math.sqrt(total) * (X_COL_SIZE + X_SPACING) * FACTOR;
-        double ySize = Math.sqrt(total) * (Y_COL_SIZE + Y_SPACING) * FACTOR;
+        double xSize = Math.sqrt(total) * (xAdd+ X_SPACING) * FACTOR;
+        double ySize = Math.sqrt(total) * (yAdd + Y_SPACING) * FACTOR;
         i = selection.iterator();
         while (i.hasNext()) {
             LWComponent c = i.next();

@@ -74,17 +74,18 @@ public class CircularLayout extends Layout {
         }
         double x = minX;
         double y = minY;
-        double size = total* xAdd/4;
-        double radius = size;
-        double centerX = x+radius;
-        double centerY = y+radius;
+        double size = total* xAdd/8;
+        double radiusX = size;
+        double radiusY = total*yAdd/4;
+        double centerX = x+radiusX;
+        double centerY = y+radiusY;
         i = selection.iterator();
         double angle = 0.0;
         while (i.hasNext()) {
             LWComponent c = i.next();
             if(c instanceof LWNode) {
                 LWNode node = (LWNode)c;
-                node.setLocation(centerX+radius*Math.cos(angle),centerY+radius*Math.sin(angle));
+                node.setLocation(centerX+radiusX*Math.cos(angle),centerY+radiusY*Math.sin(angle));
                 count++;
                 angle = Math.PI*2*count/total;
             }
