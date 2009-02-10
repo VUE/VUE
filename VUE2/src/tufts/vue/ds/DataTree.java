@@ -47,7 +47,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.32 $ / $Date: 2009-02-09 21:51:03 $ / $Author: mike $
+ * @version $Revision: 1.33 $ / $Date: 2009-02-10 16:52:59 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -307,7 +307,7 @@ public class DataTree extends javax.swing.JTree
                 //desc = String.format("matching<br><b>%s</b> = \'%s\'", fieldName, fieldValue);
                 //desc = String.format("matching<br><b>%s: <i>%s", fieldName, fieldValue);
                 desc = String.format("<b>%s: <i>%s</i>", fieldName, fieldValue);
-                Log.debug("searching for " + fieldName + "=" + fieldValue + " in " + tree.mActiveMap);
+                Log.debug("searching for " + fieldName + "='" + fieldValue + "' in " + tree.mActiveMap);
                 for (LWComponent c : searchSet) {
                     if (c.hasDataValue(fieldName, fieldValue) && !c.isSchematicField())
                         hits.add(c);
@@ -600,12 +600,10 @@ public class DataTree extends javax.swing.JTree
                         
             } else {
                 final String count = String.format("%3d", e.getCount()).replaceAll(" ", "&nbsp;");
-                final String display = String.format(HTML("<code>%s</code> <b>%s</b>"),
+                //final String display = String.format(HTML("<code>%s</code> <b>%s</b>"),
+                final String display = String.format(HTML("<code>%s</code> %s"),
                                                      count,
                                                      value);
-//                 final String display = String.format(HTML("<code>%3d</code> <b>(%s)</b>"),
-//                                                      e.getValue(),
-//                                                      e.getKey());
 
                 valueNode = new ValueNode(field, value, display);
                 
@@ -1562,10 +1560,10 @@ public class DataTree extends javax.swing.JTree
     private static final double ViewScaleDown = 0.5;
     private static final double ViewScale = 1 / ViewScaleDown;
     private static final java.awt.geom.Rectangle2D IconViewSize
-        = new java.awt.geom.Rectangle2D.Double(1*ViewScale,
-                                              3*ViewScale,
-                                              (IconWidth-2) * ViewScale,
-                                              (IconHeight-6) * ViewScale);
+        = new java.awt.geom.Rectangle2D.Double(2*ViewScale,
+                                              4*ViewScale+0.5,
+                                              (IconWidth-4) * ViewScale,
+                                              (IconHeight-8) * ViewScale);
     
     
     private static class NodeIconPainter implements Icon {
