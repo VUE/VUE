@@ -30,6 +30,7 @@ import tufts.vue.DrawContext;
 import tufts.vue.gui.GUI;
 //import edu.tufts.vue.metadata.VueMetadataElement;
 import tufts.Util;
+import tufts.vue.VueResources;
 
 import java.util.List;
 import java.util.*;
@@ -47,7 +48,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.34 $ / $Date: 2009-02-10 20:08:30 $ / $Author: sfraize $
+ * @version $Revision: 1.35 $ / $Date: 2009-02-10 20:16:31 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -995,12 +996,15 @@ public class DataTree extends javax.swing.JTree
     }
 
     //private static final Color[] DataColors = tufts.vue.VueResources.getColorArray("dataColorValues");
-    private static final Color[] DataColors = tufts.vue.VueResources.getColorArray("fillColorValues");
+    private static final Color[] DataColors = VueResources.getColorArray("fillColorValues");
     private static final int FirstRotationColor = 22;
     private static final int SecondRotationColor = 18;
     private static int NextColor = FirstRotationColor;
     private static boolean FirstRotation = true;
-    private static final Color DataNodeColor = new Color(155,219,83);
+
+    private static final Color DataNodeColor = VueResources.getColor("node.data.color", Color.gray);
+    private static final float DataNodeStrokeWidth = VueResources.getInt("node.data.stroke.width", 0);
+    private static final Color DataNodeStrokeColor = VueResources.getColor("node.data.stroke.color", Color.black);
 
     private static LWComponent initStyleNode(LWComponent style) {
         style.setFlag(Flag.INTERNAL);
@@ -1413,7 +1417,8 @@ public class DataTree extends javax.swing.JTree
             style.setFont(DataFont);
             style.setTextColor(Color.black);
             style.setFillColor(DataNodeColor);
-            style.setStrokeWidth(0);
+            style.setStrokeWidth(DataNodeStrokeWidth);
+            style.setStrokeColor(DataNodeStrokeColor);
             //style.disableProperty(LWKey.Notes);
             style.setNotes("Style for all " + schema.getRowCount() + " data items in " + schema.getName()
                            + "\n\nSchema: " + schema.getDump());
