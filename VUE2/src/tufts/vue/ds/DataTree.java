@@ -48,7 +48,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.36 $ / $Date: 2009-02-10 20:29:17 $ / $Author: sfraize $
+ * @version $Revision: 1.37 $ / $Date: 2009-02-10 22:18:00 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -294,7 +294,9 @@ public class DataTree extends javax.swing.JTree
             else if (treeNode instanceof RowNode) {
                 // search for a particular row-node in the schema based on the key field
                 final String keyValue = treeNode.getRow().getValue(fieldName);
-                Log.debug(String.format("searching for a paricular record based on key field value '%s'", keyValue));
+                Log.debug(String.format("searching for a paricular record based on key field value %s='%s'",
+                                        fieldName,
+                                        keyValue));
                 for (LWComponent c : searchSet) {
                     if (c.hasDataValue(fieldName, keyValue))
                         hits.add(c);
@@ -995,17 +997,26 @@ public class DataTree extends javax.swing.JTree
         return label;
     }
 
-    //private static final Color[] DataColors = VueResources.getColorArray("fillColorValues");
-    private static final Color[] DataColors = VueResources.getColorArray("node.data.color.cycle");
-//     private static final int FirstRotationColor = 22;
-//     private static final int SecondRotationColor = 18;
-//     private static int NextColor = FirstRotationColor;
-    private static int NextColor = 0;
-    private static boolean FirstRotation = true;
 
     private static final Color DataNodeColor = VueResources.getColor("node.data.color", Color.gray);
     private static final float DataNodeStrokeWidth = VueResources.getInt("node.data.stroke.width", 0);
     private static final Color DataNodeStrokeColor = VueResources.getColor("node.data.stroke.color", Color.black);
+    private static final Font DataNodeFont = VueResources.getFont("node.data.font");
+
+    private static final Color ValueNodeTextColor = VueResources.getColor("node.dataValue.text.color", Color.black);
+    private static final Font ValueNodeFont = VueResources.getFont("node.dataValue.font");
+    private static final Color[] ValueNodeDataColors = VueResources.getColorArray("node.dataValue.color.cycle");
+    private static int NextColor = 0;
+
+//     private static final Color[] DataColors = VueResources.getColorArray("fillColorValues");
+//     private static final int FirstRotationColor = 22;
+//     private static final int SecondRotationColor = 18;
+//     private static int NextColor = FirstRotationColor;
+//     private static boolean FirstRotation = true;
+    
+//     private static final Font ValueNodeFont = new Font("SansSerif", Font.BOLD, 24);
+//     private static final Font DataNodeFont = new Font("SansSerif", Font.PLAIN, 12);
+        
 
     private static LWComponent initStyleNode(LWComponent style) {
         style.setFlag(Flag.INTERNAL);
@@ -1023,13 +1034,13 @@ public class DataTree extends javax.swing.JTree
             style = new LWNode(); // creates a rectangular node
             //style.setLabel(" ---");
             style.setFillColor(Color.darkGray);
-            style.setFont(DataFont);
+            style.setFont(DataNodeFont);
         } else {
             //style = new LWNode(" ---"); // creates a round-rect node
             style = new LWNode(""); // creates a round-rect node
             //style.setFillColor(Color.blue);
-            style.setFillColor(DataColors[NextColor]);
-            if (++NextColor >= DataColors.length)
+            style.setFillColor(ValueNodeDataColors[NextColor]);
+            if (++NextColor >= ValueNodeDataColors.length)
                 NextColor = 0;
 //             NextColor += 8;
 //             if (NextColor >= DataColors.length) {
@@ -1041,7 +1052,7 @@ public class DataTree extends javax.swing.JTree
 //                     FirstRotation = true;
 //                 }
 //             }
-            style.setFont(EnumFont);
+            style.setFont(ValueNodeFont);
         }
 //         style.setFlag(Flag.INTERNAL);
 //         style.setFlag(Flag.DATA_STYLE); 
@@ -1058,7 +1069,7 @@ public class DataTree extends javax.swing.JTree
                         field.uniqueValueCount(),
                         field.getType()
                        ));
-        style.setTextColor(Color.white);
+        style.setTextColor(ValueNodeTextColor);
         //style.disableProperty(LWKey.Label);
         style.addLWCListener(repainter);
         style.setFlag(Flag.STYLE); // set last so creation property sets don't attempt updates
@@ -1073,10 +1084,6 @@ public class DataTree extends javax.swing.JTree
 
 //     public static final java.awt.datatransfer.DataFlavor DataFlavor =
 //         tufts.vue.gui.GUI.makeDataFlavor(DataNode.class);
-
-    private static final Font EnumFont = new Font("SansSerif", Font.BOLD, 24);
-    private static final Font DataFont = new Font("SansSerif", Font.PLAIN, 12);
-        
 
     private static class DataNode extends DefaultMutableTreeNode {
 
@@ -1415,7 +1422,7 @@ public class DataTree extends javax.swing.JTree
             
             style.setLabel(String.format("${%s}", titleField));
             
-            style.setFont(DataFont);
+            style.setFont(DataNodeFont);
             style.setTextColor(Color.black);
             style.setFillColor(DataNodeColor);
             style.setStrokeWidth(DataNodeStrokeWidth);
