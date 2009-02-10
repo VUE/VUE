@@ -47,7 +47,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.33 $ / $Date: 2009-02-10 16:52:59 $ / $Author: sfraize $
+ * @version $Revision: 1.34 $ / $Date: 2009-02-10 20:08:30 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -128,8 +128,8 @@ public class DataTree extends javax.swing.JTree
         toolbar.setLayout(new BorderLayout());
         //p.add(new JLabel(s.getSource().toString()), BorderLayout.NORTH);
 
-        AbstractButton addNew = new JButton("Add New Items to Map");
-        addNew.setIcon(NewToMapIcon);
+        AbstractButton addNew = new JButton("Add New Records to Map");
+        //addNew.setIcon(NewToMapIcon);
         //addNew.setBorderPainted(false);
         addNew.setOpaque(false);
         addNew.addActionListener(new ActionListener() {
@@ -278,15 +278,22 @@ public class DataTree extends javax.swing.JTree
             
             if (treeNode == mRowNodeParent) {
                 // search for any row-node in the schema
-                desc = String.format("from data set<br>'%s'", mSchema.getName());
+                Log.debug("searching for all data records in schema " + mSchema);
+                desc = String.format("that are from data set<br>'%s'", mSchema.getName());
                 for (LWComponent c : searchSet) {
-                    if (c.hasDataKey(fieldName)) //if (c.isDataRow(mSchema))
+                    if (mSchema.equals(c.getDataSchema()))
                         hits.add(c);
                 }
+//                 Log.debug(String.format("searching for all nodes with any data key '%s'", fieldName));
+//                 for (LWComponent c : searchSet) {
+//                     if (c.hasDataKey(fieldName)) //if (c.isDataRow(mSchema))
+//                         hits.add(c);
+//                 }
             }
             else if (treeNode instanceof RowNode) {
                 // search for a particular row-node in the schema based on the key field
                 final String keyValue = treeNode.getRow().getValue(fieldName);
+                Log.debug(String.format("searching for a paricular record based on key field value '%s'", keyValue));
                 for (LWComponent c : searchSet) {
                     if (c.hasDataValue(fieldName, keyValue))
                         hits.add(c);
