@@ -40,7 +40,7 @@ import edu.tufts.vue.metadata.action.SearchAction;
 
 
 /**
- * @version $Revision: 1.58 $ / $Date: 2009-02-10 00:09:09 $ / $Author: sraphe01 $
+ * @version $Revision: 1.59 $ / $Date: 2009-02-10 21:19:04 $ / $Author: sraphe01 $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -83,6 +83,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 
     private static final Collection<LayerAction> AllLayerActions = new java.util.ArrayList();
     private JPopupMenu popupMenu = new JPopupMenu();
+    private JPopupMenu unlockPopupMenu = new JPopupMenu();
+    private JMenuItem unLockMenuItem;
     private JMenuItem renameMenuItem;
     private JMenuItem duplicateMenuItem;
     private JMenuItem lockMenuItem;
@@ -410,6 +412,15 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             	System.err.println("Rename");
             }
         });
+        
+        unLockMenuItem = new JMenuItem("Unlock");
+        unlockPopupMenu.add(unLockMenuItem);        
+        unLockMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent event) {            	        	
+            	System.err.println("Unlock");
+            }
+        });
+        
         duplicateMenuItem = new JMenuItem("Duplicate");        
         popupMenu.add(duplicateMenuItem);
         popupMenu.addSeparator();
@@ -438,8 +449,9 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                     if (AUTO_ADJUST_ACTIVE_LAYER) attemptAlternativeActiveLayer(false);
             }
         });
-        deleteMenuItem = new JMenuItem("Delete");                
-        popupMenu.add(deleteMenuItem);        
+        deleteMenuItem = new JMenuItem("Delete");      
+        popupMenu.add(deleteMenuItem); 
+        
         deleteMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent event) { 
             	deleteMenuItem.setEnabled(true);
@@ -454,10 +466,9 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
     	            	mMap.deleteChildPermanently(active); // todo: LWMap should setActiveLayer(null) if active is deleted
     	            	mMap.setActiveLayer(null);                
     	                attemptAlternativeActiveLayer(true); // better if this tried to find the nearest layer, and not check last-active
-    	                //VUE.getSelection().clearDeleted(); // in case any in delete layer were in selection [no auto-handled in UndoManager]
-    	                if(mRows.size() == 1){
-    	                	deleteMenuItem.setEnabled(false) ;
-    	            	}
+    	            }
+                	if(mRows.size() == 1){
+                    	deleteMenuItem.setEnabled(false) ;
                 	}
                 }            	
             }
@@ -822,7 +833,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                     if (layersInSelection.contains(row.layer)) {
                         //row.layer.setSelected(true);
                         if (row.layer == activeLayer){
-                            row.setBackground(ActiveBG);                             
+                            row.setBackground(ActiveBG);                              
                             if(layersInSelection.size()>1){
                             	row.setBorder(BorderFactory.createLineBorder(Color.blue, 2));
                             }
@@ -836,10 +847,12 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                     } else {
                         //row.layer.setSelected(false);
                         if (row.layer == activeLayer){
-                            row.setBackground(ActiveBG);
-                            Color blockColor = new Color(183,219,255);
+                            row.setBackground(ActiveBG);                                                    
                             if(layersInSelection.size()>1){
                             	row.setBorder(BorderFactory.createLineBorder(Color.blue, 2));
+                            }else{
+                            	row.setBorder(new CompoundBorder(new MatteBorder(1,1,1,1, Color.lightGray),
+                                        GUI.makeSpace(3,7,3,7)));
                             }
                         }
                         else{
@@ -1981,12 +1994,12 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             }
             private void showPopup(MouseEvent e) {
                 if (e.isPopupTrigger()) {              	            	
-                	if(lockFlg){
-                		setPopEnabled(false); 
+                	if(lockFlg){                		
+                		unlockPopupMenu.show(e.getComponent(), e.getX(), e.getY());
                 	}else{
-                		setPopEnabled(true); 
+                		popupMenu.show(e.getComponent(), e.getX(), e.getY());
                 	}
-                	popupMenu.show(e.getComponent(), e.getX(), e.getY());
+                	
                 	
                 }
             }
@@ -1995,6 +2008,9 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         		renameMenuItem.setEnabled(isFlg);                		
         		lockMenuItem.setEnabled(isFlg); 
         		deleteMenuItem.setEnabled(isFlg); 
+        		if(mRows.size() == 1){
+                	deleteMenuItem.setEnabled(false) ;
+            	}
             }
         }
         public void mousePressed(MouseEvent e) {
