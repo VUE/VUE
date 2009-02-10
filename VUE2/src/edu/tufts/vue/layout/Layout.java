@@ -36,8 +36,8 @@ public abstract class Layout {
     public int MAX_SIZE = 5000;
     public static final double X_COL_SIZE = 50;
     public static final double Y_COL_SIZE = 20;
-    public static final double X_SPACING = 15;
-    public static final double Y_SPACING = 12;
+    public static final double X_SPACING = 20;
+    public static final double Y_SPACING = 16;
 
     /** Creates a new instance of Layout */
     public Layout() {
