@@ -115,7 +115,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.636 $ / $Date: 2009-02-04 00:38:18 $ / $Author: sraphe01 $ 
+ * @version $Revision: 1.637 $ / $Date: 2009-02-10 19:05:10 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -4020,5 +4020,10 @@ public class VUE
 			}			
 			return 6;
 		}		
+	}
+
+	public static DRBrowser getDRBrowser() {
+
+		return DR_BROWSER;
 	}
 }
