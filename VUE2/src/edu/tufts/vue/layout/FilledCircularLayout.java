@@ -16,13 +16,11 @@
  * or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
-
 /**
  *
  * @author akumar03
  */
 package edu.tufts.vue.layout;
-
 
 import java.io.*;
 import java.net.*;
@@ -39,51 +37,70 @@ import edu.tufts.vue.dataset.*;
  * This layout puts nodes in a circle.   We may want to add the cellspacing and
  * also extend it to make an elipse
  */
-
-
 public class FilledCircularLayout extends Layout {
-    
+
+    public static final double FACTOR = 4;
+    public static final int MAX_COLLISION_CHECK = 20;
+
     /** Creates a new instance of TabularLayout */
     public FilledCircularLayout() {
     }
-    public   LWMap createMap(Dataset ds,String mapName) throws Exception {
+
+    public LWMap createMap(Dataset ds, String mapName) throws Exception {
         LWMap map = new LWMap(mapName);
         return map;
     }
-    
-    public   void layout(LWSelection selection) throws Exception {
-        double minX =10000;
-        double minY = 10000;
-        int nodeSize = 100; // we assume node size is 100 which needs to be fixed.
+
+    public void layout(LWSelection selection) throws Exception {
+        double minX = Double.POSITIVE_INFINITY;
+        double minY = Double.POSITIVE_INFINITY;
+        double xAdd = X_COL_SIZE; // default horizontal distance between the nodes
+        double yAdd = Y_COL_SIZE; //default vertica
         int total = 0;
         Iterator<LWComponent> i = selection.iterator();
         while (i.hasNext()) {
             LWComponent c = i.next();
-            if(c instanceof LWNode) {
-                LWNode node = (LWNode)c;
-                minX = node.getLocation().getX()<minX?node.getLocation().getX():minX;
-                minY =node.getLocation().getY()<minY?node.getLocation().getY():minY;
+            if (c instanceof LWNode) {
+                LWNode node = (LWNode) c;
+                minX = node.getLocation().getX() < minX ? node.getLocation().getX() : minX;
+                minY = node.getLocation().getY() < minY ? node.getLocation().getY() : minY;
+                xAdd = xAdd > node.getWidth() ? xAdd : node.getWidth();
+                yAdd = yAdd > node.getHeight() ? yAdd : node.getHeight();
+
                 total++;
 //               System.out.println(node.getLabel()+"X= "+node.getLocation().getX()+" Y= "+node.getLocation().getY()+" MIN: "+minX+" : "+minY);
             }
         }
         double x = minX;
         double y = minY;
-        double size = Math.sqrt(total)* nodeSize;
-        double radius = size/2;
-        double centerX = x+radius;
-        double centerY = y+radius;
+        double size = total * xAdd / 4;
+        double radius = Math.sqrt(FACTOR * total * xAdd * yAdd / Math.PI);
+        double centerX = x + radius;
+        double centerY = y + radius;
         i = selection.iterator();
         while (i.hasNext()) {
             LWComponent c = i.next();
-            if(c instanceof LWNode) {
-                LWNode node = (LWNode)c;
-                double angle = Math.PI*2 * Math.random();
-                double r = radius*(1- Math.pow(Math.random(),2.0));
-                node.setLocation(centerX+r*Math.cos(angle),centerY+r*Math.sin(angle));
-                
+            if (c instanceof LWNode) {
+                LWNode node = (LWNode) c;
+                double angle = Math.PI * 2 * Math.random();
+                double r = radius * (1 - Math.pow(Math.random(), 2.0));
+                x = centerX + r * Math.cos(angle);
+                y = centerY + r * Math.sin(angle);
+                boolean flag = true;
+                int col_count = 0;
+                while (flag && col_count < MAX_COLLISION_CHECK) {
+                    if ((VUE.getActiveViewer().pickNode((float) x, (float) y) != null) || (VUE.getActiveViewer().pickNode((float) x + node.getWidth(), (float) y + node.getHeight()) != null) || (VUE.getActiveViewer().pickNode((float) x , (float) y + node.getHeight()) != null ) || (VUE.getActiveViewer().pickNode((float) x + node.getWidth(), (float) y) != null))  {
+                        angle = Math.PI * 2 * Math.random();
+                        r = radius * (1 - Math.pow(Math.random(), 2.0));
+                        x = centerX + r * Math.cos(angle);
+                        y = centerY + r * Math.sin(angle);
+                    } else {
+                        flag = false;
+                    }
+                }
+                node.setLocation(x, y);
+
             }
         }
     }
-    
 }
