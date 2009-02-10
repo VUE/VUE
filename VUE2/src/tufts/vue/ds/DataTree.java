@@ -48,7 +48,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.35 $ / $Date: 2009-02-10 20:16:31 $ / $Author: sfraize $
+ * @version $Revision: 1.36 $ / $Date: 2009-02-10 20:29:17 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -995,11 +995,12 @@ public class DataTree extends javax.swing.JTree
         return label;
     }
 
-    //private static final Color[] DataColors = tufts.vue.VueResources.getColorArray("dataColorValues");
-    private static final Color[] DataColors = VueResources.getColorArray("fillColorValues");
-    private static final int FirstRotationColor = 22;
-    private static final int SecondRotationColor = 18;
-    private static int NextColor = FirstRotationColor;
+    //private static final Color[] DataColors = VueResources.getColorArray("fillColorValues");
+    private static final Color[] DataColors = VueResources.getColorArray("node.data.color.cycle");
+//     private static final int FirstRotationColor = 22;
+//     private static final int SecondRotationColor = 18;
+//     private static int NextColor = FirstRotationColor;
+    private static int NextColor = 0;
     private static boolean FirstRotation = true;
 
     private static final Color DataNodeColor = VueResources.getColor("node.data.color", Color.gray);
@@ -1028,18 +1029,18 @@ public class DataTree extends javax.swing.JTree
             style = new LWNode(""); // creates a round-rect node
             //style.setFillColor(Color.blue);
             style.setFillColor(DataColors[NextColor]);
-//             if (++NextColor >= DataColors.length)
-//                 NextColor = 0;
-            NextColor += 8;
-            if (NextColor >= DataColors.length) {
-                if (FirstRotation) {
-                    NextColor = SecondRotationColor;
-                    FirstRotation = false;
-                } else {
-                    NextColor = FirstRotationColor;
-                    FirstRotation = true;
-                }
-            }
+            if (++NextColor >= DataColors.length)
+                NextColor = 0;
+//             NextColor += 8;
+//             if (NextColor >= DataColors.length) {
+//                 if (FirstRotation) {
+//                     NextColor = SecondRotationColor;
+//                     FirstRotation = false;
+//                 } else {
+//                     NextColor = FirstRotationColor;
+//                     FirstRotation = true;
+//                 }
+//             }
             style.setFont(EnumFont);
         }
 //         style.setFlag(Flag.INTERNAL);
