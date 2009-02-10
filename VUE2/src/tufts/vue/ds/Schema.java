@@ -31,7 +31,7 @@ import com.google.common.collect.*;
 
 
 /**
- * @version $Revision: 1.17 $ / $Date: 2009-01-29 17:43:36 $ / $Author: sfraize $
+ * @version $Revision: 1.18 $ / $Date: 2009-02-10 21:50:00 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -74,7 +74,26 @@ public class Schema {
         final Schema s = new Schema();
         s.setSource(source);
         s.setGUID(edu.tufts.vue.util.GUID.generate());
+        Log.debug("INSTANCED SCHEMA " + s + "\n");
         return s;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        else if (o == null)
+            return false;
+        else {
+            final Schema s;
+            try {
+                s = (Schema) o;
+            } catch (ClassCastException e) {
+                return false;
+            }
+            return mLocalID.equals(s.mLocalID);
+        }
+             
     }
     
 //     private Schema(Object source) {
@@ -87,6 +106,7 @@ public class Schema {
     /** for castor de-serialization only */
     public Schema() {
         mLocalID = nextLocalID();
+        Log.debug("CONSTRUCTED SCHEMA " + this + "\n");
     }
 
     private static String nextLocalID() {
@@ -99,8 +119,10 @@ public class Schema {
     public final String getMapLocalID() {
         return mLocalID;
     }
-    public final void setMapLocalID(int i) {
-        // noop
+    
+    public final void setMapLocalID(String id) {
+        Log.debug("SCHEMA ID WAS PERSISTED AS " + id + "; " + this);
+        //mLocalID.set(i);
     }
 
     public void annotateFor(Collection<LWComponent> nodes) {
@@ -184,7 +206,11 @@ public class Schema {
         //return getName() + "; " + getSource() + "; " + UUID;
         //return getName() + "; " + getResource() + "; " + UUID;
         //return getName();
-        return String.format("Schema[%s; \"%s\" %s]", getMapLocalID(), getName(), getResource());
+        try {
+            return String.format("Schema[%s; \"%s\" %s]", getMapLocalID(), getName(), getResource());
+        } catch (Throwable t) {
+            return String.format("Schema[%s; \"%s\" %s]", ""+mLocalID, ""+mName, ""+mSource);
+        }
     }
 
     public String getGUID() {
@@ -351,6 +377,17 @@ public class Schema {
 
         return possibleKeyFields;
     }
+
+    // this returns a Vector so can be fed directly to a JComboBox if desired
+    public Vector<String> getFieldNames() {
+        final Vector<String> names = new Vector();
+
+        for (Field field : getFields())
+            names.add(field.getName());
+
+        return names;
+    }
+    
     
     
     /** look at all the Fields and make a guess as to which is the most likely key field
@@ -427,7 +464,16 @@ public class Schema {
         DataRow row = new DataRow(this);
         int i = 0;
         for (Field field : getFields()) {
-            final String value = values[i++];
+            final String value;
+            try {
+                value = values[i++];
+            } catch (IndexOutOfBoundsException e) {
+                Log.warn("missing value at index " + (i-1) + " for field " + field + " in " + Arrays.asList(values));
+                Util.dumpArray(values);
+                row.addValue(field, "<missing>");
+                continue;
+            }
+                    
             row.addValue(field, value);
         }
         addRow(row);
