@@ -35,7 +35,7 @@ import javax.swing.Icon;
  * Base class for VueActions that don't use the selection.
  * @see Actions.LWCAction for actions that use the selection
  *
- * @version $Revision: 1.46 $ / $Date: 2009-02-10 21:19:05 $ / $Author: sraphe01 $ 
+ * @version $Revision: 1.47 $ / $Date: 2009-02-11 16:06:09 $ / $Author: sfraize $ 
  */
 public class VueAction extends javax.swing.AbstractAction
 {
@@ -75,6 +75,8 @@ public class VueAction extends javax.swing.AbstractAction
         for(int iCount=0;iCount< AllActionList.size();iCount++){
         	VueAction action = AllActionList.get(iCount);  
         	// This is for enabling the Layers tool Bar while editing a node
+                // TODO: would make more sense to handle this by overriding isUserEnabled in LayerAction
+                // -- any change to the toString impl, LayerAction class name, or action names, will break this code. -- SMF 
         	if(action.toString().equals("LayerAction[New]") || 
         			action.toString().equals("LayerAction[Duplicate]") ||
         			action.toString().equals("LayerAction[Delete]")||
