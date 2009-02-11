@@ -50,7 +50,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.453 $ / $Date: 2009-01-30 21:39:27 $ / $Author: sfraize $
+ * @version $Revision: 1.454 $ / $Date: 2009-02-11 18:30:54 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1773,14 +1773,17 @@ u                    getSlot(c).setFromString((String)value);
     
     public UserMapType getUserMapType() { throw new UnsupportedOperationException("deprecated"); }
 
+    private static final String DataValueFieldKey = "@ValueOf";
+
     //public void setDataInstanceValue(String key, Object value) {
     public void setDataInstanceValue(tufts.vue.ds.Field field, Object value) {
         //getMetadataList().add(key, value.toString());
         final String key = field.getName();
         getMetadataList().add(key, value.toString());
         getDataMap().put(key, value);
-        getDataMap().put("@Schema", field.getSchema());
-        getDataMap().put("@Schema.field", field.getName());
+        getDataMap().setSchema(field.getSchema());
+        getDataMap().put(DataValueFieldKey, field.getName());
+        //getDataMap().put("@Schema", field.getSchema());
     }
 
     private MetaMap getDataMap() {
@@ -1857,26 +1860,35 @@ u                    getSlot(c).setFromString((String)value);
         return value;
     }
 
-    public String getSchematicFieldName() {
+    public String getDataValueFieldName() {
         if (mDataMap == null)
             return null;
-        String name = mDataMap.getString("@Schema.field");
-        if (name == null && isSchematicField()) {
-            // backward compat before @schema.field stored, and only @schema was stored.
-            // The first entry should always be the schmatic field.
-            // todo: remove this eventually
+
+        //String name = mDataMap.getString("@Schema.field");
+        String fieldName = mDataMap.getString(DataValueFieldKey);
+        
+        //-----------------------------------------------------------------------------
+        // backward compat before @schema.field stored, and
+        // only @schema was stored.  The first entry should always be
+        // the schmatic field.  todo: remove this eventually
+        if (fieldName == null && isDataValueNode()) {
             final Map.Entry firstEntry = mDataMap.entries().iterator().next();
-            name = firstEntry.getKey().toString();
+            fieldName = firstEntry.getKey().toString();
         }
-        return name;
+        //-----------------------------------------------------------------------------
+        
+        return fieldName;
     }
     
-    public boolean isSchematicField() {
-        return mDataMap != null && mDataMap.containsKey("@Schema");
+    /** @return true if the data-set data for this node represents a SINGLE VALUE from a field (e.g., one of an enumeration)
+     * Should always return the opposite of isDataRow */
+    public boolean isDataValueNode() {
+        return mDataMap != null && mDataMap.containsKey(DataValueFieldKey);
+        //return mDataMap != null && mDataMap.containsKey("@Schema");
     }
     
-    public boolean isSchematicField(String name) {
-        return name.equals(getSchematicFieldName());
+    public boolean isDataValueNode(String name) {
+        return name.equals(getDataValueFieldName());
     }
     
     /**
@@ -1884,7 +1896,8 @@ u                    getSlot(c).setFromString((String)value);
      * todo: schema checking is currently weak -- only checks for key field
      */
     public boolean isDataRow(tufts.vue.ds.Schema schema) {
-        return hasDataKey(schema.getKeyField().getName()) && !isSchematicField();
+        //return hasDataKey(schema.getKeyField().getName()) && !isDataValueNode();
+        return getDataSchema() == schema && !isDataValueNode();
     }
 
     public MetaMap getRawData() {

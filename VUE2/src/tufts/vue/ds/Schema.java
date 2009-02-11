@@ -31,7 +31,7 @@ import com.google.common.collect.*;
 
 
 /**
- * @version $Revision: 1.18 $ / $Date: 2009-02-10 21:50:00 $ / $Author: sfraize $
+ * @version $Revision: 1.19 $ / $Date: 2009-02-11 18:30:55 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -67,6 +67,8 @@ public class Schema {
 
     /** id used for within-map reference for persisting the relationship between a MetaMap and a schema */
     private final String mLocalID;
+
+    private int mContextRowNodeCount;
 
     private static final java.util.concurrent.atomic.AtomicInteger NextLocalId = new java.util.concurrent.atomic.AtomicInteger();
 
@@ -151,16 +153,27 @@ public class Schema {
                 
 //             }
 //         }
-        
+
+        mContextRowNodeCount = 0;
+
         for (DataRow row : mRows) {
 
             final String rowKey = row.getValue(keyField);
 
+            row.mContextCount = 0;
+
             for (LWComponent node : nodes) {
+
+                if (!node.isDataRow(this))
+                    continue;
+
+                mContextRowNodeCount++;
 
                 if (!node.hasDataValue(keyFieldName, rowKey))
                     continue;
 
+                row.mContextCount++;
+                
                 final MetaMap rawData = row.getData();
                 final MetaMap mapData = node.getRawData();
                 //Log.debug("comparing:\n" + rawData.values() + " to:\n" + mapData.values());
@@ -183,6 +196,10 @@ public class Schema {
             }
         }
         
+    }
+
+    public int getContextRowNodeCount() {
+        return mContextRowNodeCount;
     }
 
     public void flushData() {
@@ -517,6 +534,7 @@ final class DataRow {
     final tufts.vue.MetaMap mmap = new tufts.vue.MetaMap();
 
     boolean isContextChanged;
+    int mContextCount;
 
     DataRow(Schema s) {
         mmap.setSchema(s);
@@ -528,6 +546,10 @@ final class DataRow {
 
     boolean isContextChanged() {
         return isContextChanged;
+    }
+
+    public int getContextCount() {
+        return mContextCount;
     }
         
 

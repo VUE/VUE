@@ -2013,6 +2013,8 @@ public class Actions implements VueConstants
 
         protected void clusterNodes(final LWComponent center, final Collection<LWComponent> clustering) {
 
+            if (DEBUG.Enabled) Log.debug("clustering around " + center + ": " + Util.tags(clustering));
+            
             computeStatistics(null, clustering);
             centerX = center.getMapCenterX(); // should probably be local center, not map center
             centerY = center.getMapCenterY();
@@ -2032,6 +2034,7 @@ public class Actions implements VueConstants
         }
 
         protected void clusterLinked(final LWComponent center) {
+            if (DEBUG.Enabled) Log.debug("clustering linked " + center);
             clusterNodes(center, center.getLinked());
         }
         
@@ -2451,11 +2454,21 @@ public class Actions implements VueConstants
     };
 
 
-    public static final LWCAction MakeDataClusters = new ArrangeAction("Make Data Clusters", keyStroke(KeyEvent.VK_SLASH, ALT)) {
+//     public static final LWCAction MakeDataClusters = new ArrangeAction("Make Data Clusters", keyStroke(KeyEvent.VK_SLASH, ALT)) {
+//             @Override
+//             public void arrange(LWComponent c) {
+//                 if (c instanceof LWNode && !c.hasClientData(tufts.vue.ds.Schema.class))
+//                     clusterLinked(c);
+//             }
+//         };
+    public static final LWCAction MakeDataLinks = new LWCAction("Make Data Links", keyStroke(KeyEvent.VK_SLASH, ALT)) {
+            boolean enabledFor(LWSelection s) { return s.size() == 1; } // just one for now
             @Override
-            public void arrange(LWComponent c) {
-                if (c instanceof LWNode && !c.hasClientData(tufts.vue.ds.Schema.class))
-                    clusterLinked(c);
+            public void act(LWComponent c) {
+                //if (c instanceof LWNode && !c.hasClientData(tufts.vue.ds.Schema.class))
+                if (c instanceof LWNode) {
+                }
+                    
             }
         };
 
@@ -2463,7 +2476,8 @@ public class Actions implements VueConstants
             boolean enabledFor(LWSelection s) { return s.size() > 0; }
             @Override
             public void arrange(LWComponent c) {
-                if (c instanceof LWNode && !c.hasClientData(tufts.vue.ds.Schema.class)) {
+                //if (c instanceof LWNode && !c.hasClientData(tufts.vue.ds.Schema.class)) {
+                if (c instanceof LWNode) {
                     // grab linked
                     c.addChildren(new ArrayList(c.getLinked()), LWComponent.ADD_MERGE);
                 }
@@ -2556,7 +2570,7 @@ public class Actions implements VueConstants
         MakeRow,
         MakeColumn,
         MakeCluster,
-        MakeDataClusters,
+        MakeDataLinks,
         MakeDataLists,
         null,
         DistributeVertically,

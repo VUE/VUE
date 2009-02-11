@@ -48,7 +48,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.37 $ / $Date: 2009-02-10 22:18:00 $ / $Author: sfraize $
+ * @version $Revision: 1.38 $ / $Date: 2009-02-11 18:30:55 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -275,7 +275,9 @@ public class DataTree extends javax.swing.JTree
             boolean matching = false;
             String desc = "";
 
-            final Iterable<LWComponent> searchSet = mActiveMap.getAllDescendents();
+            final Collection<LWComponent> searchSet = mActiveMap.getAllDescendents();
+
+            if (DEBUG.Enabled) Log.debug("\n\nSEARCHING ALL DESCENDENTS of " + mActiveMap + "; count=" + searchSet.size());
             
             if (treeNode == mRowNodeParent) {
                 // search for any row-node in the schema
@@ -305,9 +307,9 @@ public class DataTree extends javax.swing.JTree
             else if (treeNode.isField()) {
                 // search for all nodes anchoring a particular value for the given Field
                 desc = String.format("anchoring field <b>%s", fieldName);
-                Log.debug("searching for " + fieldName + " in " + tree.mActiveMap);
+                Log.debug("searching for any occurance of a field named " + fieldName);
                 for (LWComponent c : searchSet) {
-                    if (c.isSchematicField(fieldName))
+                    if (c.isDataValueNode(fieldName))
                         hits.add(c);
                 }
             }
@@ -317,16 +319,21 @@ public class DataTree extends javax.swing.JTree
                 //desc = String.format("matching<br><b>%s</b> = \'%s\'", fieldName, fieldValue);
                 //desc = String.format("matching<br><b>%s: <i>%s", fieldName, fieldValue);
                 desc = String.format("<b>%s: <i>%s</i>", fieldName, fieldValue);
-                Log.debug("searching for " + fieldName + "='" + fieldValue + "' in " + tree.mActiveMap);
+                Log.debug(String.format("searching for %s=[%s]", fieldName, fieldValue));
                 for (LWComponent c : searchSet) {
-                    if (c.hasDataValue(fieldName, fieldValue) && !c.isSchematicField())
-                        hits.add(c);
+                    if (c.hasDataValue(fieldName, fieldValue)) {
+                        if (c.isDataValueNode()) {
+                            Log.debug("hit, but skipping schematic field node " + c);
+                        } else {
+                            hits.add(c);
+                        }
+                    }
                 }
             }
             final tufts.vue.LWSelection selection = VUE.getSelection();
             if (DEBUG.Enabled) {
                 if (hits.size() == 1)
-                    Log.debug("hits=" + hits.get(0));
+                    Log.debug("hits=" + hits.get(0) + " [single hit]");
                 else
                     Log.debug("hits=" + hits.size());
             }
@@ -1253,10 +1260,12 @@ public class DataTree extends javax.swing.JTree
 
         @Override
         void annotate(LWMap map) {
-            final Field keyField = getSchema().getKeyField();
-            final String keyValue = row.getValue(keyField);
-
-            isMapPresent = keyField.countContextValue(keyValue) > 0;
+//             final Field keyField = getSchema().getKeyField();
+//             final String keyValue = row.getValue(keyField);
+//             isMapPresent = keyField.countContextValue(keyValue) > 0;
+            
+            isMapPresent = row.getContextCount() > 0;
+            
         }
 
         

@@ -33,7 +33,7 @@ import java.util.*;
  * types and doing some data-type analysis.  It also includes the ability to
  * associate a LWComponent node style with specially marked values.
  * 
- * @version $Revision: 1.7 $ / $Date: 2009-01-06 17:35:02 $ / $Author: sfraize $
+ * @version $Revision: 1.8 $ / $Date: 2009-02-11 18:30:55 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -93,13 +93,15 @@ public class Field
         else
             mContextValues.clear();
         if (DEBUG.META) Log.debug("MARKING INCLUDED VALUES AGAINST " + nodes.size() + " NODES for " + this);
+
         //final Set<String> valuesToCheck = new HashSet(mValues.keySet());
         //final Set<String> valuesToCheck = mValues.keySet();
         final Set<String> valuesToCheck = mValues.elementSet();
         for (LWComponent c : nodes) {
             for (String value : valuesToCheck) {
+                //if (c.getDataSchema() == schema && c.hasDataValue(this.name, value)) {
                 if (c.hasDataValue(this.name, value)) {
-                    if (!c.isSchematicField())
+                    if (!c.isDataValueNode())
                         mContextValues.add(value);
                     //Log.debug(String.format("found in context: %s=[%s], count=%d", this.name, value, mContextValues.count(value)));
                 }
