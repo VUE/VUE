@@ -8,7 +8,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 import java.util.*;
 
 /**
- * @version $Revision: 1.4 $ / $Date: 2009-02-11 19:25:04 $ / $Author: sfraize $
+ * @version $Revision: 1.5 $ / $Date: 2009-02-11 19:30:53 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -50,7 +50,7 @@ public class DataAction
     }
 
     /** make links from row nodes (full data nodes) to any schematic field nodes found in the link targets,
-     or between row nodes from different schema's that */
+     or between row nodes from different schema's that are considered "auto-joined" (e.g., a matching key field appears) */
     private static List<LWLink> makeRowNodeLinks(final Collection<LWComponent> linkTargets, final LWComponent rowNode)
     {
         final List<LWLink> links = Util.skipNullsArrayList();
@@ -68,10 +68,21 @@ public class DataAction
             
             if (schema != null && sourceSchema != schema) {
 
+                //-----------------------------------------------------------------------------
                 // from different schemas: can do a join-based linking -- just try key field for now
+                //-----------------------------------------------------------------------------
 
                 if (c.hasDataValue(sourceKeyField, sourceKeyValue)) {
                     links.add(makeLink(c, rowNode, sourceKeyField, sourceKeyValue, true));
+                } else {
+
+                    // this is the semantic reverse of the above case
+                    
+                    final String targetKeyField = schema.getKeyFieldName();
+                    final String targetKeyValue = c.getDataValue(targetKeyField);
+                    if (rowNode.hasDataValue(targetKeyField, targetKeyValue)) {
+                        links.add(makeLink(rowNode, c, targetKeyField, targetKeyValue, true));
+                    }
                 }
 
             } else {
