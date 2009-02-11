@@ -47,7 +47,7 @@ import edu.tufts.vue.dsm.impl.VueDataSourceManager;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.130 $ / $Date: 2009-02-05 21:49:38 $ / $Author: sfraize $
+ * @version $Revision: 1.131 $ / $Date: 2009-02-11 18:48:18 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -1099,6 +1099,12 @@ public class VueMenuBar extends javax.swing.JMenuBar
     }
     
     void doProcessKeyEvent(KeyEvent e) {
+
+        // todo: need to allow BACK_SPACE to process as DELETE (esp
+        // for laptop keyboards?) -- time for an action map for this
+        // code -- long overdue -- e.g. Actions.Delete should
+        // trigger for VK_BACK_SPACE as well as VK_DELETE.
+        
         if (e != alreadyProcessed) {
             if (DEBUG.KEYS) Log.debug("doProcessKeyEvent " + e);
             processKeyEvent(e);
