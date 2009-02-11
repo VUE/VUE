@@ -53,17 +53,17 @@ import org.xml.sax.*;
 
 
 /**
- * @version $Revision: 1.7 $ / $Date: 2009-01-29 17:44:12 $ / $Author: sfraize $
+ * @version $Revision: 1.8 $ / $Date: 2009-02-11 16:04:46 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
-class XMLIngest {
+public class XMLIngest {
 
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(XMLIngest.class);
 
     private static final boolean XML_DEBUG = false;
 
-    static class XmlSchema extends tufts.vue.ds.Schema
+    public static class XmlSchema extends tufts.vue.ds.Schema
     {
         final String itemPath;
         final int itemPathLen;
@@ -71,6 +71,15 @@ class XMLIngest {
         final boolean keyFold;
         
         DataRow curRow;
+
+        /** castor peristance only */
+        // todo: see if we can get rid of this class entirely and have Schema be a final class
+        // so we don't run into all the persistance complications with castor.
+        public XmlSchema() {
+            itemPath = "<unknown>";
+            itemPathLen = 0;
+            keyFold = false;
+        }
 
         public XmlSchema(Object source, String itemPath) 
         {
@@ -81,6 +90,8 @@ class XMLIngest {
             else
                 itemPathLen = itemPath.length() + 1; // add one for dot
             keyFold = (itemPath != null && itemPath.startsWith("plist"));
+
+            Log.debug("Constructed XmlSchema " + this);
             
             //itemPathLen = itemPath.length() + (itemPath.endsWith(".") ? 0 : 1);
         }
@@ -132,8 +143,8 @@ class XMLIngest {
             }
         }
 
-        String getRowStartNode() { return itemPath; }
-        String getKeyNode() { return null; }
+        private String getRowStartNode() { return itemPath; }
+        //private String getKeyNode() { return null; }
         
     }
 
