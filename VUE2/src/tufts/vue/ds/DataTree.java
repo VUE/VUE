@@ -48,7 +48,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.38 $ / $Date: 2009-02-11 18:30:55 $ / $Author: sfraize $
+ * @version $Revision: 1.39 $ / $Date: 2009-02-11 19:25:04 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -845,6 +845,7 @@ public class DataTree extends javax.swing.JTree
     }
 
 
+    /** @field -- if null, will make exaustive row-node links */
     private static boolean addDataLinksForNewNodes(LWMap map, List<LWComponent> nodes, Field field) {
         
         List<LWLink> links = makeDataLinksForNodes(map, nodes, field);

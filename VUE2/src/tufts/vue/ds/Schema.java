@@ -31,7 +31,7 @@ import com.google.common.collect.*;
 
 
 /**
- * @version $Revision: 1.19 $ / $Date: 2009-02-11 18:30:55 $ / $Author: sfraize $
+ * @version $Revision: 1.20 $ / $Date: 2009-02-11 19:25:04 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -167,7 +167,7 @@ public class Schema {
                 if (!node.isDataRow(this))
                     continue;
 
-                mContextRowNodeCount++;
+                mContextRowNodeCount++; // todo: is wildly overcounting -- need to total at end by adding all final row.mContextCount's
 
                 if (!node.hasDataValue(keyFieldName, rowKey))
                     continue;
@@ -250,6 +250,10 @@ public class Schema {
         if (mKeyField == null)
             mKeyField = getKeyFieldGuess();
         return mKeyField;
+    }
+
+    public String getKeyFieldName() {
+        return getKeyField().getName();
     }
     
     public void setKeyField(Field f) {

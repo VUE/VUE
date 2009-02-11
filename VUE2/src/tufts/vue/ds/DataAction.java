@@ -8,7 +8,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 import java.util.*;
 
 /**
- * @version $Revision: 1.3 $ / $Date: 2009-02-11 18:30:55 $ / $Author: sfraize $
+ * @version $Revision: 1.4 $ / $Date: 2009-02-11 19:25:04 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -49,28 +49,45 @@ public class DataAction
         return links;
     }
 
-    /** make links from row nodes (full data nodes) to any schematic field nodes found in the link targets */
-    private static List<LWLink> makeRowNodeLinks(final Collection<LWComponent> linkTargets, LWComponent rowNode)
+    /** make links from row nodes (full data nodes) to any schematic field nodes found in the link targets,
+     or between row nodes from different schema's that */
+    private static List<LWLink> makeRowNodeLinks(final Collection<LWComponent> linkTargets, final LWComponent rowNode)
     {
         final List<LWLink> links = Util.skipNullsArrayList();
+
+        final Schema sourceSchema = rowNode.getDataSchema();
+        final String sourceKeyField = sourceSchema.getKeyFieldName();
+        final String sourceKeyValue = rowNode.getDataValue(sourceKeyField);
         
         for (LWComponent c : linkTargets) {
-            if (c == rowNode)
+
+            if (c == rowNode) // never link to ourself
                 continue;
-
-            final String fieldName = c.getDataValueFieldName();
-
-            if (fieldName == null) {
-                // fieldName will be null if c isn't a schematic field
-                continue;
-            }
-
-            final String fieldValue = c.getDataValue(fieldName);
             
-            if (rowNode.hasDataValue(fieldName, fieldValue)) {
-                //final String label = String.format("RowLink: %s='%s'", fieldName, fieldValue);
-                //final String label = String.format("%s=%s", fieldName, fieldValue);
-                links.add(makeLink(c, rowNode, fieldName, fieldValue, false));
+            final Schema schema = c.getDataSchema();
+            
+            if (schema != null && sourceSchema != schema) {
+
+                // from different schemas: can do a join-based linking -- just try key field for now
+
+                if (c.hasDataValue(sourceKeyField, sourceKeyValue)) {
+                    links.add(makeLink(c, rowNode, sourceKeyField, sourceKeyValue, true));
+                }
+
+            } else {
+
+                final String fieldName = c.getDataValueFieldName();
+                
+                if (fieldName == null) // fieldName will be null if c isn't a data value node
+                    continue;
+                
+                final String fieldValue = c.getDataValue(fieldName);
+                
+                if (rowNode.hasDataValue(fieldName, fieldValue)) {
+                    //final String label = String.format("RowLink: %s='%s'", fieldName, fieldValue);
+                    //final String label = String.format("%s=%s", fieldName, fieldValue);
+                    links.add(makeLink(c, rowNode, fieldName, fieldValue, false));
+                }
             }
                 
         }
@@ -78,6 +95,35 @@ public class DataAction
         return links;
     }
         
+//     /** make links from row nodes (full data nodes) to any schematic field nodes found in the link targets */
+//     private static List<LWLink> makeRowNodeLinks(final Collection<LWComponent> linkTargets, LWComponent rowNode)
+//     {
+//         final List<LWLink> links = Util.skipNullsArrayList();
+        
+//         for (LWComponent c : linkTargets) {
+//             if (c == rowNode)
+//                 continue;
+
+//             final String fieldName = c.getDataValueFieldName();
+
+//             if (fieldName == null) {
+//                 // fieldName will be null if c isn't a schematic field
+//                 continue;
+//             }
+
+//             final String fieldValue = c.getDataValue(fieldName);
+            
+//             if (rowNode.hasDataValue(fieldName, fieldValue)) {
+//                 //final String label = String.format("RowLink: %s='%s'", fieldName, fieldValue);
+//                 //final String label = String.format("%s=%s", fieldName, fieldValue);
+//                 links.add(makeLink(c, rowNode, fieldName, fieldValue, false));
+//             }
+                
+//         }
+        
+//         return links;
+//     }
+    
     private static LWLink makeLink(LWComponent src,
                                    LWComponent dest,
                                    String fieldName,
