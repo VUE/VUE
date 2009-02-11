@@ -40,7 +40,7 @@ import edu.tufts.vue.metadata.action.SearchAction;
 
 
 /**
- * @version $Revision: 1.59 $ / $Date: 2009-02-10 21:19:04 $ / $Author: sraphe01 $
+ * @version $Revision: 1.60 $ / $Date: 2009-02-11 18:09:56 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -113,7 +113,9 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 //         protected java.util.List<LWComponent> selection() {
 //             return null;
 //         }
-
+        /** @return true: must be overriden to be put to use */
+        boolean enabledFor(LWSelection s) { return true; }
+        protected boolean enabled() { return true; }
         @Override
         protected LWSelection selection() {
             return null;
@@ -438,11 +440,18 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         lockMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent event) {
             	Layer layer = getActiveLayer();
-            	Row row = new Row(layer); 
+            	Row row =null;// new Row(layer); 
+            	 for (Row rows : mRows){
+                  if (rows.layer.equals(layer))
+                	  row = rows;
+                 
+                 }
+            	if (row == null)
+            		return;
             	System.err.println("row:::"+row.locked);
-            	//row.locked.setIcon(VueResources.getImageIcon("lock"));
-            	row.locked.setBorder(BorderFactory.createLineBorder(Color.red, 1));
-            	row.locked.revalidate();
+            	row.locked.setIcon(VueResources.getImageIcon("lock"));
+            //	row.locked.setBorder(BorderFactory.createLineBorder(Color.red, 1));
+            	//row.locked.revalidate();
             	layer.setLocked(true);
             	//System.err.println("layer:::"+layer.);
                 if (layer == getActiveLayer() && !canBeActive(layer))
