@@ -40,7 +40,7 @@ import edu.tufts.vue.metadata.action.SearchAction;
 
 
 /**
- * @version $Revision: 1.61 $ / $Date: 2009-02-11 18:56:06 $ / $Author: mike $
+ * @version $Revision: 1.62 $ / $Date: 2009-02-11 19:33:23 $ / $Author: sraphe01 $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -403,15 +403,20 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         popupMenu.addSeparator();
         renameMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent event) {
-            	Layer layer = getActiveLayer();
-            	Row row = new Row(layer); 
-            	System.err.println("rename:::"+row.label.getText());
-            	//row.locked.setIcon(VueResources.getImageIcon("lock"));            	
+            	Layer layer = getActiveLayer();            	
+            	Row row =null;
+            	 for (Row rows : mRows){
+                  if (rows.layer.equals(layer))
+                	  row = rows;
+                 
+                 }
+            	if (row == null)
+            		return;            	    	
             	row.label.setVisible(true);
             	row.label.setEnabled(true);
             	row.label.setEditable(true);
-            	row.label.requestFocus();            	
-            	System.err.println("Rename");
+            	row.label.requestFocus();     	
+            	
             }
         });
         
@@ -419,7 +424,18 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         unlockPopupMenu.add(unLockMenuItem);        
         unLockMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent event) {            	        	
-            	System.err.println("Unlock");
+            	Layer layer = getActiveLayer();
+            	Row row =null;
+            	 for (Row rows : mRows){
+                  if (rows.layer.equals(layer))
+                	  row = rows;
+                 
+                 }
+            	if (row == null)
+            		return;            	
+            	row.locked.setSelected(false);
+            	row.locked.setIcon(VueResources.getImageIcon("lockOpen"));         
+            	layer.setLocked(false); 
             }
         });
         
@@ -440,40 +456,21 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         lockMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent event) {
             	Layer layer = getActiveLayer();
-            	Row row =null;// new Row(layer); 
+            	Row row =null;
             	 for (Row rows : mRows){
                   if (rows.layer.equals(layer))
-                	  row = rows;
-                 
+                	  row = rows;                 
                  }
             	if (row == null)
-            		return;
-            	System.err.println("row:::"+row.locked);
+            		return;            	
             	row.locked.setSelected(true);
-            	row.locked.setIcon(VueResources.getImageIcon("lock"));
-            //	row.locked.setBorder(BorderFactory.createLineBorder(Color.red, 1));
-            	//row.locked.revalidate();
-            	layer.setLocked(true);
-            	//System.err.println("layer:::"+layer.);
+            	row.locked.setIcon(VueResources.getImageIcon("lock"));           
+            	layer.setLocked(true);            	
                 if (layer == getActiveLayer() && !canBeActive(layer))
                     if (AUTO_ADJUST_ACTIVE_LAYER) attemptAlternativeActiveLayer(false);
             }
-        });
-        
-        
-        /*
-         *         locked.setSelected(layer.isLocked());
-            locked.setBorderPainted(layer.isLocked());
-            locked.setOpaque(false);
-            locked.addActionListener(new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        //locked.setBorderPainted(locked.isSelected());                    	
-                        layer.setLocked(locked.isSelected());
-                        if (layer == getActiveLayer() && !canBeActive(layer))
-                            if (AUTO_ADJUST_ACTIVE_LAYER) attemptAlternativeActiveLayer(false);
-                    }});
-            
-         */
+        });        
+      
         deleteMenuItem = new JMenuItem("Delete");      
         popupMenu.add(deleteMenuItem); 
         
