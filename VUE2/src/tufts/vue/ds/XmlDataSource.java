@@ -32,7 +32,7 @@ import au.com.bytecode.opencsv.CSVReader;
 
 
 /**
- * @version $Revision: 1.11 $ / $Date: 2009-01-29 17:44:28 $ / $Author: sfraize $
+ * @version $Revision: 1.12 $ / $Date: 2009-02-11 16:05:14 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class XmlDataSource extends BrowseDataSource
@@ -43,9 +43,15 @@ public class XmlDataSource extends BrowseDataSource
 
     private static final String ITEM_PATH_KEY = "item_path";
     private static final String KEY_FIELD_KEY = "key_field";
+    private static final String IMAGE_FIELD_KEY = "image_field";
+
+    private static final String NONE_SELECTED = "(none selected)";
+
+    
 
     private String itemKey;
     private String keyField;
+    private String imageField = NONE_SELECTED;
 
     private boolean isCSV; // hack while XmlDataSource supports both XML and flat-files
     
@@ -85,6 +91,12 @@ public class XmlDataSource extends BrowseDataSource
         } catch (Throwable t) {
             Log.error("val=" + val, t);
         }
+        try {
+            if ((val = p.getProperty(IMAGE_FIELD_KEY)) != null)
+                setImageField(val);
+        } catch (Throwable t) {
+            Log.error("val=" + val, t);
+        }
     }
     
     @Override
@@ -98,6 +110,19 @@ public class XmlDataSource extends BrowseDataSource
 
     public void setItemKey(String k) {
         itemKey = k;
+        unloadViewer();
+    }
+
+
+    public String getImageField() {
+        return imageField == NONE_SELECTED ? null : imageField;
+    }
+
+    public void setImageField(String name) {
+        if (NONE_SELECTED.equals(name))
+            imageField = NONE_SELECTED;
+        else
+            imageField = name;
         unloadViewer();
     }
     
@@ -143,12 +168,25 @@ public class XmlDataSource extends BrowseDataSource
                               ,keyFieldName // current value
                               ,edu.tufts.vue.ui.ConfigurationUI.COMBO_BOX_CONTROL);
         keyField.values = possibleKeyFieldValues;
-        //,edu.tufts.vue.ui.ConfigurationUI.SINGLE_LINE_NONEDITABLE_TEXT_CONTROL);
+
+        ConfigField imageField
+            = new ConfigField(IMAGE_FIELD_KEY
+                              ,"Image Field"
+                              ,"Field with a path to an image for displaying in nodes"
+                              ,this.imageField // current value
+                              ,edu.tufts.vue.ui.ConfigurationUI.COMBO_BOX_CONTROL);
+        if (mSchema != null) {
+            imageField.values = new Vector();
+            imageField.values.add(NONE_SELECTED);
+            imageField.values.addAll(mSchema.getFieldNames());
+        }
+        
 
         List<ConfigField> fields = super.getConfigurationUIFields();
         if (!isCSV)
             fields.add(path);
         fields.add(keyField);
+        fields.add(imageField);
         return fields;
     }
 
