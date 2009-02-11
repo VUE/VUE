@@ -161,7 +161,7 @@ import javax.swing.JTextField;  // for test harness
  * redispatch our own FocusEvents for transferring focus, which is the second
  * part of the magic that makes this work.
  *
- * @version $Revision: 1.24 $ / $Date: 2008-06-30 20:53:05 $ / $Author: mike $ 
+ * @version $Revision: 1.25 $ / $Date: 2009-02-11 18:45:41 $ / $Author: sfraize $ 
  */
 
 // todo: can also try calling the focus owner setters instead of lying -- that might work
@@ -431,19 +431,32 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
 
             final KeyEvent ke = (KeyEvent) e;
 
-            final int MENU_BAR_MAYBE =
-                InputEvent.CTRL_MASK |
-                InputEvent.META_MASK |
-                InputEvent.ALT_MASK |
-                InputEvent.ALT_GRAPH_MASK;
-
-            if ((ke.getModifiers() & MENU_BAR_MAYBE) != 0 || ke.isActionKey())
+            if (isLikelyRelayableActionKey(ke))
                 relayUnconsumedKeyPress(ke);
 
             if (DEBUG.FOCUS) out("UNCONSUMED: " + e);
         }
 
         return dispatched;
+    }
+
+    private static final int MENU_BAR_MAYBE =
+        InputEvent.CTRL_MASK |
+        InputEvent.META_MASK |
+        InputEvent.ALT_MASK |
+        InputEvent.ALT_GRAPH_MASK;
+
+
+    private static boolean isLikelyRelayableActionKey(KeyEvent ke) {
+
+        //if (ke.getKeyCode() == KeyEvent.VK_BACK_SPACE) Log.debug("SEEING BACK SPACE");
+        
+        return (ke.getModifiers() & MENU_BAR_MAYBE) != 0
+            || ke.isActionKey()
+            || ke.getKeyCode() == KeyEvent.VK_BACK_SPACE
+            || ke.getKeyCode() == KeyEvent.VK_DELETE
+            ;
+        
     }
 
     private void ensureDialogStaysOnTop(Dialog dialog) {
