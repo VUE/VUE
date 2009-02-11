@@ -700,7 +700,7 @@
        <map-to xml="tufts.vue.BrowseDataSource" />
        <field name="GUID" type="string">
          <bind-xml name="guid" node="element" />
-       </field>     
+       </field>
        
        <field name = "displayName" type = "string">
             <bind-xml name ="displayName" node = "element" />
@@ -747,6 +747,9 @@
     </field>
     <field name="keyField" type="string">
           <bind-xml name="keyField" node="element" />
+    </field>
+    <field name="imageField" type="string">
+          <bind-xml name="imageField" node="element" />
     </field>
  </class>
 <!--
@@ -851,7 +854,8 @@
   </field>
 </class>
 
-
+<class name="tufts.vue.ds.XMLIngest$XmlSchema" extends="tufts.vue.ds.Schema" identity="mapLocalID">
+  </class>
 </mapping>
 
   
