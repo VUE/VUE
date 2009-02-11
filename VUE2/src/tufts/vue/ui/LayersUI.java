@@ -40,7 +40,7 @@ import edu.tufts.vue.metadata.action.SearchAction;
 
 
 /**
- * @version $Revision: 1.60 $ / $Date: 2009-02-11 18:09:56 $ / $Author: mike $
+ * @version $Revision: 1.61 $ / $Date: 2009-02-11 18:56:06 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -449,6 +449,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             	if (row == null)
             		return;
             	System.err.println("row:::"+row.locked);
+            	row.locked.setSelected(true);
             	row.locked.setIcon(VueResources.getImageIcon("lock"));
             //	row.locked.setBorder(BorderFactory.createLineBorder(Color.red, 1));
             	//row.locked.revalidate();
@@ -458,6 +459,21 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                     if (AUTO_ADJUST_ACTIVE_LAYER) attemptAlternativeActiveLayer(false);
             }
         });
+        
+        
+        /*
+         *         locked.setSelected(layer.isLocked());
+            locked.setBorderPainted(layer.isLocked());
+            locked.setOpaque(false);
+            locked.addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        //locked.setBorderPainted(locked.isSelected());                    	
+                        layer.setLocked(locked.isSelected());
+                        if (layer == getActiveLayer() && !canBeActive(layer))
+                            if (AUTO_ADJUST_ACTIVE_LAYER) attemptAlternativeActiveLayer(false);
+                    }});
+            
+         */
         deleteMenuItem = new JMenuItem("Delete");      
         popupMenu.add(deleteMenuItem); 
         
