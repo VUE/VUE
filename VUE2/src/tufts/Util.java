@@ -163,36 +163,49 @@ public class Util
 
     public static String formatLines(String target, int maxLength)
     {
-    	 Locale currentLocale = new Locale ("en","US");
+        Locale currentLocale = new Locale ("en","US");
 
     	return formatLines(target,maxLength,currentLocale);
     }
     
     public static String formatLines(String target, int maxLength, 
-            Locale currentLocale) {
+                                     Locale locale)
+    {
+        try {
+            target = breakLines(target, maxLength, locale);
+        } catch (Throwable t) {
+            Log.error("failed to line-break [" + target + "]; ", t);
+        }
+
+        return target;
+
+    }
+    
+    private static String breakLines(String target, int maxLength, Locale currentLocale)
+    {
     	String s ="";
     	
-		BreakIterator boundary = BreakIterator.getLineInstance(currentLocale);
-		boundary.setText(target);
-		int start = boundary.first();
-		int end = boundary.next();
-		int lineLength = 0;
+        BreakIterator boundary = BreakIterator.getLineInstance(currentLocale);
+        boundary.setText(target);
+        int start = boundary.first();
+        int end = boundary.next();
+        int lineLength = 0;
 		
-		while (end != BreakIterator.DONE) {
-			String word = target.substring(start,end);
-			lineLength = lineLength + word.length();
-			if (lineLength >= maxLength) {
-				s+="\n";
-				//System.out.println();
-				lineLength = word.length();
-			}
+        while (end != BreakIterator.DONE) {
+            String word = target.substring(start,end);
+            lineLength = lineLength + word.length();
+            if (lineLength >= maxLength) {
+                s+="\n";
+                //System.out.println();
+                lineLength = word.length();
+            }
 			
-			s+=word;
-			//System.out.print(word);
-			start = end;
-			end = boundary.next();
-		}
-		return s;
+            s+=word;
+            //System.out.print(word);
+            start = end;
+            end = boundary.next();
+        }
+        return s;
     } 
 
     /*
