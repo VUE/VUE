@@ -18,7 +18,7 @@
  *
  * Created on February 2, 2007, 3:47 PM
  *
- * @version $Revision: 1.46 $ / $Date: 2008-06-30 20:52:59 $ / $Author: mike $
+ * @version $Revision: 1.47 $ / $Date: 2009-02-12 21:30:17 $ / $Author: sraphe01 $
  * @author dhelle01
  */
 
@@ -49,6 +49,7 @@ import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
 
+import tufts.Util;
 import tufts.vue.LWMap;
 import tufts.vue.VueResources;
 
@@ -155,8 +156,14 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         
         parameterChoice = new JComboBox(parameterChoices) {
             public java.awt.Dimension getMinimumSize() {
-                return new java.awt.Dimension(/*getGraphics().getFontMetrics().charsWidth(choices[0].toCharArray(),0,choices[0].length())+*/80,
-                        super.getPreferredSize().height);
+            	
+                if(Util.isMacLeopard())	
+                   return new java.awt.Dimension(/*getGraphics().getFontMetrics().charsWidth(choices[0].toCharArray(),0,choices[0].length())+*/100,
+                                                 super.getPreferredSize().height);
+                else{
+                	return new java.awt.Dimension(/*getGraphics().getFontMetrics().charsWidth(choices[0].toCharArray(),0,choices[0].length())+*/80,
+                            super.getPreferredSize().height);
+                }                
             }
         };
         JLabel intervalNumberChoiceMessage = new JLabel(intervalChoiceMessageString,JLabel.RIGHT);

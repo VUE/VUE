@@ -16,6 +16,7 @@
 
 package edu.tufts.vue.compare.ui;
 
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
@@ -23,6 +24,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.*;
+
+import tufts.Util;
 
 /*
 
@@ -96,8 +99,13 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
         {
             public java.awt.Dimension getMinimumSize()
             {
-               return new java.awt.Dimension(/*getGraphics().getFontMetrics().charsWidth(choices[0].toCharArray(),0,choices[0].length())+*/80,
-                                             super.getPreferredSize().height);      
+            if(Util.isMacLeopard())	
+               return new java.awt.Dimension(/*getGraphics().getFontMetrics().charsWidth(choices[0].toCharArray(),0,choices[0].length())+*/100,
+                                             super.getPreferredSize().height);
+            else{
+            	return new java.awt.Dimension(/*getGraphics().getFontMetrics().charsWidth(choices[0].toCharArray(),0,choices[0].length())+*/80,
+                        super.getPreferredSize().height);
+            }
             }
         };
         visualizationChoice.setFont(tufts.vue.gui.GUI.LabelFace);
@@ -153,6 +161,7 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
         gridBagConstraints.anchor = GridBagConstraints.WEST;
         //gridBagConstraints.anchor = GridBagConstraints.CENTER;
         gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
+        
         gridBag.setConstraints(weightParameterChoice,gridBagConstraints);
         weightParameterChoice.setFont(tufts.vue.gui.GUI.LabelFace);
         add(weightParameterChoice); 
