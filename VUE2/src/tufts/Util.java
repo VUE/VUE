@@ -171,6 +171,11 @@ public class Util
     public static String formatLines(String target, int maxLength, 
                                      Locale locale)
     {
+        if (target == null) {
+            Log.warn("attempt to line-break null string");
+            return null;
+        }
+        
         try {
             target = breakLines(target, maxLength, locale);
         } catch (Throwable t) {
