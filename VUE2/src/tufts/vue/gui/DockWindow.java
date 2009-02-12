@@ -55,7 +55,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.145 $ / $Date: 2009-02-10 19:17:50 $ / $Author: mike $
+ * @version $Revision: 1.146 $ / $Date: 2009-02-12 21:30:53 $ / $Author: sraphe01 $
  * @author Scott Fraize
  */
 
@@ -607,8 +607,13 @@ public class DockWindow
             pack();
             if (isToolbar)
             	;//setSize(620,54);
-            else
-                setSize(DefaultWidth, getHeight());
+            else{
+            	if(this.getTitle().equals("Merge Maps")){
+            		setSize(535, getHeight());
+            	}else{            	
+            		setSize(DefaultWidth, getHeight());
+            	}
+            }
         } else {
             validate();
         }
