@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.176 $ / $Date: 2009-01-30 21:59:57 $ / $Author: sfraize $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.176 2009-01-30 21:59:57 sfraize Exp $ -->
+<!-- $Revision: 1.177 $ / $Date: 2009-02-13 20:37:52 $ / $Author: mike $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.177 2009-02-13 20:37:52 mike Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -144,6 +144,7 @@
 	/>
   <property name="thirdparty.jarfiles.names"
             value="google-collect-snapshot-20080820.jar
+  				   calais.jar
                    MERLOTOsid-1.0.jar
 				   axis_1_5_3.jar
                    trippi-1.1.2-core.jar
@@ -226,7 +227,7 @@
                    xalan-2.4.1.jar
                    xmlrpc-1.1.jar
                    quaqua-filechooser-only.jar
-                   itext-2.0.4.jar
+                   iText-2.1.4.jar
                    simplyhtml2.jar    
                    gnu-regexp-1.1.4.jar
   				   looks-2.1.4.jar
@@ -302,11 +303,12 @@
                    xercesImpl-2.7.1.jar
                    xerces-2.7.1-xml-apis.jar
   				   quaqua-filechooser-only.jar
-		   		   itext-2.0.4.jar 
+		   		   iText-2.1.4.jar 
 		   		   simplyhtml2.jar
 		  	 	   gnu-regexp-1.1.4.jar
 	   			   looks-2.1.4.jar
   				   google-collect-snapshot-20080820.jar
+  	 			   calais.jar
                    "/>
                                                                                                           
   <path id="compile.classpath.common">
@@ -324,6 +326,7 @@
     <pathelement path="../"/>                
     <pathelement location="${junit.jar}"/>
     <pathelement path="${lib.home}/google-collect-snapshot-20080820.jar"/>
+  	 <pathelement path="${lib.home}/calais.jar"/>
     <pathelement path="${lib.home}/VUE-MacOSX.jar"/>
     <pathelement path="${lib.home}/castor-1.0.5-xml.jar"/>
     <pathelement path="${lib.home}/batik-all.jar"/>
@@ -389,7 +392,7 @@
     <pathelement path="${lib.home}/xerces-2.7.1-xml-apis.jar" />
     <pathelement path="${lib.home}/dom.jar" />
     <pathelement path="${lib.home}/rome-0.9.jar" />
-    <pathelement path="${lib.home}/itext-2.0.4.jar" />    
+    <pathelement path="${lib.home}/iText-2.1.4.jar" />    
     <pathelement path="${lib.home}/simplyhtml2.jar" />   
   	<pathelement path="${lib.home}/looks-2.1.4.jar" />   
   	<pathelement path="${lib.home}/gdata-client-1.0.jar" />
