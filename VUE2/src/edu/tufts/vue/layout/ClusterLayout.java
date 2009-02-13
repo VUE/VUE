@@ -113,9 +113,10 @@ public class ClusterLayout  extends Layout {
     }
     public void layout(LWSelection selection) {
         HashMap<LWComponent,ArrayList<LWComponent>> clusterMap = new   HashMap<LWComponent,ArrayList<LWComponent>>();
-        double minX =10000;
-        double minY = 10000;
-        int nodeSize = 100; // we assume node size is 100 which needs to be fixed.
+        double minX = Double.POSITIVE_INFINITY;
+        double minY = Double.POSITIVE_INFINITY;
+        double maxNodeWidth =  X_COL_SIZE;
+        double maxNodeHeight = Y_COL_SIZE;
         int count = 0;
         int total = 0;
         int mod = 4;
@@ -141,7 +142,11 @@ public class ClusterLayout  extends Layout {
                     }
                     clusterMap.get(tail).add(head);
                 }
+            }else if(c instanceof LWNode) {
+                   maxNodeWidth =  maxNodeWidth > c.getWidth() ?  maxNodeWidth: c.getWidth();
+                 maxNodeHeight=  maxNodeHeight > c.getHeight() ?  maxNodeHeight: c.getHeight();
             }
+
         }
        
         Iterator<LWComponent> iter = selection.iterator();
@@ -155,31 +160,43 @@ public class ClusterLayout  extends Layout {
                 
             }
         }
+
+        // computing the size of largest cluster
+        int maxClusterSize = 10; // default size is zero
+        for(LWComponent c: clusterMap.keySet()) {
+            int  clusterSize = clusterMap.get(c).size();
+            if(clusterSize > maxClusterSize) maxClusterSize = clusterSize;
+        }
         double x = minX;
         double y = minY;
         mod =  (int)Math.ceil(Math.sqrt((double)total));
+
         iter = selection.iterator();
         while (iter.hasNext()) {
             LWComponent c = iter.next();
             if(c instanceof LWNode) {
                 LWNode node = (LWNode)c;
+                int totalLinked = clusterMap.get(node).size();
                 total++;
                 if(count%mod ==0) {
-                    if(count!=0) y += yAdd;
+                    if(count!=0) y += maxClusterSize* maxNodeHeight/2;
                     x =minX;
                 } else {
-                    x+= xAdd;
+                    x+=maxClusterSize* maxNodeWidth/4;
                 }
                 count++;
                 node.setLocation(x,y);
                 System.out.println("Placed node: "+node.getLabel()+" at "+x+","+y);
                 // set linked nodes
-                int totalLinked = clusterMap.get(node).size();
+
                 int countLinked = 0;
                 double angle = 0.0;
+                double radiusX = totalLinked* maxNodeWidth/8;
+                double radiusY = totalLinked* maxNodeHeight/4;
+
                 for(LWComponent linkedNode:clusterMap.get(node)) {
                    // LWNode nodeLinked = (LWNode)c;
-                    linkedNode.setLocation(x+radius*Math.cos(angle),y+radius*Math.sin(angle));
+                    linkedNode.setLocation(x+radiusX*Math.cos(angle),y+radiusY*Math.sin(angle));
                     countLinked++;
                     angle = Math.PI*2*countLinked/totalLinked;
                 }
