@@ -42,6 +42,7 @@ import com.lowagie.text.pdf.ColumnText;
 import com.lowagie.text.pdf.DefaultFontMapper;
 import com.lowagie.text.pdf.PdfChunk;
 import com.lowagie.text.pdf.PdfContentByte;
+import com.lowagie.text.pdf.PdfGraphics2D;
 import com.lowagie.text.pdf.PdfName;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
@@ -70,11 +71,11 @@ public class PresentationNotes {
 
             PdfContentByte cb = writer.getDirectContent();
             
-            PdfTemplate tp = cb.createTemplate(document.getPageSize().width()-70, document.getPageSize().height()-70);
+            PdfTemplate tp = cb.createTemplate(document.getPageSize().getWidth()-70, document.getPageSize().getHeight()-70);
             
-            Graphics2D g2d = tp.createGraphics(document.getPageSize().width()-70, document.getPageSize().height()-70, new DefaultFontMapper(),false,60.0f);                                   
+            PdfGraphics2D g2d = (PdfGraphics2D)tp.createGraphics(document.getPageSize().getWidth()-70, document.getPageSize().getHeight()-70, new DefaultFontMapper(),false,60.0f);                                   
             
-            Dimension page = new Dimension((int)document.getPageSize().width()-70,(int)document.getPageSize().getHeight()-70);
+            Dimension page = new Dimension((int)document.getPageSize().getWidth()-70,(int)document.getPageSize().getHeight()-70);
             // compute zoom & offset for visible map components
             Point2D.Float offset = new Point2D.Float();
             // center vertically only if landscape mode
@@ -109,7 +110,7 @@ public class PresentationNotes {
             VUE.getActiveMap().drawZero(dc);
             LWPathway.setShowSlides(true);
             g2d.dispose();
-            
+          //  document.add(new Paragraph(new Chunk().setAnchor("http://www.cnn.com")));
             cb.addTemplate(tp,35,35);
             document.newPage();
                                                           
@@ -147,8 +148,8 @@ public class PresentationNotes {
             
             document.open();
             
-            final float pageWidth = document.getPageSize().width();
-            final float pageHeight = document.getPageSize().height();
+            final float pageWidth = document.getPageSize().getWidth();
+            final float pageHeight = document.getPageSize().getHeight();
             final float fillWidth = pageWidth - 70;
             final float fillHeight = pageHeight - 70;
 
@@ -166,7 +167,7 @@ public class PresentationNotes {
                 final LWComponent toDraw = (slide == null ? entry.node : slide);
                 
                 final PdfTemplate template = PdfTemplate.createTemplate(writer, fillWidth, fillHeight);
-                final Graphics2D graphics = template.createGraphics(fillWidth, fillHeight, new DefaultFontMapper(), false, 60.0f);
+                final PdfGraphics2D graphics = (PdfGraphics2D) template.createGraphics(fillWidth, fillHeight, new DefaultFontMapper(), false, 60.0f);
                 final DrawContext dc = new DrawContext(graphics, 1.0);
                 //final DrawContext dc = new DrawContext(graphics, scale);
                 //final DrawContext dc = new DrawContext(graphics, toDraw);
@@ -267,7 +268,7 @@ public class PresentationNotes {
                 
                 //PdfTemplate tp = cb.createTemplate(document.getPageSize().width()-80, document.getPageSize().height()-80);
                 double scale = ZoomTool.computeZoomFit(page, 5, bounds, offset, true);
-                Graphics2D g2d = tp.createGraphics(SlideSizeX,SlideSizeY, new DefaultFontMapper(),false,60.0f);
+                PdfGraphics2D g2d = (PdfGraphics2D)tp.createGraphics(SlideSizeX,SlideSizeY, new DefaultFontMapper(),false,60.0f);
                 DrawContext dc = new DrawContext(g2d,
                         scale,
                         -offset.x,
@@ -442,7 +443,7 @@ public class PresentationNotes {
                 
                 //PdfTemplate tp = cb.createTemplate(document.getPageSize().width()-80, document.getPageSize().height()-80);
                 double scale = ZoomTool.computeZoomFit(page, 5, bounds, offset, true);
-                Graphics2D g2d = tp.createGraphics(SlideSizeX,SlideSizeY, new DefaultFontMapper(),false,60.0f);
+                PdfGraphics2D g2d = (PdfGraphics2D)tp.createGraphics(SlideSizeX,SlideSizeY, new DefaultFontMapper(),false,60.0f);
                 DrawContext dc = new DrawContext(g2d,
                         scale,
                         -offset.x,
@@ -557,7 +558,7 @@ public class PresentationNotes {
             
                 PdfTemplate tp = cb.createTemplate(432,324);                
                 double scale = ZoomTool.computeZoomFit(page, 5, bounds, offset, true);
-                Graphics2D g2d = tp.createGraphics(432,324, new DefaultFontMapper(),false,60.0f);
+                PdfGraphics2D g2d = (PdfGraphics2D)tp.createGraphics(432,324, new DefaultFontMapper(),false,60.0f);
                 DrawContext dc = new DrawContext(g2d,
                     scale,
                     -offset.x,
@@ -728,7 +729,7 @@ public class PresentationNotes {
                 
                 //PdfTemplate tp = cb.createTemplate(document.getPageSize().width()-80, document.getPageSize().height()-80);
                 double scale = ZoomTool.computeZoomFit(page, 5, bounds, offset, true);
-                Graphics2D g2d = tp.createGraphics(SlideSizeX,SlideSizeY, new DefaultFontMapper(),false,60.0f);
+                PdfGraphics2D g2d = (PdfGraphics2D)tp.createGraphics(SlideSizeX,SlideSizeY, new DefaultFontMapper(),false,60.0f);
                 DrawContext dc = new DrawContext(g2d,
                         scale,
                         -offset.x,
@@ -863,7 +864,7 @@ public class PresentationNotes {
                 
                 //	PdfTemplate tp = cb.createTemplate(document.getPageSize().width()-80, document.getPageSize().height()-80);
                 	double scale = ZoomTool.computeZoomFit(page, 15, bounds, offset, true);
-                	Graphics2D g2d = tp.createGraphics(SlideSizeX,SlideSizeY, new DefaultFontMapper(),false,60.0f);
+                	PdfGraphics2D g2d = (PdfGraphics2D)tp.createGraphics(SlideSizeX,SlideSizeY, new DefaultFontMapper(),false,60.0f);
                 	DrawContext dc = new DrawContext(g2d,
                         scale,
                         -offset.x,
