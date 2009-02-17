@@ -40,7 +40,7 @@ import edu.tufts.vue.fsm.event.SearchListener;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.107 $ / $Date: 2008-12-17 05:08:00 $ / $Author: sfraize $
+ * @version $Revision: 1.108 $ / $Date: 2009-02-17 02:43:46 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends WidgetStack
@@ -130,7 +130,7 @@ public class InspectorPane extends WidgetStack
         new Pane("_multi-selection-info",  mSelectionInfo,      EXPANDER,    0);
         new Pane("Label",                  mLabelPane,          EXACT_SIZE,  INFO+NOTES+KEYWORD);
         new Pane("Content Preview",        mPreview,            EXACT_SIZE,  RESOURCE);
-        new Pane("Content Summary",        mDescription,        0.5f,        RESOURCE);
+        new Pane("Content Summary",        mDescription,        0.5f,        RESOURCE+DATA);
         new Pane("Data Set Fields",        mDataSetData,        EXACT_SIZE,  INFO+NOTES+KEYWORD+DATA);
         new Pane("Content Info",           mResourceMetaData,   EXACT_SIZE,  RESOURCE);
         new Pane("Notes",                  mNotes,              EXPANDER,    INFO+NOTES);
@@ -259,6 +259,7 @@ public class InspectorPane extends WidgetStack
         
         displayHold();
         displayPanes(DATA);
+        loadContentSummary(null, dataMap);
         mDataSetData.loadTable(dataMap);
         setVisible(true);
         stack.setTitleItem("Data");
@@ -557,22 +558,21 @@ public class InspectorPane extends WidgetStack
         mPreview.loadResource(r);
 
         Widget.hide(mSelectionInfo);
-        loadContentSummary(r, node);
+        loadContentSummary(r, node == null ? null : node.getRawData());
 
     }
 
     private static final String DESCRIPTION_VIEWER_KEY = Resource.HIDDEN_RUNTIME_PREFIX + "ipCache";
 
-
-    private void loadContentSummary(Resource r, LWComponent node) {
-        JComponent descriptionView = (JComponent) r.getPropertyValue(DESCRIPTION_VIEWER_KEY);
+    private void loadContentSummary(Resource r, MetaMap data) {
+        JComponent descriptionView = (r == null ? null : (JComponent) r.getPropertyValue(DESCRIPTION_VIEWER_KEY));
             
         if (descriptionView == null) {
 
             boolean gotView = false;
 
             try {
-                descriptionView = buildSummary(r, node);
+                descriptionView = buildSummary(r, data);
                 gotView = true;
             } catch (Throwable t) {
                 Log.error("loadResource " + r, t);
@@ -588,7 +588,7 @@ public class InspectorPane extends WidgetStack
             // these special attributes themselves.  (e.g., "soft" or
             // "auto-clear-on-change")
 
-            if (gotView)
+            if (gotView && r != null)
                 r.setProperty(DESCRIPTION_VIEWER_KEY, new java.lang.ref.SoftReference(descriptionView));
             // r.putSoft
             // r.data.putSoft
@@ -620,12 +620,30 @@ public class InspectorPane extends WidgetStack
             }
         };
 
-    private static String findProperty(Resource r, LWComponent node, String... keys) {
+//     private static String findProperty(Resource r, LWComponent node, String... keys) {
+        
+//         for (String k : keys) {
+//             String value = null;
+//             if (node != null) {
+//                 value = node.getDataValue(k);
+//                 if (value != null)
+//                     return value;
+//             }
+//             if (r != null) {
+//                 value = r.getProperty(k);
+//                 if (value != null)
+//                     return value;
+//             }
+//         }
+        
+//         return null;
+//     }
+    private static String findProperty(Resource r, MetaMap data, String... keys) {
         
         for (String k : keys) {
             String value = null;
-            if (node != null) {
-                value = node.getDataValue(k);
+            if (data != null) {
+                value = data.getString(k);
                 if (value != null)
                     return value;
             }
@@ -640,7 +658,7 @@ public class InspectorPane extends WidgetStack
     }
     
 
-    private static JComponent buildSummary(final Resource r, final LWComponent node)
+    private static JComponent buildSummary(final Resource r, final MetaMap data)
     {
         final JTextPane htmlText = new JTextPane();
         htmlText.setEditable(false);
@@ -648,127 +666,25 @@ public class InspectorPane extends WidgetStack
         htmlText.setName("description:" + r);
         htmlText.addHyperlinkListener(DefaultHyperlinkListener);
 
-        final String desc = findProperty(r, node, "description", "summary");
+        //final MetaMap data = (node == null ? null : node.getRawData());
+
+        final String desc = findProperty(r, data, "description", "summary");
             
         if (desc != null) {
             
-            htmlText.setText(buildSummaryWithDescription(r, node, desc));
+            htmlText.setText(buildSummaryWithDescription(r, data, desc));
 
         } else {
-
+            
             //------------------------------------------------------------------
             // No description was found: build a summary from just the Resource
             //------------------------------------------------------------------
             
-            final StringBuilder b = new StringBuilder(128);
-            final String title = r.getTitle();
-            if (title != null) {
-                b.append("<b>");
-                // note that the title should already have been HTML UNescaped when set:
-                // now we're escaping it again in case it's natural state actually
-                // contains anything that looks like an HTML tag.  (technically, we
-                // should really only need to escape '<', '>' and '&' at this point)
-                b.append(org.apache.commons.lang.StringEscapeUtils.escapeHtml(title));
-                b.append("</b>");
-                b.append("<p>");
-            }
-                
-            String spec = r.getSpec();
+            final String summary = buildSummaryFromResource(r);
 
-            //-----------------------------------------------------------------------------
+            htmlText.setText(summary);
 
-            // We escape HTML here because at least on Mac OS X, valid HTML tags could
-            // appear in a file name.  Note that doing this also effects behaviour of
-            // our line-breaking tweaks below.  We also want to do this before before we
-            // insert any special unicode characters.  E.g., otherwise, inserting
-            // zero-width unicode space character \u200B would result in
-            // inserting HTML entity &#8203;, which does still appear to work as a break,
-            // but is waste to encode.  
-            
-            // In case of muti-encoded URL's (contains embedded URL's / queries),
-            // decode multiple times for a more readable display.
-            //spec = Util.decodeURL(spec);
-
-            // todo: start by looking for any top-level query: if none found, decodeURL once, then start
-            // over looking for a top level query. Then process each key/value, indenting if embedded queries found,
-            // and always applying an extry decodeURL to each value in "&key=value"
-            // also: don't make entire thing a multi-line href -- all the whitespace will be accidentally
-            // clickable to launch, and also we'll want to inspect each value for an http: value
-            // (or any key name ending in "url") and make THAT a link, so it can be explored separately.
-            spec = Util.decodeURL(spec);
-            spec = org.apache.commons.lang.StringEscapeUtils.escapeHtml(spec);
-            //-----------------------------------------------------------------------------
-            
-            // will allow text pane to line-break the url (plus makes easier to read queries)
-            
-            // \u200B is Unicode zero-width space: JTextPane will break on these. We add
-            // as desired to break URL's / file paths as painlessly as possible.  Note
-            // that apparently including any special unicode character, or perhaps and
-            // break-related unicode character into the JTextPane, appears to
-            // automatically turn on breaking at basic punctuation: e.g. '.', '-' and '?'.
-            // But it does NOT slash or ampersand which we really need, nor '=', or underscore.
-            
-            // BTW, \uFEFF is the Unicode zero-width NO-BREAK space, which JTextPane,
-            // treats properly as non-breaking.
-
-            //-----------------------------------------------------------------------------
-            // break after these (the special char should end the previous line)
-            //-----------------------------------------------------------------------------
-            
-            spec = spec.replaceAll("/", "/\u200B");
-            spec = spec.replaceAll("=", "=\u200B");
-            
-            //-----------------------------------------------------------------------------
-            // break before these (the special char should start the new line):
-            //-----------------------------------------------------------------------------
-
-            // note that breaking AFTER '&' will probably not work, as now we're
-            // inserting breaks into a string that has been HTML escaped, so
-            // at this point, we're actually inserting a break before any HTML entity,
-            // (e.g., &amp; &quot', etc)  not just '&'
-            if (false) {
-                spec = spec.replaceAll("&", "\u200B&");
-            } else {
-                //spec = spec.replaceAll("&amp;", "<br>&amp;");
-                //spec = spec.replaceAll("&amp;", "<li>");
-                spec = spec.replaceAll("&amp;", "<br>& ");
-                spec = spec.replaceFirst("\\?", "<br>?");
-                spec = spec.replaceFirst("\\*\\*", "<br>**"); // yahoo image URL's use this
-            }
-            
-            spec = spec.replaceAll("_", "\u200B_");
-            spec = spec.replaceAll("@", "\u200B@");
-            // spec = spec.replaceAll(":", "\u200B:"); // todo: for generic descriptions which might contain big URN's (e.g., tufts DL)
-            
-            spec = spec.replaceAll("\\+", "\u200B+");
-            spec = spec.replaceAll("\\?", "\u200B?");
-
-            // todo: ideally, also put break before lower-case to upper-case char transitions
-            //-----------------------------------------------------------------------------
-            
-            b.append("<font size=-1>");
-            b.append("<a href=\"");
-
-            try {
-                if (r.isLocalFile()) {
-                    if (r.getSpec().startsWith("file:"))
-                        b.append(r.getSpec());
-                    else
-                        b.append("file://" + r.getSpec());
-                } else
-                    b.append(r.getSpec());
-                //b.append(r.getActiveDataFile().toURL());
-            } catch (Throwable t) {
-                Log.warn(r, t);
-                b.append(r.getSpec());
-            }
-            
-            b.append("\">");
-            b.append(spec);
-            b.append("</a>");
-            htmlText.setText(b.toString());
-
-            if (DEBUG.DATA) r.setProperty("~reformatted", b.toString());
+            if (DEBUG.DATA) r.setProperty("~reformatted", summary);
             
         }
 
@@ -790,8 +706,121 @@ public class InspectorPane extends WidgetStack
             
     }
 
+    private static String buildSummaryFromResource(final Resource r)
+    {
+        final StringBuilder b = new StringBuilder(128);
+        final String title = r.getTitle();
+        if (title != null) {
+            b.append("<b>");
+            // note that the title should already have been HTML UNescaped when set:
+            // now we're escaping it again in case it's natural state actually
+            // contains anything that looks like an HTML tag.  (technically, we
+            // should really only need to escape '<', '>' and '&' at this point)
+            b.append(org.apache.commons.lang.StringEscapeUtils.escapeHtml(title));
+            b.append("</b>");
+            b.append("<p>");
+        }
+                
+        String spec = r.getSpec();
+
+        //-----------------------------------------------------------------------------
+
+        // We escape HTML here because at least on Mac OS X, valid HTML tags could
+        // appear in a file name.  Note that doing this also effects behaviour of
+        // our line-breaking tweaks below.  We also want to do this before before we
+        // insert any special unicode characters.  E.g., otherwise, inserting
+        // zero-width unicode space character \u200B would result in
+        // inserting HTML entity &#8203;, which does still appear to work as a break,
+        // but is waste to encode.  
+            
+        // In case of muti-encoded URL's (contains embedded URL's / queries),
+        // decode multiple times for a more readable display.
+        //spec = Util.decodeURL(spec);
+
+        // todo: start by looking for any top-level query: if none found, decodeURL once, then start
+        // over looking for a top level query. Then process each key/value, indenting if embedded queries found,
+        // and always applying an extry decodeURL to each value in "&key=value"
+        // also: don't make entire thing a multi-line href -- all the whitespace will be accidentally
+        // clickable to launch, and also we'll want to inspect each value for an http: value
+        // (or any key name ending in "url") and make THAT a link, so it can be explored separately.
+        spec = Util.decodeURL(spec);
+        spec = org.apache.commons.lang.StringEscapeUtils.escapeHtml(spec);
+        //-----------------------------------------------------------------------------
+            
+        // will allow text pane to line-break the url (plus makes easier to read queries)
+            
+        // \u200B is Unicode zero-width space: JTextPane will break on these. We add
+        // as desired to break URL's / file paths as painlessly as possible.  Note
+        // that apparently including any special unicode character, or perhaps and
+        // break-related unicode character into the JTextPane, appears to
+        // automatically turn on breaking at basic punctuation: e.g. '.', '-' and '?'.
+        // But it does NOT slash or ampersand which we really need, nor '=', or underscore.
+            
+        // BTW, \uFEFF is the Unicode zero-width NO-BREAK space, which JTextPane,
+        // treats properly as non-breaking.
+
+        //-----------------------------------------------------------------------------
+        // break after these (the special char should end the previous line)
+        //-----------------------------------------------------------------------------
+            
+        spec = spec.replaceAll("/", "/\u200B");
+        spec = spec.replaceAll("=", "=\u200B");
+            
+        //-----------------------------------------------------------------------------
+        // break before these (the special char should start the new line):
+        //-----------------------------------------------------------------------------
+
+        // note that breaking AFTER '&' will probably not work, as now we're
+        // inserting breaks into a string that has been HTML escaped, so
+        // at this point, we're actually inserting a break before any HTML entity,
+        // (e.g., &amp; &quot', etc)  not just '&'
+        if (false) {
+            spec = spec.replaceAll("&", "\u200B&");
+        } else {
+            //spec = spec.replaceAll("&amp;", "<br>&amp;");
+            //spec = spec.replaceAll("&amp;", "<li>");
+            spec = spec.replaceAll("&amp;", "<br>& ");
+            spec = spec.replaceFirst("\\?", "<br>?");
+            spec = spec.replaceFirst("\\*\\*", "<br>**"); // yahoo image URL's use this
+        }
+            
+        spec = spec.replaceAll("_", "\u200B_");
+        spec = spec.replaceAll("@", "\u200B@");
+        // spec = spec.replaceAll(":", "\u200B:"); // todo: for generic descriptions which might contain big URN's (e.g., tufts DL)
+            
+        spec = spec.replaceAll("\\+", "\u200B+");
+        spec = spec.replaceAll("\\?", "\u200B?");
+
+        // todo: ideally, also put break before lower-case to upper-case char transitions
+        //-----------------------------------------------------------------------------
+            
+        b.append("<font size=-1>");
+        b.append("<a href=\"");
+
+        try {
+            if (r.isLocalFile()) {
+                if (r.getSpec().startsWith("file:"))
+                    b.append(r.getSpec());
+                else
+                    b.append("file://" + r.getSpec());
+            } else
+                b.append(r.getSpec());
+            //b.append(r.getActiveDataFile().toURL());
+        } catch (Throwable t) {
+            Log.warn(r, t);
+            b.append(r.getSpec());
+        }
+            
+        b.append("\">");
+        b.append(spec);
+        b.append("</a>");
+        
+        return b.toString();
+    }
+    
+
     private static String buildSummaryWithDescription(final Resource r,
-                                                    final LWComponent node,
+                                                    final MetaMap data,
                                                     String desc)
     {
 
@@ -817,8 +846,8 @@ public class InspectorPane extends WidgetStack
         desc = desc.replaceAll("\\s*<br>\\s*$", "");
                 
                 
-        String title = findProperty(r, node, "title");
-        if (title == null)
+        String title = findProperty(r, data, "title");
+        if (title == null && r != null)
             title = r.getTitle();
                 
         if (desc.indexOf("<style") < 0) {
@@ -828,14 +857,14 @@ public class InspectorPane extends WidgetStack
             buf.append(title);
             buf.append("</font></b>");
             
-            String published = findProperty(r, node, "published", "pubDate", "dc:date", "date", "created");
+            String published = findProperty(r, data, "published", "pubDate", "dc:date", "date", "created");
                 
             if (published != null) {
                 buf.append("<br>\n");
                 //buf.append("<font size=-1 color=808080>");
                 buf.append("<font color=B0B0B0><b>");
                 buf.append(published);
-                String author = findProperty(r, node, "author", "dc:creator", "creator", "publisher", "reporter");
+                String author = findProperty(r, data, "author", "dc:creator", "creator", "publisher", "reporter");
                 if (author != null) {
                     buf.append(" - ");
                     buf.append(author);
