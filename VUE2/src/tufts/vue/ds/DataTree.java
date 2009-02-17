@@ -48,7 +48,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.39 $ / $Date: 2009-02-11 19:25:04 $ / $Author: sfraize $
+ * @version $Revision: 1.40 $ / $Date: 2009-02-17 02:44:50 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -91,7 +91,7 @@ public class DataTree extends javax.swing.JTree
         // make certian we're current to the active map:
         annotateForMap(map);
 
-        List<DataRow> newRows = new ArrayList();
+        final List<DataRow> newRows = new ArrayList();
 
         for (DataNode n : mRowNodeParent.getChildren()) {
             if (!n.isMapPresent()) {
@@ -102,7 +102,11 @@ public class DataTree extends javax.swing.JTree
 
         final List<LWComponent> nodes = makeRowNodes(mSchema, newRows);
 
-        addDataLinksForNewNodes(map, nodes, null);
+        try {
+            addDataLinksForNewNodes(map, nodes, null);
+        } catch (Throwable t) {
+            Log.error("problem creating links on " + map + " for new nodes: " + Util.tags(nodes), t);
+        }
 
         if (nodes.size() > 0) {
             map.getOrCreateLayer("New Data Nodes").addChildren(nodes);
@@ -362,17 +366,43 @@ public class DataTree extends javax.swing.JTree
         
     
 
-    public void activeChanged(tufts.vue.ActiveEvent e, final LWMap map) {
+    public void activeChanged(tufts.vue.ActiveEvent e, final LWMap map)
+    {
+        if (mActiveMap == map)
+            return;
+
+        if (mActiveMap != null)
+            mActiveMap.removeLWCListener(this);
+
         mActiveMap = map;
 
         if (map == null)
             return;
 
         annotateForMap(map);
+        
+        mActiveMap.addLWCListener(this);
     }
+
+    public void LWCChanged(tufts.vue.LWCEvent e) {
+
+        if (mActiveMap != null && e.getName() == LWKey.UserActionCompleted) {
+            
+            // technically, don't need to check after ANY action has been completed:
+            // only if a data node was added/removed from the map (or changed, tho at
+            // the moment there's no such thing as changing data fields once on the map)
+            
+            // todo: in a low priority thread
+            
+            annotateForMap(mActiveMap);
+        }
+    }
+
 
     private void annotateForMap(final LWMap map)
     {
+        
+        
 //         if (mActiveMap != null) {
 //             String annot = Integer.toHexString(mActiveMap.hashCode());
 //             //mActiveMap.getName());
@@ -567,6 +597,16 @@ public class DataTree extends javax.swing.JTree
                     return sortPriority(f2) - sortPriority(f1);
                 }
             });
+
+        final LWComponent.Listener repainter = new LWComponent.Listener() {
+                public void LWCChanged(tufts.vue.LWCEvent e) {
+                    if (e.getName() == LWKey.UserActionCompleted) {
+                        // changes to style nodes need to repaint the tree
+                        DataTree.this.refreshAll();
+                        //DataTree.this.repaint();
+                    }
+                }
+            };
                     
         
         for (Field field : sortedFields) {
@@ -574,7 +614,7 @@ public class DataTree extends javax.swing.JTree
 //             if (field.isSingleton())
 //                 continue;
 
-            DataNode fieldNode = new FieldNode(field, this, null);
+            DataNode fieldNode = new FieldNode(field, repainter, null);
             root.add(fieldNode);
             
 //             if (field.uniqueValueCount() == schema.getRowCount()) {
@@ -781,7 +821,8 @@ public class DataTree extends javax.swing.JTree
 //         }
 
         Log.debug("PRODUCING ROW NODE(S) FOR " + schema + "; " + Util.tags(rows));
-        
+
+        final boolean singleRow = (rows.size() == 1);
         
         int i = 0;
         LWNode node;
@@ -794,6 +835,12 @@ public class DataTree extends javax.swing.JTree
             //node.addDataValues(row.dataEntries());
             node.setDataValues(row.getData());
             node.setStyle(schema.getStyleNode()); // must have meta-data set first to pick up label template
+
+            if (singleRow) {
+                // if handling a single node (e.g., probably a single drag),
+                // also apply & override with the current on-map creation style
+                tufts.vue.EditorManager.targetAndApplyCurrentProperties(node);
+            }
 
             if (linkField != null) {
                 node.setResource(row.getValue(linkField));
@@ -817,7 +864,6 @@ public class DataTree extends javax.swing.JTree
             //Log.debug("produced node " + node);
             String label = node.getLabel();
 
-            
             label = Util.formatLines(label, VueResources.getInt("dataNode.labelLength"));
             node.setLabel(label);
             nodes.add(node);
@@ -1083,10 +1129,6 @@ public class DataTree extends javax.swing.JTree
         style.setFlag(Flag.STYLE); // set last so creation property sets don't attempt updates
         
         return style;
-    }
-
-    public void LWCChanged(tufts.vue.LWCEvent e) {
-        repaint();
     }
 
 
