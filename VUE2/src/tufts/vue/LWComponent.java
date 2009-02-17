@@ -50,7 +50,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.454 $ / $Date: 2009-02-11 18:30:54 $ / $Author: sfraize $
+ * @version $Revision: 1.455 $ / $Date: 2009-02-17 02:48:39 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1313,7 +1313,7 @@ u                    getSlot(c).setFromString((String)value);
         // This so at least for now we have backward compat with the old font property (esp. for tools & persistance)
     	fontIsRebuilding = true;
         try  {
-        	Font f =new Font(mFontName.get(), mFontStyle.get(), mFontSize.get());
+            Font f =new Font(mFontName.get(), mFontStyle.get(), mFontSize.get());
             mFont.set(f);
            
         } finally {
@@ -2733,10 +2733,10 @@ u                    getSlot(c).setFromString((String)value);
             layoutImpl(triggerKey);
 
             if (triggerKey == LWMap.NODE_INIT_LAYOUT) {
-                validateCoordinates();
+                validateInitialValues();
                 layoutSlideIcons(null);
             } else if (triggerKey == LWMap.LINK_INIT_LAYOUT) {
-                validateCoordinates();
+                validateInitialValues();
             }
             // need a reshape/reshapeImpl for this (size/location changes)
             //if (mSlideIconBounds != null)
@@ -2744,7 +2744,7 @@ u                    getSlot(c).setFromString((String)value);
         }
     }
 
-    protected boolean validateCoordinates() {
+    protected boolean validateInitialValues() {
         boolean bad = false;
         if (Float.isNaN(x)) {
             Log.warn(this + " bad x");
@@ -2766,6 +2766,12 @@ u                    getSlot(c).setFromString((String)value);
             height = 0;
             bad = true;
         }
+        if (mFontSize.get() < 1) {
+            Log.warn(this + " bad font size " + mFontSize.get());
+            mFontSize.set(1);
+            bad = true;
+        }
+
         return bad;
     }
 
