@@ -115,7 +115,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.638 $ / $Date: 2009-02-10 19:17:57 $ / $Author: mike $ 
+ * @version $Revision: 1.639 $ / $Date: 2009-02-17 17:37:51 $ / $Author: sraphe01 $ 
  */
 
 public class VUE
@@ -2037,7 +2037,9 @@ public class VUE
         	{
         		layersDock = GUI.createDockWindow("Layers", new tufts.vue.ui.LayersUI());
         		//layersDock.setFocusableWindowState(false);
-        		layersDock.setSize(300,260);
+        		layersDock.setSize(300,260);        		
+        		layersDock.setLocation(0, 144);
+        		
         	}
         }
         

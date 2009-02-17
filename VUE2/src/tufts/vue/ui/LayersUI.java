@@ -40,7 +40,7 @@ import edu.tufts.vue.metadata.action.SearchAction;
 
 
 /**
- * @version $Revision: 1.63 $ / $Date: 2009-02-12 18:09:02 $ / $Author: sraphe01 $
+ * @version $Revision: 1.64 $ / $Date: 2009-02-17 17:37:50 $ / $Author: sraphe01 $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -257,19 +257,32 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 @Override
                 public void act() {
                 	//sheejo     
-                	if(flg){	                	
+                	if(flg){                		
 	                	((JButton)mToolbar.getComponent(3)).setBorderPainted(true);
 	                	((JButton)mToolbar.getComponent(3)).setContentAreaFilled(false);	
 	                	((JButton)mToolbar.getComponent(3)).setBorder(BorderFactory.createEtchedBorder(1));
 	                	//super.updateSelectionWatchers();	                	
 	                	Layer layer = getActiveLayer();
-	                	setActiveLayer((Layer) layer, !UPDATE);
+	                	layer.setVisible(false);
+                        //locked.setEnabled(layer.isVisible());                        
+                        //label.setEnabled(layer.isVisible()); 
 	                	VUE.getSelection().setTo(layer.getAllDescendents());
+                        VUE.getMainWindow().repaint();
+                        if (layer == getActiveLayer() && !canBeActive(layer))
+                            if (AUTO_ADJUST_ACTIVE_LAYER) attemptAlternativeActiveLayer(false);                        
+                        
+	                	setActiveLayer((Layer) layer, !UPDATE);
+	                	
+	                	 //layer.setVisible(layer.isSelected());
+//	                        locked.setEnabled(layer.isVisible());                 
+	                               
+	                        /////////VUE.getMainWindow().repaint();
+	                      //  if (layer == getActiveLayer() && !canBeActive(layer))
+	                       //     if (AUTO_ADJUST_ACTIVE_LAYER) attemptAlternativeActiveLayer(false); 
 //	                	if (VUE.getSelection() !=null)
 //	            			VUE.getSelection().add(layer.getChildren());
 //	            		else
-//	            			VUE.getSelection().setTo(new LWSelection(layer.getChildren()));    		
-	            		          		
+//	            			VUE.getSelection().setTo(new LWSelection(layer.getChildren()));               		          		
 	            		
 	                	flg = !flg;
                 	}else{
@@ -1601,7 +1614,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             visible.setSelected(layer.isVisible());
             visible.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
-                        layer.setVisible(visible.isSelected());
+                    	layer.setVisible(visible.isSelected());
                         locked.setEnabled(layer.isVisible());                        
                         label.setEnabled(layer.isVisible());        
                         VUE.getMainWindow().repaint();
