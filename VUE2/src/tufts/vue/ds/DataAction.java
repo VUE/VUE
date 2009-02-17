@@ -5,10 +5,12 @@ import tufts.vue.LWComponent;
 import tufts.vue.LWLink;
 import edu.tufts.vue.metadata.VueMetadataElement;
 
+import java.awt.Color;
+
 import java.util.*;
 
 /**
- * @version $Revision: 1.5 $ / $Date: 2009-02-11 19:30:53 $ / $Author: sfraize $
+ * @version $Revision: 1.6 $ / $Date: 2009-02-17 02:45:50 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -41,7 +43,7 @@ public class DataAction
                 // one piece of meta-data, and it should be an exact match already
                 //boolean sameField = fieldName.equals(c.getSchematicFieldName());
                 final boolean sameField = c.isDataValueNode();
-                links.add(makeLink(node, c, fieldName, fieldValue, sameField));
+                links.add(makeLink(node, c, fieldName, fieldValue, sameField ? Color.red : null));
             }
                 
         }
@@ -63,45 +65,51 @@ public class DataAction
 
             if (c == rowNode) // never link to ourself
                 continue;
-            
-            final Schema schema = c.getDataSchema();
-            
-            if (schema != null && sourceSchema != schema) {
 
-                //-----------------------------------------------------------------------------
-                // from different schemas: can do a join-based linking -- just try key field for now
-                //-----------------------------------------------------------------------------
+            try {
+            
+                final Schema schema = c.getDataSchema();
+            
+                if (schema != null && sourceSchema != schema) {
 
-                if (c.hasDataValue(sourceKeyField, sourceKeyValue)) {
-                    links.add(makeLink(c, rowNode, sourceKeyField, sourceKeyValue, true));
+                    //-----------------------------------------------------------------------------
+                    // from different schemas: can do a join-based linking -- just try key field for now
+                    //-----------------------------------------------------------------------------
+
+                    if (c.hasDataValue(sourceKeyField, sourceKeyValue)) {
+                        links.add(makeLink(c, rowNode, sourceKeyField, sourceKeyValue, Color.blue));
+                    
+                    } else {
+
+                        // this is the semantic reverse of the above case
+                    
+                        final String targetKeyField = schema.getKeyFieldName();
+                        final String targetKeyValue = c.getDataValue(targetKeyField);
+                        if (rowNode.hasDataValue(targetKeyField, targetKeyValue)) {
+                            links.add(makeLink(rowNode, c, targetKeyField, targetKeyValue, Color.blue));
+                        }
+                    }
+
                 } else {
 
-                    // this is the semantic reverse of the above case
-                    
-                    final String targetKeyField = schema.getKeyFieldName();
-                    final String targetKeyValue = c.getDataValue(targetKeyField);
-                    if (rowNode.hasDataValue(targetKeyField, targetKeyValue)) {
-                        links.add(makeLink(rowNode, c, targetKeyField, targetKeyValue, true));
+                    final String fieldName = c.getDataValueFieldName();
+                
+                    if (fieldName == null) // fieldName will be null if c isn't a data value node / has no schema
+                        continue;
+                
+                    final String fieldValue = c.getDataValue(fieldName);
+                
+                    if (rowNode.hasDataValue(fieldName, fieldValue)) {
+                        //final String label = String.format("RowLink: %s='%s'", fieldName, fieldValue);
+                        //final String label = String.format("%s=%s", fieldName, fieldValue);
+                        links.add(makeLink(c, rowNode, fieldName, fieldValue, null));
                     }
                 }
-
-            } else {
-
-                final String fieldName = c.getDataValueFieldName();
-                
-                if (fieldName == null) // fieldName will be null if c isn't a data value node
-                    continue;
-                
-                final String fieldValue = c.getDataValue(fieldName);
-                
-                if (rowNode.hasDataValue(fieldName, fieldValue)) {
-                    //final String label = String.format("RowLink: %s='%s'", fieldName, fieldValue);
-                    //final String label = String.format("%s=%s", fieldName, fieldValue);
-                    links.add(makeLink(c, rowNode, fieldName, fieldValue, false));
-                }
+            } catch (Throwable t) {
+                Log.warn(t + "; processing target: " + c.getUniqueComponentTypeLabel());
             }
-                
         }
+
         
         return links;
     }
@@ -139,7 +147,7 @@ public class DataAction
                                    LWComponent dest,
                                    String fieldName,
                                    String fieldValue,
-                                   boolean sameField)
+                                   Color specialColor)
     {
         if (src.hasLinkTo(dest)) {
             // don't create a link if there already is one of any kind
@@ -149,10 +157,10 @@ public class DataAction
         LWLink link = new LWLink(src, dest);
         link.setArrowState(0);
         link.setStrokeColor(java.awt.Color.lightGray);
-        if (sameField) {
+        if (specialColor != null) {
             link.mStrokeStyle.setTo(LWComponent.StrokeStyle.DASH3);
-            link.setStrokeWidth(5);
-            link.setStrokeColor(java.awt.Color.red);
+            link.setStrokeWidth(3);
+            link.setStrokeColor(specialColor);
         }
         if (true) {
             final String label = String.format("%s=%s", fieldName, fieldValue);
