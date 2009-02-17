@@ -57,11 +57,11 @@ import static tufts.Util.*;
  * event to the GUI, although these are stop-gap cases that ultimately
  * would be better handled as a recognized property change.
 
- * @version $Revision: 1.36 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $  
+ * @version $Revision: 1.37 $ / $Date: 2009-02-17 02:51:54 $ / $Author: sfraize $  
  
  */
 
-// Rename getWhat to getKey and add getName which does key.toString()
+
 // Consider subclassing from PropertyChangeEvent.
 // Consider LWCEvent as a keyed event with a source only,
 // and adding subclasses for the property change events?
