@@ -94,6 +94,9 @@ public abstract  class LayoutAction extends Actions.LWCAction {
     public static final LayoutAction stretch = new LayoutAction(new StretchLayout(),"Stretch",KeyEvent.VK_8) {
         boolean supportsSingleMover() { return false; }
     };
+      public static final LayoutAction search= new LayoutAction(new SearchLayout(),"Search",KeyEvent.VK_9) {
+        boolean supportsSingleMover() { return false; }
+    };
     public static final Action[] LAYOUT_ACTIONS = {
         random,
         table,
@@ -102,6 +105,7 @@ public abstract  class LayoutAction extends Actions.LWCAction {
         force,
         cluster,
         ripple,
-        stretch
+        stretch,
+        search
     };
 }
