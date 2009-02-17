@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.240 $ / $Date: 2009-02-06 15:51:24 $ / $Author: sfraize $
+ * @version $Revision: 1.241 $ / $Date: 2009-02-17 02:46:52 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2269,7 +2269,8 @@ public class LWNode extends LWContainer
                 //dc.g.setColor(Color.green);
             } else {
                 if (hasFill) {
-                    dc.g.setColor(mFillColor.get());
+                    //dc.g.setColor(mFillColor.get());
+                    dc.g.setColor(getRenderFillColor(dc));
                 } else {
                     dc.g.setStroke(new BasicStroke(getStrokeWidth())); // todo: from cache
                     dc.g.setColor(mStrokeColor.get());
