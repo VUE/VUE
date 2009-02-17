@@ -50,7 +50,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.455 $ / $Date: 2009-02-17 02:48:39 $ / $Author: sfraize $
+ * @version $Revision: 1.456 $ / $Date: 2009-02-17 22:06:26 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -6919,7 +6919,7 @@ u                    getSlot(c).setFromString((String)value);
     {
         //if (DEBUG.IMAGE) out("drawImage; size " + maxSize);
 
-        final boolean drawBorder = this instanceof LWMap; // hack for dragged images of LWMaps
+        final boolean drawBorder = false;// this instanceof LWMap; // hack for dragged images of LWMaps
 
         final Rectangle2D.Float bounds = getImageBounds();
         final Rectangle clip = g.getClipBounds();
