@@ -43,7 +43,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.206 $ / $Date: 2009-02-05 21:49:37 $ / $Author: sfraize $
+ * @version $Revision: 1.207 $ / $Date: 2009-02-17 02:51:40 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -2593,7 +2593,7 @@ public class LWLink extends LWComponent
     }
 
     @Override
-    protected boolean validateCoordinates() {
+    protected boolean validateInitialValues() {
 
 
         boolean wasBad = false;
@@ -2637,8 +2637,8 @@ public class LWLink extends LWComponent
 //         }
         
         
-        if (super.validateCoordinates()) {
-            Log.warn(this + "; coordinates bad");
+        if (super.validateInitialValues()) {
+            Log.warn(this + "; bad initial values (e.g., coordinates)");
             wasBad = true;
         }
 
