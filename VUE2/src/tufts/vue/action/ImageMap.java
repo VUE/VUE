@@ -15,275 +15,311 @@
 
 package tufts.vue.action;
 
-
 import java.io.*;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.awt.*;
+import java.awt.geom.Area;
+import java.awt.geom.GeneralPath;
+import java.awt.geom.PathIterator;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 
 import tufts.vue.*;
 
 /**
- * @version $Revision: 1.26 $ / $Date: 2008-09-15 20:47:03 $ / $Author: dan $ *
- * @author  Jay Briedis
+ * @version $Revision: 1.27 $ / $Date: 2009-02-17 21:56:18 $ / $Author: mike $ *
+ * @author Jay Briedis
+ * 
+ * Major revision: 2/17/09 -MK
+ * The image map now uses a bunch of JQuery files stored on vue.tufts.edu, to enhance
+ * the image map a bit.  The map itself now supports nested nodes, and groups for the first time.
+ * Intersecting areas of the image map are priortized by what appears first in this list, 
+ * so ideallly we want the lowest level descendants to appear first with the top level nodes
+ * appearing last, also you want a groups descedents to appear before the actual group.
+ * 
+ * The current tooltip code doesn't quite work right in IE7 so I cased it to only work in FF, and 
+ * use the standard tooltips in IE.  I'll revisit this after the Feb. 09 release.  I'd also like
+ * to visit adding a zoom slider similar to google maps and scaling the image map appropriately.
+ * 
+ * 3rd level children don't seem to size quite right, need to revisit that as well.  Also, the tooltip
+ * code lets us include Image Previews so we shoud look at using that to provide resource previews when
+ * its as simple as pointing to a URL.
+ * 
+ * Also I'd really like to add some simple templating as having the HTML in java is really cumbersome.
  */
 public class ImageMap extends VueAction {
-    
-    public static final int UPPER_LEFT_MARGIN = 30;
-    
-	private Dimension imageDimensions;
-    private int xOffset, yOffset;
-   
-    /** Creates a new instance of ImageConversion */
-    public ImageMap() {}
-    
-    public ImageMap(String label) {
-        super(label);
-    }
-    
-    public void act()
-    {
-        File selectedFile = ActionUtil.selectFile("Saving Imap", "html");
-        
-        if (selectedFile != null)
-            createImageMap(selectedFile);
-    }
 
-    public void createImageMap(File file)
-    {    
-       // See: VUE-536 in JIRA, If SaveAction Class still chooses "html" as the file type for image maps
-       // html file will already not be overwritten
-       //String imageLocation = file.getAbsolutePath().substring(0, file.getAbsolutePath().length()-5)+"-for-image-map"+".jpeg";
-       //String imageName = file.getName().substring(0, file.getName().length()-5)+"-for-image-map"+".jpeg";
-       String imageLocation = file.getAbsolutePath().substring(0, file.getAbsolutePath().length()-5)+".png";
-       String imageName = file.getName().substring(0, file.getName().length()-5)+".png";
-       String fileName = file.getAbsolutePath().substring(0, file.getAbsolutePath().length()-5)+".html";
-       
-       File imageLocationFile = new File(imageLocation);
-       
-       if(imageLocationFile.exists())
-       {
-          int confirm = VueUtil.confirm("png image already exists, overwrite?","File Already Exists");
-          if(confirm == javax.swing.JOptionPane.NO_OPTION)
-          {
-              VueUtil.alert("Image map not saved","Image Map");
-              return;
-          }
-       }
-       
-       //createJpeg(imageLocation, "jpeg", currentMap, size);
-       //ImageConversion.createActiveMapJpeg(new File(imageLocation));
-       imageDimensions = ImageConversion.createActiveMapPng(imageLocationFile,1.0);
-       createHtml(imageName, fileName);
-    }
-    
-  
-    private int nodeCounter = 0;
-    private String writeOutCss(String imageName,LWContainer container)
-    {
-        String out = new String();
-         
-        //java.util.Iterator iter =  container.getNodeIterator();
-        Iterator iter = container.getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
-       
-        
-        while(iter.hasNext())
-        {
-        	LWNode node = null;
-        	
-            LWComponent comp = (LWComponent)iter.next();
+	public static final int UPPER_LEFT_MARGIN = 30;
+	private int nodeCounter = 0;
+	static final float ChildScale = VueResources.getInt("node.child.scale", 75) / 100f;
+	private Dimension imageDimensions;
+	private int xOffset, yOffset;
+
+	/** Creates a new instance of ImageConversion */
+	public ImageMap() {
+	}
+
+	public ImageMap(String label) {
+		super(label);
+	}
+
+	public void act() {
+		File selectedFile = ActionUtil.selectFile("Saving Imap", "html");
+
+		if (selectedFile != null)
+			createImageMap(selectedFile);
+	}
+
+	public void createImageMap(File file) {
+		// See: VUE-536 in JIRA, If SaveAction Class still chooses "html" as the
+		// file type for image maps
+		// html file will already not be overwritten
+		// String imageLocation = file.getAbsolutePath().substring(0,
+		// file.getAbsolutePath().length()-5)+"-for-image-map"+".jpeg";
+		// String imageName = file.getName().substring(0,
+		// file.getName().length()-5)+"-for-image-map"+".jpeg";
+		String imageLocation = file.getAbsolutePath().substring(0,
+				file.getAbsolutePath().length() - 5)
+				+ ".png";
+		String imageName = file.getName().substring(0,
+				file.getName().length() - 5)
+				+ ".png";
+		String fileName = file.getAbsolutePath().substring(0,
+				file.getAbsolutePath().length() - 5)
+				+ ".html";
+
+		File imageLocationFile = new File(imageLocation);
+
+		if (imageLocationFile.exists()) {
+			int confirm = VueUtil.confirm(
+					"png image already exists, overwrite?",
+					"File Already Exists");
+			if (confirm == javax.swing.JOptionPane.NO_OPTION) {
+				VueUtil.alert("Image map not saved", "Image Map");
+				return;
+			}
+		}
+
+		// createJpeg(imageLocation, "jpeg", currentMap, size);
+		// ImageConversion.createActiveMapJpeg(new File(imageLocation));
+		imageDimensions = ImageConversion.createActiveMapPng(imageLocationFile,
+				1.0);
+		createHtml(imageName, fileName);
+	}
+	
+	/**
+	 * Returns a string containing the coordinates (x1, y1, x2, y2) for a given
+	 * rectangle. This string is intended for use in an image map.
+	 * 
+	 * @param rectangle
+	 *            the rectangle
+	 * 
+	 * @return Upper left and lower right corner of a rectangle.
+	 */
+	private String getRectCoords(Rectangle2D rectangle) {
+		if (rectangle == null) {
+			throw new IllegalArgumentException("Null 'rectangle' argument.");
+		}
+		int x1 = (int) rectangle.getX();
+		int y1 = (int) rectangle.getY();
+		int x2 = (int) rectangle.getWidth();
+		int y2 = (int) rectangle.getHeight();
+		
+		if (x2 == x1) {
+			x2++;
+		}
+		if (y2 == y1) {
+			y2++;
+		}
+		
+		return x1 + "," + y1 + "," + x2 + "," + y2;
+	}
+
+	private Rectangle getRectNode(LWComponent node) {
+		int groupX = 0;
+		int groupY = 0;
+		int ox;
+		int oy;
+		int ow;
+		int oh;
+
+		oy = (int) node.getMapY() + groupY - yOffset - 13;
+		ox = (int) node.getMapX() + groupX - xOffset - 14;
+
+		ow = (int) node.getWidth() + ox;
+		oh = (int) node.getHeight() + oy;
+
+		if (node.getParent() instanceof LWNode) {
+			System.out.println(node.getDepth());
+			ow = (int) (ow - ((ow - ox) * (1 - ChildScale
+					/ (node.getDepth() - 2))));
+			oh = (int) (oh - ((oh - oy) * (1 - ChildScale
+					/ (node.getDepth() - 2))));
+
+		}
+		return new Rectangle(ox, oy, ow, oh);
+	}
+
+	private String writeMapforContainer(LWContainer container) {
+		/*
+		 * I'm using an array list to gather all the lines of the image map
+		 * so that I can push things to the top.  Intersecting areas of the image map
+		 * are priortized by what appears first in this list, so ideallly we want 
+		 * the lowest level descendants to appear first with the top level nodes
+		 * appearing last, also you want a groups descedents to appear before the 
+		 * actual group -MK 2/16/09
+		 */
+		java.util.List<String> arrayList = new ArrayList<String>();
+		Iterator<LWComponent> iter = container.getAllDescendents(
+				LWComponent.ChildKind.PROPER).iterator();
+
+		while (iter.hasNext()) {
+			LWComponent comp = (LWComponent) iter.next();
+
+			String type = "node";
+			if (container instanceof LWGroup) 
+				type = "group";
+
+			if (!(comp instanceof LWNode) && !(comp instanceof LWGroup))
+				continue;
+
+			  String href = null;
+			  String altLabel = null;
+	          Resource res = null;
+	            if (comp instanceof LWNode && (altLabel = (String)((LWNode)comp).getNotes()) == null)
+	            {
+	            	 if(comp.getResource() != null){
+	                     res = comp.getResource();
+	                     //res = resource.toString();
+	                     altLabel=res.getSpec();
+	                     
+	                     // see VUE-873 getSpec() should be fine for now
+	                     //if(!(res.startsWith("http://") || res.startsWith("https://"))) res = "file:///" + res;
+	                 } 
+	            }
+	           
+			  
+		        if (res == null)
+		        	href ="href=\"#\"";
+	            else if(res.equals("null"))
+	        	   href = "href=\"#\"";
+	           else 
+	        	   href = "href=\"" + res.getSpec() + "\" target=\"_blank\"";
             
-            if (comp instanceof LWNode && (!(comp instanceof LWGroup)))
-            	node = (LWNode)comp;
+            String notes ="";
+            
+            notes = comp.getNotes();
+	             
+            if (notes == null)
+            	notes ="";
             else
-            	continue;
-            
-            // seemed to be creating duplicates (getAllDescendants already traverses entire tree..)
-            //if (node.hasChildren())
-            //  out += writeOutCss(imageName,(LWContainer)node);
-                
-            String altLabel = null;
-            
-            if ((altLabel = node.getNotes()) == null)
             {
-            	 if(node.getResource() != null){
-                     Resource resource = node.getResource();
-                     //res = resource.toString();
-                     altLabel=resource.getSpec();
-                     
-                     // see VUE-873 getSpec() should be fine for now
-                     //if(!(res.startsWith("http://") || res.startsWith("https://"))) res = "file:///" + res;
-                 } 
-                 else
-                	 continue;
+            	notes = VueUtil.formatLines(notes, 20);
+            	notes ="class=\"tooltip\" title=\""+notes+"\" "; 
             }
-            int groupX=0;
-            int groupY=0;
-            
-            if (node.getParent() instanceof LWGroup)
-            {
-                // don't count margin twixe in adjustment below
-                // note: offsets provide translation to upper left corner coordinate system
-                // todo: define a coordinate system within this class so don't have
-                // to adjust coordinates for any future artifacts to be placed in imagemap.'
-            	groupX =(int)node.getParent().getMapX() - xOffset - UPPER_LEFT_MARGIN;
-            	groupY =(int)node.getParent().getMapY() - yOffset - UPPER_LEFT_MARGIN;
-            }	
-            String res = "";
-            int ox = (int)node.getMapX() + groupX -  xOffset;
-            int oy = (int)node.getMapY() + groupY -  yOffset; 
-            
-            int ow = (int)node.getWidth();
-            int oh = (int)node.getHeight();
-                        
-            out+="#map a.node" + nodeCounter +"{\n";
-            out+="	top:"+ oy + "px;\n";
-            out+="	left:"+ ox + "px;\n";
-            out+="	width:" +ow + "px;\n";
-            out+="	height:" + oh + "px;\n";
-    		out+="}\n\n";
-    	//	System.out.println("Write out CSS : " + nodeCounter + " "+ node.getLabel());            
-    		nodeCounter++;
-        }
-        
-        return out;
-    }
-    private String writeOutLi(LWContainer container)
-    {
-        String out = new String();
-         
-        //java.util.Iterator iter =  container.getNodeIterator();
-        Iterator iter = container.getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
-        
-        while(iter.hasNext())
-        {
-        	LWNode node = null;
-        	
-            LWComponent comp = (LWComponent)iter.next();
-            
-            if (comp instanceof LWNode && (!(comp instanceof LWGroup)))
-            	node = (LWNode)comp;
-            else
-            	continue;
-            
-            // seemed to be creating duplicates (getAllDescendants already traverses entire tree..)
-            //if (node.hasChildren())
-            //  out += writeOutLi((LWContainer)node);
-            
-            String shape = "rect";
-            String altLabel = null;
-            
-            if ((altLabel = node.getNotes()) == null)
-            {
-            	 if(node.getResource() != null){
-                     Resource resource = node.getResource();
-                     //res = resource.toString();
-                     altLabel=resource.getSpec();
-                     
-                     // see VUE-873 getSpec() should be fine for now
-                     //if(!(res.startsWith("http://") || res.startsWith("https://"))) res = "file:///" + res;
-                 } 
-                 else
-                	 continue;
-            }
-            	
-            
-            String res = "";
-            String href = "";
-            
-            if(node.getResource() != null){
-                Resource resource = node.getResource();
-                //res = resource.toString();
-                res = resource.getSpec();
-                
-                // see VUE-873 getSpec() should be fine for now
-                //if(!(res.startsWith("http://") || res.startsWith("https://"))) res = "file:///" + res;
-            } 
-            else res = "null";
-            
-            if(res.equals("null")) href = "nohref";
-            else href = "href=\"" + res + "\" target=\"_blank\"";
-            
-            	if (href.equals("nohref"))
-            		out+="<li><a class=\"node" + nodeCounter+"\" href=\"#\" ><span><b>";
-            	else
-            		out+="<li><a class=\"node" + nodeCounter+"\"" + " " + href+" ><span><b>";            		
-            	out+=altLabel +"\n";
-            	out+="</b><br></span></a></li>\n";
-    		//System.out.println("Write out CSS : " + nodeCounter + " "+ node.getLabel());      
-            nodeCounter++;
-        }
-         
-        return out;
-    }
-    
-    private void createHtml(String imageName, String fileName){
-        
-        LWMap currentMap = VUE.getActiveMap();   
-        Rectangle2D bounds = currentMap.getBounds();
-        
-        xOffset = (int)bounds.getX()- UPPER_LEFT_MARGIN; 
-        yOffset = (int)bounds.getY()- UPPER_LEFT_MARGIN;
-        Dimension size = new Dimension((int)bounds.getWidth(), (int)bounds.getHeight());
-        
-        String out = "<HTML><HEAD><TITLE>" + currentMap.getLabel();
-        out += "</TITLE>";
-        //write out css
-        
-        out +="<style type=\"text/css\">\n";
-        out+="#map {\n";
-        out+="	margin:0;\n";
-        out+="	padding:0;\n";
-        out+="	width:"+(int)imageDimensions.getWidth()+"px;\n";
-        out+="	height:"+(int)imageDimensions.getHeight()+"px;\n";
-        out+="	background:url(" + imageName +") top left no-repeat #fff;\n";
-        out+="	font-family:arial, helvetica, sans-serif;\n";
-        out+="	font-size:8pt;}\n\n";
-        out+="#map li {\n";
-        out+="	margin:0;\n";
-        out+="	padding:0;\n";
-        out+="	list-style:none;}\n\n";
-        out+="#map li a {\n";
-        out+="	position:absolute;\n";
-        out+="	width:50px;\n";
-        out+="	height:50px;\n";
-        out+="	display:block;\n";
-        out+="	text-decoration:none;\n";
-        out+="	color:#000;}\n\n";
-        out+="#map li a span { width:300px;\n";
-        out+="	display:block;\n";
-        out+="	filter: alpha(opacity=0);\n";
-        out+="	opacity:0.0; }\n\n";
-        out+="#map li a:hover span {\n";
-        out+="	position:relative;\n";
-        out+="	display:block;\n";
-        out+="	width:350px;\n";
-        out+="	left:10px;\n";
-        out+="	top:15px;\n";
-        out+="	border:1px solid #000;\n";
-        out+="	background:#fff;\n";
-        out+="	padding:5px;\n";
-        out+="	filter:alpha(opacity=80);\n";
-        out+="	opacity:0.8;}\n\n";
-  		
-        out += writeOutCss(imageName,currentMap);
-        out += "</style></head><body>\n";
-        out += "<ul id =\"map\">";
-        nodeCounter =0;
-        out += writeOutLi(currentMap);
-        
-        out += "\n</ul></body></html>"; 
-        
-        //write out to the selected file
-        try{
-            FileWriter output = new FileWriter(fileName);
-            output.write(out);
-            output.close();
-            System.out.println("wrote to the file...");
-        }
-        catch(IOException ioe){
-            System.out.println("Error trying to write to html file: " + ioe);
-        }    
-    }
+			if (!comp.hasChildren()) {
+				arrayList.add(" <area "+href+" "+notes+" id=\"" + type
+						+ (nodeCounter++) + "\" shape=\"rect\" coords=\""
+						+ getRectCoords(getRectNode(comp)) + "\"></area>\n");
+			} else {
+				Collection<LWComponent> children = comp.getAllDescendents();
+				LWComponent[] array = new LWComponent[children.size()];
+				children.toArray(array);
+				for (int i = array.length - 1; i >= 0; i--) {
+					if (array[i] instanceof LWNode)
+						arrayList.add(0, " <area "+href+" "+notes+" id=\"" + type
+								+ (nodeCounter++)
+								+ "\" shape=\"rect\" coords=\""
+								+ getRectCoords(getRectNode(array[i]))
+								+ "\"></area>\n");
+				}
+
+				arrayList.add(" <area "+href+" "+notes+" id=\"" + type
+						+ (nodeCounter++) + "\" shape=\"rect\" coords=\""
+						+ getRectCoords(getRectNode(comp)) + "\"></area>\n");
+
+				if (comp instanceof LWGroup) {
+					String groupOutput = writeMapforContainer((LWGroup) comp);
+					arrayList.add(groupOutput);
+				}
+			}// end else
+
+		}// end while
+		String buf = "";
+		Iterator<String> iter2 = arrayList.iterator();
+		while (iter2.hasNext()) {
+			String st = iter2.next();
+			buf += st;
+		}
+		return buf;
+	}
+
+	private void createHtml(String imageName, String fileName) {
+
+		LWMap currentMap = VUE.getActiveMap();
+		Rectangle2D bounds = currentMap.getMapBounds();
+
+		xOffset = (int) bounds.getX() - UPPER_LEFT_MARGIN;
+		yOffset = (int) bounds.getY() - UPPER_LEFT_MARGIN;
+		
+		String out = "<html><head><title>" + currentMap.getLabel();
+		out += "</title>";
+		out += "<script src=\"http://ajax.googleapis.com/ajax/libs/jquery/1.3.1/jquery.min.js\" type=\"text/javascript\"></script>";
+		out += "<script src=\"http://vue.tufts.edu/htmlexport-includes/jquery.maphilight.min.js\" type=\"text/javascript\"></script>";
+		out += "<script src=\"http://vue.tufts.edu/htmlexport-includes/tooltip.min.js\" type=\"text/javascript\"></script>";
+		out += "<script type=\"text/javascript\">";
+		out += "$(function() {";
+		out += "$.fn.maphilight.defaults = {\n";
+		out +=" 		fill: false,\n";
+		out +=" 		fillColor: '000000',\n";
+		out +=" 		fillOpacity: 0.2,\n";
+		out +=" 			stroke: true,\n";
+		out +=" 		strokeColor: '282828',\n";
+		out +=" 		strokeOpacity: 1,\n";
+		out +=" 		strokeWidth: 4,\n";
+		out +=" 		fade: true,\n";
+		out +=" 		alwaysOn: false\n";
+		out +=" 	}\n";
+		out += "$('.example2 img').maphilight();\n";
+		out += "});\n";
+		out += "</script>\n";
+		out += "<style type=\"text/css\">\n";
+		out += "#tooltip{\n";
+		out += "position:absolute;\n";
+		out += "border:1px solid #333;\n";
+		out += "background:#f7f5d1;\n";
+		out += "padding:2px 5px;\n";
+		out += "color:#333;\n";
+		out += "display:none;\n";
+		out += "}\n";	
+		out +="</style>\n";
+		out += "</head><body>\n";
+		out += "<div class=\"example2\">";
+		out += "<img class=\"map\" src=\"" + imageName + "\" width=\""
+				+ imageDimensions.getWidth() + "\" height=\""
+				+ imageDimensions.getHeight() + "\" usemap=\"#usa\">";
+		out += "<map name=\"usa\">";
+		nodeCounter = 0;
+		out += writeMapforContainer(currentMap);
+		out += "\n</map></div></body></html>";
+		// write out to the selected file
+		FileWriter output = null;
+		try {
+			output = new FileWriter(fileName);
+			output.write(out);
+
+			System.out.println("wrote to the file...");
+		} catch (IOException ioe) {
+			System.out.println("Error trying to write to html file: " + ioe);
+		} finally {
+			try {
+				output.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
 }
