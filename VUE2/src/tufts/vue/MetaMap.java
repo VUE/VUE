@@ -36,7 +36,7 @@ import com.google.common.collect.Iterators;
  * The insertion order of each key/value is preserved, even for each use of
  * the same key with different values.
  *
- * @version $Revision: 1.5 $ / $Date: 2009-01-29 17:41:17 $ / $Author: sfraize $
+ * @version $Revision: 1.6 $ / $Date: 2009-02-17 02:46:24 $ / $Author: sfraize $
  */
 
 public class MetaMap implements TableBag, XMLUnmarshalListener
@@ -74,7 +74,7 @@ public class MetaMap implements TableBag, XMLUnmarshalListener
     }
     
     public Schema getSchema() {
-        Log.debug("getSchema returns " + mSchema);
+        //Log.debug("getSchema returns " + mSchema);
         return mSchema;
     }
     

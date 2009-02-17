@@ -31,7 +31,7 @@ import com.google.common.collect.*;
 
 
 /**
- * @version $Revision: 1.20 $ / $Date: 2009-02-11 19:25:04 $ / $Author: sfraize $
+ * @version $Revision: 1.21 $ / $Date: 2009-02-17 02:44:05 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -224,9 +224,13 @@ public class Schema {
         //return getName() + "; " + getResource() + "; " + UUID;
         //return getName();
         try {
-            return String.format("Schema[%s; \"%s\" %s]", getMapLocalID(), getName(), getResource());
+            return String.format("Schema@%x[%s; fields=%d \"%s\" %s]",
+                                 System.identityHashCode(this),
+                                 getMapLocalID(), mFields.size(), getName(), getResource());
         } catch (Throwable t) {
-            return String.format("Schema[%s; \"%s\" %s]", ""+mLocalID, ""+mName, ""+mSource);
+            return String.format("Schema@%x[%s; fields=%d \"%s\" %s]",
+                                 System.identityHashCode(this),
+                                 ""+mLocalID, mFields.size(), ""+mName, ""+mSource);
         }
     }
 
@@ -309,10 +313,14 @@ public class Schema {
     }
 
     public Field getField(String name) {
-        //return mFields.get(name);
-        Field f = mFields.get(name);
+        final Field f = findField(name);
         if (f == null) Log.debug(String.format("%s; no field named '%s' in %s", this, name, mFields.keySet()));
         return f;
+    }
+    
+    /** will quietly return null if not found */
+    public Field findField(String name) {
+        return mFields.get(name);
     }
 
     public boolean hasField(String name) {
@@ -415,15 +423,18 @@ public class Schema {
      * This currently will always return *some* field, even if it's not a possible key field. */
     public Field getKeyFieldGuess() {
 
+        if (getFieldCount() == 0)
+            throw new Error("no fields in " + this);
+
         // Many RSS feeds can be covered by checking "guid" and "link"
         
         Field f;
-        if ((f = getField("guid")) != null && f.isPossibleKeyField())
+        if ((f = findField("guid")) != null && f.isPossibleKeyField())
             return f;
-        if ((f = getField("key")) != null && f.isPossibleKeyField())
+        if ((f = findField("key")) != null && f.isPossibleKeyField())
             return f;
         //if ((f = getField("link")) != null && f.isPossibleKeyField()) // some rss news feeds have dupe entries
-        if ((f = getField("link")) != null && !f.isSingleValue())
+        if ((f = findField("link")) != null && !f.isSingleValue())
             return f;
 
         // todo: identifying the shortest field isn't such a good strategy
@@ -452,7 +463,16 @@ public class Schema {
 //             }
 //         }
 
-        return shortestField == null ? firstField : shortestField;
+        final Field guess = shortestField == null ? firstField : shortestField;
+
+        if (guess == null) {
+            //Log.warn("no key field: " + this, new Throwable("FYI"));
+//             Log.warn("key field guess failed in: " + this);
+//             dumpSchema(System.err);
+            throw new Error("no key field found in " + this);
+        }
+
+        return guess;
     }
         
     public void dumpSchema(PrintStream ps) {
@@ -460,7 +480,7 @@ public class Schema {
     }
         
     public void dumpSchema(PrintWriter ps) {
-        ps.println(getClass().getName() + ": ");
+        ps.println(getClass().getName() + ": " + toString());
         final int pad = -mLongestFieldName;
         final String format = "%" + pad + "s: %s\n";
         for (Field f : mFields.values()) {
