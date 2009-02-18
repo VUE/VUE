@@ -17,39 +17,27 @@ package tufts.vue;
 
 import tufts.Util;
 import tufts.vue.gui.GUI;
-import tufts.vue.gui.VueButton;
 import tufts.vue.gui.Widget;
 import tufts.vue.ui.MetaDataPane;
 import tufts.vue.ui.ResourceList;
-
-
 import javax.swing.*;
 import javax.swing.event.*;
-import javax.swing.table.DefaultTableModel;
 import javax.swing.border.*;
 import java.awt.*;
+import java.awt.List;
 import java.awt.event.*;
+import java.util.Iterator;
 import java.util.Vector;
 import java.io.*;
 import java.util.*;
-import java.net.URL;
 
-import edu.tufts.vue.dsm.impl.VueDataSource;
-
-import org.osid.repository.Repository;
+import org.osid.repository.Asset;
+import org.osid.repository.AssetIterator;
 import org.osid.repository.RepositoryException;
-
 // castor classes
 import org.exolab.castor.xml.Marshaller;
 import org.exolab.castor.xml.Unmarshaller;
-import org.exolab.castor.xml.MarshalException;
-import org.exolab.castor.xml.ValidationException;
-
-import org.exolab.castor.mapping.Mapping;
-import org.exolab.castor.mapping.MappingException;
-import org.osid.provider.ProviderException;
 import org.xml.sax.InputSource;
-
 import tufts.vue.gui.*;
 
 /**
@@ -65,7 +53,7 @@ public class DataSourceViewer extends JPanel
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(DataSourceViewer.class);
     //private static final boolean UseFederatedSearchManager = false;
-    
+    public java.util.List<AssetIterator> assets = new ArrayList<AssetIterator>();
     private static DRBrowser DRB;
     private static Object activeDataSource;
     String breakTag = "";
@@ -90,9 +78,9 @@ public class DataSourceViewer extends JPanel
    // public static Vector  allDataSources = new Vector();
     public static DataSourceList dataSourceList;
     
-    private DockWindow resultSetDockWindow;
+   // private DockWindow resultSetDockWindow;
     private static DockWindow editInfoDockWindow; // hack for now: need this set before DSV is created
-    javax.swing.JScrollPane resultSetTreeJSP;
+    //javax.swing.JScrollPane resultSetTreeJSP;
     JPanel previewPanel = null;
     
     static edu.tufts.vue.dsm.DataSourceManager dataSourceManager;
@@ -101,8 +89,8 @@ public class DataSourceViewer extends JPanel
     static edu.tufts.vue.fsm.QueryEditor queryEditor;
     private edu.tufts.vue.fsm.SourcesAndTypesManager sourcesAndTypesManager;
     
-    private java.awt.Dimension resultSetPanelDimensions = new java.awt.Dimension(400,200);
-    private javax.swing.JPanel resultSetPanel = new javax.swing.JPanel();
+    //private java.awt.Dimension resultSetPanelDimensions = new java.awt.Dimension(400,200);
+   // private javax.swing.JPanel resultSetPanel = new javax.swing.JPanel();
     
     org.osid.shared.Type searchType = new edu.tufts.vue.util.Type("mit.edu","search","keyword");
     org.osid.shared.Type thumbnailType = new edu.tufts.vue.util.Type("mit.edu","partStructure","thumbnail");
@@ -112,6 +100,7 @@ public class DataSourceViewer extends JPanel
     //org.osid.registry.Provider checked[];
     
     private final java.util.List<SearchThread> mSearchThreads = java.util.Collections.synchronizedList(new java.util.LinkedList<SearchThread>());
+    private final java.util.List<MapBasedSearchThread> mMapBasedSearchThreads = java.util.Collections.synchronizedList(new java.util.LinkedList<MapBasedSearchThread>());
 
     private static volatile DataSourceViewer singleton;
     
@@ -320,7 +309,7 @@ public class DataSourceViewer extends JPanel
         
         // select the first new data source, if any
         if (activeDataSource == null && dataSources != null && dataSources.length > 0)
-            setActiveDataSource(dataSources[0]);
+           setActiveDataSource(dataSources[0]);
 
         
     }
@@ -1164,6 +1153,370 @@ public class DataSourceViewer extends JPanel
     {
     	return checkForUpdatesAction;
     }
+
+    /**
+     * Kick off map based searching.
+     * @param c the component we're basing the search on
+     */
+    public void mapBasedSearch(LWComponent c) {
+
+/*        if (se == null) {
+            // null SearchEvent means abort last search
+            stopAllSearches();
+            return;
+        }
+  */      
+        Widget.setExpanded(DRB.browsePane, false);
+        if (DEBUG.DR) {
+            try {
+                System.out.println("\n");
+                Log.debug("Search includes:");
+                for (edu.tufts.vue.dsm.DataSource ds : dataSourceManager.getDataSources()) {
+                    System.out.print("\t");
+                    if (ds.isIncludedInSearch()) {
+                        System.out.print("+ ");
+                    } else {
+                        System.out.print("- ");
+                    }
+                    System.out.println(ds + "; Provider=" + ds.getProviderDisplayName());
+                }
+            } catch (Throwable t) {
+                Util.printStackTrace(t, this + "; debug code");
+            }
+        }
+        
+        performParallelSearchesAndMapResults(c);        
+    }
+    
+    private class MapBasedSearchThread extends Thread {
+        public final Widget mResultPane;
+        
+        private final org.osid.repository.Repository mRepository;
+        private final String mSearchString;
+        
+        private java.io.Serializable mSearchCriteria;
+        private org.osid.shared.Type mSearchType;
+        private org.osid.shared.Properties mSearchProperties;
+        
+        private final StatusLabel mStatusLabel;
+        private final String mRepositoryName;
+        private LWComponent mCenterComponent;
+        public MapBasedSearchThread(org.osid.repository.Repository r,
+                String searchString,
+                Serializable searchCriteria,
+                org.osid.shared.Type searchType,
+                org.osid.shared.Properties searchProperties,
+                LWComponent c)
+                throws org.osid.repository.RepositoryException {
+            super("Search" + (SearchCounter++) + " " + searchString + " in " + repositoryName(r));
+            setDaemon(true);
+            
+            if (DEBUG.DR)
+            {
+            	System.out.println("Search Thread\n-----------");
+            	System.out.println("Search String : " + searchString);
+            	System.out.println("Search Criteria : " + searchCriteria);
+            }
+            mCenterComponent = c;
+            mRepository = r;
+            mSearchString = searchString;
+            mSearchCriteria = searchCriteria;
+            mSearchType = searchType;
+            mSearchProperties = searchProperties;
+            
+            mRepositoryName = repositoryName(r);
+            
+            //If the naming convention of this were to change, note there would
+            //need to be a change in WidgetStack to properly color code the widget.
+            mResultPane = new Widget("Searching " + mRepositoryName);
+            
+            mStatusLabel = new StatusLabel("Searching for " + mSearchString + " ...", false);
+            mResultPane.add(mStatusLabel);
+            
+            if (DEBUG.DR) Log.debug("created search thread for: " + mRepositoryName + " \t" + mRepository);
+        }
+        
+        public void run() {
+            
+            if (stopped())
+                return;
+            
+            if (DEBUG.DR) Log.debug("RUN KICKED OFF");
+
+            // TODO: all the swing access should be happening on the EDT for
+            // absolute thread safety.  Refactor using SwingWorker.
+            
+            try {
+                adjustQuery();
+                if (stopped())
+                    return;
+                
+                // TODO: ultimately, the repository will need some kind of callback
+                // architecture, so that a search can be aborted even while waiting for
+                // the server to come back, tho it'll probably need to use channel based
+                // NIO to really get that working.  Should that day come, the federated
+                // search manager could handle this full threading and calling us back
+                // as results come in, so we could skip our threading code here, and so
+                // other GUI's could take advantage of the fully parallel search code.
+                
+                // INVOKE THE SEARCH, and immediately hand off to processResultsAndDisplay
+                AssetIterator asIt = mRepository.getAssetsBySearch(mSearchCriteria, mSearchType, mSearchProperties);
+                assets.add(asIt);
+                processResultsAndDisplay(asIt);
+                
+            } catch (Throwable t) {
+                Util.printStackTrace(t);
+                if (stopped())
+                    return;
+                final JTextArea textArea;
+                if (DEBUG.Enabled) {
+                    textArea = new JTextArea(mRepositoryName + ": Search Error: " + t);
+                } else {
+                    String msg = translateRepositoryException(t.getLocalizedMessage());
+                    textArea = new JTextArea(mRepositoryName + ": Search Error: " + msg);
+                }
+                
+                textArea.setBorder(new EmptyBorder(4,22,6,0));
+                textArea.setLineWrap(true);
+                textArea.setWrapStyleWord(true);
+                textArea.setEditable(false);
+                GUI.apply(GUI.ErrorFace, textArea);
+                textArea.setOpaque(false);
+                	
+                GUI.invokeAfterAWT(new Runnable() { public void run() {
+                    mResultPane.setTitle("Results: " + mRepositoryName);
+                    mResultPane.removeAll();
+                    mResultPane.add(textArea);
+                }});
+                                
+            }
+
+            if (stopped()) {
+                if (DEBUG.DR) Log.debug("DELAYED STOP; server returned, run completed.");
+                return;
+            }
+            
+            //mSearchThreads.remove(this);
+            if (DEBUG.DR) Log.debug("RUN COMPLETED, stillActive=" + mSearchThreads.size());
+            
+            // must call revalidate because we're coming from another thread:
+            //mResultPane.revalidate();
+
+            if (mMapBasedSearchThreads.size() == 0) {
+                // If we were stopped, the DefaultQueryEditor will have handled
+                // calling completeSearch to restore the state of the "Search" button.
+                if (DEBUG.DR) Log.debug("ALL SEARCHES COMPLETED for \"" + mSearchCriteria + "\"");
+                if (queryEditor instanceof edu.tufts.vue.ui.DefaultQueryEditor)
+                    ((edu.tufts.vue.ui.DefaultQueryEditor)queryEditor).completeSearch();
+            }
+        }
+        
+        private String translateRepositoryException(String msg)
+        {
+        	String s;
+        	if (msg.equals(org.osid.repository.RepositoryException.OPERATION_FAILED))
+        	{
+        		s = VueResources.getString("repositoryexception.operationfailed"); 
+        	}
+        	else if (msg.equals(org.osid.repository.RepositoryException.PERMISSION_DENIED))
+        	{
+        		s = VueResources.getString("repositoryexception.permissiondenied");
+        	}
+        	else if (msg.equals(org.osid.repository.RepositoryException.CONFIGURATION_ERROR))
+        	{
+        		s = VueResources.getString("repositoryexception.configurationerror");
+        	}
+        	else
+        	{
+        		s = VueResources.getString("repositoryexception.genericmsg");
+        	}
+        	
+        	return s;
+        }
+        // As we create a new Widget for the output of every search, in terms of a new
+        // search replacing a still running search, we're already safe UI wise even if
+        // we never interrupted a search, but we might as well be careful about it / not
+        // waste cycles, and it's nice if the user can abort if desired.
+        
+        private boolean stopped() {
+            if (isInterrupted()) {
+                if (DEBUG.DR) Log.debug("STOPPING");
+                return true;
+            } else
+                return false;
+        }
+
+        public void interrupt() {
+            if (DEBUG.DR) Log.debug("INTERRUPTED " + this);
+            super.interrupt();
+            GUI.invokeAfterAWT(new Runnable() { public void run() {
+                mResultPane.setTitle(mRepositoryName + " (Stopped)");
+                mStatusLabel.removeIcon();
+                mStatusLabel.setText("Search stopped.");
+            }});
+        }
+        
+        private void adjustQuery()
+        throws org.osid.repository.RepositoryException {
+            //if (DEBUG.DR) Log.debug("checking for query adjustment");
+            edu.tufts.vue.fsm.QueryAdjuster adjuster = federatedSearchManager
+                    .getQueryAdjusterForRepository(mRepository.getId());
+            if (adjuster != null) {
+                edu.tufts.vue.fsm.Query q = adjuster.adjustQuery(mRepository,
+                        mSearchCriteria,
+                        mSearchType,
+                        mSearchProperties);
+                mSearchCriteria = q.getSearchCriteria();
+                mSearchType = q.getSearchType();
+                mSearchProperties = q.getSearchProperties();
+                if (DEBUG.DR) Log.debug("adjusted query");
+            }
+            //if (DEBUG.DR) Log.debug("done checking for query adjustment");
+        }
+        
+        private void processResultsAndDisplay(org.osid.repository.AssetIterator assetIterator)
+            throws org.osid.repository.RepositoryException
+        {
+            if (stopped())
+                return;
+            
+            if (DEBUG.DR) Log.debug("processing AssetIterator: " + Util.tags(assetIterator));
+
+            final java.util.List resourceList = new java.util.ArrayList();
+            
+            final int maxResult = 5;
+            int resultCount = 0;
+            if (assetIterator != null) {
+                try {
+                    while (assetIterator.hasNextAsset() && (resultCount < maxResult)) {
+                        org.osid.repository.Asset asset = assetIterator.nextAsset();
+                        if (++resultCount > maxResult)
+                            continue;
+                        if (asset == null) {
+                            Log.warn("null asset in " + mRepositoryName + "; " + assetIterator);
+                            continue;
+                        }
+                        try {
+                            resourceList.add(Resource.instance(mRepository, asset, DataSourceViewer.this.context));
+                        } catch (Throwable t) {
+                            Log.warn("Failed to create resource for asset: " + Util.tags(asset), t);
+                        }
+                    }
+                } catch (Throwable t) {
+                    if (resourceList.size() < 1) {
+                        if (t instanceof RepositoryException)
+                            throw (RepositoryException) t;
+                        else
+                            throw new RuntimeException("processing assets for " + mRepositoryName, t);
+                    } else {
+                        // we have at least one result: dump exception and continue
+                        Util.printStackTrace(t, "processing asset iterator for " + mRepositoryName);
+                    }
+                }
+            
+                if (DEBUG.DR) Log.debug("done processing AssetIterator; count=" + resultCount);
+            }
+            
+            String name = "Results: " + mRepositoryName;
+            
+            if (DEBUG.DR) {
+                if (resultCount > maxResult)
+                    Log.debug(name + "; returned a total of " + resultCount + " matches");
+                Log.debug(name + "; " + resourceList.size() + " results");
+            }
+            
+            if (resourceList.size() > 0)
+                name += " (" + resourceList.size() + ")";
+            
+            if (stopped())
+                return;
+
+            final String title = name;
+            final JComponent results;
+            
+            if (resourceList.size() == 0) {
+                if (assetIterator == null)
+                    results = new StatusLabel("Empty results for " + mSearchString, false, false);
+                else
+                    results = new StatusLabel("No results for " + mSearchString, false, false);
+            } else {
+                results = new ResourceList(resourceList, title);
+            }
+            
+            GUI.invokeAfterAWT(new Runnable() { public void run() {
+                mResultPane.setTitle(title);
+                mResultPane.removeAll();
+                mResultPane.add(results);
+                AnalyzerAction.addResultsToMap(resourceList,mCenterComponent);
+            }});    
+            
+           
+            //System.out.println("CRAP");
+        	
+            
+        }
+    }
+    
+    /**
+     * 
+     * @param c The node this search is based on.
+     */
+    private synchronized void performParallelSearchesAndMapResults(LWComponent c)
+    {   
+        final String searchString = "\"" + queryEditor.getSearchDisplayName() + "\"";
+        final WidgetStack resultsStack = new WidgetStack("searchResults " + searchString);
+        final org.osid.repository.Repository[] repositories = sourcesAndTypesManager.getRepositoriesToSearch();
+        final java.io.Serializable searchCriteria = queryEditor.getCriteria();
+        final org.osid.shared.Type searchType = queryEditor.getSearchType();
+        final org.osid.shared.Properties searchProperties = queryEditor.getProperties();
+
+        mMapBasedSearchThreads.clear();
+        
+        if (DEBUG.DR) {
+            Log.debug("Searching criteria [" + searchString + "] in selected repositories."
+                    + "\n\tsearchType=" + searchType
+                    + "\n\tsearchProps=" + searchProperties);
+        }
+        
+        for (int i = 0; i < repositories.length; i++) {
+            final org.osid.repository.Repository repository = repositories[i];
+
+            if (repository == null) {
+                Util.printStackTrace("null repository #" + i + ": skipping search");
+                continue;
+            }
+            
+            MapBasedSearchThread searchThread = null;
+            try {
+                searchThread = new MapBasedSearchThread(repository, searchString,
+                        searchCriteria, searchType, searchProperties,c);
+            } catch (Throwable t) {
+                Util.printStackTrace(t, "Failed to create search in " + repository);
+                if (DEBUG.Enabled)
+                    VueUtil.alert("Search Error", t);
+                else
+                    VueUtil.alert(t.getMessage(), "Search Error");
+            }
+            
+            mMapBasedSearchThreads.add(searchThread);
+            resultsStack.addPane(searchThread.mResultPane, 0f);
+        }
+        
+        DRB.searchPane.add(resultsStack, DRBrowser.SEARCH_RESULT);
+        
+        //-----------------------------------------------------------------------------
+        // KICK OFF THE SEARCH THREADS
+        //-----------------------------------------------------------------------------
+//        synchronized (mSearchThreads) {
+         //   for (Thread t : mSearchThreads)
+       Iterator<MapBasedSearchThread> it =  mMapBasedSearchThreads.iterator();
+       while (it.hasNext())
+       {
+    	   Thread t = it.next();
+    	   t.start();
+       }                       
+    }
+    
     public void searchPerformed(edu.tufts.vue.fsm.event.SearchEvent se) {
 
         if (se == null) {
@@ -1303,6 +1656,12 @@ public class DataSourceViewer extends JPanel
             super("Search" + (SearchCounter++) + " " + searchString + " in " + repositoryName(r));
             setDaemon(true);
             
+            if (DEBUG.DR)
+            {
+            	System.out.println("Search Thread\n-----------");
+            	System.out.println("Search String : " + searchString);
+            	System.out.println("Search Criteria : " + searchCriteria);
+            }
             mRepository = r;
             mSearchString = searchString;
             mSearchCriteria = searchCriteria;
@@ -1345,7 +1704,9 @@ public class DataSourceViewer extends JPanel
                 // other GUI's could take advantage of the fully parallel search code.
                 
                 // INVOKE THE SEARCH, and immediately hand off to processResultsAndDisplay
-                processResultsAndDisplay(mRepository.getAssetsBySearch(mSearchCriteria, mSearchType, mSearchProperties));
+                AssetIterator asIt = mRepository.getAssetsBySearch(mSearchCriteria, mSearchType, mSearchProperties);
+                assets.add(asIt);
+                processResultsAndDisplay(asIt);
                 
             } catch (Throwable t) {
                 Util.printStackTrace(t);
@@ -1591,11 +1952,16 @@ public class DataSourceViewer extends JPanel
         //-----------------------------------------------------------------------------
         // KICK OFF THE SEARCH THREADS
         //-----------------------------------------------------------------------------
+//        synchronized (mSearchThreads) {
+         //   for (Thread t : mSearchThreads)
         synchronized (mSearchThreads) {
             for (Thread t : mSearchThreads)
                 t.start();
         }
-    }
+              // t.start();
+           
+        }
+  //  }
     
 //     private synchronized void performFederatedSearchAndDisplayResults()
 //     throws org.osid.repository.RepositoryException,
