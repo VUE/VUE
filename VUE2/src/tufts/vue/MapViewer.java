@@ -76,7 +76,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.586 $ / $Date: 2009-01-28 22:49:44 $ / $Author: sraphe01 $ 
+ * @version $Revision: 1.587 $ / $Date: 2009-02-18 02:42:50 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -4312,6 +4312,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     	sSinglePopup.addSeparator();
     	sSinglePopup.add(Actions.ContextNotesAction);
     	sSinglePopup.add(Actions.ContextKeywordAction);
+    	JMenu analyzeNodeMenu =new JMenu("Analyze Node");
+    	AnalyzerAction.buildSubMenu(analyzeNodeMenu);
+    	
+    	sSinglePopup.add(analyzeNodeMenu);
 
     	//
         // Add to Pathway stuff goes here.
