@@ -1296,7 +1296,7 @@ public class DataSourceViewer extends JPanel
                 return;
             }
             
-            //mSearchThreads.remove(this);
+            mMapBasedSearchThreads.remove(this);
             if (DEBUG.DR) Log.debug("RUN COMPLETED, stillActive=" + mSearchThreads.size());
             
             // must call revalidate because we're coming from another thread:
