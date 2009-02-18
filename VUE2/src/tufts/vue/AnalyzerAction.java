@@ -70,7 +70,7 @@ public class AnalyzerAction extends Actions.LWCAction {
         java.util.List<LWComponent> comps = new ArrayList<LWComponent>();
         for (int p=0; p < RESULTS_TO_ADD && p<size; p++)
         {
-        	System.out.println(resourceList.get(p).toString());
+        	//System.out.println(resourceList.get(p).toString());
         	Resource r = (Resource)resourceList.get(p);
         	tufts.vue.LWNode node = new tufts.vue.LWNode(r.getTitle());
         	node.setResource(r);
