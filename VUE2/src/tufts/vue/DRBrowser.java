@@ -59,7 +59,7 @@ import javax.swing.border.*;
  * We'd probably need a delegating impl tho to handle that.
  *
  *
- * @version $Revision: 1.72 $ / $Date: 2008-12-20 20:05:21 $ / $Author: sfraize $ 
+ * @version $Revision: 1.73 $ / $Date: 2009-02-18 02:44:14 $ / $Author: mike $ 
  */
 public class DRBrowser extends JPanel
 {
@@ -359,6 +359,11 @@ public class DRBrowser extends JPanel
         //savedResourcesPane.add(new JLabel("saved resources"));
 	
         if (DEBUG.DR) out("build widgets complete");	
+    }
+    
+    public DataSourceViewer getDataSourceViewer()
+    {
+    	return DSV;
     }
     
     public void loadDataSourceViewer()
