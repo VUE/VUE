@@ -37,10 +37,12 @@ import edu.tufts.vue.metadata.ui.OntologicalMembershipPane;
 import edu.tufts.vue.fsm.event.SearchEvent;
 import edu.tufts.vue.fsm.event.SearchListener;
 
+import org.apache.commons.lang.StringEscapeUtils;
+
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.108 $ / $Date: 2009-02-17 02:43:46 $ / $Author: sfraize $
+ * @version $Revision: 1.109 $ / $Date: 2009-02-18 16:51:00 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends WidgetStack
@@ -567,13 +569,14 @@ public class InspectorPane extends WidgetStack
     private void loadContentSummary(Resource r, MetaMap data) {
         JComponent descriptionView = (r == null ? null : (JComponent) r.getPropertyValue(DESCRIPTION_VIEWER_KEY));
             
-        if (descriptionView == null) {
+        boolean gotView = false;
 
-            boolean gotView = false;
+        if (descriptionView == null) {
 
             try {
                 descriptionView = buildSummary(r, data);
-                gotView = true;
+                if (descriptionView != null)
+                    gotView = true;
             } catch (Throwable t) {
                 Log.error("loadResource " + r, t);
                 // html will enable text-wrap
@@ -595,8 +598,10 @@ public class InspectorPane extends WidgetStack
         }
 
         mDescription.removeAll();
-        mDescription.add(descriptionView);
-        mDescription.repaint();
+        if (gotView) {
+            mDescription.add(descriptionView);
+            mDescription.repaint();
+        }
         
     }
 
@@ -670,11 +675,11 @@ public class InspectorPane extends WidgetStack
 
         final String desc = findProperty(r, data, "description", "summary");
             
-        if (desc != null) {
+        if (desc != null || r == null) {
             
-            htmlText.setText(buildSummaryWithDescription(r, data, desc));
+            htmlText.setText(buildSummaryWithDescription(r, data, desc == null ? "" : desc));
 
-        } else {
+        } else { //if (r != null) {
             
             //------------------------------------------------------------------
             // No description was found: build a summary from just the Resource
@@ -687,6 +692,7 @@ public class InspectorPane extends WidgetStack
             if (DEBUG.DATA) r.setProperty("~reformatted", summary);
             
         }
+        //else return null;
 
         // This must be done last.  Why this doesn't work up front I don't know: there
         // must be some other way...
@@ -716,7 +722,7 @@ public class InspectorPane extends WidgetStack
             // now we're escaping it again in case it's natural state actually
             // contains anything that looks like an HTML tag.  (technically, we
             // should really only need to escape '<', '>' and '&' at this point)
-            b.append(org.apache.commons.lang.StringEscapeUtils.escapeHtml(title));
+            b.append(StringEscapeUtils.escapeHtml(title));
             b.append("</b>");
             b.append("<p>");
         }
@@ -744,7 +750,7 @@ public class InspectorPane extends WidgetStack
         // clickable to launch, and also we'll want to inspect each value for an http: value
         // (or any key name ending in "url") and make THAT a link, so it can be explored separately.
         spec = Util.decodeURL(spec);
-        spec = org.apache.commons.lang.StringEscapeUtils.escapeHtml(spec);
+        spec = StringEscapeUtils.escapeHtml(spec);
         //-----------------------------------------------------------------------------
             
         // will allow text pane to line-break the url (plus makes easier to read queries)
@@ -864,7 +870,7 @@ public class InspectorPane extends WidgetStack
                 //buf.append("<font size=-1 color=808080>");
                 buf.append("<font color=B0B0B0><b>");
                 buf.append(published);
-                String author = findProperty(r, data, "author", "dc:creator", "creator", "publisher", "reporter");
+                String author = findProperty(r, data, "author", "dc:creator", "creator", "publisher", "reporter", "name");
                 if (author != null) {
                     buf.append(" - ");
                     buf.append(author);
@@ -893,6 +899,7 @@ public class InspectorPane extends WidgetStack
 
         }
 
+
 //         final boolean willDoNetworkIO;
 
 //         if (DEBUG.Enabled)
@@ -900,7 +907,9 @@ public class InspectorPane extends WidgetStack
 //         else
 //             willDoNetworkIO = false;
                 
-        if (!desc.equals(title)) {
+        boolean hasDesc = false;
+
+        if (desc != null && desc.length() > 0 && !desc.equals(title)) {
             // some OSID's create with spec same as title (!?) e.g., NCBI
             // (URL property is set, but the spec is not)
 
@@ -915,8 +924,30 @@ public class InspectorPane extends WidgetStack
             }
 
             // not all HTML entities are handled by JTextPane, for example: &mdash; &euro;
-            buf.append(org.apache.commons.lang.StringEscapeUtils.unescapeHtml(desc));
+            //if (DEBUG.DR) buf.append('[');
+            buf.append(StringEscapeUtils.unescapeHtml(desc));
+            //if (DEBUG.DR) buf.append(']');
+            hasDesc = true;
         }
+
+        final String link = findProperty(r, data, "link");
+        if (link != null && Resource.looksLikeURLorFile(link)) {
+            if (hasDesc)
+                buf.append("<p>");
+            //if (DEBUG.DR && hasDesc) buf.append("hadDescription:");
+            buf.append(String.format("<a href=\"%s\">%s</a><br>",
+                                     link,
+                                     Util.decodeURL(link)));
+        }
+        
+        // todo: the lookup of "Cover Image" is temporary hack: add regex lookup for *image* and/or
+        // the auto-detection of file/URL encoded fields in data sets.
+        final String image = findProperty(r, data, "Cover Image"); 
+        if (image != null && Resource.looksLikeURLorFile(image) && Resource.looksLikeImageFile(image)) {
+            buf.append(String.format("<center><a href=\"%s\"><img src=\"%s\"></a>", image, image));
+        }
+
+        
 
         //if (DEBUG.DATA && r != null) r.setProperty("~reformatted", reformatted);
         
