@@ -1448,12 +1448,7 @@ public class DataSourceViewer extends JPanel
                 mResultPane.removeAll();
                 mResultPane.add(results);
                 AnalyzerAction.addResultsToMap(resourceList,mCenterComponent);
-            }});    
-            
-           
-            //System.out.println("CRAP");
-        	
-            
+            }});                
         }
     }
     
@@ -1704,9 +1699,7 @@ public class DataSourceViewer extends JPanel
                 // other GUI's could take advantage of the fully parallel search code.
                 
                 // INVOKE THE SEARCH, and immediately hand off to processResultsAndDisplay
-                AssetIterator asIt = mRepository.getAssetsBySearch(mSearchCriteria, mSearchType, mSearchProperties);
-                assets.add(asIt);
-                processResultsAndDisplay(asIt);
+                processResultsAndDisplay(mRepository.getAssetsBySearch(mSearchCriteria, mSearchType, mSearchProperties));
                 
             } catch (Throwable t) {
                 Util.printStackTrace(t);
@@ -1952,16 +1945,11 @@ public class DataSourceViewer extends JPanel
         //-----------------------------------------------------------------------------
         // KICK OFF THE SEARCH THREADS
         //-----------------------------------------------------------------------------
-//        synchronized (mSearchThreads) {
-         //   for (Thread t : mSearchThreads)
         synchronized (mSearchThreads) {
             for (Thread t : mSearchThreads)
                 t.start();
-        }
-              // t.start();
-           
-        }
-  //  }
+        }           
+    }
     
 //     private synchronized void performFederatedSearchAndDisplayResults()
 //     throws org.osid.repository.RepositoryException,
