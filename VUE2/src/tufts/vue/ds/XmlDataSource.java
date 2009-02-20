@@ -32,7 +32,7 @@ import au.com.bytecode.opencsv.CSVReader;
 
 
 /**
- * @version $Revision: 1.12 $ / $Date: 2009-02-11 16:05:14 $ / $Author: sfraize $
+ * @version $Revision: 1.13 $ / $Date: 2009-02-20 18:54:03 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class XmlDataSource extends BrowseDataSource
@@ -222,10 +222,10 @@ public class XmlDataSource extends BrowseDataSource
         String[] values = lineReader.readNext();
 
         if (schema == null) {
-            schema = Schema.instance(Resource.instance(file));
+            schema = Schema.instance(Resource.instance(file), getGUID());
         } else {
             schema.flushData();
-            schema.setSource(Resource.instance(file));
+            schema.setResource(Resource.instance(file));
         }
         
         if (values == null)

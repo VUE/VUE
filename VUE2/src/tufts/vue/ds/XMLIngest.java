@@ -53,7 +53,7 @@ import org.xml.sax.*;
 
 
 /**
- * @version $Revision: 1.8 $ / $Date: 2009-02-11 16:04:46 $ / $Author: sfraize $
+ * @version $Revision: 1.9 $ / $Date: 2009-02-20 18:54:03 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -81,9 +81,9 @@ public class XMLIngest {
             keyFold = false;
         }
 
-        public XmlSchema(Object source, String itemPath) 
+        public XmlSchema(tufts.vue.Resource source, String itemPath) 
         {
-            super.setSource(source);
+            super.setResource(source);
             this.itemPath = itemPath;
             if (itemPath == null || itemPath.length() == 0)
                 itemPathLen = 0;
@@ -214,7 +214,7 @@ public class XMLIngest {
     }
 
   //public static Schema ingestXML(URLConnection conn, String itemKey)
-    public static Schema ingestXML(InputSource input, String itemKey)
+    public static Schema ingestXML(org.xml.sax.InputSource input, String itemKey)
     {
 //         // SMF 2008-10-02: E.g. Craigslist XML streams use ISO-8859-1, which is provided in
 //         // HTML headers as "Content-Type: application/rss+xml; charset=ISO-8859-1", (tho not
@@ -242,7 +242,8 @@ public class XMLIngest {
         // For more on the complexity of this issue, see:
         // http://diveintomark.org/archives/2004/02/13/xml-media-types
         
-        final XmlSchema schema = new XmlSchema(input, itemKey);
+
+        final XmlSchema schema = new XmlSchema(tufts.vue.Resource.instance(input), itemKey);
         
         final Document doc = parseXML(input, false);
 
@@ -739,46 +740,46 @@ public class XMLIngest {
         return in;
     }
     
-    public static void main(String[] args)
-        throws IOException
-    {
-        //final XmlSchema schema = new RssSchema();
+//     public static void main(String[] args)
+//         throws IOException
+//     {
+//         //final XmlSchema schema = new RssSchema();
         
-        errout("Max mem: " + Util.abbrevBytes(Runtime.getRuntime().maxMemory()));
-        //getXMLStream();System.exit(0);
+//         errout("Max mem: " + Util.abbrevBytes(Runtime.getRuntime().maxMemory()));
+//         //getXMLStream();System.exit(0);
         
-        Document doc;
-        String src;
+//         Document doc;
+//         String src;
 
-        if (args.length < 1) {
-            doc = parseXML(getTestXMLStream(), false);
-            src = JIRA_VUE_URL;
-        } else {
-            doc = parseXML(args[0], false);
-            src = args[0];
-        }
-        //doc.normalizeDocument();
-        errout("GOT DOC " + Util.tag(doc) + " " + doc);
-        errout("InputEncoding: " + doc.getInputEncoding());
-        errout("xmlEncoding: " + doc.getXmlEncoding());
-        errout("xmlVersion: " + doc.getXmlVersion());
-        errout("docType: " + Util.tags(doc.getDoctype()));
-        errout("impl: " + Util.tags(doc.getImplementation()));
-        errout("docElement: " + Util.tags(doc.getDocumentElement()));
-        //out("element: " + Util.tags(doc.getDocumentElement()));
+//         if (args.length < 1) {
+//             doc = parseXML(getTestXMLStream(), false);
+//             src = JIRA_VUE_URL;
+//         } else {
+//             doc = parseXML(args[0], false);
+//             src = args[0];
+//         }
+//         //doc.normalizeDocument();
+//         errout("GOT DOC " + Util.tag(doc) + " " + doc);
+//         errout("InputEncoding: " + doc.getInputEncoding());
+//         errout("xmlEncoding: " + doc.getXmlEncoding());
+//         errout("xmlVersion: " + doc.getXmlVersion());
+//         errout("docType: " + Util.tags(doc.getDoctype()));
+//         errout("impl: " + Util.tags(doc.getImplementation()));
+//         errout("docElement: " + Util.tags(doc.getDocumentElement()));
+//         //out("element: " + Util.tags(doc.getDocumentElement()));
 
-        outln("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>");
-        outln("<!-- created by RSSTest " + new Date() + " from " + src + " -->");
+//         outln("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>");
+//         outln("<!-- created by RSSTest " + new Date() + " from " + src + " -->");
 
-        final XmlSchema schema = new XmlSchema(Util.tag(doc), "rss.channel.item");
+//         final XmlSchema schema = new XmlSchema(Util.tag(doc), "rss.channel.item");
         
-        if (true)
-            XPathExtract(schema, doc);
-        else
-            scanNode(schema, doc.getDocumentElement(), null, null);
+//         if (true)
+//             XPathExtract(schema, doc);
+//         else
+//             scanNode(schema, doc.getDocumentElement(), null, null);
 
-        schema.dumpSchema(System.err);
-    }
+//         schema.dumpSchema(System.err);
+//     }
 
     
 

@@ -48,7 +48,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.40 $ / $Date: 2009-02-17 02:44:50 $ / $Author: sfraize $
+ * @version $Revision: 1.41 $ / $Date: 2009-02-20 18:54:03 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -564,7 +564,7 @@ public class DataTree extends javax.swing.JTree
     /** build the model and return the root node */
     private TreeNode buildTree(final Schema schema)
     {
-        mRowNodeParent = new TemplateNode(schema, this);
+        mRowNodeParent = new AllRowsNode(schema, this);
         
         final DataNode root =
             new DataNode("Data Set: " + schema.getName());
@@ -1117,7 +1117,7 @@ public class DataTree extends javax.swing.JTree
                        ("Style node for field '%s' in data-set '%s'\n\nSource: %s\n\n%s\n\nvalues=%d; unique=%d; type=%s",
                         field.getName(),
                         field.getSchema().getName(),
-                        field.getSchema().getSource(),
+                        field.getSchema().getResource(),
                         field.valuesDebug(),
                         field.valueCount(),
                         field.uniqueValueCount(),
@@ -1444,17 +1444,14 @@ public class DataTree extends javax.swing.JTree
         
     }
 
-    private static final class TemplateNode extends FieldNode {
+    private static final class AllRowsNode extends FieldNode {
 
         Schema schema;
 
-        TemplateNode(Schema schema, LWComponent.Listener repainter) {
+        AllRowsNode(Schema schema, LWComponent.Listener repainter) {
             super(null,
                   repainter,
-                  String.format(HTML("<b><font color=red>All Records in %s (%d)"), schema.getName(), schema.getRowCount()));
-            //String.format("<html><b>All Data Nodes in '%s' (%d)", schema.getName(), schema.getRowCount()));
-            //String.format(HTML("<b><font color=red>All Data Nodes in '%s' (%d)"), schema.getName(), schema.getRowCount()));
-            
+                  String.format(HTML("<b><u>All Records in %s (%d)"), schema.getName(), schema.getRowCount()));
             this.schema = schema;
             
 //             LWComponent style = new LWNode();
@@ -1508,7 +1505,8 @@ public class DataTree extends javax.swing.JTree
 //     private static final Border TopBorder = new CompoundBorder(new MatteBorder(3,0,3,0, Color.white),
 //                                                                new CompoundBorder(new LineBorder(Color.gray),
 //                                                                                   GUI.makeSpace(1,0,1,2)));
-    private static final Border TopBorder = GUI.makeSpace(3,0,2,0);
+    //private static final Border TopBorder = GUI.makeSpace(3,0,2,0);
+    private static final Border TopBorder = GUI.makeSpace(0,0,2,0);
 
     private static final Border TopTierBorder = GUI.makeSpace(0,0,2,0);
     private static final Border LeafBorder = GUI.makeSpace(0,IconWidth-16,2,0);

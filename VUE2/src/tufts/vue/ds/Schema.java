@@ -31,7 +31,7 @@ import com.google.common.collect.*;
 
 
 /**
- * @version $Revision: 1.21 $ / $Date: 2009-02-17 02:44:05 $ / $Author: sfraize $
+ * @version $Revision: 1.22 $ / $Date: 2009-02-20 18:54:03 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -51,7 +51,7 @@ public class Schema {
 
     private final List<DataRow> mRows = new ArrayList();
 
-    private Object mSource;
+    //private Object mSource;
     private Resource mResource;
     
     protected int mLongestFieldName = 10;
@@ -72,31 +72,44 @@ public class Schema {
 
     private static final java.util.concurrent.atomic.AtomicInteger NextLocalId = new java.util.concurrent.atomic.AtomicInteger();
 
-    public static Schema instance(Object source) {
+    /** map of locations/addresses to schema instances */
+    private static final Map<String,Schema> SchemaMap = new java.util.concurrent.ConcurrentHashMap();    
+
+    public static Schema instance(Resource source) {
+        return instance(source, null);
+    }
+    
+    public static Schema instance(Resource r, String dataSourceGUID) {
         final Schema s = new Schema();
-        s.setSource(source);
+        s.setResource(r);
+        if (dataSourceGUID != null)
+            r.setProperty("@DSGUID", dataSourceGUID);
         s.setGUID(edu.tufts.vue.util.GUID.generate());
         Log.debug("INSTANCED SCHEMA " + s + "\n");
         return s;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        else if (o == null)
-            return false;
-        else {
-            final Schema s;
-            try {
-                s = (Schema) o;
-            } catch (ClassCastException e) {
-                return false;
-            }
-            return mLocalID.equals(s.mLocalID);
-        }
-             
+    public static Schema lookup(Schema schema) {
+        return schema;
     }
+
+//     @Override
+//     public boolean equals(Object o) {
+//         if (this == o)
+//             return true;
+//         else if (o == null)
+//             return false;
+//         else {
+//             final Schema s;
+//             try {
+//                 s = (Schema) o;
+//             } catch (ClassCastException e) {
+//                 return false;
+//             }
+//             return mLocalID.equals(s.mLocalID);
+//         }
+//     }
+    
     
 //     private Schema(Object source) {
 //         // would be very handy if source was a Resource and Resources had IO methods
@@ -230,7 +243,7 @@ public class Schema {
         } catch (Throwable t) {
             return String.format("Schema@%x[%s; fields=%d \"%s\" %s]",
                                  System.identityHashCode(this),
-                                 ""+mLocalID, mFields.size(), ""+mName, ""+mSource);
+                                 ""+mLocalID, mFields.size(), ""+mName, ""+mResource);
         }
     }
 
@@ -269,33 +282,33 @@ public class Schema {
         setKeyField(getField(name));
     }
         
-    public Object getSource() {
-        return mSource;
-    }
+//     public Object getSource() {
+//         return mSource;
+//     }
     
-    public void setSource(Object src) {
-        mSource = src;
+//     public void setSource(Object src) {
+//         mSource = src;
 
-        try {
-            setResource(src);
-        } catch (Throwable t) {
-            Log.warn(t);
-        }
-    }
+//         try {
+//             setResource(src);
+//         } catch (Throwable t) {
+//             Log.warn(t);
+//         }
+//     }
 
-    private void setResource(Object r) {
+//     private void setResource(Object r) {
     
-        if (r instanceof Resource)
-            mResource = (Resource) r;
-        else if (r instanceof InputSource)
-            mResource = Resource.instance(((InputSource)r).getSystemId());
-        else if (r instanceof File)
-            mResource = Resource.instance((File)r);
-        else if (r instanceof URL)
-            mResource = Resource.instance((URL)r);
-        else if (r instanceof String)
-            mResource = Resource.instance((String)r);
-    }
+//         if (r instanceof Resource)
+//             mResource = (Resource) r;
+//         else if (r instanceof InputSource)
+//             mResource = Resource.instance(((InputSource)r).getSystemId());
+//         else if (r instanceof File)
+//             mResource = Resource.instance((File)r);
+//         else if (r instanceof URL)
+//             mResource = Resource.instance((URL)r);
+//         else if (r instanceof String)
+//             mResource = Resource.instance((String)r);
+//     }
 
     public void setResource(Resource r) {
         mResource = r;
@@ -333,7 +346,9 @@ public class Schema {
         if (mName != null)
             return mName;
         else
-            return getSource().toString();
+            return getResource().getTitle();
+
+        //return getSource().toString();
         
 //         String s = getSource().toString();
 //         int i = s.lastIndexOf('/');
