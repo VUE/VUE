@@ -297,7 +297,7 @@ public class MergeMapsControlPanel extends JPanel implements ActiveListener<LWMa
               adjustGUIToMergeMap((LWMergeMap)currentlyLoadedMap);
         }
         
-        dw.setVisible(true);
+       // dw.setVisible(true);
     }
     
     public void setMergeMapSettings(LWMergeMap map)
