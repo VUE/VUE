@@ -105,6 +105,7 @@ import tufts.vue.gui.GUI;
 import tufts.vue.gui.VueFrame;
 import tufts.vue.gui.VueMenuBar;
 import tufts.vue.ui.InspectorPane;
+import edu.tufts.vue.compare.ui.MergeMapsControlPanel;
 import edu.tufts.vue.dsm.impl.VueDataSourceManager;
 import edu.tufts.vue.preferences.implementations.MetadataSchemaPreference;
 import edu.tufts.vue.preferences.implementations.ShowAgainDialog;
@@ -115,7 +116,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.639 $ / $Date: 2009-02-17 17:37:51 $ / $Author: sraphe01 $ 
+ * @version $Revision: 1.640 $ / $Date: 2009-02-20 15:12:30 $ / $Author: sraphe01 $ 
  */
 
 public class VUE
@@ -159,6 +160,7 @@ public class VUE
     private static PathwayPanel pathwayPanel = null;
     private static MapInspectorPanel mapInspectorPanel = null;
     private static JButton returnToMapButton = null;
+    private static MergeMapsControlPanel mergeMapsControlPanel = null;
     private static MetadataSearchMainGUI metadataSearchMainPanel = null;
     private static JPopupMenu popup;
     private static JPopupMenu editPopup;
@@ -186,7 +188,7 @@ public class VUE
     	mapInspectorPanel = null;
     	metadataSearchMainPanel = null;
     	//returnToMapButton = null;
-    	
+    	mergeMapsControlPanel = null;
     	//DR_BROWSER.removeAll();
     	//DR_BROWSER = null;
     	
@@ -202,6 +204,7 @@ public class VUE
     	floatingZoomDock = null;
     	layersDock = null;
     	metadataSearchMainPanel = null;
+    	mergeMapsControlPanel = null;
 
     }
     /** simplest form of threadsafe static lazy initializer: for CategoryModel */
@@ -894,6 +897,7 @@ public class VUE
     private static DockWindow floatingZoomDock;
     private static DockWindow layersDock;
     private static DockWindow metaDataSearchDock;
+    private static DockWindow mergeMapsDock;
     private static DockWindow anchor;
 
     
@@ -1782,6 +1786,10 @@ public class VUE
         if (!metaDataSearchDock.getWindowProperties().isEnabled() || !metaDataSearchDock.getWindowProperties().isWindowVisible())
         	acrossTopList.add(metaDataSearchDock);
         
+        if (!mergeMapsDock.getWindowProperties().isEnabled() || !mergeMapsDock.getWindowProperties().isWindowVisible())
+        	acrossTopList.add(mergeMapsDock);
+        
+        
         
         final DockWindow[] acrossTop = acrossTopList.toArray(new DockWindow[acrossTopList.size()]);
         
@@ -1824,6 +1832,7 @@ public class VUE
         	pannerDock.positionWindowFromProperties();
         	MapInspector.positionWindowFromProperties();
         	metaDataSearchDock.positionWindowFromProperties();
+        	mergeMapsDock.positionWindowFromProperties();
         	ObjectInspector.positionWindowFromProperties();
         	if (outlineDock != null)
         		outlineDock.positionWindowFromProperties();       
@@ -2017,6 +2026,14 @@ public class VUE
         {        	
         	metaDataSearchDock = GUI.createDockWindow("Search");        	
         	metadataSearchMainPanel = new MetadataSearchMainGUI(metaDataSearchDock);       	
+        }
+      //-----------------------------------------------------------------------------
+        // Merge Maps
+        //-----------------------------------------------------------------------------
+        if (mergeMapsDock == null || VUE.isApplet())
+        {        	
+        	mergeMapsDock = GUI.createDockWindow("Merge Maps");        	
+        	mergeMapsControlPanel = new MergeMapsControlPanel(mergeMapsDock);       	
         }
         //-----------------------------------------------------------------------------
         // Object Inspector / Resource Inspector
@@ -2554,6 +2571,15 @@ public class VUE
     	return metaDataSearchDock;
     }
     
+    public static MergeMapsControlPanel getMergeMapsControlPanel()
+    {
+    	return mergeMapsControlPanel;
+    }    
+    
+    public static DockWindow getMergeMapsDock()
+    {
+    	return mergeMapsDock;
+    }
     public static DockWindow getFormatDock()
     {
     	return formatDock;
@@ -2938,6 +2964,7 @@ public class VUE
         MapInspector.saveWindowProperties();
         ObjectInspector.saveWindowProperties();
         metaDataSearchDock.saveWindowProperties();
+        mergeMapsDock.saveWindowProperties();
         if (outlineDock != null)
             outlineDock.saveWindowProperties();
         if (layersDock != null)

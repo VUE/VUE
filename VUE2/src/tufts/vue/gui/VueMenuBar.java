@@ -47,7 +47,7 @@ import edu.tufts.vue.dsm.impl.VueDataSourceManager;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.131 $ / $Date: 2009-02-11 18:48:18 $ / $Author: sfraize $
+ * @version $Revision: 1.132 $ / $Date: 2009-02-20 15:12:30 $ / $Author: sraphe01 $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -254,8 +254,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         
         final TextOpenAction textOpen = new TextOpenAction();
         final CreateCM createCMAction = new CreateCM("Connectivity Analysis...");
-        final AnalyzeCM analyzeCMAction = new AnalyzeCM("Merge Maps...");
-     
+        final AnalyzeCM analyzeCMAction = new AnalyzeCM("Merge Maps...");        
         // Actions added by the power team
         printAction = PrintAction.getPrintAction();
         printAction.setEnabled(false);
@@ -882,7 +881,10 @@ public class VueMenuBar extends javax.swing.JMenuBar
         if (!VUE.isApplet())
         {
         	analysisMenu.add(createCMAction);
-        	analysisMenu.add(analyzeCMAction);
+        	if (VUE.getMergeMapsDock()!= null ){
+        		analysisMenu.add(createWindowItem(VUE.getMergeMapsDock(), KeyEvent.VK_9, "Merge Maps"));            
+          }
+        	//analysisMenu.add(analyzeCMAction);
         }
        
         
@@ -978,7 +980,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         if (VUE.getMetadataSearchMainGUI()!= null && !VUE.isApplet()){
             windowMenu.add(createWindowItem(VUE.getMetadataSearchMainGUI(), KeyEvent.VK_9, "Search"));            
         }
-        
+ 
                 
            
 //        final KeyStroke acceleratorKey = KeyStroke.getKeyStroke(KeyEvent.VK_9, Actions.COMMAND);
