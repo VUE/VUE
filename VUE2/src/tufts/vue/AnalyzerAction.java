@@ -167,27 +167,32 @@ public class AnalyzerAction extends Actions.LWCAction {
 	    public void act(LWComponent c) 
 	    {
 	    	
-	    	List<AnalyzerResult> list = analyzer.analyze(c,false);
+	    	List<AnalyzerResult> list = analyzer.analyze(c,true);
 	    	Iterator<AnalyzerResult> i = list.iterator();
 	    	VUE.getActiveViewer().getSelection().clear();
 	     	//System.out.println("BLAH");
 	    	boolean hasResults = false;
 	    	while (i.hasNext())
 	    	{		
-	    		hasResults = true;
 	    		AnalyzerResult l = i.next();	    		
 	    		if (c.getMetadataList().size() ==1 && 
 	    				c.getMetadataList().get(0).getValue().equals(""))
 	    			c.getMetadataList().remove(0);
-	    		if (l.getType()==null || l.getType().equals("NA"))
+	    		if (l.getType()==null || (l.getType() !=null && l.getType().equals("NA")))
 	    		{
 	    			if (l.getValue()!=null && l.getValue().trim() != "" && l.getValue().length() > 1)
-	    				c.getMetadataList().add(null, l.getValue());
+	    			{	    		
+	    				hasResults = true;
+	    				c.getMetadataList().add("none", l.getValue());
+	    			}
 	    		}
 	        	else
 	        	{
 	    			if (l.getValue()!=null && l.getValue().trim() != "" && l.getValue().length() > 1)
+	    			{	
+	    				hasResults = true;
 	    				c.getMetadataList().add(l.getType(), l.getValue());
+	    			}
 	        	}
 	    		
 	    	}
