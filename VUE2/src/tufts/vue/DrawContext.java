@@ -34,7 +34,7 @@ import java.awt.RenderingHints;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.60 $ / $Date: 2008-10-08 16:34:23 $ / $Author: sfraize $
+ * @version $Revision: 1.61 $ / $Date: 2009-02-22 19:23:42 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -500,14 +500,28 @@ public final class DrawContext
      */
     public void setAbsoluteStroke(double width)
     {
-        double scale = getAbsoluteScale();
+//         double scale = getAbsoluteScale();
+//         if (scale <= 0)
+//             scale = 1;
+//         this.g.setStroke(new java.awt.BasicStroke((float) (width / scale)));
+        setAbsoluteStroke(this.g, width);
+    }
+
+    public static void setAbsoluteStroke(Graphics2D g, double width)
+    {
+        double scale = getAbsoluteScale(g);
         if (scale <= 0)
             scale = 1;
-        this.g.setStroke(new java.awt.BasicStroke((float) (width / scale)));
+        g.setStroke(new java.awt.BasicStroke((float) (width / scale)));
     }
+    
 
     public double getAbsoluteScale() {
         return this.g.getTransform().getScaleX();
+    }
+    
+    public static double getAbsoluteScale(Graphics2D g) {
+        return g.getTransform().getScaleX();
     }
 
 
