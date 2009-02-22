@@ -134,8 +134,16 @@ public class TextRow
     
     public void draw(tufts.vue.DrawContext dc, float xoff, float yoff)
     {
-        final Graphics2D g = dc.g;
+        draw(dc.g, xoff, yoff);
+    }
+
+    public void draw(Graphics g, float xoff, float yoff) {
+        draw((Graphics2D) g, xoff, yoff);
+    }
+    
         
+    public void draw(Graphics2D g, float xoff, float yoff)
+    {
         // Mac & PC 1.4.1 implementations haved reversed baselines
         // and differ in how descents are factored into bounds offsets
         // Update: As of Mac java 1.4.2_09-232, it appears to use the
@@ -166,7 +174,7 @@ public class TextRow
                 tb.y += yoff;
                 tb.y -= tb.height;
                 Graphics2D _g = (Graphics2D) g.create();
-                dc.setAbsoluteStroke(1);
+                tufts.vue.DrawContext.setAbsoluteStroke(_g, 1);
                 _g.setColor(Color.green);
                 _g.draw(tb);
                 _g.dispose();
@@ -185,7 +193,7 @@ public class TextRow
                 // draw a red bounding box for testing
                 tb.x = xoff;
                 tb.y = yoff;
-                dc.setAbsoluteStroke(1);
+                tufts.vue.DrawContext.setAbsoluteStroke(g, 1);
                 g.setColor(Color.green);
                 g.draw(tb);
             }
@@ -193,7 +201,7 @@ public class TextRow
     }
 
     public String toString() {
-        return "TextRow[" + text + " " + mBounds + "]";
+        return "TextRow[" + text + " " + tufts.Util.fmt(mBounds) + "]";
     }
 
 
