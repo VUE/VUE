@@ -42,7 +42,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.109 $ / $Date: 2009-02-18 16:51:00 $ / $Author: sfraize $
+ * @version $Revision: 1.110 $ / $Date: 2009-02-22 19:30:31 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends WidgetStack
@@ -569,7 +569,7 @@ public class InspectorPane extends WidgetStack
     private void loadContentSummary(Resource r, MetaMap data) {
         JComponent descriptionView = (r == null ? null : (JComponent) r.getPropertyValue(DESCRIPTION_VIEWER_KEY));
             
-        boolean gotView = false;
+        boolean gotView = (descriptionView != null);
 
         if (descriptionView == null) {
 
