@@ -10,7 +10,7 @@ import java.awt.Color;
 import java.util.*;
 
 /**
- * @version $Revision: 1.6 $ / $Date: 2009-02-17 02:45:50 $ / $Author: sfraize $
+ * @version $Revision: 1.7 $ / $Date: 2009-02-22 19:27:00 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -162,13 +162,10 @@ public class DataAction
             link.setStrokeWidth(3);
             link.setStrokeColor(specialColor);
         }
-        if (true) {
-            final String label = String.format("%s=%s", fieldName, fieldValue);
-            //final String label = String.format("DataLink: %s='%s'", fieldName, fieldValue);
-            //link.setNotes(label);
-            //link.setLabel(label);
-            link.addDataValue("@DataLink", label);
-        }
+
+        final String relationship = String.format("%s=%s", fieldName, fieldValue);
+        link.setAsDataLink(relationship);
+
         return link;
 
     }
