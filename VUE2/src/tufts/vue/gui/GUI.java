@@ -57,7 +57,7 @@ import sun.awt.shell.ShellFolder;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.132 $ / $Date: 2009-02-10 19:29:23 $ / $Author: mike $
+ * @version $Revision: 1.133 $ / $Date: 2009-02-22 19:29:30 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1878,9 +1878,13 @@ public class GUI
         }
         public void paintIcon(java.awt.Component c, java.awt.Graphics g, int x, int y) {
             if (DEBUG.BOXES) {
-                g.setColor(Color.gray);
-                g.drawRect(x, y, width-1, height-1);
+                g.setColor(Color.red);
+                g.fillRect(x, y, width, height);
             }
+//             if (DEBUG.BOXES) {
+//                 g.setColor(Color.gray);
+//                 g.drawRect(x, y, width-1, height-1);
+//             }
         }
         public int getIconWidth() { return width; }
         public int getIconHeight() { return height; }
@@ -1919,6 +1923,36 @@ public class GUI
         }
         
     }
+
+    private static class UnicodeIcon extends IconImpl {
+        final TextRow glyph;
+        final Color color;
+        final int xoff, yoff;
+
+        UnicodeIcon(int code, int pointSize, Color c, int width, int height, int x, int y) {
+            super(width, height);
+            color = c;
+            xoff = x;
+            yoff = y;
+            
+            //glyph = new TextRow(new String(new char[ (char) code ]),
+            glyph = new TextRow("" + ((char)code),
+                                getUnicodeGlyphFont(pointSize));
+        }
+        
+        public void paintIcon(java.awt.Component c, java.awt.Graphics g, int x, int y) {
+            super.paintIcon(c, g, x, y);
+            g.setColor(color);
+            //Log.debug("drawing " + glyph + " at " + x + "," + y + "; +" + xoff + ",+" + yoff);
+            glyph.draw(g, x + xoff, y + yoff);
+        }
+    }
+
+    public static Icon makeUnicodeIcon(int code, int pointSize, Color c, int width, int height, int xoff, int yoff) {
+        return new UnicodeIcon(code, pointSize, c, width, height, xoff, yoff);
+    }
+
+    
 
     public static Icon reframeIcon(Icon i, int w, int h) {
         return new ResizedIcon(i, w, h);
@@ -2060,6 +2094,16 @@ public class GUI
         
     }
 
+    public static Font getUnicodeGlyphFont(int pointSize) {
+        if (Util.isWindowsPlatform())
+            return new Font("Lucida Sans Unicode", Font.PLAIN, pointSize+4); // this is included in default WinXP installations
+        // setFont(new Font("Arial Unicode MS", Font.PLAIN, pointSize+4)); // this is not
+        else if (Util.isMacPlatform())
+            return new Font("Symbol Regular", Font.PLAIN, pointSize);
+        else
+            return new Font("Lucida Grande", Font.PLAIN, pointSize);
+    }
+
     /**
      * A class for a providing a label of fixed size to display the given unicode character.
      * A font is selected per-platform for ensuring good results.
@@ -2069,18 +2113,14 @@ public class GUI
      * sizes.  This allows you to fix to the size to something that accomodates both (currently
      * you must tune and select that size manually, and use two IconicLabels with the same size).
      */
-    public static class IconicLabel extends JLabel {
+    public static class IconicLabel extends JLabel implements Icon {
         
         private final Dimension mSize;
 	private char icon;
         public IconicLabel(char iconChar, int pointSize, Color color, int width, int height) {
             super(new String(new char[] { iconChar }), JLabel.CENTER);
 	    icon = iconChar;
-            if (Util.isWindowsPlatform())
-                 setFont(new Font("Lucida Sans Unicode", Font.PLAIN, pointSize+4)); // this is included in default WinXP installations
-              // setFont(new Font("Arial Unicode MS", Font.PLAIN, pointSize+4)); // this is not
-             else
-                 setFont(new Font("Lucida Grande", Font.PLAIN, pointSize));
+            setFont(getUnicodeGlyphFont(pointSize));
             
             // todo: this may be a problem for Linux: does it have any decent default fonts that
             // include the fancy extended unicode character sets?
@@ -2106,6 +2146,8 @@ public class GUI
             this(iconChar, 16, null, width, height);
         }
 
+        public int getIconWidth() { return mSize.width; }
+        public int getIconHeight() { return mSize.height; }
         /*
         public void addNotify() {
             super.addNotify();
@@ -2113,57 +2155,68 @@ public class GUI
         }
         */
         
+        @Override
         public void paintComponent(Graphics g) {
         	
             // for debug: fill box with color so can see size
             if (DEBUG.BOXES) {
                 g.setColor(Color.red);
-                g.fillRect(0, 0, 99, 99);
+                g.fillRect(0, 0, mSize.width, mSize.height);
             }
             if (!Util.isMacPlatform())
                 ((java.awt.Graphics2D)g).setRenderingHint
                     (java.awt.RenderingHints.KEY_TEXT_ANTIALIASING,
                      java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
            
-           /**
-            * On Linux, I couldn't find a single font in font.propeties that had the glyph
-            * for the arrows so am drawing them instead, and just not using the characters at all.
-            */
-           if ((!Util.isMacPlatform() && (!Util.isWindowsPlatform())))
-           {
-        	   Graphics2D g2d = (Graphics2D)g;
-               g2d.setColor(this.getForeground());
-               g2d.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING,java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
-        	   Shape shape = makeTriangle();
-        	   if (this.getText() == "\u25B8")		   
-        		   g2d.rotate(Math.PI+Math.PI/2,this.getWidth()/2.0,this.getHeight()/2.0);
-        	   g2d.fill(shape);
-           }
-           else
-           {
-        	   super.paintComponent(g);
-           }
-    }
+            /**
+             * On Linux, I couldn't find a single font in font.propeties that had the glyph
+             * for the arrows so am drawing them instead, and just not using the characters at all.
+             */
+            if ((!Util.isMacPlatform() && (!Util.isWindowsPlatform())))
+                {
+                    Graphics2D g2d = (Graphics2D)g;
+                    g2d.setColor(this.getForeground());
+                    g2d.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING,java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+                    Shape shape = makeTriangle();
+                    if (this.getText() == "\u25B8")		   
+                        g2d.rotate(Math.PI+Math.PI/2,this.getWidth()/2.0,this.getHeight()/2.0);
+                    g2d.fill(shape);
+                }
+            else
+                {
+                    super.paintComponent(g);
+                }
+        }
 
-	private Shape makeTriangle() {
-	   GeneralPath p = new GeneralPath();
-           p.moveTo( 5f, 5f );
-           p.lineTo( 11f, 5f );
-           p.lineTo( 7.5f, 11f );
-           p.closePath();
-									                  return p;
-											 }        
+        public void paintIcon(Component c, Graphics g, int x, int y) {
+            if (DEBUG.BOXES) {
+                g.setColor(Color.red);
+                g.fillRect(0, 0, mSize.width, mSize.height);
+            }
+            //g.drawString(
+        }
+    
+
+	private static Shape makeTriangle() {
+            GeneralPath p = new GeneralPath();
+            p.moveTo( 5f, 5f );
+            p.lineTo( 11f, 5f );
+            p.lineTo( 7.5f, 11f );
+            p.closePath();
+            return p;
+        }        
 	  	 
         
+        @Override
         public void setBounds(int x, int y, int width, int height) {
             super.setBounds(x, y, mSize.width, mSize.height);
         }
         
-        public Dimension getSize() { return mSize; }
-        public Dimension getPreferredSize() { return mSize; }
-        public Dimension getMaximumSize() { return mSize; }
-        public Dimension getMinimumSize() { return mSize; }
-        public Rectangle getBounds() { return new Rectangle(getX(), getY(), mSize.width, mSize.height); }
+        @Override public Dimension getSize() { return mSize; }
+        @Override public Dimension getPreferredSize() { return mSize; }
+        @Override public Dimension getMaximumSize() { return mSize; }
+        @Override public Dimension getMinimumSize() { return mSize; }
+        @Override public Rectangle getBounds() { return new Rectangle(getX(), getY(), mSize.width, mSize.height); }
     }
 
 
