@@ -609,7 +609,7 @@ public class MetaDataPane extends tufts.vue.gui.Widget
                 rowIdx++;
         }
 
-        if (DEBUG.Enabled && dataMap != null) {
+        if (DEBUG.Enabled && dataMap != null && dataMap.getSchema() != null) {
             loadRow(rowIdx++, "SCHEMA", null, ""+dataMap.getSchema());
         }
           
