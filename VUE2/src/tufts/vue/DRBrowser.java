@@ -59,7 +59,7 @@ import javax.swing.border.*;
  * We'd probably need a delegating impl tho to handle that.
  *
  *
- * @version $Revision: 1.73 $ / $Date: 2009-02-18 02:44:14 $ / $Author: mike $ 
+ * @version $Revision: 1.74 $ / $Date: 2009-02-22 19:23:15 $ / $Author: sfraize $ 
  */
 public class DRBrowser extends JPanel
 {
@@ -463,9 +463,9 @@ public class DRBrowser extends JPanel
 
         drBrowser.loadDataSourceViewer();
 
-        GUI.invokeAfterAWT(new Runnable() { public void run() {
-            DataSourceViewer.cacheDataSourceViewers();
-        }});
+//         GUI.invokeAfterAWT(new Runnable() { public void run() {
+//             DataSourceViewer.cacheDataSourceViewers();
+//         }});
 
         edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance()
             .startRepositoryConfiguration(null);
