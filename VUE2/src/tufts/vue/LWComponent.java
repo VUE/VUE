@@ -50,7 +50,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.456 $ / $Date: 2009-02-17 22:06:26 $ / $Author: mike $
+ * @version $Revision: 1.457 $ / $Date: 2009-02-22 19:24:51 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -167,6 +167,10 @@ public class LWComponent
             
             /** this component is in a "collapsed" or closed view state */
             COLLAPSED,
+
+            /** for links: this is data-relation link */
+            DATA_LINK,
+            
 
 //             /** if temporarily changing locked state, can save old value here (layers use this) */
 //             WAS_LOCKED,
@@ -1918,6 +1922,15 @@ u                    getSlot(c).setFromString((String)value);
         else
             return null;
     }
+    
+    /** @return null -- here only for persistance order, so schemas
+     * can persist before nodes in the map, which overrides this to list
+     * schemas included in the map.
+     */
+    public Collection<tufts.vue.ds.Schema> getIncludedSchemas() {
+        return null;
+    }
+    
 
     public boolean hasDataValue(String key, String value) {
         return mDataMap != null && mDataMap.containsEntry(key, value);
@@ -6290,6 +6303,15 @@ u                    getSlot(c).setFromString((String)value);
     {
         notifyLWCListeners(new LWCEvent(this, componentList, what));
     }
+
+    /* delete this single component: equivalent to a user-delete action */
+    public void delete() {
+        if (!isDeleted())
+            getParent().deleteChildPermanently(this);
+        else
+            Log.debug("attempt to delete already deleted: " + this);
+    }
+    
 
     /**
      * Do final cleanup needed now that this LWComponent has
