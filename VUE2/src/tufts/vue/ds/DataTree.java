@@ -48,7 +48,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.41 $ / $Date: 2009-02-20 18:54:03 $ / $Author: sfraize $
+ * @version $Revision: 1.42 $ / $Date: 2009-02-22 19:28:07 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -61,6 +61,8 @@ public class DataTree extends javax.swing.JTree
 
     private DataNode mRootNode;
     private DataNode mRowNodeParent;
+    private final AbstractButton mAddNewRowsButton = new JButton("Add New Records to Map");
+    private final AbstractButton mApplyChangesButton = new JButton("Apply Changes to Map");
     private final DefaultTreeModel mTreeModel;
 
     private LWMap mActiveMap;
@@ -88,7 +90,7 @@ public class DataTree extends javax.swing.JTree
 
         final LWMap map = mActiveMap;
 
-        // make certian we're current to the active map:
+        // make absolutely certian we're current to the active map:
         annotateForMap(map);
 
         final List<DataRow> newRows = new ArrayList();
@@ -110,8 +112,9 @@ public class DataTree extends javax.swing.JTree
 
         if (nodes.size() > 0) {
             map.getOrCreateLayer("New Data Nodes").addChildren(nodes);
+
             // re-annotate given the newly added nodes;
-            annotateForMap(map);
+            //annotateForMap(map); // will automatically happen due to UserActionCompleted from undo mark below
 
             if (nodes.size() > 1)
                 tufts.vue.LayoutAction.table.act(nodes);
@@ -133,11 +136,10 @@ public class DataTree extends javax.swing.JTree
         toolbar.setLayout(new BorderLayout());
         //p.add(new JLabel(s.getSource().toString()), BorderLayout.NORTH);
 
-        AbstractButton addNew = new JButton("Add New Records to Map");
-        //addNew.setIcon(NewToMapIcon);
         //addNew.setBorderPainted(false);
-        addNew.setOpaque(false);
-        addNew.addActionListener(new ActionListener() {
+        tree.mAddNewRowsButton.setOpaque(false);
+        tree.mApplyChangesButton.setOpaque(false);
+        tree.mAddNewRowsButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     tree.addNewRowsToMap();
                 }
@@ -174,7 +176,8 @@ public class DataTree extends javax.swing.JTree
 //         toolbar.add(keyBox, BorderLayout.WEST);
 //         toolbar.add(addNew, BorderLayout.EAST);
         
-        toolbar.add(addNew);
+        toolbar.add(tree.mAddNewRowsButton, BorderLayout.NORTH);
+        //toolbar.add(tree.mApplyChangesButton, BorderLayout.SOUTH);
 
         if (dataSourceLabel != null)
             wrap.add(dataSourceLabel, BorderLayout.SOUTH);
@@ -326,11 +329,12 @@ public class DataTree extends javax.swing.JTree
                 Log.debug(String.format("searching for %s=[%s]", fieldName, fieldValue));
                 for (LWComponent c : searchSet) {
                     if (c.hasDataValue(fieldName, fieldValue)) {
-                        if (c.isDataValueNode()) {
-                            Log.debug("hit, but skipping schematic field node " + c);
-                        } else {
-                            hits.add(c);
-                        }
+                        hits.add(c);
+//                         if (c.isDataValueNode()) {
+//                             Log.debug("hit, but skipping schematic field node " + c);
+//                         } else {
+//                             hits.add(c);
+//                         }
                     }
                 }
             }
@@ -384,6 +388,16 @@ public class DataTree extends javax.swing.JTree
         mActiveMap.addLWCListener(this);
     }
 
+    // TODO: create a single handler for listening to user changes to the current map
+    // (UseActionCompleted), that keeps a background thread running for the annotations
+    // & refresh triggers.  It will always FIRST annotate and refresh the VISIBLE
+    // DataTree(s), then continue with the others.  Ultimately interruptable, so if a
+    // second update comes through before the current pass is completed, the prior
+    // update can be aborted.  Also, the running on a special thread handling could
+    // somehow be build into generic change support, where when the listener is added it
+    // can either request to happen on it's own thread, and/or provide one that will be
+    // woken up / interrupted.
+    
     public void LWCChanged(tufts.vue.LWCEvent e) {
 
         if (mActiveMap != null && e.getName() == LWKey.UserActionCompleted) {
@@ -401,6 +415,7 @@ public class DataTree extends javax.swing.JTree
 
     private void annotateForMap(final LWMap map)
     {
+        if (DEBUG.Enabled) Log.debug("ANNOTATING for " + map + "; " + this);
         
         
 //         if (mActiveMap != null) {
@@ -425,7 +440,6 @@ public class DataTree extends javax.swing.JTree
                     allDataNodes.add(c);
         }
 
-
         mSchema.annotateFor(allDataNodes);
 
         if (map != null) {
@@ -436,22 +450,31 @@ public class DataTree extends javax.swing.JTree
                     for (DataNode cn : n.getChildren())
                         cn.annotate(map);
             }
-//             final String annot = map.getLabel();
-//             for (DataNode n : mRootNode.getChildren()) {
-//                 n.setAnnotation(annot);
-//                 if (!n.isLeaf())
-//                     for (DataNode cn : n.getChildren())
-//                         cn.setAnnotation(annot);
-//             }
+        }
+
+        int newRowCount = 0;
+        for (DataNode n : mRowNodeParent.getChildren()) {
+            if (!n.isMapPresent())
+                newRowCount++;
+        }
+
+        if (newRowCount > 0) {
+            mAddNewRowsButton.setLabel(String.format("Add %d New Records to Map", newRowCount));
+            //mAddNewRowsButton.setIcon(NewToMapIcon);
+            mAddNewRowsButton.setEnabled(true);
+        } else {
+            //mAddNewRowsButton.setIcon(null);
+            mAddNewRowsButton.setLabel("All rows are represented on map");
+            mAddNewRowsButton.setEnabled(false);
         }
 
         refreshAll();
     }
 
-    private void refreshRoot() {
-        Log.debug("REFRESHING " + Util.tags(mRootNode));
-        refreshAllChildren(mRootNode);
-    }
+//     private void refreshRoot() {
+//         if (DEBUG.Enabled) Log.debug("REFRESHING " + Util.tags(mRootNode));
+//         refreshAllChildren(mRootNode);
+//     }
 
     private void refreshAll()
     {
@@ -459,11 +482,13 @@ public class DataTree extends javax.swing.JTree
         
         // using nodesChanged instead of reload preserves the expanded state of nodes in the tree
 
-        refreshRoot();
-        Log.debug("REFRESHING " + Util.tags(mRootNode.getChildren()));
+        if (DEBUG.Enabled) Log.debug("REFRESHING " + Util.tags(mRootNode.getChildren()));
+        refreshAllChildren(mRootNode);
+        //refreshRoot();
         for (TreeNode n : mRootNode.getChildren())
             if (!n.isLeaf())
                 refreshAllChildren(n);
+        if (DEBUG.Enabled) Log.debug(" REFRESHED " + Util.tags(mRootNode.getChildren()));
 
         // This gets close, but doesn't always handle updating NON expanded nodes, plus
         // it often leaves labels truncated with "..."
@@ -805,10 +830,10 @@ public class DataTree extends javax.swing.JTree
     {
         final java.util.List<LWComponent> nodes = new ArrayList();
 
-        final Field linkField = schema.getField("link");
-        final Field descField = schema.getField("description");
-        final Field titleField = schema.getField("title");
-        final Field mediaField = schema.getField("media:group.media:content.media:url");
+        final Field linkField = schema.findField("link");
+        final Field descField = schema.findField("description");
+        final Field titleField = schema.findField("title");
+        final Field mediaField = schema.findField("media:group.media:content.media:url");
 
 //         final Collection<DataRow> rows;
 
@@ -1167,6 +1192,11 @@ public class DataTree extends javax.swing.JTree
             return null;
         }
 
+        /** @return false -- override for row nodes */
+        boolean isRow() {
+            return false;
+        }
+        
         String getValue() {
             return null;
         }
@@ -1300,6 +1330,9 @@ public class DataTree extends javax.swing.JTree
             setDisplay(row.toString());
         }
 
+        @Override boolean isRow() { return true; }
+        @Override DataRow getRow() { return row; }
+        @Override boolean isMapPresent() { return isMapPresent; }
 
         @Override
         void annotate(LWMap map) {
@@ -1311,16 +1344,6 @@ public class DataTree extends javax.swing.JTree
             
         }
 
-        
-        @Override
-        boolean isMapPresent() {
-            return isMapPresent;
-        }
-
-        @Override
-        DataRow getRow() {
-            return row;
-        }
 
         @Override boolean isMapTracked() { return true; }
         @Override boolean isField() { return false; }
@@ -1512,10 +1535,33 @@ public class DataTree extends javax.swing.JTree
     private static final Border LeafBorder = GUI.makeSpace(0,IconWidth-16,2,0);
     
     //private static final Icon IncludedInMapIcon = VueResources.getImageIcon("vueIcon16");
-    private static final Icon IncludedInMapIcon = VueResources.getIcon(VUE.class, "images/data_onmap.png");
-    private static final Icon DifferentInMapIcon = VueResources.getIcon(VUE.class, "images/data_new-hack.gif");
+    //private static final Icon IncludedInMapIcon = VueResources.getIcon(VUE.class, "images/data_onmap.png");
+    //private static final Icon IncludedInMapIcon = makeIcon(0x2295, Color.blue);
+    private static final Icon IncludedInMapIcon = makeIcon(0x229A, Color.blue);
+    private static final Icon IncludedInMapRowIcon = makeIcon(0x229B, Color.blue);
+    
+    //private static final Icon DifferentInMapIcon = VueResources.getIcon(VUE.class, "images/data_new-hack.gif");
+    private static final Icon RowHasChangedIcon = makeIcon(0x229B, Color.green.darker());
+    
     //private static final Icon IncludedInMapIcon = GUI.reframeIcon(VueResources.getIcon(VUE.class, "images/data_onmap.png"), 8, 16);
-    private static final Icon NewToMapIcon = VueResources.getIcon(VUE.class, "images/data_offmap.png");
+    //private static final Icon NewToMapIcon = VueResources.getIcon(VUE.class, "images/data_offmap.png");
+    //private static final Icon NewToMapIcon = makeIcon(0x2297, Color.gray);
+    private static final Icon NewToMapIcon = makeIcon(0x229D, Color.gray);
+    private static final Icon NewToMapRowIcon = makeIcon(0x229B, Color.gray);
+
+    private static Icon makeIcon(int code, Color color) {
+        return GUI.makeUnicodeIcon(code,
+                                   16, // point-size
+                                   color,
+                                   16, // fixed width
+                                   16, // fixed height
+                                   4, // xoff
+                                   4 // yoff
+                                   );
+    
+        
+    }
+    
 //     private static final GUI.ResizedIcon NewToMapIcon =
 //         new GUI.ResizedIcon(VueResources.getIcon(GUI.class, "icons/MacSmallCloseIcon.gif"), 16, 16);
 
@@ -1574,29 +1620,24 @@ public class DataTree extends javax.swing.JTree
                     setIcon(null);
                 } else if (node.isMapTracked()) {
                     setIconTextGap(1);
-                    if (node.isMapPresent()) {
-                        if (node instanceof RowNode && ((RowNode)node).getRow().isContextChanged())
-                            setIcon(DifferentInMapIcon);
-                        else
-                            setIcon(IncludedInMapIcon);
-                    } else
-                        setIcon(NewToMapIcon);
-                }
 
-//                 if (node.isValue() || node.isField() && node.field.isSingleton()) {
-//                     setIconTextGap(4);
-//                 } else {
-//                     // this will alingn non-styled (non-enumerated) fields, that
-//                     // are part of the data-set, but not tracked because they're too long
-//                     setIconTextGap(IconWidth - 16 + 4);
-//                 }
-                
-//                 if (leaf && node.isValue())
-//                     setIcon(EmptyIcon);
+                    if (node.isRow()) {
+                        if (node.getRow().isContextChanged())
+                            setIcon(RowHasChangedIcon);
+                        else if (node.isMapPresent())
+                            setIcon(IncludedInMapRowIcon);
+                        else
+                            setIcon(NewToMapRowIcon);
+                    } else {
+                        if (node.isMapPresent())
+                            setIcon(IncludedInMapIcon);
+                        else
+                            setIcon(NewToMapIcon);
+                    }
+                }
             }
 
             if (row == 0) {
-                //setBorder(null);
                 setBorder(TopBorder);
                 //setBackgroundNonSelectionColor(Color.lightGray);
                 //setFont(EnumFont);
