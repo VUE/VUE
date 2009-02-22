@@ -59,7 +59,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.227 $ / $Date: 2009-02-10 20:06:59 $ / $Author: sfraize $
+ * @version $Revision: 1.228 $ / $Date: 2009-02-22 19:26:32 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -1277,6 +1277,22 @@ public class LWMap extends LWContainer
 
         mResourceFactory.loadResources(allResources);
 
+//         //----------------------------------------------------------------------------------------
+//         // Patch up persisted empty Schema's to point to any matching full Schema's loaded via a DataSource
+//         //----------------------------------------------------------------------------------------
+
+//         if (Schema.getLoadedSchemas().size() > 0) {
+//             final Set<Schema> fullSchemas = Schema.getLoadedSchemas();
+//             for (LWComponent c : allRestored) {
+//                 final MetaMap data = c.getRawData();
+//                 if (data == null)
+//                     continue;
+//                 final Schema schema = data.getSchema();
+//                 if (schema == null)
+//                     continue;
+                
+//             }
+//         }
         
         //----------------------------------------------------------------------------------------
         
@@ -1491,9 +1507,11 @@ public class LWMap extends LWContainer
         return allSchemas;
     }
 
+    @Override
     public Collection<Schema> getIncludedSchemas() {
         return findAllSchemas();
     }
+    
     public void setIncludedSchemas(Collection<Schema> schemas) {
         Log.debug("SETTING SCHEMAS " + schemas);
     }
