@@ -118,10 +118,13 @@
 		<field name="persistLayer" type="tufts.vue.LWMap$Layer">
                   <bind-xml name="layerID" node="attribute" reference="true"/>
                 </field>
-                
+
 		<field name="XMLnotes"><bind-xml name="notes" node="element"/></field>
-		<!-- field name="metaData"><bind-xml node="element"/></field -->
-		<!-- field name="category"><bind-xml node="element"/></field -->
+
+		<field name="includedSchemas" type="tufts.vue.ds.Schema" collection="collection">
+		  <bind-xml name="schema"/>
+		</field>
+
 		<field name="resource" type="tufts.vue.Resource">
 			<bind-xml name="resource" node="element"/>
 		</field>
@@ -292,7 +295,7 @@
 
 	<class name="tufts.vue.LWMap" extends="tufts.vue.LWContainer">
 		<map-to xml="LW-MAP"/>
-
+                
                 <field name="XMLLayers" type="tufts.vue.LWMap$Layer" collection="arraylist">
                   <bind-xml name="layer"/>
                 </field>
@@ -313,10 +316,6 @@
 
 		<field name="PathwayList">
 			<bind-xml name="PathwayList" node="element"/>
-		</field>
-                
-		<field name="includedSchemas" type="tufts.vue.ds.Schema" collection="collection">
-		  <bind-xml name="schema"/>
 		</field>
                 
                 <field name="author">
