@@ -43,7 +43,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.207 $ / $Date: 2009-02-17 02:51:40 $ / $Author: sfraize $
+ * @version $Revision: 1.208 $ / $Date: 2009-02-22 19:26:00 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -879,7 +879,7 @@ public class LWLink extends LWComponent
     
     /** interface ControlListener */
     public LWSelection.Controller[] getControlPoints(double zoom) {
-        return getControls(zoom, false);
+        return getControls(zoom, isDataLink());
     }
     
     /** for ResizeControl */
@@ -971,17 +971,45 @@ public class LWLink extends LWComponent
      * been reparented, this will make sure we get reparented if need be.
      */
     public void run() {
-        if (!isDeleted()) {
-            reparentBasedOnEndpoints();
-            // this is overkill, and could / should be re-implemented here
-            // to be much faster and cleaner, but it should get the job done.
-            // (e.g., only one call that ensures a re-ordering over both endpoints at once)
-            if (head.hasNode() && head.node.getLayer() == getLayer())
-                LWContainer.ensureLinkPaintsOverAllAncestors(this, head.node);
-            if (tail.hasNode() && tail.node.getLayer() == getLayer())
-                LWContainer.ensureLinkPaintsOverAllAncestors(this, tail.node);
+        if (isDeleted())
+            return;
+
+        if (isDataLink()) {
+            if (!head.hasNode() || !tail.hasNode()) {
+                delete();
+                return;
+            }
         }
+
+        reparentBasedOnEndpoints();
+        // this is overkill, and could / should be re-implemented here
+        // to be much faster and cleaner, but it should get the job done.
+        // (e.g., only one call that ensures a re-ordering over both endpoints at once)
+        if (head.hasNode() && head.node.getLayer() == getLayer())
+            LWContainer.ensureLinkPaintsOverAllAncestors(this, head.node);
+        if (tail.hasNode() && tail.node.getLayer() == getLayer())
+            LWContainer.ensureLinkPaintsOverAllAncestors(this, tail.node);
+
     }
+
+    public boolean isDataLink() {
+        return hasFlag(Flag.DATA_LINK);
+    }
+
+    public void setAsDataLink(String relationship) {
+        setFlag(Flag.DATA_LINK);
+        addDataValue("$Related", relationship);
+        setNotes("Related: " + relationship);
+    }
+
+    @Override
+    public void XML_completed(Object context) {
+        super.XML_completed(context);
+        // We also check for @DataLink as temporary backward-compat        
+        if (hasDataKey("@DataLink") || hasDataKey("$Related")) 
+            setFlag(Flag.DATA_LINK);
+    }
+    
 
     /** @return true if we reparented */
     // TODO: if the link has been manually grouped during this action, do NOT reparent it at all...
