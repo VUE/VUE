@@ -31,7 +31,7 @@ import com.google.common.collect.*;
 
 
 /**
- * @version $Revision: 1.22 $ / $Date: 2009-02-20 18:54:03 $ / $Author: sfraize $
+ * @version $Revision: 1.23 $ / $Date: 2009-02-22 19:28:36 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -40,11 +40,12 @@ import com.google.common.collect.*;
 // the DataSet source (use a Resource?), and the holder of the actual
 // row data.
 
-public class Schema {
+public class Schema implements tufts.vue.XMLUnmarshalListener {
 
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(Schema.class);
 
-    static final boolean DEBUG = true;
+    private static final boolean DEBUG_SCHEMA = true;
+    static final boolean DEBUG = DEBUG_SCHEMA;
 
     protected final Map<String,Field> mFields = new LinkedHashMap(); // "columns"
     private Field mKeyField;
@@ -61,6 +62,7 @@ public class Schema {
     private LWComponent mStyleNode;
 
     private String GUID;
+    private String DSGUID;
 
 //     /** construct an empty schema */
 //     public Schema() {}
@@ -72,26 +74,69 @@ public class Schema {
 
     private static final java.util.concurrent.atomic.AtomicInteger NextLocalId = new java.util.concurrent.atomic.AtomicInteger();
 
-    /** map of locations/addresses to schema instances */
-    private static final Map<String,Schema> SchemaMap = new java.util.concurrent.ConcurrentHashMap();    
+    ///** map of locations/addresses to schema instances */
+    //private static final Map<String,Schema> SchemaMap = new java.util.concurrent.ConcurrentHashMap();
 
-    public static Schema instance(Resource source) {
-        return instance(source, null);
-    }
+    private static final Collection<Schema> EmptySchemas = Collections.synchronizedList(new ArrayList());
+    private static final Map<Resource,Schema> LoadedByResource = Collections.synchronizedMap(new HashMap());
+    private static final Map<String,Schema> LoadedByGUID = Collections.synchronizedMap(new HashMap());
     
+
+//     public static Schema instance(Resource source) {
+//         return instance(source, null);
+//     }
+
     public static Schema instance(Resource r, String dataSourceGUID) {
         final Schema s = new Schema();
         s.setResource(r);
         if (dataSourceGUID != null)
             r.setProperty("@DSGUID", dataSourceGUID);
         s.setGUID(edu.tufts.vue.util.GUID.generate());
-        Log.debug("INSTANCED SCHEMA " + s + "\n");
+        if (DEBUG_SCHEMA) Log.debug("INSTANCED SCHEMA " + s + "\n");
+
+        // may want to wait to do this until we actually load the rows...        
+        LoadedByResource.put(r, s);
+        if (dataSourceGUID != null)
+            LoadedByGUID.put(dataSourceGUID, s);
+            
         return s;
     }
 
+//     /** @return a set of any "loaded" schemas - a schema instance that has loaded rows of data */
+//     public static Set<Schema> getLoadedSchemas() {
+//         return Collections.unmodifiableSet(LoadedSchemas);
+//     }
+
     public static Schema lookup(Schema schema) {
-        return schema;
+        if (DEBUG_SCHEMA) Log.debug("LOOKUP SCHEMA " + schema);
+        if (schema.isLoaded())
+            return schema;
+        final Resource r = schema.getResource();
+        Schema loaded = LoadedByResource.get(r);
+        Object matched = r;
+        if (loaded == null)
+            loaded = LoadedByGUID.get(matched = r.getProperty("@DSGUID"));
+        if (loaded != null) {
+            if (DEBUG_SCHEMA) Log.debug("MATCHED EMPTY SCHEMA " + matched + " to " + loaded);
+            return loaded;
+        } else
+            return schema;
+
+        // now, even if resource doesn't match, look up based on GUID, as a url may have slightly changed.
     }
+
+    /** interface {@link XMLUnmarshalListener} -- track us */
+    public void XML_completed(Object context) {
+        EmptySchemas.add(this);
+    }
+    
+    /** interface {@link XMLUnmarshalListener} -- does nothing here */
+    public void XML_initialized(Object context) {}
+    /** interface {@link XMLUnmarshalListener} -- does nothing here */
+    public void XML_fieldAdded(Object context, String name, Object child) {}
+    /** interface {@link XMLUnmarshalListener} -- does nothing here */
+    public void XML_addNotify(Object context, String name, Object parent) {}
+    
 
 //     @Override
 //     public boolean equals(Object o) {
@@ -133,6 +178,11 @@ public class Schema {
 
     public final String getMapLocalID() {
         return mLocalID;
+    }
+
+    /** @return true if this Schema contains data.  Persisted Schema's are just references and do not contain data */
+    public boolean isLoaded() {
+        return mRows.size() > 0;
     }
     
     public final void setMapLocalID(String id) {
@@ -237,11 +287,11 @@ public class Schema {
         //return getName() + "; " + getResource() + "; " + UUID;
         //return getName();
         try {
-            return String.format("Schema@%x[%s; fields=%d \"%s\" %s]",
+            return String.format("Schema@%x[%s; #%d \"%s\" %s]",
                                  System.identityHashCode(this),
                                  getMapLocalID(), mFields.size(), getName(), getResource());
         } catch (Throwable t) {
-            return String.format("Schema@%x[%s; fields=%d \"%s\" %s]",
+            return String.format("Schema@%x[%s; #%d \"%s\" %s]",
                                  System.identityHashCode(this),
                                  ""+mLocalID, mFields.size(), ""+mName, ""+mResource);
         }
@@ -311,6 +361,7 @@ public class Schema {
 //     }
 
     public void setResource(Resource r) {
+        Log.debug(this + "; setResource " + r);
         mResource = r;
     }
     public Resource getResource() {
