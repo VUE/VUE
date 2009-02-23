@@ -116,7 +116,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.640 $ / $Date: 2009-02-20 15:12:30 $ / $Author: sraphe01 $ 
+ * @version $Revision: 1.641 $ / $Date: 2009-02-23 02:36:07 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -2903,6 +2903,10 @@ public class VUE
 
     public static MapTabbedPane getRightTabbedPane() {
         return mMapTabsRight;
+    }
+
+    public static Collection<LWMap> getAllMaps() {
+        return getLeftTabbedPane().getAllMapsBag();
     }
 
     public static boolean isActiveViewerOnLeft() {
