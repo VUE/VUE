@@ -51,7 +51,7 @@ public class ListRandomLayout extends Layout {
         Map<String, LWNode> nodeMap = new HashMap<String, LWNode>();
         Map<String, Integer> repeatMap = new HashMap<String, Integer>();
         LWMap map = new LWMap(mapName);
-        int count = 0;
+         int count = 0;
         // set map size of the map
         double rowCount = ds.getRowList().size();
         double goodSize = (int) Math.sqrt(rowCount) * 100;
