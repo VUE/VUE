@@ -42,7 +42,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.110 $ / $Date: 2009-02-22 19:30:31 $ / $Author: sfraize $
+ * @version $Revision: 1.111 $ / $Date: 2009-02-23 02:38:39 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends WidgetStack
@@ -675,9 +675,15 @@ public class InspectorPane extends WidgetStack
 
         final String desc = findProperty(r, data, "description", "summary");
             
+        final String summary;
+        
         if (desc != null || r == null) {
             
-            htmlText.setText(buildSummaryWithDescription(r, data, desc == null ? "" : desc));
+            summary = buildSummaryWithDescription(r, data, desc == null ? "" : desc);
+            if (summary == null)
+                htmlText.setText("No Description");// todo: should just hide panel
+            else
+                htmlText.setText(summary);
 
         } else { //if (r != null) {
             
@@ -685,7 +691,7 @@ public class InspectorPane extends WidgetStack
             // No description was found: build a summary from just the Resource
             //------------------------------------------------------------------
             
-            final String summary = buildSummaryFromResource(r);
+            summary = buildSummaryFromResource(r);
 
             htmlText.setText(summary);
 
@@ -947,7 +953,6 @@ public class InspectorPane extends WidgetStack
             buf.append(String.format("<center><a href=\"%s\"><img src=\"%s\"></a>", image, image));
         }
 
-        
 
         //if (DEBUG.DATA && r != null) r.setProperty("~reformatted", reformatted);
         
