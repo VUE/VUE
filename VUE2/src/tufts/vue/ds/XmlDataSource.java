@@ -32,7 +32,7 @@ import au.com.bytecode.opencsv.CSVReader;
 
 
 /**
- * @version $Revision: 1.13 $ / $Date: 2009-02-20 18:54:03 $ / $Author: sfraize $
+ * @version $Revision: 1.14 $ / $Date: 2009-02-23 02:38:07 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class XmlDataSource extends BrowseDataSource
@@ -276,14 +276,66 @@ public class XmlDataSource extends BrowseDataSource
 
         schema.setName(getDisplayName());
 
-        //-----------------------------------------------------------------------------
-        //
+        updateAllRuntimeSchemaReferences(schema);
+        
+        return DataTree.create(schema);
 
-        if (true) return DataTree.create(schema);
+        // return buildOldStyleTree(schema);
 
-        //
-        //-----------------------------------------------------------------------------
+    }
 
+    /** find all schema handles in all nodes that match the new schema
+     * and replace them with pointers to the live data schema */
+    // TODO: handle deleted nodes in undo queue!
+    private static void updateAllRuntimeSchemaReferences(final Schema newlyLoadedSchema)
+    {
+        if (!newlyLoadedSchema.isLoaded()) {
+            Log.warn("newly loaded schema is empty: " + newlyLoadedSchema, new Throwable("FYI"));
+            return;
+        }
+        
+        final Collection<LWMap> allMaps = VUE.getAllMaps();
+
+        int updateCount = 0;
+        int mapUpdateCount = 0;
+
+        // todo: if this ever gets slow, could improve performance by pre-computing a
+        // lookup map of all schema handles that map to the new schema (which will
+        // usually contain only a single schema mapping) then we only have to check
+        // every schema reference found against the pre-computed lookups instead of
+        // doing a Schema.lookup against all loaded Schema's.
+        
+        for (LWMap map : allMaps) {
+            final int countAtMapStart = updateCount;
+            Collection<LWComponent> nodes = map.getAllDescendents();
+            for (LWComponent c : nodes) {
+                final MetaMap data = c.getRawData();
+                if (data == null)
+                    continue;
+                final Schema curSchema = data.getSchema();
+                if (curSchema != null) {
+                    final Schema newSchema = Schema.lookup(curSchema);
+                    if (newSchema != curSchema) {
+                        data.takeSchema(newSchema);
+                        updateCount++;
+                        if (newSchema != newlyLoadedSchema) {
+                            Log.warn("out of data schema in " + c + "; oldSchema=" + curSchema + "; replaced with " + newSchema);
+                        } else {
+                            //if (DEBUG.SCHEMA) Log.debug("replaced schema handle in " + c);
+                        }
+
+                    }
+                }
+            }
+            if (updateCount > countAtMapStart)
+                mapUpdateCount++;
+        }
+        Log.info(String.format("updated %d schema handle references in %d maps", updateCount, mapUpdateCount));
+    }
+
+
+    private JComponent buildOldStyleTree(Schema schema)
+    {
         mItems.clear();
 
         final Resource top = Resource.instance(getAddress());
@@ -365,8 +417,8 @@ public class XmlDataSource extends BrowseDataSource
         tree.setName(getClass().getSimpleName() + ": " + getAddress());
 
         return tree;
-
     }
+        
 
 
     private static boolean TEST_DEBUG = false;
