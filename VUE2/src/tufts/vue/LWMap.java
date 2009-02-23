@@ -59,7 +59,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.228 $ / $Date: 2009-02-22 19:26:32 $ / $Author: sfraize $
+ * @version $Revision: 1.229 $ / $Date: 2009-02-23 22:09:10 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -1121,31 +1121,57 @@ public class LWMap extends LWContainer
 //         mInternalLayer.setVisible(false);
 //         mInternalLayer.setFlag(Flag.INTERNAL);
 //         mInternalLayer.setParent(this);
+
+        final Layer activeLayer;
         
-        final Layer layer0, layer1, layer2;
+        if (true) {
+
+            final Layer layer0;
+            
+            layer0 = new Layer("Background");
+            layer0.setParent(this);
+            layer0.mChildren = this.mChildren;
         
-        layer0 = new Layer("Background");
-        layer0.setParent(this);
-        //layer0.setVisible(false);
+            for (LWComponent c : this.mChildren)
+                c.setParent(layer0);
         
-        layer1 = new Layer("Default");
-        layer1.setParent(this);
-        layer1.mChildren = LWMap.this.mChildren;
-        for (LWComponent c : LWMap.this.mChildren)
-            c.setParent(layer1);
+            this.mChildren = new ArrayList();
+            this.mChildren.add(layer0);
+
+            activeLayer = layer0;
+            
+        } else {
+
+            // old style three inital layers
+            
+            final Layer layer0, layer1, layer2;
         
-        layer2 = new Layer("Notations");
-        layer2.setParent(this);
-        //layer2.setVisible(false);
+            layer0 = new Layer("Background");
+            layer0.setParent(this);
+            //layer0.setVisible(false);
         
-        mChildren = new ArrayList();
-        //mChildren.add(mInternalLayer);
-        mChildren.add(layer0);
-        mChildren.add(layer1);
-        mChildren.add(layer2);
+            layer1 = new Layer("Default");
+            layer1.setParent(this);
+            layer1.mChildren = LWMap.this.mChildren;
+            for (LWComponent c : LWMap.this.mChildren)
+                c.setParent(layer1);
+        
+            layer2 = new Layer("Notations");
+            layer2.setParent(this);
+            //layer2.setVisible(false);
+        
+            LWMap.this.mChildren = new ArrayList();
+            //mChildren.add(mInternalLayer);
+            mChildren.add(layer0);
+            mChildren.add(layer1);
+            mChildren.add(layer2);
+
+            activeLayer = layer1;
+        }
+
 
         isLayered = true;
-        setActiveLayer(layer1);
+        setActiveLayer(activeLayer);
     }
     
     
