@@ -16,6 +16,7 @@
 package tufts.vue.ds;
 
 import tufts.Util;
+import tufts.vue.DEBUG;
 import tufts.vue.MetaMap;
 
 import java.util.*;
@@ -31,7 +32,7 @@ import com.google.common.collect.*;
 
 
 /**
- * @version $Revision: 1.23 $ / $Date: 2009-02-22 19:28:36 $ / $Author: sfraize $
+ * @version $Revision: 1.24 $ / $Date: 2009-02-23 02:37:42 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -43,9 +44,6 @@ import com.google.common.collect.*;
 public class Schema implements tufts.vue.XMLUnmarshalListener {
 
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(Schema.class);
-
-    private static final boolean DEBUG_SCHEMA = true;
-    static final boolean DEBUG = DEBUG_SCHEMA;
 
     protected final Map<String,Field> mFields = new LinkedHashMap(); // "columns"
     private Field mKeyField;
@@ -77,9 +75,10 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
     ///** map of locations/addresses to schema instances */
     //private static final Map<String,Schema> SchemaMap = new java.util.concurrent.ConcurrentHashMap();
 
-    private static final Collection<Schema> EmptySchemas = Collections.synchronizedList(new ArrayList());
-    private static final Map<Resource,Schema> LoadedByResource = Collections.synchronizedMap(new HashMap());
-    private static final Map<String,Schema> LoadedByGUID = Collections.synchronizedMap(new HashMap());
+    /** contains "empty" (no data) schemas, which are retained as handles to be replaced if actual data schemas arrive */
+    private static final Collection<Schema> SchemaHandles = Collections.synchronizedList(new ArrayList());
+    private static final Map<Resource,Schema> SchemaByResource = Collections.synchronizedMap(new HashMap());
+    private static final Map<String,Schema> SchemaByGUID = Collections.synchronizedMap(new HashMap());
     
 
 //     public static Schema instance(Resource source) {
@@ -92,32 +91,34 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
         if (dataSourceGUID != null)
             r.setProperty("@DSGUID", dataSourceGUID);
         s.setGUID(edu.tufts.vue.util.GUID.generate());
-        if (DEBUG_SCHEMA) Log.debug("INSTANCED SCHEMA " + s + "\n");
+        if (DEBUG.SCHEMA) Log.debug("INSTANCED SCHEMA " + s + "\n");
 
         // may want to wait to do this until we actually load the rows...        
-        LoadedByResource.put(r, s);
+        SchemaByResource.put(r, s);
         if (dataSourceGUID != null)
-            LoadedByGUID.put(dataSourceGUID, s);
+            SchemaByGUID.put(dataSourceGUID, s);
             
         return s;
     }
 
-//     /** @return a set of any "loaded" schemas - a schema instance that has loaded rows of data */
-//     public static Set<Schema> getLoadedSchemas() {
-//         return Collections.unmodifiableSet(LoadedSchemas);
-//     }
 
+    /** for looking up a loaded (data-containing) schema from a an empty schema-handle.
+     * If the given schema is already loaded, or if no matching loaded schema can be found,
+     * the passed in schema is returned.
+     */
     public static Schema lookup(Schema schema) {
-        if (DEBUG_SCHEMA) Log.debug("LOOKUP SCHEMA " + schema);
+        if (DEBUG.SCHEMA && DEBUG.DATA) Log.debug("LOOKUP SCHEMA " + schema);
+        if (schema == null)
+            return null;
         if (schema.isLoaded())
             return schema;
         final Resource r = schema.getResource();
-        Schema loaded = LoadedByResource.get(r);
+        Schema loaded = SchemaByResource.get(r);
         Object matched = r;
         if (loaded == null)
-            loaded = LoadedByGUID.get(matched = r.getProperty("@DSGUID"));
+            loaded = SchemaByGUID.get(matched = r.getProperty("@DSGUID"));
         if (loaded != null) {
-            if (DEBUG_SCHEMA) Log.debug("MATCHED EMPTY SCHEMA " + matched + " to " + loaded);
+            if (DEBUG.SCHEMA && DEBUG.DATA) Log.debug("MATCHED EMPTY SCHEMA " + matched + " to " + loaded);
             return loaded;
         } else
             return schema;
@@ -127,7 +128,7 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
 
     /** interface {@link XMLUnmarshalListener} -- track us */
     public void XML_completed(Object context) {
-        EmptySchemas.add(this);
+        SchemaHandles.add(this);
     }
     
     /** interface {@link XMLUnmarshalListener} -- does nothing here */
@@ -651,6 +652,8 @@ final class DataRow {
 //             Log.debug("ROW SUB-KEY COLLISION " + f);
             
         //super.put(f.getName(), value);
+        if (value.length() == 0)
+            value = Field.EMPTY_VALUE;
         mmap.put(f.getName(), value);
         f.trackValue(value);
     }
