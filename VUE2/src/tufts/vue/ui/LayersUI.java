@@ -40,7 +40,7 @@ import edu.tufts.vue.metadata.action.SearchAction;
 
 
 /**
- * @version $Revision: 1.64 $ / $Date: 2009-02-17 17:37:50 $ / $Author: sraphe01 $
+ * @version $Revision: 1.65 $ / $Date: 2009-02-23 23:36:43 $ / $Author: sraphe01 $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -1839,7 +1839,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 JPanel fixed = new JPanel(new BorderLayout());
                 fixed.setOpaque(true);                
                 fixed.setBorder(GUI.makeSpace(3,1,3,1));
-                fixed.setMinimumSize(new Dimension(50, 0));
+                fixed.setMinimumSize(new Dimension(53, 0));
                 
                 //fixed.add(exclusive, BorderLayout.WEST);
                 grab.setMinimumSize(new Dimension(25, 0));
