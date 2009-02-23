@@ -33,13 +33,15 @@ import java.util.*;
  * types and doing some data-type analysis.  It also includes the ability to
  * associate a LWComponent node style with specially marked values.
  * 
- * @version $Revision: 1.8 $ / $Date: 2009-02-11 18:30:55 $ / $Author: sfraize $
+ * @version $Revision: 1.9 $ / $Date: 2009-02-23 02:37:29 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
 public class Field
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(Field.class);
+
+    public static final String EMPTY_VALUE = "";
 
     public static final String TYPE_UNKNOWN = "?";
     public static final String TYPE_TEXT = "TEXT";
@@ -76,11 +78,22 @@ public class Field
         this.name = n.trim();
         this.schema = schema;
         flushStats(true);
-        if (Schema.DEBUG) Log.debug("(created field \"" + name + "\")");
+        if (DEBUG.SCHEMA) Log.debug("(created field \"" + name + "\")");
     }
 
-//     private Multiset getContextValues() {
-//     }
+    /** Wrapper for display of special values: e.g., EMPTY_VALUE ("") to "(no value)" */
+    public static String valueName(Object value) {
+        if (value == null)
+            return null;
+        else if (value == EMPTY_VALUE)
+            return "(no value)";
+        else
+            return value.toString();
+    }
+
+    public int countValues(String value) {
+        return mValues.count(value);
+    }
 
     void annotateIncludedValues(final Collection<LWComponent> nodes) {
         if (mValues == null || count(mValues) < 1) {
@@ -250,6 +263,7 @@ public class Field
         return uniqueValueCount() == 1;
     }
 
+    /** @return the instance value count: the number of a times any value appeared for this field (includes repeats) */
     protected int valueCount() {
         //return values == null ? 0 : values.size();
         return valueCount;
@@ -322,10 +336,13 @@ public class Field
         if (enumDisabled)
             return;
             
-        if (valueLen == 0)
-            return;
-        
-        valueCount++;
+        if (value == EMPTY_VALUE) {
+            ; // don't increment value count
+        } else if (valueLen == 0) {
+            value = EMPTY_VALUE;
+        } else {
+            valueCount++;
+        }
                 
         if (valueCount > 1 && value.length() > MAX_ENUM_VALUE_LENGTH) {
             mValues = null;
@@ -342,6 +359,9 @@ public class Field
         }
         mValues.add(value);
         //Log.debug(this + " added " + value + "; size=" + count(mValues));
+
+        if (value == EMPTY_VALUE)
+            return;
 
         if (type == TYPE_UNKNOWN && value.length() <= MAX_DATE_VALUE_LENGTH) {
 
