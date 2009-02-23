@@ -43,7 +43,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.208 $ / $Date: 2009-02-22 19:26:00 $ / $Author: sfraize $
+ * @version $Revision: 1.209 $ / $Date: 2009-02-23 02:35:27 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -72,6 +72,8 @@ public class LWLink extends LWComponent
     private final static float ArrowBase = 5;
     private final static RectangularShape HeadShape = new tufts.vue.shape.Triangle2D(0,0, ArrowBase,ArrowBase*1.3);
     private final static RectangularShape TailShape = new tufts.vue.shape.Triangle2D(0,0, ArrowBase,ArrowBase*1.3);
+
+    private static final double ICON_BLOCK_LOD_ZOOM = 0.5;
 
     
     /**
@@ -1377,7 +1379,7 @@ public class LWLink extends LWComponent
     
     public void mouseOver(MapMouseEvent e)
     {
-        if (mIconBlock.isShowing())
+        if (e.getViewer().getZoomFactor() > ICON_BLOCK_LOD_ZOOM && mIconBlock.isShowing())
             mIconBlock.checkAndHandleMouseOver(e);
     }
 
@@ -2948,7 +2950,7 @@ public class LWLink extends LWComponent
             drawLabel(dc);
         }
 
-        if (mIconBlock.isShowing()) {
+        if (mIconBlock.isShowing() && dc.zoom > ICON_BLOCK_LOD_ZOOM) { // LOD
             //dc.g.setStroke(STROKE_HALF);
             //dc.g.setColor(Color.gray);
             //dc.g.draw(mIconBlock);
