@@ -2220,11 +2220,12 @@ public class Actions implements VueConstants
 
         Collection<LWComponent> toPush = null;
 
-        if (distance < 0 && pushing.hasLinks())
+        if (pushing.hasLinks())
             toPush = pushing.getLinked();
 
         if (toPush == null || toPush.size() == 0)
-            toPush = pushing.getParent().getChildren();
+            toPush = pushing.getMap().getAllDescendents();
+        //toPush = pushing.getParent().getChildren();
         
         projectNodes(toPush, pushing, distance);
     }
