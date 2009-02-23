@@ -50,7 +50,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.457 $ / $Date: 2009-02-22 19:24:51 $ / $Author: sfraize $
+ * @version $Revision: 1.458 $ / $Date: 2009-02-23 02:35:09 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1861,7 +1861,7 @@ u                    getSlot(c).setFromString((String)value);
             value = (vme == null ? null : vme.getValue());
         }
         
-        return value;
+        return tufts.vue.ds.Field.valueName(value);
     }
 
     public String getDataValueFieldName() {
