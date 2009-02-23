@@ -31,6 +31,7 @@ import tufts.vue.gui.GUI;
 //import edu.tufts.vue.metadata.VueMetadataElement;
 import tufts.Util;
 import tufts.vue.VueResources;
+import tufts.vue.VueConstants;
 
 import java.util.List;
 import java.util.*;
@@ -44,11 +45,12 @@ import javax.swing.border.*;
 import javax.swing.event.*;
 import javax.swing.tree.*;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.42 $ / $Date: 2009-02-22 19:28:07 $ / $Author: sfraize $
+ * @version $Revision: 1.43 $ / $Date: 2009-02-23 02:37:08 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -305,7 +307,7 @@ public class DataTree extends javax.swing.JTree
                 final String keyValue = treeNode.getRow().getValue(fieldName);
                 Log.debug(String.format("searching for a paricular record based on key field value %s='%s'",
                                         fieldName,
-                                        keyValue));
+                                        valueName(keyValue)));
                 for (LWComponent c : searchSet) {
                     if (c.hasDataValue(fieldName, keyValue))
                         hits.add(c);
@@ -325,7 +327,7 @@ public class DataTree extends javax.swing.JTree
                 final String fieldValue = treeNode.getValue();
                 //desc = String.format("matching<br><b>%s</b> = \'%s\'", fieldName, fieldValue);
                 //desc = String.format("matching<br><b>%s: <i>%s", fieldName, fieldValue);
-                desc = String.format("<b>%s: <i>%s</i>", fieldName, fieldValue);
+                desc = String.format("<b>%s: <i>%s</i>", fieldName, valueName(fieldValue));
                 Log.debug(String.format("searching for %s=[%s]", fieldName, fieldValue));
                 for (LWComponent c : searchSet) {
                     if (c.hasDataValue(fieldName, fieldValue)) {
@@ -648,7 +650,7 @@ public class DataTree extends javax.swing.JTree
 //             }
 
             final Set values = field.getValues();
-
+            
             // could add all style nodes to the schema node to be put in an internal layer for
             // persistance: either that or store them with the datasources, which
             // probably makes more sense.
@@ -666,47 +668,58 @@ public class DataTree extends javax.swing.JTree
     {
 
         final Multiset<String> valueCounts = field.getValueSet();
-                
+        final Set<Multiset.Entry<String>> entrySet = valueCounts.entrySet();
+
+        final Iterable<Multiset.Entry<String>> valueEntries;
+
+        if (!field.isPossibleKeyField()) {
+
+            // don't need to bother sorting if field is a possible key field (all value counts == 1)
+            
+            final ArrayList<Multiset.Entry<String>> sortedValues = new ArrayList(entrySet);
+
+            Collections.sort(sortedValues, new Comparator<Multiset.Entry>() {
+                    public int compare(Multiset.Entry e1, Multiset.Entry e2) {
+                        // always put any empty value item last, otherwise sort on frequency
+                        if (e1.getElement() == Field.EMPTY_VALUE)
+                            return 1;
+                        else if (e2.getElement() == Field.EMPTY_VALUE)
+                            return -1;
+                        else
+                            return e2.getCount() - e1.getCount();
+                    }
+                });
+
+            valueEntries = sortedValues;
+        } else {
+            valueEntries = entrySet;
+        }
+        
         //-----------------------------------------------------------------------------
         // Add the enumerated values
         //-----------------------------------------------------------------------------
-                
-        for (Multiset.Entry<String> e : valueCounts.entrySet()) {
+        
+        for (Multiset.Entry<String> e : valueEntries) {
 
             final String value = e.getElement();
-            final ValueNode valueNode;
+            final String display;
                     
             if (field.isPossibleKeyField()) {
                         
-                valueNode = new ValueNode(field, value, value);
+                display = valueName(value);
                         
             } else {
                 final String count = String.format("%3d", e.getCount()).replaceAll(" ", "&nbsp;");
-                //final String display = String.format(HTML("<code>%s</code> <b>%s</b>"),
-                final String display = String.format(HTML("<code>%s</code> %s"),
-                                                     count,
-                                                     value);
+                display = String.format(HTML("<code><font color=#888888>%s</font></code> %s"),
+                                        count,
+                                        valueName(value));
 
-                valueNode = new ValueNode(field, value, display);
-                
             }
 
+            final ValueNode valueNode = new ValueNode(field, value, display, e.getCount());
+
             fieldNode.add(valueNode);
-                    
-//             //fmt = HTML("<b>%s</b> [%d]");
 
-//             fieldNode.add(new ValueNode(field,
-//                                         e.getKey(),
-//                                         String.format(fmt, e.getValue(), e.getKey())));
-//             //String.format(fmt, e.getKey(), e.getValue())));
-                    
-//             fieldNode.add(new ValueNode(field, e.getKey(), String.format("<html>%s%s</b> (%s)", bold, e.getKey(), e.getValue())));
-
-//             if (e.getValue() == 1) {
-//                 fieldNode.add(new ValueNode(field, e.getKey(), String.format("<html>%s%s", bold, e.getKey())));
-//             } else {
-//                 fieldNode.add(new ValueNode(field, e.getKey(), String.format("<html>%s%s</b> (%s)", bold, e.getKey(), e.getValue())));
-//             }
         }
     }
     
@@ -774,19 +787,21 @@ public class DataTree extends javax.swing.JTree
         }
     }
 
+    private static String valueName(Object value) {
+        return StringEscapeUtils.escapeHtml(Field.valueName(value));
+    }
+
     private static String makeLabel(Field f, Object value) {
 
         assert value != null;
-       
-        return value.toString();
-        //return value == null ? (f + "<null-value>") : value.toString();
-        
-//         //return String.format("%s:\n%s", f.getName(), value.toString());
-//         if (f.isKeyField())
-//             return value.toString();
+
+        //Log.debug("*** makeLabel " + f + " [" + value + "] emptyValue=" + (value == Field.EMPTY_VALUE));
+
+// This will be overriden by the label-style: this could would need to go there to work
+//         if (value == Field.EMPTY_VALUE)
+//             return String.format("(no [%s] value)", f.getName());
 //         else
-//             return value.toString() + "  ";
-//         //return "  " + value.toString() + "  ";
+            return Field.valueName(value);
     }
 
     private static LWComponent makeValueNode(Field field, String value) {
@@ -1414,12 +1429,14 @@ public class DataTree extends javax.swing.JTree
     private static final class ValueNode extends FieldNode {
 
         final String value;
+        final int dataSetCount;
         boolean isMapPresent;
 
-        ValueNode(Field field, String value, String label) {
+        ValueNode(Field field, String value, String label, int dataSetValueCount) {
             super(field);
             setDisplay(label);
             this.value = value;
+            this.dataSetCount = dataSetValueCount;
         }
         
         @Override
@@ -1430,10 +1447,13 @@ public class DataTree extends javax.swing.JTree
         @Override
         void annotate(LWMap map) {
 
-            final int count = field.countContextValue(value);
-            if (count > 0) {
+            final int mapCount = field.countContextValue(value);
+            if (mapCount > 0) {
                 isMapPresent = true;
-                setPostfix("(" + count + ")");
+                if (mapCount != dataSetCount)
+                    setPostfix("(" + mapCount + ")");
+                else
+                    setPostfix(null);
                 //setPrefix("=");
             } else {
                 isMapPresent = false;
@@ -1521,6 +1541,7 @@ public class DataTree extends javax.swing.JTree
         LWComponent getStyle() { return schema.getStyleNode(); }
     }
 
+
     private static final int IconWidth = 32;
     private static final int IconHeight = 20;
 
@@ -1534,29 +1555,46 @@ public class DataTree extends javax.swing.JTree
     private static final Border TopTierBorder = GUI.makeSpace(0,0,2,0);
     private static final Border LeafBorder = GUI.makeSpace(0,IconWidth-16,2,0);
     
-    //private static final Icon IncludedInMapIcon = VueResources.getImageIcon("vueIcon16");
     //private static final Icon IncludedInMapIcon = VueResources.getIcon(VUE.class, "images/data_onmap.png");
-    //private static final Icon IncludedInMapIcon = makeIcon(0x2295, Color.blue);
-    private static final Icon IncludedInMapIcon = makeIcon(0x229A, Color.blue);
-    private static final Icon IncludedInMapRowIcon = makeIcon(0x229B, Color.blue);
-    
-    //private static final Icon DifferentInMapIcon = VueResources.getIcon(VUE.class, "images/data_new-hack.gif");
-    private static final Icon RowHasChangedIcon = makeIcon(0x229B, Color.green.darker());
-    
     //private static final Icon IncludedInMapIcon = GUI.reframeIcon(VueResources.getIcon(VUE.class, "images/data_onmap.png"), 8, 16);
     //private static final Icon NewToMapIcon = VueResources.getIcon(VUE.class, "images/data_offmap.png");
-    //private static final Icon NewToMapIcon = makeIcon(0x2297, Color.gray);
-    private static final Icon NewToMapIcon = makeIcon(0x229D, Color.gray);
-    private static final Icon NewToMapRowIcon = makeIcon(0x229B, Color.gray);
 
-    private static Icon makeIcon(int code, Color color) {
+    private static final Icon RowHasChangedIcon = makeIcon(0x229B, 20, Color.green.darker(), -2, -1);
+    private static final Icon RowOnMapIcon = makeIcon(0x229B, 20, VueConstants.COLOR_SELECTION, -2, -1);
+    private static final Icon RowOffMapIcon = makeIcon(0x229B, 20, Color.lightGray, -2, -1);
+    private static final Icon ValueOnMapIcon = makeIcon(0x25C9, 12, VueConstants.COLOR_SELECTION);
+    private static final Icon ValueOffMapIcon = makeIcon(0x25C9, 12, Color.lightGray);
+//     private static final Icon RowOnMapIcon = makeIcon(0x25C9, 14, VueConstants.COLOR_SELECTION);
+//     private static final Icon RowOffMapIcon = makeIcon(0x25C9, 14, Color.lightGray);
+//     private static final Icon ValueOnMapIcon = makeIcon(0x229B, 18, VueConstants.COLOR_SELECTION, 0, -1);
+//     private static final Icon ValueOffMapIcon = makeIcon(0x229B, 18, Color.lightGray, 0, -1);
+
+    private static final Icon UniqueValueOnMapIcon = makeIcon(0x29BF, 12, VueConstants.COLOR_SELECTION, 0, -1);
+    private static final Icon UniqueValueOffMapIcon = makeIcon(0x29BF, 12, Color.lightGray, 0, -1);
+    
+    // 29BE: ⦾
+    // 29BF: ⦿
+    // 25C9: ◉ 
+    // 25CE: ◎
+    // 229A: ⊚
+    // 25E6: ◦
+    // 229D: ⊝
+    // 229B: ⊛    
+
+
+    
+    private static Icon makeIcon(int code, int pointSize, Color color) {
+        return makeIcon(code, pointSize, color, 0, 0);
+    }
+    
+    private static Icon makeIcon(int code, int pointSize, Color color, int xoff, int yoff) {
         return GUI.makeUnicodeIcon(code,
-                                   16, // point-size
+                                   pointSize,
                                    color,
                                    16, // fixed width
                                    16, // fixed height
-                                   4, // xoff
-                                   4 // yoff
+                                   4+xoff, // xoff
+                                   4+yoff // yoff
                                    );
     
         
@@ -1617,22 +1655,32 @@ public class DataTree extends javax.swing.JTree
             } else {
                 
                 if (field != null && field.isSingleton()) {
+                    
                     setIcon(null);
+                    
                 } else if (node.isMapTracked()) {
+                    
                     setIconTextGap(1);
 
                     if (node.isRow()) {
                         if (node.getRow().isContextChanged())
                             setIcon(RowHasChangedIcon);
                         else if (node.isMapPresent())
-                            setIcon(IncludedInMapRowIcon);
+                            setIcon(RowOnMapIcon);
                         else
-                            setIcon(NewToMapRowIcon);
+                            setIcon(RowOffMapIcon);
                     } else {
-                        if (node.isMapPresent())
-                            setIcon(IncludedInMapIcon);
-                        else
-                            setIcon(NewToMapIcon);
+                        if (field != null && field.isPossibleKeyField()) {
+                            if (node.isMapPresent())
+                                setIcon(UniqueValueOnMapIcon);
+                            else
+                                setIcon(UniqueValueOffMapIcon);
+                        } else {
+                            if (node.isMapPresent())
+                                setIcon(ValueOnMapIcon);
+                            else
+                                setIcon(ValueOffMapIcon);
+                        }
                     }
                 }
             }
