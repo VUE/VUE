@@ -10,7 +10,7 @@ import java.awt.Color;
 import java.util.*;
 
 /**
- * @version $Revision: 1.7 $ / $Date: 2009-02-22 19:27:00 $ / $Author: sfraize $
+ * @version $Revision: 1.8 $ / $Date: 2009-02-23 02:36:15 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -20,7 +20,7 @@ public class DataAction
     
     static List<LWLink> makeLinks(final Collection<LWComponent> linkTargets, LWComponent node, Field field)
     {
-        Log.debug("makeLinks: " + field + "; " + node);
+        //Log.debug("makeLinks: " + field + "; " + node);
 
         if (field == null)
             return makeRowNodeLinks(linkTargets, node);
