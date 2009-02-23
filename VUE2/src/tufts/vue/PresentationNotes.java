@@ -78,6 +78,8 @@ public class PresentationNotes {
             Dimension page = new Dimension((int)document.getPageSize().getWidth()-70,(int)document.getPageSize().getHeight()-70);
             // compute zoom & offset for visible map components
             Point2D.Float offset = new Point2D.Float();
+            offset.x=35;
+            offset.y=35;
             // center vertically only if landscape mode
             //if (format.getOrientation() == PageFormat.LANDSCAPE)
             //TODO: allow horizontal centering, but not vertical centering (handle in computeZoomFit)
@@ -95,6 +97,7 @@ public class PresentationNotes {
 
         //    dc.setAntiAlias(true);
             dc.setMapDrawing();
+         //   dc.setPDFRender(true);
             dc.setPrioritizeQuality(false);
             dc.setAntiAlias(false);
             
@@ -105,13 +108,14 @@ public class PresentationNotes {
             
             dc.setInteractive(false);
             dc.setDrawPathways(false);
-           // VUE.getActiveMap().draw(dc);
+
+            // VUE.getActiveMap().draw(dc);
             LWPathway.setShowSlides(false);
             VUE.getActiveMap().drawZero(dc);
             LWPathway.setShowSlides(true);
             g2d.dispose();
           //  document.add(new Paragraph(new Chunk().setAnchor("http://www.cnn.com")));
-            cb.addTemplate(tp,35,35);
+            cb.addTemplate(tp,0,0);
             document.newPage();
                                                           
         }

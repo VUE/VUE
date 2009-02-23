@@ -20,8 +20,13 @@ import tufts.vue.ui.ResourceIcon;
 
 import java.awt.*;
 import java.awt.geom.*;
+import java.awt.image.BufferedImage;
+import java.awt.image.BufferedImageOp;
+
 import javax.swing.*;
 import javax.swing.border.*;
+
+import com.lowagie.text.pdf.PdfGraphics2D;
 
 import edu.tufts.vue.preferences.PreferencesManager;
 
@@ -763,6 +768,7 @@ public abstract class LWIcon extends Rectangle2D.Float
         
         void draw(DrawContext dc)
         {
+        
             if (false&&DEBUG.Enabled) {
                 // test code for inserting actual icon into node icon gutter (should at least do by
                 // default for local file icons)
@@ -794,8 +800,28 @@ public abstract class LWIcon extends Rectangle2D.Float
                 return;
                 
             }
-
-            // TODO PERF: if BoxFill has alpha, pre-mix it with node.getRenderFillColor()
+           // System.out.println("CHECK PDF RENDERING");
+            if (!dc.isInteractive())
+            {
+            //	System.out.println("PDF RENDERING");
+	            dc.g.setRenderingHint(PdfGraphics2D.HyperLinkKey.KEY_INSTANCE, 
+	            		mLWC.getResource().getSpec());
+	        	
+	        	BufferedImage bi = new BufferedImage((int)getWidth(),(int)getHeight(),BufferedImage.TYPE_INT_ARGB);
+	        	Graphics g = bi.createGraphics();
+	        	if( g instanceof Graphics2D ){
+	        		Graphics2D g2d = (Graphics2D) g;
+	        		// make sure the background is filled with transparent pixels when cleared !
+	        		g2d.setBackground(new Color(0,0,0,0));
+	        		g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_IN, 0.0f));
+	        		g2d.clearRect(0,0, (int)getWidth(), (int)getHeight());
+	        	} 
+	        	
+	        	dc.g.drawImage(bi, (BufferedImageOp)null, (int)getX(), (int)getY());
+	        	dc.g.setRenderingHint(PdfGraphics2D.HyperLinkKey.KEY_INSTANCE, 
+	                 	PdfGraphics2D.HyperLinkKey.VALUE_HYPERLINKKEY_OFF);
+	         }
+        	 // TODO PERF: if BoxFill has alpha, pre-mix it with node.getRenderFillColor()
             final Color fill = mLWC.getRenderFillColor(dc); // todo: getContrastColor(dc)
             
 //             if (mLWC instanceof LWLink)
@@ -838,6 +864,8 @@ public abstract class LWIcon extends Rectangle2D.Float
 //             }
 
             dc.g.translate(-x, -y);
+          //MK  System.out.println("K");
+           
         }
         
     }
