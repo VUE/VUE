@@ -1,0 +1,56 @@
+<?xml version="1.0" ?>
+
+<!--
+    Document   : build-components.xml.xml
+    Created on : February 20, 2009, 3:24 PM
+    Author     : akumar03
+-->
+<project name="vue-components" default="import" basedir=".">
+  <description>
+    This build file is to build components. We attempt to jar only the classes that
+     are needed to perform cetrain task and merge them into a file. Once the component
+     is ready it can be executed on comand line. It can then be added to a servlet or
+     seasr. An example is import component that takes a dataset as input and generates a
+     map from it.
+  </description>
+ <import file="build.xml"/>
+ <property name="component.home" value="${build.home}"/>
+ <target name="jar-import"
+          depends="compile"
+          description="Creates a jar file for import component">
+ <property name="import.jar"              value="${component.home}/VUEImport.jar"/>
+ <mkdir dir="${component.home}" />
+
+    <echo message="Building jar component for VUE import "/>
+    <antcall target="run-jar-core"/>
+
+   
+    <jar  destfile="${import.jar}" compress="true" index="true"   duplicate="preserve"
+        
+		 update="true" >
+          <manifest>
+        <attribute name="Description" value="Tufts VUE 1.x (Visual Understanding Environment)"/>
+        <attribute name="Built-By" value="${user.name}"/>
+        <attribute name="Built" value="${TODAY} ${TSTAMP}"/>
+        <attribute name="Build-Platform" value="${os.name} ${os.version} ${os.arch}"/>
+        <attribute name="Main-Class" value="edu.tufts.vue.component.Import"/>
+      </manifest>
+      <zipfileset src="${vue-core.jar}"/>
+      <zipfileset src="${lib.home}/log4j-1.2.12.jar"/>
+      <zipfileset src="${lib.home}/opencsv-1.8.jar"/>
+      <zipfileset  src="${lib.home}/VUE-MacOSX.jar" />
+      <zipfileset src="${lib.home}/rome-0.9.jar" />
+      <zipfileset src="${lib.home}/okiOSID-2.0.jar" />
+      <zipfileset src="${lib.home}/OsidProvider.jar" />
+       <zipfileset src="${lib.home}/jena-2.5.3.jar" />
+      <fileset dir="org" />
+      <zipgroupfileset dir="${lib.home}" includes="${thirdparty.jarfiles.names.minimal}"/>
+      </jar>
+
+  </target>
+  <target name="run-import" depends="jar-import">
+ <java classname="edu.tufts.vue.component.Import" failonerror="true" fork="true">
+     <classpath  refid="runtime.classpath"/>
+     </java>
+  </target>
+</project>
