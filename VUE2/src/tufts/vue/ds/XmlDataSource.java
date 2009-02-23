@@ -32,7 +32,7 @@ import au.com.bytecode.opencsv.CSVReader;
 
 
 /**
- * @version $Revision: 1.14 $ / $Date: 2009-02-23 02:38:07 $ / $Author: sfraize $
+ * @version $Revision: 1.15 $ / $Date: 2009-02-23 09:08:01 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class XmlDataSource extends BrowseDataSource
@@ -267,6 +267,7 @@ public class XmlDataSource extends BrowseDataSource
             isCSV = true;
         } else {
             schema = XMLIngest.ingestXML(openInput(), getItemKey());
+            schema.setDSGUID(getGUID());
             mSchema = schema;
             //schema = XMLIngest.ingestXML(openAddress(), getItemKey());
         }
@@ -274,6 +275,7 @@ public class XmlDataSource extends BrowseDataSource
         if (getKeyField() != null)
             mSchema.setKeyField(getKeyField());
 
+        schema.setImageField(getImageField());
         schema.setName(getDisplayName());
 
         updateAllRuntimeSchemaReferences(schema);

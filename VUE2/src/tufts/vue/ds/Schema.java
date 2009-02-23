@@ -32,7 +32,7 @@ import com.google.common.collect.*;
 
 
 /**
- * @version $Revision: 1.24 $ / $Date: 2009-02-23 02:37:42 $ / $Author: sfraize $
+ * @version $Revision: 1.25 $ / $Date: 2009-02-23 09:08:01 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -56,6 +56,7 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
     protected int mLongestFieldName = 10;
 
     private String mName;
+    private Field mImageField;
 
     private LWComponent mStyleNode;
 
@@ -90,7 +91,10 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
         s.setResource(r);
         if (dataSourceGUID != null)
             r.setProperty("@DSGUID", dataSourceGUID);
+        else
+            if (DEBUG.Enabled) Util.printStackTrace("NO DSGUID");
         s.setGUID(edu.tufts.vue.util.GUID.generate());
+        s.DSGUID = dataSourceGUID;
         if (DEBUG.SCHEMA) Log.debug("INSTANCED SCHEMA " + s + "\n");
 
         // may want to wait to do this until we actually load the rows...        
@@ -107,7 +111,7 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
      * the passed in schema is returned.
      */
     public static Schema lookup(Schema schema) {
-        if (DEBUG.SCHEMA && DEBUG.DATA) Log.debug("LOOKUP SCHEMA " + schema);
+        //if (DEBUG.SCHEMA) Log.debug("LOOKUP SCHEMA " + schema);
         if (schema == null)
             return null;
         if (schema.isLoaded())
@@ -115,8 +119,10 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
         final Resource r = schema.getResource();
         Schema loaded = SchemaByResource.get(r);
         Object matched = r;
-        if (loaded == null)
+        if (loaded == null && r != null) {
             loaded = SchemaByGUID.get(matched = r.getProperty("@DSGUID"));
+            if (loaded != null) Log.debug("MATCHED SCHEMA BY GUID: " + matched + " " + loaded);
+        }
         if (loaded != null) {
             if (DEBUG.SCHEMA && DEBUG.DATA) Log.debug("MATCHED EMPTY SCHEMA " + matched + " to " + loaded);
             return loaded;
@@ -129,6 +135,8 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
     /** interface {@link XMLUnmarshalListener} -- track us */
     public void XML_completed(Object context) {
         SchemaHandles.add(this);
+        DSGUID = getResource().getProperty("@DSGUID");
+        Log.debug("RESTORED SCHEMA " + this + "; DSGUID=" + DSGUID);
     }
     
     /** interface {@link XMLUnmarshalListener} -- does nothing here */
@@ -189,6 +197,13 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
     public final void setMapLocalID(String id) {
         Log.debug("SCHEMA ID WAS PERSISTED AS " + id + "; " + this);
         //mLocalID.set(i);
+    }
+
+    public void setImageField(String name) {
+        mImageField = findField(name);
+    }
+    public Field getImageField() {
+        return mImageField;
     }
 
     public void annotateFor(Collection<LWComponent> nodes) {
@@ -288,13 +303,17 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
         //return getName() + "; " + getResource() + "; " + UUID;
         //return getName();
         try {
-            return String.format("Schema@%x[%s; #%d \"%s\" %s]",
+            return String.format("Schema@%x[%s;%s #%d \"%s\" %s]",
                                  System.identityHashCode(this),
-                                 getMapLocalID(), mFields.size(), getName(), getResource());
+                                 getMapLocalID(),
+                                 DSGUID == null ? "" : (" " + DSGUID + "; "),
+                                 mFields.size(), getName(), getResource());
         } catch (Throwable t) {
-            return String.format("Schema@%x[%s; #%d \"%s\" %s]",
+            return String.format("Schema@%x[%s; %s; #%d \"%s\" %s]",
                                  System.identityHashCode(this),
-                                 ""+mLocalID, mFields.size(), ""+mName, ""+mResource);
+                                 ""+mLocalID,
+                                 DSGUID,
+                                 mFields.size(), ""+mName, ""+mResource);
         }
     }
 
@@ -305,6 +324,12 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
     public void setGUID(String s) {
         GUID = s;
     }
+
+    void setDSGUID(String s) {
+        DSGUID = s;
+        if (DEBUG.Enabled) Util.printStackTrace("setDSGUID " + s);
+    }
+    
 
     public void setStyleNode(LWComponent style) {
         mStyleNode = style;

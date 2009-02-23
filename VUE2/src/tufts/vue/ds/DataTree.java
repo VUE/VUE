@@ -50,7 +50,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.43 $ / $Date: 2009-02-23 02:37:08 $ / $Author: sfraize $
+ * @version $Revision: 1.44 $ / $Date: 2009-02-23 09:08:01 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -466,7 +466,7 @@ public class DataTree extends javax.swing.JTree
             mAddNewRowsButton.setEnabled(true);
         } else {
             //mAddNewRowsButton.setIcon(null);
-            mAddNewRowsButton.setLabel("All rows are represented on map");
+            mAddNewRowsButton.setLabel("All Records are represented on Map");
             mAddNewRowsButton.setEnabled(false);
         }
 
@@ -845,10 +845,14 @@ public class DataTree extends javax.swing.JTree
     {
         final java.util.List<LWComponent> nodes = new ArrayList();
 
-        final Field linkField = schema.findField("link");
-        final Field descField = schema.findField("description");
-        final Field titleField = schema.findField("title");
+        // TODO: findField should find case-independed values -- wasn't our key hack supposed to handle that?
+
+        final Field linkField = schema.findField("Link");
+        final Field descField = schema.findField("Description");
+        final Field titleField = schema.findField("Title");
         final Field mediaField = schema.findField("media:group.media:content.media:url");
+        final Field imageField = schema.getImageField();
+        
 
 //         final Collection<DataRow> rows;
 
@@ -861,6 +865,7 @@ public class DataTree extends javax.swing.JTree
 //         }
 
         Log.debug("PRODUCING ROW NODE(S) FOR " + schema + "; " + Util.tags(rows));
+        Log.debug("IMAGE FIELD: " + imageField);
 
         final boolean singleRow = (rows.size() == 1);
         
@@ -868,45 +873,77 @@ public class DataTree extends javax.swing.JTree
         LWNode node;
         for (DataRow row : rows) {
 
-            node = LWNode.createRaw();
-            // node.setFlag(Flag.EVENT_SILENT); // todo performance: have nodes do this by default during init
-            //node.setClientData(Schema.class, schema);
-            //node.getMetadataList().add(row.entries());
-            //node.addDataValues(row.dataEntries());
-            node.setDataValues(row.getData());
-            node.setStyle(schema.getStyleNode()); // must have meta-data set first to pick up label template
+            try {
+            
+                node = LWNode.createRaw();
+                // node.setFlag(Flag.EVENT_SILENT); // todo performance: have nodes do this by default during init
+                //node.setClientData(Schema.class, schema);
+                //node.getMetadataList().add(row.entries());
+                //node.addDataValues(row.dataEntries());
+                node.setDataValues(row.getData());
+                node.setStyle(schema.getStyleNode()); // must have meta-data set first to pick up label template
 
-            if (singleRow) {
-                // if handling a single node (e.g., probably a single drag),
-                // also apply & override with the current on-map creation style
-                tufts.vue.EditorManager.targetAndApplyCurrentProperties(node);
-            }
-
-            if (linkField != null) {
-                node.setResource(row.getValue(linkField));
-                final tufts.vue.Resource r = node.getResource();
-//                 if (descField != null) // now redundant with data fields, may want to leave out for brevity
-//                     r.setProperty("Description", row.getValue(descField));
-                if (titleField != null) {
-                    String title = row.getValue(titleField);
-                    r.setTitle(title);
-                    r.setProperty("Title", title);
+                if (singleRow) {
+                    // if handling a single node (e.g., probably a single drag),
+                    // also apply & override with the current on-map creation style
+                    tufts.vue.EditorManager.targetAndApplyCurrentProperties(node);
                 }
-                if (mediaField != null) {
-                    // todo: if no per-item media field, use any per-schema media field found
-                    // (e.g., RSS content provider icon image)
-                    // todo: refactor so cast not required
-                    ((tufts.vue.URLResource)r).setURL_Thumb(row.getValue(mediaField));
+
+                boolean addedResource = false;
+            
+                if (imageField != null) {
+                    final String image = row.getValue(imageField);
+                    if (image != null && image.length() > 0 && Resource.looksLikeURLorFile(image) && !image.equals("n/a")) {
+                        // todo: note "n/a" hack above
+                        Resource ir = Resource.instance(image);
+                        
+                        if (titleField != null) {
+                            String title = row.getValue(titleField);
+                            ir.setTitle(title);
+                            ir.setProperty("Title", title);
+                        }
+                        
+                        Log.debug("image resource: " + ir);
+                        node.addChild(new tufts.vue.LWImage(ir));
+                        addedResource = true;
+                    }
+                }
+                String link = null;
+
+                if (!addedResource && linkField != null) {
+                    link = row.getValue(linkField);
+                    if ("n/a".equals(link)) link = null; // TEMP HACK
                 }
                 
+                if (link != null) {
+                    node.setResource(link);
+                    final tufts.vue.Resource r = node.getResource();
+                    //                 if (descField != null) // now redundant with data fields, may want to leave out for brevity
+                    //                     r.setProperty("Description", row.getValue(descField));
+                    if (titleField != null) {
+                        String title = row.getValue(titleField);
+                        r.setTitle(title);
+                        r.setProperty("Title", title);
+                    }
+                    if (mediaField != null) {
+                        // todo: if no per-item media field, use any per-schema media field found
+                        // (e.g., RSS content provider icon image)
+                        // todo: refactor so cast not required
+                        ((tufts.vue.URLResource)r).setURL_Thumb(row.getValue(mediaField));
+                    }
+                }
+
+                //Log.debug("produced node " + node);
+                String label = node.getLabel();
+
+                label = Util.formatLines(label, VueResources.getInt("dataNode.labelLength"));
+                node.setLabel(label);
+                nodes.add(node);
+            } catch (Throwable t) {
+                Log.error("failed to create node for row " + row, t);
             }
-
-            //Log.debug("produced node " + node);
-            String label = node.getLabel();
-
-            label = Util.formatLines(label, VueResources.getInt("dataNode.labelLength"));
-            node.setLabel(label);
-            nodes.add(node);
+            
+            
         }
         
         Log.debug("PRODUCED NODE(S) FOR " + schema + "; count=" + nodes.size());
