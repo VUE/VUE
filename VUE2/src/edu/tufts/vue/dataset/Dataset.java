@@ -29,20 +29,8 @@ import java.util.*;
 import java.io.*;
 import tufts.vue.*;
 import java.net.*;
-import edu.tufts.vue.ontology.OntManager;
-import edu.tufts.vue.ontology.OWLLOntology;
-import edu.tufts.vue.ontology.OntType;
-import edu.tufts.vue.ontology.ui.OntologyBrowser;
-import edu.tufts.vue.ontology.ui.TypeList;
-import edu.tufts.vue.ontology.ui.OntologyChooser;
 
 
-import com.hp.hpl.jena.rdf.model.*;
-import com.hp.hpl.jena.ontology.*;
-import com.hp.hpl.jena.util.iterator.*;
-import com.hp.hpl.jena.vocabulary.RDF;
-import com.hp.hpl.jena.shared.PrefixMapping;
-import com.hp.hpl.jena.util.iterator.Filter;
 
 import au.com.bytecode.opencsv.CSVReader;
 
@@ -90,30 +78,7 @@ public class Dataset {
         return layout.createMap(this,getMapName(fileName));
     }
     
-    public void createOntology()  {
-        System.out.println("Creating owl ontology for: "+fileName);
-        String base = VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separator+"test.owl";
-        String ontClassLabel = getHeading().get(0);
-        baseClass = base+"#"+ontClassLabel;
-        try {
-            OntModel m = ModelFactory.createOntologyModel(OntModelSpec.OWL_LITE_MEM, null);
-            m.createClass(baseClass);
-            OWLLOntology ontology = new OWLLOntology();
-            ontology.equals(base);
-            m.write(new FileWriter(base));
-            edu.tufts.vue.ontology.OntManager.getOntManager().load();
-            TypeList list = new TypeList();
-            tufts.vue.gui.Widget w = null;
-            URL ontURL = new File(base).toURI().toURL();
-            w = OntologyBrowser.getBrowser().addTypeList(list, ontology.getLabel(),ontURL);
-            list.loadOntology(ontURL ,null,OntologyChooser.getOntType(ontURL),OntologyBrowser.getBrowser(),w);
-        } catch(Exception ex) {
-            System.out.println("Dataset.createOntology :"+ex);
-            ex.printStackTrace();
-        }
-        
-        
-    }
+    
     public  void loadDataset() throws Exception {
         rowList = new ArrayList<ArrayList<String>>();
         label = fileName;
