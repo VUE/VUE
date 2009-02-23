@@ -29,7 +29,7 @@ import java.awt.image.BufferedImage;
 import tufts.vue.*;
 
 /**
- * @version $Revision: 1.27 $ / $Date: 2009-02-17 21:56:18 $ / $Author: mike $ *
+ * @version $Revision: 1.28 $ / $Date: 2009-02-23 18:23:18 $ / $Author: mike $ *
  * @author Jay Briedis
  * 
  * Major revision: 2/17/09 -MK
@@ -153,10 +153,10 @@ public class ImageMap extends VueAction {
 
 		if (node.getParent() instanceof LWNode) {
 			System.out.println(node.getDepth());
-			ow = (int) (ow - ((ow - ox) * (1 - ChildScale
-					/ (node.getDepth() - 2))));
-			oh = (int) (oh - ((oh - oy) * (1 - ChildScale
-					/ (node.getDepth() - 2))));
+			ow = (int) (ow - ((ow - ox) * (1 - Math.pow(ChildScale,(node.getDepth()-2)))));
+					/// (node.getDepth() - 2))));
+			oh = (int) (oh - ((oh - oy) *  (1 - Math.pow(ChildScale,(node.getDepth()-2)))));
+					/// (node.getDepth() - 2))));
 
 		}
 		return new Rectangle(ox, oy, ow, oh);
