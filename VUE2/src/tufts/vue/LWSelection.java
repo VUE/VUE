@@ -29,7 +29,7 @@ import com.google.common.collect.Multisets;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.104 $ / $Date: 2008-12-19 00:38:11 $ / $Author: sfraize $
+ * @version $Revision: 1.105 $ / $Date: 2009-02-24 07:16:18 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -61,6 +61,8 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     private String mDescription;
 
     private long mEditablePropertyKeys;
+    private int mDataValueCount;
+    private int mDataRowCount;
 
     private final Set<LWContainer> mParents = new java.util.HashSet() {
             @Override
@@ -613,6 +615,8 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         mTypes.clear();
         mParents.clear();
         mEditablePropertyKeys = 0; // set to recompute
+        mDataValueCount = 0;
+        mDataRowCount = 0;
         if (size() > 0) {
             if (DEBUG.Enabled) Log.debug("RECOMPUTING STATISTICS; n=" + size());
             
@@ -625,6 +629,8 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
             for (LWComponent c : this) {
                 mParents.add(c.getParent());
                 mTypes.add(c.getClass());
+                if (c.isDataValueNode()) mDataValueCount++;
+                else if (c.isDataRowNode()) mDataRowCount++;
             }
         }
     }
@@ -686,7 +692,14 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     public Multiset<Class> getTypes() {
         return mTypes;
     }
-    
+
+    public int getDataRowCount() {
+        return mDataRowCount;
+    }
+    public int getDataValueCount() {
+        return mDataValueCount;
+    }
+
     public int count(Class<? extends LWComponent> clazz)
     {
         return mTypes.count(clazz);
