@@ -59,7 +59,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.229 $ / $Date: 2009-02-23 22:09:10 $ / $Author: sfraize $
+ * @version $Revision: 1.230 $ / $Date: 2009-02-24 15:56:39 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -1128,7 +1128,7 @@ public class LWMap extends LWContainer
 
             final Layer layer0;
             
-            layer0 = new Layer("Background");
+            layer0 = new Layer("Layer 1");
             layer0.setParent(this);
             layer0.mChildren = this.mChildren;
         
