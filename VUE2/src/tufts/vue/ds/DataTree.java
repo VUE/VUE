@@ -50,7 +50,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.50 $ / $Date: 2009-02-24 08:18:48 $ / $Author: sfraize $
+ * @version $Revision: 1.51 $ / $Date: 2009-02-24 09:36:06 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -252,11 +252,6 @@ public class DataTree extends javax.swing.JTree
 
             if (!GUI.isDoubleClick(e))
                 return;
-            
-//             final TreePath path = tree.getPathForLocation(e.getX(), e.getY());
-//             //final TreePath path = tree.getSelectionPath();
-//             if (path == null)
-//                 return;
 
             if (mClickPath == null)
                 return;
@@ -270,8 +265,10 @@ public class DataTree extends javax.swing.JTree
                 // prevents from ever drawing through on map:
                 selection.setSelectionSourceFocal(null);
                 selection.setTo(treeNode.getStyle());
+            } else if (treeNode.isRow() ||
+                       (treeNode.getField() != null && treeNode.getField().isPossibleKeyField())) {
+                selectMapForNode(treeNode, false);
             }
-            //selectMapForNode(treeNode, e.isShiftDown());
         }
 
     }
@@ -1219,7 +1216,7 @@ public class DataTree extends javax.swing.JTree
 
             style = new LWNode(); // creates a rectangular node
             //style.setLabel(" ---");
-            style.setFillColor(Color.gray);
+            style.setFillColor(Color.lightGray);
             style.setFont(DataNodeFont);
         } else {
             //style = new LWNode(" ---"); // creates a round-rect node
