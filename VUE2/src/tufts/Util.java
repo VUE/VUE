@@ -1518,7 +1518,10 @@ public class Util
         
     }
     public static void dumpArray(Object[] a) {
-        dumpCollection(Arrays.asList(a));
+        if (a != null)
+            dumpCollection(Arrays.asList(a));
+        else
+            System.out.println("NULL ARRAY");
     }
 
     public static void dumpCollection(Collection c) {
