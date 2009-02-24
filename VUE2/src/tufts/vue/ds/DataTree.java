@@ -50,7 +50,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.52 $ / $Date: 2009-02-24 10:33:56 $ / $Author: sfraize $
+ * @version $Revision: 1.53 $ / $Date: 2009-02-24 11:22:12 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -317,14 +317,9 @@ public class DataTree extends javax.swing.JTree
             Log.debug("searching for all data records in schema " + mSchema);
             desc = String.format("that are from data set<br>'%s'", mSchema.getName());
             for (LWComponent c : searchSet) {
-                if (mSchema.equals(c.getDataSchema()))
+                if (c.isDataRow(mSchema))
                     hits.add(c);
             }
-            //                 Log.debug(String.format("searching for all nodes with any data key '%s'", fieldName));
-            //                 for (LWComponent c : searchSet) {
-            //                     if (c.hasDataKey(fieldName)) //if (c.isDataRow(mSchema))
-            //                         hits.add(c);
-            //                 }
         }
         else if (treeNode.isRow()) {
             // search for a particular row-node in the schema based on the key field
