@@ -50,7 +50,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.48 $ / $Date: 2009-02-24 06:45:33 $ / $Author: sfraize $
+ * @version $Revision: 1.49 $ / $Date: 2009-02-24 07:31:35 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -1219,7 +1219,7 @@ public class DataTree extends javax.swing.JTree
 
             style = new LWNode(); // creates a rectangular node
             //style.setLabel(" ---");
-            style.setFillColor(Color.darkGray);
+            style.setFillColor(Color.gray);
             style.setFont(DataNodeFont);
         } else {
             //style = new LWNode(" ---"); // creates a round-rect node
