@@ -62,7 +62,7 @@ public class AnalyzerAction extends Actions.LWCAction {
     	 //*** MAP BASED SEARCHING ***
         //Equivalent of the are you feeling lucky feature where
         //we are going to grab a bunch of results and add them right to the map.
-        final int RESULTS_TO_ADD=3;
+        final int RESULTS_TO_ADD=5;
         int size = resourceList.size();
        // VUE.getSelection().clear();
    //     VUE.getSelection().add(mCenterComponent);
