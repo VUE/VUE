@@ -29,7 +29,7 @@ import java.awt.image.BufferedImage;
 import tufts.vue.*;
 
 /**
- * @version $Revision: 1.28 $ / $Date: 2009-02-23 18:23:18 $ / $Author: mike $ *
+ * @version $Revision: 1.29 $ / $Date: 2009-02-24 21:24:36 $ / $Author: mike $ *
  * @author Jay Briedis
  * 
  * Major revision: 2/17/09 -MK
@@ -202,9 +202,9 @@ public class ImageMap extends VueAction {
 	           
 			  
 		        if (res == null)
-		        	href ="href=\"#\"";
+		        	href ="";
 	            else if(res.equals("null"))
-	        	   href = "href=\"#\"";
+	        	   href = "";
 	           else 
 	        	   href = "href=\"" + res.getSpec() + "\" target=\"_blank\"";
             
