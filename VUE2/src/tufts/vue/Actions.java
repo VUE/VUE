@@ -2401,13 +2401,17 @@ public class Actions implements VueConstants
         void arrange(LWComponent c) { c.setLocation(centerX - c.getWidth()/2, c.getY()); }
     };
     
-    public static final ArrangeAction MakeCluster = new ArrangeAction("Make Cluster", keyStroke(KeyEvent.VK_PERIOD, ALT)) {
+    public static final ArrangeAction MakeCluster = new ArrangeAction("Make Cluster(s)", keyStroke(KeyEvent.VK_PERIOD, ALT)) {
             boolean supportsSingleMover() { return false; }
             boolean enabledFor(LWSelection s) { return s.size() > 0; }
             
             void arrange(LWSelection selection) {
 
                 final double radiusWide, radiusTall;
+
+                selection.resetStatistics();
+                Log.debug("DATAVALUECOUNT0: " + selection.getDataValueCount());
+                //Log.debug("DATAVALUECOUNT1: " + selection().getDataValueCount());
                 
                 if (selection.size() == 1) {
 
@@ -2421,7 +2425,16 @@ public class Actions implements VueConstants
                     selection().setTo(center);
                     selection().add(linked);
                     
-                } else {
+                }
+                else if (selection.getDataValueCount() == selection.size()) {
+
+                    for (LWComponent center : selection) {
+                        final Collection<LWComponent> linked = center.getLinked();
+
+                        clusterNodes(center, linked);
+                    }
+                }
+                else {
                     
 //                     radiusWide = (maxX - minX) / 2;
 //                     radiusTall = (maxY - minY) / 2;
@@ -2571,7 +2584,7 @@ public class Actions implements VueConstants
         MakeRow,
         MakeColumn,
         MakeCluster,
-        MakeDataLinks,
+        //MakeDataLinks,
         MakeDataLists,
         null,
         DistributeVertically,
