@@ -50,7 +50,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.51 $ / $Date: 2009-02-24 09:36:06 $ / $Author: sfraize $
+ * @version $Revision: 1.52 $ / $Date: 2009-02-24 10:33:56 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -63,6 +63,7 @@ public class DataTree extends javax.swing.JTree
 
     private DataNode mRootNode;
     private DataNode mAllRowsNode;
+    private DataNode mSelectedSearchNode;
     private final AbstractButton mAddNewRowsButton = new JButton("Add New Records to Map");
     private final AbstractButton mApplyChangesButton = new JButton("Apply Changes to Map");
     private final DefaultTreeModel mTreeModel;
@@ -227,7 +228,7 @@ public class DataTree extends javax.swing.JTree
 
     private boolean inDoubleClick;
 
-    private class DoubleClickMouseListener extends tufts.vue.MouseAdapter
+    private class ClickHandler extends tufts.vue.MouseAdapter
     {
         private TreePath mClickPath;
         
@@ -248,15 +249,24 @@ public class DataTree extends javax.swing.JTree
         }
                 
         @Override
-        public void mouseClicked(java.awt.event.MouseEvent e) {
-
-            if (!GUI.isDoubleClick(e))
-                return;
-
+        public void mouseClicked(java.awt.event.MouseEvent e)
+        {
             if (mClickPath == null)
                 return;
 
             final DataNode treeNode = (DataNode) mClickPath.getLastPathComponent();
+            
+            if (GUI.isSingleClick(e)) {
+                if (mSelectedSearchNode == treeNode) {
+                    // re-run search: we're clicking on already selected, and can't select it again
+                    searchMapForMatchingNodes(treeNode, false);
+                }
+                return;
+            }
+            
+            if (!GUI.isDoubleClick(e))
+                return;
+
             if (DEBUG.Enabled) Log.debug("ACTIONABLE DOUBLE CLICK ON " + Util.tags(treeNode));
 
             if (treeNode.hasStyle()) {
@@ -267,13 +277,13 @@ public class DataTree extends javax.swing.JTree
                 selection.setTo(treeNode.getStyle());
             } else if (treeNode.isRow() ||
                        (treeNode.getField() != null && treeNode.getField().isPossibleKeyField())) {
-                selectMapForNode(treeNode, false);
+                searchMapForMatchingNodes(treeNode, false);
             }
         }
 
     }
             
-    private void selectMapForNode(final DataNode treeNode, final boolean addToSelection)
+    private void searchMapForMatchingNodes(final DataNode treeNode, final boolean addToSelection)
     {
         final DataTree tree = DataTree.this;
             
@@ -298,7 +308,7 @@ public class DataTree extends javax.swing.JTree
         boolean matching = false;
         String desc = "";
 
-        final Collection<LWComponent> searchSet = mActiveMap.getAllDescendents();
+        final Collection<LWComponent> searchSet = mActiveMap.getAllDescendents(LWComponent.ChildKind.EDITABLE);
 
         if (DEBUG.Enabled) Log.debug("\n\nSEARCHING ALL DESCENDENTS of " + mActiveMap + "; count=" + searchSet.size());
             
@@ -550,7 +560,7 @@ public class DataTree extends javax.swing.JTree
              java.awt.dnd.DnDConstants.ACTION_LINK,
              this);
 
-        addMouseListener(new DoubleClickMouseListener());
+        addMouseListener(new ClickHandler());
 
         addTreeSelectionListener(new javax.swing.event.TreeSelectionListener() {
                 public void valueChanged(javax.swing.event.TreeSelectionEvent e) {
@@ -595,11 +605,17 @@ public class DataTree extends javax.swing.JTree
                         // Still need to figure out how to get discontiguous tree selection.
 
                         boolean addToSelection = false;
+                        DataNode node = null;
                         for (TreePath path : paths) {
-                            DataNode node = (DataNode) path.getLastPathComponent();
-                            selectMapForNode(node, addToSelection);
+                            node = (DataNode) path.getLastPathComponent();
+                            searchMapForMatchingNodes(node, addToSelection);
                             addToSelection = true;
                         }
+                        if (paths.length == 1)
+                            mSelectedSearchNode = node;
+                        else
+                            mSelectedSearchNode = null;
+                            
                     }
                         
                     //                         else if (treeNode instanceof ValueNode) {
