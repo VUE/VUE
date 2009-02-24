@@ -42,7 +42,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.111 $ / $Date: 2009-02-23 02:38:39 $ / $Author: sfraize $
+ * @version $Revision: 1.112 $ / $Date: 2009-02-24 21:50:13 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends WidgetStack
@@ -566,7 +566,7 @@ public class InspectorPane extends WidgetStack
 
     private static final String DESCRIPTION_VIEWER_KEY = Resource.HIDDEN_RUNTIME_PREFIX + "ipCache";
 
-    private void loadContentSummary(Resource r, MetaMap data) {
+    private boolean loadContentSummary(Resource r, MetaMap data) {
         JComponent descriptionView = (r == null ? null : (JComponent) r.getPropertyValue(DESCRIPTION_VIEWER_KEY));
             
         boolean gotView = (descriptionView != null);
@@ -601,7 +601,12 @@ public class InspectorPane extends WidgetStack
         if (gotView) {
             mDescription.add(descriptionView);
             mDescription.repaint();
+            return true;
+        } else {
+            mDescription.setHidden(true);
+            return false;
         }
+
         
     }
 
@@ -651,11 +656,21 @@ public class InspectorPane extends WidgetStack
                 value = data.getString(k);
                 if (value != null)
                     return value;
+                if (Character.isUpperCase(k.charAt(0)))
+                    value = data.getString(k.toLowerCase());
+                if (value != null)
+                    return value;
+                
             }
             if (r != null) {
                 value = r.getProperty(k);
                 if (value != null)
                     return value;
+                if (Character.isUpperCase(k.charAt(0)))
+                    value = r.getProperty(k.toLowerCase());
+                if (value != null)
+                    return value;
+                
             }
         }
         
@@ -673,18 +688,21 @@ public class InspectorPane extends WidgetStack
 
         //final MetaMap data = (node == null ? null : node.getRawData());
 
-        final String desc = findProperty(r, data, "description", "summary");
+        final String desc = findProperty(r, data, "Description", "Summary");
             
         final String summary;
         
         if (desc != null || r == null) {
             
-            summary = buildSummaryWithDescription(r, data, desc == null ? "" : desc);
-            if (summary == null)
-                htmlText.setText("No Description");// todo: should just hide panel
+            summary = buildSummaryWithDescription(r, data, desc);
+            if (summary == null || summary.length() == 0)
+                return null;
+                //htmlText.setText("No Description");// todo: should just hide panel
             else
                 htmlText.setText(summary);
 
+            if (DEBUG.DATA && data != null) data.put("$reformatted", "[" + summary + "]");
+            
         } else { //if (r != null) {
             
             //------------------------------------------------------------------
@@ -829,21 +847,10 @@ public class InspectorPane extends WidgetStack
         
         return b.toString();
     }
-    
 
-    private static String buildSummaryWithDescription(final Resource r,
-                                                    final MetaMap data,
-                                                    String desc)
-    {
 
-        final StringBuilder buf = new StringBuilder(desc.length() + 128);
-
-        //int si = desc.indexOf("</style>");
-        //                if (si > 0) {
-        //                    buf.append(desc, 0, si);
-        //                    desc = desc.substring(si);
-        //                }
-
+    private static String cleanForTextPaneAndTrim(String desc) {
+        
         // text pane doesn't handle (e.g. <br/> is very common)
         desc = desc.replaceAll("/>", ">");
                 
@@ -856,27 +863,45 @@ public class InspectorPane extends WidgetStack
         desc = desc.replaceAll("\\s*<br>\\s*$", "");
         desc = desc.replaceAll("\\s*<br>\\s*$", "");
         desc = desc.replaceAll("\\s*<br>\\s*$", "");
-                
-                
-        String title = findProperty(r, data, "title");
+
+        return desc;
+    }
+
+
+    private static String buildSummaryWithDescription(final Resource r,
+                                                    final MetaMap data,
+                                                    String desc)
+    {
+
+        final StringBuilder buf = new StringBuilder(128 + (desc == null ? 0 : desc.length()));
+
+        if (desc != null)
+            desc = cleanForTextPaneAndTrim(desc);
+
+        String title = findProperty(r, data, "Title");
         if (title == null && r != null)
             title = r.getTitle();
+
+        if (title == null && desc == null)
+            return null;
                 
-        if (desc.indexOf("<style") < 0) {
+        if (desc == null || desc.indexOf("<style") < 0) {
             // only add a title if no style sheet present ("complex content" e.g., jackrabbit jira)
 
-            buf.append("<b><font size=+1>"); // note: h1/h2 are useless here.  font+1 a bit more than we want tho...
-            buf.append(title);
-            buf.append("</font></b>");
+            if (title != null) {
+                buf.append("<b><font size=+1>"); // note: h1/h2 are useless here.  font+1 a bit more than we want tho...
+                buf.append(title);
+                buf.append("</font></b>");
+            }
             
-            String published = findProperty(r, data, "published", "pubDate", "dc:date", "date", "created");
+            String published = findProperty(r, data, "Published", "pubDate", "dc:date", "Date", "Created");
                 
             if (published != null) {
                 buf.append("<br>\n");
                 //buf.append("<font size=-1 color=808080>");
                 buf.append("<font color=B0B0B0><b>");
                 buf.append(published);
-                String author = findProperty(r, data, "author", "dc:creator", "creator", "publisher", "reporter", "name");
+                String author = findProperty(r, data, "Author", "dc:creator", "Creator", "Publisher", "Reporter", "Name");
                 if (author != null) {
                     buf.append(" - ");
                     buf.append(author);
@@ -894,15 +919,18 @@ public class InspectorPane extends WidgetStack
             //             }
 
                 
-            // first, handle white-space around breaks so as not to overbreak later handling newlines
-            desc = desc.replaceAll("<br>\\s*<br>\\s*", "<p>");
-                    
-            // now handle common paragraph breaks
-            desc = desc.replaceAll("\n\n", "<p>");
+            if (desc != null) {
 
-            if (!desc.startsWith("<p>"))
-                buf.append("<p>\n");
-
+                // first, handle white-space around breaks so as not to overbreak later handling newlines
+                desc = desc.replaceAll("<br>\\s*<br>\\s*", "<p>");
+                
+                // now handle common paragraph breaks
+                desc = desc.replaceAll("\n\n", "<p>");
+                
+                if (!desc.startsWith("<p>"))
+                    buf.append("<p>\n");
+            }
+                
         }
 
 
@@ -936,10 +964,17 @@ public class InspectorPane extends WidgetStack
             hasDesc = true;
         }
 
-        final String link = findProperty(r, data, "link");
+//         final String media = findProperty(r, data, "media:content@url"); 
+//         if (media != null && Resource.looksLikeURLorFile(media) && Resource.looksLikeImageFile(media)) {
+//             buf.append(String.format("<center><a href=\"%s\"><img src=\"%s\"></a><br>", media, media));
+//         }
+        
+        String link = findProperty(r, data, "Link");
         if (link != null && Resource.looksLikeURLorFile(link)) {
             if (hasDesc)
                 buf.append("<p>");
+            else if (!buf.toString().endsWith("<br>"))
+                buf.append("<br>");
             //if (DEBUG.DR && hasDesc) buf.append("hadDescription:");
             buf.append(String.format("<a href=\"%s\">%s</a><br>",
                                      link,
