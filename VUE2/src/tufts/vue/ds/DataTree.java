@@ -50,7 +50,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.44 $ / $Date: 2009-02-23 09:08:01 $ / $Author: sfraize $
+ * @version $Revision: 1.45 $ / $Date: 2009-02-24 05:33:26 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -62,7 +62,7 @@ public class DataTree extends javax.swing.JTree
     private final Schema mSchema;
 
     private DataNode mRootNode;
-    private DataNode mRowNodeParent;
+    private DataNode mAllRowsNode;
     private final AbstractButton mAddNewRowsButton = new JButton("Add New Records to Map");
     private final AbstractButton mApplyChangesButton = new JButton("Apply Changes to Map");
     private final DefaultTreeModel mTreeModel;
@@ -97,7 +97,7 @@ public class DataTree extends javax.swing.JTree
 
         final List<DataRow> newRows = new ArrayList();
 
-        for (DataNode n : mRowNodeParent.getChildren()) {
+        for (DataNode n : mAllRowsNode.getChildren()) {
             if (!n.isMapPresent()) {
                 //Log.debug("ADDING TO MAP: " + n);
                 newRows.add(n.getRow());
@@ -146,6 +146,9 @@ public class DataTree extends javax.swing.JTree
                     tree.addNewRowsToMap();
                 }
             });
+
+        tree.getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
+
             
         JLabel dataSourceLabel = null;
             
@@ -224,7 +227,7 @@ public class DataTree extends javax.swing.JTree
 
     private boolean inDoubleClick;
 
-    private class ClickSearchMouseListener extends tufts.vue.MouseAdapter
+    private class DoubleClickMouseListener extends tufts.vue.MouseAdapter
     {
         private TreePath mClickPath;
         
@@ -260,117 +263,131 @@ public class DataTree extends javax.swing.JTree
 
             final DataNode treeNode = (DataNode) mClickPath.getLastPathComponent();
             if (DEBUG.Enabled) Log.debug("ACTIONABLE DOUBLE CLICK ON " + Util.tags(treeNode));
-            
-            final DataTree tree = DataTree.this;
-            
-            if (mActiveMap == null)
-                return;
 
-            Field field = treeNode.getField();
-
-            if (field == null) {
-                if (treeNode == mRowNodeParent || treeNode instanceof RowNode) {
-                    field = mSchema.getKeyField();
-                } else {
-                    // todo: must be root node: select a row-node items
-                    return;
-                }
+            if (treeNode.hasStyle()) {
+                final tufts.vue.LWSelection selection = VUE.getSelection();
+                selection.setSource(DataTree.this);
+                // prevents from ever drawing through on map:
+                selection.setSelectionSourceFocal(null);
+                selection.setTo(treeNode.getStyle());
             }
-
-            //tree.setSelectionPath(path);
-                
-            final String fieldName = field.getName();
-            final List<LWComponent> hits = new ArrayList();
-            boolean matching = false;
-            String desc = "";
-
-            final Collection<LWComponent> searchSet = mActiveMap.getAllDescendents();
-
-            if (DEBUG.Enabled) Log.debug("\n\nSEARCHING ALL DESCENDENTS of " + mActiveMap + "; count=" + searchSet.size());
-            
-            if (treeNode == mRowNodeParent) {
-                // search for any row-node in the schema
-                Log.debug("searching for all data records in schema " + mSchema);
-                desc = String.format("that are from data set<br>'%s'", mSchema.getName());
-                for (LWComponent c : searchSet) {
-                    if (mSchema.equals(c.getDataSchema()))
-                        hits.add(c);
-                }
-//                 Log.debug(String.format("searching for all nodes with any data key '%s'", fieldName));
-//                 for (LWComponent c : searchSet) {
-//                     if (c.hasDataKey(fieldName)) //if (c.isDataRow(mSchema))
-//                         hits.add(c);
-//                 }
-            }
-            else if (treeNode instanceof RowNode) {
-                // search for a particular row-node in the schema based on the key field
-                final String keyValue = treeNode.getRow().getValue(fieldName);
-                Log.debug(String.format("searching for a paricular record based on key field value %s='%s'",
-                                        fieldName,
-                                        valueName(keyValue)));
-                for (LWComponent c : searchSet) {
-                    if (c.hasDataValue(fieldName, keyValue))
-                        hits.add(c);
-                }
-            }
-            else if (treeNode.isField()) {
-                // search for all nodes anchoring a particular value for the given Field
-                desc = String.format("anchoring field <b>%s", fieldName);
-                Log.debug("searching for any occurance of a field named " + fieldName);
-                for (LWComponent c : searchSet) {
-                    if (c.isDataValueNode(fieldName))
-                        hits.add(c);
-                }
-            }
-            else if (treeNode.isValue()) {
-                matching = true;
-                final String fieldValue = treeNode.getValue();
-                //desc = String.format("matching<br><b>%s</b> = \'%s\'", fieldName, fieldValue);
-                //desc = String.format("matching<br><b>%s: <i>%s", fieldName, fieldValue);
-                desc = String.format("<b>%s: <i>%s</i>", fieldName, valueName(fieldValue));
-                Log.debug(String.format("searching for %s=[%s]", fieldName, fieldValue));
-                for (LWComponent c : searchSet) {
-                    if (c.hasDataValue(fieldName, fieldValue)) {
-                        hits.add(c);
-//                         if (c.isDataValueNode()) {
-//                             Log.debug("hit, but skipping schematic field node " + c);
-//                         } else {
-//                             hits.add(c);
-//                         }
-                    }
-                }
-            }
-            final tufts.vue.LWSelection selection = VUE.getSelection();
-            if (DEBUG.Enabled) {
-                if (hits.size() == 1)
-                    Log.debug("hits=" + hits.get(0) + " [single hit]");
-                else
-                    Log.debug("hits=" + hits.size());
-            }
-            if (hits.size() > 0 || e.isShiftDown()) {
-                if (hits.size() == 0)
-                    return;
-                // make sure selection bounds are drawn in MapViewer:
-                selection.setSelectionSourceFocal(VUE.getActiveFocal());
-                // now set the selection, along with a description
-                if (e.isShiftDown()) {
-                    //String moreDesc = selection.getDescription();
-                    //if (moreDesc.endsWith("matching"))
-                    //  moreDesc = moreDesc.substring(0, moreDesc.length() - 8);
-                    selection.setDescription(selection.getDescription() + "<br>" + desc);
-                    selection.add(hits);
-                    //selection.setTo(hits, selection.getDescription() + "; " + desc);
-                } else {
-                    if (matching)
-                        desc = "matching<br>" + desc;
-                    selection.setTo(hits, desc);
-                }
-            } else
-                selection.clear();
+            //selectMapForNode(treeNode, e.isShiftDown());
         }
+
     }
+            
+    private void selectMapForNode(final DataNode treeNode, final boolean addToSelection)
+    {
+        final DataTree tree = DataTree.this;
+            
+        if (mActiveMap == null)
+            return;
+
+        Field field = treeNode.getField();
+
+        if (field == null) {
+            if (treeNode == mAllRowsNode || treeNode instanceof RowNode) {
+                field = mSchema.getKeyField();
+            } else {
+                // todo: must be root node: select a row-node items
+                return;
+            }
+        }
+
+        //tree.setSelectionPath(path);
+                
+        final String fieldName = field.getName();
+        final List<LWComponent> hits = new ArrayList();
+        boolean matching = false;
+        String desc = "";
+
+        final Collection<LWComponent> searchSet = mActiveMap.getAllDescendents();
+
+        if (DEBUG.Enabled) Log.debug("\n\nSEARCHING ALL DESCENDENTS of " + mActiveMap + "; count=" + searchSet.size());
+            
+        if (treeNode == mAllRowsNode) {
+            // search for any row-node in the schema
+            Log.debug("searching for all data records in schema " + mSchema);
+            desc = String.format("that are from data set<br>'%s'", mSchema.getName());
+            for (LWComponent c : searchSet) {
+                if (mSchema.equals(c.getDataSchema()))
+                    hits.add(c);
+            }
+            //                 Log.debug(String.format("searching for all nodes with any data key '%s'", fieldName));
+            //                 for (LWComponent c : searchSet) {
+            //                     if (c.hasDataKey(fieldName)) //if (c.isDataRow(mSchema))
+            //                         hits.add(c);
+            //                 }
+        }
+        else if (treeNode.isRow()) {
+            // search for a particular row-node in the schema based on the key field
+            final String keyValue = treeNode.getRow().getValue(fieldName);
+            Log.debug(String.format("searching for a paricular record based on key field value %s='%s'",
+                                    fieldName,
+                                    valueName(keyValue)));
+            for (LWComponent c : searchSet) {
+                if (c.hasDataValue(fieldName, keyValue))
+                    hits.add(c);
+            }
+        }
+        else if (treeNode.isField()) {
+            // search for all nodes anchoring a particular value for the given Field
+            desc = String.format("anchoring field <b>%s", fieldName);
+            Log.debug("searching for any occurance of a field named " + fieldName);
+            for (LWComponent c : searchSet) {
+                if (c.isDataValueNode(fieldName))
+                    hits.add(c);
+            }
+        }
+        else if (treeNode.isValue()) {
+            matching = true;
+
+            final String fieldValue = treeNode.getValue();
+            //desc = String.format("matching<br><b>%s</b> = \'%s\'", fieldName, fieldValue);
+            //desc = String.format("matching<br><b>%s: <i>%s", fieldName, fieldValue);
+            desc = String.format("<b>%s: <i>%s</i>", fieldName, valueName(fieldValue));
+            Log.debug(String.format("searching for %s=[%s]", fieldName, fieldValue));
+            for (LWComponent c : searchSet) {
+                if (c.hasDataValue(fieldName, fieldValue)) {
+                    hits.add(c);
+                    // if (c.isDataValueNode()) {
+                    //     Log.debug("hit, but skipping schematic field node " + c);
+                    // } else {
+                    //     hits.add(c);
+                    // }
+                }
+            }
+        }
         
-    
+        final tufts.vue.LWSelection selection = VUE.getSelection();
+        if (DEBUG.Enabled) {
+            if (hits.size() == 1)
+                Log.debug("hits=" + hits.get(0) + " [single hit]");
+            else
+                Log.debug("hits=" + hits.size());
+        }
+            
+        if (hits.size() > 0 || addToSelection) {
+            if (hits.size() == 0)
+                return;
+            // make sure selection bounds are drawn in MapViewer:
+            selection.setSelectionSourceFocal(VUE.getActiveFocal());
+            // now set the selection, along with a description
+            if (addToSelection) {
+                //String moreDesc = selection.getDescription();
+                //if (moreDesc.endsWith("matching"))
+                //  moreDesc = moreDesc.substring(0, moreDesc.length() - 8);
+                selection.setDescription(selection.getDescription() + "<br>" + desc);
+                selection.add(hits);
+                //selection.setTo(hits, selection.getDescription() + "; " + desc);
+            } else {
+                if (matching)
+                    desc = "matching<br>" + desc;
+                selection.setTo(hits, desc);
+            }
+        } else
+            selection.clear();
+    }
 
     public void activeChanged(tufts.vue.ActiveEvent e, final LWMap map)
     {
@@ -455,7 +472,7 @@ public class DataTree extends javax.swing.JTree
         }
 
         int newRowCount = 0;
-        for (DataNode n : mRowNodeParent.getChildren()) {
+        for (DataNode n : mAllRowsNode.getChildren()) {
             if (!n.isMapPresent())
                 newRowCount++;
         }
@@ -536,34 +553,71 @@ public class DataTree extends javax.swing.JTree
              java.awt.dnd.DnDConstants.ACTION_LINK,
              this);
 
-        addMouseListener(new ClickSearchMouseListener());
+        addMouseListener(new DoubleClickMouseListener());
 
         addTreeSelectionListener(new javax.swing.event.TreeSelectionListener() {
                 public void valueChanged(javax.swing.event.TreeSelectionEvent e) {
-                    if (e.isAddedPath() && e.getPath().getLastPathComponent() != null ) {
-                        final DataNode treeNode = (DataNode) e.getPath().getLastPathComponent();
-                        if (treeNode.hasStyle()) {
-                            VUE.getSelection().setSource(DataTree.this);
-                            VUE.getSelection().setSelectionSourceFocal(null); // prevents from ever drawing through on map
-                            VUE.getSelection().setTo(treeNode.getStyle());
-                        }
-                        else if (treeNode instanceof RowNode) {
-                            VUE.setActive(tufts.vue.MetaMap.class,
-                                          DataTree.this,
-                                          treeNode.getRow().getData());
-                        }
-                        else if (treeNode instanceof ValueNode && treeNode.getField().isPossibleKeyField()) {
-                            DataRow row = mSchema.findRow(treeNode.getField(), treeNode.getValue());
-                            VUE.setActive(tufts.vue.MetaMap.class,
-                                          DataTree.this,
-                                          row.getData());
-                        }
-                        //VUE.setActive(LWComponent.class, this, node.styleNode);
+                    //final TreePath[] paths = e.getPaths();
+                    final TreePath[] paths = getSelectionModel().getSelectionPaths();
+
+                    if (DEBUG.Enabled) Log.debug("valueChanged: isAddedPath=" + e.isAddedPath() + "; PATHS:");
+                    Util.dumpArray(paths);
+                    //if (DEBUG.Enabled) Log.debug("OLD LeadPath: " + e.getOldLeadSelectionPath());
+                    //if (DEBUG.Enabled) Log.debug("NEW LeadPath: " + e.getNewLeadSelectionPath());
+
+                    // TODO: change from checking getPaths to model.getSelectionPaths & ignoring isAddedPath
+//                     if (!e.isAddedPath() || e.getPath().getLastPathComponent() == null)
+//                         return;
+
+                    final DataNode treeNode = (DataNode) e.getPath().getLastPathComponent();
+                    if (treeNode instanceof RowNode) {
+                        VUE.setActive(tufts.vue.MetaMap.class,
+                                      DataTree.this,
+                                      treeNode.getRow().getData());
                     }
+                    else if (treeNode instanceof ValueNode && treeNode.getField().isPossibleKeyField()) {
+                        DataRow row = mSchema.findRow(treeNode.getField(), treeNode.getValue());
+                        VUE.setActive(tufts.vue.MetaMap.class,
+                                      DataTree.this,
+                                      row.getData());
+                    }
+                    //                         else if (treeNode.hasStyle()) {
+                    //                             final tufts.vue.LWSelection selection = VUE.getSelection();
+                    //                             selection.setSource(DataTree.this);
+                    //                             // prevents from ever drawing through on map:
+                    //                             selection.setSelectionSourceFocal(null);
+                    //                             selection.setTo(treeNode.getStyle());
+                    //                         }
+                    else {
+
+                        // TODO: not a very efficient way to do multi-term searches:
+                        // we search all nodes each time for each node, and we
+                        // have no control over AND v.s. OR -- we should of course
+                        // auto OR terms in the same Field (AND would always be false),
+                        // but likewise auto-AND terms across fields, narrowing the selection.
+                        // Still need to figure out how to get discontiguous tree selection.
+
+                        boolean addToSelection = false;
+                        for (TreePath path : paths) {
+                            DataNode node = (DataNode) path.getLastPathComponent();
+                            selectMapForNode(node, addToSelection);
+                            addToSelection = true;
+                        }
+                    }
+                        
+                    //                         else if (treeNode instanceof ValueNode) {
+                    //                             if (treeNode.getField().isPossibleKeyField()) {
+                    //                                 DataRow row = mSchema.findRow(treeNode.getField(), treeNode.getValue());
+                    //                                 VUE.setActive(tufts.vue.MetaMap.class,
+                    //                                               DataTree.this,
+                    //                                               row.getData());
+                    //                             } else {
+                    //                                 selectMapForNode(treeNode, false);
+                    //                             }
+                    //                         }
+                    //VUE.setActive(LWComponent.class, this, node.styleNode);
                 }
             });
-
-        
         
     }
 
@@ -591,7 +645,7 @@ public class DataTree extends javax.swing.JTree
     /** build the model and return the root node */
     private TreeNode buildTree(final Schema schema)
     {
-        mRowNodeParent = new AllRowsNode(schema, this);
+        mAllRowsNode = new AllRowsNode(schema, this);
         
         final DataNode root =
             new DataNode("Data Set: " + schema.getName());
@@ -607,12 +661,12 @@ public class DataTree extends javax.swing.JTree
         if (labelField == null)
             labelField = keyField;
         for (DataRow row : schema.getRows()) {
-            mRowNodeParent.add(new RowNode(row, labelField));
+            mAllRowsNode.add(new RowNode(row, labelField));
             //String label = row.getValue(labelField);
             //rowNodeTemplate.add(new ValueNode(keyField, row.getValue(keyField), label));
         }
         
-        root.add(mRowNodeParent);
+        root.add(mAllRowsNode);
         mRootNode = root;
 
         final Field sortedFields[] = new Field[schema.getFieldCount()];
@@ -853,7 +907,8 @@ public class DataTree extends javax.swing.JTree
         final Field mediaField = schema.findField("media:group.media:content.media:url");
         final Field imageField = schema.getImageField();
         
-
+        final int maxLabelLineLength = VueResources.getInt("dataNode.labelLength", 50);
+        
 //         final Collection<DataRow> rows;
 
 //         if (singleRow != null) {
@@ -936,7 +991,7 @@ public class DataTree extends javax.swing.JTree
                 //Log.debug("produced node " + node);
                 String label = node.getLabel();
 
-                label = Util.formatLines(label, VueResources.getInt("dataNode.labelLength"));
+                label = Util.formatLines(label, maxLabelLineLength);
                 node.setLabel(label);
                 nodes.add(node);
             } catch (Throwable t) {
@@ -1103,15 +1158,15 @@ public class DataTree extends javax.swing.JTree
 
             if (field.getMaxValueLength() == 0) {
                 //label = String.format("<html><b><font color=gray>%s", field.getName());
-                label = String.format(HTML("<b><font color=gray>%s"), field.getName());
+                label = String.format(HTML("<font color=gray>%s"), field.getName());
             } else {
                 //label = String.format("<html><b>%s (max size: %d bytes)",
-                label = String.format(HTML("<b>%s (max size: %d bytes)"),
+                label = String.format(HTML("%s (max size: %d bytes)"),
                                       field.getName(), field.getMaxValueLength());
             }
         } else if (values.size() == 1) {
                 
-            label = String.format(HTML("<b>%s: <font color=green>%s"),
+            label = String.format(HTML("%s: <font color=green>%s"),
                                   field.getName(), field.getValues().toArray()[0]);
 
         } else if (values.size() > 1) {
@@ -1121,7 +1176,7 @@ public class DataTree extends javax.swing.JTree
 //             if (field.isPossibleKeyField())
 //                 //label = String.format("<html><i><b>%s</b> (%d)", field.getName(), field.uniqueValueCount());
 //             else
-            label = String.format(HTML("<b>%s</b> (%d)"), field.getName(), field.uniqueValueCount());
+            label = String.format(HTML("%s (%d)"), field.getName(), field.uniqueValueCount());
             
         }
 
@@ -1676,9 +1731,9 @@ public class DataTree extends javax.swing.JTree
 //                 setForeground(Color.black);
 //             }
 
-            if (field != null && field.isKeyField())
-                setForeground(KeyFieldColor);
-            else
+//             if (field != null && field.isKeyField())
+//                 setForeground(KeyFieldColor);
+//             else
                 setForeground(Color.black); // must do every time for some reason, or de-selected text goes invisible
             
             setIconTextGap(4);
