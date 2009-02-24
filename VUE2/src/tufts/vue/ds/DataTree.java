@@ -50,7 +50,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.46 $ / $Date: 2009-02-24 05:48:51 $ / $Author: sfraize $
+ * @version $Revision: 1.47 $ / $Date: 2009-02-24 06:28:34 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -1655,9 +1655,11 @@ public class DataTree extends javax.swing.JTree
     //private static final Icon IncludedInMapIcon = GUI.reframeIcon(VueResources.getIcon(VUE.class, "images/data_onmap.png"), 8, 16);
     //private static final Icon NewToMapIcon = VueResources.getIcon(VUE.class, "images/data_offmap.png");
 
-    private static final Icon RowHasChangedIcon = makeIcon(0x229B, 20, Color.green.darker(), -2, -1);
-    private static final Icon RowOnMapIcon = makeIcon(0x229B, 20, VueConstants.COLOR_SELECTION, -2, -1);
-    private static final Icon RowOffMapIcon = makeIcon(0x229B, 20, Color.lightGray, -2, -1);
+    private static final int RIPS = Util.isMacPlatform() ? 20 : 16; // RowIconPointSize
+
+    private static final Icon RowHasChangedIcon = makeIcon(0x229B, RIPS, Color.green.darker(), -2, -1);
+    private static final Icon RowOnMapIcon = makeIcon(0x229B, RIPS, VueConstants.COLOR_SELECTION, -2, -1);
+    private static final Icon RowOffMapIcon = makeIcon(0x229B, RIPS, Color.lightGray, -2, -1);
     private static final Icon ValueOnMapIcon = makeIcon(0x25C9, 12, VueConstants.COLOR_SELECTION);
     private static final Icon ValueOffMapIcon = makeIcon(0x25C9, 12, Color.lightGray);
 //     private static final Icon RowOnMapIcon = makeIcon(0x25C9, 14, VueConstants.COLOR_SELECTION);
