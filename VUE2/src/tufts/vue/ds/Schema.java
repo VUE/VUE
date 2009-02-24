@@ -32,7 +32,7 @@ import com.google.common.collect.*;
 
 
 /**
- * @version $Revision: 1.27 $ / $Date: 2009-02-24 08:19:35 $ / $Author: sfraize $
+ * @version $Revision: 1.28 $ / $Date: 2009-02-24 09:35:34 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -81,20 +81,11 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
     private static final Map<Resource,Schema> SchemaByResource = Collections.synchronizedMap(new HashMap());
     private static final Map<String,Schema> SchemaByGUID = Collections.synchronizedMap(new HashMap());
     
-
-//     public static Schema instance(Resource source) {
-//         return instance(source, null);
-//     }
-
     public static Schema instance(Resource r, String dataSourceGUID) {
         final Schema s = new Schema();
         s.setResource(r);
-        if (dataSourceGUID != null)
-            r.setProperty("@DSGUID", dataSourceGUID);
-        else
-            if (DEBUG.Enabled) Util.printStackTrace("NO DSGUID");
+        s.setDSGUID(dataSourceGUID);
         s.setGUID(edu.tufts.vue.util.GUID.generate());
-        s.DSGUID = dataSourceGUID;
         if (DEBUG.SCHEMA) Log.debug("INSTANCED SCHEMA " + s + "\n");
 
         // may want to wait to do this until we actually load the rows...        
@@ -111,17 +102,19 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
      * the passed in schema is returned.
      */
     public static Schema lookup(Schema schema) {
-        //if (DEBUG.SCHEMA) Log.debug("LOOKUP SCHEMA " + schema);
+        if (DEBUG.SCHEMA && DEBUG.META) Log.debug("LOOKUP SCHEMA " + schema);
         if (schema == null)
             return null;
         if (schema.isLoaded())
             return schema;
-        final Resource r = schema.getResource();
-        Schema loaded = SchemaByResource.get(r);
-        Object matched = r;
-        if (loaded == null && r != null) {
-            loaded = SchemaByGUID.get(matched = r.getProperty("@DSGUID"));
-            if (loaded != null) Log.debug("MATCHED SCHEMA BY GUID: " + matched + " " + loaded);
+        final Resource resource = schema.getResource();
+        Schema loaded = SchemaByResource.get(resource);
+        Object matched = resource;
+        if (loaded == null) {
+            loaded = SchemaByGUID.get(matched = schema.getDSGUID());
+            if (DEBUG.SCHEMA && DEBUG.META && loaded != null) {
+                Log.debug("MATCHED SCHEMA BY GUID: " + matched + " " + loaded);
+            }
         }
         if (loaded != null) {
             if (DEBUG.SCHEMA && DEBUG.DATA) Log.debug("MATCHED EMPTY SCHEMA " + matched + " to " + loaded);
@@ -135,8 +128,12 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
     /** interface {@link XMLUnmarshalListener} -- track us */
     public void XML_completed(Object context) {
         SchemaHandles.add(this);
+        // As the resource isn't in the LWComponent hierarchy, it won't be updated in the map.
+        // Too bad actually -- then it could make use of the relative path code -- would be
+        // a good idea to move these to the map.
+        ((tufts.vue.URLResource)getResource()).XML_completed("SCHEMA-MANUAL-INIT");
         DSGUID = getResource().getProperty("@DSGUID");
-        Log.debug("RESTORED SCHEMA " + this + "; DSGUID=" + DSGUID);
+        if (DEBUG.Enabled) Log.debug("RESTORED SCHEMA " + this + "; DSGUID=" + DSGUID);
     }
     
     /** interface {@link XMLUnmarshalListener} -- does nothing here */
@@ -329,11 +326,17 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
     }
 
     void setDSGUID(String s) {
+        //if (DEBUG.Enabled) Util.printStackTrace("setDSGUID [" + s + "]");
         DSGUID = s;
-        if (DEBUG.Enabled) Util.printStackTrace("setDSGUID " + s);
+        getResource().setProperty("@DSGUID", s);
+        if (DSGUID != null)
+            SchemaByGUID.put(DSGUID, this);        
     }
     
-
+    String getDSGUID() {
+        return DSGUID;
+    }
+    
     public void setStyleNode(LWComponent style) {
         mStyleNode = style;
     }
