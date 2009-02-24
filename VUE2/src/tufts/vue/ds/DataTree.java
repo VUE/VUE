@@ -50,7 +50,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.47 $ / $Date: 2009-02-24 06:28:34 $ / $Author: sfraize $
+ * @version $Revision: 1.48 $ / $Date: 2009-02-24 06:45:33 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -1660,15 +1660,17 @@ public class DataTree extends javax.swing.JTree
     private static final Icon RowHasChangedIcon = makeIcon(0x229B, RIPS, Color.green.darker(), -2, -1);
     private static final Icon RowOnMapIcon = makeIcon(0x229B, RIPS, VueConstants.COLOR_SELECTION, -2, -1);
     private static final Icon RowOffMapIcon = makeIcon(0x229B, RIPS, Color.lightGray, -2, -1);
-    private static final Icon ValueOnMapIcon = makeIcon(0x25C9, 12, VueConstants.COLOR_SELECTION);
-    private static final Icon ValueOffMapIcon = makeIcon(0x25C9, 12, Color.lightGray);
+    private static final Icon ValueOnMapIcon = makeIcon(0x25C9, 12, VueConstants.COLOR_SELECTION, 0, 0);
+    private static final Icon ValueOffMapIcon = makeIcon(0x25C9, 12, Color.lightGray, 0, 0);
 //     private static final Icon RowOnMapIcon = makeIcon(0x25C9, 14, VueConstants.COLOR_SELECTION);
 //     private static final Icon RowOffMapIcon = makeIcon(0x25C9, 14, Color.lightGray);
 //     private static final Icon ValueOnMapIcon = makeIcon(0x229B, 18, VueConstants.COLOR_SELECTION, 0, -1);
 //     private static final Icon ValueOffMapIcon = makeIcon(0x229B, 18, Color.lightGray, 0, -1);
 
-    private static final Icon UniqueValueOnMapIcon = makeIcon(0x29BF, 12, VueConstants.COLOR_SELECTION, 0, -1);
-    private static final Icon UniqueValueOffMapIcon = makeIcon(0x29BF, 12, Color.lightGray, 0, -1);
+    //private static final Icon UniqueValueOnMapIcon = makeIcon(0x29BF, 16, VueConstants.COLOR_SELECTION, 0, -1);
+    //private static final Icon UniqueValueOffMapIcon = makeIcon(0x29BF, 16, Color.lightGray, 0, -1);
+    private static final Icon UniqueValueOnMapIcon = makeIcon(0x229A, 16, VueConstants.COLOR_SELECTION, 0, 0);
+    private static final Icon UniqueValueOffMapIcon = makeIcon(0x229A, 16, Color.lightGray, 0, 0);
     
     // 29BE: ⦾
     // 29BF: ⦿
