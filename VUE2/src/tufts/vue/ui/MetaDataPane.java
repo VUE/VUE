@@ -710,8 +710,12 @@ public class MetaDataPane extends tufts.vue.gui.Widget
                     + labelText.substring(0,half) + "<br>"
                     + labelText.substring(half,len);
             }
-            else
-                txt = Util.upperCaseWords(labelText);
+            else {
+                if (DEBUG.DR || DEBUG.DATA)
+                    txt = labelText;
+                else
+                    txt = Util.upperCaseWords(labelText);
+            }
                 
             //-----------------------------------------------------------------------------
             
