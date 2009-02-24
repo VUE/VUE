@@ -50,7 +50,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.49 $ / $Date: 2009-02-24 07:31:35 $ / $Author: sfraize $
+ * @version $Revision: 1.50 $ / $Date: 2009-02-24 08:18:48 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -1595,7 +1595,8 @@ public class DataTree extends javax.swing.JTree
             final LWComponent style = initStyleNode(new LWNode());
 
             String titleField;
-
+            
+            // Make a guess at what might be the best field to use for the node label text
             if (schema.getRowCount() <= 42 && schema.hasField("title")) {
                 // if we have hundreds of nodes, title may be too long to use -- the key
                 // field may well be shorter.
