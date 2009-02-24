@@ -26,6 +26,7 @@ import javax.swing.border.*;
 import java.awt.*;
 import java.awt.List;
 import java.awt.event.*;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Vector;
 import java.io.*;
@@ -1159,13 +1160,13 @@ public class DataSourceViewer extends JPanel
      * @param c the component we're basing the search on
      */
     public void mapBasedSearch(LWComponent c) {
-
-/*        if (se == null) {
-            // null SearchEvent means abort last search
-            stopAllSearches();
-            return;
-        }
-  */      
+	
+	/*        if (se == null) {
+	            // null SearchEvent means abort last search
+	            stopAllSearches();
+	            return;
+	        }
+	  */      
         Widget.setExpanded(DRB.browsePane, false);
         if (DEBUG.DR) {
             try {
@@ -1187,7 +1188,7 @@ public class DataSourceViewer extends JPanel
         
         performParallelSearchesAndMapResults(c);        
     }
-    
+    static java.util.List<Resource> listOfLists = null;
     private class MapBasedSearchThread extends Thread {
         public final Widget mResultPane;
         
@@ -1211,6 +1212,8 @@ public class DataSourceViewer extends JPanel
             super("Search" + (SearchCounter++) + " " + searchString + " in " + repositoryName(r));
             setDaemon(true);
             
+            if (listOfLists == null)
+            	listOfLists = Collections.synchronizedList(new ArrayList());
             if (DEBUG.DR)
             {
             	System.out.println("Search Thread\n-----------");
@@ -1262,7 +1265,7 @@ public class DataSourceViewer extends JPanel
                 // INVOKE THE SEARCH, and immediately hand off to processResultsAndDisplay
                 AssetIterator asIt = mRepository.getAssetsBySearch(mSearchCriteria, mSearchType, mSearchProperties);
                 assets.add(asIt);
-                processResultsAndDisplay(asIt);
+                processMapBasedSearchResultsAndDisplay(asIt);
                 
             } catch (Throwable t) {
                 Util.printStackTrace(t);
@@ -1303,6 +1306,7 @@ public class DataSourceViewer extends JPanel
             //mResultPane.revalidate();
 
             if (mMapBasedSearchThreads.size() == 0) {
+            	listOfLists.clear();
                 // If we were stopped, the DefaultQueryEditor will have handled
                 // calling completeSearch to restore the state of the "Search" button.
                 if (DEBUG.DR) Log.debug("ALL SEARCHES COMPLETED for \"" + mSearchCriteria + "\"");
@@ -1374,7 +1378,9 @@ public class DataSourceViewer extends JPanel
             //if (DEBUG.DR) Log.debug("done checking for query adjustment");
         }
         
-        private void processResultsAndDisplay(org.osid.repository.AssetIterator assetIterator)
+       
+        
+        private void processMapBasedSearchResultsAndDisplay(org.osid.repository.AssetIterator assetIterator)
             throws org.osid.repository.RepositoryException
         {
             if (stopped())
@@ -1382,7 +1388,7 @@ public class DataSourceViewer extends JPanel
             
             if (DEBUG.DR) Log.debug("processing AssetIterator: " + Util.tags(assetIterator));
 
-            final java.util.List resourceList = new java.util.ArrayList();
+            final java.util.List<Resource> resourceList = new java.util.ArrayList<Resource>();
             
             final int maxResult = 5;
             int resultCount = 0;
@@ -1440,14 +1446,39 @@ public class DataSourceViewer extends JPanel
                 else
                     results = new StatusLabel("No results for " + mSearchString, false, false);
             } else {
+            	
                 results = new ResourceList(resourceList, title);
             }
             
+            Iterator<Resource> iterator = listOfLists.iterator();
+        //    System.out.println("AAAAAAA " +listOfLists.size());
+            while (iterator.hasNext())
+            {
+              Resource r = iterator.next();
+              Iterator<Resource> it = resourceList.iterator();
+              synchronized(resourceList)
+              {
+            	  while (it.hasNext())            	  
+            	  {
+	            	  Resource re = it.next();
+	            	//  System.out.println(re.getSpec() + " :::::: " + r.getSpec());
+	            	  if (re.getSpec().equals(r.getSpec()))
+	            	  {
+	            		 // System.out.println("RESULT FILTERED");
+	            		  it.remove();
+	            	  }
+              		}
+              }
+            }
+            listOfLists.addAll(resourceList);
+           // System.out.println("AAAAAAA" + listOfLists.size());
+             
             GUI.invokeAfterAWT(new Runnable() { public void run() {
                 mResultPane.setTitle(title);
                 mResultPane.removeAll();
                 mResultPane.add(results);
-                AnalyzerAction.addResultsToMap(resourceList,mCenterComponent);
+                if (resourceList.size() > 0)
+                	AnalyzerAction.addResultsToMap(resourceList,mCenterComponent);
             }});                
         }
     }
