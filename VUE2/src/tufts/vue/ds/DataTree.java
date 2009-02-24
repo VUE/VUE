@@ -50,7 +50,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.45 $ / $Date: 2009-02-24 05:33:26 $ / $Author: sfraize $
+ * @version $Revision: 1.46 $ / $Date: 2009-02-24 05:48:51 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -561,7 +561,7 @@ public class DataTree extends javax.swing.JTree
                     final TreePath[] paths = getSelectionModel().getSelectionPaths();
 
                     if (DEBUG.Enabled) Log.debug("valueChanged: isAddedPath=" + e.isAddedPath() + "; PATHS:");
-                    Util.dumpArray(paths);
+                    if (DEBUG.Enabled) Util.dumpArray(paths);
                     //if (DEBUG.Enabled) Log.debug("OLD LeadPath: " + e.getOldLeadSelectionPath());
                     //if (DEBUG.Enabled) Log.debug("NEW LeadPath: " + e.getNewLeadSelectionPath());
 
@@ -1612,8 +1612,12 @@ public class DataTree extends javax.swing.JTree
             style.setStrokeWidth(DataNodeStrokeWidth);
             style.setStrokeColor(DataNodeStrokeColor);
             //style.disableProperty(LWKey.Notes);
-            style.setNotes("Style for all " + schema.getRowCount() + " data items in " + schema.getName()
-                           + "\n\nSchema: " + schema.getDump());
+            String notes = String.format("Style for all %d data items in %s",
+                                         schema.getRowCount(),
+                                         schema.getName());
+
+            if (DEBUG.Enabled) notes += ("\n\nSchema: " + schema.getDump());
+            style.setNotes(notes);
             style.setFlag(Flag.STYLE); // do last
 
             schema.setStyleNode(style);
