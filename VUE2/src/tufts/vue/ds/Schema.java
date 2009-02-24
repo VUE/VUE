@@ -32,7 +32,7 @@ import com.google.common.collect.*;
 
 
 /**
- * @version $Revision: 1.26 $ / $Date: 2009-02-24 08:06:37 $ / $Author: sfraize $
+ * @version $Revision: 1.27 $ / $Date: 2009-02-24 08:19:35 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -421,6 +421,7 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
         return f;
     }
 
+    // todo: doesn't use same case indepence as findField
     public boolean hasField(String name) {
         return mFields.containsKey(name);
     }
@@ -529,12 +530,12 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
         // Many RSS feeds can be covered by checking "guid" and "link"
         
         Field f;
-        if ((f = findField("Guid")) != null && f.isPossibleKeyField())
+        if ((f = findField("guid")) != null && f.isPossibleKeyField())
             return f;
-        if ((f = findField("Key")) != null && f.isPossibleKeyField())
+        if ((f = findField("key")) != null && f.isPossibleKeyField())
             return f;
         //if ((f = getField("link")) != null && f.isPossibleKeyField()) // some rss news feeds have dupe entries
-        if ((f = findField("Link")) != null && !f.isSingleValue())
+        if ((f = findField("link")) != null && !f.isSingleValue())
             return f;
 
         // todo: identifying the shortest field isn't such a good strategy
