@@ -106,7 +106,7 @@ import com.lightdev.app.shtm.Util;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.41 $ / $Date: 2009-01-28 16:09:59 $ / $Author: mike $
+ * @version $Revision: 1.42 $ / $Date: 2009-02-24 16:41:50 $ / $Author: mike $
  *
  */
 
@@ -1034,7 +1034,14 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
        		if (VUE.getActiveViewer() !=null)
        		{
        		  java.awt.Container parent = getParent();
-       	      double zoom = ((MapViewer)parent).getZoomFactor();
+       		  double zoom = 1.0;
+       		  if (parent !=null)
+       			  zoom = ((MapViewer)parent).getZoomFactor();
+       		  else
+       		  {
+       			  //parent is null during duplicate.
+       			  zoom = VUE.getActiveViewer().getZoomFactor();
+       		  }
        	      zoom *= lwc.getMapScale();
        	      
        			diff *= zoom;
