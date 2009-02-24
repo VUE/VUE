@@ -48,8 +48,8 @@ public class Import {
         ds.loadDataset();
         Layout layout = new ListRandomLayout();
         LWMap map = layout.createMap(ds, "ClubZora");
-        map.setFile(new File(outputMap));
-        ActionUtil.marshallMap(new File(outputMap), map);
+        map.setFile(new File(outputFile));
+        ActionUtil.marshallMap(new File(outputFile), map);
 
 
     }
