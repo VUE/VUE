@@ -55,7 +55,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.146 $ / $Date: 2009-02-12 21:30:53 $ / $Author: sraphe01 $
+ * @version $Revision: 1.147 $ / $Date: 2009-02-24 20:07:10 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -1056,7 +1056,8 @@ public class DockWindow
                                           height - ResizeCornerSize);
 
                 // south west
-                mResizeCorner2.setLocation(0, height - ResizeCornerSize/2);
+                if (mResizeCorner2 !=null)
+                	mResizeCorner2.setLocation(0, height - ResizeCornerSize/2);
 
             }
         }
