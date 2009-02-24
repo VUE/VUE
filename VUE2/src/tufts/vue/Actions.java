@@ -2409,9 +2409,12 @@ public class Actions implements VueConstants
 
                 final double radiusWide, radiusTall;
 
-                selection.resetStatistics();
+                selection.resetStatistics(); // todo: why do we need to reset? is this a clone? (has no statistics)
                 Log.debug("DATAVALUECOUNT0: " + selection.getDataValueCount());
                 //Log.debug("DATAVALUECOUNT1: " + selection().getDataValueCount());
+
+                final int nDataValues = selection.getDataValueCount();
+                final int nDataRows = selection.getDataRowCount();
                 
                 if (selection.size() == 1) {
 
@@ -2426,13 +2429,27 @@ public class Actions implements VueConstants
                     selection().add(linked);
                     
                 }
-                else if (selection.getDataValueCount() == selection.size()) {
+                else if (nDataValues == selection.size()) {
 
-                    for (LWComponent center : selection) {
-                        final Collection<LWComponent> linked = center.getLinked();
+                    for (LWComponent center : selection)
+                        clusterNodes(center, center.getLinked());
 
-                        clusterNodes(center, linked);
+                }
+                else if (nDataValues == 1 && nDataRows == (selection.size() - 1)) {
+
+                    // find the one data value and cluster the rest around it
+
+                    LWComponent center = null;
+                    
+                    for (LWComponent c : selection) {
+                        if (c.isDataValueNode()) {
+                            center = c;
+                            break;
+                        }
                     }
+                    
+                    clusterNodes(center, center.getLinked());
+
                 }
                 else {
                     
