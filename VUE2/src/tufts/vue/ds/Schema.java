@@ -32,7 +32,7 @@ import com.google.common.collect.*;
 
 
 /**
- * @version $Revision: 1.25 $ / $Date: 2009-02-23 09:08:01 $ / $Author: sfraize $
+ * @version $Revision: 1.26 $ / $Date: 2009-02-24 08:06:37 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -200,7 +200,10 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
     }
 
     public void setImageField(String name) {
-        mImageField = findField(name);
+        if (name == null)
+            mImageField = null;
+        else
+            mImageField = findField(name);
     }
     public Field getImageField() {
         return mImageField;
@@ -410,7 +413,12 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
     
     /** will quietly return null if not found */
     public Field findField(String name) {
-        return mFields.get(name);
+        Field f = mFields.get(name);
+        if (f == null && name != null && name.length() > 0 && Character.isUpperCase(name.charAt(0))) {
+            f = mFields.get(name.toLowerCase());
+            if (DEBUG.SCHEMA && f != null) Log.debug("found lowerized [" + name + "]");
+        }
+        return f;
     }
 
     public boolean hasField(String name) {
@@ -521,12 +529,12 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
         // Many RSS feeds can be covered by checking "guid" and "link"
         
         Field f;
-        if ((f = findField("guid")) != null && f.isPossibleKeyField())
+        if ((f = findField("Guid")) != null && f.isPossibleKeyField())
             return f;
-        if ((f = findField("key")) != null && f.isPossibleKeyField())
+        if ((f = findField("Key")) != null && f.isPossibleKeyField())
             return f;
         //if ((f = getField("link")) != null && f.isPossibleKeyField()) // some rss news feeds have dupe entries
-        if ((f = findField("link")) != null && !f.isSingleValue())
+        if ((f = findField("Link")) != null && !f.isSingleValue())
             return f;
 
         // todo: identifying the shortest field isn't such a good strategy
