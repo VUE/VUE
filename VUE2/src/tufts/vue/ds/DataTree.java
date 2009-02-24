@@ -50,7 +50,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.53 $ / $Date: 2009-02-24 11:22:12 $ / $Author: sfraize $
+ * @version $Revision: 1.54 $ / $Date: 2009-02-24 21:50:52 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -912,7 +912,8 @@ public class DataTree extends javax.swing.JTree
         final Field linkField = schema.findField("Link");
         final Field descField = schema.findField("Description");
         final Field titleField = schema.findField("Title");
-        final Field mediaField = schema.findField("media:group.media:content.media:url");
+        //final Field mediaField = schema.findField("media:group.media:content.media:url");
+        final Field mediaField = schema.findField("media:content@url");
         final Field imageField = schema.getImageField();
         
         final int maxLabelLineLength = VueResources.getInt("dataNode.labelLength", 50);
