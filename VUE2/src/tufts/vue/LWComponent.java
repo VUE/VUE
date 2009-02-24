@@ -50,7 +50,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.458 $ / $Date: 2009-02-23 02:35:09 $ / $Author: sfraize $
+ * @version $Revision: 1.459 $ / $Date: 2009-02-24 07:59:07 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1902,6 +1902,10 @@ u                    getSlot(c).setFromString((String)value);
     public boolean isDataRow(tufts.vue.ds.Schema schema) {
         //return hasDataKey(schema.getKeyField().getName()) && !isDataValueNode();
         return getDataSchema() == schema && !isDataValueNode();
+    }
+    
+    public boolean isDataRowNode() {
+        return getDataSchema() != null && !isDataValueNode();
     }
 
     public MetaMap getRawData() {
