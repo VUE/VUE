@@ -71,10 +71,38 @@ public abstract class LWIcon extends Rectangle2D.Float
     protected float mMinWidth;
     protected float mMinHeight;
     
-    //  ------------------------------------------------------------------
+    //------------------------------------------------------------------
     // Preferences
     //------------------------------------------------------------------
     public static final ShowIconsPreference IconPref = new ShowIconsPreference();
+
+    static {
+            IconPref.addVuePrefListener(new VuePrefListener() {
+                    public void preferenceChanged(VuePrefEvent prefEvent) {
+                        // todo: why is this being called repeatedly the first time the
+                        // icons preference pane opens?  It makes that pane VERY slow
+                        // to come up the first time.
+                        Log.debug("update icon prefs: " + prefEvent);
+                        for (tufts.vue.LWMap map : VUE.getAllMaps()) {
+//                             for (LWComponent c :
+//                                      map.getAllDescendents(tufts.vue.LWComponent.ChildKind.PROPER,
+//                                                            new java.util.ArrayList(),
+//                                                            tufts.vue.LWComponent.Order.DEPTH))
+//                                 {
+//                                     c.layout();
+//                                 }
+                            // layouts still handled individually for now to make sure
+                            // all nodes in unque queues and cut buffers are hit
+                            // better to handle this would be to always to a layout
+                            // when a node is entered into user space.
+                            map.notify(LWKey.Repaint);
+                        }
+                    }        	
+                });
+    }
+                
+                
+
 
     private LWIcon(LWComponent lwc, Color c) {
         // default size
@@ -87,10 +115,10 @@ public abstract class LWIcon extends Rectangle2D.Float
         this(lwc, TextColor);
     }
 
-    public static ShowIconsPreference getShowIconPreference()
-    {
-    	return IconPref;
-    }
+//     public static ShowIconsPreference getShowIconPreference()
+//     {
+//     	return IconPref;
+//     }
     public void setLocation(float x, float y)
     {
         super.x = x;
@@ -244,13 +272,12 @@ public abstract class LWIcon extends Rectangle2D.Float
 
             this.mLWC = lwc;
             
-            // todo perf: a bit heavy weight to have every node made a listener
-            // for this preference -- better to handle at the map level.
-            LWIcon.getShowIconPreference().addVuePrefListener(new VuePrefListener() {
+            // TODO PERF: way to heavy weight to have every node made a listener
+            // for this preference -- better to handle at the map level.  This
+            // is very slow to update.
+            IconPref.addVuePrefListener(new VuePrefListener() {
                     public void preferenceChanged(VuePrefEvent prefEvent) {
                         mLWC.layout();
-                        mLWC.notify(LWKey.Repaint);
-                        
                     }        	
             });
 
