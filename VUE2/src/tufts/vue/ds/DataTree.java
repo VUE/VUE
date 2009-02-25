@@ -48,7 +48,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.55 $ / $Date: 2009-02-25 21:37:59 $ / $Author: sfraize $
+ * @version $Revision: 1.56 $ / $Date: 2009-02-25 21:48:03 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -437,30 +437,7 @@ public class DataTree extends javax.swing.JTree
     {
         if (DEBUG.Enabled) Log.debug("ANNOTATING for " + map + "; " + this);
         
-        
-//         if (mActiveMap != null) {
-//             String annot = Integer.toHexString(mActiveMap.hashCode());
-//             //mActiveMap.getName());
-//             Log.debug("annotating " + node + " with " + annot);
-//             node.setAnnotation(annot);
-//         }
-
-        // when annotating field nodes, could sort the DefaultMutableTreeNode child vector
-        // based on the occurance counts so most frequently appearing bubble to the top.
-
-        final Collection<LWComponent> allDataNodes;
-
-        if (map == null) {
-            allDataNodes = Collections.EMPTY_LIST;
-        } else {
-            final Collection<LWComponent> allNodes = map.getAllDescendents();
-            allDataNodes = new ArrayList(allNodes.size());
-            for (LWComponent c : allNodes)
-                if (c.isDataNode())
-                    allDataNodes.add(c);
-        }
-
-        mSchema.annotateFor(allDataNodes);
+        DataAction.annotateForMap(mSchema, map);
 
         if (map != null) {
             final String annot = map.getLabel();

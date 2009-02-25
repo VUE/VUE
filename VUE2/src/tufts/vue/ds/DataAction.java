@@ -1,6 +1,7 @@
 package tufts.vue.ds;
 
 import tufts.Util;
+import tufts.vue.DEBUG;
 import tufts.vue.LWMap;
 import tufts.vue.LWComponent;
 import tufts.vue.LWLink;
@@ -17,19 +18,43 @@ import java.util.*;
 import org.apache.commons.lang.StringEscapeUtils;
 
 /**
- * @version $Revision: 1.9 $ / $Date: 2009-02-25 21:37:59 $ / $Author: sfraize $
+ * @version $Revision: 1.10 $ / $Date: 2009-02-25 21:48:03 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
-public class DataAction
+public final class DataAction
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(DataAction.class);
+
+    /** annotate the given schema (note what is present and what isn't) based on the data nodes found in the given map */
+    public static void annotateForMap(final Schema schema, final LWMap map)
+    {
+        if (DEBUG.Enabled) Log.debug("ANNOTATING for " + map + "; " + schema);
+
+        final Collection<LWComponent> allDataNodes;
+
+        if (map == null) {
+            // if map is null, we annotate with an empty list, which will clear all annotation data
+            // (everything in the schema will be marked as newly present)
+            allDataNodes = Collections.EMPTY_LIST;
+        } else {
+            final Collection<LWComponent> allNodes = map.getAllDescendents();
+            allDataNodes = new ArrayList(allNodes.size());
+            for (LWComponent c : allNodes)
+                if (c.isDataNode())
+                    allDataNodes.add(c);
+        }
+
+        schema.annotateFor(allDataNodes);
+    }
+    
 
     public static String valueName(Object value) {
         return StringEscapeUtils.escapeHtml(Field.valueName(value));
     }
     
-    static List<LWLink> makeLinks(final Collection<LWComponent> linkTargets, LWComponent node, Field field)
+    /** @param field -- if null, will defer to makeRowNodeLinks, and assume the given node is a row node */
+    public static List<LWLink> makeLinks(final Collection<LWComponent> linkTargets, LWComponent node, Field field)
     {
         //Log.debug("makeLinks: " + field + "; " + node);
 
@@ -64,8 +89,11 @@ public class DataAction
 
     /** make links from row nodes (full data nodes) to any schematic field nodes found in the link targets,
      or between row nodes from different schema's that are considered "auto-joined" (e.g., a matching key field appears) */
-    private static List<LWLink> makeRowNodeLinks(final Collection<LWComponent> linkTargets, final LWComponent rowNode)
+    public static List<LWLink> makeRowNodeLinks(final Collection<LWComponent> linkTargets, final LWComponent rowNode)
     {
+        if (!rowNode.isDataRowNode())
+            Log.warn("making row links to non-row node: " + rowNode, new Throwable("FYI"));
+        
         final List<LWLink> links = Util.skipNullsArrayList();
 
         final Schema sourceSchema = rowNode.getDataSchema();
@@ -183,9 +211,6 @@ public class DataAction
 
 
     private static String makeLabel(Field f, Object value) {
-
-        assert value != null;
-
         //Log.debug("*** makeLabel " + f + " [" + value + "] emptyValue=" + (value == Field.EMPTY_VALUE));
 
 // This will be overriden by the label-style: this could would need to go there to work
