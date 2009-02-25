@@ -29,7 +29,7 @@ import java.awt.image.BufferedImage;
 import tufts.vue.*;
 
 /**
- * @version $Revision: 1.29 $ / $Date: 2009-02-24 21:24:36 $ / $Author: mike $ *
+ * @version $Revision: 1.30 $ / $Date: 2009-02-25 14:59:20 $ / $Author: mike $ *
  * @author Jay Briedis
  * 
  * Major revision: 2/17/09 -MK
@@ -267,22 +267,24 @@ public class ImageMap extends VueAction {
 		String out = "<html><head><title>" + currentMap.getLabel();
 		out += "</title>";
 		out += "<script src=\"http://ajax.googleapis.com/ajax/libs/jquery/1.3.1/jquery.min.js\" type=\"text/javascript\"></script>";
+		out += "<script  type=\"text/javascript\">\n";
+		out += "jQuery.noConflict();\n";
+		out += "</script>\n";
 		out += "<script src=\"http://vue.tufts.edu/htmlexport-includes/jquery.maphilight.min.js\" type=\"text/javascript\"></script>";
-		out += "<script src=\"http://vue.tufts.edu/htmlexport-includes/tooltip.min.js\" type=\"text/javascript\"></script>";
+		out += "<script src=\"http://vue.tufts.edu/htmlexport-includes/v2/tooltip.min.js\" type=\"text/javascript\"></script>";
 		out += "<script type=\"text/javascript\">";
-		out += "$(function() {";
-		out += "$.fn.maphilight.defaults = {\n";
-		out +=" 		fill: false,\n";
-		out +=" 		fillColor: '000000',\n";
-		out +=" 		fillOpacity: 0.2,\n";
-		out +=" 			stroke: true,\n";
-		out +=" 		strokeColor: '282828',\n";
-		out +=" 		strokeOpacity: 1,\n";
-		out +=" 		strokeWidth: 4,\n";
-		out +=" 		fade: true,\n";
-		out +=" 		alwaysOn: false\n";
-		out +=" 	}\n";
-		out += "$('.example2 img').maphilight();\n";
+		out += "jQuery(function() {jQuery.fn.maphilight.defaults = {\n";
+		out += "         fill: false,\n";
+		out += "         fillColor: '000000',\n";
+		out += "         fillOpacity: 0.2,\n";
+		out += "             stroke: true,\n";
+		out += "         strokeColor: '282828',\n";
+		out += "         strokeOpacity: 1,\n";
+		out += "         strokeWidth: 4,\n";
+		out += "         fade: true,\n";
+		out += "         alwaysOn: false\n";
+		out += "     }\n";
+		out += "jQuery('.example2 img').maphilight();\n";
 		out += "});\n";
 		out += "</script>\n";
 		out += "<style type=\"text/css\">\n";
