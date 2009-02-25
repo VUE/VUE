@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.241 $ / $Date: 2009-02-17 02:46:52 $ / $Author: sfraize $
+ * @version $Revision: 1.242 $ / $Date: 2009-02-25 22:37:50 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2306,6 +2306,9 @@ public class LWNode extends LWContainer
             
         } else {
             
+//             if (isSelected() && dc.isInteractive() && dc.focal != this)
+//                 drawSelection(dc);
+        
             //=============================================================================
             // DRAW COMPLETE (with full detail)
             //=============================================================================
@@ -2317,6 +2320,8 @@ public class LWNode extends LWContainer
                 // NOT filtered -- we just drop out the parent background.
                 drawNode(dc);
             }
+
+            
             
             //-------------------------------------------------------
             // Draw any children
@@ -2326,6 +2331,11 @@ public class LWNode extends LWContainer
                 //if (isZoomedFocus()) dc.g.setComposite(ZoomTransparency);
                 drawChildren(dc);
             }
+
+            if (isSelected() && dc.isInteractive() && dc.focal != this)
+                drawSelection(dc);
+        
+            
         }
     }
     
@@ -2358,29 +2368,28 @@ public class LWNode extends LWContainer
             super.drawChildren(dc);
     }
 
+    private void drawSelection(DrawContext dc) {
+        //             final LWPathway p = VUE.getActivePathway();
+        //             if (p != null && p.isVisible() && p.getCurrentNode() == this) {
+        //                 // SPECIAL CASE:
+        //                 // as the current element on the current pathway draws a huge
+        //                 // semi-transparent stroke around it, skip drawing our fat 
+        //                 // transparent selection stroke on this node.  So we just
+        //                 // do nothing here.
+        //             } else {
+        dc.g.setColor(COLOR_HIGHLIGHT);
+        if (dc.zoom < 1)
+            dc.setAbsoluteStroke(SelectionStrokeWidth);
+        else
+            dc.g.setStroke(new BasicStroke(getStrokeWidth() + SelectionStrokeWidth));
+        dc.g.draw(mShape);
+    }
+
     protected void drawNode(DrawContext dc)
     {
         //-------------------------------------------------------
         // Fill the shape (if it's not transparent)
         //-------------------------------------------------------
-        
-        if (isSelected() && dc.isInteractive() && dc.focal != this) {
-//             final LWPathway p = VUE.getActivePathway();
-//             if (p != null && p.isVisible() && p.getCurrentNode() == this) {
-//                 // SPECIAL CASE:
-//                 // as the current element on the current pathway draws a huge
-//                 // semi-transparent stroke around it, skip drawing our fat 
-//                 // transparent selection stroke on this node.  So we just
-//                 // do nothing here.
-//             } else {
-                dc.g.setColor(COLOR_HIGHLIGHT);
-                if (dc.zoom < 1)
-                    dc.setAbsoluteStroke(SelectionStrokeWidth);
-                else
-                    dc.g.setStroke(new BasicStroke(getStrokeWidth() + SelectionStrokeWidth));
-                dc.g.draw(mShape);
-                //}
-        }
         
 //         if (imageIcon != null) { // experimental
 //             //imageIcon.paintIcon(null, g, (int)getX(), (int)getY());
