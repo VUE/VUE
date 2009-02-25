@@ -98,14 +98,9 @@ public class AnalyzerAction extends Actions.LWCAction {
     	{		
     		hasResults = true;
     		AnalyzerResult l = i.next();
-    		String label = null;
-    		
-    		if (l.getType()==null || l.getType().equals("NA"))
-    			label = l.getValue().trim();
-    		else
-    			label = l.getType().trim() + " : " + l.getValue().trim();
-    		
-    		query += l.getValue().trim() + " ";
+   
+    		if (l !=null)
+    			query += l.getValue().trim() + " ";
     	/*
     	 * MK - For testing purposes I was adding Nodes of the search terms to the map.
     	 * 	if (l.getValue() !=null  && l.getValue().trim() != " " && !label.startsWith("Topic"))
@@ -120,6 +115,8 @@ public class AnalyzerAction extends Actions.LWCAction {
     		}*/
     	}
     	
+    	if (query.equals(""))
+    		query = c.getLabel();
     	if (!hasResults)
     	{
     		VueUtil.alert("This node does not contain enough meaningful information to be analyzed.", "Node Analysis Error");
