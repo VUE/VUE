@@ -51,7 +51,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.460 $ / $Date: 2009-02-25 17:59:34 $ / $Author: sfraize $
+ * @version $Revision: 1.461 $ / $Date: 2009-02-25 18:18:14 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1599,7 +1599,8 @@ u                    getSlot(c).setFromString((String)value);
     /**
      * Create a component with duplicate content & style.  Does not
      * duplicate any links to this component, and leaves it an
-     * unparented orphan.
+     * unparented orphan.  Leaving the parent null is important
+     * until we know what we're doing with the duplicate.
      *
      * @param linkPatcher may be null.  If not, it's used when
      * duplicating group's of objects containing links that need to be
@@ -3016,7 +3017,8 @@ u                    getSlot(c).setFromString((String)value);
     }
     
 
-    protected void setParent(LWContainer newParent) {
+    protected void setParent(LWContainer newParent)
+    {
 
         if (DEBUG.UNDO) System.err.println("*** SET-PARENT: " + newParent + " for " + this);
 
@@ -3034,11 +3036,27 @@ u                    getSlot(c).setFromString((String)value);
             return;
         }
 
-        // this handles updating the schema reference during restore,
-        // during undo, and for paste operations of nodes that may have
-        // been in the cut/copy buffer while a data source was loaded,
-        // (creating a new live schema).
+        //-----------------------------------------------------------------------------
+        // We want to make sure schema references are current every time a node is put
+        // into to the user space (may be seen or edited by a user).  This includes new
+        // nodes to the user space, as well as pre-existing nodes being returned to the
+        // user space (from an undo queue or cut buffer).
+        //
+        // So this handles updating the schema reference during restore, during undo,
+        // and for paste operations of nodes that may have been in the cut/copy buffer.
+        // The reason we need to do this is that a data source may have been loaded
+        // while this nodes were out of user space, creating a new live schema that one
+        // of these nodes may now want to be pointing to.
+        //
+        // TODO: at the moment, this is a bit overkill, as it will also be run every
+        // time a node is reparented at all, tho the operation is idempotent so we can
+        // live with it.  A combination of calling this in restoreToModel (for undo),
+        // and only calling this here if parent was previously null (persistance,
+        // cut/paste), should handle that.
+        
         validateSchemaReference();
+        
+        //-----------------------------------------------------------------------------
         
         parent = newParent;
 //         if (linkNotify && mLinks.size() > 0)
