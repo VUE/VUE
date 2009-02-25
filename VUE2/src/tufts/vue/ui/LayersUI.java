@@ -40,7 +40,7 @@ import edu.tufts.vue.metadata.action.SearchAction;
 
 
 /**
- * @version $Revision: 1.67 $ / $Date: 2009-02-25 19:29:16 $ / $Author: sfraize $
+ * @version $Revision: 1.68 $ / $Date: 2009-02-25 19:39:05 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -784,7 +784,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 
     public void LWCChanged(LWCEvent e) {
 
-        if (DEBUG.EVENTS) Log.debug("handling " + e);
+        if (DEBUG.EVENTS) Log.debug("handling " + e + "; source=" + e.getSource());
 
         // ignore events from children: just want hierarchy events directly from the map
         // (as we're only interested in changes to map layers)
@@ -798,25 +798,24 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         }
         else if (e.getSource() == mMap || mShowAll.isSelected()) {
             // any hierarcy event on the map itself must involve layers
-            if (e.getName().startsWith("hier."))
-                mLayerReloadRequired = true;
+            if (e.getName().startsWith("hier.")) {
+                if (e.getName().startsWith("hier.move.")) {
+                    // this immediate reload is required for UI to update during drags
+                    // of layer rows -- could also condition this base on the mouse
+                    // being held down on a Row as opposed to know this involves
+                    // hier.move.forward/backward events.
+                    loadLayers(mMap);
+                } else {
+                    mLayerReloadRequired = true;
+                    if (DEBUG.EVENTS) Log.debug("TAGGED FOR RELOAD on " + e.key);
+                }
+            }
         }
         else if (e.key == LWKey.Deleting && e.getComponent() instanceof Layer) {
             // failsafe only: should already have been handled by above "hier." case
             mLayerReloadRequired = true;
-//             if (getActiveLayer() == e.getComponent()) {
-//                 mMap.setActiveLayer(null);
-//                 attemptAlternativeActiveLayer(true);
-//             }
+            if (DEBUG.EVENTS) Log.debug("TAGGED FOR RELOAD on " + e.key);
         }
-// [ below now handled by calling selectionChanged at end of grabFromSelection after selection stat reset ]
-//         else if (e.getSource() instanceof Layer && e.getName().startsWith("hier.")) {
-//             // tho we only really need to track this for changes to any components
-//             // that are in the selection, we just track it for everything right
-//             // now -- we especially need this to handle updating grab enabled
-//             // states when undoing grabs
-//             layerReparentingSeen = true;
-//         }
     }
     
     private final Color AlphaWhite = new Color(255,255,255,128);
