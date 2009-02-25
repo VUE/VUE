@@ -40,7 +40,7 @@ import edu.tufts.vue.metadata.action.SearchAction;
 
 
 /**
- * @version $Revision: 1.68 $ / $Date: 2009-02-25 19:39:05 $ / $Author: sfraize $
+ * @version $Revision: 1.69 $ / $Date: 2009-02-25 19:41:50 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -801,7 +801,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             if (e.getName().startsWith("hier.")) {
                 if (e.getName().startsWith("hier.move.")) {
                     // this immediate reload is required for UI to update during drags
-                    // of layer rows -- could also condition this base on the mouse
+                    // of layer rows -- could also condition this based on the mouse
                     // being held down on a Row as opposed to know this involves
                     // hier.move.forward/backward events.
                     loadLayers(mMap);
@@ -2072,7 +2072,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         }
         public void mousePressed(MouseEvent e) {
 
-            Log.debug(e);             
+            if (DEBUG.MOUSE) Log.debug(e);             
             if (layer instanceof Layer) {
 // //                 if (e.isShiftDown())
 // //                     mSelection.toggle(layer);
