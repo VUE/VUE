@@ -76,7 +76,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.587 $ / $Date: 2009-02-18 02:42:50 $ / $Author: mike $ 
+ * @version $Revision: 1.588 $ / $Date: 2009-02-25 16:44:20 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1861,7 +1861,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             final LWComponent singleSrc = e.onlyComponent();
             // todo: these conditions require too much knowlege about the way things
             // work outside of MapViewer -- refactor.
-            if (singleSrc != null && e.isModelSourced() && singleSrc.isHidden() && !(singleSrc instanceof LWPathway)) {
+            if (singleSrc != null
+                && e.isModelSourced()
+                && (singleSrc.isHidden() && e.getCode() != LWKey.Hidden)
+                && !(singleSrc instanceof LWPathway)) {
                 // todo: some kind of semantic check that knows pathway visibility
                 // is irrelevant here, as opposed to the type check.
                 // todo: this is confusing -- why do we have this condition?  Appears to have something

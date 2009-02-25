@@ -43,7 +43,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.209 $ / $Date: 2009-02-23 02:35:27 $ / $Author: sfraize $
+ * @version $Revision: 1.210 $ / $Date: 2009-02-25 16:44:20 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -881,15 +881,15 @@ public class LWLink extends LWComponent
     
     /** interface ControlListener */
     public LWSelection.Controller[] getControlPoints(double zoom) {
-        return getControls(zoom, isDataLink());
+        return getControls(zoom, !isDataLink(), true);
     }
     
     /** for ResizeControl */
     public LWSelection.Controller[] getMoveableControls() {
-        return getControls(1.0, true); // TODO: need zoom
+        return getControls(1.0, false, false); // TODO: need zoom
     }
         
-    private LWSelection.Controller[] getControls(double onScreenScale, boolean moveableOnly)
+    private LWSelection.Controller[] getControls(double onScreenScale, boolean connectors, boolean prunes)
     {
         if (mRecompute)
             computeLink();
@@ -914,18 +914,17 @@ public class LWLink extends LWComponent
         // Connection control points
         //-------------------------------------------------------
 
-        if (head.hasPrunedNode() || (moveableOnly && head.hasNode()))
-            mControlPoints[CHead] = null;
-        else  {
+        if (connectors && head.hasNode() && !head.hasPrunedNode()) {
             mControlPoints[CHead] = new ConnectCtrl(mapHead.x, mapHead.y, head.isConnected());
             if (DEBUG.BOXES) mControlPoints[CHead].setColor(Color.green); // mark the head
-                
+        } else  {
+            mControlPoints[CHead] = null;
         }
-
-        if (tail.hasPrunedNode() || (moveableOnly && tail.hasNode()))
-            mControlPoints[CTail] = null;
-        else
+        
+        if (connectors && tail.hasNode() && !tail.hasPrunedNode())
             mControlPoints[CTail] = new ConnectCtrl(mapTail.x, mapTail.y, tail.isConnected());
+        else
+            mControlPoints[CTail] = null;
 
         //-------------------------------------------------------
         // Curve control points
@@ -946,11 +945,7 @@ public class LWLink extends LWComponent
         // Pruning control points
         //-------------------------------------------------------
 
-        if (moveableOnly || !PruneControlsEnabled) {
-            mControlPoints[CPruneHead] = null;
-            mControlPoints[CPruneTail] = null;
-        } else {
-
+        if (prunes && PruneControlsEnabled) {
             if (head.pruned || getHead() != null) {
                 head.pruneControl.update(onScreenScale);
                 mControlPoints[CPruneHead] = head.pruneControl;
@@ -962,6 +957,9 @@ public class LWLink extends LWComponent
                 mControlPoints[CPruneTail] = tail.pruneControl;
             } else
                 mControlPoints[CPruneTail] = null;
+        } else {
+            mControlPoints[CPruneHead] = null;
+            mControlPoints[CPruneTail] = null;
         }
             
         return mControlPoints;
