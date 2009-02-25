@@ -40,7 +40,7 @@ import edu.tufts.vue.metadata.action.SearchAction;
 
 
 /**
- * @version $Revision: 1.65 $ / $Date: 2009-02-23 23:36:43 $ / $Author: sraphe01 $
+ * @version $Revision: 1.66 $ / $Date: 2009-02-25 17:59:35 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -635,7 +635,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
     }
 
     private void setActiveLayer(final Layer layer, boolean update) {
-        //if (DEBUG.Enabled) Log.debug("SET-ACTIVE: " + c);
+        if (DEBUG.EVENTS) Log.debug("SET-ACTIVE: " + layer);
         if (layer != null)
             mMap.setClientData(Layer.class, "last", mMap.getActiveLayer());
         mMap.setActiveLayer(layer);        
@@ -795,6 +795,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         else if (mShowAll.isSelected() || e.getSource() == mMap) {
             if (e.getName().startsWith("hier.")) {
                 loadLayers(mMap);
+//                 if (getActiveLayer().isDeleted())
+//                     attemptAlternativeActiveLayer(true);
             }
         }
 // [ below now handled by calling selectionChanged at end of grabFromSelection after selection stat reset ]

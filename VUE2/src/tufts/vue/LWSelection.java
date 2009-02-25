@@ -29,7 +29,7 @@ import com.google.common.collect.Multisets;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.105 $ / $Date: 2009-02-24 07:16:18 $ / $Author: sfraize $
+ * @version $Revision: 1.106 $ / $Date: 2009-02-25 17:59:34 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -629,6 +629,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
             for (LWComponent c : this) {
                 mParents.add(c.getParent());
                 mTypes.add(c.getClass());
+                // todo: more efficient:
                 if (c.isDataValueNode()) mDataValueCount++;
                 else if (c.isDataRowNode()) mDataRowCount++;
             }

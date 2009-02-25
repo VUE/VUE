@@ -59,7 +59,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.230 $ / $Date: 2009-02-24 15:56:39 $ / $Author: sfraize $
+ * @version $Revision: 1.231 $ / $Date: 2009-02-25 17:59:34 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -113,6 +113,9 @@ public class LWMap extends LWContainer
 
     private transient int mSaveFileModelVersion = -1;
     private transient int mModelVersion = getCurrentModelVersion();
+
+    /** only used during restore */
+    private final Collection<Schema> mRestoredSchemas = new ArrayList();
 
     private static final String InitLabel = "<map-during-XML-restoration>";
     
@@ -1303,23 +1306,6 @@ public class LWMap extends LWContainer
 
         mResourceFactory.loadResources(allResources);
 
-//         //----------------------------------------------------------------------------------------
-//         // Patch up persisted empty Schema's to point to any matching full Schema's loaded via a DataSource
-//         //----------------------------------------------------------------------------------------
-
-//         if (Schema.getLoadedSchemas().size() > 0) {
-//             final Set<Schema> fullSchemas = Schema.getLoadedSchemas();
-//             for (LWComponent c : allRestored) {
-//                 final MetaMap data = c.getRawData();
-//                 if (data == null)
-//                     continue;
-//                 final Schema schema = data.getSchema();
-//                 if (schema == null)
-//                     continue;
-                
-//             }
-//         }
-        
         //----------------------------------------------------------------------------------------
         
         // Now lay everything out.  allRestored should be in depth-first order for maximum
@@ -1392,8 +1378,7 @@ public class LWMap extends LWContainer
                 tufts.Util.printStackTrace(t, "RESTORE NORMALIZE " + c);
             }
         }
-        
-        
+
         if (DEBUG.INIT || DEBUG.IO || DEBUG.XML) Log.debug("RESTORE COMPLETED; nextID=" + mNextID.get());
         
         mXMLRestoreUnderway = false;
@@ -1535,12 +1520,15 @@ public class LWMap extends LWContainer
 
     @Override
     public Collection<Schema> getIncludedSchemas() {
-        return findAllSchemas();
+        if (mXMLRestoreUnderway)
+            return mRestoredSchemas;
+        else
+            return findAllSchemas();
     }
     
-    public void setIncludedSchemas(Collection<Schema> schemas) {
-        Log.debug("SETTING SCHEMAS " + schemas);
-    }
+//     public void setIncludedSchemas(Collection<Schema> schemas) {
+//         Log.debug("FYI, PERSISTED SCHEMA HANDLES WERE: " + schemas, new Throwable("FYI"));
+//     }
 
     private void recordRelativeLocations(Collection<Resource> resources, File mapSaveDirectory)
     {

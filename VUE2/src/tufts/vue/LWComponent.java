@@ -17,6 +17,7 @@ package tufts.vue;
 
 import tufts.Util;
 import static tufts.Util.*;
+import tufts.vue.ds.Schema;
 
 import java.awt.Shape;
 import java.awt.Rectangle;
@@ -50,7 +51,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.459 $ / $Date: 2009-02-24 07:59:07 $ / $Author: sfraize $
+ * @version $Revision: 1.460 $ / $Date: 2009-02-25 17:59:34 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1899,7 +1900,7 @@ u                    getSlot(c).setFromString((String)value);
      * @return true if this is a data-row node from the given schema.
      * todo: schema checking is currently weak -- only checks for key field
      */
-    public boolean isDataRow(tufts.vue.ds.Schema schema) {
+    public boolean isDataRow(Schema schema) {
         //return hasDataKey(schema.getKeyField().getName()) && !isDataValueNode();
         return getDataSchema() == schema && !isDataValueNode();
     }
@@ -1920,12 +1921,33 @@ u                    getSlot(c).setFromString((String)value);
         return mDataMap != null && mDataMap.containsKey(key);
     }
 
-    public tufts.vue.ds.Schema getDataSchema() {
+    public Schema getDataSchema() {
         if (mDataMap != null)
             return mDataMap.getSchema();
         else
             return null;
     }
+
+    /** @return true if a schema-handle was turned into a live schema reference */
+    boolean validateSchemaReference() {
+        
+        final MetaMap data = getRawData();
+        if (data == null)
+            return false;
+        
+        final Schema schema = data.getSchema();
+        if (schema != null) {
+            Schema liveSchema = Schema.lookup(schema);
+            if (schema != liveSchema) {
+                data.setSchema(liveSchema);
+                if (DEBUG.DATA) Log.debug("updated schema " + this);
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
     
     /** @return null -- here only for persistance order, so schemas
      * can persist before nodes in the map, which overrides this to list
@@ -3011,6 +3033,12 @@ u                    getSlot(c).setFromString((String)value);
             Util.printStackTrace("ATTEMPTED PARENT LOOP " + this + " can't make a child our parent: " + newParent);
             return;
         }
+
+        // this handles updating the schema reference during restore,
+        // during undo, and for paste operations of nodes that may have
+        // been in the cut/copy buffer while a data source was loaded,
+        // (creating a new live schema).
+        validateSchemaReference();
         
         parent = newParent;
 //         if (linkNotify && mLinks.size() > 0)

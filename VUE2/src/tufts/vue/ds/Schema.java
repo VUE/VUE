@@ -32,7 +32,7 @@ import com.google.common.collect.*;
 
 
 /**
- * @version $Revision: 1.28 $ / $Date: 2009-02-24 09:35:34 $ / $Author: sfraize $
+ * @version $Revision: 1.29 $ / $Date: 2009-02-25 17:59:35 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -124,6 +124,55 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
 
         // now, even if resource doesn't match, look up based on GUID, as a url may have slightly changed.
     }
+
+
+    /** find all schema handles in all nodes that match the new schema
+     * and replace them with pointers to the live data schema */
+    public static void updateAllSchemaReferences(final Schema newlyLoadedSchema,
+                                                  final Collection<tufts.vue.LWMap> maps)
+    {
+        if (!newlyLoadedSchema.isLoaded()) {
+            Log.warn("newly loaded schema is empty: " + newlyLoadedSchema, new Throwable("FYI"));
+            return;
+        }
+        
+        int updateCount = 0;
+        int mapUpdateCount = 0;
+
+        // todo: if this ever gets slow, could improve performance by pre-computing a
+        // lookup map of all schema handles that map to the new schema (which will
+        // usually contain only a single schema mapping) then we only have to check
+        // every schema reference found against the pre-computed lookups instead of
+        // doing a Schema.lookup against all loaded Schema's.
+        
+        for (tufts.vue.LWMap map : maps) {
+            final int countAtMapStart = updateCount;
+            Collection<LWComponent> nodes = map.getAllDescendents();
+            for (LWComponent c : nodes) {
+                final MetaMap data = c.getRawData();
+                if (data == null)
+                    continue;
+                final Schema curSchema = data.getSchema();
+                if (curSchema != null) {
+                    final Schema newSchema = Schema.lookup(curSchema);
+                    if (newSchema != curSchema) {
+                        data.takeSchema(newSchema);
+                        updateCount++;
+                        if (newSchema != newlyLoadedSchema) {
+                            Log.warn("out of date schema in " + c + "; oldSchema=" + curSchema + "; replaced with " + newSchema);
+                        } else {
+                            //if (DEBUG.SCHEMA) Log.debug("replaced schema handle in " + c);
+                        }
+
+                    }
+                }
+            }
+            if (updateCount > countAtMapStart)
+                mapUpdateCount++;
+        }
+        Log.info(String.format("updated %d schema handle references in %d maps", updateCount, mapUpdateCount));
+    }
+    
 
     /** interface {@link XMLUnmarshalListener} -- track us */
     public void XML_completed(Object context) {

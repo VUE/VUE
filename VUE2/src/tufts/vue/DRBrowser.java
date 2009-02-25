@@ -59,7 +59,7 @@ import javax.swing.border.*;
  * We'd probably need a delegating impl tho to handle that.
  *
  *
- * @version $Revision: 1.74 $ / $Date: 2009-02-22 19:23:15 $ / $Author: sfraize $ 
+ * @version $Revision: 1.75 $ / $Date: 2009-02-25 17:59:34 $ / $Author: sfraize $ 
  */
 public class DRBrowser extends JPanel
 {
@@ -447,7 +447,7 @@ public class DRBrowser extends JPanel
 
         int maxHeight = GUI.getMaximumWindowBounds().height;
 
-        int inspectorWidth = GUI.GScreenWidth / 2;
+        int inspectorWidth = GUI.GScreenWidth / 4;
         if (inspectorWidth > 800)
             inspectorWidth = 800;
 
