@@ -57,7 +57,7 @@ import static tufts.Util.*;
  * event to the GUI, although these are stop-gap cases that ultimately
  * would be better handled as a recognized property change.
 
- * @version $Revision: 1.37 $ / $Date: 2009-02-17 02:51:54 $ / $Author: sfraize $  
+ * @version $Revision: 1.38 $ / $Date: 2009-02-25 16:59:02 $ / $Author: sfraize $  
  
  */
 
@@ -161,6 +161,12 @@ public class LWCEvent
         else
             return null;
     }
+
+    /** @return either the LWKey or the String key */
+    public Object getCode() {
+        return key;
+    }
+    
 
     /**
      * Returns an old value if one was given to us.  As null is a valid
