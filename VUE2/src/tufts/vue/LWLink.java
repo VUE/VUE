@@ -43,7 +43,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.210 $ / $Date: 2009-02-25 16:44:20 $ / $Author: sfraize $
+ * @version $Revision: 1.211 $ / $Date: 2009-02-25 22:26:15 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -999,7 +999,7 @@ public class LWLink extends LWComponent
     public void setAsDataLink(String relationship) {
         setFlag(Flag.DATA_LINK);
         addDataValue("$Related", relationship);
-        setNotes("Related: " + relationship);
+        //setNotes("Related: " + relationship);
     }
 
     @Override
