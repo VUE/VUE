@@ -51,7 +51,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.461 $ / $Date: 2009-02-25 18:18:14 $ / $Author: sfraize $
+ * @version $Revision: 1.462 $ / $Date: 2009-02-25 23:19:43 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -3055,10 +3055,13 @@ u                    getSlot(c).setFromString((String)value);
         // cut/paste), should handle that.
         
         validateSchemaReference();
-        
         //-----------------------------------------------------------------------------
         
         parent = newParent;
+
+        //layout(); // for preference change updates
+        
+        
 //         if (linkNotify && mLinks.size() > 0)
 //             for (LWLink link : mLinks)
 //                 link.notifyEndpointReparented(this);
