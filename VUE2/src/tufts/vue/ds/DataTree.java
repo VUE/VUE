@@ -22,7 +22,6 @@ import tufts.vue.VueResources;
 import tufts.vue.LWComponent;
 import static tufts.vue.LWComponent.Flag;
 import tufts.vue.LWNode;
-import tufts.vue.LWLink;
 import tufts.vue.LWMap;
 import tufts.vue.Actions;
 import tufts.vue.LWKey;
@@ -45,12 +44,11 @@ import javax.swing.border.*;
 import javax.swing.event.*;
 import javax.swing.tree.*;
 
-import org.apache.commons.lang.StringEscapeUtils;
 import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.54 $ / $Date: 2009-02-24 21:50:52 $ / $Author: sfraize $
+ * @version $Revision: 1.55 $ / $Date: 2009-02-25 21:37:59 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -90,11 +88,12 @@ public class DataTree extends javax.swing.JTree
     }
 
     private void addNewRowsToMap() {
-
-        final LWMap map = mActiveMap;
-
         // make absolutely certian we're current to the active map:
-        annotateForMap(map);
+        annotateForMap(mActiveMap);
+        addNewRowsToMap(mActiveMap);
+    }
+
+    private void addNewRowsToMap(final LWMap map) {
 
         final List<DataRow> newRows = new ArrayList();
 
@@ -105,10 +104,10 @@ public class DataTree extends javax.swing.JTree
             }
         }
 
-        final List<LWComponent> nodes = makeRowNodes(mSchema, newRows);
+        final List<LWComponent> nodes = DataAction.makeRowNodes(mSchema, newRows);
 
         try {
-            addDataLinksForNewNodes(map, nodes, null);
+            DataAction.addDataLinksForNewNodes(map, nodes, null);
         } catch (Throwable t) {
             Log.error("problem creating links on " + map + " for new nodes: " + Util.tags(nodes), t);
         }
@@ -806,7 +805,7 @@ public class DataTree extends javax.swing.JTree
 
             if (treeNode.isValue()) {
                 //dragNode = new LWNode(String.format(" %s: %s", field.getName(), treeNode.value));
-                dragNode = makeValueNode(field, treeNode.getValue());
+                dragNode = DataAction.makeValueNode(field, treeNode.getValue());
                 //dragNode.setLabel(String.format(" %s: %s ", field.getName(), treeNode.value));
                 //dragNode.setLabel(String.format(" %s ", field.getName());
                 dragNode.copyStyle(treeNode.getStyle(), ~LWKey.Label.bit);
@@ -821,7 +820,7 @@ public class DataTree extends javax.swing.JTree
                 
             } else if (treeNode instanceof RowNode) {
                 
-                dragNode = makeRowNodes(treeNode.getSchema(), ((RowNode)treeNode).getRow()).get(0);
+                dragNode = DataAction.makeRowNodes(treeNode.getSchema(), ((RowNode)treeNode).getRow()).get(0);
                                         
             } else {
                 //assert treeNode instanceof TemplateNode;
@@ -850,199 +849,200 @@ public class DataTree extends javax.swing.JTree
     }
 
     private static String valueName(Object value) {
-        return StringEscapeUtils.escapeHtml(Field.valueName(value));
+        //return StringEscapeUtils.escapeHtml(Field.valueName(value));
+        return DataAction.valueName(value);
     }
 
-    private static String makeLabel(Field f, Object value) {
+//     private static String makeLabel(Field f, Object value) {
 
-        assert value != null;
+//         assert value != null;
 
-        //Log.debug("*** makeLabel " + f + " [" + value + "] emptyValue=" + (value == Field.EMPTY_VALUE));
+//         //Log.debug("*** makeLabel " + f + " [" + value + "] emptyValue=" + (value == Field.EMPTY_VALUE));
 
-// This will be overriden by the label-style: this could would need to go there to work
-//         if (value == Field.EMPTY_VALUE)
-//             return String.format("(no [%s] value)", f.getName());
-//         else
-            return Field.valueName(value);
-    }
+// // This will be overriden by the label-style: this could would need to go there to work
+// //         if (value == Field.EMPTY_VALUE)
+// //             return String.format("(no [%s] value)", f.getName());
+// //         else
+//             return Field.valueName(value);
+//     }
 
-    private static LWComponent makeValueNode(Field field, String value) {
+//     private static LWComponent makeValueNode(Field field, String value) {
         
-        LWComponent node = new LWNode(makeLabel(field, value));
-        //node.setDataInstanceValue(field.getName(), value);
-        node.setDataInstanceValue(field, value);
-        //node.setClientData(Field.class, field);
-        if (field.getStyleNode() != null)
-            node.setStyle(field.getStyleNode());
-//         else
-//             tufts.vue.EditorManager.targetAndApplyCurrentProperties(node);
-        String target = node.getLabel();
+//         LWComponent node = new LWNode(makeLabel(field, value));
+//         //node.setDataInstanceValue(field.getName(), value);
+//         node.setDataInstanceValue(field, value);
+//         //node.setClientData(Field.class, field);
+//         if (field.getStyleNode() != null)
+//             node.setStyle(field.getStyleNode());
+// //         else
+// //             tufts.vue.EditorManager.targetAndApplyCurrentProperties(node);
+//         String target = node.getLabel();
         
-        target = Util.formatLines(target, VueResources.getInt("dataNode.labelLength"));
+//         target = Util.formatLines(target, VueResources.getInt("dataNode.labelLength"));
         
-        node.setLabel(target);
-        return node;
+//         node.setLabel(target);
+//         return node;
 
-    }
+//     }
 
-    private static List<LWComponent> makeRowNodes(Schema schema, DataRow singleRow) {
+//     private static List<LWComponent> makeRowNodes(Schema schema, DataRow singleRow) {
 
-        Log.debug("PRODUCING SINGLE ROW NODE FOR " + schema + "; row=" + singleRow);
+//         Log.debug("PRODUCING SINGLE ROW NODE FOR " + schema + "; row=" + singleRow);
 
-        List<DataRow> rows = Collections.singletonList(singleRow);
+//         List<DataRow> rows = Collections.singletonList(singleRow);
 
-        return makeRowNodes(schema, rows);
+//         return makeRowNodes(schema, rows);
         
-    }
+//     }
     
-    private static List<LWComponent> makeRowNodes(Schema schema) {
+//     private static List<LWComponent> makeRowNodes(Schema schema) {
 
-        Log.debug("PRODUCING ALL DATA NODES FOR " + schema + "; rowCount=" + schema.getRows().size());
+//         Log.debug("PRODUCING ALL DATA NODES FOR " + schema + "; rowCount=" + schema.getRows().size());
 
-        return makeRowNodes(schema, schema.getRows());
+//         return makeRowNodes(schema, schema.getRows());
         
-    }
+//     }
 
-    private static List<LWComponent> makeRowNodes(Schema schema, final Collection<DataRow> rows)
-    {
-        final java.util.List<LWComponent> nodes = new ArrayList();
+//     private static List<LWComponent> makeRowNodes(Schema schema, final Collection<DataRow> rows)
+//     {
+//         final java.util.List<LWComponent> nodes = new ArrayList();
 
-        // TODO: findField should find case-independed values -- wasn't our key hack supposed to handle that?
+//         // TODO: findField should find case-independed values -- wasn't our key hack supposed to handle that?
 
-        final Field linkField = schema.findField("Link");
-        final Field descField = schema.findField("Description");
-        final Field titleField = schema.findField("Title");
-        //final Field mediaField = schema.findField("media:group.media:content.media:url");
-        final Field mediaField = schema.findField("media:content@url");
-        final Field imageField = schema.getImageField();
+//         final Field linkField = schema.findField("Link");
+//         final Field descField = schema.findField("Description");
+//         final Field titleField = schema.findField("Title");
+//         //final Field mediaField = schema.findField("media:group.media:content.media:url");
+//         final Field mediaField = schema.findField("media:content@url");
+//         final Field imageField = schema.getImageField();
         
-        final int maxLabelLineLength = VueResources.getInt("dataNode.labelLength", 50);
+//         final int maxLabelLineLength = VueResources.getInt("dataNode.labelLength", 50);
         
-//         final Collection<DataRow> rows;
+// //         final Collection<DataRow> rows;
 
-//         if (singleRow != null) {
-//             Log.debug("PRODUCING SINGLE ROW NODE FOR " + schema + "; row=" + singleRow);
-//             rows = Collections.singletonList(singleRow);
-//         } else {
-//             Log.debug("PRODUCING ALL DATA NODES FOR " + schema + "; rowCount=" + schema.getRows().size());
-//             rows = schema.getRows();
+// //         if (singleRow != null) {
+// //             Log.debug("PRODUCING SINGLE ROW NODE FOR " + schema + "; row=" + singleRow);
+// //             rows = Collections.singletonList(singleRow);
+// //         } else {
+// //             Log.debug("PRODUCING ALL DATA NODES FOR " + schema + "; rowCount=" + schema.getRows().size());
+// //             rows = schema.getRows();
+// //         }
+
+//         Log.debug("PRODUCING ROW NODE(S) FOR " + schema + "; " + Util.tags(rows));
+//         Log.debug("IMAGE FIELD: " + imageField);
+
+//         final boolean singleRow = (rows.size() == 1);
+        
+//         int i = 0;
+//         LWNode node;
+//         for (DataRow row : rows) {
+
+//             try {
+            
+//                 node = LWNode.createRaw();
+//                 // node.setFlag(Flag.EVENT_SILENT); // todo performance: have nodes do this by default during init
+//                 //node.setClientData(Schema.class, schema);
+//                 //node.getMetadataList().add(row.entries());
+//                 //node.addDataValues(row.dataEntries());
+//                 node.setDataValues(row.getData());
+//                 node.setStyle(schema.getStyleNode()); // must have meta-data set first to pick up label template
+
+//                 if (singleRow) {
+//                     // if handling a single node (e.g., probably a single drag),
+//                     // also apply & override with the current on-map creation style
+//                     tufts.vue.EditorManager.targetAndApplyCurrentProperties(node);
+//                 }
+
+//                 boolean addedResource = false;
+            
+//                 if (imageField != null) {
+//                     final String image = row.getValue(imageField);
+//                     if (image != null && image.length() > 0 && Resource.looksLikeURLorFile(image) && !image.equals("n/a")) {
+//                         // todo: note "n/a" hack above
+//                         Resource ir = Resource.instance(image);
+                        
+//                         if (titleField != null) {
+//                             String title = row.getValue(titleField);
+//                             ir.setTitle(title);
+//                             ir.setProperty("Title", title);
+//                         }
+                        
+//                         Log.debug("image resource: " + ir);
+//                         node.addChild(new tufts.vue.LWImage(ir));
+//                         addedResource = true;
+//                     }
+//                 }
+//                 String link = null;
+
+//                 if (!addedResource && linkField != null) {
+//                     link = row.getValue(linkField);
+//                     if ("n/a".equals(link)) link = null; // TEMP HACK
+//                 }
+                
+//                 if (link != null) {
+//                     node.setResource(link);
+//                     final tufts.vue.Resource r = node.getResource();
+//                     //                 if (descField != null) // now redundant with data fields, may want to leave out for brevity
+//                     //                     r.setProperty("Description", row.getValue(descField));
+//                     if (titleField != null) {
+//                         String title = row.getValue(titleField);
+//                         r.setTitle(title);
+//                         r.setProperty("Title", title);
+//                     }
+//                     if (mediaField != null) {
+//                         // todo: if no per-item media field, use any per-schema media field found
+//                         // (e.g., RSS content provider icon image)
+//                         // todo: refactor so cast not required
+//                         ((tufts.vue.URLResource)r).setURL_Thumb(row.getValue(mediaField));
+//                     }
+//                 }
+
+//                 //Log.debug("produced node " + node);
+//                 String label = node.getLabel();
+
+//                 label = Util.formatLines(label, maxLabelLineLength);
+//                 node.setLabel(label);
+//                 nodes.add(node);
+//             } catch (Throwable t) {
+//                 Log.error("failed to create node for row " + row, t);
+//             }
+            
+            
+//         }
+        
+//         Log.debug("PRODUCED NODE(S) FOR " + schema + "; count=" + nodes.size());
+        
+//         return nodes;
+//     }
+
+//     private static List<LWLink> makeDataLinksForNodes(LWMap map, List<LWComponent> nodes, Field field)
+//     {
+//         final Collection linkTargets = Util.extractType(map.getAllDescendents(), LWNode.class);
+        
+//         java.util.List<LWComponent> links = null;
+        
+//         if (linkTargets.size() > 0) {
+//             links = new ArrayList();
+//             for (LWComponent c : nodes) {
+//                 links.addAll(DataAction.makeLinks(linkTargets, c, field));
+//             }
 //         }
 
-        Log.debug("PRODUCING ROW NODE(S) FOR " + schema + "; " + Util.tags(rows));
-        Log.debug("IMAGE FIELD: " + imageField);
+//         return links == null ? Collections.EMPTY_LIST : links;
+//     }
 
-        final boolean singleRow = (rows.size() == 1);
+
+//     /** @field -- if null, will make exaustive row-node links */
+//     private static boolean addDataLinksForNewNodes(LWMap map, List<LWComponent> nodes, Field field) {
         
-        int i = 0;
-        LWNode node;
-        for (DataRow row : rows) {
+//         List<LWLink> links = makeDataLinksForNodes(map, nodes, field);
 
-            try {
-            
-                node = LWNode.createRaw();
-                // node.setFlag(Flag.EVENT_SILENT); // todo performance: have nodes do this by default during init
-                //node.setClientData(Schema.class, schema);
-                //node.getMetadataList().add(row.entries());
-                //node.addDataValues(row.dataEntries());
-                node.setDataValues(row.getData());
-                node.setStyle(schema.getStyleNode()); // must have meta-data set first to pick up label template
-
-                if (singleRow) {
-                    // if handling a single node (e.g., probably a single drag),
-                    // also apply & override with the current on-map creation style
-                    tufts.vue.EditorManager.targetAndApplyCurrentProperties(node);
-                }
-
-                boolean addedResource = false;
-            
-                if (imageField != null) {
-                    final String image = row.getValue(imageField);
-                    if (image != null && image.length() > 0 && Resource.looksLikeURLorFile(image) && !image.equals("n/a")) {
-                        // todo: note "n/a" hack above
-                        Resource ir = Resource.instance(image);
-                        
-                        if (titleField != null) {
-                            String title = row.getValue(titleField);
-                            ir.setTitle(title);
-                            ir.setProperty("Title", title);
-                        }
-                        
-                        Log.debug("image resource: " + ir);
-                        node.addChild(new tufts.vue.LWImage(ir));
-                        addedResource = true;
-                    }
-                }
-                String link = null;
-
-                if (!addedResource && linkField != null) {
-                    link = row.getValue(linkField);
-                    if ("n/a".equals(link)) link = null; // TEMP HACK
-                }
-                
-                if (link != null) {
-                    node.setResource(link);
-                    final tufts.vue.Resource r = node.getResource();
-                    //                 if (descField != null) // now redundant with data fields, may want to leave out for brevity
-                    //                     r.setProperty("Description", row.getValue(descField));
-                    if (titleField != null) {
-                        String title = row.getValue(titleField);
-                        r.setTitle(title);
-                        r.setProperty("Title", title);
-                    }
-                    if (mediaField != null) {
-                        // todo: if no per-item media field, use any per-schema media field found
-                        // (e.g., RSS content provider icon image)
-                        // todo: refactor so cast not required
-                        ((tufts.vue.URLResource)r).setURL_Thumb(row.getValue(mediaField));
-                    }
-                }
-
-                //Log.debug("produced node " + node);
-                String label = node.getLabel();
-
-                label = Util.formatLines(label, maxLabelLineLength);
-                node.setLabel(label);
-                nodes.add(node);
-            } catch (Throwable t) {
-                Log.error("failed to create node for row " + row, t);
-            }
-            
-            
-        }
-        
-        Log.debug("PRODUCED NODE(S) FOR " + schema + "; count=" + nodes.size());
-        
-        return nodes;
-    }
-
-    private static List<LWLink> makeDataLinksForNodes(LWMap map, List<LWComponent> nodes, Field field)
-    {
-        final Collection linkTargets = Util.extractType(map.getAllDescendents(), LWNode.class);
-        
-        java.util.List<LWComponent> links = null;
-        
-        if (linkTargets.size() > 0) {
-            links = new ArrayList();
-            for (LWComponent c : nodes) {
-                links.addAll(DataAction.makeLinks(linkTargets, c, field));
-            }
-        }
-
-        return links == null ? Collections.EMPTY_LIST : links;
-    }
-
-
-    /** @field -- if null, will make exaustive row-node links */
-    private static boolean addDataLinksForNewNodes(LWMap map, List<LWComponent> nodes, Field field) {
-        
-        List<LWLink> links = makeDataLinksForNodes(map, nodes, field);
-
-        if (links.size() > 0) {
-            map.getInternalLayer("*Data Links*").addChildren(links);
-            return true;
-        } else
-            return false;
-    }
+//         if (links.size() > 0) {
+//             map.getInternalLayer("*Data Links*").addChildren(links);
+//             return true;
+//         } else
+//             return false;
+//     }
     
     
     private static class NodeProducer implements LWComponent.Producer, Runnable {
@@ -1071,14 +1071,14 @@ public class DataTree extends javax.swing.JTree
 
             if (treeNode instanceof RowNode) {
 
-                nodes = makeRowNodes(schema, treeNode.getRow());
+                nodes = DataAction.makeRowNodes(schema, treeNode.getRow());
                 
             } else if (treeNode.isRecordNode()) {
 
                 List<LWComponent> _nodes = null;
                 Log.debug("PRODUCING ALL DATA NODES");
                 try {
-                    _nodes = makeRowNodes(schema);
+                    _nodes = DataAction.makeRowNodes(schema);
                     Log.debug("PRODUCED ALL DATA NODES; nodeCount="+_nodes.size());
                 } catch (Throwable t) {
                     Util.printStackTrace(t);
@@ -1090,7 +1090,7 @@ public class DataTree extends javax.swing.JTree
                 
                 Log.debug("PRODUCING A SINGLE VALUE NODE");
                 // is a single value from a column
-                nodes = Collections.singletonList(makeValueNode(field, treeNode.getValue()));
+                nodes = Collections.singletonList(DataAction.makeValueNode(field, treeNode.getValue()));
                     
             } else {
 
@@ -1100,7 +1100,7 @@ public class DataTree extends javax.swing.JTree
                 // handle all the enumerated values for a column
                 
                 for (String value : field.getValues())
-                    nodes.add(makeValueNode(field, value));
+                    nodes.add(DataAction.makeValueNode(field, value));
             }
 
             mNodes = nodes;
@@ -1119,7 +1119,7 @@ public class DataTree extends javax.swing.JTree
             //for (LWComponent c : nodes)c.setToNaturalSize();
             // todo: some problem editing template values: auto-size not being handled on label length shrinkage
             
-            final boolean addedLinks = addDataLinksForNewNodes(map, nodes, treeNode.getField());
+            final boolean addedLinks = DataAction.addDataLinksForNewNodes(map, nodes, treeNode.getField());
 
             if (nodes.size() > 1) {
                 if (treeNode.isRecordNode()) {
