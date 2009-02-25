@@ -36,21 +36,64 @@ import java.io.File;
 
 public class Import {
 
+    public static final int LAYOUT_DEFAULT = 0;
+    public static final int LAYOUT_RANDOM = 1;
+    public static final int LAYOUT_CIRCLE =2;
+    public static final int LAYOUT_FILLED_CIRCLE = 3;
+    public static final int LAYOUT_TABLE = 4;
+
+    public static final String[] LAYOUT_CLASS_NAME = {"ListRandom","ListRandom","Circular","FilledCircular","Tabular"};
+
+    public static final String[] LAYOUT_SHORTCUT = {"default","random","cirlce","filledCircle","table"};
+
     /**
-     * @param args the command line arguments
+     * Create a map of specified layout with specific layout id
+     * @param inputFile comma or tab delimited import file
+     * @param outputFile  a map generated from input file
+     * @param layoutId  0- default(random), 1 - random, 2 - circle, 3 -filled circle, 4 - table
+     * @throws java.lang.Exception
+     */
+    public void createMap(String inputFile,String outputFile,int layoutId) throws Exception {
+        Layout layout = (Layout) Class.forName(LAYOUT_CLASS_NAME[layoutId]+"Layout.class").newInstance();
+        createMap(inputFile,outputFile,layout);
+    }
+    /**
+     * Create a map of specified layout
+     *
+     * @param inputFile   comma or tab delimited import file
+     * @param outputFile  a map generated from input file
+     * @param layout layout oject type of layout
+     * @throws java.lang.Exception
      */
 
-    public static void main(String[] args) throws Exception {
-        String inputFile = args[0];
-        String outputFile = args[1];
+    public void createMap(String inputFile,String outputFile, Layout layout) throws Exception {
         Dataset ds = new Dataset();
         ds.setFileName(inputFile);
         ds.loadDataset();
-        Layout layout = new ListRandomLayout();
         LWMap map = layout.createMap(ds, "ClubZora");
         map.setFile(new File(outputFile));
         ActionUtil.marshallMap(new File(outputFile), map);
-
-
     }
+
+    /** A method that creates a map from input file. The input file needs to be
+     * comma or tab delimited similar to the ones used in VUE XML datasource. The
+     * default layout is random layout but can be set by passing params. The deault
+     * is to make list random layout.
+     *
+     * @param inputFile comma or tab delimited import file
+     * @param outputFile a map generated from input file
+     * @throws java.lang.Exception
+     */
+
+    public void createMap(String inputFile, String outputFile) throws Exception {
+
+        Layout layout = new ListRandomLayout();
+        createMap(inputFile,outputFile,layout);
+    }
+    public static void main(String[] args) throws Exception {
+        String inputFile = args[0];
+        String outputFile = args[1];
+        Import importer = new Import();
+        importer.createMap(inputFile,outputFile);
+       }
 }
