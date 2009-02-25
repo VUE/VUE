@@ -59,7 +59,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.231 $ / $Date: 2009-02-25 17:59:34 $ / $Author: sfraize $
+ * @version $Revision: 1.232 $ / $Date: 2009-02-25 19:29:15 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -1006,7 +1006,8 @@ public class LWMap extends LWContainer
     }
 
     public void setActiveLayer(LWComponent layer) {
-        if (DEBUG.PARENTING) out("setActiveLayer: " + layer);
+        if (DEBUG.PARENTING) Log.debug("setActiveLayer: " + layer);
+        // Log.debug("setActiveLayer: " + layer, new Throwable("FYI"));
         if (layer == null || layer instanceof Layer)
             mActiveLayer = (Layer) layer;
         else

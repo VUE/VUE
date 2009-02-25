@@ -40,7 +40,7 @@ import edu.tufts.vue.metadata.action.SearchAction;
 
 
 /**
- * @version $Revision: 1.66 $ / $Date: 2009-02-25 17:59:35 $ / $Author: sfraize $
+ * @version $Revision: 1.67 $ / $Date: 2009-02-25 19:29:16 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -211,18 +211,21 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                     return mRows.size() > 1;
                 }
                 @Override
-                public void act() {      
-                	String message = "Are you sure you want to delete this layer and its content?";               
-                    if (JOptionPane.showConfirmDialog(null,
-                    		message, "Confirmation",
-                            JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION){
-	                	selectedIndex = active.getIndex();
-	                	mMap.deleteChildPermanently(active); // todo: LWMap should setActiveLayer(null) if active is deleted
-	                	mMap.setActiveLayer(null);
-	                    //setActiveLayer(null, true);
-	                    attemptAlternativeActiveLayer(true); // better if this tried to find the nearest layer, and not check last-active
-	                    //VUE.getSelection().clearDeleted(); // in case any in delete layer were in selection [no auto-handled in UndoManager]
+                public void act() {
+                    if (active.numChildren() > 0) {
+                        String message = String.format("Are you sure you want to delete layer '%s' and its content?",
+                                                       active.getLabel());
+                        if (JOptionPane.showConfirmDialog(null,
+                                                          message, "Confirmation",
+                                                           JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION)
+                            return;
                     }
+                            
+                    selectedIndex = active.getIndex();
+                    mMap.deleteChildPermanently(active); // todo: LWMap should setActiveLayer(null) if active is deleted
+                    mMap.setActiveLayer(null);
+                    //setActiveLayer(null, true);
+                    attemptAlternativeActiveLayer(true); // better if this tried to find the nearest layer, and not check last-active
                 }				           
             },
         
@@ -777,27 +780,34 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         }
     }
 
-    //private boolean layerReparentingSeen;
+    private boolean mLayerReloadRequired = false;
 
     public void LWCChanged(LWCEvent e) {
+
+        if (DEBUG.EVENTS) Log.debug("handling " + e);
 
         // ignore events from children: just want hierarchy events directly from the map
         // (as we're only interested in changes to map layers)
         
         if (e.key == LWKey.UserActionCompleted) {
-//             if (layerReparentingSeen) {
-//                 VUE.getSelection().resetStatistics();
-//                 updateGrabEnabledForSelection(VUE.getSelection());
-//                 layerReparentingSeen = false;
-//             }
-            repaint(); // repaint the previews
-        }
-        else if (mShowAll.isSelected() || e.getSource() == mMap) {
-            if (e.getName().startsWith("hier.")) {
+            if (mLayerReloadRequired)
                 loadLayers(mMap);
-//                 if (getActiveLayer().isDeleted())
-//                     attemptAlternativeActiveLayer(true);
-            }
+            else
+                repaint(); // repaint the previews
+            mLayerReloadRequired = false;
+        }
+        else if (e.getSource() == mMap || mShowAll.isSelected()) {
+            // any hierarcy event on the map itself must involve layers
+            if (e.getName().startsWith("hier."))
+                mLayerReloadRequired = true;
+        }
+        else if (e.key == LWKey.Deleting && e.getComponent() instanceof Layer) {
+            // failsafe only: should already have been handled by above "hier." case
+            mLayerReloadRequired = true;
+//             if (getActiveLayer() == e.getComponent()) {
+//                 mMap.setActiveLayer(null);
+//                 attemptAlternativeActiveLayer(true);
+//             }
         }
 // [ below now handled by calling selectionChanged at end of grabFromSelection after selection stat reset ]
 //         else if (e.getSource() instanceof Layer && e.getName().startsWith("hier.")) {
@@ -999,6 +1009,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 
     private void loadLayers(final LWMap map) {
 
+        if (DEBUG.EVENTS) Log.debug("RELOADING LAYERS IN " + map);
+
         mRows.clear();
         
         if (map != null) {
@@ -1024,6 +1036,12 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         }
         
         layoutRows();
+
+        if (getActiveLayer().isDeleted()) {
+            mMap.setActiveLayer(null);
+            attemptAlternativeActiveLayer(true);
+        }
+
     }
 
     private void layoutRows() {
