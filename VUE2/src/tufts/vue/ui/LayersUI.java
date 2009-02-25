@@ -40,7 +40,7 @@ import edu.tufts.vue.metadata.action.SearchAction;
 
 
 /**
- * @version $Revision: 1.69 $ / $Date: 2009-02-25 19:41:50 $ / $Author: sfraize $
+ * @version $Revision: 1.70 $ / $Date: 2009-02-25 22:55:37 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -1036,7 +1036,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         
         layoutRows();
 
-        if (getActiveLayer().isDeleted()) {
+        if (getActiveLayer() != null && getActiveLayer().isDeleted()) {
             mMap.setActiveLayer(null);
             attemptAlternativeActiveLayer(true);
         }
