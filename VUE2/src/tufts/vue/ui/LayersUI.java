@@ -40,7 +40,7 @@ import edu.tufts.vue.metadata.action.SearchAction;
 
 
 /**
- * @version $Revision: 1.70 $ / $Date: 2009-02-25 22:55:37 $ / $Author: sfraize $
+ * @version $Revision: 1.71 $ / $Date: 2009-02-26 16:55:29 $ / $Author: sraphe01 $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -258,39 +258,45 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                     return true;
                 }
                 @Override
-                public void act() {
-                	//sheejo     
+                public void act() {                	
                 	if(flg){                		
 	                	((JButton)mToolbar.getComponent(3)).setBorderPainted(true);
-	                	((JButton)mToolbar.getComponent(3)).setContentAreaFilled(false);	
+	                	((JButton)mToolbar.getComponent(3)).setBorderPainted(true);
+	                	((JButton)mToolbar.getComponent(3)).setContentAreaFilled(false);
+	                	((JButton)mToolbar.getComponent(3)).setIcon(VueResources.getImageIcon("layer.filter.on"));
 	                	((JButton)mToolbar.getComponent(3)).setBorder(BorderFactory.createEtchedBorder(1));
 	                	//super.updateSelectionWatchers();	                	
 	                	Layer layer = getActiveLayer();
-	                	layer.setVisible(false);
+	                	Row row =null;
+	               	 	for (Row rows : mRows){
+	               	 		row = rows;
+		                     if (rows.layer.equals(layer)){		                    	 
+		                    	 row.layer.setVisible(true);
+		                     }else{		                    	 
+		                    	 row.layer.setVisible(false);
+		                     }
+	                     }	                    	
+	                	
                         //locked.setEnabled(layer.isVisible());                        
                         //label.setEnabled(layer.isVisible()); 
-	                	VUE.getSelection().setTo(layer.getAllDescendents());
+	                	VUE.getSelection().setTo(row.layer.getAllDescendents());
                         VUE.getMainWindow().repaint();
-                        if (layer == getActiveLayer() && !canBeActive(layer))
+                        if (row.layer == getActiveLayer() && !canBeActive(row.layer))
                             if (AUTO_ADJUST_ACTIVE_LAYER) attemptAlternativeActiveLayer(false);                        
                         
-	                	setActiveLayer((Layer) layer, !UPDATE);
+	                	setActiveLayer((Layer) layer, !UPDATE);                	
 	                	
-	                	 //layer.setVisible(layer.isSelected());
-//	                        locked.setEnabled(layer.isVisible());                 
-	                               
-	                        /////////VUE.getMainWindow().repaint();
-	                      //  if (layer == getActiveLayer() && !canBeActive(layer))
-	                       //     if (AUTO_ADJUST_ACTIVE_LAYER) attemptAlternativeActiveLayer(false); 
-//	                	if (VUE.getSelection() !=null)
-//	            			VUE.getSelection().add(layer.getChildren());
-//	            		else
-//	            			VUE.getSelection().setTo(new LWSelection(layer.getChildren()));               		          		
-	            		
 	                	flg = !flg;
                 	}else{
                 		((JButton)mToolbar.getComponent(3)).setBorderPainted(false);
 	                	((JButton)mToolbar.getComponent(3)).setContentAreaFilled(false);
+	                	((JButton)mToolbar.getComponent(3)).setRolloverIcon(VueResources.getImageIcon("layer.filter.off"));
+	                	active = getActiveLayer();  
+	                	Row row =null;
+	               	 	for (Row rows : mRows){
+	               	 		row = rows;	                              	 
+	                        row.layer.setVisible(true);	                        	 
+	                     }       
 	                	flg = !flg;
                 	}
                 }
@@ -1724,7 +1730,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                             	info.setText("");
                             }else{
                             	info.setText("("+counts+")");
-                            }
+                            }                            
                             //if (DEBUG.Enabled) { Row.this.validate(); GUI.paintNow(Row.this); } // slower
                             // above will usually cause a deadlock tho when dropping images and this UI is visible
                             //if (DEBUG.Enabled) { Row.this.validate(); GUI.paintNow(info); } // faster
@@ -1769,7 +1775,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 // in all rows will always have the same width, keeping everything
                 // in alignment
                 
-                info.setMinimumSize(new Dimension(40,23));                
+                info.setMinimumSize(new Dimension(40,23));    
+                label.setMaximumSize(new Dimension(88,23)); 
                 label.setCaretPosition(0);                
                 //info.addMouseListener(RowMouseEnterExitTracker);
                 Box box = new Box(BoxLayout.X_AXIS);
@@ -1815,7 +1822,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             }
             
             //add(Box.createHorizontalGlue(), c);
-
+            info.setMinimumSize(new Dimension(40,23));    
+            label.setMinimumSize(new Dimension(88,23));             
             if (layer.hasFlag(INTERNAL)) {            	
                 add(locked, c);
                 preview = null;
@@ -1858,22 +1866,22 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 JPanel fixed = new JPanel(new BorderLayout());
                 fixed.setOpaque(true);                
                 fixed.setBorder(GUI.makeSpace(3,1,3,1));
-                fixed.setMinimumSize(new Dimension(53, 0));
-                
-                //fixed.add(exclusive, BorderLayout.WEST);
-                grab.setMinimumSize(new Dimension(25, 0));
-                locked.setMinimumSize(new Dimension(25, 0));                            
-                fixed.add(grab, BorderLayout.CENTER);
+                fixed.setMinimumSize(new Dimension(53, 0));                
+                //fixed.add(exclusive, BorderLayout.WEST);                
+                locked.setMinimumSize(new Dimension(25, 0)); 
+                if(grab!=null){                	
+                	grab.setMinimumSize(new Dimension(25, 0));
+                	fixed.add(grab, BorderLayout.CENTER);
+                }
                 fixed.add(locked, BorderLayout.EAST);                
                 c.fill = GridBagConstraints.BOTH;
                 add(fixed, c);
             } else {            	
                 // old-style before we added hiding these on mouse roll-off
-                //add(activeIcon, c);
+                //add(activeIcon, c);            	
                 add(grab, c);
                 add(locked, c);
-            }
-            //setBorder(BorderFactory.createLineBorder(Color.red, 1));
+            }            
             // set initial visibility states by simulating a mouse roll-off
             rollOff(); 
 
@@ -2006,7 +2014,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         
         void rollOff() { 
         	
-            if (grab != null){            	
+            if (grab != null){             	
                 grab.setVisible(false);                
             }
             if (locked != null && !locked.isSelected())
@@ -2029,12 +2037,25 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             		VUE.getSelection().setTo(layer.getAllDescendents());
             	}            	
             }
+            Layer active = null;
             if(((JButton)mToolbar.getComponent(3)).isBorderPainted()){
-        		VUE.getSelection().setTo(layer.getAllDescendents());
-        	}
-            Layer active = getActiveLayer();            
-        	MouseListener popupListener = new PopupListener(active.isLocked());
-        	addMouseListener(popupListener);
+            	active = getActiveLayer();  
+            	Row row =null;
+           	 	for (Row rows : mRows){
+           	 		row = rows;
+                     if (rows.layer.equals(active)){                    	 
+                    	 row.layer.setVisible(true);
+                    	 VUE.getSelection().setTo(row.layer.getAllDescendents());
+                     }else{                    	 
+                    	 row.layer.setVisible(false);
+                     }
+                 }        		
+        		
+        	}   
+            if(active != null){
+            	MouseListener popupListener = new PopupListener(active.isLocked());
+            	addMouseListener(popupListener);
+            }
         	
             
         }        
