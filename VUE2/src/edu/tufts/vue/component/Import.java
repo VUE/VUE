@@ -33,6 +33,8 @@ import tufts.vue.action.SaveAction;
 import tufts.vue.action.ActionUtil;
 import tufts.vue.*;
 import java.io.File;
+import java.util.*;
+
 
 public class Import {
 
@@ -67,11 +69,17 @@ public class Import {
      */
 
     public void createMap(String inputFile,String outputFile, Layout layout) throws Exception {
-        Dataset ds = new Dataset();
-        ds.setFileName(inputFile);
-        ds.loadDataset();
-        LWMap map = layout.createMap(ds, "ClubZora");
-        map.setFile(new File(outputFile));
+        Schema schema = Schema.instance(Resource.instance(inputFile),edu.tufts.vue.util.GUID.generate());
+        XmlDataSource datasource = new XmlDataSource();
+        datasource.ingestCSV(schema,inputFile,true);
+        List<LWComponent> nodes =  DataAction.makeRowNodes(schema);
+        LWMap map = new LWMap("test");
+        System.out.println("Adding nodes to map");
+        for(LWComponent component: nodes) {
+            map.add(component);
+            System.out.println("Adding: "+component.getLabel());
+        }
+        layout.layout(new LWSelection(nodes));
         ActionUtil.marshallMap(new File(outputFile), map);
     }
 
