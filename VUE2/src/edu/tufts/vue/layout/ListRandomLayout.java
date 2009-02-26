@@ -51,7 +51,7 @@ public class ListRandomLayout extends Layout {
         Map<String, LWNode> nodeMap = new HashMap<String, LWNode>();
         Map<String, Integer> repeatMap = new HashMap<String, Integer>();
         LWMap map = new LWMap(mapName);
-         int count = 0;
+        int count = 0;
         // set map size of the map
         double rowCount = ds.getRowList().size();
         double goodSize = (int) Math.sqrt(rowCount) * 100;
@@ -60,7 +60,8 @@ public class ListRandomLayout extends Layout {
             String node1Label = row.get(0);
             LWNode node1;
             if (!nodeMap.containsKey(node1Label)) {
-                node1 = new LWNode(node1Label);
+                node1 = new LWNode();
+                node1.setLabel(node1Label);
                 for (int i = 1; i < row.size(); i++) {
                     String value = row.get(i);
                     String key = ((ds.getHeading() == null) || ds.getHeading().size() < i) ? DEFAULT_METADATA_LABEL : ds.getHeading().get(i);
@@ -73,14 +74,14 @@ public class ListRandomLayout extends Layout {
                 if (ds.getHeading().size() > 1 && ds.getHeading().get(1).equals("resource")) {
                     Resource resource = node1.getResourceFactory().get(new File(row.get(1)));
                     node1.setResource(resource);
-                }               
+                }
                 nodeMap.put(node1Label, node1);
                 node1.layout();
                 map.add(node1);
             } else {
                 node1 = nodeMap.get(node1Label);
             }
-            node1.setFillColor(Color.green.darker());
+            node1.setFillColor(Color.green);
             node1.setLocation(MAP_SIZE * Math.random(), MAP_SIZE * Math.random());
 
         }
@@ -147,11 +148,13 @@ public class ListRandomLayout extends Layout {
                 while (flag && col_count < MAX_COLLISION_CHECK) {
 
                     LWComponent overlapComponent;
-                    if ((VUE.getActiveViewer().pickNode((float) x, (float) y) != null) || (VUE.getActiveViewer().pickNode((float) x + node.getWidth(), (float) y + node.getHeight()) != null) || (VUE.getActiveViewer().pickNode((float) x, (float) y + node.getHeight()) != null) || (VUE.getActiveViewer().pickNode((float) x + node.getWidth(), (float) y) != null)) {
-                        x = centerX + xSize * (Math.random() - 0.5);
-                        y = centerY + ySize * (Math.random() - 0.5);
-                    } else {
-                        flag = false;
+                    if(VUE.getActiveViewer() != null) {
+                        if ((VUE.getActiveViewer().pickNode((float) x, (float) y) != null) || (VUE.getActiveViewer().pickNode((float) x + node.getWidth(), (float) y + node.getHeight()) != null) || (VUE.getActiveViewer().pickNode((float) x, (float) y + node.getHeight()) != null) || (VUE.getActiveViewer().pickNode((float) x + node.getWidth(), (float) y) != null)) {
+                            x = centerX + xSize * (Math.random() - 0.5);
+                            y = centerY + ySize * (Math.random() - 0.5);
+                        } else {
+                            flag = false;
+                        }
                     }
                     col_count++;
 //                    System.out.println("Node: "+node.getLabel()+" count:"+col_count);
