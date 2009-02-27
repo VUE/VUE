@@ -42,7 +42,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.112 $ / $Date: 2009-02-24 21:50:13 $ / $Author: sfraize $
+ * @version $Revision: 1.113 $ / $Date: 2009-02-27 16:57:16 $ / $Author: sraphe01 $
  */
 
 public class InspectorPane extends WidgetStack
@@ -135,7 +135,7 @@ public class InspectorPane extends WidgetStack
         new Pane("Content Summary",        mDescription,        0.5f,        RESOURCE+DATA);
         new Pane("Data Set Fields",        mDataSetData,        EXACT_SIZE,  INFO+NOTES+KEYWORD+DATA);
         new Pane("Content Info",           mResourceMetaData,   EXACT_SIZE,  RESOURCE);
-        new Pane("Notes",                  mNotes,              EXPANDER,    INFO+NOTES);
+        new Pane("Notes",                  mNotes,              EXACT_SIZE,    INFO+NOTES);
         new Pane("Pathway Notes",          mPathwayNotes,       EXPANDER,    INFO+NOTES);
         new Pane("Keywords",               mKeywords,           EXACT_SIZE,  KEYWORD);
         new Pane("Ontological Membership", ontologicalMetadata, EXACT_SIZE,  0);
