@@ -40,7 +40,7 @@ import edu.tufts.vue.metadata.action.SearchAction;
 
 
 /**
- * @version $Revision: 1.71 $ / $Date: 2009-02-26 16:55:29 $ / $Author: sraphe01 $
+ * @version $Revision: 1.72 $ / $Date: 2009-02-27 16:57:36 $ / $Author: sraphe01 $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -295,7 +295,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 	                	Row row =null;
 	               	 	for (Row rows : mRows){
 	               	 		row = rows;	                              	 
-	                        row.layer.setVisible(true);	                        	 
+	                        row.layer.setVisible(true);	   
+	                        VUE.getSelection().setTo(row.layer.getAllDescendents());
 	                     }       
 	                	flg = !flg;
                 	}
@@ -349,9 +350,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
          
     public LayersUI() {
         super("layers");
-        setName("layersUI");        
-        //setLayout(new GridBagLayout());
-
+        setName("layersUI");   
+             
         mToolbar.setName("layersUI.tool");
         mRowList.setName("layersUI.rows");
         
