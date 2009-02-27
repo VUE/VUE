@@ -29,7 +29,7 @@ import java.awt.image.BufferedImage;
 import tufts.vue.*;
 
 /**
- * @version $Revision: 1.30 $ / $Date: 2009-02-25 14:59:20 $ / $Author: mike $ *
+ * @version $Revision: 1.31 $ / $Date: 2009-02-27 15:18:30 $ / $Author: mike $ *
  * @author Jay Briedis
  * 
  * Major revision: 2/17/09 -MK
@@ -227,13 +227,25 @@ public class ImageMap extends VueAction {
 				Collection<LWComponent> children = comp.getAllDescendents();
 				LWComponent[] array = new LWComponent[children.size()];
 				children.toArray(array);
-				for (int i = array.length - 1; i >= 0; i--) {
+				for (int i = array.length - 1; i >= 0; i--) 
+				{
 					if (array[i] instanceof LWNode)
-						arrayList.add(0, " <area "+href+" "+notes+" id=\"" + type
+					{
+						  String childHref;
+						  Resource childRes = array[i].getResource();
+						   if (childRes == null)
+					        	childHref ="";
+				            else if(childRes.equals("null"))
+				        	   childHref = "";
+				           else 
+				        	   childHref = "href=\"" + childRes.getSpec() + "\" target=\"_blank\"";	
+						   
+						arrayList.add(0, " <area "+childHref+" "+notes+" id=\"" + type
 								+ (nodeCounter++)
 								+ "\" shape=\"rect\" coords=\""
 								+ getRectCoords(getRectNode(array[i]))
 								+ "\"></area>\n");
+					}
 				}
 
 				arrayList.add(" <area "+href+" "+notes+" id=\"" + type
