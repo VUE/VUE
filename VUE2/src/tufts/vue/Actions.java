@@ -30,6 +30,7 @@ import java.awt.geom.RectangularShape;
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -1194,6 +1195,7 @@ public class Actions implements VueConstants
                 if (option == null || option.length() <= 0 || optionPane.getValue().equals("Cancel"))
                     return;
                 
+               option= URLEncoder.encode(option);
     				
               //  if (!option.startsWith("http://") || !option.startsWith("https://") || !option.startsWith("file://"))
                 //	option = "http://" + option;
