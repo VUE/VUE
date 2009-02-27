@@ -34,6 +34,7 @@ import tufts.vue.action.ActionUtil;
 import tufts.vue.*;
 import java.io.File;
 import java.util.*;
+import java.awt.Color;
 
 
 public class Import {
@@ -76,6 +77,8 @@ public class Import {
         LWMap map = new LWMap("test");
         System.out.println("Adding nodes to map");
         for(LWComponent component: nodes) {
+            component.setFillColor(Color.green.darker());
+            component.setLabel("${CitizenID}");
             map.add(component);
             System.out.println("Adding: "+component.getLabel());
         }
