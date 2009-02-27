@@ -1195,8 +1195,14 @@ public class Actions implements VueConstants
                 if (option == null || option.length() <= 0 || optionPane.getValue().equals("Cancel"))
                     return;
                 
-               option= URLEncoder.encode(option);
-    				
+                if (option.indexOf("?") > 0)
+                {
+                	String encoded = option.substring(option.indexOf("?")+1);
+                
+                	encoded = URLEncoder.encode(encoded);
+
+                	option = option.substring(0,option.indexOf("?")+1) + encoded;
+                }
               //  if (!option.startsWith("http://") || !option.startsWith("https://") || !option.startsWith("file://"))
                 //	option = "http://" + option;
                 //int option = chooser.showOpenDialog(tufts.vue.VUE.getDialogParent());
