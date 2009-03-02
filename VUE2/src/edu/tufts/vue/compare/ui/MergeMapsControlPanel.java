@@ -54,8 +54,8 @@ public class MergeMapsControlPanel extends JPanel implements ActiveListener<LWMa
         mapSelectionPanel = MapsSelectionPanel.getMapSelectionPanel();
         visualizationSettingsPanel = new VisualizationSettingsPanel();
         final JTabbedPane tabs = new JTabbedPane();
-        tabs.addTab("Select Maps",mapSelectionPanel);
-        tabs.addTab("Visualization Settings",visualizationSettingsPanel);
+        tabs.addTab(VueResources.getString("dialog.mergemap.selectmaps"),mapSelectionPanel);
+        tabs.addTab(VueResources.getString("dialog.mergemap.visualizationsettings"),visualizationSettingsPanel);
         
         /*tabs.addPropertyChangeListener(new PropertyChangeListener()
         {
@@ -90,7 +90,7 @@ public class MergeMapsControlPanel extends JPanel implements ActiveListener<LWMa
         
         
         add(tabs);
-        closeButton = new JButton("Close");
+        closeButton = new JButton(VueResources.getString("dialog.mergemap.close"));
         closeButton.addActionListener(new ActionListener()
         {
            public void actionPerformed(ActionEvent e)
@@ -98,7 +98,7 @@ public class MergeMapsControlPanel extends JPanel implements ActiveListener<LWMa
                dw.setVisible(false);
            }
         });
-        generateButton = new JButton("Generate New Map");
+        generateButton = new JButton(VueResources.getString("dialog.mergemap.generatenewmap"));
         generateButton.addActionListener(new ActionListener()
         {
            public void actionPerformed(ActionEvent e)
@@ -146,11 +146,11 @@ public class MergeMapsControlPanel extends JPanel implements ActiveListener<LWMa
                         JLabel progressLabel = new JLabel();
                         if(noMapsSelected)
                         {
-                          progressLabel.setText(" No maps were selected");  
+                          progressLabel.setText(VueResources.getString("dialog.mergemap.nomapsselected"));  
                         }
                         else
                         {    
-                          progressLabel.setText("In Progress...");
+                          progressLabel.setText(VueResources.getString("dialog.mergemap.inprogress"));
                         }
                         loadingLabel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
                         
@@ -166,7 +166,7 @@ public class MergeMapsControlPanel extends JPanel implements ActiveListener<LWMa
                                                 BorderFactory.createEmptyBorder(0,10,0,10),
                                                 BorderFactory.createMatteBorder(1,0,0,0,new java.awt.Color(153,153,153))));
                         
-                        JButton stopButton = new JButton("cancel");
+                        JButton stopButton = new JButton(VueResources.getString("dialog.mergemap.cancel"));
                         
                         buttonPanel.add(stopButton);
                         

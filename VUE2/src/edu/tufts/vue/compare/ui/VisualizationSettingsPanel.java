@@ -19,11 +19,15 @@ package edu.tufts.vue.compare.ui;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import tufts.Util;
+import tufts.vue.VueResources;
 
 import tufts.Util;
 
@@ -34,13 +38,14 @@ import tufts.Util;
  */
 public class VisualizationSettingsPanel extends JPanel implements ActionListener {
 
-    // visualization types
+	// visualization types
     public final static int VOTE = 1;
     public final static int WEIGHT = 0;
     
-    public final static String VOTE_STRING = "Vote";
-    public final static String WEIGHT_STRING = "Weight";
-    public final static String visualizationSettingsChoiceMessage = "Which type of visualization would you like to use?";
+    private String SetParamaterFor = VueResources.getString("dialog.visualizationsettings.SetParamaterFor");
+    private String VOTE_STRING = VueResources.getString("dialog.visualizationsettings.vote");
+    private String WEIGHT_STRING = VueResources.getString("dialog.visualizationsettings.weight");
+    private String visualizationSettingsChoiceMessage = VueResources.getString("dialog.visualizationsettings.ChoiceMessage");
     //moving to Select Maps Panel (and changing to "layout")
     //public final static String filterOnBaseMapMessageString = "Only include items found on the guide map";
     
@@ -94,7 +99,7 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
         setLayout(gridBag);
         
         
-        final String[] choices = {"Weight","Vote"};
+        final String[] choices = {WEIGHT_STRING,VOTE_STRING};
         visualizationChoice = new JComboBox(choices)
         {
             public java.awt.Dimension getMinimumSize()
@@ -147,7 +152,7 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
     {
         gridBagConstraints.weighty = 0.0;
         gridBagConstraints.gridwidth = GridBagConstraints.RELATIVE;;
-        weightParameterChoiceLabel = new JLabel("Set parameters for:");
+        weightParameterChoiceLabel = new JLabel(SetParamaterFor);
         weightParameterChoiceLabel.setFont(tufts.vue.gui.GUI.LabelFace);
         //gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
         gridBagConstraints.anchor = GridBagConstraints.EAST;
