@@ -34,7 +34,7 @@ import java.awt.event.*;
 import tufts.vue.*;
 import tufts.vue.gui.VueFileChooser;
 public class DatasetAction  extends VueAction {
-    public static final String LABEL = "Import Dataset";
+    public static final String LABEL = VueResources.getString("menu.file.importdataset");
     /** Creates a new instance of DatasetAction */
     public DatasetAction() {
         super(LABEL);
