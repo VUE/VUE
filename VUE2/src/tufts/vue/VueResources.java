@@ -32,7 +32,7 @@ import java.io.File;
  * resource types.  It also can be modified to support caching of
  * of resources for performance (todo: yes, implement a result cache).
  *
- * @version $Revision: 1.55 $ / $Date: 2008-08-04 17:16:22 $ / $Author: mike $
+ * @version $Revision: 1.56 $ / $Date: 2009-03-02 08:35:19 $ / $Author: vaibhav $
  *
  */
 public class VueResources
@@ -61,7 +61,9 @@ public class VueResources
         } /*else if (tufts.Util.isWindowsPlatform())*/ 
         else
         {
-            sResourceBundle = ResourceBundle.getBundle("tufts.vue.VueResources", new Locale("en", "", "Win"));
+        	System.out.println("ISO country language   "+ Locale.getDefault().getLanguage());
+        	System.out.println("ISO country code   "+ Locale.getDefault().getCountry());
+        	sResourceBundle = ResourceBundle.getBundle("tufts.vue.VueResources", new Locale(Locale.getDefault().getLanguage(),Locale.getDefault().getCountry(),"Win"));
         } /*else {
             sResourceBundle = ResourceBundle.getBundle("tufts.vue.VueResources");
         }*/
@@ -847,10 +849,28 @@ public class VueResources
             pObj.setFocusable(false);
 	
     }
+     /**
+      * This method returns the formated string in the default 
+      * language
+      * @param arguments : variable to be placed in the string 
+      * @param pattern : string retrived from the properties file.
+      * @return
+      */
+      public static String getFormatMessage(Object[] arguments, String pattern){
+		
+		MessageFormat formatter = new MessageFormat(getString(pattern));
+		
+		if(arguments!=null){
+		return formatter.format(arguments);}else{
+			return getString(pattern);
+		}
+	}
 	
     static private boolean sDebug = false;
 	
     static protected void debug( String pStr) {
         if (sDebug || DEBUG.INIT) System.out.println( pStr);
     }
+    
+    
 }
