@@ -32,7 +32,7 @@ import java.io.File;
  * resource types.  It also can be modified to support caching of
  * of resources for performance (todo: yes, implement a result cache).
  *
- * @version $Revision: 1.56 $ / $Date: 2009-03-02 08:35:19 $ / $Author: vaibhav $
+ * @version $Revision: 1.57 $ / $Date: 2009-03-02 16:04:09 $ / $Author: vaibhav $
  *
  */
 public class VueResources
@@ -63,7 +63,8 @@ public class VueResources
         {
         	System.out.println("ISO country language   "+ Locale.getDefault().getLanguage());
         	System.out.println("ISO country code   "+ Locale.getDefault().getCountry());
-        	sResourceBundle = ResourceBundle.getBundle("tufts.vue.VueResources", new Locale(Locale.getDefault().getLanguage(),Locale.getDefault().getCountry(),"Win"));
+        	//sResourceBundle = ResourceBundle.getBundle("tufts.vue.VueResources", new Locale(Locale.getDefault().getLanguage(),Locale.getDefault().getCountry(),"Win"));
+        	sResourceBundle = ResourceBundle.getBundle("tufts.vue.VueResources", new Locale("en", "", "Win"));
         } /*else {
             sResourceBundle = ResourceBundle.getBundle("tufts.vue.VueResources");
         }*/
