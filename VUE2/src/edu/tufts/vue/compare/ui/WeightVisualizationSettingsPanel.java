@@ -18,7 +18,7 @@
  *
  * Created on February 2, 2007, 3:47 PM
  *
- * @version $Revision: 1.47 $ / $Date: 2009-02-12 21:30:17 $ / $Author: sraphe01 $
+ * @version $Revision: 1.48 $ / $Date: 2009-03-02 09:10:58 $ / $Author: vaibhav $
  * @author dhelle01
  */
 
@@ -60,7 +60,7 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
     public static final String parameterChoiceMessageString = "Set parameters for:";
     //public static final String parameterChoiceMessageString = "Select a vizualization mode:";
     public static final String intervalChoiceMessageString = "Set number of intervals:";
-    public static final String paletteChoiceMessageString = "Select a color Palette:";
+    public static final String paletteChoiceMessageString = VueResources.getString("dialog.visualizationsettings.selectcolor");
     
     private static final boolean EDITABLE_INTERVALS = true;
     private static final boolean DEBUG_LOCAL = false;
@@ -141,7 +141,7 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         //setOpaque(true);
         //setBackground(java.awt.Color.BLUE);
         
-        String[] parameterChoices = {"Nodes","Links"};
+        String[] parameterChoices = {VueResources.getString("dialog.visualizationsettings.nodes"),VueResources.getString("dialog.visualizationsettings.links")};
         
         tufts.vue.PolygonIcon lineIcon = new tufts.vue.PolygonIcon(new Color(153,153,153));
        /*{
@@ -966,9 +966,9 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         
         public String getColumnName(int col) {
             if(col == 0)
-                return "Intervals:";
+                return VueResources.getString("dialog.visualizationsettings.colheaderint");
             else
-                return "Preview:";
+                return VueResources.getString("dialog.visualizationsettings.colheaderpre");
         }
         
         public int getRowCount() {
