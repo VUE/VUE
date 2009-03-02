@@ -18,7 +18,7 @@
  *
  * Created on May 3, 2007, 11:17 AM
  *
- * @version $Revision: 1.41 $ / $Date: 2008-06-30 20:52:59 $ / $Author: mike $
+ * @version $Revision: 1.42 $ / $Date: 2009-03-02 08:47:10 $ / $Author: vaibhav $
  * @author dhelle01
  */
 
@@ -68,16 +68,19 @@ public class MapsSelectionPanel extends JPanel  {
     public static final int OPEN_MAP = 0;
     public static final int LOCAL_FILE = 1;
     
-    public static final String stepOneMessage = "1. Create a set of maps";
-    public static final String stepTwoMessage = "2. Pick a primary map";
-    public static final String stepThreeMessage = "3. Determine map filter:";
+    public String stepOneMessage = VueResources.getString("dialog.selectionpane.stepOneMessage");
+    public String stepTwoMessage = VueResources.getString("dialog.selectionpane.stepTwoMessage");
+    public String stepThreeMessage = VueResources.getString("dialog.selectionpane.stepThreeMessage");
 
-    public static final String showAllMessage = "All";
-    public static final String filterOnPrimaryMapMessage = "Show nodes found on primary map only";
-    public static final String excluePrimaryMapNodesMessage = "Exclude nodes found on primary map";
+    public String showAllMessage = VueResources.getString("dialog.selectionpane.showAllMessage");
+    public String filterOnPrimaryMapMessage = VueResources.getString("dialog.selectionpane.filterOnPrimaryMapMessage");
+    public String excluePrimaryMapNodesMessage = VueResources.getString("dialog.selectionpane.excluePrimaryMapNodesMessage");
     
-    public final static String filterOnBaseMapMessageString = "Only include items found on the base map";
+    public String filterOnBaseMapMessageString = VueResources.getString("dialog.selectionpane.filterOnBaseMapMessageString");
     
+    private String AddMaps = VueResources.getString("dialog.selectionpane.AddMaps");
+    
+    private String MergeProrerty = VueResources.getString("dialog.selectionpane.MergeProrerty");
     private JScrollPane scroll;
     private JTable maps;
     //private JTextField fileNameField;
@@ -102,8 +105,8 @@ public class MapsSelectionPanel extends JPanel  {
         GridBagConstraints gridBagConstraints = new GridBagConstraints();
         setLayout(gridBag);
         
-        //fileNameField = new JTextField(20);
-        browseButton = new JButton("Add Maps");
+		//fileNameField = new JTextField(20);
+        browseButton = new JButton(AddMaps);
         browseButton.addActionListener(new ActionListener()
         {
            public void actionPerformed(ActionEvent e)
@@ -245,7 +248,8 @@ public class MapsSelectionPanel extends JPanel  {
         gridBag.setConstraints(mapFilterChoice,gridBagConstraints);
         add(mapFilterChoice);
         
-        JLabel mergePropertyLabel = new JLabel("4. Merge property:");
+        
+		JLabel mergePropertyLabel = new JLabel(MergeProrerty);
         mergePropertyLabel.setFont(tufts.vue.gui.GUI.LabelFace);
         String[] mergePropertyChoices = {"Label","Ontological Membership","Ontological Membership and Label"};
         JComboBox mergePropertyChoice = new JComboBox(mergePropertyChoices);
@@ -795,7 +799,7 @@ public class MapsSelectionPanel extends JPanel  {
            {
                if(getMapType(row) == OPEN_MAP)
                {
-                   return "Open";
+                   return VueResources.getString("dialog.mapselection.open");
                }
                else
                {
@@ -825,13 +829,13 @@ public class MapsSelectionPanel extends JPanel  {
        public String getColumnName(int col)
        {
            if(col == 0)
-               return "Set";
+               return VueResources.getString("dialog.mapselection.colset");
            if(col == 1)
-               return "Name";
+               return VueResources.getString("dialog.mapselection.colname");
            if(col == 2)
-               return "Primary";
+               return VueResources.getString("dialog.mapselection.colprimary");
            if(col == 3)
-               return "Location";
+               return VueResources.getString("dialog.mapselection.collocation");
            else
                return "";
         }

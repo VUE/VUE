@@ -61,8 +61,8 @@ public class MapChooser extends JDialog implements ActionListener{
     public static final int CMPUB_HEIGHT = 350;
     public static final int CMPUB_X_LOCATION = 300;
     public static final int CMPUB_Y_LOCATION = 300;
-    public static final String generateMessage = "Generate a connectivity matrix from:";
-    public static final String browseMessage =   "Browse to map:";
+    public static final String generateMessage = VueResources.getString("dialog.connanalysis");
+    public static final String browseMessage =  VueResources.getString("dialog.browsmap");
     public static final String FILE_URL = "file://";
     private JPanel locationPanel = null;
     private JButton cancelButton = null;
@@ -86,9 +86,9 @@ public class MapChooser extends JDialog implements ActionListener{
         setModal(true);
         setSize(CMPUB_WIDTH,CMPUB_HEIGHT);
         
-        cancelButton = new JButton("Cancel");
-        generateButton = new JButton("Generate");
-        browseButton = new JButton("Browse");
+        cancelButton = new JButton(VueResources.getString("dialog.connanalysis.cancel"));
+        generateButton = new JButton(VueResources.getString("dialog.connanalysis.generate"));
+        browseButton = new JButton(VueResources.getString("dialog.connanalysis.browse"));
         cancelButton.addActionListener(this);
         generateButton.addActionListener(this);
         browseButton.addActionListener(this);
@@ -126,7 +126,7 @@ public class MapChooser extends JDialog implements ActionListener{
         info.setToolTipText(VueResources.getString("ConnectivityMatrix.helpText"));
         JLabel chooseLabel = new JLabel(generateMessage,JLabel.RIGHT);
         browseLabel = new JLabel(browseMessage,JLabel.CENTER);
-        String[] choices = {"active map","map in a local folder"};
+        String[] choices = {VueResources.getString("dialog.connanalysis.activemap"),VueResources.getString("dialog.connanalysis.mapinfolder")};
         choice = new JComboBox(choices);
         file = new JTextField(2);
         PolygonIcon lineIcon = new PolygonIcon(new Color(153,153,153));

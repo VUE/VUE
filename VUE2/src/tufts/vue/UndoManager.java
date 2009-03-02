@@ -48,9 +48,9 @@ public class UndoManager
     private boolean mCleanupUnderway = false;
 
     /** The list of undo actions (named groups of property changes) */
-    private UndoActionList UndoList = new UndoActionList("Undo"); 
+    private UndoActionList UndoList = new UndoActionList(VueResources.getString("menu.edit.undo")); 
     /** The list of redo actions (named groups of property changes generated from Undo's) */
-    private UndoActionList RedoList = new UndoActionList("Redo"); 
+    private UndoActionList RedoList = new UndoActionList(VueResources.getString("menu.edit.redo")); 
     
     /** The map who's modifications we're tracking. */
     protected LWMap mMap; 

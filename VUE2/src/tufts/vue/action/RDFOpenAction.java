@@ -47,7 +47,7 @@ public class RDFOpenAction extends VueAction {
     }
     
     public RDFOpenAction() {
-        this("Import RDF File...");
+        this(VueResources.getString("menu.file.importrdffile"));
     }
     
     

@@ -36,7 +36,7 @@ import java.awt.event.ActionEvent;
  * means that VUE can't repaint itself while the print dialogs are
  * active (not true on Mac OS X, but true at least on W2K/JVM1.4.2).
  * 
- * @version $Revision: 1.44 $ / $Date: 2008-06-30 20:53:06 $ / $Author: mike $
+ * @version $Revision: 1.45 $ / $Date: 2009-03-02 08:45:58 $ / $Author: vaibhav $
  * @author Scott Fraize
  */
 
@@ -47,7 +47,7 @@ public class PrintAction extends tufts.vue.VueAction
     private static PrintAction singleton;
     public static PrintAction getPrintAction() {
         if (singleton == null)
-            singleton = new PrintAction("Print...");
+            singleton = new PrintAction(VueResources.getString("menu.file.printdot"));
         return singleton;
     }
 
