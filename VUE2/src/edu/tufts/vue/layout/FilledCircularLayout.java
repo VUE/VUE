@@ -39,8 +39,8 @@ import edu.tufts.vue.dataset.*;
  */
 public class FilledCircularLayout extends Layout {
 
-    public static final double FACTOR = 4;
-    public static final int MAX_COLLISION_CHECK = 20;
+    public static final double FACTOR =VueResources.getDouble("layout.space_ratio");
+    public static final int MAX_COLLISION_CHECK = VueResources.getInt("layout.check_overlap_number");
 
     /** Creates a new instance of TabularLayout */
     public FilledCircularLayout() {

@@ -38,6 +38,7 @@ public class SearchLayout extends Layout {
     public static final double FACTOR = VueResources.getDouble("layout.space_ratio");
     public static final int MAX_COLLISION_CHECK = VueResources.getInt("layout.check_overlap_number");
     public static final double MIN_AVOID_DIST = VueResources.getDouble("layout.avoid_distance");
+    public static final double RIPPLE_RANGE = VueResources.getDouble("layout.ripple_range");
     public LWMap createMap(Dataset ds, String mapName) throws Exception {
         LWMap map = new LWMap(mapName);
         return map;
@@ -72,7 +73,7 @@ public class SearchLayout extends Layout {
         centerY = centerY / total;
         double radius = Math.sqrt(FACTOR * total * meanNodeWidth * meanNodeWidth / Math.PI);
          double maxShift  = radius ; //maximum shift of a node
-         double rippleRange= 3*radius;
+         double rippleRange= RIPPLE_RANGE*radius;
         // generate a ripple with center(centerX,centerY) and radius
         Iterator<LWComponent> i = VUE.getActiveMap().getAllDescendents(LWContainer.ChildKind.PROPER).iterator();
         while (i.hasNext()) {
