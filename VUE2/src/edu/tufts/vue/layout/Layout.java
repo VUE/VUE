@@ -34,10 +34,10 @@ public abstract class Layout {
 
     public double MAP_SIZE = 500;
     public int MAX_SIZE = 5000;
-    public static final double X_COL_SIZE = 50;
-    public static final double Y_COL_SIZE = 20;
-    public static final double X_SPACING = 20;
-    public static final double Y_SPACING = 16;
+    public static final double X_COL_SIZE = VueResources.getDouble("layout.node_width");
+    public static final double Y_COL_SIZE = VueResources.getDouble("layout.node_height");
+    public static final double X_SPACING = VueResources.getDouble("layout.x_spacing");
+    public static final double Y_SPACING = VueResources.getDouble("layout.y_spacing");
 
     /** Creates a new instance of Layout */
     public Layout() {
