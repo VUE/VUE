@@ -35,9 +35,9 @@ import java.awt.geom.Point2D;
  */
 public class SearchLayout extends Layout {
 
-    public static final double FACTOR = 1.25;
-    public static final int MAX_COLLISION_CHECK = 20;
-    public static final double MIN_AVOID_DIST = 0.5;
+    public static final double FACTOR = VueResources.getDouble("layout.space_ratio");
+    public static final int MAX_COLLISION_CHECK = VueResources.getInt("layout.check_overlap_number");
+    public static final double MIN_AVOID_DIST = VueResources.getDouble("layout.avoid_distance");
     public LWMap createMap(Dataset ds, String mapName) throws Exception {
         LWMap map = new LWMap(mapName);
         return map;
