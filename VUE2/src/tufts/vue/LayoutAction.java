@@ -68,30 +68,31 @@ public abstract  class LayoutAction extends Actions.LWCAction {
         }
     }
     // random layout. scatters nodes at random
-    public static final LayoutAction random = new LayoutAction(new ListRandomLayout(),"Random",KeyEvent.VK_1) {
+    // random layout. scatters nodes at random
+    public static final LayoutAction random = new LayoutAction(new ListRandomLayout(),VueResources.getString("menu.format.layout.random"),KeyEvent.VK_1) {
         boolean supportsSingleMover() { return false; }
     };
-    public static final LayoutAction table = new LayoutAction(new TabularLayout(),"Table",KeyEvent.VK_2) {
+    public static final LayoutAction table = new LayoutAction(new TabularLayout(),VueResources.getString("menu.format.layout.table"),KeyEvent.VK_2) {
         boolean supportsSingleMover() { return false; }
     };
-    public static final LayoutAction circle = new LayoutAction(new CircularLayout(),"Circle",KeyEvent.VK_3) {
+    public static final LayoutAction circle = new LayoutAction(new CircularLayout(),VueResources.getString("menu.format.layout.circle"),KeyEvent.VK_3) {
         boolean supportsSingleMover() { return false; }
     };
-    public static final LayoutAction filledCircle = new LayoutAction(new FilledCircularLayout(),"Filled Circle",KeyEvent.VK_4) {
+    public static final LayoutAction filledCircle = new LayoutAction(new FilledCircularLayout(),VueResources.getString("menu.format.layout.filledcircle"),KeyEvent.VK_4) {
         boolean supportsSingleMover() { return false; }
     };
-    public static final LayoutAction force = new LayoutAction(new ForceLayout(),"Force",KeyEvent.VK_5) {
-        boolean supportsSingleMover() { return false; }
-    };
-    
-    public static final LayoutAction cluster = new LayoutAction(new ClusterLayout(),"Cluster",KeyEvent.VK_6) {
+    public static final LayoutAction force = new LayoutAction(new ForceLayout(),VueResources.getString("menu.format.layout.force"),KeyEvent.VK_5) {
         boolean supportsSingleMover() { return false; }
     };
     
-     public static final LayoutAction ripple = new LayoutAction(new RippleLayout(),"Ripple",KeyEvent.VK_7) {
+    public static final LayoutAction cluster = new LayoutAction(new ClusterLayout(),VueResources.getString("menu.format.layout.cluster"),KeyEvent.VK_6) {
         boolean supportsSingleMover() { return false; }
     };
-    public static final LayoutAction stretch = new LayoutAction(new StretchLayout(),"Stretch",KeyEvent.VK_8) {
+    
+     public static final LayoutAction ripple = new LayoutAction(new RippleLayout(),VueResources.getString("menu.format.layout.ripple"),KeyEvent.VK_7) {
+        boolean supportsSingleMover() { return false; }
+    };
+    public static final LayoutAction stretch = new LayoutAction(new StretchLayout(),VueResources.getString("menu.format.layout.stretch"),KeyEvent.VK_8) {
         boolean supportsSingleMover() { return false; }
     };
       public static final LayoutAction search= new LayoutAction(new SearchLayout(),"Search",KeyEvent.VK_9) {
