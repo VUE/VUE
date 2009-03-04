@@ -95,7 +95,7 @@ public abstract  class LayoutAction extends Actions.LWCAction {
     public static final LayoutAction stretch = new LayoutAction(new StretchLayout(),VueResources.getString("menu.format.layout.stretch"),KeyEvent.VK_8) {
         boolean supportsSingleMover() { return false; }
     };
-      public static final LayoutAction search= new LayoutAction(new SearchLayout(),"Search",KeyEvent.VK_9) {
+      public static final LayoutAction search= new LayoutAction(new SearchLayout(),VueResources.getString("menu.format.layout.stretch"),KeyEvent.VK_9) {
         boolean supportsSingleMover() { return false; }
     };
     public static final Action[] LAYOUT_ACTIONS = {
