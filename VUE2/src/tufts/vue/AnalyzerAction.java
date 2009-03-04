@@ -81,13 +81,19 @@ public class AnalyzerAction extends Actions.LWCAction {
         	
         }
         active.addChildren(comps);
-        VUE.getSelection().setTo(comps,"search results");
-        LayoutAction.search.act(VUE.getActiveViewer().getSelection());
+       // VUE.getSelection().setTo(comps,"search results");
+        LayoutAction.search.act(comps);
     	
     }
     public void act(LWComponent c) 
     {
     	
+    	if (VUE.getDRBrowser().getDataSourceViewer().mMapBasedSearchThreads.size() > 0)
+    	{		
+    		//System.out.println("SEARCH ALREADY RUNNING!!!!!!!!!!!");
+    		return;
+    		
+    	}
     	List<AnalyzerResult> list = analyzer.analyze(c);
     	Iterator<AnalyzerResult> i = list.iterator();
     	VUE.getActiveViewer().getSelection().clear();
@@ -99,7 +105,7 @@ public class AnalyzerAction extends Actions.LWCAction {
     		hasResults = true;
     		AnalyzerResult l = i.next();
    
-    		if (l !=null)
+    		if (l !=null && l.getValue() !=null)
     			query += l.getValue().trim() + " ";
     	/*
     	 * MK - For testing purposes I was adding Nodes of the search terms to the map.
