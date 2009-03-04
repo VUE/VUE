@@ -59,7 +59,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.232 $ / $Date: 2009-02-25 19:29:15 $ / $Author: sfraize $
+ * @version $Revision: 1.233 $ / $Date: 2009-03-04 21:21:56 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -792,6 +792,12 @@ public class LWMap extends LWContainer
         
         /** @return null */
         @Override public Layer getPersistLayer() {return null; }
+
+        @Override public void setFiltered(boolean filtered) {
+            //super.setFiltered(filtered);
+            //Util.printStackTrace("FILTERED=" + filtered + "; " + this);
+            if (DEBUG.Enabled) Log.debug("layers ignore filtered; (request=" + filtered + ") " + this);
+        }
 
         @Override
         protected void setParent(LWContainer p) {
