@@ -80,13 +80,14 @@ import tufts.vue.action.ShowURLAction;
 import tufts.vue.action.TextOpenAction;
 import edu.tufts.vue.dsm.impl.VueDataSourceManager;
 import edu.tufts.vue.ontology.action.OntologyControlsOpenAction;
+import edu.tufts.vue.ontology.ui.OntologyBrowser;
 import edu.tufts.vue.preferences.VuePrefEvent;
 import edu.tufts.vue.preferences.VuePrefListener;
 
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.133 $ / $Date: 2009-03-02 10:01:17 $ / $Author: vaibhav $
+ * @version $Revision: 1.134 $ / $Date: 2009-03-04 00:52:05 $ / $Author: sraphe01 $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -1003,7 +1004,30 @@ public class VueMenuBar extends javax.swing.JMenuBar
         windowMenu.addSeparator();
         if (VUE.getMapInfoDock() !=null)
         	windowMenu.add(createWindowItem(VUE.getMapInfoDock(),KeyEvent.VK_3, VueResources.getString("menu.windows.mapinfo")));
-        windowMenu.add(ontcontrls);
+        //windowMenu.add(ontcontrls);
+        if (VUE.getOntologyBrowser() !=null && !VUE.isApplet())	{
+        	windowMenu.add(createWindowItem(VUE.getOntologyBrowser(),KeyEvent.VK_4, VueResources.getString("menu.windows.ontologies")));
+        	edu.tufts.vue.ontology.ui.OntologyBrowser browser = OntologyBrowser.getBrowser();
+        	tufts.vue.gui.DockWindow ontologyDock = null;
+            if(browser.isInitialized())
+            {
+            	ontologyDock = OntologyBrowser.getBrowser().getDockWindow();
+            }
+            else
+            {
+                //ontologyDock = tufts.vue.gui.GUI.createDockWindow("Ontologies");
+                tufts.vue.gui.DockWindow searchDock = null;
+            //browser = new edu.tufts.vue.ontology.ui.OntologyBrowser(true, ontologyDock, searchDock);
+               // browser = OntologyBrowser.createBrowser(false,ontologyDock,searchDock);
+                browser.initializeBrowser(false,searchDock);
+            //browser = new edu.tufts.vue.ontology.ui.OntologyBrowser(false, ontologyDock, searchDock);
+                ontologyDock = OntologyBrowser.getBrowser().getDockWindow();
+                ontologyDock.setBounds(0,tufts.vue.gui.DockWindow.ToolbarHeight+100,
+                                       300, (int) (tufts.vue.gui.GUI.GScreenHeight * 0.75));
+            }
+
+            //ontologyDock.setVisible(true);
+        }
         if (VUE.getOutlineDock() !=null && !VUE.isApplet())	
         	windowMenu.add(createWindowItem(VUE.getOutlineDock(),KeyEvent.VK_5, VueResources.getString("menu.windows.outline")));
         if (VUE.getPannerDock() !=null && !VUE.isApplet())	
@@ -1018,7 +1042,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
             windowMenu.add(createWindowItem(VUE.getMetadataSearchMainGUI(), KeyEvent.VK_9, VueResources.getString("menu.windows.search")));            
         }
         
-                
+          
            
 //        final KeyStroke acceleratorKey = KeyStroke.getKeyStroke(KeyEvent.VK_9, Actions.COMMAND);
 //    	Actions.SearchFilterAction.putValue(Action.ACCELERATOR_KEY, acceleratorKey);

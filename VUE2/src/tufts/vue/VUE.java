@@ -107,6 +107,7 @@ import tufts.vue.gui.VueMenuBar;
 import tufts.vue.ui.InspectorPane;
 import edu.tufts.vue.compare.ui.MergeMapsControlPanel;
 import edu.tufts.vue.dsm.impl.VueDataSourceManager;
+import edu.tufts.vue.ontology.ui.OntologyBrowser;
 import edu.tufts.vue.preferences.implementations.MetadataSchemaPreference;
 import edu.tufts.vue.preferences.implementations.ShowAgainDialog;
 import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
@@ -116,7 +117,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.642 $ / $Date: 2009-02-23 22:58:45 $ / $Author: sfraize $ 
+ * @version $Revision: 1.643 $ / $Date: 2009-03-04 00:51:30 $ / $Author: sraphe01 $ 
  */
 
 public class VUE
@@ -161,6 +162,7 @@ public class VUE
     private static MapInspectorPanel mapInspectorPanel = null;
     private static JButton returnToMapButton = null;
     private static MergeMapsControlPanel mergeMapsControlPanel = null;
+    private static OntologyBrowser ontologyBrowser = null;
     private static MetadataSearchMainGUI metadataSearchMainPanel = null;
     private static JPopupMenu popup;
     private static JPopupMenu editPopup;
@@ -189,6 +191,7 @@ public class VUE
     	metadataSearchMainPanel = null;
     	//returnToMapButton = null;
     	mergeMapsControlPanel = null;
+    	ontologyBrowser = null;
     	//DR_BROWSER.removeAll();
     	//DR_BROWSER = null;
     	
@@ -898,6 +901,7 @@ public class VUE
     private static DockWindow layersDock;
     private static DockWindow metaDataSearchDock;
     private static DockWindow mergeMapsDock;
+    private static DockWindow ontologyDock;
     private static DockWindow anchor;
 
     
@@ -1788,6 +1792,8 @@ public class VUE
         
         if (!mergeMapsDock.getWindowProperties().isEnabled() || !mergeMapsDock.getWindowProperties().isWindowVisible())
         	acrossTopList.add(mergeMapsDock);
+        if (!ontologyDock.getWindowProperties().isEnabled() || !ontologyDock.getWindowProperties().isWindowVisible())
+        	acrossTopList.add(ontologyDock);
         
         
         
@@ -1833,6 +1839,7 @@ public class VUE
         	MapInspector.positionWindowFromProperties();
         	metaDataSearchDock.positionWindowFromProperties();
         	mergeMapsDock.positionWindowFromProperties();
+        	ontologyDock.positionWindowFromProperties();
         	ObjectInspector.positionWindowFromProperties();
         	if (outlineDock != null)
         		outlineDock.positionWindowFromProperties();       
@@ -2034,6 +2041,14 @@ public class VUE
         {        	
         	mergeMapsDock = GUI.createDockWindow("Merge Maps");        	
         	mergeMapsControlPanel = new MergeMapsControlPanel(mergeMapsDock);       	
+        }
+      //-----------------------------------------------------------------------------
+        // Ontology Browser
+        //-----------------------------------------------------------------------------
+        if (ontologyDock == null || VUE.isApplet())
+        {        	
+        	ontologyDock = OntologyBrowser.getBrowser().getDockWindow();       	
+        	ontologyBrowser = ontologyBrowser;       	
         }
         //-----------------------------------------------------------------------------
         // Object Inspector / Resource Inspector
@@ -2569,6 +2584,16 @@ public class VUE
     public static DockWindow getMetadataSearchMainGUI()
     {
     	return metaDataSearchDock;
+    }
+    
+    public static OntologyBrowser getOntologyBrowserPanel()
+    {
+    	return ontologyBrowser;
+    }    
+    
+    public static DockWindow getOntologyBrowser()
+    {
+    	return ontologyDock;
     }
     
     public static MergeMapsControlPanel getMergeMapsControlPanel()

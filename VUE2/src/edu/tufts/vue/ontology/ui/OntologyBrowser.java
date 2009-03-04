@@ -373,9 +373,9 @@ public class OntologyBrowser extends JPanel {
         stack.addPane(populatePane,0f);
         Widget.setMiscAction(ontologiesPanel,new MiscWidgetAction() , "dockWindow.addButton");
         ontologyDock.setContent(stack);
-        if(Util.isMacPlatform()){
-        	GUI.setAlwaysOnTop(ontologyDock.window(),true);  
-        }
+//        if(Util.isMacPlatform()){
+//        	GUI.setAlwaysOnTop(ontologyDock.window(),true);  
+//        }
     }
     
     class MiscWidgetAction extends MouseAdapter
