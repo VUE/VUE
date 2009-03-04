@@ -88,12 +88,12 @@ public class AnalyzerAction extends Actions.LWCAction {
     public void act(LWComponent c) 
     {
     	
-    	if (VUE.getDRBrowser().getDataSourceViewer().mMapBasedSearchThreads.size() > 0)
-    	{		
+    	//if (VUE.getDRBrowser().getDataSourceViewer().mMapBasedSearchThreads.size() > 0)
+    	//{		
     		//System.out.println("SEARCH ALREADY RUNNING!!!!!!!!!!!");
-    		return;
+    	//	return;
     		
-    	}
+    	//}
     	List<AnalyzerResult> list = analyzer.analyze(c);
     	Iterator<AnalyzerResult> i = list.iterator();
     	VUE.getActiveViewer().getSelection().clear();
