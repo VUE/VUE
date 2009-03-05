@@ -75,9 +75,11 @@ public class AnalyzerAction extends Actions.LWCAction {
         	tufts.vue.LWNode node = new tufts.vue.LWNode(r.getTitle());
         	node.setResource(r);
         	comps.add(node);
+        	node.layout();
         	node.setLocation(centerComponent.getLocation());
         	LWLink link = new LWLink(centerComponent,node);            
         	comps.add(link);
+        	link.layout();
         	
         }
         active.addChildren(comps);
