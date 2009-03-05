@@ -90,7 +90,8 @@ public class YahooAnalyzer implements LWComponentAnalyzer {
         method.addParameter("context",context);
         // Send POST request
         int statusCode;
-        BufferedReader br = null;
+     //   BufferedReader br = null;
+        InputStream rstream = null;
 		try 
 		{
 			statusCode = client.executeMethod(method);
@@ -99,7 +100,7 @@ public class YahooAnalyzer implements LWComponentAnalyzer {
 			if (statusCode != HttpStatus.SC_OK) {
 				System.err.println("Method failed: " + method.getStatusLine());
 			}
-			InputStream rstream = null;
+			
         
 			// Get the response body
 			rstream = method.getResponseBodyAsStream();
@@ -136,9 +137,9 @@ public class YahooAnalyzer implements LWComponentAnalyzer {
 			Log.error(e.getMessage());
 		} finally
 		{
-			if (br !=null)
+			if (rstream !=null)
 				try {
-					br.close();
+					rstream.close();
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
