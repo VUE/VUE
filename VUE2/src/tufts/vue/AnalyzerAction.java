@@ -35,6 +35,7 @@ import org.osid.repository.Asset;
 import org.osid.repository.AssetIterator;
 import org.osid.repository.RepositoryException;
 
+import tufts.Util;
 import tufts.vue.gui.GUI;
 import tufts.vue.gui.Widget;
 
@@ -56,7 +57,7 @@ public class AnalyzerAction extends Actions.LWCAction {
         return (s.size() == 1
                 && s.first() instanceof LWNode); // todo: a have capability check (free-layout?  !isLaidOut() ?)
     }
-  
+    private final static int maxLabelLineLength =30;
     public static void addResultsToMap(List<Resource> resourceList,LWComponent centerComponent)
     {
     	 //*** MAP BASED SEARCHING ***
@@ -74,6 +75,11 @@ public class AnalyzerAction extends Actions.LWCAction {
         	Resource r = (Resource)resourceList.get(p);
         	tufts.vue.LWNode node = new tufts.vue.LWNode(r.getTitle());
         	node.setResource(r);
+        	String label = node.getLabel();
+
+            label = Util.formatLines(label, maxLabelLineLength);
+            node.setLabel(label);
+            
         	comps.add(node);
         	node.layout();
         	node.setLocation(centerComponent.getLocation());
