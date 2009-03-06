@@ -76,7 +76,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.588 $ / $Date: 2009-02-25 16:44:20 $ / $Author: sfraize $ 
+ * @version $Revision: 1.589 $ / $Date: 2009-03-06 16:36:26 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1994,6 +1994,23 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         return activeTool.initPick(pc, x, y);
     }
     
+    protected PickContext getPickContext(float x, float y, float w, float h)
+    {
+        final PickContext pc = initPickContext(new PickContext(mDC, new java.awt.geom.Rectangle2D.Float(x, y,w,h)));
+        
+        if (mFocal instanceof LWPortal) {
+            // we can pick right through the portal to the underlying map by using using
+            // the map as the pick root (instead of the portal which would be useless
+            // because they're always empty), and ensuring the portal is invisible to
+            // the the pick (excluded).
+            pc.root = mFocal.getParent();
+            //pc.root = mFocal.getMap();
+            pc.excluded = mFocal;
+        }
+
+        return activeTool.initPick(pc, x, y);
+    }
+    
     protected PickContext getPickContext(Rectangle2D.Float rect)
     {
         final PickContext pc = initPickContext(new PickContext(mDC, rect));
@@ -2030,6 +2047,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         return pickNode(p.x, p.y);
     }
     
+    public List<LWComponent> pickNode(float mapX,float mapY, float width, float height)
+    {
+    	 PickContext pc = getPickContext(mapX, mapY,width,height);
+    	 pc.ignoreSelected = false;
+
+         return LWTraversal.RegionPick.pick(pc);
+    }
     public LWComponent pickNode(float mapX, float mapY) {
         if (DEBUG.PICK) out("pickNode " + mapX + "," + mapY);
         return pick(mapX, mapY, false);
@@ -2097,6 +2121,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     {
         PickContext pc = getPickContext(mapX, mapY);
         pc.ignoreSelected = ignoreSelected;
+
         return LWTraversal.PointPick.pick(pc);
             
         /*
