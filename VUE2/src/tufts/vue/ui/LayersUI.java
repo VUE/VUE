@@ -40,7 +40,7 @@ import edu.tufts.vue.metadata.action.SearchAction;
 
 
 /**
- * @version $Revision: 1.72 $ / $Date: 2009-02-27 16:57:36 $ / $Author: sraphe01 $
+ * @version $Revision: 1.73 $ / $Date: 2009-03-06 14:49:33 $ / $Author: sraphe01 $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -290,7 +290,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 	}else{
                 		((JButton)mToolbar.getComponent(3)).setBorderPainted(false);
 	                	((JButton)mToolbar.getComponent(3)).setContentAreaFilled(false);
-	                	((JButton)mToolbar.getComponent(3)).setRolloverIcon(VueResources.getImageIcon("layer.filter.off"));
+	                	((JButton)mToolbar.getComponent(3)).setIcon(VueResources.getImageIcon("layer.filter.off"));
+	                	((JButton)mToolbar.getComponent(3)).setRolloverIcon(VueResources.getImageIcon("layer.filter.on"));
 	                	active = getActiveLayer();  
 	                	Row row =null;
 	               	 	for (Row rows : mRows){
