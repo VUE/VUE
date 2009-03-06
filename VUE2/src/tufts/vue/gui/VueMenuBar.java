@@ -87,7 +87,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.134 $ / $Date: 2009-03-04 00:52:05 $ / $Author: sraphe01 $
+ * @version $Revision: 1.135 $ / $Date: 2009-03-06 14:24:22 $ / $Author: sraphe01 $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -224,7 +224,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
     private final JCheckBoxMenuItem viewFullScreen = makeCheckBox(Actions.ToggleFullScreen);
     Object[] arguments = { new Date(), "TestFile" };
     private final JMenu windowMenu = makeMenu(VueResources.getFormatMessage(arguments, "menu.windows"));
-    private final OntologyControlsOpenAction ontcontrls = new OntologyControlsOpenAction(VueResources.getString("menu.windows.ontologies"));
+    //private final OntologyControlsOpenAction ontcontrls = new OntologyControlsOpenAction(VueResources.getString("menu.windows.ontologies"));
 
     private static final java.util.concurrent.atomic.AtomicInteger PublishRebuildCount = new java.util.concurrent.atomic.AtomicInteger();
 
@@ -922,7 +922,10 @@ public class VueMenuBar extends javax.swing.JMenuBar
         if (!VUE.isApplet())
         {
         	analysisMenu.add(createCMAction);
-        	analysisMenu.add(analyzeCMAction);
+        	if (VUE.getMergeMapsDock()!= null ){
+        		analysisMenu.add(createWindowItem(VUE.getMergeMapsDock(), KeyEvent.VK_9, "Merge Maps"));            
+        	}
+        	//analysisMenu.add(analyzeCMAction);
         }
        
         
