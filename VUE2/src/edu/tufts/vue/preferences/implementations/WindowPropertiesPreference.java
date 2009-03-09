@@ -33,16 +33,17 @@ import java.util.StringTokenizer;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.BorderFactory;
-import edu.tufts.vue.preferences.PreferenceConstants;
-import edu.tufts.vue.preferences.generics.GenericBooleanPreference;
+
+import tufts.vue.VueResources;
 import edu.tufts.vue.preferences.ui.PreferencesDialog;
+
 
 /**
  * @author Mike Korcynski
@@ -200,7 +201,7 @@ public class WindowPropertiesPreference extends StringPreference implements Item
 			String s = p2.get("enabledWinPos", "true");
 			if (s.equals("true"))
 				p2.put("enabledWinPos", "reset");
-			JOptionPane.showMessageDialog(PreferencesDialog.getDialog(), "You must restart VUE for this change to take effect.", "Restart VUE", JOptionPane.PLAIN_MESSAGE);
+			JOptionPane.showMessageDialog(PreferencesDialog.getDialog(), VueResources.getString("dialog.preference.message"), VueResources.getString("dialog.preference.title"), JOptionPane.PLAIN_MESSAGE);
 		} catch (BackingStoreException e2) {
 			// TODO Auto-generated catch block
 			e2.printStackTrace();
