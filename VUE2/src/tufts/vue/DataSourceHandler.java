@@ -820,8 +820,8 @@ public class DataSourceHandler extends JPanel
                             updateLibraryDialog.setVisible(true);
                         }
                     } else javax.swing.JOptionPane.showMessageDialog(VUE.getDialogParent(),
-                            "There are no resource updates available at this time",
-                            "Update Resources",
+                            VueResources.getString("dialog.checkforupdatesaction.message"),
+                            VueResources.getString("dialog.checkforupdatesaction.title"),
                             javax.swing.JOptionPane.INFORMATION_MESSAGE);
                 } catch (Throwable t) {
                     VueUtil.alert(t.getMessage(),"Error");

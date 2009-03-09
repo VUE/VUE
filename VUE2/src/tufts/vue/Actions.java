@@ -1214,8 +1214,8 @@ public class Actions implements VueConstants
                     uri = new URI(option);
                 } catch (URISyntaxException e) {
                     JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
-                                                  "Malformed URL, resource could not be added.", 
-                                                  "Malformed URL", 
+                                                  VueResources.getString("dialog.addurlaction.message"), 
+                                                  VueResources.getString("dialog.addurlaction.title"), 
                                                   JOptionPane.ERROR_MESSAGE);
                     return;
                 }
@@ -1225,8 +1225,8 @@ public class Actions implements VueConstants
                     r = c.getResourceFactory().get(uri);
                     if (r == null) {
                         JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
-                                                      "Malformed URL, resource could not be added.", 
-                                                      "Malformed URL", 
+                        							   VueResources.getString("dialog.addurlaction.message"), 
+                        							   VueResources.getString("dialog.addurlaction.title"), 
                                                       JOptionPane.ERROR_MESSAGE);
                     } else
                     {
@@ -2657,9 +2657,9 @@ public class Actions implements VueConstants
             	if (tufts.vue.VUE.getActiveMap().getFile() == null)
             	{
             		JOptionPane.showMessageDialog(VUE.getApplicationFrame(),
-            				"There is no saved version of this map to revert to.",
-            				"Can Not Revert",
-            				JOptionPane.PLAIN_MESSAGE);
+            				                      VueResources.getString("dialog.revert.message"),
+            				                      VueResources.getString("dialog.revert.title"),
+            				                      JOptionPane.PLAIN_MESSAGE);
               
             		return;
             	}

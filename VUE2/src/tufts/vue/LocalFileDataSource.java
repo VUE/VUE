@@ -14,7 +14,7 @@
  */
 package tufts.vue;
  
-// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/LocalFileDataSource.java,v 1.31 2008-07-07 21:06:31 sfraize Exp $
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/LocalFileDataSource.java,v 1.32 2009-03-09 02:56:03 vaibhav Exp $
 
 import javax.swing.*;
 import java.util.Vector;
@@ -35,7 +35,7 @@ import tufts.Util;
 
 
 /**
- * @version $Revision: 1.31 $ / $Date: 2008-07-07 21:06:31 $ / $Author: sfraize $
+ * @version $Revision: 1.32 $ / $Date: 2009-03-09 02:56:03 $ / $Author: vaibhav $
  * @author  rsaigal
  */
 
@@ -300,14 +300,14 @@ public class LocalFileDataSource extends BrowseDataSource implements Publishable
             throw ex;
         } catch(Exception ex) {
             System.out.println(ex);
-            JOptionPane.showMessageDialog(VUE.getDialogParent(), "Map cannot be exported "+ex.getMessage(),"Export Error",JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(VUE.getDialogParent(), VueResources.getString("dialog.export.message")+ex.getMessage(),VueResources.getString("dialog.export.title"),JOptionPane.ERROR_MESSAGE);
             
         }
     }
     private void publishZip(LWMap map){
         try {
             if(map.getFile() == null) {
-                VueUtil.alert("The map is not saved. Please save the map first and export it.","Zip Save Alert");
+                VueUtil.alert(VueResources.getString("dialog.mapsave.message"),VueResources.getString("dialog.mapsave.title"));
                 return;
             }
         	// Note: resourceVector is never initialized in Publisher class. pdw 11-nov-07
@@ -322,12 +322,12 @@ public class LocalFileDataSource extends BrowseDataSource implements Publishable
             ostream.close();
         } catch(Exception ex) {
             System.out.println(ex);
-             JOptionPane.showMessageDialog(VUE.getDialogParent(), "Map cannot be exported "+ex.getMessage(),"Export Error",JOptionPane.ERROR_MESSAGE);
+             JOptionPane.showMessageDialog(VUE.getDialogParent(), VueResources.getString("dialog.export.message")+ex.getMessage(),VueResources.getString("dialog.export.title"),JOptionPane.ERROR_MESSAGE);
              ex.printStackTrace();
         }
     }
     private void publishAll(LWMap map) {
-          JOptionPane.showMessageDialog(VUE.getDialogParent(), "Export all Not supported","Export Error",JOptionPane.PLAIN_MESSAGE);
+          JOptionPane.showMessageDialog(VUE.getDialogParent(), VueResources.getString("dialog.exportall.message"),VueResources.getString("dialog.export.title"),JOptionPane.PLAIN_MESSAGE);
     }
 
 
