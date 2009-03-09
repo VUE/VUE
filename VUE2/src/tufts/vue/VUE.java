@@ -117,7 +117,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.643 $ / $Date: 2009-03-04 00:51:30 $ / $Author: sraphe01 $ 
+ * @version $Revision: 1.644 $ / $Date: 2009-03-09 03:57:04 $ / $Author: vaibhav $ 
  */
 
 public class VUE
@@ -3067,7 +3067,7 @@ public class VUE
     }
     private static boolean askIfRevertOK(LWMap map)
     {
-    	final Object[] defaultOrderButtons = { "Yes","Cancel"};
+    	final Object[] defaultOrderButtons = { VueResources.getString("optiondialog.revertlastsave.yes"),VueResources.getString("optiondialog.revertlastsave.cancel")};
     	
     	 if (!map.isModified())
              return true;
@@ -3096,14 +3096,13 @@ public class VUE
          }
          int response = JOptionPane.showOptionDialog
              (c,
-         
-              "Are you sure you want to revert to the last saved version?",         
-              "Revert to last saved version",
+              VueResources.getString("optiondialog.revertlastsave.message"),         
+              VueResources.getString("optiondialog.revertlastsave.title"),
               JOptionPane.YES_NO_OPTION,
               JOptionPane.PLAIN_MESSAGE,
               null,
               defaultOrderButtons,             
-              "Cancel"
+              VueResources.getString("optiondialog.revertlastsave.cancel")
               );
          
                
@@ -3124,8 +3123,8 @@ public class VUE
      */
     private static boolean askSaveIfModified(LWMap map) {
         //final Object[] defaultOrderButtons = { "Save", "Don't Save", "Cancel"};
-    	final Object[] defaultOrderButtons = { "Don't Save","Cancel","Save"};
-    	final Object[] macOrderButtons = { "Save","Cancel","Don't Save"};
+    	final Object[] defaultOrderButtons = { VueResources.getString("optiondialog.savechages.dontsave"),VueResources.getString("optiondialog.revertlastsave.cancel"),VueResources.getString("optiondialog.savechages.save")};
+    	final Object[] macOrderButtons = { VueResources.getString("optiondialog.savechages.save"),VueResources.getString("optiondialog.revertlastsave.cancel"),VueResources.getString("optiondialog.savechages.dontsave")};
         // oddly, mac aqua is reversing order of these buttons
         //final Object[] macAquaOrderButtons = { "Cancel", "Don't Save", "Save" };
         
@@ -3157,17 +3156,16 @@ public class VUE
         }
         int response = JOptionPane.showOptionDialog
             (c,
-        
-             "Do you want to save the changes you made to \n"
+             VueResources.getString("optiondialog.savechages.message")
              + "'" + map.getLabel() + "'?"
              + (DEBUG.EVENTS?("\n[modifications="+map.getModCount()+"]"):""),
         
-             " Save changes?",
+             VueResources.getString("optiondialog.savechages.title"),
              JOptionPane.YES_NO_CANCEL_OPTION,
              JOptionPane.PLAIN_MESSAGE,
              null,
              Util.isMacPlatform() ? macOrderButtons : defaultOrderButtons,             
-             "Save"
+             VueResources.getString("optiondialog.savechages.save")
              );
         
      
