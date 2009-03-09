@@ -21,7 +21,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.79 $ / $Date: 2009-01-26 20:55:22 $ / $Author: anoop $
+ * @version $Revision: 1.80 $ / $Date: 2009-03-09 03:30:06 $ / $Author: vaibhav $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -424,14 +424,14 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                             area.setSize(new Dimension(500,300));
                             if (javax.swing.JOptionPane.showOptionDialog(this,
                                     area,
-                                    "License Acknowledgement",
+                                    VueResources.getString("optiondialog.addlibrary.message"),
                                     javax.swing.JOptionPane.DEFAULT_OPTION,
                                     javax.swing.JOptionPane.QUESTION_MESSAGE,
                                     null,
                                     new Object[] {
-                                "Accept", "Decline"
+                            	VueResources.getString("optiondialog.addlibrary.accept"), VueResources.getString("optiondialog.addlibrary.decline")
                             },
-                                    "Decline") != 0) {
+                            VueResources.getString("optiondialog.addlibrary.decline")) != 0) {
                             	//cancelButton.requestFocus();
                             	SwingUtilities.invokeLater(new Runnable() { 
                                     public void run() { 
@@ -518,14 +518,15 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                 
                 if (javax.swing.JOptionPane.showOptionDialog(this,
                         cui,
-                        "Configuration",
+                        
+                        VueResources.getString("optiondialog.configuration.message"),
                         javax.swing.JOptionPane.DEFAULT_OPTION,
                         javax.swing.JOptionPane.PLAIN_MESSAGE,
                         null,
                         new Object[] {
-                    "Continue", "Cancel"
+                	VueResources.getString("optiondialog.configuration.continue"), VueResources.getString("optiondialog.configuration.cancel")
                 },
-                        "Continue") == 1) {
+                VueResources.getString("optiondialog.configuration.continue")) == 1) {
 					proceed = false;
 				} else {
                     if (s != null) {

@@ -21,7 +21,7 @@
 package tufts.vue;
 
 /**
-* @version $Revision: 1.27 $ / $Date: 2008-12-04 03:16:46 $ / $Author: sfraize $
+* @version $Revision: 1.28 $ / $Date: 2009-03-09 03:32:18 $ / $Author: vaibhav $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -275,14 +275,14 @@ public class UpdateLibraryDialog extends JDialog implements ListSelectionListene
 						area.setSize(new Dimension(500,300));
 						if (javax.swing.JOptionPane.showOptionDialog(this,
 																	 area,
-																	 "License Acknowledgement",
+																	 VueResources.getString("optiondialog.addlibrary.message"),
 																	 javax.swing.JOptionPane.DEFAULT_OPTION,
 																	 javax.swing.JOptionPane.QUESTION_MESSAGE,
 																	 null,
 																	 new Object[] {
-																		 "Accept", "Decline"
-																	 },
-																	 "Decline") != 0) {
+																	 VueResources.getString("optiondialog.addlibrary.accept"), 
+																	 VueResources.getString("optiondialog.addlibrary.decline")},
+																	 VueResources.getString("optiondialog.addlibrary.decline")) != 0) {
 							return;
 						}
 					}
@@ -342,14 +342,14 @@ public class UpdateLibraryDialog extends JDialog implements ListSelectionListene
 				
 				if (javax.swing.JOptionPane.showOptionDialog(this,
 															 cui,
-															 "Configuration",
+															 VueResources.getString("optiondialog.configuration.message"),
 															 javax.swing.JOptionPane.DEFAULT_OPTION,
 															 javax.swing.JOptionPane.QUESTION_MESSAGE,
 															 null,
 															 new Object[] {
-																 "Continue", "Cancel"
-															 },
-															 "Continue") == 1) {
+															 VueResources.getString("optiondialog.configuration.continue"),
+															 VueResources.getString("optiondialog.configuration.cancel")},
+															 VueResources.getString("optiondialog.configuration.continue")) == 1) {
 					proceed = false;
 				} else {
 					try {

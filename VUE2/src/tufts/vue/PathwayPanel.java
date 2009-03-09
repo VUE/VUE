@@ -52,7 +52,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.134 $ / $Date: 2009-01-21 16:03:34 $ / $Author: sraphe01 $
+ * @version $Revision: 1.135 $ / $Date: 2009-03-09 03:30:54 $ / $Author: vaibhav $
  */
 
 public class PathwayPanel extends JPanel
@@ -1080,20 +1080,20 @@ public class PathwayPanel extends JPanel
         	Log.info("Current " + pathway.getCurrentEntry());
         	if (pathway.getCurrentEntry() == null)
         	{
-        			final Object[] defaultOrderButtons = { "Cancel","Delete"};
+        			final Object[] defaultOrderButtons = {VueResources.getString("optiondialog.deletepathway.cancel"),VueResources.getString("optiondialog.deletepathway.delete")};
         			
-        			final Object[]	macOrderButtons = {"Delete","Cancel"};
+        			final Object[]	macOrderButtons = {VueResources.getString("optiondialog.deletepathway.delete"),VueResources.getString("optiondialog.deletepathway.cancel")};
         			
         		   int response = JOptionPane.showOptionDialog
                    (VUE.getDialogParent(),
                
-                    "Are you sure you want to delete this pathway?" ,         
-                    "Delete pathway",
+                    VueResources.getString("optiondialog.deletepathway.message") ,         
+                    VueResources.getString("optiondialog.deletepathway.title"),
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.PLAIN_MESSAGE,
                     null,
                     (Util.isMacPlatform() ? macOrderButtons : defaultOrderButtons),             
-                    "Cancel"
+                    VueResources.getString("optiondialog.deletepathway.cancel")
                     );
         		if (Util.isMacPlatform() ? response == 0 : response == 1)
         		{

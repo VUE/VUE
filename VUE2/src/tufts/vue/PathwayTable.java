@@ -61,7 +61,7 @@ import osid.dr.Asset;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.107 $ / $Date: 2009-01-13 16:45:56 $ / $Author: sraphe01 $
+ * @version $Revision: 1.108 $ / $Date: 2009-03-09 03:31:27 $ / $Author: vaibhav $
  */
 
 public class PathwayTable extends JTable
@@ -1176,20 +1176,20 @@ public class PathwayTable extends JTable
 		}
 		else if (e.getSource().equals(deletePresentation))
 		{
-			final Object[] defaultOrderButtons = { "Cancel","Delete"};
+			final Object[] defaultOrderButtons = {VueResources.getString("optiondialog.deletepathway.cancel"),VueResources.getString("optiondialog.deletepathway.delete")};
 			
-			final Object[]	macOrderButtons = {"Delete","Cancel"};
+			final Object[]	macOrderButtons = {VueResources.getString("optiondialog.deletepathway.delete"), VueResources.getString("optiondialog.deletepathway.cancel")};
 			
 		   int response = JOptionPane.showOptionDialog
            (VUE.getDialogParent(),
        
-            "Are you sure you want to delete this pathway?" ,         
-            "Delete pathway",
+        	 VueResources.getString("optiondialog.deletepathway.message") ,         
+        	 VueResources.getString("optiondialog.deletepathway.title"),
             JOptionPane.YES_NO_OPTION,
             JOptionPane.PLAIN_MESSAGE,
             null,
             (Util.isMacPlatform() ? macOrderButtons : defaultOrderButtons),             
-            "Cancel"
+            VueResources.getString("optiondialog.deletepathway.cancel")
             );
 		   if (Util.isMacPlatform() ? response == 0 : response == 1)
 		   {
