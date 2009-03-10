@@ -41,7 +41,7 @@ import java.util.*;
 
 /**
  * @author  akumar03
- * @version $Revision: 1.95 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $
+ * @version $Revision: 1.96 $ / $Date: 2009-03-10 03:42:22 $ / $Author: vaibhav $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
@@ -167,10 +167,10 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     
     public boolean  isMapSaved()  {
         if(VUE.getActiveMap() == null) {
-            VueUtil.alert("The map is not saved. Please save the map and then publish.","Not Active Map");
+            VueUtil.alert(VueResources.getString("dialog.mapnotsave.message"),VueResources.getString("dialog.mapnotsave.title"));
             return false;
         } else if(VUE.getActiveMap().getFile() == null) {
-            VueUtil.alert("The map is not saved. Please save the map and then publish.","Map Not Saved");
+            VueUtil.alert(VueResources.getString("dialog.mapnotsave.message"),VueResources.getString("dialog.mapnotsave.title"));
             return false;
         } else return true;
         
@@ -377,7 +377,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         }  else if(e.getActionCommand().equals(NEXT_BUTTON_TEXT)) {
             System.out.println("Selected Repository: "+repList.getSelectedValue());
             if(repList.getSelectedValue() == null) {
-                alert(this,"No repository is selected. Please  select a repository","Publish Error");
+                alert(this,VueResources.getString("dialog.norepository.message"), VueResources.getString("dialog.norepository.title"));
                 return;
             }
             getContentPane().remove(rPanel);
@@ -433,7 +433,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     
     private void publishMapToDL() {
         if(repList.getSelectedValue() == null) {
-            alert(this,"No repository is selected. Please go back and select a repository","Publish Error");
+            alert(this,VueResources.getString("dialog.norepository.message"), VueResources.getString("dialog.norepository.title"));
         }
         edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)repList.getSelectedValue();
         try{
@@ -445,7 +445,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
                 else if(publishZipRButton.isSelected())
                     FedoraPublisher.uploadArchive(ds,VUE.getActiveMap());
                 else
-                    alert(VUE.getDialogParent(), "Publish mode is not yet supported", "Mode Not Suported");
+                    alert(VUE.getDialogParent(), VueResources.getString("dialog.publishnotsupported.message"), VueResources.getString("dialog.publishnotsupported.title"));
             } else if(ds.getRepository().getType().isEqual(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE)) {
                 DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)_tp.getLastPathComponent();
                 String siteId = ((SakaiSiteUserObject)(treeNode.getUserObject())).getId();
@@ -465,7 +465,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
                 }else if(publishMapAllRButton.isSelected()){
                     SakaiPublisher.uploadMapAll( ds, siteId, VUE.getActiveMap(), confirm );
                 }   else
-                    alert(VUE.getDialogParent(), "Publish mode is not yet supported", "Mode Not Suported");
+                    alert(VUE.getDialogParent(), VueResources.getString("dialog.publishnotsupported.message"), VueResources.getString("dialog.publishnotsupported.title"));
             }
         } catch(Throwable t) {
             t.printStackTrace();

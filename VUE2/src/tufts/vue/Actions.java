@@ -149,7 +149,7 @@ public class Actions implements VueConstants
     {
     	if (VUE.getActiveMap() == null)
     	{
-			VueUtil.alert(null,"There is no active map, please open a valid map.", "Invalid Map");
+			VueUtil.alert(null,VueResources.getString("dialog.activemap.message"), VueResources.getString("dialog.activemap.title"));
 			return null;
     	}
 		VueFileChooser chooser = VueFileChooser.getVueFileChooser();

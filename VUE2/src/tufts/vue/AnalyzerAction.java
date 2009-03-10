@@ -133,7 +133,7 @@ public class AnalyzerAction extends Actions.LWCAction {
     		query = c.getLabel();
     	if (!hasResults)
     	{
-    		VueUtil.alert("This node does not contain enough meaningful information to be analyzed.", "Node Analysis Error");
+    		VueUtil.alert(VueResources.getString("dialog.analyzeerror.message"), VueResources.getString("dialog.analyzeerror.title"));
     	
     		//just use the label from the node, it didn't go right.
     	}
@@ -210,7 +210,7 @@ public class AnalyzerAction extends Actions.LWCAction {
 	    	
 	    	if (!hasResults)
 	    	{
-	    		VueUtil.alert("This node does not contain enough meaningful information to be analyzed.", "Node Analysis Error");
+	    		VueUtil.alert(VueResources.getString("dialog.analyzeerror.message"), VueResources.getString("dialog.analyzeerror.title"));
 	    	}
 	    	VUE.getActiveViewer().selectionAdd(c);
 	    	return;
