@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.177 $ / $Date: 2009-02-13 20:37:52 $ / $Author: mike $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.177 2009-02-13 20:37:52 mike Exp $ -->
+<!-- $Revision: 1.178 $ / $Date: 2009-03-10 18:31:32 $ / $Author: anoop $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.178 2009-03-10 18:31:32 anoop Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -535,24 +535,7 @@
     description="Compile Java sources using default javac">
     <!-- echo message="lib.home is ${lib.home}"/ -->
 
-    <javac srcdir="${basedir}"
-           destdir="${build.class}"
-             debug="${compile.debug}"
-        deprecation="${compile.deprecation}"
-           optimize="${compile.optimize}"
-           listfiles="no"
-           classpath="${lib.home}/VUE-MacOSX.jar:${lib.home}/log4j-1.2.12.jar"
-           source="${target.version}"
-           target="${target.version}"
-           verbose="false"
-           >
-      <!--classpath refid="compile.cfedoraasspath.vue"/-->
-      <include name="tufts/*.java"/>
-      <include name="test/**/*.java"/>
-      <exclude name="**/tmp/**"/>
-      <exclude name="**/bak/**"/>
-      <exclude name="**/old/**"/>
-    </javac>
+   
 
     <javac srcdir="${basedir}"
            destdir="${build.class}"
@@ -648,6 +631,24 @@
       <include name="edu/**/*.java"/>
       <include name="org/**/*.java"/>
       <exclude name="**/macosx/**"/>
+      <exclude name="**/tmp/**"/>
+      <exclude name="**/bak/**"/>
+      <exclude name="**/old/**"/>
+    </javac>
+     <javac srcdir="${basedir}"
+           destdir="${build.class}"
+             debug="${compile.debug}"
+        deprecation="${compile.deprecation}"
+           optimize="${compile.optimize}"
+           listfiles="no"
+           classpath="${lib.home}/VUE-MacOSX.jar:${lib.home}/log4j-1.2.12.jar"
+           source="${target.version}"
+           target="${target.version}"
+           verbose="false"
+           >
+      <!--classpath refid="compile.cfedoraasspath.vue"/-->
+      <include name="tufts/*.java"/>
+      <include name="test/**/*.java"/>
       <exclude name="**/tmp/**"/>
       <exclude name="**/bak/**"/>
       <exclude name="**/old/**"/>
