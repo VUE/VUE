@@ -15,25 +15,58 @@
 
 package tufts;
 
-import tufts.macosx.MacOSX;
-
-import java.io.*;
-import java.net.*;
-import java.lang.ref.*;
-import java.text.BreakIterator;
-import java.util.*;
-import java.util.List;
-import java.util.jar.*;
-import java.util.prefs.*;
-import java.awt.*;
-import java.awt.geom.*;
-import java.awt.image.BufferedImage;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dialog;
+import java.awt.Dimension;
+import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.geom.CubicCurve2D;
+import java.awt.geom.QuadCurve2D;
+import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import javax.swing.*;
-import javax.swing.border.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.lang.ref.Reference;
+import java.lang.ref.SoftReference;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.URLEncoder;
+import java.text.BreakIterator;
+import java.util.AbstractList;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.RandomAccess;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+
+import javax.swing.JColorChooser;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.border.LineBorder;
+
+import tufts.macosx.MacOSX;
+import tufts.vue.VueResources;
 
 
 /**
@@ -1761,7 +1794,7 @@ public class Util
             */
             colorChooserDialog =
                 JColorChooser.createDialog(chooserParent,
-                                           "Color Chooser",
+                                           VueResources.getString("dialog.colorchooser.title"),
                                            true,  
                                            colorChooser,
                                            new ActionListener() { public void actionPerformed(ActionEvent e)
