@@ -32,7 +32,7 @@ import com.google.common.collect.*;
 
 
 /**
- * @version $Revision: 1.29 $ / $Date: 2009-02-25 17:59:35 $ / $Author: sfraize $
+ * @version $Revision: 1.30 $ / $Date: 2009-03-11 18:27:45 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -255,7 +255,7 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
         return mImageField;
     }
 
-    public void annotateFor(Collection<LWComponent> nodes) {
+    public synchronized void annotateFor(Collection<LWComponent> nodes) {
 
         for (Field field : mFields.values())
             field.annotateIncludedValues(nodes);
