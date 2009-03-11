@@ -59,7 +59,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.233 $ / $Date: 2009-03-04 21:21:56 $ / $Author: sfraize $
+ * @version $Revision: 1.234 $ / $Date: 2009-03-11 18:23:52 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -793,9 +793,13 @@ public class LWMap extends LWContainer
         /** @return null */
         @Override public Layer getPersistLayer() {return null; }
 
+        /** currently a no-op: layers not allowed to be filtered */
         @Override public void setFiltered(boolean filtered) {
             //super.setFiltered(filtered);
             //Util.printStackTrace("FILTERED=" + filtered + "; " + this);
+            // if we re-enable this, we'll need to fix pathway exlusive display, which was
+            // marking layers as filtered, and leaving them that way even after turning
+            // that mode off, so the layers would be visible, but contents unselectable.
             if (DEBUG.Enabled) Log.debug("layers ignore filtered; (request=" + filtered + ") " + this);
         }
 

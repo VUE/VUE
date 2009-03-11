@@ -57,7 +57,7 @@ import sun.awt.shell.ShellFolder;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.82 $ / $Date: 2009-02-10 20:07:12 $ / $Author: sfraize $
+ * @version $Revision: 1.83 $ / $Date: 2009-03-11 18:25:10 $ / $Author: sfraize $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -1890,6 +1890,30 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         else
             return makeURL(THUMBSHOT_FETCH + url);
     }
+
+// TODO: May be able to replace deprecated Mac Cocoa<->Java code for icon fetches by
+// using a JFileChooser (which FYI, may possibly get better results if AWT UI peer is
+// created), tho the objects we get back are icons, not images, which will limit us some
+// -- would probably need to combine code like the below which changes to
+// GUI.getSystemIconForExtension to properly handle this.  -- SMF March 2009
+// See Mac Java tip of Dec 2008: http://nadeausoftware.com/node/89
+    
+//     private static final javax.swing.JFileChooser FileView = new javax.swing.JFileChooser();
+
+//     @Override
+//     protected ImageIcon makeIcon(int size, int max)
+//     {
+//         if (mFile != null) {
+//             Icon icon = FileView.getIcon(mFile);
+//             Log.debug("got " + Util.tags(icon) + " from " + mFile);
+//             if (icon instanceof ImageIcon) {
+//                 Log.debug("is ImageIcon");
+//                 return (ImageIcon) icon;
+//             }
+//         }
+//         return super.makeIcon(size, max);
+//     }
+
 
 
     /** @deprecated -- for backward compat with lw_mapping_1.0.xml only, where this never worked */
