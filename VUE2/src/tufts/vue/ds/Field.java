@@ -33,7 +33,7 @@ import java.util.*;
  * types and doing some data-type analysis.  It also includes the ability to
  * associate a LWComponent node style with specially marked values.
  * 
- * @version $Revision: 1.9 $ / $Date: 2009-02-23 02:37:29 $ / $Author: sfraize $
+ * @version $Revision: 1.10 $ / $Date: 2009-03-11 18:27:18 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -102,7 +102,7 @@ public class Field
             return;
         }
         if (mContextValues == null)
-            mContextValues = Multisets.newHashMultiset();
+            mContextValues = HashMultiset.create();
         else
             mContextValues.clear();
         if (DEBUG.META) Log.debug("MARKING INCLUDED VALUES AGAINST " + nodes.size() + " NODES for " + this);
@@ -307,7 +307,7 @@ public class Field
         return mValues == null ? Collections.EMPTY_SET : mValues.elementSet();
     }
 
-    private static final Multiset EMPTY_MULTISET = Multisets.unmodifiableMultiset(Multisets.newHashMultiset());
+    private static final Multiset EMPTY_MULTISET = Multisets.unmodifiableMultiset(HashMultiset.create(0));
         
     public Multiset<String> getValueSet() {
         return mValues == null ? EMPTY_MULTISET : Multisets.unmodifiableMultiset(mValues);

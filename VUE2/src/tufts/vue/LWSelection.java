@@ -23,13 +23,13 @@ import java.awt.geom.Point2D;
 import java.awt.geom.RectangularShape;
 
 import com.google.common.collect.Multiset;
-import com.google.common.collect.Multisets;
+import com.google.common.collect.HashMultiset;
 
 /**
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.106 $ / $Date: 2009-02-25 17:59:34 $ / $Author: sfraize $
+ * @version $Revision: 1.107 $ / $Date: 2009-03-11 18:24:21 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -73,7 +73,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
                     return false;
             }
         };
-    private final Multiset<Class> mTypes = Multisets.newHashMultiset();
+    private final Multiset<Class> mTypes = HashMultiset.create();
     private List<LWComponent> mSecureList = null;
 
     public LWSelection() {}
