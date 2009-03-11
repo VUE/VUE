@@ -18,6 +18,7 @@ package tufts.vue;
 import tufts.Util;
 import static tufts.Util.*;
 import tufts.vue.ds.Schema;
+import tufts.vue.ds.Field;
 
 import java.awt.Shape;
 import java.awt.Rectangle;
@@ -51,7 +52,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.462 $ / $Date: 2009-02-25 23:19:43 $ / $Author: sfraize $
+ * @version $Revision: 1.463 $ / $Date: 2009-03-11 18:21:01 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1885,6 +1886,16 @@ u                    getSlot(c).setFromString((String)value);
         
         return fieldName;
     }
+
+    public Field getDataValueField() {
+        if (mDataMap == null || mDataMap.getSchema() == null)
+            return null;
+
+        String fieldName = getDataValueFieldName();
+        
+        return mDataMap.getSchema().getField(fieldName);
+    }
+    
     
     /** @return true if the data-set data for this node represents a SINGLE VALUE from a field (e.g., one of an enumeration)
      * Should always return the opposite of isDataRow */
