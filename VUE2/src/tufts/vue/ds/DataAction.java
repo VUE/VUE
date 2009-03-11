@@ -9,16 +9,19 @@ import tufts.vue.LWNode;
 import tufts.vue.VueResources;
 import tufts.vue.Resource;
 
+import static tufts.vue.LWComponent.Flag;
+
 import edu.tufts.vue.metadata.VueMetadataElement;
 
 import java.awt.Color;
+import java.awt.Font;
 
 import java.util.*;
 
 import org.apache.commons.lang.StringEscapeUtils;
 
 /**
- * @version $Revision: 1.10 $ / $Date: 2009-02-25 21:48:03 $ / $Author: sfraize $
+ * @version $Revision: 1.11 $ / $Date: 2009-03-11 18:26:15 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -29,7 +32,7 @@ public final class DataAction
     /** annotate the given schema (note what is present and what isn't) based on the data nodes found in the given map */
     public static void annotateForMap(final Schema schema, final LWMap map)
     {
-        if (DEBUG.Enabled) Log.debug("ANNOTATING for " + map + "; " + schema);
+        //if (DEBUG.Enabled) Log.debug("ANNOTATING for " + map + "; " + schema);
 
         final Collection<LWComponent> allDataNodes;
 
@@ -53,14 +56,102 @@ public final class DataAction
         return StringEscapeUtils.escapeHtml(Field.valueName(value));
     }
     
+    private static List<LWLink> makeDataLinksForNodes(LWMap map, List<? extends LWComponent> nodes, Field field)
+    {
+        final Collection linkTargets = getLinkTargets(map);
+        
+        java.util.List<LWLink> links = Collections.EMPTY_LIST;
+        
+        if (linkTargets.size() > 0) {
+            links = new ArrayList();
+            for (LWComponent c : nodes) {
+                links.addAll(makeLinks(linkTargets, c, field));
+            }
+        }
+
+        return links;
+    }
+    
+    private static List<LWLink> makeDataLinksForNode(final LWComponent node, final Collection<? extends LWComponent> linkTargets)
+    {
+        if (linkTargets.size() > 0) {
+            return makeLinks(linkTargets, node, node.getDataValueField()); // seems wrong to be providing this last argumen
+        } else {
+            return Collections.EMPTY_LIST;
+        }
+
+    }
+
+    public static List<? extends LWComponent> getLinkTargets(LWMap map) {
+        return Util.extractType(map.getAllDescendents(), LWNode.class);
+    }
+
+    // TODO: REASON TO PASS ALWAYS PASS IN MAP ARGUMENT: We may want to create data links before the nodes
+    // have actually been added to the map, in which case node.getMap() will be returning null.
+
+//     public static boolean addDataLinksForNode(LWComponent node, Collection<? extends LWComponent> linkTargets) {
+//         return addDataLinksForNode(node.getMap(), node, linkTargets);
+//     }
+    
+//     public static boolean addDataLinksForNode(final LWMap map,
+//                                               final LWComponent node,
+//                                               final Collection<? extends LWComponent> linkTargets)
+//     {
+//         List<LWLink> links = makeDataLinksForNode(node, linkTargets);
+
+//         if (links.size() > 0) {
+//             map.getInternalLayer("*Data Links*").addChildren(links);
+//             return true;
+//         } else
+//             return false;
+//     }
+
+    /** @field -- if null, will make exaustive row-node links */
+    public static boolean addDataLinksForNodes(LWMap map, List<? extends LWComponent> nodes, Field field) {
+        
+        List<LWLink> links = makeDataLinksForNodes(map, nodes, field);
+
+        if (links.size() > 0) {
+            map.getInternalLayer("*Data Links*").addChildren(links);
+            return true;
+        } else
+            return false;
+    }
+
+    private static List<LWLink> makeLinks(LWComponent node)
+    {
+        if (node.isDataRowNode())
+            return makeRowNodeLinks(getLinkTargets(node.getMap()), node);
+        else if (node.isDataValueNode())
+            return makeValueNodeLinks(getLinkTargets(node.getMap()), node, node.getDataValueField());
+        else
+            return Collections.EMPTY_LIST;
+    }
+    
+    private static List<LWLink> makeLinks(LWComponent node, Collection<LWComponent> linkTargets) {
+
+        if (node.isDataRowNode())
+            return makeRowNodeLinks(linkTargets, node);
+        else if (node.isDataValueNode())
+            return makeValueNodeLinks(linkTargets, node, node.getDataValueField());
+        else
+            return Collections.EMPTY_LIST;
+    }
+        
     /** @param field -- if null, will defer to makeRowNodeLinks, and assume the given node is a row node */
-    public static List<LWLink> makeLinks(final Collection<LWComponent> linkTargets, LWComponent node, Field field)
+    public static List<LWLink> makeLinks(final Collection<? extends LWComponent> linkTargets, LWComponent node, Field field)
     {
         //Log.debug("makeLinks: " + field + "; " + node);
 
         if (field == null)
             return makeRowNodeLinks(linkTargets, node);
-        
+        else
+            return makeValueNodeLinks(linkTargets, node, field);
+    }
+
+
+    public static List<LWLink> makeValueNodeLinks(final Collection<? extends LWComponent> linkTargets, LWComponent node, Field field)
+    {
         final List<LWLink> links = Util.skipNullsArrayList();
 
         //final edu.tufts.vue.metadata.MetadataList metaData = node.getMetadataList();
@@ -89,7 +180,7 @@ public final class DataAction
 
     /** make links from row nodes (full data nodes) to any schematic field nodes found in the link targets,
      or between row nodes from different schema's that are considered "auto-joined" (e.g., a matching key field appears) */
-    public static List<LWLink> makeRowNodeLinks(final Collection<LWComponent> linkTargets, final LWComponent rowNode)
+    public static List<LWLink> makeRowNodeLinks(final Collection<? extends LWComponent> linkTargets, final LWComponent rowNode)
     {
         if (!rowNode.isDataRowNode())
             Log.warn("making row links to non-row node: " + rowNode, new Throwable("FYI"));
@@ -369,34 +460,128 @@ public final class DataAction
         return nodes;
     }
 
-    private static List<LWLink> makeDataLinksForNodes(LWMap map, List<LWComponent> nodes, Field field)
+    private static final Color DataNodeColor = VueResources.getColor("node.data.color", Color.gray);
+    private static final float DataNodeStrokeWidth = VueResources.getInt("node.data.stroke.width", 0);
+    private static final Color DataNodeStrokeColor = VueResources.getColor("node.data.stroke.color", Color.black);
+    private static final Font DataNodeFont = VueResources.getFont("node.data.font");
+
+    private static final Color ValueNodeTextColor = VueResources.getColor("node.dataValue.text.color", Color.black);
+    private static final Font ValueNodeFont = VueResources.getFont("node.dataValue.font");
+    private static final Color[] ValueNodeDataColors = VueResources.getColorArray("node.dataValue.color.cycle");
+    private static int NextColor = 0;
+
+//     private static final Color[] DataColors = VueResources.getColorArray("fillColorValues");
+//     private static final int FirstRotationColor = 22;
+//     private static final int SecondRotationColor = 18;
+//     private static int NextColor = FirstRotationColor;
+//     private static boolean FirstRotation = true;
+    
+//     private static final Font ValueNodeFont = new Font("SansSerif", Font.BOLD, 24);
+//     private static final Font DataNodeFont = new Font("SansSerif", Font.PLAIN, 12);
+
+
+    private static LWComponent initStyleNode(LWComponent style) {
+        style.setFlag(Flag.INTERNAL);
+        style.setFlag(Flag.DATA_STYLE); // must set before setting label, or template will atttempt to resolve
+        style.setID(style.getURI().toString());
+        return style;
+    }
+    
+    /** @return an empty styling node (appearance values to be set elsewhere) */ 
+    public static LWComponent makeStyleNode() {
+        return initStyleNode(new LWNode());
+    }
+
+    /** @return a row-styling node for the given schema */
+    public static LWComponent makeStyleNode(Schema schema)
     {
-        final Collection linkTargets = Util.extractType(map.getAllDescendents(), LWNode.class);
-        
-        java.util.List<LWComponent> links = null;
-        
-        if (linkTargets.size() > 0) {
-            links = new ArrayList();
-            for (LWComponent c : nodes) {
-                links.addAll(DataAction.makeLinks(linkTargets, c, field));
-            }
+        final LWComponent style = makeStyleNode();
+
+        String titleField;
+            
+        // Make a guess at what might be the best field to use for the node label text
+        if (schema.getRowCount() <= 42 && schema.hasField("title")) {
+            // if we have hundreds of nodes, title may be too long to use -- the key
+            // field may well be shorter.
+            titleField = "title";
+        } else {
+            titleField = schema.getKeyFieldGuess().getName();
         }
+            
+        style.setLabel(String.format("${%s}", titleField));
+            
+        style.setFont(DataNodeFont);
+        style.setTextColor(Color.black);
+        style.setFillColor(DataNodeColor);
+        style.setStrokeWidth(DataNodeStrokeWidth);
+        style.setStrokeColor(DataNodeStrokeColor);
+        //style.disableProperty(LWKey.Notes);
+        String notes = String.format("Style for all %d data items in %s",
+                                     schema.getRowCount(),
+                                     schema.getName());
 
-        return links == null ? Collections.EMPTY_LIST : links;
+        if (DEBUG.Enabled) notes += ("\n\nSchema: " + schema.getDump());
+        style.setNotes(notes);
+        style.setFlag(Flag.STYLE); // do last
+
+        return style;
     }
 
+    public static LWComponent makeStyleNode(final Field field) {
+        return makeStyleNode(field, null);
+    }
+    public static LWComponent makeStyleNode(final Field field, LWComponent.Listener repainter)
+    {
+        final LWComponent style;
 
-    /** @field -- if null, will make exaustive row-node links */
-    public static boolean addDataLinksForNewNodes(LWMap map, List<LWComponent> nodes, Field field) {
+        if (field.isPossibleKeyField()) {
+
+            style = new LWNode(); // creates a rectangular node
+            //style.setLabel(" ---");
+            style.setFillColor(Color.lightGray);
+            style.setFont(DataNodeFont);
+        } else {
+            //style = new LWNode(" ---"); // creates a round-rect node
+            style = new LWNode(""); // creates a round-rect node
+            //style.setFillColor(Color.blue);
+            style.setFillColor(ValueNodeDataColors[NextColor]);
+            if (++NextColor >= ValueNodeDataColors.length)
+                NextColor = 0;
+//             NextColor += 8;
+//             if (NextColor >= DataColors.length) {
+//                 if (FirstRotation) {
+//                     NextColor = SecondRotationColor;
+//                     FirstRotation = false;
+//                 } else {
+//                     NextColor = FirstRotationColor;
+//                     FirstRotation = true;
+//                 }
+//             }
+            style.setFont(ValueNodeFont);
+        }
+        initStyleNode(style); // must set before setting label, or template will atttempt to resolve
+        //style.setLabel(String.format("%.9s: \n${%s} ", field.getName(),field.getName()));
+        style.setLabel(String.format("${%s}", field.getName()));
+        style.setNotes(String.format
+                       ("Style node for field '%s' in data-set '%s'\n\nSource: %s\n\n%s\n\nvalues=%d; unique=%d; type=%s",
+                        field.getName(),
+                        field.getSchema().getName(),
+                        field.getSchema().getResource(),
+                        field.valuesDebug(),
+                        field.valueCount(),
+                        field.uniqueValueCount(),
+                        field.getType()
+                       ));
+        style.setTextColor(ValueNodeTextColor);
+        //style.disableProperty(LWKey.Label);
+        if (repainter != null)
+            style.addLWCListener(repainter);
+        style.setFlag(Flag.STYLE); // set last so creation property sets don't attempt updates
         
-        List<LWLink> links = makeDataLinksForNodes(map, nodes, field);
-
-        if (links.size() > 0) {
-            map.getInternalLayer("*Data Links*").addChildren(links);
-            return true;
-        } else
-            return false;
+        return style;
     }
+
+    
 
 
     
