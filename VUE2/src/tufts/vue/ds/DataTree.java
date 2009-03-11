@@ -47,7 +47,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.57 $ / $Date: 2009-03-11 18:26:43 $ / $Author: sfraize $
+ * @version $Revision: 1.58 $ / $Date: 2009-03-11 18:33:48 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -1358,7 +1358,7 @@ public class DataTree extends javax.swing.JTree
             //setTextSelectionColor(Color.blue); // text color selected
             //setTextNonSelectionColor(Color.green); // text color normal
             //setBackgroundSelectionColor(VueConstants.COLOR_SELECTION.brighter());
-            setBackgroundSelectionColor(tufts.vue.ui.LayersUI.ActiveBG);
+            setBackgroundSelectionColor(VueResources.getColor("dataTree.selected.background", Color.blue));
             setBorderSelectionColor(VueConstants.COLOR_SELECTION);
             //setBackgroundSelectionColor(VueConstants.COLOR_HIGHLIGHT);
             //setFont(tufts.vue.VueConstants.SmallFixedFont);
