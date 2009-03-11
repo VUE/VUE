@@ -47,7 +47,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.60 $ / $Date: 2009-03-11 18:53:44 $ / $Author: sfraize $
+ * @version $Revision: 1.61 $ / $Date: 2009-03-11 19:03:25 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -237,7 +237,7 @@ public class DataTree extends javax.swing.JTree
         @Override
         public void mousePressed(java.awt.event.MouseEvent e) {
             mClickPath = getPathForLocation(e.getX(), e.getY());
-            if (DEBUG.Enabled) Log.debug("MOUSE PRESSED ON " + Util.tags(mClickPath));
+            if (DEBUG.Enabled) Log.debug("MOUSE PRESSED ON " + Util.tags(mClickPath) + "/" + Util.tags(mClickPath.getLastPathComponent()));
             
             // it's possible that the node under the mouse changes from the time of the
             // first press, to the time mouseClicked is called (e.g., due to tree
@@ -661,8 +661,11 @@ public class DataTree extends javax.swing.JTree
     private static String HTML(String s) {
         //if (true) return s;
         final StringBuilder b = new StringBuilder(s.length() + 6);
-        b.append("<html>");
+        //b.append("<html>");
+        // we add space before and after to widen the painted background selection around the text a bit
+        b.append("<html>&nbsp;");
         b.append(s);
+        b.append("&nbsp;");
         return b.toString();
     }
 
@@ -1022,6 +1025,8 @@ public class DataTree extends javax.swing.JTree
 //             if (field.isPossibleKeyField())
 //                 //label = String.format("<html><i><b>%s</b> (%d)", field.getName(), field.uniqueValueCount());
 //             else
+//             // we add space before and after to widen the painted background selection around the text a bit
+//             label = String.format(HTML("&nbsp;%s (%d)&nbsp;"), field.getName(), field.uniqueValueCount());
             label = String.format(HTML("%s (%d)"), field.getName(), field.uniqueValueCount());
             
         }
@@ -1380,7 +1385,8 @@ public class DataTree extends javax.swing.JTree
             final DataNode node = (DataNode) value;
             final Field field = node.getField();
             
-            setIconTextGap(4);
+            //setIconTextGap(4); // pre &nbsp; standard HTML
+            setIconTextGap(1);
 
             super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
 
