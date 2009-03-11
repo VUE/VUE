@@ -40,7 +40,7 @@ import edu.tufts.vue.metadata.action.SearchAction;
 
 
 /**
- * @version $Revision: 1.73 $ / $Date: 2009-03-06 14:49:33 $ / $Author: sraphe01 $
+ * @version $Revision: 1.74 $ / $Date: 2009-03-11 18:34:33 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -98,6 +98,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 //         }
     
         Layer active;
+
+        @Override public boolean overrideIgnoreAllActions() { return true; }
         
         LayerAction(String name, String tip) {
             //super(name, tip, KeyStroke.getKeyStroke(KeyEvent.VK_L, 0), null);
@@ -113,9 +115,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 //         protected java.util.List<LWComponent> selection() {
 //             return null;
 //         }
-        /** @return true: must be overriden to be put to use */
-        boolean enabledFor(LWSelection s) { return true; }
-        protected boolean enabled() { return true; }
+        //@Override boolean enabledFor(LWSelection s) { return true; }
+        @Override protected boolean enabled() { return true; }
         @Override
         protected LWSelection selection() {
             return null;
@@ -827,7 +828,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
     
     private final Color AlphaWhite = new Color(255,255,255,128);
     
-    private final Color ActiveBG = new Color(188,212,255);//VueConstants.COLOR_SELECTION.brighter();//VueConstants.COLOR_SELECTION;
+    private static final Color ActiveBG = VueResources.getColor("layerUI.activeLayer.background", Color.blue);
     
     private final Color IncludedBG = Util.alphaMix(AlphaWhite, VueConstants.COLOR_SELECTION);
     //private final Color IncludedBG = VueConstants.COLOR_SELECTION.darker();
