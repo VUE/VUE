@@ -47,7 +47,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.59 $ / $Date: 2009-03-11 18:43:30 $ / $Author: sfraize $
+ * @version $Revision: 1.60 $ / $Date: 2009-03-11 18:53:44 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -1348,6 +1348,7 @@ public class DataTree extends javax.swing.JTree
 
     private static final Color KeyFieldColor = Color.green.darker();
 
+    private static final Icon TestIcon = VueResources.getImageIcon("dataSourceRSS");        
 
     private class DataRenderer extends DefaultTreeCellRenderer {
 
@@ -1387,8 +1388,13 @@ public class DataTree extends javax.swing.JTree
 
             if (node.hasStyle()) {
                 //setIconTextGap(4);
+                // Note: icons at top level do not get the background selection color painted
+                // behind them for some reason, whereas leaf node icons do, so this icon
+                // needs to take that into account, and should be careful not to paint over
+                // the selected & focus-active border of the row item.
                 setIcon(FieldIconPainter.load(node.getStyle(),
                                               selected ? backgroundSelectionColor : null));
+
             } else {
                 
                 if (field != null && field.isSingleton()) {
@@ -1491,9 +1497,11 @@ public class DataTree extends javax.swing.JTree
                     g.setColor(Color.red);
                     g.fillRect(x,y,IconWidth,IconHeight);
                 } else {
-                    g.setColor(fill);
-                    // add to width to also fill the IconTextGap
-                    g.fillRect(0,0,IconWidth+8,IconHeight+8);
+//                     g.setColor(fill);
+//                     g.setColor(Color.red);
+//                     // add to width to also fill the IconTextGap
+//                     // TODO: this is painting over edge of active selected border color
+//                     g.fillRect(0,0,IconWidth+8,IconHeight+8);
                 }
             }
 
