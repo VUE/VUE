@@ -47,7 +47,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.58 $ / $Date: 2009-03-11 18:33:48 $ / $Author: sfraize $
+ * @version $Revision: 1.59 $ / $Date: 2009-03-11 18:43:30 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -1379,24 +1379,11 @@ public class DataTree extends javax.swing.JTree
             final DataNode node = (DataNode) value;
             final Field field = node.getField();
             
-//             if (node.isField() && !leaf) {
-//                 if (node.field.isPossibleKeyField())
-//                     //setForeground(Color.red);
-//                     setForeground(Color.black);
-//                 else
-//                     setForeground(Color.blue);
-//             } else {
-//                 setForeground(Color.black);
-//             }
-
-//             if (field != null && field.isKeyField())
-//                 setForeground(KeyFieldColor);
-//             else
-                setForeground(Color.black); // must do every time for some reason, or de-selected text goes invisible
-            
             setIconTextGap(4);
 
             super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
+
+            setForeground(Color.black); // must do every time for some reason, or de-selected text goes invisible
 
             if (node.hasStyle()) {
                 //setIconTextGap(4);
