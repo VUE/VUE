@@ -35,7 +35,7 @@ import javax.swing.Icon;
  * Base class for VueActions that don't use the selection.
  * @see Actions.LWCAction for actions that use the selection
  *
- * @version $Revision: 1.47 $ / $Date: 2009-02-11 16:06:09 $ / $Author: sfraize $ 
+ * @version $Revision: 1.48 $ / $Date: 2009-03-11 18:25:44 $ / $Author: sfraize $ 
  */
 public class VueAction extends javax.swing.AbstractAction
 {
@@ -64,7 +64,7 @@ public class VueAction extends javax.swing.AbstractAction
     // todo: may want to allow NewItem actions as they automatically
     // activate an edit, thus preventing a quick series of NewItem
     // actions to be done.
-    static void setAllActionsIgnored(boolean disabled)
+    static void setAllActionsIgnored(final boolean disabled)
     {
         if (DEBUG.Enabled) {
             Log.debug("allIgnored=" + disabled);
@@ -72,27 +72,11 @@ public class VueAction extends javax.swing.AbstractAction
         }
         
         allIgnored = disabled;
-        for(int iCount=0;iCount< AllActionList.size();iCount++){
-        	VueAction action = AllActionList.get(iCount);  
-        	// This is for enabling the Layers tool Bar while editing a node
-                // TODO: would make more sense to handle this by overriding isUserEnabled in LayerAction
-                // -- any change to the toString impl, LayerAction class name, or action names, will break this code. -- SMF 
-        	if(action.toString().equals("LayerAction[New]") || 
-        			action.toString().equals("LayerAction[Duplicate]") ||
-        			action.toString().equals("LayerAction[Delete]")||
-        			action.toString().equals("LayerAction[Merge Down]") ||
-        			action.toString().equals("LayerAction[Filter]")||
-        			action.toString().equals("LayerAction[Lock]")
-        			){
-        		action.setEnabled(true);
-        	}else{
-        		action.setEnabled(action.isUserEnabled());
-        	}        	
+        for (VueAction a : AllActionList) {
+            final boolean enabled = a.isUserEnabled();
+            if (DEBUG.EVENTS && disabled && enabled) Log.debug("setAllActionsIgnored override; always enabled: " + a);
+            a.setEnabled(enabled);
         }
-//        for (VueAction a : AllActionList){
-//        	
-//            a.setEnabled(a.isUserEnabled());
-//        }
     }
     
     /** for debug only */
