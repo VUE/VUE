@@ -13,6 +13,10 @@
  * permissions and limitations under the License.
  */
 
+// TODO: see http://publicobject.com/glazedlists/ as a possible baseline for a much
+// fancier data interface -- tabular, and big, but may have enough flexibility
+// to still be handy.
+
 package tufts.vue.ds;
 
 import tufts.vue.VUE;
@@ -20,16 +24,11 @@ import tufts.vue.DEBUG;
 import tufts.vue.Resource;
 import tufts.vue.VueResources;
 import tufts.vue.LWComponent;
-import static tufts.vue.LWComponent.Flag;
 import tufts.vue.LWNode;
 import tufts.vue.LWMap;
-import tufts.vue.Actions;
 import tufts.vue.LWKey;
-import tufts.vue.DrawContext;
 import tufts.vue.gui.GUI;
-//import edu.tufts.vue.metadata.VueMetadataElement;
 import tufts.Util;
-import tufts.vue.VueResources;
 import tufts.vue.VueConstants;
 
 import java.util.List;
@@ -48,7 +47,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.56 $ / $Date: 2009-02-25 21:48:03 $ / $Author: sfraize $
+ * @version $Revision: 1.57 $ / $Date: 2009-03-11 18:26:43 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -66,7 +65,11 @@ public class DataTree extends javax.swing.JTree
     private final AbstractButton mApplyChangesButton = new JButton("Apply Changes to Map");
     private final DefaultTreeModel mTreeModel;
 
-    private LWMap mActiveMap;
+    private volatile LWMap mActiveMap;
+
+    private final Thread mAnnotateThread;
+
+    //private final Object annotateLock = new Object();
 
     public static JComponent create(Schema schema) {
         final DataTree tree = new DataTree(schema);
@@ -88,7 +91,10 @@ public class DataTree extends javax.swing.JTree
     }
 
     private void addNewRowsToMap() {
-        // make absolutely certian we're current to the active map:
+        // failsafe: tho the Schema and our tree nodes should already
+        // be updated, make absolutely certian we're current to the
+        // active map by running adding new rows based on our detection
+        // of the rows already in the map.
         annotateForMap(mActiveMap);
         addNewRowsToMap(mActiveMap);
     }
@@ -107,16 +113,13 @@ public class DataTree extends javax.swing.JTree
         final List<LWComponent> nodes = DataAction.makeRowNodes(mSchema, newRows);
 
         try {
-            DataAction.addDataLinksForNewNodes(map, nodes, null);
+            DataAction.addDataLinksForNodes(map, nodes, null);
         } catch (Throwable t) {
             Log.error("problem creating links on " + map + " for new nodes: " + Util.tags(nodes), t);
         }
 
         if (nodes.size() > 0) {
             map.getOrCreateLayer("New Data Nodes").addChildren(nodes);
-
-            // re-annotate given the newly added nodes;
-            //annotateForMap(map); // will automatically happen due to UserActionCompleted from undo mark below
 
             if (nodes.size() > 1)
                 tufts.vue.LayoutAction.table.act(nodes);
@@ -403,7 +406,7 @@ public class DataTree extends javax.swing.JTree
         if (map == null)
             return;
 
-        annotateForMap(map);
+        runAnnotate(); // mActiveMap must be pre-set
         
         mActiveMap.addLWCListener(this);
     }
@@ -420,32 +423,42 @@ public class DataTree extends javax.swing.JTree
     
     public void LWCChanged(tufts.vue.LWCEvent e) {
 
-        if (mActiveMap != null && e.getName() == LWKey.UserActionCompleted) {
+        if (mActiveMap != null && e.key == LWKey.UserActionCompleted) {
             
             // technically, don't need to check after ANY action has been completed:
             // only if a data node was added/removed from the map (or changed, tho at
             // the moment there's no such thing as changing data fields once on the map)
             
-            // todo: in a low priority thread
-            
-            annotateForMap(mActiveMap);
+            runAnnotate();
         }
     }
 
+    private void runAnnotate() {
+        //annotateForMap(mActiveMap);
+        mAddNewRowsButton.setEnabled(false);
+        mAddNewRowsButton.setLabel("Comparing to " + mActiveMap.getLabel() + "...");
+        Log.debug("WAKING ANNOTATION THREAD " + mAnnotateThread + "; pri=" + mAnnotateThread.getPriority());
+        synchronized (mAnnotateThread) {
+            mAnnotateThread.notify();
+        }
+    }
 
-    private void annotateForMap(final LWMap map)
+    private boolean annotateForMap(final LWMap map)
     {
-        if (DEBUG.Enabled) Log.debug("ANNOTATING for " + map + "; " + this);
+        if (DEBUG.Enabled) Log.debug("ANNOTATING against " + map);
         
         DataAction.annotateForMap(mSchema, map);
 
         if (map != null) {
             final String annot = map.getLabel();
             for (DataNode n : mRootNode.getChildren()) {
+                if (Thread.interrupted()) return true;
                 n.annotate(map);
                 if (!n.isLeaf())
-                    for (DataNode cn : n.getChildren())
+                    for (DataNode cn : n.getChildren()) {
+                        if (Thread.interrupted()) return true;
                         cn.annotate(map);
+                    }
             }
         }
 
@@ -465,7 +478,12 @@ public class DataTree extends javax.swing.JTree
             mAddNewRowsButton.setEnabled(false);
         }
 
-        refreshAll();
+        // TODO: don't bother with refresh if annotations didn't change at all
+        GUI.invokeAfterAWT(new Runnable() { public void run() {
+            refreshAll();
+        }});
+
+        return false;
     }
 
 //     private void refreshRoot() {
@@ -518,6 +536,26 @@ public class DataTree extends javax.swing.JTree
         //setSelectionModel(null);
 
         setModel(mTreeModel = new DefaultTreeModel(buildTree(schema), false));
+
+        mAnnotateThread = new Thread("Annotate: " + schema.getName()) {
+                { setPriority(NORM_PRIORITY); }
+                public void run() {
+                    synchronized (this) {
+                    while (true) {
+                        try {
+                            Log.debug("annotation thread sleeping");
+                            wait();
+                        } catch (InterruptedException e) {
+                            Log.error("interrupted " + schema, e);
+                        }
+                        Log.debug("annotation thread woke");
+                        boolean interrupted = annotateForMap(mActiveMap);
+                        if (interrupted)
+                            Log.debug("annotation aborted");
+                    }
+                    }
+                }
+            };
 
         setRowHeight(0);
         setRootVisible(false);
@@ -602,7 +640,22 @@ public class DataTree extends javax.swing.JTree
                     //VUE.setActive(LWComponent.class, this, node.styleNode);
                 }
             });
+
+        mAnnotateThread.start();
         
+    }
+
+    @Override
+    public void addNotify() {
+        Log.debug("ADDNOTIFY " + this + "; thread=" + mAnnotateThread);
+        mAnnotateThread.setPriority(Thread.NORM_PRIORITY);
+        super.addNotify();
+    }
+    @Override
+    public void removeNotify() {
+        Log.debug("REMOVENOTIFY " + this);
+        mAnnotateThread.setPriority(Thread.MIN_PRIORITY);
+        super.removeNotify();
     }
 
     private static String HTML(String s) {
@@ -826,202 +879,9 @@ public class DataTree extends javax.swing.JTree
     }
 
     private static String valueName(Object value) {
-        //return StringEscapeUtils.escapeHtml(Field.valueName(value));
         return DataAction.valueName(value);
     }
 
-//     private static String makeLabel(Field f, Object value) {
-
-//         assert value != null;
-
-//         //Log.debug("*** makeLabel " + f + " [" + value + "] emptyValue=" + (value == Field.EMPTY_VALUE));
-
-// // This will be overriden by the label-style: this could would need to go there to work
-// //         if (value == Field.EMPTY_VALUE)
-// //             return String.format("(no [%s] value)", f.getName());
-// //         else
-//             return Field.valueName(value);
-//     }
-
-//     private static LWComponent makeValueNode(Field field, String value) {
-        
-//         LWComponent node = new LWNode(makeLabel(field, value));
-//         //node.setDataInstanceValue(field.getName(), value);
-//         node.setDataInstanceValue(field, value);
-//         //node.setClientData(Field.class, field);
-//         if (field.getStyleNode() != null)
-//             node.setStyle(field.getStyleNode());
-// //         else
-// //             tufts.vue.EditorManager.targetAndApplyCurrentProperties(node);
-//         String target = node.getLabel();
-        
-//         target = Util.formatLines(target, VueResources.getInt("dataNode.labelLength"));
-        
-//         node.setLabel(target);
-//         return node;
-
-//     }
-
-//     private static List<LWComponent> makeRowNodes(Schema schema, DataRow singleRow) {
-
-//         Log.debug("PRODUCING SINGLE ROW NODE FOR " + schema + "; row=" + singleRow);
-
-//         List<DataRow> rows = Collections.singletonList(singleRow);
-
-//         return makeRowNodes(schema, rows);
-        
-//     }
-    
-//     private static List<LWComponent> makeRowNodes(Schema schema) {
-
-//         Log.debug("PRODUCING ALL DATA NODES FOR " + schema + "; rowCount=" + schema.getRows().size());
-
-//         return makeRowNodes(schema, schema.getRows());
-        
-//     }
-
-//     private static List<LWComponent> makeRowNodes(Schema schema, final Collection<DataRow> rows)
-//     {
-//         final java.util.List<LWComponent> nodes = new ArrayList();
-
-//         // TODO: findField should find case-independed values -- wasn't our key hack supposed to handle that?
-
-//         final Field linkField = schema.findField("Link");
-//         final Field descField = schema.findField("Description");
-//         final Field titleField = schema.findField("Title");
-//         //final Field mediaField = schema.findField("media:group.media:content.media:url");
-//         final Field mediaField = schema.findField("media:content@url");
-//         final Field imageField = schema.getImageField();
-        
-//         final int maxLabelLineLength = VueResources.getInt("dataNode.labelLength", 50);
-        
-// //         final Collection<DataRow> rows;
-
-// //         if (singleRow != null) {
-// //             Log.debug("PRODUCING SINGLE ROW NODE FOR " + schema + "; row=" + singleRow);
-// //             rows = Collections.singletonList(singleRow);
-// //         } else {
-// //             Log.debug("PRODUCING ALL DATA NODES FOR " + schema + "; rowCount=" + schema.getRows().size());
-// //             rows = schema.getRows();
-// //         }
-
-//         Log.debug("PRODUCING ROW NODE(S) FOR " + schema + "; " + Util.tags(rows));
-//         Log.debug("IMAGE FIELD: " + imageField);
-
-//         final boolean singleRow = (rows.size() == 1);
-        
-//         int i = 0;
-//         LWNode node;
-//         for (DataRow row : rows) {
-
-//             try {
-            
-//                 node = LWNode.createRaw();
-//                 // node.setFlag(Flag.EVENT_SILENT); // todo performance: have nodes do this by default during init
-//                 //node.setClientData(Schema.class, schema);
-//                 //node.getMetadataList().add(row.entries());
-//                 //node.addDataValues(row.dataEntries());
-//                 node.setDataValues(row.getData());
-//                 node.setStyle(schema.getStyleNode()); // must have meta-data set first to pick up label template
-
-//                 if (singleRow) {
-//                     // if handling a single node (e.g., probably a single drag),
-//                     // also apply & override with the current on-map creation style
-//                     tufts.vue.EditorManager.targetAndApplyCurrentProperties(node);
-//                 }
-
-//                 boolean addedResource = false;
-            
-//                 if (imageField != null) {
-//                     final String image = row.getValue(imageField);
-//                     if (image != null && image.length() > 0 && Resource.looksLikeURLorFile(image) && !image.equals("n/a")) {
-//                         // todo: note "n/a" hack above
-//                         Resource ir = Resource.instance(image);
-                        
-//                         if (titleField != null) {
-//                             String title = row.getValue(titleField);
-//                             ir.setTitle(title);
-//                             ir.setProperty("Title", title);
-//                         }
-                        
-//                         Log.debug("image resource: " + ir);
-//                         node.addChild(new tufts.vue.LWImage(ir));
-//                         addedResource = true;
-//                     }
-//                 }
-//                 String link = null;
-
-//                 if (!addedResource && linkField != null) {
-//                     link = row.getValue(linkField);
-//                     if ("n/a".equals(link)) link = null; // TEMP HACK
-//                 }
-                
-//                 if (link != null) {
-//                     node.setResource(link);
-//                     final tufts.vue.Resource r = node.getResource();
-//                     //                 if (descField != null) // now redundant with data fields, may want to leave out for brevity
-//                     //                     r.setProperty("Description", row.getValue(descField));
-//                     if (titleField != null) {
-//                         String title = row.getValue(titleField);
-//                         r.setTitle(title);
-//                         r.setProperty("Title", title);
-//                     }
-//                     if (mediaField != null) {
-//                         // todo: if no per-item media field, use any per-schema media field found
-//                         // (e.g., RSS content provider icon image)
-//                         // todo: refactor so cast not required
-//                         ((tufts.vue.URLResource)r).setURL_Thumb(row.getValue(mediaField));
-//                     }
-//                 }
-
-//                 //Log.debug("produced node " + node);
-//                 String label = node.getLabel();
-
-//                 label = Util.formatLines(label, maxLabelLineLength);
-//                 node.setLabel(label);
-//                 nodes.add(node);
-//             } catch (Throwable t) {
-//                 Log.error("failed to create node for row " + row, t);
-//             }
-            
-            
-//         }
-        
-//         Log.debug("PRODUCED NODE(S) FOR " + schema + "; count=" + nodes.size());
-        
-//         return nodes;
-//     }
-
-//     private static List<LWLink> makeDataLinksForNodes(LWMap map, List<LWComponent> nodes, Field field)
-//     {
-//         final Collection linkTargets = Util.extractType(map.getAllDescendents(), LWNode.class);
-        
-//         java.util.List<LWComponent> links = null;
-        
-//         if (linkTargets.size() > 0) {
-//             links = new ArrayList();
-//             for (LWComponent c : nodes) {
-//                 links.addAll(DataAction.makeLinks(linkTargets, c, field));
-//             }
-//         }
-
-//         return links == null ? Collections.EMPTY_LIST : links;
-//     }
-
-
-//     /** @field -- if null, will make exaustive row-node links */
-//     private static boolean addDataLinksForNewNodes(LWMap map, List<LWComponent> nodes, Field field) {
-        
-//         List<LWLink> links = makeDataLinksForNodes(map, nodes, field);
-
-//         if (links.size() > 0) {
-//             map.getInternalLayer("*Data Links*").addChildren(links);
-//             return true;
-//         } else
-//             return false;
-//     }
-    
-    
     private static class NodeProducer implements LWComponent.Producer, Runnable {
 
         private final DataNode treeNode;
@@ -1096,7 +956,7 @@ public class DataTree extends javax.swing.JTree
             //for (LWComponent c : nodes)c.setToNaturalSize();
             // todo: some problem editing template values: auto-size not being handled on label length shrinkage
             
-            final boolean addedLinks = DataAction.addDataLinksForNewNodes(map, nodes, treeNode.getField());
+            final boolean addedLinks = DataAction.addDataLinksForNodes(map, nodes, treeNode.getField());
 
             if (nodes.size() > 1) {
                 if (treeNode.isRecordNode()) {
@@ -1169,96 +1029,10 @@ public class DataTree extends javax.swing.JTree
         return label;
     }
 
-
-    private static final Color DataNodeColor = VueResources.getColor("node.data.color", Color.gray);
-    private static final float DataNodeStrokeWidth = VueResources.getInt("node.data.stroke.width", 0);
-    private static final Color DataNodeStrokeColor = VueResources.getColor("node.data.stroke.color", Color.black);
-    private static final Font DataNodeFont = VueResources.getFont("node.data.font");
-
-    private static final Color ValueNodeTextColor = VueResources.getColor("node.dataValue.text.color", Color.black);
-    private static final Font ValueNodeFont = VueResources.getFont("node.dataValue.font");
-    private static final Color[] ValueNodeDataColors = VueResources.getColorArray("node.dataValue.color.cycle");
-    private static int NextColor = 0;
-
-//     private static final Color[] DataColors = VueResources.getColorArray("fillColorValues");
-//     private static final int FirstRotationColor = 22;
-//     private static final int SecondRotationColor = 18;
-//     private static int NextColor = FirstRotationColor;
-//     private static boolean FirstRotation = true;
-    
-//     private static final Font ValueNodeFont = new Font("SansSerif", Font.BOLD, 24);
-//     private static final Font DataNodeFont = new Font("SansSerif", Font.PLAIN, 12);
-        
-
-    private static LWComponent initStyleNode(LWComponent style) {
-        style.setFlag(Flag.INTERNAL);
-        style.setFlag(Flag.DATA_STYLE); // must set before setting label, or template will atttempt to resolve
-        style.setID(style.getURI().toString());
-        return style;
-    }
-    
-    private static LWComponent createStyleNode(final Field field, LWComponent.Listener repainter)
-    {
-        final LWComponent style;
-
-        if (field.isPossibleKeyField()) {
-
-            style = new LWNode(); // creates a rectangular node
-            //style.setLabel(" ---");
-            style.setFillColor(Color.lightGray);
-            style.setFont(DataNodeFont);
-        } else {
-            //style = new LWNode(" ---"); // creates a round-rect node
-            style = new LWNode(""); // creates a round-rect node
-            //style.setFillColor(Color.blue);
-            style.setFillColor(ValueNodeDataColors[NextColor]);
-            if (++NextColor >= ValueNodeDataColors.length)
-                NextColor = 0;
-//             NextColor += 8;
-//             if (NextColor >= DataColors.length) {
-//                 if (FirstRotation) {
-//                     NextColor = SecondRotationColor;
-//                     FirstRotation = false;
-//                 } else {
-//                     NextColor = FirstRotationColor;
-//                     FirstRotation = true;
-//                 }
-//             }
-            style.setFont(ValueNodeFont);
-        }
-//         style.setFlag(Flag.INTERNAL);
-//         style.setFlag(Flag.DATA_STYLE); 
-        initStyleNode(style); // must set before setting label, or template will atttempt to resolve
-        //style.setLabel(String.format("%.9s: \n${%s} ", field.getName(),field.getName()));
-        style.setLabel(String.format("${%s}", field.getName()));
-        style.setNotes(String.format
-                       ("Style node for field '%s' in data-set '%s'\n\nSource: %s\n\n%s\n\nvalues=%d; unique=%d; type=%s",
-                        field.getName(),
-                        field.getSchema().getName(),
-                        field.getSchema().getResource(),
-                        field.valuesDebug(),
-                        field.valueCount(),
-                        field.uniqueValueCount(),
-                        field.getType()
-                       ));
-        style.setTextColor(ValueNodeTextColor);
-        //style.disableProperty(LWKey.Label);
-        style.addLWCListener(repainter);
-        style.setFlag(Flag.STYLE); // set last so creation property sets don't attempt updates
-        
-        return style;
-    }
-
-
-//     public static final java.awt.datatransfer.DataFlavor DataFlavor =
-//         tufts.vue.gui.GUI.makeDataFlavor(DataNode.class);
-
     private static class DataNode extends DefaultMutableTreeNode {
 
-        //final Field field;
         String display;
         
-        //DataNode(Field field, LWComponent.Listener repainter, String description) {
         protected DataNode(String description) {
             setDisplay(description);
         }
@@ -1268,12 +1042,6 @@ public class DataTree extends javax.swing.JTree
         Vector<DataNode> getChildren() {
             return super.children;
         }
-        
-//         DataNode(String description) {
-//             field = null;
-//             setDisplay(description);
-//         }
-
 
         Schema getSchema() {
             Util.printStackTrace("getSchema: unimplemented");
@@ -1286,74 +1054,33 @@ public class DataTree extends javax.swing.JTree
         }
 
         /** @return false -- override for row nodes */
-        boolean isRow() {
-            return false;
-        }
+        boolean isRow() { return false; }
+        /** @return null -- override for value nodes */
+        String getValue() { return null; }
+        /** @return null -- override for field nodes */
+        Field getField() { return null; }
         
-        String getValue() {
-            return null;
-        }
+        /** @return true if this node represents the collection of all possible values found in a column of data */
+        boolean isField() { return false; }
+        /** @return true if this node represents a paricular enumerated value from a given column */
+        boolean isValue() { return !isField(); }
 
-        Field getField() {
-            //Util.printStackTrace("getField: unimplemented");
-            return null;
-        }
+        
+        LWComponent getStyle() { return null; }
+        boolean hasStyle() { return false; }
 
+        
+        /** set the label visually displayed in the tree (unannotated) */
         void setDisplay(String s) {
             display = s;
             setUserObject(s);  // sets display label
         }
 
-        void annotate(LWMap map) {
-            if (getField() != null) {
-
-                // skip this summary entirely for now: we'd need Field to track
-                // instances of schematic field nodes for it to work anyway
-                // a good compromise for now would be to have a single indicator
-                // on this node if any of it's children are present in the map
-                
-//                 if (field.isSingleValue()) {
-//                     // tecnically, map could contain items that *don't* match the single value, in 
-//                     // which case we could annotate the # of NON matching fields -- we do nothing for now
-//                     //setAnnotation(null);
-//                     setAnnotation("<single>");
-//                 } else {
-//                     final int count = field.getContextValueCount();
-//                     if (count > 0) {
-//                         if (field.getEnumValueCount() == count)
-//                             setAnnotation("[all present]");
-//                         else 
-//                             setAnnotation(String.format("[%d present, %d new]",
-//                                                         count,
-//                                                         field.getEnumValueCount() - count));
-//                     } else
-//                         setAnnotation(null);
-//                 }
-                
-            } else if (DEBUG.Enabled)
-                setAnnotation(String.format("[%s]", map.getLabel()));
-            //if (DEBUG.Enabled) Log.debug("annotate: no action for " + Util.tags(this));
-        }
+        /** noop -- override to provide annotations againast the given map */
+        void annotate(LWMap map) {}
 
         void setAnnotation(String s) {
-
             setPostfix(s);
-            
-//             //Log.debug("annotating " + this + " with [" + s + "]");
-//             if (s == null || s.length() == 0) {
-//                 setUserObject(display);
-//             } else {
-//                 if (false) {
-//                     setUserObject(display + " " + s);
-//                 } else {
-//                     //final String cs = (String) getUserObject();
-//                     if (display.startsWith("<html>")) {
-//                         setUserObject("<html>" + s + " " + display.substring(6));
-//                     } else
-//                         setUserObject(s + " " + display);
-//                 }
-//             }
-//             //setUserObject(display + " {" + s + "}");
         }
 
         void setPostfix(String s) {
@@ -1379,23 +1106,6 @@ public class DataTree extends javax.swing.JTree
             }
         }
         
-
-        LWComponent getStyle() {
-            return null;
-        }
-
-        boolean hasStyle() {
-            return false;
-        }
-
-        boolean isField() {
-            return false;
-        }
-        
-        boolean isValue() {
-            //return value != null;
-            return !isField();
-        }
 
         /** @return true if this node is tracked for presence in the active map */
         boolean isMapTracked() {
@@ -1434,7 +1144,6 @@ public class DataTree extends javax.swing.JTree
 //             isMapPresent = keyField.countContextValue(keyValue) > 0;
             
             isMapPresent = row.getContextCount() > 0;
-            
         }
 
 
@@ -1450,6 +1159,12 @@ public class DataTree extends javax.swing.JTree
                 
     }
 
+    /**
+     * A "field" is really a column from a particular data set, with the additional
+     * semantics that we usually always keep around an enumerated list of all the possible
+     * unique values that appear in that column.  A FieldNode node will have a list of ValueNodes
+     * as children to represent these values.
+     */
     private static class FieldNode extends DataNode {
 
         final Field field;
@@ -1465,42 +1180,18 @@ public class DataTree extends javax.swing.JTree
 
             //if (field != null && field.isEnumerated() && !field.isPossibleKeyField())
             if (field != null && !field.hasStyleNode() && !field.isSingleValue() && field.isEnumerated())
-                field.setStyleNode(createStyleNode(field, repainter));
+                field.setStyleNode(DataAction.makeStyleNode(field, repainter));
         }
 
         protected FieldNode(Field field) {
             this.field = field;
         }
 
-        @Override
-        Schema getSchema() {
-            return field.getSchema();
-        }
-
-        @Override
-        Field getField() {
-            return field;
-        }
-        
-        @Override
-        LWComponent getStyle() {
-            return field == null ? null : field.getStyleNode();
-        }
-
-        @Override
-        boolean hasStyle() {
-            //return isField();
-            return field != null && field.getStyleNode() != null;
-        }
-
-        @Override
-        boolean isField() {
-            return field != null;
-            //return value == null && field != null;
-        }
-        
-        
-        
+        @Override Field getField() { return field; }
+        @Override Schema getSchema() { return field.getSchema(); }
+        @Override LWComponent getStyle() { return field == null ? null : field.getStyleNode(); }
+        @Override boolean hasStyle() { return field != null && field.getStyleNode() != null; }
+        @Override boolean isField() { return field != null; }
     }
     
 
@@ -1529,7 +1220,7 @@ public class DataTree extends javax.swing.JTree
             if (mapCount > 0) {
                 isMapPresent = true;
                 if (mapCount != dataSetCount)
-                    setPostfix("(" + mapCount + ")");
+                    setPostfix(String.format("[%+d]", mapCount - dataSetCount));
                 else
                     setPostfix(null);
                 //setPrefix("=");
@@ -1567,61 +1258,26 @@ public class DataTree extends javax.swing.JTree
 
     private static final class AllRowsNode extends FieldNode {
 
-        Schema schema;
+        final Schema schema;
 
         AllRowsNode(Schema schema, LWComponent.Listener repainter) {
             super(null,
                   repainter,
                   String.format(HTML("<b><u>All Records in %s (%d)"), schema.getName(), schema.getRowCount()));
             this.schema = schema;
-            
-//             LWComponent style = new LWNode();
-//             style.setFlag(Flag.INTERNAL);
-//             style.setFlag(Flag.DATA_STYLE);
-            final LWComponent style = initStyleNode(new LWNode());
-
-            String titleField;
-            
-            // Make a guess at what might be the best field to use for the node label text
-            if (schema.getRowCount() <= 42 && schema.hasField("title")) {
-                // if we have hundreds of nodes, title may be too long to use -- the key
-                // field may well be shorter.
-                titleField = "title";
-            } else {
-                titleField = schema.getKeyFieldGuess().getName();
-            }
-            
-            style.setLabel(String.format("${%s}", titleField));
-            
-            style.setFont(DataNodeFont);
-            style.setTextColor(Color.black);
-            style.setFillColor(DataNodeColor);
-            style.setStrokeWidth(DataNodeStrokeWidth);
-            style.setStrokeColor(DataNodeStrokeColor);
-            //style.disableProperty(LWKey.Notes);
-            String notes = String.format("Style for all %d data items in %s",
-                                         schema.getRowCount(),
-                                         schema.getName());
-
-            if (DEBUG.Enabled) notes += ("\n\nSchema: " + schema.getDump());
-            style.setNotes(notes);
-            style.setFlag(Flag.STYLE); // do last
-
-            schema.setStyleNode(style);
+            schema.setStyleNode(DataAction.makeStyleNode(schema));
         }
 
-        @Override
-        Schema getSchema() {
-            return schema;
+        @Override void annotate(LWMap map) {
+            if (DEBUG.Enabled)
+                setAnnotation(String.format("[%s]", map.getLabel()));
         }
-        @Override
-        boolean isField() { return false; }
-        @Override
-        boolean isValue() { return false; }
-        @Override
-        boolean hasStyle() { return true; }
-        @Override
-        LWComponent getStyle() { return schema.getStyleNode(); }
+        
+        @Override Schema getSchema() { return schema; }
+        @Override boolean isField() { return false; }
+        @Override boolean isValue() { return false; }
+        @Override boolean hasStyle() { return true; }
+        @Override LWComponent getStyle() { return schema.getStyleNode(); }
     }
 
 
@@ -1699,9 +1355,16 @@ public class DataTree extends javax.swing.JTree
             //setIconTextGap(2);
             //setBorder(LeafBorder);
             setVerticalTextPosition(SwingConstants.CENTER);
-            //setTextNonSelectionColor(Color.black);
+            //setTextSelectionColor(Color.blue); // text color selected
+            //setTextNonSelectionColor(Color.green); // text color normal
+            //setBackgroundSelectionColor(VueConstants.COLOR_SELECTION.brighter());
+            setBackgroundSelectionColor(tufts.vue.ui.LayersUI.ActiveBG);
+            setBorderSelectionColor(VueConstants.COLOR_SELECTION);
+            //setBackgroundSelectionColor(VueConstants.COLOR_HIGHLIGHT);
             //setFont(tufts.vue.VueConstants.SmallFixedFont);
         }
+
+        //@Override public int getWidth() { return 500; }
 
         public Component getTreeCellRendererComponent(
                 final JTree tree,
@@ -1810,7 +1473,8 @@ public class DataTree extends javax.swing.JTree
                                               4*ViewScale+0.5,
                                               (IconWidth-4) * ViewScale,
                                               (IconHeight-8) * ViewScale);
-    
+
+    private static final Stroke NodeIconBorder = new BasicStroke(0.5f);
     
     private static class NodeIconPainter implements Icon {
 
@@ -1853,6 +1517,9 @@ public class DataTree extends javax.swing.JTree
             g.setColor(node.getFillColor());
             g.scale(ViewScaleDown, ViewScaleDown);
             g.fill(shape);
+            g.setStroke(NodeIconBorder);
+            g.setColor(Color.gray);
+            g.draw(shape);
             g.scale(ViewScale, ViewScale);
 
             //node.setSize(IconSize);
