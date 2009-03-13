@@ -8,7 +8,7 @@
 
 <project name="tests" default="usage" basedir=".">
 
-<!-- $Revision: 1.35 $ / $Date: 2009-02-23 20:03:02 $ -->
+<!-- $Revision: 1.36 $ / $Date: 2009-03-13 04:02:13 $ -->
 
 <!-- 
 This ant build file:
@@ -378,11 +378,11 @@ This ant build file:
           description="Create OSIDTest.jar containing all supporting files">
 
     <mkdir dir="dist/lib/osid"/>    
-    <delete file="dist/lib/osid/OSIDTest-1.0.jar"/>
-    <jar jarfile="dist/lib/osid/OSIDTest-1.0.jar"
+    <delete file="dist/lib/osid/OSIDTest-1.0a.jar"/>
+    <jar jarfile="dist/lib/osid/OSIDTest-1.0a.jar"
          basedir="${build.class}" 
          includes="edu/tufts/osidimpl/testing/*.*"/>
-    <jar jarfile="dist/lib/osid/OSIDTest-1.0.jar"
+    <jar jarfile="dist/lib/osid/OSIDTest-1.0a.jar"
          basedir="${build.class}" 
 		 update="true"
          includes="edu/tufts/osidimpl/testing/repository/*.*"/>
