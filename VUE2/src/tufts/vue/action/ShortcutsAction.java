@@ -13,6 +13,10 @@ import tufts.vue.gui.DockWindow;
 
 import java.awt.Event;
 import java.awt.event.*;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
 import javax.swing.Action;
 import javax.swing.AbstractButton;
 import javax.swing.JComponent;
@@ -22,7 +26,7 @@ import javax.swing.JScrollPane;
 /**
  * Produce a shortcuts window.
  *
- * @version $Revision: 1.13 $ / $Date: 2008-12-17 22:20:00 $ / $Author: sfraize $
+ * @version $Revision: 1.14 $ / $Date: 2009-03-13 18:04:48 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class ShortcutsAction extends tufts.vue.VueAction
@@ -136,13 +140,13 @@ public class ShortcutsAction extends tufts.vue.VueAction
                 
         html.append(o == null ? (DEBUG.Enabled?"null":"") : o.toString());
             
-        // if ((bits & BOLD) != 0) html.append("</b>"); // implied
-        // if ((bits & ITAL) != 0) html.append("</i>"); // implied
+   //      if ((bits & BOLD) != 0) html.append("</b>"); // implied
+    //     if ((bits & ITAL) != 0) html.append("</i>"); // implied
             
         if ((bits & NO_EAST_GAP) == 0)
             html.append(NBSP);
-
-        //html.append("</td>"); // implied
+	 //MK : enable for file output
+     //   html.append("</td>"); // implied
     }
     private static void add(Object o) {
         add(0, o);
@@ -154,7 +158,8 @@ public class ShortcutsAction extends tufts.vue.VueAction
     
     private static void addRow(int row, boolean debug) {
 
-        html.append("\n<tr");
+		// MK - user this comment rest for file output
+        html.append("\n<tr bgcolor=#ffffff>");
         
         if (debug) {
             html.append(" bgcolor=#FF0000");
@@ -279,6 +284,8 @@ public class ShortcutsAction extends tufts.vue.VueAction
                 //add(BOLD+CENTER, KeyStroke.getKeyStroke((char)downKey));
                 add(BOLD, t.getToolName());
                 add(t.getClass().getName());
+                //MK - enable for file output
+                //html.append("</tr>");
                 
             } else {
 
@@ -296,6 +303,8 @@ public class ShortcutsAction extends tufts.vue.VueAction
                     add(CENTER, keyCodeChar(downKey, true));
                 
                 //add(BOLD+CENTER, t.getShortcutKey(), "bgcolor=black color=white");
+                //MK - enable for fileoutput
+                //html.append("</tr>");
             }
         }
 
@@ -407,15 +416,33 @@ public class ShortcutsAction extends tufts.vue.VueAction
             t.setFont(VueConstants.MediumFont);
 
         if (DEBUG.Enabled) Log.debug("HTML size: " + ShortcutsAction.html.length());
-        t.setText(html.toString());
-
+         t.setText(html.toString());
+        /*
+		Since this list can't be cut and pasted from the screen
+		added this to dump it as a file as necessary so we can keep
+		a list on the wiki
+		FileOutputStream fos;
+		try {
+			fos = new FileOutputStream("/Users/mkorcy01/Desktop/mike2.html");
+			try {
+				fos.write(html.toString().getBytes());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        */
         t.setOpaque(false);
         //t.setFocusable(false);
-            
+       
         return new JScrollPane(t,
                                JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
                                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
                                );
+        
     }
 
 
