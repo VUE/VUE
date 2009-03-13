@@ -117,7 +117,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.644 $ / $Date: 2009-03-09 03:57:04 $ / $Author: vaibhav $ 
+ * @version $Revision: 1.645 $ / $Date: 2009-03-13 17:47:20 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -1790,8 +1790,8 @@ public class VUE
         if (!metaDataSearchDock.getWindowProperties().isEnabled() || !metaDataSearchDock.getWindowProperties().isWindowVisible())
         	acrossTopList.add(metaDataSearchDock);
         
-        if (!mergeMapsDock.getWindowProperties().isEnabled() || !mergeMapsDock.getWindowProperties().isWindowVisible())
-        	acrossTopList.add(mergeMapsDock);
+       // if (!mergeMapsDock.getWindowProperties().isEnabled() || !mergeMapsDock.getWindowProperties().isWindowVisible())
+       // 	acrossTopList.add(mergeMapsDock);
         if (!ontologyDock.getWindowProperties().isEnabled() || !ontologyDock.getWindowProperties().isWindowVisible())
         	acrossTopList.add(ontologyDock);
         
