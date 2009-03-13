@@ -38,6 +38,8 @@ public class ConfigurationUI extends javax.swing.JPanel {
     private static final String FILE_NOT_FOUND_MESSAGE = "Cannot find or open ";
     
     private static final String DEFAULT_TAG = "default";
+    private static final String VALUES_TAG = "values";
+    private static final String VALUE_TAG = "value";
     private static final String DESCRIPTION_TAG = "description";
     private static final String FIELD_TAG = "field";
     private static final String KEY_TAG = "key";
@@ -68,6 +70,7 @@ public class ConfigurationUI extends javax.swing.JPanel {
     private java.util.Vector titleVector = new java.util.Vector();
     private java.util.Vector uiVector = new java.util.Vector();
     private java.util.Vector fieldVector = new java.util.Vector();
+    private java.util.Vector valuesVector = new java.util.Vector();
     
     private java.awt.GridBagLayout gbLayout = new java.awt.GridBagLayout();
     private java.awt.GridBagConstraints gbConstraints = new java.awt.GridBagConstraints();
@@ -106,6 +109,7 @@ public class ConfigurationUI extends javax.swing.JPanel {
             
             org.w3c.dom.NodeList fields = document.getElementsByTagName(FIELD_TAG);
             int numFields = fields.getLength();
+  
             for (int i=0; i < numFields; i++) {
                 String defaultValue = null;
                 String description = null;
@@ -114,9 +118,8 @@ public class ConfigurationUI extends javax.swing.JPanel {
                 String maxChars = null;
                 String title = null;
                 String ui = null;
-                String noedit = null;
-                
-                
+                //String noedit = null;
+                            
                 org.w3c.dom.Element field = (org.w3c.dom.Element)fields.item(i);
                 org.w3c.dom.NodeList nodeList = field.getElementsByTagName(DEFAULT_TAG);
                 org.w3c.dom.Element e = (org.w3c.dom.Element)nodeList.item(0);
@@ -153,6 +156,23 @@ public class ConfigurationUI extends javax.swing.JPanel {
                 if (e.hasChildNodes()) {
                     ui = e.getFirstChild().getNodeValue();
                 }
+                nodeList = field.getElementsByTagName(VALUE_TAG);
+                int length = nodeList.getLength();
+                Vector itemVector = new Vector();
+                for (int val=0; val< length; val++)
+                {
+                	
+                	
+                	e = (org.w3c.dom.Element)nodeList.item(val);
+                	
+                	if (e.hasChildNodes()){
+                		
+                		itemVector.add(e.getFirstChild().getNodeValue());
+                	}
+                	             
+                }
+                valuesVector.add(itemVector);
+                
             
                 
                 
@@ -334,7 +354,18 @@ public class ConfigurationUI extends javax.swing.JPanel {
                     // update vectors for when we want to get the values out
                     case COMBO_BOX_CONTROL:
                         final javax.swing.JComboBox comboBox;
-                        final Vector extraValues = this.extraValuesByKey.get(key);
+                        
+                        Vector extraValues = this.extraValuesByKey.get(key);
+                        
+                        if (extraValues == null || extraValues.size() == 0)
+                        {
+                        	//this is a real <configuration> file get the data some other way, its' not a dataset.
+                        	if (extraValues == null)
+                        		extraValues = new Vector();
+                        	
+                        	if (valuesVector !=null && valuesVector.size() > i)
+                        		extraValues.addAll((Vector) valuesVector.elementAt(i));
+                        }
                         Log.info(String.format("creating JComboBox: default=[%s]; extra fields for key [%s]: %s",
                                                defaultValue,
                                                key,
