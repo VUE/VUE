@@ -25,13 +25,13 @@ public class SyncDialog extends JDialog implements ActionListener, KeyListener
 {
     private JButton okButton, cancelButton;
     private static int newcnt = 1;
-    private final JRadioButton nodeToSlideButton = new JRadioButton("from node to slide");;
-    private final JRadioButton slideToNodeButton = new JRadioButton("from slide to node");
-    private final JRadioButton syncAllButton = new JRadioButton("sync both ways");    
+    private final JRadioButton nodeToSlideButton = new JRadioButton(VueResources.getString("jbutton.nodetoslide.label"));
+    private final JRadioButton slideToNodeButton = new JRadioButton(VueResources.getString("jbutton.slidetonode.label"));
+    private final JRadioButton syncAllButton = new JRadioButton(VueResources.getString("jbutton.bothways.label"));    
     
     public SyncDialog(Frame parentFrame, Point location)
     {
-        super(parentFrame, "Sync Resources", true);
+        super(parentFrame, VueResources.getString("dialog.syncresource.title"), true);
         
         setSize(390, 200);
         this.setFocusable(true);
@@ -41,8 +41,8 @@ public class SyncDialog extends JDialog implements ActionListener, KeyListener
     }    
     private void setUpUI()
     {
-        okButton = new JButton("Sync");
-        cancelButton = new JButton("Cancel");
+        okButton = new JButton(VueResources.getString("button.sync.lable"));
+        cancelButton = new JButton(VueResources.getString("button.cancel.lable"));
 
         okButton.addActionListener(this);
         okButton.addKeyListener(this);
@@ -59,7 +59,7 @@ public class SyncDialog extends JDialog implements ActionListener, KeyListener
         
         Container dialogContentPane = getContentPane();
         dialogContentPane.setLayout(new BorderLayout());
-        JLabel label = new JLabel("Which way would you like to sync resources:");
+        JLabel label = new JLabel(VueResources.getString("syncresource.label"));
                         
         ButtonGroup group = new ButtonGroup();
         group.add(nodeToSlideButton);

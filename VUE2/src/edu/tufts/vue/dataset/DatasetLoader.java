@@ -25,19 +25,26 @@
 package edu.tufts.vue.dataset;
 
 
-import java.util.*;
-import java.io.*;
+import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.File;
 
+import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
-
-
-import edu.tufts.vue.layout.*;
+import tufts.vue.VueResources;
+import edu.tufts.vue.layout.RelRandomLayout;
 
 public class DatasetLoader {
-    public static final String LOADER_LABEL = "Dataset Type";
+    public static final String LOADER_LABEL = VueResources.getString("dialog.datasettype.title");
     JDialog dialog;
     Dataset ds;
     private String fileName;
@@ -74,20 +81,20 @@ public class DatasetLoader {
         final String folderDS = "Folder";
         
         
-        radioButtons[0] = new JRadioButton("List");
+        radioButtons[0] = new JRadioButton(VueResources.getString("jbutton.list.label"));
         radioButtons[0].setActionCommand(listDS);
         
-        radioButtons[1] = new JRadioButton("Relational");
+        radioButtons[1] = new JRadioButton(VueResources.getString("jbutton.relational.label"));
         radioButtons[1].setActionCommand(relationalDS);
         
         
-        radioButtons[2] = new JRadioButton("Folder");
+        radioButtons[2] = new JRadioButton(VueResources.getString("jbutton.folder.label"));
         radioButtons[2].setActionCommand(folderDS);
         for (int i = 0; i < numButtons; i++) {
             group.add(radioButtons[i]);
         }
         radioButtons[0].setSelected(true);
-        JButton loadButton = new JButton("Load");
+        JButton loadButton = new JButton(VueResources.getString("jbutton.load.label"));
         loadButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 String command = group.getSelection().getActionCommand();
@@ -110,7 +117,7 @@ public class DatasetLoader {
             }
         });
         
-        return createPane("Please select the dataset type",radioButtons, loadButton);
+        return createPane(VueResources.getString("pane.dataset.message"),radioButtons, loadButton);
         
         
     }
