@@ -15,28 +15,32 @@
 
 package tufts.vue.ui;
 
-import tufts.Util;
-import tufts.vue.VUE;
-import tufts.vue.LWPathway;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.MouseEvent;
+
+import javax.swing.AbstractButton;
+import javax.swing.Box;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JPanel;
+import javax.swing.JToggleButton;
+
+import tufts.vue.DEBUG;
+import tufts.vue.DrawContext;
+import tufts.vue.LWCEvent;
 import tufts.vue.LWComponent;
 import tufts.vue.LWMap;
+import tufts.vue.LWPathway;
 import tufts.vue.LWSelection;
 import tufts.vue.LWSlide;
-import tufts.vue.MapViewer;
-import tufts.vue.DrawContext;
-import tufts.vue.VueTool;
-import tufts.vue.VueToolbarController;
-import tufts.vue.VueConstants;
-import tufts.vue.LWCEvent;
-import tufts.vue.VueAction;
-import tufts.vue.PickContext;
-import tufts.vue.gui.GUI;
+import tufts.vue.VUE;
+import tufts.vue.VueResources;
 import tufts.vue.gui.Widget;
-import tufts.vue.DEBUG;
-
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
 
 // TWO CASES TO HANDLE:
 
@@ -170,16 +174,16 @@ public class SlideViewer extends tufts.vue.MapViewer
 
         setName("Viewer"); // for DockWindow title and backward compat with window saved location
 
-        btnLocked = new JCheckBox("Lock");
+        btnLocked = new JCheckBox(VueResources.getString("checkbox.lock.label"));
         //btnLocked = makeButton("Lock");
-        btnZoom = makeButton("Zoom");
-        btnFocus = makeButton("Focus");
-        btnSlide = makeButton("Slide");
-        btnMaster = makeButton("Master Slide");
-        btnMapView = new JCheckBox("Map View");
-        btnFill = new JCheckBox("Fill");
-        btnRebuild = new JButton("Revert");
-        btnRevert = new JButton("Reset Style");
+        btnZoom = makeButton(VueResources.getString("button.zoom.label"));
+        btnFocus = makeButton(VueResources.getString("button.focus.label"));
+        btnSlide = makeButton(VueResources.getString("button.slide..label"));
+        btnMaster = makeButton(VueResources.getString("checkbox.masterslide.label"));
+        btnMapView = new JCheckBox(VueResources.getString("checkbox.mapview.label"));
+        btnFill = new JCheckBox(VueResources.getString("checkbox.fill.label"));
+        btnRebuild = new JButton(VueResources.getString("button.revert.label"));
+        btnRevert = new JButton(VueResources.getString("button.resetstyle.label"));
         //btnPresent = makeButton("Present");
 
         btnSlide.setSelected(true);
