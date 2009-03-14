@@ -21,21 +21,39 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.80 $ / $Date: 2009-03-09 03:30:06 $ / $Author: vaibhav $
+ * @version $Revision: 1.81 $ / $Date: 2009-03-14 03:39:52 $ / $Author: vaibhav $
  * @author  akumar03
  */
-import javax.swing.*;
+import java.awt.BorderLayout;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.KeyboardFocusManager;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
-import java.awt.event.*;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.DefaultListModel;
+import javax.swing.DefaultListSelectionModel;
+import javax.swing.Icon;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
-import javax.swing.event.*;
-
-import java.awt.*;
-
-import tufts.vue.ds.*;
-import tufts.vue.gui.*;
-import tufts.vue.gui.FocusManager;
-
+import tufts.vue.ds.XmlDataSource;
+import tufts.vue.gui.GUI;
+import tufts.vue.gui.SizeRestrictedDialog;
+import tufts.vue.gui.VueLabel;
 import edu.tufts.vue.rss.RSSDataSource;
 
 public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelectionListener, ActionListener {
@@ -91,13 +109,13 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
             factory = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance();
         } catch (Throwable t) {
             t.printStackTrace();
-            VueUtil.alert(this,"Error instantiating Provider support","Error");
+            VueUtil.alert(this,VueResources.getString("dialog.error.message"),VueResources.getString("dialog.error.title"));
         }
         
         try {
         	VueLabel helpButton = new VueLabel(VueResources.getImageIcon("addLibrary.helpIcon"));
         	
-            helpButton.setToolTipText("Help Text");
+            helpButton.setToolTipText(VueResources.getString("addLibrary.tooltip"));
             
             String helpText = VueResources.getString("addLibrary.helpText");
             
@@ -302,7 +320,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
             
         } catch (Throwable t) {
             t.printStackTrace();
-            VueUtil.alert(this,t.getMessage(),"Error");
+            VueUtil.alert(this,t.getMessage(),VueResources.getString("dialog.error.title"));
         } finally {
   //          GUI.clearWaitCursor();
         	 timer.stop();
@@ -455,7 +473,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                             factory.installProvider(provider.getId());                            
                         } catch (Throwable t1) {
                             Log.error("install failed " + provider.getId().getIdString());
-                            VueUtil.alert(this,"Installation Failed","Error");
+                            VueUtil.alert(this,VueResources.getString("dialog.installerror.messaged"),VueResources.getString("dialog.error.title"));
                             //cancelButton.requestFocus();
                             SwingUtilities.invokeLater(new Runnable() { 
                                 public void run() { 
@@ -478,7 +496,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                                     provider.getId(),
                                     true);
                         } catch (Throwable t) {
-                            VueUtil.alert(this,"Loading Manager Failed","Error");
+                            VueUtil.alert(this,VueResources.getString("dialog.loadfailed.message"),VueResources.getString("dialog.error.title"));
                             return;
                         }
                         Log.info("created data source");
@@ -495,7 +513,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                     }
                 } catch (Throwable t) {
                     //System.out.println("configuration setup failed");
-                    VueUtil.alert(this,t.getMessage(),"OSID Installation Error");
+                    VueUtil.alert(this,t.getMessage(),VueResources.getString("dialog.osidinstall.title"));
                     t.printStackTrace();
                     //cancelButton.requestFocus();
                     SwingUtilities.invokeLater(new Runnable() { 
@@ -549,7 +567,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                                 ds.setPassword(p.getProperty("password"));
                             } catch (Exception ex) {
                                 proceed = false;
-                                VueUtil.alert("Cannot connect to FTP server with information provided","FTP Connection Error");
+                                VueUtil.alert(VueResources.getString("dialog.connectftp.message"),VueResources.getString("dialog.connectionerror.title"));
                                 ex.printStackTrace();
                                 // ignore any error for now
                             }
@@ -584,7 +602,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                             
                         } catch (Throwable t2) {
                         	proceed=false;
-                        	VueUtil.alert(this,"There was an error while adding the resource, please try again.","Resource Configuration Error");
+                        	VueUtil.alert(this, VueResources.getString("dialog.addresourceerror.dialog"),VueResources.getString("dialog.addresourceerror.title"));
                             t2.printStackTrace();
                         } finally {
                             GUI.clearWaitCursor();

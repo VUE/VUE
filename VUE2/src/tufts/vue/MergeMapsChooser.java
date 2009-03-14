@@ -1103,7 +1103,7 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
             
                if(baseMap == null)
                {
-                   VueUtil.alert("Base Map not set","Base Map");
+                   VueUtil.alert(VueResources.getString("dialog.basemapnot.message"),VueResources.getString("dialog.basemapnot.title"));
                    return;
                } 
                 
@@ -1995,7 +1995,7 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
             
                if(baseMap == null)
                {
-                   VueUtil.alert("Base Map not set","Base Map");
+                   VueUtil.alert(VueResources.getString("dialog.basemapnot.message"),VueResources.getString("dialog.basemapnot.title"));
                    return;
                }
             
@@ -2031,7 +2031,7 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
                  mapList.addAll(listPanelMaps); */
                  if(getMapFileList().size() == 0)
                  {
-                     VueUtil.alert("No Maps Selected","Select Map");
+                     VueUtil.alert(VueResources.getString("dialog.npmapselected.message"),VueResources.getString("dialog.npmapselected.title"));
                      return;
                  }
                  map.setMapFileList(getMapFileList());

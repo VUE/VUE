@@ -264,7 +264,7 @@ public class EditLibraryPanel extends JPanel implements ActionListener
             DataSourceViewer.saveDataSourceViewer();
         } catch (Throwable t) {
             t.printStackTrace();
-            VueUtil.alert("Configuration error: "+ t.getMessage(),"Error");
+            VueUtil.alert(VueResources.getString("dialog.config.message")+ t.getMessage(),VueResources.getString("dialog.config.title"));
         }
     }
 }

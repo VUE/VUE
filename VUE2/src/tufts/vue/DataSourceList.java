@@ -64,7 +64,7 @@ import tufts.oki.localFiling.*;
  * user re-ordering of the data sources, which would automatically be
  * persistent.
  * 
- * @version $Revision: 1.63 $ / $Date: 2009-01-06 17:35:02 $ / $Author: sfraize $
+ * @version $Revision: 1.64 $ / $Date: 2009-03-14 03:41:26 $ / $Author: vaibhav $
  * @author Ranjani Saigal
  */
 
@@ -445,7 +445,7 @@ public class DataSourceList extends JList implements DropTargetListener
         } catch (Exception ex) {
             if (DEBUG.DND) tufts.Util.printStackTrace(ex);
             //this.setSelectedIndex(current);
-            VueUtil.alert(null, "You can only add resources to a Favorites Datasource","Resource Not Added");
+            VueUtil.alert(null, VueResources.getString("dialog.addfav.message"),VueResources.getString("dialog.addfav.message"));
         }
     }
     

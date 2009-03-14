@@ -14,7 +14,7 @@
  */
 package tufts.vue;
  
-// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/LocalFileDataSource.java,v 1.32 2009-03-09 02:56:03 vaibhav Exp $
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/LocalFileDataSource.java,v 1.33 2009-03-14 03:43:31 vaibhav Exp $
 
 import javax.swing.*;
 import java.util.Vector;
@@ -35,7 +35,7 @@ import tufts.Util;
 
 
 /**
- * @version $Revision: 1.32 $ / $Date: 2009-03-09 02:56:03 $ / $Author: vaibhav $
+ * @version $Revision: 1.33 $ / $Date: 2009-03-14 03:43:31 $ / $Author: vaibhav $
  * @author  rsaigal
  */
 
@@ -241,7 +241,7 @@ public class LocalFileDataSource extends BrowseDataSource implements Publishable
             // setPublishMode(Publisher.PUBLISH_CMAP);
         } catch (Exception ex) {
             ex.printStackTrace();
-            VueUtil.alert(null,ex.getMessage(),"Error Setting Reseource Viewer");
+            VueUtil.alert(null,ex.getMessage(),VueResources.getString("dialog.settingreserroe.title"));
         }
     }
 

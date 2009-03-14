@@ -41,7 +41,7 @@ import java.util.*;
 
 /**
  * @author  akumar03
- * @version $Revision: 1.96 $ / $Date: 2009-03-10 03:42:22 $ / $Author: vaibhav $
+ * @version $Revision: 1.97 $ / $Date: 2009-03-14 03:50:16 $ / $Author: vaibhav $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
@@ -469,7 +469,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
             }
         } catch(Throwable t) {
             t.printStackTrace();
-            alert(this,"You are not authorized to publish to "+ds.getRepositoryDisplayName()+". Error message: "+t.getMessage(),"Publish Error");
+            alert(this,VueResources.getString("dialog.notauthorized.message")+ds.getRepositoryDisplayName()+". Error message: "+t.getMessage(),VueResources.getString("dialog.norepository.title"));
             this.dispose();
         }
     }

@@ -209,7 +209,7 @@ public class DataSourceHandler extends JPanel
             loadOldStyleDataSources();
             Log.info("Loaded old style data sources.");
         } catch (Throwable t) {
-            VueUtil.alert("Error loading old Resource","Error");
+            VueUtil.alert(VueResources.getString("dialog.loadresourceerror.message"),VueResources.getString("dialog.loadresourceerror.title"));
         }
     }
 
@@ -271,7 +271,7 @@ public class DataSourceHandler extends JPanel
             
         } catch (Throwable t) {
             Log.error(t);
-            VueUtil.alert("Error loading OSID DataSources:\n" + t, "Error");
+            VueUtil.alert(VueResources.getString(("dialog.loadosiderror.message")) +":\n" + t, VueResources.getString("dialog.loadresourceerror.title"));
         }
         // select the first new data source, if any
         if (activeDataSource == null && dataSources != null && dataSources.length > 0)
@@ -824,7 +824,7 @@ public class DataSourceHandler extends JPanel
                             VueResources.getString("dialog.checkforupdatesaction.title"),
                             javax.swing.JOptionPane.INFORMATION_MESSAGE);
                 } catch (Throwable t) {
-                    VueUtil.alert(t.getMessage(),"Error");
+                    VueUtil.alert(t.getMessage(), VueResources.getString("dialog.loadresourceerror.title"));
                 }
             }
         };
@@ -851,7 +851,7 @@ public class DataSourceHandler extends JPanel
                         }
                     }
                 } catch (Throwable t) {
-                    VueUtil.alert(t.getMessage(),"Error");
+                    VueUtil.alert(t.getMessage(), VueResources.getString("dialog.loadresourceerror.title"));
                 }
             }
         };
@@ -1002,7 +1002,7 @@ public class DataSourceHandler extends JPanel
                 else
                     return false;
             } catch(Exception ex) {
-                VueUtil.alert(null,"DataSourceViewer.checkValidUser - Exception :" +ex, "Validation Error");
+                VueUtil.alert(null,VueResources.getString("dialog.checkvaliduser.message") +ex, VueResources.getString("dialog.checkvaliduser.title"));
                 ex.printStackTrace();
                 return false;
             }
@@ -1559,9 +1559,9 @@ public class DataSourceHandler extends JPanel
             } catch (Throwable t) {
                 Util.printStackTrace(t, "Failed to create search in " + repository);
                 if (DEBUG.Enabled)
-                    VueUtil.alert("Search Error", t);
+                    VueUtil.alert(VueResources.getString("dialog.searcherror.message"), t);
                 else
-                    VueUtil.alert(t.getMessage(), "Search Error");
+                    VueUtil.alert(t.getMessage(), VueResources.getString("dialog.searcherror.message"));
             }
             
             mSearchThreads.add(searchThread);

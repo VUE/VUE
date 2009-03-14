@@ -21,7 +21,7 @@
 package tufts.vue;
 
 /**
-* @version $Revision: 1.29 $ / $Date: 2009-03-10 03:43:28 $ / $Author: vaibhav $
+* @version $Revision: 1.30 $ / $Date: 2009-03-14 03:45:44 $ / $Author: vaibhav $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -69,7 +69,7 @@ public class UpdateLibraryDialog extends JDialog implements ListSelectionListene
             factory = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance();
         } catch (Throwable t) {
             t.printStackTrace();
-            VueUtil.alert(this,"Error instantiating Provider support","Error");
+            VueUtil.alert(this,VueResources.getString("dialog.instprovider.message"),VueResources.getString("dialog.error.title"));
         }
         
         try {
@@ -235,7 +235,7 @@ public class UpdateLibraryDialog extends JDialog implements ListSelectionListene
             
         } catch (Throwable t) {
             t.printStackTrace();
-            VueUtil.alert(this,t.getMessage(),"Error");
+            VueUtil.alert(this,t.getMessage(),VueResources.getString("dialog.error.title"));
         } finally {
             GUI.clearWaitCursor();
         }
@@ -298,7 +298,7 @@ public class UpdateLibraryDialog extends JDialog implements ListSelectionListene
 						factory.installProvider(provider.getId());
 					} catch (Throwable t1) {
 						//System.out.println("install failed " + provider.getId().getIdString());
-						VueUtil.alert(this,"Installation Failed","Error");
+						VueUtil.alert(this,VueResources.getString("dialog.installerror.message"),VueResources.getString("dialog.error.title"));
 						return;
 					} finally {
 						GUI.clearWaitCursor();
@@ -315,7 +315,7 @@ public class UpdateLibraryDialog extends JDialog implements ListSelectionListene
 																	  provider.getId(),
 																	  true);
 					} catch (Throwable t) {
-						VueUtil.alert(this,"Loading Manager Failed","Error");
+						VueUtil.alert(this,VueResources.getString("dialog.loadfailed.message"), VueResources.getString("dialog.error.title"));
 						return;
 					}
 					//System.out.println("created data source");
@@ -330,7 +330,7 @@ public class UpdateLibraryDialog extends JDialog implements ListSelectionListene
 				}
 			} catch (Throwable t) {
 				//System.out.println("configuration setup failed");
-				VueUtil.alert(this,t.getMessage(),"OSID Installation Error");
+				VueUtil.alert(this,t.getMessage(),VueResources.getString("dialog.osidinstall.title"));
 				t.printStackTrace();
 				return;
 			}

@@ -45,7 +45,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.44 $ / $Date: 2008-06-30 20:52:54 $ / $Author: mike $
+ * @version $Revision: 1.45 $ / $Date: 2009-03-14 03:50:39 $ / $Author: vaibhav $
  * @author  rsaigal
  */
 public class VueDandDTree extends VueDragTree implements DropTargetListener {
@@ -251,7 +251,7 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
                 
             }
         } else{
-            VueUtil.alert(null, "You can only add resources to a Favorites Folder", "Error Adding Resource to Favorites");
+            VueUtil.alert(null, VueResources.getString("dialog.resourceadd.message"), VueResources.getString("dialog.resourceadd.title"));
             
             //.dropComplete(false);
         }
