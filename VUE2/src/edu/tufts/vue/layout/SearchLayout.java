@@ -107,12 +107,9 @@ public class SearchLayout extends Layout {
                 boolean flag = true;
                 int col_count = 0;
                 while (flag && col_count < MAX_COLLISION_CHECK) {
-                	final MapViewer viewer = VUE.getActiveViewer();                	                  
-                	
-
+                	final MapViewer viewer = VUE.getActiveViewer();                	                  	
                     if ((viewer.pickNode((float) x, (float) y) != null) || (viewer.pickNode((float) x + node.getWidth(), (float) y + node.getHeight()) != null) || (viewer.pickNode((float) x, (float) y + node.getHeight()) != null) || (viewer.pickNode((float) x + node.getWidth(), (float) y) != null)) {                	
-
-                    	
+                  
                         angle = Math.PI * 2 * Math.random();
                         r = radius * (1 - Math.pow(Math.random(), 2.0));
                         x = centerX + r * Math.cos(angle);
@@ -123,6 +120,7 @@ public class SearchLayout extends Layout {
                     	flag = false;
                     }
                     col_count++;
+                    System.out.println("Checking collision for "+c.getLabel()+" count:"+col_count);
                     
                 }
                 node.setLocation(x, y);

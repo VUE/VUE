@@ -36,6 +36,10 @@ import edu.tufts.vue.dataset.*;
 
 public class ClusterLayout  extends Layout {
     public static String DEFAULT_METADATA_LABEL = "default";
+    public static final int MINX_RADIUS = VueResources.getInt("layout.minx_radius");
+    public static final int MINY_RADIUS = VueResources.getInt("layout.miny_radius");
+    public static final int X_SPACING = VueResources.getInt("layout.x_spacing");
+    public static final int Y_SPACING = VueResources.getInt("layout.y_spacing");
     public final int clusterColumn = 3;
     public final int total = 15;
     /** Creates a new instance of ClusterLayout */
@@ -179,10 +183,17 @@ public class ClusterLayout  extends Layout {
                 int totalLinked = clusterMap.get(node).size();
                 total++;
                 if(count%mod ==0) {
-                    if(count!=0) y += maxClusterSize* maxNodeHeight/2;
+                    if(count!=0) {
+                    	double increment = maxClusterSize* maxNodeHeight/2;
+                    	if(increment < 2*MINY_RADIUS ) increment = 2*MINY_RADIUS+Y_SPACING;
+                    	
+                    	y += increment;
+                    }
                     x =minX;
                 } else {
-                    x+=maxClusterSize* maxNodeWidth/4;
+                	double increment =maxClusterSize* maxNodeWidth/4;
+                	if(increment < 2*MINX_RADIUS ) increment = 2*MINX_RADIUS+X_SPACING;
+                    x+=increment;
                 }
                 count++;
                 node.setLocation(x,y);
@@ -191,8 +202,10 @@ public class ClusterLayout  extends Layout {
 
                 int countLinked = 0;
                 double angle = 0.0;
-                double radiusX = totalLinked* maxNodeWidth/8;
-                double radiusY = totalLinked* maxNodeHeight/4;
+                double radiusX = totalLinked* maxNodeWidth/10;
+                double radiusY = totalLinked* maxNodeHeight/5;
+                if(radiusX < 300) radiusX = 300;
+                if(radiusY<300) radiusY = 300;
 
                 for(LWComponent linkedNode:clusterMap.get(node)) {
                    // LWNode nodeLinked = (LWNode)c;
