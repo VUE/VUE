@@ -2704,6 +2704,11 @@ public class Util
         System.exit(0);
     }
 
+	public static int getMaxLabelLineLength() {
+		
+		return VueResources.getInt("dataNode.labelLength");
+	}
+
     
     
 }
