@@ -59,7 +59,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.234 $ / $Date: 2009-03-11 18:23:52 $ / $Author: sfraize $
+ * @version $Revision: 1.235 $ / $Date: 2009-03-17 16:06:36 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -754,9 +754,12 @@ public class LWMap extends LWContainer
     public static final class Layer extends LWContainer {
 
         /** for persistance only */
-        public Layer() {}
+        public Layer() {
+            setFillColor(null);
+        }
 
         public Layer(String name) {
+            setFillColor(null);
             setLabel(name);
         }
 
@@ -776,9 +779,14 @@ public class LWMap extends LWContainer
 
         @Override protected Rectangle2D transformMapToZeroRect(Rectangle2D mapRect) { return mapRect; }
 
+        @Override public String getXMLfillColor() { return null; }
         @Override public String getXMLtextColor() { return null; }
         @Override public String getXMLstrokeColor() { return null; }
         @Override public String getXMLfont() { return null; }
+        
+        @Override public java.awt.Color getRenderFillColor(DrawContext dc) {
+            return parent.getRenderFillColor(dc);
+        }
 
         @Override public boolean isCollapsed() { return false; }
         @Override public boolean isAncestorCollapsed() { return false; }
@@ -932,8 +940,7 @@ public class LWMap extends LWContainer
         }
         
         /** @return null -- layer contents not persisted with layer for backward compat with old versions of VUE */
-        @Override
-        public List<LWComponent> getXMLChildList() { return null; }
+        @Override public List<LWComponent> getXMLChildList() { return null; }
 
         @Override
         public Layer duplicate(CopyContext cc)
