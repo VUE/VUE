@@ -297,11 +297,14 @@ public class SaveAction extends VueAction
             if (e instanceof java.io.FileNotFoundException) {
                 Log.error("Save Failed: " + e);
             } else {
-                Log.error("Save failed for \"" + file + "\"; " + e);
-                tufts.Util.printStackTrace(e);
+                Log.error("Save failed for \"" + file + "\"; ", e);
+                //tufts.Util.printStackTrace(e);
             }
             if (e != t)
                 Log.error("Exception attempting to save file " + file + ": " + e);
+            VueUtil.alert(String.format("There was an error saving map \"%s\";\nTarget file was '%s'\n\nProblem:\n%s",
+                                        map.getLabel(), file, Util.formatLines(e.toString(), 80)),
+                          "Problem Saving Map");
         } finally {
             GUI.invokeAfterAWT(new Runnable() { public void run() {
                 GUI.clearWaitCursor();
