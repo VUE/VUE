@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.242 $ / $Date: 2009-02-25 22:37:50 $ / $Author: sfraize $
+ * @version $Revision: 1.243 $ / $Date: 2009-03-17 16:07:19 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2252,57 +2252,11 @@ public class LWNode extends LWContainer
     @Override
     protected void drawImpl(DrawContext dc)
     {
-        final double renderScale = dc.getAbsoluteScale();
+        final float renderScale = (float) dc.getAbsoluteScale();
 
-        if (dc.isInteractive() && mFontSize.get() * renderScale < 5) { // if net font point size < 5, do LOD
+        if (dc.isLODEnabled() && mFontSize.get() * renderScale < 5) { // if net font point size < 5, do LOD
 
-            //=============================================================================
-            // DRAW FAST (with little or no detail)
-            //=============================================================================
-
-            // Level-Of-Detail rendering -- increases speed when lots of nodes rendered
-            // all we do is fill the shape
-                
-            final boolean hasFill = !isTransparent();
-            if (isSelected()) {
-                dc.g.setColor(COLOR_SELECTION);
-                //dc.g.setColor(Color.green);
-            } else {
-                if (hasFill) {
-                    //dc.g.setColor(mFillColor.get());
-                    dc.g.setColor(getRenderFillColor(dc));
-                } else {
-                    dc.g.setStroke(new BasicStroke(getStrokeWidth())); // todo: from cache
-                    dc.g.setColor(mStrokeColor.get());
-                }
-            }
-            //if (isSelected() || getHeight() * dc.zoom > 5)
-            if (getHeight() * renderScale > 5) {
-                // filling shapes slower than drawing rectangles, tho not as much an improvement
-                // as skipping text
-                //dc.g.setColor(mFillColor.get());
-                // TODO: may want to depend on # of items in selection,
-                // in which case, hava MapViewer set up parameters for this in the DrawContext
-                // and check those flags here.  Also, the selectio stroke is completely useless
-                // when zoomed out -- it's being draw at scale.
-                if (hasFill)
-                    dc.g.fill(getZeroShape());
-                else
-                    dc.g.draw(getZeroShape());
-
-                if (hasChildren())
-                    drawChildren(dc);
-                
-            } else {
-                //dc.setAntiAlias(false);
-                if (hasFill)
-                    dc.g.fillRect(0, 0, (int)getWidth(), (int)getHeight());
-                else
-                    dc.g.drawRect(0, 0, (int)getWidth(), (int)getHeight());
-            }
-                
-            // now we skip drawing text / decorations / children -- just skipping
-            // the text makes a big difference when then there are lots of nodes
+            drawNodeWithLOD(dc, renderScale);
             
         } else {
             
@@ -2338,6 +2292,70 @@ public class LWNode extends LWContainer
             
         }
     }
+
+    private void drawNodeWithLOD(DrawContext dc, float renderScale)
+    {
+
+        //=============================================================================
+        // DRAW FAST (with little or no detail)
+        //=============================================================================
+
+        // Level-Of-Detail rendering -- increases speed when lots of nodes rendered
+        // all we do is fill the shape
+                
+        boolean drawBorder = false;
+        if (isSelected()) {
+            dc.g.setColor(COLOR_SELECTION);
+            //dc.g.setColor(Color.green);
+        } else {
+
+            dc.g.setColor(getRenderFillColor(dc));
+                
+            if (isTransparent() || getRenderFillColor(dc).equals(getParent().getRenderFillColor(dc)))
+                drawBorder = true;
+        }
+            
+        if (getHeight() * renderScale > 5) {
+            // filling shapes slower than drawing rectangles, tho not as much an improvement
+            // as skipping text
+            //dc.g.setColor(mFillColor.get());
+            // TODO: may want to depend on # of items in selection,
+            // in which case, hava MapViewer set up parameters for this in the DrawContext
+            // and check those flags here.  Also, the selectio stroke is completely useless
+            // when zoomed out -- it's being draw at scale.
+
+            final Shape shape = getZeroShape();
+            //                 if (hasFill)
+            //                     dc.g.fill(getZeroShape());
+            //                 else
+            //                     dc.g.draw(getZeroShape());
+
+            dc.g.fill(shape);
+            if (drawBorder) {
+                dc.g.setColor(mStrokeColor.get());
+                dc.g.draw(shape);
+            }
+
+            if (hasChildren())
+                drawChildren(dc);
+                
+        } else {
+            //dc.setAntiAlias(false);
+            //                 if (hasFill)
+            //                     dc.g.fillRect(0, 0, (int)getWidth(), (int)getHeight());
+            //                 else
+            //                     dc.g.drawRect(0, 0, (int)getWidth(), (int)getHeight());
+            dc.g.fillRect(0, 0, (int)getWidth(), (int)getHeight());
+            if (drawBorder) {
+                dc.g.setColor(mStrokeColor.get());
+                dc.g.drawRect(0, 0, (int)getWidth(), (int)getHeight());
+            }
+        }
+                
+        // now we skip drawing text / decorations / children -- just skipping
+        // the text makes a big difference when then there are lots of nodes
+    }
+    
     
     @Override
     public void setCollapsed(boolean collapsed) {
