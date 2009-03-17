@@ -34,7 +34,7 @@ import java.awt.RenderingHints;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.61 $ / $Date: 2009-02-22 19:23:42 $ / $Author: sfraize $
+ * @version $Revision: 1.62 $ / $Date: 2009-03-17 16:03:49 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -434,6 +434,13 @@ public final class DrawContext
 
     public boolean isDraftQuality() {
         return isDraftQuality;
+    }
+
+    
+    /** @return true of Level-Of-Detail rendering is enabled/permitted */
+    public boolean isLODEnabled() {
+        // todo: this is inferred -- should have a separate bit for this
+        return isInteractive() || isDraftQuality();
     }
 
     public void disableAntiAlias(boolean tv)
