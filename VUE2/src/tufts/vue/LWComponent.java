@@ -52,7 +52,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.463 $ / $Date: 2009-03-11 18:21:01 $ / $Author: sfraize $
+ * @version $Revision: 1.464 $ / $Date: 2009-03-17 17:43:08 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2168,7 +2168,7 @@ u                    getSlot(c).setFromString((String)value);
                 //Log.debug("got variable[" + var + "]");
                 String val = extractTemplateValue(var);
                 if (val != null) {
-                    buf.append(val);
+                    buf.append(org.apache.commons.lang.StringEscapeUtils.unescapeHtml(val));
                 } else {
                     buf.append("?{");
                     buf.append(var);
