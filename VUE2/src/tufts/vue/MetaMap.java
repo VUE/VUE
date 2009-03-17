@@ -36,7 +36,7 @@ import com.google.common.collect.Iterators;
  * The insertion order of each key/value is preserved, even for each use of
  * the same key with different values.
  *
- * @version $Revision: 1.10 $ / $Date: 2009-02-25 17:59:34 $ / $Author: sfraize $
+ * @version $Revision: 1.11 $ / $Date: 2009-03-17 16:07:34 $ / $Author: sfraize $
  */
 
 public class MetaMap implements TableBag, XMLUnmarshalListener
@@ -74,10 +74,6 @@ public class MetaMap implements TableBag, XMLUnmarshalListener
         //mSchema = Schema.lookup(schema);
         // note: if a meta-map is ever persisted outside of an LWComponent, and it wants
         // to use live schema references, we'll need to deal with Schema.lookup in here again.
-        mSchema = schema;
-    }
-    
-    public void takeSchema(Schema schema) {
         mSchema = schema;
     }
     
