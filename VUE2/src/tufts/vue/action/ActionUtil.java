@@ -65,7 +65,7 @@ import java.net.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistence thru castor XML.
  *
- * @version $Revision: 1.125 $ / $Date: 2009-02-10 20:07:43 $ / $Author: sfraize $
+ * @version $Revision: 1.126 $ / $Date: 2009-03-17 16:03:23 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -425,81 +425,6 @@ public class ActionUtil
         return mapping;
     }
     
-    /**A static method which creates an appropriate marshaller and marshal the active map*/
-    public static void marshallMap(File file)
-    {
-        marshallMap(file, tufts.vue.VUE.getActiveMap());
-    }
-
-    /**
-     * Marshall the given map to XML and write it out to the given file.
-     */
-    public static void marshallMap(File file, LWMap map) {
-        try {
-             doMarshallMap(file, map);
-        } catch (Throwable t) {
-            if (t instanceof WrappedMarshallException)
-                t = t.getCause();
-            Log.error("marshalling: " + map + "; " + t);
-            Util.printStackTrace(t);
-            // until everyone has chance to update their code
-            // to handle the exceptions, wrap this in a runtime exception.
-            throw new RuntimeException(t);
-        }
-    }
-    
-    /*
-     * This method checks whether a file can be safely saved and opened by castor
-     * @param map the map whose save compatiblity needs to be tested
-     * @returrn true if compatible to castor save, false otherwise 
-     */
-    public static boolean isCastorCompatible(LWMap map) {
-        try {
-            File tempFile  = File.createTempFile("vueTest","vue");
-            tempFile.deleteOnExit();
-            marshallMap(tempFile,map);
-            unmarshallMap(tempFile);
-            return true;
-        } catch(Throwable t) {
-              tufts.vue.VueUtil.alert("There is problem with characters in the map. It cannot be saved:  " + t, "File save error");
-            Log.error("Testing save: "+map+";"+t);
-            Util.printStackTrace(t);
-        }
-        return false;
-    }
-
-    private static class WrappedMarshallException extends RuntimeException {
-        WrappedMarshallException(Throwable cause) {
-            super(cause);
-        }
-    }
-
-    private static void doMarshallMap(File file, LWMap map)
-        throws java.io.IOException,
-               org.exolab.castor.mapping.MappingException,
-               org.exolab.castor.xml.MarshalException,
-               org.exolab.castor.xml.ValidationException
-    {
-        final String path = file.getAbsolutePath().replaceAll("%20"," ");
-        final Writer writer;
-        if (OUTPUT_ENCODING.equals("UTF-8") || OUTPUT_ENCODING.equals("UTF8")) {
-            writer = new OutputStreamWriter(new FileOutputStream(path), OUTPUT_ENCODING);
-        } else {
-            writer = new FileWriter(path);
-            // For the actual file writer we can use the default encoding because
-            // we're marshalling specifically in US-ASCII.  E.g., because we direct
-            // castor to fully encode any special characters via
-            // setEncoding("US-ASCII"), we'll only have ASCII chars to write anyway,
-            // and any default encoding will handle that...
-                
-        }
-
-        marshallMapToWriter(writer, map, file);
-        writer.close();
-    }
-
-    
-    
     public static class VueMarshalListener implements MarshalListener {
         public boolean preMarshal(Object o) {
             //if (true||DEBUG.XML) Log.debug("VML  pre: " + Util.tags(o));
@@ -532,36 +457,125 @@ public class ActionUtil
             //if (true||DEBUG.XML) Log.debug("VML post: " + Util.tags(o));
         }
     }
-    /**
-     * Marshall the given map to the given Writer without touching the map in any
-     * way.
+    
+    /*
+     * This method checks whether a file can be safely saved and opened by castor
+     * @param map the map whose save compatiblity needs to be tested
+     * @returrn true if compatible to castor save, false otherwise 
      */
-    public static void marshallMapToWriter(final LWMap map, final Writer writer)
+    public static boolean isCastorCompatible(LWMap map) {
+        try {
+            File tempFile  = File.createTempFile("vueTest","vue");
+            tempFile.deleteOnExit();
+            marshallMap(tempFile,map);
+            unmarshallMap(tempFile);
+            return true;
+        } catch(Throwable t) {
+              tufts.vue.VueUtil.alert("There is problem with characters in the map. It cannot be saved:  " + t, "File save error");
+            Log.error("Testing save: "+map+";"+t);
+            Util.printStackTrace(t);
+        }
+        return false;
+    }
+
+    private static class WrappedMarshallException extends RuntimeException {
+        WrappedMarshallException(Throwable cause) {
+            super(cause);
+        }
+    }
+
+    /**A static method which creates an appropriate marshaller and marshal the active map*/
+    public static void marshallMap(File file)
+    {
+        marshallMap(file, tufts.vue.VUE.getActiveMap());
+    }
+
+    /**
+     * Marshall the given map to XML and write it out to the given file.
+     */
+    public static void marshallMap(File targetFile, LWMap map) {
+        File tmpFile = null;
+        try {
+            tmpFile  = File.createTempFile(targetFile.getName() + "$tmp",
+                                           ".vue",
+                                           targetFile.getParentFile());
+            doMarshallMap(targetFile, tmpFile, map);
+        } catch (Throwable t) {
+            if (t instanceof WrappedMarshallException)
+                t = t.getCause();
+            Log.error("marshalling: " + map + "; to " + tmpFile + "; destination: " + targetFile, t);
+            // until everyone has chance to update their code
+            // to handle the exceptions, wrap this in a runtime exception.
+            throw new RuntimeException(t);
+        }
+        Log.debug("Renaming tmp to target: " + targetFile);
+        if (!tmpFile.renameTo(targetFile)) {
+            Log.error("Failed to rename temp file " + tmpFile + "; to target file: " + targetFile);
+            VueUtil.alert(String.format("Save error; failed to rename temp file '%s' to target file '%s'",
+                                        tmpFile, targetFile),
+                          "Save Error");
+            
+        }
+    }
+    
+    private static void doMarshallMap(final File targetFile, final File tmpFile, final LWMap map)
         throws java.io.IOException,
                org.exolab.castor.mapping.MappingException,
                org.exolab.castor.xml.MarshalException,
                org.exolab.castor.xml.ValidationException
     {
-        marshallMapToWriter(writer, map, null);
+        final String path = tmpFile.getAbsolutePath().replaceAll("%20"," ");
+        final Writer writer;
+        
+        if (OUTPUT_ENCODING.equals("UTF-8") || OUTPUT_ENCODING.equals("UTF8")) {
+            writer = new OutputStreamWriter(new FileOutputStream(path), OUTPUT_ENCODING);
+        } else {
+            writer = new FileWriter(path);
+            // For the actual file writer we can use the default encoding because
+            // we're marshalling specifically in US-ASCII.  E.g., because we direct
+            // castor to fully encode any special characters via
+            // setEncoding("US-ASCII"), we'll only have ASCII chars to write anyway,
+            // and any default encoding will handle that...
+                
+        }
+
+        marshallMapToWriter(writer, map, targetFile, tmpFile);
+        writer.close();
+    }
+
+    /**
+     * Marshall the given map to the given Writer without touching the map in any
+     * way.
+     */
+    static void marshallMapToWriter(final LWMap map, final Writer writer)
+        throws java.io.IOException,
+               org.exolab.castor.mapping.MappingException,
+               org.exolab.castor.xml.MarshalException,
+               org.exolab.castor.xml.ValidationException
+    {
+        marshallMapToWriter(writer, map, null, null);
     }
     
     /**
      * @param file - if null, map state is untouched, otherwise, map state is updated
      */
-    private static void marshallMapToWriter(final Writer writer, final LWMap map, final File file)
+    private static void marshallMapToWriter(final Writer writer,
+                                            final LWMap map,
+                                            final File targetFile,
+                                            final File tmpFile)
         throws java.io.IOException,
                org.exolab.castor.mapping.MappingException,
                org.exolab.castor.xml.MarshalException,
                org.exolab.castor.xml.ValidationException
     {
-        map.makeReadyForSaving(file);
+        map.makeReadyForSaving(targetFile);
         
-        Log.info("marshalling " + map + " to: " + file);
+        Log.info("marshalling " + map + " to: " + tmpFile);
         
         Marshaller marshaller = null;
         String name = "";
-        if (file != null)
-            name = file.getName();
+        if (targetFile != null)
+            name = targetFile.getName();
         else
             name = map.getLabel();
         if (name == null)
@@ -652,17 +666,18 @@ public class ActionUtil
 
         final int oldModelVersion = map.getModelVersion();
         final File oldSaveFile = map.getFile();
-        if (file != null) {
+        if (targetFile != null) {
             map.setModelVersion(LWMap.getCurrentModelVersion());
             // note that if this file is different from it's last save file, this
             // operation may cause any/all of the resources in the map to be
             // updated before returning.
-            map.setFile(file);
+            map.setFile(targetFile);
         }
        // map.addNode(new tufts.vue.LWNode("Hello "+((char)15)+((char)23)));
         
         //if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Marshalling " + map + " ...");
         Log.debug("marshalling " + map + " ...");
+        writer.flush();
         //map.addNode(new tufts.vue.LWNode("Hello World:"+((char)11)));
         try {
 
@@ -676,10 +691,10 @@ public class ActionUtil
             //-----------------------------------------------------------------------------
 
             marshaller.marshal(map);
-            Log.debug("marshalled " + map + " to " + writer + "; file=" + file);
+            Log.debug("marshalled " + map + " to " + writer + "; file=" + tmpFile);
             writer.flush();
         } catch (Throwable t) {
-            Log.error(file + "; " + map, t);
+            Log.error(tmpFile + "; " + map, t);
 
             //-----------------------------------------------------------------------------
             // This was a poor choice of message.  This describes just one of many,
@@ -692,7 +707,7 @@ public class ActionUtil
                           "Save Error");
             
             try {
-                if (file != null) {
+                if (targetFile != null) {
                     // revert map model version & save file
                     map.setModelVersion(oldModelVersion);
                     map.setFile(oldSaveFile);
@@ -705,9 +720,9 @@ public class ActionUtil
             }
         }
             
-        if (file != null) {
+        if (tmpFile != null) {
             map.markAsSaved();
-            Log.debug("saved " + map + " to " + file);
+            Log.debug("saved " + map + " to " + tmpFile);
         }
         //map.setFile(file);
 
@@ -727,6 +742,8 @@ public class ActionUtil
     {
         if (file.isDirectory())
             throw new MapException("is a directory, not a map file: " + file);
+        if (!file.exists())
+            throw new FileNotFoundException("does not exist");
          
         return unmarshallMap(file.toURL(), handler);
     }
