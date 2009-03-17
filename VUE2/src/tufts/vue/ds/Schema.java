@@ -32,7 +32,7 @@ import com.google.common.collect.*;
 
 
 /**
- * @version $Revision: 1.30 $ / $Date: 2009-03-11 18:27:45 $ / $Author: sfraize $
+ * @version $Revision: 1.31 $ / $Date: 2009-03-17 16:01:02 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -156,7 +156,7 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
                 if (curSchema != null) {
                     final Schema newSchema = Schema.lookup(curSchema);
                     if (newSchema != curSchema) {
-                        data.takeSchema(newSchema);
+                        data.setSchema(newSchema);
                         updateCount++;
                         if (newSchema != newlyLoadedSchema) {
                             Log.warn("out of date schema in " + c + "; oldSchema=" + curSchema + "; replaced with " + newSchema);
