@@ -2502,13 +2502,27 @@ public class Actions implements VueConstants
 //         };
     public static final LWCAction MakeDataLinks = new LWCAction(VueResources.getString("menu.format.align.makedatalinks"), keyStroke(KeyEvent.VK_SLASH, ALT)) {
             boolean enabledFor(LWSelection s) { return s.size() == 1; } // just one for now
+            Collection<? extends LWComponent> linkTargets = null;
+
             @Override
-            public void act(LWComponent c) {
-                //if (c instanceof LWNode && !c.hasClientData(tufts.vue.ds.Schema.class))
-                if (c instanceof LWNode) {
-                }
-                    
+            public void act(LWSelection s) {
+                
+                //tufts.vue.ds.DataAction.addDataLinksForNodes(getMap(), s, linkTargets);
             }
+//             @Override
+//             public void act(LWSelection s) {
+//                 // we re-use linkTargets below, so we don't need to re-build the list for every node in the selection
+//                 linkTargets = tufts.vue.ds.DataAction.getLinkTargets(s.first().getMap());
+//                 super.act(s);
+//             }
+//             @Override
+//             public void act(LWNode c) {
+//                 tufts.vue.ds.DataAction.addDataLinksForNode(c, linkTargets);
+// //                 tufts.vue.ds.DataAction.addDataLinksForNodes(c.getMap(),
+// //                                                              java.util.Collections.singletonList(c),
+// //                                                              c.getDataValueField());
+                    
+//             }
         };
 
     public static final LWCAction MakeDataLists = new ArrangeAction(VueResources.getString("menu.format.align.makedatalists"), keyStroke(KeyEvent.VK_COMMA, ALT)) {
@@ -2609,7 +2623,7 @@ public class Actions implements VueConstants
         MakeRow,
         MakeColumn,
         MakeCluster,
-        //MakeDataLinks,
+        MakeDataLinks,
         MakeDataLists,
         null,
         DistributeVertically,
@@ -2714,7 +2728,7 @@ public class Actions implements VueConstants
         }
     };
     public static final VueAction ZoomFit =
-        new VueAction(VueResources.getString("menu.view.fitinwin"), keyStroke(KeyEvent.VK_0, COMMAND+SHIFT), ":general/Zoom") {
+        new VueAction(VueResources.getString("menu.view.fitinwin"), keyStroke(KeyEvent.VK_0, COMMAND), ":general/Zoom") {
         public void act() {
             ZoomTool.setZoomFit();
         }
