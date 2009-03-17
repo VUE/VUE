@@ -23,7 +23,7 @@ import static tufts.vue.Resource.*;
 /**
  * Code related to identifying, creating and unpacking VUE archives.
  *
- * @version $Revision: 1.11 $ / $Date: 2008-07-17 16:47:23 $ / $Author: sfraize $ 
+ * @version $Revision: 1.12 $ / $Date: 2009-03-17 15:59:35 $ / $Author: sfraize $ 
  */
 public class Archive
 {
@@ -503,6 +503,21 @@ public class Archive
     private static String generateInformativePackageFileName(Resource r)
         throws java.io.UnsupportedEncodingException
     {
+        if (DEBUG.IO) Log.debug("Generating package file name from " + r + "; " + r.getProperties());
+
+        try {
+            if (r.hasProperty(PACKAGE_FILE)) {
+                File pf = (File) r.getPropertyValue(PACKAGE_FILE);
+                String name = pf.getName();
+                // this prevents cascading encodings of special chars (e.g., $20 becomces $2420 each
+                // time the package is saved, growing longer each time)
+                if (DEBUG.IO) Log.debug("Using pre-existing package file name: " + name);
+                return name;
+            }
+        } catch (Throwable t) {
+            Log.warn(t);
+        }
+        
         final Object imageSource = r.getImageSource(); 
         //final URL url = r.getImageSource(); // better as URI?
 
@@ -564,12 +579,16 @@ public class Archive
 //                 packageName += "." + r.getProperty(IMAGE_FORMAT).toLowerCase();
 //         }
         
+        if (DEBUG.IO) Log.debug("     decoding " + packageName);
         // Decode (to prevent any redundant encoding), then re-encode
         packageName = java.net.URLDecoder.decode(packageName, "UTF-8");
+        if (DEBUG.IO) Log.debug("   decoded to " + packageName);
         packageName = java.net.URLEncoder.encode(packageName, "UTF-8");
+        if (DEBUG.IO) Log.debug("re-encoded to " + packageName);
         // now "lock-in" the encoding: as this is now a fixed file-name, we don't ever want it to be
         // accidentally decoded, which might create something that looks like a path when we don't want it to.
         packageName = packageName.replace('%', '$');
+        if (DEBUG.IO) Log.debug(" locked in at " + packageName);
 
 //         if (URLResource.ALLOW_URI_WHITESPACE) {
 
@@ -593,7 +612,7 @@ public class Archive
             // Replacing '+' with '-' is a friendler whitespace replacement (more
             // readable), tho it's "destructive" in that the original URL could no
             // longer be reliably reverse engineered from the filename.  We don't
-            // actually depending on being able to do that, but it's handy for
+            // actually depend on being able to do that, but it's handy for
             // debugging, and could be useful if we ever have to deal with any kind of
             // recovery from data corruption.
             
@@ -718,6 +737,11 @@ public class Archive
 
         final Writer mapOut = new OutputStreamWriter(zos);
 
+        // TODO: need to handle a map marshalling failure, in which case we want to
+        // abandon writing the entire archive -- this will require a big reorg here --
+        // we need to write the entire archive to a tmp archive first, and only create
+        // the new file if everything succeeds.
+
         try {
             map.setArchiveManifest(manifest);
             ActionUtil.marshallMapToWriter(map, mapOut);
@@ -755,195 +779,195 @@ public class Archive
 
     }
 
-    /**
-     * @deprecated - doesn't need to be this complicated, and makes ensuring uniquely named
-     * archive entries surprisingly difficult -- SMF 2008-04-01
-     *
-     * Create a ZIP archive that contains the given map, as well as all resources who's
-     * data is currently available.  This means currently only data in local user files,
-     * or in the image cache can be archived. Non-image remote data (e.g., documents:
-     * Word, Excel, PDF, etc) cannot currently be archived.  The resources in the map
-     * will be annotated with package cache information before the map is written out.
-     *
-     * STEPS:
-     *
-     *  1 - All resources in the map are cloned, and all LWComponents on the map are
-     *  temporarily assigned these cloned resources, so we may make special
-     *  modifications to them for the archived map (e.g., the resources are tagged with
-     *  the name of their archive file).
-     *
-     *  2 - The map, with it's temporary set of modified resources, is marshalled
-     *  directly to the zip archive.  It's always the first item in the archive, tho
-     *  this is not currently a requrement.  However, it is essential that it be tagged
-     *  in the archive with the MapArchiveKey (via a zip entry comment), so it
-     *  can be identified during extraction.
-     *
-     *  3 - The original resources are restored to the map.  We're done with the clones.
-     *
-     *  4 - Of the resource data available, the unique set of them is identified,
-     *  and they are written to the zip archive.
-     *
-     * This code is not thread-safe.  The map should not be modified during
-     * this codepath.  (E.g., if ever used as part of an auto-save feature,
-     * it would not be safe to let it run in a background thread).
-     */
+//     /**
+//      * @deprecated - doesn't need to be this complicated, and makes ensuring uniquely named
+//      * archive entries surprisingly difficult -- SMF 2008-04-01
+//      *
+//      * Create a ZIP archive that contains the given map, as well as all resources who's
+//      * data is currently available.  This means currently only data in local user files,
+//      * or in the image cache can be archived. Non-image remote data (e.g., documents:
+//      * Word, Excel, PDF, etc) cannot currently be archived.  The resources in the map
+//      * will be annotated with package cache information before the map is written out.
+//      *
+//      * STEPS:
+//      *
+//      *  1 - All resources in the map are cloned, and all LWComponents on the map are
+//      *  temporarily assigned these cloned resources, so we may make special
+//      *  modifications to them for the archived map (e.g., the resources are tagged with
+//      *  the name of their archive file).
+//      *
+//      *  2 - The map, with it's temporary set of modified resources, is marshalled
+//      *  directly to the zip archive.  It's always the first item in the archive, tho
+//      *  this is not currently a requrement.  However, it is essential that it be tagged
+//      *  in the archive with the MapArchiveKey (via a zip entry comment), so it
+//      *  can be identified during extraction.
+//      *
+//      *  3 - The original resources are restored to the map.  We're done with the clones.
+//      *
+//      *  4 - Of the resource data available, the unique set of them is identified,
+//      *  and they are written to the zip archive.
+//      *
+//      * This code is not thread-safe.  The map should not be modified during
+//      * this codepath.  (E.g., if ever used as part of an auto-save feature,
+//      * it would not be safe to let it run in a background thread).
+//      */
     
-    private static void writeAnnotatedArchive(LWMap map, File archive)
-        throws java.io.IOException
-    {
-        Log.info("Writing map-annotated archive package " + archive);
+//     private static void writeAnnotatedArchive(LWMap map, File archive)
+//         throws java.io.IOException
+//     {
+//         Log.info("Writing map-annotated archive package " + archive);
 
-        String mapName = map.getLabel();
-        if (mapName.endsWith(".vue"))
-            mapName = mapName.substring(0, mapName.length() - 4);
+//         String mapName = map.getLabel();
+//         if (mapName.endsWith(".vue"))
+//             mapName = mapName.substring(0, mapName.length() - 4);
 
-        final String dirName = mapName + ".vdr";
+//         final String dirName = mapName + ".vdr";
         
-        final ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(archive)));
-        final ZipEntry mapEntry = new ZipEntry(dirName + "/" + mapName + "$map.vue");
-        final String comment = MAP_ARCHIVE_KEY + "; VERSION: 1;"
-            + " Saved " + new Date() + " by " + VUE.getName() + " built " + Version.AllInfo
-            //+ "\n\tmap-name(" + mapName + ")"
-            //+ "\n\tunique-resources(" + resources.size() + ")"
-            ;
-        Archive.setComment(mapEntry, comment);
-        zos.putNextEntry(mapEntry);
+//         final ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(archive)));
+//         final ZipEntry mapEntry = new ZipEntry(dirName + "/" + mapName + "$map.vue");
+//         final String comment = MAP_ARCHIVE_KEY + "; VERSION: 1;"
+//             + " Saved " + new Date() + " by " + VUE.getName() + " built " + Version.AllInfo
+//             //+ "\n\tmap-name(" + mapName + ")"
+//             //+ "\n\tunique-resources(" + resources.size() + ")"
+//             ;
+//         Archive.setComment(mapEntry, comment);
+//         zos.putNextEntry(mapEntry);
 
-        final Map<LWComponent,Resource> savedResources = new IdentityHashMap();
-        final Map<Resource,Resource> clonedResources = new IdentityHashMap();
-        final Map<Resource,File> onDiskFiles = new IdentityHashMap();
+//         final Map<LWComponent,Resource> savedResources = new IdentityHashMap();
+//         final Map<Resource,Resource> clonedResources = new IdentityHashMap();
+//         final Map<Resource,File> onDiskFiles = new IdentityHashMap();
 
-        UniqueNameFailsafeCount = 1;  // note: static variable -- not threadsafe
+//         UniqueNameFailsafeCount = 1;  // note: static variable -- not threadsafe
 
-        for (LWComponent c : map.getAllDescendents(LWComponent.ChildKind.ANY)) {
+//         for (LWComponent c : map.getAllDescendents(LWComponent.ChildKind.ANY)) {
 
-            final Resource resource = c.getResource();
+//             final Resource resource = c.getResource();
 
-            if (resource == null)
-                continue;
+//             if (resource == null)
+//                 continue;
             
-            if (resource instanceof URLResource == false) {
-                Log.error("UNHANDLED NON-URLResource: " + Util.tags(resource));
-                continue;
-            }
+//             if (resource instanceof URLResource == false) {
+//                 Log.error("UNHANDLED NON-URLResource: " + Util.tags(resource));
+//                 continue;
+//             }
            
-            final URLResource r = (URLResource) resource;
+//             final URLResource r = (URLResource) resource;
             
-            File sourceFile = r.getActiveDataFile();
-            boolean wasLocal = r.isLocalFile();
+//             File sourceFile = r.getActiveDataFile();
+//             boolean wasLocal = r.isLocalFile();
 
-            //if (DEBUG.Enabled) Log.debug(r + "; sourceDataFile=" + sourceFile);
+//             //if (DEBUG.Enabled) Log.debug(r + "; sourceDataFile=" + sourceFile);
                 
-            if (sourceFile != null && sourceFile.exists()) {
-                savedResources.put(c, r);
-                final URLResource cloned = (URLResource) r.clone();
-                onDiskFiles.put(cloned, sourceFile);
+//             if (sourceFile != null && sourceFile.exists()) {
+//                 savedResources.put(c, r);
+//                 final URLResource cloned = (URLResource) r.clone();
+//                 onDiskFiles.put(cloned, sourceFile);
 
-                final String packageName = generatePackageFileName(r, null);
+//                 final String packageName = generatePackageFileName(r, null);
                     
-                cloned.setProperty(PACKAGE_KEY_DEPRECATED, packageName);
-                if (wasLocal) {
-                    //Log.info("STORING LOCAL PROPERTY: " + r.getSpec());
-                    cloned.setHiddenProperty("Package.orig", r.getSpec());
-                    //Log.info("STORED LOCAL PROPERTY: " + cloned.getProperty("@package.orig"));
-                }
-                clonedResources.put(r, cloned);
-                c.takeResource(cloned);
-                Log.debug("Clone: " + cloned);
-            } else {
-                if (sourceFile == null)
-                    Log.info("No cache file for: " + r);
-                else
-                    Log.info("Missing local file: " + sourceFile);
-            }
-        }
+//                 cloned.setProperty(PACKAGE_KEY_DEPRECATED, packageName);
+//                 if (wasLocal) {
+//                     //Log.info("STORING LOCAL PROPERTY: " + r.getSpec());
+//                     cloned.setHiddenProperty("Package.orig", r.getSpec());
+//                     //Log.info("STORED LOCAL PROPERTY: " + cloned.getProperty("@package.orig"));
+//                 }
+//                 clonedResources.put(r, cloned);
+//                 c.takeResource(cloned);
+//                 Log.debug("Clone: " + cloned);
+//             } else {
+//                 if (sourceFile == null)
+//                     Log.info("No cache file for: " + r);
+//                 else
+//                     Log.info("Missing local file: " + sourceFile);
+//             }
+//         }
                     
 
-        //-----------------------------------------------------------------------------
-        // Archive up the map with it's re-written resources
-        //-----------------------------------------------------------------------------
+//         //-----------------------------------------------------------------------------
+//         // Archive up the map with it's re-written resources
+//         //-----------------------------------------------------------------------------
 
-        final Writer mapOut = new OutputStreamWriter(zos);
+//         final Writer mapOut = new OutputStreamWriter(zos);
 
-        try {
-            ActionUtil.marshallMapToWriter(map, mapOut);
-        } catch (Throwable t) {
-            Log.error(t);
-            throw new RuntimeException(t);
-        }
+//         try {
+//             ActionUtil.marshallMapToWriter(map, mapOut);
+//         } catch (Throwable t) {
+//             Log.error(t);
+//             throw new RuntimeException(t);
+//         }
 
-        //-----------------------------------------------------------------------------
-        // Restore original resources to the map:
-        //-----------------------------------------------------------------------------
+//         //-----------------------------------------------------------------------------
+//         // Restore original resources to the map:
+//         //-----------------------------------------------------------------------------
         
-        for (Map.Entry<LWComponent,Resource> e : savedResources.entrySet())
-            e.getKey().takeResource(e.getValue());
+//         for (Map.Entry<LWComponent,Resource> e : savedResources.entrySet())
+//             e.getKey().takeResource(e.getValue());
         
-        //-----------------------------------------------------------------------------
-        // Write out all UNIQUE resources -- we only want to write the data once
-        // no matter how many times the resource is on the map (and we don't currently
-        // support single unique instance ensuring resource factories).
-        //-----------------------------------------------------------------------------
+//         //-----------------------------------------------------------------------------
+//         // Write out all UNIQUE resources -- we only want to write the data once
+//         // no matter how many times the resource is on the map (and we don't currently
+//         // support single unique instance ensuring resource factories).
+//         //-----------------------------------------------------------------------------
 
-        final Collection<Resource> uniqueResources = map.getAllUniqueResources();
+//         final Collection<Resource> uniqueResources = map.getAllUniqueResources();
         
-        //ActionUtil.marshallMap(File.createTempFile("vv-" + file.getName(), ".vue"), map);
+//         //ActionUtil.marshallMap(File.createTempFile("vv-" + file.getName(), ".vue"), map);
 
-        // TODO: this might be much simpler if we just processed the same list of
-        // of resources, with precomputed files, and just kept a separate map
-        // of zip entries and skipped any at the last moment if they'd already been added.
+//         // TODO: this might be much simpler if we just processed the same list of
+//         // of resources, with precomputed files, and just kept a separate map
+//         // of zip entries and skipped any at the last moment if they'd already been added.
 
-//         final Set<String> uniqueEntryNames = new HashSet();
+// //         final Set<String> uniqueEntryNames = new HashSet();
 
         
-        for (Resource r : uniqueResources) {
+//         for (Resource r : uniqueResources) {
 
-            final Resource cloned = clonedResources.get(r);
-            final File sourceFile = onDiskFiles.get(cloned);
-            final String packageFileName = (cloned == null ? "[missing clone!]" : cloned.getProperty(Resource.PACKAGE_KEY_DEPRECATED));
+//             final Resource cloned = clonedResources.get(r);
+//             final File sourceFile = onDiskFiles.get(cloned);
+//             final String packageFileName = (cloned == null ? "[missing clone!]" : cloned.getProperty(Resource.PACKAGE_KEY_DEPRECATED));
 
-            ZipEntry entry = null;
+//             ZipEntry entry = null;
 
-            if (sourceFile != null) {
-                entry = new ZipEntry(dirName + "/" + packageFileName);
-            }
+//             if (sourceFile != null) {
+//                 entry = new ZipEntry(dirName + "/" + packageFileName);
+//             }
             
-            // TODO: to get the re-written resources to unpack, weather we specially
-            // encode the SPEC, or add another special property for the local cache file
-            // access (prob better), the Images.java code will need to keep the resource
-            // around more, so we can decide to go to package cache or original source.
-            // which could be handled also maybe via UrlAuth, tho really, we should just
-            // be converting the Resource to provide the data fetch, tho whoa, THAT is a
-            // problem if not all unique resources, because we still need to check the
-            // cache for remote URL's...  Okay, this really isn't that big of a deal.
+//             // TODO: to get the re-written resources to unpack, weather we specially
+//             // encode the SPEC, or add another special property for the local cache file
+//             // access (prob better), the Images.java code will need to keep the resource
+//             // around more, so we can decide to go to package cache or original source.
+//             // which could be handled also maybe via UrlAuth, tho really, we should just
+//             // be converting the Resource to provide the data fetch, tho whoa, THAT is a
+//             // problem if not all unique resources, because we still need to check the
+//             // cache for remote URL's...  Okay, this really isn't that big of a deal.
 
-            final String debug = "" + (DEBUG.Enabled ? r : r.getSpec());
+//             final String debug = "" + (DEBUG.Enabled ? r : r.getSpec());
 
-            if (entry == null) {
-                Log.info("skipped: " + debug);
-            } else {
-                Log.info("writing: " + entry + "; " + debug);
+//             if (entry == null) {
+//                 Log.info("skipped: " + debug);
+//             } else {
+//                 Log.info("writing: " + entry + "; " + debug);
 
-                Archive.setComment(entry, "\t" + SPEC_KEY + r.getSpec());
+//                 Archive.setComment(entry, "\t" + SPEC_KEY + r.getSpec());
                 
-                try {
-                    zos.putNextEntry(entry);
-                    copyBytesToZip(sourceFile, zos);
-                } catch (Throwable t) {
-                    Log.error("Failed to archive entry: " + entry + "; for " + r, t);
-                }
-            }
+//                 try {
+//                     zos.putNextEntry(entry);
+//                     copyBytesToZip(sourceFile, zos);
+//                 } catch (Throwable t) {
+//                     Log.error("Failed to archive entry: " + entry + "; for " + r, t);
+//                 }
+//             }
                 
-        }
+//         }
         
-        zos.closeEntry();
-        zos.close();
+//         zos.closeEntry();
+//         zos.close();
 
-        Log.info("Wrote " + archive);
+//         Log.info("Wrote " + archive);
 
 
 
-    }
+//     }
 
     private static void copyBytesToZip(File file, ZipOutputStream zos)
         throws java.io.IOException
