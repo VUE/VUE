@@ -31,6 +31,7 @@ import java.util.*;
 import java.awt.event.*;
 import javax.swing.*;
 import tufts.vue.*;
+import tufts.Util;
 
 public class OpenAction extends VueAction
 {
@@ -135,12 +136,17 @@ public class OpenAction extends VueAction
             return doLoadMap(filename);
         } catch (FileNotFoundException e) {
             // maybe move all exception code here, taking the file-not-found handling
-            Log.error("loadMap " + tufts.Util.tags(filename), e);
+            Log.error("loadMap " + Util.tags(filename), e);
             VueUtil.alert(null, "\"" + filename + "\": file not found.", "Map Not Found");
         } catch (Throwable t) {
             // out of the Open File dialog box.
-            Log.error("loadMap " + tufts.Util.tags(filename), t);
-            VueUtil.alert(null, "\"" + filename + "\" cannot be opened in this version of VUE.", "Map Open Error");
+            Log.error("loadMap " + Util.tags(filename), t);
+            if (t.getCause() != null)
+                t = t.getCause();
+            VueUtil.alert(String.format("\"%s\" cannot be opened in this version of VUE.\n\nProblem:\n%s",
+                                        filename,
+                                        Util.formatLines(t.toString(), 80)),
+                          "Problem Opening Map");
             //tufts.Util.printStackTrace(t);
         }
         return null;
