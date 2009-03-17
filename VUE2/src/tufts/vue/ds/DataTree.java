@@ -47,7 +47,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.61 $ / $Date: 2009-03-11 19:03:25 $ / $Author: sfraize $
+ * @version $Revision: 1.62 $ / $Date: 2009-03-17 16:00:46 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -237,7 +237,13 @@ public class DataTree extends javax.swing.JTree
         @Override
         public void mousePressed(java.awt.event.MouseEvent e) {
             mClickPath = getPathForLocation(e.getX(), e.getY());
-            if (DEBUG.Enabled) Log.debug("MOUSE PRESSED ON " + Util.tags(mClickPath) + "/" + Util.tags(mClickPath.getLastPathComponent()));
+            if (DEBUG.Enabled) {
+                //Log.debug("MOUSE PRESSED ON " + Util.tags(mClickPath));
+                if (mClickPath != null)
+                    Log.debug("MOUSE PRESSED ON: " + Util.tags(mClickPath.getLastPathComponent()));
+                else
+                    Log.debug("MOUSE PRESSED ON: nothing");
+            }
             
             // it's possible that the node under the mouse changes from the time of the
             // first press, to the time mouseClicked is called (e.g., due to tree
@@ -312,7 +318,7 @@ public class DataTree extends javax.swing.JTree
 
         final Collection<LWComponent> searchSet = mActiveMap.getAllDescendents(LWComponent.ChildKind.EDITABLE);
 
-        if (DEBUG.Enabled) Log.debug("\n\nSEARCHING ALL DESCENDENTS of " + mActiveMap + "; count=" + searchSet.size());
+        if (DEBUG.Enabled) Log.debug("SEARCH:\n\nSEARCHING ALL DESCENDENTS of " + mActiveMap + "; count=" + searchSet.size());
             
         if (treeNode == mAllRowsNode) {
             // search for any row-node in the schema
