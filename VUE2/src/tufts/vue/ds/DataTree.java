@@ -47,7 +47,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.63 $ / $Date: 2009-03-18 19:51:31 $ / $Author: sfraize $
+ * @version $Revision: 1.64 $ / $Date: 2009-03-18 20:06:19 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -1295,7 +1295,7 @@ public class DataTree extends javax.swing.JTree
             if (labelFormat.startsWith("${") && labelFormat.endsWith("}"))
                 labelFormat = labelFormat.substring(2, labelFormat.length()-1);
 
-            setDisplay(String.format(HTML("<b><u>All Records in %s (%d)</u> : <font color=red>%s"),
+            setDisplay(String.format(HTML("<b><u>All Records in %s</b><u> (%d)</u> : <b><font color=red>%s"),
                                      schema.getName(),
                                      schema.getRowCount(),
                                      labelFormat));
