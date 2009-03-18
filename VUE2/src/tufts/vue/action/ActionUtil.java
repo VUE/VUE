@@ -65,7 +65,7 @@ import java.net.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistence thru castor XML.
  *
- * @version $Revision: 1.127 $ / $Date: 2009-03-18 23:22:50 $ / $Author: sfraize $
+ * @version $Revision: 1.128 $ / $Date: 2009-03-18 23:45:01 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -514,7 +514,7 @@ public class ActionUtil
         File backup = null;
         try {
             final String backupName = String.format(".~%s", targetFile.getName());
-            if (DEBUG.IO) Log.debug(String.format("creating backup named [%s]", backupName));
+            //if (DEBUG.IO) Log.debug(String.format("creating backup named [%s]", backupName));
             backup = new File(targetFile.getParent(), backupName);
             Log.info("renaming old to backup: " + backup);
             if (!targetFile.renameTo(backup))
@@ -541,7 +541,7 @@ public class ActionUtil
     {
         final String path = tmpFile.getAbsolutePath().replaceAll("%20"," ");
         final FileOutputStream fos = new FileOutputStream(path);
-        final Writer writer;
+        final OutputStreamWriter writer;
         FileDescriptor FD = null;
         
         try {
@@ -556,18 +556,46 @@ public class ActionUtil
         if (OUTPUT_ENCODING.equals("UTF-8") || OUTPUT_ENCODING.equals("UTF8")) {
             writer = new OutputStreamWriter(fos, OUTPUT_ENCODING);
         } else {
-            if (FD == null)
-                writer = new FileWriter(path);
-            else
-                writer = new FileWriter(FD);
-            // For the actual file writer we can use the default encoding because
-            // we're marshalling specifically in US-ASCII.  E.g., because we direct
-            // castor to fully encode any special characters via
-            // setEncoding("US-ASCII"), we'll only have ASCII chars to write anyway,
-            // and any default encoding will handle that...
+            
+            // For the actual file writer we can use the default encoding because we're
+            // marshalling specifically in US-ASCII.  E.g., because we direct castor to
+            // fully encode any special characters via setEncoding("US-ASCII"), we'll
+            // only have ASCII chars to write anyway, and any default encoding will
+            // handle that...
+            
+            writer = new OutputStreamWriter(fos);
+            
+            // below creates duplicate FOS, but may be better for debug?
+            //if (FD == null)
+            //    writer = new FileWriter(path);
+            //else
+            //    writer = FileWriter(FD);
+            
         }
 
+        if (DEBUG.IO) {
+            try {
+                Log.debug(String.format("%s; %s; encoding: \"%s\", which will represent \"%s\" XML content",
+                                        tmpFile,
+                                        writer,
+                                        writer.getEncoding(),
+                                        OUTPUT_ENCODING));
+            } catch (Throwable t) {
+                Log.warn(t);
+            }
+        }
+
+        //=======================================================
+        // Marshall the map to the tmp file:
+        // ---------------------------------
+
         marshallMapToWriter(writer, map, targetFile, tmpFile);
+        
+        //=======================================================
+
+        // Run a filesystem sync if we can just to be sure: Especially
+        // helpful on some linux file systems, such as Ext3, which
+        // may not normally touch the disk for another 5 seconds.
         
         if (FD != null) {
             try {
@@ -764,7 +792,12 @@ public class ActionUtil
         }
             
         if (tmpFile != null) {
-            map.markAsSaved();
+            try {
+                // should never fail, but if it does, the save itself has still worked
+                map.markAsSaved();
+            } catch (Throwable t) {
+                Log.error(t);
+            }
             try {
                 Log.info("wrote " + map + " to " + tmpFile);
             } catch (Throwable t) {
