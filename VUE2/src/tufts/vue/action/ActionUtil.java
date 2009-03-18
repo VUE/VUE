@@ -65,7 +65,7 @@ import java.net.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistence thru castor XML.
  *
- * @version $Revision: 1.126 $ / $Date: 2009-03-17 16:03:23 $ / $Author: sfraize $
+ * @version $Revision: 1.127 $ / $Date: 2009-03-18 23:22:50 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -496,9 +496,10 @@ public class ActionUtil
     public static void marshallMap(File targetFile, LWMap map) {
         File tmpFile = null;
         try {
-            tmpFile  = File.createTempFile(targetFile.getName() + "$tmp",
+            tmpFile  = File.createTempFile(targetFile.getName() + "$new",
                                            ".vue",
                                            targetFile.getParentFile());
+            if (DEBUG.IO) Log.debug("created new tmp file " + tmpFile);
             doMarshallMap(targetFile, tmpFile, map);
         } catch (Throwable t) {
             if (t instanceof WrappedMarshallException)
@@ -508,7 +509,21 @@ public class ActionUtil
             // to handle the exceptions, wrap this in a runtime exception.
             throw new RuntimeException(t);
         }
-        Log.debug("Renaming tmp to target: " + targetFile);
+        //if (DEBUG.EnableD) Log.debug("
+
+        File backup = null;
+        try {
+            final String backupName = String.format(".~%s", targetFile.getName());
+            if (DEBUG.IO) Log.debug(String.format("creating backup named [%s]", backupName));
+            backup = new File(targetFile.getParent(), backupName);
+            Log.info("renaming old to backup: " + backup);
+            if (!targetFile.renameTo(backup))
+                Log.warn("failed to make backup of " + targetFile);
+        } catch (Throwable t) {
+            Log.warn("backup failed: " + backup, t);
+        }
+        
+        Log.info("renaming new to target: " + targetFile);
         if (!tmpFile.renameTo(targetFile)) {
             Log.error("Failed to rename temp file " + tmpFile + "; to target file: " + targetFile);
             VueUtil.alert(String.format("Save error; failed to rename temp file '%s' to target file '%s'",
@@ -525,22 +540,50 @@ public class ActionUtil
                org.exolab.castor.xml.ValidationException
     {
         final String path = tmpFile.getAbsolutePath().replaceAll("%20"," ");
+        final FileOutputStream fos = new FileOutputStream(path);
         final Writer writer;
+        FileDescriptor FD = null;
+        
+        try {
+            FD = fos.getFD();
+            // getting the FileDescriptor is not required -- we just use it
+            // for a final call to sync after we save to increase the likelyhood
+            // of our save file actually making it to disk.
+        } catch (Throwable t) {
+            Log.warn("No FileDescriptor for " + path + "; failsafe sync will be skipped: " + t);
+        }
         
         if (OUTPUT_ENCODING.equals("UTF-8") || OUTPUT_ENCODING.equals("UTF8")) {
-            writer = new OutputStreamWriter(new FileOutputStream(path), OUTPUT_ENCODING);
+            writer = new OutputStreamWriter(fos, OUTPUT_ENCODING);
         } else {
-            writer = new FileWriter(path);
+            if (FD == null)
+                writer = new FileWriter(path);
+            else
+                writer = new FileWriter(FD);
             // For the actual file writer we can use the default encoding because
             // we're marshalling specifically in US-ASCII.  E.g., because we direct
             // castor to fully encode any special characters via
             // setEncoding("US-ASCII"), we'll only have ASCII chars to write anyway,
             // and any default encoding will handle that...
-                
         }
 
         marshallMapToWriter(writer, map, targetFile, tmpFile);
+        
+        if (FD != null) {
+            try {
+                if (DEBUG.IO) Log.debug("syncing " + FD + "; for " + tmpFile);
+                // just as backup -- must however be done before writer.close()
+                FD.sync();
+                Log.info(" sync'd " + FD + "; for " + tmpFile);
+            } catch (Throwable t) {
+                Log.warn("after save to " + targetFile + "; sync failed: " + t);
+            }
+        }
+
+        if (DEBUG.IO) Log.debug("closing " + writer);
         writer.close();
+        if (DEBUG.IO) Log.debug(" closed " + writer);
+        
     }
 
     /**
@@ -691,8 +734,8 @@ public class ActionUtil
             //-----------------------------------------------------------------------------
 
             marshaller.marshal(map);
-            Log.debug("marshalled " + map + " to " + writer + "; file=" + tmpFile);
             writer.flush();
+            if (DEBUG.Enabled) Log.debug("marshalled " + map + " to " + writer + "; file=" + tmpFile);
         } catch (Throwable t) {
             Log.error(tmpFile + "; " + map, t);
 
@@ -722,12 +765,12 @@ public class ActionUtil
             
         if (tmpFile != null) {
             map.markAsSaved();
-            Log.debug("saved " + map + " to " + tmpFile);
+            try {
+                Log.info("wrote " + map + " to " + tmpFile);
+            } catch (Throwable t) {
+                Log.error("debug", t);
+            }
         }
-        //map.setFile(file);
-
-        //if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Wrote " + file);
-
     }
 
     public static LWMap unmarshallMap(File file)
