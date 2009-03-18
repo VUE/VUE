@@ -47,7 +47,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.64 $ / $Date: 2009-03-18 20:06:19 $ / $Author: sfraize $
+ * @version $Revision: 1.65 $ / $Date: 2009-03-18 20:41:38 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -79,15 +79,7 @@ public class DataTree extends javax.swing.JTree
         tree.activeChanged(null, VUE.getActiveMap()); // simulate event for initial annotations
         VUE.addActiveListener(LWMap.class, tree);
 
-        if (false) {
-
-            return tree;
-
-        } else {
-
-            return buildControllerUI(tree);
-            
-        }
+        return buildControllerUI(tree);
     }
 
     private void addNewRowsToMap() {
@@ -151,6 +143,8 @@ public class DataTree extends javax.swing.JTree
             });
 
         tree.getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
+
+        tree.setBorder(GUI.makeSpace(3,0,0,0));
 
             
         JLabel dataSourceLabel = null;
@@ -1295,8 +1289,9 @@ public class DataTree extends javax.swing.JTree
             if (labelFormat.startsWith("${") && labelFormat.endsWith("}"))
                 labelFormat = labelFormat.substring(2, labelFormat.length()-1);
 
-            setDisplay(String.format(HTML("<b><u>All Records in %s</b><u> (%d)</u> : <b><font color=red>%s"),
-                                     schema.getName(),
+            //setDisplay(String.format(HTML("<b><u>All Records in %s</b><u> (%d)</u> : <b><font color=red>%s"),
+            //setDisplay(String.format(HTML("<b>All Records in %s</b> (%d) : <b><font color=red>%s"),
+            setDisplay(String.format(HTML("<b>All Records</b> (%d) : <b><font color=red>%s"),
                                      schema.getRowCount(),
                                      labelFormat));
         
@@ -1324,7 +1319,13 @@ public class DataTree extends javax.swing.JTree
 //                                                                new CompoundBorder(new LineBorder(Color.gray),
 //                                                                                   GUI.makeSpace(1,0,1,2)));
     //private static final Border TopBorder = GUI.makeSpace(3,0,2,0);
-    private static final Border TopBorder = GUI.makeSpace(0,0,2,0);
+    //private static final Border TopBorder = GUI.makeSpace(0,0,2,0);
+    //private static final Border TopBorder = new CompoundBorder(GUI.makeSpace(0,0,10,0), new MatteBorder(0,0,1,0, Color.gray));
+    private static final Border TopBorderCollapsed = new CompoundBorder(new CompoundBorder(GUI.makeSpace(0,0,7,0),
+                                                                                           new MatteBorder(0,0,1,0, Color.gray)),
+                                                                        GUI.makeSpace(0,0,7,0));
+                                                                                         
+    private static final Border TopBorderExpanded = null;
 
     private static final Border TopTierBorder = GUI.makeSpace(0,0,2,0);
     private static final Border LeafBorder = GUI.makeSpace(0,IconWidth-16,2,0);
@@ -1465,7 +1466,11 @@ public class DataTree extends javax.swing.JTree
             }
 
             if (row == 0) {
-                setBorder(TopBorder);
+                if (expanded)
+                    setBorder(TopBorderExpanded);
+                else
+                    setBorder(TopBorderCollapsed);
+                //setBorder(TopBorder);
                 //setBackgroundNonSelectionColor(Color.lightGray);
                 //setFont(EnumFont);
             } else {
