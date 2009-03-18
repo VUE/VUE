@@ -47,7 +47,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.62 $ / $Date: 2009-03-17 16:00:46 $ / $Author: sfraize $
+ * @version $Revision: 1.63 $ / $Date: 2009-03-18 19:51:31 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -526,6 +526,10 @@ public class DataTree extends javax.swing.JTree
         // using nodesChanged instead of mTreeModel.reload preserves the expanded state of nodes in the tree
         if (DEBUG.META) Log.debug("refreshing " + childIndexes.length + " children of " + node);
         mTreeModel.nodesChanged(node, childIndexes);
+    }
+
+    private void refreshRootNode() {
+        mTreeModel.nodesChanged(mRootNode, new int[] { 0 });
     }
     
 
@@ -1267,21 +1271,41 @@ public class DataTree extends javax.swing.JTree
         
     }
 
-    private static final class AllRowsNode extends FieldNode {
+    private final class AllRowsNode extends FieldNode {
 
         final Schema schema;
 
         AllRowsNode(Schema schema, LWComponent.Listener repainter) {
-            super(null,
-                  repainter,
-                  String.format(HTML("<b><u>All Records in %s (%d)"), schema.getName(), schema.getRowCount()));
+            super(null, repainter, "All Rows");
+            //String.format(HTML("<b><u>All Records in %s (%d)"), schema.getName(), schema.getRowCount()));
             this.schema = schema;
             schema.setStyleNode(DataAction.makeStyleNode(schema));
+            schema.getStyleNode().addLWCListener(new LWComponent.Listener() {
+                    public void LWCChanged(tufts.vue.LWCEvent e) {
+                        updateLabel(true);
+                    }
+                },
+                LWKey.Label);
+            updateLabel(false);
+        }
+
+
+        private void updateLabel(boolean refresh) {
+            String labelFormat = schema.getStyleNode().getLabel().trim();
+            if (labelFormat.startsWith("${") && labelFormat.endsWith("}"))
+                labelFormat = labelFormat.substring(2, labelFormat.length()-1);
+
+            setDisplay(String.format(HTML("<b><u>All Records in %s (%d)</u> : <font color=red>%s"),
+                                     schema.getName(),
+                                     schema.getRowCount(),
+                                     labelFormat));
+        
+            if (refresh)
+                DataTree.this.refreshRootNode();
         }
 
         @Override void annotate(LWMap map) {
-            if (DEBUG.Enabled)
-                setAnnotation(String.format("[%s]", map.getLabel()));
+            //if (DEBUG.Enabled) setAnnotation(String.format("[%s]", map.getLabel()));
         }
         
         @Override Schema getSchema() { return schema; }
