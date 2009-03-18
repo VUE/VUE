@@ -65,7 +65,7 @@ import java.net.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistence thru castor XML.
  *
- * @version $Revision: 1.128 $ / $Date: 2009-03-18 23:45:01 $ / $Author: sfraize $
+ * @version $Revision: 1.129 $ / $Date: 2009-03-18 23:47:51 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -593,9 +593,11 @@ public class ActionUtil
         
         //=======================================================
 
-        // Run a filesystem sync if we can just to be sure: Especially
-        // helpful on some linux file systems, such as Ext3, which
-        // may not normally touch the disk for another 5 seconds.
+        // Run a filesystem sync if we can just to be sure: Especially helpful on some
+        // linux file systems, such as Ext3, which may not normally touch the disk for
+        // another 5 seconds, or XFS/Ext4, which may take their own sweet time.
+        // For more see:
+        // https://bugs.launchpad.net/ubuntu/+source/linux/+bug/317781/comments/54
         
         if (FD != null) {
             try {
