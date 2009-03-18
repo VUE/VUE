@@ -157,10 +157,10 @@ public class SaveAction extends VueAction
 
         try {
         	         	
+            Log.info("saveMap: target[" + file + "]");
+            
             final String name = file.getName().toLowerCase();
 
-            Log.info("saveMap: name[" + name + "]");
-            
             if (name.endsWith(".rli.xml")) {
                 new IMSResourceList().convert(map,file);
             }
