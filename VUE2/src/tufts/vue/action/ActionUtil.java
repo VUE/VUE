@@ -65,7 +65,7 @@ import java.net.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistence thru castor XML.
  *
- * @version $Revision: 1.130 $ / $Date: 2009-03-19 00:02:55 $ / $Author: sfraize $
+ * @version $Revision: 1.131 $ / $Date: 2009-03-19 01:12:02 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -565,11 +565,11 @@ public class ActionUtil
             
             writer = new OutputStreamWriter(fos);
             
-            // below creates duplicate FOS, but may be better for debug?
+            // below creates duplicate FOS, but may be better for debug?  (MarshallException's can find file?)
             //if (FD == null)
             //    writer = new FileWriter(path);
             //else
-            //    writer = FileWriter(FD);
+            //    writer = new FileWriter(FD);
             
         }
 
@@ -825,6 +825,8 @@ public class ActionUtil
             throw new MapException("is a directory, not a map file: " + file);
         if (!file.exists())
             throw new FileNotFoundException("does not exist");
+        if (file.length() == 0)
+            throw new EmptyFileException();
          
         return unmarshallMap(file.toURL(), handler);
     }
@@ -1200,7 +1202,7 @@ public class ActionUtil
                 //if (allowOldFormat && me.getMessage().endsWith("tufts.vue.Resource")) {
                 //if (allowOldFormat && me.getMessage().indexOf("Unable to instantiate tufts.vue.Resource") >= 0) {
                 // 2007-10-01 SMF: rev forward the special exception to check for once again in new castor version: castor-1.1.2.1-xml.jar
-                if (allowOldFormat && me.getMessage().indexOf("tufts.vue.Resource can no longer be constructed") >= 0) {
+                if (allowOldFormat && me.getMessage() != null && me.getMessage().indexOf("tufts.vue.Resource can no longer be constructed") >= 0) {
                     Log.warn("ActionUtil.unmarshallMap: " + me);
                     Log.warn("Attempting specialized MapResource mapping for old format.");
                     // NOTE: delicate recursion here: won't loop as long as we pass in a non-null mapping.
@@ -1461,6 +1463,12 @@ class MapException extends IOException {
 }
     
     
+class EmptyFileException extends IOException {
+    EmptyFileException() {
+        super("Empty file (zero length); no VUE data here");
+    }
+}
+
 
 
 class PaddedCellRenderer extends DefaultListCellRenderer
