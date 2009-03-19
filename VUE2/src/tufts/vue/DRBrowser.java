@@ -59,7 +59,7 @@ import javax.swing.border.*;
  * We'd probably need a delegating impl tho to handle that.
  *
  *
- * @version $Revision: 1.75 $ / $Date: 2009-02-25 17:59:34 $ / $Author: sfraize $ 
+ * @version $Revision: 1.76 $ / $Date: 2009-03-19 01:11:11 $ / $Author: sfraize $ 
  */
 public class DRBrowser extends JPanel
 {
@@ -456,7 +456,7 @@ public class DRBrowser extends JPanel
         inspector.setVisible(true);
         inspector.setFocusableWindowState(true);
         
-        drDock.setSize(300, (int) (GUI.GScreenHeight * 0.75));
+        drDock.setSize(400, (int) (GUI.GScreenHeight * 0.75));
         drDock.setUpperRightCorner(GUI.GScreenWidth - inspector.getWidth(), GUI.GInsets.top);
         drDock.setVisible(true);
         drDock.setFocusableWindowState(true);
