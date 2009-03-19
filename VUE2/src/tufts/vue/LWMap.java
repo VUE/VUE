@@ -59,7 +59,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.235 $ / $Date: 2009-03-17 16:06:36 $ / $Author: sfraize $
+ * @version $Revision: 1.236 $ / $Date: 2009-03-19 01:11:29 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -143,12 +143,16 @@ public class LWMap extends LWContainer
         // (otherwise this map will look like it's user-modified when it first displays)
         markDate();
 
-        if (VUE.VUE3_LAYERS) {
-            installDefaultLayers();
-            ensureID(this); // make sure the new default layers get ID's
-        }
+        installDefaultLayers();
+        ensureID(this); // make sure the new default layers get ID's
         
         markAsSaved();
+    }
+
+    public static LWMap create(String filename) {
+        final LWMap map = new LWMap("Empty Map");
+        map.setFile(new File(filename));
+        return map;
     }
 
     /** create a temporary, uneditable map that contains just the given component */
@@ -2438,7 +2442,9 @@ public class LWMap extends LWContainer
     
     
     public String toString() {
-        StringBuffer buf = new StringBuffer("LWMap[");
+        StringBuilder buf = new StringBuilder("LWMap[v");
+        buf.append(getSaveFileModelVersion());
+        buf.append(' ');
         buf.append(getLabel());
         buf.append(" n=" + numChildren());
         if (DEBUG.DATA && mFile != null)
