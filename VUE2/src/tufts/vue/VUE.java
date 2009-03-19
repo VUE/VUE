@@ -117,7 +117,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.646 $ / $Date: 2009-03-13 17:58:39 $ / $Author: mike $ 
+ * @version $Revision: 1.647 $ / $Date: 2009-03-19 01:11:44 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -3368,6 +3368,7 @@ public class VUE
         boolean alerted = false;
         try {
             loadedMap = OpenAction.loadMap(file.getAbsolutePath());
+            alerted = true; // OpenAction.loadMap now always alerts
             if (loadedMap != null)
                 VUE.displayMap(loadedMap);            
             VUE.getMetadataSearchMainPanel().fillSavedSearch();
