@@ -132,24 +132,42 @@ public class OpenAction extends VueAction
     // TODO: this should be re-named openFile or openVueContent (as it handles all sorts of "vue" files)
     // (and also, again, merge this with ActionUtil unmarshall code?)
     public static LWMap loadMap(String filename) {
+
+        LWMap map = null;
+        
         try {
-            return doLoadMap(filename);
+            map = doLoadMap(filename);
         } catch (FileNotFoundException e) {
             // maybe move all exception code here, taking the file-not-found handling
             Log.error("loadMap " + Util.tags(filename), e);
             VueUtil.alert(null, "\"" + filename + "\": file not found.", "Map Not Found");
+            map = LWMap.create(filename);
         } catch (Throwable t) {
             // out of the Open File dialog box.
             Log.error("loadMap " + Util.tags(filename), t);
             if (t.getCause() != null)
                 t = t.getCause();
-            VueUtil.alert(String.format("\"%s\" cannot be opened in this version of VUE.\n\nProblem:\n%s",
-                                        filename,
-                                        Util.formatLines(t.toString(), 80)),
+            final String message;
+            final String exception;
+            if (t instanceof EmptyFileException) {
+                message = "There is no data in file \"%s\"\n\n%s";
+                exception = t.getMessage();
+                // special case: create a new map with the empty file name
+                map = LWMap.create(filename); 
+            } else {
+                // if we still want the "version" part of this warning, it needs to be
+                // delivered from below when we actually detect a VUE data-versioning problem:
+                // this message is inappropriate for generic exceptions
+                //message = "\"%s\" cannot be opened in this version of VUE.\n\nProblem:\n%s";
+                message = "\"%s\" cannot be opened in VUE.\n\nProblem:\n%s";
+                exception = t.toString();
+            }
+            
+            VueUtil.alert(String.format(message, filename, Util.formatLines(exception, 80)),
                           "Problem Opening Map");
             //tufts.Util.printStackTrace(t);
         }
-        return null;
+        return map;
     }
 
     private static LWMap doLoadMap(String filename)
@@ -443,7 +461,7 @@ public class OpenAction extends VueAction
             // we're ensure to include this token after the exception is printed, so
             // we can still see the file that failed.
             //Log.error(String.format("@@@Free: %4.1fm; Loaded: %-60s from @@@ %s\n",
-            System.err.format("@@@Free: %4.1fm; Loaded: %-60s from @@@ %s\n",
+            System.err.format("@@@Free: %5.1fm; Loaded: %-60s from @@@ [%s]\n",
                               (float) (Runtime.getRuntime().freeMemory() / (float) (1024*1024)),
                               result, arg);
             //System.err.println("@@@ARG[" + arg + "]");
