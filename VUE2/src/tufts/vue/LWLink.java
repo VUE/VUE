@@ -43,7 +43,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.211 $ / $Date: 2009-02-25 22:26:15 $ / $Author: sfraize $
+ * @version $Revision: 1.212 $ / $Date: 2009-03-19 01:53:19 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -878,18 +878,24 @@ public class LWLink extends LWComponent
 //         public final RectangularShape getShape() { return PruneCtrlShape; }
 //         public final double getRotation() { return rotation; }
 //     }
+
+    //final private static boolean EXCLUDE_CONNECTED = true;
     
     /** interface ControlListener */
     public LWSelection.Controller[] getControlPoints(double zoom) {
-        return getControls(zoom, !isDataLink(), true);
+        return getControls(zoom, !isDataLink(), false, true);
     }
     
-    /** for ResizeControl */
-    public LWSelection.Controller[] getMoveableControls() {
-        return getControls(1.0, false, false); // TODO: need zoom
+    /** for ResizeControl -- return only those controls that currently have effect when dragged -- that is, leave out connected points,
+     but include any unconnected, or curve controls */
+    public LWSelection.Controller[] getControlsWithCurrentDragEffect() {
+        return getControls(1.0, !isDataLink(), true, false); // TODO: need zoom
     }
         
-    private LWSelection.Controller[] getControls(double onScreenScale, boolean connectors, boolean prunes)
+    private LWSelection.Controller[] getControls(double onScreenScale,
+                                                 boolean endpointDrags,
+                                                 boolean excludeConnected,
+                                                 boolean prunes)
     {
         if (mRecompute)
             computeLink();
@@ -914,14 +920,18 @@ public class LWLink extends LWComponent
         // Connection control points
         //-------------------------------------------------------
 
-        if (connectors && head.hasNode() && !head.hasPrunedNode()) {
+        if (excludeConnected && head.isConnected()) {
+            mControlPoints[CHead] = null;
+        }  else if (endpointDrags && !head.hasPrunedNode()) {
             mControlPoints[CHead] = new ConnectCtrl(mapHead.x, mapHead.y, head.isConnected());
             if (DEBUG.BOXES) mControlPoints[CHead].setColor(Color.green); // mark the head
         } else  {
             mControlPoints[CHead] = null;
         }
         
-        if (connectors && tail.hasNode() && !tail.hasPrunedNode())
+        if (excludeConnected && tail.isConnected())
+            mControlPoints[CHead] = null;
+        else if (endpointDrags && !tail.hasPrunedNode())
             mControlPoints[CTail] = new ConnectCtrl(mapTail.x, mapTail.y, tail.isConnected());
         else
             mControlPoints[CTail] = null;

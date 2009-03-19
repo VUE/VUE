@@ -159,7 +159,7 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
             if (c instanceof LWLink) {
 
                 // be sure to clone, as this is changing all the time                
-                mOriginal_each_bounds[idx] = ((LWLink)c).getMoveableControls().clone();
+                mOriginal_each_bounds[idx] = ((LWLink)c).getControlsWithCurrentDragEffect().clone();
                 
                 //c.out("ResizeControl GOT CONTROLS " + java.util.Arrays.asList(mOriginal_each_bounds[idx]));
             } else {
