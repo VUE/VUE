@@ -76,7 +76,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.589 $ / $Date: 2009-03-06 16:36:26 $ / $Author: mike $ 
+ * @version $Revision: 1.590 $ / $Date: 2009-03-19 03:29:28 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -6900,13 +6900,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         final Collection<LWComponent> moveList = new java.util.ArrayList();
         final Collection<LWContainer> putbacks = new java.util.ArrayList();
-        
+
         for (LWComponent dropped : selection) {
 
             //if (DEBUG.DND) out("processMoveAndDrop", dropped);
 
             if (!dropped.supportsReparenting()) {
-                if (DEBUG.DND) out("processDrop", "won't reparent: " + dropped);
+                if (DEBUG.DND) out("processDrop", " won't reparent: " + dropped);
                 continue;
             }
             
@@ -6936,9 +6936,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             }
             
             //-------------------------------------------------------
-            // we were over a valid NEW parent -- reparent
+            // we were over a valid NEW parent -- reparent -- target may null, which means drop to the default container
+            // (usually the current layer)
             //-------------------------------------------------------
-            if (DEBUG.PARENTING||DEBUG.DND) out("processDrop", dropped + " as child of " + target);
+            if (DEBUG.PARENTING||DEBUG.DND) out("processDrop", "new parent: " + target + "; " + dropped);
             moveList.add(dropped);
         }
 
@@ -6984,7 +6985,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 }
             }
                 
-            selectionSet(moveList);
+            //selectionSet(moveList); // why was this here?
+
+            // changing the selection here may cause items to unexepectly drop out of
+            // the selection (e.g., links, as they can't be user reparented) when just
+            // dragging a group of nodes/links around -- we process all the nodes to
+            // "null" (which in the end means no change), but we still need to process
+            // them just in case they came from some other parent.
         }
 
         for (LWContainer c : putbacks)
