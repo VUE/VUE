@@ -65,7 +65,7 @@ import java.net.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistence thru castor XML.
  *
- * @version $Revision: 1.129 $ / $Date: 2009-03-18 23:47:51 $ / $Author: sfraize $
+ * @version $Revision: 1.130 $ / $Date: 2009-03-19 00:02:55 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -598,6 +598,9 @@ public class ActionUtil
         // another 5 seconds, or XFS/Ext4, which may take their own sweet time.
         // For more see:
         // https://bugs.launchpad.net/ubuntu/+source/linux/+bug/317781/comments/54
+        
+        if (DEBUG.IO) Log.debug("flushing " + writer);
+        writer.flush();
         
         if (FD != null) {
             try {
