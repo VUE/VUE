@@ -43,7 +43,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.212 $ / $Date: 2009-03-19 01:53:19 $ / $Author: sfraize $
+ * @version $Revision: 1.213 $ / $Date: 2009-03-19 03:30:08 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -879,17 +879,28 @@ public class LWLink extends LWComponent
 //         public final double getRotation() { return rotation; }
 //     }
 
-    //final private static boolean EXCLUDE_CONNECTED = true;
+    final private static boolean EXCLUDE_CONNECTED = true;
+    final private static boolean INCLUDE_CONNECTED = false;
+    final private static boolean INCLUDE_ENDPOINTS = true;
+    final private static boolean EXCLUDE_ENDPOINTS = false;
+    final private static boolean INCLUDE_PRUNES = true;
+    final private static boolean EXCLUDE_PRUNES = false;
     
     /** interface ControlListener */
     public LWSelection.Controller[] getControlPoints(double zoom) {
-        return getControls(zoom, !isDataLink(), false, true);
+        return getControls(zoom,
+                           isDataLink() ? EXCLUDE_ENDPOINTS : INCLUDE_ENDPOINTS,
+                           INCLUDE_CONNECTED,
+                           INCLUDE_PRUNES);
     }
     
     /** for ResizeControl -- return only those controls that currently have effect when dragged -- that is, leave out connected points,
      but include any unconnected, or curve controls */
     public LWSelection.Controller[] getControlsWithCurrentDragEffect() {
-        return getControls(1.0, !isDataLink(), true, false); // TODO: need zoom
+        return getControls(1.0,
+                           isDataLink() ? EXCLUDE_ENDPOINTS : INCLUDE_ENDPOINTS,
+                           EXCLUDE_CONNECTED,
+                           EXCLUDE_PRUNES);
     }
         
     private LWSelection.Controller[] getControls(double onScreenScale,
@@ -930,7 +941,7 @@ public class LWLink extends LWComponent
         }
         
         if (excludeConnected && tail.isConnected())
-            mControlPoints[CHead] = null;
+            mControlPoints[CTail] = null;
         else if (endpointDrags && !tail.hasPrunedNode())
             mControlPoints[CTail] = new ConnectCtrl(mapTail.x, mapTail.y, tail.isConnected());
         else
