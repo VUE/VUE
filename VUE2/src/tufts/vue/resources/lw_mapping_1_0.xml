@@ -111,7 +111,7 @@
 			<bind-xml name="link"/>
 		</field>
                 -->
-                <field name="childList" type="tufts.vue.LWComponent" collection="arraylist">
+                <field name="XMLChildList" type="tufts.vue.LWComponent" collection="arraylist">
 			<bind-xml name="child"/>
 		</field>
 	</class>
@@ -415,10 +415,10 @@
 		
 </class>
 <class name = "tufts.vue.BrowseDataSource">
-       
-       <field name = "id" type = "string">
-            <bind-xml name ="id" node = "element" />
-       </field>     
+       <map-to xml="tufts.vue.BrowseDataSource" />
+       <field name="GUID" type="string">
+         <bind-xml name="guid" node="element" />
+       </field>
        
        <field name = "displayName" type = "string">
             <bind-xml name ="displayName" node = "element" />
@@ -432,7 +432,9 @@
             <bind-xml name ="address" node = "element" />
        </field>
        
-       
+       <field name = "authenticationCookie" type = "string">
+            <bind-xml name ="authentication" node = "element" />
+       </field> 
  </class>
  
  <!-- class name="tufts.vue.GoogleDataSource" extends="tufts.vue.BrowseDataSource">
