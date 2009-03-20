@@ -42,7 +42,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.113 $ / $Date: 2009-02-27 16:57:16 $ / $Author: sraphe01 $
+ * @version $Revision: 1.114 $ / $Date: 2009-03-20 21:24:33 $ / $Author: brian $
  */
 
 public class InspectorPane extends WidgetStack
@@ -347,7 +347,7 @@ public class InspectorPane extends WidgetStack
         if (s.size() == 0) {
             
             hideAll();
-            mSelectionInfo.setText("nothing selected");
+            mSelectionInfo.setText("Nothing is selected");
             Widget.show(mSelectionInfo);
             setVisible(true);
             
