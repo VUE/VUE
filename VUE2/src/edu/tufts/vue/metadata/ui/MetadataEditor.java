@@ -16,23 +16,27 @@
 
 package edu.tufts.vue.metadata.ui;
 
-import edu.tufts.vue.metadata.CategoryModel;
-import edu.tufts.vue.metadata.MetadataList;
-import edu.tufts.vue.metadata.VueMetadataElement;
-import edu.tufts.vue.ontology.OntType;
-import edu.tufts.vue.rdf.RDFIndex;
 import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.FontMetrics;
 import java.awt.event.FocusAdapter;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import javax.swing.*;
+
+import javax.swing.BorderFactory;
+import javax.swing.DefaultCellEditor;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.border.Border;
-import javax.swing.event.*;
-import javax.swing.table.*;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableCellEditor;
 
 import tufts.vue.ActiveEvent;
 import tufts.vue.ActiveListener;
@@ -40,7 +44,13 @@ import tufts.vue.LWComponent;
 import tufts.vue.LWGroup;
 import tufts.vue.LWSelection;
 import tufts.vue.VUE;
+import tufts.vue.VueResources;
 import tufts.vue.gui.GUI;
+import edu.tufts.vue.metadata.CategoryModel;
+import edu.tufts.vue.metadata.MetadataList;
+import edu.tufts.vue.metadata.VueMetadataElement;
+import edu.tufts.vue.ontology.OntType;
+import edu.tufts.vue.rdf.RDFIndex;
 
 /*
  * MetadataEditor.java
@@ -1325,7 +1335,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,
                    {   
                        if(e.getItem() instanceof edu.tufts.vue.metadata.gui.EditCategoryItem)
                        {                           
-                           JDialog ecd = new JDialog(VUE.getApplicationFrame(),"Edit Categories");
+                           JDialog ecd = new JDialog(VUE.getApplicationFrame(),VueResources.getString("dialog.editcat.title"));
                            ecd.setModal(true);
                            ecd.add(new CategoryEditor(ecd,categories,MetadataEditor.this,current,row,col));
                            ecd.setBounds(475,300,300,250);
