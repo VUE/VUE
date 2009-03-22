@@ -62,7 +62,7 @@ public class OntologicalMembershipPane extends javax.swing.JPanel implements Act
         
         //todo: adjust font (html handles the text wrapping)
         //JLabel label = new JLabel("<html>Ontological Terms associated with this node:</html>");
-        JLabel label = new JLabel("Ontological Terms associated with this node:",JLabel.LEFT);
+        JLabel label = new JLabel(VueResources.getString("ontologicalmembership.association"),JLabel.LEFT);
         label.setFont(tufts.vue.gui.GUI.LabelFace);
         label.setBorder(javax.swing.BorderFactory.createEmptyBorder(5,5,5,5));
         
@@ -107,7 +107,7 @@ public class OntologicalMembershipPane extends javax.swing.JPanel implements Act
         });
         
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        addSelectedTerm = new JButton("Add selected term");
+        addSelectedTerm = new JButton(VueResources.getString("ontologicalmembership.selectedterm"));
         addSelectedTerm.setFont(tufts.vue.gui.GUI.LabelFace);
         
         addSelectedTerm.addActionListener(new ActionListener(){

@@ -524,7 +524,7 @@ public class MetadataSearchGUI extends JPanel {
         searchButton = new JButton(termsAction);
         buttonPanel.setOpaque(true);
         buttonPanel.setBackground(getBackground());
-        JButton resetButton = new JButton("Reset Map");
+        JButton resetButton = new JButton(VueResources.getString("search.popup.reset"));
         resetButton.addActionListener(new ActionListener()
         {
            public void actionPerformed(ActionEvent e)
@@ -612,7 +612,7 @@ public class MetadataSearchGUI extends JPanel {
            setUpLayout();
             
            advancedSearch.setIcon(new ImageIcon(VueResources.getURL("advancedSearchLess.raw")));
-           optionsLabel.setText("hide options");
+           optionsLabel.setText(VueResources.getString("advancedSearchLess.tooltip"));
            optionsLabel.setFont(tufts.vue.gui.GUI.LabelFace);
            
            //re-enable next two lines if ever go back to non tabbed mode
@@ -632,7 +632,7 @@ public class MetadataSearchGUI extends JPanel {
            setUpLayout();
             
            advancedSearch.setIcon(new ImageIcon(VueResources.getURL("advancedSearchMore.raw")));
-           optionsLabel.setText("show options");
+           optionsLabel.setText(VueResources.getString("advancedSearchMore.tooltip"));
            
            
            //re-enable next two lines if ever go back to non tabbed mode
@@ -654,7 +654,7 @@ public class MetadataSearchGUI extends JPanel {
            conditionColumn = -1;
            model.setColumns(3);
            advancedSearch.setIcon(new ImageIcon(VueResources.getURL("advancedSearchLess.raw")));
-           optionsLabel.setText("hide options");
+           optionsLabel.setText(VueResources.getString("advancedSearchLess.tooltip"));
         }
         else
         {
@@ -664,7 +664,7 @@ public class MetadataSearchGUI extends JPanel {
            conditionColumn = -1;
            model.setColumns(2);
            advancedSearch.setIcon(new ImageIcon(VueResources.getURL("advancedSearchMore.raw")));
-           optionsLabel.setText("show options");
+           optionsLabel.setText(VueResources.getString("advancedSearchMore.tooltip"));
         }
                
         adjustColumnModel(); 
@@ -1035,7 +1035,7 @@ public class MetadataSearchGUI extends JPanel {
            if(col == conditionColumn)
            {
                //String [] conditions = {"starts with","contains"};
-               String [] conditions = {"contains","starts with"};
+               String [] conditions = {VueResources.getString("combobox.conditioncolumn.contains"),VueResources.getString("combobox.conditioncolumn.startswith")};
                final JComboBox conditionCombo = new JComboBox(conditions);
                conditionCombo.setFont(tufts.vue.gui.GUI.LabelFace);
                conditionCombo.addItemListener(new ItemListener()
@@ -1045,7 +1045,7 @@ public class MetadataSearchGUI extends JPanel {
                       if(ie.getStateChange() == ItemEvent.SELECTED)
                       {
                           String condition = conditionCombo.getSelectedItem().toString();
-                          if(condition.equals("starts with"))
+                          if(condition.equals(VueResources.getString("combobox.conditioncolumn.startswith")))
                           {
                               condition = "STARTS_WITH";
                           }    
@@ -1209,7 +1209,7 @@ public class MetadataSearchGUI extends JPanel {
             comp.setFont(tufts.vue.gui.GUI.LabelFace);
             if(singleLine == true && (col == (valueColumn)))
             {
-              comp.setText("Keywords:");
+              comp.setText(VueResources.getString("advancedSearch.keywords"));
             }
             if(singleLine == true && (col == (buttonColumn)))
             {
@@ -1222,33 +1222,33 @@ public class MetadataSearchGUI extends JPanel {
             {    
               if(searchType == EVERYTHING)
               {
-                comp.setText("Search everything:");                  
+                comp.setText(VueResources.getString("advancedSearch.searcheverything"));                  
               }
               
               if(searchType == LABEL)
               {
-                comp.setText("Labels:");                  
+                comp.setText(VueResources.getString("advancedSearch.label"));                  
               }
                 
               if(searchType == KEYWORD)
               {
-                comp.setText("Keywords:"); 
+                comp.setText(VueResources.getString("advancedSearch.keywords")); 
               }
 
             }
             else if( (table.getModel().getColumnCount() == 3 || table.getModel().getColumnCount() == 4) && col == categoryColumn)
             {
-              comp.setText("Category:");
+              comp.setText(VueResources.getString("advancedSearch.category"));
               //comp.setBorder(BorderFactory.createEmptyBorder(0,5,0,0));
             }
             else if( (table.getModel().getColumnCount() == 3  || table.getModel().getColumnCount() == 4 ) && col == valueColumn )
-              comp.setText("Keyword:");
+              comp.setText(VueResources.getString("advancedSearch.keywords"));
             else if(table.getModel().getColumnCount() == 4 && col == conditionColumn)
-              comp.setText("Operator");
+              comp.setText(VueResources.getString("advancedSearch.operator"));
             else
               comp.setText("");
             
-            if(comp.getText().equals("Category:") || comp.getText().equals("Operator"))
+            if(comp.getText().equals(VueResources.getString("advancedSearch.category"))|| comp.getText().equals(VueResources.getString("advancedSearch.operator")))
             {    
               comp.setBorder(BorderFactory.createEmptyBorder(ROW_GAP,5+ROW_INSET,ROW_GAP,ROW_INSET-5));
             }
