@@ -73,8 +73,8 @@ public class PathwayDialog extends JDialog implements ActionListener, KeyListene
     private static int newcnt = 1;
     private void setUpUI()
     {
-        okButton = new JButton("Add");
-        cancelButton = new JButton("Cancel");
+        okButton = new JButton(VueResources.getString("button.add.label"));
+        cancelButton = new JButton(VueResources.getString("button.cancel.label"));
 
         okButton.addActionListener(this);
         Insets i = okButton.getMargin();

@@ -21,7 +21,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.81 $ / $Date: 2009-03-14 03:39:52 $ / $Author: vaibhav $
+ * @version $Revision: 1.82 $ / $Date: 2009-03-22 07:18:28 $ / $Author: vaibhav $
  * @author  akumar03
  */
 import java.awt.BorderLayout;
@@ -160,7 +160,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
             listJsp.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
             listJsp.setPreferredSize(new Dimension(300,180));
             
-            descriptionTextArea.setText("description");
+            descriptionTextArea.setText(VueResources.getString("addLibraryDailog.textarea"));
             descriptionJsp = new JScrollPane(descriptionTextArea);
             descriptionJsp.setVerticalScrollBarPolicy(javax.swing.JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
             descriptionJsp.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);

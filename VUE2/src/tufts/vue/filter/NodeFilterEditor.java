@@ -29,19 +29,46 @@ package tufts.vue.filter;
  */
 
 
-import javax.swing.*;
-import javax.swing.border.*;
-import javax.swing.event.*;
-import javax.swing.table.*;
-import java.awt.event.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.util.Iterator;
+import java.util.Vector;
 
-import java.util.*;
-import java.util.ArrayList;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.DefaultCellEditor;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.table.TableModel;
+
+import tufts.vue.VueResources;
 
 public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,tufts.vue.ActiveListener<tufts.vue.LWMap> {
-    public static final String ADD_ELEMENT = "Define New Element";
-    public static final String SELECT_ELEMENT = "Select";
+    public static final String ADD_ELEMENT = VueResources.getString("nodefilter.definenew.label");
+    public static final String SELECT_ELEMENT = VueResources.getString("nodefilter.select.label");
     public static final String NODE_FILTER_INFO = tufts.vue.VueResources.getString("info.filter.node");
     NodeFilter nodeFilter;
     boolean editable = false;
@@ -51,10 +78,10 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
     AddButtonListener addButtonListener = null;
     DeleteButtonListener deleteButtonListener = null;
     NodeFilterSelectionListener sListener = null;
-    JButton addButton=new tufts.vue.gui.VueButton("add");
-    JButton deleteButton=new tufts.vue.gui.VueButton("delete");
+    JButton addButton=new tufts.vue.gui.VueButton(VueResources.getString("button.add.label"));
+    JButton deleteButton=new tufts.vue.gui.VueButton(VueResources.getString("button.delete.label"));
     JLabel questionLabel = new JLabel(tufts.vue.VueResources.getImageIcon("smallInfo"), JLabel.LEFT);
-    JLabel elementLabel = new JLabel("Select Element: ");
+    JLabel elementLabel = new JLabel(VueResources.getString("nodefilter.selectelement.label"));
     JComboBox elements;
     ElementComboBoxModel elementsModel;
     Vector elementsVector;
@@ -82,8 +109,8 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
     
     private void setNodeFilterPanel() {
         lWMap= tufts.vue.VUE.getActiveMap();
-        addButton.setToolTipText("Add Node Filter");
-        deleteButton.setToolTipText("Delete Node Filter");
+        addButton.setToolTipText(VueResources.getString("nodefilter.addfilter.tooltip"));
+        deleteButton.setToolTipText(VueResources.getString("nodefilter.deletefilter.tooltip"));
         elementsModel = new ElementComboBoxModel();
         elementsModel.setElements(lWMap.getMapFilterModel().getKeyVector());
         elements = new JComboBox(elementsModel);
@@ -292,13 +319,13 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
         Vector allTypes;
         
         public AddDialog(NodeFilter model) {
-            super(tufts.vue.VUE.getDialogParentAsFrame(),"Add Key",true);
+            super(tufts.vue.VUE.getDialogParentAsFrame(),VueResources.getString("dialog.addkey.title"),true);
             this.model = model;
             allTypes = (Vector)TypeFactory.getAllTypes();
-            keyLabel = new JLabel("Key");
-            typeLabel = new JLabel("Type");
-            operatorLabel = new JLabel("Operator");
-            valueLabel = new JLabel("Value");
+            keyLabel = new JLabel(VueResources.getString("button.key.label"));
+            typeLabel = new JLabel(VueResources.getString("nodefilter.type.label"));
+            operatorLabel = new JLabel(VueResources.getString("nodefilter.operator.label"));
+            valueLabel = new JLabel(VueResources.getString("nodefilter.value.label"));
             keyEditor = new JComboBox(tufts.vue.VUE.getActiveMap().getMapFilterModel().getKeyVector());
             
             
@@ -362,7 +389,7 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
             
             // SOUTH: southPanel(cancelButton, okButton)
             
-            JButton okButton=new JButton("Ok");
+            JButton okButton=new JButton(VueResources.getString("button.ok.label"));
             okButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     updateModelAndNotify();
@@ -370,7 +397,7 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
                 }
             });
             
-            JButton cancelButton=new JButton("Cancel");
+            JButton cancelButton=new JButton(VueResources.getString("button.cancel.label"));
             cancelButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     setVisible(false);
@@ -469,11 +496,11 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
         Vector allTypes;
         
         public AddElementDialog(MapFilterModel model) {
-            super(tufts.vue.VUE.getDialogParentAsFrame(),"Add Key",true);
+            super(tufts.vue.VUE.getDialogParentAsFrame(),VueResources.getString("dialog.addkey.title"),true);
             this.model = model;
             allTypes = (Vector)TypeFactory.getAllTypes();
-            keyLabel = new JLabel("Field");
-            typeLabel = new JLabel("Type");
+            keyLabel = new JLabel(VueResources.getString("nodefilter.field.label"));
+            typeLabel = new JLabel(VueResources.getString("nodefilter.type.label"));
             keyEditor = new JTextField();
             typeEditor = new JComboBox(allTypes);
             keyEditor.setPreferredSize(new Dimension(80,20));
@@ -491,7 +518,7 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
             
             // SOUTH: southPanel(cancelButton, okButton)
             
-            JButton okButton=new JButton("Ok");
+            JButton okButton=new JButton(VueResources.getString("button.ok.label"));
             okButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     updateModelAndNotify();
@@ -499,7 +526,7 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
                 }
             });
             
-            JButton cancelButton=new JButton("Cancel");
+            JButton cancelButton=new JButton(VueResources.getString("button.cancel.label"));
             cancelButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     setVisible(false);

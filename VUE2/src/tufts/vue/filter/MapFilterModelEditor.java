@@ -27,15 +27,32 @@ package tufts.vue.filter;
  */
 
 
-import javax.swing.*;
-import javax.swing.border.*;
-import javax.swing.event.*;
-import javax.swing.table.*;
-import java.awt.event.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.util.Vector;
 
-import java.util.*;
-import java.util.ArrayList;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+
+import tufts.vue.VueResources;
 
 public class MapFilterModelEditor extends JPanel {
     public static final String MAP_FILTER_INFO = tufts.vue.VueResources.getString("info.filter.map");
@@ -46,8 +63,8 @@ public class MapFilterModelEditor extends JPanel {
     DeleteButtonListener deleteButtonListener = null;
     MapFilterModelSelectionListener sListener = null;
     boolean editable = false;
-    JButton addButton=new tufts.vue.gui.VueButton("add");
-    JButton deleteButton=new tufts.vue.gui.VueButton("delete");
+    JButton addButton=new tufts.vue.gui.VueButton(VueResources.getString("button.add.label"));
+    JButton deleteButton=new tufts.vue.gui.VueButton(VueResources.getString("button.delete.label"));
     JLabel questionLabel = new JLabel(tufts.vue.VueResources.getImageIcon("smallInfo"), JLabel.LEFT);
     
     /** Creates a new instance of MapFilterModelEditor */
@@ -58,8 +75,8 @@ public class MapFilterModelEditor extends JPanel {
         
     }
     private void setMapFilterModelPanel() {
-        addButton.setToolTipText("Add Element");
-        deleteButton.setToolTipText("Delete Element");
+        addButton.setToolTipText(VueResources.getString("mapfiltermodelpanel.addbutton.tooltip"));
+        deleteButton.setToolTipText(VueResources.getString("mapfiltermodelpanel.delbutton.tooltip"));
         mapFilterTable = new JTable(mapFilterModel);
         mapFilterTable.addFocusListener(new FocusListener() {
              public void focusLost(FocusEvent e) {
@@ -138,11 +155,11 @@ public class MapFilterModelEditor extends JPanel {
         Vector allTypes;
         
         public AddDialog(MapFilterModel model) {
-            super(tufts.vue.VUE.getDialogParentAsFrame(),"Add Key",true);
+            super(tufts.vue.VUE.getDialogParentAsFrame(),VueResources.getString("dialog.addkey.title"),true);
             this.model = model;
             allTypes = (Vector)TypeFactory.getAllTypes();
-            keyLabel = new JLabel("Field");
-            typeLabel = new JLabel("Type");
+            keyLabel = new JLabel(VueResources.getString("nodefilter.field.label"));
+            typeLabel = new JLabel(VueResources.getString("nodefilter.type.label"));
             keyEditor = new JTextField();
             typeEditor = new JComboBox(allTypes);
             keyEditor.setPreferredSize(new Dimension(80,20));
@@ -160,7 +177,7 @@ public class MapFilterModelEditor extends JPanel {
             
             // SOUTH: southPanel(cancelButton, okButton)
             
-            JButton okButton=new JButton("Ok");
+            JButton okButton=new JButton(VueResources.getString("button.ok.label"));
             okButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     updateModelAndNotify();
@@ -168,7 +185,7 @@ public class MapFilterModelEditor extends JPanel {
                 }
             });
             
-            JButton cancelButton=new JButton("Cancel");
+            JButton cancelButton=new JButton(VueResources.getString("button.cancel.lable"));
             cancelButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     setVisible(false);
@@ -253,8 +270,8 @@ public class MapFilterModelEditor extends JPanel {
             // will only be invoked if an existing row is selected
             if (JOptionPane
                 .showConfirmDialog(tufts.vue.VUE.getDialogParentAsFrame(),
-                                   "Would you like to remove all instance of selected metadata element throughtout the map?",
-                                   "Delete Custom Metdata",
+                                   VueResources.getString("dialog.delcustommetdata.message"),
+                                   VueResources.getString("dialog.delcustommetdata.title"),
                                    JOptionPane.YES_NO_OPTION,
                                    JOptionPane.QUESTION_MESSAGE,
                                    tufts.vue.VueResources.getImageIcon("vueIcon32x32")) == JOptionPane.YES_OPTION) {

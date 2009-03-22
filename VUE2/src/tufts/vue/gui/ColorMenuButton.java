@@ -60,7 +60,7 @@ import edu.tufts.vue.preferences.implementations.ColorPreference;
  * This class provides a popup menu of items that supports named color values
  * with a corresponding color swatch.
  *
- * @version $Revision: 1.29 $ / $Date: 2008-06-30 20:53:06 $ / $Author: mike $
+ * @version $Revision: 1.30 $ / $Date: 2009-03-22 07:12:11 $ / $Author: vaibhav $
  * @author csb
  * @author Scott Fraize
  */
@@ -353,7 +353,7 @@ implements ActionListener, tufts.vue.LWEditor
     		colorPanel.add(colorButton);
            }
     	
-    	JButton item = new JButton("other...");
+    	JButton item = new JButton(VueResources.getString("button.label.other"));
     	item.setFocusable(false);
         item.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) 

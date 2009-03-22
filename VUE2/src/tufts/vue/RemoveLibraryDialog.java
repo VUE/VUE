@@ -21,7 +21,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.4 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $
+ * @version $Revision: 1.5 $ / $Date: 2009-03-22 07:25:19 $ / $Author: vaibhav $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -34,13 +34,13 @@ public class RemoveLibraryDialog extends JDialog implements java.awt.event.Actio
     JPanel removeLibraryPanel = new JPanel();
 	
 	JPanel buttonPanel = new JPanel();
-	JButton okButton = new JButton("OK");
+	JButton okButton = new JButton(VueResources.getString("button.ok.label"));
 	
 	java.awt.GridBagConstraints gbConstraints;
     
     public RemoveLibraryDialog()
 	{
-        super(VUE.getDialogParentAsFrame(),"REMOVE LIBRARY",true);
+        super(VUE.getDialogParentAsFrame(),VueResources.getString("dialog.removelib.title"),true);
 		try {
 			removeLibraryPanel.setBackground(VueResources.getColor("White"));
 			setBackground(VueResources.getColor("White"));
@@ -73,7 +73,7 @@ public class RemoveLibraryDialog extends JDialog implements java.awt.event.Actio
 		try {			
 			gbConstraints.gridx = 0;
 			gbConstraints.gridy = 0;
-			removeLibraryPanel.add(new JLabel("Under construction"),gbConstraints);
+			removeLibraryPanel.add(new JLabel(VueResources.getString("dialog.removelib.underconstruct")),gbConstraints);
 			
 			gbConstraints.gridx = 0;
 			gbConstraints.gridy = 1;

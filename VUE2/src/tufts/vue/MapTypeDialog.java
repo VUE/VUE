@@ -27,7 +27,7 @@ import java.awt.event.*;
 import tufts.vue.filter.*;
 
 /**
- * @version $Revision: 1.9 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $
+ * @version $Revision: 1.10 $ / $Date: 2009-03-22 07:19:52 $ / $Author: vaibhav $
  */
 public class MapTypeDialog extends JPanel  implements ActionListener, ListSelectionListener {
 
@@ -123,10 +123,10 @@ public class MapTypeDialog extends JPanel  implements ActionListener, ListSelect
 		JPanel listPanel = new JPanel();
 		listPanel.setLayout( new BorderLayout() );
 		
-		JLabel listTitle = new JLabel("User TYpes:");
+		JLabel listTitle = new JLabel(VueResources.getString("list.usertype.label"));
 		Box listControls = Box.createHorizontalBox();
-		mAddTypeButton = createButton( "New TYpe");
-		mRemoveTypeButton = createButton( "Remove Type");
+		mAddTypeButton = createButton( VueResources.getString("button.newtype.label"));
+		mRemoveTypeButton = createButton( VueResources.getString("button.removetype.label"));
 		listControls.add( mAddTypeButton );
 		listControls.add( mRemoveTypeButton);
 		
@@ -159,11 +159,11 @@ public class MapTypeDialog extends JPanel  implements ActionListener, ListSelect
 		JPanel propPanel = new JPanel();
 		propPanel.setLayout( new BorderLayout() );
 		
-		mAddPropertyButton = createButton("Add");
-		mRemovePropertyButton = createButton( "Remove");
-		mUpButton = createButton( "Nudge Up");
-		mDownButton = createButton( "Nudge Down");
-		JLabel propTitle = new JLabel( "Properties:");
+		mAddPropertyButton = createButton(VueResources.getString("button.add.label"));
+		mRemovePropertyButton = createButton(VueResources.getString("button.remove.label"));
+		mUpButton = createButton( VueResources.getString("button.nudgeup.label"));
+		mDownButton = createButton( VueResources.getString("button.nudgedown.label"));
+		JLabel propTitle = new JLabel(VueResources.getString("label.properties"));
 		Box propControls = Box.createVerticalBox();
 		propControls.add( mUpButton );
 		propControls.add( mDownButton);
@@ -196,7 +196,7 @@ public class MapTypeDialog extends JPanel  implements ActionListener, ListSelect
 	
 	private void initPropertyTable() {
 		
-		String [] columns = {"Property", "Type", "Value"};
+		String [] columns = {VueResources.getString("column.property.name"), VueResources.getString("column.type.name"), VueResources.getString("column.value.name")};
 		mTableModel = new DefaultTableModel( columns, 0);
 		mPropertyTableModel = new PropertyTableModel( null);
 		
@@ -268,7 +268,7 @@ public class MapTypeDialog extends JPanel  implements ActionListener, ListSelect
 	public void doAddType() {
 		String name = null;
 		
-		name = JOptionPane.showInputDialog("Name the new user type:");
+		name = JOptionPane.showInputDialog(VueResources.getString("dialog.newuser.title"));
 		if( name != null) {
 			UserMapType type = new UserMapType( mMap, name);
 			mListModel.addElement( type);
@@ -436,7 +436,7 @@ public class MapTypeDialog extends JPanel  implements ActionListener, ListSelect
 	public class PropertyTableModel extends AbstractTableModel {
 		
 		UserMapType mModelType = null;
- String [] 		sColNames = {"Property","Type","Value"};
+ String [] 		sColNames = {VueResources.getString("column.property.name"), VueResources.getString("column.type.name"), VueResources.getString("column.value.name")};
 		public PropertyTableModel( UserMapType pType) {
 			super();
 			mModelType = pType;
