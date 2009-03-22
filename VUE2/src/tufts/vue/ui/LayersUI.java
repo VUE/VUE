@@ -40,7 +40,7 @@ import edu.tufts.vue.metadata.action.SearchAction;
 
 
 /**
- * @version $Revision: 1.74 $ / $Date: 2009-03-11 18:34:33 $ / $Author: sfraize $
+ * @version $Revision: 1.75 $ / $Date: 2009-03-22 21:29:02 $ / $Author: vaibhav $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -53,7 +53,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
     private final JPanel mToolbar = new JPanel();
     private final JPanel mRowList = new JPanel();
 
-    private final AbstractButton mShowAll = new JToggleButton("Show All");
+    private final AbstractButton mShowAll = new JToggleButton(VueResources.getString("botton.layer.showall"));
 
     // PROBLEM: IF WE ALLOW LAYERS IN THE SELECTION, LWComponent.selctedOrParent will
     // start returning TRUE for anything inside the layer.  This screws up
@@ -181,20 +181,20 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 
     private final LayerAction
 
-        LAYER_NEW = new LayerAction("New", "Create a new layer") {
+        LAYER_NEW = new LayerAction(VueResources.getString("layer.new"), VueResources.getString("layer.createnewlayer")) {
                 @Override
                 boolean enabledWith(Layer layer) {
                     return mMap != null;
                 }
                 public void act() {                	
-                    mMap.addLayer("New Layer " + NewLayerCount++);                    
+                    mMap.addLayer(VueResources.getString("layer.newlayer") + NewLayerCount++);                    
                 }
                 @Override
-                public String getUndoName() { return "New Layer"; }
+                public String getUndoName() { return VueResources.getString("layer.newlayer"); }
             },
         
         
-        LAYER_DUPLICATE = new LayerAction("Duplicate", "Duplicate Layer") {
+        LAYER_DUPLICATE = new LayerAction(VueResources.getString("layer.duplicate"), VueResources.getString("layer.duplicatelayer")) {
 //                 public void act() {
 //                     for (LWComponent c : reverse(selection()))
 //                         mMap.addChild(c.duplicate());
@@ -206,7 +206,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 }
             },
         
-        LAYER_DELETE = new LayerAction("Delete", "Remove a layer and all of its contents") {
+        LAYER_DELETE = new LayerAction(VueResources.getString("layer.delete"), VueResources.getString("layer.removeall")) {
                 @Override
                 boolean enabledWith(Layer layer) {
                     return mRows.size() > 1;
@@ -214,10 +214,10 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 @Override
                 public void act() {
                     if (active.numChildren() > 0) {
-                        String message = String.format("Are you sure you want to delete layer '%s' and its content?",
+                        String message = String.format(Locale.getDefault(),VueResources.getString("layer.delete.label"),
                                                        active.getLabel());
                         if (JOptionPane.showConfirmDialog(null,
-                                                          message, "Confirmation",
+                                                          message, VueResources.getString("dialog.title.confirmation"),
                                                            JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION)
                             return;
                     }
@@ -230,7 +230,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 }				           
             },
         
-        LAYER_MERGE_DOWN = new LayerAction("Merge Down", "Merge into layer below") {
+        LAYER_MERGE_DOWN = new LayerAction(VueResources.getString("layer.mergedown"), VueResources.getString("layer.mergeintolayer")) {
 //                 @Override
 //                 boolean enabledWith(LWSelection s) {
 //                     return s.size() == 1
@@ -252,7 +252,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 }
             },
             
-            LAYER_FILTER = new LayerAction("Filter", "Filter: Hide unselected layers") {
+            LAYER_FILTER = new LayerAction(VueResources.getString("layer.filter"), VueResources.getString("layer.hideunselected")) {
             	boolean flg = true;
                 @Override
                 boolean enabledWith(Layer layer) {
@@ -306,7 +306,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 
             },
             
-            LAYER_LOCK = new LayerAction("Lock", "Lock") {
+            LAYER_LOCK = new LayerAction(VueResources.getString("layer.lock"), VueResources.getString("layer.lock")) {
                 @Override
                 boolean enabledWith(Layer layer) {
                     return true;
@@ -422,7 +422,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         //VUE.addActiveListener(Layer.class, this);
         //VUE.addActiveListener(LWComponent.class, this);
         //setMinimumSize(new Dimension(300,260));  
-        renameMenuItem = new JMenuItem("Re-Name");
+        renameMenuItem = new JMenuItem(VueResources.getString("layer.rename"));
         popupMenu.add(renameMenuItem);
         popupMenu.addSeparator();
         renameMenuItem.addActionListener(new ActionListener() {
@@ -444,7 +444,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             }
         });
         
-        unLockMenuItem = new JMenuItem("Unlock");
+        unLockMenuItem = new JMenuItem(VueResources.getString("layer.unlock"));
         unlockPopupMenu.add(unLockMenuItem);        
         unLockMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent event) {            	        	
@@ -463,7 +463,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             }
         });
         
-        duplicateMenuItem = new JMenuItem("Duplicate");        
+        duplicateMenuItem = new JMenuItem(VueResources.getString("layer.duplicate"));        
         popupMenu.add(duplicateMenuItem);
         popupMenu.addSeparator();
         duplicateMenuItem.addActionListener(new ActionListener() {
@@ -474,7 +474,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                  setActiveLayer(dupe); // make the new duplicate layer the active layer
             }
         });
-        lockMenuItem = new JMenuItem("Lock");
+        lockMenuItem = new JMenuItem(VueResources.getString("layer.lock"));
         popupMenu.add(lockMenuItem);
         popupMenu.addSeparator();
         lockMenuItem.addActionListener(new ActionListener() {
@@ -495,16 +495,16 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             }
         });        
       
-        deleteMenuItem = new JMenuItem("Delete");      
+        deleteMenuItem = new JMenuItem(VueResources.getString("layer.delete"));      
         popupMenu.add(deleteMenuItem); 
         
         deleteMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent event) { 
             	deleteMenuItem.setEnabled(true);
             	// Modal dialog with OK button
-                String message = "Are you sure you want to delete this layer and its content?";               
+                String message = VueResources.getString("dialog.deletelayer.message");               
                 if (JOptionPane.showConfirmDialog(null,
-                		message, "Confirmation",
+                		message, VueResources.getString("dialog.title.confirmation"),
                         JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION){                
                 	Layer active = getActiveLayer();
                 	if(!active.isLocked()){
@@ -1657,8 +1657,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             if (layer instanceof Layer) {
 
                 exclusive = new JRadioButton();
-                exclusive.setName("exclusive");
-                exclusive.setToolTipText("Quick-Edit");
+                exclusive.setName(VueResources.getString("layer.exclusive"));
+                exclusive.setToolTipText(VueResources.getString("layer.quickedit"));
                 exclusive.setBorderPainted(false);
                 exclusive.setIcon(VueResources.getIcon(VUE.class, "images/quickFocus_ov.png"));
                 exclusive.setFocusable(false);
@@ -1672,8 +1672,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 //grab = new JButton("Grab");
                 //grab.setFont(VueConstants.SmallFont);
                 grab = new JRadioButton();                
-                grab.setName("grab");
-                grab.setToolTipText("Move selection to this layer");
+                grab.setName(VueResources.getString("button.grab"));
+                grab.setToolTipText(VueResources.getString("layer.selection.tooltip"));
                 grab.setBorderPainted(false);
                 grab.setIcon(VueResources.getIcon(VUE.class, "images/grab_ov.png"));
                 grab.setFocusable(false); // FYI, no help on ignoring mouse-motion

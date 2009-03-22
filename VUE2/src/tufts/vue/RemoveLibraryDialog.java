@@ -21,13 +21,16 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.5 $ / $Date: 2009-03-22 07:25:19 $ / $Author: vaibhav $
+ * @version $Revision: 1.6 $ / $Date: 2009-03-22 21:30:28 $ / $Author: vaibhav $
  * @author  akumar03
  */
-import javax.swing.*;
-import java.awt.event.*;
-import javax.swing.event.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 public class RemoveLibraryDialog extends JDialog implements java.awt.event.ActionListener {
     
@@ -102,7 +105,7 @@ public class RemoveLibraryDialog extends JDialog implements java.awt.event.Actio
 
 	public void actionPerformed(java.awt.event.ActionEvent ae)
 	{
-		if (ae.getActionCommand().equals("OK")) {
+		if (ae.getActionCommand().equals(VueResources.getString("button.ok.label"))) {
 			setVisible(false);
 		}
 	}
