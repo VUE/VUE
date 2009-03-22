@@ -19,34 +19,26 @@
  */
 package edu.tufts.vue.ontology;
 
-import java.util.*;
-import edu.tufts.vue.style.*;
-import java.net.*;
-
-import com.hp.hpl.jena.rdf.model.*;
-import com.hp.hpl.jena.ontology.*;
-import com.hp.hpl.jena.util.iterator.*;
-import com.hp.hpl.jena.vocabulary.RDF;
-import com.hp.hpl.jena.shared.PrefixMapping;
-import com.hp.hpl.jena.util.iterator.Filter;
-import java.io.*;
-
-// castor classes
-import org.exolab.castor.xml.Marshaller;
-import org.exolab.castor.xml.Unmarshaller;
-import org.exolab.castor.xml.MarshalException;
-import org.exolab.castor.xml.ValidationException;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import org.exolab.castor.mapping.Mapping;
-import org.exolab.castor.mapping.MappingException;
+import org.exolab.castor.xml.Marshaller;
+import org.exolab.castor.xml.Unmarshaller;
 import org.xml.sax.InputSource;
-import osid.dr.*;
+
+import tufts.vue.VueResources;
 
 public class OntManager
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(OntManager.class);
     
-    public static final String ONT_NOT_FOUND = "Ontology Not Found";
+    public static final String ONT_NOT_FOUND = VueResources.getString("ontology.ontologynotfound");
     public static final String ONT_FILE = tufts.vue.VueResources.getString("ontology.save");
     public static final int RDFS = 0;
     public static final int OWL = 1;

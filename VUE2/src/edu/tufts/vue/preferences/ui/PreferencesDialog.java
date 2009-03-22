@@ -82,9 +82,9 @@ public class PreferencesDialog extends JDialog {
 		createSplitPane();
 		createButtonPanel();
 		String[] array = new String[3];
-		array[0] = new String("VUE Preferences");
-		array[1] = new String("Map Display:");
-		array[2] = new String("Images");
+		array[0] = new String(VueResources.getString("preferencedailog.vuepreference"));
+		array[1] = new String(VueResources.getString("preferencedailog.mapdisplay"));
+		array[2] = new String(VueResources.getString("preferencedailog.images"));
 //		array[2] = new String("Metadata:");
 	//	array[3] = new String("Windows:");
 		
@@ -143,7 +143,7 @@ public class PreferencesDialog extends JDialog {
 	    }
 	private void createTree() {
 		rootNode = new DefaultMutableTreeNode(
-				"VUE Preferences");
+				VueResources.getString("preferencedailog.vuepreference"));
 
 		Iterator i = PreferencesManager.getCategories().iterator();
 		// Build Category List.
@@ -301,7 +301,7 @@ public class PreferencesDialog extends JDialog {
 
 	private void createButtonPanel() {
 		JPanel buttonPanel = new JPanel(new BorderLayout(5, 5));
-		JButton closeButton = new JButton("Close");
+		JButton closeButton = new JButton(VueResources.getString("button.close.label"));
 		closeButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				PreferencesDialog.this.setVisible(false);
@@ -343,7 +343,7 @@ public class PreferencesDialog extends JDialog {
 		prefs.putBoolean("mapDisplay.AutoZoom", true);
 
 		PreferencesDialog dialog = new PreferencesDialog(null,
-				"Vue Preferences",
+				VueResources.getString("preferencedailog.vuepreference"),
 				edu.tufts.vue.preferences.PreferencesManager.class, true, null,
 				false);
 		dialog.show();
