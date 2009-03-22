@@ -65,16 +65,16 @@ public class MetadataSearchGUI extends JPanel {
     public final static int LABEL = 1;
     public final static int KEYWORD = 2;
     
-    public final static String AND = "and";
-    public final static String OR = "or";
+    public final static String AND = VueResources.getString("searchgui.and");
+    public final static String OR = VueResources.getString("searchgui.or");
     
-    public final static String SELECTED_MAP_STRING = "Current Map";
-    public final static String ALL_MAPS_STRING = "All Open Maps";
+    public final static String SELECTED_MAP_STRING = VueResources.getString("searchgui.currentmap");
+    public final static String ALL_MAPS_STRING = VueResources.getString("searchgui.allopenmaps");
     
-    public final static String SEARCH_EVERYTHING = "Search everything";
-    public final static String SEARCH_LABELS_ONLY = "Labels";
-    public final static String SEARCH_ALL_KEYWORDS = "Keywords";
-    public final static String SEARCH_CATEGORIES_AND_KEYWORDS = "Categories + Keywords";
+    public final static String SEARCH_EVERYTHING = VueResources.getString("searchgui.searcheverything");
+    public final static String SEARCH_LABELS_ONLY = VueResources.getString("searchgui.labels");
+    public final static String SEARCH_ALL_KEYWORDS = VueResources.getString("searchgui.keywords");
+    public final static String SEARCH_CATEGORIES_AND_KEYWORDS = VueResources.getString("searchgui.categories_keywords");
     
     // combo box numbers within optionsPanel
     public final static int TYPES = 0;
@@ -101,9 +101,9 @@ public class MetadataSearchGUI extends JPanel {
             
     private String[] locationTypes = {SELECTED_MAP_STRING,ALL_MAPS_STRING};
     
-    private String[] currentMapResultsTypes = {"Show","Hide","Select","Copy to new map"};
+    private String[] currentMapResultsTypes = {VueResources.getString("searchgui.show"),VueResources.getString("searchgui.hide"),VueResources.getString("searchgui.select"),VueResources.getString("searchgui.copynewmap")};
    // private String[] allOpenMapsResultsTypes = {"new map(tile)","new map(overlay)"};
-    private String[] allOpenMapsResultsTypes = {"new map"};
+    private String[] allOpenMapsResultsTypes = {VueResources.getString("searchgui.newmap")};
    
     private JPanel fieldsPanel;
     private JTable searchTermsTable;
@@ -216,8 +216,8 @@ public class MetadataSearchGUI extends JPanel {
             
             advanced.toggleOptionsView();
             
-            ((JTabbedPane)content).addTab("Basic",basic);
-            ((JTabbedPane)content).addTab("Advanced",advanced);
+            ((JTabbedPane)content).addTab(VueResources.getString("searchgui.basic"),basic);
+            ((JTabbedPane)content).addTab(VueResources.getString("searchgui.advanced"),advanced);
             
             initialized = true;
     }
@@ -382,7 +382,7 @@ public class MetadataSearchGUI extends JPanel {
         };
         
         JPanel advancedSearchPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
-        optionsLabel = new JLabel("show options");
+        optionsLabel = new JLabel(VueResources.getString("searchgui.showoptions"));
         advancedSearch = new JButton(new ImageIcon(VueResources.getURL("advancedSearchMore.raw")));
         advancedSearch.setBorder(BorderFactory.createEmptyBorder());
         advancedSearch.addActionListener(new ActionListener(){
@@ -404,13 +404,13 @@ public class MetadataSearchGUI extends JPanel {
         //optionsPanel.add(optionsLabel);
        
 
-        optionsPanel.addLabel("Search Type:");
+        optionsPanel.addLabel(VueResources.getString("searchgui.searchtype"));
         optionsPanel.addCombo(searchTypes,searchTypesListener);
         
-        optionsPanel.addLabel("Maps:");
+        optionsPanel.addLabel(VueResources.getString("searchgui.maps"));
         optionsPanel.addCombo(locationTypes,locationChoiceListener);
         
-        optionsPanel.addLabel("Results:");
+        optionsPanel.addLabel(VueResources.getString("searchgui.results"));
         optionsPanel.addCombo(currentMapResultsTypes,resultsTypeListener);
         
         searchTermsTable = new JTable(new SearchTermsTableModel());
@@ -1170,7 +1170,7 @@ public class MetadataSearchGUI extends JPanel {
            //it can also be found in the layout
            comboBoxes.add(newCombo);            
            
-           if(choices.length > 2 && choices[2].equals("Select"))
+           if(choices.length > 2 && choices[2].equals(VueResources.getString(VueResources.getString("searchgui.select"))))
            {
                newCombo.setSelectedIndex(2);
            }
