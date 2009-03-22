@@ -17,22 +17,20 @@
 package edu.tufts.vue.ontology.ui;
 
 
-import edu.tufts.vue.ontology.OntManager;
-import edu.tufts.vue.ontology.OntologyType;
-
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import tufts.vue.VueUtil;
+import tufts.vue.VueResources;
 import tufts.vue.gui.VueFileChooser;
 
 
@@ -50,12 +48,12 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
     public static final int ONT_CHOOSER_X_LOCATION = 300;
     public static final int ONT_CHOOSER_Y_LOCATION = 300;
     
-    public static final String ontTitle = "<html><b>Ontology</b><html>";
+    public static final String ontTitle = "<html><b>"+VueResources.getString("ontology.title")+ "</b><html>";
     //public static final String cssTitle = "<html><b>Ontology Style Sheet*</b></html>";
-    public static final String cssTitle = "<html><b>Ontology Style Sheet</b></html>";
-    public static final String browseFileMessage = "Select file:";
-    public static final String cssFileMessage = "Select file:";
-    public static final String typeURLMessage = "Type in a URL:";
+    public static final String cssTitle = "<html><b>"+ VueResources.getString("ontology2.stylesheet") +"</b></html>";
+    public static final String browseFileMessage = VueResources.getString("ontology2.selectfile");
+    public static final String cssFileMessage = VueResources.getString("ontology2.selectfile");
+    public static final String typeURLMessage = VueResources.getString("ontology.typeinurl");
     public static final String styleSheetMessage = "(*can be added later)";
     
     // change order of these values for URL first and 5 lines below
@@ -121,7 +119,7 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
         
         //for URL first -- also change 4 lines below and order of constants above
         //String[] choices = {"on the web","in a local folder"};
-        String[] choices = {"in a local folder","on the web"};
+        String[] choices = {VueResources.getString("ontology2.inlocalfolder"),VueResources.getString("ontology2.ontheweb")};
         
         cssChoice = new JComboBox(choices);
         ontChoice = new JComboBox(choices);
@@ -129,10 +127,10 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
         typeOntURLField = new JTextField(20);
         typeCssURLField = new JTextField(20);
         
-        cancelButton = new JButton("Cancel");
-        nextButton = new JButton("Add");
-        ontBrowseButton = new JButton("Browse");
-        cssBrowseButton = new JButton("Browse");
+        cancelButton = new JButton(VueResources.getString("button.cancel.lable"));
+        nextButton = new JButton(VueResources.getString("button.add.label"));
+        ontBrowseButton = new JButton(VueResources.getString("button.browse.label"));
+        cssBrowseButton = new JButton(VueResources.getString("button.browse.label"));
         
         cssChoice.addActionListener(this);
         ontChoice.addActionListener(this);
@@ -242,7 +240,7 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
         GridBagLayout ontChoiceGrid = new GridBagLayout();
         GridBagConstraints ontChoiceConstraints = new GridBagConstraints();
         //c.gridwidth = 2;
-        JLabel fileLabel = new JLabel("File location: ");
+        JLabel fileLabel = new JLabel(VueResources.getString("ontology2.filelocation"));
         c.anchor = GridBagConstraints.WEST;
         //ontChoiceConstraints.insets = new Insets(10,30,10,10);
         ontChoiceGrid.setConstraints(fileLabel,ontChoiceConstraints);
@@ -260,7 +258,7 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
         GridBagConstraints cssChoiceConstraints = new GridBagConstraints();
         cssChoicePanel.setLayout(cssChoiceGrid);
         cssChoiceConstraints.anchor = GridBagConstraints.WEST;
-        JLabel fileLabel2 = new JLabel("File location: ");
+        JLabel fileLabel2 = new JLabel(VueResources.getString("ontology2.filelocation"));
         //cssChoiceConstraints.insets = new Insets(10,30,10,10);
         cssChoiceGrid.setConstraints(fileLabel2,cssChoiceConstraints);
         cssChoicePanel.add(fileLabel2);
@@ -334,7 +332,7 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
         ontURLConstraints.insets = new Insets(5,5,5,5);
         ontURLConstraints.anchor = GridBagConstraints.WEST;
         ontURLConstraints.weightx = 0.0;
-        JLabel typeLabel = new JLabel("Type in a URL: ");
+        JLabel typeLabel = new JLabel(VueResources.getString("ontology.typeinurl"));
         ontURLGrid.setConstraints(typeLabel,ontURLConstraints);
         ontURLPanel.add(typeLabel,ontURLConstraints);
         ontURLConstraints.gridwidth = GridBagConstraints.REMAINDER;
@@ -358,7 +356,7 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
         cssURLConstraints.insets = new Insets(5,5,5,5);
         cssURLConstraints.anchor = GridBagConstraints.WEST;
         cssURLConstraints.weightx = 0.0;
-        JLabel typeLabel = new JLabel("Type in a URL: ");
+        JLabel typeLabel = new JLabel(VueResources.getString("ontology.typeinurl"));
         cssURLGrid.setConstraints(typeLabel,cssURLConstraints);
         cssURLPanel.add(typeLabel,cssURLConstraints);
         cssURLConstraints.weightx = 1.0;
@@ -609,11 +607,11 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
                    
                        if(getOntType(ontURL) == null)
                        {
-                           String [] choices = {"Close"};
+                           String [] choices = {VueResources.getString("button.close.label")};
                            
                            javax.swing.JOptionPane.showOptionDialog(this,
-                                   "<HTML>This ontology cannot be installed. <BR>Check to make sure it has the proper extension: .owl or .rdfs</HTML>",
-                                   "Alert",
+                                   "<HTML>"+VueResources.getString("ontology2.cannotbeinstalled")+"</HTML>",
+                                   VueResources.getString("optiondialog.ontology2.alert"),
                                    javax.swing.JOptionPane.YES_NO_OPTION,
                                    javax.swing.JOptionPane.ERROR_MESSAGE,
                                    null,

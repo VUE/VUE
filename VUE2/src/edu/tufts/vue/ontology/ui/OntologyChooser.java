@@ -16,21 +16,19 @@
 
 package edu.tufts.vue.ontology.ui;
 
-import edu.tufts.vue.ontology.OntManager;
-import edu.tufts.vue.ontology.OntologyType;
-
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import tufts.vue.VueUtil;
+import tufts.vue.VueResources;
 import tufts.vue.gui.VueFileChooser;
 
 /*
@@ -50,12 +48,12 @@ public class OntologyChooser extends javax.swing.JDialog implements java.awt.eve
     public static final int ONT_CHOOSER_X_LOCATION = 300;
     public static final int ONT_CHOOSER_Y_LOCATION = 300;
     
-    public static final String stepOneMessage = "<html> Step 1 of 2 - Add an <b>ontology</b> </html>";
-    public static final String stepTwoMessage = "<html> Step 2 of 2 - Select a <b>style sheet</b> for the ontology</html>";
-    public static final String browseFileMessage = "Browse to file:";
-    public static final String orMessage = "or";
-    public static final String typeURLMessage = "Type in a URL:";
-    public static final String styleSheetMessage = "<html>The style sheet can be added later using<br> the \"x\" window </html>";
+    public static final String stepOneMessage = "<html>" + VueResources.getString("ontology.step1of2")+ "</html>";
+    public static final String stepTwoMessage = "<html>"+ VueResources.getString("ontology.step2of2") +"</html>";
+    public static final String browseFileMessage = VueResources.getString("ontology.browsetofile");
+    public static final String orMessage = VueResources.getString("ontology.or");
+    public static final String typeURLMessage = VueResources.getString("ontology.typeinurl");
+    public static final String styleSheetMessage = "<html>"+ VueResources.getString("ontology.stylesheet") +"</html>";
     
     private int step = STEP_ONE;
     
@@ -88,9 +86,9 @@ public class OntologyChooser extends javax.swing.JDialog implements java.awt.eve
         setModal(true);
         setSize(ONT_CHOOSER_WIDTH,ONT_CHOOSER_HEIGHT);
         
-        cancelButton = new JButton("Cancel");
-        nextButton = new JButton("Next");
-        browseButton = new JButton("Browse");
+        cancelButton = new JButton(VueResources.getString("button.cancel.lable"));
+        nextButton = new JButton(VueResources.getString("button.next.label"));
+        browseButton = new JButton(VueResources.getString("button.browse.label"));
         //attachButton = new JButton("Attach");
         
         cancelButton.addActionListener(this);
@@ -221,8 +219,8 @@ public class OntologyChooser extends javax.swing.JDialog implements java.awt.eve
                step = STEP_TWO;
                stepLabel.setText(stepTwoMessage);
                styleSheetMessageLabel.setText(styleSheetMessage);
-               cancelButton.setText("Back");
-               nextButton.setText("Finish");
+               cancelButton.setText(VueResources.getString("ontology.back"));
+               nextButton.setText(VueResources.getString("ontology.finish"));
                ontURLText = typeURLField.getText();
                typeURLField.setText("");
                browseFileField.setText("");
@@ -339,8 +337,8 @@ public class OntologyChooser extends javax.swing.JDialog implements java.awt.eve
               //setTitle("Ontology");
               stepLabel.setText(stepOneMessage);
               styleSheetMessageLabel.setText("");
-              cancelButton.setText("Cancel");
-              nextButton.setText("Next");
+              cancelButton.setText(VueResources.getString("button.cancel.lable"));
+              nextButton.setText(VueResources.getString("button.next.label"));
               cssURLText = typeURLField.getText();
               if(ontURLText!=null && !ontURLText.equals(""))
               {
