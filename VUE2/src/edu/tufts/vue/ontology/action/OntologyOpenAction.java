@@ -16,7 +16,9 @@
 
 package edu.tufts.vue.ontology.action;
 
-import edu.tufts.vue.ontology.ui.*;
+import tufts.vue.VueResources;
+import edu.tufts.vue.ontology.ui.OntologyBrowser;
+import edu.tufts.vue.ontology.ui.OntologyChooser2;
 
 /*
  * OntologyOpenAction.java
@@ -38,7 +40,7 @@ public class OntologyOpenAction extends tufts.vue.VueAction {
     public void actionPerformed(java.awt.event.ActionEvent e)
     {
         edu.tufts.vue.ontology.ui.OntologyChooser2 chooser = new OntologyChooser2(tufts.vue.VUE.getDialogParentAsFrame(),
-                                                                                "Add an Ontology",
+                                                                                VueResources.getString("ontology.openaction"),
                                                                                 browser);
     }
 }
