@@ -87,7 +87,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.135 $ / $Date: 2009-03-06 14:24:22 $ / $Author: sraphe01 $
+ * @version $Revision: 1.136 $ / $Date: 2009-03-22 07:01:42 $ / $Author: vaibhav $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -923,7 +923,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         {
         	analysisMenu.add(createCMAction);
         	if (VUE.getMergeMapsDock()!= null ){
-        		analysisMenu.add(createWindowItem(VUE.getMergeMapsDock(), KeyEvent.VK_9, "Merge Maps"));            
+        		analysisMenu.add(createWindowItem(VUE.getMergeMapsDock(), KeyEvent.VK_9, VueResources.getString("dialog.mergemap.title")));            
         	}
         	//analysisMenu.add(analyzeCMAction);
         }
@@ -1294,7 +1294,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
 
             if (!Util.isWindowsPlatform())
             // can't get enough log into the email for now on Windows to be useful.
-                panel.add(new JButton("Submit Report") {
+                panel.add(new JButton(VueResources.getString("button.submitrep.label")) {
                     @Override
                     protected void fireActionPerformed(ActionEvent ae) {                        
                         //System.out.println("ACTION " + ae);

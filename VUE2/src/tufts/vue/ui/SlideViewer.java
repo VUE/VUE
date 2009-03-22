@@ -93,8 +93,8 @@ public class SlideViewer extends tufts.vue.MapViewer
     private final AbstractButton btnRevert;
     //private final AbstractButton btnPresent;
 
-    private static final String lblRevertOnSlide = "Reset Style";
-    private static final String lblRevertOnMaster = "Reset All Slide Styles";
+    private static final String lblRevertOnSlide = VueResources.getString("button.resetstyle.label");
+    private static final String lblRevertOnMaster = VueResources.getString("button.resetallstyle.label");
 
     private boolean masterJustPressed;
     private boolean slideJustPressed;
