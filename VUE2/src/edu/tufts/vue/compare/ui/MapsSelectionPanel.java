@@ -18,7 +18,7 @@
  *
  * Created on May 3, 2007, 11:17 AM
  *
- * @version $Revision: 1.42 $ / $Date: 2009-03-02 08:47:10 $ / $Author: vaibhav $
+ * @version $Revision: 1.43 $ / $Date: 2009-03-22 17:46:47 $ / $Author: vaibhav $
  * @author dhelle01
  */
 
@@ -251,7 +251,7 @@ public class MapsSelectionPanel extends JPanel  {
         
 		JLabel mergePropertyLabel = new JLabel(MergeProrerty);
         mergePropertyLabel.setFont(tufts.vue.gui.GUI.LabelFace);
-        String[] mergePropertyChoices = {"Label","Ontological Membership","Ontological Membership and Label"};
+        String[] mergePropertyChoices = {VueResources.getString("combobox.mergepropertychoices.label"),VueResources.getString("combobox.mergepropertychoices.ontologicalmembership"),VueResources.getString("combobox.mergepropertychoices.ontologicalmembershiplabel")};
         JComboBox mergePropertyChoice = new JComboBox(mergePropertyChoices);
         
         mergePropertyChoice.addItemListener(new ItemListener(){
@@ -259,17 +259,17 @@ public class MapsSelectionPanel extends JPanel  {
            {
                if(ie.getStateChange() == ItemEvent.SELECTED)
                {
-                   if(ie.getItem().equals("Label"))
+                   if(ie.getItem().equals(VueResources.getString("combobox.mergepropertychoices.label")))
                    {
                        Util.setMergeProperty(Util.LABEL);
                    }
                    
-                   if(ie.getItem().equals("Ontological Membership"))
+                   if(ie.getItem().equals(VueResources.getString("combobox.mergepropertychoices.ontologicalmembership")))
                    {
                        Util.setMergeProperty(Util.TYPE);
                    }
                    
-                   if(ie.getItem().equals("Ontological Membership and Label"))
+                   if(ie.getItem().equals(VueResources.getString("combobox.mergepropertychoices.ontologicalmembershiplabel")))
                    {
                        Util.setMergeProperty(Util.BOTH);
                    }
@@ -281,13 +281,13 @@ public class MapsSelectionPanel extends JPanel  {
         gridBagConstraints.gridwidth = 1;
         gridBag.setConstraints(mergePropertyLabel,gridBagConstraints);
         mergePropertyLabel.setBorder(BorderFactory.createEmptyBorder(5+2,15,5+2,5));
-        if(!VueResources.getString("merge.ontologyType.gui").equals("OFF"))
+        if(!VueResources.getString("merge.ontologyType.gui").equals(VueResources.getString("merge.ontologyType.guioff")))
         {    
           add(mergePropertyLabel);
         }
         gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
         gridBag.setConstraints(mergePropertyChoice,gridBagConstraints);
-        if(!VueResources.getString("merge.ontologyType.gui").equals("OFF"))
+        if(!VueResources.getString("merge.ontologyType.gui").equals(VueResources.getString("merge.ontologyType.guioff")))
         {
           add(mergePropertyChoice);
         }
