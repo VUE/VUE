@@ -20,26 +20,28 @@
 
 package edu.tufts.vue.ontology;
 
-import edu.tufts.vue.style.*;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
-import java.util.*;
-import java.net.*;
+import tufts.vue.VueResources;
 
+import com.hp.hpl.jena.ontology.OntClass;
+import com.hp.hpl.jena.ontology.OntModel;
+import com.hp.hpl.jena.ontology.OntResource;
+import com.hp.hpl.jena.util.iterator.ExtendedIterator;
 
-import com.hp.hpl.jena.rdf.model.*;
-import com.hp.hpl.jena.ontology.*;
-import com.hp.hpl.jena.util.iterator.*;
-import com.hp.hpl.jena.vocabulary.RDF;
-import com.hp.hpl.jena.shared.PrefixMapping;
-import com.hp.hpl.jena.util.iterator.Filter;
-import org.w3c.dom.stylesheets.LinkStyle;
+import edu.tufts.vue.style.CSSParser;
+import edu.tufts.vue.style.NodeStyle;
+import edu.tufts.vue.style.Style;
 
 abstract public class Ontology {
     public static final String ONT_CLASS_NODE = "node.OntClass";
     public static final String DEFAULT_NODE = "node.default";
     public static final String ONT_PROPERTY_LINK = "link.OntProperty";
     public static final String DEFAULT_LINK = "link.default";
-    public static final String DEFAULT_ONT_LABEL = "Ontology ";
+    public static final String DEFAULT_ONT_LABEL = VueResources.getString("ontology.label");
     private boolean enabled = true;
     
     protected List<OntType> types = new ArrayList<OntType>();
