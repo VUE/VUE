@@ -16,17 +16,29 @@
 
 package edu.tufts.vue.metadata.ui;
 
-import edu.tufts.vue.metadata.*;
-import edu.tufts.vue.ontology.*;
-
-import tufts.vue.gui.GUI;
-
 import java.awt.FlowLayout;
-import java.util.ArrayList;
-import java.util.List;
 
-import javax.swing.*;
-import javax.swing.table.*;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.DefaultCellEditor;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
+
+import tufts.vue.VueResources;
+import tufts.vue.gui.GUI;
+import edu.tufts.vue.metadata.CategoryModel;
+import edu.tufts.vue.ontology.OntType;
+import edu.tufts.vue.ontology.Ontology;
 
 //import tufts.vue.gui.DockWindow;
 
@@ -178,9 +190,9 @@ public class CategoryEditor extends JPanel
         
         buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(0,0,5,15));
-        cancelButton = new JButton("Cancel");
+        cancelButton = new JButton(VueResources.getString("button.cancel.lable"));
         cancelButton.setFont(GUI.LabelFace);
-        doneButton = new JButton("Done");
+        doneButton = new JButton(VueResources.getString("button.done.lable"));
         doneButton.setFont(GUI.LabelFace);
         //buttonPanel.add(cancelButton);
         buttonPanel.add(doneButton);
@@ -232,7 +244,7 @@ public class CategoryEditor extends JPanel
            JComponent comp = new JPanel();
            if(col == 0)
            {    
-               comp =  new JLabel("Add Custom Categories:");
+               comp =  new JLabel(VueResources.getString("addcustomcategory.label"));
                comp.setFont(tufts.vue.gui.GUI.LabelFace);
            }
            else if(col == 1)
