@@ -43,7 +43,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.215 $ / $Date: 2009-03-23 20:59:21 $ / $Author: sfraize $
+ * @version $Revision: 1.216 $ / $Date: 2009-03-23 21:03:29 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -2776,8 +2776,12 @@ public class LWLink extends LWComponent
         // Draw arrow heads if there are any
         //-------------------------------------------------------
         
-        if (mArrowState.get() != 0 && dc.zoom > 0.125)
-            drawArrows(dc);
+        if (mArrowState.get() != 0) {
+            if (dc.zoom <= 0.125 && dc.isLODEnabled())
+                ; // don't draw arrows
+            else
+                drawArrows(dc);
+        }
         
         //-------------------------------------------------------
         // Draw the stroke
