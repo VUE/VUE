@@ -161,7 +161,7 @@ import javax.swing.JTextField;  // for test harness
  * redispatch our own FocusEvents for transferring focus, which is the second
  * part of the magic that makes this work.
  *
- * @version $Revision: 1.25 $ / $Date: 2009-02-11 18:45:41 $ / $Author: sfraize $ 
+ * @version $Revision: 1.26 $ / $Date: 2009-03-23 16:02:47 $ / $Author: sfraize $ 
  */
 
 // todo: can also try calling the focus owner setters instead of lying -- that might work
@@ -485,11 +485,12 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
     public boolean dispatchKeyEvent(KeyEvent e) {
 
         if (e.getKeyCode() == KeyEvent.VK_ESCAPE &&
+            e.isControlDown() &&
             e.isAltDown() &&
-            e.isControlDown())
+            e.isShiftDown())
         {
-            Log.info("Keyboard Abort Sequence");
-            System.err.println("VUE: key sequence abort");
+            Log.info("Keyboard Abort Sequence: " + e);
+            System.err.println("VUE: key sequence abort (Ctrl-Alt-Shift-ESCAPE)");
             System.exit(0);
         } // debug abort
 
