@@ -87,7 +87,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.136 $ / $Date: 2009-03-22 07:01:42 $ / $Author: vaibhav $
+ * @version $Revision: 1.137 $ / $Date: 2009-03-23 21:15:08 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -687,9 +687,9 @@ public class VueMenuBar extends javax.swing.JMenuBar
         buildMenu(alignMenu, Actions.ARRANGE_MENU_ACTIONS);
         buildMenu(layoutMenu,LayoutAction.LAYOUT_ACTIONS);
         arrangeMenu.add(Actions.BringToFront);
-        arrangeMenu.add(Actions.BringForward);
+        //arrangeMenu.add(Actions.BringForward);
         arrangeMenu.add(Actions.SendToBack);
-        arrangeMenu.add(Actions.SendBackward);
+        //arrangeMenu.add(Actions.SendBackward);
         transformMenu.add(Actions.FontSmaller);
         transformMenu.add(Actions.FontBigger);
         transformMenu.add(Actions.FontBold);
