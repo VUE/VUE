@@ -27,6 +27,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 import tufts.vue.AnalyzerAction;
 import tufts.vue.LWComponent;
 import tufts.vue.MetaMap;
+import tufts.vue.VueResources;
 
 public class OpenCalaisAnalyzer implements LWComponentAnalyzer, ErrorHandler{
 
@@ -52,7 +53,7 @@ public class OpenCalaisAnalyzer implements LWComponentAnalyzer, ErrorHandler{
 		CalaisJavaIf calais = new CalaisJavaIf("xqffs8ggkmebrsehdsbt56j8");
 
 		calais.setOutputFormat("text/simple");
-		calais.setCalaisURL("http://beta.opencalais.com/enlighten/calais.asmx/Enlighten");
+		calais.setCalaisURL(VueResources.getString("calaisUrl"));
 		calais.setVerifyCert(false);
 		
 		String context = null;
