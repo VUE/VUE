@@ -42,7 +42,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.114 $ / $Date: 2009-03-20 21:24:33 $ / $Author: brian $
+ * @version $Revision: 1.115 $ / $Date: 2009-03-23 15:35:58 $ / $Author: brian $
  */
 
 public class InspectorPane extends WidgetStack
@@ -78,7 +78,7 @@ public class InspectorPane extends WidgetStack
     private final Widget mDescription = new Widget("contentInfo"); // for GUI.init property applicaton (use same as meta-data pane)
     private final Preview mPreview = new Preview();
     
-    private final JLabel mSelectionInfo = new JLabel("", JLabel.CENTER);
+    private final JLabel mSelectionInfo = new JLabel("", JLabel.LEFT);
     
     private final WidgetStack stack;
     
@@ -128,8 +128,9 @@ public class InspectorPane extends WidgetStack
         mDescription.setBackground(Color.white);
 
         mSelectionInfo.setFont(VueConstants.LargeFont);
+        mSelectionInfo.setBorder(GUI.WidgetInsetBorder);
 
-        new Pane("_multi-selection-info",  mSelectionInfo,      EXPANDER,    0);
+        new Pane("_multi-selection-info",  mSelectionInfo,      EXACT_SIZE,    0);
         new Pane("Label",                  mLabelPane,          EXACT_SIZE,  INFO+NOTES+KEYWORD);
         new Pane("Content Preview",        mPreview,            EXACT_SIZE,  RESOURCE);
         new Pane("Content Summary",        mDescription,        0.5f,        RESOURCE+DATA);
@@ -347,7 +348,7 @@ public class InspectorPane extends WidgetStack
         if (s.size() == 0) {
             
             hideAll();
-            mSelectionInfo.setText("Nothing is selected");
+            mSelectionInfo.setText("Nothing selected");
             Widget.show(mSelectionInfo);
             setVisible(true);
             
@@ -1051,7 +1052,7 @@ public class InspectorPane extends WidgetStack
         
         hideAllPanes();
 
-        setTitleItem("(nothing selected)");
+        setTitleItem("Nothing selected");
     }
     
         
