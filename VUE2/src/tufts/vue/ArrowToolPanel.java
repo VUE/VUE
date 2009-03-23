@@ -28,7 +28,7 @@ import javax.swing.*;
 /**
  * A property editor panel for LWLink's.
  *
- * @version $Revision: 1.10 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $
+ * @version $Revision: 1.11 $ / $Date: 2009-03-23 02:48:57 $ / $Author: vaibhav $
  * 
  */
 
@@ -92,7 +92,7 @@ public class ArrowToolPanel extends ToolPanel
                 int val = ((Integer)value).intValue();
                 if (val ==0)
                     {
-                	setText("none");
+                	setText(VueResources.getString("arrowtoolpanel.none"));
                 	setIcon(null);
                     }
                 else
@@ -221,7 +221,7 @@ public class ArrowToolPanel extends ToolPanel
 		gbc.gridwidth=1;
 		gbc.fill = GridBagConstraints.VERTICAL; // the label never grows
 		gbc.anchor = GridBagConstraints.EAST;
-		final JLabel headLabel = new JLabel("Start :");
+		final JLabel headLabel = new JLabel(VueResources.getString("arrowtoolpanel.start"));
                 headLabel.setLabelFor(arrowHeadCombo);
 		headLabel.setForeground(new Color(51,51,51));
 		headLabel.setFont(tufts.vue.VueConstants.SmallFont);
@@ -232,7 +232,7 @@ public class ArrowToolPanel extends ToolPanel
 		gbc.gridwidth=1;
 		gbc.fill = GridBagConstraints.VERTICAL; // the label never grows
 		gbc.anchor = GridBagConstraints.EAST;
-		final JLabel tailLabel = new JLabel("End :");
+		final JLabel tailLabel = new JLabel(VueResources.getString("arrowtoolpanel.end"));
                 tailLabel.setLabelFor(arrowTailCombo);
 		tailLabel.setForeground(new Color(51,51,51));
 		tailLabel.setFont(tufts.vue.VueConstants.SmallFont);

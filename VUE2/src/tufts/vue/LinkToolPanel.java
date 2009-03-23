@@ -28,7 +28,7 @@ import javax.swing.*;
 /**
  * A property editor panel for LWLink's.
  *
- * @version $Revision: 1.52 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $
+ * @version $Revision: 1.53 $ / $Date: 2009-03-23 02:49:36 $ / $Author: vaibhav $
  * 
  */
 
@@ -148,7 +148,7 @@ public class LinkToolPanel extends ToolPanel
         mStrokeButton = new StrokeMenuButton(strokeValues, strokeMenuLabels, true, false);
         mStrokeButton.setPropertyKey(LWKey.StrokeWidth);
         //mStrokeButton.setButtonIcon(new LineIcon(16,16));
-        mStrokeButton.setToolTipText("Stroke Width");
+        mStrokeButton.setToolTipText(VueResources.getString("linktoolpanel.strokewidth.tooltip"));
         //mStrokeButton.addPropertyChangeListener(this);
         
     	//-------------------------------------------------------
@@ -173,7 +173,7 @@ public class LinkToolPanel extends ToolPanel
 		i[3]= new Integer(3);
 		
         AbstractButton linkTypeMenu = new VuePopupMenu(LWKey.LinkShape, LinkTypeActions);
-        linkTypeMenu.setToolTipText("Link Style");
+        linkTypeMenu.setToolTipText(VueResources.getString("linktoolpanel.linkstyle.tooltip"));
         //linkTypeMenu.addPropertyChangeListener(this);
         
         //LWCToolPanel.InstallHandler(mArrowStartButton, arrowPropertyHandler);
@@ -209,7 +209,7 @@ public class LinkToolPanel extends ToolPanel
 		gbc.gridwidth=1;
 		gbc.fill = GridBagConstraints.VERTICAL; // the label never grows
 		gbc.anchor = GridBagConstraints.EAST;
-		JLabel strokeLabel = new JLabel("Stroke :");
+		JLabel strokeLabel = new JLabel(VueResources.getString("linktoolpanel.stroke"));
 		strokeLabel.setLabelFor(mStrokeStyleButton);
 		strokeLabel.setForeground(new Color(51,51,51));
 		strokeLabel.setFont(tufts.vue.VueConstants.SmallFont);
@@ -220,7 +220,7 @@ public class LinkToolPanel extends ToolPanel
 		gbc.gridwidth=1;
 		gbc.fill = GridBagConstraints.VERTICAL; // the label never grows
 		gbc.anchor = GridBagConstraints.EAST;
-		JLabel weightLabel = new JLabel("Weight :");
+		JLabel weightLabel = new JLabel(VueResources.getString("linktoolpanel.weight"));
                 weightLabel.setLabelFor(mStrokeButton);
 		weightLabel.setForeground(new Color(51,51,51));
 		weightLabel.setFont(tufts.vue.VueConstants.SmallFont);

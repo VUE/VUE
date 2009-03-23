@@ -49,7 +49,7 @@ import edu.tufts.vue.preferences.implementations.ColorPreference;
 /**
  * This creates an editor panel for LWNode's
  *
- * @version $Revision: 1.15 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $
+ * @version $Revision: 1.16 $ / $Date: 2009-03-23 02:49:07 $ / $Author: vaibhav $
 < */
  
 public class FillToolPanel extends ToolPanel implements ComponentListener
@@ -63,8 +63,8 @@ public class FillToolPanel extends ToolPanel implements ComponentListener
   //   private final String [] fillColorNames = VueResources.getStringArray("fillColorNames");
      private final Color[] strokeColors = VueResources.getColorArray("strokeColorValues");
      private final String[] strokeColorNames = VueResources.getStringArray("strokeColorNames");
-     private final JLabel fillLabel = new JLabel("Fill: ");
-     private final JLabel lineLabel = new JLabel("Line: ");
+     private final JLabel fillLabel = new JLabel(VueResources.getString("filltoolpanel.fill"));
+     private final JLabel lineLabel = new JLabel(VueResources.getString("filltoolpanel.line"));
      private final ColorPreference fillPrefColor = ColorPreference.create(
 				edu.tufts.vue.preferences.PreferenceConstants.FORMATTING_CATEGORY,
 				"fillColor", 

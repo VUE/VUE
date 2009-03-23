@@ -38,7 +38,7 @@ import javax.swing.border.*;
 /**
  * This creates an editor panel for LWNode's
  *
- * @version $Revision: 1.61 $ / $Date: 2008-06-30 20:52:56 $ / $Author: mike $
+ * @version $Revision: 1.62 $ / $Date: 2009-03-23 02:49:49 $ / $Author: vaibhav $
  */
  
 public class NodeToolPanel extends ToolPanel
@@ -65,7 +65,7 @@ public class NodeToolPanel extends ToolPanel
  		gbc.fill = GridBagConstraints.VERTICAL; // the label never grows
  		gbc.anchor = GridBagConstraints.EAST;
  		
- 		JLabel shapeLabel = new JLabel("Shape: ");
+ 		JLabel shapeLabel = new JLabel(VueResources.getString("nodetoolpanel.shape"));
                 shapeLabel.setLabelFor(mShapeButton);
  		shapeLabel.setForeground(new Color(51,51,51));
  		shapeLabel.setFont(tufts.vue.VueConstants.SmallFont);
@@ -77,7 +77,7 @@ public class NodeToolPanel extends ToolPanel
  		gbc.gridheight=1;
  		gbc.fill = GridBagConstraints.VERTICAL; // the label never grows
  		gbc.anchor = GridBagConstraints.EAST;
- 		JLabel strokeLabel = new JLabel("Link: ");
+ 		JLabel strokeLabel = new JLabel(VueResources.getString("nodetoolpanel.link"));
  		strokeLabel.setLabelFor(mLinkButton);
  		strokeLabel.setForeground(new Color(51,51,51));
  		strokeLabel.setFont(tufts.vue.VueConstants.SmallFont);
@@ -113,7 +113,7 @@ public class NodeToolPanel extends ToolPanel
     {
         public ShapeMenuButton() {
             super(LWKey.Shape, NodeTool.getTool().getAllShapeClasses());
-            setToolTipText("Node Shape");
+            setToolTipText(VueResources.getString("nodetoolpanel.nodeshape.tooltip"));
             setRenderer(new ShapeComboRenderer());
             this.setMaximumRowCount(10);
         }
@@ -184,7 +184,7 @@ public class NodeToolPanel extends ToolPanel
             //super(LWKey.LinkShape, LinkTool.getTool().getSetterActions());
             super(LWKey.LinkShape, new Integer[] { 0, 1, 2 });
             actionsWithIcons = LinkTool.getTool().getSetterActions();
-            setToolTipText("Link Shape");
+            setToolTipText(VueResources.getString("nodetoolpanel.linkshape.tooltip"));
             setRenderer(new LinkComboRenderer());
             this.setMaximumRowCount(10);
         }

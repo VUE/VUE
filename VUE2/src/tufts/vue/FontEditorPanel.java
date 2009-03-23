@@ -45,7 +45,7 @@ import com.lightdev.app.shtm.Util;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.85 $ / $Date: 2008-12-19 16:42:34 $ / $Author: sraphe01 $
+ * @version $Revision: 1.86 $ / $Date: 2009-03-23 02:49:21 $ / $Author: vaibhav $
  *
  */
 public class FontEditorPanel extends JPanel
@@ -561,18 +561,18 @@ public class FontEditorPanel extends JPanel
         mTextColorButton = new ColorMenuButton(textColors, true);
         mTextColorButton.setColor(Color.black);
         mTextColorButton.setPropertyKey(LWKey.TextColor);
-        mTextColorButton.setToolTipText("Text Color");
+        mTextColorButton.setToolTipText(VueResources.getString("fonteditorpanel.textcolor"));
         
         mTextColorButton.addPropertyChangeListener(RichTextColorChangeListener);
 
 
         
         //Set up Labels...
-        JLabel styleLabel = new JLabel("Style :");
+        JLabel styleLabel = new JLabel(VueResources.getString("fonteditorpanel.style"));
 		styleLabel.setForeground(new Color(51,51,51));
 		styleLabel.setFont(tufts.vue.VueConstants.SmallFont);
 		
-		JLabel textLabel = new JLabel("Text :");
+		JLabel textLabel = new JLabel(VueResources.getString("fonteditorpanel.text"));
                 textLabel.setLabelFor(mFontCombo);
 		textLabel.setForeground(new Color(51,51,51));
 		textLabel.setFont(tufts.vue.VueConstants.SmallFont);
