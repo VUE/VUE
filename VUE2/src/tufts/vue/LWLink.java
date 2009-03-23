@@ -43,7 +43,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.214 $ / $Date: 2009-03-23 20:54:07 $ / $Author: sfraize $
+ * @version $Revision: 1.215 $ / $Date: 2009-03-23 20:59:21 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -2807,7 +2807,16 @@ public class LWLink extends LWComponent
             }
 //         }
         
-        if (mCurve != null) {
+        if (mCurve == null) {
+            
+            //-------------------------------------------------------
+            // draw the line
+            //-------------------------------------------------------
+            
+            g.draw(mLine);
+            
+        } else {
+            
             //-------------------------------------------------------
             // draw the curve
             //-------------------------------------------------------
@@ -2869,11 +2878,6 @@ public class LWLink extends LWComponent
             }
             //g.drawLine((int)line.getX1(), (int)line.getY1(), (int)curve.getCtrlX(), (int)curve.getCtrlY());
             //g.drawLine((int)line.getX2(), (int)line.getY2(), (int)curve.getCtrlX(), (int)curve.getCtrlY());
-        } else {
-            //-------------------------------------------------------
-            // draw the line
-            //-------------------------------------------------------
-            g.draw(mLine);
         }
 
         if (!isNestedLink())
