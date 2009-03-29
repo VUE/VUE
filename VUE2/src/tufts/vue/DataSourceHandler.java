@@ -892,8 +892,8 @@ public class DataSourceHandler extends JPanel
                         }
                         
                         if (javax.swing.JOptionPane.showConfirmDialog(VUE.getDialogParent(),
-                                "Do you really want to delete " + displayName + "?",
-                                "Delete Resource",
+                                VueResources.getString("dialog.confirmdelete.resource") + displayName + "?",
+                                VueResources.getString("dialog.deleteresource.title"),
                                 javax.swing.JOptionPane.OK_CANCEL_OPTION) == javax.swing.JOptionPane.YES_OPTION) {
                             dataSourceManager.remove(ds.getId());
                             GUI.invokeAfterAWT(new Runnable() { public void run() {

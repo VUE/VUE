@@ -131,8 +131,8 @@ public class DataSourceViewer extends JPanel
             // this no good: needs to be done at higher level (DRBrowser, refactored)
             JTabbedPane tabs = new JTabbedPane();
             //tabs.setBackground(Color.white);
-            tabs.add("Data", new JLabel("DATA"));
-            tabs.add("Resources", dataSourceList);
+            tabs.add(VueResources.getString("jtab.data"), new JLabel(VueResources.getString("jlabel.data")));
+            tabs.add(VueResources.getString("jtab.resource"), dataSourceList);
             add(tabs);
         }
         
@@ -159,7 +159,7 @@ public class DataSourceViewer extends JPanel
 
 
         NoConfig.setMinimumSize(new Dimension(100,50));
-        configMetaData.setName("Content Description");
+        configMetaData.setName(VueResources.getString("datasourceviewer.name.contentdescription"));
         
         Widget.setExpanded(DRB.browsePane, false); // working: why expanded sometimes?
         
@@ -329,9 +329,9 @@ public class DataSourceViewer extends JPanel
     	}
 
     	JPopupMenu m = null;
-    	private static final JMenuItem aboutResource = new JMenuItem("About this Resource");
+    	private static final JMenuItem aboutResource = new JMenuItem(VueResources.getString("datasourcehandle.menu.aboutresource"));
     	//private static final JMenuItem configureResource = new JMenuItem("Configure Resource");
-    	private static final JMenuItem deleteResource = new JMenuItem("Delete Resource");
+    	private static final JMenuItem deleteResource = new JMenuItem(VueResources.getString("datasourcehandle.menu.deleteresource"));
     	Point lastMouseClick = null;
 
     	public void actionPerformed(ActionEvent e)
@@ -365,7 +365,7 @@ public class DataSourceViewer extends JPanel
     	{
     		if (m == null)
     		{
-    			m = new JPopupMenu("Datasource Menu");
+    			m = new JPopupMenu(VueResources.getString("datasourcehandle.menu.datasource"));
     		
     			m.add(aboutResource);
     			m.addSeparator();
@@ -537,7 +537,7 @@ public class DataSourceViewer extends JPanel
 
     }
 
-    private static final JLabel StatusLabel = new JLabel("Loading...", JLabel.CENTER);
+    private static final JLabel StatusLabel = new JLabel(VueResources.getString("addLibrary.loading.label"), JLabel.CENTER);
     private static final JComponent Status;
     
     static {
@@ -1356,7 +1356,7 @@ public class DataSourceViewer extends JPanel
             GUI.invokeAfterAWT(new Runnable() { public void run() {
                 mResultPane.setTitle(mRepositoryName + " (Stopped)");
                 mStatusLabel.removeIcon();
-                mStatusLabel.setText("Search stopped.");
+                mStatusLabel.setText(VueResources.getString("datasourcehandle.searchstopped.tooltip"));
             }});
         }
         
@@ -1819,7 +1819,7 @@ public class DataSourceViewer extends JPanel
             GUI.invokeAfterAWT(new Runnable() { public void run() {
                 mResultPane.setTitle(mRepositoryName + " (Stopped)");
                 mStatusLabel.removeIcon();
-                mStatusLabel.setText("Search stopped.");
+                mStatusLabel.setText(VueResources.getString("datasourcehandle.searchstopped.tooltip"));
             }});
         }
         
@@ -2147,7 +2147,7 @@ public class DataSourceViewer extends JPanel
     }
 
     private static WidgetStack editInfoStack; // static hack: is needed before this class is constructed
-    private static final JLabel NoConfig = new JLabel("No Configuration", JLabel.CENTER);
+    private static final JLabel NoConfig = new JLabel(VueResources.getString("jlabel.noconfig"), JLabel.CENTER);
     
     private final MetaDataPane configMetaData = new MetaDataPane("Config Properties", true);
     private Object loadedDataSource;
@@ -2280,7 +2280,7 @@ public class DataSourceViewer extends JPanel
         	c.fill = GridBagConstraints.BOTH;
             //c.anchor = GridBagConstraints.NORTH;
             c.weighty = 0.01;           
-            JLabel label = new JLabel("WidgetStack: default veritcal expander",JLabel.CENTER);
+            JLabel label = new JLabel(VueResources.getString("jlabel.widgetstack"),JLabel.CENTER);
             if (DEBUG.BOXES) {            	
             	dummyPanel.setOpaque(true);
             	dummyPanel.setBackground(Color.darkGray);            	

@@ -1,11 +1,11 @@
 package tufts.vue.gui;
 
 import java.awt.Frame;
-import java.awt.Point;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import tufts.vue.VueResources;
 import edu.tufts.vue.preferences.implementations.ShowAgainDialog;
 
 public class DeleteSlideDialog extends ShowAgainDialog{
@@ -14,8 +14,8 @@ public class DeleteSlideDialog extends ShowAgainDialog{
 
 	 public DeleteSlideDialog(Frame parentFrame)
 	 {		 	 
-		super(parentFrame,"deleteSlide","Delete Slide","Delete","Cancel");
-	    panel.add(new JLabel("By deleting this slide, your work on this slide will be lost."));
+		super(parentFrame,"deleteSlide",VueResources.getString("deleteslidedialog.deleteslides"),VueResources.getString("deleteslidedialog.delete"),VueResources.getString("deleteslidedialog.cancel"));
+	    panel.add(new JLabel(VueResources.getString("jlabel.deletingthisslide")));
 	    setContentPanel(panel);
 	 }
 }

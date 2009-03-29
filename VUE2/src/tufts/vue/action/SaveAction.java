@@ -122,18 +122,17 @@ public class SaveAction extends VueAction
         int response = -1;
         if (map.getSaveFileModelVersion() == 0) {
 
-        	final Object[] defaultOrderButtons = { "Save a copy","Save"};
-            response = JOptionPane.showOptionDialog
+        	final Object[] defaultOrderButtons = { VueResources.getString("saveaction.saveacopy"),VueResources.getString("saveaction.save")};
+            Object[] messageObject = {map.getLabel()};
+        	response = JOptionPane.showOptionDialog
             (VUE.getDialogParent(),
-        
-       		"Saving "+ map.getLabel()+ " in this version of VUE will prevent older versions of VUE" +       				
-              "\nfrom displaying it properly.  You may wish to save this map under a new name.",         
-             "Version Notice: " + map.getLabel(),
+        	 VueResources.getFormatMessage(messageObject, VueResources.getString("dialog.saveaction.message")),         
+        	 VueResources.getFormatMessage(messageObject, VueResources.getString("dialog.saveaction.title")),
              JOptionPane.YES_NO_OPTION,
              JOptionPane.PLAIN_MESSAGE,
              null,
              defaultOrderButtons,             
-             "Save a copy"
+             VueResources.getString("saveaction.saveacopy")
              );
         }
         
@@ -302,7 +301,7 @@ public class SaveAction extends VueAction
             }
             if (e != t)
                 Log.error("Exception attempting to save file " + file + ": " + e);
-            VueUtil.alert(String.format("There was an error saving map \"%s\";\nTarget file was '%s'\n\nProblem:\n%s",
+            VueUtil.alert(String.format(Locale.getDefault(),VueResources.getString("saveaction.savemap.error")+ "\"%s\";\n"+VueResources.getString("saveaction.targetfiel")+"\n\n"+VueResources.getString("saveaction.problem"),
                                         map.getLabel(), file, Util.formatLines(e.toString(), 80)),
                           "Problem Saving Map");
         } finally {

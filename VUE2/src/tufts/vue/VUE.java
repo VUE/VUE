@@ -117,7 +117,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.647 $ / $Date: 2009-03-19 01:11:44 $ / $Author: sfraize $ 
+ * @version $Revision: 1.648 $ / $Date: 2009-03-29 06:12:03 $ / $Author: vaibhav $ 
  */
 
 public class VUE
@@ -994,7 +994,7 @@ public class VUE
             
         } catch (Throwable t) {
             Util.printStackTrace(t, "VUE init failed");
-            VueUtil.alert("VUE init failed", t);
+            VueUtil.alert(VueResources.getString("dialog.initfailed.message"), t);
         }
 
         
@@ -1936,7 +1936,7 @@ public class VUE
         //-----------------------------------------------------------------------------
         if (DR_BROWSER_DOCK == null || VUE.isApplet())
         {
-        	DR_BROWSER_DOCK = GUI.createDockWindow("Resources");
+        	DR_BROWSER_DOCK = GUI.createDockWindow(VueResources.getString("dockWindow.resource.title"));
                
         	//DockWindow searchDock = GUI.createDockWindow("Search");
         	//DockWindow searchDock = null;
@@ -1957,7 +1957,7 @@ public class VUE
 
                 if (DEBUG.WORK /* && !SKIP_DR */) {
                     
-                    final DockWindow dataFinderDock = GUI.createDockWindow("DataFinder");
+                    final DockWindow dataFinderDock = GUI.createDockWindow(VueResources.getString("dockWindow.datafinder.title"));
                     final DataFinder DATA_FINDER_DEFAULTS =
                         new DataFinder("resources", null,
                                        new Class[] {
@@ -2031,7 +2031,7 @@ public class VUE
         //-----------------------------------------------------------------------------
         if (metaDataSearchDock == null || VUE.isApplet())
         {        	
-        	metaDataSearchDock = GUI.createDockWindow("Search");        	
+        	metaDataSearchDock = GUI.createDockWindow(VueResources.getString("dockWindow.search.title"));        	
         	metadataSearchMainPanel = new MetadataSearchMainGUI(metaDataSearchDock);       	
         }
       //-----------------------------------------------------------------------------
@@ -2039,7 +2039,7 @@ public class VUE
         //-----------------------------------------------------------------------------
         if (mergeMapsDock == null || VUE.isApplet())
         {        	
-        	mergeMapsDock = GUI.createDockWindow("Merge Maps");        	
+        	mergeMapsDock = GUI.createDockWindow(VueResources.getString("dockWindow.mergemaps.title"));        	
         	mergeMapsControlPanel = new MergeMapsControlPanel(mergeMapsDock);       	
         }
       //-----------------------------------------------------------------------------
@@ -2058,16 +2058,16 @@ public class VUE
         inspectorPane = new tufts.vue.ui.InspectorPane();
         if (ObjectInspector == null || VUE.isApplet())
         {
-        	ObjectInspector = GUI.createDockWindow("Info");
+        	ObjectInspector = GUI.createDockWindow(VueResources.getString("dockWindow.info.title"));
         	ObjectInspector.setContent(inspectorPane.getWidgetStack());
-        	ObjectInspector.setMenuName("Info / Preview");
+        	ObjectInspector.setMenuName(VueResources.getString("dockWindow.infopreview.menu"));
         	ObjectInspector.setHeight(575);
         }
         
         if (DEBUG.Enabled || VUE3_LAYERS) {
         	if (layersDock == null || VUE.isApplet())
         	{
-        		layersDock = GUI.createDockWindow("Layers", new tufts.vue.ui.LayersUI());
+        		layersDock = GUI.createDockWindow(VueResources.getString("dockWindow.layers.title"), new tufts.vue.ui.LayersUI());
         		//layersDock.setFocusableWindowState(false);
         		layersDock.setSize(300,260);        		
         		layersDock.setLocation(0, 144);
@@ -2143,7 +2143,7 @@ public class VUE
             outlineScroller.setPreferredSize(new Dimension(500, 300));
             //outlineScroller.setBorder(null); // so DockWindow will add 1 pixel to bottom
             if (outlineDock == null  || VUE.isApplet())
-            	outlineDock =  GUI.createDockWindow("Outline", outlineScroller);
+            	outlineDock =  GUI.createDockWindow(VueResources.getString("dockWindow.outline.title"), outlineScroller);
 
             DataSourceViewer.initUI();
             
@@ -2157,7 +2157,7 @@ public class VUE
         formattingPanel = new FormatPanel();
         if (formatDock == null || VUE.isApplet())
         {
-        	formatDock = GUI.createDockWindow("Format",true,true);
+        	formatDock = GUI.createDockWindow(VueResources.getString("dockWindow.format.title"),true,true);
         	formatDock.setContent(formattingPanel);
         }
         //formatDock.setFocusable(true);
@@ -2172,7 +2172,7 @@ public class VUE
             JTextArea t = new JTextArea("Do Not Close This Window.\nSee http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6373178");
             t.setFont(VueConstants.SmallFont);
             t.setEditable(false);
-            anchor = GUI.createDockWindow("VUE-leopard-anchor", t);
+            anchor = GUI.createDockWindow(VueResources.getString("dockWindow.vueleopard.title"), t);
             if (!DEBUG.DOCK)
                 GUI.setOffScreen(anchor.window());
             anchor.pack();
@@ -2337,7 +2337,7 @@ public class VUE
         fiveLabel.setForeground(Color.DARK_GRAY);
         labelTable.put( new Integer( 5 ), fiveLabel );
 
-        JLabel allLabel = new JLabel("All");
+        JLabel allLabel = new JLabel(VueResources.getString("jlabel.all"));
         allLabel.setFont(tufts.vue.gui.GUI.LabelFace);
         //allLabel.setFont(JSliderSmallFixedFont);
         allLabel.setForeground(Color.DARK_GRAY);
@@ -3376,14 +3376,14 @@ public class VUE
             Util.printStackTrace(t, "failed to load map[" + file + "]");
             VUE.clearWaitCursor();
             alerted = true;
-            VueUtil.alert("Failed to load map: " + file + "  \n"
+            VueUtil.alert(VueResources.getString("dialog.failedtoloadmap.message")+" " + file + "  \n"
                           + (t.getCause() == null ? t : t.getCause()),
-                          "Map error: " + file);
+                          VueResources.getString("dialog.failedtoloadmap.message")+" "+ file);
         } finally {
             VUE.clearWaitCursor();
         }
         if (loadedMap == null && !alerted)
-            VueUtil.alert("Failed to load map: " + file + "  \n", "Map error: " + file);    
+            VueUtil.alert(VueResources.getString("dialog.failedtoloadmap.message")+" "+ file + "  \n", VueResources.getString("dialog.failedtoloadmap.message") + file);    
        
         
 //        if(getActiveMap()==null){
@@ -3495,14 +3495,14 @@ public class VUE
             Util.printStackTrace(t, "failed to load map[" + url + "]");
             VUE.clearWaitCursor();
             alerted = true;
-            VueUtil.alert("Failed to load map: " + url + "  \n"
+            VueUtil.alert(VueResources.getString("dialog.failedtoloadmap.message")+" " + url + "  \n"
                           + (t.getCause() == null ? t : t.getCause()),
-                          "Map error: " + url);
+                          VueResources.getString("dialog.failedtoloadmap.title")+" "+ url);
         } finally {
             VUE.clearWaitCursor();
         }
         if (loadedMap == null && !alerted)
-            VueUtil.alert("Failed to load map: " + url + "  \n", "Map error: " + url);
+            VueUtil.alert(VueResources.getString("dialog.failedtoloadmap.message")+" " + url + "  \n", VueResources.getString("dialog.failedtoloadmap.title")+" " + url);
         
 //        if(getActiveMap()==null){
 //        	VueMenuBar.RootMenuBar.saveAction.setEnabled(false);
@@ -3767,7 +3767,7 @@ public class VUE
             	/*JLabel vLabel = new  JLabel("<html>A newer version of VUE is available ("
                                             + newVersion
                                             + ") &nbsp; <font color=\"#20316A\"><u>Get the latest version</u></font></html", JLabel.LEFT);*/
-            	JLabel vLabel = new  JLabel("<html>A newer version of VUE is available ("
+            	JLabel vLabel = new  JLabel("<html>"+VueResources.getString("jlabel.newversion") +"("
                         + newVersion
                         + ") &nbsp; <font color=\"#20316A\"></html", JLabel.LEFT);
             	if(Util.isMacPlatform()){

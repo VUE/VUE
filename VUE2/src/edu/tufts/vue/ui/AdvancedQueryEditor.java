@@ -14,6 +14,7 @@
  */
 package edu.tufts.vue.ui;
 
+import tufts.vue.VueResources;
 import fedora.server.types.gen.*;
 
 public class AdvancedQueryEditor
@@ -63,13 +64,13 @@ java.awt.event.ActionListener
         innerConditionsPanel.add(conditionsScrollPane, java.awt.BorderLayout.CENTER);
         
         // GRID: addConditionButton
-        javax.swing.JButton addConditionButton = new javax.swing.JButton("add");
+        javax.swing.JButton addConditionButton = new javax.swing.JButton(VueResources.getString("button.add.label"));
         addConditionButton.setBackground(this.getBackground());
-        addConditionButton.setToolTipText("Add Condition");
+        addConditionButton.setToolTipText(VueResources.getString("advancedqueryeditor.addcondition"));
         // GRID: deleteConditionButton
-        javax.swing.JButton deleteConditionButton=new javax.swing.JButton("delete");
+        javax.swing.JButton deleteConditionButton=new javax.swing.JButton(VueResources.getString("button.delete.label"));
         deleteConditionButton.setBackground(this.getBackground());
-        deleteConditionButton.setToolTipText("Delete Condition");
+        deleteConditionButton.setToolTipText(VueResources.getString("advancedqueryeditor.deletecondition"));
 		//        javax.swing.JLabel questionLabel = new javax.swing.JLabel(VueResources.getImageIcon("smallInfo"), JLabel.LEFT);
 		//        questionLabel.setPreferredSize(new Dimension(22, 17));
 		//        questionLabel.setToolTipText("Add or Delete conditions using +/- buttons. Click on table cell to modify  conditions");

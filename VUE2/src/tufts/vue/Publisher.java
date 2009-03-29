@@ -41,7 +41,7 @@ import java.util.*;
 
 /**
  * @author  akumar03
- * @version $Revision: 1.98 $ / $Date: 2009-03-29 03:33:59 $ / $Author: vaibhav $
+ * @version $Revision: 1.99 $ / $Date: 2009-03-29 06:11:14 $ / $Author: vaibhav $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
@@ -49,7 +49,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     
     /** Creates a new instance of Publisher */
     //TODO: Create an interface for datasources and have separate implementations for each type of datasource.
-    public static final String TITLE = "Publisher";
+    public static final String TITLE = VueResources.getString("publisher.title");
     public static final String FILE_PREFIX = "file://";
     public static final int PUB_WIDTH = 550;
     public static final int PUB_HEIGHT = 250;
@@ -57,23 +57,24 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     public static final int X_LOCATION = 300; // x co-ordinate of location where the publisher appears
     public static final int Y_LOCATION = 300; // y co-ordinate of location where the publisher appears
     
-    private static final String DUPLICATE_OBJ_ERR_MESG  =  "The map already exists in the Repostiory. Do you want to overwrite it?";
-    private static final String DUPLICATE_OBJ_ERR_TITLE =  "Duplicate Resource";
+    private static final String DUPLICATE_OBJ_ERR_MESG  =  VueResources.getString("dialog.mapexists.message");
+    private static final String DUPLICATE_OBJ_ERR_TITLE =  VueResources.getString("dialog.mapexists.title");
     
-    public static final String[] PUBLISH_INFORMATION = {"The \"Publish\" function allows a user to deposit a concept map into a registered digital repository. Select the different modes to learn more.",
-    "\"Map only\" saves only the map to the digital repository. Digital resources are not attached, but the resource paths are maintained, whether to a local computer or the web.",
-    "\"VUE package (vpk)\" embeds digital resources within the map. The resources are accessible to all users viewing the map. This mode creates a VUE package (vpk) file, which can be uploaded to a registered digital repository or saved locally.",
-    "\"Map and resources\" creates a duplicate of all digital resources and uploads these resources and the map to a registered digital repository. The resouces are accessible to all users viewing the map.",
-    "\"Publish IMSCP Map to Sakai\" saves concept map in Sakai content hosting system.","Zips map with local resources."
-    };
-    public static final String[] MODE_LABELS = {"Map only","Map and resources","VUE package (vpk)"};
+    public static final String[] PUBLISH_INFORMATION = {VueResources.getString("publisher.publishinfo0"),
+    	VueResources.getString("publisher.publishinfo1"),
+    	VueResources.getString("publisher.publishinfo2"),
+    	VueResources.getString("publisher.publishinfo3"),
+    	VueResources.getString("publisher.publishinfo4"),
+    	VueResources.getString("publisher.publishinfo5")};
     
-    private static final String NEXT_BUTTON_TEXT    = "Next";
-    private static final String BACK_BUTTON_TEXT    = "< Back";
-    private static final String FINISH_BUTTON_TEXT  = "Finish";
-    private static final String CANCEL_BUTTON_TEXT  = "Cancel";
-    private static final String PUBLISH_BUTTON_TEXT = "Publish";
-    private static final String DONE_BUTTON_TEXT    = "Done";
+    public static final String[] MODE_LABELS = {VueResources.getString("publisher.maponly"),VueResources.getString("publisher.mapandresources"),VueResources.getString("publisher.vpk")};
+    
+    private static final String NEXT_BUTTON_TEXT    = VueResources.getString("button.next.label");
+    private static final String BACK_BUTTON_TEXT    = "< "+ VueResources.getString("button.back.label");
+    private static final String FINISH_BUTTON_TEXT  = VueResources.getString("button.finish.label");
+    private static final String CANCEL_BUTTON_TEXT  = VueResources.getString("button.cancel.lable");
+    private static final String PUBLISH_BUTTON_TEXT = VueResources.getString("button.publish.label");
+    private static final String DONE_BUTTON_TEXT    = VueResources.getString("button.done.label");
     
     // action commands
     public static final String AC_SETUP_R = "AC_SETUP_R"; // repository selection

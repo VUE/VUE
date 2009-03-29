@@ -118,15 +118,15 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
       
     private JTabbedPane vueTabbedPane = VUE.getTabbedPane();
     
-    private JButton closeButton = new JButton("Close");
-    private JButton undoButton = new JButton("Undo");
+    private JButton closeButton = new JButton(VueResources.getString("button.close.label"));
+    private JButton undoButton = new JButton(VueResources.getString("button.undo.label"));
     private int undoCount;
     
-    public final static String ALL_TEXT = "All maps currently opened";
-    public final static String LIST_TEXT = "Browse to maps";
-    public final static String SELECT_MESSAGE = "Select Maps to merge:";
+    public final static String ALL_TEXT = VueResources.getString("mergemapchooser.choice.currentlyopened");
+    public final static String LIST_TEXT = VueResources.getString("mergemapchooser.browsemap");
+    public final static String SELECT_MESSAGE = VueResources.getString("mergemapchooser.selectmaps");
     
-    public final static String defineThresholdMessage = "Define threshold for nodes and links:";
+    public final static String defineThresholdMessage = VueResources.getString("mergemapchooser.threshold");
     
     public final int ALL_OPEN_CHOICE = 0;
     public final int FILE_LIST_CHOICE = 1;
@@ -135,8 +135,8 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
     public final int BASE_FROM_BROWSE = 1;
     
     public final String otherString = "other";
-    public static final String BASE_SELECT_STRING = "Select";
-    public static final String BASE_OTHER_STRING = "Other";
+    public static final String BASE_SELECT_STRING = VueResources.getString("mergemapchooser.select");
+    public static final String BASE_OTHER_STRING = VueResources.getString("mergemapchooser.other");
     
     public final int TAB_BORDER_SIZE = 20;
     
@@ -198,7 +198,7 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
         VUE.addActiveListener(LWMap.class, this);
         setLayout(new BorderLayout());
         buttonPane = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        generate = new JButton("Generate");
+        generate = new JButton(VueResources.getString("button.generate.label"));
         //buttonPane.add(generate);
         buttonPane.add(closeButton);
         buttonPane.add(undoButton);
@@ -219,9 +219,9 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
           selectPanels.put(getActiveMap(),sp);
         }*/
         selectPanelHolder.add(sp);
-        mTabbedPane.addTab("Select Maps",selectPanelHolder);
+        mTabbedPane.addTab(VueResources.getString("mergemapchooser.selectmaps"),selectPanelHolder);
         setUpBasePanel();
-        mTabbedPane.addTab("Base Map",basePanel);
+        mTabbedPane.addTab(VueResources.getString("mergemapchooser.basemap"),basePanel);
         setIntervalBoundaries();
         setUpVizPanel();
         vizPane = new JPanel();
@@ -229,7 +229,7 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
         vizPane.setLayout(vizPaneLayout);
         vizPane.add(vizPanel);
         vizPane.add(votePanel);
-        mTabbedPane.addTab("Visualization Settings",vizPane);
+        mTabbedPane.addTab(VueResources.getString("mergemapchooser.visualizationsettings"),vizPane);
         
         add(BorderLayout.CENTER,mTabbedPane);
         add(BorderLayout.SOUTH,buttonPane);
@@ -377,7 +377,7 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
         GridBagLayout baseBrowseGridBag = new GridBagLayout();
         baseBrowsePanel.setLayout(baseGridBag);
         GridBagConstraints baseBrowseConstraints = new GridBagConstraints();
-        JLabel basePanelMapLabel = new JLabel("Map:",JLabel.RIGHT)
+        JLabel basePanelMapLabel = new JLabel(VueResources.getString("jlabel.map"),JLabel.RIGHT)
         {
             public Dimension getPreferredSize()
             {
@@ -392,7 +392,7 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
         baseBrowseConstraints.weightx = 1.0;
         baseGridBag.setConstraints(baseFileField,baseBrowseConstraints);
         baseBrowsePanel.add(baseFileField);
-        baseBrowseButton = new JButton("Browse");
+        baseBrowseButton = new JButton(VueResources.getString("button.browse.label"));
         baseBrowseConstraints.weightx = 0.0;
         baseGridBag.setConstraints(baseBrowseButton,baseBrowseConstraints);
         baseBrowsePanel.add(baseBrowseButton);
@@ -509,8 +509,8 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
         GridBagLayout vizLayout = new GridBagLayout();
         GridBagConstraints vizConstraints = new GridBagConstraints();
         vizPanel.setLayout(vizLayout);
-        vizLabel = new JLabel("Select a visualization mode:");
-        String[] vizChoices = {"Vote","Weight"};
+        vizLabel = new JLabel(VueResources.getString("jlabel.selectvisualmode"));
+        String[] vizChoices = {VueResources.getString("dialog.visualizationsettings.vote"),VueResources.getString("dialog.visualizationsettings.weight")};
         vizChoice = new JComboBox(vizChoices);
         filterChoice = new JCheckBox("Filter on Base Map?");
         /* filterChoice.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -571,8 +571,8 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
           }
         };*/
         
-        JLabel moreLabel = new JLabel("<< more",JLabel.LEFT);
-        JLabel lessLabel = new JLabel("less >>",JLabel.RIGHT);
+        JLabel moreLabel = new JLabel(VueResources.getString("jlabel.more"),JLabel.LEFT);
+        JLabel lessLabel = new JLabel(VueResources.getString("jlabel.less"),JLabel.RIGHT);
         
         //JLabel moreLabel = new JLabel("<< more nodes",JLabel.LEFT);
         //moreLabel.setFont(new Font("Courier",Font.PLAIN,10));
@@ -609,7 +609,7 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
            nodeThresholdSlider.setBorder(javax.swing.BorderFactory.createEmptyBorder(5,5,5,5));
         //$
         
-        JLabel nodeLabel = new JLabel("Nodes:");
+        JLabel nodeLabel = new JLabel(VueResources.getString("jlabel.nodes"));
         
         //voteConstraints.gridwidth = GridBagConstraints.REMAINDER;
         //$
@@ -720,7 +720,7 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
            linkThresholdSlider.setBorder(javax.swing.BorderFactory.createEmptyBorder(5,5,5,5));
         //$
         
-        JLabel linkPanel = new JLabel("Links:");
+        JLabel linkPanel = new JLabel(VueResources.getString("jlabel.links"));
         voteConstraints.gridwidth = 1;
         voteConstraints.insets= new java.awt.Insets(0,40,0,0);
         //$
@@ -887,7 +887,7 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
         }
         if(e.getSource()==vueTabbedPane)
         {
-            String selectString = "Select";
+            String selectString = VueResources.getString("mergemapchooser.select");
         
             boolean noMapsLoaded = (vueTabbedPane.getModel().getSelectedIndex() == -1);
         
@@ -976,7 +976,7 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
         {
             VueFileChooser choose = VueFileChooser.getVueFileChooser();
             choose.setFileFilter(new VueFileFilter(VueFileFilter.VUE_DESCRIPTION));
-            choose.showDialog(this,"Set Base Map");
+            choose.showDialog(this,VueResources.getString("dialog.setbasemap.title"));
             selectedBaseFile = choose.getSelectedFile();
             if(selectedBaseFile != null)
             {    
@@ -1795,8 +1795,8 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
             
             fileField = new JTextField("");
             fileField.setEnabled(false);
-            browseButton = new JButton("Browse");
-            addButton = new JButton("Add");
+            browseButton = new JButton(VueResources.getString("button.browse.label"));
+            addButton = new JButton(VueResources.getString("button.add.label"));
             addButton.setEnabled(false);
             listPanel = new MapListPanel();
        
@@ -1855,7 +1855,7 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
             {
                 VueFileChooser fileChooser = VueFileChooser.getVueFileChooser();
                 fileChooser.setFileFilter(new VueFileFilter(VueFileFilter.VUE_DESCRIPTION));
-                fileChooser.showDialog(this,"Add Map");
+                fileChooser.showDialog(this,VueResources.getString("dialog.addmap.title"));
                 selectedFile = fileChooser.getSelectedFile();       
                 if(selectedFile != null)
                 {

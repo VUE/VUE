@@ -21,7 +21,7 @@
 package tufts.vue;
 
 /**
-* @version $Revision: 1.30 $ / $Date: 2009-03-14 03:45:44 $ / $Author: vaibhav $
+* @version $Revision: 1.31 $ / $Date: 2009-03-29 06:11:26 $ / $Author: vaibhav $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -46,15 +46,15 @@ public class UpdateLibraryDialog extends JDialog implements ListSelectionListene
     edu.tufts.vue.dsm.OsidFactory factory;
     org.osid.provider.Provider checked[];
     java.util.Vector checkedVector = new java.util.Vector();
-    JButton addButton = new JButton("Update");
-    JButton cancelButton = new JButton("Done");
+    JButton addButton = new JButton(VueResources.getString("button.update.lable"));
+    JButton cancelButton = new JButton(VueResources.getString("button.label.done"));
     JPanel buttonPanel = new JPanel();
     DataSourceList dataSourceList;
     edu.tufts.vue.dsm.DataSource newDataSource = null;
 	edu.tufts.vue.dsm.DataSource dataSourceThatWasSelectedForUpdate = null;
     
     private static String TITLE = VueResources.getString("updateLibrary.dialogTitle");
-    private static String AVAILABLE = "Resources available:";
+    private static String AVAILABLE = VueResources.getString("updateLibrary.resourcesavailable");
     private final Icon remoteIcon = VueResources.getImageIcon("dataSourceRemote");
     private ProviderListCellRenderer providerListRenderer;
     private Timer timer;
@@ -103,7 +103,7 @@ public class UpdateLibraryDialog extends JDialog implements ListSelectionListene
             listJsp.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
             listJsp.setPreferredSize(new Dimension(300,180));
             
-            descriptionTextArea.setText("description");
+            descriptionTextArea.setText(VueResources.getString("addLibraryDailog.textarea"));
             descriptionJsp = new JScrollPane(descriptionTextArea);
             descriptionJsp.setVerticalScrollBarPolicy(javax.swing.JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
             descriptionJsp.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
