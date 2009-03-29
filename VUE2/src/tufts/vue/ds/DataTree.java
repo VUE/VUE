@@ -47,7 +47,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.65 $ / $Date: 2009-03-18 20:41:38 $ / $Author: sfraize $
+ * @version $Revision: 1.66 $ / $Date: 2009-03-29 02:28:41 $ / $Author: vaibhav $
  * @author  Scott Fraize
  */
 
@@ -61,8 +61,8 @@ public class DataTree extends javax.swing.JTree
     private DataNode mRootNode;
     private DataNode mAllRowsNode;
     private DataNode mSelectedSearchNode;
-    private final AbstractButton mAddNewRowsButton = new JButton("Add New Records to Map");
-    private final AbstractButton mApplyChangesButton = new JButton("Apply Changes to Map");
+    private final AbstractButton mAddNewRowsButton = new JButton(VueResources.getString("button.addnewrectomap.label"));
+    private final AbstractButton mApplyChangesButton = new JButton(VueResources.getString("button.appchngtomap.label"));
     private final DefaultTreeModel mTreeModel;
 
     private volatile LWMap mActiveMap;
