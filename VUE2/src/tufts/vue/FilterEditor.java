@@ -46,8 +46,8 @@ public class FilterEditor extends JPanel  {
     public static final JLabel triangleLabel = new JLabel(VueResources.getImageIcon("triangleDownIcon"));
     JLabel questionLabel = new JLabel(tufts.vue.VueResources.getImageIcon("smallInfo"), JLabel.LEFT);
     public static final String FILTER_INFO = tufts.vue.VueResources.getString("info.filter.create");
-    JButton addButton=new tufts.vue.gui.VueButton("add");
-    JButton deleteButton=new tufts.vue.gui.VueButton("delete");
+    JButton addButton=new tufts.vue.gui.VueButton(VueResources.getString("button.add.label"));
+    JButton deleteButton=new tufts.vue.gui.VueButton(VueResources.getString("button.delete.label"));
     
     
     FilterTableModel filterTableModel;

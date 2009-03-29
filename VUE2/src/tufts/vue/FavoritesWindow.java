@@ -43,13 +43,13 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(FavoritesWindow.class);
     
-    public static final String NEW_FAVORITES = "New Favorites Folder";
-    public static final String ADD_FAVORITES = "Add Favorites Folder";
-    public static final String REMOVE_FAVORITES = "Remove Favorites Folder";
-    public static final String OPEN_RESOURCE = "Open Resource";
-    public static final String REMOVE_RESOURCE = "Remove Resource";
-    public static final String CONFIRM_DEL_RESOURCE ="Are you sure you want to delete  the resource";
-    public static final String TITLE_DEL_RESOURCE = "Delete Resource Confirmation";
+    public static final String NEW_FAVORITES = VueResources.getString("dialog.favoriteswindow.newfFavoritesfolder");
+    public static final String ADD_FAVORITES = VueResources.getString("dialog.favoriteswindow.addfavoritesfolder");
+    public static final String REMOVE_FAVORITES = VueResources.getString("dialog.favoriteswindow.removefavoritesfolder");
+    public static final String OPEN_RESOURCE = VueResources.getString("dialog.favoriteswindow.openresource");
+    public static final String REMOVE_RESOURCE = VueResources.getString("dialog.favoriteswindow.removeresource");
+    public static final String CONFIRM_DEL_RESOURCE =VueResources.getString("dialog.favoriteswindow.deleteresource");
+    public static final String TITLE_DEL_RESOURCE = VueResources.getString("dialog.favoriteswindow.delresourceconf");
 //    public static final String SAVE_FILE = VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.favorites");
     private String saveFile;
     public static final int DEFAULT_SELECTION_ROW = 0;

@@ -59,7 +59,7 @@ import javax.swing.border.*;
  * We'd probably need a delegating impl tho to handle that.
  *
  *
- * @version $Revision: 1.76 $ / $Date: 2009-03-19 01:11:11 $ / $Author: sfraize $ 
+ * @version $Revision: 1.77 $ / $Date: 2009-03-29 03:19:00 $ / $Author: vaibhav $ 
  */
 public class DRBrowser extends JPanel
 {
@@ -254,7 +254,7 @@ public class DRBrowser extends JPanel
         stack.addPane(resultsPane, 0f);
 
         if (false) {
-            JLabel startLabel = new JLabel("Search Results", JLabel.CENTER);
+            JLabel startLabel = new JLabel(VueResources.getString("jlabel.searchresult"), JLabel.CENTER);
             startLabel.setPreferredSize(new Dimension(100, 100));
             startLabel.setBorder(new MatteBorder(1,0,0,0, Color.darkGray));
             resultsPane.add(startLabel);
@@ -322,7 +322,7 @@ public class DRBrowser extends JPanel
         //-----------------------------------------------------------------------------
         
         searchPane.setBackground(Color.white);
-        JLabel please = new JLabel("Please select a searchable resource", JLabel.CENTER);
+        JLabel please = new JLabel(VueResources.getString("jlabel.searchableresource"), JLabel.CENTER);
         GUI.apply(GUI.StatusFace, please);
         searchPane.add(please, SEARCH_EDITOR);
 		
@@ -428,7 +428,7 @@ public class DRBrowser extends JPanel
 
         DockWindow.setManagedWindows(false);
         
-        DockWindow drDock = GUI.createDockWindow("Content");
+        DockWindow drDock = GUI.createDockWindow(VueResources.getString("dockWindow.content.title"));
         //DockWindow drDock = new DockWindow("Content", owner);
 		
         DRBrowser drBrowser = new DRBrowser(true, drDock, null);
@@ -440,9 +440,9 @@ public class DRBrowser extends JPanel
         //ObjectInspector.setContent(inspectorPane.getWidgetStack());
 
         
-        DockWindow inspector = GUI.createDockWindow("Info", new tufts.vue.ui.InspectorPane());
+        DockWindow inspector = GUI.createDockWindow(VueResources.getString("dockWindow.info.title"), new tufts.vue.ui.InspectorPane());
         //DockWindow inspector = new DockWindow("Info", owner, inspectorPane.getWidgetStack(), false);
-        inspector.setMenuName("Info / Preview");
+        inspector.setMenuName(VueResources.getString("dockWindow.infopreview.menu"));
         VUE._setInfoDock(inspector);
 
         int maxHeight = GUI.getMaximumWindowBounds().height;

@@ -21,7 +21,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.3 $ / $Date: 2008-06-30 20:52:54 $ / $Author: mike $
+ * @version $Revision: 1.4 $ / $Date: 2009-03-29 03:19:25 $ / $Author: vaibhav $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -34,7 +34,7 @@ public class EditLibraryDialog extends JDialog implements java.awt.event.ActionL
     JPanel editLibraryPanel = new JPanel();
 	
 	JPanel buttonPanel = new JPanel();
-	JButton okButton = new JButton("OK");
+	JButton okButton = new JButton(VueResources.getString("button.ok.label"));
 	
 	java.awt.GridBagConstraints gbConstraints;
     
@@ -74,7 +74,7 @@ public class EditLibraryDialog extends JDialog implements java.awt.event.ActionL
 		try {			
 			gbConstraints.gridx = 0;
 			gbConstraints.gridy = 0;
-			editLibraryPanel.add(new JLabel("Under construction"),gbConstraints);
+			editLibraryPanel.add(new JLabel(VueResources.getString("jlabel.underconstruction")),gbConstraints);
 			
 			gbConstraints.gridx = 0;
 			gbConstraints.gridy = 1;

@@ -61,7 +61,7 @@ import osid.dr.Asset;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.108 $ / $Date: 2009-03-09 03:31:27 $ / $Author: vaibhav $
+ * @version $Revision: 1.109 $ / $Date: 2009-03-29 03:32:29 $ / $Author: vaibhav $
  */
 
 public class PathwayTable extends JTable
@@ -1236,7 +1236,7 @@ public class PathwayTable extends JTable
 	int selectedY = 0;
 	private JPopupMenu getPopup(MouseEvent e) 
 	{
-		m = new JPopupMenu("Pathway Menu");
+		m = new JPopupMenu(VueResources.getString("pathwaytable.menu.pathway"));
 		int row = this.rowAtPoint(e.getPoint());
 		
         PathwayTableModel tableModel = getTableModel();

@@ -77,7 +77,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.38 $ / $Date: 2009-02-04 16:20:08 $ / $Author: Sheejo
+ * @version $Revision: 1.39 $ / $Date: 2009-03-29 03:31:29 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -382,7 +382,7 @@ public class MetadataSearchMainGUI extends JPanel
 
             JPanel advancedSearchPanel = new JPanel(new java.awt.FlowLayout(
                     java.awt.FlowLayout.RIGHT));
-            optionsLabel = new JLabel("show options");
+            optionsLabel = new JLabel(VueResources.getString("searchgui.showoptions"));
             advancedSearch = new JButton(new ImageIcon(VueResources
                     .getURL("advancedSearchMore.raw")));
             advancedSearch.setBorder(BorderFactory.createEmptyBorder());
@@ -395,7 +395,7 @@ public class MetadataSearchMainGUI extends JPanel
             gBC.fill = GridBagConstraints.HORIZONTAL;
 
             // First Row
-            JLabel searchTypeLbl = new JLabel("Search Type:", SwingConstants.RIGHT);            
+            JLabel searchTypeLbl = new JLabel(VueResources.getString("searchgui.searchtype"), SwingConstants.RIGHT);            
             gBC.gridx = 0;
             gBC.gridy = 0;
             gBC.weightx = 0.0;
@@ -410,7 +410,7 @@ public class MetadataSearchMainGUI extends JPanel
             optionsPanel.add(searchTypeCmbBox, gBC);
 
             // Second Row
-            JLabel mapsLbl = new JLabel("Maps:", SwingConstants.RIGHT);            
+            JLabel mapsLbl = new JLabel(VueResources.getString("searchgui.maps"), SwingConstants.RIGHT);            
             gBC.gridx = 0;
             gBC.gridy = 1;
             gBC.weightx = 0.0;
@@ -425,7 +425,7 @@ public class MetadataSearchMainGUI extends JPanel
             optionsPanel.add(mapCmbBox, gBC);
 
             // Third Row
-            JLabel resultsLbl = new JLabel("Results:", SwingConstants.RIGHT);            
+            JLabel resultsLbl = new JLabel(VueResources.getString("searchgui.results"), SwingConstants.RIGHT);            
             gBC.weightx = 0.0;
 
             gBC.gridx = 0;
@@ -567,8 +567,8 @@ public class MetadataSearchMainGUI extends JPanel
             
             buttonPanel.setOpaque(true);
             buttonPanel.setBackground(getBackground());
-            JButton resetButton = new JButton("Reset Map");
-            JButton saveButton = new JButton("Save");
+            JButton resetButton = new JButton(VueResources.getString("search.popup.reset"));
+            JButton saveButton = new JButton(VueResources.getString("button.label.save"));
             //searchResultModel = new  SearchResultTableModel();
             saveButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {   
@@ -1386,31 +1386,31 @@ public class MetadataSearchMainGUI extends JPanel
             } else if (table.getModel().getColumnCount() == 3
                     && col == headerValueColumn) {
                 if (searchType == EVERYTHING) {
-                    comp.setText("Search everything:");
+                    comp.setText(VueResources.getString("advancedSearch.searcheverything"));
                 }
 
                 if (searchType == LABEL) {
-                    comp.setText("Labels:");
+                    comp.setText(VueResources.getString("advancedSearch.label"));
                 }
 
                 if (searchType == KEYWORD) {
-                    comp.setText("Keywords:");
+                    comp.setText(VueResources.getString("advancedSearch.keywords"));
                 }
                 if(searchType == CATEGORY){                    
-                    comp.setText("Category:");    
+                    comp.setText(VueResources.getString("advancedSearch.category"));    
                 }                
 
             } else if ((table.getModel().getColumnCount() == 4)
                     && col == headerCategoryColumn) {                
-                comp.setText("Category:");
+                comp.setText(VueResources.getString("advancedSearch.category"));
                 // comp.setBorder(BorderFactory.createEmptyBorder(0,5,0,0));
             } else if ((table.getModel().getColumnCount() == 4 )
                     && col == headerValueColumn){
-                comp.setText("Keyword:");
+                comp.setText(VueResources.getString("advancedSearch.keyword"));
             }
             
-            if (comp.getText().equals("Category:")
-                    || comp.getText().equals("Operator")) {
+            if (comp.getText().equals(VueResources.getString("advancedSearch.category"))
+                    || comp.getText().equals(VueResources.getString("advancedSearch.operator"))) {
                 if(col == headerButtonColumn){
                     comp.setBorder(BorderFactory.createEmptyBorder(ROW_GAP,
                             ROW_INSET, ROW_GAP, 5));

@@ -46,7 +46,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.81 $ / $Date: 2008-09-30 15:44:22 $ / $Author: sfraize $
+ * @version $Revision: 1.82 $ / $Date: 2009-03-29 03:36:36 $ / $Author: vaibhav $
  * @author  rsaigal
  * @author  Scott Fraize
  */
@@ -318,7 +318,7 @@ public class VueDragTree extends JTree
                 //resourceSelection.setTo(resource, this);
             }
         } catch(Exception ex) {
-            // VueUtil.alert(null,ex.toString(),"Error in VueDragTree Selection");
+            // (null,ex.toString(),"Error in VueDragTree Selection");
             System.out.println("VueDragTree.valueChanged "+ex.getMessage());
             ex.printStackTrace();
         }
@@ -329,11 +329,11 @@ public class VueDragTree extends JTree
         
         //Create the popup menu.
         JPopupMenu popup = new JPopupMenu();
-        menuItem = new JMenuItem("Open Resource");
+        menuItem = new JMenuItem(VueResources.getString("vuedragtree.menu.openresource"));
         menuItem.addActionListener(this);
         popup.add(menuItem);
         if (mResources.size() > 0) {
-            menuItem = new JMenuItem("Add All To Map");
+            menuItem = new JMenuItem(VueResources.getString("vuedragtree.menu.addalltomap"));
             menuItem.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         VUE.getActiveViewer().getMapDropTarget()

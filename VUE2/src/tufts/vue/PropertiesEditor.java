@@ -15,25 +15,42 @@
 
 package tufts.vue;
 
-import tufts.vue.gui.VueButton;
-
-import javax.swing.*;
-import javax.swing.border.*;
-import javax.swing.event.*;
-import javax.swing.table.*;
-import java.awt.event.*;
-import java.awt.*;
-
-import java.util.*;
-import fedora.server.types.gen.*;
-import fedora.server.utilities.DateUtility;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Label;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.Map;
+
+import javax.swing.DefaultCellEditor;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.table.AbstractTableModel;
+
+import tufts.vue.gui.VueButton;
+import fedora.server.types.gen.ComparisonOperator;
+import fedora.server.types.gen.Condition;
 
 /**
  * A field:value editor currently specialized for resource properties displayed on
  * the object inspector info tab.
  *
- * @version $Revision: 1.31 $ / $Date: 2008-06-30 20:52:54 $ / $Author: mike $ 
+ * @version $Revision: 1.32 $ / $Date: 2009-03-29 03:33:08 $ / $Author: vaibhav $ 
  * @author  akumar03
  */
 
@@ -45,8 +62,8 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
     PropertiesSelectionListener sListener;
     AddPropertiesButtonListener addPropertiesButtonListener;
     DeletePropertiesButtonListener deletePropertiesButtonListener;
-    JButton addPropertyButton=new VueButton("add");
-    JButton deletePropertyButton=new VueButton("delete");
+    JButton addPropertyButton=new VueButton(VueResources.getString("button.add.label"));
+    JButton deletePropertyButton=new VueButton(VueResources.getString("button.delete.label"));
     JLabel questionLabel = new JLabel(VueResources.getImageIcon("smallInfo"), JLabel.LEFT);
         
     
@@ -108,7 +125,7 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
         
         JPanel labelPanel=new JPanel(new BorderLayout());
         //labelPanel.setBorder(BorderFactory.createEmptyBorder(3,6,3,6));
-        JLabel label = new JLabel("Resource Metadata");
+        JLabel label = new JLabel(VueResources.getString("jlabel.resourcemetadata"));
         label.setAlignmentX(Label.LEFT_ALIGNMENT);
         labelPanel.add(label,BorderLayout.WEST);
         JPanel topPanel=new JPanel(new FlowLayout(FlowLayout.RIGHT,2,0));

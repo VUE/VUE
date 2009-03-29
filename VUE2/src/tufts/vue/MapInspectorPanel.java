@@ -33,7 +33,7 @@ import tufts.vue.gui.*;
  * A tabbed-pane collection of property sheets that apply
  * globally to a given map.
  *
- * @version $Revision: 1.68 $ / $Date: 2008-12-15 16:49:01 $ / $Author: sfraize $ 
+ * @version $Revision: 1.69 $ / $Date: 2009-03-29 03:29:22 $ / $Author: vaibhav $ 
  *
  */
 public class MapInspectorPanel extends JPanel
@@ -719,17 +719,17 @@ public class MapInspectorPanel extends JPanel
             topBox.add(mShowButton);
             topBox.add(mHideButton);
             topBox.add(mSelectButton);
-            JLabel clause = new JLabel(" / Map Objects ");
+            JLabel clause = new JLabel(VueResources.getString("jlabel.mapobjects"));
             topBox.add( clause);
             //topBox.add( mAnyAllCombo);
             
             mUpperPanel.add( BorderLayout.SOUTH, topBox);
             
-            mFilterButton = new JToggleButton( "Disable Filter",false);
-            mFilterButton.setText("Apply Filter");
-            mClearFilterButton = new JButton("Disable Filter");
-            mMoreButton = new VueButton("add");
-            mFewerButton = new VueButton("delete");
+            mFilterButton = new JToggleButton(VueResources.getString("button.disablefilter.label"),false);
+            mFilterButton.setText(VueResources.getString("mapinspection.applyfilter.tooltip"));
+            mClearFilterButton = new JButton(VueResources.getString("button.disablefilter.label"));
+            mMoreButton = new VueButton(VueResources.getString("button.add.label"));
+            mFewerButton = new VueButton(VueResources.getString("button.delete.label"));
             
             mFewerButton.setVisible(false);
             
@@ -824,10 +824,10 @@ public class MapInspectorPanel extends JPanel
           
             if(mFilter.isFilterOn())  {
                 mFilterButton.setSelected(true);
-                mFilterButton.setText("Disable Filter");
+                mFilterButton.setText(VueResources.getString("mapinspection.disablefilter.tooltip"));
             }else {
                 mFilterButton.setSelected(false);
-                mFilterButton.setText("Apply Filter");
+                mFilterButton.setText(VueResources.getString("mapinspection.applyfilter.tooltip"));
             }
             // TODO FIX: basically, filter updating is very dumb right now: this doClick is ultimately
             // ALWAYS triggering a setFilter on the current map whenever the active map
@@ -893,10 +893,10 @@ public class MapInspectorPanel extends JPanel
                 JToggleButton button = (JToggleButton)source;
                 if(button.isSelected()) {
                     applyFilter();
-                    button.setText("Disable Filter");
+                    button.setText(VueResources.getString("mapinspection.disablefilter.tooltip"));
                 }else {
                     clearFilter();
-                    button.setText("Apply Filter");
+                    button.setText(VueResources.getString("mapinspection.applyfilter.tooltip"));
                 }
             }
         }
@@ -951,7 +951,7 @@ public class MapInspectorPanel extends JPanel
         MapInspectorPanel inspector = new MapInspectorPanel(null);
         //VUE.setActiveMap(map);
         inspector.setMap(map);
-        DockWindow w = GUI.createDockWindow("Map Inspector", inspector);
+        DockWindow w = GUI.createDockWindow(VueResources.getString("dockWindow.mapinspector.title"), inspector);
         w.setVisible(true);
         if (args.length > 1)
             VueUtil.displayComponent(new VueTextPane(map, LWKey.Notes, null));

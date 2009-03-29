@@ -76,7 +76,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.590 $ / $Date: 2009-03-19 03:29:28 $ / $Author: sfraize $ 
+ * @version $Revision: 1.591 $ / $Date: 2009-03-29 03:30:09 $ / $Author: vaibhav $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3404,14 +3404,14 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         	activeRichTextEdit = ((LWText)lwc).getRichLabelBox();
         	activeRichTextEdit.saveCurrentText();
         	if (activeRichTextEdit.getText().length() < 1)
-                    activeRichTextEdit.setText("label");
+                    activeRichTextEdit.setText(VueResources.getString("mapviewer.label.tooltip"));
         }
         else
         {
         	activeTextEdit = lwc.getLabelBox();
         	activeTextEdit.saveCurrentText();
         	if (activeTextEdit.getText().length() < 1)
-        		activeTextEdit.setText("label");
+        		activeTextEdit.setText(VueResources.getString("mapviewer.label.tooltip"));
         }
         
         
@@ -4758,7 +4758,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     private JPopupMenu getMapPopup() {
     	
         if (sMapPopup == null) {
-            sMapPopup = new JPopupMenu("Map Menu");
+            sMapPopup = new JPopupMenu(VueResources.getString("mapViewer.componentMenu.mapMenu"));
    
             GUI.addToMenu(sMapPopup, Actions.NEW_OBJECT_ACTIONS);
             sMapPopup.addSeparator();
@@ -5425,8 +5425,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 else if (c == '!') {
                     DockWindow introspector = null;
                     if (DebugInspector == null) {
-                        DebugInspector = GUI.createDockWindow("Inspector", new LWCInspector());
-                        DebugIntrospector = GUI.createDockWindow("Inspector", new LWCInspector.Introspector());
+                        DebugInspector = GUI.createDockWindow(VueResources.getString("dockWindow.inspector.title"), new LWCInspector());
+                        DebugIntrospector = GUI.createDockWindow(VueResources.getString("dockWindow.inspector.title"), new LWCInspector.Introspector());
                         DebugInspector.setWidth(500);
                         // below code creates DockWindow's that screw up the DockWindow layering
                         // in VUE, tho I think had the advantage of more reliably working in test cases

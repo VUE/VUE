@@ -28,7 +28,7 @@ public class EditLibraryPanel extends JPanel implements ActionListener
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(EditLibraryPanel.class);
     
-    private final JButton updateButton = new JButton("Save");
+    private final JButton updateButton = new JButton(VueResources.getString("button.label.save"));
     private final edu.tufts.vue.dsm.DataSource dataSource;
     private final tufts.vue.DataSource oldStyleDataSource;
     private final DataSourceViewer dsv;
@@ -236,7 +236,7 @@ public class EditLibraryPanel extends JPanel implements ActionListener
         final JComponent fill;
 
         if (DEBUG.BOXES) {
-            fill = new JLabel("fill", JLabel.CENTER);
+            fill = new JLabel(VueResources.getString("jlabel.fill"), JLabel.CENTER);
             fill.setBackground(Color.gray);
             fill.setOpaque(true);
         } else {

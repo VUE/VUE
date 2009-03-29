@@ -52,7 +52,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.135 $ / $Date: 2009-03-09 03:30:54 $ / $Author: vaibhav $
+ * @version $Revision: 1.136 $ / $Date: 2009-03-29 03:31:50 $ / $Author: vaibhav $
  */
 
 public class PathwayPanel extends JPanel
@@ -210,7 +210,7 @@ public class PathwayPanel extends JPanel
 
 
         JPanel noteLabelPanel = new VueUtil.JPanelAA();
-        JLabel notesLabel = new JLabel(" Notes: ");
+        JLabel notesLabel = new JLabel(VueResources.getString("jlabel.nodes"));
         //notesLabel.setFont(smallFont);
         noteLabelPanel.setLayout(new BoxLayout(noteLabelPanel, BoxLayout.X_AXIS));
         noteLabelPanel.add(notesLabel);

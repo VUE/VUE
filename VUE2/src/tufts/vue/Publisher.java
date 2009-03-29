@@ -41,7 +41,7 @@ import java.util.*;
 
 /**
  * @author  akumar03
- * @version $Revision: 1.97 $ / $Date: 2009-03-14 03:50:16 $ / $Author: vaibhav $
+ * @version $Revision: 1.98 $ / $Date: 2009-03-29 03:33:59 $ / $Author: vaibhav $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
@@ -205,7 +205,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     }
     private void setUpRepositorySelectionPanel() {
         rPanel.setLayout(new BorderLayout());
-        JLabel repositoryLabel = new JLabel("Select a repository Instance");
+        JLabel repositoryLabel = new JLabel(VueResources.getString("jlabel.repositoryinstance"));
         repositoryLabel.setBorder(BorderFactory.createEmptyBorder(15,10,0,0));
         rPanel.add(repositoryLabel,BorderLayout.NORTH);
         repList = new JList();
@@ -221,7 +221,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     
     private void setUpWorkspaceSelectionPanel() {
         wPanel.setLayout(new BorderLayout());
-        JLabel wLabel = new JLabel("Select a workspace in "+ ((edu.tufts.vue.dsm.DataSource)repList.getSelectedValue()).getRepositoryDisplayName());
+        JLabel wLabel = new JLabel(VueResources.getString("jlabel.selectworkspace")+ ((edu.tufts.vue.dsm.DataSource)repList.getSelectedValue()).getRepositoryDisplayName());
         wLabel.setBorder(BorderFactory.createEmptyBorder(15,10,0,0));
         wPanel.add(wLabel,BorderLayout.NORTH);
         edu.tufts.vue.dsm.DataSource selectedDataSource = (edu.tufts.vue.dsm.DataSource) repList.getSelectedValue();
@@ -248,7 +248,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         JPanel mainPanel = new JPanel();
         
         mainPanel.setLayout(layout);
-        JLabel publishLabel = new JLabel("Publish as");
+        JLabel publishLabel = new JLabel(VueResources.getString("jlabel.publishas"));
         publishLabel.setBorder(BorderFactory.createEmptyBorder(10,10,0,0));
         publishLabel.setFont(tufts.vue.gui.GUI.LabelFace);
         mainPanel.add(publishLabel);
@@ -314,14 +314,14 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     
     
     private void  setUpPublishPanel() {
-        JLabel pLabel = new JLabel("publising to: "+((edu.tufts.vue.dsm.DataSource)repList.getSelectedValue()).getRepositoryDisplayName(),VueResources.getImageIcon("dsv.statuspanel.waitIcon"),JLabel.CENTER);
+        JLabel pLabel = new JLabel(VueResources.getString("jlabel.publishingto")+((edu.tufts.vue.dsm.DataSource)repList.getSelectedValue()).getRepositoryDisplayName(),VueResources.getImageIcon("dsv.statuspanel.waitIcon"),JLabel.CENTER);
         pLabel.setBorder(BorderFactory.createEmptyBorder(10,10,0,0));
         pPanel.add(pLabel);
         buttonPanel.remove(publishButton);
     }
     
     private void setUpConfirmPanel() {
-        JLabel cLabel = new JLabel("Publishing to "+((edu.tufts.vue.dsm.DataSource)repList.getSelectedValue()).getRepositoryDisplayName()+" was successful.");
+        JLabel cLabel = new JLabel(VueResources.getString("jlabel.publishingto") +((edu.tufts.vue.dsm.DataSource)repList.getSelectedValue()).getRepositoryDisplayName()+" was successful.");
         cLabel.setBorder(BorderFactory.createEmptyBorder(80,10,0,0));
         cPanel.add(cLabel);
         buttonPanel.remove(cancelButton);

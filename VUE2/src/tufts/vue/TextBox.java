@@ -99,7 +99,7 @@ import javax.swing.text.*;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.66 $ / $Date: 2008-12-04 18:50:56 $ / $Author: mike $
+ * @version $Revision: 1.67 $ / $Date: 2009-03-29 03:35:13 $ / $Author: vaibhav $
  *
  */
 
@@ -1194,13 +1194,13 @@ public class TextBox extends JTextPane
         getPopup(e).show(e.getComponent(), e.getX(), e.getY());
 	}
 	private JPopupMenu m = null;
-	private final JMenuItem copyItem = new JMenuItem("Copy");
-	private final JMenuItem pasteItem = new JMenuItem("Paste");
+	private final JMenuItem copyItem = new JMenuItem(VueResources.getString("richtextbox.menu.copy"));
+	private final JMenuItem pasteItem = new JMenuItem(VueResources.getString("richtextbox.menu.paste"));
 	private JPopupMenu getPopup(MouseEvent e) 
 	{			        
 		if (m == null)
 		{
-			m = new JPopupMenu("Textbox Menu");
+			m = new JPopupMenu(VueResources.getString("richtextbox.menu.textboxmenu"));
 			
 			//copyItem.addActionListener(this);
 			//pasteItem.addActionListener(this);

@@ -21,7 +21,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.6 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $
+ * @version $Revision: 1.7 $ / $Date: 2009-03-29 03:27:20 $ / $Author: vaibhav $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -47,7 +47,7 @@ public class LibraryInfoPanel extends JPanel
 			
 			gbConstraints.fill = java.awt.GridBagConstraints.NONE;
 			gbConstraints.weightx = 0;
-			add(new javax.swing.JLabel("Repository Id"),gbConstraints);
+			add(new javax.swing.JLabel(VueResources.getString("jlabel.repositoryid")),gbConstraints);
 			
 			gbConstraints.gridx = 1;
 			gbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
@@ -58,7 +58,7 @@ public class LibraryInfoPanel extends JPanel
 			gbConstraints.gridy++;
 			gbConstraints.fill = java.awt.GridBagConstraints.NONE;
 			gbConstraints.weightx = 0;
-			add(new javax.swing.JLabel("Name"),gbConstraints);
+			add(new javax.swing.JLabel(VueResources.getString("jlabel.name")),gbConstraints);
 			
 			gbConstraints.gridx = 1;
 			gbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
@@ -69,7 +69,7 @@ public class LibraryInfoPanel extends JPanel
 			gbConstraints.gridy++;
 			gbConstraints.fill = java.awt.GridBagConstraints.NONE;
 			gbConstraints.weightx = 0;
-			add(new javax.swing.JLabel("Description"),gbConstraints);
+			add(new javax.swing.JLabel(VueResources.getString("jlabel.description")),gbConstraints);
 			
 			gbConstraints.gridx = 1;
 			gbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
@@ -91,7 +91,7 @@ public class LibraryInfoPanel extends JPanel
 			gbConstraints.gridy++;
 			gbConstraints.fill = java.awt.GridBagConstraints.NONE;
 			gbConstraints.weightx = 0;
-			add(new javax.swing.JLabel("Type"),gbConstraints);
+			add(new javax.swing.JLabel(VueResources.getString("jlabel.type")),gbConstraints);
 			
 			gbConstraints.gridx = 1;
 			gbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
@@ -102,7 +102,7 @@ public class LibraryInfoPanel extends JPanel
 			gbConstraints.gridy++;
 			gbConstraints.fill = java.awt.GridBagConstraints.NONE;
 			gbConstraints.weightx = 0;
-			add(new javax.swing.JLabel("Creator"),gbConstraints);
+			add(new javax.swing.JLabel(VueResources.getString("jlabel.creator")),gbConstraints);
 			
 			gbConstraints.gridx = 1;
 			gbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
@@ -113,7 +113,7 @@ public class LibraryInfoPanel extends JPanel
 			gbConstraints.gridy++;
 			gbConstraints.fill = java.awt.GridBagConstraints.NONE;
 			gbConstraints.weightx = 0;
-			add(new javax.swing.JLabel("Publisher"),gbConstraints);
+			add(new javax.swing.JLabel(VueResources.getString("jlabel.publisher")),gbConstraints);
 			
 			gbConstraints.gridx = 1;
 			gbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
@@ -124,7 +124,7 @@ public class LibraryInfoPanel extends JPanel
 			gbConstraints.gridy++;
 			gbConstraints.fill = java.awt.GridBagConstraints.NONE;
 			gbConstraints.weightx = 0;
-			add(new javax.swing.JLabel("Release Date"),gbConstraints);
+			add(new javax.swing.JLabel(VueResources.getString("jlabel.releasedate")),gbConstraints);
 			
 			gbConstraints.gridx = 1;
 			gbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
@@ -135,7 +135,7 @@ public class LibraryInfoPanel extends JPanel
 			gbConstraints.gridy++;
 			gbConstraints.fill = java.awt.GridBagConstraints.NONE;
 			gbConstraints.weightx = 0;
-			add(new javax.swing.JLabel("Provider Id"),gbConstraints);
+			add(new javax.swing.JLabel(VueResources.getString("jlabel.providerid")),gbConstraints);
 			
 			gbConstraints.gridx = 1;
 			gbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
@@ -146,7 +146,7 @@ public class LibraryInfoPanel extends JPanel
 			gbConstraints.gridy++;
 			gbConstraints.fill = java.awt.GridBagConstraints.NONE;
 			gbConstraints.weightx = 0;
-			add(new javax.swing.JLabel("Osid Service"),gbConstraints);
+			add(new javax.swing.JLabel(VueResources.getString("jlabel.osidservice")),gbConstraints);
 			
 			gbConstraints.gridx = 1;
 			gbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
@@ -159,7 +159,7 @@ public class LibraryInfoPanel extends JPanel
 			gbConstraints.gridy++;
 			gbConstraints.fill = java.awt.GridBagConstraints.NONE;
 			gbConstraints.weightx = 0;
-			add(new javax.swing.JLabel("Osid Load Key"),gbConstraints);
+			add(new javax.swing.JLabel(VueResources.getString("jlabel.osidloadkey")),gbConstraints);
 			
 			gbConstraints.gridx = 1;
 			gbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
@@ -170,7 +170,7 @@ public class LibraryInfoPanel extends JPanel
 			gbConstraints.gridy++;
 			gbConstraints.fill = java.awt.GridBagConstraints.NONE;
 			gbConstraints.weightx = 0;
-			add(new javax.swing.JLabel("Provider Display Name"),gbConstraints);
+			add(new javax.swing.JLabel(VueResources.getString("jlabel.providerdisplayname")),gbConstraints);
 			
 			gbConstraints.gridx = 1;
 			gbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
@@ -181,7 +181,7 @@ public class LibraryInfoPanel extends JPanel
 			gbConstraints.gridy++;
 			gbConstraints.fill = java.awt.GridBagConstraints.NONE;
 			gbConstraints.weightx = 0;
-			add(new javax.swing.JLabel("Provider Description"),gbConstraints);
+			add(new javax.swing.JLabel(VueResources.getString("jlabel.providerdescription")),gbConstraints);
 			
 			gbConstraints.gridx = 1;
 			gbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
@@ -202,29 +202,29 @@ public class LibraryInfoPanel extends JPanel
 			gbConstraints.gridy++;
 			gbConstraints.fill = java.awt.GridBagConstraints.NONE;
 			gbConstraints.weightx = 0;
-			add(new javax.swing.JLabel("Online?"),gbConstraints);
+			add(new javax.swing.JLabel(VueResources.getString("jlabel.online")),gbConstraints);
 			
 			gbConstraints.gridx = 1;
 			gbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
 			gbConstraints.weightx = 1;
-			add(new javax.swing.JLabel( (dataSource.isOnline()) ? "Yes" : "No" ),gbConstraints);
+			add(new javax.swing.JLabel( (dataSource.isOnline()) ? VueResources.getString("jlabel.yes") : VueResources.getString("jlabel.no") ),gbConstraints);
 			
 			gbConstraints.gridx = 0;
 			gbConstraints.gridy++;
 			gbConstraints.fill = java.awt.GridBagConstraints.NONE;
 			gbConstraints.weightx = 0;
-			add(new javax.swing.JLabel("Supports Update?"),gbConstraints);
+			add(new javax.swing.JLabel(VueResources.getString("jlabel.supportsupdate")),gbConstraints);
 			
 			gbConstraints.gridx = 1;
 			gbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
 			gbConstraints.weightx = 1;
-			add(new javax.swing.JLabel( (dataSource.supportsUpdate()) ? "The Library Supports Updating" : "The Library Is Read Only" ),gbConstraints);
+			add(new javax.swing.JLabel( (dataSource.supportsUpdate()) ? VueResources.getString("jlabel.libsupportuopdate") : VueResources.getString("jlabel.libisreadonly") ),gbConstraints);
 			
 			gbConstraints.gridx = 0;
 			gbConstraints.gridy++;
 			gbConstraints.fill = java.awt.GridBagConstraints.NONE;
 			gbConstraints.weightx = 0;
-			add(new javax.swing.JLabel("Asset Types"),gbConstraints);
+			add(new javax.swing.JLabel(VueResources.getString("jlabel.assettype")),gbConstraints);
 			
 			gbConstraints.gridx = 1;
 			gbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
@@ -239,7 +239,7 @@ public class LibraryInfoPanel extends JPanel
 			gbConstraints.gridy++;
 			gbConstraints.fill = java.awt.GridBagConstraints.NONE;
 			gbConstraints.weightx = 0;
-			add(new javax.swing.JLabel("Search Types"),gbConstraints);
+			add(new javax.swing.JLabel(VueResources.getString("jlabel.searchtype")),gbConstraints);
 			
 			gbConstraints.gridx = 1;
 			gbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;

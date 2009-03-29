@@ -106,7 +106,7 @@ import com.lightdev.app.shtm.Util;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.42 $ / $Date: 2009-02-24 16:41:50 $ / $Author: mike $
+ * @version $Revision: 1.43 $ / $Date: 2009-03-29 03:34:20 $ / $Author: vaibhav $
  *
  */
 
@@ -1651,13 +1651,13 @@ return super.viewToModel(new Point(alloc));
         getPopup(e).show(e.getComponent(), e.getX(), e.getY());
 	}
 	private JPopupMenu m = null;
-	private final JMenuItem copyItem = new JMenuItem("Copy");
-	private final JMenuItem pasteItem = new JMenuItem("Paste");
+	private final JMenuItem copyItem = new JMenuItem(VueResources.getString("richtextbox.menu.copy"));
+	private final JMenuItem pasteItem = new JMenuItem(VueResources.getString("richtextbox.menu.paste"));
 	private JPopupMenu getPopup(MouseEvent e) 
 	{			        
 		if (m == null)
 		{
-			m = new JPopupMenu("Textbox Menu");
+			m = new JPopupMenu(VueResources.getString("richtextbox.menu.textboxmenu"));
 			
 			//copyItem.addActionListener(this);
 			//pasteItem.addActionListener(this);

@@ -49,7 +49,7 @@ public class MapListElementPanel extends JPanel implements ActionListener {
         String text = getMap().getLabel();
         check = new JCheckBox();
         JLabel fileName = new JLabel(text);
-        remove = new tufts.vue.gui.VueButton("delete");
+        remove = new tufts.vue.gui.VueButton(VueResources.getString("button.delete.label"));
         
         check.setSelected(true);
         

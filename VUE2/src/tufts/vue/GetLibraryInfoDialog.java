@@ -21,7 +21,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.6 $ / $Date: 2008-06-30 20:52:54 $ / $Author: mike $
+ * @version $Revision: 1.7 $ / $Date: 2009-03-29 03:25:55 $ / $Author: vaibhav $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -39,7 +39,7 @@ public class GetLibraryInfoDialog extends JDialog implements java.awt.event.Acti
 
     JPanel getLibraryInfoPanel = new JPanel();
 	JPanel buttonPanel = new JPanel();
-	JButton okButton = new JButton("OK");
+	JButton okButton = new JButton(VueResources.getString("button.ok.label"));
 	JLabel libraryIcon;
 	
     public GetLibraryInfoDialog(edu.tufts.vue.dsm.DataSource dataSource)
@@ -86,21 +86,21 @@ public class GetLibraryInfoDialog extends JDialog implements java.awt.event.Acti
 			getLibraryInfoPanel.add(libraryIcon,gbConstraints);
 			
 			gbConstraints.gridy++;
-			getLibraryInfoPanel.add(new javax.swing.JLabel("Repository Id"),gbConstraints);
+			getLibraryInfoPanel.add(new javax.swing.JLabel(VueResources.getString("jlabel.repositoryid")),gbConstraints);
 			
 			gbConstraints.gridx = 1;
 			getLibraryInfoPanel.add(new javax.swing.JLabel(repository.getId().getIdString()),gbConstraints);
 			
 			gbConstraints.gridx = 0;
 			gbConstraints.gridy++;
-			getLibraryInfoPanel.add(new javax.swing.JLabel("Name"),gbConstraints);
+			getLibraryInfoPanel.add(new javax.swing.JLabel(VueResources.getString("jlabel.name")),gbConstraints);
 			
 			gbConstraints.gridx = 1;
 			getLibraryInfoPanel.add(new javax.swing.JLabel(repository.getDisplayName()),gbConstraints);
 			
 			gbConstraints.gridx = 0;
 			gbConstraints.gridy++;
-			getLibraryInfoPanel.add(new javax.swing.JLabel("Description"),gbConstraints);
+			getLibraryInfoPanel.add(new javax.swing.JLabel(VueResources.getString("jlabel.description")),gbConstraints);
 			
 			gbConstraints.gridx = 1;
 			String description = repository.getDescription();
@@ -118,7 +118,7 @@ public class GetLibraryInfoDialog extends JDialog implements java.awt.event.Acti
 			
 			gbConstraints.gridx = 0;
 			gbConstraints.gridy++;
-			getLibraryInfoPanel.add(new javax.swing.JLabel("Type"),gbConstraints);
+			getLibraryInfoPanel.add(new javax.swing.JLabel(VueResources.getString("jlabel.type")),gbConstraints);
 			
 			gbConstraints.gridx = 1;
 			getLibraryInfoPanel.add(new javax.swing.JLabel(edu.tufts.vue.util.Utilities.typeToString(repository.getType())),gbConstraints);
@@ -127,56 +127,56 @@ public class GetLibraryInfoDialog extends JDialog implements java.awt.event.Acti
 			gbConstraints.gridy++;
 			System.out.println("Data Source1 " + dataSource);
 			System.out.println("creatpr " + dataSource.getCreator());
-			getLibraryInfoPanel.add(new javax.swing.JLabel("Creator"),gbConstraints);
+			getLibraryInfoPanel.add(new javax.swing.JLabel(VueResources.getString("jlabel.creator")),gbConstraints);
 			
 			gbConstraints.gridx = 1;
 			getLibraryInfoPanel.add(new javax.swing.JLabel(dataSource.getCreator()),gbConstraints);
 			
 			gbConstraints.gridx = 0;
 			gbConstraints.gridy++;
-			getLibraryInfoPanel.add(new javax.swing.JLabel("Publisher"),gbConstraints);
+			getLibraryInfoPanel.add(new javax.swing.JLabel(VueResources.getString("jlabel.publisher")),gbConstraints);
 			
 			gbConstraints.gridx = 1;
 			getLibraryInfoPanel.add(new javax.swing.JLabel(dataSource.getPublisher()),gbConstraints);
 			
 			gbConstraints.gridx = 0;
 			gbConstraints.gridy++;
-			getLibraryInfoPanel.add(new javax.swing.JLabel("Release Date"),gbConstraints);
+			getLibraryInfoPanel.add(new javax.swing.JLabel(VueResources.getString("jlabel.releasedate")),gbConstraints);
 			
 			gbConstraints.gridx = 1;
 			getLibraryInfoPanel.add(new javax.swing.JLabel(edu.tufts.vue.util.Utilities.dateToString(dataSource.getReleaseDate())),gbConstraints);
 			
 			gbConstraints.gridx = 0;
 			gbConstraints.gridy++;
-			getLibraryInfoPanel.add(new javax.swing.JLabel("Provider Id"),gbConstraints);
+			getLibraryInfoPanel.add(new javax.swing.JLabel(VueResources.getString("jlabel.providerid")),gbConstraints);
 			
 			gbConstraints.gridx = 1;
 			getLibraryInfoPanel.add(new javax.swing.JLabel(dataSource.getProviderId().getIdString()),gbConstraints);
 			
 			gbConstraints.gridx = 0;
 			gbConstraints.gridy++;
-			getLibraryInfoPanel.add(new javax.swing.JLabel("Osid Service"),gbConstraints);
+			getLibraryInfoPanel.add(new javax.swing.JLabel(VueResources.getString("jlabel.osidservice")),gbConstraints);
 			
 			gbConstraints.gridx = 1;
 			getLibraryInfoPanel.add(new javax.swing.JLabel(dataSource.getOsidVersion()),gbConstraints);
 			
 			gbConstraints.gridx = 0;
 			gbConstraints.gridy++;
-			getLibraryInfoPanel.add(new javax.swing.JLabel("Osid Load Key"),gbConstraints);
+			getLibraryInfoPanel.add(new javax.swing.JLabel(VueResources.getString("jlabel.osidloadkey")),gbConstraints);
 			
 			gbConstraints.gridx = 1;
 			getLibraryInfoPanel.add(new javax.swing.JLabel(dataSource.getOsidLoadKey()),gbConstraints);
 			
 			gbConstraints.gridx = 0;
 			gbConstraints.gridy++;
-			getLibraryInfoPanel.add(new javax.swing.JLabel("Provider Display Name"),gbConstraints);
+			getLibraryInfoPanel.add(new javax.swing.JLabel(VueResources.getString("jlabel.providerdisplayname")),gbConstraints);
 			
 			gbConstraints.gridx = 1;
 			getLibraryInfoPanel.add(new javax.swing.JLabel(dataSource.getProviderDisplayName()),gbConstraints);
 			
 			gbConstraints.gridx = 0;
 			gbConstraints.gridy++;
-			getLibraryInfoPanel.add(new javax.swing.JLabel("Provider Description"),gbConstraints);
+			getLibraryInfoPanel.add(new javax.swing.JLabel(VueResources.getString("jlabel.providerdescription")),gbConstraints);
 			
 			gbConstraints.gridx = 1;
 			description = dataSource.getProviderDescription();
@@ -193,21 +193,21 @@ public class GetLibraryInfoDialog extends JDialog implements java.awt.event.Acti
 			
 			gbConstraints.gridx = 0;
 			gbConstraints.gridy++;
-			getLibraryInfoPanel.add(new javax.swing.JLabel("Online?"),gbConstraints);
+			getLibraryInfoPanel.add(new javax.swing.JLabel(VueResources.getString("jlabel.online")),gbConstraints);
 			
 			gbConstraints.gridx = 1;
-			getLibraryInfoPanel.add(new javax.swing.JLabel( (dataSource.isOnline()) ? "Yes" : "No" ),gbConstraints);
+			getLibraryInfoPanel.add(new javax.swing.JLabel( (dataSource.isOnline()) ? VueResources.getString("jlabel.yes") : VueResources.getString("jlabel.no") ),gbConstraints);
 			
 			gbConstraints.gridx = 0;
 			gbConstraints.gridy++;
-			getLibraryInfoPanel.add(new javax.swing.JLabel("Supports Update?"),gbConstraints);
+			getLibraryInfoPanel.add(new javax.swing.JLabel(VueResources.getString("jlabel.supportsupdate")),gbConstraints);
 			
 			gbConstraints.gridx = 1;
-			getLibraryInfoPanel.add(new javax.swing.JLabel( (dataSource.supportsUpdate()) ? "The Library Supports Updating" : "The Library Is Read Only" ),gbConstraints);
+			getLibraryInfoPanel.add(new javax.swing.JLabel( (dataSource.supportsUpdate()) ? VueResources.getString("jlabel.libsupportuopdate") : VueResources.getString("jlabel.libisreadonly")),gbConstraints);
 			
 			gbConstraints.gridx = 0;
 			gbConstraints.gridy++;
-			getLibraryInfoPanel.add(new javax.swing.JLabel("Asset Types"),gbConstraints);
+			getLibraryInfoPanel.add(new javax.swing.JLabel(VueResources.getString("jlabel.assettype")),gbConstraints);
 			
 			gbConstraints.gridx = 1;
 			org.osid.shared.TypeIterator typeIterator = repository.getAssetTypes();
@@ -218,7 +218,7 @@ public class GetLibraryInfoDialog extends JDialog implements java.awt.event.Acti
 			
 			gbConstraints.gridx = 0;
 			gbConstraints.gridy++;
-			getLibraryInfoPanel.add(new javax.swing.JLabel("Search Types"),gbConstraints);
+			getLibraryInfoPanel.add(new javax.swing.JLabel(VueResources.getString("jlabel.searchtype")),gbConstraints);
 			
 			gbConstraints.gridx = 1;
 			typeIterator = repository.getSearchTypes();

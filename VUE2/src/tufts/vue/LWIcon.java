@@ -1575,7 +1575,7 @@ public abstract class LWIcon extends Rectangle2D.Float
         public JComponent getToolTipComponent()
         {
             if ((mLWC instanceof LWContainer) == false)
-                return new JLabel("no children: no hierarchy");
+                return new JLabel(VueResources.getString("jlabel.nochild"));
             
             // todo perf: use StringBuffer
             String html = "<html>" + getChildHtml(mLWC, 1);
