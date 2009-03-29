@@ -345,7 +345,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,
         
         //back to "assign categories" as per VUE-953
         //final JLabel optionsLabel = new JLabel("Use full metadata schema");
-        final JLabel optionsLabel = new JLabel("Assign Categories");
+        final JLabel optionsLabel = new JLabel(VueResources.getString("jlabel.assigncategory"));
         optionsLabel.setFont(GUI.LabelFace);
         //final JButton advancedSearch = new JButton(new ImageIcon(VueResources.getURL("advancedSearchMore.raw")));//tufts.vue.gui.VueButton("advancedSearchMore");
         final JCheckBox advancedSearch = new JCheckBox();
@@ -908,7 +908,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,
        }
     }
     
-    tufts.vue.gui.VueButton headerAddButton = new tufts.vue.gui.VueButton("keywords.button.add"); 
+    tufts.vue.gui.VueButton headerAddButton = new tufts.vue.gui.VueButton(VueResources.getString("keywords.button.add")); 
 
     JPanel headerAddButtonPanel = new JPanel();
     
@@ -965,13 +965,13 @@ public class MetadataEditor extends JPanel implements ActiveListener,
                if(((MetadataTableModel)table.getModel()).getColumnCount() == 2)
                {    
                  // back to "Keywords:" -- VUE-953  
-                 comp =  new JLabel("Keywords:");                 
+                 comp =  new JLabel(VueResources.getString("jlabel.keyword"));                 
                }
                else
                {
                  // back to "Categories" -- VUE-953
                  //comp = new JLabel("Fields:");
-                 comp = new JLabel("Categories:");
+                 comp = new JLabel(VueResources.getString("jlabel.category"));
                }
                comp.setFont(GUI.LabelFace);
            }
@@ -979,7 +979,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,
            {
                if(((MetadataTableModel)table.getModel()).getColumnCount() == 3)
                {    
-                 comp =  new JLabel("Keywords:");
+                 comp =  new JLabel(VueResources.getString("jlabel.keyword"));
                }
                comp.setFont(GUI.LabelFace);
            }

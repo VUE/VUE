@@ -48,7 +48,7 @@ public class OntologyBrowser extends JPanel {
     
     private HashMap<OntologyBrowserKey,Widget> widgetMap = new HashMap<OntologyBrowserKey,Widget>();
     
-    final static DockWindow ontologyDock = tufts.vue.gui.GUI.createDockWindow("Ontologies");;
+    final static DockWindow ontologyDock = tufts.vue.gui.GUI.createDockWindow(VueResources.getString("dockWindow.ontologies.title"));
     DockWindow typeDock;
     private static boolean initialized = false;
     

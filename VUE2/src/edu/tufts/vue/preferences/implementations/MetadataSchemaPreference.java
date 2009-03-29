@@ -16,7 +16,6 @@ package edu.tufts.vue.preferences.implementations;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -32,10 +31,10 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 
+import tufts.vue.VueResources;
 import edu.tufts.vue.preferences.VuePrefEvent;
 import edu.tufts.vue.preferences.VuePrefListener;
 import edu.tufts.vue.preferences.generics.BasePref;
-import edu.tufts.vue.preferences.interfaces.VuePreference;
 
 public class MetadataSchemaPreference extends BasePref implements ItemListener
 {
@@ -127,7 +126,7 @@ public class MetadataSchemaPreference extends BasePref implements ItemListener
         gbConstraints.fill=GridBagConstraints.NONE;
         gbConstraints.anchor=GridBagConstraints.NORTHWEST;
         gbConstraints.insets = new Insets(18,0,0,0);
-        panel.add(new JLabel("Dublin Core"),gbConstraints);
+        panel.add(new JLabel(VueResources.getString("jlabel.dublincore")),gbConstraints);
         
         
         gbConstraints.gridx=0;
@@ -144,7 +143,7 @@ public class MetadataSchemaPreference extends BasePref implements ItemListener
         gbConstraints.weightx=1;
         gbConstraints.weighty=8;
         gbConstraints.insets = new Insets(0,0,260,0);
-        panel.add(new JLabel("VRA"),gbConstraints);
+        panel.add(new JLabel(VueResources.getString("jlabel.vra")),gbConstraints);
         
         
         dublinCoreCheckbox.addItemListener(this);

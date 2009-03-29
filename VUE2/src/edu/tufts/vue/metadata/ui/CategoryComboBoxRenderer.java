@@ -19,12 +19,13 @@
  */
 package edu.tufts.vue.metadata.ui;
 
-import java.util.*;
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Component;
 
-import edu.tufts.vue.metadata.*;
-import edu.tufts.vue.ontology.*;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.JList;
+
+import tufts.vue.VueResources;
+import edu.tufts.vue.ontology.OntType;
 
 public class CategoryComboBoxRenderer extends DefaultListCellRenderer {
     
@@ -62,7 +63,7 @@ public class CategoryComboBoxRenderer extends DefaultListCellRenderer {
                 {
                     if(tufts.vue.VUE.getCategoryModel().isLoaded() == false)
                     {
-                        setText("loading...");
+                        setText(VueResources.getString("addLibrary.loading.label"));
                     }
                 }
             }

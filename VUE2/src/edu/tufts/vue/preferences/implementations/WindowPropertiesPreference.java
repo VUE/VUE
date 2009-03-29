@@ -274,8 +274,8 @@ public class WindowPropertiesPreference extends StringPreference implements Item
         
 	}
 	private final JPanel resetPanel = new JPanel();
-	private JButton resetButton = new JButton("Reset");
-	private JLabel resetLabel = new JLabel("Reset default window sizes and locations");
+	private JButton resetButton = new JButton(VueResources.getString("button.reset.label"));
+	private JLabel resetLabel = new JLabel(VueResources.getString("jlabel.resetdefaultwindow"));
 	private void configureResetPanel()
 	{
 		

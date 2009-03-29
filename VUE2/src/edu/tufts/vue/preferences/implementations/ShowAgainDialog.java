@@ -108,7 +108,7 @@ public class ShowAgainDialog  extends JDialog implements ActionListener, KeyList
         gbc.insets = new Insets(2,10,15,1);
         gbc.anchor=GridBagConstraints.EAST;
         gbc.fill=GridBagConstraints.BOTH;
-        showAgainBox.setText("don't show again");
+        showAgainBox.setText(VueResources.getString("showagaindialog.donotshow.tooltip"));
         showAgainBox.setSelected(!((Boolean)showAgainPref.getValue()).booleanValue());
         dialogContentPane.add(showAgainBox,gbc);
 
@@ -204,7 +204,7 @@ public class ShowAgainDialog  extends JDialog implements ActionListener, KeyList
     public static void main(String[] args)    
     {
     	JPanel panel = new JPanel();    	
-    	panel.add(new JLabel("By deleting this slide, your work on this slide will be lost."));
+    	panel.add(new JLabel(VueResources.getString("jlabel.deletingthisslide")));
     	ShowAgainDialog sad = new ShowAgainDialog(null,"blah","Delete Pathway","OK","Cancel");
     	sad.setContentPanel(panel);
  //   	sad.setSize(375, 130);

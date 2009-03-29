@@ -18,7 +18,7 @@
  *
  * Created on February 2, 2007, 3:47 PM
  *
- * @version $Revision: 1.48 $ / $Date: 2009-03-02 09:10:58 $ / $Author: vaibhav $
+ * @version $Revision: 1.49 $ / $Date: 2009-03-29 02:45:25 $ / $Author: vaibhav $
  * @author dhelle01
  */
 
@@ -549,9 +549,9 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
     class PercentageIntervalRenderer extends JPanel implements TableCellRenderer {
         private JTextField startField = new JTextField(3);
         private JLabel startLabel = new JLabel();
-        private JLabel toLabel = new JLabel("to");
+        private JLabel toLabel = new JLabel(VueResources.getString("jlabel.to"));
         private JTextField endField = new JTextField(3);
-        private JLabel percentageLabel = new JLabel("%");
+        private JLabel percentageLabel = new JLabel(VueResources.getString("jlabel.percentage"));
         
         public java.awt.Component getTableCellRendererComponent(JTable table,Object value,boolean isSelected,boolean hasFocus,int row, int col) {
             // these intial values are not likely to be seen (unless wrong class used for value)
@@ -596,8 +596,8 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         
         private JTextField startField = new JTextField(3);
         private JTextField endField = new JTextField(3);
-        private JLabel toLabel = new JLabel("to");
-        private JLabel percentageLabel = new JLabel("%");
+        private JLabel toLabel = new JLabel(VueResources.getString("jlabel.to"));
+        private JLabel percentageLabel = new JLabel(VueResources.getString("jlabel.percentage"));
         private JPanel panel = new JPanel();
         
         private int currentRow = 0;
@@ -786,7 +786,7 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
             JPanel renderer = new JPanel();
             javax.swing.BoxLayout boxLayout = new javax.swing.BoxLayout(renderer,javax.swing.BoxLayout.X_AXIS);
             renderer.setLayout(boxLayout);
-            final JLabel buttonImage = new JLabel("Label");
+            final JLabel buttonImage = new JLabel(VueResources.getString("jlabel.label"));
             buttonImage.setOpaque(true);
             buttonImage.setForeground(textColor);
             buttonImage.setBackground(backColor);
@@ -836,7 +836,7 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         public IntervalStylePreviewEditor() {
             javax.swing.BoxLayout boxLayout = new javax.swing.BoxLayout(panel,javax.swing.BoxLayout.X_AXIS);
             panel.setLayout(boxLayout);
-            buttonImage = new JLabel("Label");
+            buttonImage = new JLabel(VueResources.getString("jlabel.label"));
             buttonImage.setOpaque(true);
             buttonImage.setForeground(textColor);
             buttonImage.setBackground(backColor);

@@ -1770,7 +1770,7 @@ public class Util
             //colorChooser.setPreviewPanel(new JLabel("FOO")); // makes it dissapear entirely, W2K/1.4.2/Metal
             if (false) {
                 final JPanel np = new JPanel();
-                np.add(new JLabel("Text"));
+                np.add(new JLabel(VueResources.getString("jlabel.text")));
                 np.setSize(new Dimension(300,100)); // will be invisible otherwise
                 np.setBackground(Color.red);
                 //np.setBorder(new EmptyBorder(10,10,10,10));

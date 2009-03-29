@@ -15,9 +15,23 @@
 
 package edu.tufts.artifact.ui;
  
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
+
+import tufts.vue.VueResources;
 
 public class ArtifactQueryEditor
 extends javax.swing.JPanel
@@ -70,17 +84,17 @@ implements edu.tufts.vue.fsm.QueryEditor
 	}
 	
     public class TitleSearchPane extends JPanel implements ActionListener,KeyListener {
-        JLabel titleLabel = new JLabel("Title: ");
-        JLabel classLabel = new JLabel("Class: ");
-        JLabel subjectLabel = new JLabel("Subject: ");
-        JLabel originLabel = new JLabel("Origin: ");
-        JLabel resultsLabel = new JLabel("Maximum Hits:");
+        JLabel titleLabel = new JLabel(VueResources.getString("jlabel.title"));
+        JLabel classLabel = new JLabel(VueResources.getString("jlabel.class"));
+        JLabel subjectLabel = new JLabel(VueResources.getString("jlabel.subject"));
+        JLabel originLabel = new JLabel(VueResources.getString("jlabel.origin"));
+        JLabel resultsLabel = new JLabel(VueResources.getString("jlabel.maxhits"));
         JTextField titleField = new JTextField("");
         JComboBox classField = new JComboBox(CLASSES);
         JComboBox subjectField = new JComboBox(SUBJECTS);
         JComboBox originField = new JComboBox(ORIGIN);
         JComboBox resultsField = new JComboBox(NO_RESULTS);
-        JButton searchButton = new JButton("Search");
+        JButton searchButton = new JButton(VueResources.getString("button.search.label"));
         
         public TitleSearchPane() {
             JPanel innerPanel = new JPanel();
@@ -209,17 +223,17 @@ implements edu.tufts.vue.fsm.QueryEditor
 	}
 	
     public class ArtistSearchPane extends JPanel implements ActionListener,KeyListener {
-        JLabel titleLabel = new JLabel("Title: ");
-        JLabel classLabel = new JLabel("Class: ");
-        JLabel subjectLabel = new JLabel("Subject: ");
-        JLabel originLabel = new JLabel("Origin: ");
-        JLabel resultsLabel = new JLabel("Maximum Hits:");
+    	JLabel titleLabel = new JLabel(VueResources.getString("jlabel.title"));
+        JLabel classLabel = new JLabel(VueResources.getString("jlabel.class"));
+        JLabel subjectLabel = new JLabel(VueResources.getString("jlabel.subject"));
+        JLabel originLabel = new JLabel(VueResources.getString("jlabel.origin"));
+        JLabel resultsLabel = new JLabel(VueResources.getString("jlabel.maxhits"));
         JTextField titleField = new JTextField("");
         JComboBox classField = new JComboBox(CLASSES);
         JComboBox subjectField = new JComboBox(SUBJECTS);
         JComboBox originField = new JComboBox(ORIGIN);
         JComboBox resultsField = new JComboBox(NO_RESULTS);
-        JButton searchButton = new JButton("Search");
+        JButton searchButton = new JButton(VueResources.getString("button.search.label"));
         
         public ArtistSearchPane() {
             JPanel innerPanel = new JPanel();

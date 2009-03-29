@@ -22,30 +22,16 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
-import javax.swing.border.Border;
 import javax.swing.Box;
-import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.border.Border;
 
-//not currently needed: VUE-815
-//import tufts.vue.VueConstants;
-import tufts.vue.DataSourceViewer;
-import tufts.vue.FavoritesDataSource;
-import tufts.vue.FavoritesWindow;
-import tufts.vue.LWComponent;
-import tufts.vue.LWImage;
-import tufts.vue.LWNode;
-import tufts.vue.LWSelection;
-import tufts.vue.LWSlide;
-import tufts.vue.NodeTool;
-import tufts.vue.VUE;
+import tufts.vue.VueResources;
 import tufts.vue.gui.CheckBoxRenderer;
 import tufts.vue.gui.GUI;
-import tufts.vue.gui.WindowDisplayAction;
-import tufts.vue.ui.ResourceIcon;
 
 
 /**
@@ -183,14 +169,14 @@ public class OntologyList extends javax.swing.JList implements OntologySelection
 	}
 	
 	JPopupMenu m = null;
-	private static final JMenuItem addStyleSheet = new JMenuItem("Add Style Sheet");
-    private static final JMenuItem deleteOntology = new JMenuItem("Delete Ontology");
+	private static final JMenuItem addStyleSheet = new JMenuItem(VueResources.getString("menu.addstylesheet"));
+    private static final JMenuItem deleteOntology = new JMenuItem(VueResources.getString("menu.deleteontology"));
     
 	private JPopupMenu getPopup(MouseEvent e) 
 	{
 		if (m == null)
 		{
-			m = new JPopupMenu("Resource Menu");
+			m = new JPopupMenu(VueResources.getString("menu.popup.resource"));
 		
 			m.add(addStyleSheet);
 			m.add(deleteOntology);

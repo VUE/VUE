@@ -16,8 +16,6 @@
 package edu.tufts.vue.preferences.implementations;
 
 
-import edu.tufts.vue.preferences.PreferenceConstants;
-import edu.tufts.vue.preferences.generics.GenericSliderPreference;
 import java.util.Hashtable;
 import java.util.prefs.Preferences;
 
@@ -25,7 +23,9 @@ import javax.swing.JLabel;
 import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 
-import tufts.vue.LWImage;
+import tufts.vue.VueResources;
+import edu.tufts.vue.preferences.PreferenceConstants;
+import edu.tufts.vue.preferences.generics.GenericSliderPreference;
 
 /**
  * @author Mike Korcynski
@@ -81,7 +81,7 @@ public class ImageSizePreference extends GenericSliderPreference {
 		setDefaultValueMappedToSlider();		
         //Create the label table
         Hashtable<Integer, JLabel> labelTable = new Hashtable<Integer, JLabel>();
-        labelTable.put( new Integer( HASHMARK_0 ), new JLabel("Off") );
+        labelTable.put( new Integer( HASHMARK_0 ), new JLabel(VueResources.getString("jlabel.off")) );
         labelTable.put( new Integer( HASHMARK_1 ), new JLabel("16x16") );
         labelTable.put( new Integer( HASHMARK_2 ), new JLabel("32x32") );
         labelTable.put( new Integer( HASHMARK_3 ), new JLabel("64x64") );

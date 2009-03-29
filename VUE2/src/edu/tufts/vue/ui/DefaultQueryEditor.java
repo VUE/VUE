@@ -17,6 +17,8 @@ package edu.tufts.vue.ui;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
+import tufts.vue.VueResources;
+
 public class DefaultQueryEditor
 extends javax.swing.JPanel
 implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
@@ -244,7 +246,7 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 		gbConstraints.fill = java.awt.GridBagConstraints.NONE;
 		gbConstraints.weightx = 0;
 		gbConstraints.anchor = java.awt.GridBagConstraints.EAST;
-		javax.swing.JLabel keywordLbl = new javax.swing.JLabel("Keyword:");
+		javax.swing.JLabel keywordLbl = new javax.swing.JLabel(VueResources.getString("jlabel.keyword"));
 		keywordLbl.setFont(tufts.vue.gui.GUI.LabelFace);
 		add(keywordLbl,gbConstraints);
 		
@@ -260,7 +262,7 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 		gbConstraints.fill = java.awt.GridBagConstraints.NONE;
 		gbConstraints.weightx = 0;
 		gbConstraints.ipadx = 10;
-		javax.swing.JLabel moreOptionLbl = new javax.swing.JLabel("More options:");
+		javax.swing.JLabel moreOptionLbl = new javax.swing.JLabel(VueResources.getString("jlabel.moreoption"));
 		moreOptionLbl.setFont(tufts.vue.gui.GUI.LabelFace);
 		add(moreOptionLbl,gbConstraints);
 
@@ -333,7 +335,7 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 		gbConstraints.fill = java.awt.GridBagConstraints.NONE;
 		gbConstraints.weightx = 0;
 		gbConstraints.gridx = 0;
-		add(new javax.swing.JLabel("Fewer options:"),gbConstraints);
+		add(new javax.swing.JLabel(VueResources.getString("jlabel.feweroption")),gbConstraints);
 
 		gbConstraints.gridx = 1;
 		gbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
@@ -353,7 +355,7 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 		
 		if (size == 0) {
 			// no Dublin Core Types found
-			add(new javax.swing.JLabel("No Dublin Core OSID Types Found"),gbConstraints);
+			add(new javax.swing.JLabel(VueResources.getString("jlabel.nodublin")),gbConstraints);
 			gbConstraints.gridy++;
 			//searchButton2.setEnabled(false);
 		} else {

@@ -577,7 +577,7 @@ public class TypeList extends JList implements MouseListener,ActionListener {
          public void run()
          {
            
-          JLabel loadingLabelText = new JLabel("loading..."); 
+          JLabel loadingLabelText = new JLabel(VueResources.getString("addLibrary.loading.label")); 
           JLabel loadingLabelImage = new JLabel(tufts.vue.VueResources.getImageIcon("dsv.statuspanel.waitIcon"));
           JPanel loadingLabel = new JPanel();
           loadingLabel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));;
@@ -640,10 +640,10 @@ public class TypeList extends JList implements MouseListener,ActionListener {
                   fnfe.printStackTrace();   
               }
               
-              JLabel fileNotFound = new JLabel("File not found");
+              JLabel fileNotFound = new JLabel(VueResources.getString("actionutil.filenotfound.title"));
               if(!ontologyURL.toString().contains("file:"))
               {
-                  fileNotFound.setText("Location not found");
+                  fileNotFound.setText(VueResources.getString(VueResources.getString("actionutil.locationnotfound.tooltip")));
               }
               fileNotFound.setBorder(javax.swing.BorderFactory.createEmptyBorder(10,5,10,0));
               widget.add(fileNotFound);
@@ -1007,22 +1007,22 @@ public class TypeList extends JList implements MouseListener,ActionListener {
 	this.setSelectedIndex(index);
         LWComponent o = this.getSelectedComponent();
         if(o instanceof LWNode)
-            addToMap.setText("Add node to map");
+            addToMap.setText(VueResources.getString("typelist.addnodetomap.tooltip"));
         if(o instanceof LWLink)
-            addToMap.setText("Add link to map");
+            addToMap.setText(VueResources.getString("typelist.addlinktonode.tooltip"));
         
         getPopup(e).show(e.getComponent(), e.getX(), e.getY());
     }
 	
 	JPopupMenu m = null;
-	private final JMenuItem addToMap = new JMenuItem("Add to map");
-        private final JMenuItem addToNode = new JMenuItem("Add to selected node");
+	private final JMenuItem addToMap = new JMenuItem(VueResources.getString("menu.addtomap"));
+        private final JMenuItem addToNode = new JMenuItem(VueResources.getString("menu.addtonode"));
     
 	private JPopupMenu getPopup(MouseEvent e) 
 	{
 		if (m == null)
 		{
-			m = new JPopupMenu("Resource Menu");
+			m = new JPopupMenu(VueResources.getString("menu.popup.resource"));
 		
 			m.add(addToMap);
 			m.add(addToNode);

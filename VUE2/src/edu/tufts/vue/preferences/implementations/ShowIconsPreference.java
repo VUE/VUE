@@ -15,7 +15,6 @@
 package edu.tufts.vue.preferences.implementations;
 
 import java.awt.Color;
-import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -30,10 +29,10 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import tufts.vue.VueResources;
 import edu.tufts.vue.preferences.VuePrefEvent;
 import edu.tufts.vue.preferences.VuePrefListener;
 import edu.tufts.vue.preferences.generics.BasePref;
-import edu.tufts.vue.preferences.interfaces.VuePreference;
 
 public class ShowIconsPreference extends BasePref implements ItemListener
 {
@@ -134,7 +133,7 @@ public class ShowIconsPreference extends BasePref implements ItemListener
         gbConstraints.fill=GridBagConstraints.NONE;
         gbConstraints.anchor=GridBagConstraints.WEST;
         gbConstraints.insets = new Insets(18,0,0,0);
-        panel.add(new JLabel("Resource"),gbConstraints);
+        panel.add(new JLabel(VueResources.getString("jlabel.resource")),gbConstraints);
         
       //  gbConstraints.gridx=0;
       //  gbConstraints.gridy=3;
@@ -162,7 +161,7 @@ public class ShowIconsPreference extends BasePref implements ItemListener
         gbConstraints.weightx=1;
         gbConstraints.weighty=.2;
         gbConstraints.insets = new Insets(0,0,0,0);
-        panel.add(new JLabel("Notes"),gbConstraints);
+        panel.add(new JLabel(VueResources.getString("jlabel.notes")),gbConstraints);
         
         gbConstraints.gridx=0;
         gbConstraints.gridy=5;
@@ -176,7 +175,7 @@ public class ShowIconsPreference extends BasePref implements ItemListener
         gbConstraints.weightx=1;
         gbConstraints.weighty=.2;
         gbConstraints.insets = new Insets(0,0,0,0);
-        panel.add(new JLabel("Pathway"),gbConstraints);
+        panel.add(new JLabel(VueResources.getString("jlabel.pathways")),gbConstraints);
         
         gbConstraints.gridx=0;
         gbConstraints.gridy=6;
@@ -190,7 +189,7 @@ public class ShowIconsPreference extends BasePref implements ItemListener
         gbConstraints.weightx=1;
         gbConstraints.weighty=.2;
         gbConstraints.insets = new Insets(0,0,0,0);
-        panel.add(new JLabel("Keywords"),gbConstraints);
+        panel.add(new JLabel(VueResources.getString("jlabel.keywords")),gbConstraints);
         
         gbConstraints.gridx=0;
         gbConstraints.gridy=7;
@@ -204,7 +203,7 @@ public class ShowIconsPreference extends BasePref implements ItemListener
         gbConstraints.weightx=1;
         gbConstraints.weighty=.2;
         gbConstraints.insets = new Insets(0,0,130,0);
-        panel.add(new JLabel("Hierarchy"),gbConstraints);        
+        panel.add(new JLabel(VueResources.getString("jlabel.hierarchy")),gbConstraints);        
         
         resourceCheckbox.addItemListener(this);
      //   behaviorCheckbox.addItemListener(this);

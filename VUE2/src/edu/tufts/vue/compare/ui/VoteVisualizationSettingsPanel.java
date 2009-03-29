@@ -16,14 +16,18 @@
 
 package edu.tufts.vue.compare.ui;
 
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Insets;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 
-import javax.swing.*;
-import javax.swing.event.*;
+import javax.swing.JCheckBox;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JSlider;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
+import tufts.vue.VueResources;
 
 public class VoteVisualizationSettingsPanel extends JPanel {
     
@@ -110,7 +114,7 @@ public class VoteVisualizationSettingsPanel extends JPanel {
         
         nodeThresholdSlider.setBorder(javax.swing.BorderFactory.createEmptyBorder(5,5,5,5));
         
-        JLabel nodeLabel = new JLabel("Nodes:");
+        JLabel nodeLabel = new JLabel(VueResources.getString("jlabel.node"));
         nodeLabel.setFont(tufts.vue.gui.GUI.LabelFace);
         
         voteConstraints.anchor = GridBagConstraints.WEST;
@@ -144,7 +148,7 @@ public class VoteVisualizationSettingsPanel extends JPanel {
         add(nodeThresholdSlider);
         voteConstraints.fill = GridBagConstraints.NONE;
         
-        JLabel linkPanel = new JLabel("Links:");
+        JLabel linkPanel = new JLabel(VueResources.getString("jlabel.links"));
         linkPanel.setFont(tufts.vue.gui.GUI.LabelFace);
         voteConstraints.gridwidth = GridBagConstraints.REMAINDER;
         voteConstraints.insets= new java.awt.Insets(20,40,5,0);

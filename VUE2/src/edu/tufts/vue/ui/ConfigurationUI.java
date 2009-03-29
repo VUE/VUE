@@ -747,12 +747,12 @@ public class ConfigurationUI extends javax.swing.JPanel {
             cui.setPreferredSize(new java.awt.Dimension(420,300));
             if (javax.swing.JOptionPane.showOptionDialog(frame,
                     cui,
-                    "Update Resource Configuration",
+                    VueResources.getString("dialog.configuration.updateresource"),
                     javax.swing.JOptionPane.DEFAULT_OPTION,
                     javax.swing.JOptionPane.QUESTION_MESSAGE,
                     null,
                     new Object[] {
-                "Cancel", "Update"}, "Update") == 1) {
+                VueResources.getString("button.cancel.lable"), VueResources.getString("button.update.lable")}, VueResources.getString("button.update.lable")) == 1) {
                 System.out.println("Properties: " + cui.getProperties());
             }
             System.exit(0);
