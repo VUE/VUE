@@ -187,7 +187,7 @@ public class DataSourceHandler extends JPanel
         VUE.diagPop(); // DSV 
 
         NoConfig.setMinimumSize(new Dimension(100,50));
-        configMetaData.setName("Content Description");
+        configMetaData.setName(VueResources.getString("datasourceviewer.name.contentdescription"));
         
         Widget.setExpanded(DRB.browsePane, false); // working: why expanded sometimes?
         

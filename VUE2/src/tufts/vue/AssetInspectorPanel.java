@@ -47,7 +47,7 @@ import javax.swing.border.*;
 			setBorder( new EmptyBorder(4,4,4,4) );
 			
 			mAssetBox = Box.createVerticalBox();
-			mAssetBox.add( new JLabel( "Asset Display Offline") );
+			mAssetBox.add( new JLabel( VueResources.getString("jlabel.assetdisplayoffline")) );
 			
 			mAssetScrollPane = new JScrollPane();
 			mAssetScrollPane.setVerticalScrollBarPolicy( JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);

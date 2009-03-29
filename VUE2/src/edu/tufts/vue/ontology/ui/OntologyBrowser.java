@@ -266,7 +266,7 @@ public class OntologyBrowser extends JPanel {
     public void initializeBrowser(boolean delayedLoading, DockWindow typeDock) {
         
         setLayout(new javax.swing.BoxLayout(this,javax.swing.BoxLayout.Y_AXIS));
-        setName("Ontologies");
+        setName(VueResources.getString("dockWindow.ontologies.title"));
         
         this.typeDock = typeDock;
         this.ontologiesPanel = this;
@@ -345,7 +345,7 @@ public class OntologyBrowser extends JPanel {
     public void loadOntologyViewer() {
         //OntologyViewer ontologyViewer = new OntologyViewer(this);
         ontologyViewer = new OntologyViewer(this);
-        ontologyViewer.setName("Ontology Viewer");
+        ontologyViewer.setName(VueResources.getString("ontoloty.viewer"));
         ontologiesPanel.add(ontologyViewer);
         revalidate();
     }

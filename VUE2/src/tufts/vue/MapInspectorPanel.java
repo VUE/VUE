@@ -33,7 +33,7 @@ import tufts.vue.gui.*;
  * A tabbed-pane collection of property sheets that apply
  * globally to a given map.
  *
- * @version $Revision: 1.69 $ / $Date: 2009-03-29 03:29:22 $ / $Author: vaibhav $ 
+ * @version $Revision: 1.70 $ / $Date: 2009-03-29 19:48:44 $ / $Author: vaibhav $ 
  *
  */
 public class MapInspectorPanel extends JPanel
@@ -85,14 +85,14 @@ public class MapInspectorPanel extends JPanel
        // VueResources.initComponent( mTabbedPane, "tabPane");
         
         mInfoPanel = new InfoPanel();
-        mInfoPanel.setName("Map Info");
+        mInfoPanel.setName(VueResources.getString("mapinspectorpanel.mapinfo"));
         //mPathPanel = new PathwayPane();
         //mFilterApplyPanel = new FilterApplyPanel();
         //mFilterCreatePanel = new FilterCreatePanel();
         //metadataPanel = new MetadataPanel();
         metadataPanel = new MetadataEditor(VUE.getActiveMap(),false,false);
         
-        metadataPanel.setName("Keywords");
+        metadataPanel.setName(VueResources.getString("mapinspectorpanel.keywords"));
         //mTabbedPane.addTab( mInfoPanel.getName(), mInfoPanel);
         //mTabbedPane.addTab( mPathPanel.getName(),  mPathPanel);
         //if(tufts.vue.ui.InspectorPane.META_VERSION == tufts.vue.ui.InspectorPane.OLD)
@@ -240,8 +240,8 @@ public class MapInspectorPanel extends JPanel
         ColorMenuButton mMapColor = new ColorMenuButton(VueResources.getColorArray("fillColorValues"),true);
         public InfoPanel() {
         
-             mMapColor.setToolTipText("Map Color");
-             mMapColor.setName("Map-Color");
+             mMapColor.setToolTipText(VueResources.getString("mapinspectorpanel.mapcolor"));
+             mMapColor.setName(VueResources.getString("mapinspectorpanel.map_color"));
   
              mMapColor.setPropertyKey(null);
              mMapColor.getPopupWindow().addFocusListener(new FocusListener()
@@ -589,7 +589,7 @@ public class MapInspectorPanel extends JPanel
             //setLayout( new FlowLayout(FlowLayout.LEFT,6,6) );
             setLayout(new BorderLayout());
             setBorder( BorderFactory.createEmptyBorder(10,10,0,6));
-            setName("Keywords");
+            setName(VueResources.getString("mapinspectorpanel.keywords"));
         }
         
         public MetadataPanel(LWMap map) {

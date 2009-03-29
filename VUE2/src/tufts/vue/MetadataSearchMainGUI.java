@@ -77,7 +77,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.39 $ / $Date: 2009-03-29 03:31:29 $ / $Author: Sheejo
+ * @version $Revision: 1.40 $ / $Date: 2009-03-29 19:49:11 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -89,13 +89,13 @@ public class MetadataSearchMainGUI extends JPanel
     public final static String AND = "and";
     public final static String OR = "or";
 
-    public final static String SELECTED_MAP_STRING = "Current Map";
-    public final static String ALL_MAPS_STRING = "All Open Maps";
+    public final static String SELECTED_MAP_STRING = VueResources.getString("searchgui.currentmap");
+    public final static String ALL_MAPS_STRING = VueResources.getString("searchgui.allopenmaps");
 
-    public final static String SEARCH_EVERYTHING = "Search everything";
-    public final static String SEARCH_LABELS_ONLY = "Labels";
-    public final static String SEARCH_ALL_KEYWORDS = "Keywords";
-    public final static String SEARCH_CATEGORIES_AND_KEYWORDS = "Categories + Keywords";
+    public final static String SEARCH_EVERYTHING = VueResources.getString("searchgui.searcheverything");
+    public final static String SEARCH_LABELS_ONLY = VueResources.getString("searchgui.labels");
+    public final static String SEARCH_ALL_KEYWORDS = VueResources.getString("searchgui.keywords");
+    public final static String SEARCH_CATEGORIES_AND_KEYWORDS = VueResources.getString("searchgui.categories_keywords");
     private String[] searchTypes = { SEARCH_EVERYTHING, SEARCH_LABELS_ONLY,
             SEARCH_ALL_KEYWORDS, SEARCH_CATEGORIES_AND_KEYWORDS };
     private JPanel linePanel;
@@ -121,7 +121,7 @@ public class MetadataSearchMainGUI extends JPanel
     private int conditionColumn = -1;
     private int searchType = EVERYTHING;
     private JButton searchButton;
-    private static String[] andOrTypes = {"or","and" };
+    private static String[] andOrTypes = {VueResources.getString("sarcghgui.or"),VueResources.getString("sarcghgui.and") };
     private static final boolean DEBUG_LOCAL = false;
     private JPanel topPanel;
     private JPanel innerTopPanel;
@@ -144,8 +144,8 @@ public class MetadataSearchMainGUI extends JPanel
     private JTable searchTermsTable;
     private boolean singleLine = false;
 
-    private String[] currentMapResultsTypes = { "Show", "Hide", "Select",
-            "Copy to new map" };
+    private String[] currentMapResultsTypes = { VueResources.getString("searchgui.show"), VueResources.getString("searchgui.hide"), VueResources.getString("searchgui.select"),
+    		VueResources.getString("searchgui.copynewmap") };
     static public final int ANY_MODE = 0;
     static public final int ALL_MODE = 1;
     static public final int NOT_ANY_MODE = 2;
@@ -169,17 +169,17 @@ public class MetadataSearchMainGUI extends JPanel
     private List<SearchData> searchDataList = new ArrayList<SearchData>();
     private List<JComboBox> comboBoxes = new ArrayList<JComboBox>();
     private JPopupMenu popupMenu = new JPopupMenu();
-    private final String RENAME_STR = "Rename";
-    private final String DELETE_STR = "Delete";
-    private final String RESET_STR = "Reset Map";
-    private final String SEARCH_STR = "Search";
-    private final String SAVED_SEARCH_STR = "Saved Searches";
-    private final String SAVE_SEARCH_STR = "Save Search";
-    private final String RUN_SEARCH_STR = "Run Search";
+    private final String RENAME_STR = VueResources.getString("searchgui.rename");
+    private final String DELETE_STR = VueResources.getString("searchgui.delete");
+    private final String RESET_STR = VueResources.getString("searchgui.resetmap");
+    private final String SEARCH_STR = VueResources.getString("searchgui.search");
+    private final String SAVED_SEARCH_STR = VueResources.getString("searchgui.savedsearches");
+    private final String SAVE_SEARCH_STR = VueResources.getString("searchgui.savesearch");
+    private final String RUN_SEARCH_STR = VueResources.getString("searchgui.runsearch");
     private JTable searchHeaderTbl;
     private JTable searchResultTbl;
     private JComboBox andOrCmbBox = new JComboBox(andOrTypes);
-    private String strAndOrType  = "or";
+    private String strAndOrType  = VueResources.getString("sarcghgui.or");
     public boolean isSearchBtnClick = false;
     public MetadataSearchMainGUI(DockWindow w) {
         super();        
@@ -209,7 +209,7 @@ public class MetadataSearchMainGUI extends JPanel
                 SearchData data = new SearchData();
                 searchDataList = new ArrayList<SearchData>();   
                 int rowCount = searchResultModel.getRowCount();
-                String searchName = (String) JOptionPane.showInputDialog(null,null,"Please Enter Search Name",JOptionPane.PLAIN_MESSAGE,null,null,("Search" + " "+ (rowCount+1)));
+                String searchName = (String) JOptionPane.showInputDialog(null,null,VueResources.getString("searchgui.entersearchname"),JOptionPane.PLAIN_MESSAGE,null,null,(VueResources.getString("searchgui.search") + " "+ (rowCount+1)));
             	if(searchName!=null && searchName.trim().length()==0){
             		searchName = "Search" + " "+ (searchResultModel.getRowCount()+1);
             	}                
@@ -681,9 +681,9 @@ public class MetadataSearchMainGUI extends JPanel
             add(buttonPanel, BorderLayout.SOUTH);
         }
         public String getSearchName(int rowCount){        	
-        	String inputValue = (String) JOptionPane.showInputDialog(null,null,"Enter Search Name",JOptionPane.PLAIN_MESSAGE,null,null,("Search" + " "+ (rowCount+1)));
+        	String inputValue = (String) JOptionPane.showInputDialog(null,null,VueResources.getString("searchgui.entersearchname"),JOptionPane.PLAIN_MESSAGE,null,null,(VueResources.getString("searchgui.search") + " "+ (rowCount+1)));
         	if(inputValue!=null && inputValue.trim().length()==0){
-        		inputValue = "Search" + " "+ (rowCount+1);
+        		inputValue = VueResources.getString("searchgui.search") + " "+ (rowCount+1);
         	}
             return inputValue;
         }
@@ -837,7 +837,7 @@ public class MetadataSearchMainGUI extends JPanel
             add(panel);
 
             // add(searchResultTbl);
-            setName("Keywords");
+            setName(VueResources.getString("searchgui.keywords"));
         }
 
         public void actionPerformed(ActionEvent e) {

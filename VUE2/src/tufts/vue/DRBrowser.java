@@ -59,7 +59,7 @@ import javax.swing.border.*;
  * We'd probably need a delegating impl tho to handle that.
  *
  *
- * @version $Revision: 1.77 $ / $Date: 2009-03-29 03:19:00 $ / $Author: vaibhav $ 
+ * @version $Revision: 1.78 $ / $Date: 2009-03-29 19:48:23 $ / $Author: vaibhav $ 
  */
 public class DRBrowser extends JPanel
 {
@@ -191,7 +191,7 @@ public class DRBrowser extends JPanel
     {
         super(new BorderLayout());
         if (DEBUG.DR || DEBUG.INIT) out("Creating DRBrowser");
-        setName("Resources");
+        setName(VueResources.getString("drbrowser.resources"));
         //Dimension startSize = new Dimension(300,160);
         //setPreferredSize(startSize);
         //setMinimumSize(startSize);
