@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * until a synthetic model item at the end of this shortened list is selected, at which
  * time the rest of the items are "unmaksed" and displayed.
  *
- * @version $Revision: 1.18 $ / $Date: 2008-07-07 20:58:51 $ / $Author: sfraize $
+ * @version $Revision: 1.19 $ / $Date: 2009-03-29 03:03:47 $ / $Author: vaibhav $
  */
 public class ResourceList extends JList
     implements DragGestureListener, /*tufts.vue.ResourceSelection.Listener,*/ MouseListener,ActionListener
@@ -402,7 +402,7 @@ public class ResourceList extends JList
 	{
 		if (m == null)
 		{
-			m = new JPopupMenu("Resource Menu");
+			m = new JPopupMenu(VueResources.getString("menu.popup.resource"));
 		
 			infoCheckBox.setLabel("Resource Info");
 			if (VUE.getInfoDock().isShowing())

@@ -165,7 +165,7 @@ public class RDFOpenAction extends VueAction {
         } catch (Exception e) {
             // out of the Open File dialog box.
             System.err.println("OpenAction.loadMap[" + fileName + "]: " + e);
-            VueUtil.alert(null, "\"" + fileName + "\" cannot be opened in this version of VUE.", "Map Open Error");
+            VueUtil.alert(null, "\"" + fileName + "\"" +VueResources.getString("rfdopenaction.openfile.error"), VueResources.getString("rfdopenaction.openfile.title"));
             e.printStackTrace();
         }
             
@@ -210,7 +210,7 @@ public class RDFOpenAction extends VueAction {
           
           String labelDisplay = VueResources.getString("rdf.import.displayType");
           
-          if(labelDisplay.equals("LABEL"))
+          if(labelDisplay.equals(VueResources.getString("rdf.import.displayType")))
           {    
             edu.tufts.vue.rdf.RDFIndex index = new edu.tufts.vue.rdf.RDFIndex();
             com.hp.hpl.jena.rdf.model.Property labelOf = index.createProperty(edu.tufts.vue.rdf.RDFIndex.VUE_ONTOLOGY,edu.tufts.vue.metadata.Constants.LABEL);

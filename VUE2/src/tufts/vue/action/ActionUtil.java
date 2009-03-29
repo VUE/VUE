@@ -65,7 +65,7 @@ import java.net.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistence thru castor XML.
  *
- * @version $Revision: 1.131 $ / $Date: 2009-03-19 01:12:02 $ / $Author: sfraize $
+ * @version $Revision: 1.132 $ / $Date: 2009-03-29 03:10:41 $ / $Author: vaibhav $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -182,7 +182,7 @@ public class ActionUtil
             saveChooser.setFileFilter(defaultFilter); 
         }         
         
-        int option = saveChooser.showDialog(VUE.getDialogParentAsFrame(), "Save");
+        int option = saveChooser.showDialog(VUE.getDialogParentAsFrame(), VueResources.getString("dialog.save.title"));
         
         if (option == VueFileChooser.APPROVE_OPTION) 
         {
@@ -207,7 +207,7 @@ public class ActionUtil
                   
                 if (n == JOptionPane.NO_OPTION){
                 	picked = null;                	
-                	saveChooser.showDialog(VUE.getDialogParentAsFrame(), "Save");                	
+                	saveChooser.showDialog(VUE.getDialogParentAsFrame(), VueResources.getString("dialog.save.title"));                	
                 }
             } 
             
@@ -257,7 +257,7 @@ public class ActionUtil
                     VueUtil.setCurrentDirectoryPath(chosenPath);
                 } else {
                     Log.debug("File '" + chosenPath + "' " + file + " can't  be found.");
-                    tufts.vue.VueUtil.alert(chooser, "Could not find " + file, "File Not Found");
+                    tufts.vue.VueUtil.alert(chooser,  VueResources.getString("actionutil.filenotfound.error")+" "+ file, VueResources.getString("actionutil.filenotfound.error"));
                 }
                 file = null;
             }
@@ -312,7 +312,7 @@ public class ActionUtil
         			 VueUtil.setCurrentDirectoryPath(chosenPath);
         		 } else {
         			 Log.debug("File '" + chosenPath + "' " + file + " can't  be found.");
-        			 tufts.vue.VueUtil.alert(chooser, "Could not find " + file, "File Not Found");
+        			 tufts.vue.VueUtil.alert(chooser, VueResources.getString("actionutil.filenotfound.error")+" "+ file, VueResources.getString("actionutil.filenotfound.error"));
         		 }
         		 chooserFile[0] = null;
         	 }
@@ -471,7 +471,7 @@ public class ActionUtil
             unmarshallMap(tempFile);
             return true;
         } catch(Throwable t) {
-              tufts.vue.VueUtil.alert("There is problem with characters in the map. It cannot be saved:  " + t, "File save error");
+              tufts.vue.VueUtil.alert(VueResources.getString("actionutil.filesave.error") + t, VueResources.getString("actionutil.filesave.title"));
             Log.error("Testing save: "+map+";"+t);
             Util.printStackTrace(t);
         }
@@ -526,9 +526,11 @@ public class ActionUtil
         Log.info("renaming new to target: " + targetFile);
         if (!tmpFile.renameTo(targetFile)) {
             Log.error("Failed to rename temp file " + tmpFile + "; to target file: " + targetFile);
-            VueUtil.alert(String.format("Save error; failed to rename temp file '%s' to target file '%s'",
+            //Object obj[] = {tmpFile,targetFile};
+           // VueResources.getFormatMessage(obj, pattern)
+            VueUtil.alert(String.format(Locale.getDefault(),VueResources.getString("actionutil.rename.error"),
                                         tmpFile, targetFile),
-                          "Save Error");
+                                        VueResources.getString("actionutil.rename.title"));
             
         }
     }
@@ -778,9 +780,9 @@ public class ActionUtil
             // VueUtil.alert("The map contains characters that are not supported. Reverting to earlier saved version",
             //-----------------------------------------------------------------------------
 
-            VueUtil.alert("Save error; map file may now be corrupted -- try undoing until save works.\n\n"
-                          + "Problem description:\n" + Util.formatLines(t.toString(), 80),
-                          "Save Error");
+            VueUtil.alert(VueResources.getString("actionutil.filecorrupted.error")+"\n\n"
+                          + VueResources.getString("actionutil.filecorrupted.description")+"\n" + Util.formatLines(t.toString(), 80),
+                          VueResources.getString("actionutil.rename.title"));
             
             try {
                 if (targetFile != null) {
@@ -789,7 +791,7 @@ public class ActionUtil
                     map.setFile(oldSaveFile);
                 }
             } catch (Throwable tx) {
-                VueUtil.alert(Util.formatLines(tx.toString(), 80), "Internal Save Error");    
+                VueUtil.alert(Util.formatLines(tx.toString(), 80), VueResources.getString("actionutil.internalsave.title"));    
                 Util.printStackTrace(tx);
             } finally {
                 throw new WrappedMarshallException(t);
@@ -1282,17 +1284,17 @@ class MapUnmarshalHandler implements UnmarshalListener {
         final String fileName = file.getName();
 
         if (map.getModelVersion() > LWMap.getCurrentModelVersion()) {
-            VueUtil.alert(String.format("The file %s was saved in a newer version of VUE than is currently running.\n"
-                                        + "\nThe data model in this map is #%d, and this version of VUE only understands up to model #%d.\n",
+            VueUtil.alert(String.format(Locale.getDefault(), VueResources.getString("actionutil.notifyversion.message")+"\n"
+                                        + "\n"+VueResources.getString("actionutil.notifyversion.datamodel")+"\n",
                                         file, map.getModelVersion(), LWMap.getCurrentModelVersion())
-                          + "\nVersion of VUE that saved this file:\n        " + savingVersion
-                          + "\nCurrent running version of VUE:\n        " + "VUE: built " + tufts.vue.Version.AllInfo
+                          + "\n"+ VueResources.getString("actionutil.notifyversion.savedversion") +"\n" + savingVersion
+                          + "\n"+VueResources.getString("actionutil.notifyversion.currentversion")+"\n        " + VueResources.getString("actionutil.notifyversion.vuebuilt") + tufts.vue.Version.AllInfo
                           + " (public v" + VueResources.getString("vue.version") + ")"
                           + "\n"
-                          + "\nThis version of VUE may not display this map properly.  Saving"
-                          + "\nthis map in this version of VUE may result in a corrupted map."
+                          + "\n"+VueResources.getString("actionutil.notifyversion.displaymap")
+                          + "\n"+VueResources.getString("actionutil.notifyversion.corruptmap")
                           ,
-                          String.format("Version Warning: %s", fileName));
+                          String.format(Locale.getDefault(),VueResources.getString("actionutil.notifyversion.versionwarning"), fileName));
 
             map.setLabel(fileName + " (as available)");
             // Skip setting the file: this will force save-as if they try to save.

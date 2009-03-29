@@ -40,7 +40,7 @@ import edu.tufts.vue.metadata.action.SearchAction;
 
 
 /**
- * @version $Revision: 1.75 $ / $Date: 2009-03-22 21:29:02 $ / $Author: vaibhav $
+ * @version $Revision: 1.76 $ / $Date: 2009-03-29 03:03:00 $ / $Author: vaibhav $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -540,7 +540,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             ;
         } else if(b.getAction().equals(LAYER_NEW)){
         	
-        	b.setText("New Layer");        	
+        	b.setText(VueResources.getString("layersui.newlayer.tooltip"));        	
         	b.setIcon(tufts.vue.VueResources.getImageIcon("metadata.editor.add.up"));
         	b.setRolloverEnabled(true);
         	b.setPreferredSize(new Dimension(90,30));

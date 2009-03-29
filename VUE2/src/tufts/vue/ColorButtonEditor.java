@@ -42,7 +42,7 @@ public class ColorButtonEditor extends JButton implements ActionListener {
 	/** The currently selected palette item--if any **/
 	private Color mColor = Color.black;
 		
-	private String mTitle = "Select Color";
+	private String mTitle = VueResources.getString("dialog.selectcolor.title");
 	
 	private String mName = "color";
 	/**

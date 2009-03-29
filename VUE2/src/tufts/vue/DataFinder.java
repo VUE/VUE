@@ -66,7 +66,7 @@ import javax.swing.border.*;
  * We'd probably need a delegating impl tho to handle that.
  *
  *
- * @version $Revision: 1.1 $ / $Date: 2008-11-20 17:49:38 $ / $Author: sfraize $ 
+ * @version $Revision: 1.2 $ / $Date: 2009-03-29 03:11:37 $ / $Author: vaibhav $ 
  */
 public class DataFinder extends WidgetStack
 {
@@ -230,7 +230,7 @@ public class DataFinder extends WidgetStack
         //-----------------------------------------------------------------------------
         
         searchPane.setBackground(Color.white);
-        JLabel please = new JLabel("Please select a searchable resource", JLabel.CENTER);
+        JLabel please = new JLabel(VueResources.getString("jlabel.searchableresource"), JLabel.CENTER);
         GUI.apply(GUI.StatusFace, please);
         searchPane.add(please, SEARCH_EDITOR);
 		

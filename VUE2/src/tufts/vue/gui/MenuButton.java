@@ -15,18 +15,26 @@
 
 package tufts.vue.gui;
 
-import tufts.vue.DEBUG;
-import tufts.vue.VueAction;
-import tufts.vue.LWComponent;
-import tufts.vue.LWPropertyChangeEvent;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
-import java.io.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.beans.*;
-import java.util.*;
-import javax.swing.*;
-import javax.swing.border.*;
+import javax.swing.Action;
+import javax.swing.Icon;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+
+import tufts.vue.DEBUG;
+import tufts.vue.LWPropertyChangeEvent;
+import tufts.vue.VueAction;
+import tufts.vue.VueResources;
 
 /**
  * A button that supports a drop-down menu and changes state based on the
@@ -37,7 +45,7 @@ import javax.swing.border.*;
  *
  * Subclasses must implement LWEditor produce/display
  *
- * @version $Revision: 1.31 $ / $Date: 2008-06-30 20:53:05 $ / $Author: mike $
+ * @version $Revision: 1.32 $ / $Date: 2009-03-29 03:05:37 $ / $Author: vaibhav $
  * @author Scott Fraize
  *
  */
@@ -281,7 +289,7 @@ public abstract class MenuButton<T> extends JButton
         }
 
         if (createCustom) {
-            JMenuItem item = new JMenuItem("Custom..."); // todo: more control over this item
+            JMenuItem item = new JMenuItem(VueResources.getString("menubutton.custom")); // todo: more control over this item
             item.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) { handleValueSelection(runCustomChooser()); }});
             mPopup.add(item);

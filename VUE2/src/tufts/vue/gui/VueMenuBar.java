@@ -87,7 +87,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.137 $ / $Date: 2009-03-23 21:15:08 $ / $Author: sfraize $
+ * @version $Revision: 1.138 $ / $Date: 2009-03-29 03:05:11 $ / $Author: vaibhav $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -468,7 +468,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
             JButton r = new JButton(Actions.Redo);
             JButton p = new JButton(printAction);
             JButton v = new JButton(printAction);
-            v.setText("Print Visible");
+            v.setText(VueResources.getString("vuemenubar.printvisible.tooltip"));
             
             u.setBackground(Color.white);
             r.setBackground(Color.white);

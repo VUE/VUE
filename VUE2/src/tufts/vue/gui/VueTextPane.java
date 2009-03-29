@@ -28,7 +28,7 @@ import javax.swing.text.*;
  * and enters an undo entry.
  *
  * @author Scott Fraize
- * @version $Revision: 1.15 $ / $Date: 2008-12-17 04:42:45 $ / $Author: sfraize $
+ * @version $Revision: 1.16 $ / $Date: 2009-03-29 03:04:51 $ / $Author: vaibhav $
  */
 
 // todo: create an abstract class for handling property & undo code, and subclass this and VueTextField from it.
@@ -276,7 +276,7 @@ public class VueTextPane extends JTextPane
     public static void main(String args[]) {
         VUE.init(args);
         VueUtil.displayComponent(new VueTextField("some text"));
-        DockWindow w = GUI.createDockWindow("VueTextPane Test");
+        DockWindow w = GUI.createDockWindow(VueResources.getString("dockWindow.vueTextpanetest.title"));
         javax.swing.JPanel panel = new javax.swing.JPanel();
         VueTextPane tp1 = new VueTextPane();
         VueTextPane tp2 = new VueTextPane();

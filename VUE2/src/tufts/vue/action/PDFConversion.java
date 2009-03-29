@@ -80,8 +80,8 @@ public class PDFConversion extends AbstractAction {
         try {
             
             VueFileChooser chooser = VueFileChooser.getVueFileChooser();
-            chooser.setDialogTitle("Save as PDF");
-            int option = chooser.showDialog(tufts.vue.VUE.getDialogParent(), "Save");
+            chooser.setDialogTitle(VueResources.getString("dialog.saveaspdf.title"));
+            int option = chooser.showDialog(tufts.vue.VUE.getDialogParent(), VueResources.getString("dialog.save.title"));
             if (option == VueFileChooser.APPROVE_OPTION) {
                 pdfFileName = chooser.getSelectedFile().getAbsolutePath();
                 if(!pdfFileName.endsWith(".pdf")) pdfFileName += ".pdf";

@@ -29,7 +29,7 @@ import java.awt.image.BufferedImage;
 import tufts.vue.*;
 
 /**
- * @version $Revision: 1.31 $ / $Date: 2009-02-27 15:18:30 $ / $Author: mike $ *
+ * @version $Revision: 1.32 $ / $Date: 2009-03-29 03:08:52 $ / $Author: vaibhav $ *
  * @author Jay Briedis
  * 
  * Major revision: 2/17/09 -MK
@@ -94,10 +94,10 @@ public class ImageMap extends VueAction {
 
 		if (imageLocationFile.exists()) {
 			int confirm = VueUtil.confirm(
-					"png image already exists, overwrite?",
-					"File Already Exists");
+					VueResources.getString("imagemap.fileexists.warning"),
+					VueResources.getString("imagemap.fileexists.title"));
 			if (confirm == javax.swing.JOptionPane.NO_OPTION) {
-				VueUtil.alert("Image map not saved", "Image Map");
+				VueUtil.alert(VueResources.getString("imagemap.mapnotsaved.error"), VueResources.getString("imagemap.mapnotsaved.title"));
 				return;
 			}
 		}

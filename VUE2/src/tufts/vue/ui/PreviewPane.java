@@ -31,7 +31,7 @@ import java.awt.datatransfer.*;
 /**
  * Display a preview of the selected resource.  E.g., and image or an icon.
  *
- * @version $Revision: 1.32 $ / $Date: 2008-06-30 20:53:00 $ / $Author: mike $
+ * @version $Revision: 1.33 $ / $Date: 2009-03-29 03:03:30 $ / $Author: vaibhav $
  * @author Scott Fraize
  */
 
@@ -52,7 +52,7 @@ public class PreviewPane extends JPanel
     private int mImageHeight;
     private boolean isLoading = false;
 
-    private final JLabel StatusLabel = new JLabel("(status)", JLabel.CENTER);
+    private final JLabel StatusLabel = new JLabel(VueResources.getString("jlabel.status"), JLabel.CENTER);
 
     private final int MinHeight = 128;
     private final int MaxHeight = 1024;
@@ -133,7 +133,7 @@ public class PreviewPane extends JPanel
         if (DEBUG.Enabled)
             StatusLabel.setText(""+data);
         else
-            StatusLabel.setText("Loading...");
+            StatusLabel.setText(VueResources.getString("addLibrary.loading.label"));
         StatusLabel.setVisible(true);
     }
     private void status(String msg) {

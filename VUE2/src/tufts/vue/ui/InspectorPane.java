@@ -42,7 +42,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.115 $ / $Date: 2009-03-23 15:35:58 $ / $Author: brian $
+ * @version $Revision: 1.116 $ / $Date: 2009-03-29 03:02:31 $ / $Author: vaibhav $
  */
 
 public class InspectorPane extends WidgetStack
@@ -348,7 +348,7 @@ public class InspectorPane extends WidgetStack
         if (s.size() == 0) {
             
             hideAll();
-            mSelectionInfo.setText("Nothing selected");
+            mSelectionInfo.setText(VueResources.getString("inspectionpane.nothingselected.tooltip"));
             Widget.show(mSelectionInfo);
             setVisible(true);
             

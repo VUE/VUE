@@ -311,9 +311,9 @@ public class DataSourceHandler extends JPanel
     	}
 
     	JPopupMenu m = null;
-    	private static final JMenuItem aboutResource = new JMenuItem("About this Resource");
+    	private static final JMenuItem aboutResource = new JMenuItem(VueResources.getString("datasourcehandle.menu.aboutresource"));
     	//private static final JMenuItem configureResource = new JMenuItem("Configure Resource");
-    	private static final JMenuItem deleteResource = new JMenuItem("Delete Resource");
+    	private static final JMenuItem deleteResource = new JMenuItem(VueResources.getString("datasourcehandle.menu.deleteresource"));
     	Point lastMouseClick = null;
 
     	public void actionPerformed(ActionEvent e)
@@ -347,7 +347,7 @@ public class DataSourceHandler extends JPanel
     	{
     		if (m == null)
     		{
-    			m = new JPopupMenu("Datasource Menu");
+    			m = new JPopupMenu(VueResources.getString("datasourcehandle.menu.datasource"));
     		
     			m.add(aboutResource);
     			m.addSeparator();
@@ -521,7 +521,7 @@ public class DataSourceHandler extends JPanel
 
     }
 
-    private static final JLabel StatusLabel = new JLabel("Loading...", JLabel.CENTER);
+    private static final JLabel StatusLabel = new JLabel(VueResources.getString("addLibrary.loading.label"), JLabel.CENTER);
     private static final JComponent Status;
     
     static {
@@ -1415,7 +1415,7 @@ public class DataSourceHandler extends JPanel
             GUI.invokeAfterAWT(new Runnable() { public void run() {
                 mResultPane.setTitle(mRepositoryName + " (Stopped)");
                 mStatusLabel.removeIcon();
-                mStatusLabel.setText("Search stopped.");
+                mStatusLabel.setText(VueResources.getString("datasourcehandle.searchstopped.tooltip"));
             }});
         }
         
@@ -1677,7 +1677,7 @@ public class DataSourceHandler extends JPanel
     
 
     private static WidgetStack editInfoStack; // static hack: is needed before this class is constructed
-    private static final JLabel NoConfig = new JLabel("No Configuration", JLabel.CENTER);
+    private static final JLabel NoConfig = new JLabel(VueResources.getString("jlabel.noconfig"), JLabel.CENTER);
     
     private final MetaDataPane configMetaData = new MetaDataPane("Config Properties", true);
     private Object loadedDataSource;
@@ -1745,7 +1745,7 @@ public class DataSourceHandler extends JPanel
 
     private static DockWindow _buildWindow() {
 
-        final DockWindow dw = GUI.createDockWindow("Resource");
+        final DockWindow dw = GUI.createDockWindow(VueResources.getString("dockWindow.resource.title"));
         
         editInfoStack = new WidgetStack();
         //editInfoStack.addPane("startup", new javax.swing.JLabel("config init"));

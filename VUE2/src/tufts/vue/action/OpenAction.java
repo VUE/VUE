@@ -122,7 +122,7 @@ public class OpenAction extends VueAction
             return map;
         } catch (Exception e) {
             Log.error("loadMap " + tufts.Util.tags(url), e);
-            VueUtil.alert(null, "The following map can't be opened in current version of VUE.","Map Open Error");
+            VueUtil.alert(null, VueResources.getString("openaction.mapopen.error"),VueResources.getString("openaction.mapopen.title"));
             //tufts.Util.printStackTrace(e);
             return null;
         }
@@ -140,7 +140,7 @@ public class OpenAction extends VueAction
         } catch (FileNotFoundException e) {
             // maybe move all exception code here, taking the file-not-found handling
             Log.error("loadMap " + Util.tags(filename), e);
-            VueUtil.alert(null, "\"" + filename + "\": file not found.", "Map Not Found");
+            VueUtil.alert(null, "\"" + filename + "\"" +VueResources.getString("openaction.mapnotfound.error"), VueResources.getString("openaction.mapnotfound.title"));
             map = LWMap.create(filename);
         } catch (Throwable t) {
             // out of the Open File dialog box.
@@ -164,7 +164,7 @@ public class OpenAction extends VueAction
             }
             
             VueUtil.alert(String.format(message, filename, Util.formatLines(exception, 80)),
-                          "Problem Opening Map");
+                          VueResources.getString("openaction.openmapproblem.title"));
             //tufts.Util.printStackTrace(t);
         }
         return map;

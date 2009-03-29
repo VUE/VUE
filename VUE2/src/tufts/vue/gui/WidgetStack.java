@@ -35,7 +35,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.56 $ / $Date: 2009-01-28 20:07:45 $ / $Author: sraphe01 $
+ * @version $Revision: 1.57 $ / $Date: 2009-03-29 03:04:15 $ / $Author: vaibhav $
  * @author Scott Fraize
  */
 public class WidgetStack extends Widget
@@ -90,7 +90,7 @@ public class WidgetStack extends Widget
         if (DEBUG.BOXES) {
             mDefaultExpander.setOpaque(true);
             mDefaultExpander.setBackground(Color.darkGray);
-            JLabel l = new JLabel("WidgetStack: default vertical expander", JLabel.CENTER);
+            JLabel l = new JLabel(VueResources.getString("jlabel.widgetstack"), JLabel.CENTER);
             l.setForeground(Color.white);
             mDefaultExpander.add(l);
         }
@@ -1281,7 +1281,7 @@ public class WidgetStack extends Widget
         }
         //s.addPane("Fixed", new JLabel("fixed"), 0f);
         
-        GUI.createDockWindow("WidgetStack Test", s).setVisible(true);
+        GUI.createDockWindow(VueResources.getString("dockWindow.WidgetStackTest.title"), s).setVisible(true);
     }
 
 }    

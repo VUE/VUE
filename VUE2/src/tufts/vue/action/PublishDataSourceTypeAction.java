@@ -35,7 +35,7 @@ public class PublishDataSourceTypeAction extends VueAction{
         try {
             Publisher publisher = new Publisher(type);
         } catch (Exception ex) {
-            VueUtil.alert(null, ex.getMessage(), "Publish Error");
+            VueUtil.alert(null, ex.getMessage(), VueResources.getString("publishdatasourceaction.title"));
             ex.printStackTrace();
             throw new RuntimeException(ex);
         }
