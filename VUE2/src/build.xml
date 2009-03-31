@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.179 $ / $Date: 2009-03-11 18:38:25 $ / $Author: sfraize $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.179 2009-03-11 18:38:25 sfraize Exp $ -->
+<!-- $Revision: 1.180 $ / $Date: 2009-03-31 17:31:28 $ / $Author: anoop $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.180 2009-03-31 17:31:28 anoop Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -1290,7 +1290,23 @@ cclass Version {
         <classpath refid="runtime.classpath"/>
       </java>
     </target>
-    
+	 <target name="vue_fr" depends="" description="Run the VUE application">
+	      <java classname="tufts.vue.VUE" failonerror="true" fork="true">
+	      	<jvmarg value="-Duser.language=fr" />
+	      	<jvmarg value="-Duser.region=FR" />
+	        <!--jvmarg value="-verbosegc"/-->
+	        <!-- Start with min of 10MB (VUE uses this much just starting up) -->
+	        <jvmarg value="-Xms10m"/>
+	        <!-- Increase max allowed memory from default 64MB to 2GB -->
+	        <jvmarg value="-Xmx1024m"/>
+	        <!-- Below wo JVM args are for the Mac runtime, and will be ignored on Windows. -->
+	        <jvmarg value="-Dapple.laf.useScreenMenuBar=true"/>
+	        <jvmarg value="-Dcom.apple.mrj.application.apple.menu.about.name=VUE"/>
+	        <arg value="${vue.args}"/>
+	        <classpath refid="runtime.classpath"/>
+	      </java>
+	    </target>
+	    
     
      <target name="other" depends="" description="Run Other classes in VUE">
       <java classname="edu.tufts.osidimpl.repository.fedora_2_2.FedoraRESTSearchAdapter" failonerror="true" fork="true">
