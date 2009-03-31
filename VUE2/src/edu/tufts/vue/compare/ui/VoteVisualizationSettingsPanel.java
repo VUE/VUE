@@ -31,7 +31,7 @@ import tufts.vue.VueResources;
 
 public class VoteVisualizationSettingsPanel extends JPanel {
     
-    public final static String defineThresholdMessage = "Define threshold for nodes and links:";
+    public final static String defineThresholdMessage = VueResources.getString("dialog.visualizationsettings.definethreshold");
     
     private JCheckBox filterChoice;
     private JSlider nodeThresholdSlider;
@@ -76,7 +76,8 @@ public class VoteVisualizationSettingsPanel extends JPanel {
                 //if(!nodeThresholdSlider.getValueIsAdjusting())
                 //{
                     //System.out.println("vvsp: node slider value change:" + nodeThresholdSlider.getValue() );
-                    percentageDisplay.setText("Nodes that are on at least " + nodeThresholdSlider.getValue() + "% of the maps will be included");
+            	    Object[] node = {nodeThresholdSlider.getValue()}; 
+            	 	percentageDisplay.setText(VueResources.getFormatMessage(node,"dialog.visualizationsettings.nodespercentage"));
                     percentageDisplay.repaint();
                 //}
             }
@@ -134,8 +135,8 @@ public class VoteVisualizationSettingsPanel extends JPanel {
         voteConstraints.gridwidth = GridBagConstraints.REMAINDER;
         voteLayout.setConstraints(nodeLabel,voteConstraints);
         add(nodeLabel);
-
-        percentageDisplay = new JLabel("Nodes that are on at least " + nodeThresholdSlider.getValue() + "% of the maps will be included");
+        Object[] node = {nodeThresholdSlider.getValue()}; 
+        percentageDisplay = new JLabel(VueResources.getFormatMessage(node,"dialog.visualizationsettings.nodespercentage"));
         percentageDisplay.setFont(tufts.vue.gui.GUI.LabelFace);
         
         voteLayout.setConstraints(percentageDisplay,voteConstraints);
@@ -179,8 +180,8 @@ public class VoteVisualizationSettingsPanel extends JPanel {
         }
         
         linkThresholdSlider.setBorder(javax.swing.BorderFactory.createEmptyBorder(5,5,5,5));
-
-        linkPercentageDisplay = new JLabel("Links that are on at least " + linkThresholdSlider.getValue()+"% of the maps will be included");
+        Object link[] = {linkThresholdSlider.getValue()};	
+        linkPercentageDisplay = new JLabel(VueResources.getFormatMessage(link,"dialog.visualizationsettings.linkspercentage"));
         linkPercentageDisplay.setFont(tufts.vue.gui.GUI.LabelFace);
         voteLayout.setConstraints(linkPercentageDisplay,voteConstraints);
         add(linkPercentageDisplay);
@@ -195,7 +196,8 @@ public class VoteVisualizationSettingsPanel extends JPanel {
         {
            public void stateChanged(ChangeEvent e)
            {
-              linkPercentageDisplay.setText("Links that are on at least " + linkThresholdSlider.getValue()+"% of the maps will be included");
+        	   Object link[] = {linkThresholdSlider.getValue()};
+        	   linkPercentageDisplay.setText(VueResources.getFormatMessage(link,"dialog.visualizationsettings.linkspercentage"));
            }
         });
         
