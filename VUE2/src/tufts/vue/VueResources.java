@@ -50,7 +50,7 @@ import javax.swing.JTabbedPane;
  * resource types.  It also can be modified to support caching of
  * of resources for performance (todo: yes, implement a result cache).
  *
- * @version $Revision: 1.58 $ / $Date: 2009-03-31 03:16:36 $ / $Author: vaibhav $
+ * @version $Revision: 1.59 $ / $Date: 2009-03-31 03:22:44 $ / $Author: vaibhav $
  *
  */
 public class VueResources
@@ -171,9 +171,9 @@ public class VueResources
         if (DEBUG.INIT) tufts.Util.printStackTrace("VueResources; FYI: static init block");
 
         if (tufts.Util.isMacPlatform()) {
-            sResourceBundle = ResourceBundle.getBundle("tufts.vue.VueResources", new Locale(Locale.getDefault().getLanguage(), "", "Mac"));
+        	ResourceBundle langBundle = ResourceBundle.getBundle("tufts.vue.VueResources", new Locale(Locale.getDefault().getLanguage(), Locale.getDefault().getCountry()));
             platformBundle = ResourceBundle.getBundle("tufts.vue.VueResources", new Locale("","" ,"Mac")); 
-
+            sResourceBundle = new VueResourceBundle(langBundle,platformBundle);
         } /*else if (tufts.Util.isWindowsPlatform())*/ 
         else
         {
