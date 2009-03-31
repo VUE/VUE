@@ -16,23 +16,41 @@
 
 package tufts.vue;
 
-import java.util.*;
-
-import java.text.*;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.MediaTracker;
+import java.awt.Point;
+import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
-
-import javax.swing.*;
-import java.net.URL;
 import java.io.File;
+import java.net.URL;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.MissingResourceException;
+import java.util.NoSuchElementException;
+import java.util.ResourceBundle;
+
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JComponent;
+import javax.swing.JTabbedPane;
 
 /**
  * This class provides a central access method to get a variety of
  * resource types.  It also can be modified to support caching of
  * of resources for performance (todo: yes, implement a result cache).
  *
- * @version $Revision: 1.57 $ / $Date: 2009-03-02 16:04:09 $ / $Author: vaibhav $
+ * @version $Revision: 1.58 $ / $Date: 2009-03-31 03:16:36 $ / $Author: vaibhav $
  *
  */
 public class VueResources
@@ -43,6 +61,7 @@ public class VueResources
     //protected static final ResourceBundle VueResourceBundle = ResourceBundle.getBundle("tufts.vue.VueResources");
     //protected static final ResourceBundle NarraVisionResourceBundle;
     protected static final ResourceBundle sResourceBundle;
+    protected static final ResourceBundle platformBundle;
 
     protected static Map Cache = new HashMap() {
             public Object put(Object key, Object value) {
@@ -53,18 +72,117 @@ public class VueResources
         };
 
     static {
+    	
+    	final class VueResourceBundle extends ResourceBundle{
 
+//    		 List of bundles in merge bundle
+    		private List<ResourceBundle> bundles;
+
+    		/**
+    		 * Constructs a resource bundle from a list of other resource bundles. If
+    		 * there are duplicate keys, the key from the resource bundle with the
+    		 * smallest index takes precedence.
+    		 * Currently supports  merging 2 resource bundles but can be modified for
+    		 * any number of resource bundles 
+    		 * @param baseNameList
+    		 * list of bundle base names to search for key/value pairs
+    		 */
+    		public VueResourceBundle(ResourceBundle baseNameList, ResourceBundle childNameList) {
+    			bundles = new ArrayList<ResourceBundle>(2);
+    			bundles.add(baseNameList);
+    			bundles.add(childNameList);	
+    		}
+    		
+
+    		
+    		@Override
+    		public Enumeration getKeys() {
+    			 return new Enumeration(){
+
+    		            Enumeration enumer = null;
+
+    		            int i = 0;
+
+    		            public boolean hasMoreElements(){
+
+    		               boolean b = false;
+
+    		               while (enumer == null || !(b = enumer.hasMoreElements())){
+
+    		                  if (i >= bundles.size()){
+
+    		                	  enumer = null;
+
+    		                     return b;
+
+    		                  }
+
+    		                  enumer = ((ResourceBundle)bundles.get(i++)).getKeys();
+
+    		              }
+
+    		               return b;
+
+    		            }
+
+    		            public Object nextElement(){
+
+    		               if (enumer == null) throw new NoSuchElementException();
+
+    		               return enumer.nextElement();
+
+    		            }
+
+    		         };
+    		}
+
+    		/*
+    		 * (non-Javadoc)
+    		 * 
+    		 * @see java.util.ResourceBundle#handleGetObject(java.lang.String)
+    		 */
+    		@Override
+    		protected Object handleGetObject(String key) {
+
+    	         ResourceBundle rb = null;
+
+    	         String val        = null;
+
+    	         for (int i=0;i<bundles.size();i++){
+
+    	            rb = (ResourceBundle) bundles.get(i);
+
+    	            try{
+
+    	               val = rb.getString(key);
+
+    	           }catch (Exception e){}
+
+    	            if (val != null) break;
+
+    	         }
+
+    	         return val;
+
+    	      }
+
+			    		
+    	}
         if (DEBUG.INIT) tufts.Util.printStackTrace("VueResources; FYI: static init block");
 
         if (tufts.Util.isMacPlatform()) {
-            sResourceBundle = ResourceBundle.getBundle("tufts.vue.VueResources", new Locale("en", "", "Mac"));
+            sResourceBundle = ResourceBundle.getBundle("tufts.vue.VueResources", new Locale(Locale.getDefault().getLanguage(), "", "Mac"));
+            platformBundle = ResourceBundle.getBundle("tufts.vue.VueResources", new Locale("","" ,"Mac")); 
+
         } /*else if (tufts.Util.isWindowsPlatform())*/ 
         else
         {
-        	System.out.println("ISO country language   "+ Locale.getDefault().getLanguage());
-        	System.out.println("ISO country code   "+ Locale.getDefault().getCountry());
+        	//System.out.println("ISO country language   "+ Locale.getDefault().getLanguage());
+        	//System.out.println("ISO country code   "+ Locale.getDefault().getCountry());
         	//sResourceBundle = ResourceBundle.getBundle("tufts.vue.VueResources", new Locale(Locale.getDefault().getLanguage(),Locale.getDefault().getCountry(),"Win"));
-        	sResourceBundle = ResourceBundle.getBundle("tufts.vue.VueResources", new Locale("en", "", "Win"));
+        	ResourceBundle langBundle = ResourceBundle.getBundle("tufts.vue.VueResources", new Locale(Locale.getDefault().getLanguage(), Locale.getDefault().getCountry()));
+            platformBundle = ResourceBundle.getBundle("tufts.vue.VueResources", new Locale("","" ,"Win"));    
+            sResourceBundle = new VueResourceBundle(langBundle,platformBundle);
         } /*else {
             sResourceBundle = ResourceBundle.getBundle("tufts.vue.VueResources");
         }*/
@@ -384,6 +502,9 @@ public class VueResources
         String result = null;
         try {
             result = sResourceBundle.getString(key);
+            if(result==null){
+             result = platformBundle.getString(key);
+            }
         } catch (MissingResourceException mre) {
             // FYI: we get tons of failures that are perfectly okay.
             //if (DEBUG.INIT) alert("warning: didn't find String resource with key [" + pLookupKey + "]");
@@ -862,7 +983,8 @@ public class VueResources
 		MessageFormat formatter = new MessageFormat(getString(pattern));
 		
 		if(arguments!=null){
-		return formatter.format(arguments);}else{
+		return formatter.format(arguments);
+		}else{
 			return getString(pattern);
 		}
 	}
