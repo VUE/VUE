@@ -77,7 +77,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.41 $ / $Date: 2009-03-31 06:16:18 $ / $Author: Sheejo
+ * @version $Revision: 1.42 $ / $Date: 2009-03-31 22:07:54 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -86,8 +86,8 @@ public class MetadataSearchMainGUI extends JPanel
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger
             .getLogger(MetadataSearchMainGUI.class);
-    public final static String AND = "and";
-    public final static String OR = "or";
+    public final static String AND = VueResources.getString("searchgui.and");
+    public final static String OR = VueResources.getString("searchgui.or");
 
     public final static String SELECTED_MAP_STRING = VueResources.getString("searchgui.currentmap");
     public final static String ALL_MAPS_STRING = VueResources.getString("searchgui.allopenmaps");
@@ -179,7 +179,7 @@ public class MetadataSearchMainGUI extends JPanel
     private JTable searchHeaderTbl;
     private JTable searchResultTbl;
     private JComboBox andOrCmbBox = new JComboBox(andOrTypes);
-    private String strAndOrType  = VueResources.getString("sarcghgui.or");
+    private String strAndOrType  = VueResources.getString("searchgui.or");
     public boolean isSearchBtnClick = false;
     public MetadataSearchMainGUI(DockWindow w) {
         super();        
@@ -211,7 +211,7 @@ public class MetadataSearchMainGUI extends JPanel
                 int rowCount = searchResultModel.getRowCount();
                 String searchName = (String) JOptionPane.showInputDialog(null,null,VueResources.getString("searchgui.entersearchname"),JOptionPane.PLAIN_MESSAGE,null,null,(VueResources.getString("searchgui.search") + " "+ (rowCount+1)));
             	if(searchName!=null && searchName.trim().length()==0){
-            		searchName = "Search" + " "+ (searchResultModel.getRowCount()+1);
+            		searchName = VueResources.getString("searchgui.search") + " "+ (searchResultModel.getRowCount()+1);
             	}                
                 if(searchName!= null){
                     data.setSearchSaveName(searchName);
@@ -567,8 +567,8 @@ public class MetadataSearchMainGUI extends JPanel
             
             buttonPanel.setOpaque(true);
             buttonPanel.setBackground(getBackground());
-            JButton resetButton = new JButton(VueResources.getString("search.popup.reset"));
-            JButton saveButton = new JButton(VueResources.getString("button.label.save"));
+            JButton resetButton = new JButton(VueResources.getString("searchgui.resetmap"));
+            JButton saveButton = new JButton(VueResources.getString("searchgui.save"));
             //searchResultModel = new  SearchResultTableModel();
             saveButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {   
@@ -1025,9 +1025,9 @@ public class MetadataSearchMainGUI extends JPanel
 
             //if(isSelected){                
                 if(this.combo.getSelectedItem().toString().equals(VueResources.getString("searchgui.and"))){                    
-                    strAndOrType = "or";
+                    strAndOrType = VueResources.getString("searchgui.or");
                 }else{                    
-                    strAndOrType = "and";
+                    strAndOrType = VueResources.getString("searchgui.and");
                 }                                    
             //}            
             JLabel label = new JLabel("");
@@ -1406,7 +1406,7 @@ public class MetadataSearchMainGUI extends JPanel
                 // comp.setBorder(BorderFactory.createEmptyBorder(0,5,0,0));
             } else if ((table.getModel().getColumnCount() == 4 )
                     && col == headerValueColumn){
-                comp.setText(VueResources.getString("advancedSearch.keyword"));
+                comp.setText(VueResources.getString("advancedSearch.keywords"));
             }
             
             if (comp.getText().equals(VueResources.getString("advancedSearch.category"))
