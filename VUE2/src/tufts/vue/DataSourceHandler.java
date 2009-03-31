@@ -804,7 +804,7 @@ public class DataSourceHandler extends JPanel
     public void  setPopup() {
         popup = new JPopupMenu();
         
-        checkForUpdatesAction = new AbstractAction("Update Resources") {
+        checkForUpdatesAction = new AbstractAction(VueResources.getString("datasourcehandler.updateresources")) {
             public void actionPerformed(ActionEvent e) {
                 try {
                     edu.tufts.vue.dsm.OsidFactory factory = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance();
@@ -828,7 +828,7 @@ public class DataSourceHandler extends JPanel
                 }
             }
         };
-        addLibraryAction = new AbstractAction("Add Resources") {
+        addLibraryAction = new AbstractAction(VueResources.getString("datasourcehandler.addresources")) {
             public void actionPerformed(ActionEvent e) {
                 try {
                     // there are always resources that can be added, e.g. a local file system
@@ -856,7 +856,7 @@ public class DataSourceHandler extends JPanel
             }
         };
         
-        editLibraryAction = new AbstractAction("About this Resource") {
+        editLibraryAction = new AbstractAction(VueResources.getString("datasourcehandler.aboutthisresources")) {
             public void actionPerformed(ActionEvent e) {
                 Object o = dataSourceList.getSelectedValue();
                 if (o != null) {
@@ -871,7 +871,7 @@ public class DataSourceHandler extends JPanel
             }
         };
         
-        removeLibraryAction = new AbstractAction("Delete Resource") {
+        removeLibraryAction = new AbstractAction(VueResources.getString("datasourcehandler.deleteresource")) {
             public void actionPerformed(ActionEvent e) {
                 Object o = dataSourceList.getSelectedValue();
                 if (o != null) {

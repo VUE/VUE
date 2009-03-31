@@ -41,12 +41,12 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 	
 	private org.osid.repository.Repository[] repositories;
 
-        private final static String SearchLabel = "Search";
-        private final static String StopLabel = "Stop Search";
+        private final static String SearchLabel = VueResources.getString("defaultqueryeditor.search");
+        private final static String StopLabel = VueResources.getString("defaultqueryeditor.stopsearch");
 	
 	private javax.swing.JButton searchButton1 = new javax.swing.JButton(SearchLabel);
 	private javax.swing.JButton searchButton2 = new javax.swing.JButton(SearchLabel);
-	private static final String SELECT_A_LIBRARY = "Please select a searchable resource.";
+	private static final String SELECT_A_LIBRARY = VueResources.getString("defaultqueryeditor.pleaseselect");
 	private static final String NO_MESSAGE = "";
         private final javax.swing.JLabel selectMessage = new javax.swing.JLabel(SELECT_A_LIBRARY, javax.swing.JLabel.CENTER);
 	

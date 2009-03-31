@@ -33,7 +33,7 @@ import tufts.vue.gui.*;
  * A tabbed-pane collection of property sheets that apply
  * globally to a given map.
  *
- * @version $Revision: 1.70 $ / $Date: 2009-03-29 19:48:44 $ / $Author: vaibhav $ 
+ * @version $Revision: 1.71 $ / $Date: 2009-03-31 06:16:18 $ / $Author: vaibhav $ 
  *
  */
 public class MapInspectorPanel extends JPanel
@@ -323,15 +323,15 @@ public class MapInspectorPanel extends JPanel
             //saveButton.addActionListener(this);
             mPropPanel  = new PropertyPanel();
             //mPropPanel.addProperty( "Label:", mTitleEditor); // initially Label was title
-            mPropPanel.addProperty("Creator:", mAuthorEditor); //added through metadata
-            mPropPanel.addProperty("Background:",mMapColor);
-            mPropPanel.addProperty("Created:", mDate);
+            mPropPanel.addProperty(VueResources.getString("mapinspectorpanel.creator"), mAuthorEditor); //added through metadata
+            mPropPanel.addProperty(VueResources.getString("mapinspectorpanel.background"),mMapColor);
+            mPropPanel.addProperty(VueResources.getString("mapinspectorpanel.created"), mDate);
             
             // VUE-1001
             //mPropPanel.addProperty("Location:",mLocation);            
             
             //mPropPanel.addProperty("Background:", mapFill);
-            mPropPanel.addProperty("Description:", descriptionScroller);
+            mPropPanel.addProperty(VueResources.getString("mapinspectorpanel.description"), descriptionScroller);
             //mPropPanel.addProperty("Description:", descriptionScroller);
             //mPropPanel.setBorder(BorderFactory.createEmptyBorder(6,9,6, 6));
             //mInfoBox.add(saveButton,BorderLayout.EAST); added focuslistener

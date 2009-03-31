@@ -40,7 +40,7 @@ public class AddFedoraOntology extends VueAction{
     
     public AddFedoraOntology(OntologyBrowser browser) 
     {
-        setActionName("Add Fedora Ontology");
+        setActionName(VueResources.getString("ontology.addfedora"));
         this.browser = browser;
     }
             

@@ -155,10 +155,10 @@ public class OntologyBrowser extends JPanel {
         ontologyDock.setResizeEnabled(false);
     }
 
-    private OntologyOpenAction ontologyOpenAction = new edu.tufts.vue.ontology.action.OntologyOpenAction("Add an Ontology",this);
+    private OntologyOpenAction ontologyOpenAction = new edu.tufts.vue.ontology.action.OntologyOpenAction(VueResources.getString("ontology.openaction"),this);
     protected tufts.vue.VueAction removeOntology = new tufts.vue.VueAction() {
         {
-            setActionName("Remove Selected Ontology");
+            setActionName(VueResources.getString("ontology.removeselected"));
         }
         
         public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -205,7 +205,7 @@ public class OntologyBrowser extends JPanel {
 
     protected tufts.vue.VueAction applyStyle = new tufts.vue.VueAction() {
         {
-            setActionName("Add Style Sheet");
+            setActionName(VueResources.getString("menu.addstylesheet"));
         }
         
         public void actionPerformed(java.awt.event.ActionEvent e) {

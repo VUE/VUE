@@ -77,7 +77,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.40 $ / $Date: 2009-03-29 19:49:11 $ / $Author: Sheejo
+ * @version $Revision: 1.41 $ / $Date: 2009-03-31 06:16:18 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -121,7 +121,7 @@ public class MetadataSearchMainGUI extends JPanel
     private int conditionColumn = -1;
     private int searchType = EVERYTHING;
     private JButton searchButton;
-    private static String[] andOrTypes = {VueResources.getString("sarcghgui.or"),VueResources.getString("sarcghgui.and") };
+    private static String[] andOrTypes = {VueResources.getString("searchgui.or"),VueResources.getString("searchgui.and") };
     private static final boolean DEBUG_LOCAL = false;
     private JPanel topPanel;
     private JPanel innerTopPanel;
@@ -711,7 +711,7 @@ public class MetadataSearchMainGUI extends JPanel
         }
 
         public String getName() {
-            return "Search";
+            return VueResources.getString("searchgui.search");
         }
 
         private void saveInfo() {
@@ -1024,7 +1024,7 @@ public class MetadataSearchMainGUI extends JPanel
             }
 
             //if(isSelected){                
-                if(this.combo.getSelectedItem().toString().equals("and")){                    
+                if(this.combo.getSelectedItem().toString().equals(VueResources.getString("searchgui.and"))){                    
                     strAndOrType = "or";
                 }else{                    
                     strAndOrType = "and";
@@ -1251,7 +1251,7 @@ public class MetadataSearchMainGUI extends JPanel
     
     
     public int getSelectedOperator() {        
-        if(strAndOrType.equals("and")){
+        if(strAndOrType.equals(VueResources.getString("searchgui.and"))){
             return SearchAction.AND;
         }else{
             return SearchAction.OR;
@@ -1764,7 +1764,7 @@ public class MetadataSearchMainGUI extends JPanel
          termsAction.setMetadataOnly(false);
          int iAndOr = 0;
          String andOrStr = data.getAndOrType();
-         if(andOrStr.equals("and")){
+         if(andOrStr.equals(VueResources.getString("searchgui.and"))){
          iAndOr = SearchAction.AND;
          }else{
          iAndOr =  SearchAction.OR;

@@ -21,7 +21,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.82 $ / $Date: 2009-03-22 07:18:28 $ / $Author: vaibhav $
+ * @version $Revision: 1.83 $ / $Date: 2009-03-31 06:16:17 $ / $Author: vaibhav $
  * @author  akumar03
  */
 import java.awt.BorderLayout;
@@ -81,18 +81,18 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
     edu.tufts.vue.dsm.DataSource newDataSource = null;
     
     private static String MY_COMPUTER = VueResources.getString("addLibrary.mycomputer.label");
-    private static String MY_COMPUTER_DESCRIPTION = "Add a browse control for your filesystem.  You can configure where to start the tree.";
-    private static String MY_SAVED_CONTENT = "My Saved Content";
-    private static String MY_SAVED_CONTENT_DESCRIPTION = "Add a browse control for your saved content.  You can configure a name for this source.";
-    private static String DS_FTP = "FTP";
-    private static String DS_FTP_DESCRIPTION = "Add a browse control for an FTP site.  You must configure this.";
-    private static String DS_RSS = "RSS Feed";
-    private static String DS_RSS_DESCRIPTION = "RSS Feeds can be added by selecting this.";
-    private static String DS_XML = "XML Data";
-    private static String DS_XML_DESCRIPTION = "XML sources can be added by selecting this.";
+    private static String MY_COMPUTER_DESCRIPTION = VueResources.getString("addLibrary.addbrowsecontrol");
+    private static String MY_SAVED_CONTENT = VueResources.getString("addLibrary.mysavedcontent");
+    private static String MY_SAVED_CONTENT_DESCRIPTION = VueResources.getString("addLibrary.savedcontent");
+    private static String DS_FTP = VueResources.getString("addLibrary.ftp");
+    private static String DS_FTP_DESCRIPTION = VueResources.getString("addLibrary.ftpsite");
+    private static String DS_RSS = VueResources.getString("addLibrary.rssfeed");
+    private static String DS_RSS_DESCRIPTION = VueResources.getString("addLibrary.rssfeedsite");
+    private static String DS_XML = VueResources.getString("addLibrary.xmldata");
+    private static String DS_XML_DESCRIPTION = VueResources.getString("addLibrary.DS_XML_DESCRIPTION");
     
-    private static String TITLE = "Add a Resource";
-    private static String AVAILABLE = "Resources available:";
+    private static String TITLE = VueResources.getString("addLibrary.addaresource");
+    private static String AVAILABLE = VueResources.getString("addLibrary.resourcesavailable");
     
     private static String LOADING = VueResources.getString("addLibrary.loading.label");
     
