@@ -101,7 +101,7 @@ public class SearchAction extends AbstractAction {
     private boolean everything = false;
     private boolean searchBtnClicked = false;
     public SearchAction(JTextField searchInput) {
-        super("Search");
+        super(VueResources.getString("searchgui.search"));
         this.searchInput = searchInput;
         runIndex();
         searchType = FIELD; 
@@ -109,7 +109,7 @@ public class SearchAction extends AbstractAction {
     
     public SearchAction(java.util.List<edu.tufts.vue.metadata.VueMetadataElement> searchTerms)
     {  
-        super("Search");
+        super(VueResources.getString("searchgui.search"));
         runIndex();
         searchType = QUERY;
         this.searchTerms = searchTerms;
@@ -548,7 +548,7 @@ public class SearchAction extends AbstractAction {
     }
     
     public String getName() {
-        return "Search";
+        return VueResources.getString("searchgui.search");
     }
     
     public void setLocationType(int type)
@@ -1052,13 +1052,13 @@ public class SearchAction extends AbstractAction {
     
     public void setResultsType(String type)
     {
-        if(type.equals("Show"))
+        if(type.equals(VueResources.getString("searchgui.show")))
             resultsType = SHOW_ACTION;
-        if(type.equals("Hide"))
+        if(type.equals(VueResources.getString("searchgui.hide")))
             resultsType = HIDE_ACTION;
-        if(type.equals("Select"))
+        if(type.equals(VueResources.getString("searchgui.select")))
             resultsType = SELECT_ACTION;
-        if(type.equals("Copy to new map"))
+        if(type.equals(VueResources.getString("searchgui.copynewmap")))
             resultsType = COPY_ACTION;
         
         //globalResultsType = resultsType;
