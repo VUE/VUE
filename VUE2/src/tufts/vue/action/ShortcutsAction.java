@@ -3,6 +3,7 @@ package tufts.vue.action;
 import tufts.Util;
 import tufts.vue.VUE;
 import tufts.vue.DEBUG;
+import tufts.vue.VueResources;
 import tufts.vue.VueTool;
 import tufts.vue.VueAction;
 import tufts.vue.Actions;
@@ -26,7 +27,7 @@ import javax.swing.JScrollPane;
 /**
  * Produce a shortcuts window.
  *
- * @version $Revision: 1.14 $ / $Date: 2009-03-13 18:04:48 $ / $Author: mike $
+ * @version $Revision: 1.15 $ / $Date: 2009-04-01 12:14:46 $ / $Author: vaibhav $
  * @author Scott Fraize
  */
 public class ShortcutsAction extends tufts.vue.VueAction
@@ -34,7 +35,7 @@ public class ShortcutsAction extends tufts.vue.VueAction
     private static DockWindow window;
 
     public ShortcutsAction() {
-        super("Keyboard Shortcuts");
+        super(VueResources.getString("shortcutactions.keyboardshortcuts"));
     }
     
     @Override
@@ -46,7 +47,7 @@ public class ShortcutsAction extends tufts.vue.VueAction
     /** display the shortcuts DockWindow (create it if needed) */
     public void act() {
         if (window == null)
-            window = GUI.createDockWindow(VUE.getName() + " Shortcut Keys");
+            window = GUI.createDockWindow(VUE.getName() + VueResources.getString("shortcutactions.shortcutkeys"));
 
         if (content == null || (wasDebug != DEBUG.Enabled)) {
             wasDebug = DEBUG.Enabled;
@@ -159,7 +160,7 @@ public class ShortcutsAction extends tufts.vue.VueAction
     private static void addRow(int row, boolean debug) {
 
 		// MK - user this comment rest for file output
-        html.append("\n<tr bgcolor=#ffffff>");
+        html.append("\n<tr");
         
         if (debug) {
             html.append(" bgcolor=#FF0000");
@@ -256,9 +257,9 @@ public class ShortcutsAction extends tufts.vue.VueAction
             //=============================================================================
 
             html.append("<tr bgcolor=" + TitleColor + ">");
-            add(BOLD, "Tool");
-            add(BOLD+CENTER, "Key");
-            add(BOLD+CENTER, "Quick-Key");
+            add(BOLD, VueResources.getString("shortcutactions.tool"));
+            add(BOLD+CENTER, VueResources.getString("shortcutactions.key"));
+            add(BOLD+CENTER, VueResources.getString("shortcutactions.auick-key"));
             html.append("</tr>");
                 
         }
