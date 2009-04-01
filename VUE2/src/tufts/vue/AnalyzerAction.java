@@ -145,9 +145,9 @@ public class AnalyzerAction extends Actions.LWCAction {
     }
     
     // random layout. scatters nodes at random
-    public static final AnalyzerAction yahoo = new AnalyzerAction(new YahooAnalyzer(),"Yahoo Content Analyzer",null);
-    public static final AnalyzerAction calais = new AnalyzerAction(new OpenCalaisAnalyzer(),"Perform Map Based Search",null);
-    public static final AutoTaggerAction calaisAutoTagger = new AutoTaggerAction(new OpenCalaisAnalyzer(),"Auto Tag Node",null);
+    public static final AnalyzerAction yahoo = new AnalyzerAction(new YahooAnalyzer(),VueResources.getString("analyzeaction.yahoocontent"),null);
+    public static final AnalyzerAction calais = new AnalyzerAction(new OpenCalaisAnalyzer(),VueResources.getString("analyzeaction.performmapbased"),null);
+    public static final AutoTaggerAction calaisAutoTagger = new AutoTaggerAction(new OpenCalaisAnalyzer(),VueResources.getString("analyzeaction.autotag"),null);
  
     public static final Action[] ANALYZER_ACTIONS = {
         yahoo,

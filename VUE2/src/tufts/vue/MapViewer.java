@@ -76,7 +76,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.591 $ / $Date: 2009-03-29 03:30:09 $ / $Author: vaibhav $ 
+ * @version $Revision: 1.592 $ / $Date: 2009-04-01 12:10:29 $ / $Author: vaibhav $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -4265,13 +4265,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         JCheckBoxMenuItem formatBox = new JCheckBoxMenuItem(formatAction);
         if (VUE.getFormatDock().isShowing())
         	formatBox.setSelected(true);
-        formatAction.setTitle("Format");      
+        formatAction.setTitle(VueResources.getString("dockWindow.format.title"));      
         sMultiPopup.add(formatBox);
         //end Format Box
-        final JMenu extendMenu = new JMenu("Extend");
+        final JMenu extendMenu = new JMenu(VueResources.getString("mapviewer.extend"));
         
-        sMultiPopup.add(GUI.buildMenu("Align", Actions.ARRANGE_MENU_ACTIONS));  
-        sMultiPopup.add(GUI.buildMenu("Layout",LayoutAction.LAYOUT_ACTIONS));
+        sMultiPopup.add(GUI.buildMenu(VueResources.getString("mapviewer.align"), Actions.ARRANGE_MENU_ACTIONS));  
+        sMultiPopup.add(GUI.buildMenu(VueResources.getString("menu.layout"),LayoutAction.LAYOUT_ACTIONS));
         sMultiPopup.add(GUI.buildMenu(extendMenu, Actions.EXTEND_MENU_ACTIONS));
         LWSelection selection = VUE.getSelection();
 		
@@ -4288,7 +4288,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         {        	
         	extendMenu.setVisible(false);
         }
-        JMenu arrangeMenu = new JMenu("Arrange");
+        JMenu arrangeMenu = new JMenu(VueResources.getString("menu.arrange"));
         arrangeMenu.add(Actions.BringToFront);
         arrangeMenu.add(Actions.BringForward);
         arrangeMenu.add(Actions.SendToBack);
@@ -4340,7 +4340,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     	sSinglePopup.addSeparator();
     	sSinglePopup.add(Actions.ContextNotesAction);
     	sSinglePopup.add(Actions.ContextKeywordAction);
-    	JMenu analyzeNodeMenu =new JMenu("Analyze Node");
+    	JMenu analyzeNodeMenu =new JMenu(VueResources.getString("mapviewer.analyze.node"));
     	AnalyzerAction.buildSubMenu(analyzeNodeMenu);
     	
     	sSinglePopup.add(analyzeNodeMenu);

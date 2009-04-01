@@ -1003,7 +1003,7 @@ public class Actions implements VueConstants
     // Context Menu Actions
     //-----------------------
     public static final Action KeywordAction = new KeywordActionClass(VueResources.getString("mapViewer.componentMenu.keywords.label"));
-    public static final Action ContextKeywordAction = new KeywordActionClass("Add Keywords");
+    public static final Action ContextKeywordAction = new KeywordActionClass(VueResources.getString("actions.addkeywords"));
     
     public static class KeywordActionClass extends VueAction
     {
@@ -1591,7 +1591,7 @@ public class Actions implements VueConstants
     //m.add(Actions.AddURLAction);
 //    m.add(Actions.RemoveResourceAction);
     public static final Action NotesAction = new NotesActionClass(VueResources.getString("mapViewer.componentMenu.notes.label"));
-    public static final Action ContextNotesAction = new NotesActionClass("Add Notes");
+    public static final Action ContextNotesAction = new NotesActionClass(VueResources.getString("actions.addnotes"));
     	
     public static class NotesActionClass extends VueAction
     {
@@ -2120,12 +2120,12 @@ public class Actions implements VueConstants
     }
     
     
-    public static final Action FillWidth = new ArrangeAction("Fill Width") {
+    public static final Action FillWidth = new ArrangeAction(VueResources.getString("actions.fillwidth")) {
         void arrange(LWComponent c) {
             c.setFrame(minX, c.getY(), maxX - minX, c.getHeight());
         }
     };
-    public static final Action FillHeight = new ArrangeAction("Fill Height") {
+    public static final Action FillHeight = new ArrangeAction(VueResources.getString("actions.fillheight")) {
         void arrange(LWComponent c) {
             c.setFrame(c.getX(), minY, c.getWidth(), maxY - minY);
         }
