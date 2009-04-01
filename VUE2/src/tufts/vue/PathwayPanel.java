@@ -52,7 +52,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.136 $ / $Date: 2009-03-29 03:31:50 $ / $Author: vaibhav $
+ * @version $Revision: 1.137 $ / $Date: 2009-04-01 20:50:20 $ / $Author: mike $
  */
 
 public class PathwayPanel extends JPanel
@@ -477,33 +477,27 @@ public class PathwayPanel extends JPanel
     private void addToolTips()
     {
     	String baseProp = "presentationDialog.button.";    	
-
-    	btnAddSlide.setToolTipText(VueResources.getString(baseProp+"makeSlides.tooltip"));
-        btnMergeInto.setToolTipText(VueResources.getString(baseProp+"mergeInto.tooltip"));
-        btnLiveMap.setToolTipText(VueResources.getString(baseProp+"liveMap.tooltip"));
+    	final String helpTextHeader = VueResources.getString("dockWindow.helpTextHeader");
+        final String helpTextFooter = VueResources.getString("dockWindow.helpTextFooter");
+        
+    	btnAddSlide.setToolTipText(helpTextHeader+ VueResources.getString(baseProp+"makeSlides.tooltip") + helpTextFooter);
+        btnMergeInto.setToolTipText(helpTextHeader+ VueResources.getString(baseProp+"mergeInto.tooltip") + helpTextFooter);
+        btnLiveMap.setToolTipText(helpTextHeader+ VueResources.getString(baseProp+"liveMap.tooltip") + helpTextFooter);
         
         //edit
-        btnEditSlides.setToolTipText(VueResources.getString(baseProp+"preview.tooltip"));
-    //    btnPreviewFull.setToolTipText(VueResources.getString(baseProp+"previewFull.tooltip"));
-           
-        //master slide
-        //btnMasterSlide.setToolTipText(VueResources.getString(baseProp+"masterSlide.tooltip"));
+        btnEditSlides.setToolTipText(helpTextHeader+ VueResources.getString(baseProp+"preview.tooltip") + helpTextFooter);
         
         //new    
-        btnPresentationCreate.setToolTipText(VueResources.getString(baseProp+"add.tooltip"));        
-        btnPresentationDelete.setToolTipText(VueResources.getString(baseProp+"delete.tooltip"));
+        btnPresentationCreate.setToolTipText(helpTextHeader+ VueResources.getString(baseProp+"add.tooltip") + helpTextFooter);        
+        btnPresentationDelete.setToolTipText(helpTextHeader+ VueResources.getString(baseProp+"delete.tooltip") + helpTextFooter);
         
 
         //filter
-        btnPathwayOnly.setToolTipText(VueResources.getString(baseProp+"viewAll.tooltip"));
+        btnPathwayOnly.setToolTipText(helpTextHeader+ VueResources.getString(baseProp+"viewAll.tooltip") + helpTextFooter);
         
         // hack for now as single button just to get this working:
-        btnShowSlides.setToolTipText(VueResources.getString(baseProp+"showNodes.tooltip"));
-      //  btnShowSlides2.setToolTipText(VueResources.getString(baseProp+"showNodes.tooltip"));
-        
-        //playback mode
-        //btnPlayMaps.setToolTipText(VueResources.getString(baseProp+"playSlides.tooltip"));
-        btnPlay.setToolTipText(VueResources.getString(baseProp+"play.tooltip"));               	
+        btnShowSlides.setToolTipText(helpTextHeader+ VueResources.getString(baseProp+"showNodes.tooltip") + helpTextFooter);
+        btnPlay.setToolTipText(helpTextHeader+ VueResources.getString(baseProp+"play.tooltip") + helpTextFooter);               	
     }
     
     private void buildSlidePanel(JPanel slidePanel)

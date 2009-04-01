@@ -55,7 +55,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.147 $ / $Date: 2009-02-24 20:07:10 $ / $Author: mike $
+ * @version $Revision: 1.148 $ / $Date: 2009-04-01 20:50:46 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -4401,8 +4401,9 @@ public class DockWindow
              
              //JLabel helpButton = new JLabel(GUI.getIcon("btn_help_top.gif"));
              // todo for Melanie: new icons should be appearing in gui/icons
-
-             final String helpText = VueResources.getString("dockWindow." + getName().replaceAll(" ","") + ".helpText");
+             final String helpTextHeader = VueResources.getString("dockWindow.helpTextHeader");
+             final String helpTextFooter = VueResources.getString("dockWindow.helpTextFooter");
+             final String helpText = helpTextHeader + VueResources.getString("dockWindow." + getName().replaceAll(" ","") + ".helpText") + helpTextFooter;
              
              JComponent helpButton = null;
 
