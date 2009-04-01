@@ -42,7 +42,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.116 $ / $Date: 2009-03-29 03:02:31 $ / $Author: vaibhav $
+ * @version $Revision: 1.117 $ / $Date: 2009-04-01 12:16:30 $ / $Author: vaibhav $
  */
 
 public class InspectorPane extends WidgetStack
@@ -131,15 +131,15 @@ public class InspectorPane extends WidgetStack
         mSelectionInfo.setBorder(GUI.WidgetInsetBorder);
 
         new Pane("_multi-selection-info",  mSelectionInfo,      EXACT_SIZE,    0);
-        new Pane("Label",                  mLabelPane,          EXACT_SIZE,  INFO+NOTES+KEYWORD);
-        new Pane("Content Preview",        mPreview,            EXACT_SIZE,  RESOURCE);
-        new Pane("Content Summary",        mDescription,        0.5f,        RESOURCE+DATA);
-        new Pane("Data Set Fields",        mDataSetData,        EXACT_SIZE,  INFO+NOTES+KEYWORD+DATA);
-        new Pane("Content Info",           mResourceMetaData,   EXACT_SIZE,  RESOURCE);
-        new Pane("Notes",                  mNotes,              EXACT_SIZE,    INFO+NOTES);
-        new Pane("Pathway Notes",          mPathwayNotes,       EXPANDER,    INFO+NOTES);
-        new Pane("Keywords",               mKeywords,           EXACT_SIZE,  KEYWORD);
-        new Pane("Ontological Membership", ontologicalMetadata, EXACT_SIZE,  0);
+        new Pane(VueResources.getString("inspectorpane.label"),                  mLabelPane,          EXACT_SIZE,  INFO+NOTES+KEYWORD);
+        new Pane(VueResources.getString("inspectorpane.contentpreviews"),mPreview,EXACT_SIZE,  RESOURCE);
+        new Pane(VueResources.getString("inspectorpane.contentsummary"),mDescription,        0.5f,        RESOURCE+DATA);
+        new Pane(VueResources.getString("inspectorpane.datasetfields"),mDataSetData,EXACT_SIZE,  INFO+NOTES+KEYWORD+DATA);
+        new Pane(VueResources.getString("inspectorpane.contentinfo"),mResourceMetaData,   EXACT_SIZE,  RESOURCE);
+        new Pane(VueResources.getString("nodeNotesTabName"),mNotes,EXACT_SIZE,    INFO+NOTES);
+        new Pane(VueResources.getString("inspectorpane.pathwaynotes"),mPathwayNotes,EXPANDER,INFO+NOTES);
+        new Pane(VueResources.getString("jlabel.keyword"),mKeywords,EXACT_SIZE,  KEYWORD);
+        new Pane(VueResources.getString("combobox.mergepropertychoices.ontologicalmembership"), ontologicalMetadata, EXACT_SIZE,  0);
 
         for (Pane p : Pane.AllPanes)
             stack.addPane(p.name, p.widget, p.size);
