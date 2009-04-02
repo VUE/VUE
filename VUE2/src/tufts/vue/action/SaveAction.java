@@ -126,8 +126,8 @@ public class SaveAction extends VueAction
             Object[] messageObject = {map.getLabel()};
         	response = JOptionPane.showOptionDialog
             (VUE.getDialogParent(),
-        	 VueResources.getFormatMessage(messageObject, VueResources.getString("dialog.saveaction.message")),         
-        	 VueResources.getFormatMessage(messageObject, VueResources.getString("dialog.saveaction.title")),
+        	 VueResources.getFormatMessage(messageObject, "dialog.saveaction.message"),         
+        	 VueResources.getFormatMessage(messageObject, "dialog.saveaction.title"),
              JOptionPane.YES_NO_OPTION,
              JOptionPane.PLAIN_MESSAGE,
              null,

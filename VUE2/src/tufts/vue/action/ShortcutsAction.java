@@ -27,7 +27,7 @@ import javax.swing.JScrollPane;
 /**
  * Produce a shortcuts window.
  *
- * @version $Revision: 1.15 $ / $Date: 2009-04-01 12:14:46 $ / $Author: vaibhav $
+ * @version $Revision: 1.16 $ / $Date: 2009-04-02 23:32:51 $ / $Author: vaibhav $
  * @author Scott Fraize
  */
 public class ShortcutsAction extends tufts.vue.VueAction
@@ -343,12 +343,12 @@ public class ShortcutsAction extends tufts.vue.VueAction
             if (Util.isMacLeopard())
                 add(NO_GAP, " " + NBSP + " " + NBSP + " " + NBSP + " ");
 
-            add(BOLD, "Action");
+            add(BOLD, VueResources.getString("shortcutactions.action"));
             
             if (Util.isMacLeopard())
-                add(BOLD+SPAN3+NO_WEST_GAP, "Shortcut");
+                add(BOLD+SPAN3+NO_WEST_GAP, VueResources.getString("shortcutactions.macshortcut"));
             else 
-                add(BOLD+SPAN2, "Shortcut Key");
+                add(BOLD+SPAN2, VueResources.getString("shortcutactions.shortcutkey"));
             
             html.append("</tr>");
                 

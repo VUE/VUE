@@ -46,7 +46,7 @@ public class AboutAction extends tufts.vue.VueAction
     private static Window AboutWindow;
     
     public AboutAction() {
-        super("About " + VUE.getName());
+        super(VueResources.getString("aboutaction.about") + VUE.getName());
     }
     
     public void act()
