@@ -59,7 +59,7 @@ import javax.swing.border.*;
  * We'd probably need a delegating impl tho to handle that.
  *
  *
- * @version $Revision: 1.78 $ / $Date: 2009-03-29 19:48:23 $ / $Author: vaibhav $ 
+ * @version $Revision: 1.79 $ / $Date: 2009-04-02 23:33:08 $ / $Author: vaibhav $ 
  */
 public class DRBrowser extends JPanel
 {
@@ -71,7 +71,7 @@ public class DRBrowser extends JPanel
     private static final boolean SingleDockWindowImpl = true; // these two must be exclusive
     private static final boolean DoubleDockWindowImpl = false;
     
-    final JComponent searchPane = new Widget("Search") {
+    final JComponent searchPane = new Widget(VueResources.getString("action.search")) {
             private Component editor, result;
             {
                 setOpaque(false);
@@ -124,8 +124,8 @@ public class DRBrowser extends JPanel
         };
     
     final JPanel librariesPanel;
-    final Widget browsePane = new Widget("Browse");
-    final Widget resultsPane = new Widget("Search Results");
+    final Widget browsePane = new Widget(VueResources.getString("button.browse.label"));
+    final Widget resultsPane = new Widget(VueResources.getString("jlabel.searchresult"));
 
     /*
     final Widget browsePane = new Widget("Browse") {
