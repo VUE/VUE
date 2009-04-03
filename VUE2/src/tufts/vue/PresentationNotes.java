@@ -16,32 +16,25 @@ package tufts.vue;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Graphics2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Iterator;
-
 import tufts.Util;
 import tufts.vue.gui.GUI;
-
-import com.lowagie.text.Chunk;
 import com.lowagie.text.Document;
 import com.lowagie.text.DocumentException;
 import com.lowagie.text.Element;
 import com.lowagie.text.Font;
+import com.lowagie.text.FontFactory;
 import com.lowagie.text.Image;
 import com.lowagie.text.PageSize;
 import com.lowagie.text.Paragraph;
 import com.lowagie.text.Phrase;
-import com.lowagie.text.Section;
 import com.lowagie.text.pdf.BaseFont;
-import com.lowagie.text.pdf.ColumnText;
-import com.lowagie.text.pdf.DefaultFontMapper;
-import com.lowagie.text.pdf.PdfChunk;
+import com.lowagie.text.pdf.FontMapper;
 import com.lowagie.text.pdf.PdfContentByte;
 import com.lowagie.text.pdf.PdfGraphics2D;
 import com.lowagie.text.pdf.PdfName;
@@ -49,40 +42,36 @@ import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfTemplate;
 import com.lowagie.text.pdf.PdfWriter;
+import edu.tufts.vue.pdf.VueFontMapper;
 
 public class PresentationNotes {
 
-	private static DefaultFontMapper dfm = null;
+	private static FontMapper dfm = null;
 	
-	private static DefaultFontMapper getFontMapper()
+	private static FontMapper getFontMapper()
 	{
 		if (dfm != null)
 			return dfm;
 		else
 		{
-			 dfm = new DefaultFontMapper();
-	            
+			 dfm = new VueFontMapper();					
+	            	
 	            if (Util.isWindowsPlatform())
 	            {
 	            	String drive = System.getenv("HOMEDRIVE");
-	            //	System.out.println(drive + " drive");
 	            	String path = drive + "\\Windows\\Fonts\\";
-	            	dfm.insertDirectory(path);
+	            	((VueFontMapper) dfm).insertDirectory(path);
+	            	FontFactory.registerDirectory(path);	            
 	            }
 	            else if (Util.isMacPlatform())
 	            {
-	            	dfm.insertDirectory("/Library/Fonts/");
-	            
-	            	dfm.insertDirectory("/System/Library/Fonts/");
-	  	
+	            	((VueFontMapper) dfm).insertDirectory("/Library/Fonts/");
+	            	FontFactory.registerDirectory("/Library/Fonts/");	            
+	            	((VueFontMapper) dfm).insertDirectory("/System/Library/Fonts/");
+	            	FontFactory.registerDirectory("/SystemLibrary/Fonts/");	  	
 	            }
-            	DefaultFontMapper.BaseFontParameters pp = 
-	                dfm.getBaseFontParameters("Arial Unicode MS");
-	                if (pp != null) {
-	                	pp.encoding = BaseFont.IDENTITY_H;
-	                }
-	            
-	            return dfm;
+            		           	                
+	         return dfm;
 		}
 	}
 	public static void createMapAsPDF(File file)
@@ -102,15 +91,15 @@ public class PresentationNotes {
             
             document.open();            
             
-
-            PdfContentByte cb = writer.getDirectContent();
             
+            PdfContentByte cb = writer.getDirectContent();
+          //  cb.setFontAndSize(arg0, arg1)
             PdfTemplate tp = cb.createTemplate(document.getPageSize().getWidth()-70, document.getPageSize().getHeight()-70);
           // tp.createGraphicsShapes(arg0, arg1) 
             
            
             PdfGraphics2D g2d = (PdfGraphics2D)tp.createGraphics(document.getPageSize().getWidth()-70, document.getPageSize().getHeight()-70, getFontMapper(),false,60.0f);                                   
-           
+
             Dimension page = new Dimension((int)document.getPageSize().getWidth()-70,(int)document.getPageSize().getHeight()-70);
             // compute zoom & offset for visible map components
             Point2D.Float offset = new Point2D.Float();
