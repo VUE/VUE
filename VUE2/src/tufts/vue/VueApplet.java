@@ -43,7 +43,7 @@ import tufts.vue.gui.VueMenuBar;
 /**
  * Experimental VUE applet.
  * 
- * @version $Revision: 1.12 $ / $Date: 2009-01-23 17:22:32 $ / $Author: mike $
+ * @version $Revision: 1.13 $ / $Date: 2009-04-06 16:42:25 $ / $Author: mike $
  */
 public class VueApplet extends JApplet implements Runnable {
 
@@ -235,6 +235,18 @@ public class VueApplet extends JApplet implements Runnable {
   
 	}
 
+	public void setSize(int width, int height)
+	{
+		super.setSize(width, height);
+		this.getContentPane().setSize(width, height);
+		Container c = this.getParent();
+		while (c !=null)
+		{
+			c.setSize(width, height);
+			c = c.getParent();
+		}
+		//System.out.println("Applet Set Size : " + width + " , " + height);
+	}
 	private void msg(String s) {
 		System.out.println("VueApplet: " + s);
 
