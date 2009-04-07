@@ -78,7 +78,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.43 $ / $Date: 2009-04-02 16:20:50 $ / $Author: Sheejo
+ * @version $Revision: 1.44 $ / $Date: 2009-04-07 15:02:56 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -106,7 +106,8 @@ public class MetadataSearchMainGUI extends JPanel
     public final static int BUTTON_COL_WIDTH = 35;
     public final static int ROW_HEIGHT = 30;
     public List<VueMetadataElement> searchTerms = new ArrayList<VueMetadataElement>();
-    private JTextField allSearchField = new JTextField();
+    private SearchAction termsAction = new SearchAction(searchTerms);
+        private JTextField allSearchField = new JTextField();
     private SearchAction allSearch = new SearchAction(allSearchField);
     public final static int SHOW_OPTIONS = 1;
     public final static int HIDE_OPTIONS = 0;
@@ -122,7 +123,6 @@ public class MetadataSearchMainGUI extends JPanel
     private int searchType = EVERYTHING;
     private static String[] andOrTypes = {VueResources.getString("searchgui.or"),VueResources.getString("searchgui.and") };
     private static final boolean DEBUG_LOCAL = false;
-    private SearchAction termsAction;
     private String[] allOpenMapsResultsTypes = { "new map" };
 
     // combo box numbers within optionsPanel
@@ -498,7 +498,6 @@ public class MetadataSearchMainGUI extends JPanel
             }
 
             saveButton = new JButton(VueResources.getString("searchgui.save"));
-            //searchResultModel = new  SearchResultTableModel();
             saveButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {   
                 	if(searchTermsTbl.isEditing()){
@@ -536,10 +535,7 @@ public class MetadataSearchMainGUI extends JPanel
                 }
             });
 
-            //SearchAction.revertGlobalSearchSelection();
-            //termsAction.setResultsType(resultsTypeChoice.getSelectedItem().toString());
-            termsAction = new SearchAction(searchTerms);
-            searchButton = new JButton(termsAction);
+            searchButton = new JButton(VueResources.getString("searchgui.search"));
             searchButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     if (searchTermsTbl.isEditing()) {
@@ -549,7 +545,6 @@ public class MetadataSearchMainGUI extends JPanel
 					termsAction = new SearchAction(searchTerms);
 					isSearchBtnClick = true;
 					String resultsTypeChoice = resultCmbBox.getSelectedItem().toString().trim();					
-					searchButton = new JButton(termsAction);
 					termsAction.setResultsType(resultsTypeChoice);
 
 					termsAction.setLocationType(
@@ -566,7 +561,6 @@ public class MetadataSearchMainGUI extends JPanel
 						termsAction.setOperator(getSelectedOperator());
 						termsAction.setEverything(true);
 						// termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
-						searchButton.setAction(termsAction);
 					} else if (searchTypeCmbBox.getSelectedItem().toString()
 							.trim().equals(SEARCH_LABELS_ONLY)) {
 						searchType = LABEL;
@@ -576,7 +570,6 @@ public class MetadataSearchMainGUI extends JPanel
 						termsAction.setOperator(getSelectedOperator());
 						termsAction.setEverything(false);
 						// termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
-						searchButton.setAction(termsAction);
 					} else if (searchTypeCmbBox.getSelectedItem().toString()
 							.trim().equals(SEARCH_ALL_KEYWORDS)) {
 						searchType = KEYWORD;
@@ -586,7 +579,6 @@ public class MetadataSearchMainGUI extends JPanel
 						termsAction.setOperator(getSelectedOperator());
 						termsAction.setEverything(false);
 						// termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
-						searchButton.setAction(termsAction);
 					} else if (searchTypeCmbBox.getSelectedItem().toString()
 							.trim().equals(SEARCH_CATEGORIES_AND_KEYWORDS)) {
 						searchType = CATEGORY;
@@ -596,7 +588,6 @@ public class MetadataSearchMainGUI extends JPanel
 						termsAction.setOperator(getSelectedOperator());
 						termsAction.setEverything(false);
 						// termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
-						searchButton.setAction(termsAction);
 					} else {
 						searchType = EVERYTHING;
 						termsAction.setBasic(false);
@@ -605,8 +596,15 @@ public class MetadataSearchMainGUI extends JPanel
 						termsAction.setOperator(getSelectedOperator());
 						termsAction.setEverything(true);
 						// termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
-						searchButton.setAction(termsAction);
 					}
+
+					if (DEBUG_LOCAL) {
+						System.out.println("MetadataSearchMainGUI.searchButton's actionPerformed()");
+					}
+
+					// Perform the action.
+					JButton btn = new JButton(termsAction);
+					btn.doClick();
 				}
 			});
 
@@ -1169,6 +1167,10 @@ public class MetadataSearchMainGUI extends JPanel
     }
 
     public void setCategorySearchWithNoneCase() {        
+    	if (DEBUG_LOCAL) {
+    		System.out.println("MetadataSearchMainGUI.setCategorySearchWithNoneCase()");
+    	}
+
         singleLine = false;
         SearchTermsTableModel model = (SearchTermsTableModel) searchTermsTbl.getModel();
         buttonColumn = 2;
@@ -1192,10 +1194,13 @@ public class MetadataSearchMainGUI extends JPanel
         termsAction.setOperator(getSelectedOperator());
         termsAction.setEverything(false);
         // termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
-        searchButton.setAction(termsAction);
     }
 
     public void setCategorySearch() {
+    	if (DEBUG_LOCAL) {
+    		System.out.println("MetadataSearchMainGUI.setCategorySearch()");
+    	}
+
         singleLine = false;
         searchType = CATEGORY;
         SearchTermsTableModel model = (SearchTermsTableModel) searchTermsTbl.getModel();    
@@ -1222,10 +1227,13 @@ public class MetadataSearchMainGUI extends JPanel
         termsAction.setOperator(getSelectedOperator());
         termsAction.setEverything(false);
         // termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
-        searchButton.setAction(termsAction);
     }
 
     public void setEverythingSearch() {
+    	if (DEBUG_LOCAL) {
+    		System.out.println("MetadataSearchMainGUI.setEverythingSearch()");
+    	}
+
         searchType = EVERYTHING;
         singleLine = false;
         SearchTermsTableModel model = (SearchTermsTableModel) searchTermsTbl.getModel();
@@ -1252,15 +1260,7 @@ public class MetadataSearchMainGUI extends JPanel
         termsAction.setOperator(getSelectedOperator());
         termsAction.setEverything(true);
         // termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
-        searchButton.setAction(termsAction);        
     }
-    
-    public void setEveryThingSearchMenuAction(JTextField searchField){
-        searchButton = new JButton(new SearchAction(searchField));
-        termsAction = new SearchAction(searchTerms);      
-        searchButton = new JButton(termsAction);            
-    }
-    
     
     public int getSelectedOperator() {        
         if(strAndOrType.equals(VueResources.getString("searchgui.and"))){
@@ -1271,6 +1271,10 @@ public class MetadataSearchMainGUI extends JPanel
     }
 
     public void setLabelSearch() {
+    	if (DEBUG_LOCAL) {
+    		System.out.println("MetadataSearchMainGUI.setLabelSearch()");
+    	}
+
         searchType = LABEL;
 
         singleLine = false;
@@ -1297,10 +1301,13 @@ public class MetadataSearchMainGUI extends JPanel
         termsAction.setOperator(getSelectedOperator());
         termsAction.setEverything(false);
         // termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
-        searchButton.setAction(termsAction);
     }
 
     public void setAllMetadataSearch() {
+    	if (DEBUG_LOCAL) {
+    		System.out.println("MetadataSearchMainGUI.setAllMetadataSearch()");
+    	}
+
         searchType = KEYWORD;
 
         singleLine = false;
@@ -1328,10 +1335,13 @@ public class MetadataSearchMainGUI extends JPanel
         termsAction.setOperator(getSelectedOperator());
         termsAction.setEverything(false);
         // termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
-        searchButton.setAction(termsAction);
     }
 
     public void setConditionSearch() {
+    	if (DEBUG_LOCAL) {
+    		System.out.println("MetadataSearchMainGUI.setConditionSearch()");
+    	}
+
         singleLine = false;
         SearchTermsTableModel model = (SearchTermsTableModel) searchTermsTbl.getModel();
         SearchHeaderTableModel headerModel = (SearchHeaderTableModel) searchHeaderTbl
@@ -1352,10 +1362,13 @@ public class MetadataSearchMainGUI extends JPanel
         termsAction.setOperator(getSelectedOperator());
         termsAction.setEverything(false);
         // termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
-        searchButton.setAction(termsAction);
     }
 
     public void setAllSearch() {
+    	if (DEBUG_LOCAL) {
+    		System.out.println("MetadataSearchMainGUI.setAllSearch()");
+    	}
+
         SearchTermsTableModel model = (SearchTermsTableModel) searchTermsTbl.getModel();
         buttonColumn = 2;
         comboColumn = 1;
@@ -1377,7 +1390,6 @@ public class MetadataSearchMainGUI extends JPanel
 
         // allSearch.setResultsType(resultsTypeChoice.getSelectedItem().toString());
         // allSearch = new SearchAction(allSearchField);
-        searchButton.setAction(allSearch);
 
         singleLine = true;
     }
@@ -1766,6 +1778,11 @@ public class MetadataSearchMainGUI extends JPanel
          termsAction.setOperator(iAndOr);
          termsAction.setEverything(true);
          // termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
+
+         if (DEBUG_LOCAL) {
+        	 System.out.println("MetadataSearchMainGUI.searchButtonAction()");
+         }
+
          JButton btn = new JButton();
          btn.setAction(termsAction);
          btn.doClick(); 
