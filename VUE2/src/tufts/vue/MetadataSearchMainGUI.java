@@ -78,7 +78,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.44 $ / $Date: 2009-04-07 15:02:56 $ / $Author: Sheejo
+ * @version $Revision: 1.45 $ / $Date: 2009-04-07 16:38:19 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -371,6 +371,7 @@ public class MetadataSearchMainGUI extends JPanel
             optionsPanelGBC.gridy = 0;
 
             searchTypeLbl = new JLabel(VueResources.getString("searchgui.searchtype"), SwingConstants.RIGHT);            
+            searchTypeLbl.setFont(tufts.vue.gui.GUI.LabelFace);
             optionsPanelGBC.gridx = 0;
             optionsPanelGBC.weightx = 0.0;
             optionsPanel.add(searchTypeLbl, optionsPanelGBC);
@@ -384,6 +385,7 @@ public class MetadataSearchMainGUI extends JPanel
             optionsPanelGBC.gridy = 1;
 
             mapsLbl = new JLabel(VueResources.getString("searchgui.maps"), SwingConstants.RIGHT);            
+            mapsLbl.setFont(tufts.vue.gui.GUI.LabelFace);
             optionsPanelGBC.gridx = 0;
             optionsPanelGBC.weightx = 0.0;
             optionsPanel.add(mapsLbl, optionsPanelGBC);
@@ -397,6 +399,7 @@ public class MetadataSearchMainGUI extends JPanel
             optionsPanelGBC.gridy = 2;
 
             resultsLbl = new JLabel(VueResources.getString("searchgui.results"), SwingConstants.RIGHT);            
+            resultsLbl.setFont(tufts.vue.gui.GUI.LabelFace);
             optionsPanelGBC.gridx = 0;
             optionsPanelGBC.weightx = 0.0;
             optionsPanel.add(resultsLbl, optionsPanelGBC);
@@ -498,6 +501,7 @@ public class MetadataSearchMainGUI extends JPanel
             }
 
             saveButton = new JButton(VueResources.getString("searchgui.save"));
+            saveButton.setFont(tufts.vue.gui.GUI.LabelFace);
             saveButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {   
                 	if(searchTermsTbl.isEditing()){
@@ -528,6 +532,7 @@ public class MetadataSearchMainGUI extends JPanel
             });
 
             resetButton = new JButton(VueResources.getString("searchgui.resetmap"));
+            resetButton.setFont(tufts.vue.gui.GUI.LabelFace);
             resetButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     SearchAction.revertGlobalSearchSelectionFromMSGUI();
@@ -536,6 +541,7 @@ public class MetadataSearchMainGUI extends JPanel
             });
 
             searchButton = new JButton(VueResources.getString("searchgui.search"));
+            searchButton.setFont(tufts.vue.gui.GUI.LabelFace);
             searchButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     if (searchTermsTbl.isEditing()) {
@@ -700,7 +706,7 @@ public class MetadataSearchMainGUI extends JPanel
 
         private JComboBox getCombo(String[] choices, ItemListener listener) {
             JComboBox newCombo = new JComboBox(choices);
-//          newCombo.setFont(tufts.vue.gui.GUI.LabelFace);
+            newCombo.setFont(tufts.vue.gui.GUI.LabelFace);
             newCombo.addItemListener(listener);
             if (choices.length > 2 && choices[2].equals("Select")) {
                 newCombo.setSelectedIndex(2);
@@ -979,8 +985,8 @@ public class MetadataSearchMainGUI extends JPanel
                     new AddButtonTableCellEditor());
             
             if (Util.isMacLeopard()) {
-        	    searchHeaderTbl.getColumnModel().getColumn(1).setMaxWidth(85);
-        	    searchHeaderTbl.getColumnModel().getColumn(1).setMinWidth(85);
+        	    searchHeaderTbl.getColumnModel().getColumn(1).setMaxWidth(78);
+        	    searchHeaderTbl.getColumnModel().getColumn(1).setMinWidth(78);
             } else {
         	    searchHeaderTbl.getColumnModel().getColumn(1).setMaxWidth(60);
         	    searchHeaderTbl.getColumnModel().getColumn(1).setMinWidth(60);
@@ -1006,8 +1012,8 @@ public class MetadataSearchMainGUI extends JPanel
             searchHeaderTbl.getColumnModel().getColumn(0).setPreferredWidth(145);
 
             if (Util.isMacLeopard()) {
-        	    searchHeaderTbl.getColumnModel().getColumn(2).setMaxWidth(85);
-        	    searchHeaderTbl.getColumnModel().getColumn(2).setMinWidth(85);
+        	    searchHeaderTbl.getColumnModel().getColumn(2).setMaxWidth(78);
+        	    searchHeaderTbl.getColumnModel().getColumn(2).setMinWidth(78);
             } else {
         	    searchHeaderTbl.getColumnModel().getColumn(2).setMaxWidth(60);
         	    searchHeaderTbl.getColumnModel().getColumn(2).setMinWidth(60);
@@ -1112,7 +1118,7 @@ public class MetadataSearchMainGUI extends JPanel
             	   combo.putClientProperty("JComboBox.isTableCellEditor",Boolean.FALSE);
                 
                 // combo.setPreferredSize(new Dimension(60,30));
-//              combo.setFont(tufts.vue.gui.GUI.LabelFace);        
+                combo.setFont(tufts.vue.gui.GUI.LabelFace);        
                 combo.setVisible(true);
                 //combo.repaint();
                 // combo.invalidate();
@@ -1399,7 +1405,7 @@ public class MetadataSearchMainGUI extends JPanel
                 Object value, boolean isSelected, boolean hasFocus, int row,
                 int col) {
             JLabel comp = new JLabel();
-//          comp.setFont(tufts.vue.gui.GUI.LabelFace);            
+            comp.setFont(tufts.vue.gui.GUI.LabelFace);            
             if (col == headerButtonColumn) {
                 comp.setIcon(tufts.vue.VueResources
                         .getImageIcon("metadata.editor.add.up"));
@@ -1445,7 +1451,7 @@ public class MetadataSearchMainGUI extends JPanel
 
         public SearchTermsTableRenderer() {
             comp.setLayout(new java.awt.BorderLayout());
-//          field.setFont(tufts.vue.gui.GUI.LabelFace);
+            field.setFont(tufts.vue.gui.GUI.LabelFace);
 
             if (DEBUG_LOCAL) {
             	comp.setBackground(Color.YELLOW);
@@ -1495,7 +1501,7 @@ public class MetadataSearchMainGUI extends JPanel
                 JTextField field = (JTextField) super
                         .getTableCellEditorComponent(table, value, isSelected,
                                 row, col);
-//              field.setFont(tufts.vue.gui.GUI.LabelFace);
+                field.setFont(tufts.vue.gui.GUI.LabelFace);
                 String val = ((String[]) searchTerms.get(row).getObject())[1];
                 field.setText(val);
                 comp.add(field);
@@ -1542,7 +1548,7 @@ public class MetadataSearchMainGUI extends JPanel
         comp.setLayout(new java.awt.BorderLayout());
         if (col == (valueColumn)) {
             final JTextField field = new JTextField();
-//          field.setFont(tufts.vue.gui.GUI.LabelFace);
+            field.setFont(tufts.vue.gui.GUI.LabelFace);
             field.addFocusListener(new FocusAdapter() {
                 public void focusLost(FocusEvent fe) {                    
                     VueMetadataElement searchTerm = searchTerms.get(row);                    
@@ -1563,7 +1569,7 @@ public class MetadataSearchMainGUI extends JPanel
             comp.add(field);
         } else if (col == (categoryColumn)) {
             final JComboBox categories = new JComboBox();
-//          categories.setFont(tufts.vue.gui.GUI.LabelFace);
+            categories.setFont(tufts.vue.gui.GUI.LabelFace);
             categories.setModel(new CategoryComboBoxModel());
             categories.setRenderer(new CategoryComboBoxRenderer());
 
@@ -1604,7 +1610,7 @@ public class MetadataSearchMainGUI extends JPanel
             // String [] conditions = {"starts with","contains"};
             String[] conditions = { "contains", "starts with" };
             final JComboBox conditionCombo = new JComboBox(conditions);
-//          conditionCombo.setFont(tufts.vue.gui.GUI.LabelFace);
+            conditionCombo.setFont(tufts.vue.gui.GUI.LabelFace);
             conditionCombo.addItemListener(new ItemListener() {
                 public void itemStateChanged(ItemEvent ie) {
                     if (ie.getStateChange() == ItemEvent.SELECTED) {
