@@ -78,7 +78,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.45 $ / $Date: 2009-04-07 16:38:19 $ / $Author: Sheejo
+ * @version $Revision: 1.46 $ / $Date: 2009-04-07 21:15:56 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -618,19 +618,25 @@ public class MetadataSearchMainGUI extends JPanel
 
             searchPanel = new JPanel(new GridBagLayout());
             GridBagConstraints searchPanelGBC = new GridBagConstraints();
+            searchPanelGBC.insets = new Insets(HALF_GUTTER, HALF_GUTTER, HALF_GUTTER, HALF_GUTTER);
             searchPanelGBC.fill = GridBagConstraints.HORIZONTAL;
             searchPanelGBC.weightx = 0.0;
             searchPanelGBC.gridy = 0;
 
             searchPanelGBC.gridx = 0;
-            searchPanelGBC.insets = new Insets(HALF_GUTTER, HALF_GUTTER, HALF_GUTTER, HALF_GUTTER + GUTTER);
             searchPanel.add(saveButton, searchPanelGBC);
 
+            // An empty panel to take up the space between saveButton to the left and the other
+            // two buttons to the right.
             searchPanelGBC.gridx = 1;
-            searchPanelGBC.insets = new Insets(HALF_GUTTER, HALF_GUTTER, HALF_GUTTER, HALF_GUTTER);
-            searchPanel.add(resetButton, searchPanelGBC);
+            searchPanelGBC.weightx = 1.0;
+            searchPanel.add(new JPanel(), searchPanelGBC);
 
             searchPanelGBC.gridx = 2;
+            searchPanelGBC.weightx = 0.0;
+            searchPanel.add(resetButton, searchPanelGBC);
+
+            searchPanelGBC.gridx = 3;
             searchPanel.add(searchButton, searchPanelGBC);
 
             searchPanel.setOpaque(true);
@@ -665,9 +671,6 @@ public class MetadataSearchMainGUI extends JPanel
 
             topPanelGBC.gridy = 3;
             topPanelGBC.insets = new java.awt.Insets(0, HALF_GUTTER, HALF_GUTTER, HALF_GUTTER);
-            topPanelGBC.fill = GridBagConstraints.NONE;
-            topPanelGBC.anchor = GridBagConstraints.EAST;
-            topPanelGBC.weightx = 0.0;
             topPanel.add(searchPanel, topPanelGBC);
 
             if (DEBUG_LOCAL) {
