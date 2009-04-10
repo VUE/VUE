@@ -79,7 +79,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.49 $ / $Date: 2009-04-10 21:25:59 $ / $Author: Sheejo
+ * @version $Revision: 1.50 $ / $Date: 2009-04-10 21:31:11 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -169,7 +169,6 @@ public class MetadataSearchMainGUI extends JPanel
     private final String SAVE_SEARCH_STR = VueResources.getString("searchgui.savesearch");
     private final String RUN_SEARCH_STR = VueResources.getString("searchgui.runsearch");
     private String strAndOrType  = VueResources.getString("searchgui.or");
-    public boolean isSearchBtnClick = false;
 
     private JPanel topPanel;
     private OptionsPanel optionsPanel;
@@ -569,7 +568,6 @@ public class MetadataSearchMainGUI extends JPanel
 					}
 
 					termsAction = new SearchAction(searchTerms);
-					isSearchBtnClick = true;
 					String resultsTypeChoice = resultCmbBox.getSelectedItem().toString().trim();					
 					termsAction.setResultsType(resultsTypeChoice);
 
@@ -1799,7 +1797,6 @@ public class MetadataSearchMainGUI extends JPanel
 	}
     public void searchButtonAction(){
         SearchData data = new SearchData();
-        isSearchBtnClick = false;
          int selectedRow = searchResultTbl.getSelectedRow();                 
          data = searchResultModel.getSearchData(selectedRow);                 
          //searchTerms = data.getDataList();             
