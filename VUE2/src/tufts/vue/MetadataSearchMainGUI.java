@@ -66,6 +66,7 @@ import tufts.vue.gui.GUI;
 import tufts.vue.gui.VueTextPane;
 import tufts.vue.gui.Widget;
 import tufts.vue.gui.WidgetStack;
+import tufts.vue.gui.WindowDisplayAction;
 import tufts.vue.gui.renderer.SavedSearchTableRenderer;
 import tufts.vue.gui.renderer.SearchResultTableModel;
 import edu.tufts.vue.metadata.VueMetadataElement;
@@ -78,7 +79,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.46 $ / $Date: 2009-04-07 21:15:56 $ / $Author: Sheejo
+ * @version $Revision: 1.47 $ / $Date: 2009-04-10 13:31:03 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -103,7 +104,7 @@ public class MetadataSearchMainGUI extends JPanel
     private String[] searchTypes = { SEARCH_EVERYTHING, SEARCH_LABELS_ONLY,
             SEARCH_ALL_KEYWORDS, SEARCH_CATEGORIES_AND_KEYWORDS };
 
-    public final static int BUTTON_COL_WIDTH = 35;
+    public final static int BUTTON_COL_WIDTH = 24;
     public final static int ROW_HEIGHT = 30;
     public List<VueMetadataElement> searchTerms = new ArrayList<VueMetadataElement>();
     private SearchAction termsAction = new SearchAction(searchTerms);
@@ -365,7 +366,8 @@ public class MetadataSearchMainGUI extends JPanel
             optionsPanel = new OptionsPanel(new GridBagLayout());
             GridBagConstraints optionsPanelGBC = new GridBagConstraints();
             optionsPanelGBC.fill = GridBagConstraints.HORIZONTAL;
-            optionsPanelGBC.insets = new Insets(HALF_GUTTER, HALF_GUTTER, HALF_GUTTER, HALF_GUTTER);
+            Insets	labelInsets = new Insets(HALF_GUTTER, HALF_GUTTER, HALF_GUTTER, 0),
+            		textFieldInsets = new Insets(HALF_GUTTER, HALF_GUTTER, HALF_GUTTER, HALF_GUTTER);
 
             // First Row
             optionsPanelGBC.gridy = 0;
@@ -373,11 +375,13 @@ public class MetadataSearchMainGUI extends JPanel
             searchTypeLbl = new JLabel(VueResources.getString("searchgui.searchtype"), SwingConstants.RIGHT);            
             searchTypeLbl.setFont(tufts.vue.gui.GUI.LabelFace);
             optionsPanelGBC.gridx = 0;
+            optionsPanelGBC.insets = labelInsets;
             optionsPanelGBC.weightx = 0.0;
             optionsPanel.add(searchTypeLbl, optionsPanelGBC);
 
             searchTypeCmbBox = getCombo(searchTypes, searchTypesListener);
             optionsPanelGBC.gridx = 1;
+            optionsPanelGBC.insets = textFieldInsets;
             optionsPanelGBC.weightx = 1.0;
             optionsPanel.add(searchTypeCmbBox, optionsPanelGBC);
 
@@ -387,11 +391,13 @@ public class MetadataSearchMainGUI extends JPanel
             mapsLbl = new JLabel(VueResources.getString("searchgui.maps"), SwingConstants.RIGHT);            
             mapsLbl.setFont(tufts.vue.gui.GUI.LabelFace);
             optionsPanelGBC.gridx = 0;
+            optionsPanelGBC.insets = labelInsets;
             optionsPanelGBC.weightx = 0.0;
             optionsPanel.add(mapsLbl, optionsPanelGBC);
 
             mapCmbBox = getCombo(locationTypes, locationChoiceListener);
             optionsPanelGBC.gridx = 1;
+            optionsPanelGBC.insets = textFieldInsets;
             optionsPanelGBC.weightx = 1.0;
             optionsPanel.add(mapCmbBox, optionsPanelGBC);
 
@@ -401,11 +407,13 @@ public class MetadataSearchMainGUI extends JPanel
             resultsLbl = new JLabel(VueResources.getString("searchgui.results"), SwingConstants.RIGHT);            
             resultsLbl.setFont(tufts.vue.gui.GUI.LabelFace);
             optionsPanelGBC.gridx = 0;
+            optionsPanelGBC.insets = labelInsets;
             optionsPanelGBC.weightx = 0.0;
             optionsPanel.add(resultsLbl, optionsPanelGBC);
 
             resultCmbBox = getCombo(currentMapResultsTypes, resultsTypeListener);
             optionsPanelGBC.gridx = 1;
+            optionsPanelGBC.insets = textFieldInsets;
             optionsPanelGBC.weightx = 1.0;
             optionsPanel.add(resultCmbBox, optionsPanelGBC);
 
@@ -422,14 +430,14 @@ public class MetadataSearchMainGUI extends JPanel
             	resultsLbl.setOpaque(true);
             	resultCmbBox.setBackground(Color.YELLOW);
             	resultCmbBox.setOpaque(true);
-            	optionsPanel.setBackground(Color.GREEN);
+            	optionsPanel.setBackground(Color.BLUE);
             }
 
             linePanel = new JPanel() {
                 protected void paintComponent(java.awt.Graphics g) {
                     if (isOpaque()) {
                     	g.setColor(getBackground());
-                        g.fillRect(0, 0, getWidth() - 1, getHeight());
+                        g.fillRect(0, 0, getWidth(), getHeight());
                     }
 
                     g.setColor(java.awt.Color.DARK_GRAY);
@@ -493,11 +501,11 @@ public class MetadataSearchMainGUI extends JPanel
 
             if (DEBUG_LOCAL) {
             	searchHeaderTbl.setOpaque(true);
-            	searchHeaderTbl.setBackground(Color.MAGENTA);
+            	searchHeaderTbl.setBackground(Color.BLUE);
             	searchTermsTbl.setOpaque(true);
-            	searchTermsTbl.setBackground(Color.MAGENTA);
+            	searchTermsTbl.setBackground(Color.BLUE);
             	tablePanel.setOpaque(true);
-            	tablePanel.setBackground(Color.GREEN);
+            	tablePanel.setBackground(Color.BLUE);
             }
 
             saveButton = new JButton(VueResources.getString("searchgui.save"));
@@ -649,7 +657,7 @@ public class MetadataSearchMainGUI extends JPanel
                 resetButton.setBackground(Color.YELLOW);
                 searchButton.setOpaque(true);
                 searchButton.setBackground(Color.YELLOW);
-                searchPanel.setBackground(Color.GREEN);
+                searchPanel.setBackground(Color.CYAN);
             }
 
             topPanel = new JPanel(new GridBagLayout());
@@ -995,8 +1003,8 @@ public class MetadataSearchMainGUI extends JPanel
         	    searchHeaderTbl.getColumnModel().getColumn(1).setMinWidth(60);
             }
 
-            searchHeaderTbl.getColumnModel().getColumn(2).setMaxWidth(24);
-            searchHeaderTbl.getColumnModel().getColumn(2).setMinWidth(24);
+            searchHeaderTbl.getColumnModel().getColumn(2).setMaxWidth(BUTTON_COL_WIDTH);
+            searchHeaderTbl.getColumnModel().getColumn(2).setMinWidth(BUTTON_COL_WIDTH);
 
         } else if (searchHeaderTbl.getModel().getColumnCount() == 4) {
         
@@ -1022,8 +1030,8 @@ public class MetadataSearchMainGUI extends JPanel
         	    searchHeaderTbl.getColumnModel().getColumn(2).setMinWidth(60);
             }
 
-            searchHeaderTbl.getColumnModel().getColumn(3).setMaxWidth(24);
-            searchHeaderTbl.getColumnModel().getColumn(3).setMinWidth(24);
+            searchHeaderTbl.getColumnModel().getColumn(3).setMaxWidth(BUTTON_COL_WIDTH);
+            searchHeaderTbl.getColumnModel().getColumn(3).setMinWidth(BUTTON_COL_WIDTH);
         }
     }
     public class ComboBoxAndOrEditor extends DefaultCellEditor {
@@ -1092,6 +1100,12 @@ public class MetadataSearchMainGUI extends JPanel
                 ((SearchTermsTableModel) searchTermsTbl.getModel()).refresh();
                 ((SearchHeaderTableModel) searchHeaderTbl.getModel()).refresh();                    
             }
+
+            if (DEBUG_LOCAL) {
+            	component.setBackground(Color.YELLOW);
+            	component.setOpaque(true);
+            }
+
             // Return the configured component
             return component;
         }
@@ -1128,7 +1142,7 @@ public class MetadataSearchMainGUI extends JPanel
 
                 if (DEBUG_LOCAL) {
                 	combo.setOpaque(true);
-                	combo.setBackground(Color.CYAN);
+                	combo.setBackground(Color.YELLOW);
                 }
 
                 table.revalidate();
@@ -1169,8 +1183,8 @@ public class MetadataSearchMainGUI extends JPanel
             searchTermsTbl.getColumnModel().getColumn(2).setMaxWidth(0);
             searchTermsTbl.getColumnModel().getColumn(2).setMinWidth(0);    
             searchTermsTbl.getColumnModel().getColumn(2).setPreferredWidth(0);
-            searchTermsTbl.getColumnModel().getColumn(3).setMaxWidth(24);
-            searchTermsTbl.getColumnModel().getColumn(3).setMinWidth(24);
+            searchTermsTbl.getColumnModel().getColumn(3).setMaxWidth(BUTTON_COL_WIDTH);
+            searchTermsTbl.getColumnModel().getColumn(3).setMinWidth(BUTTON_COL_WIDTH);
         
         } 
     }
