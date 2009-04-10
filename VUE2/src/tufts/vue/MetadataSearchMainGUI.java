@@ -79,7 +79,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.48 $ / $Date: 2009-04-10 15:31:14 $ / $Author: Sheejo
+ * @version $Revision: 1.49 $ / $Date: 2009-04-10 21:25:59 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -108,7 +108,7 @@ public class MetadataSearchMainGUI extends JPanel
     public final static int ROW_HEIGHT = 30;
     public List<VueMetadataElement> searchTerms = new ArrayList<VueMetadataElement>();
     private SearchAction termsAction = new SearchAction(searchTerms);
-        private JTextField allSearchField = new JTextField();
+    private JTextField allSearchField = new JTextField();
     private SearchAction allSearch = new SearchAction(allSearchField);
     public final static int SHOW_OPTIONS = 1;
     public final static int HIDE_OPTIONS = 0;
@@ -1533,6 +1533,13 @@ public class MetadataSearchMainGUI extends JPanel
                 field.setFont(tufts.vue.gui.GUI.LabelFace);
                 String val = ((String[]) searchTerms.get(row).getObject())[1];
                 field.setText(val);
+
+                field.addActionListener(new ActionListener(){
+                    public void actionPerformed(ActionEvent actionEvent){
+                        searchButton.doClick();
+                    }
+                });
+
                 comp.add(field);
                 return comp;
             } else {
