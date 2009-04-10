@@ -460,8 +460,11 @@ public class SearchTextField extends JTextField {
 
 	class PopupActionListener implements ActionListener {
 		public void actionPerformed(ActionEvent actionEvent) {
-			fieldTxt.setForeground(Color.black);
-			thisTxtFld.setForeground(Color.black);
+			if (Util.isMacTiger() || Util.isWindowsPlatform()) {
+				fieldTxt.setForeground(Color.black);
+			} else {
+				thisTxtFld.setForeground(Color.black);
+			}
 
 			if (VueResources.getString("search.popup.select.all").equals(
 					actionEvent.getActionCommand().toString())) {
