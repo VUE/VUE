@@ -707,10 +707,8 @@ public class SearchTextField extends JTextField {
 //		categoryKeywordMenuItem.setSelected(false);
 //		labelMenuItem.setSelected(false);
 		if (editSettingsMenuItem.isSelected()) {
-			editSettingsMenuItem.setSelected(true);
 			VUE.getMetadataSearchMainGUI().setVisible(true);
 		} else {
-			editSettingsMenuItem.setSelected(false);
 			VUE.getMetadataSearchMainGUI().setVisible(false);
 		}
 		// resetSettingsMenuItem.setSelected(false);

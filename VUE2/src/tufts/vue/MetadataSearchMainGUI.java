@@ -79,7 +79,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.47 $ / $Date: 2009-04-10 13:31:03 $ / $Author: Sheejo
+ * @version $Revision: 1.48 $ / $Date: 2009-04-10 15:31:14 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -209,6 +209,18 @@ public class MetadataSearchMainGUI extends JPanel
         mapInfoStack.addPane(SEARCH_STR,mInfoPanel);
         mapInfoStack.addPane(metadataPanel, 2f);
         // Widget.setWantsScroller(mapInfoStack, true);
+
+        // SearchTextField.editSettingsMenuItem should have a WindowDisplayAction linked to the DockWindow
+        // so that it will be properly and automatically checked, but it was created before this DockWindow
+        // existed;  now that the DockWindow exists, change the menu item's action to be a WindowDisplayAction.
+        if (SearchTextField.editSettingsMenuItem != null) {
+        	WindowDisplayAction wda = new WindowDisplayAction(w);
+            
+        	wda.setTitle(VueResources.getString("search.popup.edit.search.settings"));
+        	wda.setLinkedButton(SearchTextField.editSettingsMenuItem);
+        
+        	SearchTextField.editSettingsMenuItem.setAction(wda);
+        }
 
         saveSearchAction = new AbstractAction(SAVE_SEARCH_STR) {
             public void actionPerformed(ActionEvent e) {

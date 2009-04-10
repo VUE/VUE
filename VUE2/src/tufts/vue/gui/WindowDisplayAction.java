@@ -32,7 +32,7 @@ import javax.swing.AbstractButton;
  * An action for displaying a Window and tracking it's displayed state,
  * keeping in synchronized with a somebody's button (such a checkbox in a menu).
  *
- * @version $Revision: 1.13 $ / $Date: 2009-01-27 16:20:53 $ / $Author: mike $
+ * @version $Revision: 1.14 $ / $Date: 2009-04-10 15:32:27 $ / $Author: brian $
  * @author Scott Fraize
  */
 public class WindowDisplayAction extends javax.swing.AbstractAction
@@ -121,7 +121,7 @@ public class WindowDisplayAction extends javax.swing.AbstractAction
             putValue(Action.NAME, mTitle);
         }
     }
-    void setLinkedButton(AbstractButton b) {
+    public void setLinkedButton(AbstractButton b) {
         mLinkedButton = b;
         setButtonState(isConsideredShown());
     }
@@ -186,11 +186,6 @@ public class WindowDisplayAction extends javax.swing.AbstractAction
             
         if (doShowWindow) {
             boolean isMac = Util.isMacPlatform();            
-            if(mWindow.getName().trim().equals("Search")){
-            	if(SearchTextField.editSettingsMenuItem != null){
-            		SearchTextField.editSettingsMenuItem.setSelected(true);
-                }
-            }
             // if (isMac) tufts.Util.invoke(mWindow.getPeer(), "setAlpha", new Float(0.5));
 
             // Why do we see the window contents flash twice on showing?

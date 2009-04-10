@@ -55,7 +55,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.148 $ / $Date: 2009-04-01 20:50:46 $ / $Author: mike $
+ * @version $Revision: 1.149 $ / $Date: 2009-04-10 15:33:02 $ / $Author: brian $
  * @author Scott Fraize
  */
 
@@ -316,12 +316,7 @@ public class DockWindow
         public void peer_addNotify() { super.addNotify(); }
         public void peer_validate() { super.validate(); }
         public void peer_invalidate() { super.invalidate(); }
-        public void peer_setVisible(boolean v) {
-        	super.setVisible(v); 
-        	if(getName().equals("Search") && v==false){
-        		SearchTextField.editSettingsMenuItem.setSelected(false);
-        	}        	
-        }
+        public void peer_setVisible(boolean v) { super.setVisible(v); }
         public void peer_setBounds(int x, int y, int w, int h) { super.setBounds(x, y, w, h); }
 
         public String toString() { return GUI.name(this); }
