@@ -342,9 +342,6 @@ public class SearchAction extends AbstractAction {
     // note: performSearch determines if this is actually a seperate thread
     public void runSearchThread(int searchLocationType)
     {      	
-    	if(VUE.getMetadataSearchMainPanel().isSearchBtnClick){
-    		searchTerms = VUE.getMetadataSearchMainPanel().searchTerms;
-    	}
         if(searchType == QUERY && VUE.getMetadataSearchMainPanel().getSelectedOperator() == AND)
         {        	
             createQuery();
