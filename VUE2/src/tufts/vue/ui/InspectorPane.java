@@ -42,7 +42,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.117 $ / $Date: 2009-04-01 12:16:30 $ / $Author: vaibhav $
+ * @version $Revision: 1.118 $ / $Date: 2009-04-13 19:11:05 $ / $Author: brian $
  */
 
 public class InspectorPane extends WidgetStack
@@ -1427,6 +1427,8 @@ public class InspectorPane extends WidgetStack
         
         LabelPane() {
             super(new BorderLayout());
+
+            labelValue.setFont(tufts.vue.gui.GUI.LabelFace);
 
             final int insetInner = 5;
 
