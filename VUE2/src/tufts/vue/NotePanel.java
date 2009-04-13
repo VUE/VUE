@@ -16,17 +16,20 @@
 /** 
  * Provides an editable note panel for an LWComponents notes.
  *
- * @version $Revision: 1.25 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $
+ * @version $Revision: 1.26 $ / $Date: 2009-04-13 19:15:44 $ / $Author: brian $
  */
 
 package tufts.vue;
 
+import tufts.Util;
+import tufts.vue.gui.GUI;
 import tufts.vue.gui.VueTextPane;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.border.*;
+
 import java.awt.*;
 
 public class NotePanel extends tufts.vue.gui.Widget
@@ -38,7 +41,9 @@ public class NotePanel extends tufts.vue.gui.Widget
     {
         super("Notes");
         setLayout(new BorderLayout());
-		
+
+        mTextPane.setFont(tufts.vue.gui.GUI.LabelFace);
+
         if (false) {
             JScrollPane scrollPane = new JScrollPane();
             
@@ -48,14 +53,20 @@ public class NotePanel extends tufts.vue.gui.Widget
             scrollPane.getViewport().add(mTextPane);
             add(BorderLayout.CENTER, scrollPane);
         } else {
+            final int insetInner = 5;
+
             if (tufts.Util.isMacPlatform()) {
                 // be sure to fetch and include the existing border, to get the special mac focus hilighting border
-                final int b = 2;
+                final int b = 7;
                 mTextPane.setBorder(new CompoundBorder(new MatteBorder(b,b,b,b,SystemColor.control),
-                                                       mTextPane.getBorder()));
+                        new CompoundBorder(mTextPane.getBorder(),
+                                GUI.makeSpace(insetInner))));
             } else {
-                mTextPane.setBorder(new EmptyBorder(2,4,2,4));
+                setBorder(GUI.makeSpace(5));
+                mTextPane.setBorder(new CompoundBorder(new EtchedBorder(EtchedBorder.LOWERED),
+                        GUI.makeSpace(insetInner)));
             }
+
             add(BorderLayout.CENTER, mTextPane);
         }
 
@@ -78,10 +89,17 @@ public class NotePanel extends tufts.vue.gui.Widget
         return minSize("getPreferredSize");
     }
 
-    private static final int MinNoteHeight = 46;
-
     private Dimension minSize(String src) {
         Dimension d = super.getPreferredSize();
+        Insets insets = mTextPane.getBorder().getBorderInsets(mTextPane);
+        int MinNoteHeight = 5 * mTextPane.getFontMetrics(mTextPane.getFont()).getHeight() +
+                insets.top + insets.bottom;
+
+        if (!tufts.Util.isMacPlatform()) {
+        	insets = getBorder().getBorderInsets(this);
+        	MinNoteHeight += insets.top + insets.bottom;
+        }
+
         if (d.height < MinNoteHeight)
             d.height = MinNoteHeight;
         //System.out.format("NotePanel %16s %s\n", src, tufts.Util.fmt(d));
