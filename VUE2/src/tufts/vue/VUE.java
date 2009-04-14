@@ -117,7 +117,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.648 $ / $Date: 2009-03-29 06:12:03 $ / $Author: vaibhav $ 
+ * @version $Revision: 1.649 $ / $Date: 2009-04-14 13:48:25 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -533,7 +533,7 @@ public class VUE
         VueMenuBar.RootMenuBar.linkMenu.setEnabled(enable); 
        
         Actions.NewNode.setEnabled(enable);
-        Actions.NewText.setEnabled(enable);
+        Actions.NewRichText.setEnabled(enable);
         
         VueMenuBar.RootMenuBar.playbackMenu.setEnabled(enable);
     }
@@ -1715,10 +1715,12 @@ public class VUE
         		if (DEBUG.INIT) Util.printStackTrace("\"pressing\": " + SplitPaneRightButtonOneTouchActionHandler);
 
         		// Not reliable on PC unless we invokeLater
-        		GUI.invokeAfterAWT(new Runnable() { public void run() {
+        		if (!VUE.isApplet())
+        		{
+        			GUI.invokeAfterAWT(new Runnable() { public void run() {
         			SplitPaneRightButtonOneTouchActionHandler.actionPerformed(null);                  
-        		}});
-        
+        			}});
+        		}
         		// this is also eventually getting eaten in java 1.5: no matter where
         		// we put this call during init: will have to patch w/more hacking
         		// or live with it.  Actually, it get's eaten eventually in java 1.4.2

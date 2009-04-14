@@ -188,8 +188,25 @@ public class Actions implements VueConstants
         	return null;
 		
     }
-              
-    
+    /*          
+    public static final VueAction ZoteroAction =
+    	new VueAction("Import Zotero collection") {
+		public void act() 
+		{			
+			VueFileChooser chooser = VueFileChooser.getVueFileChooser();
+			File zoteroFile = null;
+										
+	        int option = chooser.showOpenDialog(tufts.vue.VUE.getDialogParent());
+	        if (option == VueFileChooser.APPROVE_OPTION) 
+	        {
+	            zoteroFile = chooser.getSelectedFile();
+	           
+				edu.tufts.vue.zotero.ZoteroAction.importZotero(zoteroFile);
+	        }
+
+		}
+    };
+*/ 
     public static final VueAction SpeakerNotes1 =
     	new VueAction(VueResources.getString("menu.file.exporthandout.speakernotes1")) {
 		public void act() 
@@ -2932,7 +2949,7 @@ public class Actions implements VueConstants
     //same thing but my MapViewer.java is a bit decomposed at the moment so
     //TODO: Come back here eliminate one of these and only call one from mapviewer.
     //MK
-    public static final VueAction NewText =
+    public static final VueAction NewRichText =
     new NewItemAction(VueResources.getString("menu.content.addtext"), keyStroke(KeyEvent.VK_T, COMMAND)) {
         @Override
         LWComponent createNewItem() {
@@ -2940,18 +2957,10 @@ public class Actions implements VueConstants
         }
     };
 
-    public static final VueAction NewRichText =
-    //new NewItemAction("New Rich Text", keyStroke(KeyEvent.VK_R, COMMAND)) {
-      new NewItemAction("New Rich Text", null) { // SMF 2008-04-19 removed keystroke: was in no menus, and was conflicting
-            @Override
-            LWComponent createNewItem() {
-                return NodeModeTool.createRichTextNode("new text");
-            }
-        };
 
     public static final Action[] NEW_OBJECT_ACTIONS = {
         NewNode,
-        NewText,
+        NewRichText,
         //AddImageAction,
         //AddFileAction,
         //NewSlide

@@ -76,7 +76,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.593 $ / $Date: 2009-04-01 21:12:52 $ / $Author: mike $ 
+ * @version $Revision: 1.594 $ / $Date: 2009-04-14 13:48:25 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -4413,7 +4413,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     	sAddFileItem = sSinglePopup.add(Actions.AddFileAction);
     	//sAddURLItem = sSinglePopup.add(Actions.AddURLAction);
     	sSinglePopup.add(Actions.NewNode);
-    	sSinglePopup.add(Actions.NewText);
+    	sSinglePopup.add(Actions.NewRichText);
     	if (!slide.getMasterSlide().equals(slide))
     	{    		
     		sSinglePopup.addSeparator();
@@ -7202,7 +7202,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     if (activeTool == NodeModeTool && (oneClickNodePref.getValue() == Boolean.TRUE))
                         Actions.NewNode.fire(e);
                     else if (activeTool == TextTool)
-                        Actions.NewText.fire(e);
+                        Actions.NewRichText.fire(e);
                     else if (activeTool == RichTextTool)
                         Actions.NewRichText.fire(e);
 
