@@ -2953,7 +2953,7 @@ public class Actions implements VueConstants
     new NewItemAction(VueResources.getString("menu.content.addtext"), keyStroke(KeyEvent.VK_T, COMMAND)) {
         @Override
         LWComponent createNewItem() {
-            return NodeModeTool.createRichTextNode("new text");
+            return NodeModeTool.createRichTextNode(VueResources.getString("newtext.html"));
         }
     };
 
