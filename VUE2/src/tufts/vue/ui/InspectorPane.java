@@ -42,7 +42,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.118 $ / $Date: 2009-04-13 19:11:05 $ / $Author: brian $
+ * @version $Revision: 1.119 $ / $Date: 2009-04-14 19:13:38 $ / $Author: brian $
  */
 
 public class InspectorPane extends WidgetStack
@@ -78,7 +78,7 @@ public class InspectorPane extends WidgetStack
     private final Widget mDescription = new Widget("contentInfo"); // for GUI.init property applicaton (use same as meta-data pane)
     private final Preview mPreview = new Preview();
     
-    private final JLabel mSelectionInfo = new JLabel("", JLabel.LEFT);
+    private final JLabel mSelectionInfo = new JLabel("", JLabel.CENTER);
     
     private final WidgetStack stack;
     
@@ -127,7 +127,8 @@ public class InspectorPane extends WidgetStack
         mDescription.setOpaque(true);
         mDescription.setBackground(Color.white);
 
-        mSelectionInfo.setFont(VueConstants.LargeFont);
+        //mSelectionInfo.setFont(VueConstants.LargeFont);
+        mSelectionInfo.setForeground(Color.darkGray);
         mSelectionInfo.setBorder(GUI.WidgetInsetBorder);
 
         new Pane("_multi-selection-info",  mSelectionInfo,      EXACT_SIZE,    0);
