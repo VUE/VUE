@@ -79,11 +79,12 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.50 $ / $Date: 2009-04-10 21:31:11 $ / $Author: Sheejo
+ * @version $Revision: 1.51 $ / $Date: 2009-04-14 22:23:40 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
 public class MetadataSearchMainGUI extends JPanel
+	implements ActiveListener<LWMap>
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger
             .getLogger(MetadataSearchMainGUI.class);
@@ -193,7 +194,7 @@ public class MetadataSearchMainGUI extends JPanel
         super();        
         JPopupMenu popup = new JPopupMenu();
         mapInfoStack = new WidgetStack(SEARCH_STR);        
-        // VUE.addActiveListener(LWMap.class, this);
+        VUE.addActiveListener(LWMap.class, this);
         setMinimumSize(new Dimension(300, 250));
         setLayout(new BorderLayout());
         mInfoPanel = new MetaSearchPanel();
@@ -1825,5 +1826,10 @@ public class MetadataSearchMainGUI extends JPanel
          JButton btn = new JButton();
          btn.setAction(termsAction);
          btn.doClick(); 
+    }
+
+
+    public void activeChanged(ActiveEvent<LWMap> e) {
+    	fillSavedSearch();
     }
 }
