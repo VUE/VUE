@@ -873,6 +873,7 @@ public class LWImage extends
 //     }
 
     // REMOVE FOR LWNode IMPL:
+    @Override
     protected void drawImpl(DrawContext dc)
     {
         drawWithoutShape(dc);
