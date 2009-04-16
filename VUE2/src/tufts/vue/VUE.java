@@ -117,7 +117,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.649 $ / $Date: 2009-04-14 13:48:25 $ / $Author: mike $ 
+ * @version $Revision: 1.650 $ / $Date: 2009-04-16 18:24:35 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -1160,6 +1160,8 @@ public class VUE
             
         final VueDataSourceManager VDSM =
             edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
+
+        DEBUG.DR=DEBUG.IO=DEBUG.XML=true;
 
         // unmarshall the installed data sources
         VDSM.load();
