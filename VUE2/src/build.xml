@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.180 $ / $Date: 2009-03-31 17:31:28 $ / $Author: anoop $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.180 2009-03-31 17:31:28 anoop Exp $ -->
+<!-- $Revision: 1.181 $ / $Date: 2009-04-16 17:57:35 $ / $Author: sfraize $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.181 2009-04-16 17:57:35 sfraize Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -136,12 +136,14 @@
        and completely blowing out the java VM when it tries (out of memory)-->
   <!-- 2007-01-01 SMF: updated castor to version castor-1.0.5-xml.jar -->
   <!-- 2007-09-30 SMF: updated castor to version castor-1.1.2.1-xml.jar -->
-  <!-- 2008-07-23 SMF: added google collections 
+  <!-- 2009-03-25 SMF: updated castor to version castor-1.3-xml.jar -->
+  <!-- 2009-03-25 SMF: updated castor to version castor-1.3-core.jar -->
+<!-- 2008-07-23 SMF: added google collections 
   		2009-01-26 MK: Added the gdata client, because of an OSID classpath problem, the gdata stuff uses .getPackage which 
   		inturn uses VUE's classloader instead of the OSID's classloader so the classes need to be in VUE in order
   		to work properly-->
 	<property name="applet.jarfiles.names"
-		value="castor-1.1.2.1-xml.jar"
+		value="castor-1.3-xml.jar"
 	/>
   <property name="thirdparty.jarfiles.names"
             value="google-collect-snapshot-20090211.jar
@@ -158,8 +160,9 @@
 				   OSIDLoggingPlain-1.0.jar
                    xercesImpl-2.7.1.jar
                    xerces-2.7.1-xml-apis.jar
-                   castor-1.1.2.1-xml.jar
-                   jaxb-api-unsigned.jar
+                   castor-1.3-core.jar
+                   castor-1.3-xml.jar
+                  jaxb-api-unsigned.jar
                    jaxb-impl-unsigned.jar
                    jax-qname-unsigned.jar
                    relaxngDatatype.jar
@@ -288,8 +291,9 @@
                    trippi-1.1.2-core.jar
                    commons-httpclient-3.1-beta1.jar                   
                    batik-all.jar
-                   castor-1.0.5-xml.jar
-                   commons-discovery.jar
+                   castor-1.3-core.jar
+                   castor-1.3-xml.jar
+                  commons-discovery.jar
                    commons-logging.jar
                    dom2.jar
                    fedora-client_2_2.jar
@@ -329,8 +333,9 @@
     <pathelement path="${lib.home}/google-collect-snapshot-20090211.jar"/>
   	 <pathelement path="${lib.home}/calais.jar"/>
     <pathelement path="${lib.home}/VUE-MacOSX.jar"/>
-    <pathelement path="${lib.home}/castor-1.0.5-xml.jar"/>
-    <pathelement path="${lib.home}/batik-all.jar"/>
+    <pathelement path="${lib.home}/castor-1.3-core.jar"/>
+    <pathelement path="${lib.home}/castor-1.3-xml.jar"/>
+   <pathelement path="${lib.home}/batik-all.jar"/>
     <pathelement path="${lib.home}/fop.jar"/>
     <pathelement path="${lib.home}/fedoragentypes.jar"/>
       <pathelement path="${lib.home}/fedora-client_2_2.jar"/>
@@ -918,21 +923,15 @@
   	  alias="mykey"
   	  storepass="vuevue"
   	  keystore="${keystore}"
-  	  jar="../lib/castor-1.1.2.1-xml.jar">
-  	</signjar>
- 	<signjar
-  	  alias="mykey"
-  	  storepass="vuevue"
-  	  keystore="${keystore}"
-  	  jar="../lib/castor-0.9.7-xml.jar">
-  	</signjar>
- 	<signjar
-  	  alias="mykey"
-  	  storepass="vuevue"
-  	  keystore="${keystore}"
-  	  jar="../lib/castor-1.0.5-xml.jar">
+  	  jar="../lib/castor-1.3-core.jar">
   	</signjar>
   	<signjar
+  	  alias="mykey"
+  	  storepass="vuevue"
+  	  keystore="${keystore}"
+  	  jar="../lib/castor-1.3-xml.jar">
+  	</signjar>
+ 	<signjar
   	  alias="mykey"
   	  storepass="vuevue"
   	  keystore="${keystore}"
