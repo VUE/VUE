@@ -52,7 +52,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.464 $ / $Date: 2009-03-17 17:43:08 $ / $Author: sfraize $
+ * @version $Revision: 1.465 $ / $Date: 2009-04-16 17:54:47 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -6791,12 +6791,12 @@ u                    getSlot(c).setFromString((String)value);
     }
     
     public void XML_fieldAdded(Object context, String name, Object child) {
-        if (DEBUG.XML) out("XML_fieldAdded <" + name + "> = " + child);
+        if (DEBUG.XML && DEBUG.META) out("XML_fieldAdded <" + name + "> = " + child);
     }
 
     /** interface {@link XMLUnmarshalListener} */
     public void XML_addNotify(Object context, String name, Object parent) {
-        if (DEBUG.XML) tufts.Util.printClassTrace("tufts.vue", "XML_addNotify; name=" + name
+        if (DEBUG.XML && DEBUG.META) tufts.Util.printClassTrace("tufts.vue", "XML_addNotify; name=" + name
                                                   + "\n\tparent: " + parent
                                                   + "\n\t child: " + this
                                                   + "\n");
