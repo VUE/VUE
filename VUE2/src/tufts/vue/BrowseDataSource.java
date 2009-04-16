@@ -23,7 +23,7 @@ package tufts.vue;
  * on the configuration.  E.g., a local directory, a list of user favorites, a remote FTP
  * site, an RSS feed, etc.
  * 
- * @version $Revision: 1.8 $ / $Date: 2009-01-29 17:45:59 $ / $Author: sfraize $
+ * @version $Revision: 1.9 $ / $Date: 2009-04-16 17:53:22 $ / $Author: sfraize $
  * @author  rsaigal
  * @author  sfraize
  */
@@ -350,13 +350,15 @@ public abstract class BrowseDataSource implements DataSource
         if (encoding == null) {
             String ct = conn.getContentType();
             Log.debug("content-type[" + ct + "]");
-            int charsetIndex = ct.indexOf("charset=");
-            if (charsetIndex >= 0) {
-                encoding = ct.substring(charsetIndex + 8);
-                Log.debug("charset[" + encoding + "]");
-                if (encoding.length() < 1)
-                    encoding = null;
+            if (ct != null) {
+                int charsetIndex = ct.indexOf("charset=");
+                if (charsetIndex >= 0) {
+                    encoding = ct.substring(charsetIndex + 8);
+                    Log.debug("charset[" + encoding + "]");
+                    if (encoding.length() < 1)
+                        encoding = null;
                     
+                }
             }
         } else {
             Log.debug("content-encoding[" + encoding + "]");
