@@ -36,7 +36,7 @@ import com.google.common.collect.Iterators;
  * The insertion order of each key/value is preserved, even for each use of
  * the same key with different values.
  *
- * @version $Revision: 1.11 $ / $Date: 2009-03-17 16:07:34 $ / $Author: sfraize $
+ * @version $Revision: 1.12 $ / $Date: 2009-04-16 17:55:32 $ / $Author: sfraize $
  */
 
 public class MetaMap implements TableBag, XMLUnmarshalListener
@@ -433,7 +433,9 @@ public class MetaMap implements TableBag, XMLUnmarshalListener
     public void XML_initialized(Object context) {}
     
     public void XML_completed(Object context) {
-        if (DEBUG.XML) Log.debug("UNPACKING ENTRIES IN " + this + " context=" + context);
+        if (DEBUG.XML) Log.debug("UNPACKING ENTRIES IN " + this + " context=" + context + "; persistEntries: " + Util.tags(mPersistEntries));
+        if (mPersistEntries == null)
+            return;
         for (Map.Entry<String,?> e : mPersistEntries) {
             if (DEBUG.XML) Log.debug("UNPACKING " + e);
             
