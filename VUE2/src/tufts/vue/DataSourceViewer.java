@@ -2432,10 +2432,11 @@ public class DataSourceViewer extends JPanel
     }
     
     public  SaveDataSourceViewer unMarshallMap(File file)
-    throws java.io.IOException,
-            org.exolab.castor.xml.MarshalException,
-            org.exolab.castor.mapping.MappingException,
-            org.exolab.castor.xml.ValidationException {
+        throws java.io.IOException,
+               org.exolab.castor.xml.MarshalException,
+               org.exolab.castor.xml.ValidationException,
+               org.exolab.castor.mapping.MappingException
+    {
         Unmarshaller unmarshaller = tufts.vue.action.ActionUtil.getDefaultUnmarshaller(file.toString());
         FileReader reader = new FileReader(file);
         SaveDataSourceViewer sviewer = (SaveDataSourceViewer) unmarshaller.unmarshal(new InputSource(reader));
