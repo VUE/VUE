@@ -65,7 +65,7 @@ import java.net.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistence thru castor XML.
  *
- * @version $Revision: 1.133 $ / $Date: 2009-04-03 16:46:37 $ / $Author: mike $
+ * @version $Revision: 1.134 $ / $Date: 2009-04-16 17:56:23 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -537,9 +537,9 @@ public class ActionUtil
     
     private static void doMarshallMap(final File targetFile, final File tmpFile, final LWMap map)
         throws java.io.IOException,
-               org.exolab.castor.mapping.MappingException,
                org.exolab.castor.xml.MarshalException,
-               org.exolab.castor.xml.ValidationException
+               org.exolab.castor.xml.ValidationException,
+               org.exolab.castor.mapping.MappingException
     {
         final String path = tmpFile.getAbsolutePath().replaceAll("%20"," ");
         final FileOutputStream fos = new FileOutputStream(path);
@@ -627,9 +627,9 @@ public class ActionUtil
      */
     static void marshallMapToWriter(final LWMap map, final Writer writer)
         throws java.io.IOException,
-               org.exolab.castor.mapping.MappingException,
                org.exolab.castor.xml.MarshalException,
-               org.exolab.castor.xml.ValidationException
+               org.exolab.castor.xml.ValidationException,
+               org.exolab.castor.mapping.MappingException
     {
         marshallMapToWriter(writer, map, null, null);
     }
@@ -642,9 +642,9 @@ public class ActionUtil
                                             final File targetFile,
                                             final File tmpFile)
         throws java.io.IOException,
-               org.exolab.castor.mapping.MappingException,
                org.exolab.castor.xml.MarshalException,
-               org.exolab.castor.xml.ValidationException
+               org.exolab.castor.xml.ValidationException,
+               org.exolab.castor.mapping.MappingException
     {
         map.makeReadyForSaving(targetFile);
         
@@ -1200,10 +1200,12 @@ public class ActionUtil
             
             try {
                 map = (LWMap) unmarshaller.unmarshal(new InputSource(reader));
+                //} catch (org.exolab.castor.xml.MarshalException me) {
             } catch (org.exolab.castor.xml.MarshalException me) {
                 //if (allowOldFormat && me.getMessage().endsWith("tufts.vue.Resource")) {
                 //if (allowOldFormat && me.getMessage().indexOf("Unable to instantiate tufts.vue.Resource") >= 0) {
                 // 2007-10-01 SMF: rev forward the special exception to check for once again in new castor version: castor-1.1.2.1-xml.jar
+                // TODO: 2009-03-25: upgraded to Castor release 1.3: the below message check may no longer work...
                 if (allowOldFormat && me.getMessage() != null && me.getMessage().indexOf("tufts.vue.Resource can no longer be constructed") >= 0) {
                     Log.warn("ActionUtil.unmarshallMap: " + me);
                     Log.warn("Attempting specialized MapResource mapping for old format.");
@@ -1327,7 +1329,7 @@ class MapUnmarshalHandler implements UnmarshalListener {
             
     /** @see org.exolab.castor.xml.UnmarshalListener */
     public void initialized(Object o) {
-        if (DEBUG.XML) Log.debug(" initialized: " + Util.tags(o));
+        if (DEBUG.XML && DEBUG.META) Log.debug(" initialized: " + Util.tags(o));
         if (o instanceof XMLUnmarshalListener) {
             try {
                 ((XMLUnmarshalListener)o).XML_initialized(context);
@@ -1339,12 +1341,12 @@ class MapUnmarshalHandler implements UnmarshalListener {
     
     /** @see org.exolab.castor.xml.UnmarshalListener */
     public void attributesProcessed(Object o) {
-        if (DEBUG.XML) Log.debug("  attributes: " + Util.tags(o));
+        if (DEBUG.XML && DEBUG.META) Log.debug("  attributes: " + Util.tags(o));
     }
     
     /** @see org.exolab.castor.xml.UnmarshalListener */
     public void unmarshalled(Object o) {
-        if (DEBUG.XML||DEBUG.CASTOR) Log.debug("unmarshalled: " + Util.tags(o));
+        if (DEBUG.XML && DEBUG.META) Log.debug("unmarshalled: " + Util.tags(o));
             
         if (o instanceof XMLUnmarshalListener) {
             try {
@@ -1357,10 +1359,23 @@ class MapUnmarshalHandler implements UnmarshalListener {
 
     /** @see org.exolab.castor.xml.UnmarshalListener */
     public void fieldAdded(String name, Object parent, Object child) {
-        if (DEBUG.XML){
-            Log.debug("  fieldAdded: parent: " + Util.tags(parent) + " newChild[" + name + "] " + Util.tags(child) + "\n");
-            //System.out.println("VUL fieldAdded: parent: " + parent.getClass().getName() + "\t" + tos(parent) + "\n"
-            //+ "             new child: " +  child.getClass().getName() + " \"" + name + "\" " + tos(child) + "\n");
+        if (DEBUG.XML) {
+
+            //final String field = "child[" + Util.TERM_YELLOW + name + Util.TERM_CLEAR + "] ";
+            //final String field = Util.TERM_YELLOW + name + Util.TERM_CLEAR + ": ";
+            final String field = Util.tag(parent) + "/" + Util.TERM_YELLOW + name + Util.TERM_CLEAR + " = ";
+            
+            if (DEBUG.META) {
+                Log.debug("  fieldAdded: parent: " + Util.tags(parent) + " " + field + Util.tags(child) + "\n");
+                //System.out.println("VUL fieldAdded: parent: " + parent.getClass().getName() + "\t" + tos(parent) + "\n"
+                //+ "             new child: " +  child.getClass().getName() + " \"" + name + "\" " + tos(child) + "\n");
+            } else {
+                if (child instanceof String)
+                    Log.debug(field + Util.TERM_RED + '"' + child + '"' + Util.TERM_CLEAR);
+                else
+                    Log.debug(field + Util.TERM_PURPLE + Util.tags(child) + Util.TERM_CLEAR);
+                //Log.debug(field + Util.tags(child));
+            }
         }
         if (parent instanceof XMLUnmarshalListener) {
             try {
@@ -1450,7 +1465,7 @@ final class XMLObjectFactory extends org.exolab.castor.util.DefaultObjectFactory
                 // don't use tags (allow toString to be called) -- unmarshalling can fail
                 // if there are side-effects (!!!) due to calling it -- this happens
                 // with a FavoritesDataSource in any case...
-                Log.debug("new " + Util.tag(o));
+                Log.debug("+= " + Util.tag(o));
                 //Log.debug("new " + Util.tag(o) + "; " + source); 
             }
         }
