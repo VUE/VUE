@@ -42,7 +42,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.119 $ / $Date: 2009-04-14 19:13:38 $ / $Author: brian $
+ * @version $Revision: 1.120 $ / $Date: 2009-04-23 17:48:17 $ / $Author: brian $
  */
 
 public class InspectorPane extends WidgetStack
@@ -128,6 +128,7 @@ public class InspectorPane extends WidgetStack
         mDescription.setBackground(Color.white);
 
         //mSelectionInfo.setFont(VueConstants.LargeFont);
+        mSelectionInfo.setFont(tufts.vue.gui.GUI.StatusFace);
         mSelectionInfo.setForeground(Color.darkGray);
         mSelectionInfo.setBorder(GUI.WidgetInsetBorder);
 
