@@ -236,6 +236,7 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
                 //selectMessage.setBorder(new javax.swing.border.EmptyBorder(16,0,17,0)); // pc, but exact size fails to update??
                 selectMessage.setBorder(new javax.swing.border.EmptyBorder(15,0,15,0)); 
                 selectMessage.setForeground(java.awt.Color.darkGray);
+                selectMessage.setFont(tufts.vue.gui.GUI.StatusFace);
 		add(selectMessage,gbConstraints);
 	}
 	
