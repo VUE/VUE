@@ -48,6 +48,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
@@ -117,7 +118,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.651 $ / $Date: 2009-04-16 18:38:55 $ / $Author: sfraize $ 
+ * @version $Revision: 1.652 $ / $Date: 2009-04-23 18:04:42 $ / $Author: brian $ 
  */
 
 public class VUE
@@ -169,7 +170,7 @@ public class VUE
     private static SearchTextField mSearchtextFld = new SearchTextField();
     public static final int FIRST_TAB_STOP = 6;   
     //public static JCheckBoxMenuItem  resetSettingsMenuItem;
-    public static JSlider depthSelectionSlider = new JSlider(JSlider.HORIZONTAL,1, 6, 6);
+    public static JSlider depthSelectionSlider = new JSlider(JSlider.HORIZONTAL, 0, 5, 0);
     public static JPanel sliderSearchPanel = new JPanel(new FlowLayout());  
     public static void finalizeDocks()
     {
@@ -2220,7 +2221,7 @@ public class VUE
 				}
 				else
 					returnToMapButton.setVisible(false);				    
-				    depthSelectionSlider.setVisible(true);
+					depthSelectionSlider.setVisible(true);
 			}
         }); 
         returnToMapButton.setVisible(false);
@@ -2291,72 +2292,48 @@ public class VUE
         //searchPanel.setBorder(BorderFactory.createLineBorder(Color.red,1));
         //sliderSearchPanel = new JPanel(new FlowLayout());         
        
-        Hashtable labelTable = new Hashtable();
-        JLabel linePanel = null;
-        if(VueUtil.isMacPlatform()){
-         linePanel = new JLabel() {
-            protected void paintComponent(java.awt.Graphics g) {
-                 //setSize(40,20);
-                g.setColor(java.awt.Color.DARK_GRAY);
-                g.setFont(tufts.vue.gui.GUI.LabelFace);
-                g.drawLine(0, 1, 0,
-                        10);
-            }            
-        };
-        }else{
-        	linePanel = new JLabel() {
-                protected void paintComponent(java.awt.Graphics g) {
-                     //setSize(40,20);
-                    g.setColor(java.awt.Color.DARK_GRAY);
-                    g.setFont(tufts.vue.gui.GUI.LabelFace);
-                    g.drawLine(0, 4, 0,
-                            11);
-                }            
-            };
-        }
-        JLabel halfLinePanel = new JLabel() {
-            protected void paintComponent(java.awt.Graphics g) {
-                 //setSize(40,20);
-                g.setColor(java.awt.Color.DARK_GRAY);
-                g.setFont(tufts.vue.gui.GUI.LabelFace);
-                g.drawLine(0, 0, 0,
-                        5);
-            }            
-        };
-        linePanel.setBorder(BorderFactory.createLineBorder(sliderSearchPanel.getBackground(), 1));
-        halfLinePanel.setBorder(BorderFactory.createLineBorder(sliderSearchPanel.getBackground(), 1));
+        JLabel zeroLabel = new JLabel("0");
         JLabel oneLabel = new JLabel("1");
-        oneLabel.setFont(tufts.vue.gui.GUI.LabelFace);
-        oneLabel.setForeground(Color.DARK_GRAY);
-        labelTable.put( new Integer( 1 ), oneLabel);
-        labelTable.put( new Integer( 2 ), linePanel );
+        JLabel twoLabel = new JLabel("2");
         JLabel threeLabel = new JLabel("3");
-        threeLabel.setFont(tufts.vue.gui.GUI.LabelFace);
-        labelTable.put( new Integer( 3 ), threeLabel );
-        labelTable.put( new Integer( 4 ), linePanel );
+        JLabel fourLabel = new JLabel("4");
         JLabel fiveLabel = new JLabel("5");
-        fiveLabel.setFont(tufts.vue.gui.GUI.LabelFace);
-        fiveLabel.setForeground(Color.DARK_GRAY);
-        labelTable.put( new Integer( 5 ), fiveLabel );
+        Hashtable labelTable = new Hashtable();
 
-        JLabel allLabel = new JLabel(VueResources.getString("jlabel.all"));
-        allLabel.setFont(tufts.vue.gui.GUI.LabelFace);
-        //allLabel.setFont(JSliderSmallFixedFont);
-        allLabel.setForeground(Color.DARK_GRAY);
-        labelTable.put( new Integer( 6 ),allLabel);
+        zeroLabel.setFont(tufts.vue.gui.GUI.LabelFace);
+        oneLabel.setFont(tufts.vue.gui.GUI.LabelFace);
+        twoLabel.setFont(tufts.vue.gui.GUI.LabelFace);
+        threeLabel.setFont(tufts.vue.gui.GUI.LabelFace);
+        fourLabel.setFont(tufts.vue.gui.GUI.LabelFace);
+        fiveLabel.setFont(tufts.vue.gui.GUI.LabelFace);
+
+        zeroLabel.setForeground(Color.DARK_GRAY);
+        oneLabel.setForeground(Color.DARK_GRAY);
+        twoLabel.setForeground(Color.DARK_GRAY);
+        threeLabel.setForeground(Color.DARK_GRAY);
+        fourLabel.setForeground(Color.DARK_GRAY);
+        fiveLabel.setForeground(Color.DARK_GRAY);
+
+        labelTable.put(new Integer( 0 ), zeroLabel);
+        labelTable.put(new Integer( 1 ), oneLabel);
+        labelTable.put(new Integer( 2 ), twoLabel);
+        labelTable.put(new Integer( 3 ), threeLabel);
+        labelTable.put(new Integer( 4 ), fourLabel);
+        labelTable.put(new Integer( 5 ), fiveLabel);
         
-        depthSelectionSlider.setLabelTable( labelTable );
+        depthSelectionSlider.setLabelTable(labelTable);
+        depthSelectionSlider.setSnapToTicks(true);
 
         //framesPerSecond.setMajorTickSpacing(6);
-        //depthSelectionSlider.setMinorTickSpacing(1);
 
         //framesPerSecond.setPaintTicks(true);
         depthSelectionSlider.setPaintLabels(true);
         depthSelectionSlider.setPreferredSize(new Dimension(130,35));
-        SliderActionListener lst = new SliderActionListener();        
-        depthSelectionSlider.addChangeListener(lst);        
+        DepthSelectionListener dSListener = new DepthSelectionListener();        
+        depthSelectionSlider.addChangeListener(dSListener);        
+        VUE.getSelection().addListener(dSListener);
         //For hiding deep search slider bar     
-        //sliderSearchPanel.add(depthSelectionSlider);
+        sliderSearchPanel.add(depthSelectionSlider);
         sliderSearchPanel.add(new JLabel(" "));
         //mSearchtextFld.setPreferredSize(new Dimension(200,23));
         sliderSearchPanel.add(mSearchtextFld);
@@ -4049,39 +4026,84 @@ public class VUE
 			return defaultColor;
 	}	
 	
-	static class SliderActionListener implements ChangeListener {
-		SliderActionListener() {
+	static class DepthSelectionListener implements ChangeListener, LWSelection.Listener {
+		LWSelection				originalSelection = null;
+		boolean					ignoreSelectionEvents = false,
+								ignoreSliderEvents = false;
 
+		DepthSelectionListener() {
 		}
 
-		public synchronized void stateChanged(ChangeEvent e) {			
-			JSlider source = (JSlider)e.getSource();
-		    if (!source.getValueIsAdjusting()) {
-		    	depthSelectionSlider.setValue(Integer.valueOf(getSliderValueMappedToPref()));
-		    	depthSelectionSlider.updateUI();		    	
-		    }		    
+		public void selectionChanged(LWSelection selection) {
+			if (!ignoreSelectionEvents) {
+				try {
+					ignoreSliderEvents = true;
 
+					originalSelection = selection.clone();
+
+					VUE.depthSelectionSlider.setValue(0);
+				}
+				catch (Exception ex) {
+					ex.printStackTrace();
+				}
+				finally {
+					ignoreSliderEvents = false;
+				}
+			}
 		}
-		public int getSliderValueMappedToPref()
-		{
-			int val = depthSelectionSlider.getValue();			
-			switch (val)
-			{
-				case 1:
-					return 1;
-				case 2:
-					return 2;
-				case 3:
-					return 3;
-				case 4:
-					return 4;
-				case 5:
-					return 5;
-				case 6:
-					return 6;					
-			}			
-			return 6;
-		}		
+
+		public void stateChanged(ChangeEvent event) {
+			if (!ignoreSliderEvents) {
+				try {
+					ignoreSelectionEvents = true;
+
+					JSlider source = (JSlider)event.getSource();
+
+					if (!source.getValueIsAdjusting()) {
+						LWSelection				selection = VUE.getSelection();
+						HashSet<LWComponent>	componentsToSelect = new HashSet<LWComponent>();
+						int						depth = source.getValue();
+
+
+						selection.setTo(originalSelection);
+
+						if (depth > 0) {
+							findChildrenToDepth(originalSelection.iterator(), depth + 1, componentsToSelect);
+							selection.add(componentsToSelect.iterator());
+						}
+				    }
+				}
+				catch (Exception ex) {
+					ex.printStackTrace();
+				}
+				finally {
+					ignoreSelectionEvents = false;
+				}
+			}
+		}
+
+		protected void findChildrenToDepth(Iterator<LWComponent> nodes, int depth, HashSet<LWComponent> componentsToSelect) {
+			while (nodes.hasNext()) {
+				LWSelection		selection = VUE.getSelection();
+				LWComponent		node = nodes.next();
+
+				if (node.getClass() == LWNode.class) {
+					componentsToSelect.add(node);
+
+					if (depth > 1) {
+						// Add the node's links.
+						Iterator<LWComponent>	links = (Iterator<LWComponent>)node.getConnected().iterator();
+
+						while (links.hasNext()) {
+							componentsToSelect.add(links.next());
+						}
+
+						// Add the node's child nodes.
+						findChildrenToDepth(node.getLinked().iterator(), depth - 1, componentsToSelect);
+					}
+				}
+			}
+		}
 	}
 
 	public static DRBrowser getDRBrowser() {
