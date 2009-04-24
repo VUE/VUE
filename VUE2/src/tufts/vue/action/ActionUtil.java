@@ -65,7 +65,7 @@ import java.net.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistence thru castor XML.
  *
- * @version $Revision: 1.134 $ / $Date: 2009-04-16 17:56:23 $ / $Author: sfraize $
+ * @version $Revision: 1.135 $ / $Date: 2009-04-24 18:54:56 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -372,15 +372,7 @@ public class ActionUtil
         unmarshaller.setObjectFactory(new XMLObjectFactory(sourceName));
         //unmarshaller.setWhitespacePreserve(true); // doesn't affect elements!  (e.g. <notes> foo bar </notes>)
         // HOWEVER: castor 0.9.7 now automatically encodes/decodes white space for attributes...
-        /*
-        Logger logger = new Logger(System.err);
-        if (sourceName != null)
-            logger.setPrefix("Castor " + sourceName);
-        else
-            logger.setPrefix("Castor");
-        unmarshaller.setLogWriter(logger);
-        */
-        unmarshaller.setLogWriter(new PrintWriter(System.err));
+        unmarshaller.setLogWriter(new PrintWriter(System.err)); // todo: deprecated; now uses commons-logging
 
         if (DEBUG.XML) unmarshaller.setDebug(true);
         
@@ -733,12 +725,7 @@ public class ActionUtil
         marshaller.setValidation(false); 
         //----------------------------------------------------------------------------------------
             
-        /*
-          Logger logger = new Logger(System.err);
-          logger.setPrefix("Castor ");
-          marshaller.setLogWriter(logger);
-        */
-        marshaller.setLogWriter(new PrintWriter(System.err));
+        marshaller.setLogWriter(new PrintWriter(System.err));  // todo: deprecated; now uses commons-logging
 
         // Make modifications to the map at the last minute, so any prior exceptions leave the map untouched.
 
