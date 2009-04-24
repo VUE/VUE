@@ -39,7 +39,7 @@ import org.xml.sax.InputSource;
  * for multi-threaded hang-proof initialization (repository configuration),
  * and event delivery to track the progress of loading.
  *
- * @version $Revision: 1.51 $ / $Date: 2009-01-06 17:30:51 $ / $Author: sfraize $  
+ * @version $Revision: 1.52 $ / $Date: 2009-04-24 18:54:35 $ / $Author: sfraize $  
  */
 public class VueDataSourceManager
     implements edu.tufts.vue.dsm.DataSourceManager
@@ -143,7 +143,7 @@ public class VueDataSourceManager
 
                 DataSources.clear();
                 
-                final VueDataSourceManager unmarshalled = unMarshall(file);
+                final VueDataSourceManager unmarshalled = unMarshalVDSM(file);
 
                 // currently, we really only need the list of DataSources from
                 // the unmarshalled VDSM instance -- we'd could just marshall
@@ -504,6 +504,7 @@ public class VueDataSourceManager
             Mapping mapping = tufts.vue.action.ActionUtil.getDefaultMapping();
             FileWriter writer = new FileWriter(file);
             Marshaller marshaller = new Marshaller(writer);
+            marshaller.setEncoding("US-ASCII");
             marshaller.setMapping(mapping);
             marshaller.setMarshalListener(new PropertyEntryMarshalListener());
             Log.debug("Marshalling to " + file + "...");
@@ -530,22 +531,51 @@ public class VueDataSourceManager
         }
         return id;
     }
-        
+
+    final static String CRIMSON_ENCODING_EXCEPTION_PREFIX = "Declared encoding \"";
     
-    private static synchronized VueDataSourceManager unMarshall(File file)
-        throws java.io.IOException, org.exolab.castor.xml.MarshalException,
-               org.exolab.castor.mapping.MappingException,
-               org.exolab.castor.xml.ValidationException
+    private static synchronized VueDataSourceManager unMarshalVDSM(File file)
+        throws java.io.IOException,
+               org.exolab.castor.xml.MarshalException,
+               org.exolab.castor.xml.ValidationException,
+               org.exolab.castor.mapping.MappingException
     {
-        Log.info("Unmarshalling: " + file);
-        
-        Unmarshaller unmarshaller = tufts.vue.action.ActionUtil.getDefaultUnmarshaller(file.toString());
-        unmarshaller.setUnmarshalListener(new PropertyEntryUnMarshalListener());
+        VueDataSourceManager vdsm = null;
+
+        try {
+            vdsm = unmarshalWithEncoding(file, null);
+        } catch (org.exolab.castor.xml.MarshalException e) {
+            Log.error(e.toString() + "; " + file);
             
-        final FileReader reader = new FileReader(file);
-        final VueDataSourceManager vdsm =
-            (VueDataSourceManager) unmarshaller.unmarshal(new InputSource(reader));
-        reader.close();
+            if (e.getCause() instanceof org.xml.sax.SAXParseException &&
+                e.getMessage() != null &&
+                e.getMessage().startsWith(CRIMSON_ENCODING_EXCEPTION_PREFIX))
+            {
+                // We are getting BOGUS, yet unavoidable SAXParseExceptions, even if the
+                // xml tag declared encoding is UTF-8, and the java stream encoding is
+                // UTF-8, because the java internal name is "UTF8" w/out the dash, and
+                // that won't match!  This is coming from the Apache Crimson XML parser
+                // -- did the default parser change on us at some point?  Via a class library
+                // order change?
+
+                // For more see:
+                // http://www.experts-exchange.com/Programming/Languages/Java/Q_24185321.html
+                // We've turned off the Crimson parser for now, restoring Xerces, which
+                // has made this exception go away.
+                
+                String declared = null;
+                try {
+                    declared = e.getMessage().substring(CRIMSON_ENCODING_EXCEPTION_PREFIX.length());
+                    declared = declared.substring(0, declared.indexOf('"'));
+                    Log.info(String.format("Attempting alternate encoding [%s]", declared));
+                } catch (Throwable t) {
+                    Log.error(t);
+                    throw e;
+                }
+                vdsm = unmarshalWithEncoding(file, declared);
+            }
+        }
+        
 
         for (DataSource ds : vdsm.marshallingVector) {
             try {
@@ -560,9 +590,42 @@ public class VueDataSourceManager
         return vdsm;
     }
 
+    private static VueDataSourceManager unmarshalWithEncoding(File file, String encoding)
+        throws java.io.IOException,
+               org.exolab.castor.xml.MarshalException,
+               org.exolab.castor.xml.ValidationException,
+               org.exolab.castor.mapping.MappingException
+    {
+        Log.info("Unmarshalling: " + file + "; encoding=[" + encoding + "]");
+        
+        final Unmarshaller unmarshaller = tufts.vue.action.ActionUtil.getDefaultUnmarshaller(file.toString());
+        unmarshaller.setUnmarshalListener(new PropertyEntryUnMarshalListener());
+            
+        //final FileReader reader = new FileReader(file);
+
+        final InputStreamReader reader;
+
+        if (encoding != null)
+            reader = new InputStreamReader(new FileInputStream(file), encoding);
+        else
+            reader = new InputStreamReader(new FileInputStream(file));
+
+        Log.debug(String.format("reader actual encoding name: [%s]", reader.getEncoding()));
+        
+        final InputSource inputSource = new InputSource(reader);
+
+        if (encoding != null) inputSource.setEncoding(encoding); // don't think required but just in case
+        
+        final VueDataSourceManager vdsm = (VueDataSourceManager) unmarshaller.unmarshal(inputSource);
+
+        reader.close();
+
+        return vdsm;
+    }
     
-   
+    
 }
+
   class PropertyEntryMarshalListener implements org.exolab.castor.xml.MarshalListener {
        public  boolean preMarshal(java.lang.Object object) {
             if(object instanceof tufts.vue.PropertyEntry) {
