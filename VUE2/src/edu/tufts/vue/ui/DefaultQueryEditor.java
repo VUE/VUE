@@ -14,10 +14,14 @@
  */
 package edu.tufts.vue.ui;
 
+import java.awt.Color;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
+import javax.swing.BorderFactory;
+
 import tufts.vue.VueResources;
+import tufts.vue.gui.GUI;
 
 public class DefaultQueryEditor
 extends javax.swing.JPanel
@@ -228,15 +232,10 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 		gbConstraints.weightx = 1;
 */
 		gbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-		//gbConstraints.fill = java.awt.GridBagConstraints.BOTH;
 		gbConstraints.weightx = 1;
-                //gbConstraints.weighty = 0;
-                //selectMessage.setMinimumSize(new java.awt.Dimension(50,30));
-                //selectMessage.setBorder(new javax.swing.border.EmptyBorder(26,0,26,0)); // mac
-                //selectMessage.setBorder(new javax.swing.border.EmptyBorder(16,0,17,0)); // pc, but exact size fails to update??
-                selectMessage.setBorder(new javax.swing.border.EmptyBorder(15,0,15,0)); 
-                selectMessage.setForeground(java.awt.Color.darkGray);
-                selectMessage.setFont(tufts.vue.gui.GUI.StatusFace);
+		selectMessage.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));  // it will be in a panel with a GUI.WidgetInsetBorder
+		selectMessage.setForeground(java.awt.Color.darkGray);
+		selectMessage.setFont(tufts.vue.gui.GUI.StatusFace);
 		add(selectMessage,gbConstraints);
 	}
 	
