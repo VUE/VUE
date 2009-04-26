@@ -397,7 +397,7 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
                 }
             });
             
-            JButton cancelButton=new JButton(VueResources.getString("button.cancel.label"));
+            JButton cancelButton=new JButton(VueResources.getString("button.cancel.lable"));
             cancelButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     setVisible(false);
@@ -526,7 +526,7 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
                 }
             });
             
-            JButton cancelButton=new JButton(VueResources.getString("button.cancel.label"));
+            JButton cancelButton=new JButton(VueResources.getString("button.cancel.lable"));
             cancelButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     setVisible(false);
