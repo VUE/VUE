@@ -17,6 +17,8 @@
 package edu.tufts.vue.metadata.ui;
 
 import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -35,6 +37,7 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 
 import tufts.vue.VueResources;
+import tufts.vue.VueUtil;
 import tufts.vue.gui.GUI;
 import edu.tufts.vue.metadata.CategoryModel;
 import edu.tufts.vue.ontology.OntType;
@@ -190,13 +193,16 @@ public class CategoryEditor extends JPanel
         
         buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(0,0,5,15));
-        cancelButton = new JButton(VueResources.getString("button.cancel.lable"));
-        cancelButton.setFont(GUI.LabelFace);
-        doneButton = new JButton(VueResources.getString("button.done.lable"));
+       // cancelButton = new JButton(VueResources.getString("button.cancel.lable"));
+       // cancelButton.setFont(GUI.LabelFace);
+        doneButton = new JButton(VueResources.getString("button.close.label"));
         doneButton.setFont(GUI.LabelFace);
+        //buttonPanel.add(cancelButton);
         //buttonPanel.add(cancelButton);
         buttonPanel.add(doneButton);
         add(buttonPanel);
+        
+        
         
         doneButton.addActionListener(new java.awt.event.ActionListener()
         {
@@ -220,7 +226,6 @@ public class CategoryEditor extends JPanel
                 }
                 else
                 {
-                    
                     CategoryEditor.this.dialog.dispose();
                     return;
                 }
@@ -229,7 +234,6 @@ public class CategoryEditor extends JPanel
                 Object currValue = (((String[])currObject)[0]);
                 metadataEditor.findCategory(currValue,row,col,n,categories);
                 categories.repaint();
-                
                 CategoryEditor.this.dialog.dispose();
             }
         });
@@ -251,10 +255,10 @@ public class CategoryEditor extends JPanel
            {
                //comp = new JLabel();
                //((JLabel)comp).setIcon(tufts.vue.VueResources.getImageIcon("metadata.editor.add.up"));
-               //comp.setBorder(BorderFactory.createEmptyBorder(5,0,0,0));
-               JPanel holder = new JPanel();
-               holder.add(new tufts.vue.gui.VueButton(VueResources.getString("keywords.button.add")));
-               comp.add(holder);
+                //comp.setBorder(BorderFactory.createEmptyBorder(5,0,0,0));
+                JPanel holder = new JPanel();
+                holder.add(new tufts.vue.gui.VueButton("keywords.button.add"));
+                comp.add(holder);
            }
            else
            {
@@ -352,7 +356,7 @@ public class CategoryEditor extends JPanel
         JPanel checkPanel = new JPanel();
         //JCheckBox check = new JCheckBox();
         JTextField label = new JTextField();
-        tufts.vue.gui.VueButton deleteButton = new tufts.vue.gui.VueButton(VueResources.getString("keywords.button.delete"));
+        tufts.vue.gui.VueButton deleteButton = new tufts.vue.gui.VueButton("keywords.button.delete");
         JPanel deletePanel = new JPanel();
         
         public CustomCategoryTableRenderer()
@@ -369,9 +373,9 @@ public class CategoryEditor extends JPanel
             
             if(col == 1)
             {
-                //JLabel button = new JLabel();
-                //button.setIcon(tufts.vue.VueResources.getImageIcon("metadata.editor.delete.up"));
-                //comp.add(button);
+               // JLabel button = new JLabel();
+               // button.setIcon(tufts.vue.VueResources.getImageIcon("metadata.editor.delete.up"));
+               // comp.add(button);
                 
                 //return checkPanel;
                 
@@ -475,7 +479,7 @@ public class CategoryEditor extends JPanel
                 //return checkPanel;
                 JPanel deletePanel = new JPanel();
                 deletePanel.setBorder(BorderFactory.createEmptyBorder(5,1,0,0));
-                tufts.vue.gui.VueButton deleteButton = new tufts.vue.gui.VueButton(VueResources.getString("keywords.button.delete"));
+                tufts.vue.gui.VueButton deleteButton = new tufts.vue.gui.VueButton("keywords.button.delete");
                 
                        
                 deleteButton.addMouseListener(new java.awt.event.MouseAdapter()
