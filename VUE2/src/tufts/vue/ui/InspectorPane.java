@@ -42,7 +42,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.121 $ / $Date: 2009-04-24 17:26:36 $ / $Author: brian $
+ * @version $Revision: 1.122 $ / $Date: 2009-04-26 13:54:07 $ / $Author: vaibhav $
  */
 
 public class InspectorPane extends WidgetStack
@@ -404,7 +404,7 @@ public class InspectorPane extends WidgetStack
         hideAllPanes();
         mKeywords.loadKeywords(null);
         // todo: actually pull mTypes out of LWSelection to count types of each kind
-        String txt = String.format("%d items selected", s.size());
+        String txt = String.format(VueResources.getString("infowindow.itemselected"), s.size());
         setTitleItem(txt);
         //String txt = String.format("<html><center>%d items selected", s.size());
         if (s.getDescription().length() > 0)
@@ -1053,7 +1053,7 @@ public class InspectorPane extends WidgetStack
         
         hideAllPanes();
 
-        setTitleItem("Nothing selected");
+        setTitleItem(VueResources.getString("infowindow.nothingselected"));
     }
     
         
@@ -1454,7 +1454,7 @@ public class InspectorPane extends WidgetStack
             labelValue.setEditable(true);
             //labelValue.loadText(String.format("<changes will apply to all %d nodes>", s.size()));
             //setTypeName(this, null, "Multiple Labels");
-            setName(String.format("Multiple Labels (changes apply to %d nodes)", s.size()));
+            setName(String.format(VueResources.getString("infowindow.multiplelabel"), s.size()));
             selection = s;
         }
         
