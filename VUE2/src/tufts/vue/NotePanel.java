@@ -16,7 +16,7 @@
 /** 
  * Provides an editable note panel for an LWComponents notes.
  *
- * @version $Revision: 1.26 $ / $Date: 2009-04-13 19:15:44 $ / $Author: brian $
+ * @version $Revision: 1.27 $ / $Date: 2009-04-26 21:05:13 $ / $Author: vaibhav $
  */
 
 package tufts.vue;
@@ -141,7 +141,7 @@ public class NotePanel extends tufts.vue.gui.Widget
     private void load(LWComponent c) {
         attach(c);
         if (c != null)
-            setTypeName(this, c, "Notes");
+            setTypeName(this, c, VueResources.getString("jlabel.notes"));
     }
 
     @Override
