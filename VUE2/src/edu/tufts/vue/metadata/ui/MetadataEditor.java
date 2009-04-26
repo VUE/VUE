@@ -908,7 +908,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,
        }
     }
     
-    tufts.vue.gui.VueButton headerAddButton = new tufts.vue.gui.VueButton(VueResources.getString("keywords.button.add")); 
+    tufts.vue.gui.VueButton headerAddButton = new tufts.vue.gui.VueButton("keywords.button.add"); 
 
     JPanel headerAddButtonPanel = new JPanel();
     
