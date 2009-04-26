@@ -935,8 +935,8 @@ public class DataSourceHandler extends JPanel
                         String displayName = ds.getDisplayName();
                         
                         if (javax.swing.JOptionPane.showConfirmDialog(VUE.getDialogParent(),
-                                "Do you really want to delete " + displayName,
-                                "Delete Resource",
+                        		VueResources.getString("datasource.dialog.message") + displayName,
+                        		VueResources.getString("datasource.dialog.title"),
                                 javax.swing.JOptionPane.OK_CANCEL_OPTION) == javax.swing.JOptionPane.YES_OPTION) {
                             dataSourceList.getModelContents().removeElement(ds);
                             saveDataSourceViewer();

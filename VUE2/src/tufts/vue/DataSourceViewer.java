@@ -141,7 +141,7 @@ public class DataSourceViewer extends JPanel
         // propertyChangeEvents to be seen, and aren't currently being handled in
         // the WidgetStack.WidgetTitle constructor
         Widget.setHelpAction(DRB.librariesPanel,VueResources.getString("dockWindow.Content.libraryPane.helpText"));;
-        Widget.setMiscAction(DRB.librariesPanel, new MiscActionMouseListener(), "dockWindow.addButton");
+        Widget.setMiscAction(DRB.librariesPanel, new MiscActionMouseListener(), VueResources.getString("dockWindow.addButton"));
         Widget.setHelpAction(DRB.browsePane,VueResources.getString("dockWindow.Content.browsePane.helpText"));;
         Widget.setHelpAction(DRB.resultsPane,VueResources.getString("dockWindow.Content.resultsPane.helpText"));;
         Widget.setHelpAction(DRB.searchPane,VueResources.getString("dockWindow.Content.searchPane.helpText"));;
@@ -329,9 +329,9 @@ public class DataSourceViewer extends JPanel
     	}
 
     	JPopupMenu m = null;
-    	private static final JMenuItem aboutResource = new JMenuItem(VueResources.getString("datasourcehandle.menu.aboutresource"));
+    	private static final JMenuItem aboutResource = new JMenuItem(VueResources.getString("datasourcehandler.aboutthisresources"));
     	//private static final JMenuItem configureResource = new JMenuItem("Configure Resource");
-    	private static final JMenuItem deleteResource = new JMenuItem(VueResources.getString("datasourcehandle.menu.deleteresource"));
+    	private static final JMenuItem deleteResource = new JMenuItem(VueResources.getString("datasourcehandler.deleteresource"));
     	Point lastMouseClick = null;
 
     	public void actionPerformed(ActionEvent e)
@@ -505,7 +505,7 @@ public class DataSourceViewer extends JPanel
     {
         if (DEBUG.Enabled) Log.debug("displayInBrowsePane: " + browserDS + "; " + GUI.name(viewer));
 
-        String title = "Browse: " + browserDS.getDisplayName();
+        String title = VueResources.getString("button.browse.label")+": " + browserDS.getDisplayName();
         if (browserDS.getCount() > 0)
             title += " (" + browserDS.getCount() + ")";
         Widget.setTitle(DRB.browsePane, title);
@@ -904,8 +904,8 @@ public class DataSourceViewer extends JPanel
                         }
                         
                         if (javax.swing.JOptionPane.showConfirmDialog(VUE.getDialogParent(),
-                                "Do you really want to delete " + displayName + "?",
-                                "Delete Resource",
+                                VueResources.getString("datasource.dialog.message") + displayName + "?",
+                                VueResources.getString("datasource.dialog.title"),
                                 javax.swing.JOptionPane.OK_CANCEL_OPTION) == javax.swing.JOptionPane.YES_OPTION) {
                             dataSourceManager.remove(ds.getId());
                             GUI.invokeAfterAWT(new Runnable() { public void run() {
@@ -947,8 +947,8 @@ public class DataSourceViewer extends JPanel
                         String displayName = ds.getDisplayName();
                         
                         if (javax.swing.JOptionPane.showConfirmDialog(VUE.getDialogParent(),
-                                "Do you really want to delete " + displayName,
-                                "Delete Resource",
+                                VueResources.getString("datasource.dialog.message") + displayName,
+                                VueResources.getString("datasource.dialog.title"),
                                 javax.swing.JOptionPane.OK_CANCEL_OPTION) == javax.swing.JOptionPane.YES_OPTION) {
                             dataSourceList.getModelContents().removeElement(ds);
                             saveDataSourceViewer();
@@ -2200,7 +2200,7 @@ public class DataSourceViewer extends JPanel
 
     private static DockWindow _buildWindow() {
 
-        final DockWindow dw = GUI.createDockWindow("Resource");
+        final DockWindow dw = GUI.createDockWindow(VueResources.getString("dockWindow.resource.title"));
         
         editInfoStack = new WidgetStack();
         //editInfoStack.addPane("startup", new javax.swing.JLabel("config init"));

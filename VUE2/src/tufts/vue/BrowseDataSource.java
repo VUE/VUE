@@ -23,7 +23,7 @@ package tufts.vue;
  * on the configuration.  E.g., a local directory, a list of user favorites, a remote FTP
  * site, an RSS feed, etc.
  * 
- * @version $Revision: 1.9 $ / $Date: 2009-04-16 17:53:22 $ / $Author: sfraize $
+ * @version $Revision: 1.10 $ / $Date: 2009-04-26 21:10:38 $ / $Author: vaibhav $
  * @author  rsaigal
  * @author  sfraize
  */
@@ -139,12 +139,12 @@ public abstract class BrowseDataSource implements DataSource
         List<ConfigField> fields = new java.util.ArrayList();
 
         fields.add(new ConfigField("address",
-                                   "Address",
+                                   VueResources.getString("dialog.address.label"),
                                    getTypeName() + " URL",
                                    getAddress()));
             
         fields.add(new ConfigField(AUTHENTICATION_COOKIE_KEY,
-                                   "Authentication",
+        						   VueResources.getString("dialog.authentication.label"),
                                    "Any required authentication cookie (optional)",
                                    getAuthenticationCookie()));
 
