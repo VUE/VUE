@@ -28,7 +28,7 @@ public class EditLibraryPanel extends JPanel implements ActionListener
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(EditLibraryPanel.class);
     
-    private final JButton updateButton = new JButton(VueResources.getString("button.label.save"));
+    private final JButton updateButton = new JButton(VueResources.getString("optiondialog.savechages.save"));
     private final edu.tufts.vue.dsm.DataSource dataSource;
     private final tufts.vue.DataSource oldStyleDataSource;
     private final DataSourceViewer dsv;
@@ -105,13 +105,13 @@ public class EditLibraryPanel extends JPanel implements ActionListener
         b.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
         b.append("<configuration>\n");
 
-        addField(b, "name", "Display Name", "Name for this data source", name, SINGLE_LINE_CLEAR_TEXT_CONTROL, 0);
+        addField(b, "name", VueResources.getString("dialog.displayname.label"), "Name for this data source", name, SINGLE_LINE_CLEAR_TEXT_CONTROL, 0);
                             
         if (dataSource instanceof LocalFileDataSource) {
 
             // use canned configuration
             addField(b, "address",
-                     "Starting Path",
+                     VueResources.getString("dialog.startingpath.label"),
                      "The path to start from",
                      dataSource.getAddress(),
                      FILECHOOSER_CONTROL,
