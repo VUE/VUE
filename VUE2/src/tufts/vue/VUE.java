@@ -118,7 +118,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.653 $ / $Date: 2009-04-27 19:34:52 $ / $Author: brian $ 
+ * @version $Revision: 1.654 $ / $Date: 2009-04-27 19:44:50 $ / $Author: brian $ 
  */
 
 public class VUE
@@ -4057,22 +4057,22 @@ public class VUE
 				try {
 					LWSelection	guiSelection = VUE.getSelection();
 					int			depth = VUE.depthSelectionSlider.getValue();
-	
+
 					ignoreSelectionEvents = true;
-	
+
 					if (previousDepth == 0) {
 						// userSelection will be empty;  set it to the GUI's current selection.
 						userSelection.addAll(guiSelection);
 					} else {
 						// deepSelection will be recomputed below (if previousDepth is 0, it's already empty).
 						deepSelection.clear();
-	
+
 						if (depth < previousDepth) {
 							// deepSelection will be smaller;  reset the GUI's selection to userSelection.
 							guiSelection.setTo(userSelection);
 						}
 					}
-	
+
 					if (depth == 0) {
 						// Done with userSelection for now;  empty it.
 						userSelection.clear();
@@ -4081,7 +4081,7 @@ public class VUE
 						findChildrenToDepth(userSelection, depth + 1);
 						guiSelection.add(deepSelection.iterator());
 					}
-	
+
 					previousDepth = depth;
 				}
 				catch (Exception ex) {
