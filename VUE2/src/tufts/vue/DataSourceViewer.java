@@ -1231,7 +1231,7 @@ public class DataSourceViewer extends JPanel
             
             //If the naming convention of this were to change, note there would
             //need to be a change in WidgetStack to properly color code the widget.
-            mResultPane = new Widget("Searching " + mRepositoryName);
+            mResultPane = new Widget(VueResources.getString("datasource.dialog.searching")+" "+ mRepositoryName);
             
             mStatusLabel = new StatusLabel("Searching for " + mSearchString + " ...", false);
             mResultPane.add(mStatusLabel);
@@ -1423,7 +1423,7 @@ public class DataSourceViewer extends JPanel
                 if (DEBUG.DR) Log.debug("done processing AssetIterator; count=" + resultCount);
             }
             
-            String name = "Results: " + mRepositoryName;
+            String name = "Resultsdasdad: " + mRepositoryName;
             
             if (DEBUG.DR) {
                 if (resultCount > maxResult)
@@ -1698,7 +1698,7 @@ public class DataSourceViewer extends JPanel
             
             //If the naming convention of this were to change, note there would
             //need to be a change in WidgetStack to properly color code the widget.
-            mResultPane = new Widget("Searching " + mRepositoryName);
+            mResultPane = new Widget(VueResources.getString("datasource.dialog.searching")+" "+ mRepositoryName);
             
             mStatusLabel = new StatusLabel("Searching for " + mSearchString + " ...", false);
             mResultPane.add(mStatusLabel);
@@ -1752,7 +1752,7 @@ public class DataSourceViewer extends JPanel
                 textArea.setOpaque(false);
                 	
                 GUI.invokeAfterAWT(new Runnable() { public void run() {
-                    mResultPane.setTitle("Results: " + mRepositoryName);
+                    mResultPane.setTitle(VueResources.getString("searchgui.results")+": " + mRepositoryName);
                     mResultPane.removeAll();
                     mResultPane.add(textArea);
                 }});
@@ -1884,7 +1884,7 @@ public class DataSourceViewer extends JPanel
                 if (DEBUG.DR) Log.debug("done processing AssetIterator; count=" + resultCount);
             }
             
-            String name = "Results: " + mRepositoryName;
+            String name = VueResources.getString("searchgui.results")+": " + mRepositoryName;
             
             if (DEBUG.DR) {
                 if (resultCount > maxResult)
@@ -2251,9 +2251,9 @@ public class DataSourceViewer extends JPanel
             final String name;
             if (DEBUG.Enabled)
                 //name = "Configuration: " + ds.getClass().getName(); // always edu.tufts.vue.dsm.impl.VueDataSource
-                name = "Configuration: " + ds.getRepository();
+                name = VueResources.getString("optiondialog.configuration.message")+": " + ds.getRepository();
             else
-                name = "Configuration";
+                name = VueResources.getString("optiondialog.configuration.message");
                 
             if (ds.hasConfiguration()) {
                 editInfoStack.addPane(name, new EditLibraryPanel(this, ds));
@@ -2312,9 +2312,9 @@ public class DataSourceViewer extends JPanel
 
             final String name;
             if (DEBUG.Enabled)
-                name = "Configuration: " + ds.getClass().getName();
+                name = VueResources.getString("optiondialog.configuration.message")+": " + ds.getClass().getName();
             else
-                name = "Configuration: " + ds.getTypeName();
+                name = VueResources.getString("optiondialog.configuration.message")+": " + ds.getTypeName();
 
             editInfoStack.addPane(name, new EditLibraryPanel(this, ds), 1f);
 

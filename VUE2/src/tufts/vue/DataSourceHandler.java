@@ -1796,9 +1796,9 @@ public class DataSourceHandler extends JPanel
             final String name;
             if (DEBUG.Enabled)
                 //name = "Configuration: " + ds.getClass().getName(); // always edu.tufts.vue.dsm.impl.VueDataSource
-                name = "Configuration: " + ds.getRepository();
+                name = VueResources.getString("optiondialog.configuration.message")+": " + ds.getRepository();
             else
-                name = "Configuration";
+                name = VueResources.getString("optiondialog.configuration.message");
                 
             if (ds.hasConfiguration()) {
                 //editInfoStack.addPane(name, new EditLibraryPanel(this, ds));
@@ -1836,9 +1836,9 @@ public class DataSourceHandler extends JPanel
 
             final String name;
             if (DEBUG.Enabled)
-                name = "Configuration: " + ds.getClass().getName();
+                name = VueResources.getString("optiondialog.configuration.message")+": " + ds.getClass().getName();
             else
-                name = "Configuration: " + ds.getTypeName();
+                name = VueResources.getString("optiondialog.configuration.message")+": " + ds.getTypeName();
 
             //editInfoStack.addPane(name, new EditLibraryPanel(this, ds), 1f);
             editInfoStack.addPane(name, new JLabel("UNIMPLEMENTED: EditLibraryPanel " + ds.getClass()));
