@@ -118,7 +118,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.652 $ / $Date: 2009-04-23 18:04:42 $ / $Author: brian $ 
+ * @version $Revision: 1.653 $ / $Date: 2009-04-27 19:34:52 $ / $Author: brian $ 
  */
 
 public class VUE
@@ -2329,9 +2329,9 @@ public class VUE
         //framesPerSecond.setPaintTicks(true);
         depthSelectionSlider.setPaintLabels(true);
         depthSelectionSlider.setPreferredSize(new Dimension(130,35));
-        DepthSelectionListener dSListener = new DepthSelectionListener();        
-        depthSelectionSlider.addChangeListener(dSListener);        
-        VUE.getSelection().addListener(dSListener);
+        DepthSelectionListener depthListener = new DepthSelectionListener();        
+        depthSelectionSlider.addChangeListener(depthListener);        
+        VUE.getSelection().addListener(depthListener);
         //For hiding deep search slider bar     
         sliderSearchPanel.add(depthSelectionSlider);
         sliderSearchPanel.add(new JLabel(" "));
@@ -4025,81 +4025,139 @@ public class VUE
 		else
 			return defaultColor;
 	}	
-	
+
 	static class DepthSelectionListener implements ChangeListener, LWSelection.Listener {
-		LWSelection				originalSelection = null;
-		boolean					ignoreSelectionEvents = false,
-								ignoreSliderEvents = false;
+		HashSet<LWComponent>	userSelection = new HashSet<LWComponent>(),	// LWComponents selected by the user
+								deepSelection = new HashSet<LWComponent>();	// LWComponents selected by this class
+		int						previousDepth = 0;
+		boolean					ignoreSelectionEvents = false;
 
 		DepthSelectionListener() {
 		}
 
-		public void selectionChanged(LWSelection selection) {
-			if (!ignoreSelectionEvents) {
-				try {
-					ignoreSliderEvents = true;
+		// ChangeListener method for depthSelectionSlider
+		public void stateChanged(ChangeEvent event) {
+			JSlider	source = (JSlider)event.getSource();
 
-					originalSelection = selection.clone();
-
-					VUE.depthSelectionSlider.setValue(0);
-				}
-				catch (Exception ex) {
-					ex.printStackTrace();
-				}
-				finally {
-					ignoreSliderEvents = false;
-				}
+			if (!source.getValueIsAdjusting()) {
+				GUI.invokeAfterAWT(sliderMoved);
 			}
 		}
 
-		public void stateChanged(ChangeEvent event) {
-			if (!ignoreSliderEvents) {
+		// LWSelection.Listener method
+		public void selectionChanged(LWSelection selection) {
+			if (VUE.depthSelectionSlider.getValue() > 0 && !ignoreSelectionEvents) {
+				// Changes to selection can't be made now;  must be done after listener notification completes.
+				GUI.invokeAfterAWT(selectionChanged);
+			}
+		}
+
+		Runnable sliderMoved = new Runnable() {
+			public void run() {
 				try {
+					LWSelection	guiSelection = VUE.getSelection();
+					int			depth = VUE.depthSelectionSlider.getValue();
+	
 					ignoreSelectionEvents = true;
-
-					JSlider source = (JSlider)event.getSource();
-
-					if (!source.getValueIsAdjusting()) {
-						LWSelection				selection = VUE.getSelection();
-						HashSet<LWComponent>	componentsToSelect = new HashSet<LWComponent>();
-						int						depth = source.getValue();
-
-
-						selection.setTo(originalSelection);
-
-						if (depth > 0) {
-							findChildrenToDepth(originalSelection.iterator(), depth + 1, componentsToSelect);
-							selection.add(componentsToSelect.iterator());
+	
+					if (previousDepth == 0) {
+						// userSelection will be empty;  set it to the GUI's current selection.
+						userSelection.addAll(guiSelection);
+					} else {
+						// deepSelection will be recomputed below (if previousDepth is 0, it's already empty).
+						deepSelection.clear();
+	
+						if (depth < previousDepth) {
+							// deepSelection will be smaller;  reset the GUI's selection to userSelection.
+							guiSelection.setTo(userSelection);
 						}
-				    }
+					}
+	
+					if (depth == 0) {
+						// Done with userSelection for now;  empty it.
+						userSelection.clear();
+					} else {
+						// Find deepSelection and add it to the GUI's selection.
+						findChildrenToDepth(userSelection, depth + 1);
+						guiSelection.add(deepSelection.iterator());
+					}
+	
+					previousDepth = depth;
 				}
 				catch (Exception ex) {
 					ex.printStackTrace();
+					Log.error("failed to init data sources", ex);
 				}
 				finally {
 					ignoreSelectionEvents = false;
 				}
 			}
-		}
+		};
 
-		protected void findChildrenToDepth(Iterator<LWComponent> nodes, int depth, HashSet<LWComponent> componentsToSelect) {
+		Runnable selectionChanged = new Runnable() {
+			public void run() {
+				try {
+					LWSelection	guiSelection = VUE.getSelection();
+					int			depth = VUE.depthSelectionSlider.getValue();
+
+					ignoreSelectionEvents = true;
+
+					if (depth > 0) {
+						// Compute userSelection as the GUI's current selection minus deepSelection.
+						userSelection.clear();
+						userSelection.addAll(guiSelection);
+
+						Iterator<LWComponent> deepNodes = deepSelection.iterator();
+
+						while (deepNodes.hasNext()) {
+							userSelection.remove(deepNodes.next());
+						}
+
+						// Find deepSelection.
+						deepSelection.clear();
+						findChildrenToDepth(userSelection, depth + 1);
+
+						// Set the GUI's selection to userSelection (it may have gotten smaller) and add deepSelection.
+						guiSelection.setTo(userSelection);
+						guiSelection.add(deepSelection);
+					}
+				}
+				catch (Exception ex) {
+					ex.printStackTrace();
+					Log.error("failed to init data sources", ex);
+				}
+				finally {
+					ignoreSelectionEvents = false;
+				}
+			}
+		};
+
+		protected void findChildrenToDepth(Collection<LWComponent> collection, int depth) {
+			// Add each node to deepSelection.
+			Iterator<LWComponent>	nodes = collection.iterator();
+
 			while (nodes.hasNext()) {
-				LWSelection		selection = VUE.getSelection();
 				LWComponent		node = nodes.next();
 
 				if (node.getClass() == LWNode.class) {
-					componentsToSelect.add(node);
+					if (!userSelection.contains(node)) {
+						deepSelection.add(node);
+					}
 
 					if (depth > 1) {
-						// Add the node's links.
+						// Add each node's links to deepSelection.
 						Iterator<LWComponent>	links = (Iterator<LWComponent>)node.getConnected().iterator();
 
 						while (links.hasNext()) {
-							componentsToSelect.add(links.next());
+							LWComponent		link = links.next();
+
+							if (!userSelection.contains(link)) {
+								deepSelection.add(link);
+							}
 						}
 
-						// Add the node's child nodes.
-						findChildrenToDepth(node.getLinked().iterator(), depth - 1, componentsToSelect);
+						// Add each node's child nodes to deepSelection.
+						findChildrenToDepth(node.getLinked(), depth - 1);
 					}
 				}
 			}
