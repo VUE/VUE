@@ -140,8 +140,9 @@ public class DataSourceViewer extends JPanel
         // are being set before addNotify, so I don't think they're generated the needed
         // propertyChangeEvents to be seen, and aren't currently being handled in
         // the WidgetStack.WidgetTitle constructor
-        Widget.setHelpAction(DRB.librariesPanel,VueResources.getString("dockWindow.Content.libraryPane.helpText"));;
-        Widget.setMiscAction(DRB.librariesPanel, new MiscActionMouseListener(), VueResources.getString("dockWindow.addButton"));
+        Widget.setHelpAction(DRB.librariesPanel,VueResources.getString("dockWindow.Content.libraryPane.helpText"));
+        //dockWindow.addButton is not a localized string in this context its just a property that is later resolved.
+        Widget.setMiscAction(DRB.librariesPanel, new MiscActionMouseListener(), "dockWindow.addButton");
         Widget.setHelpAction(DRB.browsePane,VueResources.getString("dockWindow.Content.browsePane.helpText"));;
         Widget.setHelpAction(DRB.resultsPane,VueResources.getString("dockWindow.Content.resultsPane.helpText"));;
         Widget.setHelpAction(DRB.searchPane,VueResources.getString("dockWindow.Content.searchPane.helpText"));;
