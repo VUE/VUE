@@ -45,7 +45,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.45 $ / $Date: 2009-03-14 03:50:39 $ / $Author: vaibhav $
+ * @version $Revision: 1.46 $ / $Date: 2009-04-28 14:36:10 $ / $Author: mike $
  * @author  rsaigal
  */
 public class VueDandDTree extends VueDragTree implements DropTargetListener {
@@ -63,7 +63,7 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
     
     public VueDandDTree(FavoritesNode root){
         super(root);
-        this.setRowHeight(0);
+        this.setRowHeight(30);
         this.setEditable(false);
         this.setShowsRootHandles(true);
         this.expandRow(0);
