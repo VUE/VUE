@@ -120,8 +120,10 @@ public class LWImage extends
     }
 
     public LWImage(Resource r) {
-        if (r == null || !r.isImage())
+        if (r == null)
             throw new IllegalArgumentException("resource is not image content: " + r);
+        if (!r.isImage())
+            Log.warn("making LWImage: may not be image content: " + r);
         setFillColor(null);
         setResource(r);
     	edu.tufts.vue.preferences.implementations.ImageSizePreference.getInstance().addVuePrefListener(this);
