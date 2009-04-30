@@ -209,8 +209,8 @@ public class RDFOpenAction extends VueAction {
         {
           
           String labelDisplay = VueResources.getString("rdf.import.displayType");
-          
-          if(labelDisplay.equals(VueResources.getString("rdf.import.displayType")))
+          String labelConstant = VueResources.getString("rdf.import.displayLabel");
+          if(labelDisplay.equals("LABEL"))
           {    
             edu.tufts.vue.rdf.RDFIndex index = new edu.tufts.vue.rdf.RDFIndex();
             com.hp.hpl.jena.rdf.model.Property labelOf = index.createProperty(edu.tufts.vue.rdf.RDFIndex.VUE_ONTOLOGY,edu.tufts.vue.metadata.Constants.LABEL);
