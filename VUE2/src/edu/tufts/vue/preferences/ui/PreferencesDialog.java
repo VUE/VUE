@@ -83,7 +83,7 @@ public class PreferencesDialog extends JDialog {
 		createButtonPanel();
 		String[] array = new String[3];
 		array[0] = new String(VueResources.getString("preferencedailog.vuepreference"));
-		array[1] = new String(VueResources.getString("preferencedailog.mapdisplay"));
+		array[1] = new String(VueResources.getString("preferences.category.mapdisplay"));
 		array[2] = new String(VueResources.getString("preferencedailog.images"));
 //		array[2] = new String("Metadata:");
 	//	array[3] = new String("Windows:");
