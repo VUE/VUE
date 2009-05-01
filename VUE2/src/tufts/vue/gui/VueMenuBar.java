@@ -87,7 +87,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.138 $ / $Date: 2009-03-29 03:05:11 $ / $Author: vaibhav $
+ * @version $Revision: 1.139 $ / $Date: 2009-05-01 19:35:25 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -287,7 +287,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
         //final SaveAction exportAction = new SaveAction("Export ...",true,true);
         final OpenAction openAction = new OpenAction(VueResources.getString("menu.windows.open"));
         final OpenURLAction openFromURLAction = new OpenURLAction(VueResources.getString("menu.windows.openfromurl"));
-        final ExitAction exitAction = new ExitAction(VueResources.getString("menu.windows.quit"));
+        final ExitAction exitAction = new ExitAction(Util.isMacPlatform() ? VueResources.getString("menu.windows.quit") : VueResources.getString("menu.windows.exit"));
+        
         publishMenu = makeMenu(VueResources.getString("menu.windows.publish"));        
         final  edu.tufts.vue.dataset.DatasetAction dataAction = new edu.tufts.vue.dataset.DatasetAction();
         //final JMenu publishAction =  Publish.getPublishMenu();
@@ -592,7 +593,10 @@ public class VueMenuBar extends javax.swing.JMenuBar
             // FYI, MRJAdapter.isSwingUsingScreenMenuBar() is not telling us the truth.
         } else {
             fileMenu.addSeparator();
-            fileMenu.add(exitAction);
+            JMenuItem exitItem = new JMenuItem(VueResources.getString("menu.windows.exit"));
+            exitItem.setMnemonic('x');
+            exitItem.addActionListener(exitAction);
+            fileMenu.add(exitItem);
         }
         
         ////////////////////////////////////////////////////////////////////////////////////
