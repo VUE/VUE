@@ -42,7 +42,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.122 $ / $Date: 2009-04-26 13:54:07 $ / $Author: vaibhav $
+ * @version $Revision: 1.123 $ / $Date: 2009-05-02 00:00:17 $ / $Author: vaibhav $
  */
 
 public class InspectorPane extends WidgetStack
@@ -1464,7 +1464,7 @@ public class InspectorPane extends WidgetStack
         
         void loadLabel(LWComponent c, LWComponent editType) {
             selection = null;
-            setTypeName(this, editType, "Label");
+            setTypeName(this, editType, VueResources.getString("inspectorpane.label"));
             if (c instanceof LWText)
             	labelValue.setEditable(false);
             else
