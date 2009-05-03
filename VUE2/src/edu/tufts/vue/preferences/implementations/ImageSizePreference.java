@@ -162,7 +162,7 @@ public class ImageSizePreference extends GenericSliderPreference {
 	 	
 	public String getTitle()
 	{
-		return new String("Images");
+		return VueResources.getString("preferencedailog.images");
 	}
 	
 	public String getDescription()
