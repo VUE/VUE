@@ -45,6 +45,7 @@ public class PreferencesManager {
 		categories.add(PreferenceConstants.PRESENTATION_CATEGORY);
 		categories.add(PreferenceConstants.METADATA_CATEGORY);
 		categories.add(PreferenceConstants.WINDOW_CATEGORY);
+		categories.add(PreferenceConstants.LANGUAGE_CATEGORY);
 	  }
 	  
 	  public static void registerPreference(Object o)

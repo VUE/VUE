@@ -45,12 +45,15 @@ import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JTabbedPane;
 
+import edu.tufts.vue.preferences.implementations.LanguagePreference;
+import edu.tufts.vue.preferences.interfaces.VuePreference;
+
 /**
  * This class provides a central access method to get a variety of
  * resource types.  It also can be modified to support caching of
  * of resources for performance (todo: yes, implement a result cache).
  *
- * @version $Revision: 1.59 $ / $Date: 2009-03-31 03:22:44 $ / $Author: vaibhav $
+ * @version $Revision: 1.60 $ / $Date: 2009-05-06 22:05:14 $ / $Author: brian $
  *
  */
 public class VueResources
@@ -70,6 +73,18 @@ public class VueResources
                 return super.put(key, value);
             }
         };
+
+	// Create a LanguagePreference to be used to retrieve the VUE-specific preferred language.
+	// Can't set the title or description yet because those strings are localized and VueResources
+	// has to be initialized before localized strings can be fetched.  The title and
+	// description will be set later, and the LanguagePreference will be added to the UI then.
+	private static LanguagePreference languagePref = LanguagePreference.create(
+		edu.tufts.vue.preferences.PreferenceConstants.LANGUAGE_CATEGORY,
+		"language",
+		null,
+		null,
+		null,
+		false);
 
     static {
     	
@@ -170,22 +185,13 @@ public class VueResources
     	}
         if (DEBUG.INIT) tufts.Util.printStackTrace("VueResources; FYI: static init block");
 
-        if (tufts.Util.isMacPlatform()) {
-        	ResourceBundle langBundle = ResourceBundle.getBundle("tufts.vue.VueResources", new Locale(Locale.getDefault().getLanguage(), Locale.getDefault().getCountry()));
-            platformBundle = ResourceBundle.getBundle("tufts.vue.VueResources", new Locale("","" ,"Mac")); 
-            sResourceBundle = new VueResourceBundle(langBundle,platformBundle);
-        } /*else if (tufts.Util.isWindowsPlatform())*/ 
-        else
-        {
-        	//System.out.println("ISO country language   "+ Locale.getDefault().getLanguage());
-        	//System.out.println("ISO country code   "+ Locale.getDefault().getCountry());
-        	//sResourceBundle = ResourceBundle.getBundle("tufts.vue.VueResources", new Locale(Locale.getDefault().getLanguage(),Locale.getDefault().getCountry(),"Win"));
-        	ResourceBundle langBundle = ResourceBundle.getBundle("tufts.vue.VueResources", new Locale(Locale.getDefault().getLanguage(), Locale.getDefault().getCountry()));
-            platformBundle = ResourceBundle.getBundle("tufts.vue.VueResources", new Locale("","" ,"Win"));    
-            sResourceBundle = new VueResourceBundle(langBundle,platformBundle);
-        } /*else {
-            sResourceBundle = ResourceBundle.getBundle("tufts.vue.VueResources");
-        }*/
+		ResourceBundle langBundle = ResourceBundle.getBundle("tufts.vue.VueResources", new Locale(languagePref.getLanguage(), languagePref.getCountry()));
+		platformBundle = ResourceBundle.getBundle("tufts.vue.VueResources", new Locale("", "", (tufts.Util.isMacPlatform() ? "Mac" : "Win")));
+		sResourceBundle = new VueResourceBundle(langBundle, platformBundle);
+
+		// Now that the resource bundles have been found, the title and description of languagePref can be set
+		// and it can be added to the UI.
+		languagePref.setLocalizedStringsAndRegister();
 
         if (DEBUG.INIT) System.out.println("Got bundle: " + sResourceBundle
                                            + " in locale [" + sResourceBundle.getLocale() + "]");
