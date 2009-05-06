@@ -105,6 +105,9 @@ public class LanguagePreference extends edu.tufts.vue.preferences.generics.Gener
 						break;
 					}
 				}
+
+				// To fix an intermittent problem where the list items were not redrawn properly.
+				list.validate();
 			}
 		};
 	}
