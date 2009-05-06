@@ -65,7 +65,7 @@ import java.net.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistence thru castor XML.
  *
- * @version $Revision: 1.135 $ / $Date: 2009-04-24 18:54:56 $ / $Author: sfraize $
+ * @version $Revision: 1.136 $ / $Date: 2009-05-06 02:23:41 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -508,6 +508,8 @@ public class ActionUtil
             final String backupName = String.format(".~%s", targetFile.getName());
             //if (DEBUG.IO) Log.debug(String.format("creating backup named [%s]", backupName));
             backup = new File(targetFile.getParent(), backupName);
+            if (backup.delete())  // Required on Win32 or rename will fail
+                Log.info("  deleted prior backup: " + backup);
             Log.info("renaming old to backup: " + backup);
             if (!targetFile.renameTo(backup))
                 Log.warn("failed to make backup of " + targetFile);
@@ -516,6 +518,8 @@ public class ActionUtil
         }
         
         Log.info("renaming new to target: " + targetFile);
+//         if (targetFile.delete()) // Required on Win32 or rename will fail
+//             Log.warn("deleted prior save file: " + targetFile);
         if (!tmpFile.renameTo(targetFile)) {
             Log.error("Failed to rename temp file " + tmpFile + "; to target file: " + targetFile);
             //Object obj[] = {tmpFile,targetFile};
