@@ -54,6 +54,9 @@ public class CircularLayout extends Layout {
     public   void layout(LWSelection selection) throws Exception {
         double minX = Double.POSITIVE_INFINITY;
         double minY = Double.POSITIVE_INFINITY;
+        double maxX = Double.NEGATIVE_INFINITY;
+        double maxY = Double.NEGATIVE_INFINITY;
+
         double xAdd = X_COL_SIZE; // default horizontal distance between the nodes
         double  yAdd = Y_COL_SIZE; //default vertical distance between nodes
 
@@ -66,19 +69,21 @@ public class CircularLayout extends Layout {
                 LWNode node = (LWNode)c;
                 minX = node.getLocation().getX()<minX?node.getLocation().getX():minX;
                 minY =node.getLocation().getY()<minY?node.getLocation().getY():minY;
+                maxX = node.getLocation().getX() > maxX ? node.getLocation().getX() : maxX;
+                maxY = node.getLocation().getY() > maxY ? node.getLocation().getY() : maxY;
+               
                 xAdd = xAdd > node.getWidth() ? xAdd : node.getWidth();
                 yAdd = yAdd > node.getHeight() ? yAdd : node.getHeight();
                 total++;
 //               System.out.println(node.getLabel()+"X= "+node.getLocation().getX()+" Y= "+node.getLocation().getY()+" MIN: "+minX+" : "+minY);
             }
         }
-        double x = minX;
-        double y = minY;
-        double size = total* xAdd/8;
+       
+        double size = total* xAdd/6;
         double radiusX = size;
-        double radiusY = total*yAdd/4;
-        double centerX = x+radiusX;
-        double centerY = y+radiusY;
+        double radiusY = total*yAdd/3;
+        double centerX = (minX + maxX+xAdd) / 2; 
+        double centerY = (minY+maxY+yAdd)/2;
         i = selection.iterator();
         double angle = 0.0;
         while (i.hasNext()) {
