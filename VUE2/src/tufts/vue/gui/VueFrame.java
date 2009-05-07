@@ -36,7 +36,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  *
  * Set's the icon-image for the vue application and set's the window title.
  *
- * @version $Revision: 1.21 $ / $Date: 2009-03-17 16:01:06 $ / $Author: sfraize $ 
+ * @version $Revision: 1.22 $ / $Date: 2009-05-07 00:54:15 $ / $Author: vaibhav $ 
  */
 public class VueFrame extends javax.swing.JFrame
     implements ActiveListener<MapViewer>, WindowListener, WindowStateListener, WindowFocusListener               
@@ -57,8 +57,8 @@ public class VueFrame extends javax.swing.JFrame
         		"windows",
         		"windowVueMainFrame",
         		//"window" + title.replace(" ", ""),
-        		"Save Window States", 
-        		"Remember size and position of windows",
+        		VueResources.getString("preferences.savewindowstates.title"), 
+        		VueResources.getString("prefernces.savewindowstates.description"),
         		true);
         
         this.setDefaultCloseOperation(this.DO_NOTHING_ON_CLOSE);

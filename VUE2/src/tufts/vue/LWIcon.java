@@ -61,8 +61,8 @@ public abstract class LWIcon extends Rectangle2D.Float
     private final static BooleanPreference oneClickLaunchResPref = BooleanPreference.create(
 			edu.tufts.vue.preferences.PreferenceConstants.INTERACTIONS_CATEGORY,
 			"oneClickResLaunch", 
-			"Resource Launching", 
-			"Enable launching resources on nodes with a single-click?",
+			VueResources.getString("preference.resourcelaunching.title"), 
+			VueResources.getString("preference.resourcelaunching.description"),
 			Boolean.TRUE,
 			true);
     

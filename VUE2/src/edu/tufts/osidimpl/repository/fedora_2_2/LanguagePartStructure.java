@@ -14,10 +14,12 @@
  */
 package  edu.tufts.osidimpl.repository.fedora_2_2;
 
+import tufts.vue.VueResources;
+
 public class LanguagePartStructure
 implements org.osid.repository.PartStructure
 {
-    private String displayName = "Language";
+    private String displayName = VueResources.getString("prefernces.language.title");
     private String description = "http://purl.org/dc/elements/1.1/#Language";
     private String idString = "Language.PartStructureId";
     private org.osid.shared.Id id = null;

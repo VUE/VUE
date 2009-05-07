@@ -18,6 +18,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 
 import tufts.vue.MapViewer;
+import tufts.vue.VueResources;
 
 import edu.tufts.vue.preferences.PreferenceConstants;
 import edu.tufts.vue.preferences.VuePrefListener;
@@ -55,16 +56,16 @@ public class EnhancedFileChooserPreference extends GenericBooleanPreference {
 	
 	public String getMessage()
 	{
-		return "enable enhanced filechooser";
+		return VueResources.getString("preference.enhancedfilechooser.message");
 	}
 	public String getTitle()
 	{
-		return new String("Enhanced filechooser");
+		return new String(VueResources.getString("preference.enhancedfilechooser.title"));
 	}
 	
 	public String getDescription()
 	{
-		return new String("Toggles between native windows file chooser and a simple file chooser.  If you experience abnormally long start up times using the native file chooser you may want to disable this option. (Known Java Bug)");
+		return new String(VueResources.getString("preference.enhancedfilechooser.message"));
 	}
 	
 	public String getPrefName()

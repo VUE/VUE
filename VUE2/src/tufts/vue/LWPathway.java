@@ -46,7 +46,7 @@ import javax.swing.Icon;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.223 $ / $Date: 2008-12-19 00:38:11 $ / $Author: sfraize $
+ * @version $Revision: 1.224 $ / $Date: 2009-05-07 00:55:59 $ / $Author: vaibhav $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -80,9 +80,9 @@ public class LWPathway extends LWContainer
     private static final BooleanPreference AutoNodeToSlideNotesPref = BooleanPreference.create
         (edu.tufts.vue.preferences.PreferenceConstants.PRESENTATION_CATEGORY,
          "autoCopyNotes", 
-         "Notes",
-         "When adding a node to a pathway, automatically copy \"node notes\" to the pathway entry (slide) notes.",
-         "Create new slides with a copy of the node notes",
+         VueResources.getString("preferences.notes.title"),
+         VueResources.getString("preferences.notes.descriptionone"),
+         VueResources.getString("preferences.notes.descriptiontwo"),
          Boolean.TRUE,
          true);
 

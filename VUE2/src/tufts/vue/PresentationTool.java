@@ -65,16 +65,13 @@ public class PresentationTool extends VueTool
     private static final boolean RECORD_BACKUP = true;
     private static final boolean BACKING_UP = false;
 
+    static Object obj[] = {Actions.ToggleSlideIcons.getKeyStrokeDescription()};
     private static final BooleanPreference ChooseNodesOverSlides = BooleanPreference.create
         (edu.tufts.vue.preferences.PreferenceConstants.PRESENTATION_CATEGORY,
          "slideNodeView", 
-         "Slide/Node View",
-         
-         "When turning off slide thumbnails in presentation mode with the keyboard shortcut "
-         + Actions.ToggleSlideIcons.getKeyStrokeDescription()
-         + ", clicking on the node in map view will zoom in on the node as a default",
-         
-         "Show the slide for the active pathway instead of node",
+         VueResources.getString("preference.slidenodeview.title"),
+         VueResources.getMessageString("preference.slidenodeview.descriptiontwo", obj),
+         VueResources.getString("preference.slidenodeview.descriptionone"),
          Boolean.FALSE,
          true);
 
@@ -82,9 +79,9 @@ public class PresentationTool extends VueTool
     public static final BooleanPreference AutoZoomPreference = BooleanPreference.create
         (edu.tufts.vue.preferences.PreferenceConstants.PRESENTATION_CATEGORY,
          "autoZoom", 
-         "Auto Zoom",
-         "Allows auto-zoom to work when rolling over a node during presentations, not just when in regular map mode.",
-         "Allow auto-zoom in presentations",
+         VueResources.getString("preference.autozoom.title"),
+         VueResources.getString("preference.autozoom.descriptionone"),
+         VueResources.getString("preference.autozoom.descriptiontwo"),
          Boolean.FALSE,
          true);
     

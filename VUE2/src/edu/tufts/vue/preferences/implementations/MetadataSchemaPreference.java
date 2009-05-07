@@ -67,11 +67,11 @@ public class MetadataSchemaPreference extends BasePref implements ItemListener
 		
 		this.category=edu.tufts.vue.preferences.PreferenceConstants.METADATA_CATEGORY;
 		//this.key = "showNodeIcons";
-		this.name = "Metadata Schema";
+		this.name = VueResources.getString("preferences.metadataschema.title");
 		if (tufts.Util.isWindowsPlatform())
-			this.description = "Enable metadata schema for use with \"Keywords\" and \"Search\" tools.";
+			this.description = VueResources.getString("preferences.metadataschema.descriptionwin");
 		else
-			this.description = "Enable metadata schema for use with \"Keywords\"\nand \"Search\" tools.";
+			this.description = VueResources.getString("preferences.metadataschema.description");
 		this.defaultValue = true;
 	
 		edu.tufts.vue.preferences.PreferencesManager.registerPreference(this);

@@ -75,8 +75,8 @@ public class ShowIconsPreference extends BasePref implements ItemListener
 		
 		this.category=edu.tufts.vue.preferences.PreferenceConstants.MAPDISPLAY_CATEGORY;
 		//this.key = "showNodeIcons";
-		this.name = "Show Icons";
-		this.description = "Display rollover icons on the map.";
+		this.name = VueResources.getString("preference.showicon.title");
+		this.description = VueResources.getString("preference.showicon.decsription");
 		this.defaultValue = true;
 	
 		edu.tufts.vue.preferences.PreferencesManager.registerPreference(this);

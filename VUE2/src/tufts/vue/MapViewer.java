@@ -76,7 +76,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.594 $ / $Date: 2009-04-14 13:48:25 $ / $Author: mike $ 
+ * @version $Revision: 1.595 $ / $Date: 2009-05-07 00:55:14 $ / $Author: vaibhav $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -234,8 +234,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     private final static BooleanPreference oneClickNodePref = BooleanPreference.create(
 			edu.tufts.vue.preferences.PreferenceConstants.INTERACTIONS_CATEGORY,
 			"oneClickCreation", 
-			"Node Creation", 
-			"Enable one click node creation?",
+			VueResources.getString("preference.nodecreation.title"), 
+			VueResources.getString("preference.nodecreation.description"),
 			Boolean.FALSE,
 			true);
     
@@ -2740,7 +2740,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             if (mMap != null && mMap.isModified())
                 return "Empty Map";
             else
-                return "New Map";
+                return VueResources.getString("vue.main.newmap");
         } else {
             if (mFocal != null)
                 return "Empty " + mFocal.getComponentTypeLabel();

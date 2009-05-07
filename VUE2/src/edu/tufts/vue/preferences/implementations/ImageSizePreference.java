@@ -167,7 +167,7 @@ public class ImageSizePreference extends GenericSliderPreference {
 	
 	public String getDescription()
 	{
-		return new String("Controls the size of images displayed on the map.");
+		return new String(VueResources.getString("preference.imagesize.description"));
 	}
 	
 	public String getPrefName()
