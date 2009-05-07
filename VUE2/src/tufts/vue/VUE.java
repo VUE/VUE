@@ -118,7 +118,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.654 $ / $Date: 2009-04-27 19:44:50 $ / $Author: brian $ 
+ * @version $Revision: 1.655 $ / $Date: 2009-05-07 00:59:53 $ / $Author: vaibhav $ 
  */
 
 public class VUE
@@ -1693,7 +1693,7 @@ public class VUE
         	 */
 
         	if (FilesToOpen.size() == 0)
-        		VUE.displayMap(new LWMap("New Map"));
+        		VUE.displayMap(new LWMap(VueResources.getString("vue.main.newmap")));
 
         	// Generally, we need to wait until java 1.5 JSplitPane's have been validated to
         	// use the % set divider location.  Unfortunately there's a bug in at MacOS java

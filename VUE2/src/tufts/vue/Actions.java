@@ -2670,7 +2670,7 @@ public class Actions implements VueConstants
         boolean undoable() { return false; }
         protected boolean enabled() { return true; }
         public void act() {
-            VUE.displayMap(new LWMap("New Map " + count++));
+            VUE.displayMap(new LWMap(VueResources.getString("vue.main.newmap") + count++));
         }
     };
     public static final Action Revert =
