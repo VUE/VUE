@@ -21,7 +21,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.83 $ / $Date: 2009-03-31 06:16:17 $ / $Author: vaibhav $
+ * @version $Revision: 1.84 $ / $Date: 2009-05-07 02:58:42 $ / $Author: vaibhav $
  * @author  akumar03
  */
 import java.awt.BorderLayout;
@@ -206,7 +206,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
             
             buttonPanel.setLayout(new BoxLayout(buttonPanel,BoxLayout.X_AXIS));            
             buttonPanel.add(Box.createHorizontalGlue());
-            addButton.setPreferredSize(cancelButton.getPreferredSize());
+            addButton.setSize(addButton.getLabel().length(), 10);
             buttonPanel.add(cancelButton);            
             cancelButton.addActionListener(this);
             buttonPanel.add(Box.createHorizontalStrut(6));
