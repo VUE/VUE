@@ -29,11 +29,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.ListSelectionModel;
-import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionListener;
-
-import tufts.vue.VUE;
-import tufts.vue.VueResources;
 
 /**
  * @author Brian Goodmon
@@ -50,6 +46,21 @@ public abstract class GenericListPreference extends BasePref implements ListSele
 	protected Runnable 		loadList = null;
 
 	public GenericListPreference() {
+	}
+
+	protected void finalize() throws Throwable {
+		try {
+			panel = null;
+			titleLabel = null;
+			messageArea = null;
+			list = null;
+			scrollPane = new JScrollPane(list);
+			previousValue = null;
+			loadList = null;
+		}
+		finally {
+			super.finalize();
+		}
 	}
 
 	public Object getPreviousValue() {
@@ -92,9 +103,7 @@ public abstract class GenericListPreference extends BasePref implements ListSele
 			gbConstraints.gridy = 1;
 			panel.add(messageArea, gbConstraints);
 
-			String[]		listInit = {VueResources.getString("preferences.language.loading")};
-
-			list = new JList(listInit);
+			list = new JList();
 			list.setFont(defaultFont);
 			list.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 			list.addListSelectionListener(this);
@@ -107,7 +116,7 @@ public abstract class GenericListPreference extends BasePref implements ListSele
 			gbConstraints.insets = new Insets(15, 30, 15, 30);
 			panel.add(scrollPane, gbConstraints);
 
-			new Thread(loadList).start();
+			java.awt.EventQueue.invokeLater(loadList);
 		}
 
 		return panel;

@@ -20,7 +20,6 @@ import java.util.ResourceBundle;
 import java.util.TreeSet;
 import java.util.prefs.Preferences;
 
-import javax.swing.JComponent;
 import javax.swing.ListModel;
 import javax.swing.event.ListSelectionEvent;
 
@@ -31,12 +30,12 @@ import tufts.vue.VueResources;
  */
 
 public class LanguagePreference extends edu.tufts.vue.preferences.generics.GenericListPreference {
-	private String	category;
-	private String	key;
-	private String	name;
-	private String	description;
-	private String	defaultValue;
-	private boolean	ignoreListSelectionEvent = true;
+	protected String	category;
+	protected String	key;
+	protected String	name;
+	protected String	description;
+	protected String	defaultValue;
+	protected boolean	ignoreListSelectionEvent = true;
 
 	public static LanguagePreference create(String category, String key, String name, String desc, String defaultValue, boolean showInUI) {
 		return new LanguagePreference(category, key, name, desc, defaultValue, showInUI);
@@ -105,11 +104,21 @@ public class LanguagePreference extends edu.tufts.vue.preferences.generics.Gener
 						break;
 					}
 				}
-
-				// To fix an intermittent problem where the list items were not redrawn properly.
-				list.validate();
 			}
 		};
+	}
+
+	protected void finalize() throws Throwable {
+		try {
+			category = null;
+			key = null;
+			name = null;
+			description = null;
+			defaultValue = null;
+		}
+		finally {
+			super.finalize();
+		}
 	}
 
 	public void setLocalizedStringsAndRegister() {
