@@ -54,7 +54,7 @@ public abstract class GenericListPreference extends BasePref implements ListSele
 			titleLabel = null;
 			messageArea = null;
 			list = null;
-			scrollPane = new JScrollPane(list);
+			scrollPane = null;
 			previousValue = null;
 			loadList = null;
 		}
