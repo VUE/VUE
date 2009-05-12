@@ -20,8 +20,10 @@
 
 package edu.tufts.vue.metadata.gui;
 
+import tufts.vue.VueResources;
+
 public class EditCategoryItem {
-    public static final String DEFAULT = "Edit Categories";
+    public static final String DEFAULT = VueResources.getString("dialog.editcat.title");
     /** Creates a new instance of EditCategoryItem */
     public EditCategoryItem() {
     }
