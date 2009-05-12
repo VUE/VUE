@@ -87,7 +87,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.139 $ / $Date: 2009-05-01 19:35:25 $ / $Author: mike $
+ * @version $Revision: 1.140 $ / $Date: 2009-05-12 04:03:06 $ / $Author: vaibhav $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -445,7 +445,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
                     } else {
                         
                         // no accelerator key for this menu
-                        publishMenu.add(createWindowItem(VUE.getContentDock(), 0, "Add publishable resources through Resource Window"));
+                        publishMenu.add(createWindowItem(VUE.getContentDock(), 0, VueResources.getString("menu.publisher.resourcewindow")));
                     }
 
                     publishMenu.setEnabled(false);
