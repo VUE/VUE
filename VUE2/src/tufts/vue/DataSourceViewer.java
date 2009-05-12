@@ -140,12 +140,12 @@ public class DataSourceViewer extends JPanel
         // are being set before addNotify, so I don't think they're generated the needed
         // propertyChangeEvents to be seen, and aren't currently being handled in
         // the WidgetStack.WidgetTitle constructor
-        Widget.setHelpAction(DRB.librariesPanel,VueResources.getString("dockWindow.Content.libraryPane.helpText"));
+        Widget.setHelpAction(DRB.librariesPanel,VueResources.getString("dockWindow.Resources.libraryPane.helpText"));
         //dockWindow.addButton is not a localized string in this context its just a property that is later resolved.
         Widget.setMiscAction(DRB.librariesPanel, new MiscActionMouseListener(), "dockWindow.addButton");
-        Widget.setHelpAction(DRB.browsePane,VueResources.getString("dockWindow.Content.browsePane.helpText"));;
-        Widget.setHelpAction(DRB.resultsPane,VueResources.getString("dockWindow.Content.resultsPane.helpText"));;
-        Widget.setHelpAction(DRB.searchPane,VueResources.getString("dockWindow.Content.searchPane.helpText"));;
+        Widget.setHelpAction(DRB.browsePane,VueResources.getString("dockWindow.Resources.browsePane.helpText"));;
+        Widget.setHelpAction(DRB.resultsPane,VueResources.getString("dockWindow.Resources.resultsPane.helpText"));;
+        Widget.setHelpAction(DRB.searchPane,VueResources.getString("dockWindow.Resources.searchPane.helpText"));;
 
         Widget.setRefreshAction(DRB.browsePane, new MouseAdapter() {
                 public void mousePressed(MouseEvent e) {

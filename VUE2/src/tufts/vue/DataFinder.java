@@ -66,7 +66,7 @@ import javax.swing.border.*;
  * We'd probably need a delegating impl tho to handle that.
  *
  *
- * @version $Revision: 1.2 $ / $Date: 2009-03-29 03:11:37 $ / $Author: vaibhav $ 
+ * @version $Revision: 1.3 $ / $Date: 2009-05-12 20:01:05 $ / $Author: mike $ 
  */
 public class DataFinder extends WidgetStack
 {
@@ -191,11 +191,11 @@ public class DataFinder extends WidgetStack
 
         
         // TODO: can any of these (beyond refresh), ever have an effect?
-        Widget.setHelpAction(this,VueResources.getString("dockWindow.Content.libraryPane.helpText"));;
+        Widget.setHelpAction(this,VueResources.getString("dockWindow.Resources.libraryPane.helpText"));;
         //Widget.setMiscAction(this, new MiscActionMouseListener(), "dockWindow.addButton");
-        Widget.setHelpAction(browsePane,VueResources.getString("dockWindow.Content.browsePane.helpText"));;
-        Widget.setHelpAction(resultsPane,VueResources.getString("dockWindow.Content.resultsPane.helpText"));;
-        Widget.setHelpAction(searchPane,VueResources.getString("dockWindow.Content.searchPane.helpText"));;
+        Widget.setHelpAction(browsePane,VueResources.getString("dockWindow.Resources.browsePane.helpText"));;
+        Widget.setHelpAction(resultsPane,VueResources.getString("dockWindow.Resources.resultsPane.helpText"));;
+        Widget.setHelpAction(searchPane,VueResources.getString("dockWindow.Resources.searchPane.helpText"));;
 
         Widget.setRefreshAction(browsePane, new MouseAdapter() {
                 public void mousePressed(java.awt.event.MouseEvent e) {
