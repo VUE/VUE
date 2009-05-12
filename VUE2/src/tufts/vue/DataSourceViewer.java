@@ -1234,7 +1234,7 @@ public class DataSourceViewer extends JPanel
             //need to be a change in WidgetStack to properly color code the widget.
             mResultPane = new Widget(VueResources.getString("datasource.dialog.searching")+" "+ mRepositoryName);
             
-            mStatusLabel = new StatusLabel("Searching for " + mSearchString + " ...", false);
+            mStatusLabel = new StatusLabel(VueResources.getString("resource.dialog.searchingfor")+" " + mSearchString + " ...", false);
             mResultPane.add(mStatusLabel);
             
             if (DEBUG.DR) Log.debug("created search thread for: " + mRepositoryName + " \t" + mRepository);
@@ -1701,7 +1701,7 @@ public class DataSourceViewer extends JPanel
             //need to be a change in WidgetStack to properly color code the widget.
             mResultPane = new Widget(VueResources.getString("datasource.dialog.searching")+" "+ mRepositoryName);
             
-            mStatusLabel = new StatusLabel("Searching for " + mSearchString + " ...", false);
+            mStatusLabel = new StatusLabel(VueResources.getString("resource.dialog.searchingfor")+" "+ mSearchString + " ...", false);
             mResultPane.add(mStatusLabel);
             
             if (DEBUG.DR) Log.debug("created search thread for: " + mRepositoryName + " \t" + mRepository);
