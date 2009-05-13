@@ -21,7 +21,7 @@ import java.util.*;
 import org.apache.commons.lang.StringEscapeUtils;
 
 /**
- * @version $Revision: 1.12 $ / $Date: 2009-05-13 17:05:26 $ / $Author: sfraize $
+ * @version $Revision: 1.13 $ / $Date: 2009-05-13 17:16:17 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -389,7 +389,7 @@ public final class DataAction
                 //node.setClientData(Schema.class, schema);
                 //node.getMetadataList().add(row.entries());
                 //node.addDataValues(row.dataEntries());
-                node.setDataValues(row.getData());
+                node.takeAllDataValues(row.getData());
                 node.setStyle(schema.getRowNodeStyle()); // must have meta-data set first to pick up label template
 
 //                 if (singleRow) {
