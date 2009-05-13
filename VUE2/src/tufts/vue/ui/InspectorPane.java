@@ -42,7 +42,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.123 $ / $Date: 2009-05-02 00:00:17 $ / $Author: vaibhav $
+ * @version $Revision: 1.124 $ / $Date: 2009-05-13 17:00:06 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends WidgetStack
@@ -254,6 +254,8 @@ public class InspectorPane extends WidgetStack
         displayRelease();
     }
 
+    // These events generally coming from the DataTree for data-set browsing (there's
+    // no LWComponent to browse against)
     public void activeChanged(final tufts.vue.ActiveEvent e, final MetaMap dataMap)
     {    	
         if (dataMap == null)
