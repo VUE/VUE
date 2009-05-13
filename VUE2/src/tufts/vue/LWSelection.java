@@ -29,7 +29,7 @@ import com.google.common.collect.HashMultiset;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.107 $ / $Date: 2009-03-11 18:24:21 $ / $Author: sfraize $
+ * @version $Revision: 1.108 $ / $Date: 2009-05-13 17:07:00 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -64,6 +64,9 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     private int mDataValueCount;
     private int mDataRowCount;
 
+    /** optional style in which to record style property changes that have been applied to the selection */
+    private LWComponent mStyleRecord;
+
     private final Set<LWContainer> mParents = new java.util.HashSet() {
             @Override
             public boolean add(Object parent) {
@@ -91,6 +94,18 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         return focal;
     }
 
+    public LWComponent getStyleRecord() {
+        return mStyleRecord;
+    }
+    
+    public void setStyleRecord(LWComponent c) {
+        mStyleRecord = c;
+    }
+
+    private void clearStyleRecord() {
+        setStyleRecord(null);
+    }
+    
     // currently only used for special case manually created selections
     public int getWidth() {
         return mWidth;
@@ -300,20 +315,20 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     }
     
     public void setTo(Iterable bag) {
-        setTo(bag, "");
+        setTo(bag, "", null);
     }
     
-    public void setTo(Iterable bag, String description)
+    public void setTo(Iterable bag, String description, LWComponent styleRecord)
     {
         if (DEBUG.SELECTION||DEBUG.PERF) Log.debug("setTo: " + Util.tags(bag));
-        setTo(bag.iterator(), description);
+        setTo(bag.iterator(), description, styleRecord);
     }
     
     public void setTo(Iterator i) {
-        setTo(i, "");
+        setTo(i, "", null);
     }
             
-    private synchronized void setTo(Iterator i, String description)
+    private synchronized void setTo(Iterator i, String description, LWComponent styleRecord)
     {
         if (notifyUnderway())
             return;
@@ -323,7 +338,8 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         clearSilent();
         setDescription(description);
         add(i);
-
+        setStyleRecord(styleRecord); // must do after add
+        
         if (hadContents && isEmpty()) {
             // we ended up changing the the selection by
             // clearing it out and then setting it to nothing
@@ -339,8 +355,10 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         if (notifyUnderway())
             return false;
         if (!c.isSelected()) {
-            if (addSilent(c) && !isClone)
+            if (addSilent(c) && !isClone) {
+                clearStyleRecord(); // any selection changes break association with the style record
                 notifyListeners();
+            }
         } else {
             if (DEBUG.SELECTION) debug("addToSelection(already): " + c);
             return false;
@@ -375,8 +393,10 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         }
         if (DEBUG.SELECTION||DEBUG.PERF) Log.debug("add: " + Util.tags(i) + "; completed");
         
-        if (changed)
+        if (changed) {
+            clearStyleRecord(); // any selection changes break association with the style record
             notifyListeners();
+        }
     }
     
     public void toggle(LWComponent c) {
@@ -463,6 +483,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     
     public synchronized void remove(LWComponent c)
     {
+        clearStyleRecord(); // any selection changes break association with the style record
         removeSilent(c);
         resetStatistics();
         notifyListeners();
@@ -587,12 +608,13 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     private synchronized boolean clearSilent()
     {
         mDescription = "";
+        clearStyleRecord();
         if (isEmpty())
             return false;
         if (notifyUnderway())
             return false;
 
-        if (DEBUG.SELECTION) debug("clearSilent");
+        if (DEBUG.SELECTION) { debug("clearSilent"); }
 
         if (!isClone) {
             for (LWComponent c : this)
