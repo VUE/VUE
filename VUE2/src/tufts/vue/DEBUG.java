@@ -68,6 +68,7 @@ public class DEBUG
     public static boolean WEBSHOTS = false; // for Styles
     public static boolean PDF = false; // for PDF output
     public static boolean PROPERTY = false;
+    public static boolean IM = false;
     //If you set LISTS to true you'll get the HTML code for the node in the Info Label
     //instead of the rendered HTML this should be useful for debugging, at least I hope so.
     //see my note in InspectorPane for more info. -MK
