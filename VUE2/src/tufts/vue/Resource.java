@@ -37,7 +37,7 @@ import javax.swing.ImageIcon;
  *  objects, displaying their content, and fetching their data.
 
  *
- * @version $Revision: 1.87 $ / $Date: 2009-02-20 18:54:02 $ / $Author: sfraize $
+ * @version $Revision: 1.88 $ / $Date: 2009-05-13 17:06:01 $ / $Author: sfraize $
  */
 
 public abstract class Resource implements Cloneable
@@ -156,6 +156,16 @@ public abstract class Resource implements Cloneable
             // if spec looks a URL/URI or File, could attempt to construct such and if succeed,
             // pass off to appropriate factory variant.  Wouldn't be worth anything at moment
             // as they all pretty much do the same thing for now...
+
+            String spec = s.getSystemId();
+            if (spec == null)
+                spec = s.getPublicId();
+
+            if (spec == null) {
+                Log.error("no system or public id in " + Util.tags(s) + "; can't create resource");
+                return null;
+            }
+            
             return postProcess(URLResource.create(s.getSystemId()), s);
         }
 
