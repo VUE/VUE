@@ -41,7 +41,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.56 $ / $Date: 2008-07-07 18:28:51 $ / $Author: sfraize $
+ * @version $Revision: 1.57 $ / $Date: 2009-05-13 17:10:07 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -1394,8 +1394,16 @@ public class Images
         } catch (Throwable t) {
             throw new ImageException("read failed: " + t.toString());
         }
-        if (DEBUG.IMAGE) out("ImageReader.read(0) got " + image);
+        if (DEBUG.IMAGE) {
+            out("ImageReader.read(0) got " + Util.tags(image));
+        }
 
+        if (DEBUG.Enabled) {
+            int thumbs = reader.getNumThumbnails(0);
+            if (thumbs > 0)
+                Log.info("thumbs: " + thumbs + "; " + imageSRC);
+        }
+            
         if (listener != null)
             listener.gotImage(imageSRC.original, image, w, h);
 
@@ -1405,6 +1413,7 @@ public class Images
              urlStream.close();
 
         if (DEBUG.Enabled && image != null) {
+
             String[] tryProps = new String[] { "name", "title", "description", "comment" };
             for (int i = 0; i < tryProps.length; i++) {
                 Object p = image.getProperty(tryProps[i], null);
