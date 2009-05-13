@@ -52,7 +52,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.466 $ / $Date: 2009-05-13 17:13:18 $ / $Author: sfraize $
+ * @version $Revision: 1.467 $ / $Date: 2009-05-13 17:14:33 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -839,7 +839,7 @@ u                    getSlot(c).setFromString((String)value);
             final Object oldValue = this.value;
             take(newValue);
             onChange();
-            if (LWComponent.this.alive()) LWComponent.this.notify(this.key, oldValue);
+            LWComponent.this.notify(this.key, oldValue);
         }
 
         /** This JUST changes the stored value: no notifications of any kind will be triggered, no undo recorded. */
