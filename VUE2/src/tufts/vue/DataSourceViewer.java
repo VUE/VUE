@@ -1270,6 +1270,7 @@ public class DataSourceViewer extends JPanel
                 
             } catch (Throwable t) {
                 Util.printStackTrace(t);
+                GUI.clearWaitCursor();
                 if (stopped())
                     return;
                 final JTextArea textArea;
@@ -1296,6 +1297,7 @@ public class DataSourceViewer extends JPanel
             }
 
             if (stopped()) {
+            	 GUI.clearWaitCursor();
                 if (DEBUG.DR) Log.debug("DELAYED STOP; server returned, run completed.");
                 return;
             }
@@ -1308,6 +1310,7 @@ public class DataSourceViewer extends JPanel
 
             if (mMapBasedSearchThreads.size() == 0) {
             	listOfLists.clear();
+            	  GUI.clearWaitCursor();
                 // If we were stopped, the DefaultQueryEditor will have handled
                 // calling completeSearch to restore the state of the "Search" button.
                 if (DEBUG.DR) Log.debug("ALL SEARCHES COMPLETED for \"" + mSearchCriteria + "\"");
@@ -1773,7 +1776,8 @@ public class DataSourceViewer extends JPanel
             if (mSearchThreads.size() == 0) {
                 // If we were stopped, the DefaultQueryEditor will have handled
                 // calling completeSearch to restore the state of the "Search" button.
-                if (DEBUG.DR) Log.debug("ALL SEARCHES COMPLETED for \"" + mSearchCriteria + "\"");
+            	
+            	if (DEBUG.DR) Log.debug("ALL SEARCHES COMPLETED for \"" + mSearchCriteria + "\"");
                 if (queryEditor instanceof edu.tufts.vue.ui.DefaultQueryEditor)
                     ((edu.tufts.vue.ui.DefaultQueryEditor)queryEditor).completeSearch();
             }

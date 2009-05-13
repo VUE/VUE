@@ -129,7 +129,11 @@ public class AnalyzerAction extends Actions.LWCAction {
     		//System.out.println("SEARCH ALREADY RUNNING!!!!!!!!!!!");
     	//	return;
     		
-    	//}    	
+    	//}  
+    	
+    	//Set the wait cursor here clear it when there's no threads left in the mbs.
+    	GUI.activateWaitCursor();
+    	
     	List<AnalyzerResult> list = analyzer.analyze(c);
     	Iterator<AnalyzerResult> i = list.iterator();
     	VUE.getActiveViewer().getSelection().clear();
