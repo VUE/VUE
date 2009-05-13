@@ -53,7 +53,7 @@ import org.xml.sax.*;
 
 
 /**
- * @version $Revision: 1.9 $ / $Date: 2009-02-20 18:54:03 $ / $Author: sfraize $
+ * @version $Revision: 1.10 $ / $Date: 2009-05-13 17:01:35 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -62,14 +62,13 @@ public class XMLIngest {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(XMLIngest.class);
 
     private static final boolean XML_DEBUG = false;
+    private static final boolean XML_OUTPUT = false;
 
     public static class XmlSchema extends tufts.vue.ds.Schema
     {
         final String itemPath;
         final int itemPathLen;
 
-        final boolean keyFold;
-        
         DataRow curRow;
 
         /** castor peristance only */
@@ -78,7 +77,6 @@ public class XMLIngest {
         public XmlSchema() {
             itemPath = "<unknown>";
             itemPathLen = 0;
-            keyFold = false;
         }
 
         public XmlSchema(tufts.vue.Resource source, String itemPath) 
@@ -89,17 +87,13 @@ public class XMLIngest {
                 itemPathLen = 0;
             else
                 itemPathLen = itemPath.length() + 1; // add one for dot
-            keyFold = (itemPath != null && itemPath.startsWith("plist"));
+            setXMLKeyFold(itemPath != null && itemPath.startsWith("plist."));
 
             Log.debug("Constructed XmlSchema " + this);
             
             //itemPathLen = itemPath.length() + (itemPath.endsWith(".") ? 0 : 1);
         }
 
-        @Override public boolean isXMLKeyFold() {
-            return keyFold;
-        }
-        
         @Override public void dumpSchema(PrintWriter ps) {
             if (itemPath != null) ps.println("ItemPath: " + itemPath);
             super.dumpSchema(ps);
@@ -213,61 +207,46 @@ public class XMLIngest {
         }
     }
 
-  //public static Schema ingestXML(URLConnection conn, String itemKey)
     public static Schema ingestXML(org.xml.sax.InputSource input, String itemKey)
     {
-//         // SMF 2008-10-02: E.g. Craigslist XML streams use ISO-8859-1, which is provided in
-//         // HTML headers as "Content-Type: application/rss+xml; charset=ISO-8859-1", (tho not
-//         // in a special content-encoding header), and our current XML parser fails unless
-//         // the stream is read with this set: e.g.: [org.xml.sax.SAXParseException: Character
-//         // conversion error: "Unconvertible UTF-8 character beginning with 0x95" (line
-//         // number may be too low).]  Actually, in this case it turns out that providing a
-//         // default InputStreamReader (encoding not specified) as opposed to a direct
-//         // InputStream from the URLConnection works, and the XML parser is presumably then
-//         // finding and handling the "<?xml version="1.0" encoding="ISO-8859-1"?>" line at
-//         // the top of the XML stream
-//         final XmlSchema schema = new XmlSchema(conn.getURL(), itemKey);
-//         InputStream is = null;
-//         try {
-//             is = conn.getInputStream();
-//             errout("GOT INPUT STREAM: " + Util.tags(is));
-//         } catch (IOException e) {
-//             e.printStackTrace();
-//             return null;
-//         }
-//         final Document doc = parseXML(is, false);
-
-        // Could also use a ROME API XmlReader(URLConnection) for handling
-        // the input, which does it's own magic to figure out the encoding.
-        // For more on the complexity of this issue, see:
-        // http://diveintomark.org/archives/2004/02/13/xml-media-types
-        
-
-        final XmlSchema schema = new XmlSchema(tufts.vue.Resource.instance(input), itemKey);
-        
-        final Document doc = parseXML(input, false);
+        final org.w3c.dom.Document doc = parseXML(input, false);
 
         //doc.normalizeDocument();
         if (DEBUG.DR) {
-            errout("GOT DOC " + Util.tag(doc) + " " + doc);
-            //errout("InputEncoding: " + doc.getInputEncoding()); // AbstractMethodError ?
-            //errout("xmlEncoding: " + doc.getXmlEncoding());
-            //errout("xmlVersion: " + doc.getXmlVersion());
-            errout("docType: " + Util.tags(doc.getDoctype()));
-            errout("impl: " + Util.tags(doc.getImplementation().getClass()));
-            errout("docElement: " + Util.tags(doc.getDocumentElement().getClass())); // toString() can dump whole document!
+            try {
+                errout("XML parsed, document built:");
+                errout("org.w3c.dom.Document: " + Util.tags(doc));
+                final org.w3c.dom.DocumentType type = doc.getDoctype();
+                //errout("InputEncoding: " + doc.getInputEncoding()); // AbstractMethodError ?
+                //errout("xmlEncoding: " + doc.getXmlEncoding()); // AbstractMethodError
+                //errout("xmlVersion: " + doc.getXmlVersion()); // AbstractMethodError
+                errout("docType: " + Util.tags(type));
+                if (type != null) {
+                    errout("docType.name: " + Util.tags(type.getName()));
+                    errout("docType.entities: " + Util.tags(type.getEntities()));
+                    errout("docType.notations: " + Util.tags(type.getNotations()));
+                    errout("docType.publicId: " + Util.tags(type.getPublicId()));
+                    errout("docType.systemId: " + Util.tags(type.getSystemId()));
+                }
+                errout("impl: " + Util.tags(doc.getImplementation().getClass()));
+                errout("docElement: " + Util.tags(doc.getDocumentElement().getClass())); // toString() can dump whole document!
+            } catch (Throwable t) {
+                Log.error("debug failure", t);
+            }
         }
         //out("element: " + Util.tags(doc.getDocumentElement()));
 
         //outln("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>");
         //outln("<!-- created by RSSTest " + new Date() + " from " + src + " -->");
 
+        final XmlSchema schema = new XmlSchema(tufts.vue.Resource.instance(input), itemKey);
+        
         if (false)
             XPathExtract(schema, doc);
         else
             scanNode(schema, doc.getDocumentElement(), null, null);
 
-        if (DEBUG.DR) schema.dumpSchema(System.err);
+        if (DEBUG.DR || DEBUG.SCHEMA) schema.dumpSchema(System.err);
         return schema;
     }
 
@@ -277,6 +256,21 @@ public class XMLIngest {
     }
     private static boolean isText(Node node) {
         return isText(node.getNodeType());
+    }
+
+    private static final String getNodeType(Node n) {
+        return getNodeType(n.getNodeType());
+    }
+    private static final String getNodeType(int t) {
+        if (t == Node.ATTRIBUTE_NODE) return "attr";
+        if (t == Node.CDATA_SECTION_NODE) return "cdata";
+        if (t == Node.COMMENT_NODE) return "comment";
+        if (t == Node.DOCUMENT_NODE) return "document";
+        if (t == Node.ELEMENT_NODE) return "element";
+        if (t == Node.ENTITY_NODE) return "entity";
+        if (t == Node.TEXT_NODE) return "text";
+        return "" + t;
+        
     }
         
     
@@ -336,9 +330,9 @@ public class XMLIngest {
         if (depth < REPORT_THRESH) {
             if (depth < REPORT_THRESH - 1) {
                 if (type == Node.TEXT_NODE)
-                    eoutln(String.format("node(%d) %s(len=%d)", type, fullName, value.length()));
+                    eoutln(String.format("node(%s) {%s} (len=%d)", getNodeType(type), fullName, value.length()));
                 else
-                    eoutln(String.format("NODE(%d) %s %s", type, fullName, node, Util.tags(firstChild)));
+                    eoutln(String.format("NODE(%s) {%s} %.192s", getNodeType(type), fullName, node, Util.tags(firstChild)));
             }
             //eoutln("NODE: " + type + " name=" + name + " " + Util.tags(n) + " firstChild=" + Util.tags(firstChild));
                 //System.err.println(name);
@@ -359,8 +353,8 @@ public class XMLIngest {
             } else
                 outputValue = null;
         }
-        
-        final NodeList children = node.getChildNodes();
+
+        final NodeList children = node == null ? null : node.getChildNodes();
         final boolean DO_TAG;
 
         if (isMergedText) {
@@ -395,7 +389,7 @@ public class XMLIngest {
 //                     ;
 //                 else
                     closeOnSameLine = true;
-            } else if (XML_DEBUG)
+            } else if (XML_OUTPUT)
                 System.out.print('\n');
             
             if (FOLD_TEXT && (type != Node.ELEMENT_NODE && type != Node.ATTRIBUTE_NODE)) {
@@ -551,7 +545,7 @@ public class XMLIngest {
             factory.setValidating(validating);
     
             // Create the builder and parse the file
-            Document doc;
+            final org.w3c.dom.Document doc;
             if (input instanceof String) {
                 doc = factory.newDocumentBuilder().parse(new File((String)input));
             } else if (input instanceof InputSource) {
@@ -667,18 +661,24 @@ public class XMLIngest {
     final static String TAB = "    ";
 
     public static void iout(int _depth, String s) {
-        //for (int x = 0; x < _depth; x++) System.out.print(TAB);
-        //System.out.print(s);
+        if (XML_OUTPUT) {
+            for (int x = 0; x < _depth; x++) System.out.print(TAB);
+            System.out.print(s);
+        }
     }
     
     public static void ioutln(int _depth, String s) {
-        //for (int x = 0; x < _depth; x++) System.out.print(TAB);
-        //System.out.println(s);
+        if (XML_OUTPUT) {
+            for (int x = 0; x < _depth; x++) System.out.print(TAB);
+            System.out.println(s);
+        }
     }
 
     public static void eoutln(int _depth, String s) {
-        //for (int x = 0; x < _depth; x++) System.err.print(TAB);
-        //System.err.println(s);
+        if (XML_OUTPUT) {
+            for (int x = 0; x < _depth; x++) System.err.print(TAB);
+            System.err.println(s);
+        }
     }
 
     public static void eoutln(String s) {
@@ -688,15 +688,17 @@ public class XMLIngest {
     
 
     public static void out(String s) {
-        //System.out.print(s == null ? "null" : s);
+        if (XML_OUTPUT)
+            System.out.print(s == null ? "null" : s);
     }
 
     public static void outln(String s) {
-        //System.out.println(s == null ? "null" : s);
+        if (XML_OUTPUT)
+            System.out.println(s == null ? "null" : s);
     }
     public static void errout(String s) {
         Log.debug(s == null ? "null" : s);
-        //System.err.println(s == null ? "null" : s);
+        //System.err.println("XMLIngest: " + s);
     }
 
 
@@ -708,7 +710,8 @@ public class XMLIngest {
     final static boolean FOLD_KEYS = false; // auto-enabled if top-level item is "plist" (current breaks on JIRA XML if true)
 
     //final static int REPORT_THRESH = FOLD_KEYS ? 4 : 3;
-    final static int REPORT_THRESH = 1;
+    final static int REPORT_THRESH = 4;
+    //final static int REPORT_THRESH = 1;
 
     final static char ATTR_SEPARATOR = '@';
 
@@ -719,6 +722,34 @@ public class XMLIngest {
     private static InputStream getTestXMLStream()
         throws IOException
     {
+
+//         // SMF 2008-10-02: E.g. Craigslist XML streams use ISO-8859-1, which is provided in
+//         // HTML headers as "Content-Type: application/rss+xml; charset=ISO-8859-1", (tho not
+//         // in a special content-encoding header), and our current XML parser fails unless
+//         // the stream is read with this set: e.g.: [org.xml.sax.SAXParseException: Character
+//         // conversion error: "Unconvertible UTF-8 character beginning with 0x95" (line
+//         // number may be too low).]  Actually, in this case it turns out that providing a
+//         // default InputStreamReader (encoding not specified) as opposed to a direct
+//         // InputStream from the URLConnection works, and the XML parser is presumably then
+//         // finding and handling the "<?xml version="1.0" encoding="ISO-8859-1"?>" line at
+//         // the top of the XML stream
+//         final XmlSchema schema = new XmlSchema(conn.getURL(), itemKey);
+//         InputStream is = null;
+//         try {
+//             is = conn.getInputStream();
+//             errout("GOT INPUT STREAM: " + Util.tags(is));
+//         } catch (IOException e) {
+//             e.printStackTrace();
+//             return null;
+//         }
+//         final Document doc = parseXML(is, false);
+
+        // Could also use a ROME API XmlReader(URLConnection) for handling
+        // the input, which does it's own magic to figure out the encoding.
+        // For more on the complexity of this issue, see:
+        // http://diveintomark.org/archives/2004/02/13/xml-media-types
+
+        
         URL url = new URL(JIRA_VUE_URL);
         URLConnection conn = url.openConnection();
         conn.setRequestProperty("Cookie", JIRA_SFRAIZE_COOKIE);
@@ -740,6 +771,42 @@ public class XMLIngest {
         return in;
     }
     
+    public static void main(String[] args)
+        throws IOException
+    {
+        DEBUG.Enabled = DEBUG.DR = DEBUG.IO = DEBUG.SCHEMA = true;
+
+        tufts.vue.VUE.parseArgs(args);
+
+        org.apache.log4j.Logger.getRootLogger().removeAllAppenders(); // need to do this or we get everything twice
+        org.apache.log4j.Logger.getRootLogger().addAppender
+            (new org.apache.log4j.ConsoleAppender(tufts.vue.VUE.MasterLogPattern, "System.err"));
+        
+        //final XmlSchema schema = new RssSchema();
+        
+        errout("Max mem: " + Util.abbrevBytes(Runtime.getRuntime().maxMemory()));
+        //getXMLStream();System.exit(0);
+
+        final String file = args[0];
+        final String key = args[1];
+
+        Log.debug("File: " + file);
+        Log.debug("Key: " + key);
+
+        final InputSource is = new InputSource(file);
+        is.setCharacterStream(new FileReader(file));
+        
+
+        //XMLIngest.XML_DEBUG = true;
+
+        Schema schema = ingestXML(is, key);
+        
+        //schema.dumpSchema(System.err);
+
+        System.err.println("\n");
+        Log.debug("done");
+    }
+
 //     public static void main(String[] args)
 //         throws IOException
 //     {
