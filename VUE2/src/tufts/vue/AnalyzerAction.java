@@ -136,13 +136,18 @@ public class AnalyzerAction extends Actions.LWCAction {
      	//System.out.println("BLAH");
     	boolean hasResults = false;
     	String query = "";
-    	while (i.hasNext())
+    	final int MAX_TERMS=1;
+    	int termCount = 0;
+    	while (i.hasNext() && termCount < MAX_TERMS)
     	{		
     		hasResults = true;
     		AnalyzerResult l = i.next();
    
     		if (l !=null && l.getValue() !=null)
+    		{ //System.out.println(l.getRelevance() + " : " + l.getValue());
     			query += l.getValue().trim() + " ";
+    			termCount++;
+    		}
     	/*
     	 * MK - For testing purposes I was adding Nodes of the search terms to the map.
     	 * 	if (l.getValue() !=null  && l.getValue().trim() != " " && !label.startsWith("Topic"))
