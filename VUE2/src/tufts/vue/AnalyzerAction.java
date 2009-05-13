@@ -80,14 +80,16 @@ public class AnalyzerAction extends Actions.LWCAction {
                 && s.first() instanceof LWNode); // todo: a have capability check (free-layout?  !isLaidOut() ?)
     }
     private final static int maxLabelLineLength =30;
+    private static final Color[] ValueNodeDataColors = VueResources.getColorArray("node.dataValue.color.cycle");
     
-    public static void addResultsToMap(List<Resource> resourceList,LWComponent centerComponent)
+    public static void addResultsToMap(List<Resource> resourceList,LWComponent centerComponent, int colorSelection)
     {
     	 //*** MAP BASED SEARCHING ***
         //Equivalent of the are you feeling lucky feature where
         //we are going to grab a bunch of results and add them right to the map.
         final int RESULTS_TO_ADD=5;
         int size = resourceList.size();
+        
        // VUE.getSelection().clear();
    //     VUE.getSelection().add(mCenterComponent);
         LWMap active = VUE.getActiveMap();
@@ -97,6 +99,7 @@ public class AnalyzerAction extends Actions.LWCAction {
         	//System.out.println(resourceList.get(p).toString());
         	Resource r = (Resource)resourceList.get(p);
         	tufts.vue.LWNode node = new tufts.vue.LWNode(r.getTitle());
+        	node.setFillColor(ValueNodeDataColors[colorSelection%10]);
         	node.setResource(r);
         	String label = node.getLabel();
 
@@ -175,7 +178,7 @@ public class AnalyzerAction extends Actions.LWCAction {
     public static final AutoTaggerAction calaisAutoTagger = new AutoTaggerAction(new OpenCalaisAnalyzer(),VueResources.getString("analyzeaction.autotag"),null);
     public static final SemanticMapAction semanticMapAction = new SemanticMapAction(new OpenCalaisAnalyzer(),"semantic map",null);
     public static final Action luckyImageAction =
-        new LWCAction(VueResources.getString("luckimage")) {
+        new LWCAction(VueResources.getString("luckyimage")) {
             public void act(LWComponent c) {
             	JSONArray _ja;
             	try {
