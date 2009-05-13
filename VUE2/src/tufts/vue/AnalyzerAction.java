@@ -117,6 +117,10 @@ public class AnalyzerAction extends Actions.LWCAction {
         active.addChildren(comps);
        // VUE.getSelection().setTo(comps,"search results");
         LayoutAction.search.act(comps);
+        VUE.getSelection().setTo(centerComponent);
+        LWSelection selection = VUE.getSelection();
+        LWContainer.bringToFront(selection);
+
     	
     }
     
@@ -282,7 +286,7 @@ public class AnalyzerAction extends Actions.LWCAction {
 	//	JMenu calaisMenu = new JMenu("Node Analysis");
     	analyzeNodeMenu.add(calais);
     	analyzeNodeMenu.add(calaisAutoTagger);
-    	//analyzeNodeMenu.add(semanticMapAction);
+    //	analyzeNodeMenu.add(semanticMapAction);
     	analyzeNodeMenu.add(luckyImageAction);
 //    	analyzeNodeMenu.add(calaisMenu);
 		
