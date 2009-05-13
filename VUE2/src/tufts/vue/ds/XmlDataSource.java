@@ -25,6 +25,7 @@ import java.util.*;
 import java.awt.*;
 import java.net.*;
 import javax.swing.*;
+import java.text.DecimalFormat;
 
 import static tufts.vue.ds.XMLIngest.*;
 
@@ -32,7 +33,7 @@ import au.com.bytecode.opencsv.CSVReader;
 
 
 /**
- * @version $Revision: 1.16 $ / $Date: 2009-02-25 17:59:35 $ / $Author: sfraize $
+ * @version $Revision: 1.17 $ / $Date: 2009-05-13 21:16:35 $ / $Author: anoop $
  * @author Scott Fraize
  */
 public class XmlDataSource extends BrowseDataSource
@@ -211,7 +212,14 @@ public class XmlDataSource extends BrowseDataSource
         return viewer;
     }
 
-    public Schema ingestCSV(Schema schema, String file, boolean hasColumnTitles) throws java.io.IOException
+    public Schema ingestCSV(Schema schema, String file, boolean hasColumnTitles) throws java.io.IOException {
+    	if(DEBUG.QUARTILE){
+    		return ingestCSVQuartile(schema,file,hasColumnTitles);
+    	} else {
+    		return ingestCSVDefualt(schema,file,hasColumnTitles);
+    	}
+    }
+    public Schema ingestCSVDefualt(Schema schema, String file, boolean hasColumnTitles) throws java.io.IOException
     {
         //final Schema schema = new Schema(file);
         //final CSVReader reader = new CSVReader(new FileReader(file));
@@ -251,7 +259,161 @@ public class XmlDataSource extends BrowseDataSource
 
         return schema;
     }
+    public Schema ingestCSVQuartile(Schema schema, String file, boolean hasColumnTitles) throws java.io.IOException
+    {
+        //final Schema schema = new Schema(file);
+        //final CSVReader reader = new CSVReader(new FileReader(file));
+        // TODO: need an encoding Win/Mac encoding toggle
+        // TODO: need handle this in BrowseDataSource openReader (encoding provided by user in data-source config)
+        final CSVReader lineReader = new CSVReader(new InputStreamReader(new FileInputStream(file), "windows-1252"));
+        
+        if (schema == null) {
+            schema = Schema.instance(Resource.instance(file), getGUID());
+        } else {
+            schema.flushData();
+            schema.setResource(Resource.instance(file));
+        }
+        
+        
+        List<String[]> rows = new ArrayList<String[]>();
+        Map<Field,Field> qFieldMap = new HashMap<Field,Field>(); // a map for numeric columns
+        List<Boolean> isColumnNumeric = new ArrayList<Boolean> ();
+        List<Double> minValues = new ArrayList<Double>();
+        List<Double> maxValues = new ArrayList<Double>();
+        
+        String[] values = lineReader.readNext(); // omit the first line from check
+        rows.add(values);
+        for(int i=0;i<values.length;i++) {
+        	isColumnNumeric.add(true);
+        	minValues.add(Double.POSITIVE_INFINITY);
+        	maxValues.add(Double.NEGATIVE_INFINITY);
+        }
+        String[] v;
+        while( (v = lineReader.readNext())!= null) {
+        	
+        	if (values == null)
+                throw new IOException(file + ": has column names, but no data");
+        	rows.add(v);
+        	for(int i=0;i<v.length;i++) {
+        		if(!isNum(v[i])) {
+        			isColumnNumeric.remove(i);
+        			isColumnNumeric.add(i,false); 
+         		} else  {
+         			double val = Double.parseDouble(v[i]);
+        			if(val< minValues.get(i)) {
+        				minValues.remove(i);
+        				minValues.add(i,val);
+        			}
+        			if(val > maxValues.get(i)) {
+        				maxValues.remove(i);
+        				maxValues.add(i,val);
+        			}
+         		}
+        	}
+        }
+        lineReader.close();
+        int numericColumnCount = 0;
+        for(Boolean flag: isColumnNumeric) {
+        	if(flag) numericColumnCount++;
+        }
+        values = rows.get(0);
+        String[] extendedValues = new String[values.length+numericColumnCount];
+        int count = 0;
+        for(int i=0;i<values.length;i++) {
+        	extendedValues[count] = values[i].trim();
+        	System.out.println(count+" Values: "+values[i]+"\t"+extendedValues[count]+"\t"+isColumnNumeric.get(i));
+        	
+        	count++;
+        	if(isColumnNumeric.get(i)) {
+        		extendedValues[count] = "Quartile "+ values[i].trim();
+        		System.out.println(count+"Extended Values: "+values[i]+"\t"+extendedValues[count] );
+        		count++;
+        	}
+        }
+        
+         
+
+        if (hasColumnTitles) {
+            schema.ensureFields(extendedValues);          
+        } else {
+            schema.ensureFields(extendedValues.length);
+        }
+
+        System.out.println("PRINTING Schema fields");
+        for(Field field: schema.getFields()){
+        	System.out.println("Field: "+field);
+        }
+        
+        for(int i=1;i<rows.size();i++) {
+        	System.out.println("Getting row: "+i);
+        	
+        	String[] rowValues = rows.get(i);
+        	
+        	DataRow row = new DataRow(schema);
+        	for(int j=0;j<values.length;j++) {
+                final String value;
+                System.out.println(i+","+j+"\t"+values[j]);
+                System.out.println("FD: "+ values[j]+"\t"+schema.getField(values[j]));
+                
+                Field field = schema.getField(values[j].trim()); 
+                try {
+                    value = rowValues[j];
+                    row.addValue(field, value);
+                    if(isColumnNumeric.get(j)) {
+                    	System.out.println("EX: Quartile "+ values[j]+"\t"+schema.getField("Quartile "+ values[j]));
+                     	Field extendedField = schema.getField("Quartile "+ values[j].trim()); 
+                    	row.addValue(extendedField,  getQuartile(Double.parseDouble(value),minValues.get(j),maxValues.get(j),4));;
+                	}
+                } catch (NullPointerException e) {
+                    Log.warn("missing value at index " + (i-1) + " for field " + field + " in " + Arrays.asList(values));
+                    Util.dumpArray(values);
+                    row.addValue(field, "<missing>");
+                    if(isColumnNumeric.get(j)) {
+                    	Field extendedField = schema.getField("Quartile "+ values[j].trim());
+                    	row.addValue(extendedField,  "<missing>");
+                	}
+                    continue;
+                }
+                      
+                
+            }
+            schema.addRow(row); 
+           
+            
+        }  
+
+       
+        return schema;
+    }
     
+    public static boolean  isNum(String s) {
+    	try {
+    	Double.parseDouble(s);
+    	}
+    	catch (NumberFormatException nfe) {
+    	return false;
+    	}
+    	return true;
+   }
+
+   public String getQuartile(double value,double min,double max, int N) {
+	   DecimalFormat format = new DecimalFormat("0.00");
+	   DecimalFormat f2 = new DecimalFormat("0");
+	   if(N<=0) {
+		   return "N<0";
+	   }
+	   double ratio = (value-min)/(max-min);
+	   double quartile = Math.ceil(ratio*N);
+	   if(quartile <= 0) {
+		   quartile=1;
+	   }
+	   double lowQuartile = min + (max-min)*(quartile-1)/N;
+	  
+	   double highQuartile = min + (max-min)*(quartile)/N;
+	    
+	   return "Q"+f2.format(quartile)+"("+format.format(lowQuartile)+"-"+format.format(highQuartile)+")";
+	   
+   }
     private Schema mSchema;
     
     private JComponent loadContentAndBuildViewer() throws java.io.IOException
