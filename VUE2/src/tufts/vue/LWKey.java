@@ -90,7 +90,10 @@ public interface LWKey {
     //public String LinkCurves = "link.curves";
 
     /* the map filter has changed somehow */
-    public String MapFilter = "map.filter"; 
+    public String MapFilter = "map.filter";
+    
+    public String DataUpdate = "data.update";
+    
     
     
 }
