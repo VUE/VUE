@@ -47,7 +47,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.67 $ / $Date: 2009-05-13 17:04:42 $ / $Author: sfraize $
+ * @version $Revision: 1.68 $ / $Date: 2009-05-13 17:35:53 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -537,7 +537,7 @@ public class DataTree extends javax.swing.JTree
         Log.debug("annotateForMap: newRows " + newRowCount + "; changedRows " + changedRowCount);
 
         if (newRowCount > 0) {
-            mAddNewRowsButton.setLabel(String.format("Add %d New Records to Map", newRowCount));
+            mAddNewRowsButton.setLabel(String.format("Add %d new records to Map", newRowCount));
             //mAddNewRowsButton.setIcon(NewToMapIcon);
             mAddNewRowsButton.setEnabled(true);
         } else {
