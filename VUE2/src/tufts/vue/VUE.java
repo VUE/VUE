@@ -118,7 +118,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.655 $ / $Date: 2009-05-07 00:59:53 $ / $Author: vaibhav $ 
+ * @version $Revision: 1.656 $ / $Date: 2009-05-13 17:19:44 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -818,7 +818,7 @@ public class VUE
 
     }
 
-    private static final PatternLayout MasterLogPattern = new PatternLayout("VUE %d %5p [%t]%x %c{1}: %m%n");
+    public static final PatternLayout MasterLogPattern = new PatternLayout("VUE %d %5p [%t]%x %c{1}: %m%n");
     
     public static void debugInit(boolean heavy) {
         if (heavy) {
@@ -913,6 +913,7 @@ public class VUE
         //final org.apache.log4j.Layout pattern = new PatternLayout("VUE %d [%t] %5p %x %m%n");
         //final PatternLayout pattern = new PatternLayout("VUE %d [%t] %5p %x %F/%C/%M %m%n");
         final PatternLayout pattern = MasterLogPattern;
+        //Logger.getRootLogger().addAppender(new ConsoleAppender(pattern, "System.err"));
         Logger.getRootLogger().addAppender(new ConsoleAppender(pattern));
         Logger.getRootLogger().addAppender(new WriterAppender(pattern, Util.getLogWriter()));
         Logger.getRootLogger().setLevel(Level.INFO);
@@ -1154,6 +1155,11 @@ public class VUE
 
     private static void _initDataSources()
     {
+        // PROBLEM:
+        // org.exolab.castor.xml.MarshalException: Declared encoding "UTF-8" does not
+        // match actual one "MacRoman"; this might not be an error.{File: [not
+        // available]; line: [not available]; column: [not available]}
+        
         // VUE-879: UrlAuthentication should initialized BEFORE
         // startRepositoryConfiguration.  It will listen for events from VDSM to scan
         // each DataSource as it's configured for any authentication credentials.
