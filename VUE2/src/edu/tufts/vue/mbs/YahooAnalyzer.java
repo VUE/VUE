@@ -23,6 +23,7 @@ import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.PostMethod;
 
 import com.google.common.collect.AbstractMapEntry;
+import com.google.common.collect.Multimap;
 
 import edu.tufts.vue.metadata.MetadataList;
 import edu.tufts.vue.metadata.VueMetadataElement;
@@ -40,6 +41,10 @@ public class YahooAnalyzer implements LWComponentAnalyzer {
 		return analyze(c,true);
 	}
 	
+	public Multimap<String, AnalyzerResult> analyzeResource(LWComponent c)
+	{
+		return null;
+	}
 	public List<AnalyzerResult> analyze(LWComponent c, boolean fallback) {
 		List<AnalyzerResult> results = new ArrayList<AnalyzerResult>();
 		String request = "http://search.yahooapis.com/ContentAnalysisService/V1/termExtraction";

@@ -7,6 +7,8 @@ import java.beans.XMLDecoder;
 import tufts.vue.LWComponent;
 import java.net.URL;
 
+import com.google.common.collect.Multimap;
+
 public class SeasrAnalyzer implements LWComponentAnalyzer {
 	private static final String ANALYZER_NAME = "Seasr Web Page Analyzer";
 	@SuppressWarnings("unchecked")
@@ -33,6 +35,11 @@ public class SeasrAnalyzer implements LWComponentAnalyzer {
 	}
 
 	public String getAnalyzerName() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Multimap<String, AnalyzerResult> analyzeResource(LWComponent c) {
 		// TODO Auto-generated method stub
 		return null;
 	}
