@@ -21,7 +21,7 @@ import java.util.*;
 import org.apache.commons.lang.StringEscapeUtils;
 
 /**
- * @version $Revision: 1.11 $ / $Date: 2009-03-11 18:26:15 $ / $Author: sfraize $
+ * @version $Revision: 1.12 $ / $Date: 2009-05-13 17:05:26 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -390,13 +390,13 @@ public final class DataAction
                 //node.getMetadataList().add(row.entries());
                 //node.addDataValues(row.dataEntries());
                 node.setDataValues(row.getData());
-                node.setStyle(schema.getStyleNode()); // must have meta-data set first to pick up label template
+                node.setStyle(schema.getRowNodeStyle()); // must have meta-data set first to pick up label template
 
-                if (singleRow) {
-                    // if handling a single node (e.g., probably a single drag),
-                    // also apply & override with the current on-map creation style
-                    tufts.vue.EditorManager.targetAndApplyCurrentProperties(node);
-                }
+//                 if (singleRow) {
+//                     // if handling a single node (e.g., probably a single drag),
+//                     // also apply & override with the current on-map creation style
+//                     tufts.vue.EditorManager.targetAndApplyCurrentProperties(node);
+//                 }
 
                 boolean addedResource = false;
             
@@ -516,11 +516,11 @@ public final class DataAction
         style.setStrokeWidth(DataNodeStrokeWidth);
         style.setStrokeColor(DataNodeStrokeColor);
         //style.disableProperty(LWKey.Notes);
-        String notes = String.format("Style for all %d data items in %s",
-                                     schema.getRowCount(),
+        //String notes = String.format("Style for all %d data items in %s",
+        String notes = String.format("Style for row nodes in Schema '%s'",
                                      schema.getName());
 
-        if (DEBUG.Enabled) notes += ("\n\nSchema: " + schema.getDump());
+        //if (DEBUG.Enabled) notes += ("\n\nSchema: " + schema.getDump());
         style.setNotes(notes);
         style.setFlag(Flag.STYLE); // do last
 
