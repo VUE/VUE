@@ -1427,7 +1427,7 @@ public class DataSourceViewer extends JPanel
                 if (DEBUG.DR) Log.debug("done processing AssetIterator; count=" + resultCount);
             }
             
-            String name = "Resultsdasdad: " + mRepositoryName;
+            String name = "Results: " + mRepositoryName;
             
             if (DEBUG.DR) {
                 if (resultCount > maxResult)
