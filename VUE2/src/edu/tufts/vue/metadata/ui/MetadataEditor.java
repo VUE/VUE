@@ -25,6 +25,7 @@ import java.awt.event.MouseEvent;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultCellEditor;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -129,6 +130,8 @@ public class MetadataEditor extends JPanel implements ActiveListener,
     private int buttonColumn = 1;
 
     private boolean focusToggle = false;
+    
+    private JButton autoTagButton =  new JButton(VueResources.getString("keywordPanel.autotag"));
    
     public MetadataEditor(tufts.vue.LWComponent current,boolean showOntologicalMembership,boolean followAllActive)
     {
@@ -140,6 +143,9 @@ public class MetadataEditor extends JPanel implements ActiveListener,
            setSize(new java.awt.Dimension(300,200));
            
         }
+        
+        autoTagButton.setAction(tufts.vue.AnalyzerAction.calaisAutoTagger);
+        autoTagButton.setLabel(VueResources.getString("keywordPanel.autotag"));
         
         
         this.current = current;
@@ -378,6 +384,8 @@ public class MetadataEditor extends JPanel implements ActiveListener,
                revalidate();
            }
         });
+        
+        optionsPanel.add(autoTagButton);
         optionsPanel.add(advancedSearch);
         optionsPanel.add(optionsLabel);
         
@@ -856,7 +864,10 @@ public class MetadataEditor extends JPanel implements ActiveListener,
             currentMultiples = null;
         }
         
-
+        if (VUE.getSelection().size() == 1 && VUE.getSelection().get(0) instanceof tufts.vue.LWNode)
+        	autoTagButton.setVisible(true);
+        else
+        	autoTagButton.setVisible(false);
     }
     
     public void activeChanged(ActiveEvent e)
