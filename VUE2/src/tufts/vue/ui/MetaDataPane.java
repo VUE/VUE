@@ -419,6 +419,14 @@ public class MetaDataPane extends tufts.vue.gui.Widget
    
     // as we guarantee that we only ever run this in the AWT thread, this method
     // doesn't need to be synchronized
+
+    //-------------------------------------------------------
+    // TODO: change this entire mechanism to handle this as a regular LWComponent event
+    // (e.g., all data events will go through the LWComponent) -- e.g., this
+    // may not be good enough -- if we're REPLACING the entire meta-map data
+    // object instance on the LWComponent, it does us no good to be listening
+    // to the old one.
+    //-------------------------------------------------------
     private void loadPropertiesAWT(TableBag propertyMap)
     {
         if (DEBUG.THREAD || DEBUG.RESOURCE || DEBUG.IMAGE) out("loadPropertiesAWT: " + propertyMap.size() + " key/value pairs");
@@ -610,6 +618,7 @@ public class MetaDataPane extends tufts.vue.gui.Widget
         }
 
         if (DEBUG.Enabled && dataMap != null && dataMap.getSchema() != null) {
+            if (DEBUG.DR) loadRow(rowIdx++, "DATA", null, Util.tag(dataMap));
             loadRow(rowIdx++, "SCHEMA", null, ""+dataMap.getSchema());
         }
           
