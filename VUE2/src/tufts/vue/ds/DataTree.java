@@ -47,7 +47,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.66 $ / $Date: 2009-03-29 02:28:41 $ / $Author: vaibhav $
+ * @version $Revision: 1.67 $ / $Date: 2009-05-13 17:04:42 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -90,6 +90,55 @@ public class DataTree extends javax.swing.JTree
         annotateForMap(mActiveMap);
         addNewRowsToMap(mActiveMap);
     }
+    private void applyChangesToMap() {
+        // failsafe: tho the Schema and our tree nodes should already
+        // be updated, make absolutely certian we're current to the
+        // active map by running adding new rows based on our detection
+        // of the rows already in the map.
+        annotateForMap(mActiveMap);
+        applyChangesToMap(mActiveMap);
+    }
+    
+    private void applyChangesToMap(final LWMap map) {
+
+        final Map<String,DataRow> freshData = new HashMap();
+        final Field keyField = mSchema.getKeyField();
+        final String keyFieldName = keyField.getName();
+
+        for (DataNode n : mAllRowsNode.getChildren()) {
+            final DataRow row = n.getRow();
+            if (row.isContextChanged()) {
+                //Log.debug("Context changed: " + Util.tag(row));
+                String keyValue = row.getValue(keyField);
+                freshData.put(keyValue, row);
+            }
+        }
+
+        if (DEBUG.Enabled) Log.debug("Found " + freshData.size() + " data rows with newer data for map");
+
+        final Collection<LWComponent> nodes = map.getAllDescendents();
+        final Collection<LWComponent> patched = new ArrayList();
+        
+        for (LWComponent c : nodes) {
+            if (c.isDataRow(mSchema)) {
+                DataRow newRow = freshData.get(c.getDataValue(keyFieldName));
+                if (newRow != null) {
+                    //Log.debug("patching " + c);
+                    c.setDataMap(newRow.getData());
+                    patched.add(c);
+                }
+            }
+        }
+
+        if (DEBUG.Enabled) Log.debug("Updated " + patched.size() + " nodes with fresh data");
+        
+        runAnnotate();
+
+        VUE.getSelection().setTo(patched);
+
+        map.getUndoManager().mark(String.format("Update %d Data Nodes", patched.size()));
+    }
+    
 
     private void addNewRowsToMap(final LWMap map) {
 
@@ -141,6 +190,11 @@ public class DataTree extends javax.swing.JTree
                     tree.addNewRowsToMap();
                 }
             });
+        tree.mApplyChangesButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    tree.applyChangesToMap();
+                }
+            });
 
         tree.getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
 
@@ -179,7 +233,7 @@ public class DataTree extends javax.swing.JTree
 //         toolbar.add(addNew, BorderLayout.EAST);
         
         toolbar.add(tree.mAddNewRowsButton, BorderLayout.NORTH);
-        //toolbar.add(tree.mApplyChangesButton, BorderLayout.SOUTH);
+        toolbar.add(tree.mApplyChangesButton, BorderLayout.SOUTH);
 
         if (dataSourceLabel != null)
             wrap.add(dataSourceLabel, BorderLayout.SOUTH);
@@ -293,15 +347,22 @@ public class DataTree extends javax.swing.JTree
             return;
 
         Field field = treeNode.getField();
+        LWComponent styleRecord = null;
 
         if (field == null) {
             if (treeNode == mAllRowsNode || treeNode instanceof RowNode) {
                 field = mSchema.getKeyField();
+                if (treeNode == mAllRowsNode)
+                    styleRecord = mSchema.getRowNodeStyle();
             } else {
                 // todo: must be root node: select a row-node items
                 return;
             }
         }
+
+        if (field != null && styleRecord == null)
+            styleRecord = field.getStyleNode();
+
 
         //tree.setSelectionPath(path);
                 
@@ -387,7 +448,7 @@ public class DataTree extends javax.swing.JTree
             } else {
                 if (matching)
                     desc = "matching<br>" + desc;
-                selection.setTo(hits, desc);
+                selection.setTo(hits, desc, styleRecord);
             }
         } else
             selection.clear();
@@ -437,10 +498,12 @@ public class DataTree extends javax.swing.JTree
         //annotateForMap(mActiveMap);
         mAddNewRowsButton.setEnabled(false);
         mAddNewRowsButton.setLabel("Comparing to " + mActiveMap.getLabel() + "...");
+        mApplyChangesButton.setEnabled(false);
         Log.debug("WAKING ANNOTATION THREAD " + mAnnotateThread + "; pri=" + mAnnotateThread.getPriority());
         synchronized (mAnnotateThread) {
             mAnnotateThread.notify();
         }
+        Log.debug("NOTIFIED ANNOTATION THREAD");
     }
 
     private boolean annotateForMap(final LWMap map)
@@ -463,10 +526,15 @@ public class DataTree extends javax.swing.JTree
         }
 
         int newRowCount = 0;
+        int changedRowCount = 0;
         for (DataNode n : mAllRowsNode.getChildren()) {
             if (!n.isMapPresent())
                 newRowCount++;
+            if (n.isContextChanged())
+                changedRowCount++;
         }
+
+        Log.debug("annotateForMap: newRows " + newRowCount + "; changedRows " + changedRowCount);
 
         if (newRowCount > 0) {
             mAddNewRowsButton.setLabel(String.format("Add %d New Records to Map", newRowCount));
@@ -476,6 +544,13 @@ public class DataTree extends javax.swing.JTree
             //mAddNewRowsButton.setIcon(null);
             mAddNewRowsButton.setLabel("All Records are represented on Map");
             mAddNewRowsButton.setEnabled(false);
+        }
+        if (changedRowCount > 0) {
+            mApplyChangesButton.setLabel(String.format("Update %d records on Map", changedRowCount));
+            mApplyChangesButton.setEnabled(true);
+        } else {
+            mApplyChangesButton.setLabel("No Changed Records");
+            mApplyChangesButton.setEnabled(false);
         }
 
         // TODO: don't bother with refresh if annotations didn't change at all
@@ -552,10 +627,12 @@ public class DataTree extends javax.swing.JTree
                         } catch (InterruptedException e) {
                             Log.error("interrupted " + schema, e);
                         }
-                        Log.debug("annotation thread woke");
+                        Log.debug("annotation thread woke, running....");
                         boolean interrupted = annotateForMap(mActiveMap);
                         if (interrupted)
                             Log.debug("annotation aborted");
+                        else
+                            Log.debug("annotation completed");
                     }
                     }
                 }
@@ -724,9 +801,15 @@ public class DataTree extends javax.swing.JTree
             });
 
         final LWComponent.Listener repainter = new LWComponent.Listener() {
+                // todo: schema style nodes are currently parentless, which means
+                // their property change events don't go up through the map to
+                // the undo-manager, making changes to them not undoable -- either
+                // manually relay style property change events up through the appropriate
+                // map, or have a way for a map to have hidden list of style children.
                 public void LWCChanged(tufts.vue.LWCEvent e) {
                     if (e.getName() == LWKey.UserActionCompleted) {
                         // changes to style nodes need to repaint the tree
+                        // todo: don't need to refresh everything, could just refresh top-levels
                         DataTree.this.refreshAll();
                         //DataTree.this.repaint();
                     }
@@ -839,13 +922,14 @@ public class DataTree extends javax.swing.JTree
 
             final LWComponent dragNode;
             final Field field = treeNode.getField();
+            boolean stylesAlreadyApplied = false;
 
             if (treeNode.isValue()) {
                 //dragNode = new LWNode(String.format(" %s: %s", field.getName(), treeNode.value));
                 dragNode = DataAction.makeValueNode(field, treeNode.getValue());
                 //dragNode.setLabel(String.format(" %s: %s ", field.getName(), treeNode.value));
                 //dragNode.setLabel(String.format(" %s ", field.getName());
-                dragNode.copyStyle(treeNode.getStyle(), ~LWKey.Label.bit);
+
             } else if (treeNode.isField()) {
 //                 if (field.isPossibleKeyField())
 //                     return;
@@ -854,10 +938,19 @@ public class DataTree extends javax.swing.JTree
                                                     field.getName()));
 //                 dragNode.setClientData(java.awt.datatransfer.DataFlavor.stringFlavor,
 //                                        " ${" + field.getName() + "}");
-                
+
             } else if (treeNode instanceof RowNode) {
                 
-                dragNode = DataAction.makeRowNodes(treeNode.getSchema(), ((RowNode)treeNode).getRow()).get(0);
+                
+                final DataRow row = ((RowNode)treeNode).getRow();
+                final List<LWComponent> nodes = DataAction.makeRowNodes(treeNode.getSchema(), row);
+                if (DEBUG.Enabled) Log.debug("made row nodes: " + Util.tags(nodes));
+                if (nodes.isEmpty()) {
+                    Log.error("no row node made from row: " + row);
+                    dragNode = null;
+                } else
+                    dragNode = nodes.get(0);
+                stylesAlreadyApplied = true;
                                         
             } else {
                 //assert treeNode instanceof TemplateNode;
@@ -866,9 +959,15 @@ public class DataTree extends javax.swing.JTree
                                                     schema.getName(),
                                                     schema.getRowCount()
                                                     ));
-                dragNode.copyStyle(treeNode.getStyle(), ~LWKey.Label.bit);
             }
-                         
+
+            if (dragNode == null) {
+                Log.warn("Unable to create nodes from drag of " + treeNode);
+                return;
+            }
+
+            dragNode.copyStyle(treeNode.getStyle(), ~LWKey.Label.bit);
+                                     
             //dragNode.setFillColor(null);
             //dragNode.setStrokeWidth(0);
             if (!treeNode.isValue()) {
@@ -1125,7 +1224,12 @@ public class DataTree extends javax.swing.JTree
             return getField() == null;
         }
 
+        /** @return false -- override for semantics */
         boolean isMapPresent() {
+            return false;
+        }
+        /** @return false -- override for semantics */
+        boolean isContextChanged() {
             return false;
         }
 
@@ -1145,6 +1249,7 @@ public class DataTree extends javax.swing.JTree
         @Override boolean isRow() { return true; }
         @Override DataRow getRow() { return row; }
         @Override boolean isMapPresent() { return isMapPresent; }
+        @Override boolean isContextChanged() { return row.isContextChanged(); }
 
         @Override
         void annotate(LWMap map) {
@@ -1273,8 +1378,8 @@ public class DataTree extends javax.swing.JTree
             super(null, repainter, "All Rows");
             //String.format(HTML("<b><u>All Records in %s (%d)"), schema.getName(), schema.getRowCount()));
             this.schema = schema;
-            schema.setStyleNode(DataAction.makeStyleNode(schema));
-            schema.getStyleNode().addLWCListener(new LWComponent.Listener() {
+            schema.setRowNodeStyle(DataAction.makeStyleNode(schema));
+            schema.getRowNodeStyle().addLWCListener(new LWComponent.Listener() {
                     public void LWCChanged(tufts.vue.LWCEvent e) {
                         updateLabel(true);
                     }
@@ -1285,7 +1390,7 @@ public class DataTree extends javax.swing.JTree
 
 
         private void updateLabel(boolean refresh) {
-            String labelFormat = schema.getStyleNode().getLabel().trim();
+            String labelFormat = schema.getRowNodeStyle().getLabel().trim();
             if (labelFormat.startsWith("${") && labelFormat.endsWith("}"))
                 labelFormat = labelFormat.substring(2, labelFormat.length()-1);
 
@@ -1307,7 +1412,7 @@ public class DataTree extends javax.swing.JTree
         @Override boolean isField() { return false; }
         @Override boolean isValue() { return false; }
         @Override boolean hasStyle() { return true; }
-        @Override LWComponent getStyle() { return schema.getStyleNode(); }
+        @Override LWComponent getStyle() { return schema.getRowNodeStyle(); }
     }
 
 
@@ -1443,7 +1548,7 @@ public class DataTree extends javax.swing.JTree
                     setIconTextGap(1);
 
                     if (node.isRow()) {
-                        if (node.getRow().isContextChanged())
+                        if (node.isContextChanged())
                             setIcon(RowHasChangedIcon);
                         else if (node.isMapPresent())
                             setIcon(RowOnMapIcon);
