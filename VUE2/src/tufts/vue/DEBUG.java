@@ -85,6 +85,8 @@ public class DEBUG
     public static boolean PERF = false; // performance
     
     public static boolean SCHEMA = false; // schema's
+    
+    public static boolean QUARTILE  = false; // quartile import
 
     public static  void setAllEnabled(boolean t) {
         Enabled=CONTAINMENT=PARENTING=LAYOUT=BOXES=ROLLOVER=EVENTS=
