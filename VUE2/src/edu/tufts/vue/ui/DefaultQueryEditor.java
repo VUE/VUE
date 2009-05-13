@@ -14,20 +14,21 @@
  */
 package edu.tufts.vue.ui;
 
-import java.awt.Color;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-
 import javax.swing.BorderFactory;
 
+import tufts.vue.LWSelection;
+import tufts.vue.VUE;
 import tufts.vue.VueResources;
 import tufts.vue.gui.GUI;
 
-public class DefaultQueryEditor
-extends javax.swing.JPanel
-implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
+public class DefaultQueryEditor extends javax.swing.JPanel
+implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener, LWSelection.Listener
 {
-	private edu.tufts.vue.fsm.FederatedSearchManager fsm = edu.tufts.vue.fsm.impl.VueFederatedSearchManager.getInstance();
+	//private edu.tufts.vue.fsm.FederatedSearchManager fsm = edu.tufts.vue.fsm.impl.VueFederatedSearchManager.getInstance();
 	private edu.tufts.vue.fsm.SourcesAndTypesManager sourcesAndTypesManager = edu.tufts.vue.fsm.impl.VueSourcesAndTypesManager.getInstance();
 	
 	private java.awt.GridBagLayout gbLayout = new java.awt.GridBagLayout();
@@ -45,26 +46,25 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 	
 	private org.osid.repository.Repository[] repositories;
 
-        private final static String SearchLabel = VueResources.getString("defaultqueryeditor.search");
-        private final static String StopLabel = VueResources.getString("defaultqueryeditor.stopsearch");
+    private final static String SearchLabel = VueResources.getString("defaultqueryeditor.search");
+    private final static String StopLabel = VueResources.getString("defaultqueryeditor.stopsearch");
 	
-	private javax.swing.JButton searchButton1 = new javax.swing.JButton(SearchLabel);
-	private javax.swing.JButton searchButton2 = new javax.swing.JButton(SearchLabel);
+	private final javax.swing.JButton searchButton1 = new javax.swing.JButton(SearchLabel);
+	private final javax.swing.JButton searchButton2 = new javax.swing.JButton(SearchLabel);
 	private static final String SELECT_A_LIBRARY = VueResources.getString("defaultqueryeditor.pleaseselect");
-	private static final String NO_MESSAGE = "";
-        private final javax.swing.JLabel selectMessage = new javax.swing.JLabel(SELECT_A_LIBRARY, javax.swing.JLabel.CENTER);
+	//private static final String NO_MESSAGE = "";
+    private final javax.swing.JLabel selectMessage = new javax.swing.JLabel(SELECT_A_LIBRARY, javax.swing.JLabel.CENTER);
 	
 	private javax.swing.JButton moreOptionsButton = new tufts.vue.gui.VueButton("advancedSearchMore");
-	private static final String MORE_OPTIONS = "";
-	private javax.swing.JLabel moreOptionsLabel = new javax.swing.JLabel(MORE_OPTIONS);
+	//private static final String MORE_OPTIONS = "";
+	//private javax.swing.JLabel moreOptionsLabel = new javax.swing.JLabel(MORE_OPTIONS);
 	private javax.swing.JPanel moreOptionsButtonPanel = new javax.swing.JPanel();
 
 	private javax.swing.JButton fewerOptionsButton = new tufts.vue.gui.VueButton("advancedSearchLess");
-	private static final String FEWER_OPTIONS = "";
-	private javax.swing.JLabel fewerOptionsLabel = new javax.swing.JLabel(FEWER_OPTIONS);
+	//private static final String FEWER_OPTIONS = "";
+	//private javax.swing.JLabel fewerOptionsLabel = new javax.swing.JLabel(FEWER_OPTIONS);
 	private javax.swing.JPanel fewerOptionsButtonPanel = new javax.swing.JPanel();
-	
-	private javax.swing.JPanel moreFewerPanel = new javax.swing.JPanel();
+	//private javax.swing.JPanel moreFewerPanel = new javax.swing.JPanel();
 	
 	private static final int NOTHING_SELECTED = 0;
 	private static final int BASIC = 1;
@@ -81,6 +81,9 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 	
 	// maintain a vector for current values
 	private String[] advancedSearchFieldsText = null;
+	
+	//map based searching controls
+	final javax.swing.JCheckBox mapBasedSearchCheckBox = new javax.swing.JCheckBox(VueResources.getString("defaultQueryEditor.mapBasedSearchLabel"));
 	
 	public DefaultQueryEditor() {
 
@@ -154,6 +157,8 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 				makePanel(BASIC);
 			}
 			//add(new javax.swing.JScrollPane(this.panel));
+			//map based searching requires me to listen to selection
+			VUE.getSelection().addListener(this);
 		} catch (Throwable t) {
 		}
 	}
@@ -246,19 +251,66 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 		gbConstraints.fill = java.awt.GridBagConstraints.NONE;
 		gbConstraints.weightx = 0;
 		gbConstraints.anchor = java.awt.GridBagConstraints.EAST;
+		javax.swing.JLabel searchTypeLabel = new javax.swing.JLabel(VueResources.getString("defaultQueryEditor.searchTypeLabel"));
+		searchTypeLabel.setFont(tufts.vue.gui.GUI.LabelFace);
+		add(searchTypeLabel,gbConstraints);
+		
+		gbConstraints.gridx = 1;
+		gbConstraints.gridy = 0;
+		gbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+		gbConstraints.weightx = 1;
+		
+		mapBasedSearchCheckBox.setFont(GUI.LabelFace);
+		mapBasedSearchCheckBox.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				if (mapBasedSearchCheckBox.isSelected())
+				{	field.setEditable(false);
+					field.setEnabled(false);}
+				else
+				{	
+					field.setText("");
+					field.setEnabled(true);
+					field.setEditable(true);
+					searchButton1.setEnabled(false);
+					searchButton2.setEnabled(false);
+
+				}
+				LWSelection selection = VUE.getSelection();
+				if (mapBasedSearchCheckBox.isSelected() && !(selection.size() == 1 && selection.get(0) instanceof tufts.vue.LWNode))
+				{
+					field.setText(VueResources.getString("analyzeraction.selectnode"));
+				}
+				else if (mapBasedSearchCheckBox.isSelected() && (selection.size() == 1 && selection.get(0) instanceof tufts.vue.LWNode))
+				{
+					searchButton1.setEnabled(true);
+					searchButton2.setEnabled(true);
+				}
+				 
+					
+			}
+		});
+		add(mapBasedSearchCheckBox,gbConstraints);
+		
+		gbConstraints.gridx = 0;
+		gbConstraints.gridy = 1;
+		gbConstraints.fill = java.awt.GridBagConstraints.NONE;
+		gbConstraints.weightx = 0;
+		gbConstraints.anchor = java.awt.GridBagConstraints.EAST;
 		javax.swing.JLabel keywordLbl = new javax.swing.JLabel(VueResources.getString("jlabel.keyword"));
 		keywordLbl.setFont(tufts.vue.gui.GUI.LabelFace);
 		add(keywordLbl,gbConstraints);
 		
 		gbConstraints.gridx = 1;
-		gbConstraints.gridy = 0;
+		gbConstraints.gridy = 1;
 		gbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
 		gbConstraints.weightx = 1;
 		add(field,gbConstraints);
 		//field.addActionListener(this);
 		
 		gbConstraints.gridx = 0;
-		gbConstraints.gridy = 1;
+		gbConstraints.gridy = 2;
 		gbConstraints.fill = java.awt.GridBagConstraints.NONE;
 		gbConstraints.weightx = 0;
 		gbConstraints.ipadx = 10;
@@ -411,9 +463,16 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 				}
 			}
 		} else {
-			this.criteria = field.getText();
-                        //System.out.println("\n\nFIRESEARCH " + ae);
-			fireSearch(new edu.tufts.vue.fsm.event.SearchEvent(this));
+			if (this.mapBasedSearchCheckBox.isSelected())
+			{
+				tufts.vue.AnalyzerAction.calais.act();
+			}
+			else
+				{
+					this.criteria = field.getText();
+                    //System.out.println("\n\nFIRESEARCH " + ae);
+					fireSearch(new edu.tufts.vue.fsm.event.SearchEvent(this));
+				}
 		}
 	}
 	
@@ -722,5 +781,18 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 		}
 		buffer.append("</criteria>");
 		return buffer.toString();
+	}
+
+	public void selectionChanged(LWSelection selection) {
+		if (mapBasedSearchCheckBox.isSelected() && !(selection.size() == 1 && selection.get(0) instanceof tufts.vue.LWNode))
+		{	this.searchButton1.setEnabled(false);
+			field.setText(VueResources.getString("analyzeraction.selectnode"));
+		}
+		else if (mapBasedSearchCheckBox.isSelected())
+		{
+			this.searchButton1.setEnabled(true);
+			field.setText("");
+		}
+		
 	}
 }
