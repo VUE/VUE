@@ -1479,7 +1479,7 @@ public class DataSourceViewer extends JPanel
                 mResultPane.removeAll();
                 mResultPane.add(results);
                 if (resourceList.size() > 0)
-                	AnalyzerAction.addResultsToMap(resourceList,mCenterComponent);
+                	AnalyzerAction.addResultsToMap(resourceList,mCenterComponent,mMapBasedSearchThreads.size());
             }});                
         }
     }
