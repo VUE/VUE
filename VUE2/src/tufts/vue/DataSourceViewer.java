@@ -1616,7 +1616,8 @@ public class DataSourceViewer extends JPanel
                 setBorder(new EmptyBorder(3,10,3,0));
             }
             
-            setBackground(VueResources.getColor("dsv.statuspanel.bgColor"));
+            //setBackground(VueResources.getColor("dsv.statuspanel.bgColor"));
+            setBackground(SystemColor.control);
             if (useIcon) {
                 waitIcon = new JLabel(VueResources.getImageIcon("dsv.statuspanel.waitIcon"));
                 this.add(waitIcon);
