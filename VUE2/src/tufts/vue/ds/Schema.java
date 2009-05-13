@@ -32,7 +32,7 @@ import com.google.common.collect.*;
 
 
 /**
- * @version $Revision: 1.31 $ / $Date: 2009-03-17 16:01:02 $ / $Author: sfraize $
+ * @version $Revision: 1.32 $ / $Date: 2009-05-13 17:03:32 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -46,6 +46,10 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(Schema.class);
 
     protected final Map<String,Field> mFields = new LinkedHashMap(); // "columns"
+
+    private final Collection<Field> mPersistFields = new ArrayList();
+    private boolean mXMLRestoreUnderway;
+        
     private Field mKeyField;
 
     private final List<DataRow> mRows = new ArrayList();
@@ -62,6 +66,10 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
 
     private String GUID;
     private String DSGUID;
+
+    boolean mKeyFold;
+        
+    
 
 //     /** construct an empty schema */
 //     public Schema() {}
@@ -183,10 +191,12 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
         ((tufts.vue.URLResource)getResource()).XML_completed("SCHEMA-MANUAL-INIT");
         DSGUID = getResource().getProperty("@DSGUID");
         if (DEBUG.Enabled) Log.debug("RESTORED SCHEMA " + this + "; DSGUID=" + DSGUID);
+        mXMLRestoreUnderway = false;
+        Log.debug("LOAD FIELDS WITH " + mPersistFields);
     }
     
     /** interface {@link XMLUnmarshalListener} -- does nothing here */
-    public void XML_initialized(Object context) {}
+    public void XML_initialized(Object context) { mXMLRestoreUnderway = true; }
     /** interface {@link XMLUnmarshalListener} -- does nothing here */
     public void XML_fieldAdded(Object context, String name, Object child) {}
     /** interface {@link XMLUnmarshalListener} -- does nothing here */
@@ -289,6 +299,7 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
             final String rowKey = row.getValue(keyField);
 
             row.mContextCount = 0;
+            row.setContextChanged(false);
 
             for (LWComponent node : nodes) {
 
@@ -305,7 +316,13 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
                 final MetaMap rawData = row.getData();
                 final MetaMap mapData = node.getRawData();
                 //Log.debug("comparing:\n" + rawData.values() + " to:\n" + mapData.values());
-                row.setContextChanged(!rawData.equals(mapData));
+                if (rawData != mapData) {
+                    // todo: would be nice to tag each field to see what changed, tho
+                    // that adds another bit for every single value in a data-set, and
+                    // we have no per-value meta-data in the DataRow at the moment
+                    row.setContextChanged(!rawData.equals(mapData));
+                }
+
                 
 
                 // test if this node is a row node from this schema -- currently an imperfect test: only
@@ -386,11 +403,13 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
         return DSGUID;
     }
     
-    public void setStyleNode(LWComponent style) {
+    /** set the node style object used for record/row nodes */
+    public void setRowNodeStyle(LWComponent style) {
         mStyleNode = style;
     }
         
-    public LWComponent getStyleNode() {
+    /** @return the node style used for record/row nodes */
+    public LWComponent getRowNodeStyle() {
         return mStyleNode;
     }
     
@@ -680,6 +699,14 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
     public Collection<Field> getFields() {
         return mFields.values();
     }
+
+    public Collection<Field> getXMLFields() {
+        if (mXMLRestoreUnderway) {
+            // return the list to be *loaded* by castor
+            return mPersistFields;
+        } else
+            return mFields.values();
+    }
     
     public int getFieldCount() {
         return mFields.size();
@@ -695,11 +722,12 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
     }
     
 
-    // todo: factor out XML impl reference
     public boolean isXMLKeyFold() {
-        return false;
+        return mKeyFold;
     }
-
+    public void setXMLKeyFold(boolean keyFold) {
+        mKeyFold = keyFold;
+    }
     
 
 }
