@@ -52,7 +52,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.465 $ / $Date: 2009-04-16 17:54:47 $ / $Author: sfraize $
+ * @version $Revision: 1.466 $ / $Date: 2009-05-13 17:13:18 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -839,7 +839,7 @@ u                    getSlot(c).setFromString((String)value);
             final Object oldValue = this.value;
             take(newValue);
             onChange();
-            LWComponent.this.notify(this.key, oldValue);
+            if (LWComponent.this.alive()) LWComponent.this.notify(this.key, oldValue);
         }
 
         /** This JUST changes the stored value: no notifications of any kind will be triggered, no undo recorded. */
@@ -1481,6 +1481,7 @@ u                    getSlot(c).setFromString((String)value);
         }
         // Old property keys that don't make use of the Key class yet:
         //else if (key == LWKey.Hidden)        setHidden( ((Boolean)val).booleanValue());
+        else if (key == LWKey.DataUpdate)    setDataMap((MetaMap) val);
         else if (key == LWKey.Scale)         setScale((Double) val);
         else if (key == LWKey.Resource)      setResource( (Resource) val);
         else if (key == LWKey.Location) {
@@ -1793,6 +1794,10 @@ u                    getSlot(c).setFromString((String)value);
         //getDataMap().put("@Schema", field.getSchema());
     }
 
+    public TableBag getDataTable() {
+        return mDataMap;
+    }
+
     private MetaMap getDataMap() {
         if (mDataMap == null) {
             mDataMap = new MetaMap();
@@ -1811,9 +1816,14 @@ u                    getSlot(c).setFromString((String)value);
     public void setPersistDataMap(MetaMap dataMap) {
         mDataMap = dataMap;
     }
-
-    public TableBag getDataTable() {
-        return mDataMap;
+    
+    /** replace ALL data on this node at once, generating events for undo */
+    public void setDataMap(MetaMap dataMap) {
+        if (mDataMap == dataMap)
+            return;
+        Object old = this.mDataMap;
+        mDataMap = dataMap;
+        notify(LWKey.DataUpdate, old);
     }
 
     
@@ -1832,13 +1842,19 @@ u                    getSlot(c).setFromString((String)value);
 //         getDataMap().putAllStrings(entries);
 //     }
 
-    public void setDataValues(MetaMap map) {
+    /** used for new node creation: todo -- get rid of this when we get rid of getMetadataList() */
+    public void takeAllDataValues(MetaMap map) {
         setPersistDataMap(map);
+
+        // TODO PERFORMANCE: GET RID OF THIS:
         getMetadataList().add(map.entries()); // duplicate in old meta-data for now
     }
 
     public void addDataValue(String key, String value) {
+        // TODO PERFORMANCE: GET RID OF THIS:
         getMetadataList().add(key, value);
+
+        // just leave this:
         getDataMap().add(key, value);
     }    
 
@@ -2069,6 +2085,10 @@ u                    getSlot(c).setFromString((String)value);
         //return (mHideBits & HideCause.FILTER.bit) != 0;
     }
 
+    protected final boolean alive() {
+        return parent != null;
+    }
+
     /**
      * Called during restore from presistance, or when newly added to a container.
      * Must be called at some point before any attempt to persist, with a unique
@@ -2088,13 +2108,18 @@ u                    getSlot(c).setFromString((String)value);
         // to differentiate hierarchy events that are just reparentings from
         // new creation events.
 
-        notify(LWKey.Created, new Undoable() {
+        notifyForce(LWKey.Created, new Undoable() {
                 void undo() {
                     // parent may already have deleted it for us, so only delete if need be
+                    // todo performance: force parents to always handle this so can skip creating this event
+                    // (has impact when creating handling thousands of nodes)
                     if (!isDeleted())
                         removeFromModel();
                 }} );
     }
+
+    
+    
 
 //     /** set the ID string, no questions asked */
 //     protected void takeID(String ID) {
@@ -3529,7 +3554,7 @@ u                    getSlot(c).setFromString((String)value);
         if (DEBUG.EVENTS||DEBUG.UNDO) out("removeLinkRef: " + link);
         if (mLinks == null || !mLinks.remove(link))
             Log.warn("removeLinkRef: " + this + " didn't contain " + link);
-        clearHidden(HideCause.PRUNE);
+        clearHidden(HideCause.PRUNE); // todo: ONLY clear this if we were pruned by the given link!
         notify(LWKey.LinkRemoved, link); // informational only event
     }
     
@@ -6330,7 +6355,8 @@ u                    getSlot(c).setFromString((String)value);
 
     protected void notify(String what, LWComponent contents)
     {
-        notifyLWCListeners(new LWCEvent(this, contents, what));
+        if (alive())
+            notifyLWCListeners(new LWCEvent(this, contents, what));
     }
 
     protected void notify(String what, Object oldValue)
@@ -6341,17 +6367,26 @@ u                    getSlot(c).setFromString((String)value);
 //         // for ever property set that happens
 //         if (hasFlag(Flag.EVENT_SILENT)) 
 //             return;
+        if (alive())
+            notifyLWCListeners(new LWCEvent(this, this, what, oldValue));
+    }
+    
+    /** same as notify(String, Object), but will do notification even if the LWComponent isn't "alive" yet */
+    protected void notifyForce(String what, Object oldValue)
+    {
         notifyLWCListeners(new LWCEvent(this, this, what, oldValue));
     }
 
     protected void notify(Key key, Object oldValue)
     {
-        notifyLWCListeners(new LWCEvent(this, this, key, oldValue));
+        if (alive())
+            notifyLWCListeners(new LWCEvent(this, this, key, oldValue));
     }
     
     protected void notify(Key key, boolean oldValue)
     {
-        notify(key, oldValue ? Boolean.TRUE : Boolean.FALSE);
+        if (alive())
+            notify(key, oldValue ? Boolean.TRUE : Boolean.FALSE);
     }
 
     protected void notify(String what)
