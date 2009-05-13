@@ -33,7 +33,7 @@ import java.util.*;
  * types and doing some data-type analysis.  It also includes the ability to
  * associate a LWComponent node style with specially marked values.
  * 
- * @version $Revision: 1.10 $ / $Date: 2009-03-11 18:27:18 $ / $Author: sfraize $
+ * @version $Revision: 1.11 $ / $Date: 2009-05-13 17:03:48 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -79,6 +79,12 @@ public class Field
         this.schema = schema;
         flushStats(true);
         if (DEBUG.SCHEMA) Log.debug("(created field \"" + name + "\")");
+    }
+
+    /** for castor persistance */
+    public Field() {
+        this.schema = null;
+        this.name = "<empty>";
     }
 
     /** Wrapper for display of special values: e.g., EMPTY_VALUE ("") to "(no value)" */
