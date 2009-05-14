@@ -29,7 +29,7 @@ import javax.swing.border.*;
  *
  * Various static utility methods for VUE.
  *
- * @version $Revision: 1.102 $ / $Date: 2009-05-14 18:42:02 $ / $Author: brian $
+ * @version $Revision: 1.103 $ / $Date: 2009-05-14 21:23:43 $ / $Author: brian $
  * @author Scott Fraize
  *
  */
@@ -759,6 +759,17 @@ public class VueUtil extends tufts.Util
                                              messageType,
                                              null);
     }
+    
+    public static int option(Component parent, String message, String title, int optionType, int messageType, Object[] options, Object initialValue) {
+        return VOptionPane.showWrappingOptionDialog(parent,
+                                             message,
+                                             title,
+                                             optionType,
+                                             messageType,
+                                             null,
+                                             options,
+                                             initialValue);
+    }
 }
 
 
@@ -778,27 +789,55 @@ class VOptionPane extends JOptionPane
 		return MAX_LINE_LENGTH;
 	}
 
-	static void showWrappingMessageDialog(Component parent, Object message, String title, int messageType, Icon icon) {
-		showWrappingConfirmDialog(parent, message, title, JOptionPane.DEFAULT_OPTION, messageType, icon);
+	static void showWrappingMessageDialog(Component parent, Object message, String title,
+			int messageType, Icon icon)
+			throws HeadlessException{
+		showWrappingOptionDialog(parent, message, title, JOptionPane.DEFAULT_OPTION, messageType, icon, null, null);
 	}
 
-	static int showWrappingConfirmDialog(Component parent, Object message, String title, int optionType, int messageType, Icon icon)
-		throws HeadlessException {
+	static int showWrappingConfirmDialog(Component parent, Object message, String title,
+			int optionType, int messageType, Icon icon)
+			throws HeadlessException {
+		return showWrappingOptionDialog(parent, message, title, optionType, messageType, icon, null, null);
+	}
+
+	static int showWrappingOptionDialog(Component parent, Object message, String title,
+			int optionType, int messageType, Icon icon,
+			Object[] options, Object initialValue)
+			throws HeadlessException {
+		int				result = CLOSED_OPTION;
 		VOptionPane		optionPane = new VOptionPane();
 
 		optionPane.setMessage(message);
 		optionPane.setOptionType(optionType);
 		optionPane.setMessageType(messageType);
 		optionPane.setIcon(icon);
+		optionPane.setOptions(options);
+		optionPane.setInitialValue(initialValue);
 		optionPane.setComponentOrientation((parent != null ? parent : getRootFrame()).getComponentOrientation());
 
 		JDialog			dialog = optionPane.createDialog(parent, title);
 
+		optionPane.selectInitialValue();
 		dialog.setVisible(true);
 
 		Object			selectedValue = optionPane.getValue();
 
-		return (selectedValue == null || !(selectedValue instanceof Integer) ?
-			CLOSED_OPTION : ((Integer)selectedValue).intValue());
+		if (selectedValue != null) {
+			if (options == null) {
+				if (selectedValue instanceof Integer) {
+					result = ((Integer)selectedValue).intValue();
+				}
+			} else {
+				for (int counter = 0, maxCounter = options.length; counter < maxCounter; counter++) {
+					if (options[counter].equals(selectedValue)) {
+						result = counter;
+						break;
+					}
+				}
+			}
+		}
+
+		return result;
 	}
 }
