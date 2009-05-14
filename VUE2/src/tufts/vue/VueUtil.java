@@ -29,7 +29,7 @@ import javax.swing.border.*;
  *
  * Various static utility methods for VUE.
  *
- * @version $Revision: 1.103 $ / $Date: 2009-05-14 21:23:43 $ / $Author: brian $
+ * @version $Revision: 1.104 $ / $Date: 2009-05-14 21:48:24 $ / $Author: brian $
  * @author Scott Fraize
  *
  */
@@ -684,7 +684,7 @@ public class VueUtil extends tufts.Util
         return c == null || c.getAlpha() != 0xFF;
     }
     
-    public static void alert(Component parent, String message, String title) {
+    public static void alert(Component parent, Object message, String title) {
         VOptionPane.showWrappingMessageDialog(parent,
                                       message,
                                       title,
@@ -692,7 +692,7 @@ public class VueUtil extends tufts.Util
                                       VueResources.getImageIcon("vueIcon32x32"));                                      
     }
     
-    public static void alert(Component parent, String message, String title, int messageType) {
+    public static void alert(Component parent, Object message, String title, int messageType) {
         VOptionPane.showWrappingMessageDialog(parent,
                                       message,
                                       title,
@@ -716,7 +716,7 @@ public class VueUtil extends tufts.Util
         
     }
    
-    public static void alert(String message, String title) {
+    public static void alert(Object message, String title) {
         VOptionPane.showWrappingMessageDialog(VUE.getDialogParent(),
                                       message,
                                       title,
@@ -724,7 +724,7 @@ public class VueUtil extends tufts.Util
                                       VueResources.getImageIcon("vueIcon32x32"));                                      
     }
    
-    public static int confirm(String message, String title) {
+    public static int confirm(Object message, String title) {
        return VOptionPane.showWrappingConfirmDialog(VUE.getDialogParent(),
                                             message,
                                             title,
@@ -733,7 +733,7 @@ public class VueUtil extends tufts.Util
                                             VueResources.getImageIcon("vueIcon32x32"));
     }
     
-    public static int confirm(Component parent, String message, String title) {
+    public static int confirm(Component parent, Object message, String title) {
         return VOptionPane.showWrappingConfirmDialog(parent,
                                              message,
                                              title,
@@ -742,7 +742,7 @@ public class VueUtil extends tufts.Util
                                              VueResources.getImageIcon("vueIcon32x32"));
     }
     
-    public static int confirm(Component parent, String message, String title, int optionType) {
+    public static int confirm(Component parent, Object message, String title, int optionType) {
         return VOptionPane.showWrappingConfirmDialog(parent,
                                              message,
                                              title,
@@ -751,7 +751,7 @@ public class VueUtil extends tufts.Util
                                              VueResources.getImageIcon("vueIcon32x32"));
     }
     
-    public static int confirm(Component parent, String message, String title, int optionType, int messageType) {
+    public static int confirm(Component parent, Object message, String title, int optionType, int messageType) {
         return VOptionPane.showWrappingConfirmDialog(parent,
                                              message,
                                              title,
@@ -760,7 +760,7 @@ public class VueUtil extends tufts.Util
                                              null);
     }
     
-    public static int option(Component parent, String message, String title, int optionType, int messageType, Object[] options, Object initialValue) {
+    public static int option(Component parent, Object message, String title, int optionType, int messageType, Object[] options, Object initialValue) {
         return VOptionPane.showWrappingOptionDialog(parent,
                                              message,
                                              title,
