@@ -29,7 +29,7 @@ import javax.swing.border.*;
  *
  * Various static utility methods for VUE.
  *
- * @version $Revision: 1.99 $ / $Date: 2009-05-14 16:04:44 $ / $Author: brian $
+ * @version $Revision: 1.100 $ / $Date: 2009-05-14 16:49:57 $ / $Author: brian $
  * @author Scott Fraize
  *
  */
@@ -708,6 +708,14 @@ public class VueUtil extends tufts.Util
                                       null);
 	}
 
+    public static void alert(Component parent, String message, String title, int messageType) {
+        VOptionPane.showMessageDialog(parent,
+                                      message,
+                                      title,
+                                      messageType,
+                                      null);
+	}
+
     public static void alert(String title, Throwable t) {
 
         java.io.Writer buf = new java.io.StringWriter();
@@ -746,6 +754,15 @@ public class VueUtil extends tufts.Util
                                              message,
                                              title,
                                              JOptionPane.YES_NO_OPTION,
+                                             JOptionPane.QUESTION_MESSAGE,
+                                             VueResources.getImageIcon("vueIcon32x32"));
+    }
+    
+    public static int confirm(Container parent, String message, String title, int optionType) {
+        return VOptionPane.showConfirmDialog(parent,
+                                             message,
+                                             title,
+                                             optionType,
                                              JOptionPane.QUESTION_MESSAGE,
                                              VueResources.getImageIcon("vueIcon32x32"));
     }
