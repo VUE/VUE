@@ -26,6 +26,7 @@ import javax.swing.JButton;
 import javax.swing.JTextField;
 
 import tufts.vue.VueResources;
+import tufts.vue.VueUtil;
 
 import tufts.vue.gui.VueButton;
 import tufts.vue.gui.VueFileChooser;
@@ -745,12 +746,11 @@ public class ConfigurationUI extends javax.swing.JPanel {
             
             ConfigurationUI cui = new ConfigurationUI(stream);
             cui.setPreferredSize(new java.awt.Dimension(420,300));
-            if (javax.swing.JOptionPane.showOptionDialog(frame,
+            if (VueUtil.option(frame,
                     cui,
                     VueResources.getString("dialog.configuration.updateresource"),
                     javax.swing.JOptionPane.DEFAULT_OPTION,
                     javax.swing.JOptionPane.QUESTION_MESSAGE,
-                    null,
                     new Object[] {
                 VueResources.getString("button.cancel.lable"), VueResources.getString("button.update.lable")}, VueResources.getString("button.update.lable")) == 1) {
                 System.out.println("Properties: " + cui.getProperties());
