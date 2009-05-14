@@ -61,7 +61,7 @@ import osid.dr.Asset;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.109 $ / $Date: 2009-03-29 03:32:29 $ / $Author: vaibhav $
+ * @version $Revision: 1.110 $ / $Date: 2009-05-14 19:47:18 $ / $Author: brian $
  */
 
 public class PathwayTable extends JTable
@@ -1039,7 +1039,7 @@ public class PathwayTable extends JTable
             	//System.out.println("END" + model.getPathwayForElementAt(rowAtPoint(arg0.getLocation())));
             	if (!model.getPathwayForElementAt(dropRow).equals(model.getPathwayForElementAt(rowAtPoint(arg0.getLocation()))))
             	{            		            		 
-            		 JOptionPane.showMessageDialog(this,
+            		 VueUtil.alert(this,
             				 VueResources.getString("presentationDialog.dropError.text"),
             				 VueResources.getString("presentationDialog.dropError.title"),
             				    JOptionPane.ERROR_MESSAGE);

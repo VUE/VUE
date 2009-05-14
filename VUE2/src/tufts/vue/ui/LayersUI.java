@@ -40,7 +40,7 @@ import edu.tufts.vue.metadata.action.SearchAction;
 
 
 /**
- * @version $Revision: 1.76 $ / $Date: 2009-03-29 03:03:00 $ / $Author: vaibhav $
+ * @version $Revision: 1.77 $ / $Date: 2009-05-14 19:48:25 $ / $Author: brian $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -216,7 +216,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                     if (active.numChildren() > 0) {
                         String message = String.format(Locale.getDefault(),VueResources.getString("layer.delete.label"),
                                                        active.getLabel());
-                        if (JOptionPane.showConfirmDialog(null,
+                        if (VueUtil.confirm(null,
                                                           message, VueResources.getString("dialog.title.confirmation"),
                                                            JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION)
                             return;
@@ -503,7 +503,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             	deleteMenuItem.setEnabled(true);
             	// Modal dialog with OK button
                 String message = VueResources.getString("dialog.deletelayer.message");               
-                if (JOptionPane.showConfirmDialog(null,
+                if (VueUtil.confirm(null,
                 		message, VueResources.getString("dialog.title.confirmation"),
                         JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION){                
                 	Layer active = getActiveLayer();
