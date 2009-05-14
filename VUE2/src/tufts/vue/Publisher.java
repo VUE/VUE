@@ -41,7 +41,7 @@ import java.util.*;
 
 /**
  * @author  akumar03
- * @version $Revision: 1.99 $ / $Date: 2009-03-29 06:11:14 $ / $Author: vaibhav $
+ * @version $Revision: 1.100 $ / $Date: 2009-05-14 16:51:59 $ / $Author: brian $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
@@ -455,7 +455,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
                 org.osid.repository.Asset asset =  ((SakaiSiteUserObject)(treeNode.getUserObject())).getAsset();
                 int confirm = JOptionPane.YES_OPTION;  //TODO: do we really want the default to be overwrite? - pdw 05-feb-07
                 if(isFilePresent( asset,   fileName )) {
-                    confirm = JOptionPane.showConfirmDialog(this, DUPLICATE_OBJ_ERR_MESG, DUPLICATE_OBJ_ERR_TITLE, JOptionPane.YES_NO_OPTION );
+                    confirm = VueUtil.confirm(this, DUPLICATE_OBJ_ERR_MESG, DUPLICATE_OBJ_ERR_TITLE, JOptionPane.YES_NO_OPTION );
                 }
                 if(confirm == JOptionPane.NO_OPTION) {
                     this.dispose();
@@ -477,7 +477,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     
     
     private void alert(Component parentComponent,String message,String title) {
-        javax.swing.JOptionPane.showMessageDialog(parentComponent,message,title,javax.swing.JOptionPane.ERROR_MESSAGE);
+        VueUtil.alert(parentComponent,message,title,javax.swing.JOptionPane.ERROR_MESSAGE);
     }
     
     
