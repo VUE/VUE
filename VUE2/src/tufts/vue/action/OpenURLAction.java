@@ -63,6 +63,7 @@ public class OpenURLAction extends VueAction
         }
         try {
         /*	final Object[] defaultButtons = { "OK","Cancel"};
+         *  If this code is ever uncommented, use VueUtil.alert() instead
         	JOptionPane optionPane= new JOptionPane("Enter the Map URL to open: ",JOptionPane.PLAIN_MESSAGE,JOptionPane.OK_CANCEL_OPTION,null,defaultButtons,"OK");
             javax.swing.JDialog dialog = optionPane.createDialog((Component)VUE.getApplicationFrame(), "Open URL");
             dialog.setModal(true);
@@ -86,7 +87,7 @@ public class OpenURLAction extends VueAction
             try {
                 url = new URL(option);
             } catch (MalformedURLException ex) {
-                JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
+                VueUtil.alert(VUE.getApplicationFrame(),
                         "Malformed URL, resource could not be added.", 
                         "Malformed URL", 
                         JOptionPane.ERROR_MESSAGE);

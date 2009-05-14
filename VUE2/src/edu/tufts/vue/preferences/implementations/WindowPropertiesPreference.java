@@ -42,6 +42,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import tufts.vue.VueResources;
+import tufts.vue.VueUtil;
 import edu.tufts.vue.preferences.ui.PreferencesDialog;
 
 
@@ -201,7 +202,7 @@ public class WindowPropertiesPreference extends StringPreference implements Item
 			String s = p2.get("enabledWinPos", "true");
 			if (s.equals("true"))
 				p2.put("enabledWinPos", "reset");
-			JOptionPane.showMessageDialog(PreferencesDialog.getDialog(), VueResources.getString("dialog.preference.message"), VueResources.getString("dialog.preference.title"), JOptionPane.PLAIN_MESSAGE);
+			VueUtil.alert(PreferencesDialog.getDialog(), VueResources.getString("dialog.preference.message"), VueResources.getString("dialog.preference.title"), JOptionPane.PLAIN_MESSAGE);
 		} catch (BackingStoreException e2) {
 			// TODO Auto-generated catch block
 			e2.printStackTrace();
