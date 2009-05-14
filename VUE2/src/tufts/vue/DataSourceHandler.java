@@ -819,7 +819,7 @@ public class DataSourceHandler extends JPanel
                             updateLibraryDialog.refresh();
                             updateLibraryDialog.setVisible(true);
                         }
-                    } else javax.swing.JOptionPane.showMessageDialog(VUE.getDialogParent(),
+                    } else VueUtil.alert(VUE.getDialogParent(),
                             VueResources.getString("dialog.checkforupdatesaction.message"),
                             VueResources.getString("dialog.checkforupdatesaction.title"),
                             javax.swing.JOptionPane.INFORMATION_MESSAGE);
@@ -891,7 +891,7 @@ public class DataSourceHandler extends JPanel
                                 instanceIndex++;
                         }
                         
-                        if (javax.swing.JOptionPane.showConfirmDialog(VUE.getDialogParent(),
+                        if (VueUtil.confirm(VUE.getDialogParent(),
                                 VueResources.getString("dialog.confirmdelete.resource") + displayName + "?",
                                 VueResources.getString("dialog.deleteresource.title"),
                                 javax.swing.JOptionPane.OK_CANCEL_OPTION) == javax.swing.JOptionPane.YES_OPTION) {
@@ -934,7 +934,7 @@ public class DataSourceHandler extends JPanel
                         tufts.vue.DataSource ds = (tufts.vue.DataSource) o;
                         String displayName = ds.getDisplayName();
                         
-                        if (javax.swing.JOptionPane.showConfirmDialog(VUE.getDialogParent(),
+                        if (VueUtil.confirm(VUE.getDialogParent(),
                         		VueResources.getString("datasource.dialog.message") + displayName,
                         		VueResources.getString("datasource.dialog.title"),
                                 javax.swing.JOptionPane.OK_CANCEL_OPTION) == javax.swing.JOptionPane.YES_OPTION) {

@@ -65,7 +65,7 @@ import java.net.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistence thru castor XML.
  *
- * @version $Revision: 1.136 $ / $Date: 2009-05-06 02:23:41 $ / $Author: sfraize $
+ * @version $Revision: 1.137 $ / $Date: 2009-05-14 18:42:49 $ / $Author: brian $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -202,7 +202,7 @@ public class ActionUtil
             }
             
             if (picked.exists()) {            	
-                int n = JOptionPane.showConfirmDialog(null, VueResources.getString("replaceFile.text") + " \'" + picked.getName() + "\'", 
+                int n = VueUtil.confirm(null, VueResources.getString("replaceFile.text") + " \'" + picked.getName() + "\'", 
                         VueResources.getString("replaceFile.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
                   
                 if (n == JOptionPane.NO_OPTION){
@@ -330,7 +330,7 @@ public class ActionUtil
     {
         Object result = _loadMapping(XML_MAPPING_DEFAULT);
         if (result instanceof Exception) {
-            JOptionPane.showMessageDialog(null, "Mapping file error: will be unable to load or save maps!"
+            VueUtil.alert(null, "Mapping file error: will be unable to load or save maps!"
                                           + "\nMapping url: " + XML_MAPPING_DEFAULT
                                           + "\n" + result,
                                           "XML Mapping File Exception", JOptionPane.ERROR_MESSAGE);
