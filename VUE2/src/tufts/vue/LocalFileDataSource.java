@@ -14,7 +14,7 @@
  */
 package tufts.vue;
  
-// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/LocalFileDataSource.java,v 1.33 2009-03-14 03:43:31 vaibhav Exp $
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/LocalFileDataSource.java,v 1.34 2009-05-14 19:03:58 brian Exp $
 
 import javax.swing.*;
 import java.util.Vector;
@@ -35,7 +35,7 @@ import tufts.Util;
 
 
 /**
- * @version $Revision: 1.33 $ / $Date: 2009-03-14 03:43:31 $ / $Author: vaibhav $
+ * @version $Revision: 1.34 $ / $Date: 2009-05-14 19:03:58 $ / $Author: brian $
  * @author  rsaigal
  */
 
@@ -300,7 +300,7 @@ public class LocalFileDataSource extends BrowseDataSource implements Publishable
             throw ex;
         } catch(Exception ex) {
             System.out.println(ex);
-            JOptionPane.showMessageDialog(VUE.getDialogParent(), VueResources.getString("dialog.export.message")+ex.getMessage(),VueResources.getString("dialog.export.title"),JOptionPane.ERROR_MESSAGE);
+            VueUtil.alert(VUE.getDialogParent(), VueResources.getString("dialog.export.message")+ex.getMessage(),VueResources.getString("dialog.export.title"),JOptionPane.ERROR_MESSAGE);
             
         }
     }
@@ -322,12 +322,12 @@ public class LocalFileDataSource extends BrowseDataSource implements Publishable
             ostream.close();
         } catch(Exception ex) {
             System.out.println(ex);
-             JOptionPane.showMessageDialog(VUE.getDialogParent(), VueResources.getString("dialog.export.message")+ex.getMessage(),VueResources.getString("dialog.export.title"),JOptionPane.ERROR_MESSAGE);
+             VueUtil.alert(VUE.getDialogParent(), VueResources.getString("dialog.export.message")+ex.getMessage(),VueResources.getString("dialog.export.title"),JOptionPane.ERROR_MESSAGE);
              ex.printStackTrace();
         }
     }
     private void publishAll(LWMap map) {
-          JOptionPane.showMessageDialog(VUE.getDialogParent(), VueResources.getString("dialog.exportall.message"),VueResources.getString("dialog.export.title"),JOptionPane.PLAIN_MESSAGE);
+          VueUtil.alert(VUE.getDialogParent(), VueResources.getString("dialog.exportall.message"),VueResources.getString("dialog.export.title"),JOptionPane.PLAIN_MESSAGE);
     }
 
 
