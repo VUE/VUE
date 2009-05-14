@@ -130,7 +130,7 @@ public class Actions implements VueConstants
             	pdfFileName = new File(pdfFileName.getAbsoluteFile()+".pdf");                	
             
             if (pdfFileName.exists()) {
-                int n = JOptionPane.showConfirmDialog(null, VueResources.getString("replaceFile.text") + " \'" + pdfFileName.getName() + "\'", 
+                int n = VueUtil.confirm(null, VueResources.getString("replaceFile.text") + " \'" + pdfFileName.getName() + "\'", 
                         VueResources.getString("replaceFile.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
                                       
             }           
@@ -177,7 +177,7 @@ public class Actions implements VueConstants
             	pdfFileName = new File(pdfFileName.getAbsoluteFile()+".pdf");                	
             
             if (pdfFileName.exists()) {
-                int n = JOptionPane.showConfirmDialog(null, VueResources.getString("replaceFile.text") + " \'" + pdfFileName.getName() + "\'", 
+                int n = VueUtil.confirm(null, VueResources.getString("replaceFile.text") + " \'" + pdfFileName.getName() + "\'", 
                         VueResources.getString("replaceFile.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
                                       
             }           
@@ -1230,7 +1230,7 @@ public class Actions implements VueConstants
                 try {
                     uri = new URI(option);
                 } catch (URISyntaxException e) {
-                    JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
+                    VueUtil.alert((Component)VUE.getApplicationFrame(),
                                                   VueResources.getString("dialog.addurlaction.message"), 
                                                   VueResources.getString("dialog.addurlaction.title"), 
                                                   JOptionPane.ERROR_MESSAGE);
@@ -1241,7 +1241,7 @@ public class Actions implements VueConstants
                // if (r == null) {
                     r = c.getResourceFactory().get(uri);
                     if (r == null) {
-                        JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
+                        VueUtil.alert((Component)VUE.getApplicationFrame(),
                         							   VueResources.getString("dialog.addurlaction.message"), 
                         							   VueResources.getString("dialog.addurlaction.title"), 
                                                       JOptionPane.ERROR_MESSAGE);
@@ -2687,7 +2687,7 @@ public class Actions implements VueConstants
                 
             	if (tufts.vue.VUE.getActiveMap().getFile() == null)
             	{
-            		JOptionPane.showMessageDialog(VUE.getApplicationFrame(),
+            		VueUtil.alert(VUE.getApplicationFrame(),
             				                      VueResources.getString("dialog.revert.message"),
             				                      VueResources.getString("dialog.revert.title"),
             				                      JOptionPane.PLAIN_MESSAGE);
