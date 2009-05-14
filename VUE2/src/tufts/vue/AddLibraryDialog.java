@@ -21,7 +21,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.85 $ / $Date: 2009-05-13 02:21:18 $ / $Author: mike $
+ * @version $Revision: 1.86 $ / $Date: 2009-05-14 22:20:01 $ / $Author: brian $
  * @author  akumar03
  */
 import java.awt.BorderLayout;
@@ -451,12 +451,11 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                             area.setText(license);
                             area.setEditable(false);
                             area.setSize(new Dimension(500,300));
-                            if (javax.swing.JOptionPane.showOptionDialog(this,
+                            if (VueUtil.option(this,
                                     area,
                                     VueResources.getString("optiondialog.addlibrary.message"),
                                     javax.swing.JOptionPane.DEFAULT_OPTION,
                                     javax.swing.JOptionPane.QUESTION_MESSAGE,
-                                    null,
                                     new Object[] {
                             	VueResources.getString("optiondialog.addlibrary.accept"), VueResources.getString("optiondialog.addlibrary.decline")
                             },
@@ -545,13 +544,11 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                 cui.setPreferredSize(new Dimension(350,(int)cui.getPreferredSize().getHeight()));
                
                 
-                if (javax.swing.JOptionPane.showOptionDialog(this,
+                if (VueUtil.option(this,
                         cui,
-                        
                         VueResources.getString("optiondialog.configuration.message"),
                         javax.swing.JOptionPane.DEFAULT_OPTION,
                         javax.swing.JOptionPane.PLAIN_MESSAGE,
-                        null,
                         new Object[] {
                 	VueResources.getString("optiondialog.configuration.continue"), VueResources.getString("optiondialog.configuration.cancel")
                 },

@@ -21,7 +21,7 @@
 package tufts.vue;
 
 /**
-* @version $Revision: 1.31 $ / $Date: 2009-03-29 06:11:26 $ / $Author: vaibhav $
+* @version $Revision: 1.32 $ / $Date: 2009-05-14 22:16:19 $ / $Author: brian $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -273,16 +273,15 @@ public class UpdateLibraryDialog extends JDialog implements ListSelectionListene
 						area.setText(license);
 						area.setEditable(false);
 						area.setSize(new Dimension(500,300));
-						if (javax.swing.JOptionPane.showOptionDialog(this,
-																	 area,
-																	 VueResources.getString("optiondialog.addlibrary.message"),
-																	 javax.swing.JOptionPane.DEFAULT_OPTION,
-																	 javax.swing.JOptionPane.QUESTION_MESSAGE,
-																	 null,
-																	 new Object[] {
-																	 VueResources.getString("optiondialog.addlibrary.accept"), 
-																	 VueResources.getString("optiondialog.addlibrary.decline")},
-																	 VueResources.getString("optiondialog.addlibrary.decline")) != 0) {
+						if (VueUtil.option(this,
+										area,
+										VueResources.getString("optiondialog.addlibrary.message"),
+										javax.swing.JOptionPane.DEFAULT_OPTION,
+										javax.swing.JOptionPane.QUESTION_MESSAGE,
+										new Object[] {
+										VueResources.getString("optiondialog.addlibrary.accept"), 
+										VueResources.getString("optiondialog.addlibrary.decline")},
+										VueResources.getString("optiondialog.addlibrary.decline")) != 0) {
 							return;
 						}
 					}
@@ -340,16 +339,15 @@ public class UpdateLibraryDialog extends JDialog implements ListSelectionListene
 				new edu.tufts.vue.ui.ConfigurationUI(new java.io.ByteArrayInputStream(xml.getBytes()));
 				cui.setPreferredSize(new Dimension(350,(int)cui.getPreferredSize().getHeight()));
 				
-				if (javax.swing.JOptionPane.showOptionDialog(this,
-															 cui,
-															 VueResources.getString("optiondialog.configuration.message"),
-															 javax.swing.JOptionPane.DEFAULT_OPTION,
-															 javax.swing.JOptionPane.QUESTION_MESSAGE,
-															 null,
-															 new Object[] {
-															 VueResources.getString("optiondialog.configuration.continue"),
-															 VueResources.getString("optiondialog.configuration.cancel")},
-															 VueResources.getString("optiondialog.configuration.continue")) == 1) {
+				if (VueUtil.option(this,
+								cui,
+								VueResources.getString("optiondialog.configuration.message"),
+								javax.swing.JOptionPane.DEFAULT_OPTION,
+								javax.swing.JOptionPane.QUESTION_MESSAGE,
+								new Object[] {
+								VueResources.getString("optiondialog.configuration.continue"),
+								VueResources.getString("optiondialog.configuration.cancel")},
+								VueResources.getString("optiondialog.configuration.continue")) == 1) {
 					proceed = false;
 				} else {
 					try {

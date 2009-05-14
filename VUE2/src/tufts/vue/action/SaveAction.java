@@ -124,13 +124,12 @@ public class SaveAction extends VueAction
 
         	final Object[] defaultOrderButtons = { VueResources.getString("saveaction.saveacopy"),VueResources.getString("saveaction.save")};
             Object[] messageObject = {map.getLabel()};
-        	response = JOptionPane.showOptionDialog
+        	response = VueUtil.option
             (VUE.getDialogParent(),
         	 VueResources.getFormatMessage(messageObject, "dialog.saveaction.message"),         
         	 VueResources.getFormatMessage(messageObject, "dialog.saveaction.title"),
              JOptionPane.YES_NO_OPTION,
              JOptionPane.PLAIN_MESSAGE,
-             null,
              defaultOrderButtons,             
              VueResources.getString("saveaction.saveacopy")
              );

@@ -31,6 +31,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import tufts.vue.VueResources;
+import tufts.vue.VueUtil;
 import tufts.vue.gui.VueFileChooser;
 
 
@@ -609,12 +610,11 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
                        {
                            String [] choices = {VueResources.getString("button.close.label")};
                            
-                           javax.swing.JOptionPane.showOptionDialog(this,
+                           VueUtil.option(this,
                                    "<HTML>"+VueResources.getString("ontology2.cannotbeinstalled")+"</HTML>",
                                    VueResources.getString("optiondialog.ontology2.alert"),
                                    javax.swing.JOptionPane.YES_NO_OPTION,
                                    javax.swing.JOptionPane.ERROR_MESSAGE,
-                                   null,
                                    choices,
                                    choices[0]);
                            dispose();

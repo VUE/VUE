@@ -52,7 +52,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.137 $ / $Date: 2009-04-01 20:50:20 $ / $Author: mike $
+ * @version $Revision: 1.138 $ / $Date: 2009-05-14 22:18:44 $ / $Author: brian $
  */
 
 public class PathwayPanel extends JPanel
@@ -1078,14 +1078,12 @@ public class PathwayPanel extends JPanel
         			
         			final Object[]	macOrderButtons = {VueResources.getString("optiondialog.deletepathway.delete"),VueResources.getString("optiondialog.deletepathway.cancel")};
         			
-        		   int response = JOptionPane.showOptionDialog
+        		   int response = VueUtil.option
                    (VUE.getDialogParent(),
-               
                     VueResources.getString("optiondialog.deletepathway.message") ,         
                     VueResources.getString("optiondialog.deletepathway.title"),
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.PLAIN_MESSAGE,
-                    null,
                     (Util.isMacPlatform() ? macOrderButtons : defaultOrderButtons),             
                     VueResources.getString("optiondialog.deletepathway.cancel")
                     );

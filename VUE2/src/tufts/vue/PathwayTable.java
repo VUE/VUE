@@ -61,7 +61,7 @@ import osid.dr.Asset;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.110 $ / $Date: 2009-05-14 19:47:18 $ / $Author: brian $
+ * @version $Revision: 1.111 $ / $Date: 2009-05-14 22:17:35 $ / $Author: brian $
  */
 
 public class PathwayTable extends JTable
@@ -1180,14 +1180,12 @@ public class PathwayTable extends JTable
 			
 			final Object[]	macOrderButtons = {VueResources.getString("optiondialog.deletepathway.delete"), VueResources.getString("optiondialog.deletepathway.cancel")};
 			
-		   int response = JOptionPane.showOptionDialog
+		   int response = VueUtil.option
            (VUE.getDialogParent(),
-       
         	 VueResources.getString("optiondialog.deletepathway.message") ,         
         	 VueResources.getString("optiondialog.deletepathway.title"),
             JOptionPane.YES_NO_OPTION,
             JOptionPane.PLAIN_MESSAGE,
-            null,
             (Util.isMacPlatform() ? macOrderButtons : defaultOrderButtons),             
             VueResources.getString("optiondialog.deletepathway.cancel")
             );
