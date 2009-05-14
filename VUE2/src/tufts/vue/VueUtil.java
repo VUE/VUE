@@ -29,7 +29,7 @@ import javax.swing.border.*;
  *
  * Various static utility methods for VUE.
  *
- * @version $Revision: 1.101 $ / $Date: 2009-05-14 17:22:58 $ / $Author: brian $
+ * @version $Revision: 1.102 $ / $Date: 2009-05-14 18:42:02 $ / $Author: brian $
  * @author Scott Fraize
  *
  */
@@ -684,32 +684,16 @@ public class VueUtil extends tufts.Util
         return c == null || c.getAlpha() != 0xFF;
     }
     
-    public static void alert(JComponent parent, String message, String title) {
-        VOptionPane.showMessageDialog(parent,
+    public static void alert(Component parent, String message, String title) {
+        VOptionPane.showWrappingMessageDialog(parent,
                                       message,
                                       title,
                                       JOptionPane.ERROR_MESSAGE,
                                       VueResources.getImageIcon("vueIcon32x32"));                                      
     }
     
-    public static void alert(Container parent, String message, String title) {
-        VOptionPane.showMessageDialog(parent,
-                                      message,
-                                      title,
-                                      JOptionPane.ERROR_MESSAGE,
-                                      VueResources.getImageIcon("vueIcon32x32"));                                      
-    }
-
-    public static void alert(Container parent, String message, String title, int messageType) {
-        VOptionPane.showMessageDialog(parent,
-                                      message,
-                                      title,
-                                      messageType,
-                                      null);
-	}
-
     public static void alert(Component parent, String message, String title, int messageType) {
-        VOptionPane.showMessageDialog(parent,
+        VOptionPane.showWrappingMessageDialog(parent,
                                       message,
                                       title,
                                       messageType,
@@ -724,7 +708,7 @@ public class VueUtil extends tufts.Util
         msg.setOpaque(false);
         msg.setFont(new Font("Lucida Grande", Font.PLAIN, 9));
 
-        VOptionPane.showMessageDialog(VUE.getDialogParent(),
+        VOptionPane.showWrappingMessageDialog(VUE.getDialogParent(),
                                       msg,
                                       title,
                                       JOptionPane.ERROR_MESSAGE,
@@ -733,7 +717,7 @@ public class VueUtil extends tufts.Util
     }
    
     public static void alert(String message, String title) {
-        VOptionPane.showMessageDialog(VUE.getDialogParent(),
+        VOptionPane.showWrappingMessageDialog(VUE.getDialogParent(),
                                       message,
                                       title,
                                       JOptionPane.ERROR_MESSAGE,
@@ -741,7 +725,7 @@ public class VueUtil extends tufts.Util
     }
    
     public static int confirm(String message, String title) {
-       return VOptionPane.showConfirmDialog(VUE.getDialogParent(),
+       return VOptionPane.showWrappingConfirmDialog(VUE.getDialogParent(),
                                             message,
                                             title,
                                             JOptionPane.YES_NO_OPTION,
@@ -749,8 +733,8 @@ public class VueUtil extends tufts.Util
                                             VueResources.getImageIcon("vueIcon32x32"));
     }
     
-    public static int confirm(JComponent parent, String message, String title) {
-        return VOptionPane.showConfirmDialog(parent,
+    public static int confirm(Component parent, String message, String title) {
+        return VOptionPane.showWrappingConfirmDialog(parent,
                                              message,
                                              title,
                                              JOptionPane.YES_NO_OPTION,
@@ -758,8 +742,8 @@ public class VueUtil extends tufts.Util
                                              VueResources.getImageIcon("vueIcon32x32"));
     }
     
-    public static int confirm(Container parent, String message, String title, int optionType) {
-        return VOptionPane.showConfirmDialog(parent,
+    public static int confirm(Component parent, String message, String title, int optionType) {
+        return VOptionPane.showWrappingConfirmDialog(parent,
                                              message,
                                              title,
                                              optionType,
@@ -767,8 +751,8 @@ public class VueUtil extends tufts.Util
                                              VueResources.getImageIcon("vueIcon32x32"));
     }
     
-    public static int confirm(Container parent, String message, String title, int optionType, int messageType) {
-        return VOptionPane.showConfirmDialog(parent,
+    public static int confirm(Component parent, String message, String title, int optionType, int messageType) {
+        return VOptionPane.showWrappingConfirmDialog(parent,
                                              message,
                                              title,
                                              optionType,
@@ -794,11 +778,11 @@ class VOptionPane extends JOptionPane
 		return MAX_LINE_LENGTH;
 	}
 
-	static void showMessageDialog(Container parent, Object message, String title, int messageType, Icon icon) {
-		showConfirmDialog(parent, message, title, JOptionPane.DEFAULT_OPTION, messageType, icon);
+	static void showWrappingMessageDialog(Component parent, Object message, String title, int messageType, Icon icon) {
+		showWrappingConfirmDialog(parent, message, title, JOptionPane.DEFAULT_OPTION, messageType, icon);
 	}
 
-	static int showConfirmDialog(Container parent, Object message, String title, int optionType, int messageType, Icon icon)
+	static int showWrappingConfirmDialog(Component parent, Object message, String title, int optionType, int messageType, Icon icon)
 		throws HeadlessException {
 		VOptionPane		optionPane = new VOptionPane();
 
