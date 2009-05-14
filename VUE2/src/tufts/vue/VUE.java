@@ -118,7 +118,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.656 $ / $Date: 2009-05-13 17:19:44 $ / $Author: sfraize $ 
+ * @version $Revision: 1.657 $ / $Date: 2009-05-14 21:22:25 $ / $Author: brian $ 
  */
 
 public class VUE
@@ -3079,13 +3079,12 @@ public class VUE
          		c = null;
          	}
          }
-         int response = JOptionPane.showOptionDialog
+         int response = VueUtil.option
              (c,
               VueResources.getString("optiondialog.revertlastsave.message"),         
               VueResources.getString("optiondialog.revertlastsave.title"),
               JOptionPane.YES_NO_OPTION,
               JOptionPane.PLAIN_MESSAGE,
-              null,
               defaultOrderButtons,             
               VueResources.getString("optiondialog.revertlastsave.cancel")
               );
@@ -3139,7 +3138,7 @@ public class VUE
         		c = null;
         	}
         }
-        int response = JOptionPane.showOptionDialog
+        int response = VueUtil.option
             (c,
              VueResources.getString("optiondialog.savechages.message")
              + "'" + map.getLabel() + "'?"
@@ -3148,7 +3147,6 @@ public class VUE
              VueResources.getString("optiondialog.savechages.title"),
              JOptionPane.YES_NO_CANCEL_OPTION,
              JOptionPane.PLAIN_MESSAGE,
-             null,
              Util.isMacPlatform() ? macOrderButtons : defaultOrderButtons,             
              VueResources.getString("optiondialog.savechages.save")
              );
