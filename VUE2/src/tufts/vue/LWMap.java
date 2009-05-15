@@ -59,7 +59,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.236 $ / $Date: 2009-03-19 01:11:29 $ / $Author: sfraize $
+ * @version $Revision: 1.237 $ / $Date: 2009-05-15 18:47:57 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -910,38 +910,41 @@ public class LWMap extends LWContainer
         @Override
         public Object getTypeToken() { return null; }
         
-        @Override
-        protected void drawImpl(DrawContext dc) {
-            super.drawImpl(dc);
+        // Commenting out drawImpl/drawChild overrides turns off the fading out of
+        // locked layers [VUE-1429]
+        
+//         @Override
+//         protected void drawImpl(DrawContext dc) {
+//             super.drawImpl(dc);
             
-            if (isLocked() && dc.focal != this && getParent().isOnBottom(this)) {
+//             if (isLocked() && dc.focal != this && getParent().isOnBottom(this)) {
                 
-                // this a better (easier to read) and faster method of fading out a
-                // layer, but it only works on the bottom layer.  To make work on other
-                // layers, we'd have to render the layer offscreen first then fade out
-                // the results, which would be very slow.  Also, this has a bug in that
-                // we're filling the clipRect, which can actually be larger an area than
-                // we'd ideally like to fade out (e.g., see what happens in the
-                // MapPanner).
+//                 // this a better (easier to read) and faster method of fading out a
+//                 // layer, but it only works on the bottom layer.  To make work on other
+//                 // layers, we'd have to render the layer offscreen first then fade out
+//                 // the results, which would be very slow.  Also, this has a bug in that
+//                 // we're filling the clipRect, which can actually be larger an area than
+//                 // we'd ideally like to fade out (e.g., see what happens in the
+//                 // MapPanner).
 
-                // The problem case is if there are any layers BELOW this one that
-                // are not locked/faded out, they'd be faded out anyway by any
-                // locked layers above them.
+//                 // The problem case is if there are any layers BELOW this one that
+//                 // are not locked/faded out, they'd be faded out anyway by any
+//                 // locked layers above them.
                 
-                dc.setAlpha(0.5);
-                dc.g.setColor(getMap().getFillColor());
-                dc.g.fill(dc.g.getClipRect());
-            }
-        }
+//                 dc.setAlpha(0.5);
+//                 dc.g.setColor(getMap().getFillColor());
+//                 dc.g.fill(dc.g.getClipRect());
+//             }
+//         }
         
 
-        @Override
-        protected void drawChild(LWComponent child, DrawContext dc)
-        {
-            if (isLocked() && !getParent().isOnBottom(this))
-                dc.setAlpha(0.5);
-            super.drawChild(child, dc);
-        }
+//         @Override
+//         protected void drawChild(LWComponent child, DrawContext dc)
+//         {
+//             if (isLocked() && !getParent().isOnBottom(this))
+//                 dc.setAlpha(0.5);
+//             super.drawChild(child, dc);
+//         }
         
         /** @return null -- layer contents not persisted with layer for backward compat with old versions of VUE */
         @Override public List<LWComponent> getXMLChildList() { return null; }
