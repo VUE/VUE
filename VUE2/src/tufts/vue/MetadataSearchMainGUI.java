@@ -79,7 +79,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.52 $ / $Date: 2009-05-15 19:05:35 $ / $Author: Sheejo
+ * @version $Revision: 1.53 $ / $Date: 2009-05-15 19:55:10 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -231,7 +231,7 @@ public class MetadataSearchMainGUI extends JPanel
                 SearchData data = new SearchData();
                 searchDataList = new ArrayList<SearchData>();   
                 int rowCount = searchResultModel.getRowCount();
-                String searchName = (String)VueUtil.input(null,VueResources.getString("searchgui.entersearchname"),null,JOptionPane.PLAIN_MESSAGE,null,null,(VueResources.getString("searchgui.search") + " "+ (rowCount+1)));
+                String searchName = (String)VueUtil.input(null,VueResources.getString("searchgui.entersearchname"),null,JOptionPane.PLAIN_MESSAGE,null,(VueResources.getString("searchgui.search") + " "+ (rowCount+1)));
             	if(searchName!=null && searchName.trim().length()==0){
             		searchName = VueResources.getString("searchgui.search") + " "+ (searchResultModel.getRowCount()+1);
             	}                
@@ -706,7 +706,7 @@ public class MetadataSearchMainGUI extends JPanel
         public String getSearchName(int rowCount){        	
         	String inputValue = (String)VueUtil.input(null,
         			VueResources.getString("searchgui.entersearchname"),
-        			null, JOptionPane.PLAIN_MESSAGE, null, null,
+        			null, JOptionPane.PLAIN_MESSAGE, null,
         			(VueResources.getString("searchgui.search") + " "+ (rowCount+1)));
 
         	if (inputValue != null && inputValue.trim().length() == 0) {

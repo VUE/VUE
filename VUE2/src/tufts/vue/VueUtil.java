@@ -29,7 +29,7 @@ import javax.swing.border.*;
  *
  * Various static utility methods for VUE.
  *
- * @version $Revision: 1.104 $ / $Date: 2009-05-14 21:48:24 $ / $Author: brian $
+ * @version $Revision: 1.105 $ / $Date: 2009-05-15 19:55:44 $ / $Author: brian $
  * @author Scott Fraize
  *
  */
@@ -748,7 +748,7 @@ public class VueUtil extends tufts.Util
                                              title,
                                              optionType,
                                              JOptionPane.QUESTION_MESSAGE,
-                                             VueResources.getImageIcon("vueIcon32x32"));
+                                             null);
     }
     
     public static int confirm(Component parent, Object message, String title, int optionType, int messageType) {
@@ -769,6 +769,27 @@ public class VueUtil extends tufts.Util
                                              null,
                                              options,
                                              initialValue);
+    }
+    
+    public static Object input(Object message) {
+    	return VOptionPane.showWrappingInputDialog(null,
+                                             message,
+                                             null,
+                                             JOptionPane.QUESTION_MESSAGE,
+                                             null,
+                                             null,
+                                             null);
+    }
+    
+    public static Object input(Component parent, Object message, String title, int messageType,
+			Object[] selectionValues, Object initialSelectionValue) {
+    	return VOptionPane.showWrappingInputDialog(parent,
+                                             message,
+                                             title,
+                                             messageType,
+                                             null,
+                                             selectionValues,
+                                             initialSelectionValue);
     }
 }
 
@@ -836,6 +857,36 @@ class VOptionPane extends JOptionPane
 					}
 				}
 			}
+		}
+
+		return result;
+	}
+
+	static Object showWrappingInputDialog(Component parent, Object message, String title,
+			int messageType, Icon icon,
+			Object[] selectionValues, Object initialSelectionValue)
+			throws HeadlessException {
+		Object			result = null;
+		VOptionPane		optionPane = new VOptionPane();
+
+		optionPane.setWantsInput(true);
+		optionPane.setMessage(message);
+		optionPane.setOptionType(OK_CANCEL_OPTION);
+		optionPane.setMessageType(messageType);
+		optionPane.setIcon(icon);
+		optionPane.setSelectionValues(selectionValues);
+		optionPane.setInitialSelectionValue(initialSelectionValue);
+		optionPane.setComponentOrientation((parent != null ? parent : getRootFrame()).getComponentOrientation());
+
+		JDialog			dialog = optionPane.createDialog(parent, title);
+
+		optionPane.selectInitialValue();
+		dialog.setVisible(true);
+
+		Object			value = optionPane.getInputValue();
+
+		if (value != UNINITIALIZED_VALUE) {
+			result = value;
 		}
 
 		return result;
