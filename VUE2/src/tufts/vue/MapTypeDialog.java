@@ -27,7 +27,7 @@ import java.awt.event.*;
 import tufts.vue.filter.*;
 
 /**
- * @version $Revision: 1.10 $ / $Date: 2009-03-22 07:19:52 $ / $Author: vaibhav $
+ * @version $Revision: 1.11 $ / $Date: 2009-05-15 19:06:17 $ / $Author: brian $
  */
 public class MapTypeDialog extends JPanel  implements ActionListener, ListSelectionListener {
 
@@ -268,7 +268,7 @@ public class MapTypeDialog extends JPanel  implements ActionListener, ListSelect
 	public void doAddType() {
 		String name = null;
 		
-		name = JOptionPane.showInputDialog(VueResources.getString("dialog.newuser.title"));
+		name = (String)VueUtil.input(VueResources.getString("dialog.newuser.title"));
 		if( name != null) {
 			UserMapType type = new UserMapType( mMap, name);
 			mListModel.addElement( type);
