@@ -26,7 +26,6 @@ import edu.tufts.vue.mbs.AnalyzerResult;
 import edu.tufts.vue.mbs.LWComponentAnalyzer;
 import edu.tufts.vue.mbs.OpenCalaisAnalyzer;
 import edu.tufts.vue.mbs.YahooAnalyzer;
-
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -39,6 +38,7 @@ import java.net.URLEncoder;
 import java.util.*;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.KeyboardFocusManager;
 import java.awt.event.KeyEvent;
 import javax.swing.Action;
 
@@ -286,7 +286,7 @@ public class AnalyzerAction extends Actions.LWCAction {
 	//	JMenu calaisMenu = new JMenu("Node Analysis");
     	analyzeNodeMenu.add(calais);
     	analyzeNodeMenu.add(calaisAutoTagger);
-    //	analyzeNodeMenu.add(semanticMapAction);
+    	analyzeNodeMenu.add(semanticMapAction);
     	analyzeNodeMenu.add(luckyImageAction);
 //    	analyzeNodeMenu.add(calaisMenu);
 		
@@ -307,13 +307,27 @@ public class AnalyzerAction extends Actions.LWCAction {
 		    public void act(LWComponent c) 
 		    {
 		    	//bags of components to add to map
-		    	java.util.List<LWComponent> subCatcomps = new ArrayList<LWComponent>();
+		    	final java.util.List<LWComponent> subCatcomps = new ArrayList<LWComponent>();
 		    	java.util.List<LWComponent> categoryComps = new ArrayList<LWComponent>();
 		    	
 		    	//Analyze the resource and get a multimap of types and values
-		    	Multimap<String,AnalyzerResult> list = analyzer.analyzeResource(c);
+		    	Multimap<String,AnalyzerResult> list = null;
+		    	try{
+		    		list = analyzer.analyzeResource(c);	
+		    	}
+		    	catch(Exception e)
+		    	{
+		    		VueUtil.alert(VueResources.getString("dialog.semanticmaperror.message"), VueResources.getString("dialog.analyzeerror.title"));
+		    		e.printStackTrace();
+		    		return;
+		    	}
 		    	
+		    	if (list.isEmpty())
+		    	{
+		    		VueUtil.alert(VueResources.getString("dialog.semanticmaperror.noresults"), VueResources.getString("dialog.analyzeerror.title"));		    	
+		    		return;
 		    	
+		    	}
 		    	Color joinNodeColor = new Color(8,119,192);
 		    	Color leafNodeColor = new Color(157,219,83);
 		    			    
@@ -336,8 +350,10 @@ public class AnalyzerAction extends Actions.LWCAction {
 		    		{
 		    		//	node.setFillColor(new Color())
 		    			node.setFillColor(joinNodeColor);
+		    			link.mStrokeStyle.setTo(LWComponent.StrokeStyle.DASHED);
 		    			categoryComps.add(node);
 		    			categoryComps.add(link);
+		    		
 		    			categoryChildren.put(node, al);
 		    		}
 		    		else
@@ -359,7 +375,7 @@ public class AnalyzerAction extends Actions.LWCAction {
 			    		categoryComps.add(singleLink);}			    		
 		    		}
 		    	}
-		    		LWMap active = VUE.getActiveMap();
+		    		final LWMap active = VUE.getActiveMap();
 				    active.addChildren(categoryComps);			    
 				    LayoutAction.circle.act(categoryComps);
 				     
@@ -386,9 +402,10 @@ public class AnalyzerAction extends Actions.LWCAction {
 				    		subCatcomps.add(link);				    						    		
 				    	}
 				    
-					    active.addChildren(subCatcomps);			    
-					    LayoutAction.search.act(subCatcomps);
-				    	
+				           	active.addChildren(subCatcomps);			    
+				           	LayoutAction.search.act(subCatcomps);
+        				    	
+                        
 				    
 				    }		  	
 		    }
