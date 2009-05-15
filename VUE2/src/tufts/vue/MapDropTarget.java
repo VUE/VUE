@@ -50,7 +50,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.110 $ / $Date: 2009-03-17 17:58:15 $ / $Author: mike $  
+ * @version $Revision: 1.111 $ / $Date: 2009-05-15 21:14:45 $ / $Author: mike $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -1296,12 +1296,13 @@ class MapDropTarget
             //GUI.invokeAfterAWT(new Runnable() { public void run() {
             node.addCleanupTask(new Runnable() { public void run() {
                 final Rectangle2D.Float clearRegion = Util.grow(node.getMapBounds(), 24);
+                if (node.getLayer() !=null && node.getLayer().getChildren() !=null){
                 for (LWComponent n : node.getLayer().getChildren()) {
                     if (n != node && clearRegion.intersects(n.getMapBounds())) {
                         Actions.PushOut.act(node);
                         break;
                     }
-                }
+                }}
             }});
         }
          	
