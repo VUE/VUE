@@ -88,8 +88,8 @@ public class OpenURLAction extends VueAction
                 url = new URL(option);
             } catch (MalformedURLException ex) {
                 VueUtil.alert(VUE.getApplicationFrame(),
-                        "Malformed URL, resource could not be added.", 
-                        "Malformed URL", 
+                		VueResources.getString("dialog.addurlaction.message"), 
+                        VueResources.getString("dialog.addurlaction.title"), 
                         JOptionPane.ERROR_MESSAGE);
                 return;
 			}
