@@ -15,6 +15,8 @@
 
 package tufts.vue.action;
 
+import static tufts.Util.reverse;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -27,9 +29,11 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 
 import tufts.vue.*;
+import tufts.vue.LWComponent.ChildKind;
+import tufts.vue.LWComponent.Order;
 
 /**
- * @version $Revision: 1.32 $ / $Date: 2009-03-29 03:08:52 $ / $Author: vaibhav $ *
+ * @version $Revision: 1.33 $ / $Date: 2009-05-18 17:57:55 $ / $Author: mike $ *
  * @author Jay Briedis
  * 
  * Major revision: 2/17/09 -MK
@@ -172,8 +176,23 @@ public class ImageMap extends VueAction {
 		 * actual group -MK 2/16/09
 		 */
 		java.util.List<String> arrayList = new ArrayList<String>();
-		Iterator<LWComponent> iter = container.getAllDescendents(
-				LWComponent.ChildKind.PROPER).iterator();
+		//java.util.ArrayList<LWComponent> comps = new ArrayList<LWComponent>();
+		
+		//get the current map.
+		LWMap map = VUE.getActiveMap();
+		
+		 // handle in reverse order (top layer on top)
+        for (LWComponent layer : reverse(map.getChildren())) {         
+                //for (LWComponent c : reverse(layer.getChildren()))
+//                for (LWComponent c : reverse()
+                	
+            
+        
+		
+		Iterator<LWComponent> iter = layer.getAllDescendents(ChildKind.PROPER, new ArrayList(), Order.DEPTH).iterator();
+			//comps.iterator();
+			//container.getAllDescendents(
+			//	LWComponent.ChildKind.PROPER).iterator();
 
 		while (iter.hasNext()) {
 			LWComponent comp = (LWComponent) iter.next();
@@ -259,6 +278,8 @@ public class ImageMap extends VueAction {
 			}// end else
 
 		}// end while
+		
+        }
 		String buf = "";
 		Iterator<String> iter2 = arrayList.iterator();
 		while (iter2.hasNext()) {
