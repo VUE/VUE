@@ -15,14 +15,21 @@
 
 package edu.tufts.vue.preferences.implementations;
 
+import java.io.File;
+import java.net.URL;
+import java.net.URLDecoder;
+import java.util.Enumeration;
 import java.util.Locale;
-import java.util.ResourceBundle;
 import java.util.TreeSet;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.prefs.Preferences;
 
 import javax.swing.ListModel;
 import javax.swing.event.ListSelectionEvent;
 
+import tufts.vue.LWComponent;
+import tufts.vue.VUE;
 import tufts.vue.VueResources;
 
 /**
@@ -30,7 +37,9 @@ import tufts.vue.VueResources;
  */
 
 public class LanguagePreference extends edu.tufts.vue.preferences.generics.GenericListPreference {
-	protected String	category;
+    protected static final org.apache.log4j.Logger
+    					Log = org.apache.log4j.Logger.getLogger(LanguagePreference.class);
+    protected String	category;
 	protected String	key;
 	protected String	name;
 	protected String	description;
@@ -64,45 +73,61 @@ public class LanguagePreference extends edu.tufts.vue.preferences.generics.Gener
 
 		loadList = new Runnable() {
 			public void run() {
-				Locale[]			locales = Locale.getAvailableLocales();
-				TreeSet<StringPair>	foundLocales = new TreeSet<StringPair>();
-				int					localeCount = locales.length;
+				String					filename = null;
+				try {
+					TreeSet<StringPair>	foundLocales = new TreeSet<StringPair>();
+					ClassLoader			loader = ClassLoader.getSystemClassLoader();
+					URL					url = loader.getResource("tufts/vue/");
 
-				for (int index = 0; index < localeCount; index++) {
-					try {
-						Locale			locale = locales[index],
-										foundLocale;
-						ResourceBundle	bundle = ResourceBundle.getBundle("tufts.vue.VueResources", new Locale(locale.getLanguage(), locale.getCountry()));
+					if (url != null) {
+						filename = URLDecoder.decode(url.getFile(), "UTF-8");
+						filename = filename.substring(filename.indexOf("/"), filename.lastIndexOf("!"));
 
-						foundLocale = bundle.getLocale();
+						File			file = new File(filename);
+						JarFile			jar = new JarFile(file);
+						Enumeration<JarEntry>
+										jarEntries = jar.entries();
 
-						String	foundLanguage = foundLocale.getLanguage(),
-								localizedDisplayName = fixCaps(foundLocale.getDisplayName(new Locale(foundLanguage)));
+						while (jarEntries.hasMoreElements()) {
+							JarEntry	jarEntry = jarEntries.nextElement();
+							String		name = jarEntry.getName();
 
-						if (localizedDisplayName.length() > 0) {
-							// TreeSet is used to collect found locales because it doesn't add duplicates, and
-							// it automatically orders its members.
-							foundLocales.add(new StringPair(localizedDisplayName, foundLanguage + "_" + foundLocale.getCountry()));
+							if (name.indexOf("VueResources_") != -1 && name.indexOf("__") == -1) {
+								int		languageIndex = name.indexOf("_") + 1;
+								String	langCountry = name.substring(languageIndex);
+								String	language = langCountry.substring(0, 2);
+								int		countryIndex = langCountry.lastIndexOf("_") + 1;
+								String	country = (countryIndex == 0 ? null : langCountry.substring(countryIndex, countryIndex + 2));
+								Locale	foundLocale = (country == null ? new Locale(language) : new Locale(language, country));
+								String	foundLanguage = foundLocale.getLanguage(),
+										localizedDisplayName = fixCaps(foundLocale.getDisplayName(new Locale(foundLanguage)));
+
+								if (localizedDisplayName.length() > 0) {
+									// TreeSet is used to collect found locales because it doesn't add duplicates, and
+									// it automatically orders its members.
+									foundLocales.add(new StringPair(localizedDisplayName, foundLanguage + "_" + foundLocale.getCountry()));
+									}
+								}
+							}
+						}
+
+						list.setListData(foundLocales.toArray());
+	
+						// Find the list item previously chosen as the preference (or the default) and select it.
+						String			prefValue = getValue();
+						ListModel		model = list.getModel();
+						int				modelSize = model.getSize();
+
+						ignoreListSelectionEvent = true;
+
+						for (int index = 0; index < modelSize; index++) {
+							if (prefValue.equals(((StringPair)model.getElementAt(index)).getValue())) {
+								list.setSelectedIndex(index);
+								break;
 						}
 					}
-					catch (Exception ex) {
-					}
-				}
-
-				list.setListData(foundLocales.toArray());
-
-				// Find the list item previously chosen as the preference (or the default) and select it.
-				String		prefValue = getValue();
-				ListModel	model = list.getModel();
-				int			modelSize = model.getSize();
-
-				ignoreListSelectionEvent = true;
-
-				for (int index = 0; index < modelSize; index++) {
-					if (prefValue.equals(((StringPair)model.getElementAt(index)).getValue())) {
-						list.setSelectedIndex(index);
-						break;
-					}
+				} catch (Exception ex) {
+					Log.error("loadList exception loading " + filename + ": " + ex);
 				}
 			}
 		};
