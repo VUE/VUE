@@ -1179,37 +1179,16 @@ public class Actions implements VueConstants
     public static final LWCAction AddURLAction = new LWCAction(VueResources.getString("mapViewer.componentMenu.addURL.label")) {
             public void act(LWComponent c) 
             {
-    		File fileName = null;
-    		final Object[] defaultButtons = { "OK","Cancel"};
-    		/*String option = (String)JOptionPane.showInputDialog((Component)VUE.getApplicationFrame(), 
-                                                                    ,
-                                                                    "Add URL to Node",
-                                                                    	,
-                                                                    null,
-                                                                    null,
-                                                                    "http://");*/
-    		//JOptionPane.
-    		String resourceString = "http://";
-    		Resource r =c.getResource();
-    		if (r != null)
-    			resourceString = r.getSpec();
+                File fileName = null;
+                String resourceString = "http://";
+                Resource r =c.getResource();
+                if (r != null)
+                    resourceString = r.getSpec();
     		
-    			
-            JOptionPane optionPane= new JOptionPane("Enter the URL to add: ",JOptionPane.PLAIN_MESSAGE,JOptionPane.OK_CANCEL_OPTION,null,defaultButtons,"OK");
-            String title = "Add URL to " + ((c instanceof LWNode ) ? "Node" : "Link");
-            javax.swing.JDialog dialog = optionPane.createDialog((Component)VUE.getApplicationFrame(), title);
-            dialog.setModal(true);
-            
-            optionPane.setInitialSelectionValue(resourceString);
-            optionPane.setWantsInput(true);
-            optionPane.enableInputMethods(true);
+                String title = "Add URL to " + ((c instanceof LWNode ) ? "Node" : "Link");
+                String option = (String)VueUtil.input(VUE.getApplicationFrame(), "Enter the URL to add: ", title, JOptionPane.PLAIN_MESSAGE, null, resourceString);
 
-            dialog.setSize(new Dimension(350,125));
-            dialog.setVisible(true);
-            
-            String option = (String)optionPane.getInputValue();
-            
-                if (option == null || option.length() <= 0 || optionPane.getValue().equals("Cancel"))
+                if (option == null || option.length() <= 0)
                     return;
                 
                 if (option.indexOf("?") > 0)
