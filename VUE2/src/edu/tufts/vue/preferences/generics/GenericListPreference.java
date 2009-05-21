@@ -130,11 +130,11 @@ public abstract class GenericListPreference extends BasePref implements ListSele
 	}
 
 	/** interface VuePreference */
- 	public void setValue(Object obj) {
- 		Preferences	p = Preferences.userNodeForPackage(getPrefRoot());
+	public void setValue(Object obj) {
+		Preferences	p = Preferences.userNodeForPackage(getPrefRoot());
 
- 		previousValue = getValue();
- 		p.put(getPrefName(), (String)obj);
- 		_fireVuePrefEvent();
+		previousValue = getValue();
+		p.put(getPrefName(), (String)obj);
+		_fireVuePrefEvent();
 	}
 }
