@@ -37,14 +37,14 @@ import tufts.vue.VueResources;
  */
 
 public class LanguagePreference extends edu.tufts.vue.preferences.generics.GenericListPreference {
-    protected static final org.apache.log4j.Logger
-    					Log = org.apache.log4j.Logger.getLogger(LanguagePreference.class);
-    protected String	category;
+	protected static final org.apache.log4j.Logger
+						Log = org.apache.log4j.Logger.getLogger(LanguagePreference.class);
+	protected String	category;
 	protected String	key;
 	protected String	name;
 	protected String	description;
 	protected String	defaultValue;
-	protected boolean	ignoreListSelectionEvent = true;
+	protected boolean	ignoreListSelectionEvent = false;
 
 	public static LanguagePreference create(String category, String key, String name, String desc, String defaultValue, boolean showInUI) {
 		return new LanguagePreference(category, key, name, desc, defaultValue, showInUI);
@@ -118,10 +118,9 @@ public class LanguagePreference extends edu.tufts.vue.preferences.generics.Gener
 						ListModel		model = list.getModel();
 						int				modelSize = model.getSize();
 
-						ignoreListSelectionEvent = true;
-
 						for (int index = 0; index < modelSize; index++) {
 							if (prefValue.equals(((StringPair)model.getElementAt(index)).getValue())) {
+								ignoreListSelectionEvent = true;
 								list.setSelectedIndex(index);
 								break;
 						}
@@ -188,10 +187,10 @@ public class LanguagePreference extends edu.tufts.vue.preferences.generics.Gener
 		return p.get(getPrefName() + ".code", Locale.getDefault().toString());	// will be lang_COUNTRY e.g. en_US
 	}
 
- 	public void setCode(String string) {
- 		Preferences	p = Preferences.userNodeForPackage(getPrefRoot());
+	public void setCode(String string) {
+		Preferences	p = Preferences.userNodeForPackage(getPrefRoot());
 
- 		p.put(getPrefName() + ".code", string);
+		p.put(getPrefName() + ".code", string);
 	}
 
 	public String getLanguage() {
