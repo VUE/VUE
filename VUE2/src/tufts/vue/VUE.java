@@ -118,7 +118,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.657 $ / $Date: 2009-05-14 21:22:25 $ / $Author: brian $ 
+ * @version $Revision: 1.658 $ / $Date: 2009-05-26 20:37:41 $ / $Author: brian $ 
  */
 
 public class VUE
@@ -165,6 +165,7 @@ public class VUE
     private static MergeMapsControlPanel mergeMapsControlPanel = null;
     private static OntologyBrowser ontologyBrowser = null;
     private static MetadataSearchMainGUI metadataSearchMainPanel = null;
+    private static PrototypePanel prototypePanel = null;
     private static JPopupMenu popup;
     private static JPopupMenu editPopup;
     private static SearchTextField mSearchtextFld = new SearchTextField();
@@ -901,6 +902,7 @@ public class VUE
     private static DockWindow floatingZoomDock;
     private static DockWindow layersDock;
     private static DockWindow metaDataSearchDock;
+    private static DockWindow prototypeDock;
     private static DockWindow mergeMapsDock;
     private static DockWindow ontologyDock;
     private static DockWindow anchor;
@@ -2043,6 +2045,14 @@ public class VUE
         	metaDataSearchDock = GUI.createDockWindow(VueResources.getString("dockWindow.search.title"));        	
         	metadataSearchMainPanel = new MetadataSearchMainGUI(metaDataSearchDock);       	
         }
+        //-----------------------------------------------------------------------------
+        // protytyping panel
+        //-----------------------------------------------------------------------------
+        if (prototypeDock == null || VUE.isApplet())
+        {
+        	prototypeDock = GUI.createDockWindow("Prototype");
+        	prototypePanel = new PrototypePanel(prototypeDock);
+        }
       //-----------------------------------------------------------------------------
         // Merge Maps
         //-----------------------------------------------------------------------------
@@ -2570,6 +2580,16 @@ public class VUE
     {
     	return metaDataSearchDock;
     }
+    
+    public static PrototypePanel getPrototypePanel()
+    {
+    	return prototypePanel;
+    }    
+    
+    public static DockWindow getPrototypeDock()
+    {
+    	return prototypeDock;
+    }    
     
     public static OntologyBrowser getOntologyBrowserPanel()
     {
@@ -4087,6 +4107,8 @@ public class VUE
 					}
 
 					previousDepth = depth;
+
+					PrototypePanel.zoomIfLocked();
 				}
 				catch (Exception ex) {
 					ex.printStackTrace();
@@ -4125,6 +4147,8 @@ public class VUE
 						guiSelection.setTo(userSelection);
 						guiSelection.add(deepSelection);
 					}
+
+					PrototypePanel.zoomIfLocked();
 				}
 				catch (Exception ex) {
 					ex.printStackTrace();
