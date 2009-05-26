@@ -118,7 +118,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.658 $ / $Date: 2009-05-26 20:37:41 $ / $Author: brian $ 
+ * @version $Revision: 1.659 $ / $Date: 2009-05-26 21:37:57 $ / $Author: brian $ 
  */
 
 public class VUE
@@ -4073,6 +4073,9 @@ public class VUE
 			if (VUE.depthSelectionSlider.getValue() > 0 && !ignoreSelectionEvents) {
 				// Changes to selection can't be made now;  must be done after listener notification completes.
 				GUI.invokeAfterAWT(selectionChanged);
+			}
+			else {
+				PrototypePanel.zoomIfLocked();
 			}
 		}
 
