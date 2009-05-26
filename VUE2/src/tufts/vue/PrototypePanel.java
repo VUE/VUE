@@ -3,6 +3,8 @@ package tufts.vue;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -12,7 +14,7 @@ import javax.swing.event.ChangeListener;
 
 import tufts.vue.gui.DockWindow;
 
-public class PrototypePanel extends JPanel implements ChangeListener {
+public class PrototypePanel extends JPanel implements ActionListener, ChangeListener {
 	public static final long	serialVersionUID = 1;
     public final static int		HALF_GUTTER = 4;
 	protected static JCheckBox	zoomLockCheckBox = null;
@@ -33,7 +35,8 @@ public class PrototypePanel extends JPanel implements ChangeListener {
 		constraints.insets = insets;
 		
 		zoomButton = new JButton("Selection Fit Window");
-		zoomButton.setAction(tufts.vue.Actions.ZoomToSelection);
+//		zoomButton.setAction(tufts.vue.Actions.ZoomToSelection);
+		zoomButton.addActionListener(this);
 		contents.add(zoomButton, constraints);
 
 		zoomLockCheckBox = new JCheckBox("Lock On");
@@ -58,12 +61,27 @@ public class PrototypePanel extends JPanel implements ChangeListener {
 	}
 
 	public static void zoomIfLocked() {
-System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!in zoomIfLocked()");
 		if (zoomLockCheckBox.isSelected()) {
-			zoomButton.doClick();
+			zoom();
 		}
 	}
 
+	public static void zoom() {
+		LWSelection	selection = VUE.getSelection();
+
+		if (selection.size() == 0) {
+			ZoomTool.setZoomFit();
+		} else {
+			ZoomTool.setZoomFitRegion(VUE.getActiveViewer(), selection.getBounds(), 16, false);
+		}
+	}
+
+	/* ActionListener method */
+	public void actionPerformed(ActionEvent event) {
+		zoom();
+	}
+
+	/* ChangeListener method */
 	public void stateChanged(ChangeEvent event) {
 		zoomIfLocked();
 	}
