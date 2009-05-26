@@ -87,7 +87,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.140 $ / $Date: 2009-05-12 04:03:06 $ / $Author: vaibhav $
+ * @version $Revision: 1.141 $ / $Date: 2009-05-26 20:38:07 $ / $Author: brian $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -1047,6 +1047,9 @@ public class VueMenuBar extends javax.swing.JMenuBar
             windowMenu.add(createWindowItem(VUE.getLayersDock(), 0, VueResources.getString("menu.windows.layers")));
         if (VUE.getMetadataSearchMainGUI()!= null && !VUE.isApplet()){
             windowMenu.add(createWindowItem(VUE.getMetadataSearchMainGUI(), KeyEvent.VK_9, VueResources.getString("menu.windows.search")));            
+        }
+        if (VUE.getPrototypeDock()!= null && !VUE.isApplet()){
+            windowMenu.add(createWindowItem(VUE.getPrototypeDock(), -1, "Protytype"));            
         }
         
           
