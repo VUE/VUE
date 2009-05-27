@@ -17,6 +17,8 @@ import tufts.vue.gui.DockWindow;
 public class PrototypePanel extends JPanel implements ActionListener, ChangeListener {
 	public static final long	serialVersionUID = 1;
     public final static int		HALF_GUTTER = 4;
+    public final static String	ZOOM_IN = "Zoom To Selection",
+    							ZOOM_OUT = "Fit Map In Window";
 	protected static JCheckBox	zoomLockCheckBox = null;
 	protected static JButton	zoomButton = null;
 
@@ -34,7 +36,7 @@ public class PrototypePanel extends JPanel implements ActionListener, ChangeList
 		constraints.gridwidth = 1;
 		constraints.insets = insets;
 		
-		zoomButton = new JButton("Selection Fit Window");
+		zoomButton = new JButton();
 //		zoomButton.setAction(tufts.vue.Actions.ZoomToSelection);
 		zoomButton.addActionListener(this);
 		contents.add(zoomButton, constraints);
@@ -52,6 +54,7 @@ public class PrototypePanel extends JPanel implements ActionListener, ChangeList
 		dw.setContent(this);
 
 		validate();
+		setButtonTitle();
 		setVisible(true);
 	}
 
@@ -60,7 +63,19 @@ public class PrototypePanel extends JPanel implements ActionListener, ChangeList
 		zoomButton = null;
 	}
 
+	public static void setButtonTitle() {
+		LWSelection	selection = VUE.getSelection();
+
+		if (selection.size() == 0) {
+			zoomButton.setText(ZOOM_OUT);
+		} else {
+			zoomButton.setText(ZOOM_IN);
+		}
+	}
+
 	public static void zoomIfLocked() {
+		setButtonTitle();
+
 		if (zoomLockCheckBox.isSelected()) {
 			zoom();
 		}
@@ -76,12 +91,12 @@ public class PrototypePanel extends JPanel implements ActionListener, ChangeList
 		}
 	}
 
-	/* ActionListener method */
+	/* ActionListener method -- button has been clicked */
 	public void actionPerformed(ActionEvent event) {
 		zoom();
 	}
 
-	/* ChangeListener method */
+	/* ChangeListener method -- checkbox has been clicked */
 	public void stateChanged(ChangeEvent event) {
 		zoomIfLocked();
 	}
