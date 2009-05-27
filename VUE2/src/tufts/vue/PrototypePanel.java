@@ -17,7 +17,7 @@ import tufts.vue.gui.DockWindow;
 public class PrototypePanel extends JPanel implements ActionListener, ChangeListener {
 	public static final long	serialVersionUID = 1;
     public final static int		HALF_GUTTER = 4;
-    public final static String	ZOOM_IN = "Zoom To Selection",
+    public final static String	ZOOM_IN = "Fit Selection In Window",
     							ZOOM_OUT = "Fit Map In Window";
 	protected static JCheckBox	zoomLockCheckBox = null;
 	protected static JButton	zoomButton = null;
@@ -36,7 +36,7 @@ public class PrototypePanel extends JPanel implements ActionListener, ChangeList
 		constraints.gridwidth = 1;
 		constraints.insets = insets;
 		
-		zoomButton = new JButton();
+		zoomButton = new JButton(ZOOM_IN);
 //		zoomButton.setAction(tufts.vue.Actions.ZoomToSelection);
 		zoomButton.addActionListener(this);
 		contents.add(zoomButton, constraints);
