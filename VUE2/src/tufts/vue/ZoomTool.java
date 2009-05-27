@@ -34,7 +34,7 @@ import javax.swing.*;
  * zoom needed to display an arbitraty map region into an arbitrary
  * pixel region.
  *
- * @version $Revision: 1.85 $ / $Date: 2008-12-16 19:03:38 $ / $Author: sfraize $
+ * @version $Revision: 1.86 $ / $Date: 2009-05-27 18:51:28 $ / $Author: brian $
  * @author Scott Fraize
  *
  */
@@ -602,12 +602,17 @@ public class ZoomTool extends VueTool
             focus = viewer.screenToMapPoint2D(viewer.getVisibleCenter());
         }
 
+/*
         // If zooming in, anchor to the click point.  If zooming out, always
         // zoom out from the center.
         if (newZoomFactor > viewer.mZoomFactor)
             viewer.setZoomFactor(newZoomFactor, reset, focus, false);
         else
             viewer.setZoomFactor(newZoomFactor, reset, null, true);
+*/
+        // Changed from the above to always zoom in OR out from the cursor.
+        viewer.setZoomFactor(newZoomFactor, reset, focus, false);
+
     }
     
     public static void setZoomFitRegion(MapViewer viewer, Rectangle2D mapRegion, float borderGap, boolean animate)
