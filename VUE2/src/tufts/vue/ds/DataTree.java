@@ -47,7 +47,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.68 $ / $Date: 2009-05-13 17:35:53 $ / $Author: sfraize $
+ * @version $Revision: 1.69 $ / $Date: 2009-05-27 17:23:53 $ / $Author: anoop $
  * @author  Scott Fraize
  */
 
@@ -1071,7 +1071,7 @@ public class DataTree extends javax.swing.JTree
                     // cluster will currently fail (NPE) if no data-links exist
                     tufts.vue.LayoutAction.cluster.act(nodes);
                 } else
-                    tufts.vue.LayoutAction.circle.act(nodes);
+                    tufts.vue.LayoutAction.filledCircle.act(nodes);
             }
 
             // for re-annotating the tree
@@ -1456,14 +1456,14 @@ public class DataTree extends javax.swing.JTree
     private static final Icon UniqueValueOnMapIcon = makeIcon(0x229A, 16, VueConstants.COLOR_SELECTION, 0, 0);
     private static final Icon UniqueValueOffMapIcon = makeIcon(0x229A, 16, Color.lightGray, 0, 0);
     
-    // 29BE: ⦾
-    // 29BF: ⦿
-    // 25C9: ◉ 
-    // 25CE: ◎
-    // 229A: ⊚
-    // 25E6: ◦
-    // 229D: ⊝
-    // 229B: ⊛    
+    // 29BE: â¦¾
+    // 29BF: â¦¿
+    // 25C9: â—‰ 
+    // 25CE: â—Ž
+    // 229A: âŠš
+    // 25E6: â—¦
+    // 229D: âŠ�
+    // 229B: âŠ›    
 
 
     
