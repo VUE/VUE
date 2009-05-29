@@ -76,7 +76,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.595 $ / $Date: 2009-05-07 00:55:14 $ / $Author: vaibhav $ 
+ * @version $Revision: 1.596 $ / $Date: 2009-05-29 17:12:20 $ / $Author: brian $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -6027,10 +6027,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             e.consume();
             
             int rotation = e.getWheelRotation();
+            Point2D cursor = new Point2D.Float(screenToMapX(e.getX()), screenToMapY(e.getY()));
             if (rotation > 0)
-                tufts.vue.ZoomTool.setZoomSmaller(null);
+                tufts.vue.ZoomTool.setZoomSmaller(cursor);
             else if (rotation < 0)
-                tufts.vue.ZoomTool.setZoomBigger(null);
+                tufts.vue.ZoomTool.setZoomBigger(cursor);
             //lastRotationTime = System.currentTimeMillis();
         }
 
