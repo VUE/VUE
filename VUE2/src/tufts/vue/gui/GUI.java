@@ -57,7 +57,7 @@ import sun.awt.shell.ShellFolder;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.134 $ / $Date: 2009-05-30 19:57:41 $ / $Author: sfraize $
+ * @version $Revision: 1.135 $ / $Date: 2009-05-30 21:14:32 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -66,6 +66,9 @@ public class GUI
     implements tufts.vue.VueConstants/*, java.beans.PropertyChangeListener*/
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(GUI.class);
+
+    /** special property key for sending a finalize message to JComponents */
+    public static final String FINALIZE = "GUI_FINALIZE";
     
     public static Font LabelFace; 
     public static Font ValueFace;
