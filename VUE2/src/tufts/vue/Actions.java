@@ -2460,6 +2460,8 @@ public class Actions implements VueConstants
                 }
                 else if (nDataValues == 1 && nDataRows == (selection.size() - 1)) {
 
+                    Log.debug("guessing at an all-related data-values selection");
+                    
                     // find the one data value and cluster the rest around it
 
                     LWComponent center = null;
@@ -2541,7 +2543,10 @@ public class Actions implements VueConstants
         };
 
     public static final LWCAction MakeDataLists = new ArrangeAction(VueResources.getString("menu.format.align.makedatalists"), keyStroke(KeyEvent.VK_COMMA, ALT)) {
-            boolean enabledFor(LWSelection s) { return s.size() > 0; }
+            boolean enabledFor(LWSelection s) { return s.size() == 1 && s.first().hasLinks(); }
+            // if we want this to be do-what-i-mean smart like MakeDataClusters, factor out
+            // the code there the identifies the single value node v.s. all the linked data nodes,
+            // and re-use it here for the same purpose.
             @Override
             public void arrange(LWComponent c) {
                 if (c instanceof LWNode) {
