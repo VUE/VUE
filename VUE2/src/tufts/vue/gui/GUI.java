@@ -57,7 +57,7 @@ import sun.awt.shell.ShellFolder;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.133 $ / $Date: 2009-02-22 19:29:30 $ / $Author: sfraize $
+ * @version $Revision: 1.134 $ / $Date: 2009-05-30 19:57:41 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1505,6 +1505,12 @@ public class GUI
     
     public static void invokeAfterAWT(Runnable runnable) {
         java.awt.EventQueue.invokeLater(runnable);
+    }
+    public static void invokeOnEDT(Runnable runnable) {
+        if (java.awt.EventQueue.isDispatchThread())
+            runnable.run();
+        else 
+            java.awt.EventQueue.invokeLater(runnable);
     }
     
     public static void messageAfterAWT(final String s) {
