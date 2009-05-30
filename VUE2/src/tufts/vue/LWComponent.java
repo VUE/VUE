@@ -52,7 +52,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.467 $ / $Date: 2009-05-13 17:14:33 $ / $Author: sfraize $
+ * @version $Revision: 1.468 $ / $Date: 2009-05-30 21:31:14 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -186,12 +186,15 @@ public class LWComponent
             
         final int bit = 1 << ordinal();
     }
-    
+
+    /** context codes for LWContainer.addChildren */
+
     public static final Object ADD_DROP = "drop";
     public static final Object ADD_PASTE = "paste";
     public static final Object ADD_DEFAULT = "default";
     public static final Object ADD_PRESORTED = "sorted";
     public static final Object ADD_MERGE = "merge";
+    public static final Object ADD_CHILD_TO_SIBLING = "child-to-sibling";
     
     //Static { for (Hide reason : Hide.values()) { System.out.println(reason + " bit=" + reason.bit); } }
 
