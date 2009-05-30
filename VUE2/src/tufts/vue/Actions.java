@@ -2534,7 +2534,6 @@ public class Actions implements VueConstants
             boolean enabledFor(LWSelection s) { return s.size() > 0; }
             @Override
             public void arrange(LWComponent c) {
-                //if (c instanceof LWNode && !c.hasClientData(tufts.vue.ds.Schema.class)) {
                 if (c instanceof LWNode) {
                     // grab linked
                     c.addChildren(new ArrayList(c.getLinked()), LWComponent.ADD_MERGE);
