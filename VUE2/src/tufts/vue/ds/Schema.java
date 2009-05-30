@@ -32,7 +32,7 @@ import com.google.common.collect.*;
 
 
 /**
- * @version $Revision: 1.32 $ / $Date: 2009-05-13 17:03:32 $ / $Author: sfraize $
+ * @version $Revision: 1.33 $ / $Date: 2009-05-30 21:01:28 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -139,6 +139,8 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
     public static void updateAllSchemaReferences(final Schema newlyLoadedSchema,
                                                   final Collection<tufts.vue.LWMap> maps)
     {
+        if (DEBUG.Enabled) Log.debug("updateAllSchemaReferences; " + newlyLoadedSchema + "; maps: " + maps);
+        
         if (!newlyLoadedSchema.isLoaded()) {
             Log.warn("newly loaded schema is empty: " + newlyLoadedSchema, new Throwable("FYI"));
             return;
