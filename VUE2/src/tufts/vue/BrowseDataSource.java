@@ -23,7 +23,7 @@ package tufts.vue;
  * on the configuration.  E.g., a local directory, a list of user favorites, a remote FTP
  * site, an RSS feed, etc.
  * 
- * @version $Revision: 1.10 $ / $Date: 2009-04-26 21:10:38 $ / $Author: vaibhav $
+ * @version $Revision: 1.11 $ / $Date: 2009-05-30 21:15:35 $ / $Author: sfraize $
  * @author  rsaigal
  * @author  sfraize
  */
@@ -233,6 +233,17 @@ public abstract class BrowseDataSource implements DataSource
     // call from AWT only
     void setViewer(JComponent v) {
         if (DEBUG.Enabled && _viewer != v) out("setViewer " + tufts.vue.gui.GUI.name(v));
+        if (_viewer != null && _viewer != v) {
+            // If we have an existing viewer, and it needs to know it's going away for
+            // good, as opposed to just a removeNotify, which may be temporary, we
+            // deliver a special message it can capture to detect this (e.g., it may be
+            // running threads that need to be stopped, it may need to stop listenting
+            // to events global events, etc).
+
+            Log.debug("finalizing " + _viewer);
+            _viewer.firePropertyChange(tufts.vue.gui.GUI.FINALIZE, false, true);
+        }
+        // this is this ONLY place _viewer should be set.
         _viewer = v;
     }
 
@@ -243,6 +254,8 @@ public abstract class BrowseDataSource implements DataSource
             setLoadThread(null);
         if (_viewer != null) {
             if (DEBUG.DR) out("unloadViewer " + tufts.vue.gui.GUI.name(_viewer));
+            // a special message for viewers that may need to release resources,
+            // remove listeners, terminate threads, etc.
             setViewer(null);
         }
         setAvailable(false);
