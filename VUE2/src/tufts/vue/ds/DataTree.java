@@ -47,7 +47,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.69 $ / $Date: 2009-05-27 17:23:53 $ / $Author: anoop $
+ * @version $Revision: 1.70 $ / $Date: 2009-05-30 21:14:00 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -67,7 +67,7 @@ public class DataTree extends javax.swing.JTree
 
     private volatile LWMap mActiveMap;
 
-    private final Thread mAnnotateThread;
+    private Thread mAnnotateThread;
 
     //private final Object annotateLock = new Object();
 
@@ -174,7 +174,18 @@ public class DataTree extends javax.swing.JTree
     private static JComponent buildControllerUI(final DataTree tree)
     {
         final Schema schema = tree.mSchema;
-        final JPanel wrap = new JPanel(new BorderLayout());
+        final JPanel wrap = new JPanel(new BorderLayout()) {
+                @Override public void firePropertyChange(String property, boolean oldVal, boolean newVal) {
+                    if (tufts.vue.gui.GUI.FINALIZE.equals(property)) {
+                        if (DEBUG.Enabled) Log.debug("firePropertyChange: " + property);
+                        tree.destroy();
+                    } else {
+                        super.firePropertyChange(property, oldVal, newVal);
+                    }
+                }
+            };
+
+                
         final JPanel toolbar = new JPanel();
         toolbar.setOpaque(true);
         toolbar.setBackground(Color.white);
@@ -496,14 +507,18 @@ public class DataTree extends javax.swing.JTree
 
     private void runAnnotate() {
         //annotateForMap(mActiveMap);
-        mAddNewRowsButton.setEnabled(false);
-        mAddNewRowsButton.setLabel("Comparing to " + mActiveMap.getLabel() + "...");
-        mApplyChangesButton.setEnabled(false);
-        Log.debug("WAKING ANNOTATION THREAD " + mAnnotateThread + "; pri=" + mAnnotateThread.getPriority());
+        GUI.invokeOnEDT(new Runnable() { public void run() {
+            mAddNewRowsButton.setEnabled(false);
+            mAddNewRowsButton.setLabel("Comparing to " + mActiveMap.getLabel() + "...");
+            mApplyChangesButton.setEnabled(false);
+        }});
+        //Log.info("WAKING " + mAnnotateThread, new Throwable("HERE"));
+        if (DEBUG.Enabled) Log.debug("WAKING ANNOTATION THREAD " + mAnnotateThread + "; pri=" + mAnnotateThread.getPriority());
+        mAnnotateThread.setPriority(Thread.NORM_PRIORITY);
         synchronized (mAnnotateThread) {
             mAnnotateThread.notify();
         }
-        Log.debug("NOTIFIED ANNOTATION THREAD");
+        if (DEBUG.Enabled) Log.debug("NOTIFIED ANNOTATION THREAD");
     }
 
     private boolean annotateForMap(final LWMap map)
@@ -525,36 +540,40 @@ public class DataTree extends javax.swing.JTree
             }
         }
 
-        int newRowCount = 0;
-        int changedRowCount = 0;
+        int _newRowCount = 0;
+        int _changedRowCount = 0;
         for (DataNode n : mAllRowsNode.getChildren()) {
             if (!n.isMapPresent())
-                newRowCount++;
+                _newRowCount++;
             if (n.isContextChanged())
-                changedRowCount++;
+                _changedRowCount++;
         }
 
-        Log.debug("annotateForMap: newRows " + newRowCount + "; changedRows " + changedRowCount);
+        final int newRowCount = _newRowCount;
+        final int changedRowCount = _changedRowCount;
+        
+        if (DEBUG.Enabled) Log.debug("annotateForMap: newRows " + newRowCount + "; changedRows " + changedRowCount);
 
-        if (newRowCount > 0) {
-            mAddNewRowsButton.setLabel(String.format("Add %d new records to Map", newRowCount));
-            //mAddNewRowsButton.setIcon(NewToMapIcon);
-            mAddNewRowsButton.setEnabled(true);
-        } else {
-            //mAddNewRowsButton.setIcon(null);
-            mAddNewRowsButton.setLabel("All Records are represented on Map");
-            mAddNewRowsButton.setEnabled(false);
-        }
-        if (changedRowCount > 0) {
-            mApplyChangesButton.setLabel(String.format("Update %d records on Map", changedRowCount));
-            mApplyChangesButton.setEnabled(true);
-        } else {
-            mApplyChangesButton.setLabel("No Changed Records");
-            mApplyChangesButton.setEnabled(false);
-        }
+        GUI.invokeOnEDT(new Runnable() { public void run() {
+            
+            if (newRowCount > 0) {
+                mAddNewRowsButton.setLabel(String.format("Add %d new records to Map", newRowCount));
+                //mAddNewRowsButton.setIcon(NewToMapIcon);
+                mAddNewRowsButton.setEnabled(true);
+            } else {
+                //mAddNewRowsButton.setIcon(null);
+                mAddNewRowsButton.setLabel("All Records are represented on Map");
+                mAddNewRowsButton.setEnabled(false);
+            }
+            if (changedRowCount > 0) {
+                mApplyChangesButton.setLabel(String.format("Update %d records on Map", changedRowCount));
+                mApplyChangesButton.setEnabled(true);
+            } else {
+                mApplyChangesButton.setLabel("No Changed Records");
+                mApplyChangesButton.setEnabled(false);
+            }
 
-        // TODO: don't bother with refresh if annotations didn't change at all
-        GUI.invokeAfterAWT(new Runnable() { public void run() {
+            // TODO: don't bother with refresh if annotations didn't change at all
             refreshAll();
         }});
 
@@ -607,6 +626,29 @@ public class DataTree extends javax.swing.JTree
         return String.format("DataTree[%s]", mSchema.toString());
     }
 
+    private static volatile int AnnotationThreadCount = 0;
+
+    private void destroy() {
+        if (DEBUG.Enabled) Log.debug("destroying w/" + mAnnotateThread);
+        mAnnotateThread.interrupt();
+        mAnnotateThread = null;
+
+        // it's crucial to flush the old schema so that if it isn't reloaded with new
+        // data (a new Schema instance is created when/if this schema is reloaded), the
+        // old schema will be empty and will no longer match to any nodes on any map.
+        // todo: the XmlDataSource impl current decides which happens (e.g., re-loaded
+        // for .csv, new instances for XML) -- if we keep the new-instance
+        // functionality, eventually we should actually remove the defunct schema's from
+        // the Schema global instance lists, instead of just leaving them in there but
+        // empty.
+        
+        mSchema.flushData();
+        
+        if (mActiveMap != null)
+            mActiveMap.removeLWCListener(this);
+        VUE.removeActiveListener(LWMap.class, this);
+    }
+
     private DataTree(final Schema schema) {
 
         mSchema = schema;
@@ -616,28 +658,41 @@ public class DataTree extends javax.swing.JTree
 
         setModel(mTreeModel = new DefaultTreeModel(buildTree(schema), false));
 
-        mAnnotateThread = new Thread("Annotate: " + schema.getName()) {
-                { setPriority(NORM_PRIORITY); }
-                public void run() {
-                    synchronized (this) {
+        final int ac = AnnotationThreadCount++;
+
+        mAnnotateThread = new Thread(String.format("Annotate%d: %s", ac, schema.getName())) {
+                { setPriority(MAX_PRIORITY); }
+                public synchronized void run() {
                     while (true) {
                         try {
-                            Log.debug("annotation thread sleeping");
+                            // must be careful: if we get a notify before the 1st time
+                            // we go to sleep, we'll never wake up!  So we start this
+                            // thread at high priority, and kick it off immediately,
+                            // because as soon as the DataTree is done constructing,
+                            // we're going to get notified the first time -- still
+                            // theoretically risky but should work.
+                            
+                            if (DEBUG.Enabled) Log.debug("annotation thread sleeping, pri=" + getPriority());
                             wait();
                         } catch (InterruptedException e) {
-                            Log.error("interrupted " + schema, e);
+                            Log.error("interrupted; exiting; " + schema);
+                            return;
                         }
-                        Log.debug("annotation thread woke, running....");
-                        boolean interrupted = annotateForMap(mActiveMap);
-                        if (interrupted)
-                            Log.debug("annotation aborted");
-                        else
-                            Log.debug("annotation completed");
-                    }
+                        if (DEBUG.Enabled) Log.debug("annotation thread woke, pri=" + getPriority() + "; running...");
+                        final boolean interrupted = annotateForMap(mActiveMap);
+                        if (DEBUG.Enabled) {
+                            if (interrupted)
+                                Log.debug("annotation aborted");
+                            else
+                                Log.debug("annotation completed");
+                        }
                     }
                 }
             };
 
+        if (DEBUG.Enabled) Log.debug("STARTING " + mAnnotateThread + "; (tree constructing)");
+        mAnnotateThread.start();
+        
         setRowHeight(0);
         setRootVisible(false);
         setShowsRootHandles(true);
@@ -722,20 +777,19 @@ public class DataTree extends javax.swing.JTree
                 }
             });
 
-        mAnnotateThread.start();
-        
     }
 
     @Override
     public void addNotify() {
-        Log.debug("ADDNOTIFY " + this + "; thread=" + mAnnotateThread);
+        if (DEBUG.Enabled) Log.debug("ADDNOTIFY " + this + "; thread=" + mAnnotateThread);
         mAnnotateThread.setPriority(Thread.NORM_PRIORITY);
         super.addNotify();
     }
     @Override
     public void removeNotify() {
-        Log.debug("REMOVENOTIFY " + this);
-        mAnnotateThread.setPriority(Thread.MIN_PRIORITY);
+        if (DEBUG.Enabled) Log.debug("REMOVENOTIFY " + this + "; thread=" + mAnnotateThread);
+        if (mAnnotateThread != null)
+            mAnnotateThread.setPriority(Thread.MIN_PRIORITY);
         super.removeNotify();
     }
 
