@@ -2436,6 +2436,16 @@ public class Actions implements VueConstants
                     final LWComponent center = selection.first();
                     final Collection<LWComponent> linked = center.getLinked();
 
+                    final List<LWComponent> toReparent = new ArrayList();
+
+                    for (LWComponent c : linked) {
+                        if (c.hasAncestor(center))
+                            toReparent.add(c);
+                    }
+
+                    if (toReparent.size() > 0)
+                        center.getParent().addChildren(toReparent, LWComponent.ADD_CHILD_TO_SIBLING);
+
                     clusterNodes(center, linked);
                     
                     selection().setTo(center);
