@@ -2546,7 +2546,8 @@ public class Actions implements VueConstants
             boolean enabledFor(LWSelection s) { return s.size() == 1 && s.first().hasLinks(); }
             // if we want this to be do-what-i-mean smart like MakeDataClusters, factor out
             // the code there the identifies the single value node v.s. all the linked data nodes,
-            // and re-use it here for the same purpose.
+            // and re-use it here for the same purpose. (That way you could easily swap back
+            // and forth between clustered and listed displays while all the effected nodes stay selected).
             @Override
             public void arrange(LWComponent c) {
                 if (c instanceof LWNode) {
