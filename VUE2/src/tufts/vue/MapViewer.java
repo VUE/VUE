@@ -76,7 +76,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.596 $ / $Date: 2009-05-29 17:12:20 $ / $Author: brian $ 
+ * @version $Revision: 1.597 $ / $Date: 2009-05-30 21:20:45 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1827,12 +1827,19 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 //         }
         
         
-        // ? todo: optimize -- we get lots of extra location events
-        // when dragging if there are children of the dragged
-        // object (still true?)
-        
-        if (isBoundsEvent(e.key))
+        if (isBoundsEvent(e.key)) {
+            // TODO: OPTIMIZE -- we get lots of extra location events when dragging if
+            // there are children of the dragged object -- and generally this is
+            // overkill when there are tons of events going on, such as adding hundreds
+            // of new data nodes to the map and laying them out -- this is the source of
+            // some major slowness in these cases, includeding the constant
+            // recomputation of the total bounds for every object on the map that
+            // currently happens in LWMap.
             adjustCanvasSize();
+        }
+        // e.g, for the above optimization, something more like this would make sense:
+        //         if (e.key == LWKey.UserActionCompleted)
+        //              adjustCanvasSize();
         
         if (e.key == LWKey.Deleting) {
             if (mRollover == e.getComponent())
