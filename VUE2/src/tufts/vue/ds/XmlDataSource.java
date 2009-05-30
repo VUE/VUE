@@ -33,7 +33,7 @@ import au.com.bytecode.opencsv.CSVReader;
 
 
 /**
- * @version $Revision: 1.17 $ / $Date: 2009-05-13 21:16:35 $ / $Author: anoop $
+ * @version $Revision: 1.18 $ / $Date: 2009-05-30 21:12:22 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class XmlDataSource extends BrowseDataSource
@@ -172,14 +172,16 @@ public class XmlDataSource extends BrowseDataSource
 
         ConfigField imageField
             = new ConfigField(IMAGE_FIELD_KEY
-                              ,"Image Field"
-                              ,"Field with a path to an image for displaying in nodes"
+                              ,"Image/Content Field"
+                              ,"Field with a path to an image or resource for displaying in nodes"
                               ,this.imageField // current value
                               ,edu.tufts.vue.ui.ConfigurationUI.COMBO_BOX_CONTROL);
         if (mSchema != null) {
             imageField.values = new Vector();
             imageField.values.add(NONE_SELECTED);
-            imageField.values.addAll(mSchema.getFieldNames());
+            final Vector fieldNames = mSchema.getFieldNames();
+            Collections.sort(fieldNames);
+            imageField.values.addAll(fieldNames);
         }
         
 
@@ -423,11 +425,24 @@ public class XmlDataSource extends BrowseDataSource
         final Schema schema;
         //boolean isCSV = false;
 
-        if (getAddress().endsWith(".csv")) {
+        if (getAddress().toLowerCase().endsWith(".csv")) {
+
+            // Note: for CSV data, we pass in the existing schema, permitting it
+            // to be re-loaded, and preserving existing runtime Schema references.
+            
             schema = ingestCSV(mSchema, getAddress(), true);
             mSchema = schema;
             isCSV = true;
         } else {
+            
+            // TODO: would be better to pass the existing schema instance into ingestXML
+            // (as we doo with ingestCSV), and have it be flushed and reloaded with new
+            // data so we wouldn't have to re-update all runtime LWComponent MetaMap
+            // Schema references, tho that appears to be be successfully working.  But
+            // besides being cleaner and faster, if we did that, we could keep any
+            // existing field style information alive that had been stored in the
+            // schema.
+            
             schema = XMLIngest.ingestXML(openInput(), getItemKey());
             schema.setDSGUID(getGUID());
             mSchema = schema;
