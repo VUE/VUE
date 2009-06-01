@@ -47,7 +47,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.71 $ / $Date: 2009-06-01 01:11:35 $ / $Author: sfraize $
+ * @version $Revision: 1.72 $ / $Date: 2009-06-01 04:17:32 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -75,6 +75,12 @@ public class DataTree extends javax.swing.JTree
         final DataTree tree = new DataTree(schema);
 
         //tree.setBorder(new LineBorder(Color.red, 4));
+
+        try {
+            tree.restoreAnyExpandedState();
+        } catch (Throwable t) {
+            Log.warn(t); // an assistave measure only -- non fatal
+        }
         
         tree.activeChanged(null, VUE.getActiveMap()); // simulate event for initial annotations
         VUE.addActiveListener(LWMap.class, tree);
@@ -271,18 +277,27 @@ public class DataTree extends javax.swing.JTree
     
 
     @Override
-    protected void setExpandedState(final TreePath path, final boolean state) {
-        if (DEBUG.Enabled) Log.debug("setExpandedState " + path + " = " + state);
+    protected void setExpandedState(final TreePath path, final boolean expanded) {
+
+        final DataNode treeNode = path == null ? null : (DataNode) path.getLastPathComponent();
+        
+        if (DEBUG.Enabled) Log.debug("setExpandedState " + path + " = " + expanded + "; " + Util.tags(treeNode));
         // we can interrupt tree expansion here on our double-clicks for searches
         // (which may obviate part of the workaround we needed with the ClearSearchMouseListener,
         // tho not for the JScrollPane problem if that is really happening)
 
+        if (treeNode != null && treeNode.isField()) {
+            // we record the expanded state in the visibility bit of the style node
+            // so we can restore it later from the skeletal Schema's saved with maps
+            treeNode.getField().getStyleNode().setVisible(expanded);
+        }
+
         GUI.invokeAfterAWT(new Runnable() { public void run() {
             if (!inDoubleClick) {
-                if (DEBUG.FOCUS) Log.debug("setExpandedState " + path + " = " + state + " RELAYING");
-                DataTree.super.setExpandedState(path, state);
+                if (DEBUG.FOCUS) Log.debug("setExpandedState " + path + " = " + expanded + " RELAYING");
+                DataTree.super.setExpandedState(path, expanded);
             } else 
-                if (DEBUG.FOCUS) Log.debug("setExpandedState " + path + " = " + state + " SKIPPING");
+                if (DEBUG.FOCUS) Log.debug("setExpandedState " + path + " = " + expanded + " SKIPPING");
             inDoubleClick = false;
         }});
     }
@@ -782,7 +797,7 @@ public class DataTree extends javax.swing.JTree
             mApplyChangesButton.setEnabled(false);
         }});
         //Log.info("WAKING " + mAnnotateThread, new Throwable("HERE"));
-        if (DEBUG.Enabled) Log.debug("**WAKING ANNOTATION THREAD " + mAnnotateThread + "; pri=" + mAnnotateThread.getPriority());
+        if (DEBUG.THREAD) Log.debug("**WAKING ANNOTATION THREAD " + mAnnotateThread + "; pri=" + mAnnotateThread.getPriority());
 
         if (mAnnotateThread.getPriority() > Thread.NORM_PRIORITY) {
             // first time it will be at MAX_PRIORITY
@@ -798,12 +813,12 @@ public class DataTree extends javax.swing.JTree
         synchronized (mAnnotateThread) {
             mAnnotateThread.notify();
         }
-        if (DEBUG.Enabled) Log.debug("NOTIFIED ANNOTATION THREAD " + mAnnotateThread);
+        if (DEBUG.THREAD) Log.debug("NOTIFIED ANNOTATION THREAD " + mAnnotateThread);
     }
 
     private boolean annotateForMap(final LWMap map)
     {
-        if (DEBUG.Enabled) Log.debug("ANNOTATING against " + map);
+        if (DEBUG.THREAD || DEBUG.SCHEMA) Log.debug("ANNOTATING against " + map);
         
         DataAction.annotateForMap(mSchema, map);
 
@@ -832,7 +847,7 @@ public class DataTree extends javax.swing.JTree
         final int newRowCount = _newRowCount;
         final int changedRowCount = _changedRowCount;
         
-        if (DEBUG.Enabled) Log.debug("annotateForMap: newRows " + newRowCount + "; changedRows " + changedRowCount);
+        if (DEBUG.THREAD || DEBUG.SCHEMA) Log.debug("annotateForMap: newRows " + newRowCount + "; changedRows " + changedRowCount);
 
         GUI.invokeOnEDT(new Runnable() { public void run() {
             
@@ -871,19 +886,44 @@ public class DataTree extends javax.swing.JTree
         
         // using nodesChanged instead of reload preserves the expanded state of nodes in the tree
 
-        if (DEBUG.Enabled) Log.debug("REFRESHING " + Util.tags(mRootNode.getChildren()));
+        if (DEBUG.THREAD) Log.debug("REFRESHING " + Util.tags(mRootNode.getChildren()));
         refreshAllChildren(mRootNode);
         //refreshRoot();
         for (TreeNode n : mRootNode.getChildren())
             if (!n.isLeaf())
                 refreshAllChildren(n);
-        if (DEBUG.Enabled) Log.debug(" REFRESHED " + Util.tags(mRootNode.getChildren()));
+        if (DEBUG.THREAD) Log.debug(" REFRESHED " + Util.tags(mRootNode.getChildren()));
 
         // This gets close, but doesn't always handle updating NON expanded nodes, plus
         // it often leaves labels truncated with "..."
         // invalidate();
         // super.treeDidChange();
     }
+
+
+    private void restoreAnyExpandedState()
+    {
+        int i = 0;
+        for (TreeNode n : mRootNode.getChildren()) {
+            if (n instanceof FieldNode) {
+                //Log.debug("found field node " + Util.tags(n));
+                Field f = ((FieldNode)n).getField();
+                if (f != null) {
+                    //Log.debug("found field " + f);
+                    LWComponent style = ((FieldNode)n).getField().getStyleNode();
+                    if (style != null && style.isVisible()) {
+                        final TreePath path = getPathForRow(i);
+                        if (DEBUG.Enabled) Log.debug("EXPAND " + Util.tags(n) + " " + Util.tags(path));
+                        GUI.invokeOnEDT(new Runnable() { public void run() {                        
+                            DataTree.super.setExpandedState(path, true);
+                        }});
+                    }
+                }
+            }
+            i++;
+        }
+    }
+    
 
     private void refreshAllChildren(TreeNode node)
     {
@@ -952,25 +992,25 @@ public class DataTree extends javax.swing.JTree
                             // we're going to get notified the first time -- still
                             // theoretically risky but should work.
                             
-                            if (DEBUG.Enabled) Log.debug("annotation thread sleeping, pri=" + getPriority());
+                            if (DEBUG.THREAD) Log.debug("annotation thread sleeping, pri=" + getPriority());
                             wait();
                         } catch (InterruptedException e) {
                             Log.error("interrupted; exiting; " + schema);
                             return;
                         }
-                        if (DEBUG.Enabled) Log.debug("annotation thread woke, pri=" + getPriority() + "; running...");
+                        if (DEBUG.THREAD) Log.debug("annotation thread woke, pri=" + getPriority() + "; running...");
                         final boolean interrupted = annotateForMap(mActiveMap);
                         if (DEBUG.Enabled) {
                             if (interrupted)
                                 Log.debug("annotation aborted");
-                            else
+                            else if (DEBUG.THREAD)
                                 Log.debug("annotation completed");
                         }
                     }
                 }
             };
 
-        if (DEBUG.Enabled) Log.debug("STARTING " + mAnnotateThread + "; (tree constructing)");
+        if (DEBUG.THREAD) Log.debug("STARTING " + mAnnotateThread + "; (tree constructing)");
         mAnnotateThread.start();
         
         setRowHeight(0);
@@ -993,7 +1033,7 @@ public class DataTree extends javax.swing.JTree
                     final TreePath[] paths = getSelectionModel().getSelectionPaths();
 
                     if (DEBUG.Enabled) Log.debug("valueChanged: isAddedPath=" + e.isAddedPath() + "; PATHS:");
-                    if (DEBUG.Enabled) Util.dumpArray(paths);
+                    if (DEBUG.Enabled) Util.dump(paths);
                     //if (DEBUG.Enabled) Log.debug("OLD LeadPath: " + e.getOldLeadSelectionPath());
                     //if (DEBUG.Enabled) Log.debug("NEW LeadPath: " + e.getNewLeadSelectionPath());
 
@@ -1020,14 +1060,7 @@ public class DataTree extends javax.swing.JTree
                     //                             selection.setSelectionSourceFocal(null);
                     //                             selection.setTo(treeNode.getStyle());
                     //                         }
-                    else {
-
-                        // TODO: not a very efficient way to do multi-term searches:
-                        // we search all nodes each time for each node, and we
-                        // have no control over AND v.s. OR -- we should of course
-                        // auto OR terms in the same Field (AND would always be false),
-                        // but likewise auto-AND terms across fields, narrowing the selection.
-                        // Still need to figure out how to get discontiguous tree selection.
+                    else if (paths != null) {
 
                         boolean multipleSearchTerms = false;
                         DataNode node = null;
@@ -1041,6 +1074,8 @@ public class DataTree extends javax.swing.JTree
                         else
                             mSelectedSearchNode = null;
                             
+                    } else {
+                        if (DEBUG.Enabled) Log.warn("null search path from selection model");
                     }
                         
                     //                         else if (treeNode instanceof ValueNode) {
