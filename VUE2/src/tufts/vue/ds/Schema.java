@@ -32,7 +32,7 @@ import com.google.common.collect.*;
 
 
 /**
- * @version $Revision: 1.33 $ / $Date: 2009-05-30 21:01:28 $ / $Author: sfraize $
+ * @version $Revision: 1.34 $ / $Date: 2009-06-01 04:14:10 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -104,6 +104,20 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
         return s;
     }
 
+    public static Schema fetch(Resource r, String dataSourceGUID) {
+        Schema s = SchemaByGUID.get(dataSourceGUID);
+        if (s == null) {
+            if (DEBUG.SCHEMA) Log.debug("fetch: GUID " + Util.tags(dataSourceGUID) + " not found; instancing new");
+            return instance(r, dataSourceGUID);
+        } else {
+            if (DEBUG.SCHEMA) {
+                Log.debug("fetch: found by GUID " + s);
+                Log.debug("fetch: existing fields:");
+                Util.dump(s.mFields);
+            }
+            return s;
+        }
+    }
 
     /** for looking up a loaded (data-containing) schema from a an empty schema-handle.
      * If the given schema is already loaded, or if no matching loaded schema can be found,
@@ -193,8 +207,17 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
         ((tufts.vue.URLResource)getResource()).XML_completed("SCHEMA-MANUAL-INIT");
         DSGUID = getResource().getProperty("@DSGUID");
         if (DEBUG.Enabled) Log.debug("RESTORED SCHEMA " + this + "; DSGUID=" + DSGUID);
+        if (DSGUID != null) {
+            Schema prev = SchemaByGUID.put(DSGUID, this);
+            if (prev != null)
+                Log.warn("BLEW AWAY PRIOR SCHEMA " + prev, new Throwable("HERE"));
+        }
+        //Log.debug("LOAD FIELDS WITH " + mPersistFields);
+        for (Field f : mPersistFields) {
+            Log.debug("loading field " + f + "; style:" + f.getStyleNode());
+            mFields.put(f.getName(), f);
+        }
         mXMLRestoreUnderway = false;
-        Log.debug("LOAD FIELDS WITH " + mPersistFields);
     }
     
     /** interface {@link XMLUnmarshalListener} -- does nothing here */
@@ -350,7 +373,7 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
     }
 
     public void flushData() {
-        Log.debug("flushing " + this);
+        if (DEBUG.Enabled) Log.debug("flushing " + this);
         mRows.clear();
         mLongestFieldName = 10;
         for (Field f : mFields.values()) {
@@ -525,10 +548,19 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
     }
 
     public void ensureFields(String[] names) {
+
+        if (DEBUG.SCHEMA) {
+            Log.debug("ensureFields:");
+            Util.dump(names);
+            Log.debug("ensureFields; existingFields:");
+            Util.dump(mFields);
+        }
+        
         for (String name : names) {
+            name = name.trim();
             if (!mFields.containsKey(name)) {
                 final Field f = new Field(name, this);
-                // note: Field may have trimmed the name: refetch
+                // note: Field may have trimmed the name: we refetch just in case
                 mFields.put(f.getName(), f);
             }
         }
