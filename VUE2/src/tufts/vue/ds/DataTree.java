@@ -47,7 +47,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.70 $ / $Date: 2009-05-30 21:14:00 $ / $Author: sfraize $
+ * @version $Revision: 1.71 $ / $Date: 2009-06-01 01:11:35 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -326,7 +326,7 @@ public class DataTree extends javax.swing.JTree
             if (GUI.isSingleClick(e)) {
                 if (mSelectedSearchNode == treeNode) {
                     // re-run search: we're clicking on already selected, and can't select it again
-                    searchMapForMatchingNodes(treeNode, false);
+                    selectMatchingNodes(treeNode, false);
                 }
                 return;
             }
@@ -344,19 +344,38 @@ public class DataTree extends javax.swing.JTree
                 selection.setTo(treeNode.getStyle());
             } else if (treeNode.isRow() ||
                        (treeNode.getField() != null && treeNode.getField().isPossibleKeyField())) {
-                searchMapForMatchingNodes(treeNode, false);
+                selectMatchingNodes(treeNode, false);
             }
         }
 
     }
-            
-    private void searchMapForMatchingNodes(final DataNode treeNode, final boolean addToSelection)
+
+    private void selectMatchingNodes(final DataNode treeNode, final boolean extendSearch)
     {
-        final DataTree tree = DataTree.this;
-            
         if (mActiveMap == null)
             return;
 
+        // we search only amongst EDITBALE nodes, so that we ignore hidden/locked layers & nodes, etc
+        final Collection<LWComponent> searchSet = mActiveMap.getAllDescendents(LWComponent.ChildKind.EDITABLE);
+
+        if (DEBUG.Enabled) Log.debug("SEARCH:\n\nSEARCHING ALL EDITABLE DESCENDENTS of " + mActiveMap + "; count=" + searchSet.size());
+        
+        findAndSelectMatchingNodes(searchSet, treeNode, extendSearch);
+    }
+
+    private SmartSearch mCurrentSearch;
+    private Criteria mLastCriteria;
+
+    /**
+     * Note: This method also has the side effect of picking an active style record for
+     * the selection if the DataNode represents a Field (the style for all enumerated
+     * values on the map from that Field), as well as setting a description in the
+     * selection of the search that produced it.
+     */
+    private void findAndSelectMatchingNodes(final Collection<LWComponent> searchSet,
+                                            final DataNode treeNode,
+                                            final boolean extendSearch)
+    {
         Field field = treeNode.getField();
         LWComponent styleRecord = null;
 
@@ -371,100 +390,350 @@ public class DataTree extends javax.swing.JTree
             }
         }
 
-        if (field != null && styleRecord == null)
-            styleRecord = field.getStyleNode();
+        if (extendSearch) {
+            // only use the style record for single criteria searches; otherwise
+            // makes no sense -- can't hang a style off a search, only single Fields
+            styleRecord = null;
+        } else {
+            if (treeNode.isField() && styleRecord == null)
+                styleRecord = field.getStyleNode();
+        }
 
-
-        //tree.setSelectionPath(path);
-                
         final String fieldName = field.getName();
-        final List<LWComponent> hits = new ArrayList();
-        boolean matching = false;
-        String desc = "";
 
-        final Collection<LWComponent> searchSet = mActiveMap.getAllDescendents(LWComponent.ChildKind.EDITABLE);
+        final Criteria criteria = dataNodeToSearchCriteria(treeNode);
 
-        if (DEBUG.Enabled) Log.debug("SEARCH:\n\nSEARCHING ALL DESCENDENTS of " + mActiveMap + "; count=" + searchSet.size());
+        final List<LWComponent> hits;
+        String desc;
             
-        if (treeNode == mAllRowsNode) {
-            // search for any row-node in the schema
-            Log.debug("searching for all data records in schema " + mSchema);
-            desc = String.format("that are from data set<br>'%s'", mSchema.getName());
-            for (LWComponent c : searchSet) {
-                if (c.isDataRow(mSchema))
-                    hits.add(c);
-            }
-        }
-        else if (treeNode.isRow()) {
-            // search for a particular row-node in the schema based on the key field
-            final String keyValue = treeNode.getRow().getValue(fieldName);
-            Log.debug(String.format("searching for a paricular record based on key field value %s='%s'",
-                                    fieldName,
-                                    valueName(keyValue)));
-            for (LWComponent c : searchSet) {
-                if (c.hasDataValue(fieldName, keyValue))
-                    hits.add(c);
-            }
-        }
-        else if (treeNode.isField()) {
-            // search for all nodes anchoring a particular value for the given Field
-            desc = String.format("anchoring field <b>%s", fieldName);
-            Log.debug("searching for any occurance of a field named " + fieldName);
-            for (LWComponent c : searchSet) {
-                if (c.isDataValueNode(fieldName))
-                    hits.add(c);
-            }
-        }
-        else if (treeNode.isValue()) {
-            matching = true;
+        if (extendSearch) {
 
-            final String fieldValue = treeNode.getValue();
-            //desc = String.format("matching<br><b>%s</b> = \'%s\'", fieldName, fieldValue);
-            //desc = String.format("matching<br><b>%s: <i>%s", fieldName, fieldValue);
-            desc = String.format("<b>%s: <i>%s</i>", fieldName, valueName(fieldValue));
-            Log.debug(String.format("searching for %s=[%s]", fieldName, fieldValue));
-            for (LWComponent c : searchSet) {
-                if (c.hasDataValue(fieldName, fieldValue)) {
-                    hits.add(c);
-                    // if (c.isDataValueNode()) {
-                    //     Log.debug("hit, but skipping schematic field node " + c);
-                    // } else {
-                    //     hits.add(c);
-                    // }
-                }
+            if (mCurrentSearch == null) {
+                mCurrentSearch = new SmartSearch();
+                mCurrentSearch.addCriteria(mLastCriteria);
+                mLastCriteria = null;
             }
+            mCurrentSearch.addCriteria(criteria);
+            
+            Log.debug("Running search " + mCurrentSearch);
+            hits = mCurrentSearch.search(searchSet);
+
+            desc = mCurrentSearch.toString();
+            
+        } else {
+
+            // if we've got a single Criteria, no need to mess with a SmartSearch
+
+            mCurrentSearch = null;
+
+            hits = new ArrayList();
+
+            Log.debug("SEARCHING WITH CRITERIA " + criteria);
+
+            for (LWComponent c : searchSet)
+                if (criteria.matches(c))
+                    hits.add(c);
+
+            mLastCriteria = criteria;
+
+            desc = criteria.description();
+            
         }
-        
-        final tufts.vue.LWSelection selection = VUE.getSelection();
+
+        desc = "matching<br>" + desc;
+
         if (DEBUG.Enabled) {
             if (hits.size() == 1)
                 Log.debug("hits=" + hits.get(0) + " [single hit]");
             else
                 Log.debug("hits=" + hits.size());
+            Log.debug("styleRecord: " + styleRecord);
+            //if (styleRecord != null) desc += "<p>style: " + styleRecord;
         }
-            
-        if (hits.size() > 0 || addToSelection) {
-            if (hits.size() == 0)
-                return;
-            // make sure selection bounds are drawn in MapViewer:
-            selection.setSelectionSourceFocal(VUE.getActiveFocal());
-            // now set the selection, along with a description
-            if (addToSelection) {
-                //String moreDesc = selection.getDescription();
-                //if (moreDesc.endsWith("matching"))
-                //  moreDesc = moreDesc.substring(0, moreDesc.length() - 8);
-                selection.setDescription(selection.getDescription() + "<br>" + desc);
-                selection.add(hits);
-                //selection.setTo(hits, selection.getDescription() + "; " + desc);
-            } else {
-                if (matching)
-                    desc = "matching<br>" + desc;
-                selection.setTo(hits, desc, styleRecord);
-            }
-        } else
-            selection.clear();
+
+
+        final tufts.vue.LWSelection selection = VUE.getSelection();
+        // make sure selection bounds are drawn in MapViewer:
+        selection.setSelectionSourceFocal(VUE.getActiveFocal());
+        // now set the selection, along with a description
+        selection.setTo(hits, desc, styleRecord);
     }
 
+    private Criteria dataNodeToSearchCriteria(final DataNode treeNode) {
+
+        final Field field = treeNode.getField();
+        final String fieldName = field == null ? null : field.getName();
+
+        Criteria criteria = null;
+
+        if (treeNode == mAllRowsNode) {
+
+            // search for ANY row-node in the schema
+            Log.debug("searching for all data records in schema " + mSchema);
+
+            criteria = new SchemaMatch(mSchema);
+        }
+
+        else if (treeNode.isRow()) {
+            // search for a particular row-node in the schema based on the key field -- this will
+            // normally only find a single node on the map, unless there are duplicate nodes on
+            // the map referencing the same row
+            final String keyValue = treeNode.getRow().getValue(fieldName);
+
+            criteria = new ValueMatch(fieldName, keyValue);
+        }
+
+        else if (treeNode.isField()) {
+
+            // search for all nodes anchoring a particular value for the given Field
+            Log.debug("searching for any occurance of a field named " + fieldName);
+
+            criteria = new FieldMatch(fieldName);
+        }
+
+        else if (treeNode.isValue()) {
+
+            // search for a particular key=value
+            
+            final String fieldValue = treeNode.getValue();
+            
+            Log.debug(String.format("searching for %s=[%s]", fieldName, fieldValue));
+
+            criteria = new ValueMatch(fieldName, fieldValue);
+        }
+
+        return criteria;
+    }
+
+    // todo: better to move all this Search stuff to a DataSearch.java or some such.
+    
+    public abstract static class Criteria {
+        boolean matches(LWComponent c) {
+            throw new UnsupportedOperationException("unimplemented matches in " + this);
+        }
+        
+        abstract String description();
+        String getKey() { return null; }
+
+        public List<LWComponent> search(final Collection<LWComponent> searchSet) {
+            final List<LWComponent> hits = new ArrayList();
+
+            for (LWComponent c : searchSet)
+                if (matches(c))
+                    hits.add(c);
+
+            return hits;
+        }
+        
+        @Override public String toString() {
+            return String.format("%s[%s]", getClass().getSimpleName(), description());
+        }
+        
+    }
+
+    public static class SchemaMatch extends Criteria {
+        final Schema schema;
+        public SchemaMatch(Schema s) {
+            schema = s;
+        }
+        @Override public boolean matches(LWComponent c) {
+            return c.isDataRow(schema);
+        }
+        @Override public String description() {
+            return String.format("in data set: <i>%s</i>", schema.getName());
+        }
+    }
+
+    public static class FieldMatch extends Criteria {
+        final String key;
+        public FieldMatch(String fieldName) {
+            key = fieldName;
+        }
+        @Override public boolean matches(LWComponent c) {
+            return c.isDataValueNode(key);
+        }
+        @Override public String description() {
+            return String.format("enumerated values of: <b>%s</b>", key);
+        }
+        //@Override String getKey() { return key; }
+
+        @Override public String toString() {
+            return String.format("enumerated values of <i>%s</i>", key);
+        }
+        
+    }
+    
+    public static class ValueMatch extends Criteria {
+        final String key;
+        final String value;
+        public ValueMatch(String k, String v) {
+            key = k;
+            value = v;
+        }
+        @Override public boolean matches(LWComponent c) {
+            return c.hasDataValue(key, value);
+        }
+        @Override public String description() {
+            return String.format("<b>%s: <i>%s</i>", key, valueName(value));
+        }
+        @Override String getKey() { return key; }
+
+        @Override public String toString() {
+            return String.format("%s=%s", key, value);
+        }
+        
+    }
+
+    /**
+     * A multiple criteria search that is automagically smart about how to create boolean
+     * AND and OR groups to create reasonable searches.
+     */
+    public static class SmartSearch /*extends Crtieria*/ {
+
+        /** a boolean AND group of OR lists for each key used in any key=value searches present */
+        final Multimap<String,Criteria> criteriaByKey = Multimaps.newHashMultimap();
+        /** a special OR group that takes priority: anything matching criteria in this group
+         * is "hit" no matter what */
+        final Collection<Criteria> globalBooleanOr = new ArrayList();
+        
+        public void addCriteria(Criteria criteria) {
+
+            if (DEBUG.Enabled) Log.debug("SmartSearch adding " + criteria);
+            
+            if (criteria == null)
+                return;
+
+            final String key = criteria.getKey();
+            if (key != null) {
+                criteriaByKey.put(key, criteria);
+            } else {
+                
+                // note: this impl means any search containing a SchemaMatch will match ALL
+                // rows in the schema, and it will only be meaninful to add Fields to
+                // the search (not values selecting particular rows, as they'll allready
+                // be all selected).
+
+                globalBooleanOr.add(criteria);
+            }
+        }
+
+        public List<LWComponent> search(final Collection<LWComponent> searchSet) {
+            final List<LWComponent> hits = new ArrayList();
+
+            if (DEBUG.Enabled) {
+
+                for (Criteria c : globalBooleanOr)
+                    Log.debug("GlobalOR: " + c);
+                
+                final Collection<Map.Entry<String,Collection<Criteria>>> allKeyEntries = criteriaByKey.asMap().entrySet();
+                
+                for (Map.Entry e : allKeyEntries) {
+                    Log.debug(String.format("Key: %-12s criteria=%s", e.getKey(), e.getValue()));
+                }
+            }
+                
+            final Collection<Collection<Criteria>> keyBasedCriteria;
+
+            if (criteriaByKey.size() > 0)
+                keyBasedCriteria = criteriaByKey.asMap().values();
+            else
+                keyBasedCriteria = null;
+
+            if (globalBooleanOr.size() > 0) {
+                // search method 1: includes the global OR tests
+                for (LWComponent c : searchSet) {
+                    if (anyCriteriaMatches(c, globalBooleanOr))
+                        hits.add(c);
+                    else if (keyBasedCriteria != null && allGroupsMatch(c, keyBasedCriteria))
+                        hits.add(c);
+                }
+            } else if (keyBasedCriteria != null) {
+                // search method 2: just the AND'd group of OR tests
+                for (LWComponent c : searchSet) {
+                    if (allGroupsMatch(c, keyBasedCriteria)) {
+                        hits.add(c);
+                    }
+                }
+            }
+
+            return hits;
+        }
+
+        /** perform a boolean AND of a bunch of OR groups: at least one criteria must match from each collection of criteria
+         * Note: if the group is empty (no collections of Criteria), this will always return TRUE */
+        private boolean allGroupsMatch(final LWComponent c,
+                                       final Collection<Collection<Criteria>> booleanAndGroup)
+        {
+            for (Collection<Criteria> booleanOrGroup : booleanAndGroup) {
+                boolean atLeastOneMatched = false;
+                
+                //Log.debug(c.getUniqueComponentTypeLabel() + "; against " + booleanOrGroup);
+                
+                // todo: could make this even faster by exploiting the underlying
+                // Multimap impl in the LWComponent MetaMap to have it pull all values
+                // for the key, which should be a Set, and just check for set membership
+                // for each of the values we're looking for under that key.  Could pull
+                // the key to use from the first criteria in the group, or just pass in
+                // Map.Entry's of the keys and their collections of criteria.  We'd
+                // abandon the matches(c) API and manually pull the value from key=value
+                // criteria to check the set membership.
+                
+                for (Criteria criteria : booleanOrGroup) {
+                    if (criteria.matches(c)) {
+                        //Log.debug(c.getUniqueComponentTypeLabel() + "; ok");
+                        atLeastOneMatched = true;
+                        break;
+                    }
+                }
+                
+                if (!atLeastOneMatched) {
+                    // nothing matched in this or group: entire search immediately fails
+                    //Log.debug(c.getUniqueComponentTypeLabel() + " failed; no values matched in key");
+                    return false;  // immediate boolean short-circuit
+                }
+            }
+
+            return true;
+        }
+
+        /** perform a boolean OR for a group of criteria */
+        private boolean anyCriteriaMatches(final LWComponent c, final Collection<Criteria> booleanOrGroup)
+        {
+            for (Criteria criteria : booleanOrGroup) {
+                if (criteria.matches(c)) {
+                    //Log.debug(criteria + " hit " + c);
+                    return true; // immediate boolean short-circuit
+                }
+            }
+            
+            return false;
+        }
+        
+        
+        @Override
+        public String toString() {
+
+            final Collection<Collection<Criteria>> groupedByKey = criteriaByKey.asMap().values();
+            
+            StringBuilder b = new StringBuilder("search terms:<br>");
+            for (Criteria c : globalBooleanOr) {
+                b.append(c.description());
+                b.append("<br>");
+            }
+            
+            for (Collection<Criteria> eachKey : groupedByKey) {
+                for (Criteria c : eachKey) {
+                    b.append(c.description());
+                    b.append("<br>");
+                }
+            }
+            return b.toString();
+        }
+        
+    }
+
+    /** if the active map changes, we need to wake the annotation thread to re-annotate against the newly active map,
+     * as well as start listening for changes in the active map for running future annotation updates */
     public void activeChanged(tufts.vue.ActiveEvent e, final LWMap map)
     {
         if (mActiveMap == map)
@@ -498,27 +767,38 @@ public class DataTree extends javax.swing.JTree
         if (mActiveMap != null && e.key == LWKey.UserActionCompleted) {
             
             // technically, don't need to check after ANY action has been completed:
-            // only if a data node was added/removed from the map (or changed, tho at
-            // the moment there's no such thing as changing data fields once on the map)
+            // only if a data node was added/removed from the map.  todo: we'll need
+            // a data-changed LWCEvent.
             
             runAnnotate();
         }
     }
 
     private void runAnnotate() {
-        //annotateForMap(mActiveMap);
+
         GUI.invokeOnEDT(new Runnable() { public void run() {
             mAddNewRowsButton.setEnabled(false);
             mAddNewRowsButton.setLabel("Comparing to " + mActiveMap.getLabel() + "...");
             mApplyChangesButton.setEnabled(false);
         }});
         //Log.info("WAKING " + mAnnotateThread, new Throwable("HERE"));
-        if (DEBUG.Enabled) Log.debug("WAKING ANNOTATION THREAD " + mAnnotateThread + "; pri=" + mAnnotateThread.getPriority());
-        mAnnotateThread.setPriority(Thread.NORM_PRIORITY);
+        if (DEBUG.Enabled) Log.debug("**WAKING ANNOTATION THREAD " + mAnnotateThread + "; pri=" + mAnnotateThread.getPriority());
+
+        if (mAnnotateThread.getPriority() > Thread.NORM_PRIORITY) {
+            // first time it will be at MAX_PRIORITY
+            mAnnotateThread.setPriority(Thread.NORM_PRIORITY);
+        }
+
+        // note: if we're already on a thread that's NOT the AWT EDT, we could
+        // assume we're in a builder thread and instead of waking the annotation
+        // thread just run in the builder thread, tho better to keep all that
+        // done there as sometimes that can take a whilte to run, and this will
+        // allow initial tree creations to run faster.
+        
         synchronized (mAnnotateThread) {
             mAnnotateThread.notify();
         }
-        if (DEBUG.Enabled) Log.debug("NOTIFIED ANNOTATION THREAD");
+        if (DEBUG.Enabled) Log.debug("NOTIFIED ANNOTATION THREAD " + mAnnotateThread);
     }
 
     private boolean annotateForMap(final LWMap map)
@@ -749,12 +1029,12 @@ public class DataTree extends javax.swing.JTree
                         // but likewise auto-AND terms across fields, narrowing the selection.
                         // Still need to figure out how to get discontiguous tree selection.
 
-                        boolean addToSelection = false;
+                        boolean multipleSearchTerms = false;
                         DataNode node = null;
                         for (TreePath path : paths) {
                             node = (DataNode) path.getLastPathComponent();
-                            searchMapForMatchingNodes(node, addToSelection);
-                            addToSelection = true;
+                            selectMatchingNodes(node, multipleSearchTerms);
+                            multipleSearchTerms = true;
                         }
                         if (paths.length == 1)
                             mSelectedSearchNode = node;
