@@ -21,7 +21,7 @@ import java.util.*;
 import org.apache.commons.lang.StringEscapeUtils;
 
 /**
- * @version $Revision: 1.13 $ / $Date: 2009-05-13 17:16:17 $ / $Author: sfraize $
+ * @version $Revision: 1.14 $ / $Date: 2009-06-01 04:18:30 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -484,6 +484,10 @@ public final class DataAction
         style.setFlag(Flag.INTERNAL);
         style.setFlag(Flag.DATA_STYLE); // must set before setting label, or template will atttempt to resolve
         style.setID(style.getURI().toString());
+        // we use the persisted visible bit to store a bit for DataTree node expanded state
+        // -- the actual visibility of the style node will never come into play as it's never
+        // on a map
+        style.setVisible(false); 
         return style;
     }
     
