@@ -47,7 +47,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.72 $ / $Date: 2009-06-01 04:17:32 $ / $Author: sfraize $
+ * @version $Revision: 1.73 $ / $Date: 2009-06-01 04:31:44 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -1747,7 +1747,8 @@ public class DataTree extends javax.swing.JTree
             super(null, repainter, "All Rows");
             //String.format(HTML("<b><u>All Records in %s (%d)"), schema.getName(), schema.getRowCount()));
             this.schema = schema;
-            schema.setRowNodeStyle(DataAction.makeStyleNode(schema));
+            if (schema.getRowNodeStyle() == null)
+                schema.setRowNodeStyle(DataAction.makeStyleNode(schema));
             schema.getRowNodeStyle().addLWCListener(new LWComponent.Listener() {
                     public void LWCChanged(tufts.vue.LWCEvent e) {
                         updateLabel(true);
