@@ -838,6 +838,15 @@
     <map-to xml="edu.tufts.vue.ontology.RDFSOntology "/>
 </class>
 
+<class name="tufts.vue.ds.Field">
+  <field name="name">
+    <bind-xml name="name" node="attribute"/>
+  </field>  
+  <field name="styleNode" node="element" type="tufts.vue.LWComponent">
+    <bind-xml name="styleNode"/>
+  </field>
+</class>
+
 <class name="tufts.vue.ds.Schema" identity="mapLocalID">
   <field name="mapLocalID">
     <bind-xml name="ID" node="attribute"/>
@@ -851,10 +860,17 @@
   <field name="resource" node="element" type="tufts.vue.Resource">
     <bind-xml name="resource"/>
   </field>
+  <field name="rowNodeStyle" node="element" type="tufts.vue.LWComponent">
+    <bind-xml name="rowNodeStyle"/>
+  </field>
+  <field name="XMLFields" type="tufts.vue.ds.Field" collection="arraylist">
+    <bind-xml name="field"/>
+  </field>
 </class>
 
 <class name="tufts.vue.ds.XMLIngest$XmlSchema" extends="tufts.vue.ds.Schema" identity="mapLocalID">
-  </class>
+</class>
+
 </mapping>
 
   
