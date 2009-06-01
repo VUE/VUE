@@ -59,7 +59,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.237 $ / $Date: 2009-05-15 18:47:57 $ / $Author: sfraize $
+ * @version $Revision: 1.238 $ / $Date: 2009-06-01 01:10:24 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -541,6 +541,8 @@ public class LWMap extends LWContainer
     }
     
 
+    // TODO PERFORMANCE: cache results for each kind in immutable lists; only flush if modification count goes up.
+    // (to verify: modification count goes up when layers are locked, anything is hidden/shown, which will effect EDITABLE lists)
     @Override
     public Collection<LWComponent> getAllDescendents(final ChildKind kind, final Collection bag, Order order) {
 
