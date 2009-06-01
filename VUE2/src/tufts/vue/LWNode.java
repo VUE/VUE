@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.243 $ / $Date: 2009-03-17 16:07:19 $ / $Author: sfraize $
+ * @version $Revision: 1.244 $ / $Date: 2009-06-01 21:01:18 $ / $Author: brian $
  * @author Scott Fraize
  */
 
@@ -2254,6 +2254,15 @@ public class LWNode extends LWContainer
     {
         final float renderScale = (float) dc.getAbsoluteScale();
 
+        if (!isSelected()) {
+        	double	alpha =  PrototypePanel.getAlpha();
+
+        	if (alpha != 1) {
+            	// "Fade" this node.
+        		dc.setAlpha(alpha);
+        	}
+        }
+
         if (dc.isLODEnabled() && mFontSize.get() * renderScale < 5) { // if net font point size < 5, do LOD
 
             drawNodeWithLOD(dc, renderScale);
@@ -2291,6 +2300,20 @@ public class LWNode extends LWContainer
         
             
         }
+
+/*        if (!isSelected()) {
+        	double	alpha =  PrototypePanel.getNodeAlpha();
+
+        	if (alpha != 0) {
+            	// "Fade" this node by drawing over it.  This fades the fill, text, icons, image, etc, in one operation.
+        		dc.setAlpha(alpha);
+                dc.g.setColor(getMap().getFillColor());
+//                dc.g.fill(getZeroShape());	            		            			
+                dc.g.fill(mShape);	            		            			
+                dc.g.setStroke(stroke);	            		            			
+                dc.g.draw(mShape);	            		            			
+        	}
+        }*/
     }
 
     private void drawNodeWithLOD(DrawContext dc, float renderScale)
