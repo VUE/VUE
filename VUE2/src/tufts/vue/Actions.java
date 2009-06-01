@@ -2027,6 +2027,21 @@ public class Actions implements VueConstants
         protected void clusterNodes(final LWComponent center, final Collection<LWComponent> clustering) {
 
             if (DEBUG.Enabled) Log.debug("clustering around " + center + ": " + Util.tags(clustering));
+
+            final LWContainer commonParent = center.getParent();
+            final List<LWComponent> toReparent = new ArrayList();
+
+            // this is important both to remove any linked that may be our descendents, as
+            // well as grab any linked that are currently children of something else
+            // (unfortunately, this will also grab them out of other layers if they were there,
+            // which isn't technically needed, but okay for now).
+            for (LWComponent c : clustering) {
+                if (c.getParent() != commonParent)
+                    toReparent.add(c);
+            }
+            
+            if (toReparent.size() > 0)
+                commonParent.addChildren(toReparent, LWComponent.ADD_CHILD_TO_SIBLING);
             
             computeStatistics(null, clustering);
             centerX = center.getMapCenterX(); // should probably be local center, not map center
@@ -2423,28 +2438,32 @@ public class Actions implements VueConstants
                 final double radiusWide, radiusTall;
 
                 selection.resetStatistics(); // todo: why do we need to reset? is this a clone? (has no statistics)
-                Log.debug("DATAVALUECOUNT0: " + selection.getDataValueCount());
-                //Log.debug("DATAVALUECOUNT1: " + selection().getDataValueCount());
+                if (DEBUG.Enabled) Log.debug("DATAVALUECOUNT: " + selection.getDataValueCount());
+                if (DEBUG.Enabled) Log.debug("DATA-ROW-COUNT: " + selection.getDataRowCount());
 
                 final int nDataValues = selection.getDataValueCount();
                 final int nDataRows = selection.getDataRowCount();
                 
                 if (selection.size() == 1) {
 
-                    // if a single item in selection, arrange all nodes linked to it in a circle around it                    
+                    // if a single item in selection, arrange all nodes linked to it in a circle around it
 
                     final LWComponent center = selection.first();
                     final Collection<LWComponent> linked = center.getLinked();
+                    
+//                     final LWContainer commonParent = center.getParent();
+//                     final List<LWComponent> toReparent = new ArrayList();
+//                     // this is important both to remove any linked that may be our descendents, as
+//                     // well as grab any linked that are currently children of something else
+//                     // (unfortunately, this will also grab them out of other layers if they were there,
+//                     // which isn't technically needed, but okay for now).
+//                     for (LWComponent c : linked) {
+//                         if (c.getParent() != commonParent)
+//                             toReparent.add(c);
+//                     }
 
-                    final List<LWComponent> toReparent = new ArrayList();
-
-                    for (LWComponent c : linked) {
-                        if (c.hasAncestor(center))
-                            toReparent.add(c);
-                    }
-
-                    if (toReparent.size() > 0)
-                        center.getParent().addChildren(toReparent, LWComponent.ADD_CHILD_TO_SIBLING);
+//                     if (toReparent.size() > 0)
+//                         commonParent.addChildren(toReparent, LWComponent.ADD_CHILD_TO_SIBLING);
 
                     clusterNodes(center, linked);
                     
@@ -2454,12 +2473,30 @@ public class Actions implements VueConstants
                 }
                 else if (nDataValues == selection.size()) {
 
+                    // If all the items in the selection are single enumerated data
+                    // VALUES, (e.g., they were all selected by a single click on a
+                    // field in the DataTree, selecting all values for that field) then
+                    // perform a cluster operation on each value separately, clustering
+                    // all connected rows/nodes around each value.
+
                     for (LWComponent center : selection)
                         clusterNodes(center, center.getLinked());
 
                 }
                 else if (nDataValues == 1 && nDataRows == (selection.size() - 1)) {
 
+                    // If there's a single data VALUE in the selected, and everything
+                    // ELSE is a data ROW, assume we really want to just do a clustering
+                    // around the single data-value.  This is quite a leap to make
+                    // given that the rows could be completely unrelated, but it's
+                    // the most common use case at the moment.
+
+                    // A more sane approach would be to extract the one value node,
+                    // and do an arrange just with all other nodes found, and not
+                    // care if they're data-nodes or linked nodes or not -- as long
+                    // as we don't do anything nutty like arrange value nodes around
+                    // each other, this should be fine.
+                    
                     Log.debug("guessing at an all-related data-values selection");
                     
                     // find the one data value and cluster the rest around it
@@ -2510,13 +2547,23 @@ public class Actions implements VueConstants
     };
 
 
-//     public static final LWCAction MakeDataClusters = new ArrangeAction("Make Data Clusters", keyStroke(KeyEvent.VK_SLASH, ALT)) {
-//             @Override
-//             public void arrange(LWComponent c) {
-//                 if (c instanceof LWNode && !c.hasClientData(tufts.vue.ds.Schema.class))
-//                     clusterLinked(c);
-//             }
-//         };
+    public static final LWCAction MakeDataLists = new ArrangeAction(VueResources.getString("menu.format.align.makedatalists"), keyStroke(KeyEvent.VK_COMMA, ALT)) {
+            boolean enabledFor(LWSelection s) { return s.size() == 1 && s.first().hasLinks(); }
+            // if we want this to be do-what-i-mean smart like MakeClusters, factor out
+            // the code there the identifies the single value node v.s. all the linked data nodes,
+            // and re-use it here for the same purpose. (That way you could easily swap back
+            // and forth between clustered and listed displays while all the effected nodes stay selected).
+            // ALSO, want to re-use the code to do a separate arrange when just a bunch of values are selected.
+            @Override
+            public void arrange(LWComponent c) {
+                if (c instanceof LWNode) {
+                    // grab linked
+                    c.addChildren(new ArrayList(c.getLinked()), LWComponent.ADD_MERGE);
+                }
+            }
+        };
+    
+    
     public static final LWCAction MakeDataLinks = new LWCAction(VueResources.getString("menu.format.align.makedatalinks"), keyStroke(KeyEvent.VK_SLASH, ALT)) {
             boolean enabledFor(LWSelection s) { return s.size() == 1; } // just one for now
             Collection<? extends LWComponent> linkTargets = null;
@@ -2542,22 +2589,6 @@ public class Actions implements VueConstants
 //             }
         };
 
-    public static final LWCAction MakeDataLists = new ArrangeAction(VueResources.getString("menu.format.align.makedatalists"), keyStroke(KeyEvent.VK_COMMA, ALT)) {
-            boolean enabledFor(LWSelection s) { return s.size() == 1 && s.first().hasLinks(); }
-            // if we want this to be do-what-i-mean smart like MakeDataClusters, factor out
-            // the code there the identifies the single value node v.s. all the linked data nodes,
-            // and re-use it here for the same purpose. (That way you could easily swap back
-            // and forth between clustered and listed displays while all the effected nodes stay selected).
-            @Override
-            public void arrange(LWComponent c) {
-                if (c instanceof LWNode) {
-                    // grab linked
-                    c.addChildren(new ArrayList(c.getLinked()), LWComponent.ADD_MERGE);
-                }
-            }
-        };
-    
-    
 
     public static final ArrangeAction MakeRow = new ArrangeAction(VueResources.getString("menu.format.align.makerow"), keyStroke(KeyEvent.VK_R, ALT)) {
             boolean supportsSingleMover() { return false; }
