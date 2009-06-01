@@ -32,7 +32,7 @@ import com.google.common.collect.*;
 
 
 /**
- * @version $Revision: 1.34 $ / $Date: 2009-06-01 04:14:10 $ / $Author: sfraize $
+ * @version $Revision: 1.35 $ / $Date: 2009-06-01 04:31:18 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -430,6 +430,7 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
     
     /** set the node style object used for record/row nodes */
     public void setRowNodeStyle(LWComponent style) {
+        if (DEBUG.SCHEMA) Log.debug("setRowNodeStyle: " + style);
         mStyleNode = style;
     }
         
