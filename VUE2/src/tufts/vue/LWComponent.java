@@ -52,7 +52,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.469 $ / $Date: 2009-06-01 01:10:14 $ / $Author: sfraize $
+ * @version $Revision: 1.470 $ / $Date: 2009-06-01 04:18:44 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1180,6 +1180,15 @@ u                    getSlot(c).setFromString((String)value);
         }
         return c;
     }
+    
+    private static String ColorToDebugString(final Color c) {
+        final String s = ColorToString(c);
+        if (s == null)
+            return "#null00";
+        else
+            return s;
+    }
+        
     public static String ColorToString(final Color c)
     {
         // if null, or no hue and no alpha, return null
@@ -7176,7 +7185,11 @@ u                    getSlot(c).setFromString((String)value);
      (return super.paramString() + new info) */
     public String paramString()
     {
-        return String.format(" %+4.0f,%+4.0f %3.0fx%-3.0f", getX(), getY(), width, height);
+        if (hasFlag(Flag.STYLE) || hasFlag(Flag.DATA_STYLE)) {
+            return ColorToDebugString(getFillColor());
+        } else {
+            return String.format(" %+4.0f,%+4.0f %3.0fx%-3.0f", getX(), getY(), width, height);
+        }
     }
 
     protected void out(String s) {

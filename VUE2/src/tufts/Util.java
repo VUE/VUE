@@ -1550,13 +1550,30 @@ public class Util
         }
         
     }
+    
+    public static void dump(Object[] a) {
+        dumpArray(a);
+    }
+    public static void dump(Collection c) {
+        dumpCollection(c);
+    }
+    public static void dump(Map<?,?> m) {
+        if (m != null) {
+            System.out.println("Map of size: " + m.size() + " (" + m.getClass().getName() + ")");
+            for (Map.Entry<?,?> e : m.entrySet()) {
+                System.out.println(String.format("%20s: %s", tags(e.getKey()), tags(e.getValue())));
+            }
+        } else
+            System.out.println("\t<NULL MAP>");
+    }
+
     public static void dumpArray(Object[] a) {
         if (a != null)
             dumpCollection(Arrays.asList(a));
         else
-            System.out.println("NULL ARRAY");
+            System.out.println("\t<NULL ARRAY>");
     }
-
+    
     public static void dumpCollection(Collection c) {
         System.out.println("Collection of size: " + c.size() + " (" + c.getClass().getName() + ")");
         dumpIterator(c.iterator());
@@ -1565,7 +1582,8 @@ public class Util
         int x = 0;
         while (i.hasNext()) {
             //System.out.println((x<10?" ":"") + x + ": " + i.next());
-            System.out.format("\t%2d: \"%s\"\n", x, i.next());
+            System.out.format("\t%2d: %s\n", x, tags(i.next()));
+            //System.out.format("\t%2d: \"%s\"\n", x, i.next());
             x++;
         }
     }
