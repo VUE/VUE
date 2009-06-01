@@ -52,7 +52,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.468 $ / $Date: 2009-05-30 21:31:14 $ / $Author: sfraize $
+ * @version $Revision: 1.469 $ / $Date: 2009-06-01 01:10:14 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1784,7 +1784,7 @@ u                    getSlot(c).setFromString((String)value);
     
     public UserMapType getUserMapType() { throw new UnsupportedOperationException("deprecated"); }
 
-    private static final String DataValueFieldKey = "@ValueOf";
+    private static final String EnumeratedValueKey = "@ValueOf";
 
     //public void setDataInstanceValue(String key, Object value) {
     public void setDataInstanceValue(tufts.vue.ds.Field field, Object value) {
@@ -1793,7 +1793,7 @@ u                    getSlot(c).setFromString((String)value);
         getMetadataList().add(key, value.toString());
         getDataMap().put(key, value);
         getDataMap().setSchema(field.getSchema());
-        getDataMap().put(DataValueFieldKey, field.getName());
+        getDataMap().put(EnumeratedValueKey, field.getName());
         //getDataMap().put("@Schema", field.getSchema());
     }
 
@@ -1890,8 +1890,7 @@ u                    getSlot(c).setFromString((String)value);
         if (mDataMap == null)
             return null;
 
-        //String name = mDataMap.getString("@Schema.field");
-        String fieldName = mDataMap.getString(DataValueFieldKey);
+        String fieldName = mDataMap.getString(EnumeratedValueKey);
         
         //-----------------------------------------------------------------------------
         // backward compat before @schema.field stored, and
@@ -1919,8 +1918,7 @@ u                    getSlot(c).setFromString((String)value);
     /** @return true if the data-set data for this node represents a SINGLE VALUE from a field (e.g., one of an enumeration)
      * Should always return the opposite of isDataRow */
     public boolean isDataValueNode() {
-        return mDataMap != null && mDataMap.containsKey(DataValueFieldKey);
-        //return mDataMap != null && mDataMap.containsKey("@Schema");
+        return mDataMap != null && mDataMap.containsKey(EnumeratedValueKey);
     }
     
     public boolean isDataValueNode(String name) {
