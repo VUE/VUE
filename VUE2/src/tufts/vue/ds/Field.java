@@ -33,7 +33,7 @@ import java.util.*;
  * types and doing some data-type analysis.  It also includes the ability to
  * associate a LWComponent node style with specially marked values.
  * 
- * @version $Revision: 1.11 $ / $Date: 2009-05-13 17:03:48 $ / $Author: sfraize $
+ * @version $Revision: 1.12 $ / $Date: 2009-06-01 04:16:23 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -53,7 +53,7 @@ public class Field
     private static final DateFormat DateParser = DateFormat.getDateTimeInstance();
 
     private final Schema schema;
-    private final String name;
+    private String name;
 
     private boolean allValuesUnique;
     private int valueCount;
@@ -78,12 +78,15 @@ public class Field
         this.name = n.trim();
         this.schema = schema;
         flushStats(true);
-        if (DEBUG.SCHEMA) Log.debug("(created field \"" + name + "\")");
+        if (DEBUG.SCHEMA) {
+            Log.debug("instanced " + Util.tags(this));
+            //Log.debug("instanced " + Util.tags(this), new Throwable("HERE"));
+        }
     }
 
     /** for castor persistance */
     public Field() {
-        this.schema = null;
+        this.schema = null; // TODO: INIT LATER!
         this.name = "<empty>";
     }
 
@@ -203,6 +206,11 @@ public class Field
     public String getName() {
         return name;
     }
+    
+    /** for castor persistance only */
+    public void setName(String s) {
+        name = s;
+    }
         
     public Schema getSchema() {
         return schema;
@@ -215,13 +223,16 @@ public class Field
     public String toString() {
         //if (isNumeric) type=TYPE_NUMERIC; // HACK: NEED ANALYSIS PHASE
         //return getName();
+
+        final String numeric = isNumeric ? "/NUMERIC" : "";
+        
         if (valueCount() == 1)
             //return String.format("<html><code>%s</code>:<br>\"%s\"", getName(), getValues().toArray()[0]);
-            return String.format("%s=\"%s\"", getName(), getValues().toArray()[0]);
+            return String.format("%-14s=\"%s\"", getName(), getValues().toArray()[0]);
         else if (allValuesUnique)
-            return String.format("%s (%d)/%s/%s", getName(), valueCount(), type, isNumeric);
+            return String.format("%-14s (%d)/%s%s", getName(), valueCount(), type, numeric);
         else
-            return String.format("%s [%d]/%s/%s", getName(), uniqueValueCount(), type, isNumeric);
+            return String.format("%-14s [%d]/%s%s", getName(), uniqueValueCount(), type, numeric);
     }
 
     public boolean isPossibleKeyField() {
