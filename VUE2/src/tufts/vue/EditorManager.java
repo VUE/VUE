@@ -44,6 +44,8 @@ public class EditorManager
     // free bits, and applying those to the typed style (ignoring/tossing free bits
     // not supported on the target style).
 
+    private static final long PERMITTED_TEXT_BITS = ~ (LWKey.FillColor.bit | LWKey.Shape.bit);
+
     private static class StyleType {
         final Object token;
         final LWComponent style;
@@ -67,10 +69,10 @@ public class EditorManager
                 // change it's type from "textNode" back to LWNode.class).
                 
                 if (freeBits != 0) {
-                    freeBits &= ~ (LWKey.FillColor.bit | LWKey.Shape.bit);
+                    freeBits &= PERMITTED_TEXT_BITS;
                     style.copyProperties(provisional, freeBits);
                 } else {
-                    style.copyStyle(provisional, ~ (LWKey.FillColor.bit | LWKey.Shape.bit) );
+                    style.copyStyle(provisional, PERMITTED_TEXT_BITS);
                 }
 
             } else {
@@ -280,7 +282,7 @@ public class EditorManager
         if (!EditorLoadingUnderway && e instanceof LWPropertyChangeEvent) {
             if (DEBUG.TOOL) out("propertyChange: " + e);
             try {
-                applySinglePropertyChange(VUE.getSelection(), ((LWPropertyChangeEvent)e).key, e.getNewValue(), e.getSource());
+                applySinglePropertyChange(((LWPropertyChangeEvent)e).key, e.getNewValue(), e.getSource());
             } catch (Throwable t) {
                 tufts.Util.printStackTrace(t, this + ": failed to handle property change event: " + e);
             }
@@ -292,7 +294,18 @@ public class EditorManager
     }
 
     private void loadAllEditors(LWSelection selection) {
-        loadAllEditors(selection, selection.only(), true);
+
+        final LWComponent editorStateSource;
+
+        if (selection.size() == 1)
+            editorStateSource = selection.first();
+        // i think the below case is conflicting with our CurrentStyle code
+        //else if (selection.getStyleRecord() != null)
+        //editorStateSource = selection.getStyleRecord();
+        else
+            editorStateSource = null;
+            
+        loadAllEditors(selection, editorStateSource, true);
     }
         
     // TODO: can get rid of passing in selection: only need editable property bits
@@ -398,16 +411,22 @@ public class EditorManager
 
     public static void firePropertyChange(LWEditor editor, Object source) {
         try {
-            applySinglePropertyChange(VUE.getSelection(), editor.getPropertyKey(), editor.produceValue(), source);
+            applySinglePropertyChange(editor.getPropertyKey(), editor.produceValue(), source);
         } catch (Throwable t) {
-            tufts.Util.printStackTrace(t, "failed to fire property for LWEditor " + editor + " for source " + source);
+            Log.error("failed to fire property for LWEditor " + editor + " for source " + source, t);
         }
     }
 
 
     /** Will either modifiy the active selection, or if it's empty, modify the default state (creation state) for this tool panel */
-    private static void applySinglePropertyChange(final Collection<LWComponent> components, final Object key, final Object newValue, Object source)
+    private static void applySinglePropertyChange(final Object key,
+                                                  final Object newValue,
+                                                  Object source)
     {
+
+        final LWSelection selection = VUE.getSelection();
+        final Collection<LWComponent> components = selection;
+        
         if (EditorLoadingUnderway) {
             if (DEBUG.TOOL) out("applySinglePropertyChange: " + key + " " + newValue + " (skipping)");
             return;
@@ -427,6 +446,9 @@ public class EditorManager
             } finally {
                 PropertySettingUnderway = false;
             }
+
+            if (selection.getStyleRecord() != null)
+                applyPropertyValue(source, key, newValue, selection.getStyleRecord());
                 
             if (VUE.getUndoManager() != null)
                 VUE.getUndoManager().markChangesAsUndo(key.toString());
