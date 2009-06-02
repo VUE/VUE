@@ -16,25 +16,13 @@
 package tufts.vue;
 
 import java.util.*;
-
 import tufts.Util;
 import static tufts.Util.*;
 import tufts.vue.gui.GUI;
-
 import java.net.*;
+import java.awt.Image;
 import java.io.*;
 import java.util.regex.*;
-
-import javax.imageio.ImageIO;
-import javax.swing.JComponent;
-
-import javax.swing.*;
-import javax.swing.text.*;
-import java.awt.*;
-import java.awt.geom.*;
-import java.awt.image.*;
-
-import sun.awt.shell.ShellFolder;
 
 /**
  * The Resource impl handles references to local files or single URL's, as well as
@@ -57,7 +45,7 @@ import sun.awt.shell.ShellFolder;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.84 $ / $Date: 2009-04-28 14:43:41 $ / $Author: mike $
+ * @version $Revision: 1.85 $ / $Date: 2009-06-02 13:43:13 $ / $Author: mike $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
