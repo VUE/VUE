@@ -83,7 +83,7 @@ public class PrototypePanel extends JPanel implements ActionListener, ChangeList
         
         opacitySlider.setLabelTable(labelTable); */
         opacitySlider.setLabelTable(opacitySlider.createStandardLabels(25));
-        opacitySlider.setSnapToTicks(true);
+        //opacitySlider.setSnapToTicks(true);
         opacitySlider.setPaintLabels(true);
         opacitySlider.setMajorTickSpacing(25);
         opacitySlider.setPaintTicks(false);
@@ -139,12 +139,8 @@ public class PrototypePanel extends JPanel implements ActionListener, ChangeList
 		}
 	}
 
-/*	public static double getNodeAlpha() {
-		return 1.0 - (((double)opacitySlider.getValue()) / 100.0);
-	}*/
-
 	public static double getAlpha() {
-		return ((double)opacitySlider.getValue()) / 100.0;
+		return (VUE.getSelection().size() == 0 ? 1.0 : ((double)opacitySlider.getValue()) / 100.0);
 	}
 
 	/* ActionListener method -- button has been clicked */
@@ -160,7 +156,7 @@ public class PrototypePanel extends JPanel implements ActionListener, ChangeList
 			zoomIfLocked();
 		} else if (source == opacitySlider) {
 			if (!opacitySlider.getValueIsAdjusting()) {
-				VUE.getActiveViewer().paintImmediately();
+				VUE.getActiveViewer().repaint();
 			}
 		}
 	}
