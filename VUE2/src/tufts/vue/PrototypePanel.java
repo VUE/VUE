@@ -155,9 +155,7 @@ public class PrototypePanel extends JPanel implements ActionListener, ChangeList
 		if (source == zoomLockCheckBox) {
 			zoomIfLocked();
 		} else if (source == opacitySlider) {
-			if (!opacitySlider.getValueIsAdjusting()) {
-				VUE.getActiveViewer().repaint();
-			}
+			VUE.getActiveViewer().repaint();
 		}
 	}
 }
