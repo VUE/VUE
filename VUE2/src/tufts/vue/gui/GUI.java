@@ -26,6 +26,9 @@ import tufts.vue.DEBUG;
 
 import java.util.*;
 import java.io.File;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -36,6 +39,7 @@ import java.awt.image.BufferedImage;
 
 import javax.swing.*;
 import javax.swing.event.*;
+import javax.swing.filechooser.FileSystemView;
 import javax.swing.border.*;
 import javax.swing.UIManager;
 import javax.swing.plaf.ColorUIResource;
@@ -47,17 +51,13 @@ import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.MutableAttributeSet;
-
 import com.jgoodies.looks.LookUtils;
 import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
-
-import sun.awt.shell.ShellFolder;
 
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.135 $ / $Date: 2009-05-30 21:14:32 $ / $Author: sfraize $
+ * @version $Revision: 1.136 $ / $Date: 2009-06-02 16:10:24 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -752,21 +752,53 @@ public class GUI
         {
             final String key = ext + "." + size;
             final Object entry = map.get(key);
-            final Image image;
+            Image image = null;
 
-            if (entry instanceof ShellFolder) {
-                if (size == 16)
-                    image = ((ShellFolder)entry).getIcon(SMALL_ICON);
-                else
-                    image = ((ShellFolder)entry).getIcon(LARGE_ICON);
+            if (entry instanceof Image) {
+            	   image = (Image) entry;
+            }
+            else if (entry !=null)
+            {
+            	Method m;
+				try {
 
-                // now that we've unpacked the ShellFolder version,
-                // we can put the real image into the cache:
-                put(key, image);
+	            	 if (cShellFolder == null)
+	                 	cShellFolder = Class.forName("sun.awt.shell.ShellFolder");
+	            	 
+					m = cShellFolder.getDeclaredMethod("getIcon", new Class[]{Boolean.TYPE});
+				
+                  	
+	                if (size == 16)
+	                    image =	(Image) m.invoke(entry, new Object[]{Boolean.FALSE});
+	                else
+	                    image =	(Image) m.invoke(entry, new Object[]{Boolean.TRUE});
+
+	                // now that we've unpacked the ShellFolder version,
+	                // we can put the real image into the cache:
+	                put(key, image);
+				} catch (SecurityException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (NoSuchMethodException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IllegalArgumentException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IllegalAccessException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (InvocationTargetException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (ClassNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+            
             }
-            else {
-                image = (Image) entry;
-            }
+           
+            	
 
             return image;
         }
@@ -782,7 +814,15 @@ public class GUI
     private static final String TmpIconDir = VUE.getSystemProperty("java.io.tmpdir");
 
     private static final Image RSSIcon = VueResources.getImage("dataSourceRSS");    
-    
+    private static Class cShellFolder;
+
+	static Constructor cShellFolderManager;
+
+    private static Object sf;
+    static Object large;
+
+	static Object small;
+
     public static Image getSystemIconForExtension(String ext, int sizeRequest)
     {
         if (DEBUG.IO && DEBUG.META) Log.debug("icon request: " + ext + "@" + sizeRequest);
@@ -864,24 +904,45 @@ public class GUI
 
             // You MUST have found or created a real, actual file for ShellFolder
             // to work.
-            
-            final ShellFolder shellFolder = ShellFolder.getShellFolder(file);
-            final Object large, small;
+            if (cShellFolder == null)
+            	cShellFolder = Class.forName("sun.awt.shell.ShellFolder");
 
-            if (shellFolder == null)
-                throw new NullPointerException("no ShellFolder");
+            if (cShellFolder !=null)
+            {
+            	//cShellFolderManager = cShellFolder.getDeclaredConstructor(new Class [] {File.class});
+            //	Object shellFolder = cShellFolder.newInstance();
+            	Method getShellFolder = cShellFolder.getDeclaredMethod("getShellFolder", new Class[]{File.class});
+          //  	cShellFolder.get
+            	sf = getShellFolder.invoke(null, new Object[]{file});
+            	
+            	Method m = cShellFolder.getDeclaredMethod("getIcon", new Class[]{Boolean.TYPE});
+            	m.invoke(sf, new Object[]{Boolean.FALSE});
+          
 
-            if (sizeRequest <= 24) {
-                image = shellFolder.getIcon(SMALL_ICON);
+           
+
+            	if (sizeRequest <= 24) {
+            		//false
+            		image = (Image) m.invoke(sf, new Object[]{Boolean.FALSE});//shellFolder.getIcon(SMALL_ICON);
                 
-                small = image;
-                large = shellFolder; // can be fetched later
+            		small = image;
+            		large = sf; //shellFolder; // can be fetched later
                 
-            } else {
-                image = shellFolder.getIcon(LARGE_ICON);
+            	} else {
+            		//true
+            		image = (Image) m.invoke(sf, new Object[]{Boolean.TRUE});//shellFolder.getIcon(LARGE_ICON);
                 
-                small = shellFolder;  // can be fetched later
-                large = image;
+            		small = sf;//shellFolder;  // can be fetched later
+            		large = image;
+            	}
+            }
+            else
+            {
+            	//you're not on a Sun JVM and not on a mac at this point.
+            	
+            	small = null;
+            	large = null;
+            	
             }
 
             // We assume here that on Windows platforms, small is always 16x16, and large is always 32x32
