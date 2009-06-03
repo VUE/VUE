@@ -67,38 +67,38 @@ public class PrototypePanel extends JPanel implements ActionListener, ChangeList
         constraints.gridx = 0;
 		fadePanel.add(fadeLabel, constraints);
 
-		fadeSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 100);
+		fadeSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 0);
 
-/*      JLabel		label0 = new JLabel("0");
-        JLabel		label25 = new JLabel("25");
+	    JLabel		label100 = new JLabel("100%");
+/*      JLabel		label75 = new JLabel("75");
         JLabel		label50 = new JLabel("50");
-        JLabel		label75 = new JLabel("75");
-	    JLabel		label100 = new JLabel("100");
+        JLabel		label25 = new JLabel("25");	*/
+        JLabel		label0 = new JLabel("0%");
         Hashtable	labelTable = new Hashtable();
 
-        label0.setFont(tufts.vue.gui.GUI.LabelFace);
-        label25.setFont(tufts.vue.gui.GUI.LabelFace);
-        label50.setFont(tufts.vue.gui.GUI.LabelFace);
+/*      label100.setFont(tufts.vue.gui.GUI.LabelFace);
         label75.setFont(tufts.vue.gui.GUI.LabelFace);
-        label100.setFont(tufts.vue.gui.GUI.LabelFace);
+        label50.setFont(tufts.vue.gui.GUI.LabelFace);
+        label25.setFont(tufts.vue.gui.GUI.LabelFace);
+        label0.setFont(tufts.vue.gui.GUI.LabelFace);
 
-        label0.setForeground(Color.DARK_GRAY);
-        label25.setForeground(Color.DARK_GRAY);
-        label50.setForeground(Color.DARK_GRAY);
-        label75.setForeground(Color.DARK_GRAY);
         label100.setForeground(Color.DARK_GRAY);
+        label75.setForeground(Color.DARK_GRAY);
+        label50.setForeground(Color.DARK_GRAY);
+        label25.setForeground(Color.DARK_GRAY);
+        label0.setForeground(Color.DARK_GRAY);	*/
 
-        labelTable.put(new Integer( 0 ), label0);
-        labelTable.put(new Integer( 25 ), label25);
+        labelTable.put(new Integer( 0 ), label100);
+/*      labelTable.put(new Integer( 25 ), label75);
         labelTable.put(new Integer( 50 ), label50);
-        labelTable.put(new Integer( 75 ), label75);
-        labelTable.put(new Integer( 100 ), label100);
+        labelTable.put(new Integer( 75 ), label25);	*/
+        labelTable.put(new Integer( 100 ), label0);
         
-        fadeSlider.setLabelTable(labelTable); */
-		fadeSlider.setLabelTable(fadeSlider.createStandardLabels(25));
-        //fadeSlider.setSnapToTicks(true);
+        fadeSlider.setLabelTable(labelTable);
+		//fadeSlider.setLabelTable(fadeSlider.createStandardLabels(25));
 		fadeSlider.setPaintLabels(true);
-		fadeSlider.setMajorTickSpacing(25);
+		//fadeSlider.setMajorTickSpacing(25);
+        //fadeSlider.setSnapToTicks(true);
 		fadeSlider.setPaintTicks(false);
 		fadeSlider.setPreferredSize(new Dimension(130,35));
 		fadeSlider.addChangeListener(this);
@@ -198,7 +198,7 @@ public class PrototypePanel extends JPanel implements ActionListener, ChangeList
 	}
 
 	public static double getAlpha() {
-		return (VUE.getSelection().size() == 0 ? 1.0 : ((double)fadeSlider.getValue()) / 100.0);
+		return (VUE.getSelection().size() == 0 ? 1.0 : 1.0 - (((double)fadeSlider.getValue()) / 100.0));
 	}
 
 	/* ActionListener method -- button has been clicked */
