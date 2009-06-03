@@ -32,7 +32,7 @@ import com.google.common.collect.*;
 
 
 /**
- * @version $Revision: 1.35 $ / $Date: 2009-06-01 04:31:18 $ / $Author: sfraize $
+ * @version $Revision: 1.36 $ / $Date: 2009-06-03 02:42:13 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -214,11 +214,33 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
         }
         //Log.debug("LOAD FIELDS WITH " + mPersistFields);
         for (Field f : mPersistFields) {
-            Log.debug("loading field " + f + "; style:" + f.getStyleNode());
+            final LWComponent style = f.getStyleNode();
+            if (DEBUG.Enabled) Log.debug("loading field " + f + "; style:" + style);
+            initStyleNode(style);
             mFields.put(f.getName(), f);
         }
         mXMLRestoreUnderway = false;
     }
+
+    //private static tufts.vue.LWContainer FalseStyleParent = new tufts.vue.LWNode("FalseStyleParent");
+
+    private static void initStyleNode(LWComponent style) {
+        if (style != null) {
+            // the INTERNAL flag permits the style to operate (deliver events) w/out a parent
+            //style.setFlag(LWComponent.Flag.INTERNAL);
+            style.clearFlag(LWComponent.Flag.INTERNAL); // no longer used to deliver events
+            // the DATA_STYLE bit is not persisted, must restore this bit manually:
+            style.setFlag(LWComponent.Flag.DATA_STYLE);
+
+            // as the style objects aren't proper children of the map, they never get this
+            // cleared, and we have to do it here manually to make sure
+            style.markAsRestored();
+
+            // hack to give the style a parent so it is considered "alive" and can deliver events
+            //style.setParent(FalseStyleParent);
+        }
+    }
+
     
     /** interface {@link XMLUnmarshalListener} -- does nothing here */
     public void XML_initialized(Object context) { mXMLRestoreUnderway = true; }
@@ -431,6 +453,7 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
     /** set the node style object used for record/row nodes */
     public void setRowNodeStyle(LWComponent style) {
         if (DEBUG.SCHEMA) Log.debug("setRowNodeStyle: " + style);
+        initStyleNode(style);
         mStyleNode = style;
     }
         
@@ -565,6 +588,11 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
                 mFields.put(f.getName(), f);
             }
         }
+
+        // TODO: if any fields already exists and are NOT named in names, we at least
+        // need debug here: the schema has changed!  (which may be normal for XML --
+        // e.g., a news feed) What to do?  If we don't clear them out they'll remain
+        // as empty fields in the data-tree.
     }
     
     public void ensureFields(int count) {

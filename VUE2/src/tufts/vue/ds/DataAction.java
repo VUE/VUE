@@ -21,7 +21,7 @@ import java.util.*;
 import org.apache.commons.lang.StringEscapeUtils;
 
 /**
- * @version $Revision: 1.14 $ / $Date: 2009-06-01 04:18:30 $ / $Author: sfraize $
+ * @version $Revision: 1.15 $ / $Date: 2009-06-03 02:42:13 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -480,8 +480,8 @@ public final class DataAction
 //     private static final Font DataNodeFont = new Font("SansSerif", Font.PLAIN, 12);
 
 
-    private static LWComponent initStyleNode(LWComponent style) {
-        style.setFlag(Flag.INTERNAL);
+    private static LWComponent initNewStyleNode(LWComponent style) {
+        //style.setFlag(Flag.INTERNAL);
         style.setFlag(Flag.DATA_STYLE); // must set before setting label, or template will atttempt to resolve
         style.setID(style.getURI().toString());
         // we use the persisted visible bit to store a bit for DataTree node expanded state
@@ -493,7 +493,7 @@ public final class DataAction
     
     /** @return an empty styling node (appearance values to be set elsewhere) */ 
     public static LWComponent makeStyleNode() {
-        return initStyleNode(new LWNode());
+        return initNewStyleNode(new LWNode());
     }
 
     /** @return a row-styling node for the given schema */
@@ -563,7 +563,7 @@ public final class DataAction
 //             }
             style.setFont(ValueNodeFont);
         }
-        initStyleNode(style); // must set before setting label, or template will atttempt to resolve
+        initNewStyleNode(style); // must set before setting label, or template will atttempt to resolve
         //style.setLabel(String.format("%.9s: \n${%s} ", field.getName(),field.getName()));
         style.setLabel(String.format("${%s}", field.getName()));
         style.setNotes(String.format

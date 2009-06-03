@@ -42,7 +42,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.124 $ / $Date: 2009-05-13 17:00:06 $ / $Author: sfraize $
+ * @version $Revision: 1.125 $ / $Date: 2009-06-03 02:42:13 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends WidgetStack
@@ -132,11 +132,11 @@ public class InspectorPane extends WidgetStack
         mSelectionInfo.setBorder(GUI.WidgetInsetBorder);
 
         new Pane("_multi-selection-info",  mSelectionInfo,      EXACT_SIZE,    0);
-        new Pane(VueResources.getString("inspectorpane.label"),                  mLabelPane,          EXACT_SIZE,  INFO+NOTES+KEYWORD);
+        new Pane(VueResources.getString("inspectorpane.label"),          mLabelPane,          EXACT_SIZE,  INFO+NOTES+KEYWORD);
         new Pane(VueResources.getString("inspectorpane.contentpreviews"),mPreview,EXACT_SIZE,  RESOURCE);
-        new Pane(VueResources.getString("inspectorpane.contentsummary"),mDescription,        0.5f,        RESOURCE+DATA);
         new Pane(VueResources.getString("inspectorpane.datasetfields"),mDataSetData,EXACT_SIZE,  INFO+NOTES+KEYWORD+DATA);
         new Pane(VueResources.getString("inspectorpane.contentinfo"),mResourceMetaData,   EXACT_SIZE,  RESOURCE);
+        new Pane(VueResources.getString("inspectorpane.contentsummary"),mDescription,        0.5f,        RESOURCE+DATA);
         new Pane(VueResources.getString("nodeNotesTabName"),mNotes,EXACT_SIZE,    INFO+NOTES);
         new Pane(VueResources.getString("inspectorpane.pathwaynotes"),mPathwayNotes,EXPANDER,INFO+NOTES);
         new Pane(VueResources.getString("jlabel.keyword"),mKeywords,EXACT_SIZE,  KEYWORD);
@@ -1413,20 +1413,31 @@ public class InspectorPane extends WidgetStack
         private final VueTextPane labelValue = new VueTextPane() {
                 @Override
                 protected void applyText(String text) {
-                    if (selection != null) {
-                        if (text != null && text.trim().length() > 0) {
-                            for (LWComponent c : selection) {
-                                c.setLabel(text);
-                            }
+
+                    // TODO: as dataStyle nodes are NOT officially part of the map, their edits will
+                    // not be undoable -- will need to fix this.  Can we just manually deliver
+                    // the event up thru the active map?  Oh, damn... the dataStyle is owned the Schema,
+                    // which while saved with the map is actually within the DataTree at runtime and
+                    // applies to all open maps, and we have no "global" portion of the undo queue
+                    // to handle this...  well, we could ignore the global aspect and just live
+                    // with the conflict for now.
+                    super.applyText(text);
+                    
+                    if (selection != null && text != null && text.trim().length() > 0) {
+                        Log.debug("LabelPane: manually applying to " + selection);
+                        for (LWComponent c : selection) {
+                            c.setLabel(text);
                         }
-                        VUE.markUndo(selection.size() + " Labels");
-                    } else {
-                        super.applyText(text);
+                        if (dataStyle != null)
+                            VUE.markUndo(selection.size() + " Data Labels");
+                        else
+                            VUE.markUndo(selection.size() + " Labels");
                     }
                 }
             };
 
         private LWSelection selection;
+        private LWComponent dataStyle;
         
         LabelPane() {
             super(new BorderLayout());
@@ -1452,12 +1463,21 @@ public class InspectorPane extends WidgetStack
         }
 
         void loadLabel(LWSelection s) {
+            if (DEBUG.Enabled) Log.debug("LabelPane LOADING SELECTION w/style " + s.getStyleRecord());
             labelValue.detachProperty();
-            labelValue.setEditable(true);
+            if (s.getStyleRecord() != null) {
+                labelValue.attachProperty(s.getStyleRecord(), LWKey.Label);
+                setName("Multiple Data Labels");
+                //selection = null;
+                dataStyle = s.getStyleRecord();
+            } else {
+                dataStyle = null;
+                setName(String.format(VueResources.getString("infowindow.multiplelabel"), s.size()));
+            }
+            selection = s;
             //labelValue.loadText(String.format("<changes will apply to all %d nodes>", s.size()));
             //setTypeName(this, null, "Multiple Labels");
-            setName(String.format(VueResources.getString("infowindow.multiplelabel"), s.size()));
-            selection = s;
+            labelValue.setEditable(true);
         }
         
         void loadLabel(LWComponent c) {

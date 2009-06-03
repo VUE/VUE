@@ -29,7 +29,7 @@ import com.google.common.collect.HashMultiset;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.108 $ / $Date: 2009-05-13 17:07:00 $ / $Author: sfraize $
+ * @version $Revision: 1.109 $ / $Date: 2009-06-03 02:42:12 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -99,7 +99,11 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     }
     
     public void setStyleRecord(LWComponent c) {
-        mStyleRecord = c;
+        if (mStyleRecord != c) {
+            Log.debug("setStyleRecord " + c);
+            //Log.debug("setStyleRecord " + c, new Throwable("HERE"));
+            mStyleRecord = c;
+        }
     }
 
     private void clearStyleRecord() {
@@ -337,10 +341,10 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         
         clearSilent();
         setDescription(description);
-        add(i);
-        setStyleRecord(styleRecord); // must do after add
+        final boolean changed = addImpl(i); // won't notify
+        setStyleRecord(styleRecord); // must do after add, but BEFORE notify
         
-        if (hadContents && isEmpty()) {
+        if (changed || (hadContents && isEmpty())) {
             // we ended up changing the the selection by
             // clearing it out and then setting it to nothing
             notifyListeners();
@@ -382,6 +386,15 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         if (notifyUnderway())
             return;
         
+        if (addImpl(i)) {
+            clearStyleRecord(); // any selection changes break association with the style record
+            notifyListeners();
+        }
+    }
+
+    /** @return true if anything was actually added */
+    private synchronized boolean addImpl(Iterator<LWComponent> i)
+    {
         LWComponent c;
         boolean changed = false;
         while (i.hasNext()) {
@@ -391,13 +404,11 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
                     changed = true;
             }
         }
-        if (DEBUG.SELECTION||DEBUG.PERF) Log.debug("add: " + Util.tags(i) + "; completed");
+        if (DEBUG.SELECTION||DEBUG.PERF) Log.debug("addImpl: " + Util.tags(i) + "; completed");
         
-        if (changed) {
-            clearStyleRecord(); // any selection changes break association with the style record
-            notifyListeners();
-        }
+        return changed;
     }
+    
     
     public void toggle(LWComponent c) {
         toggle(Util.iterable(c));

@@ -16,6 +16,7 @@
 package tufts.vue.gui;
 
 import tufts.vue.*;
+import tufts.Util;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -28,7 +29,7 @@ import javax.swing.text.*;
  * and enters an undo entry.
  *
  * @author Scott Fraize
- * @version $Revision: 1.16 $ / $Date: 2009-03-29 03:04:51 $ / $Author: vaibhav $
+ * @version $Revision: 1.17 $ / $Date: 2009-06-03 02:42:13 $ / $Author: sfraize $
  */
 
 // todo: create an abstract class for handling property & undo code, and subclass this and VueTextField from it.
@@ -113,14 +114,15 @@ public class VueTextPane extends JTextPane
         lwc = c;
         propertyKey = key;
         loadPropertyValue();
+        if (DEBUG.TEXT||DEBUG.EVENTS) Log.debug("attachProperty " + Util.tags(key) + "; " + c);
         lwc.addLWCListener(this, propertyKey, LWKey.Deleting);
         keyWasPressed = false;
     }
 
     public void detachProperty() {
-        saveText("detach");
+        //saveText("detach"); // overkill & causing problems w/multi-label text edit (check note panel for any possible new problems)
         if (lwc != null) {
-            if (DEBUG.TEXT) Log.debug("detach from " + lwc);
+            if (DEBUG.TEXT||DEBUG.EVENTS) Log.debug("detach from " + lwc);
             lwc.removeLWCListener(this);
             lwc = null;
         }
@@ -136,7 +138,7 @@ public class VueTextPane extends JTextPane
     // TODO: DROP OF TEXT (this is a paste, but with no keypress!)
     protected void saveText(Object src) {
         final String currentText = getText();
-        if (DEBUG.TEXT) Log.debug("saveText;"
+        if (DEBUG.TEXT||DEBUG.EVENTS) Log.debug("saveText;"
                                   + "\n\tsrc=" + tufts.Util.tags(src)
                                   + "\n\t" + this
                                   + "\n\tcurText=[" + currentText + "]"
@@ -144,10 +146,11 @@ public class VueTextPane extends JTextPane
 
         if (keyWasPressed || !currentText.equals(loadedText)) {
         //if (lwc != null && (keyWasPressed || !currentText.equals(loadedText))) {
-            if (DEBUG.KEYS||DEBUG.TEXT) Log.debug("APPLYING TEXT: " + this);
+            //if (DEBUG.KEYS||DEBUG.TEXT|DEBUG.EVENTS) Log.debug("saveText: APPLYING TEXT: " + this);
 
             // rtfTestHack();
 
+            if (DEBUG.EVENTS) Log.debug(String.format("saveText: apply %s -> %s",  Util.tags(propertyKey), lwc));
             applyText(currentText);
             
         }	
@@ -163,6 +166,7 @@ public class VueTextPane extends JTextPane
         if (lwc == null)
             return;
         
+        if (DEBUG.EVENTS) Log.debug(String.format("applyText: '%.16s'... to: %s -> %s", text, Util.tags(propertyKey), lwc));
         lwc.setProperty(propertyKey, text);
         loadedText = text;
         if (undoName != null)

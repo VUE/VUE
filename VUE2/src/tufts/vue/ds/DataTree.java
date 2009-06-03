@@ -47,7 +47,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.73 $ / $Date: 2009-06-01 04:31:44 $ / $Author: sfraize $
+ * @version $Revision: 1.74 $ / $Date: 2009-06-03 02:42:13 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -338,26 +338,28 @@ public class DataTree extends javax.swing.JTree
 
             final DataNode treeNode = (DataNode) mClickPath.getLastPathComponent();
             
-            if (GUI.isSingleClick(e)) {
-                if (mSelectedSearchNode == treeNode) {
-                    // re-run search: we're clicking on already selected, and can't select it again
-                    selectMatchingNodes(treeNode, false);
-                }
-                return;
-            }
+            // TODO: below selectMatchingNodes is often a repeat run after the one trigger in TreeSelectionListener.valueChanged
+//             if (GUI.isSingleClick(e)) {
+//                 if (mSelectedSearchNode == treeNode) {
+//                     // re-run search: we're clicking on already selected, and can't select it again
+//                     selectMatchingNodes(treeNode, false);
+//                 }
+//                 return;
+//             }
             
             if (!GUI.isDoubleClick(e))
                 return;
 
             if (DEBUG.Enabled) Log.debug("ACTIONABLE DOUBLE CLICK ON " + Util.tags(treeNode));
 
-            if (treeNode.hasStyle()) {
-                final tufts.vue.LWSelection selection = VUE.getSelection();
-                selection.setSource(DataTree.this);
-                // prevents from ever drawing through on map:
-                selection.setSelectionSourceFocal(null);
-                selection.setTo(treeNode.getStyle());
-            } else if (treeNode.isRow() ||
+//             if (treeNode.hasStyle()) {
+//                 final tufts.vue.LWSelection selection = VUE.getSelection();
+//                 selection.setSource(DataTree.this);
+//                 // prevents from ever drawing through on map:
+//                 selection.setSelectionSourceFocal(null);
+//                 selection.setTo(treeNode.getStyle());
+//             } else
+                if (treeNode.isRow() ||
                        (treeNode.getField() != null && treeNode.getField().isPossibleKeyField())) {
                 selectMatchingNodes(treeNode, false);
             }
@@ -373,7 +375,10 @@ public class DataTree extends javax.swing.JTree
         // we search only amongst EDITBALE nodes, so that we ignore hidden/locked layers & nodes, etc
         final Collection<LWComponent> searchSet = mActiveMap.getAllDescendents(LWComponent.ChildKind.EDITABLE);
 
-        if (DEBUG.Enabled) Log.debug("SEARCH:\n\nSEARCHING ALL EDITABLE DESCENDENTS of " + mActiveMap + "; count=" + searchSet.size());
+        if (DEBUG.Enabled) Log.debug("SEARCH:\n\nSEARCHING ALL EDITABLE DESCENDENTS of " + mActiveMap
+                                     + "; count=" + searchSet.size()
+                                     + "; treeNode=" + Util.tags(treeNode));
+        //,new Throwable("HERE"));
         
         findAndSelectMatchingNodes(searchSet, treeNode, extendSearch);
     }
@@ -484,7 +489,7 @@ public class DataTree extends javax.swing.JTree
         if (treeNode == mAllRowsNode) {
 
             // search for ANY row-node in the schema
-            Log.debug("searching for all data records in schema " + mSchema);
+            if (DEBUG.Enabled) Log.debug("searching for all data records in schema " + mSchema);
 
             criteria = new SchemaMatch(mSchema);
         }
@@ -493,15 +498,17 @@ public class DataTree extends javax.swing.JTree
             // search for a particular row-node in the schema based on the key field -- this will
             // normally only find a single node on the map, unless there are duplicate nodes on
             // the map referencing the same row
-            final String keyValue = treeNode.getRow().getValue(fieldName);
 
-            criteria = new ValueMatch(fieldName, keyValue);
+            final String keyField = ((RowNode)treeNode).getSchema().getKeyFieldName();
+            final String keyValue = treeNode.getRow().getValue(keyField);
+
+            criteria = new ValueMatch(keyField, keyValue);
         }
 
         else if (treeNode.isField()) {
 
             // search for all nodes anchoring a particular value for the given Field
-            Log.debug("searching for any occurance of a field named " + fieldName);
+            if (DEBUG.Enabled) Log.debug("searching for any enumerated value from a field named " + fieldName);
 
             criteria = new FieldMatch(fieldName);
         }
@@ -512,7 +519,7 @@ public class DataTree extends javax.swing.JTree
             
             final String fieldValue = treeNode.getValue();
             
-            Log.debug(String.format("searching for %s=[%s]", fieldName, fieldValue));
+            if (DEBUG.Enabled) Log.debug(String.format("searching for %s=[%s]", fieldName, fieldValue));
 
             criteria = new ValueMatch(fieldName, fieldValue);
         }
@@ -815,6 +822,9 @@ public class DataTree extends javax.swing.JTree
         }
         if (DEBUG.THREAD) Log.debug("NOTIFIED ANNOTATION THREAD " + mAnnotateThread);
     }
+
+    // TODO: add another kind of annotation pass that runs after a search, and greys out enumerated
+    // values that have dropped out of the search set.
 
     private boolean annotateForMap(final LWMap map)
     {

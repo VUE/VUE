@@ -52,7 +52,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.470 $ / $Date: 2009-06-01 04:18:44 $ / $Author: sfraize $
+ * @version $Revision: 1.471 $ / $Date: 2009-06-03 02:42:12 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2096,7 +2096,8 @@ u                    getSlot(c).setFromString((String)value);
     }
 
     protected final boolean alive() {
-        return parent != null;
+        // "internal" objects should always report events (e.g., special styles, such as data-styles)
+        return parent != null ; //|| hasFlag(Flag.INTERNAL);
     }
 
     /**
@@ -6178,7 +6179,7 @@ u                    getSlot(c).setFromString((String)value);
     private boolean isStyling(Key key) {
         return supportsProperty(key)
             //&& (key.isStyleProperty() || key == LWKey.Label); 
-        && (key.isStyleProperty() || (key == LWKey.Label && hasFlag(Flag.DATA_STYLE))); // todo: is DATA_STYLE persisted?
+        && (key.isStyleProperty() || (key == LWKey.Label && hasFlag(Flag.DATA_STYLE)));
     }
 
     protected synchronized void notifyLWCListeners(LWCEvent e)
@@ -6210,6 +6211,8 @@ u                    getSlot(c).setFromString((String)value);
         if (e.component == this && e.key instanceof Key) {
             // if parent is null, we're still initializing
             final Key key = (Key) e.key;
+
+            //Log.debug("Checking for style update " + e + "\n\tisStyle: " + isStyle() + "\n\tisStyling: " + isStyling(key));
 
             if (isStyle() && isStyling(key))
                 updateStyleWatchers(key, e);
@@ -6874,6 +6877,11 @@ u                    getSlot(c).setFromString((String)value);
         
         if (DEBUG.XML) System.out.println("XML_completed " + this);
         //layout(); need to wait till scale values are all set: so the LWMap needs to trigger this
+    }
+
+    /** clear the restore underway bit */
+    public void markAsRestored() {
+        mXMLRestoreUnderway = false;
     }
 
     protected static final double OPAQUE = 1.0;
