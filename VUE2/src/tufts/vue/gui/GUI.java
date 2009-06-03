@@ -57,7 +57,7 @@ import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.136 $ / $Date: 2009-06-02 16:10:24 $ / $Author: mike $
+ * @version $Revision: 1.137 $ / $Date: 2009-06-03 18:38:44 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -758,30 +758,17 @@ public class GUI
             	   image = (Image) entry;
             }
             else if (entry !=null)
-            {
-            	Method m;
+            {          	
 				try {
-
-	            	 if (cShellFolder == null)
-	                 	cShellFolder = Class.forName("sun.awt.shell.ShellFolder");
-	            	 
-					m = cShellFolder.getDeclaredMethod("getIcon", new Class[]{Boolean.TYPE});
-				
-                  	
 	                if (size == 16)
-	                    image =	(Image) m.invoke(entry, new Object[]{Boolean.FALSE});
-	                else
-	                    image =	(Image) m.invoke(entry, new Object[]{Boolean.TRUE});
+	                	image =	(Image) getIconMethod().invoke(entry, new Object[]{Boolean.FALSE});			                
+					else
+	                    image =	(Image) getIconMethod().invoke(entry, new Object[]{Boolean.TRUE});
 
 	                // now that we've unpacked the ShellFolder version,
 	                // we can put the real image into the cache:
-	                put(key, image);
-				} catch (SecurityException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (NoSuchMethodException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+	                put(key, image);            
+
 				} catch (IllegalArgumentException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -791,15 +778,8 @@ public class GUI
 				} catch (InvocationTargetException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-				} catch (ClassNotFoundException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
 				}
-            
             }
-           
-            	
-
             return image;
         }
     }
@@ -816,7 +796,6 @@ public class GUI
     private static final Image RSSIcon = VueResources.getImage("dataSourceRSS");    
     private static Class cShellFolder;
 
-	static Constructor cShellFolderManager;
 
     private static Object sf;
     static Object large;
@@ -909,28 +888,18 @@ public class GUI
 
             if (cShellFolder !=null)
             {
-            	//cShellFolderManager = cShellFolder.getDeclaredConstructor(new Class [] {File.class});
-            //	Object shellFolder = cShellFolder.newInstance();
-            	Method getShellFolder = cShellFolder.getDeclaredMethod("getShellFolder", new Class[]{File.class});
-          //  	cShellFolder.get
-            	sf = getShellFolder.invoke(null, new Object[]{file});
-            	
-            	Method m = cShellFolder.getDeclaredMethod("getIcon", new Class[]{Boolean.TYPE});
-            	m.invoke(sf, new Object[]{Boolean.FALSE});
-          
-
-           
-
             	if (sizeRequest <= 24) {
             		//false
-            		image = (Image) m.invoke(sf, new Object[]{Boolean.FALSE});//shellFolder.getIcon(SMALL_ICON);
+            		sf = getShellFolderMethod().invoke(null, new Object[]{file});
+            		image = (Image) getIconMethod().invoke(sf, new Object[]{Boolean.FALSE});//shellFolder.getIcon(SMALL_ICON);
                 
             		small = image;
             		large = sf; //shellFolder; // can be fetched later
                 
             	} else {
             		//true
-            		image = (Image) m.invoke(sf, new Object[]{Boolean.TRUE});//shellFolder.getIcon(LARGE_ICON);
+            		sf = getShellFolderMethod().invoke(null, new Object[]{file});
+            		image = (Image) getIconMethod().invoke(sf, new Object[]{Boolean.TRUE});//shellFolder.getIcon(LARGE_ICON);
                 
             		small = sf;//shellFolder;  // can be fetched later
             		large = image;
@@ -983,6 +952,74 @@ public class GUI
         return image;
     }
 
+    private static Method iconMethod = null;
+    private static Method getShellFolder = null;
+    
+    private static Method getIconMethod()
+    {
+       if (iconMethod == null)           
+ 	   {
+			try {
+			    iconMethod = cShellFolder.getDeclaredMethod("getIcon", new Class[]{Boolean.TYPE});
+			} catch (SecurityException e) {
+				Log.info(e.toString() + "while trying to invoke ShellFolder, possibly non-sun JVM");
+			} catch (NoSuchMethodException e) {
+				Log.info(e.toString() + "while trying to invoke ShellFolder, possibly non-sun JVM");				} catch (IllegalArgumentException e) {
+			}
+ 	   }
+       return iconMethod;	  
+    }
+    
+    private static Method getShellFolderMethod()
+    {
+       if (getShellFolder == null)           
+ 	   { 		  
+			try {
+				getShellFolder = cShellFolder.getDeclaredMethod("getShellFolder", new Class[]{File.class});			
+			} catch (SecurityException e) {
+				Log.info(e.toString() + "while trying to invoke ShellFolder, possibly non-sun JVM");
+			} catch (NoSuchMethodException e) {
+				Log.info(e.toString() + "while trying to invoke ShellFolder, possibly non-sun JVM");				} catch (IllegalArgumentException e) {
+			}
+ 	   }
+       return getShellFolder;
+    	  
+    }
+    
+    private static Image getIconFromReflection(String file)
+    {
+    	
+    	   if (cShellFolder == null){
+			try {
+				cShellFolder = Class.forName("sun.awt.shell.ShellFolder");
+			} catch (ClassNotFoundException e1) {
+				Log.info(e1.toString() + "while trying to load ShellFolder, possibly non-sun JVM");
+			}
+    	   }
+    	   
+           if (cShellFolder !=null)
+           {
+        	   
+        	   
+        	   Image i = null;
+        	   try {
+    			   sf = getShellFolderMethod().invoke(null, new Object[]{file});
+        		   i = (Image) getIconMethod().invoke(sf, new Object[]{Boolean.FALSE});
+        	   } catch (IllegalArgumentException e) {
+        		   Log.info(e.toString() + "while trying to load ShellFolder, possibly non-sun JVM");
+        	   } catch (IllegalAccessException e) {
+        		   Log.info(e.toString() + "while trying to load ShellFolder, possibly non-sun JVM");
+        	   } catch (InvocationTargetException e) {
+        		   Log.info(e.toString() + "while trying to load ShellFolder, possibly non-sun JVM");
+        	   }
+               return i;
+           	
+           }
+           else
+        	   return null;
+
+          
+    }
     /** these may change at any time, so we must fetch them newly each time */
     public static Insets getScreenInsets() {
         refreshGraphicsInfo();
