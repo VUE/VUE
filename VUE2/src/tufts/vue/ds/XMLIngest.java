@@ -53,7 +53,7 @@ import org.xml.sax.*;
 
 
 /**
- * @version $Revision: 1.10 $ / $Date: 2009-05-13 17:01:35 $ / $Author: sfraize $
+ * @version $Revision: 1.11 $ / $Date: 2009-06-03 02:40:44 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -63,6 +63,10 @@ public class XMLIngest {
 
     private static final boolean XML_DEBUG = false;
     private static final boolean XML_OUTPUT = false;
+
+    // REPLACE WITH A WRAPPER: XMLIngestor / XML-SCHEMA-LOADER (or just split out as XMLIngest methods)
+    // ALL WE NEED are the track methods, and a public final schema for dumpSchema debug & isXMLKeyFold(),
+    // which we can probably pull out of generic Schema
 
     public static class XmlSchema extends tufts.vue.ds.Schema
     {
