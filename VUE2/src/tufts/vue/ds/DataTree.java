@@ -47,7 +47,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.74 $ / $Date: 2009-06-03 02:42:13 $ / $Author: sfraize $
+ * @version $Revision: 1.75 $ / $Date: 2009-06-04 20:50:57 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -1367,7 +1367,7 @@ public class DataTree extends javax.swing.JTree
         return DataAction.valueName(value);
     }
 
-    private static class NodeProducer implements LWComponent.Producer, Runnable {
+    private static class NodeProducer implements LWComponent.Producer/*, Runnable*/ {
 
         private final DataNode treeNode;
         private final DataTree tree;
@@ -1395,7 +1395,7 @@ public class DataTree extends javax.swing.JTree
 
                 nodes = DataAction.makeRowNodes(schema, treeNode.getRow());
                 
-            } else if (treeNode.isRecordNode()) {
+            } else if (treeNode.isRowNode()) {
 
                 List<LWComponent> _nodes = null;
                 Log.debug("PRODUCING ALL DATA NODES");
@@ -1433,43 +1433,49 @@ public class DataTree extends javax.swing.JTree
 
 
         /** interface LWComponent.Producer impl */
-        public void postProcessNodes() { adjustNodesAfterAdding(mMap, mNodes); }
+        public void postProcessNodes() { clusterAddedNodes(mMap, mNodes); }
 
         /** add data-links, layout nodes, and update (re-annotate) the DataTree */
-        private void adjustNodesAfterAdding(final LWMap map, List<LWComponent> nodes) {
+        private void clusterAddedNodes(final LWMap map, List<LWComponent> nodes) {
 
             //for (LWComponent c : nodes)c.setToNaturalSize();
             // todo: some problem editing template values: auto-size not being handled on label length shrinkage
             
             final boolean addedLinks = DataAction.addDataLinksForNodes(map, nodes, treeNode.getField());
 
-            if (nodes.size() > 1) {
-                if (treeNode.isRecordNode()) {
-                    tufts.vue.LayoutAction.random.act(nodes);
-                } else if (addedLinks) {
-                    // cluster will currently fail (NPE) if no data-links exist
-                    tufts.vue.LayoutAction.cluster.act(nodes);
-                } else
-                    tufts.vue.LayoutAction.filledCircle.act(nodes);
+            try {
+
+                if (nodes.size() > 1) {
+                    if (treeNode.isRowNode()) {
+                        tufts.vue.LayoutAction.random.act(nodes);
+                    } else if (addedLinks) {
+                        // TODO: cluster will currently fail (NPE) if no data-links exist
+                        tufts.vue.LayoutAction.cluster.act(nodes);
+                    } else
+                        tufts.vue.LayoutAction.filledCircle.act(nodes);
+                }
+            } catch (Throwable t) {
+                Log.error("clustering failure: " + Util.tags(nodes), t);
             }
-
-            // for re-annotating the tree
-            GUI.invokeAfterAWT(this); 
+                
+            // Should no longer need this: annotate thread is handling this, tho
+            // currently in overkill mode: any time there's a UserActionCompleted
+            //// for re-annotating the tree
+            //GUI.invokeAfterAWT(this);  // call the below run() method on AWT
         }
-
-        public void run() {
-
-            // todo: this would be more precisely handled by the DataTree having a
-            // listener on the active map for any hierarchy events that involve the
-            // creation/deletion of any data-holding nodes, and running an annotate at
-            // the end if any are detected -- adding a cleanup task the first time (and
-            // checking for before adding another: standard cleanup task semantics)
-            // should handle our run-once needs.  E.g., undoing this action will fail to
-            // update the tree unless we have an impl such as this.
-            
-            if (mMap == VUE.getActiveMap()) // only if is still the active map
-                tree.annotateForMap(mMap);
-        }        
+//         public void run() {
+//             // todo: this would be more precisely handled by the DataTree having a
+//             // listener on the active map for any hierarchy events that involve the
+//             // creation/deletion of any data-holding nodes, and running an annotate at
+//             // the end if any are detected -- adding a cleanup task the first time (and
+//             // checking for before adding another: standard cleanup task semantics)
+//             // should handle our run-once needs.  E.g., undoing this action will fail to
+//             // update the tree unless we have an impl such as this.
+//             if (mMap == VUE.getActiveMap()) { // only if is still the active map
+//                 Log.info("MANUAL ANNOTATE: SHOULD RUN IN BACKGROUND?");
+//                 tree.annotateForMap(mMap);
+//             }
+//         }        
     }
 
     private static String makeFieldLabel(final Field field)
@@ -1599,7 +1605,7 @@ public class DataTree extends javax.swing.JTree
             return isValue();
         }
         
-        boolean isRecordNode() {
+        boolean isRowNode() {
             return getField() == null;
         }
 
