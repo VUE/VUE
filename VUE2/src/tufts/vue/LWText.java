@@ -288,12 +288,14 @@ public class LWText extends LWComponent {
 			// NOT filtered -- we just drop out the parent background.
 			// dc.g.clipRect(0, 0,(int) getWidth(), getAdjustedHeight());
 
-	    	double	alpha =  PrototypePanel.getAlpha();
+			if (!isSelected()) {
+				double	alpha =  PrototypePanel.getAlpha();
 
-	    	if (alpha != 1) {
-	        	// "Fade" this text.
-	    		dc.setAlpha(alpha);
-	    	}
+		    	if (alpha != 1) {
+		        	// "Fade" this text.
+		    		dc.setAlpha(alpha);
+		    	}				
+			}
 
 		//	if (!((SHTMLDocument)this.getRichLabelBox().getDocument()).isEditing())
 				drawNode(dc);
