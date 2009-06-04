@@ -119,6 +119,7 @@
                   <bind-xml name="layerID" node="attribute" reference="true"/>
                 </field>
 
+		<field name="created"><bind-xml name="created" node="attribute"/></field>
 		<field name="XMLnotes"><bind-xml name="notes" node="element"/></field>
 
 		<field name="includedSchemas" type="tufts.vue.ds.Schema" collection="collection">
