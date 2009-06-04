@@ -878,6 +878,13 @@ public class LWImage extends
     @Override
     protected void drawImpl(DrawContext dc)
     {
+    	double	alpha =  PrototypePanel.getAlpha();
+
+    	if (alpha != 1) {
+        	// "Fade" this image.
+    		dc.setAlpha(alpha);
+    	}
+
         drawWithoutShape(dc);
 //         if (dc.g.getComposite() instanceof AlphaComposite) {
 //             AlphaComposite a = (AlphaComposite) dc.g.getComposite();
