@@ -86,6 +86,8 @@ public class TextRow
         final Rectangle2D.Float closeBounds = new Rectangle2D.Float();
         closeBounds.height = (float) mRow.getBounds().getHeight();
         closeBounds.width = (float) mRow.getBounds().getWidth();
+        closeBounds.x = (float) mRow.getBounds().getX();
+        closeBounds.y = (float) mRow.getBounds().getY();
 
         if (bounds == null) {
             mBounds = closeBounds;
