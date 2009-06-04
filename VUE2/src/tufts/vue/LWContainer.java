@@ -31,7 +31,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, duplication, adding/removing and reordering (z-order) of children.
  *
- * @version $Revision: 1.155 $ / $Date: 2009-06-03 01:28:17 $ / $Author: sfraize $
+ * @version $Revision: 1.156 $ / $Date: 2009-06-04 20:15:37 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -374,10 +374,20 @@ public abstract class LWContainer extends LWComponent
         
         final List<LWComponent> added = new ArrayList(toAdd.size());
 
+        final long timestamp = System.currentTimeMillis();
+
         for (LWComponent c : toAdd) {
 //             if (c.getParent() == this) // currently needed to support re-dropping into an LWNode
 //                 continue;
             try {
+
+                // although a time-stamp will be set if one isn't already provided via
+                // the call to ensureID in addChildImpl, we do this here so that add
+                // events that involve a collection of nodes will provide the exact same
+                // timestamp for all the brand new nodes in the collection
+                if (c.getCreated() == 0)
+                    c.setCreated(timestamp);
+                
                 addChildImpl(c, context);
                 added.add(c);
             } catch (Throwable t) {
