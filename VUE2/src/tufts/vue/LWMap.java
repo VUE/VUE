@@ -59,7 +59,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.238 $ / $Date: 2009-06-01 01:10:24 $ / $Author: sfraize $
+ * @version $Revision: 1.239 $ / $Date: 2009-06-04 20:16:18 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -229,7 +229,8 @@ public class LWMap extends LWContainer
     }
     
     private void markDate() {
-        long time = System.currentTimeMillis();
+        final long time = System.currentTimeMillis();
+        super.setCreated(time);
         java.util.Date date = new java.util.Date( time);
         java.text.SimpleDateFormat df = new java.text.SimpleDateFormat("yyyy-MM-dd");
         String dateStr = df.format( date);
