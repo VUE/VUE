@@ -52,7 +52,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.471 $ / $Date: 2009-06-03 02:42:12 $ / $Author: sfraize $
+ * @version $Revision: 1.472 $ / $Date: 2009-06-04 20:15:03 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -219,8 +219,6 @@ public class LWComponent
             tufts.vue.gui.GUI.makeDataFlavor(Producer.class);
     }
 
-    
-
     /*
      * Meta-data persistant information
      */
@@ -254,6 +252,9 @@ public class LWComponent
     private URI uri;
     protected float width = NEEDS_DEFAULT;
     protected float height = NEEDS_DEFAULT;
+
+    /** creation time-stamp (when this node first joined a map) */
+    private long mCreated;
 
     /** cached affine transform for use by getZeroTransform() */
     private transient final AffineTransform _zeroTransform = new AffineTransform();
@@ -1235,6 +1236,17 @@ u                    getSlot(c).setFromString((String)value);
             return c.isCollapsed() ? Boolean.TRUE : Boolean.FALSE;
         }
     };
+
+    public static final Key KEY_Created =
+        new Key<LWComponent,Long>("created") {
+        @Override public Long getValue(LWComponent c) {
+            return c.getCreated();
+        }
+        @Override public String getStringValue(LWComponent c) {
+            return new Date(c.getCreated()).toString();
+        }
+    };
+    
     
     
     public final ColorProperty mFillColor = new ColorProperty(KEY_FillColor);
@@ -2100,6 +2112,15 @@ u                    getSlot(c).setFromString((String)value);
         return parent != null ; //|| hasFlag(Flag.INTERNAL);
     }
 
+    public void setCreated(final long time) {
+        //Log.debug(String.format("setCreated %s; %s", new Date(time), this));
+        mCreated = time;
+    }
+    
+    public long getCreated() {
+        return mCreated;
+    }
+
     /**
      * Called during restore from presistance, or when newly added to a container.
      * Must be called at some point before any attempt to persist, with a unique
@@ -2119,14 +2140,28 @@ u                    getSlot(c).setFromString((String)value);
         // to differentiate hierarchy events that are just reparentings from
         // new creation events.
 
-        notifyForce(LWKey.Created, new Undoable() {
-                void undo() {
-                    // parent may already have deleted it for us, so only delete if need be
-                    // todo performance: force parents to always handle this so can skip creating this event
-                    // (has impact when creating handling thousands of nodes)
-                    if (!isDeleted())
-                        removeFromModel();
-                }} );
+        if (!mXMLRestoreUnderway) {
+
+            // setting the creation time when the ID is set is appropriate because the
+            // ID is set whenever a node newly joins a map: e.g., a duplicate of a node
+            // will have it's ID re-set when it's added to a new map.  This is often
+            // still the fall-back though: LWContainer will apply the exact same stamp
+            // to collections of nodes that are newly added at the same time.
+            
+            if (mCreated == 0) {
+                if (DEBUG.Enabled) Log.debug("fallback timestamp: " + this);
+                setCreated(System.currentTimeMillis());
+            }
+            
+            notifyForce(LWKey.Created, new Undoable() {
+                    void undo() {
+                        // parent may already have deleted it for us, so only delete if need be
+                        // todo performance: force parents to always handle this so can skip creating this event
+                        // (has impact when creating handling thousands of nodes)
+                        if (!isDeleted())
+                            removeFromModel();
+                    }} );
+        }
     }
 
     
@@ -3145,10 +3180,12 @@ u                    getSlot(c).setFromString((String)value);
         mSyncClients.add(c);
     }
 
+    /** set the given component as the style for this object, applying it's style properties to us
+     * Note: this will force the STYLE bit to be set on parentStyle if it already isn't set
+     */
     public void setStyle(LWComponent parentStyle)
     {
         mParentStyle = parentStyle;
-        //parentStyle.isStyle = true;
         if (parentStyle == null)
             return;
         parentStyle.setFlag(Flag.STYLE);
