@@ -52,7 +52,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.472 $ / $Date: 2009-06-04 20:15:03 $ / $Author: sfraize $
+ * @version $Revision: 1.473 $ / $Date: 2009-06-04 20:41:29 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2112,9 +2112,15 @@ u                    getSlot(c).setFromString((String)value);
         return parent != null ; //|| hasFlag(Flag.INTERNAL);
     }
 
+    /** This should only be called once when added to the map, and on deserializations */
     public void setCreated(final long time) {
         //Log.debug(String.format("setCreated %s; %s", new Date(time), this));
+        if (mCreated != 0 && alive()) {
+            Log.warn("setCreated erasing " + mCreated + "=" + new Date(mCreated)
+                     + " with: " + time + "=" + new Date(time) + "; " + this);
+        }
         mCreated = time;
+
     }
     
     public long getCreated() {
