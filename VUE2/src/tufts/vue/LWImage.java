@@ -878,7 +878,9 @@ public class LWImage extends
     @Override
     protected void drawImpl(DrawContext dc)
     {
-    	if (!isSelected()) {
+    	LWComponent grandparent;
+
+    	if (!isSelected() && (parent == null || (!parent.isSelected() && ((grandparent = parent.parent) == null || !grandparent.isSelected())))) {
         	double	alpha =  PrototypePanel.getAlpha();
 
         	if (alpha != 1) {
