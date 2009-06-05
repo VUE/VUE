@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.245 $ / $Date: 2009-06-02 16:31:33 $ / $Author: brian $
+ * @version $Revision: 1.246 $ / $Date: 2009-06-05 21:31:22 $ / $Author: brian $
  * @author Scott Fraize
  */
 
@@ -2254,7 +2254,7 @@ public class LWNode extends LWContainer
     {
         final float renderScale = (float) dc.getAbsoluteScale();
 
-        if (!isSelected()) {
+        if (!isSelected() && (parent == null || !parent.isSelected())) {
         	double	alpha =  PrototypePanel.getAlpha();
 
         	if (alpha != 1) {
