@@ -188,7 +188,7 @@ public class Actions implements VueConstants
         	return null;
 		
     }
-    /*          
+      /*     
     public static final VueAction ZoteroAction =
     	new VueAction("Import Zotero collection") {
 		public void act() 
@@ -206,7 +206,7 @@ public class Actions implements VueConstants
 
 		}
     };
-*/ 
+*/
     public static final VueAction SpeakerNotes1 =
     	new VueAction(VueResources.getString("menu.file.exporthandout.speakernotes1")) {
 		public void act() 
@@ -1200,14 +1200,18 @@ public class Actions implements VueConstants
                 if (option == null || option.length() <= 0)
                     return;
                 
-                if (option.indexOf("?") > 0)
+                /*
+                 * At one point I was trying to do something clever if you tried to type a url with GET parameters
+                 * into the Add URL box but it seems to have caused more problems then it solved at this point.
+                 */
+               /* if (option.indexOf("?") > 0)
                 {
                 	String encoded = option.substring(option.indexOf("?")+1);
-                
+                	
                 	encoded = URLEncoder.encode(encoded);
 
                 	option = option.substring(0,option.indexOf("?")+1) + encoded;
-                }
+                }*/
               //  if (!option.startsWith("http://") || !option.startsWith("https://") || !option.startsWith("file://"))
                 //	option = "http://" + option;
                 //int option = chooser.showOpenDialog(tufts.vue.VUE.getDialogParent());
@@ -1659,7 +1663,8 @@ public class Actions implements VueConstants
             //return s.size() >= 2 && s.allHaveSameParent();
             
             // below condition doesn't allow explicit grouping of links -- was this causing trouble somewhere?
-            return ((s.size() - s.count(LWLink.class)) >= 2 && s.allHaveSameParent() && !(VUE.getActiveViewer().getFocal() instanceof LWSlide));
+         
+        	return ((s.size() - s.count(LWLink.class)) >= 2 && s.allHaveSameParent() && !(VUE.getActiveViewer().getFocal() instanceof LWSlide));
         }
         void act(LWSelection s) {
             if (s.size() == 2 && s.count(LWGroup.class) == 1) {
