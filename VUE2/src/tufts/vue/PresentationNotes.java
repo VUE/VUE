@@ -1047,46 +1047,55 @@ public class PresentationNotes {
             
 			int entryCount=1;
 			float indentation = 0.0f;
-            Iterator it = VUE.getActiveMap().getNodeIterator();
+			Iterator it = VUE.getActiveMap().getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
+			
             while (it.hasNext())            
             {
-            	LWNode n = (LWNode)it.next();
-            	outlineChildNode(document, indentation, n, entryCount);
-            	entryCount++;
-            	iterateChildren(document,indentation+10,n,1);
+            	LWComponent c = (LWComponent)it.next();
+            	if (c instanceof LWNode)
+            	{
+            		LWNode n = (LWNode)c;
+            		outlineChildNode(document, indentation, n, entryCount);
+            		entryCount++;
+            		iterateChildren(document,indentation+10,n,1);
+            	}
                 
             }
             
-            it = VUE.getActiveMap().getLinkIterator();
+            it = VUE.getActiveMap().getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
             while (it.hasNext())            
             {
-            	LWLink l = (LWLink)it.next();
-                String notes = l.getNotes();
-                String linkLabel = l.getLabel();
-                
-                if ((notes == null || notes.length() == 0) && (linkLabel == null || linkLabel.length() ==0))
-                	continue;
-                
-                if (linkLabel == null || linkLabel.length()==0)
-                	linkLabel = "Link";
-                
-                Paragraph p = new Paragraph(entryCount + ".  " + linkLabel.replaceAll("\\n",""));
-                f = p.getFont();
-                f.setStyle(Font.BOLD);
-                f.setSize(14f);
-                p.setFont(f);
-                Paragraph notesP = new Paragraph(notes);
-                
-                
-               // f = notesP.getFont();
-			//	f.setSize(f.getSize()-2);
-                notesP.setIndentationLeft(30.0f);                
-                notesP.setSpacingAfter(15.0f);
-                document.add(p);
-                document.add(notesP);
-                
-                
-                entryCount++;
+            	LWComponent c = (LWComponent)it.next();
+            	if (c instanceof LWLink)
+            	{
+	            	LWLink l = (LWLink)c;
+	                String notes = l.getNotes();
+	                String linkLabel = l.getLabel();
+	                
+	                if ((notes == null || notes.length() == 0) && (linkLabel == null || linkLabel.length() ==0))
+	                	continue;
+	                
+	                if (linkLabel == null || linkLabel.length()==0)
+	                	linkLabel = "Link";
+	                
+	                Paragraph p = new Paragraph(entryCount + ".  " + linkLabel.replaceAll("\\n",""));
+	                f = p.getFont();
+	                f.setStyle(Font.BOLD);
+	                f.setSize(14f);
+	                p.setFont(f);
+	                Paragraph notesP = new Paragraph(notes);
+	                
+	                
+	               // f = notesP.getFont();
+				//	f.setSize(f.getSize()-2);
+	                notesP.setIndentationLeft(30.0f);                
+	                notesP.setSpacingAfter(15.0f);
+	                document.add(p);
+	                document.add(notesP);
+	                
+	                
+	                entryCount++;
+            	}
             }
             
             
