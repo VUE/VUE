@@ -47,7 +47,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.75 $ / $Date: 2009-06-04 20:50:57 $ / $Author: sfraize $
+ * @version $Revision: 1.76 $ / $Date: 2009-06-06 21:12:47 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -1216,7 +1216,11 @@ public class DataTree extends javax.swing.JTree
             // probably makes more sense.
             
             if (values.size() > 1) {
-                buildValueChildren(field, fieldNode);
+                try {
+                    buildValueChildren(field, fieldNode);
+                } catch (Throwable t) {
+                    Log.error("building child values for: " + Util.tags(field) + "; " + Util.tags(fieldNode), t);
+                }
             }
             
         }
