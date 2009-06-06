@@ -595,7 +595,8 @@ public class MetaDataPane extends tufts.vue.gui.Widget
 
             if (Resource.isHiddenPropertyKey(labelText)) {
 
-                if (DEBUG.DR || DEBUG.DATA) {
+                //if (DEBUG.DR || DEBUG.DATA) {
+                if (DEBUG.Enabled) {
                     // Allow hidden properties to be seen
                 } else {
                     // default: hide the hidden property
