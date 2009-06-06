@@ -36,7 +36,7 @@ import com.google.common.collect.Iterators;
  * The insertion order of each key/value is preserved, even for each use of
  * the same key with different values.
  *
- * @version $Revision: 1.12 $ / $Date: 2009-04-16 17:55:32 $ / $Author: sfraize $
+ * @version $Revision: 1.13 $ / $Date: 2009-06-06 21:12:26 $ / $Author: sfraize $
  */
 
 public class MetaMap implements TableBag, XMLUnmarshalListener
@@ -273,11 +273,16 @@ public class MetaMap implements TableBag, XMLUnmarshalListener
     }
 
     private static Object extractFirstValue(Object o) {
+        
+        //Log.debug("extracing 1st value from: " + Util.tags(o));
+        
         if (o instanceof Collection) {
-            // in practice, this is the case that always occurrs with the current google
-            // collections impl
+
+            // In practice, this is the case that always occurrs with the current google
+            // collections impl -- we usually see an instance of:
+            // com.google.common.collect.StandardMultimap$WrappedSet
             
-            // todo performance: this is a terrible waste much of the time.  When there
+            // Todo performance: this is a terrible waste much of the time.  When there
             // are no repeat values for a given key, we must construct and run an
             // iterator just to extract the single value.  Hope for an optimized version
             // of Multimaps from google that automatically handle this. SMF 2008-12-03
@@ -289,13 +294,16 @@ public class MetaMap implements TableBag, XMLUnmarshalListener
             else
                 return bag.iterator().next();
         }
-        else if (o instanceof List) {
-            //Log.debug("extracting from List "  + Util.tags(o));
-            final List list = (List) o;
-            return list.isEmpty() ? null : list.get(0);
-        }
-        else
+//         // placed here this case will never be used: all instances of List are instances of Collection
+//         else if (o instanceof List) {
+//             //Log.debug("extracting from List "  + Util.tags(o));
+//             final List list = (List) o;
+//             return list.isEmpty() ? null : list.get(0);
+//         }
+        else {
+            if (DEBUG.Enabled) Log.debug("extracing 1st value as is (no collection): " + Util.tags(o));
             return o;
+        }
     }
 
     public Object get(String key) {
