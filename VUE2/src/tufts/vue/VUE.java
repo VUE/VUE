@@ -118,7 +118,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.661 $ / $Date: 2009-06-08 21:25:32 $ / $Author: sfraize $ 
+ * @version $Revision: 1.662 $ / $Date: 2009-06-08 21:44:51 $ / $Author: brian $ 
  */
 
 public class VUE
@@ -2051,7 +2051,7 @@ public class VUE
         //-----------------------------------------------------------------------------
         if (prototypeDock == null || VUE.isApplet())
         {
-        	prototypeDock = GUI.createDockWindow("Prototype");
+        	prototypeDock = GUI.createDockWindow(VueResources.getString("dockWindow.interactionTools.title"));
         	prototypePanel = new PrototypePanel(prototypeDock);
         }
       //-----------------------------------------------------------------------------
