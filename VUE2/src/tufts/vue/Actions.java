@@ -416,15 +416,6 @@ public class Actions implements VueConstants
         };
 
 
-        public static final Action PrototypePanelAction =
-            new VueAction("Prototype Panel") {
-        		
-                public void act() {             	
-                    VUE.getPrototypePanel().setVisible(true);   
-                }
-            };
-
-
     //-------------------------------------------------------
     // Alternative View actions
     //-------------------------------------------------------
