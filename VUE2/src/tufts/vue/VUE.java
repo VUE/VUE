@@ -118,7 +118,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.659 $ / $Date: 2009-05-26 21:37:57 $ / $Author: brian $ 
+ * @version $Revision: 1.660 $ / $Date: 2009-06-08 21:21:54 $ / $Author: brian $ 
  */
 
 public class VUE
@@ -210,6 +210,7 @@ public class VUE
     	layersDock = null;
     	metadataSearchMainPanel = null;
     	mergeMapsControlPanel = null;
+    	prototypePanel = null;
 
     }
     /** simplest form of threadsafe static lazy initializer: for CategoryModel */
