@@ -20,6 +20,7 @@ import javax.swing.event.ChangeListener;
 
 import tufts.vue.gui.DockWindow;
 import tufts.vue.gui.GUI;
+import tufts.vue.gui.WidgetStack;
 
 public class PrototypePanel extends JPanel implements ChangeListener {
 	public static final long		serialVersionUID = 1;
@@ -30,17 +31,15 @@ public class PrototypePanel extends JPanel implements ChangeListener {
 									zoomMapButton = null;
 	protected static JSlider		fadeSlider = null;
 	protected static JLabel			fadeLabel = null;
+	protected JPanel				zoomPanel = null,
+									fadePanel = null;
+    protected WidgetStack			widgetStack = null;
 
 	public PrototypePanel(DockWindow dw) {
 		GridBagConstraints	constraints = new GridBagConstraints();
-		JPanel				zoomPanel = new JPanel(),
-							linePanel = null,
-							fadePanel = new JPanel();
 		Insets				halfGutterInsets = new Insets(HALF_GUTTER, HALF_GUTTER, HALF_GUTTER, HALF_GUTTER);
 
 		setLayout(new GridBagLayout());
-		zoomPanel.setLayout(new GridBagLayout());
-		fadePanel.setLayout(new GridBagLayout());
 
 		constraints.fill = GridBagConstraints.HORIZONTAL;
 		constraints.weightx = 0.0;
@@ -51,6 +50,9 @@ public class PrototypePanel extends JPanel implements ChangeListener {
 		constraints.gridwidth = 1;
 		constraints.insets = halfGutterInsets;
 		
+		zoomPanel = new JPanel();
+		zoomPanel.setLayout(new GridBagLayout());
+
 		zoomSelButton = new JButton();
 		zoomSelButton.setAction(tufts.vue.Actions.ZoomToSelection);
 		zoomPanel.add(zoomSelButton, constraints);
@@ -66,6 +68,9 @@ public class PrototypePanel extends JPanel implements ChangeListener {
 		constraints.gridy = 0;
 		constraints.gridheight = 2;
 		zoomPanel.add(zoomLockCheckBox, constraints);
+
+		fadePanel = new JPanel();
+		fadePanel.setLayout(new GridBagLayout());
 
 		fadeLabel = new JLabel("Opacity");
 
@@ -91,34 +96,10 @@ public class PrototypePanel extends JPanel implements ChangeListener {
 		constraints.gridx = 1;
 		fadePanel.add(fadeSlider, constraints);
 
-		constraints.fill = GridBagConstraints.BOTH;
-		constraints.weightx = 1.0;
-		constraints.weighty = 1.0;
-		constraints.insets = new Insets(HALF_GUTTER, HALF_GUTTER, 0, HALF_GUTTER);
-		add(zoomPanel, constraints);
-
-		linePanel = new JPanel() {
-			public static final long		serialVersionUID = 1;
-			protected void paintComponent(java.awt.Graphics g) {
-				if (isOpaque()) {
-					g.setColor(getBackground());
-					g.fillRect(0, 0, getWidth(), getHeight());
-				}
-
-				g.setColor(java.awt.Color.DARK_GRAY);
-				g.drawLine(HALF_GUTTER, getHeight() / 2, getWidth() - HALF_GUTTER - 1, getHeight() / 2);
-			}
-		};
-
-		constraints.gridy = 1;
-		constraints.insets = new Insets(0, HALF_GUTTER, 0, HALF_GUTTER);
-		add(linePanel, constraints);
-
-		constraints.gridy = 2;
-		constraints.insets = new Insets(0, HALF_GUTTER, HALF_GUTTER, HALF_GUTTER);
-		add(fadePanel, constraints);
-
-		dw.setContent(this);
+		widgetStack = new WidgetStack("Interaction Tools");
+		widgetStack.addPane("Opacity and Extended Selection", fadePanel);
+		widgetStack.addPane("Zoom", zoomPanel);
+		dw.setContent(widgetStack);
 
 		validate();
 
@@ -135,8 +116,6 @@ public class PrototypePanel extends JPanel implements ChangeListener {
 			fadeSlider.setOpaque(true);
 			zoomPanel.setBackground(Color.ORANGE);
 			zoomPanel.setOpaque(true);
-			linePanel.setBackground(Color.ORANGE);
-			linePanel.setOpaque(true);
 			fadePanel.setBackground(Color.ORANGE);
 			fadePanel.setOpaque(true);
 		}
@@ -150,6 +129,9 @@ public class PrototypePanel extends JPanel implements ChangeListener {
 		zoomMapButton = null;
 		fadeSlider = null;
 		fadeLabel = null;
+		zoomPanel = null;
+		fadePanel = null;
+	    widgetStack = null;
 	}
 
 	public static void zoomIfLocked() {
