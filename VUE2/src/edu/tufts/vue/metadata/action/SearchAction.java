@@ -17,6 +17,7 @@
 package edu.tufts.vue.metadata.action;
 
 import edu.tufts.vue.rdf.*;
+import edu.tufts.vue.layout.Cluster2Layout;
 import edu.tufts.vue.metadata.*;
 
 import java.awt.event.*;
@@ -55,6 +56,7 @@ public class SearchAction extends AbstractAction {
     public static final int HIDE_ACTION = 1;
     public static final int SELECT_ACTION = 2;
     public static final int COPY_ACTION = 3;
+    public static final int CLUSTER_ACTION = 4;
     
     public static final int SEARCH_SELECTED_MAP = 0;
     public static final int SEARCH_ALL_OPEN_MAPS = 1;
@@ -855,14 +857,14 @@ public class SearchAction extends AbstractAction {
             comps.addAll(groupDescendants);
         }
         
-        if(resultsType == HIDE_ACTION || resultsType == SELECT_ACTION)
+        if(resultsType == HIDE_ACTION || resultsType == SELECT_ACTION || resultsType == CLUSTER_ACTION)
         {    
             
           Iterator<LWComponent> it3 = comps.iterator();  
             
           while(it3.hasNext())
           {
-             if(resultsType == SELECT_ACTION)
+             if(resultsType == SELECT_ACTION || resultsType == CLUSTER_ACTION)
              {
                if(MARQUEE == false)
                {
@@ -966,6 +968,12 @@ public class SearchAction extends AbstractAction {
           globalHides = comps; 
         }    
         
+        if (resultsType == CLUSTER_ACTION) {
+        	Cluster2Layout layout = new Cluster2Layout();
+
+        	layout.layout(VUE.getSelection());
+        }
+
         // also need to save last results type...
         globalResultsType = resultsType;
         
@@ -1051,12 +1059,14 @@ public class SearchAction extends AbstractAction {
     {
         if(type.equals(VueResources.getString("searchgui.show")))
             resultsType = SHOW_ACTION;
-        if(type.equals(VueResources.getString("searchgui.hide")))
+        else if(type.equals(VueResources.getString("searchgui.hide")))
             resultsType = HIDE_ACTION;
-        if(type.equals(VueResources.getString("searchgui.select")))
+        else if(type.equals(VueResources.getString("searchgui.select")))
             resultsType = SELECT_ACTION;
-        if(type.equals(VueResources.getString("searchgui.copynewmap")))
+        else if(type.equals(VueResources.getString("searchgui.copynewmap")))
             resultsType = COPY_ACTION;
+        else if(type.equals(VueResources.getString("searchgui.cluster")))
+            resultsType = CLUSTER_ACTION;
         
         //globalResultsType = resultsType;
     }
