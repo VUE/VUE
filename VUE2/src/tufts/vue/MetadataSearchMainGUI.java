@@ -79,7 +79,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.53 $ / $Date: 2009-05-15 19:55:10 $ / $Author: Sheejo
+ * @version $Revision: 1.54 $ / $Date: 2009-06-08 18:10:24 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -140,7 +140,7 @@ public class MetadataSearchMainGUI extends JPanel
     private String[] locationTypes = { SELECTED_MAP_STRING, ALL_MAPS_STRING };
     private boolean singleLine = false;
 
-    private String[] currentMapResultsTypes = { VueResources.getString("searchgui.show"), VueResources.getString("searchgui.hide"), VueResources.getString("searchgui.select"),
+    private String[] currentMapResultsTypes = { VueResources.getString("searchgui.select"), VueResources.getString("searchgui.show"), VueResources.getString("searchgui.hide"),
     		VueResources.getString("searchgui.copynewmap") };
     static public final int ANY_MODE = 0;
     static public final int ALL_MODE = 1;
@@ -730,9 +730,6 @@ public class MetadataSearchMainGUI extends JPanel
             JComboBox newCombo = new JComboBox(choices);
             newCombo.setFont(tufts.vue.gui.GUI.LabelFace);
             newCombo.addItemListener(listener);
-            if (choices.length > 2 && choices[2].equals("Select")) {
-                newCombo.setSelectedIndex(2);
-            }
             comboBoxes.add(newCombo);
             return newCombo;
         }
