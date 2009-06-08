@@ -118,7 +118,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.662 $ / $Date: 2009-06-08 21:44:51 $ / $Author: brian $ 
+ * @version $Revision: 1.663 $ / $Date: 2009-06-08 22:12:33 $ / $Author: brian $ 
  */
 
 public class VUE
@@ -1850,6 +1850,7 @@ public class VUE
         	pannerDock.positionWindowFromProperties();
         	MapInspector.positionWindowFromProperties();
         	metaDataSearchDock.positionWindowFromProperties();
+        	prototypeDock.positionWindowFromProperties();
         	mergeMapsDock.positionWindowFromProperties();
         	ontologyDock.positionWindowFromProperties();
         	ObjectInspector.positionWindowFromProperties();
@@ -3002,6 +3003,7 @@ public class VUE
         MapInspector.saveWindowProperties();
         ObjectInspector.saveWindowProperties();
         metaDataSearchDock.saveWindowProperties();
+        prototypeDock.saveWindowProperties();
         mergeMapsDock.saveWindowProperties();
         if (outlineDock != null)
             outlineDock.saveWindowProperties();
