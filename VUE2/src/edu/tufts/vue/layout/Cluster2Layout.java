@@ -44,7 +44,7 @@ public class Cluster2Layout extends Layout {
 			.getInt("layout.miny_radius");
 	public static final int X_SPACING = VueResources.getInt("layout.x_spacing");
 	public static final int Y_SPACING = VueResources.getInt("layout.y_spacing");
-	public static final double FACTOR = 2;
+	public static final double FACTOR = 2.5;
 	public static final int MAX_COLLISION_CHECK = VueResources
 			.getInt("layout.check_overlap_number");
 
@@ -79,6 +79,7 @@ public class Cluster2Layout extends Layout {
 					maxDistance = distance;
 			}
 		}
+	 
 		double radius = Math.sqrt((area * FACTOR / Math.PI));
 		// move nodes in selection
 		Iterator<LWComponent> i = VUE.getActiveMap().getAllDescendents(
@@ -100,7 +101,7 @@ public class Cluster2Layout extends Layout {
 					double shiftRange = 3 * radius;
 //					System.out.println(node.getLabel()+"\t"+radius+"\t"+shiftRange);
 					if (dist < shiftRange) {
-						double newDist = dist + (shiftRange - dist) * radius
+						double newDist = dist +(shiftRange - dist) * radius
 								/ shiftRange;
 						double newX = centerX + newDist * Math.cos(angle);
 						double newY = centerY - newDist * Math.sin(angle);
