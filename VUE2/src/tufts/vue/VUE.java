@@ -118,7 +118,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.660 $ / $Date: 2009-06-08 21:21:54 $ / $Author: brian $ 
+ * @version $Revision: 1.661 $ / $Date: 2009-06-08 21:25:32 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -3813,8 +3813,7 @@ public class VUE
                 
               }
         }catch(Throwable t) {
-            Log.error("Error Checking latest VUE release"+t.getMessage());
-            t.printStackTrace();
+            Log.error("Error Checking latest VUE release:", t);
         }
    }
 
