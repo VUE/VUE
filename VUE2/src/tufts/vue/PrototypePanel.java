@@ -62,7 +62,7 @@ public class PrototypePanel extends JPanel implements ChangeListener {
 		constraints.gridy = 1;
 		zoomPanel.add(zoomMapButton, constraints);
 
-		zoomLockCheckBox = new JCheckBox("Lock On");
+		zoomLockCheckBox = new JCheckBox(VueResources.getString("interactionTools.auto"));
 		zoomLockCheckBox.addChangeListener(this);
 		constraints.gridx = 1;
 		constraints.gridy = 0;
@@ -72,7 +72,7 @@ public class PrototypePanel extends JPanel implements ChangeListener {
 		fadePanel = new JPanel();
 		fadePanel.setLayout(new GridBagLayout());
 
-		fadeLabel = new JLabel("Opacity");
+		fadeLabel = new JLabel(VueResources.getString("interactionTools.opacity"));
 
 		constraints.gridx = 0;
 		constraints.gridheight = 1;
@@ -80,8 +80,8 @@ public class PrototypePanel extends JPanel implements ChangeListener {
 
 		fadeSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 0);
 
-		JLabel		label100 = new JLabel("100%");
-		JLabel		label0 = new JLabel("0%");
+		JLabel		label100 = new JLabel(VueResources.getString("interactionTools.oneHundredPercent"));
+		JLabel		label0 = new JLabel(VueResources.getString("interactionTools.zeroPercent"));
 		Hashtable	labelTable = new Hashtable();
 
 		labelTable.put(new Integer( 0 ), label100);
@@ -96,9 +96,9 @@ public class PrototypePanel extends JPanel implements ChangeListener {
 		constraints.gridx = 1;
 		fadePanel.add(fadeSlider, constraints);
 
-		widgetStack = new WidgetStack("Interaction Tools");
-		widgetStack.addPane("Opacity and Extended Selection", fadePanel);
-		widgetStack.addPane("Zoom", zoomPanel);
+		widgetStack = new WidgetStack(VueResources.getString("dockWindow.interactionTools.title"));
+		widgetStack.addPane(VueResources.getString("interactionTools.fadeAndDepthWidget"), fadePanel);
+		widgetStack.addPane(VueResources.getString("interactionTools.zoomWidget"), zoomPanel);
 		dw.setContent(widgetStack);
 
 		validate();
