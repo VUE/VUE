@@ -137,6 +137,7 @@ public class ClusterLayout extends Layout {
 	}
 
 	public void layout(LWSelection selection) {
+		System.out.println("Applying the cluster layout");
 		HashMap<LWComponent, ArrayList<LWComponent>> clusterMap = new HashMap<LWComponent, ArrayList<LWComponent>>();
 		double minX = Double.POSITIVE_INFINITY;
 		double minY = Double.POSITIVE_INFINITY;
@@ -196,36 +197,38 @@ public class ClusterLayout extends Layout {
 			if (clusterSize > maxClusterSize)
 				maxClusterSize = clusterSize;
 		}
-		double maxRadius = Math.sqrt(FACTOR * maxClusterSize * maxNodeWidth
-				* maxNodeHeight / Math.PI);
+//		double maxRadius = Math.sqrt(FACTOR * maxClusterSize * maxNodeWidth * maxNodeHeight / Math.PI);
 		double x = minX;
 		double y = minY;
 		mod = (int) Math.ceil(Math.sqrt((double) total));
-
+        //TODO: need to place the central nodes better
 		iter = selection.iterator();
 		// making the clusters
 		while (iter.hasNext()) {
 			LWComponent c = iter.next();
 			if (c instanceof LWNode) {
+				
 				LWNode node = (LWNode) c;
+				double radius = Math.sqrt(FACTOR * clusterMap.get(node).size()* maxNodeWidth * maxNodeHeight / Math.PI);
+				
 				// int totalLinked = clusterMap.get(node).size();
 				total++;
 				if (count % mod == 0) {
 					if (count != 0) {
-						double increment = 2 * (maxRadius+maxNodeHeight+Y_SPACING);  
+						double increment = 2 * (radius+maxNodeHeight+Y_SPACING);  
 						y += increment;
 					}
 					x = minX;
 				} else {
-					double increment = 2 * (maxRadius+maxNodeWidth+X_SPACING);
+					double increment = 2 * (radius+maxNodeWidth+X_SPACING);
 					x += increment;
 				}
 				count++;
 				double nodeWidth = node.getWidth();
 				double nodeHeight = node.getHeight();
 				node.setLocation(x - nodeWidth / 2, y - nodeHeight / 2);
-				System.out.println("Placed node: " + node.getLabel() + " at "
-						+ x + "," + y);
+//				System.out.println("Placed node: " + node.getLabel() + " at "
+//						+ x + "," + y);
 				// place linked nodes
 
 				int countLinked = 0;
@@ -234,9 +237,10 @@ public class ClusterLayout extends Layout {
 				for (LWComponent linkedNode : clusterMap.get(node)) {
 					// LWNode nodeLinked = (LWNode)c;
 					double angle = Math.PI * 2 * Math.random();
-					double radiusX = maxRadius
+					
+					double radiusX = radius
 							* (1 - Math.pow(Math.random(), 2.0)) + nodeWidth;
-					double radiusY = maxRadius
+					double radiusY =radius
 							* (1 - Math.pow(Math.random(), 2.0)) + nodeHeight;
 					double xLinkedNode = x + radiusX * Math.cos(angle);
 					double yLinkedNode = y + radiusY * Math.sin(angle);
@@ -254,10 +258,10 @@ public class ClusterLayout extends Layout {
 								|| (VUE.getActiveViewer().pickNode(
 										(float) x + node.getWidth(), (float) y) != null)) {
 							angle = Math.PI * 2 * Math.random();
-							radiusX = maxRadius
+							radiusX =  radius
 									* (1 - Math.pow(Math.random(), 2.0))
 									+ nodeWidth;
-							radiusY = maxRadius
+							radiusY =  radius
 									* (1 - Math.pow(Math.random(), 2.0))
 									+ nodeHeight;
 							xLinkedNode = x + radiusX * Math.cos(angle);
