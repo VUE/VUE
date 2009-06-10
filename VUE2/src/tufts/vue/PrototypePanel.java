@@ -72,7 +72,8 @@ public class PrototypePanel extends JPanel implements ActionListener, ChangeList
 
 		fadeSlider.setLabelTable(labelTable);
 		fadeSlider.setPaintLabels(true);
-		fadeSlider.setPaintTicks(false);
+//		fadeSlider.setPaintTicks(true);
+//		fadeSlider.setMajorTickSpacing(20);
 		fadeSlider.setPreferredSize(sliderSize);
 		fadeSlider.addChangeListener(this);
 		fadeSlider.setToolTipText(VueResources.getString("interactionTools.opacity.toolTip"));
@@ -108,9 +109,10 @@ public class PrototypePanel extends JPanel implements ActionListener, ChangeList
         labelTable.put(new Integer( 5 ), label5);
         depthSlider.setLabelTable(labelTable);
         depthSlider.setPaintLabels(true);
-        depthSlider.setPreferredSize(sliderSize);
         depthSlider.setSnapToTicks(true);
+        depthSlider.setPreferredSize(sliderSize);
         depthSlider.addChangeListener(depthListener);        
+        depthSlider.setToolTipText(VueResources.getString("interactionTools.depth.toolTip"));
         VUE.getSelection().addListener(depthListener);
 
         addToGridBag(fadeInnerPanel, depthSlider, 1, 1, 1, 1, halfGutterInsets);
@@ -138,6 +140,7 @@ public class PrototypePanel extends JPanel implements ActionListener, ChangeList
 		addToGridBag(zoomInnerPanel, zoomMapLabel, 0, 1, 1, 1, GridBagConstraints.LINE_END, halfGutterInsets);
 
 		zoomMapButton = new JButton();
+		zoomMapButton.setPreferredSize(zoomSelButton.getPreferredSize());
 		zoomMapButton.setFont(tufts.vue.gui.GUI.LabelFace);
 		zoomMapButton.setText(VueResources.getString("interactionTools.zoomMap"));
 		zoomMapButton.setToolTipText(VueResources.getString("interactionTools.zoomMap.toolTip"));
@@ -158,8 +161,10 @@ public class PrototypePanel extends JPanel implements ActionListener, ChangeList
 			}
 		};
 
-		linePanel.setPreferredSize(new Dimension(2 * GUTTER, (2 * zoomMapButton.getPreferredSize().height) + GUTTER));
-		linePanel.setMinimumSize(linePanel.getPreferredSize());
+		Dimension	linePanelSize = new Dimension(2 * GUTTER, (2 * zoomMapButton.getPreferredSize().height) + GUTTER);
+
+		linePanel.setPreferredSize(linePanelSize);
+		linePanel.setMinimumSize(linePanelSize);
 		addToGridBag(zoomInnerPanel, linePanel, 2, 0, 1, 2, halfGutterInsets);
 
 		zoomLockCheckBox = new JCheckBox(VueResources.getString("interactionTools.auto"));
@@ -182,6 +187,8 @@ public class PrototypePanel extends JPanel implements ActionListener, ChangeList
 		if (DEBUG) {
 			fadeSlider.setBackground(Color.CYAN);
 			fadeSlider.setOpaque(true);
+			depthSlider.setBackground(Color.CYAN);
+			depthSlider.setOpaque(true);
 			zoomSelButton.setBackground(Color.CYAN);
 			zoomSelButton.setOpaque(true);
 			zoomMapButton.setBackground(Color.CYAN);
