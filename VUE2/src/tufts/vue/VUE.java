@@ -118,7 +118,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.663 $ / $Date: 2009-06-08 22:12:33 $ / $Author: brian $ 
+ * @version $Revision: 1.664 $ / $Date: 2009-06-10 18:46:54 $ / $Author: brian $ 
  */
 
 public class VUE
@@ -171,8 +171,8 @@ public class VUE
     private static SearchTextField mSearchtextFld = new SearchTextField();
     public static final int FIRST_TAB_STOP = 6;   
     //public static JCheckBoxMenuItem  resetSettingsMenuItem;
-    public static JSlider depthSelectionSlider = new JSlider(JSlider.HORIZONTAL, 0, 5, 0);
-    public static JPanel sliderSearchPanel = new JPanel(new FlowLayout());  
+    public static JSlider depthSelectionSlider = new JSlider(JSlider.HORIZONTAL, 0, 5, 0); // unused but referenced from many files
+    public static JPanel searchPanel = new JPanel(new FlowLayout());  
     public static void finalizeDocks()
     {
     
@@ -2235,15 +2235,12 @@ public class VUE
 								VUE.getActiveViewer().getFocal() instanceof LWGroup))
 				{
 					returnToMapButton.setVisible(true);					
-					depthSelectionSlider.setVisible(false);
 				}
 				else
 					returnToMapButton.setVisible(false);				    
-					depthSelectionSlider.setVisible(true);
 			}
         }); 
         returnToMapButton.setVisible(false);
-        depthSelectionSlider.setVisible(true);
 		gBC.fill = GridBagConstraints.BOTH;			
 		gBC.gridx = 1;
 		gBC.gridy = 0;
@@ -2309,55 +2306,16 @@ public class VUE
 //        
         //searchPanel.setBorder(BorderFactory.createLineBorder(Color.red,1));
         //sliderSearchPanel = new JPanel(new FlowLayout());         
-       
-        JLabel zeroLabel = new JLabel("0");
-        JLabel oneLabel = new JLabel("1");
-        JLabel twoLabel = new JLabel("2");
-        JLabel threeLabel = new JLabel("3");
-        JLabel fourLabel = new JLabel("4");
-        JLabel fiveLabel = new JLabel("5");
-        Hashtable labelTable = new Hashtable();
-
-        zeroLabel.setFont(tufts.vue.gui.GUI.LabelFace);
-        oneLabel.setFont(tufts.vue.gui.GUI.LabelFace);
-        twoLabel.setFont(tufts.vue.gui.GUI.LabelFace);
-        threeLabel.setFont(tufts.vue.gui.GUI.LabelFace);
-        fourLabel.setFont(tufts.vue.gui.GUI.LabelFace);
-        fiveLabel.setFont(tufts.vue.gui.GUI.LabelFace);
-
-        zeroLabel.setForeground(Color.DARK_GRAY);
-        oneLabel.setForeground(Color.DARK_GRAY);
-        twoLabel.setForeground(Color.DARK_GRAY);
-        threeLabel.setForeground(Color.DARK_GRAY);
-        fourLabel.setForeground(Color.DARK_GRAY);
-        fiveLabel.setForeground(Color.DARK_GRAY);
-
-        labelTable.put(new Integer( 0 ), zeroLabel);
-        labelTable.put(new Integer( 1 ), oneLabel);
-        labelTable.put(new Integer( 2 ), twoLabel);
-        labelTable.put(new Integer( 3 ), threeLabel);
-        labelTable.put(new Integer( 4 ), fourLabel);
-        labelTable.put(new Integer( 5 ), fiveLabel);
-        
-        depthSelectionSlider.setLabelTable(labelTable);
-        depthSelectionSlider.setSnapToTicks(true);
-
+               
         //framesPerSecond.setMajorTickSpacing(6);
 
         //framesPerSecond.setPaintTicks(true);
-        depthSelectionSlider.setPaintLabels(true);
-        depthSelectionSlider.setPreferredSize(new Dimension(130,35));
-        DepthSelectionListener depthListener = new DepthSelectionListener();        
-        depthSelectionSlider.addChangeListener(depthListener);        
-        VUE.getSelection().addListener(depthListener);
-        //For hiding deep search slider bar     
-        sliderSearchPanel.add(depthSelectionSlider);
-        sliderSearchPanel.add(new JLabel(" "));
+        searchPanel.add(new JLabel(" "));
         //mSearchtextFld.setPreferredSize(new Dimension(200,23));
-        sliderSearchPanel.add(mSearchtextFld);
-        sliderSearchPanel.add(new JLabel(" "));
+        searchPanel.add(mSearchtextFld);
+        searchPanel.add(new JLabel(" "));
         //panel.setPreferredSize(new Dimension(430,40));
-		toolbarPanel.add( sliderSearchPanel  , SwingConstants.LEFT);		
+		toolbarPanel.add( searchPanel  , SwingConstants.LEFT);		
         if (DEBUG.INIT) out("created ToolBar");
         
         return toolbarPanel;
@@ -4051,151 +4009,6 @@ public class VUE
 		else
 			return defaultColor;
 	}	
-
-	static class DepthSelectionListener implements ChangeListener, LWSelection.Listener {
-		HashSet<LWComponent>	userSelection = new HashSet<LWComponent>(),	// LWComponents selected by the user
-								deepSelection = new HashSet<LWComponent>();	// LWComponents selected by this class
-		int						previousDepth = 0;
-		boolean					ignoreSelectionEvents = false;
-
-		DepthSelectionListener() {
-		}
-
-		// ChangeListener method for depthSelectionSlider
-		public void stateChanged(ChangeEvent event) {
-			JSlider	source = (JSlider)event.getSource();
-
-			if (!source.getValueIsAdjusting()) {
-				GUI.invokeAfterAWT(sliderMoved);
-			}
-		}
-
-		// LWSelection.Listener method
-		public void selectionChanged(LWSelection selection) {
-			if (VUE.depthSelectionSlider.getValue() > 0 && !ignoreSelectionEvents) {
-				// Changes to selection can't be made now;  must be done after listener notification completes.
-				GUI.invokeAfterAWT(selectionChanged);
-			}
-			else {
-				PrototypePanel.zoomIfLocked();
-			}
-		}
-
-		Runnable sliderMoved = new Runnable() {
-			public void run() {
-				try {
-					LWSelection	guiSelection = VUE.getSelection();
-					int			depth = VUE.depthSelectionSlider.getValue();
-
-					ignoreSelectionEvents = true;
-
-					if (previousDepth == 0) {
-						// userSelection will be empty;  set it to the GUI's current selection.
-						userSelection.addAll(guiSelection);
-					} else {
-						// deepSelection will be recomputed below (if previousDepth is 0, it's already empty).
-						deepSelection.clear();
-
-						if (depth < previousDepth) {
-							// deepSelection will be smaller;  reset the GUI's selection to userSelection.
-							guiSelection.setTo(userSelection);
-						}
-					}
-
-					if (depth == 0) {
-						// Done with userSelection for now;  empty it.
-						userSelection.clear();
-					} else {
-						// Find deepSelection and add it to the GUI's selection.
-						findChildrenToDepth(userSelection, depth + 1);
-						guiSelection.add(deepSelection.iterator());
-					}
-
-					previousDepth = depth;
-
-					PrototypePanel.zoomIfLocked();
-				}
-				catch (Exception ex) {
-					ex.printStackTrace();
-					Log.error("failed to init data sources", ex);
-				}
-				finally {
-					ignoreSelectionEvents = false;
-				}
-			}
-		};
-
-		Runnable selectionChanged = new Runnable() {
-			public void run() {
-				try {
-					LWSelection	guiSelection = VUE.getSelection();
-					int			depth = VUE.depthSelectionSlider.getValue();
-
-					ignoreSelectionEvents = true;
-
-					if (depth > 0) {
-						// Compute userSelection as the GUI's current selection minus deepSelection.
-						userSelection.clear();
-						userSelection.addAll(guiSelection);
-
-						Iterator<LWComponent> deepNodes = deepSelection.iterator();
-
-						while (deepNodes.hasNext()) {
-							userSelection.remove(deepNodes.next());
-						}
-
-						// Find deepSelection.
-						deepSelection.clear();
-						findChildrenToDepth(userSelection, depth + 1);
-
-						// Set the GUI's selection to userSelection (it may have gotten smaller) and add deepSelection.
-						guiSelection.setTo(userSelection);
-						guiSelection.add(deepSelection);
-					}
-
-					PrototypePanel.zoomIfLocked();
-				}
-				catch (Exception ex) {
-					ex.printStackTrace();
-					Log.error("failed to init data sources", ex);
-				}
-				finally {
-					ignoreSelectionEvents = false;
-				}
-			}
-		};
-
-		protected void findChildrenToDepth(Collection<LWComponent> collection, int depth) {
-			// Add each node to deepSelection.
-			Iterator<LWComponent>	nodes = collection.iterator();
-
-			while (nodes.hasNext()) {
-				LWComponent		node = nodes.next();
-
-				if (node.getClass() == LWNode.class) {
-					if (!userSelection.contains(node)) {
-						deepSelection.add(node);
-					}
-
-					if (depth > 1) {
-						// Add each node's links to deepSelection.
-						Iterator<LWComponent>	links = (Iterator<LWComponent>)node.getConnected().iterator();
-
-						while (links.hasNext()) {
-							LWComponent		link = links.next();
-
-							if (!userSelection.contains(link)) {
-								deepSelection.add(link);
-							}
-						}
-
-						// Add each node's child nodes to deepSelection.
-						findChildrenToDepth(node.getLinked(), depth - 1);
-					}
-				}
-			}
-		}
-	}
 
 	public static DRBrowser getDRBrowser() {
 

@@ -9,7 +9,10 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Iterator;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -21,6 +24,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import tufts.vue.gui.DockWindow;
+import tufts.vue.gui.GUI;
 import tufts.vue.gui.WidgetStack;
 
 public class PrototypePanel extends JPanel implements ActionListener, ChangeListener {
@@ -28,7 +32,8 @@ public class PrototypePanel extends JPanel implements ActionListener, ChangeList
 	protected static final boolean	DEBUG = false;
 	protected static final int		HALF_GUTTER = 4,
 									GUTTER = 2 * HALF_GUTTER;
-	protected static JSlider		fadeSlider = null;
+	protected static JSlider		fadeSlider = null,
+									depthSlider = null;
 	protected static JButton		zoomSelButton = null,
 									zoomMapButton = null;
 	protected static JCheckBox		zoomLockCheckBox = null;
@@ -58,6 +63,7 @@ public class PrototypePanel extends JPanel implements ActionListener, ChangeList
 		JLabel						label100 = new JLabel(VueResources.getString("interactionTools.oneHundredPercent"));
 		JLabel						label0 = new JLabel(VueResources.getString("interactionTools.zeroPercent"));
 		Hashtable<Integer, JLabel>	labelTable = new Hashtable<Integer, JLabel>();
+		Dimension					sliderSize = new Dimension(130, 35);
 
 		label100.setFont(tufts.vue.gui.GUI.LabelFace);
 		label0.setFont(tufts.vue.gui.GUI.LabelFace);
@@ -67,7 +73,7 @@ public class PrototypePanel extends JPanel implements ActionListener, ChangeList
 		fadeSlider.setLabelTable(labelTable);
 		fadeSlider.setPaintLabels(true);
 		fadeSlider.setPaintTicks(false);
-		fadeSlider.setPreferredSize(new Dimension(130,35));
+		fadeSlider.setPreferredSize(sliderSize);
 		fadeSlider.addChangeListener(this);
 		fadeSlider.setToolTipText(VueResources.getString("interactionTools.opacity.toolTip"));
 		addToGridBag(fadeInnerPanel, fadeSlider, 1, 0, 1, 1, halfGutterInsets);
@@ -76,7 +82,40 @@ public class PrototypePanel extends JPanel implements ActionListener, ChangeList
 		depthLabel.setFont(tufts.vue.gui.GUI.LabelFace);
 		addToGridBag(fadeInnerPanel, depthLabel, 0, 1, 1, 1, GridBagConstraints.LINE_END, halfGutterInsets);
 
-		fadePanel = new JPanel();
+		depthSlider = new JSlider(JSlider.HORIZONTAL, 0, 5, 0);
+
+		JLabel						label1 = new JLabel("1");
+        JLabel						label2 = new JLabel("2");
+        JLabel						label3 = new JLabel("3");
+        JLabel						label4 = new JLabel("4");
+        JLabel						label5 = new JLabel("5");
+        DepthSelectionListener		depthListener = new DepthSelectionListener();        
+
+        label0 = new JLabel("0");
+        labelTable = new Hashtable<Integer, JLabel>();
+
+        label0.setFont(tufts.vue.gui.GUI.LabelFace);
+        label1.setFont(tufts.vue.gui.GUI.LabelFace);
+        label2.setFont(tufts.vue.gui.GUI.LabelFace);
+        label3.setFont(tufts.vue.gui.GUI.LabelFace);
+        label4.setFont(tufts.vue.gui.GUI.LabelFace);
+        label5.setFont(tufts.vue.gui.GUI.LabelFace);
+        labelTable.put(new Integer( 0 ), label0);
+        labelTable.put(new Integer( 1 ), label1);
+        labelTable.put(new Integer( 2 ), label2);
+        labelTable.put(new Integer( 3 ), label3);
+        labelTable.put(new Integer( 4 ), label4);
+        labelTable.put(new Integer( 5 ), label5);
+        depthSlider.setLabelTable(labelTable);
+        depthSlider.setPaintLabels(true);
+        depthSlider.setPreferredSize(sliderSize);
+        depthSlider.setSnapToTicks(true);
+        depthSlider.addChangeListener(depthListener);        
+        VUE.getSelection().addListener(depthListener);
+
+        addToGridBag(fadeInnerPanel, depthSlider, 1, 1, 1, 1, halfGutterInsets);
+
+	    fadePanel = new JPanel();
 		fadePanel.setLayout(new GridBagLayout());
 		addToGridBag(fadePanel, fadeInnerPanel, 0, 0, 1, 1, GridBagConstraints.LINE_START, GridBagConstraints.NONE, 1.0, 0.0, halfGutterInsets);
 
@@ -283,4 +322,149 @@ public class PrototypePanel extends JPanel implements ActionListener, ChangeList
 			((GridBagLayout)container.getLayout()).setConstraints(component, constraints);
 			container.add(component);
 		}
+
+	static class DepthSelectionListener implements ChangeListener, LWSelection.Listener {
+		HashSet<LWComponent>	userSelection = new HashSet<LWComponent>(),	// LWComponents selected by the user
+								deepSelection = new HashSet<LWComponent>();	// LWComponents selected by this class
+		int						previousDepth = 0;
+		boolean					ignoreSelectionEvents = false;
+
+		DepthSelectionListener() {
+		}
+
+		// ChangeListener method for depthSelectionSlider
+		public void stateChanged(ChangeEvent event) {
+			JSlider	source = (JSlider)event.getSource();
+
+			if (!source.getValueIsAdjusting()) {
+				GUI.invokeAfterAWT(sliderMoved);
+			}
+		}
+
+		// LWSelection.Listener method
+		public void selectionChanged(LWSelection selection) {
+			if (depthSlider.getValue() > 0 && !ignoreSelectionEvents) {
+				// Changes to selection can't be made now;  must be done after listener notification completes.
+				GUI.invokeAfterAWT(selectionChanged);
+			}
+			else {
+				PrototypePanel.zoomIfLocked();
+			}
+		}
+
+		Runnable sliderMoved = new Runnable() {
+			public void run() {
+				try {
+					LWSelection	guiSelection = VUE.getSelection();
+					int			depth = depthSlider.getValue();
+
+					ignoreSelectionEvents = true;
+
+					if (previousDepth == 0) {
+						// userSelection will be empty;  set it to the GUI's current selection.
+						userSelection.addAll(guiSelection);
+					} else {
+						// deepSelection will be recomputed below (if previousDepth is 0, it's already empty).
+						deepSelection.clear();
+
+						if (depth < previousDepth) {
+							// deepSelection will be smaller;  reset the GUI's selection to userSelection.
+							guiSelection.setTo(userSelection);
+						}
+					}
+
+					if (depth == 0) {
+						// Done with userSelection for now;  empty it.
+						userSelection.clear();
+					} else {
+						// Find deepSelection and add it to the GUI's selection.
+						findChildrenToDepth(userSelection, depth + 1);
+						guiSelection.add(deepSelection.iterator());
+					}
+
+					previousDepth = depth;
+
+					PrototypePanel.zoomIfLocked();
+				}
+				catch (Exception ex) {
+					ex.printStackTrace();
+//					Log.error("exception in InteractionPanel.sliderMoved()", ex);
+				}
+				finally {
+					ignoreSelectionEvents = false;
+				}
+			}
+		};
+
+		Runnable selectionChanged = new Runnable() {
+			public void run() {
+				try {
+					LWSelection	guiSelection = VUE.getSelection();
+					int			depth = depthSlider.getValue();
+
+					ignoreSelectionEvents = true;
+
+					if (depth > 0) {
+						// Compute userSelection as the GUI's current selection minus deepSelection.
+						userSelection.clear();
+						userSelection.addAll(guiSelection);
+
+						Iterator<LWComponent> deepNodes = deepSelection.iterator();
+
+						while (deepNodes.hasNext()) {
+							userSelection.remove(deepNodes.next());
+						}
+
+						// Find deepSelection.
+						deepSelection.clear();
+						findChildrenToDepth(userSelection, depth + 1);
+
+						// Set the GUI's selection to userSelection (it may have gotten smaller) and add deepSelection.
+						guiSelection.setTo(userSelection);
+						guiSelection.add(deepSelection);
+					}
+
+					PrototypePanel.zoomIfLocked();
+				}
+				catch (Exception ex) {
+					ex.printStackTrace();
+//					Log.error("exception in InteractionPanel.selectionChanged()", ex);
+				}
+				finally {
+					ignoreSelectionEvents = false;
+				}
+			}
+		};
+
+		protected void findChildrenToDepth(Collection<LWComponent> collection, int depth) {
+			// Add each node to deepSelection.
+			Iterator<LWComponent>	nodes = collection.iterator();
+
+			while (nodes.hasNext()) {
+				LWComponent		node = nodes.next();
+
+				if (node.getClass() == LWNode.class) {
+					if (!userSelection.contains(node)) {
+						deepSelection.add(node);
+					}
+
+					if (depth > 1) {
+						// Add each node's links to deepSelection.
+						Iterator<LWComponent>	links = (Iterator<LWComponent>)(node.getConnected().iterator());
+
+						while (links.hasNext()) {
+							LWComponent		link = links.next();
+
+							if (!userSelection.contains(link)) {
+								deepSelection.add(link);
+							}
+						}
+
+						// Add each node's child nodes to deepSelection.
+						findChildrenToDepth(node.getLinked(), depth - 1);
+					}
+				}
+			}
+		}
+	}
 }
