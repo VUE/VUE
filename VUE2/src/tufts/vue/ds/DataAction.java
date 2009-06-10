@@ -21,7 +21,7 @@ import java.util.*;
 import org.apache.commons.lang.StringEscapeUtils;
 
 /**
- * @version $Revision: 1.15 $ / $Date: 2009-06-03 02:42:13 $ / $Author: sfraize $
+ * @version $Revision: 1.16 $ / $Date: 2009-06-10 19:34:34 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -222,6 +222,10 @@ public final class DataAction
 
                 } else {
 
+                    //-----------------------------------------------------------------------------
+                    // the pair being inspected are from the same schema
+                    //-----------------------------------------------------------------------------
+                    
                     final String fieldName = c.getDataValueFieldName();
                 
                     if (fieldName == null) // fieldName will be null if c isn't a data value node / has no schema
@@ -244,35 +248,6 @@ public final class DataAction
         return links;
     }
         
-//     /** make links from row nodes (full data nodes) to any schematic field nodes found in the link targets */
-//     private static List<LWLink> makeRowNodeLinks(final Collection<LWComponent> linkTargets, LWComponent rowNode)
-//     {
-//         final List<LWLink> links = Util.skipNullsArrayList();
-        
-//         for (LWComponent c : linkTargets) {
-//             if (c == rowNode)
-//                 continue;
-
-//             final String fieldName = c.getDataValueFieldName();
-
-//             if (fieldName == null) {
-//                 // fieldName will be null if c isn't a schematic field
-//                 continue;
-//             }
-
-//             final String fieldValue = c.getDataValue(fieldName);
-            
-//             if (rowNode.hasDataValue(fieldName, fieldValue)) {
-//                 //final String label = String.format("RowLink: %s='%s'", fieldName, fieldValue);
-//                 //final String label = String.format("%s=%s", fieldName, fieldValue);
-//                 links.add(makeLink(c, rowNode, fieldName, fieldValue, false));
-//             }
-                
-//         }
-        
-//         return links;
-//     }
-    
     private static LWLink makeLink(LWComponent src,
                                    LWComponent dest,
                                    String fieldName,
@@ -460,25 +435,15 @@ public final class DataAction
         return nodes;
     }
 
-    private static final Color DataNodeColor = VueResources.getColor("node.data.color", Color.gray);
-    private static final float DataNodeStrokeWidth = VueResources.getInt("node.data.stroke.width", 0);
-    private static final Color DataNodeStrokeColor = VueResources.getColor("node.data.stroke.color", Color.black);
-    private static final Font DataNodeFont = VueResources.getFont("node.data.font");
+    private static final Color DataNodeColor = VueResources.getColor("node.dataRow.color", Color.gray);
+    private static final float DataNodeStrokeWidth = VueResources.getInt("node.dataRow.stroke.width", 0);
+    private static final Color DataNodeStrokeColor = VueResources.getColor("node.dataRow.stroke.color", Color.black);
+    private static final Font DataNodeFont = VueResources.getFont("node.dataRow.font");
 
     private static final Color ValueNodeTextColor = VueResources.getColor("node.dataValue.text.color", Color.black);
     private static final Font ValueNodeFont = VueResources.getFont("node.dataValue.font");
     private static final Color[] ValueNodeDataColors = VueResources.getColorArray("node.dataValue.color.cycle");
     private static int NextColor = 0;
-
-//     private static final Color[] DataColors = VueResources.getColorArray("fillColorValues");
-//     private static final int FirstRotationColor = 22;
-//     private static final int SecondRotationColor = 18;
-//     private static int NextColor = FirstRotationColor;
-//     private static boolean FirstRotation = true;
-    
-//     private static final Font ValueNodeFont = new Font("SansSerif", Font.BOLD, 24);
-//     private static final Font DataNodeFont = new Font("SansSerif", Font.PLAIN, 12);
-
 
     private static LWComponent initNewStyleNode(LWComponent style) {
         //style.setFlag(Flag.INTERNAL);
