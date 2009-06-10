@@ -1,6 +1,8 @@
 package tufts.vue;
 
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -9,7 +11,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Hashtable;
 
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
@@ -27,62 +28,82 @@ public class PrototypePanel extends JPanel implements ActionListener, ChangeList
 	protected static final boolean	DEBUG = false;
 	protected static final int		HALF_GUTTER = 4,
 									GUTTER = 2 * HALF_GUTTER;
-	protected static JCheckBox		zoomLockCheckBox = null;
+	protected static JSlider		fadeSlider = null;
 	protected static JButton		zoomSelButton = null,
 									zoomMapButton = null;
-	protected static JSlider		fadeSlider = null;
+	protected static JCheckBox		zoomLockCheckBox = null;
 	protected static JLabel			fadeLabel = null,
+									depthLabel = null,
 									zoomSelLabel = null,
 									zoomMapLabel = null;
-	protected JPanel				zoomPanel = null,
-									fadePanel = null,
-									linePanel = null,
-									emptyPanel1 = null,
-									emptyPanel2 = null;
+	protected JPanel				fadePanel = null,
+									fadeInnerPanel = null,
+									zoomPanel = null,
+									zoomInnerPanel = null,
+									linePanel = null;
 	protected WidgetStack			widgetStack = null;
 
 	public PrototypePanel(DockWindow dw) {
-		GridBagConstraints	constraints = new GridBagConstraints();
-		Insets				halfGutterInsets = new Insets(HALF_GUTTER, HALF_GUTTER, HALF_GUTTER, HALF_GUTTER);
+		Insets						halfGutterInsets = new Insets(HALF_GUTTER, HALF_GUTTER, HALF_GUTTER, HALF_GUTTER);
 
-		constraints.fill = GridBagConstraints.HORIZONTAL;
-		constraints.weightx = 0.0;
-		constraints.weighty = 0.0;
-		constraints.gridx = 0;
-		constraints.gridy = 0;
-		constraints.gridheight = 1;
-		constraints.gridwidth = 1;
-		constraints.insets = halfGutterInsets;
-		
-		zoomPanel = new JPanel();
-		zoomPanel.setLayout(new GridBagLayout());
-		zoomPanel.setBorder(BorderFactory.createEmptyBorder(HALF_GUTTER, HALF_GUTTER, HALF_GUTTER, HALF_GUTTER));
+		fadeInnerPanel = new JPanel();
+		fadeInnerPanel.setLayout(new GridBagLayout());
+
+		fadeLabel = new JLabel(VueResources.getString("interactionTools.opacity"), SwingConstants.RIGHT);
+		fadeLabel.setFont(tufts.vue.gui.GUI.LabelFace);
+		addToGridBag(fadeInnerPanel, fadeLabel, 0, 0, 1, 1, GridBagConstraints.LINE_END, halfGutterInsets);
+
+		fadeSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 0);
+
+		JLabel						label100 = new JLabel(VueResources.getString("interactionTools.oneHundredPercent"));
+		JLabel						label0 = new JLabel(VueResources.getString("interactionTools.zeroPercent"));
+		Hashtable<Integer, JLabel>	labelTable = new Hashtable<Integer, JLabel>();
+
+		label100.setFont(tufts.vue.gui.GUI.LabelFace);
+		label0.setFont(tufts.vue.gui.GUI.LabelFace);
+		labelTable.put(new Integer( 0 ), label100);
+		labelTable.put(new Integer( 100 ), label0);
+
+		fadeSlider.setLabelTable(labelTable);
+		fadeSlider.setPaintLabels(true);
+		fadeSlider.setPaintTicks(false);
+		fadeSlider.setPreferredSize(new Dimension(130,35));
+		fadeSlider.addChangeListener(this);
+		fadeSlider.setToolTipText(VueResources.getString("interactionTools.opacity.toolTip"));
+		addToGridBag(fadeInnerPanel, fadeSlider, 1, 0, 1, 1, halfGutterInsets);
+
+		depthLabel = new JLabel(VueResources.getString("interactionTools.depth"), SwingConstants.RIGHT);
+		depthLabel.setFont(tufts.vue.gui.GUI.LabelFace);
+		addToGridBag(fadeInnerPanel, depthLabel, 0, 1, 1, 1, GridBagConstraints.LINE_END, halfGutterInsets);
+
+		fadePanel = new JPanel();
+		fadePanel.setLayout(new GridBagLayout());
+		addToGridBag(fadePanel, fadeInnerPanel, 0, 0, 1, 1, GridBagConstraints.LINE_START, GridBagConstraints.NONE, 1.0, 0.0, halfGutterInsets);
+
+		zoomInnerPanel = new JPanel();
+		zoomInnerPanel.setLayout(new GridBagLayout());
 
 		zoomSelLabel = new JLabel(VueResources.getString("interactionTools.zoomSel.label"), SwingConstants.RIGHT);
 		zoomSelLabel.setFont(tufts.vue.gui.GUI.LabelFace);
-		zoomPanel.add(zoomSelLabel, constraints);
+		addToGridBag(zoomInnerPanel, zoomSelLabel, 0, 0, 1, 1, GridBagConstraints.LINE_END, halfGutterInsets);
 
 		zoomSelButton = new JButton();
 		zoomSelButton.setFont(tufts.vue.gui.GUI.LabelFace);
 		zoomSelButton.setText(VueResources.getString("interactionTools.zoomSel"));
 		zoomSelButton.setToolTipText(VueResources.getString("interactionTools.zoomSel.toolTip"));
 		zoomSelButton.addActionListener(this);
-		constraints.gridx = 1;
-		zoomPanel.add(zoomSelButton, constraints);
+		addToGridBag(zoomInnerPanel, zoomSelButton, 1, 0, 1, 1, halfGutterInsets);
 
-		constraints.gridx = 0;
-		constraints.gridy = 1;
 		zoomMapLabel = new JLabel(VueResources.getString("interactionTools.zoomMap.label"), SwingConstants.RIGHT);
 		zoomMapLabel.setFont(tufts.vue.gui.GUI.LabelFace);
-		zoomPanel.add(zoomMapLabel, constraints);
+		addToGridBag(zoomInnerPanel, zoomMapLabel, 0, 1, 1, 1, GridBagConstraints.LINE_END, halfGutterInsets);
 
 		zoomMapButton = new JButton();
 		zoomMapButton.setFont(tufts.vue.gui.GUI.LabelFace);
 		zoomMapButton.setText(VueResources.getString("interactionTools.zoomMap"));
 		zoomMapButton.setToolTipText(VueResources.getString("interactionTools.zoomMap.toolTip"));
 		zoomMapButton.addActionListener(this);
-		constraints.gridx = 1;
-		zoomPanel.add(zoomMapButton, constraints);
+		addToGridBag(zoomInnerPanel, zoomMapButton, 1, 1, 1, 1, halfGutterInsets);
 
 		linePanel = new JPanel() {
 			public static final long		serialVersionUID = 1;
@@ -98,70 +119,19 @@ public class PrototypePanel extends JPanel implements ActionListener, ChangeList
 			}
 		};
 
-		linePanel.setPreferredSize(new Dimension(2 * GUTTER, (2 * zoomMapButton.getHeight()) + GUTTER));
-		constraints.gridx = 2;
-		constraints.gridy = 0;
-		constraints.gridheight = 2;
-		constraints.fill = GridBagConstraints.VERTICAL;
-		constraints.weighty = 1.0;
-		zoomPanel.add(linePanel, constraints);
+		linePanel.setPreferredSize(new Dimension(2 * GUTTER, (2 * zoomMapButton.getPreferredSize().height) + GUTTER));
+		linePanel.setMinimumSize(linePanel.getPreferredSize());
+		addToGridBag(zoomInnerPanel, linePanel, 2, 0, 1, 2, halfGutterInsets);
 
 		zoomLockCheckBox = new JCheckBox(VueResources.getString("interactionTools.auto"));
 		zoomLockCheckBox.setFont(tufts.vue.gui.GUI.LabelFace);
 		zoomLockCheckBox.setToolTipText(VueResources.getString("interactionTools.auto.toolTip"));
 		zoomLockCheckBox.addChangeListener(this);
-		constraints.gridx = 3;
-		constraints.fill = GridBagConstraints.HORIZONTAL;
-		constraints.weightx = 0.0;
-		constraints.weighty = 0.0;
-		zoomPanel.add(zoomLockCheckBox, constraints);
+		addToGridBag(zoomInnerPanel, zoomLockCheckBox, 3, 0, 1, 2, halfGutterInsets);
 
-		emptyPanel1 = new JPanel();
-		constraints.gridx = 4;
-		constraints.fill = GridBagConstraints.BOTH;
-		constraints.weightx = 1.0;
-		zoomPanel.add(emptyPanel1, constraints);
-
-		fadePanel = new JPanel();
-		fadePanel.setLayout(new GridBagLayout());
-		fadePanel.setBorder(BorderFactory.createEmptyBorder(HALF_GUTTER, HALF_GUTTER, HALF_GUTTER, HALF_GUTTER));
-
-		fadeLabel = new JLabel(VueResources.getString("interactionTools.opacity"), SwingConstants.RIGHT);
-		fadeLabel.setFont(tufts.vue.gui.GUI.LabelFace);
-		constraints.gridx = 0;
-		constraints.gridheight = 1;
-		constraints.fill = GridBagConstraints.HORIZONTAL;
-		constraints.weightx = 0.0;
-		constraints.weighty = 0.0;
-		fadePanel.add(fadeLabel, constraints);
-
-		fadeSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 0);
-
-		JLabel		label100 = new JLabel(VueResources.getString("interactionTools.oneHundredPercent"));
-		JLabel		label0 = new JLabel(VueResources.getString("interactionTools.zeroPercent"));
-		Hashtable<Integer, JLabel>
-					labelTable = new Hashtable<Integer, JLabel>();
-
-		label100.setFont(tufts.vue.gui.GUI.LabelFace);
-		label0.setFont(tufts.vue.gui.GUI.LabelFace);
-		labelTable.put(new Integer( 0 ), label100);
-		labelTable.put(new Integer( 100 ), label0);
-
-		fadeSlider.setLabelTable(labelTable);
-		fadeSlider.setPaintLabels(true);
-		fadeSlider.setPaintTicks(false);
-		fadeSlider.setPreferredSize(new Dimension(130,35));
-		fadeSlider.addChangeListener(this);
-		fadeSlider.setToolTipText(VueResources.getString("interactionTools.opacity.toolTip"));
-
-		constraints.gridx = 1;
-		fadePanel.add(fadeSlider, constraints);
-
-		emptyPanel2 = new JPanel();
-		constraints.gridx = 2;
-		constraints.fill = GridBagConstraints.BOTH;
-		constraints.weightx = 1.0;
-		fadePanel.add(emptyPanel2, constraints);
+		zoomPanel = new JPanel();
+		zoomPanel.setLayout(new GridBagLayout());
+		addToGridBag(zoomPanel, zoomInnerPanel, 0, 0, 1, 1, GridBagConstraints.LINE_START, GridBagConstraints.NONE, 1.0, 0.0, halfGutterInsets);
 
 		widgetStack = new WidgetStack(VueResources.getString("dockWindow.interactionTools.title"));
 		widgetStack.addPane(VueResources.getString("interactionTools.fadeAndDepthWidget"), fadePanel);
@@ -171,28 +141,30 @@ public class PrototypePanel extends JPanel implements ActionListener, ChangeList
 		validate();
 
 		if (DEBUG) {
-			zoomLockCheckBox.setBackground(Color.BLUE);
-			zoomLockCheckBox.setOpaque(true);
-			zoomSelButton.setBackground(Color.BLUE);
-			zoomSelButton.setOpaque(true);
-			zoomMapButton.setBackground(Color.BLUE);
-			zoomMapButton.setOpaque(true);
-			fadeLabel.setBackground(Color.BLUE);
-			fadeLabel.setOpaque(true);
-			zoomSelLabel.setBackground(Color.BLUE);
-			zoomSelLabel.setOpaque(true);
-			zoomMapLabel.setBackground(Color.BLUE);
-			zoomMapLabel.setOpaque(true);
-			fadeSlider.setBackground(Color.BLUE);
+			fadeSlider.setBackground(Color.CYAN);
 			fadeSlider.setOpaque(true);
-			zoomPanel.setBackground(Color.ORANGE);
-			zoomPanel.setOpaque(true);
-			fadePanel.setBackground(Color.ORANGE);
+			zoomSelButton.setBackground(Color.CYAN);
+			zoomSelButton.setOpaque(true);
+			zoomMapButton.setBackground(Color.CYAN);
+			zoomMapButton.setOpaque(true);
+			zoomLockCheckBox.setBackground(Color.CYAN);
+			zoomLockCheckBox.setOpaque(true);
+			fadeLabel.setBackground(Color.CYAN);
+			fadeLabel.setOpaque(true);
+			depthLabel.setBackground(Color.CYAN);
+			depthLabel.setOpaque(true);
+			zoomSelLabel.setBackground(Color.CYAN);
+			zoomSelLabel.setOpaque(true);
+			zoomMapLabel.setBackground(Color.CYAN);
+			zoomMapLabel.setOpaque(true);
+			fadePanel.setBackground(Color.YELLOW);
 			fadePanel.setOpaque(true);
-			emptyPanel1.setBackground(Color.YELLOW);
-			emptyPanel1.setOpaque(true);
-			emptyPanel2.setBackground(Color.YELLOW);
-			emptyPanel2.setOpaque(true);
+			fadeInnerPanel.setBackground(Color.MAGENTA);
+			fadeInnerPanel.setOpaque(true);
+			zoomPanel.setBackground(Color.YELLOW);
+			zoomPanel.setOpaque(true);
+			zoomInnerPanel.setBackground(Color.MAGENTA);
+			zoomInnerPanel.setOpaque(true);
 			linePanel.setBackground(Color.CYAN);
 			linePanel.setOpaque(true);
 		}
@@ -201,19 +173,21 @@ public class PrototypePanel extends JPanel implements ActionListener, ChangeList
 	}
 
 	public void finalize() {
-		zoomLockCheckBox = null;
+		fadeSlider = null;
 		zoomSelButton = null;
 		zoomMapButton = null;
-		fadeSlider = null;
+		zoomLockCheckBox = null;
 		fadeLabel = null;
+		depthLabel = null;
 		zoomSelLabel = null;
 		zoomMapLabel = null;
-		zoomPanel = null;
 		fadePanel = null;
-		emptyPanel1 = null;
-		emptyPanel2 = null;
+		fadeInnerPanel = null;
+		zoomPanel = null;
+		zoomInnerPanel = null;
+		linePanel = null;
 		widgetStack = null;
-	}
+}
 
 	public static void zoomIfLocked() {
 		if (zoomLockCheckBox.isSelected()) {
@@ -256,4 +230,57 @@ public class PrototypePanel extends JPanel implements ActionListener, ChangeList
 			VUE.getActiveViewer().repaint();
 		}
 	}
+
+	/* Static methods */
+
+	protected static void addToGridBag(Container container, Component component,
+			int gridX, int gridY, int gridWidth, int gridHeight,
+			Insets insets)
+		{
+			GridBagConstraints	constraints = new GridBagConstraints(gridX, gridY, gridWidth, gridHeight,
+					0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, insets, 0, 0) ;
+
+
+			((GridBagLayout)container.getLayout()).setConstraints(component, constraints);
+			container.add(component);
+		}
+
+	protected static void addToGridBag(Container container, Component component,
+			int gridX, int gridY, int gridWidth, int gridHeight,
+			int anchor,
+			Insets insets)
+	{
+		GridBagConstraints	constraints = new GridBagConstraints(gridX, gridY, gridWidth, gridHeight,
+				0.0, 0.0, anchor, GridBagConstraints.NONE, insets, 0, 0) ;
+
+
+		((GridBagLayout)container.getLayout()).setConstraints(component, constraints);
+		container.add(component);
+	}
+
+	protected static void addToGridBag(Container container, Component component,
+			int gridX, int gridY, int gridWidth, int gridHeight,
+			int anchor, int fill, double weightX, double weightY,
+			Insets insets)
+	{
+		GridBagConstraints	constraints = new GridBagConstraints(gridX, gridY, gridWidth, gridHeight,
+				weightX, weightY, anchor, fill, insets, 0, 0) ;
+
+
+		((GridBagLayout)container.getLayout()).setConstraints(component, constraints);
+		container.add(component);
+	}
+
+	protected static void addToGridBag(Container container, Component component,
+			int gridX, int gridY, int gridWidth, int gridHeight,
+			int anchor, int fill, double weightX, double weightY,
+			Insets insets, int padX, int padY)
+		{
+			GridBagConstraints	constraints = new GridBagConstraints(gridX, gridY, gridWidth, gridHeight,
+					weightX, weightY, anchor, fill, insets, padX, padY) ;
+
+
+			((GridBagLayout)container.getLayout()).setConstraints(component, constraints);
+			container.add(component);
+		}
 }
