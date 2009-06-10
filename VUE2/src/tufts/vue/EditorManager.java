@@ -468,8 +468,8 @@ public class EditorManager
             // tagged as having been free property bit, then applying it to newly created objects!)
 
             if (key.type != KeyType.STYLE && key.type != KeyType.SUB_STYLE) {
-                tufts.Util.printStackTrace("Warning: free property of non-style type being ignored: " + key + "; type=" + key.type);
-                // we can safely ignore this, but I'm dumping a stack trace for now so we know if we get into this situation
+                if (DEBUG.Enabled) Log.debug("note: free property of non-style type being ignored: " + key + "; type=" + key.type);
+                // we can safely ignore this, but debug for now so we know if we get into this situation
                 return;
             }
             
