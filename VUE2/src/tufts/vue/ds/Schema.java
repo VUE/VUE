@@ -32,7 +32,7 @@ import com.google.common.collect.*;
 
 
 /**
- * @version $Revision: 1.36 $ / $Date: 2009-06-03 02:42:13 $ / $Author: sfraize $
+ * @version $Revision: 1.37 $ / $Date: 2009-06-10 16:03:33 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -104,6 +104,8 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
         return s;
     }
 
+    /** If an existing schema exists matching the GUID, return that, otherwise, a new schema instance */
+    // TODO: factor in looking up based on the resource if the DSGUID doesn't match for some reason
     public static Schema fetch(Resource r, String dataSourceGUID) {
         Schema s = SchemaByGUID.get(dataSourceGUID);
         if (s == null) {
