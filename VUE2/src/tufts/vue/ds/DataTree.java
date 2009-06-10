@@ -30,6 +30,7 @@ import tufts.vue.LWKey;
 import tufts.vue.gui.GUI;
 import tufts.Util;
 import tufts.vue.VueConstants;
+import tufts.vue.MapDropTarget;
 
 import java.util.List;
 import java.util.*;
@@ -47,7 +48,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.76 $ / $Date: 2009-06-06 21:12:47 $ / $Author: sfraize $
+ * @version $Revision: 1.77 $ / $Date: 2009-06-10 16:14:03 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -1359,8 +1360,8 @@ public class DataTree extends javax.swing.JTree
 //                 dragNode.setClientData(LWComponent.ListFactory.class,
 //                                        new NodeProducer(treeNode));
             }
-            dragNode.setClientData(LWComponent.Producer.class,
-                                   new NodeProducer(treeNode, DataTree.this));
+            dragNode.setClientData(MapDropTarget.DropHandler.class,
+                                   new DropHandler(treeNode, DataTree.this));
                          
             tufts.vue.gui.GUI.startRecognizedDrag(e, dragNode);
                          
@@ -1371,19 +1372,82 @@ public class DataTree extends javax.swing.JTree
         return DataAction.valueName(value);
     }
 
-    private static class NodeProducer implements LWComponent.Producer/*, Runnable*/ {
+    private static class DropHandler extends MapDropTarget.DropHandler {
 
         private final DataNode treeNode;
         private final DataTree tree;
-        private LWMap mMap;
-        private List<LWComponent> mNodes;
+        //private LWMap mMap;
+        //private List<LWComponent> mNodes;
 
-        NodeProducer(DataNode n, DataTree tree) {
+        public String toString() {
+            return treeNode.toString();
+        }
+
+        DropHandler(DataNode n, DataTree tree) {
             this.treeNode = n;
             this.tree = tree;
         }
 
-        public java.util.List<LWComponent> produceNodes(final LWMap map)
+        @Override
+        public boolean handleDrop(MapDropTarget.DropContext drop) {
+            
+            java.util.List<LWComponent> newNodes = null;
+            
+            if (false && drop.hit != null && drop.hit.isDataValueNode()) {
+                Log.debug("IMPLIED DATA ACTION");
+                return false;
+            } else {
+                newNodes = produceNodes();
+
+                // Currently, we must set node locations before adding any links, as when
+                // the link-add events happen, the viewer may adjust the canvas size
+                // to include room for the new links, which will all be linking to 0,0
+                // unless the nodes have had their locations set, even if the nodes
+                // are about to be re-laid out via a group clustering.
+                
+                MapDropTarget.setCenterAt(newNodes, drop.location);
+
+                boolean didAddLinks = DataAction.addDataLinksForNodes(drop.viewer.getMap(),
+                                                                      newNodes,
+                                                                      treeNode.getField());
+
+                if (drop.isLinkAction) {
+                    tufts.vue.LayoutAction.circle.act(newNodes);
+                } else {
+                    clusterNodes(newNodes, didAddLinks);
+                }
+
+                drop.items = newNodes; // will be added to map
+                drop.added = newNodes; // will be selected
+            }
+            
+            return true;
+        }
+
+        private boolean clusterNodes(List<LWComponent> nodes, boolean newLinksAvailable) {
+
+            if (DEBUG.Enabled) Log.debug("clusterNodes: " + Util.tags(nodes) + "; addedLinks=" + newLinksAvailable);
+            
+            try {
+
+                if (nodes.size() > 1) {
+                    if (treeNode.isRowNode()) {
+                        tufts.vue.LayoutAction.random.act(nodes);
+                    } else if (newLinksAvailable) {
+                        // TODO: cluster will currently fail (NPE) if no data-links exist
+                        // Note: this action will re-arrange all the data-nodes on the map
+                        tufts.vue.LayoutAction.cluster.act(nodes);
+                    } else
+                        tufts.vue.LayoutAction.filledCircle.act(nodes);
+                    return true;
+                }
+            } catch (Throwable t) {
+                Log.error("clustering failure: " + Util.tags(nodes), t);
+            }
+            return false;
+        }
+        
+        private java.util.List<LWComponent> produceNodes()
         {
             final Field field = treeNode.getField();
             final Schema schema = treeNode.getSchema();
@@ -1429,57 +1493,9 @@ public class DataTree extends javax.swing.JTree
                     nodes.add(DataAction.makeValueNode(field, value));
             }
 
-            mNodes = nodes;
-            mMap = map;
-
             return nodes;
         }
 
-
-        /** interface LWComponent.Producer impl */
-        public void postProcessNodes() { clusterAddedNodes(mMap, mNodes); }
-
-        /** add data-links, layout nodes, and update (re-annotate) the DataTree */
-        private void clusterAddedNodes(final LWMap map, List<LWComponent> nodes) {
-
-            //for (LWComponent c : nodes)c.setToNaturalSize();
-            // todo: some problem editing template values: auto-size not being handled on label length shrinkage
-            
-            final boolean addedLinks = DataAction.addDataLinksForNodes(map, nodes, treeNode.getField());
-
-            try {
-
-                if (nodes.size() > 1) {
-                    if (treeNode.isRowNode()) {
-                        tufts.vue.LayoutAction.random.act(nodes);
-                    } else if (addedLinks) {
-                        // TODO: cluster will currently fail (NPE) if no data-links exist
-                        tufts.vue.LayoutAction.cluster.act(nodes);
-                    } else
-                        tufts.vue.LayoutAction.filledCircle.act(nodes);
-                }
-            } catch (Throwable t) {
-                Log.error("clustering failure: " + Util.tags(nodes), t);
-            }
-                
-            // Should no longer need this: annotate thread is handling this, tho
-            // currently in overkill mode: any time there's a UserActionCompleted
-            //// for re-annotating the tree
-            //GUI.invokeAfterAWT(this);  // call the below run() method on AWT
-        }
-//         public void run() {
-//             // todo: this would be more precisely handled by the DataTree having a
-//             // listener on the active map for any hierarchy events that involve the
-//             // creation/deletion of any data-holding nodes, and running an annotate at
-//             // the end if any are detected -- adding a cleanup task the first time (and
-//             // checking for before adding another: standard cleanup task semantics)
-//             // should handle our run-once needs.  E.g., undoing this action will fail to
-//             // update the tree unless we have an impl such as this.
-//             if (mMap == VUE.getActiveMap()) { // only if is still the active map
-//                 Log.info("MANUAL ANNOTATE: SHOULD RUN IN BACKGROUND?");
-//                 tree.annotateForMap(mMap);
-//             }
-//         }        
     }
 
     private static String makeFieldLabel(final Field field)

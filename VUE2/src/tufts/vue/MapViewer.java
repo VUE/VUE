@@ -76,7 +76,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.597 $ / $Date: 2009-05-30 21:20:45 $ / $Author: sfraize $ 
+ * @version $Revision: 1.598 $ / $Date: 2009-06-10 16:14:02 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -4868,7 +4868,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     return false;
                 }
 
-                if (flavor == LWComponent.Producer.DataFlavor && LWC.hasClientData(LWComponent.Producer.class)) {
+                if (flavor == MapDropTarget.DropHandler.DataFlavor && LWC.hasClientData(MapDropTarget.DropHandler.class)) {
                     // note this is a bit convoluted: the producer is currently only passed within an
                     // LWComponent.  This needn't be true, but our current usage depends on it.
                     // (We want an LWComponent available as the drag image).  We could easily
@@ -4876,8 +4876,19 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     return true;
                 }
                 
+//                 if (flavor == LWComponent.Producer.DataFlavor && LWC.hasClientData(LWComponent.Producer.class)) {
+//                     // note this is a bit convoluted: the producer is currently only passed within an
+//                     // LWComponent.  This needn't be true, but our current usage depends on it.
+//                     // (We want an LWComponent available as the drag image).  We could easily
+//                     // extend LWTransfer to support a producer directly and allowing for a null LWC.
+//                     return true;
+//                 }
+                
                 if (flavor == Resource.DataFlavor && LWC.getResource() == null)
                     return false;
+
+                // TODO BUG: support for TypeList is being incorrectly reported as true here
+                // even if there is no old-style meta-data
                 
                 for (int i = 0; i < LWFlavors.length; i++)
                     if (flavor.equals(LWFlavors[i]))
@@ -4909,7 +4920,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     try {
                         data = LWC.getMetadataList().getMetadata().get(0).getObject();
                     } catch (Throwable t) {
-                        Log.warn(t);
+                        Log.warn("getTransferData: " + flavor + "; " + t);
                     }
                 } else if (DataFlavor.stringFlavor.equals(flavor)) {
 
@@ -4936,9 +4947,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     
                     data = LWC.getAsImage();
                     
-                } else if (LWComponent.Producer.DataFlavor.equals(flavor)) {
+                } else if (MapDropTarget.DropHandler.DataFlavor.equals(flavor)) {
                     
-                    data = LWC.getClientData(LWComponent.Producer.class);
+                    data = LWC.getClientData(MapDropTarget.DropHandler.class);
+                    
+//                 } else if (LWComponent.Producer.DataFlavor.equals(flavor)) {
+                    
+//                     data = LWC.getClientData(LWComponent.Producer.class);
                     
                 } else if (LWComponent.DataFlavor.equals(flavor)) {
                     
@@ -4951,12 +4966,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                         // don't send the actual map just yet...
                         duplicates = Actions.duplicatePreservingLinks(LWC.getChildren());
                     }
-                    else if (LWC.hasClientData(LWComponent.Producer.class)) {
+//                     else if (LWC.hasClientData(LWComponent.Producer.class)) {
                         
-                        Util.printStackTrace("deprecated use of node producer");
-                        //duplicates = LWC.getClientData(LWComponent.ListFactory.class).produceNodes(null);
-                        duplicates = LWC.getClientData(LWComponent.Producer.class).produceNodes(null);
-                    }
+//                         Util.printStackTrace("deprecated use of node producer");
+//                         //duplicates = LWC.getClientData(LWComponent.ListFactory.class).produceNodes(null);
+//                         duplicates = LWC.getClientData(LWComponent.Producer.class).produceNodes(null);
+//                     }
 //                     else if (LWC.hasFlag(LWComponent.Flag.INTERNAL) /*&& LWC.getClientProperty(Field.class) != null*/) {
 //                         // don't send the actual map just yet...
 //                         duplicates = Actions.duplicatePreservingLinks(LWC.getChildren());

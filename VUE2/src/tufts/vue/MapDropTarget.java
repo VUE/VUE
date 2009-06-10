@@ -50,9 +50,9 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.111 $ / $Date: 2009-05-15 21:14:45 $ / $Author: mike $  
+ * @version $Revision: 1.112 $ / $Date: 2009-06-10 16:14:02 $ / $Author: sfraize $  
  */
-class MapDropTarget
+public class MapDropTarget
     implements java.awt.dnd.DropTargetListener
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(MapDropTarget.class);
@@ -64,6 +64,7 @@ class MapDropTarget
     private static final int DROP_RESOURCE_LIST = 3;
     private static final int DROP_TEXT = 4;
     private static final int DROP_ONTOLOGY_TYPE = 5;
+    private static final int DROP_GENERAL_HANDLER = 6;
 
     
     public static final int ALL_DROP_TYPES =
@@ -317,18 +318,18 @@ class MapDropTarget
         
         
     public static class DropContext {
-        final Transferable transfer;
-        final Point2D.Float location;   // map location of the drop
-        final MapViewer viewer;          // we dropped into this component
-        final LWComponent hit;          // we dropped into this component
-        final LWContainer hitParent;    // we dropped into this component, and it can take children
-        final boolean isLinkAction;     // user kbd modifiers down produced LINK drop action
+        public final Transferable transfer;
+        public final Point2D.Float location;   // map location of the drop
+        public final MapViewer viewer;          // we dropped into this component
+        public final LWComponent hit;          // we dropped into this component
+        public final LWContainer hitParent;    // we dropped into this component, and it can take children
+        public final boolean isLinkAction;     // user kbd modifiers down produced LINK drop action
 
         // Data fields -- may not all be populated.
         //final Collection items;         // bag of Objects in the drop
-        final List items;   // convience reference to items if it is a List
-        final String text;              // only one of items+list or text
-        final LWComponent.Producer producer;
+        public List items;   // convience reference to items if it is a List
+        public final String text;              // only one of items+list or text
+        //final LWComponent.Producer producer;
 
         //Object data;
         
@@ -336,7 +337,7 @@ class MapDropTarget
         private float nextX;
         private float nextY;
 
-        List added = new java.util.ArrayList(); // to track LWComponents added as a result of the drop
+        public List added = new java.util.ArrayList(); // to track LWComponents added as a result of the drop
         
         DropContext(Transferable t,
                     Point2D.Float mapLocation,
@@ -344,8 +345,9 @@ class MapDropTarget
                     List items,
                     String text,
                     LWComponent hit,
-                    boolean isLinkAction,
-                    LWComponent.Producer producer)
+                    boolean isLinkAction
+                    //,LWComponent.Producer producer
+                    )
         {
             this.transfer = t;
             this.location = mapLocation;
@@ -353,7 +355,7 @@ class MapDropTarget
             this.items = items;
             this.text = text;
             this.hit = hit;
-            this.producer = producer;
+            //this.producer = producer;
 
 //             if (items instanceof java.util.List)
 //                 list = (List) items;
@@ -574,7 +576,8 @@ class MapDropTarget
             
         DataFlavor foundFlavor = null;
         Object foundData = null;
-        LWComponent.Producer foundProducer = null;
+        //LWComponent.Producer foundProducer = null;
+        DropHandler foundHandler = null;
         String dropText = null;
         List dropItems = null;
         
@@ -689,20 +692,17 @@ class MapDropTarget
             // to make sure the data type we got is what we expected.
             // (Can be a problem if somebody creates a bad Transferable)
             
-            if (transfer.isDataFlavorSupported(edu.tufts.vue.ontology.ui.TypeList.DataFlavor)
+            if (transfer.isDataFlavorSupported(DropHandler.DataFlavor)) {
+
+                foundFlavor = DropHandler.DataFlavor;
+                foundHandler = extractData(transfer, foundFlavor, DropHandler.class);
+                dropType = DROP_GENERAL_HANDLER;
+                
+            } else if (transfer.isDataFlavorSupported(edu.tufts.vue.ontology.ui.TypeList.DataFlavor)
                 && (dropAction == DnDConstants.ACTION_LINK))
             {
                 dropType = DROP_ONTOLOGY_TYPE;
                 foundData = extractData(transfer, edu.tufts.vue.ontology.ui.TypeList.DataFlavor);
-                
-            } else if (transfer.isDataFlavorSupported(LWComponent.Producer.DataFlavor)) {
-
-                foundFlavor = LWComponent.Producer.DataFlavor;
-                LWComponent.Producer factory = extractData(transfer, foundFlavor, LWComponent.Producer.class);
-                foundData = factory.produceNodes(mViewer.getMap());
-                foundProducer = factory;
-                dropType = DROP_NODE_LIST;
-                dropItems = (List) foundData;
                 
             } else if (transfer.isDataFlavorSupported(LWComponent.DataFlavor)) {
                 
@@ -818,8 +818,9 @@ class MapDropTarget
                             dropItems,
                             dropText,
                             dropTarget,
-                            isLinkAction,
-                            foundProducer);
+                            isLinkAction
+                            //,foundProducer
+                            );
 
         boolean success = false;
 
@@ -832,6 +833,9 @@ class MapDropTarget
         try {
             switch (dropType) {
 
+            case DROP_GENERAL_HANDLER:
+                success = processDroppedHandler(drop, foundHandler);
+                break;
             case DROP_FILE_LIST:
                 success = processDroppedFileList(drop);
                 break;
@@ -869,13 +873,13 @@ class MapDropTarget
             Util.printStackTrace(t, "drop processing failed");
         }
 
-        if (foundProducer != null) {
-            try {
-                foundProducer.postProcessNodes();
-            } catch (Throwable t) {
-                Log.error("Exception in postProcess for with node producer " + foundProducer, t);
-            }
-        }
+//         if (foundProducer != null) {
+//             try {
+//                 foundProducer.postProcessNodes();
+//             } catch (Throwable t) {
+//                 Log.error("Exception in postProcess for with node producer " + foundProducer, t);
+//             }
+//         }
 
         // Even if we had an exception during processing,
         // mark the drop in case there were partial results for Undo.
@@ -948,6 +952,70 @@ class MapDropTarget
         return true;
     }
 
+    // todo: move to GUI package?
+    public abstract static class DropHandler {
+
+        public static final java.awt.datatransfer.DataFlavor DataFlavor =
+            tufts.vue.gui.GUI.makeDataFlavor(DropHandler.class);        
+
+        public abstract boolean handleDrop(DropContext drop);
+
+//         protected void handlePostDrop() {
+
+//             if (drop.added.size() > 0) {
+
+//                 // Must make sure the selection is owned
+//                 // by this map before we try and change it.
+//                 // TODO: SlideViewer currently not handling this properly...
+//                 mViewer.grabVueApplicationFocus("drop", null);
+                
+//                 //VUE.getSelection().setTo(drop.added);
+//                 mViewer.selectionSet(drop.added); // VUE-978: selection focal should also be set
+
+//             }
+//         }
+        
+    }
+
+//     private boolean processDroppedProducer(DropContext drop)
+//     {
+//         if (DEBUG.DND) out("processDroppedProducer: " + drop.producer);
+
+// //         if (drop.hit != null && drop.hit.isDataValueNode()) {
+// //             Log.debug("IMPLIED DATA ACTION");
+// //         }
+
+//         drop.items = drop.producer.produceNodes(drop.viewer.getMap());
+//         return processDroppedNodes(drop);
+//     }
+    
+
+    
+    private boolean processDroppedHandler(DropContext drop, DropHandler handler)
+    {
+        if (DEBUG.Enabled) out("processDroppedHandler: " + Util.tags(handler));
+        try {
+            boolean success = handler.handleDrop(drop);
+            if (success) {
+                if (drop.items != null && drop.items.size() > 0)
+                    addNodesToMap(drop);
+                return true;
+            } else
+                return false;
+        } catch (Throwable t) {
+            Log.error("dropHandler failed: " + Util.tags(handler), t);
+        }
+        return false;
+    }
+
+    private void addNodesToMap(DropContext drop) {
+        if (DEBUG.Enabled) Log.debug("addNodesToMap: " + Util.tags(drop.items));
+        if (drop.hitParent != null) {
+            drop.hitParent.addChildren(drop.items, LWComponent.ADD_DROP);
+        } else {
+            drop.viewer.getDropFocal().addChildren(drop.items, LWComponent.ADD_DROP);
+        }
+    }
     
     private boolean processDroppedNodes(DropContext drop)
     {
@@ -962,11 +1030,8 @@ class MapDropTarget
         else
             setLocation(drop.items, drop.location);
 
-        if (drop.hitParent != null) {
-            drop.hitParent.addChildren(drop.items, LWComponent.ADD_DROP);
-        } else {
-            mViewer.getDropFocal().addChildren(drop.items, LWComponent.ADD_DROP);
-        }
+        addNodesToMap(drop);
+
         drop.added.addAll(drop.items);
             
         return true;
@@ -1784,7 +1849,7 @@ class MapDropTarget
      */
     public static void setCenterAt(Collection<LWComponent> nodes, Point2D.Float mapLocation)
     {
-        if (DEBUG.DND) Log.debug("setCenterAt " + mapLocation + "; " + nodes);
+        if (DEBUG.DND) Log.debug("setCenterAt " + mapLocation + "; " + Util.tags(nodes));
         java.awt.geom.Rectangle2D.Float bounds = LWMap.getBounds(nodes.iterator());
         //java.awt.geom.Rectangle2D.Float bounds = LWMap.getLocalBounds(nodes);
 
