@@ -32,6 +32,8 @@ public class InteractionTools extends JPanel implements ActionListener, ChangeLi
 	protected static final boolean	DEBUG = false;
 	protected static final int		HALF_GUTTER = 4,
 									GUTTER = 2 * HALF_GUTTER;
+    private static final org.apache.log4j.Logger
+    								Log = org.apache.log4j.Logger.getLogger(InteractionTools.class);
 	protected static JSlider		fadeSlider = null,
 									depthSlider = null;
 	protected static JButton		zoomSelButton = null,
@@ -403,7 +405,7 @@ public class InteractionTools extends JPanel implements ActionListener, ChangeLi
 				}
 				catch (Exception ex) {
 					ex.printStackTrace();
-//					Log.error("exception in InteractionPanel.sliderMoved()", ex);
+					Log.error("exception in InteractionPanel.sliderMoved()", ex);
 				}
 				finally {
 					ignoreSelectionEvents = false;
@@ -443,7 +445,7 @@ public class InteractionTools extends JPanel implements ActionListener, ChangeLi
 				}
 				catch (Exception ex) {
 					ex.printStackTrace();
-//					Log.error("exception in InteractionPanel.selectionChanged()", ex);
+					Log.error("exception in InteractionPanel.selectionChanged()", ex);
 				}
 				finally {
 					ignoreSelectionEvents = false;
