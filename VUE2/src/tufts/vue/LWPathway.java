@@ -46,7 +46,7 @@ import javax.swing.Icon;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.225 $ / $Date: 2009-06-01 21:26:09 $ / $Author: brian $
+ * @version $Revision: 1.226 $ / $Date: 2009-06-11 19:41:48 $ / $Author: brian $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -1875,7 +1875,7 @@ public class LWPathway extends LWContainer
             dc.g.setColor(getColor());
         }
             
-        double	alpha =  PrototypePanel.getAlpha();
+        double	alpha =  InteractionTools.getAlpha();
 
         if (alpha != 1) {
             // "Fade" this pathway.

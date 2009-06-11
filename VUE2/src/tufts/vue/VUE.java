@@ -118,7 +118,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.664 $ / $Date: 2009-06-10 18:46:54 $ / $Author: brian $ 
+ * @version $Revision: 1.665 $ / $Date: 2009-06-11 19:41:47 $ / $Author: brian $ 
  */
 
 public class VUE
@@ -165,7 +165,7 @@ public class VUE
     private static MergeMapsControlPanel mergeMapsControlPanel = null;
     private static OntologyBrowser ontologyBrowser = null;
     private static MetadataSearchMainGUI metadataSearchMainPanel = null;
-    private static PrototypePanel prototypePanel = null;
+    private static InteractionTools prototypePanel = null;
     private static JPopupMenu popup;
     private static JPopupMenu editPopup;
     private static SearchTextField mSearchtextFld = new SearchTextField();
@@ -2053,7 +2053,7 @@ public class VUE
         if (prototypeDock == null || VUE.isApplet())
         {
         	prototypeDock = GUI.createDockWindow(VueResources.getString("dockWindow.interactionTools.title"));
-        	prototypePanel = new PrototypePanel(prototypeDock);
+        	prototypePanel = new InteractionTools(prototypeDock);
         }
       //-----------------------------------------------------------------------------
         // Merge Maps
@@ -2541,7 +2541,7 @@ public class VUE
     	return metaDataSearchDock;
     }
     
-    public static PrototypePanel getPrototypePanel()
+    public static InteractionTools getPrototypePanel()
     {
     	return prototypePanel;
     }    

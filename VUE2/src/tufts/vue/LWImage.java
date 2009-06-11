@@ -881,7 +881,7 @@ public class LWImage extends
     	LWComponent grandparent;
 
     	if (!isSelected() && (parent == null || (!parent.isSelected() && ((grandparent = parent.parent) == null || !grandparent.isSelected())))) {
-        	double	alpha =  PrototypePanel.getAlpha();
+        	double	alpha =  InteractionTools.getAlpha();
 
         	if (alpha != 1) {
             	// "Fade" this image.
