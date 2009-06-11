@@ -61,30 +61,32 @@ public class PrototypePanel extends JPanel implements ActionListener, ChangeList
 		fadeSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 0);
 
 		JLabel						label100 = new JLabel("100");
-		JLabel						label75 = new JLabel("75");
-		JLabel						label50 = new JLabel("50");
-		JLabel						label25 = new JLabel("25");
+		JLabel						label80 = new JLabel("80");
+		JLabel						label60 = new JLabel("60");
+		JLabel						label40 = new JLabel("40");
+		JLabel						label20 = new JLabel("20");
 		JLabel						label0 = new JLabel("0");
 		Hashtable<Integer, JLabel>	labelTable = new Hashtable<Integer, JLabel>();
-		Dimension					sliderSize = new Dimension(130, 35);
 
 		label100.setFont(tufts.vue.gui.GUI.LabelFace);
-		label75.setFont(tufts.vue.gui.GUI.LabelFace);
-		label50.setFont(tufts.vue.gui.GUI.LabelFace);
-		label25.setFont(tufts.vue.gui.GUI.LabelFace);
+		label80.setFont(tufts.vue.gui.GUI.LabelFace);
+		label60.setFont(tufts.vue.gui.GUI.LabelFace);
+		label40.setFont(tufts.vue.gui.GUI.LabelFace);
+		label20.setFont(tufts.vue.gui.GUI.LabelFace);
 		label0.setFont(tufts.vue.gui.GUI.LabelFace);
-		labelTable.put(new Integer( 0 ), label100);
-		labelTable.put(new Integer( 25 ), label75);
-		labelTable.put(new Integer( 50 ), label50);
-		labelTable.put(new Integer( 75 ), label25);
-		labelTable.put(new Integer( 100 ), label0);
+		labelTable.put(new Integer(0), label100);
+		labelTable.put(new Integer(20), label80);
+		labelTable.put(new Integer(40), label60);
+		labelTable.put(new Integer(60), label40);
+		labelTable.put(new Integer(80), label20);
+		labelTable.put(new Integer(100), label0);
 
 		fadeSlider.setLabelTable(labelTable);
 		fadeSlider.setPaintLabels(true);
-		fadeSlider.setPreferredSize(sliderSize);
+		fadeSlider.setMinimumSize(fadeSlider.getPreferredSize());
 		fadeSlider.addChangeListener(this);
 		fadeSlider.setToolTipText(VueResources.getString("interactionTools.opacity.toolTip"));
-		addToGridBag(fadeInnerPanel, fadeSlider, 1, 0, 1, 1, halfGutterInsets);
+		addToGridBag(fadeInnerPanel, fadeSlider, 1, 0, 1, 1, GridBagConstraints.LINE_END, GridBagConstraints.HORIZONTAL, 1.0, 0.0, halfGutterInsets);
 
 		depthLabel = new JLabel(VueResources.getString("interactionTools.depth"), SwingConstants.RIGHT);
 		depthLabel.setFont(tufts.vue.gui.GUI.LabelFace);
@@ -106,21 +108,21 @@ public class PrototypePanel extends JPanel implements ActionListener, ChangeList
         label3.setFont(tufts.vue.gui.GUI.LabelFace);
         label4.setFont(tufts.vue.gui.GUI.LabelFace);
         label5.setFont(tufts.vue.gui.GUI.LabelFace);
-        labelTable.put(new Integer( 0 ), label0);
-        labelTable.put(new Integer( 1 ), label1);
-        labelTable.put(new Integer( 2 ), label2);
-        labelTable.put(new Integer( 3 ), label3);
-        labelTable.put(new Integer( 4 ), label4);
-        labelTable.put(new Integer( 5 ), label5);
+        labelTable.put(new Integer(0), label0);
+        labelTable.put(new Integer(1), label1);
+        labelTable.put(new Integer(2), label2);
+        labelTable.put(new Integer(3), label3);
+        labelTable.put(new Integer(4), label4);
+        labelTable.put(new Integer(5), label5);
         depthSlider.setLabelTable(labelTable);
         depthSlider.setPaintLabels(true);
         depthSlider.setSnapToTicks(true);
-        depthSlider.setPreferredSize(sliderSize);
+        depthSlider.setMinimumSize(depthSlider.getPreferredSize());
         depthSlider.addChangeListener(depthListener);        
         depthSlider.setToolTipText(VueResources.getString("interactionTools.depth.toolTip"));
         VUE.getSelection().addListener(depthListener);
 
-        addToGridBag(fadeInnerPanel, depthSlider, 1, 1, 1, 1, halfGutterInsets);
+        addToGridBag(fadeInnerPanel, depthSlider, 1, 1, 1, 1, GridBagConstraints.LINE_END, GridBagConstraints.HORIZONTAL, 1.0, 0.0, halfGutterInsets);
 
 	    fadePanel = new JPanel();
 		fadePanel.setLayout(new GridBagLayout());
@@ -138,19 +140,18 @@ public class PrototypePanel extends JPanel implements ActionListener, ChangeList
 		zoomSelButton.setText(VueResources.getString("interactionTools.zoomSel"));
 		zoomSelButton.setToolTipText(VueResources.getString("interactionTools.zoomSel.toolTip"));
 		zoomSelButton.addActionListener(this);
-		addToGridBag(zoomInnerPanel, zoomSelButton, 1, 0, 1, 1, halfGutterInsets);
+		addToGridBag(zoomInnerPanel, zoomSelButton, 1, 0, 1, 1, GridBagConstraints.LINE_END, GridBagConstraints.HORIZONTAL, 1.0, 0.0, halfGutterInsets);
 
 		zoomMapLabel = new JLabel(VueResources.getString("interactionTools.zoomMap.label"), SwingConstants.RIGHT);
 		zoomMapLabel.setFont(tufts.vue.gui.GUI.LabelFace);
 		addToGridBag(zoomInnerPanel, zoomMapLabel, 0, 1, 1, 1, GridBagConstraints.LINE_END, halfGutterInsets);
 
 		zoomMapButton = new JButton();
-		zoomMapButton.setPreferredSize(zoomSelButton.getPreferredSize());
 		zoomMapButton.setFont(tufts.vue.gui.GUI.LabelFace);
 		zoomMapButton.setText(VueResources.getString("interactionTools.zoomMap"));
 		zoomMapButton.setToolTipText(VueResources.getString("interactionTools.zoomMap.toolTip"));
 		zoomMapButton.addActionListener(this);
-		addToGridBag(zoomInnerPanel, zoomMapButton, 1, 1, 1, 1, halfGutterInsets);
+		addToGridBag(zoomInnerPanel, zoomMapButton, 1, 1, 1, 1, GridBagConstraints.LINE_END, GridBagConstraints.HORIZONTAL, 1.0, 0.0, halfGutterInsets);
 
 		linePanel = new JPanel() {
 			public static final long		serialVersionUID = 1;
