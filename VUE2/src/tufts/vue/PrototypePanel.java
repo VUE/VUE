@@ -58,14 +58,14 @@ public class PrototypePanel extends JPanel implements ActionListener, ChangeList
 		fadeLabel.setFont(tufts.vue.gui.GUI.LabelFace);
 		addToGridBag(fadeInnerPanel, fadeLabel, 0, 0, 1, 1, GridBagConstraints.LINE_END, halfGutterInsets);
 
-		fadeSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 0);
+		fadeSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 100);
 
-		JLabel						label100 = new JLabel("100");
-		JLabel						label80 = new JLabel("80");
-		JLabel						label60 = new JLabel("60");
-		JLabel						label40 = new JLabel("40");
-		JLabel						label20 = new JLabel("20");
-		JLabel						label0 = new JLabel("0");
+		JLabel						label100 = new JLabel("100%");
+		JLabel						label80 = new JLabel("80%");
+		JLabel						label60 = new JLabel("60%");
+		JLabel						label40 = new JLabel("40%");
+		JLabel						label20 = new JLabel("20%");
+		JLabel						label0 = new JLabel("0%");
 		Hashtable<Integer, JLabel>	labelTable = new Hashtable<Integer, JLabel>();
 
 		label100.setFont(tufts.vue.gui.GUI.LabelFace);
@@ -74,12 +74,12 @@ public class PrototypePanel extends JPanel implements ActionListener, ChangeList
 		label40.setFont(tufts.vue.gui.GUI.LabelFace);
 		label20.setFont(tufts.vue.gui.GUI.LabelFace);
 		label0.setFont(tufts.vue.gui.GUI.LabelFace);
-		labelTable.put(new Integer(0), label100);
-		labelTable.put(new Integer(20), label80);
-		labelTable.put(new Integer(40), label60);
-		labelTable.put(new Integer(60), label40);
-		labelTable.put(new Integer(80), label20);
-		labelTable.put(new Integer(100), label0);
+		labelTable.put(new Integer(100), label100);
+		labelTable.put(new Integer(80), label80);
+		labelTable.put(new Integer(60), label60);
+		labelTable.put(new Integer(40), label40);
+		labelTable.put(new Integer(20), label20);
+		labelTable.put(new Integer(0), label0);
 
 		fadeSlider.setLabelTable(labelTable);
 		fadeSlider.setPaintLabels(true);
@@ -103,6 +103,8 @@ public class PrototypePanel extends JPanel implements ActionListener, ChangeList
 
         labelTable = new Hashtable<Integer, JLabel>();
 
+        label0 = new JLabel(VueResources.getString("interactionTools.off"));
+        label0.setFont(tufts.vue.gui.GUI.LabelFace);
         label1.setFont(tufts.vue.gui.GUI.LabelFace);
         label2.setFont(tufts.vue.gui.GUI.LabelFace);
         label3.setFont(tufts.vue.gui.GUI.LabelFace);
@@ -258,7 +260,7 @@ public class PrototypePanel extends JPanel implements ActionListener, ChangeList
 	}
 
 	public static double getAlpha() {
-		return (VUE.getSelection().size() == 0 ? 1.0 : 1.0 - (((double)fadeSlider.getValue()) / 100.0));
+		return (VUE.getSelection().size() == 0 ? 1.0 : ((double)fadeSlider.getValue()) / 100.0);
 	}
 
 	/* ActionListener method -- button has been clicked */
