@@ -60,20 +60,27 @@ public class PrototypePanel extends JPanel implements ActionListener, ChangeList
 
 		fadeSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 0);
 
-		JLabel						label100 = new JLabel(VueResources.getString("interactionTools.oneHundredPercent"));
-		JLabel						label0 = new JLabel(VueResources.getString("interactionTools.zeroPercent"));
+		JLabel						label100 = new JLabel("100");
+		JLabel						label75 = new JLabel("75");
+		JLabel						label50 = new JLabel("50");
+		JLabel						label25 = new JLabel("25");
+		JLabel						label0 = new JLabel("0");
 		Hashtable<Integer, JLabel>	labelTable = new Hashtable<Integer, JLabel>();
 		Dimension					sliderSize = new Dimension(130, 35);
 
 		label100.setFont(tufts.vue.gui.GUI.LabelFace);
+		label75.setFont(tufts.vue.gui.GUI.LabelFace);
+		label50.setFont(tufts.vue.gui.GUI.LabelFace);
+		label25.setFont(tufts.vue.gui.GUI.LabelFace);
 		label0.setFont(tufts.vue.gui.GUI.LabelFace);
 		labelTable.put(new Integer( 0 ), label100);
+		labelTable.put(new Integer( 25 ), label75);
+		labelTable.put(new Integer( 50 ), label50);
+		labelTable.put(new Integer( 75 ), label25);
 		labelTable.put(new Integer( 100 ), label0);
 
 		fadeSlider.setLabelTable(labelTable);
 		fadeSlider.setPaintLabels(true);
-//		fadeSlider.setPaintTicks(true);
-//		fadeSlider.setMajorTickSpacing(20);
 		fadeSlider.setPreferredSize(sliderSize);
 		fadeSlider.addChangeListener(this);
 		fadeSlider.setToolTipText(VueResources.getString("interactionTools.opacity.toolTip"));
@@ -92,10 +99,8 @@ public class PrototypePanel extends JPanel implements ActionListener, ChangeList
         JLabel						label5 = new JLabel("5");
         DepthSelectionListener		depthListener = new DepthSelectionListener();        
 
-        label0 = new JLabel("0");
         labelTable = new Hashtable<Integer, JLabel>();
 
-        label0.setFont(tufts.vue.gui.GUI.LabelFace);
         label1.setFont(tufts.vue.gui.GUI.LabelFace);
         label2.setFont(tufts.vue.gui.GUI.LabelFace);
         label3.setFont(tufts.vue.gui.GUI.LabelFace);
