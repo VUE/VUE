@@ -79,7 +79,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.55 $ / $Date: 2009-06-08 19:32:38 $ / $Author: Sheejo
+ * @version $Revision: 1.56 $ / $Date: 2009-06-12 15:03:24 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -392,6 +392,7 @@ public class MetadataSearchMainGUI extends JPanel
             optionsPanel.add(searchTypeLbl, optionsPanelGBC);
 
             searchTypeCmbBox = getCombo(searchTypes, searchTypesListener);
+            searchTypeCmbBox.setPreferredSize(searchTypeCmbBox.getMinimumSize());
             optionsPanelGBC.gridx = 1;
             optionsPanelGBC.insets = textFieldInsets;
             optionsPanelGBC.weightx = 1.0;
@@ -408,6 +409,7 @@ public class MetadataSearchMainGUI extends JPanel
             optionsPanel.add(mapsLbl, optionsPanelGBC);
 
             mapCmbBox = getCombo(locationTypes, locationChoiceListener);
+            mapCmbBox.setPreferredSize(mapCmbBox.getMinimumSize());
             optionsPanelGBC.gridx = 1;
             optionsPanelGBC.insets = textFieldInsets;
             optionsPanelGBC.weightx = 1.0;
@@ -424,6 +426,7 @@ public class MetadataSearchMainGUI extends JPanel
             optionsPanel.add(resultsLbl, optionsPanelGBC);
 
             resultCmbBox = getCombo(currentMapResultsTypes, resultsTypeListener);
+            resultCmbBox.setPreferredSize(resultCmbBox.getMinimumSize());
             optionsPanelGBC.gridx = 1;
             optionsPanelGBC.insets = textFieldInsets;
             optionsPanelGBC.weightx = 1.0;
