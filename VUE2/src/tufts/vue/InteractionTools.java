@@ -365,7 +365,9 @@ public class InteractionTools extends JPanel implements ActionListener, ChangeLi
 				GUI.invokeAfterAWT(selectionChanged);
 			}
 			else {
-				InteractionTools.zoomIfLocked();
+				zoomSelButton.setEnabled(selection.size() > 0);
+
+				zoomIfLocked();
 			}
 		}
 
@@ -375,6 +377,9 @@ public class InteractionTools extends JPanel implements ActionListener, ChangeLi
 					LWSelection	guiSelection = VUE.getSelection();
 					int			depth = depthSlider.getValue();
 
+					// ignoreSelectionEvents = true means that the selection events that will be coming up
+					// are caused by deepening the selection and should be ignored -- ie, they shouldn't
+					// cause the selection to be deepened further.
 					ignoreSelectionEvents = true;
 
 					if (previousDepth == 0) {
@@ -401,7 +406,7 @@ public class InteractionTools extends JPanel implements ActionListener, ChangeLi
 
 					previousDepth = depth;
 
-					InteractionTools.zoomIfLocked();
+					zoomIfLocked();
 				}
 				catch (Exception ex) {
 					ex.printStackTrace();
@@ -441,7 +446,8 @@ public class InteractionTools extends JPanel implements ActionListener, ChangeLi
 						guiSelection.add(deepSelection);
 					}
 
-					InteractionTools.zoomIfLocked();
+					zoomSelButton.setEnabled(guiSelection.size() > 0);
+					zoomIfLocked();
 				}
 				catch (Exception ex) {
 					ex.printStackTrace();
