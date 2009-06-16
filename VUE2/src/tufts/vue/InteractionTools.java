@@ -9,6 +9,8 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -28,7 +30,7 @@ import tufts.vue.gui.GUI;
 import tufts.vue.gui.WidgetStack;
 
 
-public class InteractionTools extends JPanel implements ActionListener, ChangeListener {
+public class InteractionTools extends JPanel implements ActionListener, ItemListener, ChangeListener {
 	public static final long		serialVersionUID = 1;
 	protected static final boolean	DEBUG = false;
 	protected static final int		HALF_GUTTER = 4,
@@ -182,7 +184,7 @@ public class InteractionTools extends JPanel implements ActionListener, ChangeLi
 		zoomLockCheckBox = new JCheckBox(VueResources.getString("interactionTools.auto"));
 		zoomLockCheckBox.setFont(tufts.vue.gui.GUI.LabelFace);
 		zoomLockCheckBox.setToolTipText(VueResources.getString("interactionTools.auto.toolTip"));
-		zoomLockCheckBox.addChangeListener(this);
+		zoomLockCheckBox.addItemListener(this);
 		addToGridBag(zoomInnerPanel, zoomLockCheckBox, 3, 0, 1, 2, halfGutterInsets);
 
 		zoomPanel = new JPanel();
@@ -284,13 +286,21 @@ public class InteractionTools extends JPanel implements ActionListener, ChangeLi
 	}
 
 
-	/* ChangeListener method -- checkbox has been clicked */
-	public void stateChanged(ChangeEvent event) {
+	/* ItemListener method -- checkbox has been clicked */
+	public void itemStateChanged(ItemEvent event) {
 		Object	source = event.getSource();
 
 		if (source == zoomLockCheckBox) {
 			zoomIfLocked();
-		} else if (source == fadeSlider) {
+		}
+	}
+
+
+	/* ChangeListener method -- slider has been moved */
+	public void stateChanged(ChangeEvent event) {
+		Object	source = event.getSource();
+
+		if (source == fadeSlider) {
 			VUE.getActiveViewer().repaint();
 		}
 	}
@@ -367,13 +377,15 @@ public class InteractionTools extends JPanel implements ActionListener, ChangeLi
 
 		// LWSelection.Listener method
 		public void selectionChanged(LWSelection selection) {
-			if (depthSlider.getValue() > 0 && !ignoreSelectionEvents) {
-				// Changes to selection can't be made now;  must be done after listener notification completes.
-				GUI.invokeAfterAWT(selectionChanged);
-			}
-			else {
-				zoomSelButton.setEnabled(selection.size() > 0);
-				zoomIfLocked();
+			if (!ignoreSelectionEvents) {
+				if (depthSlider.getValue() > 0) {
+					// Changes to selection can't be made until after listener notification completes, so invoke this later.
+					GUI.invokeAfterAWT(selectionChanged);
+				}
+				else {
+					zoomSelButton.setEnabled(selection.size() > 0);
+					zoomIfLocked();
+				}				
 			}
 		}
 
