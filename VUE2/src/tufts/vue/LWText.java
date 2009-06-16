@@ -289,7 +289,7 @@ public class LWText extends LWComponent {
 			// dc.g.clipRect(0, 0,(int) getWidth(), getAdjustedHeight());
 
 			if (!isSelected()) {
-				double	alpha =  InteractionTools.getAlpha();
+				double	alpha =  VUE.getInteractionToolsPanel().getAlpha();
 
 		    	if (alpha != 1) {
 		        	// "Fade" this text.

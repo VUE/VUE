@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.247 $ / $Date: 2009-06-11 19:41:48 $ / $Author: brian $
+ * @version $Revision: 1.248 $ / $Date: 2009-06-16 15:33:23 $ / $Author: brian $
  * @author Scott Fraize
  */
 
@@ -2255,7 +2255,7 @@ public class LWNode extends LWContainer
         final float renderScale = (float) dc.getAbsoluteScale();
 
         if (!isSelected() && (parent == null || !parent.isSelected())) {
-        	double	alpha =  InteractionTools.getAlpha();
+        	double	alpha =  VUE.getInteractionToolsPanel().getAlpha();
 
         	if (alpha != 1) {
             	// "Fade" this node.

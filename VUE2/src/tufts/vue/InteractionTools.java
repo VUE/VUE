@@ -27,6 +27,7 @@ import tufts.vue.gui.DockWindow;
 import tufts.vue.gui.GUI;
 import tufts.vue.gui.WidgetStack;
 
+
 public class InteractionTools extends JPanel implements ActionListener, ChangeListener {
 	public static final long		serialVersionUID = 1;
 	protected static final boolean	DEBUG = false;
@@ -34,12 +35,12 @@ public class InteractionTools extends JPanel implements ActionListener, ChangeLi
 									GUTTER = 2 * HALF_GUTTER;
     private static final org.apache.log4j.Logger
     								Log = org.apache.log4j.Logger.getLogger(InteractionTools.class);
-	protected static JSlider		fadeSlider = null,
+	protected JSlider				fadeSlider = null,
 									depthSlider = null;
-	protected static JButton		zoomSelButton = null,
+	protected JButton				zoomSelButton = null,
 									zoomMapButton = null;
-	protected static JCheckBox		zoomLockCheckBox = null;
-	protected static JLabel			fadeLabel = null,
+	protected JCheckBox				zoomLockCheckBox = null;
+	protected JLabel				fadeLabel = null,
 									depthLabel = null,
 									zoomSelLabel = null,
 									zoomMapLabel = null;
@@ -49,6 +50,7 @@ public class InteractionTools extends JPanel implements ActionListener, ChangeLi
 									zoomInnerPanel = null,
 									linePanel = null;
 	protected WidgetStack			widgetStack = null;
+
 
 	public InteractionTools(DockWindow dw) {
 		Insets						halfGutterInsets = new Insets(HALF_GUTTER, HALF_GUTTER, HALF_GUTTER, HALF_GUTTER);
@@ -228,6 +230,7 @@ public class InteractionTools extends JPanel implements ActionListener, ChangeLi
 		setVisible(true);
 	}
 
+
 	public void finalize() {
 		fadeSlider = null;
 		zoomSelButton = null;
@@ -243,15 +246,17 @@ public class InteractionTools extends JPanel implements ActionListener, ChangeLi
 		zoomInnerPanel = null;
 		linePanel = null;
 		widgetStack = null;
-}
+	}
 
-	public static void zoomIfLocked() {
+
+	protected void zoomIfLocked() {
 		if (zoomLockCheckBox.isSelected()) {
 			zoom();
 		}
 	}
 
-	public static void zoom() {
+
+	protected void zoom() {
 		LWSelection	selection = VUE.getSelection();
 
 		if (selection.size() == 0) {
@@ -261,9 +266,11 @@ public class InteractionTools extends JPanel implements ActionListener, ChangeLi
 		}
 	}
 
-	public static double getAlpha() {
+
+	public double getAlpha() {
 		return (VUE.getSelection().size() == 0 ? 1.0 : ((double)fadeSlider.getValue()) / 100.0);
 	}
+
 
 	/* ActionListener method -- button has been clicked */
 	public void actionPerformed(ActionEvent event) {
@@ -276,6 +283,7 @@ public class InteractionTools extends JPanel implements ActionListener, ChangeLi
 		}
 	}
 
+
 	/* ChangeListener method -- checkbox has been clicked */
 	public void stateChanged(ChangeEvent event) {
 		Object	source = event.getSource();
@@ -287,67 +295,65 @@ public class InteractionTools extends JPanel implements ActionListener, ChangeLi
 		}
 	}
 
+
 	/* Static methods */
 
 	protected static void addToGridBag(Container container, Component component,
 			int gridX, int gridY, int gridWidth, int gridHeight,
-			Insets insets)
-		{
-			GridBagConstraints	constraints = new GridBagConstraints(gridX, gridY, gridWidth, gridHeight,
-					0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, insets, 0, 0) ;
+			Insets insets) {
+		GridBagConstraints	constraints = new GridBagConstraints(gridX, gridY, gridWidth, gridHeight,
+				0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, insets, 0, 0) ;
 
+		((GridBagLayout)container.getLayout()).setConstraints(component, constraints);
+		container.add(component);
+	}
 
-			((GridBagLayout)container.getLayout()).setConstraints(component, constraints);
-			container.add(component);
-		}
 
 	protected static void addToGridBag(Container container, Component component,
 			int gridX, int gridY, int gridWidth, int gridHeight,
 			int anchor,
-			Insets insets)
-	{
+			Insets insets) {
 		GridBagConstraints	constraints = new GridBagConstraints(gridX, gridY, gridWidth, gridHeight,
 				0.0, 0.0, anchor, GridBagConstraints.NONE, insets, 0, 0) ;
 
-
 		((GridBagLayout)container.getLayout()).setConstraints(component, constraints);
 		container.add(component);
 	}
 
+
 	protected static void addToGridBag(Container container, Component component,
 			int gridX, int gridY, int gridWidth, int gridHeight,
 			int anchor, int fill, double weightX, double weightY,
-			Insets insets)
-	{
+			Insets insets) {
 		GridBagConstraints	constraints = new GridBagConstraints(gridX, gridY, gridWidth, gridHeight,
 				weightX, weightY, anchor, fill, insets, 0, 0) ;
 
+		((GridBagLayout)container.getLayout()).setConstraints(component, constraints);
+		container.add(component);
+	}
+
+
+	protected static void addToGridBag(Container container, Component component,
+			int gridX, int gridY, int gridWidth, int gridHeight,
+			int anchor, int fill, double weightX, double weightY,
+			Insets insets, int padX, int padY) {
+		GridBagConstraints	constraints = new GridBagConstraints(gridX, gridY, gridWidth, gridHeight,
+				weightX, weightY, anchor, fill, insets, padX, padY) ;
 
 		((GridBagLayout)container.getLayout()).setConstraints(component, constraints);
 		container.add(component);
 	}
 
-	protected static void addToGridBag(Container container, Component component,
-			int gridX, int gridY, int gridWidth, int gridHeight,
-			int anchor, int fill, double weightX, double weightY,
-			Insets insets, int padX, int padY)
-		{
-			GridBagConstraints	constraints = new GridBagConstraints(gridX, gridY, gridWidth, gridHeight,
-					weightX, weightY, anchor, fill, insets, padX, padY) ;
-
-
-			((GridBagLayout)container.getLayout()).setConstraints(component, constraints);
-			container.add(component);
-		}
-
-	static class DepthSelectionListener implements ChangeListener, LWSelection.Listener {
+	
+	protected class DepthSelectionListener implements ChangeListener, LWSelection.Listener {
 		HashSet<LWComponent>	userSelection = new HashSet<LWComponent>(),	// LWComponents selected by the user
 								deepSelection = new HashSet<LWComponent>();	// LWComponents selected by this class
 		int						previousDepth = 0;
 		boolean					ignoreSelectionEvents = false;
 
-		DepthSelectionListener() {
-		}
+
+		DepthSelectionListener() {}
+
 
 		// ChangeListener method for depthSelectionSlider
 		public void stateChanged(ChangeEvent event) {
@@ -358,6 +364,7 @@ public class InteractionTools extends JPanel implements ActionListener, ChangeLi
 			}
 		}
 
+
 		// LWSelection.Listener method
 		public void selectionChanged(LWSelection selection) {
 			if (depthSlider.getValue() > 0 && !ignoreSelectionEvents) {
@@ -366,10 +373,10 @@ public class InteractionTools extends JPanel implements ActionListener, ChangeLi
 			}
 			else {
 				zoomSelButton.setEnabled(selection.size() > 0);
-
 				zoomIfLocked();
 			}
 		}
+
 
 		Runnable sliderMoved = new Runnable() {
 			public void run() {
@@ -418,6 +425,7 @@ public class InteractionTools extends JPanel implements ActionListener, ChangeLi
 			}
 		};
 
+
 		Runnable selectionChanged = new Runnable() {
 			public void run() {
 				try {
@@ -458,6 +466,7 @@ public class InteractionTools extends JPanel implements ActionListener, ChangeLi
 				}
 			}
 		};
+
 
 		protected void findChildrenToDepth(Collection<LWComponent> collection, int depth) {
 			// Add each node to deepSelection.

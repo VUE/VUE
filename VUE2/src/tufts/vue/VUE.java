@@ -118,7 +118,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.665 $ / $Date: 2009-06-11 19:41:47 $ / $Author: brian $ 
+ * @version $Revision: 1.666 $ / $Date: 2009-06-16 15:33:23 $ / $Author: brian $ 
  */
 
 public class VUE
@@ -165,7 +165,7 @@ public class VUE
     private static MergeMapsControlPanel mergeMapsControlPanel = null;
     private static OntologyBrowser ontologyBrowser = null;
     private static MetadataSearchMainGUI metadataSearchMainPanel = null;
-    private static InteractionTools prototypePanel = null;
+    private static InteractionTools interactionToolsPanel = null;
     private static JPopupMenu popup;
     private static JPopupMenu editPopup;
     private static SearchTextField mSearchtextFld = new SearchTextField();
@@ -210,7 +210,7 @@ public class VUE
     	layersDock = null;
     	metadataSearchMainPanel = null;
     	mergeMapsControlPanel = null;
-    	prototypePanel = null;
+    	interactionToolsPanel = null;
 
     }
     /** simplest form of threadsafe static lazy initializer: for CategoryModel */
@@ -903,7 +903,7 @@ public class VUE
     private static DockWindow floatingZoomDock;
     private static DockWindow layersDock;
     private static DockWindow metaDataSearchDock;
-    private static DockWindow prototypeDock;
+    private static DockWindow interactionToolsDock;
     private static DockWindow mergeMapsDock;
     private static DockWindow ontologyDock;
     private static DockWindow anchor;
@@ -1850,7 +1850,7 @@ public class VUE
         	pannerDock.positionWindowFromProperties();
         	MapInspector.positionWindowFromProperties();
         	metaDataSearchDock.positionWindowFromProperties();
-        	prototypeDock.positionWindowFromProperties();
+        	interactionToolsDock.positionWindowFromProperties();
         	mergeMapsDock.positionWindowFromProperties();
         	ontologyDock.positionWindowFromProperties();
         	ObjectInspector.positionWindowFromProperties();
@@ -2048,12 +2048,12 @@ public class VUE
         	metadataSearchMainPanel = new MetadataSearchMainGUI(metaDataSearchDock);       	
         }
         //-----------------------------------------------------------------------------
-        // protytyping panel
+        // Interaction Tools panel
         //-----------------------------------------------------------------------------
-        if (prototypeDock == null || VUE.isApplet())
+        if (interactionToolsDock == null || VUE.isApplet())
         {
-        	prototypeDock = GUI.createDockWindow(VueResources.getString("dockWindow.interactionTools.title"));
-        	prototypePanel = new InteractionTools(prototypeDock);
+        	interactionToolsDock = GUI.createDockWindow(VueResources.getString("dockWindow.interactionTools.title"));
+        	interactionToolsPanel = new InteractionTools(interactionToolsDock);
         }
       //-----------------------------------------------------------------------------
         // Merge Maps
@@ -2541,14 +2541,14 @@ public class VUE
     	return metaDataSearchDock;
     }
     
-    public static InteractionTools getPrototypePanel()
+    public static InteractionTools getInteractionToolsPanel()
     {
-    	return prototypePanel;
+    	return interactionToolsPanel;
     }    
     
-    public static DockWindow getPrototypeDock()
+    public static DockWindow getInteractionToolsDock()
     {
-    	return prototypeDock;
+    	return interactionToolsDock;
     }    
     
     public static OntologyBrowser getOntologyBrowserPanel()
@@ -2961,7 +2961,7 @@ public class VUE
         MapInspector.saveWindowProperties();
         ObjectInspector.saveWindowProperties();
         metaDataSearchDock.saveWindowProperties();
-        prototypeDock.saveWindowProperties();
+        interactionToolsDock.saveWindowProperties();
         mergeMapsDock.saveWindowProperties();
         if (outlineDock != null)
             outlineDock.saveWindowProperties();

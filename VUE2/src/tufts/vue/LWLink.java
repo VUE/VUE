@@ -43,7 +43,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.219 $ / $Date: 2009-06-11 19:41:47 $ / $Author: brian $
+ * @version $Revision: 1.220 $ / $Date: 2009-06-16 15:33:22 $ / $Author: brian $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -2771,7 +2771,7 @@ public class LWLink extends LWComponent
         }
         
         if (!isSelected()) {
-        	double	alpha =  InteractionTools.getAlpha();
+        	double	alpha =  VUE.getInteractionToolsPanel().getAlpha();
 
         	if (alpha != 1) {
             	// "Fade" this link.
