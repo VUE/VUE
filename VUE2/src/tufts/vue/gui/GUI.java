@@ -57,7 +57,7 @@ import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.137 $ / $Date: 2009-06-03 18:38:44 $ / $Author: mike $
+ * @version $Revision: 1.138 $ / $Date: 2009-06-17 17:01:01 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2454,11 +2454,20 @@ public class GUI
             return AquaTextBorder;
         
         try {
-            Class abc = Class.forName("apple.laf.AquaTextFieldBorder");
+            Class abc = null;
+
+            try {
+                abc = Class.forName("apple.laf.AquaTextFieldBorder");
+            } catch (ClassNotFoundException e) {
+                // java 6 update as of June 2009 (1.6.0_13) will fail on above, but should find this:
+                abc = Class.forName("com.apple.laf.AquaTextFieldBorder");
+            }
             AquaTextBorder = (javax.swing.border.Border) abc.newInstance();
-        } catch (Exception e) {
+            if (DEBUG.Enabled) Log.debug("found Mac Aqua text border: " + abc);
+        } catch (Throwable t) {
+            Log.error("Mac Aqua GUI init problem:", t);
             AquaTextBorder = new LineBorder(Color.blue); // backup debug
-            e.printStackTrace();
+            
         }
 
         return AquaTextBorder;
