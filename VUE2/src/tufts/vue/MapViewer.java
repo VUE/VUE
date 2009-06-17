@@ -76,7 +76,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.598 $ / $Date: 2009-06-10 16:14:02 $ / $Author: sfraize $ 
+ * @version $Revision: 1.599 $ / $Date: 2009-06-17 18:54:07 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1224,18 +1224,26 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
     
     
-    
-
-    /** at startup make sure the contents of the map are visible in the viewport */
+   /** at startup make sure SOMETHING is visible in the viewport -- if NOTHING is currently visible, zoom-fit the map */
     private void ensureMapVisible()
     {
-        if (mMap == mFocal && mMap != null && mMap.hasChildren()) {
-            final int visibleObjects = computeSelection(getVisibleMapBounds()).size();
-            if (DEBUG.INIT || DEBUG.VIEWER) out("i see " + visibleObjects + " components in visible map bounds " + getVisibleMapBounds());
-            if (visibleObjects == 0)
+        if (mMap == mFocal && mMap != null && mMap.hasContent()) {
+            int currentlyVisibleObjects = -1;
+            try {
+                // if getVisibleMapBounds ever returns an empty rectangle, we'll end up with an exception
+                currentlyVisibleObjects = computeSelection(getVisibleMapBounds()).size();
+            } catch (Throwable t) {
+                Log.info(t);
+            }
+            //if (DEBUG.INIT || DEBUG.VIEWER) out("i see " + visibleObjects + " components in visible map bounds " + getVisibleMapBounds());
+            if (currentlyVisibleObjects == 0) {
+                // nothing can currently be seen: zoom-fit the entire map
                 tufts.vue.ZoomTool.setZoomFit(this);
+            }
         }
     }
+
+
     /*
     private boolean isAnythingCurrentlyVisible()
     {
