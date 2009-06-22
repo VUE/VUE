@@ -146,6 +146,7 @@ public class DataSourceViewer extends JPanel
         Widget.setHelpAction(DRB.browsePane,VueResources.getString("dockWindow.Resources.browsePane.helpText"));;
         Widget.setHelpAction(DRB.resultsPane,VueResources.getString("dockWindow.Resources.resultsPane.helpText"));;
         Widget.setHelpAction(DRB.searchPane,VueResources.getString("dockWindow.Resources.searchPane.helpText"));;
+        DRB.associationsPane.setActions();
 
         Widget.setRefreshAction(DRB.browsePane, new MouseAdapter() {
                 public void mousePressed(MouseEvent e) {
