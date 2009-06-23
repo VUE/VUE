@@ -264,7 +264,7 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 		if (selection.size() == 0) {
 			ZoomTool.setZoomFit();
 		} else {
-			ZoomTool.setZoomFitRegion(VUE.getActiveViewer(), selection.getBounds(), 16, false);
+			ZoomTool.setZoomFitRegion(VUE.getActiveViewer(), selection.getBounds(), 32, false);
 		}
 	}
 
@@ -279,7 +279,7 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 		Object	source = event.getSource();
 
 		if (source == zoomSelButton) {
-			ZoomTool.setZoomFitRegion(VUE.getActiveViewer(), VUE.getSelection().getBounds(), 16, false);
+			ZoomTool.setZoomFitRegion(VUE.getActiveViewer(), VUE.getSelection().getBounds(), 32, false);
 		} else if (source == zoomMapButton) {
 			ZoomTool.setZoomFit();
 		}
