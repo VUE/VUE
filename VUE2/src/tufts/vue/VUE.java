@@ -118,14 +118,14 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.666 $ / $Date: 2009-06-16 15:33:23 $ / $Author: brian $ 
+ * @version $Revision: 1.667 $ / $Date: 2009-06-24 16:28:19 $ / $Author: sfraize $ 
  */
 
 public class VUE
     implements VueConstants
 {
     public static final boolean VUE3 = true;
-    public static final boolean VUE3_LAYERS = true;
+    //public static final boolean VUE3_LAYERS = true;
     
     public static boolean BLOCKING_OSID_LOAD = edu.tufts.vue.dsm.impl.VueDataSourceManager.BLOCKING_OSID_LOAD;
     
@@ -2085,7 +2085,7 @@ public class VUE
         	ObjectInspector.setHeight(575);
         }
         
-        if (DEBUG.Enabled || VUE3_LAYERS) {
+        if (DEBUG.Enabled) {
         	if (layersDock == null || VUE.isApplet())
         	{
         		layersDock = GUI.createDockWindow(VueResources.getString("dockWindow.layers.title"), new tufts.vue.ui.LayersUI());
@@ -2799,8 +2799,9 @@ public class VUE
                         if (rightViewer != null)
                             rightViewer.fireViewerEvent(MapViewerEvent.PAN);
                         */
-                        leftViewer.setVisible(true);
-                        rightViewer.setVisible(true);
+                        // why did we ever need to handle this condition?  was this just-in-case code?
+                        if (leftViewer != null) leftViewer.setVisible(true);
+                        if (rightViewer != null) rightViewer.setVisible(true);
                     } else {
                         if (leftViewer != null && leftViewer != getActiveViewer()) {
                             if (DEBUG.TOOL || DEBUG.FOCUS)
