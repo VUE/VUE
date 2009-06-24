@@ -76,7 +76,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.600 $ / $Date: 2009-06-24 16:27:25 $ / $Author: sfraize $ 
+ * @version $Revision: 1.601 $ / $Date: 2009-06-24 21:48:26 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -4840,7 +4840,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             DataFlavor.stringFlavor,
             DataFlavor.imageFlavor,
             //MapResource.DataFlavor,
-            TypeList.DataFlavor
+            // TypeList.DataFlavor // commented out 2009-06-24 SMF
             //URLFlavor, // try text/uri-list
         };
 
@@ -4896,7 +4896,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     return false;
 
                 // TODO BUG: support for TypeList is being incorrectly reported as true here
-                // even if there is no old-style meta-data
+                // even if there is no old-style meta-data!
                 
                 for (int i = 0; i < LWFlavors.length; i++)
                     if (flavor.equals(LWFlavors[i]))
@@ -4919,7 +4919,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 // what is ultimately dropped.
                 
                 if (DEBUG.DND && DEBUG.META) System.err.print("<LWTransfer.getTransferData("
-                                                  + flavor.getHumanPresentableName() + ")>");
+                                                              + flavor.getHumanPresentableName() + ")>");
+                //if (DEBUG.DND && DEBUG.META)
+                //Log.debug("getTransferData(" + flavor.getHumanPresentableName() + ")", new Throwable("HERE"));
         
                 Object data = null;
         
@@ -4980,10 +4982,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 //                         //duplicates = LWC.getClientData(LWComponent.ListFactory.class).produceNodes(null);
 //                         duplicates = LWC.getClientData(LWComponent.Producer.class).produceNodes(null);
 //                     }
-//                     else if (LWC.hasFlag(LWComponent.Flag.INTERNAL) /*&& LWC.getClientProperty(Field.class) != null*/) {
-//                         // don't send the actual map just yet...
-//                         duplicates = Actions.duplicatePreservingLinks(LWC.getChildren());
-//                     }
+                    
+                    else if (LWC.hasFlag(LWComponent.Flag.INTERNAL) /*&& LWC.getClientProperty(Field.class) != null*/) {
+                        // an INTERNAL flagged LWComponent during drag is merely a bucket for other
+                        // information, and we can return it directly.
+                        return LWC;
+                    }
                     else {
                         duplicates = java.util.Collections.singletonList(LWC.duplicate());
                     }

@@ -33,7 +33,7 @@ import java.util.*;
  * types and doing some data-type analysis.  It also includes the ability to
  * associate a LWComponent node style with specially marked values.
  * 
- * @version $Revision: 1.12 $ / $Date: 2009-06-01 04:16:23 $ / $Author: sfraize $
+ * @version $Revision: 1.13 $ / $Date: 2009-06-24 21:48:27 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -220,20 +220,29 @@ public class Field
         return type;
     }
 
+    @Override
     public String toString() {
-        //if (isNumeric) type=TYPE_NUMERIC; // HACK: NEED ANALYSIS PHASE
-        //return getName();
-
-        final String numeric = isNumeric ? "/NUMERIC" : "";
-        
-        if (valueCount() == 1)
-            //return String.format("<html><code>%s</code>:<br>\"%s\"", getName(), getValues().toArray()[0]);
-            return String.format("%-14s=\"%s\"", getName(), getValues().toArray()[0]);
-        else if (allValuesUnique)
-            return String.format("%-14s (%d)/%s%s", getName(), valueCount(), type, numeric);
-        else
-            return String.format("%-14s [%d]/%s%s", getName(), uniqueValueCount(), type, numeric);
+        return String.format("%s.%s", schema.getName(), getName());
     }
+    
+//     @Override
+//     public String toString() {
+//         //if (isNumeric) type=TYPE_NUMERIC; // HACK: NEED ANALYSIS PHASE
+//         //return getName();
+
+//         final String numeric = isNumeric ? "/NUMERIC" : "";
+
+//         //final String name = schema.getName() + "." + getName();
+//         final String name = getName();
+        
+//         if (valueCount() == 1)
+//             //return String.format("<html><code>%s</code>:<br>\"%s\"", getName(), getValues().toArray()[0]);
+//             return String.format("%-14s=\"%s\"", name, getValues().toArray()[0]);
+//         else if (allValuesUnique)
+//             return String.format("%-14s (%d)/%s%s", name, valueCount(), type, numeric);
+//         else
+//             return String.format("%-14s [%d]/%s%s", name, uniqueValueCount(), type, numeric);
+//     }
 
     public boolean isPossibleKeyField() {
         //return allValuesUnique && valueCount == schema.getRowCount() && !(type == TYPE_DATE);

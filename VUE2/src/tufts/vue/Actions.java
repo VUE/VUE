@@ -2624,7 +2624,7 @@ public class Actions implements VueConstants
             super(VueResources.getString(labelKey), stroke);
         }
 
-        abstract void doClusterAction(LWComponent center, Collection<LWComponent> nodes);
+        public abstract void doClusterAction(LWComponent center, Collection<LWComponent> nodes);
             
         void arrange(LWSelection selection) {
 
@@ -2743,16 +2743,16 @@ public class Actions implements VueConstants
             
     };
 
-    public static final LWCAction MakeCluster = new ClusterAction("menu.format.align.makecluster", keyStroke(KeyEvent.VK_PERIOD, ALT)) {
+    public static final ClusterAction MakeCluster = new ClusterAction("menu.format.align.makecluster", keyStroke(KeyEvent.VK_PERIOD, ALT)) {
             @Override
-            void doClusterAction(LWComponent center, Collection<LWComponent> nodes) {
+            public void doClusterAction(LWComponent center, Collection<LWComponent> nodes) {
                 clusterNodesAbout(center, nodes);
             }
         };
 
-    public static final LWCAction MakeDataLists = new ClusterAction("menu.format.align.makedatalists", keyStroke(KeyEvent.VK_COMMA, ALT)) {
+    public static final ClusterAction MakeDataLists = new ClusterAction("menu.format.align.makedatalists", keyStroke(KeyEvent.VK_COMMA, ALT)) {
             @Override
-            void doClusterAction(LWComponent c, Collection<LWComponent> nodes) {
+            public void doClusterAction(LWComponent c, Collection<LWComponent> nodes) {
                 if (c instanceof LWNode) {
                     // grab linked
                     c.addChildren(new ArrayList(c.getLinked()), LWComponent.ADD_MERGE);

@@ -50,7 +50,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.113 $ / $Date: 2009-06-24 16:27:03 $ / $Author: sfraize $  
+ * @version $Revision: 1.114 $ / $Date: 2009-06-24 21:48:26 $ / $Author: sfraize $  
  */
 public class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -321,8 +321,8 @@ public class MapDropTarget
         public final Transferable transfer;
         public final Point2D.Float location;   // map location of the drop
         public final MapViewer viewer;          // we dropped into this component
-        public final LWComponent hit;          // we dropped into this component
-        public final LWContainer hitParent;    // we dropped into this component, and it can take children
+        public /*final*/ LWComponent hit;          // we dropped into this component
+        public /*final*/ LWContainer hitParent;    // we dropped into this component, and it can take children
         public final boolean isLinkAction;     // user kbd modifiers down produced LINK drop action
 
         // Data fields -- may not all be populated.
@@ -337,7 +337,8 @@ public class MapDropTarget
         private float nextX;
         private float nextY;
 
-        public List added = new java.util.ArrayList(); // to track LWComponents added as a result of the drop
+        //public List added = new java.util.ArrayList(); // to track LWComponents added as a result of the drop
+        public List select = new java.util.ArrayList(); // what to select
         
         DropContext(Transferable t,
                     Point2D.Float mapLocation,
@@ -397,7 +398,8 @@ public class MapDropTarget
          * to everything that was dropped at the end.
          */
         void add(LWComponent c) {
-            added.add(c);
+            //added.add(c);
+            select.add(c);
         }
     }
 
@@ -857,15 +859,14 @@ public class MapDropTarget
                 throw new Error("unknown drop type " + dropType);
             }
 
-            if (drop.added.size() > 0) {
+            if (drop.select.size() > 0) {
 
                 // Must make sure the selection is owned
                 // by this map before we try and change it.
                 // TODO: SlideViewer currently not handling this properly...
                 mViewer.grabVueApplicationFocus("drop", null);
                 
-                //VUE.getSelection().setTo(drop.added);
-                mViewer.selectionSet(drop.added); // VUE-978: selection focal should also be set
+                mViewer.selectionSet(drop.select); // VUE-978: selection focal should also be set
 
             }
             
@@ -1032,7 +1033,7 @@ public class MapDropTarget
 
         addNodesToMap(drop);
 
-        drop.added.addAll(drop.items);
+        drop.select.addAll(drop.items);
             
         return true;
     }

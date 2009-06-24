@@ -48,7 +48,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.78 $ / $Date: 2009-06-24 17:00:29 $ / $Author: sfraize $
+ * @version $Revision: 1.79 $ / $Date: 2009-06-24 21:48:27 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -1295,7 +1295,7 @@ public class DataTree extends javax.swing.JTree
             } else if (treeNode instanceof RowNode) {
                 
                 final DataRow row = ((RowNode)treeNode).getRow();
-                final List<LWComponent> nodes = DataAction.makeRowNodes(treeNode.getSchema(), row);
+                final List<LWComponent> nodes = DataAction.makeSingleRowNode(treeNode.getSchema(), row);
                 if (DEBUG.Enabled) Log.debug("made row nodes: " + Util.tags(nodes));
                 if (nodes.isEmpty()) {
                     Log.error("no row node made from row: " + row);
@@ -1328,8 +1328,10 @@ public class DataTree extends javax.swing.JTree
 //                 dragNode.setClientData(LWComponent.ListFactory.class,
 //                                        new NodeProducer(treeNode));
             }
+            dragNode.setFlag(LWComponent.Flag.INTERNAL);
             dragNode.setClientData(MapDropTarget.DropHandler.class,
                                    new DropHandler(treeNode, DataTree.this));
+            dragNode.setClientData(Field.class, treeNode.getField()); // for associations panel
                          
             tufts.vue.gui.GUI.startRecognizedDrag(e, dragNode);
                          
@@ -1394,66 +1396,7 @@ public class DataTree extends javax.swing.JTree
             this.tree = tree;
         }
 
-        @Override
-        public boolean handleDrop(MapDropTarget.DropContext drop) {
-            
-            java.util.List<LWComponent> newNodes = null;
-            
-            if (false && drop.hit != null && drop.hit.isDataValueNode()) {
-                Log.debug("IMPLIED DATA ACTION");
-                return false;
-            } else {
-                newNodes = produceNodes();
-
-                // Currently, we must set node locations before adding any links, as when
-                // the link-add events happen, the viewer may adjust the canvas size
-                // to include room for the new links, which will all be linking to 0,0
-                // unless the nodes have had their locations set, even if the nodes
-                // are about to be re-laid out via a group clustering.
-                
-                MapDropTarget.setCenterAt(newNodes, drop.location);
-
-                boolean didAddLinks = DataAction.addDataLinksForNodes(drop.viewer.getMap(),
-                                                                      newNodes,
-                                                                      treeNode.getField());
-
-                if (drop.isLinkAction) {
-                    tufts.vue.LayoutAction.circle.act(newNodes);
-                } else {
-                    clusterNodes(newNodes, didAddLinks);
-                }
-
-                drop.items = newNodes; // will be added to map
-                drop.added = newNodes; // will be selected
-            }
-            
-            return true;
-        }
-
-        private boolean clusterNodes(List<LWComponent> nodes, boolean newLinksAvailable) {
-
-            if (DEBUG.Enabled) Log.debug("clusterNodes: " + Util.tags(nodes) + "; addedLinks=" + newLinksAvailable);
-            
-            try {
-
-                if (nodes.size() > 1) {
-                    if (treeNode.isRowNode()) {
-                        tufts.vue.LayoutAction.random.act(nodes);
-                    } else if (newLinksAvailable) {
-                        // TODO: cluster will currently fail (NPE) if no data-links exist
-                        // Note: this action will re-arrange all the data-nodes on the map
-                        tufts.vue.LayoutAction.cluster.act(nodes);
-                    } else
-                        tufts.vue.LayoutAction.filledCircle.act(nodes);
-                    return true;
-                }
-            } catch (Throwable t) {
-                Log.error("clustering failure: " + Util.tags(nodes), t);
-            }
-            return false;
-        }
-        
-        private java.util.List<LWComponent> produceNodes()
+        private java.util.List<LWComponent> produceNodes(LWComponent filter)
         {
             final Field field = treeNode.getField();
             final Schema schema = treeNode.getSchema();
@@ -1467,9 +1410,11 @@ public class DataTree extends javax.swing.JTree
 
             if (treeNode instanceof RowNode) {
 
-                nodes = DataAction.makeRowNodes(schema, treeNode.getRow());
+                Log.debug("PRODUCING SINGLE ROW NODE");
+                nodes = DataAction.makeSingleRowNode(schema, treeNode.getRow());
                 
-            } else if (treeNode.isRowNode()) {
+            //} else if (treeNode.isRowNode()) {
+            } else if (treeNode instanceof AllRowsNode) {
 
                 List<LWComponent> _nodes = null;
                 Log.debug("PRODUCING ALL DATA NODES");
@@ -1501,6 +1446,91 @@ public class DataTree extends javax.swing.JTree
 
             return nodes;
         }
+        
+        @Override
+        public boolean handleDrop(MapDropTarget.DropContext drop) {
+            
+            java.util.List<LWComponent> newNodes = null;
+
+            LWComponent clusterNode = null;
+            
+            if (DEBUG.Enabled && drop.hit != null && drop.hit.isDataNode()) {
+                Log.debug("IMPLIED DATA ACTION ON DATA NODE " + drop.hit);
+                if (treeNode instanceof AllRowsNode) {
+                    newNodes = DataAction.makeRelatedRowNodes(treeNode.getSchema(), drop.hit);
+                    // clearing hit/hitParent this will prevent MapDropTarget from
+                    // adding the nodes to the target node, and will then add them
+                    // directly to the map.  Todo: something cleaner (allow an
+                    // override in the DropHandler for what to do w/parenting)
+                    clusterNode = drop.hit;
+                    drop.hit = drop.hitParent = null;
+                }
+                    
+            } else {
+                newNodes = produceNodes(null);
+            }
+
+            
+            //-----------------------------------------------------------------------------
+            // Currently, we must set node locations before adding any links, as when
+            // the link-add events happen, the viewer may adjust the canvas size
+            // to include room for the new links, which will all be linking to 0,0
+            // unless the nodes have had their locations set, even if the nodes
+            // are about to be re-laid out via a group clustering.
+            //-----------------------------------------------------------------------------
+                
+            MapDropTarget.setCenterAt(newNodes, drop.location);
+
+            boolean didAddLinks = DataAction.addDataLinksForNodes(drop.viewer.getMap(),
+                                                                  newNodes,
+                                                                  treeNode.getField());
+
+            if (clusterNode != null) {
+                tufts.vue.Actions.MakeCluster.doClusterAction(clusterNode, newNodes);
+            } else if (drop.isLinkAction) {
+                tufts.vue.LayoutAction.circle.act(newNodes);
+            } else {
+                clusterNodes(newNodes, didAddLinks);
+            }
+
+            if (newNodes.size() == 0)
+                return false;
+
+            drop.items = newNodes; // will be added to map
+
+            if (clusterNode != null) {
+                drop.select = new ArrayList(newNodes);
+                drop.select.add(clusterNode);
+            } else {
+                drop.select = newNodes;
+            }
+            
+            return true;
+        }
+
+        private boolean clusterNodes(List<LWComponent> nodes, boolean newLinksAvailable) {
+
+            if (DEBUG.Enabled) Log.debug("clusterNodes: " + Util.tags(nodes) + "; addedLinks=" + newLinksAvailable);
+            
+            try {
+
+                if (nodes.size() > 1) {
+                    if (treeNode.isRowNode()) {
+                        tufts.vue.LayoutAction.random.act(nodes);
+                    } else if (newLinksAvailable) {
+                        // TODO: cluster will currently fail (NPE) if no data-links exist
+                        // Note: this action will re-arrange all the data-nodes on the map
+                        tufts.vue.LayoutAction.cluster.act(nodes);
+                    } else
+                        tufts.vue.LayoutAction.filledCircle.act(nodes);
+                    return true;
+                }
+            } catch (Throwable t) {
+                Log.error("clustering failure: " + Util.tags(nodes), t);
+            }
+            return false;
+        }
+        
 
     }
 

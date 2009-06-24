@@ -28,6 +28,9 @@ import tufts.vue.MouseAdapter;
 import tufts.vue.VueResources;
 import tufts.vue.gui.Widget;
 
+import tufts.vue.LWComponent;
+import tufts.vue.ds.Field;
+
 public class AssociationsPane extends Widget {
 	static final long		serialVersionUID = 1;
 	private static final org.apache.log4j.Logger
@@ -141,16 +144,34 @@ public class AssociationsPane extends Widget {
 		} */
 
 		if (column == 1 || column == 3) {
-			try {
-				String	data = (String)transfer.getTransferData(DataFlavor.stringFlavor);
+                    try {
+                        LWComponent dragNode = tufts.vue.MapDropTarget.extractData(transfer,
+                                                                                   LWComponent.DataFlavor,
+                                                                                   LWComponent.class);
+                        tufts.vue.ds.Field field = dragNode.getClientData(tufts.vue.ds.Field.class);
 
-				associationsTable.setValueAt(data.substring(data.indexOf('\'') + 1, data.lastIndexOf('\'')), row, column);
+                        //associationsTable.setValueAt(field.getSchema().getName() + "." + field.getName(), row, column);
+                        associationsTable.setValueAt(field, row, column);
 
-				result = true;
-			} catch (Exception ex) {
-				Log.error(ex);
-			}
+                        tufts.vue.ds.Schema.addAssociation(field,
+                                                           (Field) associationsTable.getValueAt(row, column == 1 ? 3 : 1));
+                        
+                        result = true;
+                    } catch (Exception ex) {
+                        Log.error(ex);
+                    }
 		}
+// 		if (column == 1 || column == 3) {
+// 			try {
+// 				String	data = (String)transfer.getTransferData(DataFlavor.stringFlavor);
+
+// 				associationsTable.setValueAt(data.substring(data.indexOf('\'') + 1, data.lastIndexOf('\'')), row, column);
+
+// 				result = true;
+// 			} catch (Exception ex) {
+// 				Log.error(ex);
+// 			}
+// 		}
 
 		return result;
 	}
@@ -225,8 +246,9 @@ public class AssociationsPane extends Widget {
 				association.setElementAt(obj, column == 3 ? 2 : column);
 
 				if (association.elementAt(1) != null && association.elementAt(2) != null) {
-					association.setElementAt(new Boolean(true), 0);
+                                    association.setElementAt(new Boolean(true), 0);
 				}
+
 
 				fireTableRowsUpdated(row, row);
 				break;

@@ -30,9 +30,10 @@ import org.xml.sax.InputSource;
 
 import com.google.common.collect.*;
 
+import com.google.common.collect.Multimaps;
 
 /**
- * @version $Revision: 1.37 $ / $Date: 2009-06-10 16:03:33 $ / $Author: sfraize $
+ * @version $Revision: 1.38 $ / $Date: 2009-06-24 21:48:27 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -760,6 +761,108 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
     public List<DataRow> getRows() {
         return mRows;
     }
+
+    public List<DataRow> getMatchingRows(String fieldName, String fieldValue)
+    {
+        if (findField(fieldName) == null)
+            return Collections.EMPTY_LIST;
+        
+        return findMatchingRows(fieldName, fieldValue, new ArrayList());
+    }
+    
+    private List<DataRow> findMatchingRows(final String fieldName,
+                                           final String fieldValue,
+                                           final List<DataRow> matching)
+
+    {
+        if (findField(fieldName) == null)
+            return Collections.EMPTY_LIST;
+        
+        for (DataRow row : getRows()) {
+            if (fieldValue.equals(row.getValue(fieldName)))
+                matching.add(row);
+        }
+        
+        return matching;
+    }
+
+    private static class Association {
+        
+        private static final Multimap<Field,Association> AllPairs = Multimaps.newHashMultimap();
+        
+        final Field field1;
+        final Field field2;
+
+        int type;
+
+        boolean enabled = true;
+
+        private Association(Field f1, Field f2) {
+            if (f1 == f2)
+                throw new IllegalArgumentException("field can't associate to itself: " + f1);
+            if (f1 == null || f2 == null)
+                throw new IllegalArgumentException("null field: " + f1 + "; " + f2);
+            Log.debug("Adding association:\n\tfield 1: " + f1 + "\n\tfield 2: " + f2);
+            field1 = f1;
+            field2 = f2;
+            AllPairs.put(f1, this);
+            AllPairs.put(f2, this);
+        }
+
+        public Field getPairedField(Field f) {
+            if (f == field1)
+                return field2;
+            else if (f == field2)
+                return field1;
+            else
+                throw new Error("field not in association: " + f);
+        }
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public static Collection<Association> lookup(Field f) {
+            return AllPairs.get(f);
+        }
+
+        public static void add(Field f1, Field f2) {
+            new Association(f1, f2);
+        }
+
+        @Override
+        public String toString() {
+            return String.format("Association[%s %s = %s]", enabled ? "ON " : "OFF", field1, field2);
+        }
+    }
+
+    public static void addAssociation(Field f1, Field f2) {
+        Association.add(f1, f2);
+    }
+
+
+    
+    public List<DataRow> getMatchingRows(Field field, String fieldValue)
+    {
+        final List<DataRow> matching = new ArrayList();
+
+        findMatchingRows(field.getName(), fieldValue, matching);
+
+        if (DEBUG.Enabled) {
+            Log.debug("Associations for: " + field);
+            Util.dump(Association.lookup(field));
+        }
+        
+        for (Association a : Association.lookup(field)) {
+            if (a.isEnabled())
+                findMatchingRows(a.getPairedField(field).getName(),
+                                 fieldValue,
+                                 matching);            
+        }
+        
+        return matching;
+    }
+    
 
     public Collection<Field> getFields() {
         return mFields.values();

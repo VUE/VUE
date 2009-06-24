@@ -21,7 +21,7 @@ import java.util.*;
 import org.apache.commons.lang.StringEscapeUtils;
 
 /**
- * @version $Revision: 1.16 $ / $Date: 2009-06-10 19:34:34 $ / $Author: sfraize $
+ * @version $Revision: 1.17 $ / $Date: 2009-06-24 21:48:27 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -202,6 +202,111 @@ public final class DataAction
             
                 if (schema != null && sourceSchema != schema) {
 
+                    makeCrossSchemaRowNodeLinks(links, sourceSchema, schema, rowNode, c);
+
+//                     //-----------------------------------------------------------------------------
+//                     // from different schemas: can do a join-based linking -- just try key field for now
+//                     //-----------------------------------------------------------------------------
+
+//                     if (c.hasDataValue(sourceKeyField, sourceKeyValue)) {
+//                         links.add(makeLink(c, rowNode, sourceKeyField, sourceKeyValue, Color.blue));
+                    
+//                     } else {
+
+//                         // this is the semantic reverse of the above case
+                    
+//                         final String targetKeyField = schema.getKeyFieldName();
+//                         final String targetKeyValue = c.getDataValue(targetKeyField);
+//                         if (rowNode.hasDataValue(targetKeyField, targetKeyValue)) {
+//                             links.add(makeLink(rowNode, c, targetKeyField, targetKeyValue, Color.blue));
+//                         }
+//                     }
+
+                } else {
+
+                    //-----------------------------------------------------------------------------
+                    // the pair being inspected are from the same schema -- only create links
+                    // for VALUE nodes found in the target set that are represented in this
+                    // rowNode
+                    //-----------------------------------------------------------------------------
+                    
+                    final String fieldName = c.getDataValueFieldName();
+                
+                    if (fieldName == null) // fieldName will be null if c isn't a data value node / has no schema
+                        continue;
+                
+                    final String fieldValue = c.getDataValue(fieldName);
+                
+                    if (rowNode.hasDataValue(fieldName, fieldValue)) {
+                        //final String label = String.format("RowLink: %s='%s'", fieldName, fieldValue);
+                        //final String label = String.format("%s=%s", fieldName, fieldValue);
+                        links.add(makeLink(c, rowNode, fieldName, fieldValue, null));
+                    }
+                }
+            } catch (Throwable t) {
+                Log.warn(t + "; processing target: " + c.getUniqueComponentTypeLabel());
+            }
+        }
+
+        
+        return links;
+    }
+
+    private static void makeCrossSchemaRowNodeLinks(List<LWLink> links,
+                                                    Schema s1, Schema s2,
+                                                    LWComponent n1, LWComponent n2)
+    {
+        
+        //-----------------------------------------------------------------------------
+        // First, check for matching key field names, even if there isn't an explicit
+        // association between the two.
+        //-----------------------------------------------------------------------------
+        
+        final String sourceKeyField = s1.getKeyFieldName();
+        final String sourceKeyValue = n1.getDataValue(sourceKeyField);
+        
+        if (n2.hasDataValue(sourceKeyField, sourceKeyValue)) {
+
+            links.add(makeLink(n2, n1, sourceKeyField, sourceKeyValue, Color.blue));
+                    
+        } else {
+            
+            // this is the semantic reverse of the above case
+            
+            final String targetKeyField = s2.getKeyFieldName();
+            final String targetKeyValue = n2.getDataValue(targetKeyField);
+            if (n1.hasDataValue(targetKeyField, targetKeyValue)) {
+                links.add(makeLink(n1, n2, targetKeyField, targetKeyValue, Color.blue));
+            }
+        }
+
+        
+    }
+    
+    /* make links from row nodes (full data nodes) to any schematic field nodes found in the link targets,
+     or between row nodes from different schema's that are considered "auto-joined" (e.g., a matching key field appears) */
+    public static List<LWLink> OLDmakeRowNodeLinks(final Collection<? extends LWComponent> linkTargets, final LWComponent rowNode)
+    {
+        if (!rowNode.isDataRowNode())
+            Log.warn("making row links to non-row node: " + rowNode, new Throwable("FYI"));
+        
+        final List<LWLink> links = Util.skipNullsArrayList();
+
+        final Schema sourceSchema = rowNode.getDataSchema();
+        final String sourceKeyField = sourceSchema.getKeyFieldName();
+        final String sourceKeyValue = rowNode.getDataValue(sourceKeyField);
+        
+        for (LWComponent c : linkTargets) {
+
+            if (c == rowNode) // never link to ourself
+                continue;
+
+            try {
+            
+                final Schema schema = c.getDataSchema();
+            
+                if (schema != null && sourceSchema != schema) {
+
                     //-----------------------------------------------------------------------------
                     // from different schemas: can do a join-based linking -- just try key field for now
                     //-----------------------------------------------------------------------------
@@ -305,7 +410,7 @@ public final class DataAction
 
     }
 
-    public static List<LWComponent> makeRowNodes(Schema schema, DataRow singleRow) {
+    public static List<LWComponent> makeSingleRowNode(Schema schema, DataRow singleRow) {
 
         Log.debug("PRODUCING SINGLE ROW NODE FOR " + schema + "; row=" + singleRow);
 
@@ -322,6 +427,63 @@ public final class DataAction
         return makeRowNodes(schema, schema.getRows());
         
     }
+
+    public static List<LWComponent> makeRelatedRowNodes(Schema schema, LWComponent filter) {
+
+        Log.debug("PRODUCING FILTERED DATA NODES FOR " + schema + "; filter=" + filter);
+
+        return makeRowNodes(schema, findRelatedRows(schema, filter));
+    }
+
+    // TODO: all these methods take DataRows, which are really a wrapper of a MetaMap --
+    // should chage all this stuff to work from MetaMaps (which actually have the
+    // darn schema in them now anyway!)  And then we could also use some of the util
+    // functions / link-creating funtions based on LWComponent to use MetaMap's as well.
+
+    public static List<DataRow> findRelatedRows(Schema schema, LWComponent filter) {
+
+        Log.debug("FINDING ROWS IN " + schema + "; RELATED TO " + filter);
+
+        if (filter.isDataValueNode()) {
+            final Field filterField = filter.getDataValueField();
+            final String filterValue = filter.getDataValue(filterField.getName());
+
+            return schema.getMatchingRows(filterField, filterValue);
+        }
+        else if (filter.isDataRowNode()) {
+
+            final Schema filterSchema = filter.getDataSchema();
+            
+            if (filterSchema == schema)
+                throw new Error("can't do row-node filter from same schema");
+            
+            //throw new Error("row-node filters not handled yet");
+
+            final Field filterField = filterSchema.getKeyField();
+            
+            return schema.getMatchingRows(filterField, filter.getDataValue(filterField.getName()));
+            
+        } else {
+            throw new Error("unhandled filter case: " + filter);
+        }
+
+    }
+
+//     public static List<DataRow> findMatchingRows(Schema schema, String fieldName, String fieldValue)
+//     {
+//         final List<DataRow> matching = new ArrayList();
+
+//         for (DataRow row : schema.getRows()) {
+//             if (fieldValue.equals(row.getValue(fieldName)))
+//                 matching.add(row);
+//         }
+        
+//         return matching;
+        
+//     }
+    
+    
+    
 
     public static List<LWComponent> makeRowNodes(Schema schema, final Collection<DataRow> rows)
     {
@@ -550,73 +712,7 @@ public final class DataAction
         return style;
     }
 
-    
 
-
-    
-
-//     static List<LWLink> VMEmakeLinks(final Collection<LWComponent> linkTargets, LWComponent node, Field field)
-//     {
-//         //final Schema schema = field.getSchema();
-//         final VueMetadataElement vme;
-
-//         //if (node.hasClientData(Field.class))
-//         if (field != null)
-//             vme = node.getMetadataList().get(field.getName());
-//         else
-//             vme = null;
-//         //final String key = vme.getValue();
-
-//         //Log.debug(Util.tags(vme));
-
-//         final List<LWLink> links = new ArrayList();
-
-//         final edu.tufts.vue.metadata.MetadataList metaData = node.getMetadataList();
-
-//         for (LWComponent c : linkTargets) {
-//             if (c == node)
-//                 continue;
-//             //                 if (f == null)
-//             //                     continue;
-//             //                 Schema s = f.getSchema();
-                
-//             // TODO: don't want to check all meta-data: just check the FIELD meta-data for the new node
-//             // (against all meta-data in other nodes)
-
-//             if (vme == null) {
-
-//                 // check our schema-node against only field nodes
-
-//                 //                     // TODO: below needs to be persistent info, and if we try to add new data
-//                 //                     // to a save file of one of our currently created maps, we'll link to everything.
-//                 //                     if (c.hasClientData(Schema.class))
-//                 //                         continue;
-
-//                 if (c.isSchematicFieldNode())
-//                     continue;
-
-//                 // really, want to get the single, special field item from the the
-//                 // currently inspecting node, and see if the current schema node
-//                 // has the same piece of data (key/value pair)
-//                 if (metaData.intersects(c.getMetadataList()))
-//                     links.add(makeLink(node, c, null, false));
-                    
-
-//             } else if (c.getMetadataList().contains(vme)) {
-//                 // check our field node against all schema and field nodes
-                    
-//                 final Field f = c.getClientData(Field.class);
-//                 //links.add(makeLink(node, c, false));
-//                 links.add(makeLink(node, c, null, f == field));
-//             }
-                    
-//         }
-            
-//         return links;
-//     }
     
 }
-
-
-
 
