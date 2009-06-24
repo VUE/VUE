@@ -52,7 +52,7 @@ import edu.tufts.vue.preferences.ui.PreferencesDialog;
  */
 public class WindowPropertiesPreference extends StringPreference implements ItemListener, ActionListener
 {
-	
+	private static final boolean DEBUG = true;
 	Hashtable table = new Hashtable();
 	private static final String ENABLED_KEY = "ENABLED_KEY";
 	private static final String VISIBLE_KEY = "VISIBLE_KEY";
@@ -66,7 +66,9 @@ public class WindowPropertiesPreference extends StringPreference implements Item
 	private static String defaultEnabledVal = "true";
 	private String value;
 	private static JCheckBox checkValue = new JCheckBox();
-	
+	private JButton resetButton = new JButton(VueResources.getString("button.reset.label"));
+	JPanel resetPanel = new JPanel();
+
 	/**
 	 * The first parameter in the string used to store the window position was originally intended 
 	 * to say whether the preference as a whole was enabled or disabled, this is now not used but 
@@ -214,69 +216,86 @@ public class WindowPropertiesPreference extends StringPreference implements Item
 	public JComponent getPreferenceUI() {
 		if (panel != null)
 			return panel;
+
 		panel = new JPanel();
 		panel.setBackground(Color.WHITE);
 		GridBagLayout gbl = new GridBagLayout();
 		panel.setLayout(gbl);
+
 		JLabel titleLabel = new JLabel(getTitle());
 		Font f = titleLabel.getFont().deriveFont(Font.BOLD);
 		titleLabel.setFont(f);
+
 		JLabel descLabel = new JLabel(getDescription());
 		GridBagConstraints gbConstraints = new GridBagConstraints();
 	  
 		gbConstraints.gridx = 0;
         gbConstraints.gridy = 0;
         gbConstraints.gridwidth = 1;
-        gbConstraints.fill=GridBagConstraints.HORIZONTAL;
-        gbConstraints.anchor=GridBagConstraints.NORTHWEST;
-        gbConstraints.weightx=1;
-        gbConstraints.weighty=0;
-        gbConstraints.insets = new Insets(15,10,2,2);
+        gbConstraints.fill = GridBagConstraints.HORIZONTAL;
+        gbConstraints.anchor = GridBagConstraints.FIRST_LINE_START;
+        gbConstraints.weightx = 1;
+        gbConstraints.weighty = 0;
+        gbConstraints.insets = new Insets(15, 10, 0, 10);
         
         panel.add(titleLabel, gbConstraints);
     
-		gbConstraints.gridx = 0;
 		gbConstraints.gridy = 1;
 		panel.add(descLabel, gbConstraints);
 		
-		gbConstraints.gridx=0;
-		gbConstraints.gridy=2;
-		gbConstraints.weightx=1;
-        gbConstraints.weighty=1;
-        gbConstraints.insets = new Insets(15,30,0,30);
-        
-        JPanel booleanPanel = new JPanel();
+		JPanel booleanPanel = new JPanel();
         booleanPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
         booleanPanel.setBackground(Color.WHITE);
-        
+
+        checkValue.addItemListener(this);
         checkValue.setBackground(Color.WHITE);
-        
+        checkValue.setSelected(isEnabled());
+
         booleanPanel.add(checkValue);
         booleanPanel.add(new JLabel(getMessage()));
-        checkValue.addItemListener(this);
-        checkValue.setSelected(isEnabled());
+
+        gbConstraints.gridy = 2;
+        gbConstraints.fill = GridBagConstraints.BOTH;
+        gbConstraints.insets = new Insets(15, 30, 0, 10);
         panel.add(booleanPanel, gbConstraints);
         
-		resetButton.addActionListener(this);
-		resetPanel.add(resetButton);
-    	resetPanel.add(resetLabel);
-    	resetPanel.setBackground(Color.white);
+		resetPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+    	resetPanel.setBackground(Color.WHITE);
     	resetPanel.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, Color.gray));
-       	gbConstraints.gridx=0;
-    	gbConstraints.gridy=3;
-    	gbConstraints.weightx=1;
-    	gbConstraints.weighty=6;
-        gbConstraints.gridwidth = 1;
-        gbConstraints.fill=GridBagConstraints.HORIZONTAL;
-        gbConstraints.anchor=GridBagConstraints.NORTHWEST;            
-    	panel.add(resetPanel,gbConstraints);
-        configureResetPanel();	
+
+    	resetButton.addActionListener(this);
+
+    	resetPanel.add(resetButton);
+    	resetPanel.add(new JLabel(VueResources.getString("jlabel.resetdefaultwindow")));
+    	gbConstraints.gridy = 3;
+    	panel.add(resetPanel, gbConstraints);
+        configureResetPanel();
+
+        JPanel emptyPanel = new JPanel();
+    	gbConstraints.gridy = 4;
+        gbConstraints.fill = GridBagConstraints.REMAINDER;
+        gbConstraints.weighty = 1;
+        panel.add(emptyPanel, gbConstraints);
+
+        if (DEBUG) {
+        	panel.setBackground(Color.CYAN);
+        	booleanPanel.setBackground(Color.MAGENTA);
+        	resetPanel.setBackground(Color.MAGENTA);
+        	emptyPanel.setBackground(Color.MAGENTA);
+        	titleLabel.setBackground(Color.YELLOW);
+        	titleLabel.setOpaque(true);
+        	descLabel.setBackground(Color.YELLOW);
+        	descLabel.setOpaque(true);
+        	checkValue.setBackground(Color.YELLOW);
+        	checkValue.setOpaque(true);
+        	resetButton.setBackground(Color.YELLOW);
+        	resetButton.setOpaque(true);
+        }
+
         return panel;
         
 	}
-	private final JPanel resetPanel = new JPanel();
-	private JButton resetButton = new JButton(VueResources.getString("button.reset.label"));
-	private JLabel resetLabel = new JLabel(VueResources.getString("jlabel.resetdefaultwindow"));
+
 	private void configureResetPanel()
 	{
 		
