@@ -41,7 +41,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.58 $ / $Date: 2009-06-24 16:12:01 $ / $Author: sfraize $
+ * @version $Revision: 1.59 $ / $Date: 2009-06-24 16:59:58 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -1264,10 +1264,10 @@ public class Images
                             Log.warn(imageSRC + ": " + e);
                             if (++tries > 1) {
                                 final String msg = "Try #" + tries + ": " + e;
-                                if (DEBUG.Enabled)
-                                    Util.printStackTrace(msg);
-                                else
-                                    Log.warn(msg);
+//                                 if (DEBUG.Enabled)
+//                                     Util.printStackTrace(msg);
+//                                 else
+                                Log.warn(msg);
                                 throw e;
                             } else {
                                 Log.info("second try for " + imageSRC);
