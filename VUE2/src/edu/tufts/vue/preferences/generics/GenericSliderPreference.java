@@ -95,7 +95,7 @@ public abstract class GenericSliderPreference extends BasePref implements Change
 		gbConstraints.gridy=2;
 		gbConstraints.fill=GridBagConstraints.BOTH;
 		gbConstraints.weighty=1;
-		gbConstraints.insets = new Insets(15,30,15,30);
+		gbConstraints.insets = new Insets(15, 30, 15, 10);
 		panel.add(booleanPanel, gbConstraints);
 
 		if (DEBUG) {
