@@ -154,6 +154,10 @@ public class AssociationsPane extends Widget {
 
                         Object otherField = associationsTable.getValueAt(row, column == 1 ? 3 : 1);
 
+                        // TODO: need to reject duplicate associations
+                        // TODO: need to allow association deletion
+                        // TODO: need to prevent changing an association, or detect & handle
+
                         if (otherField instanceof Field)
                             tufts.vue.ds.Schema.addAssociation(field, (Field) otherField);
                         
