@@ -112,7 +112,6 @@ public class ShowIconsPreference extends BasePref implements ItemListener
 
 		panel.add(titleLabel, gbConstraints);
 
-		gbConstraints.gridx = 0;
 		gbConstraints.gridy = 1;
 		panel.add(descTextArea, gbConstraints);
 
@@ -129,32 +128,25 @@ public class ShowIconsPreference extends BasePref implements ItemListener
 		metaDataCheckbox.setText(VueResources.getString("jlabel.keywords"));
 		hierarchyCheckbox.setText(VueResources.getString("jlabel.hierarchy"));
 
-		gbConstraints.gridx = 0;
 		gbConstraints.gridy = 2;
 		gbConstraints.weightx = 0;
-		gbConstraints.weighty = 0;
 		gbConstraints.fill = GridBagConstraints.NONE;
 		gbConstraints.insets = new Insets(15, 30, 0, 10);
 		panel.add(resourceCheckbox, gbConstraints);
 
-		//gbConstraints.gridx=0;
 		//gbConstraints.gridy=3;
 		//panel.add(behaviorCheckbox, gbConstraints);
 
-		gbConstraints.gridx=0;
 		gbConstraints.gridy=4;
 		gbConstraints.insets = new Insets(10, 30, 0, 10);
 		panel.add(notesCheckbox, gbConstraints);
 
-		gbConstraints.gridx=0;
 		gbConstraints.gridy=5;
 		panel.add(pathwayCheckbox, gbConstraints);
 
-		gbConstraints.gridx=0;
 		gbConstraints.gridy=6;
 		panel.add(metaDataCheckbox, gbConstraints);
 
-		gbConstraints.gridx=0;
 		gbConstraints.gridy=7;
 		gbConstraints.fill = GridBagConstraints.REMAINDER;
 		gbConstraints.weighty = 1;
