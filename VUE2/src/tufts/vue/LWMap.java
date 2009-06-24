@@ -59,7 +59,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.239 $ / $Date: 2009-06-04 20:16:18 $ / $Author: sfraize $
+ * @version $Revision: 1.240 $ / $Date: 2009-06-24 16:11:27 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -977,23 +977,24 @@ public class LWMap extends LWContainer
         }
     }
 
-    public boolean isLayered() {
-        if (!VUE.VUE3_LAYERS) return false;
+    /** todo: remove this -- all maps should now be layered */
+    boolean isLayered() {
+        //if (!VUE.VUE3_LAYERS) return false;
         return isLayered;
     }
 
     public LWContainer getActiveContainer() {
-        if (!VUE.VUE3_LAYERS) return null;
+        //if (!VUE.VUE3_LAYERS) return null;
         return mActiveLayer == null ? this : mActiveLayer;
     }
     
     public Layer getActiveLayer() {
-        if (!VUE.VUE3_LAYERS) return null;
+        //if (!VUE.VUE3_LAYERS) return null;
         return mActiveLayer;
     }
 
     public Layer addLayer(String name) {
-        if (!VUE.VUE3_LAYERS) return null;
+        //if (!VUE.VUE3_LAYERS) return null;
         Layer layer = new Layer(name);
         addChild(layer);
         return layer;
@@ -1046,7 +1047,7 @@ public class LWMap extends LWContainer
         if (mXMLRestoreUnderway) {
             return super.getXMLChildList();
         } else {
-            if (!VUE.VUE3_LAYERS) return getChildren();
+            //if (!VUE.VUE3_LAYERS) return getChildren();
             if (hasChildren()) {
                 List childrenInAllLayers = new ArrayList();
                 //childrenInAllLayers.addAll(mChildren);
@@ -1068,7 +1069,7 @@ public class LWMap extends LWContainer
     public java.util.List<? extends LWComponent> getXMLLayers() {
         if (mXMLRestoreUnderway) {
             return mLayers;
-        } else if (VUE.VUE3_LAYERS) {
+        } else { //if (VUE.VUE3_LAYERS) {
             if (Util.containsOnly(mChildren, Layer.class)) {
                 // this should always be the case unless of model up-leakage
                 return mChildren;
@@ -1080,13 +1081,12 @@ public class LWMap extends LWContainer
                          + " non-layer children were ignored in producing the layers-list");
                 return Util.extractType(mChildren, Layer.class);
             }
-        } else
-            return null;
+        } // else return null;
     }
 
     private boolean reparentAllToLayers() {
 
-        if (!VUE.VUE3_LAYERS) return false;
+        //if (!VUE.VUE3_LAYERS) return false;
 
         boolean addedLayers = false;
 
@@ -2028,11 +2028,17 @@ public class LWMap extends LWContainer
     
     @Override
     public void addChildren(List<? extends LWComponent> children, Object context) {
+
+        // This code is a backward-compat hack for other code that is attempting to
+        // add children to the map.  It used to be you could just do this directly,
+        // but now that we have layers, only a Layer should be a direct child of the
+        // map, and we need to divert this to add call to the appropriate layer.
+        
         if (children.size() == 1 && children.get(0) instanceof LWMap.Layer) {
             isLayered = true;
             super.addChildren(children, context);
         } else if (isLayered() && mActiveLayer != null) {
-            mActiveLayer.addChildren(children);
+            mActiveLayer.addChildren(children, context);
         } else {
             super.addChildren(children, context);
         }
@@ -2500,7 +2506,8 @@ public class LWMap extends LWContainer
      * Model version 5: layers added
      */
     public static int getCurrentModelVersion() {
-        return VUE.VUE3_LAYERS ? 5 : 4;
+        return 5;
+        //return VUE.VUE3_LAYERS ? 5 : 4;
     }
     
     
