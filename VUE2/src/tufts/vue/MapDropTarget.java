@@ -50,7 +50,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.112 $ / $Date: 2009-06-10 16:14:02 $ / $Author: sfraize $  
+ * @version $Revision: 1.113 $ / $Date: 2009-06-24 16:27:03 $ / $Author: sfraize $  
  */
 public class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -1320,8 +1320,12 @@ public class MapDropTarget
         // and looks like the parent, it's added to map first needlessly, then
         // reparented to where it needs to go.
 
-//         if (where != null)
-//             addNodeToFocal(node, where);
+        //-----------------------------------------------------------------------------
+        // TODO: REDESIGN SO WE DON'T DO THIS HERE
+        //-----------------------------------------------------------------------------
+        if (where != null)
+            addNodeToFocal(node, where);
+        //-----------------------------------------------------------------------------
 
         if (lwImage != null) {
             // this will cause the LWImage to start loading the image
@@ -1331,8 +1335,7 @@ public class MapDropTarget
             ((URLResource)resource).scanForMetaDataAsync(node, true);
         }
 
-         if (where != null)
-             addNodeToFocal(node, where);
+        //if (where != null) addNodeToFocal(node, where);
          
         drop.add(node);
 
@@ -1357,173 +1360,56 @@ public class MapDropTarget
             node.setLocation(where);
         mViewer.getFocal().dropChild(node);
 
-        if (true || DEBUG.Enabled) {
-            //GUI.invokeAfterAWT(new Runnable() { public void run() {
-            node.addCleanupTask(new Runnable() { public void run() {
-                final Rectangle2D.Float clearRegion = Util.grow(node.getMapBounds(), 24);
-                if (node.getLayer() !=null && node.getLayer().getChildren() !=null){
-                for (LWComponent n : node.getLayer().getChildren()) {
-                    if (n != node && clearRegion.intersects(n.getMapBounds())) {
-                        Actions.PushOut.act(node);
-                        break;
-                    }
-                }}
-            }});
-        }
+        // We don't want to push out any nodes if a node was dropped into another node.
+        // Checking the new parent for isTopLevel ought to work for this, but the
+        // current design is weak in that the node is first added to the layer (always
+        // top-level), THEN added to the drop target, so we're going to need a
+        // completely drop-code redesign to make this work.
+        
+        //Log.debug("node parent: " + node.getParent() + "; isTopLevel=" + node.getParent().isTopLevel());
+        
+        //if (node.getParent().isTopLevel())
+        //      makeRoomFor(node);
+
+        // for now, we'll let the cleanup-task always run, and check the parent later
+        makeRoomFor(node);
          	
         return node;
     }
 
+    /**
+     * for nodes dropped directly into the layer (not another node in the layer), if it
+     * looks "crowded", push out all the other nodes on the layer to make more room;
+     */
+    private void makeRoomFor(final LWComponent node) {
 
-//     private void pushNearbyNodes(final LWComponent pushing)
-//     {
-//         // test hack for "dynamic map" auto re-arranging of nearby nodes
-//         // -- could try using force-based algorithms
-
-// //         final float pushX = node.getMapCenterX();
-// //         final float pushY = node.getMapCenterY();
-
-//         final Point2D.Float groundZero = new Point2D.Float(pushing.getMapCenterX(),
-//                                                            pushing.getMapCenterY());
-
-//         out("SEARCHING FOCAL: "  + mViewer.getDropFocal());
-
-//         final Rectangle2D pushingRect = pushing.getMapBounds();
-
-//         final java.util.List<LWComponent> links = new java.util.ArrayList();
-//         final java.util.List<LWComponent> nodes = new java.util.ArrayList();
+        // We add this as a cleanup task, so that all nodes created by this drop
+        // have already been added to the map before we start trying to make any
+        // new room
         
-//         for (LWComponent node : mViewer.getDropFocal().getChildrenOfType(LWNode.class)) {
+        node.addCleanupTask(new Runnable() { public void run() {
 
-//             if (node == pushing)
-//                 continue;
-
-//             final Line2D.Float connector = new Line2D.Float();
-//             final boolean overlap = VueUtil.computeConnectorAndCenterHit(pushing, node, connector);
-//             //VueUtil.computeConnector(pushing, node, connector);
-
-//             final Point2D newCenter;
+            if (!node.getParent().isTopLevel()) {
+                // todo: a design where we don't need this check here -- see addNodeToFocal
+                if (DEBUG.Enabled) Log.debug("ignoring push for non-top0level final parent of " + node);
+                return;
+            }
             
-//             float dist = (float) connector.getP1().distance(connector.getP2());
-//             float adjust = 24;
-
-//             final boolean intersects = node.intersects(pushingRect);
-
-//             final boolean moveToEdge = overlap || intersects;
-
-//             if (false && DEBUG.Enabled) {
-//                 LWLink link = new LWLink();
-//                 link.setHeadPoint(connector.getP1());
-//                 link.setTailPoint(connector.getP2());
-//                 link.setArrowState(LWLink.ARROW_TAIL);
-//                 link.setNotes("head: " + pushing + "\ntail: " + node);
-//                 links.add(link);
-//             }
+            final LWMap.Layer layer = node.getLayer();
             
-//             if (moveToEdge) {
-
-//                 // explicitly move out to nearest edge, attempting to move out of the way
-                
-//                 final Point2D farOut = VueUtil.projectPoint(groundZero, connector, Short.MAX_VALUE);
-//                 final Line2D.Float tester = new Line2D.Float(farOut, groundZero);
-//                 Point2D.Float intersect = VueUtil.computeIntersection(tester, pushing);
-
-//                 Point2D nearOut;
-//                 for (int i = 0; i < 1000; i++) {
-//                     nearOut = VueUtil.projectPoint(intersect, connector, i * 2f);
-//                     node.setCenterAt(nearOut);
-//                     if (!node.intersects(pushingRect))
-//                         break;
-//                     Log.debug("ITER " + i + " on " + node);
-//                 }
-
-// //                 float xoff = node.getX() - intersect.x;
-// //                 float yoff = node.getY() - intersect.y;
-// //                 node.translate(-xoff, -yoff);
-
-//                 //node.setLocation(intersect);
-
-//                 adjust /= 2;
-                
-//                 //adjust = 16;
-//                 //adjust = 0;
-//                 //newCenter = null;
-//                 //newCenter = intersect;
-                
-//                 //adjust = Math.max(node.getWidth(), node.getHeight()); // a guesstimate proxy to try and prevent overlap
-//                 //Point2D nearOut = VueUtil.projectPoint(intersectEdge, connector, adjust);
-//                 //newCenter = nearOut;
-                
-//             }
-
-// //             else {
-                
-// //                 //if (dist > 100) continue;
-                
-// //                 if (dist < 9)
-// //                     dist = 9; // if very close, will adjust to far out
-                
-// //                 //adjust = 1000f/dist;
-// //                 adjust = 100f / (float) Math.sqrt(dist);
-                
-// //                 //Point2D.Float p = new Point2D.Float(node.getMapCenterX(), node.getMapCenterY());
-                
-// //             }
-
-//             newCenter = VueUtil.projectPoint(node.getMapCenterX(), node.getMapCenterY(), connector, adjust);
-
-
-//             if (DEBUG.Enabled) {
-//                 String notes = String.format("distance: %.1f\nadjust: %.1f\n-center: %s\n+center: %s\nconnect: %s",
-//                                              dist,
-//                                              adjust,
-//                                              Util.fmt(node.getMapCenter()),
-//                                              Util.fmt(newCenter),
-//                                              Util.fmt(connector)
-//                                              );
-
-
-//                 if (intersects) notes += "\nINTERSECTS";
-//                 if (overlap) notes += "\nOVERLAP";
-
-//                 final LWComponent n;
-
-//                 if (false) {
-//                     n = node.duplicate();
-//                     node.setNotes(notes);
-//                     nodes.add(n);
-//                     n.setStrokeWidth(1);
-//                 } else
-//                     n = node;
-                
-//                 if (moveToEdge) {
-//                     n.setTextColor(java.awt.Color.red);
-//                     n.mFontStyle.set(java.awt.Font.BOLD);
-//                 }
-//                 n.setNotes(notes);
-//                 if (newCenter != null)
-//                     n.setCenterAt(newCenter);
-//             } else {
-//                 if (newCenter != null)
-//                     node.setCenterAt(newCenter);
-//             }
-            
-            
-//         }
-
-//         if (DEBUG.Enabled) {
-//             pushing.getMap().sendToBack(pushing);
-//             pushing.getMap().addChildren(nodes);
-//             pushing.getMap().addChildren(links);
-//         }
-
-        
-        
-//     }
-        
-
-        
-
+            if (layer != null && layer.getChildren() != null) {
+                final Rectangle2D.Float clearRegion = Util.grow(node.getMapBounds(), 24);
+                for (LWComponent n : layer.getChildren()) {
+                    if (n == node || n.getParent() != layer)
+                        continue;
+                    if (clearRegion.intersects(n.getMapBounds())) {
+                        Actions.PushOut.act(node);
+                        break;
+                    }
+                }
+            }
+        }});
+    }
 
 
     //-----------------------------------------------------------------------------
