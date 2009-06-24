@@ -158,7 +158,7 @@ public class AssociationsPane extends Widget {
                         
                         result = true;
                     } catch (Exception ex) {
-                        Log.error(ex);
+                        Log.error("exception processing drop " + transfer + " at " + row + "," + column, ex);
                     }
 		}
 // 		if (column == 1 || column == 3) {
