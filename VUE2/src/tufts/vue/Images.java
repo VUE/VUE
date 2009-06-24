@@ -41,7 +41,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.57 $ / $Date: 2009-05-13 17:10:07 $ / $Author: sfraize $
+ * @version $Revision: 1.58 $ / $Date: 2009-06-24 16:12:01 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -971,7 +971,7 @@ public class Images
             //r.setProperty("url.contentType", ct);
             r.setProperty(CONTENT_TYPE, ct);
             if (DEBUG.Enabled && ct != null && !ct.toLowerCase().startsWith("image")) {
-                Util.printStackTrace("FYI: NON IMAGE CONTENT TYPE [" + ct + "] for " + r);
+                Log.warn("NON-IMAGE CONTENT TYPE [" + ct + "]; " + r);
             }
             setDateValue(r, "URL.expires", uc.getExpiration());
             //setDateValue(r, "url.date", uc.getDate());
