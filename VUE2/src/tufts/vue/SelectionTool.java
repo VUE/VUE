@@ -20,6 +20,14 @@ import java.util.*;
 import javax.swing.*;
 import java.awt.*;
 
+// TODO: move as much of the functionality currently in MapViewer into this class -- it
+// will make for much cleaner code & architecture, and should make MapViewer much easier
+// to maintain.  Lots of refactoring will be needed to do this, including probably a
+// bunch of extensions and refactorings in VueTool.  Some MapViewer functionality will
+// probably want to go right into VueTool, so that all tools can use it, tho we could
+// have most everything subclass SelectionTool if we really want (which should be renamed
+// something like GeneralTool/EditTool/MoveTool or somesuch).
+
 public class SelectionTool extends VueTool
 {
     public SelectionTool() {

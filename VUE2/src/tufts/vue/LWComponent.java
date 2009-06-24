@@ -52,7 +52,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.474 $ / $Date: 2009-06-10 16:14:02 $ / $Author: sfraize $
+ * @version $Revision: 1.475 $ / $Date: 2009-06-24 16:11:47 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -3077,7 +3077,7 @@ u                    getSlot(c).setFromString((String)value);
 
     /** for castor persistance */
     public void setPersistLayer(LWMap.Layer layer) {
-        if (!VUE.VUE3_LAYERS) return;
+        //if (!VUE.VUE3_LAYERS) return;
         setParent(layer);
     }
 
@@ -6450,7 +6450,11 @@ u                    getSlot(c).setFromString((String)value);
         notifyLWCListeners(new LWCEvent(this, componentList, what));
     }
 
-    /* delete this single component: equivalent to a user-delete action */
+    /**
+     * Delete this single component: equivalent to a user-delete action. This component
+     * will be removed from it's parent, and disconnected from all relationships in the
+     * model.
+     */
     public void delete() {
         if (!isDeleted())
             getParent().deleteChildPermanently(this);
