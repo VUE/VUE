@@ -148,13 +148,14 @@ public class AssociationsPane extends Widget {
                         LWComponent dragNode = tufts.vue.MapDropTarget.extractData(transfer,
                                                                                    LWComponent.DataFlavor,
                                                                                    LWComponent.class);
-                        tufts.vue.ds.Field field = dragNode.getClientData(tufts.vue.ds.Field.class);
+                        Field field = dragNode.getClientData(tufts.vue.ds.Field.class);
 
-                        //associationsTable.setValueAt(field.getSchema().getName() + "." + field.getName(), row, column);
                         associationsTable.setValueAt(field, row, column);
 
-                        tufts.vue.ds.Schema.addAssociation(field,
-                                                           (Field) associationsTable.getValueAt(row, column == 1 ? 3 : 1));
+                        Object otherField = associationsTable.getValueAt(row, column == 1 ? 3 : 1);
+
+                        if (otherField instanceof Field)
+                            tufts.vue.ds.Schema.addAssociation(field, (Field) otherField);
                         
                         result = true;
                     } catch (Exception ex) {
