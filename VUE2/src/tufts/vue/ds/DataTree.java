@@ -48,7 +48,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.77 $ / $Date: 2009-06-10 16:14:03 $ / $Author: sfraize $
+ * @version $Revision: 1.78 $ / $Date: 2009-06-24 17:00:29 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -146,37 +146,6 @@ public class DataTree extends javax.swing.JTree
         map.getUndoManager().mark(String.format("Update %d Data Nodes", patched.size()));
     }
     
-
-    private void addNewRowsToMap(final LWMap map) {
-
-        final List<DataRow> newRows = new ArrayList();
-
-        for (DataNode n : mAllRowsNode.getChildren()) {
-            if (!n.isMapPresent()) {
-                //Log.debug("ADDING TO MAP: " + n);
-                newRows.add(n.getRow());
-            }
-        }
-
-        final List<LWComponent> nodes = DataAction.makeRowNodes(mSchema, newRows);
-
-        try {
-            DataAction.addDataLinksForNodes(map, nodes, null);
-        } catch (Throwable t) {
-            Log.error("problem creating links on " + map + " for new nodes: " + Util.tags(nodes), t);
-        }
-
-        if (nodes.size() > 0) {
-            map.getOrCreateLayer("New Data Nodes").addChildren(nodes);
-
-            if (nodes.size() > 1)
-                tufts.vue.LayoutAction.table.act(nodes);
-
-            VUE.getSelection().setTo(nodes);
-        }
-
-        map.getUndoManager().mark("Add New Data Nodes");
-    }
 
     private static JComponent buildControllerUI(final DataTree tree)
     {
@@ -1325,7 +1294,6 @@ public class DataTree extends javax.swing.JTree
 
             } else if (treeNode instanceof RowNode) {
                 
-                
                 final DataRow row = ((RowNode)treeNode).getRow();
                 final List<LWComponent> nodes = DataAction.makeRowNodes(treeNode.getSchema(), row);
                 if (DEBUG.Enabled) Log.debug("made row nodes: " + Util.tags(nodes));
@@ -1370,6 +1338,44 @@ public class DataTree extends javax.swing.JTree
 
     private static String valueName(Object value) {
         return DataAction.valueName(value);
+    }
+
+    private void addNewRowsToMap(final LWMap map) {
+
+        // todo: may want to merge some of this code w/DropHandler code, as
+        // this is somewhat of a special case of doing a drop
+        
+        final List<DataRow> newRows = new ArrayList();
+
+        for (DataNode n : mAllRowsNode.getChildren()) {
+            if (!n.isMapPresent()) {
+                //Log.debug("ADDING TO MAP: " + n);
+                newRows.add(n.getRow());
+            }
+        }
+
+        final List<LWComponent> nodes = DataAction.makeRowNodes(mSchema, newRows);
+
+        try {
+            DataAction.addDataLinksForNodes(map, nodes, null);
+        } catch (Throwable t) {
+            Log.error("problem creating links on " + map + " for new nodes: " + Util.tags(nodes), t);
+        }
+
+        if (nodes.size() > 0) {
+            map.getOrCreateLayer("New Data Nodes").addChildren(nodes);
+
+            if (nodes.size() > 1) {
+                if (DEBUG.Enabled) 
+                    tufts.vue.LayoutAction.table.act(nodes);
+                else
+                    tufts.vue.LayoutAction.random.act(nodes);                
+            }
+
+            VUE.getSelection().setTo(nodes);
+        }
+
+        map.getUndoManager().mark("Add New Data Nodes");
     }
 
     private static class DropHandler extends MapDropTarget.DropHandler {
