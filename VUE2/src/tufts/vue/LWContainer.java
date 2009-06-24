@@ -31,7 +31,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, duplication, adding/removing and reordering (z-order) of children.
  *
- * @version $Revision: 1.156 $ / $Date: 2009-06-04 20:15:37 $ / $Author: sfraize $
+ * @version $Revision: 1.157 $ / $Date: 2009-06-24 16:28:37 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -348,7 +348,7 @@ public abstract class LWContainer extends LWComponent
     @Override
     public void addChildren(List<? extends LWComponent> toAdd, Object context)
     {
-        if (DEBUG.PARENTING) Log.debug(this + ":addChildren/"+context + ": " + toAdd);
+        if (DEBUG.PARENTING) track("addChildren/"+context, toAdd);
 
         //if (toAdd.size() == 1) Util.printStackTrace("ADDONE");
         
@@ -422,9 +422,10 @@ public abstract class LWContainer extends LWComponent
             c.notifyHierarchyChanged();
     }
 
-    private static void track(String where, Object o) {
+    private void track(String where, Object o) {
         if (DEBUG.Enabled)
-            Log.debug(String.format("%12s: %s",
+            Log.debug(String.format("\"%-8.8s\" %23s: %s",
+                                    getDisplayLabel(),
                                     where,
                                     o instanceof LWComponent ? o : Util.tags(o)));
     }
@@ -435,9 +436,8 @@ public abstract class LWContainer extends LWComponent
     
     protected void addChildImpl(LWComponent c, Object context)
     {
-        //if (DEBUG.PARENTING) System.out.println("["+getLabel() + "] ADDING   " + c);
-        //if (DEBUG.PARENTING) out("ADDING " + c);
         if (DEBUG.PARENTING) track("addChildImpl/"+context, c);
+        //new Throwable("ADDCHILDIMPL").printStackTrace();
 
         if (context == ADD_MERGE && c.hasAncestor(this))
             return;
@@ -446,7 +446,8 @@ public abstract class LWContainer extends LWComponent
             //if (DEBUG.PARENTING) System.out.println("["+getLabel() + "] auto-deparenting " + c + " from " + c.getParent());
             if (DEBUG.PARENTING)
                 //if (DEBUG.META) tufts.Util.printStackTrace("FYI["+getLabel() + "] auto-deparenting " + c + " from " + c.getParent()); else
-                out("auto-deparenting " + c + " from " + c.getParent());
+                track("addChildImpl/steal from", c.getParent());
+            //out("auto-deparenting " + c + " from " + c.getParent());
             if (c.getParent() == this) {
                 //if (DEBUG.PARENTING) System.out.println("["+getLabel() + "] ADD-BACK " + c + " (already our child)");
                 if (DEBUG.PARENTING) out("ADD-BACK " + c + " (already our child)");
@@ -660,7 +661,7 @@ public abstract class LWContainer extends LWComponent
     protected void removeChildImpl(LWComponent c)
     {
         //if (DEBUG.PARENTING) System.out.println("["+getLabel() + "] REMOVING " + c);
-        if (DEBUG.PARENTING) out("REMOVING " + c);
+        if (DEBUG.PARENTING) track("removing", c);
         if (mChildren == NO_CHILDREN) {
             Util.printStackTrace(this + "; null child list is null trying to remove: " + c);
             return;
