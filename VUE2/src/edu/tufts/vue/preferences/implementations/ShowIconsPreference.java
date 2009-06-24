@@ -28,6 +28,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
 
 import tufts.vue.VueResources;
 import edu.tufts.vue.preferences.VuePrefEvent;
@@ -36,6 +37,7 @@ import edu.tufts.vue.preferences.generics.BasePref;
 
 public class ShowIconsPreference extends BasePref implements ItemListener
 {
+	private static final boolean DEBUG = false;
 	private String category;
 	private String name;
 	private String description;
@@ -43,7 +45,7 @@ public class ShowIconsPreference extends BasePref implements ItemListener
 	private Object defaultValue;
 	
 	private Object previousResourceValue = null;
-	private Object previousBehaviorValue = null;
+	//private Object previousBehaviorValue = null;
 	private Object previousNotesValue = null;
 	private Object previousPathwayValue = null;
 	private Object previousMetaDataValue = null;
@@ -62,166 +64,135 @@ public class ShowIconsPreference extends BasePref implements ItemListener
 	private String pathwayIconName = "pathwayIcon";
 	private String metaDataIconName = "metaDataIcon";
 	private String hierarchyIconName = "hierarchyIcon";
-    
+
 	private boolean resourceIconDefault = true;
-//	private boolean behaviorIconDefault = true;
+	//private boolean behaviorIconDefault = true;
 	private boolean notesIconDefault = true;
 	private boolean pathwayIconDefault = true;
 	private boolean metaDataIconDefault = true;
 	private boolean hierarchyIconDefault = true;
-    
+
 	public ShowIconsPreference()
 	{
-		
 		this.category=edu.tufts.vue.preferences.PreferenceConstants.MAPDISPLAY_CATEGORY;
 		//this.key = "showNodeIcons";
 		this.name = VueResources.getString("preference.showicon.title");
 		this.description = VueResources.getString("preference.showicon.decsription");
 		this.defaultValue = true;
-	
+
 		edu.tufts.vue.preferences.PreferencesManager.registerPreference(this);
 	}
-		
+
 	public JComponent getPreferenceUI() {
 		JPanel panel = new JPanel();
 		panel.setBackground(Color.WHITE);
 		GridBagLayout gbl = new GridBagLayout();
 		panel.setLayout(gbl);
+
 		JLabel titleLabel = new JLabel(getTitle());
 		Font f = titleLabel.getFont().deriveFont(Font.BOLD);
 		titleLabel.setFont(f);
-		JLabel descLabel = new JLabel(getDescription());
+
+		JTextArea descTextArea = new JTextArea(getDescription());
+		final Font defaultFont = panel.getFont();
+		descTextArea.setFont(defaultFont);
+		descTextArea.setColumns(30);
+		descTextArea.setLineWrap(true);
+		descTextArea.setWrapStyleWord(true);
+
 		GridBagConstraints gbConstraints = new GridBagConstraints();
-	    
 		gbConstraints.gridx = 0;
-        gbConstraints.gridy = 0;
-        gbConstraints.gridwidth = 2;
-        gbConstraints.fill=GridBagConstraints.HORIZONTAL;
-        gbConstraints.anchor=GridBagConstraints.NORTHWEST;
-        gbConstraints.weightx=1;
-        gbConstraints.weighty=0;
-        gbConstraints.insets = new Insets(15,10,2,2);
-        
-        panel.add(titleLabel, gbConstraints);
-    
+		gbConstraints.gridy = 0;
+		gbConstraints.gridwidth = 1;
+		gbConstraints.fill = GridBagConstraints.HORIZONTAL;
+		gbConstraints.anchor = GridBagConstraints.FIRST_LINE_START;
+		gbConstraints.weightx = 1;
+		gbConstraints.weighty = 0;
+		gbConstraints.insets = new Insets(15, 10, 0, 10);
+
+		panel.add(titleLabel, gbConstraints);
+
 		gbConstraints.gridx = 0;
 		gbConstraints.gridy = 1;
-		panel.add(descLabel, gbConstraints);
-		
+		panel.add(descTextArea, gbConstraints);
+
+		resourceCheckbox.setBackground(Color.WHITE);
+		//behaviorCheckbox.setBackground(Color.WHITE);
+		notesCheckbox.setBackground(Color.WHITE);
+		pathwayCheckbox.setBackground(Color.WHITE);
+		metaDataCheckbox.setBackground(Color.WHITE);
+		hierarchyCheckbox.setBackground(Color.WHITE);
+
+		resourceCheckbox.setText(VueResources.getString("jlabel.resource"));
+		notesCheckbox.setText(VueResources.getString("jlabel.notes"));
+		pathwayCheckbox.setText(VueResources.getString("jlabel.pathways"));
+		metaDataCheckbox.setText(VueResources.getString("jlabel.keywords"));
+		hierarchyCheckbox.setText(VueResources.getString("jlabel.hierarchy"));
+
+		gbConstraints.gridx = 0;
+		gbConstraints.gridy = 2;
+		gbConstraints.weightx = 0;
+		gbConstraints.weighty = 0;
+		gbConstraints.fill = GridBagConstraints.NONE;
+		gbConstraints.insets = new Insets(15, 30, 0, 10);
+		panel.add(resourceCheckbox, gbConstraints);
+
+		//gbConstraints.gridx=0;
+		//gbConstraints.gridy=3;
+		//panel.add(behaviorCheckbox, gbConstraints);
+
 		gbConstraints.gridx=0;
-		gbConstraints.gridy=2;
-		gbConstraints.weightx=0.1;
-		gbConstraints.gridwidth=1;
-        gbConstraints.weighty=.2;
-        gbConstraints.fill=GridBagConstraints.NONE;
-        gbConstraints.anchor=GridBagConstraints.WEST;
-        
-        gbConstraints.insets = new Insets(15,30,0,0);
-              
-        resourceCheckbox.setBackground(Color.WHITE);
-   //     behaviorCheckbox.setBackground(Color.WHITE);
-        notesCheckbox.setBackground(Color.WHITE);
-        pathwayCheckbox.setBackground(Color.WHITE);
-        metaDataCheckbox.setBackground(Color.WHITE);
-        hierarchyCheckbox.setBackground(Color.WHITE);
-        
-        panel.add(resourceCheckbox,gbConstraints);
-        gbConstraints.gridx=1;
-		gbConstraints.gridy=2;
-		gbConstraints.weightx=1;
-        gbConstraints.weighty=.2;
-        gbConstraints.fill=GridBagConstraints.NONE;
-        gbConstraints.anchor=GridBagConstraints.WEST;
-        gbConstraints.insets = new Insets(18,0,0,0);
-        panel.add(new JLabel(VueResources.getString("jlabel.resource")),gbConstraints);
-        
-      //  gbConstraints.gridx=0;
-      //  gbConstraints.gridy=3;
-      //  gbConstraints.weightx=.1;
-      //  gbConstraints.weighty=.2;
-      //  gbConstraints.insets = new Insets(0,30,0,0);
-     //   panel.add(behaviorCheckbox,gbConstraints);
-        
-      //  gbConstraints.gridx=0;
-      //  gbConstraints.gridy=3;
-      //  gbConstraints.weightx=1;
-      //  gbConstraints.weighty=.2;
-      //  gbConstraints.insets = new Insets(0,0,0,0);
-      //  panel.add(new JLabel("Behavior Icon"),gbConstraints);
-        
-        gbConstraints.gridx=0;
-        gbConstraints.gridy=4;
-        gbConstraints.weightx=.1;
-        gbConstraints.weighty=.2;
-        gbConstraints.insets = new Insets(0,30,0,0);
-        panel.add(notesCheckbox,gbConstraints);
-        
-        gbConstraints.gridx=1;
-        gbConstraints.gridy=4;
-        gbConstraints.weightx=1;
-        gbConstraints.weighty=.2;
-        gbConstraints.insets = new Insets(0,0,0,0);
-        panel.add(new JLabel(VueResources.getString("jlabel.notes")),gbConstraints);
-        
-        gbConstraints.gridx=0;
-        gbConstraints.gridy=5;
-        gbConstraints.weightx=.1;
-        gbConstraints.weighty=.2;
-        gbConstraints.insets = new Insets(0,30,0,0);
-        panel.add(pathwayCheckbox,gbConstraints);
-        
-        gbConstraints.gridx=1;
-        gbConstraints.gridy=5;
-        gbConstraints.weightx=1;
-        gbConstraints.weighty=.2;
-        gbConstraints.insets = new Insets(0,0,0,0);
-        panel.add(new JLabel(VueResources.getString("jlabel.pathways")),gbConstraints);
-        
-        gbConstraints.gridx=0;
-        gbConstraints.gridy=6;
-        gbConstraints.weightx=.1;
-        gbConstraints.weighty=.2;
-        gbConstraints.insets = new Insets(0,30,0,0);
-        panel.add(metaDataCheckbox,gbConstraints);
-        
-        gbConstraints.gridx=1;
-        gbConstraints.gridy=6;
-        gbConstraints.weightx=1;
-        gbConstraints.weighty=.2;
-        gbConstraints.insets = new Insets(0,0,0,0);
-        panel.add(new JLabel(VueResources.getString("jlabel.keywords")),gbConstraints);
-        
-        gbConstraints.gridx=0;
-        gbConstraints.gridy=7;
-        gbConstraints.weightx=.1;
-        gbConstraints.weighty=.2;
-        gbConstraints.insets = new Insets(0,30,130,0);
-        panel.add(hierarchyCheckbox,gbConstraints);
-        
-        gbConstraints.gridx=1;
-        gbConstraints.gridy=7;
-        gbConstraints.weightx=1;
-        gbConstraints.weighty=.2;
-        gbConstraints.insets = new Insets(0,0,130,0);
-        panel.add(new JLabel(VueResources.getString("jlabel.hierarchy")),gbConstraints);        
-        
-        resourceCheckbox.addItemListener(this);
-     //   behaviorCheckbox.addItemListener(this);
-        notesCheckbox.addItemListener(this);
-        pathwayCheckbox.addItemListener(this);
-        metaDataCheckbox.addItemListener(this);
-        hierarchyCheckbox.addItemListener(this);
-        
-        resourceCheckbox.setSelected(((Boolean)getValue(resourceIconName)).booleanValue());
-       // behaviorCheckbox.setSelected(((Boolean)getValue(behaviorIconName)).booleanValue());
-        notesCheckbox.setSelected(((Boolean)getValue(notesIconName)).booleanValue());
-        pathwayCheckbox.setSelected(((Boolean)getValue(pathwayIconName)).booleanValue());
-        metaDataCheckbox.setSelected(((Boolean)getValue(metaDataIconName)).booleanValue());
-        hierarchyCheckbox.setSelected(((Boolean)getValue(hierarchyIconName)).booleanValue());
-        
-        
-        //panel.add(booleanPanel, gbConstraints);
-	return panel;
+		gbConstraints.gridy=4;
+		gbConstraints.insets = new Insets(10, 30, 0, 10);
+		panel.add(notesCheckbox, gbConstraints);
+
+		gbConstraints.gridx=0;
+		gbConstraints.gridy=5;
+		panel.add(pathwayCheckbox, gbConstraints);
+
+		gbConstraints.gridx=0;
+		gbConstraints.gridy=6;
+		panel.add(metaDataCheckbox, gbConstraints);
+
+		gbConstraints.gridx=0;
+		gbConstraints.gridy=7;
+		gbConstraints.fill = GridBagConstraints.REMAINDER;
+		gbConstraints.weighty = 1;
+		panel.add(hierarchyCheckbox, gbConstraints);
+
+		resourceCheckbox.addItemListener(this);
+		//behaviorCheckbox.addItemListener(this);
+		notesCheckbox.addItemListener(this);
+		pathwayCheckbox.addItemListener(this);
+		metaDataCheckbox.addItemListener(this);
+		hierarchyCheckbox.addItemListener(this);
+
+		resourceCheckbox.setSelected(((Boolean)getValue(resourceIconName)).booleanValue());
+		//behaviorCheckbox.setSelected(((Boolean)getValue(behaviorIconName)).booleanValue());
+		notesCheckbox.setSelected(((Boolean)getValue(notesIconName)).booleanValue());
+		pathwayCheckbox.setSelected(((Boolean)getValue(pathwayIconName)).booleanValue());
+		metaDataCheckbox.setSelected(((Boolean)getValue(metaDataIconName)).booleanValue());
+		hierarchyCheckbox.setSelected(((Boolean)getValue(hierarchyIconName)).booleanValue());
+
+		if (DEBUG) {
+			panel.setBackground(Color.CYAN);
+			titleLabel.setBackground(Color.MAGENTA);
+			titleLabel.setOpaque(true);
+			descTextArea.setBackground(Color.MAGENTA);
+			descTextArea.setOpaque(true);
+			resourceCheckbox.setBackground(Color.MAGENTA);
+			resourceCheckbox.setOpaque(true);
+			notesCheckbox.setBackground(Color.MAGENTA);
+			notesCheckbox.setOpaque(true);
+			pathwayCheckbox.setBackground(Color.MAGENTA);
+			pathwayCheckbox.setOpaque(true);
+			metaDataCheckbox.setBackground(Color.MAGENTA);
+			metaDataCheckbox.setOpaque(true);
+			hierarchyCheckbox.setBackground(Color.MAGENTA);
+			hierarchyCheckbox.setOpaque(true);
+		}
+
+		return panel;
 	}
 
 	public boolean getMetaDataIconValue()
@@ -311,27 +282,27 @@ public class ShowIconsPreference extends BasePref implements ItemListener
 	public Object getPreviousValue(String prefName)
 	{
 		if (prefName.equals(resourceIconName))
-			return (previousResourceValue != null) ?  getDefaultValue(prefName) :  previousResourceValue;
+			return (previousResourceValue == null) ? getDefaultValue(prefName) : previousResourceValue;
 		//else if (prefName.equals(behaviorIconName))
-		//	return (previousResourceValue != null) ?  getDefaultValue(prefName) :  previousResourceValue;
+		//	return (previousBehaviorValue == null) ? getDefaultValue(prefName) : previousBehaviorValue;
 		else if (prefName.equals(notesIconName))
-			return (previousResourceValue != null) ?  getDefaultValue(prefName) :  previousResourceValue;
+			return (previousNotesValue == null) ? getDefaultValue(prefName) : previousNotesValue;
 		else if (prefName.equals(pathwayIconName))
-			return (previousResourceValue != null) ?  getDefaultValue(prefName) :  previousResourceValue;
+			return (previousPathwayValue == null) ? getDefaultValue(prefName) : previousPathwayValue;
 		else if (prefName.equals(metaDataIconName))
-			return (previousResourceValue != null) ?  getDefaultValue(prefName) :  previousResourceValue;
+			return (previousMetaDataValue == null) ? getDefaultValue(prefName) : previousMetaDataValue;
 		else if (prefName.equals(hierarchyIconName))	
-			return (previousResourceValue != null) ?  getDefaultValue(prefName) :  previousResourceValue;
+			return (previousHierarchyValue == null) ? getDefaultValue(prefName) : previousHierarchyValue;
 		else
 			return new Boolean(true);
-				
 	}
+
 	public Object getDefaultValue(String prefName)
 	{
 		if (prefName.equals(resourceIconName))
 			return resourceIconDefault;
 		//else if (prefName.equals(behaviorIconName))
-		//	return  behaviorIconDefault;
+		//	return behaviorIconDefault;
 		else if (prefName.equals(notesIconName))
 			return notesIconDefault;
 		else if (prefName.equals(pathwayIconName))
@@ -343,15 +314,17 @@ public class ShowIconsPreference extends BasePref implements ItemListener
 		else
 			return new Boolean(true);
 	}
-	
-	  protected synchronized void _fireVuePrefEvent(String prefName) {
-	        VuePrefEvent event = new VuePrefEvent(this,getPreviousValue(prefName),getValue());
-	        
-	        Iterator listeners = _listeners.iterator();
-	        while(listeners.hasNext()) {
-	            ((VuePrefListener)listeners.next()).preferenceChanged(event);
-	        }
-	    }
+
+	protected synchronized void _fireVuePrefEvent(String prefName) {
+		VuePrefEvent event = new VuePrefEvent(this,getPreviousValue(prefName),getValue());
+
+		Iterator listeners = _listeners.iterator();
+
+		while(listeners.hasNext()) {
+			((VuePrefListener)listeners.next()).preferenceChanged(event);
+		}
+	}
+
 	public String getDescription() { 
 		return description;
 	}
@@ -373,27 +346,21 @@ public class ShowIconsPreference extends BasePref implements ItemListener
 	}
 
 	public Object getDefaultValue() {
-		// TODO Auto-generated method stub
 		return new Boolean("true");
 	}
 
 	public String getPrefName() {
-		// TODO Auto-generated method stub
 		return "";
 	}
 
 	public Object getValue() {
-		// TODO Auto-generated method stub
 		return new Boolean("true");
 	}
 
 	public void setValue(Object i) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	public Object getPreviousValue() {
-		// TODO Auto-generated method stub
 		return null;
 	}	
 }
