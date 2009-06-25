@@ -30,21 +30,18 @@ import javax.swing.event.ChangeListener;
  * @author Mike Korcynski
  *
  */
-public abstract class GenericSliderPreference extends BasePref implements ChangeListener
-{
+public abstract class GenericSliderPreference extends BasePref implements ChangeListener {
 	private static final boolean DEBUG = false;
 	private String message;
 	private JSlider slider = new JSlider();
 	private Object previousValue = null;
 
-	public GenericSliderPreference()
-	{
+	public GenericSliderPreference() {
 		Preferences p = Preferences.userNodeForPackage(getPrefRoot());
 		slider.setBackground(Color.WHITE);
 	}
 
-	public JSlider getSlider()
-	{
+	public JSlider getSlider() {
 		return slider;
 	}
 
@@ -123,28 +120,24 @@ public abstract class GenericSliderPreference extends BasePref implements Change
 		return message;
 	}
 
-	public Object getPreviousValue()
-	{
+	public Object getPreviousValue() {
 		return (previousValue == null ? getDefaultValue() : previousValue);
 	}
 
-	public int getSliderValueMappedToPref()
-	{
+	public int getSliderValueMappedToPref() {
 		return 0;
 	}
 
-	public Object getValue()
-	{
+	public Object getValue() {
 		 Preferences p = Preferences.userNodeForPackage(getPrefRoot());
 		 return p.getInt(getPrefName(), ((Integer)getDefaultValue()).intValue());
 	}		
 
-	public void setMessage(String s){
+	public void setMessage(String s) {
 		this.message = s;
 	}
 
-	public void setValue(Object i)
-	{	
+	public void setValue(Object i) {	
 		previousValue = getValue();
 		Preferences p = Preferences.userNodeForPackage(getPrefRoot());
 		p.putInt(getPrefName(), getSliderValueMappedToPref());					
