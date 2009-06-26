@@ -76,7 +76,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.604 $ / $Date: 2009-06-26 21:15:49 $ / $Author: brian $ 
+ * @version $Revision: 1.605 $ / $Date: 2009-06-26 21:35:01 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -394,7 +394,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             // coordinate space adjustments ourself in mouseWheelMoved by detecting the original
             // source of the event.
 
-            GUI.MouseWheelRelay.addListenerOrIntercept(getMouseWheelListener(), mapScrollPane);
+            GUI.MouseWheelRelay.addScrollPaneIntercept(getMouseWheelListener(), mapScrollPane);
 
         } else {
             mViewport = null;

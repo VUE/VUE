@@ -31,7 +31,7 @@ import java.awt.datatransfer.*;
 /**
  * Display a preview of the selected resource.  E.g., and image or an icon.
  *
- * @version $Revision: 1.33 $ / $Date: 2009-03-29 03:03:30 $ / $Author: vaibhav $
+ * @version $Revision: 1.34 $ / $Date: 2009-06-26 21:35:02 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -96,7 +96,7 @@ public class PreviewPane extends JPanel
     @Override
     public void addNotify() {
         super.addNotify();
-        GUI.MouseWheelRelay.addListenerOrIntercept(this, this);
+        GUI.MouseWheelRelay.addScrollPaneIntercept(this, this);
     }
 
     protected void setHeight(int h) {

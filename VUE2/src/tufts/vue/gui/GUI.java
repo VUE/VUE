@@ -57,7 +57,7 @@ import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.144 $ / $Date: 2009-06-26 21:19:43 $ / $Author: sfraize $
+ * @version $Revision: 1.145 $ / $Date: 2009-06-26 21:35:02 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2968,18 +2968,22 @@ public class GUI
         /**
            
          * Intercept MouseWheelEvents going to the nearest JScrollPane ancestor of
-         * Component "override" (or just the override if there is none) by sending them to "intercept" first.
-         * The intercept should consume the event for those it wishes to override,
-         * otherwise the event will be passed on to override.
+         * Component "overriding" by sending them to "intercept" first.  The intercepting
+         * component should consume the event for those it wishes to override, otherwise the event
+         * will be passed on to the orignal target overriding.
          *
-         * @return true if there was no intercept needed, and intercept was simply added as standard mouse wheel listener
+         * If no JScrollPane is found to intercept events on, the intercepting component will
+         * simply be added as a standard MouseWheelListener.
          *
-         * BUG: note that the event delivered to the intercepting listener will still have it's x,y coordinates
-         * in the coordinate space of the original target, so the interceptor will currently have to check the event source
-         * and adjust for any differing coordinate systems manually.
+         * @return true if an intercept was installed, false if a standard MouseWheelListener was installed
+         *
+         * BUG: note that the event delivered to the intercepting listener will still
+         * have it's x,y coordinates in the coordinate space of the original target, so
+         * the interceptor will currently have to check the event source and adjust for
+         * any differing coordinate systems manually.
          */
 
-        public static boolean addListenerOrIntercept(final MouseWheelListener intercepting, java.awt.Component overriding)
+        public static boolean addScrollPaneIntercept(final MouseWheelListener intercepting, java.awt.Component overriding)
         {
             if (overriding instanceof JScrollPane) {
                 ; // overriding is already fully discovered
@@ -2998,11 +3002,11 @@ public class GUI
             
             if (currentListeners == null || currentListeners.length == 0 || currentListeners[0] == null) {
                 overriding.addMouseWheelListener(intercepting);
-                return true;
+                return false;
             } else {
                 overriding.removeMouseWheelListener(currentListeners[0]);
                 overriding.addMouseWheelListener(new MouseWheelRelay(intercepting, currentListeners[0]));
-                return false;
+                return true;
             }
                 
         }
