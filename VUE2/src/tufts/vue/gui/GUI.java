@@ -57,7 +57,7 @@ import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.140 $ / $Date: 2009-06-26 20:04:06 $ / $Author: sfraize $
+ * @version $Revision: 1.141 $ / $Date: 2009-06-26 20:21:51 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2973,6 +2973,10 @@ public class GUI
          * otherwise the event will be passed on to override.
          *
          * @return true if there was no intercept needed, and intercept was simply added as standard mouse wheel listener
+         *
+         * BUG: note that the event delivered to the intercepting listener will still have it's x,y coordinates
+         * in the coordinate space of the original target, so the interceptor will currently have to check the event source
+         * and adjust for any differing coordinate systems manually.
          */
 
         public static boolean addListenerOrIntercept(final MouseWheelListener intercept, java.awt.Component override)
