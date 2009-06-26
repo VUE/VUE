@@ -76,7 +76,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.603 $ / $Date: 2009-06-26 21:13:15 $ / $Author: sfraize $ 
+ * @version $Revision: 1.604 $ / $Date: 2009-06-26 21:15:49 $ / $Author: brian $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -6067,8 +6067,23 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
             e.consume();
             
-            int rotation = e.getWheelRotation();
-            Point2D cursor = new Point2D.Float(screenToMapX(e.getX()), screenToMapY(e.getY()));
+            int rotation = e.getWheelRotation(),
+            scrollX = 0,
+            scrollY = 0;
+            Object eventSource = e.getSource();
+
+            if (eventSource instanceof JScrollPane) {
+                Point viewPosition = ((JScrollPane)eventSource).getViewport().getViewPosition();
+                // MouseWheelEvents are different from MouseEvents in that they are delivered to the scrollpane
+                // rather to the view.  This means that the scroll position has to be added to the event's
+                // x, y because they are relative to the viewport and we need them to be relative to the map.
+
+                scrollX = viewPosition.x;
+                scrollY = viewPosition.y;
+            }
+
+            Point2D cursor = new Point2D.Float(viewer.screenToMapX(e.getX() + scrollX), viewer.screenToMapY(e.getY() + scrollY));
+
             if (rotation > 0)
                 tufts.vue.ZoomTool.setZoomSmaller(cursor);
             else if (rotation < 0)
