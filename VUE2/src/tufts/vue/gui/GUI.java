@@ -57,7 +57,7 @@ import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.142 $ / $Date: 2009-06-26 20:25:10 $ / $Author: sfraize $
+ * @version $Revision: 1.143 $ / $Date: 2009-06-26 20:45:16 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -3009,15 +3009,17 @@ public class GUI
 
         public void mouseWheelMoved(MouseWheelEvent e) {
 
-            // TODO: can use SwingUtilities.convertMouseEvent to patch coordinate system of intercepted mouse event
 
-            if (DEBUG.FOCUS) Log.debug("MW-HEAD->" + GUI.eventName(e) + "\n\tMouseWheelRelay target 1st: " + Util.tags(head));
+            if (DEBUG.FOCUS) Log.debug("MW-HEAD->" + GUI.eventName(e) +
+                                       "\n\t" + getClass().getName() + " intercepting target: " + Util.tags(head));
             // first, send to the intercept to see if it wants it
+            // TODO: can use SwingUtilities.convertMouseEvent to patch coordinate system of intercepted mouse event
             head.mouseWheelMoved(e);
 
             // if unconsumed by the intercept, send on to the original override (usually, a JScrollPane)
             if (!e.isConsumed()) {
-                if (DEBUG.FOCUS) Log.debug("MW-TAIL->" + GUI.eventName(e) + "\n\tMouseWheelRelay target 2nd: " + Util.tags(tail));
+                if (DEBUG.FOCUS) Log.debug("MW-TAIL->" + GUI.eventName(e) +
+                                           "\n\t" + getClass().getName() + "     original target: " + Util.tags(tail));
                 tail.mouseWheelMoved(e);
             }
         }
