@@ -27,7 +27,7 @@ import javax.swing.BorderFactory;
 /**
  * Scroll pane for MapViewer / MapViewport with a focus indicator.
  *
- * @version $Revision: 1.9 $ / $Date: 2008-06-30 20:53:06 $ / $Author: mike $
+ * @version $Revision: 1.10 $ / $Date: 2009-06-26 21:13:02 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -71,11 +71,12 @@ public class MapScrollPane extends javax.swing.JScrollPane
         //addFocusListener(viewer);
     }
 
-    @Override
-    public void addNotify() {
-        super.addNotify();
-        GUI.MouseWheelRelay.addListenerOrIntercept(mViewer.getMouseWheelListener(), this);
-    }
+// Moved to MapViewer.java
+//     @Override
+//     public void addNotify() {
+//         super.addNotify();
+//         GUI.MouseWheelRelay.addListenerOrIntercept(mViewer.getMouseWheelListener(), this);
+//     }
 
     @Override
     protected javax.swing.JViewport createViewport() {
