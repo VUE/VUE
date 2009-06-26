@@ -57,7 +57,7 @@ import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.141 $ / $Date: 2009-06-26 20:21:51 $ / $Author: sfraize $
+ * @version $Revision: 1.142 $ / $Date: 2009-06-26 20:25:10 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -3008,6 +3008,8 @@ public class GUI
         }
 
         public void mouseWheelMoved(MouseWheelEvent e) {
+
+            // TODO: can use SwingUtilities.convertMouseEvent to patch coordinate system of intercepted mouse event
 
             if (DEBUG.FOCUS) Log.debug("MW-HEAD->" + GUI.eventName(e) + "\n\tMouseWheelRelay target 1st: " + Util.tags(head));
             // first, send to the intercept to see if it wants it
