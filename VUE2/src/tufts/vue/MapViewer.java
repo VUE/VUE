@@ -76,7 +76,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.602 $ / $Date: 2009-06-26 20:45:27 $ / $Author: sfraize $ 
+ * @version $Revision: 1.603 $ / $Date: 2009-06-26 21:13:15 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -385,17 +385,23 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             mapScrollPane = (MapScrollPane) mViewport.getParent();
             mFocusIndicator = mapScrollPane.getFocusIndicator();
 
-            // TODO: need to install the MouseWheelRelay here, as we get added/removed notify
-            // whenever we go to full-screen mode, and the MapScrollPane is losing the
-            // MouseWheelListener (do we want to use a different viewer for full screen?)
-            
+            // NOTE: do not install a MouseWheelListener here.  If we do, the MapViewer will get
+            // MouseWheelEvent's just fine (for zooming with a modifier key down), but then we rob
+            // them from the MapScrollPane, and scrolling no longer works.  To deal with this, we
+            // install a GUI.MouseWheelRelay, and whatever mouse listener it finds in the
+            // JScrollPane (e.g., com.apple.laf.AquaScrollPaneUI$XYMouseWheelHandler) gets the
+            // original event in the proper coordinate space, and we can deal with any needed
+            // coordinate space adjustments ourself in mouseWheelMoved by detecting the original
+            // source of the event.
+
+            GUI.MouseWheelRelay.addListenerOrIntercept(getMouseWheelListener(), mapScrollPane);
+
         } else {
             mViewport = null;
             mapScrollPane = null;
 
-            // Only do this if not in a scroll-pane.  If we are,
-            // it will add us, creating a relay so it can process
-            // normaly any events we don't consume.
+            // Only add us as a MouseWheelListener if we're NOT in a scroll-pane.  See above.
+
             addMouseWheelListener(getMouseWheelListener());
         }
 
