@@ -57,7 +57,7 @@ import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.143 $ / $Date: 2009-06-26 20:45:16 $ / $Author: sfraize $
+ * @version $Revision: 1.144 $ / $Date: 2009-06-26 21:19:43 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2979,29 +2979,29 @@ public class GUI
          * and adjust for any differing coordinate systems manually.
          */
 
-        public static boolean addListenerOrIntercept(final MouseWheelListener intercept, java.awt.Component override)
+        public static boolean addListenerOrIntercept(final MouseWheelListener intercepting, java.awt.Component overriding)
         {
-            if (override instanceof JScrollPane) {
-                ; // override is already fully discovered
+            if (overriding instanceof JScrollPane) {
+                ; // overriding is already fully discovered
             } else {
-                Component nearestScrollPane = SwingUtilities.getAncestorOfClass(JScrollPane.class, override);
+                Component nearestScrollPane = SwingUtilities.getAncestorOfClass(JScrollPane.class, overriding);
                 if (nearestScrollPane != null)
-                    override = nearestScrollPane;
+                    overriding = nearestScrollPane;
             }
     
-            final MouseWheelListener[] currentListeners = override.getMouseWheelListeners();
+            final MouseWheelListener[] currentListeners = overriding.getMouseWheelListeners();
             
             if (DEBUG.MOUSE || DEBUG.INIT || DEBUG.FOCUS || currentListeners.length > 1)
-                out("MouseWheelRelay: " + GUI.name(override) + ": currentMouseWheelListeners: "
+                out("MouseWheelRelay: " + GUI.name(overriding) + ": currentMouseWheelListeners: "
                     + java.util.Arrays.asList(currentListeners)
-                    + "; intercept=" + GUI.name(intercept));
+                    + "; intercepting=" + GUI.name(intercepting));
             
             if (currentListeners == null || currentListeners.length == 0 || currentListeners[0] == null) {
-                override.addMouseWheelListener(intercept);
+                overriding.addMouseWheelListener(intercepting);
                 return true;
             } else {
-                override.removeMouseWheelListener(currentListeners[0]);
-                override.addMouseWheelListener(new MouseWheelRelay(intercept, currentListeners[0]));
+                overriding.removeMouseWheelListener(currentListeners[0]);
+                overriding.addMouseWheelListener(new MouseWheelRelay(intercepting, currentListeners[0]));
                 return false;
             }
                 
@@ -3011,15 +3011,15 @@ public class GUI
 
 
             if (DEBUG.FOCUS) Log.debug("MW-HEAD->" + GUI.eventName(e) +
-                                       "\n\t" + getClass().getName() + " intercepting target: " + Util.tags(head));
+                                       "\n\t" + getClass().getName() + ": INTERCEPTING dispatch: " + Util.tags(head));
             // first, send to the intercept to see if it wants it
             // TODO: can use SwingUtilities.convertMouseEvent to patch coordinate system of intercepted mouse event
             head.mouseWheelMoved(e);
 
-            // if unconsumed by the intercept, send on to the original override (usually, a JScrollPane)
+            // if unconsumed by the intercept, send on to the original target we're overriding (usually, a JScrollPane)
             if (!e.isConsumed()) {
                 if (DEBUG.FOCUS) Log.debug("MW-TAIL->" + GUI.eventName(e) +
-                                           "\n\t" + getClass().getName() + "     original target: " + Util.tags(tail));
+                                           "\n\t" + getClass().getName() + ":     ORIGINAL dispatch: " + Util.tags(tail));
                 tail.mouseWheelMoved(e);
             }
         }
