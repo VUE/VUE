@@ -57,7 +57,7 @@ import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.145 $ / $Date: 2009-06-26 21:35:02 $ / $Author: sfraize $
+ * @version $Revision: 1.146 $ / $Date: 2009-06-27 12:44:53 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2958,6 +2958,11 @@ public class GUI
     public static class MouseWheelRelay implements MouseWheelListener {
         private final MouseWheelListener head, tail;
     
+        /**
+         * Create's a MouseWheelListener that forwards events to "head", and if the event hasn't
+         * been consumed there (@see AWTEvent.consume()), forwards the event on to "tail".
+         */
+
         public MouseWheelRelay(MouseWheelListener head, MouseWheelListener tail) {
             if (head == null || tail == null)
                 throw new NullPointerException("MouseWheelRelay: neither head or tail can be null");
@@ -2970,7 +2975,7 @@ public class GUI
          * Intercept MouseWheelEvents going to the nearest JScrollPane ancestor of
          * Component "overriding" by sending them to "intercept" first.  The intercepting
          * component should consume the event for those it wishes to override, otherwise the event
-         * will be passed on to the orignal target overriding.
+         * will be passed on to the orignal target "overriding".
          *
          * If no JScrollPane is found to intercept events on, the intercepting component will
          * simply be added as a standard MouseWheelListener.
@@ -2978,7 +2983,7 @@ public class GUI
          * @return true if an intercept was installed, false if a standard MouseWheelListener was installed
          *
          * BUG: note that the event delivered to the intercepting listener will still
-         * have it's x,y coordinates in the coordinate space of the original target, so
+         * have its x,y coordinates in the coordinate space of the original target, so
          * the interceptor will currently have to check the event source and adjust for
          * any differing coordinate systems manually.
          */
