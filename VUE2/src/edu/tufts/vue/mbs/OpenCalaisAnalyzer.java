@@ -62,7 +62,7 @@ public class OpenCalaisAnalyzer implements LWComponentAnalyzer, ErrorHandler{
 		return analyze(c,true);
 	}
 	
-	 private String downloadURL(String theURL)
+	 private String downloadURL(String theURL) throws IOException
 	  {
 	    URL u;
 	    InputStream is = null;
@@ -70,8 +70,7 @@ public class OpenCalaisAnalyzer implements LWComponentAnalyzer, ErrorHandler{
 	    String s;
 	    StringBuffer sb = new StringBuffer();
 
-	    try
-	    {
+	    try{
 	      u = new URL(theURL);
 	      is = u.openStream();
 	      dis = new DataInputStream(new BufferedInputStream(is));
@@ -79,18 +78,7 @@ public class OpenCalaisAnalyzer implements LWComponentAnalyzer, ErrorHandler{
 	      {
 	        sb.append(s + "\n");
 	      }
-	    }
-	    catch (MalformedURLException mue)
-	    {
-	    
-	      mue.printStackTrace();
-	     
-	    }
-	    catch (IOException ioe)
-	    {
-	    
-	      ioe.printStackTrace();
-	     
+	   
 	    }
 	    finally
 	    {
@@ -107,7 +95,7 @@ public class OpenCalaisAnalyzer implements LWComponentAnalyzer, ErrorHandler{
 	  }
 
 
-	public Multimap analyzeResource(LWComponent c)
+	public Multimap analyzeResource(LWComponent c) throws IOException
 	{
 		//http://service.semanticproxy.com/processurl/xqffs8ggkmebrsehdsbt56j8/simple/http://en.wikipedia.org/wiki/Stickball
 		Multimap<String,AnalyzerResult> results = Multimaps.newArrayListMultimap();
