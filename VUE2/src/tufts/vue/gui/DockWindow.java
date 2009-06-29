@@ -55,7 +55,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.149 $ / $Date: 2009-04-10 15:33:02 $ / $Author: brian $
+ * @version $Revision: 1.150 $ / $Date: 2009-06-29 20:22:16 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1316,12 +1316,13 @@ public class DockWindow
             isMaximized = true;
             mNormalShape = getBounds();
 
-            Rectangle max = GUI.getMaximumWindowBounds();
+            Rectangle max = GUI.getMaximumWindowBounds(_win);
             if (expandUpAsWellAsDown) {
                 setBounds(getX(), max.y, getWidth(), max.height);
             } else {
-                int maxBottom = GUI.GScreenHeight - GUI.GInsets.bottom;                
-                setHeight(maxBottom - getY());
+                setHeight((max.height + max.y) - getY());
+//                 int maxBottom = GUI.GScreenHeight - GUI.GInsets.bottom;                
+//                 setHeight(maxBottom - getY());
             }
         }
     }
@@ -1329,26 +1330,38 @@ public class DockWindow
             
     /** @return true of bounds were modified */
     private boolean keepOnScreen(Rectangle r) {
-        int bottom = r.y + r.height;
-        int maxBottom = GUI.GScreenHeight - GUI.GInsets.bottom;
-        //out("        y="+r.y);
-        //out("   bottom="+bottom);
-        //out("maxBottom="+maxBottom);
+        final int bottom = r.y + r.height;
+        final Rectangle max = GUI.getMaximumWindowBounds(_win);
+        final int maxBottom = max.height + max.y;
         if (bottom > maxBottom) {
             r.height = Math.max(TitleHeight + 1, maxBottom - r.y);
             return true;
         } else
             return false;
-
-        /*
-          Rectangle max = GUI.GMaxWindowBounds;
-          if (DEBUG.Enabled) out("maxwinbounds: " + max);
-          if (mUnrolledShape.width > max.width)
-          mUnrolledShape.width = max.width;
-          if (mUnrolledShape.height > max.height)
-          mUnrolledShape.height = max.height;
-        */
     }
+    
+//     /** @return true of bounds were modified */
+//     private boolean keepOnScreen(Rectangle r) {
+//         int bottom = r.y + r.height;
+//         int maxBottom = GUI.GScreenHeight - GUI.GInsets.bottom;
+//         //out("        y="+r.y);
+//         //out("   bottom="+bottom);
+//         //out("maxBottom="+maxBottom);
+//         if (bottom > maxBottom) {
+//             r.height = Math.max(TitleHeight + 1, maxBottom - r.y);
+//             return true;
+//         } else
+//             return false;
+
+//         /*
+//           Rectangle max = GUI.GMaxWindowBounds;
+//           if (DEBUG.Enabled) out("maxwinbounds: " + max);
+//           if (mUnrolledShape.width > max.width)
+//           mUnrolledShape.width = max.width;
+//           if (mUnrolledShape.height > max.height)
+//           mUnrolledShape.height = max.height;
+//         */
+//     }
 
     /** for use during application startup */
     public void showRolledUp() {
@@ -2206,7 +2219,7 @@ public class DockWindow
     {
         final Point p;
 
-        /*
+    /*
            // can't drag up into top dock region if we do this.
           
         if (y < GUI.GInsets.top) {
@@ -2224,10 +2237,19 @@ public class DockWindow
         } else
             p = getConstrainedLocation(x, y);
 
-        if (p.y < GUI.GInsets.top)
-            p.y = GUI.GInsets.top;
+        final Rectangle r = GUI.getMaximumWindowBounds(_win);
+        //Log.debug("MAX WIN BOUNDS: " + r);
+
+        if (p.y < r.y)
+            p.y = r.y;
         else if (p.y > GUI.GScreenHeight - CollapsedHeightVisible)
             p.y = GUI.GScreenHeight - CollapsedHeightVisible;
+        
+//         // TODO: this is preventing us from moving a window to the top on a secondary screen
+//         if (p.y < GUI.GInsets.top)
+//             p.y = GUI.GInsets.top;
+//         else if (p.y > GUI.GScreenHeight - CollapsedHeightVisible)
+//             p.y = GUI.GScreenHeight - CollapsedHeightVisible;
 
         
         if (DEBUG.DOCK) out("dragToConstrained " + x + "," + y + ((p.x == x && p.y == y) ? "" : " = " + Util.out(p)));
