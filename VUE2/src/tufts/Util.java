@@ -218,6 +218,21 @@ public class Util
         return target;
 
     }
+
+    public static String maxDisplay(final String s, int len) {
+
+        if (s == null)
+            return null;
+
+        if (len < 4)
+            len = 4;
+
+        if (s.length() > len) {
+            return s.substring(0,len-3) + "...";
+        } else {
+            return s;
+        }
+    }
     
     private static String breakLines(String target, int maxLength, Locale currentLocale)
     {
@@ -1219,6 +1234,19 @@ public class Util
                 return false;
         return true;
     }
+
+    public static Object extractFirstValue(Collection bag)
+    {
+        if (bag.isEmpty())
+            return null;
+        
+        if (bag instanceof java.util.List) {
+            return ((List)bag).get(0);
+        } else {
+            return bag.iterator().next();
+        }
+    }
+    
 
     public static <A, T extends A> List<T> extractType(final Collection<A> list, final Class<T> clazz) {
 
