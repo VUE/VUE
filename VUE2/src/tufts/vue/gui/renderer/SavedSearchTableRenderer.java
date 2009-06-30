@@ -90,6 +90,7 @@ public class SavedSearchTableRenderer extends DefaultTableCellRenderer{
 		if(col == 0){			
 			String lblStr = data.getSearchSaveName();
 			JLabel searchLbl = new JLabel();			
+			searchLbl.setFont(tufts.vue.gui.GUI.LabelFace);
 			searchLbl.setText(lblStr);
 			searchLbl.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));			
 			searchPanel.add(searchLbl, BorderLayout.WEST);			

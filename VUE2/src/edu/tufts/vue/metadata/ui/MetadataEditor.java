@@ -145,7 +145,8 @@ public class MetadataEditor extends JPanel implements ActiveListener,
         }
         
         autoTagButton.setAction(tufts.vue.AnalyzerAction.calaisAutoTagger);
-        autoTagButton.setLabel(VueResources.getString("keywordPanel.autotag"));
+//        autoTagButton.setLabel(VueResources.getString("keywordPanel.autotag"));
+        autoTagButton.setFont(tufts.vue.gui.GUI.LabelFace);
         
         
         this.current = current;
