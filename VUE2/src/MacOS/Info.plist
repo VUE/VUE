@@ -49,7 +49,7 @@
 		<key>MainClass</key>
 		<string>tufts.vue.VUE</string>
 		<key>JVMVersion</key>
-		<string>1.4+</string>
+		<string>1.5+</string>
 		<key>ClassPath</key>
 		<array>
                   <string>$APP_PACKAGE/Contents/VUE.jar</string>
