@@ -31,6 +31,7 @@ import tufts.vue.gui.GUI;
 import tufts.Util;
 import tufts.vue.VueConstants;
 import tufts.vue.MapDropTarget;
+import tufts.vue.MetaMap;
 
 import java.util.List;
 import java.util.*;
@@ -48,7 +49,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.79 $ / $Date: 2009-06-24 21:48:27 $ / $Author: sfraize $
+ * @version $Revision: 1.80 $ / $Date: 2009-06-30 17:30:11 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -480,7 +481,8 @@ public class DataTree extends javax.swing.JTree
             // search for all nodes anchoring a particular value for the given Field
             if (DEBUG.Enabled) Log.debug("searching for any enumerated value from a field named " + fieldName);
 
-            criteria = new FieldMatch(fieldName);
+            criteria = new FieldMatch(field);
+            //criteria = new KeyMatch(fieldName);
         }
 
         else if (treeNode.isValue()) {
@@ -537,22 +539,39 @@ public class DataTree extends javax.swing.JTree
     }
 
     public static class FieldMatch extends Criteria {
+        final Field field;
+        public FieldMatch(Field f) {
+            field = f;
+        }
+        @Override public boolean matches(LWComponent c) {
+            return c.isDataValueNode(field);
+        }
+        @Override public String description() {
+            return String.format("enumerated values of: <b>%s</b>", field);
+        }
+        //@Override String getKey() { return key; }
+
+        @Override public String toString() {
+            return String.format("enumerated values of <i>%s</i>", field);
+        }
+    }
+    
+    public static class KeyMatch extends Criteria {
         final String key;
-        public FieldMatch(String fieldName) {
+        public KeyMatch(String fieldName) {
             key = fieldName;
         }
         @Override public boolean matches(LWComponent c) {
             return c.isDataValueNode(key);
         }
         @Override public String description() {
-            return String.format("enumerated values of: <b>%s</b>", key);
+            return String.format("any enumerated values of: <b>%s</b>", key);
         }
         //@Override String getKey() { return key; }
 
         @Override public String toString() {
-            return String.format("enumerated values of <i>%s</i>", key);
+            return String.format("any enumerated values of <i>%s</i>", key);
         }
-        
     }
     
     public static class ValueMatch extends Criteria {
@@ -1396,6 +1415,11 @@ public class DataTree extends javax.swing.JTree
             this.tree = tree;
         }
 
+        // TODO: support in MapDropTarget (to be called from computeDropAcceptAndTarget)
+//         @Override public boolean dragOver(LWComponent c) {
+//             return c instanceof LWNode;  // prevent dragging onto links
+//         }
+            
         private java.util.List<LWComponent> produceNodes(LWComponent filter)
         {
             final Field field = treeNode.getField();
@@ -1450,26 +1474,84 @@ public class DataTree extends javax.swing.JTree
         @Override
         public boolean handleDrop(MapDropTarget.DropContext drop) {
             
-            java.util.List<LWComponent> newNodes = null;
-
-            LWComponent clusterNode = null;
+            final java.util.List<LWComponent> centerNodes = new ArrayList(); // nodes already on the map
             
-            if (DEBUG.Enabled && drop.hit != null && drop.hit.isDataNode()) {
-                Log.debug("IMPLIED DATA ACTION ON DATA NODE " + drop.hit);
+            final java.util.List<LWComponent> newNodes; // nodes created
+
+            if (drop.hit != null && drop.hit.isDataNode()) {
+
+                final java.util.List<LWComponent> dropTargets = new ArrayList();
+                final Field dragField = treeNode.getField();
+                
+                Schema dragSchema = null;
+                boolean draggingAllRows = false;
                 if (treeNode instanceof AllRowsNode) {
-                    newNodes = DataAction.makeRelatedRowNodes(treeNode.getSchema(), drop.hit);
-                    // clearing hit/hitParent this will prevent MapDropTarget from
-                    // adding the nodes to the target node, and will then add them
-                    // directly to the map.  Todo: something cleaner (allow an
-                    // override in the DropHandler for what to do w/parenting)
-                    clusterNode = drop.hit;
-                    drop.hit = drop.hitParent = null;
+                    dragSchema = treeNode.getSchema();
+                    draggingAllRows = true;
                 }
+
+                if (drop.hit.isSelected()) {
+                    dropTargets.addAll(VUE.getSelection());
+                } else {
+                    dropTargets.add(drop.hit);
+                }
+
+                Log.debug("DATA ACTION ON " + drop.hit
+                          + "\n\tdropTargets: " + Util.tags(dropTargets)
+                          + "\n\t  dragField: " + dragField
+                          + "\n\t dragSchema: " + dragSchema);
+
+                //-----------------------------------------------------------------------------
+                // TODO: "merge" action for VALUE nodes.
+                // For value nodes with the same value, delete one, merge all links
+                // For value nodes with with DIFFERENT keys and/or values, create a COMPOUND VALUE
+                // node that either has multiple values, or multiple keys and values.
+                // This will complicate the hell out of the search code tho.
+                //-----------------------------------------------------------------------------
+                
+                
+                newNodes = new ArrayList();
+                for (LWComponent dropTarget : dropTargets) {
+                    final MetaMap dropTargetData;
+                    
+                    if (dropTarget.isDataNode()) {
+                        dropTargetData = dropTarget.getRawData();
+                        centerNodes.add(dropTarget);
+                        if (draggingAllRows) {
+                            // TODO: dropTargetData instead of dropTarget?
+                            newNodes.addAll(DataAction.makeRelatedRowNodes(dragSchema, dropTarget));
+                        } else if (dropTarget.isDataRowNode()) {
+                            // TODO: if dropTarget is a single value node, this makes no sense
+                            newNodes.addAll(DataAction.makeRelatedValueNodes(dragField, dropTargetData));
+                        } else { // if (dropTarget.isDataValueNode())
+                            Log.debug("UNIMPLEMENTED: relate linked to of " + dropTarget + " based on " + dragField);
+                            // if a value node, find all ROW nodes connected to it, and color
+                            // them based on the VALUES from the dragged Field?
+                            // Or, add all the values nodes and recluster all of of the linked
+                            // items based on that -- this is the HIERARCHY USE CASE.
+                            return false;
+                        }
+                    } else if (dropTarget.hasResource()) {
+                        // TODO: what is dragField going to be?  Can we drag from the meta-data pane?
+                        dropTargetData = dropTarget.getResource().getProperties();
+                        newNodes.addAll(DataAction.makeRelatedValueNodes(dragField, dropTargetData));
+                    }
+                }
+
+                // clearing hit/hitParent this will prevent MapDropTarget from
+                // adding the nodes to the target node, and will then add them
+                // directly to the map.  Todo: something cleaner (allow an
+                // override in the DropHandler for what to do w/parenting)
+                drop.hit = drop.hitParent = null;
                     
             } else {
+                Log.debug("PRODUCING NODES ON THE MAP (no drop target for filtering)");
+                
                 newNodes = produceNodes(null);
             }
 
+            if (newNodes == null || newNodes.size() == 0)
+                return false;
             
             //-----------------------------------------------------------------------------
             // Currently, we must set node locations before adding any links, as when
@@ -1485,22 +1567,30 @@ public class DataTree extends javax.swing.JTree
                                                                   newNodes,
                                                                   treeNode.getField());
 
-            if (clusterNode != null) {
-                tufts.vue.Actions.MakeCluster.doClusterAction(clusterNode, newNodes);
+            if (centerNodes.size() > 0) {
+                //tufts.vue.Actions.MakeCluster.doClusterAction(clusterNode, newNodes);                
+                for (LWComponent center : centerNodes) {
+                    tufts.vue.Actions.MakeCluster.doClusterAction(center, center.getLinked());
+                }
             } else if (drop.isLinkAction) {
-                tufts.vue.LayoutAction.circle.act(newNodes);
+                //tufts.vue.Actions.MakeCluster.act(newNodes); // TODO: GET THIS WORKING -- needs to work w/out a center
+                tufts.vue.LayoutAction.filledCircle.act(newNodes); // TODO: this goes into infinite loops sometimes!
             } else {
+                // TODO: pass isLinkAction to clusterNodes and sort out there 
                 clusterNodes(newNodes, didAddLinks);
             }
 
-            if (newNodes.size() == 0)
-                return false;
+            //-------------------------------------------------------
+            // TODO: handle selection manually (not in MapDropTarget)
+            // so we can add the field style to the selection in case
+            // what was dropped is immediately styled
+            //-------------------------------------------------------
 
             drop.items = newNodes; // will be added to map
 
-            if (clusterNode != null) {
+            if (centerNodes.size() > 0) {
                 drop.select = new ArrayList(newNodes);
-                drop.select.add(clusterNode);
+                drop.select.addAll(centerNodes);
             } else {
                 drop.select = newNodes;
             }
@@ -1518,9 +1608,18 @@ public class DataTree extends javax.swing.JTree
                     if (treeNode.isRowNode()) {
                         tufts.vue.LayoutAction.random.act(nodes);
                     } else if (newLinksAvailable) {
+
+//                         // TODO: Use the fast clustering code if we can --  filledCircle can
+//                         // be VERY slow, and sometimes hangs!
+//                         // TODO: the center nodes still need to be laid out in the big grid!
+//                         for (LWComponent center : nodes) {
+//                             tufts.vue.Actions.MakeCluster.doClusterAction(center, center.getLinked());
+//                         }
+                        
                         // TODO: cluster will currently fail (NPE) if no data-links exist
                         // Note: this action will re-arrange all the data-nodes on the map
                         tufts.vue.LayoutAction.cluster.act(nodes);
+                        
                     } else
                         tufts.vue.LayoutAction.filledCircle.act(nodes);
                     return true;
@@ -1536,7 +1635,6 @@ public class DataTree extends javax.swing.JTree
 
     private static String makeFieldLabel(final Field field)
     {
-    
         final Set values = field.getValues();
         //Log.debug("EXPANDING " + colNode);
 

@@ -43,7 +43,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.220 $ / $Date: 2009-06-16 15:33:22 $ / $Author: brian $
+ * @version $Revision: 1.221 $ / $Date: 2009-06-30 17:30:10 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -470,6 +470,14 @@ public class LWLink extends LWComponent
     
     public boolean handleSingleClick(MapMouseEvent e)
     {
+//         // we don't get this event if there are modifiers down...
+//         Log.debug("handleSingleClick " + this);
+//         if (e.isMetaDown() && hasFlag(Flag.DATA_LINK)) {
+//             if (tufts.vue.ds.Schema.isSameRow(getHead(), getTail())) {
+//                 Log.debug("COLLAPSE");
+//             }
+//         }
+        
         // returning true will disallow label-edit
         // when single clicking over an icon.
         return mIconBlock.contains(e.getMapX(), e.getMapY()); // TODO: need e.getLocalPoint(this)
@@ -477,6 +485,8 @@ public class LWLink extends LWComponent
     
     public boolean handleDoubleClick(MapMouseEvent e)
     {
+        // we don't get this event if there are modifiers down...
+        //Log.debug("handleDoubleClick " + this);
         return mIconBlock.handleDoubleClick(e);
     }
 

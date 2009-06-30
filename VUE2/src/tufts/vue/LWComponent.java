@@ -52,7 +52,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.475 $ / $Date: 2009-06-24 16:11:47 $ / $Author: sfraize $
+ * @version $Revision: 1.476 $ / $Date: 2009-06-30 17:30:10 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1904,15 +1904,15 @@ u                    getSlot(c).setFromString((String)value);
 
         String fieldName = mDataMap.getString(EnumeratedValueKey);
         
-        //-----------------------------------------------------------------------------
-        // backward compat before @schema.field stored, and
-        // only @schema was stored.  The first entry should always be
-        // the schmatic field.  todo: remove this eventually
-        if (fieldName == null && isDataValueNode()) {
-            final Map.Entry firstEntry = mDataMap.entries().iterator().next();
-            fieldName = firstEntry.getKey().toString();
-        }
-        //-----------------------------------------------------------------------------
+//         //-----------------------------------------------------------------------------
+//         // backward compat before @schema.field stored, and
+//         // only @schema was stored.  The first entry should always be
+//         // the schmatic field.  todo: remove this eventually
+//         if (fieldName == null && isDataValueNode()) {
+//             final Map.Entry firstEntry = mDataMap.entries().iterator().next();
+//             fieldName = firstEntry.getKey().toString();
+//         }
+//         //-----------------------------------------------------------------------------
         
         return fieldName;
     }
@@ -1930,11 +1930,17 @@ u                    getSlot(c).setFromString((String)value);
     /** @return true if the data-set data for this node represents a SINGLE VALUE from a field (e.g., one of an enumeration)
      * Should always return the opposite of isDataRow */
     public boolean isDataValueNode() {
-        return mDataMap != null && mDataMap.containsKey(EnumeratedValueKey);
+        return mDataMap != null && mDataMap.hasKey(EnumeratedValueKey);
     }
     
+    /** @return true if this is a single value data node of the given name from *any* schema */
     public boolean isDataValueNode(String name) {
         return name.equals(getDataValueFieldName());
+    }
+    
+    /** @return true if this is a single value data node for the given Field in it's Schema */
+    public boolean isDataValueNode(Field field) {
+        return getDataSchema() == field.getSchema() && field.getName().equals(getDataValueFieldName());
     }
     
     /**
@@ -1959,7 +1965,7 @@ u                    getSlot(c).setFromString((String)value);
     }
 
     public boolean hasDataKey(String key) {
-        return mDataMap != null && mDataMap.containsKey(key);
+        return mDataMap != null && mDataMap.hasKey(key);
     }
 
     public Schema getDataSchema() {
@@ -2000,7 +2006,7 @@ u                    getSlot(c).setFromString((String)value);
     
 
     public boolean hasDataValue(String key, String value) {
-        return mDataMap != null && mDataMap.containsEntry(key, value);
+        return mDataMap != null && mDataMap.hasEntry(key, value);
         //return isSchematicFieldNode() && mDataMap.containsEntry(key, value);
 //         if (mDataMap == null)
 //             return false;
@@ -2209,7 +2215,11 @@ u                    getSlot(c).setFromString((String)value);
                 // figure out how to skip this:
                 //getLabelBox();
             } else if (setDocument) {
-                getLabelBox().setText(newLabel);
+                try {
+                    getLabelBox().setText(newLabel);
+                } catch (Throwable t) {
+                    Log.error(String.format("failed to set label '%s' on %s in %s", newLabel, Util.tags(getLabelBox()), this), t);
+                }
             }
         }
         layout();

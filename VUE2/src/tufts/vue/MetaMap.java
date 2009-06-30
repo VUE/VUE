@@ -36,10 +36,10 @@ import com.google.common.collect.Iterators;
  * The insertion order of each key/value is preserved, even for each use of
  * the same key with different values.
  *
- * @version $Revision: 1.13 $ / $Date: 2009-06-06 21:12:26 $ / $Author: sfraize $
+ * @version $Revision: 1.14 $ / $Date: 2009-06-30 17:30:10 $ / $Author: sfraize $
  */
 
-public class MetaMap implements TableBag, XMLUnmarshalListener
+public class MetaMap implements TableBag, XMLUnmarshalListener, tufts.vue.ds.Schema.Scannable
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(MetaMap.class);
 
@@ -63,7 +63,7 @@ public class MetaMap implements TableBag, XMLUnmarshalListener
 
     private static final Map<String,Key> KEY_MAP = new java.util.concurrent.ConcurrentHashMap();
 
-    private static final boolean TEST_MODE = false;
+    private static final boolean KEY_DEBUG_MODE = false;
 
     private Schema mSchema;
     
@@ -109,8 +109,17 @@ public class MetaMap implements TableBag, XMLUnmarshalListener
      * String.equals(Object))
      *
      */
+
+    // todo: would be more performant to just have the Field class have a getKey as well
+    // as a getName, and the Field.key can always be a lower-cased value.  Then, all
+    // lookups can just be forced to lower-case, and we can skip the hashing & key
+    // creation on new mixed-case key-based lookups.  Tho we'd still need to deal with
+    // Resource MetaMap's... I suppose we could create a special Resource schema
+    // with all the fields that ever appear in any resource.  Actually, better to
+    // create one schema per OSID.  Tho only load with stuff that's actually been
+    // put on a map -- don't auto-load from every search result ever seen.
     
-    private static final class Key {
+    private static class Key {
         final String name;
         final int hash;
 
@@ -121,17 +130,18 @@ public class MetaMap implements TableBag, XMLUnmarshalListener
 
         @Override
         public boolean equals(Object o) {
-            //Log.debug(String.format("testing [%s]=[%s]", Util.tags(this), Util.tags(o)));
+            if (KEY_DEBUG_MODE && DEBUG.META)
+                Log.debug(String.format("testing [%s]=[%s]", Util.tags(this), Util.tags(o)));
 
             if (o == this)
                 return true;
             
             if (o.getClass() != Key.class) {
-                Log.warn("IS NOT KEY: " + Util.tags(o));
+                Log.warn("IS NOT KEY: " + Util.tags(o), new Throwable("HERE"));
                 return false;
             }
             
-            if (TEST_MODE && DEBUG.Enabled) {
+            if (KEY_DEBUG_MODE && DEBUG.Enabled) {
                 final boolean eq = name.equalsIgnoreCase( ((Key)o).name );
                 if (eq && !name.equals(o.toString()))
                     Log.debug(String.format("matched mixed-case [%s] to [%s]", name, o));
@@ -170,10 +180,12 @@ public class MetaMap implements TableBag, XMLUnmarshalListener
             final Key newKey = new Key(s);
             KEY_MAP.put(s, newKey);
 
+            if (KEY_DEBUG_MODE) Log.debug("*** CREATED KEY [" + newKey + "]");
+
             return newKey;
         }
     }
-    
+
     /** add the given key/value pair */
     public synchronized void put(final String key, final Object value)
     {
@@ -307,7 +319,11 @@ public class MetaMap implements TableBag, XMLUnmarshalListener
     }
 
     public Object get(String key) {
-        return getFirst(key);
+        return getFirst(key); // Key.instance?
+    }
+    
+    public Collection<String> getValues(String key) {
+        return mData.get(Key.instance(key));
     }
     
     
@@ -358,13 +374,13 @@ public class MetaMap implements TableBag, XMLUnmarshalListener
         return mData.size();
     }
     
-    public boolean containsKey(String key) {
+    public boolean hasKey(String key) {
         // can we optimize if the key-cache finds to key at all to look up?
         // I think only if we also case-fold the key-cache.
         return mData.containsKey(Key.instance(key));
         //return mData.containsKey(key);
     }
-    public boolean containsEntry(String key, String value) {
+    public boolean hasEntry(String key, String value) {
         return mData.containsEntry(Key.instance(key), value);
         //return mData.containsEntry(key, value);
     }
@@ -642,7 +658,25 @@ public class MetaMap implements TableBag, XMLUnmarshalListener
 
     @Override
     public String toString() {
-        return String.format("MetaMap@%x[n=%d]", System.identityHashCode(this), size());
+        //return String.format("MetaMap@%x[n=%d %s]", System.identityHashCode(this), size(), mData);
+
+        try {
+            Schema s = getSchema();
+            String t = "";
+            if (s != null) {
+                t = String.format(" %s.%s=%s",
+                                  s.getName(),
+                                  s.getKeyFieldName(),
+                                  Util.maxDisplay(getString(s.getKeyFieldName()), 50));
+            }
+            return String.format("MetaMap@%06x[n=%d%s]",
+                                 System.identityHashCode(this),
+                                 size(),
+                                 t);
+        } catch (Throwable t) {
+            t.printStackTrace();
+            return Util.tag(this) + "[" + t + "]";
+        }
     }
 
     @Override
@@ -779,20 +813,3 @@ public class MetaMap implements TableBag, XMLUnmarshalListener
 // your sort once, you could use a LinkedHashMap all the way through, just
 // performing the sort on it once (or a TreeMap to start, switching over to LinkedHashMap
 // later)   Has anyone created a crazy run-time-polymorphic collection set such as this?
-
-// *IDEALLY*, the end-all-be-all version, would actually maintain insertion order over
-// time, as for repository meta-data this could be semantically relevant, but then be
-// SWAPPABLE betwee that and sorted at any given time (e.g., a LinkedHashTreeMap).  Tho
-// this may finally be an argument for just going ahead and use a LinkedHashMultiMap,
-// which preserves everything, and then do any desired sorting at the UI level.  <*>
-// This could be achieved simply by a linkedhashmap/set that provides a sorted view
-// fetcher / sorted iterator fetcher, which caches the result (soft-reference even),
-// and flushes cache should the collection be modified.
-
-// Note: HashMap double-hashes: so must use IdentityHashMap if want to truly
-// take advantage of identity hashing.  Could use String.intern() for
-// creating all keys, tho apparenly this is intern() is quite slow --
-// better off doing on your own.  This is a place a Schema could come
-// in handy, providing unique Key objects.
-
-

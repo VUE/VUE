@@ -37,7 +37,7 @@ import javax.swing.ImageIcon;
  *  objects, displaying their content, and fetching their data.
 
  *
- * @version $Revision: 1.88 $ / $Date: 2009-05-13 17:06:01 $ / $Author: sfraize $
+ * @version $Revision: 1.89 $ / $Date: 2009-06-30 17:30:10 $ / $Author: sfraize $
  */
 
 public abstract class Resource implements Cloneable
@@ -394,7 +394,7 @@ public abstract class Resource implements Cloneable
     }
     
     public boolean hasProperty(String key) {
-        return mProperties.containsKey(key);
+        return mProperties.hasKey(key);
     }
     
     public MetaMap getProperties() {
@@ -933,6 +933,8 @@ public abstract class Resource implements Cloneable
      */
     public static boolean looksLikeImageFile(String path) {
         if (DEBUG.WORK) Log.debug("looksLikeImageFile [" + path + "]");
+        if (path == null || path.length() == 0)
+            return false;
         String s = path.toLowerCase();
         if    (s.endsWith(".gif")
             || s.endsWith(".jpg")
@@ -951,10 +953,10 @@ public abstract class Resource implements Cloneable
     //public static boolean isLikelyURLorFile(String s) {
     public static boolean looksLikeURLorFile(String s) {
 
-        if (s == null)
+        if (s == null || s.length() == 0)
             return false;
 
-        final char c0 = s.length() > 0 ? s.charAt(0) : 0;
+        final char c0 = s.charAt(0);
         final char c1 = s.length() > 1 ? s.charAt(1) : 0;
         
         return c0 == '/'

@@ -1962,7 +1962,10 @@ public class Actions implements VueConstants
             }
 
             // TODO: do we need to recompute statistics in the selection?  E.g., links from another
-            // layer in selection should be removed. 
+            // layer in selection should be removed.
+            // TODO: change mParents in LWSelection to be a multi-set, then just do the arrange
+            // based on the most top level parent with the most entries (even just doing the
+            // first most top-level parent would handle most cases)
             if (selection.allHaveSameParent() || selection.allHaveTopLevelParent())
                 ; // we're good
             else
@@ -2036,6 +2039,12 @@ public class Actions implements VueConstants
                 if (c.getParent() != commonParent)
                     toReparent.add(c);
             }
+
+            //-----------------------------------------------------------------------------
+            // TODO: if center is a child of any one of cluster, remove it first!
+            // That way we can go back and forth between different relationship priorities & styles.
+            // (possibly if it's a child of anything?)
+            //-----------------------------------------------------------------------------
             
             if (toReparent.size() > 0)
                 commonParent.addChildren(toReparent, LWComponent.ADD_CHILD_TO_SIBLING);
@@ -2069,7 +2078,7 @@ public class Actions implements VueConstants
         // guess at the number of rings, or just leave the last ring far more spread out
         // (remainder nodes will be left for the last right
         
-        protected void clusterNodes(Collection<LWComponent> nodes)
+        public static void clusterNodes(Collection<LWComponent> nodes)
         {
             // todo: if a link-chain detected, lay out in link-order e.g., start with
             // any non-linked nodes, then find any with one link (into our set), and
@@ -2631,12 +2640,13 @@ public class Actions implements VueConstants
             final double radiusWide, radiusTall;
 
             selection.resetStatistics(); // todo: why do we need to reset? is this a clone? (has no statistics)
-            if (DEBUG.Enabled) Log.debug("DATAVALUECOUNT: " + selection.getDataValueCount());
-            if (DEBUG.Enabled) Log.debug("DATA-ROW-COUNT: " + selection.getDataRowCount());
 
             final int nDataValues = selection.getDataValueCount();
             final int nDataRows = selection.getDataRowCount();
-                
+            
+            if (DEBUG.Enabled) Log.debug("DATAVALUECOUNT: " + nDataValues);
+            if (DEBUG.Enabled) Log.debug("DATA-ROW-COUNT: " + nDataRows);
+
             if (selection.size() == 1) {
 
                 // if a single item in selection, arrange all nodes linked to it in a circle around it
@@ -2663,16 +2673,30 @@ public class Actions implements VueConstants
             // TODO: also handle the case when all values are rows (only from
             // the same schema?) useful when joining data-sets -- the row
             // itself may be clustering related nodes from another data-set
-            else if (nDataValues == selection.size()) {
+            else if (nDataValues == selection.size() || nDataRows == selection.size()) {
 
                 // If all the items in the selection are single enumerated data
                 // VALUES, (e.g., they were all selected by a single click on a
                 // field in the DataTree, selecting all values for that field) then
                 // perform a cluster operation on each value separately, clustering
-                // all connected rows/nodes around each value.
+                // all connected rows/nodes around each value.  Unless there are
+                // absolutely no links involved, in which case just circle them.
 
-                for (LWComponent center : selection)
-                    doClusterAction(center, center.getLinked());
+                boolean anyLinks = false;
+                for (LWComponent c : selection) {
+                    if (c.hasLinks()) {
+                        anyLinks = true;
+                        break;
+                    }
+                }
+                
+
+                if (anyLinks) {
+                    for (LWComponent center : selection)
+                        doClusterAction(center, center.getLinked());
+                } else {
+                    clusterNodes(selection);
+                }
 
             }
             //else if (nDataValues == 1 && nDataRows == (selection.size() - 1)) {

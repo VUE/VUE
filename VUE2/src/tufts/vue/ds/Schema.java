@@ -19,6 +19,8 @@ import tufts.Util;
 import tufts.vue.DEBUG;
 import tufts.vue.MetaMap;
 
+//import tufts.vue.ds.DataAction.Scannable;
+
 import java.util.*;
 import java.io.*;
 import java.net.URL;
@@ -33,7 +35,7 @@ import com.google.common.collect.*;
 import com.google.common.collect.Multimaps;
 
 /**
- * @version $Revision: 1.38 $ / $Date: 2009-06-24 21:48:27 $ / $Author: sfraize $
+ * @version $Revision: 1.39 $ / $Date: 2009-06-30 17:30:11 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -548,6 +550,12 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
     public boolean hasField(String name) {
         return mFields.containsKey(name);
     }
+
+    // todo: doesn't use same case indepence as findField
+    public boolean hasField(Field f) {
+        // todo: more performant (keep a set of just hashed Fields)
+        return mFields.containsKey(f.getName());
+    }
     
     
     public String getName() {
@@ -762,33 +770,11 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
         return mRows;
     }
 
-    public List<DataRow> getMatchingRows(String fieldName, String fieldValue)
-    {
-        if (findField(fieldName) == null)
-            return Collections.EMPTY_LIST;
-        
-        return findMatchingRows(fieldName, fieldValue, new ArrayList());
-    }
-    
-    private List<DataRow> findMatchingRows(final String fieldName,
-                                           final String fieldValue,
-                                           final List<DataRow> matching)
-
-    {
-        if (findField(fieldName) == null)
-            return Collections.EMPTY_LIST;
-        
-        for (DataRow row : getRows()) {
-            if (fieldValue.equals(row.getValue(fieldName)))
-                matching.add(row);
-        }
-        
-        return matching;
-    }
-
     private static class Association {
         
+        // concurrency??
         private static final Multimap<Field,Association> AllPairs = Multimaps.newHashMultimap();
+        private static final List<Association> AllPairsList = new ArrayList();
         
         final Field field1;
         final Field field2;
@@ -807,6 +793,38 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
             field2 = f2;
             AllPairs.put(f1, this);
             AllPairs.put(f2, this);
+            AllPairsList.add(this);
+        }
+
+        public static Collection<Association> getAll() {
+            return AllPairsList;
+        }
+
+        /** @return all enabled associations between the two given schemas */
+        public static Collection<Association> getBetweens(Schema s1, Schema s2) {
+            final List<Association> betweens = new ArrayList();
+            
+            for (Association a : Association.getAll()) {
+                if (a.isEnabled() && a.isBetween(s1, s2))
+                    betweens.add(a);
+            }
+            if (DEBUG.SCHEMA && DEBUG.META) {
+                String s = "";
+                if (betweens.size() == 1)
+                    s = ": " + betweens.get(0).toString();
+                Log.debug("associations for schemas: " + s1.getName() + " x " + s2.getName() + s);
+                if (s.length() == 0)
+                    Util.dump(betweens);
+            }
+            return betweens;
+        }
+
+        public static Collection<Association> lookup(Field f) {
+            if (DEBUG.Enabled) {
+                Log.debug("fetching associations for " + f + ":");
+                Util.dump(AllPairs.get(f));
+            }
+            return AllPairs.get(f);
         }
 
         public Field getPairedField(Field f) {
@@ -817,13 +835,30 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
             else
                 throw new Error("field not in association: " + f);
         }
+        
+        public Field getFieldForSchema(Schema s) {
+            if (s == field1.getSchema())
+                return field1;
+            else if (s == field2.getSchema())
+                return field2;
+            else
+                throw new Error("field for schema not in association: " + s);
+        }
+        
+        public String getKeyForSchema(Schema s) {
+            return getFieldForSchema(s).getName();
+        }
+
+        public boolean isBetween(Schema s1, Schema s2) {
+            if (field1.getSchema() == s1 && field2.getSchema() == s2)
+                return true;
+            if (field1.getSchema() == s2 && field2.getSchema() == s1)
+                return true;
+            return false;
+        }
 
         public boolean isEnabled() {
             return enabled;
-        }
-
-        public static Collection<Association> lookup(Field f) {
-            return AllPairs.get(f);
         }
 
         public static void add(Field f1, Field f2) {
@@ -840,30 +875,439 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
         Association.add(f1, f2);
     }
 
+    //========================================================================================
+    // Can we do this: all the findMatching / getMatching association using code below
+    // is converted to generic non-schema based code, that just works on lists of
+    // MetaMaps -- then we could use it with both the list of DataRow's, as well as lists
+    // of LWComonent meta-data?  The getField checks returning EMPTY_LIST couldn't be done
+    // tho -- that would be a nice optimization to keep.  Or could we really keep a Schema
+    // around which represents all the data on the map?  *adding* to that schema would be
+    // easy, but *removing* data from it would be a problem -- schema's don't work that way.
+    //========================================================================================
 
+    /** an interface for any key-value data map.  may eventually be removed, but
+     * useful for making the search routines work with anything that can provide
+     * these basic functions or easily delegate to something that can */
+    public interface Scannable {
+        public boolean hasEntry(String key, String value);
+        public String getString(String key);
+        public Collection<String> getValues(String key);
+        public Schema getSchema();
+    }
     
-    public List<DataRow> getMatchingRows(Field field, String fieldValue)
+//     private void findMatchingRows(final String fieldName,
+//                                   final String fieldValue,
+//                                   final Collection results)
+
+//     {
+//         if (DEBUG.Enabled) Log.debug("findMatchingRows " + fieldName + "=" + fieldValue);
+        
+//         searchData(fieldName, fieldValue, getRows(), results);
+//     }
+
+    /** @return rows that match the given key/value pair, allowing for user specified key associations */
+    public Collection<DataRow> getMatchingRows(Field field, String fieldValue)
     {
-        final List<DataRow> matching = new ArrayList();
-
-        findMatchingRows(field.getName(), fieldValue, matching);
-
-        if (DEBUG.Enabled) {
-            Log.debug("Associations for: " + field);
-            Util.dump(Association.lookup(field));
+        if (!hasField(field)) {
+            Log.debug("getMatchingRows: immediate return, field not in Schema: " + field, new Throwable("HERE"));
+            return Collections.EMPTY_LIST;
         }
         
-        for (Association a : Association.lookup(field)) {
-            if (a.isEnabled())
-                findMatchingRows(a.getPairedField(field).getName(),
-                                 fieldValue,
-                                 matching);            
-        }
+        final Collection<DataRow> results = new HashSet();
+        // todo: more performant than HashSet?  perhaps just scan at end for dupes
         
-        return matching;
+        searchDataWithField(field, fieldValue, getRows(), results);
+        
+        return results;
+    }
+
+
+    /** search the given Scannable's for the given key=value, and add matches to results */
+    private static void searchData
+        (final String key,
+         final String value,
+         final Collection<? extends Scannable> searchSet,
+         final Collection results)
+    {
+        if (DEBUG.Enabled) Log.debug("searchData " + key + "=" + value + " in " + Util.tags(searchSet));
+        
+        for (Scannable row : searchSet) {
+            if (row.hasEntry(key, value))
+                results.add(row);
+        }
     }
     
 
+    /** search the given Scannable's for the given Field=fieldValue, using association's, and add matches to results
+     * This essentially does an "A.K.A" with the Field based on the user associations */
+    private static void searchDataWithField
+        (final Field fieldKey,
+         final String fieldValue,
+         final Collection<? extends Scannable> searchSet,
+         final Collection results)
+    {
+        final String fieldName = fieldKey.getName();
+        
+        searchData(fieldName, fieldValue, searchSet, results);
+
+        if (DEBUG.Enabled) {
+            Log.debug(String.format("searchDataWithField: %s='%s'\n\tsearchSet: %s",
+                                    fieldKey, fieldValue, Util.tags(searchSet)));
+            //Util.dump(Association.lookup(field));
+        }
+        
+        for (Association a : Association.lookup(fieldKey)) {
+            if (a.isEnabled())
+                searchData(a.getPairedField(fieldKey).getName(),
+                           fieldValue,
+                           searchSet,
+                           results);
+        }
+    }
+    
+    
+    /**
+     * Uses an entire row of data to do AKA searches looking for relationships
+     *
+     * @param rowKey - a data "row" - a bag of related key/value pairs
+     * @param searchSet - a bag of rows to search for association based relationships
+     * @param searchSchema - Schema for the rows in the searchSet
+     * @param results - rows found in the searchSet that have a relationship to rowKey will be added here
+     */
+    private static void searchDataWithRow
+        (final Scannable rowKey, // e.g., a MetaMap
+         final Collection<? extends Scannable> searchSet,
+         final Schema searchSchema, // may be null if the searchSet contains more than one Schema
+         final Collection results)
+    {
+        if (searchSchema == null)
+            throw new UnsupportedOperationException("schema is null; variable searchSet schema's not implemented");
+        
+        // look auto-joins e.g., if there are ANY join between Faculty & Pubs (e.g.,
+        // Name=Author), then these to schemas are in fact "joined", and can filter
+        // based on that.
+        //
+        // So dropping Pubs onto a Faculty can find the joins (just the first joined?
+        // priority to key fields?)  uses Faculty.Name to search through all Pubs for
+        // matching Pubs.Author's, and pulls those records.
+        //
+        // Note that in this case, Faculty.Name happens to be a key field, but
+        // Pubs.Author is NOT a key field.  (Pubs.Title is the key field there)
+
+        final Schema keySchema = rowKey.getSchema();
+
+        if (DEBUG.Enabled) {
+            Log.debug("searchDataWithRow: "
+                      + "\n      rowKey: " + rowKey
+                      + "\n   searchSet: " + Util.tags(searchSet)
+                      + "\nsearchSchema: " + searchSchema
+                      );
+        }
+
+        if (keySchema == searchSchema)
+            throw new Error("can only search a schema with a row from another schema: " + keySchema);
+        
+        for (Association a : Association.getBetweens(searchSchema, keySchema)) {
+            Log.debug("searchDataWithRow: scanning for " + a);
+            final String localKey = a.getKeyForSchema(searchSchema);
+            final String remoteKey = a.getKeyForSchema(keySchema);
+                
+            // instead of data.getString, we really needs to search ALL the values for that key???
+            // (e.g., multiple category values)
+            
+            searchData(localKey,
+                       rowKey.getString(remoteKey), // TODO: handle multiple values
+                       searchSet,
+                       results);
+        }
+    
+        for (Scannable s : searchSet) {
+            if (isAutoRelated(rowKey, s))
+                results.add(s);
+        }
+    }
+
+    private static Relation tryAutoRelate(Scannable row1, Scannable row2)
+    {
+        //-----------------------------------------------------------------------------
+        // [note: logic was initially from makeCrossSchemaRowNodeLinks)
+        // First, check for matching key field names, even if there isn't an explicit
+        // association between the two.  This code checks for the presence of the key
+        // field from one schema ANYWHERE else in the paired node -- not just as the key
+        // field.  Essentially an automatic open-ended association based on key fields.
+        // -----------------------------------------------------------------------------
+
+        String relatedValue;
+        
+        //-------------------------------------------------------
+        
+        final Schema s1 = row1.getSchema();
+        final String keyField1 = s1.getKeyFieldName();
+
+        relatedValue = relatedBy(keyField1, row1, row2);
+        if (relatedValue != null)
+            return new Relation(RELATION_AUTO_JOIN, true, keyField1, relatedValue);
+
+        //-------------------------------------------------------
+        
+        final Schema s2 = row2.getSchema();
+        final String keyField2 = s2.getKeyFieldName();
+
+        relatedValue = relatedBy(keyField2, row1, row2);
+        if (relatedValue != null)
+            return new Relation(RELATION_AUTO_JOIN, false, keyField2, relatedValue);
+        
+        //-------------------------------------------------------
+
+        // TODO: do open-ended relating based in any key fields that happen to have the same name
+        // for performance, in the cases where we know the schemas up front, we can inspect
+        // them for shared names and then just only ever look for those shared names.
+        // Actually, could just compute & store that in every schema -- a map in each schema
+        // by all other schemas of all field names shared by those other schemas.
+        
+        return null;
+    }
+    
+    /** note: duplicate core logic of tryAutoRelate, trimmed for performance (it doesn't return a new Relation) */
+    private static boolean isAutoRelated(Scannable row1, Scannable row2)
+    {
+        final Schema s1 = row1.getSchema();
+
+        if (relatedBy(s1.getKeyFieldName(), row1, row2) != null)
+            return true;
+        
+        final Schema s2 = row2.getSchema();
+
+        if (relatedBy(s2.getKeyFieldName(), row1, row2) != null)
+            return true;
+        
+        return false;
+    }
+    
+    /** @return true if the two rows (from the same schema) are the "same" -- the have the same key field value */
+    public static boolean isSameRow(final Scannable row1, final Scannable row2)
+    {
+        if (DEBUG.Enabled) {
+            if (row1.getSchema() != row2.getSchema()) {
+                //Log.debug("testing same row for different schemas");
+                return false;
+            }
+        }
+        
+        return relatedBy(row1.getSchema().getKeyFieldName(),
+                         row1,
+                         row2) != null;
+    }
+
+
+    public static boolean isSameRow(final LWComponent c1, final LWComponent c2)
+    {
+        if (c1 == null || c2 == null)
+            return false;
+        return isSameRow(c1.getRawData(), c2.getRawData());
+    }
+
+    /** @return true if the two rows in the given schema are the "same" -- the have the same key field value */
+    public static boolean isSameRow(final Schema schema, final Scannable row1, final Scannable row2)
+    {
+        if (DEBUG.Enabled) {
+            if (row1.getSchema() != row2.getSchema())
+                throw new Error("different schemas");
+            if (row1.getSchema() != schema)
+                throw new Error("schema mis-match");
+        }
+        
+        return relatedBy(schema.getKeyFieldName(),
+                         row1,
+                         row2) != null;
+    }
+    
+    
+    public static final String RELATION_JOIN = "join-explicit";
+    public static final String RELATION_AUTO_JOIN = "join-auto";
+    //    public static final String RELATION_AKA = "join-aka";
+
+    public static class Relation {
+        //final boolean isForward;
+        final Object type;
+        final String key, value;
+
+        Relation(Object type, boolean forward, String k, String v) {
+            this.type = type;
+            //this.isForward = forward;
+            this.key = k;
+            this.value = v;
+        }
+        Relation(Object type, String k, String v) {
+            this(type, true, k, v);
+        }
+
+        @Override public String toString() {
+            return String.format("Relation[%-10s %s=%s]", type, key, value);
+            //return String.format("Relation[%-10s %s=%s %s]", type, key, value, isForward ? "->" : "<-");
+        }
+    }
+
+    
+    /** @return the value that was found to match between the two
+     * If more than one, we return the first for now.  E.g., each row may have multiple
+     * "category" values, and more than one might match. [todo: currently only checks first value!]
+     */
+    private static String relatedBy
+        (final String key,
+         final Scannable row1,
+         final Scannable row2)
+    {
+        //----------------------------------------------------------------------------------------
+        // NOTE: this uses hasEntry instead of fetching & comparing
+        // values, which will automatically check ALL values for the given key
+        //----------------------------------------------------------------------------------------
+
+        final String row1_value = row1.getString(key);  // TODO: handle multiple values
+
+        //Log.debug(String.format("relatedBy: %s", key));
+        
+        //Log.debug(String.format("relatedBy0 %s='%s' in %s", key, row1_value, Util.tags(row2)));
+        if (row2.hasEntry(key, row1_value)) {
+            Log.debug(String.format("relatedBy: found %s='%s'", key, row1_value));
+            return row1_value;
+        }
+            
+        // The semantic reverse of the above case.  THE REASON WE DO TWO TESTS is only
+        // for the case of multple values (e.g., 10 different category values).  There
+        // was some test case I forget where I wanted this -- pretty sure it was a news
+        // feed example, probably at some time when we attempted to auto-relate on all
+        // fields in a row.  However, BUG: even doing this isn't enough: E.g., if key
+        // was "category", we'd need to iterate through ALL the values for "category"
+        // found in row1 (not just the first), and check it against ALL the values for
+        // "category" found in row2.
+        
+        final String row2_value = row2.getString(key);  // TODO: handle multiple values
+
+        //Log.debug(String.format("relatedBy1 %s='%s' in %s", key, row2_value, Util.tags(row1)));
+        if (row1.hasEntry(key, row2_value)) {
+            Util.printStackTrace("relatedBy: returning on 2nd value: " + key + "=" + row2_value
+                                 + "\n\trow1: " + row1
+                                 + "\n\trow2: " + row2
+                                 );
+            return row2_value;
+        }
+
+        return null;
+    }
+
+
+    // todo: if schema is flat (e.g., non-xml), we can do a much simpler/faster test */
+    private static String relatedByAKA_multiValues
+        (final String key1,
+         final String key2,
+         final Scannable row1,
+         final Scannable row2)
+    {
+        int i;
+
+        // TODO: case independence for values?
+
+        i = 0;
+        for (String row1value : row1.getValues(key1)) {
+            if (row2.hasEntry(key2, row1value)) {
+                Log.debug("relatedByAKA: 1st pass found match at row1 value #" + i + "; key=" + key2);
+                return row1value;
+            }
+            i++;
+        }
+        
+        i = 0;
+        for (String row2value : row2.getValues(key2)) {
+            if (row1.hasEntry(key1, row2value)) {
+                Log.debug("relatedByAKA: 2nd pass found match at row1 value #" + i + "; key=" + key1);
+                return row2value;
+            }
+            i++;
+        }
+
+        return null;
+    }
+    
+
+    /** @return a Relation between the two rows if any can be found, null otherwise
+     * The rows must be from different schemas.
+     */
+    public static Relation getRelation(Scannable row1, Scannable row2)
+    {
+        final Schema s1 = row1.getSchema();
+        final Schema s2 = row2.getSchema();
+
+        if (s1 == s2)
+            throw new Error("same schema: " + s1);
+
+        if (DEBUG.SCHEMA && DEBUG.META) Log.debug("getRelation;\n\trow1=" + row1 + "\n\trow2=" + row2);
+        
+        for (Association a : Association.getAll()) {
+
+            if (a.isEnabled() && a.isBetween(s1, s2))
+                ; // go ahead and apply this association
+            else
+                continue;
+
+            final String key1 = a.getKeyForSchema(s1);
+            final String key2 = a.getKeyForSchema(s2);
+            
+            //Log.debug("getRelation: applying key1=" + key1 + "; key2=" + key2 + " from " + a);
+
+            // todo: if schema is flat (e.g., non-xml), we can do a much simpler/faster test
+            String relatedValue = relatedByAKA_multiValues(key1, key2, row1, row2);
+
+            if (relatedValue != null) {
+
+                final String alsoKnownAsKey = String.format("%s=%s", key1, key2); // TWO keys equals this value
+                
+                return new Relation(RELATION_JOIN,
+                                    alsoKnownAsKey,
+                                    relatedValue);
+            }
+            
+//             String relatedValue = row1.getString(key1);
+//             // TODO: handle multiple values -- use row.hasEntry like relatedBy
+//             if (relatedValue != null && relatedValue.equals(row2.getString(key2))) { // TODO: case independence?
+//                 final String alsoKnownAsKey = String.format("%s=%s", key1, key2); // TWO keys equals this value
+//                 return new Relation(RELATION_JOIN,
+//                                     alsoKnownAsKey,
+//                                     relatedValue);
+//             }
+
+
+        // IMPLEMENT FULL JOIN HERE: if I drag Rockwell-Mediums.medium onto a
+        // Rockwell-Paintings.<row-node> and Mediums has been joined to Paintings via
+        // "titles", then I should be able to search for all Mediums rows with
+        // a title that matches the drop-target row-node "titles" (doesn't have to be same name),
+        // and those will be the value nodes.
+
+        // So we should probably replace the below collection source with something
+        // like Field.getMatchingValues(rowNode.getRawData()), which will work like
+        // Schema.getMatchingValues (or put it right in the schema code).
+
+            
+        }
+
+        return tryAutoRelate(row1, row2); // will return null if none found
+    }
+
+    
+    /** @param data: a MetaMap from another schema.  Heuristics will be used,
+     * including looking at associations, to determine what should match.
+     */
+    public Collection<DataRow> getMatchingRows(MetaMap searchKeys)
+    {
+        final Collection<DataRow> matching = new HashSet();
+        // we use a HashSet to prevent duplicates, which could happen through
+        // duplicate associations, or associations that are duped by an auto-join
+
+        searchDataWithRow(searchKeys, getRows(), this, matching);
+
+        return matching;
+    }
+    
     public Collection<Field> getFields() {
         return mFields.values();
     }
@@ -902,7 +1346,7 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
 
 /** a row impl that handles flat tables as well as Xml style variable "rows" or item groups */
 //class DataRow extends tufts.vue.MetaMap {
-final class DataRow {
+final class DataRow implements Schema.Scannable {
 
     final tufts.vue.MetaMap mmap = new tufts.vue.MetaMap();
 
@@ -944,17 +1388,35 @@ final class DataRow {
         return mmap.entries();
     }
 
-    //@Override public String getValue(String key) {
     public String getValue(String key) {
         return mmap.getString(key);
-        //return super.getString(key);
+    }
+    
+    /** interface Scannable */
+    public Collection<String> getValues(String key) {
+        return mmap.getValues(key);
+    }
+    
+    /** interface Scannable */
+    public Schema getSchema() {
+        return mmap.getSchema();
     }
 
+    /** interface Scannable */
+    public String getString(String key) {
+        return mmap.getString(key);
+    }
+
+    /** interface Scannable */
+    public boolean hasEntry(String key, String value) {
+        return mmap.hasEntry(key, value);
+    }
+    
     String getValue(Field f) {
         return mmap.getString(f.getName());
         //return super.getString(f.getName());
     }
-
+    
     boolean contains(Field field, Object value) {
         return value != null && value.equals(getValue(field));
     }
@@ -969,127 +1431,3 @@ final class DataRow {
     
     
 }
-
-// /** a row impl that handles flat tables as well as Xml style variable "rows" or item groups */
-// class DataRow {
-
-//     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(DataRow.class);
-    
-//     // this impl is overkill for handling flat tabular data
-
-//     final Map<Field,String> values; // isn't this just duplicated in mData???
-//     final Multimap mData = Multimaps.newLinkedHashMultimap();
-
-//     DataRow() {
-//         values = new HashMap();
-//     }
-
-//     void addValue(Field f, String value) {
-//         value = value.trim();
-//         final String existing = values.put(f, value);
-//         if (existing != null && Schema.DEBUG)
-//             Log.debug("ROW SUB-KEY COLLISION " + f);
-            
-//         mData.put(f.getName(), value);
-//         f.trackValue(value);
-//     }
-
-//     //Iterable<Map.Entry<String,String>> entries() {
-//     Iterable<Map.Entry> dataEntries() {
-//         return mData.entries();
-//     }
-    
-//     String getValue(Field f) {
-//         return values.get(f);
-//     }
-//     String getValue(String key) {
-//         Object o = mData.get(key);
-//         if (o instanceof Collection) {
-//             final Collection bag = (Collection) o;
-//             if (bag.size() == 0)
-//                 return null;
-//             else if (bag instanceof List)
-//                 return (String) ((List)bag).get(0);
-//             else
-//                 return (String) Iterators.get(bag.iterator(), 0);
-//         }
-//         else
-//             return (String) o;
-//         //return (String) Iterators.get(mData.get(key).iterator(), 0);
-//         //return (String) asText.get(key);
-//     }
-        
-// }
-
-
-
-
-
-
-
-    // temp hack: if we keep this, move to elsewhere and/or have it populate an existing container
-//     public LWMap.Layer createSchematicLayer() {
-
-//         final LWMap.Layer layer = new LWMap.Layer("Schema: " + getName());
-
-//         Field keyField = null;
-
-//         for (Field field : getFields()) {
-//             if (field.isPossibleKeyField() && !field.isLenghtyValue()) {
-//                 keyField = field;
-//                 break;
-//             }
-//         }
-//         // if didn't find a "short" key field, find the shortest
-//         if (keyField == null) {
-//             for (Field field : getFields()) {
-//                 if (field.isPossibleKeyField()) {
-//                     keyField = field;
-//                     break;
-//                 }
-//             }
-//         }
-
-//         boolean labelGuessed = false;
-
-//         LWNode keyNode = null;
-//         if (keyField != null) {
-//             keyNode = new LWNode("itemNode");
-//             keyNode.setShape(java.awt.geom.Ellipse2D.Float.class);
-//             keyNode.setProperty(tufts.vue.LWKey.FontSize, 32);
-//             keyNode.setNotes(getDump());
-//         }
-
-//         int y = Short.MAX_VALUE;
-//         for (Field field : Util.reverse(getFields())) { // reversed to preserve on-map stacking order
-//             if (field.isSingleton())
-//                 continue;
-//             LWNode colNode = new LWNode(field.getName());
-//             colNode.setLocation(0, y--);
-//             if (field.isPossibleKeyField()) {
-//                 if (keyNode != null && !labelGuessed) {
-//                     keyNode.setLabel("${" + field.getName() + "}");
-//                     labelGuessed = true;
-//                 }
-//                 colNode.setFillColor(java.awt.Color.red);
-//             } else
-//                 colNode.setFillColor(java.awt.Color.gray);
-//             colNode.setShape(java.awt.geom.Rectangle2D.Float.class);
-//             colNode.setNotes(field.valuesDebug());
-//             layer.addChild(colNode);
-
-//             if (keyNode != null)
-//                 layer.addChild(new tufts.vue.LWLink(keyNode, colNode));
-            
-//         }
-
-//         if (keyNode != null) {
-//             layer.addChild(keyNode);
-//             //tufts.vue.Actions.MakeColumn.act(layer.getChildren());
-//             tufts.vue.Actions.MakeCircle.act(Collections.singletonList(keyNode));
-//         } else {
-//             tufts.vue.Actions.MakeColumn.act(layer.getChildren());
-//         }
-
-//         return layer;
-//     }

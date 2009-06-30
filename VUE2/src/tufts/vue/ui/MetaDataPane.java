@@ -152,7 +152,7 @@ public class MetaDataPane extends tufts.vue.gui.Widget
     private static final Font ValueFace;
 
     private static final boolean EasyReading1 = false;
-    private static final boolean EasyReading2 = false;
+    private static final boolean EasyReading2 = DEBUG.Enabled;
 
     static {
 

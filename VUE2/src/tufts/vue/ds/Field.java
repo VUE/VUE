@@ -33,7 +33,7 @@ import java.util.*;
  * types and doing some data-type analysis.  It also includes the ability to
  * associate a LWComponent node style with specially marked values.
  * 
- * @version $Revision: 1.13 $ / $Date: 2009-06-24 21:48:27 $ / $Author: sfraize $
+ * @version $Revision: 1.14 $ / $Date: 2009-06-30 17:30:11 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -222,7 +222,10 @@ public class Field
 
     @Override
     public String toString() {
-        return String.format("%s.%s", schema.getName(), getName());
+        if (schema == null)
+            return String.format("<?>.%s", getName());
+        else
+            return String.format("%s.%s", schema.getName(), getName());
     }
     
 //     @Override

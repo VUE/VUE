@@ -76,7 +76,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.605 $ / $Date: 2009-06-26 21:35:01 $ / $Author: sfraize $ 
+ * @version $Revision: 1.606 $ / $Date: 2009-06-30 17:30:10 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -6047,8 +6047,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         //private long lastRotationTime = 0;
         public void mouseWheelMoved(MouseWheelEvent e) {
-            //if (DEBUG.MOUSE) System.out.println("[" + e.paramString() + "] on " + e.getSource().getClass().getName());
+
             if (DEBUG.MOUSE) Log.debug("-->" + GUI.eventName(e));
+            
             /*
             long now = System.currentTimeMillis();
             if (now - lastRotationTime < 50) { // todo: preference
@@ -6068,8 +6069,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             e.consume();
             
             int rotation = e.getWheelRotation(),
-            scrollX = 0,
-            scrollY = 0;
+                scrollX = 0,
+                scrollY = 0;
             Object eventSource = e.getSource();
 
             if (eventSource instanceof JScrollPane) {

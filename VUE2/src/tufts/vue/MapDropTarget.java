@@ -50,7 +50,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.114 $ / $Date: 2009-06-24 21:48:26 $ / $Author: sfraize $  
+ * @version $Revision: 1.115 $ / $Date: 2009-06-30 17:30:10 $ / $Author: sfraize $  
  */
 public class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -859,16 +859,24 @@ public class MapDropTarget
                 throw new Error("unknown drop type " + dropType);
             }
 
-            if (drop.select.size() > 0) {
-
+            if (drop.items != null && drop.items.size() > 0) {
                 // Must make sure the selection is owned
                 // by this map before we try and change it.
                 // TODO: SlideViewer currently not handling this properly...
                 mViewer.grabVueApplicationFocus("drop", null);
-                
-                mViewer.selectionSet(drop.select); // VUE-978: selection focal should also be set
-
             }
+            if (drop.select != null & drop.select.size() > 0) {
+                mViewer.selectionSet(drop.select); // VUE-978: selection focal should also be set
+            }
+//             if (drop.select.size() > 0) {
+
+//                 // Must make sure the selection is owned
+//                 // by this map before we try and change it.
+//                 // TODO: SlideViewer currently not handling this properly...
+//                 mViewer.grabVueApplicationFocus("drop", null);
+                
+//                 mViewer.selectionSet(drop.select); // VUE-978: selection focal should also be set
+//             }
             
         } catch (Throwable t) {
             Util.printStackTrace(t, "drop processing failed");
