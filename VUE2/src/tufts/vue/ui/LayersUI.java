@@ -40,7 +40,7 @@ import edu.tufts.vue.metadata.action.SearchAction;
 
 
 /**
- * @version $Revision: 1.77 $ / $Date: 2009-05-14 19:48:25 $ / $Author: brian $
+ * @version $Revision: 1.78 $ / $Date: 2009-07-01 19:30:24 $ / $Author: brian $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -1048,7 +1048,6 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             mMap.setActiveLayer(null);
             attemptAlternativeActiveLayer(true);
         }
-
     }
 
     private void layoutRows() {
@@ -2235,6 +2234,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             }
 
             if (moved) {
+                loadLayers(mMap);
                 getParent().setComponentZOrder(this, 0); // make sure always paints on top
                 didReorder = true;
             }
