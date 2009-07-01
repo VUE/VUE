@@ -906,7 +906,7 @@ public class DataSourceViewer extends JPanel
                         }
                         
                         if (VueUtil.confirm(VUE.getDialogParent(),
-                                VueResources.getString("datasource.dialog.message") + displayName + "?",
+                        		String.format(Locale.getDefault(), VueResources.getString("datasource.dialog.message"), displayName),
                                 VueResources.getString("datasource.dialog.title"),
                                 javax.swing.JOptionPane.OK_CANCEL_OPTION) == javax.swing.JOptionPane.YES_OPTION) {
                             dataSourceManager.remove(ds.getId());
@@ -949,7 +949,7 @@ public class DataSourceViewer extends JPanel
                         String displayName = ds.getDisplayName();
                         
                         if (VueUtil.confirm(VUE.getDialogParent(),
-                                VueResources.getString("datasource.dialog.message") + displayName,
+                        		String.format(Locale.getDefault(), VueResources.getString("datasource.dialog.message"), displayName),
                                 VueResources.getString("datasource.dialog.title"),
                                 javax.swing.JOptionPane.OK_CANCEL_OPTION) == javax.swing.JOptionPane.YES_OPTION) {
                             dataSourceList.getModelContents().removeElement(ds);

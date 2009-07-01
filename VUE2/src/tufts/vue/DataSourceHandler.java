@@ -29,6 +29,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.border.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.Locale;
 import java.util.Vector;
 import java.io.*;
 import java.util.*;
@@ -935,7 +936,7 @@ public class DataSourceHandler extends JPanel
                         String displayName = ds.getDisplayName();
                         
                         if (VueUtil.confirm(VUE.getDialogParent(),
-                        		VueResources.getString("datasource.dialog.message") + displayName,
+                        		String.format(Locale.getDefault(), VueResources.getString("datasource.dialog.message"), displayName),
                         		VueResources.getString("datasource.dialog.title"),
                                 javax.swing.JOptionPane.OK_CANCEL_OPTION) == javax.swing.JOptionPane.YES_OPTION) {
                             dataSourceList.getModelContents().removeElement(ds);
