@@ -118,7 +118,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.667 $ / $Date: 2009-06-24 16:28:19 $ / $Author: sfraize $ 
+ * @version $Revision: 1.668 $ / $Date: 2009-07-01 19:36:01 $ / $Author: brian $ 
  */
 
 public class VUE
@@ -2085,16 +2085,13 @@ public class VUE
         	ObjectInspector.setHeight(575);
         }
         
-        if (DEBUG.Enabled) {
-        	if (layersDock == null || VUE.isApplet())
-        	{
-        		layersDock = GUI.createDockWindow(VueResources.getString("dockWindow.layers.title"), new tufts.vue.ui.LayersUI());
-        		//layersDock.setFocusableWindowState(false);
-        		layersDock.setSize(300,260);        		
-        		layersDock.setLocation(0, 144);
-        		
-        	}
-        }
+    	if (layersDock == null || VUE.isApplet())
+    	{
+    		layersDock = GUI.createDockWindow(VueResources.getString("dockWindow.layers.title"), new tufts.vue.ui.LayersUI());
+    		//layersDock.setFocusableWindowState(false);
+    		layersDock.setSize(300,260);        		
+    		layersDock.setLocation(0, 144);
+    	}
         
         //-----------------------------------------------------------------------------
         // Slide Viewer
