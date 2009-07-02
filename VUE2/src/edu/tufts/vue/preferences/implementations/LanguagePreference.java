@@ -105,7 +105,9 @@ public class LanguagePreference extends edu.tufts.vue.preferences.generics.Gener
 								if (localizedDisplayName.length() > 0) {
 									// TreeSet is used to collect found locales because it doesn't add duplicates, and
 									// it automatically orders its members.
-									foundLocales.add(new StringPair(localizedDisplayName, foundLanguage + "_" + foundLocale.getCountry()));
+									String	foundCountry = foundLocale.getCountry();
+
+									foundLocales.add(new StringPair(localizedDisplayName, foundLanguage + (foundCountry.length() < 2 ? "" : ("_" + foundCountry))));
 									}
 								}
 							}
@@ -198,7 +200,9 @@ public class LanguagePreference extends edu.tufts.vue.preferences.generics.Gener
 	}
 
 	public String getCountry() {
-		return getCode().substring(3, 5);
+		String	code = getCode();
+
+		return (code.length() < 5 ? "" : getCode().substring(3, 5));
 	}
 
 	public String fixCaps(String name) {
