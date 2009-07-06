@@ -36,10 +36,10 @@ import com.google.common.collect.Iterators;
  * The insertion order of each key/value is preserved, even for each use of
  * the same key with different values.
  *
- * @version $Revision: 1.14 $ / $Date: 2009-06-30 17:30:10 $ / $Author: sfraize $
+ * @version $Revision: 1.15 $ / $Date: 2009-07-06 15:39:47 $ / $Author: sfraize $
  */
 
-public class MetaMap implements TableBag, XMLUnmarshalListener, tufts.vue.ds.Schema.Scannable
+public class MetaMap implements TableBag, XMLUnmarshalListener, tufts.vue.ds.Relation.Scannable
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(MetaMap.class);
 

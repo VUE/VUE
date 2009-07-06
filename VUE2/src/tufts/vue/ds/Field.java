@@ -33,7 +33,7 @@ import java.util.*;
  * types and doing some data-type analysis.  It also includes the ability to
  * associate a LWComponent node style with specially marked values.
  * 
- * @version $Revision: 1.14 $ / $Date: 2009-06-30 17:30:11 $ / $Author: sfraize $
+ * @version $Revision: 1.15 $ / $Date: 2009-07-06 15:39:48 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -75,7 +75,7 @@ public class Field
     private Multiset<String> mContextValues;
 
     Field(String n, Schema schema) {
-        this.name = n.trim();
+        this.name = n;
         this.schema = schema;
         flushStats(true);
         if (DEBUG.SCHEMA) {

@@ -26,17 +26,19 @@ import javax.swing.table.TableColumnModel;
 import tufts.vue.DRBrowser;
 import tufts.vue.MouseAdapter;
 import tufts.vue.VueResources;
+import tufts.vue.EventHandler;
 import tufts.vue.gui.Widget;
 
 import tufts.vue.LWComponent;
+import tufts.vue.ds.Association;
 import tufts.vue.ds.Field;
 
-public class AssociationsPane extends Widget {
+public class AssociationsPane extends Widget
+{
 	static final long		serialVersionUID = 1;
-	private static final org.apache.log4j.Logger
-							Log = org.apache.log4j.Logger.getLogger(DRBrowser.class);
+	private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(AssociationsPane.class);
 	static final int		BUTTON_WIDTH = 20;
-	static AbstractAction	addAssociationAction = null;
+    //static AbstractAction	addAssociationAction = null;
 	AbstractAction			deleteAssociationAction = null;
 	JTable	   				associationsTable = null;
 
@@ -45,14 +47,14 @@ public class AssociationsPane extends Widget {
 	}
 
 	public AssociationsPane(String name) {
-		super(name);
+            super(name);
 
 		try {
-			addAssociationAction = new AbstractAction(VueResources.getString("associationsPane.addassociation")) {
-				public void actionPerformed(ActionEvent e) {
-					addAssociation();
-				}
-			 };
+// 			addAssociationAction = new AbstractAction(VueResources.getString("associationsPane.addassociation")) {
+// 				public void actionPerformed(ActionEvent e) {
+// 					addAssociation();
+// 				}
+// 			 };
 
 			deleteAssociationAction = new AbstractAction(VueResources.getString("associationsPane.deleteassociation")) {
 				public void actionPerformed(ActionEvent e) {
@@ -82,17 +84,19 @@ public class AssociationsPane extends Widget {
 			add(associationsTable);
 		} catch (Exception ex) {
 			Log.error(ex);
-		}
-	}
+                }
+                
+	}                
+
 
 	public void finalize() {
-		addAssociationAction = null;
+            //addAssociationAction = null;
 		deleteAssociationAction = null;
 		associationsTable = null;
 	}
 
 	public void setActions() {
-		setMiscAction(this, new AddAssociationListener(), "dockWindow.addButton");
+            //setMiscAction(this, new AddAssociationListener(), "dockWindow.addButton");
 		setHelpAction(this, VueResources.getString("dockWindow.Resources.associationsPane.helpText"));;
 
 		enableMenuActions();
@@ -103,83 +107,71 @@ public class AssociationsPane extends Widget {
 
 		setMenuActions(this,
 				new Action[] {
-			addAssociationAction,
+                                   //addAssociationAction,
 			deleteAssociationAction
 		});
 	}
 
-	public void addAssociation() {
-		AssociationsTableModel	model = ((AssociationsTableModel)associationsTable.getModel());
-		ListSelectionModel		selModel = associationsTable.getSelectionModel();
-		int						insertAt = associationsTable.getSelectedRow();
+// 	public void addAssociation() {
+// 		AssociationsTableModel	model = ((AssociationsTableModel)associationsTable.getModel());
+// 		ListSelectionModel		selModel = associationsTable.getSelectionModel();
+// 		int						insertAt = associationsTable.getSelectedRow();
 
-		// Add the new row above the first selected row;
-		// if no row is selected, add it at the end.
-		if (insertAt == -1) {
-			insertAt = model.getRowCount();
-		}
-
-		model.addAssociation(insertAt);
-		selModel.clearSelection();
-		selModel.setSelectionInterval(insertAt, insertAt);
-	}
-
-	public void deleteAssociation() {
-		AssociationsTableModel	model = ((AssociationsTableModel)associationsTable.getModel());
-		int						deleteAt;
-
-		while ((deleteAt = associationsTable.getSelectedRow()) != -1) {
-			model.deleteAssociation(deleteAt);
-		}
-	}
-
-	public boolean dropAssociation(Transferable transfer, int row, int column) {
-		boolean			result = false;
-
-/* 		DataFlavor[]	flavors = transfer.getTransferDataFlavors();
-		int				flavorCount = flavors.length,
-						index;
-		for (index = 0; index < flavorCount; index++) {
-			System.out.println("!!!!!!!!!! flavor " + index + " is " + flavors[index].getHumanPresentableName());
-		} */
-
-		if (column == 1 || column == 3) {
-                    try {
-                        LWComponent dragNode = tufts.vue.MapDropTarget.extractData(transfer,
-                                                                                   LWComponent.DataFlavor,
-                                                                                   LWComponent.class);
-                        Field field = dragNode.getClientData(tufts.vue.ds.Field.class);
-
-                        associationsTable.setValueAt(field, row, column);
-
-                        Object otherField = associationsTable.getValueAt(row, column == 1 ? 3 : 1);
-
-                        // TODO: need to reject duplicate associations
-                        // TODO: need to allow association deletion
-                        // TODO: need to prevent changing an association, or detect & handle
-
-                        if (otherField instanceof Field)
-                            tufts.vue.ds.Schema.addAssociation(field, (Field) otherField);
-                        
-                        result = true;
-                    } catch (Exception ex) {
-                        Log.error("exception processing drop " + transfer + " at " + row + "," + column, ex);
-                    }
-		}
-// 		if (column == 1 || column == 3) {
-// 			try {
-// 				String	data = (String)transfer.getTransferData(DataFlavor.stringFlavor);
-
-// 				associationsTable.setValueAt(data.substring(data.indexOf('\'') + 1, data.lastIndexOf('\'')), row, column);
-
-// 				result = true;
-// 			} catch (Exception ex) {
-// 				Log.error(ex);
-// 			}
+// 		// Add the new row above the first selected row;
+// 		// if no row is selected, add it at the end.
+// 		if (insertAt == -1) {
+// 			insertAt = model.getRowCount();
 // 		}
 
-		return result;
-	}
+// 		model.addEmptySlot(insertAt);
+// 		selModel.clearSelection();
+// 		selModel.setSelectionInterval(insertAt, insertAt);
+// 	}
+
+    
+    public void deleteAssociation() {
+        AssociationsTableModel	model = ((AssociationsTableModel)associationsTable.getModel());
+        int deleteAt;
+
+        if ((deleteAt = associationsTable.getSelectedRow()) != -1) {
+            model.deleteAssociation(deleteAt);
+        }
+        
+//         // dangerous -- any deletion failure will end up hanging VUE entirely
+//         while ((deleteAt = associationsTable.getSelectedRow()) != -1) {
+//             model.deleteAssociation(deleteAt);
+//         }
+    }
+
+    public boolean dropAssociation(Transferable transfer, int row, int column) {
+        boolean			result = false;
+
+        /* 		DataFlavor[]	flavors = transfer.getTransferDataFlavors();
+                        int				flavorCount = flavors.length,
+                        index;
+                        for (index = 0; index < flavorCount; index++) {
+			System.out.println("!!!!!!!!!! flavor " + index + " is " + flavors[index].getHumanPresentableName());
+                        } */
+
+        if (column == 1 || column == 3) {
+            try {
+                final LWComponent dragNode = tufts.vue.MapDropTarget.extractData
+                    (transfer,
+                     LWComponent.DataFlavor,
+                     LWComponent.class);
+                
+                final Field field = dragNode.getClientData(tufts.vue.ds.Field.class);
+
+                associationsTable.setValueAt(field, row, column);
+
+                result = true;
+            } catch (Throwable t) {
+                Log.error("exception processing drop " + transfer + " at " + row + "," + column, t);
+            }
+        }
+        
+        return result;
+    }
 
 	public void toggleAssociation() {
 		if (associationsTable.getSelectedRowCount() == 1 &&
@@ -192,104 +184,240 @@ public class AssociationsPane extends Widget {
 		}
 	}
 
-	protected class AssociationsTableModel extends AbstractTableModel {
-		static final long					serialVersionUID = 1;
+    protected class AssociationsTableModel extends AbstractTableModel implements Association.Listener
+    {
+        private static final int COL_ENABLED = 0;
+        private static final int COL_FIELD_LEFT = 1;
+        private static final int COL_EQUALS = 2;
+        private static final int COL_FIELD_RIGHT = 3;
+        
+        private Field tmpField0;
+        private Field tmpField1;
 
-		protected Vector<Vector<Object>>	associations = new Vector<Vector<Object>>();
+        private AssociationsTableModel() {
+            EventHandler.addListener(Association.Event.class, this);
+        }
 
-		public int getRowCount() {
-			return associations.size();
-		}
+        public void eventRaised(Association.Event e) {
+            fireTableDataChanged();
+        }
 
-		public int getColumnCount() {
-			return 4;
-		}
+        public int getRowCount() {
+            return Association.getCount() + 1;
+        }
 
-		public boolean isCellEditable(int row, int column) {
-			return (column == 0);
-		}
+        public int getColumnCount() {
+            return 4;
+        }
 
-		public Class getColumnClass(int column) {
-			return (associations.size() > 0 ? getValueAt(0, column).getClass() : null);
-		}
+        public boolean isCellEditable(int row, int column) {
+            return (column == 0);
+        }
 
-		public Object getValueAt(int row, int column) {
-			Object	result = null;
+        public Class getColumnClass(int column) {
+            if (getRowCount() > 0)
+                return getValueAt(0, column).getClass();
+            else
+                return null;
+        }
 
-			switch (column){
-			case 0:		// column 0 contains the Boolean stored in the Vector's 0th element (displays as a checkbox)
-			case 1:		// column 1 contains the String stored in the Vector's 1st element
-				result = associations.elementAt(row).elementAt(column);
-				break;
+        public Object getValueAt(int row, int column) {
+            try {
+                return fetchValue(row, column);
+            } catch (Throwable t) {
+                Log.error("failed to fetch value at row=" + row + ", col=" + column, t);
+                return null;
+            }
+        }
+        
+        private Object fetchValue(final int row, final int column) {
+            Object result = null;
 
-			case 2:		// column 2 contains an equals sign
-				result = "=";
-				break;
+            final int index = row - 1;
 
-			case 3:		// column 3 contains the String stored in the Vector's 2nd element
-				result = associations.elementAt(row).elementAt(2);
-				break;
-			}
+            switch (column) {
+            case COL_ENABLED:
+                if (row == 0)
+                    return Boolean.FALSE;
+                else
+                    result = Association.get(index).isEnabled() ? Boolean.TRUE : Boolean.FALSE;
+                break;
+            case COL_FIELD_LEFT:
+                if (row == 0)
+                    result = tmpField0;
+                else 
+                    result = Association.get(index).getLeft();
+                break;
+            case COL_EQUALS:
+                result = "=";
+                break;
+            case COL_FIELD_RIGHT:
+                if (row == 0)
+                    result = tmpField1;
+                else
+                    result = Association.get(index).getRight();
+                break;
+            }
 
-			if (result == null) {
-				result = VueResources.getString("associationsPane.chooseField");
-			}
+            if (result == null) {
+                result = VueResources.getString("associationsPane.chooseField");
+            }
 
-			return result;
-		}
+            return result;
+        }
 
-		public void setValueAt(Object obj, int row, int column) {
-			switch (column){
-			case 0:		// column 0 contains the Boolean stored in the Vector's 0th element (displays as a checkbox)
-			case 2:		// column 2 contains an equals sign
-				break;
+        public void setValueAt(Object obj, int row, int column) {
 
-			case 1:		// column 1 contains the String stored in the Vector's 1st element
-			case 3:		// column 3 contains the String stored in the Vector's 2nd element
-				Vector<Object>	association = associations.elementAt(row);
+            // note: this ignores row for now -- we only pay attention to column
+            // the only row that can be updated this way is currently row 0
 
-				association.setElementAt(obj, column == 3 ? 2 : column);
+            switch (column) {
+            case COL_FIELD_LEFT:
+                if (tmpField1 != obj) {
+                    Log.debug("set f0 to " + obj);
+                    tmpField0 = (Field) obj;
+                }
+                break;
+            case COL_FIELD_RIGHT:
+                if (tmpField0 != obj) {
+                    Log.debug("set f1 to " + obj);
+                    tmpField1 = (Field) obj;
+                }
+                break;
+            default:
+                return;
+            }
 
-				if (association.elementAt(1) != null && association.elementAt(2) != null) {
-                                    association.setElementAt(new Boolean(true), 0);
-				}
+            Log.debug("f0=" + tmpField0 + "; f1=" + tmpField1);
+            if (tmpField0 != null && tmpField1 != null && tmpField0 != tmpField1) {
+                // construct a new field
+                final Field fLeft = tmpField0;
+                final Field fRight = tmpField1;
+                // we'll get an Assocation.Event callback from the add, so make sure these are null first
+                tmpField0 = tmpField1 = null; 
+                Association.add(fLeft, fRight);
+            } else {
+                fireTableRowsUpdated(0, 0);
+            }
+        }
+
+        public void deleteAssociation(int index) {
+            Association.remove(Association.get(index - 1));
+            // we'll get an Assocation.Event callback for the table update
+        }
+
+        public void toggleAssociation(int index) {
+
+            final Association a = Association.get(index - 1);
+
+            if (a != null) {
+                a.setEnabled(!a.isEnabled());
+                Log.debug("toggled " + a);
+            }
+
+            fireTableRowsUpdated(index, index);
+        }
+    }
+
+//===================================================================================================
+// 	protected class AssociationsTableModel extends AbstractTableModel {
+// 		static final long					serialVersionUID = 1;
+
+// 		protected Vector<Vector<Object>>	associations = new Vector<Vector<Object>>();
+
+// 		public int getRowCount() {
+// 			return associations.size();
+// 		}
+
+// 		public int getColumnCount() {
+// 			return 4;
+// 		}
+
+// 		public boolean isCellEditable(int row, int column) {
+// 			return (column == 0);
+// 		}
+
+// 		public Class getColumnClass(int column) {
+// 			return (associations.size() > 0 ? getValueAt(0, column).getClass() : null);
+// 		}
+
+// 		public Object getValueAt(int row, int column) {
+// 			Object	result = null;
+
+// 			switch (column){
+// 			case 0:		// column 0 contains the Boolean stored in the Vector's 0th element (displays as a checkbox)
+// 			case 1:		// column 1 contains the String stored in the Vector's 1st element
+// 				result = associations.elementAt(row).elementAt(column);
+// 				break;
+
+// 			case 2:		// column 2 contains an equals sign
+// 				result = "=";
+// 				break;
+
+// 			case 3:		// column 3 contains the String stored in the Vector's 2nd element
+// 				result = associations.elementAt(row).elementAt(2);
+// 				break;
+// 			}
+
+// 			if (result == null) {
+// 				result = VueResources.getString("associationsPane.chooseField");
+// 			}
+
+// 			return result;
+// 		}
+
+// 		public void setValueAt(Object obj, int row, int column) {
+// 			switch (column){
+// 			case 0:		// column 0 contains the Boolean stored in the Vector's 0th element (displays as a checkbox)
+// 			case 2:		// column 2 contains an equals sign
+// 				break;
+
+// 			case 1:		// column 1 contains the String stored in the Vector's 1st element
+// 			case 3:		// column 3 contains the String stored in the Vector's 2nd element
+// 				Vector<Object>	association = associations.elementAt(row);
+
+// 				association.setElementAt(obj, column == 3 ? 2 : column);
+
+// 				if (association.elementAt(1) != null && association.elementAt(2) != null) {
+//                                     association.setElementAt(new Boolean(true), 0);
+// 				}
 
 
-				fireTableRowsUpdated(row, row);
-				break;
-			}
-		}
+// 				fireTableRowsUpdated(row, row);
+// 				break;
+// 			}
+// 		}
 
-		public void addAssociation(int index) {
-			Vector<Object>	association = new Vector<Object>();
+// 		public void addAssociation(int index) {
+// 			Vector<Object>	association = new Vector<Object>();
 
-			association.add(new Boolean(false));
-			association.add(null);
-			association.add(null);
+// 			association.add(new Boolean(false));
+// 			association.add(null);
+// 			association.add(null);
 
-			associations.add(index, association);
+// 			associations.add(index, association);
 
-			fireTableRowsInserted(index, index);
-		}
+// 			fireTableRowsInserted(index, index);
+// 		}
 
-		public void deleteAssociation(int index) {
-			associations.remove(index);
+// 		public void deleteAssociation(int index) {
+// 			associations.remove(index);
 
-			fireTableRowsDeleted(index, index);
-		}
+// 			fireTableRowsDeleted(index, index);
+// 		}
 
-		public void toggleAssociation(int index) {
-			Vector<Object>	association = associations.elementAt(index);
+// 		public void toggleAssociation(int index) {
+// 			Vector<Object>	association = associations.elementAt(index);
 
-			if (association.elementAt(1) != null && association.elementAt(2) != null) {
-				boolean		currentState = ((Boolean)(association.elementAt(0))).booleanValue();
+// 			if (association.elementAt(1) != null && association.elementAt(2) != null) {
+// 				boolean		currentState = ((Boolean)(association.elementAt(0))).booleanValue();
 
-				association.setElementAt(new Boolean(!currentState), 0);
-			}
+// 				association.setElementAt(new Boolean(!currentState), 0);
+// 			}
 
-			fireTableRowsUpdated(index, index);
-		}
-	}
+// 			fireTableRowsUpdated(index, index);
+// 		}
+//	}
 
 	protected class AssociationsDropTarget extends DropTarget {
 		static final long					serialVersionUID = 1;
@@ -331,9 +459,9 @@ public class AssociationsPane extends Widget {
 		}
 	}
 
-	protected class AddAssociationListener extends MouseAdapter {
-		public void mouseClicked(MouseEvent event) {
-			addAssociationAction.actionPerformed(null);
-		}
-	}
+// 	protected class AddAssociationListener extends MouseAdapter {
+// 		public void mouseClicked(MouseEvent event) {
+// 			addAssociationAction.actionPerformed(null);
+// 		}
+// 	}
 }

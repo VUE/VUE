@@ -24,7 +24,7 @@ import java.util.*;
 import org.apache.commons.lang.StringEscapeUtils;
 
 /**
- * @version $Revision: 1.18 $ / $Date: 2009-06-30 17:30:11 $ / $Author: sfraize $
+ * @version $Revision: 1.19 $ / $Date: 2009-07-06 15:39:48 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -59,23 +59,9 @@ public final class DataAction
         return StringEscapeUtils.escapeHtml(Field.valueName(value));
     }
     
-    private static List<LWLink> makeDataLinksForNodes(LWMap map, List<? extends LWComponent> nodes, Field field)
-    {
-        final Collection linkTargets = getLinkTargets(map);
-        
-        java.util.List<LWLink> links = Collections.EMPTY_LIST;
-        
-        if (linkTargets.size() > 0) {
-            links = new ArrayList();
-            for (LWComponent c : nodes) {
-                links.addAll(makeLinks(linkTargets, c, field));
-            }
-        }
-
-        return links;
-    }
-    
-    private static List<LWLink> makeDataLinksForNode(final LWComponent node, final Collection<? extends LWComponent> linkTargets)
+    private static List<LWLink> makeDataLinksForNode
+        (final LWComponent node,
+         final Collection<? extends LWComponent> linkTargets)
     {
         if (linkTargets.size() > 0) {
             return makeLinks(linkTargets, node, node.getDataValueField()); // seems wrong to be providing this last argumen
@@ -98,7 +84,6 @@ public final class DataAction
          List<? extends LWComponent> nodes,
          Field field)
     {
-        
         final List<LWLink> links = makeDataLinksForNodes(map, nodes, field);
 
         if (links.size() > 0) {
@@ -108,6 +93,25 @@ public final class DataAction
             return false;
     }
 
+    private static List<LWLink> makeDataLinksForNodes
+        (LWMap map,
+         List<? extends LWComponent> nodes,
+         Field field)
+    {
+        final Collection linkTargets = getLinkTargets(map);
+        
+        java.util.List<LWLink> links = Collections.EMPTY_LIST;
+        
+        if (linkTargets.size() > 0) {
+            links = new ArrayList();
+            for (LWComponent c : nodes) {
+                links.addAll(makeLinks(linkTargets, c, field));
+            }
+        }
+
+        return links;
+    }
+    
     private static List<LWLink> makeLinks(LWComponent node)
     {
         if (node.isDataRowNode())
@@ -118,7 +122,8 @@ public final class DataAction
             return Collections.EMPTY_LIST;
     }
     
-    private static List<LWLink> makeLinks(LWComponent node, Collection<LWComponent> linkTargets) {
+    private static List<LWLink> makeLinks
+        (LWComponent node, Collection<LWComponent> linkTargets) {
 
         if (node.isDataRowNode())
             return makeRowNodeLinks(linkTargets, node);
@@ -129,7 +134,10 @@ public final class DataAction
     }
         
     /** @param field -- if null, will defer to makeRowNodeLinks, and assume the given node is a row node */
-    public static List<LWLink> makeLinks(final Collection<? extends LWComponent> linkTargets, LWComponent node, Field field)
+    public static List<LWLink> makeLinks
+        (final Collection<? extends LWComponent> linkTargets,
+         LWComponent node,
+         Field field)
     {
         //Log.debug("makeLinks: " + field + "; " + node);
 
@@ -146,47 +154,92 @@ public final class DataAction
     // Resource meta-data instead, Tho there's no schema in that case, so we'd have to
     // deal with that...
     
-    public static List<LWComponent> makeRelatedValueNodes(Field field, MetaMap rowData) {
+    public static List<LWComponent> makeRelatedValueNodes(Field dragField, MetaMap onMapRowData) {
 
-        Log.debug("PRODUCING RELATED VALUE NODES FOR FIELD: " + field + "; src=" + rowData);
+        Log.debug("PRODUCING RELATED VALUE NODES FOR FIELD: " + dragField + "; src=" + onMapRowData);
 
-        // TODO: if rowData is from a single value node, this makes no sense
+        // TODO: if rowData is from a single value node, this makes no sense -- should move
+        // the methods for identifying the type of "row" (MetaMap) it is to MetaMap itself
+        // (instead of LWComponent)
 
-        final java.util.List<LWComponent> nodes = new ArrayList();
+        final List<LWComponent> nodes = new ArrayList();
 
-        //-----------------------------------------------------------------------------
-        // Note: We pull ALL values for the given Field: e.g., there may be 20 different
-        // "category" values.
-        //-----------------------------------------------------------------------------
+        for (String value : onMapRowData.getValues(dragField.getName())) {
+            //-----------------------------------------------------------------------------
+            // Note: We pull ALL values for the given Field: e.g., there may be 20 different
+            // "category" values.
+            //-----------------------------------------------------------------------------
+
+            Log.debug("makeRelatedValueNodes: " + dragField + "=" + value);
+            nodes.add(makeValueNode(dragField, value));
+        }
 
         //-----------------------------------------------------------------------------
         //
-        // IMPLEMENT FULL JOIN HERE: if I drag Rockwell-Mediums.medium onto a
+        // WE IMPLEMENT JOIN's HERE: E.g., if we drag Rockwell-Mediums.medium onto a
         // Rockwell-Paintings.<row-node> and Mediums has been joined to Paintings via
-        // "titles", then I should be able to search for all Mediums rows with
-        // a title that matches the drop-target row-node "titles" (doesn't have to be same name),
-        // and those will be the value nodes.
+        // their key Field "titles" (tho they don't have to have the same name as per
+        // Associations), then we search for all Mediums rows with a title that matches
+        // the drop-target row-node "titles" (doesn't have to be same name), and those
+        // will be the value nodes.
 
-        // So we should probably replace the below collection source with something
-        // like Field.getMatchingValues(rowNode.getRawData()), which will work like
-        // Schema.getMatchingValues (or put it right in the schema code).
+        // We could implement this elsewhere if we replace the above getValues call
+        // with something like Field.getMatchingValues(<row-data>), which will
+        // work like Schema.getMatchingValues (or put it right in the schema code).
         //
         //-----------------------------------------------------------------------------
         
-        for (String value : rowData.getValues(field.getName())) {
-            Log.debug("makeRelatedValueNodes: " + field + "=" + value);
-            nodes.add(makeValueNode(field, value));
-        }
+        final Schema dragSchema = dragField.getSchema();
+        final Schema dropSchema = onMapRowData.getSchema();
+            
+        final Association join = Association.getJoin(dragSchema, dropSchema);
+        // join will be non-null if one was found
 
-        if (field.getSchema() != rowData.getSchema()) {
-            Log.debug("LOOKING FOR FULL JOINS");
+//         if (join != null) {
+
+//             // ???????????????????????????
+
+//             for (DataRow row : dragSchema.getJoinedMatchingRows(join, dragField) {
+//                 // todo: use Schema.searchData?
+//                 final Collection<String> joinedValues = row.getValues(extractKey);
+//                 Log.debug("extracted " + Util.tags(joinedValues));
+//                 for (String value : joinedValues) {
+//                     nodes.add(makeValueNode(dragField, value));
+//                 }
+//             }
+//         }
+            
+        
+        if (join != null) {
+
+            // This works for the Rockwell-Mediums case, tho only for initial node creation of course --
+            // NEED TO GENERALIZE
+
+            final Field indexKey = join.getFieldForSchema(dragSchema);
+            final String indexValue = onMapRowData.getString(join.getKeyForSchema(dropSchema)); // todo: multi-values
+
+            Log.debug("JOIN: indexKey=" + indexKey + "; indexValue=" + indexValue);
+
+            final Collection<DataRow> matchingRows = dragSchema.getMatchingRows(indexKey, indexValue);
+
+            Log.debug("found rows: " + Util.tags(matchingRows));
+
+            final String extractKey = dragField.getName();
+
+            for (DataRow row : matchingRows) {
+                // todo: use Schema.searchData?
+                final Collection<String> joinedValues = row.getValues(extractKey);
+                Log.debug("extracted " + Util.tags(joinedValues));
+                for (String value : joinedValues) {
+                    nodes.add(makeValueNode(dragField, value));
+                }
+            }
+                                       
         }
         
         return nodes;
     }
 
-
-    
 
     public static List<LWLink> makeValueNodeLinks
         (final Collection<? extends LWComponent> linkTargets,
@@ -202,6 +255,14 @@ public final class DataAction
             if (c == node)
                 continue;
 
+            // TODO: NEEDS TO USE ASSOCIATIONS
+            // HANDLE VIE RELATIONS???
+            
+            // This is where ALSO where a JOIN needs to take place.  We want a way to do
+            // that which is generic to schemas instead of just here, so dropping the
+            // Rockwell.Medium FIELD on a Rockwell.Painting ROW will extract the right
+            // value, as well as be discovered later here to create the link.
+            
             if (c.hasDataValue(fieldName, fieldValue)) {
                 // if the target node c is schematic at all, it should only have
                 // one piece of meta-data, and it should be an exact match already
@@ -299,7 +360,7 @@ public final class DataAction
 
     /** make links from row nodes (full data nodes) to any schematic field nodes found in the link targets,
      or between row nodes from different schema's that are considered "auto-joined" (e.g., a matching key field appears) */
-    public static List<LWLink> makeRowNodeLinks
+    private static List<LWLink> makeRowNodeLinks
         (final Collection<? extends LWComponent> linkTargets,
          final LWComponent rowNode)
     {
@@ -343,16 +404,19 @@ public final class DataAction
 
                     //-----------------------------------------------------------------------------
                     // The target being inspected is a value node - create a link
-                    // of there's any matching value in the row node.  We don't
+                    // if there's any matching value in the row node.  We don't
                     // currently care if it's from the same schema or not: identical
                     // field names currently always provide a match (sort of a weak auto-join)
                     //-----------------------------------------------------------------------------
                     
-                    final String fieldValue = c.getDataValue(singleValueFieldName); 
-                
+                    final String fieldValue = c.getDataValue(singleValueFieldName);
+
                     //-----------------------------------------------------------------------------
-                    // TODO: USE ASSOCIATIONS?
+                    //
+                    // TODO: USE ASSOCIATIONS
+                    //
                     //-----------------------------------------------------------------------------
+                    
                     if (rowNode.hasDataValue(singleValueFieldName, fieldValue)) {
                         links.add(makeLink(c, rowNode, singleValueFieldName, fieldValue, null));
                     }
@@ -362,7 +426,7 @@ public final class DataAction
 
                     final MetaMap targetRow = c.getRawData();
 
-                    if (Schema.isSameRow(targetSchema, targetRow, sourceRow)) {
+                    if (Relation.isSameRow(targetSchema, targetRow, sourceRow)) {
                         links.add(makeLink(rowNode, c, null, null, Color.orange));
                     }
                 }
@@ -373,7 +437,7 @@ public final class DataAction
 
                     //Log.debug("looking for x-schema relation: " + sourceRow + "; " + targetRow);
 
-                    final Relation relation = Schema.getRelation(sourceRow, targetRow);
+                    final Relation relation = Relation.getRelation(sourceRow, targetRow);
                     
                     if (relation != null)
                         links.add(makeLink(rowNode, c, relation));
@@ -397,9 +461,9 @@ public final class DataAction
     {
         final Color color;
 
-        if (r.type == RELATION_JOIN)
+        if (r.type == Relation.EXPLICIT)
             color = Color.darkGray;
-        else if (r.type == RELATION_AUTO_JOIN)
+        else if (r.type == Relation.AUTOMATIC)
             color = Color.lightGray;
         else
             color = Color.green;

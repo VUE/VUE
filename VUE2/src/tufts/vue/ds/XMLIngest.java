@@ -53,7 +53,7 @@ import org.xml.sax.*;
 
 
 /**
- * @version $Revision: 1.11 $ / $Date: 2009-06-03 02:40:44 $ / $Author: sfraize $
+ * @version $Revision: 1.12 $ / $Date: 2009-07-06 15:39:48 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -110,12 +110,18 @@ public class XMLIngest {
             if (itemPath != null && name.startsWith(itemPath) && name.length() > itemPathLen)
                 name = name.substring(itemPathLen);
 
-            Field field = mFields.get(name);
+//             Field field = mFields.get(name);
+//             if (field == null) {
+//                 field = new Field(name, this);
+// //                 if (name.equals(getKeyNode()))
+// //                     keyField = field;
+//                 mFields.put(name, field);
+//                 if (name.length() > mLongestFieldName)
+//                     mLongestFieldName = name.length();
+//             }
+            Field field = getField(name);
             if (field == null) {
-                field = new Field(name, this);
-//                 if (name.equals(getKeyNode()))
-//                     keyField = field;
-                mFields.put(name, field);
+                field = addField(name);
                 if (name.length() > mLongestFieldName)
                     mLongestFieldName = name.length();
             }
