@@ -115,8 +115,25 @@ public abstract class RectangularPoly2D extends RectangularShape
             xpoints[2] = x + width;
             ypoints[2] = y + height / 2;
         }
-        
     }
+    /** a point to the left triangle */
+    public static class Flag2 extends RectangularPoly2D {
+        public Flag2() { setSides(3); }
+        public int getContentGravity() { return WEST; }
+        protected void computeVertices()
+        {
+            xpoints[0] = x;
+            ypoints[0] = y + height / 2;
+            
+            xpoints[1] = x + width;
+            ypoints[1] = y;
+            
+            xpoints[2] = x + width;
+            ypoints[2] = y + height;
+            
+        }
+    }
+    
 
     /** a 4 sided polygon */
     public static class Diamond extends RectangularPoly2D {
