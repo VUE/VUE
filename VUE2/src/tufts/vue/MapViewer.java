@@ -76,7 +76,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.606 $ / $Date: 2009-06-30 17:30:10 $ / $Author: sfraize $ 
+ * @version $Revision: 1.607 $ / $Date: 2009-07-06 15:34:22 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -112,7 +112,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     private Rectangle2D.Float RepaintRegion = null; // could handle in DrawContext
     private Rectangle paintedSelectionBounds = null;
     
-    public static class Event
+    public static final class Event
     {
         public static final int DISPLAYED = 1;
         public static final int HIDDEN = 2;
