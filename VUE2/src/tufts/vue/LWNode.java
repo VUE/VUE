@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.248 $ / $Date: 2009-06-16 15:33:23 $ / $Author: brian $
+ * @version $Revision: 1.249 $ / $Date: 2009-07-06 15:32:05 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -81,6 +81,8 @@ Okay, this issue with getting rid of auto-sized is this:
 
 public class LWNode extends LWContainer
 {
+    protected static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LWNode.class);
+
     public static final Object TYPE_TEXT = "textNode";
     
     final static boolean WrapText = false; // under development
@@ -1391,7 +1393,7 @@ public class LWNode extends LWContainer
         }
         
         if (tries >= MaxTries) {
-            System.err.println("Contents of " + shape + " failed to contain " + content + " after " + tries + " tries.");
+            Log.error("Contents of " + shape + " failed to contain " + content + " after " + tries + " tries.");
         } else if (tries > 0) {
             if (DEBUG.LAYOUT) System.out.println("Contents of " + shape + " grown to contain " + content + " in " + tries + " tries");
         } else
@@ -1437,7 +1439,7 @@ public class LWNode extends LWContainer
                 content.x = (width - content.width) / 2;
                 content.y = (height - content.height) - margin;
             } else {
-                System.err.println("Unsupported content gravity " + gravity + " on shape " + shape + "; defaulting to CENTER");
+                Log.error(new Error("Unsupported content gravity " + gravity + " on shape " + shape + "; defaulting to CENTER"));
                 content_laid_out = false;
             }
         }
