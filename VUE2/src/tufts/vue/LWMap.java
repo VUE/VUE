@@ -59,7 +59,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.240 $ / $Date: 2009-06-24 16:11:27 $ / $Author: sfraize $
+ * @version $Revision: 1.241 $ / $Date: 2009-07-06 15:18:49 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -1124,6 +1124,8 @@ public class LWMap extends LWContainer
 
         }
 
+        //Log.debug("CHILDREN: " + Util.tags(mChildren));
+        //Log.debug("  LAYERS: " + Util.tags(mLayers));
         mChildren.addAll(mLayers);
 
         if (!addedLayers) {
@@ -1214,6 +1216,14 @@ public class LWMap extends LWContainer
         if (DEBUG.INIT || DEBUG.IO || DEBUG.XML)
             Log.debug(getLabel() + ": completing restore...");
 
+        if (mChildren == NO_CHILDREN || mChildren == Collections.EMPTY_LIST || mChildren == null) {
+            // If there was NO content in the map, we need to make sure we manually set
+            // the child list to a real list before we do anything else.  Note
+            // that the only case we should have to check is NO_CHILDREN, but we
+            // check for other problems just in case.  This fixes VUE-1463.
+            mChildren = new ArrayList();
+        }
+
         //-----------------------------------------------------------------------------
         // We do this every time, as nodes are always saved as children
         // of the map, so that old versions of VUE can at least
@@ -1261,7 +1271,7 @@ public class LWMap extends LWContainer
         }
 
         //----------------------------------------------------------------------------------------
-        // Now update the model the the most recent data version
+        // Now update the model to the most recent data version
         //----------------------------------------------------------------------------------------
 
         if (getModelVersion() < getCurrentModelVersion()) {
