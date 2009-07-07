@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.182 $ / $Date: 2009-05-13 03:51:44 $ / $Author: mike $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.182 2009-05-13 03:51:44 mike Exp $ -->
+<!-- $Revision: 1.183 $ / $Date: 2009-07-07 21:13:00 $ / $Author: mike $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.183 2009-07-07 21:13:00 mike Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -146,18 +146,18 @@
 		value="castor-1.3-xml.jar"
 	/>
   <property name="thirdparty.jarfiles.names"
-            value="google-collect-snapshot-20090211.jar
+            value="TuftsOsidProvider.jar
+            	   XmlfileRepositoryOSID-1.0.jar
+            	   google-collect-snapshot-20090211.jar
   				   json.jar
+  				   joscar-0.9.3-bin.jar
   				   calais.jar
                    MERLOTOsid-1.0.jar
 				   axis_1_5_3.jar
                    trippi-1.1.2-core.jar
                    commons-httpclient-3.1-beta1.jar 
 				   commons-lang-2.4.jar
-                   okiOSID-2.0a.jar
-				   HiveAuthentication-1.0.jar
-				   HiveRepositoryRegistry-1.0a.jar
-				   HiveSupport-1.0.jar
+                   okiOSID-2.0a.jar				  
 				   OSIDLoggingPlain-1.0.jar
                    xercesImpl-2.7.1.jar
                    xerces-2.7.1-xml-apis.jar
@@ -213,7 +213,7 @@
                    iri.jar
                    log4j-1.2.12.jar
                    MITAuthenticationTypes.jar
-				   MIT-OTS.jar
+				   MIT-OTS-NO_PROVIDER.jar
 				   MITRepositoryTypes.jar
                    MITSearchTypes.jar
                    rome-0.9.jar
@@ -284,6 +284,7 @@
   <property name="thirdparty.jarfiles.names.minimal"
             value="
                    okiOSID-2.0a.jar
+				   joscar-0.9.3-bin.jar
                    apache-commons.jar
                    axis_1_5_3.jar
                    commons-httpclient-3.1-beta1.jar      
@@ -333,7 +334,10 @@
     <pathelement path="../"/>                
     <pathelement location="${junit.jar}"/>
     <pathelement path="${lib.home}/google-collect-snapshot-20090211.jar"/>
+  	<pathelement path="${lib.home}/XmlfileRepositoryOSID-1.0.jar"/>
+  	<pathelement path="${lib.home}/TuftsOsidProvider.jar"/>
   	<pathelement path="${lib.home}/json.jar"/>
+  	<pathelement path="${lib.home}/joscar-0.9.3-bin.jar"/>
   	 <pathelement path="${lib.home}/calais.jar"/>
     <pathelement path="${lib.home}/VUE-MacOSX.jar"/>
     <pathelement path="${lib.home}/castor-1.3-core.jar"/>
@@ -360,19 +364,14 @@
     <pathelement path="${lib.home}/MRJAdapter.jar"/>
     <pathelement path="${lib.home}/apple-laf.jar"/>
 
-    <pathelement path="${lib.home}/okiOSID-2.0a.jar" />	
-    <pathelement path="${lib.home}/okiSID.jar" />	
+    <pathelement path="${lib.home}/okiOSID-2.0a.jar" />		
     <pathelement path="${lib.home}/okiSIDImpl.jar" />	
     <pathelement path="${lib.home}/opencsv-1.8.jar" />
     <pathelement path="${lib.home}/MITSearchTypes.jar" />
     <pathelement path="${lib.home}/MITRepositoryTypes.jar" />
     <pathelement path="${lib.home}/OsidProvider.jar" />
     <pathelement path="${lib.home}/OsidRegistry.jar" />
-    <pathelement path="${lib.home}/MIT-OTS.jar" />
-    <pathelement path="${lib.home}/HiveAuthentication-1.0.jar" />
-    <pathelement path="${lib.home}/HiveRepositoryRegistry-1.0a.jar" />
-    <pathelement path="${lib.home}/HiveSupport-1.0.jar" />
-
+    <pathelement path="${lib.home}/MIT-OTS-NO_PROVIDER.jar" />
     <pathelement path="${lib.home}/jaxb-api.jar" />
     <pathelement path="${lib.home}/jaxb-xjc.jar" />
     <pathelement path="${lib.home}/jaxb-libs.jar" />
