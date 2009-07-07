@@ -24,6 +24,8 @@ import org.osid.*;
 import org.osid.provider.*;
 import org.osid.shared.*;
 
+import tufts.vue.VueResources;
+
 public class VueOsidFactory
 implements edu.tufts.vue.dsm.OsidFactory
 {
@@ -44,11 +46,11 @@ implements edu.tufts.vue.dsm.OsidFactory
 		throws org.osid.provider.ProviderException
 	{
 		if (providerControlManager == null) {
+
 			try {
-				osidContext.assignContext("com.harvestroad.authentication.username","vue");
-				osidContext.assignContext("com.harvestroad.authentication.password","vue");
-				osidContext.assignContext("com.harvestroad.authentication.host","bazzim.mit.edu");
-				osidContext.assignContext("com.harvestroad.authentication.port","80");
+				System.out.println("A");
+				osidContext.assignContext("OSIDRepositoryURL",VueResources.getString("repository_url"));
+				System.out.println("B");
 			} catch (OsidException e) {
 				edu.tufts.vue.util.Logger.log("Assigning to context: this error should never happen");
 				throw new org.osid.provider.ProviderException(org.osid.OsidException.CONFIGURATION_ERROR);
