@@ -50,7 +50,7 @@ import edu.tufts.vue.preferences.ui.PreferencesDialog;
  *
  */
 public class WindowPropertiesPreference extends StringPreference implements ItemListener, ActionListener {
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 	Hashtable table = new Hashtable();
 	private static final String ENABLED_KEY = "ENABLED_KEY";
 	private static final String VISIBLE_KEY = "VISIBLE_KEY";
