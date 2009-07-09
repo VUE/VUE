@@ -43,7 +43,11 @@ import java.util.ResourceBundle;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
+import javax.swing.JFileChooser;
 import javax.swing.JTabbedPane;
+import javax.swing.UIManager;
+
+import com.sun.org.apache.xalan.internal.xsltc.runtime.Hashtable;
 
 import edu.tufts.vue.preferences.implementations.LanguagePreference;
 import edu.tufts.vue.preferences.interfaces.VuePreference;
@@ -53,7 +57,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
  * resource types.  It also can be modified to support caching of
  * of resources for performance (todo: yes, implement a result cache).
  *
- * @version $Revision: 1.60 $ / $Date: 2009-05-06 22:05:14 $ / $Author: brian $
+ * @version $Revision: 1.61 $ / $Date: 2009-07-09 21:33:22 $ / $Author: brian $
  *
  */
 public class VueResources
@@ -185,9 +189,69 @@ public class VueResources
     	}
         if (DEBUG.INIT) tufts.Util.printStackTrace("VueResources; FYI: static init block");
 
-		ResourceBundle langBundle = ResourceBundle.getBundle("tufts.vue.VueResources", new Locale(languagePref.getLanguage(), languagePref.getCountry()));
+		Locale locale = new Locale(languagePref.getLanguage(), languagePref.getCountry());
+		ResourceBundle langBundle = ResourceBundle.getBundle("tufts.vue.VueResources", locale);
 		platformBundle = ResourceBundle.getBundle("tufts.vue.VueResources", new Locale("", "", (tufts.Util.isMacPlatform() ? "Mac" : "Win")));
 		sResourceBundle = new VueResourceBundle(langBundle, platformBundle);
+
+		// Locale.setDefault() will set the locale for UI text that's outside VUE's control, eg,
+		// OK/Cancel on dialogs, text on the filechooser window, etc.  Unfortunately, it does NOT affect the left-most menu
+		// on Mac, and it only changes the text on dialogs and file saving window for French.
+		Locale.setDefault(locale);
+
+		// Since Locale.setDefault(), called above, isn't reliable, the defaults must be set manually.
+		// Some of these don't work, presumably because they use the wrong key (eg "FileChooser.filesOfTypeLabelText").
+		javax.swing.UIManager.put("OptionPane.okButtonText", VueResources.getString("OptionPane.okButtonText"));
+		javax.swing.UIManager.put("OptionPane.cancelButtonText", VueResources.getString("OptionPane.cancelButtonText"));
+		javax.swing.UIManager.put("OptionPane.yesButtonText", VueResources.getString("OptionPane.yesButtonText"));
+		javax.swing.UIManager.put("OptionPane.noButtonText", VueResources.getString("OptionPane.noButtonText"));
+		javax.swing.UIManager.put("FileChooser.openDialogTitleText", VueResources.getString("FileChooser.openDialogTitleText"));   // wrong!!
+		javax.swing.UIManager.put("FileChooser.saveDialogTitleText", VueResources.getString("FileChooser.saveDialogTitleText"));   // wrong!!
+		javax.swing.UIManager.put("FileChooser.fileNameLabelText", VueResources.getString("FileChooser.fileNameLabelText"));
+		javax.swing.UIManager.put("FileChooser.lookInLabelText", VueResources.getString("FileChooser.lookInLabelText"));
+		javax.swing.UIManager.put("FileChooser.saveInLabelText", VueResources.getString("FileChooser.saveInLabelText"));
+		javax.swing.UIManager.put("FileChooser.filesOfTypeLabelText", VueResources.getString("FileChooser.filesOfTypeLabelText")); // wrong!!
+		javax.swing.UIManager.put("FileChooser.openButtonText", VueResources.getString("FileChooser.openButtonText"));
+		javax.swing.UIManager.put("FileChooser.saveButtonText", VueResources.getString("FileChooser.saveButtonText"));
+		javax.swing.UIManager.put("FileChooser.updateButtonText", VueResources.getString("FileChooser.updateButtonText"));
+		javax.swing.UIManager.put("FileChooser.cancelButtonText", VueResources.getString("FileChooser.cancelButtonText"));
+		javax.swing.UIManager.put("FileChooser.newFolderButtonText", VueResources.getString("FileChooser.newFolderButtonText"));
+		javax.swing.UIManager.put("FileChooser.openButtonToolTipText", VueResources.getString("FileChooser.openButtonToolTipText"));
+		javax.swing.UIManager.put("FileChooser.saveButtonToolTipText", VueResources.getString("FileChooser.saveButtonToolTipText"));
+		javax.swing.UIManager.put("FileChooser.updateButtonToolTipText", VueResources.getString("FileChooser.updateButtonToolTipText"));
+		javax.swing.UIManager.put("FileChooser.cancelButtonToolTipText", VueResources.getString("FileChooser.cancelButtonToolTipText"));
+		javax.swing.UIManager.put("FileChooser.upFolderToolTipText", VueResources.getString("FileChooser.upFolderToolTipText"));
+		javax.swing.UIManager.put("FileChooser.newFolderToolTipText", VueResources.getString("FileChooser.newFolderToolTipText"));
+		javax.swing.UIManager.put("FileChooser.listViewButtonToolTipText", VueResources.getString("FileChooser.listViewButtonToolTipText"));
+		javax.swing.UIManager.put("FileChooser.detailsViewButtonToolTipText", VueResources.getString("FileChooser.detailsViewButtonToolTipText"));
+		javax.swing.UIManager.put("FileChooser.fileNameHeaderText", VueResources.getString("FileChooser.fileNameHeaderText"));     // wrong!!
+		javax.swing.UIManager.put("FileChooser.fileSizeHeaderText", VueResources.getString("FileChooser.fileSizeHeaderText"));     // wrong!!
+		javax.swing.UIManager.put("FileChooser.fileTypeHeaderText", VueResources.getString("FileChooser.fileTypeHeaderText"));     // wrong!!
+		javax.swing.UIManager.put("FileChooser.fileDateHeaderText", VueResources.getString("FileChooser.fileDateHeaderText"));     // wrong!!
+		javax.swing.UIManager.put("FileChooser.byNameText", VueResources.getString("FileChooser.byNameText"));                     // wrong!!
+		javax.swing.UIManager.put("FileChooser.byDateText", VueResources.getString("FileChooser.byDateText"));                     // wrong!!
+		javax.swing.UIManager.put("FileChooser.acceptAllFileFilterText", VueResources.getString("FileChooser.acceptAllFileFilterText"));
+		javax.swing.UIManager.put("InternalFrame.closeButtonToolTip", VueResources.getString("InternalFrame.closeButtonToolTip")); // wrong!!
+
+		// This debug code shows the names of all the UI default keys:
+		/*
+		javax.swing.UIDefaults defaults = UIManager.getDefaults();
+		Enumeration keys = UIManager.getDefaults().keys();
+		while (keys.hasMoreElements()) {
+			Object key = keys.nextElement();
+			System.out.println("!!!!!!!! " + key.toString() + " = " + defaults.get(key));
+		}
+
+		java.util.ResourceBundle bundle = ResourceBundle.getBundle("com.sun.swing.internal.plaf.basic.resources.basic");
+		java.util.Enumeration<String> keyEn = bundle.getKeys();
+		System.out.println("Getting all keys, have more elements: " + keyEn.hasMoreElements());
+		while (keyEn.hasMoreElements()) {
+			String key = keyEn.nextElement();
+//			if (key.indexOf("FileChooser") != -1) {
+				System.out.println(key + ":" + bundle.getString(key));
+//			}
+		}
+		*/
 
 		// Now that the resource bundles have been found, the title and description of languagePref can be set
 		// and it can be added to the UI.
