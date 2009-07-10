@@ -45,7 +45,9 @@ public class VueAimPanel extends JPanel implements ActionListener, ClientConnLis
     private PropertiesEditor propertiesEditor = null;
     private VUEAim aim = null;
     private JButton loginButton = null;
+    private JButton resetApproveButton = null;
     private JCheckBox ignoreCheckbox = null;
+    private JCheckBox approveCheckbox = null;
     
     public VueAimPanel() {                    
         
@@ -61,7 +63,11 @@ public class VueAimPanel extends JPanel implements ActionListener, ClientConnLis
         mPasswordEditor = new JPasswordField();
       
         ignoreCheckbox = new JCheckBox(VueResources.getString("im.button.ignore")); 
+        approveCheckbox = new JCheckBox(VueResources.getString("im.button.approve"),true); 
+        resetApproveButton = new JButton(VueResources.getString("im.approve.reset"));
+        resetApproveButton.addActionListener(this);
         ignoreCheckbox.addItemListener(this);
+        approveCheckbox.addItemListener(this);
         mPropPanel  = new PropertyPanel();
         //mPropPanel.addProperty( "Label:", mTitleEditor); // initially Label was title
         mPropPanel.addProperty(VueResources.getString("im.username"), mUsernameEditor); //added through metadata
@@ -91,6 +97,20 @@ public class VueAimPanel extends JPanel implements ActionListener, ClientConnLis
         c.fill = GridBagConstraints.HORIZONTAL;
         gridbag.setConstraints(ignoreCheckbox,c);
         innerPanel.add(ignoreCheckbox);
+        
+        c.weightx = 1.0;
+        c.gridwidth = GridBagConstraints.REMAINDER;
+        c.anchor = GridBagConstraints.NORTHWEST;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        gridbag.setConstraints(approveCheckbox,c);
+        innerPanel.add(approveCheckbox);
+        
+        c.weightx = 1.0;
+        c.gridwidth = GridBagConstraints.REMAINDER;
+        c.anchor = GridBagConstraints.NORTHWEST;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        gridbag.setConstraints(resetApproveButton,c);
+        innerPanel.add(resetApproveButton);
         
         c.weightx = 1.0;
         c.gridwidth = GridBagConstraints.REMAINDER;
@@ -157,6 +177,8 @@ public class VueAimPanel extends JPanel implements ActionListener, ClientConnLis
     }
 
 	public void actionPerformed(ActionEvent e) {
+	if (e.getSource().equals(loginButton))
+	{
 		if (aim == null)
 		{
 			aim = new VUEAim(mUsernameEditor.getText(),mPasswordEditor.getText());
@@ -170,7 +192,14 @@ public class VueAimPanel extends JPanel implements ActionListener, ClientConnLis
 		{
 			aim.connect();						
 			aim.ignoreIMs(ignoreCheckbox.isSelected());
+			aim.requireApprovalToCollaborate(approveCheckbox.isSelected());
 		}
+	}
+	else if (e.getSource().equals(resetApproveButton))
+	{
+		if (aim !=null)
+			aim.resetApprovalList();
+	}
 		
 	}
 
@@ -183,10 +212,20 @@ public class VueAimPanel extends JPanel implements ActionListener, ClientConnLis
 	}
 
 	public void itemStateChanged(ItemEvent e) {
-		if (((JCheckBox)e.getSource()).isSelected() && aim !=null)
-			aim.ignoreIMs(true);
-		else if (!((JCheckBox)e.getSource()).isSelected() && aim !=null)
-			aim.ignoreIMs(false);
+		if (e.getSource().equals(ignoreCheckbox))
+		{
+			if (((JCheckBox)e.getSource()).isSelected() && aim !=null)
+				aim.ignoreIMs(true);
+			else if (!((JCheckBox)e.getSource()).isSelected() && aim !=null)
+				aim.ignoreIMs(false);
+		}
+		else if (e.getSource().equals(approveCheckbox))
+		{
+			if (((JCheckBox)e.getSource()).isSelected() && aim !=null)
+				aim.requireApprovalToCollaborate(true);
+			else if (!((JCheckBox)e.getSource()).isSelected() && aim !=null)
+				aim.requireApprovalToCollaborate(false);
+		}
 			
 		
 	}
