@@ -131,7 +131,7 @@ public class VUEAim {
 
     protected String sn = null;
     protected String pass = null;
-
+    protected boolean ignoreIMs = false;
    
     protected BosFlapConn bosConn = null;
     protected Set services = new HashSet();
@@ -415,5 +415,10 @@ public class VUEAim {
 			}
 			else
 				return false;
+		}
+
+		public void ignoreIMs(boolean b) {
+			ignoreIMs = b;
+			
 		}
 }

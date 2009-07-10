@@ -8,9 +8,12 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
@@ -33,7 +36,7 @@ import tufts.vue.gui.GUI;
  * VueAimPanel
  *
  **/
-public class VueAimPanel extends JPanel implements ActionListener, ClientConnListener
+public class VueAimPanel extends JPanel implements ActionListener, ClientConnListener, ItemListener
 {
  
     private JTextField mUsernameEditor = null;
@@ -42,6 +45,7 @@ public class VueAimPanel extends JPanel implements ActionListener, ClientConnLis
     private PropertiesEditor propertiesEditor = null;
     private VUEAim aim = null;
     private JButton loginButton = null;
+    private JCheckBox ignoreCheckbox = null;
     
     public VueAimPanel() {                    
         
@@ -56,8 +60,8 @@ public class VueAimPanel extends JPanel implements ActionListener, ClientConnLis
         
         mPasswordEditor = new JPasswordField();
       
-        
-    
+        ignoreCheckbox = new JCheckBox(VueResources.getString("im.button.ignore")); 
+        ignoreCheckbox.addItemListener(this);
         mPropPanel  = new PropertyPanel();
         //mPropPanel.addProperty( "Label:", mTitleEditor); // initially Label was title
         mPropPanel.addProperty(VueResources.getString("im.username"), mUsernameEditor); //added through metadata
@@ -80,6 +84,13 @@ public class VueAimPanel extends JPanel implements ActionListener, ClientConnLis
         c.fill = GridBagConstraints.HORIZONTAL;
         gridbag.setConstraints(mPropPanel,c);
         innerPanel.add(mPropPanel);
+        
+        c.weightx = 1.0;
+        c.gridwidth = GridBagConstraints.REMAINDER;
+        c.anchor = GridBagConstraints.NORTHWEST;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        gridbag.setConstraints(ignoreCheckbox,c);
+        innerPanel.add(ignoreCheckbox);
         
         c.weightx = 1.0;
         c.gridwidth = GridBagConstraints.REMAINDER;
@@ -150,6 +161,7 @@ public class VueAimPanel extends JPanel implements ActionListener, ClientConnLis
 		{
 			aim = new VUEAim(mUsernameEditor.getText(),mPasswordEditor.getText());
 			aim.addConnectionListener(this);
+		
 		}
 		if (aim.isConnected())
 			aim.disconnect();
@@ -157,16 +169,25 @@ public class VueAimPanel extends JPanel implements ActionListener, ClientConnLis
 		else
 		{
 			aim.connect();						
-
+			aim.ignoreIMs(ignoreCheckbox.isSelected());
 		}
 		
 	}
 
 	public void stateChanged(ClientConnEvent arg0) {
 		if (arg0.getNewState().equals(BasicConn.STATE_CONNECTED))
-			loginButton.setText("logout");
+			loginButton.setText(VueResources.getString("im.button.logout"));
 		else if (arg0.getNewState().equals(BasicConn.STATE_NOT_CONNECTED))
-			loginButton.setText("login");
+			loginButton.setText(VueResources.getString("im.button.login"));
+		
+	}
+
+	public void itemStateChanged(ItemEvent e) {
+		if (((JCheckBox)e.getSource()).isSelected() && aim !=null)
+			aim.ignoreIMs(true);
+		else if (!((JCheckBox)e.getSource()).isSelected() && aim !=null)
+			aim.ignoreIMs(false);
+			
 		
 	}
 

@@ -329,7 +329,7 @@ public abstract class BasicConn extends AbstractFlapConn {
 //                            + " has a buddy icon: " + iconInfo + ")");
 //                }
 
-                sendRequest(new SnacRequest(new SendImIcbm(sn, msg), null));
+              //  sendRequest(new SnacRequest(new SendImIcbm(sn, msg), null));
             }
             String str = dateFormat.format(new Date()) + " IM from "
                     + sn + ": " + msg;
@@ -341,37 +341,33 @@ public abstract class BasicConn extends AbstractFlapConn {
                 String encFlag = (message.isEncrypted() ? "**ENCRYPTED** " : "");
                 System.out.println(encFlag + "*" + sn + "* " + msg);
             }
-            LWNode newNode = NodeModeTool.createNewNode(OscarTools.stripHtml(msg));
-            MetadataList mlist = new MetadataList();
-            mlist.add("submitted by", sn);
-            newNode.setMetadataList(mlist);
-           
-            String c = senders.getProperty(sn);
-           Color color = null;
-            if (c == null)
-            {	 color = randomColor();
-            	
-            	senders.setProperty(sn, color.getRed() +","+color.getGreen()+","+color.getBlue());
-            }
-            else
+            if (!tester.ignoreIMs)
             {
-                StringTokenizer tokens = new StringTokenizer(c,",");
+            	LWNode newNode = NodeModeTool.createNewNode(OscarTools.stripHtml(msg));
+            	MetadataList mlist = new MetadataList();
+            	mlist.add("submitted by", sn);
+            	newNode.setMetadataList(mlist);
+           
+            	String c = senders.getProperty(sn);
+            	Color color = null;
+            	if (c == null)
+            	{
+            		color = randomColor();
+            		senders.setProperty(sn, color.getRed() +","+color.getGreen()+","+color.getBlue());
+            	}
+            	else
+            	{
+            		StringTokenizer tokens = new StringTokenizer(c,",");
                 
-        		color = new Color(Integer.parseInt((String)tokens.nextElement()),Integer.parseInt((String)tokens.nextElement()),Integer.parseInt((String)tokens.nextElement()));
+            		color = new Color(Integer.parseInt((String)tokens.nextElement()),Integer.parseInt((String)tokens.nextElement()),Integer.parseInt((String)tokens.nextElement()));
              
+            	}
+            	newNode.setFillColor(color);
+            	VUE.getActiveMap().add(newNode);
+            	List<LWComponent> compList = new ArrayList<LWComponent>();
+            	compList.add(newNode);
+            	LayoutAction.search.act(compList);
             }
-            newNode.setFillColor(color);
-            VUE.getActiveMap().add(newNode);
-            List<LWComponent> compList = new ArrayList<LWComponent>();
-            compList.add(newNode);
-            LayoutAction.search.act(compList);
-
-//            if (icbm.senderWantsIcon()) {
-//                System.out.println(sn + " wants our icon.. sending.");
-//                RvSession sess = rvProcessor.createRvSession(sn);
-//                sess.sendRv(new SendBuddyIconRvCmd(tester.oldIconInfo,
-//                        new FileWritable(tester.iconFile)));
-//            }
 
         } else if (cmd instanceof WarningNotification) {
             WarningNotification wn = (WarningNotification) cmd;
