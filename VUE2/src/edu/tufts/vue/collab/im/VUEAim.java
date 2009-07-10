@@ -53,6 +53,8 @@ import edu.tufts.vue.collab.im.security.SecureSession;
 import edu.tufts.vue.collab.im.security.SecureSessionException;
 
 import sun.net.ProgressSource.State;
+import tufts.vue.VueResources;
+import tufts.vue.VueUtil;
 
 
 import net.kano.joscar.ByteBlock;
@@ -132,7 +134,7 @@ public class VUEAim {
     protected String sn = null;
     protected String pass = null;
     protected boolean ignoreIMs = false;
-   
+	private boolean requireApproval = true;
     protected BosFlapConn bosConn = null;
     protected Set services = new HashSet();
     protected Map chats = new HashMap();
@@ -194,7 +196,9 @@ public class VUEAim {
 	        
 	    }
 
-	    public void serviceFailed(ServiceConn conn) {
+	    public void serviceFailed(ServiceConn conn) 
+	    {
+	    	
 	    }
 
 	    public void serviceConnected(ServiceConn conn) {
@@ -319,7 +323,8 @@ public class VUEAim {
 	        }
 	    }
 
-	    private String aimexp = "the60s";	    
+	    private String aimexp = "the60s";
+	    
 
 	    public void sendIM(String nick, String text) {
 	        request(new SendImIcbm(nick, text));
@@ -394,7 +399,8 @@ public class VUEAim {
 		}
 
 		public void loginFailed(String reason) {
-			 System.out.println("login failed: " + reason);
+			String message = VueResources.getString("im.login.error.message") + " : " + reason;
+	    	VueUtil.alert(message, VueResources.getString("im.login.error.title"));
 			
 		}
 
@@ -419,6 +425,11 @@ public class VUEAim {
 
 		public void ignoreIMs(boolean b) {
 			ignoreIMs = b;
+			
+		}
+
+		public void requireApprovalToCollaborate(boolean b) {
+			requireApproval = b;
 			
 		}
 }

@@ -114,8 +114,10 @@ import java.util.StringTokenizer;
 
 import tufts.vue.LWComponent;
 import tufts.vue.LWNode;
+import tufts.vue.LWSelection;
 import tufts.vue.LayoutAction;
 import tufts.vue.VUE;
+import tufts.vue.VueUtil;
 import tufts.vue.NodeTool.NodeModeTool;
 import edu.tufts.vue.collab.im.security.SecureSession;
 import edu.tufts.vue.collab.im.security.SecureSessionException;
@@ -345,7 +347,8 @@ public abstract class BasicConn extends AbstractFlapConn {
             }
             if (!tester.ignoreIMs)
             {
-            	LWNode newNode = NodeModeTool.createNewNode(OscarTools.stripHtml(msg));
+
+            	LWNode newNode = NodeModeTool.createNewNode(VueUtil.formatLines(OscarTools.stripHtml(msg), 30));
             	MetadataList mlist = new MetadataList();
             	mlist.add("submitted by", sn);
             	mlist.add("timestamp",now().toString());
@@ -369,7 +372,12 @@ public abstract class BasicConn extends AbstractFlapConn {
             	VUE.getActiveMap().add(newNode);
             	List<LWComponent> compList = new ArrayList<LWComponent>();
             	compList.add(newNode);
-            	LayoutAction.search.act(compList);
+            	VUE.getActiveViewer().getSelection().clear();
+            	VUE.getActiveViewer().getSelection().add(newNode);
+            	if (VUE.getActiveMap().getAllDescendents().size() > 5)
+            		LayoutAction.search.act(new LWSelection(compList),true);
+            	else
+            		LayoutAction.search.act(new LWSelection(compList),false);
             }
 
         } else if (cmd instanceof WarningNotification) {
