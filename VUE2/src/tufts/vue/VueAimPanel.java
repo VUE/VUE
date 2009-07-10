@@ -49,6 +49,7 @@ public class VueAimPanel extends JPanel implements ActionListener, ClientConnLis
     private JCheckBox ignoreCheckbox = null;
     private JCheckBox approveCheckbox = null;
     private JCheckBox assignColorCheckbox = null;
+    private JCheckBox nodeWidthCheckbox = null;
     
     public VueAimPanel() {                    
         
@@ -64,7 +65,9 @@ public class VueAimPanel extends JPanel implements ActionListener, ClientConnLis
         mPasswordEditor = new JPasswordField();
         assignColorCheckbox = new JCheckBox(VueResources.getString("im.button.assigncolor")); 
         ignoreCheckbox = new JCheckBox(VueResources.getString("im.button.ignore")); 
-        approveCheckbox = new JCheckBox(VueResources.getString("im.button.approve"),true); 
+        approveCheckbox = new JCheckBox(VueResources.getString("im.button.approve"),true);
+        nodeWidthCheckbox = new JCheckBox(VueResources.getString("im.button.nodewidth"),true); 
+
         resetApproveButton = new JButton(VueResources.getString("im.approve.reset"));
         resetApproveButton.addActionListener(this);
         ignoreCheckbox.addItemListener(this);
@@ -112,6 +115,13 @@ public class VueAimPanel extends JPanel implements ActionListener, ClientConnLis
         c.fill = GridBagConstraints.HORIZONTAL;
         gridbag.setConstraints(assignColorCheckbox,c);
         innerPanel.add(assignColorCheckbox);
+        
+        c.weightx = 1.0;
+        c.gridwidth = GridBagConstraints.REMAINDER;
+        c.anchor = GridBagConstraints.NORTHWEST;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        gridbag.setConstraints(nodeWidthCheckbox,c);
+        innerPanel.add(nodeWidthCheckbox);
         
         c.weightx = 1.0;
         c.gridwidth = GridBagConstraints.REMAINDER;
@@ -202,6 +212,7 @@ public class VueAimPanel extends JPanel implements ActionListener, ClientConnLis
 			aim.ignoreIMs(ignoreCheckbox.isSelected());
 			aim.requireApprovalToCollaborate(approveCheckbox.isSelected());
 			aim.assignColorsToContributors(assignColorCheckbox.isSelected());
+			aim.forceUniformNodeWidth(nodeWidthCheckbox.isSelected());
 		}
 	}
 	else if (e.getSource().equals(resetApproveButton))
@@ -241,6 +252,13 @@ public class VueAimPanel extends JPanel implements ActionListener, ClientConnLis
 				aim.assignColorsToContributors(true);
 			else if (!((JCheckBox)e.getSource()).isSelected() && aim !=null)
 				aim.assignColorsToContributors(false);
+		}
+		else if (e.getSource().equals(nodeWidthCheckbox))
+		{
+			if (((JCheckBox)e.getSource()).isSelected() && aim !=null)
+				aim.forceUniformNodeWidth(true);
+			else if (!((JCheckBox)e.getSource()).isSelected() && aim !=null)
+				aim.forceUniformNodeWidth(false);
 		}
 			
 		
