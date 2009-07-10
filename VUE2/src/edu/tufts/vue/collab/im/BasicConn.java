@@ -99,8 +99,10 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -346,6 +348,7 @@ public abstract class BasicConn extends AbstractFlapConn {
             	LWNode newNode = NodeModeTool.createNewNode(OscarTools.stripHtml(msg));
             	MetadataList mlist = new MetadataList();
             	mlist.add("submitted by", sn);
+            	mlist.add("timestamp",now().toString());
             	newNode.setMetadataList(mlist);
            
             	String c = senders.getProperty(sn);
@@ -473,6 +476,15 @@ public abstract class BasicConn extends AbstractFlapConn {
                     + rc.getRateInfo().getCurrentAvg());
         }
     }
+    public static final String DATE_FORMAT_NOW = "yyyy-MM-dd HH:mm:ss";
+
+    public static String now() {
+      Calendar cal = Calendar.getInstance();
+      SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_NOW);
+      return sdf.format(cal.getTime());
+
+    }
+
     private static Random  rand = new Random();
     public Color randomColor()
     {
