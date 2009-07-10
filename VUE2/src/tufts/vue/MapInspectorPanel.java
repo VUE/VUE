@@ -33,7 +33,7 @@ import tufts.vue.gui.*;
  * A tabbed-pane collection of property sheets that apply
  * globally to a given map.
  *
- * @version $Revision: 1.72 $ / $Date: 2009-07-10 01:07:10 $ / $Author: mike $ 
+ * @version $Revision: 1.73 $ / $Date: 2009-07-10 04:20:11 $ / $Author: mike $ 
  *
  */
 public class MapInspectorPanel extends JPanel
@@ -104,7 +104,7 @@ public class MapInspectorPanel extends JPanel
         if (DEBUG.IM)
         {
         	mVueAimPanel = new VueAimPanel();
-        	mVueAimPanel.setName("Collaboration");
+        	mVueAimPanel.setName(VueResources.getString("im.tabname"));
         }
         
         Widget.setWantsScroller(mapInfoStack, true);
