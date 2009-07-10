@@ -48,6 +48,7 @@ public class VueAimPanel extends JPanel implements ActionListener, ClientConnLis
     private JButton resetApproveButton = null;
     private JCheckBox ignoreCheckbox = null;
     private JCheckBox approveCheckbox = null;
+    private JCheckBox assignColorCheckbox = null;
     
     public VueAimPanel() {                    
         
@@ -61,7 +62,7 @@ public class VueAimPanel extends JPanel implements ActionListener, ClientConnLis
         mUsernameEditor = new JTextField();
         
         mPasswordEditor = new JPasswordField();
-      
+        assignColorCheckbox = new JCheckBox(VueResources.getString("im.button.assigncolor")); 
         ignoreCheckbox = new JCheckBox(VueResources.getString("im.button.ignore")); 
         approveCheckbox = new JCheckBox(VueResources.getString("im.button.approve"),true); 
         resetApproveButton = new JButton(VueResources.getString("im.approve.reset"));
@@ -104,6 +105,13 @@ public class VueAimPanel extends JPanel implements ActionListener, ClientConnLis
         c.fill = GridBagConstraints.HORIZONTAL;
         gridbag.setConstraints(approveCheckbox,c);
         innerPanel.add(approveCheckbox);
+
+        c.weightx = 1.0;
+        c.gridwidth = GridBagConstraints.REMAINDER;
+        c.anchor = GridBagConstraints.NORTHWEST;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        gridbag.setConstraints(assignColorCheckbox,c);
+        innerPanel.add(assignColorCheckbox);
         
         c.weightx = 1.0;
         c.gridwidth = GridBagConstraints.REMAINDER;
@@ -193,6 +201,7 @@ public class VueAimPanel extends JPanel implements ActionListener, ClientConnLis
 			aim.connect();						
 			aim.ignoreIMs(ignoreCheckbox.isSelected());
 			aim.requireApprovalToCollaborate(approveCheckbox.isSelected());
+			aim.assignColorsToContributors(assignColorCheckbox.isSelected());
 		}
 	}
 	else if (e.getSource().equals(resetApproveButton))
@@ -225,6 +234,13 @@ public class VueAimPanel extends JPanel implements ActionListener, ClientConnLis
 				aim.requireApprovalToCollaborate(true);
 			else if (!((JCheckBox)e.getSource()).isSelected() && aim !=null)
 				aim.requireApprovalToCollaborate(false);
+		}
+		else if (e.getSource().equals(assignColorCheckbox))
+		{
+			if (((JCheckBox)e.getSource()).isSelected() && aim !=null)
+				aim.assignColorsToContributors(true);
+			else if (!((JCheckBox)e.getSource()).isSelected() && aim !=null)
+				aim.assignColorsToContributors(false);
 		}
 			
 		

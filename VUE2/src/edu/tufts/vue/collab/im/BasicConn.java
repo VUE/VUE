@@ -414,7 +414,8 @@ public abstract class BasicConn extends AbstractFlapConn {
             		color = new Color(Integer.parseInt((String)tokens.nextElement()),Integer.parseInt((String)tokens.nextElement()),Integer.parseInt((String)tokens.nextElement()));
              
             	}
-            	newNode.setFillColor(color);
+            	if (tester.assignColors)
+            		newNode.setFillColor(color);
             	VUE.getActiveMap().add(newNode);
             	List<LWComponent> compList = new ArrayList<LWComponent>();
             	compList.add(newNode);

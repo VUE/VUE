@@ -135,6 +135,7 @@ public class VUEAim {
     protected String pass = null;
     protected boolean ignoreIMs = false;
 	protected boolean requireApproval = true;
+	protected boolean assignColors = false;
     protected BosFlapConn bosConn = null;
     protected Set services = new HashSet();
     protected Map chats = new HashMap();
@@ -435,6 +436,11 @@ public class VUEAim {
 
 		public void resetApprovalList() {
 			bosConn.resetApprovedContributors();
+			
+		}
+
+		public void assignColorsToContributors(boolean selected) {
+			assignColors = selected;
 			
 		}
 }
