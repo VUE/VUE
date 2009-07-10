@@ -136,6 +136,7 @@ public class VUEAim {
     protected boolean ignoreIMs = false;
 	protected boolean requireApproval = true;
 	protected boolean assignColors = false;
+	protected boolean forceNodeWidth = false;
     protected BosFlapConn bosConn = null;
     protected Set services = new HashSet();
     protected Map chats = new HashMap();
@@ -441,6 +442,11 @@ public class VUEAim {
 
 		public void assignColorsToContributors(boolean selected) {
 			assignColors = selected;
+			
+		}
+
+		public void forceUniformNodeWidth(boolean selected) {
+			forceNodeWidth = selected;
 			
 		}
 }

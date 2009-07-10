@@ -95,6 +95,7 @@ import net.kano.joscar.snaccmd.rooms.RoomInfoReq;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Toolkit;
+import java.awt.geom.Rectangle2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.FileNotFoundException;
@@ -120,10 +121,15 @@ import java.util.StringTokenizer;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 
+import tufts.Util;
+import tufts.vue.Actions;
+import tufts.vue.DEBUG;
 import tufts.vue.LWComponent;
+import tufts.vue.LWMap;
 import tufts.vue.LWNode;
 import tufts.vue.LWSelection;
 import tufts.vue.LayoutAction;
+import tufts.vue.MapDropTarget;
 import tufts.vue.VUE;
 import tufts.vue.VueResources;
 import tufts.vue.VueUtil;
@@ -133,6 +139,7 @@ import edu.tufts.vue.collab.im.security.SecureSessionException;
 import edu.tufts.vue.metadata.MetadataList;
 
 public abstract class BasicConn extends AbstractFlapConn {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(BasicConn.class);
     protected final ByteBlock cookie;
     protected boolean sentClientReady = false;
 
@@ -416,15 +423,23 @@ public abstract class BasicConn extends AbstractFlapConn {
             	}
             	if (tester.assignColors)
             		newNode.setFillColor(color);
-            	VUE.getActiveMap().add(newNode);
+            	
+            	if (tester.forceNodeWidth)
+            	{
+            			newNode.setAutoSized(false);                    
+                		newNode.setFrame(newNode.getX(),newNode.getY(),200,newNode.getHeight());
+                }		
+            	
+//            	VUE.getActiveMap().add(newNode);//
+            	VUE.getActiveViewer().getFocal().dropChild(newNode);
             	List<LWComponent> compList = new ArrayList<LWComponent>();
-            	compList.add(newNode);
-            	VUE.getActiveViewer().getSelection().clear();
-            	VUE.getActiveViewer().getSelection().add(newNode);
-            	if (VUE.getActiveMap().getAllDescendents().size() > 5)
-            		LayoutAction.search.act(new LWSelection(compList),true);
-            	else
-            		LayoutAction.search.act(new LWSelection(compList),false);
+              	compList.add(newNode);
+              	VUE.getActiveViewer().getSelection().clear();
+              	VUE.getActiveViewer().getSelection().add(newNode);
+            	LayoutAction.search.act(new LWSelection(compList));
+            	MapDropTarget.makeRoomFor(newNode);
+            	MapDropTarget.makeRoomFor(newNode);
+         
             }
 
         } else if (cmd instanceof WarningNotification) {
@@ -533,6 +548,7 @@ public abstract class BasicConn extends AbstractFlapConn {
     }
     public static final String DATE_FORMAT_NOW = "yyyy-MM-dd HH:mm:ss";
 
+  
     public static String now() {
       Calendar cal = Calendar.getInstance();
       SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_NOW);
