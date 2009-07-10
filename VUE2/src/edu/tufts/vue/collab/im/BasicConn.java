@@ -93,8 +93,13 @@ import net.kano.joscar.snaccmd.icbm.SendImIcbm;
 import net.kano.joscar.snaccmd.rooms.RoomInfoReq;
 
 import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
@@ -112,11 +117,15 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.StringTokenizer;
 
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
+
 import tufts.vue.LWComponent;
 import tufts.vue.LWNode;
 import tufts.vue.LWSelection;
 import tufts.vue.LayoutAction;
 import tufts.vue.VUE;
+import tufts.vue.VueResources;
 import tufts.vue.VueUtil;
 import tufts.vue.NodeTool.NodeModeTool;
 import edu.tufts.vue.collab.im.security.SecureSession;
@@ -265,6 +274,7 @@ public abstract class BasicConn extends AbstractFlapConn {
    
    
     private static Properties senders = new Properties();
+    private static HashMap<String,Boolean> approvedSenders = new HashMap<String,Boolean>();
     protected void handleFlapPacket(FlapPacketEvent e) {
         FlapCommand cmd = e.getFlapCommand();
 
@@ -277,6 +287,13 @@ public abstract class BasicConn extends AbstractFlapConn {
         }
     }
 
+    protected void resetApprovedContributors()
+    {
+    	if (this.approvedSenders !=null)
+    	{
+    		approvedSenders.clear();
+    	}
+    }
     protected void handleSnacPacket(SnacPacketEvent e) {
         SnacPacket packet = e.getSnacPacket();
         System.out.println("got snac packet type "
@@ -345,6 +362,35 @@ public abstract class BasicConn extends AbstractFlapConn {
                 String encFlag = (message.isEncrypted() ? "**ENCRYPTED** " : "");
                 System.out.println(encFlag + "*" + sn + "* " + msg);
             }
+            
+            if (tester.requireApproval)
+            {
+            	Boolean b = this.approvedSenders.get(sn);
+            	
+            	
+            	if (b == null)
+            	{
+            		//get approval
+            		int value = tufts.vue.VueUtil.confirm(VUE.getApplicationFrame(), 
+            				VueResources.getMessageString("im.approve.message",new Object[]{sn}), 
+            				VueResources.getString("im.approve.title"));
+            		
+            		
+            	
+            		if (value == JOptionPane.YES_OPTION) {
+            			approvedSenders.put(sn, new Boolean(true));
+            		} else if (value == JOptionPane.NO_OPTION) {
+            		   approvedSenders.put(sn, new Boolean(false));
+            		   return;
+            		}
+
+            		
+            	}
+            	else if (b.booleanValue() == false)
+            		return;
+            	//else do nothing.
+            }
+            
             if (!tester.ignoreIMs)
             {
 

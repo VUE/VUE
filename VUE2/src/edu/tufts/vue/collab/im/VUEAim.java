@@ -134,7 +134,7 @@ public class VUEAim {
     protected String sn = null;
     protected String pass = null;
     protected boolean ignoreIMs = false;
-	private boolean requireApproval = true;
+	protected boolean requireApproval = true;
     protected BosFlapConn bosConn = null;
     protected Set services = new HashSet();
     protected Map chats = new HashMap();
@@ -430,6 +430,11 @@ public class VUEAim {
 
 		public void requireApprovalToCollaborate(boolean b) {
 			requireApproval = b;
+			
+		}
+
+		public void resetApprovalList() {
+			bosConn.resetApprovedContributors();
 			
 		}
 }
