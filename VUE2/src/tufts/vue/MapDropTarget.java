@@ -50,7 +50,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.115 $ / $Date: 2009-06-30 17:30:10 $ / $Author: sfraize $  
+ * @version $Revision: 1.116 $ / $Date: 2009-07-10 21:28:24 $ / $Author: mike $  
  */
 public class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -1390,7 +1390,7 @@ public class MapDropTarget
      * for nodes dropped directly into the layer (not another node in the layer), if it
      * looks "crowded", push out all the other nodes on the layer to make more room;
      */
-    private void makeRoomFor(final LWComponent node) {
+    public static void makeRoomFor(final LWComponent node) {
 
         // We add this as a cleanup task, so that all nodes created by this drop
         // have already been added to the map before we start trying to make any
