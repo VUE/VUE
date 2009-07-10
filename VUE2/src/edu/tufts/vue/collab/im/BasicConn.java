@@ -432,14 +432,27 @@ public abstract class BasicConn extends AbstractFlapConn {
             	
 //            	VUE.getActiveMap().add(newNode);//
             	VUE.getActiveViewer().getFocal().dropChild(newNode);
-            	List<LWComponent> compList = new ArrayList<LWComponent>();
-              	compList.add(newNode);
-              	VUE.getActiveViewer().getSelection().clear();
-              	VUE.getActiveViewer().getSelection().add(newNode);
-            	LayoutAction.search.act(new LWSelection(compList));
-            	MapDropTarget.makeRoomFor(newNode);
-            	MapDropTarget.makeRoomFor(newNode);
-         
+              	if (!tester.makeTables)
+              	{
+	            	List<LWComponent> compList = new ArrayList<LWComponent>();
+	              	compList.add(newNode);
+	              	VUE.getActiveViewer().getSelection().clear();
+	              	VUE.getActiveViewer().getSelection().add(newNode);
+	
+	            	LayoutAction.search.act(new LWSelection(compList));
+	            	MapDropTarget.makeRoomFor(newNode);
+	            	MapDropTarget.makeRoomFor(newNode);
+              	}
+              	else
+              	{
+              		List<LWComponent> compList = new ArrayList<LWComponent>();
+              		VUE.getActiveViewer().getSelection().clear();
+              		VUE.getActiveViewer().getSelection().add(newNode);
+//	              	VUE.getActiveViewer().getSelection().add(VUE.getActiveMap().getAllDescendents());
+	              	compList.addAll(VUE.getActiveMap().getAllDescendents());
+	              	LayoutAction.table.act(new LWSelection(compList));
+
+              	}
             }
 
         } else if (cmd instanceof WarningNotification) {

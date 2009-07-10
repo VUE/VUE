@@ -137,6 +137,7 @@ public class VUEAim {
 	protected boolean requireApproval = true;
 	protected boolean assignColors = false;
 	protected boolean forceNodeWidth = false;
+	protected boolean makeTables = false;
     protected BosFlapConn bosConn = null;
     protected Set services = new HashSet();
     protected Map chats = new HashMap();
@@ -447,6 +448,11 @@ public class VUEAim {
 
 		public void forceUniformNodeWidth(boolean selected) {
 			forceNodeWidth = selected;
+			
+		}
+
+		public void forceNodesIntoTable(boolean selected) {
+			makeTables = selected;
 			
 		}
 }
