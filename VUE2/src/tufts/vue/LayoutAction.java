@@ -58,10 +58,15 @@ public abstract  class LayoutAction extends Actions.LWCAction {
         act(new LWSelection(bag));
     }
     
-    void act(LWSelection selection)   {
+    void act(LWSelection selection)
+    {
+    	act(selection,true);
+    }
+    public void act(LWSelection selection, boolean autoFit)   {
         try {
             layout.layout(selection);
-            Actions.ZoomFit.act();
+            if (autoFit)
+            	Actions.ZoomFit.act();
         } catch(Throwable t) {
             Log.debug("LayoutAction.act: "+t.getMessage());
              tufts.Util.printStackTrace(t);
