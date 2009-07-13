@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.183 $ / $Date: 2009-07-07 21:13:00 $ / $Author: mike $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.183 2009-07-07 21:13:00 mike Exp $ -->
+<!-- $Revision: 1.184 $ / $Date: 2009-07-13 20:49:50 $ / $Author: sfraize $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.184 2009-07-13 20:49:50 sfraize Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -1135,20 +1135,35 @@
     <!--delete file="VUE-lib.jar"/-->
     <delete file="VUE-lib-minimal.jar"/>
   </target>
+  
+  <target name="clean2"
+          description="Delete all build and intermediate files, leaving only the sources, but leave build directory">
+    <delete dir="${build.home}/classes"/>
+    <delete dir="${build.home}/VUE.app"/>
+    <delete file="${build.home}/VUE.jar"/>
+    <delete dir="${linux.class}"/>
+    <delete file="${vue-core.jar}"/>
+</target>
 
   <target name="clean-emacs">
     <delete verbose="true">
       <fileset dir="." defaultexcludes="no" includes="**/*~"/>
     </delete>
   </target>
-  
+
+  <target name="clean-logs">
+    <delete verbose="true">
+      <fileset dir="." defaultexcludes="no" includes="**/*.log"/>
+    </delete>
+  </target>
+ 
   
 
     <property name="mac.bundle_signature" value="TVUE"/> <!-- must match MacOS/Info.plist CFBundleSignature -->
 
     <target name="mac-dist" depends="jar" description="Creates a Mac OS X distributable Applcation directory for VUE">
       <make-mac-osx-application name="VUE" plist="Info.plist"/>
-         <sleep seconds="20"/>
+      <!--sleep seconds="20"/-->
     </target>
 
     <target name="mac-dist-raw"> <make-mac-osx-application name="VUE" plist="Info.plist"/> </target>
@@ -1182,7 +1197,7 @@
       <attribute name="mac.appdir" default="${build.home}/@{name}.app"/>
       <attribute name="contents" default="@{mac.appdir}/Contents"/>
       <attribute name="jar-0" default="${vue.jar}"/>
-      <attribute name="jar-1" default="@{jar-0}"/>
+      <!--attribute name="jar-1" default="@{jar-0}"/-->
       <sequential>
         <echo>*** Building Mac OS X application "@{name}" to @{mac.appdir}</echo>
         <mkdir dir="@{contents}/MacOS"/>
@@ -1196,17 +1211,18 @@
         <!-- we get away with the default being to copy ${vue.jar} twice because
               it won't bother to copy it the second time if it's already there -->
         <copy file="@{jar-0}" todir="@{contents}" verbose="true"/>
-        <copy file="@{jar-1}" todir="@{contents}" verbose="true"/>
+        <!--copy file="@{jar-1}" todir="@{contents}" verbose="true"/-->
       	<copy file="${jnilib.home}/libquaqua.jnilib" todir="@{contents}/Resources/Java"/>
         <extra-tasks/>
       </sequential>
     </macrodef>
 
-    <target name="mac-dist-dev" depends="jar-core">
+    <target name="deprecated-mac-dist-dev" depends="jar-core">
       <!-- for dev: a quicker build of VUE.app that includes VUE-core.jar & VUE-lib.jar
            separately, skipping the build of VUE.jar that takes forverever.  Uses
            the hacked Info-dev.plist that names to two jars instead of the one VUE.jar.
            NOTE THAT YOU NEED TO MAKE SURE YOU'VE MANUALLY BUILT JAR-LIB BEFORE USING THIS.
+           SMF July 2009: mac-mac-osx-application changed to be faster, no longer supports 2-file mode of operation.
            -->
       <make-mac-osx-application name="VUEDev"
                                 plist="Info-dev.plist"
