@@ -49,7 +49,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.80 $ / $Date: 2009-06-30 17:30:11 $ / $Author: sfraize $
+ * @version $Revision: 1.81 $ / $Date: 2009-07-14 22:10:44 $ / $Author: brian $
  * @author  Scott Fraize
  */
 
@@ -63,9 +63,11 @@ public class DataTree extends javax.swing.JTree
     private DataNode mRootNode;
     private DataNode mAllRowsNode;
     private DataNode mSelectedSearchNode;
-    private final AbstractButton mAddNewRowsButton = new JButton(VueResources.getString("button.addnewrectomap.label"));
-    private final AbstractButton mApplyChangesButton = new JButton(VueResources.getString("button.appchngtomap.label"));
+    private final JTextArea mUpdateTextArea = new JTextArea();
+    private final AbstractButton mAddNewRowsButton = new JButton(VueResources.getString("dockWindow.contentBrowser.sync.addToMap"));
+    private final AbstractButton mApplyChangesButton = new JButton(VueResources.getString("dockWindow.contentBrowser.sync.updateMap"));
     private final DefaultTreeModel mTreeModel;
+    private final static boolean DEBUG_LOCAL = false;
 
     private volatile LWMap mActiveMap;
 
@@ -164,15 +166,13 @@ public class DataTree extends javax.swing.JTree
 
                 
         final JPanel toolbar = new JPanel();
-        toolbar.setOpaque(true);
-        toolbar.setBackground(Color.white);
-        //toolbar.setLayout(new BoxLayout(toolbar, BoxLayout.X_AXIS));
-        toolbar.setLayout(new BorderLayout());
-        //p.add(new JLabel(s.getSource().toString()), BorderLayout.NORTH);
+        toolbar.setLayout(new GridBagLayout());
 
-        //addNew.setBorderPainted(false);
         tree.mAddNewRowsButton.setOpaque(false);
         tree.mApplyChangesButton.setOpaque(false);
+        tree.mAddNewRowsButton.setFont(tufts.vue.gui.GUI.LabelFace);
+        tree.mApplyChangesButton.setFont(tufts.vue.gui.GUI.LabelFace);
+
         tree.mAddNewRowsButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     tree.addNewRowsToMap();
@@ -219,9 +219,59 @@ public class DataTree extends javax.swing.JTree
 //             });
 //         toolbar.add(keyBox, BorderLayout.WEST);
 //         toolbar.add(addNew, BorderLayout.EAST);
-        
-        toolbar.add(tree.mAddNewRowsButton, BorderLayout.NORTH);
-        toolbar.add(tree.mApplyChangesButton, BorderLayout.SOUTH);
+        Insets				halfGutterInset = new Insets(2, 2, 2, 2);
+        JPanel				innerToolbar = new JPanel(),
+        					remainderPanel = new JPanel();
+        GridBagConstraints	gbc = new GridBagConstraints();
+
+        innerToolbar.setLayout(new GridBagLayout());
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 1;
+        gbc.gridheight = 1;
+        gbc.insets = halfGutterInset;
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        toolbar.add(innerToolbar, gbc);
+
+        gbc.gridwidth = 3;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weighty = 0.0;
+        tree.mUpdateTextArea.setFont(tufts.vue.gui.GUI.LabelFace);
+        tree.mUpdateTextArea.setOpaque(false);
+        tree.mUpdateTextArea.setLineWrap(true);
+        tree.mUpdateTextArea.setRows(1);
+        innerToolbar.add(tree.mUpdateTextArea, gbc);
+       
+        gbc.gridy = 1;
+        gbc.gridwidth = 1;
+        gbc.fill = GridBagConstraints.REMAINDER;
+        gbc.weightx = 1.0;
+        innerToolbar.add(remainderPanel, gbc);
+
+        gbc.gridx = 1;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.weightx = 0.0;
+        innerToolbar.add(tree.mAddNewRowsButton, gbc);
+
+        gbc.gridx = 2;
+        innerToolbar.add(tree.mApplyChangesButton, gbc);
+
+        if (DEBUG_LOCAL) {
+        	toolbar.setOpaque(true);
+        	toolbar.setBackground(Color.CYAN);
+        	innerToolbar.setOpaque(true);
+        	innerToolbar.setBackground(Color.MAGENTA);
+        	remainderPanel.setOpaque(true);
+        	remainderPanel.setBackground(Color.GREEN);
+        	tree.mUpdateTextArea.setOpaque(true);
+        	tree.mUpdateTextArea.setBackground(Color.YELLOW);
+        	tree.mAddNewRowsButton.setOpaque(true);
+        	tree.mAddNewRowsButton.setBackground(Color.YELLOW);
+        	tree.mApplyChangesButton.setOpaque(true);
+        	tree.mApplyChangesButton.setBackground(Color.YELLOW);
+        }
 
         if (dataSourceLabel != null)
             wrap.add(dataSourceLabel, BorderLayout.SOUTH);
@@ -789,7 +839,6 @@ public class DataTree extends javax.swing.JTree
 
         GUI.invokeOnEDT(new Runnable() { public void run() {
             mAddNewRowsButton.setEnabled(false);
-            mAddNewRowsButton.setLabel("Comparing to " + mActiveMap.getLabel() + "...");
             mApplyChangesButton.setEnabled(false);
         }});
         //Log.info("WAKING " + mAnnotateThread, new Throwable("HERE"));
@@ -850,22 +899,43 @@ public class DataTree extends javax.swing.JTree
 
         GUI.invokeOnEDT(new Runnable() { public void run() {
             
-            if (newRowCount > 0) {
-                mAddNewRowsButton.setLabel(String.format("Add %d new records to Map", newRowCount));
-                //mAddNewRowsButton.setIcon(NewToMapIcon);
-                mAddNewRowsButton.setEnabled(true);
+            String	message = "";
+
+            if (newRowCount == 0 && changedRowCount == 0) {
+            	String	keyName = "";
+
+            	if (mSchema != null) {
+            		Field	keyField = mSchema.getKeyField();
+
+            		if (keyField != null) {
+            			keyName = keyField.getName();
+            		}
+            	}
+
+            	message = String.format(VueResources.getString("dockWindow.contentBrowser.sync.allmatch"), keyName);
             } else {
-                //mAddNewRowsButton.setIcon(null);
-                mAddNewRowsButton.setLabel("All Records are represented on Map");
-                mAddNewRowsButton.setEnabled(false);
+            	if (newRowCount == 1) {
+            		message = VueResources.getString("dockWindow.contentBrowser.sync.oneNew");
+            	} else if (newRowCount > 1) {
+                	message = String.format(VueResources.getString("dockWindow.contentBrowser.sync.multipleNew"), newRowCount);
+            	}
+
+            	if (newRowCount > 0 && changedRowCount > 0) {
+            		message = message + " " + VueResources.getString("dockWindow.contentBrowser.sync.and") + " ";
+            	}
+
+            	if (changedRowCount == 1) {
+            		message = message + VueResources.getString("dockWindow.contentBrowser.sync.oneMod");
+            	} else if (changedRowCount > 1) {
+                	message = message + String.format(VueResources.getString("dockWindow.contentBrowser.sync.multipleMod"), changedRowCount);
+            	}
+
+            	message = message + " " + VueResources.getString("dockWindow.contentBrowser.sync.outsideVUE");
             }
-            if (changedRowCount > 0) {
-                mApplyChangesButton.setLabel(String.format("Update %d records on Map", changedRowCount));
-                mApplyChangesButton.setEnabled(true);
-            } else {
-                mApplyChangesButton.setLabel("No Changed Records");
-                mApplyChangesButton.setEnabled(false);
-            }
+
+            mUpdateTextArea.setText(message);
+            mAddNewRowsButton.setEnabled(newRowCount > 0);
+            mApplyChangesButton.setEnabled(changedRowCount > 0);
 
             // TODO: don't bother with refresh if annotations didn't change at all
             refreshAll();
