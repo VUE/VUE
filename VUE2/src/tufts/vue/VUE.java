@@ -118,7 +118,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.668 $ / $Date: 2009-07-01 19:36:01 $ / $Author: brian $ 
+ * @version $Revision: 1.669 $ / $Date: 2009-07-14 22:09:46 $ / $Author: brian $ 
  */
 
 public class VUE
@@ -166,6 +166,7 @@ public class VUE
     private static OntologyBrowser ontologyBrowser = null;
     private static MetadataSearchMainGUI metadataSearchMainPanel = null;
     private static InteractionTools interactionToolsPanel = null;
+    private static ContentBrowser contentBrowserPanel = null;
     private static JPopupMenu popup;
     private static JPopupMenu editPopup;
     private static SearchTextField mSearchtextFld = new SearchTextField();
@@ -211,6 +212,7 @@ public class VUE
     	metadataSearchMainPanel = null;
     	mergeMapsControlPanel = null;
     	interactionToolsPanel = null;
+    	contentBrowserPanel = null;
 
     }
     /** simplest form of threadsafe static lazy initializer: for CategoryModel */
@@ -904,6 +906,7 @@ public class VUE
     private static DockWindow layersDock;
     private static DockWindow metaDataSearchDock;
     private static DockWindow interactionToolsDock;
+    private static DockWindow contentBrowserDock;
     private static DockWindow mergeMapsDock;
     private static DockWindow ontologyDock;
     private static DockWindow anchor;
@@ -1851,6 +1854,7 @@ public class VUE
         	MapInspector.positionWindowFromProperties();
         	metaDataSearchDock.positionWindowFromProperties();
         	interactionToolsDock.positionWindowFromProperties();
+        	contentBrowserDock.positionWindowFromProperties();
         	mergeMapsDock.positionWindowFromProperties();
         	ontologyDock.positionWindowFromProperties();
         	ObjectInspector.positionWindowFromProperties();
@@ -2054,6 +2058,14 @@ public class VUE
         {
         	interactionToolsDock = GUI.createDockWindow(VueResources.getString("dockWindow.interactionTools.title"));
         	interactionToolsPanel = new InteractionTools(interactionToolsDock);
+        }
+        //-----------------------------------------------------------------------------
+        // Content Browser window
+        //-----------------------------------------------------------------------------
+        if (contentBrowserDock == null || VUE.isApplet())
+        {
+        	contentBrowserDock = GUI.createDockWindow(VueResources.getString("dockWindow.contentBrowser.title"));
+        	contentBrowserPanel = new ContentBrowser(contentBrowserDock);
         }
       //-----------------------------------------------------------------------------
         // Merge Maps
@@ -2548,6 +2560,16 @@ public class VUE
     	return interactionToolsDock;
     }    
     
+    public static ContentBrowser getContentBrowserPanel()
+    {
+    	return contentBrowserPanel;
+    }    
+    
+    public static DockWindow getContentBrowserDock()
+    {
+    	return contentBrowserDock;
+    }    
+    
     public static OntologyBrowser getOntologyBrowserPanel()
     {
     	return ontologyBrowser;
@@ -2960,6 +2982,7 @@ public class VUE
         ObjectInspector.saveWindowProperties();
         metaDataSearchDock.saveWindowProperties();
         interactionToolsDock.saveWindowProperties();
+        contentBrowserDock.saveWindowProperties();
         mergeMapsDock.saveWindowProperties();
         if (outlineDock != null)
             outlineDock.saveWindowProperties();

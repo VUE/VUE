@@ -87,7 +87,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.143 $ / $Date: 2009-06-16 15:33:23 $ / $Author: brian $
+ * @version $Revision: 1.144 $ / $Date: 2009-07-14 22:11:00 $ / $Author: brian $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -1011,38 +1011,24 @@ public class VueMenuBar extends javax.swing.JMenuBar
         windowMenu.addSeparator();
         if (VUE.getMapInfoDock() !=null)
         	windowMenu.add(createWindowItem(VUE.getMapInfoDock(),KeyEvent.VK_3, VueResources.getString("menu.windows.mapinfo")));
-        //windowMenu.add(ontcontrls);
-        if (VUE.getOntologyBrowser() !=null && !VUE.isApplet())	{
-        	windowMenu.add(createWindowItem(VUE.getOntologyBrowser(),KeyEvent.VK_4, VueResources.getString("menu.windows.ontologies")));
-        	edu.tufts.vue.ontology.ui.OntologyBrowser browser = OntologyBrowser.getBrowser();
-        	tufts.vue.gui.DockWindow ontologyDock = null;
-            if(browser.isInitialized())
-            {
-            	ontologyDock = OntologyBrowser.getBrowser().getDockWindow();
-            }
-            else
-            {
-                //ontologyDock = tufts.vue.gui.GUI.createDockWindow("Ontologies");
-                tufts.vue.gui.DockWindow searchDock = null;
-            //browser = new edu.tufts.vue.ontology.ui.OntologyBrowser(true, ontologyDock, searchDock);
-               // browser = OntologyBrowser.createBrowser(false,ontologyDock,searchDock);
-                browser.initializeBrowser(false,searchDock);
-            //browser = new edu.tufts.vue.ontology.ui.OntologyBrowser(false, ontologyDock, searchDock);
-                ontologyDock = OntologyBrowser.getBrowser().getDockWindow();
-                ontologyDock.setBounds(0,tufts.vue.gui.DockWindow.ToolbarHeight+100,
-                                       300, (int) (tufts.vue.gui.GUI.GScreenHeight * 0.75));
-            }
 
-            //ontologyDock.setVisible(true);
+        if (VUE.getContentBrowserDock()!= null && !VUE.isApplet()){
+            windowMenu.addSeparator();
+            windowMenu.add(createWindowItem(VUE.getContentBrowserDock(), KeyEvent.VK_4, VueResources.getString("dockWindow.contentBrowser.title")));
+            windowMenu.add(Actions.ResourcesAction);
+            windowMenu.add(Actions.DatasetsAction);
+            windowMenu.add(Actions.OntologiesAction);
+            windowMenu.addSeparator();
+
+            OntologyBrowser.getBrowser().initializeBrowser(false, null);
         }
+
         if (VUE.getOutlineDock() !=null && !VUE.isApplet())	
         	windowMenu.add(createWindowItem(VUE.getOutlineDock(),KeyEvent.VK_5, VueResources.getString("menu.windows.outline")));
         if (VUE.getPannerDock() !=null && !VUE.isApplet())	
         	windowMenu.add(createWindowItem(VUE.getPannerDock(),KeyEvent.VK_6, VueResources.getString("menu.windows.panner")));
         if (VUE.getPresentationDock() !=null)	
         	windowMenu.add(createWindowItem(VUE.getPresentationDock(),KeyEvent.VK_7, VueResources.getString("menu.windows.pathways")));
-        if (VUE.getContentDock() !=null && !VUE.isApplet())	
-        	windowMenu.add(createWindowItem(VUE.getContentDock(),KeyEvent.VK_8, VueResources.getString("menu.windows.resources")));
         if (VUE.getLayersDock() != null)	
             windowMenu.add(createWindowItem(VUE.getLayersDock(), 0, VueResources.getString("menu.windows.layers")));
         if (VUE.getMetadataSearchMainGUI()!= null && !VUE.isApplet()){

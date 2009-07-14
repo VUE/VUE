@@ -3504,5 +3504,46 @@ public class Actions implements VueConstants
         
         //public String toString() { return "LWCAction[" + getActionName() + "]"; }
     }
-    
+
+    public static final Action ResourcesAction = new ResourcesActionClass(VueResources.getString("dockWindow.contentBrowser.resources.title"));
+    public static final Action ContextResourcesAction = new ResourcesActionClass(VueResources.getString("dockWindow.contentBrowser.resources.title"));
+
+    public static class ResourcesActionClass extends VueAction {
+        public ResourcesActionClass(String s) {
+            super(s);
+        }
+
+        public void act() {
+            VUE.getContentBrowserDock().setVisible(true);
+            VUE.getContentBrowserPanel().showResourcesTab();
+        }
+    };
+
+    public static final Action DatasetsAction = new DatasetsActionClass(VueResources.getString("dockWindow.contentBrowser.datasets.title"));
+    public static final Action ContextDatasetsAction = new DatasetsActionClass(VueResources.getString("dockWindow.contentBrowser.datasets.title"));
+
+    public static class DatasetsActionClass extends VueAction {
+        public DatasetsActionClass(String s) {
+            super(s);
+        }
+
+        public void act() {
+            VUE.getContentBrowserDock().setVisible(true);
+            VUE.getContentBrowserPanel().showDatasetsTab();
+        }
+    };
+
+    public static final Action OntologiesAction = new OntologiesActionClass(VueResources.getString("dockWindow.contentBrowser.ontologies.title"));
+    public static final Action ContextOntologiesAction = new OntologiesActionClass(VueResources.getString("dockWindow.contentBrowser.ontologies.title"));
+
+    public static class OntologiesActionClass extends VueAction {
+        public OntologiesActionClass(String s) {
+            super(s);
+        }
+
+        public void act() {
+            VUE.getContentBrowserDock().setVisible(true);
+            VUE.getContentBrowserPanel().showOntologiesTab();
+        }
+    };
 }
