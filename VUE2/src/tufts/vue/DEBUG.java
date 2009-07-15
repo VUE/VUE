@@ -166,6 +166,7 @@ public class DEBUG
             else if (a.startsWith("prop"))  DEBUG.PROPERTY = true;
             else if (a.startsWith("perf"))  DEBUG.PERF = true;
             else if (a.startsWith("schema"))  DEBUG.SCHEMA = true;
+            else if (a.startsWith("im"))  DEBUG.IM = true;
         }
     }
 
