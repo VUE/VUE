@@ -161,7 +161,7 @@ import javax.swing.JTextField;  // for test harness
  * redispatch our own FocusEvents for transferring focus, which is the second
  * part of the magic that makes this work.
  *
- * @version $Revision: 1.27 $ / $Date: 2009-05-13 16:59:58 $ / $Author: sfraize $ 
+ * @version $Revision: 1.28 $ / $Date: 2009-07-15 17:58:53 $ / $Author: sfraize $ 
  */
 
 // todo: can also try calling the focus owner setters instead of lying -- that might work
@@ -348,6 +348,17 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
                 mMousePressedTarget = null;
             }
             break;
+
+//         case ComponentEvent.COMPONENT_SHOWN:
+//             if (c instanceof Window && ((Window)c).isAlwaysOnTop())
+//                 Log.debug("ALWAYS ON TOP: " + Util.tags(c));
+//             if (GUI.OVERRIDE_REDIRECT.equals(c.getName())) {
+//                 Log.debug("OVERRIDE: " + Util.tags(c));
+//                 c.setName("non-override-name");
+//                 ((Window)c).setAlwaysOnTop(false);
+//             }
+//             break;
+
 
             /*            
         case WindowEvent.WINDOW_ACTIVATED:
