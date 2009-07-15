@@ -36,7 +36,7 @@ import com.google.common.collect.Iterators;
  * The insertion order of each key/value is preserved, even for each use of
  * the same key with different values.
  *
- * @version $Revision: 1.15 $ / $Date: 2009-07-06 15:39:47 $ / $Author: sfraize $
+ * @version $Revision: 1.16 $ / $Date: 2009-07-15 17:57:43 $ / $Author: sfraize $
  */
 
 public class MetaMap implements TableBag, XMLUnmarshalListener, tufts.vue.ds.Relation.Scannable
@@ -275,14 +275,6 @@ public class MetaMap implements TableBag, XMLUnmarshalListener, tufts.vue.ds.Rel
         return prior;
     }
 
-    /** @return the first value found for the given key */
-    public synchronized Object getFirst(String key) {
-        return getFirst(Key.instance(key));
-    }
-    
-    private synchronized Object getFirst(Key key) {
-        return extractFirstValue(mData.get(key));
-    }
 
     private static Object extractFirstValue(Object o) {
         
@@ -343,6 +335,19 @@ public class MetaMap implements TableBag, XMLUnmarshalListener, tufts.vue.ds.Rel
         return o;
     }
 
+    /** @return the first value found for the given key */
+    public synchronized Object getFirst(String key) {
+        return getFirst(Key.instance(key));
+    }
+    
+    // TODO: consider using a CharSequence as the key argument
+    // everywhere, which will accept Strings, but would allow for any
+    // Key object of our design that also implements that (and is
+    // convertable via toString())
+    private synchronized Object getFirst(Key key) {
+        return extractFirstValue(mData.get(key));
+    }
+    
     /** @return first value found for key as a string */
     public String getFirstString(String key) {
         final Object o = getFirst(key);
@@ -667,7 +672,7 @@ public class MetaMap implements TableBag, XMLUnmarshalListener, tufts.vue.ds.Rel
                 t = String.format(" %s.%s=%s",
                                   s.getName(),
                                   s.getKeyFieldName(),
-                                  Util.maxDisplay(getString(s.getKeyFieldName()), 50));
+                                  Util.tags(Util.maxDisplay(getString(s.getKeyFieldName()), 50)));
             }
             return String.format("MetaMap@%06x[n=%d%s]",
                                  System.identityHashCode(this),
