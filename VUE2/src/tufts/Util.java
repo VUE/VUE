@@ -1235,7 +1235,7 @@ public class Util
         return true;
     }
 
-    public static Object extractFirstValue(Collection bag)
+    public static Object extractFirst(Collection bag)
     {
         if (bag.isEmpty())
             return null;
@@ -1248,7 +1248,10 @@ public class Util
     }
     
 
-    public static <A, T extends A> List<T> extractType(final Collection<A> list, final Class<T> clazz) {
+    public static <A, T extends A> List<T> extractType
+                                (final Collection<A> list,
+                                 final Class<T> clazz)
+    {
 
         final List<T> desiredType = new ArrayList(list.size());
 
@@ -1269,7 +1272,10 @@ public class Util
      * Currently creates a type filter that requires *exact* type matching: subclasses of the type do NOT match.
 
      */
-    public static <A, T extends A> Iterable<T> typeFilter(Iterable<A> iterable, Class<T> clazz) {
+    public static <A, T extends A> Iterable<T> typeFilter
+                                (final Iterable<A> iterable,
+                                 final Class<T> clazz)
+    {
         return new IteratorTypeFilter<A,T>(iterable, clazz);
     }
 
@@ -2421,7 +2427,7 @@ public class Util
     }
 
     public static String quote(String s) {
-        StringBuffer buf = new StringBuffer(s == null ? 2 : s.length() + 2);
+        final StringBuilder buf = new StringBuilder(s == null ? 2 : s.length() + 2);
         buf.append('"');
         //buf.append('\u201C');
         ////buf.append('\u201F');
@@ -2430,7 +2436,39 @@ public class Util
         //buf.append('\u201D');
         buf.append('"');
         return buf.toString();
+    }
+    
+    public static String quote(String s, String color) {
+        final StringBuilder buf = new StringBuilder(s == null ? 2 : s.length() + 16);
+        buf.append(color);
+        buf.append('"');
+        if (s != null)
+            buf.append(s);
+        buf.append('"');
+        buf.append(TERM_CLEAR);
+        return buf.toString();
+    }
+    
+    public static String color(String s, String color) {
+
+        if (s == null || s.length() == 0)
+            return s;
         
+        final StringBuilder buf = new StringBuilder(s.length() + 16);
+        buf.append(color);
+        if (s != null)
+            buf.append(s);
+        buf.append(TERM_CLEAR);
+        return buf.toString();
+    }
+    
+    // special case for strings: we dont care about hashCode / type -- just return quoted
+    public static String tags(String s) {
+        if (s == null)
+            return "null";
+
+        //return quote((String) o);
+        return TERM_RED + quote((String)s) + TERM_CLEAR;
     }
     
     /**
@@ -2443,9 +2481,7 @@ public class Util
             return "null";
 
         if (o instanceof java.lang.String) {
-            // special case for strings: we dont care about hashCode / type -- just return quoted
-            return quote((String) o);
-            //return TERM_RED + '"' + o.toString() + '"' + TERM_CLEAR;
+            return tags((String) o);
         }
         if (o instanceof java.lang.Number) {
             // special case for strings: we dont care about hashCode / type -- just return quoted
@@ -2526,11 +2562,12 @@ public class Util
     }
 
     
+    /** @deprecated -- very old -- use String.format with width specifiers instead */
     public static String pad(char c, int wide, String s, boolean alignRight) {
         if (s.length() >= wide)
             return s;
         int pad = wide - s.length();
-        StringBuffer buf = new StringBuffer(wide);
+        StringBuilder buf = new StringBuilder(wide);
         if (alignRight == false)
             buf.append(s);
         while (pad-- > 0)
@@ -2548,7 +2585,7 @@ public class Util
     }
 
     public static String toBase2(byte b) {
-        StringBuffer buf = new StringBuffer(8);
+        StringBuilder buf = new StringBuilder(8);
         buf.append((b & (1<<7)) == 0 ? '0' : '1');
         buf.append((b & (1<<6)) == 0 ? '0' : '1');
         buf.append((b & (1<<5)) == 0 ? '0' : '1');
