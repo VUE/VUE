@@ -641,7 +641,7 @@ public class SearchAction extends AbstractAction {
             
             HashMap<LWComponent,LWComponent> duplicates = new HashMap<LWComponent,LWComponent>();
             
-            Iterator<LWComponent> components = VUE.getActiveMap().getAllDescendents(LWComponent.ChildKind.PROPER).iterator();   
+            Iterator<LWComponent> components = VUE.getActiveMap().getAllDescendents(LWComponent.ChildKind.EDITABLE).iterator();   
             while(components.hasNext())
             {
                 LWComponent next = components.next();
@@ -700,7 +700,7 @@ public class SearchAction extends AbstractAction {
             }
             
             
-            Iterator<LWComponent> components2 = VUE.getActiveMap().getAllDescendents(LWComponent.ChildKind.PROPER).iterator(); 
+            Iterator<LWComponent> components2 = VUE.getActiveMap().getAllDescendents(LWComponent.ChildKind.EDITABLE).iterator(); 
             while(components2.hasNext())
             {
                        LWComponent next = components2.next();
@@ -850,7 +850,7 @@ public class SearchAction extends AbstractAction {
                 if(next instanceof LWGroup)
                 {
                     // todo: don't add duplicates!'
-                    groupDescendants.addAll(next.getAllDescendents(LWComponent.ChildKind.PROPER));
+                    groupDescendants.addAll(next.getAllDescendents(LWComponent.ChildKind.EDITABLE));
                 }
             }
             
@@ -937,7 +937,7 @@ public class SearchAction extends AbstractAction {
             
             
           //globalHides = // opposite of comps 
-          Collection<LWComponent> allComps = tufts.vue.VUE.getActiveMap().getAllDescendents(LWComponent.ChildKind.PROPER);
+          Collection<LWComponent> allComps = tufts.vue.VUE.getActiveMap().getAllDescendents(LWComponent.ChildKind.EDITABLE);
           globalHides = new ArrayList();
           Iterator<LWComponent> allIt = allComps.iterator();
           while(allIt.hasNext())
