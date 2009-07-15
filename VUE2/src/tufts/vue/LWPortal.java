@@ -30,7 +30,7 @@ import java.awt.geom.AffineTransform;
  * this class, and just use an LWComponent with dynamically disabled properies
  * as we see fit...
  *
- * @version $Revision: 1.22 $ / $Date: 2008-07-23 18:22:37 $ / $Author: sfraize $ 
+ * @version $Revision: 1.23 $ / $Date: 2009-07-15 18:56:03 $ / $Author: sfraize $ 
  */
 
 public class LWPortal extends LWNode
@@ -176,7 +176,13 @@ public class LWPortal extends LWNode
 
                 final DrawContext clipDC = dc.create();
                 clipDC.setMasterClip(getMapShape());
-                getParent().draw(clipDC);
+                final LWContainer parent = getParent();
+                if (parent instanceof LWMap.Layer) {
+                    // VUE-1381: need to draw all layers
+                    parent.getMap().drawChildren(clipDC);
+                } else {
+                    parent.draw(clipDC);
+                }
                 clipDC.dispose();
 
                 dc.g.setTransform(zeroTransform);
@@ -188,7 +194,13 @@ public class LWPortal extends LWNode
                 
                 final DrawContext clipDC = dc.create();
                 clipDC.setMasterClip(getMapShape());
-                getParent().draw(clipDC);
+                final LWContainer parent = getParent();
+                if (parent instanceof LWMap.Layer) {
+                    // VUE-1381: need to draw all layers
+                    parent.getMap().drawChildren(clipDC);
+                } else {
+                    parent.draw(clipDC);
+                }
                 clipDC.dispose();
                 
                 dc.g.setTransform(zeroTransform);
