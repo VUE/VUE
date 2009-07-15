@@ -99,7 +99,7 @@ import javax.swing.text.*;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.67 $ / $Date: 2009-03-29 03:35:13 $ / $Author: vaibhav $
+ * @version $Revision: 1.68 $ / $Date: 2009-07-15 17:58:16 $ / $Author: sfraize $
  *
  */
 
@@ -111,6 +111,9 @@ public class TextBox extends JTextPane
                , MouseListener
                , ActionListener
 {
+
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(TextBox.class);
+    
 // todo: duplicate not working[? for wrap only? ]
 
     private static final boolean WrapText = LWNode.WrapText;
@@ -765,20 +768,37 @@ public class TextBox extends JTextPane
         if (true||TestDebug) out("setPreferred " + preferredSize);
         super.setPreferredSize(preferredSize);
     }
+    
     @Override
     public Dimension getPreferredSize() {
-        Dimension s = super.getPreferredSize();
-        //getMinimumSize();//debug
-        //s.width = (int) lwc.getWidth();
-        //System.out.println("MTP lwcWidth " + lwc.getWidth());
+        Dimension s;
+        try {
+            // Is this failing due to this being accessed from an ImgLoader thread?
+            s = super.getPreferredSize();
+        } catch (Throwable t) {
+            Log.error("getPreferredSize", t);
+            s = new Dimension(200,100);
+        }
         if (getParent() != null)
             s.width += 1; // leave room for cursor, which at least on mac gets clipped if at EOL
-        //if (getParent() == null)
-        //    s.width += 10;//fudge factor for understated string widths (don't do this here -- need best accuracy here)
         if (TestDebug) out("getPrefer", s);
-        //if (TestDebug && DEBUG.META) new Throwable("getPreferredSize").printStackTrace();
         return s;
     }
+    
+//     @Override
+//     public Dimension getPreferredSize() {
+//         Dimension s = super.getPreferredSize();
+//         //getMinimumSize();//debug
+//         //s.width = (int) lwc.getWidth();
+//         //System.out.println("MTP lwcWidth " + lwc.getWidth());
+//         if (getParent() != null)
+//             s.width += 1; // leave room for cursor, which at least on mac gets clipped if at EOL
+//         //if (getParent() == null)
+//         //    s.width += 10;//fudge factor for understated string widths (don't do this here -- need best accuracy here)
+//         if (TestDebug) out("getPrefer", s);
+//         //if (TestDebug && DEBUG.META) new Throwable("getPreferredSize").printStackTrace();
+//         return s;
+//     }
 
     public void setSize(Size s) {
         setSize(s.dim());
