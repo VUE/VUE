@@ -40,7 +40,7 @@ import com.google.common.collect.Multimaps;
  * generally "short" enough, it will enumerate all the unique values found in that
  * column.
  *
- * @version $Revision: 1.40 $ / $Date: 2009-07-06 15:39:48 $ / $Author: sfraize $
+ * @version $Revision: 1.41 $ / $Date: 2009-07-15 18:01:44 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -449,17 +449,36 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
         //return getName() + "; " + getResource() + "; " + UUID;
         //return getName();
         try {
-            return String.format("Schema@%x[%s;%s #%d \"%s\" %s]",
-                                 System.identityHashCode(this),
-                                 getMapLocalID(),
-                                 DSGUID == null ? "" : (" " + DSGUID + "; "),
-                                 mFields.size(), getName(), getResource());
+            if (DEBUG.META) {
+                return String.format("Schema@%06x[%s;%s #%dx%d %s k=%s %s]",
+                                     System.identityHashCode(this),
+                                     getMapLocalID(),
+                                     DSGUID == null ? "" : (" " + DSGUID + "; "),
+                                     mFields.size(),
+                                     mRows.size(),
+                                     Util.color(getName(), Util.TERM_PURPLE),
+                                     Relation.quoteKey(getKeyFieldName()),
+                                     getResource()
+                                     );
+            } else {
+                return String.format("Schema@%06x[%s; #%dx%d %s k=%s]",
+                                     System.identityHashCode(this),
+                                     getMapLocalID(),
+                                     mFields.size(),
+                                     mRows.size(),
+                                     Util.color(getName(), Util.TERM_PURPLE),
+                                     Relation.quoteKey(getKeyFieldName())
+                                     );
+                    
+            }
         } catch (Throwable t) {
-            return String.format("Schema@%x[%s; %s; #%d \"%s\" %s]",
+            return String.format("Schema@%06x[%s; %s; #%dx%d \"%s\" %s]",
                                  System.identityHashCode(this),
                                  ""+mLocalID,
                                  DSGUID,
-                                 mFields.size(), ""+mName, ""+mResource);
+                                 mFields.size(),
+                                 mRows.size(),
+                                 ""+mName, ""+mResource);
         }
     }
 
@@ -559,6 +578,10 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
     }
 
     public Field getField(String name) {
+        if (name == null) {
+            Log.warn("searching for null Field name in " + this, new Throwable("HERE"));
+            return null;
+        }
         final Field f = findField(name);
         if (f == null) Log.debug(String.format("%s; no field named '%s' in %s", this, name, mFields.keySet()));
         return f;
@@ -582,6 +605,7 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
     // todo: doesn't use same case indepence as findField
     public boolean hasField(Field f) {
         // todo: more performant (keep a set of just hashed Fields)
+        // could just check f.getSchema() == this, tho that may not work at init time?
         return mFields.containsKey(f.getName());
     }
     
@@ -803,18 +827,72 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
         return mRows;
     }
 
+//     /** @return rows that match the given key/value pair, allowing for user specified key associations */
+//     public Collection<DataRow> getMatchingRows(Field field, String fieldValue)
+//     {
+//         if (!hasField(field)) {
+//             Log.debug("getMatchingRows: immediate return, field not in Schema: " + field, new Throwable("HERE"));
+//             return Collections.EMPTY_LIST;
+//         }
+        
+//         final Collection<DataRow> results = new HashSet();
+//         // todo: more performant than HashSet?  perhaps just scan at end for dupes
+        
+//         Relation.searchDataWithField(field, fieldValue, getRows(), results);
+        
+//         return results;
+//     }
+    
     /** @return rows that match the given key/value pair, allowing for user specified key associations */
     public Collection<DataRow> getMatchingRows(Field field, String fieldValue)
     {
-        if (!hasField(field)) {
-            Log.debug("getMatchingRows: immediate return, field not in Schema: " + field, new Throwable("HERE"));
-            return Collections.EMPTY_LIST;
-        }
+        if (DEBUG.Enabled) Log.debug("getMatchingRows: " + Relation.quoteKV(field, fieldValue));
         
         final Collection<DataRow> results = new HashSet();
         // todo: more performant than HashSet?  perhaps just scan at end for dupes
         
-        Relation.searchDataWithField(field, fieldValue, getRows(), results);
+        if (hasField(field)) {
+            
+            Relation.searchDataWithField(field, fieldValue, getRows(), results);
+            
+        } else {
+
+
+            // todo performance: getCrossSchemaRelation is recomputing all sorts of
+            // stuff each time that we could do faster if we unrolled in one place --
+            // e.g., make it take a collection of row-data (all from the same schema, so
+            // maybe actually hand it a schema), and it could handle it there.  Plus,
+            // even if NO join's were found, it will still check all rows!
+
+            //if (Relation.getCrossSchemaRelation(field, row.getData(), fieldValue) != null)
+
+            // NOTE: WE RISK RECURSION HERE!  getCrossSchemaRelation calls getMatchingRows...
+            // will that somehow auto-jump any length of schema relation joins?
+
+            //-----------------------------------------------------------------------------
+            // SHIT!  Do we actually need the full getCrossSchemaRelation checks (for Mediums case tho, right??
+            // But don't we want to check straight Associations first?  This is overkill for those cases.
+            //
+            // THE CASE WE'RE MISSING IS THIS: (to handle IN getCrossSchemaRelation,
+            // which should become a more generic getRelations) -- if the SEARCH field
+            // (e.g., medium) is DIFFERENT than the field found in the Association,
+            // only THEN do we need to attempt a join, otherwise, we can use a straight
+            // Association.
+            // 
+            //-----------------------------------------------------------------------------
+
+//             if (Association.hasAliases(this, field)) {
+//             }
+            
+            if (Association.hasJoins(this, field)) {
+                for (DataRow row : getRows()) {
+                    if (Relation.getCrossSchemaRelation(field, row.getData(), fieldValue) != null)
+                        results.add(row);
+                }
+            }
+            
+        }
+        
         
         return results;
     }
@@ -824,6 +902,8 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
      */
     public Collection<DataRow> getMatchingRows(MetaMap searchKeys)
     {
+        if (DEBUG.Enabled) Log.debug("getMatchingRows: " + Util.tags(searchKeys));
+        
         final Collection<DataRow> matching = new HashSet();
         // we use a HashSet to prevent duplicates, which could happen through
         // duplicate associations, or associations that are duped by an auto-join
@@ -936,6 +1016,10 @@ final class DataRow implements Relation.Scannable {
     /** interface Scannable */
     public Collection<String> getValues(String key) {
         return mmap.getValues(key);
+    }
+    
+    public Collection<String> getValues(Field f) {
+        return mmap.getValues(f.getName());
     }
     
     /** interface Scannable */

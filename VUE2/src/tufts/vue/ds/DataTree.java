@@ -49,7 +49,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.81 $ / $Date: 2009-07-14 22:10:44 $ / $Author: brian $
+ * @version $Revision: 1.82 $ / $Date: 2009-07-15 18:01:44 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -551,7 +551,7 @@ public class DataTree extends javax.swing.JTree
 
     // todo: better to move all this Search stuff to a DataSearch.java or some such.
     
-    public abstract static class Criteria {
+    private abstract static class Criteria {
         boolean matches(LWComponent c) {
             throw new UnsupportedOperationException("unimplemented matches in " + this);
         }
@@ -846,7 +846,7 @@ public class DataTree extends javax.swing.JTree
 
         if (mAnnotateThread.getPriority() > Thread.NORM_PRIORITY) {
             // first time it will be at MAX_PRIORITY
-            mAnnotateThread.setPriority(Thread.NORM_PRIORITY);
+            mAnnotateThread.setPriority(Thread.NORM_PRIORITY - 1);
         }
 
         // note: if we're already on a thread that's NOT the AWT EDT, we could
@@ -1166,7 +1166,7 @@ public class DataTree extends javax.swing.JTree
     @Override
     public void addNotify() {
         if (DEBUG.Enabled) Log.debug("ADDNOTIFY " + this + "; thread=" + mAnnotateThread);
-        mAnnotateThread.setPriority(Thread.NORM_PRIORITY);
+        mAnnotateThread.setPriority(Thread.NORM_PRIORITY - 1);
         super.addNotify();
     }
     @Override
@@ -1590,17 +1590,24 @@ public class DataTree extends javax.swing.JTree
                         if (draggingAllRows) {
                             // TODO: dropTargetData instead of dropTarget?
                             newNodes.addAll(DataAction.makeRelatedRowNodes(dragSchema, dropTarget));
-                        } else if (dropTarget.isDataRowNode()) {
-                            // TODO: if dropTarget is a single value node, this makes no sense
-                            newNodes.addAll(DataAction.makeRelatedValueNodes(dragField, dropTargetData));
-                        } else { // if (dropTarget.isDataValueNode())
-                            Log.debug("UNIMPLEMENTED: relate linked to of " + dropTarget + " based on " + dragField);
-                            // if a value node, find all ROW nodes connected to it, and color
-                            // them based on the VALUES from the dragged Field?
-                            // Or, add all the values nodes and recluster all of of the linked
-                            // items based on that -- this is the HIERARCHY USE CASE.
-                            return false;
                         }
+                        else {
+                            newNodes.addAll(DataAction.makeRelatedNodes(dragField, dropTarget));
+                        }
+//                         else if (dropTarget.isDataRowNode()) {
+//                             // TODO: if dropTarget is a single value node, this makes no sense
+//                             newNodes.addAll(DataAction.makeRelatedValueNodes(dragField, dropTargetData));
+//                         }
+//                         else { // if (dropTarget.isDataValueNode())
+//                             Log.debug("UNIMPLEMENTED: hierarchy use case? relate linked to of "
+//                                       + dropTarget + " based on " + dragField,
+//                                       new Throwable("HERE"));
+//                             // if a value node, find all ROW nodes connected to it, and color
+//                             // them based on the VALUES from the dragged Field?
+//                             // Or, add all the values nodes and recluster all of of the linked
+//                             // items based on that -- this is the HIERARCHY USE CASE.
+//                             return false;
+//                         }
                     } else if (dropTarget.hasResource()) {
                         // TODO: what is dragField going to be?  Can we drag from the meta-data pane?
                         dropTargetData = dropTarget.getResource().getProperties();

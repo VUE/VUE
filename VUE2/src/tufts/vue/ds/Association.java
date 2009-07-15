@@ -3,6 +3,7 @@ package tufts.vue.ds;
 import tufts.vue.DEBUG;
 import tufts.Util;
 import tufts.vue.EventHandler;
+import static tufts.vue.ds.Relation.*;
 
 import java.util.*;
 
@@ -16,7 +17,7 @@ import com.google.common.collect.Multimaps;
  * the key field of two Schema's, which is considered to be a join in the classic
  * database sense.
  *
- * @version $Revision: 1.1 $ / $Date: 2009-07-06 15:39:48 $ / $Author: sfraize $
+ * @version $Revision: 1.2 $ / $Date: 2009-07-15 18:01:44 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -131,56 +132,87 @@ public final class Association
     }
     
 
-    /** @return all enabled associations between the two given schemas */
-    public static Collection<Association> getBetweens(Schema s1, Schema s2) {
+    /** @return All enabled associations between the two given schemas */
+    public static List<Association> getBetweens(Schema s1, Schema s2) {
         final List<Association> betweens = new ArrayList();
             
         for (Association a : getAll()) {
             if (a.isEnabled() && a.isBetween(s1, s2))
                 betweens.add(a);
         }
-        if (DEBUG.SCHEMA && DEBUG.META) {
-            String s = "";
-            if (betweens.size() == 1)
-                s = ": " + betweens.get(0).toString();
-            Log.debug("associations for schemas: " + s1.getName() + " x " + s2.getName() + s);
-            if (s.length() == 0)
-                Util.dump(betweens);
+        //if (DEBUG.SCHEMA && DEBUG.META)
+        if (DEBUG.Enabled)
+            dumpSmart(betweens, "betweens for schemas: " + s1.getName() + " x " + s2.getName());
+        return betweens;
+    }
+    
+    /** @return all enabled JOIN's between the two given schemas given the field of interest
+     * A JOIN is an any association that does NOT involve the given Field.
+     */
+    public static List<Association> getJoins(Schema s1, Field field) {
+        final List<Association> betweens = new ArrayList();
+        final Schema s2 = field.getSchema();
+            
+        for (Association a : getAll()) {
+            if (a.isEnabled() && a.isBetween(s1, s2) && !a.contains(field))
+                betweens.add(a);
         }
+        //if (DEBUG.SCHEMA && DEBUG.META)
+        if (DEBUG.Enabled)
+            dumpSmart(betweens, "joins for schemas: " + s1.getName() + " x " + s2.getName()
+                      + "; excluding-field: " + Relation.quoteKey(field));
         return betweens;
     }
 
-    /** @return all associations containing the given Field as one side of the association */
-    public static Collection<Association> lookup(Field f) {
-        if (DEBUG.Enabled) {
-            Log.debug("fetching associations for " + f + ":");
-            Util.dump(AllByField.get(f));
-        }
-        return AllByField.get(f);
+    private static void dumpSmart(List list, String msg) {
+        String s = "";
+        if (list.size() == 1)
+            s = ": " + list.get(0).toString();
+        Log.debug(msg + s);
+        if (s.length() == 0)
+            Util.dump(list);
     }
 
-    /** @return true if the two Schema's are joined -- their key fields are associated */
-    public static boolean isJoined(Schema s1, Schema s2) {
-        return getJoin(s1, s2) != null;
+    /** @return true if there are any associations between the two schemas that do NOT contain the given Field,
+     * which means we'll need to do a join-extract to look for relationships */
+    public static boolean hasJoins(Schema s1, Field field) {
+        final Schema s2 = field.getSchema();
+        for (Association a : getAll()) 
+            if (a.isEnabled() && a.isBetween(s1, s2) && !a.contains(field))
+                return true;
+        return false;
     }
+//     public static boolean hasBetweens(Schema s1, Schema s2) {
+//         for (Association a : getAll()) 
+//             if (a.isEnabled() && a.isBetween(s1, s2))
+//                 return true;
+//         return false;
+//     }
     
-    /** @return the Association found if the two Schema's are joined (their key fields are associated) */
-    public static Association getJoin(Schema s1, Schema s2) {
+    
 
-        if (s1 == s2)
-            return null;
+    /** @return all associations containing the given Field as one side of the association */
+    public static Collection<Association> getAliases(Field f) {
+        final Collection<Association> got = AllByField.get(f);
 
-        // if we need more performance here, maintain this via a special map so we
-        // can instantly look it up -- or even store it right in each Schema, which
-        // would probably be the fastest.  We'll need to handle updating those maps
-        // tho for Schema's that reload after a user has, god forbid change their
-        // key field.
+        if (DEBUG.Enabled) {
+            final Object gots;
+            if (got.size() == 0)
+                gots = null;
+            else if (got.size() == 1)
+                gots = Util.extractFirst(got);
+            else
+                gots = "";
+            Log.debug("found associations for " + f + ": " + gots);
+            if (got.size() > 1)
+                Util.dump(got);
+        }
+        
+        return got;
+    }
 
-        for (Association a : getAll())
-            if (a.isEnabled() && a.isBetween(s1, s2) && a.isJoin())
-                return a;
-
-        return null;
+    public boolean contains(Field f) {
+        return f == field1 || f == field2;
     }
 
     public Field getLeft() {
@@ -190,14 +222,6 @@ public final class Association
         return field2;
     }
         
-    /** @return true if this association is a JOIN -- an association between
-     * the the key fields of two schemas.
-     */
-    public boolean isJoin() {
-        return schema1.getKeyField() == field1
-            && schema2.getKeyField() == field2;
-    }
-
     public Field getPairedField(Field f) {
         if (f == field1)
             return field2;
@@ -237,8 +261,49 @@ public final class Association
         enabled = on;
     }
 
-    @Override
-        public String toString() {
-        return String.format("Association[%s %s = %s]", enabled ? "ON " : "OFF", field1, field2);
+//     /** @return true if the two Schema's are joined -- their key fields are associated */
+//     public static boolean isJoined(Schema s1, Schema s2) {
+//         return getJoin(s1, s2) != null;
+//     }
+    
+//     /** @return true if this association is a DOUBLE JOIN -- an association between
+//      * the key fields of two schemas.
+//      */
+//     public boolean isDoubleJoin() {
+//         return schema1.getKeyField() == field1
+//             && schema2.getKeyField() == field2;
+//     }
+//     /** @return true if this association is a JOIN -- an association between
+//      * at least one key field of one of the Schema's
+//      */
+//     public boolean isJoin() {
+//         return schema1.getKeyField() == field1
+//             || schema2.getKeyField() == field2;
+//     }
+
+//     /** @return the Association found if the two Schema's are joined (their key fields are associated) */
+//     public static Association getJoin(Schema s1, Schema s2) {
+
+//         if (s1 == s2)
+//             return null;
+
+//         // if we need more performance here, maintain this via a special map so we
+//         // can instantly look it up -- or even store it right in each Schema, which
+//         // would probably be the fastest.  We'll need to handle updating those maps
+//         // tho for Schema's that reload after a user has, god forbid change their
+//         // key field.
+
+//         for (Association a : getAll())
+//             if (a.isEnabled() && a.isBetween(s1, s2) && a.isJoin())
+//                 return a;
+
+//         return null;
+//     }
+
+    @Override public String toString() {
+        return String.format("Association[%s%s=%s]",
+                             enabled ? "" : "DISABLED ",
+                             quoteKey(field1),
+                             quoteKey(field2));
     }
 }
