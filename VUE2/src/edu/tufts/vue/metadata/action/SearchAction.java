@@ -583,7 +583,7 @@ public class SearchAction extends AbstractAction {
             
             while(allOpenMaps.hasNext())
             {
-                Iterator<LWComponent> components = allOpenMaps.next().getAllDescendents(LWComponent.ChildKind.PROPER).iterator();   
+                Iterator<LWComponent> components = allOpenMaps.next().getAllDescendents(LWComponent.ChildKind.EDITABLE).iterator();   
                 while(components.hasNext())
                 {
                     LWComponent next = components.next();
