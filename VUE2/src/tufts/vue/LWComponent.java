@@ -52,7 +52,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.476 $ / $Date: 2009-06-30 17:30:10 $ / $Author: sfraize $
+ * @version $Revision: 1.477 $ / $Date: 2009-07-15 17:57:17 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1796,7 +1796,7 @@ u                    getSlot(c).setFromString((String)value);
     
     public UserMapType getUserMapType() { throw new UnsupportedOperationException("deprecated"); }
 
-    private static final String EnumeratedValueKey = "@ValueOf";
+    public static final String EnumeratedValueKey = "@ValueOf";
 
     //public void setDataInstanceValue(String key, Object value) {
     public void setDataInstanceValue(tufts.vue.ds.Field field, Object value) {
@@ -1898,6 +1898,8 @@ u                    getSlot(c).setFromString((String)value);
         return tufts.vue.ds.Field.valueName(value);
     }
 
+    // TODO: rename all these getDataValue* to getSingleValue*
+
     public String getDataValueFieldName() {
         if (mDataMap == null)
             return null;
@@ -1917,13 +1919,17 @@ u                    getSlot(c).setFromString((String)value);
         return fieldName;
     }
 
+    /** @return the Field if this a single-value field node, null otherwise */
     public Field getDataValueField() {
         if (mDataMap == null || mDataMap.getSchema() == null)
             return null;
 
         String fieldName = getDataValueFieldName();
         
-        return mDataMap.getSchema().getField(fieldName);
+        if (fieldName != null)
+            return mDataMap.getSchema().getField(fieldName);
+        else
+            return null;
     }
     
     
