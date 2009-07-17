@@ -74,6 +74,10 @@ public class VueAimPanel extends JPanel implements ActionListener, ClientConnLis
         resetApproveButton.addActionListener(this);
         ignoreCheckbox.addItemListener(this);
         approveCheckbox.addItemListener(this);
+        nodeWidthCheckbox.addItemListener(this);
+        makeTableCheckbox.addItemListener(this);
+        assignColorCheckbox.addItemListener(this);
+        
         mPropPanel  = new PropertyPanel();
         //mPropPanel.addProperty( "Label:", mTitleEditor); // initially Label was title
         mPropPanel.addProperty(VueResources.getString("im.username"), mUsernameEditor); //added through metadata
