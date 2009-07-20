@@ -101,7 +101,7 @@ public class Util
 
         if (!DEBUG)
             DEBUG = System.getProperty("tufts.Util.debug") != null;
-            
+           
         final String osName = System.getProperty("os.name");
         final String osArch = System.getProperty("os.arch");
         OSVersion = System.getProperty("os.version");
@@ -121,7 +121,18 @@ public class Util
         }
 
         final String osn = osName.toUpperCase();
-        if (osn.startsWith("MAC")) {
+        /*
+         * fix for forums problem.  one of the strangest bugs i've seen in a while.  
+         * something to keep in mind for future, calling toUpperCase() in a 
+         * locale that uses diacritics will add diacritics to a string that 
+         * did not originally contain them.  so, "windows vista" gets 
+         * diacritics on the i in both words, the fix is so put the match 
+         * we're looking for as the lower case word mac and winodws, and call 
+         * toUpperCase on them so both sides of the comparison are always being
+         * processed the same way.  note that if you call to upper on a string
+         * that is already upper case it does not place in the diacritic characters.
+         */
+        if (osn.startsWith("mac".toUpperCase())) {
             MacPlatform = true;
             OSisMacLeopard = OSVersion.startsWith("10.5");
             if (DEBUG) out(String.format("Mac: Leopard=%s", OSisMacLeopard));
@@ -141,7 +152,7 @@ public class Util
             }
             if (DEBUG) out("Mac mrj.version: \"" + mrj + "\" = " + MacMRJVersion);
             
-        } else if (osn.indexOf("WINDOWS") >= 0) {
+        } else if (osn.indexOf("windows".toUpperCase()) >= 0) {
             WindowsPlatform = true;
             OSisMacLeopard = false;
             //if (DEBUG) out("Windows Platform: " + PlatformName);
