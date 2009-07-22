@@ -97,6 +97,8 @@ public class FilledCircularLayout extends Layout {
                     } else {
                         flag = false;
                     }
+                    col_count++;
+ //                   System.out.println("count: "+col_count+" MAX"+MAX_COLLISION_CHECK+" node: "+node.getLabel());
                 }
                 node.setLocation(x, y);
 
