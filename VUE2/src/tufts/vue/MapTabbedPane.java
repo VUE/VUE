@@ -15,6 +15,7 @@
 
 package tufts.vue;
 
+import tufts.Util;
 import tufts.vue.gui.GUI;
 
 import java.awt.*;
@@ -30,7 +31,7 @@ import java.util.ArrayList;
  * Code for handling a tabbed pane of MapViewer's: adding, removing,
  * keeping tab labels current & custom appearance tweaks.
  *
- * @version $Revision: 1.50 $ / $Date: 2009-02-23 02:35:42 $ / $Author: sfraize $ 
+ * @version $Revision: 1.51 $ / $Date: 2009-07-22 14:16:58 $ / $Author: mike $ 
  */
 
 // todo: need to figure out how to have the active map grab
@@ -435,7 +436,7 @@ public class MapTabbedPane extends JTabbedPane
         // under the selected index.  So what we need to do is make sure the right
         // MapViewer forcably grabs the focus.
         
-        boolean forceFocusTransfer = false;
+        boolean forceFocusTransfer = Util.isWindowsPlatform() ? true : false;
 
         if (viewer == VUE.getActiveViewer()) {
 
