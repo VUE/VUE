@@ -31,7 +31,7 @@ import java.util.ArrayList;
  * Code for handling a tabbed pane of MapViewer's: adding, removing,
  * keeping tab labels current & custom appearance tweaks.
  *
- * @version $Revision: 1.51 $ / $Date: 2009-07-22 14:16:58 $ / $Author: mike $ 
+ * @version $Revision: 1.52 $ / $Date: 2009-07-22 14:18:18 $ / $Author: mike $ 
  */
 
 // todo: need to figure out how to have the active map grab
@@ -436,6 +436,10 @@ public class MapTabbedPane extends JTabbedPane
         // under the selected index.  So what we need to do is make sure the right
         // MapViewer forcably grabs the focus.
         
+        /**
+         * for more info on why the windows exception was added to to the below statement 
+         * see https://vue-forums.uit.tufts.edu/posts/list/484.pages
+         */
         boolean forceFocusTransfer = Util.isWindowsPlatform() ? true : false;
 
         if (viewer == VUE.getActiveViewer()) {
