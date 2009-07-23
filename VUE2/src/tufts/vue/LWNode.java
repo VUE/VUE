@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.249 $ / $Date: 2009-07-06 15:32:05 $ / $Author: sfraize $
+ * @version $Revision: 1.250 $ / $Date: 2009-07-23 18:45:11 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2265,7 +2265,28 @@ public class LWNode extends LWContainer
         	}
         }
 
-        if (dc.isLODEnabled() && mFontSize.get() * renderScale < 5) { // if net font point size < 5, do LOD
+        // if net on-screen point size is less than 5 for all text, we allow drawing
+        // with reduced LOD (level-of-detail)
+        
+        final boolean canDrawWithReducedLOD;
+
+        if (dc.isLODEnabled()) {
+        
+            final boolean canSkipLabel = mFontSize.get() * renderScale < 5; 
+            final boolean canSkipIcon;
+
+            if (iconShowing())
+                canSkipIcon = LWIcon.FONT_ICON.getSize() * renderScale < 5;
+            else
+                canSkipIcon = true;
+
+            canDrawWithReducedLOD = canSkipLabel && canSkipIcon;
+            
+        } else {
+            canDrawWithReducedLOD = false;
+        }
+
+        if (canDrawWithReducedLOD) {
 
             drawNodeWithLOD(dc, renderScale);
             

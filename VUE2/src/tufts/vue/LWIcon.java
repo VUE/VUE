@@ -56,7 +56,7 @@ public abstract class LWIcon extends Rectangle2D.Float
     private static final float DefaultScale = 0.045f; // scale to apply to the absolute size of our vector based icons
     private static final Color TextColor = VueResources.getColor("node.icon.color.foreground");
     private static final Color FillColor = VueResources.getColor("node.icon.color.fill");
-    private static final Font FONT_ICON = VueResources.getFont("node.icon.font");
+    public static final Font FONT_ICON = VueResources.getFont("node.icon.font");
     
     private final static BooleanPreference oneClickLaunchResPref = BooleanPreference.create(
 			edu.tufts.vue.preferences.PreferenceConstants.INTERACTIONS_CATEGORY,
