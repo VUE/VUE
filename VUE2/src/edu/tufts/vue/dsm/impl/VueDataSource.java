@@ -133,14 +133,14 @@ public class VueDataSource implements edu.tufts.vue.dsm.DataSource
                 while (objectIterator.hasNextObject()) {
                     // we could have an early exit but probably not worth it since the properties we want are likely to be last
                     String key = (String)objectIterator.nextObject();
+                    String path = null;
                     try {
                         if (key.equals("icon16x16")) {
-                            String path = factory.getResourcePath((String)props.getProperty(key));
+                            path = factory.getResourcePath((String)props.getProperty(key));
                             this.icon16x16 = new javax.swing.ImageIcon(path).getImage();
                         }
                     } catch (Throwable t) {
-                        //t.printStackTrace();
-                        System.out.println("Did not find resource");
+                        Log.warn(providerDisplayName + ": didn't find icon; key="+key + "; path=" + path + "; " + t);
                     }
                     //System.out.println("Getting properties.............." + key);
                     if (key.equals("configuration")) {
