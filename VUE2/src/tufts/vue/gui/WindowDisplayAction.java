@@ -32,7 +32,7 @@ import javax.swing.AbstractButton;
  * An action for displaying a Window and tracking it's displayed state,
  * keeping in synchronized with a somebody's button (such a checkbox in a menu).
  *
- * @version $Revision: 1.14 $ / $Date: 2009-04-10 15:32:27 $ / $Author: brian $
+ * @version $Revision: 1.15 $ / $Date: 2009-07-23 19:23:34 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class WindowDisplayAction extends javax.swing.AbstractAction
@@ -199,19 +199,15 @@ public class WindowDisplayAction extends javax.swing.AbstractAction
                 
             //mWindow.validate();
             
-            if (!VUE.isApplet() && Util.isMacLeopard() && VUE.getAnchorDock().isVisible())
-            {
-            	VUE.getAnchorDock().setVisible(false);
-            
-            }
-           
-           
+            if (VUE.usingAnchorDock()) {
 
-            if (!VUE.isApplet() && Util.isMacLeopard())
-            {	
-            	VUE.getAnchorDock().setVisible(true);
-            	VUE.getAnchorDock().toFront();
+                if (VUE.getAnchorDock().isVisible())
+                    VUE.getAnchorDock().setVisible(false);
+
+                VUE.getAnchorDock().setVisible(true);
+                VUE.getAnchorDock().toFront();
             }
+            
             mWindow.setVisible(true);
             mWindow.toFront();
             // could always set off screen and not move back until AWT cleared
@@ -226,22 +222,21 @@ public class WindowDisplayAction extends javax.swing.AbstractAction
 
             //VUE.ensureToolWindowVisibility(mTitle);
         } else {       
-        	 if (!VUE.isApplet() && Util.isMacLeopard())
-             {	
+            if (VUE.usingAnchorDock()) {
              	VUE.getAnchorDock().setVisible(true);
              	VUE.getAnchorDock().toFront();
-             }
+            }
             mWindow.setVisible(false);
-            if (!VUE.isApplet() && Util.isMacLeopard() && VUE.getAnchorDock().isVisible())
-            {
+            
+            if (VUE.usingAnchorDock() && VUE.getAnchorDock().isVisible())
             	VUE.getAnchorDock().setVisible(false);
             
-            }
-            if (!Util.isMacLeopard() && Util.isMacLeopard())
-            {	
-            	VUE.getAnchorDock().setVisible(true);
-            	VUE.getAnchorDock().toFront();
-            }
+// Below condition makes no sense -- was something else meant here?
+//             if (!Util.isMacLeopard() && Util.isMacLeopard())
+//             {	
+//             	VUE.getAnchorDock().setVisible(true);
+//             	VUE.getAnchorDock().toFront();
+//             }
             //VUE.ensureToolWindowVisibility(null);
         }
     }

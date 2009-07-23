@@ -55,7 +55,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.150 $ / $Date: 2009-06-29 20:22:16 $ / $Author: sfraize $
+ * @version $Revision: 1.151 $ / $Date: 2009-07-23 19:23:34 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1583,6 +1583,9 @@ public class DockWindow
     
     public static void flickerAnchorDock()
     {
+        if (VUE.usingAnchorDock() == false)
+            return;
+        
     	  if (!VUE.isApplet() && Util.isMacLeopard() && VUE.getAnchorDock().isVisible())
           {
           	VUE.getAnchorDock().setVisible(false);

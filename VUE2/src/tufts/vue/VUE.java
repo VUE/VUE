@@ -118,7 +118,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.669 $ / $Date: 2009-07-14 22:09:46 $ / $Author: brian $ 
+ * @version $Revision: 1.670 $ / $Date: 2009-07-23 19:23:33 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -911,7 +911,8 @@ public class VUE
     private static DockWindow ontologyDock;
     private static DockWindow anchor;
 
-    
+    private static boolean UseLeopardAnchor = false;
+
     static {
         Logger.getRootLogger().removeAllAppenders(); // need to do this or we get everything twice
         //BasicConfigurator.configure();
@@ -2193,7 +2194,17 @@ public class VUE
         //formatDock.setFocusable(true);
         //-----------------------------------------------------------------------------
 
-        if (Util.isMacLeopard() && DockWindow.useManagedWindowHacks() && !VUE.isApplet()) {
+        VUE.UseLeopardAnchor =
+               Util.isMacLeopard()
+            && Util.getJavaVersion() >= 1.6f
+            && DockWindow.useManagedWindowHacks()
+            && !VUE.isApplet();
+
+        // 2009-07-23 SMF: Current Mac OS X 1.5 JVM appears to NOT need the Leopard anchor,
+        // but java 1.6 JVM still does.  This just with one test -- we'll need to keep
+        // an eye on this.
+
+        if (VUE.UseLeopardAnchor) {
             // Workaround for DockWindow's going behind the VUE Window on Leopard bug, especially
             // when there's only one DockWindow open.  So we literally create a DockWindow
             // to always hang around, and just set it off screen.
@@ -2597,6 +2608,11 @@ public class VUE
     public static DockWindow getAnchorDock()
     {
     	return anchor;
+    }
+    
+    public static boolean usingAnchorDock()
+    {
+    	return VUE.UseLeopardAnchor;
     }
     
     public static DockWindow getPresentationDock()

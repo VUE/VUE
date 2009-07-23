@@ -37,7 +37,7 @@ import org.apache.log4j.NDC;
 /**
  * Code for providing, entering and exiting VUE full screen modes.
  *
- * @version $Revision: 1.39 $ / $Date: 2008-12-16 23:14:30 $ / $Author: sfraize $
+ * @version $Revision: 1.40 $ / $Date: 2009-07-23 19:23:34 $ / $Author: sfraize $
  *
  */
 
@@ -164,7 +164,7 @@ public class FullScreen
         }
 
         private void setOffScreen() {
-            if (DEBUG.DOCK) {
+            if (DEBUG.DOCK && DEBUG.META) {
                 // instead of hiding it, keep it around so we can observe it and
                 // it's layering relative to other VUE windows (it should always
                 // be OVER the main window, and UNDER all DockWindow's)
