@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.250 $ / $Date: 2009-07-23 18:45:11 $ / $Author: sfraize $
+ * @version $Revision: 1.251 $ / $Date: 2009-07-23 20:18:48 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2254,8 +2254,6 @@ public class LWNode extends LWContainer
     @Override
     protected void drawImpl(DrawContext dc)
     {
-        final float renderScale = (float) dc.getAbsoluteScale();
-
         if (!isSelected() && (parent == null || !parent.isSelected())) {
         	double	alpha =  VUE.getInteractionToolsPanel().getAlpha();
 
@@ -2265,13 +2263,12 @@ public class LWNode extends LWContainer
         	}
         }
 
-        // if net on-screen point size is less than 5 for all text, we allow drawing
-        // with reduced LOD (level-of-detail)
-        
-        final boolean canDrawWithReducedLOD;
-
         if (dc.isLODEnabled()) {
+
+            // if net on-screen point size is less than 5 for all text, we allow drawing
+            // with reduced LOD (level-of-detail)
         
+            final float renderScale = (float) dc.getAbsoluteScale();            
             final boolean canSkipLabel = mFontSize.get() * renderScale < 5; 
             final boolean canSkipIcon;
 
@@ -2280,50 +2277,45 @@ public class LWNode extends LWContainer
             else
                 canSkipIcon = true;
 
-            canDrawWithReducedLOD = canSkipLabel && canSkipIcon;
-            
-        } else {
-            canDrawWithReducedLOD = false;
+            if (canSkipLabel && canSkipIcon) {
+                drawNodeWithLOD(dc, renderScale);
+                return;
+            }
         }
 
-        if (canDrawWithReducedLOD) {
-
-            drawNodeWithLOD(dc, renderScale);
             
-        } else {
-            
-//             if (isSelected() && dc.isInteractive() && dc.focal != this)
-//                 drawSelection(dc);
+        //             if (isSelected() && dc.isInteractive() && dc.focal != this)
+        //                 drawSelection(dc);
         
-            //=============================================================================
-            // DRAW COMPLETE (with full detail)
-            //=============================================================================
+        //=============================================================================
+        // DRAW COMPLETE (with full detail)
+        //=============================================================================
             
-            if (!isFiltered()) {
+        if (!isFiltered()) {
 
-                // Desired functionality is that if this node is filtered, we don't draw it, of course.
-                // But also, even if this node is filtered, we still draw any children who are
-                // NOT filtered -- we just drop out the parent background.
-                drawNode(dc);
-            }
-
-            
-            
-            //-------------------------------------------------------
-            // Draw any children
-            //-------------------------------------------------------
-            
-            if (hasChildren()) {
-                //if (isZoomedFocus()) dc.g.setComposite(ZoomTransparency);
-                drawChildren(dc);
-            }
-
-            if (isSelected() && dc.isInteractive() && dc.focal != this)
-                drawSelection(dc);
-        
-            
+            // Desired functionality is that if this node is filtered, we don't draw it, of course.
+            // But also, even if this node is filtered, we still draw any children who are
+            // NOT filtered -- we just drop out the parent background.
+            drawNode(dc);
         }
+
+            
+            
+        //-------------------------------------------------------
+        // Draw any children
+        //-------------------------------------------------------
+            
+        if (hasChildren()) {
+            //if (isZoomedFocus()) dc.g.setComposite(ZoomTransparency);
+            drawChildren(dc);
+        }
+
+        if (isSelected() && dc.isInteractive() && dc.focal != this)
+            drawSelection(dc);
+        
     }
+    
+
 
     private void drawNodeWithLOD(DrawContext dc, float renderScale)
     {
