@@ -57,7 +57,7 @@ import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.146 $ / $Date: 2009-06-27 12:44:53 $ / $Author: sfraize $
+ * @version $Revision: 1.147 $ / $Date: 2009-07-23 19:13:46 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1498,7 +1498,8 @@ public class GUI
     public static void setOffScreen(java.awt.Window window)
     {
         refreshGraphicsInfo();
-        window.setLocation(-999, 8000);
+        window.setLocation(0, GScreenHeight + 1);
+        //window.setLocation(-999, 8000); // may have been making Mac OS X Expose display too messy
     }
     
     public static void setAlwaysOnTop(Window w, boolean onTop) {
