@@ -59,7 +59,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.241 $ / $Date: 2009-07-06 15:18:49 $ / $Author: sfraize $
+ * @version $Revision: 1.242 $ / $Date: 2009-07-23 19:09:50 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -1791,9 +1791,9 @@ public class LWMap extends LWContainer
         
         if (dc.zoom > PathwayOnTopZoomThreshold || dc.isPresenting()) { // VUE-1177
             drawPathways(dc);
-            super.drawChildren(dc);
+            super.drawChildren(dc); // draw all layers
         } else {
-            super.drawChildren(dc);
+            super.drawChildren(dc); // draw all layers
             drawPathways(dc);
         }
 
