@@ -43,7 +43,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.221 $ / $Date: 2009-06-30 17:30:10 $ / $Author: sfraize $
+ * @version $Revision: 1.222 $ / $Date: 2009-07-23 19:15:09 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -626,6 +626,46 @@ public class LWLink extends LWComponent
         }
     }
 
+    public Collection<LWComponent> getEndpointChain(LWComponent endpoint) {
+        final HashSet set = new HashSet();
+        // pre-add us to the set, so we can't back up through our other endpoint:
+        set.add(this);
+        //return endpoint.getLinkChain(set);
+        final LWComponent exclude  = (endpoint == head.node ? tail.node : head.node);
+        if (DEBUG.Enabled) Log.debug(this + "; getEndpointChain: " + endpoint + "; EXCLUDE=" + exclude);
+        endpoint.getLinkChain(set);
+        if (SKIP_NODE_ENDPOINT_PRUNE)
+            set.remove(endpoint);
+        //set.remove(endpoint == head.node ? tail.node : head.node);
+        return set;
+    }
+    
+    /**
+     * @return all linked components: for a link, this is usually just it's endpoints,
+     *  but like any other LWComponent, it will also include any other links that connect
+     *  directly to us
+     *
+     * The includusion if it's enpodints is effected by pruning -- pruned enpoints
+     * will not include their nodes.
+     */
+    @Override
+    public Collection<? extends LWComponent> getConnected() {
+
+        final List links = getLinks();
+        final Collection bag = new HashSet(links.size() + 2); // common case size
+
+        if (head.hasNode() && !head.isPruned())
+            bag.add(head.node);
+        if (tail.hasNode() && !tail.isPruned())
+            bag.add(tail.node);
+
+        if (links.size() > 0)
+            bag.addAll(links);
+        
+        return bag;
+    }
+
+    
     /** @return 1.0 -- links never scaled by themselves */
     @Override
     public double getScale() {
@@ -705,43 +745,6 @@ public class LWLink extends LWComponent
             }
         } else
             super.draw(dc);
-    }
-
-    
-    public Collection<LWComponent> getEndpointChain(LWComponent endpoint) {
-        final HashSet set = new HashSet();
-        // pre-add us to the set, so we can't back up through our other endpoint:
-        set.add(this);
-        //return endpoint.getLinkChain(set);
-        endpoint.getLinkChain(set);
-        if (SKIP_NODE_ENDPOINT_PRUNE)
-            set.remove(endpoint);
-        return set;
-    }
-    
-    /**
-     * @return all linked components: for a link, this is usually just it's endpoints,
-     *  but like any other LWComponent, it will also include any other links that connect
-     *  directly to us
-     *
-     * The includusion if it's enpodints is effected by pruning -- pruned enpoints
-     * will not include their nodes.
-     */
-    @Override
-    public Collection<? extends LWComponent> getConnected() {
-
-        final List links = getLinks();
-        final Collection bag = new HashSet(links.size() + 2); // common case size
-
-        if (head.hasNode() && !head.isPruned())
-            bag.add(head.node);
-        if (tail.hasNode() && !tail.isPruned())
-            bag.add(tail.node);
-
-        if (links.size() > 0)
-            bag.addAll(links);
-        
-        return bag;
     }
 
     
