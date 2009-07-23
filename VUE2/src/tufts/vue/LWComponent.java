@@ -52,7 +52,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.477 $ / $Date: 2009-07-15 17:57:17 $ / $Author: sfraize $
+ * @version $Revision: 1.478 $ / $Date: 2009-07-23 21:25:32 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -3665,7 +3665,7 @@ u                    getSlot(c).setFromString((String)value);
     
     /** @return a list of every component connected to this one via links, including the links themselves */
     public Collection<LWComponent> getLinkChain() {
-        return getLinkChain(new HashSet());
+        return getLinkChain(new HashSet(), null);
     }
     
     /**
@@ -3675,15 +3675,22 @@ u                    getSlot(c).setFromString((String)value);
      * Note that if this collection isn't a Set of some kind, components will appear in the bag more than once.
      * (Once for every time they were visited).
      */
-    public Collection<LWComponent> getLinkChain(Collection bag)
+    public Collection<LWComponent> getLinkChain(Collection bag, LWComponent exclude)
     {
         if (!bag.add(this)) {
             // already added to the set with all connections -- don't process again            
             return bag;
         }
+
+        if (DEBUG.LINK) {
+            Log.debug("getLinkChain: " + this);
+            Util.dump(getConnected());
+        }
         
-        for (LWComponent c : getConnected())
-            c.getLinkChain(bag);
+        for (LWComponent c : getConnected()) {
+            if (c != exclude)
+                c.getLinkChain(bag, exclude);
+        }
 
         return bag;
     }

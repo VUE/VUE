@@ -43,7 +43,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.222 $ / $Date: 2009-07-23 19:15:09 $ / $Author: sfraize $
+ * @version $Revision: 1.223 $ / $Date: 2009-07-23 21:25:32 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -468,6 +468,7 @@ public class LWLink extends LWComponent
     @Override
     public boolean supportsReparenting() { return false; }
     
+    @Override
     public boolean handleSingleClick(MapMouseEvent e)
     {
 //         // we don't get this event if there are modifiers down...
@@ -605,12 +606,12 @@ public class LWLink extends LWComponent
     }
 
     private void toggleHeadPrune() {
-        pruneToggle(!head.pruned, getEndpointChain(head.node));
+        pruneToggle(!head.pruned, getEndpointChain(tail.node));
         head.pruned = !head.pruned;
     }
 
     private void toggleTailPrune() {
-        pruneToggle(!tail.pruned, getEndpointChain(tail.node));
+        pruneToggle(!tail.pruned, getEndpointChain(head.node));
         tail.pruned = !tail.pruned;
     }
 
@@ -629,14 +630,17 @@ public class LWLink extends LWComponent
     public Collection<LWComponent> getEndpointChain(LWComponent endpoint) {
         final HashSet set = new HashSet();
         // pre-add us to the set, so we can't back up through our other endpoint:
-        set.add(this);
-        //return endpoint.getLinkChain(set);
+        //set.add(this);
         final LWComponent exclude  = (endpoint == head.node ? tail.node : head.node);
-        if (DEBUG.Enabled) Log.debug(this + "; getEndpointChain: " + endpoint + "; EXCLUDE=" + exclude);
-        endpoint.getLinkChain(set);
+        if (DEBUG.LINK) Log.debug(this + "; getEndpointChain: " + endpoint + "; EXCLUDE=" + exclude);
+        endpoint.getLinkChain(set, exclude);
         if (SKIP_NODE_ENDPOINT_PRUNE)
             set.remove(endpoint);
         //set.remove(endpoint == head.node ? tail.node : head.node);
+        if (DEBUG.LINK) {
+            Util.dump(set);
+            Log.debug("DONE\n");
+        }
         return set;
     }
     
@@ -1537,6 +1541,10 @@ public class LWLink extends LWComponent
     protected boolean containsImpl(float x, float y, PickContext pc) {
         // link coordinates are all parent-local, so containsImpl is passing us a coordinate
         // in the space of our parent.
+
+//         if (head.isPruned() || tail.isPruned())
+//             return false;
+        
         final float lx = getX();
         final float ly = getY();
         if (x < lx || y < ly || x > lx + getWidth() || y > ly + getHeight()) {
@@ -2752,53 +2760,30 @@ public class LWLink extends LWComponent
         
         if (isSelected() && dc.isInteractive()) {
             g.setColor(COLOR_HIGHLIGHT);
-            g.setStroke(new BasicStroke(stroke.getLineWidth() + 5, BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL));//todo:config
+            // todo peformance: cache these at common widths!
+            g.setStroke(new BasicStroke(stroke.getLineWidth() + 5, BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL));
             g.draw(getZeroShape());
         }
 
-        if (DEBUG.BOXES) {
-            // Split the curves into green & red halves for debugging
-            Composite composite = dc.g.getComposite();
-            dc.g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
-            
-            if (mCurveControls == 1) {
-                QuadCurve2D left = new QuadCurve2D.Float();
-                QuadCurve2D right = new QuadCurve2D.Float();
-                mQuad.subdivide(left,right);
-                g.setColor(Color.green);
-                g.setStroke(new BasicStroke(mStrokeWidth.get()+4));
-                g.draw(left);
-                g.setColor(Color.red);
-                g.draw(right);
-            } else if (mCurveControls == 2) {
-                CubicCurve2D left = new CubicCurve2D.Float();
-                CubicCurve2D right = new CubicCurve2D.Float();
-                mCubic.subdivide(left,right);
-                g.setColor(Color.green);
-                g.setStroke(new BasicStroke(mStrokeWidth.get()+4));
-                g.draw(left);
-                g.setColor(Color.red);
-                g.draw(right);
-            }
-            dc.g.setComposite(composite);
-        }
+        if (DEBUG.BOXES) drawDebugCurve(dc);
         
         if (!isSelected()) {
-        	double	alpha =  VUE.getInteractionToolsPanel().getAlpha();
-
-        	if (alpha != 1) {
+            double alpha =  VUE.getInteractionToolsPanel().getAlpha();
+            if (alpha != 1) {
             	// "Fade" this link.
                 dc.setAlpha(alpha);
-        	}
+            }
         }
 
         g.setColor(getStrokeColor());
+
+        final boolean isPruned = head.isPruned() || tail.isPruned();
 
         //-------------------------------------------------------
         // Draw arrow heads if there are any
         //-------------------------------------------------------
         
-        if (mArrowState.get() != 0) {
+        if (!isPruned && mArrowState.get() != 0) {
             if (dc.zoom <= 0.125 && dc.isLODEnabled())
                 ; // don't draw arrows
             else
@@ -2806,13 +2791,12 @@ public class LWLink extends LWComponent
         }
         
         //-------------------------------------------------------
-        // Draw the stroke
+        // Set the stroke width
         //
-        // Note that since links are always drawn at the
-        // map level, we need to compensate for the current
-        // scale by manually modifying the drawn stroke width,
-        // as well as the text box.
-        //-------------------------------------------------------
+        // Note that since links are always drawn at the map level, we
+        // need to compensate for the current scale by manually
+        // modifying the drawn stroke width, as well as the text box.
+        // -------------------------------------------------------
 
         float strokeWidth = mStrokeWidth.get();
         if (strokeWidth <= 0)
@@ -2822,94 +2806,24 @@ public class LWLink extends LWComponent
 //             //dc.setAbsoluteStroke(stroke.getLineWidth() * getMapScale());
 //             g.setStroke(mStrokeStyle.get().makeStroke(strokeWidth / g.getTransform().getScaleX()));
 //         } else {
-            if (stroke == STROKE_ZERO) { // mStrokeWidth.get() was 0
-                // never draw an invisible link: draw zero strokes at small absolute scale tho
-                float curScale = (float) g.getTransform().getScaleX();
-                if (curScale > 1)
-                    strokeWidth /= curScale;
-                g.setStroke(mStrokeStyle.get().makeStroke(strokeWidth));
-            } else {
-                g.setStroke(stroke);
-            }
-//         }
-        
-        if (mCurve == null) {
-            
-            //-------------------------------------------------------
-            // draw the line
-            //-------------------------------------------------------
-            
-            g.draw(mLine);
-            
+        if (stroke == STROKE_ZERO) { // mStrokeWidth.get() was 0
+            // never draw an invisible link: draw zero strokes at small absolute scale tho
+            float curScale = (float) g.getTransform().getScaleX();
+            if (curScale > 1)
+                strokeWidth /= curScale;
+            g.setStroke(mStrokeStyle.get().makeStroke(strokeWidth));
         } else {
-            
-            //-------------------------------------------------------
-            // draw the curve
-            //-------------------------------------------------------
-
-            if (mCurve == mQuad && badCurve(mQuad)) {
-                Log.warn("BAD QUAD CURVE " + this + "; " + Util.fmt(mQuad));
-            } else if (mCurve == mCubic && badCurve(mCubic)) {
-                Log.warn("BAD CUBIC CURVE " + this + "; " + Util.fmt(mCubic));
-            } else {
-                if (DEBUG.LINK) {
-                    Log.debug(this + "; drawing " + Util.tags(mCurve));
-                    g.draw(mCurve);
-                    Log.debug(this + ";    drew " + Util.tags(mCurve));
-                } else {
-                    g.draw(mCurve);
-                }
-            }
-            
-            if (DEBUG.BOXES) {
-
-                dc.setAbsoluteStroke(0.5);
-                dc.g.setColor(COLOR_SELECTION);
-                
-                //Point2D first = new Point2D.Float(mPoints[0], mPoints[1]);
-                //Point2D last = new Point2D.Float(mPoints[mLastPoint-2], mPoints[mLastPoint-1]);
-                Point2D first = getHeadPoint();
-                Point2D last = getTailPoint();
-                
-                for (Line2D seg : new SegIterator()) {
-                    dc.g.draw(seg);
-                    dc.g.draw(new Line2D.Float(first, seg.getP2()));
-                    dc.g.draw(new Line2D.Float(last, seg.getP2()));
-                }
-            }
-                    
-            if (dc.isInteractive() && (isSelected() || DEBUG.BOXES || DEBUG.CONTAINMENT)) {
-                //-------------------------------------------------------
-                // draw faint lines to control points if selected TODO: need to do this
-                // at time we paint the selection, so these are always on top -- perhaps
-                // have a LWComponent drawSkeleton, who's default is to just draw an
-                // outline shape, which can replace the manual code in MapViewer, and in
-                // the case of LWLink, can also draw the control lines.
-                //-------------------------------------------------------
-                g.setColor(COLOR_SELECTION); // todo: move these to DrawContext
-                dc.setAbsoluteStroke(0.5);
-                if (mCurveControls == 2) {
-                    Line2D ctrlLine = new Line2D.Float(mLine.getP1(), mCubic.getCtrlP1());
-                    g.draw(ctrlLine);
-                    //float clx1 = line.x1 + mCubic.ctrlx
-                    ctrlLine.setLine(mLine.getP2(), mCubic.getCtrlP2());
-                    g.draw(ctrlLine);
-                } else {
-                    Line2D ctrlLine = new Line2D.Float(mLine.getP1(), mQuad.getCtrlPt());
-                    g.draw(ctrlLine);
-                    ctrlLine.setLine(mLine.getP2(), mQuad.getCtrlPt());
-                    g.draw(ctrlLine);
-                }
-                g.setStroke(stroke);
-            }
-            //g.drawLine((int)line.getX1(), (int)line.getY1(), (int)curve.getCtrlX(), (int)curve.getCtrlY());
-            //g.drawLine((int)line.getX2(), (int)line.getY2(), (int)curve.getCtrlX(), (int)curve.getCtrlY());
+            g.setStroke(stroke);
         }
 
-        if (!isNestedLink())
-            drawLinkDecorations(dc);
+        if (!isPruned) {
+            drawStroke(dc);
+
+            if (!isNestedLink())
+                drawLinkDecorations(dc);
+        }
         
-        if (head.isPruned() || tail.isPruned()) {
+        if (isPruned) {
             float size = 7;
             //if (dc.zoom < 1) size /= dc.zoom;
             RectangularShape dot = new java.awt.geom.Ellipse2D.Float(0,0, size,size);
@@ -2919,10 +2833,14 @@ public class LWLink extends LWComponent
             if (head.isPruned()) {
                 dot.setFrameFromCenter(head.x, head.y, head.x+size/2, head.y+size/2);
                 dc.g.fill(dot);
+                dc.g.setColor(Color.darkGray);
+                dc.g.draw(dot);
             }
             if (tail.isPruned()) {
                 dot.setFrameFromCenter(tail.x, tail.y, tail.x+size/2, tail.y+size/2);
                 dc.g.fill(dot);
+                dc.g.setColor(Color.darkGray);
+                dc.g.draw(dot);
             }
             //dc.g.setComposite(composite);
         }
@@ -2959,6 +2877,115 @@ public class LWLink extends LWComponent
 
         //if (dc.drawAbsoluteLinks) dc.setAbsoluteDrawing(false);
         
+    }
+
+    private void drawStroke(DrawContext dc)
+    {
+        if (mCurve == null) {
+            
+            //-------------------------------------------------------
+            // draw the line
+            //-------------------------------------------------------
+            
+            dc.g.draw(mLine);
+            
+        } else {
+
+            final Graphics2D g = dc.g;            
+            
+            //-------------------------------------------------------
+            // draw the curve
+            //-------------------------------------------------------
+
+            if (mCurve == mQuad && badCurve(mQuad)) {
+                Log.warn("BAD QUAD CURVE " + this + "; " + Util.fmt(mQuad));
+            } else if (mCurve == mCubic && badCurve(mCubic)) {
+                Log.warn("BAD CUBIC CURVE " + this + "; " + Util.fmt(mCubic));
+            } else {
+                if (DEBUG.LINK) {
+                    Log.debug(this + "; drawing " + Util.tags(mCurve));
+                    g.draw(mCurve);
+                    Log.debug(this + ";    drew " + Util.tags(mCurve));
+                } else {
+                    g.draw(mCurve);
+                }
+            }
+            
+            if (DEBUG.BOXES) {
+
+                dc.setAbsoluteStroke(0.5);
+                g.setColor(COLOR_SELECTION);
+                
+                //Point2D first = new Point2D.Float(mPoints[0], mPoints[1]);
+                //Point2D last = new Point2D.Float(mPoints[mLastPoint-2], mPoints[mLastPoint-1]);
+                Point2D first = getHeadPoint();
+                Point2D last = getTailPoint();
+                
+                for (Line2D seg : new SegIterator()) {
+                    g.draw(seg);
+                    g.draw(new Line2D.Float(first, seg.getP2()));
+                    g.draw(new Line2D.Float(last, seg.getP2()));
+                }
+            }
+                    
+            if (dc.isInteractive() && (isSelected() || DEBUG.BOXES || DEBUG.CONTAINMENT)) {
+                //-------------------------------------------------------
+                // draw faint lines to control points if selected TODO: need to do this
+                // at time we paint the selection, so these are always on top -- perhaps
+                // have a LWComponent drawSkeleton, who's default is to just draw an
+                // outline shape, which can replace the manual code in MapViewer, and in
+                // the case of LWLink, can also draw the control lines.
+                //-------------------------------------------------------
+                g.setColor(COLOR_SELECTION); // todo: move these to DrawContext
+                dc.setAbsoluteStroke(0.5);
+                if (mCurveControls == 2) {
+                    Line2D ctrlLine = new Line2D.Float(mLine.getP1(), mCubic.getCtrlP1());
+                    g.draw(ctrlLine);
+                    //float clx1 = line.x1 + mCubic.ctrlx
+                    ctrlLine.setLine(mLine.getP2(), mCubic.getCtrlP2());
+                    g.draw(ctrlLine);
+                } else {
+                    Line2D ctrlLine = new Line2D.Float(mLine.getP1(), mQuad.getCtrlPt());
+                    g.draw(ctrlLine);
+                    ctrlLine.setLine(mLine.getP2(), mQuad.getCtrlPt());
+                    g.draw(ctrlLine);
+                }
+                g.setStroke(stroke);
+            }
+            //g.drawLine((int)line.getX1(), (int)line.getY1(), (int)curve.getCtrlX(), (int)curve.getCtrlY());
+            //g.drawLine((int)line.getX2(), (int)line.getY2(), (int)curve.getCtrlX(), (int)curve.getCtrlY());
+        }
+    }
+
+    /** Split the curves into green & red halves for debugging */
+    private void drawDebugCurve(DrawContext dc)
+    {
+        final Graphics2D g = dc.g;
+        
+        Composite composite = g.getComposite();
+        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
+            
+        if (mCurveControls == 1) {
+            QuadCurve2D left = new QuadCurve2D.Float();
+            QuadCurve2D right = new QuadCurve2D.Float();
+            mQuad.subdivide(left,right);
+            g.setColor(Color.green);
+            g.setStroke(new BasicStroke(mStrokeWidth.get()+4));
+            g.draw(left);
+            g.setColor(Color.red);
+            g.draw(right);
+        } else if (mCurveControls == 2) {
+            CubicCurve2D left = new CubicCurve2D.Float();
+            CubicCurve2D right = new CubicCurve2D.Float();
+            mCubic.subdivide(left,right);
+            g.setColor(Color.green);
+            g.setStroke(new BasicStroke(mStrokeWidth.get()+4));
+            g.draw(left);
+            g.setColor(Color.red);
+            g.draw(right);
+        }
+        g.setComposite(composite);
+
     }
 
     @Override
