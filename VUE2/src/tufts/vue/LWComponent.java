@@ -44,15 +44,10 @@ import tufts.vue.filter.*;
 import edu.tufts.vue.metadata.MetadataList;
 import edu.tufts.vue.metadata.VueMetadataElement;
 
-import edu.tufts.vue.style.Style;
-
-import edu.tufts.vue.preferences.implementations.BooleanPreference;
-import edu.tufts.vue.preferences.interfaces.VuePreference;    
-
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.478 $ / $Date: 2009-07-23 21:25:32 $ / $Author: sfraize $
+ * @version $Revision: 1.479 $ / $Date: 2009-07-24 21:24:46 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
