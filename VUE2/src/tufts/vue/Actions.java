@@ -1884,6 +1884,7 @@ public class Actions implements VueConstants
     /** this will toggle the collapsed state flag */
     public static final LWCAction Collapse =
     new LWCAction(VueResources.getString("menu.format.collapse"), keyStroke(KeyEvent.VK_X, SHIFT+LEFT_OF_SPACE)) {
+        boolean enabledFor(LWSelection s) { return s.size() > 1 || s.size() == 1 && s.only().hasChildren(); }
         @Override void act(LWComponent c) {
             c.setCollapsed(!c.isCollapsed());
         }
