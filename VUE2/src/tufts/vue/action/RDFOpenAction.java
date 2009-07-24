@@ -162,6 +162,7 @@ public class RDFOpenAction extends VueAction {
             }
 
             map.layoutAndValidateNewMap();
+            map.markAsSaved(); // all mods permanent
         
             return map;
         } catch (Exception e) {
