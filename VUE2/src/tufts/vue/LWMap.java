@@ -59,7 +59,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.242 $ / $Date: 2009-07-23 19:09:50 $ / $Author: sfraize $
+ * @version $Revision: 1.243 $ / $Date: 2009-07-24 22:12:42 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -1211,6 +1211,67 @@ public class LWMap extends LWContainer
     static final String NODE_INIT_LAYOUT = "completeXMLRestore:NODE";
     static final String LINK_INIT_LAYOUT = "completeXMLRestore:LINK";
 
+    public void layoutAndValidateNewMap() {
+        final Collection<LWComponent> all = getAllDescendents();
+        layoutAll(all); // will be auto-validated due to initial layout trigger
+        //validateAll(all);
+    }
+
+//     private void validateAll(Collection<LWComponent> components) {
+//         for (LWComponent c : components) {
+//             c.validateInitialValues();
+//         }
+//     }
+
+    /** note side effect: will clear all mXMLRestoreUnderway flags if any are set */
+    private void layoutAll(Collection<LWComponent> components)
+    {
+        for (LWComponent c : components) {
+            // mark all, including links, now, as when we get to them, links-to-links may
+            // cause cascading recomputes that would warn us they're still being restored otherwise.
+            c.mXMLRestoreUnderway = false;
+            if (c instanceof LWLink)
+                continue;
+            if (DEBUG.LAYOUT||DEBUG.INIT) out("LAYOUT NODE: in " +  c.getParent() + ": " + c);
+            try {
+                c.layout(NODE_INIT_LAYOUT);
+            } catch (Throwable t) {
+                tufts.Util.printStackTrace(t, "INITIAL LAYOUT NODE " + c);
+            }
+        }
+
+        //-----------------------------------------------------------------------------
+        // Layout links -- will trigger recomputes & layout any link-labels that need it.
+        //-----------------------------------------------------------------------------
+        
+        //if (!tufts.vue.action.SaveAction.PACKAGE_DEBUG) // tmp hack
+            
+        for (LWComponent c : components) {
+            if (c instanceof LWLink == false)
+                continue;
+            if (DEBUG.LAYOUT||DEBUG.INIT) out("LAYOUT LINK: in " +  c.getParent() + ": " + c);
+            try {
+                c.layout(LINK_INIT_LAYOUT);
+            } catch (Throwable t) {
+                tufts.Util.printStackTrace(t, "INITIAL LAYOUT LINK " + c);
+            }
+        }
+        
+        //-----------------------------------------------------------------------------
+        // Just to be sure, re-normalize all groups.  This shouldn't be required, except
+        // perhaps if we're updating from an old model version.
+        //-----------------------------------------------------------------------------
+        
+        for (LWComponent c : components) {
+            try {
+                if (c instanceof LWGroup)
+                    ((LWGroup)c).normalize();
+            } catch (Throwable t) {
+                tufts.Util.printStackTrace(t, "INITIAL NORMALIZE " + c);
+            }
+        }
+    }
+
     public void completeXMLRestore(Object context)
     {
         if (DEBUG.INIT || DEBUG.IO || DEBUG.XML)
@@ -1371,51 +1432,53 @@ public class LWMap extends LWContainer
         //-----------------------------------------------------------------------------
         
         //if (!tufts.vue.action.SaveAction.PACKAGE_DEBUG) // tmp hack: we get exceptions when testing just SaveAction on this code
-        
-        for (LWComponent c : allRestored) {
-            // mark all, including links, now, as when we get to them, links-to-links may
-            // cause cascading recomputes that would warn us they're still being restored otherwise.
-            c.mXMLRestoreUnderway = false;
-            if (c instanceof LWLink)
-                continue;
-            if (DEBUG.LAYOUT||DEBUG.INIT) out("LAYOUT NODE: in " +  c.getParent() + ": " + c);
-            try {
-                c.layout(NODE_INIT_LAYOUT);
-            } catch (Throwable t) {
-                tufts.Util.printStackTrace(t, "RESTORE LAYOUT NODE " + c);
-            }
-        }
 
-        //-----------------------------------------------------------------------------
-        // Layout links -- will trigger recomputes & layout any link-labels that need it.
-        //-----------------------------------------------------------------------------
+        layoutAll(allRestored);
         
-        //if (!tufts.vue.action.SaveAction.PACKAGE_DEBUG) // tmp hack
+//         for (LWComponent c : allRestored) {
+//             // mark all, including links, now, as when we get to them, links-to-links may
+//             // cause cascading recomputes that would warn us they're still being restored otherwise.
+//             c.mXMLRestoreUnderway = false;
+//             if (c instanceof LWLink)
+//                 continue;
+//             if (DEBUG.LAYOUT||DEBUG.INIT) out("LAYOUT NODE: in " +  c.getParent() + ": " + c);
+//             try {
+//                 c.layout(NODE_INIT_LAYOUT);
+//             } catch (Throwable t) {
+//                 tufts.Util.printStackTrace(t, "RESTORE LAYOUT NODE " + c);
+//             }
+//         }
+
+//         //-----------------------------------------------------------------------------
+//         // Layout links -- will trigger recomputes & layout any link-labels that need it.
+//         //-----------------------------------------------------------------------------
+        
+//         //if (!tufts.vue.action.SaveAction.PACKAGE_DEBUG) // tmp hack
             
-        for (LWComponent c : allRestored) {
-            if (c instanceof LWLink == false)
-                continue;
-            if (DEBUG.LAYOUT||DEBUG.INIT) out("LAYOUT LINK: in " +  c.getParent() + ": " + c);
-            try {
-                c.layout(LINK_INIT_LAYOUT);
-            } catch (Throwable t) {
-                tufts.Util.printStackTrace(t, "RESTORE LAYOUT LINK " + c);
-            }
-        }
+//         for (LWComponent c : allRestored) {
+//             if (c instanceof LWLink == false)
+//                 continue;
+//             if (DEBUG.LAYOUT||DEBUG.INIT) out("LAYOUT LINK: in " +  c.getParent() + ": " + c);
+//             try {
+//                 c.layout(LINK_INIT_LAYOUT);
+//             } catch (Throwable t) {
+//                 tufts.Util.printStackTrace(t, "RESTORE LAYOUT LINK " + c);
+//             }
+//         }
         
-        //-----------------------------------------------------------------------------
-        // Just to be sure, re-normalize all groups.  This shouldn't be required, except
-        // perhaps if we're updating from an old model version.
-        //-----------------------------------------------------------------------------
+//         //-----------------------------------------------------------------------------
+//         // Just to be sure, re-normalize all groups.  This shouldn't be required, except
+//         // perhaps if we're updating from an old model version.
+//         //-----------------------------------------------------------------------------
         
-        for (LWComponent c : allRestored) {
-            try {
-                if (c instanceof LWGroup)
-                    ((LWGroup)c).normalize();
-            } catch (Throwable t) {
-                tufts.Util.printStackTrace(t, "RESTORE NORMALIZE " + c);
-            }
-        }
+//         for (LWComponent c : allRestored) {
+//             try {
+//                 if (c instanceof LWGroup)
+//                     ((LWGroup)c).normalize();
+//             } catch (Throwable t) {
+//                 tufts.Util.printStackTrace(t, "RESTORE NORMALIZE " + c);
+//             }
+//         }
 
         if (DEBUG.INIT || DEBUG.IO || DEBUG.XML) Log.debug("RESTORE COMPLETED; nextID=" + mNextID.get());
         

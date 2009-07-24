@@ -47,7 +47,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.479 $ / $Date: 2009-07-24 21:24:46 $ / $Author: sfraize $
+ * @version $Revision: 1.480 $ / $Date: 2009-07-24 22:12:42 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2873,6 +2873,10 @@ u                    getSlot(c).setFromString((String)value);
             //    mSlideIconBounds.x = Float.NaN; // invalidate
         }
     }
+
+//     public void validate() {
+//         validateInitialValues();
+//     }
 
     protected boolean validateInitialValues() {
         boolean bad = false;

@@ -160,6 +160,8 @@ public class RDFOpenAction extends VueAction {
                 }
                       
             }
+
+            map.layoutAndValidateNewMap();
         
             return map;
         } catch (Exception e) {
