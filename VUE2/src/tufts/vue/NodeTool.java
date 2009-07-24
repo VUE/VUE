@@ -414,11 +414,16 @@ public class NodeTool extends VueTool
             return node;
         }
 
-        public static LWNode buildTextNode(String text) {
+        public static LWNode createDefaultTextNode(String text) {
             LWNode node = new LWNode();
             node.setLabel(text);
             initAsTextNode(node);
             return node;
+        }
+        
+        // deprecate - use createDefaultTextNode 
+        public static LWNode buildTextNode(String text) {
+            return createDefaultTextNode(text);
         }
 
         public static LWText buildRichTextNode(String s) {
