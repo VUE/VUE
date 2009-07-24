@@ -49,7 +49,7 @@ import edu.tufts.vue.preferences.implementations.ColorPreference;
 /**
  * This creates an editor panel for LWNode's
  *
- * @version $Revision: 1.16 $ / $Date: 2009-03-23 02:49:07 $ / $Author: vaibhav $
+ * @version $Revision: 1.17 $ / $Date: 2009-07-24 21:25:10 $ / $Author: sfraize $
 < */
  
 public class FillToolPanel extends ToolPanel implements ComponentListener
@@ -93,6 +93,7 @@ public class FillToolPanel extends ToolPanel implements ComponentListener
         //TODO: need to come back here and move these tooltips into properties. -mikek         
         mFillColorButton = new ColorMenuButton(fillColors, true);
         mFillColorButton.setPropertyKey(LWKey.FillColor);
+        //tufts.Util.printStackTrace("LOADING FILL COLOR BUTTON WITH " + tufts.Util.tags(fillPrefColor.getValue()));
         mFillColorButton.setColor((Color)fillPrefColor.getValue());
         mFillColorButton.setToolTipText("Fill Color");
         //mFillColorButton.addPropertyChangeListener(this); // always last or we get prop change events for setup
