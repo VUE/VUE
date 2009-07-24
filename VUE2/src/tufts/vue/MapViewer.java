@@ -76,7 +76,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.608 $ / $Date: 2009-07-13 18:05:18 $ / $Author: brian $ 
+ * @version $Revision: 1.609 $ / $Date: 2009-07-24 21:31:08 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -7258,7 +7258,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 // the edit via the click on the map
                         
                 if (!mLabelEditWasActiveAtMousePress) {
-                    if (activeTool == NodeModeTool && (oneClickNodePref.getValue() == Boolean.TRUE))
+                    if (activeTool == NodeModeTool && oneClickNodePref.isTrue())
                         Actions.NewNode.fire(e);
                     else if (activeTool == TextTool)
                         Actions.NewRichText.fire(e);

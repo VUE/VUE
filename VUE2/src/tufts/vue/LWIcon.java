@@ -73,7 +73,12 @@ public abstract class LWIcon extends Rectangle2D.Float
     
     //------------------------------------------------------------------
     // Preferences
-    //------------------------------------------------------------------
+    // ------------------------------------------------------------------
+    // todo performance: this would be better handled via a group of individual,
+    // fast-impl BooleanPreferences, or at least by making the special ShowIconsPrefernce
+    // cache each of the boolean values.  Alot happens just to get the single boolean bit
+    // value out for each of icon preferencs, and this code is called constantly during
+    // map drawing.
     public static final ShowIconsPreference IconPref = new ShowIconsPreference();
 
     static {
@@ -209,8 +214,8 @@ public abstract class LWIcon extends Rectangle2D.Float
             // says "a resource icon is currently active to override all single clicks
             // on the map" until mouse moves over resource icon region again to be
             // reconfirmed as a viable option.
-        	if (((Boolean)oneClickLaunchResPref.getValue()).booleanValue())
-            RolloverResource.displayContent();
+            if (oneClickLaunchResPref.isTrue())
+                RolloverResource.displayContent();
             clearRolloverResource();
         }
     }
@@ -550,14 +555,14 @@ public abstract class LWIcon extends Rectangle2D.Float
 
      //   void doDoubleClickAction() {}
          void doDoubleClickAction() {
-         	if (!((Boolean)oneClickLaunchResPref.getValue()).booleanValue())
-         	{
+             if (oneClickLaunchResPref.isFalse())
+                 {
                      Log.debug("DOUBLE-CLICK " + getClass());
                      mLWC.getResource().displayContent();
          	}
          }
         void doSingleClickAction() {
-        	if (((Boolean)oneClickLaunchResPref.getValue()).booleanValue())
+            if (oneClickLaunchResPref.isTrue())
         	{
                     Log.debug("SINGLE CLICK " + getClass() + " " + mLWC);
                     mLWC.getResource().displayContent();
