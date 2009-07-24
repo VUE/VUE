@@ -34,72 +34,110 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
  * @author Mike Korcynski
  *
  */
-public abstract class GenericBooleanPreference extends BasePref implements ItemListener 
+public abstract class GenericBooleanPreference extends BasePref<Boolean> implements ItemListener 
 {
-	
-	
-	private JCheckBox value = new JCheckBox();
-	private Object previousValue = null;
-	
-	public GenericBooleanPreference()
-	{
-		
-	}
-	
-	public GenericBooleanPreference(String prefName, Object defaultVal)
-	{
-		this();
-		Preferences p = Preferences.userNodeForPackage(getPrefRoot());
-		getCheckBox().setSelected(p.getBoolean(prefName,((Boolean)defaultVal).booleanValue()));				
-	}
+    public static boolean getBoolean(String prefName, boolean defaultValue) {
+        final Preferences p = Preferences.userNodeForPackage(getPrefRoot());
+        return p.getBoolean(prefName, defaultValue);
+    }
 
+    public static Boolean getValue(String prefName, boolean defaultValue) {
+        return getBoolean(prefName, defaultValue) ? Boolean.TRUE : Boolean.FALSE;
+    }
+    
+    private JCheckBox value = new JCheckBox();
+    private Boolean previousValue = null;
+
+    // getValue is slow -- these may be checked constantly -- we locally
+    // cache the value, and only update when the value changes.
+    private boolean cachedValue;
 	
-	public Object getPreviousValue()
-	{
-		if (previousValue == null)
-			return getDefaultValue();
-		else
-			return previousValue;
-	}
+    public GenericBooleanPreference() {}
 	
-	public Object getDefaultValue()
-	{
-		return Boolean.TRUE;
-	}
+    public GenericBooleanPreference(String prefName, Boolean defaultVal)
+    { 
+        cachedValue = getBoolean(prefName, defaultVal);
+        getCheckBox().setSelected(cachedValue);
+        //getCheckBox().setSelected(p.getBoolean(prefName,((Boolean)defaultVal).booleanValue()));        
+    }
+
+    protected void cacheCurrentValue() {
+        cachedValue = getBoolean(getPrefName(), getDefaultValue());
+    }
+    
+    /** interface VuePreference */
+    public Boolean getValue() {
+        return cachedValue ? Boolean.TRUE : Boolean.FALSE;
+        
+//         return getValue(getPrefName(), getDefaultValue().booleanValue());
+// //         Preferences p = Preferences.userNodeForPackage(getPrefRoot());
+// //         Boolean b = Boolean.valueOf(p.getBoolean(getPrefName(), ((Boolean)getDefaultValue()).booleanValue()));
+// //         return b;
+        
+    }
 	
-	public void itemStateChanged(ItemEvent e) {
-		JCheckBox box = (JCheckBox)e.getSource();
-		Preferences p = Preferences.userNodeForPackage(getPrefRoot());
-		//p.putBoolean(getPrefName(), box.isSelected());
-		setValue(Boolean.valueOf(box.isSelected()));
-	}
+    /** interface VuePreference */
+    public void setValue(Boolean b) {
+        previousValue = Boolean.valueOf(value.isSelected()); // better to use cachedValue?
+        cachedValue = b.booleanValue();
+        Preferences p = Preferences.userNodeForPackage(getPrefRoot());
+        p.putBoolean(getPrefName(), cachedValue);
+        _fireVuePrefEvent();
+    }
+    
+    public final boolean isTrue() {
+        return cachedValue;
+    }
+    public final boolean isFalse() {
+        return !cachedValue;
+    }
+
+    public Boolean getPreviousValue()
+    {
+        if (previousValue == null)
+            return (Boolean) getDefaultValue();
+        else
+            return previousValue;
+    }
 	
-	public JCheckBox getCheckBox()
-	{
-		return value;
-	}
-	public abstract String getTitle();
-	public abstract String getDescription();
-	public abstract String getMessage();
+    public Boolean getDefaultValue()
+    {
+        return Boolean.TRUE;
+    }
 	
-	public JComponent getPreferenceUI() {
-		JPanel panel = new JPanel();
-		panel.setBackground(Color.WHITE);
-		GridBagLayout gbl = new GridBagLayout();
-		panel.setLayout(gbl);
-		JLabel titleLabel = new JLabel(getTitle());
-		Font f = titleLabel.getFont().deriveFont(Font.BOLD);
-		titleLabel.setFont(f);
-		//JLabel descLabel = new JLabel(getDescription());
-		JTextArea messageArea = new JTextArea(getDescription());
-		final Font defaultFont = panel.getFont();
-		messageArea.setFont(defaultFont);
-	        messageArea.setColumns(30);
-	        messageArea.setLineWrap(true);
-	        messageArea.setWrapStyleWord(true);
-		GridBagConstraints gbConstraints = new GridBagConstraints();
+    public void itemStateChanged(ItemEvent e) {
+        JCheckBox box = (JCheckBox)e.getSource();
+        Preferences p = Preferences.userNodeForPackage(getPrefRoot());
+        //p.putBoolean(getPrefName(), box.isSelected());
+        setValue(Boolean.valueOf(box.isSelected()));
+    }
+	
+    public JCheckBox getCheckBox()
+    {
+        return value;
+    }
+    public abstract String getTitle();
+    public abstract String getDescription();
+    public abstract String getMessage();
+	
+    public JComponent getPreferenceUI() {
+        JPanel panel = new JPanel();
+        panel.setBackground(Color.WHITE);
+        GridBagLayout gbl = new GridBagLayout();
+        panel.setLayout(gbl);
+        JLabel titleLabel = new JLabel(getTitle());
+        Font f = titleLabel.getFont().deriveFont(Font.BOLD);
+        titleLabel.setFont(f);
+        //JLabel descLabel = new JLabel(getDescription());
+        JTextArea messageArea = new JTextArea(getDescription());
+        final Font defaultFont = panel.getFont();
+        messageArea.setFont(defaultFont);
+        messageArea.setColumns(30);
+        messageArea.setLineWrap(true);
+        messageArea.setWrapStyleWord(true);
+        GridBagConstraints gbConstraints = new GridBagConstraints();
 	    
-		gbConstraints.gridx = 0;
+        gbConstraints.gridx = 0;
         gbConstraints.gridy = 0;
         gbConstraints.gridwidth = 1;
         gbConstraints.fill=GridBagConstraints.HORIZONTAL;
@@ -110,13 +148,13 @@ public abstract class GenericBooleanPreference extends BasePref implements ItemL
         
         panel.add(titleLabel, gbConstraints);
     
-		gbConstraints.gridx = 0;
-		gbConstraints.gridy = 1;
-		panel.add(messageArea, gbConstraints);
+        gbConstraints.gridx = 0;
+        gbConstraints.gridy = 1;
+        panel.add(messageArea, gbConstraints);
 		
-		gbConstraints.gridx=0;
-		gbConstraints.gridy=2;
-		gbConstraints.weightx=1;
+        gbConstraints.gridx=0;
+        gbConstraints.gridy=2;
+        gbConstraints.weightx=1;
         gbConstraints.weighty=1;
         gbConstraints.insets = new Insets(15,30,15,30);
         
@@ -129,37 +167,15 @@ public abstract class GenericBooleanPreference extends BasePref implements ItemL
         booleanPanel.add(value);
         booleanPanel.setOpaque(false);
      
-      //  JLabel message = new JLabel(getMessage());
-       // message.setBackground(Color.red);
-       // message.setForeground(Color.black);
-       // booleanPanel.add(message);
+        //  JLabel message = new JLabel(getMessage());
+        // message.setBackground(Color.red);
+        // message.setForeground(Color.black);
+        // booleanPanel.add(message);
         getCheckBox().addItemListener(this);
         getCheckBox().setSelected(((Boolean)getValue()).booleanValue());
         panel.add(booleanPanel, gbConstraints);
 	return panel;
-	}
-	
-
-    public final boolean isTrue() {
-        return getValue() == Boolean.TRUE;
-    }
-    public final boolean isFalse() {
-        return getValue() == Boolean.FALSE;
-    }
-
-    /** interface VuePreference */
-    public Boolean getValue() {
-        Preferences p = Preferences.userNodeForPackage(getPrefRoot());
-        Boolean b = Boolean.valueOf(p.getBoolean(getPrefName(), ((Boolean)getDefaultValue()).booleanValue()));
-        return b;
     }
 	
-    /** interface VuePreference */
-    public void setValue(Object b) {
-        previousValue = Boolean.valueOf(value.isSelected()); 
-        Preferences p = Preferences.userNodeForPackage(getPrefRoot());
-        p.putBoolean(getPrefName(), ((Boolean)b).booleanValue());
-        _fireVuePrefEvent();
-    }
 	
 }

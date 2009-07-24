@@ -23,7 +23,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
  * @author mkorcy01
  *
  */
-public interface VuePreference {
+public interface VuePreference<T> {
 	
 	public String getCategoryKey();
 	public JComponent getPreferenceUI();
@@ -31,8 +31,8 @@ public interface VuePreference {
 	public String getDescription();
 	public String getPrefName();	
 	public void addVuePrefListener(VuePrefListener p);
-	public Object getDefaultValue();	
-	public Object getValue();
-	public Object getPreviousValue();
-	public void setValue(Object i);
+	public T getDefaultValue();	
+	public T getValue();
+	public T getPreviousValue();
+	public void setValue(T i);
 }

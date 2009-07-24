@@ -23,10 +23,10 @@ import edu.tufts.vue.preferences.VuePrefListener;
 import edu.tufts.vue.preferences.implementations.AutoZoomPreference;
 import edu.tufts.vue.preferences.interfaces.VuePreference;
 
-public abstract class BasePref implements VuePreference {
+public abstract class BasePref<T> implements VuePreference<T> {
     protected final List<VuePrefListener> _listeners = new ArrayList();	  	  	  	  	  
 		 	
-    public Class getPrefRoot()
+    public static Class getPrefRoot()
     {
         return edu.tufts.vue.preferences.PreferencesManager.class;
     }
