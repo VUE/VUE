@@ -132,7 +132,6 @@ public class EditorManager
     private static StyleType CurrentToolStyle;
 
     private static final Map<Object,StyleType> StylesByType = new HashMap();
-    //private static final Map<Object,LWComponent> ProvisionalStylesByType = new HashMap();
         
     private LWComponent singleSelection;
 
@@ -140,18 +139,48 @@ public class EditorManager
      * Only LWEditors created and put in the AWT hierarchy before this
      * is called will be recognized.
      */
-    public static synchronized void install() {
+    public static void install() {
+        // make sure it runs in AWT, as will be scanning AWT heirarchy, and may be
+        // interrogating java.awt.Components
+        Log.debug("install...");
+        tufts.vue.gui.GUI.invokeOnEDT(new Runnable() { public void run() { _install(); }});
+    }
+    
+    private static synchronized void _install() {
         if (singleton != null) {
             tufts.Util.printStackTrace("can only have one instance of " + singleton);
         } else {
+            Log.debug("INSTALLING...");
             singleton = new EditorManager();
+            
+// Not working.
+//             preLoadStyle(LWNode.class);
+//             preLoadStyle(LWNode.class, LWNode.TYPE_TEXT);
+//             preLoadStyle(LWLink.class);
+
+            //preLoadStyle(tufts.vue.NodeTool.NodeModeTool.createNewNode("editor-node-style"));
+            preLoadStyle(tufts.vue.NodeTool.NodeModeTool.createDefaultNode("editor-node-style"));
+            preLoadStyle(tufts.vue.NodeTool.NodeModeTool.createDefaultTextNode("editor-text-style"));
+            //preLoadStyle(new LWLink(null, null));
+            
             singleton.refresh();
+
+            // somewhat of a hack, but should be easy help for VUE-408 -- this
+            // will create the appropriate objects, and call us back to target
+            // properties, which will get their styles created, which will 
+            // allow us to use free properties before the first node is created.
+            // todo: should just be methods on NodeTool, not NodeModeTool!
+            //tufts.vue.NodeTool.NodeModeTool.createNewNode("editor-node-style-init");
+            //tufts.vue.NodeTool.NodeModeTool.createTextNode("editor-text-style-init");
         }
     }
 
     /** find all LWEditors in the AWT hierarchy and register them */
     public static synchronized void refresh() {
-        singleton.findEditors();
+        // make sure it runs on the AWT EDT, as this will be scanning the AWT heirarchy
+        tufts.vue.gui.GUI.invokeOnEDT(new Runnable() { public void run() {
+            singleton.findEditors();
+        }});
     }
 
     private EditorManager() {
@@ -484,20 +513,24 @@ public class EditorManager
         FreePropertyBits = 0;
     }
         
-
-    private static void recordPropertyChangeInStyles(String source, Object key, Object newValue, boolean provisionals) {
+    private static void recordPropertyChangeInStyles
+        (String debugSrc,
+         Object key,
+         Object newValue,
+         boolean provisionals)
+    {
         // provisionals should be true when there is no selection, and the tools are all enabled in their "free" state
         if (provisionals) {
             declareFreeProperty(key);
             for (StyleType styleType : StylesByType.values()) {
-                applyPropertyValue("<" + source + ":provSync>", key, newValue, styleType.provisional);
+                applyPropertyValue("<" + debugSrc + ":provSync>", key, newValue, styleType.provisional);
                 if (CurrentToolStyle == styleType)
-                    applyPropertyValue("<" + source + ":provSync>", key, newValue, styleType.style);
+                    applyPropertyValue("<" + debugSrc + ":provSync>", key, newValue, styleType.style);
             }
         } else if (CurrentStyle == null) {
-            if (DEBUG.STYLE) out("NO CURRENT STYLE FOR " + source + " " + key + " " + newValue);
+            if (DEBUG.STYLE) out("NO CURRENT STYLE FOR " + debugSrc + " " + key + " " + newValue);
         } else {
-            CurrentStyle.takeProperty(source, key, newValue);
+            CurrentStyle.takeProperty(debugSrc, key, newValue);
         }
     }
 
@@ -566,16 +599,16 @@ public class EditorManager
     
         
         
-    private static void applyPropertyValue(Object source, Object key, Object newValue, LWComponent target) {
-        //if (DEBUG.STYLE) System.out.println("APPLY " + source + " " + key + "[" + newValue + "] -> " + target);
+    private static void applyPropertyValue(Object debugSrc, Object key, Object newValue, LWComponent target) {
+        //if (DEBUG.STYLE) System.out.println("APPLY " + debugSrc + " " + key + "[" + newValue + "] -> " + target);
         if (target.supportsProperty(key)) {
-            if (DEBUG.STYLE) out(String.format("APPLY %s %-15s %-40s -> %s", source, key, "(" + newValue + ")", target));
+            if (DEBUG.STYLE) out(String.format("APPLY %s %-15s %-40s -> %s", debugSrc, key, "(" + newValue + ")", target));
             try {
                 target.setProperty(key, newValue);
                 //} catch (LWComponent.PropertyValueVeto ex) {
                 //tufts.Util.printStackTrace(ex);
             } catch (Throwable t) {
-                tufts.Util.printStackTrace(t, source + " failed to set property " + key + "; value=" + newValue + " on " + target);
+                tufts.Util.printStackTrace(t, debugSrc + " failed to set property " + key + "; value=" + newValue + " on " + target);
             }
         }
     }
@@ -594,19 +627,38 @@ public class EditorManager
 
     private static StyleType putStyle(Object token, LWComponent style) {
         StyleType newType = new StyleType(token,
-                                          style,
-                                          createStyle(style, token, "provi"));
+                                          style, // style
+                                          createStyle(style.getClass(), style, token, "provi")); // provisional
         StylesByType.put(token, newType);
         return newType;
     }
 
+    private static void preLoadStyle(LWComponent c) {
+        putStyle(c.getTypeToken(), c);
+    }
+    
+//     private static void preLoadStyle(Class<? extends LWComponent> clazz) {
+//         preLoadStyle(clazz, clazz);
+//     }
+//     private static void preLoadStyle(Class<? extends LWComponent> clazz, Object typeToken) {
+//         final LWComponent preLoadStyle = createStyle(clazz, null, typeToken, "INIT-");
+//         putStyle(typeToken, preLoadStyle);
+//     }
+    
     private static final LWComponent.CopyContext DUPE_WITHOUT_CHILDREN = new LWComponent.CopyContext(false);
 
     private static LWComponent createStyle(LWComponent styleSource, Object typeToken) {
-        return createStyle(styleSource, typeToken, "style");
+        //return createStyle(styleSource, typeToken, "style");
+        return createStyle(styleSource.getClass(), styleSource, typeToken, "style");
     }
-    
-    private static LWComponent createStyle(LWComponent styleSource, Object typeToken, String version)
+
+    // @param version is for debug
+    //private static LWComponent createStyle(LWComponent styleSource, Object typeToken, String version)
+    private static LWComponent createStyle
+        (Class<? extends LWComponent> clazz,
+         LWComponent styleSource, // may be null if only clazz is known
+         Object typeToken,
+         String version)
     {
         //if (DEBUG.STYLE || DEBUG.WORK) out("creating style holder based on " + styleSource + " for type (" + typeToken + ")");
 
@@ -620,14 +672,18 @@ public class EditorManager
         LWComponent style = null;
 
         try {
-            style = styleSource.getClass().newInstance();
+            style = clazz.newInstance();
         } catch (Throwable t) {
-            Util.printStackTrace(t, "newInstance " + styleSource.getClass());
+            Util.printStackTrace(t, "newInstance " + clazz);
             return null;
         }
         
-        style.copySupportedProperties(styleSource);
-        style.copyStyle(styleSource);
+        if (styleSource != null) {
+            if (styleSource.getClass() != clazz)
+                Log.warn("class mis-match: " + clazz + " != " + Util.tags(styleSource), new Throwable("HERE"));
+            style.copySupportedProperties(styleSource);
+            style.copyStyle(styleSource);
+        }
         style.setFlag(LWComponent.Flag.EVENT_SILENT);
         style.setPersistIsStyle(Boolean.TRUE); // mark as a style: e.g., so if link, can know not to recompute
 
@@ -647,7 +703,7 @@ public class EditorManager
         //out("created new styleHolder for type token [" + token + "]: " + styleHolder); 
         //out("created " + styleHolder);
 
-        if (DEBUG.STYLE) out("made style " + style + " based on " + styleSource);
+        if (DEBUG.STYLE) out("CREATED STYLE: type=" + typeToken + "; store=" + style + " based on " + styleSource);
         return style;
     }
         
@@ -836,6 +892,22 @@ public class EditorManager
         
         if (mEditors.add(editor)) {
             if (DEBUG.TOOL || DEBUG.INIT) out("REGISTERED EDITOR: " + editor);
+
+            Object curVal = null;
+
+            try {
+                curVal = editor.produceValue();
+            } catch (Throwable t) {
+                Log.warn("editor not ready to produce value: " + Util.tags(editor) + "; " + t);
+            }
+
+            if (curVal != null) {
+                recordPropertyChangeInStyles("register",
+                                             editor.getPropertyKey(),
+                                             curVal,
+                                             true);
+            }
+            
             if (editor instanceof java.awt.Component)
                 ((java.awt.Component)editor).addPropertyChangeListener(singleton);
         } else

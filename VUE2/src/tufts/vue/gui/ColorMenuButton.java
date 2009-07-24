@@ -60,13 +60,13 @@ import edu.tufts.vue.preferences.implementations.ColorPreference;
  * This class provides a popup menu of items that supports named color values
  * with a corresponding color swatch.
  *
- * @version $Revision: 1.30 $ / $Date: 2009-03-22 07:12:11 $ / $Author: vaibhav $
+ * @version $Revision: 1.31 $ / $Date: 2009-07-24 21:29:34 $ / $Author: sfraize $
  * @author csb
  * @author Scott Fraize
  */
 
 public class ColorMenuButton extends JButton
-implements ActionListener, tufts.vue.LWEditor
+    implements ActionListener, tufts.vue.LWEditor<Color>
 {
     public static final String COLOR_POPUP_NAME = "ColorPopupMenu";
     
@@ -479,11 +479,18 @@ implements ActionListener, tufts.vue.LWEditor
         return mCurColor;
     }
 
-    public void displayValue(Object o) {    	
-    		setColor((Color)o);
+    /** @interface LWEditor */
+    public Object getPropertyKey() {
+        return mPropertyKey;
+    }
+	
+    /** @interface LWEditor */
+    public void displayValue(Color c) {    	
+        setColor(c);
     }
 	 
-    public Object produceValue() {
+    /** @interface LWEditor */
+    public Color produceValue() {
         return getColor();
     }
     /** Simulate a user value selection */
@@ -491,7 +498,7 @@ implements ActionListener, tufts.vue.LWEditor
         handleValueSelection(value);
     }
     
-    protected void handleValueSelection(Object newPropertyValue) {
+    protected void handleValueSelection(Color newPropertyValue) {
         if (DEBUG.TOOL) System.out.println(this + " handleValueSelection: newPropertyValue=" + newPropertyValue);
         // TODO: this is getting fired twice, once for ItemEvent stateChange=DESELECTED, and
         // then the one we really want, with itemState=SELECTED.  We want to ignore the former,
@@ -510,7 +517,7 @@ implements ActionListener, tufts.vue.LWEditor
         if (newPropertyValue instanceof Action) {
             System.out.println("Skipping setPropertyValue & firePropertyChanged for Action " + newPropertyValue);
         } else {
-            Object oldValue = produceValue();
+            Color oldValue = produceValue();
             displayValue(newPropertyValue);
           //  System.out.println(newPropertyValue.toString());
             firePropertyChanged(oldValue, newPropertyValue);
@@ -619,10 +626,6 @@ implements ActionListener, tufts.vue.LWEditor
 	 public void setPropertyKey(Object key) {
 	        mPropertyKey = key;
 	    }
-	 public Object getPropertyKey() {
-	        return mPropertyKey;
-	    }
-	
     
 }
 
