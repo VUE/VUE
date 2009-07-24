@@ -136,7 +136,10 @@ public class LWImage extends
     }
     
     
-    // TODO: not so great to have every single LWImage instance be a listener...
+    // TODO: it isn't such a good idea to have every single LWImage ever created during the runtime
+    // be a listiner to the VUE preferences sub-system -- that means a pref event will be driving
+    // global, cross-map, cross-undo-queue events, which would be better managed from a single
+    // place in the model code.
     public void preferenceChanged(VuePrefEvent prefEvent)
     {        
         if (DEBUG.IMAGE) out("new pref value is " + ((Integer)ImageSizePreference.getInstance().getValue()).intValue());
