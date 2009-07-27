@@ -368,6 +368,7 @@ public class OntologyBrowser extends JPanel {
         WidgetStack stack = new WidgetStack(getName());
         
         Widget.setWantsScroller(stack, true);
+        Widget.setWantsScrollerAlways(stack, true);
         
         stack.addPane(ontologiesPanel, 0f);
         stack.addPane(populatePane,0f);
