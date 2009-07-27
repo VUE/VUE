@@ -64,7 +64,7 @@ import tufts.oki.localFiling.*;
  * user re-ordering of the data sources, which would automatically be
  * persistent.
  * 
- * @version $Revision: 1.64 $ / $Date: 2009-03-14 03:41:26 $ / $Author: vaibhav $
+ * @version $Revision: 1.65 $ / $Date: 2009-07-27 16:44:20 $ / $Author: brian $
  * @author Ranjani Saigal
  */
 
@@ -85,9 +85,9 @@ public class DataSourceList extends JList implements DropTargetListener
             | DnDConstants.ACTION_MOVE
             ;
     
-    private final DataSourceViewer dsViewer;
+    private final ContentViewer dsViewer;
     
-    public DataSourceList(DataSourceViewer dsViewer) {
+    public DataSourceList(ContentViewer dsViewer) {
         super(new DefaultListModel());
         this.dsViewer = dsViewer;
         this.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);

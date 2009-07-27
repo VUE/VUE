@@ -16,6 +16,8 @@
 package tufts.vue;
 
 import tufts.Util;
+// for demoing import tufts.vue.ds.XmlDataSource;
+import tufts.vue.gui.*;
 import tufts.vue.gui.GUI;
 import tufts.vue.gui.Widget;
 import tufts.vue.ui.MetaDataPane;
@@ -35,11 +37,7 @@ import java.util.*;
 import org.osid.repository.Asset;
 import org.osid.repository.AssetIterator;
 import org.osid.repository.RepositoryException;
-// castor classes
-import org.exolab.castor.xml.Marshaller;
-import org.exolab.castor.xml.Unmarshaller;
-import org.xml.sax.InputSource;
-import tufts.vue.gui.*;
+
 
 /**
  * This class wraps a DataSourceList, and handles communicating user
@@ -49,7 +47,7 @@ import tufts.vue.gui.*;
  * in multiple threads (full parallel federated search).
  */
 
-public class DataSourceViewer extends JPanel
+public class DataSourceViewer extends ContentViewer
     implements KeyListener, edu.tufts.vue.fsm.event.SearchListener, ActionListener
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(DataSourceViewer.class);
@@ -140,13 +138,12 @@ public class DataSourceViewer extends JPanel
         // are being set before addNotify, so I don't think they're generated the needed
         // propertyChangeEvents to be seen, and aren't currently being handled in
         // the WidgetStack.WidgetTitle constructor
-        Widget.setHelpAction(DRB.librariesPanel,VueResources.getString("dockWindow.Resources.libraryPane.helpText"));
+        Widget.setHelpAction(DRB.librariesPane,VueResources.getString("dockWindow.Resources.libraryPane.helpText"));
         //dockWindow.addButton is not a localized string in this context its just a property that is later resolved.
-        Widget.setMiscAction(DRB.librariesPanel, new MiscActionMouseListener(), "dockWindow.addButton");
+        Widget.setMiscAction(DRB.librariesPane, new MiscActionMouseListener(), "dockWindow.addButton");
         Widget.setHelpAction(DRB.browsePane,VueResources.getString("dockWindow.Resources.browsePane.helpText"));;
         Widget.setHelpAction(DRB.resultsPane,VueResources.getString("dockWindow.Resources.resultsPane.helpText"));;
         Widget.setHelpAction(DRB.searchPane,VueResources.getString("dockWindow.Resources.searchPane.helpText"));;
-        DRB.associationsPane.setActions();
 
         Widget.setRefreshAction(DRB.browsePane, new MouseAdapter() {
                 public void mousePressed(MouseEvent e) {
@@ -469,7 +466,7 @@ public class DataSourceViewer extends JPanel
         
     }
     
-    void setActiveDataSource(edu.tufts.vue.dsm.DataSource ds) {
+    public void setActiveDataSource(edu.tufts.vue.dsm.DataSource ds) {
         this.activeDataSource = ds;
         dataSourceList.setSelectedValue(ds,true);
         Widget.setExpanded(DRB.browsePane, false);
@@ -481,12 +478,6 @@ public class DataSourceViewer extends JPanel
         return activeDataSource;
     }
     
-    private tufts.vue.BrowseDataSource browserDS;
-
-    tufts.vue.DataSource getBrowsedDataSource() {
-        return browserDS;
-    }
-
     void expandBrowse() {
         Widget.setExpanded(DRB.browsePane, true);
     }
@@ -503,7 +494,7 @@ public class DataSourceViewer extends JPanel
     }
 
     
-    private void displayInBrowsePane(JComponent viewer, boolean priority)
+    protected void displayInBrowsePane(JComponent viewer, boolean priority)
     {
         if (DEBUG.Enabled) Log.debug("displayInBrowsePane: " + browserDS + "; " + GUI.name(viewer));
 
@@ -523,8 +514,12 @@ public class DataSourceViewer extends JPanel
         Widget.setExpanded(DRB.browsePane, true);
         
     }
-    
-    void setActiveDataSource(final tufts.vue.DataSource ds)
+
+    protected void repaintList() {
+        dataSourceList.repaint(); // so change in loaded status will be visible		
+    }
+
+    public void setActiveDataSource(final tufts.vue.DataSource ds)
     {
         //if (DEBUG.Enabled) Log.debug("setActiveDataSource: " + ds, new Throwable("FYI"));
         if (DEBUG.Enabled) Log.debug("setActiveDataSource: " + ds);
@@ -538,280 +533,6 @@ public class DataSourceViewer extends JPanel
         displayInBrowsePane(produceViewer(browserDS), true);
 
     }
-
-    private static final JLabel StatusLabel = new JLabel(VueResources.getString("addLibrary.loading.label"), JLabel.CENTER);
-    private static final JComponent Status;
-    
-    static {
-        GUI.apply(GUI.StatusFace, StatusLabel);
-        StatusLabel.setAlignmentX(0.5f);
-
-        JProgressBar bar = new JProgressBar();
-        bar.setIndeterminate(true);
-            
-        if (false && Util.isMacLeopard()) {
-            bar.putClientProperty("JProgressBar.style", "circular");
-            bar.setBorder(BorderFactory.createLineBorder(Color.darkGray));
-            //bar.putClientProperty("JComponent.sizeVariant", "small"); // no effect
-            //bar.setString("Loading...");// no effect on mac
-            //bar.setStringPainted(true); // no effect on mac
-        } else {
-            if (DEBUG.BOXES) bar.setBorder(BorderFactory.createLineBorder(Color.green));
-            bar.setBackground(Color.red);
-            bar.setEnabled(false); // don't make so garish (mostly for mac)
-        }
-            
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-
-        if (DEBUG.BOXES) StatusLabel.setBorder(BorderFactory.createLineBorder(Color.blue, 1));
-        
-        panel.add(StatusLabel);
-        panel.add(Box.createVerticalStrut(5));
-        panel.add(bar);
-        panel.setBorder(GUI.WidgetInsetBorder3);
-        Status = panel;
-
-    }
-
-    private static int vCount = 0;
-    
-    private JComponent produceViewer(final tufts.vue.BrowseDataSource ds) {
-        return produceViewer(ds, false);
-    }
-
-    private static String statusName(tufts.vue.BrowseDataSource ds) {
-        String s = ds.getAddressName();
-        if (s == null)
-            s = ds.getDisplayName();
-        if (s == null)
-            s = ds.getTypeName();
-        return s;
-    }
-    
-    private JComponent produceViewer(final tufts.vue.BrowseDataSource ds, final boolean caching) {
-
-        if (!SwingUtilities.isEventDispatchThread())
-            throw new Error("not threadsafe except for AWT");
-
-        if (DEBUG.DR) Log.debug("produceViewer: " + ds);
-
-        final JComponent viewer = ds.getResourceViewer();
-
-        if (viewer != null)
-            return viewer;
-        
-        StatusLabel.setText(statusName(ds));
-
-        if (ds.isLoading()) {
-            // could up priority any time we come back through
-            //ds.getLoadThread().setPriority(Thread.MAX_PRIORITY);
-            //ds.getLoadThread().setPriority(Thread.NORM_PRIORITY);
-            return Status;
-        }
-
-        String s = ds.getClass().getSimpleName() + "[" + ds.getDisplayName();
-        if (ds.getAddressName() != null)
-            s += "; " + ds.getAddressName();
-        final String name = s + "]";
-
-        final Thread buildViewerThread =
-            new Thread(String.format("VBLD-%02d %s", vCount++, name)) {
-                {
-                    setDaemon(true);
-                    if (caching)
-                        setPriority(Thread.currentThread().getPriority() - 1);
-                }
-
-                @Override
-                public void run() {
-
-                    if (DEBUG.DR) Log.debug("kicked off");
-                    
-                    final JComponent newViewer = buildViewer(ds);
-                    
-                    if (isInterrupted()) {
-                        if (DEBUG.DR && newViewer != null)
-                            Log.debug("produced; but not needed: aborting");
-                        return;
-                    }
-                    
-                    Log.info("produced " + GUI.name(newViewer));
-                    
-                    GUI.invokeAfterAWT(new AWTAcceptViewerTask(ds, this, newViewer, name));
-                }
-            };
-        
-        ds.setLoadThread(buildViewerThread);
-        
-        buildViewerThread.start();
-
-        return Status;
-    }
-
-    private class AWTAcceptViewerTask implements Runnable {
-        final tufts.vue.BrowseDataSource ds;
-        final Thread serviceThread;
-        final JComponent newViewer;
-        final String name;
-        
-        AWTAcceptViewerTask(BrowseDataSource ds, Thread serviceThread, JComponent viewer, String name) {
-            this.ds = ds;
-            this.serviceThread = serviceThread;
-            this.newViewer = viewer;
-            this.name = name;
-        }
-    
-        public void run() {
-                    
-            if (serviceThread.isInterrupted()) {
-                // never possible?  we're now synchronous in AWT
-                Log.warn(name + "; in AWT; but viewer no longer needed: aborting result for " + serviceThread, new Throwable("FYI"));
-                return;
-            }
-
-            VUE.diagPush(name);
-                    
-            if (DEBUG.Enabled) Log.debug("accepting viewer & setting into VueDataSource");
-                    
-            ds.setViewer(newViewer); // important to do this in AWT; it's why we have this task
-
-            // The viewer we've just set may actually be just a text pane
-            // describing an error condition: now set the actual availablity
-            // of the content:
-
-            ds.setAvailable(newViewer instanceof ErrorText == false);
-            
-            dataSourceList.repaint(); // so change in loaded status will be visible
-            
-            if (DataSourceViewer.this.browserDS == ds) { // important to check this in AWT;
-                if (DEBUG.Enabled) Log.debug("currently displayed data-source wants this viewer; displaying");
-                displayInBrowsePane(newViewer, false); // important to do this in AWT;
-            }
-            else
-                if (DEBUG.DR) Log.debug("display: skipping; user looking at something else");
-
-            // this would always fallback-interrupt our own serviceThread but by now it
-            // has already exited is waiting to die, as the last thing it does is add
-            // this task to the AWT event queue.  There should be no code in the run
-            // after the invoke.   We check for isAlive in setLoadThread just in case,
-            // before we fallback-interrupt.
-
-            // important to do both the get/set in AWT:
-            if (ds.getLoadThread() == serviceThread)
-                ds.setLoadThread(null); 
-
-            VUE.diagPop();
-                    
-        }
-    }
-    
-    private static final class ErrorText extends JTextArea {
-        ErrorText(String txt) {
-            super(txt);
-            setEditable(false);
-            setLineWrap(true);
-            setWrapStyleWord(true);
-            setBorder(GUI.WidgetInsetBorder3);
-            GUI.apply(GUI.StatusFace, this);
-            //setOpaque(false);            
-            //GUI.apply(GUI.ErrorFace, this);
-        }
-
-    }
-        
-    /**
-     *
-     * @return either the successfully created viewer, or an as informative as possible
-     * error report panel should we encounter any exceptions.  The idea is that this
-     * method is guaranteed not to return null: always something meaninful to display.
-     * With one exception: if the thread this is running on has it's interrupted status
-     * set, it may return null.
-     *
-     */
-    private JComponent buildViewer(final tufts.vue.BrowseDataSource ds)
-    {
-        
-        final String address = ds.getAddress();
-        
-        JComponent viewer = null;
-        Throwable exception = null;
-
-        try {
-            
-            viewer = ds.buildResourceViewer();
-
-        } catch (Throwable t) {
-            exception = t;
-        }
-
-        if (Thread.currentThread().isInterrupted()) {
-            if (DEBUG.DR) Log.debug("built; but not needed: aborting");
-            return null;
-        }
-
-        if (exception == null && viewer == null)
-            exception = new Exception("no viewer available");
-
-        if (exception != null) {
-
-            final Throwable t = exception;
-            
-            Log.error(ds + "; getResourceViewer:", t);
-
-            String txt;
-
-            txt = ds.getTypeName() + " unavailable:";
-            
-            if (t instanceof DataSourceException) {
-                if (t.getMessage() != null)
-                    txt += " " + t.getMessage();
-            } else
-                txt += "\n\nError: " + prettyException(t);
-
-
-            if (t.getCause() != null) {
-                Throwable c = t.getCause();
-                Log.error("FULL CAUSE:", c);
-                txt += "\n\nCause: " + prettyException(c);
-            }
-
-            String a = address;
-            if (a != null) {
-                //if (a.length() == 0 || Character.isWhitespace(a.charAt(0)) || Character.isWhitespace(a.charAt(a.length()-1)))
-                a = '[' + a + ']';
-            }
-            txt += "\n\nConfiguration address: " + a;
-            
-            if (DEBUG.Enabled)
-                txt += "\n\nDataSource: " + ds.getClass().getName();
-            
-            txt += "\n\nThis could be a problem with the configuration for this "
-                + ds.getTypeName()
-                + ", with the local network connection, or with a remote server.";
-
-            if (DEBUG.Enabled)
-                txt += "\n\n" + Thread.currentThread();
-            
-            viewer = new ErrorText(txt); 	
-        }
-
-        return viewer;
-    }
-    
-    private String prettyException(Throwable t) {
-        String txt;
-        if (t.getClass().getName().startsWith("java"))
-            txt = t.getClass().getSimpleName();
-        else
-            txt = t.getClass().getName();
-        
-        if (t.getMessage() != null)
-            txt += ": " + t.getMessage();
-
-        return txt;
-    }
-
 
     public static void refreshDataSourcePanel(edu.tufts.vue.dsm.DataSource ds) {
         queryEditor.refresh();
@@ -990,7 +711,7 @@ public class DataSourceViewer extends JPanel
         }
         
         checkForUpdatesAction.setEnabled(true);
-        Widget.setMenuActions(DRB.librariesPanel,
+        Widget.setMenuActions(DRB.librariesPane,
                 new Action[] {
             addLibraryAction,
             checkForUpdatesAction,
@@ -1050,6 +771,7 @@ public class DataSourceViewer extends JPanel
                 int i = 0;
                 while (!(dataSources.isEmpty())){
                     final DataSource ds = (DataSource) dataSources.remove(0);
+//for demo-ing if (ds.getTypeName().equals(XmlDataSource.TYPE_NAME)) continue;
                     i++;
                     if (DEBUG.DR) Log.debug(String.format("#%02d: loading %s ", i, Util.tags(ds)));
 //                     VUE.diagPush("#" + i);
@@ -1057,7 +779,7 @@ public class DataSourceViewer extends JPanel
 //                     VUE.diagPop();
                     try {
                         dataSourceList.addOrdered(ds);
-                    } catch(Exception ex) {System.out.println("DataSourceViewer.loadDataSources"+ex);}
+                    } catch(Exception ex) {System.out.println("DataSourceViewer.loadOldStyleDataSources"+ex);}
                 }
             } catch (Exception ex) {
                 Log.error("Loading DataSources; loading defaults as fallback", ex);
@@ -2416,39 +2138,6 @@ public class DataSourceViewer extends JPanel
         } catch (Throwable t) {
             t.printStackTrace();
         }
-    }
-    
-    
-    public  static void marshallMap(File file,SaveDataSourceViewer dataSourceViewer) {
-        Marshaller marshaller = null;
-        
-        try {
-            FileWriter writer = new FileWriter(file);
-            marshaller = new Marshaller(writer);
-            marshaller.setMapping(tufts.vue.action.ActionUtil.getDefaultMapping());
-            if (DEBUG.DR) Log.debug("marshallMap: marshalling " + dataSourceViewer + " to " + file + "...");
-            marshaller.setNoNamespaceSchemaLocation("none");
-            marshaller.marshal(dataSourceViewer);
-            if (DEBUG.DR) Log.debug("marshallMap: done marshalling.");
-            writer.flush();
-            writer.close();
-        } catch (Throwable t) {
-            t.printStackTrace();
-            System.err.println("DRBrowser.marshallMap " + t.getMessage());
-        }
-    }
-    
-    public  SaveDataSourceViewer unMarshallMap(File file)
-        throws java.io.IOException,
-               org.exolab.castor.xml.MarshalException,
-               org.exolab.castor.xml.ValidationException,
-               org.exolab.castor.mapping.MappingException
-    {
-        Unmarshaller unmarshaller = tufts.vue.action.ActionUtil.getDefaultUnmarshaller(file.toString());
-        FileReader reader = new FileReader(file);
-        SaveDataSourceViewer sviewer = (SaveDataSourceViewer) unmarshaller.unmarshal(new InputSource(reader));
-        reader.close();
-        return sviewer;
     }
     
     public void keyPressed(KeyEvent e) {

@@ -49,7 +49,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.82 $ / $Date: 2009-07-15 18:01:44 $ / $Author: sfraize $
+ * @version $Revision: 1.83 $ / $Date: 2009-07-27 16:44:21 $ / $Author: brian $
  * @author  Scott Fraize
  */
 
@@ -64,8 +64,8 @@ public class DataTree extends javax.swing.JTree
     private DataNode mAllRowsNode;
     private DataNode mSelectedSearchNode;
     private final JTextArea mUpdateTextArea = new JTextArea();
-    private final AbstractButton mAddNewRowsButton = new JButton(VueResources.getString("dockWindow.contentBrowser.sync.addToMap"));
-    private final AbstractButton mApplyChangesButton = new JButton(VueResources.getString("dockWindow.contentBrowser.sync.updateMap"));
+    private final AbstractButton mAddNewRowsButton = new JButton(VueResources.getString("dockWindow.contentPanel.sync.addToMap"));
+    private final AbstractButton mApplyChangesButton = new JButton(VueResources.getString("dockWindow.contentPanel.sync.updateMap"));
     private final DefaultTreeModel mTreeModel;
     private final static boolean DEBUG_LOCAL = false;
 
@@ -912,25 +912,25 @@ public class DataTree extends javax.swing.JTree
             		}
             	}
 
-            	message = String.format(VueResources.getString("dockWindow.contentBrowser.sync.allmatch"), keyName);
+            	message = String.format(VueResources.getString("dockWindow.contentPanel.sync.allmatch"), keyName);
             } else {
             	if (newRowCount == 1) {
-            		message = VueResources.getString("dockWindow.contentBrowser.sync.oneNew");
+            		message = VueResources.getString("dockWindow.contentPanel.sync.oneNew");
             	} else if (newRowCount > 1) {
-                	message = String.format(VueResources.getString("dockWindow.contentBrowser.sync.multipleNew"), newRowCount);
+                	message = String.format(VueResources.getString("dockWindow.contentPanel.sync.multipleNew"), newRowCount);
             	}
 
             	if (newRowCount > 0 && changedRowCount > 0) {
-            		message = message + " " + VueResources.getString("dockWindow.contentBrowser.sync.and") + " ";
+            		message = message + " " + VueResources.getString("dockWindow.contentPanel.sync.and") + " ";
             	}
 
             	if (changedRowCount == 1) {
-            		message = message + VueResources.getString("dockWindow.contentBrowser.sync.oneMod");
+            		message = message + VueResources.getString("dockWindow.contentPanel.sync.oneMod");
             	} else if (changedRowCount > 1) {
-                	message = message + String.format(VueResources.getString("dockWindow.contentBrowser.sync.multipleMod"), changedRowCount);
+                	message = message + String.format(VueResources.getString("dockWindow.contentPanel.sync.multipleMod"), changedRowCount);
             	}
 
-            	message = message + " " + VueResources.getString("dockWindow.contentBrowser.sync.outsideVUE");
+            	message = message + " " + VueResources.getString("dockWindow.contentPanel.sync.outsideVUE");
             }
 
             mUpdateTextArea.setText(message);

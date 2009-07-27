@@ -118,7 +118,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.670 $ / $Date: 2009-07-23 19:23:33 $ / $Author: sfraize $ 
+ * @version $Revision: 1.671 $ / $Date: 2009-07-27 16:44:21 $ / $Author: brian $ 
  */
 
 public class VUE
@@ -166,7 +166,7 @@ public class VUE
     private static OntologyBrowser ontologyBrowser = null;
     private static MetadataSearchMainGUI metadataSearchMainPanel = null;
     private static InteractionTools interactionToolsPanel = null;
-    private static ContentBrowser contentBrowserPanel = null;
+    private static ContentPanel contentPanel = null;
     private static JPopupMenu popup;
     private static JPopupMenu editPopup;
     private static SearchTextField mSearchtextFld = new SearchTextField();
@@ -212,7 +212,7 @@ public class VUE
     	metadataSearchMainPanel = null;
     	mergeMapsControlPanel = null;
     	interactionToolsPanel = null;
-    	contentBrowserPanel = null;
+    	contentPanel = null;
 
     }
     /** simplest form of threadsafe static lazy initializer: for CategoryModel */
@@ -906,7 +906,7 @@ public class VUE
     private static DockWindow layersDock;
     private static DockWindow metaDataSearchDock;
     private static DockWindow interactionToolsDock;
-    private static DockWindow contentBrowserDock;
+    private static DockWindow contentDock;
     private static DockWindow mergeMapsDock;
     private static DockWindow ontologyDock;
     private static DockWindow anchor;
@@ -1844,7 +1844,7 @@ public class VUE
         //restore window
         if (!VUE.isApplet())
         {
-        	DR_BROWSER_DOCK.positionWindowFromProperties();
+//        	DR_BROWSER_DOCK.positionWindowFromProperties();
         	pathwayDock.positionWindowFromProperties();
 
         	formatDock.positionWindowFromProperties();
@@ -1855,9 +1855,9 @@ public class VUE
         	MapInspector.positionWindowFromProperties();
         	metaDataSearchDock.positionWindowFromProperties();
         	interactionToolsDock.positionWindowFromProperties();
-        	contentBrowserDock.positionWindowFromProperties();
+        	contentDock.positionWindowFromProperties();
         	mergeMapsDock.positionWindowFromProperties();
-        	ontologyDock.positionWindowFromProperties();
+//        	ontologyDock.positionWindowFromProperties();
         	ObjectInspector.positionWindowFromProperties();
         	if (outlineDock != null)
         		outlineDock.positionWindowFromProperties();       
@@ -2061,12 +2061,12 @@ public class VUE
         	interactionToolsPanel = new InteractionTools(interactionToolsDock);
         }
         //-----------------------------------------------------------------------------
-        // Content Browser window
+        // Content window
         //-----------------------------------------------------------------------------
-        if (contentBrowserDock == null || VUE.isApplet())
+        if (contentDock == null || VUE.isApplet())
         {
-        	contentBrowserDock = GUI.createDockWindow(VueResources.getString("dockWindow.contentBrowser.title"));
-        	contentBrowserPanel = new ContentBrowser(contentBrowserDock);
+        	contentDock = GUI.createDockWindow(VueResources.getString("dockWindow.contentPanel.title"));
+        	contentPanel = new ContentPanel(contentDock);
         }
       //-----------------------------------------------------------------------------
         // Merge Maps
@@ -2521,7 +2521,7 @@ public class VUE
     	return floatingZoomDock;
     }
     
-    public static DockWindow getContentDock()
+    public static DockWindow getDRBrowserDock()
     {
     	return DR_BROWSER_DOCK;
     }
@@ -2571,14 +2571,14 @@ public class VUE
     	return interactionToolsDock;
     }    
     
-    public static ContentBrowser getContentBrowserPanel()
+    public static ContentPanel getContentPanel()
     {
-    	return contentBrowserPanel;
+    	return contentPanel;
     }    
     
-    public static DockWindow getContentBrowserDock()
+    public static DockWindow getContentDock()
     {
-    	return contentBrowserDock;
+    	return contentDock;
     }    
     
     public static OntologyBrowser getOntologyBrowserPanel()
@@ -2998,7 +2998,7 @@ public class VUE
         ObjectInspector.saveWindowProperties();
         metaDataSearchDock.saveWindowProperties();
         interactionToolsDock.saveWindowProperties();
-        contentBrowserDock.saveWindowProperties();
+        contentDock.saveWindowProperties();
         mergeMapsDock.saveWindowProperties();
         if (outlineDock != null)
             outlineDock.saveWindowProperties();

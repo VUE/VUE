@@ -17,7 +17,6 @@ package tufts.vue;
 
 import tufts.Util;
 import tufts.vue.gui.*;
-import tufts.vue.ui.AssociationsPane;
 
 import java.awt.*;
 import javax.swing.*;
@@ -60,9 +59,9 @@ import javax.swing.border.*;
  * We'd probably need a delegating impl tho to handle that.
  *
  *
- * @version $Revision: 1.80 $ / $Date: 2009-06-22 21:39:11 $ / $Author: brian $ 
+ * @version $Revision: 1.81 $ / $Date: 2009-07-27 16:44:21 $ / $Author: brian $ 
  */
-public class DRBrowser extends JPanel
+public class DRBrowser extends ContentBrowser
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(DRBrowser.class);
     
@@ -124,8 +123,7 @@ public class DRBrowser extends JPanel
 
         };
     
-    final JPanel librariesPanel;
-    final AssociationsPane associationsPane = new AssociationsPane();
+    final JPanel librariesPane;
     final Widget browsePane = new Widget(VueResources.getString("button.browse.label"));
     final Widget resultsPane = new Widget(VueResources.getString("jlabel.searchresult"));
 
@@ -202,7 +200,7 @@ public class DRBrowser extends JPanel
         this.dockWindow = resourceDock;
         this.resourceDock = resourceDock;
         this.searchDock = searchDock;
-        this.librariesPanel = this;
+        this.librariesPane = this;
 
         //setOpaque(true);
         //setBackground(Color.white);
@@ -249,9 +247,9 @@ public class DRBrowser extends JPanel
         WidgetStack stack = new WidgetStack(getName());
 
         Widget.setWantsScroller(stack, true);
+        Widget.setWantsScrollerAlways(stack, true);
 
-        stack.addPane(librariesPanel, 0f);
-        stack.addPane(associationsPane, 0f);
+        stack.addPane(librariesPane, 0f);
         stack.addPane(searchPane, 0f);
         stack.addPane(browsePane, 1f);
         stack.addPane(resultsPane, 0f);
@@ -269,7 +267,7 @@ public class DRBrowser extends JPanel
     private void buildDoubleDockWindow() {
         WidgetStack stack = new WidgetStack();
 
-        stack.addPane(librariesPanel, 0f);
+        stack.addPane(librariesPane, 0f);
         stack.addPane(browsePane, 1f); 
         resourceDock.setContent(stack);
 
@@ -282,7 +280,7 @@ public class DRBrowser extends JPanel
     private void buildMultipleDockWindows()
     {
         // make sure the loading label will be visible
-        this.dockWindow.setContent(librariesPanel);
+        this.dockWindow.setContent(librariesPane);
                               
         // now create the stack of DockWindows
         DockWindow drBrowserDock = this.dockWindow;
@@ -384,9 +382,9 @@ public class DRBrowser extends JPanel
             }
             */
             if (loadingLabel != null)
-                librariesPanel.remove(loadingLabel);
+                librariesPane.remove(loadingLabel);
 
-            librariesPanel.add(DSV);
+            librariesPane.add(DSV);
 
             revalidate();
             // must do this to get re-laid out: apparently, the hierarchy

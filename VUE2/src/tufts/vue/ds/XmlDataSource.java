@@ -33,7 +33,7 @@ import au.com.bytecode.opencsv.CSVReader;
 
 
 /**
- * @version $Revision: 1.19 $ / $Date: 2009-06-01 04:15:10 $ / $Author: sfraize $
+ * @version $Revision: 1.20 $ / $Date: 2009-07-27 16:44:21 $ / $Author: brian $
  * @author Scott Fraize
  */
 public class XmlDataSource extends BrowseDataSource
@@ -48,6 +48,7 @@ public class XmlDataSource extends BrowseDataSource
 
     private static final String NONE_SELECTED = "(none selected)";
 
+    public static final String TYPE_NAME = "XML Feed";
     
 
     private String itemKey;
@@ -65,7 +66,7 @@ public class XmlDataSource extends BrowseDataSource
 
     @Override
     public String getTypeName() {
-        return "XML Feed";
+        return TYPE_NAME;
     }
 
     @Override
