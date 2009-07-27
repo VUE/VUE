@@ -1,7 +1,9 @@
 package tufts.vue;
 
 import java.awt.BorderLayout;
+import java.awt.event.MouseEvent;
 
+import tufts.vue.DataSourceViewer.MiscActionMouseListener;
 import tufts.vue.gui.DockWindow;
 import tufts.vue.gui.GUI;
 import tufts.vue.gui.Widget;
@@ -35,6 +37,9 @@ public class DSBrowser extends ContentBrowser {
 		Widget.setWantsScrollerAlways(widgetStack, true);
 
 		associationsPane.setActions();	// Must happen AFTER Widget is added to WidgetStack.
+        Widget.setHelpAction(librariesPane, VueResources.getString("dockWindow.Datasources.libraryPane.helpText"));
+        // dockWindow.addButton is not a localized string in this context;  it's just a property that is later resolved.
+        Widget.setMiscAction(librariesPane, new MiscActionMouseListener(), "dockWindow.addButton");
 
 		add(widgetStack);
 
@@ -56,5 +61,13 @@ public class DSBrowser extends ContentBrowser {
 
 	DockWindow getDockWindow() {
 		return dockWindow;
+	}
+
+
+	class MiscActionMouseListener extends MouseAdapter {
+		public void mouseClicked(MouseEvent e) {
+System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!! MiscActionMouseListener.mouseClicked");
+//			addLibraryAction.actionPerformed(null);
+		}
 	}
 }

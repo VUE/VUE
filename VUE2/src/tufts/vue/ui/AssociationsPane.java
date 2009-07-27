@@ -97,7 +97,7 @@ public class AssociationsPane extends Widget
 
 	public void setActions() {
 //		setMiscAction(this, new AddAssociationListener(), "dockWindow.addButton");
-		setHelpAction(this, VueResources.getString("dockWindow.Resources.associationsPane.helpText"));;
+		setHelpAction(this, VueResources.getString("dockWindow.Datasources.associationsPane.helpText"));;
 
 		enableMenuActions();
 	}

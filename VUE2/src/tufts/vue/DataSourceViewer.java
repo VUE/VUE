@@ -141,9 +141,9 @@ public class DataSourceViewer extends ContentViewer
         Widget.setHelpAction(DRB.librariesPane,VueResources.getString("dockWindow.Resources.libraryPane.helpText"));
         //dockWindow.addButton is not a localized string in this context its just a property that is later resolved.
         Widget.setMiscAction(DRB.librariesPane, new MiscActionMouseListener(), "dockWindow.addButton");
-        Widget.setHelpAction(DRB.browsePane,VueResources.getString("dockWindow.Resources.browsePane.helpText"));;
-        Widget.setHelpAction(DRB.resultsPane,VueResources.getString("dockWindow.Resources.resultsPane.helpText"));;
-        Widget.setHelpAction(DRB.searchPane,VueResources.getString("dockWindow.Resources.searchPane.helpText"));;
+//        Widget.setHelpAction(DRB.browsePane,VueResources.getString("dockWindow.Resources.browsePane.helpText"));  There is no such property and if there was, the question mark would be blue instead of brown.
+        Widget.setHelpAction(DRB.resultsPane,VueResources.getString("dockWindow.Resources.resultsPane.helpText"));
+        Widget.setHelpAction(DRB.searchPane,VueResources.getString("dockWindow.Resources.searchPane.helpText"));
 
         Widget.setRefreshAction(DRB.browsePane, new MouseAdapter() {
                 public void mousePressed(MouseEvent e) {
