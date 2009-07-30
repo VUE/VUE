@@ -54,6 +54,7 @@ public abstract class ContentViewer extends JPanel {
 
 
 	public void finalize() {
+		browserDS = null;
 	}
 
 
@@ -92,8 +93,6 @@ public abstract class ContentViewer extends JPanel {
 	protected abstract void displayInBrowsePane(JComponent viewer, boolean priority);
 
 
-// This can AND SHOULD go away when DataSetViewer is using a DataSourceList instead of a JList.
-// replace the call to repainList() in AWTAcceptViewerTask with: dataSourceList.repaint();
 	protected abstract void repaintList();
 
 

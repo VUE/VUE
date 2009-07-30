@@ -14,9 +14,8 @@
  */
 
 package tufts.vue;
-
+import tufts.vue.ds.XmlDataSource;
 import tufts.Util;
-// for demoing import tufts.vue.ds.XmlDataSource;
 import tufts.vue.gui.*;
 import tufts.vue.gui.GUI;
 import tufts.vue.gui.Widget;
@@ -743,9 +742,9 @@ public class DataSourceViewer extends ContentViewer
     }
 
     private static final Collection<tufts.vue.DataSource> oldStyleDataSources = new ArrayList();
-    
-    private void loadOldStyleDataSources() {
 
+
+    private void loadOldStyleDataSources() {
         VUE.diagPush("BDS"); // BrowseDataSource (oldStyle)
         
         boolean init = true;
@@ -771,15 +770,18 @@ public class DataSourceViewer extends ContentViewer
                 int i = 0;
                 while (!(dataSources.isEmpty())){
                     final DataSource ds = (DataSource) dataSources.remove(0);
-//for demo-ing if (ds.getTypeName().equals(XmlDataSource.TYPE_NAME)) continue;
-                    i++;
-                    if (DEBUG.DR) Log.debug(String.format("#%02d: loading %s ", i, Util.tags(ds)));
-//                     VUE.diagPush("#" + i);
-//                     ds.setResourceViewer();
-//                     VUE.diagPop();
-                    try {
-                        dataSourceList.addOrdered(ds);
-                    } catch(Exception ex) {System.out.println("DataSourceViewer.loadOldStyleDataSources"+ex);}
+                    // Don't load XML/CSV data sources -- those are now loaded in DataSetViewer.java -- but do
+                    // load any others: for example, folders dropped onto the resources tab.
+                    if (!ds.getTypeName().equals(XmlDataSource.TYPE_NAME)) {
+	                    i++;
+	                    if (DEBUG.DR) Log.debug(String.format("#%02d: loading %s ", i, Util.tags(ds)));
+//                         VUE.diagPush("#" + i);
+//                         ds.setResourceViewer();
+//                         VUE.diagPop();
+	                    try {
+	                        dataSourceList.addOrdered(ds);
+	                    } catch(Exception ex) {System.out.println("DataSourceViewer.loadOldStyleDataSources"+ex);}
+					}
                 }
             } catch (Exception ex) {
                 Log.error("Loading DataSources; loading defaults as fallback", ex);
@@ -789,6 +791,7 @@ public class DataSourceViewer extends ContentViewer
 
         VUE.diagPop();
     }
+
 
     public static void cacheDataSourceViewers() {
         if (singleton != null)
@@ -2111,6 +2114,8 @@ public class DataSourceViewer extends ContentViewer
     }
     
     public static void saveDataSourceViewer() {
+    	DataSetViewer.saveDataSetViewer();
+/* This is now done in DataSetViewer
         if (dataSourceList == null) {
             System.err.println("DataSourceViewer: No dataSourceList to save.");
             return;
@@ -2138,6 +2143,7 @@ public class DataSourceViewer extends ContentViewer
         } catch (Throwable t) {
             t.printStackTrace();
         }
+*/
     }
     
     public void keyPressed(KeyEvent e) {

@@ -31,7 +31,7 @@ public class EditLibraryPanel extends JPanel implements ActionListener
     private final JButton updateButton = new JButton(VueResources.getString("optiondialog.savechages.save"));
     private final edu.tufts.vue.dsm.DataSource dataSource;
     private final tufts.vue.DataSource oldStyleDataSource;
-    private final DataSourceViewer dsv;
+    private final ContentViewer dsv;
     private edu.tufts.vue.ui.ConfigurationUI cui;
 
     // edu.tufts.vue.ui.ConfigurationUI uses XML to set up its fields.  This is probably
@@ -39,7 +39,7 @@ public class EditLibraryPanel extends JPanel implements ActionListener
     // add a single new field to a data-source, we've had to create a whole bunch
     // of helper code on top of it (see BrowseDataSource)
 	
-    public EditLibraryPanel(DataSourceViewer dsv, edu.tufts.vue.dsm.DataSource dataSource)
+    public EditLibraryPanel(ContentViewer dsv, edu.tufts.vue.dsm.DataSource dataSource)
     {
         this.dsv = dsv;
         this.dataSource = dataSource;
@@ -68,7 +68,7 @@ public class EditLibraryPanel extends JPanel implements ActionListener
         Map<String,Vector> extraValuesByKey = Collections.EMPTY_MAP;
     }
     
-    public EditLibraryPanel(DataSourceViewer dsv, tufts.vue.DataSource dataSource)
+    public EditLibraryPanel(ContentViewer dsv, tufts.vue.DataSource dataSource)
     {
         this.dsv = dsv;
         this.dataSource = null;
