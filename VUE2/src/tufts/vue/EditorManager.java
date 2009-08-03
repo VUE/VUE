@@ -505,6 +505,7 @@ public class EditorManager
             FreePropertyBits |= key.bit;
             
             if (DEBUG.STYLE) out("declaring free (unused) property change: " + key + "; type=" + key.type);
+            //Util.printStackTrace("HERE");
         }
     }
 
@@ -602,7 +603,11 @@ public class EditorManager
     private static void applyPropertyValue(Object debugSrc, Object key, Object newValue, LWComponent target) {
         //if (DEBUG.STYLE) System.out.println("APPLY " + debugSrc + " " + key + "[" + newValue + "] -> " + target);
         if (target.supportsProperty(key)) {
-            if (DEBUG.STYLE) out(String.format("APPLY %s %-15s %-40s -> %s", debugSrc, key, "(" + newValue + ")", target));
+            if (DEBUG.STYLE) out(String.format("APPLY %s %-15s %-40s -> %s",
+                                               debugSrc,
+                                               key,
+                                               "(" + newValue + ")",
+                                               Util.tags(target)));
             try {
                 target.setProperty(key, newValue);
                 //} catch (LWComponent.PropertyValueVeto ex) {
@@ -621,7 +626,7 @@ public class EditorManager
             //styleHolder = createStyle(c, token, "style");
             //StylesByType.put(token, styleHolder);
         }
-        if (DEBUG.STYLE) out("got styleHolder for type token (" + token + "): " + styleType); 
+        if (DEBUG.STYLE) out("got styleHolder for type token (" + token + "): " + Util.tags(styleType)); 
         return styleType;
     }
 
@@ -862,7 +867,7 @@ public class EditorManager
         }
         
         if (mEditors.remove(editor)) {
-            if (DEBUG.TOOL || DEBUG.INIT) out("UNREGISTERED EDITOR: " + editor);
+            if (DEBUG.TOOL || DEBUG.INIT || !VUE.isStartupUnderway()) out("UNREGISTERED EDITOR: " + editor);
             if (editor instanceof java.awt.Component)
                 ((java.awt.Component)editor).removePropertyChangeListener(singleton);
         } 
@@ -891,7 +896,7 @@ public class EditorManager
         }
         
         if (mEditors.add(editor)) {
-            if (DEBUG.TOOL || DEBUG.INIT) out("REGISTERED EDITOR: " + editor);
+            if (DEBUG.TOOL || DEBUG.INIT || !VUE.isStartupUnderway()) out("REGISTERED EDITOR: " + editor);
 
             Object curVal = null;
 
@@ -901,7 +906,8 @@ public class EditorManager
                 Log.warn("editor not ready to produce value: " + Util.tags(editor) + "; " + t);
             }
 
-            if (curVal != null) {
+            if (curVal != null && VUE.isStartupUnderway()) {
+                // doing this at runtime this can break us badly (LWText 0 font size props leaking to LWNodes!)
                 recordPropertyChangeInStyles("register",
                                              editor.getPropertyKey(),
                                              curVal,
