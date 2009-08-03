@@ -59,7 +59,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.243 $ / $Date: 2009-07-24 22:12:42 $ / $Author: sfraize $
+ * @version $Revision: 1.244 $ / $Date: 2009-08-03 17:48:10 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -1626,6 +1626,15 @@ public class LWMap extends LWContainer
         else
             return findAllSchemas();
     }
+
+//     // TODO: actually, put these right in the Schema?  Or redundantly right in the Field???
+//     public Collection<tufts.vue.ds.Association> getIncludedAssociations() {
+//         if (mXMLRestoreUnderway)
+//             return null;
+//         else
+//             return tufts.vue.ds.Association.getAll();
+//     }
+    
     
 //     public void setIncludedSchemas(Collection<Schema> schemas) {
 //         Log.debug("FYI, PERSISTED SCHEMA HANDLES WERE: " + schemas, new Throwable("FYI"));
@@ -2171,12 +2180,12 @@ public class LWMap extends LWContainer
         if (DEBUG.EVENTS&&DEBUG.META) out(this + " flushed cached bounds");
     }
     
-    private void markChange(Object e) {
+    private void markChange(LWCEvent e) {
 
         if (!javax.swing.SwingUtilities.isEventDispatchThread()) {
             
             // for now, anything from a non AWT Event Dispatch Thread (EDT) is assumed
-            // to not be a real undoable chage -- this mainly to prevent image size sets
+            // to not be a real undoable change -- this mainly to prevent image size sets
             // after the map loads from leaving the map appearing to have been modified.
             // A more complete solution might mark all events generated on specific
             // threads known to be behaving this way.
@@ -2184,7 +2193,9 @@ public class LWMap extends LWContainer
             if (DEBUG.WORK || DEBUG.EVENTS || DEBUG.INIT) Log.debug("staying clean for non-AWT event: " + e);
             return;
         }
-            
+        
+        //Log.debug("*** OLD VALUE: " + Util.tags(e.oldValue) + "; " + e);
+        
         if (mChanges == 0) {
             if (DEBUG.EVENTS) out(this + " First Modification Happening on " + e);
             if (DEBUG.INIT||(DEBUG.EVENTS&&DEBUG.META)) new Throwable("FYI: FIRST MODIFICATION").printStackTrace();
