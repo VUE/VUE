@@ -29,7 +29,7 @@ import com.google.common.collect.HashMultiset;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.109 $ / $Date: 2009-06-03 02:42:12 $ / $Author: sfraize $
+ * @version $Revision: 1.110 $ / $Date: 2009-08-03 17:46:57 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -512,7 +512,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         if (DEBUG.SELECTION) debug("clearHidden");
         boolean removed = false;
         for (LWComponent c : toArray()) {
-            if (c.isHidden() || c.isAncestorCollapsed()) {
+            if (c.isHidden() || c.isAncestorCollapsed() || c.getLayer().isHidden()) {
                 if (DEBUG.SELECTION) Log.debug("clearHidden: clearing " + c);
                 removeSilent(c);
                 removed = true;
