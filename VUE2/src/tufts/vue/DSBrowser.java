@@ -115,23 +115,25 @@ public class DSBrowser extends ContentBrowser {
 				dataSetViewer.setActiveDataSource(ds);
 			}
 
-			GUI.invokeAfterAWT(new Runnable() { public void run() {
-//				queryEditor.refresh();
-
-				try {
-					DataSourceManager dataSourceManager = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
-
-					synchronized (dataSourceManager) {
-						if (DEBUG.DR) Log.debug("DataSourceManager saving...");
-
-						dataSourceManager.save();
-
-						if (DEBUG.DR) Log.debug("DataSourceManager saved.");
+			GUI.invokeAfterAWT(new Runnable() {
+				public void run() {
+//					queryEditor.refresh();
+	
+					try {
+						DataSourceManager dataSourceManager = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
+	
+						synchronized (dataSourceManager) {
+							if (DEBUG.DR) Log.debug("DataSourceManager saving...");
+	
+							dataSourceManager.save();
+	
+							if (DEBUG.DR) Log.debug("DataSourceManager saved.");
+						}
+					} catch (Throwable t) {
+						tufts.Util.printStackTrace(t);
 					}
-				} catch (Throwable t) {
-					tufts.Util.printStackTrace(t);
 				}
-			}});
+			});
 		}
 	};
 

@@ -82,7 +82,7 @@ public class DataSetViewer extends ContentViewer {
 				DefaultListModel	model = dataSourceList.getModelContents();
 
 //				if (activeDataSource == null && model.size() > 0)
-//				   setActiveDataSource((DataSource)model.getElementAt(0));
+//					setActiveDataSource((DataSource)model.getElementAt(0));
 			} catch (Exception ex) {
 				Log.error("Loading Datasets: ", ex);
 			}
@@ -250,7 +250,7 @@ public class DataSetViewer extends ContentViewer {
 			try {
 				if (DEBUG.DR) Log.debug("saveDataSetViewer: creating new SaveDataSourceViewer");
 
-				File file  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath() + File.separatorChar + VueResources.getString("save.datasources"));
+				File file = new File(VueUtil.getDefaultUserFolder().getAbsolutePath() + File.separatorChar + VueResources.getString("save.datasources"));
 				SaveDataSourceViewer sViewer= new SaveDataSourceViewer(dataSources);
 
 				if (DEBUG.DR) Log.debug("saveDataSourceViewer: marshallMap: saving " + sViewer + " to " + file);
