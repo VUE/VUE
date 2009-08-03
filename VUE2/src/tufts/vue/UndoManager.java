@@ -1037,19 +1037,26 @@ public class UndoManager
                     runCleanupTaskPhase(false);
             }
         }
+
+        boolean addUndoable = true;
         
         if (mCurrentUndo.size() == 0) // if nothing changed, don't bother adding an UndoAction
-            return;
-        if (name == null) {
+            addUndoable = false;
+        else if (name == null) {
             if (mLastEvent == null)
-                return;
-            name = mLastEvent.getName();
+                addUndoable = false;
+            else
+                name = mLastEvent.getName();
         }
-        
-        UndoList.add(collectChangesAsUndoAction(name));
-        RedoList.clear();
-        fireUserActionCompleted();
-        updateGlobalActionLabels();
+
+        if (addUndoable) {
+            UndoList.add(collectChangesAsUndoAction(name));
+            RedoList.clear();
+            fireUserActionCompleted();
+            updateGlobalActionLabels();
+        } else {
+            checkAndHandleSelectionCleanups();
+        }
     }
 
     private synchronized UndoAction collectChangesAsUndoAction(String name)
@@ -1231,8 +1238,11 @@ public class UndoManager
     private boolean selectionCleanupForHidden;
     private boolean selectionCleanupForDeleted;
 
-    private void fireUserActionCompleted() {
+    private void checkAndHandleSelectionCleanups() {
 
+        if (DEBUG.UNDO) Log.debug("checkAndHandleSelectionCleanups: hideCleanup="
+                                  + selectionCleanupForHidden
+                                  + " deletedCleanup=" + selectionCleanupForDeleted);
         if (selectionCleanupForHidden) {
             selectionCleanupForHidden = false;
             VUE.getSelection().clearHidden();
@@ -1241,7 +1251,10 @@ public class UndoManager
             selectionCleanupForDeleted = false;
             VUE.getSelection().clearDeleted();
         }
-
+    }
+    
+    private void fireUserActionCompleted() {
+        checkAndHandleSelectionCleanups();
         mMap.notify(this, LWKey.UserActionCompleted);        
     }
     
