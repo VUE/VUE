@@ -40,7 +40,7 @@ import edu.tufts.vue.metadata.action.SearchAction;
 
 
 /**
- * @version $Revision: 1.78 $ / $Date: 2009-07-01 19:30:24 $ / $Author: brian $
+ * @version $Revision: 1.79 $ / $Date: 2009-08-03 17:46:39 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -1645,10 +1645,9 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                         label.setEnabled(layer.isVisible());        
                         VUE.getMainWindow().repaint();
                         if (layer == getActiveLayer() && !canBeActive(layer))
-                            if (AUTO_ADJUST_ACTIVE_LAYER) attemptAlternativeActiveLayer(false);                        
-                        
-                        
-                            
+                            if (AUTO_ADJUST_ACTIVE_LAYER) attemptAlternativeActiveLayer(false);
+                        layer.getUndoManager().mark((layer.isVisible() ? "Show" : "Hide")
+                                                    + " Layer");
                     }});
 
             label.setEnabled(layer.isVisible());            
