@@ -23,6 +23,8 @@ package edu.tufts.component.servicehead;
 
 
 import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
+
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Map;
@@ -42,12 +44,17 @@ import org.meandre.core.ComponentExecutionException;
 import org.meandre.core.ExecutableComponent;
 import org.meandre.webui.ConfigurableWebUIFragmentCallback;
 import org.meandre.webui.WebUIException;
+import org.meandre.components.abstracts.AbstractExecutableComponent;
+import org.seasr.datatypes.BasicDataTypesTools;
+import org.seasr.meandre.components.tools.Names;
+
+
 
 // ------------------------------------------------------------------------- 
 @Component(
 		baseURL = "meandre://seasr.org/components/demo/", 
 		creator = "Xavier Llor&agrave, modified by Anoop", 
-		description = "Service head for a service that gets data via posts v1.0 ", 
+		description = "Service head for a service that gets data via posts v1.1.1 ", 
 		name = "Service head", tags = "WebUI, process request", 
 		mode = Mode.webui, firingPolicy = Component.FiringPolicy.all
 )
@@ -60,8 +67,7 @@ import org.meandre.webui.WebUIException;
  * @author Xavier Lor&agrave;
  * @ Modified by Anoop Kumar for VUE
  */
-public class ServiceHead 
-implements ExecutableComponent, ConfigurableWebUIFragmentCallback {
+public class ServiceHead extends  AbstractExecutableComponent implements ConfigurableWebUIFragmentCallback {
 
 	// -------------------------------------------------------------------------
 
@@ -76,19 +82,24 @@ implements ExecutableComponent, ConfigurableWebUIFragmentCallback {
 			description = "A map object containing the key elements on the request and the assiciated values", 
 			name = "value_map"
 	)
-	public final static String OUTPUT_VALUEMAP = "value_map";
+	public final static String OUTPUT_VALUEMAP = Names.PORT_REQUEST_DATA;
+
+
 	
 	@ComponentOutput(
 			description = "The response to be sent to the Service Tail Post.", 
 			name = "response"
 	)
-	public final static String OUTPUT_RESPONSE = "response";
+	public final static String OUTPUT_RESPONSE = Names.PORT_RESPONSE_HANDLER;
+
 	
 	@ComponentOutput(
 			description = "The semaphore to signal the response was sent.", 
 			name = "semaphore"
 	)
-	public final static String OUTPUT_SEMAPHORE = "semaphore";
+	public final static String OUTPUT_SEMAPHORE = Names.PORT_SEMAPHORE;
+
+
 	
 	// -------------------------------------------------------------------------
 
@@ -96,33 +107,6 @@ implements ExecutableComponent, ConfigurableWebUIFragmentCallback {
 	private ComponentContext ccHandle;
 
 	// -------------------------------------------------------------------------
-
-	public void initialize(ComponentContextProperties ccp) {
-		console = ccp.getOutputConsole();
-		console.println("[INFO] Initializing service head for " + ccp.getProperty(PROP_URL_PATH));
-	}
-
-	public void dispose(ComponentContextProperties ccp) {
-		console.println("[INFO] Disposing service head for " + ccp.getProperty(PROP_URL_PATH));
-	}
-
-	// -------------------------------------------------------------------------
-
-	public void execute(ComponentContext cc)
-			throws ComponentExecutionException, ComponentContextException {
-		try {
-			this.ccHandle = cc;
-			cc.startWebUIFragment((ConfigurableWebUIFragmentCallback)this);
-			console.println("[INFO] Starting service head for " + cc.getProperty(PROP_URL_PATH));
-			while (!cc.isFlowAborting()) {
-				Thread.sleep(1000);
-			}
-			console.println("[INFO] Aborting for service head for" + cc.getProperty(PROP_URL_PATH));
-			cc.stopWebUIFragment(this);
-		} catch (Exception e) {
-			throw new ComponentExecutionException(e);
-		}
-	}
 
 	// -------------------------------------------------------------------------
 
@@ -138,18 +122,24 @@ implements ExecutableComponent, ConfigurableWebUIFragmentCallback {
 	@SuppressWarnings("unchecked")
 	public void handle(HttpServletRequest request, HttpServletResponse response)
 	throws WebUIException {
-		Map<String,String[]> map = new Hashtable<String,String[]>();
+		Map<String,byte[]> map = new Hashtable<String,byte[]>();
 		Enumeration mapRequest = request.getParameterNames();
 		while ( mapRequest.hasMoreElements() ) {
 			String sName = mapRequest.nextElement().toString();
 			String [] sa = request.getParameterValues(sName);
-			map.put(sName, sa);
+			String sAcc = "";
+			for ( String s:sa ) sAcc+=s;
+			try {
+                map.put(sName, sAcc.getBytes("UTF-8"));
+			}
+            catch (UnsupportedEncodingException e) {
+                throw new WebUIException(e);
+            }
 		}
-		
 		try {
 			Semaphore sem = new Semaphore(1, true);
 			sem.acquire();
-			ccHandle.pushDataComponentToOutput(OUTPUT_VALUEMAP, map);
+			ccHandle.pushDataComponentToOutput(OUTPUT_VALUEMAP,  BasicDataTypesTools.mapToByteMap(map));
 			ccHandle.pushDataComponentToOutput(OUTPUT_RESPONSE, response);
 			ccHandle.pushDataComponentToOutput(OUTPUT_SEMAPHORE, sem);
 			sem.acquire();
@@ -158,7 +148,41 @@ implements ExecutableComponent, ConfigurableWebUIFragmentCallback {
 			throw new WebUIException(e);
 		} catch (ComponentContextException e) {
 			throw new WebUIException(e);
-		}		
+		}
+		
+	}
+
+	@Override
+	public void disposeCallBack(ComponentContextProperties ccp)
+			throws Exception {
+		console.println("[INFO] Disposing service head for " + ccp.getProperty(PROP_URL_PATH));
+
+	}
+
+	@Override
+	public void executeCallBack(ComponentContext cc) throws Exception {
+		try {
+			this.ccHandle = cc;
+			cc.startWebUIFragment((ConfigurableWebUIFragmentCallback)this);
+			console.println("[INFO] Starting service head for " + cc.getProperty(PROP_URL_PATH));
+			while (!cc.isFlowAborting()) {
+				Thread.sleep(1000);
+			}
+			console.println("[INFO] Aborting for service head for" + cc.getProperty(PROP_URL_PATH));
+			cc.stopWebUIFragment(this);
+		} catch (Exception e) {
+			throw new ComponentExecutionException(e);
+		}
+		
+	}
+
+	@Override
+	public void initializeCallBack(ComponentContextProperties ccp)
+			throws Exception {
+		console = ccp.getOutputConsole();
+		
+		console.println("[INFO] Initializing service head for " + ccp.getProperty(PROP_URL_PATH));
+			
 	}
 
 }
