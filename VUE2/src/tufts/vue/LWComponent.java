@@ -47,7 +47,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.481 $ / $Date: 2009-08-03 17:49:02 $ / $Author: sfraize $
+ * @version $Revision: 1.482 $ / $Date: 2009-08-03 21:00:57 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -373,7 +373,9 @@ public class LWComponent
     }
     
     public void copyStyle(LWComponent styleSource, long permittedPropertyBits) {
-        if (DEBUG.STYLE || styleSource == null) System.out.println("COPY STYLE of " + styleSource + " ==>> " + this + " permitBits=" + Long.bitCount(permittedPropertyBits));
+        if (DEBUG.STYLE || styleSource == null) {
+            System.out.println("COPY STYLE of " + Util.tags(styleSource) + " ==>> " + Util.tags(this) + " permitBits=" + Long.bitCount(permittedPropertyBits));
+        }
         if (styleSource == null)
             return;
         for (Key key : Key.AllKeys)
