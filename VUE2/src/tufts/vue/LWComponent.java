@@ -47,7 +47,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.480 $ / $Date: 2009-07-24 22:12:42 $ / $Author: sfraize $
+ * @version $Revision: 1.481 $ / $Date: 2009-08-03 17:49:02 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1477,7 +1477,7 @@ u                    getSlot(c).setFromString((String)value);
         return null;
     }
 
-    public void setProperty(final Object key, Object val)
+    public void setProperty(final Object key, final Object val)
     {
         if (DEBUG.TOOL||DEBUG.UNDO) System.out.println("setProperty: " + vtag(key, val, null) + " on " + LWComponent.this);
 
@@ -1510,10 +1510,17 @@ u                    getSlot(c).setFromString((String)value);
         else if (key == LWKey.Size) {
             Size s = (Size) val;
             setSize(s.width, s.height);
-        } else if (key == LWKey.Frame) {
+        }
+        else if (key == LWKey.Frame) {
             Rectangle2D.Float r = (Rectangle2D.Float) val;
             setFrame(r.x, r.y, r.width, r.height);
-        } else {
+        }
+//         else if (key == LWKey.Hidden) {
+//             // would need HIDE_CAUSE
+//             //setHidden(((Boolean)val).booleanValue());
+//             Log.debug("setProperty " + key + "=" + val + " on " + this);
+//         }
+        else {
             //out("setProperty: unknown key [" + key + "] with value [" + val + "]");
             tufts.Util.printStackTrace("FYI: Unhandled Property key: " + key.getClass() + "[" + key + "] with value [" + val + "]");
         }
@@ -1997,9 +2004,11 @@ u                    getSlot(c).setFromString((String)value);
     }
     
     
-    /** @return null -- here only for persistance order, so schemas
-     * can persist before nodes in the map, which overrides this to list
-     * schemas included in the map.
+    /** @return null -- this is only needed for LWMap, but is implemented here to force
+     * the order of persistance based on the castor mapping, so schemas can persist
+     * before nodes in the LWMap, which overrides this to return schemas included in the
+     * map.  If this was only declared in the mapping file as an LWMap persistance item,
+     * it would persist after all LWComponent mappings (LWMap subclasses LWComponent).
      */
     public Collection<tufts.vue.ds.Schema> getIncludedSchemas() {
         return null;
@@ -2153,7 +2162,7 @@ u                    getSlot(c).setFromString((String)value);
             // to collections of nodes that are newly added at the same time.
             
             if (mCreated == 0) {
-                if (DEBUG.Enabled) Log.debug("fallback timestamp: " + this);
+                if (DEBUG.WORK) Log.debug("fallback timestamp: " + this);
                 setCreated(System.currentTimeMillis());
             }
             
@@ -6642,13 +6651,6 @@ u                    getSlot(c).setFromString((String)value);
     }
     
     
-    private void setHideBits(int bits) {
-        final boolean wasHidden = isHidden();
-        mHideBits = bits;
-        if (wasHidden != isHidden())
-            notify(LWKey.Hidden);
-    }
-
 //     /** debug -- names of set HideBits */
 //     String getDescriptionOfSetBits() {
 //         StringBuffer buf = new StringBuffer();
@@ -6713,6 +6715,14 @@ u                    getSlot(c).setFromString((String)value);
         //Log.debug(this, new Throwable("clearHidden"));
         if (DEBUG.EVENTS) out("clrHidden " + cause);
         setHideBits(mHideBits & ~cause.bit);
+    }
+
+    private void setHideBits(int bits) {
+        final boolean wasHidden = isHidden();
+        mHideBits = bits;
+        if (wasHidden != isHidden())
+            notify(LWKey.Hidden);
+        //notify(LWKey.Hidden, wasHidden); // if we need it to be undoable
     }
 
     /**
