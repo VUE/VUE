@@ -146,6 +146,16 @@ public class EditorManager
         tufts.vue.gui.GUI.invokeOnEDT(new Runnable() { public void run() { _install(); }});
     }
     
+    /*
+	Used by the applet on mac which has to be a lot more literal
+    about destroying objects when recycling itself then it does on windows
+	*/
+    public static void destroy() 
+    {
+    	mEditors.clear();
+    	mLabels.clear();
+    	singleton = null;
+    }
     private static synchronized void _install() {
         if (singleton != null) {
             tufts.Util.printStackTrace("can only have one instance of " + singleton);
