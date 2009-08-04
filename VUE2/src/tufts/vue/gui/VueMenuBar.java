@@ -87,7 +87,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.145 $ / $Date: 2009-07-27 16:44:21 $ / $Author: brian $
+ * @version $Revision: 1.146 $ / $Date: 2009-08-04 17:37:30 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -501,12 +501,13 @@ public class VueMenuBar extends javax.swing.JMenuBar
         fileMenu.add(openAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, metaMask));
         fileMenu.add(openFromURLAction);
         fileMenu.add(Actions.CloseMap);
-        fileMenu.addSeparator();
+        fileMenu.addSeparator();        
         fileMenu.add(saveAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, metaMask));
         fileMenu.add(saveAsAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, metaMask+Event.SHIFT_MASK));                
         fileMenu.add(Actions.Revert);
         Actions.Revert.setEnabled(false);
-        fileMenu.addSeparator();   
+        fileMenu.addSeparator();
+     //   fileMenu.add(Actions.ZoteroAction);
         fileMenu.add(dataAction);
         String includeText = VueResources.getString("text.file.menu.include");
         if(includeText != null && includeText.equals("TRUE"))
@@ -1012,16 +1013,17 @@ public class VueMenuBar extends javax.swing.JMenuBar
         if (VUE.getMapInfoDock() !=null)
         	windowMenu.add(createWindowItem(VUE.getMapInfoDock(),KeyEvent.VK_3, VueResources.getString("menu.windows.mapinfo")));
 
-        if (VUE.getContentDock()!= null && !VUE.isApplet()){
+     //   if (VUE.getContentDock()!= null && !VUE.isApplet()){
             windowMenu.addSeparator();
             windowMenu.add(createWindowItem(VUE.getContentDock(), KeyEvent.VK_4, VueResources.getString("dockWindow.contentPanel.title")));
-            windowMenu.add(Actions.ResourcesAction);
+            if (!VUE.isApplet())
+            	windowMenu.add(Actions.ResourcesAction);
             windowMenu.add(Actions.DatasetsAction);
             windowMenu.add(Actions.OntologiesAction);
             windowMenu.addSeparator();
 
             OntologyBrowser.getBrowser().initializeBrowser(false, null);
-        }
+//        }
 
         if (VUE.getOutlineDock() !=null && !VUE.isApplet())	
         	windowMenu.add(createWindowItem(VUE.getOutlineDock(),KeyEvent.VK_5, VueResources.getString("menu.windows.outline")));
@@ -1034,7 +1036,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         if (VUE.getMetadataSearchMainGUI()!= null && !VUE.isApplet()){
             windowMenu.add(createWindowItem(VUE.getMetadataSearchMainGUI(), KeyEvent.VK_9, VueResources.getString("menu.windows.search")));            
         }
-        if (VUE.getInteractionToolsDock()!= null && !VUE.isApplet()){
+        if (VUE.getInteractionToolsDock()!= null){
             windowMenu.add(createWindowItem(VUE.getInteractionToolsDock(), -1, VueResources.getString("dockWindow.interactionTools.title")));            
         }
         
