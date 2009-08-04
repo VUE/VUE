@@ -76,7 +76,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.609 $ / $Date: 2009-07-24 21:31:08 $ / $Author: sfraize $ 
+ * @version $Revision: 1.610 $ / $Date: 2009-08-04 17:36:15 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -4477,7 +4477,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         
     	
     }
-    
+    public static void destroyContextMenus()
+    {
+    	sSinglePopup = null;
+    	sMultiPopup = null;
+    }
     private void buildSingleSelectionPortalPopup()
     {
     	infoCheckBox.setLabel(VueResources.getString("mapViewer.componentMenu.portalInfo.label"));
@@ -5911,25 +5915,39 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             
         }
         
+        /**
+         * Context menus in the VUE applet after a restart of the applet on MAC get hammered 
+         * and paint under the applet with the Popupfactory code enabled.  So therefore it is
+         * disabled when Java 6 becomes the standard on OSX this may be moot, but as of the latest
+         * 1.5.0_16 it won't work without this change.
+         * @param e
+         * @param hitComponent
+         */
         private void displayContextMenu(MouseEvent e, LWComponent hitComponent) {
 
-            if (VueUtil.isMacPlatform() && VUE.inNativeFullScreen()) {
+        	PopupFactory factory=null;
+            if (!VUE.isApplet() && VueUtil.isMacPlatform() && VUE.inNativeFullScreen()) {
                 // on mac, attempt to pop a menu in true full-screen mode
                 // put's us to black screen and leaves us there!
                 return;
             }
-            PopupFactory factory = PopupFactory.getSharedInstance();
-         	PopupFactory.setSharedInstance(new VuePopupFactory(PopupFactory.getSharedInstance())); 
+            if (!VUE.isApplet())
+            {
+            	factory = PopupFactory.getSharedInstance();
+         		PopupFactory.setSharedInstance(new VuePopupFactory(PopupFactory.getSharedInstance())); 
+            }
             if (VueSelection.isEmpty() || VueSelection.only() instanceof LWMap) {
             	                       
                 getMapPopup().show(e.getComponent(), e.getX(), e.getY());
             } else if (VueSelection.size() == 1) {
-            	PopupFactory.setSharedInstance(new VuePopupFactory(PopupFactory.getSharedInstance()));
+                if (!VUE.isApplet())
+             		PopupFactory.setSharedInstance(new VuePopupFactory(PopupFactory.getSharedInstance()));
                 getSingleSelectionPopup(hitComponent).show(e.getComponent(), e.getX(), e.getY());
             } else {
                 getMultiSelectionPopup().show(e.getComponent(), e.getX(), e.getY());
             }
-            PopupFactory.setSharedInstance(factory);
+            if (!VUE.isApplet())
+            	PopupFactory.setSharedInstance(factory);
         }
         
         
