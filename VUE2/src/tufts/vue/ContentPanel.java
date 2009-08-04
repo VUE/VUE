@@ -16,7 +16,8 @@ public class ContentPanel extends JPanel {
 	JPanel						ontologies = OntologyBrowser.getBrowser().getDockWindow().getContentPanel();
 
 	public ContentPanel(DockWindow dockWindow) {
-		tabbedPane.addTab(VueResources.getString("dockWindow.contentPanel.resources.title"), resources);
+		if (!VUE.isApplet())
+			tabbedPane.addTab(VueResources.getString("dockWindow.contentPanel.resources.title"), resources);
 		tabbedPane.addTab(VueResources.getString("dockWindow.contentPanel.datasets.title"), datasets);
 		tabbedPane.addTab(VueResources.getString("dockWindow.contentPanel.ontologies.title"), ontologies);
 
