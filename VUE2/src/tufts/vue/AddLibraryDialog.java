@@ -21,7 +21,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.86 $ / $Date: 2009-05-14 22:20:01 $ / $Author: brian $
+ * @version $Revision: 1.87 $ / $Date: 2009-08-04 21:13:36 $ / $Author: brian $
  * @author  akumar03
  */
 import java.awt.BorderLayout;
@@ -90,8 +90,6 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
     private static String DS_FTP_DESCRIPTION = VueResources.getString("addLibrary.ftpsite");
     private static String DS_RSS = VueResources.getString("addLibrary.rssfeed");
     private static String DS_RSS_DESCRIPTION = VueResources.getString("addLibrary.rssfeedsite");
-    private static String DS_XML = VueResources.getString("addLibrary.xmldata");
-    private static String DS_XML_DESCRIPTION = VueResources.getString("addLibrary.DS_XML_DESCRIPTION");
     
     private static String TITLE = VueResources.getString("addLibrary.addaresource");
     private static String AVAILABLE = VueResources.getString("addLibrary.resourcesavailable");
@@ -249,7 +247,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
     }
 
     /** apparently, the number of data sources before "LOADING" ? */
-    private static final int LIST_PARTITION_CONSTANT = 5;
+    private static final int LIST_PARTITION_CONSTANT = 4;
     
     private void populate() {
         listModel.removeAllElements();
@@ -273,7 +271,6 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
             listModel.addElement(MY_SAVED_CONTENT);         
            // listModel.addElement(ZOTERO);   
             listModel.addElement(DS_RSS);
-            listModel.addElement(DS_XML);
             listModel.addElement(DS_FTP);
             listModel.addElement(LOADING);
        int ONE_TNTH_SECOND = 100;
@@ -349,8 +346,6 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                         descriptionTextArea.setText(DS_FTP_DESCRIPTION);
                     } else if (s.equals(DS_RSS)) {
                         descriptionTextArea.setText(DS_RSS_DESCRIPTION);
-                    } else if (s.equals(DS_XML)) {
-                        descriptionTextArea.setText(DS_XML_DESCRIPTION);
                     }
                 } else {
                     org.osid.provider.Provider p = (org.osid.provider.Provider)(((JList)lse.getSource()).getSelectedValue());
@@ -418,17 +413,6 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                 } else if (s.equals(DS_RSS)) {
                     RSSDataSource ds = new RSSDataSource("", null);
                     xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><configuration><field><key>name</key><title>Display Name</title><description>Name for this datasource</description><default>DEFAULT_NAME</default><mandatory>true</mandatory><maxChars></maxChars><ui>0</ui></field><field><key>address</key><title>Address</title><description>RSS Url</description><default>DEFAULT_ADDRESS</default><mandatory>true</mandatory><maxChars>1000</maxChars><ui>0</ui></field></configuration>";
-                    String name = ds.getDisplayName();
-                    if (name == null) name = "";
-                    String address = ds.getAddress();
-                    if (address == null) address = "";
-                    xml = xml.replaceFirst("DEFAULT_NAME",name);
-                    xml = xml.replaceFirst("DEFAULT_ADDRESS",address);
-                    this.oldDataSource = ds;
-                } else if (s.equals(DS_XML)) {
-                    // TODO: get rid of all this duplicate code: e.g., this is copy of RSS case
-                    XmlDataSource ds = new XmlDataSource("", null);
-                    xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><configuration><field><key>name</key><title>Display Name</title><description>Name for this datasource</description><default>DEFAULT_NAME</default><mandatory>true</mandatory><maxChars></maxChars><ui>0</ui></field><field><key>address</key><title>Address</title><description>RSS Url</description><default>DEFAULT_ADDRESS</default><mandatory>true</mandatory><maxChars>1000</maxChars><ui>8</ui></field></configuration>";
                     String name = ds.getDisplayName();
                     if (name == null) name = "";
                     String address = ds.getAddress();
@@ -579,17 +563,6 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                                 ex.printStackTrace();
                                 // ignore any error for now
                             }
-                            
-                            
-                        } else if (s.equals(DS_RSS) || s.equals(DS_XML)) {
-                            java.util.Properties p = cui.getProperties();
-                            BrowseDataSource ds = (BrowseDataSource)this.oldDataSource;
-                            ds.setDisplayName(p.getProperty("name"));
-                            ds.setAddress(p.getProperty("address"));
-//                             java.util.Properties p = cui.getProperties();
-//                             RSSDataSource ds = (RSSDataSource)this.oldDataSource;
-//                             ds.setDisplayName(p.getProperty("name"));
-//                             ds.setAddress(p.getProperty("address"));
                         }
                     } else {
                         try {

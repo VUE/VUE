@@ -2,6 +2,7 @@ package tufts.vue;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.util.Locale;
@@ -13,6 +14,7 @@ import javax.swing.DefaultListModel;
 import edu.tufts.vue.dsm.DataSourceManager;
 
 import tufts.vue.DataSourceViewer.MiscActionMouseListener;
+import tufts.vue.ds.XmlDataSource;
 import tufts.vue.gui.DockWindow;
 import tufts.vue.gui.GUI;
 import tufts.vue.gui.Widget;
@@ -81,6 +83,48 @@ public class DSBrowser extends ContentBrowser {
 	}
 
 
+	public DataSource addDataset() {
+		XmlDataSource	ds = new XmlDataSource("", null);
+
+		try {
+			String			xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><configuration><field><key>name</key><title>Display Name</title><description>Name for this datasource</description><default>DEFAULT_NAME</default><mandatory>true</mandatory><maxChars></maxChars><ui>0</ui></field><field><key>address</key><title>Address</title><description>RSS Url</description><default>DEFAULT_ADDRESS</default><mandatory>true</mandatory><maxChars>1000</maxChars><ui>8</ui></field></configuration>";
+			String			name = ds.getDisplayName();
+			String			address = ds.getAddress();
+
+			xml = xml.replaceFirst("DEFAULT_NAME", (name != null ? name : ""));
+			xml = xml.replaceFirst("DEFAULT_ADDRESS", (address != null ? address : ""));
+
+			edu.tufts.vue.ui.ConfigurationUI cui =
+						new edu.tufts.vue.ui.ConfigurationUI(new java.io.ByteArrayInputStream(xml.getBytes()));
+
+			cui.setPreferredSize(new Dimension(350, (int)cui.getPreferredSize().getHeight()));
+
+			if (VueUtil.option(this,
+					cui,
+					VueResources.getString("datasourcehandler.adddataset"),
+					javax.swing.JOptionPane.DEFAULT_OPTION,
+					javax.swing.JOptionPane.PLAIN_MESSAGE,
+					new Object[] {
+						VueResources.getString("optiondialog.configuration.continue"), VueResources.getString("optiondialog.configuration.cancel")
+					},
+					VueResources.getString("optiondialog.configuration.continue")) != 1) {
+				java.util.Properties	p = cui.getProperties();
+				BrowseDataSource		bds = (BrowseDataSource)ds;
+
+				bds.setDisplayName(p.getProperty("name"));
+				bds.setAddress(p.getProperty("address"));
+
+				dataSetViewer.dataSourceList.addOrdered(ds);
+				DataSourceViewer.saveDataSourceViewer();
+			}
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+
+		return ds;
+	}
+
+
 	class MiscActionMouseListener extends MouseAdapter {
 		public void mouseClicked(MouseEvent event) {
 			addLibraryAction.actionPerformed(null);
@@ -104,12 +148,10 @@ public class DSBrowser extends ContentBrowser {
 	}
 
 
-	public AbstractAction addLibraryAction = new AbstractAction(VueResources.getString("datasourcehandler.adddatasets")) {
+	public AbstractAction addLibraryAction = new AbstractAction(VueResources.getString("datasourcehandler.adddataset")) {
 		public static final long	serialVersionUID = 1;
 		public void actionPerformed(ActionEvent event) {
-			AddLibraryDialog addLibraryDialog = new AddLibraryDialog(dataSetViewer.dataSourceList);
-
-			DataSource ds = addLibraryDialog.getOldDataSource();
+			DataSource ds = addDataset();
 
 			if (ds != null) {
 				dataSetViewer.setActiveDataSource(ds);
@@ -159,7 +201,7 @@ public class DSBrowser extends ContentBrowser {
 
 				if (VueUtil.confirm(VUE.getDialogParent(),
 						String.format(Locale.getDefault(), VueResources.getString("datasource.dialog.message"), displayName),
-						VueResources.getString("datasource.dialog.title"),
+						VueResources.getString("dataset.dialog.title"),
 						javax.swing.JOptionPane.OK_CANCEL_OPTION) == javax.swing.JOptionPane.YES_OPTION) {
 					DataSetViewer.dataSourceList.getModelContents().removeElement(ds);
 					DataSetViewer.saveDataSetViewer();
