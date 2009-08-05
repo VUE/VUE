@@ -21,11 +21,16 @@ package tufts.vue;
 
 import javax.swing.JMenu;
 import javax.swing.KeyStroke;
+
+import edu.tufts.seasr.Connector;
+import edu.tufts.seasr.MeandreItem;
+import edu.tufts.seasr.MeandreResponse;
 import edu.tufts.vue.layout.*;
 import edu.tufts.vue.mbs.AnalyzerResult;
 import edu.tufts.vue.mbs.LWComponentAnalyzer;
 import edu.tufts.vue.mbs.OpenCalaisAnalyzer;
 import edu.tufts.vue.mbs.YahooAnalyzer;
+import edu.tufts.vue.mbs.SeasrAnalyzer;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -60,6 +65,11 @@ import tufts.Util;
 import tufts.vue.Actions.LWCAction;
 import tufts.vue.gui.GUI;
 import tufts.vue.gui.Widget;
+
+import tufts.vue.VueUtil;
+
+
+import edu.tufts.vue.metadata.MetadataList;
 
 
 // contains layout actions. based on ArrangeAction. The default layout is random layout
@@ -190,6 +200,8 @@ public class AnalyzerAction extends Actions.LWCAction {
     public static final AnalyzerAction calais = new AnalyzerAction(new OpenCalaisAnalyzer(),VueResources.getString("analyzeaction.performmapbased"),null);
     public static final AutoTaggerAction calaisAutoTagger = new AutoTaggerAction(new OpenCalaisAnalyzer(),VueResources.getString("analyzeaction.autotag"),null);
     public static final SemanticMapAction semanticMapAction = new SemanticMapAction(new OpenCalaisAnalyzer(),"semantic map",null);
+    public static final SeasrAction seasr = new SeasrAction(new SeasrAnalyzer(),"Seasr Analysis",null);
+    
     public static final Action luckyImageAction =
         new LWCAction(VueResources.getString("luckyimage")) {
             public void act(LWComponent c) {
@@ -288,8 +300,48 @@ public class AnalyzerAction extends Actions.LWCAction {
     	analyzeNodeMenu.add(calaisAutoTagger);
     	analyzeNodeMenu.add(semanticMapAction);
     	analyzeNodeMenu.add(luckyImageAction);
+    	analyzeNodeMenu.add(getSeasrMenu());
+//    	analyzeNodeMenu.add(seasr);
 //    	analyzeNodeMenu.add(calaisMenu);
 		
+	}
+	
+	public static JMenu getSeasrMenu() {
+		JMenu seasrMenu = new JMenu("SEASR Analysis");
+		JMenu createNodesMenu = new JMenu("Create Nodes");
+		JMenu getMetadataMenu = new JMenu("Get Metadata");
+		JMenu getInfoMenu = new JMenu("Get Infomration");
+		Connector seasrConnector = new Connector();
+		MeandreResponse r;
+		try {
+		r = seasrConnector.parseMeandreResponse("vue");
+		for(MeandreItem item: r.getMeandreItemList()) {
+			SeasrAction seasr = new SeasrAction(new SeasrAnalyzer(),item.getMeandreUriName(),null);
+			createNodesMenu.add(seasr);
+		}
+		seasrMenu.add(createNodesMenu);
+		
+		
+		r = seasrConnector.parseMeandreResponse("vuemetadata");
+		for(MeandreItem item: r.getMeandreItemList()) {
+			SeasrMetadataAction seasr = new SeasrMetadataAction(new SeasrAnalyzer(),item.getMeandreUriName(),null);
+			getMetadataMenu.add(seasr);
+		}
+		seasrMenu.add(getMetadataMenu);
+		
+		r = seasrConnector.parseMeandreResponse("vueinfo");
+		for(MeandreItem item: r.getMeandreItemList()) {
+			SeasrInfoAction seasr = new SeasrInfoAction(new SeasrAnalyzer(),item.getMeandreUriName(),null);
+			getInfoMenu.add(seasr);
+		} 
+		
+		seasrMenu.add(getInfoMenu);
+		}catch(Exception ex){
+			ex.printStackTrace();
+		}
+		finally {
+		return seasrMenu;
+		}
 	}
 	
 	static class SemanticMapAction extends Actions.LWCAction {
@@ -469,5 +521,95 @@ public class AnalyzerAction extends Actions.LWCAction {
 	    	VUE.getActiveViewer().selectionAdd(c);
 	    	return;
 	    }
+	}
+	static class SeasrAction extends Actions.LWCAction{
+		  private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(SeasrAction.class);
+		  private LWComponentAnalyzer analyzer = null;
+		    
+		   private SeasrAction(LWComponentAnalyzer analyzer, String name,KeyStroke keyStroke) {
+		        super(name,keyStroke);
+		        this.analyzer = analyzer;
+		    }
+		   public void act(LWComponent c) 
+		    {
+		    	System.out.println("Executing action on:"+c.getLabel());
+		    	List<AnalyzerResult> list = analyzer.analyze(c,true);
+		    	Iterator<AnalyzerResult> i = list.iterator();
+		    	VUE.getActiveViewer().getSelection().clear();
+		    	LWMap active = VUE.getActiveMap();
+		        java.util.List<LWComponent> comps = new ArrayList<LWComponent>();
+		    	while (i.hasNext())
+		    	{		
+		    		AnalyzerResult l = i.next();
+		    		tufts.vue.LWNode node = new tufts.vue.LWNode(l.getValue()); 
+		    		comps.add(node);
+		    		node.layout();
+		    		node.setLocation(c.getLocation());
+		        	LWLink link = new LWLink(c,node);            
+		        	comps.add(link);
+		        	link.layout();
+		        	
+		        }
+		        active.addChildren(comps);
+		        LayoutAction.circle.act(comps);
+		         
+		    }
+	}
+	static class SeasrMetadataAction extends Actions.LWCAction{
+		  private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(SeasrAction.class);
+		  private LWComponentAnalyzer analyzer = null;
+		    
+		   private SeasrMetadataAction(LWComponentAnalyzer analyzer, String name,KeyStroke keyStroke) {
+		        super(name,keyStroke);
+		        this.analyzer = analyzer;
+		    }
+		   public void act(LWComponent c) 
+		    {
+		    	
+		    	List<AnalyzerResult> list = analyzer.analyze(c,true);
+		    	Iterator<AnalyzerResult> i = list.iterator();
+		    	VUE.getActiveViewer().getSelection().clear();
+		    	LWMap active = VUE.getActiveMap();
+		        java.util.List<LWComponent> comps = new ArrayList<LWComponent>();
+		    	while (i.hasNext())
+		    	{		
+		    		AnalyzerResult l = i.next();
+		    		 MetadataList mList  = c.getMetadataList();
+		    		mList.add("tag",l.getValue());
+		        	
+		        }
+		        
+		         
+		    }
+	}
+	
+	static class SeasrInfoAction extends Actions.LWCAction{
+		  private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(SeasrAction.class);
+		  private LWComponentAnalyzer analyzer = null;
+		    
+		   private SeasrInfoAction(LWComponentAnalyzer analyzer, String name,KeyStroke keyStroke) {
+		        super(name,keyStroke);
+		        this.analyzer = analyzer;
+		    }
+		   public void act(LWComponent c) 
+		    {
+		    	
+		    	List<AnalyzerResult> list = analyzer.analyze(c,true);
+		    	Iterator<AnalyzerResult> i = list.iterator();
+		    	VUE.getActiveViewer().getSelection().clear();
+		    	LWMap active = VUE.getActiveMap();
+		        java.util.List<LWComponent> comps = new ArrayList<LWComponent>();
+		        String info = "Most common words in the resource are: ";
+		    	while (i.hasNext())
+		    	{		
+		    		AnalyzerResult l = i.next();
+		    		 MetadataList mList  = c.getMetadataList();
+		    		info += l.getValue()+" ";
+		    		
+		        	
+		        }
+		    	VueUtil.alert(info,"Seasr Flow Output");
+		         
+		    }
 	}
 }
