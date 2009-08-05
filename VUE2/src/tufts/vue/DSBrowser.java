@@ -107,15 +107,15 @@ public class DSBrowser extends ContentBrowser {
 					new Object[] {
 						VueResources.getString("optiondialog.configuration.continue"), VueResources.getString("optiondialog.configuration.cancel")
 					},
-					VueResources.getString("optiondialog.configuration.continue")) != 1) {
+					VueResources.getString("optiondialog.configuration.continue")) == 1) {
+				// Cancelled
+				ds = null;
+			} else {
 				java.util.Properties	p = cui.getProperties();
 				BrowseDataSource		bds = (BrowseDataSource)ds;
 
 				bds.setDisplayName(p.getProperty("name"));
 				bds.setAddress(p.getProperty("address"));
-
-				dataSetViewer.dataSourceList.addOrdered(ds);
-				DataSourceViewer.saveDataSourceViewer();
 			}
 		} catch (Throwable t) {
 			t.printStackTrace();
@@ -154,28 +154,19 @@ public class DSBrowser extends ContentBrowser {
 			DataSource ds = addDataset();
 
 			if (ds != null) {
+				dataSetViewer.dataSourceList.addOrdered(ds);
 				dataSetViewer.setActiveDataSource(ds);
-			}
 
-			GUI.invokeAfterAWT(new Runnable() {
-				public void run() {
-//					queryEditor.refresh();
-	
-					try {
-						DataSourceManager dataSourceManager = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
-	
-						synchronized (dataSourceManager) {
-							if (DEBUG.DR) Log.debug("DataSourceManager saving...");
-	
-							dataSourceManager.save();
-	
-							if (DEBUG.DR) Log.debug("DataSourceManager saved.");
+				GUI.invokeAfterAWT(new Runnable() {
+					public void run() {
+						try {
+							DataSetViewer.saveDataSetViewer();
+						} catch (Throwable t) {
+							tufts.Util.printStackTrace(t);
 						}
-					} catch (Throwable t) {
-						tufts.Util.printStackTrace(t);
 					}
-				}
-			});
+				});
+			}
 		}
 	};
 
@@ -204,12 +195,21 @@ public class DSBrowser extends ContentBrowser {
 						VueResources.getString("dataset.dialog.title"),
 						javax.swing.JOptionPane.OK_CANCEL_OPTION) == javax.swing.JOptionPane.YES_OPTION) {
 					DataSetViewer.dataSourceList.getModelContents().removeElement(ds);
-					DataSetViewer.saveDataSetViewer();
-				}
 
-				browsePane.remove(ds.getResourceViewer());
-				browsePane.revalidate();
-				browsePane.repaint();
+					GUI.invokeAfterAWT(new Runnable() {
+						public void run() {
+							try {
+								DataSetViewer.saveDataSetViewer();
+							} catch (Throwable t) {
+								tufts.Util.printStackTrace(t);
+							}
+						}
+					});
+
+					browsePane.remove(ds.getResourceViewer());
+					browsePane.revalidate();
+					browsePane.repaint();
+				}
 			}
 		}
 	};
