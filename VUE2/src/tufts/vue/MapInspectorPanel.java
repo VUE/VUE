@@ -33,7 +33,7 @@ import tufts.vue.gui.*;
  * A tabbed-pane collection of property sheets that apply
  * globally to a given map.
  *
- * @version $Revision: 1.73 $ / $Date: 2009-07-10 04:20:11 $ / $Author: mike $ 
+ * @version $Revision: 1.74 $ / $Date: 2009-08-05 18:59:58 $ / $Author: brian $ 
  *
  */
 public class MapInspectorPanel extends JPanel
@@ -59,6 +59,9 @@ public class MapInspectorPanel extends JPanel
     private InfoPanel mInfoPanel = null;
     private VueAimPanel mVueAimPanel = null;
     //private PathwayPane mPathPanel = null;
+
+    /** description panel **/
+    private NotePanel mDescriptionPanel = new NotePanel();
     
     /** filter panel **/
     //private FilterApplyPanel mFilterApplyPanel = null;
@@ -69,7 +72,6 @@ public class MapInspectorPanel extends JPanel
     //MetadataPanel metadataPanel = null; // metadata added to infoPanel
     MetadataEditor metadataPanel = null;
     
-    VueTextPane mDescriptionEditor = null;
     JTextField mAuthorEditor = null;
     
     private WidgetStack mapInfoStack = null;
@@ -89,6 +91,9 @@ public class MapInspectorPanel extends JPanel
         //mPathPanel = new PathwayPane();
         //mFilterApplyPanel = new FilterApplyPanel();
         //mFilterCreatePanel = new FilterCreatePanel();
+
+        mDescriptionPanel.setName(VueResources.getString("mapinspectorpanel.description"));
+
         //metadataPanel = new MetadataPanel();
         metadataPanel = new MetadataEditor(VUE.getActiveMap(),false,false);
         
@@ -108,9 +113,11 @@ public class MapInspectorPanel extends JPanel
         }
         
         Widget.setWantsScroller(mapInfoStack, true);
+        Widget.setWantsScrollerAlways(mapInfoStack, true);
         
         //mTabbedPane.addTab(metadataPanel.getName(),metadataPanel);
         mapInfoStack.addPane(mInfoPanel,0f);
+        mapInfoStack.addPane(mDescriptionPanel, 0f);
         mapInfoStack.addPane(metadataPanel,0f);
         if (DEBUG.IM)
         	mapInfoStack.addPane(mVueAimPanel ,0f);
@@ -207,10 +214,10 @@ public class MapInspectorPanel extends JPanel
     public void activeChanged(ActiveEvent<LWMap> e) {
         //tufts.Util.printStackTrace("AMC START");
     	
-        if(e.active == null && mAuthorEditor != null && mDescriptionEditor != null)
+        if(e.active == null && mAuthorEditor != null && mDescriptionPanel != null)
         {
             mAuthorEditor.setText("");
-            mDescriptionEditor.setText("");
+            mDescriptionPanel.getTextPane().setText("");
         }
         
         setMap(e.active);
@@ -241,7 +248,6 @@ public class MapInspectorPanel extends JPanel
         
         // VUE-1001
         //JLabel mLocation = null;
-        //mDescriptionEditor = null;
         PropertyPanel mPropPanel = null;
         PropertiesEditor propertiesEditor = null;
         ColorMenuButton mMapColor = new ColorMenuButton(VueResources.getColorArray("fillColorValues"),true);
@@ -286,19 +292,6 @@ public class MapInspectorPanel extends JPanel
             innerPanel.setLayout(gridbag);
             //mTitleEditor = new JTextField();
             mAuthorEditor = new JTextField();
-            
-            mDescriptionEditor = new VueTextPane("Map Description");
-            mDescriptionEditor.setMinimumSize(new Dimension(180, 60));
-            JScrollPane descriptionScroller = new JScrollPane(mDescriptionEditor);
-            descriptionScroller.setMinimumSize(new Dimension(180, 60));
-            descriptionScroller.setPreferredSize(new Dimension(180,100));
-            descriptionScroller.setOpaque(false);
-            
-            //descriptionScroller.setBorder(new CompoundBorder(new EmptyBorder(3,0,0,0), descriptionScroller.getBorder()));
-            
-            //descriptionScroller.setBorder(new CompoundBorder(new EmptyBorder(9,0,0,0), BorderFactory.createLineBorder(Color.DARK_GRAY)));
-            //descriptionScroller.setBorder(new EmptyBorder(9,0,0,0));
-            //mDescriptionEditor.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
 
 
             /*
@@ -330,16 +323,14 @@ public class MapInspectorPanel extends JPanel
             //saveButton.addActionListener(this);
             mPropPanel  = new PropertyPanel();
             //mPropPanel.addProperty( "Label:", mTitleEditor); // initially Label was title
+            mPropPanel.addProperty(VueResources.getString("mapinspectorpanel.created"), mDate);
             mPropPanel.addProperty(VueResources.getString("mapinspectorpanel.creator"), mAuthorEditor); //added through metadata
             mPropPanel.addProperty(VueResources.getString("mapinspectorpanel.background"),mMapColor);
-            mPropPanel.addProperty(VueResources.getString("mapinspectorpanel.created"), mDate);
             
             // VUE-1001
             //mPropPanel.addProperty("Location:",mLocation);            
             
             //mPropPanel.addProperty("Background:", mapFill);
-            mPropPanel.addProperty(VueResources.getString("mapinspectorpanel.description"), descriptionScroller);
-            //mPropPanel.addProperty("Description:", descriptionScroller);
             //mPropPanel.setBorder(BorderFactory.createEmptyBorder(6,9,6, 6));
             //mInfoBox.add(saveButton,BorderLayout.EAST); added focuslistener
              c.weightx = 1.0;
@@ -382,7 +373,7 @@ public class MapInspectorPanel extends JPanel
              mDate.setFont(GUI.LabelFace);
              // VUE 1001
              //mLocation.setFont(GUI.LabelFace);
-             mDescriptionEditor.setFont(GUI.LabelFace);
+
              
              mAuthorEditor.addFocusListener(new FocusAdapter(){
                 public void focusLost(FocusEvent e)
@@ -405,27 +396,27 @@ public class MapInspectorPanel extends JPanel
                 }
              });
              
-             mDescriptionEditor.addFocusListener(new FocusAdapter(){
-                public void focusLost(FocusEvent e)
-                {
-                    LWMap currentMap = VUE.getActiveMap();
-                    edu.tufts.vue.metadata.VueMetadataElement vme = new edu.tufts.vue.metadata.VueMetadataElement();
-                    String[] pairedValue = {dcDescription,LWComponent.escapeWhitespace(mDescriptionEditor.getText())};
-                    vme.setObject(pairedValue);
-                    vme.setType(edu.tufts.vue.metadata.VueMetadataElement.RESOURCE_CATEGORY);
-                    if(currentMap == null)
-                        return;
-                    if(currentMap.getMetadataList().findRCategory(dcDescription) != -1)
-                    {
-                      mMap.getMetadataList().modify(vme);
-                    }
-                    else
-                    {
-                      mMap.getMetadataList().getMetadata().add(vme);
-                    }
-                }
-             });
-             
+             mDescriptionPanel.getTextPane().addFocusListener(new FocusAdapter(){
+                 public void focusLost(FocusEvent e)
+                 {
+                     LWMap currentMap = VUE.getActiveMap();
+                     edu.tufts.vue.metadata.VueMetadataElement vme = new edu.tufts.vue.metadata.VueMetadataElement();
+                     String[] pairedValue = {dcDescription,LWComponent.escapeWhitespace(mDescriptionPanel.getTextPane().getText())};
+                     vme.setObject(pairedValue);
+                     vme.setType(edu.tufts.vue.metadata.VueMetadataElement.RESOURCE_CATEGORY);
+                     if(currentMap == null)
+                         return;
+                     if(currentMap.getMetadataList().findRCategory(dcDescription) != -1)
+                     {
+                       mMap.getMetadataList().modify(vme);
+                     }
+                     else
+                     {
+                       mMap.getMetadataList().getMetadata().add(vme);
+                     }
+                 }
+              });
+
             
             
             c.weighty = 1.0;
@@ -471,14 +462,14 @@ public class MapInspectorPanel extends JPanel
             }
             mAuthorEditor.setText(creatorValue);
             
-            mDescriptionEditor.attachProperty(mMap, LWKey.Notes);
+            mDescriptionPanel.getTextPane().attachProperty(mMap, LWKey.Notes);
             
             edu.tufts.vue.metadata.VueMetadataElement description = 
                     mMap.getMetadataList().get(dcDescription);
             if(description != null)
             {
                 String descriptionValue = description.getValue();
-                mDescriptionEditor.setText(LWComponent.unEscapeWhitespace(descriptionValue));
+                mDescriptionPanel.getTextPane().setText(LWComponent.unEscapeWhitespace(descriptionValue));
             }
             
             File file = mMap.getFile() ;
@@ -496,21 +487,21 @@ public class MapInspectorPanel extends JPanel
         }
         
         private void saveInfo() {
-            //System.out.println("MIP saveInfo " + mDescriptionEditor.getText());
+            //System.out.println("MIP saveInfo " + mDescriptionPanel.getTextPane().getText());
             if( mMap != null) {
                 // for now, only description/notes needs saving, and it handles that it itself
                 // add back in Author until/unless synched with metadata list: VUE-951
                 //mMap.setLabel( mTitleEditor.getText() );
                 //mMap.setAuthor(  mAuthorEditor.getText() );
-                //mMap.setNotes(mDescriptionEditor.getText());
-                //mMap.setDescription(mDescriptionEditor.getText());
+                //mMap.setNotes(mDescriptionPanel.getTextPane().getText());
+                //mMap.setDescription(mDescriptionPanel.getTextPane().getText());
             }
         }
         /**
          * public void actionPerformed( ActionEvent pEvent) {
          * Object source = pEvent.getSource();
          * System.out.println("Action Performed :"+source);
-         * if( (source == saveButton) || (source == mTitleEditor) || (source == mAuthorEditor) || (source == mDescriptionEditor) ) {
+         * if( (source == saveButton) || (source == mTitleEditor) || (source == mAuthorEditor) || (source == mDescriptionPanel) ) {
          * saveInfo();
          * }
          * }
