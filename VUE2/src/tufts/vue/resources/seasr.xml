@@ -1,0 +1,32 @@
+<seasr_analytics>
+  <flows>
+	<flow_group name="Create New Nodes" input="one" >
+		<flow name="Resource Word Count" uri="http://vue.tufts.edu/word-counts-vuetokenizer/word-counts-for-vue-using-vue-tokenizer/" url="http://vue-dl.tccs.tufts.edu:1719/service/ping" >
+			<input_group>
+				<input>location</input>
+			</input_group>
+		</flow>
+	</flow_group>
+	<flow_group name="Add Metadata" input="one" >
+		<flow name="Resource Word Count" uri="http://vue.tufts.edu/word-counts-vuetokenizer/word-counts-for-vue-using-vue-tokenizer/" url="http://vue-dl.tccs.tufts.edu:1719/service/ping" >
+			<input_group>
+				<input>location</input>
+			</input_group>
+		</flow>
+	</flow_group>
+	<flow_group name="Add Notes" input="one" >
+		<flow name="Resource Word Count" uri="http://vue.tufts.edu/word-counts-vuetokenizer/word-counts-for-vue-using-vue-tokenizer/" url="http://vue-dl.tccs.tufts.edu:1719/service/ping" >
+			<input_group>
+				<input>location</input>
+			</input_group>
+		</flow>
+	</flow_group>
+	<flow_group name="Create New Nodes" input="many" >
+		<flow name="Resource Word Count" uri="http://vue.tufts.edu/word-counts-vuetokenizer/word-counts-for-vue-using-vue-tokenizer/" url="http://vue-dl.tccs.tufts.edu:1719/service/ping" >
+			<input_group>
+				<input>location</input>
+			</input_group>
+		</flow>
+	</flow_group>
+  </flows>
+</seasr_analytics>
