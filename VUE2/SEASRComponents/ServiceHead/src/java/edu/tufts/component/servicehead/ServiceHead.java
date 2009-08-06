@@ -54,7 +54,7 @@ import org.seasr.meandre.components.tools.Names;
 @Component(
 		baseURL = "meandre://seasr.org/components/demo/", 
 		creator = "Xavier Llor&agrave, modified by Anoop", 
-		description = "Service head for a service that gets data via posts v1.1.1 ", 
+		description = "Service head for a service that gets data via posts v1.1.2 ", 
 		name = "Service head", tags = "WebUI, process request", 
 		mode = Mode.webui, firingPolicy = Component.FiringPolicy.all
 )
@@ -80,7 +80,7 @@ public class ServiceHead extends  AbstractExecutableComponent implements Configu
 	
 	@ComponentOutput(
 			description = "A map object containing the key elements on the request and the assiciated values", 
-			name = "value_map"
+			name =  Names.PORT_REQUEST_DATA
 	)
 	public final static String OUTPUT_VALUEMAP = Names.PORT_REQUEST_DATA;
 
@@ -88,14 +88,14 @@ public class ServiceHead extends  AbstractExecutableComponent implements Configu
 	
 	@ComponentOutput(
 			description = "The response to be sent to the Service Tail Post.", 
-			name = "response"
+			name = Names.PORT_RESPONSE_HANDLER
 	)
 	public final static String OUTPUT_RESPONSE = Names.PORT_RESPONSE_HANDLER;
 
 	
 	@ComponentOutput(
 			description = "The semaphore to signal the response was sent.", 
-			name = "semaphore"
+			name =Names.PORT_SEMAPHORE
 	)
 	public final static String OUTPUT_SEMAPHORE = Names.PORT_SEMAPHORE;
 
