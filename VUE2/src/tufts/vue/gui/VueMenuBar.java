@@ -87,7 +87,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.146 $ / $Date: 2009-08-04 17:37:30 $ / $Author: mike $
+ * @version $Revision: 1.147 $ / $Date: 2009-08-06 19:15:58 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -241,6 +241,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         final JMenu editMenu = makeMenu(VueResources.getString("menu.edit"));
         final JMenu viewMenu = makeMenu(VueResources.getString("menu.view"));
         final JMenu formatMenu = makeMenu(VueResources.getString("menu.format"));
+        
         transformMenu = makeMenu(VueResources.getString("menu.font"));
         transformMenu.setEnabled(false);
         arrangeMenu = makeMenu(VueResources.getString("menu.arrange"));
@@ -699,7 +700,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
         transformMenu.add(Actions.FontBigger);
         transformMenu.add(Actions.FontBold);
         transformMenu.add(Actions.FontItalic);                
-        formatMenu.add(transformMenu);        
+        formatMenu.add(transformMenu);
+        formatMenu.add(buildMenu("menu.image", Actions.IMAGE_MENU_ACTIONS));
         formatMenu.add(arrangeMenu);
         formatMenu.add(alignMenu);
         formatMenu.add(layoutMenu);
@@ -1218,9 +1220,22 @@ public class VueMenuBar extends javax.swing.JMenuBar
     }
 
 
-    public static JMenu buildMenu(String name, Action[] actions) {
-        return buildMenu(makeMenu(name), actions);
+//     public static JMenu buildMenu(String name, Action[] actions) {
+//         return buildMenu(makeMenu(name), actions);
+//     }
+    
+    public static JMenu buildMenu(String localizationKey, Action[] actions) {
+        return buildMenu(localizationKey, actions, true);
     }
+        
+    public static JMenu buildMenu(String localizationKey, Action[] actions, boolean enabled) {
+        final JMenu menu = new JMenu(VueResources.getString(localizationKey, localizationKey));
+        buildMenu(menu, actions);
+        if (!enabled)
+            menu.setEnabled(false);
+        return menu;
+    }
+    
     public static JMenu buildMenu(JMenu menu, Action[] actions) {
         for (int i = 0; i < actions.length; i++) {
             Action a = actions[i];

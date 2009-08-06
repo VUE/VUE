@@ -50,7 +50,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.117 $ / $Date: 2009-08-06 13:43:27 $ / $Author: sfraize $  
+ * @version $Revision: 1.118 $ / $Date: 2009-08-06 19:15:57 $ / $Author: sfraize $  
  */
 public class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -1300,7 +1300,10 @@ public class MapDropTarget
                 */
             } else {
                 // give it some kind of size so the center-on-drop code can at least do something
-                lwImage.setSize(128,128);
+                // todo: this causes off-standard image sizes to be created as the image
+                // ends up being shaped via ConstrainToAspect instead of setMaxDimension,
+                // tho I also note the sizes this produces tend to be more pleasing/balanced.
+                lwImage.setSize(LWImage.DefaultMaxDimension, LWImage.DefaultMaxDimension);
             }
             
             

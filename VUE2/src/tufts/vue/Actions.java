@@ -1077,14 +1077,6 @@ public class Actions implements VueConstants
         }
     };
     */
-    public static final LWCAction MakeNaturalSize = new LWCAction(VueResources.getString("action.makenaturalsize")) {
-            public void act(LWComponent c) {
-                c.setToNaturalSize();
-            }
-        };
-    
-
-    public static final LWCAction ImageToNaturalSize = MakeNaturalSize;
     
     public static final LWCAction AddFileAction = new LWCAction(VueResources.getString("mapViewer.componentMenu.addFile.label")) {
         public void act(LWComponent c) 
@@ -2935,6 +2927,149 @@ public class Actions implements VueConstants
         NudgeLeft,
         NudgeRight
     };
+
+    
+    public static final LWCAction ImageToNaturalSize = new LWCAction(VueResources.getString("action.makenaturalsize")) {
+            @Override
+                boolean enabledFor(LWSelection s) {
+                return s.containsType(LWImage.class)
+                    || s.containsType(LWNode.class); // todo: really, only image nodes, but we have no key for that
+            }
+            public void act(LWImage c) {
+                c.setToNaturalSize();
+            }
+            public void act(LWNode n) {
+                LWImage i = n.getImage();
+                if (i != null)
+                    i.setToNaturalSize();
+            }
+        };
+
+    private static class ImageSizeAction extends LWCAction {
+        final int size;
+        ImageSizeAction(String name) {
+            super(name);
+            this.size = -1;
+        }
+        ImageSizeAction(int size) {
+            super(size + " px");
+            this.size = size;
+        }
+
+        @Override
+        boolean enabledFor(LWSelection s) {
+            return s.containsType(LWImage.class)
+                || s.containsType(LWNode.class); // todo: really, only image nodes, but we have no key for that
+        }
+        
+        @Override
+        public void act(LWImage c) {
+            c.setMaxDimension(size);
+        }
+        @Override
+        public void act(LWNode n) {
+            final LWImage image = n.getImage();
+            if (image != null)
+                act(image);
+        }            
+    }
+
+    private static final Object IMAGE_BIGGER = "bigger";
+    private static final Object IMAGE_SMALLER = "smaller";
+    private static final Object IMAGE_HIDE = "hide";
+    
+    private static final class ImageAdjustAction extends ImageSizeAction {
+        final Object actionKey;
+        ImageAdjustAction(String localizationKey, Object key) {
+            super(VueResources.getString(localizationKey, localizationKey));
+            this.actionKey = key;
+        }
+        @Override
+        public void act(LWImage c) {
+            final int newDim;
+
+            if (actionKey == IMAGE_HIDE)
+                newDim = Integer.MIN_VALUE;
+            else if (actionKey == IMAGE_BIGGER)
+                newDim = getBiggerSize(c);
+            else
+                newDim = getSmallerSize(c);
+            
+            Log.debug("NEWDIM " + newDim);
+            
+            if (newDim == Integer.MIN_VALUE) {
+                // hide
+                if (c.isNodeIcon()) {
+                    c.setVisible(false);
+                    c.getParent().layout("imageHide");
+                }
+            } else if (newDim == Integer.MAX_VALUE) {
+                // make natural size
+                c.setToNaturalSize();
+                if (c.isNodeIcon())
+                    c.setVisible(true);
+            } else {
+                // adjust size
+                c.setMaxDimension(newDim);
+                if (c.isNodeIcon())
+                    c.setVisible(true);
+            }
+        }
+        
+    }
+
+    private static final LWCAction ImageBigger = new ImageAdjustAction("action.image.bigger", IMAGE_BIGGER);
+    private static final LWCAction ImageSmaller = new ImageAdjustAction("action.image.smaller", IMAGE_SMALLER);
+    private static final LWCAction ImageHide = new ImageAdjustAction("action.image.hide", IMAGE_HIDE);
+    
+
+    private static final int ImageSizes[] = { 512, 256, 128, 64, 32, 16 };
+
+    public static final Action[] IMAGE_MENU_ACTIONS;
+
+    static {
+        IMAGE_MENU_ACTIONS = new Action[ImageSizes.length + 4];
+
+        int i = 0;
+        
+        IMAGE_MENU_ACTIONS[i++] = ImageBigger;
+        IMAGE_MENU_ACTIONS[i++] = ImageSmaller;
+        IMAGE_MENU_ACTIONS[i++] = ImageToNaturalSize;
+
+        for (int x = 0; x < ImageSizes.length; x++) {
+            IMAGE_MENU_ACTIONS[i++] = new ImageSizeAction(ImageSizes[x]);
+        }
+
+        IMAGE_MENU_ACTIONS[i++] = ImageHide;
+
+    }
+
+    private static int getBiggerSize(LWImage c)
+    {
+        final int maxDim = (int) Math.max(c.getWidth(), c.getHeight());
+
+        //Log.debug("BIGGER MAXDIM " + maxDim);
+        
+        for (int i = ImageSizes.length - 1; i >= 0; i--) {
+            if (ImageSizes[i] > maxDim) 
+                return ImageSizes[i];
+        }
+        return Integer.MAX_VALUE;
+    }
+
+    private static int getSmallerSize(LWImage c) {
+        final int maxDim = (int) Math.max(c.getWidth(), c.getHeight());
+
+        //Log.debug("SMALLER MAXDIM " + maxDim);
+        
+        for (int i = 0; i < ImageSizes.length; i++) {
+            if (ImageSizes[i] < maxDim)
+                return ImageSizes[i];
+        }
+        
+        return Integer.MIN_VALUE;
+    }
+    
     
     //-----------------------------------------------------------------------------
     // VueActions

@@ -67,7 +67,7 @@ public class LWImage extends LWComponent
     //static int MaxRenderSize = PreferencesManager.getIntegerPrefValue(ImageSizePreference.getInstance());
     //private static VueIntegerPreference PrefImageSize = ImageSizePreference.getInstance(); // is failing for some reason
     //static int MaxRenderSize = PrefImageSize.getValue();
-    private static final int DefaultMaxDimension = 64;
+    public static final int DefaultMaxDimension = 64;
     
     private final static int MinWidth = 16;
     private final static int MinHeight = 16;
@@ -306,10 +306,8 @@ public class LWImage extends LWComponent
         }
     }
     
-    private void setMaxDimension(final double max)
+    public void setMaxDimension(final double max)
     {
-        if (true) return;
-        
         if (DEBUG.IMAGE) out("setMaxDimension " + max);
 
         if (mImageWidth <= 0) {
@@ -673,7 +671,7 @@ public class LWImage extends LWComponent
 
     @Override
     public void setSize(float w, float h) {
-        if (DEBUG.IMAGE) out("setSize " + w + "x" + h);
+        if (DEBUG.IMAGE||DEBUG.Enabled) out("setSize " + w + "x" + h);
         super.setSize(w, h);
     }
     
@@ -682,14 +680,16 @@ public class LWImage extends LWComponent
         
         if (mImageAspect > 0) {
 
-            if (super.width == NEEDS_DEFAULT || super.height == NEEDS_DEFAULT) {
-                Log.error("cannot auto-shape without request size: " + this);
+            if (this.width == NEEDS_DEFAULT || this.height == NEEDS_DEFAULT) {
+                //Log.error("cannot auto-shape without request size: " + this, new Throwable("HERE"));
+                if (DEBUG.Enabled) Log.info("autoshaping from scratch " + this);
+                setMaxDimension(DefaultMaxDimension);
                 return;
             }
      
             //if (DEBUG.IMAGE) out("autoShapeToAspect in: " + width + "," + height);
              
-            final Size newSize = ConstrainToAspect(mImageAspect, width, height);
+            final Size newSize = ConstrainToAspect(mImageAspect, this.width, this.height);
 
             final float dw = this.width - newSize.width;
             final float dh = this.height - newSize.height;
@@ -698,7 +698,13 @@ public class LWImage extends LWComponent
              * Added this in response to VUE-948
              */
             if ((DEBUG.Enabled || DEBUG.IMAGE) && (newSize.width != width || newSize.height != height))
-                out("autoShapeToAspect: dw=" + dw + ", dh=" + dh + "; " + width + "," + height + " -> adj " + newSize);
+                out(String.format("autoShapeToAspect: a=%.2f dw=%g dh=%g; %.1fx%.1f -> %s",
+                                  mImageAspect,
+                                  dw, dh,
+                                  width, height,
+                                  newSize));
+                                  
+            //out("autoShapeToAspect: a=" + mImageAspect + "; dw=" + dw + ", dh=" + dh + "; " + width + "," + height + " -> adj " + newSize);
             //out("autoShapeToAspect: " + width + "," + height + " -> newSize: " + newSize.width + "," + newSize.height);
             
             if (Math.abs(dw) > 1 || Math.abs(dh) > 1) {
