@@ -59,7 +59,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.244 $ / $Date: 2009-08-03 17:48:10 $ / $Author: sfraize $
+ * @version $Revision: 1.245 $ / $Date: 2009-08-06 13:44:54 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -2194,13 +2194,23 @@ public class LWMap extends LWContainer
             return;
         }
         
-        //Log.debug("*** OLD VALUE: " + Util.tags(e.oldValue) + "; " + e);
-        
         if (mChanges == 0) {
             if (DEBUG.EVENTS) out(this + " First Modification Happening on " + e);
-            if (DEBUG.INIT||(DEBUG.EVENTS&&DEBUG.META)) new Throwable("FYI: FIRST MODIFICATION").printStackTrace();
+            if (DEBUG.INIT||DEBUG.UNDO||(DEBUG.EVENTS&&DEBUG.META)) {
+                Log.debug("FYI: FIRST MODIFICATION", new Throwable("HERE"));
+            }
         }
+        
         mChanges++;
+
+        if (DEBUG.UNDO) {
+            //String msg = "MARKED TO +" + mChanges + " WITH OLD VALUE: " + Util.tags(e.oldValue) + "; " + e;
+            String msg = "MARKED TO +" + mChanges + " ON " + e;
+            if (mXMLRestoreUnderway)
+                Log.debug(msg);
+            else
+                Log.debug(msg, new Throwable("HERE"));
+        }
     }
 
     @Override
