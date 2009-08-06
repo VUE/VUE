@@ -2995,13 +2995,13 @@ public class Actions implements VueConstants
             else
                 newDim = getSmallerSize(c);
             
-            Log.debug("NEWDIM " + newDim);
+            if (DEBUG.IMAGE) Log.debug("NEWDIM " + newDim);
             
             if (newDim == Integer.MIN_VALUE) {
                 // hide
                 if (c.isNodeIcon()) {
                     c.setVisible(false);
-                    c.getParent().layout("imageHide");
+                    c.getParent().layout("imageHide"); // todo: not working
                 }
             } else if (newDim == Integer.MAX_VALUE) {
                 // make natural size
@@ -3067,7 +3067,8 @@ public class Actions implements VueConstants
                 return ImageSizes[i];
         }
         
-        return Integer.MIN_VALUE;
+        return ImageSizes[ImageSizes.length - 1];
+        //return Integer.MIN_VALUE; // will hide the image instead of going to smallest
     }
     
     
