@@ -2992,7 +2992,7 @@ public class Actions implements VueConstants
                 newDim = Integer.MIN_VALUE;
             else if (actionKey == IMAGE_BIGGER)
                 newDim = getBiggerSize(c);
-            else
+            else // IMAGE_SMALLER
                 newDim = getSmallerSize(c);
             
             if (DEBUG.IMAGE) Log.debug("NEWDIM " + newDim);
