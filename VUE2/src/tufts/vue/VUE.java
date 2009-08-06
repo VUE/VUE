@@ -118,7 +118,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.671 $ / $Date: 2009-07-27 16:44:21 $ / $Author: brian $ 
+ * @version $Revision: 1.672 $ / $Date: 2009-08-06 19:16:23 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -3156,11 +3156,19 @@ public class VUE
         		c = null;
         	}
         }
+
+        final String debug;
+
+        if (DEBUG.EVENTS || DEBUG.UNDO)
+            debug = "\n[modifications="+map.getModCount()+"]";
+        else
+            debug = "";
+        
         int response = VueUtil.option
             (c,
              VueResources.getString("optiondialog.savechages.message")
              + "'" + map.getLabel() + "'?"
-             + (DEBUG.EVENTS?("\n[modifications="+map.getModCount()+"]"):""),
+             + debug,
         
              VueResources.getString("optiondialog.savechages.title"),
              JOptionPane.YES_NO_CANCEL_OPTION,
