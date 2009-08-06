@@ -33,7 +33,7 @@ import tufts.vue.gui.*;
  * A tabbed-pane collection of property sheets that apply
  * globally to a given map.
  *
- * @version $Revision: 1.74 $ / $Date: 2009-08-05 18:59:58 $ / $Author: brian $ 
+ * @version $Revision: 1.75 $ / $Date: 2009-08-06 21:12:41 $ / $Author: brian $ 
  *
  */
 public class MapInspectorPanel extends JPanel
@@ -244,7 +244,9 @@ public class MapInspectorPanel extends JPanel
         //JTextField mTitleEditor = null;
         //JText Field mAuthorEditor = null;
         //VueTextPane mAuthorEditor = null;
-        JLabel mDate = null;
+        JLabel	mDate = null,
+        		mObjectStats = null,
+        		mConnectivityStats = null;
         
         // VUE-1001
         //JLabel mLocation = null;
@@ -314,6 +316,8 @@ public class MapInspectorPanel extends JPanel
                         
             
             mDate = new JLabel();
+            mObjectStats = new JLabel();
+            mConnectivityStats = new JLabel();
             
             // VUE-1001
             //mLocation = new JLabel();
@@ -326,7 +330,9 @@ public class MapInspectorPanel extends JPanel
             mPropPanel.addProperty(VueResources.getString("mapinspectorpanel.created"), mDate);
             mPropPanel.addProperty(VueResources.getString("mapinspectorpanel.creator"), mAuthorEditor); //added through metadata
             mPropPanel.addProperty(VueResources.getString("mapinspectorpanel.background"),mMapColor);
-            
+            mPropPanel.addProperty(VueResources.getString("mapinspectorpanel.objects"), mObjectStats);
+            mPropPanel.addProperty(VueResources.getString("mapinspectorpanel.connectivity"), mConnectivityStats);
+   
             // VUE-1001
             //mPropPanel.addProperty("Location:",mLocation);            
             
@@ -371,6 +377,9 @@ public class MapInspectorPanel extends JPanel
             
              mAuthorEditor.setFont(GUI.LabelFace);
              mDate.setFont(GUI.LabelFace);
+             mObjectStats.setFont(GUI.LabelFace);
+             mConnectivityStats.setFont(GUI.LabelFace);
+
              // VUE 1001
              //mLocation.setFont(GUI.LabelFace);
 
@@ -452,6 +461,8 @@ public class MapInspectorPanel extends JPanel
         public void updatePanel(LWMap pMap) {
             // update the display
             mDate.setText( mMap.getDate() );
+            mObjectStats.setText(mMap.getObjectStatistics());
+            mConnectivityStats.setText(mMap.getConnectivityStatistics());
             //mTitleEditor.setText( mMap.getLabel() );
             edu.tufts.vue.metadata.VueMetadataElement creator = 
                     mMap.getMetadataList().get(dcCreator);

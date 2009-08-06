@@ -59,7 +59,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.245 $ / $Date: 2009-08-06 13:44:54 $ / $Author: sfraize $
+ * @version $Revision: 1.246 $ / $Date: 2009-08-06 21:12:41 $ / $Author: brian $
  */
 
 public class LWMap extends LWContainer
@@ -492,6 +492,62 @@ public class LWMap extends LWContainer
     // creation date. todo: change this to arbitrary meta-data
     public void setDate(String pDate) {
         mDateCreated = pDate;
+    }
+
+    int	mMinLinks,
+    	mMaxLinks,
+    	mNodeCount,
+    	mLinkCount;
+
+    public String getObjectStatistics() {
+    	int		nodes = 0,
+    			links = 0,
+    			groups = 0;
+
+    	mMinLinks = -1;
+    	mMaxLinks = 0;
+
+    	for (LWComponent mapChild : getChildren()) {
+			if (mapChild instanceof Layer) {
+		    	for (LWComponent layerChild : mapChild.getChildren()) {
+		            if (layerChild instanceof LWNode) {
+		            	nodes++;
+
+		            	int		nodeLinks = layerChild.getLinks().size();
+
+		                if (mMinLinks == -1 || mMinLinks > nodeLinks) {
+		                	mMinLinks = nodeLinks;
+		                }
+
+		                if (mMaxLinks < nodeLinks) {
+		                	mMaxLinks = nodeLinks;
+		                }
+		            } else if  (layerChild instanceof LWLink) {
+		            	links++;
+		            } else if (layerChild instanceof LWGroup) {
+		            	groups++;
+		            }
+		    	}
+			}
+    	}
+
+        mNodeCount = nodes;
+        mLinkCount = links;
+
+        if (mMinLinks == -1) {
+        	mMinLinks = 0;
+        }
+
+        return String.format(Locale.getDefault(), VueResources.getString("mapinspectorpanel.objectStats"),
+                nodes, links, groups);
+    }
+    
+    public String getConnectivityStatistics() {
+    	// Expects that getObjectStatistics() will be called first to make counts -- no need to do it again.
+    	double	avg = (mNodeCount == 0 ? 0.0 : ((double)mLinkCount * 2.0) / (double)mNodeCount);
+
+		return String.format(Locale.getDefault(), VueResources.getString("mapinspectorpanel.connectivityStats"),
+				mMinLinks, mMaxLinks, avg);
     }
     
     public PropertyMap getMetadata(){
