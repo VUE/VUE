@@ -1,7 +1,5 @@
 package edu.tufts.component.urlextractor;
 
-
-
 /*
  *
  * VUEUrlExtractor.java
