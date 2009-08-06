@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
  * resource types.  It also can be modified to support caching of
  * of resources for performance (todo: yes, implement a result cache).
  *
- * @version $Revision: 1.61 $ / $Date: 2009-07-09 21:33:22 $ / $Author: brian $
+ * @version $Revision: 1.62 $ / $Date: 2009-08-06 19:22:39 $ / $Author: sfraize $
  *
  */
 public class VueResources
@@ -590,6 +590,12 @@ public class VueResources
         String s = getString(key);
         return s == null ? defaultString : s;
     }
+
+    /** convenience method for localization -- if not found, will use the key as the default for debugging */
+    public final static String local(String key) {
+        return getString(key, key);
+    }
+    
 	
     /**
      * getStringArray()
