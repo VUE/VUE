@@ -30,9 +30,9 @@ import java.net.URL;
 import javax.swing.ImageIcon;
 import javax.imageio.ImageIO;
 
-import edu.tufts.vue.preferences.PreferencesManager;
-import edu.tufts.vue.preferences.VuePrefEvent;
-import edu.tufts.vue.preferences.implementations.ImageSizePreference;
+// import edu.tufts.vue.preferences.PreferencesManager;
+// import edu.tufts.vue.preferences.VuePrefEvent;
+// import edu.tufts.vue.preferences.implementations.ImageSizePreference;
 
 /**
  * Handle the presentation of an image resource, allowing resize.
@@ -54,22 +54,20 @@ import edu.tufts.vue.preferences.implementations.ImageSizePreference;
 //       just by selecting the object, in case the resource previewer
 //       didn't happen to be open.
 
-public class LWImage extends
-                         LWComponent
-                         //LWContainer
-                         //LWNode
-    implements //LWSelection.ControlListener,
-               Images.Listener,
-               edu.tufts.vue.preferences.VuePrefListener
+public class LWImage extends LWComponent
+// various impls could extend LWContainer or LWNode
+    implements Images.Listener
+               //,LWSelection.ControlListener
+               //,edu.tufts.vue.preferences.VuePrefListener
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LWImage.class);
 
     public static final boolean SLIDE_LABELS = false;
     
-    static int MaxRenderSize = PreferencesManager.getIntegerPrefValue(ImageSizePreference.getInstance());
+    //static int MaxRenderSize = PreferencesManager.getIntegerPrefValue(ImageSizePreference.getInstance());
     //private static VueIntegerPreference PrefImageSize = ImageSizePreference.getInstance(); // is failing for some reason
     //static int MaxRenderSize = PrefImageSize.getValue();
-    //static int MaxRenderSize = 64;
+    private static final int DefaultMaxDimension = 64;
     
     private final static int MinWidth = 16;
     private final static int MinHeight = 16;
@@ -116,7 +114,7 @@ public class LWImage extends
 
     public LWImage() {
         setFillColor(null);
-    	edu.tufts.vue.preferences.implementations.ImageSizePreference.getInstance().addVuePrefListener(this);
+    	//edu.tufts.vue.preferences.implementations.ImageSizePreference.getInstance().addVuePrefListener(this);
     }
 
     public LWImage(Resource r) {
@@ -126,7 +124,7 @@ public class LWImage extends
             Log.warn("making LWImage: may not be image content: " + r);
         setFillColor(null);
         setResource(r);
-    	edu.tufts.vue.preferences.implementations.ImageSizePreference.getInstance().addVuePrefListener(this);
+    	//edu.tufts.vue.preferences.implementations.ImageSizePreference.getInstance().addVuePrefListener(this);
     }
 
     /** @return true -- an image is always it's own content */
@@ -136,18 +134,18 @@ public class LWImage extends
     }
     
     
-    // TODO: it isn't such a good idea to have every single LWImage ever created during the runtime
-    // be a listiner to the VUE preferences sub-system -- that means a pref event will be driving
-    // global, cross-map, cross-undo-queue events, which would be better managed from a single
-    // place in the model code.
-    public void preferenceChanged(VuePrefEvent prefEvent)
-    {        
-        if (DEBUG.IMAGE) out("new pref value is " + ((Integer)ImageSizePreference.getInstance().getValue()).intValue());
-        MaxRenderSize = ((Integer)prefEvent.getNewValue()).intValue();
-        if (DEBUG.Enabled) System.out.println("New MaxRenderSize : " + MaxRenderSize + " in " + this);
-        if (mImage != null && isNodeIcon)
-            setMaxSizeDimension(MaxRenderSize);
-    }
+//     // TODO: it isn't such a good idea to have every single LWImage ever created during the runtime
+//     // be a listiner to the VUE preferences sub-system -- that means a pref event will be driving
+//     // global, cross-map, cross-undo-queue events, which would be better managed from a single
+//     // place in the model code.
+//     public void preferenceChanged(VuePrefEvent prefEvent)
+//     {        
+//         if (DEBUG.IMAGE) out("new pref value is " + ((Integer)ImageSizePreference.getInstance().getValue()).intValue());
+//         DefaultMaxDimension = ((Integer)prefEvent.getNewValue()).intValue();
+//         if (DEBUG.Enabled) System.out.println("New DefaultMaxDimension : " + DefaultMaxDimension + " in " + this);
+//         if (mImage != null && isNodeIcon)
+//             setMaxDimension(DefaultMaxDimension);
+//     }
 
 
     @Override
@@ -297,20 +295,22 @@ public class LWImage extends
             isNodeIcon = true;
             if (mImageWidth <= 0)
                 return;
-            if (!hasFlag(Flag.SLIDE_STYLE))
-                setMaxSizeDimension(MaxRenderSize);
+//             if (!hasFlag(Flag.SLIDE_STYLE))
+//                 setMaxDimension(DefaultMaxDimension);
         } else {
             isNodeIcon = false;
             if (super.width == NEEDS_DEFAULT) {
                 // use icon size also as default size for plain (non-icon) images
-                setMaxSizeDimension(MaxRenderSize);
+                setMaxDimension(DefaultMaxDimension);
             }
         }
     }
     
-    private void setMaxSizeDimension(final double max)
+    private void setMaxDimension(final double max)
     {
-        if (DEBUG.IMAGE) out("setMaxSizeDimension " + max);
+        if (true) return;
+        
+        if (DEBUG.IMAGE) out("setMaxDimension " + max);
 
         if (mImageWidth <= 0) {
 
@@ -326,7 +326,7 @@ public class LWImage extends
         final double width = mImageWidth;
         final double height = mImageHeight;
 
-        if (DEBUG.IMAGE) out("setMaxSizeDimension curSize " + width + "x" + height);
+        if (DEBUG.IMAGE) out("setMaxDimension curSize " + width + "x" + height);
         
         double newWidth, newHeight;
 
@@ -342,8 +342,8 @@ public class LWImage extends
         final float w = (float) newWidth;
         final float h = (float) newHeight;
         
-        //if (DEBUG.IMAGE) out("setMaxSizeDimension newSize " + newWidth + "x" + newHeight);
-        if (DEBUG.IMAGE)  out("setMaxSizeDimension newSize " + w + "x" + h);
+        //if (DEBUG.IMAGE) out("setMaxDimension newSize " + newWidth + "x" + newHeight);
+        if (DEBUG.IMAGE)  out("setMaxDimension newSize " + w + "x" + h);
 
         setSize(w, h);
     }
@@ -471,16 +471,20 @@ public class LWImage extends
     /** @param um currently ignored (TODO) */
     private void loadResourceImage(final Resource r, final UndoManager um)
     {
-        int width = r.getProperty("image.width", 32);
-        int height = r.getProperty("image.height", 32);
+        //int width = r.getProperty("image.width", 64);
+        //int height = r.getProperty("image.height", 64);
+        final int suggestWidth = r.getProperty("image.width", -1);
+        final int suggestHeight = r.getProperty("image.height", -1);
 
         // If we know a size before loading, this will get
         // us displaying that size.  If not, we'll set
         // us to a minimum size for display until we
         // know the real size.
 
-        if (mImageWidth <= 0 || mImageHeight <= 0)
-            setImageSize(width, height);
+        if (suggestWidth > 0 && suggestHeight > 0 && (mImageWidth <= 0 || mImageHeight <= 0))
+            setImageSize(suggestWidth, suggestHeight);
+//         if (mImageWidth <= 0 || mImageHeight <= 0)
+//             setImageSize(width, height);
         
         // save a key that marks the current location in the undo-queue,
         // to be applied to the subsequent thread that make calls
@@ -683,16 +687,24 @@ public class LWImage extends
                 return;
             }
      
-            if (DEBUG.IMAGE) out("autoShapeToAspect in: " + width + "," + height);
+            //if (DEBUG.IMAGE) out("autoShapeToAspect in: " + width + "," + height);
              
-            Size newSize = ConstrainToAspect(mImageAspect, width, height);
+            final Size newSize = ConstrainToAspect(mImageAspect, width, height);
+
+            final float dw = this.width - newSize.width;
+            final float dh = this.height - newSize.height;
+            
             /*
              * Added this in response to VUE-948
              */
             if ((DEBUG.Enabled || DEBUG.IMAGE) && (newSize.width != width || newSize.height != height))
-                out("autoShapeToAspect in: " + width + "," + height + " -> newSize: " + newSize.width + "," + newSize.height);
-
-            setSize(newSize.width, newSize.height);
+                out("autoShapeToAspect: dw=" + dw + ", dh=" + dh + "; " + width + "," + height + " -> adj " + newSize);
+            //out("autoShapeToAspect: " + width + "," + height + " -> newSize: " + newSize.width + "," + newSize.height);
+            
+            if (Math.abs(dw) > 1 || Math.abs(dh) > 1) {
+                // above check helps reduce needless tweaks, which make things messy during map loading
+                setSize(newSize.width, newSize.height);
+            }
         }
     }
 
@@ -948,11 +960,11 @@ public class LWImage extends
         
         if (isNodeIcon && dc.focal != this) {
 
-            if (!indicated && MaxRenderSize > 0)
+            if (!indicated && DefaultMaxDimension > 0)
                 drawImageBox(dc);
             
             // Forced border for node-icon's:
-            if ((mImage != null || indicated) && !getParent().isTransparent() && MaxRenderSize > 0) {
+            if ((mImage != null || indicated) && !getParent().isTransparent() && DefaultMaxDimension > 0) {
                 // this is somehow making itext PDF generation through a GC worse... (probably just a bad tickle)
                 dc.g.setStroke(STROKE_TWO);
                 //dc.g.setColor(IconBorderColor);
@@ -1053,6 +1065,16 @@ public class LWImage extends
             synchronized (this) {
                 if (mImageStatus == Status.UNLOADED) {
                     mImageStatus = Status.LOADING;
+                    
+                    // TODO: running this on AWT can cause problems during map loading,
+                    // as events on an image load thread we want to be ignoring in terms
+                    // of map modifications will be taken seriously when appearing on
+                    // the AWT thread.  We need a better system for ignoring image
+                    // events during map loading (events that don't want to be incrementing
+                    // the map modification count).  We should at least include new code
+                    // to ignore all events prior to the first user event, which will at
+                    // least catch everything that happens before the very first undo mark.
+                    
                     if (DEBUG.IMAGE) out("invokeLater loadResourceImage " + getResource());
                     tufts.vue.gui.GUI.invokeAfterAWT(new Runnable() { public void run() {
                         loadResourceImage(getResource(), null);
@@ -1765,16 +1787,14 @@ public class LWImage extends
         
     }
   
-    /*
-     * These 2 methods are used by the Preferences to set and check MaxRenderSize
-     */
-    public static int getMaxRenderSize()
-    {
-    	return MaxRenderSize;
-    }
-    public static void setMaxRenderSize(int size)
-    {
-    	//MaxRenderSize = size;
-    }
-
+//    /*
+//      * These 2 methods are used by the Preferences to set and check MaxRenderSize
+//      */
+//     // TODO: no longer meaninful -- was only used to determine if the old preference
+//     // was set to 0 size, meaning do NOT create images
+//     public static int getMaxIconDimension()
+//     {
+//     	return DefaultMaxDimension;
+//     }
+    
 }
