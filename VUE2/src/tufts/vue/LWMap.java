@@ -59,7 +59,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.246 $ / $Date: 2009-08-06 21:12:41 $ / $Author: brian $
+ * @version $Revision: 1.247 $ / $Date: 2009-08-07 14:10:58 $ / $Author: brian $
  */
 
 public class LWMap extends LWContainer
@@ -494,52 +494,51 @@ public class LWMap extends LWContainer
         mDateCreated = pDate;
     }
 
-    int	mMinLinks,
-    	mMaxLinks,
-    	mNodeCount,
-    	mLinkCount;
+    protected int	mMinLinks,
+    				mMaxLinks,
+    				mNodeCount,
+    				mLinkCount,
+    				mGroupCount;
+
+    protected void countChildren(LWComponent c) {
+    	for (LWComponent child : c.getChildren()) {
+			if (child instanceof LWGroup) {
+				mGroupCount++;
+			} else if (child instanceof LWNode) {
+				mNodeCount++;
+
+            	int		nodeLinks = child.getLinks().size();
+
+                if (mMinLinks == -1 || nodeLinks < mMinLinks) {
+                	mMinLinks = nodeLinks;
+                }
+
+                if (nodeLinks > mMaxLinks) {
+                	mMaxLinks = nodeLinks;
+                }
+			} else if  (child instanceof LWLink) {
+				mLinkCount++;
+			}
+
+			countChildren(child);
+    	}
+    }
 
     public String getObjectStatistics() {
-    	int		nodes = 0,
-    			links = 0,
-    			groups = 0;
-
     	mMinLinks = -1;
     	mMaxLinks = 0;
+    	mNodeCount = 0;
+    	mLinkCount = 0;
+    	mGroupCount = 0;
 
-    	for (LWComponent mapChild : getChildren()) {
-			if (mapChild instanceof Layer) {
-		    	for (LWComponent layerChild : mapChild.getChildren()) {
-		            if (layerChild instanceof LWNode) {
-		            	nodes++;
-
-		            	int		nodeLinks = layerChild.getLinks().size();
-
-		                if (mMinLinks == -1 || mMinLinks > nodeLinks) {
-		                	mMinLinks = nodeLinks;
-		                }
-
-		                if (mMaxLinks < nodeLinks) {
-		                	mMaxLinks = nodeLinks;
-		                }
-		            } else if  (layerChild instanceof LWLink) {
-		            	links++;
-		            } else if (layerChild instanceof LWGroup) {
-		            	groups++;
-		            }
-		    	}
-			}
-    	}
-
-        mNodeCount = nodes;
-        mLinkCount = links;
+    	countChildren(this);
 
         if (mMinLinks == -1) {
         	mMinLinks = 0;
         }
 
         return String.format(Locale.getDefault(), VueResources.getString("mapinspectorpanel.objectStats"),
-                nodes, links, groups);
+                mNodeCount, mLinkCount, mGroupCount);
     }
     
     public String getConnectivityStatistics() {
