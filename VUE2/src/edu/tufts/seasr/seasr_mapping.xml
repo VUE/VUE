@@ -24,7 +24,7 @@
 	</class>
 	<class name="edu.tufts.seasr.Flow" >
 		<map-to xml="flow" />
-		<field name="inputGroup" type="string" collection="arrayList">
+		<field name="inputList" type="string" collection="arrayList">
 			<bind-xml name="input" node="element"/>
 		</field>
 		<field name="label" type="string">
