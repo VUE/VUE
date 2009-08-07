@@ -13,22 +13,26 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.meandre.annotations.Component;
 import org.meandre.annotations.ComponentInput;
+import org.meandre.annotations.ComponentOutput;
+import org.meandre.annotations.Component.FiringPolicy;
+import org.meandre.annotations.Component.Licenses;
 import org.meandre.annotations.Component.Mode;
 import org.meandre.core.ComponentContext;
-import org.meandre.core.ComponentContextException;
 import org.meandre.core.ComponentContextProperties;
-import org.meandre.core.ComponentExecutionException;
-import org.meandre.core.ExecutableComponent;
+import org.meandre.components.abstracts.AbstractExecutableComponent;
+import org.seasr.meandre.support.parsers.DataTypeParser;
+
+import org.seasr.meandre.components.tools.Names;
 
 @Component(
-		baseURL = "meandre://seasr.org/components/demo/", 
+		baseURL = "meandre://seasr.org/components/servicetail", 
 		creator = "Anoop Kuamr", 
 		description = "Service tail that works with VUE", 
 		name = "Service Tail", tags = "WebUI, process request", 
 		mode = Mode.webui, firingPolicy = Component.FiringPolicy.all
 )
 
-public class ServiceTailVUE implements ExecutableComponent {
+public class ServiceTailVUE extends AbstractExecutableComponent {
 
 	@ComponentInput(description = "A Map containing the output to response", name = "object")
 	public final static String INPUT_OBJECT= "object";
@@ -41,17 +45,19 @@ public class ServiceTailVUE implements ExecutableComponent {
 
 	// -------------------------------------------------------------------------
 
-	public void initialize(ComponentContextProperties ccp)
-			throws ComponentExecutionException, ComponentContextException {
+	@Override
+	public void disposeCallBack(ComponentContextProperties arg0)
+			throws Exception {
+		// TODO Auto-generated method stub
+		
 	}
-
-	public void dispose(ComponentContextProperties ccp)
-			throws ComponentExecutionException, ComponentContextException {
+	@Override
+	public void initializeCallBack(ComponentContextProperties cc)
+			throws Exception {
+		// TODO Auto-generated method stub
+		
 	}
-
-	public void execute(ComponentContext cc)
-			throws ComponentExecutionException, ComponentContextException {
-
+	public void executeCallBack(ComponentContext cc) throws Exception {
 		 Object object =   cc.getDataComponentFromInput(INPUT_OBJECT);
 				
 		Semaphore sem = (Semaphore) cc
