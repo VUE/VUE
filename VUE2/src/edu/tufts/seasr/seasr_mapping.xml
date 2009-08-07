@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mapping>
+	<class name="edu.tufts.seasr.SeasrAnalytics">
+		<map-to xml="seasr_analytics" />
+		<field name="flowGroupList" type="edu.tufts.seasr.FlowGroup" collection="arraylist">
+			<bind-xml name="flow_group"  node="element"/>
+		</field>
+	</class>
+	
+	<class name="edu.tufts.seasr.FlowGroup" >
+		<map-to xml="flow_group" />
+		<field name="flowList"  type="edu.tufts.seasr.Flow"  collection="arrayList">
+			<bind-xml name="flow" node="element"/>
+		</field>
+		<field name="label" type="string">
+	 		<bind-xml name="label" node="attribute" />
+	 	</field>
+		<field name="input" type="string">
+	 		<bind-xml name="input" node="attribute" />
+	 	</field>
+	 	<field name="output" type="string">
+	 		<bind-xml name="output" node="attribute" />
+	 	</field>
+	</class>
+	<class name="edu.tufts.seasr.Flow" >
+		<map-to xml="flow" />
+		<field name="inputGroup" type="string" collection="arrayList">
+			<bind-xml name="input" node="element"/>
+		</field>
+		<field name="label" type="string">
+	 		<bind-xml name="label" node="attribute" />
+	 	</field>
+	 	<field name="url" type="string">
+	 		<bind-xml name="url" node="attribute" />
+	 	</field>
+	 	<field name="uri" type="string">
+	 		<bind-xml name="uri" node="attribute" />
+	 	</field>
+	</class>
+</mapping>
