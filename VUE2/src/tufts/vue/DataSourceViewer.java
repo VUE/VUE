@@ -307,7 +307,7 @@ public class DataSourceViewer extends ContentViewer
         //resultSetDockWindow = DRB.searchDock;
         
         // select the first new data source, if any
-        if (activeDataSource == null && dataSources != null && dataSources.length > 0)
+        if (activeDataSource == null && dataSources != null && dataSources.length > 0 && !VUE.isApplet())
            setActiveDataSource(dataSources[0]);
 
         
