@@ -118,7 +118,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.673 $ / $Date: 2009-08-09 15:52:44 $ / $Author: mike $ 
+ * @version $Revision: 1.674 $ / $Date: 2009-08-09 19:06:27 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -510,6 +510,8 @@ public class VUE
         //Util.printStackTrace("ENABLED MAP ACTIONS " + enable);    	
         VueMenuBar.RootMenuBar.saveAction.setEnabled(enable);
         VueMenuBar.RootMenuBar.saveAsAction.setEnabled(enable);
+        if (VUE.isApplet() && VueApplet.isZoteroApplet())
+        	Actions.SaveCopyToZotero.setEnabled(enable);
         VueMenuBar.RootMenuBar.publishMenu.setEnabled(enable);
         Actions.CloseMap.setEnabled(enable);
         VueMenuBar.RootMenuBar.printAction.setEnabled(enable);
@@ -3135,7 +3137,7 @@ public class VUE
     /*
      * Returns true if either they save it or say go ahead and close w/out saving.
      */
-    private static boolean askSaveIfModified(LWMap map) {
+    static boolean askSaveIfModified(LWMap map) {
         //final Object[] defaultOrderButtons = { "Save", "Don't Save", "Cancel"};
     	final Object[] defaultOrderButtons = { VueResources.getString("optiondialog.savechages.dontsave"),VueResources.getString("optiondialog.revertlastsave.cancel"),VueResources.getString("optiondialog.savechages.save")};
     	final Object[] macOrderButtons = { VueResources.getString("optiondialog.savechages.save"),VueResources.getString("optiondialog.revertlastsave.cancel"),VueResources.getString("optiondialog.savechages.dontsave")};
