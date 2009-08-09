@@ -440,7 +440,7 @@ dispose: function()
 
 },
 
-sendToVue: function(collectionName,fileName) {
+sendToVue: function(collectionName,fileName,addToMap) {
          /*
 			 * var coll = ZoteroPane.getSelectionCollection(); var title =
 			 * ""; if(coll == null) { title = "all"; } else { title =
@@ -449,7 +449,7 @@ sendToVue: function(collectionName,fileName) {
          
          // try
          // {
-           content.document.getElementById("VUE").wrappedJSObject.addZoteroDatasource(collectionName,fileName);
+           content.document.getElementById("VUE").wrappedJSObject.addZoteroDatasource(collectionName,fileName,addToMap);
          // }
          // catch(e)
          // {
@@ -459,7 +459,7 @@ sendToVue: function(collectionName,fileName) {
 addMapFromVueToCollection: function() {
     	return;
     },    
-exportCSV: function() {	
+exportCSV: function(addToMap) {	
         var currentCollection = ZoteroPane.getSelectedCollection();
         var currentCollectionId = ZoteroPane.getSelectedCollection(true);
         var file = Components.classes["@mozilla.org/file/directory_service;1"].
@@ -559,7 +559,7 @@ exportCSV: function() {
            this.save(xml);
 
            //send the reference to the data sources to vue
-           this.sendToVue(currentCollection.name,this.fileLocation);
+           this.sendToVue(currentCollection.name,this.fileLocation,addToMap);
 }
 
 };

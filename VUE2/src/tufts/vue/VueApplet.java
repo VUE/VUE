@@ -19,8 +19,10 @@ import java.applet.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -33,6 +35,8 @@ import java.util.Properties;
 
 import javax.swing.*;
 
+import org.xml.sax.InputSource;
+
 import com.jgoodies.looks.LookUtils;
 import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 import com.sun.org.apache.xerces.internal.impl.XMLScanner;
@@ -40,6 +44,7 @@ import com.sun.org.apache.xerces.internal.impl.XMLScanner;
 import tufts.vue.ds.DataAction;
 import tufts.vue.ds.DataTree;
 import tufts.vue.ds.Schema;
+import tufts.vue.ds.XMLIngest;
 import tufts.vue.ds.XmlDataSource;
 import tufts.vue.gui.GUI;
 import tufts.vue.gui.VueMenuBar;
@@ -53,7 +58,7 @@ import tufts.vue.gui.VueMenuBar;
 /**
  * Experimental VUE applet.
  * 
- * @version $Revision: 1.14 $ / $Date: 2009-08-09 15:54:54 $ / $Author: mike $
+ * @version $Revision: 1.15 $ / $Date: 2009-08-09 18:14:38 $ / $Author: mike $
  */
 public class VueApplet extends JApplet {
 
@@ -180,7 +185,7 @@ public class VueApplet extends JApplet {
 
             // DataSourceViewer.cacheDataSourceViewers();
           // addZoteroDatasource("collectionName", "/Users/mkorcy01/Desktop/6.xml");
-            VueApplet.addZoteroDatasource("test add", "/Users/mkorcy01/Library/Application Support/Firefox/Profiles/dev/vue-storage/2.xml");
+         
         }});
 	}
 	
@@ -362,7 +367,7 @@ public class VueApplet extends JApplet {
 
 		
 	@SuppressWarnings("unchecked")
-	public static void addZoteroDatasource(final String collectionName, final String fileString) {
+	public static void addZoteroDatasource(final String collectionName, final String fileString, final boolean addToMap) {
 		AccessController.doPrivileged(new PrivilegedAction() {
 
 			public Object run() {
@@ -379,15 +384,50 @@ public class VueApplet extends JApplet {
 							if (xmlds.getDisplayName().equals(collectionName) && xmlds.getAddress().equals(fileString))
 							{
 								//we already have it in the list refresh it and move on...
-								VUE.getContentPanel().getDSBrowser().getDataSetViewer().setActiveDataSource(xmlds);
-								VUE.getContentPanel().getDSBrowser().getDataSetViewer().refreshBrowser();
 								VUE.getContentDock().setVisible(true);
 								VUE.getContentPanel().showDatasetsTab();
+								VUE.getContentPanel().getDSBrowser().getDataSetViewer().setActiveDataSource(xmlds);
+								VUE.getContentPanel().getDSBrowser().getDataSetViewer().refreshBrowser();
+								
+								if (addToMap)
+								{
+									
+									boolean added = false;
+									int tries = 0;
+									
+									while (!added && tries < 10)
+									{
+										try
+										{
+									   
+											added = true;
+									
+											  DataAction.annotateForMap(xmlds.getSchema(), VUE.getActiveMap());
+											List<LWComponent> nodes =  DataAction.makeRowNodes(xmlds.getSchema());
+
+											//List<tufts.vue.DataRow> nodes = xmlds.getSchema().getRows();
+									        LWMap map = VUE.getActiveMap();
+									     
+									        for(LWComponent component: nodes) {
+									            map.add(component);
+									        }
+									       LayoutAction.random.act(new LWSelection(nodes));
+										}
+										catch(NullPointerException npe)
+										{
+											System.out.println(npe.toString());
+											added = false;
+											tries++;
+											Thread.sleep(1000);
+										}
+									}
+								}
 
 								return null;
 							}
 						}
 					}
+				
 					String xml;
 					tufts.vue.DataSource ds = new XmlDataSource(collectionName, fileString);	
 					Properties props = new Properties();
@@ -397,57 +437,50 @@ public class VueApplet extends JApplet {
 					props.put("item_path", "zoteroCollection.zoteroItem");
 					props.put("key_field", "zoteroCollection.zoteroItem.id");
 					ds.setConfiguration(props);
-					BrowseDataSource		bds = (BrowseDataSource)ds;
+					final BrowseDataSource		bds = (BrowseDataSource)ds;
+					VUE.getContentDock().setVisible(true);
+					VUE.getContentPanel().showDatasetsTab();
 					DataSetViewer.getDataSetList().addOrdered(ds);
-
-					//System.out.println("MIKE");
-					DataSourceViewer.saveDataSourceViewer();
-					Schema schema = Schema.fetch(Resource.instance(fileString),ds.getGUID());
-					schema.dumpSchema(System.out);
-					LWMap map = VUE.getActiveMap();
-				
-					List<LWComponent> nodes =  DataAction.makeRowNodes(schema);
-			        System.out.println("Adding nodes to map");
-			        for(LWComponent component: nodes) {
-			            component.setFillColor(Color.green.darker());
-			            map.add(component);
-			            System.out.println("Adding: "+component.getLabel());
-			        }
-			        LayoutAction.random.act(new LWSelection(nodes));
-			    	VUE.getContentPanel().getDSBrowser().getDataSetViewer().setActiveDataSource(ds);
-					/*
-					boolean added = false;
-					int tries = 0;
-					
-					while (!added && tries < 10)
+					VUE.getContentPanel().getDSBrowser().getDataSetViewer().setActiveDataSource(ds);									       
+					DataSourceViewer.saveDataSourceViewer();			    			    																			
+					if (addToMap)
 					{
-						try
-						{
-					       // DataTree.this.addNewRowsToMap();
-							added = true;
+						XmlDataSource xmlds = (XmlDataSource)ds;
+						boolean added = false;
+						int tries = 0;
 						
-						}
-						catch(NullPointerException npe)
+						while (!added && tries < 10)
 						{
-							added = false;
-							tries++;
-							Thread.sleep(1000);
+							try
+							{
+						       // DataTree.this.addNewRowsToMap();
+								added = true;
+								
+								List<LWComponent> nodes =  DataAction.makeRowNodes(xmlds.getSchema());
+						        LWMap map = VUE.getActiveMap();
+						     
+						        for(LWComponent component: nodes) {
+						            map.add(component);
+						        }
+						       LayoutAction.random.act(new LWSelection(nodes));
+							}
+							catch(NullPointerException npe)
+							{
+								added = false;
+								tries++;
+								Thread.sleep(1000);
+							}
 						}
 					}
-					
-					*/
 				} catch (Exception e) {
 					e.printStackTrace();
-				}
-				VUE.getContentDock().setVisible(true);
-				VUE.getContentPanel().showDatasetsTab();
-//				VUE.getContentPanel().getDSBrowser().getDataSetViewer().add
-				
-				return null;
+				}											
+				return null;		
 			}
 
 		});
-
+		
+		
 	}
 
 	public static void displayMap(String urlString) {

@@ -35,9 +35,12 @@
 	<menuitem id="export-to-vue-add" disabled="true" label="&vueexport.collections.menu.exportadd;" />
 	
 	<!-- Not sure Import from VUE belongs here... I think this should be go in VUE and call into Zotero -->
+    <!--
     <menuitem id="import-from-vue" disabled="true" label="&vueexport.collections.menu.import;" /> 
-    
+   -->
+   <!-- 
     <menuitem id="add-map-from-vue" disabled="true" label="&vueexport.collections.menu.addMap;" /> 
+    -->
 </popup>
 
  <popup id="zotero-itemmenu">
@@ -65,9 +68,9 @@
             document.getElementById('export-to-vue-add').addEventListener('click', function (e) {                
                Zotero.VUEExport.exportCSV(true);
             }, false);
-            document.getElementById('add-map-from-vue').addEventListener('click', function (e) {                
-               Zotero.VUEExport.addMapFromVueToCollection();
-            }, false);
+          //  document.getElementById('add-map-from-vue').addEventListener('click', function (e) {                
+           //    Zotero.VUEExport.addMapFromVueToCollection();
+           // }, false);
              document.getElementById('vue-open-map').addEventListener('click', function (e) {                
                Zotero.VUEExport.openZoteroMap();
             }, false);
