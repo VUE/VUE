@@ -118,7 +118,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.672 $ / $Date: 2009-08-06 19:16:23 $ / $Author: sfraize $ 
+ * @version $Revision: 1.673 $ / $Date: 2009-08-09 15:52:44 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -213,6 +213,10 @@ public class VUE
     	mergeMapsControlPanel = null;
     	interactionToolsPanel = null;
     	contentPanel = null;
+    	EditorManager.destroy();
+    	VueToolbarController.destroyController();
+    	VUE.getActiveViewer().destroyContextMenus();
+    
 
     }
     /** simplest form of threadsafe static lazy initializer: for CategoryModel */
@@ -643,7 +647,7 @@ public class VUE
     }
     public static void removeActiveListener(Class clazz, Object reflectedListener) {
         ActiveInstance.removeListener(clazz, reflectedListener);
-    }
+    }	
     
     public static void setAppletContext(AppletContext ac) {
         sAppletContext = ac;
@@ -652,7 +656,11 @@ public class VUE
         return sAppletContext;
     }
     public static boolean isApplet() {
-        return sAppletContext != null;
+    	if (VueApplet.getInstance() !=null)
+    		return VueApplet.getInstance().getAppletContext() != null;
+    	else
+    		return false;
+      //  return sAppletContext != null;
     }
 
     public static String getSystemProperty(String name) {
@@ -1079,7 +1087,7 @@ public class VUE
             // must be done in AWT to be threadsafe, as involves
             // non-synhcronized code in tufts.vue.VueDataSource while
             // setting up the threads
-
+            
             // DataSourceViewer.cacheDataSourceViewers();
             
         }});
@@ -1138,9 +1146,9 @@ public class VUE
      * repositories, and ensure UrlAuthentication is initialized, which will listen for
      * configuring DataSources and scan them for authentication keys
      */
-    private static synchronized void initDataSources() {
+    static synchronized void initDataSources() {
         
-        if (!didDataInit && SKIP_DR == false && !VUE.isApplet()) {
+        if (!didDataInit && SKIP_DR == false ){//&& !VUE.isApplet()) {
             
             VUE.diagPush("initDS");
             
@@ -1197,7 +1205,7 @@ public class VUE
         final Window splashScreen;
         if (VUE.isApplet())
         {
-        	SKIP_DR=true;
+        	//SKIP_DR=true;
         	SKIP_SPLASH=true;
         	SKIP_CAT=true;
         }
@@ -1484,7 +1492,8 @@ public class VUE
          * up in linux i noticed the same problem melanie reported on windows
          */
         //if (Util.isWindowsPlatform() || Util.isUnixPlatform())
-        //	PopupFactory.setSharedInstance(new VuePopupFactory(PopupFactory.getSharedInstance()));
+     //   if (VUE.isApplet())
+        //PopupFactory.setSharedInstance(new VuePopupFactory(PopupFactory.getSharedInstance()));
         //-----------------------------------------------------------------------------
         // Man VUE Toolbar (map editing tool)
         //-----------------------------------------------------------------------------
@@ -1887,7 +1896,8 @@ public class VUE
                     			   GUI.GInsets.top +VueResources.getInt("formatting.location.y"));        	
         	
             DockWindow.flickerAnchorDock();
-        	formatDock.setVisible(true);
+            if (!VUE.isApplet())
+            	formatDock.setVisible(true);
         	//DR_BROWSER_DOCK.setVisible(true);
             
         }
@@ -2332,10 +2342,12 @@ public class VUE
         //framesPerSecond.setPaintTicks(true);
         searchPanel.add(new JLabel(" "));
         //mSearchtextFld.setPreferredSize(new Dimension(200,23));
+        
         searchPanel.add(mSearchtextFld);
         searchPanel.add(new JLabel(" "));
         //panel.setPreferredSize(new Dimension(430,40));
-		toolbarPanel.add( searchPanel  , SwingConstants.LEFT);		
+        if (!VUE.isApplet())
+        toolbarPanel.add( searchPanel  , SwingConstants.LEFT);		
         if (DEBUG.INIT) out("created ToolBar");
         
         return toolbarPanel;
@@ -3696,7 +3708,7 @@ public class VUE
     	{
     		Frame[] frames = JFrame.getFrames();
     		//System.out.println("FRAME LENGTH " + frames.length);
-    		JApplet app =  VueApplet.instance;
+    		JApplet app =  VueApplet.getInstance();
     		Container c = app.getParent();
     		while (!(c instanceof Window))
     		{
