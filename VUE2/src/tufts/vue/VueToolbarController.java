@@ -34,7 +34,7 @@ import tufts.vue.LinkTool.LinkModeTool;
  * This could use a re-write, along with VueToolPanel, VueTool, and the way
  * contextual toolbars are handled.
  *
- * @version $Revision: 1.79 $ / $Date: 2008-12-16 23:14:22 $ / $Author: sfraize $
+ * @version $Revision: 1.80 $ / $Date: 2009-08-09 15:52:04 $ / $Author: mike $
  *
  **/
 public class VueToolbarController  
@@ -64,7 +64,10 @@ public class VueToolbarController
 
     private LWCToolPanel mLWCToolPanel;
 	
-	
+	static public void destroyController()
+	{
+		sController = null;
+	}
     /**
      * @return the singleton controller
      **/
