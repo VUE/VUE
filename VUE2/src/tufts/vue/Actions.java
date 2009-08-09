@@ -1169,6 +1169,24 @@ public class Actions implements VueConstants
         }
     };
     
+    public static final LWCAction SaveCopyToZotero = new LWCAction(VueResources.getString("zotero.saveCopy"))
+    {
+   	   @Override
+        protected boolean enabled() 
+        {
+        	return  (VUE.getActiveViewer() != null && VUE.getActiveMap().getFile() !=null);
+        }
+        
+      	public void act()
+      	{    	
+      	      netscape.javascript.JSObject win = (netscape.javascript.JSObject) netscape.javascript.JSObject.getWindow(VueApplet.getInstance());
+      	      String[] arguments = { VUE.getActiveMap().getFile().getAbsolutePath(),VUE.getActiveMap().getDisplayLabel() };
+      	      win.call("doImportMap", arguments);
+      	     // System.out.println("JS CALLED");
+       
+      	};
+    };
+    
     public static final LWCAction AddURLAction = new LWCAction(VueResources.local("mapViewer.componentMenu.addURL.label")) {
             public void act(LWComponent c) 
             {

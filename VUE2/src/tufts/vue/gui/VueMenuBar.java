@@ -60,6 +60,7 @@ import tufts.vue.PresentationTool;
 import tufts.vue.RecentlyOpenedFilesManager;
 import tufts.vue.VUE;
 import tufts.vue.VueAction;
+import tufts.vue.VueApplet;
 import tufts.vue.VueConstants;
 import tufts.vue.VueResources;
 import tufts.vue.VueTool;
@@ -87,7 +88,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.147 $ / $Date: 2009-08-06 19:15:58 $ / $Author: sfraize $
+ * @version $Revision: 1.148 $ / $Date: 2009-08-09 16:11:49 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -505,6 +506,10 @@ public class VueMenuBar extends javax.swing.JMenuBar
         fileMenu.addSeparator();        
         fileMenu.add(saveAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, metaMask));
         fileMenu.add(saveAsAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, metaMask+Event.SHIFT_MASK));                
+        if (VUE.isApplet() && VueApplet.isZoteroApplet())
+        {
+        	fileMenu.add(Actions.SaveCopyToZotero);
+        }
         fileMenu.add(Actions.Revert);
         Actions.Revert.setEnabled(false);
         fileMenu.addSeparator();
