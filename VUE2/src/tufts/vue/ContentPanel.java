@@ -9,10 +9,11 @@ import tufts.vue.gui.DockWindow;
 import tufts.vue.gui.GUI;
 
 public class ContentPanel extends JPanel {
+	private final DSBrowser dsbrowser = new DSBrowser();	
 	public static final long	serialVersionUID = 1;
 	JTabbedPane					tabbedPane = new JTabbedPane();
 	JPanel						resources = VUE.getDRBrowserDock().getContentPanel();  // VUE.getDRBrowserDock() returns the DockWindow containing the DRBrowser.
-	JPanel						datasets = new DSBrowser().getDockWindow().getContentPanel();
+	JPanel						datasets = dsbrowser.getDockWindow().getContentPanel();
 	JPanel						ontologies = OntologyBrowser.getBrowser().getDockWindow().getContentPanel();
 
 	public ContentPanel(DockWindow dockWindow) {
@@ -22,6 +23,11 @@ public class ContentPanel extends JPanel {
 		tabbedPane.addTab(VueResources.getString("dockWindow.contentPanel.ontologies.title"), ontologies);
 
 		dockWindow.setContent(tabbedPane);
+	}
+	
+	public DSBrowser getDSBrowser()
+	{
+		return dsbrowser;
 	}
 
 	public void finalize() {

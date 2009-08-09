@@ -68,6 +68,10 @@ public class DSBrowser extends ContentBrowser {
 		dockWindow = GUI.createDockWindow(widgetStack);
 	}
 
+	public DataSetViewer getDataSetViewer()
+	{
+		return dataSetViewer;
+	}
 
 	public void finalize() {
 		librariesPane = null;

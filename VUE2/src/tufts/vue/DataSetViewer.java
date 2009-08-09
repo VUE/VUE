@@ -206,6 +206,10 @@ public class DataSetViewer extends ContentViewer {
 	}
 
 
+	public static DataSourceList getDataSetList()
+	{
+		return dataSourceList;
+	}
 	public static void saveDataSetViewer() {
 		if (dataSourceList == null) {
 			System.err.println("DataSetViewer: No dataSourceList to save.");
