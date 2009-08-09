@@ -4,7 +4,7 @@ function doImportMap(file,title)
 	document.documentElement.appendChild(element);
 	var evt = document.createEvent("Events");
 	evt.initEvent("ImportMapDataEvent", true, false);
-	alert("dispatch");
+	//alert("dispatch");
 	element.dispatchEvent(evt);
 	
 }
