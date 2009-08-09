@@ -50,6 +50,47 @@ importMapDataListener: function(evt)
     	alert("No Collection is currently selected.");
 	
 },
+importUrlDataListener: function(evt)
+{
+	var fileName = content.document.getElementById("VUE").wrappedJSObject.getActiveResourceSpec();
+	if (fileName)
+	{
+		//var attachmentId = Zotero.Attachments. importFromURL(fileName, false, false, false, ZoteroPane.getSelectedCollection(true));
+		var attachmentId = Zotero.Attachments. linkFromURL(fileName, false, false);
+		var attachmentItem = Zotero.Items.get(attachmentId);
+		attachmentItem.setField('accessDate', "CURRENT_TIMESTAMP");
+		attachmentItem.save();
+		
+		 if (ZoteroPane.getSelectedCollection())
+		    	ZoteroPane.getSelectedCollection().addItem(attachmentItem.id);
+		    else
+		    	alert("No Collection is currently selected.");
+	}
+    
+},
+importFileDataListener: function(evt)
+{
+	
+	var fileName = content.document.getElementById("VUE").wrappedJSObject.getActiveResourceSpec();
+	var title = content.document.getElementById("VUE").wrappedJSObject.getActiveResourceTitle();
+	//alert(fileName);
+	if (fileName)
+	{
+		var file = Components.classes["@mozilla.org/file/local;1"]
+	           .createInstance(Components.interfaces.nsILocalFile);
+		file.initWithPath(fileName);
+		var attachmentId = Zotero.Attachments.importFromFile(file,null);
+		var attachmentItem = Zotero.Items.get(attachmentId);
+		attachmentItem.setField('accessDate', "CURRENT_TIMESTAMP");
+		attachmentItem.save();
+       
+		// Add the result item to the results collection
+		if (ZoteroPane.getSelectedCollection())
+			ZoteroPane.getSelectedCollection().addItem(attachmentItem.id);
+		else
+			alert("No Collection is currently selected.");
+	}
+},
 mainMenuListener: function(evt)
 {
 

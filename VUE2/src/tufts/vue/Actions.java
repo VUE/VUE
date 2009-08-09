@@ -1178,10 +1178,38 @@ public class Actions implements VueConstants
       	      String[] arguments = { VUE.getActiveMap().getFile().getAbsolutePath(),VUE.getActiveMap().getDisplayLabel() };
       	      win.call("doImportMap", arguments);
       	     // System.out.println("JS CALLED");
+      		}
       	}
-      	};
     };
     
+    public static final LWCAction AddResourceToZotero = new LWCAction(VueResources.local("zotero.addResource")) {
+    	public void act(LWComponent c)
+    	{
+    		Resource r = c.getResource();
+    		if (r !=null)
+    		{
+    			String spec = r.getSpec();
+    			
+    			
+    			if (spec.startsWith("http") || spec.startsWith("https"))
+    			{
+    				//import from url
+    				netscape.javascript.JSObject win = (netscape.javascript.JSObject) netscape.javascript.JSObject.getWindow(VueApplet.getInstance());
+  	      	      String[] arguments = { spec };
+  	      	      win.call("doImportUrl", arguments);
+
+    			}
+    			else
+    			{
+    				//import from file..
+    				netscape.javascript.JSObject win = (netscape.javascript.JSObject) netscape.javascript.JSObject.getWindow(VueApplet.getInstance());
+  	      	      String[] arguments = { spec, r.getTitle() };
+  	      	      win.call("doImportFile", arguments);
+
+    			}
+    		}
+    	}
+    };
     public static final LWCAction AddURLAction = new LWCAction(VueResources.local("mapViewer.componentMenu.addURL.label")) {
             public void act(LWComponent c) 
             {

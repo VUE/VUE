@@ -1,3 +1,23 @@
+function doImportUrl()
+{
+	var element = document.createElement("ImportUrlDataElementPath");
+	document.documentElement.appendChild(element);
+	var evt = document.createEvent("Events");
+	evt.initEvent("ImportUrlDataEvent", true, false);
+	//alert("dispatch");
+	element.dispatchEvent(evt);
+}
+
+function doImportFile()
+{
+	var element = document.createElement("ImportFileDataElementPath");
+	document.documentElement.appendChild(element);
+	var evt = document.createEvent("Events");
+	evt.initEvent("ImportFileDataEvent", true, false);
+	//alert("dispatch");
+	element.dispatchEvent(evt);
+}
+
 function doImportMap(file,title)
 {
 	var element = document.createElement("ImportMapDataElementPath");

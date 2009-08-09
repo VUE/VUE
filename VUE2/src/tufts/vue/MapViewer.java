@@ -76,7 +76,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.610 $ / $Date: 2009-08-04 17:36:15 $ / $Author: mike $ 
+ * @version $Revision: 1.611 $ / $Date: 2009-08-09 21:44:31 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -4353,10 +4353,19 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     	infoCheckBox.setLabel(VueResources.getString("mapViewer.componentMenu.nodeInfo.label"));
         if (VUE.getInfoDock().isShowing())
         	infoCheckBox.setSelected(true);
+        
+        LWNode n = (LWNode) c;
+        Resource r = n.getResource();
+        
     	sSinglePopup.add(infoCheckBox);
     	sSinglePopup.addSeparator();
     	sAddFileItem = sSinglePopup.add(Actions.AddFileAction);
     	sAddURLItem = sSinglePopup.add(Actions.AddURLAction);
+    	if (VUE.isApplet() && VueApplet.isZoteroApplet() && r!=null)
+    	{
+    		sSinglePopup.add(Actions.AddResourceToZotero);
+    	}
+    		
     	sRemoveResourceItem = sSinglePopup.add(Actions.RemoveResourceAction);
     	sSinglePopup.addSeparator();
     	sSinglePopup.add(Actions.ContextNotesAction);
@@ -4381,8 +4390,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         sSinglePopup.add(arrangeMenu);
         sSinglePopup.add(Actions.Delete);
         	     
-        LWNode n = (LWNode) c;
-        Resource r = n.getResource();
+        
         
         if (r == null)
         {

@@ -58,7 +58,7 @@ import tufts.vue.gui.VueMenuBar;
 /**
  * Experimental VUE applet.
  * 
- * @version $Revision: 1.15 $ / $Date: 2009-08-09 18:14:38 $ / $Author: mike $
+ * @version $Revision: 1.16 $ / $Date: 2009-08-09 21:44:30 $ / $Author: mike $
  */
 public class VueApplet extends JApplet {
 
@@ -364,8 +364,28 @@ public class VueApplet extends JApplet {
 
 		});
 	}
-
-		
+	
+	public static String getActiveResourceSpec()
+	{
+		LWSelection selection = VUE.getActiveViewer().getSelection();
+		if (!selection.isEmpty())
+		{
+			return selection.get(0).getResource().getSpec();
+		}
+		else
+			return null;
+	}
+	
+	public static String getActiveResourceTitle()
+	{
+		LWSelection selection = VUE.getActiveViewer().getSelection();
+		if (!selection.isEmpty())
+		{
+			return selection.get(0).getResource().getTitle();
+		}
+		else
+			return null;
+	}
 	@SuppressWarnings("unchecked")
 	public static void addZoteroDatasource(final String collectionName, final String fileString, final boolean addToMap) {
 		AccessController.doPrivileged(new PrivilegedAction() {
