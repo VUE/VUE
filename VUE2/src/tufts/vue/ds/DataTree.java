@@ -49,7 +49,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.83 $ / $Date: 2009-07-27 16:44:21 $ / $Author: brian $
+ * @version $Revision: 1.84 $ / $Date: 2009-08-09 15:22:26 $ / $Author: mike $
  * @author  Scott Fraize
  */
 
@@ -1166,7 +1166,11 @@ public class DataTree extends javax.swing.JTree
     @Override
     public void addNotify() {
         if (DEBUG.Enabled) Log.debug("ADDNOTIFY " + this + "; thread=" + mAnnotateThread);
-        mAnnotateThread.setPriority(Thread.NORM_PRIORITY - 1);
+        /*
+		At least on Mac Thread.NORM_PRIORITY is null when running as applet.
+		*/
+        if (!VUE.isApplet())
+        	mAnnotateThread.setPriority(Thread.NORM_PRIORITY - 1);
         super.addNotify();
     }
     @Override
