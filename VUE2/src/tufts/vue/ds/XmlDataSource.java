@@ -33,7 +33,7 @@ import au.com.bytecode.opencsv.CSVReader;
 
 
 /**
- * @version $Revision: 1.20 $ / $Date: 2009-07-27 16:44:21 $ / $Author: brian $
+ * @version $Revision: 1.21 $ / $Date: 2009-08-09 18:13:13 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class XmlDataSource extends BrowseDataSource
@@ -422,6 +422,11 @@ public class XmlDataSource extends BrowseDataSource
    }
     private Schema mSchema;
     
+    public Schema getSchema()
+    {
+    	return mSchema;
+    }
+   
     private JComponent loadContentAndBuildViewer() throws java.io.IOException
     {
         Log.debug("loadContentAndBuildViewer");
