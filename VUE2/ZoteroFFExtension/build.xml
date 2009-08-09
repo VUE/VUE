@@ -1,0 +1,38 @@
+<?xml version="1.0" ?>
+<project name="VUEZoteroFireFoxExtension" default="createDistributionXPI">
+<!-- Tool directories : *** Make sure you fix these to match your own environment *** -->
+<property name="gecko_sdk_path" location="C:\Tools\gecko-sdk" />
+<property name="buildtools_path" location="C:\Tools\buildtools" />
+
+<!-- Derived tool directories -->
+<property name="xpidl_exe" location="${gecko_sdk_path}/bin/xpidl.exe" />
+<property name="IDLs_path" location="${gecko_sdk_path}/idl" />
+<property name="libIDL_path" location="${buildtools_path}/windows/bin/x86" />
+
+<!-- Project directories -->
+<property name="src_dir" location="./src" />
+<property name="build_dir" location="./build" />
+<property name="dist_dir" location="./dist" />
+<property name="webcontent_dir" location="./WebContent" />
+<property name="components_dir" location="${src_dir}/components" />
+
+<!-- Targets -->	
+<target name="clean">
+	<!-- Delete the ${build} and ${dist} directory trees -->
+	    <delete dir="${build_dir}"/>
+	    <delete dir="${dist_dir}"/>
+</target>
+	
+<target name="init">
+	<mkdir dir="${dist_dir}"/>
+</target>
+	
+<target name="createDistributionXPI" depends="init">
+<zip destfile="./dist/${ant.project.name}.xpi" update="false">
+	<zipfileset dir="${src_dir}/chrome" includes="content/**, locale/**, skin/**" prefix="chrome"/>	
+	<zipfileset dir="${src_dir}" includes="install.rdf, chrome.manifest" />
+	<zipfileset dir="${webcontent_dir}" includes="**" />
+</zip>
+</target>
+</project>
+

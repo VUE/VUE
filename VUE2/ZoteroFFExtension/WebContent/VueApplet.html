@@ -1,0 +1,31 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+	<head>
+		<title>VUE/Zotero Plugin</title>
+		<link rel="stylesheet" type="text/css" href="base-min.css"> 
+		<link rel="stylesheet" type="text/css" href="styles.css"> 
+		<script type="text/javascript" src="unload.js"></script>
+		<script type="text/javascript" src="applet.js"></script>
+		<script type="text/javascript" src="yahoo-dom-event.js"></script>
+	</head>
+	<body  onresize="setMaxAppletSize();" style="">
+	  <div id="content" style="">
+	    <script type="text/javascript">
+		  <!--              
+		    var sizeTag = outputSizeTag();             
+		document.write('<applet ');
+		document.write(' ARCHIVE="VUEApplet.jar"');
+		document.write('CODE="tufts/vue/VueApplet.class" NAME="VUE" ID="VUE"');
+		document.write(sizeTag);
+		document.write('HSPACE="0" VSPACE="0" ALIGN="middle" mayscript="mayscript">');
+	//	document.write('<param name="legacy_lifecycle" value="true">');
+        document.write('<PARAM NAME="zoteroPlugin" VALUE="true">');
+		document.write("</applet>");
+	
+	  	  -->
+		</script>
+	
+		
+	  </div>			
+	</body>
+</html>

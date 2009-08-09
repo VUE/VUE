@@ -1,0 +1,150 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://vueexport/skin/vueexport/overlay.css" type="text/css"?>
+<!DOCTYPE window SYSTEM "chrome://vueexport/locale/vueexport/vueexport.dtd">
+
+<overlay id="vue-export-overlay"
+	xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+	
+<!--
+	Import VUE strings.
+-->
+<stringbundleset id="stringbundleset">
+	<stringbundle id="vue-export-strings"
+		src="chrome://vueexport/locale/vueexport/vueexport.properties"/>
+</stringbundleset>
+	
+<!--
+ 	Definition of adding VUE to the gear menu into Zotero
+-->
+<menupopup id="zotero-tb-actions-popup">	
+    <!--
+    	Insert VUE into the Gear Menu, aka zotero-tb-actions-popup, right before SIMILE timeline
+    	which appears to be the acceptable place to put plugins.
+    -->
+	<menuitem id="start-vue-tool" insertbefore="zotero-tb-actions-timeline" label="&vueexport.name;"/>
+</menupopup>
+ 
+ <!--
+ 	Adding VUE to the Contextual Menu for collections in the left Zotero Pane.
+ -->
+<popup id="zotero-collectionmenu">
+
+	<menuitem id="export-to-vue" disabled="true" label="&vueexport.collections.menu.export;" />
+
+
+	<menuitem id="export-to-vue-add" disabled="true" label="&vueexport.collections.menu.exportadd;" />
+	
+	<!-- Not sure Import from VUE belongs here... I think this should be go in VUE and call into Zotero -->
+    <menuitem id="import-from-vue" disabled="true" label="&vueexport.collections.menu.import;" /> 
+    
+    <menuitem id="add-map-from-vue" disabled="true" label="&vueexport.collections.menu.addMap;" /> 
+</popup>
+
+ <popup id="zotero-itemmenu">
+        <menuseparator/>
+        <menuitem id="vue-open-map" label="&vue.open.map;" disabled="true"/>            
+ </popup>
+<!-- Include the main extension logic -->
+<script src="chrome://zotero/content/include.js"/>
+<script src="chrome://vueexport/content/include.js"/>
+ <script><![CDATA[ 
+ 		
+ 		//I've put this code here at the suggestion of other extdev developers, the problem I had was that
+ 		//the VUE extension would fall out of scope after firefox had been open for a while
+ 		//and the menu items related to VUE would eventually lose their listeners and stop firing events.
+ 		
+        function init() {
+            document.getElementById('start-vue-tool').addEventListener('click', function (e) {                
+               Zotero.VUEExport.startVUE();
+            }, false);
+            
+            document.getElementById('export-to-vue').addEventListener('click', function (e) {                
+               Zotero.VUEExport.exportCSV(false);
+            }, false);
+
+            document.getElementById('export-to-vue-add').addEventListener('click', function (e) {                
+               Zotero.VUEExport.exportCSV(true);
+            }, false);
+            document.getElementById('add-map-from-vue').addEventListener('click', function (e) {                
+               Zotero.VUEExport.addMapFromVueToCollection();
+            }, false);
+             document.getElementById('vue-open-map').addEventListener('click', function (e) {                
+               Zotero.VUEExport.openZoteroMap();
+            }, false);
+
+		   document.getElementById('zotero-itemmenu').addEventListener('popupshowing', function (e) {                
+                var hasItemsSelected = (ZoteroPane.itemsView.selection.count == 1);   
+                if (hasItemsSelected)
+                {
+                	//there is 1 item selected check that the file name of the item
+                	//ends in vue or vpk
+                	//then check if VUE is running
+                	//if all this is true set the item enabled.
+                	var items = ZoteroPane.itemsView.getSelectedItems()
+
+               // 	alert(items[0]);
+                	try
+                	{
+	                	var file = items[0].getFile(false, true);
+						var fileName = file.leafName;
+						//alert(file.path);
+						if (fileName) {
+                			//alert(fileName);
+                			 if ((fileName.match(/.vue$/) || fileName.match(/.vpk$/)) && isVueRunning())
+                			 {
+			                	document.getElementById('vue-open-map').disabled = false;                			 
+                			 }
+                			 else
+   			                 	document.getElementById('vue-open-map').disabled = true;
+                			return;
+                		}
+                	
+                		
+                	}	
+                	catch(e)
+                	{
+	                	//Components.utils.reportError(e);
+                	}
+                	
+                	
+                	
+                	document.getElementById('vue-open-map').disabled = true;
+               	}
+            }, false);
+            
+              document.getElementById('zotero-collectionmenu').addEventListener('popupshowing', function (e) {                
+                var selectedCollection = ZoteroPane.getSelectedCollection(false);
+                var hasCollectionSelected = (!selectedCollection || selectedCollection.isCollection());
+                if (gBrowser.currentURI.spec.match(/VueApplet.html$/))
+                {
+	                document.getElementById('export-to-vue').disabled = false;
+	                document.getElementById('export-to-vue-add').disabled = false;
+	                document.getElementById('add-map-from-vue').disabled = false;
+	            }
+	            else
+	            {
+	                document.getElementById('export-to-vue').disabled = true;
+   	                document.getElementById('export-to-vue-add').disabled = true;
+   	                document.getElementById('add-map-from-vue').disabled = true;
+	             }   
+            }, false);
+            
+            document.addEventListener("MyExtensionEvent", function(e) { Zotero.VUEExport.mainMenuListener(e);}, false, true);
+             document.addEventListener("ImportMapDataEvent", function(e) { Zotero.VUEExport.importMapDataListener(e);}, false, true);
+            
+            Zotero.VUEExport.init();
+            
+        }
+        
+        function isVueRunning()
+        {
+        	return Zotero.VUEExport.isVueRunning();
+        }
+        function dispose() {
+            Zotero.VUEExport.dispose();
+        }
+        
+        window.addEventListener('load', function (e) { init(); }, false);
+        window.addEventListener('unload', function(e) { dispose(); }, false);
+    ]]></script>   
+</overlay>

@@ -1,0 +1,6 @@
+<!ENTITY vueexport.name			"Start VUE">
+<!ENTITY vueexport.collections.menu.export		"Send to VUE">
+<!ENTITY vueexport.collections.menu.exportadd		"Send to VUE and Add to Map">
+<!ENTITY vueexport.collections.menu.import		"Import from VUE">
+<!ENTITY vueexport.collections.menu.addMap		"Add VUE Map to Collection">
+<!ENTITY vue.open.map						"Open Map in VUE">
