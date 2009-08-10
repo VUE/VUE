@@ -13,7 +13,7 @@ import java.util.*;
  * methods return instances of a Relation which say something about
  * how the data was related.
  *
- * @version $Revision: 1.2 $ / $Date: 2009-07-15 18:01:44 $ / $Author: sfraize $
+ * @version $Revision: 1.3 $ / $Date: 2009-08-10 22:49:24 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public final class Relation {
@@ -188,6 +188,12 @@ public final class Relation {
          //final Collection<MetaMap> rowData,
          final String fieldValue) // return extract values that match, unless this is ALL_FIELD_VALUES
     {
+
+        if (rowData == null) {
+            Util.printStackTrace("NULL ROW DATA AGAINST FIELD: " + field);
+            return Collections.EMPTY_LIST;
+        }
+        
         //-----------------------------------------------------------------------------
         //
         // WE IMPLEMENT JOIN's HERE: E.g., if we drag Rockwell-Mediums.medium onto a

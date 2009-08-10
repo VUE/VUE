@@ -1602,11 +1602,17 @@ public class Util
     public static void dump(Collection c) {
         dumpCollection(c);
     }
+    
     public static void dump(Map<?,?> m) {
+        dump(m, "");
+    }
+
+    public static void dump(Map<?,?> m, String tag) {
         if (m != null) {
-            System.out.println("Map of size: " + m.size() + " (" + m.getClass().getName() + ")");
+            //System.out.format("Map of size: %d (%s) %s\n", m.size(), m.getClass().getName(), tag);
+            System.out.format("Map of size: %d (%s) %s\n", m.size(), tag(m), tag);
             for (Map.Entry<?,?> e : m.entrySet()) {
-                System.out.println(String.format("%20s: %s", tags(e.getKey()), tags(e.getValue())));
+                System.out.format("%20s: %s\n", tags(e.getKey()), tags(e.getValue()));
             }
         } else
             System.out.println("\t<NULL MAP>");
@@ -1620,7 +1626,7 @@ public class Util
     }
     
     public static void dumpCollection(Collection c) {
-        System.out.println("Collection of size: " + c.size() + " (" + c.getClass().getName() + ")");
+        System.out.println("Collection of size: " + c.size() + " (" + tag(c) + ")");
         dumpIterator(c.iterator());
     }
     public static void dumpIterator(Iterator i) {
