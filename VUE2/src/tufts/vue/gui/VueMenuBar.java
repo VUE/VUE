@@ -88,7 +88,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.149 $ / $Date: 2009-08-10 18:04:40 $ / $Author: brian $
+ * @version $Revision: 1.150 $ / $Date: 2009-08-10 22:50:22 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -655,6 +655,10 @@ public class VueMenuBar extends javax.swing.JMenuBar
         	viewMenu.add(toggleSlideIconsItem);
         	viewMenu.addSeparator();
         }
+
+        if (LWComponent.COLLAPSE_IS_GLOBAL)
+            viewMenu.add(makeCheckBox(Actions.ToggleGlobalCollapse));
+        
         viewMenu.add(togglePruningItem);
         
         // JAVA BUG: ADDING A JMenuItem (maybe just JCheckBoxMenuItem)
@@ -707,7 +711,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
         formatMenu.add(arrangeMenu);
         formatMenu.add(layoutMenu);
         formatMenu.addSeparator();
-        formatMenu.add(Actions.Collapse);
+        if (!LWComponent.COLLAPSE_IS_GLOBAL)
+            formatMenu.add(Actions.Collapse);
         formatMenu.addSeparator();
         formatMenu.add(Actions.Group);
         formatMenu.add(Actions.Ungroup);
