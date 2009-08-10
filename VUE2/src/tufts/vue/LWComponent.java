@@ -47,7 +47,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.482 $ / $Date: 2009-08-03 21:00:57 $ / $Author: sfraize $
+ * @version $Revision: 1.483 $ / $Date: 2009-08-10 22:44:34 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -105,11 +105,8 @@ public class LWComponent
     
 
     public enum HideCause {
-//         /** special case bit for deleted objects (which always remain in the undo queue) */
-//         DELETED (),
-            
-            /** each subclass of LWComponent can use this for it's own purposes */
-            DEFAULT (),
+        /** each subclass of LWComponent can use this for it's own purposes */
+        DEFAULT (),
             /* we've been hidden by a filter */
             //FILTER (), 
             /** we've been hidden by link pruning */
@@ -122,10 +119,12 @@ public class LWComponent
             PATH_UNREVEALED (true),
             /** we've been hidden because the current pathway is all we we want to see, and we're not on it */
             NOT_ON_CURRENT_PATH (true),
-
-//             /** we've been because our parent is collapsed */
-//             COLLAPSED ();
-
+            
+            /** we've been hidden due to the collapse of a parent (different from Flag.COLLAPSED, which is for the collapsed parent) */
+            COLLAPSED (),
+            
+            /** we're an LWImage that's a node-icon image, and we're hidden */
+            IMAGE_ICON_OFF ();
                 ;
 
             
@@ -200,6 +199,16 @@ public class LWComponent
     public static final Size MinSize = new Size(MIN_SIZE, MIN_SIZE);
     public static final float NEEDS_DEFAULT = Float.MIN_VALUE;
     public static final java.util.List<LWComponent> NO_CHILDREN = Collections.EMPTY_LIST;
+     	
+    public static final boolean COLLAPSE_IS_GLOBAL = true;
+    
+    protected static boolean isGlobalCollapsed = false;
+
+    static void toggleGlobalCollapsed() {
+        if (!COLLAPSE_IS_GLOBAL)
+            throw new Error("disabled");
+        isGlobalCollapsed = !isGlobalCollapsed;
+    }
 
     public interface Listener extends java.util.EventListener {
         public void LWCChanged(LWCEvent e);
@@ -1395,6 +1404,14 @@ u                    getSlot(c).setFromString((String)value);
         return key + " " + valType + "(" + valRep + ")" + extra + "";
     }
 
+    public static class PersistClientDataKey {
+        final String name;
+        PersistClientDataKey(String s) { name = s; }
+        @Override public String toString() {
+            return name;
+        }
+    }
+
     // maybe rename these store/fetchProperty
     
     /** set a generic property in the model -- users of this API need to ensure the keys
@@ -1406,7 +1423,7 @@ u                    getSlot(c).setFromString((String)value);
 
         if (DEBUG.DATA) {
             String keyName = key instanceof Class ? key.toString() : Util.tags(key);
-            out("setClientProperty: " + keyName + "=" + Util.tags(o));
+            out("setClientData: " + keyName + "=" + Util.tags(o));
         }
 
         if (o == null)
@@ -1994,7 +2011,7 @@ u                    getSlot(c).setFromString((String)value);
         
         final Schema schema = data.getSchema();
         if (schema != null) {
-            Schema liveSchema = Schema.lookup(schema);
+            Schema liveSchema = Schema.lookupAuthority(schema);
             if (schema != liveSchema) {
                 data.setSchema(liveSchema);
                 if (DEBUG.DATA) Log.debug("updated schema " + this);
@@ -2891,6 +2908,11 @@ u                    getSlot(c).setFromString((String)value);
 
     protected boolean validateInitialValues() {
         boolean bad = false;
+
+        // Note that if ANY component in the map has a NaN coordinate or dimension,
+        // it can put the AWT graphics routines into an unrecoverable state that
+        // may prevent the entire map from drawing sanely or at all.
+        
         if (Float.isNaN(x)) {
             Log.warn(this + " bad x");
             x = 0;
@@ -2911,7 +2933,8 @@ u                    getSlot(c).setFromString((String)value);
             height = 0;
             bad = true;
         }
-        if (mFontSize.get() < 1) {
+
+        if (supportsProperty(KEY_FontSize) && mFontSize.get() < 1) {
             Log.warn(this + " bad font size " + mFontSize.get());
             mFontSize.set(1);
             bad = true;
@@ -3159,7 +3182,10 @@ u                    getSlot(c).setFromString((String)value);
         // and only calling this here if parent was previously null (persistance,
         // cut/paste), should handle that.
         
-        validateSchemaReference();
+        if (!mXMLRestoreUnderway) {
+            // handled specially during restored
+            validateSchemaReference();
+        }
         //-----------------------------------------------------------------------------
         
         parent = newParent;
@@ -3577,10 +3603,11 @@ u                    getSlot(c).setFromString((String)value);
             return getAllDescendents(kind, new java.util.ArrayList(), Order.TREE);
     }
     
-    public Collection<LWComponent> getAllDescendents(final ChildKind kind, final Collection<LWComponent> bag) {
+    public final Collection<LWComponent> getAllDescendents(final ChildKind kind, final Collection<LWComponent> bag) {
         return getAllDescendents(kind, bag, Order.TREE);
     }
     
+    /** @return bag -- a noop -- this is meant to be overriden */
     public Collection<LWComponent> getAllDescendents(final ChildKind kind, final Collection<LWComponent> bag, Order order) {
         return bag;
     }
@@ -6629,11 +6656,19 @@ u                    getSlot(c).setFromString((String)value);
     }
     
     public boolean isCollapsed() {
-        return hasFlag(Flag.COLLAPSED);
+        if (COLLAPSE_IS_GLOBAL)
+            return false; // LWNode overrides
+        //return isGlobalCollapsed;
+        else
+            return hasFlag(Flag.COLLAPSED);
     }
 
     public boolean isAncestorCollapsed()
     {
+//         if (COLLAPSE_IS_GLOBAL) {
+//             return isGlobalCollapsed;
+//         }
+        
         if (parent != null) {
             if (parent.isCollapsed())
                 return true;
