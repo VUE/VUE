@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.251 $ / $Date: 2009-07-23 20:18:48 $ / $Author: sfraize $
+ * @version $Revision: 1.252 $ / $Date: 2009-08-10 22:47:38 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1064,9 +1064,9 @@ public class LWNode extends LWContainer
         if (DEBUG.LAYOUT) out("*** setSize         " + w + "x" + h);
         if (isAutoSized() && (w > this.width || h > this.height)) // does this handle scaling?
             setAutomaticAutoSized(false);
-        layout(LWKey.Size,
-               new Size(getWidth(), getHeight()),
-               new Size(w, h));
+        layoutNode(LWKey.Size,
+                   new Size(getWidth(), getHeight()),
+                   new Size(w, h));
     }
 
     private void setSizeNoLayout(float w, float h)
@@ -1097,7 +1097,7 @@ public class LWNode extends LWContainer
     
     @Override
     protected void layoutImpl(Object triggerKey) {
-        layout(triggerKey, new Size(getWidth(), getHeight()), null);
+        layoutNode(triggerKey, new Size(getWidth(), getHeight()), null);
     }
 
     /**
@@ -1105,7 +1105,7 @@ public class LWNode extends LWContainer
      * @param curSize - the current size of the node
      * @param request - the requested new size of the node
      */
-    protected void layout(Object triggerKey, Size curSize, Size request)
+    private void layoutNode(Object triggerKey, Size curSize, Size request)
     {
         if (inLayout) {
             if (DEBUG.Enabled) {
@@ -1136,6 +1136,13 @@ public class LWNode extends LWContainer
             System.err.println("prefHeight != height in " + this);
             System.err.println("\tpref=" + getLabelBox().getPreferredSize().height);
             System.err.println("\treal=" + getLabelBox().getHeight());
+        }
+
+        if (triggerKey == Flag.COLLAPSED) {
+            final boolean collapsed = isCollapsed();
+            for (LWComponent c : getChildren()) {
+                c.setHidden(HideCause.COLLAPSED, collapsed);
+            }
         }
 
         // The current width & height is at this moment still a
@@ -2106,6 +2113,8 @@ public class LWNode extends LWContainer
         for (LWComponent c : getChildren()) {
             if (c instanceof LWLink) // todo: don't allow adding of links into a manged layout node!
                 continue;
+            if (c.isHidden())
+                continue;
             if (first)
                 first = false;
             else
@@ -2379,10 +2388,21 @@ public class LWNode extends LWContainer
         // now we skip drawing text / decorations / children -- just skipping
         // the text makes a big difference when then there are lots of nodes
     }
-    
+
+    @Override
+    public boolean isCollapsed() {
+        if (COLLAPSE_IS_GLOBAL)
+            return isGlobalCollapsed;
+        else
+            return super.isCollapsed();
+    }
     
     @Override
     public void setCollapsed(boolean collapsed) {
+
+        if (COLLAPSE_IS_GLOBAL)
+            throw new Error("collapse is set to global impl");
+        
         if (hasFlag(Flag.COLLAPSED) != collapsed) {
             setFlag(Flag.COLLAPSED, collapsed);
             layout(KEY_Collapsed);
@@ -2401,10 +2421,13 @@ public class LWNode extends LWContainer
     @Override
     protected void drawChildren(DrawContext dc) {
         if (isCollapsed()) {
-            dc.g.setStroke(STROKE_ONE);
-            dc.g.setColor(getRenderFillColor(dc));
-            final int bottom = (int) (getHeight() + getStrokeWidth() / 2f + 2.5f);
-            dc.g.drawLine(1, bottom, (int) (getWidth() - 0.5f), bottom);
+            if (COLLAPSE_IS_GLOBAL == false) {
+                // draw an indicator on this individual node showing that it's collapsed
+                dc.g.setStroke(STROKE_ONE);
+                dc.g.setColor(getRenderFillColor(dc));
+                final int bottom = (int) (getHeight() + getStrokeWidth() / 2f + 2.5f);
+                dc.g.drawLine(1, bottom, (int) (getWidth() - 0.5f), bottom);
+            }
             return;
         } else
             super.drawChildren(dc);
