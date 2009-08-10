@@ -59,7 +59,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.247 $ / $Date: 2009-08-07 14:10:58 $ / $Author: brian $
+ * @version $Revision: 1.248 $ / $Date: 2009-08-10 22:45:48 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -105,7 +105,7 @@ public class LWMap extends LWContainer
     private float userOriginY;
     private double userZoom = 1;
 
-    private transient boolean isLayered;
+    //private transient boolean isLayered;
     private transient Layer mActiveLayer;
     /** for use during restores only */
     private transient java.util.List<Layer> mLayers = new ArrayList();
@@ -602,11 +602,11 @@ public class LWMap extends LWContainer
     @Override
     public Collection<LWComponent> getAllDescendents(final ChildKind kind, final Collection bag, Order order) {
 
-        if (kind == ChildKind.ANY || !isLayered()) {
+        if (kind == ChildKind.ANY /*|| !isLayered()*/) {
             // include the layers and all descendents
             super.getAllDescendents(kind, bag, order);
         } else {
-            // exclude the layers, but include their children
+            // exclude the layer objects themseleves, but include their children
             for (LWComponent layer : getChildren()) {
                 if ((kind == ChildKind.VISIBLE || kind == ChildKind.EDITABLE) && layer.isHidden())
                     ; // exclude invisible
@@ -817,12 +817,20 @@ public class LWMap extends LWContainer
 
         /** for persistance only */
         public Layer() {
+            initLayer();
             setFillColor(null);
         }
 
         public Layer(String name) {
+            initLayer();
             setFillColor(null);
             setLabel(name);
+        }
+
+        private void initLayer() {
+            // style properties not used on layers (pretty much no properties at all actually)
+            // we disable them mainly to prevent warnings on layers with invalid values
+            disablePropertyTypes(KeyType.STYLE);
         }
 
         @Override public float getX() { return 0; }
@@ -1032,11 +1040,11 @@ public class LWMap extends LWContainer
         }
     }
 
-    /** todo: remove this -- all maps should now be layered */
-    boolean isLayered() {
-        //if (!VUE.VUE3_LAYERS) return false;
-        return isLayered;
-    }
+//     /** todo: remove this -- all maps should now be layered */
+//     boolean isLayered() {
+//         //if (!VUE.VUE3_LAYERS) return false;
+//         return isLayered;
+//     }
 
     public LWContainer getActiveContainer() {
         //if (!VUE.VUE3_LAYERS) return null;
@@ -1197,7 +1205,7 @@ public class LWMap extends LWContainer
 
         // mLayers is only needed during restore
         mLayers = null;
-        isLayered = true;
+        //isLayered = true;
 
         return addedLayers;
     }
@@ -1258,18 +1266,23 @@ public class LWMap extends LWContainer
         }
 
 
-        isLayered = true;
+        //isLayered = true;
         setActiveLayer(activeLayer);
     }
     
     
-    static final String NODE_INIT_LAYOUT = "completeXMLRestore:NODE";
-    static final String LINK_INIT_LAYOUT = "completeXMLRestore:LINK";
+    static final String NODE_INIT_LAYOUT = "INIT_NODE_LAYOUT";
+    static final String LINK_INIT_LAYOUT = "INIT_LINK_LAYOUT";
+    private static final String INIT_LAYOUT = "init_layout";
 
+    /** to be called on maps that are manually created (e.g., not deserialized) before they're displayed */
     public void layoutAndValidateNewMap() {
-        final Collection<LWComponent> all = getAllDescendents();
-        layoutAll(all); // will be auto-validated due to initial layout trigger
-        //validateAll(all);
+
+        layoutAll(INIT_LAYOUT);
+        
+//         final Collection<LWComponent> all = getAllDescendents(); // todo: probably should do as order-depth
+//         layoutAll(all, INIT_LAYOUT); // will be auto-validated due to initial layout trigger
+//         //validateAll(all);
     }
 
 //     private void validateAll(Collection<LWComponent> components) {
@@ -1278,9 +1291,37 @@ public class LWMap extends LWContainer
 //         }
 //     }
 
-    /** note side effect: will clear all mXMLRestoreUnderway flags if any are set */
-    private void layoutAll(Collection<LWComponent> components)
+    void layoutAll(Object key) {
+        // we specify Order.DEPTH to do children first (so children will already be laid out when parents
+        // attempt to lay them out)
+        final Collection<LWComponent> all = getAllDescendents(ChildKind.ANY, new ArrayList(), Order.DEPTH);
+        layoutAll(all, key);
+    }
+
+    /** note side effect: will clear all mXMLRestoreUnderway flags that are set
+     *  This processes all NODES first, then all LINKS.  Then normalizes all groups just to be safe.
+     * The components should be provided in depth-first order (Order.DEPTH), so that
+     * children are fully laid out before their parents, which will need the proper size of
+     * the children to lay out correctly.
+     */
+    private void layoutAll(final Collection<LWComponent> components, final Object key)
     {
+        Object layoutKey;
+
+        if (key == INIT_LAYOUT)
+            layoutKey = NODE_INIT_LAYOUT;
+        else
+            layoutKey = key;
+        
+        //-----------------------------------------------------------------------------
+        // First, we layout all NON links, so we can layout the links afterwords, and when
+        // the links recompute, they'll be able to know for certian the borders of what
+        // they're connected to.  Note that this means that the layout of a container
+        // should not depend on a link be current yet.  Groups depend on knowing the size
+        // of their children, but that's not handled via the layout code -- that's handled
+        // via group normalization.
+        //-----------------------------------------------------------------------------
+
         for (LWComponent c : components) {
             // mark all, including links, now, as when we get to them, links-to-links may
             // cause cascading recomputes that would warn us they're still being restored otherwise.
@@ -1289,12 +1330,17 @@ public class LWMap extends LWContainer
                 continue;
             if (DEBUG.LAYOUT||DEBUG.INIT) out("LAYOUT NODE: in " +  c.getParent() + ": " + c);
             try {
-                c.layout(NODE_INIT_LAYOUT);
+                c.layout(layoutKey);
             } catch (Throwable t) {
-                tufts.Util.printStackTrace(t, "INITIAL LAYOUT NODE " + c);
+                Log.warn("LAYOUT-NODE/" + layoutKey + ": " + c, t);
             }
         }
 
+        if (key == INIT_LAYOUT)
+            layoutKey = LINK_INIT_LAYOUT;
+        else
+            layoutKey = key;
+        
         //-----------------------------------------------------------------------------
         // Layout links -- will trigger recomputes & layout any link-labels that need it.
         //-----------------------------------------------------------------------------
@@ -1306,9 +1352,9 @@ public class LWMap extends LWContainer
                 continue;
             if (DEBUG.LAYOUT||DEBUG.INIT) out("LAYOUT LINK: in " +  c.getParent() + ": " + c);
             try {
-                c.layout(LINK_INIT_LAYOUT);
+                c.layout(layoutKey);
             } catch (Throwable t) {
-                tufts.Util.printStackTrace(t, "INITIAL LAYOUT LINK " + c);
+                Log.warn("LAYOUT-LINK/" + layoutKey + ": " + c, t);
             }
         }
         
@@ -1322,7 +1368,7 @@ public class LWMap extends LWContainer
                 if (c instanceof LWGroup)
                     ((LWGroup)c).normalize();
             } catch (Throwable t) {
-                tufts.Util.printStackTrace(t, "INITIAL NORMALIZE " + c);
+                Log.warn("GROUP-NORMALIZE/"   + key + ": " + c, t);
             }
         }
     }
@@ -1460,20 +1506,14 @@ public class LWMap extends LWContainer
 
         mResourceFactory.loadResources(allResources);
 
+        for (Schema schema : mRestoredSchemas) {
+            schema.syncToGlobalModel(this, allRestored);
+        }
+
         //----------------------------------------------------------------------------------------
-        
         // Now lay everything out.  allRestored should be in depth-first order for maximum
         // reliability (the deepest items should lay themselves out first, so parent items
         // that need to know the size of their children will get accurate results).
-        //
-        
-        // First, we layout all NON links, so we can layout the links afterwords, and when
-        // the links recompute, they'll be able to know for certian the borders of what
-        // they're connected to.  Note that this means that the layout of a container
-        // should not depend on a link be current yet.  Groups depend on knowing the size
-        // of link children, but that's not handled via the layout code -- that's handled
-        // via group normalization.
-
         //----------------------------------------------------------------------------------------
         
         // Do NOT normalize the groups yet: will seriously break old maps.  It slighly improves some of our
@@ -1482,63 +1522,15 @@ public class LWMap extends LWContainer
         //                 if (c instanceof LWGroup)
         //                     ((LWGroup)c).normalize();
 
-        //-----------------------------------------------------------------------------
-        // Layout non-links:
-        //-----------------------------------------------------------------------------
         
-        //if (!tufts.vue.action.SaveAction.PACKAGE_DEBUG) // tmp hack: we get exceptions when testing just SaveAction on this code
+        // tmp hack: we were geting exceptions when testing just SaveAction on this code?
+        //if (!tufts.vue.action.SaveAction.PACKAGE_DEBUG)
 
-        layoutAll(allRestored);
-        
-//         for (LWComponent c : allRestored) {
-//             // mark all, including links, now, as when we get to them, links-to-links may
-//             // cause cascading recomputes that would warn us they're still being restored otherwise.
-//             c.mXMLRestoreUnderway = false;
-//             if (c instanceof LWLink)
-//                 continue;
-//             if (DEBUG.LAYOUT||DEBUG.INIT) out("LAYOUT NODE: in " +  c.getParent() + ": " + c);
-//             try {
-//                 c.layout(NODE_INIT_LAYOUT);
-//             } catch (Throwable t) {
-//                 tufts.Util.printStackTrace(t, "RESTORE LAYOUT NODE " + c);
-//             }
-//         }
-
-//         //-----------------------------------------------------------------------------
-//         // Layout links -- will trigger recomputes & layout any link-labels that need it.
-//         //-----------------------------------------------------------------------------
-        
-//         //if (!tufts.vue.action.SaveAction.PACKAGE_DEBUG) // tmp hack
-            
-//         for (LWComponent c : allRestored) {
-//             if (c instanceof LWLink == false)
-//                 continue;
-//             if (DEBUG.LAYOUT||DEBUG.INIT) out("LAYOUT LINK: in " +  c.getParent() + ": " + c);
-//             try {
-//                 c.layout(LINK_INIT_LAYOUT);
-//             } catch (Throwable t) {
-//                 tufts.Util.printStackTrace(t, "RESTORE LAYOUT LINK " + c);
-//             }
-//         }
-        
-//         //-----------------------------------------------------------------------------
-//         // Just to be sure, re-normalize all groups.  This shouldn't be required, except
-//         // perhaps if we're updating from an old model version.
-//         //-----------------------------------------------------------------------------
-        
-//         for (LWComponent c : allRestored) {
-//             try {
-//                 if (c instanceof LWGroup)
-//                     ((LWGroup)c).normalize();
-//             } catch (Throwable t) {
-//                 tufts.Util.printStackTrace(t, "RESTORE NORMALIZE " + c);
-//             }
-//         }
+        layoutAll(allRestored, INIT_LAYOUT);
 
         if (DEBUG.INIT || DEBUG.IO || DEBUG.XML) Log.debug("RESTORE COMPLETED; nextID=" + mNextID.get());
         
         mXMLRestoreUnderway = false;
-        //setEventsResumed();
         markAsSaved();
     }
 
@@ -1712,7 +1704,7 @@ public class LWMap extends LWContainer
 
     private void restoreRelativeLocations(Collection<Resource> resources, URI root)
     {
-        if (DEBUG.Enabled) {
+        if (DEBUG.IO || DEBUG.INIT || DEBUG.RESOURCE) {
             Resource.dumpURI(root, Util.TERM_GREEN + "resolving resources to map root;");
             System.out.print(Util.TERM_CLEAR);
         }
@@ -1729,7 +1721,7 @@ public class LWMap extends LWContainer
     // public only for Archive to be able to call us: clean that up
     public void runResourceDeserializeInits(Collection<Resource> resources)
     {
-        if (DEBUG.Enabled)
+        if (DEBUG.RESOURCE || DEBUG.IO)
             Log.debug(Util.TERM_CYAN + "initAfterDerserialize for all resources; " + Util.tags(resources) + Util.TERM_CLEAR);
         for (Resource r : resources) {
             try {
@@ -2172,9 +2164,9 @@ public class LWMap extends LWContainer
         // map, and we need to divert this to add call to the appropriate layer.
         
         if (children.size() == 1 && children.get(0) instanceof LWMap.Layer) {
-            isLayered = true;
+            //isLayered = true;
             super.addChildren(children, context);
-        } else if (isLayered() && mActiveLayer != null) {
+        } else if (/*isLayered() &&*/ mActiveLayer != null) {
             mActiveLayer.addChildren(children, context);
         } else {
             super.addChildren(children, context);
@@ -2187,7 +2179,7 @@ public class LWMap extends LWContainer
         if (c instanceof LWPathway)
             throw new IllegalArgumentException("LWPathways not added as direct children of map: use addPathway " + c);
         
-        if (isLayered()) {
+        if (true /*isLayered()*/) {
             //mActiveLayer.addChildImpl(c);
             if (c instanceof Layer == false) {
                 Util.printStackTrace("Warning: LWMap adding non-layer: " + Util.tags(c));
@@ -2372,7 +2364,7 @@ public class LWMap extends LWContainer
 
         final Rectangle2D.Float bounds = new Rectangle2D.Float();
         
-        if (isLayered()) {
+        if (true /*isLayered()*/) {
             
             for (LWComponent layer : getChildren()) {
                 if (layer.isVisible()) {
