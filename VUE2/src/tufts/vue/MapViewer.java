@@ -76,7 +76,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.611 $ / $Date: 2009-08-09 21:44:31 $ / $Author: mike $ 
+ * @version $Revision: 1.612 $ / $Date: 2009-08-10 22:48:17 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2045,7 +2045,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             pc.maxDepth = Short.MAX_VALUE; // this is also the default in the PickContext
         } else {
             // default: for rectangular picks, only ever pick top-level items (no children)
-            pc.maxDepth = getMap().isLayered() ? 2 : 1;
+            pc.maxDepth = 2; // always pick thru to the layers
+            //pc.maxDepth = getMap().isLayered() ? 2 : 1;
         }
         
         return activeTool.initPick(pc, rect);
