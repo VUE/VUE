@@ -656,13 +656,10 @@ public class LWText extends LWComponent {
 	}
 
 	private void setSizeNoLayout(float w, float h) {
-		//if (DEBUG.LAYOUT)
-			out("*** setSizeNoLayout " + w + "x" + h);
-			setSize(w, h);
-			richLabelBox.setSize(w,h);
-				
-	
-		//mShape.setFrame(0, 0, getWidth(), getHeight());
+            if (DEBUG.LAYOUT) out("*** setSizeNoLayout " + w + "x" + h);
+            setSize(w, h);
+            richLabelBox.setSize(w,h);
+            //mShape.setFrame(0, 0, getWidth(), getHeight());
 	}
 
 	private transient Point2D.Float mLabelPos = new Point2D.Float(); // for

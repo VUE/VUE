@@ -40,7 +40,7 @@ import edu.tufts.vue.metadata.action.SearchAction;
 
 
 /**
- * @version $Revision: 1.79 $ / $Date: 2009-08-03 17:46:39 $ / $Author: sfraize $
+ * @version $Revision: 1.80 $ / $Date: 2009-08-10 22:50:33 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -767,7 +767,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
     
     private void loadMap(final LWMap map)
     {
-        if (DEBUG.Enabled) Log.debug("load map " + map);     
+        if (DEBUG.EVENTS) Log.debug("load map " + map);
              
         if (mMap == map)
             return;
@@ -1297,7 +1297,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         }
 
         private void makeEditable(boolean edit) {
-            if (DEBUG.Enabled) Log.debug("MAKE EDITABLE " + Util.tags(this) + " " + edit);
+            if (DEBUG.WORK) Log.debug("MAKE EDITABLE " + Util.tags(this) + " " + edit);
             if (edit) {            	
                 setFocusable(true);
                 setBorder(activeBorder);
