@@ -48,6 +48,7 @@ import javax.swing.KeyStroke;
 import tufts.Util;
 import tufts.vue.LWComponent.ChildKind;
 import tufts.vue.LWComponent.Flag;
+import tufts.vue.LWComponent.HideCause;
 import tufts.vue.NodeTool.NodeModeTool;
 import tufts.vue.gui.DeleteSlideDialog;
 import tufts.vue.gui.GUI;
@@ -1914,7 +1915,7 @@ public class Actions implements VueConstants
         }
     };
 
-    /** this will toggle the collapsed state flag */
+    /** this will toggle the collapsed state flag on the selected nodes */
     public static final LWCAction Collapse =
     new LWCAction(VueResources.local("menu.format.collapse"), keyStroke(KeyEvent.VK_X, SHIFT+LEFT_OF_SPACE)) {
         boolean enabledFor(LWSelection s) {
@@ -1926,6 +1927,24 @@ public class Actions implements VueConstants
         }
     };
     
+    public static final VueAction ToggleGlobalCollapse =
+        new VueAction(VueResources.local("menu.view.collapseAll")) {
+        public void act() {
+
+            LWComponent.toggleGlobalCollapsed();
+            VUE.layoutAllMaps(LWComponent.Flag.COLLAPSED);
+            viewer().getFocal().notify(this, LWKey.Repaint);
+
+            // Currently, this action is ONLY fired via a menu item.  If other code
+            // points might set this directly, this should be changed to a toggleState
+            // action (impl getToggleState), and those code points should call this
+            // action to do the toggle, so the menu item checkbox state will stay
+            // synced.
+        }
+            
+            @Override public boolean overrideIgnoreAllActions() { return true; }        
+            
+    };
 
     private static class Stats {
         float minX, minY;
@@ -1944,6 +1963,9 @@ public class Actions implements VueConstants
     // (error occurs even in first adjustment, but easier to notice
     // in follow-ons)
     //-------------------------------------------------------
+
+    private static final Object ClusterTimeKey = new LWComponent.PersistClientDataKey("clusterTime");
+
     public abstract static class ArrangeAction extends LWCAction {
         static float minX, minY;
         static float maxX, maxY;
@@ -2065,6 +2087,11 @@ public class Actions implements VueConstants
 
             if (DEBUG.Enabled) Log.debug("clustering around " + center + ": " + Util.tags(clustering));
 
+            // recording the current action time on the centering node can later help
+            // us determine the layout priority for new data items when adding to the map
+            // (by looking at the most recent clustering centers)
+            center.setClientData(ClusterTimeKey, currentActionTime);
+            
             final LWContainer commonParent = center.getParent();
             final List<LWComponent> toReparent = new ArrayList();
 
@@ -2323,6 +2350,29 @@ public class Actions implements VueConstants
     }
     
     
+    public static final LWCAction PushOutLinked =
+    new LWCAction(VueResources.local("menu.format.align.pushout.linked"), keyStroke(KeyEvent.VK_EQUALS, ALT)) {
+        
+        boolean enabledFor(LWSelection s) {
+            return enabledForPushPull(s);
+        }
+        // todo: for selection size > 1, push on bounding box
+        void act(LWComponent c) {
+            // although we don't currently want to support pushing inside anything other than
+            // a layer, this generic call would handle other cases if we can support them
+            projectNodes(c, PUSH_DISTANCE, PUSH_LINKED);
+            // currenly only pushes within a single layer: provide the map
+            // as the focal if want to push in all layers
+            //pushNodes(viewer().getDropFocal(), c); // push in active focal: will work for slides also
+            // active focal should normally be a layer otherwise
+            // ideally would ask the node for it's layer, as theoretically we could be dropping into
+            // one layer then push in another
+            //pushNearbyNodes(viewer().getMap(), c);
+            //pushNearbyNodes(viewer().getDropFocal(), c);
+
+        }
+    };
+    
     public static final LWCAction PushOut =
     new LWCAction(VueResources.local("menu.format.arrange.pushout"), keyStroke(KeyEvent.VK_EQUALS, ALT)) {
         
@@ -2333,7 +2383,7 @@ public class Actions implements VueConstants
         void act(LWComponent c) {
             // although we don't currently want to support pushing inside anything other than
             // a layer, this generic call would handle other cases if we can support them
-            projectNodes(c, PUSH_DISTANCE);
+            projectNodes(c, PUSH_DISTANCE, PUSH_ALL);
             // currenly only pushes within a single layer: provide the map
             // as the focal if want to push in all layers
             //pushNodes(viewer().getDropFocal(), c); // push in active focal: will work for slides also
@@ -2352,18 +2402,20 @@ public class Actions implements VueConstants
                 return enabledForPushPull(s);
             }
             void act(LWComponent c) {
-                projectNodes(c, -PUSH_DISTANCE);
+                projectNodes(c, -PUSH_DISTANCE, PUSH_LINKED);
                 
             }
         };
         
-        private static final boolean DEBUG_PUSH = false;
+    private static final boolean DEBUG_PUSH = false;
+    private static final Object PUSH_ALL = "pushAll";
+    private static final Object PUSH_LINKED = "pushLinked";
     
-    private static void projectNodes(final LWComponent pushing, final int distance) {
+    private static void projectNodes(final LWComponent pushing, final int distance, Object pushKey) {
 
         Collection<LWComponent> toPush = null;
 
-        if (pushing.hasLinks())
+        if (pushKey == PUSH_LINKED && pushing.hasLinks())
             toPush = pushing.getLinked();
 
         if (toPush == null || toPush.size() == 0)
@@ -2372,7 +2424,6 @@ public class Actions implements VueConstants
         
         projectNodes(toPush, pushing, distance);
     }
-        
         
         // todo: combine into a Geometry.java with computeIntersection, computeConnector, projectPoint code from VueUtil
         // todo: to handle pushing inside slides, we'd need to get rid of the references to map bounds,
@@ -2964,6 +3015,7 @@ public class Actions implements VueConstants
         null,
         PullIn,
         PushOut,
+        PushOutLinked,
         null,
         DistributeVertically,
         DistributeHorizontally,
@@ -3006,10 +3058,50 @@ public class Actions implements VueConstants
                 || s.containsType(LWNode.class); // todo: really, only image nodes, but we have no key for that
         }
         
-        @Override
-        public void act(LWImage c) {
-            c.setMaxDimension(size);
+        protected void imageAct(LWImage im, Object actionKey) {
+            final int newDim;
+
+            //Log.debug(this + " on " + im);
+
+            if (actionKey == IMAGE_HIDE)
+                newDim = Integer.MIN_VALUE;
+            else if (actionKey == IMAGE_BIGGER)
+                newDim = getBiggerSize(im); // will return same size if is currently OFF
+            else if (actionKey == IMAGE_SMALLER)
+                newDim = getSmallerSize(im);
+            else // actionKey is an Integer representing the new desired size
+                newDim = (Integer) actionKey;
+            
+            if (DEBUG.IMAGE) Log.debug("NEWDIM " + newDim);
+            
+            if (newDim == Integer.MIN_VALUE) {
+                // hide
+                if (im.isNodeIcon()) {
+                    im.setHidden(HideCause.IMAGE_ICON_OFF);
+                    im.getParent().layout("imageIconHide");
+                }
+            } else if (newDim == Integer.MAX_VALUE) {
+                // make natural size
+                im.setToNaturalSize();
+                if (im.isNodeIcon()) {
+                    im.clearHidden(HideCause.IMAGE_ICON_OFF);
+                    im.getParent().layout("imageIconShow");
+                }
+            } else {
+                // adjust size
+                im.setMaxDimension(newDim);
+                if (im.isNodeIcon()) {
+                    im.clearHidden(HideCause.IMAGE_ICON_OFF);
+                    im.getParent().layout("imageIconShow");
+                }
+            }
         }
+        
+        @Override
+        public void act(LWImage im) {
+            imageAct(im, size);
+        }
+        
         @Override
         public void act(LWNode n) {
             final LWImage image = n.getImage();
@@ -3028,38 +3120,11 @@ public class Actions implements VueConstants
             super(VueResources.local(localizationKey));
             this.actionKey = key;
         }
-        @Override
-        public void act(LWImage c) {
-            final int newDim;
 
-            if (actionKey == IMAGE_HIDE)
-                newDim = Integer.MIN_VALUE;
-            else if (actionKey == IMAGE_BIGGER)
-                newDim = getBiggerSize(c);
-            else // IMAGE_SMALLER
-                newDim = getSmallerSize(c);
-            
-            if (DEBUG.IMAGE) Log.debug("NEWDIM " + newDim);
-            
-            if (newDim == Integer.MIN_VALUE) {
-                // hide
-                if (c.isNodeIcon()) {
-                    c.setVisible(false);
-                    c.getParent().layout("imageHide"); // todo: not working
-                }
-            } else if (newDim == Integer.MAX_VALUE) {
-                // make natural size
-                c.setToNaturalSize();
-                if (c.isNodeIcon())
-                    c.setVisible(true);
-            } else {
-                // adjust size
-                c.setMaxDimension(newDim);
-                if (c.isNodeIcon())
-                    c.setVisible(true);
-            }
+        @Override
+        public void act(LWImage im) {
+            imageAct(im, actionKey);
         }
-        
     }
 
     private static final LWCAction ImageBigger = new ImageAdjustAction("action.image.bigger", IMAGE_BIGGER);
@@ -3088,10 +3153,14 @@ public class Actions implements VueConstants
 
     }
 
+    /** @return the next biggest size, unless the image icon is currently hidden, in which case return same size */
     private static int getBiggerSize(LWImage c)
     {
         final int maxDim = (int) Math.max(c.getWidth(), c.getHeight());
 
+        if (c.isHidden(HideCause.IMAGE_ICON_OFF))
+            return maxDim;
+        
         //Log.debug("BIGGER MAXDIM " + maxDim);
         
         for (int i = ImageSizes.length - 1; i >= 0; i--) {
