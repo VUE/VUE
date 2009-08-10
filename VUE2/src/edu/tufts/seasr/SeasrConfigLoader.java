@@ -51,7 +51,6 @@ public class SeasrConfigLoader {
 	public FlowGroup getFlowGroup(String label) throws Exception {
 		SeasrAnalytics sa = loadConfig();
 		for(FlowGroup fg: sa.getFlowGroupList()) {
-			System.out.println("Getting label for: "+fg.getLabel()+" label="+label);
 			if(fg.getLabel().equals(label)){;
 				return fg;
 			}
