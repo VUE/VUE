@@ -28,7 +28,7 @@ public class SeasrAnalytics {
 	List<FlowGroup> flowGroupList;
 	 
 	
-	public void setFlowList(List<FlowGroup> flowGroupList) {
+	public void setFlowGroupList(List<FlowGroup> flowGroupList) {
 		this.flowGroupList = flowGroupList; 
 	}
 	
