@@ -2324,7 +2324,7 @@ public class Actions implements VueConstants
     
     
     public static final LWCAction PushOut =
-    new LWCAction(VueResources.local("menu.format.align.pushout"), keyStroke(KeyEvent.VK_EQUALS, ALT)) {
+    new LWCAction(VueResources.local("menu.format.arrange.pushout"), keyStroke(KeyEvent.VK_EQUALS, ALT)) {
         
         boolean enabledFor(LWSelection s) {
             return enabledForPushPull(s);
@@ -2347,7 +2347,7 @@ public class Actions implements VueConstants
     };
     
     public static final LWCAction PullIn =
-        new LWCAction(VueResources.local("menu.format.align.pullin"), keyStroke(KeyEvent.VK_MINUS, ALT)) {
+        new LWCAction(VueResources.local("menu.format.arrange.pullin"), keyStroke(KeyEvent.VK_MINUS, ALT)) {
             boolean enabledFor(LWSelection s) {
                 return enabledForPushPull(s);
             }
@@ -2804,14 +2804,14 @@ public class Actions implements VueConstants
             
     };
 
-    public static final ClusterAction MakeCluster = new ClusterAction("menu.format.align.makecluster", keyStroke(KeyEvent.VK_PERIOD, ALT)) {
+    public static final ClusterAction MakeCluster = new ClusterAction("menu.format.layout.makecluster", keyStroke(KeyEvent.VK_PERIOD, ALT)) {
             @Override
             public void doClusterAction(LWComponent center, Collection<LWComponent> nodes) {
                 clusterNodesAbout(center, nodes);
             }
         };
 
-    public static final ClusterAction MakeDataLists = new ClusterAction("menu.format.align.makedatalists", keyStroke(KeyEvent.VK_COMMA, ALT)) {
+    public static final ClusterAction MakeDataLists = new ClusterAction("menu.format.layout.makedatalists", keyStroke(KeyEvent.VK_COMMA, ALT)) {
             @Override
             public void doClusterAction(LWComponent c, Collection<LWComponent> nodes) {
                 if (c instanceof LWNode) {
@@ -2838,7 +2838,7 @@ public class Actions implements VueConstants
 //         };
     
     
-    public static final LWCAction MakeDataLinks = new LWCAction(VueResources.local("menu.format.align.makedatalinks"), keyStroke(KeyEvent.VK_SLASH, ALT)) {
+    public static final LWCAction MakeDataLinks = new LWCAction(VueResources.local("menu.format.layout.makedatalinks"), keyStroke(KeyEvent.VK_SLASH, ALT)) {
             boolean enabledFor(LWSelection s) { return s.size() == 1; } // just one for now
             Collection<? extends LWComponent> linkTargets = null;
 
@@ -2864,7 +2864,7 @@ public class Actions implements VueConstants
         };
 
 
-    public static final ArrangeAction MakeRow = new ArrangeAction(VueResources.local("menu.format.align.makerow"), keyStroke(KeyEvent.VK_R, ALT)) {
+    public static final ArrangeAction MakeRow = new ArrangeAction(VueResources.local("menu.format.arrange.makerow"), keyStroke(KeyEvent.VK_R, ALT)) {
             boolean supportsSingleMover() { return false; }
             boolean enabledFor(LWSelection s) { return s.size() >= 2; }
             // todo bug: an already made row is shifting everything to the left
@@ -2877,7 +2877,7 @@ public class Actions implements VueConstants
     };
 
     
-    public static final ArrangeAction MakeColumn = new ArrangeAction(VueResources.local("menu.format.align.makecolumn"), keyStroke(KeyEvent.VK_C, ALT)) {
+    public static final ArrangeAction MakeColumn = new ArrangeAction(VueResources.local("menu.format.arrange.makecolumn"), keyStroke(KeyEvent.VK_C, ALT)) {
             boolean supportsSingleMover() { return false; }
             boolean enabledFor(LWSelection s) { return s.size() >= 2; }
             void arrange(LWSelection selection) {
@@ -2893,7 +2893,7 @@ public class Actions implements VueConstants
             }
         };
     
-    public static final ArrangeAction DistributeVertically = new ArrangeAction(VueResources.local("menu.format.align.distributevertically"), KeyEvent.VK_V) {
+    public static final ArrangeAction DistributeVertically = new ArrangeAction(VueResources.local("menu.format.arrange.distributevertically"), KeyEvent.VK_V) {
             boolean supportsSingleMover() { return false; }
             boolean enabledFor(LWSelection s) { return s.size() >= 3; }
             // use only *2* in selection if use our minimum layout region setting
@@ -2912,7 +2912,7 @@ public class Actions implements VueConstants
             }
         };
     
-    public static final ArrangeAction DistributeHorizontally = new ArrangeAction(VueResources.local("menu.format.align.distributehorizontally"), KeyEvent.VK_H) {
+    public static final ArrangeAction DistributeHorizontally = new ArrangeAction(VueResources.local("menu.format.arrange.distributehorizontally"), KeyEvent.VK_H) {
             boolean supportsSingleMover() { return false; }
             boolean enabledFor(LWSelection s) { return s.size() >= 3; }
             void arrange(LWSelection selection) {
