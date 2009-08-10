@@ -17,7 +17,7 @@ import com.google.common.collect.Multimaps;
  * the key field of two Schema's, which is considered to be a join in the classic
  * database sense.
  *
- * @version $Revision: 1.2 $ / $Date: 2009-07-15 18:01:44 $ / $Author: sfraize $
+ * @version $Revision: 1.3 $ / $Date: 2009-08-10 22:52:46 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -32,9 +32,30 @@ public final class Association
     final Field field2;
     final Schema schema1;
     final Schema schema2;
+    
+//     // castor persistance will not allow these to be final
+//     /*final*/ Field field1;
+//     /*final*/ Field field2;
+//     /*final*/ Schema schema1;
+//     /*final*/ Schema schema2;
+// //     /** neeeded in order to allow association fields to be final */
+// //     public static final class Persist {
+// //         Schema schema1, schema2;
+// //         Field field1, field2;
+// //         boolean enabled;
+// //     }
+// //     public final Persist getPersist() {
+// //         Persist p = new Persist();
+// //         p.schema1 = schema1;
+// //         p.schema2 = schema2;
+// //         p.field1 = field1;
+// //         p.field2 = field2;
+// //         p.enabled = enabled;
+// //         return p;
+// //     }
 
     boolean enabled;
-
+    
     public static final class Event {
         public static final Object ADDED = "added";
         public static final Object REMOVED = "removed";
@@ -53,6 +74,8 @@ public final class Association
     public interface Listener extends EventHandler.Listener<Event> {}
 
     private static final EventHandler<Event> EventSource = EventHandler.getHandler(Event.class);
+
+    // /** for persistance only */ public Association() {}
     
     // TODO: need to reject duplicate associations
     private Association(Field f1, Field f2, boolean isOn) {
@@ -60,7 +83,7 @@ public final class Association
             throw new IllegalArgumentException("field can't associate to itself: " + f1);
         if (f1 == null || f2 == null)
             throw new IllegalArgumentException("null field: " + f1 + "; " + f2);
-        Log.debug("Adding association:\n\tfield 1: " + f1 + "\n\tfield 2: " + f2);
+        Log.debug("Adding association:\n\tfield 1: " + quoteKey(f1) + "\n\tfield 2: " + quoteKey(f2));
         field1 = f1;
         field2 = f2;
         schema1 = field1.getSchema();
@@ -203,13 +226,25 @@ public final class Association
                 gots = Util.extractFirst(got);
             else
                 gots = "";
-            Log.debug("found associations for " + f + ": " + gots);
-            if (got.size() > 1)
+            //Log.debug("found aliases for " + f + ": " + gots);
+            if (got.size() > 1) {
                 Util.dump(got);
+                Log.debug("found aliases for " + f + ": " + gots);
+            }
         }
         
         return got;
     }
+
+    /** @return all opposite Fields mentioned in associations containing the given Field */
+    public static Collection<Field> getPairedFields(Field field) {
+        final Collection<Field> pairedTo = new HashSet();
+        for (Association a : Association.getAliases(field)) {
+            pairedTo.add(a.getPairedField(field));
+        }
+        return pairedTo;
+    }
+    
 
     public boolean contains(Field f) {
         return f == field1 || f == field2;
