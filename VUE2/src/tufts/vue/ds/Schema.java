@@ -40,7 +40,7 @@ import com.google.common.collect.Multimaps;
  * generally "short" enough, it will enumerate all the unique values found in that
  * column.
  *
- * @version $Revision: 1.41 $ / $Date: 2009-07-15 18:01:44 $ / $Author: sfraize $
+ * @version $Revision: 1.42 $ / $Date: 2009-08-10 22:49:51 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -51,8 +51,7 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
     /** A map of all Fields from all schemas for auto-discovering associations based on the field name */
 
 //     private static final Multimap<String,Field> AllFieldsByLowerName = Multimaps.synchronizedMultimap
-//         ((Multimap<String,Field>)Multimaps.newHashMultimap());
-// WTF??    
+//         ((Multimap<String,Field>)Multimaps.newHashMultimap()); // WTF?  Strange javac complaint...
     private static final Multimap<String,Field> AllFieldsByLowerName = Multimaps.newHashMultimap();
     
     /** All possible column's in this Schema */
@@ -93,10 +92,10 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
     ///** map of locations/addresses to schema instances */
     //private static final Map<String,Schema> SchemaMap = new java.util.concurrent.ConcurrentHashMap();
 
-    /** contains "empty" (no data) schemas, which are retained as handles to be replaced if actual data schemas arrive */
-    private static final Collection<Schema> SchemaHandles = Collections.synchronizedList(new ArrayList());
+    ///** contains "empty" (no data) schemas, which are retained as handles to be replaced if actual data schemas arrive */
+    //private static final Collection<Schema> SchemaHandles = Collections.synchronizedList(new ArrayList());
     private static final Map<Resource,Schema> SchemaByResource = Collections.synchronizedMap(new HashMap());
-    private static final Map<String,Schema> SchemaByGUID = Collections.synchronizedMap(new HashMap());
+    private static final Map<String,Schema> SchemaByDSGUID = Collections.synchronizedMap(new HashMap());
     
     public static Schema instance(Resource r, String dataSourceGUID) {
         final Schema s = new Schema();
@@ -105,10 +104,17 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
         s.setGUID(edu.tufts.vue.util.GUID.generate());
         if (DEBUG.SCHEMA) Log.debug("INSTANCED SCHEMA " + s + "\n");
 
-        // may want to wait to do this until we actually load the rows...        
-        SchemaByResource.put(r, s);
-        if (dataSourceGUID != null)
-            SchemaByGUID.put(dataSourceGUID, s);
+        // may want to wait to do this until we actually load the rows...
+        Schema prev = SchemaByResource.put(r, s);
+        if (prev != null) {
+            Log.error("BLEW AWAY BY RESOURCE " + prev + " with " + s, new Throwable("HERE"));
+        }
+        if (dataSourceGUID != null) {
+            prev = SchemaByDSGUID.put(dataSourceGUID, s);
+            if (prev != null) {
+                Log.error("BLEW AWAY BY DSGUID " + prev + " with " + s, new Throwable("HERE"));
+            }
+        }
             
         return s;
     }
@@ -116,7 +122,7 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
     /** If an existing schema exists matching the GUID, return that, otherwise, a new schema instance */
     // TODO: factor in looking up based on the resource if the DSGUID doesn't match for some reason
     public static Schema fetch(Resource r, String dataSourceGUID) {
-        Schema s = SchemaByGUID.get(dataSourceGUID);
+        Schema s = SchemaByDSGUID.get(dataSourceGUID);
         if (s == null) {
             if (DEBUG.SCHEMA) Log.debug("fetch: GUID " + Util.tags(dataSourceGUID) + " not found; instancing new");
             return instance(r, dataSourceGUID);
@@ -134,37 +140,86 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
      * If the given schema is already loaded, or if no matching loaded schema can be found,
      * the passed in schema is returned.
      */
-    public static Schema lookup(Schema schema) {
+    public static Schema lookupAuthority(final Schema schema) {
         if (DEBUG.SCHEMA && DEBUG.META) Log.debug("LOOKUP SCHEMA " + schema);
         if (schema == null)
             return null;
         if (schema.isLoaded())
             return schema;
-        final Resource resource = schema.getResource();
-        Schema loaded = SchemaByResource.get(resource);
-        Object matched = resource;
-        if (loaded == null) {
-            loaded = SchemaByGUID.get(matched = schema.getDSGUID());
-            if (DEBUG.SCHEMA && DEBUG.META && loaded != null) {
-                Log.debug("MATCHED SCHEMA BY GUID: " + matched + " " + loaded);
-            }
-        }
-        if (loaded != null) {
-            if (DEBUG.SCHEMA && DEBUG.DATA) Log.debug("MATCHED EMPTY SCHEMA " + matched + " to " + loaded);
-            return loaded;
-        } else
-            return schema;
 
-        // now, even if resource doesn't match, look up based on GUID, as a url may have slightly changed.
+        final Schema authoritativeSchema = lookForReplacement(schema);
+
+        if (authoritativeSchema != null)
+            return authoritativeSchema;
+        else
+            return schema;
+        
+    }
+
+    private static Schema lookForReplacement(final Schema schemaHandle)
+    {
+        final Resource resource = schemaHandle.getResource();
+        Schema authority = SchemaByResource.get(resource);
+        String matchedBy = "RESOURCE";
+        Object matchData = resource;
+        if (authority == null) {
+            authority = SchemaByDSGUID.get(matchData = schemaHandle.getDSGUID());
+            matchedBy = "DSGUID";
+        }
+        
+        // also, even if resource & DSGUID doesn't match, look up based on GUID, as a url may have slightly changed.
+
+        if (authority == schemaHandle)
+            return null;
+        else if (authority != null) {
+            Log.debug(String.format("MATCHED BY %s=%s:\n\t   handle: %s\n\tauthority: %s",
+                                    matchedBy,
+                                    matchData,
+                                    schemaHandle,
+                                    authority));
+            return authority;
+        } else
+            return null;
     }
 
 
+//     private static Schema lookForMatching(final Schema schemaHandle)
+//     {
+//         final Resource resource = schemaHandle.getResource();
+//         Schema loaded = SchemaByResource.get(resource);
+//         Object matched = resource;
+//         if (loaded == null) {
+//             loaded = SchemaByGUID.get(matched = schemaHandle.getDSGUID());
+//             if (DEBUG.SCHEMA /*&& DEBUG.META*/ && loaded != null) {
+//                 Log.debug("MATCHED BY GUID: " + matched + " " + loaded);
+//             }
+//         } else {
+//             Log.debug("MATCHED BY " + resource);
+//         }
+
+//         // now, even if resource & DSGUID doesn't match, look up based on GUID, as a url may have slightly changed.
+        
+//         if (loaded != null) {
+//             //if (DEBUG.SCHEMA /*&& DEBUG.DATA*/) Log.debug("MATCHED EMPTY SCHEMA " + matched + " to " + loaded);
+//             return loaded;
+//         } else
+//             return null;
+        
+// //         final String dataSourceGUID = schemaHandle.DSGUID;
+// //         Schema existing = SchemaByGUID.get(dataSourceGUID);
+// //         return existing;
+//     }
+    
     /** find all schema handles in all nodes that match the new schema
      * and replace them with pointers to the live data schema */
     public static void updateAllSchemaReferences(final Schema newlyLoadedSchema,
                                                   final Collection<tufts.vue.LWMap> maps)
     {
-        if (DEBUG.Enabled) Log.debug("updateAllSchemaReferences; " + newlyLoadedSchema + "; maps: " + maps);
+        if (DEBUG.Enabled) {
+            Log.debug("updateAllSchemaReferences; " + newlyLoadedSchema + "; maps: " + maps);
+            Util.dump(SchemaByResource, "BY-RESOURCE");
+            Util.dump(SchemaByDSGUID, "BY-DSGUID");
+        }
         
         if (!newlyLoadedSchema.isLoaded()) {
             Log.warn("newly loaded schema is empty: " + newlyLoadedSchema, new Throwable("FYI"));
@@ -182,14 +237,16 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
         
         for (tufts.vue.LWMap map : maps) {
             final int countAtMapStart = updateCount;
-            Collection<LWComponent> nodes = map.getAllDescendents();
+            final Collection<LWComponent> nodes = map.getAllDescendents(LWComponent.ChildKind.ANY);
             for (LWComponent c : nodes) {
                 final MetaMap data = c.getRawData();
                 if (data == null)
                     continue;
                 final Schema curSchema = data.getSchema();
                 if (curSchema != null) {
-                    final Schema newSchema = Schema.lookup(curSchema);
+                    final Schema newSchema = Schema.lookupAuthority(curSchema);
+//                     Log.debug("curs: " + newSchema);
+//                     Log.debug("auth: " + newSchema);
                     if (newSchema != curSchema) {
                         data.setSchema(newSchema);
                         updateCount++;
@@ -208,19 +265,165 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
         Log.info(String.format("updated %d schema handle references in %d maps", updateCount, mapUpdateCount));
     }
 
+    private static void replaceSchemaReferences
+        (final Schema oldSchema,
+         final Schema newSchema,
+         final Collection<LWComponent> nodes,
+         final tufts.vue.LWMap sourceMap)
+    {
+        int updateCount = 0;
+
+        for (LWComponent c : nodes) {
+            final MetaMap data = c.getRawData();
+            if (data == null)
+                continue;
+            if (data.getSchema() == oldSchema) {
+                data.setSchema(newSchema);
+                updateCount++;
+            }
+//             else if (DEBUG.Enabled) {
+//                 Log.debug("keeping schema: " + data.getSchema());
+//             }
+        }
+
+        Log.info(String.format("updated %d schema handle references in %s", updateCount, sourceMap));
+
+    }
+
+
+//     /** interface {@link XMLUnmarshalListener} -- track us */
+//     public void XML_completed(Object context) {
+//         //SchemaHandles.add(this);
+//         // As the resource isn't in the LWComponent hierarchy, it won't be updated in the map.
+//         // Too bad actually -- then it could make use of the relative path code -- would be
+//         // a good idea to move these to the map.
+//         ((tufts.vue.URLResource)getResource()).XML_completed("SCHEMA-MANUAL-INIT");
+//         DSGUID = getResource().getProperty("@DSGUID");
+//         if (DSGUID != null) {
+//             Schema prev = SchemaByGUID.put(DSGUID, this);
+//             if (prev != null)
+//                 Log.warn("BLEW AWAY PRIOR SCHEMA " + prev, new Throwable("HERE"));
+//         }
+//         //Log.debug("LOAD FIELDS WITH " + mPersistFields);
+//         for (Field f : mPersistFields) {
+//             final LWComponent style = f.getStyleNode();
+//             f.setSchema(this);
+//             if (DEBUG.Enabled) Log.debug(String.format("loading field %s%-20s%s style=%s",
+//                                                        Util.TERM_GREEN, f, Util.TERM_CLEAR, style));
+//             initStyleNode(style);
+//             addField(f);
+//         }
+//         mXMLRestoreUnderway = false;
+//         createAttachableAssociations();
+//         if (DEBUG.Enabled) Log.debug(this + " RESTORED; DSGUID=" + DSGUID + "\n");
+//     }
+
+    
+    /** interface {@link XMLUnmarshalListener} -- track us */
+    public void XML_completed(Object context) {
+        // As the resource isn't in the LWComponent hierarchy, it won't be updated in
+        // the map.  TODO: too bad actually -- then it could make use of the
+        // relative-to-map file path code -- would be a good idea to move these to the
+        // map.
+        ((tufts.vue.URLResource)getResource()).XML_completed("SCHEMA-MANUAL-INIT");
+        
+        this.DSGUID = getResource().getProperty("@DSGUID");
+
+        for (Field field : mPersistFields) {
+            field.setSchema(this);
+            if (DEBUG.Enabled) Log.debug(String.format("seen field %s%-20s%s",
+                                                       Util.TERM_YELLOW, field, Util.TERM_CLEAR));
+        }
+        
+        createAttachableAssociations(mPersistFields);
+        mXMLRestoreUnderway = false;
+        if (DEBUG.Enabled) Log.debug(this + " RESTORED; DSGUID=" + DSGUID + "\n");
+    }
+
+
+    public void syncToGlobalModel(tufts.vue.LWMap sourceMap, Collection<LWComponent> allRestored)
+    {
+        Log.debug("SYNC TO GLOBAL MODEL: " + this);
+        
+        boolean replacedByExistingSchema = false;
+        if (getDSGUID() != null) {
+            Schema existing = lookForReplacement(this);
+            if (existing != null) {
+                Log.debug("DUMPING THIS SCHEMA FOR EXISTING:\n\t  dumped: " + this + "\n\texisting: " + existing);
+                replaceSchemaReferences(this, existing, allRestored, sourceMap);
+                replacedByExistingSchema = true;
+            } else
+                SchemaByDSGUID.put(getDSGUID(), this);
+        }
+        
+        //Log.debug("LOAD FIELDS WITH " + mPersistFields);
+        
+        if (!replacedByExistingSchema) {
+            for (Field f : mPersistFields) {
+                final LWComponent style = f.getStyleNode();
+                if (DEBUG.Enabled) Log.debug(String.format("keeping field %s%-22s%s style=%s",
+                                                           Util.TERM_GREEN, f, Util.TERM_CLEAR, style));
+                initStyleNode(style);
+                addField(f);
+            }
+            if (DEBUG.Enabled) Log.debug(this + " IS THE AUTHORITY; DSGUID=" + getDSGUID() + "\n");
+            
+        }
+    }
+    
+
+    private void createAttachableAssociations(Collection<Field> restoredFields) {
+
+        if (DEBUG.SCHEMA) Log.debug(this + "; createAttachableAssociations");
+
+        for (Field field : restoredFields) {
+            for (Field.PersistRef ref : field.getRelatedFieldRefs()) {
+                if (DEBUG.SCHEMA) Log.debug(this + "; persisted relation for " + field + ": " + ref);
+                for (Field possibleMatch : AllFieldsByLowerName.get(ref.fieldName.toLowerCase())) {
+                    if (ref.schemaGuid.equals(possibleMatch.getSchema().getGUID())) {
+                        final Field match = possibleMatch;
+                        Log.debug("found live field to match ref: " + ref + " = " + Util.tags(match));
+                        Association.add(field, possibleMatch);
+                    }
+                }
+            }
+        }
+    }
+    
+//     private void createAttachableAssociations() {
+
+//         if (DEBUG.SCHEMA) Log.debug(this + "; createAttachableAssociations");
+
+//         for (Field field : mFields.values()) {
+//             for (Field.PersistRef ref : field.getRelatedFieldRefs()) {
+//                 if (DEBUG.SCHEMA) Log.debug(this + "; persisted relation for " + field + ": " + ref);
+//                 for (Field possibleMatch : AllFieldsByLowerName.get(ref.fieldName.toLowerCase())) {
+//                     if (ref.schemaGuid.equals(possibleMatch.getSchema().getGUID())) {
+//                         final Field match = possibleMatch;
+//                         Log.debug("found live field to match ref: " + ref + " = " + Util.tags(match));
+//                         Association.add(field, possibleMatch);
+//                     }
+//                 }
+//             }
+//         }
+//     }
+
+    //private static tufts.vue.LWContainer FalseStyleParent = new tufts.vue.LWNode("FalseStyleParent");
+
     private Field addField(final Field newField) {
+
+        newField.setSchema(this);
+
         // note: for new Fields, constructor may have trimmed the name,
         // so we should always fetch via f.getName() just in case.
         // (instead of ever passing in the name of the new field)
-
         final String name = newField.getName();
         
         mFields.put(name, newField);
         
         final String keyName = name.toLowerCase();
-
-        Association.addByAll(newField, AllFieldsByLowerName.get(keyName));
-        
+        // This will auto-add associations for fields of the same name -- too aggressive tho
+        //Association.addByAll(newField, AllFieldsByLowerName.get(keyName));
         AllFieldsByLowerName.put(keyName, newField);
 
         return newField;
@@ -230,33 +433,6 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
         return addField(new Field(name.trim(), this));
     }
     
-
-    /** interface {@link XMLUnmarshalListener} -- track us */
-    public void XML_completed(Object context) {
-        SchemaHandles.add(this);
-        // As the resource isn't in the LWComponent hierarchy, it won't be updated in the map.
-        // Too bad actually -- then it could make use of the relative path code -- would be
-        // a good idea to move these to the map.
-        ((tufts.vue.URLResource)getResource()).XML_completed("SCHEMA-MANUAL-INIT");
-        DSGUID = getResource().getProperty("@DSGUID");
-        if (DEBUG.Enabled) Log.debug("RESTORED SCHEMA " + this + "; DSGUID=" + DSGUID);
-        if (DSGUID != null) {
-            Schema prev = SchemaByGUID.put(DSGUID, this);
-            if (prev != null)
-                Log.warn("BLEW AWAY PRIOR SCHEMA " + prev, new Throwable("HERE"));
-        }
-        //Log.debug("LOAD FIELDS WITH " + mPersistFields);
-        for (Field f : mPersistFields) {
-            final LWComponent style = f.getStyleNode();
-            if (DEBUG.Enabled) Log.debug("loading field " + f + "; style:" + style);
-            initStyleNode(style);
-            addField(f);
-        }
-        mXMLRestoreUnderway = false;
-    }
-
-    //private static tufts.vue.LWContainer FalseStyleParent = new tufts.vue.LWNode("FalseStyleParent");
-
     private static void initStyleNode(LWComponent style) {
         if (style != null) {
             // the INTERNAL flag permits the style to operate (deliver events) w/out a parent
@@ -311,7 +487,7 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
     /** for castor de-serialization only */
     public Schema() {
         mLocalID = nextLocalID();
-        Log.debug("CONSTRUCTED SCHEMA " + this + "\n");
+        Log.debug(this + "; CONSTRUCTED FOR CASTOR");
     }
 
     private static String nextLocalID() {
@@ -321,6 +497,7 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
         return String.format("S%d", NextLocalId.incrementAndGet());
     }
 
+    /** for persistance */
     public final String getMapLocalID() {
         return mLocalID;
     }
@@ -330,8 +507,12 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
         return mRows.size() > 0;
     }
     
+    /** only debug during castor deserialization */
     public final void setMapLocalID(String id) {
-        Log.debug("SCHEMA ID WAS PERSISTED AS " + id + "; " + this);
+        // we can safely ignore this -- a new current runtime map-local-id has already
+        // been set -- the existing one is purely for castor's use in assigning references
+        // from MetaMap's in the save file to this schema instance.
+        Log.debug(this + "; ignoring persisted map-id [" + id + "]");
         //mLocalID.set(i);
     }
 
@@ -445,40 +626,21 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
 
     @Override
     public String toString() {
-        //return getName() + "; " + getSource() + "; " + UUID;
-        //return getName() + "; " + getResource() + "; " + UUID;
-        //return getName();
         try {
-            if (DEBUG.META) {
-                return String.format("Schema@%06x[%s;%s #%dx%d %s k=%s %s]",
-                                     System.identityHashCode(this),
-                                     getMapLocalID(),
-                                     DSGUID == null ? "" : (" " + DSGUID + "; "),
-                                     mFields.size(),
-                                     mRows.size(),
-                                     Util.color(getName(), Util.TERM_PURPLE),
-                                     Relation.quoteKey(getKeyFieldName()),
-                                     getResource()
-                                     );
-            } else {
-                return String.format("Schema@%06x[%s; #%dx%d %s k=%s]",
-                                     System.identityHashCode(this),
-                                     getMapLocalID(),
-                                     mFields.size(),
-                                     mRows.size(),
-                                     Util.color(getName(), Util.TERM_PURPLE),
-                                     Relation.quoteKey(getKeyFieldName())
-                                     );
-                    
-            }
-        } catch (Throwable t) {
-            return String.format("Schema@%06x[%s; %s; #%dx%d \"%s\" %s]",
+            String extra = "";
+            if (DEBUG.META) extra = " " + DSGUID + "/" + mResource;
+            return String.format("Schema@%07x[%s/%s; #%dx%d %s k=%s%s]",
                                  System.identityHashCode(this),
                                  ""+mLocalID,
-                                 DSGUID,
+                                 ""+GUID,
                                  mFields.size(),
                                  mRows.size(),
-                                 ""+mName, ""+mResource);
+                                 Util.color(mName, Util.TERM_PURPLE),
+                                 Relation.quoteKey(mKeyField),
+                                 extra);
+        } catch (Throwable t) {
+            t.printStackTrace();
+            return "Schema[" + t + "]";
         }
     }
 
@@ -495,7 +657,7 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
         DSGUID = s;
         getResource().setProperty("@DSGUID", s);
         if (DSGUID != null)
-            SchemaByGUID.put(DSGUID, this);        
+            SchemaByDSGUID.put(DSGUID, this);        
     }
     
     String getDSGUID() {
