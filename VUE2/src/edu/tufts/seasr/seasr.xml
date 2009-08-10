@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <seasr_analytics>
 	<flow_group label="Create New Nodes" input="one"  output="map">
 		<flow label="Resource Word Count" uri="http://vue.tufts.edu/word-counts-vuetokenizer/word-counts-for-vue-using-vue-tokenizer/" url="http://vue-dl.tccs.tufts.edu:1719/service/ping" >
