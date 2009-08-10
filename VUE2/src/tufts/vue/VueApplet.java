@@ -23,6 +23,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -30,17 +31,31 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 
 import javax.swing.*;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
+import com.google.common.collect.Multiset;
 import com.jgoodies.looks.LookUtils;
 import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 import com.sun.org.apache.xerces.internal.impl.XMLScanner;
 
+import edu.tufts.vue.mbs.AnalyzerResult;
+
+import sun.text.CompactShortArray.Iterator;
 import tufts.vue.ds.DataAction;
 import tufts.vue.ds.DataTree;
 import tufts.vue.ds.Schema;
@@ -58,7 +73,7 @@ import tufts.vue.gui.VueMenuBar;
 /**
  * Experimental VUE applet.
  * 
- * @version $Revision: 1.16 $ / $Date: 2009-08-09 21:44:30 $ / $Author: mike $
+ * @version $Revision: 1.17 $ / $Date: 2009-08-10 19:57:01 $ / $Author: mike $
  */
 public class VueApplet extends JApplet {
 
@@ -375,7 +390,101 @@ public class VueApplet extends JApplet {
 		else
 			return null;
 	}
-	
+	@SuppressWarnings("unchecked")
+	public static void addLinksToMap(final String content)
+	{
+		AccessController.doPrivileged(new PrivilegedAction() {
+
+			public Object run() {
+	    //        Reader reader = openReader();
+	    javax.xml.parsers.DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        factory.setIgnoringElementContentWhitespace(true);
+        factory.setIgnoringComments(true);
+        //factory.setCoalescing(true);
+        factory.setValidating(false);
+        // We don't use is.setEncoding(), as openReader will already have handled that
+        //      is.setCharacterStream(reader);
+        InputStream is;
+		try {
+			is = new java.io.ByteArrayInputStream(content.getBytes("UTF-8"));
+			final org.w3c.dom.Document doc = factory.newDocumentBuilder().parse((InputStream) is);
+			NodeList nodeLst = doc.getElementsByTagName("link");
+			
+			//build multimap of links
+			Multimap<String,String> map = Multimaps.newArrayListMultimap();
+			  for (int s = 0; s < nodeLst.getLength(); s++) {
+
+			    Node fstNode = nodeLst.item(s);
+			    
+			    if (fstNode.getNodeType() == Node.ELEMENT_NODE) 
+			    {
+			    	NamedNodeMap atts = fstNode.getAttributes();
+	            
+	               Node n = atts.item(0);
+	               Node val = atts.item(1);
+	               
+	               map.put(n.getNodeValue(), val.getNodeValue());
+	            }
+
+			  }
+			  
+			  
+			  java.util.Collection<LWComponent> comps = VUE.getActiveMap().getAllDescendents();
+			  java.util.Iterator<LWComponent> iter = comps.iterator();
+			  //build map of data row nodes
+			  HashMap<String,LWNode> dataRowNodes = new HashMap<String,LWNode>();
+			  while (iter.hasNext())
+			  {
+				 LWComponent comp = iter.next();
+				 if (comp.isDataRowNode())
+				 {
+					String fromId= comp.getDataValue("id");
+					dataRowNodes.put(fromId, (LWNode)comp);										
+				 }
+			  }
+			  
+			  //draw links
+			  Multiset<String> keys = map.keys();
+			  java.util.Iterator<String> linkIterator = keys.iterator();
+			  
+			  while (linkIterator.hasNext())
+			  {
+				  String fromId = linkIterator.next();
+				  
+				  Collection<String> toIds = map.get(fromId);
+				  java.util.Iterator<String> toIdIterator = toIds.iterator();
+				  while (toIdIterator.hasNext())
+				  {
+					  String tid = toIdIterator.next();
+					  LWNode fromNode = dataRowNodes.get(fromId);
+					  LWNode toNode = dataRowNodes.get(tid);
+					  
+					  if (fromNode !=null && toNode !=null)
+					  {
+						LWLink link = new LWLink(fromNode,toNode);
+						VUE.getActiveMap().add(link);
+					  }
+				  }
+			  }
+			  
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SAXException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ParserConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+			};
+		});
+		
+	}
 	public static String getActiveResourceTitle()
 	{
 		LWSelection selection = VUE.getActiveViewer().getSelection();

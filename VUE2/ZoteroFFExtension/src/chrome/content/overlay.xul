@@ -33,7 +33,7 @@
 
 
 	<menuitem id="export-to-vue-add" disabled="true" label="&vueexport.collections.menu.exportadd;" />
-	
+	<menuitem id="add-relations-to-map" disabled="false" label="Add relationships to map" />	
 	<!-- Not sure Import from VUE belongs here... I think this should be go in VUE and call into Zotero -->
     <!--
     <menuitem id="import-from-vue" disabled="true" label="&vueexport.collections.menu.import;" /> 
@@ -59,6 +59,11 @@
         function init() {
             document.getElementById('start-vue-tool').addEventListener('click', function (e) {                
                Zotero.VUEExport.startVUE();
+            }, false);
+            
+            
+            document.getElementById('add-relations-to-map').addEventListener('click', function (e) {                
+               Zotero.VUEExport.addRelationsToMap();
             }, false);
             
             document.getElementById('export-to-vue').addEventListener('click', function (e) {                
@@ -122,13 +127,13 @@
                 {
 	                document.getElementById('export-to-vue').disabled = false;
 	                document.getElementById('export-to-vue-add').disabled = false;
-	                document.getElementById('add-map-from-vue').disabled = false;
+	            //    document.getElementById('add-map-from-vue').disabled = false;
 	            }
 	            else
 	            {
 	                document.getElementById('export-to-vue').disabled = true;
    	                document.getElementById('export-to-vue-add').disabled = true;
-   	                document.getElementById('add-map-from-vue').disabled = true;
+   	             //   document.getElementById('add-map-from-vue').disabled = true;
 	             }   
             }, false);
             

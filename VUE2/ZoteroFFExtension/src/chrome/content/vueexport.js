@@ -138,6 +138,27 @@ mainMenuListener: function(evt)
 	  }
 	}
 },
+addRelationsToMap: function()
+{
+	var c = ZoteroPane.getSelectedCollection();
+	var items = c.getChildItems(false); 
+	var xmlcontent ="";
+	xmlcontent += '<links>\n';
+	for each(var arr in items) 
+	{
+	
+		var seeAlso = arr.relatedItemsBidirectional;
+		for(var i in seeAlso) 
+		{						
+					xmlcontent += '<link from="'+arr.id +'" to="' + seeAlso[i] + '"/>\n';		
+		}
+	}
+	xmlcontent += '</links>\n';		
+		
+	content.document.getElementById("VUE").wrappedJSObject.addLinksToMap(xmlcontent);
+	
+	
+},
 isVueRunning: function()
 {
 	  var browser = gBrowser.selectedTab.linkedBrowser;
