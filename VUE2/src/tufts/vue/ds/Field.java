@@ -33,11 +33,11 @@ import java.util.*;
  * types and doing some data-type analysis.  It also includes the ability to
  * associate a LWComponent node style with specially marked values.
  * 
- * @version $Revision: 1.15 $ / $Date: 2009-07-06 15:39:48 $ / $Author: sfraize $
+ * @version $Revision: 1.16 $ / $Date: 2009-08-10 22:52:01 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
-public class Field
+public class Field implements tufts.vue.XMLUnmarshalListener
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(Field.class);
 
@@ -52,7 +52,7 @@ public class Field
     private static final int MAX_DATE_VALUE_LENGTH = 40;
     private static final DateFormat DateParser = DateFormat.getDateTimeInstance();
 
-    private final Schema schema;
+    private Schema schema; // should be final, but not due to castor persistance
     private String name;
 
     private boolean allValuesUnique;
@@ -74,9 +74,52 @@ public class Field
     /** map of values currently present in a given context (e.g., a VUE map) */
     private Multiset<String> mContextValues;
 
+    private transient boolean mXMLRestoreUnderway;
+
+    /**
+     * A persistant reference to a Field for storing associations in maps via castor.
+     * Note variable names in this class don't have more than one cap letter to best
+     * work with castor auto-mappings.  Changing the variable names here will break
+     * persistance for previously stored associations under the old names.
+     */
+    public static final class PersistRef {
+        public String
+            fieldName,
+            schemaName,
+            schemaId,
+            schemaGuid,
+            schemaDsguid;
+
+        @Override public String toString() {
+            return String.format("FieldRef[%s.%s %s/%s]", schemaName, fieldName, schemaId, schemaGuid);
+        }
+
+        public PersistRef() {} // for castor
+
+        PersistRef(Field field) {
+            final Schema s = field.getSchema();
+            schemaId = s.getMapLocalID();
+            schemaGuid = s.getGUID();
+            schemaDsguid = s.getDSGUID();
+            schemaName = s.getName();
+            fieldName = field.getName();
+        }
+    }
+
+    /** for castor persistance */
+    public Field() {
+        this.name = "<empty>";
+    }
+
+    private transient Collection<PersistRef> mRelatedFields;
+
+    Collection<PersistRef> getRelatedFieldRefs() {
+        return mRelatedFields;
+    }
+
     Field(String n, Schema schema) {
         this.name = n;
-        this.schema = schema;
+        setSchema(schema);
         flushStats(true);
         if (DEBUG.SCHEMA) {
             Log.debug("instanced " + Util.tags(this));
@@ -84,12 +127,49 @@ public class Field
         }
     }
 
-    /** for castor persistance */
-    public Field() {
-        this.schema = null; // TODO: INIT LATER!
-        this.name = "<empty>";
+//     /** for castor persistance */
+//     public final String getMapLocalID() {
+//         return String.format("%s.%s", schema.getMapLocalID(), name);
+//     }
+    
+    /** must be called by parent Schema after de-serialization (needed for persistance) */
+    void setSchema(Schema s) {
+        this.schema = s;
+    }
+    
+    /** for persistance of associations */
+    public Collection<PersistRef> getRelatedFields() {
+        if (mXMLRestoreUnderway) {
+            return mRelatedFields;
+        } else {
+            Collection<PersistRef> persists = new ArrayList();
+            for (Field f : Association.getPairedFields(this)) {
+                persists.add(new PersistRef(f));
+            }
+//             if (DEBUG.SCHEMA && persists.size() > 0) {
+//                 Log.debug(this + ": GOT RELATED FIELDS: " + Util.tags(persists));
+//             }
+            return persists;
+        }
     }
 
+    /** interface {@link XMLUnmarshalListener} -- init */
+    public void XML_initialized(Object context) {
+        mXMLRestoreUnderway = true;
+        mRelatedFields = new HashSet();
+    }
+    
+    /** interface {@link XMLUnmarshalListener} -- track us */
+    public void XML_completed(Object context) {
+        mXMLRestoreUnderway = false;
+        if (mRelatedFields.size() > 0) {
+            Log.debug("GOT RELATED FIELDS for " + this);
+            Util.dump(mRelatedFields);
+            // todo: later, process to re-construct associations
+        } else
+            mRelatedFields = Collections.EMPTY_LIST;
+    }
+    
     /** Wrapper for display of special values: e.g., EMPTY_VALUE ("") to "(no value)" */
     public static String valueName(Object value) {
         if (value == null)
@@ -227,6 +307,11 @@ public class Field
         else
             return String.format("%s.%s", schema.getName(), getName());
     }
+
+    public String toTerm() {
+        return Relation.quoteKey(this);
+    }
+    
     
 //     @Override
 //     public String toString() {
@@ -487,4 +572,10 @@ public class Field
         //return String.format("%5d unique values in %5d; %s", values.size(), valueCount(), sampleValues(false));
                 
     }
+
+    /** interface {@link XMLUnmarshalListener} -- does nothing here */
+    public void XML_fieldAdded(Object context, String name, Object child) {}
+    /** interface {@link XMLUnmarshalListener} -- does nothing here */
+    public void XML_addNotify(Object context, String name, Object parent) {}
+    
 }
