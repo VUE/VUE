@@ -43,7 +43,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.223 $ / $Date: 2009-07-23 21:25:32 $ / $Author: sfraize $
+ * @version $Revision: 1.224 $ / $Date: 2009-08-10 22:47:24 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -3147,6 +3147,18 @@ public class LWLink extends LWComponent
     @Override
     protected void layoutImpl(Object triggerKey)
     {
+        if (triggerKey == Flag.COLLAPSED) {
+            if (head.node != null && head.node.isHidden(HideCause.COLLAPSED)) {
+                setHidden(HideCause.COLLAPSED);
+                return;
+            }
+            if (tail.node != null && tail.node.isHidden(HideCause.COLLAPSED)) {
+                setHidden(HideCause.COLLAPSED);
+                return;
+            }
+            clearHidden(HideCause.COLLAPSED);
+        }
+        
         final float cx;
         final float cy;
 
