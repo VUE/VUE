@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.185 $ / $Date: 2009-08-09 16:11:49 $ / $Author: mike $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.185 2009-08-09 16:11:49 mike Exp $ -->
+<!-- $Revision: 1.186 $ / $Date: 2009-08-10 17:32:42 $ / $Author: anoop $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.186 2009-08-10 17:32:42 anoop Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -497,6 +497,9 @@
     <copy file="${basedir}/edu/tufts/osidimpl/repository/artifact/artifact_result.xml" todir="${build.class}/edu/tufts/osidimpl/repository/artifact" verbose="true"/>
     <copy file="${basedir}/edu/tufts/osidimpl/repository/artifact/artifact_result_title.xml" todir="${build.class}/edu/tufts/osidimpl/repository/artifact" verbose="true"/>
     <copy file="${basedir}/edu/tufts/osidimpl/repository/artifact/artifact_result_artist.htm" todir="${build.class}/edu/tufts/osidimpl/repository/artifact" verbose="true"/>
+
+  	<copy file="${basedir}/edu/tufts/seasr/seasr.xml" todir="${build.class}/edu/tufts/seasr" verbose="true"/>
+  	<copy file="${basedir}/edu/tufts/seasr/seasr_mapping.xml" todir="${build.class}/edu/tufts/seasr" verbose="true"/>
 
     <!-- Determine if Java 1.4 is available on this machine -->
     <condition property="java1.4.present"> 
