@@ -88,7 +88,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.148 $ / $Date: 2009-08-09 16:11:49 $ / $Author: mike $
+ * @version $Revision: 1.149 $ / $Date: 2009-08-10 18:04:40 $ / $Author: brian $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -694,23 +694,18 @@ public class VueMenuBar extends javax.swing.JMenuBar
         formatMenu.addSeparator();        
         
         //build format submenus...
-        buildMenu(extendMenu,Actions.EXTEND_MENU_ACTIONS);
-        buildMenu(alignMenu, Actions.ARRANGE_MENU_ACTIONS);
+        buildMenu(alignMenu, Actions.ALIGN_MENU_ACTIONS);
+        buildMenu(arrangeMenu, Actions.ARRANGE_MENU_ACTIONS);
         buildMenu(layoutMenu,LayoutAction.LAYOUT_ACTIONS);
-        arrangeMenu.add(Actions.BringToFront);
-        //arrangeMenu.add(Actions.BringForward);
-        arrangeMenu.add(Actions.SendToBack);
-        //arrangeMenu.add(Actions.SendBackward);
         transformMenu.add(Actions.FontSmaller);
         transformMenu.add(Actions.FontBigger);
         transformMenu.add(Actions.FontBold);
         transformMenu.add(Actions.FontItalic);                
         formatMenu.add(transformMenu);
         formatMenu.add(buildMenu("menu.image", Actions.IMAGE_MENU_ACTIONS));
-        formatMenu.add(arrangeMenu);
         formatMenu.add(alignMenu);
+        formatMenu.add(arrangeMenu);
         formatMenu.add(layoutMenu);
-        formatMenu.add(extendMenu);
         formatMenu.addSeparator();
         formatMenu.add(Actions.Collapse);
         formatMenu.addSeparator();

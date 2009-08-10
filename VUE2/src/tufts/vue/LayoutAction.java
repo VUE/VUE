@@ -106,16 +106,14 @@ public abstract  class LayoutAction extends Actions.LWCAction {
     public static final LayoutAction cluster2= new LayoutAction(new Cluster2Layout(),VueResources.getString("menu.format.layout.cluster")+"2",KeyEvent.VK_0) {
         boolean supportsSingleMover() { return false; }
     };
+
     public static final Action[] LAYOUT_ACTIONS = {
-        random,
-        table,
-        circle,
-        filledCircle,
+    	cluster,
+        Actions.MakeCluster,
         force,
-        cluster,
-        ripple,
-        stretch,
-        search,
-        cluster2
+        Actions.MakeDataLinks,
+        Actions.MakeDataLists,
+        null,
     };
+
 }

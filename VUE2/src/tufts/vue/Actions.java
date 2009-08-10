@@ -2930,13 +2930,15 @@ public class Actions implements VueConstants
     };
     
    
-    public static final Action[] EXTEND_MENU_ACTIONS = {
-    	  FillWidth,
-          FillHeight
-    };
-    /** Helper for menu creation.  Null's indicate good places
+    /** Helpers for menu creation.  Null's indicate good places
      * for menu separators. */
-    public static final Action[] ARRANGE_MENU_ACTIONS = {
+
+    public static final Action[] EXTEND_MENU_ACTIONS = {
+        FillWidth,
+        FillHeight
+    };
+
+    public static final Action[] ALIGN_MENU_ACTIONS = {
         AlignLeftEdges,
         AlignRightEdges,
         AlignTopEdges,
@@ -2944,32 +2946,33 @@ public class Actions implements VueConstants
         null,
         AlignCentersRow,
         AlignCentersColumn,
-        null,    
+        null,
+        FillWidth,
+        FillHeight
+    };
+
+    public static final Action[] ARRANGE_MENU_ACTIONS = {
         MakeRow,
         MakeColumn,
-        MakeCluster,
-        MakeDataLinks,
-        MakeDataLists,
+        null,
+        LayoutAction.table,
+        LayoutAction.circle,
+        LayoutAction.filledCircle,
+        LayoutAction.random,
+        LayoutAction.ripple,
+        LayoutAction.cluster2,
+        null,
+        PullIn,
+        PushOut,
         null,
         DistributeVertically,
         DistributeHorizontally,
         null,
-        NudgeUp,
-        NudgeDown,
-        NudgeLeft,
-        NudgeRight,
-        null,
-        PushOut,
-        PullIn
-    };
-    public static final Action[] ARRANGE_SINGLE_MENU_ACTIONS = {
-        NudgeUp,
-        NudgeDown,
-        NudgeLeft,
-        NudgeRight
+        BringToFront,
+        SendToBack
     };
 
-    
+
     public static final LWCAction ImageToNaturalSize = new LWCAction(VueResources.local("action.makenaturalsize")) {
             @Override
                 boolean enabledFor(LWSelection s) {
