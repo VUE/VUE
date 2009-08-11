@@ -88,7 +88,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.152 $ / $Date: 2009-08-11 22:06:21 $ / $Author: brian $
+ * @version $Revision: 1.153 $ / $Date: 2009-08-11 23:46:28 $ / $Author: brian $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -639,9 +639,10 @@ public class VueMenuBar extends javax.swing.JMenuBar
                 
         viewMenu.add(Actions.ZoomIn);
         viewMenu.add(Actions.ZoomOut);
+        viewMenu.addSeparator();            
         viewMenu.add(Actions.ZoomFit);
-        viewMenu.add(Actions.ZoomActual);
         viewMenu.add(Actions.ZoomToSelection);
+        viewMenu.add(Actions.ZoomActual);
         viewMenu.addSeparator();            
         if (!Util.isUnixPlatform())
         	viewMenu.add(viewFullScreen);
@@ -659,7 +660,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         if (LWComponent.COLLAPSE_IS_GLOBAL)
             viewMenu.add(makeCheckBox(Actions.ToggleGlobalCollapse));
         else
-            formatMenu.add(Actions.Collapse);
+            viewMenu.add(Actions.Collapse);
         
         viewMenu.add(togglePruningItem);
         
@@ -689,12 +690,6 @@ public class VueMenuBar extends javax.swing.JMenuBar
         // Build Format Menu
         ////////////////////////////////////////////////////////////////////////////////////
         
-        if (VUE.getFormatDock() != null)
-        {
-        	formatMenu.add(createWindowItem(VUE.getFormatDock(),-1,VueResources.getString("menu.edit.formattingpalette")));
-        	formatMenu.addSeparator();
-        }
-        
         formatMenu.add(Actions.CopyStyle);
         formatMenu.add(Actions.PasteStyle);
         formatMenu.addSeparator();        
@@ -703,12 +698,14 @@ public class VueMenuBar extends javax.swing.JMenuBar
         buildMenu(alignMenu, Actions.ALIGN_MENU_ACTIONS);
         buildMenu(arrangeMenu, Actions.ARRANGE_MENU_ACTIONS);
         buildMenu(layoutMenu,LayoutAction.LAYOUT_ACTIONS);
-        transformMenu.add(Actions.FontSmaller);
+        buildMenu(linkMenu, Actions.LINK_MENU_ACTIONS);
         transformMenu.add(Actions.FontBigger);
+        transformMenu.add(Actions.FontSmaller);
         transformMenu.add(Actions.FontBold);
         transformMenu.add(Actions.FontItalic);                
         formatMenu.add(transformMenu);
         formatMenu.add(buildMenu("menu.image", Actions.IMAGE_MENU_ACTIONS));
+        formatMenu.add(linkMenu);
         formatMenu.add(alignMenu);
         formatMenu.add(arrangeMenu);
         formatMenu.add(layoutMenu);
@@ -716,8 +713,6 @@ public class VueMenuBar extends javax.swing.JMenuBar
         formatMenu.add(Actions.Group);
         formatMenu.add(Actions.Ungroup);
         formatMenu.addSeparator();
-        buildMenu(linkMenu, Actions.LINK_MENU_ACTIONS);
-        formatMenu.add(linkMenu);
         
         
         ////////////////////////////////////////////////////////////////////////////////////
@@ -733,6 +728,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         
         contentMenu.add(addFileItem);
         contentMenu.add(addURLItem);
+        contentMenu.addSeparator();
         contentMenu.add(removeResourceItem);
         
         formatMenu.addMenuListener(new MenuListener(){        	
@@ -799,11 +795,10 @@ public class VueMenuBar extends javax.swing.JMenuBar
         ////////////////////////////////////////////////////////////////////////////////////
         // Build Presentation Menu
         ////////////////////////////////////////////////////////////////////////////////////
-        if (VUE.getPresentationDock() != null)
+        if (!VUE.isApplet())
         {
-        	presentationMenu.add(createWindowItem(VUE.getPresentationDock(),-1, null));        
+        	presentationMenu.add(playbackMenu);
         	presentationMenu.addSeparator();
-    
         }
         
         presentationMenu.addMenuListener(new MenuListener(){
@@ -922,11 +917,6 @@ public class VueMenuBar extends javax.swing.JMenuBar
 				else	
 					notesMenu.setEnabled(true);				
 			}});             
-        if (!VUE.isApplet())
-        {
-        	presentationMenu.addSeparator();
-        	presentationMenu.add(playbackMenu);
-        }
         ////////////////////////////////////////////////////////////////////////////////////
         // Build Analysis Menu
         ////////////////////////////////////////////////////////////////////////////////////
@@ -934,7 +924,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         {
         	analysisMenu.add(createCMAction);
         	if (VUE.getMergeMapsDock()!= null ){
-        		analysisMenu.add(createWindowItem(VUE.getMergeMapsDock(), 0, VueResources.getString("dialog.mergemap.title")));            
+        		analysisMenu.add(createWindowItem(VUE.getMergeMapsDock(), 0, VueResources.getString("menu.windows.mergemaps")));            
         	}
         	//analysisMenu.add(analyzeCMAction);
         }
@@ -1035,12 +1025,12 @@ public class VueMenuBar extends javax.swing.JMenuBar
             windowMenu.add(createWindowItem(VUE.getMapInfoDock(), KeyEvent.VK_6, VueResources.getString("menu.windows.mapinfo")));
         if (VUE.getOutlineDock() !=null && !VUE.isApplet())	
         	windowMenu.add(createWindowItem(VUE.getOutlineDock(), KeyEvent.VK_7, VueResources.getString("menu.windows.outline")));
+        if (VUE.getPannerDock() !=null && !VUE.isApplet())	
+        	windowMenu.add(createWindowItem(VUE.getPannerDock(), 0, VueResources.getString("menu.windows.panner")));
         if (VUE.getPresentationDock() !=null)	
         	windowMenu.add(createWindowItem(VUE.getPresentationDock(), KeyEvent.VK_8, VueResources.getString("menu.windows.pathways")));
         if (VUE.getMetadataSearchMainGUI()!= null && !VUE.isApplet())
             windowMenu.add(createWindowItem(VUE.getMetadataSearchMainGUI(), KeyEvent.VK_9, VueResources.getString("menu.windows.search")));            
-        if (VUE.getPannerDock() !=null && !VUE.isApplet())	
-        	windowMenu.add(createWindowItem(VUE.getPannerDock(), 0, VueResources.getString("menu.windows.panner")));
        
           
            

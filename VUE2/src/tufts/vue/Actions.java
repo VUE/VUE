@@ -79,6 +79,8 @@ public class Actions implements VueConstants
     public static final int ALT = Event.ALT_MASK;
     
     public static final int CTRL_ALT = VueUtil.isMacPlatform() ? CTRL+COMMAND : CTRL+ALT;
+
+    public static final String MENU_INDENT = "  ";
     
     static final private KeyStroke keyStroke(int vk, int mod) {
         return KeyStroke.getKeyStroke(vk, mod);
@@ -1021,7 +1023,7 @@ public class Actions implements VueConstants
     //-----------------------
     // Context Menu Actions
     //-----------------------
-    public static final Action KeywordAction = new KeywordActionClass(VueResources.local("mapViewer.componentMenu.keywords.label"));
+    public static final Action KeywordAction = new KeywordActionClass(MENU_INDENT + VueResources.local("mapViewer.componentMenu.keywords.label"));
     public static final Action ContextKeywordAction = new KeywordActionClass(VueResources.local("actions.addkeywords"));
     
     public static class KeywordActionClass extends VueAction
@@ -1625,7 +1627,7 @@ public class Actions implements VueConstants
 
     //m.add(Actions.AddURLAction);
 //    m.add(Actions.RemoveResourceAction);
-    public static final Action NotesAction = new NotesActionClass(VueResources.local("mapViewer.componentMenu.notes.label"));
+    public static final Action NotesAction = new NotesActionClass(MENU_INDENT + VueResources.local("mapViewer.componentMenu.notes.label"));
     public static final Action ContextNotesAction = new NotesActionClass(VueResources.local("actions.addnotes"));
     	
     public static class NotesActionClass extends VueAction
@@ -1917,7 +1919,7 @@ public class Actions implements VueConstants
 
     /** this will toggle the collapsed state flag on the selected nodes */
     public static final LWCAction Collapse =
-    new LWCAction(VueResources.local("menu.view.collapse"), keyStroke(KeyEvent.VK_K)) {
+    new LWCAction(VueResources.local("menu.view.collapse"), keyStroke(KeyEvent.VK_K, COMMAND)) {
         boolean enabledFor(LWSelection s) {
             final int nodeCount = s.count(LWNode.class);
             return nodeCount > 1 || s.size() == 1 && s.only().hasChildren();
@@ -3013,8 +3015,8 @@ public class Actions implements VueConstants
         LayoutAction.ripple,
         LayoutAction.cluster2,
         null,
-        PullIn,
         PushOut,
+        PullIn,
         PushOutLinked,
         null,
         DistributeVertically,
@@ -3766,8 +3768,7 @@ public class Actions implements VueConstants
         //public String toString() { return "LWCAction[" + getActionName() + "]"; }
     }
 
-    public static final Action ResourcesAction = new ResourcesActionClass(VueResources.local("dockWindow.contentPanel.resources.title"));
-    public static final Action ContextResourcesAction = new ResourcesActionClass(VueResources.local("dockWindow.contentPanel.resources.title"));
+    public static final Action ResourcesAction = new ResourcesActionClass(MENU_INDENT + VueResources.local("dockWindow.contentPanel.resources.title"));
 
     public static class ResourcesActionClass extends VueAction {
         public ResourcesActionClass(String s) {
@@ -3780,8 +3781,7 @@ public class Actions implements VueConstants
         }
     };
 
-    public static final Action DatasetsAction = new DatasetsActionClass(VueResources.local("dockWindow.contentPanel.datasets.title"));
-    public static final Action ContextDatasetsAction = new DatasetsActionClass(VueResources.local("dockWindow.contentPanel.datasets.title"));
+    public static final Action DatasetsAction = new DatasetsActionClass(MENU_INDENT + VueResources.local("dockWindow.contentPanel.datasets.title"));
 
     public static class DatasetsActionClass extends VueAction {
         public DatasetsActionClass(String s) {
@@ -3794,8 +3794,7 @@ public class Actions implements VueConstants
         }
     };
 
-    public static final Action OntologiesAction = new OntologiesActionClass(VueResources.local("dockWindow.contentPanel.ontologies.title"));
-    public static final Action ContextOntologiesAction = new OntologiesActionClass(VueResources.local("dockWindow.contentPanel.ontologies.title"));
+    public static final Action OntologiesAction = new OntologiesActionClass(MENU_INDENT + VueResources.local("dockWindow.contentPanel.ontologies.title"));
 
     public static class OntologiesActionClass extends VueAction {
         public OntologiesActionClass(String s) {
