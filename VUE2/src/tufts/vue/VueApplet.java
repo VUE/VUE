@@ -55,7 +55,6 @@ import com.sun.org.apache.xerces.internal.impl.XMLScanner;
 
 import edu.tufts.vue.mbs.AnalyzerResult;
 
-import sun.text.CompactShortArray.Iterator;
 import tufts.vue.ds.DataAction;
 import tufts.vue.ds.DataTree;
 import tufts.vue.ds.Schema;
@@ -73,7 +72,7 @@ import tufts.vue.gui.VueMenuBar;
 /**
  * Experimental VUE applet.
  * 
- * @version $Revision: 1.18 $ / $Date: 2009-08-11 02:09:37 $ / $Author: mike $
+ * @version $Revision: 1.19 $ / $Date: 2009-08-11 15:07:05 $ / $Author: mike $
  */
 public class VueApplet extends JApplet {
 
