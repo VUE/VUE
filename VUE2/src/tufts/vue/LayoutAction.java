@@ -91,10 +91,12 @@ public abstract  class LayoutAction extends Actions.LWCAction {
     };
     public static final LayoutAction hierarchical = new LayoutAction(new HierarchicalLayout(),VueResources.getString("menu.format.layout.hierarchical"),KeyEvent.VK_OPEN_BRACKET) {
         boolean supportsSingleMover() { return false; }
+        boolean enabledFor(LWSelection selection ) { return true;}
     };
     
     public static final LayoutAction cluster = new LayoutAction(new ClusterLayout(),VueResources.getString("menu.format.layout.cluster"),KeyEvent.VK_6) {
         boolean supportsSingleMover() { return false; }
+        boolean enabledFor(LWSelection selection ) { return true;}
     };
     
      public static final LayoutAction ripple = new LayoutAction(new RippleLayout(),VueResources.getString("menu.format.arrange.ripple"),KeyEvent.VK_7) {
