@@ -115,8 +115,18 @@ public abstract class ContentViewer extends JPanel {
 
 
 	protected JComponent produceViewer(final tufts.vue.BrowseDataSource ds, final boolean caching) {
-		if (!SwingUtilities.isEventDispatchThread())
-			throw new Error("not threadsafe except for AWT");
+
+		/**
+		There is a weird problem in the latest Java 1.6 code on
+		all the Sun JVMs running in the browser where this test fails even though it should not.
+		*/
+		if (!SwingUtilities.isEventDispatchThread())		
+		{
+			if (VUE.isApplet() && (Util.isWindowsPlatform() || Util.isUnixPlatform()))
+				System.out.println("not threadsafe except for AWT");
+			else
+				throw new Error("not threadsafe except for AWT");
+		}
 
 		if (DEBUG.DR) Log.debug("produceViewer: " + ds);
 
@@ -150,7 +160,7 @@ public abstract class ContentViewer extends JPanel {
 				@Override
 				public void run() {
 
-					if (DEBUG.DR) Log.debug("kicked off");
+					if (DEBUG.DR)Log.debug("kicked off");
 
 					final JComponent newViewer = buildViewer(ds);
 
