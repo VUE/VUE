@@ -57,7 +57,7 @@ import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.147 $ / $Date: 2009-07-23 19:13:46 $ / $Author: sfraize $
+ * @version $Revision: 1.148 $ / $Date: 2009-08-11 20:37:04 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -181,7 +181,7 @@ public class GUI
         if (Theme == null)
         {
            	//return Color.yellow;
-        	if (Util.isWindowsPlatform())
+        	if (Util.isWindowsPlatform() || Util.isUnixPlatform())
         		return VueResources.getColor("gui.text.highlightcolor");
         	else
         		return SystemColor.textHighlight;
