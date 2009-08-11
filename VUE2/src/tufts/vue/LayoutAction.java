@@ -26,6 +26,7 @@ package tufts.vue;
 import javax.swing.KeyStroke;
 import edu.tufts.vue.layout.*;
 import java.util.*;
+import java.awt.Event;
 import java.awt.event.KeyEvent;
 import javax.swing.Action;
 
@@ -74,41 +75,41 @@ public abstract  class LayoutAction extends Actions.LWCAction {
     }
     // random layout. scatters nodes at random
     // random layout. scatters nodes at random
-    public static final LayoutAction random = new LayoutAction(new ListRandomLayout(),VueResources.getString("menu.format.arrange.random"),KeyEvent.VK_1) {
+    public static final LayoutAction random = new LayoutAction(new ListRandomLayout(),VueResources.getString("menu.format.arrange.random"), KeyStroke.getKeyStroke(KeyEvent.VK_6, Event.ALT_MASK)) {
         boolean supportsSingleMover() { return false; }
     };
-    public static final LayoutAction table = new LayoutAction(new TabularLayout(),VueResources.getString("menu.format.arrange.table"),KeyEvent.VK_2) {
+    public static final LayoutAction table = new LayoutAction(new TabularLayout(),VueResources.getString("menu.format.arrange.table"), KeyStroke.getKeyStroke(KeyEvent.VK_3, Event.ALT_MASK)) {
         boolean supportsSingleMover() { return false; }
     };
-    public static final LayoutAction circle = new LayoutAction(new CircularLayout(),VueResources.getString("menu.format.arrange.circle"),KeyEvent.VK_3) {
+    public static final LayoutAction circle = new LayoutAction(new CircularLayout(),VueResources.getString("menu.format.arrange.circle"), KeyStroke.getKeyStroke(KeyEvent.VK_4, Event.ALT_MASK)) {
         boolean supportsSingleMover() { return false; }
     };
-    public static final LayoutAction filledCircle = new LayoutAction(new FilledCircularLayout(),VueResources.getString("menu.format.arrange.filledcircle"),KeyEvent.VK_4) {
+    public static final LayoutAction filledCircle = new LayoutAction(new FilledCircularLayout(),VueResources.getString("menu.format.arrange.filledcircle"), KeyStroke.getKeyStroke(KeyEvent.VK_5, Event.ALT_MASK)) {
         boolean supportsSingleMover() { return false; }
     };
-    public static final LayoutAction force = new LayoutAction(new ForceLayout(),VueResources.getString("menu.format.layout.force"),KeyEvent.VK_5) {
+    public static final LayoutAction force = new LayoutAction(new ForceLayout(),VueResources.getString("menu.format.layout.force"), KeyStroke.getKeyStroke(KeyEvent.VK_CLOSE_BRACKET, Event.ALT_MASK)) {
         boolean supportsSingleMover() { return false; }
     };
-    public static final LayoutAction hierarchical = new LayoutAction(new HierarchicalLayout(),VueResources.getString("menu.format.layout.hierarchical"),KeyEvent.VK_OPEN_BRACKET) {
-        boolean supportsSingleMover() { return false; }
-        boolean enabledFor(LWSelection selection ) { return true;}
-    };
-    
-    public static final LayoutAction cluster = new LayoutAction(new ClusterLayout(),VueResources.getString("menu.format.layout.cluster"),KeyEvent.VK_6) {
+    public static final LayoutAction hierarchical = new LayoutAction(new HierarchicalLayout(),VueResources.getString("menu.format.layout.hierarchical"), KeyStroke.getKeyStroke(KeyEvent.VK_OPEN_BRACKET, Event.ALT_MASK)) {
         boolean supportsSingleMover() { return false; }
         boolean enabledFor(LWSelection selection ) { return true;}
     };
     
-     public static final LayoutAction ripple = new LayoutAction(new RippleLayout(),VueResources.getString("menu.format.arrange.ripple"),KeyEvent.VK_7) {
+    public static final LayoutAction cluster = new LayoutAction(new ClusterLayout(),VueResources.getString("menu.format.layout.cluster"), KeyStroke.getKeyStroke(KeyEvent.VK_SEMICOLON, Event.ALT_MASK)) {
+        boolean supportsSingleMover() { return false; }
+        boolean enabledFor(LWSelection selection ) { return true;}
+    };
+    
+     public static final LayoutAction ripple = new LayoutAction(new RippleLayout(),VueResources.getString("menu.format.arrange.ripple"), KeyStroke.getKeyStroke(KeyEvent.VK_7, Event.ALT_MASK)) {
         boolean supportsSingleMover() { return false; }
     };
-    public static final LayoutAction stretch = new LayoutAction(new StretchLayout(),VueResources.getString("menu.format.layout.stretch"),KeyEvent.VK_8) {
+    public static final LayoutAction stretch = new LayoutAction(new StretchLayout(),VueResources.getString("menu.format.layout.stretch"), KeyEvent.VK_8) {
         boolean supportsSingleMover() { return false; }
     };
-      public static final LayoutAction search= new LayoutAction(new SearchLayout(),VueResources.getString("menu.format.layout.search"),KeyEvent.VK_9) {
+      public static final LayoutAction search= new LayoutAction(new SearchLayout(),VueResources.getString("menu.format.layout.search"), KeyEvent.VK_9) {
         boolean supportsSingleMover() { return false; }
     };
-    public static final LayoutAction cluster2= new LayoutAction(new Cluster2Layout(),VueResources.getString("menu.format.arrange.gather"),KeyEvent.VK_0) {
+    public static final LayoutAction cluster2= new LayoutAction(new Cluster2Layout(),VueResources.getString("menu.format.arrange.gather"), KeyStroke.getKeyStroke(KeyEvent.VK_8, Event.ALT_MASK)) {
         boolean supportsSingleMover() { return false; }
     };
 

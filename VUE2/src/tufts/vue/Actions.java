@@ -997,7 +997,7 @@ public class Actions implements VueConstants
     
 
     public static final LWCAction CopyStyle =
-        new LWCAction(VueResources.local("menu.format.copystyle"), keyStroke(KeyEvent.VK_C, CTRL+LEFT_OF_SPACE)) {
+        new LWCAction(VueResources.local("menu.format.copystyle"), keyStroke(KeyEvent.VK_C, COMMAND+SHIFT)) {
         boolean enabledFor(LWSelection s) { return s.size() == 1; }
         void act(LWComponent c) {
             try {
@@ -1011,7 +1011,7 @@ public class Actions implements VueConstants
     };
     
     public static final LWCAction PasteStyle =
-    new LWCAction(VueResources.local("menu.format.applystyle"), keyStroke(KeyEvent.VK_V, CTRL+LEFT_OF_SPACE)) {
+    new LWCAction(VueResources.local("menu.format.applystyle"), keyStroke(KeyEvent.VK_V, COMMAND+SHIFT)) {
         boolean enabledFor(LWSelection s) { return s.size() > 0 && StyleBuffer != null; }
         void act(LWComponent c) {
             c.copyStyle(StyleBuffer);
@@ -1834,7 +1834,7 @@ public class Actions implements VueConstants
     public static final LWCAction BringToFront =
     new LWCAction(VueResources.local("menu.format.arrange.bringtofront"),
     "Raise object to the top, completely unobscured",
-    keyStroke(KeyEvent.VK_CLOSE_BRACKET, COMMAND+SHIFT)) {
+    keyStroke(KeyEvent.VK_F, ALT)) {
         boolean enabledFor(LWSelection s) {
             if (s.size() == 1)
                 return true;
@@ -1848,7 +1848,7 @@ public class Actions implements VueConstants
     public static final LWCAction SendToBack =
     new LWCAction(VueResources.local("menu.format.arrange.sendtoback"),
     "Make sure this object doesn't obscure any other object",
-    keyStroke(KeyEvent.VK_OPEN_BRACKET, COMMAND+SHIFT)) {
+    keyStroke(KeyEvent.VK_B, ALT)) {
         boolean enabledFor(LWSelection s) {
             if (s.size() == 1)
                 return true;
@@ -1917,7 +1917,7 @@ public class Actions implements VueConstants
 
     /** this will toggle the collapsed state flag on the selected nodes */
     public static final LWCAction Collapse =
-    new LWCAction(VueResources.local("menu.format.collapse"), keyStroke(KeyEvent.VK_X, SHIFT+LEFT_OF_SPACE)) {
+    new LWCAction(VueResources.local("menu.view.collapse"), keyStroke(KeyEvent.VK_K)) {
         boolean enabledFor(LWSelection s) {
             final int nodeCount = s.count(LWNode.class);
             return nodeCount > 1 || s.size() == 1 && s.only().hasChildren();
@@ -2351,7 +2351,7 @@ public class Actions implements VueConstants
     
     
     public static final LWCAction PushOutLinked =
-    new LWCAction(VueResources.local("menu.format.align.pushout.linked"), keyStroke(KeyEvent.VK_EQUALS, ALT)) {
+    new LWCAction(VueResources.local("menu.format.align.pushout.linked")) {
         
         boolean enabledFor(LWSelection s) {
             return enabledForPushPull(s);
@@ -2576,22 +2576,22 @@ public class Actions implements VueConstants
     public static final LWCAction BigNudgeRight = new NudgeAction( 10,   0, VueResources.local("menu.format.align.bignudgeright"), keyStroke(KeyEvent.VK_RIGHT, SHIFT));
         
     
-    public static final ArrangeAction AlignTopEdges = new ArrangeAction(VueResources.local("menu.format.align.topedges"), KeyEvent.VK_UP) {
+    public static final ArrangeAction AlignTopEdges = new ArrangeAction(VueResources.local("menu.format.align.topedges"), keyStroke(KeyEvent.VK_UP, ALT)) {
         void arrange(LWComponent c) { c.setLocation(c.getX(), minY); }
     };
-    public static final ArrangeAction AlignBottomEdges = new ArrangeAction(VueResources.local("menu.format.align.bottomedges"), KeyEvent.VK_DOWN) {
+    public static final ArrangeAction AlignBottomEdges = new ArrangeAction(VueResources.local("menu.format.align.bottomedges"), keyStroke(KeyEvent.VK_DOWN, ALT)) {
         void arrange(LWComponent c) { c.setLocation(c.getX(), maxY - c.getHeight()); }
     };
-    public static final ArrangeAction AlignLeftEdges = new ArrangeAction(VueResources.local("menu.format.align.leftedges"), KeyEvent.VK_LEFT) {
+    public static final ArrangeAction AlignLeftEdges = new ArrangeAction(VueResources.local("menu.format.align.leftedges"), keyStroke(KeyEvent.VK_LEFT, ALT)) {
         void arrange(LWComponent c) { c.setLocation(minX, c.getY()); }
     };
-    public static final ArrangeAction AlignRightEdges = new ArrangeAction(VueResources.local("menu.format.align.rightedges"), KeyEvent.VK_RIGHT) {
+    public static final ArrangeAction AlignRightEdges = new ArrangeAction(VueResources.local("menu.format.align.rightedges"), keyStroke(KeyEvent.VK_RIGHT, ALT)) {
         void arrange(LWComponent c) { c.setLocation(maxX - c.getWidth(), c.getY()); }
     };
-    public static final ArrangeAction AlignCentersRow = new ArrangeAction(VueResources.local("menu.format.align.centerinrow"), KeyEvent.VK_R) {
+    public static final ArrangeAction AlignCentersRow = new ArrangeAction(VueResources.local("menu.format.align.centerinrow"), keyStroke(KeyEvent.VK_R, ALT)) {
         void arrange(LWComponent c) { c.setLocation(c.getX(), centerY - c.getHeight()/2); }
     };
-    public static final ArrangeAction AlignCentersColumn = new ArrangeAction(VueResources.local("menu.format.align.centerincolumn"), KeyEvent.VK_C) {
+    public static final ArrangeAction AlignCentersColumn = new ArrangeAction(VueResources.local("menu.format.align.centerincolumn"), keyStroke(KeyEvent.VK_C, ALT)) {
         void arrange(LWComponent c) { c.setLocation(centerX - c.getWidth()/2, c.getY()); }
     };
     
@@ -2915,7 +2915,7 @@ public class Actions implements VueConstants
         };
 
 
-    public static final ArrangeAction MakeRow = new ArrangeAction(VueResources.local("menu.format.arrange.makerow"), keyStroke(KeyEvent.VK_R, ALT)) {
+    public static final ArrangeAction MakeRow = new ArrangeAction(VueResources.local("menu.format.arrange.makerow"), keyStroke(KeyEvent.VK_1, ALT)) {
             boolean supportsSingleMover() { return false; }
             boolean enabledFor(LWSelection s) { return s.size() >= 2; }
             // todo bug: an already made row is shifting everything to the left
@@ -2928,7 +2928,7 @@ public class Actions implements VueConstants
     };
 
     
-    public static final ArrangeAction MakeColumn = new ArrangeAction(VueResources.local("menu.format.arrange.makecolumn"), keyStroke(KeyEvent.VK_C, ALT)) {
+    public static final ArrangeAction MakeColumn = new ArrangeAction(VueResources.local("menu.format.arrange.makecolumn"), keyStroke(KeyEvent.VK_2, ALT)) {
             boolean supportsSingleMover() { return false; }
             boolean enabledFor(LWSelection s) { return s.size() >= 2; }
             void arrange(LWSelection selection) {
@@ -2944,7 +2944,7 @@ public class Actions implements VueConstants
             }
         };
     
-    public static final ArrangeAction DistributeVertically = new ArrangeAction(VueResources.local("menu.format.arrange.distributevertically"), KeyEvent.VK_V) {
+    public static final ArrangeAction DistributeVertically = new ArrangeAction(VueResources.local("menu.format.arrange.distributevertically"), keyStroke(KeyEvent.VK_V, ALT)) {
             boolean supportsSingleMover() { return false; }
             boolean enabledFor(LWSelection s) { return s.size() >= 3; }
             // use only *2* in selection if use our minimum layout region setting
@@ -2963,7 +2963,7 @@ public class Actions implements VueConstants
             }
         };
     
-    public static final ArrangeAction DistributeHorizontally = new ArrangeAction(VueResources.local("menu.format.arrange.distributehorizontally"), KeyEvent.VK_H) {
+    public static final ArrangeAction DistributeHorizontally = new ArrangeAction(VueResources.local("menu.format.arrange.distributehorizontally"), keyStroke(KeyEvent.VK_H, ALT)) {
             boolean supportsSingleMover() { return false; }
             boolean enabledFor(LWSelection s) { return s.size() >= 3; }
             void arrange(LWSelection selection) {
@@ -3047,6 +3047,10 @@ public class Actions implements VueConstants
             super(name);
             this.size = -1;
         }
+        ImageSizeAction(String name, KeyStroke shortcut) {
+            super(name, shortcut);
+            this.size = -1;
+        }
         ImageSizeAction(int size) {
             super(size + " px");
             this.size = size;
@@ -3114,12 +3118,16 @@ public class Actions implements VueConstants
     private static final Object IMAGE_SMALLER = "smaller";
     private static final Object IMAGE_HIDE = "hide";
     
-    private static final class ImageAdjustAction extends ImageSizeAction {
-        final Object actionKey;
-        ImageAdjustAction(String localizationKey, Object key) {
-            super(VueResources.local(localizationKey));
-            this.actionKey = key;
-        }
+        private static final class ImageAdjustAction extends ImageSizeAction {
+            final Object actionKey;
+            ImageAdjustAction(String localizationKey, Object key) {
+                super(VueResources.local(localizationKey));
+                this.actionKey = key;
+            }
+            ImageAdjustAction(String localizationKey, Object key, KeyStroke shortcut) {
+                super(VueResources.local(localizationKey), shortcut);
+                this.actionKey = key;
+            }
 
         @Override
         public void act(LWImage im) {
@@ -3127,8 +3135,8 @@ public class Actions implements VueConstants
         }
     }
 
-    private static final LWCAction ImageBigger = new ImageAdjustAction("action.image.bigger", IMAGE_BIGGER);
-    private static final LWCAction ImageSmaller = new ImageAdjustAction("action.image.smaller", IMAGE_SMALLER);
+    private static final LWCAction ImageBigger = new ImageAdjustAction("action.image.bigger", IMAGE_BIGGER, keyStroke(KeyEvent.VK_CLOSE_BRACKET, COMMAND+SHIFT));
+    private static final LWCAction ImageSmaller = new ImageAdjustAction("action.image.smaller", IMAGE_SMALLER, keyStroke(KeyEvent.VK_OPEN_BRACKET, COMMAND+SHIFT));
     private static final LWCAction ImageHide = new ImageAdjustAction("action.image.hide", IMAGE_HIDE);
     
 
@@ -3269,13 +3277,13 @@ public class Actions implements VueConstants
         }
     };
     public static final VueAction ZoomFit =
-        new VueAction(VueResources.local("menu.view.fitinwin"), keyStroke(KeyEvent.VK_0, COMMAND), ":general/Zoom") {
+        new VueAction(VueResources.local("menu.view.fitinwin"), keyStroke(KeyEvent.VK_OPEN_BRACKET, COMMAND), ":general/Zoom") {
         public void act() {
             ZoomTool.setZoomFit();
         }
     };
     public static final VueAction ZoomActual =
-    new VueAction(VueResources.local("actions.zoomActual.label"), keyStroke(KeyEvent.VK_1, COMMAND+SHIFT)) {
+    new VueAction(VueResources.local("actions.zoomActual.label"), keyStroke(KeyEvent.VK_CLOSE_BRACKET, COMMAND)) {
         // no way to listen for zoom change events to keep this current
         //boolean enabled() { return VUE.getActiveViewer().getZoomFactor() != 1.0; }
         public void act() {
@@ -3284,7 +3292,7 @@ public class Actions implements VueConstants
     };
     
     public static final Action ZoomToSelection =
-    new LWCAction(VueResources.local("menu.view.selecfitwin"), keyStroke(KeyEvent.VK_2, COMMAND+SHIFT)) {
+    new LWCAction(VueResources.local("menu.view.selecfitwin"), keyStroke(KeyEvent.VK_SEMICOLON, COMMAND)) {
         public void act(LWSelection s) {
             MapViewer viewer = VUE.getActiveViewer();
             ZoomTool.setZoomFitRegion(viewer, s.getBounds(), 16, false);
@@ -3346,7 +3354,7 @@ public class Actions implements VueConstants
     
 
     public static final Action ToggleSplitScreen =
-        new VueAction(VueResources.local("menu.view.splitscreen")) {
+        new VueAction(VueResources.local("menu.view.splitscreen"), keyStroke(KeyEvent.VK_BACK_SLASH, COMMAND+SHIFT)) {
             boolean state;
             public void act() {
                 // todo: doesn't work (see VUE.java)
@@ -3362,7 +3370,7 @@ public class Actions implements VueConstants
     };
     
     public static final VueAction TogglePruning =
-        new VueAction(VueResources.local("menu.view.pruning")) {
+        new VueAction(VueResources.local("menu.view.pruning"), keyStroke(KeyEvent.VK_J, COMMAND)) {
         public void act() {
             boolean enabled = LWLink.isPruningEnabled();
 
