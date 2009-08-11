@@ -5,7 +5,7 @@
     Created on : February 20, 2009, 3:24 PM
     Author     : akumar03
 -->
-<project name="vue-components" default="import" basedir=".">
+<project name="vue-components" default="run-import" basedir=".">
   <description>
     This build file is to build components. We attempt to jar only the classes that
      are needed to perform cetrain task and merge them into a file. Once the component
