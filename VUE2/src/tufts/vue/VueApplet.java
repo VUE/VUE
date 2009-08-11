@@ -73,7 +73,7 @@ import tufts.vue.gui.VueMenuBar;
 /**
  * Experimental VUE applet.
  * 
- * @version $Revision: 1.17 $ / $Date: 2009-08-10 19:57:01 $ / $Author: mike $
+ * @version $Revision: 1.18 $ / $Date: 2009-08-11 02:09:37 $ / $Author: mike $
  */
 public class VueApplet extends JApplet {
 
@@ -485,6 +485,101 @@ public class VueApplet extends JApplet {
 		});
 		
 	}
+	
+	@SuppressWarnings("unchecked")
+	public static void addNotesToMap(final String content)
+	{
+		AccessController.doPrivileged(new PrivilegedAction() {
+
+			public Object run() {
+	    //        Reader reader = openReader();
+	    javax.xml.parsers.DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        factory.setIgnoringElementContentWhitespace(true);
+        factory.setIgnoringComments(true);
+        //factory.setCoalescing(true);
+        factory.setValidating(false);
+        // We don't use is.setEncoding(), as openReader will already have handled that
+        //      is.setCharacterStream(reader);
+        InputStream is;
+		try {
+			is = new java.io.ByteArrayInputStream(content.getBytes("UTF-8"));
+			final org.w3c.dom.Document doc = factory.newDocumentBuilder().parse((InputStream) is);
+			NodeList nodeLst = doc.getElementsByTagName("note");
+			
+			//build multimap of links
+			HashMap<String,String> map = new HashMap<String,String>();
+			  for (int s = 0; s < nodeLst.getLength(); s++) 
+			  {
+
+			    Node fstNode = nodeLst.item(s);
+			    
+			    if (fstNode.getNodeType() == Node.ELEMENT_NODE) 
+			    {
+			    	NamedNodeMap atts = fstNode.getAttributes();	            
+	                Node n = atts.item(0);
+
+	                NodeList noteList = fstNode.getChildNodes();
+
+                           
+
+	              
+	                map.put(n.getNodeValue(), ((Node)noteList.item(0)).getNodeValue().trim());
+	               // System.out.println("puts : " + n.getNodeValue() +"," +fstNode.getNodeValue());
+	            }
+
+			  }
+			  
+			  
+			  java.util.Collection<LWComponent> comps = VUE.getActiveMap().getAllDescendents();
+			  java.util.Iterator<LWComponent> iter = comps.iterator();
+			  //build map of data row nodes
+			  HashMap<String,LWNode> dataRowNodes = new HashMap<String,LWNode>();
+			  while (iter.hasNext())
+			  {
+				 LWComponent comp = iter.next();
+				 if (comp.isDataRowNode())
+				 {
+					String fromId= comp.getDataValue("id");
+					dataRowNodes.put(fromId, (LWNode)comp);										
+				 }
+			  }
+			  
+			  //draw links
+			  java.util.Set<String> keys = map.keySet();
+			  java.util.Iterator<String> notesIterator = keys.iterator();
+			  
+			  while (notesIterator.hasNext())
+			  {
+				  String id = notesIterator.next();
+					 
+					  LWNode fromNode = dataRowNodes.get(id);
+					  if (fromNode !=null)
+					  {
+						  String note = map.get(id);
+						  fromNode.setNotes(note);
+					  }
+				  
+			  }
+			  
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SAXException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ParserConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+			};
+		});
+		
+	}
+	
 	public static String getActiveResourceTitle()
 	{
 		LWSelection selection = VUE.getActiveViewer().getSelection();

@@ -138,6 +138,41 @@ mainMenuListener: function(evt)
 	  }
 	}
 },
+addNotesToMap: function()
+{
+	var c = ZoteroPane.getSelectedCollection();
+	var items = c.getChildItems(false); 
+	var xmlcontent ="";
+	xmlcontent += '<notes>\n';
+	
+	for each(var arr in items) 
+	{
+		var notes = arr.getNotes();
+//		alert(notes);
+		if(notes.length)
+		{
+			xmlcontent += '<note id="'+arr.id +'">\n';
+						  
+				xmlcontent +=Zotero.Utilities.prototype.cleanTags(Zotero.Items.get(notes[0]).getNote()) + "\n";
+				xmlcontent += '</note>';		
+			
+		}
+		if(arr.notes) 
+		{
+			var note = arr.notes[0].note
+			xmlcontent += '<note id="'+arr.id +'">\n';
+			  
+			xmlcontent +=note + "\n";
+			xmlcontent += '</note>';		
+								
+		}
+	}
+	
+	xmlcontent += '</notes>\n';		
+	//alert(xmlcontent);	
+	content.document.getElementById("VUE").wrappedJSObject.addNotesToMap(xmlcontent);
+	
+},
 addRelationsToMap: function()
 {
 	var c = ZoteroPane.getSelectedCollection();
