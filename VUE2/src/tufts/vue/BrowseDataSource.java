@@ -23,11 +23,12 @@ package tufts.vue;
  * on the configuration.  E.g., a local directory, a list of user favorites, a remote FTP
  * site, an RSS feed, etc.
  * 
- * @version $Revision: 1.11 $ / $Date: 2009-05-30 21:15:35 $ / $Author: sfraize $
+ * @version $Revision: 1.12 $ / $Date: 2009-08-11 15:27:10 $ / $Author: mike $
  * @author  rsaigal
  * @author  sfraize
  */
 
+import tufts.Util;
 import tufts.vue.DEBUG;
 
 import java.util.*;
@@ -425,7 +426,12 @@ public abstract class BrowseDataSource implements DataSource
             address = new URL(addressText);
         } catch (Throwable t) {
             try {
-                address = new URL("file://" + addressText);
+            	if (Util.isWindowsPlatform()) {
+            		String s = new File(addressText).toURI().toString();
+            		address = new URL(s); 
+            	}
+            	else
+            		address = new URL("file://" + addressText);
             } catch (Throwable t2) {
                 address = null;
             }
