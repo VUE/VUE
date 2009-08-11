@@ -88,7 +88,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.151 $ / $Date: 2009-08-11 21:50:46 $ / $Author: brian $
+ * @version $Revision: 1.152 $ / $Date: 2009-08-11 22:06:21 $ / $Author: brian $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -934,7 +934,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         {
         	analysisMenu.add(createCMAction);
         	if (VUE.getMergeMapsDock()!= null ){
-        		analysisMenu.add(createWindowItem(VUE.getMergeMapsDock(), KeyEvent.VK_9, VueResources.getString("dialog.mergemap.title")));            
+        		analysisMenu.add(createWindowItem(VUE.getMergeMapsDock(), 0, VueResources.getString("dialog.mergemap.title")));            
         	}
         	//analysisMenu.add(analyzeCMAction);
         }
