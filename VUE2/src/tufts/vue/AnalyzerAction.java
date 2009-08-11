@@ -70,6 +70,10 @@ import tufts.vue.VueUtil;
 
 
 import edu.tufts.vue.metadata.MetadataList;
+import edu.tufts.seasr.SeasrConfigLoader;
+import edu.tufts.seasr.FlowGroup;
+import edu.tufts.seasr.Flow;
+
 
 
 // contains layout actions. based on ArrangeAction. The default layout is random layout
@@ -308,40 +312,37 @@ public class AnalyzerAction extends Actions.LWCAction {
 	
 	public static JMenu getSeasrMenu() {
 		JMenu seasrMenu = new JMenu("SEASR Analysis");
-		JMenu createNodesMenu = new JMenu("Create Nodes");
-		JMenu getMetadataMenu = new JMenu("Get Metadata");
-		JMenu getInfoMenu = new JMenu("Get Infomration");
-		Connector seasrConnector = new Connector();
-		MeandreResponse r;
+		JMenu createNodesMenu = new JMenu(SeasrConfigLoader.CREATE_NODES);
+		JMenu getMetadataMenu = new JMenu(SeasrConfigLoader.ADD_METADATA);
+		JMenu getInfoMenu = new JMenu(SeasrConfigLoader.ADD_NOTES);
+		SeasrConfigLoader scl = new SeasrConfigLoader();
+		
 		try {
-		r = seasrConnector.parseMeandreResponse("vue");
-		for(MeandreItem item: r.getMeandreItemList()) {
-			SeasrAction seasr = new SeasrAction(new SeasrAnalyzer(),item.getMeandreUriName(),null);
+		FlowGroup fg = scl.getFlowGroup(SeasrConfigLoader.CREATE_NODES);
+		
+		for(Flow flow: fg.getFlowList()) {
+			SeasrAction seasr = new SeasrAction(new SeasrAnalyzer(),flow.getLabel(),null);
 			createNodesMenu.add(seasr);
 		}
-		seasrMenu.add(createNodesMenu);
-		
-		
-		r = seasrConnector.parseMeandreResponse("vuemetadata");
-		for(MeandreItem item: r.getMeandreItemList()) {
-			SeasrMetadataAction seasr = new SeasrMetadataAction(new SeasrAnalyzer(),item.getMeandreUriName(),null);
-			getMetadataMenu.add(seasr);
+		fg = scl.getFlowGroup(SeasrConfigLoader.ADD_METADATA);
+		for(Flow flow: fg.getFlowList()){
+			getMetadataMenu.add(new SeasrMetadataAction(new SeasrAnalyzer(),flow.getLabel(),null));
 		}
-		seasrMenu.add(getMetadataMenu);
-		
-		r = seasrConnector.parseMeandreResponse("vueinfo");
-		for(MeandreItem item: r.getMeandreItemList()) {
-			SeasrInfoAction seasr = new SeasrInfoAction(new SeasrAnalyzer(),item.getMeandreUriName(),null);
-			getInfoMenu.add(seasr);
+		fg = scl.getFlowGroup(SeasrConfigLoader.ADD_NOTES);
+		for(Flow flow: fg.getFlowList()){
+			getMetadataMenu.add(new SeasrMetadataAction(new SeasrAnalyzer(),flow.getLabel(),null));
 		} 
-		
+		seasrMenu.add(createNodesMenu);
+		seasrMenu.add(getMetadataMenu);
 		seasrMenu.add(getInfoMenu);
-		}catch(Exception ex){
+		 
+		} catch(Exception ex) {
+			System.out.println(ex);
 			ex.printStackTrace();
 		}
-		finally {
+		 
 		return seasrMenu;
-		}
+		 
 	}
 	
 	static class SemanticMapAction extends Actions.LWCAction {
