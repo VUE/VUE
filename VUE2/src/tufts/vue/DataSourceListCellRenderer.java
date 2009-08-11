@@ -141,7 +141,10 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer //implem
                 mLabel.setForeground(Color.black);
             } else {
                 isLoading = true;
-                mLabel.setForeground(Color.gray);
+                if (DEBUG.Enabled)
+                    mLabel.setForeground(Color.gray);
+                else
+                    mLabel.setForeground(Color.black);
             }
             
             mLabel.setText(ds.getDisplayName());
