@@ -65,7 +65,7 @@ public class HierarchicalLayout extends Layout {
 				- centerParentX);
 
 		List<LWNode> relatedNodes = getRelated(currentNode, processedNodes);
-		System.out.println("Applying Layout to: "+currentNode.getLabel()+" parent:"+parentNode.getLabel()+" size:"+size+" related:"+relatedNodes.size());
+//		System.out.println("Applying Layout to: "+currentNode.getLabel()+" parent:"+parentNode.getLabel()+" size:"+size+" related:"+relatedNodes.size());
 		
 		if (relatedNodes.size() < 1)
 			return;
@@ -93,21 +93,25 @@ public class HierarchicalLayout extends Layout {
 		} else if(relatedNodes.size()>1) {
 			int count = 0;
 			// computing the arc for plotting the children
-			double r1 = Math.sqrt(Math.pow(centerX - centerParentX, 2)
-					+ Math.pow(centerY - centerParentY, 2));
+			double dist2 = Math.pow(centerX - centerParentX, 2)
+			+ Math.pow(centerY - centerParentY, 2);
+			double r1 = Math.sqrt(dist2);
 			double alpha = 2 * Math.PI / size / 2;
 			
 			double beta = alpha + Math.asin(r1 * Math.sin(alpha) / radius);
-			if(alpha>=Math.PI/2) {
-				alpha= Math.PI/2;
-				beta = Math.PI/2;
+		   if(Math.abs(r1* Math.sin(alpha) / radius) >=1) {
+			   beta = alpha;
 			}
-			beta = beta *0.90; // avoid collision of two  branches
+//			if(alpha == Math.PI/2) beta= Math.PI/2;
+//			if(alpha == -Math.PI/2) beta = - Math.PI/2;
+			
+			beta = beta *0.95; // avoid collision of two  branches
 
 			for (LWNode related : relatedNodes) {
-				double childAngle  = angle+(relatedNodes.size()/2 - count)*2*beta/relatedNodes.size();
+//				double childAngle  = angle+(relatedNodes.size()/2 - count)*2*beta/relatedNodes.size();
+				double childAngle = angle-beta*(2*count+1-relatedNodes.size())/relatedNodes.size();
 				count++;
-//				System.out.println("Setting location for: "+related.getLabel()+" alpha:"+alpha+" beta:"+beta+" childAngle:"+childAngle+" r1:"+r1+" radius:"+radius );
+ 				System.out.println("Setting location for: "+related.getLabel()+" alpha:"+alpha+" beta:"+beta+" childAngle:"+childAngle+" r1:"+r1+" radius:"+radius+" dist2:"+dist2 );
 				
 			 
 				related.setLocation(centerX + radius * Math.cos(childAngle)
