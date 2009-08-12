@@ -134,12 +134,18 @@
                 {
 	                document.getElementById('export-to-vue').disabled = false;
 	                document.getElementById('export-to-vue-add').disabled = false;
-	            //    document.getElementById('add-map-from-vue').disabled = false;
+   	                document.getElementById('add-notes-to-map').disabled = false;
+   	                document.getElementById('add-relations-to-map').disabled = false;
+
 	            }
 	            else
 	            {
 	                document.getElementById('export-to-vue').disabled = true;
    	                document.getElementById('export-to-vue-add').disabled = true;
+   	                document.getElementById('add-notes-to-map').disabled = true;
+   	                document.getElementById('add-relations-to-map').disabled = true;
+   	                
+   	                
    	             //   document.getElementById('add-map-from-vue').disabled = true;
 	             }   
             }, false);
