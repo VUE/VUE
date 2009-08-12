@@ -88,7 +88,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.153 $ / $Date: 2009-08-11 23:46:28 $ / $Author: brian $
+ * @version $Revision: 1.154 $ / $Date: 2009-08-12 15:42:59 $ / $Author: brian $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -100,6 +100,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
     private static JCheckBoxMenuItem fullScreenToolbarItem = null;
     public static SaveAction saveAction = null;
     public static SaveAction saveAsAction = null;
+    public static JMenu importMenu = null;
     public static JMenu publishMenu = null;
     public static PrintAction printAction  = null;
     public static JMenu pdfExportMenu = null;
@@ -291,6 +292,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         final OpenURLAction openFromURLAction = new OpenURLAction(VueResources.getString("menu.windows.openfromurl"));
         final ExitAction exitAction = new ExitAction(Util.isMacPlatform() ? VueResources.getString("menu.windows.quit") : VueResources.getString("menu.windows.exit"));
         
+        importMenu = makeMenu(VueResources.getString("menu.file.import"));        
         publishMenu = makeMenu(VueResources.getString("menu.windows.publish"));        
         final  edu.tufts.vue.dataset.DatasetAction dataAction = new edu.tufts.vue.dataset.DatasetAction();
         //final JMenu publishAction =  Publish.getPublishMenu();
@@ -514,14 +516,15 @@ public class VueMenuBar extends javax.swing.JMenuBar
         Actions.Revert.setEnabled(false);
         fileMenu.addSeparator();
      //   fileMenu.add(Actions.ZoteroAction);
-        fileMenu.add(dataAction);
+        fileMenu.add(importMenu);
+        importMenu.add(dataAction);
         String includeText = VueResources.getString("text.file.menu.include");
         if(includeText != null && includeText.equals("TRUE"))
         {
-          fileMenu.add(textOpen);
+          importMenu.add(textOpen);
         }
         //fileMenu.add(exportAction);
-        fileMenu.add(rdfOpen);
+        importMenu.add(rdfOpen);
         //publishMenu.setEnabled(false);
         if (!VUE.isApplet())
         	fileMenu.add(publishMenu);

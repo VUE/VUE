@@ -3054,7 +3054,7 @@ public class Actions implements VueConstants
             this.size = -1;
         }
         ImageSizeAction(int size) {
-            super(size + " px");
+            super(size + " x " + size + " px");
             this.size = size;
         }
 
