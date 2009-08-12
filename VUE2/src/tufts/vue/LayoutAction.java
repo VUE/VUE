@@ -119,8 +119,8 @@ public abstract  class LayoutAction extends Actions.LWCAction {
         hierarchical,
         force,
         Actions.MakeDataLists,
-        null,
-        Actions.MakeDataLinks
+//         null,
+//         Actions.MakeDataLinks
     };
 
 }
