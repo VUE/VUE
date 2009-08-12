@@ -111,7 +111,7 @@ public class HierarchicalLayout extends Layout {
 //				double childAngle  = angle+(relatedNodes.size()/2 - count)*2*beta/relatedNodes.size();
 				double childAngle = angle-beta*(2*count+1-relatedNodes.size())/relatedNodes.size();
 				count++;
- 				System.out.println("Setting location for: "+related.getLabel()+" alpha:"+alpha+" beta:"+beta+" childAngle:"+childAngle+" r1:"+r1+" radius:"+radius+" dist2:"+dist2 );
+// 				System.out.println("Setting location for: "+related.getLabel()+" alpha:"+alpha+" beta:"+beta+" childAngle:"+childAngle+" r1:"+r1+" radius:"+radius+" dist2:"+dist2 );
 				
 			 
 				related.setLocation(centerX + radius * Math.cos(childAngle)
