@@ -72,7 +72,7 @@ import tufts.vue.gui.VueMenuBar;
 /**
  * Experimental VUE applet.
  * 
- * @version $Revision: 1.19 $ / $Date: 2009-08-11 15:07:05 $ / $Author: mike $
+ * @version $Revision: 1.20 $ / $Date: 2009-08-12 17:31:59 $ / $Author: mike $
  */
 public class VueApplet extends JApplet {
 
@@ -610,7 +610,7 @@ public class VueApplet extends JApplet {
 								VUE.getContentDock().setVisible(true);
 								VUE.getContentPanel().showDatasetsTab();
 								VUE.getContentPanel().getDSBrowser().getDataSetViewer().setActiveDataSource(xmlds);
-								VUE.getContentPanel().getDSBrowser().getDataSetViewer().refreshBrowser();
+								//VUE.getContentPanel().getDSBrowser().getDataSetViewer().refreshBrowser();
 								
 								if (addToMap)
 								{
@@ -625,7 +625,8 @@ public class VueApplet extends JApplet {
 									   
 											added = true;
 									
-											  DataAction.annotateForMap(xmlds.getSchema(), VUE.getActiveMap());
+											//	  DataAction.annotateForMap(xmlds.getSchema(), VUE.getActiveMap());
+//											xmlds.
 											List<LWComponent> nodes =  DataAction.makeRowNodes(xmlds.getSchema());
 
 											//List<tufts.vue.DataRow> nodes = xmlds.getSchema().getRows();
