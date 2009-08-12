@@ -17,7 +17,7 @@ public class SeasrAnalyzer implements LWComponentAnalyzer {
 		// TODO Auto-generated method stub
 		List<AnalyzerResult> results = new ArrayList<AnalyzerResult>();
 		try {
-			URL  url = new URL("http://"+VueResources.getString("seasr.address")+":"+VueResources.getString("seasr.port")+VueResources.getString("seasr.serviceHead")+"?url="+c.getLabel());
+			URL  url = new URL("http://vue-dl.tccs.tufts.edu:1719/service/ping?location="+c.getLabel());
 
 			XMLDecoder decoder = new XMLDecoder(url.openStream());
 			Map<String,Integer> map = (Map<String,Integer>) decoder.readObject();
