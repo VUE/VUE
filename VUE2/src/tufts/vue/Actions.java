@@ -2385,7 +2385,7 @@ public class Actions implements VueConstants
         void act(LWComponent c) {
             // although we don't currently want to support pushing inside anything other than
             // a layer, this generic call would handle other cases if we can support them
-            projectNodes(c, PUSH_DISTANCE, PUSH_ALL);
+            projectNodes(c, PUSH_DISTANCE, PUSH_LINKED);
             // currenly only pushes within a single layer: provide the map
             // as the focal if want to push in all layers
             //pushNodes(viewer().getDropFocal(), c); // push in active focal: will work for slides also
@@ -3017,7 +3017,7 @@ public class Actions implements VueConstants
         null,
         PushOut,
         PullIn,
-        PushOutLinked,
+        //PushOutLinked,
         null,
         DistributeVertically,
         DistributeHorizontally,
