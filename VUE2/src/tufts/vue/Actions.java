@@ -1861,15 +1861,17 @@ public class Actions implements VueConstants
             LWContainer.sendToBack(selection);
         }
     };
+
     public static final LWCAction BringForward =
-    new LWCAction(VueResources.local("menu.format.arrange.bringforward"), keyStroke(KeyEvent.VK_CLOSE_BRACKET, COMMAND)) {
+    new LWCAction(VueResources.local("menu.format.arrange.bringforward")) {
         boolean enabledFor(LWSelection s) { return BringToFront.enabledFor(s); }
         void act(LWSelection selection) {
             LWContainer.bringForward(selection);
         }
     };
+
     public static final LWCAction SendBackward =
-    new LWCAction(VueResources.local("menu.format.arrange.sendbackward"), keyStroke(KeyEvent.VK_OPEN_BRACKET, COMMAND)) {
+    new LWCAction(VueResources.local("menu.format.arrange.sendbackward")) {
         boolean enabledFor(LWSelection s) { return SendToBack.enabledFor(s); }
         void act(LWSelection selection) {
             LWContainer.sendBackward(selection);
@@ -3285,7 +3287,7 @@ public class Actions implements VueConstants
         }
     };
     public static final VueAction ZoomActual =
-    new VueAction(VueResources.local("actions.zoomActual.label"), keyStroke(KeyEvent.VK_CLOSE_BRACKET, COMMAND)) {
+    new VueAction(VueResources.local("actions.zoomActual.label"), keyStroke(KeyEvent.VK_SEMICOLON, COMMAND)) {
         // no way to listen for zoom change events to keep this current
         //boolean enabled() { return VUE.getActiveViewer().getZoomFactor() != 1.0; }
         public void act() {
@@ -3294,7 +3296,7 @@ public class Actions implements VueConstants
     };
     
     public static final Action ZoomToSelection =
-    new LWCAction(VueResources.local("menu.view.selecfitwin"), keyStroke(KeyEvent.VK_SEMICOLON, COMMAND)) {
+    new LWCAction(VueResources.local("menu.view.selecfitwin"), keyStroke(KeyEvent.VK_CLOSE_BRACKET, COMMAND)) {
         public void act(LWSelection s) {
             MapViewer viewer = VUE.getActiveViewer();
             ZoomTool.setZoomFitRegion(viewer, s.getBounds(), 16, false);
