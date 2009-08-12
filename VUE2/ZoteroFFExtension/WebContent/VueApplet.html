@@ -3,10 +3,25 @@
 	<head>
 		<title>VUE/Zotero Plugin</title>
 		<link rel="stylesheet" type="text/css" href="base-min.css"> 
-		<link rel="stylesheet" type="text/css" href="styles.css"> 
 		<script type="text/javascript" src="unload.js"></script>
 		<script type="text/javascript" src="applet.js"></script>
 		<script type="text/javascript" src="yahoo-dom-event.js"></script>
+		<script type="text/javascript">
+		<!--
+		var userag = navigator.userAgent;
+
+		 var iow = userag.indexOf("Win");
+		 
+	     if(iow != -1)
+	     {
+	    	 document.write('<link rel="stylesheet" type="text/css" href="winstyle.css">');
+	     } 
+	     else
+	     {
+	    	 document.write('<link rel="stylesheet" type="text/css" href="styles.css">');
+	     }
+		-->
+		</script>
 	</head>
 	<body  onresize="setMaxAppletSize();" style="">
 	  <div id="content" style="">
