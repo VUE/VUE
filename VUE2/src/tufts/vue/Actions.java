@@ -3373,7 +3373,7 @@ public class Actions implements VueConstants
     public static final VueAction TogglePruning =
         new VueAction(VueResources.local("menu.view.pruning"), keyStroke(KeyEvent.VK_J, COMMAND)) {
         public void act() {
-            boolean enabled = LWLink.isPruningEnabled();
+            final boolean wasEnabled = LWLink.isPruningEnabled();
 
             // Currently, this action is ONLY fired via a menu item.  If other code
             // points might set this directly, this should be changed to a toggleState
@@ -3381,7 +3381,18 @@ public class Actions implements VueConstants
             // action to do the toggle, so the menu item checkbox state will stay
             // synced.
 
-            LWLink.setPruningEnabled(!enabled);
+            LWLink.setPruningEnabled(!wasEnabled);
+
+            if (wasEnabled) {
+                for (LWMap map : VUE.getAllMaps()) {
+                    for (LWComponent c : map.getAllDescendents()) {
+                        c.clearHidden(HideCause.PRUNE);
+                        if (c instanceof LWLink)
+                            ((LWLink)c).clearPrunes();
+                    }
+                }
+            }
+            VUE.layoutAllMaps(HideCause.PRUNE);
         }
     };
 

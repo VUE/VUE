@@ -43,7 +43,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.224 $ / $Date: 2009-08-10 22:47:24 $ / $Author: sfraize $
+ * @version $Revision: 1.225 $ / $Date: 2009-08-13 19:11:02 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -613,6 +613,10 @@ public class LWLink extends LWComponent
     private void toggleTailPrune() {
         pruneToggle(!tail.pruned, getEndpointChain(head.node));
         tail.pruned = !tail.pruned;
+    }
+
+    public void clearPrunes() {
+        tail.pruned = head.pruned = false;
     }
 
 
