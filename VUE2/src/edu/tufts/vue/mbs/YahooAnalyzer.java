@@ -1,5 +1,10 @@
 package edu.tufts.vue.mbs;
 
+/**
+ * This code is NO LONGER USED IN VUE
+ * With the module you can get significact words and prhases extracted from lots of content on your website.
+ * This code is discontinued due to the closing of Yahoo's Term Extraction web service. The service will be terminated at the end of August. 
+ */
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;

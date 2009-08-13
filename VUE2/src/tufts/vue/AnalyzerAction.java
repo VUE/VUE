@@ -200,7 +200,7 @@ public class AnalyzerAction extends Actions.LWCAction {
     }
     
     // random layout. scatters nodes at random
-    public static final AnalyzerAction yahoo = new AnalyzerAction(new YahooAnalyzer(),VueResources.getString("analyzeaction.yahoocontent"),null);
+   // public static final AnalyzerAction yahoo = new AnalyzerAction(new YahooAnalyzer(),VueResources.getString("analyzeaction.yahoocontent"),null);
     public static final AnalyzerAction calais = new AnalyzerAction(new OpenCalaisAnalyzer(),VueResources.getString("analyzeaction.performmapbased"),null);
     public static final AutoTaggerAction calaisAutoTagger = new AutoTaggerAction(new OpenCalaisAnalyzer(),VueResources.getString("analyzeaction.autotag"),null);
     public static final SemanticMapAction semanticMapAction = new SemanticMapAction(new OpenCalaisAnalyzer(),"semantic map",null);
@@ -292,7 +292,6 @@ public class AnalyzerAction extends Actions.LWCAction {
     };
     
     public static final Action[] ANALYZER_ACTIONS = {
-        yahoo,
         calais,
     };
 

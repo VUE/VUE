@@ -307,9 +307,9 @@ public class OpenCalaisAnalyzer implements LWComponentAnalyzer, ErrorHandler{
 			results.add(new AnalyzerResult(prop.getType(),prop.getName()));
 		}
 		
-		if (results.isEmpty() && fallback)
-			return new YahooAnalyzer().analyze(c);
-		else
+		//if (results.isEmpty() && fallback)
+		//	return new YahooAnalyzer().analyze(c);
+		//else
 			return results;
      }
 	
