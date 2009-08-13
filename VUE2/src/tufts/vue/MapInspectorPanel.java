@@ -33,7 +33,7 @@ import tufts.vue.gui.*;
  * A tabbed-pane collection of property sheets that apply
  * globally to a given map.
  *
- * @version $Revision: 1.75 $ / $Date: 2009-08-06 21:12:41 $ / $Author: brian $ 
+ * @version $Revision: 1.76 $ / $Date: 2009-08-13 19:10:15 $ / $Author: brian $ 
  *
  */
 public class MapInspectorPanel extends JPanel
@@ -154,6 +154,11 @@ public class MapInspectorPanel extends JPanel
         //    mMap = pMap;
         //}
         mMap = pMap;
+
+        if (pMap != null && mInfoPanel != null) {
+            pMap.addLWCListener(mInfoPanel);
+        }
+
         updatePanels();
     }
     
@@ -239,7 +244,7 @@ public class MapInspectorPanel extends JPanel
      * This is the tab panel for displaying Map Info
      *
      **/
-    public class InfoPanel extends JPanel implements PropertyChangeListener, FocusListener
+    public class InfoPanel extends JPanel implements PropertyChangeListener, FocusListener, LWComponent.Listener
     {
         //JTextField mTitleEditor = null;
         //JText Field mAuthorEditor = null;
@@ -461,8 +466,6 @@ public class MapInspectorPanel extends JPanel
         public void updatePanel(LWMap pMap) {
             // update the display
             mDate.setText( mMap.getDate() );
-            mObjectStats.setText(mMap.getObjectStatistics());
-            mConnectivityStats.setText(mMap.getConnectivityStatistics());
             //mTitleEditor.setText( mMap.getLabel() );
             edu.tufts.vue.metadata.VueMetadataElement creator = 
                     mMap.getMetadataList().get(dcCreator);
@@ -495,6 +498,8 @@ public class MapInspectorPanel extends JPanel
             propertiesEditor.setProperties(pMap.getMetadata(),true);
             if (DEBUG.EVENTS) Log.debug(getClass().getSimpleName() + ".updatePanel: " + VUE.getActiveMap().getFillColor());
             mMapColor.setColor(VUE.getActiveMap().getFillColor());
+
+            updateStats();
         }
         
         private void saveInfo() {
@@ -527,7 +532,21 @@ public class MapInspectorPanel extends JPanel
         public void focusLost(FocusEvent e) {
             saveInfo();
         }
-        
+
+        protected void updateStats() {
+            GUI.invokeAfterAWT(new Runnable() { public void run() {
+                mObjectStats.setText(mMap.getObjectStatistics());    // Must call getObjectStatistics() before getConnectivityStatistics().
+                mConnectivityStats.setText(mMap.getConnectivityStatistics());
+            }});
+        }
+
+        // LWComponent.Listener method
+        public void LWCChanged(LWCEvent event) {
+            if (event.key == LWKey.LinkAdded || event.key == LWKey.LinkRemoved ||
+                    event.key == LWKey.Created || event.key == LWKey.Deleting) {
+                updateStats();
+            }
+        }
     }
     
     
@@ -965,7 +984,6 @@ public class MapInspectorPanel extends JPanel
         if (args.length > 1)
             VueUtil.displayComponent(new VueTextPane(map, LWKey.Notes, null));
     }
-    
 }
 
 
