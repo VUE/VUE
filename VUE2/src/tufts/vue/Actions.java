@@ -1921,7 +1921,7 @@ public class Actions implements VueConstants
 
     /** this will toggle the collapsed state flag on the selected nodes */
     public static final LWCAction Collapse =
-    new LWCAction(VueResources.local("menu.view.collapse"), keyStroke(KeyEvent.VK_K, COMMAND)) {
+    new LWCAction(VueResources.local("menu.view.collapse")) {
         boolean enabledFor(LWSelection s) {
             final int nodeCount = s.count(LWNode.class);
             return nodeCount > 1 || s.size() == 1 && s.only().hasChildren();
@@ -1932,7 +1932,7 @@ public class Actions implements VueConstants
     };
     
     public static final VueAction ToggleGlobalCollapse =
-        new VueAction(VueResources.local("menu.view.collapseAll")) {
+        new VueAction(VueResources.local("menu.view.collapseAll"), keyStroke(KeyEvent.VK_K, COMMAND)) {
         public void act() {
 
             LWComponent.toggleGlobalCollapsed();
@@ -3056,7 +3056,7 @@ public class Actions implements VueConstants
             this.size = -1;
         }
         ImageSizeAction(int size) {
-            super(size + " x " + size + " px");
+            super(size + "x" + size);
             this.size = size;
         }
 
@@ -3298,7 +3298,7 @@ public class Actions implements VueConstants
         }
     };
     public static final VueAction ZoomActual =
-    new VueAction(VueResources.local("actions.zoomActual.label"), keyStroke(KeyEvent.VK_SEMICOLON, COMMAND)) {
+    new VueAction(VueResources.local("actions.zoomActual.label"), keyStroke(KeyEvent.VK_QUOTE, COMMAND)) {
         // no way to listen for zoom change events to keep this current
         //boolean enabled() { return VUE.getActiveViewer().getZoomFactor() != 1.0; }
         public void act() {
