@@ -1,34 +1,40 @@
 package tufts.vue;
 
+import java.awt.Color;
+
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.border.LineBorder;
 
 import edu.tufts.vue.ontology.ui.OntologyBrowser;
 
 import tufts.vue.gui.DockWindow;
-import tufts.vue.gui.GUI;
 
 public class ContentPanel extends JPanel {
-	private final DSBrowser dsbrowser = new DSBrowser();	
 	public static final long	serialVersionUID = 1;
 	JTabbedPane					tabbedPane = new JTabbedPane();
-	JPanel						resources = VUE.getDRBrowserDock().getContentPanel();  // VUE.getDRBrowserDock() returns the DockWindow containing the DRBrowser.
-	JPanel						datasets = dsbrowser.getDockWindow().getContentPanel();
-	JPanel						ontologies = OntologyBrowser.getBrowser().getDockWindow().getContentPanel();
+	DRBrowser					resources = null;
+	DSBrowser					datasets = null;
+	OntologyBrowser				ontologies = null;
 
+	
 	public ContentPanel(DockWindow dockWindow) {
-		if (!VUE.isApplet())
-			tabbedPane.addTab(VueResources.getString("dockWindow.contentPanel.resources.title"), resources);
-		tabbedPane.addTab(VueResources.getString("dockWindow.contentPanel.datasets.title"), datasets);
-		tabbedPane.addTab(VueResources.getString("dockWindow.contentPanel.ontologies.title"), ontologies);
+		if (!VUE.isApplet()) {
+			resources = new DRBrowser(true, dockWindow);
+			addBrowser(VueResources.getString("dockWindow.contentPanel.resources.title"), resources);
+		}
+
+		datasets = new DSBrowser(dockWindow);
+		addBrowser(VueResources.getString("dockWindow.contentPanel.datasets.title"), datasets);
+
+		ontologies = OntologyBrowser.getBrowser();
+		ontologies.initializeBrowser(false, null);
+		addBrowser(VueResources.getString("dockWindow.contentPanel.ontologies.title"), ontologies);
 
 		dockWindow.setContent(tabbedPane);
 	}
-	
-	public DSBrowser getDSBrowser()
-	{
-		return dsbrowser;
-	}
+
 
 	public void finalize() {
 		resources = null;
@@ -37,15 +43,46 @@ public class ContentPanel extends JPanel {
 		tabbedPane = null;
 	}
 
+	protected void addBrowser(String title, JPanel browser) {
+		JScrollPane scrollPane = new JScrollPane(null, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+
+		scrollPane.setOpaque(false);
+		scrollPane.getViewport().setOpaque(false);
+		scrollPane.setBorder(null);
+		scrollPane.setName(title + ".dockScroll");
+		scrollPane.setWheelScrollingEnabled(true);
+
+		browser.putClientProperty("VUE.sizeTrack", scrollPane.getViewport());
+        scrollPane.setViewportView(browser);
+
+		tabbedPane.addTab(title, scrollPane);
+
+		if (DEBUG.BOXES) scrollPane.setBorder(new LineBorder(Color.green, 4));
+	}
+
+	public void loadDataSourceViewer() {
+		if (resources != null) {
+			resources.loadDataSourceViewer();
+		}
+	}
+
+	public DRBrowser getDRBrowser() {
+		return resources;
+	}
+
+	public DSBrowser getDSBrowser() {
+		return datasets;
+	}
+
 	public void showResourcesTab() {
-		tabbedPane.setSelectedComponent(resources);
+		tabbedPane.setSelectedIndex(0);
 	}
 
 	public void showDatasetsTab() {
-		tabbedPane.setSelectedComponent(datasets);
+		tabbedPane.setSelectedIndex(1);
 	}
 
 	public void showOntologiesTab() {
-		tabbedPane.setSelectedComponent(ontologies);
+		tabbedPane.setSelectedIndex(2);
 	}
 }

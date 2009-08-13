@@ -288,12 +288,11 @@ public class DataSetViewer extends ContentViewer {
 	private void positionEditInfoWindow()
 	{
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+
 		if ((DSB.dockWindow.getX() + DSB.dockWindow.getWidth() + editInfoDockWindow.getWidth()) < screenSize.getWidth())
-			editInfoDockWindow.setLocation(DSB.dockWindow.getX() + DSB.dockWindow.getWidth(),
-					DSB.dockWindow.getY());
+			editInfoDockWindow.setLocation(DSB.dockWindow.getX() + DSB.dockWindow.getWidth(), DSB.dockWindow.getY());
 		else
-			editInfoDockWindow.setLocation(DSB.dockWindow.getX() - editInfoDockWindow.getWidth(),
-					DSB.dockWindow.getY());
+			editInfoDockWindow.setLocation(DSB.dockWindow.getX() - editInfoDockWindow.getWidth(), DSB.dockWindow.getY());
 	}
 
 	private void refreshEditInfo(tufts.vue.DataSource ds) {

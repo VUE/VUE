@@ -34,7 +34,7 @@ import tufts.vue.LinkTool.LinkModeTool;
  * This could use a re-write, along with VueToolPanel, VueTool, and the way
  * contextual toolbars are handled.
  *
- * @version $Revision: 1.80 $ / $Date: 2009-08-09 15:52:04 $ / $Author: mike $
+ * @version $Revision: 1.81 $ / $Date: 2009-08-13 21:33:16 $ / $Author: brian $
  *
  **/
 public class VueToolbarController  
@@ -141,7 +141,7 @@ public class VueToolbarController
         parentButton.removePopupComponent(ontologyNodeComponent);
         parentLinkButton.removePopupComponent(ontologyLinkComponent);
      
-        edu.tufts.vue.ontology.ui.OntologyBrowser.getBrowser().getDockWindow().addComponentListener(new ComponentAdapter()
+/*        edu.tufts.vue.ontology.ui.OntologyBrowser.getBrowser().getDockWindow().addComponentListener(new ComponentAdapter()
         {
 
 			public void componentHidden(ComponentEvent arg0) {
@@ -153,7 +153,7 @@ public class VueToolbarController
 				showOntologicalTools();
 			}
         	
-        });
+        });*/
 
     }
     

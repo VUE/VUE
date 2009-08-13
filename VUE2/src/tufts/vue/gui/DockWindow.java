@@ -55,7 +55,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.153 $ / $Date: 2009-08-11 20:36:05 $ / $Author: mike $
+ * @version $Revision: 1.154 $ / $Date: 2009-08-13 21:33:17 $ / $Author: brian $
  * @author Scott Fraize
  */
 
@@ -590,13 +590,24 @@ public class DockWindow
         mContentPane.setWidget(c, Widget.wantsScroller(c), Widget.wantsScrollerAlways(c));
 
         Component toListen = null;
-        if (c instanceof JScrollPane)
-            toListen = ((JScrollPane)c).getViewport().getView();
-        if (toListen == null)
-            toListen = c;
+        if (c instanceof JTabbedPane) {
+        	int tabCount = ((JTabbedPane)c).getTabCount();
 
-        toListen.addPropertyChangeListener(this);
-        if (DEBUG.DOCK) out("addPropertyChangeListener: " + GUI.name(toListen));
+        	for (int tab = 0; tab < tabCount; tab ++) {
+        		// The JTabbedPane's tabs are each expected to contain a JScrollPane.
+	            toListen = ((JScrollPane)((JTabbedPane)c).getComponent(tab)).getViewport().getView();
+    	        toListen.addPropertyChangeListener(this);
+    	        if (DEBUG.DOCK) out("addPropertyChangeListener: " + GUI.name(toListen));
+        	}
+        } else {
+	        if (c instanceof JScrollPane)
+	            toListen = ((JScrollPane)c).getViewport().getView();
+	        if (toListen == null)
+	            toListen = c;
+
+	        toListen.addPropertyChangeListener(this);
+	        if (DEBUG.DOCK) out("addPropertyChangeListener: " + GUI.name(toListen));
+        }
         
         if (!hadContent || !isDisplayable()) {
             pack();

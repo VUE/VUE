@@ -108,7 +108,6 @@ import tufts.vue.gui.VueMenuBar;
 import tufts.vue.ui.InspectorPane;
 import edu.tufts.vue.compare.ui.MergeMapsControlPanel;
 import edu.tufts.vue.dsm.impl.VueDataSourceManager;
-import edu.tufts.vue.ontology.ui.OntologyBrowser;
 import edu.tufts.vue.preferences.implementations.MetadataSchemaPreference;
 import edu.tufts.vue.preferences.implementations.ShowAgainDialog;
 import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
@@ -118,7 +117,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.675 $ / $Date: 2009-08-10 22:48:31 $ / $Author: sfraize $ 
+ * @version $Revision: 1.676 $ / $Date: 2009-08-13 21:33:16 $ / $Author: brian $ 
  */
 
 public class VUE
@@ -163,7 +162,6 @@ public class VUE
     private static MapInspectorPanel mapInspectorPanel = null;
     private static JButton returnToMapButton = null;
     private static MergeMapsControlPanel mergeMapsControlPanel = null;
-    private static OntologyBrowser ontologyBrowser = null;
     private static MetadataSearchMainGUI metadataSearchMainPanel = null;
     private static InteractionTools interactionToolsPanel = null;
     private static ContentPanel contentPanel = null;
@@ -194,11 +192,7 @@ public class VUE
     	metadataSearchMainPanel = null;
     	//returnToMapButton = null;
     	mergeMapsControlPanel = null;
-    	ontologyBrowser = null;
-    	//DR_BROWSER.removeAll();
-    	//DR_BROWSER = null;
     	
-    	DR_BROWSER_DOCK = null;
     //	pathwayDock = null;
     //	pathwayDock = null;
     	formatDock = null;
@@ -903,8 +897,6 @@ public class VUE
     private static boolean SKIP_RDF_INDEX = false;
     private static String NAME;
 	
-    private static DRBrowser DR_BROWSER;
-    private static DockWindow DR_BROWSER_DOCK;
     private static DockWindow pathwayDock;
     private static DockWindow formatDock;
     private static DockWindow slideDock;
@@ -918,7 +910,6 @@ public class VUE
     private static DockWindow interactionToolsDock;
     private static DockWindow contentDock;
     private static DockWindow mergeMapsDock;
-    private static DockWindow ontologyDock;
     private static DockWindow anchor;
 
     private static boolean UseLeopardAnchor = false;
@@ -1082,8 +1073,8 @@ public class VUE
         
         GUI.invokeAfterAWT(new Runnable() { public void run() {
             
-            if (DR_BROWSER != null)
-                DR_BROWSER.loadDataSourceViewer();
+            if (contentPanel != null)
+                contentPanel.loadDataSourceViewer();
             
             // Kick-off tufts.vue.VueDataSource viewer build threads:
             // must be done in AWT to be threadsafe, as involves
@@ -1587,10 +1578,6 @@ public class VUE
         		ApplicationFrame.addComp(mMapTabsLeft, BorderLayout.CENTER);
         	}
         
-        	//         JPanel resources = DR_BROWSER_DOCK.getContentPanel();
-        	//         resources.setMinimumSize(new Dimension(500,500));
-        	//         ApplicationFrame.addComp(resources, BorderLayout.EAST);
-        
         	try {
         		ApplicationFrame.pack();
         	} catch (ArrayIndexOutOfBoundsException e) {
@@ -1809,8 +1796,8 @@ public class VUE
         if (!pathwayDock.getWindowProperties().isEnabled() || !pathwayDock.getWindowProperties().isWindowVisible())
         	acrossTopList.add(pathwayDock);
         
-        if (!DR_BROWSER_DOCK.getWindowProperties().isEnabled() || !DR_BROWSER_DOCK.getWindowProperties().isWindowVisible())
-        	acrossTopList.add(DR_BROWSER_DOCK);        
+//        if (!DR_BROWSER_DOCK.getWindowProperties().isEnabled() || !DR_BROWSER_DOCK.getWindowProperties().isWindowVisible())
+//        	acrossTopList.add(DR_BROWSER_DOCK);        
         if (!ObjectInspector.getWindowProperties().isEnabled() || !ObjectInspector.getWindowProperties().isWindowVisible())
         	acrossTopList.add(ObjectInspector);
         
@@ -1855,7 +1842,6 @@ public class VUE
         //restore window
         if (!VUE.isApplet())
         {
-//        	DR_BROWSER_DOCK.positionWindowFromProperties();
         	pathwayDock.positionWindowFromProperties();
 
         	formatDock.positionWindowFromProperties();
@@ -1868,7 +1854,6 @@ public class VUE
         	interactionToolsDock.positionWindowFromProperties();
         	contentDock.positionWindowFromProperties();
         	mergeMapsDock.positionWindowFromProperties();
-//        	ontologyDock.positionWindowFromProperties();
         	ObjectInspector.positionWindowFromProperties();
         	if (outlineDock != null)
         		outlineDock.positionWindowFromProperties();       
@@ -1877,7 +1862,7 @@ public class VUE
         }   
         mapInspectorPanel.metadataPanel.refresh();
         
-        if (VUE.isApplet() || (!SKIP_DR && (!DR_BROWSER_DOCK.getWindowProperties().isEnabled() || DR_BROWSER_DOCK.getWindowProperties().isAllValuesDefaults())))
+        if (VUE.isApplet())
         {
         	//I'm just putting a comment in here becuase this seems odd to me, and I wanted it to be clear it was intentional.
         	//"As we move away from a "datasource" centric vision of VUE, the "Content" window should be collapsed when launching VUE"
@@ -1892,7 +1877,6 @@ public class VUE
         	;//	formatDock.setSize(new Dimension(620,54));
         	else
         		;
-        	//DR_BROWSER_DOCK.showRolledUp();
         	
         	formatDock.setLocation(GUI.GInsets.left+VueResources.getInt("formatting.location.x"),
                     			   GUI.GInsets.top +VueResources.getInt("formatting.location.y"));        	
@@ -1900,8 +1884,6 @@ public class VUE
             DockWindow.flickerAnchorDock();
             if (!VUE.isApplet())
             	formatDock.setVisible(true);
-        	//DR_BROWSER_DOCK.setVisible(true);
-            
         }
         
     }
@@ -1961,92 +1943,6 @@ public class VUE
         }
 
         //-----------------------------------------------------------------------------
-        // Resources Stack (Libraries / DRBrowser)
-        // DRBrowser class initializes the DockWindow itself.
-        //-----------------------------------------------------------------------------
-        if (DR_BROWSER_DOCK == null || VUE.isApplet())
-        {
-        	DR_BROWSER_DOCK = GUI.createDockWindow(VueResources.getString("dockWindow.resource.title"));
-               
-        	//DockWindow searchDock = GUI.createDockWindow("Search");
-        	//DockWindow searchDock = null;
-        	if (!SKIP_DR) {
-            
-        		// TODO: DRBrowser init needs to load all it's content/viewers in a threaded
-        		// manner (didn't this used to happen?)  In any case, even local file data
-        		// sources, which can still take quite a long time to init depending on
-        		// what's out there (e.g., CabinetResources don't know how to lazy init
-        		// their contents -- every 1st & 2nd level file is polled and initialized at
-        		// startup).  SMF 2007-10-05
-            
-        		DR_BROWSER = new DRBrowser(true, DR_BROWSER_DOCK, null);
-                        
-        		DR_BROWSER_DOCK.setSize(300, (int) (GUI.GScreenHeight * 0.75));
-
-        	}
-
-                if (DEBUG.WORK /* && !SKIP_DR */) {
-                    
-                    final DockWindow dataFinderDock = GUI.createDockWindow(VueResources.getString("dockWindow.datafinder.title"));
-                    final DataFinder DATA_FINDER_DEFAULTS =
-                        new DataFinder("resources", null,
-                                       new Class[] {
-                                           tufts.vue.ds.XmlDataSource.class,
-                                           edu.tufts.vue.rss.RSSDataSource.class }
-                                       );
-                    final DataFinder DATA_FINDER_XML
-                        = new DataFinder("xml", new Class[] { tufts.vue.ds.XmlDataSource.class }, null);
-                    final DataFinder DATA_FINDER_RSS
-                        = new DataFinder("rss", new Class[] { edu.tufts.vue.rss.RSSDataSource.class }, null);
-                            
-                    final JTabbedPane tabs = new JTabbedPane();
-
-                    JScrollPane sp0, sp1, sp2;
-                            
-                    // data on top for the moment as we're working on it -- move to last tab eventually
-                    tabs.add("Data", sp2 = new JScrollPane(DATA_FINDER_XML,
-                                                     JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-                                                     JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
-                                                     ));
-                    tabs.add("Resources", sp0 = new JScrollPane(DATA_FINDER_DEFAULTS,
-                                                          JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-                                                          JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
-                                                          ));
-                    tabs.add("RSS", sp1 = new JScrollPane(DATA_FINDER_RSS,
-                                                     JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-                                                     JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
-                                                     ));
-
-                    // Scroll panes inside of the JTabbedPane lose the special
-                    // width-tracking capability provided by DockWindow JScrollPane's...
-                    // (e.g., the icons in data-sources list don't align right, etc) --
-                    // setting these special client properties on an instance of
-                    // WidgetStack enable this.  This also appears to dramatically
-                    // speed things up when switching tabs and doing general UI updates.
-                    // (The slowness may have to do with some kind of unbounded layout
-                    // problem, attempting to lay things out without enough constraints
-                    // to limit the algorithms).
-                    DATA_FINDER_DEFAULTS.putClientProperty("VUE.sizeTrack", sp0.getViewport());
-                    DATA_FINDER_RSS.putClientProperty("VUE.sizeTrack", sp1.getViewport());
-                    DATA_FINDER_XML.putClientProperty("VUE.sizeTrack", sp2.getViewport());
-                            
-                    dataFinderDock.setContent(tabs);
-                            
-                    dataFinderDock.setSize(350, (int) (GUI.GScreenHeight * 0.85));
-                    dataFinderDock.setVisible(true);
-
-                    GUI.invokeAfterAWT(new Runnable() { public void run() {
-                        if (!SKIP_DR) {
-                            // still an issue?: [will currently deadlock if DEBUG is NOT enabled, presumably when caching is attempted]
-                            DATA_FINDER_DEFAULTS.loadDataSourceViewer();
-                            DATA_FINDER_RSS.loadDataSourceViewer();
-                        }
-                        DATA_FINDER_XML.loadDataSourceViewer();
-                    }});
-                }
-                
-        }
-        //-----------------------------------------------------------------------------
         // Map Inspector
         //-----------------------------------------------------------------------------
         if (MapInspector == null || VUE.isApplet())
@@ -2087,14 +1983,6 @@ public class VUE
         {        	
         	mergeMapsDock = GUI.createDockWindow(VueResources.getString("dockWindow.mergemaps.title"));        	
         	mergeMapsControlPanel = new MergeMapsControlPanel(mergeMapsDock);       	
-        }
-      //-----------------------------------------------------------------------------
-        // Ontology Browser
-        //-----------------------------------------------------------------------------
-        if (ontologyDock == null || VUE.isApplet())
-        {        	
-        	ontologyDock = OntologyBrowser.getBrowser().getDockWindow();       	
-        	ontologyBrowser = ontologyBrowser;       	
         }
         //-----------------------------------------------------------------------------
         // Object Inspector / Resource Inspector
@@ -2535,11 +2423,6 @@ public class VUE
     	return floatingZoomDock;
     }
     
-    public static DockWindow getDRBrowserDock()
-    {
-    	return DR_BROWSER_DOCK;
-    }
-    
     public static DockWindow getPannerDock()
     {
     	return pannerDock;
@@ -2594,16 +2477,6 @@ public class VUE
     {
     	return contentDock;
     }    
-    
-    public static OntologyBrowser getOntologyBrowserPanel()
-    {
-    	return ontologyBrowser;
-    }    
-    
-    public static DockWindow getOntologyBrowser()
-    {
-    	return ontologyDock;
-    }
     
     public static MergeMapsControlPanel getMergeMapsControlPanel()
     {
@@ -3007,7 +2880,6 @@ public class VUE
      */
     public static boolean isOkayToExit() {
        //update the windows properties
-        DR_BROWSER_DOCK.saveWindowProperties();
         pathwayDock.saveWindowProperties();
         if (formatDock != null)
             formatDock.saveWindowProperties();
@@ -4076,7 +3948,6 @@ public class VUE
 	}	
 
 	public static DRBrowser getDRBrowser() {
-
-		return DR_BROWSER;
+		return contentPanel.getDRBrowser();
 	}
 }

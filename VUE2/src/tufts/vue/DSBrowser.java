@@ -12,6 +12,7 @@ import javax.swing.Action;
 import javax.swing.DefaultListModel;
 
 import edu.tufts.vue.dsm.DataSourceManager;
+import edu.tufts.vue.ontology.ui.OntologyBrowser;
 
 import tufts.vue.DataSourceViewer.MiscActionMouseListener;
 import tufts.vue.ds.XmlDataSource;
@@ -26,20 +27,24 @@ public class DSBrowser extends ContentBrowser {
 	public static final long	serialVersionUID = 1;
 	private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(DSBrowser.class);
 
+	public static DockWindow			dockWindow = null;
 	protected Widget					librariesPane = new Widget(VueResources.getString("dockWindow.contentPanel.datasets.title"));
 	protected AssociationsPane			associationsPane = new AssociationsPane();
 	protected Widget					browsePane = new Widget(VueResources.getString("button.browse.label"));
-	protected WidgetStack				widgetStack = new WidgetStack(VueResources.getString("dockWindow.contentPanel.title"));
+	protected WidgetStack				widgetStack = new WidgetStack(VueResources.getString("dockWindow.contentPanel.datasets.title"));
 	protected DataSetViewer				dataSetViewer = new DataSetViewer(this);
-	protected DockWindow				dockWindow = null;
 
 
-	public DSBrowser() {
+	public DSBrowser(DockWindow dw) {
 		super(new BorderLayout());
-		setName(VueResources.getString("dockWindow.contentPanel.title"));
+
+		dockWindow = dw;
+
+		setName(VueResources.getString("dockWindow.contentPanel.datasets.title"));
+		dataSetViewer.setName("Data Set Viewer");
 
 		librariesPane.add(dataSetViewer);
-		librariesPane.revalidate();	// Necessary for DSV names to be rendered;  not sure why.
+		librariesPane.revalidate();	// Necessary for dataSetViewer names to be rendered;  not sure why.
 
 		widgetStack.addPane(librariesPane, 0f);
 		widgetStack.addPane(associationsPane, 0f);
@@ -60,12 +65,8 @@ public class DSBrowser extends ContentBrowser {
 
 		refreshMenuActions();
 
+		widgetStack.putClientProperty("VUE.sizeTrack", this);
 		add(widgetStack);
-
-		// Hack alert -- in order for the WidgetStack's scrollbar to appear when needed, it seems to be
-		// necessary that the WidgetStack be contained in a DockWindow.  So the creator of a DSBrowser
-		// should display not the DSBrowser, but the DSBrowser's getDockWindow().getContentPanel().
-		dockWindow = GUI.createDockWindow(widgetStack);
 	}
 
 	public DataSetViewer getDataSetViewer()
@@ -78,12 +79,7 @@ public class DSBrowser extends ContentBrowser {
 		associationsPane = null;
 		browsePane = null;
 		widgetStack = null;
-		dockWindow = null;
-	}
-
-
-	DockWindow getDockWindow() {
-		return dockWindow;
+		dataSetViewer = null;
 	}
 
 

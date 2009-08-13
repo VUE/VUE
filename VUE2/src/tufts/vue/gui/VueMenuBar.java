@@ -88,7 +88,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.154 $ / $Date: 2009-08-12 15:42:59 $ / $Author: brian $
+ * @version $Revision: 1.155 $ / $Date: 2009-08-13 21:33:17 $ / $Author: brian $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -1017,7 +1017,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
             windowMenu.add(Actions.OntologiesAction);
             windowMenu.addSeparator();
 
-            OntologyBrowser.getBrowser().initializeBrowser(false, null);
+//            OntologyBrowser.getBrowser().initializeBrowser(false, null);
 //      }
 
         if (VUE.getInteractionToolsDock()!= null)
