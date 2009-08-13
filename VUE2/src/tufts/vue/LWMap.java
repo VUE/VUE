@@ -59,7 +59,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.248 $ / $Date: 2009-08-10 22:45:48 $ / $Author: sfraize $
+ * @version $Revision: 1.249 $ / $Date: 2009-08-13 20:12:52 $ / $Author: brian $
  */
 
 public class LWMap extends LWContainer
@@ -494,11 +494,12 @@ public class LWMap extends LWContainer
         mDateCreated = pDate;
     }
 
-    protected int	mMinLinks,
-    				mMaxLinks,
-    				mNodeCount,
+    protected int	mNodeCount,
     				mLinkCount,
-    				mGroupCount;
+    				mGroupCount,
+    				mConnectionCount,
+    				mMinConnections,
+    				mMaxConnections;
 
     protected void countChildren(LWComponent c) {
     	for (LWComponent child : c.getChildren()) {
@@ -507,16 +508,27 @@ public class LWMap extends LWContainer
 			} else if (child instanceof LWNode) {
 				mNodeCount++;
 
-            	int		nodeLinks = child.getLinks().size();
+            	int		connections = 0;
 
-                if (mMinLinks == -1 || nodeLinks < mMinLinks) {
-                	mMinLinks = nodeLinks;
+            	for (LWLink link: child.getLinks()) {
+    				LWComponent		head = link.getPersistHead(),
+    								tail = link.getPersistTail();
+
+    				if (head != null && tail != null && head instanceof LWNode && tail instanceof LWNode) {
+    					connections++;
+    				}
+            	}
+
+                if (mMinConnections == -1 || connections < mMinConnections) {
+                	mMinConnections = connections;
                 }
 
-                if (nodeLinks > mMaxLinks) {
-                	mMaxLinks = nodeLinks;
+                if (connections > mMaxConnections) {
+                	mMaxConnections = connections;
                 }
-			} else if  (child instanceof LWLink) {
+
+                mConnectionCount += connections;
+			} else if (child instanceof LWLink) {
 				mLinkCount++;
 			}
 
@@ -525,16 +537,17 @@ public class LWMap extends LWContainer
     }
 
     public String getObjectStatistics() {
-    	mMinLinks = -1;
-    	mMaxLinks = 0;
     	mNodeCount = 0;
     	mLinkCount = 0;
     	mGroupCount = 0;
+    	mConnectionCount = 0;
+    	mMinConnections = -1;
+    	mMaxConnections = 0;
 
     	countChildren(this);
 
-        if (mMinLinks == -1) {
-        	mMinLinks = 0;
+        if (mMinConnections == -1) {
+        	mMinConnections = 0;
         }
 
         return String.format(Locale.getDefault(), VueResources.getString("mapinspectorpanel.objectStats"),
@@ -543,10 +556,10 @@ public class LWMap extends LWContainer
     
     public String getConnectivityStatistics() {
     	// Expects that getObjectStatistics() will be called first to make counts -- no need to do it again.
-    	double	avg = (mNodeCount == 0 ? 0.0 : ((double)mLinkCount * 2.0) / (double)mNodeCount);
+    	double	avg = (mNodeCount == 0 ? 0.0 : ((double)mConnectionCount) / (double)mNodeCount);
 
 		return String.format(Locale.getDefault(), VueResources.getString("mapinspectorpanel.connectivityStats"),
-				mMinLinks, mMaxLinks, avg);
+				mMinConnections, mMaxConnections, avg);
     }
     
     public PropertyMap getMetadata(){
