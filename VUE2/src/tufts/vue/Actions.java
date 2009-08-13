@@ -3305,10 +3305,7 @@ public class Actions implements VueConstants
 
     
     public static final VueAction ToggleFullScreen =
-        new VueAction(VueResources.local("menu.view.fullscreen"), VueUtil.isMacPlatform() ?
-                      keyStroke(KeyEvent.VK_BACK_SLASH, COMMAND) :
-                      keyStroke(KeyEvent.VK_F11)) {
-    	
+        new VueAction(VueResources.local("menu.view.fullscreen"), keyStroke(KeyEvent.VK_BACK_SLASH, COMMAND)) {
             public void act() {
                 if (PresentationTool.ResumeActionName.equals(getActionName())) {
                     PresentationTool.ResumePresentation();
@@ -3413,13 +3410,8 @@ public class Actions implements VueConstants
         // (todo: see about just changing the Close shortcut entirely or getting rid of
         // it)
 
-        new VueAction(VueResources.local("menu.format.autozoom"),
-                      (!Util.isMacPlatform() || (DEBUG.Enabled&&DEBUG.KEYS))
-                      ? keyStroke(KeyEvent.VK_Z, ALT)
-                      : keyStroke(KeyEvent.VK_E, COMMAND+SHIFT) // can only get away witl COMMAND root modifier for now
-                      )
+        new VueAction(VueResources.local("menu.format.autozoom"), keyStroke(KeyEvent.VK_E, COMMAND+SHIFT))
         {
-            
             boolean state = edu.tufts.vue.preferences.implementations.AutoZoomPreference.getInstance().isTrue();
             { updateName(); }
             @Override
