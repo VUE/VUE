@@ -3071,6 +3071,14 @@ public class Actions implements VueConstants
 
             //Log.debug(this + " on " + im);
 
+            if (actionKey == IMAGE_SHOW) {
+                if (im.isHidden(HideCause.IMAGE_ICON_OFF)) {
+                    im.clearHidden(HideCause.IMAGE_ICON_OFF);
+                    im.getParent().layout("imageIconShow");
+                }
+                return;
+            }
+            
             if (actionKey == IMAGE_HIDE)
                 newDim = Integer.MIN_VALUE;
             else if (actionKey == IMAGE_BIGGER)
@@ -3121,6 +3129,7 @@ public class Actions implements VueConstants
     private static final Object IMAGE_BIGGER = "bigger";
     private static final Object IMAGE_SMALLER = "smaller";
     private static final Object IMAGE_HIDE = "hide";
+    private static final Object IMAGE_SHOW = "show";
     
         private static final class ImageAdjustAction extends ImageSizeAction {
             final Object actionKey;
@@ -3142,6 +3151,7 @@ public class Actions implements VueConstants
     private static final LWCAction ImageBigger = new ImageAdjustAction("action.image.bigger", IMAGE_BIGGER, keyStroke(KeyEvent.VK_CLOSE_BRACKET, COMMAND+SHIFT));
     private static final LWCAction ImageSmaller = new ImageAdjustAction("action.image.smaller", IMAGE_SMALLER, keyStroke(KeyEvent.VK_OPEN_BRACKET, COMMAND+SHIFT));
     private static final LWCAction ImageHide = new ImageAdjustAction("action.image.hide", IMAGE_HIDE);
+    private static final LWCAction ImageShow = new ImageAdjustAction("action.image.show", IMAGE_SHOW);
     
 
     private static final int ImageSizes[] = { 512, 256, 128, 64, 32, 16 };
@@ -3149,7 +3159,7 @@ public class Actions implements VueConstants
     public static final Action[] IMAGE_MENU_ACTIONS;
 
     static {
-        IMAGE_MENU_ACTIONS = new Action[ImageSizes.length + 4];
+        IMAGE_MENU_ACTIONS = new Action[ImageSizes.length + 5];
 
         int i = 0;
         
@@ -3162,6 +3172,7 @@ public class Actions implements VueConstants
         }
 
         IMAGE_MENU_ACTIONS[i++] = ImageHide;
+        IMAGE_MENU_ACTIONS[i++] = ImageShow;
 
     }
 
@@ -3384,6 +3395,7 @@ public class Actions implements VueConstants
             LWLink.setPruningEnabled(!wasEnabled);
 
             if (wasEnabled) {
+                // turning off pruning
                 for (LWMap map : VUE.getAllMaps()) {
                     for (LWComponent c : map.getAllDescendents()) {
                         c.clearHidden(HideCause.PRUNE);
@@ -3391,8 +3403,11 @@ public class Actions implements VueConstants
                             ((LWLink)c).clearPrunes();
                     }
                 }
+                VUE.layoutAllMaps(HideCause.PRUNE);
+            } else {
+                // turning on pruning -- show prune controls on any selected links
+                viewer().repaint();
             }
-            VUE.layoutAllMaps(HideCause.PRUNE);
         }
     };
 
