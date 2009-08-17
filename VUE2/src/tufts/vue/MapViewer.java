@@ -76,7 +76,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.613 $ / $Date: 2009-08-11 20:32:30 $ / $Author: anoop $ 
+ * @version $Revision: 1.614 $ / $Date: 2009-08-17 21:42:37 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -98,6 +98,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                , java.awt.event.MouseListener
                , java.awt.event.MouseMotionListener
                , java.awt.event.MouseWheelListener               
+               , FocusManager.GlobalMouseListener
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(MapViewer.class);
     
@@ -147,6 +148,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
     public interface Listener extends EventHandler.Listener<Event> {}
     
+    private static final EventHandler<Event> ViewerEventSource = EventHandler.getHandler(MapViewer.Event.class);
+
     /** The component we're currently displaying: usually an instanceof LWMap, unless presenting */
     protected LWComponent mFocal;
     /** The top-level map that owns the focal (usually the same as the focal) */
@@ -179,6 +182,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     protected Rectangle lastPaintedSelectorBox;
     /** are we currently dragging a selection box? */
     protected boolean isDraggingSelectorBox;
+    /** is a key currently held down? */
+    protected  boolean mKeyIsPressing;
     /** are we currently in a drag of any kind? (mouseDragged being called) */
     protected static boolean sDragUnderway;
     //protected Point2D.Float dragPosition = new Point2D.Float();
@@ -195,7 +200,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     // package-private for MapViewport class
     double mZoomFactor = 1.0;
     double mZoomInverse = 1/mZoomFactor;
-    Point2D.Float mOffset = new Point2D.Float();
+    final Point2D.Float mOffset = new Point2D.Float();
     
     //-------------------------------------------------------
     // VueTool support
@@ -319,6 +324,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         VUE.addActiveListener(VueTool.class, this);
         VUE.addActiveListener(MapViewer.class, this);
         VUE.addActiveListener(LWPathway.Entry.class, this);
+        EventHandler.addListener(FocusManager.GlobalMouseEvent.class, this);
         addKeyListener(inputHandler);
         addMouseListener(inputHandler);
         addMouseMotionListener(inputHandler);
@@ -354,6 +360,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         ActiveInstance.removeListener(VueTool.class, this);
         ActiveInstance.removeListener(MapViewer.class, this);
         ActiveInstance.removeListener(LWPathway.Entry.class, this);
+        EventHandler.removeListener(FocusManager.GlobalMouseEvent.class, this);
         removeKeyListener(inputHandler);
         removeMouseListener(inputHandler);
         removeMouseMotionListener(inputHandler);
@@ -528,12 +535,72 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         getTopLevelAncestor().setCursor(cursor);
     }
     
-    
-    public double getZoomFactor() {
-        return mZoomFactor;
+    private boolean viewIsChanging() {
+
+        // TODO: replace mKeyIsPressing with a FocusManager.isKeyDown() -- keys pressed
+        // on other windows, or even Apple-Key + Scroll-Wheel when anything other than
+        // the viewer has focus will miss the key press, and record all intermediate
+        // views generated.  Note there's nothing we can do about the case of
+        // MOUSE_WHEEL events through the panner which are accepted without any
+        // key-press -- view's will be recorded for each MOUSE_WHEEL event, and the only
+        // help we could provide to coalesce them would be to set a limit on the
+        // temporal frequency that view's can be recorded.
+        
+        return isAnimating
+            || mViewRestoring
+            || sDragUnderway
+            || mKeyIsPressing
+            || FocusManager.isMouseDown()
+            || VUE.isStartupUnderway()
+            || !isShowing()
+            ;
     }
 
-    private static final EventHandler<Event> ViewerEventSource = EventHandler.getHandler(MapViewer.Event.class);
+    // Although normally all access to mViewChangeCount should be taking place on the
+    // AWT thread, we use an Atomic just in case.  Tho if we do end up needing
+    // multi-threaded access, we'd need to synchronize access to mViewChangeCount in
+    // trackViewChanges, and synchronize the entire run() method of ViewChangeTracker,
+    // in which case the Atomic would make no difference.
+    private final java.util.concurrent.atomic.AtomicInteger mViewChangeCount = new java.util.concurrent.atomic.AtomicInteger();
+    
+    private final Runnable ViewChangeTracker = new Runnable() {
+            public void run() {
+                if (DEBUG.SCROLL) debug("ViewChangeTracker: countDown -" + mViewChangeCount);
+                if (mViewChangeCount.decrementAndGet() <= 0) {
+                    if (DEBUG.SCROLL) debug("ViewChangeTracker: countdown  " + mViewChangeCount + " <= 0, firing...");
+
+                    if (viewIsChanging()) {
+                        if (true||DEBUG.Enabled) debug("CHAINING view adjustment, count set to 1");
+                        mViewChangeCount.set(1);
+                        GUI.invokeAfterAWT(ViewChangeTracker);                        
+                        return;
+                    }
+                                         
+                    try {
+                        recordViewIfChanged();
+                    } catch (Throwable t) {
+                        Log.error(this + "; ViewChangeTracker, count=" + mViewChangeCount, t);
+                    } finally {
+                        // should already be at 0, but just in case
+                        if (DEBUG.SCROLL) debug("view change count reset to 0 (recording test completed)");
+                        mViewChangeCount.set(0);
+                    }
+                }
+            }
+        };
+
+    void trackViewChanges(Object source) {
+        if (!viewIsChanging()) {
+            if (!SwingUtilities.isEventDispatchThread()) {
+                // if we start seeing this and can't eliminate the case causing it, we'll have
+                // to synchronize this method and ViewChangeTracker.run for access to mViewChangeCount
+                Log.warn("trackViewChanges on non-EDT: " + source, new Throwable("HERE"));
+            }
+            final int current = mViewChangeCount.incrementAndGet();
+            if (DEBUG.PRESENT) debug("view change count to +" + current + " on " + Util.tags(source));
+            GUI.invokeAfterAWT(ViewChangeTracker);
+        }
+    }
     
     protected void fireViewerEvent(int id, String cause) {
         if (VUE.getActiveViewer() == this)
@@ -545,13 +612,18 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         else
             return; // don't raise the event
         
+        final Event event = new MapViewer.Event(this, id);
+        
+        if (DEBUG.SCROLL) debug("raising " + event + " on " + Util.tags(cause));
+        //trackViewChanges(event);
+
         // using cause as source for now: these events called more often than
         // needed in many cases and that could use optimization as extra repaints
         // of the entire map / entire map panner can be quite slow, tho hopefully
         // the AWT repaint manager is coalescing the repaints.  MapViewer
         // doesn't listen for it's own events, so there's no risk of an
         // event loop that would be avoided by knowing the proper source.
-        ViewerEventSource.raise(cause, new MapViewer.Event(this, id));
+        ViewerEventSource.raise(cause, event);
     }
     
     void resetScrollRegion() {
@@ -582,51 +654,89 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         else
             mViewport.adjustSize(false, true, true);
     }
-    
-    /**
-     * @param pZoomFactor -- the new zoom factor
-     * @param pReset -- completely reset the scrolling region to the map bounds
-     * @param pMapAnchor
 
-     * -- the on screen focus point, in panel canvas
-     * coordinates when in scroll pane, so upper left may be > 0,0.
-     * Mouse events are given to us in these panel coordinates, but
-     * if, say, you wanted to zoom in on the center of the *visible*
-     * area, accounting for scrolled state, you'll need to find the
-     * panel location in the center of viewport first.  The map
-     * location under the focus location should be the same after the
-     * zoom as it was before the zoom.  Can be null if don't want to
-     * make this adjustment.
+    public double getZoomFactor() {
+        return mZoomFactor;
+    }
+
+    /**
+     * Set a new zoom factor.  Note that everything on the map effectively and
+     * immediately "moves" its on-screen position when you do this as all the the
+     * map/screen conversion methods that compute with the zoom factor start returning
+     * different values (with the single exception of map coordinate value 0,0 if it
+     * happens to be on screen).
+     */
+    private void takeZoomFactor(final double zoom) {
+        if (DEBUG.SCROLL) out("ZOOM FACTOR set to " + zoom);
+        mZoomFactor = zoom;
+        mZoomInverse = 1.0 / mZoomFactor;
+
+        // record zoom factor in map for saving
+        if (mFocal == mMap && mMap != null)
+            mMap.setUserZoom(mZoomFactor);
+    }
+
+    /**
+     * @param newZoom -- the new zoom factor
+     * @param resetScrollBars -- completely reset the scrolling region to the current maximum map bounds
+     * @param focusAnchor -- the map position to anchor at the same place on the screen
+     * before/after the zoom -- often the current position of the mouse, or the the
+     * default of the map location at the center of the screen
+     *
+     * The anchor is the on screen focus point, in panel canvas coordinates when in
+     * scroll pane, so upper left may be > 0,0.  Mouse events are given to us in these
+     * panel coordinates, but if, say, you wanted to zoom in on the center of the
+     * *visible* area, accounting for scrolled state, you'll need to find the panel
+     * location in the center of viewport first.  The map location under the focus
+     * location should be the same after the zoom as it was before the zoom.  Can be
+     * null if don't want to make this adjustment.
 
      */
     
-    void setZoomFactor(double pZoomFactor, boolean pReset, Point2D mapAnchor, boolean centerOnAnchor) {
+//     void setZoomFactor
+//         (final double newZoom,
+//          final boolean resetScrollBars,
+//          final Point2D focusAnchor,
+//          final boolean centerOnAnchor){
+//         //if (DEBUG.Enabled && resetScrollBars) Util.printStackTrace("ZOOM RESET");
+//         //if (DEBUG.Enabled && centerOnAnchor) Util.printStackTrace("ZOOM CENTER ON ANCHOR");
+//         doSetZoomFactor(newZoom, resetScrollBars, focusAnchor, centerOnAnchor);
+//     }
+    
+    private void setZoomFactor
+        (final double _newZoom,
+         final boolean resetScrollBars,
+         final Point2D _focusAnchor,
+         final boolean centerOnAnchor) // recenter the map by moving the focusAnchor to the center of the screen (?)
+    {
+        Point2D focusAnchor = _focusAnchor;
 
-        if (DEBUG.SCROLL) out("ZOOM: reset="+pReset + " Z="+pZoomFactor + " focus="+mapAnchor);
+        if (DEBUG.SCROLL) out("ZOOM: reset=" + resetScrollBars + " Z="+_newZoom + " focus="+focusAnchor);
+
+        final double newZoom;
 
         if (!mFocal.hasContent() && !(mFocal instanceof LWSlide)) {
             if (DEBUG.Enabled) out("no content: force zoom 1.0");
-            //if (DEBUG.SCROLL) out("EMPTY OVERRIDE");
-            //pReset = true;
-            pZoomFactor = 1.0;
-        }
+            newZoom = 1.0;
+        } else
+            newZoom = _newZoom;
         
-        if (DEBUG.SCROLL) out("ZOOM: reset="+pReset + " Z="+pZoomFactor + " focus="+mapAnchor);
+        if (DEBUG.SCROLL) out("ZOOM: reset=" + resetScrollBars + " Z="+newZoom + " focus="+focusAnchor);
         
-        if (mapAnchor == null && !pReset) {
-            mapAnchor = screenToMapPoint2D(getVisibleCenter());
-            if (DEBUG.SCROLL) out("ZOOM MAP CENTER: " + fmt(mapAnchor));
+        if (focusAnchor == null && !resetScrollBars) {
+            focusAnchor = screenToMapPoint2D(getVisibleCenter());
+            if (DEBUG.SCROLL) out("ZOOM MAP CENTER: " + fmt(focusAnchor));
         } else {
-            if (DEBUG.SCROLL) out("ZOOM MAP ANCHOR: " + fmt(mapAnchor));
+            if (DEBUG.SCROLL) out("ZOOM MAP ANCHOR: " + fmt(focusAnchor));
         }
         
         Point2D.Float offset = null; // offset for non-scrol-region zoom
         Point2D screenPositionOfMapAnchor = null; // offset 
         
-        if (!pReset) {
+        if (!resetScrollBars) {
             if (inScrollPane) {
                 if (!centerOnAnchor) {
-                    Point2D canvasPosition = mapToScreenPoint2D(mapAnchor);
+                    Point2D canvasPosition = mapToScreenPoint2D(focusAnchor);
                     Point canvasOffset = getLocation(); // scrolled offset of our canvas in the scroll-pane
                     screenPositionOfMapAnchor = new Point2D.Double(canvasPosition.getX() + canvasOffset.x,
                                                                    canvasPosition.getY() + canvasOffset.y);
@@ -635,49 +745,43 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 // This is for non-scroll map viewer: it works to keep the focus
                 // location at the same point on the screen.  
                 //if (DEBUG.SCROLL) System.out.println(" ZOOM VIEWPORT FOCUS: " + out(pFocus));
-                Point2D focus = mapToScreenPoint2D(mapAnchor);
+                Point2D focus = mapToScreenPoint2D(focusAnchor);
                 offset = new Point2D.Float();
-                offset.x = (float) ((mapAnchor.getX() * pZoomFactor) - focus.getX());
-                offset.y = (float) ((mapAnchor.getY() * pZoomFactor) - focus.getY());
+                offset.x = (float) ((focusAnchor.getX() * newZoom) - focus.getX());
+                offset.y = (float) ((focusAnchor.getY() * newZoom) - focus.getY());
                 //if (DEBUG.SCROLL) System.out.println("   ZOOM FOCUS OFFSET: " + out(offset));
                 setMapOriginOffset(offset.x, offset.y, false);
             }
         }
 
-        //------------------------------------------------------------------
-        // Set the new zoom factor: everything immediately "moves"
-        // it's on screen position when you do this as all the the
-        // map/screen conversion methods that compute with the zoom
-        // factor start returning different values (with single
-        // exception of map coordinate value 0,0 if it happens to be
-        // on screen)
         // ------------------------------------------------------------------
 
-        mZoomFactor = pZoomFactor;
-        mZoomInverse = 1.0 / mZoomFactor;
+        // Note that order-of-operations is crucial here -- once the
+        // viewer actually takes on the new zoom value, all coordinate
+        // computations immediately start to work presuming the new zoom.
 
-        if (DEBUG.SCROLL) out("ZOOM FACTOR set to " + mZoomFactor);
-        
-        // record zoom factor in map for saving
-        if (mFocal == mMap)
-            mMap.setUserZoom(mZoomFactor);
+        takeZoomFactor(newZoom);
         
         //------------------------------------------------------------------
         
         if (inScrollPane) {
-            if (mapAnchor != null && !pReset) {
-                mViewport.zoomAdjust(mapAnchor, screenPositionOfMapAnchor);
+            if (!resetScrollBars && focusAnchor != null) {
+                mViewport.zoomAdjust(focusAnchor, screenPositionOfMapAnchor);
             } else {
+                // this will completely reset & trim the scroll region / scroll bars around the current
+                // maximum size of the map bounds
                 adjustCanvasSize(false, true, true);
             }
         } else {
-            if (mapAnchor != null && offset != null)
+            // resetScrollBars is meaningless if we're not in a scroll-pane
+            if (focusAnchor != null && offset != null)
                 setMapOriginOffset(offset.x, offset.y);
         }
         
         repaint();
         fireViewerEvent(Event.ZOOM, "setZoomFactor");
     }
+    
     
     @Override
     public void setPreferredSize(Dimension d) {
@@ -758,6 +862,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     public void setMapOriginOffset(double panelX, double panelY) {
         setMapOriginOffset((float) panelX, (float) panelY);
+    }
+    public void setMapOriginOffset(double panelX, double panelY, boolean update) {
+        setMapOriginOffset((float) panelX, (float) panelY, update);
     }
     
     
@@ -1127,6 +1234,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 }
             }
         }
+        //trackViewChanges("reshape");
     }
 
     private boolean reshapeUnderway = false;
@@ -1531,6 +1639,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
     private boolean isAnimating;
     protected void setAnimating(boolean animating) {
+        if (DEBUG.PRESENT) debug("animating = " + animating);
         isAnimating = animating;
     }
 
@@ -1601,13 +1710,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
         return r;
     }
-    
-    /*
-    public void repaint() { // heavy-duty debug
-        new Throwable().printStackTrace();
-        super.repaint();
-    }
-     */
     
     /*
     private Rectangle growForSelection(Rectangle r, int pad)
@@ -1768,6 +1870,276 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             //if (DEBUG.Enabled) out("NULL FOCAL ENTRY: " + mFocalEntry);
         }
     }
+
+    private final class CursorList<T> extends ArrayList<T> {
+        private int cursor;
+
+        public boolean atHead() {
+            // cursor should never be < 0, but just in case
+            return cursor <= 0;
+        }
+        
+        public boolean atTail() {
+            // cursor should never be >= size(), but just in case
+            return cursor >= size() - 1;
+        }
+
+        public T popBackward() {
+            if (atHead())
+                return null;
+            else
+                return get(--cursor);
+        }
+
+        public T popForward() {
+            if (atTail())
+                return null;
+            else
+                return get(++cursor);
+        }
+
+        public T peekCursor() {
+            return get(cursor);
+        }
+        
+        public void push(T item) {
+            if (!atTail()) {
+                // we've backed up in the queue, and are now moving forward:
+                // flush prior recorded forward views:
+                if (DEBUG.Enabled) debug(TERM_PURPLE + "FLUSHING forward views " + (cursor+1) + " - " + (size()-1) + TERM_CLEAR);
+                super.removeRange(cursor + 1, size());
+            }
+            super.add(item);
+            cursor = size() - 1;
+            if (DEBUG.Enabled) debug(TERM_PURPLE + String.format("RECORDED %2d: ", cursor) + item + TERM_CLEAR);
+        }
+    }
+
+    private class View {
+        final float offsetX;
+        final float offsetY;
+        final double zoom;
+        final LWComponent focal;
+
+        View() {
+            offsetX = mOffset.x;
+            offsetY = mOffset.y;
+            zoom = mZoomFactor;
+            focal = mFocal;
+        }
+
+        final boolean isSameAsCurrentView() {
+            return isSameAsCurrentViewImpl();
+        }
+
+        boolean isSameAsCurrentViewImpl() {
+            if (zoom != mZoomFactor || focal != mFocal)
+                return false;
+
+            // Ignore tiny adjustments, which are likely to have
+            // no actual effect on the display.  E.g., these can
+            // sometimes happen even due to just a seleciton change.
+             	
+	    final float dx = Math.abs(offsetX - mOffset.x);
+            final float dy = Math.abs(offsetY - mOffset.y);
+
+            return dx < 5.0 && dy < 5.0;
+                    
+//             return offsetX == mOffset.x
+//                 && offsetY == mOffset.y
+//                 && zoom == mZoomFactor
+//                 && focal == mFocal;
+        }
+
+        void restoreView() {
+
+            if (mFocal != focal) {
+                loadFocal(focal, false, false);
+            } else if (canAnimate()) {
+                // animating across focals is a hairy problem -- see PresentationTool / ZoomTool for code
+                // started to help that -- fix & make generic in ZoomTool someday
+                ZoomTool.animatedZoomTo(MapViewer.this, zoom, offsetX, offsetY);
+            }
+            debug("VIEW RESTORE OFFSET");
+            setMapOriginOffset(offsetX, offsetY, false);
+            debug("VIEW RESTORE ZOOM");
+
+            takeZoomFactor(zoom); // do NOT use setZoomFactor, which will mess with scroll stuff
+            
+            
+            //setZoomFactor(zoom, true, null, false);
+            //setZoomFactor(zoom, false, null, false);
+        }
+
+        protected String paramString() {
+            return String.format("%s %.2f %.1f,%.1f", focal == null ? "null" : focal.getDiagnosticLabel(), zoom, offsetX, offsetY);
+        }
+        
+        @Override public String toString() {
+            return "RawView[" + paramString() + "]";
+        }
+    }
+
+    private class ScrollView extends View {
+        final int canvasX;
+        final int canvasY;
+        final Dimension canvasSize;
+
+        ScrollView() {
+            if (inScrollPane) {
+                canvasX = -getX();
+                canvasY = -getY();
+            } else {
+                // should always be 0,0
+                canvasX = canvasY = Integer.MIN_VALUE;
+            }
+            canvasSize = MapViewer.this.getPreferredSize();
+        }
+
+        @Override
+        boolean isSameAsCurrentViewImpl() {
+
+            if (mFocal instanceof LWMap && focal instanceof LWMap) {
+            
+                return canvasX == -MapViewer.this.getX()
+                    && canvasY == -MapViewer.this.getY()
+                    && super.isSameAsCurrentViewImpl();
+                
+            } else {
+                // special case: as non-map focals currently always do fitToFocal, which when in a
+                // scroll-pane can cause minor yet meaningless tweaks to offset and zoom factor
+                // every time, treat any non-map focals as always equivalent.  This is a serious
+                // problem in that restoring a non-map focal view after one of these minor tweaks
+                // can cause a new non-map focal view to be auto-recorded after the fitToFocal
+                // (which causes the mingor tweaks), and then you can never back up out of the
+                // focal, as it's always putting a new one on the stack every time you try and back
+                // out.
+                return mFocal == focal;
+            }
+        }
+        
+        @Override void restoreView() {
+
+            mViewport.setAdjusting(true);
+
+            if (DEBUG.SCROLL) debug("SCROLL SUPER RESTORE");
+            super.restoreView();
+            
+            if (DEBUG.SCROLL) debug("SCROLL RESTORE");
+            
+            if (inScrollPane && canvasX != Integer.MIN_VALUE) {
+
+                //setLocation(canvasX, canvasY);
+                
+                if (DEBUG.SCROLL) debug("SCROLL RESTORE CANVAS SIZE");
+                mViewport.setCanvasSize(canvasSize);
+                
+                if (DEBUG.SCROLL) debug("SCROLL RESTORE VIEW POSITION");
+                mViewport.setViewPosition(new Point(canvasX, canvasY));
+
+                //if (DEBUG.SCROLL) debug("SCROLL RESTORE REVALIDATE");
+                //mViewport.revalidate(); // don't think this should be needed...
+
+                // TODO: if the scroll-pane itself has changed size since this was
+                // recorded, e.g. due to the VUE main window being user-resized, or
+                // resized due to an expand/collapse of the size-by-size viewer, then
+                // this will immediately trigger another RECORD, as current conditions
+                // won't look the same as what we just restored.
+            }
+
+            mViewport.setAdjusting(false);            
+        }
+
+        protected String paramString() {
+            return super.paramString() + String.format(" %d,%d %dx%d",
+                                                       canvasX, canvasY,
+                                                       canvasSize.width,
+                                                       canvasSize.height);
+        }
+        
+        @Override public String toString() {
+            return "ScrollView[" + paramString() + "]";
+        }
+    }
+
+    /** queue of View's */
+    private final CursorList<View> mViews = new CursorList();
+    private boolean mViewRestoring;
+    private long mLastRestoreTime = 0;
+
+    public void viewBackward() {
+        if (!mViews.atHead())
+            restoreView(mViews.popBackward());
+    }
+
+    public void viewForward() {
+        if (!mViews.atTail())
+            restoreView(mViews.popForward());
+    }
+
+    private void recordView() {
+        mViews.push(produceView());
+    }
+
+    private View produceView() {
+        if (inScrollPane)
+            return new ScrollView();
+        else
+            return new View();
+    }
+    
+    
+    private void restoreView(final View view) {
+        if (DEBUG.Enabled) debug(TERM_YELLOW + String.format(" RESTORE %2d: ", mViews.cursor) + view + TERM_CLEAR);
+        mViewRestoring = true;
+        mLastRestoreTime = System.currentTimeMillis();
+        try {
+            view.restoreView();
+        } catch (Throwable t) {
+            Log.error("restoreView " + view, t);
+        } finally {
+            mViewRestoring = false;
+        }
+        if (DEBUG.Enabled) debug(TERM_YELLOW + String.format("RESTORED %2d: ", mViews.cursor) + view + TERM_CLEAR);
+        repaint();
+    }
+
+    private void recordViewIfChanged()
+    {
+        if (DEBUG.Enabled && viewIsChanging()) throw new Error("can't record a view while changing"); // shouldn't happen
+
+        if (mViews.isEmpty()) {
+            recordView();
+            return;
+        }
+
+        final View topOfStackView = mViews.peekCursor();
+
+        if (DEBUG.Enabled) debug(String.format("lastView %2d: ", mViews.cursor) + topOfStackView);
+        
+        if (topOfStackView.isSameAsCurrentView()) {
+            if (DEBUG.Enabled) debug("sameView XX: " + produceView());
+            ; // do nothing -- the view hasn't significantly changed
+        } else {
+            // This is hack to deal with the non-deterministic nature of our code the decides when
+            // the view is finished changing and it's time to record a new view.  The problem is
+            // that so many different events may change the view that it's not practical to track
+            // all cases.  In particular, a case to avoid is a new view being recorded after a view
+            // has just been restored.  We have a flag that knows we're restoring a view and shouldn't
+            // be recoding any new ones, but many events can happen after the bit has been cleared
+            // that could still trigger the recording of a new view.  This is a particular bad case
+            // in that if a new view is recorded after a restore, you'll effectively be stuck in
+            // that view and can no longer back up.  This time check prevents the recording of any
+            // new views for a small amount of time after a view has been recorded.
+            final long now = System.currentTimeMillis();
+            final long dt = now - mLastRestoreTime;
+            if (dt < 400) {
+                if (DEBUG.Enabled) debug("soonView XX: " + produceView() + "; TOO SOON SINCE RESTORE, dt=" + dt + "ms");
+            } else {
+                recordView();
+            }
+        }
+    }
     
     
     /**
@@ -1779,6 +2151,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         if (DEBUG.EVENTS) {
             if (DEBUG.META || VUE.getActiveViewer() == this) out(e);
         }
+
+//         if (e.key == LWKey.UserActionCompleted) {
+//             recordViewIfChanged();
+//             return;
+//         }
         
         // If mFocal isn't a map, we must always update, as we'll never see the
         // user-action-completed off the map, as we're not listening to it.  (Actually,
@@ -2690,6 +3067,16 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         return VUE.inFullScreen() && instanceName != tufts.vue.gui.FullScreen.VIEWER_NAME;
     }
     
+    public void repaint() { // heavy-duty debug
+        if (DEBUG.PAINT) {
+            if (DEBUG.META) {
+                Log.debug("REPAINT", new Throwable("HERE"));
+            } else {
+                out(TERM_RED + "REPAINT ISSUED at " + new Throwable().getStackTrace()[1] + TERM_CLEAR);
+            }
+        }
+        super.repaint();
+    }
     
     @Override
     public void paint(Graphics g) {
@@ -2699,7 +3086,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         
         long start = 0;
         if (DEBUG.PAINT) {
-            System.out.print("paint " + paints + " RAW-clipBounds=" + g.getClipBounds()+" "); System.out.flush();
+            //System.out.print("paint " + paints + " RAW-clipBounds=" + g.getClipBounds()+" "); System.out.flush();
+            out(TERM_CYAN + "PAINT ->#" + paints + " RAW-clipBounds=" + g.getClipBounds() + TERM_CLEAR);
             start = System.currentTimeMillis();
         }
         try {
@@ -2723,14 +3111,18 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             if (inScrollPane)
                 adjustCanvasSize(); // need for intial scroll-bar sizes if bigger than viewport on startup
             VUE.invokeAfterAWT(new Runnable() { public void run() { ensureMapVisible(); }});
+            trackViewChanges("first-paint");
         }
         if (DEBUG.PAINT) {
             //try { Thread.sleep(500); } catch (Exception e) {}            
             long delta = System.currentTimeMillis() - start;
             long fps = delta > 0 ? 1000/delta : -1;
-            System.out.println("paint #" + paints + " " + this + ": "
+            out(TERM_CYAN + "paint <-#" + paints + " " + this + ": "
                                + delta
-                               + "ms (" + fps + " fps)");
+                               + "ms (" + fps + " fps)" + TERM_CLEAR);
+//             System.out.println("paint #" + paints + " " + this + ": "
+//                                + delta
+//                                + "ms (" + fps + " fps)");
         }
 
 
@@ -5132,8 +5524,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         private static DockWindow DebugInspector;
         private static DockWindow DebugIntrospector;
         private DockWindow debugPanner;
-        public void keyPressed(KeyEvent e) {
-            if (DEBUG.KEYS) kdebug("keyPressed", e);
+
+    public void keyPressed(KeyEvent e) {
+
+        mKeyIsPressing = true;
+        
+        if (DEBUG.KEYS) kdebug("keyPressed", e);
             
             viewer.clearTip();
             
@@ -5512,14 +5908,23 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         
         
-        public void keyReleased(KeyEvent e) {
-            //if (DEBUG.KEYS) out("[" + e.paramString() + "]");
-            if (DEBUG.KEYS) kdebug("keyReleased", e);
-
-            tempToolPendingActivation = null;
+    public void keyReleased(KeyEvent e) {
+        if (DEBUG.KEYS) kdebug("keyReleased", e);
+        try {
+            handleKeyReleased(e);
+        } catch (Throwable t) {
+            Log.error("keyReleased", t);
+        } finally {
+            mKeyIsPressing = false;
+            trackViewChanges(e);
+        }
+    }
+    
+    private void handleKeyReleased(KeyEvent e) {
             
-            if (activeTool.handleKeyReleased(e))
-                return;
+        tempToolPendingActivation = null;
+            
+        if (!activeTool.handleKeyReleased(e)) {
 
             if (tempToolKeyDown == e.getKeyCode()) {
                 // Don't revert tmp tool if we're in the middle of a drag
@@ -5528,15 +5933,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 else
                     revertTemporaryTool();
             }
-            
-            /*
-            if (tempToolKeyDown == e.getKeyCode()) {
-                //if (! (VueUtil.isMacPlatform() && tempToolKeyDown == KEY_TOOL_PAN)) {
-                revertTemporaryTool();
-                //}
-            }
-             */
         }
+    }
         
         public void keyTyped(KeyEvent e) // not very useful -- has keyChar but no key-code
         {
@@ -5610,6 +6008,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
 
         
+    public void eventRaised(FocusManager.GlobalMouseEvent e) {
+        out(e);
+        if (e.event.getID() == MouseEvent.MOUSE_RELEASED)
+            trackViewChanges("globalMouseRelease");
+    }
         
     private LWComponent hitComponent = null;
     private Point2D originAtDragStart;
@@ -6195,6 +6598,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             // final LWComponent hit = pickNode(mapX, mapY);
             // which will rely on the active tool for it's depth as is the default.
             
+            // TODO: need to allow specifying a layer-penetrating PointPick so
+            // that we can still find icon rollovers of node/link tool-tip rollovers
             pc.pickDepth = Short.MAX_VALUE;
             final LWComponent hit = LWTraversal.PointPick.pick(pc);
         
@@ -6942,7 +7347,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             isDraggingSelectorBox = false;
             clearMouse();
             activeToolAteMousePress = false;
-            
+
+            //trackViewChanges("mouseReleased"); // now handled via global FocusManager mouse-release tracker
             
             // todo opt: only need to do this if we don't draw selection
             // handles while dragging (this is to put them back if we werent)
@@ -7568,6 +7974,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             
             return;
         }
+
+        trackViewChanges("focusGained");
         
         // TODO: mac bug, tho maybe only when loading maps from command line:
         // FIRST map selected in tab other than the one showing, properly
@@ -7586,6 +7994,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     public void focusLost(FocusEvent e) {
         if (DEBUG.FOCUS) out("focusLost (to " + GUI.name(e.getOppositeComponent()) +")");
         
+        trackViewChanges("focusLost");
+
         Component lostTo = e.getOppositeComponent();
 
         //if (DEBUG.Enabled && lostTo == null) Util.printStackTrace(MapViewer.this + " focus lost to null");
@@ -7830,6 +8240,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                                 mFocal == null ? "<NULL-FOCAL>" : mFocal.getDiagnosticLabel(),
                                 o));
         //System.out.println(this + " " + (o==null?"null":o.toString()));
+    }
+    
+    protected void debug(String msg) {
+        //Log.debug(String.format("<%s> " + msg, instanceName));
+        out(msg);
     }
     
     protected void out(String method, Object msg) {

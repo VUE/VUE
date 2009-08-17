@@ -27,7 +27,7 @@ import javax.swing.BorderFactory;
 /**
  * Scroll pane for MapViewer / MapViewport with a focus indicator.
  *
- * @version $Revision: 1.10 $ / $Date: 2009-06-26 21:13:02 $ / $Author: sfraize $
+ * @version $Revision: 1.11 $ / $Date: 2009-08-17 21:42:38 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -43,6 +43,8 @@ public class MapScrollPane extends javax.swing.JScrollPane
         super(viewer);
 
         mViewer = viewer;
+
+        //setViewportView(viewer);
 
         setFocusable(false);
         setVerticalScrollBarPolicy(VERTICAL_SCROLLBAR_ALWAYS);
@@ -80,7 +82,7 @@ public class MapScrollPane extends javax.swing.JScrollPane
 
     @Override
     protected javax.swing.JViewport createViewport() {
-        return new tufts.vue.MapViewport();
+        return new tufts.vue.MapViewport(this);
     }
 
     public java.awt.Component getFocusIndicator() {

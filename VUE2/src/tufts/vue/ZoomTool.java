@@ -34,7 +34,7 @@ import javax.swing.*;
  * zoom needed to display an arbitraty map region into an arbitrary
  * pixel region.
  *
- * @version $Revision: 1.88 $ / $Date: 2009-08-10 19:30:08 $ / $Author: melanie $
+ * @version $Revision: 1.89 $ / $Date: 2009-08-17 21:42:38 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -628,11 +628,11 @@ public class ZoomTool extends VueTool
             new Throwable("setZoomFitRegion: mapRegion is null for " + viewer).printStackTrace();
             return;
         }
-        Point2D.Double offset = new Point2D.Double();
-        double newZoom = computeZoomFit(viewer.getVisibleSize(),
-                                        borderGap,
-                                        mapRegion,
-                                        offset);
+        final Point2D.Float offset = new Point2D.Float();
+        final double newZoom = computeZoomFit(viewer.getVisibleSize(),
+                                              borderGap,
+                                              mapRegion,
+                                              offset);
         
         //if (viewer.inScrollPane()) {
         if (!viewer.canAnimate()) {
@@ -661,27 +661,43 @@ public class ZoomTool extends VueTool
 //                 //viewer.resetScrollRegion();
 //             } else {
 
-                if (animate) {
-                    viewer.setAnimating(true);
-                    try {
-                        animatedZoomTo(viewer, newZoom, offset);
-                    } finally {
-                        viewer.setAnimating(false);
-                    }
-                    //if (DEBUG.Enabled) System.out.println("zoomFinal " + newZoom);
-                    
-                }
+                if (animate) 
+                    animatedZoomTo(viewer, newZoom, offset.x, offset.y);
                 
                 setZoom(viewer, newZoom, false, DONT_FOCUS, true);
-                viewer.setMapOriginOffset(offset.getX(), offset.getY());
+                viewer.setMapOriginOffset(offset.x, offset.y);
                 //}
         }
     }
 
     // may make sense to move a bunch of this code to MapViewer (e.g., animatedZoomTo, setZoom)
 
+    public static void animatedZoomTo
+        (final MapViewer viewer,
+         final double newZoom,
+         final float offsetX,
+         final float offsetY)
+    {
+        if (!viewer.canAnimate())
+            return;
+        
+        viewer.setAnimating(true);
+        try {
+            doAnimatedZoomTo(viewer, newZoom, offsetX, offsetY);
+        } catch (Throwable t) {
+            Log.error("animatedZoomTo", t);
+        } finally {
+            viewer.setAnimating(false);
+        }
+    }
+    
+
     /** Animate all but the last step of a zoom to the given given zoom and offset.   Caller must provide the final calls. */
-    private static void animatedZoomTo(MapViewer viewer, double newZoom, Point2D offset)
+    private static void doAnimatedZoomTo
+        (final MapViewer viewer,
+         final double newZoom,
+         final float offsetX,
+         final float offsetY)
     {
         // This will currenly only work on a viewer that's NOT
         // in a scroll-pane (so ony full-screen windows for now)
@@ -707,8 +723,8 @@ public class ZoomTool extends VueTool
         final double dz = newZoom - cz;
         //final double dzOut = zoomApex - cz;
         //final double dzIn = newZoom - zoomApex;
-        final double dx = offset.getX() - cx;
-        final double dy = offset.getY() - cy;
+        final double dx = offsetX - cx;
+        final double dy = offsetY - cy;
 
         final double iz = dz/frames;
         //final double izOut = dzOut/framesOut;
@@ -729,9 +745,9 @@ public class ZoomTool extends VueTool
 //                 zoom = cz + izOut*i;
 //             else 
 //                 zoom = zoomApex - izIn*i;
-            if (DEBUG.VIEWER) Log.debug(String.format("zoomAnimate frame %2d %.1f%%", i, zoom*100));
+            if (DEBUG.VIEWER|| DEBUG.PAINT) Log.debug(String.format("zoomAnimate frame %2d/%d %.1f%%", i, frames, zoom*100));
             setZoom(viewer, zoom, false, DONT_FOCUS, true);
-            viewer.setMapOriginOffset(cx + ix*i, cy + iy*i);
+            viewer.setMapOriginOffset(cx + ix*i, cy + iy*i, false);
             viewer.paintImmediately();
         }
     }

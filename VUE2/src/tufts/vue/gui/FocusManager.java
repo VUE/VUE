@@ -21,6 +21,7 @@ import tufts.macosx.MacOSX;
 import tufts.vue.VUE;
 import tufts.vue.DEBUG;
 import tufts.vue.VueUtil;
+import tufts.vue.EventHandler;
 
 import java.awt.Component;
 import java.awt.Container;
@@ -161,7 +162,7 @@ import javax.swing.JTextField;  // for test harness
  * redispatch our own FocusEvents for transferring focus, which is the second
  * part of the magic that makes this work.
  *
- * @version $Revision: 1.28 $ / $Date: 2009-07-15 17:58:53 $ / $Author: sfraize $ 
+ * @version $Revision: 1.29 $ / $Date: 2009-08-17 21:42:38 $ / $Author: sfraize $ 
  */
 
 // todo: can also try calling the focus owner setters instead of lying -- that might work
@@ -211,6 +212,8 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
     
     /** The last target of a MOUSE_PRESSED event  */
     protected Object mMousePressedTarget;
+
+    private static boolean mMouseIsPressing = false;
         
     private static final boolean UseForcedFocus = false;
 
@@ -234,13 +237,36 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
             if (DEBUG.INIT) System.out.println(Singleton + ": already installed.");
     }
 
+    /** @return true if the mouse has been pressed ANYWHERE.  That is, we've seen a MOUSE_PRESSED event
+     * anywhere in the AWT, and have yet to see a MOUSE_RELEASED event. */
+    public static boolean isMouseDown() {
+        return mMouseIsPressing;
+    }
+
     public static Component getFocused() {
         return Singleton.getFocusOwner();
     }
 
-    protected FocusManager() {
-        //System.out.println("FocusManager constructed.");
+    public static final class GlobalMouseEvent
+    {
+        public final AWTEvent event;
+        
+        public GlobalMouseEvent(AWTEvent e) {
+            event = e;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("FocusManager$Event[%s]", eventName(event));
+        }
     }
+    public interface GlobalMouseListener extends EventHandler.Listener<GlobalMouseEvent> {}
+
+    private static final EventHandler<GlobalMouseEvent> GlobalEventHandler = EventHandler.getHandler(GlobalMouseEvent.class);
+
+    //public static final add
+    
+    private FocusManager() {}
 
 //     public interface MouseInterceptor {
 //         /** return true if the event should be consumed and not passed on to children */
@@ -254,7 +280,7 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
      * @return <code>true</code> if this method dispatched the event;
      *         <code>false</code> otherwise
      */
-    public boolean dispatchEvent(AWTEvent e) {
+    public boolean dispatchEvent(final AWTEvent e) {
         final int id = e.getID();
         
         if (!DEBUG.META && id >= HierarchyEvent.HIERARCHY_FIRST && id <= HierarchyEvent.HIERARCHY_LAST)
@@ -325,6 +351,11 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
                 getFocusCycleRoot(c); // for diagnostic output
 
             mMousePressedTarget = c;
+            mMouseIsPressing = true;
+
+// not currently listened for anywhere:
+//             if (GlobalEventHandler.hasListeners())
+//                 GlobalEventHandler.raise(this, new GlobalMouseEvent(me));
             
             Window parentWindow = getFocusCycleWindow(c);
             //if (parentWindow instanceof MouseInterceptor) {
@@ -343,10 +374,17 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
             break;
 
         case MouseEvent.MOUSE_RELEASED:
+
+            mMouseIsPressing = false;
+            
             if (UseForcedFocus && c == mMousePressedTarget) {
                 inspectMouseEventForForcableFocusChange(e);
                 mMousePressedTarget = null;
             }
+
+            if (GlobalEventHandler.hasListeners())
+                GlobalEventHandler.raise(this, new GlobalMouseEvent(e));
+            
             break;
 
 //         case ComponentEvent.COMPONENT_SHOWN:

@@ -57,7 +57,7 @@ import static tufts.Util.*;
  * automatically create a new handler for the given event type if one doesn't exist.
  *
  * @author Scott Fraize 2008-06-17
- * @version $Revision: 1.5 $ / $Date: 2009-07-06 15:32:22 $ / $Author: sfraize $
+ * @version $Revision: 1.6 $ / $Date: 2009-08-17 21:42:38 $ / $Author: sfraize $
  */
 
 // todo: see if we can subclass ActiveInstance from this to share code
@@ -129,6 +129,10 @@ public class EventHandler<E>
         }
         
         if (DEBUG.INIT || DEBUG.EVENTS) Log.debug("created " + this);
+    }
+
+    public boolean hasListeners() {
+        return mListeners.size() > 0;
     }
 
     public synchronized void redeliver() {

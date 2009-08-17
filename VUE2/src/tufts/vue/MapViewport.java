@@ -45,22 +45,33 @@ public class MapViewport extends JViewport
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(MapViewport.class);
     
-    private MapViewer viewer;
+    private /*final*/ MapViewer viewer; // should be final, but can't due to JScrollPane init code
+    private final javax.swing.JScrollPane scrollPane;
 
-    private Rectangle2D lastMapBounds = new Rectangle2D.Float();
+    //private Rectangle2D lastMapBounds = new Rectangle2D.Float();
     private Dimension lastCanvas = new Dimension();
     private Point2D lastMapLocationAtCanvasOrigin = new Point2D.Float();
     
 
-    public MapViewport(MapViewer viewer) {
-        setView(viewer);
+    public MapViewport(javax.swing.JScrollPane scrollPane) {
+//         if (viewer == null)
+//             throw new NullPointerException("viewer is null");
+//         this.viewer = viewer;
+        this.scrollPane = scrollPane;
     }
+    
+//     public MapViewport(MapViewer viewer) {
+//         setView(viewer);
+//     }
 
-    public MapViewport() {}
-
-    public void setView(Component c) {
-        viewer = (MapViewer) c;
-        super.setView(c);
+//     public MapViewport() {}
+    
+    @Override
+    public void setView(Component view) {
+        viewer = (MapViewer) view;
+//         if (view != viewer)
+//             throw new Error("view != viewer; " + view + " != " + viewer);
+        super.setView(view);
     }
 
     private LWMap getMap() {
@@ -117,7 +128,7 @@ public class MapViewport extends JViewport
         //return viewer.getSize();
     }
 
-    private void setCanvasSize(Dimension d) {
+    void setCanvasSize(Dimension d) {
         if (DEBUG.SCROLL) out("   setCanvasSize " + out(d));
         setViewSize(d);
         viewer.setPreferredSize(d);
@@ -136,11 +147,25 @@ public class MapViewport extends JViewport
         if (DEBUG.SCROLL) out("setViewPosition " + out(p));
         if (!p.equals(lastPosition)) {
             // for when scroll-bars are dragged
-            viewer.fireViewerEvent(MapViewer.Event.PAN, "MapViewport::setViewPosition");
+            viewer.fireViewerEvent(MapViewer.Event.PAN, "MapViewport:setViewPosition0");
         }
         lastPosition = p;
         super.setViewPosition(p);
+
+        if (!isAdjusting())
+            viewer.trackViewChanges("MapViewport:setViewPosition1");
     }
+
+    public void setAdjusting(boolean b) {
+        scrollPane.getHorizontalScrollBar().setValueIsAdjusting(b);
+        scrollPane.getVerticalScrollBar().setValueIsAdjusting(b);
+    }
+
+    public boolean isAdjusting() {
+        return scrollPane.getHorizontalScrollBar().getValueIsAdjusting()
+            || scrollPane.getVerticalScrollBar().getValueIsAdjusting();
+    }
+        
 
     public void setVisibleCanvasCorner(Point2D p) {
         setCanvasPosition(new Point2D.Double(-p.getX(), -p.getY()));
@@ -220,11 +245,12 @@ public class MapViewport extends JViewport
      * todo: expand not used
      */
     
-    private void adjustCanvasSize(boolean expand,
-                                  boolean trimNorthWest,
-                                  boolean trimSouthEast,
-                                  boolean validate,
-                                  boolean intermediate)
+    private void adjustCanvasSize
+        (boolean expand,
+         boolean trimNorthWest,
+         boolean trimSouthEast,
+         boolean validate,
+         boolean intermediate)
     {
         if (DEBUG.SCROLL && DEBUG.META) new Throwable("adjustSize").printStackTrace();
         
@@ -279,10 +305,10 @@ public class MapViewport extends JViewport
 
         // okay to call this mapToScreen while adjusting origin as we're
         // only interested in the zoom conversion for the size.
-        Dimension minCanvas = viewer.mapToScreenDim(mapCanvas);
-        Dimension curCanvas = getCanvasSize();
-        Dimension newCanvas = new Dimension(minCanvas);
-        Dimension curView = getSize(); // current view size
+        final Dimension minCanvas = viewer.mapToScreenDim(mapCanvas);
+        final Dimension curCanvas = getCanvasSize();
+        final Dimension newCanvas = new Dimension(minCanvas);
+        final Dimension curView = getSize(); // current view size
 
         //if (!trimNorthWest && lastCanvas.equals(canvas) && lastMapLocationAtCanvasOrigin.equals(mapLocationAtCanvasOrigin))
         //    return;
