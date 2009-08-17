@@ -1949,6 +1949,19 @@ public class Actions implements VueConstants
             @Override public boolean overrideIgnoreAllActions() { return true; }        
             
     };
+    
+    public static final VueAction ViewBackward =
+        new VueAction(VueResources.local("menu.view.backward"), keyStroke(KeyEvent.VK_LEFT, COMMAND)) {
+        public void act() {
+            viewer().viewBackward();
+        }
+    };
+    public static final VueAction ViewForward =
+        new VueAction(VueResources.local("menu.view.forward"), keyStroke(KeyEvent.VK_RIGHT, COMMAND)) {
+        public void act() {
+            viewer().viewForward();
+        }
+    };
 
     private static class Stats {
         float minX, minY;
@@ -3292,7 +3305,7 @@ public class Actions implements VueConstants
         }
     };
     public static final VueAction ZoomFit =
-        new VueAction(VueResources.local("menu.view.fitinwin"), keyStroke(KeyEvent.VK_OPEN_BRACKET, COMMAND), ":general/Zoom") {
+        new VueAction(VueResources.local("menu.view.fitinwin"), keyStroke(KeyEvent.VK_CLOSE_BRACKET, COMMAND), ":general/Zoom") {
         public void act() {
             ZoomTool.setZoomFit();
         }
@@ -3307,7 +3320,7 @@ public class Actions implements VueConstants
     };
     
     public static final Action ZoomToSelection =
-    new LWCAction(VueResources.local("menu.view.selecfitwin"), keyStroke(KeyEvent.VK_CLOSE_BRACKET, COMMAND)) {
+    new LWCAction(VueResources.local("menu.view.selecfitwin"), keyStroke(KeyEvent.VK_OPEN_BRACKET, COMMAND)) {
         public void act(LWSelection s) {
             MapViewer viewer = VUE.getActiveViewer();
             ZoomTool.setZoomFitRegion(viewer, s.getBounds(), 16, false);
