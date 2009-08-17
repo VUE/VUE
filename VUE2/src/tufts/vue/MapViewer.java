@@ -76,7 +76,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.614 $ / $Date: 2009-08-17 21:42:37 $ / $Author: sfraize $ 
+ * @version $Revision: 1.615 $ / $Date: 2009-08-17 21:49:07 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -703,7 +703,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 //         doSetZoomFactor(newZoom, resetScrollBars, focusAnchor, centerOnAnchor);
 //     }
     
-    private void setZoomFactor
+    protected void setZoomFactor
         (final double _newZoom,
          final boolean resetScrollBars,
          final Point2D _focusAnchor,
@@ -1960,9 +1960,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 // started to help that -- fix & make generic in ZoomTool someday
                 ZoomTool.animatedZoomTo(MapViewer.this, zoom, offsetX, offsetY);
             }
-            debug("VIEW RESTORE OFFSET");
+            if (DEBUG.SCROLL) debug("VIEW RESTORE OFFSET");
             setMapOriginOffset(offsetX, offsetY, false);
-            debug("VIEW RESTORE ZOOM");
+            if (DEBUG.SCROLL) debug("VIEW RESTORE ZOOM");
 
             takeZoomFactor(zoom); // do NOT use setZoomFactor, which will mess with scroll stuff
             
