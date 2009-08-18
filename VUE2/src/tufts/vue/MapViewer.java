@@ -76,7 +76,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.615 $ / $Date: 2009-08-17 21:49:07 $ / $Author: sfraize $ 
+ * @version $Revision: 1.616 $ / $Date: 2009-08-18 17:44:55 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -102,7 +102,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(MapViewer.class);
     
-    static int RolloverAutoZoomDelay = VueResources.getInt("mapViewer.rolloverAutoZoomDelay");
+    private static final int RolloverAutoZoomDelay = VueResources.getInt("mapViewer.rolloverAutoZoomDelay");
+
+    private static final Timer ViewerTimer = new Timer("MapViewers");
+    
     //static int RolloverAutoZoomDelay = 1;
     //static final int RolloverMinZoomDeltaTrigger_int = VueResources.getInt("mapViewer.rolloverMinZoomDeltaTrigger", 10);
     //static final float RolloverMinZoomDeltaTrigger = RolloverMinZoomDeltaTrigger_int > 0 ? RolloverMinZoomDeltaTrigger_int / 100f : 0f;
@@ -120,6 +123,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         public static final int PAN = 4;
         public static final int ZOOM = 8;
         public static final int FOCUSED = 16;
+        public static final int VIEWS_CHANGED = 32;
     
         public final int id;
         public final MapViewer viewer;
@@ -142,6 +146,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             else if (id == PAN)     name = " PAN     ";
             else if (id == ZOOM)    name = " ZOOM    ";
             else if (id == FOCUSED) name = " FOCUSED ";
+            else if (id == VIEWS_CHANGED) name = "VIEWS_CHANGED";
             return String.format("MapViewer$Event@%06x[%s %s]", hashCode(), name, viewer.getDiagName());
         }
 
@@ -535,72 +540,118 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         getTopLevelAncestor().setCursor(cursor);
     }
     
+    private int mViewChangeCount = 0;
+    
+    private final Runnable ViewChangeTracker = new Runnable() {
+            public void run() {
+                synchronized (MapViewer.this) {
+                    if (DEBUG.PRESENT) debug("ViewChangeTracker: countDown -" + mViewChangeCount);
+                    if (--mViewChangeCount <= 0) {
+                        if (DEBUG.PRESENT) debug("ViewChangeTracker: countdown  " + mViewChangeCount + " <= 0, firing...");
+                        attemptRecording();
+                    }
+                }
+            }
+            
+            private void attemptRecording() {
+                if (viewIsChanging()) {
+                    out("VIEW STILL CHANGING; IGNORING TRACK ATTEMPT");
+                    return;
+//                     if (true||DEBUG.Enabled) debug("CHAINING view adjustment, count set to 1");
+//                     mViewChangeCount.set(1);
+//                     GUI.invokeAfterAWT(ViewChangeTracker);
+//                     //mViewTrackingTimer.schedule(ViewChangeTracker, 250);
+//                     return;
+                }
+                                         
+                try {
+                    recordViewIfChanged();
+                } catch (Throwable t) {
+                    Log.error(MapViewer.this + "; ViewChangeTracker, count=" + mViewChangeCount, t);
+                } finally {
+                    // should already be at 0, but just in case
+                    if (DEBUG.SCROLL) debug("view change count reset to 0 (recording test completed)");
+                    mViewChangeCount = 0;
+                }
+            }
+        };
+
+
     private boolean viewIsChanging() {
 
-        // TODO: replace mKeyIsPressing with a FocusManager.isKeyDown() -- keys pressed
-        // on other windows, or even Apple-Key + Scroll-Wheel when anything other than
-        // the viewer has focus will miss the key press, and record all intermediate
-        // views generated.  Note there's nothing we can do about the case of
-        // MOUSE_WHEEL events through the panner which are accepted without any
-        // key-press -- view's will be recorded for each MOUSE_WHEEL event, and the only
-        // help we could provide to coalesce them would be to set a limit on the
+        // TODO: replace mKeyIsPressing with a FocusManager.isKeyDown() -- keys pressed on other
+        // windows, or even Apple-Key + Scroll-Wheel when anything other than the viewer has focus
+        // will miss the key press, and record all intermediate views generated.  Note there's
+        // nothing we can do about the case of MOUSE_WHEEL events through the panner which are
+        // accepted without any key-press -- view's will be recorded for each MOUSE_WHEEL event,
+        // and the only help we could provide to coalesce them would be to set a limit on the
         // temporal frequency that view's can be recorded.
+
+        out("anim=" + isAnimating
+            + ", restoring=" + mViewRestoring
+            + ", dragging=" + sDragUnderway
+            + ", mousing=" + FocusManager.isMouseDown());
+
         
         return isAnimating
             || mViewRestoring
             || sDragUnderway
             || mKeyIsPressing
             || FocusManager.isMouseDown()
-            || VUE.isStartupUnderway()
-            || !isShowing()
+            || (inScrollPane && mViewport.isAdjusting())
+            //|| VUE.isStartupUnderway()
+            //|| (inScrollPane && (mViewport.getWidth() <= 0 || mViewport.getHeight() <= 0))
+                //|| !isShowing()
             ;
     }
 
-    // Although normally all access to mViewChangeCount should be taking place on the
-    // AWT thread, we use an Atomic just in case.  Tho if we do end up needing
-    // multi-threaded access, we'd need to synchronize access to mViewChangeCount in
-    // trackViewChanges, and synchronize the entire run() method of ViewChangeTracker,
-    // in which case the Atomic would make no difference.
-    private final java.util.concurrent.atomic.AtomicInteger mViewChangeCount = new java.util.concurrent.atomic.AtomicInteger();
-    
-    private final Runnable ViewChangeTracker = new Runnable() {
-            public void run() {
-                if (DEBUG.SCROLL) debug("ViewChangeTracker: countDown -" + mViewChangeCount);
-                if (mViewChangeCount.decrementAndGet() <= 0) {
-                    if (DEBUG.SCROLL) debug("ViewChangeTracker: countdown  " + mViewChangeCount + " <= 0, firing...");
+    private boolean viewIsTrackable() {
+        if (inScrollPane && (mViewport.getWidth() <= 0 || mViewport.getHeight() <= 0))
+            return false;
+        else if (VUE.isStartupUnderway())
+            return false;
+        else
+            return true;
+    }
 
-                    if (viewIsChanging()) {
-                        if (true||DEBUG.Enabled) debug("CHAINING view adjustment, count set to 1");
-                        mViewChangeCount.set(1);
-                        GUI.invokeAfterAWT(ViewChangeTracker);                        
-                        return;
-                    }
-                                         
-                    try {
-                        recordViewIfChanged();
-                    } catch (Throwable t) {
-                        Log.error(this + "; ViewChangeTracker, count=" + mViewChangeCount, t);
-                    } finally {
-                        // should already be at 0, but just in case
-                        if (DEBUG.SCROLL) debug("view change count reset to 0 (recording test completed)");
-                        mViewChangeCount.set(0);
-                    }
-                }
-            }
-        };
+    // Commentary: it is very difficult to know when the current map-view has "settled down" and
+    // it's a good time to record a new View.  The view may change due to various actions all
+    // throughout VUE.  We can attempt to guess at this by tracking likely view changing events
+    // frequently, adding a test each time to the end of the AWT event queue, and if we're able to
+    // successfully stay at the back-edge of the AWT event wave for each "significant" user
+    // interaction, when we run our last outstanding test and there are no mouse or keys held down
+    // anywhere in the application, we're likely looking at a stable place to test for recording a
+    // view.  We do this because we also want to LIMIT the times we event attempt to record a view,
+    // as often there are tiny tweaks to the view that are not significant.
+    //
+    // Note that this method will still miss cases such as keyless MOUSE_WHEEL events on the
+    // MapPanner (which also generate no MOUSE_PRESS/RELEASE events), so for that case we'll just
+    // have to generate a new view for every MOUSE_WHEEL pan or zoom.
 
-    void trackViewChanges(Object source) {
-        if (!viewIsChanging()) {
-            if (!SwingUtilities.isEventDispatchThread()) {
-                // if we start seeing this and can't eliminate the case causing it, we'll have
-                // to synchronize this method and ViewChangeTracker.run for access to mViewChangeCount
-                Log.warn("trackViewChanges on non-EDT: " + source, new Throwable("HERE"));
-            }
-            final int current = mViewChangeCount.incrementAndGet();
-            if (DEBUG.PRESENT) debug("view change count to +" + current + " on " + Util.tags(source));
+    synchronized void trackViewChanges(Object source) {
+        //if (!viewIsChanging()) {
+        //if (source == PAINT_TRACKPOINT) {
+        if (viewIsTrackable()) {
+            mViewChangeCount++;
+            if (DEBUG.PRESENT) debug(String.format("view change count to +%-2d on %s", mViewChangeCount, Util.tags(source)));
             GUI.invokeAfterAWT(ViewChangeTracker);
         }
     }
+    
+//     void trackViewChanges(Object source) {
+//         //if (!viewIsChanging()) {
+//         if (true) {
+//         //if (source == PAINT_TRACKPOINT) {
+//             if (!SwingUtilities.isEventDispatchThread()) {
+//                 // if we start seeing this and can't eliminate the case causing it, we'll have
+//                 // to synchronize this method and ViewChangeTracker.run for access to mViewChangeCount
+//                 Log.warn("trackViewChanges on non-EDT: " + source, new Throwable("HERE"));
+//             }
+//             final int current = mViewChangeCount.incrementAndGet();
+//             if (DEBUG.PRESENT) debug("view change count to +" + current + " on " + Util.tags(source));
+//             GUI.invokeAfterAWT(ViewChangeTracker);
+//         }
+//     }
     
     protected void fireViewerEvent(int id, String cause) {
         if (VUE.getActiveViewer() == this)
@@ -1621,22 +1672,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         return true;
     }
     
-
-
-//     private boolean immediateRepaint = false;
-//     void paintImmediately() {
-//         immediateRepaint = true;
-//         try {
-//             paintImmediately(getVisibleBounds());
-//         } finally {
-//             immediateRepaint = false;
-//         }
-//     }
-
-    void paintImmediately() {
-        paintImmediately(getVisibleBounds());
-    }
-
     private boolean isAnimating;
     protected void setAnimating(boolean animating) {
         if (DEBUG.PRESENT) debug("animating = " + animating);
@@ -1871,7 +1906,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
     }
 
-    private final class CursorList<T> extends ArrayList<T> {
+    private final class CursoredStack<T> extends ArrayList<T> {
         private int cursor;
 
         public boolean atHead() {
@@ -1903,16 +1938,54 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
         
         public void push(T item) {
-            if (!atTail()) {
-                // we've backed up in the queue, and are now moving forward:
-                // flush prior recorded forward views:
-                if (DEBUG.Enabled) debug(TERM_PURPLE + "FLUSHING forward views " + (cursor+1) + " - " + (size()-1) + TERM_CLEAR);
-                super.removeRange(cursor + 1, size());
-            }
+            if (!atTail())
+                flushForward();
             super.add(item);
             cursor = size() - 1;
             if (DEBUG.Enabled) debug(TERM_PURPLE + String.format("RECORDED %2d: ", cursor) + item + TERM_CLEAR);
         }
+
+        private void flushForward() {
+            // we've backed up in the stack, and are now moving forward:
+            // flush prior recorded forward views:
+            if (DEBUG.Enabled) debug(TERM_PURPLE + "FLUSHING forward views " + (cursor+1) + " - " + (size()-1) + TERM_CLEAR);
+            super.removeRange(cursor + 1, size());
+        }
+    }
+
+    private static final boolean ViewsRespectScrollBars = false;
+
+    private boolean isCloseMapRegion
+        (final double zoom1,
+         final double zoom2,
+         final Rectangle2D v1,
+         final Rectangle2D v2,
+         final int pixMax)
+    {
+
+        //final double scale = 1 / Math.max(zoom1, zoom2);
+        final double scale = Math.min(zoom1, zoom2);
+
+        // compute actual on-screen pixel differences
+        
+        final double dpx = (v1.getX() - v2.getX()) * scale;
+        final double dpy = (v1.getX() - v2.getX()) * scale;
+        final double dpw = (v1.getWidth() - v2.getWidth()) * scale;
+        final double dph = (v1.getHeight() - v2.getHeight()) * scale;
+
+
+        // if same zoom level, ignore width & height: same offset treated as equivalent
+        if (zoom1 == zoom2) {
+            if (DEBUG.Enabled) out(String.format("deltaPixels: (%.3f) %.1f,%.1f %.1fx%.1f", zoom1, dpx, dpy, dpw, dph));
+            return Math.abs(dpx) < pixMax
+                && Math.abs(dpy) < pixMax;
+        }
+
+        if (DEBUG.Enabled) out(String.format("deltaPixels: (%.3f|%.3f) %.1f,%.1f %.1fx%.1f", zoom1, zoom2, dpx, dpy, dpw, dph));
+        return Math.abs(dpx) < pixMax
+            && Math.abs(dpy) < pixMax
+            && Math.abs(dpw) < pixMax
+            && Math.abs(dph) < pixMax;
     }
 
     private class View {
@@ -1920,16 +1993,26 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         final float offsetY;
         final double zoom;
         final LWComponent focal;
+        final Rectangle2D mapRegion;
 
         View() {
             offsetX = mOffset.x;
             offsetY = mOffset.y;
             zoom = mZoomFactor;
             focal = mFocal;
+            mapRegion = getVisibleMapBounds();
         }
 
         final boolean isSameAsCurrentView() {
-            return isSameAsCurrentViewImpl();
+            if (ViewsRespectScrollBars)
+                return isSameAsCurrentViewImpl();
+            else
+                return isCloseMapRegion(mZoomFactor, zoom, mapRegion, getVisibleMapBounds(), 20);
+                //return isCloseMapRegion(Math.max(mZoomFactor, zoom), mapRegion, getVisibleMapBounds(), 20);
+                //return mapRegion.equals(getVisibleMapBounds());
+
+            // todo: if the ASPECT has changed since the view was recorded, we can know the
+            // window has been resized and we can use a much looser similarity test.
         }
 
         boolean isSameAsCurrentViewImpl() {
@@ -1951,8 +2034,31 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 //                 && focal == mFocal;
         }
 
-        void restoreView() {
+        final void restoreView() {
+            if (mFocal != focal) {
+                loadFocal(focal, false, false);
+            }
 
+            if (ViewsRespectScrollBars) {
+                restoreViewImpl();
+            } else {
+                // this will handle the case of a resized VueFrame, tho will always reset the scroll bars
+                if (inScrollPane) mViewport.setAdjusting(true);
+                try {
+                    ZoomTool.setZoomFitRegion(MapViewer.this, mapRegion, 0, true);
+                } catch (Throwable t) {
+                    Log.error(t);
+                } finally {
+                    if (inScrollPane) mViewport.setAdjusting(false);
+                }
+            }
+        }
+
+        void restoreViewImpl() {
+            restoreViewImplRespectingScrollBars();
+        }
+        
+        private void restoreViewImplRespectingScrollBars() {
             if (mFocal != focal) {
                 loadFocal(focal, false, false);
             } else if (canAnimate()) {
@@ -1965,18 +2071,27 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             if (DEBUG.SCROLL) debug("VIEW RESTORE ZOOM");
 
             takeZoomFactor(zoom); // do NOT use setZoomFactor, which will mess with scroll stuff
-            
-            
-            //setZoomFactor(zoom, true, null, false);
-            //setZoomFactor(zoom, false, null, false);
         }
 
         protected String paramString() {
-            return String.format("%s %.2f %.1f,%.1f", focal == null ? "null" : focal.getDiagnosticLabel(), zoom, offsetX, offsetY);
+            if (ViewsRespectScrollBars) {
+                return String.format("%s %.2f %.1f,%.1f",
+                                     focal == null ? "null" : focal.getDiagnosticLabel(),
+                                     zoom, offsetX, offsetY);
+            } else {
+                return String.format("%s %.2f %7.1f,%-7.1f %s",
+                                     focal == null ? "null" : focal.getDiagnosticLabel(),
+                                     zoom, offsetX, offsetY,
+                                     fmt(mapRegion));
+            }
         }
         
         @Override public String toString() {
             return "RawView[" + paramString() + "]";
+//             if (ViewsRespectScrollBars)
+//                 return "RawView[" + paramString() + "]";
+//             else
+//                 return "View[" + paramString() + "]";
         }
     }
 
@@ -2018,12 +2133,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             }
         }
         
-        @Override void restoreView() {
+        @Override void restoreViewImpl() {
 
             mViewport.setAdjusting(true);
 
             if (DEBUG.SCROLL) debug("SCROLL SUPER RESTORE");
-            super.restoreView();
+            super.restoreViewImpl();
             
             if (DEBUG.SCROLL) debug("SCROLL RESTORE");
             
@@ -2051,7 +2166,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
 
         protected String paramString() {
-            return super.paramString() + String.format(" %d,%d %dx%d",
+            return super.paramString() + String.format(" %4d,%-4d %7dx%-7d",
                                                        canvasX, canvasY,
                                                        canvasSize.width,
                                                        canvasSize.height);
@@ -2063,9 +2178,18 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
 
     /** queue of View's */
-    private final CursorList<View> mViews = new CursorList();
+    private final CursoredStack<View> mViews = new CursoredStack();
     private boolean mViewRestoring;
+    private boolean mViewWasJustRestored;
     private long mLastRestoreTime = 0;
+
+    public boolean hasBackwardViews() {
+        return !mViews.atHead();
+    }
+    
+    public boolean hasForwardViews() {
+        return !mViews.atTail();
+    }
 
     public void viewBackward() {
         if (!mViews.atHead())
@@ -2079,9 +2203,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
     private void recordView() {
         mViews.push(produceView());
+        fireViewerEvent(Event.VIEWS_CHANGED, "recordView");
     }
 
     private View produceView() {
+        //if (ViewsRespectScrollBars && inScrollPane)
         if (inScrollPane)
             return new ScrollView();
         else
@@ -2095,6 +2221,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         mLastRestoreTime = System.currentTimeMillis();
         try {
             view.restoreView();
+            mViewWasJustRestored = true;
         } catch (Throwable t) {
             Log.error("restoreView " + view, t);
         } finally {
@@ -2102,6 +2229,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
         if (DEBUG.Enabled) debug(TERM_YELLOW + String.format("RESTORED %2d: ", mViews.cursor) + view + TERM_CLEAR);
         repaint();
+        fireViewerEvent(Event.VIEWS_CHANGED, "restoreView");
     }
 
     private void recordViewIfChanged()
@@ -2535,8 +2663,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         */
     }
     
-    private Timer rolloverTimer = new Timer();
-    private TimerTask rolloverTask = null;
+    //private Timer rolloverTimer = new Timer("Rollover");
+    private volatile TimerTask rolloverTask = null;
     private void runRolloverTask() {
         //if (true) return;
         //System.out.println("task run " + this);
@@ -3067,6 +3195,20 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         return VUE.inFullScreen() && instanceName != tufts.vue.gui.FullScreen.VIEWER_NAME;
     }
     
+//     private boolean immediateRepaint = false;
+//     void paintImmediately() {
+//         immediateRepaint = true;
+//         try {
+//             paintImmediately(getVisibleBounds());
+//         } finally {
+//             immediateRepaint = false;
+//         }
+//     }
+
+    void paintImmediately() {
+        paintImmediately(getVisibleBounds());
+    }
+
     public void repaint() { // heavy-duty debug
         if (DEBUG.PAINT) {
             if (DEBUG.META) {
@@ -3076,7 +3218,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             }
         }
         super.repaint();
+        trackViewChanges("REPAINT");
     }
+
+    private static final String PAINT_TRACKPOINT = "PAINT";
     
     @Override
     public void paint(Graphics g) {
@@ -3085,7 +3230,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             return;
         
         long start = 0;
-        if (DEBUG.PAINT) {
+
+        if (DEBUG.PAINT || DEBUG.SCROLL || DEBUG.Enabled) {
             //System.out.print("paint " + paints + " RAW-clipBounds=" + g.getClipBounds()+" "); System.out.flush();
             out(TERM_CYAN + "PAINT ->#" + paints + " RAW-clipBounds=" + g.getClipBounds() + TERM_CLEAR);
             start = System.currentTimeMillis();
@@ -3111,7 +3257,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             if (inScrollPane)
                 adjustCanvasSize(); // need for intial scroll-bar sizes if bigger than viewport on startup
             VUE.invokeAfterAWT(new Runnable() { public void run() { ensureMapVisible(); }});
-            trackViewChanges("first-paint");
+            //trackViewChanges("first-paint");
         }
         if (DEBUG.PAINT) {
             //try { Thread.sleep(500); } catch (Exception e) {}            
@@ -3128,6 +3274,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         if (mFocal == null || !mFocal.hasContent())
             paintEmptyMessage(g);
+        else
+            trackViewChanges(PAINT_TRACKPOINT);
         
         paints++;
         RepaintRegion = null;
@@ -6009,7 +6157,16 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         
     public void eventRaised(FocusManager.GlobalMouseEvent e) {
-        out(e);
+
+//         if (mViewWasJustRestored) {
+//             mViewWasJustRestored = false;
+//             if (DEBUG.Enabled) out("IGNORING: VIEW JUST RESTORED; " + e);
+//             return;
+//         }
+
+        //if (DEBUG.Enabled) out(TERM_CYAN + "*** IGNORING " + e + TERM_CLEAR);
+        
+        if (DEBUG.Enabled) out(e);
         if (e.event.getID() == MouseEvent.MOUSE_RELEASED)
             trackViewChanges("globalMouseRelease");
     }
@@ -6523,13 +6680,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             //lastRotationTime = System.currentTimeMillis();
         }
 
-    private Timer mTipTimer = new Timer() {
-            @Override
-            public void schedule(TimerTask task, long delay) {
-                if (DEBUG.THREAD) out("TipTime: scheduling " + task + " in " + delay + "ms");
-                super.schedule(task, delay);
-            }
-        };
+//     private final Timer mTipTimer = new Timer("TipTimer") {
+//             @Override
+//             public void schedule(TimerTask task, long delay) {
+//                 if (DEBUG.THREAD) out("TipTime: scheduling " + task + " in " + delay + "ms");
+//                 super.schedule(task, delay);
+//             }
+//         };
     private boolean mMouseHasEnteredToolTip = false;
         
         private class ClearTipTask extends TimerTask {
@@ -6575,7 +6732,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         private void clearTipSoon() {
             synchronized (sTipLock) {
                 if (sTipComponent != null) {
-                    mTipTimer.schedule(new ClearTipTask(), 500);
+                    ViewerTimer.schedule(new ClearTipTask(), 500);
+                    //mTipTimer.schedule(new ClearTipTask(), 500);
                 }
             }
         }
@@ -6682,19 +6840,20 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             //}
             
             if (isAutoZoomEnabled() && RolloverAutoZoomDelay > 0) {
-                if (DEBUG_TIMER_ROLLOVER && !sDragUnderway && !hasActiveTextEdit()) {
+                if (!sDragUnderway && !hasActiveTextEdit() /* && DEBUG_TIMER_ROLLOVER */) {
                     if (RolloverAutoZoomDelay > 10 && mRollover == null) {
                         if (rolloverTask != null)
                             rolloverTask.cancel();
                         rolloverTask = new RolloverTask();
-                        try {
-                            rolloverTimer.schedule(rolloverTask, RolloverAutoZoomDelay);
-                        } catch (IllegalStateException ex) {
-                            // don't know why this happens somtimes...
-                            System.out.println(ex + " (fallback: creating new timer)");
-                            rolloverTimer = new Timer();
-                            rolloverTimer.schedule(rolloverTask, RolloverAutoZoomDelay);
-                        }
+                        ViewerTimer.schedule(rolloverTask, RolloverAutoZoomDelay);
+//                         try {
+//                             rolloverTimer.schedule(rolloverTask, RolloverAutoZoomDelay);
+//                         } catch (IllegalStateException ex) {
+//                             // don't know why this happens somtimes... [problem: wasnt creating new RolloverTask each time]
+//                             Log.warn(this + ": " + ex + " (fallback: creating new timer)");
+//                             rolloverTimer = new Timer("Rollover+");
+//                             rolloverTimer.schedule(rolloverTask, RolloverAutoZoomDelay);
+//                         }
                     } else {
                         runRolloverTask();
                     }
@@ -7807,6 +7966,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // over to another map, which then grabs the VUE application focus and becomes the active viewer.
         VUE.invokeAfterAWT(focusIndicatorRepaint);
 
+        fireViewerEvent(Event.VIEWS_CHANGED, "madeActive");
+
 //         if (viewer == this)
 //             grabVueApplicationFocus(e.toString(), null);
      }
@@ -8260,11 +8421,16 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
     //private String out(Point2D p) { return p==null?"<null Point2D>":(float)p.getX() + ", " + (float)p.getY(); }
     private String fmt(Point2D p) { return Util.fmt(p); }
-    private String fmt(Rectangle2D r) { return ""
-            + (float)r.getX() + ", " + (float)r.getY()
-            + "  "
-            + (float)r.getWidth() + " x " + (float)r.getHeight()
-            ;
+    private String fmt(Rectangle2D r) {
+
+        return String.format("%7.1f,%-7.1f %7.1fx%-7.1f]",
+                             r.getX(), r.getY(), r.getWidth(), r.getHeight());
+
+//         return ""
+//             + (float)r.getX() + ", " + (float)r.getY()
+//             + "  "
+//             + (float)r.getWidth() + " x " + (float)r.getHeight()
+//             ;
     }
     private String fmt(Dimension d) { return d.width + " x " + d.height; }
 
@@ -8280,7 +8446,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     private boolean DEBUG_ANTI_ALIAS = true;
     private boolean DEBUG_RENDER_QUALITY = false;
     private boolean DEBUG_FINDPARENT_OFF = false;
-    protected boolean DEBUG_TIMER_ROLLOVER = true; // todo: preferences
+    //protected boolean DEBUG_TIMER_ROLLOVER = true; // todo: preferences
     private boolean DEBUG_FONT_METRICS = false;// fractional metrics looks worse to me --SF
     private boolean OPTIMIZED_REPAINT = false;
     
@@ -8357,7 +8523,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
             MapViewer viewer = new MapViewer(map);
             //viewer.DEBUG_SHOW_ORIGIN = true;
-            viewer.DEBUG_TIMER_ROLLOVER = false;
+            //viewer.DEBUG_TIMER_ROLLOVER = false;
             viewer.setPreferredSize(new Dimension(500,300));
             if (use_scroller) {
                 JScrollPane scrollPane = new JScrollPane(viewer);
