@@ -141,6 +141,7 @@ public class MapViewport extends JViewport
     }
 
     private Point lastPosition;
+    private boolean isAdjusting;
     
     @Override
     public void setViewPosition(Point p) {
@@ -157,12 +158,19 @@ public class MapViewport extends JViewport
     }
 
     public void setAdjusting(boolean b) {
-        scrollPane.getHorizontalScrollBar().setValueIsAdjusting(b);
-        scrollPane.getVerticalScrollBar().setValueIsAdjusting(b);
+        isAdjusting = b;
+        //scrollPane.getHorizontalScrollBar().setValueIsAdjusting(b);
+        //scrollPane.getVerticalScrollBar().setValueIsAdjusting(b);
     }
 
     public boolean isAdjusting() {
-        return scrollPane.getHorizontalScrollBar().getValueIsAdjusting()
+
+        if (DEBUG.SCROLL) Log.debug("isAdjusting=" + isAdjusting
+                                    + ", horzAdjusting=" + scrollPane.getHorizontalScrollBar().getValueIsAdjusting()
+                                    + ", vertAdjusting=" + scrollPane.getVerticalScrollBar().getValueIsAdjusting());
+        
+        return isAdjusting
+            || scrollPane.getHorizontalScrollBar().getValueIsAdjusting()
             || scrollPane.getVerticalScrollBar().getValueIsAdjusting();
     }
         
