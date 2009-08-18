@@ -34,7 +34,7 @@ import javax.swing.*;
  * zoom needed to display an arbitraty map region into an arbitrary
  * pixel region.
  *
- * @version $Revision: 1.89 $ / $Date: 2009-08-17 21:42:38 $ / $Author: sfraize $
+ * @version $Revision: 1.90 $ / $Date: 2009-08-18 17:16:03 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -622,26 +622,34 @@ public class ZoomTool extends VueTool
     	setZoomFitRegion(viewer,mapRegion,borderGap,animate,false);
     }
     /** @param currently only works if NOT in a scroll pane */    
-    public static void setZoomFitRegion(MapViewer viewer, Rectangle2D mapRegion, float borderGap, boolean animate, boolean fitAndCenterMap)
+    public static void setZoomFitRegion
+        (final MapViewer viewer,
+         final Rectangle2D mapRegion,
+         final float borderGap,
+         final boolean animate,
+         final boolean fitAndCenterMap)
     {
         if (mapRegion == null) {
             new Throwable("setZoomFitRegion: mapRegion is null for " + viewer).printStackTrace();
             return;
         }
+        if (viewer == null)
+            throw new NullPointerException("null viewer in setZoomFitRegion");
+        
         final Point2D.Float offset = new Point2D.Float();
         final double newZoom = computeZoomFit(viewer.getVisibleSize(),
                                               borderGap,
                                               mapRegion,
                                               offset);
         
-        //if (viewer.inScrollPane()) {
         if (!viewer.canAnimate()) {
             Point2D center = new Point2D.Double(mapRegion.getCenterX(), mapRegion.getCenterY());
 //             if (newZoom > MaxZoom)
 //                 newZoom = MaxZoom;
 
             
-            
+            // TODO: this code should probably be referencing viewer, not VUE.getActiveViewer!  Mike added this Feb-08?
+            // What condition is this trying to handle?
             if (	(newZoom > 1 && 
             		((VUE.getActiveViewer() == null) ||
             		 (VUE.getActiveViewer() != null && (VUE.getActiveViewer().getFocal() == null || VUE.getActiveViewer().getFocal() instanceof LWMap ))) && 
