@@ -88,7 +88,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.156 $ / $Date: 2009-08-17 21:42:38 $ / $Author: sfraize $
+ * @version $Revision: 1.157 $ / $Date: 2009-08-18 14:23:22 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -1099,17 +1099,23 @@ public class VueMenuBar extends javax.swing.JMenuBar
     
     public JCheckBoxMenuItem createWindowItem(DockWindow dock,int accelKey, String text)
     {
-    	final WindowDisplayAction windowAction = new WindowDisplayAction(dock);
-    	final KeyStroke acceleratorKey = KeyStroke.getKeyStroke(accelKey, Actions.COMMAND);
-    	if (accelKey > 0)
+        final JCheckBoxMenuItem checkBox;
+        
+        if (dock != null) {
+            final WindowDisplayAction windowAction = new WindowDisplayAction(dock);
+            final KeyStroke acceleratorKey = KeyStroke.getKeyStroke(accelKey, Actions.COMMAND);
+            if (accelKey > 0)
     		windowAction.putValue(Action.ACCELERATOR_KEY, acceleratorKey);    	
-    	if (text !=null)
+            if (text !=null)
     		windowAction.setTitle(text);
     	
-    	JCheckBoxMenuItem checkBox = new JCheckBoxMenuItem(windowAction);    	
+            checkBox = new JCheckBoxMenuItem(windowAction);    	
     	
     		//checkBox.setText(text);
-    	windowAction.setLinkedButton(checkBox);
+            windowAction.setLinkedButton(checkBox);
+        } else {
+            checkBox = new JCheckBoxMenuItem(text + " (missing window)");
+        }
     	
     	return checkBox;
     }
