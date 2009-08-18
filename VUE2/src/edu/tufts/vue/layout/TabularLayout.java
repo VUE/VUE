@@ -42,7 +42,7 @@ public class TabularLayout extends Layout {
 
 
     public static final int DEFAULT_COL = 4;
-
+    private static boolean IM_LAYOUT=false;
     /** Creates a new instance of TabularLayout */
     public TabularLayout() {
     }
@@ -52,6 +52,11 @@ public class TabularLayout extends Layout {
         return map;
     }
 
+    public static void setIMLayout(boolean im)
+    {
+    	IM_LAYOUT=im;
+    }
+    
     public void layout(LWSelection selection) throws Exception {
         double minX = Double.POSITIVE_INFINITY;
         double minY = Double.POSITIVE_INFINITY;
@@ -65,8 +70,23 @@ public class TabularLayout extends Layout {
             LWComponent c = i.next();
             if (c instanceof LWNode) {
                 LWNode node = (LWNode) c;
-                minX = node.getLocation().getX() < minX ? node.getLocation().getX() : minX;
-                minY = node.getLocation().getY() < minY ? node.getLocation().getY() : minY;
+                
+                /*
+                 * If we're using the collaborative IM layout, then we need to be careful about this, in the current layout
+                 * if you're not zoom fitting things can get pulled to the upper left, not sure if this is intended
+                 * so i'm leaving it alone, and just special casing the instant messenging case.
+                 */
+                if (IM_LAYOUT)
+                {
+                	minX = node.getLocation().getX() !=0.0 && node.getLocation().getX() < minX ? node.getLocation().getX() : minX;
+                	minY = node.getLocation().getX() !=0.0 && node.getLocation().getY() < minY ? node.getLocation().getY() : minY;
+                }
+                else
+                {
+                	minX = node.getLocation().getX() < minX ? node.getLocation().getX() : minX;
+                    minY = node.getLocation().getY() < minY ? node.getLocation().getY() : minY;
+                }
+                
                 xAdd = xAdd > node.getWidth() ? xAdd : node.getWidth();
                 yAdd = yAdd > node.getHeight() ? yAdd : node.getHeight();
                 total++;
@@ -87,13 +107,14 @@ public class TabularLayout extends Layout {
                 if (count % mod == 0) {
                     if (count != 0) {
                         y += yAdd;
+                        System.out.println("Y : " +y +"," + " yAdd : " + yAdd);
                     }
                     x = minX;
                 } else {
                     x += xAdd;
                 }
                 count++;
-                node.setLocation(x, y);
+              	node.setLocation(x, y);
             }
         }
     }
