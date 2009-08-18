@@ -1949,6 +1949,10 @@ public class Actions implements VueConstants
             @Override public boolean overrideIgnoreAllActions() { return true; }        
             
     };
+
+    // TODO: need a ViewerAction subclass of VueAction that is for
+    // actions that are only enabled as long as there is an active viewer
+    // (also may want a MapAction subclass?  should be same semantics -- we don't support empty MapViewer's)
     
     public static final VueAction ViewBackward =
         new VueAction(VueResources.local("menu.view.backward"), keyStroke(KeyEvent.VK_LEFT, COMMAND)) {
@@ -1963,6 +1967,26 @@ public class Actions implements VueConstants
         }
     };
 
+    static {
+        new MapViewer.Listener() {
+            { EventHandler.addListener(MapViewer.Event.class, this); } // this ref only thing preventing GC 
+            public void eventRaised(MapViewer.Event e) {
+
+                if (e.id != MapViewer.Event.VIEWS_CHANGED)
+                    return;
+                
+                if (e.viewer != null) {
+                    ViewBackward.setEnabled(e.viewer.hasBackwardViews());
+                    ViewForward.setEnabled(e.viewer.hasForwardViews());
+                } else {
+                    // todo: never happens -- provide auxillary somewhere event just for this case?
+                    ViewBackward.setEnabled(false);
+                    ViewForward.setEnabled(false);
+                }
+            }
+            public String toString() { return getClass().getEnclosingClass().getName() + "(back/forward menu updater)"; }
+        };
+    }
     private static class Stats {
         float minX, minY;
         float maxX, maxY;
