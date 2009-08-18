@@ -117,7 +117,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.677 $ / $Date: 2009-08-18 14:23:21 $ / $Author: sfraize $ 
+ * @version $Revision: 1.678 $ / $Date: 2009-08-18 16:58:35 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -564,6 +564,9 @@ public class VUE
                 else
                     ActiveMapHandler.setActive(e, null);
             }
+        }
+        protected void onChange(ActiveEvent<MapViewer> e) {
+            
         }
     };
 
@@ -2873,14 +2876,8 @@ public class VUE
             }
         }
     }
-    
-    /**
-     * If any open maps have been modified and not saved, run
-     * dialogs to determine what to do.
-     * @return true if we're cleared to exit, false if we want to abort the exit
-     */
-    public static boolean isOkayToExit() {
-       //update the windows properties
+
+    private static void saveAllWindowProperties() {
         pathwayDock.saveWindowProperties();
         if (formatDock != null)
             formatDock.saveWindowProperties();
@@ -2891,13 +2888,29 @@ public class VUE
         ObjectInspector.saveWindowProperties();
         metaDataSearchDock.saveWindowProperties();
         interactionToolsDock.saveWindowProperties();
-        contentDock.saveWindowProperties();
+        if (contentDock != null)
+            contentDock.saveWindowProperties();
         mergeMapsDock.saveWindowProperties();
         if (outlineDock != null)
             outlineDock.saveWindowProperties();
         if (layersDock != null)
             layersDock.saveWindowProperties();
         ApplicationFrame.saveWindowProperties();
+    }
+    
+    /**
+     * If any open maps have been modified and not saved, run
+     * dialogs to determine what to do.
+     * @return true if we're cleared to exit, false if we want to abort the exit
+     */
+    public static boolean isOkayToExit() {
+       //update the windows properties
+
+        try {
+            saveAllWindowProperties();
+        } catch (Throwable t) {
+            Log.error("saving window props", t);
+        }
        
         if (mMapTabsLeft == null) // so debug harnesses can quit (no maps displayed)
             return true;
