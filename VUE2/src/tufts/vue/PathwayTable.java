@@ -61,7 +61,7 @@ import osid.dr.Asset;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.111 $ / $Date: 2009-05-14 22:17:35 $ / $Author: brian $
+ * @version $Revision: 1.112 $ / $Date: 2009-08-18 14:29:39 $ / $Author: sfraize $
  */
 
 public class PathwayTable extends JTable
@@ -223,6 +223,7 @@ public class PathwayTable extends JTable
     	masterSlidePresentation.addActionListener(this);
     	deletePresentation.addActionListener(this);
     	editEntry.addActionListener(this);
+    	previewEntry.addActionListener(this);
     	addNoteEntry.addActionListener(this);
     	deleteEntry.addActionListener(this);
     	duplicateEntry.addActionListener(this);
@@ -1150,6 +1151,8 @@ public class PathwayTable extends JTable
 	
 	public void actionPerformed(ActionEvent e)
 	{
+            if (DEBUG.EVENTS) Log.debug("actionPerformed: " + e);
+            
 		if (e.getSource().equals(renamePresentation))
 		{
 			//System.out.println("selectedX : " + selectedX);
