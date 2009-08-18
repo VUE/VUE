@@ -138,6 +138,7 @@ public class VUEAim {
 	protected boolean assignColors = false;
 	protected boolean forceNodeWidth = false;
 	protected boolean makeTables = false;
+	protected boolean keepAt100 =false;
     protected BosFlapConn bosConn = null;
     protected Set services = new HashSet();
     protected Map chats = new HashMap();
@@ -327,6 +328,7 @@ public class VUEAim {
 	    }
 
 	    private String aimexp = "the60s";
+		
 	    
 
 	    public void sendIM(String nick, String text) {
@@ -453,6 +455,11 @@ public class VUEAim {
 
 		public void forceNodesIntoTable(boolean selected) {
 			makeTables = selected;
+			
+		}
+		
+		public void keepMapAtOneToOne(boolean selected) {
+			keepAt100 = selected;
 			
 		}
 }

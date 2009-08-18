@@ -109,6 +109,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -136,6 +137,7 @@ import tufts.vue.VueUtil;
 import tufts.vue.NodeTool.NodeModeTool;
 import edu.tufts.vue.collab.im.security.SecureSession;
 import edu.tufts.vue.collab.im.security.SecureSessionException;
+import edu.tufts.vue.layout.TabularLayout;
 import edu.tufts.vue.metadata.MetadataList;
 
 public abstract class BasicConn extends AbstractFlapConn {
@@ -301,7 +303,7 @@ public abstract class BasicConn extends AbstractFlapConn {
     		approvedSenders.clear();
     	}
     }
-    protected void handleSnacPacket(SnacPacketEvent e) {
+    protected synchronized void handleSnacPacket(SnacPacketEvent e) {
         SnacPacket packet = e.getSnacPacket();
         System.out.println("got snac packet type "
                 + Integer.toHexString(packet.getFamily()) + "/"
@@ -431,27 +433,44 @@ public abstract class BasicConn extends AbstractFlapConn {
                 }		
             	
 //            	VUE.getActiveMap().add(newNode);//
-            	VUE.getActiveViewer().getFocal().dropChild(newNode);
-              	if (!tester.makeTables)
-              	{
-	            	List<LWComponent> compList = new ArrayList<LWComponent>();
-	              	compList.add(newNode);
-	              	VUE.getActiveViewer().getSelection().clear();
-	              	VUE.getActiveViewer().getSelection().add(newNode);
-	
-	            	LayoutAction.search.act(new LWSelection(compList));
+            	//getFocal().dropChild(newNode);
+
+            	
+            	List<LWComponent> compList = new ArrayList<LWComponent>();
+	          
+	          //  VUE.getActiveViewer().getSelection().clear();
+	           // VUE.getActiveViewer().getSelection().add(newNode);
+	            Collection<LWComponent> collection = VUE.getActiveMap().getActiveLayer().getAllDescendents();
+	            compList.addAll(collection);
+	            compList.add(newNode);
+	            if (collection.size() <= 1)
+	            {
+	            	//if its a fresh map try not to let it go all the way off the creen
+	            	if (!(VUE.getActiveMap().getAllDescendents().size() < 1 && VUE.getActiveViewer().getLastMousePressMapPoint().getX()+200 > VUE.getActiveViewer().getWidth()))
+	            		newNode.setLocation(VUE.getActiveViewer().getLastMousePressMapPoint());
+	            	VUE.getActiveMap().addChild(newNode);
+	            }
+	            else
+	            	VUE.getActiveMap().dropChild(newNode);
+	            
+            	//VUE.getActiveViewer().getSelection().setTo(compList);
+	            if (!tester.makeTables)
+              	{	            		              	
+	              	if (compList.size() > 1)              		
+	              		LayoutAction.search.act(new LWSelection(compList),!tester.keepAt100);
+              		
 	            	MapDropTarget.makeRoomFor(newNode);
 	            	MapDropTarget.makeRoomFor(newNode);
               	}
               	else
-              	{
-              		List<LWComponent> compList = new ArrayList<LWComponent>();
-              		VUE.getActiveViewer().getSelection().clear();
-              		VUE.getActiveViewer().getSelection().add(newNode);
-//	              	VUE.getActiveViewer().getSelection().add(VUE.getActiveMap().getAllDescendents());
-	              	compList.addAll(VUE.getActiveMap().getAllDescendents());
-	              	LayoutAction.table.act(new LWSelection(compList));
+              	{   
 
+              		if (compList.size() > 1)              		              		
+              		{   
+              			TabularLayout.setIMLayout(true);
+              			LayoutAction.table.act(new LWSelection(compList),!tester.keepAt100);              		
+                  		TabularLayout.setIMLayout(false);
+              		}
               	}
             }
 

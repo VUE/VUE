@@ -51,6 +51,7 @@ public class VueAimPanel extends JPanel implements ActionListener, ClientConnLis
     private JCheckBox assignColorCheckbox = null;
     private JCheckBox nodeWidthCheckbox = null;
     private JCheckBox makeTableCheckbox = null;
+    private JCheckBox zoomCheckbox = null;
     
     public VueAimPanel() {                    
         
@@ -69,6 +70,7 @@ public class VueAimPanel extends JPanel implements ActionListener, ClientConnLis
         approveCheckbox = new JCheckBox(VueResources.getString("im.button.approve"),true);
         nodeWidthCheckbox = new JCheckBox(VueResources.getString("im.button.nodewidth"),true); 
         makeTableCheckbox = new JCheckBox(VueResources.getString("im.button.maketable"),true); 
+        zoomCheckbox = new JCheckBox(VueResources.getString("im.button.zoom"),true); 
 
         resetApproveButton = new JButton(VueResources.getString("im.approve.reset"));
         resetApproveButton.addActionListener(this);
@@ -77,6 +79,7 @@ public class VueAimPanel extends JPanel implements ActionListener, ClientConnLis
         nodeWidthCheckbox.addItemListener(this);
         makeTableCheckbox.addItemListener(this);
         assignColorCheckbox.addItemListener(this);
+        zoomCheckbox.addItemListener(this);
         
         mPropPanel  = new PropertyPanel();
         //mPropPanel.addProperty( "Label:", mTitleEditor); // initially Label was title
@@ -135,6 +138,13 @@ public class VueAimPanel extends JPanel implements ActionListener, ClientConnLis
         c.fill = GridBagConstraints.HORIZONTAL;
         gridbag.setConstraints(makeTableCheckbox,c);
         innerPanel.add(makeTableCheckbox);
+        
+        c.weightx = 1.0;
+        c.gridwidth = GridBagConstraints.REMAINDER;
+        c.anchor = GridBagConstraints.NORTHWEST;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        gridbag.setConstraints(zoomCheckbox,c);
+        innerPanel.add(zoomCheckbox);
         
         c.weightx = 1.0;
         c.gridwidth = GridBagConstraints.REMAINDER;
@@ -227,6 +237,7 @@ public class VueAimPanel extends JPanel implements ActionListener, ClientConnLis
 			aim.assignColorsToContributors(assignColorCheckbox.isSelected());
 			aim.forceUniformNodeWidth(nodeWidthCheckbox.isSelected());
 			aim.forceNodesIntoTable(makeTableCheckbox.isSelected());
+			aim.keepMapAtOneToOne(zoomCheckbox.isSelected());
 		}
 	}
 	else if (e.getSource().equals(resetApproveButton))
@@ -280,6 +291,13 @@ public class VueAimPanel extends JPanel implements ActionListener, ClientConnLis
 				aim.forceNodesIntoTable(true);
 			else if (!((JCheckBox)e.getSource()).isSelected() && aim !=null)
 				aim.forceNodesIntoTable(false);
+		}
+		else if (e.getSource().equals(zoomCheckbox))
+		{
+			if (((JCheckBox)e.getSource()).isSelected() && aim !=null)
+				aim.keepMapAtOneToOne(true);
+			else if (!((JCheckBox)e.getSource()).isSelected() && aim !=null)
+				aim.keepMapAtOneToOne(false);
 		}
 			
 		
