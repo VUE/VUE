@@ -188,7 +188,7 @@ public class SlideViewer extends tufts.vue.MapViewer
 
         btnSlide.setSelected(true);
 
-        DEBUG_TIMER_ROLLOVER = false;
+        //DEBUG_TIMER_ROLLOVER = false;
 
         //VUE.addActiveListener(LWPathway.Entry.class, this);
 
