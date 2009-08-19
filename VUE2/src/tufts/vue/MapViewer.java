@@ -76,7 +76,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.616 $ / $Date: 2009-08-18 17:44:55 $ / $Author: sfraize $ 
+ * @version $Revision: 1.617 $ / $Date: 2009-08-19 15:42:41 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -555,7 +555,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             
             private void attemptRecording() {
                 if (viewIsChanging()) {
-                    out("VIEW STILL CHANGING; IGNORING TRACK ATTEMPT");
+                    if (DEBUG.PRESENT) out("VIEW STILL CHANGING; IGNORING TRACK ATTEMPT");
                     return;
 //                     if (true||DEBUG.Enabled) debug("CHAINING view adjustment, count set to 1");
 //                     mViewChangeCount.set(1);
@@ -587,11 +587,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // and the only help we could provide to coalesce them would be to set a limit on the
         // temporal frequency that view's can be recorded.
 
-        out("anim=" + isAnimating
-            + ", restoring=" + mViewRestoring
-            + ", dragging=" + sDragUnderway
-            + ", mousing=" + FocusManager.isMouseDown());
-
+        if (DEBUG.PRESENT || DEBUG.SCROLL)
+            out("anim=" + isAnimating
+                + ", restoring=" + mViewRestoring
+                + ", dragging=" + sDragUnderway
+                + ", globalMousing=" + FocusManager.isMouseDown());
         
         return isAnimating
             || mViewRestoring
@@ -3231,7 +3231,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         
         long start = 0;
 
-        if (DEBUG.PAINT || DEBUG.SCROLL || DEBUG.Enabled) {
+        if (DEBUG.PAINT || DEBUG.SCROLL || DEBUG.PRESENT) {
             //System.out.print("paint " + paints + " RAW-clipBounds=" + g.getClipBounds()+" "); System.out.flush();
             out(TERM_CYAN + "PAINT ->#" + paints + " RAW-clipBounds=" + g.getClipBounds() + TERM_CLEAR);
             start = System.currentTimeMillis();
