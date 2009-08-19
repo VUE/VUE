@@ -50,7 +50,7 @@ public class ClusterLayout extends Layout {
 			.getInt("layout.check_overlap_number");
 	public final int clusterColumn = 3;
 	public final int total = 15;
-	public static final double AREA_INCREASE_FACTOR = 2.0;
+	public static final double AREA_INCREASE_FACTOR = 2.5;
 	public static final int MAX_ITERATIONS = 20;
 	/** Creates a new instance of ClusterLayout */
 	public ClusterLayout() {
@@ -202,7 +202,7 @@ public class ClusterLayout extends Layout {
 			if (clusterSize > maxClusterSize)
 				maxClusterSize = clusterSize;
 			area +=  FACTOR * clusterMap.get(c).size()* maxNodeWidth * maxNodeHeight;
-			double radius = Math.sqrt(FACTOR * clusterMap.get(c).size()* maxNodeWidth * maxNodeHeight / Math.PI);
+			double radius = 1.05*Math.sqrt(FACTOR * clusterMap.get(c).size()* maxNodeWidth * maxNodeHeight / Math.PI);// increase the radius for computing cluster centers by 5%
 			componentRadiusMap.put(c, radius);
 		}	
 		
@@ -308,9 +308,23 @@ public class ClusterLayout extends Layout {
 			for(LWComponent node1: nodes) {
 				for(LWComponent node2: nodes) {
 					if(node1 != node2) {
-						if(checkCollision(node1,node2,componentRadiusMap.get(node1),componentRadiusMap.get(node2))){
+						double r1 = componentRadiusMap.get(node1);
+						double r2 = componentRadiusMap.get(node2);
+						if(checkCollision(node1,node2,r1,r2)){
 							collide = true;
-							node2.setLocation(minX+Math.random()*side,minY+Math.random()*side);
+							if(Math.random() > 0.5) {
+								node2.setLocation(minX+Math.random()*side,minY+Math.random()*side);
+							} else {
+								double distance = r1+r2;
+				
+								if(r1> r2) {
+									double angle = Math.atan2(node2.getY() - node1.getY(), node2.getX() - node1.getX());
+									node2.setLocation(node1.getX() + distance * Math.cos(angle), node1.getY() + distance* Math.sin(angle));
+								} else {
+									double angle = Math.atan2(node1.getY() - node2.getY(), node1.getX() - node2.getX());
+									node1.setLocation(node2.getX() + distance * Math.cos(angle), node2.getY() + distance* Math.sin(angle));	
+								}
+							}
 						}
 					}
 				}
