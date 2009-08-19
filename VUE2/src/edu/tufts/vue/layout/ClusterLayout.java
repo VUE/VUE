@@ -28,6 +28,8 @@ import java.net.*;
 import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.Point2D;
+
 import javax.swing.*;
 import tufts.vue.*;
 import edu.tufts.vue.metadata.MetadataList;
@@ -48,7 +50,8 @@ public class ClusterLayout extends Layout {
 			.getInt("layout.check_overlap_number");
 	public final int clusterColumn = 3;
 	public final int total = 15;
-
+	public static final double AREA_INCREASE_FACTOR = 2.0;
+	public static final int MAX_ITERATIONS = 20;
 	/** Creates a new instance of ClusterLayout */
 	public ClusterLayout() {
 	}
@@ -139,6 +142,7 @@ public class ClusterLayout extends Layout {
 	public void layout(LWSelection selection) {
 		System.out.println("Applying the cluster layout");
 		HashMap<LWComponent, ArrayList<LWComponent>> clusterMap = new HashMap<LWComponent, ArrayList<LWComponent>>();
+		HashMap<LWComponent,Double> componentRadiusMap = new HashMap<LWComponent,Double>();
 		double minX = Double.POSITIVE_INFINITY;
 		double minY = Double.POSITIVE_INFINITY;
 		double maxNodeWidth = X_COL_SIZE;
@@ -190,13 +194,20 @@ public class ClusterLayout extends Layout {
 			}
 		}
 
-		// computing the size of largest cluster
+		// computing the size of largest cluster and the area to plot aall clusters;
 		int maxClusterSize = 10; // default size is zero
+		double area = 0.0;
 		for (LWComponent c : clusterMap.keySet()) {
 			int clusterSize = clusterMap.get(c).size();
 			if (clusterSize > maxClusterSize)
 				maxClusterSize = clusterSize;
-		}
+			area +=  FACTOR * clusterMap.get(c).size()* maxNodeWidth * maxNodeHeight;
+			double radius = Math.sqrt(FACTOR * clusterMap.get(c).size()* maxNodeWidth * maxNodeHeight / Math.PI);
+			componentRadiusMap.put(c, radius);
+		}	
+		
+		area =  AREA_INCREASE_FACTOR * area;
+		 packCircles(componentRadiusMap,area,minX,minY);
 //		double maxRadius = Math.sqrt(FACTOR * maxClusterSize * maxNodeWidth * maxNodeHeight / Math.PI);
 		double x = minX;
 		double y = minY;
@@ -209,10 +220,13 @@ public class ClusterLayout extends Layout {
 			if (c instanceof LWNode) {
 				
 				LWNode node = (LWNode) c;
-				double radius = Math.sqrt(FACTOR * clusterMap.get(node).size()* maxNodeWidth * maxNodeHeight / Math.PI);
-				
-				// int totalLinked = clusterMap.get(node).size();
 				total++;
+			 
+				double radius = Math.sqrt(FACTOR * clusterMap.get(node).size()* maxNodeWidth * maxNodeHeight / Math.PI);
+				total++;
+				/**
+				// int totalLinked = clusterMap.get(node).size();
+		
 				if (count % mod == 0) {
 					if (count != 0) {
 						double increment = 2 * (radius+maxNodeHeight+Y_SPACING);  
@@ -224,9 +238,13 @@ public class ClusterLayout extends Layout {
 					x += increment;
 				}
 				count++;
+				**/
 				double nodeWidth = node.getWidth();
 				double nodeHeight = node.getHeight();
-				node.setLocation(x - nodeWidth / 2, y - nodeHeight / 2);
+				
+//				node.setLocation(x - nodeWidth / 2, y - nodeHeight / 2);
+				 
+				
 //				System.out.println("Placed node: " + node.getLabel() + " at "
 //						+ x + "," + y);
 				// place linked nodes
@@ -264,8 +282,8 @@ public class ClusterLayout extends Layout {
 							radiusY =  radius
 									* (1 - Math.pow(Math.random(), 2.0))
 									+ nodeHeight;
-							xLinkedNode = x + radiusX * Math.cos(angle);
-							yLinkedNode = y + radiusY * Math.sin(angle);
+							xLinkedNode = node.getX()+node.getWidth()/2 + radiusX * Math.cos(angle);
+							yLinkedNode = node.getY()+node.getHeight()/2+ radiusY * Math.sin(angle);
 							col_count++;
 						} else {
 							flag = false;
@@ -278,4 +296,35 @@ public class ClusterLayout extends Layout {
 			}
 		}
 	}
+	
+	private void packCircles(Map<LWComponent,Double> componentRadiusMap,double area,double minX,double minY) {
+		int iterationCount = 0;
+		boolean collide = true;
+		double side = Math.sqrt(area);
+		Set<LWComponent> nodes = componentRadiusMap.keySet();
+		while(iterationCount< MAX_ITERATIONS &&  collide) {
+			collide = false;
+			iterationCount++;
+			for(LWComponent node1: nodes) {
+				for(LWComponent node2: nodes) {
+					if(node1 != node2) {
+						if(checkCollision(node1,node2,componentRadiusMap.get(node1),componentRadiusMap.get(node2))){
+							collide = true;
+							node2.setLocation(minX+Math.random()*side,minY+Math.random()*side);
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	private boolean checkCollision(LWComponent c1, LWComponent c2,double r1, double r2) {
+		boolean collide = false;
+		double distance = Point2D.distance(c1.getX()+c1.getWidth()/2, c1.getY()+c1.getHeight()/2, c2.getX()+c2.getWidth()/2, c2.getY()+c2.getHeight()/2);
+		if(distance<(r1+r2)) {
+			collide = true;
+		}
+		return collide;
+	}
+	
 }
