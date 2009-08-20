@@ -312,17 +312,21 @@ public class ClusterLayout extends Layout {
 						double r2 = componentRadiusMap.get(node2);
 						if(checkCollision(node1,node2,r1,r2)){
 							collide = true;
-							if(Math.random() > 0.5) {
-								node2.setLocation(minX+Math.random()*side,minY+Math.random()*side);
-							} else {
-								double distance = r1+r2;
-				
-								if(r1> r2) {
+							double distance = r1+r2;
+							if(r1> r2) {
+								if(Math.random()> 0.5) {
 									double angle = Math.atan2(node2.getY() - node1.getY(), node2.getX() - node1.getX());
 									node2.setLocation(node1.getX() + distance * Math.cos(angle), node1.getY() + distance* Math.sin(angle));
 								} else {
+									node2.setLocation(minX+Math.random()*side,minY+Math.random()*side);
+								}
+									
+							} else {
+								if(Math.random()> 0.5){
 									double angle = Math.atan2(node1.getY() - node2.getY(), node1.getX() - node2.getX());
-									node1.setLocation(node2.getX() + distance * Math.cos(angle), node2.getY() + distance* Math.sin(angle));	
+									node1.setLocation(node2.getX() + distance * Math.cos(angle), node2.getY() + distance* Math.sin(angle));
+								} else {
+									node1.setLocation(minX+Math.random()*side,minY+Math.random()*side);
 								}
 							}
 						}
