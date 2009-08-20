@@ -76,7 +76,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.617 $ / $Date: 2009-08-19 15:42:41 $ / $Author: sfraize $ 
+ * @version $Revision: 1.618 $ / $Date: 2009-08-20 20:01:30 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1953,6 +1953,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
     }
 
+    /** this means the scroll-par state is paramount, but it also means a view of a map is
+     * considered different if the zoom is different.  Leaving this false is really best -- then
+     * each view is the map bounds of what's displayed, independent of zoom/resolution. */
     private static final boolean ViewsRespectScrollBars = false;
 
     private boolean isCloseMapRegion
@@ -1973,15 +1976,14 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         final double dpw = (v1.getWidth() - v2.getWidth()) * scale;
         final double dph = (v1.getHeight() - v2.getHeight()) * scale;
 
-
         // if same zoom level, ignore width & height: same offset treated as equivalent
         if (zoom1 == zoom2) {
-            if (DEBUG.Enabled) out(String.format("deltaPixels: (%.3f) %.1f,%.1f %.1fx%.1f", zoom1, dpx, dpy, dpw, dph));
+            if (DEBUG.PRESENT) out(String.format("deltaPixels: (%.3f) %.1f,%.1f %.1fx%.1f", zoom1, dpx, dpy, dpw, dph));
             return Math.abs(dpx) < pixMax
                 && Math.abs(dpy) < pixMax;
         }
 
-        if (DEBUG.Enabled) out(String.format("deltaPixels: (%.3f|%.3f) %.1f,%.1f %.1fx%.1f", zoom1, zoom2, dpx, dpy, dpw, dph));
+        if (DEBUG.PRESENT) out(String.format("deltaPixels: (%.3f|%.3f) %.1f,%.1f %.1fx%.1f", zoom1, zoom2, dpx, dpy, dpw, dph));
         return Math.abs(dpx) < pixMax
             && Math.abs(dpy) < pixMax
             && Math.abs(dpw) < pixMax
@@ -2243,10 +2245,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         final View topOfStackView = mViews.peekCursor();
 
-        if (DEBUG.Enabled) debug(String.format("lastView %2d: ", mViews.cursor) + topOfStackView);
+        if (DEBUG.PRESENT) debug(String.format("lastView %2d: ", mViews.cursor) + topOfStackView);
         
         if (topOfStackView.isSameAsCurrentView()) {
-            if (DEBUG.Enabled) debug("sameView XX: " + produceView());
+            if (DEBUG.PRESENT) debug("sameView XX: " + produceView());
             ; // do nothing -- the view hasn't significantly changed
         } else {
             // This is hack to deal with the non-deterministic nature of our code the decides when
@@ -2262,7 +2264,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             final long now = System.currentTimeMillis();
             final long dt = now - mLastRestoreTime;
             if (dt < 400) {
-                if (DEBUG.Enabled) debug("soonView XX: " + produceView() + "; TOO SOON SINCE RESTORE, dt=" + dt + "ms");
+                if (DEBUG.Enabled) debug("SOONVIEW XX: " + produceView() + "; TOO SOON SINCE RESTORE, dt=" + dt + "ms");
             } else {
                 recordView();
             }
