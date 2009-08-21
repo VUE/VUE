@@ -247,29 +247,45 @@ public class Util
     
     private static String breakLines(String target, int maxLength, Locale currentLocale)
     {
-    	String s ="";
+    	final StringBuilder s = new StringBuilder(target.length() + 4);
     	
-        BreakIterator boundary = BreakIterator.getLineInstance(currentLocale);
+        final BreakIterator boundary = BreakIterator.getLineInstance(currentLocale);
         boundary.setText(target);
+        
         int start = boundary.first();
         int end = boundary.next();
         int lineLength = 0;
 		
         while (end != BreakIterator.DONE) {
-            String word = target.substring(start,end);
-            lineLength = lineLength + word.length();
-            if (lineLength >= maxLength) {
-                s+="\n";
+            final String word = target.substring(start,end);
+
+            lineLength += word.length();
+
+            final boolean atExistingNewline =
+                s.length() > 1 && s.charAt(s.length() - 1) == '\n';
+            
+//             Log.debug(String.format("len: %2d, word %s%s",
+//                                     lineLength,
+//                                     tags(word),
+//                                     atExistingNewline ? ", @newline" : ""));
+
+            
+            if (atExistingNewline) {
+                lineLength = 0;
+            } else if (lineLength >= maxLength) {
+                //Log.debug("adding newline");
+                s.append('\n');
                 //System.out.println();
                 lineLength = word.length();
             }
 			
-            s+=word;
+            //Log.debug("adding word " + tags(word));
+            s.append(word);
             //System.out.print(word);
             start = end;
             end = boundary.next();
         }
-        return s;
+        return s.toString();
     } 
 
     /*
