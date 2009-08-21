@@ -147,12 +147,10 @@ public class ClusterLayout extends Layout {
 		double minY = Double.POSITIVE_INFINITY;
 		double maxNodeWidth = X_COL_SIZE;
 		double maxNodeHeight = Y_COL_SIZE;
-		int count = 0;
 		int total = 0;
-		int mod = 4;
 		Iterator<LWComponent> i = VUE.getActiveMap().getAllDescendents(
 				LWContainer.ChildKind.PROPER).iterator();
-		// placing the cluster nodes in a map with the center node as a key
+		// placing the cluster nodes in a hashmap with the center node as a key
 		while (i.hasNext()) {
 			LWComponent c = i.next();
 			if (c instanceof LWLink) {
@@ -176,6 +174,7 @@ public class ClusterLayout extends Layout {
 						.getWidth();
 				maxNodeHeight = maxNodeHeight > c.getHeight() ? maxNodeHeight
 						: c.getHeight();
+//				System.out.println("Node: "+c.getLabel()+" width:"+c.getWidth()+" max:"+maxNodeWidth);
 			}
 
 		}
@@ -191,77 +190,50 @@ public class ClusterLayout extends Layout {
 				minY = node.getLocation().getY() < minY ? node.getLocation()
 						.getY() : minY;
 				total++;
+				maxNodeWidth = maxNodeWidth > c.getWidth() ? maxNodeWidth : c
+						.getWidth();
+				maxNodeHeight = maxNodeHeight > c.getHeight() ? maxNodeHeight: c.getHeight();
 			}
 		}
-
-		// computing the size of largest cluster and the area to plot aall clusters;
-		int maxClusterSize = 10; // default size is zero
+//		System.out.println("Max Width: "+maxNodeWidth+" Max Height:"+maxNodeHeight);
+		// computing the size of largest cluster and the area to plot all clusters;
 		double area = 0.0;
 		for (LWComponent c : clusterMap.keySet()) {
-			int clusterSize = clusterMap.get(c).size();
-			if (clusterSize > maxClusterSize)
-				maxClusterSize = clusterSize;
-			area +=  FACTOR * clusterMap.get(c).size()* maxNodeWidth * maxNodeHeight;
-			double radius = 1.05*Math.sqrt(FACTOR * clusterMap.get(c).size()* maxNodeWidth * maxNodeHeight / Math.PI);// increase the radius for computing cluster centers by 5%
+			double clusterArea = FACTOR * clusterMap.get(c).size()* maxNodeWidth * maxNodeHeight;
+			area +=  clusterArea;
+			// assuming width> height
+			System.out.println("Total Area Needed: "+area+" "+c.getLabel()+" "+clusterMap.get(c).size());
+			double radius = 1.05*(c.getWidth()/2+Math.sqrt( clusterArea/ Math.PI));// increase the radius for computing cluster centers by 5%
 			componentRadiusMap.put(c, radius);
 		}	
 		
 		area =  AREA_INCREASE_FACTOR * area;
-		 packCircles(componentRadiusMap,area,minX,minY);
-//		double maxRadius = Math.sqrt(FACTOR * maxClusterSize * maxNodeWidth * maxNodeHeight / Math.PI);
-		double x = minX;
+		packCircles(componentRadiusMap,area,minX,minY);
+		
+ 		double x = minX;
 		double y = minY;
-		mod = (int) Math.ceil(Math.sqrt((double) total));
         //TODO: need to place the central nodes better
 		iter = selection.iterator();
 		// making the clusters
 		while (iter.hasNext()) {
 			LWComponent c = iter.next();
-			if (c instanceof LWNode) {
-				
+			if (c instanceof LWNode) {	
 				LWNode node = (LWNode) c;
 				total++;
-			 
-				double radius = Math.sqrt(FACTOR * clusterMap.get(node).size()* maxNodeWidth * maxNodeHeight / Math.PI);
-				total++;
-				/**
-				// int totalLinked = clusterMap.get(node).size();
-		
-				if (count % mod == 0) {
-					if (count != 0) {
-						double increment = 2 * (radius+maxNodeHeight+Y_SPACING);  
-						y += increment;
-					}
-					x = minX;
-				} else {
-					double increment = 2 * (radius+maxNodeWidth+X_SPACING);
-					x += increment;
-				}
-				count++;
-				**/
-				double nodeWidth = node.getWidth();
-				double nodeHeight = node.getHeight();
-				
-//				node.setLocation(x - nodeWidth / 2, y - nodeHeight / 2);
-				 
-				
-//				System.out.println("Placed node: " + node.getLabel() + " at "
-//						+ x + "," + y);
-				// place linked nodes
-
+				double radius = Math.sqrt(FACTOR * clusterMap.get(node).size()* maxNodeWidth * maxNodeHeight / Math.PI);				
 				int countLinked = 0;
-				// double angle = 0.0;
-
 				for (LWComponent linkedNode : clusterMap.get(node)) {
 					// LWNode nodeLinked = (LWNode)c;
-					double angle = Math.PI * 2 * Math.random();
+					double angle = Math.PI * 2 * Math.random();	
+					x = node.getX();
+					y = node.getY();
+					double radiusX = node.getWidth()/2+ radius
+							* (1 - Math.pow(Math.random(), 2.0)); 
+					double radiusY =node.getWidth()/2+radius
+							* (1 - Math.pow(Math.random(), 2.0)) ;
+					double xLinkedNode = x+node.getWidth()/2 -linkedNode.getWidth()/2+ radiusX * Math.cos(angle);
+					double yLinkedNode =y+node.getHeight()/2-linkedNode.getHeight()/2+ radiusY * Math.sin(angle);
 					
-					double radiusX = radius
-							* (1 - Math.pow(Math.random(), 2.0)) + nodeWidth;
-					double radiusY =radius
-							* (1 - Math.pow(Math.random(), 2.0)) + nodeHeight;
-					double xLinkedNode = x + radiusX * Math.cos(angle);
-					double yLinkedNode = y + radiusY * Math.sin(angle);
 
 					boolean flag = true;
 					int col_count = 0;
@@ -276,14 +248,14 @@ public class ClusterLayout extends Layout {
 								|| (VUE.getActiveViewer().pickNode(
 										(float) x + node.getWidth(), (float) y) != null)) {
 							angle = Math.PI * 2 * Math.random();
-							radiusX =  radius
-									* (1 - Math.pow(Math.random(), 2.0))
-									+ nodeWidth;
-							radiusY =  radius
-									* (1 - Math.pow(Math.random(), 2.0))
-									+ nodeHeight;
-							xLinkedNode = node.getX()+node.getWidth()/2 + radiusX * Math.cos(angle);
-							yLinkedNode = node.getY()+node.getHeight()/2+ radiusY * Math.sin(angle);
+							radiusX = node.getWidth()/2 + radius
+									* (1 - Math.pow(Math.random(), 2.0));
+									
+							radiusY = node.getHeight()/2+radius
+									* (1 - Math.pow(Math.random(), 2.0));
+									
+							xLinkedNode = x+node.getWidth()/2 -linkedNode.getWidth()/2 + radiusX * Math.cos(angle);
+							yLinkedNode = y+node.getHeight()/2-linkedNode.getHeight()/2+ radiusY * Math.sin(angle);
 							col_count++;
 						} else {
 							flag = false;
@@ -305,6 +277,7 @@ public class ClusterLayout extends Layout {
 		while(iterationCount< MAX_ITERATIONS &&  collide) {
 			collide = false;
 			iterationCount++;
+			int collisionCount = 0;
 			for(LWComponent node1: nodes) {
 				for(LWComponent node2: nodes) {
 					if(node1 != node2) {
@@ -312,27 +285,37 @@ public class ClusterLayout extends Layout {
 						double r2 = componentRadiusMap.get(node2);
 						if(checkCollision(node1,node2,r1,r2)){
 							collide = true;
+							collisionCount++;
 							double distance = r1+r2;
 							if(r1> r2) {
-								if(Math.random()> 0.5) {
-									double angle = Math.atan2(node2.getY() - node1.getY(), node2.getX() - node1.getX());
-									node2.setLocation(node1.getX() + distance * Math.cos(angle), node1.getY() + distance* Math.sin(angle));
-								} else {
+								if(Point2D.distance(node1.getX()+node1.getWidth()/2, node1.getY()+node1.getHeight()/2, node2.getX()+node2.getWidth()/2, node2.getY()+node2.getHeight()/2) < r2/100) {
 									node2.setLocation(minX+Math.random()*side,minY+Math.random()*side);
+								} else {
+									if(Math.random()> 0.5  ) {
+										double angle = Math.atan2(node2.getY() - node1.getY(), node2.getX() - node1.getX());
+										node2.setLocation(node1.getX() + distance * Math.cos(angle), node1.getY() + distance* Math.sin(angle));
+									} else {
+										node2.setLocation(minX+Math.random()*side,minY+Math.random()*side);
+									}
 								}
 									
 							} else {
-								if(Math.random()> 0.5){
-									double angle = Math.atan2(node1.getY() - node2.getY(), node1.getX() - node2.getX());
-									node1.setLocation(node2.getX() + distance * Math.cos(angle), node2.getY() + distance* Math.sin(angle));
-								} else {
+								if(Point2D.distance(node1.getX()+node1.getWidth()/2, node1.getY()+node1.getHeight()/2, node2.getX()+node2.getWidth()/2, node2.getY()+node2.getHeight()/2) < r1/100) {
 									node1.setLocation(minX+Math.random()*side,minY+Math.random()*side);
+								} else {
+									if(Math.random()> 0.5  ) {
+										double angle = Math.atan2(node1.getY() - node2.getY(), node1.getX() - node2.getX());
+										node1.setLocation(node2.getX() + distance * Math.cos(angle), node2.getY() + distance* Math.sin(angle));
+									} else {
+										node1.setLocation(minX+Math.random()*side,minY+Math.random()*side);
+									}
 								}
 							}
 						}
 					}
 				}
 			}
+			System.out.println("Iteration: "+iterationCount+" collisions:"+collisionCount);
 		}
 	}
 	
