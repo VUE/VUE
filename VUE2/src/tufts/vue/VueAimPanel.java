@@ -14,6 +14,7 @@ import java.awt.event.ItemListener;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
@@ -24,6 +25,7 @@ import edu.tufts.vue.collab.im.BasicConn;
 import edu.tufts.vue.collab.im.ChatConn;
 import edu.tufts.vue.collab.im.ChatConnListener;
 import edu.tufts.vue.collab.im.VUEAim;
+import edu.tufts.vue.layout.TabularLayout;
 
 import net.kano.joscar.net.ClientConnEvent;
 import net.kano.joscar.net.ClientConnListener;
@@ -52,6 +54,13 @@ public class VueAimPanel extends JPanel implements ActionListener, ClientConnLis
     private JCheckBox nodeWidthCheckbox = null;
     private JCheckBox makeTableCheckbox = null;
     private JCheckBox zoomCheckbox = null;
+    private JCheckBox enforceColCheckbox = null;
+    String[] colStrings = { "2", "3", "4", "5", "6", "7", "8", "9", "10" };
+
+    //Create the combo box, select item at index 4.
+    //Indices start at 0, so 4 specifies the pig.
+    JComboBox colList = new JComboBox(colStrings);
+
     
     public VueAimPanel() {                    
         
@@ -71,6 +80,7 @@ public class VueAimPanel extends JPanel implements ActionListener, ClientConnLis
         nodeWidthCheckbox = new JCheckBox(VueResources.getString("im.button.nodewidth"),true); 
         makeTableCheckbox = new JCheckBox(VueResources.getString("im.button.maketable"),true); 
         zoomCheckbox = new JCheckBox(VueResources.getString("im.button.zoom"),true); 
+        enforceColCheckbox = new JCheckBox(VueResources.getString("im.button.enforce"),false); 
 
         resetApproveButton = new JButton(VueResources.getString("im.approve.reset"));
         resetApproveButton.addActionListener(this);
@@ -80,6 +90,7 @@ public class VueAimPanel extends JPanel implements ActionListener, ClientConnLis
         makeTableCheckbox.addItemListener(this);
         assignColorCheckbox.addItemListener(this);
         zoomCheckbox.addItemListener(this);
+        enforceColCheckbox.addItemListener(this);
         
         mPropPanel  = new PropertyPanel();
         //mPropPanel.addProperty( "Label:", mTitleEditor); // initially Label was title
@@ -146,15 +157,39 @@ public class VueAimPanel extends JPanel implements ActionListener, ClientConnLis
         gridbag.setConstraints(zoomCheckbox,c);
         innerPanel.add(zoomCheckbox);
         
+        
+        c.gridx=0;
+        c.gridy=9;
+        c.gridwidth = 1;
+        c.anchor = GridBagConstraints.NORTHWEST;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        gridbag.setConstraints(enforceColCheckbox,c);
+        innerPanel.add(enforceColCheckbox);
+       
+        
+        c.gridx=1;
+        c.gridy=9;
+        
+        c.gridwidth = 1;
+        c.anchor = GridBagConstraints.NORTHWEST;
+        c.fill = GridBagConstraints.NONE;
+        gridbag.setConstraints(colList,c);
+        colList.setSelectedItem("4");
+        innerPanel.add(colList);
+        colList.addItemListener(this);
+        
+        c.gridx=0;
+        c.gridy=11;
         c.weightx = 1.0;
-        c.gridwidth = GridBagConstraints.REMAINDER;
+        c.gridwidth = 2;
         c.anchor = GridBagConstraints.NORTHWEST;
         c.fill = GridBagConstraints.HORIZONTAL;
         gridbag.setConstraints(resetApproveButton,c);
         innerPanel.add(resetApproveButton);
         
+        c.gridy=12;
         c.weightx = 1.0;
-        c.gridwidth = GridBagConstraints.REMAINDER;
+        c.gridwidth = 2;
         c.anchor = GridBagConstraints.NORTHWEST;
         c.fill = GridBagConstraints.NONE;
         gridbag.setConstraints(loginButton,c);
@@ -298,6 +333,27 @@ public class VueAimPanel extends JPanel implements ActionListener, ClientConnLis
 				aim.keepMapAtOneToOne(true);
 			else if (!((JCheckBox)e.getSource()).isSelected() && aim !=null)
 				aim.keepMapAtOneToOne(false);
+		}
+		else if (e.getSource().equals(enforceColCheckbox))
+		{
+			if (((JCheckBox)e.getSource()).isSelected())
+			{
+				TabularLayout.useStrictColumnCount(true);
+				TabularLayout.overrideDefaultColumnCount(new Integer((String)colList.getSelectedItem()).intValue());
+			}
+			else if (!((JCheckBox)e.getSource()).isSelected())
+			{
+				TabularLayout.useStrictColumnCount(false);
+			}
+		}
+		else if (e.getSource().equals(colList))
+		{
+			if (e.getStateChange() == ItemEvent.SELECTED)
+			{
+				Integer i = new Integer((String)colList.getSelectedItem());
+				TabularLayout.overrideDefaultColumnCount(i.intValue());
+			}
+			
 		}
 			
 		

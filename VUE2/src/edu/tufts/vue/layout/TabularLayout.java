@@ -41,8 +41,10 @@ import edu.tufts.vue.dataset.*;
 public class TabularLayout extends Layout {
 
 
-    public static final int DEFAULT_COL = 4;
+    public static int DEFAULT_COL = 4;
     private static boolean IM_LAYOUT=false;
+    private static int LIMIT_COLS=4;
+    private static boolean STRICT_COL_COUNT=false;
     /** Creates a new instance of TabularLayout */
     public TabularLayout() {
     }
@@ -52,6 +54,15 @@ public class TabularLayout extends Layout {
         return map;
     }
 
+    public static void useStrictColumnCount(boolean count)
+    {
+    	STRICT_COL_COUNT=count;	
+    }
+    public static void overrideDefaultColumnCount(int cols)
+    {
+    	LIMIT_COLS=cols;
+    	
+    }
     public static void setIMLayout(boolean im)
     {
     	IM_LAYOUT=im;
@@ -60,7 +71,12 @@ public class TabularLayout extends Layout {
     public void layout(LWSelection selection) throws Exception {
         double minX = Double.POSITIVE_INFINITY;
         double minY = Double.POSITIVE_INFINITY;
+        
         int mod = DEFAULT_COL;
+        
+        if (STRICT_COL_COUNT)
+        	mod = LIMIT_COLS;
+        
         double xAdd = X_COL_SIZE; // default horizontal distance between the nodes
         double  yAdd = Y_COL_SIZE; //default vertical distance between nodes
         int count = 0;
@@ -97,7 +113,8 @@ public class TabularLayout extends Layout {
         yAdd += Y_SPACING; // vertical spacing
         double x = minX;
         double y = minY;
-        mod = (int) Math.ceil(Math.sqrt((double) total));
+        if (!STRICT_COL_COUNT)
+        	mod = (int) Math.ceil(Math.sqrt((double) total));
         i = selection.iterator();
         while (i.hasNext()) {
             LWComponent c = i.next();
