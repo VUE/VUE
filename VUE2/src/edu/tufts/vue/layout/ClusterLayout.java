@@ -50,7 +50,7 @@ public class ClusterLayout extends Layout {
 			.getInt("layout.check_overlap_number");
 	public final int clusterColumn = 3;
 	public final int total = 15;
-	public static final double AREA_INCREASE_FACTOR = 2.5;
+	public static final double AREA_INCREASE_FACTOR = 2.0;
 	public static final int MAX_ITERATIONS = 20;
 	/** Creates a new instance of ClusterLayout */
 	public ClusterLayout() {
@@ -202,7 +202,7 @@ public class ClusterLayout extends Layout {
 			double clusterArea = FACTOR * clusterMap.get(c).size()* maxNodeWidth * maxNodeHeight;
 			area +=  clusterArea;
 			// assuming width> height
-			System.out.println("Total Area Needed: "+area+" "+c.getLabel()+" "+clusterMap.get(c).size());
+//			System.out.println("Total Area Needed: "+area+" "+c.getLabel()+" "+clusterMap.get(c).size());
 			double radius = 1.05*(c.getWidth()/2+Math.sqrt( clusterArea/ Math.PI));// increase the radius for computing cluster centers by 5%
 			componentRadiusMap.put(c, radius);
 		}	
@@ -315,7 +315,7 @@ public class ClusterLayout extends Layout {
 					}
 				}
 			}
-			System.out.println("Iteration: "+iterationCount+" collisions:"+collisionCount);
+//			System.out.println("Iteration: "+iterationCount+" collisions:"+collisionCount);
 		}
 	}
 	
