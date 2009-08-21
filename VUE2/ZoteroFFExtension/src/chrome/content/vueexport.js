@@ -52,6 +52,9 @@ importMapDataListener: function(evt)
 },
 importUrlDataListener: function(evt)
 {
+	var frontWindow = Components.classes["@mozilla.org/embedcomp/window-watcher;1"].
+	getService(Components.interfaces.nsIWindowWatcher).activeWindow;
+	
 	var fileName = content.document.getElementById("VUE").wrappedJSObject.getActiveResourceSpec();
 	if (fileName)
 	{
@@ -61,8 +64,8 @@ importUrlDataListener: function(evt)
 		attachmentItem.setField('accessDate', "CURRENT_TIMESTAMP");
 		attachmentItem.save();
 		
-		 if (ZoteroPane.getSelectedCollection())
-		    	ZoteroPane.getSelectedCollection().addItem(attachmentItem.id);
+		 if (frontWindow.ZoteroPane.getSelectedCollection())
+		    	frontWindow.ZoteroPane.getSelectedCollection().addItem(attachmentItem.id);
 		    else
 		    	alert("No Collection is currently selected.");
 	}
@@ -70,6 +73,8 @@ importUrlDataListener: function(evt)
 },
 importFileDataListener: function(evt)
 {
+	var frontWindow = Components.classes["@mozilla.org/embedcomp/window-watcher;1"].
+	getService(Components.interfaces.nsIWindowWatcher).activeWindow;
 	
 	var fileName = content.document.getElementById("VUE").wrappedJSObject.getActiveResourceSpec();
 	var title = content.document.getElementById("VUE").wrappedJSObject.getActiveResourceTitle();
@@ -85,8 +90,8 @@ importFileDataListener: function(evt)
 		attachmentItem.save();
        
 		// Add the result item to the results collection
-		if (ZoteroPane.getSelectedCollection())
-			ZoteroPane.getSelectedCollection().addItem(attachmentItem.id);
+		if (frontWindow.ZoteroPane.getSelectedCollection())
+			frontWindow.ZoteroPane.getSelectedCollection().addItem(attachmentItem.id);
 		else
 			alert("No Collection is currently selected.");
 	}
@@ -140,7 +145,10 @@ mainMenuListener: function(evt)
 },
 addNotesToMap: function()
 {
-	var c = ZoteroPane.getSelectedCollection();
+	var frontWindow = Components.classes["@mozilla.org/embedcomp/window-watcher;1"].
+	getService(Components.interfaces.nsIWindowWatcher).activeWindow;
+	
+	var c = frontWindow.ZoteroPane.getSelectedCollection();
 	var items = c.getChildItems(false); 
 	var xmlcontent ="";
 	xmlcontent += '<notes>\n';
@@ -175,7 +183,10 @@ addNotesToMap: function()
 },
 addRelationsToMap: function()
 {
-	var c = ZoteroPane.getSelectedCollection();
+	var frontWindow = Components.classes["@mozilla.org/embedcomp/window-watcher;1"].
+	getService(Components.interfaces.nsIWindowWatcher).activeWindow;
+	
+	var c = frontWindow.ZoteroPane.getSelectedCollection();
 	var items = c.getChildItems(false); 
 	var xmlcontent ="";
 	xmlcontent += '<links>\n';
@@ -207,7 +218,10 @@ isVueRunning: function()
 },
 openZoteroMap: function()
 {
-	var items = ZoteroPane.itemsView.getSelectedItems()
+	var frontWindow = Components.classes["@mozilla.org/embedcomp/window-watcher;1"].
+	getService(Components.interfaces.nsIWindowWatcher).activeWindow;
+	
+	var items = frontWindow.ZoteroPane.itemsView.getSelectedItems()
 
      	try
      	{
@@ -418,6 +432,9 @@ initializeExportFileLocation: function() {
  */
 getFromVue: function() {
 
+	var frontWindow = Components.classes["@mozilla.org/embedcomp/window-watcher;1"].
+	getService(Components.interfaces.nsIWindowWatcher).activeWindow;
+	
          // todo? inform listeners instead and activate method in
 			// TextOpenAction
          // (applet doesn't actually have "getActiveMapItems()" this
@@ -454,7 +471,7 @@ getFromVue: function() {
 														// sample plugin
 														// on zotero
 														// site
-                 var c = ZoteroPane.getSelectedCollection();
+                 var c = frontWindow.ZoteroPane.getSelectedCollection();
 
                  if(c!=null)
                  {
@@ -557,8 +574,11 @@ addMapFromVueToCollection: function() {
     	return;
     },    
 exportCSV: function(addToMap) {	
-        var currentCollection = ZoteroPane.getSelectedCollection();
-        var currentCollectionId = ZoteroPane.getSelectedCollection(true);
+    	var frontWindow = Components.classes["@mozilla.org/embedcomp/window-watcher;1"].
+		getService(Components.interfaces.nsIWindowWatcher).activeWindow;
+    	
+        var currentCollection = frontWindow.ZoteroPane.getSelectedCollection();
+        var currentCollectionId = frontWindow.ZoteroPane.getSelectedCollection(true);
         var file = Components.classes["@mozilla.org/file/directory_service;1"].
         getService(Components.interfaces.nsIProperties).
         get("ProfD", Components.interfaces.nsIFile);
@@ -592,9 +612,21 @@ exportCSV: function(addToMap) {
          	 var allFields = Zotero.ItemFields.getItemTypeFields(itemTypeID);
          	 for each(var field in allFields) {
          		var fieldName = Zotero.ItemFields.getName(field);
-         		
-         		
+         		if (fieldName == "url")
+         		{
          			try
+         			{
+         			 //add a link element for the url so a resource gets created in VUE.
+         			 xml+=element("Link",Zotero.Utilities.prototype.htmlSpecialChars(item.getField("url")));
+                     xml += "\n";
+         			}
+         			catch(e)
+         			{
+         				  Components.utils.reportError(e); // report the error and continue execution
+         			}
+         		}
+         		
+	         			try
          			{
          			 xml+=element(fieldName,Zotero.Utilities.prototype.htmlSpecialChars(item.getField(fieldName)));
                      xml += "\n";
