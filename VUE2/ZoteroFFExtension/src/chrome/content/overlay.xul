@@ -150,21 +150,32 @@
 	             }   
             }, false);
             
-             document.addEventListener("MyExtensionEvent", function(e) { Zotero.VUEExport.mainMenuListener(e);}, false, true);
-             document.addEventListener("ImportMapDataEvent", function(e) { Zotero.VUEExport.importMapDataListener(e);}, false, true);
-             document.addEventListener("ImportUrlDataEvent", function(e) { Zotero.VUEExport.importUrlDataListener(e);}, false, true);
-             document.addEventListener("ImportFileDataEvent", function(e) { Zotero.VUEExport.importFileDataListener(e);}, false, true);
+             document.addEventListener("MyExtensionEvent", listeners[0] , false, true);
+             document.addEventListener("ImportMapDataEvent",listeners[1] , false, true);
+             document.addEventListener("ImportUrlDataEvent", listeners[2], false, true);
+             document.addEventListener("ImportFileDataEvent", listeners[3] , false, true);
              
             
             Zotero.VUEExport.init();
             
         }
+        var listeners = [
+		function(e) { Zotero.VUEExport.mainMenuListener(e);},
+		function(e) { Zotero.VUEExport.importMapDataListener(e);},
+		function(e) { Zotero.VUEExport.importUrlDataListener(e);},
+		function(e) { Zotero.VUEExport.importFileDataListener(e);}
+		
+		];
         
         function isVueRunning()
         {
         	return Zotero.VUEExport.isVueRunning();
         }
         function dispose() {
+         	document.removeEventListener("MyExtensionEvent", listeners[0] , false, true);
+            document.removeEventListener("ImportMapDataEvent",listeners[1] , false, true);
+            document.removeEventListener("ImportUrlDataEvent", listeners[2], false, true);
+            document.removeEventListener("ImportFileDataEvent", listeners[3] , false, true);
             Zotero.VUEExport.dispose();
         }
         
