@@ -117,7 +117,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.679 $ / $Date: 2009-08-27 17:37:11 $ / $Author: brian $ 
+ * @version $Revision: 1.680 $ / $Date: 2009-08-27 20:45:57 $ / $Author: brian $ 
  */
 
 public class VUE
@@ -2135,21 +2135,22 @@ public class VUE
         //toolbarPanel.setLayout(flowLayout);
         GridBagConstraints gBC = new GridBagConstraints();
 
-        gBC.fill = GridBagConstraints.BOTH;			
-        gBC.gridx = 0;
-        gBC.gridy = 0;
-        gBC.weightx = 0.0;
-        gBC.insets = new Insets(0, 8, 0, 0);
-        toolbarPanel.add(new BackwardForwardPanel(), gBC);
-
-        gBC.fill = GridBagConstraints.BOTH;			
-		gBC.gridx = 1;
+        gBC.fill = GridBagConstraints.NONE;			
+		gBC.gridx = 0;
 		gBC.gridy = 0;
-		gBC.weightx = 1.0;
+		gBC.weightx = 0.0;
 		gBC.insets = new Insets(0, 0, 0, 0);
 		//add(searchResultTbl, gBC);
         //toolbarPanel.add(returnToMapButton,gBC);
         toolbarPanel.add(toolbar,gBC);
+
+        gBC.fill = GridBagConstraints.NONE;			
+        gBC.gridx = 1;
+        gBC.gridy = 0;
+        gBC.weightx = 0.0;
+        gBC.insets = new Insets(0, 0, 0, 0);
+        toolbarPanel.add(new BackwardForwardPanel(), gBC);
+
         returnToMapButton = new JButton(VueResources.getString("returnToMap.label"));        
         returnToMapButton.addActionListener(new ActionListener(){
         	public void actionPerformed(ActionEvent e)
@@ -2173,13 +2174,21 @@ public class VUE
 			}
         }); 
         returnToMapButton.setVisible(false);
-		gBC.fill = GridBagConstraints.BOTH;			
+		gBC.fill = GridBagConstraints.NONE;			
 		gBC.gridx = 2;
 		gBC.gridy = 0;
 		gBC.weightx = 0.0;
 		gBC.insets = new Insets(5, 0, 5, 0);		
         toolbarPanel.add(returnToMapButton,gBC);        
-     
+
+        // Empty JPanel to take up extra horizontal room
+        gBC.fill = GridBagConstraints.HORIZONTAL;			
+        gBC.gridx = 3;
+        gBC.gridy = 0;
+        gBC.weightx = 1.0;
+        gBC.insets = new Insets(0, 0, 0, 0);
+        toolbarPanel.add(new JPanel(), gBC);
+
         JPanel searchPnl = new JPanel(new FlowLayout(FlowLayout.LEFT,0,0));
         JLabel searchLbl = new JLabel();
         JLabel arrowLbl = new JLabel();
@@ -2248,8 +2257,16 @@ public class VUE
         searchPanel.add(mSearchtextFld);
         searchPanel.add(new JLabel(" "));
         //panel.setPreferredSize(new Dimension(430,40));
-        if (!VUE.isApplet())
-        toolbarPanel.add( searchPanel  , SwingConstants.LEFT);		
+
+        if (!VUE.isApplet()) {
+            gBC.fill = GridBagConstraints.NONE;			
+            gBC.gridx = 4;
+            gBC.gridy = 0;
+            gBC.weightx = 0.0;
+            gBC.insets = new Insets(0, 0, 0, 0);
+        	toolbarPanel.add(searchPanel, gBC);		
+        }
+
         if (DEBUG.INIT) out("created ToolBar");
         
         return toolbarPanel;
