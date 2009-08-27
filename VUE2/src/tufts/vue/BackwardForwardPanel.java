@@ -33,7 +33,8 @@ public class BackwardForwardPanel extends JPanel
 
 
 	public BackwardForwardPanel() {
-		super(new GridLayout(1, 2, 1, 0));
+		super(new GridLayout(1, 2, 0, 0));
+
 
 		VueButton	backwardButton = createButton(Actions.ViewBackward, VueResources.getIcon("Back.raw")),
 					forwardButton = createButton(Actions.ViewForward, VueResources.getIcon("Forward.raw"));
@@ -49,15 +50,17 @@ public class BackwardForwardPanel extends JPanel
 
 	protected VueButton createButton(Action action, Icon icon) {
 		VueButton	newButton = new VueButton(action);
-		Dimension	buttonSize = new Dimension(icon.getIconWidth() + 8, icon.getIconHeight() + 8);
+
+		VueButtonIcon.installGenerated(newButton, icon, null);
+
+		Icon		installedIcon = newButton.getIcon();
+		Dimension	buttonSize = new Dimension(installedIcon.getIconWidth(), installedIcon.getIconHeight());
 
 		newButton.setMinimumSize(buttonSize);
 		newButton.setMaximumSize(buttonSize);
 		newButton.setPreferredSize(buttonSize);
 
 		newButton.setAsToolbarButton(true);
-
-		VueButtonIcon.installGenerated(newButton, icon, null);
 
 		return newButton;
 	}
