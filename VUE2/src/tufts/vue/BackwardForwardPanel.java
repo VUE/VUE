@@ -20,7 +20,6 @@ import java.awt.Dimension;
 import java.awt.GridLayout;
 
 import javax.swing.Action;
-import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JPanel;
 
@@ -52,7 +51,10 @@ public class BackwardForwardPanel extends JPanel
 		VueButton	newButton = new VueButton(action);
 		Dimension	buttonSize = new Dimension(icon.getIconWidth() + 8, icon.getIconHeight() + 8);
 
+		newButton.setMinimumSize(buttonSize);
+		newButton.setMaximumSize(buttonSize);
 		newButton.setPreferredSize(buttonSize);
+
 		newButton.setAsToolbarButton(true);
 
 		VueButtonIcon.installGenerated(newButton, icon, null);
