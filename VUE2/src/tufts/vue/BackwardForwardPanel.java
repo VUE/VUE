@@ -36,8 +36,6 @@ public class BackwardForwardPanel extends JPanel
 	public BackwardForwardPanel() {
 		super(new GridLayout(1, 2, 1, 0));
 
-		setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0)); 
-
 		VueButton	backwardButton = createButton(Actions.ViewBackward, VueResources.getIcon("Back.raw")),
 					forwardButton = createButton(Actions.ViewForward, VueResources.getIcon("Forward.raw"));
 
