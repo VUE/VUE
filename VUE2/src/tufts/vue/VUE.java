@@ -117,7 +117,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.678 $ / $Date: 2009-08-18 16:58:35 $ / $Author: sfraize $ 
+ * @version $Revision: 1.679 $ / $Date: 2009-08-27 17:37:11 $ / $Author: brian $ 
  */
 
 public class VUE
@@ -2134,8 +2134,16 @@ public class VUE
         //toolbarPanel.
         //toolbarPanel.setLayout(flowLayout);
         GridBagConstraints gBC = new GridBagConstraints();
+
         gBC.fill = GridBagConstraints.BOTH;			
-		gBC.gridx = 0;
+        gBC.gridx = 0;
+        gBC.gridy = 0;
+        gBC.weightx = 0.0;
+        gBC.insets = new Insets(0, 8, 0, 0);
+        toolbarPanel.add(new BackwardForwardPanel(), gBC);
+
+        gBC.fill = GridBagConstraints.BOTH;			
+		gBC.gridx = 1;
 		gBC.gridy = 0;
 		gBC.weightx = 1.0;
 		gBC.insets = new Insets(0, 0, 0, 0);
@@ -2166,7 +2174,7 @@ public class VUE
         }); 
         returnToMapButton.setVisible(false);
 		gBC.fill = GridBagConstraints.BOTH;			
-		gBC.gridx = 1;
+		gBC.gridx = 2;
 		gBC.gridy = 0;
 		gBC.weightx = 0.0;
 		gBC.insets = new Insets(5, 0, 5, 0);		
