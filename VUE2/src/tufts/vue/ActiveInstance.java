@@ -41,7 +41,7 @@ import static tufts.Util.*;
 
 
  * @author Scott Fraize 2007-05-05
- * @version $Revision: 1.24 $ / $Date: 2009-01-13 17:15:49 $ / $Author: sfraize $
+ * @version $Revision: 1.25 $ / $Date: 2009-08-28 16:51:46 $ / $Author: sfraize $
  */
 
 public class ActiveInstance<T>
@@ -132,7 +132,7 @@ public class ActiveInstance<T>
                 // as it's likely this accidentally happened by a request for a generic
                 // listener before a specialized side-effecting type-handler was initiated.
                 // We copy over the listeners from the old handler if there were any.
-                tufts.Util.printStackTrace("ignoring prior active change handler for " + getClass() + " and taking over listeners");
+                Log.warn("ignoring prior active change handler for " + getClass() + " and taking over listeners", new Throwable("HERE"));
                 mListeners.addAll(getHandler(itemType).mListeners);
             }
             AllActiveHandlers.put(itemType, this);
@@ -244,7 +244,7 @@ public class ActiveInstance<T>
 
     protected void notifyListeners(ActiveEvent<T> e) {
         if (inNotify) {
-            tufts.Util.printStackTrace(this + " event loop! aborting delivery of: " + e);
+            Log.warn(this + " event loop! aborting delivery of: " + e, new Throwable("HERE"));
             return;
         }
         
