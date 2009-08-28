@@ -41,7 +41,7 @@ import com.google.common.collect.Multiset;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.65 $ / $Date: 2009-08-28 19:12:38 $ / $Author: sfraize $
+ * @version $Revision: 1.66 $ / $Date: 2009-08-28 20:08:23 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -812,26 +812,30 @@ public final class DrawContext
         DebugRecording.clear();
     }
 
+    private final static BooleanPreference ImageQualityPreference;
+    private final static boolean PlatformQualityIsSlow;
+    
     public static boolean drawingMayBeSlow(final LWComponent focal) {
         // could check focal for the presence of images
         //if (true) return false;
-        if (isImageQualityRequested())
+        if (PlatformQualityIsSlow && isImageQualityRequested())
             return focal instanceof LWMap;
         else
             return false;
     }
 
-    private final static BooleanPreference ImageQualityPreference;
-    
     private static boolean isImageQualityRequested() {
-        return ImageQualityPreference != null && ImageQualityPreference.isTrue();
+        //return ImageQualityPreference != null && ImageQualityPreference.isTrue();
+        return ImageQualityPreference.isTrue();
     }
 
     static {
-        if (Util.isMacLeopard() && Util.getJavaVersion() == 1.6f)
-            ImageQualityPreference = null;
+        if (Util.isMacLeopard() && Util.getJavaVersion() < 1.6f)
+            PlatformQualityIsSlow = true; // slow, but the only one truly effective!
         else
-            ImageQualityPreference = BooleanPreference.create
+            PlatformQualityIsSlow = false;
+        
+        ImageQualityPreference = BooleanPreference.create
                 (edu.tufts.vue.preferences.PreferenceConstants.MAPDISPLAY_CATEGORY,
                  "imageQuality", 
                  VueResources.getString("preference.imageQuality.title", "Image Quality"), 
