@@ -26,12 +26,13 @@ import java.awt.Color;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
+
 /**
  * Manage a group of children within a parent.
  *
  * Handle rendering, duplication, adding/removing and reordering (z-order) of children.
  *
- * @version $Revision: 1.158 $ / $Date: 2009-08-10 22:47:02 $ / $Author: sfraize $
+ * @version $Revision: 1.159 $ / $Date: 2009-08-28 17:10:37 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -1253,7 +1254,7 @@ public abstract class LWContainer extends LWComponent
             dc.g.setColor(getStrokeColor());
             dc.g.draw(getZeroShape());
         }
-        
+
         drawChildren(dc);
     }
 
@@ -1262,12 +1263,6 @@ public abstract class LWContainer extends LWComponent
         if (hasChildren() == false)
             return;
 
-        int nodes = 0;
-        int links = 0;
-        int images = 0;
-        int other = 0;
-                
-        
         for (LWComponent c : getChildren()) {
 
             //-------------------------------------------------------
@@ -1278,22 +1273,13 @@ public abstract class LWContainer extends LWComponent
             // -------------------------------------------------------
 
             if (c.requiresPaint(dc)) {
-
+                if (DEBUG.PAINT) dc.recordDebug(c);
                 drawChildSafely(dc, c);
-            
-                if (DEBUG.PAINT) {
-                    if (c instanceof LWLink) links++;
-                    else if (c instanceof LWNode) nodes++;
-                    else if (c instanceof LWImage) images++;
-                    else other++;
-                }
             }
         }
-                
-        if (DEBUG.PAINT && (DEBUG.META || this instanceof LWMap)) 
-            System.out.println("PAINTED " + links + " links, " + nodes + " nodes, " + images + " images, " + other + " other; for " + this);
-    }
+        //if (DEBUG) out("PAINTED " + types);
 
+    }
 
     private void drawChildSafely(DrawContext _dc, LWComponent c)
     {

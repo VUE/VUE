@@ -290,7 +290,7 @@ public class UndoManager
             } else if (oldValue instanceof Undoable) {
                 ((Undoable)oldValue).undo();
             } else {
-                if (false && DEBUG.Enabled && DEBUG.META) {
+                if (false && DEBUG.Enabled) {
                     // ANIMATED UNDO CODE:
                     try {
                         Object curValue = component.getPropertyValue(propKey);
@@ -427,7 +427,8 @@ public class UndoManager
             Point2D curValue = (Point2D) component.getPropertyValue(propKey);
             final double xinc = (endValue.getX() - curValue.getX()) / segments;
             final double yinc = (endValue.getY() - curValue.getY()) / segments;
-            Point2D.Double value = new Point2D.Double(curValue.getX(), curValue.getY());
+            Point2D.Float value = new Point2D.Float((float)curValue.getX(), (float)curValue.getY());
+            //Point2D.Double value = new Point2D.Double(curValue.getX(), curValue.getY());
             
             for (int i = 0; i < segments; i++) {
                 value.x += xinc;
