@@ -55,7 +55,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.155 $ / $Date: 2009-08-28 15:00:40 $ / $Author: mike $
+ * @version $Revision: 1.156 $ / $Date: 2009-08-28 17:23:08 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -3450,7 +3450,7 @@ public class DockWindow
     
 
     private void updateWindowShadow() {
-        if (isMac && !VUE.isApplet()) {
+        if (isMac && Util.isSupportedOnMac()  &&!VUE.isApplet()) {
 
             if (!MacWindowShadowEnabled) {
                 setWindowShadow(false);
