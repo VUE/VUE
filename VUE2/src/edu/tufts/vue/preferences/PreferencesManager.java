@@ -33,7 +33,7 @@ public class PreferencesManager {
 	
 	  static
 	  {
-		  PreferencesManager.registerPreference(edu.tufts.vue.preferences.implementations.ImageSizePreference.class);
+              //PreferencesManager.registerPreference(edu.tufts.vue.preferences.implementations.ImageSizePreference.class);
 		  //PreferencesManager.registerPreference(edu.tufts.vue.preferences.implementations.AutoZoomPreference.class);  		
 		  
 		  if (tufts.Util.isWindowsPlatform())
