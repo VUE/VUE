@@ -76,7 +76,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.621 $ / $Date: 2009-08-28 19:12:38 $ / $Author: sfraize $ 
+ * @version $Revision: 1.622 $ / $Date: 2009-08-28 19:22:05 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3281,12 +3281,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         final long start = System.currentTimeMillis();
 
-        if (DEBUG.PAINT || DEBUG.SCROLL || DEBUG.PRESENT) {
+        if (DEBUG.Enabled) {
             DrawContext.clearDebug();
-            pout(String.format("PAINT =>[%d]%s rawClip=%s",
-                               mPaints,
-                               (mFastPainting?" FAST":""),
-                               g.getClipBounds()));
+            if (DEBUG.PAINT || DEBUG.SCROLL || DEBUG.PRESENT)
+                pout(String.format("PAINT =>[%d]%s rawClip=%s",
+                                   mPaints,
+                                   (mThisPaintIsFast?" FAST":""),
+                                   g.getClipBounds()));
         }
         
         try {
@@ -3336,10 +3337,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             //try { Thread.sleep(500); } catch (Exception e) {}            
             final float fps = delta > 0 ? 1000f/delta : -1;
 
-            if (DEBUG.PAINT) out("painted " + DrawContext.getDebug());
+            out("painted " + DrawContext.getDebug());
             pout(String.format("paint <-[%d]%s (%.2f fps) %dms",
                                mPaints,
-                               (mFastPainting?" FAST":""),
+                               (mThisPaintIsFast?" FAST":""),
                                fps,
                                delta));
         }
