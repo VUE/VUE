@@ -94,11 +94,10 @@ public class SVGConversion extends AbstractAction {
           
         DrawContext dc = new DrawContext(svgGenerator);
         dc.setMapDrawing();
-        dc.setPrioritizeQuality(false);
+        dc.setDraftQuality();
         dc.setAntiAlias(false);
         
         dc.setClipOptimized(false);	
-        dc.setDraftQuality(true);
       //  dc.setRawDrawing();
         //dc.setClipOptimized(false);
         

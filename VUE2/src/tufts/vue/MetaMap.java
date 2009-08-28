@@ -36,7 +36,7 @@ import com.google.common.collect.Iterators;
  * The insertion order of each key/value is preserved, even for each use of
  * the same key with different values.
  *
- * @version $Revision: 1.16 $ / $Date: 2009-07-15 17:57:43 $ / $Author: sfraize $
+ * @version $Revision: 1.17 $ / $Date: 2009-08-28 17:13:05 $ / $Author: sfraize $
  */
 
 public class MetaMap implements TableBag, XMLUnmarshalListener, tufts.vue.ds.Relation.Scannable
@@ -118,6 +118,8 @@ public class MetaMap implements TableBag, XMLUnmarshalListener, tufts.vue.ds.Rel
     // with all the fields that ever appear in any resource.  Actually, better to
     // create one schema per OSID.  Tho only load with stuff that's actually been
     // put on a map -- don't auto-load from every search result ever seen.
+    // -- We'd also have to deal with restoring the Field.key <-> MetaMap relationships
+    // when deserializing, as now it can just used the saved string values.
     
     private static class Key {
         final String name;
@@ -385,7 +387,7 @@ public class MetaMap implements TableBag, XMLUnmarshalListener, tufts.vue.ds.Rel
         return mData.containsKey(Key.instance(key));
         //return mData.containsKey(key);
     }
-    public boolean hasEntry(String key, String value) {
+    public boolean hasEntry(String key, CharSequence value) {
         return mData.containsEntry(Key.instance(key), value);
         //return mData.containsEntry(key, value);
     }

@@ -37,7 +37,7 @@ import org.apache.log4j.NDC;
 /**
  * Code for providing, entering and exiting VUE full screen modes.
  *
- * @version $Revision: 1.41 $ / $Date: 2009-08-28 15:00:40 $ / $Author: mike $
+ * @version $Revision: 1.42 $ / $Date: 2009-08-28 17:13:06 $ / $Author: sfraize $
  *
  */
 
@@ -185,7 +185,7 @@ public class FullScreen
                     
                     // This odd workaround, which I was lucky to stumble upon, is to
                     // allow us to enter native full screen mode on Leopard more than
-                    // once.  Forcing an actual color change through to the peer is
+                    // onnce.  Forcing an actual color change through to the peer is
                     // changing some kind of state such that the bug, which normally
                     // leaves the full screen window entirely blank the second time it's
                     // set in place appears to go away.  Note: the resulting bad case
@@ -204,6 +204,9 @@ public class FullScreen
                     else
                         setBackground(Color.black);
                 }
+                
+                if (DEBUG.PAINT) setBackground(Color.orange);
+
             }
         }
 
@@ -580,17 +583,20 @@ public class FullScreen
 
         activeMap = VUE.getActiveMap();
         activeViewer = VUE.getActiveViewer();
-        tufts.vue.LWComponent activeFocal = null;
+        
+        tufts.vue.LWComponent _activeFocal = null;
 
         if (activeViewer != null)
-            activeFocal = activeViewer.getFocal();
-        if (activeFocal == null && activeMap != null)
-            activeFocal = activeMap;
+            _activeFocal = activeViewer.getFocal();
+        if (_activeFocal == null && activeMap != null)
+            _activeFocal = activeMap;
 
         if (activeViewer != FullScreenViewer) {
             FullScreenLastActiveViewer = activeViewer;
             activeViewer.setFocusable(false);
         }
+        
+        final tufts.vue.LWComponent activeFocal = _activeFocal;
         
         if (goNative) {
             // Can't use heavy weights, as they're windows that can't be seen,
@@ -614,6 +620,8 @@ public class FullScreen
             FullScreenWindow.getContentPane().add(FullScreenViewer = new MapViewer(null, VIEWER_NAME));
             //fullScreenWindow.pack();
         }
+
+        FullScreenViewer.setLoading(true);
                 
         FullScreenWindow.setMenuBarEnabled(!goNative);
         // FullScreenViewer.loadFocal(VUE.getActiveMap()); // can't do till we're sure it has a size!
@@ -698,6 +706,10 @@ public class FullScreen
             // absolutely sure we have keyboard focus.
 
             FullScreenViewer.grabVueApplicationFocus("FullScreen.enter-2", null);
+            if (activeFocal != null) {
+                // leave as loading if we're clearing out (leaving full-screen) so we'll be ready with it at the next display
+                FullScreenViewer.setLoading(false);
+            }
             NDC.pop();
         }});
         

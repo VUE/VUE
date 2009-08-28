@@ -36,7 +36,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  *
  * Set's the icon-image for the vue application and set's the window title.
  *
- * @version $Revision: 1.22 $ / $Date: 2009-05-07 00:54:15 $ / $Author: vaibhav $ 
+ * @version $Revision: 1.23 $ / $Date: 2009-08-28 17:13:06 $ / $Author: sfraize $ 
  */
 public class VueFrame extends javax.swing.JFrame
     implements ActiveListener<MapViewer>, WindowListener, WindowStateListener, WindowFocusListener               
@@ -124,10 +124,14 @@ public class VueFrame extends javax.swing.JFrame
     
     public void windowStateChanged(WindowEvent e) {
         Log.debug("windowStateChanged: " + e);
+        if (VUE.getActiveViewer() != null) 
+            VUE.getActiveViewer().setFastPaint("windowStateChanged");
     }
     
     public void windowActivated(WindowEvent e) {
         if (DEBUG.FOCUS) Log.debug("activated; " + e);
+        if (VUE.getActiveViewer() != null) 
+            VUE.getActiveViewer().setFastPaint("windowActivated");
         DockWindow.ShowPreviouslyHiddenWindows();
         if (LastOpenedResource != null) {
             try {

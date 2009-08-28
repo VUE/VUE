@@ -31,7 +31,7 @@ import java.util.ArrayList;
  * Code for handling a tabbed pane of MapViewer's: adding, removing,
  * keeping tab labels current & custom appearance tweaks.
  *
- * @version $Revision: 1.52 $ / $Date: 2009-07-22 14:18:18 $ / $Author: mike $ 
+ * @version $Revision: 1.53 $ / $Date: 2009-08-28 17:13:05 $ / $Author: sfraize $ 
  */
 
 // todo: need to figure out how to have the active map grab
@@ -131,6 +131,7 @@ public class MapTabbedPane extends JTabbedPane
         final MapViewer viewer = getViewerAt(index);
         if (viewer != null /*&& !VUE.isStartupUnderway()*/) {
             if (DEBUG.FOCUS) out("ATTEMPTING FOCUS TRANSFER TO " + viewer);
+            viewer.setFastPaint("tabbedTo");
             
             // For some reason, that I think has to do with having lots of maps open and
             // using the drop-down menu for selected an open map (on the mac), focus

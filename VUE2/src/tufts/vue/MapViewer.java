@@ -76,7 +76,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.618 $ / $Date: 2009-08-20 20:01:30 $ / $Author: sfraize $ 
+ * @version $Revision: 1.619 $ / $Date: 2009-08-28 17:13:05 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -104,7 +104,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     private static final int RolloverAutoZoomDelay = VueResources.getInt("mapViewer.rolloverAutoZoomDelay");
 
-    private static final Timer ViewerTimer = new Timer("MapViewers");
+    private static final Timer ViewerTimer = new Timer("AllViewers");
     
     //static int RolloverAutoZoomDelay = 1;
     //static final int RolloverMinZoomDeltaTrigger_int = VueResources.getInt("mapViewer.rolloverMinZoomDeltaTrigger", 10);
@@ -725,6 +725,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // record zoom factor in map for saving
         if (mFocal == mMap && mMap != null)
             mMap.setUserZoom(mZoomFactor);
+
+        setFastPaint("zoom");
     }
 
     /**
@@ -1235,7 +1237,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
     @Override
     public void reshape(int x, int y, int w, int h) {
-        boolean ignore =
+
+        final boolean ignore =
             getX() == x &&
             getY() == y &&
             getWidth() == w &&
@@ -1269,6 +1272,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             // if active text is transparent, we'll need this to draw under blinking cursor
             repaint(); 
 
+        setFastPaint("reshape");
+        
         if (!ignore) {
             if (reshapeUnderway) {
                 if (DEBUG.VIEWER) out("RESHAPE UNDERWAY");
@@ -1420,8 +1425,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     
     private boolean isDisplayed() {
-        if (!isShowing())
-            return false;
+//         if (!isShowing())
+//             return false;
         if (inScrollPane) {
             return getParent().getWidth() > 0 && getParent().getHeight() > 0;
         } else
@@ -1544,6 +1549,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             return;
         }
 
+        final boolean loadingWasSet = mFocalLoading;
+
+        if (!loadingWasSet)
+            setLoading(true);
+
+        setFastPaint("loadFocal");
+
         if (focal instanceof LWSlide) {
             // hack for first load of a slide that has an entry to enter "pathway browse" mode
             mFocalEntry = ((LWSlide)focal).getEntry();
@@ -1615,6 +1627,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         
         if (focal == null)
             repaint();
+
+        if (!loadingWasSet)
+            setLoading(false);
+        
     }
 
     public void popToMapFocal() {
@@ -2310,6 +2326,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 //         }
 
         if (e.key == LWKey.RepaintAsync) {
+            setFastPaint("async paint request");
             repaint();
             return;
         }
@@ -3190,9 +3207,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     //public boolean isOpaque() {return false;}
     
-    private int paints=0;
-    //private boolean redrawingSelector = false;
-
     protected boolean skipAllPainting() {
         return VUE.inFullScreen() && instanceName != tufts.vue.gui.FullScreen.VIEWER_NAME;
     }
@@ -3212,16 +3226,45 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
 
     public void repaint() { // heavy-duty debug
+
+        if (!isDisplayed()) return;
+
+        int frCount = 0;
+        if (mFastPaint)
+            frCount = mFastRequests.incrementAndGet();
+        
         if (DEBUG.PAINT) {
             if (DEBUG.META) {
                 Log.debug("REPAINT", new Throwable("HERE"));
             } else {
-                out(TERM_RED + "REPAINT ISSUED at " + new Throwable().getStackTrace()[1] + TERM_CLEAR);
+                String msg = "";
+                if (mFastPaint)
+                    msg = "; fastPaintRequests +" + frCount;
+                out(TERM_RED + "REPAINT ISSUED at " + new Throwable().getStackTrace()[1] + msg + TERM_CLEAR);
             }
         }
+
+
         super.repaint();
         trackViewChanges("REPAINT");
     }
+
+    
+    public void setFastPaint(String cause) {
+        mFastPaint = true;
+        if (DEBUG.PAINT && isDisplayed()) out("setFastPaint " + Util.tags(cause));
+    }
+
+    public boolean isFastPainting() {
+        return mFastPaint;
+    }
+    
+
+    private volatile boolean mFastPaint = false;
+    private volatile int mPaints = 0;
+    private volatile int mPaintsStarted = 0;
+    private TimerTask mLastTask = null;
+    private final java.util.concurrent.atomic.AtomicInteger mFastRequests = new java.util.concurrent.atomic.AtomicInteger();
 
     private static final String PAINT_TRACKPOINT = "PAINT";
     
@@ -3230,58 +3273,148 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         if (skipAllPainting())
             return;
+
+        mPaintsStarted++;
         
-        long start = 0;
+        final int incomingFastRequests = mFastRequests.get();
+
+        final long start;
 
         if (DEBUG.PAINT || DEBUG.SCROLL || DEBUG.PRESENT) {
-            //System.out.print("paint " + paints + " RAW-clipBounds=" + g.getClipBounds()+" "); System.out.flush();
-            out(TERM_CYAN + "PAINT ->#" + paints + " RAW-clipBounds=" + g.getClipBounds() + TERM_CLEAR);
+            DrawContext.clearDebug();
+            pout(String.format("PAINT =>[%d]%s rawClip=%s",
+                               mPaints,
+                               (mFastPaint?" FAST":""),
+                               g.getClipBounds()));
             start = System.currentTimeMillis();
-        }
+        } else
+            start = 0;
+
         try {
             // This a special speed optimization for the selector box -- not sure it helps anymore tho...
 //             if (redrawingSelector && draggedSelectorBox != null && activeTool.supportsXORSelectorDrawing()) {
 //                 redrawSelectorBox((Graphics2D)g);
-//                 redrawingSelector = false;
-//             } else
-                super.paint(g);
-        } catch (Exception e) {
-            Util.printStackTrace(e, "Exception painting in: " + this);
-            //System.err.println("*paint* Exception painting in: " + this);
-            System.err.println("*paint* VueSelection: " + VueSelection);
+//                 redrawingSelector = false;} else
+            
+            super.paint(g);
+            
+        } catch (Throwable t) {
+            Util.printStackTrace(t, "Exception painting in: " + this);
+            Log.error("*paint* VueSelection: " + VueSelection);
             if (VueSelection != null)
-                System.err.println("*paint* VueSelection.first: " + VueSelection.first());
-            System.err.println("*paint* Graphics: " + g);
-            System.err.println("*paint* Graphics transform: " + ((Graphics2D)g).getTransform());
-            //e.printStackTrace();
+                Log.error("*paint* VueSelection.first: " + VueSelection.first());
+            Log.error("*paint* Graphics: " + g);
+            Log.error("*paint* Graphics transform: " + ((Graphics2D)g).getTransform());
         }
-        if (paints == 0) {
+
+
+        final long delta;
+
+        if (DEBUG.PAINT) 
+            delta = System.currentTimeMillis() - start;
+        else
+            delta = 0;
+        
+        if (mPaints == 0) {
             if (inScrollPane)
                 adjustCanvasSize(); // need for intial scroll-bar sizes if bigger than viewport on startup
             VUE.invokeAfterAWT(new Runnable() { public void run() { ensureMapVisible(); }});
             //trackViewChanges("first-paint");
         }
-        if (DEBUG.PAINT) {
-            //try { Thread.sleep(500); } catch (Exception e) {}            
-            long delta = System.currentTimeMillis() - start;
-            long fps = delta > 0 ? 1000/delta : -1;
-            out(TERM_CYAN + "paint <-#" + paints + " " + this + ": "
-                               + delta
-                               + "ms (" + fps + " fps)" + TERM_CLEAR);
-//             System.out.println("paint #" + paints + " " + this + ": "
-//                                + delta
-//                                + "ms (" + fps + " fps)");
-        }
+        
+        boolean needsSmoothPaint = mFastPaint;
 
-
-        if (mFocal == null || !mFocal.hasContent())
+        if (mFocal == null || !mFocal.hasContent()) {
             paintEmptyMessage(g);
-        else
+            needsSmoothPaint = false;
+        } else
             trackViewChanges(PAINT_TRACKPOINT);
         
-        paints++;
+        final int newFastPaints = (mFastRequests.get() - incomingFastRequests);
+
+        if (mFastRequests.get() > 0) {
+            if (DEBUG.PAINT) pout("consuming " + mFastRequests.get() + " fast paint requests");
+            mFastRequests.set(0);
+        }
+
+        if (newFastPaints > 0) {
+            // do nothing -- more fast paints are on the way
+            if (DEBUG.PAINT) pout("fast-paint requests since started painting: " + newFastPaints + "; they've got the ball");
+            needsSmoothPaint = false;
+        } else {
+            if (mFastPaint)
+                mFastPaint = false;
+        }
+        
+        if (needsSmoothPaint && DrawContext.drawingMayBeSlow(mFocal)) {
+            // We just completed a fast-paint
+            final int paintAtCount = mPaintsStarted;
+            if (DEBUG.PAINT) pout("scheduling smooth repaint if it falls as paint count " + paintAtCount);
+            if (mLastTask != null) {
+                if (DEBUG.PAINT) pout("canceling last timer task " + mLastTask);
+                mLastTask.cancel();
+            }
+            ViewerTimer.schedule(mLastTask = new TimerTask() {
+                    public void run() {
+                        // if we're the next consequtive paint, and a fast one hasn't been requested again, paint:
+                        if (mPaintsStarted != paintAtCount) {
+                            if (DEBUG.PAINT) pout("skipping smooth paint @" + paintAtCount + "; already painting at count: " + mPaints);
+                            return;
+                        }
+                        //if (mFastPaint) {
+                        //if (isFastPainting()) {
+                        final int newerFastPaints = mFastRequests.get();
+                        if (newerFastPaints > 0) {
+                            if (DEBUG.PAINT) pout("skipping smooth paint @" + paintAtCount + "; more fast paints requested: " + newerFastPaints);
+                            return;
+                        }
+
+                        if (DEBUG.PAINT) pout("running smooth paint @" + paintAtCount + " (no fast requests or paints since scheduling)");
+                        repaint();
+                    }
+                    @Override public String toString() {
+                        return "[smooth paint task for paint @" + paintAtCount + "]";
+                    }
+                },
+                500);
+        }
+
+        if (DEBUG.PAINT) {
+            //try { Thread.sleep(500); } catch (Exception e) {}            
+            final float fps = delta > 0 ? 1000f/delta : -1;
+
+            out("painted " + DrawContext.getDebug());
+            pout(String.format("paint <-[%d]%s (%.2f fps) %dms",
+                               mPaints,
+                               (mFastPaint?" FAST":""),
+                               fps,
+                               delta));
+        }
+        
+        mPaints++;
         RepaintRegion = null;
+        
     }
+
+    private boolean mFocalLoading;
+
+    public void setLoading(boolean loading) {
+
+        if (mFocalLoading == loading)
+            return;
+
+        if (loading) {
+            mFocalLoading = true;
+            if (DEBUG.Enabled) out("LOADING SET...");
+        } else {
+            if (DEBUG.Enabled) out("LOADING CLEARING...");
+            VUE.invokeAfterAWT(new Runnable() { public void run() {
+                mFocalLoading = false;
+                if (DEBUG.Enabled) out("LOADING CLEARED");
+            }});
+        }
+    }
+    
 
     protected void paintEmptyMessage(Graphics g) {
         if (mFocal != null) {
@@ -3294,17 +3427,29 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         final String msg = getEmptyMessage();
 
+        if (DEBUG.PAINT) {
+            out("painting empty message " + Util.tags(msg));
+            new Throwable("PAINTING EMPTY " + Util.tags(msg)).printStackTrace();
+        }
+            
+
+
         int w = getWidth() / 2;
         w -= GUI.stringLength(font, msg) / 2;
         g.drawString(msg, w, getHeight() / 2);
     }
 
+    private static final String NewMapMessage = VueResources.getString("vue.main.newmap", "NEW MAP");
+
     protected String getEmptyMessage() {
-        if (mFocal == mMap) {
+        if (mFocalLoading) {
+            return "Loading...";
+        }
+        else if (mFocal == mMap) {
             if (mMap != null && mMap.isModified())
                 return "Empty Map";
             else
-                return VueResources.getString("vue.main.newmap");
+                return NewMapMessage;
         } else {
             if (mFocal != null)
                 return "Empty " + mFocal.getComponentTypeLabel();
@@ -3373,32 +3518,47 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         dc.setAnimating(isAnimating);
         
         if (isAnimating) {
-            // This usually means we're animating: prioritize everything for speed:
             
             //dc.setDrawPathways(false);
             dc.setInteractive(false);
-            //dc.setAntiAlias(DEBUG_ANTI_ALIAS);
-            dc.setAntiAlias(false);
             dc.disableAntiAlias(true); // prevent anyone else from setting it
-            dc.setPrioritizeSpeed(true);
-            dc.setFractionalFontMetrics(false);
-            dc.setDraftQuality(true);
+            dc.setAnimatingQuality();
             
         } else {
             
             dc.setInteractive(true);
+            
+            if (DrawContext.drawingMayBeSlow(mFocal) && isFastPainting()) {
+                dc.setImageQuality(dc.g, false);
+                dc.setAlphaQuality(dc.g, false);
+                dc.setAliasQuality(dc.g, true);
+                dc.setAliasTextQuality(dc.g, true);
+            } else {
+                dc.setInteractiveQuality(); // do before anti-alias & fractional metric debug tweaks
+            }
+            
             dc.setDrawPathways(true);
-            dc.setAntiAlias(DEBUG_ANTI_ALIAS);
-            if (!DEBUG_ANTI_ALIAS)
-                dc.disableAntiAlias(true);
-            dc.setPrioritizeQuality(DEBUG_RENDER_QUALITY);
-            dc.setFractionalFontMetrics(DEBUG_FONT_METRICS);
-            dc.disableAntiAlias(DEBUG_ANTI_ALIAS == false);
+
+            if (DEBUG.Enabled) {
+
+                if (DEBUG_SKIP_ANTIALIAS != UNSET_BOOL) {
+                    dc.setAntiAlias(!DEBUG_SKIP_ANTIALIAS);
+                    if (DEBUG_SKIP_ANTIALIAS)
+                        dc.disableAntiAlias(true);
+                }
+                
+                if (DEBUG_RENDER_QUALITY != UNSET_BOOL)
+                    dc.setImageQuality(dc.g, DEBUG_RENDER_QUALITY);
+                if (DEBUG_FONT_METRICS != UNSET_BOOL)
+                    dc.setFontQuality(dc.g, DEBUG_FONT_METRICS);
+                //dc.setFractionalFontMetrics(dc.g, DEBUG_FONT_METRICS);
+                
+            }
+            
         }
-        
-        //dc.setActiveTool(getCurrentTool());
-        //dc.zoomedFocus = mRollover;
-        
+
+        if (DEBUG.PAINT) out("getDrawContext = " + dc);
+
         return dc;
     }
 
@@ -5969,10 +6129,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 if (!DEBUG.Enabled)
                     did = false;
                 else if (c == 'A') {
-                    DEBUG_ANTI_ALIAS = !DEBUG_ANTI_ALIAS;
-                    if (DEBUG_ANTI_ALIAS)
-                        AA_ON = RenderingHints.VALUE_ANTIALIAS_ON;
-                    else AA_ON = RenderingHints.VALUE_ANTIALIAS_OFF;
+                    DEBUG_SKIP_ANTIALIAS = !DEBUG_SKIP_ANTIALIAS;
+                    if (DEBUG_SKIP_ANTIALIAS)
+                        AA_ON = RenderingHints.VALUE_ANTIALIAS_OFF;
+                    else AA_ON = RenderingHints.VALUE_ANTIALIAS_ON;
                 }
                 else if (c == 'B') { DEBUG.BOXES = !DEBUG.BOXES; }
                 else if (c == 'C') { DEBUG.CONTAINMENT = !DEBUG.CONTAINMENT; }
@@ -6168,7 +6328,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         //if (DEBUG.Enabled) out(TERM_CYAN + "*** IGNORING " + e + TERM_CLEAR);
         
-        if (DEBUG.Enabled) out(e);
+        //if (DEBUG.Enabled) out(e);
         if (e.event.getID() == MouseEvent.MOUSE_RELEASED)
             trackViewChanges("globalMouseRelease");
     }
@@ -6466,7 +6626,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     // have happen if user is toggling the selection.
                     //-------------------------------------------------------
                     selectionClear();
-                    repaint(); // if selection handles not on, we need manual repaint here
+                    //repaint(); // if selection handles not on, we need manual repaint here
                 }
 //                 if (activeTool.supportsDraggedSelector(mme))
 //                     isDraggingSelectorBox = true;
@@ -8394,6 +8554,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 //             + "[" + (mFocal==null?"nil":mFocal.getDiagnosticLabel()) + "]";
         //+ "\'" + (mFocal==null?"nil":mFocal.getDiagnosticLabel()) + "\'";
     }
+
+    private void pout(String s) {    // paint-debug
+        out(TERM_CYAN + s + TERM_CLEAR);
+    }
     
     
     protected void out(Object o) {
@@ -8443,13 +8607,16 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     
     private boolean DEBUG_MOUSE_MOTION = VueResources.getBool("mapViewer.debug.mouse_motion");//todo: make command line -D override these
+
+    private static final Boolean UNSET_BOOL = new Boolean(false);
+    
+    private Boolean DEBUG_RENDER_QUALITY = UNSET_BOOL;
+    private Boolean DEBUG_FONT_METRICS = UNSET_BOOL; // fractional metrics looks worse to me --SF
+    private Boolean DEBUG_SKIP_ANTIALIAS = UNSET_BOOL;
     
     private boolean DEBUG_SHOW_ORIGIN = false;
-    private boolean DEBUG_ANTI_ALIAS = true;
-    private boolean DEBUG_RENDER_QUALITY = false;
     private boolean DEBUG_FINDPARENT_OFF = false;
     //protected boolean DEBUG_TIMER_ROLLOVER = true; // todo: preferences
-    private boolean DEBUG_FONT_METRICS = false;// fractional metrics looks worse to me --SF
     private boolean OPTIMIZED_REPAINT = false;
     
     private Point _mouse = new Point();
@@ -8611,7 +8778,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             g.drawString("  viewport-size " + out(mViewport.getSize()), x, y+=15);
         }
         g.drawString("zoom " + getZoomFactor(), x, y+=15);
-        g.drawString("anitAlias " + DEBUG_ANTI_ALIAS, x, y+=15);
+        g.drawString("anitAlias " + !DEBUG_SKIP_ANTIALIAS, x, y+=15);
         g.drawString("renderQuality " + DEBUG_RENDER_QUALITY, x, y+=15);
         g.drawString("fractionalMetrics " + DEBUG_FONT_METRICS, x, y+=15);
         //g.drawString("findParent " + !DEBUG_FINDPARENT_OFF, x, y+=15);

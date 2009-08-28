@@ -49,7 +49,7 @@ import com.google.common.collect.*;
 
 /**
  *
- * @version $Revision: 1.84 $ / $Date: 2009-08-09 15:22:26 $ / $Author: mike $
+ * @version $Revision: 1.85 $ / $Date: 2009-08-28 17:13:05 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -635,7 +635,7 @@ public class DataTree extends javax.swing.JTree
             return c.hasDataValue(key, value);
         }
         @Override public String description() {
-            return String.format("<b>%s: <i>%s</i>", key, valueName(value));
+            return String.format("<b>%s: <i>%s</i>", key, valueText(value));
         }
         @Override String getKey() { return key; }
 
@@ -1291,29 +1291,33 @@ public class DataTree extends javax.swing.JTree
         return root;
     }
 
+    private static final boolean SORT_BY_COUNT = false;
+    private static final boolean SORT_BY_VALUE = !SORT_BY_COUNT;
+
     private static void buildValueChildren(Field field, DataNode fieldNode)
     {
-
         final Multiset<String> valueCounts = field.getValueSet();
         final Set<Multiset.Entry<String>> entrySet = valueCounts.entrySet();
 
         final Iterable<Multiset.Entry<String>> valueEntries;
 
-        if (!field.isPossibleKeyField()) {
+        if (!field.isPossibleKeyField() && !field.isQuantile()) { // quantiles are pre-sorted
 
             // don't need to bother sorting if field is a possible key field (all value counts == 1)
             
             final ArrayList<Multiset.Entry<String>> sortedValues = new ArrayList(entrySet);
 
-            Collections.sort(sortedValues, new Comparator<Multiset.Entry>() {
-                    public int compare(Multiset.Entry e1, Multiset.Entry e2) {
+            Collections.sort(sortedValues, new Comparator<Multiset.Entry<String>>() {
+                    public int compare(final Multiset.Entry<String> e1, final Multiset.Entry<String> e2) {
                         // always put any empty value item last, otherwise sort on frequency
                         if (e1.getElement() == Field.EMPTY_VALUE)
                             return 1;
                         else if (e2.getElement() == Field.EMPTY_VALUE)
                             return -1;
-                        else
+                        else if (SORT_BY_COUNT)
                             return e2.getCount() - e1.getCount();
+                        else // SORT_BY_VALUE
+                            return tufts.Strings.compareNaturalIgnoreCaseAscii(e1.getElement(), e2.getElement());
                     }
                 });
 
@@ -1330,109 +1334,129 @@ public class DataTree extends javax.swing.JTree
 
             final String value = e.getElement();
             final String display;
-                    
-            if (field.isPossibleKeyField()) {
-                        
-                display = valueName(value);
-                        
-            } else {
-                final String count = String.format("%3d", e.getCount()).replaceAll(" ", "&nbsp;");
-                display = String.format(HTML("<code><font color=#888888>%s</font></code> %s"),
-                                        count,
-                                        valueName(value));
 
+            int nValues = e.getCount();
+            if (field.isQuantile() && value != Field.EMPTY_VALUE) {
+                // non-empty Quantile values always have an extra count,
+                // which was the "init" count to enforce quantile-order
+                // on the values list.
+                nValues--;
             }
 
-            final ValueNode valueNode = new ValueNode(field, value, display, e.getCount());
+            if (field.isPossibleKeyField()) {
+                        
+                display = field.valueDisplay(value);
+                        
+            } else {
+
+                final String countTxt = String.format("%3d", nValues).replaceAll(" ", "&nbsp;");
+                
+                final String color;
+
+                if (nValues <= 0)
+                    display = String.format(HTML("<font color=#AAAAAA><code>%s</code> %s"),
+                                            countTxt,
+                                            valueText(value));
+                else
+                    display = String.format(HTML("<code><font color=#888888>%s</font></code> %s"),
+                                            countTxt,
+                                            valueText(value));
+            }
+
+            final ValueNode valueNode = new ValueNode(field, value, display, nValues);
 
             fieldNode.add(valueNode);
 
         }
+
+        for (String comment : field.getDataComments()) {
+            fieldNode.add(new DataNode(HTML("<font color=#AAAAAA>" + comment)));
+        }
+        
     }
     
 
     public void dragGestureRecognized(DragGestureEvent e) {
-        if (getSelectionPath() != null) {
-            Log.debug("SELECTED: " + Util.tags(getSelectionPath().getLastPathComponent()));
-            final DataNode treeNode = (DataNode) getSelectionPath().getLastPathComponent();
-            //                          if (resource != null) 
-            //                              GUI.startRecognizedDrag(e, resource, this);
-                         
-            //tufts.vue.gui.GUI.startRecognizedDrag(e, Resource.instance(node.value), null);
-
-            // TODO: how are we going to persist these styles?  Most
-            // natural way would be inside a hidden layer, but that's on
-            // the MAP, which would mean each map would need it's schema
-            // recorded with styled nodes, that can be hooked up
-            // DIFFERENTLY to the data source panel.
-
-            final LWComponent dragNode;
-            final Field field = treeNode.getField();
-            boolean stylesAlreadyApplied = false;
-
-            if (treeNode.isValue()) {
-                //dragNode = new LWNode(String.format(" %s: %s", field.getName(), treeNode.value));
-                dragNode = DataAction.makeValueNode(field, treeNode.getValue());
-                //dragNode.setLabel(String.format(" %s: %s ", field.getName(), treeNode.value));
-                //dragNode.setLabel(String.format(" %s ", field.getName());
-
-            } else if (treeNode.isField()) {
-//                 if (field.isPossibleKeyField())
-//                     return;
-                dragNode = new LWNode(String.format("  %d unique  \n  '%s'  \n  values  ",
-                                                    field.uniqueValueCount(),
-                                                    field.getName()));
-//                 dragNode.setClientData(java.awt.datatransfer.DataFlavor.stringFlavor,
-//                                        " ${" + field.getName() + "}");
-
-            } else if (treeNode instanceof RowNode) {
-                
-                final DataRow row = ((RowNode)treeNode).getRow();
-                final List<LWComponent> nodes = DataAction.makeSingleRowNode(treeNode.getSchema(), row);
-                if (DEBUG.Enabled) Log.debug("made row nodes: " + Util.tags(nodes));
-                if (nodes.isEmpty()) {
-                    Log.error("no row node made from row: " + row);
-                    dragNode = null;
-                } else
-                    dragNode = nodes.get(0);
-                stylesAlreadyApplied = true;
-                                        
-            } else {
-                //assert treeNode instanceof TemplateNode;
-                final Schema schema = treeNode.getSchema();
-                dragNode = new LWNode(String.format("  '%s'  \n  dataset  \n  (%d items)  ",
-                                                    schema.getName(),
-                                                    schema.getRowCount()
-                                                    ));
-            }
-
-            if (dragNode == null) {
-                Log.warn("Unable to create nodes from drag of " + treeNode);
-                return;
-            }
-
-            dragNode.copyStyle(treeNode.getStyle(), ~LWKey.Label.bit);
-                                     
-            //dragNode.setFillColor(null);
-            //dragNode.setStrokeWidth(0);
-            if (!treeNode.isValue()) {
-                dragNode.mFontSize.setTo(24);
-                dragNode.mFontStyle.setTo(java.awt.Font.BOLD);
-//                 dragNode.setClientData(LWComponent.ListFactory.class,
-//                                        new NodeProducer(treeNode));
-            }
-            dragNode.setFlag(LWComponent.Flag.INTERNAL);
-            dragNode.setClientData(MapDropTarget.DropHandler.class,
-                                   new DropHandler(treeNode, DataTree.this));
-            dragNode.setClientData(Field.class, treeNode.getField()); // for associations panel
-                         
-            tufts.vue.gui.GUI.startRecognizedDrag(e, dragNode);
-                         
+        if (getSelectionPath() == null) {
+            Log.debug("dragGestureRecognized: no selection path; " + e);
+            return;
         }
+
+        Log.debug("SELECTED: " + Util.tags(getSelectionPath().getLastPathComponent()));
+        final DataNode treeNode = (DataNode) getSelectionPath().getLastPathComponent();
+        //if (resource != null) 
+        //GUI.startRecognizedDrag(e, resource, this);
+                         
+        //tufts.vue.gui.GUI.startRecognizedDrag(e, Resource.instance(node.value), null);
+
+        final LWComponent dragNode;
+        final Field field = treeNode.getField();
+        boolean stylesAlreadyApplied = false;
+
+        if (treeNode.isValue()) {
+
+            if (treeNode.getCount() <= 0)
+                dragNode = null;
+            else
+                dragNode = DataAction.makeValueNode(field, treeNode.getValue());
+        }
+        else if (treeNode.isField()) {
+            //if (field.isPossibleKeyField())
+            //return;
+            dragNode = new LWNode(String.format("  %d unique  \n  '%s'  \n  values  ",
+                                                field.uniqueValueCount(),
+                                                field.getName()));
+            //dragNode.setClientData(java.awt.datatransfer.DataFlavor.stringFlavor,
+            //" ${" + field.getName() + "}");
+
+        }
+        else if (treeNode instanceof RowNode) {
+                
+            final DataRow row = ((RowNode)treeNode).getRow();
+            final List<LWComponent> nodes = DataAction.makeSingleRowNode(treeNode.getSchema(), row);
+            if (DEBUG.Enabled) Log.debug("made row nodes: " + Util.tags(nodes));
+            if (nodes.isEmpty()) {
+                Log.error("no row node made from row: " + row);
+                dragNode = null;
+            } else
+                dragNode = nodes.get(0);
+            stylesAlreadyApplied = true;
+        }
+        else {
+            //assert treeNode instanceof TemplateNode;
+            final Schema schema = treeNode.getSchema();
+            dragNode = new LWNode(String.format("  '%s'  \n  dataset  \n  (%d items)  ",
+                                                schema.getName(),
+                                                schema.getRowCount()
+                                                ));
+        }
+
+        if (dragNode == null) {
+            Log.warn("Unable to create nodes from drag of " + treeNode);
+            return;
+        }
+
+        dragNode.copyStyle(treeNode.getStyle(), ~LWKey.Label.bit);
+                                     
+        //dragNode.setFillColor(null);
+        //dragNode.setStrokeWidth(0);
+        if (!treeNode.isValue()) {
+            dragNode.mFontSize.setTo(24);
+            dragNode.mFontStyle.setTo(java.awt.Font.BOLD);
+            //                 dragNode.setClientData(LWComponent.ListFactory.class,
+            //                                        new NodeProducer(treeNode));
+        }
+        dragNode.setFlag(LWComponent.Flag.INTERNAL);
+        dragNode.setClientData(MapDropTarget.DropHandler.class,
+                               new DropHandler(treeNode, DataTree.this));
+        dragNode.setClientData(Field.class, treeNode.getField()); // for associations panel
+                         
+        tufts.vue.gui.GUI.startRecognizedDrag(e, dragNode);
+                         
     }
 
-    private static String valueName(Object value) {
-        return DataAction.valueName(value);
+    private static String valueText(Object value) {
+        return DataAction.valueText(value);
     }
 
     private void addNewRowsToMap(final LWMap map) {
@@ -1538,8 +1562,9 @@ public class DataTree extends javax.swing.JTree
 
                 // handle all the enumerated values for a column
                 
-                for (String value : field.getValues())
+                for (String value : field.getValues()) {
                     nodes.add(DataAction.makeValueNode(field, value));
+                }
             }
 
             return nodes;
@@ -1716,6 +1741,10 @@ public class DataTree extends javax.swing.JTree
 
     private static String makeFieldLabel(final Field field)
     {
+        if (field.isQuantile()) 
+            return HTML(field.getName());
+        //return HTML("<font color=gray>" + field.getName());
+        
         final Set values = field.getValues();
         //Log.debug("EXPANDING " + colNode);
 
@@ -1787,6 +1816,11 @@ public class DataTree extends javax.swing.JTree
         String getValue() { return null; }
         /** @return null -- override for field nodes */
         Field getField() { return null; }
+
+        /** @return -1 -- override for value nodes */
+        int getCount() {
+            return -1;
+        }
         
         /** @return true if this node represents the collection of all possible values found in a column of data */
         boolean isField() { return false; }
@@ -1837,7 +1871,8 @@ public class DataTree extends javax.swing.JTree
 
         /** @return true if this node is tracked for presence in the active map */
         boolean isMapTracked() {
-            return isValue();
+            return false;
+            //return isValue();
         }
         
         boolean isRowNode() {
@@ -1913,8 +1948,18 @@ public class DataTree extends javax.swing.JTree
                 setDisplay(description);
 
             //if (field != null && field.isEnumerated() && !field.isPossibleKeyField())
-            if (field != null && !field.hasStyleNode() && !field.isSingleValue() && field.isEnumerated())
-                field.setStyleNode(DataAction.makeStyleNode(field, repainter));
+            //if (field != null && !field.hasStyleNode() && !field.isSingleValue() && field.isEnumerated()) {
+            if (field != null && field.hasStyleNode() && !field.isSingleValue() && field.isEnumerated()) {
+                // TODO: this means on refresh, the old style node will be pointing via repainter to
+                // an AWT component that is no longer displayed, breaking updates!
+
+                // DO NOT CREATE THE STYLE NODE HERE: DO SO IN FIELD -- just UPDATE it with
+                // the new repainter here
+                
+                //field.setStyleNode(DataAction.makeStyleNode(field, repainter));
+
+                field.getStyleNode().addLWCListener(repainter);
+            }
         }
 
         protected FieldNode(Field field) {
@@ -1942,13 +1987,19 @@ public class DataTree extends javax.swing.JTree
             this.dataSetCount = dataSetValueCount;
         }
         
-        @Override
-        String getValue() {
+        @Override final boolean isMapTracked() {
+            return true;
+        }
+        
+        @Override String getValue() {
             return value;
         }
 
-        @Override
-        void annotate(LWMap map) {
+        @Override int getCount() {
+            return dataSetCount;
+        }
+        
+        @Override void annotate(LWMap map) {
 
             final int mapCount = field.countContextValue(value);
             if (mapCount > 0) {
@@ -2139,8 +2190,8 @@ public class DataTree extends javax.swing.JTree
                 final boolean hasFocus)
         {
             //Log.debug(Util.tags(value));
-            final DataNode node = (DataNode) value;
-            final Field field = node.getField();
+            final DataNode treeNode = (DataNode) value;
+            final Field field = treeNode.getField();
             
             //setIconTextGap(4); // pre &nbsp; standard HTML
             setIconTextGap(1);
@@ -2149,13 +2200,13 @@ public class DataTree extends javax.swing.JTree
 
             setForeground(Color.black); // must do every time for some reason, or de-selected text goes invisible
 
-            if (node.hasStyle()) {
+            if (treeNode.hasStyle()) {
                 //setIconTextGap(4);
                 // Note: icons at top level do not get the background selection color painted
                 // behind them for some reason, whereas leaf node icons do, so this icon
                 // needs to take that into account, and should be careful not to paint over
                 // the selected & focus-active border of the row item.
-                setIcon(FieldIconPainter.load(node.getStyle(),
+                setIcon(FieldIconPainter.load(treeNode.getStyle(),
                                               selected ? backgroundSelectionColor : null));
 
             } else {
@@ -2164,25 +2215,31 @@ public class DataTree extends javax.swing.JTree
                     
                     setIcon(null);
                     
-                } else if (node.isMapTracked()) {
+                } else if (!treeNode.isMapTracked()) {
+
+                    setIcon(null);
+
+                } else {
                     
                     setIconTextGap(1);
 
-                    if (node.isRow()) {
-                        if (node.isContextChanged())
+                    if (treeNode.isRow()) {
+                        if (treeNode.isContextChanged())
                             setIcon(RowHasChangedIcon);
-                        else if (node.isMapPresent())
+                        else if (treeNode.isMapPresent())
                             setIcon(RowOnMapIcon);
                         else
                             setIcon(RowOffMapIcon);
                     } else {
                         if (field != null && field.isPossibleKeyField()) {
-                            if (node.isMapPresent())
+                            if (treeNode.isMapPresent())
                                 setIcon(UniqueValueOnMapIcon);
                             else
                                 setIcon(UniqueValueOffMapIcon);
+//                         } else if (field != null && field.isQuantile() && treeNode.getCount() <= 0) {
+//                             setIcon(null);
                         } else {
-                            if (node.isMapPresent())
+                            if (treeNode.isMapPresent())
                                 setIcon(ValueOnMapIcon);
                             else
                                 setIcon(ValueOffMapIcon);
@@ -2204,7 +2261,7 @@ public class DataTree extends javax.swing.JTree
                 //setFont(null);
                 //setBorder(leaf ? LeafBorder : null);
                 if (leaf) {
-                    if (node.isField() && node.getField().isSingleton())
+                    if (treeNode.isField() && treeNode.getField().isSingleton())
                         setBorder(TopTierBorder);
                     else
                         setBorder(LeafBorder);

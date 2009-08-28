@@ -13,7 +13,7 @@ import java.util.*;
  * methods return instances of a Relation which say something about
  * how the data was related.
  *
- * @version $Revision: 1.3 $ / $Date: 2009-08-10 22:49:24 $ / $Author: sfraize $
+ * @version $Revision: 1.4 $ / $Date: 2009-08-28 17:13:05 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public final class Relation {
@@ -45,6 +45,10 @@ public final class Relation {
     }
     private Relation(Object type, String k, String v) {
         this(type, k, v, false);
+    }
+
+    int getCount() {
+        return count;
     }
 
     boolean isCrossSchema() {
@@ -105,7 +109,7 @@ public final class Relation {
      * these basic functions or easily delegate to something that can */
     // todo: consider renaming to DataRow, and renaming the Schema.DataRow impl & making it private
     public interface Scannable {
-        public boolean hasEntry(String key, String value);
+        public boolean hasEntry(String key, CharSequence value);
         public String getString(String key);
         public Collection<String> getValues(String key);
         public Schema getSchema();

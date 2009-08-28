@@ -25,7 +25,7 @@ import java.util.*;
 import org.apache.commons.lang.StringEscapeUtils;
 
 /**
- * @version $Revision: 1.20 $ / $Date: 2009-07-15 18:01:44 $ / $Author: sfraize $
+ * @version $Revision: 1.21 $ / $Date: 2009-08-28 17:13:05 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -56,8 +56,8 @@ public final class DataAction
     }
     
 
-    public static String valueName(Object value) {
-        return StringEscapeUtils.escapeHtml(Field.valueName(value));
+    public static String valueText(Object value) {
+        return StringEscapeUtils.escapeHtml(Field.valueText(value));
     }
     
 //     private static List<LWLink> makeLinks(LWComponent node)
@@ -378,24 +378,31 @@ public final class DataAction
         final Color color;
 
         final LWLink link = makeLink(src, dest, null, r.getDescription(), null);
+
+        if (link == null) { Log.error("link=null " + r); return null; }
         
         if (r.isCrossSchema()) {
             link.mStrokeStyle.setTo(LWComponent.StrokeStyle.DASH3);
-            link.setStrokeWidth(3);
+            link.setStrokeWidth(2);
         }
+
+        // todo: count style priority over join style
         
         if (r.type == Relation.AUTOMATIC) {
             color = Color.lightGray;
         } else if (r.type == Relation.USER) {
-            color = Color.darkGray;
-        } else if (r.type == Relation.COUNT) {
             color = Color.black;
+        } else if (r.type == Relation.COUNT) {
+            //if (true) return null;
+            color = Color.lightGray;
             if (r.count == 1)
                 link.setStrokeWidth(0.3f);
             else
                 link.setStrokeWidth((float) Math.log(r.count));
+            link.setTextColor(color);
+            link.setLabel(String.format(" %d ", r.getCount()));
         } else if (r.type == Relation.JOIN) {
-            color = Color.green;
+            color = Color.orange;
         } else
             color = Color.magenta; // unknown type!
 
@@ -447,33 +454,69 @@ public final class DataAction
 
 
     private static String makeLabel(Field f, Object value) {
-        //Log.debug("*** makeLabel " + f + " [" + value + "] emptyValue=" + (value == Field.EMPTY_VALUE));
 
-// This will be overriden by the label-style: this could would need to go there to work
-//         if (value == Field.EMPTY_VALUE)
-//             return String.format("(no [%s] value)", f.getName());
-//         else
-            return Field.valueName(value);
+        return f.valueDisplay(value);
+        
+//Log.debug("*** makeLabel " + f + " [" + value + "] emptyValue=" + (value == Field.EMPTY_VALUE));
+// // This will be overriden by the label-style: this could would need to go there to work
+// //         if (value == Field.EMPTY_VALUE)
+// //             return String.format("(no [%s] value)", f.getName());
+// //         else
+//             return Field.valueName(value);
     }
 
-    public static LWComponent makeValueNode(Field field, String value) {
+    private static final int DataNodeLabelLength = VueResources.getInt("dataNode.labelLength", 30);
+    
+    public static LWComponent makeValueNode(Field field, String value)
+    {
+        final String displayLabel = makeLabel(field, value);
         
-        LWComponent node = new LWNode(makeLabel(field, value));
-        //node.setDataInstanceValue(field.getName(), value);
+        final LWComponent node = new LWNode(displayLabel);
+
         node.setDataInstanceValue(field, value);
-        //node.setClientData(Field.class, field);
-        if (field.getStyleNode() != null)
-            node.setStyle(field.getStyleNode());
-//         else
-//             tufts.vue.EditorManager.targetAndApplyCurrentProperties(node);
-        String target = node.getLabel();
-        
-        target = Util.formatLines(target, VueResources.getInt("dataNode.labelLength"));
-        
-        node.setLabel(target);
-        return node;
 
+        if (field.hasStyleNode())
+            node.setStyle(field.getStyleNode());
+
+        // The set-style may have re-set the label, so we must wrap after / in case of that
+
+        node.wrapLabelToWidth(DataNodeLabelLength);
+        
+        return node;
     }
+    
+//     public static LWComponent makeValueNode(Field field, String value)
+//     {
+//         final String displayLabel = makeLabel(field, value);
+        
+//         //Log.debug("DISPLAY LABEL: " + Util.tags(displayLabel) + " in field " + field + " with style " + field.getStyleNode());
+        
+//         //final String wrappedLabel = Util.formatLines(displayLabel, VueResources.getInt("dataNode.labelLength"));
+        
+//         //Log.debug("WRAPPED LABEL: " + Util.tags(wrappedLabel));
+        
+//         final LWComponent node = new LWNode(displayLabel);
+
+// //         Log.debug("MADE VALUE NODE0: " + node);
+// //         Log.debug("WITH LABEL0: " + Util.tags(node.getLabel()));
+        
+//         node.setDataInstanceValue(field, value);
+
+//         if (field.hasStyleNode())
+//             node.setStyle(field.getStyleNode());
+
+//         // The set-style may have re-set the label, so we must wrap after / in case of that
+
+//         // do need to set label afterwords to ensure any templating?
+
+// //         Log.debug("MADE VALUE NODE1: " + node);
+// //         Log.debug("WITH LABEL1: " + Util.tags(node.getLabel()));
+
+//         node.wrapLabelToWidth(DataNodeLabelLength);
+        
+//         return node;
+
+//     }
 
     public static List<LWComponent> makeSingleRowNode(Schema schema, DataRow singleRow) {
 
@@ -588,7 +631,7 @@ public final class DataAction
                         // (e.g., RSS content provider icon image)
                         // todo: refactor so cast not required
                         String media = row.getValue(mediaField);
-                        Log.debug("attempting to set thumbnail " + Util.tags(media));
+                        if (DEBUG.WORK) Log.debug("attempting to set thumbnail " + Util.tags(media));
                         ((tufts.vue.URLResource)r).setURL_Thumb(media);
                     }
                 }
@@ -624,7 +667,7 @@ public final class DataAction
                         IR.setProperty("Title", mediaDesc);
                     }
                     
-                    Log.debug("image resource: " + IR);
+                    if (DEBUG.WORK) Log.debug("image resource: " + IR);
                     node.addChild(new tufts.vue.LWImage(IR));
                 }
 
@@ -656,10 +699,10 @@ public final class DataAction
     private static final Color[] ValueNodeDataColors = VueResources.getColorArray("node.dataValue.color.cycle");
     private static int NextColor = 0;
 
-    private static LWComponent initNewStyleNode(LWComponent style) {
+    static LWComponent initNewStyleNode(LWComponent style) {
         //style.setFlag(Flag.INTERNAL);
         style.setFlag(Flag.DATA_STYLE); // must set before setting label, or template will atttempt to resolve
-        style.setID(style.getURI().toString());
+        //style.setID(style.getURI().toString());
         // we use the persisted visible bit to store a bit for DataTree node expanded state
         // -- the actual visibility of the style node will never come into play as it's never
         // on a map
@@ -707,10 +750,11 @@ public final class DataAction
         return style;
     }
 
-    public static LWComponent makeStyleNode(final Field field) {
-        return makeStyleNode(field, null);
-    }
-    public static LWComponent makeStyleNode(final Field field, LWComponent.Listener repainter)
+//     public static LWComponent makeStyleNode(final Field field) {
+//         return makeStyleNode(field, null);
+//     }
+//     public static LWComponent makeStyleNode(final Field field, LWComponent.Listener repainter)
+    public static LWComponent makeStyleNode(final Field field)
     {
         final LWComponent style;
 
@@ -741,7 +785,10 @@ public final class DataAction
         }
         initNewStyleNode(style); // must set before setting label, or template will atttempt to resolve
         //style.setLabel(String.format("%.9s: \n${%s} ", field.getName(),field.getName()));
-        style.setLabel(String.format("${%s}", field.getName()));
+//         if (field.isQuantile())
+//             style.setLabel(String.format("%s\n${%s}", field.getName(), field.getName()));
+//         else
+            style.setLabel(String.format("${%s}", field.getName()));
         style.setNotes(String.format
                        ("Style node for field '%s' in data-set '%s'\n\nSource: %s\n\n%s\n\nvalues=%d; unique=%d; type=%s",
                         field.getName(),
@@ -754,8 +801,8 @@ public final class DataAction
                        ));
         style.setTextColor(ValueNodeTextColor);
         //style.disableProperty(LWKey.Label);
-        if (repainter != null)
-            style.addLWCListener(repainter);
+//         if (repainter != null)
+//             style.addLWCListener(repainter);
         style.setFlag(Flag.STYLE); // set last so creation property sets don't attempt updates
         
         return style;

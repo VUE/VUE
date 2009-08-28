@@ -40,7 +40,7 @@ import edu.tufts.vue.metadata.action.SearchAction;
 
 
 /**
- * @version $Revision: 1.80 $ / $Date: 2009-08-10 22:50:33 $ / $Author: sfraize $
+ * @version $Revision: 1.81 $ / $Date: 2009-08-28 17:13:06 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -1382,9 +1382,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 
             //final DrawContext dc = new DrawContext(DEBUG.BOXES ? g.create() : g, layer);
             final DrawContext dc = new DrawContext(_g.create(), layer);
+            dc.setDraftQuality();
             dc.setAntiAlias(true);
-            dc.setPrioritizeSpeed(true);
-            dc.setDraftQuality(true);
             dc.setInteractive(false);
                         
             if (layer instanceof Layer == false) {

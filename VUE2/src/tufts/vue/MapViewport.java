@@ -408,6 +408,9 @@ public class MapViewport extends JViewport
                                
 
         super.reshape(x, y, w, h);
+
+        //viewer.setFreshPaint();
+        
         // This is a workaround for repaint bugs in TextBox/JTextPane when it get's taller
         // (when you insert newlines).  Why we get reshapes on the parent (ignoreable ones)
         // every time you type a key (or is it when the TextBox resizes?) I don't know,

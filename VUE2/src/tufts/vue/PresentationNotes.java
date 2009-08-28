@@ -123,8 +123,9 @@ public class PresentationNotes {
         //    dc.setAntiAlias(true);
             dc.setMapDrawing();
          //   dc.setPDFRender(true);
-            dc.setPrioritizeQuality(false);
-            dc.setAntiAlias(false);
+            //dc.setPrioritizeQuality(false); // why was this low quality?
+            dc.setPrintQuality();
+            //dc.setAntiAlias(false); // why was this turned off?  was it redundant?
             
             dc.setClipOptimized(true);	
          //   dc.setDraftQuality(true);

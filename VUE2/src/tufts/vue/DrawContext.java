@@ -18,6 +18,8 @@ package tufts.vue;
 import tufts.Util;
 import static tufts.Util.*;
 
+import edu.tufts.vue.preferences.implementations.BooleanPreference;
+
 import java.awt.Color;
 import java.awt.Shape;
 import java.awt.Graphics;
@@ -28,13 +30,18 @@ import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
 
 import java.awt.RenderingHints;
-//import static java.awt.RenderingHints.*;
+import static java.awt.RenderingHints.*;
+
+import static java.lang.Boolean.*;
+
+import com.google.common.collect.Multiset;
+
 
 /**
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.62 $ / $Date: 2009-03-17 16:03:49 $ / $Author: sfraize $
+ * @version $Revision: 1.63 $ / $Date: 2009-08-28 17:13:05 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -428,14 +435,6 @@ public final class DrawContext
         return focal instanceof LWMap == false;
     }
 
-    public void setDraftQuality(boolean t) {
-        isDraftQuality = t;
-    }
-
-    public boolean isDraftQuality() {
-        return isDraftQuality;
-    }
-
     
     /** @return true of Level-Of-Detail rendering is enabled/permitted */
     public boolean isLODEnabled() {
@@ -443,10 +442,10 @@ public final class DrawContext
         return isInteractive() || isDraftQuality();
     }
 
-    public void disableAntiAlias(boolean tv)
+    public void disableAntiAlias(boolean disable)
     {
-        this.disableAntiAlias = tv;
-        if (tv)
+        this.disableAntiAlias = disable;
+        if (disable)
             setAntiAlias(false);
     }
 
@@ -458,46 +457,90 @@ public final class DrawContext
     /** Turn on or off text & shape anti-aliasing */
     public void setAntiAlias(boolean on)
     {
-        if (disableAntiAlias)
-            on = false;
+        if (disableAntiAlias) {
+            setAliasQuality(g, FALSE);
+            setAliasTextQuality(g, FALSE);
+        } else {
+            setAliasQuality(g, on);
+            setAliasTextQuality(g, on);
+        }
+    }
+
+    public static final Boolean DEFAULT = new Boolean(false); // true/false not relevant
+    public static final Boolean QUALITY = Boolean.TRUE;
+    public static final Boolean SPEED = Boolean.FALSE;
+
+    public static final Boolean INTERPOLATION_SPEED = SPEED;
+    public static final Boolean INTERPOLATION_BETTER = DEFAULT;
+    public static final Boolean INTERPOLATION_BEST = QUALITY;
+
+    /** "normal" quality */
+    public void setInteractiveQuality() {
+
+        setImageQuality(g, ImageQualityPreference.isTrue() ? QUALITY : SPEED);
+
+        //setImageQuality(g, QUALITY);
+        //setImageQuality(g, DEFAULT);
+        // even best quality under Java 1.6 appears to be crappy compared to best under 1.5 on Mac OS X 10.5.8
+        //setInterpolation(g, INTERPOLATION_SPEED);
+        //setInterpolation(g, INTERPOLATION_BETTER);
+        //setInterpolation(g, INTERPOLATION_BEST);
         
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-                           on
-                           ? RenderingHints.VALUE_ANTIALIAS_ON
-                           : RenderingHints.VALUE_ANTIALIAS_OFF);
-                           
-        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
-                           on
-                           ? RenderingHints.VALUE_TEXT_ANTIALIAS_ON
-                           : RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
-                           
+        setAlphaQuality(g, DEFAULT);
+        setColorQuality(g, DEFAULT);
+        setFontQuality(g, DEFAULT);
+        setAntiAlias(true);
+        //setDitherQuality(g, TRUE);
+        isDraftQuality = false;
     }
 
-    public void setPrioritizeQuality(boolean on)
-    {
-        g.setRenderingHint(RenderingHints.KEY_RENDERING,
-                                on
-                                ? RenderingHints.VALUE_RENDER_QUALITY
-                                : RenderingHints.VALUE_RENDER_SPEED);
-
-        g.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING,
-                                on
-                                ? RenderingHints.VALUE_COLOR_RENDER_QUALITY
-                                : RenderingHints.VALUE_COLOR_RENDER_SPEED);
+    /** "fast" quality */
+    public void setDraftQuality() {
+        setMaxQuality(FALSE);
+        isDraftQuality = true;
     }
 
-    public void setPrioritizeSpeed(boolean speed)
+    public boolean isDraftQuality() {
+        return isDraftQuality;
+    }
+
+    public void setPrintQuality()
     {
-        setPrioritizeQuality(!speed);
+        setMaxQuality(TRUE);
+    }
+    
+
+    private void setMaxQuality(Boolean on) {
+        setMaxQuality(g, on);
+        if (on)
+            setAntiAlias(true);
+        isDraftQuality = !on;
+    }
+    
+    static void setMaxQuality(Graphics2D g, Boolean on) {
+        setImageQuality(g, on);
+        setAlphaQuality(g, on);
+        setColorQuality(g, on);
+        setFontQuality(g, on);
+        //setDitherQuality(g, on);
+    }
+
+    public void setAnimatingQuality()
+    {
+        setMaxQuality(FALSE);
+        // leave anti-alias on even for animating
     }
     
     public void setFractionalFontMetrics(boolean on)
     {
-        this.g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS,
-                                on
-                                ? RenderingHints.VALUE_FRACTIONALMETRICS_ON
-                                : RenderingHints.VALUE_FRACTIONALMETRICS_OFF);
+        setFontQuality(g, on);
     }
+    
+//     public void setPrioritizeSpeed(boolean speed)
+//     {
+//         setPrioritizeQuality(!speed);
+//     }
+        
 
     /** set a stroke width that stays constant on-screen at given
      * width independent of any current scaling (presuming
@@ -582,12 +625,105 @@ public final class DrawContext
         
     }
 
+    public static void setImageQuality(Graphics g, Boolean on) {
+        setQuality(g,KEY_RENDERING, on,
+                   VALUE_RENDER_DEFAULT,
+                   VALUE_RENDER_QUALITY,
+                   VALUE_RENDER_SPEED);
+    }
+    
+    public static void setInterpolation(Graphics g, Boolean on) {
+        setQuality(g,KEY_INTERPOLATION, on,
+                   VALUE_INTERPOLATION_BILINEAR, // better ("default")
+                   VALUE_INTERPOLATION_BICUBIC, // best & slowest ("quality")
+                   VALUE_INTERPOLATION_NEAREST_NEIGHBOR); // fastest ("speed")
+    }
+
+    public static void setAlphaQuality(Graphics g, Boolean on) {
+        setQuality(g,KEY_ALPHA_INTERPOLATION, on,
+                   VALUE_ALPHA_INTERPOLATION_DEFAULT,
+                   VALUE_ALPHA_INTERPOLATION_QUALITY,
+                   VALUE_ALPHA_INTERPOLATION_SPEED);
+    }
+    
+    public static void setColorQuality(Graphics g, Boolean on) {
+        setQuality(g,KEY_COLOR_RENDERING, on,
+                   VALUE_COLOR_RENDER_DEFAULT,
+                   VALUE_COLOR_RENDER_QUALITY,
+                   VALUE_COLOR_RENDER_SPEED);
+    }
+
+    public static void setFontQuality(Graphics g, Boolean on) {
+        setQuality(g,KEY_FRACTIONALMETRICS, on,
+                   VALUE_FRACTIONALMETRICS_DEFAULT,
+                   VALUE_FRACTIONALMETRICS_ON,
+                   VALUE_FRACTIONALMETRICS_OFF);
+    }
+
+    public static void setAliasQuality(Graphics g, Boolean on) {
+        setQuality(g,KEY_ANTIALIASING, on,
+                   VALUE_ANTIALIAS_DEFAULT,
+                   VALUE_ANTIALIAS_ON,
+                   VALUE_ANTIALIAS_OFF);
+    }
+
+    public static void setAliasTextQuality(Graphics g, Boolean on) {
+        setQuality(g,KEY_TEXT_ANTIALIASING, on,
+                   VALUE_TEXT_ANTIALIAS_DEFAULT,
+                   VALUE_TEXT_ANTIALIAS_ON,
+                   VALUE_TEXT_ANTIALIAS_OFF);
+    }
+
+
+    public static void setDitherQuality(Graphics g, Boolean on) {
+        setQuality(g,KEY_DITHERING, on,
+                   VALUE_DITHER_DISABLE,
+                   VALUE_DITHER_ENABLE,
+                   VALUE_DITHER_DEFAULT);
+    }
+    
+
+    private static void setQuality
+        (final Graphics g,
+         final RenderingHints.Key key,
+         final Boolean on,
+         final Object defaultValue,
+         final Object qualityValue,
+         final Object speedValue)
+    {
+        final Object hint;
+        
+        if (on == DEFAULT)
+            hint = defaultValue;
+        else if (on)
+            hint = qualityValue;
+        else
+            hint = speedValue;
+        
+        if (DEBUG.PAINT) {
+            System.out.format(TERM_PURPLE + "%s %7s for %-41s = %s\n" + TERM_CLEAR, Util.tag(g),
+                              on==DEFAULT?"DEFAULT": (on ? "quality" : "speed"),
+                              '[' + key.toString() + ']',
+                              Util.tags(hint.toString()));
+        }
+        
+        ((Graphics2D)g).setRenderingHint(key, hint);
+    }
+    
+    
     protected void out(String s) {
         System.err.println(Util.TERM_PURPLE
                            + this
                            + Util.TERM_CLEAR
                            + " " + s);
     }
+
+    private static void msg(String s) {
+        System.err.println(Util.TERM_PURPLE
+                           + s
+                           + Util.TERM_CLEAR);
+    }
+    
     
     
     public DrawContext(DrawContext dc)
@@ -648,6 +784,49 @@ public final class DrawContext
         
         //this.mAlpha = dc.mAlpha;
     }
+
+
+    private static final Multiset DebugRecording = com.google.common.collect.HashMultiset.create();
+
+    public static void recordDebug(Object value) {
+        DebugRecording.add(value);
+    }
+
+    public static void recordDebug(LWComponent c) {
+        //final String type = c.getClass().getName();
+        final String type = c.getComponentTypeLabel();
+        if (c.getTypeToken() != null && c.getTypeToken() != c.getClass())
+            recordDebug(type + ":" + c.getTypeToken());
+        else
+            recordDebug(type);
+    }
+    
+    
+    public static String getDebug() {
+        return DebugRecording.toString();
+    }
+    
+    public static void clearDebug() {
+        DebugRecording.clear();
+    }
+
+    public static boolean drawingMayBeSlow(LWComponent focal) {
+        // could check map/focal for presence of images
+        return ImageQualityPreference.isTrue();
+    }
+
+    
+
+    private final static BooleanPreference ImageQualityPreference = BooleanPreference.create(
+			edu.tufts.vue.preferences.PreferenceConstants.MAPDISPLAY_CATEGORY,
+			"imageQuality", 
+			VueResources.getString("preference.imageQuality.title", "Image Quality"), 
+			VueResources.getString("preference.imageQuality.description",
+                                               "Disabling this will make VUE faster when working on maps with images"
+                                               ),
+			Boolean.TRUE,
+			true);
+    
 
 
 //     @Override

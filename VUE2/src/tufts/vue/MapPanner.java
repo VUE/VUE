@@ -25,7 +25,7 @@ import java.awt.geom.Rectangle2D;
  * the currently visible viewport, and moving (panning) the currently
  * visible viewport.
  *
- * @version $Revision: 1.68 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $
+ * @version $Revision: 1.69 $ / $Date: 2009-08-28 17:13:05 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -372,11 +372,8 @@ public class MapPanner extends javax.swing.JPanel
 
         final DrawContext dc = new DrawContext(g, zoomFactor, -offset.x, -offset.y, null, map, false);
 
-        dc.g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, viewer.AA_ON);//pickup MapViewer AA state for debug
-        dc.setPrioritizeSpeed(true);
-        dc.setFractionalFontMetrics(false);
-        dc.setDraftQuality(true); // okay to skimp in rendering of panner image -- it's usually so tiny
-        //dc.setMapDrawing(); // no longer needed: the default at dc init
+        dc.g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, viewer.AA_ON);//pickup MapViewer AA state for testing
+        dc.setDraftQuality(); // okay to skimp in rendering of panner image -- it's usually so tiny
 
         /*
          * Fill the background representing the currently active canvas region.

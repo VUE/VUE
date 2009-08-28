@@ -40,7 +40,7 @@ import com.google.common.collect.Multimaps;
  * generally "short" enough, it will enumerate all the unique values found in that
  * column.
  *
- * @version $Revision: 1.42 $ / $Date: 2009-08-10 22:49:51 $ / $Author: sfraize $
+ * @version $Revision: 1.43 $ / $Date: 2009-08-28 17:13:05 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -55,7 +55,10 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
     private static final Multimap<String,Field> AllFieldsByLowerName = Multimaps.newHashMultimap();
     
     /** All possible column's in this Schema */
-    private final Map<String,Field> mFields = new LinkedHashMap();
+    private final Map<String,Field> mFields = new HashMap();
+    //private final Map<String,Field> mFields = new LinkedHashMap();
+    /** Ordered list of column's in this Schema -- same contents as mFields */
+    private final List<Field> mFieldList = new ArrayList();
 
     private final Collection<Field> mPersistFields = new ArrayList();
     private boolean mXMLRestoreUnderway;
@@ -411,7 +414,11 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
     //private static tufts.vue.LWContainer FalseStyleParent = new tufts.vue.LWNode("FalseStyleParent");
 
     private Field addField(final Field newField) {
-
+        return addField(newField, null, false);
+    }
+        
+    private synchronized Field addField(final Field newField, final Field nearField, boolean before)
+    {
         newField.setSchema(this);
 
         // note: for new Fields, constructor may have trimmed the name,
@@ -420,6 +427,10 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
         final String name = newField.getName();
         
         mFields.put(name, newField);
+        if (nearField != null)
+            mFieldList.add(mFieldList.indexOf(nearField) + (before?0:1), newField);
+        else
+            mFieldList.add(newField);
         
         final String keyName = name.toLowerCase();
         // This will auto-add associations for fields of the same name -- too aggressive tho
@@ -427,6 +438,13 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
         AllFieldsByLowerName.put(keyName, newField);
 
         return newField;
+    }
+    
+    Field addFieldAfter(Field afterField, String name) {
+        return addField(new Field(name.trim(), this), afterField, false);
+    }
+    Field addFieldBefore(Field beforeField, String name) {
+        return addField(new Field(name.trim(), this), beforeField, true);
     }
     
     protected Field addField(String name) {
@@ -528,7 +546,7 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
 
     public synchronized void annotateFor(Collection<LWComponent> nodes) {
 
-        for (Field field : mFields.values())
+        for (Field field : getFields())
             field.annotateIncludedValues(nodes);
 
         // is probably a faster way to track this by handling the key field specially
@@ -612,7 +630,7 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
         if (DEBUG.Enabled) Log.debug("flushing " + this);
         mRows.clear();
         mLongestFieldName = 10;
-        for (Field f : mFields.values()) {
+        for (Field f : getFields()) {
             f.flushStats(); // flush data / enums, but keep any style
         }
     }
@@ -745,7 +763,12 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
             return null;
         }
         final Field f = findField(name);
-        if (f == null) Log.debug(String.format("%s; no field named '%s' in %s", this, name, mFields.keySet()));
+        if (f == null && DEBUG.Enabled) Log.debug(String.format("%s; no field named '%s' in %s",
+                                                                this,
+                                                                name,
+                                                                //mFields.keySet()
+                                                                Util.tags(mFields.keySet())
+                                                                ));
         return f;
     }
     
@@ -903,6 +926,8 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
             return f;
 
         // todo: identifying the shortest field isn't such a good strategy
+
+        // todo: prioritize Fields who's values are all integers
             
         Field firstField = null;
         Field shortestField = null;
@@ -948,7 +973,7 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
         ps.println(getClass().getName() + ": " + toString());
         final int pad = -mLongestFieldName;
         final String format = "%" + pad + "s: %s\n";
-        for (Field f : mFields.values()) {
+        for (Field f : getFields()) {
             ps.printf(format, f.getName(), f.valuesDebug());
         }
         //ps.println("Rows collected: " + rows.size());
@@ -984,7 +1009,21 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
         }
         addRow(row);
     }
-    
+
+    /** called by schema loaders to notify the Schema that all the rows have been loaded (and any final analysis can be completed) */
+    void notifyAllRowsAdded() {
+        
+        for (Field f : Util.toArray(getFields(), Field.class)) { // must dupe as will may be adding new fields (quartiles)
+            Log.debug("field analysis " + Relation.quoteKey(f) + ": type " + Util.tags(f.getType()));
+            f.setStyleNode(DataAction.makeStyleNode(f));
+            try {
+                f.performFinalAnalysis();
+            } catch (Throwable t) {
+                Log.error("analysis failed on " + f, t);
+            }
+        }
+    }
+
     public List<DataRow> getRows() {
         return mRows;
     }
@@ -1092,7 +1131,8 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
     
     
     public Collection<Field> getFields() {
-        return mFields.values();
+        //return mFields.values();
+        return mFieldList;
     }
 
     public Collection<Field> getXMLFields() {
@@ -1100,11 +1140,12 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
             // return the list to be *loaded* by castor
             return mPersistFields;
         } else
-            return mFields.values();
+            return getFields();
     }
     
     public int getFieldCount() {
-        return mFields.size();
+        return getFields().size();
+        //return mFields.size();
     }
 
     /** if a singleton exists with the given name, return it's value, otherwise null */
@@ -1153,18 +1194,24 @@ final class DataRow implements Relation.Scannable {
     }
         
 
+    /** add the given value, and track for analysis */
     void addValue(Field f, String value) {
+        f.trackValue(takeValue(f, value));
+    }
+    
+    /** add, but DO NOT track the value -- return the actual value added (which may have been trimmed or be Field.EMPTY_VALUE) */
+    String takeValue(Field f, String value) {
         value = value.trim();
         
 //         final String existing = values.put(f, value);
 //         if (existing != null && Schema.DEBUG)
 //             Log.debug("ROW SUB-KEY COLLISION " + f);
-            
         //super.put(f.getName(), value);
+        
         if (value.length() == 0)
             value = Field.EMPTY_VALUE;
         mmap.put(f.getName(), value);
-        f.trackValue(value);
+        return value;
     }
 
     Iterable<Map.Entry> dataEntries() {
@@ -1195,7 +1242,7 @@ final class DataRow implements Relation.Scannable {
     }
 
     /** interface Scannable */
-    public boolean hasEntry(String key, String value) {
+    public boolean hasEntry(String key, CharSequence value) {
         return mmap.hasEntry(key, value);
     }
     
