@@ -256,7 +256,7 @@ public class Util
         }
     }
     
-    private static String breakLines(String target, int maxLength, Locale currentLocale)
+    private static String breakLines(final String target, int maxLength, Locale currentLocale)
     {
     	final StringBuilder s = new StringBuilder(target.length() + 4);
     	
@@ -266,37 +266,38 @@ public class Util
         int start = boundary.first();
         int end = boundary.next();
         int lineLength = 0;
+
+        boolean didBreak = false;
 		
         while (end != BreakIterator.DONE) {
             final String word = target.substring(start,end);
 
             lineLength += word.length();
 
-            final boolean atExistingNewline =
-                s.length() > 1 && s.charAt(s.length() - 1) == '\n';
-            
 //             Log.debug(String.format("len: %2d, word %s%s",
 //                                     lineLength,
 //                                     tags(word),
 //                                     atExistingNewline ? ", @newline" : ""));
 
+            if (lineLength >= maxLength) {
+
+                final boolean atExistingNewline =
+                    s.length() > 1 && s.charAt(s.length() - 1) == '\n';
             
-            if (atExistingNewline) {
-                lineLength = 0;
-            } else if (lineLength >= maxLength) {
-                //Log.debug("adding newline");
-                s.append('\n');
-                //System.out.println();
+                if (!atExistingNewline) {
+                    //Log.debug("adding newline");
+                    s.append('\n');
+                    didBreak = true;
+                }
                 lineLength = word.length();
             }
 			
             //Log.debug("adding word " + tags(word));
             s.append(word);
-            //System.out.print(word);
             start = end;
             end = boundary.next();
         }
-        return s.toString();
+        return didBreak ? s.toString() : target;
     } 
 
     /*
