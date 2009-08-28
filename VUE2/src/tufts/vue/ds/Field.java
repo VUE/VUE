@@ -36,7 +36,7 @@ import org.apache.commons.lang.StringEscapeUtils;
  * types and doing some data-type analysis.  It also includes the ability to
  * associate a LWComponent node style with specially marked values.
  * 
- * @version $Revision: 1.17 $ / $Date: 2009-08-28 17:13:05 $ / $Author: sfraize $
+ * @version $Revision: 1.18 $ / $Date: 2009-08-28 22:56:49 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -722,10 +722,25 @@ public class Field implements tufts.vue.XMLUnmarshalListener
         return median;
     }
 
+    private static void computeValueRangeQuantiles(final double[] quantiles, final double minValue, final double maxValue)
+    {
+        final double allValueRange = (maxValue - minValue);
+        final double quantileValueRange = allValueRange / (quantiles.length+1);
+
+        if (DEBUG.Enabled) Log.debug(String.format("computing value-based quantiles for values (%g-%g) range=%g, quantileRange=%g",
+                                                   minValue, maxValue, allValueRange, quantileValueRange));
+        for (int i = 0; i < quantiles.length; i++) {
+            quantiles[i] = minValue + (quantileValueRange * (i+1));
+            if (DEBUG.Enabled) Log.debug(String.format("quantile %d value = %g", i, quantiles[i]));
+        }
+
+    }
+
+    private static final boolean USE_VALUE_BASED_QUANTILES = true; // will take priority
     private static final boolean USE_STANDARD_QUANTILES = false;
-    private static final boolean USE_COMPRESSED_SAMPLE_QUANTILES = !USE_STANDARD_QUANTILES; // ignore repeated values in sample set
+    //private static final boolean USE_COMPRESSED_SAMPLE_QUANTILES = !USE_STANDARD_QUANTILES; // ignore repeated values in sample set
     
-    /** compute and record the quantile values as well as the median value */
+    /** compute and record standard method quantile values as well as the median value */
     private void computeQuantiles(final double[] allValues)
     {
         // NOTE: for data-sets with many repeated values, several of the quantiles may cover exactly
@@ -741,6 +756,12 @@ public class Field implements tufts.vue.XMLUnmarshalListener
         if (USE_STANDARD_QUANTILES) {
             // this will fill mQuantiles with appropriate values
             mMedianValue = computeQuantiles(mQuantiles, allValues);
+            
+        } else if (USE_VALUE_BASED_QUANTILES) {
+
+            computeValueRangeQuantiles(mQuantiles, mMinValue, mMaxValue);
+
+            mMedianValue = Double.NaN; // uncomputed
             
         } else {
 
