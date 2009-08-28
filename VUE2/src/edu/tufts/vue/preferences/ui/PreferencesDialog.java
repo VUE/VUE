@@ -87,11 +87,14 @@ public class PreferencesDialog extends JDialog {
 		array[2] = new String(VueResources.getString("preferencedailog.images"));
 //		array[2] = new String("Metadata:");
 	//	array[3] = new String("Windows:");
-		
-		TreePath path = findByName(prefTree,array);
-		PrefTreeNode node = (PrefTreeNode) path.getLastPathComponent();
-		
-		splitPane.setRightComponent(node.getPrefObject().getPreferenceUI());
+
+                try {
+                    TreePath path = findByName(prefTree,array);
+                    PrefTreeNode node = (PrefTreeNode) path.getLastPathComponent();
+                    splitPane.setRightComponent(node.getPrefObject().getPreferenceUI());
+                } catch (Throwable t) {
+                    t.printStackTrace();
+                }
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		prefTree.setSelectionRow(1);
 	}
