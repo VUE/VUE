@@ -205,6 +205,17 @@ public class Util
         Log.error(s);
     }
 
+    /*
+     * Check added for snow leopard, lack of cocoa, lack of java 5 compatibility
+     */
+    public static boolean isSupportedOnMac()
+    {
+    	if (javaVersion >= 1.6)
+    		return false;
+    	else 
+    		return true;
+    }
+    
     public static String formatLines(String target, int maxLength)
     {
         Locale currentLocale = new Locale ("en","US");
