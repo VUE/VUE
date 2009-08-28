@@ -43,7 +43,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.226 $ / $Date: 2009-08-20 20:04:12 $ / $Author: sfraize $
+ * @version $Revision: 1.227 $ / $Date: 2009-08-28 17:10:46 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -232,7 +232,7 @@ public class LWLink extends LWComponent
     /** number of curve control points in use: 0=straight, 1=quad curved, 2=cubic curved */
     private int mCurveControls = 0; 
     
-    private boolean ordered = false; // not doing anything with this yet
+    //private boolean ordered = false; // not doing anything with this yet
     
     /** has an endpoint moved since we last computed shape? */
     private transient boolean mRecompute;
@@ -1575,7 +1575,6 @@ public class LWLink extends LWComponent
      */
     
     @Override
-    // todo: now that we handle slop/zoom centrally in Picker, we can get rid of zoom arg to pickDistance
     protected float pickDistance(float x, float y, PickContext pc)
     {
         if (mRecompute)
@@ -1620,14 +1619,14 @@ public class LWLink extends LWComponent
         return head.isConnected() || tail.isConnected();
     }
 
-    public boolean isOrdered()
-    {
-        return this.ordered;
-    }
-    public void setOrdered(boolean ordered)
-    {
-        this.ordered = ordered;
-    }
+//     public boolean isOrdered()
+//     {
+//         return this.ordered;
+//     }
+//     public void setOrdered(boolean ordered)
+//     {
+//         this.ordered = ordered;
+//     }
     public int getWeight()
     {
         return (int) (getStrokeWidth() + 0.5f);
@@ -3384,7 +3383,7 @@ public class LWLink extends LWComponent
         link.tail.duplicate(tail);
         link.mCenterX = mCenterX;
         link.mCenterY = mCenterY;
-        link.ordered = ordered;
+        //link.ordered = ordered;
         //link.mArrowState = mArrowState;
         if (mCurveControls > 0) {
             link.setCtrlPoint0(getCtrlPoint0());
