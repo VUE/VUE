@@ -35,7 +35,7 @@ import java.awt.geom.Rectangle2D;
  * 
  * This class is meant to be overriden to do something useful.
  *
- * @version $Revision: 1.49 $ / $Date: 2008-10-08 16:11:36 $ / $Author: sfraize $
+ * @version $Revision: 1.50 $ / $Date: 2009-08-28 16:58:40 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -412,7 +412,7 @@ public class LWTraversal {
 
             if (DEBUG.PICK) eout("   VISIT: " + c);
 
-            // todo performance: if we don't ever moved to having cached map transforms,
+            // todo performance: if we don't ever move to having cached map transforms,
             // we could keep an AffineTransform in the picker, and for each traversal,
             // apply transformDownA on a clone of the top level object, passing that
             // transform down to further depth visits to be cloned and hava

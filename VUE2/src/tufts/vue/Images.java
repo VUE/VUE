@@ -41,7 +41,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.60 $ / $Date: 2009-06-27 13:11:26 $ / $Author: sfraize $
+ * @version $Revision: 1.61 $ / $Date: 2009-08-28 16:57:49 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -1423,6 +1423,7 @@ public class Images
             }
         }
 
+        // TODO: Use GraphicsConfiguration.createCompatibleImage to produce optimal images.
 
         return image;
     }
