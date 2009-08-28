@@ -57,7 +57,7 @@ import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.148 $ / $Date: 2009-08-11 20:37:04 $ / $Author: mike $
+ * @version $Revision: 1.149 $ / $Date: 2009-08-28 15:00:40 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -832,7 +832,7 @@ public class GUI
             if (false && Util.isMacLeopard() && Util.getJavaVersion() > 1.5) {
                 ; // ShellFolder/FileSystemView method still doesn't work
             } else {
-                if (tufts.macosx.MacOSX.supported())
+                if (Util.isSupportedOnMac())
                     return tufts.macosx.MacOSX.getIconForExtension(ext, sizeRequest);
                 else
                     return null;
