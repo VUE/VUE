@@ -76,7 +76,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.619 $ / $Date: 2009-08-28 17:13:05 $ / $Author: sfraize $ 
+ * @version $Revision: 1.620 $ / $Date: 2009-08-28 17:58:06 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3230,7 +3230,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         if (!isDisplayed()) return;
 
         int frCount = 0;
-        if (mFastPaint)
+        if (mFastPainting)
             frCount = mFastRequests.incrementAndGet();
         
         if (DEBUG.PAINT) {
@@ -3238,7 +3238,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 Log.debug("REPAINT", new Throwable("HERE"));
             } else {
                 String msg = "";
-                if (mFastPaint)
+                if (mFastPainting)
                     msg = "; fastPaintRequests +" + frCount;
                 out(TERM_RED + "REPAINT ISSUED at " + new Throwable().getStackTrace()[1] + msg + TERM_CLEAR);
             }
@@ -3251,18 +3251,19 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
     
     public void setFastPaint(String cause) {
-        mFastPaint = true;
+        mFastPainting = true;
         if (DEBUG.PAINT && isDisplayed()) out("setFastPaint " + Util.tags(cause));
     }
 
     public boolean isFastPainting() {
-        return mFastPaint;
+        return mFastPainting;
     }
     
 
-    private volatile boolean mFastPaint = false;
+    private volatile boolean mFastPainting = false;
     private volatile int mPaints = 0;
     private volatile int mPaintsStarted = 0;
+    private boolean mThisPaintIsFast = false;
     private TimerTask mLastTask = null;
     private final java.util.concurrent.atomic.AtomicInteger mFastRequests = new java.util.concurrent.atomic.AtomicInteger();
 
@@ -3284,7 +3285,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             DrawContext.clearDebug();
             pout(String.format("PAINT =>[%d]%s rawClip=%s",
                                mPaints,
-                               (mFastPaint?" FAST":""),
+                               (mFastPainting?" FAST":""),
                                g.getClipBounds()));
             start = System.currentTimeMillis();
         } else
@@ -3318,19 +3319,45 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         if (mPaints == 0) {
             if (inScrollPane)
                 adjustCanvasSize(); // need for intial scroll-bar sizes if bigger than viewport on startup
+            // todo: do we really want this running the first the the full-screen window appears?
             VUE.invokeAfterAWT(new Runnable() { public void run() { ensureMapVisible(); }});
             //trackViewChanges("first-paint");
         }
+
+        if (mThisPaintIsFast)
+            scheduleQualityPaintIfNeeded(g, incomingFastRequests);
         
-        boolean needsSmoothPaint = mFastPaint;
+        if (DEBUG.PAINT) {
+            //try { Thread.sleep(500); } catch (Exception e) {}            
+            final float fps = delta > 0 ? 1000f/delta : -1;
+
+            out("painted " + DrawContext.getDebug());
+            pout(String.format("paint <-[%d]%s (%.2f fps) %dms",
+                               mPaints,
+                               (mFastPainting?" FAST":""),
+                               fps,
+                               delta));
+        }
+        
+        mPaints++;
+        RepaintRegion = null;
+        
+    }
+
+    private void scheduleQualityPaintIfNeeded(final Graphics g, final int fastRequestsAtStartOfPaint)
+    {
+        boolean needsSmoothPaint = mFastPainting;
 
         if (mFocal == null || !mFocal.hasContent()) {
+            // note that painting the empty message is required but
+            // kind of a side-effect to the main purpose in this
+            // method
             paintEmptyMessage(g);
             needsSmoothPaint = false;
         } else
             trackViewChanges(PAINT_TRACKPOINT);
         
-        final int newFastPaints = (mFastRequests.get() - incomingFastRequests);
+        final int newFastPaints = (mFastRequests.get() - fastRequestsAtStartOfPaint);
 
         if (mFastRequests.get() > 0) {
             if (DEBUG.PAINT) pout("consuming " + mFastRequests.get() + " fast paint requests");
@@ -3342,8 +3369,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             if (DEBUG.PAINT) pout("fast-paint requests since started painting: " + newFastPaints + "; they've got the ball");
             needsSmoothPaint = false;
         } else {
-            if (mFastPaint)
-                mFastPaint = false;
+            if (mFastPainting)
+                mFastPainting = false;
         }
         
         if (needsSmoothPaint && DrawContext.drawingMayBeSlow(mFocal)) {
@@ -3361,8 +3388,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                             if (DEBUG.PAINT) pout("skipping smooth paint @" + paintAtCount + "; already painting at count: " + mPaints);
                             return;
                         }
-                        //if (mFastPaint) {
-                        //if (isFastPainting()) {
                         final int newerFastPaints = mFastRequests.get();
                         if (newerFastPaints > 0) {
                             if (DEBUG.PAINT) pout("skipping smooth paint @" + paintAtCount + "; more fast paints requested: " + newerFastPaints);
@@ -3378,23 +3403,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 },
                 500);
         }
-
-        if (DEBUG.PAINT) {
-            //try { Thread.sleep(500); } catch (Exception e) {}            
-            final float fps = delta > 0 ? 1000f/delta : -1;
-
-            out("painted " + DrawContext.getDebug());
-            pout(String.format("paint <-[%d]%s (%.2f fps) %dms",
-                               mPaints,
-                               (mFastPaint?" FAST":""),
-                               fps,
-                               delta));
-        }
-        
-        mPaints++;
-        RepaintRegion = null;
-        
     }
+
+            
+    
 
     private boolean mFocalLoading;
 
@@ -3523,17 +3535,20 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             dc.setInteractive(false);
             dc.disableAntiAlias(true); // prevent anyone else from setting it
             dc.setAnimatingQuality();
+            mThisPaintIsFast = true;
             
         } else {
             
             dc.setInteractive(true);
             
             if (DrawContext.drawingMayBeSlow(mFocal) && isFastPainting()) {
+                mThisPaintIsFast = true;
                 dc.setImageQuality(dc.g, false);
                 dc.setAlphaQuality(dc.g, false);
                 dc.setAliasQuality(dc.g, true);
                 dc.setAliasTextQuality(dc.g, true);
             } else {
+                mThisPaintIsFast = false;
                 dc.setInteractiveQuality(); // do before anti-alias & fractional metric debug tweaks
             }
             

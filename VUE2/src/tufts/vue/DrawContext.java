@@ -41,7 +41,7 @@ import com.google.common.collect.Multiset;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.63 $ / $Date: 2009-08-28 17:13:05 $ / $Author: sfraize $
+ * @version $Revision: 1.64 $ / $Date: 2009-08-28 17:58:14 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -810,9 +810,12 @@ public final class DrawContext
         DebugRecording.clear();
     }
 
-    public static boolean drawingMayBeSlow(LWComponent focal) {
+    public static boolean drawingMayBeSlow(final LWComponent focal) {
         // could check map/focal for presence of images
-        return ImageQualityPreference.isTrue();
+        if (ImageQualityPreference.isFalse())
+            return false;
+        else
+            return focal instanceof LWMap;
     }
 
     
