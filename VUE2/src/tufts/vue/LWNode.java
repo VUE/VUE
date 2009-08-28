@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.252 $ / $Date: 2009-08-10 22:47:38 $ / $Author: sfraize $
+ * @version $Revision: 1.253 $ / $Date: 2009-08-28 22:04:32 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2263,22 +2263,14 @@ public class LWNode extends LWContainer
     @Override
     protected void drawImpl(DrawContext dc)
     {
-        if (!isSelected() && (parent == null || !parent.isSelected())) {
-        	double	alpha =  VUE.getInteractionToolsPanel().getAlpha();
-
-        	if (alpha != 1) {
-            	// "Fade" this node.
-        		dc.setAlpha(alpha);
-        	}
-        }
-
         if (dc.isLODEnabled()) {
 
             // if net on-screen point size is less than 5 for all text, we allow drawing
             // with reduced LOD (level-of-detail)
         
             final float renderScale = (float) dc.getAbsoluteScale();            
-            final boolean canSkipLabel = mFontSize.get() * renderScale < 5; 
+            final float renderFont = mFontSize.get() * renderScale;
+            final boolean canSkipLabel = renderFont < 5; 
             final boolean canSkipIcon;
 
             if (iconShowing())
@@ -2287,15 +2279,12 @@ public class LWNode extends LWContainer
                 canSkipIcon = true;
 
             if (canSkipLabel && canSkipIcon) {
-                drawNodeWithLOD(dc, renderScale);
-                return;
+                drawNodeWithReducedLOD(dc, renderScale);
+                return; // WE'RE DONE
             }
         }
 
             
-        //             if (isSelected() && dc.isInteractive() && dc.focal != this)
-        //                 drawSelection(dc);
-        
         //=============================================================================
         // DRAW COMPLETE (with full detail)
         //=============================================================================
@@ -2307,8 +2296,6 @@ public class LWNode extends LWContainer
             // NOT filtered -- we just drop out the parent background.
             drawNode(dc);
         }
-
-            
             
         //-------------------------------------------------------
         // Draw any children
@@ -2326,9 +2313,9 @@ public class LWNode extends LWContainer
     
 
 
-    private void drawNodeWithLOD(DrawContext dc, float renderScale)
+    /** Draw without rendering any textual glyphs, possibly without children, possibly as a rectanlge only */
+    private void drawNodeWithReducedLOD(final DrawContext dc, final float renderScale)
     {
-
         //=============================================================================
         // DRAW FAST (with little or no detail)
         //=============================================================================
@@ -2336,58 +2323,55 @@ public class LWNode extends LWContainer
         // Level-Of-Detail rendering -- increases speed when lots of nodes rendered
         // all we do is fill the shape
                 
-        boolean drawBorder = false;
+        boolean hasVisibleFill = true;
+        
         if (isSelected()) {
             dc.g.setColor(COLOR_SELECTION);
-            //dc.g.setColor(Color.green);
         } else {
 
-            dc.g.setColor(getRenderFillColor(dc));
-                
-            if (isTransparent() || getRenderFillColor(dc).equals(getParent().getRenderFillColor(dc)))
-                drawBorder = true;
+            final Color renderFill = getRenderFillColor(dc);
+
+            if (isTransparent() || renderFill.equals(getParent().getRenderFillColor(dc)))
+                hasVisibleFill = false;
+            else
+                dc.g.setColor(renderFill);
         }
-            
-        if (getHeight() * renderScale > 5) {
-            // filling shapes slower than drawing rectangles, tho not as much an improvement
-            // as skipping text
-            //dc.g.setColor(mFillColor.get());
-            // TODO: may want to depend on # of items in selection,
-            // in which case, hava MapViewer set up parameters for this in the DrawContext
-            // and check those flags here.  Also, the selectio stroke is completely useless
-            // when zoomed out -- it's being draw at scale.
 
-            final Shape shape = getZeroShape();
-            //                 if (hasFill)
-            //                     dc.g.fill(getZeroShape());
-            //                 else
-            //                     dc.g.draw(getZeroShape());
+        if (this.height * renderScale > 5) {
 
-            dc.g.fill(shape);
-            if (drawBorder) {
-                dc.g.setColor(mStrokeColor.get());
-                dc.g.draw(shape);
-            }
+            // MEDIUM LEVEL OF DETAIL: retain shape & draw children
+
+            if (hasVisibleFill)
+                dc.g.fill(getZeroShape());
+            else
+                drawLODTextLine(dc);
 
             if (hasChildren())
                 drawChildren(dc);
                 
         } else {
-            //dc.setAntiAlias(false);
-            //                 if (hasFill)
-            //                     dc.g.fillRect(0, 0, (int)getWidth(), (int)getHeight());
-            //                 else
-            //                     dc.g.drawRect(0, 0, (int)getWidth(), (int)getHeight());
-            dc.g.fillRect(0, 0, (int)getWidth(), (int)getHeight());
-            if (drawBorder) {
-                dc.g.setColor(mStrokeColor.get());
-                dc.g.drawRect(0, 0, (int)getWidth(), (int)getHeight());
-            }
+
+            // LOWEST LEVEL OF DETAIL -- shape is always a rectangle, don't draw children
+            
+            if (hasVisibleFill) {
+                if (mShape.getClass() == Rectangle2D.Float.class)
+                    dc.g.fill(mShape);
+                else
+                    dc.g.fillRect(0, 0, (int)getWidth(), (int)getHeight());
+            } else
+                drawLODTextLine(dc);
         }
                 
-        // now we skip drawing text / decorations / children -- just skipping
-        // the text makes a big difference when then there are lots of nodes
     }
+
+    private void drawLODTextLine(final DrawContext dc) {
+        final int hh = (int) ((getHeight() / 2f) + 0.5f);
+        //dc.setAntiAlias(false); // too crappy
+        dc.g.setStroke(STROKE_SEVEN);
+        dc.g.setColor(mTextColor.get());
+        dc.g.drawLine(0, hh, getLabelBox().getWidth(), hh);
+    }
+    
 
     @Override
     public boolean isCollapsed() {

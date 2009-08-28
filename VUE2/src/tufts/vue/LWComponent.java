@@ -47,7 +47,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.484 $ / $Date: 2009-08-28 17:10:13 $ / $Author: sfraize $
+ * @version $Revision: 1.485 $ / $Date: 2009-08-28 22:04:32 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -5910,13 +5910,23 @@ u                    getSlot(c).setFromString((String)value);
         }
     }
     
-    public void drawZero(DrawContext dc)
+    public final void drawZero(DrawContext dc)
     {
         final AffineTransform zeroTransform = DEBUG.PDF ? dc.g.getTransform() : null;
         
         dc.checkComposite(this);
+
         try {
+
+            if (!isTopLevel()) { // e.g., isn't a Layer, which is never selected
+                // TODO: this should be a flag set up in the DrawContext
+                final double alpha = VUE.getInteractionToolsPanel().getAlpha();
+                if (alpha != 1 && !selectedOrParent()) 
+                    dc.setAlpha(alpha); // fade nodes not in selection
+            }
+
             drawImpl(dc);
+            
         } catch (RuntimeException e) {
             Log.error("drawImpl failed: " + e);
             try {
@@ -6644,7 +6654,8 @@ u                    getSlot(c).setFromString((String)value);
     }
 
     protected boolean selectedOrParent() {
-        return parent == null ? isSelected() : (parent.selectedOrParent() | isSelected());
+        return parent == null ? isSelected() : (isSelected() || parent.selectedOrParent());
+        //return parent == null ? isSelected() : (parent.selectedOrParent() | isSelected());
     }
     
     public final boolean isAncestorSelected() {

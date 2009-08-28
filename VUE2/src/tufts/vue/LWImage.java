@@ -903,14 +903,14 @@ public class LWImage extends LWComponent
     {
     	LWComponent grandparent;
 
-    	if (!isSelected() && (parent == null || (!parent.isSelected() && ((grandparent = parent.parent) == null || !grandparent.isSelected())))) {
-        	double	alpha =  VUE.getInteractionToolsPanel().getAlpha();
+//     	if (!isSelected() && (parent == null || (!parent.isSelected() && ((grandparent = parent.parent) == null || !grandparent.isSelected())))) {
+//         	double	alpha =  VUE.getInteractionToolsPanel().getAlpha();
 
-        	if (alpha != 1) {
-            	// "Fade" this image.
-        		dc.setAlpha(alpha);
-        	}
-    	}
+//         	if (alpha != 1) {
+//             	// "Fade" this image.
+//         		dc.setAlpha(alpha);
+//         	}
+//     	}
 
         drawWithoutShape(dc);
 //         if (dc.g.getComposite() instanceof AlphaComposite) {
