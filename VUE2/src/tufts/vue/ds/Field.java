@@ -36,7 +36,7 @@ import org.apache.commons.lang.StringEscapeUtils;
  * types and doing some data-type analysis.  It also includes the ability to
  * associate a LWComponent node style with specially marked values.
  * 
- * @version $Revision: 1.18 $ / $Date: 2009-08-28 22:56:49 $ / $Author: sfraize $
+ * @version $Revision: 1.19 $ / $Date: 2009-08-28 23:09:30 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -736,17 +736,17 @@ public class Field implements tufts.vue.XMLUnmarshalListener
 
     }
 
-    private static final boolean USE_VALUE_BASED_QUANTILES = true; // will take priority
-    private static final boolean USE_STANDARD_QUANTILES = false;
+    private static final boolean USE_VALUE_RANGE_QUANTILES = true; // original Anoop method
+    private static final boolean USE_STANDARD_QUANTILES = false; // standard statistical method (resource intensive: duplicates & sorts entire sample set)
     //private static final boolean USE_COMPRESSED_SAMPLE_QUANTILES = !USE_STANDARD_QUANTILES; // ignore repeated values in sample set
     
     /** compute and record standard method quantile values as well as the median value */
     private void computeQuantiles(final double[] allValues)
     {
-        // NOTE: for data-sets with many repeated values, several of the quantiles may cover exactly
-        // the same range of values.  Adding another type of analysis for that case would
-        // be useful, or perhaps rolling our own "modified quantile" analysis that forces
-        // quantiles to cover different values.
+        // NOTE: for data-sets with many repeated values, several of the quantiles may
+        // cover exactly the same range of values.  Adding another type of analysis for
+        // that case would be useful, or perhaps rolling our own "modified quantile"
+        // analysis that forces quantiles to cover different values.
         
         // E.g: if QUANTILE_BUCKETS=4 (we want 4 buckets), we need to produce 3 (three) quantile
         // values to divide the range into 4 (four) regions
@@ -757,7 +757,13 @@ public class Field implements tufts.vue.XMLUnmarshalListener
             // this will fill mQuantiles with appropriate values
             mMedianValue = computeQuantiles(mQuantiles, allValues);
             
-        } else if (USE_VALUE_BASED_QUANTILES) {
+        } else if (USE_VALUE_RANGE_QUANTILES) {
+
+            // This method can produce more semantically meaningful quantiles, but this
+            // backfires and renders the quantiles mostly useless if there are outliers.
+            // E.g., a single high outlier can leave almost all values in the first
+            // bucket, nothing at all in the middle buckets, and the single high-flyer
+            // in the top bucket.
 
             computeValueRangeQuantiles(mQuantiles, mMinValue, mMaxValue);
 
@@ -765,10 +771,9 @@ public class Field implements tufts.vue.XMLUnmarshalListener
             
         } else {
 
-            // our own method of computing the quantiles (perhaps recapitulating an
-            // existing named method I haven't seen) that removes all repeated values in
-            // the sample set
-            
+            // This is the STANDARD method except with "compressed" samples -- only
+            // unique values are analyized.
+
             int validCount = mValues.elementSet().size();
             if (mValues.contains(EMPTY_VALUE))
                 validCount--;
@@ -987,7 +992,8 @@ public class Field implements tufts.vue.XMLUnmarshalListener
 
         if (mAllValuesAreIntegers) {
             quantileField.addDataComment(String.format("Mean: %.1f", mMeanValue));
-            quantileField.addDataComment(String.format("Median: %.1f", mMedianValue));
+            if (!Double.isNaN(mMedianValue))
+                quantileField.addDataComment(String.format("Median: %.1f", mMedianValue));
             quantileField.addDataComment(String.format("Std Dev: %d x %.1f",
                                                     (int) Math.round(mStandardDeviation),
                                                     deviationsToCoverAllValues
@@ -995,7 +1001,8 @@ public class Field implements tufts.vue.XMLUnmarshalListener
                                                     ));
         } else {
             quantileField.addDataComment(String.format("Mean: %g", mMeanValue));
-            quantileField.addDataComment(String.format("Median: %g", mMedianValue));
+            if (!Double.isNaN(mMedianValue))
+                quantileField.addDataComment(String.format("Median: %g", mMedianValue));
             quantileField.addDataComment(String.format("Std Dev: %g x %.1f",
                                                     mStandardDeviation,
                                                     deviationsToCoverAllValues
