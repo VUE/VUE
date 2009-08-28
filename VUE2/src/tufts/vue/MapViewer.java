@@ -76,7 +76,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.620 $ / $Date: 2009-08-28 17:58:06 $ / $Author: sfraize $ 
+ * @version $Revision: 1.621 $ / $Date: 2009-08-28 19:12:38 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3279,7 +3279,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         
         final int incomingFastRequests = mFastRequests.get();
 
-        final long start;
+        final long start = System.currentTimeMillis();
 
         if (DEBUG.PAINT || DEBUG.SCROLL || DEBUG.PRESENT) {
             DrawContext.clearDebug();
@@ -3287,10 +3287,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                                mPaints,
                                (mFastPainting?" FAST":""),
                                g.getClipBounds()));
-            start = System.currentTimeMillis();
-        } else
-            start = 0;
-
+        }
+        
         try {
             // This a special speed optimization for the selector box -- not sure it helps anymore tho...
 //             if (redrawingSelector && draggedSelectorBox != null && activeTool.supportsXORSelectorDrawing()) {
@@ -3309,13 +3307,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
 
 
-        final long delta;
+        final long delta = System.currentTimeMillis() - start;
 
-        if (DEBUG.PAINT) 
-            delta = System.currentTimeMillis() - start;
-        else
-            delta = 0;
-        
         if (mPaints == 0) {
             if (inScrollPane)
                 adjustCanvasSize(); // need for intial scroll-bar sizes if bigger than viewport on startup
@@ -3324,14 +3317,26 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             //trackViewChanges("first-paint");
         }
 
-        if (mThisPaintIsFast)
-            scheduleQualityPaintIfNeeded(g, incomingFastRequests);
+        if (mFocal == null || !mFocal.hasContent()) {
+            paintEmptyMessage(g);
+        } else {
+            trackViewChanges(PAINT_TRACKPOINT);
+            if (mThisPaintIsFast) {
+                scheduleQualityPaintIfNeeded(g, incomingFastRequests);
+            }
+//             else {
+//                 // We've completed a quality paint: consume the bit
+//                 // that allows new fast-paint requests to be queued.
+//                 // shouldn't we clear the fast requests count?
+//                 mFastPainting = false;
+//             }
+        }
         
-        if (DEBUG.PAINT) {
+        if (DEBUG.PAINT || (DEBUG.Enabled && delta > 200)) {
             //try { Thread.sleep(500); } catch (Exception e) {}            
             final float fps = delta > 0 ? 1000f/delta : -1;
 
-            out("painted " + DrawContext.getDebug());
+            if (DEBUG.PAINT) out("painted " + DrawContext.getDebug());
             pout(String.format("paint <-[%d]%s (%.2f fps) %dms",
                                mPaints,
                                (mFastPainting?" FAST":""),
@@ -3346,63 +3351,64 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
     private void scheduleQualityPaintIfNeeded(final Graphics g, final int fastRequestsAtStartOfPaint)
     {
-        boolean needsSmoothPaint = mFastPainting;
-
-        if (mFocal == null || !mFocal.hasContent()) {
-            // note that painting the empty message is required but
-            // kind of a side-effect to the main purpose in this
-            // method
-            paintEmptyMessage(g);
-            needsSmoothPaint = false;
-        } else
-            trackViewChanges(PAINT_TRACKPOINT);
-        
-        final int newFastPaints = (mFastRequests.get() - fastRequestsAtStartOfPaint);
+        final int newFastPaintsWhilePainting = (mFastRequests.get() - fastRequestsAtStartOfPaint);
 
         if (mFastRequests.get() > 0) {
             if (DEBUG.PAINT) pout("consuming " + mFastRequests.get() + " fast paint requests");
             mFastRequests.set(0);
         }
 
-        if (newFastPaints > 0) {
-            // do nothing -- more fast paints are on the way
-            if (DEBUG.PAINT) pout("fast-paint requests since started painting: " + newFastPaints + "; they've got the ball");
-            needsSmoothPaint = false;
-        } else {
-            if (mFastPainting)
-                mFastPainting = false;
+        if (newFastPaintsWhilePainting > 0) {
+            // do nothing -- more repaint requests are already queued, let them handled it
+            if (DEBUG.PAINT) pout("fast-paint requests since started painting: " + newFastPaintsWhilePainting + "; they've got the ball");
+            //needsSmoothPaint = false;
+            return;
+        }
+
+        if (mFastPainting) {
+            // consume the bit that allows new fast-paint requests to be queued
+            if (DEBUG.PAINT) pout("CLEARING FAST-PAINT BIT");
+            mFastPainting = false;
+        }
+
+        // We just completed a fast-paint
+        final int paintAtCount = mPaintsStarted;
+        if (DEBUG.PAINT) pout("scheduling smooth repaint if it falls as paint count " + paintAtCount);
+        if (mLastTask != null) {
+            //if (DEBUG.PAINT) pout("cancelling outstanding timer " + mLastTask);
+            mLastTask.cancel();
         }
         
-        if (needsSmoothPaint && DrawContext.drawingMayBeSlow(mFocal)) {
-            // We just completed a fast-paint
-            final int paintAtCount = mPaintsStarted;
-            if (DEBUG.PAINT) pout("scheduling smooth repaint if it falls as paint count " + paintAtCount);
-            if (mLastTask != null) {
-                if (DEBUG.PAINT) pout("canceling last timer task " + mLastTask);
-                mLastTask.cancel();
-            }
-            ViewerTimer.schedule(mLastTask = new TimerTask() {
-                    public void run() {
-                        // if we're the next consequtive paint, and a fast one hasn't been requested again, paint:
-                        if (mPaintsStarted != paintAtCount) {
-                            if (DEBUG.PAINT) pout("skipping smooth paint @" + paintAtCount + "; already painting at count: " + mPaints);
-                            return;
-                        }
-                        final int newerFastPaints = mFastRequests.get();
-                        if (newerFastPaints > 0) {
-                            if (DEBUG.PAINT) pout("skipping smooth paint @" + paintAtCount + "; more fast paints requested: " + newerFastPaints);
-                            return;
-                        }
+        ViewerTimer.schedule(mLastTask = new TimerTask() {
+                public void run() {
+                    // if we're the next consequtive paint, and a fast one hasn't been requested again, paint:
+                    if (mPaintsStarted != paintAtCount) {
+                        if (DEBUG.PAINT) pout("skipping smooth paint @" + paintAtCount + "; already painting at count: " + mPaints);
+                        return;
+                    }
+                    final int newerFastPaints = mFastRequests.get();
+                    if (newerFastPaints > 0) {
+                        if (DEBUG.PAINT) pout("skipping smooth paint @" + paintAtCount + "; more fast paints requested: " + newerFastPaints);
+                        return;
+                    }
 
-                        if (DEBUG.PAINT) pout("running smooth paint @" + paintAtCount + " (no fast requests or paints since scheduling)");
-                        repaint();
+                    if (DEBUG.PAINT) pout("triggering smooth paint @" + paintAtCount + " (no fast requests or paints since scheduling)");
+
+                    if (mFastPainting) {
+                        // If the bit is set that allows new fast-paint requests to be queued,
+                        // this repaint will just schedule another fast-paint.
+                        //if (DEBUG.PAINT) pout("CLEARING FAST-PAINT BIT");
+                        //mFastPainting = false
+                        out(TERM_RED + "*** FAST PAINTING SET IN SLOW-PAINT REQUEST ***" + TERM_CLEAR);
                     }
-                    @Override public String toString() {
-                        return "[smooth paint task for paint @" + paintAtCount + "]";
-                    }
-                },
-                500);
-        }
+                    repaint();
+                }
+                @Override public String toString() {
+                    return "[smooth paint task for paint @" + paintAtCount + "]";
+                }
+            },
+            500);
+
     }
 
             

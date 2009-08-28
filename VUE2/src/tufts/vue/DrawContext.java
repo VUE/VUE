@@ -41,7 +41,7 @@ import com.google.common.collect.Multiset;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.64 $ / $Date: 2009-08-28 17:58:14 $ / $Author: sfraize $
+ * @version $Revision: 1.65 $ / $Date: 2009-08-28 19:12:38 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -477,7 +477,7 @@ public final class DrawContext
     /** "normal" quality */
     public void setInteractiveQuality() {
 
-        setImageQuality(g, ImageQualityPreference.isTrue() ? QUALITY : SPEED);
+        setImageQuality(g, isImageQualityRequested() ? QUALITY : SPEED);
 
         //setImageQuality(g, QUALITY);
         //setImageQuality(g, DEFAULT);
@@ -760,6 +760,8 @@ public final class DrawContext
         this.isDraftQuality = dc.isDraftQuality;
         this.isBlackWhiteReversed = dc.isBlackWhiteReversed;
         this.isPresenting = dc.isPresenting;
+
+
         this.isDrawingPathways = dc.isDrawingPathways;
         //this.activeTool = dc.activeTool;
         //this.inMapDraw = dc.inMapDraw;
@@ -811,24 +813,46 @@ public final class DrawContext
     }
 
     public static boolean drawingMayBeSlow(final LWComponent focal) {
-        // could check map/focal for presence of images
-        if (ImageQualityPreference.isFalse())
-            return false;
-        else
+        // could check focal for the presence of images
+        //if (true) return false;
+        if (isImageQualityRequested())
             return focal instanceof LWMap;
+        else
+            return false;
     }
 
+    private final static BooleanPreference ImageQualityPreference;
     
+    private static boolean isImageQualityRequested() {
+        return ImageQualityPreference != null && ImageQualityPreference.isTrue();
+    }
 
-    private final static BooleanPreference ImageQualityPreference = BooleanPreference.create(
-			edu.tufts.vue.preferences.PreferenceConstants.MAPDISPLAY_CATEGORY,
-			"imageQuality", 
-			VueResources.getString("preference.imageQuality.title", "Image Quality"), 
-			VueResources.getString("preference.imageQuality.description",
-                                               "Disabling this will make VUE faster when working on maps with images"
-                                               ),
-			Boolean.TRUE,
-			true);
+    static {
+        if (Util.isMacLeopard() && Util.getJavaVersion() == 1.6f)
+            ImageQualityPreference = null;
+        else
+            ImageQualityPreference = BooleanPreference.create
+                (edu.tufts.vue.preferences.PreferenceConstants.MAPDISPLAY_CATEGORY,
+                 "imageQuality", 
+                 VueResources.getString("preference.imageQuality.title", "Image Quality"), 
+                 VueResources.getString("preference.imageQuality.description",
+                                        "Disabling this will make VUE faster when working on maps with images"
+                                        ),
+                 Boolean.TRUE,
+                 true);
+
+
+    }
+
+//     private final static BooleanPreference ImageQualityPreference = BooleanPreference.create(
+// 			edu.tufts.vue.preferences.PreferenceConstants.MAPDISPLAY_CATEGORY,
+// 			"imageQuality", 
+// 			VueResources.getString("preference.imageQuality.title", "Image Quality"), 
+// 			VueResources.getString("preference.imageQuality.description",
+//                                                "Disabling this will make VUE faster when working on maps with images"
+//                                                ),
+// 			Boolean.TRUE,
+// 			true);
     
 
 

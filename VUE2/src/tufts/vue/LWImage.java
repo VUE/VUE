@@ -62,6 +62,9 @@ public class LWImage extends LWComponent
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LWImage.class);
 
+    //private static final String ImageRepaint = LWKey.RepaintAsync;
+    private static final String ImageRepaint = LWKey.Repaint;
+
     public static final boolean SLIDE_LABELS = false;
     
     //static int MaxRenderSize = PreferencesManager.getIntegerPrefValue(ImageSizePreference.getInstance());
@@ -462,7 +465,7 @@ public class LWImage extends LWComponent
     public void reloadImage() {
         mImage = null;
         mImageStatus = Status.UNLOADED;
-        notify(LWKey.RepaintAsync);
+        notify(ImageRepaint);
     }
 
 
@@ -549,7 +552,7 @@ public class LWImage extends LWComponent
 //         }
         updateNodeIconStatus(getParent());
         layout();
-        notify(LWKey.RepaintAsync);
+        notify(ImageRepaint);
     }
     
     
@@ -573,7 +576,7 @@ public class LWImage extends LWComponent
                 mStatusMsg = Integer.toString(pctEven) + '%'; // todo: do in paint (no need do every time here)
                 //out("notify on " + mStatusMsg);
                 //mStatusMsg = String.format("%.1f%%", pct * 100);
-                notify(LWKey.RepaintAsync);
+                notify(ImageRepaint);
             }
             mLastPct = pct;
             mLastPctEven = pctEven;
@@ -609,8 +612,7 @@ public class LWImage extends LWComponent
             mUndoMarkForThread = null;
         }
 
-        notify(LWKey.RepaintAsync);
-        
+        notify(ImageRepaint);
 
         // Any problem using the Image Fetcher thread to do this?
         //if (getResource() instanceof MapResource)
@@ -628,7 +630,7 @@ public class LWImage extends LWComponent
             mImageHeight = 128;
             setSize(128,128);
         }
-        notify(LWKey.RepaintAsync);
+        notify(ImageRepaint);
         
     }
 
