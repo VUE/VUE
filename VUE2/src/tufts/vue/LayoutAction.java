@@ -91,10 +91,10 @@ public abstract  class LayoutAction extends Actions.LWCAction {
     public static final LayoutAction filledCircle = new LayoutAction(new FilledCircularLayout(),VueResources.getString("menu.format.arrange.filledcircle"), KeyEvent.VK_5) {
         boolean supportsSingleMover() { return false; }
     };
-    public static final LayoutAction force = new LayoutAction(new ForceLayout(),VueResources.getString("menu.format.layout.force"), KeyEvent.VK_CLOSE_BRACKET) {
+    public static final LayoutAction force = new LayoutAction(new ForceLayout(),VueResources.getString("menu.format.layout.force"), KeyEvent.VK_QUOTE) {
         boolean supportsSingleMover() { return false; }
     };
-    public static final LayoutAction hierarchical = new LayoutAction(new HierarchicalLayout(),VueResources.getString("menu.format.layout.hierarchical"), KeyEvent.VK_OPEN_BRACKET) {
+    public static final LayoutAction hierarchical = new LayoutAction(new HierarchicalLayout(),VueResources.getString("menu.format.layout.hierarchical"), KeyEvent.VK_BACK_SLASH) {
         boolean supportsSingleMover() { return false; }
         boolean enabledFor(LWSelection selection ) { return true;}
     };
@@ -117,11 +117,16 @@ public abstract  class LayoutAction extends Actions.LWCAction {
         boolean supportsSingleMover() { return false; }
     };
 
+
     public static final Action[] LAYOUT_ACTIONS = {
     	cluster,
         Actions.MakeCluster,
         hierarchical,
         force,
+        null,
+        Actions.PullInLinked,
+        Actions.PushOutLinked,
+        null,
         Actions.MakeDataLists,
 //         null,
 //         Actions.MakeDataLinks

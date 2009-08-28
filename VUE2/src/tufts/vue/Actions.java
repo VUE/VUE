@@ -2392,7 +2392,7 @@ public class Actions implements VueConstants
     
     
     public static final LWCAction PushOutLinked =
-    new LWCAction(VueResources.local("menu.format.align.pushout.linked")) {
+    new LWCAction(VueResources.local("menu.format.arrange.pushout"), keyStroke(KeyEvent.VK_CLOSE_BRACKET, ALT)) {
         
         boolean enabledFor(LWSelection s) {
             return enabledForPushPull(s);
@@ -2424,7 +2424,7 @@ public class Actions implements VueConstants
         void act(LWComponent c) {
             // although we don't currently want to support pushing inside anything other than
             // a layer, this generic call would handle other cases if we can support them
-            projectNodes(c, PUSH_DISTANCE, PUSH_LINKED);
+            projectNodes(c, PUSH_DISTANCE, PUSH_ALL);
             // currenly only pushes within a single layer: provide the map
             // as the focal if want to push in all layers
             //pushNodes(viewer().getDropFocal(), c); // push in active focal: will work for slides also
@@ -2437,8 +2437,8 @@ public class Actions implements VueConstants
         }
     };
     
-    public static final LWCAction PullIn =
-        new LWCAction(VueResources.local("menu.format.arrange.pullin"), keyStroke(KeyEvent.VK_MINUS, ALT)) {
+    public static final LWCAction PullInLinked =
+        new LWCAction(VueResources.local("menu.format.arrange.pullin"), keyStroke(KeyEvent.VK_OPEN_BRACKET, ALT)) {
             boolean enabledFor(LWSelection s) {
                 return enabledForPushPull(s);
             }
@@ -2448,6 +2448,17 @@ public class Actions implements VueConstants
             }
         };
         
+        public static final LWCAction PullIn =
+            new LWCAction(VueResources.local("menu.format.arrange.pullin"), keyStroke(KeyEvent.VK_MINUS, ALT)) {
+                boolean enabledFor(LWSelection s) {
+                    return enabledForPushPull(s);
+                }
+                void act(LWComponent c) {
+                    projectNodes(c, -PUSH_DISTANCE, PUSH_ALL);
+                    
+                }
+            };
+            
     private static final boolean DEBUG_PUSH = false;
     private static final Object PUSH_ALL = "pushAll";
     private static final Object PUSH_LINKED = "pushLinked";
