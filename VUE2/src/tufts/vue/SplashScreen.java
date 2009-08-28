@@ -15,6 +15,7 @@
 
 package tufts.vue;
 
+import tufts.Util;
 import tufts.vue.gui.GUI;
 import tufts.macosx.MacOSX;
 
@@ -26,7 +27,7 @@ import javax.swing.*;
  * Display the VUE splash screen.  Show the VUE splash graphic with current version
  * text drawn on top of it,
  *
- * @version $Revision: 1.17 $ / $Date: 2009-03-14 21:39:25 $ / $Author: vaibhav $ 
+ * @version $Revision: 1.18 $ / $Date: 2009-08-28 15:01:00 $ / $Author: mike $ 
  * @author  akumar03
  */
 
@@ -40,7 +41,7 @@ public class SplashScreen extends Frame
         createSplash();
 
         if (GUI.isMacAqua()) {
-            if (MacOSX.supported()) {
+            if (Util.isSupportedOnMac()) {
                 pack(); // ensure peer created for MacOSX
                 MacOSX.setTransparent(SplashScreen.this);
             } else { //if (tufts.Util.getJavaVersion() >= 1.6) {
@@ -66,7 +67,13 @@ public class SplashScreen extends Frame
     
     private void createSplash() {
         Dimension screen =  Toolkit.getDefaultToolkit().getScreenSize();
-        ImageIcon icon = new ImageIcon(VueResources.getURL("splashScreen")) {
+        
+        String splashProp = null;
+        if (Util.isMacPlatform() && Util.isSupportedOnMac())
+        	splashProp = "splashScreen";
+        else
+        	splashProp = "splashScreenNoTransparency";
+        ImageIcon icon = new ImageIcon(VueResources.getURL(splashProp)) {
           public void paintIcon(Component c, Graphics g, int x, int y) {
               Calendar calendar = new GregorianCalendar();
               super.paintIcon(c,g,x,y);
