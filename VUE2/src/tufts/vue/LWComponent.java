@@ -47,7 +47,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.483 $ / $Date: 2009-08-10 22:44:34 $ / $Author: sfraize $
+ * @version $Revision: 1.484 $ / $Date: 2009-08-28 17:10:13 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -779,10 +779,13 @@ u                    getSlot(c).setFromString((String)value);
                 final TValue oldValue = getValue(target);
 
                 if (newValue != oldValue && (newValue == null || !newValue.equals(oldValue))) {
-                    if (DEBUG.STYLE) System.out.format("    COPY-VALUE: %s %-15s %-40s -> %s over (%s)\n",
+                    if (DEBUG.STYLE) System.out.format("    COPY-VALUE: %s %s%-15s%s %-40s -> %s over (%s)\n",
                                                        source,
-                                                       name,
-                                                       "(" + newValue + ")",
+                                                       TERM_PURPLE,
+                                                       this.name,
+                                                       TERM_CLEAR,
+                                                       //"(" + newValue + ")",
+                                                       Util.tags(getStringValue(source)),
                                                        target,
                                                        oldValue);
                     setValue(target, newValue);
@@ -1688,8 +1691,9 @@ u                    getSlot(c).setFromString((String)value);
         }
         else
         {
-        	c.setLabel(this.label); // use setLabel so new TextBox will be created [!no longer an effect]
-        	c.getLabelBox().setSize(getLabelBox().getSize());
+            //c.setLabel(this.label); // use setLabel so new TextBox will be created [!no longer an effect]
+            c.setLabelImpl(this.label, true, false);
+            c.getLabelBox().setSize(getLabelBox().getSize());
         }
 
         
@@ -1916,7 +1920,7 @@ u                    getSlot(c).setFromString((String)value);
             value = (vme == null ? null : vme.getValue());
         }
         
-        return tufts.vue.ds.Field.valueName(value);
+        return tufts.vue.ds.Field.valueText(value);
     }
 
     // TODO: rename all these getDataValue* to getSingleValue*
@@ -2034,7 +2038,7 @@ u                    getSlot(c).setFromString((String)value);
     }
     
 
-    public boolean hasDataValue(String key, String value) {
+    public boolean hasDataValue(String key, CharSequence value) {
         return mDataMap != null && mDataMap.hasEntry(key, value);
         //return isSchematicFieldNode() && mDataMap.containsEntry(key, value);
 //         if (mDataMap == null)
@@ -2206,24 +2210,33 @@ u                    getSlot(c).setFromString((String)value);
     
     public void setLabel(String label)
     {
-        setLabel0(label, true);
+        setLabelImpl(label, true, true);
     }
 
+    /** @deprecated -- use setLabelImpl */
+    void setLabel0(String newLabel, boolean setDocument) {
+        setLabelImpl(newLabel, setDocument, true);
+    }
+
+    public void setLabelTemplate(String s) {
+        setLabelImpl(s, false, false);
+    }
 
     /**
      * Called directly by TextBox after document edit with setDocument=false,
      * so we don't attempt to re-update the TextBox, which has just been
      * updated.
      */
-    void setLabel0(String newLabel, boolean setDocument)
+    void setLabelImpl(String newLabel, boolean setDocument, boolean fillData)
     {
+        if (DEBUG.TEXT || DEBUG.DATA) out("setLabelImpl " + Util.tags(newLabel) + " setDoc=" + setDocument + " fillData=" + fillData);
         newLabel = cleanControlChars(newLabel);
 
-        if (!mXMLRestoreUnderway && newLabel != null && newLabel.indexOf('$') >= 0) {
+        if (fillData && !mXMLRestoreUnderway && newLabel != null && newLabel.indexOf('$') >= 0) {
             if (isStyling(LWKey.Label)) {
-                if (DEBUG.Enabled) createDataLabel(newLabel); // for debug
+                //if (DEBUG.Enabled) createDataLabel(newLabel); // for debug
             } else
-                newLabel = createDataLabel(newLabel);
+                newLabel = fillLabel(newLabel);
         }
         
         Object old = this.label;
@@ -2237,6 +2250,7 @@ u                    getSlot(c).setFromString((String)value);
                 labelBox.setText("");
         } else {
             this.label = newLabel;
+            if (DEBUG.TEXT || DEBUG.DATA) out("setLabelImpl textSet " + Util.tags(newLabel));
             // todo opt: only need to do this if node or link (LWImage?)
             // Handle this more completely -- shouldn't need to create
             // label box at all -- why can't do entirely lazily?
@@ -2255,15 +2269,27 @@ u                    getSlot(c).setFromString((String)value);
         notify(LWKey.Label, old);
     }
 
-    private String createDataLabel(String fmt) {
+    public void wrapLabelToWidth(final int charWidth) {
+        final String existingLabel = getLabel();
+        final String wrappedLabel = Util.formatLines(existingLabel, charWidth);
+        if (wrappedLabel != existingLabel) {
+            if (DEBUG.Enabled) Log.debug(this + " wrapped to: " + Util.tags(wrappedLabel));
+            setLabelImpl(wrappedLabel, true, false);
+        }
+    }
+
+    private String fillLabel(final String fmt)
+    {
+        if (DEBUG.EVENTS || DEBUG.TEXT || DEBUG.DATA) Log.debug(this + " fillLabel from " + Util.tags(fmt));
 
         //Log.debug("splitting[" + fmt + "]");
-        String[] parts = fmt.split("\\$");
+        final String[] parts = fmt.split("\\$");
 
         if (parts.length == 1)
             return fmt;
 
         final StringBuilder buf = new StringBuilder();
+        boolean didReplacement = false;
 
         int part = 0;
         for (String s : parts) {
@@ -2276,8 +2302,10 @@ u                    getSlot(c).setFromString((String)value);
                 String val = extractTemplateValue(var);
                 if (val != null) {
                     buf.append(org.apache.commons.lang.StringEscapeUtils.unescapeHtml(val));
+                    didReplacement = true;
                 } else {
-                    buf.append("?{");
+                    //buf.append("?{");
+                    buf.append("${");
                     buf.append(var);
                     buf.append('}');
                 }
@@ -2290,8 +2318,12 @@ u                    getSlot(c).setFromString((String)value);
             part++;
         }
 
+
+        final String result = didReplacement ? buf.toString() : fmt;
+
+        if (DEBUG.EVENTS || DEBUG.TEXT || DEBUG.DATA) Log.debug(this + " fillLabel made " + Util.tags(result));
         //Log.debug("made label[" + buf + "]");
-        return buf.toString();
+        return result;
     }
 
     
@@ -3234,6 +3266,7 @@ u                    getSlot(c).setFromString((String)value);
      */
     public void setStyle(LWComponent parentStyle)
     {
+        if (DEBUG.STYLE) out("setStyle " + parentStyle);
         mParentStyle = parentStyle;
         if (parentStyle == null)
             return;
@@ -5659,7 +5692,7 @@ u                    getSlot(c).setFromString((String)value);
             return false;
     }
 
-    /** @return 0 means a hit, -1 a completely miss, > 0 means distance, to be sorted out by caller  */
+    /** @return 0 means a hit, -1 a completely miss, > 0 means distance (squared), to be sorted out by caller  */
     protected float pickDistance(float x, float y, PickContext pc) {
         return contains(x, y, pc) ? 0 : -1;
     }
@@ -6714,8 +6747,10 @@ u                    getSlot(c).setFromString((String)value);
     }
     
     String getDescriptionOfSetBits(Class enumType, long bits) {
-        final StringBuffer buf = new StringBuffer();
-        buf.append(enumType.getSimpleName() + "(");
+        final StringBuilder buf = new StringBuilder();
+        //buf.append(enumType.getSimpleName());
+        buf.append(enumType.getSimpleName().substring(0,2));
+        buf.append('(');
         boolean first = true;
         for (Object eValue : enumType.getEnumConstants()) {
             final Enum e = (Enum) eValue;
@@ -7309,10 +7344,11 @@ u                    getSlot(c).setFromString((String)value);
 
     protected void out(String s) {
         //if (DEBUG.Enabled) Log.debug(s + "; " + this);
-        String typeName = getClass().getSimpleName();
-        if (typeName.startsWith("LW"))
-            typeName = typeName.substring(2);
-        if (DEBUG.Enabled) LWLog.debug(String.format("%6s[%-12.12s] %s", typeName, getDisplayLabel(), s));
+//         String typeName = getClass().getSimpleName();
+//         if (typeName.startsWith("LW"))
+//             typeName = typeName.substring(2);
+        //if (DEBUG.Enabled) LWLog.debug(String.format("%6s[%-12.12s] %s", typeName, getDisplayLabel(), s));
+        LWLog.debug(String.format("%s %s", this, s));
     }
 
     protected void outf(String format, Object ... args) {
