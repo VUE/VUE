@@ -4,8 +4,7 @@ import tufts.Util;
 
 import apple.awt.CWindow;
     
-import com.apple.cocoa.foundation.*;
-import com.apple.cocoa.application.*;
+
 
 import com.apple.eawt.Application;
 import com.apple.eawt.ApplicationEvent;
@@ -25,15 +24,14 @@ import java.awt.image.BufferedImage;
  * for things such as fading the screen to black and forcing
  * child windows to stay attached to their parent.
  *
- * @version $Revision: 1.15 $ / $Date: 2008-05-06 17:35:34 $ / $Author: sfraize $
+ * @version $Revision: 1.16 $ / $Date: 2009-08-29 21:35:36 $ / $Author: mike $
  * @author Scott Fraize
  */
-public class MacOSX
+public class MacOSX extends tufts.macosx.MacOSX16Safe
 {
-    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(MacOSX.class);
     
-    protected static volatile NSWindow sFullScreen;
-    protected static boolean DEBUG = false;
+    protected static volatile com.apple.cocoa.application.NSWindow sFullScreen;
+    
 
     private static int DefaultColorCycleSteps = 10; // old was 32, then 8
 
@@ -54,45 +52,8 @@ public class MacOSX
         return !NSGone;
     }
 
-    public interface ApplicationListener {
-        public boolean handleOpenFile(String filename);
-        public boolean handleQuit();
-        public boolean handleAbout();
-        public boolean handlePreferences();
-    }
-
-    public static void registerApplicationListener(final ApplicationListener listener) {
-        final com.apple.eawt.Application application = com.apple.eawt.Application.getApplication();
-
-        application.addPreferencesMenuItem();
-        application.setEnabledPreferencesMenu(true);
-
-        application.addApplicationListener(new com.apple.eawt.ApplicationListener() {
-                public void handleOpenFile(ApplicationEvent e) {
-                    e.setHandled(listener.handleOpenFile(e.getFilename()));
-                }
-                public void handleQuit(ApplicationEvent e) {
-                    // Note: if handled is set to true, Apple code will quit the app when this returns.
-                    e.setHandled(listener.handleQuit());
-                }
-                public void handleAbout(ApplicationEvent e) {
-                    e.setHandled(listener.handleAbout());
-                }
-                public void handlePreferences(ApplicationEvent e) {
-                    e.setHandled(listener.handlePreferences());
-                }
-                
-                public void handleOpenApplication(ApplicationEvent e) {
-                    if (DEBUG) out("OSX APPLCATION OPEN " + e);
-                }
-                public void handleReOpenApplication(ApplicationEvent e) {
-                    out("OSX APPLICATION RE-OPEN " + e);
-                }
-                public void handlePrintFile(ApplicationEvent e) {
-                    out("OSX APPLICATION PRINT FILE " + e);
-                }
-            });
-    }
+   
+   
     
     // We allow non-threadsafe access to this map, as worst case
     // simply allocates some extra icons.
@@ -122,24 +83,24 @@ public class MacOSX
         if (image != null)
             return image;
         
-        NSImage nsImage = null;
+        com.apple.cocoa.application.NSImage nsImage = null;
         
     	if ("dir".equals(ext))
-            nsImage = NSWorkspace.sharedWorkspace().iconForFile("/bin");
+            nsImage = com.apple.cocoa.application.NSWorkspace.sharedWorkspace().iconForFile("/bin");
     	else    		
-            nsImage = NSWorkspace.sharedWorkspace().iconForFileType(ext);
+            nsImage = com.apple.cocoa.application.NSWorkspace.sharedWorkspace().iconForFileType(ext);
 
         //System.out.println("fetching reps for " + ext);
         if (DEBUG) Log.debug(Util.TERM_CYAN + key + Util.TERM_CLEAR + "; image w/reps: " + nsImage);
 
-        final NSArray reps = nsImage.representations();
-        NSData nsData = null;
+        final com.apple.cocoa.foundation.NSArray reps = nsImage.representations();
+        com.apple.cocoa.foundation.NSData nsData = null;
 
         try {
             for (int i = 0; i < reps.count(); i++) {
-                final NSImageRep rep = (NSImageRep) reps.objectAtIndex(i);
-                if (rep.pixelsHigh() == sizeRequest && rep instanceof NSBitmapImageRep) {
-                    nsData = ((NSBitmapImageRep)rep).TIFFRepresentation();
+                final com.apple.cocoa.application.NSImageRep rep = (com.apple.cocoa.application.NSImageRep) reps.objectAtIndex(i);
+                if (rep.pixelsHigh() == sizeRequest && rep instanceof com.apple.cocoa.application.NSBitmapImageRep) {
+                    nsData = ((com.apple.cocoa.application.NSBitmapImageRep)rep).TIFFRepresentation();
                     break;
                 }
             }
@@ -171,7 +132,7 @@ public class MacOSX
         return image;
     }
 
-    private static Image NStoJavaImage(NSData tiffData)
+    private static Image NStoJavaImage(com.apple.cocoa.foundation.NSData tiffData)
     {
         final byte[] data = tiffData.bytes(0, tiffData.length());
         
@@ -196,7 +157,7 @@ public class MacOSX
     }
 
     
-    public static void goBlack(NSWindow w) {
+    public static void goBlack(com.apple.cocoa.application.NSWindow w) {
         if (NSGone) return;
         if (DEBUG) out(w + " goBlack");
         w.setAlphaValue(1f);
@@ -209,7 +170,7 @@ public class MacOSX
     
     public static void hideFSW() {
         if (NSGone) return;
-        final NSWindow w = getFullScreenWindow();
+        final com.apple.cocoa.application.NSWindow w = getFullScreenWindow();
         if (DEBUG) out(w + " hiding (closing)");
         w.close();
         //getFullScreenWindow().setAlphaValue(0);
@@ -217,7 +178,7 @@ public class MacOSX
 
     public static void fadeToBlack() {
         if (NSGone) return;
-        NSWindow w = getFullScreenWindow();
+        com.apple.cocoa.application.NSWindow w = getFullScreenWindow();
         if (DEBUG) out(w + " fadeToBlack");
         //w.setAlphaValue(0);
         w.orderFrontRegardless();
@@ -232,7 +193,7 @@ public class MacOSX
         fadeFromBlack(getFullScreenWindow());
     }
     
-    public static void fadeFromBlack(NSWindow w) {
+    public static void fadeFromBlack(com.apple.cocoa.application.NSWindow w) {
         if (NSGone) return;
         if (DEBUG) out(w + " fadeFromBlack");
         goBlack(w);
@@ -255,12 +216,12 @@ public class MacOSX
     }
     
     
-    private static void cycleAlpha(NSWindow w, float start, float end) {
+    private static void cycleAlpha(com.apple.cocoa.application.NSWindow w, float start, float end) {
         if (NSGone) return;
         cycleAlpha(w, start, end, DefaultColorCycleSteps);
     }
 
-    private static void cycleAlpha(NSWindow w, float start, float end, final int steps) {
+    private static void cycleAlpha(com.apple.cocoa.application.NSWindow w, float start, float end, final int steps) {
         if (NSGone) return;
         if (DEBUG) out(w + " cycleAlpha: " + start + " -> " + end + " in " + steps + " steps");
         //new Throwable("CYCLEALPHA").printStackTrace();
@@ -292,29 +253,29 @@ public class MacOSX
             
     }
 
-    private static NSWindow getFullScreenWindow() {
+    private static com.apple.cocoa.application.NSWindow getFullScreenWindow() {
         
         if (NSGone) return null;
         
         if (sFullScreen == null) {
             if (DEBUG) out("creating FSW:");
             final Dimension screen = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
-            final NSRect size;
+            final com.apple.cocoa.foundation.NSRect size;
             if (DEBUG)
-                size = new NSRect(200,200,screen.width/2,screen.height/2);
+                size = new com.apple.cocoa.foundation.NSRect(200,200,screen.width/2,screen.height/2);
             else
-                size = new NSRect(0,0,screen.width,screen.height);
+                size = new com.apple.cocoa.foundation.NSRect(0,0,screen.width,screen.height);
             sFullScreen =
-                new NSWindow(size,
+                new com.apple.cocoa.application.NSWindow(size,
                              0,
                              //NSWindow.Retained,
                              //NSWindow.NonRetained,
-                             NSWindow.Buffered, // WINDOW IS ALWAYS WHITE UNLESS WE USED BUFFERED
+                             com.apple.cocoa.application.NSWindow.Buffered, // WINDOW IS ALWAYS WHITE UNLESS WE USED BUFFERED
                              true);
             if (DEBUG)
-                sFullScreen.setBackgroundColor(NSColor.redColor());
+                sFullScreen.setBackgroundColor(com.apple.cocoa.application.NSColor.redColor());
             else
-                sFullScreen.setBackgroundColor(NSColor.blackColor());
+                sFullScreen.setBackgroundColor(com.apple.cocoa.application.NSColor.blackColor());
 //            sFullScreen.setBackgroundColor(NSColor.redColor());
 //            out(" RED COLOR " + NSColor.redColor());
 //            out("FILL COLOR " + sFullScreen.backgroundColor());
@@ -326,7 +287,7 @@ public class MacOSX
             sFullScreen.setIgnoresMouseEvents(true);
             sFullScreen.setReleasedWhenClosed(false);
             sFullScreen.setTitle("_mac_full_screen_fader"); // make sure starts with "_" (see keepWindowsOnTop)
-            sFullScreen.setLevel(NSWindow.ScreenSaverWindowLevel); // this allows it over the  mac menu bar
+            sFullScreen.setLevel(com.apple.cocoa.application.NSWindow.ScreenSaverWindowLevel); // this allows it over the  mac menu bar
             if (DEBUG) out(sFullScreen + "; created");
         }
         return sFullScreen;
@@ -334,23 +295,23 @@ public class MacOSX
 
     protected static void showColorPicker() {
         //NSColorPanel cp = new NSColorPanel();
-        NSColorPanel cp = NSColorPanel.sharedColorPanel();
+    	com.apple.cocoa.application.NSColorPanel cp = com.apple.cocoa.application.NSColorPanel.sharedColorPanel();
         cp.setShowsAlpha(true);
         cp.orderFront(cp);
     }
 
-    public static NSWindow getMainWindow() {
+    public static com.apple.cocoa.application.NSWindow getMainWindow() {
         
         if (NSGone) return null;
         
-        return NSApplication.sharedApplication().mainWindow();
+        return com.apple.cocoa.application.NSApplication.sharedApplication().mainWindow();
     }
     
-    public static NSMenu getMainMenu() {
+    public static com.apple.cocoa.application.NSMenu getMainMenu() {
         
         if (NSGone) return null;
         
-        return NSApplication.sharedApplication().mainMenu();
+        return com.apple.cocoa.application.NSApplication.sharedApplication().mainMenu();
     }
 
     public static void setApplicationIcon(String imageFileName) {
@@ -358,8 +319,8 @@ public class MacOSX
         if (NSGone) return;
 
         try {
-            NSImage icon = new NSImage(imageFileName, false);
-            NSApplication.sharedApplication().setApplicationIconImage(icon);
+        	com.apple.cocoa.application.NSImage icon = new com.apple.cocoa.application.NSImage(imageFileName, false);
+        	com.apple.cocoa.application.NSApplication.sharedApplication().setApplicationIconImage(icon);
         } catch (LinkageError e) {
             eout(e);
         } catch (Throwable t) {
@@ -367,10 +328,10 @@ public class MacOSX
         }
     }
 
-    private static NSMenu firstMenu = null;
-    private static NSMenu cloneMenu = null;
+    private static com.apple.cocoa.application.NSMenu firstMenu = null;
+    private static com.apple.cocoa.application.NSMenu cloneMenu = null;
     public static void dumpMainMenu() {
-        NSMenu m = getMainMenu();
+    	com.apple.cocoa.application.NSMenu m = getMainMenu();
         dumpMenu(m);
         /*
         if (firstMenu == null) {
@@ -388,12 +349,12 @@ public class MacOSX
             //NSApplication.sharedApplication().setMainMenu(cloneMenu);
     }
     
-    public static void dumpMenu(NSMenu m) {
-        System.out.println("Mac Main Menu: " + m + " visible="+NSMenu.menuBarVisible() + " hash=" + m.hashCode());
+    public static void dumpMenu(com.apple.cocoa.application.NSMenu m) {
+        System.out.println("Mac Main Menu: " + m + " visible="+com.apple.cocoa.application.NSMenu.menuBarVisible() + " hash=" + m.hashCode());
     }
 
-    private static NSWindow MainWindow = null;
-    private static NSWindow FullWindow = null;
+    private static com.apple.cocoa.application.NSWindow MainWindow = null;
+    private static com.apple.cocoa.application.NSWindow FullWindow = null;
     /*
     public static void keepWindowsOnTop() {
         keepWindowsOnTop(null, false);
@@ -422,9 +383,9 @@ public class MacOSX
     {
         if (DEBUG) dumpWindows();
         
-        NSApplication a = NSApplication.sharedApplication();
-        NSArray windows = a.windows();
-        NSWindow w;
+        com.apple.cocoa.application.NSApplication a = com.apple.cocoa.application.NSApplication.sharedApplication();
+        com.apple.cocoa.foundation.NSArray windows = a.windows();
+        com.apple.cocoa.application.NSWindow w;
         
         // note that the only way at moment we can recognize the
         // main vue frame & full screen window is by title,
@@ -433,7 +394,7 @@ public class MacOSX
         // returning a different object that the main vue frame)
         if (true ||MainWindow == null || FullWindow == null) {
             for (int i = 0; i < windows.count(); i++) {
-                w = (NSWindow) windows.objectAtIndex(i);
+                w = (com.apple.cocoa.application.NSWindow) windows.objectAtIndex(i);
                 if (w.title().startsWith("VUE-FULL-WORKING"))
                     FullWindow = w;
                 else if (w.title().startsWith(mainWindowTitleStart))
@@ -446,7 +407,7 @@ public class MacOSX
                                       + "\n\tFullWindow=" + FullWindow
                                       );
         for (int i = 0; i < windows.count(); i++) {
-            w = (NSWindow) windows.objectAtIndex(i);
+            w = (com.apple.cocoa.application.NSWindow) windows.objectAtIndex(i);
             if (w == MainWindow || w == FullWindow || w.title().startsWith("_"))
                 continue;
             // Ordering also forces the window visible! (and doesn't tell java, of course)
@@ -470,10 +431,10 @@ public class MacOSX
             {
                 if (fullScreen && FullWindow != null) {
                     if (DEBUG) System.out.println("+++ ADDING AS CHILD OF FULL-SCREEN: #" + i + " [" + w.title() + "]");
-                    FullWindow.addChildWindow(w, NSWindow.Above);
+                    FullWindow.addChildWindow(w, com.apple.cocoa.application.NSWindow.Above);
                 } else {
                     if (DEBUG) System.out.println("+++ ADDING AS CHILD OF MAIN-WINDOW: #" + i + " [" + w.title() + "]");
-                    MainWindow.addChildWindow(w, NSWindow.Above);
+                    MainWindow.addChildWindow(w, com.apple.cocoa.application.NSWindow.Above);
                 }
                 //w.orderFront(w); // causes some flashing
             }
@@ -522,8 +483,8 @@ public class MacOSX
     
     /** order child over parent */
     public static void orderAbove(Window parent, Window child) {
-        final NSWindow NSparent = getWindow(parent);
-        final NSWindow NSchild = getWindow(child);
+        final com.apple.cocoa.application.NSWindow NSparent = getWindow(parent);
+        final com.apple.cocoa.application.NSWindow NSchild = getWindow(child);
 
         if (NSparent == null || NSchild == null)
             return;
@@ -531,13 +492,13 @@ public class MacOSX
         //dumpWindows();
 
         if (true) {
-            NSchild.orderWindow(NSWindow.Above, NSparent.windowNumber());
+            NSchild.orderWindow(com.apple.cocoa.application.NSWindow.Above, NSparent.windowNumber());
             NSchild.orderFront("source");
             if (DEBUG) out("Ordered " + child + " over " + parent);
         } else {
             // This doesn't help our last-window-detached-from-a-parent
             // sinks bug.
-            NSparent.orderWindow(NSWindow.Below, NSchild.windowNumber());
+            NSparent.orderWindow(com.apple.cocoa.application.NSWindow.Below, NSchild.windowNumber());
             if (DEBUG) out("Ordered " + parent + " under " + child);
         }
 
@@ -582,9 +543,9 @@ public class MacOSX
      */
     public static void setTransparent(Window w) {
         try {
-            NSWindow nsw = getWindow(w);
+        	com.apple.cocoa.application.NSWindow nsw = getWindow(w);
             if (nsw != null) {
-                nsw.setBackgroundColor(NSColor.blackColor().colorWithAlphaComponent(0.0f));
+                nsw.setBackgroundColor(com.apple.cocoa.application.NSColor.blackColor().colorWithAlphaComponent(0.0f));
                 //nsw.setBackgroundColor(NSColor.blackColor().colorWithAlphaComponent(0.1f));
                 //nsw.setBackgroundColor(NSColor.whiteColor().colorWithAlphaComponent(0.5f));
                 nsw.setOpaque(false);
@@ -606,7 +567,7 @@ public class MacOSX
         setNSAlpha(getWindow(w), alpha);
     }
 
-    private static void setNSAlpha(NSWindow w, float alpha) {
+    private static void setNSAlpha(com.apple.cocoa.application.NSWindow w, float alpha) {
         if (DEBUG) out(w + " setAlpha " + alpha);
         if (w != null)
             w.setAlphaValue(alpha);
@@ -623,7 +584,7 @@ public class MacOSX
         if (NSGone) return;
         
         try {
-            NSWindow nsw = getWindow(w);
+        	com.apple.cocoa.application.NSWindow nsw = getWindow(w);
             if (nsw != null) {
                 nsw.setTitle(title);
             }
@@ -637,7 +598,7 @@ public class MacOSX
 
         if (NSGone) return;
         
-        NSWindow nsw = getWindow(w);
+        com.apple.cocoa.application.NSWindow nsw = getWindow(w);
         if (nsw != null) {
             //if (DEBUG) out("setShadow: " + name(w) + " " + hasShadow);
             nsw.setHasShadow(hasShadow);
@@ -645,18 +606,18 @@ public class MacOSX
     }
 
     public static void raiseToMenuLevel(Window w) {
-        NSWindow nsw = getWindow(w);
+    	com.apple.cocoa.application.NSWindow nsw = getWindow(w);
 
         if (nsw != null) {
             if (DEBUG) out("raiseToMenuLevel: " + name(w));
-            nsw.setLevel(NSWindow.MainMenuWindowLevel);
+            nsw.setLevel(com.apple.cocoa.application.NSWindow.MainMenuWindowLevel);
         }
         
     }
     
     public static boolean addChildWindow(Window parent, Window child) {
-        final NSWindow NSparent = getWindow(parent);
-        final NSWindow NSchild = getWindow(child);
+        final com.apple.cocoa.application.NSWindow NSparent = getWindow(parent);
+        final com.apple.cocoa.application.NSWindow NSchild = getWindow(child);
         final boolean success;
 
         if (NSparent != null && NSchild != null) {
@@ -665,7 +626,7 @@ public class MacOSX
                 out("attempting to attach to self: " + NSparent);
                 return false;
             }
-            NSparent.addChildWindow(NSchild, NSWindow.Above);
+           NSparent.addChildWindow(NSchild, com.apple.cocoa.application.NSWindow.Above);
             //tufts.Util.printStackTrace("addChildWindow");
             success = true;
         } else {
@@ -679,8 +640,8 @@ public class MacOSX
     }
 
     public static boolean removeChildWindow(Window parent, Window child) {
-        final NSWindow NSparent = getWindow(parent);
-        final NSWindow NSchild = getWindow(child);
+        final com.apple.cocoa.application.NSWindow NSparent = getWindow(parent);
+        final com.apple.cocoa.application.NSWindow NSchild = getWindow(child);
         final boolean success;
 
         if (NSparent != null && NSchild != null) {
@@ -699,7 +660,7 @@ public class MacOSX
     }
     
 
-    private static boolean isSameWindow(NSWindow macWin, Window javaWin) {
+    private static boolean isSameWindow(com.apple.cocoa.application.NSWindow macWin, Window javaWin) {
         /*
           // mac coordinates place y=0 at bottom of screen, and the y corner
           // of the window is the LOWER left corner.
@@ -729,7 +690,7 @@ public class MacOSX
     
     // This should be private as we don't want to export NSWindow dependencies,
     // but is public for testing right now.
-    public static NSWindow getWindow(Window javaWindow) {
+    public static com.apple.cocoa.application.NSWindow getWindow(Window javaWindow) {
 
         if (NSGone) return null;
         
@@ -741,11 +702,11 @@ public class MacOSX
         return null;
     }
     
-    private static NSWindow findWindow(Window javaWindow)
+    private static com.apple.cocoa.application.NSWindow findWindow(Window javaWindow)
     {
         if (NSGone) return null;
 
-        NSWindow macWindow = (NSWindow) WindowMap.get(javaWindow);
+        com.apple.cocoa.application.NSWindow macWindow = (com.apple.cocoa.application.NSWindow) WindowMap.get(javaWindow);
         //NSWindow macWindowCached = (NSWindow) WindowMap.get(javaWindow);
         //NSWindow macWindow = null;
 
@@ -754,19 +715,19 @@ public class MacOSX
             return macWindow;
         }
         
-        NSApplication a = NSApplication.sharedApplication();
-        NSArray windows = a.windows();
+        com.apple.cocoa.application.NSApplication a = com.apple.cocoa.application.NSApplication.sharedApplication();
+        com.apple.cocoa.foundation.NSArray windows = a.windows();
 
         for (int i = 0; i < windows.count(); i++) {
-            macWindow = (NSWindow) windows.objectAtIndex(i);
+            macWindow = (com.apple.cocoa.application.NSWindow) windows.objectAtIndex(i);
 
             if (isSameWindow(macWindow, javaWindow)) {
 
                 if (false && DEBUG) {
                     System.err.print("matched: "); dumpWindow(macWindow, -1);
-                    NSArray subv = macWindow.contentView().subviews();
+                    com.apple.cocoa.foundation.NSArray subv = macWindow.contentView().subviews();
                     for (int x = 0; x < subv.count(); x++) {
-                        NSView v = (NSView) subv.objectAtIndex(x);
+                    	com.apple.cocoa.application.NSView v = (com.apple.cocoa.application.NSView) subv.objectAtIndex(x);
                         System.out.println("\tsubview: " + v);
                     }
                 }
@@ -806,11 +767,11 @@ public class MacOSX
     // out of the NSView itself is from the value it returns from
     // toString().
     
-    private static NSWindow findWindowUsingPeer(Window javaWindow)
+    private static com.apple.cocoa.application.NSWindow findWindowUsingPeer(Window javaWindow)
     {
-        NSApplication a = NSApplication.sharedApplication();
-        NSArray windows = a.windows();
-        NSWindow macWindow;
+    	com.apple.cocoa.application.NSApplication a = com.apple.cocoa.application.NSApplication.sharedApplication();
+        com.apple.cocoa.foundation.NSArray windows = a.windows();
+        com.apple.cocoa.application.NSWindow macWindow;
 
         CWindow peer = (CWindow) javaWindow.getPeer();
         String javaViewPtr = null;
@@ -821,9 +782,9 @@ public class MacOSX
             //if (DEBUG) out(javaWindow + " peer.getViewPtr=" + javaViewPtr);
 
             for (int i = 0; i < windows.count(); i++) {
-                macWindow = (NSWindow) windows.objectAtIndex(i);
+                macWindow = (com.apple.cocoa.application.NSWindow) windows.objectAtIndex(i);
                 
-                NSView view = macWindow.contentView();
+                com.apple.cocoa.application.NSView view = macWindow.contentView();
                 String viewPtr = view.toString();
                 
                 //out("matching " + javaViewPtr + " against " + viewPtr);
@@ -853,14 +814,14 @@ public class MacOSX
     
 
     // getting by name only works for frames -- Window's don't set a title
-    private static NSWindow getFrame(String title)
+    private static com.apple.cocoa.application.NSWindow getFrame(String title)
     {
-        NSApplication a = NSApplication.sharedApplication();
-        NSArray windows = a.windows();
-        NSWindow w;
+    	com.apple.cocoa.application.NSApplication a = com.apple.cocoa.application.NSApplication.sharedApplication();
+        com.apple.cocoa.foundation.NSArray windows = a.windows();
+        com.apple.cocoa.application.NSWindow w;
         
         for (int i = 0; i < windows.count(); i++) {
-            w = (NSWindow) windows.objectAtIndex(i);
+            w = (com.apple.cocoa.application.NSWindow) windows.objectAtIndex(i);
             if (title.equals(w.title())) {
                 if (DEBUG) out("found NSWindow titled \"" + title + '"');
                 return w;
@@ -872,15 +833,15 @@ public class MacOSX
 
     
     public static void dumpWindows() {
-        NSApplication a = NSApplication.sharedApplication();
-        NSArray windows = a.windows();
+    	com.apple.cocoa.application.NSApplication a = com.apple.cocoa.application.NSApplication.sharedApplication();
+        com.apple.cocoa.foundation.NSArray windows = a.windows();
         for (int i = 0; i < windows.count(); i++) {
-            NSWindow w = (NSWindow) windows.objectAtIndex(i);
+        	com.apple.cocoa.application.NSWindow w = (com.apple.cocoa.application.NSWindow) windows.objectAtIndex(i);
 
             dumpWindow(w, i);
             
             if (false && w.minSize().height() == 37) {
-                NSSize minSize = new NSSize(w.minSize().width(), 5);
+                com.apple.cocoa.foundation.NSSize minSize = new com.apple.cocoa.foundation.NSSize(w.minSize().width(), 5);
                 out("\tadjusting min size to " + minSize);
                 w.setMinSize(minSize);
             }
@@ -888,12 +849,12 @@ public class MacOSX
         }
     }
 
-    private static void dumpWindow(NSWindow w) {
+    private static void dumpWindow(com.apple.cocoa.application.NSWindow w) {
         dumpWindow(w, -1);
     }
     
-    private static void dumpWindow(NSWindow w, int idx) {
-        NSView view = w.contentView();
+    private static void dumpWindow(com.apple.cocoa.application.NSWindow w, int idx) {
+    	com.apple.cocoa.application.NSView view = w.contentView();
         System.out.println("#" + (idx>9?"":" ") + idx + ": "
                            //+ " visible=" + (w.isVisible()?"true":"    ")
                            + (w.isVisible()? "visible":"       ")
@@ -915,7 +876,7 @@ public class MacOSX
     
     public static void makeMainInvisible() {
         if (NSGone) return;
-        final NSWindow w = getMainWindow();
+        final com.apple.cocoa.application.NSWindow w = getMainWindow();
         if (DEBUG) out(w + " making main invisible");
         w.setAlphaValue(0);
     }
@@ -927,14 +888,14 @@ public class MacOSX
     
     public static void fadeUpMainWindow() {
         if (NSGone) return;
-        final NSWindow w = getMainWindow();
+        final com.apple.cocoa.application.NSWindow w = getMainWindow();
         if (DEBUG) out(w + " fadeUp main window");
         cycleAlpha(w, 0, 1);
     }
     
     public static void setMainAlpha(float alpha) {
         if (NSGone) return;
-        final NSWindow w = getMainWindow();
+        final com.apple.cocoa.application.NSWindow w = getMainWindow();
         if (DEBUG) out(w + " setMainAlpha " + alpha);
         w.setAlphaValue(alpha);
     }
@@ -960,18 +921,6 @@ public class MacOSX
         // We'll get this if /System/Library/Java isn't in the classpath
         errout(e + ": Not MacOSX Platform or /System/Library/Java not in classpath");
         e.printStackTrace();
-    }
-
-    protected static void out(String s) {
-        //System.out.println("MacOSX lib: " + s);
-        Log.debug(s);
-    }
-
-    protected static void errout(String s) {
-        //System.err.println("MacOSX lib: " + s);
-        Log.warn(s);
-    }
-    
-
+    }        
 
 }
