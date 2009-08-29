@@ -26,6 +26,7 @@ import tufts.vue.gui.MapScrollPane;
 import tufts.vue.gui.TimedASComponent;
 import tufts.vue.gui.VuePopupFactory;
 import tufts.vue.gui.WindowDisplayAction;
+import tufts.vue.gui.LazyImage;
 import tufts.vue.NodeTool;
 import java.util.List;
 import java.util.Map;
@@ -35,8 +36,8 @@ import java.util.TimerTask;
 import java.awt.*;
 import java.awt.event.*;
 import static java.awt.event.KeyEvent.*;
-import java.awt.dnd.*;
-import java.awt.datatransfer.*;
+// import java.awt.dnd.*;
+// import java.awt.datatransfer.*;
 import java.awt.geom.*;
 
 import java.util.*;
@@ -76,7 +77,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.622 $ / $Date: 2009-08-28 19:22:05 $ / $Author: sfraize $ 
+ * @version $Revision: 1.623 $ / $Date: 2009-08-29 22:12:27 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -5565,198 +5566,17 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
     }
 
-    public Transferable getTransferableSelection() {
+    public java.awt.datatransfer.Transferable getTransferableSelection() {
         draggedSelectionGroup.useSelection(VueSelection);
-        return new LWTransfer(draggedSelectionGroup);
+        return new LWTransfer(draggedSelectionGroup, true);
     }
     
-    public static Transferable getTransferableHelper(LWComponent comp) {
+    public static java.awt.datatransfer.Transferable getTransferableHelper(LWComponent comp) {
         //draggedSelectionGroup.useSelection(VueSelection);
         
         return new LWTransfer(comp);
     }
     
-    
-    //private final DataFlavor URLFlavor = GUI.makeDataFlavor(java.net.URL.class);
-    
-    private static final DataFlavor LWFlavors[] = {
-            LWComponent.DataFlavor,
-            DataFlavor.stringFlavor,
-            DataFlavor.imageFlavor,
-            //MapResource.DataFlavor,
-            // TypeList.DataFlavor // commented out 2009-06-24 SMF
-            //URLFlavor, // try text/uri-list
-        };
-
-
-    // Any reason this still needs to be in MapViewer?
-    public static class LWTransfer implements Transferable
-        {
-            private final LWComponent LWC;
-            private final MapViewer viewer;
-
-            public LWTransfer(MapViewer viewer, LWComponent c) {
-                this.LWC = c;
-                this.viewer = viewer;
-            }
-    
-            public LWTransfer(LWComponent c) {
-                this(null, c);
-            }
-            
-            public DataFlavor[] getTransferDataFlavors() {
-                return LWFlavors;
-            }
-            
-            public boolean isDataFlavorSupported(DataFlavor flavor)
-            {
-                if (DEBUG.DND) Log.debug("LWTransfer: isDataFlavorSupported, flavor=" + flavor);
-                
-                if (flavor == null)
-                    return false;
-
-                if (flavor == LWComponent.DataFlavor && LWC instanceof LWMap) {
-                    // prevent the dropping of the entire map onto itself
-                    return false;
-                }
-
-                if (flavor == MapDropTarget.DropHandler.DataFlavor && LWC.hasClientData(MapDropTarget.DropHandler.class)) {
-                    // note this is a bit convoluted: the producer is currently only passed within an
-                    // LWComponent.  This needn't be true, but our current usage depends on it.
-                    // (We want an LWComponent available as the drag image).  We could easily
-                    // extend LWTransfer to support a producer directly and allowing for a null LWC.
-                    return true;
-                }
-                
-//                 if (flavor == LWComponent.Producer.DataFlavor && LWC.hasClientData(LWComponent.Producer.class)) {
-//                     // note this is a bit convoluted: the producer is currently only passed within an
-//                     // LWComponent.  This needn't be true, but our current usage depends on it.
-//                     // (We want an LWComponent available as the drag image).  We could easily
-//                     // extend LWTransfer to support a producer directly and allowing for a null LWC.
-//                     return true;
-//                 }
-                
-                if (flavor == Resource.DataFlavor && LWC.getResource() == null)
-                    return false;
-
-                // TODO BUG: support for TypeList is being incorrectly reported as true here
-                // even if there is no old-style meta-data!
-                
-                for (int i = 0; i < LWFlavors.length; i++)
-                    if (flavor.equals(LWFlavors[i]))
-                        return true;
-
-                return false;
-            }
-    
-            public synchronized Object getTransferData(DataFlavor flavor)
-                throws UnsupportedFlavorException, java.io.IOException
-            {
-                //tufts.Util.printStackTrace("GTD " + flavor.getHumanPresentableName());
-                // Note: the sun transfer handler (for drops to java) always requests
-                // all data for all types during a drop, which is a horrible waste in
-                // that we need to create a whole image every time, even it it's just
-                // the resource being dropped.  If want to optimize this out, would need
-                // to create our own Image class that delays creation of the actual
-                // image until something is requested of it.  Drops to the OS, at
-                // least in the case of MacOSX are smart and only request data for
-                // what is ultimately dropped.
-                
-                if (DEBUG.DND && DEBUG.META) System.err.print("<LWTransfer.getTransferData("
-                                                              + flavor.getHumanPresentableName() + ")>");
-                //if (DEBUG.DND && DEBUG.META)
-                //Log.debug("getTransferData(" + flavor.getHumanPresentableName() + ")", new Throwable("HERE"));
-        
-                Object data = null;
-        
-                
-                if (TypeList.DataFlavor.equals(flavor)) {
-                    try {
-                        data = LWC.getMetadataList().getMetadata().get(0).getObject();
-                    } catch (Throwable t) {
-                        Log.warn("getTransferData: " + flavor + "; " + t);
-                    }
-                } else if (DataFlavor.stringFlavor.equals(flavor)) {
-
-                    if (LWC != null && LWC.getClientData(DataFlavor.stringFlavor) != null) {
-                        return LWC.getClientData(DataFlavor.stringFlavor);
-                    }
-
-                    
-                    String s = null;
-                    if (LWC instanceof LWMap && ((LWMap)LWC).getFile() != null)
-                        s = ((LWMap)LWC).getFile().getAbsolutePath();
-                    if (LWC.hasResource())
-                        s = LWC.getResource().getSpec();
-                    if (s == null && LWC.hasLabel())
-                        s = LWC.getLabel();
-                    if (s == null && LWC.hasNotes())
-                        s = LWC.getNotes();
-                    if (s == null)
-                        s = LWC.getDisplayLabel();
-                    //if (s != null) s += "\n";
-                    data = s;
-                    
-                } else if (DataFlavor.imageFlavor.equals(flavor)) {
-                    
-                    data = LWC.getAsImage();
-                    
-                } else if (MapDropTarget.DropHandler.DataFlavor.equals(flavor)) {
-                    
-                    data = LWC.getClientData(MapDropTarget.DropHandler.class);
-                    
-//                 } else if (LWComponent.Producer.DataFlavor.equals(flavor)) {
-                    
-//                     data = LWC.getClientData(LWComponent.Producer.class);
-                    
-                } else if (LWComponent.DataFlavor.equals(flavor)) {
-                    
-                    final java.util.Collection duplicates;
-                    if (viewer != null && LWC == viewer.draggedSelectionGroup) {
-                        duplicates = Actions.duplicatePreservingLinks(LWC.getChildren());
-                    }
-                    else if (LWC instanceof LWMap) {
-                        
-                        // don't send the actual map just yet...
-                        duplicates = Actions.duplicatePreservingLinks(LWC.getChildren());
-                    }
-//                     else if (LWC.hasClientData(LWComponent.Producer.class)) {
-                        
-//                         Util.printStackTrace("deprecated use of node producer");
-//                         //duplicates = LWC.getClientData(LWComponent.ListFactory.class).produceNodes(null);
-//                         duplicates = LWC.getClientData(LWComponent.Producer.class).produceNodes(null);
-//                     }
-                    
-                    else if (LWC.hasFlag(LWComponent.Flag.INTERNAL) /*&& LWC.getClientProperty(Field.class) != null*/) {
-                        // an INTERNAL flagged LWComponent during drag is merely a bucket for other
-                        // information, and we can return it directly.
-                        return LWC;
-                    }
-                    else {
-                        duplicates = java.util.Collections.singletonList(LWC.duplicate());
-                    }
-                        
-                    data = duplicates;
-                    
-                } else if (Resource.DataFlavor.equals(flavor)) {
-
-                    data = LWC.getResource();
-
-//                 } else if (URLFlavor.equals(flavor) && LWC.getResource() instanceof URLResource) {
-
-//                     data = ((URLResource)LWC.getResource()).asURL();
-
-                } else {
-                    throw new UnsupportedFlavorException(flavor);
-                }
-        
-                //if (DEBUG.DND) out("LWTransfer: returning " + Util.tag(data));
-
-                return data;
-            }
-        }
-    
-
     public MouseWheelListener getMouseWheelListener() {
         return inputHandler;
     }
@@ -7154,6 +6974,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         private void startSystemDrag(MouseEvent e)
         {
             final LWComponent toDrag;
+            boolean forSelection = false;
 
             if (VueSelection == null || VueSelection.isEmpty()) {
                 // VueSelection could be null if the user
@@ -7165,6 +6986,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             } else {
                 draggedSelectionGroup.useSelection(VueSelection);
                 toDrag = draggedSelectionGroup;
+                forSelection = true;
             }
 
             // todo performance: don't need to create a whole image
@@ -7176,7 +6998,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             GUI.startLWCDrag(MapViewer.this,
                              e,
                              toDrag,
-                             new LWTransfer(this, toDrag));
+                             new LWTransfer(toDrag, forSelection));
         }
 
     private boolean isDropRequest(MouseEvent e) {

@@ -50,7 +50,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.118 $ / $Date: 2009-08-06 19:15:57 $ / $Author: sfraize $  
+ * @version $Revision: 1.119 $ / $Date: 2009-08-29 22:12:27 $ / $Author: sfraize $  
  */
 public class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -130,12 +130,14 @@ public class MapDropTarget
     public void dragEnter(DropTargetDragEvent e)
     {
         if (DEBUG.DND) out("dragEnter " + GUI.dragName(e));
+        //Log.info("TRANSFERRABLE ENTER: " + Util.tags(e.getTransferable()));
         trackDrag(e);
     }
     
     /** DropTargetListener */
     public void dragExit(DropTargetEvent e) {
         if (DEBUG.DND) out("dragExit " + e);
+        //Log.info("TRANSFERRABLE EXIT: " + Util.tags(e.getDropTargetContext().getTransferable()));
     }
     
     /** DropTargetListener */
@@ -150,6 +152,8 @@ public class MapDropTarget
     /** DropTargetListener */
     public void dragOver(DropTargetDragEvent e)
     {
+        //Log.info("TRANSFERRABLE OVER: " + Util.tags(e.getTransferable()));
+        
         if (DEBUG.DND && DEBUG.META) out("dragOver " + GUI.dragName(e));
         
         // This will compute DropAccept & DropHit
@@ -420,6 +424,8 @@ public class MapDropTarget
         
     public static Object extractData(Transferable transfer, DataFlavor flavor)
     {
+        Log.info("extractData " + flavor);
+        
         Object data = DATA_FAILURE;
         try {
 

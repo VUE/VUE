@@ -41,7 +41,7 @@ import com.google.common.collect.Multiset;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.66 $ / $Date: 2009-08-28 20:08:23 $ / $Author: sfraize $
+ * @version $Revision: 1.67 $ / $Date: 2009-08-29 22:12:27 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -494,41 +494,39 @@ public final class DrawContext
         isDraftQuality = false;
     }
 
-    /** "fast" quality */
-    public void setDraftQuality() {
-        setMaxQuality(FALSE);
-        isDraftQuality = true;
-    }
-
     public boolean isDraftQuality() {
         return isDraftQuality;
     }
 
+    /** fast rendering with bit set for renderers to check */
+    public void setDraftQuality() {
+        setFastQuality();
+        isDraftQuality = true;
+    }
+    
+    /** "fast" quality */
+    private void setFastQuality() {
+        setInterpolation(g, INTERPOLATION_SPEED);
+        setImageQuality(g, FALSE);
+        setAlphaQuality(g, FALSE);
+        setColorQuality(g, FALSE);
+        setFontQuality(g, FALSE);
+        setAntiAlias(true); // never turn off anti-alias
+    }
+
     public void setPrintQuality()
     {
-        setMaxQuality(TRUE);
+        setInterpolation(g, INTERPOLATION_BEST);
+        setImageQuality(g, TRUE);
+        setAlphaQuality(g, TRUE);
+        setColorQuality(g, TRUE);
+        setFontQuality(g, TRUE);
+        setAntiAlias(true);
     }
     
-
-    private void setMaxQuality(Boolean on) {
-        setMaxQuality(g, on);
-        if (on)
-            setAntiAlias(true);
-        isDraftQuality = !on;
-    }
-    
-    static void setMaxQuality(Graphics2D g, Boolean on) {
-        setImageQuality(g, on);
-        setAlphaQuality(g, on);
-        setColorQuality(g, on);
-        setFontQuality(g, on);
-        //setDitherQuality(g, on);
-    }
-
     public void setAnimatingQuality()
     {
-        setMaxQuality(FALSE);
-        // leave anti-alias on even for animating
+        setFastQuality();
     }
     
     public void setFractionalFontMetrics(boolean on)

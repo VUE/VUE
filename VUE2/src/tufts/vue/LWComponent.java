@@ -32,6 +32,7 @@ import java.awt.AlphaComposite;
 import java.awt.font.TextAttribute;
 import java.awt.geom.*;
 import java.awt.image.BufferedImage;
+import java.awt.Transparency;
 
 import java.util.*;
 import java.util.regex.*;
@@ -47,7 +48,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.485 $ / $Date: 2009-08-28 22:04:32 $ / $Author: sfraize $
+ * @version $Revision: 1.486 $ / $Date: 2009-08-29 22:12:27 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -292,7 +293,7 @@ public class LWComponent
 
     protected transient boolean mXMLRestoreUnderway = false; // are we in the middle of a restore?
     
-    protected transient BufferedImage mCachedImage;
+    protected transient BufferedImage mImageBuffer;
 
     public static final Comparator XSorter = new Comparator<LWComponent>() {
             public int compare(LWComponent c1, LWComponent c2) {
@@ -6340,7 +6341,7 @@ u                    getSlot(c).setFromString((String)value);
 //             ; // keep the cached image
 //         } else {
 //             //out("*** CLEARING IMAGE CACHE");
-//             //mCachedImage = null;
+//             //mImageBuffer = null;
 //         }
 
         mChangeSupport.notifyListeners(this, e);
@@ -7148,53 +7149,91 @@ u                    getSlot(c).setFromString((String)value);
         final Size imageSize = new Size(bounds);
         final double usedZoom = computeZoomAndSize(bounds, maxSize, zoomRequest, imageSize);
 
-        // Image type ARGB is needed if at any point in the generated image,
-        // there is a not 100% opaque pixel all the way through the background.
-        // So TYPE_INT_RGB will handle transparency with a map fine --
-        // but we need TYPE_INT_ARGB if, say, we're generating drag
-        // image that we want to be a borderless node (fully transparent
-        // image border), or if the whole drag image itself is semi-transparent.
+        // Image type ARGB is needed if at any point in the generated image, there is a
+        // not 100% opaque pixel all the way through the background.  So TYPE_INT_RGB
+        // will handle transparency with a map fine -- but we need TYPE_INT_ARGB if,
+        // say, we're generating drag image that we want to be a borderless node (fully
+        // transparent image border), or if the whole drag image itself is
+        // semi-transparent.
 
         final int imageType;
-        if (alpha == OPAQUE && fillColor != null && fillColor.getAlpha() == 255)
-            imageType = BufferedImage.TYPE_INT_RGB;
-        else
-            imageType = BufferedImage.TYPE_INT_ARGB;
-
-       final int width = imageSize.pixelWidth();
-       final int height = imageSize.pixelHeight();
+        final int transparency;
         
-        if (DEBUG.IMAGE) out(TERM_CYAN
-                             + "createImage:"
-                             //+ "\n\tfinal size: " + width + "x" + height
-                             + "\n\t neededSize: " + imageSize
-                             + "\n\t   usedZoom: " + usedZoom
-                             + "\n\t       type: " + (imageType == BufferedImage.TYPE_INT_RGB ? "OPAQUE" : "TRANSPARENT")
-                             + TERM_CLEAR);
+        //if (alpha == OPAQUE && fillColor != null && fillColor.getAlpha() == 255) {
+        if (alpha == OPAQUE && (fillColor == null || fillColor.getAlpha() == 255)) {
+            imageType = BufferedImage.TYPE_INT_RGB;
+            transparency = Transparency.OPAQUE;
+        } else {
+            imageType = BufferedImage.TYPE_INT_ARGB;
+            transparency = Transparency.TRANSLUCENT;
+        }
 
-        if (mCachedImage != null &&
-            mCachedImage.getWidth() == width &&
-            mCachedImage.getHeight() == height &&
-            mCachedImage.getType() == imageType)
+        final int width = imageSize.pixelWidth();
+        final int height = imageSize.pixelHeight();
+
+        if (width >= 512 || height >= 512) 
+            Log.info("creating large image: " + imageSize + " = approx " + Util.abbrevBytes(width * height * 4));
+        
+        try {
+            Log.info(this + "; createImage:"
+                     + "\n\t requestSize: " + imageSize
+                     + "\n\trequestAlpha: " + alpha
+                     + "\n\t requestFill: " + fillColor
+                     + "\n\t   pixelSize: " + width + "x" + height
+                     + "\n\t renderScale: " + usedZoom
+                     + "\n\t        type: " + (imageType == BufferedImage.TYPE_INT_RGB ? "RGB (opaque)" : "ARGB (translucent)")
+                     );
+        } catch (Throwable t) {
+            Log.error("logging", t);
+        }
+        
+//         if (DEBUG.IMAGE) out(TERM_CYAN
+//                              + "createImage:"
+//                              //+ "\n\tfinal size: " + width + "x" + height
+//                              + "\n\t neededSize: " + imageSize
+//                              + "\n\t   usedZoom: " + usedZoom
+//                              + "\n\t       type: " + (imageType == BufferedImage.TYPE_INT_RGB ? "OPAQUE" : "TRANSPARENT")
+//                              + TERM_CLEAR);
+
+        if (mImageBuffer != null &&
+            mImageBuffer.getWidth() == width &&
+            mImageBuffer.getHeight() == height &&
+            mImageBuffer.getType() == imageType)
         {
             // todo: could also re-use if cached image is > our needed size as long it's
             // an ARGB and we fill it with full alpha first, tho we really shouldn't
             // have each component caching it's own image: some kind of small
             // recently used image buffers cache would make more sense.
-            if (DEBUG.DND || DEBUG.IMAGE) out(TERM_BLUE + "\ngot cached image: " + mCachedImage + TERM_CLEAR);
+            if (DEBUG.DND || DEBUG.IMAGE) out(TERM_CYAN + "\ngot cached image: " + mImageBuffer + TERM_CLEAR);
         } else {
-            mCachedImage = new BufferedImage(width, height, imageType);
-            if (DEBUG.DND || DEBUG.IMAGE) out(TERM_RED + "created image: " + mCachedImage + TERM_CLEAR);
+            try {
+
+                // TODO: manage this in a separate cache -- not one per node
+
+                mImageBuffer = tufts.vue.gui.GUI.getDeviceConfigForWindow(null)
+                    .createCompatibleImage(width, height, transparency);
+                
+            } catch (Throwable t) {
+                Log.error("creating image", t);
+                Log.error("creating image: failing node: " + Util.tags(this));
+                return null;
+            }
+
+            if (DEBUG.DND || DEBUG.IMAGE)
+                out(TERM_RED + "created image: " + mImageBuffer + TERM_CLEAR);
+            else
+                Log.info("created image " + mImageBuffer);
+                
         }
 
-        drawImage((Graphics2D) mCachedImage.getGraphics(),
+        drawImage((Graphics2D) mImageBuffer.getGraphics(),
                   alpha,
                   maxSize,
                   fillColor,
                   zoomRequest
                   );
 
-        return mCachedImage;
+        return mImageBuffer;
     }
 
     /**
@@ -7237,19 +7276,28 @@ u                    getSlot(c).setFromString((String)value);
         final int height = fillSize.pixelHeight();
         
         final DrawContext dc = new DrawContext(g, this);
+        
         dc.setInteractive(false);
+
+        if (alpha == OPAQUE) {
+            dc.setPrintQuality();
+        } else {
+            // if alpha, assume drag image (todo: better specified as an argument)
+            dc.setDraftQuality();
+        }
+        
         dc.setBackgroundFill(getRenderFillColor(null)); // sure we want null here?
         dc.setClipOptimized(false); // always draw all children -- don't bother to check bounds
         if (DEBUG.IMAGE) out(TERM_GREEN + "drawImage: " + dc + TERM_CLEAR);
 
         if (fillColor != null) {
-            if (false && alpha != OPAQUE) {
-                Color c = fillColor;
-                // if we have an alpha and a fill, amplify the alpha on the background fill
-                // by changing the fill to one that has alpha*alpha, for a total of
-                // alpha*alpha*alpha given our GC already has an alpha set.
-                fillColor = new Color(c.getRed(), c.getGreen(), c.getBlue(), (int) (alpha*alpha*255+0.5));
-            }
+//             if (false && alpha != OPAQUE) {
+//                 Color c = fillColor;
+//                 // if we have an alpha and a fill, amplify the alpha on the background fill
+//                 // by changing the fill to one that has alpha*alpha, for a total of
+//                 // alpha*alpha*alpha given our GC already has an alpha set.
+//                 fillColor = new Color(c.getRed(), c.getGreen(), c.getBlue(), (int) (alpha*alpha*255+0.5));
+//             }
             if (alpha != OPAQUE) 
                 dc.setAlpha(alpha, AlphaComposite.SRC); // erase any underlying in cache
             if (DEBUG.IMAGE) out("drawImage: fill=" + fillColor);
@@ -7269,8 +7317,6 @@ u                    getSlot(c).setFromString((String)value);
             g.setColor(Color.green);
             g.fillRect(0,0, Short.MAX_VALUE, Short.MAX_VALUE);
         }
-
-        dc.setAntiAlias(true);
 
         final AffineTransform rawTransform = g.getTransform();
             

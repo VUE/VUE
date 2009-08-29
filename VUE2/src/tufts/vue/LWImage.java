@@ -1223,7 +1223,7 @@ public class LWImage extends LWComponent
         }
 
         dc.g.setColor(Color.lightGray);
-        dc.g.setFont(StatusFont);
+        dc.g.setFont(StatusFont); // todo: scale to on-screen image size (e.g., can't see with big raw images)
         
         if (status2 != null) {
             drawStatusLine(dc, status1, -5);

@@ -57,7 +57,7 @@ import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.149 $ / $Date: 2009-08-28 15:00:40 $ / $Author: mike $
+ * @version $Revision: 1.150 $ / $Date: 2009-08-29 22:12:27 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -560,10 +560,14 @@ public class GUI
      * In the case where the Window currently overlaps two physical devices, the device
      * the window is "on" is determined by the device which is displaying the greatest
      * portion of the total area of the Window
+     *
+     * If Window is null, return the default device.
      */
     
     public static GraphicsDevice getDeviceForWindow(Window w) {
         refreshGraphicsInfo();
+        if (w == null)
+            return GDevice;
         Rectangle windowBounds = w.getBounds();
         GraphicsDevice selected = null;
         int maxArea = 0;
@@ -2605,6 +2609,9 @@ public class GUI
     public static String dragName(DragSourceDropEvent e) {
         return VueUtil.pad(20, baseObjectName(e)) + "; drop=" + dropName(e.getDropAction()) + "; success=" + e.getDropSuccess();
     }
+    public static String dragSource(DragSourceEvent e) {
+        return "source=" + name(e.getDragSourceContext().getComponent());
+    }
 
     // todo: move to DELAYED-init block for GUI called at end of main during caching runs
     private static final int DragSize = 128;
@@ -2830,20 +2837,22 @@ public class GUI
     public static class DragSourceAdapter implements DragSourceListener {
     
         public void dragOver(DragSourceDragEvent dsde) {
-            if (DEBUG.DND & DEBUG.META) out("dragOver " + dragName(dsde));
+            if (DEBUG.DND & DEBUG.META) out("dragOver " + dragName(dsde) + " " + dragSource(dsde));
         }
         
         public void dragEnter(DragSourceDragEvent dsde) {
-            if (DEBUG.DND) out("        dragEnter " + dragName(dsde));
+            if (DEBUG.Enabled||DEBUG.DND) out("        dragEnter " + dragName(dsde) + " " + dragSource(dsde));
+            tufts.vue.LWTransfer.markAsLocal(true);
         }
         public void dropActionChanged(DragSourceDragEvent dsde) {
-            if (DEBUG.DND) out("dropActionChanged " + dragName(dsde));
+            if (DEBUG.DND) out("dropActionChanged " + dragName(dsde) + " " + dragSource(dsde));
         }
         public void dragExit(DragSourceEvent dse) {
-            if (DEBUG.DND) out("         dragExit " + dse);
+            if (DEBUG.Enabled||DEBUG.DND) out("         dragExit " + dse + " " + dragSource(dse));
+            tufts.vue.LWTransfer.markAsLocal(false);
         }
         public void dragDropEnd(DragSourceDropEvent dsde) {
-            if (DEBUG.DND) out("      dragDropEnd " + dragName(dsde));
+            if (DEBUG.DND) out("      dragDropEnd " + dragName(dsde) + " " + dragSource(dsde));
         }
     }
 
