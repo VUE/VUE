@@ -26,7 +26,6 @@ import tufts.vue.gui.MapScrollPane;
 import tufts.vue.gui.TimedASComponent;
 import tufts.vue.gui.VuePopupFactory;
 import tufts.vue.gui.WindowDisplayAction;
-import tufts.vue.gui.LazyImage;
 import tufts.vue.NodeTool;
 import java.util.List;
 import java.util.Map;
@@ -77,7 +76,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.623 $ / $Date: 2009-08-29 22:12:27 $ / $Author: sfraize $ 
+ * @version $Revision: 1.624 $ / $Date: 2009-08-29 22:19:49 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
