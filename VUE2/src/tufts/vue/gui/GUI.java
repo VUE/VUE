@@ -57,7 +57,7 @@ import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.150 $ / $Date: 2009-08-29 22:12:27 $ / $Author: sfraize $
+ * @version $Revision: 1.151 $ / $Date: 2009-08-29 22:21:34 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2649,7 +2649,7 @@ public class GUI
         e.startDrag(DragSource.DefaultCopyDrop,
                     c.getAsImage(0.5, new Dimension(256,256)),
                     new Point(-(int)c.getWidth()/2, -(int)c.getHeight()/2), // image offset
-                    tufts.vue.MapViewer.getTransferableHelper(c),
+                    new tufts.vue.LWTransfer(c),
                     null); // drag source listener
 
     }
