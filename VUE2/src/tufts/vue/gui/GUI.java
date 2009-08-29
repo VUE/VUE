@@ -57,7 +57,7 @@ import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.151 $ / $Date: 2009-08-29 22:21:34 $ / $Author: sfraize $
+ * @version $Revision: 1.152 $ / $Date: 2009-08-29 22:25:16 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2652,6 +2652,13 @@ public class GUI
                     new tufts.vue.LWTransfer(c),
                     null); // drag source listener
 
+    }
+    
+    public static void startLWCDrag(Component source,
+                                    MouseEvent mouseEvent,
+                                    tufts.vue.LWComponent c)
+    {
+        startLWCDrag(source, mouseEvent, c, new tufts.vue.LWTransfer(c));
     }
     
     public static void startLWCDrag(Component source,

@@ -35,8 +35,6 @@ import java.util.TimerTask;
 import java.awt.*;
 import java.awt.event.*;
 import static java.awt.event.KeyEvent.*;
-// import java.awt.dnd.*;
-// import java.awt.datatransfer.*;
 import java.awt.geom.*;
 
 import java.util.*;
@@ -76,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.624 $ / $Date: 2009-08-29 22:19:49 $ / $Author: sfraize $ 
+ * @version $Revision: 1.625 $ / $Date: 2009-08-29 22:21:54 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -5568,12 +5566,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     public java.awt.datatransfer.Transferable getTransferableSelection() {
         draggedSelectionGroup.useSelection(VueSelection);
         return new LWTransfer(draggedSelectionGroup, true);
-    }
-    
-    public static java.awt.datatransfer.Transferable getTransferableHelper(LWComponent comp) {
-        //draggedSelectionGroup.useSelection(VueSelection);
-        
-        return new LWTransfer(comp);
     }
     
     public MouseWheelListener getMouseWheelListener() {

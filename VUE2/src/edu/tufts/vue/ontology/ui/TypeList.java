@@ -132,17 +132,12 @@ public class TypeList extends JList implements MouseListener,ActionListener {
                     //try
                     //{        
                       if(comp!=null)
-                        GUI.startLWCDrag(TypeList.this,
-                                     me,
-                                     comp,
-                                      VUE.getActiveViewer().getTransferableHelper(comp));
+                        GUI.startLWCDrag(TypeList.this, me, comp);
+
                       else
                       {
                         comp = createLWComponent(getSelectedValue());
-                        GUI.startLWCDrag(TypeList.this,
-                                     me,
-                                     comp,
-                                      VUE.getActiveViewer().getTransferableHelper(comp));
+                        GUI.startLWCDrag(TypeList.this, me, comp);
                       }
                     //}
                     //catch(java.awt.dnd.InvalidDnDOperationException dnde)
