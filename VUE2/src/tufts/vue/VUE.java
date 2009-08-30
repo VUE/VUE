@@ -117,7 +117,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.680 $ / $Date: 2009-08-27 20:45:57 $ / $Author: brian $ 
+ * @version $Revision: 1.681 $ / $Date: 2009-08-30 18:26:06 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -1862,7 +1862,7 @@ public class VUE
         	if (outlineDock != null)
         		outlineDock.positionWindowFromProperties();       
         	if (layersDock != null)
-        		layersDock.positionWindowFromProperties();       
+        		layersDock.positionWindowFromProperties(); 
         }   
         mapInspectorPanel.metadataPanel.refresh();
         
@@ -3860,7 +3860,10 @@ public class VUE
     {
     	FullScreen.toggleFullScreen(goNative);
     	if (showFloatingToolbar)
-            floatingZoomDock.setVisible(inWorkingFullScreen());
+    	{	
+            DockWindow.flickerAnchorDock();
+    		floatingZoomDock.setVisible(inWorkingFullScreen());
+    	}
     }
     
     static void installExampleNodes(LWMap map) {
