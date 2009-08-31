@@ -147,6 +147,11 @@ public class ClusterLayout extends Layout {
 		double minY = Double.POSITIVE_INFINITY;
 		double maxNodeWidth = X_COL_SIZE;
 		double maxNodeHeight = Y_COL_SIZE;
+		double meanNodeWidth  = X_COL_SIZE;
+		double meanNodeHeight = Y_COL_SIZE;
+		double totalNodeWidth =  0.0;
+		double totalNodeHeight= 0.0;
+		int meanCount = 0;
 		int total = 0;
 		Iterator<LWComponent> i = VUE.getActiveMap().getAllDescendents(
 				LWContainer.ChildKind.PROPER).iterator();
@@ -174,6 +179,10 @@ public class ClusterLayout extends Layout {
 						.getWidth();
 				maxNodeHeight = maxNodeHeight > c.getHeight() ? maxNodeHeight
 						: c.getHeight();
+				totalNodeWidth +=  c.getWidth();
+				totalNodeHeight += c.getHeight();
+				meanCount++;
+				 
 //				System.out.println("Node: "+c.getLabel()+" width:"+c.getWidth()+" max:"+maxNodeWidth);
 			}
 
@@ -193,13 +202,21 @@ public class ClusterLayout extends Layout {
 				maxNodeWidth = maxNodeWidth > c.getWidth() ? maxNodeWidth : c
 						.getWidth();
 				maxNodeHeight = maxNodeHeight > c.getHeight() ? maxNodeHeight: c.getHeight();
+				totalNodeWidth +=  c.getWidth();
+				totalNodeHeight += c.getHeight();
+				meanCount++;
 			}
+		}
+		if(meanCount >0) {
+			meanNodeWidth = totalNodeWidth/meanCount;
+			meanNodeHeight = totalNodeHeight/meanCount;
+			
 		}
 //		System.out.println("Max Width: "+maxNodeWidth+" Max Height:"+maxNodeHeight);
 		// computing the size of largest cluster and the area to plot all clusters;
 		double area = 0.0;
 		for (LWComponent c : clusterMap.keySet()) {
-			double clusterArea = FACTOR * clusterMap.get(c).size()* maxNodeWidth * maxNodeHeight;
+			double clusterArea = FACTOR * clusterMap.get(c).size()* meanNodeWidth * meanNodeHeight;
 			area +=  clusterArea;
 			// assuming width> height
 //			System.out.println("Total Area Needed: "+area+" "+c.getLabel()+" "+clusterMap.get(c).size());
@@ -220,7 +237,7 @@ public class ClusterLayout extends Layout {
 			if (c instanceof LWNode) {	
 				LWNode node = (LWNode) c;
 				total++;
-				double radius = Math.sqrt(FACTOR * clusterMap.get(node).size()* maxNodeWidth * maxNodeHeight / Math.PI);				
+				double radius = Math.sqrt(FACTOR * clusterMap.get(node).size()* meanNodeWidth * meanNodeHeight / Math.PI);				
 				int countLinked = 0;
 				for (LWComponent linkedNode : clusterMap.get(node)) {
 					// LWNode nodeLinked = (LWNode)c;
