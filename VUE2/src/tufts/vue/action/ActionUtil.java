@@ -65,7 +65,7 @@ import java.net.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistence thru castor XML.
  *
- * @version $Revision: 1.138 $ / $Date: 2009-05-17 01:52:19 $ / $Author: vaibhav $
+ * @version $Revision: 1.139 $ / $Date: 2009-08-31 19:42:10 $ / $Author: mike $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -134,7 +134,7 @@ public class ActionUtil
 			        else
 			        {			        	
 			        	baseName = VUE.getActiveMap().getLabel();
-			    		if (baseName.indexOf(".") > 0)
+			    		if (baseName.lastIndexOf(".") > 0)
 			    			baseName = VUE.getActiveMap().getLabel().substring(0, baseName.lastIndexOf("."));
 			    		baseName = baseName.replaceAll("\\*","") + "-copy"+"."+extension;			    		
 			        }
@@ -189,7 +189,7 @@ public class ActionUtil
             picked = saveChooser.getSelectedFile();
             
             String fileName = picked.getAbsolutePath();
-            int start = fileName.indexOf(".");			        	
+            int start = fileName.lastIndexOf(".");
         	if(fileName.length()!=0 && start != -1){
         		fileName = fileName.substring(0,start);
         	}        	
@@ -241,7 +241,7 @@ public class ActionUtil
             final String chosenPath = chooserFile.getAbsolutePath();
             
             // if they type a file name w/out an extension
-            if (chooserFile.getName().indexOf('.') < 0)
+            if (chooserFile.getName().lastIndexOf('.') < 0)
                 fileName = chosenPath + "." + extension;
             else
                 fileName = chosenPath;
@@ -296,7 +296,7 @@ public class ActionUtil
         	 final String chosenPath = chooserFile[0].getAbsolutePath();
          
         	 // if they type a file name w/out an extension
-        	 if (chooserFile[0].getName().indexOf('.') < 0)
+        	 if (chooserFile[0].getName().lastIndexOf('.') < 0)
         		 fileName = chosenPath + "." + extension;
         	 else
         		 fileName = chosenPath;
