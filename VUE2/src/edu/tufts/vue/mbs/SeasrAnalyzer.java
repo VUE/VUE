@@ -5,6 +5,10 @@ import java.util.List;
 import java.util.Map;
 import java.beans.XMLDecoder;
 import tufts.vue.LWComponent;
+import tufts.vue.Resource;
+import tufts.vue.VueUtil;
+
+import java.io.IOException;
 import java.net.URL;
 import tufts.vue.VueResources;
 import edu.tufts.seasr.Flow;
@@ -30,7 +34,7 @@ public class SeasrAnalyzer implements LWComponentAnalyzer {
 
 			
 			if(flow != null) {
-				url = new URL(flow.getUrl()+"?"+flow.getInputList().get(0)+"="+c.getLabel());
+				url = new URL(flow.getUrl()+"?"+flow.getInputList().get(0)+"="+ getSpecFromComponent(c));
 			}
 			XMLDecoder decoder = new XMLDecoder(url.openStream());
 			Map<String,Integer> map = (Map<String,Integer>) decoder.readObject();
@@ -39,10 +43,26 @@ public class SeasrAnalyzer implements LWComponentAnalyzer {
 			}
  		}catch(Exception ex) {
 			ex.printStackTrace();
+			VueUtil.alert("Can't Execute Flow on the node "+c.getLabel(), "Can't Execute Seasr flow");
 		}
 		return results;
 	}
 
+	private String getSpecFromComponent(LWComponent c) throws Exception   {
+		if (c !=null)
+		{
+			Resource r = c.getResource();
+			if(r != null) {
+				String spec = r.getSpec();
+				if (spec.startsWith("http") || spec.startsWith("https")){
+					return spec;
+	 			}	
+			}else if(c.getLabel().startsWith("http") || c.getLabel().startsWith("https")) {
+				return c.getLabel();
+			}
+		}
+		throw new Exception("No URL");
+	}
 	
 	public List analyze(LWComponent c)
 	{
