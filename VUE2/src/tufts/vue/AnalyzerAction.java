@@ -204,8 +204,7 @@ public class AnalyzerAction extends Actions.LWCAction {
     public static final AnalyzerAction calais = new AnalyzerAction(new OpenCalaisAnalyzer(),VueResources.getString("analyzeaction.performmapbased"),null);
     public static final AutoTaggerAction calaisAutoTagger = new AutoTaggerAction(new OpenCalaisAnalyzer(),VueResources.getString("analyzeaction.autotag"),null);
     public static final SemanticMapAction semanticMapAction = new SemanticMapAction(new OpenCalaisAnalyzer(),"semantic map",null);
-    public static final SeasrAction seasr = new SeasrAction(new SeasrAnalyzer(),"Seasr Analysis",null);
-    
+ 
     public static final Action luckyImageAction =
         new LWCAction(VueResources.getString("luckyimage")) {
             public void act(LWComponent c) {
@@ -320,16 +319,16 @@ public class AnalyzerAction extends Actions.LWCAction {
 		FlowGroup fg = scl.getFlowGroup(SeasrConfigLoader.CREATE_NODES);
 		
 		for(Flow flow: fg.getFlowList()) {
-			SeasrAction seasr = new SeasrAction(new SeasrAnalyzer(),flow.getLabel(),null);
+			SeasrAction seasr = new SeasrAction(new SeasrAnalyzer(flow),flow.getLabel(),null);
 			createNodesMenu.add(seasr);
 		}
 		fg = scl.getFlowGroup(SeasrConfigLoader.ADD_METADATA);
 		for(Flow flow: fg.getFlowList()){
-			getMetadataMenu.add(new SeasrMetadataAction(new SeasrAnalyzer(),flow.getLabel(),null));
+			getMetadataMenu.add(new SeasrMetadataAction(new SeasrAnalyzer(flow),flow.getLabel(),null));
 		}
 		fg = scl.getFlowGroup(SeasrConfigLoader.ADD_NOTES);
 		for(Flow flow: fg.getFlowList()){
-			getInfoMenu.add(new SeasrInfoAction(new SeasrAnalyzer(),flow.getLabel(),null));
+			getInfoMenu.add(new SeasrInfoAction(new SeasrAnalyzer(flow),flow.getLabel(),null));
 		} 
 		seasrMenu.add(createNodesMenu);
 		seasrMenu.add(getMetadataMenu);
