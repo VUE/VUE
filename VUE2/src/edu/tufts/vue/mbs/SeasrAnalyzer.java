@@ -7,18 +7,31 @@ import java.beans.XMLDecoder;
 import tufts.vue.LWComponent;
 import java.net.URL;
 import tufts.vue.VueResources;
+import edu.tufts.seasr.Flow;
 
 import com.google.common.collect.Multimap;
 
+
 public class SeasrAnalyzer implements LWComponentAnalyzer {
+	public static final String DEFAULT_FLOW_URL = "http://vue-dl.tccs.tufts.edu:1719/service/ping";
+	public static final String DEFAULT_INPUT="location";
 	private static final String ANALYZER_NAME = "Seasr Web Page Analyzer";
-	@SuppressWarnings("unchecked")
+	private Flow flow;
+	public SeasrAnalyzer(Flow flow)  {
+		this.flow = flow;
+	}
+			
+	
 	public List<AnalyzerResult> analyze(LWComponent c, boolean tryFallback) {
 		// TODO Auto-generated method stub
 		List<AnalyzerResult> results = new ArrayList<AnalyzerResult>();
 		try {
-			URL  url = new URL("http://vue-dl.tccs.tufts.edu:1719/service/ping?location="+c.getLabel());
+			URL  url = new URL(DEFAULT_FLOW_URL+"?"+DEFAULT_INPUT+"="+c.getLabel());
 
+			
+			if(flow != null) {
+				url = new URL(flow.getUrl()+"?"+flow.getInputList().get(0)+"="+c.getLabel());
+			}
 			XMLDecoder decoder = new XMLDecoder(url.openStream());
 			Map<String,Integer> map = (Map<String,Integer>) decoder.readObject();
 			for(String key: map.keySet()) {
@@ -30,6 +43,7 @@ public class SeasrAnalyzer implements LWComponentAnalyzer {
 		return results;
 	}
 
+	
 	public List analyze(LWComponent c)
 	{
 		return analyze(c,true);
