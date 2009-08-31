@@ -329,7 +329,7 @@ public class AnalyzerAction extends Actions.LWCAction {
 		}
 		fg = scl.getFlowGroup(SeasrConfigLoader.ADD_NOTES);
 		for(Flow flow: fg.getFlowList()){
-			getMetadataMenu.add(new SeasrMetadataAction(new SeasrAnalyzer(),flow.getLabel(),null));
+			getInfoMenu.add(new SeasrInfoAction(new SeasrAnalyzer(),flow.getLabel(),null));
 		} 
 		seasrMenu.add(createNodesMenu);
 		seasrMenu.add(getMetadataMenu);
