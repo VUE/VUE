@@ -26,6 +26,9 @@ public class SeasrAnalyzer implements LWComponentAnalyzer {
 	}
 			
 	
+	public Flow getFlow() {
+		return flow;
+	}
 	public List<AnalyzerResult> analyze(LWComponent c, boolean tryFallback) {
 		// TODO Auto-generated method stub
 		List<AnalyzerResult> results = new ArrayList<AnalyzerResult>();
@@ -39,7 +42,7 @@ public class SeasrAnalyzer implements LWComponentAnalyzer {
 			XMLDecoder decoder = new XMLDecoder(url.openStream());
 			Map<String,Integer> map = (Map<String,Integer>) decoder.readObject();
 			for(String key: map.keySet()) {
-			results.add(new AnalyzerResult("NA", key));
+			results.add(new AnalyzerResult(key, Integer.toString(map.get(key))));
 			}
  		}catch(Exception ex) {
 			ex.printStackTrace();
