@@ -58,6 +58,7 @@ import tufts.vue.MapTabbedPane;
 import tufts.vue.MapViewer;
 import tufts.vue.PresentationTool;
 import tufts.vue.RecentlyOpenedFilesManager;
+import tufts.vue.SeasrAnalysisPanel;
 import tufts.vue.VUE;
 import tufts.vue.VueAction;
 import tufts.vue.VueApplet;
@@ -88,7 +89,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.157 $ / $Date: 2009-08-18 14:23:22 $ / $Author: sfraize $
+ * @version $Revision: 1.158 $ / $Date: 2009-09-01 00:25:24 $ / $Author: brian $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -929,10 +930,13 @@ public class VueMenuBar extends javax.swing.JMenuBar
         if (!VUE.isApplet())
         {
         	analysisMenu.add(createCMAction);
+
         	if (VUE.getMergeMapsDock()!= null ){
         		analysisMenu.add(createWindowItem(VUE.getMergeMapsDock(), 0, VueResources.getString("menu.windows.mergemaps")));            
         	}
         	//analysisMenu.add(analyzeCMAction);
+
+        	analysisMenu.add(createWindowItem(SeasrAnalysisPanel.getSeasrAnalysisDock(), 0, VueResources.getString("menu.windows.seasr")));            
         }
        
         
