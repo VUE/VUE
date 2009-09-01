@@ -59,4 +59,7 @@ public class Flow {
 		return this.uri;
 	}
 
+	public String toString() {
+		return getLabel();
+	}
 }

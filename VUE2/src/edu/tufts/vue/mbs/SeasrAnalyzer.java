@@ -30,7 +30,6 @@ public class SeasrAnalyzer implements LWComponentAnalyzer {
 		return flow;
 	}
 	public List<AnalyzerResult> analyze(LWComponent c, boolean tryFallback) {
-		// TODO Auto-generated method stub
 		List<AnalyzerResult> results = new ArrayList<AnalyzerResult>();
 		try {
 			URL  url = new URL(DEFAULT_FLOW_URL+"?"+DEFAULT_INPUT+"="+c.getLabel());
@@ -48,6 +47,32 @@ public class SeasrAnalyzer implements LWComponentAnalyzer {
 			ex.printStackTrace();
 			VueUtil.alert("Can't Execute Flow on the node "+c.getLabel(), "Can't Execute Seasr flow");
 		}
+		return results;
+	}
+
+	public List<AnalyzerResult> analyze(String urlString, boolean tryFallback) {
+		List<AnalyzerResult> results = new ArrayList<AnalyzerResult>();
+
+		try {
+			URL  url;
+
+			if (flow == null) {
+				url = new URL(DEFAULT_FLOW_URL + "?" + DEFAULT_INPUT + "=" + urlString);
+			} else {
+				url = new URL(flow.getUrl() + "?" + flow.getInputList().get(0) + "=" + urlString);
+			}
+
+			XMLDecoder decoder = new XMLDecoder(url.openStream());
+			Map<String, Integer> map = (Map<String, Integer>) decoder.readObject();
+
+			for (String key: map.keySet()) {
+				results.add(new AnalyzerResult("NA", key));
+			}
+ 		} catch(Exception ex) {
+			ex.printStackTrace();
+			VueUtil.alert("Can't Execute Flow on the url " + urlString, "Can't Execute Seasr flow");
+		}
+
 		return results;
 	}
 
