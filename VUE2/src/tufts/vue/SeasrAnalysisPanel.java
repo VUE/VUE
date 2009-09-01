@@ -27,7 +27,6 @@ import edu.tufts.vue.mbs.AnalyzerResult;
 import edu.tufts.vue.mbs.SeasrAnalyzer;
 import edu.tufts.vue.metadata.MetadataList;
 
-import tufts.vue.AnalyzerAction.SeasrAction;
 import tufts.vue.gui.DockWindow;
 import tufts.vue.gui.GUI;
 
@@ -186,10 +185,11 @@ public class SeasrAnalysisPanel extends JPanel implements ActionListener, FocusL
 
 	protected void enableAnalyzeButton() {
 		String			url = urlTextField.getText();
+		boolean			newNodeMethod = (methodComboBox.getSelectedItem() == NEW_NODES);
 		LWSelection		selection = VUE.getSelection();
 		LWComponent		selectedNode = selection != null && selection.size() == 1 ? selection.first() : null;
 
-		analyzeButton.setEnabled(looksLikeURL(url) && flowComboBox.isEnabled() && selectedNode != null);
+		analyzeButton.setEnabled(looksLikeURL(url) && flowComboBox.isEnabled() && (newNodeMethod || selectedNode != null));
 	}
 
 
@@ -243,34 +243,42 @@ public class SeasrAnalysisPanel extends JPanel implements ActionListener, FocusL
 		try {
 			Object						method = methodComboBox.getSelectedItem();
 			Flow						flow = (Flow)flowComboBox.getSelectedItem();
+			LWSelection					selection = VUE.getSelection();
+			LWComponent					selectedNode = selection != null && selection.size() == 1 ? selection.first() : null;
 			SeasrAnalyzer				analyzer = new SeasrAnalyzer(flow);
 			List<AnalyzerResult>		resultList = analyzer.analyze(urlTextField.getText(), true);
 			Iterator<AnalyzerResult>	resultIter = resultList.iterator();
-			LWSelection					selection = VUE.getSelection();
-			LWComponent					selectedNode = selection != null && selection.size() == 1 ? selection.first() : null;
 
 			if (method == NEW_NODES) {
 				LWMap				activeMap = VUE.getActiveMap();
-				List<LWComponent>	comps = new ArrayList<LWComponent>();
+				List<LWComponent>	nodes = new ArrayList<LWComponent>(),
+									links = new ArrayList<LWComponent>();
 
 				while (resultIter.hasNext()) {
 					AnalyzerResult	analyzerResult = resultIter.next();
 					LWNode			node = new LWNode(analyzerResult.getValue());
 
-					comps.add(node);
+					nodes.add(node);
 					node.layout();
 
 					if (selectedNode != null) {
 						LWLink		link = new LWLink(selectedNode, node);
 
 						node.setLocation(selectedNode.getLocation());
-						comps.add(link);
+						links.add(link);
 						link.layout();
 					}
 				}
 
-				activeMap.addChildren(comps);
-				LayoutAction.circle.act(comps);
+				activeMap.addChildren(nodes);
+				activeMap.addChildren(links);
+
+				if (selectedNode == null) {
+					LayoutAction.circle.act(nodes);
+					selection.setTo(nodes);
+				} else {
+					Actions.MakeCluster.clusterNodesAbout(selectedNode, nodes);
+				}
 			} else if (method == NEW_METADATA && selectedNode != null) {
 				MetadataList		mList = selectedNode.getMetadataList();
 
@@ -352,11 +360,8 @@ public class SeasrAnalysisPanel extends JPanel implements ActionListener, FocusL
 		} else if (source == closeButton) {
 			dock.setVisible(false);
 		} else if (source == analyzeButton) {
-			GUI.invokeAfterAWT(new Runnable() {
-				public void run() {
-					analyze();
-				}
-			});
+			AnalyzeThread thread = new AnalyzeThread();
+			thread.start();
 		}
 	}
 
@@ -400,5 +405,22 @@ public class SeasrAnalysisPanel extends JPanel implements ActionListener, FocusL
 
 	public void focusLost(FocusEvent event) {
 		enableAnalyzeButton();
+	}
+
+
+	// private classes
+
+	private class AnalyzeThread extends Thread {
+		public AnalyzeThread() {
+			super();
+		}
+
+		public void run() {
+			try {
+				analyze();
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
+		}
 	}
 }
