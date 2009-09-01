@@ -1955,13 +1955,15 @@ public class Actions implements VueConstants
     // (also may want a MapAction subclass?  should be same semantics -- we don't support empty MapViewer's)
     
     public static final VueAction ViewBackward =
-        new VueAction(VueResources.local("menu.view.backward"), keyStroke(KeyEvent.VK_LEFT, COMMAND)) {
+        new VueAction(VueResources.local("menu.view.backward"), VueResources.local("menu.view.backward.tooltip"),
+        		keyStroke(KeyEvent.VK_LEFT, COMMAND), null) {
         public void act() {
             viewer().viewBackward();
         }
     };
     public static final VueAction ViewForward =
-        new VueAction(VueResources.local("menu.view.forward"), keyStroke(KeyEvent.VK_RIGHT, COMMAND)) {
+        new VueAction(VueResources.local("menu.view.forward"), VueResources.local("menu.view.forward.tooltip"),
+        		keyStroke(KeyEvent.VK_RIGHT, COMMAND), null) {
         public void act() {
             viewer().viewForward();
         }
