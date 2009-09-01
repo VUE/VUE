@@ -10,6 +10,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -20,7 +23,9 @@ import javax.swing.JTextField;
 import edu.tufts.seasr.Flow;
 import edu.tufts.seasr.FlowGroup;
 import edu.tufts.seasr.SeasrConfigLoader;
+import edu.tufts.vue.mbs.AnalyzerResult;
 import edu.tufts.vue.mbs.SeasrAnalyzer;
+import edu.tufts.vue.metadata.MetadataList;
 
 import tufts.vue.AnalyzerAction.SeasrAction;
 import tufts.vue.gui.DockWindow;
@@ -38,9 +43,9 @@ public class SeasrAnalysisPanel extends JPanel implements ActionListener, FocusL
 											INDENT = 4,
 											BREAK = 4;
 	protected static String					SELECT = VueResources.getString("seasr.analysis.select"),
-											CREATE_NODES = VueResources.getString("seasr.analysis.createnewnodes"),
-											ADD_METADATA = VueResources.getString("seasr.analysis.addmetadata"),
-											ADD_NOTES = VueResources.getString("seasr.analysis.addnotes");
+											NEW_NODES = VueResources.getString("seasr.analysis.createnewnodes"),
+											NEW_METADATA = VueResources.getString("seasr.analysis.addmetadata"),
+											NEW_NOTES = VueResources.getString("seasr.analysis.addnotes");
 	protected static boolean				DEBUG_LOCAL = false;
 
 	JTextField								urlTextField = null;
@@ -96,9 +101,9 @@ public class SeasrAnalysisPanel extends JPanel implements ActionListener, FocusL
 
 		methodComboBox.setFont(tufts.vue.gui.GUI.LabelFace);
 		methodComboBox.addItem(SELECT);
-		methodComboBox.addItem(CREATE_NODES);
-		methodComboBox.addItem(ADD_METADATA);
-		methodComboBox.addItem(ADD_NOTES);
+		methodComboBox.addItem(NEW_NODES);
+		methodComboBox.addItem(NEW_METADATA);
+		methodComboBox.addItem(NEW_NOTES);
 		methodComboBox.addActionListener(this);
 		addToGridBag(contentPanel, methodComboBox, 1, 4, 1, 1, GridBagConstraints.LINE_START, gutter);
 
@@ -180,9 +185,11 @@ public class SeasrAnalysisPanel extends JPanel implements ActionListener, FocusL
 
 
 	protected void enableAnalyzeButton() {
-		String	url = urlTextField.getText();
+		String			url = urlTextField.getText();
+		LWSelection		selection = VUE.getSelection();
+		LWComponent		selectedNode = selection != null && selection.size() == 1 ? selection.first() : null;
 
-		analyzeButton.setEnabled(looksLikeURL(url) && flowComboBox.isEnabled());
+		analyzeButton.setEnabled(looksLikeURL(url) && flowComboBox.isEnabled() && selectedNode != null);
 	}
 
 
@@ -199,20 +206,18 @@ public class SeasrAnalysisPanel extends JPanel implements ActionListener, FocusL
 		try {
 			String		flowType = "";
 
-			if (method == CREATE_NODES) {
+			if (method == NEW_NODES) {
 				flowType = SeasrConfigLoader.CREATE_NODES;
-			} else if (method == ADD_METADATA) {
+			} else if (method == NEW_METADATA) {
 				flowType = SeasrConfigLoader.ADD_METADATA;
-			} else if (method == ADD_NOTES) {
+			} else if (method == NEW_NOTES) {
 				flowType = SeasrConfigLoader.ADD_NOTES;
 			}
 
 			FlowGroup	fg = scl.getFlowGroup(flowType);
 
 			for (Flow flow: fg.getFlowList()) {
-//				flowComboBox.addItem(flow.getLabel());
-				flowComboBox.addItem((Object)(new SeasrAction(new SeasrAnalyzer(flow), flow.getLabel(), null));
-				
+				flowComboBox.addItem(flow);				
 			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -235,7 +240,62 @@ public class SeasrAnalysisPanel extends JPanel implements ActionListener, FocusL
 
 
 	protected void analyze() {
-		System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ANALYZE");
+		try {
+			Object						method = methodComboBox.getSelectedItem();
+			Flow						flow = (Flow)flowComboBox.getSelectedItem();
+			SeasrAnalyzer				analyzer = new SeasrAnalyzer(flow);
+			List<AnalyzerResult>		resultList = analyzer.analyze(urlTextField.getText(), true);
+			Iterator<AnalyzerResult>	resultIter = resultList.iterator();
+			LWSelection					selection = VUE.getSelection();
+			LWComponent					selectedNode = selection != null && selection.size() == 1 ? selection.first() : null;
+
+			if (method == NEW_NODES) {
+				LWMap				activeMap = VUE.getActiveMap();
+				List<LWComponent>	comps = new ArrayList<LWComponent>();
+
+				while (resultIter.hasNext()) {
+					AnalyzerResult	analyzerResult = resultIter.next();
+					LWNode			node = new LWNode(analyzerResult.getValue());
+
+					comps.add(node);
+					node.layout();
+
+					if (selectedNode != null) {
+						LWLink		link = new LWLink(selectedNode, node);
+
+						node.setLocation(selectedNode.getLocation());
+						comps.add(link);
+						link.layout();
+					}
+				}
+
+				activeMap.addChildren(comps);
+				LayoutAction.circle.act(comps);
+			} else if (method == NEW_METADATA && selectedNode != null) {
+				MetadataList		mList = selectedNode.getMetadataList();
+
+				while (resultIter.hasNext()) {
+					AnalyzerResult	analyzerResult = resultIter.next();
+
+					mList.add("tag", analyzerResult.getValue());
+				}
+			} else if (method == NEW_NOTES && selectedNode != null) {
+				String info = "Most common words in the resource are: ";
+
+				while (resultIter.hasNext()) {		
+					AnalyzerResult	analyzerResult = resultIter.next();
+
+					info += analyzerResult.getValue() + " ";
+				}
+
+				String				notes = selectedNode.getNotes();
+
+				selectedNode.setNotes((notes != null && notes.length() != 0 ? notes + "\n" : "") + info);
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			VueUtil.alert(ex.getMessage(), "Seasr Flow Error");
+		}
 	}
 
 
@@ -292,7 +352,11 @@ public class SeasrAnalysisPanel extends JPanel implements ActionListener, FocusL
 		} else if (source == closeButton) {
 			dock.setVisible(false);
 		} else if (source == analyzeButton) {
-			analyze();
+			GUI.invokeAfterAWT(new Runnable() {
+				public void run() {
+					analyze();
+				}
+			});
 		}
 	}
 
