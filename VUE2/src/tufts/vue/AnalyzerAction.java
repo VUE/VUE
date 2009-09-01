@@ -525,7 +525,7 @@ public class AnalyzerAction extends Actions.LWCAction {
 		  private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(SeasrAction.class);
 		  private LWComponentAnalyzer analyzer = null;
 		    
-		   private SeasrAction(LWComponentAnalyzer analyzer, String name,KeyStroke keyStroke) {
+		   public SeasrAction(LWComponentAnalyzer analyzer, String name,KeyStroke keyStroke) {
 		        super(name,keyStroke);
 		        this.analyzer = analyzer;
 		    }
@@ -558,7 +558,7 @@ public class AnalyzerAction extends Actions.LWCAction {
 		  private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(SeasrAction.class);
 		  private LWComponentAnalyzer analyzer = null;
 		    
-		   private SeasrMetadataAction(LWComponentAnalyzer analyzer, String name,KeyStroke keyStroke) {
+		   public  SeasrMetadataAction(LWComponentAnalyzer analyzer, String name,KeyStroke keyStroke) {
 		        super(name,keyStroke);
 		        this.analyzer = analyzer;
 		    }
@@ -586,7 +586,7 @@ public class AnalyzerAction extends Actions.LWCAction {
 		  private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(SeasrAction.class);
 		  private LWComponentAnalyzer analyzer = null;
 		    
-		   private SeasrInfoAction(LWComponentAnalyzer analyzer, String name,KeyStroke keyStroke) {
+		   public  SeasrInfoAction(LWComponentAnalyzer analyzer, String name,KeyStroke keyStroke) {
 		        super(name,keyStroke);
 		        this.analyzer = analyzer;
 		    }
