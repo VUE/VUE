@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.625 $ / $Date: 2009-08-29 22:21:54 $ / $Author: sfraize $ 
+ * @version $Revision: 1.626 $ / $Date: 2009-09-01 23:42:05 $ / $Author: brian $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -4963,6 +4963,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     private static JPopupMenu sMultiPopup = null;
     
     private JPopupMenu buildMultiSelectionPopup() {
+System.out.println("!!!!!!!!!!!!!!!!!!!!!!! buildMultiSelectionPopup");
     	   if (sMultiPopup != null)
            	sMultiPopup.removeAll();
            else
@@ -5060,98 +5061,118 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     private static final WindowDisplayAction infoAction = new WindowDisplayAction(VUE.getInfoDock());
     private static final JCheckBoxMenuItem infoCheckBox = new JCheckBoxMenuItem(infoAction);
     private static Component sRemoveResourceItem;
-    
-    private void buildSingleSelectionNodePopup(LWComponent c) 
-    {        
-    	if (VUE.getActiveViewer().getFocal() instanceof LWSlide)
-    	{
+
+    private void buildSingleSelectionNodePopup(LWComponent c)
+    {
+        LWNode n = (LWNode)c;
+        Resource r = n.getResource();
+
+    	if (VUE.getActiveViewer().getFocal() instanceof LWSlide) {
     		LWSlide slide = (LWSlide)VUE.getActiveViewer().getFocal();
-    		if (slide.getMasterSlide().equals(slide))
-    		{
+
+    		if (slide.getMasterSlide().equals(slide)) {
     			 sSinglePopup.add(formatBox);
     			return;
     		}
-    	}    			
-    			
-    	infoCheckBox.setLabel(VueResources.getString("mapViewer.componentMenu.nodeInfo.label"));
-        if (VUE.getInfoDock().isShowing())
-        	infoCheckBox.setSelected(true);
-        
-        LWNode n = (LWNode) c;
-        Resource r = n.getResource();
-        
-    	sSinglePopup.add(infoCheckBox);
-    	sSinglePopup.addSeparator();
-    	sAddFileItem = sSinglePopup.add(Actions.AddFileAction);
-    	sAddURLItem = sSinglePopup.add(Actions.AddURLAction);
-    	if (VUE.isApplet() && VueApplet.isZoteroApplet() && r!=null)
-    	{
-    		sSinglePopup.add(Actions.AddResourceToZotero);
     	}
-    		
-    	sRemoveResourceItem = sSinglePopup.add(Actions.RemoveResourceAction);
+
+    	infoCheckBox.setLabel(VueResources.getString("mapViewer.componentMenu.nodeInfo.label"));
+
+        if (VUE.getInfoDock().isShowing()) {
+        	infoCheckBox.setSelected(true);
+        }
+
+    	sSinglePopup.add(infoCheckBox);
+        sSinglePopup.add(formatBox);
+
     	sSinglePopup.addSeparator();
     	sSinglePopup.add(Actions.ContextNotesAction);
     	sSinglePopup.add(Actions.ContextKeywordAction);
-    	JMenu analyzeNodeMenu =new JMenu(VueResources.getString("mapviewer.analyze.node"));
+
+    	sSinglePopup.addSeparator();
+    	sAddURLItem = sSinglePopup.add(Actions.AddURLAction);
+    	sAddFileItem = sSinglePopup.add(Actions.AddFileAction);
+    	sRemoveResourceItem = sSinglePopup.add(Actions.RemoveResourceAction);
+
+    	if (VUE.isApplet() && VueApplet.isZoteroApplet() && r!=null) {
+    		sSinglePopup.add(Actions.AddResourceToZotero);
+    	}
+
+        // Keep this for now -- but maybe not forever...
+    	JMenu analyzeNodeMenu = new JMenu(VueResources.getString("mapviewer.analyze.node"));
     	AnalyzerAction.buildSubMenu(analyzeNodeMenu);
-    	
     	sSinglePopup.add(analyzeNodeMenu);
 
-    	//
-        // Add to Pathway stuff goes here.
-        //
+        sSinglePopup.addSeparator();
+        sSinglePopup.add(arrangeMenu);
+        sSinglePopup.add(GUI.buildMenu(VueResources.getString("menu.layout"),LayoutAction.LAYOUT_ACTIONS));
+
+        sSinglePopup.addSeparator();
     	sSinglePopup.add(Actions.AddPathwayItem);
     	sSinglePopup.add(Actions.RemovePathwayItem);
-        
         sSinglePopup.add(syncMenu);
+
         sSinglePopup.addSeparator();
         sSinglePopup.add(Actions.Copy);
         sSinglePopup.add(Actions.Paste);
-        sSinglePopup.add(Actions.DeselectAll);
-        sSinglePopup.add(formatBox);
-        sSinglePopup.add(GUI.buildMenu(VueResources.getString("menu.layout"),LayoutAction.LAYOUT_ACTIONS));
-        sSinglePopup.add(arrangeMenu);
         sSinglePopup.add(Actions.Delete);
-        	     
-        
-        
-        if (r == null)
-        {
+
+        if (r == null) {
         	sRemoveResourceItem.setEnabled(false);
-        	sAddFileItem.setLabel(VueResources.getString("mapViewer.componentMenu.addFile.label"));        	
+        	sAddFileItem.setLabel(VueResources.getString("mapViewer.componentMenu.addFile.label"));
         	sAddURLItem.setLabel(VueResources.getString("mapViewer.componentMenu.addURL.label"));
-        }
-        else
-        {
+        } else {
         	sRemoveResourceItem.setEnabled(true);
         	sAddFileItem.setLabel(VueResources.getString("mapViewer.componentMenu.replaceFile.label"));
         	sAddURLItem.setLabel(VueResources.getString("mapViewer.componentMenu.replaceURL.label"));
-        }        	 
+        }
     }
-    
-    private void buildSingleSelectionLinkPopup()
+
+    private void buildSingleSelectionLinkPopup(LWComponent c)
     {
+    	LWLink n = (LWLink)c;
+    	Resource r = n.getResource();
+
     	infoCheckBox.setLabel(VueResources.getString("mapViewer.componentMenu.linkInfo.label"));
-    	if (VUE.getInfoDock().isShowing())
+
+    	if (VUE.getInfoDock().isShowing()) {
         	infoCheckBox.setSelected(true);
+    	}
+
     	sSinglePopup.add(infoCheckBox);
-    	sSinglePopup.addSeparator();
-    	sAddFileItem = sSinglePopup.add(Actions.AddFileAction);
-    	sAddURLItem = sSinglePopup.add(Actions.AddURLAction);
+        sSinglePopup.add(formatBox);
+
+        sSinglePopup.addSeparator();
      	sSinglePopup.add(Actions.ContextNotesAction);
    	    sSinglePopup.add(Actions.ContextKeywordAction);
+
         sSinglePopup.addSeparator();
+    	sAddURLItem = sSinglePopup.add(Actions.AddURLAction);
+   	    sAddFileItem = sSinglePopup.add(Actions.AddFileAction);
+    	sRemoveResourceItem = sSinglePopup.add(Actions.RemoveResourceAction);
+
+   	    sSinglePopup.addSeparator();
+        sSinglePopup.add(arrangeMenu);
+
+   	    sSinglePopup.addSeparator();
    	    sSinglePopup.add(Actions.Copy);
         sSinglePopup.add(Actions.Paste);
-        sSinglePopup.add(Actions.DeselectAll);
-        sSinglePopup.add(formatBox);
-        sSinglePopup.add(arrangeMenu);
         sSinglePopup.add(Actions.Delete);
+
+        if (r == null) {
+        	sRemoveResourceItem.setEnabled(false);
+        	sAddFileItem.setLabel(VueResources.getString("mapViewer.componentMenu.addFile.label"));
+        	sAddURLItem.setLabel(VueResources.getString("mapViewer.componentMenu.addURL.label"));
+        } else {
+        	sRemoveResourceItem.setEnabled(true);
+        	sAddFileItem.setLabel(VueResources.getString("mapViewer.componentMenu.replaceFile.label"));
+        	sAddURLItem.setLabel(VueResources.getString("mapViewer.componentMenu.replaceURL.label"));
+        }
     }
-    
+
     private void buildSingleSelectionSlideEditingPopup()
     {
+System.out.println("!!!!!!!!!!!!!!!!!!!!!!! buildSingleSelectionSlideEditingPopup");
     	LWSlide slide = (LWSlide)VUE.getActiveViewer().getFocal();
     	
     	infoCheckBox.setLabel(VueResources.getString("mapViewer.componentMenu.slideInfo.label"));
@@ -5192,6 +5213,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     private void buildSingleSelectionSlideIconPopup()
     {
+System.out.println("!!!!!!!!!!!!!!!!!!!!!!! buildSingleSelectionSlideIconPopup");
     	infoCheckBox.setLabel(VueResources.getString("mapViewer.componentMenu.slideInfo.label"));
     	if (VUE.getInfoDock().isShowing())
         	infoCheckBox.setSelected(true);
@@ -5216,6 +5238,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
     private void buildSingleSelectionPortalPopup()
     {
+System.out.println("!!!!!!!!!!!!!!!!!!!!!!! buildSingleSelectionPortalPopup");
     	infoCheckBox.setLabel(VueResources.getString("mapViewer.componentMenu.portalInfo.label"));
     	if (VUE.getInfoDock().isShowing())
         	infoCheckBox.setSelected(true);
@@ -5236,6 +5259,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     private void buildSingleSelectionGroupPopup()
     {
+System.out.println("!!!!!!!!!!!!!!!!!!!!!!! buildSingleSelectionGroupPopup");
     	 sSinglePopup.add(Actions.Ungroup);
     	 sSinglePopup.addSeparator();
     	 infoCheckBox.setLabel(VueResources.getString("mapViewer.componentMenu.groupInfo.label"));
@@ -5262,6 +5286,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     private void buildSingleSelectionImagePopup()
     {
+System.out.println("!!!!!!!!!!!!!!!!!!!!!!! buildSingleSelectionImagePopup");
     	 infoCheckBox.setLabel(VueResources.getString("mapViewer.componentMenu.imageInfo.label"));
     	 if (VUE.getInfoDock().isShowing())
          	infoCheckBox.setSelected(true);
@@ -5317,7 +5342,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
         else if (c instanceof LWLink)
         {
-        	buildSingleSelectionLinkPopup();
+        	buildSingleSelectionLinkPopup(c);
         }
         else if (c instanceof LWSlide)
         {
@@ -5518,6 +5543,14 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         if (sMapPopup == null) {
             sMapPopup = new JPopupMenu(VueResources.getString("mapViewer.componentMenu.mapMenu"));
    
+            sMapPopup.add(new VueAction(VueResources.getString("mapViewer.mapMenu.info.label")) {
+                public void act() { /*GUI.makeVisibleOnScreen(this, MapInspectorPanel.class);*/
+                	VUE.getMapInfoDock().setVisible(true);
+                	VUE.getMapInfoDock().raise();
+                }
+                //public void act() { VUE.MapInspector.setVisible(true); }
+            });
+            sMapPopup.addSeparator();
             GUI.addToMenu(sMapPopup, Actions.NEW_OBJECT_ACTIONS);
             sMapPopup.addSeparator();
             
@@ -5528,13 +5561,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             sMapPopup.addSeparator();            
             sMapPopup.add(Actions.Paste);
             sMapPopup.add(Actions.SelectAll);
-            sMapPopup.add(new VueAction(VueResources.getString("mapViewer.mapMenu.info.label")) {
-                    public void act() { /*GUI.makeVisibleOnScreen(this, MapInspectorPanel.class);*/
-                    	VUE.getMapInfoDock().setVisible(true);
-                    	VUE.getMapInfoDock().raise();
-                    }
-                    //public void act() { VUE.MapInspector.setVisible(true); }
-                });
 
             GUI.adjustMenuIcons(sMapPopup);
             
