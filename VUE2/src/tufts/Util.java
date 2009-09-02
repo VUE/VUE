@@ -1294,13 +1294,54 @@ public class Util
 
         final List<T> desiredType = new ArrayList(list.size());
 
-        for (A item: list)
+        for (A item : list)
             if (clazz.isInstance(item))
                 desiredType.add((T)item);
 
         return desiredType;
     }
     
+    /** choose the given object for inclusion */
+    public interface Picker<T> { boolean match(T o); }
+    /** exclude the given object from inclusion */
+    public interface Filter<T> { boolean match(T o); }
+    
+    public static <T> List<T> extract
+        (final Collection<T> list,
+         final Picker<T> picker)
+    {
+        final List<T> desired = new ArrayList(list.size());
+        
+        for (T item : list) {
+            try {
+                if (picker.match(item))
+                    desired.add(item);
+            } catch (Throwable t) {
+                Log.error("picker " + tags(picker) + " failed matching " + item, t);
+            }
+        }
+
+        return desired;
+    }
+    
+    /** reverse of extract */
+    public static <T> List<T> filter
+        (final Collection<T> list,
+         final Filter<T> filter)
+    {
+        final List<T> desired = new ArrayList(list.size());
+        
+        for (T item : list) {
+            try {
+                if (!filter.match(item))
+                    desired.add(item);
+            } catch (Throwable t) {
+                Log.error("filter " + tags(filter) + " failed matching " + item, t);
+            }
+        }
+
+        return desired;
+    }
 
     /**
 
@@ -1785,10 +1826,19 @@ public class Util
         return new Color((int) ( (r * alpha + mix * c.getRed()  ) / 255f + 0.5f ),
                          (int) ( (g * alpha + mix * c.getGreen()) / 255f + 0.5f ),
                          (int) ( (b * alpha + mix * c.getBlue() ) / 255f + 0.5f ));
-        }
+    }
 
+    public static final Color alphaColor(java.awt.Color c, float alpha) {
+
+        final int a = (int) ((alpha * 255f) + 0.5f); // covert % alpha to 0-255
+        
+        final int rgba =
+            (c.getRGB() & 0x00FFFFFF) | // strip existing alpha
+            ((a & 0xFF) << 24); // add new alpha
+        
+        return new Color(rgba, true);
+    }
     
-
 
     /** a JPanel that anti-aliases text */
     public static class JPanelAA extends javax.swing.JPanel {
