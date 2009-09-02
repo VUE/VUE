@@ -59,7 +59,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.249 $ / $Date: 2009-08-13 20:12:52 $ / $Author: brian $
+ * @version $Revision: 1.250 $ / $Date: 2009-09-02 16:25:20 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -1561,9 +1561,8 @@ public class LWMap extends LWContainer
             if (already != null) {
                 // this okay for the moment: we're only using this for keeping
                 // image data up to date
-                Log.debug("duplicate tossed: " + already);
-                if (DEBUG.Enabled)
-                Log.debug("         : " + r);
+                if (DEBUG.WORK) Log.debug("duplicate tossed: " + already);
+                if (DEBUG.WORK) Log.debug("         : " + r);
             }
         }
 

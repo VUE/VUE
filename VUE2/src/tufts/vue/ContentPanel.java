@@ -33,6 +33,8 @@ public class ContentPanel extends JPanel {
 		addBrowser(VueResources.getString("dockWindow.contentPanel.ontologies.title"), ontologies);
 
 		dockWindow.setContent(tabbedPane);
+
+                if (DEBUG.Enabled) tabbedPane.setSelectedIndex(1);
 	}
 
 

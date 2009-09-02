@@ -48,7 +48,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.486 $ / $Date: 2009-08-29 22:12:27 $ / $Author: sfraize $
+ * @version $Revision: 1.487 $ / $Date: 2009-09-02 16:24:54 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1989,10 +1989,11 @@ u                    getSlot(c).setFromString((String)value);
     }
 
     public MetaMap getRawData() {
+        //if (mDataMap == null) Util.printStackTrace("NULLDATA");
         return mDataMap;
     }
 
-    public boolean isDataNode() {
+    public final boolean isDataNode() {
         return mDataMap != null;
     }
 
@@ -2510,6 +2511,11 @@ u                    getSlot(c).setFromString((String)value);
             }
         } else
             return getUniqueComponentTypeLabel();
+    }
+
+    /** for debug */
+    public static String tag(LWComponent c) {
+        return c == null ? "" : c.getUniqueComponentTypeLabel();
     }
     
     String getDiagnosticLabel() {
@@ -4343,7 +4349,7 @@ u                    getSlot(c).setFromString((String)value);
         setLocation((float) x - getWidth()/2,
                     (float) y - getHeight()/2);
     }
-    
+
     public Point2D getLocation()
     {
         return new Point2D.Float(getX(), getY());
@@ -5249,7 +5255,6 @@ u                    getSlot(c).setFromString((String)value);
         }
         
         transformDownG(g);
-
     }
 
     public Point2D.Float transformMapToZeroPoint(Point2D.Float mapPoint) {
