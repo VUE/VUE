@@ -17,7 +17,7 @@ import com.google.common.collect.Multimaps;
  * the key field of two Schema's, which is considered to be a join in the classic
  * database sense.
  *
- * @version $Revision: 1.3 $ / $Date: 2009-08-10 22:52:46 $ / $Author: sfraize $
+ * @version $Revision: 1.4 $ / $Date: 2009-09-02 16:26:21 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -175,24 +175,34 @@ public final class Association
     public static List<Association> getJoins(Schema s1, Field field) {
         final List<Association> betweens = new ArrayList();
         final Schema s2 = field.getSchema();
+
+        if (s1 == null)
+            throw new NullPointerException("null Schema");
+        if (field == null)
+            throw new NullPointerException("null Field");
             
         for (Association a : getAll()) {
             if (a.isEnabled() && a.isBetween(s1, s2) && !a.contains(field))
                 betweens.add(a);
         }
-        //if (DEBUG.SCHEMA && DEBUG.META)
-        if (DEBUG.Enabled)
+        if (DEBUG.Enabled) {
             dumpSmart(betweens, "joins for schemas: " + s1.getName() + " x " + s2.getName()
                       + "; excluding-field: " + Relation.quoteKey(field));
+        }
         return betweens;
     }
 
     private static void dumpSmart(List list, String msg) {
         String s = "";
-        if (list.size() == 1)
-            s = ": " + list.get(0).toString();
+        if (list.size() <= 1) {
+            if (list.size() == 1)
+                s = ": " + list.get(0).toString();
+            else
+                s = ": none";
+            //s = ": " + Util.tags(list);
+        } 
         Log.debug(msg + s);
-        if (s.length() == 0)
+        if (list.size() > 1)
             Util.dump(list);
     }
 
