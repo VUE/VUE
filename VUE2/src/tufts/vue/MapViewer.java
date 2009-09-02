@@ -75,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.627 $ / $Date: 2009-09-02 16:28:39 $ / $Author: sfraize $ 
+ * @version $Revision: 1.628 $ / $Date: 2009-09-02 18:53:18 $ / $Author: brian $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -4999,101 +4999,88 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         return sArrangeMenu;
     }
      */
-    
-    private Component multiPathway;
-    private static JPopupMenu sMultiPopup = null;
-    
-    private JPopupMenu buildMultiSelectionPopup() {
-System.out.println("!!!!!!!!!!!!!!!!!!!!!!! buildMultiSelectionPopup");
-    	   if (sMultiPopup != null)
-           	sMultiPopup.removeAll();
-           else
-           {        	        	        	
-           	sMultiPopup = new JPopupMenu();           	
-           }
-    	if (!(this.getFocal() instanceof LWSlide))
-    	{
-    		sMultiPopup.add(Actions.Group);
-    		sMultiPopup.add(Actions.Ungroup);
-    		sMultiPopup.addSeparator();
-    	}
-        
-    	
-        multiPathway = sMultiPopup.add(Actions.AddPathwayItem);
-     
-        //Manage pathway list
-        if (getMap().getPathwayList().getActivePathway() == null) {
-            multiPathway.setVisible(false);
-        } else {
-        	multiPathway.setVisible(true);
-        }
-     
-        if (VUE.getSelection().allOfType(LWLink.class))
-        	multiPathway.setVisible(false);
-        
-        if (this.getFocal() instanceof LWSlide)        
-        	multiPathway.setVisible(false);
-        
-     
-        //if (VUE.getSelection().allOfType(LWNode.class))
-        	//sMultiPopup.add(syncMenu);
-        
-        if (multiPathway.isVisible()) //|| VUE.getSelection().allOfType(LWNode.class))
-        	sMultiPopup.addSeparator();
-        	
-        
-        
-        sMultiPopup.add(Actions.Copy);
-        sMultiPopup.add(Actions.Paste);
-        
-        //Format Box        
-        WindowDisplayAction formatAction = new WindowDisplayAction(VUE.getFormatDock());
-        JCheckBoxMenuItem formatBox = new JCheckBoxMenuItem(formatAction);
-        if (VUE.getFormatDock().isShowing())
-        	formatBox.setSelected(true);
-        formatAction.setTitle(VueResources.getString("dockWindow.format.title"));      
-        sMultiPopup.add(formatBox);
-        //end Format Box
-        final JMenu extendMenu = new JMenu(VueResources.getString("mapviewer.extend"));
-        
-        sMultiPopup.add(GUI.buildMenu(VueResources.getString("mapviewer.align"), Actions.ARRANGE_MENU_ACTIONS));  
-        sMultiPopup.add(GUI.buildMenu(VueResources.getString("menu.layout"),LayoutAction.LAYOUT_ACTIONS));
-        sMultiPopup.add(GUI.buildMenu(extendMenu, Actions.EXTEND_MENU_ACTIONS));
-        LWSelection selection = VUE.getSelection();
-		
-        if (selection.size() > 1 && selection.count(LWLink.class) ==0)
-		{
-			extendMenu.setEnabled(true);
-		}
-		else
-		{
-			extendMenu.setEnabled(false);
-		}
-		
-        if (this.getFocal() instanceof LWSlide)
-        {        	
-        	extendMenu.setVisible(false);
-        }
-        JMenu arrangeMenu = new JMenu(VueResources.getString("menu.arrange"));
-        arrangeMenu.add(Actions.BringToFront);
-        arrangeMenu.add(Actions.BringForward);
-        arrangeMenu.add(Actions.SendToBack);
-        arrangeMenu.add(Actions.SendBackward);
-        sMultiPopup.add(arrangeMenu);
-        sMultiPopup.add(Actions.Duplicate);
-        sMultiPopup.add(Actions.DeselectAll);
-        sMultiPopup.add(Actions.Delete);
 
-        if (DEBUG.Enabled) sMultiPopup.add(Actions.ImageToNaturalSize);
-        
-        GUI.adjustMenuIcons(sMultiPopup);
-        
-        sMultiPopup.setLightWeightPopupEnabled(false);
-        
-        return sMultiPopup;
+    private static JPopupMenu sMultiPopup = null;
+
+    private JPopupMenu buildMultiSelectionPopup() {
+		if (sMultiPopup != null) {
+			sMultiPopup.removeAll();
+		} else {
+			sMultiPopup = new JPopupMenu();
+		}
+
+		infoCheckBox.setLabel(VueResources.getString("mapViewer.componentMenu.selInfo.label"));
+		infoCheckBox.setSelected(VUE.getInfoDock().isShowing());
+		sMultiPopup.add(infoCheckBox);
+
+		WindowDisplayAction formatAction = new WindowDisplayAction(VUE.getFormatDock());
+		JCheckBoxMenuItem formatBox = new JCheckBoxMenuItem(formatAction);
+		formatBox.setSelected(VUE.getFormatDock().isShowing());
+		formatAction.setTitle(VueResources.getString("mapViewer.componentMenu.format.label"));
+		sMultiPopup.add(formatBox);
+
+		sMultiPopup.addSeparator();
+		sMultiPopup.add(Actions.ContextKeywordAction);
+
+		sMultiPopup.addSeparator();
+		sMultiPopup.add(Actions.ZoomToSelection);
+		sMultiPopup.add(Actions.ZoomFit);
+		sMultiPopup.add(Actions.ZoomActual);
+
+		sMultiPopup.addSeparator();
+		JMenu arrangeMenu = new JMenu(VueResources.getString("menu.arrange"));
+		arrangeMenu.add(Actions.BringToFront);
+		arrangeMenu.add(Actions.BringForward);
+		arrangeMenu.add(Actions.SendToBack);
+		arrangeMenu.add(Actions.SendBackward);
+		sMultiPopup.add(arrangeMenu);
+
+		sMultiPopup.add(GUI.buildMenu(VueResources.getString("menu.layout"),LayoutAction.LAYOUT_ACTIONS));
+		final JMenu extendMenu = new JMenu(VueResources.getString("mapviewer.extend"));
+		sMultiPopup.add(GUI.buildMenu(VueResources.getString("mapviewer.align"), Actions.ARRANGE_MENU_ACTIONS));
+		sMultiPopup.add(GUI.buildMenu(extendMenu, Actions.EXTEND_MENU_ACTIONS));
+		LWSelection selection = VUE.getSelection();
+		extendMenu.setEnabled(selection.size() > 1 && selection.count(LWLink.class) == 0 &&
+				!(this.getFocal() instanceof LWSlide));
+
+		sMultiPopup.addSeparator();
+		Component	multiAddPathway = sMultiPopup.add(Actions.AddPathwayItem);
+		boolean		enablePathway = getMap().getPathwayList().getActivePathway() != null &&
+						!VUE.getSelection().allOfType(LWLink.class) &&
+						!(this.getFocal() instanceof LWSlide);
+		multiAddPathway.setEnabled(enablePathway);
+		sMultiPopup.add(Actions.RemovePathwayItem);
+
+		if (VUE.getSelection().allOfType(LWNode.class)) {
+			sMultiPopup.add(syncMenu);
+		}
+
+		if (!(this.getFocal() instanceof LWSlide)) {
+			sMultiPopup.addSeparator();
+			sMultiPopup.add(Actions.Group);
+			sMultiPopup.add(Actions.Ungroup);
+		}
+
+		sMultiPopup.addSeparator();
+		sMultiPopup.add(Actions.PasteStyle);
+
+		sMultiPopup.addSeparator();
+		sMultiPopup.add(Actions.Cut);
+		sMultiPopup.add(Actions.Copy);
+		sMultiPopup.add(Actions.Paste);
+		sMultiPopup.add(Actions.Duplicate);
+		sMultiPopup.add(Actions.Delete);
+
+		if (DEBUG.Enabled) sMultiPopup.add(Actions.ImageToNaturalSize);
+
+		GUI.adjustMenuIcons(sMultiPopup);
+
+		sMultiPopup.setLightWeightPopupEnabled(false);
+
+		return sMultiPopup;
     }
-    
-    
+
+
     private static JMenuItem sAddFileItem;
     private static JMenuItem sAddURLItem;
     private static JCheckBoxMenuItem formatBox;
@@ -5144,6 +5131,11 @@ System.out.println("!!!!!!!!!!!!!!!!!!!!!!! buildMultiSelectionPopup");
     	AnalyzerAction.buildSubMenu(analyzeNodeMenu);
     	sSinglePopup.add(analyzeNodeMenu);
 
+    	sSinglePopup.addSeparator();
+    	sSinglePopup.add(Actions.ZoomToSelection);
+    	sSinglePopup.add(Actions.ZoomFit);
+    	sSinglePopup.add(Actions.ZoomActual);
+
         sSinglePopup.addSeparator();
         sSinglePopup.add(arrangeMenu);
         sSinglePopup.add(GUI.buildMenu(VueResources.getString("menu.layout"),LayoutAction.LAYOUT_ACTIONS));
@@ -5153,9 +5145,15 @@ System.out.println("!!!!!!!!!!!!!!!!!!!!!!! buildMultiSelectionPopup");
     	sSinglePopup.add(Actions.RemovePathwayItem);
         sSinglePopup.add(syncMenu);
 
+   	    sSinglePopup.addSeparator();
+   	    sSinglePopup.add(Actions.CopyStyle);
+        sSinglePopup.add(Actions.PasteStyle);
+
         sSinglePopup.addSeparator();
+   	    sSinglePopup.add(Actions.Cut);
         sSinglePopup.add(Actions.Copy);
         sSinglePopup.add(Actions.Paste);
+        sSinglePopup.add(Actions.Duplicate);
         sSinglePopup.add(Actions.Delete);
 
         if (r == null) {
@@ -5192,12 +5190,23 @@ System.out.println("!!!!!!!!!!!!!!!!!!!!!!! buildMultiSelectionPopup");
    	    sAddFileItem = sSinglePopup.add(Actions.AddFileAction);
     	sRemoveResourceItem = sSinglePopup.add(Actions.RemoveResourceAction);
 
+    	sSinglePopup.addSeparator();
+    	sSinglePopup.add(Actions.ZoomToSelection);
+    	sSinglePopup.add(Actions.ZoomFit);
+    	sSinglePopup.add(Actions.ZoomActual);
+
    	    sSinglePopup.addSeparator();
         sSinglePopup.add(arrangeMenu);
 
    	    sSinglePopup.addSeparator();
+   	    sSinglePopup.add(Actions.CopyStyle);
+        sSinglePopup.add(Actions.PasteStyle);
+
+   	    sSinglePopup.addSeparator();
+   	    sSinglePopup.add(Actions.Cut);
    	    sSinglePopup.add(Actions.Copy);
         sSinglePopup.add(Actions.Paste);
+        sSinglePopup.add(Actions.Duplicate);
         sSinglePopup.add(Actions.Delete);
 
         if (r == null) {
@@ -5350,27 +5359,24 @@ System.out.println("!!!!!!!!!!!!!!!!!!!!!!! buildSingleSelectionImagePopup");
         if (c == null)
             c = VueSelection.first(); // should be only thing in selection
         
-        if (sSinglePopup != null)
+        if (sSinglePopup != null) {
         	sSinglePopup.removeAll();
-        else
-        {
+        } else {
         	sSinglePopup = new JPopupMenu();
            	
             syncMenu.add(Actions.SyncToNode);
             syncMenu.add(Actions.SyncToSlide);
             syncMenu.add(Actions.SyncAll);
+
             WindowDisplayAction formatAction = new WindowDisplayAction(VUE.getFormatDock());
             formatBox = new JCheckBoxMenuItem(formatAction);
-            if (VUE.getFormatDock().isShowing())
-            	formatBox.setSelected(true);
+            formatBox.setSelected(VUE.getFormatDock().isShowing());
             formatAction.setTitle(VueResources.getString("mapViewer.componentMenu.format.label"));
               
             arrangeMenu.add(Actions.BringToFront);
             arrangeMenu.add(Actions.BringForward);
             arrangeMenu.add(Actions.SendToBack);
             arrangeMenu.add(Actions.SendBackward);
-                   
-            
         }
         
         if (c instanceof LWNode )
@@ -5593,12 +5599,15 @@ System.out.println("!!!!!!!!!!!!!!!!!!!!!!! buildSingleSelectionImagePopup");
             });
             sMapPopup.addSeparator();
             GUI.addToMenu(sMapPopup, Actions.NEW_OBJECT_ACTIONS);
+
             sMapPopup.addSeparator();
-            
             sMapPopup.add(Actions.ZoomFit);
             sMapPopup.add(Actions.ZoomActual);
-            if (!Util.isUnixPlatform())
+
+            if (!Util.isUnixPlatform()) {
             	sMapPopup.add(Actions.ToggleFullScreen);
+            }
+
             sMapPopup.addSeparator();            
             sMapPopup.add(Actions.Paste);
             sMapPopup.add(Actions.SelectAll);
