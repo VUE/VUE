@@ -70,7 +70,7 @@ public class LWImage extends LWComponent
     //static int MaxRenderSize = PreferencesManager.getIntegerPrefValue(ImageSizePreference.getInstance());
     //private static VueIntegerPreference PrefImageSize = ImageSizePreference.getInstance(); // is failing for some reason
     //static int MaxRenderSize = PrefImageSize.getValue();
-    public static final int DefaultMaxDimension = 64;
+    public static final int DefaultMaxDimension = 128;
     
     private final static int MinWidth = 16;
     private final static int MinHeight = 16;
@@ -684,7 +684,7 @@ public class LWImage extends LWComponent
 
             if (this.width == NEEDS_DEFAULT || this.height == NEEDS_DEFAULT) {
                 //Log.error("cannot auto-shape without request size: " + this, new Throwable("HERE"));
-                if (DEBUG.Enabled) Log.info("autoshaping from scratch " + this);
+                if (DEBUG.Enabled) out("autoshaping from scratch to " + DefaultMaxDimension);
                 setMaxDimension(DefaultMaxDimension);
                 return;
             }
