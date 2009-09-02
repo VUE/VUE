@@ -9,9 +9,15 @@
 		<flow label="Resource Word Count" uri="http://vue.tufts.edu/word-counts-vuetokenizer/word-counts-for-vue-using-vue-tokenizer/" url="http://vue-dl.tccs.tufts.edu:1719/service/ping" >
 				<input>location</input>
 		</flow>
+		<flow label="Flesch Kincaid Readability Measure" uri="http://vue.tufts.edu/readability-score/readability-score/" url="http://vue-dl.tccs.tufts.edu:1718/service/ping" >
+				<input>location</input>
+		</flow>
 	</flow_group>
 	<flow_group label="Add Notes" input="one" output="map" >
 		<flow label="Resource Word Count" uri="http://vue.tufts.edu/word-counts-vuetokenizer/word-counts-for-vue-using-vue-tokenizer/" url="http://vue-dl.tccs.tufts.edu:1719/service/ping" >
+				<input>location</input>
+		</flow>
+		<flow label="Flesch Kincaid Readability Measure" uri="http://vue.tufts.edu/readability-score/readability-score/" url="http://vue-dl.tccs.tufts.edu:1718/service/ping" >
 				<input>location</input>
 		</flow>
 	</flow_group>
