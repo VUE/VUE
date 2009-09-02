@@ -75,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.628 $ / $Date: 2009-09-02 18:53:18 $ / $Author: brian $ 
+ * @version $Revision: 1.629 $ / $Date: 2009-09-02 23:04:33 $ / $Author: brian $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -5028,20 +5028,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 		sMultiPopup.add(Actions.ZoomActual);
 
 		sMultiPopup.addSeparator();
-		JMenu arrangeMenu = new JMenu(VueResources.getString("menu.arrange"));
-		arrangeMenu.add(Actions.BringToFront);
-		arrangeMenu.add(Actions.BringForward);
-		arrangeMenu.add(Actions.SendToBack);
-		arrangeMenu.add(Actions.SendBackward);
-		sMultiPopup.add(arrangeMenu);
-
+		sMultiPopup.add(GUI.buildMenu(VueResources.getString("menu.arrange"), Actions.ARRANGE_MENU_ACTIONS));
 		sMultiPopup.add(GUI.buildMenu(VueResources.getString("menu.layout"),LayoutAction.LAYOUT_ACTIONS));
-		final JMenu extendMenu = new JMenu(VueResources.getString("mapviewer.extend"));
-		sMultiPopup.add(GUI.buildMenu(VueResources.getString("mapviewer.align"), Actions.ARRANGE_MENU_ACTIONS));
-		sMultiPopup.add(GUI.buildMenu(extendMenu, Actions.EXTEND_MENU_ACTIONS));
-		LWSelection selection = VUE.getSelection();
-		extendMenu.setEnabled(selection.size() > 1 && selection.count(LWLink.class) == 0 &&
-				!(this.getFocal() instanceof LWSlide));
 
 		sMultiPopup.addSeparator();
 		Component	multiAddPathway = sMultiPopup.add(Actions.AddPathwayItem);
@@ -5122,23 +5110,26 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     	sAddFileItem = sSinglePopup.add(Actions.AddFileAction);
     	sRemoveResourceItem = sSinglePopup.add(Actions.RemoveResourceAction);
 
-    	if (VUE.isApplet() && VueApplet.isZoteroApplet() && r!=null) {
-    		sSinglePopup.add(Actions.AddResourceToZotero);
-    	}
-
-        // Keep this for now -- but maybe not forever...
-    	JMenu analyzeNodeMenu = new JMenu(VueResources.getString("mapviewer.analyze.node"));
-    	AnalyzerAction.buildSubMenu(analyzeNodeMenu);
-    	sSinglePopup.add(analyzeNodeMenu);
-
     	sSinglePopup.addSeparator();
     	sSinglePopup.add(Actions.ZoomToSelection);
     	sSinglePopup.add(Actions.ZoomFit);
     	sSinglePopup.add(Actions.ZoomActual);
 
         sSinglePopup.addSeparator();
-        sSinglePopup.add(arrangeMenu);
+        sSinglePopup.add(GUI.buildMenu(VueResources.getString("menu.arrange"), Actions.ARRANGE_MENU_ACTIONS));
         sSinglePopup.add(GUI.buildMenu(VueResources.getString("menu.layout"),LayoutAction.LAYOUT_ACTIONS));
+
+    	if (VUE.isApplet() && VueApplet.isZoteroApplet() && r!=null) {
+        	sSinglePopup.addSeparator();
+    		sSinglePopup.add(Actions.AddResourceToZotero);
+    	}
+
+    	sSinglePopup.addSeparator();
+        // Keep this for now -- but maybe replace with just PerformMap Based Search and Semantic Map,
+    	// and put Add Most Relevant flickr image underneath Add Image above
+    	JMenu analyzeNodeMenu = new JMenu(VueResources.getString("mapviewer.analyze.node"));
+    	AnalyzerAction.buildSubMenu(analyzeNodeMenu);
+    	sSinglePopup.add(analyzeNodeMenu);
 
         sSinglePopup.addSeparator();
     	sSinglePopup.add(Actions.AddPathwayItem);
@@ -5196,7 +5187,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     	sSinglePopup.add(Actions.ZoomActual);
 
    	    sSinglePopup.addSeparator();
-        sSinglePopup.add(arrangeMenu);
+        sSinglePopup.add(GUI.buildMenu(VueResources.getString("menu.arrange"), Actions.ARRANGE_MENU_ACTIONS));
 
    	    sSinglePopup.addSeparator();
    	    sSinglePopup.add(Actions.CopyStyle);
@@ -5309,29 +5300,34 @@ System.out.println("!!!!!!!!!!!!!!!!!!!!!!! buildSingleSelectionPortalPopup");
     
     private void buildSingleSelectionGroupPopup()
     {
-System.out.println("!!!!!!!!!!!!!!!!!!!!!!! buildSingleSelectionGroupPopup");
-    	 sSinglePopup.add(Actions.Ungroup);
-    	 sSinglePopup.addSeparator();
-    	 infoCheckBox.setLabel(VueResources.getString("mapViewer.componentMenu.groupInfo.label"));
-    	 if (VUE.getInfoDock().isShowing())
-         	infoCheckBox.setSelected(true);
-     	 sSinglePopup.add(infoCheckBox);
-     	 sSinglePopup.addSeparator();
-      	 sSinglePopup.add(Actions.ContextNotesAction);
-    	 sSinglePopup.add(Actions.ContextKeywordAction);
+    	infoCheckBox.setLabel(VueResources.getString("mapViewer.componentMenu.groupInfo.label"));
+    	infoCheckBox.setSelected(VUE.getInfoDock().isShowing());
+    	sSinglePopup.add(infoCheckBox);
+    	sSinglePopup.add(Actions.Ungroup);
 
-    	 //
-         // Add to Pathway stuff goes here.
-         //
-    	 sSinglePopup.add(Actions.AddPathwayItem);
-    	 sSinglePopup.add(Actions.RemovePathwayItem);
-    	 sSinglePopup.addSeparator();
-    	 sSinglePopup.add(Actions.Copy);
-         sSinglePopup.add(Actions.Paste);
-         sSinglePopup.add(Actions.DeselectAll);
-         sSinglePopup.add(formatBox);
-         sSinglePopup.add(arrangeMenu);
-         sSinglePopup.add(Actions.Delete);    	 
+    	sSinglePopup.addSeparator();
+    	sSinglePopup.add(Actions.ContextNotesAction);
+    	sSinglePopup.add(Actions.ContextKeywordAction);
+
+    	sSinglePopup.addSeparator();
+    	sSinglePopup.add(Actions.ZoomToSelection);
+    	sSinglePopup.add(Actions.ZoomFit);
+    	sSinglePopup.add(Actions.ZoomActual);
+
+   	    sSinglePopup.addSeparator();
+        sSinglePopup.add(GUI.buildMenu(VueResources.getString("menu.arrange"), Actions.ARRANGE_MENU_ACTIONS));
+
+    	sSinglePopup.addSeparator();
+		sSinglePopup.add(Actions.AddPathwayItem);
+		sSinglePopup.add(Actions.RemovePathwayItem);
+        sSinglePopup.add(syncMenu);
+
+		sSinglePopup.addSeparator();
+		sSinglePopup.add(Actions.Cut);
+		sSinglePopup.add(Actions.Copy);
+		sSinglePopup.add(Actions.Paste);
+		sSinglePopup.add(Actions.Duplicate);    	 
+		sSinglePopup.add(Actions.Delete);    	 
     }
     
     private void buildSingleSelectionImagePopup()
