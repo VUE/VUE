@@ -455,7 +455,16 @@ public class EditorManager
             Log.error("failed to fire property for LWEditor " + editor + " for source " + source, t);
         }
     }
-
+    
+    public static boolean isEditorLoading()
+    {
+    	return EditorLoadingUnderway;
+    }
+    
+    public static void setEditorLoading(boolean loading)
+    {
+    	EditorLoadingUnderway = loading;
+    }
 
     /** Will either modifiy the active selection, or if it's empty, modify the default state (creation state) for this tool panel */
     private static void applySinglePropertyChange(final Object key,
@@ -915,8 +924,8 @@ public class EditorManager
             } catch (Throwable t) {
                 Log.warn("editor not ready to produce value: " + Util.tags(editor) + "; " + t);
             }
-
-            if (curVal != null && VUE.isStartupUnderway()) {
+ 			  if (curVal != null && VUE.isStartupUnderway()) {
+      //      if (curVal != null) {
                 // doing this at runtime this can break us badly (LWText 0 font size props leaking to LWNodes!)
                 recordPropertyChangeInStyles("register",
                                              editor.getPropertyKey(),
