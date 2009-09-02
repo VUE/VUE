@@ -27,17 +27,10 @@ import java.util.Map;
 import org.meandre.annotations.Component;
 import org.meandre.annotations.ComponentInput;
 import org.meandre.annotations.ComponentOutput;
-import org.meandre.annotations.ComponentProperty;
 import org.meandre.annotations.Component.Mode;
 import org.meandre.core.ComponentContext;
-import org.meandre.core.ComponentContextException;
 import org.meandre.core.ComponentContextProperties;
-import org.meandre.core.ComponentExecutionException;
-import org.meandre.core.ExecutableComponent;
-import org.meandre.webui.ConfigurableWebUIFragmentCallback;
-import org.meandre.webui.WebUIException;
 import org.meandre.components.abstracts.AbstractExecutableComponent;
-import org.seasr.datatypes.BasicDataTypesTools;
 import org.seasr.meandre.components.tools.Names;
 import org.seasr.meandre.support.parsers.DataTypeParser;
 
@@ -46,7 +39,7 @@ import org.seasr.meandre.support.parsers.DataTypeParser;
 @Component(
 		baseURL = "meandre://seasr.org/components/hashmapserializer/", 
 		creator = "Anoop Kumar", 
-		description = "Thi component takes an intergerhashmap and serialiazes it v1.0.0 ", 
+		description = "This component takes an intergerhashmap and serialiazes it v1.0.0 ", 
 		name = "HashMap Serializer", tags = "WebUI, process request", 
 		mode = Mode.webui, firingPolicy = Component.FiringPolicy.all
 )
