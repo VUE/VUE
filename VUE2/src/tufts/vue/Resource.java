@@ -37,7 +37,7 @@ import javax.swing.ImageIcon;
  *  objects, displaying their content, and fetching their data.
 
  *
- * @version $Revision: 1.89 $ / $Date: 2009-06-30 17:30:10 $ / $Author: sfraize $
+ * @version $Revision: 1.90 $ / $Date: 2009-09-02 16:25:59 $ / $Author: sfraize $
  */
 
 public abstract class Resource implements Cloneable
@@ -938,6 +938,7 @@ public abstract class Resource implements Cloneable
         String s = path.toLowerCase();
         if    (s.endsWith(".gif")
             || s.endsWith(".jpg")
+            || s.endsWith(".jpe")
             || s.endsWith(".jpeg")
             || s.endsWith(".png")
             || s.endsWith(".tif")
