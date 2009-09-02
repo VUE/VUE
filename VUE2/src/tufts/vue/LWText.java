@@ -61,7 +61,9 @@ public class LWText extends LWComponent {
 	}
 	
 	public boolean isAutoSized() { return isAutoSized; }
-	
+	 public long getSupportedPropertyBits() {
+	        return 0;
+	    }
 	public String getRichText()
 	{
 		return richLabelBox.getRichText();

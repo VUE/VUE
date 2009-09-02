@@ -45,7 +45,7 @@ import com.lightdev.app.shtm.Util;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.86 $ / $Date: 2009-03-23 02:49:21 $ / $Author: vaibhav $
+ * @version $Revision: 1.87 $ / $Date: 2009-09-02 02:38:54 $ / $Author: mike $
  *
  */
 public class FontEditorPanel extends JPanel
@@ -96,7 +96,19 @@ public class FontEditorPanel extends JPanel
     private final SHTMLEditorKitActions.FontFamilyAction fontFamilyAction = new SHTMLEditorKitActions.FontFamilyAction(null);
     private final SHTMLEditorKitActions.FontSizeAction fontSizeAction = new SHTMLEditorKitActions.FontSizeAction(null);
     private final SHTMLEditorKitActions.FontColorAction fontColorAction = new SHTMLEditorKitActions.FontColorAction(null);
-   // private final AlignmentListener alignmentListener = new AlignmentListener();
+    
+    //private ActionListener toggleNumbersAct
+    private ActionListener richBoldActionWrapper = null;
+    private ActionListener richItalicActionWrapper = null;
+    private ActionListener richUnderlineActionWrapper = null;
+    private ActionListener toggleBulletsActionWrapper = null;
+    private ActionListener toggleNumbersActionWrapper = null;
+    private ActionListener paraAlignLeftActionWrapper = null;
+    private ActionListener paraAlignCenterActionWrapper = null;
+    private ActionListener paraAlignRightActionWrapper = null;
+    private ActionListener fontFamilyActionWrapper = null;
+    private ActionListener fontSizeActionWrapper = null;
+    
     private LWPropertyHandler sizeHandler = null;
     
     private ActionListener globalSizeListener=null;
@@ -171,6 +183,122 @@ public class FontEditorPanel extends JPanel
 //                     System.err.println(mFontCombo + ": itemStateChanged " + e);
 //                 }
 //             });
+        
+        fontSizeActionWrapper = new ActionListener(){
+
+			public void actionPerformed(ActionEvent e) {
+				if (suspendItemListeners) return;
+				if (EditorManager.isEditorLoading()) return;
+
+				fontSizeAction.actionPerformed(e);
+				
+			}
+        	   
+           };
+           
+           fontFamilyActionWrapper = new ActionListener(){
+
+   			public void actionPerformed(ActionEvent e) {
+
+				if (suspendItemListeners) return;
+				if (EditorManager.isEditorLoading()) return;
+
+   				fontFamilyAction.actionPerformed(e);
+   				
+   			}
+           };
+              
+           paraAlignRightActionWrapper = new ActionListener(){
+
+      			public void actionPerformed(ActionEvent e) {
+
+    				if (suspendItemListeners) return;
+    				if (EditorManager.isEditorLoading()) return;
+
+      				paraAlignRightAction.actionPerformed(e);
+      				
+      		}              	  
+           };
+
+           paraAlignLeftActionWrapper = new ActionListener(){
+
+           			public void actionPerformed(ActionEvent e) {
+
+        				if (suspendItemListeners) return;
+        				if (EditorManager.isEditorLoading()) return;
+
+        				paraAlignLeftAction.actionPerformed(e);
+           				
+      			}
+             };
+
+             paraAlignCenterActionWrapper = new ActionListener(){
+
+            	 public void actionPerformed(ActionEvent e) {
+
+     				if (suspendItemListeners) return;
+    				if (EditorManager.isEditorLoading()) return;
+
+            		 paraAlignCenterAction.actionPerformed(e);
+                }
+             };
+
+             toggleBulletsActionWrapper = new ActionListener(){
+
+            	 public void actionPerformed(ActionEvent e) {
+
+     				if (suspendItemListeners) return;
+    				if (EditorManager.isEditorLoading()) return;
+
+     				toggleBulletsAction.actionPerformed(e);
+                }
+             };
+
+             toggleNumbersActionWrapper = new ActionListener(){
+
+            	 public void actionPerformed(ActionEvent e) {
+
+     				if (suspendItemListeners) return;
+    				if (EditorManager.isEditorLoading()) return;
+                
+                    toggleNumbersAction.actionPerformed(e);
+                }
+             };
+
+             richBoldActionWrapper = new ActionListener(){
+
+            	 public void actionPerformed(ActionEvent e) {
+
+     				if (suspendItemListeners) return;
+    				if (EditorManager.isEditorLoading()) return;
+
+            		 richBoldAction.actionPerformed(e);
+                }
+             };
+
+             richUnderlineActionWrapper = new ActionListener(){
+
+            	 public void actionPerformed(ActionEvent e) {
+                
+     				if (suspendItemListeners) return;
+    				if (EditorManager.isEditorLoading()) return;                              
+                        		
+                    richUnderlineAction.actionPerformed(e);
+                }
+             };
+             
+             richItalicActionWrapper = new ActionListener(){
+
+            	 public void actionPerformed(ActionEvent e) {
+
+            		if (suspendItemListeners) return;
+    				if (EditorManager.isEditorLoading()) return;
+
+    				richItalicAction.actionPerformed(e);
+                }
+             };
+
+
         /* LWText ActionListeners Start */
        
         globalBoldListener = new ActionListener(){
@@ -179,7 +307,8 @@ public class FontEditorPanel extends JPanel
         	{
         		if (lwtext == null)
         			return;
-
+        		if (EditorManager.isEditorLoading())
+        			return;
         		//System.out.println("BOLD : " + countf++);
         		lwtext.richLabelBox.selectAll();
         		
@@ -224,7 +353,8 @@ public class FontEditorPanel extends JPanel
          		
          		if (lwtext == null)
         			return;
-
+         		if (EditorManager.isEditorLoading())
+        			return;
         		//System.out.println("BOLD : " + countf++);
         		lwtext.richLabelBox.selectAll();
         		
@@ -268,7 +398,8 @@ public class FontEditorPanel extends JPanel
           		
           		if (lwtext == null)
         			return;
-
+          		if (EditorManager.isEditorLoading())
+        			return;
         		//System.out.println("BOLD : " + countf++);
         		lwtext.richLabelBox.selectAll();
         		
@@ -315,6 +446,8 @@ public class FontEditorPanel extends JPanel
         		if (lwtext == null)
         			return;
 
+        		if (EditorManager.isEditorLoading())
+        			return;
         		lwtext.richLabelBox.selectAll();
         		final String textSize = mSizeField.getSelectedItem().toString();
         		SHTMLDocument doc = (SHTMLDocument)lwtext.richLabelBox.getDocument();
@@ -344,6 +477,8 @@ public class FontEditorPanel extends JPanel
         			return;
         		
           		if (lwtext == null)
+        			return;
+          		if (EditorManager.isEditorLoading())
         			return;
           		lwtext.richLabelBox.selectAll();
         		SHTMLDocument doc = (SHTMLDocument)lwtext.richLabelBox.getDocument();
@@ -516,9 +651,9 @@ public class FontEditorPanel extends JPanel
     	buttonGroup.add(mCenterAlignButton);
     	buttonGroup.add(mRightAlignButton);
         // We can set these once -- they're not property based:
-        mUnderlineButton.addActionListener(richUnderlineAction);						
-        orderedListButton.addActionListener(toggleNumbersAction);
-        unorderedListButton.addActionListener(toggleBulletsAction);
+        mUnderlineButton.addActionListener(richUnderlineActionWrapper);						
+        orderedListButton.addActionListener(toggleNumbersActionWrapper);
+        unorderedListButton.addActionListener(toggleBulletsActionWrapper);
         
         alignmentHandler  = new LWPropertyHandler<LWComponent.Alignment>(LWKey.Alignment) 
         {
@@ -1155,7 +1290,7 @@ public class FontEditorPanel extends JPanel
     {
     	if (DEBUG_FONTPANEL)
     		System.out.println("ESTABLISH LWT Listeners");
-    	suspendItemListeners=true;
+
     	breakdownDefaultListeners();
     	//clearAlignmentSelection();
     	VUE.getFormatDock().setFocusable(false);
@@ -1170,10 +1305,12 @@ public class FontEditorPanel extends JPanel
         mSizeField.setEnabled(true);
         mTextColorButton.setEnabled(true);             
         
+       
         lwtext = (LWText)activeText;
+//MK        lwtext.richLabelBox.removeCaretListener(this);
         updateFormatControlsTB(lwtext.richLabelBox);
         
-        lwtext.richLabelBox.removeCaretListener(this);
+        
         
         //mFontCombo.removeActionListener(fontPropertyHandler);             
         //mSizeField.removeActionListener(sizeHandler);
@@ -1188,7 +1325,12 @@ public class FontEditorPanel extends JPanel
         mSizeField.addActionListener(globalSizeListener);
         mFontCombo.addActionListener(globalFaceListener);
         LWTextListenersAdded = true;
-        suspendItemListeners=false;
+    }
+    
+    private void breakdownRichTextListeners(RichTextBox activeText)
+    {
+  //MK  	activeText.removeCaretListener(this);
+    	breakdownRichTextListeners();
     }
     
     private void breakdownLWTextListeners()
@@ -1196,7 +1338,6 @@ public class FontEditorPanel extends JPanel
     	if (DEBUG_FONTPANEL)
     		System.out.println("BREAKDOWN LWT Listeners");
     	lwtext=null;
-    	suspendItemListeners=true;
 		//System.out.println("lost lw text");
     //	clearAlignmentSelection();
     	mLeftAlignButton.setEnabled(false);
@@ -1209,16 +1350,9 @@ public class FontEditorPanel extends JPanel
         stripAllListeners(mBoldButton);
         stripAllListeners(mItalicButton);
         stripAllListeners(mUnderlineButton);
-    
-          //    mSizeField.addActionListener(fontPropertyHandler);
-        
-    //    if (!EditorManager.isRegistered(sizeHandler))
-    //    	EditorManager.registerEditor(sizeHandler);
-     //   if (!EditorManager.isRegistered(fontPropertyHandler))
-      //  	EditorManager.registerEditor(fontPropertyHandler);
+   
         LWTextListenersAdded = false;
         establishDefaultListeners();
-        suspendItemListeners=false;
 
     }
     
@@ -1227,7 +1361,9 @@ public class FontEditorPanel extends JPanel
     
     	if (DEBUG_FONTPANEL)
     		System.out.println("BREAKDOWN RTB Listeners");
-    	suspendItemListeners=true;
+    	
+    
+    	
     	//System.out.println("lost rtb rich text box");
         disableSpecialEditors();
         clearAlignmentSelection();
@@ -1243,18 +1379,17 @@ public class FontEditorPanel extends JPanel
 	    stripAllListeners(mUnderlineButton);
 	        
         
-        mFontCombo.removeActionListener(fontFamilyAction);
+        mFontCombo.removeActionListener(fontFamilyActionWrapper);
       //  mFontCombo.addActionListener(fontPropertyHandler);
         
-        mSizeField.removeActionListener(fontSizeAction);
+        mSizeField.removeActionListener(fontSizeActionWrapper);
       //  mSizeField.addActionListener(fontPropertyHandler);
 
-        mLeftAlignButton.removeActionListener(paraAlignLeftAction);
-        mCenterAlignButton.removeActionListener(paraAlignCenterAction);
-        mRightAlignButton.removeActionListener(paraAlignRightAction);
+        mLeftAlignButton.removeActionListener(paraAlignLeftActionWrapper);
+        mCenterAlignButton.removeActionListener(paraAlignCenterActionWrapper);
+        mRightAlignButton.removeActionListener(paraAlignRightActionWrapper);
         RTBListenersAdded = false;
         //establishDefaultListeners();
-        suspendItemListeners=false;
     }
     
     private void stripAllListeners(AbstractButton b)
@@ -1270,7 +1405,6 @@ public class FontEditorPanel extends JPanel
     {
     	if (DEBUG_FONTPANEL)
     		System.out.println("ESTABLISH RTB Listeners");
-    	suspendItemListeners=true;
     	breakdownDefaultListeners();
     	
     	//System.out.println("rtb rich text box");
@@ -1284,20 +1418,19 @@ public class FontEditorPanel extends JPanel
         activeText.setToggleBulletList(toggleBulletsAction);
         activeText.setNumberList(toggleNumbersAction);
         
-        mBoldButton.addActionListener(richBoldAction);			
-        mItalicButton.addActionListener(richItalicAction);			
-		mUnderlineButton.addActionListener(richUnderlineAction);
+        mBoldButton.addActionListener(richBoldActionWrapper);			
+        mItalicButton.addActionListener(richItalicActionWrapper);			
+		mUnderlineButton.addActionListener(richUnderlineActionWrapper);
 		
-        mFontCombo.addActionListener(fontFamilyAction);
-        mSizeField.addActionListener(fontSizeAction);
+        mFontCombo.addActionListener(fontFamilyActionWrapper);
+        mSizeField.addActionListener(fontSizeActionWrapper);
         
-        mLeftAlignButton.addActionListener(paraAlignLeftAction);
-        mCenterAlignButton.addActionListener(paraAlignCenterAction);
-        mRightAlignButton.addActionListener(paraAlignRightAction);
+        mLeftAlignButton.addActionListener(paraAlignLeftActionWrapper);
+        mCenterAlignButton.addActionListener(paraAlignCenterActionWrapper);
+        mRightAlignButton.addActionListener(paraAlignRightActionWrapper);
         
         enableSupportedEditors();
         RTBListenersAdded = true;
-        suspendItemListeners=false;
     }
     
     public void establishDefaultListeners()
@@ -1305,18 +1438,17 @@ public class FontEditorPanel extends JPanel
     	
     	if (DEBUG_FONTPANEL)
     		System.out.println("ESTABLISH Default Listeners");
-    	suspendItemListeners=true;
       VUE.getFormatDock().setFocusable(true);
   	  VUE.getFormatDock().setFocusableWindowState(true);
-  	clearAlignmentSelection();
+  	  clearAlignmentSelection();
   	  mLeftAlignButton.setEnabled(false);
   	  mCenterAlignButton.setEnabled(false);
   	  mRightAlignButton.setEnabled(false);
   	  
-      if (!EditorManager.isRegistered(sizeHandler))
-         EditorManager.registerEditor(sizeHandler);
-      if (!EditorManager.isRegistered(fontPropertyHandler))
-    	 EditorManager.registerEditor(fontPropertyHandler);
+   //   if (!EditorManager.isRegistered(sizeHandler))
+    //     EditorManager.registerEditor(sizeHandler);
+     // if (!EditorManager.isRegistered(fontPropertyHandler))
+    //	 EditorManager.registerEditor(fontPropertyHandler);
     	        
       mBoldButton.addActionListener(styleChangeHandler);
       mItalicButton.addActionListener(styleChangeHandler);  
@@ -1327,16 +1459,14 @@ public class FontEditorPanel extends JPanel
       mCenterAlignButton.addActionListener(alignmentHandler);
       mRightAlignButton.addActionListener(alignmentHandler);
       defaultListenersAdded=true;
-      suspendItemListeners=false;
     }
 
     public void breakdownDefaultListeners()
     {
     	if (DEBUG_FONTPANEL)
     		System.out.println("BREAKDOWN Default Listeners");
-    	suspendItemListeners=true;
-     EditorManager.unregisterEditor(sizeHandler);
-     EditorManager.unregisterEditor(fontPropertyHandler);
+    // EditorManager.unregisterEditor(sizeHandler);
+  //   EditorManager.unregisterEditor(fontPropertyHandler);
      //clearAlignmentSelection(); 
      mLeftAlignButton.setEnabled(false);
  	 mCenterAlignButton.setEnabled(false);
@@ -1353,7 +1483,6 @@ public class FontEditorPanel extends JPanel
      mFontCombo.removeActionListener(fontPropertyHandler);
      mSizeField.removeActionListener(fontPropertyHandler);
      defaultListenersAdded=false;
-     suspendItemListeners=false;
     }
     public void clearAlignmentSelection()
     {
@@ -1373,6 +1502,8 @@ public class FontEditorPanel extends JPanel
     	});
     }
     private static boolean isRichTextActive = false;
+  
+   
     public void activeChanged(final ActiveEvent e, LWComponent activeText)
     {
     	
@@ -1380,6 +1511,12 @@ public class FontEditorPanel extends JPanel
     	suspendItemListeners=true;
     	if (RTBListenersAdded)
     		breakdownRichTextListeners();
+    	
+    	if (e.oldActive instanceof LWText)
+    	{              
+    		if (LWTextListenersAdded)
+    			breakdownLWTextListeners();            
+    	}
     	
     	if (e.active != null && e.oldActive != null && e.active instanceof LWText && e.oldActive instanceof LWText)
     	{
@@ -1404,12 +1541,7 @@ public class FontEditorPanel extends JPanel
     		((LWText)e.active).richLabelBox.setCaretPosition(2);
     		updateFormatControlsTB(((LWText)e.active).richLabelBox);
     		
-    	}
-    	else if (e.oldActive instanceof LWText)
-    	{              
-    		if (LWTextListenersAdded)
-    			breakdownLWTextListeners();            
-    	}
+    	}    	
     	else
     	{
     		if (!defaultListenersAdded)
@@ -1420,6 +1552,7 @@ public class FontEditorPanel extends JPanel
     
     public void activeChanged(ActiveEvent e, RichTextBox activeText)
     {    	
+    	
         if (e.active == e.oldActive)
             return;
         
@@ -1469,6 +1602,9 @@ public class FontEditorPanel extends JPanel
 	  }
 	private final void updateFormatControls(CaretEvent e)
 	{
+		if (suspendItemListeners)
+			return;
+		
 		if (e != null)
 			updateFormatControlsTB((RichTextBox)e.getSource());
 		else
@@ -1477,6 +1613,7 @@ public class FontEditorPanel extends JPanel
 	
 	public final void updateFormatControlsTB(RichTextBox text)
 	{
+	
 		SHTMLDocument doc = (SHTMLDocument)text.getDocument();
 	    
 		int so = text.getSelectionStart();
@@ -1604,9 +1741,11 @@ public class FontEditorPanel extends JPanel
 	       	if ((o.toString().equals("font-size")) ||(o.toString().equals("size")))
 	       	{
 	       		mSizeField.getEditor().setItem(paragraphAttributeSet.getAttribute(o).toString());
-	       		suspendItemListeners = true;
+	       	
+        		EditorManager.setEditorLoading(true);
 	       		mSizeField.getModel().setSelectedItem(paragraphAttributeSet.getAttribute(o).toString());
-	       		suspendItemListeners = false;
+        		EditorManager.setEditorLoading(false);
+	       	
 	       	}
 	        			
 	       	else if ((o.toString().equals("font-family")) || (o.toString().equals("font-face")) || (o.toString().equals("face")))
@@ -1614,7 +1753,9 @@ public class FontEditorPanel extends JPanel
 
 	       		mFontCombo.getEditor().setItem(paragraphAttributeSet.getAttribute(o).toString());
 	       		suspendItemListeners = true;
+        		EditorManager.setEditorLoading(true);
 	       		mFontCombo.getModel().setSelectedItem(paragraphAttributeSet.getAttribute(o).toString());
+        		EditorManager.setEditorLoading(false);
 	       		suspendItemListeners = false;
 	       	}	       		       	 	        
 	    }
@@ -1633,7 +1774,9 @@ public class FontEditorPanel extends JPanel
         	{
         		mSizeField.getEditor().setItem(charSet.getAttribute(o).toString());     
         		suspendItemListeners = true;
+        		EditorManager.setEditorLoading(true);
         		mSizeField.getModel().setSelectedItem(charSet.getAttribute(o).toString());
+        		EditorManager.setEditorLoading(false);
         		suspendItemListeners = false;
         	}        		
 	        			
@@ -1641,24 +1784,37 @@ public class FontEditorPanel extends JPanel
         	{
         		mFontCombo.getEditor().setItem(charSet.getAttribute(o).toString());
         		suspendItemListeners = true;
+        		EditorManager.setEditorLoading(true);
         		mFontCombo.getModel().setSelectedItem(charSet.getAttribute(o).toString());
+        		EditorManager.setEditorLoading(false);
         		suspendItemListeners = false;
         	}
         	
         	if ((o.toString().equals("font-weight") && charSet.getAttribute(o).toString().equals("bold")) || o.toString().equals("b"))
+        	{
+        		EditorManager.setEditorLoading(true);
         		mBoldButton.setSelected(true);
-
+        		EditorManager.setEditorLoading(false);
+        	}
 	        		
 	        if ((o.toString().equals("font-style") && charSet.getAttribute(o).toString().equals("italic")) || o.toString().equals("i"))	       
+	        {   
+	        	EditorManager.setEditorLoading(true);
 	        	mItalicButton.setSelected(true);
+        		EditorManager.setEditorLoading(false);
+	        }
 	        	
 	        if ((o.toString().equals("text-decoration") && charSet.getAttribute(o).toString().equals("underline")) || o.toString().equals("u"))	        		        
-        		mUnderlineButton.setSelected(true);	        		        			        		            	        	
+	        {   
+	        	EditorManager.setEditorLoading(true);
+        		mUnderlineButton.setSelected(true);	        	
+        		EditorManager.setEditorLoading(false);
+	        }
         }//done looking at character attributes	        	   	        	        	      
 	}
 	
 	  public void caretUpdate(final CaretEvent e) {
-		  
+		 
 		      EventQueue.invokeLater(new Runnable(){
 
 		            public void run() {
