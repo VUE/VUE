@@ -65,7 +65,7 @@ import java.net.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistence thru castor XML.
  *
- * @version $Revision: 1.139 $ / $Date: 2009-08-31 19:42:10 $ / $Author: mike $
+ * @version $Revision: 1.140 $ / $Date: 2009-09-02 16:02:41 $ / $Author: mike $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -189,14 +189,14 @@ public class ActionUtil
             picked = saveChooser.getSelectedFile();
             
             String fileName = picked.getAbsolutePath();
-            int start = fileName.lastIndexOf(".");
+            int start = picked.getName().lastIndexOf(".");
         	if(fileName.length()!=0 && start != -1){
         		fileName = fileName.substring(0,start);
         	}        	
             //String extension = chooser.getFileFilter().getDescription();
               String extension = ((VueFileFilter)saveChooser.getFileFilter()).getExtensions()[0];  
             //if it isn't a file name with the right extension 
-            if (!fileName.endsWith("." + extension)) {
+            if (!picked.getName().endsWith("." + extension)) {
                 fileName += "." + extension;
                 picked = new File(fileName);
             }
