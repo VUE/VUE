@@ -22,7 +22,6 @@ package tufts.vue;
 import javax.swing.JMenu;
 import javax.swing.KeyStroke;
 
-import edu.tufts.seasr.Connector;
 import edu.tufts.seasr.MeandreItem;
 import edu.tufts.seasr.MeandreResponse;
 import edu.tufts.vue.layout.*;
@@ -540,7 +539,7 @@ public class AnalyzerAction extends Actions.LWCAction {
 		    	while (i.hasNext())
 		    	{		
 		    		AnalyzerResult l = i.next();
-		    		tufts.vue.LWNode node = new tufts.vue.LWNode(l.getValue()); 
+		    		tufts.vue.LWNode node = new tufts.vue.LWNode(l.getType()); 
 		    		comps.add(node);
 		    		node.layout();
 		    		node.setLocation(c.getLocation());
@@ -574,7 +573,7 @@ public class AnalyzerAction extends Actions.LWCAction {
 		    	{		
 		    		AnalyzerResult l = i.next();
 		    		 MetadataList mList  = c.getMetadataList();
-		    		mList.add("tag",l.getValue());
+		    		mList.add("tag",l.getType());
 		        	
 		        }
 		        
@@ -584,9 +583,10 @@ public class AnalyzerAction extends Actions.LWCAction {
 	
 	static class SeasrInfoAction extends Actions.LWCAction{
 		  private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(SeasrAction.class);
-		  private LWComponentAnalyzer analyzer = null;
+		  public static final String OUT_TITLE = "Output from SEASR Flow: ";
+		  private  SeasrAnalyzer analyzer = null;
 		    
-		   public  SeasrInfoAction(LWComponentAnalyzer analyzer, String name,KeyStroke keyStroke) {
+		   public  SeasrInfoAction( SeasrAnalyzer analyzer, String name,KeyStroke keyStroke) {
 		        super(name,keyStroke);
 		        this.analyzer = analyzer;
 		    }
@@ -598,16 +598,15 @@ public class AnalyzerAction extends Actions.LWCAction {
 		    	VUE.getActiveViewer().getSelection().clear();
 		    	LWMap active = VUE.getActiveMap();
 		        java.util.List<LWComponent> comps = new ArrayList<LWComponent>();
-		        String info = "Most common words in the resource are: ";
+		        String info = OUT_TITLE+analyzer.getFlow().getLabel()+"\n\n";
 		    	while (i.hasNext())
 		    	{		
 		    		AnalyzerResult l = i.next();
-		    		 MetadataList mList  = c.getMetadataList();
-		    		info += l.getValue()+" ";
+		    		info += l.getType()+" - "+l.getValue()+"\n";
 		    		
 		        	
 		        }
-		    	VueUtil.alert(info,"Seasr Flow Output");
+		    	 c.setNotes(info);
 		         
 		    }
 	}
