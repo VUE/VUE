@@ -13,7 +13,7 @@ import edu.tufts.vue.ontology.ui.TypeList;
 /**
  * implements java.awt.datatransfer.Transferable for LWComponent(s)
  *
- * @version $Revision: 1.2 $ / $Date: 2009-09-02 16:28:39 $ / $Author: sfraize $
+ * @version $Revision: 1.3 $ / $Date: 2009-09-02 16:40:12 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LWTransfer implements Transferable {
@@ -164,18 +164,18 @@ public class LWTransfer implements Transferable {
             //       public Image getImage() { return LWC.getAsImage(); }
             //});
 
-            // The LazyImage method attempted is no good for avoiding the creation of large images
-            // unless they're needed.  (1) sun.awt.image.SurfaceManager.getManager assumes all
-            // images are BufferedImage's with a cast (!)  And (2): The Java VM impl data transfer
-            // code appears to request the byte representations of ALL THE SUPPORT FLAVORS whenever
-            // a drop happens -- not just the flavor requested.  (Which leads us to the above cast
-            // failure, and this whole problem in the first place).  E.g., this image data should
-            // ONLY be requested if, say, we drop the image on the desktop or into another app that
-            // will import the raw image data.  But for some reason the impls (including 1.5 & 1.6,
-            // at least Apple -- need to check Windows) request all possible data, which can be a
-            // big issue if you happen to be dragging a very large image, but are not interested in
-            // actually ever obtain all it's bytes.  (E.g., very slow to copy all those bytes,
-            // oftening hanging or even crashing the internal Apple code).
+            // The LazyImage method attempted above is no good for avoiding the creation of large
+            // images unless they're needed.  (1) sun.awt.image.SurfaceManager.getManager assumes
+            // all images are BufferedImage's with a cast (!)  And (2): The Java VM impl data
+            // transfer code appears to request the byte representations of ALL THE SUPPORT FLAVORS
+            // whenever a drop happens -- not just the flavor requested.  (Which leads us to the
+            // above cast failure, and this whole problem in the first place).  E.g., this image
+            // data should ONLY be requested if, say, we drop the image on the desktop or into
+            // another app that will import the raw image data.  But for some reason the impls
+            // (including 1.5 & 1.6, at least Apple -- need to check Windows) request all possible
+            // data, which can be a big issue if you happen to be dragging a very large image, but
+            // are not interested in actually ever obtain all it's bytes.  (E.g., very slow to copy
+            // all those bytes, oftening hanging or even crashing the internal Apple code).
                     
             if (isLocalDrop) {
                 return null;
