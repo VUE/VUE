@@ -26,7 +26,7 @@ import java.util.*;
 import org.apache.commons.lang.StringEscapeUtils;
 
 /**
- * @version $Revision: 1.22 $ / $Date: 2009-09-02 16:28:40 $ / $Author: sfraize $
+ * @version $Revision: 1.23 $ / $Date: 2009-09-02 16:31:44 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -455,7 +455,7 @@ public final class DataAction
             if (specialColor == Color.red) {
                 // complate hack for now till specialColor is a more semantically meaningful argument.
                 // Disabling label on a "same" link so we can double-click it to collapse it.
-                link.disableProperty(LWKey.Label);
+                link.disableProperty(tufts.vue.LWKey.Label);
             }
         } else {
             link.setStrokeColor(Color.lightGray);
