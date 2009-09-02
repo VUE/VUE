@@ -1,6 +1,7 @@
 package tufts.vue.ds;
 
 import tufts.Util;
+import tufts.Util.Picker;
 import tufts.vue.DEBUG;
 import tufts.vue.LWMap;
 import tufts.vue.LWComponent;
@@ -25,7 +26,7 @@ import java.util.*;
 import org.apache.commons.lang.StringEscapeUtils;
 
 /**
- * @version $Revision: 1.21 $ / $Date: 2009-08-28 17:13:05 $ / $Author: sfraize $
+ * @version $Revision: 1.22 $ / $Date: 2009-09-02 16:28:40 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -80,6 +81,8 @@ public final class DataAction
 //             return Collections.EMPTY_LIST;
 //     }
         
+    
+    
     private static List<LWLink> makeDataLinksForNode
         (final LWComponent node,
          final Collection<? extends LWComponent> linkTargets)
@@ -92,10 +95,17 @@ public final class DataAction
 
     }
 
-    /** @return a list of all *possible* targets we way want to be linking to */
+    private static final Picker DataNodePicker = new Picker<LWComponent>() {
+            public boolean match(LWComponent c) {
+                return c.getClass() == LWNode.class && c.isDataNode();
+            }};
+
+    /** @return a list of all *possible* targets we may want to be linking to */
     private static List<? extends LWComponent> getLinkTargets(LWMap map) {
-        // todo: don't need to pull all LWNodes -- only those with data in them
-        return Util.extractType(map.getAllDescendents(), LWNode.class);
+
+        return Util.extract(map.getAllDescendents(),
+                            DataNodePicker);
+        
     }
 
 
@@ -105,6 +115,8 @@ public final class DataAction
          final List<? extends LWComponent> nodes,
          final Field field)
     {
+        if (DEBUG.Enabled) Log.debug("addDataLinksForNodes; field=" + quoteKey(field));
+        
         final List<LWLink> links = makeDataLinksForNodes(map, nodes, field);
 
         if (links.size() > 0) {
@@ -120,6 +132,8 @@ public final class DataAction
          final Field field)
     {
         final Collection linkTargets = getLinkTargets(map);
+
+        Log.debug("LINK-TARGETS: " + Util.tags(linkTargets));
         
         List<LWLink> links = Collections.EMPTY_LIST;
         
@@ -232,31 +246,36 @@ public final class DataAction
 
             Log.debug("makeValueNodeLinks: processing " + target);
 
-            // TODO: NEEDS TO USE ASSOCIATIONS
-            // HANDLE VIA RELATIONS???
-            
-            // This is where ALSO where a JOIN needs to take place.  We want a way to do
-            // that which is generic to schemas instead of just here, so dropping the
-            // Rockwell.Medium FIELD on a Rockwell.Painting ROW will extract the right
-            // value, as well as be discovered later here to create the link.
-            
-            if (target.hasDataValue(fieldName, fieldValue)) {
-                // if the target node c is schematic at all, it should only have
-                // one piece of meta-data, and it should be an exact match already
-                //boolean sameField = fieldName.equals(c.getSchematicFieldName());
-                final boolean sameField = target.isDataValueNode();
-                links.add(makeLink(node, target, fieldName, fieldValue, sameField ? Color.red : null));
-            }
+            try {
 
-            final Relation relation = Relation.getCrossSchemaRelation(field, target.getRawData(), fieldValue);
-            if (relation != null) {
-                links.add(makeLink(node, target, relation));
+                // TODO: NEEDS TO USE ASSOCIATIONS
+                // HANDLE VIA RELATIONS???
+            
+                // This is where ALSO where a JOIN needs to take place.  We want a way to do
+                // that which is generic to schemas instead of just here, so dropping the
+                // Rockwell.Medium FIELD on a Rockwell.Painting ROW will extract the right
+                // value, as well as be discovered later here to create the link.
+            
+                if (target.hasDataValue(fieldName, fieldValue)) {
+                    // if the target node c is schematic at all, it should only have
+                    // one piece of meta-data, and it should be an exact match already
+                    //boolean sameField = fieldName.equals(c.getSchematicFieldName());
+                    final boolean sameField = target.isDataValueNode();
+                    links.add(makeLink(node, target, fieldName, fieldValue, sameField ? Color.red : null));
+                }
+
+                final Relation relation = Relation.getCrossSchemaRelation(field, target.getRawData(), fieldValue);
+                if (relation != null) {
+                    links.add(makeLink(node, target, relation));
+                }
+//                 final String relatedValue = Relation.getCrossSchemaRelation(field, target.getRawData(), fieldValue);
+//                 if (relatedValue != null) {
+//                     final String relation = String.format("matched joined value \"%s\"", relatedValue);
+//                     links.add(makeLink(node, target, null, relation, Color.green));
+//                 }
+            } catch (Throwable t) {
+                Log.error("exception scanning for links from " + field + " to " + target + ":", t);
             }
-//             final String relatedValue = Relation.getCrossSchemaRelation(field, target.getRawData(), fieldValue);
-//             if (relatedValue != null) {
-//                 final String relation = String.format("matched joined value \"%s\"", relatedValue);
-//                 links.add(makeLink(node, target, null, relation, Color.green));
-//             }
 
         }
 
@@ -433,6 +452,11 @@ public final class DataAction
             link.mStrokeStyle.setTo(LWComponent.StrokeStyle.DASH3);
             link.setStrokeWidth(3);
             link.setStrokeColor(specialColor);
+            if (specialColor == Color.red) {
+                // complate hack for now till specialColor is a more semantically meaningful argument.
+                // Disabling label on a "same" link so we can double-click it to collapse it.
+                link.disableProperty(LWKey.Label);
+            }
         } else {
             link.setStrokeColor(Color.lightGray);
         }

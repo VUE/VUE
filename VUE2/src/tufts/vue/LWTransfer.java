@@ -6,12 +6,14 @@ import java.awt.dnd.*;
 import java.awt.datatransfer.*;
 import java.awt.Dimension;
 
+import tufts.vue.MapDropTarget.DropHandler;
+
 import edu.tufts.vue.ontology.ui.TypeList;
 
 /**
  * implements java.awt.datatransfer.Transferable for LWComponent(s)
  *
- * @version $Revision: 1.1 $ / $Date: 2009-08-29 22:12:27 $ / $Author: sfraize $
+ * @version $Revision: 1.2 $ / $Date: 2009-09-02 16:28:39 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LWTransfer implements Transferable {
@@ -29,6 +31,7 @@ public class LWTransfer implements Transferable {
         LWComponent.DataFlavor,
         DataFlavor.stringFlavor,
         DataFlavor.imageFlavor,
+        DropHandler.DataFlavor
         //MapResource.DataFlavor,
         // TypeList.DataFlavor // commented out 2009-06-24 SMF
         //URLFlavor, // try text/uri-list
@@ -69,7 +72,7 @@ public class LWTransfer implements Transferable {
             return false;
         }
 
-        if (flavor == MapDropTarget.DropHandler.DataFlavor && LWC.hasClientData(MapDropTarget.DropHandler.class)) {
+        if (flavor == DropHandler.DataFlavor && LWC.hasClientData(DropHandler.class)) {
             // note this is a bit convoluted: the producer is currently only passed within an
             // LWComponent.  This needn't be true, but our current usage depends on it.
             // (We want an LWComponent available as the drag image).  We could easily
@@ -182,9 +185,9 @@ public class LWTransfer implements Transferable {
             }
                     
         }
-        else if (MapDropTarget.DropHandler.DataFlavor.equals(flavor)) {
+        else if (DropHandler.DataFlavor.equals(flavor)) {
                     
-            data = LWC.getClientData(MapDropTarget.DropHandler.class);
+            data = LWC.getClientData(DropHandler.class);
                     
         //} else if (LWComponent.Producer.DataFlavor.equals(flavor)) {
 

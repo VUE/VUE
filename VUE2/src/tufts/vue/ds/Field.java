@@ -36,7 +36,7 @@ import org.apache.commons.lang.StringEscapeUtils;
  * types and doing some data-type analysis.  It also includes the ability to
  * associate a LWComponent node style with specially marked values.
  * 
- * @version $Revision: 1.19 $ / $Date: 2009-08-28 23:09:30 $ / $Author: sfraize $
+ * @version $Revision: 1.20 $ / $Date: 2009-09-02 16:28:40 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -163,15 +163,16 @@ public class Field implements tufts.vue.XMLUnmarshalListener
     /** for persistance of associations */
     public Collection<PersistRef> getRelatedFields() {
         if (mXMLRestoreUnderway) {
+            Log.debug("RETURNING RELATED FIELDS for " + this);
             return mRelatedFields;
         } else {
             Collection<PersistRef> persists = new ArrayList();
             for (Field f : Association.getPairedFields(this)) {
                 persists.add(new PersistRef(f));
             }
-//             if (DEBUG.SCHEMA && persists.size() > 0) {
-//                 Log.debug(this + ": GOT RELATED FIELDS: " + Util.tags(persists));
-//             }
+            if (DEBUG.SCHEMA && persists.size() > 0) {
+                Log.debug(this + ": GOT RELATED FIELDS: " + Util.tags(persists));
+            }
             return persists;
         }
     }

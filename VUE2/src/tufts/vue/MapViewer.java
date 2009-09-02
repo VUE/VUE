@@ -26,6 +26,7 @@ import tufts.vue.gui.MapScrollPane;
 import tufts.vue.gui.TimedASComponent;
 import tufts.vue.gui.VuePopupFactory;
 import tufts.vue.gui.WindowDisplayAction;
+import static tufts.vue.MapDropTarget.*;
 import tufts.vue.NodeTool;
 import java.util.List;
 import java.util.Map;
@@ -74,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.626 $ / $Date: 2009-09-01 23:42:05 $ / $Author: brian $ 
+ * @version $Revision: 1.627 $ / $Date: 2009-09-02 16:28:39 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -191,8 +192,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     protected static boolean sDragUnderway;
     //protected Point2D.Float dragPosition = new Point2D.Float();
     
+    // both of these statics would need to be members if we ever support multi-touch:
     protected static LWComponent indication;   // current indication (drag rollover hilite -- ONLY ONE PER ALL MAPS)
-    protected static boolean indicationIsAlternate;
+    protected static DropIndication mDI;
     
     private final MapDropTarget mapDropTarget;
     private MapScrollPane mapScrollPane;
@@ -2442,12 +2444,25 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
     
     void setIndicated(LWComponent c) {
-        setIndicated(c, false);
+        //setIndicated(c, false);
+        setIndicated(c, null);
     }
     
-    void setIndicated(LWComponent c, boolean alternate) {
+    /** for MapDropTarget */
+    void setIndicated(DropIndication di) {
+        setIndicated(di.hit, di);
+        mDI = di;
+    }
 
-        if (indication == c && indicationIsAlternate == alternate)
+//     private Color getIndicationColor() {
+//         return mDI == null ? COLOR_INDICATION : mDI.getColor();
+//     }
+        
+    //void setIndicated(LWComponent c, boolean alternate) {
+    private void setIndicated(LWComponent c, DropIndication di)
+    {
+        //if (DEBUG.DND) out("setIndicated " + di + "; c=" + c);
+        if (indication == c && (di == null || mDI == null || di.isSame(mDI)))
             return;
 
         if (c == null) {
@@ -2476,7 +2491,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             clearIndicated();
             indication = c;
         }
-        indicationIsAlternate = alternate;
+        //indicationIsAlternate = alternate;
         if (DEBUG.PARENTING) out("indication  set  to " + c);
         //c.setIndicated(true);
         if (OPTIMIZED_REPAINT)
@@ -2500,7 +2515,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             if (DEBUG.PARENTING) out("clearing indication " + indication);
             indication = null;
         }
-        indicationIsAlternate = false;
+        mDI = null;
     }
     LWComponent getIndication() { return indication; }
 
@@ -3417,6 +3432,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
     public void setLoading(boolean loading) {
 
+        if (true) return; // not entirely working: disabled for now
+
         if (mFocalLoading == loading)
             return;
 
@@ -3758,60 +3775,84 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         dc.g.fill(syncSource.getZeroShape());
     }
     
+    private boolean isResourceRelinkIndication() {
+        return mDI != null && mDI.type == DROP_RESOURCE_RESET;
+    }
+
     private void drawIndication(DrawContext dc)
     {
         if (indication == null)
             return;
 
-        boolean lessIndication = false;
-        if (indicationIsAlternate) {
-            
+        //boolean lessIndication = false;
+        if (isResourceRelinkIndication()) {
             dc.setIndicated(indication);
-
-            if (indication instanceof LWNode) {
-                // note that slide nodes can't normally have icons
-                // below would need to check if actual RESOURCE icon is showing, not any icon
-                //lessIndication = LWNode.isImageNode(indication) || ((LWNode)indication).iconShowing();
-                lessIndication = LWNode.isImageNode(indication);
-            }
+//             if (indication instanceof LWNode) {
+//                 // note that slide nodes can't normally have icons
+//                 // below would need to check if actual RESOURCE icon is showing, not any icon
+//                 //lessIndication = LWNode.isImageNode(indication) || ((LWNode)indication).iconShowing();
+//                 lessIndication = LWNode.isImageNode(indication);
+//             }
             
         }
             
-        // always show on top
-        indication.draw(dc);
+        // always re-draw top of everything else on the map just in case it's behind something
+        //indication.draw(dc);
         
         dc.setMapDrawing();
-        indication.transformZero(dc.g);
 
-        //boolean asFill = DEBUG.PICK;
-        boolean asFill = !(indication instanceof LWLink);
+        // indication.draw(dc.push()); dc.pop();
 
-        dc.g.setColor(indicationIsAlternate ? COLOR_INDICATION_ALTERNATE : COLOR_INDICATION);
-        dc.setAlpha(0.5);
+        final Color icolor;
         
-//         if (lessIndication) {
-//             dc.setAlpha(0.25);
-//             //dc.setAlpha(0.5);
-//         } else {
-//             dc.setAlpha(indicationIsAlternate ? 0.75 : 0.5);
-//             dc.setAlpha(0.5);
-//             // if (DEBUG.Enabled) dc.g.setColor(Color.red);
-//         }
+//         if (mDI == null)
+//             icolor = COLOR_INDICATION;
+//         else
+//             icolor = mDI.getColor();
+        if (mDI == null)
+            icolor = Util.alphaColor(COLOR_INDICATION, 0.5f);
+        else
+            icolor = Util.alphaColor(mDI.getColor(), 0.5f);
+
+        // todo: faster to use color/w alpha instead of gc raw alpha?
         
-        if (asFill) {
-            final Shape shape = indication.getZeroShape();
-            dc.g.fill(shape);
-//             dc.setAlpha(1);
-//             dc.setAbsoluteStroke(2);
-//             dc.g.draw(shape);
-        } else {
+        if (indication instanceof LWLink) {
+            indication.transformZero(dc.g);
+            indication.drawZero(dc); // force re-draw to force-front
             double minStroke = STROKE_SELECTION.getLineWidth() * 3;// * mZoomInverse;
-            if (indication.getStrokeWidth() > minStroke)
-                dc.g.setStroke(new BasicStroke(indication.getStrokeWidth()));
+            if (indication.getStrokeWidth() * 2 > minStroke)
+                dc.g.setStroke(new BasicStroke(indication.getStrokeWidth() * 2));
             else
                 dc.g.setStroke(new BasicStroke((float) minStroke));
+            dc.g.setColor(icolor);
             dc.g.draw(indication.getZeroShape());
+            
         }
+        else if (mDI != null && mDI.type == DROP_ACCEPT_DATA) {
+            final float width = indication.getWidth();
+            final float height = indication.getHeight();
+            // for data-actions, could increase the size of this splash based on # of items
+            // in the dropping set, tho if we bother to get that fancy, we almost might
+            // as well generate a full preview of what would be dropped w/links, etc.
+            final float wide = width + 200;
+            final float tall = height + 200;
+            final RectangularShape dataSplash =
+                new java.awt.geom.Ellipse2D.Float(-wide / 2 + width / 2,
+                                                  -tall / 2 + height / 2,
+                                                  wide, tall);
+            indication.transformZero(dc.g);
+            dc.g.setColor(icolor);
+            dc.g.fill(dataSplash);
+            indication.drawZero(dc); // force re-draw to force-front (on TOP of splash)
+        }
+        else {
+            indication.transformZero(dc.g);
+            indication.drawZero(dc); // force re-draw to force-front
+            final Shape shape = indication.getZeroShape();
+            dc.g.setColor(icolor);
+            dc.g.fill(shape);
+        }
+
     }
     
 

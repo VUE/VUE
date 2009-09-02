@@ -57,7 +57,7 @@ import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.152 $ / $Date: 2009-08-29 22:25:16 $ / $Author: sfraize $
+ * @version $Revision: 1.153 $ / $Date: 2009-09-02 16:28:40 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2648,9 +2648,11 @@ public class GUI
         
         e.startDrag(DragSource.DefaultCopyDrop,
                     c.getAsImage(0.5, new Dimension(256,256)),
-                    new Point(-(int)c.getWidth()/2, -(int)c.getHeight()/2), // image offset
+                    //new Point(-(int)c.getWidth()/2, -(int)c.getHeight()/2), // image offset
+                    new Point(0, 0),
                     new tufts.vue.LWTransfer(c),
-                    null); // drag source listener
+                    new GUI.DragSourceAdapter());
+                    //null); // drag source listener
 
     }
     
@@ -2844,22 +2846,22 @@ public class GUI
     public static class DragSourceAdapter implements DragSourceListener {
     
         public void dragOver(DragSourceDragEvent dsde) {
-            if (DEBUG.DND & DEBUG.META) out("dragOver " + dragName(dsde) + " " + dragSource(dsde));
+            if (DEBUG.DND & DEBUG.META) out("dragOver: " + dragName(dsde) + " " + dragSource(dsde));
         }
         
         public void dragEnter(DragSourceDragEvent dsde) {
-            if (DEBUG.Enabled||DEBUG.DND) out("        dragEnter " + dragName(dsde) + " " + dragSource(dsde));
+            if (DEBUG.Enabled||DEBUG.DND) out("         dragEnter: " + dragName(dsde) + " " + dragSource(dsde));
             tufts.vue.LWTransfer.markAsLocal(true);
         }
         public void dropActionChanged(DragSourceDragEvent dsde) {
-            if (DEBUG.DND) out("dropActionChanged " + dragName(dsde) + " " + dragSource(dsde));
+            if (DEBUG.DND) out(" dropActionChanged: " + dragName(dsde) + " " + dragSource(dsde));
         }
         public void dragExit(DragSourceEvent dse) {
-            if (DEBUG.Enabled||DEBUG.DND) out("         dragExit " + dse + " " + dragSource(dse));
+            if (DEBUG.Enabled||DEBUG.DND) out("          dragExit: " + dragSource(dse));
             tufts.vue.LWTransfer.markAsLocal(false);
         }
         public void dragDropEnd(DragSourceDropEvent dsde) {
-            if (DEBUG.DND) out("      dragDropEnd " + dragName(dsde) + " " + dragSource(dsde));
+            if (DEBUG.DND) out("       dragDropEnd: " + dragName(dsde) + " " + dragSource(dsde));
         }
     }
 

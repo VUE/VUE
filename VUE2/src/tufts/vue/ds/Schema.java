@@ -40,7 +40,7 @@ import com.google.common.collect.Multimaps;
  * generally "short" enough, it will enumerate all the unique values found in that
  * column.
  *
- * @version $Revision: 1.43 $ / $Date: 2009-08-28 17:13:05 $ / $Author: sfraize $
+ * @version $Revision: 1.44 $ / $Date: 2009-09-02 16:28:40 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -383,7 +383,9 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
             for (Field.PersistRef ref : field.getRelatedFieldRefs()) {
                 if (DEBUG.SCHEMA) Log.debug(this + "; persisted relation for " + field + ": " + ref);
                 for (Field possibleMatch : AllFieldsByLowerName.get(ref.fieldName.toLowerCase())) {
-                    if (ref.schemaGuid.equals(possibleMatch.getSchema().getGUID())) {
+                    final String guid = possibleMatch.getSchema().getGUID();
+                    Log.debug("Checking GUID " + guid);
+                    if (ref.schemaGuid.equals(guid)) {
                         final Field match = possibleMatch;
                         Log.debug("found live field to match ref: " + ref + " = " + Util.tags(match));
                         Association.add(field, possibleMatch);

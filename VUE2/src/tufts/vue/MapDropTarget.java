@@ -18,6 +18,7 @@ package tufts.vue;
 import tufts.Util;
 import static tufts.Util.*;
 import tufts.vue.gui.GUI;
+import static tufts.vue.gui.GUI.dragName;
 import tufts.vue.NodeTool.NodeModeTool;
 import java.awt.dnd.*;
 import java.awt.datatransfer.*;
@@ -50,7 +51,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.119 $ / $Date: 2009-08-29 22:12:27 $ / $Author: sfraize $  
+ * @version $Revision: 1.120 $ / $Date: 2009-09-02 16:28:39 $ / $Author: sfraize $  
  */
 public class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -102,93 +103,124 @@ public class MapDropTarget
 //      * the time we get the drop event */
 //     private int dropActionOverride = 0;
     
-    /**
-     * This is what we want to ACCEPT: it may be different from the user-indicated drop action, and
-     * may not even be one of the availble source actions, tho we can accept any action we like,
-     * and the drag/drop cursor should be set appropriately
-     */
-    private int DropAccept;
-
-    /** This is the selected drop affecting hit target, which will depend on the drop action and drop context */
-    private LWComponent DropHit;
+    //private LWComponent DropHit;
+    
+    private DropHandler mActiveHandler;
 
     public MapDropTarget(MapViewer viewer) {
        mViewer = viewer;
     }
 
-    private void trackDrag(DropTargetDragEvent e) {
-        acceptDrag(e);
-    }
+    public static final String DROP_REJECT = "DROP_REJECT";
+    public static final String DROP_ACCEPT_NODE = "DROP_ACCEPT_NODE";
+    public static final String DROP_ACCEPT_DATA = "DROP_ACCEPT_DATA";
+    public static final String DROP_RESOURCE_RESET = "DROP_RESOURCE_RESET";
 
-    private void acceptDrag(DropTargetDragEvent e) {
-        computeDropAcceptAndTarget(e);
-        e.acceptDrag(DropAccept);
-    }    
-    
+
+    public static class DropIndication {
+
+        private static final DropIndication REJECTED = new DropIndication();
+
+        static DropIndication last;
+        
+        public final Object type; 
+
+        /** This is the action we want to ACCEPT: it may be different from the
+          * user-indicated drop action, and may not even be one of the availble source
+          * actions, tho we can accept any action we like, and the drag/drop cursor
+          * should be set appropriately */
+        public final int acceptedAction; // e.g. link or copy
+
+        /** This accepted hit target, which will depend on the drop action and drop target */
+        public final LWComponent hit;
+
+        public DropIndication(Object t, int action, LWComponent target) {
+            type = t;
+            acceptedAction = action;
+            hit = target;
+            last = this;
+        }
+
+        public static DropIndication rejected() { return REJECTED; }
+
+        // a rejected drag
+        private DropIndication() {
+            type = DROP_REJECT;
+            acceptedAction = ACTION_NONE;
+            hit = null;
+            last = this;
+        }
+
+        boolean isAccepted() {
+            return type != DROP_REJECT;
+        }
+
+//         boolean isResourceRelink() {
+//             return dropType == DROP_ACCEPT_NEW_NODE && acceptedAction == ACTION_LINK;
+//         }
+
+        /** @return true if type and hit are the same */
+        boolean isSame(DropIndication di) {
+            return di.type == type && di.hit == hit;
+        }
+
+        java.awt.Color getColor() {
+            if (type == DROP_RESOURCE_RESET)
+                return VueConstants.COLOR_INDICATION_ALTERNATE;
+//             else if (type == DROP_ACCEPT_DATA)
+//                 return java.awt.Color.red;
+            else
+                return VueConstants.COLOR_INDICATION;
+        }
+
+        @Override public String toString() {
+            return "Indication[" + type + "; " + dropName(acceptedAction) + "; hit=" + LWComponent.tag(hit) + "]";
+        }
+        
+    }
 
     /** DropTargetListener */
     public void dragEnter(DropTargetDragEvent e)
     {
-        if (DEBUG.DND) out("dragEnter " + GUI.dragName(e));
-        //Log.info("TRANSFERRABLE ENTER: " + Util.tags(e.getTransferable()));
-        trackDrag(e);
+        final Transferable transfer = e.getTransferable();
+        if (transfer.isDataFlavorSupported(DropHandler.DataFlavor))
+            mActiveHandler = extractData(transfer, DropHandler.DataFlavor, DropHandler.class); // will be null if not found
+        
+        final DropIndication di = getIndication(e);
+         
+        if (DEBUG.DND) out("dragEnter: " + dragName(e) + "; handler=" + mActiveHandler + " " + di);
+
+        e.acceptDrag(di.acceptedAction);
     }
     
     /** DropTargetListener */
-    public void dragExit(DropTargetEvent e) {
-        if (DEBUG.DND) out("dragExit " + e);
-        //Log.info("TRANSFERRABLE EXIT: " + Util.tags(e.getDropTargetContext().getTransferable()));
+    public void dragOver(DropTargetDragEvent e)
+    {
+        final DropIndication di = getIndication(e);
+        
+        if (DEBUG.DND) out("dragOver: " + dragName(e) + " " + di);
+
+        if (di.isAccepted()) {
+            e.acceptDrag(di.acceptedAction);
+            mViewer.setIndicated(di);
+        } else {
+            mViewer.clearIndicated();
+            e.rejectDrag();
+        }
     }
-    
+
     /** DropTargetListener */
     public void dropActionChanged(DropTargetDragEvent e) {
-        if (DEBUG.DND) out("dropActionChanged: " + GUI.dragName(e));
-
+        if (DEBUG.DND) out("dropActionChanged: " + dragName(e));
         // Just re-use our dragOver code:
         // (e.g., in case action type has changed and we want to change indication color)
         dragOver(e); 
     }
 
     /** DropTargetListener */
-    public void dragOver(DropTargetDragEvent e)
-    {
-        //Log.info("TRANSFERRABLE OVER: " + Util.tags(e.getTransferable()));
-        
-        if (DEBUG.DND && DEBUG.META) out("dragOver " + GUI.dragName(e));
-        
-        // This will compute DropAccept & DropHit
-        computeDropAcceptAndTarget(e);
-        
-        e.acceptDrag(DropAccept);
-        
-        if (DropHit != null)
-            mViewer.setIndicated(DropHit, DropAccept == ACTION_LINK);
-        else
-            mViewer.clearIndicated();
-
-//         if (Util.isWindowsPlatform()) {
-//             // this is being "forgot" on WinXP sometimes between now
-//             // and when they let go of the mouse!
-//             dropActionOverride = e.getDropAction();
-//         } else {
-//             dropActionOverride = 0;
-//         }
-
-        /*
-          // HANDLE IN TRAVERSAL!
-          
-        if (over instanceof LWNode || over instanceof LWLink) {
-            // todo: if over resource icon and we can set THAT indicated, do
-            // so and also use that to indicate we'd like to set the resource
-            // instead of adding a new child
-            mViewer.setIndicated(over);
-        } else
-            mViewer.clearIndicated();
-
-        */
-
+    public void dragExit(DropTargetEvent e) {
+        if (DEBUG.DND) out("dragExit: " + e);
     }
-
     
     /** DropTargetListener */
     public void drop(DropTargetDropEvent e)
@@ -198,19 +230,19 @@ public class MapDropTarget
                                .getLockingKeyState(java.awt.event.KeyEvent.VK_CAPS_LOCK));
                                } catch (Exception ex) { System.err.println(ex); }*/
 
-        computeDropAcceptAndTarget(e);        
+        final DropIndication di = getIndication(e);        
 
         if (DEBUG.DND) out(TERM_GREEN + "\nDROP: " + Util.tag(e)
                            + "\n\t     sourceActions: " + dropName(e.getSourceActions())
                            + "\n\t        dropAction: " + dropName(e.getDropAction())
-                           + "\n\t        dropAccept: " + dropName(DropAccept)
+                           + "\n\t        dropAccept: " + dropName(di.acceptedAction)
 //                            + (Util.isWindowsPlatform() ?
 //                               "\n\tdropActionOverride: " + dropName(dropActionOverride) : "")
                            + "\n\t          location: " + e.getLocation()
                            + TERM_CLEAR
                            );
 
-        e.acceptDrop(DropAccept);
+        e.acceptDrop(di.acceptedAction);
         
         // Scan thru the data-flavors, looking for a useful mime-type
         boolean success =
@@ -226,23 +258,23 @@ public class MapDropTarget
 
     private static final Object POSSIBLE_RESOURCE = new Object();
     
-    private void computeDropAcceptAndTarget(DropTargetDragEvent e) {
-        computeDropAcceptAndTarget(e, e.getSourceActions(), e.getDropAction(), dropToMapLocation(e.getLocation()));
+    private DropIndication getIndication(DropTargetDragEvent e) {
+        return getIndication(e, e.getSourceActions(), e.getDropAction(), dropToMapLocation(e.getLocation()));
+    }
+    private DropIndication getIndication(DropTargetDropEvent e) {
+        return getIndication(e, e.getSourceActions(), e.getDropAction(), dropToMapLocation(e.getLocation()));
     }
     
-    private void computeDropAcceptAndTarget(DropTargetDropEvent e) {
-        computeDropAcceptAndTarget(e, e.getSourceActions(), e.getDropAction(), dropToMapLocation(e.getLocation()));
-    }
-    
-    private void computeDropAcceptAndTarget(final DropTargetEvent e,
-                                            final int sourceActions,
-                                            final int dropAction,
-                                            final Point2D.Float mapLoc
-                                            )
+    private DropIndication getIndication
+        (final DropTargetEvent e,
+         final int sourceAbleActions,
+         final int dropAction,
+         final Point2D.Float mapLoc)
     {
-        if (dropAction == ACTION_MOVE && (sourceActions & ACTION_COPY) != 0) {
-            
-            DropAccept = ACTION_COPY; // will show '+' cursor
+        int dropAccept = dropAction;
+        
+        if (dropAction == ACTION_MOVE && (sourceAbleActions & ACTION_COPY) != 0) {
+            dropAccept = ACTION_COPY; // will show '+' cursor
         }
         else if (dropAction == ACTION_NONE) {
             
@@ -252,74 +284,107 @@ public class MapDropTarget
             // ACTION_NONE, so we always override that here to mean ACTION_LINK, assuming the
             // special case was intended.  SMF 2008-05-07
             
-            DropAccept = ACTION_LINK;
+            dropAccept = ACTION_LINK;
         }
-        else
-            DropAccept = dropAction;
 
         final PickContext pc = mViewer.getPickContext(mapLoc.x, mapLoc.y);
         pc.dropping = POSSIBLE_RESOURCE; // most lenient targeting if unknown
         final LWComponent hit = LWTraversal.PointPick.pick(pc);
 
-        DropHit = null;
+        LWComponent dropHit = null;
 
-       if (hit instanceof LWImage) {
-            final LWImage image = (LWImage) hit;
+        //boolean acceptThisDrop = true;
+
+        if (mActiveHandler != null) {
+
+            return mActiveHandler.getIndication(hit, dropAccept);
             
-            if (image.isNodeIcon()) {
-                DropHit =  hit.getParent();
-            }
-            else if (image.getStatus() == LWImage.Status.ERROR || DropAccept == ACTION_LINK) {
-                DropHit = hit;
-                DropAccept = ACTION_LINK;
+//             final int handlerAction = mActiveHandler.acceptedDropAction(hit, dropAccept);
+//             if (handlerAction > 0) {
+//                 dropHit = hit;
+//                 dropAccept = handlerAction;
+//             } else
+//                 acceptThisDrop = false;
+
+        } else {
+
+            if (hit instanceof LWImage) {
+                final LWImage image = (LWImage) hit;
+            
+                if (image.isNodeIcon()) {
+                    dropHit =  hit.getParent();
+                }
+                else if (image.getStatus() == LWImage.Status.ERROR || dropAccept == ACTION_LINK) {
+                    dropHit = hit;
+                    dropAccept = ACTION_LINK;
+                }
+
+            } else if (hit instanceof LWLink) {
+                dropHit = hit;
+                // drop-action is "link" for setting the resource -- not to be confused
+                // with the fact that his happens to be a LWLink object.  LWLink's
+                // can't have children, so the only allowable action is a resource-set.
+                dropAccept = ACTION_LINK; 
+            } else if (hit != null) {
+            
+                if (hit.supportsChildren() && hit != mViewer.getFocal()) {
+                    // above: we can always drop into focals that support children
+                    if (hit instanceof LWSlide)
+                        ; // disable slide icon dropping for now
+                    // (mapToLocalLocation doesn't seem to be working in this case)
+                    else if (hit instanceof LWGroup)
+                        ; // don't allow drops into groups sitting on maps (when not the focal)
+                    else
+                        dropHit = hit;
+                }
+                // This case not currently needed, as our LWImage case above was only supportsChildre() == false
+                // object, and anytime the hit results in null, we automatically go to the focal anyway below.
+                //             else {
+                //                 if (hit.getAncestorOfType(LWSlide.class) == mViewer.getFocal()) {
+                //                     // make sure we can always drop onto slides, even if "hit" a non-parenting
+                //                     // This should probably be even more generic, but need to reconcile/merge
+                //                     // this code with MapDropTarget.processTransferrable, which calls us.
+                //                     hit = mViewer.getFocal();
+                //             }
             }
 
-       } else if (hit instanceof LWLink) {
-           DropHit = hit;
-           // drop-action is "link" for setting the resource -- not to be confused
-           // with the fact that his happens to be a LWLink object.  LWLink's
-           // can't have children, so the only allowable action is a resource-set.
-           DropAccept = ACTION_LINK; 
-       } else if (hit != null) {
-            
-           if (hit.supportsChildren() && hit != mViewer.getFocal()) {
-               // above: we can always drop into focals that support children
-               if (hit instanceof LWSlide)
-                   ; // disable slide icon dropping for now
-                     // (mapToLocalLocation doesn't seem to be working in this case)
-               else if (hit instanceof LWGroup)
-                   ; // don't allow drops into groups sitting on maps (when not the focal)
-               else
-                   DropHit = hit;
-           }
-// This case not currently needed, as our LWImage case above was only supportsChildre() == false
-// object, and anytime the hit results in null, we automatically go to the focal anyway below.
-//             else {
-//                 if (hit.getAncestorOfType(LWSlide.class) == mViewer.getFocal()) {
-//                     // make sure we can always drop onto slides, even if "hit" a non-parenting
-//                     // This should probably be even more generic, but need to reconcile/merge
-//                     // this code with MapDropTarget.processTransferrable, which calls us.
-//                     hit = mViewer.getFocal();
-//             }
+            // DropHit currently must be null if we want our old hairy code below to
+            // properly create new objects in the focal.
+            //        if (DropHit == null)
+            //            DropHit = mViewer.getFocal();
         }
 
-// DropHit currently must be null if we want our old hairy code below to
-// properly create new objects in the focal.
-//        if (DropHit == null)
-//            DropHit = mViewer.getFocal();
-       
-       
-       if (DEBUG.DND) out("DND: " + Util.tag(e) + "; sourceActions=" + dropName(sourceActions)
-                           + "; drop=" + dropName(dropAction)
-                           + "; accept=" + dropName(DropAccept)
-                           //+ ";    hit=" + hit
-                           + "; target=[" + (DropHit == null ? null : DropHit.getDiagnosticLabel()) + "]"
-                           );
+        final DropIndication report;
 
+        Object type = DROP_ACCEPT_NODE;
+
+        if (dropAccept == ACTION_LINK) {
+            if ((hit instanceof LWNode || hit instanceof LWImage) && hit.hasResource()) {
+                type = DROP_RESOURCE_RESET;
+            } else {
+                // better to allow the link icon as user feedback that the option is being attempted
+                //dropAccept = ACTION_COPY; // disallow the link action if it won't work
+            }
+        }
+            
+        if (type != null)
+            report = new DropIndication(type, dropAccept, hit);
+        else
+            report = new DropIndication();
+
+//        if (DEBUG.DND) out(report + " sourceAbleActions=" + dropName(sourceActions));
+       
+//         if (DEBUG.DND) out(Util.tag(e) + "; sourceActions=" + dropName(sourceActions)
+//                           + "; drop=" + dropName(dropAction)
+//                           + "; accept=" + dropName(dropAccept)
+//                           + "; accepting=" + acceptThisDrop
+//                           //+ ";    hit=" + hit
+//                           + "; target=[" + (dropHit == null ? null : dropHit.getDiagnosticLabel()) + "]"
+//                           );
+
+       return report;
     }
 
-
-        
         
     public static class DropContext {
         public final Transferable transfer;
@@ -329,19 +394,12 @@ public class MapDropTarget
         public /*final*/ LWContainer hitParent;    // we dropped into this component, and it can take children
         public final boolean isLinkAction;     // user kbd modifiers down produced LINK drop action
 
-        // Data fields -- may not all be populated.
-        //final Collection items;         // bag of Objects in the drop
         public List items;   // convience reference to items if it is a List
         public final String text;              // only one of items+list or text
-        //final LWComponent.Producer producer;
-
-        //Object data;
-        
 
         private float nextX;
         private float nextY;
 
-        //public List added = new java.util.ArrayList(); // to track LWComponents added as a result of the drop
         public List select = new java.util.ArrayList(); // what to select
         
         DropContext(Transferable t,
@@ -412,6 +470,7 @@ public class MapDropTarget
     /** Extract data and auto-cast to the desired type.  If a type-mistmatch, reporting a warning and return null. */
     // Altho tho the class information is normally stored in the flavor via it's represenation,
     // we can't make use of generics to auto-cast and auto-report any errors w/out the 3rd explicit class object (type) argument.
+
     public static <A> A extractData(Transferable transfer, DataFlavor flavor, Class<A> clazz) {
         final Object data = extractData(transfer, flavor);
         if (clazz.isInstance(data)) {
@@ -501,7 +560,7 @@ public class MapDropTarget
         
         if (e != null) {
             dropLocation = e.getLocation();
-            dropAction = DropAccept;
+            dropAction = DropIndication.last.acceptedAction;
 //             if (dropActionOverride != 0) // TODO: handle above once in setting dropAccept
 //                 dropAction = dropActionOverride;
 //             else
@@ -513,7 +572,8 @@ public class MapDropTarget
             if (DEBUG.DND) out("processTransferable: " + Util.tag(e)
                                + "\n\t       description: " + GUI.dropName(e)
                                + "\n\t        dropAction: " + dropName(e.getDropAction())
-                               + "\n\t        dropAccept: " + dropName(DropAccept)
+                               + "\n\t        dropAccept: " + DropIndication.last
+                               //+ "\n\t        dropAccept: " + dropName(DropAccept)
 //                                + (Util.isWindowsPlatform() ? 
 //                                   "\n\tdropActionOverride: " + dropName(dropActionOverride) : "")
                                + "\n\t     dropScreenLoc: " + Util.fmt(dropLocation)
@@ -532,7 +592,7 @@ public class MapDropTarget
 
         if (dropLocation != null) {
             //dropTarget = pickDropTarget(mapLocation, isLinkAction);
-            dropTarget = DropHit;
+            dropTarget = DropIndication.last.hit;
             
             if (DEBUG.DND) out("dropTarget=" + dropTarget + " in " + mViewer);
             if (dropTarget != null) {
@@ -975,37 +1035,21 @@ public class MapDropTarget
 
         public abstract boolean handleDrop(DropContext drop);
 
+        public abstract DropIndication getIndication(LWComponent target, int requestAction);
+        
 //         protected void handlePostDrop() {
-
 //             if (drop.added.size() > 0) {
-
 //                 // Must make sure the selection is owned
 //                 // by this map before we try and change it.
 //                 // TODO: SlideViewer currently not handling this properly...
 //                 mViewer.grabVueApplicationFocus("drop", null);
-                
 //                 //VUE.getSelection().setTo(drop.added);
 //                 mViewer.selectionSet(drop.added); // VUE-978: selection focal should also be set
-
 //             }
 //         }
         
     }
 
-//     private boolean processDroppedProducer(DropContext drop)
-//     {
-//         if (DEBUG.DND) out("processDroppedProducer: " + drop.producer);
-
-// //         if (drop.hit != null && drop.hit.isDataValueNode()) {
-// //             Log.debug("IMPLIED DATA ACTION");
-// //         }
-
-//         drop.items = drop.producer.produceNodes(drop.viewer.getMap());
-//         return processDroppedNodes(drop);
-//     }
-    
-
-    
     private boolean processDroppedHandler(DropContext drop, DropHandler handler)
     {
         if (DEBUG.Enabled) out("processDroppedHandler: " + Util.tags(handler));
