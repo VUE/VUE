@@ -647,8 +647,8 @@ public class DataSourceViewer extends ContentViewer
                             //delete it
                             WidgetStack widgetStack = null;
                             
-                            if (DRB.resultsPane != null)
-                            	widgetStack = (WidgetStack)DRB.resultsPane.getComponent(0);
+                            //if (DRB.resultsPane != null)
+                           // 	widgetStack = (WidgetStack)DRB.resultsPane.getComponent(0);
                             
                             if (widgetStack != null) {
                                 Component[] comps = widgetStack.getComponents();
