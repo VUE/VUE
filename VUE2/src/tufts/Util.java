@@ -134,7 +134,9 @@ public class Util
          */
         if (osn.startsWith("mac".toUpperCase())) {
             MacPlatform = true;
-            OSisMacLeopard = OSVersion.startsWith("10.5");
+            OSisMacLeopard =
+                OSVersion.startsWith("10.5") || // Leopard
+                OSVersion.startsWith("10.6");  // Snow Leopard
             if (DEBUG) out(String.format("Mac: Leopard=%s", OSisMacLeopard));
             String mrj = System.getProperty("mrj.version");
             int i = 0;
@@ -2643,11 +2645,11 @@ public class Util
         if (txt.length() > 0) {
             if (txt.length() > 2 && txt.charAt(0) == '[' && txt.charAt(txt.length() - 1) == ']') {
                 // skip redundant brackets
-                s = String.format("%s@%07x%s", type, ident, txt);
+                s = String.format("%s@%08x%s", type, ident, txt);
             } else
-                s = String.format("%s@%07x[%s]", type, ident, txt);
+                s = String.format("%s@%08x[%s]", type, ident, txt);
         } else
-            s = String.format("%s@%07x", type, ident);
+            s = String.format("%s@%08x", type, ident);
             
         return s;
     }
