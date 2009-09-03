@@ -248,9 +248,9 @@ public class SeasrAnalysisPanel extends JPanel implements ActionListener, FocusL
 			SeasrAnalyzer				analyzer = new SeasrAnalyzer(flow);
 			List<AnalyzerResult>		resultList = analyzer.analyze(urlTextField.getText(), true);
 			Iterator<AnalyzerResult>	resultIter = resultList.iterator();
+			LWMap						activeMap = VUE.getActiveMap();
 
 			if (method == NEW_NODES) {
-				LWMap				activeMap = VUE.getActiveMap();
 				List<LWComponent>	nodes = new ArrayList<LWComponent>(),
 									links = new ArrayList<LWComponent>();
 
@@ -288,22 +288,30 @@ public class SeasrAnalysisPanel extends JPanel implements ActionListener, FocusL
 					mList.add("tag", analyzerResult.getValue());
 				}
 			} else if (method == NEW_NOTES && selectedNode != null) {
-				String info = "Most common words in the resource are: ";
+				String	info = VueResources.getString("seasr.analysis.mostcommonwords"),
+						separator = ": ";
 
 				while (resultIter.hasNext()) {		
 					AnalyzerResult	analyzerResult = resultIter.next();
 
-					info += analyzerResult.getValue() + " ";
+					info += separator + analyzerResult.getValue();
+					separator = ", ";
 				}
+
+				info += ".";
 
 				String				notes = selectedNode.getNotes();
 
 				selectedNode.setNotes((notes != null && notes.length() != 0 ? notes + "\n" : "") + info);
 			}
+
+	        activeMap.getUndoManager().mark(VueResources.getString("seasr.analysis.title"));
 		} catch (Exception ex) {
 			ex.printStackTrace();
-			VueUtil.alert(ex.getMessage(), "Seasr Flow Error");
+			VueUtil.alert(ex.getLocalizedMessage(), VueResources.getString("seasr.analysis.error"));
 		}
+
+
 	}
 
 
