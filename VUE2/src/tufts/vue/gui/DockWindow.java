@@ -55,7 +55,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.158 $ / $Date: 2009-09-03 19:18:43 $ / $Author: mike $
+ * @version $Revision: 1.159 $ / $Date: 2009-09-03 19:25:15 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -1748,11 +1748,11 @@ public class DockWindow
     public void setBounds(Rectangle r) {
         setBounds(r.x, r.y, r.width, r.height);
     }
-    
+    private final static String ANCHOR_TITLE = VueResources.getString("dockWindow.vueleopard.title");
     //@Override
     public void setBounds(int x, int y, int width, int height)
     {
-    	if (this.getTitle().equals(VueResources.getString("dockWindow.vueleopard.title")))
+    	if (this.getTitle().equals(ANCHOR_TITLE))
     	{
     		 if (!DEBUG.DOCK)
     		 {
