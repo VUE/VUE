@@ -75,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.629 $ / $Date: 2009-09-02 23:04:33 $ / $Author: brian $ 
+ * @version $Revision: 1.630 $ / $Date: 2009-09-03 00:25:26 $ / $Author: brian $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -5028,6 +5028,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 		sMultiPopup.add(Actions.ZoomActual);
 
 		sMultiPopup.addSeparator();
+		sMultiPopup.add(GUI.buildMenu(VueResources.getString("menu.image"), Actions.IMAGE_MENU_ACTIONS));
 		sMultiPopup.add(GUI.buildMenu(VueResources.getString("menu.arrange"), Actions.ARRANGE_MENU_ACTIONS));
 		sMultiPopup.add(GUI.buildMenu(VueResources.getString("menu.layout"),LayoutAction.LAYOUT_ACTIONS));
 
@@ -5109,6 +5110,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     	sAddURLItem = sSinglePopup.add(Actions.AddURLAction);
     	sAddFileItem = sSinglePopup.add(Actions.AddFileAction);
     	sRemoveResourceItem = sSinglePopup.add(Actions.RemoveResourceAction);
+    	sSinglePopup.add(AnalyzerAction.luckyImageAction);
 
     	sSinglePopup.addSeparator();
     	sSinglePopup.add(Actions.ZoomToSelection);
@@ -5116,6 +5118,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     	sSinglePopup.add(Actions.ZoomActual);
 
         sSinglePopup.addSeparator();
+        sSinglePopup.add(GUI.buildMenu(VueResources.getString("menu.image"), Actions.IMAGE_MENU_ACTIONS));
         sSinglePopup.add(GUI.buildMenu(VueResources.getString("menu.arrange"), Actions.ARRANGE_MENU_ACTIONS));
         sSinglePopup.add(GUI.buildMenu(VueResources.getString("menu.layout"),LayoutAction.LAYOUT_ACTIONS));
 
@@ -5125,11 +5128,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     	}
 
     	sSinglePopup.addSeparator();
-        // Keep this for now -- but maybe replace with just PerformMap Based Search and Semantic Map,
-    	// and put Add Most Relevant flickr image underneath Add Image above
-    	JMenu analyzeNodeMenu = new JMenu(VueResources.getString("mapviewer.analyze.node"));
-    	AnalyzerAction.buildSubMenu(analyzeNodeMenu);
-    	sSinglePopup.add(analyzeNodeMenu);
+    	sSinglePopup.add(AnalyzerAction.calais);
+    	sSinglePopup.add(AnalyzerAction.semanticMapAction);
+
+    	//sSinglePopup.addSeparator();
+    	//JMenu analyzeNodeMenu = new JMenu(VueResources.getString("mapviewer.analyze.node"));
+    	//AnalyzerAction.buildSubMenu(analyzeNodeMenu);
+    	//sSinglePopup.add(analyzeNodeMenu);
 
         sSinglePopup.addSeparator();
     	sSinglePopup.add(Actions.AddPathwayItem);
@@ -5213,7 +5218,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
     private void buildSingleSelectionSlideEditingPopup()
     {
-System.out.println("!!!!!!!!!!!!!!!!!!!!!!! buildSingleSelectionSlideEditingPopup");
     	LWSlide slide = (LWSlide)VUE.getActiveViewer().getFocal();
     	
     	infoCheckBox.setLabel(VueResources.getString("mapViewer.componentMenu.slideInfo.label"));
@@ -5254,7 +5258,6 @@ System.out.println("!!!!!!!!!!!!!!!!!!!!!!! buildSingleSelectionSlideEditingPopu
     
     private void buildSingleSelectionSlideIconPopup()
     {
-System.out.println("!!!!!!!!!!!!!!!!!!!!!!! buildSingleSelectionSlideIconPopup");
     	infoCheckBox.setLabel(VueResources.getString("mapViewer.componentMenu.slideInfo.label"));
     	if (VUE.getInfoDock().isShowing())
         	infoCheckBox.setSelected(true);
@@ -5279,7 +5282,6 @@ System.out.println("!!!!!!!!!!!!!!!!!!!!!!! buildSingleSelectionSlideIconPopup")
     }
     private void buildSingleSelectionPortalPopup()
     {
-System.out.println("!!!!!!!!!!!!!!!!!!!!!!! buildSingleSelectionPortalPopup");
     	infoCheckBox.setLabel(VueResources.getString("mapViewer.componentMenu.portalInfo.label"));
     	if (VUE.getInfoDock().isShowing())
         	infoCheckBox.setSelected(true);
@@ -5332,7 +5334,6 @@ System.out.println("!!!!!!!!!!!!!!!!!!!!!!! buildSingleSelectionPortalPopup");
     
     private void buildSingleSelectionImagePopup()
     {
-System.out.println("!!!!!!!!!!!!!!!!!!!!!!! buildSingleSelectionImagePopup");
     	 infoCheckBox.setLabel(VueResources.getString("mapViewer.componentMenu.imageInfo.label"));
     	 if (VUE.getInfoDock().isShowing())
          	infoCheckBox.setSelected(true);

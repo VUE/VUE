@@ -202,10 +202,10 @@ public class AnalyzerAction extends Actions.LWCAction {
    // public static final AnalyzerAction yahoo = new AnalyzerAction(new YahooAnalyzer(),VueResources.getString("analyzeaction.yahoocontent"),null);
     public static final AnalyzerAction calais = new AnalyzerAction(new OpenCalaisAnalyzer(),VueResources.getString("analyzeaction.performmapbased"),null);
     public static final AutoTaggerAction calaisAutoTagger = new AutoTaggerAction(new OpenCalaisAnalyzer(),VueResources.getString("analyzeaction.autotag"),null);
-    public static final SemanticMapAction semanticMapAction = new SemanticMapAction(new OpenCalaisAnalyzer(),"semantic map",null);
+    public static final SemanticMapAction semanticMapAction = new SemanticMapAction(new OpenCalaisAnalyzer(),VueResources.getString("analyzeaction.semanticmap"),null);
  
     public static final Action luckyImageAction =
-        new LWCAction(VueResources.getString("luckyimage")) {
+        new LWCAction(VueResources.getString("analyzeaction.luckyimage")) {
             public void act(LWComponent c) {
             	JSONArray _ja;
             	try {
