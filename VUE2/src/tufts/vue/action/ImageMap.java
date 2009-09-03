@@ -33,7 +33,7 @@ import tufts.vue.LWComponent.ChildKind;
 import tufts.vue.LWComponent.Order;
 
 /**
- * @version $Revision: 1.33 $ / $Date: 2009-05-18 17:57:55 $ / $Author: mike $ *
+ * @version $Revision: 1.34 $ / $Date: 2009-09-03 22:04:51 $ / $Author: mike $ *
  * @author Jay Briedis
  * 
  * Major revision: 2/17/09 -MK
@@ -304,7 +304,7 @@ public class ImageMap extends VueAction {
 		out += "jQuery.noConflict();\n";
 		out += "</script>\n";
 		out += "<script src=\"http://vue.tufts.edu/htmlexport-includes/jquery.maphilight.min.js\" type=\"text/javascript\"></script>";
-		out += "<script src=\"http://vue.tufts.edu/htmlexport-includes/v2/tooltip.min.js\" type=\"text/javascript\"></script>";
+		out += "<script src=\"http://vue.tufts.edu/htmlexport-includes/v3/tooltip.min.js\" type=\"text/javascript\"></script>";
 		out += "<script type=\"text/javascript\">";
 		out += "jQuery(function() {jQuery.fn.maphilight.defaults = {\n";
 		out += "         fill: false,\n";
