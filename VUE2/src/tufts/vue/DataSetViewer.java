@@ -235,7 +235,9 @@ public class DataSetViewer extends ContentViewer {
 
 			// For backwards compatability, "default" data source like My Computer and Saved Content are also saved to this XML file.
 			// These data sources are displayed in DataSourceViewer, not DataSetViewer, so get them from there.
-			size = DataSourceViewer.dataSourceList.getModel().getSize();
+			if (DataSourceViewer.dataSourceList !=null)
+			{
+					size = DataSourceViewer.dataSourceList.getModel().getSize();
 
 			for (int i = 0; i<size; i++) {
 				Object item = DataSourceViewer.dataSourceList.getModel().getElementAt(i);
@@ -250,7 +252,7 @@ public class DataSetViewer extends ContentViewer {
 					if (DEBUG.DR) System.err.println("skipping");
 				}
 			}
-
+			}
 			try {
 				if (DEBUG.DR) Log.debug("saveDataSetViewer: creating new SaveDataSourceViewer");
 
