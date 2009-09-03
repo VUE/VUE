@@ -75,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.630 $ / $Date: 2009-09-03 00:25:26 $ / $Author: brian $ 
+ * @version $Revision: 1.631 $ / $Date: 2009-09-03 15:59:01 $ / $Author: brian $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -5021,6 +5021,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
 		sMultiPopup.addSeparator();
 		sMultiPopup.add(Actions.ContextKeywordAction);
+		sMultiPopup.add(AnalyzerAction.calaisAutoTagger);
 
 		sMultiPopup.addSeparator();
 		sMultiPopup.add(Actions.ZoomToSelection);
@@ -5105,6 +5106,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     	sSinglePopup.addSeparator();
     	sSinglePopup.add(Actions.ContextNotesAction);
     	sSinglePopup.add(Actions.ContextKeywordAction);
+    	sSinglePopup.add(AnalyzerAction.calaisAutoTagger);
 
     	sSinglePopup.addSeparator();
     	sAddURLItem = sSinglePopup.add(Actions.AddURLAction);
