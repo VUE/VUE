@@ -81,10 +81,16 @@ public class ContentPanel extends JPanel {
 	}
 
 	public void showDatasetsTab() {
-		tabbedPane.setSelectedIndex(1);
+		if (VUE.isApplet())
+			tabbedPane.setSelectedIndex(0);
+		else
+			tabbedPane.setSelectedIndex(1);
 	}
 
 	public void showOntologiesTab() {
-		tabbedPane.setSelectedIndex(2);
+		if (VUE.isApplet())
+			tabbedPane.setSelectedIndex(1);
+		else
+			tabbedPane.setSelectedIndex(2);
 	}
 }
