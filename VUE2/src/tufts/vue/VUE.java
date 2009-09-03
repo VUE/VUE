@@ -117,7 +117,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.681 $ / $Date: 2009-08-30 18:26:06 $ / $Author: mike $ 
+ * @version $Revision: 1.682 $ / $Date: 2009-09-03 18:44:30 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -2100,7 +2100,7 @@ public class VUE
 
         VUE.UseLeopardAnchor =
                Util.isMacLeopard()
-            && Util.getJavaVersion() >= 1.6f
+            && Util.getJavaVersion() >= 1.5f
             && DockWindow.useManagedWindowHacks()
             && !VUE.isApplet();
 
