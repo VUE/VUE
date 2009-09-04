@@ -66,7 +66,7 @@ abstract class Undoable {
         }
     }
 
-    public String toString() {
+    @Override public String toString() {
         java.lang.reflect.Method m = getClass().getEnclosingMethod();
         String s = "Undoable:" + getClass().getName() + (m==null?"":("/"+m.getName()));
         if (old instanceof Object[])

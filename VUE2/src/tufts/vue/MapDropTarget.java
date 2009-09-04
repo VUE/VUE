@@ -51,7 +51,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.120 $ / $Date: 2009-09-02 16:28:39 $ / $Author: sfraize $  
+ * @version $Revision: 1.121 $ / $Date: 2009-09-04 19:50:28 $ / $Author: sfraize $  
  */
 public class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -766,20 +766,23 @@ public class MapDropTarget
                 foundHandler = extractData(transfer, foundFlavor, DropHandler.class);
                 dropType = DROP_GENERAL_HANDLER;
                 
-            } else if (transfer.isDataFlavorSupported(edu.tufts.vue.ontology.ui.TypeList.DataFlavor)
+            }
+            else if (transfer.isDataFlavorSupported(edu.tufts.vue.ontology.ui.TypeList.DataFlavor)
                 && (dropAction == DnDConstants.ACTION_LINK))
             {
                 dropType = DROP_ONTOLOGY_TYPE;
                 foundData = extractData(transfer, edu.tufts.vue.ontology.ui.TypeList.DataFlavor);
                 
-            } else if (transfer.isDataFlavorSupported(LWComponent.DataFlavor)) {
+            }
+            else if (transfer.isDataFlavorSupported(LWComponent.DataFlavor)) {
                 
                 foundFlavor = LWComponent.DataFlavor;
                 foundData = extractData(transfer, foundFlavor);
                 dropType = DROP_NODE_LIST;
                 dropItems = (List) foundData;
                 
-            } else if (transfer.isDataFlavorSupported(Resource.DataFlavor)) {
+            }
+            else if (transfer.isDataFlavorSupported(Resource.DataFlavor)) {
                 
                 foundFlavor = Resource.DataFlavor;
                 foundData = extractData(transfer, foundFlavor);
@@ -795,7 +798,8 @@ public class MapDropTarget
                     dropItems = Collections.singletonList(foundData);
 
             
-            } else if (found_HTTP_URL != null && !found_HTTP_URL.getHost().equals("images.google.com")) {
+            }
+            else if (found_HTTP_URL != null && !found_HTTP_URL.getHost().equals("images.google.com")) {
                 // don't use fragment URL if standard URL was from google image light-tray, as
                 // the fragment <img src=...> in this case is a reference to the internal google
                 // image icon stored at google, and we want the original image source...

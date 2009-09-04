@@ -571,7 +571,7 @@ public class UndoManager
             return order - ((UndoItem)o).order;
         }
         
-        public String toString() {
+        @Override public String toString() {
             Object old = oldValue;
             if (oldValue instanceof Collection) {
                 Collection c = (Collection) oldValue;
