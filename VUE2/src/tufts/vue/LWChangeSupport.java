@@ -243,7 +243,7 @@ public class LWChangeSupport
         }
 
         //if (DEBUG.EVENTS && (DEBUG.META || !DEBUG.THREAD)) {
-        if (DEBUG.EVENTS && (DEBUG.META || e.isUndoable())) {
+        if (DEBUG.EVENTS && (DEBUG.META || e.isUndoable()) && (DEBUG.META || listeners != null))  {
             final String ldesc = (listeners == null
                                   ? " -> <no listeners>"
                                   : ((listeners.size()>0?TERM_GREEN:"") + " => (" + listeners.size() + " listeners)" + TERM_CLEAR
