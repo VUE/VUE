@@ -75,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.632 $ / $Date: 2009-09-04 17:09:58 $ / $Author: brian $ 
+ * @version $Revision: 1.633 $ / $Date: 2009-09-04 19:51:06 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -606,7 +606,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
 
     private boolean viewIsTrackable() {
-        if (inScrollPane && (mViewport.getWidth() <= 0 || mViewport.getHeight() <= 0))
+        if (activeTool == ToolPresentation)
+            return false;
+        else if (inScrollPane && (mViewport.getWidth() <= 0 || mViewport.getHeight() <= 0))
             return false;
         else if (VUE.isStartupUnderway())
             return false;
@@ -1389,13 +1391,15 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 //if (DEBUG.Enabled) out("recording new focal position: " + Util.fmt(mFocalMapLocation));
             }
         }
-        
     }
 
+    public void setZoomFit() {
+        tufts.vue.ZoomTool.setZoomFit(this);
+    }
     
     
    /** at startup make sure SOMETHING is visible in the viewport -- if NOTHING is currently visible, zoom-fit the map */
-    private void ensureMapVisible()
+    public void ensureMapVisible()
     {
         if (mMap == mFocal && mMap != null && mMap.hasContent()) {
             int currentlyVisibleObjects = -1;
@@ -1408,7 +1412,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             //if (DEBUG.INIT || DEBUG.VIEWER) out("i see " + visibleObjects + " components in visible map bounds " + getVisibleMapBounds());
             if (currentlyVisibleObjects == 0) {
                 // nothing can currently be seen: zoom-fit the entire map
-                tufts.vue.ZoomTool.setZoomFit(this);
+                setZoomFit();
             }
         }
     }
@@ -2294,9 +2298,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
      * for updating the current rollover zoom.
      */
     public void LWCChanged(LWCEvent e) {
-        if (DEBUG.EVENTS) {
+        if (DEBUG.VIEWER) {
             if (DEBUG.META || VUE.getActiveViewer() == this) out(e);
         }
+        
+//         if (DEBUG.EVENTS) {
+//             if (DEBUG.META || VUE.getActiveViewer() == this) out(e);
+//         }
 
 //         if (e.key == LWKey.UserActionCompleted) {
 //             recordViewIfChanged();
