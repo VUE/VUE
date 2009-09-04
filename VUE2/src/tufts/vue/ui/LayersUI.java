@@ -40,7 +40,7 @@ import edu.tufts.vue.metadata.action.SearchAction;
 
 
 /**
- * @version $Revision: 1.81 $ / $Date: 2009-08-28 17:13:06 $ / $Author: sfraize $
+ * @version $Revision: 1.82 $ / $Date: 2009-09-04 19:52:31 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -792,7 +792,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 
     public void LWCChanged(LWCEvent e) {
 
-        if (DEBUG.EVENTS) Log.debug("handling " + e + "; source=" + e.getSource());
+        //if (DEBUG.EVENTS) Log.debug("handling " + e + "; source=" + e.getSource());
 
         // ignore events from children: just want hierarchy events directly from the map
         // (as we're only interested in changes to map layers)

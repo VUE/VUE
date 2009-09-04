@@ -26,7 +26,7 @@ import java.util.*;
 import org.apache.commons.lang.StringEscapeUtils;
 
 /**
- * @version $Revision: 1.23 $ / $Date: 2009-09-02 16:31:44 $ / $Author: sfraize $
+ * @version $Revision: 1.24 $ / $Date: 2009-09-04 19:51:31 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -219,9 +219,9 @@ public final class DataAction
          final LWComponent node,
          final Field field) // todo: remove arg? is not immediately clear this MUST be the Field in node (which MUST be a value node, yes?)
     {
-        if (DEBUG.Enabled) {
-            Log.debug("makeValueNodeLinks:\n"
-                      + "\n\t  field: " + field
+        if (DEBUG.SCHEMA || DEBUG.WORK) {
+            Log.debug("makeValueNodeLinks:"
+                      + "\n\t  field: " + quoteKey(field)
                       + "\n\t   node: " + node
                       + "\n\ttargets: " + Util.tags(linkTargets));
             
@@ -279,7 +279,7 @@ public final class DataAction
 
         }
 
-        Log.debug("makeValueNodeLinks: returning:\n\t" + Util.tags(links) + "\n\n");
+        if (DEBUG.SCHEMA || DEBUG.WORK) Log.debug("makeValueNodeLinks: returning:\n\t" + Util.tags(links) + "\n\n");
             
         return links;
     }

@@ -13,7 +13,7 @@ import java.util.*;
  * methods return instances of a Relation which say something about
  * how the data was related.
  *
- * @version $Revision: 1.4 $ / $Date: 2009-08-28 17:13:05 $ / $Author: sfraize $
+ * @version $Revision: 1.5 $ / $Date: 2009-09-04 19:52:26 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public final class Relation {
@@ -220,7 +220,7 @@ public final class Relation {
         //final List<Relation> results = new ArrayList();
         final Map<String,Relation> results = new HashMap();
         
-        if (DEBUG.Enabled) {
+        if (DEBUG.SCHEMA || DEBUG.WORK) {
             Log.debug("getCrossSchemaJoinedValues:"
                       + "\n\tfieldSchema: " + fieldSchema
                       + "\n\t  rowSchema: " + rowSchema
@@ -243,7 +243,7 @@ public final class Relation {
             final String fieldName = rowData.getString(LWComponent.EnumeratedValueKey);
 
             if (fieldName == null) {
-                if (DEBUG.Enabled)
+                if (DEBUG.SCHEMA || DEBUG.WORK)
                     Log.debug("JOIN: same schema, no joins possible for " + quoteKey(field) + "<=>" + rowData);
                          //new Throwable("HERE"));
                 return Collections.EMPTY_LIST;
@@ -496,6 +496,8 @@ public final class Relation {
             // -----------------------------------------------------------------------------
         
             final Field filterField = filterNode.getDataValueField();
+            if (filterField == null)
+                throw new NullPointerException("node has no field: " + filterNode);
             final String filterValue = filterNode.getDataValue(filterField.getName());
 
             return schema.getMatchingRows(filterField, filterValue);
