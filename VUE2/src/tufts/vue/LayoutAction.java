@@ -31,7 +31,8 @@ import javax.swing.Action;
 
 // contains layout actions. based on ArrangeAction. The default layout is random layout
 
-public abstract  class LayoutAction extends Actions.LWCAction {
+public abstract  class LayoutAction extends Actions.LWCAction
+{
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LayoutAction.class);
     private Layout layout = new edu.tufts.vue.layout.ListRandomLayout();
     
@@ -60,14 +61,18 @@ public abstract  class LayoutAction extends Actions.LWCAction {
     boolean supportsSingleMover() { return true; }
     
     public void act(List<? extends LWComponent> bag) {
-        act(new LWSelection(bag));
+        act(bag, true);
     }
     
-    void act(LWSelection selection)
-    {
-    	act(selection,true);
+    public void act(List<? extends LWComponent> bag, boolean autoFit) {
+        act(new LWSelection(bag), autoFit);
     }
-    public void act(LWSelection selection, boolean autoFit)   {
+    
+    void act(LWSelection selection) {
+    	act(selection, true);
+    }
+    public void act(LWSelection selection, boolean autoFit) {
+        if (DEBUG.Enabled) Log.debug(this + "; autoFit=" + autoFit);
         try {
             layout.layout(selection);
             if (autoFit)
