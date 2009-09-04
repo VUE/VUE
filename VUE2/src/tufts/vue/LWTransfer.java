@@ -13,7 +13,7 @@ import edu.tufts.vue.ontology.ui.TypeList;
 /**
  * implements java.awt.datatransfer.Transferable for LWComponent(s)
  *
- * @version $Revision: 1.3 $ / $Date: 2009-09-02 16:40:12 $ / $Author: sfraize $
+ * @version $Revision: 1.4 $ / $Date: 2009-09-04 19:43:47 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LWTransfer implements Transferable {
@@ -27,12 +27,11 @@ public class LWTransfer implements Transferable {
         isLocalDrop = t;
     }
     
-    private static final DataFlavor LWFlavors[] = {
+    private static final DataFlavor DefaultFlavors[] = {
         LWComponent.DataFlavor,
         DataFlavor.stringFlavor,
         DataFlavor.imageFlavor,
         DropHandler.DataFlavor
-        //MapResource.DataFlavor,
         // TypeList.DataFlavor // commented out 2009-06-24 SMF
         //URLFlavor, // try text/uri-list
     };
@@ -40,11 +39,18 @@ public class LWTransfer implements Transferable {
 
     private final LWComponent LWC;
     private final boolean isSelection;
-    
+
+    private final DataFlavor[] supportedFlavors;
 
     public LWTransfer(LWComponent c, boolean selection) {
-        this.LWC = c;
-        this.isSelection = selection;
+        LWC = c;
+        isSelection = selection;
+        if (c.hasClientData(DropHandler.class)) {
+            supportedFlavors = DefaultFlavors.clone();
+        } else {
+            supportedFlavors = new DataFlavor[3];
+            System.arraycopy(DefaultFlavors, 0, supportedFlavors, 0, 3);
+        }
     }
     
     public LWTransfer(LWComponent c) {
@@ -52,10 +58,10 @@ public class LWTransfer implements Transferable {
     }
 
     public DataFlavor[] getTransferDataFlavors() {
-        return LWFlavors;
+        return supportedFlavors;
     }
             
-    public boolean isDataFlavorSupported(DataFlavor flavor)
+    public boolean isDataFlavorSupported(final DataFlavor flavor)
     {
         if (DEBUG.DND) Log.debug("isDataFlavorSupported, flavor=" + flavor);
                 
@@ -73,10 +79,6 @@ public class LWTransfer implements Transferable {
         }
 
         if (flavor == DropHandler.DataFlavor && LWC.hasClientData(DropHandler.class)) {
-            // note this is a bit convoluted: the producer is currently only passed within an
-            // LWComponent.  This needn't be true, but our current usage depends on it.
-            // (We want an LWComponent available as the drag image).  We could easily
-            // extend LWTransfer to support a producer directly and allowing for a null LWC.
             return true;
         }
                 
@@ -94,8 +96,8 @@ public class LWTransfer implements Transferable {
         // TODO BUG: support for TypeList is being incorrectly reported as true here
         // even if there is no old-style meta-data!
                 
-        for (int i = 0; i < LWFlavors.length; i++)
-            if (flavor.equals(LWFlavors[i]))
+        for (int i = 0; i < supportedFlavors.length; i++)
+            if (flavor.equals(supportedFlavors[i]))
                 return true;
 
         return false;
