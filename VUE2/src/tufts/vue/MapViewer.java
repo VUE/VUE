@@ -75,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.631 $ / $Date: 2009-09-03 15:59:01 $ / $Author: brian $ 
+ * @version $Revision: 1.632 $ / $Date: 2009-09-04 17:09:58 $ / $Author: brian $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -5024,12 +5024,16 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 		sMultiPopup.add(AnalyzerAction.calaisAutoTagger);
 
 		sMultiPopup.addSeparator();
+		sMultiPopup.add(Actions.RemoveResourceAction);
+
+		sMultiPopup.addSeparator();
 		sMultiPopup.add(Actions.ZoomToSelection);
 		sMultiPopup.add(Actions.ZoomFit);
 		sMultiPopup.add(Actions.ZoomActual);
 
 		sMultiPopup.addSeparator();
 		sMultiPopup.add(GUI.buildMenu(VueResources.getString("menu.image"), Actions.IMAGE_MENU_ACTIONS));
+		sMultiPopup.add(GUI.buildMenu(VueResources.getString("menu.align"), Actions.ALIGN_MENU_ACTIONS));
 		sMultiPopup.add(GUI.buildMenu(VueResources.getString("menu.arrange"), Actions.ARRANGE_MENU_ACTIONS));
 		sMultiPopup.add(GUI.buildMenu(VueResources.getString("menu.layout"),LayoutAction.LAYOUT_ACTIONS));
 
@@ -5111,8 +5115,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     	sSinglePopup.addSeparator();
     	sAddURLItem = sSinglePopup.add(Actions.AddURLAction);
     	sAddFileItem = sSinglePopup.add(Actions.AddFileAction);
-    	sRemoveResourceItem = sSinglePopup.add(Actions.RemoveResourceAction);
     	sSinglePopup.add(AnalyzerAction.luckyImageAction);
+    	sRemoveResourceItem = sSinglePopup.add(Actions.RemoveResourceAction);
 
     	sSinglePopup.addSeparator();
     	sSinglePopup.add(Actions.ZoomToSelection);
@@ -5194,13 +5198,14 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     	sSinglePopup.add(Actions.ZoomActual);
 
    	    sSinglePopup.addSeparator();
+        sSinglePopup.add(GUI.buildMenu(VueResources.getString("menu.link"), Actions.LINK_MENU_ACTIONS));
         sSinglePopup.add(GUI.buildMenu(VueResources.getString("menu.arrange"), Actions.ARRANGE_MENU_ACTIONS));
 
    	    sSinglePopup.addSeparator();
    	    sSinglePopup.add(Actions.CopyStyle);
         sSinglePopup.add(Actions.PasteStyle);
 
-   	    sSinglePopup.addSeparator();
+        sSinglePopup.addSeparator();
    	    sSinglePopup.add(Actions.Cut);
    	    sSinglePopup.add(Actions.Copy);
         sSinglePopup.add(Actions.Paste);
@@ -5610,6 +5615,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             sMapPopup.addSeparator();            
             sMapPopup.add(Actions.Paste);
             sMapPopup.add(Actions.SelectAll);
+            sMapPopup.add(Actions.SelectAllNodes);
+            sMapPopup.add(Actions.SelectAllLinks);
+            sMapPopup.add(Actions.Reselect);
 
             GUI.adjustMenuIcons(sMapPopup);
             
