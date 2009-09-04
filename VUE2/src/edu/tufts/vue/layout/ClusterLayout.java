@@ -216,12 +216,16 @@ public class ClusterLayout extends Layout {
 		// computing the size of largest cluster and the area to plot all clusters;
 		double area = 0.0;
 		for (LWComponent c : clusterMap.keySet()) {
-			double clusterArea = FACTOR * clusterMap.get(c).size()* meanNodeWidth * meanNodeHeight;
-			area +=  clusterArea;
-			// assuming width> height
-//			System.out.println("Total Area Needed: "+area+" "+c.getLabel()+" "+clusterMap.get(c).size());
-			double radius = 1.05*(c.getWidth()/2+Math.sqrt( clusterArea/ Math.PI));// increase the radius for computing cluster centers by 5%
-			componentRadiusMap.put(c, radius);
+                    if (c == null) {
+                        System.err.println("null component in clusterMap");
+                        continue;
+                    }
+                    double clusterArea = FACTOR * clusterMap.get(c).size()* meanNodeWidth * meanNodeHeight;
+                    area +=  clusterArea;
+                    // assuming width> height
+                    //			System.out.println("Total Area Needed: "+area+" "+c.getLabel()+" "+clusterMap.get(c).size());
+                    double radius = 1.05*(c.getWidth()/2+Math.sqrt( clusterArea/ Math.PI));// increase the radius for computing cluster centers by 5%
+                    componentRadiusMap.put(c, radius);
 		}	
 		
 		area =  AREA_INCREASE_FACTOR * area;
