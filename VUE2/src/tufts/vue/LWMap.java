@@ -59,7 +59,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.250 $ / $Date: 2009-09-02 16:25:20 $ / $Author: sfraize $
+ * @version $Revision: 1.251 $ / $Date: 2009-09-04 19:43:23 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -2214,6 +2214,11 @@ public class LWMap extends LWContainer
         removeChild(c);
     }
      */
+
+    /** @return true: maps are always "alive" -- they always generate events */
+    protected final boolean alive() {
+        return true;
+    }
     
     /**
      * Every single event anywhere in the map will ultimately end up
@@ -2265,7 +2270,7 @@ public class LWMap extends LWContainer
         if (DEBUG.UNDO) {
             //String msg = "MARKED TO +" + mChanges + " WITH OLD VALUE: " + Util.tags(e.oldValue) + "; " + e;
             String msg = "MARKED TO +" + mChanges + " ON " + e;
-            if (mXMLRestoreUnderway)
+            if (true||mXMLRestoreUnderway)
                 Log.debug(msg);
             else
                 Log.debug(msg, new Throwable("HERE"));
