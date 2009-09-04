@@ -6,6 +6,7 @@ import tufts.vue.DEBUG;
 import tufts.vue.MetaMap;
 import tufts.vue.LWComponent;
 import tufts.vue.LWNode;
+import tufts.vue.LWMap;
 import tufts.vue.MapDropTarget;
 import static tufts.vue.MapDropTarget.*;
 import tufts.vue.ds.DataTree.DataNode;
@@ -23,7 +24,7 @@ import java.util.ArrayList;
  * this handles what happens when it's dropped on the map.  What happends depends
  * on what it's dropped on.
  *
- * @version $Revision: 1.1 $ / $Date: 2009-09-02 16:28:40 $ / $Author: sfraize $
+ * @version $Revision: 1.2 $ / $Date: 2009-09-04 19:52:17 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -63,6 +64,8 @@ class DataDropHandler extends MapDropTarget.DropHandler
         return new DropIndication(DROP_ACCEPT_DATA, acceptAction, target);
     }
     
+    private static final boolean AUTO_FIT = false;
+    
             
     /** DropHandler */
     @Override public boolean handleDrop(DropContext drop)
@@ -85,12 +88,14 @@ class DataDropHandler extends MapDropTarget.DropHandler
             Log.debug("PRODUCING NODES ON THE MAP (no drop target for filtering)");
                 
             newNodes = produceAllDroppedNodes(droppingDataItem);
+
+            // note: clusteringTargets will always be empty here
         }
 
         if (newNodes == null || newNodes.size() == 0)
             return false;
 
-        layoutNodes(drop, newNodes, clusteringTargets);
+        final boolean doZoomFit = layoutNodes(drop, newNodes, clusteringTargets);
 
         //-------------------------------------------------------
         // TODO: handle selection manually (not in MapDropTarget)
@@ -114,46 +119,18 @@ class DataDropHandler extends MapDropTarget.DropHandler
             drop.select = newNodes;
         }
 
+        if (doZoomFit) {
+            drop.viewer.setZoomFit();
+        } else {
+            // the various layout actions can completely screw up the map view for some reason,
+            // so we always make sure the map is at least SOMEWHAT visible at the end.
+            // TODO: debug what the layout actions are doing to the view.
+            drop.viewer.ensureMapVisible();
+        }
+
         return true;
         
     }
-
-    private void layoutNodes
-        (final DropContext drop,
-         final List<LWComponent> newNodes, 
-         final List<LWComponent> clusteringTargets)
-    {
-        //-----------------------------------------------------------------------------
-        // Currently, we must set node locations before adding any links, as when
-        // the link-add events happen, the viewer may adjust the canvas size
-        // to include room for the new links, which will all be linking to 0,0
-        // unless the nodes have had their locations set, even if the nodes
-        // are about to be re-laid out via a group clustering.
-        //-----------------------------------------------------------------------------
-
-        if (DEBUG.Enabled) Log.debug("NEW-DATA-NODES: " + Util.tags(newNodes));
-                
-        MapDropTarget.setCenterAt(newNodes, drop.location);
-
-        boolean didAddLinks = DataAction.addDataLinksForNodes(drop.viewer.getMap(),
-                                                              newNodes,
-                                                              droppingDataItem.getField());
-
-        if (clusteringTargets.size() > 0) {
-            //tufts.vue.Actions.MakeCluster.doClusterAction(clusterNode, newNodes);                
-            for (LWComponent center : clusteringTargets) {
-                tufts.vue.Actions.MakeCluster.doClusterAction(center, center.getLinked());
-            }
-        } else if (drop.isLinkAction) {
-            //tufts.vue.Actions.MakeCluster.act(newNodes); // TODO: GET THIS WORKING -- needs to work w/out a center
-            tufts.vue.LayoutAction.filledCircle.act(newNodes); // TODO: this goes into infinite loops sometimes!
-        } else {
-            // TODO: pass isLinkAction to clusterNodes and sort out there 
-            clusterNodes(newNodes, didAddLinks);
-        }
-
-    }
-    
 
     private static List<LWComponent> produceAllDroppedNodes(final DataNode treeNode)
     {
@@ -286,36 +263,98 @@ class DataDropHandler extends MapDropTarget.DropHandler
     }
     
         
-    private boolean clusterNodes(List<LWComponent> nodes, boolean newLinksAvailable) {
+    private boolean layoutNodes
+        (final DropContext drop,
+         final List<LWComponent> newNodes, 
+         final List<LWComponent> clusteringTargets)
+    {
+        //-----------------------------------------------------------------------------
+        // Currently, we must set node locations before adding any links, as when
+        // the link-add events happen, the viewer may adjust the canvas size
+        // to include room for the new links, which will all be linking to 0,0
+        // unless the nodes have had their locations set, even if the nodes
+        // are about to be re-laid out via a group clustering.
+        //
+        // TODO: can we re-work all the layout code so the nodes and links don't
+        // have to first be added to the map?  It would really clean some things up.
+        //-----------------------------------------------------------------------------
 
+        boolean zoomFit = false;
+
+        if (DEBUG.Enabled) Log.debug("NEW-DATA-NODES: " + Util.tags(newNodes));
+                
+        MapDropTarget.setCenterAt(newNodes, drop.location);
+
+        boolean didAddLinks = DataAction.addDataLinksForNodes(drop.viewer.getMap(),
+                                                              newNodes,
+                                                              droppingDataItem.getField());
+
+        if (clusteringTargets.size() > 0) {
+            //tufts.vue.Actions.MakeCluster.doClusterAction(clusterNode, newNodes);                
+            for (LWComponent center : clusteringTargets) {
+                tufts.vue.Actions.MakeCluster.doClusterAction(center, center.getLinked());
+            }
+        } else if (drop.isLinkAction) {
+            //tufts.vue.Actions.MakeCluster.act(newNodes); // TODO: GET THIS WORKING -- needs to work w/out a center
+            tufts.vue.LayoutAction.filledCircle.act(newNodes, AUTO_FIT); // TODO: this goes into infinite loops sometimes!
+        } else {
+            // TODO: pass isLinkAction to clusterNodes and sort out there 
+            zoomFit = clusterNodes(drop, newNodes, didAddLinks);
+        }
+
+        return zoomFit;
+
+    }
+
+    private boolean clusterNodes
+        (final DropContext drop,
+         final List<LWComponent> nodes, 
+         final boolean newLinksAvailable)
+    {
         if (DEBUG.Enabled) Log.debug("clusterNodes: " + Util.tags(nodes) + "; addedLinks=" + newLinksAvailable);
-            
+
+        if (nodes.size() <= 1) {
+            if (DEBUG.Enabled) Log.debug("clusterNodes: skipping: not enough nodes");
+            return false;
+        }
+
+        boolean zoomFit = false;
+
+        final LWMap map = drop.viewer.getMap();
+        final boolean didFullReorganization = map.hasState(LWMap.State.HAS_AUTO_CLUSTERED);
+
+        if (DEBUG.Enabled) Log.debug("clusterNodes: map has already re-organized: " + didFullReorganization);
+
         try {
 
-            if (nodes.size() > 1) {
-                if (droppingDataItem.isRowNode()) {
-                    tufts.vue.LayoutAction.random.act(nodes);
-                } else if (newLinksAvailable) {
-
-                    //                         // TODO: Use the fast clustering code if we can --  filledCircle can
-                    //                         // be VERY slow, and sometimes hangs!
-                    //                         // TODO: the center nodes still need to be laid out in the big grid!
-                    //                         for (LWComponent center : nodes) {
-                    //                             tufts.vue.Actions.MakeCluster.doClusterAction(center, center.getLinked());
-                    //                         }
-                        
-                    // TODO: cluster will currently fail (NPE) if no data-links exist
-                    // Note: this action will re-arrange all the data-nodes on the map
-                    tufts.vue.LayoutAction.cluster.act(nodes);
-                        
-                } else
-                    tufts.vue.LayoutAction.filledCircle.act(nodes);
-                return true;
+            if (droppingDataItem.isRowNode()) {
+                tufts.vue.LayoutAction.random.act(nodes, AUTO_FIT);
             }
+            else if (newLinksAvailable && !didFullReorganization) {
+                
+//                 // TODO: Use the fast clustering code if we can --  filledCircle can
+//                 // be VERY slow, and sometimes hangs!
+//                 // TODO: the center nodes still need to be laid out in the big grid!
+//                 for (LWComponent center : nodes) {
+//                     tufts.vue.Actions.MakeCluster.doClusterAction(center, center.getLinked());
+//                 }
+                
+                // TODO: cluster will currently fail (NPE) if no data-links exist
+                // Note: this action will re-arrange all the data-nodes on the map
+                tufts.vue.LayoutAction.cluster.act(nodes, AUTO_FIT);
+                map.setState(LWMap.State.HAS_AUTO_CLUSTERED);
+                zoomFit = true;
+            }
+            else {
+                tufts.vue.LayoutAction.filledCircle.act(nodes, AUTO_FIT);
+            }
+            
         } catch (Throwable t) {
             Log.error("clustering failure: " + Util.tags(nodes), t);
+            zoomFit = false;
         }
-        return false;
+        
+        return zoomFit;
     }
 }
         
