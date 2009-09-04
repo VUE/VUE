@@ -48,7 +48,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.487 $ / $Date: 2009-09-02 16:24:54 $ / $Author: sfraize $
+ * @version $Revision: 1.488 $ / $Date: 2009-09-04 19:26:21 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -136,6 +136,7 @@ public class LWComponent
         HideCause() { isPathwayCause = false; }
     }
 
+    /** runtime flags explicitly set and cleared by VUE code -- not managed by UNDO */
     public enum Flag {
         /** been deleted (is in undo queue) */
         DELETED,
@@ -181,6 +182,23 @@ public class LWComponent
             
         final int bit = 1 << ordinal();
     }
+
+
+    /** runtime persistant flags, managed by UNDO */
+    public enum State {
+
+        /** a map/layer has been auto-clustered by a data-drop */
+        HAS_AUTO_CLUSTERED
+
+            ;
+            
+        final int bit = 1 << ordinal();
+        final boolean persist;
+
+        State(boolean p) { persist = p; }
+        State() { persist = false; }
+    }
+    
 
     /** context codes for LWContainer.addChildren */
 
@@ -261,8 +279,9 @@ public class LWComponent
     protected transient BasicStroke stroke = STROKE_ZERO;
     //protected transient boolean selected = false;
 
-    protected int mHideBits = 0x0; // any bit set means we're hidden
-    protected int mFlags = 0x0;
+    protected int mHideBits = 0x0; // any bit set means we're hidden (not managed by undo)
+    protected int mFlags = 0x0; // explicitly set/cleared: not managed by undo
+    protected int mState = 0x0; // managed by undo (and individual bits may optionally be persisted)
 
     protected transient LWContainer parent;
     protected transient LWComponent mParentStyle;
@@ -2139,7 +2158,7 @@ u                    getSlot(c).setFromString((String)value);
         //return (mHideBits & HideCause.FILTER.bit) != 0;
     }
 
-    protected final boolean alive() {
+    protected boolean alive() {
         // "internal" objects should always report events (e.g., special styles, such as data-styles)
         return parent != null ; //|| hasFlag(Flag.INTERNAL);
     }
@@ -2282,7 +2301,7 @@ u                    getSlot(c).setFromString((String)value);
 
     private String fillLabel(final String fmt)
     {
-        if (DEBUG.EVENTS || DEBUG.TEXT || DEBUG.DATA) Log.debug(this + " fillLabel from " + Util.tags(fmt));
+        //if (DEBUG.EVENTS || DEBUG.TEXT || DEBUG.DATA) Log.debug(this + " fillLabel from " + Util.tags(fmt));
 
         //Log.debug("splitting[" + fmt + "]");
         final String[] parts = fmt.split("\\$");
@@ -2323,7 +2342,10 @@ u                    getSlot(c).setFromString((String)value);
 
         final String result = didReplacement ? buf.toString() : fmt;
 
-        if (DEBUG.EVENTS || DEBUG.TEXT || DEBUG.DATA) Log.debug(this + " fillLabel made " + Util.tags(result));
+        if (DEBUG.EVENTS || DEBUG.TEXT || DEBUG.DATA) Log.debug(this +
+                                                                " fillLabel made from " + Util.tags(fmt) + ": "
+                                                                + Util.tags(result));
+        //if (DEBUG.EVENTS || DEBUG.TEXT || DEBUG.DATA) Log.debug(this + " fillLabel made " + Util.tags(result));
         //Log.debug("made label[" + buf + "]");
         return result;
     }
@@ -6668,6 +6690,30 @@ u                    getSlot(c).setFromString((String)value);
         return parent == null ? false : parent.selectedOrParent();
     }
 
+    public static final Key KEY_State =
+        new Key<LWComponent,Integer>("state") {
+        @Override public void setValue(LWComponent c, Integer state) { c.mState = state; } // for undo
+        @Override public Integer getValue(LWComponent c) { return c.mState; } // for undo/debug
+        @Override public String getStringValue(LWComponent c) { return Integer.toHexString(c.mState); }
+    };
+    
+    public void setState(State s) {
+        setState(s, true);
+    }
+    public void setState(State s, boolean on) {
+        final int old = mState;
+        if (on)
+            mState |= s.bit;
+        else
+            mState &= ~s.bit;
+        if (mState != old)
+            notify(KEY_State, Integer.valueOf(old));
+    }
+    public boolean hasState(State s) {
+        return (mState & s.bit) != 0;
+    }
+
+
     public void setFlag(Flag flag) {
         mFlags |= flag.bit;
     }
@@ -7433,7 +7479,8 @@ u                    getSlot(c).setFromString((String)value);
 
         if (getID() == null) {
             s = String.format("%-15s[",
-                              typeName + "." + Integer.toHexString(System.identityHashCode(this))
+                              String.format("%s.%08x", typeName, System.identityHashCode(this))
+                              //typeName + "." + Integer.toHexString(System.identityHashCode(this))
                               );
             //s += tufts.Util.pad(9, Integer.toHexString(hashCode()));
         } else {
