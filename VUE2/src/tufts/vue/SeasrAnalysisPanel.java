@@ -221,6 +221,7 @@ public class SeasrAnalysisPanel extends JPanel implements ActionListener, FocusL
 			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
+			VueUtil.alert(ex.getMessage(), VueResources.getString("seasr.analysis.error"));
 		}
 
 		flowComboBox.setEnabled(true);
@@ -240,15 +241,21 @@ public class SeasrAnalysisPanel extends JPanel implements ActionListener, FocusL
 
 
 	protected void analyze() {
+		Object							method = methodComboBox.getSelectedItem();
+		Flow							flow = (Flow)flowComboBox.getSelectedItem();
+		LWSelection						selection = VUE.getSelection();
+		LWComponent						selectedNode = selection != null && selection.size() == 1 ? selection.first() : null;
+		LWMap							activeMap = VUE.getActiveMap();
 		try {
-			Object						method = methodComboBox.getSelectedItem();
-			Flow						flow = (Flow)flowComboBox.getSelectedItem();
-			LWSelection					selection = VUE.getSelection();
-			LWComponent					selectedNode = selection != null && selection.size() == 1 ? selection.first() : null;
 			SeasrAnalyzer				analyzer = new SeasrAnalyzer(flow);
 			List<AnalyzerResult>		resultList = analyzer.analyze(urlTextField.getText(), true);
+/*
+// for debugging, comment out the above line and do something like this:
+List<AnalyzerResult> resultList = new ArrayList<AnalyzerResult>();
+resultList.add(new AnalyzerResult("foo", "result1"));
+resultList.add(new AnalyzerResult("foo", "result2"));
+*/
 			Iterator<AnalyzerResult>	resultIter = resultList.iterator();
-			LWMap						activeMap = VUE.getActiveMap();
 
 			if (method == NEW_NODES) {
 				List<LWComponent>	nodes = new ArrayList<LWComponent>(),
@@ -287,6 +294,9 @@ public class SeasrAnalysisPanel extends JPanel implements ActionListener, FocusL
 
 					mList.add("tag", analyzerResult.getValue());
 				}
+				
+				selectedNode.layout();
+				selectedNode.notify("meta-data");
 			} else if (method == NEW_NOTES && selectedNode != null) {
 				String	info = VueResources.getString("seasr.analysis.mostcommonwords"),
 						separator = ": ";
@@ -305,13 +315,13 @@ public class SeasrAnalysisPanel extends JPanel implements ActionListener, FocusL
 				selectedNode.setNotes((notes != null && notes.length() != 0 ? notes + "\n" : "") + info);
 			}
 
-	        activeMap.getUndoManager().mark(VueResources.getString("seasr.analysis.title"));
 		} catch (Exception ex) {
 			ex.printStackTrace();
-			VueUtil.alert(ex.getLocalizedMessage(), VueResources.getString("seasr.analysis.error"));
+			VueUtil.alert(ex.getMessage(), VueResources.getString("seasr.analysis.error"));
 		}
 
-
+		activeMap.getUndoManager().mark(VueResources.getString("seasr.analysis.title"));
+		activeMap.markAsModified();
 	}
 
 
@@ -426,8 +436,9 @@ public class SeasrAnalysisPanel extends JPanel implements ActionListener, FocusL
 		public void run() {
 			try {
 				analyze();
-			} catch(Exception e) {
-				e.printStackTrace();
+			} catch(Exception ex) {
+				ex.printStackTrace();
+				VueUtil.alert(ex.getMessage(), VueResources.getString("seasr.analysis.error"));
 			}
 		}
 	}
