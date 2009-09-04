@@ -3142,7 +3142,7 @@ public class Actions implements VueConstants
             
             if (newDim == Integer.MIN_VALUE) {
                 // hide
-                if (im.isNodeIcon()) {
+                if (im.isNodeIcon() || im.getParent() instanceof LWNode) {
                     im.setHidden(HideCause.IMAGE_ICON_OFF);
                     im.getParent().layout("imageIconHide");
                 }
