@@ -588,7 +588,7 @@ public class SearchTextField extends JTextField {
 		labelMenuItem.setSelected(false);
 		//editSettingsMenuItem.setSelected(false);
 		//VUE.getMetadataSearchMainGUI().setVisible(false);
-		VUE.getMetadataSearchMainPanel().searchTypeCmbBox.setSelectedItem("Categories + Keywords");
+		VUE.getMetadataSearchMainPanel().searchTypeCmbBox.setSelectedItem(VueResources.getString("searchgui.categories_keywords"));
 		// resetSettingsMenuItem.setSelected(false);
 		List<VueMetadataElement> searchTerms = new ArrayList<VueMetadataElement>();
 		VueMetadataElement vme = new VueMetadataElement();
@@ -628,7 +628,7 @@ public class SearchTextField extends JTextField {
 		labelMenuItem.setSelected(false);
 		//editSettingsMenuItem.setSelected(false);
 		//VUE.getMetadataSearchMainGUI().setVisible(false);
-		VUE.getMetadataSearchMainPanel().searchTypeCmbBox.setSelectedItem("Keywords");
+		VUE.getMetadataSearchMainPanel().searchTypeCmbBox.setSelectedItem(VueResources.getString("searchgui.keywords"));
 		// resetSettingsMenuItem.setSelected(false);
 		List<VueMetadataElement> searchTerms = new ArrayList<VueMetadataElement>();
 		VueMetadataElement vme = new VueMetadataElement();
@@ -668,7 +668,7 @@ public class SearchTextField extends JTextField {
 		labelMenuItem.setSelected(true);
 		//editSettingsMenuItem.setSelected(false);
 		//VUE.getMetadataSearchMainGUI().setVisible(false);
-		VUE.getMetadataSearchMainPanel().searchTypeCmbBox.setSelectedItem("Labels");
+		VUE.getMetadataSearchMainPanel().searchTypeCmbBox.setSelectedItem(VueResources.getString("searchgui.labels"));
 		// resetSettingsMenuItem.setSelected(false);
 		List<VueMetadataElement> searchTerms = new ArrayList<VueMetadataElement>();
 		VueMetadataElement vme = new VueMetadataElement();
@@ -724,7 +724,7 @@ public class SearchTextField extends JTextField {
 		//editSettingsMenuItem.setSelected(false);
 		
 		//VUE.getMetadataSearchMainGUI().setVisible(false);
-		VUE.getMetadataSearchMainPanel().searchTypeCmbBox.setSelectedItem("Search everything");
+		VUE.getMetadataSearchMainPanel().searchTypeCmbBox.setSelectedItem(VueResources.getString("searchgui.searcheverything"));
 		// resetSettingsMenuItem.setSelected(false);
 		List<VueMetadataElement> searchTerms = new ArrayList<VueMetadataElement>();
 		VueMetadataElement vme = new VueMetadataElement();
