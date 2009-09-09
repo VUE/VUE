@@ -4,7 +4,18 @@ package tufts.macosx;
 import com.apple.eawt.ApplicationEvent;
 
 
-public class MacOSX16Safe {
+/**
+ * This class is safe to load on all Java VM's, both 32-bit and 64-bit
+ * (for both Java5 and Java6).  Its subclass, MacOSX, is NOT safe to
+ * load on any 64-bit JVM, as there is no native 64-bit library for
+ * the deprecated java-cocoa bridge, and any code that references
+ * those classes may fail to load (e.g., NSWindow.class).
+ * Technically, MacOSX.class can load in 64-bit as long as none of the
+ * native calls are made, but these classes are not present in Snow
+ * Leopard, and so any reference to them at all will cause a
+ * class-loading failure.
+ */
+public class MacOSX16Safe { // technically, Snow-Leopard safe
     protected static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(MacOSX.class);
     protected static boolean DEBUG = false;
     
