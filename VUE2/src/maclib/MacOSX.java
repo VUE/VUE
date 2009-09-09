@@ -24,14 +24,13 @@ import java.awt.image.BufferedImage;
  * for things such as fading the screen to black and forcing
  * child windows to stay attached to their parent.
  *
- * @version $Revision: 1.16 $ / $Date: 2009-08-29 21:35:36 $ / $Author: mike $
+ * @version $Revision: 1.17 $ / $Date: 2009-09-09 19:43:19 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class MacOSX extends tufts.macosx.MacOSX16Safe
 {
     
     protected static volatile com.apple.cocoa.application.NSWindow sFullScreen;
-    
 
     private static int DefaultColorCycleSteps = 10; // old was 32, then 8
 
@@ -41,6 +40,8 @@ public class MacOSX extends tufts.macosx.MacOSX16Safe
         if (System.getProperty("tufts.macosx.debug") != null)
             DEBUG = true;
         // 64bit Java 6 VM
+        // TODO: IF ANY 64BIT VM (e.g., even java5), this is NOT SUPPORTED
+        // (tho this is currently handled by Util.isMacCocoaSupported() & MacOSX16Safe)
         if (Util.getJavaVersion() >= 1.6) // is this actually supported on Java 1.6 Tiger?
             NSGone = true;
         else
