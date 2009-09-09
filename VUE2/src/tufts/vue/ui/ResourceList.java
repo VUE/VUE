@@ -21,7 +21,9 @@ import tufts.vue.DataSourceViewer;
 import tufts.vue.FavoritesDataSource;
 import tufts.vue.FavoritesWindow;
 import tufts.vue.LWComponent;
+import tufts.vue.LWContainer;
 import tufts.vue.LWImage;
+import tufts.vue.LWLink;
 import tufts.vue.LWNode;
 import tufts.vue.LWPathway;
 import tufts.vue.LWSelection;
@@ -54,7 +56,7 @@ import javax.swing.border.*;
  * until a synthetic model item at the end of this shortened list is selected, at which
  * time the rest of the items are "unmaksed" and displayed.
  *
- * @version $Revision: 1.19 $ / $Date: 2009-03-29 03:03:47 $ / $Author: vaibhav $
+ * @version $Revision: 1.20 $ / $Date: 2009-09-09 18:26:38 $ / $Author: anoop $
  */
 public class ResourceList extends JList
     implements DragGestureListener, /*tufts.vue.ResourceSelection.Listener,*/ MouseListener,ActionListener
@@ -470,6 +472,7 @@ public class ResourceList extends JList
 			ResourceIcon o = (ResourceIcon)this.getModel().getElementAt(index);
 			
 			LWNode end = NodeTool.NodeModeTool.createNewNode(o.getResource().getName());
+			setXYByClustering(end);
 			end.setResource(o.getResource());
 	        VUE.getActiveMap().addNode(end);
 		} else if (e.getSource().equals(addToSlide))
@@ -537,5 +540,49 @@ public class ResourceList extends JList
 		 }
 	}
     
+	private void setXYByClustering(LWNode node) {
+		Iterator<LWComponent> i = VUE.getActiveMap().getAllDescendents(
+				LWContainer.ChildKind.PROPER).iterator();
+		float  xNumerator = 0 ;
+		float yNumerator = 0 ;
+		float denominator = 0 ;
+		while (i.hasNext()) {
+			LWComponent c = i.next();
+			if (c instanceof LWNode) {
+				LWNode mapNode = (LWNode)c;
+				double score = computeScore(node,mapNode);
+				xNumerator += score*mapNode.getX();
+				yNumerator += score*mapNode.getY();
+				denominator += score;
+			}
+			if(denominator != 0) {
+				float x = xNumerator/denominator;
+				float y = yNumerator/denominator;
+				node.setX(x);
+				node.setY(y);
+				
+			}
+			}
+	}
+	
+	private double computeScore (LWNode n1,LWNode n2) {
+		double score = 0.0;
+		String[] words1 = n1.getLabel().split("\\s+");
+		String[] words2 = n2.getLabel().split("\\s+");
+		int matches = 0;
+		for(int i = 0;i<words1.length;i++) {
+			if(n2.getLabel().contains(words1[i])){
+				matches++;
+			}
+		}
+		double p1 = (double) matches / words1.length;
+		double p2 = (double) matches/words2.length;
+		if(p1== 0 && p2 == 0 ){
+			score = 0.0; 
+		} else {
+			score = 2*p1*p2/(p1+p2); // harmonic mean
+		}
+		return score;
+	}
 }
 
