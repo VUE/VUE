@@ -21,6 +21,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseListener;
 
 import tufts.vue.DEBUG;
+import tufts.vue.DRBrowser;
+import tufts.vue.VUE;
 
 import javax.swing.Icon;
 import javax.swing.JComponent;
@@ -42,7 +44,7 @@ import javax.swing.JComponent;
  * PropertyChangeEvents (e.g., expand/collapse, hide/show).
  
  *
- * @version $Revision: 1.21 $ / $Date: 2008-12-16 23:14:44 $ / $Author: sfraize $
+ * @version $Revision: 1.22 $ / $Date: 2009-09-10 16:18:42 $ / $Author: brian $
  * @author Scott Fraize
  */
 public class Widget extends javax.swing.JPanel
@@ -57,6 +59,7 @@ public class Widget extends javax.swing.JPanel
     static final String WANTS_SCROLLER_KEY = "widget.wantsScroller";
     static final String WANTS_SCROLLERALWAYS_KEY = "widget.wantsScrollerAlways";
     static final String TITLE_HIDDEN_KEY = "widget.titleHidden";
+    static final String LOADING_KEY = "widget.loading";
 
     public static void setTitle(JComponent c, String title) {
         c.setName(title);
@@ -133,7 +136,8 @@ public class Widget extends javax.swing.JPanel
         if (expand && !tufts.vue.VUE.isStartupUnderway()) {
             if (isBooleanTrue(c, HIDDEN_KEY) || !c.isVisible())
                 setHidden(c, false);
-            if (!DockWindow.AllWindowsHidden() && !tufts.vue.VUE.inNativeFullScreen()) {
+            if (!DockWindow.AllWindowsHidden() && !tufts.vue.VUE.inNativeFullScreen() &&
+            		!isBooleanTrue(c, LOADING_KEY)) {
                 // make sure the parent window containing us is visible:
                 GUI.makeVisibleOnScreen(c);
             }
@@ -245,5 +249,29 @@ public class Widget extends javax.swing.JPanel
     public final void setWantsScroller(boolean scroller) {
         setWantsScroller(this, scroller);
     }	    
-    
+
+    public static boolean isLoading(JComponent c)
+    {
+    	Boolean currentProp = (Boolean)c.getClientProperty(LOADING_KEY);
+    	boolean current = currentProp == null ? false : currentProp.booleanValue();
+    	return current;
+    }
+
+    public static void setLoading(JComponent c, boolean loading) {
+        // make sure instance method called in case it was overridden
+        if (c instanceof Widget)
+            ((Widget)c).setLoading(loading);
+        else
+            setLoadingImpl(c, loading);
+    }
+
+    protected static void setLoadingImpl(JComponent c, boolean loading) {
+        if (DEBUG.WIDGET) System.out.println(GUI.name(c) + " Widget.setLoading " + loading);
+        setBoolean(c, LOADING_KEY, loading);
+    }
+
+    public void setLoading(boolean loading) {
+        setLoadingImpl(this, loading);
+    }
+
 }
