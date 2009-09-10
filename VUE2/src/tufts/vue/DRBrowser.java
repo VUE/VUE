@@ -49,7 +49,7 @@ import javax.swing.border.*;
  * and browseable VUE ("old-style") data sources (tufts.vue.DataSource).
  * We'd probably need a delegating impl tho to handle that.
  *
- * @version $Revision: 1.82 $ / $Date: 2009-08-13 21:33:17 $ / $Author: brian $ 
+ * @version $Revision: 1.83 $ / $Date: 2009-09-10 16:23:43 $ / $Author: brian $ 
  */
 public class DRBrowser extends ContentBrowser
 {
@@ -65,6 +65,10 @@ public class DRBrowser extends ContentBrowser
 
             {
                 setOpaque(false);
+
+                // This is to keep the content window from coming to the front when the
+                // data sources have loaded and the searchPane is expanded.
+                Widget.setLoading(this, true);
             }
 
             protected void addImpl(Component c, Object constraints, int idx) {
@@ -114,7 +118,7 @@ public class DRBrowser extends ContentBrowser
     public DRBrowser(boolean delayedLoading, DockWindow resourceDock)
     {
         super(new BorderLayout());
- 
+
         if (DEBUG.DR || DEBUG.INIT) out("Creating DRBrowser");
 
         dockWindow = resourceDock;
@@ -209,6 +213,9 @@ public class DRBrowser extends ContentBrowser
             e.printStackTrace();
             loadingLabel.setText(e.toString());
         }
+
+        // Done loading, so Content window should now come to front when searchPane is expanded.
+        Widget.setLoading(searchPane, false);
 
         if (DEBUG.DR || DEBUG.Enabled) out("done loading DataSourceViewer");
     }
