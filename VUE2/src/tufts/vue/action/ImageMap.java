@@ -33,7 +33,7 @@ import tufts.vue.LWComponent.ChildKind;
 import tufts.vue.LWComponent.Order;
 
 /**
- * @version $Revision: 1.34 $ / $Date: 2009-09-03 22:04:51 $ / $Author: mike $ *
+ * @version $Revision: 1.35 $ / $Date: 2009-09-11 00:43:38 $ / $Author: mike $ *
  * @author Jay Briedis
  * 
  * Major revision: 2/17/09 -MK
@@ -207,7 +207,7 @@ public class ImageMap extends VueAction {
 			  String href = null;
 			  String altLabel = null;
 	          Resource res = null;
-	            if (comp instanceof LWNode && (altLabel = (String)((LWNode)comp).getNotes()) == null)
+	            if (comp instanceof LWNode)
 	            {
 	            	 if(comp.getResource() != null){
 	                     res = comp.getResource();
