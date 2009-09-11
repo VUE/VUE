@@ -1,10 +1,12 @@
 package tufts.vue;
 
 import java.awt.Color;
+import java.awt.Dimension;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JViewport;
 import javax.swing.border.LineBorder;
 
 import edu.tufts.vue.ontology.ui.OntologyBrowser;
@@ -34,7 +36,7 @@ public class ContentPanel extends JPanel {
 
 		dockWindow.setContent(tabbedPane);
 
-                if (DEBUG.Enabled) tabbedPane.setSelectedIndex(1);
+		if (DEBUG.Enabled) tabbedPane.setSelectedIndex(1);
 	}
 
 
@@ -53,9 +55,7 @@ public class ContentPanel extends JPanel {
 		scrollPane.setBorder(null);
 		scrollPane.setName(title + ".dockScroll");
 		scrollPane.setWheelScrollingEnabled(true);
-
-		browser.putClientProperty("VUE.sizeTrack", scrollPane.getViewport());
-        scrollPane.setViewportView(browser);
+		scrollPane.setViewportView(browser);
 
 		tabbedPane.addTab(title, scrollPane);
 
@@ -81,16 +81,10 @@ public class ContentPanel extends JPanel {
 	}
 
 	public void showDatasetsTab() {
-		if (VUE.isApplet())
-			tabbedPane.setSelectedIndex(0);
-		else
-			tabbedPane.setSelectedIndex(1);
+		tabbedPane.setSelectedIndex(VUE.isApplet() ? 0 : 1);
 	}
 
 	public void showOntologiesTab() {
-		if (VUE.isApplet())
-			tabbedPane.setSelectedIndex(1);
-		else
-			tabbedPane.setSelectedIndex(2);
+		tabbedPane.setSelectedIndex(VUE.isApplet() ? 1 : 2);
 	}
 }

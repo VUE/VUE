@@ -358,8 +358,8 @@ public class OntologyBrowser extends JPanel {
 		        // ,about this ontology
 		    };
 
-        Widget.setWantsScroller(stack, true);
-        Widget.setWantsScrollerAlways(stack, true);
+        Widget.setWantsScroller(stack, false);
+        Widget.setWantsScrollerAlways(stack, false);
 
         stack.addPane(ontologiesPanel, 0f);
         stack.addPane(populatePane, 0f);

@@ -19,6 +19,7 @@ import tufts.Util;
 import tufts.vue.gui.*;
 
 import java.awt.*;
+
 import javax.swing.*;
 import javax.swing.border.*;
 
@@ -49,7 +50,7 @@ import javax.swing.border.*;
  * and browseable VUE ("old-style") data sources (tufts.vue.DataSource).
  * We'd probably need a delegating impl tho to handle that.
  *
- * @version $Revision: 1.83 $ / $Date: 2009-09-10 16:23:43 $ / $Author: brian $ 
+ * @version $Revision: 1.84 $ / $Date: 2009-09-11 19:14:53 $ / $Author: brian $ 
  */
 public class DRBrowser extends ContentBrowser
 {
@@ -119,6 +120,12 @@ public class DRBrowser extends ContentBrowser
     {
         super(new BorderLayout());
 
+		// The exact numbers aren't important, but it is important to set this so that
+		// WidgetStack's sizeTrack mechanism will function properly.
+		setPreferredSize(new Dimension(150, 400));
+
+        setName(VueResources.getString("dockWindow.contentPanel.resources.title"));
+
         if (DEBUG.DR || DEBUG.INIT) out("Creating DRBrowser");
 
         dockWindow = resourceDock;
@@ -175,15 +182,14 @@ public class DRBrowser extends ContentBrowser
 
         WidgetStack stack = new WidgetStack(getName());
 
-        Widget.setWantsScroller(stack, true);
-        Widget.setWantsScrollerAlways(stack, true);
+        Widget.setWantsScroller(stack, false);
+        Widget.setWantsScrollerAlways(stack, false);
 
         stack.addPane(librariesPane, 0f);
         stack.addPane(searchPane, 0f);
         stack.addPane(browsePane, 1f);
         stack.addPane(resultsPane, 0f);
 
-		stack.putClientProperty("VUE.sizeTrack", this);
         add(stack);
     }
 

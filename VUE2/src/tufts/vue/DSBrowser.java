@@ -2,7 +2,9 @@ package tufts.vue;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.util.Locale;
@@ -10,6 +12,7 @@ import java.util.Locale;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.DefaultListModel;
+import javax.swing.JComponent;
 
 import edu.tufts.vue.dsm.DataSourceManager;
 import edu.tufts.vue.ontology.ui.OntologyBrowser;
@@ -40,6 +43,10 @@ public class DSBrowser extends ContentBrowser {
 
 		dockWindow = dw;
 
+		// The exact numbers aren't important, but it is important to set this so that
+		// WidgetStack's sizeTrack mechanism will function properly.
+		setPreferredSize(new Dimension(150, 400));
+
 		setName(VueResources.getString("dockWindow.contentPanel.datasets.title"));
 		dataSetViewer.setName("Data Set Viewer");
 
@@ -49,8 +56,8 @@ public class DSBrowser extends ContentBrowser {
 		widgetStack.addPane(librariesPane, 0f);
 		widgetStack.addPane(associationsPane, 0f);
 		widgetStack.addPane(browsePane, 1f);
-		Widget.setWantsScroller(widgetStack, true);
-		Widget.setWantsScrollerAlways(widgetStack, true);
+		Widget.setWantsScroller(widgetStack, false);
+		Widget.setWantsScrollerAlways(widgetStack, false);
 
 		// The following must happen AFTER each Widget is added to the WidgetStack.
 		associationsPane.setActions();	
@@ -65,7 +72,6 @@ public class DSBrowser extends ContentBrowser {
 
 		refreshMenuActions();
 
-		widgetStack.putClientProperty("VUE.sizeTrack", this);
 		add(widgetStack);
 	}
 
