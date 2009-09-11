@@ -385,6 +385,7 @@ public class Actions implements VueConstants
             	
             	DataSourceViewer.getAddLibraryAction().actionPerformed(null);
             	GUI.makeVisibleOnScreen(this, VUE.getContentDock().getClass());
+                VUE.getContentPanel().showResourcesTab();
             }                       
         };
         
@@ -394,6 +395,7 @@ public class Actions implements VueConstants
         	
         	DataSourceViewer.getUpdateLibraryAction().actionPerformed(null);
         	GUI.makeVisibleOnScreen(this, VUE.getContentDock().getClass());
+            VUE.getContentPanel().showResourcesTab();
         }
     };
 
