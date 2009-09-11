@@ -117,7 +117,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.683 $ / $Date: 2009-09-09 13:55:26 $ / $Author: sfraize $ 
+ * @version $Revision: 1.684 $ / $Date: 2009-09-11 18:53:32 $ / $Author: brian $ 
  */
 
 public class VUE
@@ -1076,10 +1076,9 @@ public class VUE
         initDataSources();
         
         GUI.invokeAfterAWT(new Runnable() { public void run() {
-            
             if (contentPanel != null)
                 contentPanel.loadDataSourceViewer();
-            
+
             // Kick-off tufts.vue.VueDataSource viewer build threads:
             // must be done in AWT to be threadsafe, as involves
             // non-synhcronized code in tufts.vue.VueDataSource while
@@ -1856,8 +1855,8 @@ public class VUE
         	MapInspector.positionWindowFromProperties();
         	metaDataSearchDock.positionWindowFromProperties();
         	interactionToolsDock.positionWindowFromProperties();
-                if (contentDock != null)
-                    contentDock.positionWindowFromProperties();
+        	if (contentDock != null)
+        		contentDock.positionWindowFromProperties();
         	mergeMapsDock.positionWindowFromProperties();
         	ObjectInspector.positionWindowFromProperties();
         	if (outlineDock != null)
