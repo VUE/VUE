@@ -41,7 +41,7 @@ public class AssociationsPane extends Widget
 	static final int		BUTTON_WIDTH = 20;
 //	static AbstractAction	addAssociationAction = null;
 	AbstractAction			deleteAssociationAction = null;
-	JTable	   				associationsTable = null;
+	JTable					associationsTable = null;
 
 	public AssociationsPane() {
 		this(VueResources.getString("associationsPane.name"));
@@ -107,7 +107,7 @@ public class AssociationsPane extends Widget
 
 		setMenuActions(this,
 				new Action[] {
-								   //addAssociationAction,
+//			addAssociationAction,
 			deleteAssociationAction
 		});
 	}
@@ -130,16 +130,19 @@ public class AssociationsPane extends Widget
 
 	public void deleteAssociation() {
 		AssociationsTableModel	model = ((AssociationsTableModel)associationsTable.getModel());
-		int deleteAt;
+		int toDelete[] = associationsTable.getSelectedRows(),
+			deleteCount = toDelete.length,
+			lastRow = associationsTable.getRowCount() - 1;
 
-		if ((deleteAt = associationsTable.getSelectedRow()) != -1) {
-			model.deleteAssociation(deleteAt);
+		while (deleteCount > 0) {
+			deleteCount--;
+
+			int		deleteRow = toDelete[deleteCount];
+
+			if (deleteRow < lastRow) {
+				model.deleteAssociation(deleteRow);
+			}
 		}
-
-//		 // dangerous -- any deletion failure will end up hanging VUE entirely
-//		 while ((deleteAt = associationsTable.getSelectedRow()) != -1) {
-//			 model.deleteAssociation(deleteAt);
-//		 }
 	}
 
 	public boolean dropAssociation(Transferable transfer, int row, int column) {
@@ -152,15 +155,15 @@ public class AssociationsPane extends Widget
 					 LWComponent.DataFlavor,
 					 LWComponent.class);
 
-                final Field field = dragNode.getClientData(tufts.vue.ds.Field.class);
+				final Field field = dragNode.getClientData(tufts.vue.ds.Field.class);
 
-                associationsTable.setValueAt(field, row, column);
+				associationsTable.setValueAt(field, row, column);
 
-                result = true;
-            } catch (Throwable t) {
-                Log.error("exception processing drop " + transfer + " at " + row + "," + column, t);
-            }
-        }
+				result = true;
+			} catch (Throwable t) {
+				Log.error("exception processing drop " + transfer + " at " + row + "," + column, t);
+			}
+		}
 
 		return result;
 	}
@@ -178,14 +181,14 @@ public class AssociationsPane extends Widget
 
 	protected class AssociationsTableModel extends AbstractTableModel implements Association.Listener
 	{
-		static final long		serialVersionUID = 1;
-		private static final int COL_ENABLED = 0;
-		private static final int COL_FIELD_LEFT = 1;
-		private static final int COL_EQUALS = 2;
-		private static final int COL_FIELD_RIGHT = 3;
+		static final long			serialVersionUID = 1;
+		private static final int	COL_ENABLED = 0;
+		private static final int	COL_FIELD_LEFT = 1;
+		private static final int	COL_EQUALS = 2;
+		private static final int	COL_FIELD_RIGHT = 3;
 
-		private Field tmpField0;
-		private Field tmpField1;
+		private Field				tmpField0;
+		private Field				tmpField1;
 
 		private AssociationsTableModel() {
 			EventHandler.addListener(Association.Event.class, this);
@@ -226,20 +229,20 @@ public class AssociationsPane extends Widget
 		private Object fetchValue(final int row, final int column) {
 			Object result = null;
 
-			final int index = row - 1;
+			final int	lastRow = Association.getCount();
 
 			switch (column) {
 			case COL_ENABLED:
-				result = (row == 0 ? Boolean.FALSE : (Association.get(index).isEnabled() ? Boolean.TRUE : Boolean.FALSE));
+				result = (row == lastRow ? Boolean.FALSE : (Association.get(row).isEnabled() ? Boolean.TRUE : Boolean.FALSE));
 				break;
 			case COL_FIELD_LEFT:
-				result = (row == 0 ?  tmpField0 : Association.get(index).getLeft());
+				result = (row == lastRow ? tmpField0 : Association.get(row).getLeft());
 				break;
 			case COL_EQUALS:
-				result = (row == 0 ? "" : "=");
+				result = (row == lastRow ? "" : "=");
 				break;
 			case COL_FIELD_RIGHT:
-				result = (row == 0 ? tmpField1 : Association.get(index).getRight());
+				result = (row == lastRow ? tmpField1 : Association.get(row).getRight());
 				break;
 			}
 
@@ -281,18 +284,18 @@ public class AssociationsPane extends Widget
 				tmpField0 = tmpField1 = null; 
 				Association.add(fLeft, fRight);
 			} else {
-				fireTableRowsUpdated(0, 0);
+				fireTableRowsUpdated(row, row);
 			}
 		}
 
 		public void deleteAssociation(int index) {
-			Association.remove(Association.get(index - 1));
+			Association.remove(Association.get(index));
 			// we'll get an Assocation.Event callback for the table update
 		}
 
 		public void toggleAssociation(int index) {
 
-			final Association a = Association.get(index - 1);
+			final Association a = Association.get(index);
 
 			if (a != null) {
 				a.setEnabled(!a.isEnabled());
