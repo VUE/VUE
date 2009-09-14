@@ -1015,7 +1015,7 @@ public class DataSourceViewer extends ContentViewer
                 textArea.setOpaque(false);
                 	
                 GUI.invokeAfterAWT(new Runnable() { public void run() {
-                    mResultPane.setTitle("Results: " + mRepositoryName);
+                    mResultPane.setTitle(VueResources.getString("searchgui.results") +": "+ mRepositoryName);
                     mResultPane.removeAll();
                     mResultPane.add(textArea);
                 }});
@@ -1153,7 +1153,7 @@ public class DataSourceViewer extends ContentViewer
                 if (DEBUG.DR) Log.debug("done processing AssetIterator; count=" + resultCount);
             }
             
-            String name = "Results: " + mRepositoryName;
+            String name = VueResources.getString("searchgui.results") +": " + mRepositoryName;
             
             if (DEBUG.DR) {
                 if (resultCount > maxResult)
