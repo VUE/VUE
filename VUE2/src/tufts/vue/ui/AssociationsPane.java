@@ -103,7 +103,12 @@ public class AssociationsPane extends Widget
 	}
 
 	public void enableMenuActions() {
-		deleteAssociationAction.setEnabled(associationsTable.getSelectedRow() != -1);
+		int		deleteCount = associationsTable.getSelectedRowCount(),
+				deleteRow = associationsTable.getSelectedRow();
+
+		// Enable delete for multiple rows or for a single row other than the last row
+		// (the last row is the the "drop here" row, which can't be deleted).
+		deleteAssociationAction.setEnabled(deleteCount > 1 || (deleteCount == 1 && deleteRow != Association.getCount()));
 
 		setMenuActions(this,
 				new Action[] {
@@ -410,23 +415,34 @@ public class AssociationsPane extends Widget
 		static final long					serialVersionUID = 1;
 
 		public void dragEnter(DropTargetDragEvent event) {
-			event.acceptDrag(DnDConstants.ACTION_COPY);
+			Point	dropLocation = event.getLocation();
+			int		row = associationsTable.rowAtPoint(dropLocation);
+
+			if (row == Association.getCount()) {
+				event.acceptDrag(DnDConstants.ACTION_COPY);
+			}
 		}
 
 		public void dragExit(DropTargetEvent event) {}
 
 		public void dragOver(DropTargetDragEvent event) {
-			event.acceptDrag(DnDConstants.ACTION_COPY);
+			Point	dropLocation = event.getLocation();
+			int		row = associationsTable.rowAtPoint(dropLocation);
+
+			if (row == Association.getCount()) {
+				event.acceptDrag(DnDConstants.ACTION_COPY);
+			}
 		}
 
 		public void drop(DropTargetDropEvent event) {
-			event.acceptDrop(DnDConstants.ACTION_COPY);
-
 			Point	dropLocation = event.getLocation();
 			int		row = associationsTable.rowAtPoint(dropLocation),
 					column = associationsTable.columnAtPoint(dropLocation);
 
-			event.dropComplete(dropAssociation(event.getTransferable(), row, column));
+			if (row == Association.getCount()) {
+				event.acceptDrop(DnDConstants.ACTION_COPY);
+				event.dropComplete(dropAssociation(event.getTransferable(), row, column));
+			}
 		}
 
 		public void dropActionChanged(DropTargetDragEvent event) {
