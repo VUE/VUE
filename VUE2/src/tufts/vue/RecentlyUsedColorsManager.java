@@ -14,6 +14,7 @@
  */
 package tufts.vue;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -26,7 +27,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 
 public class RecentlyUsedColorsManager 
 {
-	private static final String maxSize = "8";
+	private static final String maxSize = "12";
 	 private static VuePreference customColorPref = StringPreference.create(
 			 edu.tufts.vue.preferences.PreferenceConstants.FORMATTING_CATEGORY,
 				"customColor", 
@@ -87,7 +88,9 @@ public class RecentlyUsedColorsManager
 	
 	public List getRecentlyUsedColors()
 	{
-		return list.subList(1, list.size());
+		List l = list.subList(1, list.size());
+	
+		return l;
 	}
 	
 	public void updateRecentlyUsedColors(String s)
@@ -104,13 +107,13 @@ public class RecentlyUsedColorsManager
 		{
 			int index = list.indexOf(s);
 			list.remove(index);
-			list.add(1, s);
+			list.add(s);
 			
 		}
 		else
 		{
 			//if it's not in the list add it to the top and deal with it later
-			list.add(1,s);
+			list.add(s);
 		}
 		
 		//trim list if necessary...

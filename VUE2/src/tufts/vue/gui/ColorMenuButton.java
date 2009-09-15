@@ -60,7 +60,7 @@ import edu.tufts.vue.preferences.implementations.ColorPreference;
  * This class provides a popup menu of items that supports named color values
  * with a corresponding color swatch.
  *
- * @version $Revision: 1.31 $ / $Date: 2009-07-24 21:29:34 $ / $Author: sfraize $
+ * @version $Revision: 1.32 $ / $Date: 2009-09-15 21:02:00 $ / $Author: mike $
  * @author csb
  * @author Scott Fraize
  */
@@ -261,7 +261,7 @@ public class ColorMenuButton extends JButton
         contentPane.add(colorArrayPanel);
         popupWindow.pack();
     }
-    private JPanel colorPanel = new JPanel();
+    private JPanel colorPanel = new ColorPanel();
     
     public Window getPopupWindow()
     {
@@ -322,13 +322,14 @@ public class ColorMenuButton extends JButton
     	
     	ColorPreference customColor = null;
     	
-    	
+   
     	List colorList = colorManager.getRecentlyUsedColors();
     	
     	//for (int i=0; i < colorList.size(); i++};    	    	
     	   for (int p = 0 ; p< colorList.size(); p++)
            {		 
     		JButton colorButton = new JButton();
+    		
     		colorButton.setFocusable(false);
     		colorButton.setBorderPainted(false);
     		colorButton.setContentAreaFilled(false);
