@@ -3116,8 +3116,7 @@ public class Actions implements VueConstants
                 LWImage i = n.getImage();
                 if (i != null)
                     i.setToNaturalSize();
-                else
-                	n.setToNaturalSize();
+              
             }
         };
 
@@ -3445,14 +3444,15 @@ public class Actions implements VueConstants
 
     public static final Action ToggleSplitScreen =
         new VueAction(VueResources.local("menu.view.splitscreen"), keyStroke(KeyEvent.VK_BACK_SLASH, COMMAND+SHIFT)) {
-            public void act() {
+          	boolean state;
+    		public void act() {
                 // todo: doesn't work (see VUE.java)
-                VUE.toggleSplitScreen();
+                state = VUE.toggleSplitScreen();
             }
             
             @Override
             public Boolean getToggleState() {
-                return VUE.isScreenSplit();
+                return state;
             }    
             
             public boolean overrideIgnoreAllActions() { return true; }
