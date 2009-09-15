@@ -15,7 +15,6 @@ import javax.swing.DefaultListModel;
 import javax.swing.JComponent;
 
 import edu.tufts.vue.dsm.DataSourceManager;
-import edu.tufts.vue.ontology.ui.OntologyBrowser;
 
 import tufts.vue.DataSourceViewer.MiscActionMouseListener;
 import tufts.vue.ds.XmlDataSource;
@@ -34,7 +33,7 @@ public class DSBrowser extends ContentBrowser {
 	protected Widget					librariesPane = new Widget(VueResources.getString("dockWindow.contentPanel.datasets.title"));
 	protected AssociationsPane			associationsPane = new AssociationsPane();
 	protected Widget					browsePane = new Widget(VueResources.getString("button.browse.label"));
-	protected WidgetStack				widgetStack = new WidgetStack(VueResources.getString("dockWindow.contentPanel.datasets.title"));
+	protected WidgetStack				widgetStack = new WidgetStack(getName());
 	protected DataSetViewer				dataSetViewer = new DataSetViewer(this);
 
 
@@ -42,10 +41,6 @@ public class DSBrowser extends ContentBrowser {
 		super(new BorderLayout());
 
 		dockWindow = dw;
-
-		// The exact numbers aren't important, but it is important to set this so that
-		// WidgetStack's sizeTrack mechanism will function properly.
-		setPreferredSize(new Dimension(150, 400));
 
 		setName(VueResources.getString("dockWindow.contentPanel.datasets.title"));
 		dataSetViewer.setName("Data Set Viewer");

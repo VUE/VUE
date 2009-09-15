@@ -50,7 +50,7 @@ import javax.swing.border.*;
  * and browseable VUE ("old-style") data sources (tufts.vue.DataSource).
  * We'd probably need a delegating impl tho to handle that.
  *
- * @version $Revision: 1.84 $ / $Date: 2009-09-11 19:14:53 $ / $Author: brian $ 
+ * @version $Revision: 1.85 $ / $Date: 2009-09-15 22:59:58 $ / $Author: brian $ 
  */
 public class DRBrowser extends ContentBrowser
 {
@@ -119,10 +119,6 @@ public class DRBrowser extends ContentBrowser
     public DRBrowser(boolean delayedLoading, DockWindow resourceDock)
     {
         super(new BorderLayout());
-
-		// The exact numbers aren't important, but it is important to set this so that
-		// WidgetStack's sizeTrack mechanism will function properly.
-		setPreferredSize(new Dimension(150, 400));
 
         setName(VueResources.getString("dockWindow.contentPanel.resources.title"));
 
