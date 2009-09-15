@@ -533,7 +533,6 @@ public class AnalyzerAction extends Actions.LWCAction {
 		    	System.out.println("Executing action on:"+c.getLabel());
 		    	List<AnalyzerResult> list = analyzer.analyze(c,true);
 		    	Iterator<AnalyzerResult> i = list.iterator();
-		    	VUE.getActiveViewer().getSelection().clear();
 		    	LWMap active = VUE.getActiveMap();
 		        java.util.List<LWComponent> comps = new ArrayList<LWComponent>();
 		    	while (i.hasNext())
@@ -566,7 +565,6 @@ public class AnalyzerAction extends Actions.LWCAction {
 		    	
 		    	List<AnalyzerResult> list = analyzer.analyze(c,true);
 		    	Iterator<AnalyzerResult> i = list.iterator();
-		    	VUE.getActiveViewer().getSelection().clear();
 		    	LWMap active = VUE.getActiveMap();
 		        java.util.List<LWComponent> comps = new ArrayList<LWComponent>();
 		    	while (i.hasNext())
@@ -595,7 +593,6 @@ public class AnalyzerAction extends Actions.LWCAction {
 		    	
 		    	List<AnalyzerResult> list = analyzer.analyze(c,true);
 		    	Iterator<AnalyzerResult> i = list.iterator();
-		    	VUE.getActiveViewer().getSelection().clear();
 		    	LWMap active = VUE.getActiveMap();
 		        java.util.List<LWComponent> comps = new ArrayList<LWComponent>();
 		        String info = OUT_TITLE+analyzer.getFlow().getLabel()+"\n\n";
