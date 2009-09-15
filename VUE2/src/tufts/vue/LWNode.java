@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.253 $ / $Date: 2009-08-28 22:04:32 $ / $Author: sfraize $
+ * @version $Revision: 1.254 $ / $Date: 2009-09-15 17:54:37 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -1601,6 +1601,12 @@ public class LWNode extends LWContainer
         return _lastNodeContent = new NodeContent();
     }
 
+    @Override
+    public void setToNaturalSize() {
+    	Size m = this.getMinimumSize();
+        setSize(m.width, m.height);
+    }
+    
     private Size layoutBoxed(Size request, Size oldSize, Object triggerKey) {
         final Size min;
         
