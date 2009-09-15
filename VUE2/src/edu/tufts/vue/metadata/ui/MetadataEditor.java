@@ -146,7 +146,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,
         
         autoTagButton.setAction(tufts.vue.AnalyzerAction.calaisAutoTagger);
 //        autoTagButton.setLabel(VueResources.getString("keywordPanel.autotag"));
-        autoTagButton.setFont(tufts.vue.gui.GUI.LabelFace);
+        autoTagButton.setFont(tufts.vue.gui.GUI.SmallFont);
         
         
         this.current = current;
@@ -353,7 +353,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,
         //back to "assign categories" as per VUE-953
         //final JLabel optionsLabel = new JLabel("Use full metadata schema");
         final JLabel optionsLabel = new JLabel(VueResources.getString("jlabel.assigncategory"));
-        optionsLabel.setFont(GUI.LabelFace);
+        optionsLabel.setFont(GUI.SmallFont);
         //final JButton advancedSearch = new JButton(new ImageIcon(VueResources.getURL("advancedSearchMore.raw")));//tufts.vue.gui.VueButton("advancedSearchMore");
         final JCheckBox advancedSearch = new JCheckBox();
         //advancedSearch.setBorder(BorderFactory.createEmptyBorder(0,0,15,0));
@@ -385,10 +385,11 @@ public class MetadataEditor extends JPanel implements ActiveListener,
                revalidate();
            }
         });
-        
-        optionsPanel.add(autoTagButton);
         optionsPanel.add(advancedSearch);
+        advancedSearch.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
         optionsPanel.add(optionsLabel);
+        optionsPanel.add(autoTagButton);
+        
         
         JPanel controlPanel = new JPanel(new BorderLayout());
         
