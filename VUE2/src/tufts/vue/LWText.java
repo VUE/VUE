@@ -16,10 +16,19 @@ package tufts.vue;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Font;
+import java.awt.Shape;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.RectangularShape;
 import java.awt.geom.Point2D.Float;
+import java.util.Enumeration;
+
+import javax.swing.text.AttributeSet;
+import javax.swing.text.Element;
+import javax.swing.text.Style;
+import javax.swing.text.html.CSS;
+
 import com.lightdev.app.shtm.SHTMLDocument;
 import com.lightdev.app.shtm.VueStyleSheet;
 
@@ -279,9 +288,75 @@ public class LWText extends LWComponent {
 		}
 
 	}
+	public final int getAverageTextSize()
+	{
+	
+		SHTMLDocument doc = (SHTMLDocument)this.getRichLabelBox().getDocument();
+		
+		Element paragraphElement = doc.getParagraphElement(1);
+		
+		if (paragraphElement.getName().equals("p-implied")) //we're in a list item
+			paragraphElement = paragraphElement.getParentElement();
+	    
+		AttributeSet paragraphAttributeSet = paragraphElement.getAttributes();
+		Element charElem = null;
+		charElem = doc.getCharacterElement(1);
+	    AttributeSet charSet = charElem.getAttributes();
+	    Enumeration characterAttributeEnum = charSet.getAttributeNames();
+	    Enumeration elementEnum = paragraphAttributeSet.getAttributeNames();
+	    
+	  	    	    	     	    	   		
+	    while (elementEnum.hasMoreElements())
+	    {
+	    	
+	    	Object o = elementEnum.nextElement();
+	       	
+	       	if ((o.toString().equals("font-size")) ||(o.toString().equals("size")))
+	       	{
+
+	       		int i = Integer.parseInt(paragraphAttributeSet.getAttribute(o).toString());
+        		return i;
+	       	
+	       	}
+	        			
+	    }
+	    
+	
+		
+	    while (characterAttributeEnum.hasMoreElements())
+	    {
+	    
+	      	Object o = characterAttributeEnum.nextElement();
+	    
+	      	if ((o.toString().equals("font-size")) ||(o.toString().equals("size")))
+        	{
+        		int i = Integer.parseInt(charSet.getAttribute(o).toString());
+        		return i;
+        	}        		
+	        			
+	    }//done looking at character attributes	        	   	        	        	      
+	    return 12;
+	}
 
 	@Override
 	protected void drawImpl(DrawContext dc) {
+		 if (dc.isLODEnabled()) {
+
+	            // if net on-screen point size is less than 5 for all text, we allow drawing
+	            // with reduced LOD (level-of-detail)
+	        
+	            final float renderScale = (float) dc.getAbsoluteScale(); 
+	  //          this.glo       
+	            final float renderFont = (getAverageTextSize()-4) * renderScale;
+	            final boolean canSkipLabel = renderFont < 5; 
+	     
+	     
+	            if (canSkipLabel) {
+	                drawNodeWithReducedLOD(dc, renderScale);
+	                return; // WE'RE DONE
+	            }
+	        }
+		 
 		if (!isFiltered()) {
 			// Desired functionality is that if this node is filtered, we don't
 			// draw it, of course.
@@ -304,6 +379,56 @@ public class LWText extends LWComponent {
 		}
 
 	}
+	 private static final Shape mShape = new java.awt.geom.Rectangle2D.Float();
+	/** Draw without rendering any textual glyphs, possibly without children, possibly as a rectanlge only */
+    private void drawNodeWithReducedLOD(final DrawContext dc, final float renderScale)
+    {
+        //=============================================================================
+        // DRAW FAST (with little or no detail)
+        //=============================================================================
+
+        // Level-Of-Detail rendering -- increases speed when lots of nodes rendered
+        // all we do is fill the shape
+                
+        boolean hasVisibleFill = true;
+        
+        if (isSelected()) {
+            dc.g.setColor(COLOR_SELECTION);
+        } else {
+
+            final Color renderFill = getRenderFillColor(dc);
+
+           // if (isTransparent() || renderFill.equals(getParent().getRenderFillColor(dc)))
+                hasVisibleFill = false;
+           
+        }
+
+        if (this.height * renderScale > 5) {
+
+            // MEDIUM LEVEL OF DETAIL: retain shape & draw children
+
+          
+                drawLODTextLine(dc);
+
+          
+                
+        } else {
+
+            // LOWEST LEVEL OF DETAIL -- shape is always a rectangle, don't draw children
+            
+                drawLODTextLine(dc);
+        }
+                
+    }
+
+    private void drawLODTextLine(final DrawContext dc) {
+        final int hh = (int) ((getHeight() / 2f) + 0.5f);
+        //dc.setAntiAlias(false); // too crappy
+        dc.g.setStroke(STROKE_SEVEN);
+        dc.g.setColor(Color.black);
+        dc.g.drawLine(0, hh, getLabelBox().getWidth(), hh);
+    }
+    
 
 	protected void drawLabel(DrawContext dc) {
 		//float lx = 0;//relativeLabelX();
