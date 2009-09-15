@@ -57,7 +57,7 @@ import javax.swing.border.*;
  * until a synthetic model item at the end of this shortened list is selected, at which
  * time the rest of the items are "unmaksed" and displayed.
  *
- * @version $Revision: 1.21 $ / $Date: 2009-09-15 18:06:05 $ / $Author: anoop $
+ * @version $Revision: 1.22 $ / $Date: 2009-09-15 18:38:26 $ / $Author: anoop $
  */
 public class ResourceList extends JList
     implements DragGestureListener, /*tufts.vue.ResourceSelection.Listener,*/ MouseListener,ActionListener
@@ -573,8 +573,8 @@ public class ResourceList extends JList
 			if (c instanceof LWNode) {
 				LWNode mapNode = (LWNode)c;
 				if(checkCollision(mapNode,node)) {
-					Object PUSH_ALL = "pushAll";
-					Actions.projectNodes(node,  24,PUSH_ALL );
+					 
+					Actions.projectNodes(node,  24, Actions.PUSH_ALL );
 				}
 			}
 		}
