@@ -651,6 +651,28 @@ public class Actions implements VueConstants
             public void act(LWLink c) { c.rotateArrowState(); }
         };
     
+        public static final Action ResizeNode =
+            new LWCAction(VueResources.local("menu.format.node.resize")/*, VueResources.getIcon("outlineIcon.link")*/) {
+                boolean enabledFor(LWSelection s) { 
+                
+                	
+                	
+                	if (s.size()==1 && s.containsType(LWNode.class))
+                	{
+                		LWNode n = (LWNode)s.get(0);
+                		Size minSize = n.getMinimumSize();
+                		
+                		if (minSize.height == n.height && minSize.width == n.width)
+                			return false;
+                		else
+                			return true;
+
+                	}
+                	else 
+                		return false;
+                	}
+                public void act(LWNode c) { c.setToNaturalSize();}
+            };    
     
     /** Helper for menu creation.  Null's indicate good places
      * for menu separators. */
@@ -3094,6 +3116,8 @@ public class Actions implements VueConstants
                 LWImage i = n.getImage();
                 if (i != null)
                     i.setToNaturalSize();
+                else
+                	n.setToNaturalSize();
             }
         };
 
@@ -3209,8 +3233,10 @@ public class Actions implements VueConstants
     private static final int ImageSizes[] = { 512, 256, 128, 64, 32, 16 };
 
     public static final Action[] IMAGE_MENU_ACTIONS;
+    public static final Action[] NODE_FORMAT_MENU_ACTIONS = {ResizeNode};
 
     static {
+
         IMAGE_MENU_ACTIONS = new Action[ImageSizes.length + 5];
 
         int i = 0;
@@ -3419,15 +3445,14 @@ public class Actions implements VueConstants
 
     public static final Action ToggleSplitScreen =
         new VueAction(VueResources.local("menu.view.splitscreen"), keyStroke(KeyEvent.VK_BACK_SLASH, COMMAND+SHIFT)) {
-            boolean state;
             public void act() {
                 // todo: doesn't work (see VUE.java)
-                state = VUE.toggleSplitScreen();
+                VUE.toggleSplitScreen();
             }
             
             @Override
             public Boolean getToggleState() {
-                return state;
+                return VUE.isScreenSplit();
             }    
             
             public boolean overrideIgnoreAllActions() { return true; }
