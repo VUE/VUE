@@ -45,6 +45,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.geom.Point2D;
 
 import javax.swing.*;
 import javax.swing.event.*;
@@ -56,7 +57,7 @@ import javax.swing.border.*;
  * until a synthetic model item at the end of this shortened list is selected, at which
  * time the rest of the items are "unmaksed" and displayed.
  *
- * @version $Revision: 1.20 $ / $Date: 2009-09-09 18:26:38 $ / $Author: anoop $
+ * @version $Revision: 1.21 $ / $Date: 2009-09-15 18:06:05 $ / $Author: anoop $
  */
 public class ResourceList extends JList
     implements DragGestureListener, /*tufts.vue.ResourceSelection.Listener,*/ MouseListener,ActionListener
@@ -472,9 +473,9 @@ public class ResourceList extends JList
 			ResourceIcon o = (ResourceIcon)this.getModel().getElementAt(index);
 			
 			LWNode end = NodeTool.NodeModeTool.createNewNode(o.getResource().getName());
-			setXYByClustering(end);
 			end.setResource(o.getResource());
-	        VUE.getActiveMap().addNode(end);
+			VUE.getActiveMap().addNode(end);
+			setXYByClustering(end);
 		} else if (e.getSource().equals(addToSlide))
 		{
 			int index = this.locationToIndex(lastMouseClick);
@@ -550,19 +551,34 @@ public class ResourceList extends JList
 			LWComponent c = i.next();
 			if (c instanceof LWNode) {
 				LWNode mapNode = (LWNode)c;
+				if(mapNode != node) {
 				double score = computeScore(node,mapNode);
-				xNumerator += score*mapNode.getX();
-				yNumerator += score*mapNode.getY();
-				denominator += score;
+					xNumerator += score*mapNode.getX();
+					yNumerator += score*mapNode.getY();
+					denominator += score;
+				}
 			}
-			if(denominator != 0) {
-				float x = xNumerator/denominator;
-				float y = yNumerator/denominator;
-				node.setX(x);
-				node.setY(y);
-				
+		}
+		if(denominator != 0) {
+			float x = xNumerator/denominator;
+			float y = yNumerator/denominator;
+			node.setX(x);
+			node.setY(y);
+		}
+		
+	  i = VUE.getActiveMap().getAllDescendents(
+				LWContainer.ChildKind.PROPER).iterator();
+		while (i.hasNext()) {
+			LWComponent c = i.next();
+			if (c instanceof LWNode) {
+				LWNode mapNode = (LWNode)c;
+				if(checkCollision(mapNode,node)) {
+					Object PUSH_ALL = "pushAll";
+					Actions.projectNodes(node,  24,PUSH_ALL );
+				}
 			}
-			}
+		}
+		
 	}
 	
 	private double computeScore (LWNode n1,LWNode n2) {
@@ -583,6 +599,14 @@ public class ResourceList extends JList
 			score = 2*p1*p2/(p1+p2); // harmonic mean
 		}
 		return score;
+	}
+	
+	private boolean checkCollision(LWComponent c1, LWComponent c2) {
+		boolean collide = false;
+		if(c2.getX()>= c1.getX() && c2.getX() <= c1.getX()+c1.getWidth() && c2.getY() >= c1.getY() && c2.getY() <=c1.getY()+c2.getHeight()) {
+			collide = true;
+		}
+		return collide;
 	}
 }
 
