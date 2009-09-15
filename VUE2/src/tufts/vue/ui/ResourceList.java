@@ -14,6 +14,7 @@
  */
 
 package tufts.vue.ui;
+import tufts.Util;
 import tufts.vue.DEBUG;
 
 import tufts.vue.Actions;
@@ -57,7 +58,7 @@ import javax.swing.border.*;
  * until a synthetic model item at the end of this shortened list is selected, at which
  * time the rest of the items are "unmaksed" and displayed.
  *
- * @version $Revision: 1.22 $ / $Date: 2009-09-15 18:38:26 $ / $Author: anoop $
+ * @version $Revision: 1.23 $ / $Date: 2009-09-15 18:52:08 $ / $Author: mike $
  */
 public class ResourceList extends JList
     implements DragGestureListener, /*tufts.vue.ResourceSelection.Listener,*/ MouseListener,ActionListener
@@ -456,7 +457,7 @@ public class ResourceList extends JList
 		 
 		
 	}
-	
+	private final static int MAX_LABEL_LINE_LENGTH=30;
 	public void actionPerformed(ActionEvent e)
 	{
 		if (e.getSource().equals(launchResource))
@@ -471,11 +472,13 @@ public class ResourceList extends JList
 			
 			int index = this.locationToIndex(lastMouseClick);
 			ResourceIcon o = (ResourceIcon)this.getModel().getElementAt(index);
-			
-			LWNode end = NodeTool.NodeModeTool.createNewNode(o.getResource().getName());
+			String label = o.getResource().getName();
+            label = Util.formatLines(label, MAX_LABEL_LINE_LENGTH);
+			LWNode end = NodeTool.NodeModeTool.createNewNode(label);
 			end.setResource(o.getResource());
 			VUE.getActiveMap().addNode(end);
 			setXYByClustering(end);
+			
 		} else if (e.getSource().equals(addToSlide))
 		{
 			int index = this.locationToIndex(lastMouseClick);
