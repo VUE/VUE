@@ -2486,10 +2486,10 @@ public class Actions implements VueConstants
             };
             
     private static final boolean DEBUG_PUSH = false;
-    private static final Object PUSH_ALL = "pushAll";
-    private static final Object PUSH_LINKED = "pushLinked";
+    public static final Object PUSH_ALL = "pushAll";
+    public static final Object PUSH_LINKED = "pushLinked";
     
-    private static void projectNodes(final LWComponent pushing, final int distance, Object pushKey) {
+    public static void projectNodes(final LWComponent pushing, final int distance, Object pushKey) {
 
         Collection<LWComponent> toPush = null;
 
