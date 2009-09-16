@@ -58,15 +58,16 @@ import javax.swing.border.*;
  * until a synthetic model item at the end of this shortened list is selected, at which
  * time the rest of the items are "unmaksed" and displayed.
  *
- * @version $Revision: 1.24 $ / $Date: 2009-09-16 18:32:51 $ / $Author: anoop $
+ * @version $Revision: 1.25 $ / $Date: 2009-09-16 18:59:19 $ / $Author: anoop $
  */
 public class ResourceList extends JList
     implements DragGestureListener, /*tufts.vue.ResourceSelection.Listener,*/ MouseListener,ActionListener
 {
     public static final Color DividerColor = VueResources.getColor("ui.resourceList.dividerColor", 204,204,204);
-    
+ 
+    public static final boolean ALL_DATA = true; // use all data while comparing similarity between two LW Components. All includes notes and metadata
     private static ImageIcon DragIcon = tufts.vue.VueResources.getImageIcon("favorites.leafIcon");
-
+ 
     private static int PreviewItems = 4;
     private static int PreviewModelSize = PreviewItems + 1;
 
@@ -585,8 +586,16 @@ public class ResourceList extends JList
 	
 	private double computeScore (LWNode n1,LWNode n2) {
 		double score = 0.0;
-		String[] words1 = n1.getLabel().split("\\s+");
-		String[] words2 = n2.getLabel().split("\\s+");
+		String content1 = n1.getLabel();
+		String content2 = n1.getLabel();
+		if(ALL_DATA) {
+			content1 += " "+n1.getNotes();
+			content2 += " "+n2.getNotes();
+			if(n1.getResource()!= null) content1 += " "+n1.getResource().getSpec();
+			if(n2.getResource()!= null) content2 += " "+n2.getResource().getSpec();
+		}
+		String[] words1 = content1.split("\\s+");
+		String[] words2 = content2.split("\\s+");
 		int matches = 0;
 		for(int i = 0;i<words1.length;i++) {
 			if(n2.getLabel().contains(words1[i])){
