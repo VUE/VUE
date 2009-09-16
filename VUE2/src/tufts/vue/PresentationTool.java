@@ -1635,7 +1635,7 @@ public class PresentationTool extends VueTool
         if (oldShowNav != mShowNavNodes)
             repaint("mouseMove nav display change");
 
-        return true;
+        return false;
     }
 
 //     /** @return true to disable rollovers on the map */
