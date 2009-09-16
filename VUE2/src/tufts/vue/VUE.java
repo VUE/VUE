@@ -117,7 +117,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.684 $ / $Date: 2009-09-11 18:53:32 $ / $Author: brian $ 
+ * @version $Revision: 1.685 $ / $Date: 2009-09-16 20:55:50 $ / $Author: anoop $ 
  */
 
 public class VUE
@@ -3707,7 +3707,7 @@ public class VUE
             	/*JLabel vLabel = new  JLabel("<html>A newer version of VUE is available ("
                                             + newVersion
                                             + ") &nbsp; <font color=\"#20316A\"><u>Get the latest version</u></font></html", JLabel.LEFT);*/
-            	JLabel vLabel = new  JLabel("<html>"+VueResources.getString("jlabel.newversion") +"("
+            	JLabel vLabel = new  JLabel("<html>"+VueResources.getString("jlabel.newversion") +" ("
                         + newVersion
                         + ") &nbsp; <font color=\"#20316A\"></html", JLabel.LEFT);
             	if(Util.isMacPlatform()){
