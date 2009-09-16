@@ -75,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.633 $ / $Date: 2009-09-04 19:51:06 $ / $Author: sfraize $ 
+ * @version $Revision: 1.634 $ / $Date: 2009-09-16 21:19:49 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3033,8 +3033,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         if (pJComponent == null)
             throw new IllegalArgumentException("JComponent is null");
 
-        if (VUE.inNativeFullScreen())
-            return;
+// Skipping this check will allow tool-tips to be displayed in native
+// full-screen mode, a very desired feature. This used to hang under
+// Tiger -- appears to work at least under Leopard in JVM's 1.5 & 1.6.
+// Hopefully at least the most recent VM updates no longer do this on Tiger.        
+// Re-enabling... SMF 9/16/09
+//         if (VUE.inNativeFullScreen())
+//             return;
 
         synchronized (sTipLock) {
             if (pJComponent == sTipComponent) {
