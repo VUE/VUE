@@ -462,10 +462,23 @@ public class AnalyzerAction extends Actions.LWCAction {
 		    
 		    public Color getColorFromRelevance(double relevance)
 		    {
-		    	
+		    	/*if (relevance == 1.0)
+		    		relevance=relevance-.01;
 		    	double component = 255 - (255 * relevance);
-		    	java.awt.Color c = new java.awt.Color((int)component,(int)component,(int)component);
-		    	return c;
+		    	
+		    	if (component < 0)
+		    		component = 0;
+		    	java.awt.Color c =null;
+		    	try
+		    	{
+		    		c= new java.awt.Color((int)component,(int)component,(int)component);
+		    	}
+		    	catch(IllegalArgumentException iae)
+		    	{
+
+		    		return Color.black;
+		    	}*/
+		    	return Color.gray;
 		    }
 		}
 	static class AutoTaggerAction extends Actions.LWCAction {
