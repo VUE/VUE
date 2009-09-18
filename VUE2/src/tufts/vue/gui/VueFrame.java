@@ -36,7 +36,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  *
  * Set's the icon-image for the vue application and set's the window title.
  *
- * @version $Revision: 1.23 $ / $Date: 2009-08-28 17:13:06 $ / $Author: sfraize $ 
+ * @version $Revision: 1.24 $ / $Date: 2009-09-18 22:16:20 $ / $Author: mike $ 
  */
 public class VueFrame extends javax.swing.JFrame
     implements ActiveListener<MapViewer>, WindowListener, WindowStateListener, WindowFocusListener               
@@ -159,11 +159,20 @@ public class VueFrame extends javax.swing.JFrame
     }
     public void windowLostFocus(WindowEvent e) {
         if (DEBUG.FOCUS) Log.debug("focus-lost; " + e);
+        MapViewer v = VUE.getActiveViewer();
+        if (v !=null)
+        {
+        	v.clearTip();
+        }
     }
     
     public void windowDeactivated(WindowEvent e) {
         if (DEBUG.FOCUS) Log.debug("deactivated; " + e);
-                
+        MapViewer v = VUE.getActiveViewer();
+        if (v !=null)
+        {
+        	v.clearTip();
+        } 
 //         if (!tufts.Util.isUnixPlatform()) {
 //             // this causes VueFrame de-activate/activate loop on Ubuntu 8.04 / JVM 1.6
 //             // Works nicely on Leopard & XP, but may not be what we want: a user

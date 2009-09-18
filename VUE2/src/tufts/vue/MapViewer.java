@@ -75,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.634 $ / $Date: 2009-09-16 21:19:49 $ / $Author: sfraize $ 
+ * @version $Revision: 1.635 $ / $Date: 2009-09-18 22:16:20 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3209,7 +3209,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         lockMediumWeightPopup(c.getParent(), done);
     }
     
-    void clearTip() {
+    public void clearTip() {
         synchronized (sTipLock) {
             sTipComponent = null;
             if (sTipPopup != null) {
