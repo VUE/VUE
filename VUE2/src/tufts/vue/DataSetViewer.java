@@ -343,7 +343,7 @@ public class DataSetViewer extends ContentViewer {
 
 	private static DockWindow _buildWindow() {
 
-		final DockWindow dw = GUI.createDockWindow(VueResources.getString("dockWindow.resource.title"));
+		final DockWindow dw = GUI.createDockWindow(VueResources.getString("dockWindow.dataset.title"));
 
 		editInfoStack = new WidgetStack();
 		//editInfoStack.addPane("startup", new javax.swing.JLabel("config init"));
