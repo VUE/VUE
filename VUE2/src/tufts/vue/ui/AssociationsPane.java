@@ -1,6 +1,7 @@
 package tufts.vue.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Font;
 import java.awt.Point;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -27,6 +28,7 @@ import tufts.vue.DRBrowser;
 import tufts.vue.MouseAdapter;
 import tufts.vue.VueResources;
 import tufts.vue.EventHandler;
+import tufts.vue.gui.GUI;
 import tufts.vue.gui.Widget;
 
 import tufts.vue.LWComponent;
@@ -81,6 +83,11 @@ public class AssociationsPane extends Widget
 			associationsTable.setDropTarget(new AssociationsDropTarget());
 			associationsTable.addMouseListener(new AssociationsMouseListener());
 			associationsTable.getSelectionModel().addListSelectionListener(new AssociationsListSelectionListener());
+
+			Font	tableFont = GUI.LabelFace;
+
+			associationsTable.setFont(tableFont);
+			associationsTable.setRowHeight((int)(1.5 * associationsTable.getFontMetrics(tableFont).getHeight()));
 
 			setLayout(new BorderLayout());
 			add(associationsTable);
