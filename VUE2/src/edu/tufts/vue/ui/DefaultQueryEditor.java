@@ -34,7 +34,7 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener, LWSelec
 	private java.awt.GridBagLayout gbLayout = new java.awt.GridBagLayout();
 	private java.awt.GridBagConstraints gbConstraints = new java.awt.GridBagConstraints();
 	
-	private javax.swing.JTextField field = new javax.swing.JTextField(15);
+	private static javax.swing.JTextField field = new javax.swing.JTextField(15);
 	private java.io.Serializable criteria = null;
 	private org.osid.shared.Properties searchProperties = null;
 	private org.osid.shared.Type searchType = null;
@@ -49,8 +49,9 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener, LWSelec
     private final static String SearchLabel = VueResources.getString("defaultqueryeditor.search");
     private final static String StopLabel = VueResources.getString("defaultqueryeditor.stopsearch");
 	
-	private final javax.swing.JButton searchButton1 = new javax.swing.JButton(SearchLabel);
-	private final javax.swing.JButton searchButton2 = new javax.swing.JButton(SearchLabel);
+	private static final javax.swing.JButton searchButton1 = new javax.swing.JButton(SearchLabel);
+	private static final javax.swing.JButton searchButton2 = new javax.swing.JButton(SearchLabel);
+	
 	private static final String SELECT_A_LIBRARY = VueResources.getString("defaultqueryeditor.pleaseselect");
 	//private static final String NO_MESSAGE = "";
     private final javax.swing.JLabel selectMessage = new javax.swing.JLabel(SELECT_A_LIBRARY, javax.swing.JLabel.CENTER);
@@ -83,7 +84,7 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener, LWSelec
 	private String[] advancedSearchFieldsText = null;
 	
 	//map based searching controls
-	final javax.swing.JCheckBox mapBasedSearchCheckBox = new javax.swing.JCheckBox(VueResources.getString("defaultQueryEditor.mapBasedSearchLabel"));
+	private final static javax.swing.JCheckBox mapBasedSearchCheckBox = new javax.swing.JCheckBox(VueResources.getString("defaultQueryEditor.mapBasedSearchLabel"));
 	
 	public DefaultQueryEditor() {
 
@@ -465,7 +466,26 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener, LWSelec
 		} else {
 			if (this.mapBasedSearchCheckBox.isSelected())
 			{
-				tufts.vue.AnalyzerAction.calais.act();
+
+		        if (searchButton1.getText() == StopLabel) {
+		            // If we already have the StopLabel, this means abort the search.
+		            // null event currently means abort search
+
+			        Object[] listeners = listenerList.getListenerList();
+			        for (int i=0; i<listeners.length; i+=2) {
+			            if (listeners[i] == edu.tufts.vue.fsm.event.SearchListener.class) {
+			                ((edu.tufts.vue.fsm.event.SearchListener)listeners[i+1]).searchPerformed(null);
+			            }
+			        }
+
+			        completeSearch();
+
+		        } else {
+					tufts.vue.AnalyzerAction.calais.act();
+				}
+
+
+
 			}
 			else
 				{
@@ -506,6 +526,16 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener, LWSelec
 
         if (evt == null)
             completeSearch();
+    }
+    
+    public static  void setStopLabels()
+    {
+    	searchButton1.setEnabled(true);
+    	searchButton2.setEnabled(true);
+    	searchButton1.setText(StopLabel);
+    	searchButton2.setText(StopLabel);
+    	field.setEnabled(false);
+    	mapBasedSearchCheckBox.setSelected(true);
     }
 
     public void completeSearch() {
@@ -790,8 +820,11 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener, LWSelec
 		}
 		else if (mapBasedSearchCheckBox.isSelected())
 		{
-			this.searchButton1.setEnabled(true);
-			field.setText("");
+			 if (searchButton1.getText() != StopLabel) 
+			 {
+				 this.searchButton1.setEnabled(true);
+				 field.setText("");
+			 }
 		}
 		
 	}

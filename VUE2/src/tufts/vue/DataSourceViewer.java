@@ -17,8 +17,6 @@ package tufts.vue;
 import tufts.vue.ds.XmlDataSource;
 import tufts.Util;
 import tufts.vue.gui.*;
-import tufts.vue.gui.GUI;
-import tufts.vue.gui.Widget;
 import tufts.vue.ui.MetaDataPane;
 import tufts.vue.ui.ResourceList;
 import javax.swing.*;
@@ -36,6 +34,8 @@ import java.util.*;
 import org.osid.repository.Asset;
 import org.osid.repository.AssetIterator;
 import org.osid.repository.RepositoryException;
+
+import edu.tufts.vue.ui.DefaultQueryEditor;
 
 
 /**
@@ -870,7 +870,11 @@ public class DataSourceViewer extends ContentViewer
             for (Thread t : mSearchThreads)
                 t.interrupt();
         }
-
+        synchronized (mMapBasedSearchThreads) {
+            if (DEBUG.DR) Log.debug("STOPPING ALL ACTIVE SEARCHES; count=" + mSearchThreads.size());
+            for (Thread t : mMapBasedSearchThreads)
+                t.interrupt();
+        }
     }
     
     public static Action getAddLibraryAction()
@@ -894,7 +898,8 @@ public class DataSourceViewer extends ContentViewer
 	            return;
 	        }
 	  */      
-        Widget.setExpanded(DRB.browsePane, false);
+    	DefaultQueryEditor.setStopLabels();
+    	Widget.setExpanded(DRB.browsePane, false);
         if (DEBUG.DR) {
             try {
                 System.out.println("\n");
