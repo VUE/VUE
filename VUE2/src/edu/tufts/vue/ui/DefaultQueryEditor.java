@@ -44,7 +44,7 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener, LWSelec
 	
 	protected javax.swing.event.EventListenerList listenerList = new javax.swing.event.EventListenerList();
 	
-	private org.osid.repository.Repository[] repositories;
+	private static org.osid.repository.Repository[] repositories;
 
     private final static String SearchLabel = VueResources.getString("defaultqueryeditor.search");
     private final static String StopLabel = VueResources.getString("defaultqueryeditor.stopsearch");
@@ -164,6 +164,12 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener, LWSelec
 		}
 	}
 	
+	public static int getSelectedRepositoryCount()
+	{
+		if (repositories !=null)
+			return repositories.length;
+		else return 0;
+	}
 	public void refresh()
 	{
 		org.osid.repository.Repository[] oldRepositories = repositories.clone();

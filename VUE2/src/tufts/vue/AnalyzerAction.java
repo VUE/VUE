@@ -19,7 +19,9 @@ package tufts.vue;
  * permissions and limitations under the License.
  */
 
+import javax.swing.JLabel;
 import javax.swing.JMenu;
+import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 
 import edu.tufts.seasr.MeandreItem;
@@ -41,9 +43,14 @@ import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.*;
 import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.GridLayout;
 import java.awt.KeyboardFocusManager;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+
 import javax.swing.Action;
 
 import org.apache.commons.httpclient.HttpClient;
@@ -69,6 +76,8 @@ import tufts.vue.VueUtil;
 
 
 import edu.tufts.vue.metadata.MetadataList;
+import edu.tufts.vue.preferences.implementations.ShowAgainDialog;
+import edu.tufts.vue.ui.DefaultQueryEditor;
 import edu.tufts.seasr.SeasrConfigLoader;
 import edu.tufts.seasr.FlowGroup;
 import edu.tufts.seasr.Flow;
@@ -152,6 +161,43 @@ public class AnalyzerAction extends Actions.LWCAction {
     	//Set the wait cursor here clear it when there's no threads left in the mbs.
     	GUI.activateWaitCursor();
     	
+    	//figure out if anything is checked
+    	int selectionCount = DefaultQueryEditor.getSelectedRepositoryCount();
+    	if (selectionCount == 0)
+    	{
+			
+			 final ShowAgainDialog sad = new ShowAgainDialog(VUE.getApplicationFrame(),"noResourceSelected",VueResources.local("noResourceSelected.title"),"OK",null);
+			            	JPanel panel = new JPanel(new GridLayout(1,1));
+			            	JLabel vLabel = new  JLabel(VueResources.local("noResourceSelected.message"), JLabel.LEFT);
+			            	/*if(Util.isMacPlatform()){
+			            		panel.setPreferredSize(new Dimension(425,25));
+			            		panel.setSize(new Dimension(425,25));
+			            		panel.setMinimumSize(new Dimension(425,25));
+			            	}else{
+			            		panel.setPreferredSize(new Dimension(425,25));
+			            	}*/
+			            	panel.add(vLabel, FlowLayout.LEFT);
+			        	    sad.setContentPanel(panel);
+			                
+			               
+			                                                                                                      
+			                
+			                VueUtil.centerOnScreen(sad);
+			                if (sad.showAgain())
+			                {
+			                	sad.setVisible(true);
+			                	
+			                
+			                	sad.setVisible(false);
+			                    sad.dispose();
+			                    GUI.clearWaitCursor();
+			                    return;
+			                }
+			    
+			                
+			    
+			 
+    	}
     	List<AnalyzerResult> list = analyzer.analyze(c);
     	Iterator<AnalyzerResult> i = list.iterator();
     	VUE.getActiveViewer().getSelection().clear();
