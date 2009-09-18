@@ -168,20 +168,17 @@ public class AnalyzerAction extends Actions.LWCAction {
 			
 			 final ShowAgainDialog sad = new ShowAgainDialog(VUE.getApplicationFrame(),"noResourceSelected",VueResources.local("noResourceSelected.title"),"OK",null);
 			            	JPanel panel = new JPanel(new GridLayout(1,1));
-			            	JLabel vLabel = new  JLabel(VueResources.local("noResourceSelected.message"), JLabel.LEFT);
-			            	/*if(Util.isMacPlatform()){
+			            	String label = Util.formatLines(VueResources.local("noResourceSelected.message"),30);
+			            	JLabel vLabel = new  JLabel(label);
+			            	if(Util.isMacPlatform()){
 			            		panel.setPreferredSize(new Dimension(425,25));
 			            		panel.setSize(new Dimension(425,25));
 			            		panel.setMinimumSize(new Dimension(425,25));
 			            	}else{
 			            		panel.setPreferredSize(new Dimension(425,25));
-			            	}*/
-			            	panel.add(vLabel, FlowLayout.LEFT);
+			            	}
+			            	panel.add(vLabel);
 			        	    sad.setContentPanel(panel);
-			                
-			               
-			                                                                                                      
-			                
 			                VueUtil.centerOnScreen(sad);
 			                if (sad.showAgain())
 			                {
@@ -194,9 +191,6 @@ public class AnalyzerAction extends Actions.LWCAction {
 			                    return;
 			                }
 			    
-			                
-			    
-			 
     	}
     	List<AnalyzerResult> list = analyzer.analyze(c);
     	Iterator<AnalyzerResult> i = list.iterator();
