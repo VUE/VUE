@@ -78,6 +78,7 @@ import edu.tufts.seasr.Flow;
 // contains layout actions. based on ArrangeAction. The default layout is random layout
 
 public class AnalyzerAction extends Actions.LWCAction {
+	private boolean firstTime = true;
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(AnalyzerAction.class);
     private LWComponentAnalyzer analyzer = null;
     
@@ -194,7 +195,11 @@ public class AnalyzerAction extends Actions.LWCAction {
     	
     	VUE.getDRBrowser().getDataSourceViewer().queryEditor.setCriteria(query);
     	VUE.getDRBrowser().getDataSourceViewer().mapBasedSearch(c);    	
-    	GUI.makeVisibleOnScreen(VUE.getDRBrowser());
+    	if (firstTime)
+    	{
+    		GUI.makeVisibleOnScreen(VUE.getDRBrowser());
+    		firstTime = false;
+    	}
     	return;
     }
     
