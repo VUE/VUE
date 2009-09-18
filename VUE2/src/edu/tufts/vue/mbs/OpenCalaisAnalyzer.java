@@ -261,13 +261,15 @@ public class OpenCalaisAnalyzer implements LWComponentAnalyzer {
 
 			if (n.getNodeName().equals("#text"))
 				continue;
-
-			if (n.getFirstChild().getNodeValue() == null
+			if (n.getFirstChild() == null)
+				skip = true;
+			else if (n.getFirstChild().getNodeValue() == null
 					|| (n.getFirstChild().getNodeValue() != null && n
 							.getFirstChild().getNodeValue().trim().equals("")))
 				skip = true;
 			else
 				skip = false;
+			
 			if (!skip) {
 				CalaisEntity entity = new CalaisEntity();
 				entity.setType(n.getNodeName());
