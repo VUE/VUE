@@ -117,7 +117,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.685 $ / $Date: 2009-09-16 20:55:50 $ / $Author: anoop $ 
+ * @version $Revision: 1.686 $ / $Date: 2009-09-21 21:31:47 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -757,18 +757,19 @@ public class VUE
 
     	GUI.init();
         
-        try {
-            if (DEBUG.Enabled && Util.isMacPlatform() && !VUE.isApplet()) {
-                // This is for debugging.  The application icon for a distributed version
-                // of VUE is set via an icons file specified in the Info.plist from
-                // the VUE.app directory.
-                // Be sure to call this after GUI initialized, or we are hidden from the OSX app dock.
-                tufts.macosx.MacOSX.setApplicationIcon
-                    (VUE.class.getResource("/tufts/vue/images/vueicon32x32.gif").getFile());
-            }
-        } catch (Throwable t) {
-            t.printStackTrace();
-        }
+// Doesn't work in Snow Leopard & not needed
+//         try {
+//             if (DEBUG.Enabled && Util.isMacPlatform() && !VUE.isApplet()) {
+//                 // This is for debugging.  The application icon for a distributed version
+//                 // of VUE is set via an icons file specified in the Info.plist from
+//                 // the VUE.app directory.
+//                 // Be sure to call this after GUI initialized, or we are hidden from the OSX app dock.
+//                 tufts.macosx.MacOSX.setApplicationIcon
+//                     (VUE.class.getResource("/tufts/vue/images/vueicon32x32.gif").getFile());
+//             }
+//         } catch (Throwable t) {
+//             t.printStackTrace();
+//         }
 
         if (DEBUG.Enabled) {
             GUI.invokeAfterAWT(new Runnable() {
@@ -968,7 +969,10 @@ public class VUE
 
         Log.info("VUE build: " + tufts.vue.Version.AllInfo);
         Log.info("Current Platform: " + Util.getPlatformName());
-        Log.info("Running in Java VM: " +
+        final String requestedJavaArch = System.getenv("JAVA_ARCH");
+        if (requestedJavaArch != null)
+            Log.info("JAVA_ARCH REQUEST: " + requestedJavaArch);
+        Log.info("Running JVM: " +
                  getSystemProperty("java.runtime.version") + " / " + getSystemProperty("sun.arch.data.model") + " bit"
                  + "; MaxMemory(-Xmx)=" + VueUtil.abbrevBytes(Runtime.getRuntime().maxMemory())
                  + ", CurMemory(-Xms)=" + VueUtil.abbrevBytes(Runtime.getRuntime().totalMemory())
@@ -1405,9 +1409,9 @@ public class VUE
         File test = new File("/System/Library/Java/com/apple/cocoa/application/NSWindow.class");
 
         if (test.exists()) 
-            Log.debug("cocoa-java bridge appears present; found " + test);
+            Log.info("cocoa-java bridge appears present; found " + test);
         else
-            Log.error("cocoa-java bridge appears to be missing; couldn't find " + test);
+            Log.info("cocoa-java bridge is not present; couldn't find " + test);
 
         tufts.macosx.MacOSX.registerApplicationListener(new tufts.macosx.MacOSX.ApplicationListener() {
                 public boolean handleOpenFile(String filename) {
