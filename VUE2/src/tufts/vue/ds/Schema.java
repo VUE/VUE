@@ -40,7 +40,7 @@ import com.google.common.collect.Multimaps;
  * generally "short" enough, it will enumerate all the unique values found in that
  * column.
  *
- * @version $Revision: 1.44 $ / $Date: 2009-09-02 16:28:40 $ / $Author: sfraize $
+ * @version $Revision: 1.45 $ / $Date: 2009-09-21 21:32:06 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -364,7 +364,7 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
         if (!replacedByExistingSchema) {
             for (Field f : mPersistFields) {
                 final LWComponent style = f.getStyleNode();
-                if (DEBUG.Enabled) Log.debug(String.format("keeping field %s%-22s%s style=%s",
+                if (DEBUG.Enabled) Log.debug(String.format("keeping field %s%-23s%s style=%s",
                                                            Util.TERM_GREEN, f, Util.TERM_CLEAR, style));
                 initStyleNode(style);
                 addField(f);
