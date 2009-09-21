@@ -503,6 +503,11 @@ public class MetadataList {
                 {
                     System.out.println("Metadatalist -- getMetadataAsHTML loop -- value for " + i + " type: " + type + " value: " + value);
                 }
+
+                if (value == null) {
+                    System.out.println("null meta-data value for " + mdList.get(i));
+                    continue;
+                }
                 
                 if(value.length() > 0)
                 {    
