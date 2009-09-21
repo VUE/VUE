@@ -15,6 +15,8 @@
 
 package tufts.vue;
 
+import java.lang.reflect.Field;
+
 /**
  * Global VUE application debug flags.
  * 
@@ -28,75 +30,78 @@ public class DEBUG
     
     // Can leave these as static for runtime tweaking, or
     // make final static to have compiler strip them out entirely.
-    public static boolean CONTAINMENT = false;
-    public static boolean PARENTING = false;
-    public static boolean LAYOUT = false;
-    public static boolean BOXES = false;
-    public static boolean SELECTION = false;
-    public static boolean UNDO = false;
-    public static boolean PATHWAY = false;
-    public static boolean DND = false; // drag & drop
-    public static boolean MOUSE = false;
-    public static boolean VIEWER = false; // MapViewer
-    public static boolean PAINT = false; // painting
-    public static boolean ROLLOVER = false; // MapViewer auto-zoom rollover
-    public static boolean SCROLL = false; // MapViewer scroll-bars / scrolling
-    public static boolean FOCUS = false; // AWT focus events, VUE MapViewer application focus
-    public static boolean EVENTS = false; // VUE LWCEvents & Action Events (not tool events)
-    public static boolean MARGINS = false; // turn off bounds margin adjustments for testing
+    public static boolean CONTAINMENT;
+    public static boolean PARENTING;
+    public static boolean LAYOUT;
+    public static boolean BOXES;
+    public static boolean SELECTION;
+    public static boolean UNDO;
+    public static boolean PATHWAY;
+    public static boolean DND; // drag & drop
+    public static boolean MOUSE;
+    public static boolean VIEWER; // MapViewer
+    public static boolean PAINT; // painting
+    public static boolean ROLLOVER; // MapViewer auto-zoom rollover
+    public static boolean SCROLL; // MapViewer scroll-bars / scrolling
+    public static boolean FOCUS; // AWT focus events, VUE MapViewer application focus
+    public static boolean EVENTS; // VUE LWCEvents & Action Events (not tool events)
+    public static boolean MARGINS; // turn off bounds margin adjustments for testing
     public static boolean DYNAMIC_UPDATE = true; // components process all LWCEvent's immediately
-    public static boolean KEYS = false; // keyboard input
-    public static boolean TOOL = false; // toolbars & tool events
-    public static boolean EDGE = false; // window edges & sticking
-    public static boolean IMAGE = false; // images
-    public static boolean CASTOR = false; // castor persist (save/restore)
-    public static boolean XML = false; // castor persist (save/restore)
-    public static boolean THREAD = false; // threading
-    public static boolean TEXT = false; // text objects
-    public static boolean IO = false; // file and network i/o
-    public static boolean DOCK = false; // DockWindow's
-    public static boolean WIDGET = false; // Widget's
-    public static boolean DATA = false; // data production / meta-data
-    public static boolean RESOURCE = false; // Resources
-    public static boolean PRESENT = false;
-    public static boolean NAV = false; // presentation non-linear navigation
-    public static boolean PICK = false;
-    public static boolean LISTS = false; //for debugging UL and OL in HTML textbox code
-    public static boolean LINK = false; // for LWLinks
-    public static boolean STYLE = false; // for Styles
-    public static boolean HTML = false; // for Styles
-    public static boolean WEBSHOTS = false; // for Styles
-    public static boolean PDF = false; // for PDF output
-    public static boolean PROPERTY = false;
-    public static boolean IM = false;
+    public static boolean KEYS; // keyboard input
+    public static boolean TOOL; // toolbars & tool events
+    public static boolean EDGE; // window edges & sticking
+    public static boolean IMAGE; // images
+    public static boolean CASTOR; // castor persist (save/restore)
+    public static boolean XML; // castor persist (save/restore)
+    public static boolean THREAD; // threading
+    public static boolean TEXT; // text objects
+    public static boolean IO; // file and network i/o
+    public static boolean DOCK; // DockWindow's
+    public static boolean WIDGET; // Widget's
+    public static boolean DATA; // data production / meta-data
+    public static boolean RESOURCE; // Resources
+    public static boolean PRESENT;
+    public static boolean NAV; // presentation non-linear navigation
+    public static boolean PICK;
+    public static boolean LISTS; //for debugging UL and OL in HTML textbox code
+    public static boolean LINK; // for LWLinks
+    public static boolean STYLE; // for Styles
+    public static boolean HTML; // for Styles
+    public static boolean WEBSHOTS; // for Styles
+    public static boolean PDF; // for PDF output
+    public static boolean PROPERTY;
+    public static boolean IM;
     //If you set LISTS to true you'll get the HTML code for the node in the Info Label
     //instead of the rendered HTML this should be useful for debugging, at least I hope so.
     //see my note in InspectorPane for more info. -MK
-    public static boolean WORK = false; // work-in-progress
+    public static boolean WORK; // work-in-progress
 
-    public static boolean DR = false; // digital repository & data sources
+    public static boolean DR; // digital repository & data sources
     
-    public static boolean META = false; // generic toggle to use in combination with other flags
+    public static boolean META; // generic toggle to use in combination with other flags
     
-    public static boolean TRACE = false; // enhanced (yet slow) log4j logger tracing
+    public static boolean TRACE; // enhanced (yet slow) log4j logger tracing
     
-    public static boolean RDF = false;
+    public static boolean RDF;
     
-    public static boolean PERF = false; // performance
+    public static boolean PERF; // performance
     
-    public static boolean SCHEMA = false; // schema's
+    public static boolean SCHEMA; // schema's
     
-    public static boolean QUARTILE  = false; // quartile import
+    public static boolean QUARTILE; // quartile import
 
-    public static  void setAllEnabled(boolean t) {
-        Enabled=CONTAINMENT=PARENTING=LAYOUT=BOXES=ROLLOVER=EVENTS=
-            SCROLL=SELECTION=FOCUS=UNDO=PATHWAY=DND=MOUSE=VIEWER=
-            PAINT=MARGINS=INIT=DYNAMIC_UPDATE=KEYS=TOOL=DR=IMAGE=
-            CASTOR=XML=THREAD=TEXT=EDGE=IO=DOCK=WIDGET=DATA=PRESENT=
-            PICK=LINK=STYLE=NAV=HTML=WEBSHOTS=PDF=TRACE=PROPERTY=PERF=SCHEMA=t;
+    public static  void setAllEnabled(boolean enabled) {
+//         Enabled=CONTAINMENT=PARENTING=LAYOUT=BOXES=ROLLOVER=EVENTS=
+//             SCROLL=SELECTION=FOCUS=UNDO=PATHWAY=DND=MOUSE=VIEWER=
+//             PAINT=MARGINS=INIT=DYNAMIC_UPDATE=KEYS=TOOL=DR=IMAGE=
+//             CASTOR=XML=THREAD=TEXT=EDGE=IO=DOCK=WIDGET=DATA=PRESENT=
+//             PICK=LINK=STYLE=NAV=HTML=WEBSHOTS=PDF=TRACE=PROPERTY=PERF=SCHEMA=t;
+
+        for (Field f : Fields)
+            setFlag(f, enabled);
 
         // only turn META & WORK off, not on
-        if (t == false)
+        if (enabled == false)
             META = WORK = false;
     }
 
@@ -121,68 +126,89 @@ public class DEBUG
             return;
 
         for (int i = 0; i < args.length; i++) {
-            String a = args[i].toLowerCase();
+            String a = args[i].toUpperCase();
 
-            //System.out.println("parsing arg [" + a + "]");
-            
-                 if (a.equals("meta"))       DEBUG.META = true;
-            else if (a.equals("work"))       DEBUG.WORK = !DEBUG.WORK;
-            else if (a.equals("init"))       DEBUG.INIT = true;
-            else if (a.equals("focus"))      DEBUG.FOCUS = true;
-            else if (a.equals("dr"))         DEBUG.DR = true;
-            else if (a.equals("tool"))       DEBUG.TOOL = true;
-            else if (a.equals("drop"))       DEBUG.DND = true;
-            else if (a.equals("undo"))       DEBUG.UNDO = true;
-            else if (a.equals("castor"))     DEBUG.CASTOR = true;
-            else if (a.equals("xml"))        DEBUG.XML = true;
-            else if (a.equals("paint"))      DEBUG.PAINT = true;
-            else if (a.equals("mouse"))      DEBUG.MOUSE = true;
-            else if (a.equals("keys"))       DEBUG.KEYS = true;
-            else if (a.equals("layout"))     DEBUG.LAYOUT = true;
-            else if (a.equals("text"))       DEBUG.TEXT = true;
-            else if (a.equals("io"))         DEBUG.IO = true;
-            else if (a.equals("data"))       DEBUG.DATA = true;
-            else if (a.equals("selection"))  DEBUG.SELECTION = true;
-            else if (a.equals("resource"))   DEBUG.RESOURCE = true;
-            else if (a.equals("scroll"))     DEBUG.SCROLL = true;
-            else if (a.equals("pick"))       DEBUG.PICK = true;
-            else if (a.startsWith("parent")) DEBUG.PARENTING = true;
-            else if (a.startsWith("contain"))DEBUG.CONTAINMENT = true;
-            else if (a.startsWith("path"))   DEBUG.PATHWAY = true;
-            else if (a.startsWith("edge"))   DEBUG.EDGE = true;
-            else if (a.startsWith("event"))  DEBUG.EVENTS = true;
-            else if (a.startsWith("thread")) DEBUG.THREAD = true;
-            else if (a.startsWith("image"))  DEBUG.IMAGE = true;
-            else if (a.startsWith("box"))    DEBUG.BOXES = true;
-            else if (a.startsWith("dock"))   DEBUG.DOCK = true;
-            else if (a.startsWith("widget")) DEBUG.WIDGET = true;
-            else if (a.startsWith("pres"))   DEBUG.PRESENT = true;
-            else if (a.startsWith("nav"))    DEBUG.NAV = true;
-            else if (a.startsWith("link"))   DEBUG.LINK = true;
-            else if (a.startsWith("style"))  DEBUG.STYLE = true;
-            else if (a.startsWith("rdf")) DEBUG.RDF = true;
-            else if (a.startsWith("pdf"))  DEBUG.PDF = true;
-            else if (a.startsWith("trace"))  DEBUG.TRACE = true;
-            else if (a.startsWith("prop"))  DEBUG.PROPERTY = true;
-            else if (a.startsWith("perf"))  DEBUG.PERF = true;
-            else if (a.startsWith("schema"))  DEBUG.SCHEMA = true;
-            else if (a.startsWith("im"))  DEBUG.IM = true;
+            boolean handled = false;
+            for (Field f : Fields) {
+                if (f.getName().toUpperCase().startsWith(a)) {
+                    try {
+                        f.setBoolean(null, true);
+                        handled = true;
+                        System.out.println(DEBUG.class.getName() + " enable: " + f.getName());
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+                }
+                
+            }
+            if (!handled)
+                System.err.format("%s didn't understand debug flag \"%s\"\n", DEBUG.class.getName(), args[i]);
         }
     }
 
-    //Mapper pSELECTION = new Mapper("selection") { void set(boolean v) { selection=v; } boolean get() { return selection; } }
-
-    /*
-    abstract class Mapper {
-        String mName;
-        Mapper(String name) { mName = name; }
-        abstract void set(boolean v);
-        abstract boolean get();
+    private static void setFlag(Field f, boolean enabled) {
+        try {
+            f.setBoolean(null, enabled);
+            System.out.println(DEBUG.class.getName() + " set: " + f.getName() + " = " + enabled);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
     }
-    Mapper[] props = {
-        new Mapper("selection") { void set(boolean v) { SELECTION=v; } boolean get() { return SELECTION; } },
-        new Mapper("scroll") { void set(boolean v) { SCROLL=v; } boolean get() { return SCROLL; } }
-    };
-    // use introspection instead
-    */
+
+//         for (int i = 0; i < args.length; i++) {
+//             String a = args[i].toLowerCase();
+//             //System.out.println("parsing arg [" + a + "]");
+//                  if (a.equals("meta"))       DEBUG.META = true;
+//             else if (a.equals("work"))       DEBUG.WORK = !DEBUG.WORK;
+//             else if (a.equals("init"))       DEBUG.INIT = true;
+//             else if (a.equals("focus"))      DEBUG.FOCUS = true;
+//             else if (a.equals("dr"))         DEBUG.DR = true;
+//             else if (a.equals("tool"))       DEBUG.TOOL = true;
+//             else if (a.equals("drop"))       DEBUG.DND = true;
+//             else if (a.equals("undo"))       DEBUG.UNDO = true;
+//             else if (a.equals("castor"))     DEBUG.CASTOR = true;
+//             else if (a.equals("xml"))        DEBUG.XML = true;
+//             else if (a.equals("paint"))      DEBUG.PAINT = true;
+//             else if (a.equals("mouse"))      DEBUG.MOUSE = true;
+//             else if (a.equals("keys"))       DEBUG.KEYS = true;
+//             else if (a.equals("layout"))     DEBUG.LAYOUT = true;
+//             else if (a.equals("text"))       DEBUG.TEXT = true;
+//             else if (a.equals("io"))         DEBUG.IO = true;
+//             else if (a.equals("data"))       DEBUG.DATA = true;
+//             else if (a.equals("selection"))  DEBUG.SELECTION = true;
+//             else if (a.equals("resource"))   DEBUG.RESOURCE = true;
+//             else if (a.equals("scroll"))     DEBUG.SCROLL = true;
+//             else if (a.equals("pick"))       DEBUG.PICK = true;
+//             else if (a.startsWith("parent")) DEBUG.PARENTING = true;
+//             else if (a.startsWith("contain"))DEBUG.CONTAINMENT = true;
+//             else if (a.startsWith("path"))   DEBUG.PATHWAY = true;
+//             else if (a.startsWith("edge"))   DEBUG.EDGE = true;
+//             else if (a.startsWith("event"))  DEBUG.EVENTS = true;
+//             else if (a.startsWith("thread")) DEBUG.THREAD = true;
+//             else if (a.startsWith("image"))  DEBUG.IMAGE = true;
+//             else if (a.startsWith("box"))    DEBUG.BOXES = true;
+//             else if (a.startsWith("dock"))   DEBUG.DOCK = true;
+//             else if (a.startsWith("widget")) DEBUG.WIDGET = true;
+//             else if (a.startsWith("pres"))   DEBUG.PRESENT = true;
+//             else if (a.startsWith("nav"))    DEBUG.NAV = true;
+//             else if (a.startsWith("link"))   DEBUG.LINK = true;
+//             else if (a.startsWith("style"))  DEBUG.STYLE = true;
+//             else if (a.startsWith("rdf")) DEBUG.RDF = true;
+//             else if (a.startsWith("pdf"))  DEBUG.PDF = true;
+//             else if (a.startsWith("trace"))  DEBUG.TRACE = true;
+//             else if (a.startsWith("prop"))  DEBUG.PROPERTY = true;
+//             else if (a.startsWith("perf"))  DEBUG.PERF = true;
+//             else if (a.startsWith("schema"))  DEBUG.SCHEMA = true;
+//             else if (a.startsWith("im"))  DEBUG.IM = true;
+//         }
+
+    private static final Field[] Fields = DEBUG.class.getFields();
+
+    public static void main(String[] args)
+    {
+        for (Field f : Fields) {
+            System.out.format("%-26s %s\n", tufts.Util.tags(f.getName()), f);
+        }
+        
+    }
 }
