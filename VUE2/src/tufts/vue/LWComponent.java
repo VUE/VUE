@@ -48,7 +48,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.488 $ / $Date: 2009-09-04 19:26:21 $ / $Author: sfraize $
+ * @version $Revision: 1.489 $ / $Date: 2009-09-21 21:30:14 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -504,7 +504,7 @@ public class LWComponent
         /** A name for a CSS property that can be used to initialize the value for this key */
         public final String cssName;
         /** The unique bit for this property key.
-            (Implies a max of 64 keys that can uniquely known as active to our tools -- use a BitSet if need more) */
+            (Implies a max of 64 keys that can be known as active to our tools -- use a BitSet if need more) */
         public final long bit;
 //         /** True if this key for a style property -- a property that moves from style holders to LWCopmonents
 //          * pointing to it via mParentStyle */
@@ -569,14 +569,10 @@ public class LWComponent
             this(name, cssName, KeyType.STYLE);
         }
 
-        //protected Key(String name, String cssName, boolean partOfStyle, boolean isSubProperty) {
         protected Key(String name, String cssName, KeyType keyType) {
             this.name = name;
             this.cssName = cssName;
             this.type = keyType;
-            //this.isStyleProperty = (keyType == KeyType.STYLE);
-            //this.isStyleProperty = partOfStyle;
-            //this.isSubProperty = isSubProperty;
             if (InstanceCount >= Long.SIZE) {
                 this.bit = 0;
                 tufts.Util.printStackTrace(Key.class + ": " + InstanceCount + "th key created -- need to re-implement (try BitSet)");
@@ -608,9 +604,6 @@ public class LWComponent
                                         ));
             InstanceCount++;
 
-            // Just referencing a class object won't load it's statics: must do a new instance.
-            // This will be easy enough to ensure at startup.
-            //new LWImage();
             //System.out.println("BITS FOR " + LWImage.class + " " + PropertyMaskForClass(LWImage.class));
             
             // Could build list of all key (and thus slot) values here for each subclass,
@@ -833,12 +826,8 @@ u                    getSlot(c).setFromString((String)value);
         final Key key;
         protected T value;
 
-        boolean locked; // could handle instead as above bitfield
-        
         Property(Key key) {
             this.key = key;
-            //mSupportedPropertyKeys |= key.bit;
-            //LWComponent.this.allProps.add(this);
         }
 
         T get() { return value; }
@@ -849,10 +838,10 @@ u                    getSlot(c).setFromString((String)value);
         
         boolean isChanged(T newValue)
         {
-        	if (this.value == newValue || (newValue != null && newValue.equals(this.value)))
-        		return false;
-        	else 
-        		return true;
+            if (this.value == newValue || (newValue != null && newValue.equals(this.value)))
+                return false;
+            else 
+                return true;
         }
         
         void set(T newValue) {
@@ -7158,7 +7147,7 @@ u                    getSlot(c).setFromString((String)value);
      * (and all it's children), to it using the given alpha.
      * @param alpha 0.0 (invisible) to 1.0 (no alpha)
      * @param maxSize max dimensions for image. May be null.  Image may be smaller than maxSize.
-     * @param fillColor -- if non-null, will be rendered as background for image.  If alpha is
+     * @param fillColor -- if non-null, will be rendered as background for image.  If null, presume alpha 0 fill.
      * @param zoomRequest -- desired zoom; ignored if maxSize is non-null
      * also set, background fill will have transparency of alpha^3 to enhance contrast.
      */
@@ -7209,15 +7198,24 @@ u                    getSlot(c).setFromString((String)value);
 
         final int imageType;
         final int transparency;
-        
-        //if (alpha == OPAQUE && fillColor != null && fillColor.getAlpha() == 255) {
-        if (alpha == OPAQUE && (fillColor == null || fillColor.getAlpha() == 255)) {
-            imageType = BufferedImage.TYPE_INT_RGB;
-            transparency = Transparency.OPAQUE;
-        } else {
+
+        if (fillColor == null || alpha != OPAQUE || fillColor.getAlpha() != 255) {
             imageType = BufferedImage.TYPE_INT_ARGB;
             transparency = Transparency.TRANSLUCENT;
+        } else {
+            imageType = BufferedImage.TYPE_INT_RGB;
+            transparency = Transparency.OPAQUE;
         }
+        
+//        final boolean fillHasAlpha = (fillColor != null && fillColor.getAlpha() != 255);
+//         //if (alpha == OPAQUE && fillColor != null && fillColor.getAlpha() == 255) {
+//         if (alpha == OPAQUE && (fillColor == null || fillColor.getAlpha() == 255)) {
+//             imageType = BufferedImage.TYPE_INT_RGB;
+//             transparency = Transparency.OPAQUE;
+//         } else {
+//             imageType = BufferedImage.TYPE_INT_ARGB;
+//             transparency = Transparency.TRANSLUCENT;
+//         }
 
         final int width = imageSize.pixelWidth();
         final int height = imageSize.pixelHeight();
@@ -7292,7 +7290,7 @@ u                    getSlot(c).setFromString((String)value);
      *
      * @param alpha 0.0 (invisible) to 1.0 (no alpha -- completely opaque)
      * @param maxSize max dimensions for image. May be null.  Image may be smaller than maxSize.
-     * @param fillColor -- if non-null, will be rendered as background for image.  If alpha is
+     * @param fillColor -- if non-null, will be rendered as background for image.
      * @param zoomRequest -- desired zoom; ignored if maxSize is non-null
      * also set, background fill will have transparency of alpha^3 to enhance contrast.
      */
@@ -7354,14 +7352,17 @@ u                    getSlot(c).setFromString((String)value);
             if (DEBUG.IMAGE) out("drawImage: fill=" + fillColor);
             g.setColor(fillColor);
             g.fillRect(0, 0, width, height);
-        } else if (alpha != OPAQUE) {
+        } else { //if (alpha != OPAQUE) {
             // we didn't have a fill, but we have an alpha: make sure any cached data is cleared
+            // todo?: if fill is null, we need to clear as well -- it means we have implied alpha on any non-drawn bits
+            // TODO: if this is a selection drag, we usually want to fill with the map color (or ideally, the color
+            // of the common parent, e.g., a slide, if there's one common parent)
             dc.g.setComposite(AlphaComposite.Clear);
             g.fillRect(0, 0, width, height);
         }
         
-        if (alpha != OPAQUE)
-            dc.setAlpha(alpha, AlphaComposite.SRC);
+        //if (alpha != OPAQUE)
+        dc.setAlpha(alpha, AlphaComposite.SRC);
 
         if (DEBUG.IMAGE && DEBUG.META) {
             // Fill the entire imageable area
