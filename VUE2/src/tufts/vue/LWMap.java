@@ -59,7 +59,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.251 $ / $Date: 2009-09-04 19:43:23 $ / $Author: sfraize $
+ * @version $Revision: 1.252 $ / $Date: 2009-09-21 21:30:29 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -2017,7 +2017,7 @@ public class LWMap extends LWContainer
 //     }
 // Actually, as dragged images produce highest-res RAW image data (converted to TIFF if, e.g., dropped
 // into the Apple Mail application), we don't really need to double-up the resolution here.  (And
-// doing so can produce HUGE 20MB+ tiff attachments)
+// doing so can produce HUGE 20MB+ tiff attachments).  [Addendum: not all apps will create a tiff version tho: e.g., Skitch]
     
     
 
