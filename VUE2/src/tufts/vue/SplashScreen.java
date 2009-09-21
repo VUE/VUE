@@ -27,7 +27,7 @@ import javax.swing.*;
  * Display the VUE splash screen.  Show the VUE splash graphic with current version
  * text drawn on top of it,
  *
- * @version $Revision: 1.18 $ / $Date: 2009-08-28 15:01:00 $ / $Author: mike $ 
+ * @version $Revision: 1.19 $ / $Date: 2009-09-21 21:31:20 $ / $Author: sfraize $ 
  * @author  akumar03
  */
 
@@ -41,7 +41,7 @@ public class SplashScreen extends Frame
         createSplash();
 
         if (GUI.isMacAqua()) {
-            if (Util.isSupportedOnMac()) {
+            if (Util.isMacCocoaSupported()) {
                 pack(); // ensure peer created for MacOSX
                 MacOSX.setTransparent(SplashScreen.this);
             } else { //if (tufts.Util.getJavaVersion() >= 1.6) {
@@ -69,10 +69,10 @@ public class SplashScreen extends Frame
         Dimension screen =  Toolkit.getDefaultToolkit().getScreenSize();
         
         String splashProp = null;
-        if (Util.isMacPlatform() && Util.isSupportedOnMac())
-        	splashProp = "splashScreen";
+        if (Util.isMacCocoaSupported())
+            splashProp = "splashScreen";
         else
-        	splashProp = "splashScreenNoTransparency";
+            splashProp = "splashScreenNoTransparency";
         ImageIcon icon = new ImageIcon(VueResources.getURL(splashProp)) {
           public void paintIcon(Component c, Graphics g, int x, int y) {
               Calendar calendar = new GregorianCalendar();
