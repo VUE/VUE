@@ -2839,6 +2839,13 @@ public class Actions implements VueConstants
             // TODO: also handle the case when all values are rows (only from
             // the same schema?) useful when joining data-sets -- the row
             // itself may be clustering related nodes from another data-set
+
+            //else if (nDataValues == selection.size() || nDataRows == selection.size()) {
+            // problem: if we're just dealing with regular non-data nodes, we won't detect....
+            // So if there are no links between anything in the selection, also presume
+            // we just want to do the cluster action, tho really this only applies to
+            // MakeDataLists and may not apply to the other actions....
+            
             else if (nDataValues == selection.size() || nDataRows == selection.size()) {
 
                 // If all the items in the selection are single enumerated data
