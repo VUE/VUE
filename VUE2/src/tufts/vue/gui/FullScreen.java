@@ -37,7 +37,7 @@ import org.apache.log4j.NDC;
 /**
  * Code for providing, entering and exiting VUE full screen modes.
  *
- * @version $Revision: 1.42 $ / $Date: 2009-08-28 17:13:06 $ / $Author: sfraize $
+ * @version $Revision: 1.43 $ / $Date: 2009-09-21 21:33:07 $ / $Author: sfraize $
  *
  */
 
@@ -314,7 +314,7 @@ public class FullScreen
         }
 
         void makeInvisible() {
-            if (!isHidden && Util.isMacPlatform() && Util.isSupportedOnMac() && !VUE.isApplet()) {
+            if (!isHidden && Util.isMacCocoaSupported() && !VUE.isApplet()) {
                 isHidden = true;
                 MacOSX.setWindowAlpha(this, 0);
             }
