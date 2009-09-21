@@ -96,6 +96,7 @@ public class Util
     private static boolean DEBUG = false;
 
     private static String PlatformEncoding;
+    private static boolean JVM_is_64_bit;
     
     static {
 
@@ -107,6 +108,13 @@ public class Util
         OSVersion = System.getProperty("os.version");
         final String javaSpec = System.getProperty("java.specification.version");
 
+        final String bits = System.getProperty("sun.arch.data.model");
+
+        if (bits.equals("64"))
+            JVM_is_64_bit = true;
+        else
+            JVM_is_64_bit = false;
+
         PlatformName = osName + " " + OSVersion + " " + osArch;
 
         if (DEBUG) out(String.format("Platform: %s / %s / %s", osName, OSVersion, osArch));
@@ -114,7 +122,7 @@ public class Util
         
         try {
             javaVersion = Float.parseFloat(javaSpec);
-            if (DEBUG) out("Java Version: " + javaVersion);
+            if (DEBUG) out("Java Version: " + javaVersion + "; JVM-bits=" + bits + "; 64bit=" + JVM_is_64_bit);
         } catch (Exception e) {
             errorOut("couldn't parse java.specifcaion.version: [" + javaSpec + "]");
             errorOut(e.toString());
@@ -137,7 +145,7 @@ public class Util
             OSisMacLeopard =
                 OSVersion.startsWith("10.5") || // Leopard
                 OSVersion.startsWith("10.6");  // Snow Leopard
-            if (DEBUG) out(String.format("Mac: Leopard=%s", OSisMacLeopard));
+            if (DEBUG) out(String.format("Mac: Leopard/Snow-Leopard=%s", OSisMacLeopard));
             String mrj = System.getProperty("mrj.version");
             int i = 0;
             while (i < mrj.length()) {
@@ -207,17 +215,6 @@ public class Util
         Log.error(s);
     }
 
-    /*
-     * Check added for snow leopard, lack of cocoa, lack of java 5 compatibility
-     */
-    public static boolean isSupportedOnMac()
-    {
-    	if (javaVersion >= 1.6)
-    		return false;
-    	else 
-    		return true;
-    }
-    
     public static String formatLines(String target, int maxLength)
     {
         Locale currentLocale = new Locale ("en","US");
@@ -347,6 +344,15 @@ public class Util
         return UnixPlatform;
     }
 
+    /**
+     * @return true of Mac Cocoa extensions are supported.
+     * Currently only true if running in a 32bit Java 1.5 VM.
+     */
+    public static boolean isMacCocoaSupported()
+    {
+    	return isMacPlatform() && !JVM_is_64_bit && javaVersion < 1.6;
+    }
+    
     public static String getDefaultPlatformEncoding() {
         if (PlatformEncoding == null)
             PlatformEncoding = (new java.io.OutputStreamWriter(new java.io.ByteArrayOutputStream())).getEncoding();
