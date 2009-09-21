@@ -36,7 +36,7 @@ import org.apache.commons.lang.StringEscapeUtils;
  * types and doing some data-type analysis.  It also includes the ability to
  * associate a LWComponent node style with specially marked values.
  * 
- * @version $Revision: 1.20 $ / $Date: 2009-09-02 16:28:40 $ / $Author: sfraize $
+ * @version $Revision: 1.21 $ / $Date: 2009-09-21 21:31:59 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -842,9 +842,9 @@ public class Field implements tufts.vue.XMLUnmarshalListener
             max = mQuantiles[i] - TOP_RANGE_ADJUSTMENT;
         
         if (mAllValuesAreIntegers)
-            return String.format("Q%d: %.0f-%.0f", i+1, min, max);
+            return String.format("Q%d: %,.0f-%,.0f", i+1, min, max);
         else
-            return String.format("Q%d: %g-%g", i+1, min, max);
+            return String.format("Q%d: %,g-%,g", i+1, min, max);
         
     }
 
