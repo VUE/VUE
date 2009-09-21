@@ -16,7 +16,7 @@ package tufts.vue.gui;
 
 import tufts.Util;
 import static tufts.Util.*;
-import tufts.macosx.MacOSX;
+//import tufts.macosx.MacOSX;
 
 import tufts.vue.VUE;
 import tufts.vue.DEBUG;
@@ -162,7 +162,7 @@ import javax.swing.JTextField;  // for test harness
  * redispatch our own FocusEvents for transferring focus, which is the second
  * part of the magic that makes this work.
  *
- * @version $Revision: 1.29 $ / $Date: 2009-08-17 21:42:38 $ / $Author: sfraize $ 
+ * @version $Revision: 1.30 $ / $Date: 2009-09-21 21:32:23 $ / $Author: sfraize $ 
  */
 
 // todo: can also try calling the focus owner setters instead of lying -- that might work
