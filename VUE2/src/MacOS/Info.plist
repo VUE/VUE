@@ -44,18 +44,36 @@
 	<dict>
 		<key>VMOptions</key>
 		<string>-Xms200m -Xmx1024m</string>
+
 		<key>WorkingDirectory</key>
 		<string>$APP_PACKAGE/Contents/Resources/Java</string>
+
 		<key>MainClass</key>
 		<string>tufts.vue.VUE</string>
+
 		<key>JVMVersion</key>
 		<string>1.5+</string>
+
+                <key>JVMArchs</key>
+                <array>
+                  <!-- we actually don't want to do this on Snow Leopard -- there's no java 1.5 VM
+                  available and this is only useful for forcing the 32bit 1.5 JVM so we get access
+                  to the deprecated Java-Cocoa bridge as often as we can on Leopard, but we don't
+                  have a separate Snow Leopard release package -->
+                  <string>i386</string>
+                </array> 
+
 		<key>ClassPath</key>
 		<array>
                   <string>$APP_PACKAGE/Contents/VUE.jar</string>
                   <string>$JAVAROOT</string>
                   <string>/System/Library/Java</string>
  		</array>
+
+                <!-- splash file will only work for 1.6 JVMs -->
+                <key>SplashFile</key>
+                <string>$APP_PACKAGE/Contents/Resources/splash_graphic_mac.png</string>
+             
 		<key>Properties</key>
 		<dict>
 			<key>apple.laf.useScreenMenuBar</key>
