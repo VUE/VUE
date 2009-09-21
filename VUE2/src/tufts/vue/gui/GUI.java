@@ -57,7 +57,7 @@ import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.153 $ / $Date: 2009-09-02 16:28:40 $ / $Author: sfraize $
+ * @version $Revision: 1.154 $ / $Date: 2009-09-21 21:32:34 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -836,7 +836,7 @@ public class GUI
             if (false && Util.isMacLeopard() && Util.getJavaVersion() > 1.5) {
                 ; // ShellFolder/FileSystemView method still doesn't work
             } else {
-                if (Util.isSupportedOnMac())
+                if (Util.isMacCocoaSupported())
                     return tufts.macosx.MacOSX.getIconForExtension(ext, sizeRequest);
                 else
                     return null;
@@ -2647,7 +2647,8 @@ public class GUI
 //                     tufts.vue.MapViewer.getTransferableHelper(c));
         
         e.startDrag(DragSource.DefaultCopyDrop,
-                    c.getAsImage(0.5, new Dimension(256,256)),
+                    c.getAsImage(0.5, new Dimension(256,256)), // as of Java 6, Mac default is to scale to max of 128 in any dimension
+                    // tho above can be changed via apple.awt.dnd.defaultDragImageSize System Property
                     //new Point(-(int)c.getWidth()/2, -(int)c.getHeight()/2), // image offset
                     new Point(0, 0),
                     new tufts.vue.LWTransfer(c),
