@@ -52,7 +52,7 @@ import com.google.common.collect.*;
  * currently active map, code for adding new nodes to the current map,
  * and initiating drags of fields or rows destined for a map.
  *
- * @version $Revision: 1.87 $ / $Date: 2009-09-22 16:19:56 $ / $Author: brian $
+ * @version $Revision: 1.88 $ / $Date: 2009-09-22 18:32:23 $ / $Author: brian $
  * @author  Scott Fraize
  */
 
@@ -70,10 +70,10 @@ public class DataTree extends javax.swing.JTree
     private final JTextArea mChangedRowsTextArea = new JTextArea();
     private final JCheckBox mNewRowsCheckBox = new JCheckBox();
     private final JCheckBox mChangedRowsCheckBox = new JCheckBox();
-    private final AbstractButton mReloadButton = new JButton(VueResources.getString("dockWindow.contentPanel.sync.reloadDataset"));
     private final AbstractButton mUpdateButton = new JButton(VueResources.getString("dockWindow.contentPanel.sync.updateMap"));
     private final AbstractButton mSendToMapButton = new JButton("Send to Map");
     private final DefaultTreeModel mTreeModel;
+    private final static Color MEDIUM_DARK_GRAY = new Color(96, 96, 96);
     private final static boolean DEBUG_LOCAL = false;
 
     private volatile LWMap mActiveMap;
@@ -204,10 +204,8 @@ public class DataTree extends javax.swing.JTree
             };
 
                 
-        tree.mReloadButton.setOpaque(false);
         tree.mUpdateButton.setOpaque(false);
         tree.mSendToMapButton.setOpaque(false);
-        tree.mReloadButton.setFont(tufts.vue.gui.GUI.LabelFace);
         tree.mUpdateButton.setFont(tufts.vue.gui.GUI.LabelFace);
         tree.mSendToMapButton.setFont(tufts.vue.gui.GUI.LabelFace);
 
@@ -221,12 +219,7 @@ public class DataTree extends javax.swing.JTree
                     tree.enableUpdateButton();
                 }
             });
-        tree.mReloadButton.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    VUE.getContentPanel().getDSBrowser().refreshDataTree();
-                }
-            });
-        tree.mUpdateButton.addActionListener(new ActionListener() {
+       tree.mUpdateButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     tree.updateMap();
                 }
@@ -272,6 +265,7 @@ public class DataTree extends javax.swing.JTree
 //             });
 //         toolbar.add(keyBox, BorderLayout.WEST);
 //         toolbar.add(addNew, BorderLayout.EAST);
+
         final int			GUTTER = 4;
         JPanel				toolbar = new JPanel(),
         					remainderPanel = new JPanel(),
@@ -291,6 +285,7 @@ public class DataTree extends javax.swing.JTree
         changedRowsPanel.setLayout(new GridBagLayout());
 
         tree.mNewRowsTextArea.setFont(tufts.vue.gui.GUI.LabelFace);
+        tree.mNewRowsTextArea.setEditable(false);
         tree.mNewRowsTextArea.setOpaque(false);
         tree.mNewRowsTextArea.setLineWrap(true);
         tree.mNewRowsTextArea.setWrapStyleWord(true);
@@ -299,9 +294,10 @@ public class DataTree extends javax.swing.JTree
         newRowsPanel.add(tree.mNewRowsCheckBox, gbcCheckBox);
         newRowsPanel.add(tree.mNewRowsTextArea, gbcTextArea);
         toolbar.add(newRowsPanel, gbcPanel);
-       
+
         gbcPanel.gridy = 1;
         tree.mChangedRowsTextArea.setFont(tufts.vue.gui.GUI.LabelFace);
+        tree.mChangedRowsTextArea.setEditable(false);
         tree.mChangedRowsTextArea.setOpaque(false);
         tree.mChangedRowsTextArea.setLineWrap(true);
         tree.mChangedRowsTextArea.setWrapStyleWord(true);
@@ -310,12 +306,9 @@ public class DataTree extends javax.swing.JTree
         changedRowsPanel.add(tree.mChangedRowsCheckBox, gbcCheckBox);
         changedRowsPanel.add(tree.mChangedRowsTextArea, gbcTextArea);
         toolbar.add(changedRowsPanel, gbcPanel);
-       
+
         toolbar.add(remainderPanel, gbcRemainder);
 
-        toolbar.add(tree.mReloadButton, gbcButton);
-
-        gbcButton.gridx = 2;
         toolbar.add(tree.mUpdateButton, gbcButton);
 
         if (DEBUG_LOCAL) {
@@ -335,8 +328,6 @@ public class DataTree extends javax.swing.JTree
         	tree.mChangedRowsCheckBox.setBackground(Color.YELLOW);
         	tree.mChangedRowsTextArea.setOpaque(true);
         	tree.mChangedRowsTextArea.setBackground(Color.YELLOW);
-        	tree.mReloadButton.setOpaque(true);
-        	tree.mReloadButton.setBackground(Color.YELLOW);
         	tree.mUpdateButton.setOpaque(true);
         	tree.mUpdateButton.setBackground(Color.YELLOW);
         }
@@ -965,7 +956,6 @@ public class DataTree extends javax.swing.JTree
         if (DEBUG.THREAD || DEBUG.SCHEMA) Log.debug("annotateForMap: newRows " + newRowCount + "; changedRows " + changedRowCount);
 
         GUI.invokeOnEDT(new Runnable() { public void run() {
-            
             String	newRowsMessage = "",
             		changedRowsMessage = "";
 
@@ -977,10 +967,10 @@ public class DataTree extends javax.swing.JTree
             	String.format(VueResources.getString("dockWindow.contentPanel.sync.manyChangedRecords"), changedRowCount)));
 
             mNewRowsTextArea.setText(newRowsMessage);
-            mNewRowsTextArea.setEnabled(newRowCount != 0);
+            mNewRowsTextArea.setForeground(newRowCount != 0 ? Color.BLACK : MEDIUM_DARK_GRAY);
             mNewRowsCheckBox.setEnabled(newRowCount != 0);
             mChangedRowsTextArea.setText(changedRowsMessage);
-            mChangedRowsTextArea.setEnabled(changedRowCount != 0);
+            mChangedRowsTextArea.setForeground(changedRowCount != 0 ? Color.BLACK : MEDIUM_DARK_GRAY);
             mChangedRowsCheckBox.setEnabled(changedRowCount != 0);
             enableUpdateButton();
 

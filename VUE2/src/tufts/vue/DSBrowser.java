@@ -149,11 +149,6 @@ public class DSBrowser extends ContentBrowser {
 	}
 
 
-	public void refreshDataTree() {
-		dataSetViewer.refreshBrowser();
-	}
-
-
 	public AbstractAction addLibraryAction = new AbstractAction(VueResources.getString("datasourcehandler.adddataset")) {
 		public static final long	serialVersionUID = 1;
 		public void actionPerformed(ActionEvent event) {
