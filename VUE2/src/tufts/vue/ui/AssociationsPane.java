@@ -1,6 +1,8 @@
 package tufts.vue.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.Font;
 import java.awt.Point;
 import java.awt.datatransfer.DataFlavor;
@@ -16,11 +18,14 @@ import java.util.Vector;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
@@ -44,6 +49,8 @@ public class AssociationsPane extends Widget
 //	static AbstractAction	addAssociationAction = null;
 	AbstractAction			deleteAssociationAction = null;
 	JTable					associationsTable = null;
+	BlankRenderer			blankRenderer = new BlankRenderer();
+	GrayRenderer			grayRenderer = new GrayRenderer();
 
 	public AssociationsPane() {
 		this(VueResources.getString("associationsPane.name"));
@@ -66,7 +73,16 @@ public class AssociationsPane extends Widget
 				}
 			};
 
-			associationsTable = new JTable(new AssociationsTableModel());
+			associationsTable = new JTable(new AssociationsTableModel()){
+				static final long		serialVersionUID = 1;
+
+				public TableCellRenderer getCellRenderer(int row, int column) {
+					int	lastRow = associationsTable.getRowCount() - 1;
+
+					return (row != lastRow) ? super.getCellRenderer(row, column) :
+						(column != 0) ? grayRenderer : blankRenderer;
+				}
+			};
 
 			TableColumnModel	colModel = associationsTable.getColumnModel();
 			TableColumn			column = colModel.getColumn(0);
@@ -88,6 +104,7 @@ public class AssociationsPane extends Widget
 
 			associationsTable.setFont(tableFont);
 			associationsTable.setRowHeight((int)(1.5 * associationsTable.getFontMetrics(tableFont).getHeight()));
+			associationsTable.setShowGrid(false);
 
 			setLayout(new BorderLayout());
 			add(associationsTable);
@@ -266,9 +283,8 @@ public class AssociationsPane extends Widget
 		}
 
 		public void setValueAt(Object obj, int row, int column) {
-
 			// note: this ignores row for now -- we only pay attention to column
-			// the only row that can be updated this way is currently row 0
+			// the only row that can be updated this way is the last row
 
 			switch (column) {
 			case COL_FIELD_LEFT:
@@ -417,6 +433,34 @@ public class AssociationsPane extends Widget
 // 			fireTableRowsUpdated(index, index);
 // 		}
 //	}
+
+	protected class BlankRenderer extends DefaultTableCellRenderer {
+		static final long	serialVersionUID = 1;
+		JLabel				emptyLabel = new JLabel("");
+
+		public Component getTableCellRendererComponent(JTable table, Object value,
+				boolean isSelected, boolean hasFocus, 
+				int row, int column) {
+			return emptyLabel;
+		}
+	}
+
+	protected class GrayRenderer extends DefaultTableCellRenderer {
+		static final long	serialVersionUID = 1;
+		JLabel				grayLabel = new JLabel("");
+
+		{
+			grayLabel.setForeground(Color.gray);
+			grayLabel.setFont(GUI.LabelFace);
+		}
+
+		public Component getTableCellRendererComponent(JTable table, Object value,
+			boolean isSelected, boolean hasFocus, int row, int column) {
+			grayLabel.setText(value.toString());
+
+			return grayLabel;
+		}
+	}
 
 	protected class AssociationsDropTarget extends DropTarget {
 		static final long					serialVersionUID = 1;
