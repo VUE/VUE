@@ -19,6 +19,7 @@
 
 package tufts.vue.ds;
 
+import tufts.vue.LWSelection;
 import tufts.vue.VUE;
 import tufts.vue.DEBUG;
 import tufts.vue.Resource;
@@ -51,7 +52,7 @@ import com.google.common.collect.*;
  * currently active map, code for adding new nodes to the current map,
  * and initiating drags of fields or rows destined for a map.
  *
- * @version $Revision: 1.86 $ / $Date: 2009-09-02 16:28:40 $ / $Author: sfraize $
+ * @version $Revision: 1.87 $ / $Date: 2009-09-22 16:19:56 $ / $Author: brian $
  * @author  Scott Fraize
  */
 
@@ -65,9 +66,12 @@ public class DataTree extends javax.swing.JTree
     private DataNode mRootNode;
     private DataNode mAllRowsNode;
     private DataNode mSelectedSearchNode;
-    private final JTextArea mUpdateTextArea = new JTextArea();
-    private final AbstractButton mAddNewRowsButton = new JButton(VueResources.getString("dockWindow.contentPanel.sync.addToMap"));
-    private final AbstractButton mApplyChangesButton = new JButton(VueResources.getString("dockWindow.contentPanel.sync.updateMap"));
+    private final JTextArea mNewRowsTextArea = new JTextArea();
+    private final JTextArea mChangedRowsTextArea = new JTextArea();
+    private final JCheckBox mNewRowsCheckBox = new JCheckBox();
+    private final JCheckBox mChangedRowsCheckBox = new JCheckBox();
+    private final AbstractButton mReloadButton = new JButton(VueResources.getString("dockWindow.contentPanel.sync.reloadDataset"));
+    private final AbstractButton mUpdateButton = new JButton(VueResources.getString("dockWindow.contentPanel.sync.updateMap"));
     private final AbstractButton mSendToMapButton = new JButton("Send to Map");
     private final DefaultTreeModel mTreeModel;
     private final static boolean DEBUG_LOCAL = false;
@@ -115,7 +119,35 @@ public class DataTree extends javax.swing.JTree
         annotateForMap(mActiveMap);
         applyChangesToMap(mActiveMap);
     }
-    
+    private void updateMap() {
+        // failsafe: tho the Schema and our tree nodes should already
+        // be updated, make absolutely certian we're current to the
+        // active map by running adding new rows based on our detection
+        // of the rows already in the map.
+        annotateForMap(mActiveMap);
+
+        LWSelection		newNodes = null;
+
+        if (mNewRowsCheckBox.isSelected()) {
+            addNewRowsToMap(mActiveMap);
+
+            newNodes = VUE.getSelection().clone();
+            }
+
+        if (mChangedRowsCheckBox.isSelected()) {
+            applyChangesToMap(mActiveMap);
+
+            if (newNodes != null) {
+                VUE.getSelection().add(newNodes);
+            }
+        }
+    }
+
+    private void enableUpdateButton() {
+        mUpdateButton.setEnabled((mNewRowsCheckBox.isEnabled() && mNewRowsCheckBox.isSelected()) ||
+            (mChangedRowsCheckBox.isEnabled() && mChangedRowsCheckBox.isSelected()));
+    }
+   
     private void applyChangesToMap(final LWMap map) {
 
         final Map<String,DataRow> freshData = new HashMap();
@@ -172,24 +204,31 @@ public class DataTree extends javax.swing.JTree
             };
 
                 
-        final JPanel toolbar = new JPanel();
-        toolbar.setLayout(new GridBagLayout());
-
-        tree.mAddNewRowsButton.setOpaque(false);
-        tree.mApplyChangesButton.setOpaque(false);
+        tree.mReloadButton.setOpaque(false);
+        tree.mUpdateButton.setOpaque(false);
         tree.mSendToMapButton.setOpaque(false);
-        tree.mAddNewRowsButton.setFont(tufts.vue.gui.GUI.LabelFace);
-        tree.mApplyChangesButton.setFont(tufts.vue.gui.GUI.LabelFace);
+        tree.mReloadButton.setFont(tufts.vue.gui.GUI.LabelFace);
+        tree.mUpdateButton.setFont(tufts.vue.gui.GUI.LabelFace);
         tree.mSendToMapButton.setFont(tufts.vue.gui.GUI.LabelFace);
 
-        tree.mAddNewRowsButton.addActionListener(new ActionListener() {
+        tree.mNewRowsCheckBox.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
-                    tree.addNewRowsToMap();
+                    tree.enableUpdateButton();
                 }
             });
-        tree.mApplyChangesButton.addActionListener(new ActionListener() {
+        tree.mChangedRowsCheckBox.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
-                    tree.applyChangesToMap();
+                    tree.enableUpdateButton();
+                }
+            });
+        tree.mReloadButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    VUE.getContentPanel().getDSBrowser().refreshDataTree();
+                }
+            });
+        tree.mUpdateButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    tree.updateMap();
                 }
             });
         tree.mSendToMapButton.addActionListener(new ActionListener() {
@@ -233,58 +272,73 @@ public class DataTree extends javax.swing.JTree
 //             });
 //         toolbar.add(keyBox, BorderLayout.WEST);
 //         toolbar.add(addNew, BorderLayout.EAST);
-        Insets				halfGutterInset = new Insets(2, 2, 2, 2);
-        JPanel				innerToolbar = new JPanel(),
-        					remainderPanel = new JPanel();
-        GridBagConstraints	gbc = new GridBagConstraints();
+        final int			GUTTER = 4;
+        JPanel				toolbar = new JPanel(),
+        					remainderPanel = new JPanel(),
+        					newRowsPanel = new JPanel(),
+        					changedRowsPanel = new JPanel();
+        Insets				noInset =        new Insets(0, 0, 0, 0),  //top, left, bottom, right
+							panelInset =     new Insets(0, 0, 0, GUTTER),
+							buttonInset =    new Insets(0, 0, GUTTER, GUTTER);
+        GridBagConstraints	gbcCheckBox =    new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,       noInset,     0, 0),
+        					gbcTextArea =    new GridBagConstraints(1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL, noInset,     0, 0),
+        					gbcPanel =       new GridBagConstraints(0, 0, 3, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL, panelInset,  0, 0),
+        					gbcRemainder =   new GridBagConstraints(0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.REMAINDER,  buttonInset, 0, 0),
+							gbcButton =      new GridBagConstraints(1, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,       buttonInset, 0, 0);
 
-        innerToolbar.setLayout(new GridBagLayout());
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.gridwidth = 1;
-        gbc.gridheight = 1;
-        gbc.insets = halfGutterInset;
-        gbc.fill = GridBagConstraints.BOTH;
-        gbc.weightx = 1.0;
-        gbc.weighty = 1.0;
-        toolbar.add(innerToolbar, gbc);
+        toolbar.setLayout(new GridBagLayout());
+        newRowsPanel.setLayout(new GridBagLayout());
+        changedRowsPanel.setLayout(new GridBagLayout());
 
-        gbc.gridwidth = 3;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weighty = 0.0;
-        tree.mUpdateTextArea.setFont(tufts.vue.gui.GUI.LabelFace);
-        tree.mUpdateTextArea.setOpaque(false);
-        tree.mUpdateTextArea.setLineWrap(true);
-        tree.mUpdateTextArea.setRows(1);
-        innerToolbar.add(tree.mUpdateTextArea, gbc);
+        tree.mNewRowsTextArea.setFont(tufts.vue.gui.GUI.LabelFace);
+        tree.mNewRowsTextArea.setOpaque(false);
+        tree.mNewRowsTextArea.setLineWrap(true);
+        tree.mNewRowsTextArea.setWrapStyleWord(true);
+        tree.mNewRowsTextArea.setRows(1);
+        tree.mNewRowsCheckBox.setFont(tufts.vue.gui.GUI.LabelFace);
+        newRowsPanel.add(tree.mNewRowsCheckBox, gbcCheckBox);
+        newRowsPanel.add(tree.mNewRowsTextArea, gbcTextArea);
+        toolbar.add(newRowsPanel, gbcPanel);
        
-        gbc.gridy = 1;
-        gbc.gridwidth = 1;
-        gbc.fill = GridBagConstraints.REMAINDER;
-        gbc.weightx = 1.0;
-        innerToolbar.add(remainderPanel, gbc);
+        gbcPanel.gridy = 1;
+        tree.mChangedRowsTextArea.setFont(tufts.vue.gui.GUI.LabelFace);
+        tree.mChangedRowsTextArea.setOpaque(false);
+        tree.mChangedRowsTextArea.setLineWrap(true);
+        tree.mChangedRowsTextArea.setWrapStyleWord(true);
+        tree.mChangedRowsTextArea.setRows(1);
+        tree.mChangedRowsCheckBox.setFont(tufts.vue.gui.GUI.LabelFace);
+        changedRowsPanel.add(tree.mChangedRowsCheckBox, gbcCheckBox);
+        changedRowsPanel.add(tree.mChangedRowsTextArea, gbcTextArea);
+        toolbar.add(changedRowsPanel, gbcPanel);
+       
+        toolbar.add(remainderPanel, gbcRemainder);
 
-        gbc.gridx = 1;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.weightx = 0.0;
-        innerToolbar.add(tree.mAddNewRowsButton, gbc);
+        toolbar.add(tree.mReloadButton, gbcButton);
 
-        gbc.gridx = 2;
-        innerToolbar.add(tree.mApplyChangesButton, gbc);
+        gbcButton.gridx = 2;
+        toolbar.add(tree.mUpdateButton, gbcButton);
 
         if (DEBUG_LOCAL) {
         	toolbar.setOpaque(true);
         	toolbar.setBackground(Color.CYAN);
-        	innerToolbar.setOpaque(true);
-        	innerToolbar.setBackground(Color.MAGENTA);
+        	newRowsPanel.setOpaque(true);
+        	newRowsPanel.setBackground(Color.CYAN);
+        	changedRowsPanel.setOpaque(true);
+        	changedRowsPanel.setBackground(Color.CYAN);
         	remainderPanel.setOpaque(true);
-        	remainderPanel.setBackground(Color.GREEN);
-        	tree.mUpdateTextArea.setOpaque(true);
-        	tree.mUpdateTextArea.setBackground(Color.YELLOW);
-        	tree.mAddNewRowsButton.setOpaque(true);
-        	tree.mAddNewRowsButton.setBackground(Color.YELLOW);
-        	tree.mApplyChangesButton.setOpaque(true);
-        	tree.mApplyChangesButton.setBackground(Color.YELLOW);
+        	remainderPanel.setBackground(Color.YELLOW);
+        	tree.mNewRowsCheckBox.setOpaque(true);
+        	tree.mNewRowsCheckBox.setBackground(Color.YELLOW);
+        	tree.mNewRowsTextArea.setOpaque(true);
+        	tree.mNewRowsTextArea.setBackground(Color.YELLOW);
+        	tree.mChangedRowsCheckBox.setOpaque(true);
+        	tree.mChangedRowsCheckBox.setBackground(Color.YELLOW);
+        	tree.mChangedRowsTextArea.setOpaque(true);
+        	tree.mChangedRowsTextArea.setBackground(Color.YELLOW);
+        	tree.mReloadButton.setOpaque(true);
+        	tree.mReloadButton.setBackground(Color.YELLOW);
+        	tree.mUpdateButton.setOpaque(true);
+        	tree.mUpdateButton.setBackground(Color.YELLOW);
         }
 
         if (dataSourceLabel != null)
@@ -852,8 +906,7 @@ public class DataTree extends javax.swing.JTree
     private void runAnnotate() {
 
         GUI.invokeOnEDT(new Runnable() { public void run() {
-            mAddNewRowsButton.setEnabled(false);
-            mApplyChangesButton.setEnabled(false);
+            mUpdateButton.setEnabled(false);
         }});
         //Log.info("WAKING " + mAnnotateThread, new Throwable("HERE"));
         if (DEBUG.THREAD) Log.debug("**WAKING ANNOTATION THREAD " + mAnnotateThread + "; pri=" + mAnnotateThread.getPriority());
@@ -913,43 +966,23 @@ public class DataTree extends javax.swing.JTree
 
         GUI.invokeOnEDT(new Runnable() { public void run() {
             
-            String	message = "";
+            String	newRowsMessage = "",
+            		changedRowsMessage = "";
 
-            if (newRowCount == 0 && changedRowCount == 0) {
-            	String	keyName = "";
+            newRowsMessage = (newRowCount == 0 ? VueResources.getString("dockWindow.contentPanel.sync.noNewRecords") :
+        	    (newRowCount == 1 ? VueResources.getString("dockWindow.contentPanel.sync.oneNewRecord") :
+        	    String.format(VueResources.getString("dockWindow.contentPanel.sync.manyNewRecords"), newRowCount)));
+            changedRowsMessage = (changedRowCount == 0 ? VueResources.getString("dockWindow.contentPanel.sync.noChangedRecords") :
+        	    (changedRowCount == 1 ? VueResources.getString("dockWindow.contentPanel.sync.oneChangedRecord") :
+            	String.format(VueResources.getString("dockWindow.contentPanel.sync.manyChangedRecords"), changedRowCount)));
 
-            	if (mSchema != null) {
-            		Field	keyField = mSchema.getKeyField();
-
-            		if (keyField != null) {
-            			keyName = keyField.getName();
-            		}
-            	}
-
-            	message = String.format(VueResources.getString("dockWindow.contentPanel.sync.allmatch"), keyName);
-            } else {
-            	if (newRowCount == 1) {
-            		message = VueResources.getString("dockWindow.contentPanel.sync.oneNew");
-            	} else if (newRowCount > 1) {
-                	message = String.format(VueResources.getString("dockWindow.contentPanel.sync.multipleNew"), newRowCount);
-            	}
-
-            	if (newRowCount > 0 && changedRowCount > 0) {
-            		message = message + " " + VueResources.getString("dockWindow.contentPanel.sync.and") + " ";
-            	}
-
-            	if (changedRowCount == 1) {
-            		message = message + VueResources.getString("dockWindow.contentPanel.sync.oneMod");
-            	} else if (changedRowCount > 1) {
-                	message = message + String.format(VueResources.getString("dockWindow.contentPanel.sync.multipleMod"), changedRowCount);
-            	}
-
-            	message = message + " " + VueResources.getString("dockWindow.contentPanel.sync.outsideVUE");
-            }
-
-            mUpdateTextArea.setText(message);
-            mAddNewRowsButton.setEnabled(newRowCount > 0);
-            mApplyChangesButton.setEnabled(changedRowCount > 0);
+            mNewRowsTextArea.setText(newRowsMessage);
+            mNewRowsTextArea.setEnabled(newRowCount != 0);
+            mNewRowsCheckBox.setEnabled(newRowCount != 0);
+            mChangedRowsTextArea.setText(changedRowsMessage);
+            mChangedRowsTextArea.setEnabled(changedRowCount != 0);
+            mChangedRowsCheckBox.setEnabled(changedRowCount != 0);
+            enableUpdateButton();
 
             // TODO: don't bother with refresh if annotations didn't change at all
             refreshAll();
