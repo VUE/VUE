@@ -21,6 +21,7 @@ zPane: null,
 installLocation: "",
 pathsep: "/",
 win: null,
+wm: null,
 importMapDataListener: function(evt)
 {
 	//var fileName = Zotero.Utilities.prototype.htmlSpecialChars(evt.target.getAttribute("path"));
@@ -284,10 +285,9 @@ newTab: function( url ) {
  */
 startVUE: function() {
 	
-	var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-				   .getService(Components.interfaces.nsIWindowMediator);
 	
-	var lastWin = wm.getMostRecentWindow("navigator:browser");
+	
+	var lastWin = this.wm.getMostRecentWindow("navigator:browser");
 	
 	 /* include any js files here */  
 	/**
@@ -368,10 +368,10 @@ startVUE: function() {
       {
     	//OK we don't need to launch VUE Because its already up and running in a tab so we just need to find the tab
     	//and bring it forward
-    	var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-    	        .getService(Components.interfaces.nsIWindowMediator);
+   // 	var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+    //	        .getService(Components.interfaces.nsIWindowMediator);
     	
-    	var tabbrowser = wm.getMostRecentWindow("navigator:browser");
+    	var tabbrowser = this.wm.getMostRecentWindow("navigator:browser");
     
         //alert(gBrowser.mTabContainer.selectedIndex);
     	// Yes--select and focus it.
@@ -534,6 +534,9 @@ init: function()
 	// During initialisation
 	var container = gBrowser.tabContainer;
 	container.addEventListener("TabSelect", this.vueTabSelected, false);
+	
+	this.wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+	         				   .getService(Components.interfaces.nsIWindowMediator);
 	
 
 
