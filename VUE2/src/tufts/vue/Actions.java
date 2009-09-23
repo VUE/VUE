@@ -2177,8 +2177,13 @@ public class Actions implements VueConstants
             // (possibly if it's a child of anything?)
             //-----------------------------------------------------------------------------
             
-            if (toReparent.size() > 0)
+            if (toReparent.size() > 0) {
+                if (toReparent.contains(commonParent)) {
+                    // TOFIX: if we attempt to cluster a child node linked to it's parent, we get this:
+                    throw new Error("clusterNodesAbout: setup failure, toReparent contains commonParent");
+                }
                 commonParent.addChildren(toReparent, LWComponent.ADD_CHILD_TO_SIBLING);
+            }
             
             computeStatistics(null, clustering);
             centerX = center.getMapCenterX(); // should probably be local center, not map center
