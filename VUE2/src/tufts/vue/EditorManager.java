@@ -163,25 +163,12 @@ public class EditorManager
             Log.debug("INSTALLING...");
             singleton = new EditorManager();
             
-// Not working.
-//             preLoadStyle(LWNode.class);
-//             preLoadStyle(LWNode.class, LWNode.TYPE_TEXT);
-//             preLoadStyle(LWLink.class);
-
-            //preLoadStyle(tufts.vue.NodeTool.NodeModeTool.createNewNode("editor-node-style"));
             preLoadStyle(tufts.vue.NodeTool.NodeModeTool.createDefaultNode("editor-node-style"));
             preLoadStyle(tufts.vue.NodeTool.NodeModeTool.createDefaultTextNode("editor-text-style"));
             //preLoadStyle(new LWLink(null, null));
             
             singleton.refresh();
 
-            // somewhat of a hack, but should be easy help for VUE-408 -- this
-            // will create the appropriate objects, and call us back to target
-            // properties, which will get their styles created, which will 
-            // allow us to use free properties before the first node is created.
-            // todo: should just be methods on NodeTool, not NodeModeTool!
-            //tufts.vue.NodeTool.NodeModeTool.createNewNode("editor-node-style-init");
-            //tufts.vue.NodeTool.NodeModeTool.createTextNode("editor-text-style-init");
         }
     }
 
@@ -433,7 +420,7 @@ public class EditorManager
 
         // TODO: a bit overkill to do this no matter what -- do we need to if no property source?
         if (propertySource != null)
-            recordPropertyChangeInStyles("loadEditor", editor.getPropertyKey(), editor.produceValue(), selection.isEmpty());
+            recordPropertyChangeInStyles("load", editor.getPropertyKey(), editor.produceValue(), selection.isEmpty());
         
         //if (editor instanceof Component) ((Component)editor).repaint(); // not helping ShapeIcon's repaint when disabled...
     }
@@ -626,7 +613,8 @@ public class EditorManager
                                                debugSrc,
                                                key,
                                                "(" + newValue + ")",
-                                               Util.tags(target)));
+                                               target));
+                                                //Util.tags(target)));
             try {
                 target.setProperty(key, newValue);
                 //} catch (LWComponent.PropertyValueVeto ex) {
@@ -924,9 +912,10 @@ public class EditorManager
             } catch (Throwable t) {
                 Log.warn("editor not ready to produce value: " + Util.tags(editor) + "; " + t);
             }
- 			  if (curVal != null && VUE.isStartupUnderway()) {
-      //      if (curVal != null) {
+            if (curVal != null) {
+                //if (curVal != null && VUE.isStartupUnderway()) {
                 // doing this at runtime this can break us badly (LWText 0 font size props leaking to LWNodes!)
+                // Mike appears to have fixed the above problem, so we can re-enable this fix for VUE-1529 (aka VUE-408)
                 recordPropertyChangeInStyles("register",
                                              editor.getPropertyKey(),
                                              curVal,
