@@ -269,7 +269,7 @@ public class AssociationsPane extends Widget
 				result = (row == lastRow ? tmpField0 : Association.get(row).getLeft());
 				break;
 			case COL_EQUALS:
-				result = (row == lastRow ? "" : "=");
+				result = "=";
 				break;
 			case COL_FIELD_RIGHT:
 				result = (row == lastRow ? tmpField1 : Association.get(row).getRight());
