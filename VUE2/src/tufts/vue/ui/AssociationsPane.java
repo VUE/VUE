@@ -46,6 +46,7 @@ public class AssociationsPane extends Widget
 	private static final org.apache.log4j.Logger
 							Log = org.apache.log4j.Logger.getLogger(AssociationsPane.class);
 	static final int		BUTTON_WIDTH = 20;
+	static final String		CHOOSE_FIELD = VueResources.getString("associationsPane.chooseField");
 //	static AbstractAction	addAssociationAction = null;
 	AbstractAction			deleteAssociationAction = null;
 	JTable					associationsTable = null;
@@ -276,7 +277,7 @@ public class AssociationsPane extends Widget
 			}
 
 			if (result == null) {
-				result = VueResources.getString("associationsPane.chooseField");
+				result = CHOOSE_FIELD;
 			}
 
 			return result;
@@ -450,13 +451,15 @@ public class AssociationsPane extends Widget
 		JLabel				grayLabel = new JLabel("");
 
 		{
-			grayLabel.setForeground(Color.gray);
 			grayLabel.setFont(GUI.LabelFace);
 		}
 
 		public Component getTableCellRendererComponent(JTable table, Object value,
 			boolean isSelected, boolean hasFocus, int row, int column) {
-			grayLabel.setText(value.toString());
+			String	stringValue = value.toString();
+
+			grayLabel.setText(stringValue);
+			grayLabel.setForeground(stringValue.equals(CHOOSE_FIELD) ? Color.GRAY : Color.BLACK);
 
 			return grayLabel;
 		}
