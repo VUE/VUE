@@ -2496,8 +2496,11 @@ public class Actions implements VueConstants
         if (pushKey == PUSH_LINKED && pushing.hasLinks())
             toPush = pushing.getLinked();
 
-        if (toPush == null || toPush.size() == 0)
-            toPush = pushing.getMap().getAllDescendents();
+        if (toPush == null || toPush.size() == 0) {
+            // ideally, this would push all the top level children in the current FOCAL
+            toPush = pushing.getMap().getTopLevelItems(ChildKind.EDITABLE);
+        }
+        //toPush = pushing.getMap().getAllDescendents(); // only want top level -- especially, don't push children inside groups!
         //toPush = pushing.getParent().getChildren();
         
         projectNodes(toPush, pushing, distance);

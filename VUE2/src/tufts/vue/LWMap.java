@@ -59,7 +59,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.252 $ / $Date: 2009-09-21 21:30:29 $ / $Author: sfraize $
+ * @version $Revision: 1.253 $ / $Date: 2009-09-23 05:53:31 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -608,7 +608,41 @@ public class LWMap extends LWContainer
         }
         return false;
     }
+
+    /** @return all LWComponent's at the top level of all unlocked of the given kind */
+    public Collection<LWComponent> getTopLevelItems(ChildKind kind)
+    {
+        return getAllLayerDescendents(kind, new ArrayList(), Order.DEPTH, true);
+    }
     
+    private Collection<LWComponent> getAllLayerDescendents(ChildKind kind, Collection bag, Order order, boolean onlyTopLevel)
+    {
+        for (LWComponent layer : getChildren()) {
+            
+            // exclude the layer objects themseleves, but include their children
+            
+            if ((kind == ChildKind.VISIBLE || kind == ChildKind.EDITABLE) && layer.isHidden()) {
+                ; // exclude invisible
+            }
+            else if (kind == ChildKind.EDITABLE && layer.isLocked()) {
+                    ; // exclude locked out
+            }
+            else if (layer instanceof Layer) {            
+                // should always be the case (is a Layer)
+                if (onlyTopLevel) {
+                    bag.addAll(layer.getChildren());
+                } else {
+                    layer.getAllDescendents(kind, bag, order);
+                }
+            }
+            else {
+                // failsafe in case anything has leaked up to the map level
+                Log.warn("child of map, not layer: " + layer);
+                bag.add(layer);
+            }
+        }
+        return bag;
+    }
 
     // TODO PERFORMANCE: cache results for each kind in immutable lists; only flush if modification count goes up.
     // (to verify: modification count goes up when layers are locked, anything is hidden/shown, which will effect EDITABLE lists)
@@ -619,21 +653,7 @@ public class LWMap extends LWContainer
             // include the layers and all descendents
             super.getAllDescendents(kind, bag, order);
         } else {
-            // exclude the layer objects themseleves, but include their children
-            for (LWComponent layer : getChildren()) {
-                if ((kind == ChildKind.VISIBLE || kind == ChildKind.EDITABLE) && layer.isHidden())
-                    ; // exclude invisible
-                else if (kind == ChildKind.EDITABLE && layer.isLocked())
-                    ; // exclude locked out
-                else if (layer instanceof Layer) {
-                    // should always be the case
-                    layer.getAllDescendents(kind, bag, order);
-                } else {
-                    // failsafe in case anything has leaked up to the map level
-                    Log.warn("child of map, not layer: " + layer);
-                    bag.add(layer);
-                }
-            }
+            getAllLayerDescendents(kind, bag, order, false);
         }
 
         if (kind == ChildKind.ANY) {
