@@ -42,7 +42,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.125 $ / $Date: 2009-06-03 02:42:13 $ / $Author: sfraize $
+ * @version $Revision: 1.126 $ / $Date: 2009-09-24 21:09:51 $ / $Author: brian $
  */
 
 public class InspectorPane extends WidgetStack
@@ -413,15 +413,37 @@ public class InspectorPane extends WidgetStack
             txt = "<html>" + txt + " " + s.getDescription();
             //txt = txt + " " + s.getDescription();
         //txt = "<html><center>" + txt + " " + s.getDescription();
-        mSelectionInfo.setText(txt);
+
+        GUI.invokeAfterAWT(new Runnable() { public void run() {
+            mSelectionInfo.setText(countObjects(s));
+        }});
+ 
         mLabelPane.loadLabel(s);
         Widget.show(mLabelPane); // connect up to schematic-field style node?
         Widget.show(mSelectionInfo);
       //Widget.setExpanded(mKeywords, true);
         Widget.show(mKeywords);
     }
-    
 
+    protected String countObjects(LWSelection sel) {
+        int	nodeCount = 0,
+            linkCount = 0,
+		    groupCount = 0;
+
+        for (LWComponent comp : sel) {
+			if (comp instanceof LWNode) {
+				nodeCount++;
+			} else if (comp instanceof LWLink) {
+				linkCount++;
+			} else if (comp instanceof LWGroup) {
+				groupCount++;
+			}
+        }
+
+        return String.format(Locale.getDefault(), VueResources.getString("mapinspectorpanel.objectStats"),
+                nodeCount, linkCount, groupCount);
+    }
+    
     private void loadAllNodePanes(LWComponent c) {
 
         LWComponent slideTitle = null;
