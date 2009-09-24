@@ -52,7 +52,7 @@ import com.google.common.collect.*;
  * currently active map, code for adding new nodes to the current map,
  * and initiating drags of fields or rows destined for a map.
  *
- * @version $Revision: 1.88 $ / $Date: 2009-09-22 18:32:23 $ / $Author: brian $
+ * @version $Revision: 1.89 $ / $Date: 2009-09-24 20:29:32 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -1867,15 +1867,15 @@ public class DataTree extends javax.swing.JTree
 
 
         private void updateLabel(boolean refresh) {
-            String labelFormat = schema.getRowNodeStyle().getLabel().trim();
-            if (labelFormat.startsWith("${") && labelFormat.endsWith("}"))
-                labelFormat = labelFormat.substring(2, labelFormat.length()-1);
 
-            //setDisplay(String.format(HTML("<b><u>All Records in %s</b><u> (%d)</u> : <b><font color=red>%s"),
-            //setDisplay(String.format(HTML("<b>All Records in %s</b> (%d) : <b><font color=red>%s"),
-            setDisplay(String.format(HTML("<b>All Records</b> (%d) : <b><font color=red>%s"),
-                                     schema.getRowCount(),
-                                     labelFormat));
+            setDisplay(String.format(HTML("All Records (%d)"), schema.getRowCount()));
+            
+//             String labelFormat = schema.getRowNodeStyle().getLabel().trim();
+//             if (labelFormat.startsWith("${") && labelFormat.endsWith("}"))
+//                 labelFormat = labelFormat.substring(2, labelFormat.length()-1);
+//             setDisplay(String.format(HTML("<b>All Records</b> (%d) : <b><font color=red>%s"),
+//                                      schema.getRowCount(),
+//                                      labelFormat));
         
             if (refresh)
                 DataTree.this.refreshRootNode();
@@ -1893,7 +1893,7 @@ public class DataTree extends javax.swing.JTree
     }
 
 
-    private static final int IconWidth = 32;
+    private static final int IconWidth = 27;
     private static final int IconHeight = 20;
 
     //private static final Border TopBorder = BorderFactory.createLineBorder(Color.gray);
