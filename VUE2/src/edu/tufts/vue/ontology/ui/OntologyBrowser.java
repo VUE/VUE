@@ -363,6 +363,7 @@ public class OntologyBrowser extends JPanel {
 
         stack.addPane(ontologiesPanel, 0f);
         stack.addPane(populatePane, 0f);
+		Widget.setHelpAction(ontologiesPanel, VueResources.getString("dockWindow.Ontologies.helpText"));
         Widget.setMiscAction(ontologiesPanel, new MiscWidgetAction(), "dockWindow.addButton");
         Widget.setMenuActions(ontologiesPanel, actions);
 
