@@ -58,13 +58,17 @@ ShowUnInstDetails show
 RequestExecutionLevel admin
   
 Section "MainSection" SEC01
-  Call DetectJRE
+  ;Call DetectJRE
   SetOutPath "$INSTDIR"
   SetOverwrite ifnewer
   File ".\VUE.ico"
   File ".\vuedoc.ico"
   File "..\src\build\VUE.jar"
   File ".\VUE-launcher.exe"
+  File ".\VUE-launcher.exe.manifest"
+  SetOutPath $INSTDIR\jre
+  File /r /x CVS jre\*.*
+  SetOutPath $INSTDIR
 
 ; File Associations
   ${registerExtension} "$INSTDIR\VUE-Launcher.exe" ".vue" "VUE Map File"
@@ -138,14 +142,16 @@ Section Uninstall
   Delete "$INSTDIR\*.exe"
   Delete "$INSTDIR\VUE.ico"
   Delete "$INSTDIR\vuedoc.ico"
+  Delete "$INSTDIR\VUE-launcher.exe.manifest"
 ; File Associations
   ${unregisterExtension} ".vue" "VUE Map File"
   ${unregisterExtension} ".vpk" "VUE Package File"
   Delete "$SMPROGRAMS\VUE\*.*"
   Delete "$SMPROGRAMS\VUE\*.lnk"
   Delete "$SMPROGRAMS\VUE\*.log"
+  RMDir /r /REBOOTOK $SMSPROGRAMS\VUE\jre\*.*
   RMDir "$SMPROGRAMS\VUE"
-  RMDir "$INSTDIR"
+  RMDir /r /REBOOTOK "$INSTDIR"
   DeleteRegKey ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}"
   SetAutoClose true
 SectionEnd
