@@ -43,7 +43,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.228 $ / $Date: 2009-08-28 22:04:32 $ / $Author: sfraize $
+ * @version $Revision: 1.229 $ / $Date: 2009-09-24 18:41:05 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -2840,15 +2840,16 @@ public class LWLink extends LWComponent
             RectangularShape dot = new java.awt.geom.Ellipse2D.Float(0,0, size,size);
             //Composite composite = dc.g.getComposite();
             //dc.g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
-            dc.g.setColor(Color.red);
             if (head.isPruned()) {
                 dot.setFrameFromCenter(head.x, head.y, head.x+size/2, head.y+size/2);
+                dc.g.setColor(Color.lightGray);
                 dc.g.fill(dot);
                 dc.g.setColor(Color.darkGray);
                 dc.g.draw(dot);
             }
             if (tail.isPruned()) {
                 dot.setFrameFromCenter(tail.x, tail.y, tail.x+size/2, tail.y+size/2);
+                dc.g.setColor(Color.lightGray);
                 dc.g.fill(dot);
                 dc.g.setColor(Color.darkGray);
                 dc.g.draw(dot);
