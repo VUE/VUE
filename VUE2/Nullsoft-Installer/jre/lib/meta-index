@@ -1,0 +1,93 @@
+% VERSION 2
+% WARNING: this file is auto-generated; do not edit
+% UNSUPPORTED: this file and its format may change and/or
+%   may be removed in a future release
+! alt-rt.jar
+java/util
+java/lang
+# charsets.jar
+META-INF/services/java.nio.charset.spi.CharsetProvider
+sun/nio
+sun/io
+# jce.jar
+javax/crypto
+sun/security
+META-INF/JCE_RSA.RSA
+META-INF/JCE_RSA.SF
+! jsse.jar
+com/sun/security/
+sun/net
+javax/security
+javax/net
+com/sun/net/
+! management-agent.jar
+@ resources.jar
+com/sun/java/util/jar/pack/
+META-INF/services/javax.print.PrintServiceLookup
+com/sun/corba/
+META-INF/services/javax.sound.midi.spi.SoundbankReader
+sun/print
+META-INF/services/javax.sound.midi.spi.MidiFileReader
+javax/swing
+META-INF/services/javax.sound.sampled.spi.AudioFileReader
+META-INF/services/javax.sound.midi.spi.MidiDeviceProvider
+sun/net
+META-INF/services/javax.sound.sampled.spi.AudioFileWriter
+com/sun/imageio/
+com/sun/servicetag/
+META-INF/services/java.sql.Driver
+META-INF/mimetypes.default
+sun/org
+META-INF/services/javax.sound.midi.spi.MidiFileWriter
+sun/rmi
+javax/sql
+META-INF/services/javax.script.ScriptEngineFactory
+com/sun/rowset/
+META-INF/services/javax.print.StreamPrintServiceFactory
+META-INF/mailcap.default
+sun/text
+javax/xml
+META-INF/services/javax.sound.sampled.spi.MixerProvider
+com/sun/java/swing/
+com/sun/jndi/
+com/sun/xml/
+com/sun/org/
+META-INF/services/javax.sound.sampled.spi.FormatConversionProvider
+! rt.jar
+com/sun/java/util/jar/pack/
+java/
+org/ietf/
+com/sun/beans/
+com/sun/java/browser/
+com/sun/corba/
+com/sun/media/
+com/sun/awt/
+com/sun/management/
+sun/
+com/sun/jmx/
+com/sun/demo/
+com/sun/imageio/
+com/sun/servicetag/
+com/sun/net/
+com/sun/rmi/
+org/w3c/
+com/sun/swing/
+com/sun/activation/
+com/sun/script/
+com/sun/rowset/
+org/jcp/
+com/sun/istack/
+com/sun/naming/
+org/xml/
+org/omg/
+com/sun/security/
+com/sun/image/
+sunw/util/
+sunw/io/
+com/sun/xml/
+com/sun/java_cup/
+com/sun/java/swing/
+com/sun/jndi/
+com/sun/accessibility/
+com/sun/org/
+javax/
