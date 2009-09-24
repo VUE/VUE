@@ -1,0 +1,24 @@
+<launch4jConfig>
+  <dontWrapJar>true</dontWrapJar>
+  <headerType>gui</headerType>
+  <jar>VUE.jar</jar>
+  <outfile>VUE-launcher.exe</outfile>
+  <errTitle></errTitle>
+  <cmdLine></cmdLine>
+  <chdir></chdir>
+  <priority>normal</priority>
+  <downloadUrl>http://java.com/download</downloadUrl>
+  <supportUrl></supportUrl>
+  <customProcName>true</customProcName>
+  <stayAlive>false</stayAlive>
+  <manifest>C:\Users\Admin\workspace\VUE2\Nullsoft-Installer\VUE-launcher.exe.manifest</manifest>
+  <icon>C:\Users\Admin\workspace\VUE2\Nullsoft-Installer\VUE.ico</icon>
+  <jre>
+    <path>./jre</path>
+    <minVersion>1.6.0_13</minVersion>
+    <maxVersion></maxVersion>
+    <jdkPreference>preferJre</jdkPreference>
+    <initialHeapPercent>10</initialHeapPercent>
+    <maxHeapPercent>98</maxHeapPercent>
+  </jre>
+</launch4jConfig>
