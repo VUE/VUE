@@ -18,7 +18,7 @@
     <minVersion>1.6.0_13</minVersion>
     <maxVersion></maxVersion>
     <jdkPreference>preferJre</jdkPreference>
-    <initialHeapPercent>10</initialHeapPercent>
-    <maxHeapPercent>98</maxHeapPercent>
+    <initialHeapSize>128</initialHeapSize>
+    <maxHeapSize>1024</maxHeapSize>
   </jre>
 </launch4jConfig>
