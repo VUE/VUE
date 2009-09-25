@@ -117,7 +117,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.686 $ / $Date: 2009-09-21 21:31:47 $ / $Author: sfraize $ 
+ * @version $Revision: 1.687 $ / $Date: 2009-09-25 16:16:18 $ / $Author: brian $ 
  */
 
 public class VUE
@@ -1983,6 +1983,8 @@ public class VUE
         {
         	contentDock = GUI.createDockWindow(VueResources.getString("dockWindow.contentPanel.title"));
         	contentPanel = new ContentPanel(contentDock);
+        	contentDock.setSize(300, (int) (GUI.GScreenHeight * 0.75));
+
         }
       //-----------------------------------------------------------------------------
         // Merge Maps
