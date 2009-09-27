@@ -51,8 +51,6 @@ public class DSBrowser extends ContentBrowser {
 		widgetStack.addPane(librariesPane, 0f);
 		widgetStack.addPane(associationsPane, 0f);
 		widgetStack.addPane(browsePane, 1f);
-		Widget.setWantsScroller(widgetStack, false);
-		Widget.setWantsScrollerAlways(widgetStack, false);
 
 		// The following must happen AFTER each Widget is added to the WidgetStack.
 		associationsPane.setActions();	

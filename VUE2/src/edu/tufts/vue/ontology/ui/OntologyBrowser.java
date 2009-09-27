@@ -358,9 +358,6 @@ public class OntologyBrowser extends JPanel {
 		        // ,about this ontology
 		    };
 
-        Widget.setWantsScroller(stack, false);
-        Widget.setWantsScrollerAlways(stack, false);
-
         stack.addPane(ontologiesPanel, 0f);
         stack.addPane(populatePane, 0f);
 		Widget.setHelpAction(ontologiesPanel, VueResources.getString("dockWindow.Ontologies.helpText"));

@@ -50,7 +50,7 @@ import javax.swing.border.*;
  * and browseable VUE ("old-style") data sources (tufts.vue.DataSource).
  * We'd probably need a delegating impl tho to handle that.
  *
- * @version $Revision: 1.85 $ / $Date: 2009-09-15 22:59:58 $ / $Author: brian $ 
+ * @version $Revision: 1.86 $ / $Date: 2009-09-27 20:35:52 $ / $Author: brian $ 
  */
 public class DRBrowser extends ContentBrowser
 {
@@ -177,9 +177,6 @@ public class DRBrowser extends ContentBrowser
         resultsPane.setHidden(true);
 
         WidgetStack stack = new WidgetStack(getName());
-
-        Widget.setWantsScroller(stack, false);
-        Widget.setWantsScrollerAlways(stack, false);
 
         stack.addPane(librariesPane, 0f);
         stack.addPane(searchPane, 0f);
