@@ -29,6 +29,7 @@ import tufts.vue.LWNode;
 import tufts.vue.LWMap;
 import tufts.vue.LWKey;
 import tufts.vue.gui.GUI;
+import tufts.vue.gui.Widget;
 import tufts.Util;
 import tufts.vue.VueConstants;
 
@@ -52,7 +53,7 @@ import com.google.common.collect.*;
  * currently active map, code for adding new nodes to the current map,
  * and initiating drags of fields or rows destined for a map.
  *
- * @version $Revision: 1.89 $ / $Date: 2009-09-24 20:29:32 $ / $Author: sfraize $
+ * @version $Revision: 1.90 $ / $Date: 2009-09-27 20:37:58 $ / $Author: brian $
  * @author  Scott Fraize
  */
 
@@ -66,8 +67,8 @@ public class DataTree extends javax.swing.JTree
     private DataNode mRootNode;
     private DataNode mAllRowsNode;
     private DataNode mSelectedSearchNode;
-    private final JTextArea mNewRowsTextArea = new JTextArea();
-    private final JTextArea mChangedRowsTextArea = new JTextArea();
+    private final JLabel mNewRowsLabel = new JLabel();
+    private final JLabel mChangedRowsLabel = new JLabel();
     private final JCheckBox mNewRowsCheckBox = new JCheckBox();
     private final JCheckBox mChangedRowsCheckBox = new JCheckBox();
     private final AbstractButton mUpdateButton = new JButton(VueResources.getString("dockWindow.contentPanel.sync.updateMap"));
@@ -279,32 +280,29 @@ public class DataTree extends javax.swing.JTree
         					gbcPanel =       new GridBagConstraints(0, 0, 3, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL, panelInset,  0, 0),
         					gbcRemainder =   new GridBagConstraints(0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.REMAINDER,  buttonInset, 0, 0),
 							gbcButton =      new GridBagConstraints(1, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE,       buttonInset, 0, 0);
+        int					checkBoxHeight = tree.mNewRowsCheckBox.getPreferredSize().height;
 
         toolbar.setLayout(new GridBagLayout());
         newRowsPanel.setLayout(new GridBagLayout());
         changedRowsPanel.setLayout(new GridBagLayout());
 
-        tree.mNewRowsTextArea.setFont(tufts.vue.gui.GUI.LabelFace);
-        tree.mNewRowsTextArea.setEditable(false);
-        tree.mNewRowsTextArea.setOpaque(false);
-        tree.mNewRowsTextArea.setLineWrap(true);
-        tree.mNewRowsTextArea.setWrapStyleWord(true);
-        tree.mNewRowsTextArea.setRows(1);
-        tree.mNewRowsCheckBox.setFont(tufts.vue.gui.GUI.LabelFace);
+        tree.mNewRowsLabel.setFont(tufts.vue.gui.GUI.LabelFace);
+        tree.mNewRowsLabel.setOpaque(false);
+        // The exact values of the min and pref sizes don't matter but they need to be set for sizeTrack to work.
+        tree.mNewRowsLabel.setMinimumSize(new Dimension(20, checkBoxHeight));
+        tree.mNewRowsLabel.setPreferredSize(new Dimension(100, checkBoxHeight));
         newRowsPanel.add(tree.mNewRowsCheckBox, gbcCheckBox);
-        newRowsPanel.add(tree.mNewRowsTextArea, gbcTextArea);
+        newRowsPanel.add(tree.mNewRowsLabel, gbcTextArea);
         toolbar.add(newRowsPanel, gbcPanel);
 
         gbcPanel.gridy = 1;
-        tree.mChangedRowsTextArea.setFont(tufts.vue.gui.GUI.LabelFace);
-        tree.mChangedRowsTextArea.setEditable(false);
-        tree.mChangedRowsTextArea.setOpaque(false);
-        tree.mChangedRowsTextArea.setLineWrap(true);
-        tree.mChangedRowsTextArea.setWrapStyleWord(true);
-        tree.mChangedRowsTextArea.setRows(1);
-        tree.mChangedRowsCheckBox.setFont(tufts.vue.gui.GUI.LabelFace);
+        tree.mChangedRowsLabel.setFont(tufts.vue.gui.GUI.LabelFace);
+        tree.mChangedRowsLabel.setOpaque(false);
+        // The exact values of the min and pref sizes don't matter but they need to be set for sizeTrack to work.
+        tree.mChangedRowsLabel.setMinimumSize(new Dimension(20, checkBoxHeight));
+        tree.mChangedRowsLabel.setPreferredSize(new Dimension(100, checkBoxHeight));
         changedRowsPanel.add(tree.mChangedRowsCheckBox, gbcCheckBox);
-        changedRowsPanel.add(tree.mChangedRowsTextArea, gbcTextArea);
+        changedRowsPanel.add(tree.mChangedRowsLabel, gbcTextArea);
         toolbar.add(changedRowsPanel, gbcPanel);
 
         toolbar.add(remainderPanel, gbcRemainder);
@@ -322,12 +320,12 @@ public class DataTree extends javax.swing.JTree
         	remainderPanel.setBackground(Color.YELLOW);
         	tree.mNewRowsCheckBox.setOpaque(true);
         	tree.mNewRowsCheckBox.setBackground(Color.YELLOW);
-        	tree.mNewRowsTextArea.setOpaque(true);
-        	tree.mNewRowsTextArea.setBackground(Color.YELLOW);
+        	tree.mNewRowsLabel.setOpaque(true);
+        	tree.mNewRowsLabel.setBackground(Color.YELLOW);
         	tree.mChangedRowsCheckBox.setOpaque(true);
         	tree.mChangedRowsCheckBox.setBackground(Color.YELLOW);
-        	tree.mChangedRowsTextArea.setOpaque(true);
-        	tree.mChangedRowsTextArea.setBackground(Color.YELLOW);
+        	tree.mChangedRowsLabel.setOpaque(true);
+        	tree.mChangedRowsLabel.setBackground(Color.YELLOW);
         	tree.mUpdateButton.setOpaque(true);
         	tree.mUpdateButton.setBackground(Color.YELLOW);
         }
@@ -966,11 +964,11 @@ public class DataTree extends javax.swing.JTree
         	    (changedRowCount == 1 ? VueResources.getString("dockWindow.contentPanel.sync.oneChangedRecord") :
             	String.format(VueResources.getString("dockWindow.contentPanel.sync.manyChangedRecords"), changedRowCount)));
 
-            mNewRowsTextArea.setText(newRowsMessage);
-            mNewRowsTextArea.setForeground(newRowCount != 0 ? Color.BLACK : MEDIUM_DARK_GRAY);
+            mNewRowsLabel.setText(newRowsMessage);
+            mNewRowsLabel.setForeground(newRowCount != 0 ? Color.BLACK : MEDIUM_DARK_GRAY);
             mNewRowsCheckBox.setEnabled(newRowCount != 0);
-            mChangedRowsTextArea.setText(changedRowsMessage);
-            mChangedRowsTextArea.setForeground(changedRowCount != 0 ? Color.BLACK : MEDIUM_DARK_GRAY);
+            mChangedRowsLabel.setText(changedRowsMessage);
+            mChangedRowsLabel.setForeground(changedRowCount != 0 ? Color.BLACK : MEDIUM_DARK_GRAY);
             mChangedRowsCheckBox.setEnabled(changedRowCount != 0);
             enableUpdateButton();
 
