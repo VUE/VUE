@@ -55,7 +55,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.160 $ / $Date: 2009-09-21 21:32:15 $ / $Author: sfraize $
+ * @version $Revision: 1.161 $ / $Date: 2009-09-27 20:31:49 $ / $Author: brian $
  * @author Scott Fraize
  */
 
@@ -593,12 +593,22 @@ public class DockWindow
         if (c instanceof JTabbedPane) {
         	int tabCount = ((JTabbedPane)c).getTabCount();
 
-        	for (int tab = 0; tab < tabCount; tab ++) {
-        		// The JTabbedPane's tabs are each expected to contain a JScrollPane.
-	            toListen = ((JScrollPane)((JTabbedPane)c).getComponent(tab)).getViewport().getView();
+        	// Call addPropertyChangeListener() for each tab...
+        	for (int tabIndex = 0; tabIndex < tabCount; tabIndex ++) {
+        		Component tab = ((JTabbedPane)c).getComponent(tabIndex);
+
+        		if (tab instanceof JScrollPane)
+        			toListen = ((JScrollPane)(tab)).getViewport().getView();
+        		else
+        			toListen = tab;
+
     	        toListen.addPropertyChangeListener(this);
     	        if (DEBUG.DOCK) out("addPropertyChangeListener: " + GUI.name(toListen));
         	}
+
+        	// and call AddPropertyChangeListener() for the JTabbedPane itself.
+        	c.addPropertyChangeListener(this);
+	        if (DEBUG.DOCK) out("addPropertyChangeListener: " + GUI.name(c));
         } else {
 	        if (c instanceof JScrollPane)
 	            toListen = ((JScrollPane)c).getViewport().getView();
