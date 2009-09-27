@@ -1,12 +1,10 @@
 package tufts.vue;
 
 import java.awt.Color;
-import java.awt.Dimension;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
-import javax.swing.JViewport;
 import javax.swing.border.LineBorder;
 
 import edu.tufts.vue.ontology.ui.OntologyBrowser;
@@ -20,7 +18,7 @@ public class ContentPanel extends JPanel {
 	DSBrowser					datasets = null;
 	OntologyBrowser				ontologies = null;
 
-	
+
 	public ContentPanel(DockWindow dockWindow) {
 		if (!VUE.isApplet()) {
 			resources = new DRBrowser(true, dockWindow);
@@ -55,6 +53,7 @@ public class ContentPanel extends JPanel {
 		scrollPane.setBorder(null);
 		scrollPane.setName(title + ".dockScroll");
 		scrollPane.setWheelScrollingEnabled(true);
+		browser.putClientProperty("VUE.sizeTrack", scrollPane.getViewport());
 		scrollPane.setViewportView(browser);
 
 		tabbedPane.addTab(title, scrollPane);
