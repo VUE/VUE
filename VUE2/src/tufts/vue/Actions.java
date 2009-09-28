@@ -2229,9 +2229,17 @@ public class Actions implements VueConstants
             final int tiers = nodes.size() / maxTierSize;
             //final int tiers = 3;
 
-            // We add Math.PI/2*3 (270 degrees) so the "clock" always starts at the top -- so something
-            // is always is laid out at exactly the 12 o'clock position
-            final double startAngle = Math.PI/2*3;
+            final double startAngle;
+
+            if (nodes.size() == 1) {
+                // Add 90 degrees so the "clock" starts at bottom (the single clustered item appears at the bottom)
+                startAngle = Math.PI/2;
+            } else {
+                // Add 270 degrees so the "clock" starts at the top -- so something
+                // will be laid out at exactly the 12 o'clock position
+                startAngle = Math.PI/2*3;
+            }
+
             
             Color fill = Color.white;
 
@@ -2818,8 +2826,10 @@ public class Actions implements VueConstants
             final int nDataValues = selection.getDataValueCount();
             final int nDataRows = selection.getDataRowCount();
             
-            if (DEBUG.Enabled) Log.debug("DATAVALUECOUNT: " + nDataValues);
-            if (DEBUG.Enabled) Log.debug("DATA-ROW-COUNT: " + nDataRows);
+            if (DEBUG.Enabled) {
+                Log.debug("DATAVALUECOUNT: " + nDataValues);
+                Log.debug("DATA-ROW-COUNT: " + nDataRows);
+            }
 
             if (selection.size() == 1) {
 
@@ -2863,6 +2873,12 @@ public class Actions implements VueConstants
                 // all connected rows/nodes around each value.  Unless there are
                 // absolutely no links involved, in which case just circle them.
 
+                // TODO: NOT ALWAYS WHAT'S WANTED: may have a central value node (e.g.,
+                // Genre=Folk), surrounded by other value nodes (e.g., Artist),
+                // connected by COUNT links.  If we see count links try something
+                // different.  In the meantime, this case is also causing a stack
+                // overflow, as a result of clustering on all of the nodes.
+
                 boolean anyLinks = false;
                 for (LWComponent c : selection) {
                     if (c.hasLinks()) {
@@ -2870,11 +2886,17 @@ public class Actions implements VueConstants
                         break;
                     }
                 }
-                
+
+                // TODO: for each in selection, count INTRA-SELECTION links -- if all have one,
+                // and one has all, use the one with all as the CENTER
 
                 if (anyLinks) {
-                    for (LWComponent center : selection)
-                        doClusterAction(center, center.getLinked());
+                    for (LWComponent asCenter : selection) {
+                        Collection<LWComponent> outGroupLinked = new ArrayList(asCenter.getLinked());
+                        outGroupLinked.removeAll(selection);
+                        if (DEBUG.Enabled) Log.debug("asCenter: " + asCenter + "; outGroupLinked=" + Util.tags(outGroupLinked));
+                        doClusterAction(asCenter, outGroupLinked);
+                    }
                 } else {
                     clusterNodes(selection);
                 }
@@ -2960,7 +2982,8 @@ public class Actions implements VueConstants
             public void doClusterAction(LWComponent c, Collection<LWComponent> nodes) {
                 if (c instanceof LWNode) {
                     // grab linked
-                    c.addChildren(new ArrayList(c.getLinked()), LWComponent.ADD_MERGE);
+                    //c.addChildren(new ArrayList(c.getLinked()), LWComponent.ADD_MERGE);
+                    c.addChildren(nodes, LWComponent.ADD_MERGE);
                 }
             }
         };
