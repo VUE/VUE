@@ -25,11 +25,18 @@ import java.awt.geom.PathIterator;
 import javax.swing.*;
 import javax.swing.border.*;
 
+import javax.swing.JColorChooser;
+import tufts.vue.VueResources;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
 /**
  *
  * Various static utility methods for VUE.
  *
- * @version $Revision: 1.105 $ / $Date: 2009-05-15 19:55:44 $ / $Author: brian $
+ * @version $Revision: 1.106 $ / $Date: 2009-09-28 18:54:46 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -791,6 +798,75 @@ public class VueUtil extends tufts.Util
                                              selectionValues,
                                              initialSelectionValue);
     }
+
+
+    public static int getMaxLabelLineLength() {
+        // todo: this should be cached
+        return VueResources.getInt("dataNode.labelLength");
+    }
+
+    private static JColorChooser colorChooser;
+    private static Dialog colorChooserDialog;
+    private static boolean colorChosen;
+    /** Convience method for running a JColorChooser and collecting the result */
+    public static Color runColorChooser(String title, java.awt.Color c, java.awt.Component chooserParent)
+    {
+        if (colorChooserDialog == null) {
+            colorChooser = new JColorChooser();
+            //colorChooser.setDragEnabled(true);
+            //colorChooser.setPreviewPanel(new JLabel("FOO")); // makes it dissapear entirely, W2K/1.4.2/Metal
+            if (false) {
+                final JPanel np = new JPanel();
+                np.add(new JLabel(VueResources.getString("jlabel.text")));
+                np.setSize(new Dimension(300,100)); // will be invisible otherwise
+                np.setBackground(Color.red);
+                //np.setBorder(new EmptyBorder(10,10,10,10));
+                //np.setBorder(new EtchedBorder());
+                np.setBorder(new LineBorder(Color.black));
+                np.setOpaque(true);
+                np.addPropertyChangeListener(new PropertyChangeListener() {
+                        public void propertyChange(PropertyChangeEvent e) {
+                            System.out.println("CC " + e.getPropertyName() + "=" + e.getNewValue());
+                            if (e.getPropertyName().equals("foreground"))
+                                np.setBackground((Color)e.getNewValue());
+                        }});
+                colorChooser.setPreviewPanel(np); // also makes dissapear entirely
+            }
+            /*
+            JComponent pp = colorChooser.getPreviewPanel();
+            System.out.println("CC Preview Panel: " + pp);
+            for (int i = 0; i < pp.getComponentCount(); i++)
+                System.out.println("#" + i + " " + pp.getComponent(i));
+            colorChooser.getPreviewPanel().add(new JLabel("FOO"));
+            */
+            colorChooserDialog =
+                JColorChooser.createDialog(chooserParent,
+                                           VueResources.getString("dialog.colorchooser.title"),
+                                           true,  
+                                           colorChooser,
+                                           new ActionListener() { public void actionPerformed(ActionEvent e)
+                                               { colorChosen = true; } },
+                                           null);
+        }
+        if (c != null)
+            colorChooser.setColor(c);
+        if (title != null)
+            colorChooserDialog.setTitle(title);
+
+        colorChosen = false;
+        // show() blocks until a color chosen or cancled, then automatically hides the dialog:
+        colorChooserDialog.setVisible(true);
+
+        JComponent pp = colorChooser.getPreviewPanel();
+        System.out.println("CC Preview Panel: " + pp + " children=" + Arrays.asList(pp.getComponents()));
+        for (int i = 0; i < pp.getComponentCount(); i++)
+            System.out.println("#" + i + " " + pp.getComponent(i));
+        
+        return colorChosen ? colorChooser.getColor() : null;
+    }
+    
+
+    
 }
 
 
@@ -891,4 +967,7 @@ class VOptionPane extends JOptionPane
 
 		return result;
 	}
+
+
+    
 }
