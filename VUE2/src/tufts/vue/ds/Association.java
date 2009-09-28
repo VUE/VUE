@@ -17,7 +17,7 @@ import com.google.common.collect.Multimaps;
  * the key field of two Schema's, which is considered to be a join in the classic
  * database sense.
  *
- * @version $Revision: 1.4 $ / $Date: 2009-09-02 16:26:21 $ / $Author: sfraize $
+ * @version $Revision: 1.5 $ / $Date: 2009-09-28 18:55:11 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -233,7 +233,7 @@ public final class Association
             if (got.size() == 0)
                 gots = null;
             else if (got.size() == 1)
-                gots = Util.extractFirst(got);
+                gots = Util.getFirst(got);
             else
                 gots = "";
             //Log.debug("found aliases for " + f + ": " + gots);

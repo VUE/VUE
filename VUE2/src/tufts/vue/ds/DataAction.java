@@ -26,7 +26,7 @@ import java.util.*;
 import org.apache.commons.lang.StringEscapeUtils;
 
 /**
- * @version $Revision: 1.24 $ / $Date: 2009-09-04 19:51:31 $ / $Author: sfraize $
+ * @version $Revision: 1.25 $ / $Date: 2009-09-28 18:55:21 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -303,7 +303,7 @@ public final class DataAction
         if (DEBUG.Enabled) {
             String targets;
             if (linkTargets.size() == 1)
-                targets = Util.extractFirst(linkTargets).toString();
+                targets = Util.getFirst(linkTargets).toString();
             else
                 targets = Util.tags(linkTargets);
             Log.debug("makeRowNodeLinks: " + rowNode + "; " + rowNode.getRawData() + "; " + targets);
