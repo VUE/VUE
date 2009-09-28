@@ -33,12 +33,11 @@ public class DSBrowser extends ContentBrowser {
 	protected Widget					librariesPane = new Widget(VueResources.getString("dockWindow.contentPanel.datasets.title"));
 	protected AssociationsPane			associationsPane = new AssociationsPane();
 	protected Widget					browsePane = new Widget(VueResources.getString("button.browse.label"));
-	protected WidgetStack				widgetStack = new WidgetStack(getName());
 	protected DataSetViewer				dataSetViewer = new DataSetViewer(this);
 
 
 	public DSBrowser(DockWindow dw) {
-		super(new BorderLayout());
+		super("DSBrowser");
 
 		dockWindow = dw;
 
@@ -48,9 +47,9 @@ public class DSBrowser extends ContentBrowser {
 		librariesPane.add(dataSetViewer);
 		librariesPane.revalidate();	// Necessary for dataSetViewer names to be rendered;  not sure why.
 
-		widgetStack.addPane(librariesPane, 0f);
-		widgetStack.addPane(associationsPane, 0f);
-		widgetStack.addPane(browsePane, 1f);
+		addPane(librariesPane, 0f);
+		addPane(associationsPane, 0f);
+		addPane(browsePane, 1f);
 
 		// The following must happen AFTER each Widget is added to the WidgetStack.
 		associationsPane.setActions();	
@@ -64,8 +63,6 @@ public class DSBrowser extends ContentBrowser {
 		});
 
 		refreshMenuActions();
-
-		add(widgetStack);
 	}
 
 	public DataSetViewer getDataSetViewer()
@@ -77,7 +74,6 @@ public class DSBrowser extends ContentBrowser {
 		librariesPane = null;
 		associationsPane = null;
 		browsePane = null;
-		widgetStack = null;
 		dataSetViewer = null;
 	}
 

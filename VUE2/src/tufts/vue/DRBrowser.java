@@ -50,7 +50,7 @@ import javax.swing.border.*;
  * and browseable VUE ("old-style") data sources (tufts.vue.DataSource).
  * We'd probably need a delegating impl tho to handle that.
  *
- * @version $Revision: 1.86 $ / $Date: 2009-09-27 20:35:52 $ / $Author: brian $ 
+ * @version $Revision: 1.87 $ / $Date: 2009-09-28 19:09:07 $ / $Author: brian $ 
  */
 public class DRBrowser extends ContentBrowser
 {
@@ -118,7 +118,7 @@ public class DRBrowser extends ContentBrowser
 
     public DRBrowser(boolean delayedLoading, DockWindow resourceDock)
     {
-        super(new BorderLayout());
+    	super("DRBrowser");
 
         setName(VueResources.getString("dockWindow.contentPanel.resources.title"));
 
@@ -176,14 +176,10 @@ public class DRBrowser extends ContentBrowser
         resultsPane.setTitleHidden(true);
         resultsPane.setHidden(true);
 
-        WidgetStack stack = new WidgetStack(getName());
-
-        stack.addPane(librariesPane, 0f);
-        stack.addPane(searchPane, 0f);
-        stack.addPane(browsePane, 1f);
-        stack.addPane(resultsPane, 0f);
-
-        add(stack);
+        addPane(librariesPane, 0f);
+        addPane(searchPane, 0f);
+        addPane(browsePane, 1f);
+        addPane(resultsPane, 0f);
     }
 
     public DataSourceViewer getDataSourceViewer()
