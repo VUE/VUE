@@ -53,7 +53,7 @@ import com.google.common.collect.*;
  * currently active map, code for adding new nodes to the current map,
  * and initiating drags of fields or rows destined for a map.
  *
- * @version $Revision: 1.90 $ / $Date: 2009-09-27 20:37:58 $ / $Author: brian $
+ * @version $Revision: 1.91 $ / $Date: 2009-09-28 18:58:17 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -858,7 +858,7 @@ public class DataTree extends javax.swing.JTree
             return;
 
         if (mActiveMap != null)
-            mActiveMap.removeLWCListener(this);
+            removeMapListener(mActiveMap);
 
         mActiveMap = map;
 
@@ -867,7 +867,14 @@ public class DataTree extends javax.swing.JTree
 
         runAnnotate(); // mActiveMap must be pre-set
         
-        mActiveMap.addLWCListener(this);
+        addMapListener(mActiveMap);
+    }
+
+    private void removeMapListener(LWMap map) {
+        map.removeLWCListener(this);
+    }
+    private void addMapListener(LWMap map) {
+        map.addLWCListener(this);
     }
 
     // TODO: create a single handler for listening to user changes to the current map
@@ -879,17 +886,32 @@ public class DataTree extends javax.swing.JTree
     // somehow be build into generic change support, where when the listener is added it
     // can either request to happen on it's own thread, and/or provide one that will be
     // woken up / interrupted.
+
+    private boolean mDataEventWasSeen;
     
     public void LWCChanged(tufts.vue.LWCEvent e) {
 
-        if (mActiveMap != null && e.key == LWKey.UserActionCompleted) {
-            
+        if (mActiveMap == null) {
+            Log.warn("LWCEvent w/no active map: " + e);
+            return;
+        }
+
+        if (e.key == LWKey.UserActionCompleted && mDataEventWasSeen) {
             // technically, don't need to check after ANY action has been completed:
             // only if a data node was added/removed from the map.  todo: we'll need
             // a data-changed LWCEvent.
-            
             runAnnotate();
+            mDataEventWasSeen = false;
+        } else if (isDataEvent(e)) {
+            mDataEventWasSeen = true;
         }
+    }
+
+    private static boolean isDataEvent(tufts.vue.LWCEvent e) {
+        // we need to check for any childrenAdded/childrenRemoved right now, just in case ANY of them were data nodes
+        return e.key == LWKey.DataUpdate
+            || e.key == LWKey.ChildrenAdded
+            || e.key == LWKey.ChildrenRemoved;
     }
 
     private void runAnnotate() {
@@ -1336,10 +1358,14 @@ public class DataTree extends javax.swing.JTree
 
         final Iterable<Multiset.Entry<String>> valueEntries;
 
-        if (!field.isPossibleKeyField() && !field.isQuantile()) { // quantiles are pre-sorted
-
-            // don't need to bother sorting if field is a possible key field (all value counts == 1)
             
+        if (field.isQuantile() || (SORT_BY_COUNT && field.isPossibleKeyField())) {
+            // cases we don't need to bother sorting: (1) quantiles, which are
+            //  pre-sorted (2) possible key fields: if sorting by counts (frequency)
+            //  don't need to bother sorting if field is a possible key field, as all
+            //  value counts == 1
+            valueEntries = entrySet;
+        } else {
             final ArrayList<Multiset.Entry<String>> sortedValues = new ArrayList(entrySet);
 
             Collections.sort(sortedValues, new Comparator<Multiset.Entry<String>>() {
@@ -1357,8 +1383,6 @@ public class DataTree extends javax.swing.JTree
                 });
 
             valueEntries = sortedValues;
-        } else {
-            valueEntries = entrySet;
         }
         
         //-----------------------------------------------------------------------------
