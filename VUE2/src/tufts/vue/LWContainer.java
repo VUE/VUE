@@ -32,7 +32,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, duplication, adding/removing and reordering (z-order) of children.
  *
- * @version $Revision: 1.161 $ / $Date: 2009-09-23 17:06:35 $ / $Author: sfraize $
+ * @version $Revision: 1.162 $ / $Date: 2009-09-28 18:59:49 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -268,23 +268,38 @@ public abstract class LWContainer extends LWComponent
 //     }
 
 
-    protected List<? extends LWComponent> sortForIncomingZOrder(List<? extends LWComponent> toAdd)
+    //protected List<? extends LWComponent> sortForIncomingZOrder(Collection<? extends LWComponent> toAdd)
+    protected Collection<? extends LWComponent> sortForIncomingZOrder(Collection<? extends LWComponent> toAdd)
     {
         // Do what we can to preserve any meaninful order already
         // present in the new incoming children.
 
         // the default is to replicate the existing z-order sort
 
-        if (toAdd.get(0).getParent() == null) {
+        if (toAdd.size() == 0)
+            return Collections.EMPTY_LIST;
+
+        Collection<? extends LWComponent> sorted;
+
+        if (Util.getFirst(toAdd).getParent() == null) {
             // if first item in list has no parent, we assume none do (they're
             // probably system drag or paste orphans), and we can't sort them based
             // on z-order, so we leave them alone for now until all nodes have a z-order
             // value.
+            sorted = toAdd;
         } else {
-            toAdd = Arrays.asList(sort(toAdd, ZOrderSorter));
+            sorted = Arrays.asList(sort(toAdd, ZOrderSorter));
         }
+//         if (toAdd.get(0).getParent() == null) {
+//             // if first item in list has no parent, we assume none do (they're
+//             // probably system drag or paste orphans), and we can't sort them based
+//             // on z-order, so we leave them alone for now until all nodes have a z-order
+//             // value.
+//         } else {
+//             toAdd = Arrays.asList(sort(toAdd, ZOrderSorter));
+//         }
 
-        return toAdd;
+        return sorted;
     }
 
 //     /** can only be called on constructing containers, and as long as all being added are either also out-model,
@@ -335,6 +350,15 @@ public abstract class LWContainer extends LWComponent
 
         addChildren(Collections.singletonList(newChild), context);
     }
+
+//     final void addChildren(Collection<LWComponent> toAdd, Object context) {
+//         if (toAdd instanceof List) {
+//             addChildren((List) toAdd, context);
+//         } else {
+//             addChildren(new ArrayList(toAdd), context);
+//         }
+//     }
+    
     
     /**
      * This will add the contents of the iterable as children to the LWContainer.  If
@@ -347,7 +371,7 @@ public abstract class LWContainer extends LWComponent
      * Special case: if we're a Group, we sort by z-order to preserve visual layer.
      */
     @Override
-    public void addChildren(List<? extends LWComponent> toAdd, Object context)
+    public void addChildren(Collection<? extends LWComponent> toAdd, Object context)
     {
         if (DEBUG.PARENTING) track("addChildren/"+context, toAdd);
 
@@ -461,7 +485,7 @@ public abstract class LWContainer extends LWComponent
             //c.notifyHierarchyChanging();
             c.getParent().removeChild(c); // is LWGroup requesting cleanup???
         }
-        
+
         //if (c.getFont() == null)//todo: really want to do this? only if not manually set?
         //    c.setFont(getFont());
 

@@ -48,7 +48,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.489 $ / $Date: 2009-09-21 21:30:14 $ / $Author: sfraize $
+ * @version $Revision: 1.490 $ / $Date: 2009-09-28 18:59:49 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1732,16 +1732,16 @@ u                    getSlot(c).setFromString((String)value);
             return parent.isPresentationContext();
     }
 
-    protected void ensureID(LWComponent c) {
+    protected final void ensureID(LWComponent c) {
         ensureID(c, true);
     }
 
     /**
      * Make sure this LWComponent has an ID -- will have an effect on
      * on any brand new LWComponent exactly once per VM instance.
-     * @param recurse - if true, will also ensure all children
+     * @param descendents - if true, will also ensure all descendents
      */
-    protected void ensureID(LWComponent c, boolean recurse)
+    protected final void ensureID(LWComponent c, boolean descendents)
     {
         if (c.getID() == null) {
             String id = getNextUniqueID();
@@ -1751,9 +1751,17 @@ u                    getSlot(c).setFromString((String)value);
                 c.setID(id);
         }
 
-        if (recurse)
-            for (LWComponent child : c.getChildList())
+//         if (descendents) {
+//             for (LWComponent child : c.getAllDescendents(ChildKind.ANY))
+//                 ensureID(child, false);
+//         }
+// Not safe: tho shouldn't happen, if any parent<->child loops make their way into the hierarchy, we can stack overflow here
+// [doesn't matter: getAllDescendents will just stack-overflow instead]
+        if (descendents) {
+            for (LWComponent child : c.getChildList()) {
                 ensureID(child);
+            }
+        }
     }
 
     protected String getNextUniqueID()
@@ -3457,7 +3465,7 @@ u                    getSlot(c).setFromString((String)value);
      * this method appears here for typing convenience and debug.  If a non LWContainer subclass
      * calls this, it's a no-op, and a diagnostic stack trace is dumped to the console.
      */
-    public void addChildren(List<? extends LWComponent> children, Object context) {
+    public void addChildren(Collection<? extends LWComponent> children, Object context) {
         Util.printStackTrace(this + ": can't take children; ignored: " + Util.tags(children) + "; context=" + context);
     }
 

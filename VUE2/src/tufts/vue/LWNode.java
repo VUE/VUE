@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.254 $ / $Date: 2009-09-15 17:54:37 $ / $Author: mike $
+ * @version $Revision: 1.255 $ / $Date: 2009-09-28 18:59:49 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -898,10 +898,10 @@ public class LWNode extends LWContainer
     }
 
     @Override
-    public void addChildren(java.util.List<? extends LWComponent> children, Object context)
+    public void addChildren(java.util.Collection<? extends LWComponent> children, Object context)
     {
         if (!mXMLRestoreUnderway && !hasResource() && !hasChildren() && children.size() == 1) {
-            final LWComponent first = children.get(0);
+            final LWComponent first = Util.getFirst(children);
             if (first instanceof LWImage) {
                 // we do this BEFORE calling super.addChildren, so the soon to be
                 // added LWImage will know to auto-update itself to node icon status
@@ -930,7 +930,7 @@ public class LWNode extends LWContainer
     }
 
     @Override
-    protected List<LWComponent> sortForIncomingZOrder(List<? extends LWComponent> toAdd)
+    protected List<LWComponent> sortForIncomingZOrder(Collection<? extends LWComponent> toAdd)
     {
         // Use the YSorter -- as we stack out children, this will then
         // display them in the same vertical order they had wherever

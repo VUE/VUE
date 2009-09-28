@@ -59,7 +59,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.253 $ / $Date: 2009-09-23 05:53:31 $ / $Author: sfraize $
+ * @version $Revision: 1.254 $ / $Date: 2009-09-28 18:59:49 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -1539,6 +1539,13 @@ public class LWMap extends LWContainer
 
         mResourceFactory.loadResources(allResources);
 
+        if (DEBUG.SCHEMA) {
+            Log.debug("SCHEMA's in this map:");
+            Util.dump(mRestoredSchemas);
+            Log.debug("Current VUE authoritative schemas:");
+            Util.dump(Schema.getAllByDSGUID());
+        }
+
         for (Schema schema : mRestoredSchemas) {
             schema.syncToGlobalModel(this, allRestored);
         }
@@ -2188,14 +2195,14 @@ public class LWMap extends LWContainer
     }
     
     @Override
-    public void addChildren(List<? extends LWComponent> children, Object context) {
+    public void addChildren(Collection<? extends LWComponent> children, Object context) {
 
         // This code is a backward-compat hack for other code that is attempting to
         // add children to the map.  It used to be you could just do this directly,
         // but now that we have layers, only a Layer should be a direct child of the
         // map, and we need to divert this to add call to the appropriate layer.
         
-        if (children.size() == 1 && children.get(0) instanceof LWMap.Layer) {
+        if (children.size() == 1 && Util.getFirst(children) instanceof LWMap.Layer) {
             //isLayered = true;
             super.addChildren(children, context);
         } else if (/*isLayered() &&*/ mActiveLayer != null) {

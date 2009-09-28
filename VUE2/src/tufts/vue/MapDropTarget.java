@@ -51,7 +51,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.121 $ / $Date: 2009-09-04 19:50:28 $ / $Author: sfraize $  
+ * @version $Revision: 1.122 $ / $Date: 2009-09-28 18:59:49 $ / $Author: sfraize $  
  */
 public class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -1369,7 +1369,7 @@ public class MapDropTarget
                 // don't wrap image if we're about to drop it into something else
                 node = lwImage;
             } else {
-            	shortName = Util.formatLines(shortName, Util.getMaxLabelLineLength());
+            	shortName = Util.formatLines(shortName, VueResources.getInt("dataNode.labelLength"));
                 node = NodeModeTool.createNewNode(shortName);
                 if (lwImage != null)
                     ((LWNode)node).addChild(lwImage);

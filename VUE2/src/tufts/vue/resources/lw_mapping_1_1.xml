@@ -297,6 +297,10 @@
 	<class name="tufts.vue.LWMap" extends="tufts.vue.LWContainer">
 		<map-to xml="LW-MAP"/>
                 
+		<!--field name="includedAssociations" type="tufts.vue.ds.Association" collection="collection">
+		  <bind-xml name="association"/>
+		</field-->
+                
                 <field name="XMLLayers" type="tufts.vue.LWMap$Layer" collection="arraylist">
                   <bind-xml name="layer"/>
                 </field>
@@ -839,13 +843,26 @@
     <map-to xml="edu.tufts.vue.ontology.RDFSOntology "/>
 </class>
 
+<!--
+<class name="tufts.vue.ds.Field" identity="mapLocalID">
+ <field name="mapLocalID">
+    <bind-xml name="ID" node="attribute"/>
+  </field>
+ -->
 <class name="tufts.vue.ds.Field">
-  <field name="name">
+   <field name="name">
     <bind-xml name="name" node="attribute"/>
   </field>  
   <field name="styleNode" node="element" type="tufts.vue.LWComponent">
     <bind-xml name="styleNode"/>
   </field>
+  
+  <!--class name="tufts.vue.ds.Field$PersistRef"><map-to xml="fieldRef"/></class-->
+
+  <field name="relatedFields" type="tufts.vue.ds.Field$PersistRef" collection="collection">
+    <bind-xml name="relatedField"/>
+  </field>
+ 
 </class>
 
 <class name="tufts.vue.ds.Schema" identity="mapLocalID">
@@ -868,6 +885,16 @@
     <bind-xml name="field"/>
   </field>
 </class>
+
+<!--class name="tufts.vue.ds.Association">
+    <field name="schema1">
+      <bind-xml name="schema" node="element" reference="true"/>
+    </field>
+    <field name="schema2">
+      <bind-xml name="schema" node="element" reference="true"/>
+    </field>
+</class -->
+
 
 <class name="tufts.vue.ds.XMLIngest$XmlSchema" extends="tufts.vue.ds.Schema" identity="mapLocalID">
 </class>
