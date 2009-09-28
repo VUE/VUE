@@ -75,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.635 $ / $Date: 2009-09-18 22:16:20 $ / $Author: mike $ 
+ * @version $Revision: 1.636 $ / $Date: 2009-09-28 21:34:34 $ / $Author: brian $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -5291,33 +5291,45 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
    	    sSinglePopup.add(Actions.EditSlide);
    	    sSinglePopup.add(Actions.EditMasterSlide);
    	    sSinglePopup.add(Actions.DeleteSlide);
-   	    
-        
-    	
     }
+
     public static void destroyContextMenus()
     {
     	sSinglePopup = null;
     	sMultiPopup = null;
     }
+
     private void buildSingleSelectionPortalPopup()
     {
     	infoCheckBox.setLabel(VueResources.getString("mapViewer.componentMenu.portalInfo.label"));
     	if (VUE.getInfoDock().isShowing())
         	infoCheckBox.setSelected(true);
     	sSinglePopup.add(infoCheckBox);
-    	sSinglePopup.addSeparator();
     	sSinglePopup.add(Actions.LaunchPresentation);
+
+    	sSinglePopup.addSeparator();
     	sSinglePopup.add(Actions.ContextNotesAction);
    	    sSinglePopup.add(Actions.ContextKeywordAction);
+
+    	sSinglePopup.addSeparator();
+    	sSinglePopup.add(Actions.ZoomToSelection);
+    	sSinglePopup.add(Actions.ZoomFit);
+    	sSinglePopup.add(Actions.ZoomActual);
+
    	    sSinglePopup.addSeparator();
+   	    sSinglePopup.add(arrangeMenu);
+
+   	    sSinglePopup.addSeparator();
+		sSinglePopup.add(Actions.AddPathwayItem);
+		sSinglePopup.add(Actions.RemovePathwayItem);
+
+
+   	    sSinglePopup.addSeparator();
+   	    sSinglePopup.add(Actions.Cut);
    	    sSinglePopup.add(Actions.Copy);
    	    sSinglePopup.add(Actions.Paste);
+   	    sSinglePopup.add(Actions.Duplicate);
    	    sSinglePopup.add(Actions.Delete);
-   	    sSinglePopup.add(arrangeMenu);
-   	    
-        
-    	
     }
     
     private void buildSingleSelectionGroupPopup()
@@ -5363,12 +5375,28 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     	 sSinglePopup.add(Actions.ContextKeywordAction);
 
     	 sSinglePopup.addSeparator();
+    	 sSinglePopup.add(Actions.ZoomToSelection);
+    	 sSinglePopup.add(Actions.ZoomFit);
+    	 sSinglePopup.add(Actions.ZoomActual);
+
+    	 sSinglePopup.addSeparator();
+    	 sSinglePopup.add(GUI.buildMenu(VueResources.getString("menu.image"), Actions.IMAGE_MENU_ACTIONS));
+    	 sSinglePopup.add(arrangeMenu);
+
+    	 sSinglePopup.addSeparator();
+    	 sSinglePopup.add(Actions.AddPathwayItem);
+    	 sSinglePopup.add(Actions.RemovePathwayItem);
+
+    	 sSinglePopup.addSeparator();
+    	 sSinglePopup.add(Actions.Cut);
     	 sSinglePopup.add(Actions.Copy);
          sSinglePopup.add(Actions.Paste);    
+         sSinglePopup.add(Actions.Duplicate);    
          sSinglePopup.add(Actions.Delete);
 
         if (DEBUG.Enabled) sSinglePopup.add(Actions.ImageToNaturalSize);
     }
+
     private JMenu syncMenu = new JMenu(VueResources.getString("mapViewer.componentMenu.syncMenu.label"));
     private JMenu arrangeMenu = new JMenu(VueResources.getString("mapViewer.componentMenu.arrangeMenu.label"));
     
@@ -6585,7 +6613,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
          * @param hitComponent
          */
         private void displayContextMenu(MouseEvent e, LWComponent hitComponent) {
-
         	PopupFactory factory=null;
             if (!VUE.isApplet() && VueUtil.isMacPlatform() && VUE.inNativeFullScreen()) {
                 // on mac, attempt to pop a menu in true full-screen mode
