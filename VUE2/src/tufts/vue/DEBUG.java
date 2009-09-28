@@ -24,6 +24,8 @@ import java.lang.reflect.Field;
  */
 public class DEBUG
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(DEBUG.class);
+
     public static boolean Enabled = false; // can user turn debug switches on
 
     public static boolean INIT = false; // startup / initializations
@@ -91,12 +93,6 @@ public class DEBUG
     public static boolean QUARTILE; // quartile import
 
     public static  void setAllEnabled(boolean enabled) {
-//         Enabled=CONTAINMENT=PARENTING=LAYOUT=BOXES=ROLLOVER=EVENTS=
-//             SCROLL=SELECTION=FOCUS=UNDO=PATHWAY=DND=MOUSE=VIEWER=
-//             PAINT=MARGINS=INIT=DYNAMIC_UPDATE=KEYS=TOOL=DR=IMAGE=
-//             CASTOR=XML=THREAD=TEXT=EDGE=IO=DOCK=WIDGET=DATA=PRESENT=
-//             PICK=LINK=STYLE=NAV=HTML=WEBSHOTS=PDF=TRACE=PROPERTY=PERF=SCHEMA=t;
-
         for (Field f : Fields)
             setFlag(f, enabled);
 
@@ -130,77 +126,27 @@ public class DEBUG
 
             boolean handled = false;
             for (Field f : Fields) {
-                if (f.getName().toUpperCase().startsWith(a)) {
-                    try {
-                        f.setBoolean(null, true);
-                        handled = true;
-                        System.out.println(DEBUG.class.getName() + " enable: " + f.getName());
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
-                    }
+                if (f.getName().toUpperCase().startsWith(a) && setFlag(f, true)) {
+                    handled = true;
+                    break;
                 }
-                
             }
             if (!handled)
-                System.err.format("%s didn't understand debug flag \"%s\"\n", DEBUG.class.getName(), args[i]);
+                Log.info(String.format("didn't understand debug flag \"%s\"", args[i]));
         }
     }
 
-    private static void setFlag(Field f, boolean enabled) {
+    private static boolean setFlag(Field f, boolean enabled) {
+        boolean success = false;
         try {
             f.setBoolean(null, enabled);
-            System.out.println(DEBUG.class.getName() + " set: " + f.getName() + " = " + enabled);
+            success = true;
+            Log.info(f.getName() + " = " + enabled);
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            Log.warn("reflection problem", e);
         }
+        return success;
     }
-
-//         for (int i = 0; i < args.length; i++) {
-//             String a = args[i].toLowerCase();
-//             //System.out.println("parsing arg [" + a + "]");
-//                  if (a.equals("meta"))       DEBUG.META = true;
-//             else if (a.equals("work"))       DEBUG.WORK = !DEBUG.WORK;
-//             else if (a.equals("init"))       DEBUG.INIT = true;
-//             else if (a.equals("focus"))      DEBUG.FOCUS = true;
-//             else if (a.equals("dr"))         DEBUG.DR = true;
-//             else if (a.equals("tool"))       DEBUG.TOOL = true;
-//             else if (a.equals("drop"))       DEBUG.DND = true;
-//             else if (a.equals("undo"))       DEBUG.UNDO = true;
-//             else if (a.equals("castor"))     DEBUG.CASTOR = true;
-//             else if (a.equals("xml"))        DEBUG.XML = true;
-//             else if (a.equals("paint"))      DEBUG.PAINT = true;
-//             else if (a.equals("mouse"))      DEBUG.MOUSE = true;
-//             else if (a.equals("keys"))       DEBUG.KEYS = true;
-//             else if (a.equals("layout"))     DEBUG.LAYOUT = true;
-//             else if (a.equals("text"))       DEBUG.TEXT = true;
-//             else if (a.equals("io"))         DEBUG.IO = true;
-//             else if (a.equals("data"))       DEBUG.DATA = true;
-//             else if (a.equals("selection"))  DEBUG.SELECTION = true;
-//             else if (a.equals("resource"))   DEBUG.RESOURCE = true;
-//             else if (a.equals("scroll"))     DEBUG.SCROLL = true;
-//             else if (a.equals("pick"))       DEBUG.PICK = true;
-//             else if (a.startsWith("parent")) DEBUG.PARENTING = true;
-//             else if (a.startsWith("contain"))DEBUG.CONTAINMENT = true;
-//             else if (a.startsWith("path"))   DEBUG.PATHWAY = true;
-//             else if (a.startsWith("edge"))   DEBUG.EDGE = true;
-//             else if (a.startsWith("event"))  DEBUG.EVENTS = true;
-//             else if (a.startsWith("thread")) DEBUG.THREAD = true;
-//             else if (a.startsWith("image"))  DEBUG.IMAGE = true;
-//             else if (a.startsWith("box"))    DEBUG.BOXES = true;
-//             else if (a.startsWith("dock"))   DEBUG.DOCK = true;
-//             else if (a.startsWith("widget")) DEBUG.WIDGET = true;
-//             else if (a.startsWith("pres"))   DEBUG.PRESENT = true;
-//             else if (a.startsWith("nav"))    DEBUG.NAV = true;
-//             else if (a.startsWith("link"))   DEBUG.LINK = true;
-//             else if (a.startsWith("style"))  DEBUG.STYLE = true;
-//             else if (a.startsWith("rdf")) DEBUG.RDF = true;
-//             else if (a.startsWith("pdf"))  DEBUG.PDF = true;
-//             else if (a.startsWith("trace"))  DEBUG.TRACE = true;
-//             else if (a.startsWith("prop"))  DEBUG.PROPERTY = true;
-//             else if (a.startsWith("perf"))  DEBUG.PERF = true;
-//             else if (a.startsWith("schema"))  DEBUG.SCHEMA = true;
-//             else if (a.startsWith("im"))  DEBUG.IM = true;
-//         }
 
     private static final Field[] Fields = DEBUG.class.getFields();
 
