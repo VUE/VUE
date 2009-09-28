@@ -53,7 +53,7 @@ import com.google.common.collect.*;
  * currently active map, code for adding new nodes to the current map,
  * and initiating drags of fields or rows destined for a map.
  *
- * @version $Revision: 1.91 $ / $Date: 2009-09-28 18:58:17 $ / $Author: sfraize $
+ * @version $Revision: 1.92 $ / $Date: 2009-09-28 19:06:11 $ / $Author: brian $
  * @author  Scott Fraize
  */
 
@@ -288,9 +288,6 @@ public class DataTree extends javax.swing.JTree
 
         tree.mNewRowsLabel.setFont(tufts.vue.gui.GUI.LabelFace);
         tree.mNewRowsLabel.setOpaque(false);
-        // The exact values of the min and pref sizes don't matter but they need to be set for sizeTrack to work.
-        tree.mNewRowsLabel.setMinimumSize(new Dimension(20, checkBoxHeight));
-        tree.mNewRowsLabel.setPreferredSize(new Dimension(100, checkBoxHeight));
         newRowsPanel.add(tree.mNewRowsCheckBox, gbcCheckBox);
         newRowsPanel.add(tree.mNewRowsLabel, gbcTextArea);
         toolbar.add(newRowsPanel, gbcPanel);
@@ -298,9 +295,6 @@ public class DataTree extends javax.swing.JTree
         gbcPanel.gridy = 1;
         tree.mChangedRowsLabel.setFont(tufts.vue.gui.GUI.LabelFace);
         tree.mChangedRowsLabel.setOpaque(false);
-        // The exact values of the min and pref sizes don't matter but they need to be set for sizeTrack to work.
-        tree.mChangedRowsLabel.setMinimumSize(new Dimension(20, checkBoxHeight));
-        tree.mChangedRowsLabel.setPreferredSize(new Dimension(100, checkBoxHeight));
         changedRowsPanel.add(tree.mChangedRowsCheckBox, gbcCheckBox);
         changedRowsPanel.add(tree.mChangedRowsLabel, gbcTextArea);
         toolbar.add(changedRowsPanel, gbcPanel);
@@ -987,9 +981,11 @@ public class DataTree extends javax.swing.JTree
             	String.format(VueResources.getString("dockWindow.contentPanel.sync.manyChangedRecords"), changedRowCount)));
 
             mNewRowsLabel.setText(newRowsMessage);
+            mNewRowsLabel.setToolTipText(newRowsMessage);
             mNewRowsLabel.setForeground(newRowCount != 0 ? Color.BLACK : MEDIUM_DARK_GRAY);
             mNewRowsCheckBox.setEnabled(newRowCount != 0);
             mChangedRowsLabel.setText(changedRowsMessage);
+            mChangedRowsLabel.setToolTipText(changedRowsMessage);
             mChangedRowsLabel.setForeground(changedRowCount != 0 ? Color.BLACK : MEDIUM_DARK_GRAY);
             mChangedRowsCheckBox.setEnabled(changedRowCount != 0);
             enableUpdateButton();
