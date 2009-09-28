@@ -111,6 +111,7 @@ public abstract  class LayoutAction extends Actions.LWCAction
     
      public static final LayoutAction ripple = new LayoutAction(new RippleLayout(),VueResources.getString("menu.format.arrange.ripple"), KeyEvent.VK_7) {
         boolean supportsSingleMover() { return false; }
+        boolean enabledFor(LWSelection selection ) { return true;}
     };
     public static final LayoutAction stretch = new LayoutAction(new StretchLayout(),VueResources.getString("menu.format.layout.stretch")) {
         boolean supportsSingleMover() { return false; }
