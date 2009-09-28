@@ -41,7 +41,7 @@ import static tufts.Util.*;
 
 
  * @author Scott Fraize 2007-05-05
- * @version $Revision: 1.25 $ / $Date: 2009-08-28 16:51:46 $ / $Author: sfraize $
+ * @version $Revision: 1.26 $ / $Date: 2009-09-28 18:53:13 $ / $Author: sfraize $
  */
 
 public class ActiveInstance<T>
@@ -348,7 +348,7 @@ public class ActiveInstance<T>
 
     public void removeListener(ActiveListener listener) {
         if (mListeners.remove(listener)) {
-            if (DEBUG.Enabled) 
+            if (DEBUG.EVENTS) 
                 outf(TERM_YELLOW + "%-50s removed listener %s\n" + TERM_CLEAR, this, listener);
         } else if (DEBUG.EVENTS) {
             Log.warn(this + "; remove: didn't contain listener " + listener);
@@ -403,7 +403,11 @@ public class ActiveInstance<T>
 
         @Override
         public String toString() {
-            return "MethodProxy[" + target + "]";
+            if (method == null)
+                return String.format("%s[%s]", getClass().getSimpleName(), target);
+            else
+                return String.format("%s[%s.%s]", getClass().getSimpleName(), target, method.getName());
+            //return String.format("[%s]", method);
         }
 
 
