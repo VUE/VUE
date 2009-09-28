@@ -5,6 +5,7 @@ import java.awt.Color;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JViewport;
 import javax.swing.border.LineBorder;
 
 import edu.tufts.vue.ontology.ui.OntologyBrowser;
@@ -47,14 +48,17 @@ public class ContentPanel extends JPanel {
 
 	protected void addBrowser(String title, JPanel browser) {
 		JScrollPane scrollPane = new JScrollPane(null, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		JViewport	viewport = scrollPane.getViewport();
+
+		viewport.setOpaque(false);
 
 		scrollPane.setOpaque(false);
-		scrollPane.getViewport().setOpaque(false);
 		scrollPane.setBorder(null);
 		scrollPane.setName(title + ".dockScroll");
 		scrollPane.setWheelScrollingEnabled(true);
-		browser.putClientProperty("VUE.sizeTrack", scrollPane.getViewport());
 		scrollPane.setViewportView(browser);
+
+		browser.putClientProperty("VUE.sizeTrack", viewport);
 
 		tabbedPane.addTab(title, scrollPane);
 
