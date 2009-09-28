@@ -36,7 +36,7 @@ import org.apache.commons.lang.StringEscapeUtils;
  * types and doing some data-type analysis.  It also includes the ability to
  * associate a LWComponent node style with specially marked values.
  * 
- * @version $Revision: 1.21 $ / $Date: 2009-09-21 21:31:59 $ / $Author: sfraize $
+ * @version $Revision: 1.22 $ / $Date: 2009-09-28 18:58:24 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -319,7 +319,7 @@ public class Field implements tufts.vue.XMLUnmarshalListener
 
     /** for persistance */
     public void setStyleNode(LWComponent style) {
-        if (DEBUG.SCHEMA) Log.debug(this + " setStyleNode " + style);
+        if (DEBUG.SCHEMA) Log.debug(String.format("setStyleNode %-22s%s", this, style));
 //         if (mNodeStyle != null)
 //             Log.warn("resetting field style " + this + " to " + style, new Throwable("HERE"));
         mNodeStyle = style;
