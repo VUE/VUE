@@ -16,18 +16,11 @@
 package tufts;
 
 import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dialog;
-import java.awt.Dimension;
 import java.awt.Shape;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.geom.CubicCurve2D;
 import java.awt.geom.QuadCurve2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -58,7 +51,6 @@ import java.util.RandomAccess;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-import javax.swing.JColorChooser;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -66,7 +58,6 @@ import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
 
 import tufts.macosx.MacOSX;
-import tufts.vue.VueResources;
 
 
 /**
@@ -1282,18 +1273,17 @@ public class Util
         return true;
     }
 
-    public static Object extractFirst(Collection bag)
+    public static <T> T getFirst(Collection<T> bag)
     {
         if (bag.isEmpty())
             return null;
         
         if (bag instanceof java.util.List) {
-            return ((List)bag).get(0);
+            return ((List<T>)bag).get(0);
         } else {
             return bag.iterator().next();
         }
     }
-    
 
     public static <A, T extends A> List<T> extractType
                                 (final Collection<A> list,
@@ -1689,7 +1679,7 @@ public class Util
             //System.out.format("Map of size: %d (%s) %s\n", m.size(), m.getClass().getName(), tag);
             System.out.format("Map of size: %d (%s) %s\n", m.size(), tag(m), tag);
             for (Map.Entry<?,?> e : m.entrySet()) {
-                System.out.format("%20s: %s\n", tags(e.getKey()), tags(e.getValue()));
+                System.out.format("%24s: %s\n", tags(e.getKey()), tags(e.getValue()));
             }
         } else
             System.out.println("\t<NULL MAP>");
@@ -1913,65 +1903,6 @@ public class Util
         return displayComponent(comp, 0, 0);
     }
 
-    private static JColorChooser colorChooser;
-    private static Dialog colorChooserDialog;
-    private static boolean colorChosen;
-    /** Convience method for running a JColorChooser and collecting the result */
-    public static Color runColorChooser(String title, Color c, Component chooserParent)
-    {
-        if (colorChooserDialog == null) {
-            colorChooser = new JColorChooser();
-            //colorChooser.setDragEnabled(true);
-            //colorChooser.setPreviewPanel(new JLabel("FOO")); // makes it dissapear entirely, W2K/1.4.2/Metal
-            if (false) {
-                final JPanel np = new JPanel();
-                np.add(new JLabel(VueResources.getString("jlabel.text")));
-                np.setSize(new Dimension(300,100)); // will be invisible otherwise
-                np.setBackground(Color.red);
-                //np.setBorder(new EmptyBorder(10,10,10,10));
-                //np.setBorder(new EtchedBorder());
-                np.setBorder(new LineBorder(Color.black));
-                np.setOpaque(true);
-                np.addPropertyChangeListener(new PropertyChangeListener() {
-                        public void propertyChange(PropertyChangeEvent e) {
-                            System.out.println("CC " + e.getPropertyName() + "=" + e.getNewValue());
-                            if (e.getPropertyName().equals("foreground"))
-                                np.setBackground((Color)e.getNewValue());
-                        }});
-                colorChooser.setPreviewPanel(np); // also makes dissapear entirely
-            }
-            /*
-            JComponent pp = colorChooser.getPreviewPanel();
-            System.out.println("CC Preview Panel: " + pp);
-            for (int i = 0; i < pp.getComponentCount(); i++)
-                System.out.println("#" + i + " " + pp.getComponent(i));
-            colorChooser.getPreviewPanel().add(new JLabel("FOO"));
-            */
-            colorChooserDialog =
-                JColorChooser.createDialog(chooserParent,
-                                           VueResources.getString("dialog.colorchooser.title"),
-                                           true,  
-                                           colorChooser,
-                                           new ActionListener() { public void actionPerformed(ActionEvent e)
-                                               { colorChosen = true; } },
-                                           null);
-        }
-        if (c != null)
-            colorChooser.setColor(c);
-        if (title != null)
-            colorChooserDialog.setTitle(title);
-
-        colorChosen = false;
-        // show() blocks until a color chosen or cancled, then automatically hides the dialog:
-        colorChooserDialog.setVisible(true);
-
-        JComponent pp = colorChooser.getPreviewPanel();
-        System.out.println("CC Preview Panel: " + pp + " children=" + Arrays.asList(pp.getComponents()));
-        for (int i = 0; i < pp.getComponentCount(); i++)
-            System.out.println("#" + i + " " + pp.getComponent(i));
-        
-        return colorChosen ? colorChooser.getColor() : null;
-    }
 
 //     public static void screenToBlack() {
 //         if (!isMacPlatform())
@@ -2602,7 +2533,9 @@ public class Util
                 final int size = ((Collection)o).size();
                 txt = "size=" + size;
                 final Object item;
-                if (o instanceof java.util.List)
+                if (size == 0)
+                    item = null;
+                else if (o instanceof java.util.List)
                     item = ((java.util.List)o).get(0);
                 else
                     item = ((Collection)o).toArray()[0];
@@ -2889,11 +2822,6 @@ public class Util
         
         System.exit(0);
     }
-
-	public static int getMaxLabelLineLength() {
-		
-		return VueResources.getInt("dataNode.labelLength");
-	}
 
     
     
