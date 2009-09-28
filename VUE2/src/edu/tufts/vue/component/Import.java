@@ -70,7 +70,7 @@ public class Import {
      */
 
     public void createMap(String inputFile,String outputFile, Layout layout) throws Exception {
-        Schema schema = Schema.instance(Resource.instance(inputFile),edu.tufts.vue.util.GUID.generate());
+        Schema schema = Schema.getInstance(Resource.instance(inputFile),edu.tufts.vue.util.GUID.generate());
         XmlDataSource datasource = new XmlDataSource();
         datasource.ingestCSV(schema,inputFile,true);
         List<LWComponent> nodes =  DataAction.makeRowNodes(schema);
