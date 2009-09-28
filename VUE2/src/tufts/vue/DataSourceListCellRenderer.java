@@ -57,8 +57,7 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer //implem
         mRow.setOpaque(true);
         
         mLabel.setMinimumSize(new Dimension(10, mLabel.getHeight()));
-//        mLabel.setPreferredSize(new Dimension(Short.MAX_VALUE, mLabel.getHeight()));
-        mLabel.setPreferredSize(new Dimension(100, mLabel.getHeight()));
+        mLabel.setPreferredSize(new Dimension(Short.MAX_VALUE, mLabel.getHeight()));
         mLabel.setOpaque(false);
 
         mIconLabel.setOpaque(false);
