@@ -105,7 +105,7 @@
 						//alert(file.path);
 						if (fileName) {
                 			//alert(fileName);
-                			 if ((fileName.match(/.vue$/) || fileName.match(/.vpk$/)) && isVueRunning())
+                			 if ((fileName.match(/.vue$/) || fileName.match(/.vpk$/)))
                 			 {
 			                	document.getElementById('vue-open-map').disabled = false;                			 
                 			 }

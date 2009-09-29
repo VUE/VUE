@@ -21,6 +21,7 @@ zPane: null,
 installLocation: "",
 pathsep: "/",
 win: null,
+count: 100,
 wm: null,
 importMapDataListener: function(evt)
 {
@@ -209,8 +210,53 @@ isVueRunning: function()
 	  else
 		  return false;
 },
+isLoaded: function() 
+{
+		var obj = null;
+	  try{
+		  obj=content.document.getElementById("VUE").wrappedJSObject;
+		  }
+		  catch(e){
+			  //alert("f"); 
+			  return false;};
+	    
+	try {
+		if (!obj.isInited())
+			// in IE: isActive returns an error if the applet IS loaded, 
+			// false if not loaded
+			// in NS: isActive returns true if loaded, an error if not loaded, 
+			// so never reaches the next statement
+		//	alert("a");
+			return false;
+    }
+	catch(e){
+	//	alert("b");
+		return false;
+	}
+	this.openZoteroMap();
+	return true;
+},
+performLoadedCheck: function()
+{
+	  if (!this.isLoaded() && this.count > 0) 
+	  {
+		  this.count--;
+		  var _self = this;
+		  setTimeout( function(){ _self.performLoadedCheck();} , 1000 );
+	  }
+	  return;
+	  
+	 
+},
 openZoteroMap: function()
 {
+	if (!this.isVueRunning())
+	{
+		this.startVUE();
+		this.count=100;
+		this.performLoadedCheck();		
+
+	}
 	
 	var items = this.zPane.itemsView.getSelectedItems()
 
@@ -221,7 +267,7 @@ openZoteroMap: function()
 				if (fileName) {
      			//alert(fileName);
 					content.document.getElementById("VUE").wrappedJSObject.displayLocalMap(file.path);
-				return;
+				
      		}
      	
      		
