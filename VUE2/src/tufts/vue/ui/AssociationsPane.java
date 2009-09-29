@@ -457,9 +457,11 @@ public class AssociationsPane extends Widget
 		public Component getTableCellRendererComponent(JTable table, Object value,
 			boolean isSelected, boolean hasFocus, int row, int column) {
 			String	stringValue = value.toString();
+			boolean	isChooseField = stringValue.equals(CHOOSE_FIELD);
 
 			grayLabel.setText(stringValue);
-			grayLabel.setForeground(stringValue.equals(CHOOSE_FIELD) ? Color.GRAY : Color.BLACK);
+			grayLabel.setForeground(isChooseField ? Color.GRAY : Color.BLACK);
+			grayLabel.setToolTipText(isChooseField ? stringValue : null);
 
 			return grayLabel;
 		}
