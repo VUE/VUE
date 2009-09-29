@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.188 $ / $Date: 2009-09-09 13:56:34 $ / $Author: sfraize $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.188 2009-09-09 13:56:34 sfraize Exp $ -->
+<!-- $Revision: 1.189 $ / $Date: 2009-09-29 02:39:57 $ / $Author: mike $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.189 2009-09-29 02:39:57 mike Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -145,55 +145,63 @@
 	<property name="applet.jarfiles.names"
 		value="castor-1.3-xml.jar"
 	/>
+	<property name="thirdparty.jarfiles.names.extendedFeatures"
+		value="MERLOTOsid-1.0.jar
+			   fedora-client_2_2.jar
+			   joscar-0.9.3-bin.jar
+	  		   batik-all.jar
+		  	   quaqua-filechooser-only.jar
+			   gdata-client-1.0.jar
+		  	   gdata-core-1.0.jar
+		 	   fop.jar
+	  		   saaj-api-unsigned.jar
+		       saaj-impl-unsigned.jar
+       		   axis_1_5_3.jar
+		       okiSID_rc6_1.jar
+		       okiSIDimpl.jar
+	           xercesImpl-2.7.1.jar
+        	   xerces-2.7.1-xml-apis.jar
+	  		   okiOSID-2.0a.jar				  
+	           OSIDLoggingPlain-1.0.jar
+ 		 	   jaxrpc-api-unsigned.jar
+		       jaxrpc-impl-unsigned.jar
+		       jaxrpc-spi-unsigned.jar	   		   
+	"/>
   <property name="thirdparty.jarfiles.names"
             value="TuftsOsidProvider.jar
             	   XmlfileRepositoryOSID-1.0.jar
             	   google-collect-snapshot-20090211.jar
   				   json.jar
-  				   joscar-0.9.3-bin.jar
-  				   calais.jar
-                   MERLOTOsid-1.0.jar
-				   axis_1_5_3.jar
+  				   calais.jar				   
                    trippi-1.1.2-core.jar
                    commons-httpclient-3.1-beta1.jar 
-				   commons-lang-2.4.jar
-                   okiOSID-2.0a.jar				  
-				   OSIDLoggingPlain-1.0.jar
-                   xercesImpl-2.7.1.jar
-                   xerces-2.7.1-xml-apis.jar
+				   commons-lang-2.4.jar                   
                    castor-1.3-core.jar
                    castor-1.3-xml.jar
-                  jaxb-api-unsigned.jar
+                   jaxb-api-unsigned.jar
                    jaxb-impl-unsigned.jar
                    jax-qname-unsigned.jar
                    relaxngDatatype.jar
                    namespace-unsigned.jar
-                   xsdlib_unsigned.jar
-                   jaxrpc-api-unsigned.jar
-                   jaxrpc-impl-unsigned.jar
-                   jaxrpc-spi-unsigned.jar
+                   xsdlib_unsigned.jar                  
                    VUE-MacOSX.jar
                    VUE-Java15.jar
                    activation_unsigned.jar
                    arq-2.5.3.jar
-                   mail.jar
-                   saaj-api-unsigned.jar
-                   saaj-impl-unsigned.jar
+                   mail.jar  
+			  	   iText-2.1.4.jar
+  			       dom2.jar
+  			  	   axis-ant.jar 
                    apache-commons.jar
                    apple-laf.jar
-                   avalon-framework-cvs-20020806.jar
-                   axis-ant.jar
-                   batik-all.jar
+                   avalon-framework-cvs-20020806.jar                   
                    commons-codec-1.3.jar
                    commons-discovery.jar
                    commons-logging.jar
                    concurrent.jar
                    cryptix-asn1.jar
-                   cryptix32.jar
-                   dom2.jar
-                   fop.jar
+                   cryptix32.jar                 
   				   plugin.jar
-                  fedora-client_2_2.jar
                    fedoragentypes.jar
                    gnu-getopt-1.0.9.jar
                    googleapi.jar
@@ -218,8 +226,7 @@
 				   MITRepositoryTypes.jar
                    MITSearchTypes.jar
                    rome-0.9.jar
-                   okiSID_rc6_1.jar
-                   okiSIDimpl.jar
+                   
                    opencsv-1.8.jar 
 				   OsidProvider.jar
 				   OsidRegistry.jar
@@ -231,14 +238,11 @@
                    wsdl4j.jar
                    xalan.jar
                    xalan-2.4.1.jar
-                   xmlrpc-1.1.jar
-                   quaqua-filechooser-only.jar
-                   iText-2.1.4.jar
+                   xmlrpc-1.1.jar                   
+                   
                    simplyhtml2.jar    
                    gnu-regexp-1.1.4.jar
-  				   looks-2.1.4.jar
-  				   gdata-client-1.0.jar
-  				   gdata-core-1.0.jar
+  				   looks-2.1.4.jar  				   
                    "/>
 
 <!-- added quaqua-filechooser-only.jar to the above on 2006-12-08 MK -->
@@ -1023,6 +1027,8 @@
         <zipfileset src="${vue-core.jar}"/>
         <zipgroupfileset dir="${lib.home}" includes="${thirdparty.jarfiles.names}"
         	excludes="org/apache/tools/ant/**"/>
+    	<zipgroupfileset dir="${lib.home}" includes="${thirdparty.jarfiles.names.extendedFeatures}"
+    	  	        	excludes="org/apache/tools/ant/**"/>
         <!-- may be able to modify this to exclude README's, .txt files, etc -->
     </jar>
     <jar jarfile="${vue.jar}"
@@ -1110,8 +1116,32 @@
   </target>
      
   <target name="all" depends="clean,mac-dist,linux-jar" description="Rebuild everything from scratch."/>
-  <target name="vue-applet" depends="all">
-	<copy file="${vue.jar}" tofile="${vueapplet.jar}"/>
+  <target name="vue-applet" depends="clean,jar-core">
+	
+
+  	    <tstamp/>
+  	    <echo message="Building ${vueapplet.jar}..."/>
+  	    <jar destfile="${vueapplet.jar}" compress="true" index="true" update="false" duplicate="preserve">
+  	        <manifest>
+  	        <attribute name="Description" value="Tufts VUE 3.x (Visual Understanding Environment)"/>
+  	        <attribute name="Built-By" value="${user.name}"/>
+  	        <attribute name="Built" value="${TODAY} ${TSTAMP}"/>
+  	        <attribute name="Build-Platform" value="${os.name} ${os.version} ${os.arch}"/>
+  	        <attribute name="Main-Class" value="tufts.vue.VUE"/>
+  	      </manifest>
+  	        <!-- zipfileset src="${basedir}/VUE-core.jar" excludes="**/*.properties"/ example excludes that works for one file -->
+  	        <zipfileset src="${vue-core.jar}"/>
+  	        <zipgroupfileset dir="${lib.home}" includes="${thirdparty.jarfiles.names}"
+  	        	excludes="org/apache/tools/ant/**"/>
+  	        <!-- may be able to modify this to exclude README's, .txt files, etc -->
+  	    </jar>
+  	    <jar jarfile="${vueapplet.jar}"
+  	         basedir="${basedir}" 
+  			 update="true"
+  	         includes="osid.properties"/>
+  	  	 
+  	  
+
 
   	<signjar
   	    alias="mykey"
@@ -1128,8 +1158,7 @@
     		 deflatehint="false"
     		 unknownattribute="error"
   			 verbose="1"
- 	/>
-  	-->
+ 	/> -->
   </target>
   <target name="mac" depends="clean,mac-dist"/>
 
