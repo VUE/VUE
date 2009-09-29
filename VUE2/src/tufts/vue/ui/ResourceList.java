@@ -58,7 +58,7 @@ import javax.swing.border.*;
  * until a synthetic model item at the end of this shortened list is selected, at which
  * time the rest of the items are "unmaksed" and displayed.
  *
- * @version $Revision: 1.25 $ / $Date: 2009-09-16 18:59:19 $ / $Author: anoop $
+ * @version $Revision: 1.26 $ / $Date: 2009-09-29 20:51:46 $ / $Author: brian $
  */
 public class ResourceList extends JList
     implements DragGestureListener, /*tufts.vue.ResourceSelection.Listener,*/ MouseListener,ActionListener
@@ -98,7 +98,7 @@ public class ResourceList extends JList
     }
 
     private JLabel mMoreLabel = new MsgLabel("?"); // failsafe
-    private JLabel mLessLabel = new MsgLabel("Show top " + PreviewItems);
+    private JLabel mLessLabel = new MsgLabel(String.format(Locale.getDefault(), VueResources.getString("resourcelist.showless"), PreviewItems));
     
     /**
      * A model that can intially "mask" out all but a set of initial
@@ -155,7 +155,8 @@ public class ResourceList extends JList
         if (resourceBag.size() > PreviewModelSize) {
             mDataModel = new MaskingModel();
             isMaskingModel = true;
-            mMoreLabel = new MsgLabel((resourceBag.size() - PreviewItems) + " more...");
+            mMoreLabel = new MsgLabel(String.format(Locale.getDefault(), VueResources.getString("resourcelist.showmore"), (resourceBag.size() - PreviewItems)));
+            
             isMasking = true;
         } else
             mDataModel = new javax.swing.DefaultListModel();
@@ -395,13 +396,13 @@ public class ResourceList extends JList
 	}
 	
 	private JPopupMenu m = null;
-	private final JMenuItem launchResource = new JMenuItem("Open resource");
+	private final JMenuItem launchResource = new JMenuItem(VueResources.getString("menu.popup.resource.launchresource"));
 	private final WindowDisplayAction infoAction = new WindowDisplayAction(VUE.getInfoDock());
     private final JCheckBoxMenuItem infoCheckBox = new JCheckBoxMenuItem(infoAction);
-    private final JMenuItem addToMap = new JMenuItem("Add to map");
-    private final JMenuItem addToNode = new JMenuItem("Add to selected node");
-    private final JMenuItem addToSlide = new JMenuItem("Add to slide");
-    private final JMenuItem addToSavedContent = new JMenuItem("Add to \"My Saved Content\"");
+    private final JMenuItem addToMap = new JMenuItem(VueResources.getString("menu.popup.resource.addtomap"));
+    private final JMenuItem addToNode = new JMenuItem(VueResources.getString("menu.popup.resource.addtoselectednode"));
+    private final JMenuItem addToSlide = new JMenuItem(VueResources.getString("menu.popup.resource.addtoslide"));
+    private final JMenuItem addToSavedContent = new JMenuItem(VueResources.getString("menu.popup.resource.addtomysavedcontent"));
     
 	private JPopupMenu getPopup(MouseEvent e) 
 	{
@@ -409,17 +410,17 @@ public class ResourceList extends JList
 		{
 			m = new JPopupMenu(VueResources.getString("menu.popup.resource"));
 		
-			infoCheckBox.setLabel("Resource Info");
+			infoCheckBox.setLabel(VueResources.getString("menu.popup.resource.resourceinfo"));
 			if (VUE.getInfoDock().isShowing())
 				infoCheckBox.setSelected(true);
 			m.add(infoCheckBox);
+			m.addSeparator();
+			m.add(launchResource);
 			m.addSeparator();
 			m.add(addToMap);
 			m.add(addToNode);
 			m.add(addToSlide);
 			m.add(addToSavedContent);
-			m.addSeparator();
-			m.add(launchResource);
 			launchResource.addActionListener(this);
 			addToMap.addActionListener(this);
 			addToNode.addActionListener(this);
@@ -434,21 +435,21 @@ public class ResourceList extends JList
 			addToNode.setEnabled(true);
 			addToSlide.setEnabled(false);
 			if (c.hasResource())
-				addToNode.setLabel("Replace resource on node");
+				addToNode.setLabel(VueResources.getString("menu.popup.resource.replaceresourceonnode"));
 		}
 		else if (c != null && c instanceof LWSlide)
 		{
 			addToNode.setEnabled(false);
 			addToSlide.setEnabled(true);
 			if (c.hasResource())
-				addToNode.setLabel("Add to selected node");
+				addToNode.setLabel(VueResources.getString("menu.popup.resource.addtoselectednode"));
 		}
 		else
 		{
 			addToNode.setEnabled(false);
 			addToSlide.setEnabled(false);
 			if (c != null && c.hasResource())
-				addToNode.setLabel("Add to selected node");
+				addToNode.setLabel(VueResources.getString("menu.popup.resource.addtoselectednode"));
 		}
 		return m;
 	}
