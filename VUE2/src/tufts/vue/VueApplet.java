@@ -72,10 +72,11 @@ import tufts.vue.gui.VueMenuBar;
 /**
  * Experimental VUE applet.
  * 
- * @version $Revision: 1.20 $ / $Date: 2009-08-12 17:31:59 $ / $Author: mike $
+ * @version $Revision: 1.21 $ / $Date: 2009-09-29 21:37:18 $ / $Author: mike $
  */
 public class VueApplet extends JApplet {
 
+	private static boolean isInited = false;
 	private static boolean firstInit = true;
 	private static MapViewer viewer = null;
 	private static JPanel toolbarPanel = null;
@@ -201,6 +202,8 @@ public class VueApplet extends JApplet {
           // addZoteroDatasource("collectionName", "/Users/mkorcy01/Desktop/6.xml");
          
         }});
+		
+		isInited=true;
 	}
 	
 	public void ToggleAllVisible() {
@@ -226,14 +229,21 @@ public class VueApplet extends JApplet {
 		VUE.finalizeDocks();
 		System.gc();
 		fullyStopped = true;
+		isInited=false;
 		msg("stop");
 	}
 	
 	public void destroy() {
 		super.destroy();
+		isInited=false;
 		msg("destroy");
 	}		
 
+	public static boolean isInited()
+	{
+		return isInited;
+	}
+	
 	public static boolean isZoteroApplet()
 	{
 		return isZotero;
@@ -379,6 +389,10 @@ public class VueApplet extends JApplet {
 		});
 	}
 	
+	public static boolean isGuiInited()
+	{
+		return GUI.isGUIInited();
+	}
 	public static String getActiveResourceSpec()
 	{
 		LWSelection selection = VUE.getActiveViewer().getSelection();
