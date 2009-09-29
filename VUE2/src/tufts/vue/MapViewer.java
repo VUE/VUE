@@ -75,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.637 $ / $Date: 2009-09-28 22:30:40 $ / $Author: brian $ 
+ * @version $Revision: 1.638 $ / $Date: 2009-09-29 16:24:18 $ / $Author: brian $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -5255,32 +5255,16 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     	sSinglePopup.add(Actions.NewRichText);
     	sAddURLItem = sSinglePopup.add(Actions.AddURLAction);
     	sAddFileItem = sSinglePopup.add(Actions.AddFileAction);
-    	sSinglePopup.add(AnalyzerAction.luckyImageAction);
-    	sSinglePopup.add(Actions.RemoveResourceAction);
 
     	if (!slide.getMasterSlide().equals(slide))
     	{    		
     		sSinglePopup.addSeparator();
     		sSinglePopup.add(Actions.ContextNotesAction);
-    		sSinglePopup.add(Actions.ContextKeywordAction);
     		if (!VUE.isApplet())
     			sSinglePopup.add(syncMenu);
-    	}
-   		
-    	sSinglePopup.addSeparator();
-    	sSinglePopup.add(GUI.buildMenu(VueResources.getString("menu.image"), Actions.IMAGE_MENU_ACTIONS));
-    	sSinglePopup.add(arrangeMenu);
-
-    	if (!slide.getMasterSlide().equals(slide))
-    	{    		
     		sSinglePopup.addSeparator();
-    		sSinglePopup.add(Actions.CopyStyle);
-    		sSinglePopup.add(Actions.PasteStyle);
-    		sSinglePopup.addSeparator();
-    		sSinglePopup.add(Actions.Cut);
-    		sSinglePopup.add(Actions.Copy);
     		sSinglePopup.add(Actions.Paste);
-    		sSinglePopup.add(Actions.Duplicate);
+    		sSinglePopup.add(Actions.SelectAll);
     	}
    		
 		sSinglePopup.addSeparator();
@@ -5300,12 +5284,14 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     	if (VUE.getInfoDock().isShowing())
         	infoCheckBox.setSelected(true);
     	sSinglePopup.add(infoCheckBox);
-    	sSinglePopup.addSeparator();
     	sSinglePopup.add(Actions.LaunchPresentation);
+
+    	sSinglePopup.addSeparator();
     	sSinglePopup.add(Actions.ContextNotesAction);
-   	    sSinglePopup.add(Actions.ContextKeywordAction);
    	    if (!VUE.isApplet())
    	    	sSinglePopup.add(syncMenu);
+
+   	    sSinglePopup.addSeparator();
    	    sSinglePopup.add(Actions.EditSlide);
    	    sSinglePopup.add(Actions.EditMasterSlide);
    	    sSinglePopup.add(Actions.DeleteSlide);
