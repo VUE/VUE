@@ -117,7 +117,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.687 $ / $Date: 2009-09-25 16:16:18 $ / $Author: brian $ 
+ * @version $Revision: 1.688 $ / $Date: 2009-09-29 21:37:55 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -1178,7 +1178,9 @@ public class VUE
         // VUE-879: UrlAuthentication should initialized BEFORE
         // startRepositoryConfiguration.  It will listen for events from VDSM to scan
         // each DataSource as it's configured for any authentication credentials.
-        UrlAuthentication.getInstance();
+       if (VUE.isApplet())
+    	   return;
+    	UrlAuthentication.getInstance();
             
         final VueDataSourceManager VDSM =
             edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
