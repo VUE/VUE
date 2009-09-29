@@ -43,14 +43,15 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 
 import tufts.vue.gui.VueButton;
-import fedora.server.types.gen.ComparisonOperator;
-import fedora.server.types.gen.Condition;
+import tufts.vue.propertyeditor.*;
+//import fedora.server.types.gen.ComparisonOperator;
+//import fedora.server.types.gen.Condition;
 
 /**
  * A field:value editor currently specialized for resource properties displayed on
  * the object inspector info tab.
  *
- * @version $Revision: 1.32 $ / $Date: 2009-03-29 03:33:08 $ / $Author: vaibhav $ 
+ * @version $Revision: 1.33 $ / $Date: 2009-09-29 21:36:55 $ / $Author: mike $ 
  * @author  akumar03
  */
 
