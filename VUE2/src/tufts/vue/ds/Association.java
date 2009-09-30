@@ -17,7 +17,7 @@ import com.google.common.collect.Multimaps;
  * the key field of two Schema's, which is considered to be a join in the classic
  * database sense.
  *
- * @version $Revision: 1.11 $ / $Date: 2009-09-30 22:09:34 $ / $Author: sfraize $
+ * @version $Revision: 1.12 $ / $Date: 2009-09-30 22:12:19 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -53,8 +53,6 @@ public final class Association
 
     private static final EventHandler<Event> EventSource = EventHandler.getHandler(Event.class);
 
-    // /** for persistance only */ public Association() {}
-    
     private Association(Field f1, Field f2, boolean isOn) {
         if (f1 == f2)
             throw new IllegalArgumentException("field can't associate to itself: " + f1);
@@ -197,10 +195,10 @@ public final class Association
         Schema s = Schema.lookupAuthority(old);
         if (s != old) {
             if (s != newAuthority) {
-                Log.info("ASSOCIATION NEEDED PATCHING BEYOND NEW AUTHORITY " + old, new Throwable("HERE"));
+                Log.warn("ASSOCIATION NEEDED PATCHING BEYOND NEW AUTHORITY " + old, new Throwable("HERE"));
             }
             if (!old.isDiscarded()) {
-                Log.info("REPLACED SCHEMA WASN'T DISCARDED! " + old, new Throwable("HERE"));
+                Log.warn("REPLACED SCHEMA WASN'T DISCARDED! " + old, new Throwable("HERE"));
             }
         }
         return s;
