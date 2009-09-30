@@ -40,7 +40,7 @@ import com.google.common.collect.Multimaps;
  * generally "short" enough, it will enumerate all the unique values found in that
  * column.
  *
- * @version $Revision: 1.50 $ / $Date: 2009-09-30 22:29:25 $ / $Author: sfraize $
+ * @version $Revision: 1.51 $ / $Date: 2009-09-30 23:08:20 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -221,12 +221,9 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
      */
     private synchronized void discardFor(Schema authority) {
         if (!isDiscarded) {
-            if (DEBUG.SCHEMA) {
-                isDiscarded = true;
-                Log.info(this + ": DISCARDED");
-                authority.trackUserStyles(this);
-            } else
-                isDiscarded = true;
+            if (DEBUG.SCHEMA) Log.info(this + ": DISCARDED");
+            isDiscarded = true;
+            authority.trackUserStyles(this);
         }
     }
     synchronized boolean isDiscarded() {
@@ -519,12 +516,12 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
         (final Schema newAuthority,
          final Collection<tufts.vue.LWMap> maps)
     {
-        tufts.vue.gui.GUI.invokeOnEDT(new Runnable() { public void run() {
+        //tufts.vue.gui.GUI.invokeOnEDT(new Runnable() { public void run() {
             // safest to ensure all this happs on the AWT thread, so later association data
             // fetches (data search & filter actions) don't need synchronized read access
             makeSchemaReferencesAuthoritative(newAuthority, maps);
             Association.updateForNewAuthoritativeSchema(newAuthority);
-        }});
+            //}});
     }
     
     /** find all schema handles in all nodes that match the new schema
@@ -604,11 +601,11 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
                             Log.debug("ignoring association match for discarded schema: " + match);
                         } else {
                             Log.debug("found live field to match ref: " + ref + " = " + Util.tags(match));
-                            tufts.vue.gui.GUI.invokeOnEDT(new Runnable() { public void run() {
+                            //tufts.vue.gui.GUI.invokeOnEDT(new Runnable() { public void run() {
                                 // safest to ensure all this happs on the AWT thread, so later association data
                                 // fetches (data search & filter actions) don't need synchronized read access
                                 Association.add(field, match);
-                            }});
+                                // }});
                         }
                     }
                 }
@@ -1223,7 +1220,7 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
     synchronized void notifyAllRowsAdded() {
         
         for (Field f : Util.toArray(getFields(), Field.class)) { // must dupe as will may be adding new fields (quartiles)
-            Log.debug("field analysis " + Relation.quoteKey(f.getName()) + ": type " + Util.tags(f.getType()));
+            if (DEBUG.Enabled) Log.debug("field analysis " + Relation.quoteKey(f.getName()) + ": type " + Util.tags(f.getType()));
             f.setStyleNode(DataAction.makeStyleNode(f));
             try {
                 f.performFinalAnalysis();
