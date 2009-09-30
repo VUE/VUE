@@ -40,7 +40,7 @@ import com.google.common.collect.Multimaps;
  * generally "short" enough, it will enumerate all the unique values found in that
  * column.
  *
- * @version $Revision: 1.47 $ / $Date: 2009-09-30 18:31:50 $ / $Author: sfraize $
+ * @version $Revision: 1.48 $ / $Date: 2009-09-30 19:04:37 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -427,13 +427,19 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
 
         for (Schema schema : restoredSchemaHandles) {
             try {
-                Log.debug(schema + "; SYNC TO GLOBAL MODEL");
+                if (DEBUG.SCHEMA) Log.debug(schema + "; RESTORE AND REPLACE");
                 schema.restoreFields();
                 attemptAuthorityReplacement(schema, restoredMap, allRestored);
-                createAttachableAssociations(schema, schema.mPersistFields); // these Fields may have just been effectively discarded!
-                //schema.attemptReplacementsAndFindAssociations(restoredMap, allRestored);
             } catch (Throwable t) {
                 Log.error("error updating schema references for " + schema, t);
+            }
+        }
+        for (Schema schema : restoredSchemaHandles) {
+            try {
+                //if (DEBUG.SCHEMA) Log.debug(schema + "; CREATE ASSOCIATIONS");
+                createAttachableAssociations(schema, schema.mPersistFields); // these Fields may have just been effectively discarded!
+            } catch (Throwable t) {
+                Log.error("error scanning for associations in " + schema, t);
             }
         }
     }
@@ -503,9 +509,7 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
     }
 
     private static synchronized void createAttachableAssociations(Schema schema, Collection<Field> restoredFields) {
-
         if (DEBUG.SCHEMA) Log.debug(schema + "; createAttachableAssociations");
-
         for (Field field : restoredFields) {
             for (Field.PersistRef ref : field.getRelatedFieldRefs()) {
                 if (DEBUG.SCHEMA) Log.debug(schema + "; persisted relation for " + field + ": " + ref);
@@ -514,8 +518,12 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
                     Log.debug("Checking GUID " + guid);
                     if (ref.schemaGuid.equals(guid)) {
                         final Field match = possibleMatch;
-                        Log.debug("found live field to match ref: " + ref + " = " + Util.tags(match));
-                        Association.add(field, possibleMatch);
+                        if (match.getSchema().isDiscarded()) {
+                            Log.debug("ignoring association match for discarded schema: " + match);
+                        } else {
+                            Log.debug("found live field to match ref: " + ref + " = " + Util.tags(match));
+                            Association.add(field, match);
+                        }
                     }
                 }
             }
