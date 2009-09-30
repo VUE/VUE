@@ -17,7 +17,7 @@ import com.google.common.collect.Multimaps;
  * the key field of two Schema's, which is considered to be a join in the classic
  * database sense.
  *
- * @version $Revision: 1.8 $ / $Date: 2009-09-30 21:28:20 $ / $Author: sfraize $
+ * @version $Revision: 1.9 $ / $Date: 2009-09-30 21:34:22 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -143,9 +143,17 @@ public final class Association
         AllByField.remove(a.getRight(), a);
     }
     
-    static synchronized void updateForNewAuthoritativeSchema(Schema newAuthority)
+    static synchronized void updateForNewAuthoritativeSchema(final Schema newAuthority)
     {
         for (Association a : Util.copy(AllPairsList)) { // list may change during iteration
+            
+            // Technically, we should only really need to look for Associations that
+            // contain Schema's that can be replaced by newAuthority.  We could also
+            // just scan for Schema's that have been discarded, which we shouldn't be
+            // seeing any of in the global list.  But just in case, we end up doing all
+            // of the above and just scan every association for conditions that don't
+            // appear to be in sync.
+            
             verifyAndUpdateAssociation(a, newAuthority);
         }
     }
@@ -172,37 +180,33 @@ public final class Association
         else
             f2 = replaceField(a.field2, s2);
 
-        //Association replacement = addImpl(f1, f2);
-
         synchronized (Association.class) {
+            // todo: we want to replace the exact location in the AllPairsList
+            // so the UI won't re-order
             removeImpl(a);
             add(f1, f2);
         }
         
     }
 
-    private static Field replaceField(Field f, Schema newSchema) 
-    {
-        return newSchema.getField(f.getName());
-    }
-    
-
-            
-
     private static Schema replaceSchema(final Schema old, final Schema newAuthority) 
     {
         Schema s = Schema.lookupAuthority(old);
         if (s != old) {
             if (s != newAuthority) {
-                if (DEBUG.SCHEMA) Log.debug("ASSOCIATION NEEDED PATCHING BEYOND NEW AUTHORITY " + old, new Throwable("HERE"));
+                Log.info("ASSOCIATION NEEDED PATCHING BEYOND NEW AUTHORITY " + old, new Throwable("HERE"));
             }
             if (!old.isDiscarded()) {
-                if (DEBUG.SCHEMA) Log.debug("REPLACED SCHEMA WASN'T DISCARDED! " + old, new Throwable("HERE"));
+                Log.info("REPLACED SCHEMA WASN'T DISCARDED! " + old, new Throwable("HERE"));
             }
         }
         return s;
     }
     
+    private static Field replaceField(Field oldField, Schema newSchema) 
+    {
+        return newSchema.getField(oldField.getName());
+    }
 
 //     public static void addByAll(Field newField, Collection<Field> existingFields) {
 
