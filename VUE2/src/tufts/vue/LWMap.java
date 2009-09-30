@@ -59,7 +59,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.254 $ / $Date: 2009-09-28 18:59:49 $ / $Author: sfraize $
+ * @version $Revision: 1.255 $ / $Date: 2009-09-30 18:32:18 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -1539,16 +1539,7 @@ public class LWMap extends LWContainer
 
         mResourceFactory.loadResources(allResources);
 
-        if (DEBUG.SCHEMA) {
-            Log.debug("SCHEMA's in this map:");
-            Util.dump(mRestoredSchemas);
-            Log.debug("Current VUE authoritative schemas:");
-            Util.dump(Schema.getAllByDSGUID());
-        }
-
-        for (Schema schema : mRestoredSchemas) {
-            schema.syncToGlobalModel(this, allRestored);
-        }
+        Schema.restoreSavedMapSchemas(this, mRestoredSchemas, allRestored);
 
         //----------------------------------------------------------------------------------------
         // Now lay everything out.  allRestored should be in depth-first order for maximum

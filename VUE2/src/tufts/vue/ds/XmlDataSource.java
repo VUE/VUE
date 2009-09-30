@@ -33,7 +33,7 @@ import au.com.bytecode.opencsv.CSVReader;
 
 
 /**
- * @version $Revision: 1.23 $ / $Date: 2009-09-28 18:59:50 $ / $Author: sfraize $
+ * @version $Revision: 1.24 $ / $Date: 2009-09-30 18:32:04 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class XmlDataSource extends BrowseDataSource
@@ -252,13 +252,14 @@ public class XmlDataSource extends BrowseDataSource
 
         if (schema == null) {
             //if (DEBUG.SCHEMA) Log.debug("no current schema, instancing new");
-            //schema = Schema.instance(Resource.instance(file), getGUID());
-            schema = Schema.getInstance(Resource.instance(file), getGUID());
+
+            schema = Schema.getNewAuthorityInstance(Resource.instance(file), getGUID(), getDisplayName());
+
         } else {
             if (DEBUG.SCHEMA) Log.debug("reloading schema " + schema);
-            schema.flushData();
             schema.setResource(Resource.instance(file));
         }
+        schema.flushData();
         
         if (values == null)
             throw new IOException(file + ": empty file?");
@@ -302,6 +303,8 @@ public class XmlDataSource extends BrowseDataSource
 
         Log.info("INGESTING " + getAddress() + "...");
 
+        boolean newIngest = false;
+
         if (getAddress().toLowerCase().endsWith(".csv")) {
 
             // Note: for CSV data, we pass in the existing schema, permitting it
@@ -321,7 +324,7 @@ public class XmlDataSource extends BrowseDataSource
             // schema.
             
             schema = XMLIngest.ingestXML(openInput(), getItemKey());
-            schema.notifyAllRowsAdded();            
+            newIngest = true;
             schema.setDSGUID(getGUID());
             mSchema = schema;
             //schema = XMLIngest.ingestXML(openAddress(), getItemKey());
@@ -335,6 +338,8 @@ public class XmlDataSource extends BrowseDataSource
         schema.setImageField(getImageField());
         schema.setName(getDisplayName());
 
+        if (newIngest)
+            schema.notifyAllRowsAdded();            
         updateAllRuntimeSchemaReferences(schema);
         
         return DataTree.create(schema);
@@ -345,10 +350,10 @@ public class XmlDataSource extends BrowseDataSource
 
     /** find all schema handles in all nodes that match the new schema
      * and replace them with pointers to the live data schema */
-    // TODO: handle deleted nodes in undo queue!
+    // todo: handle deleted nodes in undo queue, tho LWComponent setParent should be handling that
     private static void updateAllRuntimeSchemaReferences(final Schema newlyLoadedSchema)
     {
-        Schema.updateAllSchemaReferences(newlyLoadedSchema, VUE.getAllMaps());
+        Schema.reportNewAuthoritativeSchema(newlyLoadedSchema, VUE.getAllMaps());
     }
 
 
