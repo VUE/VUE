@@ -17,7 +17,7 @@ import com.google.common.collect.Multimaps;
  * the key field of two Schema's, which is considered to be a join in the classic
  * database sense.
  *
- * @version $Revision: 1.5 $ / $Date: 2009-09-28 18:55:11 $ / $Author: sfraize $
+ * @version $Revision: 1.6 $ / $Date: 2009-09-30 18:31:26 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -100,9 +100,21 @@ public final class Association
     public static void add(Field f1, Field f2) {
         Association a = null;
         synchronized (AllPairsList) {
-            a = new Association(f1, f2, true);
+
+            boolean alreadyExists = false;
+            for (Association scan : AllPairsList) {
+                if (scan.field1 == f1 && scan.field2 == f2) {
+                    alreadyExists = true;
+                    if (DEBUG.SCHEMA) Log.debug("an association already exists between " + f1 + " and " + f2);
+                    break;
+                }
+            }
+
+            if (!alreadyExists)
+                a = new Association(f1, f2, true);
         }
-        EventSource.raise(Association.class, new Event(a, Event.ADDED));
+        if (a != null)
+            EventSource.raise(Association.class, new Event(a, Event.ADDED));
     }
 
     public static void remove(Association a) {
