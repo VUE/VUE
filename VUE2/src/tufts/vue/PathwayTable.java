@@ -61,7 +61,7 @@ import osid.dr.Asset;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.112 $ / $Date: 2009-08-18 14:29:39 $ / $Author: sfraize $
+ * @version $Revision: 1.113 $ / $Date: 2009-09-30 18:53:36 $ / $Author: brian $
  */
 
 public class PathwayTable extends JTable
@@ -1254,27 +1254,27 @@ public class PathwayTable extends JTable
 	    selectedY = row;
 	    if (entry.isPathway())
 	    {
-	    	m.add(renamePresentation);
 	    	m.add(playbackPresentation);
+	    	m.addSeparator();
 	    	m.add(addNoteEntry);
 	    	m.addSeparator();
+	    	m.add(renamePresentation);
 	    	m.add(masterSlidePresentation);
 	    	m.add(deletePresentation);	    	
 
 	    }
 	    else
 	    {
-	    	m.add(addNoteEntry);
 	    	m.add(previewEntry);
+	    	m.addSeparator();
+	    	m.add(addNoteEntry);
 	    	m.addSeparator();
 	    	m.add(editEntry);
 	    	m.add(masterSlidePresentation);
 	    	//m.add(duplicateEntry);
 	    	m.add(deleteEntry);
-	    	if (entry.isPortal())
-	    		editEntry.setEnabled(false);
-	    	else
-	    		editEntry.setEnabled(true);
+
+	    	editEntry.setEnabled(!entry.isPortal());
 	    }
 
 		return m;
