@@ -17,7 +17,7 @@ import com.google.common.collect.Multimaps;
  * the key field of two Schema's, which is considered to be a join in the classic
  * database sense.
  *
- * @version $Revision: 1.7 $ / $Date: 2009-09-30 19:15:07 $ / $Author: sfraize $
+ * @version $Revision: 1.8 $ / $Date: 2009-09-30 21:28:20 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -82,76 +82,145 @@ public final class Association
             throw new IllegalArgumentException("field can't associate to itself: " + f1);
         if (f1 == null || f2 == null)
             throw new IllegalArgumentException("null field: " + f1 + "; " + f2);
-        if (DEBUG.SCHEMA)
-            Log.debug("Adding association:"
-                      + "\n\tfield 1: " + quoteKey(f1) + " " + Util.tags(f1)
-                      + "\n\tfield 2: " + quoteKey(f2) + " " + Util.tags(f2));
         field1 = f1;
         field2 = f2;
         schema1 = field1.getSchema();
         schema2 = field2.getSchema();
+        if (DEBUG.SCHEMA)
+            Log.debug("New association:"
+                      + "\n\tfield 1: " + quoteKey(f1) + " " + Util.tags(f1) + " " + schema1
+                      + "\n\tfield 2: " + quoteKey(f2) + " " + Util.tags(f2) + " " + schema2);
         enabled = isOn;
         if (schema1 == schema2)
             throw new IllegalArgumentException("can't associate fields from the same schema: " + f1 + "; " + f2 + "; " + schema1);
-        AllByField.put(f1, this);
-        AllByField.put(f2, this);
-        AllPairsList.add(this);
+        
     }
+
+        
 
     /** add a global association between the given two fields */
     public static void add(Field f1, Field f2) {
-        Association a = null;
-        synchronized (AllPairsList) {
 
-            boolean alreadyExists = false;
-            for (Association scan : AllPairsList) {
-                if ((scan.field1 == f1 && scan.field2 == f2) ||
-                    (scan.field1 == f2 && scan.field2 == f1)) {
-                    alreadyExists = true;
-                    if (DEBUG.SCHEMA) Log.debug("an association already exists between " + f1 + " and " + f2);
-                    break;
-                }
-            }
-
-            if (!alreadyExists)
-                a = new Association(f1, f2, true);
-        }
+        Association a = addImpl(f1, f2);
+        
         if (a != null)
             EventSource.raise(Association.class, new Event(a, Event.ADDED));
     }
 
-    public static void remove(Association a) {
+    private static synchronized Association addImpl(Field f1, Field f2) {
 
-        synchronized (AllPairsList) {
-            AllPairsList.remove(a);
-            AllByField.remove(a.getLeft(), a);
-            AllByField.remove(a.getRight(), a);
+        boolean alreadyExists = false;
+        for (Association scan : AllPairsList) {
+            if ((scan.field1 == f1 && scan.field2 == f2) ||
+                (scan.field1 == f2 && scan.field2 == f1)) {
+                alreadyExists = true;
+                if (DEBUG.SCHEMA) Log.debug("an association already exists between " + f1 + " and " + f2);
+                break;
+            }
         }
-
+        
+        if (alreadyExists) {
+            return null;
+        } else {
+            Association a = new Association(f1, f2, true);
+            if (DEBUG.SCHEMA) Log.debug("ADDING " + a);
+            AllByField.put(f1, a);
+            AllByField.put(f2, a);
+            AllPairsList.add(a);
+            return a;
+        }
+    }
+    
+    public static void remove(Association a) {
+        removeImpl(a);
         EventSource.raise(Association.class, new Event(a, Event.REMOVED));
     }
     
+    private static synchronized void removeImpl(Association a) {
+        if (DEBUG.SCHEMA) Log.debug("REMOVE " + a);
+        AllPairsList.remove(a);
+        AllByField.remove(a.getLeft(), a);
+        AllByField.remove(a.getRight(), a);
+    }
+    
+    static synchronized void updateForNewAuthoritativeSchema(Schema newAuthority)
+    {
+        for (Association a : Util.copy(AllPairsList)) { // list may change during iteration
+            verifyAndUpdateAssociation(a, newAuthority);
+        }
+    }
 
-    //private static void create(
+    private static void verifyAndUpdateAssociation(final Association a, final Schema newAuthority) 
+    {
+        final Schema s1 = replaceSchema(a.schema1, newAuthority);
+        final Schema s2 = replaceSchema(a.schema2, newAuthority);
+
+        if (s1 == a.schema1 && s2 == a.schema2) {
+            // doesn't need updating
+            return;
+        }
+        
+        final Field f1, f2;
+
+        if (s1 == a.schema1)
+            f1 = a.field1;
+        else
+            f1 = replaceField(a.field1, s1);
+        
+        if (s2 == a.schema2)
+            f2 = a.field2;
+        else
+            f2 = replaceField(a.field2, s2);
+
+        //Association replacement = addImpl(f1, f2);
+
+        synchronized (Association.class) {
+            removeImpl(a);
+            add(f1, f2);
+        }
+        
+    }
+
+    private static Field replaceField(Field f, Schema newSchema) 
+    {
+        return newSchema.getField(f.getName());
+    }
     
 
-    public static void addByAll(Field newField, Collection<Field> existingFields) {
+            
 
-        if (existingFields.size() == 0)
-            return;
-
-        for (Field f : existingFields)
-            new Association(newField, f, false);
-
-//         if (DEBUG.Enabled) {
-//             Log.debug("CURRENT ASSOC:");
-//             for (Association a : AllPairsList) {
-//                 System.out.println("\t" + a);
-//             }
-//         }
-        
-        EventSource.raise(newField, new Event(null, Event.ADDED));
+    private static Schema replaceSchema(final Schema old, final Schema newAuthority) 
+    {
+        Schema s = Schema.lookupAuthority(old);
+        if (s != old) {
+            if (s != newAuthority) {
+                if (DEBUG.SCHEMA) Log.debug("ASSOCIATION NEEDED PATCHING BEYOND NEW AUTHORITY " + old, new Throwable("HERE"));
+            }
+            if (!old.isDiscarded()) {
+                if (DEBUG.SCHEMA) Log.debug("REPLACED SCHEMA WASN'T DISCARDED! " + old, new Throwable("HERE"));
+            }
+        }
+        return s;
     }
+    
+
+//     public static void addByAll(Field newField, Collection<Field> existingFields) {
+
+//         if (existingFields.size() == 0)
+//             return;
+
+//         for (Field f : existingFields)
+//             new Association(newField, f, false);
+
+// //         if (DEBUG.Enabled) {
+// //             Log.debug("CURRENT ASSOC:");
+// //             for (Association a : AllPairsList) {
+// //                 System.out.println("\t" + a);
+// //             }
+// //         }
+        
+//         EventSource.raise(newField, new Event(null, Event.ADDED));
+//     }
 
     /** @return all Associations */
     public static List<Association> getAll() {

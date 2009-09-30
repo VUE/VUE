@@ -40,7 +40,7 @@ import com.google.common.collect.Multimaps;
  * generally "short" enough, it will enumerate all the unique values found in that
  * column.
  *
- * @version $Revision: 1.48 $ / $Date: 2009-09-30 19:04:37 $ / $Author: sfraize $
+ * @version $Revision: 1.49 $ / $Date: 2009-09-30 21:28:20 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -229,7 +229,7 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
                 isDiscarded = true;
         }
     }
-    private synchronized boolean isDiscarded() {
+    synchronized boolean isDiscarded() {
         return isDiscarded;
     }
 
@@ -425,19 +425,24 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
             Schema.dumpAuthorities();
         }
 
+        // FIRST attempt all authority replacements:
+
         for (Schema schema : restoredSchemaHandles) {
             try {
                 if (DEBUG.SCHEMA) Log.debug(schema + "; RESTORE AND REPLACE");
                 schema.restoreFields();
-                attemptAuthorityReplacement(schema, restoredMap, allRestored);
+                updateRestoredMapToAuthorities(schema, restoredMap, allRestored);
             } catch (Throwable t) {
                 Log.error("error updating schema references for " + schema, t);
             }
         }
+
+        // THEN scan for associations, so we can create associations based on all new authoritative references:
+        
         for (Schema schema : restoredSchemaHandles) {
             try {
                 //if (DEBUG.SCHEMA) Log.debug(schema + "; CREATE ASSOCIATIONS");
-                createAttachableAssociations(schema, schema.mPersistFields); // these Fields may have just been effectively discarded!
+                createAttachableAssociations(schema, schema.mPersistFields); // note that Fields may have just been discarded
             } catch (Throwable t) {
                 Log.error("error scanning for associations in " + schema, t);
             }
@@ -454,14 +459,14 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
         }
     }
 
-    private static synchronized boolean attemptAuthorityReplacement
+    private static synchronized boolean updateRestoredMapToAuthorities
         (final Schema handle,
          final tufts.vue.LWMap restoredMap,
          final Collection<LWComponent> allRestored)
     {
         Schema existing = lookup(handle);
         if (existing != null) {
-            Log.debug("DUMPING THIS SCHEMA FOR EXISTING:\n\t  dumped: " + handle + "\n\texisting: " + existing);
+            if (DEBUG.Enabled) Log.debug("DUMPING THIS SCHEMA FOR EXISTING:\n\t  dumped: " + handle + "\n\texisting: " + existing);
             handle.discardFor(existing);
             replaceSchemaReferences(handle, existing, allRestored, restoredMap);
             
@@ -508,82 +513,33 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
 
     }
 
-    private static synchronized void createAttachableAssociations(Schema schema, Collection<Field> restoredFields) {
-        if (DEBUG.SCHEMA) Log.debug(schema + "; createAttachableAssociations");
-        for (Field field : restoredFields) {
-            for (Field.PersistRef ref : field.getRelatedFieldRefs()) {
-                if (DEBUG.SCHEMA) Log.debug(schema + "; persisted relation for " + field + ": " + ref);
-                for (Field possibleMatch : AllFieldsByLowerName.get(ref.fieldName.toLowerCase())) {
-                    final String guid = possibleMatch.getSchema().getGUID();
-                    Log.debug("Checking GUID " + guid);
-                    if (ref.schemaGuid.equals(guid)) {
-                        final Field match = possibleMatch;
-                        if (match.getSchema().isDiscarded()) {
-                            Log.debug("ignoring association match for discarded schema: " + match);
-                        } else {
-                            Log.debug("found live field to match ref: " + ref + " = " + Util.tags(match));
-                            Association.add(field, match);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-//     /** to be called on each schema at the end of a map load */
-//     private void attemptReplacementsAndFindAssociations
-//         (final tufts.vue.LWMap restoredMap,
-//          final Collection<LWComponent> allRestored)
-//     {
-//         Log.debug(this + "; SYNC TO GLOBAL MODEL");
-        
-//         boolean replacedByExistingSchema = false;
-//         if (getDSGUID() != null) {
-//             Schema existing = lookup(this);
-//             if (existing != null) {
-//                 Log.debug("DUMPING THIS SCHEMA FOR EXISTING:\n\t  dumped: " + this + "\n\texisting: " + existing);
-//                 replaceSchemaReferences(this, existing, allRestored, restoredMap);
-//                 replacedByExistingSchema = true;
-//             } else {
-//                 registerAsAuthority();
-//             }
-//         }
-        
-//         //Log.debug("LOAD FIELDS WITH " + mPersistFields);
-        
-//         if (!replacedByExistingSchema) {
-//             for (Field f : mPersistFields) {
-
-//                 final LWComponent style = f.getStyleNode();
-//                 if (DEBUG.Enabled) Log.debug(String.format("keeping field %s%-23s%s style=%s",
-//                                                            Util.TERM_GREEN, f, Util.TERM_CLEAR, style));
-//                 initStyleNode(style);
-//                 addField(f);
-//             }
-    
-//             createAttachableAssociations(mPersistFields); // WE DID THIS ONLY IF WE DIDN'T REPLACE THE SCHEMA WITH AN AUTHORITY?
-    
-//             if (DEBUG.Enabled) Log.debug(this + " IS THE AUTHORITY; DSGUID=" + getDSGUID() + "\n");
-            
-//         }
-//     }
-    
-    
-    /** find all schema handles in all nodes that match the new schema
-     * and replace them with pointers to the live data schema */
     // codepath: called in XmlDataSource anytime we load a new authoritative, "real" schema -- as such
     // couldn't we do this automatically?
     public static synchronized void reportNewAuthoritativeSchema
-        (final Schema newlyLoadedSchema,
+        (final Schema newAuthority,
+         final Collection<tufts.vue.LWMap> maps)
+    {
+        tufts.vue.gui.GUI.invokeOnEDT(new Runnable() { public void run() {
+            // safest to ensure all this happs on the AWT thread, so later association data
+            // fetches (data search & filter actions) don't need synchronized read access
+            makeSchemaReferencesAuthoritative(newAuthority, maps);
+            Association.updateForNewAuthoritativeSchema(newAuthority);
+        }});
+    }
+    
+    /** find all schema handles in all nodes that match the new schema
+     * and replace them with pointers to the live data schema */
+    private static synchronized void makeSchemaReferencesAuthoritative
+        (final Schema newAuthority,
          final Collection<tufts.vue.LWMap> maps)
     {
         if (DEBUG.Enabled) {
-            Log.debug("updateAllSchemaReferences; " + newlyLoadedSchema + "; maps: " + maps);
+            Log.debug("makeSchemaReferencesAuthoritative; " + newAuthority + "; maps: " + maps);
             dumpAuthorities();
         }
         
-        if (!newlyLoadedSchema.isLoaded()) {
-            Log.warn("newly loaded schema is empty: " + newlyLoadedSchema, new Throwable("FYI"));
+        if (!newAuthority.isLoaded()) {
+            Log.warn("newly loaded schema is empty: " + newAuthority, new Throwable("FYI"));
             return;
         }
         
@@ -616,7 +572,7 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
                         curSchema.discardFor(newSchema);
                         data.setSchema(newSchema);
                         updateCount++;
-                        if (newSchema != newlyLoadedSchema) {
+                        if (newSchema != newAuthority) {
                             Log.warn("out of date schema in " + c + "; oldSchema=" + curSchema + "; replaced with " + newSchema);
                         } else {
                             //if (DEBUG.SCHEMA) Log.debug("replaced schema handle in " + c);
@@ -634,6 +590,32 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
     }
     
 
+    private static synchronized void createAttachableAssociations(Schema schema, Collection<Field> restoredFields) {
+        if (DEBUG.SCHEMA) Log.debug(schema + "; createAttachableAssociations");
+        for (final Field field : restoredFields) {
+            for (Field.PersistRef ref : field.getRelatedFieldRefs()) {
+                if (DEBUG.SCHEMA) Log.debug(schema + "; persisted relation for " + field + ": " + ref);
+                for (Field possibleMatch : AllFieldsByLowerName.get(ref.fieldName.toLowerCase())) {
+                    final String guid = possibleMatch.getSchema().getGUID();
+                    //Log.debug("Checking GUID " + guid);
+                    if (ref.schemaGuid.equals(guid)) {
+                        final Field match = possibleMatch;
+                        if (match.getSchema().isDiscarded()) {
+                            Log.debug("ignoring association match for discarded schema: " + match);
+                        } else {
+                            Log.debug("found live field to match ref: " + ref + " = " + Util.tags(match));
+                            tufts.vue.gui.GUI.invokeOnEDT(new Runnable() { public void run() {
+                                // safest to ensure all this happs on the AWT thread, so later association data
+                                // fetches (data search & filter actions) don't need synchronized read access
+                                Association.add(field, match);
+                            }});
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
     //private static tufts.vue.LWContainer FalseStyleParent = new tufts.vue.LWNode("FalseStyleParent");
 
     private Field addField(final Field newField) {
