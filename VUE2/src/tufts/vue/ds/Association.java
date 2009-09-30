@@ -17,7 +17,7 @@ import com.google.common.collect.Multimaps;
  * the key field of two Schema's, which is considered to be a join in the classic
  * database sense.
  *
- * @version $Revision: 1.13 $ / $Date: 2009-09-30 23:08:43 $ / $Author: sfraize $
+ * @version $Revision: 1.14 $ / $Date: 2009-09-30 23:09:33 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -194,7 +194,6 @@ public final class Association
     {
         final Schema s = Schema.lookupAuthority(old);
         if (s != old) {
-            String warn = null;
             if (s != newAuthority) {
                 Log.warn("ASSOCIATION NEEDED PATCHING UNRELATED TO NEW AUTHORITY REPORT;"
                          + "\n\t    old: " + old
