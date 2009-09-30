@@ -37,7 +37,7 @@ import javax.swing.ImageIcon;
  *  objects, displaying their content, and fetching their data.
 
  *
- * @version $Revision: 1.90 $ / $Date: 2009-09-02 16:25:59 $ / $Author: sfraize $
+ * @version $Revision: 1.91 $ / $Date: 2009-09-30 22:29:25 $ / $Author: sfraize $
  */
 
 public abstract class Resource implements Cloneable
@@ -1270,7 +1270,7 @@ public abstract class Resource implements Cloneable
             try {
                 url = new URL(s);
             } catch (java.net.MalformedURLException e) {
-                if (DEBUG.Enabled) Log.info("makeURL: " + s + "; " + e);
+                if (DEBUG.WORK || DEBUG.RESOURCE) Log.info("makeURL: " + s + "; " + e);
             }
 
             if (url != null)
@@ -1302,7 +1302,7 @@ public abstract class Resource implements Cloneable
             //final URL url = new URL(java.net.URLDecoder.decode(uri.toString(), "UTF-8"));
 
             //if (DEBUG.RESOURCE && url != null) dumpURL(url, "MADE URL FROM " + Util.tags(s) + "; via " + Util.tags(uri));
-            if (DEBUG.Enabled && url != null) dumpURL(url, "Made URL FROM " + Util.tags(uri));
+            if ((DEBUG.WORK || DEBUG.RESOURCE) && url != null) dumpURL(url, "Made URL FROM " + Util.tags(uri));
 
             return url;
             

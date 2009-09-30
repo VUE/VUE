@@ -48,7 +48,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.490 $ / $Date: 2009-09-28 18:59:49 $ / $Author: sfraize $
+ * @version $Revision: 1.491 $ / $Date: 2009-09-30 22:29:25 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2972,28 +2972,28 @@ u                    getSlot(c).setFromString((String)value);
         // may prevent the entire map from drawing sanely or at all.
         
         if (Float.isNaN(x)) {
-            Log.warn(this + " bad x");
+            Log.warn("bad x " + this);
             x = 0;
             bad = true;
         }
         if (Float.isNaN(y)) {
-            Log.warn(this + " bad y");
+            Log.warn("bad y " + this);
             y = 0;
             bad = true;
         }
         if (Float.isNaN(width)) {
-            Log.warn(this + " bad width");
+            Log.warn("bad width " + this);
             width = 0;
             bad = true;
         }
         if (Float.isNaN(height)) {
-            Log.warn(this + " bad height");
+            Log.warn("bad height " + this);
             height = 0;
             bad = true;
         }
 
         if (supportsProperty(KEY_FontSize) && mFontSize.get() < 1) {
-            Log.warn(this + " bad font size " + mFontSize.get());
+            Log.warn("bad font size " + mFontSize.get() + " " + this);
             mFontSize.set(1);
             bad = true;
         }

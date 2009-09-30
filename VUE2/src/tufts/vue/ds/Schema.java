@@ -40,7 +40,7 @@ import com.google.common.collect.Multimaps;
  * generally "short" enough, it will enumerate all the unique values found in that
  * column.
  *
- * @version $Revision: 1.49 $ / $Date: 2009-09-30 21:28:20 $ / $Author: sfraize $
+ * @version $Revision: 1.50 $ / $Date: 2009-09-30 22:29:25 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -397,8 +397,8 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
 
         for (Field field : mPersistFields) {
             field.setSchema(this);
-            if (DEBUG.Enabled) Log.debug(String.format("seen field %s%-20s%s",
-                                                       Util.TERM_YELLOW, field, Util.TERM_CLEAR));
+            if (DEBUG.SCHEMA) Log.debug(String.format("seen field %s%-20s%s",
+                                                      Util.TERM_YELLOW, field, Util.TERM_CLEAR));
         }
         
         // We can't do this now, at deserialize time, as we wont see any Schema's
@@ -452,8 +452,8 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
     private synchronized void restoreFields() {
         for (Field f : mPersistFields) {
             final LWComponent style = f.getStyleNode();
-            if (DEBUG.Enabled) Log.debug(String.format("restore field %s%-23s%s style=%s",
-                                                       Util.TERM_GREEN, f, Util.TERM_CLEAR, style));
+            if (DEBUG.SCHEMA) Log.debug(String.format("restore field %s%-23s%s style=%s",
+                                                      Util.TERM_GREEN, f, Util.TERM_CLEAR, style));
             runtimeInitStyleNode(style);
             addField(f); // must do this to get all field names in the global multi-map for association lookups
         }
