@@ -17,7 +17,7 @@ import com.google.common.collect.Multimaps;
  * the key field of two Schema's, which is considered to be a join in the classic
  * database sense.
  *
- * @version $Revision: 1.10 $ / $Date: 2009-09-30 22:01:54 $ / $Author: sfraize $
+ * @version $Revision: 1.11 $ / $Date: 2009-09-30 22:09:34 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -33,29 +33,7 @@ public final class Association
     final Schema schema1;
     final Schema schema2;
     
-//     // castor persistance will not allow these to be final
-//     /*final*/ Field field1;
-//     /*final*/ Field field2;
-//     /*final*/ Schema schema1;
-//     /*final*/ Schema schema2;
-// //     /** neeeded in order to allow association fields to be final */
-// //     public static final class Persist {
-// //         Schema schema1, schema2;
-// //         Field field1, field2;
-// //         boolean enabled;
-// //     }
-// //     public final Persist getPersist() {
-// //         Persist p = new Persist();
-// //         p.schema1 = schema1;
-// //         p.schema2 = schema2;
-// //         p.field1 = field1;
-// //         p.field2 = field2;
-// //         p.enabled = enabled;
-// //         return p;
-// //     }
-
     boolean enabled;
-    
     public static final class Event {
         public static final Object ADDED = "added";
         public static final Object REMOVED = "removed";
@@ -150,8 +128,15 @@ public final class Association
         AllByField.remove(a.getRight(), a);
     }
     
-    static synchronized void updateForNewAuthoritativeSchema(final Schema newAuthority)
+    static void updateForNewAuthoritativeSchema(final Schema newAuthority)
     {
+        if (verifyAll(newAuthority))
+            EventSource.raise(Association.class, new Event(null, Event.CHANGED));
+    }
+
+    private static synchronized boolean verifyAll(final Schema newAuthority)
+    {
+        boolean changed = false;
         for (Association a : Util.copy(AllPairsList)) { // list may change during iteration
             
             // Technically, we should only really need to look for Associations that
@@ -161,18 +146,24 @@ public final class Association
             // of the above and just scan every association for conditions that don't
             // appear to be in sync.
             
-            verifyAndUpdateAssociation(a, newAuthority);
+            try {
+                if (verifyAndUpdate(a, newAuthority))
+                    changed = true;
+            } catch (Throwable t) {
+                Log.error("verifying association " + Util.tags(a) + " with newAuthority " + newAuthority, t);
+            }
         }
+        return changed;
     }
 
-    private static void verifyAndUpdateAssociation(final Association a, final Schema newAuthority) 
+    private static boolean verifyAndUpdate(final Association a, final Schema newAuthority) 
     {
         final Schema s1 = replaceSchema(a.schema1, newAuthority);
         final Schema s2 = replaceSchema(a.schema2, newAuthority);
 
         if (s1 == a.schema1 && s2 == a.schema2) {
             // doesn't need updating
-            return;
+            return false;
         }
         
         final Field f1, f2;
@@ -192,10 +183,12 @@ public final class Association
             // todo: we want to replace the exact location in the AllPairsList
             // so the UI won't re-order
             int index = AllPairsList.indexOf(a);
-            removeImpl(a);
+            removeImpl(a); // toss the old one completely
+            a.enabled = false; // just in case, tho nothing should be referencing
             replacement = addImpl(f1, f2, index);
         }
-        EventSource.raise(Association.class, new Event(replacement, Event.CHANGED));
+        return true;
+        //EventSource.raise(Association.class, new Event(replacement, Event.CHANGED));
         
     }
 
