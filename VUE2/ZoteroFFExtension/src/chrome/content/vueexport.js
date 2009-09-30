@@ -21,6 +21,7 @@ zPane: null,
 installLocation: "",
 pathsep: "/",
 win: null,
+userag: null,
 count: 100,
 wm: null,
 importMapDataListener: function(evt)
@@ -339,9 +340,9 @@ startVUE: function() {
 	/**
 	 * Crude Test to see if we're running on windows, if we are, set the path separator appropriately.
 	 */
-	 var userag = navigator.userAgent;
+	 
 
-	 var iow = userag.indexOf("Win");
+	 var iow = this.userag.indexOf("Win");
 	 
      if(iow != -1)
      {
@@ -578,6 +579,7 @@ init: function()
 {
 	
 	// During initialisation
+	this.userag = navigator.userAgent;
 	var container = gBrowser.tabContainer;
 	container.addEventListener("TabSelect", this.vueTabSelected, false);
 	
