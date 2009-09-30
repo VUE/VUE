@@ -17,7 +17,7 @@ import com.google.common.collect.Multimaps;
  * the key field of two Schema's, which is considered to be a join in the classic
  * database sense.
  *
- * @version $Revision: 1.9 $ / $Date: 2009-09-30 21:34:22 $ / $Author: sfraize $
+ * @version $Revision: 1.10 $ / $Date: 2009-09-30 22:01:54 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -87,7 +87,7 @@ public final class Association
         schema1 = field1.getSchema();
         schema2 = field2.getSchema();
         if (DEBUG.SCHEMA)
-            Log.debug("New association:"
+            Log.debug("instancing:"
                       + "\n\tfield 1: " + quoteKey(f1) + " " + Util.tags(f1) + " " + schema1
                       + "\n\tfield 2: " + quoteKey(f2) + " " + Util.tags(f2) + " " + schema2);
         enabled = isOn;
@@ -96,18 +96,18 @@ public final class Association
         
     }
 
-        
+    private static final int INDEX_DEFAULT = -1;
 
     /** add a global association between the given two fields */
     public static void add(Field f1, Field f2) {
 
-        Association a = addImpl(f1, f2);
+        Association a = addImpl(f1, f2, INDEX_DEFAULT);
         
         if (a != null)
             EventSource.raise(Association.class, new Event(a, Event.ADDED));
     }
 
-    private static synchronized Association addImpl(Field f1, Field f2) {
+    private static synchronized Association addImpl(Field f1, Field f2, int index) {
 
         boolean alreadyExists = false;
         for (Association scan : AllPairsList) {
@@ -123,10 +123,17 @@ public final class Association
             return null;
         } else {
             Association a = new Association(f1, f2, true);
-            if (DEBUG.SCHEMA) Log.debug("ADDING " + a);
+            if (DEBUG.SCHEMA) Log.debug("ADDING " + a + " at index " + index);
             AllByField.put(f1, a);
             AllByField.put(f2, a);
-            AllPairsList.add(a);
+            if (index >= 0)
+                AllPairsList.add(index, a);
+            else
+                AllPairsList.add(a);
+            if (DEBUG.SCHEMA) {
+                Log.debug("all associations:");
+                Util.dump(AllPairsList);
+            }
             return a;
         }
     }
@@ -180,12 +187,15 @@ public final class Association
         else
             f2 = replaceField(a.field2, s2);
 
+        final Association replacement;
         synchronized (Association.class) {
             // todo: we want to replace the exact location in the AllPairsList
             // so the UI won't re-order
+            int index = AllPairsList.indexOf(a);
             removeImpl(a);
-            add(f1, f2);
+            replacement = addImpl(f1, f2, index);
         }
+        EventSource.raise(Association.class, new Event(replacement, Event.CHANGED));
         
     }
 
