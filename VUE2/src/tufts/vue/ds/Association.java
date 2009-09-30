@@ -17,7 +17,7 @@ import com.google.common.collect.Multimaps;
  * the key field of two Schema's, which is considered to be a join in the classic
  * database sense.
  *
- * @version $Revision: 1.12 $ / $Date: 2009-09-30 22:12:19 $ / $Author: sfraize $
+ * @version $Revision: 1.13 $ / $Date: 2009-09-30 23:08:43 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -156,8 +156,8 @@ public final class Association
 
     private static boolean verifyAndUpdate(final Association a, final Schema newAuthority) 
     {
-        final Schema s1 = replaceSchema(a.schema1, newAuthority);
-        final Schema s2 = replaceSchema(a.schema2, newAuthority);
+        final Schema s1 = replaceSchema(a, a.schema1, newAuthority);
+        final Schema s2 = replaceSchema(a, a.schema2, newAuthority);
 
         if (s1 == a.schema1 && s2 == a.schema2) {
             // doesn't need updating
@@ -190,15 +190,27 @@ public final class Association
         
     }
 
-    private static Schema replaceSchema(final Schema old, final Schema newAuthority) 
+    private static Schema replaceSchema(Association a, final Schema old, final Schema newAuthority) 
     {
-        Schema s = Schema.lookupAuthority(old);
+        final Schema s = Schema.lookupAuthority(old);
         if (s != old) {
+            String warn = null;
             if (s != newAuthority) {
-                Log.warn("ASSOCIATION NEEDED PATCHING BEYOND NEW AUTHORITY " + old, new Throwable("HERE"));
+                Log.warn("ASSOCIATION NEEDED PATCHING UNRELATED TO NEW AUTHORITY REPORT;"
+                         + "\n\t    old: " + old
+                         + "\n\t lookup: " + s
+                         + "\n\tnewAuth: " + newAuthority
+                         + "\n\t  assoc: " + a
+                         ,new Throwable("HERE"));
             }
             if (!old.isDiscarded()) {
-                Log.warn("REPLACED SCHEMA WASN'T DISCARDED! " + old, new Throwable("HERE"));
+                Log.warn("REPLACED SCHEMA WASN'T DISCARDED; "
+                         + "\n\t    old: " + old
+                         + "\n\t lookup: " + s
+                         + "\n\tnewAuth: " + newAuthority
+                         + "\n\t  assoc: " + a
+                         ,new Throwable("HERE"));
+
             }
         }
         return s;
