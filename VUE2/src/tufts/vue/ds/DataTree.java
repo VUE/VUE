@@ -53,7 +53,7 @@ import com.google.common.collect.*;
  * currently active map, code for adding new nodes to the current map,
  * and initiating drags of fields or rows destined for a map.
  *
- * @version $Revision: 1.92 $ / $Date: 2009-09-28 19:06:11 $ / $Author: brian $
+ * @version $Revision: 1.93 $ / $Date: 2009-09-30 14:42:16 $ / $Author: anoop $
  * @author  Scott Fraize
  */
 
@@ -1552,8 +1552,11 @@ public class DataTree extends javax.swing.JTree
             if (nodes.size() > 1) {
                 if (DEBUG.Enabled) 
                     tufts.vue.LayoutAction.table.act(nodes);
-                else
-                    tufts.vue.LayoutAction.random.act(nodes);                
+                else {
+                	VUE.activateWaitCursor();
+                    tufts.vue.LayoutAction.random.act(nodes);
+                    VUE.clearWaitCursor();
+                }
             }
 
             VUE.getSelection().setTo(nodes);
