@@ -59,7 +59,7 @@
  		//the VUE extension would fall out of scope after firefox had been open for a while
  		//and the menu items related to VUE would eventually lose their listeners and stop firing events.
  		
-        function init() {
+        function vueInit() {
             document.getElementById('start-vue-tool').addEventListener('click', function (e) {                
                Zotero.VUEExport.startVUE();
             }, false);
@@ -150,10 +150,10 @@
 	             }   
             }, false);
             
-             document.addEventListener("MyExtensionEvent", listeners[0] , false, true);
-             document.addEventListener("ImportMapDataEvent",listeners[1] , false, true);
-             document.addEventListener("ImportUrlDataEvent", listeners[2], false, true);
-             document.addEventListener("ImportFileDataEvent", listeners[3] , false, true);
+             document.addEventListener("MyExtensionEvent", listeners[0] , false);
+             document.addEventListener("ImportMapDataEvent",listeners[1] , false);
+             document.addEventListener("ImportUrlDataEvent", listeners[2], false);
+             document.addEventListener("ImportFileDataEvent", listeners[3] , false);
              
             
             Zotero.VUEExport.init();
@@ -171,7 +171,7 @@
         {
         	return Zotero.VUEExport.isVueRunning();
         }
-        function dispose() {
+        function vueDispose() {
          	document.removeEventListener("MyExtensionEvent", listeners[0] , false, true);
             document.removeEventListener("ImportMapDataEvent",listeners[1] , false, true);
             document.removeEventListener("ImportUrlDataEvent", listeners[2], false, true);
@@ -179,7 +179,7 @@
             Zotero.VUEExport.dispose();
         }
         
-        window.addEventListener('load', function (e) { init(); }, false);
-        window.addEventListener('unload', function(e) { dispose(); }, false);
+        window.addEventListener('load', function (e) { vueInit(); }, false);
+        window.addEventListener('unload', function(e) { vueDispose(); }, false);
     ]]></script>   
 </overlay>

@@ -4,9 +4,9 @@
 //					.getService(Components.interfaces.mozIJSSubScriptLoader);
 //	loader.loadSubScript("chrome://vueexport/content/vueexport.js");
 //}
-const jsLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
+const vueLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
                                     .getService(Components.interfaces.mozIJSSubScriptLoader);
-jsLoader.loadSubScript("chrome://vueexport/content/yahoo-dom-event.js");
-jsLoader.loadSubScript("chrome://vueexport/content/xml.js");
-jsLoader.loadSubScript("chrome://vueexport/content/vueexport.js");
+vueLoader.loadSubScript("chrome://vueexport/content/yahoo-dom-event.js");
+vueLoader.loadSubScript("chrome://vueexport/content/xml.js");
+vueLoader.loadSubScript("chrome://vueexport/content/vueexport.js");
 
