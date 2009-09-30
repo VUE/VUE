@@ -193,6 +193,7 @@ public class DataSetViewer extends ContentViewer {
 			contextMenu = new JPopupMenu();
 
 			contextMenu.add(DSB.editLibraryAction);
+			contextMenu.add(DSB.reloadLibraryAction);
 			contextMenu.addSeparator();
 			contextMenu.add(DSB.removeLibraryAction);
 		}

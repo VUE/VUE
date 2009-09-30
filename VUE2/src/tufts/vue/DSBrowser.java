@@ -130,6 +130,7 @@ public class DSBrowser extends ContentBrowser {
 	protected void refreshMenuActions() {
 		boolean		datasetSelected = (dataSetViewer.dataSourceList.getSelectedValue() != null);
 
+		reloadLibraryAction.setEnabled(datasetSelected);
 		removeLibraryAction.setEnabled(datasetSelected);
 		editLibraryAction.setEnabled(datasetSelected);
 
@@ -138,6 +139,7 @@ public class DSBrowser extends ContentBrowser {
 			addLibraryAction,
 			null,
 			editLibraryAction,
+			reloadLibraryAction,
 			removeLibraryAction
 		});
 	}
@@ -172,6 +174,14 @@ public class DSBrowser extends ContentBrowser {
 			DataSource ds = (DataSource)DataSetViewer.dataSourceList.getSelectedValue();
 
 			dataSetViewer.displayEditOrInfo(ds);
+		}
+	};
+
+
+	public AbstractAction reloadLibraryAction = new AbstractAction(VueResources.getString("datasourcehandler.reloaddataset")) {
+		public static final long	serialVersionUID = 1;
+		public void actionPerformed(ActionEvent event) {
+			dataSetViewer.refreshBrowser();
 		}
 	};
 
