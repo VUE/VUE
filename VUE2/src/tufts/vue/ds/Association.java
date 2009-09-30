@@ -17,7 +17,7 @@ import com.google.common.collect.Multimaps;
  * the key field of two Schema's, which is considered to be a join in the classic
  * database sense.
  *
- * @version $Revision: 1.6 $ / $Date: 2009-09-30 18:31:26 $ / $Author: sfraize $
+ * @version $Revision: 1.7 $ / $Date: 2009-09-30 19:15:07 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -77,13 +77,15 @@ public final class Association
 
     // /** for persistance only */ public Association() {}
     
-    // TODO: need to reject duplicate associations
     private Association(Field f1, Field f2, boolean isOn) {
         if (f1 == f2)
             throw new IllegalArgumentException("field can't associate to itself: " + f1);
         if (f1 == null || f2 == null)
             throw new IllegalArgumentException("null field: " + f1 + "; " + f2);
-        Log.debug("Adding association:\n\tfield 1: " + quoteKey(f1) + "\n\tfield 2: " + quoteKey(f2));
+        if (DEBUG.SCHEMA)
+            Log.debug("Adding association:"
+                      + "\n\tfield 1: " + quoteKey(f1) + " " + Util.tags(f1)
+                      + "\n\tfield 2: " + quoteKey(f2) + " " + Util.tags(f2));
         field1 = f1;
         field2 = f2;
         schema1 = field1.getSchema();
@@ -103,7 +105,8 @@ public final class Association
 
             boolean alreadyExists = false;
             for (Association scan : AllPairsList) {
-                if (scan.field1 == f1 && scan.field2 == f2) {
+                if ((scan.field1 == f1 && scan.field2 == f2) ||
+                    (scan.field1 == f2 && scan.field2 == f1)) {
                     alreadyExists = true;
                     if (DEBUG.SCHEMA) Log.debug("an association already exists between " + f1 + " and " + f2);
                     break;
