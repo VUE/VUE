@@ -401,108 +401,116 @@ public class AnalyzerAction extends Actions.LWCAction {
 	        
 		    public void act(LWComponent c) 
 		    {
-		    	//bags of components to add to map
-		    	final java.util.List<LWComponent> subCatcomps = new ArrayList<LWComponent>();
-		    	java.util.List<LWComponent> categoryComps = new ArrayList<LWComponent>();
-		    	
-		    	//Analyze the resource and get a multimap of types and values
-		    	Multimap<String,AnalyzerResult> list = null;
-		    	try{
-		    		list = analyzer.analyzeResource(c);	
-		    	}
-		    	catch(Exception e)
+		    	try
 		    	{
-		    		VueUtil.alert(VueResources.getString("dialog.semanticmaperror.message"), VueResources.getString("dialog.analyzeerror.title"));
-		    		e.printStackTrace();
-		    		return;
-		    	}
-		    	
-		    	if (list.isEmpty())
-		    	{
-		    		VueUtil.alert(VueResources.getString("dialog.semanticmaperror.noresults"), VueResources.getString("dialog.analyzeerror.title"));		    	
-		    		return;
-		    	
-		    	}
-		    	Color joinNodeColor = new Color(8,119,192);
-		    	Color leafNodeColor = new Color(157,219,83);
-		    			    
-		    	Iterator<String> categoryIterator = list.keySet().iterator();
-		    	boolean hasResults = false;
-		    	HashMap<LWNode,Collection> categoryChildren = new HashMap<LWNode,Collection>();
-		    	while (categoryIterator.hasNext())
-		    	{		
-		    		String key = categoryIterator.next();
-		    		
-		    		//Make a node for the key connect it to the central node.
-		    		//TODO
-
-		    		Collection al =  list.get(key);
-		    		tufts.vue.LWNode node = new tufts.vue.LWNode(key);
-		    		node.setLocation(c.getLocation());
-		    		tufts.vue.LWLink link = new tufts.vue.LWLink(c,node);
-		    		
-		    		if (al.size() > 1)
-		    		{
-		    		//	node.setFillColor(new Color())
-		    			node.setFillColor(joinNodeColor);
-		    			link.mStrokeStyle.setTo(LWComponent.StrokeStyle.DASHED);
-		    			categoryComps.add(node);
-		    			categoryComps.add(link);
-		    		
-		    			categoryChildren.put(node, al);
-		    		}
-		    		else
-		    		{
-		    			Iterator analyzerResults = al.iterator();
-		    			AnalyzerResult res = (AnalyzerResult)analyzerResults.next();
-		    			tufts.vue.LWNode singleNode = new tufts.vue.LWNode(res.getValue());
-			    		tufts.vue.LWLink singleLink = new tufts.vue.LWLink(c,singleNode);
-			    		singleNode.setFillColor(leafNodeColor);
-			    		singleLink.setLabel(key);
-			    		Font f = node.getFont();
-	    				Font derive = f.deriveFont(((float)(10+res.getCount())));
-	    				node.setFont(derive);
-	    				link.setStrokeColor(getColorFromRelevance(res.getRelevance()));
+		    		GUI.activateWaitCursor();
+			    	//bags of components to add to map
+			    	final java.util.List<LWComponent> subCatcomps = new ArrayList<LWComponent>();
+			    	java.util.List<LWComponent> categoryComps = new ArrayList<LWComponent>();
+			    	
+			    	//Analyze the resource and get a multimap of types and values
+			    	Multimap<String,AnalyzerResult> list = null;
+			    	try{
+			    		list = analyzer.analyzeResource(c);	
+			    	}
+			    	catch(Exception e)
+			    	{
+			    		VueUtil.alert(VueResources.getString("dialog.semanticmaperror.message"), VueResources.getString("dialog.analyzeerror.title"));
+			    		e.printStackTrace();
+			    		return;
+			    	}
+			    	
+			    	if (list.isEmpty())
+			    	{
+			    		VueUtil.alert(VueResources.getString("dialog.semanticmaperror.noresults"), VueResources.getString("dialog.analyzeerror.title"));		    	
+			    		return;
+			    	
+			    	}
+			    	Color joinNodeColor = new Color(8,119,192);
+			    	Color leafNodeColor = new Color(157,219,83);
+			    			    
+			    	Iterator<String> categoryIterator = list.keySet().iterator();
+			    	boolean hasResults = false;
+			    	HashMap<LWNode,Collection> categoryChildren = new HashMap<LWNode,Collection>();
+			    	while (categoryIterator.hasNext())
+			    	{		
+			    		String key = categoryIterator.next();
 			    		
-	    				//Topic is a weird category so just skip it.
-			    		if (!key.equals("Topic"))
-			    		{categoryComps.add(singleNode);
-			    		categoryComps.add(singleLink);}			    		
-		    		}
-		    	}
-		    		final LWMap active = VUE.getActiveMap();
-				    active.addChildren(categoryComps);			    
-				    LayoutAction.circle.act(categoryComps);
-				     
-				    Iterator nodeIterator = categoryChildren.keySet().iterator();
-				    while (nodeIterator.hasNext())
-				    {
-				    	subCatcomps.clear();
-				    	LWNode joinNode = (LWNode) nodeIterator.next();
-				    	
-				    	Collection subCategories = categoryChildren.get(joinNode);
-				    	Iterator subCatIt = subCategories.iterator();
-				    	while (subCatIt.hasNext())
-				    	{
-				    		AnalyzerResult res = (AnalyzerResult) subCatIt.next();
-				    		tufts.vue.LWNode node = new tufts.vue.LWNode(res.getValue());
-				    		tufts.vue.LWLink link = new tufts.vue.LWLink(joinNode,node);
-				    		node.setLocation(joinNode.getLocation());
-				    		node.setFillColor(leafNodeColor);
+			    		//Make a node for the key connect it to the central node.
+			    		//TODO
+	
+			    		Collection al =  list.get(key);
+			    		tufts.vue.LWNode node = new tufts.vue.LWNode(key);
+			    		node.setLocation(c.getLocation());
+			    		tufts.vue.LWLink link = new tufts.vue.LWLink(c,node);
+			    		
+			    		if (al.size() > 1)
+			    		{
+			    		//	node.setFillColor(new Color())
+			    			node.setFillColor(joinNodeColor);
+			    			link.mStrokeStyle.setTo(LWComponent.StrokeStyle.DASHED);
+			    			categoryComps.add(node);
+			    			categoryComps.add(link);
+			    		
+			    			categoryChildren.put(node, al);
+			    		}
+			    		else
+			    		{
+			    			Iterator analyzerResults = al.iterator();
+			    			AnalyzerResult res = (AnalyzerResult)analyzerResults.next();
+			    			tufts.vue.LWNode singleNode = new tufts.vue.LWNode(res.getValue());
+				    		tufts.vue.LWLink singleLink = new tufts.vue.LWLink(c,singleNode);
+				    		singleNode.setFillColor(leafNodeColor);
+				    		singleLink.setLabel(key);
 				    		Font f = node.getFont();
 		    				Font derive = f.deriveFont(((float)(10+res.getCount())));
 		    				node.setFont(derive);
 		    				link.setStrokeColor(getColorFromRelevance(res.getRelevance()));
-				    		subCatcomps.add(node);
-				    		subCatcomps.add(link);				    						    		
-				    	}
-				    
-				           	active.addChildren(subCatcomps);			    
-				           	LayoutAction.search.act(subCatcomps);
-        				    	
-                        
-				    
-				    }		  	
+				    		
+		    				//Topic is a weird category so just skip it.
+				    		if (!key.equals("Topic"))
+				    		{categoryComps.add(singleNode);
+				    		categoryComps.add(singleLink);}			    		
+			    		}
+			    	}
+			    		final LWMap active = VUE.getActiveMap();
+					    active.addChildren(categoryComps);			    
+					    LayoutAction.circle.act(categoryComps);
+					     
+					    Iterator nodeIterator = categoryChildren.keySet().iterator();
+					    while (nodeIterator.hasNext())
+					    {
+					    	subCatcomps.clear();
+					    	LWNode joinNode = (LWNode) nodeIterator.next();
+					    	
+					    	Collection subCategories = categoryChildren.get(joinNode);
+					    	Iterator subCatIt = subCategories.iterator();
+					    	while (subCatIt.hasNext())
+					    	{
+					    		AnalyzerResult res = (AnalyzerResult) subCatIt.next();
+					    		tufts.vue.LWNode node = new tufts.vue.LWNode(res.getValue());
+					    		tufts.vue.LWLink link = new tufts.vue.LWLink(joinNode,node);
+					    		node.setLocation(joinNode.getLocation());
+					    		node.setFillColor(leafNodeColor);
+					    		Font f = node.getFont();
+			    				Font derive = f.deriveFont(((float)(10+res.getCount())));
+			    				node.setFont(derive);
+			    				link.setStrokeColor(getColorFromRelevance(res.getRelevance()));
+					    		subCatcomps.add(node);
+					    		subCatcomps.add(link);				    						    		
+					    	}
+					    
+					           	active.addChildren(subCatcomps);			    
+					           	LayoutAction.search.act(subCatcomps);
+	        				    	
+	                        
+					    
+					    }		  
+		    	}
+		    	finally
+		    	{
+		    		GUI.clearWaitCursor();
+		    	}
 		    }
 		    
 		    public Color getColorFromRelevance(double relevance)
