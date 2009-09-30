@@ -40,7 +40,7 @@ import com.google.common.collect.Multimaps;
  * generally "short" enough, it will enumerate all the unique values found in that
  * column.
  *
- * @version $Revision: 1.51 $ / $Date: 2009-09-30 23:08:20 $ / $Author: sfraize $
+ * @version $Revision: 1.52 $ / $Date: 2009-09-30 23:12:19 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -516,12 +516,12 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
         (final Schema newAuthority,
          final Collection<tufts.vue.LWMap> maps)
     {
-        //tufts.vue.gui.GUI.invokeOnEDT(new Runnable() { public void run() {
+        tufts.vue.gui.GUI.invokeOnEDT(new Runnable() { public void run() {
             // safest to ensure all this happs on the AWT thread, so later association data
             // fetches (data search & filter actions) don't need synchronized read access
             makeSchemaReferencesAuthoritative(newAuthority, maps);
             Association.updateForNewAuthoritativeSchema(newAuthority);
-            //}});
+        }});
     }
     
     /** find all schema handles in all nodes that match the new schema
