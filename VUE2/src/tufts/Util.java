@@ -1679,7 +1679,7 @@ public class Util
             //System.out.format("Map of size: %d (%s) %s\n", m.size(), m.getClass().getName(), tag);
             System.out.format("Map of size: %d (%s) %s\n", m.size(), tag(m), tag);
             for (Map.Entry<?,?> e : m.entrySet()) {
-                System.out.format("%24s: %s\n", tags(e.getKey()), tags(e.getValue()));
+                System.out.format("    %24s: %s\n", tags(e.getKey()), tags(e.getValue()));
             }
         } else
             System.out.println("\t<NULL MAP>");
