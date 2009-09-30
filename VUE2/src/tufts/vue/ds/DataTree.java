@@ -53,7 +53,7 @@ import com.google.common.collect.*;
  * currently active map, code for adding new nodes to the current map,
  * and initiating drags of fields or rows destined for a map.
  *
- * @version $Revision: 1.93 $ / $Date: 2009-09-30 14:42:16 $ / $Author: anoop $
+ * @version $Revision: 1.94 $ / $Date: 2009-09-30 15:43:01 $ / $Author: mike $
  * @author  Scott Fraize
  */
 
@@ -1528,41 +1528,50 @@ public class DataTree extends javax.swing.JTree
 
         // todo: may want to merge some of this code w/DropHandler code, as
         // this is somewhat of a special case of doing a drop
-        
-        final List<DataRow> newRows = new ArrayList();
-
-        for (DataNode n : mAllRowsNode.getChildren()) {
-            if (!n.isMapPresent()) {
-                //Log.debug("ADDING TO MAP: " + n);
-                newRows.add(n.getRow());
-            }
-        }
-
-        final List<LWComponent> nodes = DataAction.makeRowNodes(mSchema, newRows);
-
-        try {
-            DataAction.addDataLinksForNodes(map, nodes, null);
-        } catch (Throwable t) {
-            Log.error("problem creating links on " + map + " for new nodes: " + Util.tags(nodes), t);
-        }
-
-        if (nodes.size() > 0) {
-            map.getOrCreateLayer("New Data Nodes").addChildren(nodes);
-
-            if (nodes.size() > 1) {
-                if (DEBUG.Enabled) 
-                    tufts.vue.LayoutAction.table.act(nodes);
-                else {
-                	VUE.activateWaitCursor();
-                    tufts.vue.LayoutAction.random.act(nodes);
-                    VUE.clearWaitCursor();
-                }
-            }
-
-            VUE.getSelection().setTo(nodes);
-        }
-
-        map.getUndoManager().mark("Add New Data Nodes");
+    	
+    	try
+    	{
+    		VUE.activateWaitCursor();
+    	
+	        final List<DataRow> newRows = new ArrayList();
+	
+	        for (DataNode n : mAllRowsNode.getChildren()) {
+	            if (!n.isMapPresent()) {
+	                //Log.debug("ADDING TO MAP: " + n);
+	                newRows.add(n.getRow());
+	            }
+	        }
+	
+	        final List<LWComponent> nodes = DataAction.makeRowNodes(mSchema, newRows);
+	
+	        try {
+	            DataAction.addDataLinksForNodes(map, nodes, null);
+	        } catch (Throwable t) {
+	            Log.error("problem creating links on " + map + " for new nodes: " + Util.tags(nodes), t);
+	        }
+	        
+	
+	        if (nodes.size() > 0) {
+	            map.getOrCreateLayer("New Data Nodes").addChildren(nodes);
+	
+	            if (nodes.size() > 1) {
+	                if (DEBUG.Enabled) 
+	                    tufts.vue.LayoutAction.table.act(nodes);
+	                else {
+	                	
+	                    tufts.vue.LayoutAction.random.act(nodes);
+	                }
+	            }
+	
+	            VUE.getSelection().setTo(nodes);
+	        }
+	
+	        map.getUndoManager().mark("Add New Data Nodes");
+    	}
+    	finally
+    	{
+    		VUE.clearWaitCursor();
+    	}
     }
 
     private static String makeFieldLabel(final Field field)
