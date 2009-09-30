@@ -6,7 +6,6 @@
 //}
 const jsLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
                                     .getService(Components.interfaces.mozIJSSubScriptLoader);
-jsLoader.loadSubScript("chrome://zotero/content/include.js");
 jsLoader.loadSubScript("chrome://vueexport/content/yahoo-dom-event.js");
 jsLoader.loadSubScript("chrome://vueexport/content/xml.js");
 jsLoader.loadSubScript("chrome://vueexport/content/vueexport.js");
