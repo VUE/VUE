@@ -51,7 +51,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.122 $ / $Date: 2009-09-28 18:59:49 $ / $Author: sfraize $  
+ * @version $Revision: 1.123 $ / $Date: 2009-09-30 16:05:59 $ / $Author: mike $  
  */
 public class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -225,34 +225,44 @@ public class MapDropTarget
     /** DropTargetListener */
     public void drop(DropTargetDropEvent e)
     {
-        /* UnsupportedOperation (tring to discover key's being held down ourselves) try {
-            System.out.println("caps state="+mViewer.getToolkit()
-                               .getLockingKeyState(java.awt.event.KeyEvent.VK_CAPS_LOCK));
-                               } catch (Exception ex) { System.err.println(ex); }*/
-
-        final DropIndication di = getIndication(e);        
-
-        if (DEBUG.DND) out(TERM_GREEN + "\nDROP: " + Util.tag(e)
-                           + "\n\t     sourceActions: " + dropName(e.getSourceActions())
-                           + "\n\t        dropAction: " + dropName(e.getDropAction())
-                           + "\n\t        dropAccept: " + dropName(di.acceptedAction)
-//                            + (Util.isWindowsPlatform() ?
-//                               "\n\tdropActionOverride: " + dropName(dropActionOverride) : "")
-                           + "\n\t          location: " + e.getLocation()
-                           + TERM_CLEAR
-                           );
-
-        e.acceptDrop(di.acceptedAction);
-        
-        // Scan thru the data-flavors, looking for a useful mime-type
-        boolean success =
-            processTransferable(e.getTransferable(), e);
-
-        if (DEBUG.DND) out(TERM_CYAN + "processTransferable: success=" + success + TERM_CLEAR);
-
-        e.dropComplete(success);
-        
-        mViewer.clearIndicated();        
+    	try
+    	{
+    		GUI.activateWaitCursor();
+    	
+	        /* UnsupportedOperation (tring to discover key's being held down ourselves) try {
+	            System.out.println("caps state="+mViewer.getToolkit()
+	                               .getLockingKeyState(java.awt.event.KeyEvent.VK_CAPS_LOCK));
+	                               } catch (Exception ex) { System.err.println(ex); }*/
+	
+	        final DropIndication di = getIndication(e);        
+	
+	        if (DEBUG.DND) out(TERM_GREEN + "\nDROP: " + Util.tag(e)
+	                           + "\n\t     sourceActions: " + dropName(e.getSourceActions())
+	                           + "\n\t        dropAction: " + dropName(e.getDropAction())
+	                           + "\n\t        dropAccept: " + dropName(di.acceptedAction)
+	//                            + (Util.isWindowsPlatform() ?
+	//                               "\n\tdropActionOverride: " + dropName(dropActionOverride) : "")
+	                           + "\n\t          location: " + e.getLocation()
+	                           + TERM_CLEAR
+	                           );
+	
+	        e.acceptDrop(di.acceptedAction);
+	        
+	        // Scan thru the data-flavors, looking for a useful mime-type
+	        boolean success =
+	            processTransferable(e.getTransferable(), e);
+	
+	        if (DEBUG.DND) out(TERM_CYAN + "processTransferable: success=" + success + TERM_CLEAR);
+	
+	        e.dropComplete(success);
+	        
+	      
+	        mViewer.clearIndicated();        
+    	}
+    	finally
+    	{
+    		GUI.clearWaitCursor();
+    	}
     }
     
 
@@ -1068,16 +1078,18 @@ public class MapDropTarget
         } catch (Throwable t) {
             Log.error("dropHandler failed: " + Util.tags(handler), t);
         }
+       
         return false;
     }
 
-    private void addNodesToMap(DropContext drop) {
-        if (DEBUG.Enabled) Log.debug("addNodesToMap: " + Util.tags(drop.items));
-        if (drop.hitParent != null) {
-            drop.hitParent.addChildren(drop.items, LWComponent.ADD_DROP);
-        } else {
-            drop.viewer.getDropFocal().addChildren(drop.items, LWComponent.ADD_DROP);
-        }
+    private void addNodesToMap(DropContext drop) 
+    {
+    	if (DEBUG.Enabled) Log.debug("addNodesToMap: " + Util.tags(drop.items));
+	    if (drop.hitParent != null) {
+	         drop.hitParent.addChildren(drop.items, LWComponent.ADD_DROP);
+	    } else {
+	         drop.viewer.getDropFocal().addChildren(drop.items, LWComponent.ADD_DROP);
+	    } 
     }
     
     private boolean processDroppedNodes(DropContext drop)
