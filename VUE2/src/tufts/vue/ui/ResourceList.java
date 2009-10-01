@@ -58,7 +58,7 @@ import javax.swing.border.*;
  * until a synthetic model item at the end of this shortened list is selected, at which
  * time the rest of the items are "unmaksed" and displayed.
  *
- * @version $Revision: 1.26 $ / $Date: 2009-09-29 20:51:46 $ / $Author: brian $
+ * @version $Revision: 1.27 $ / $Date: 2009-10-01 19:34:14 $ / $Author: brian $
  */
 public class ResourceList extends JList
     implements DragGestureListener, /*tufts.vue.ResourceSelection.Listener,*/ MouseListener,ActionListener
@@ -546,7 +546,7 @@ public class ResourceList extends JList
 		 }
 	}
     
-	private void setXYByClustering(LWNode node) {
+	public static void setXYByClustering(LWNode node) {
 		Iterator<LWComponent> i = VUE.getActiveMap().getAllDescendents(
 				LWContainer.ChildKind.PROPER).iterator();
 		float  xNumerator = 0 ;
@@ -585,7 +585,7 @@ public class ResourceList extends JList
 		
 	}
 	
-	private double computeScore (LWNode n1,LWNode n2) {
+	public static double computeScore (LWNode n1,LWNode n2) {
 		double score = 0.0;
 		String content1 = n1.getLabel();
 		String content2 = n1.getLabel();
@@ -613,7 +613,7 @@ public class ResourceList extends JList
 		return score;
 	}
 	
-	private boolean checkCollision(LWComponent c1, LWComponent c2) {
+	public static boolean checkCollision(LWComponent c1, LWComponent c2) {
 		boolean collide = false;
 		if(c2.getX()>= c1.getX() && c2.getX() <= c1.getX()+c1.getWidth() && c2.getY() >= c1.getY() && c2.getY() <=c1.getY()+c2.getHeight()) {
 			collide = true;

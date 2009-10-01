@@ -15,8 +15,10 @@
 
 package tufts.vue;
 
+import tufts.Util;
 import tufts.vue.action.ActionUtil;
 import tufts.vue.gui.WindowDisplayAction;
+import tufts.vue.ui.ResourceList;
 
 import javax.swing.*;
 import java.awt.*;
@@ -48,10 +50,15 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
     public static final String REMOVE_FAVORITES = VueResources.getString("dialog.favoriteswindow.removefavoritesfolder");
     public static final String RESOURCE_INFO = VueResources.getString("dialog.favoriteswindow.resourceinfo");
     public static final String OPEN_RESOURCE = VueResources.getString("dialog.favoriteswindow.openresource");
+    public static final String ADD_TO_MAP = VueResources.getString("dialog.favoriteswindow.addtomap");
+    public static final String ADD_TO_NODE = VueResources.getString("dialog.favoriteswindow.addtoselectednode");
+    public static final String REPLACE_ON_NODE = VueResources.getString("dialog.favoriteswindow.replaceresourceonnode");
+    public static final String ADD_TO_SLIDE = VueResources.getString("dialog.favoriteswindow.addtoslide");
     public static final String REMOVE_RESOURCE = VueResources.getString("dialog.favoriteswindow.removeresource");
     public static final String CONFIRM_DEL_RESOURCE =VueResources.getString("dialog.favoriteswindow.deleteresource");
     public static final String TITLE_DEL_RESOURCE = VueResources.getString("dialog.favoriteswindow.delresourceconf");
 //    public static final String SAVE_FILE = VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.favorites");
+    protected final static int MAX_LABEL_LINE_LENGTH = 30;
     private String saveFile;
     public static final int DEFAULT_SELECTION_ROW = 0;
     private DisplayAction displayAction = null;
@@ -60,6 +67,8 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
     private static int FAVORITES = Resource.FAVORITES;
     JTextField keywords;
     boolean fileOpen = false;
+    protected JMenuItem addToNodeMenuItem,
+                        addToSlideMenuItem;
     
     /** Creates a new instance of HierarchyTreeWindow */
     public FavoritesWindow(String displayName, String saveFile ) {
@@ -128,19 +137,31 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
         menuItem.addActionListener(this);
         popup.add(menuItem);
         
-		JPopupMenu popupResource = new JPopupMenu();
+        JPopupMenu popupResource = new JPopupMenu();
 
-    	WindowDisplayAction infoAction = new WindowDisplayAction(VUE.getInfoDock());
-        JCheckBoxMenuItem infoCheckBox = new JCheckBoxMenuItem(infoAction);
+        WindowDisplayAction  infoAction = new WindowDisplayAction(VUE.getInfoDock());
+        JCheckBoxMenuItem    infoCheckBox = new JCheckBoxMenuItem(infoAction);
 
-		infoCheckBox.setText(RESOURCE_INFO);
-		infoCheckBox.setSelected(VUE.getInfoDock().isShowing());
-		popupResource.add(infoCheckBox);
-		popupResource.addSeparator();
+        infoCheckBox.setText(RESOURCE_INFO);
+        infoCheckBox.setSelected(VUE.getInfoDock().isShowing());
+        popupResource.add(infoCheckBox);
+        popupResource.addSeparator();
 
         menuItem = new JMenuItem(OPEN_RESOURCE);
         menuItem.addActionListener(this);
         popupResource.add(menuItem);
+        popupResource.addSeparator();
+        menuItem = new JMenuItem(ADD_TO_MAP);
+        menuItem.addActionListener(this);
+        popupResource.add(menuItem);
+        addToNodeMenuItem = new JMenuItem(ADD_TO_NODE);
+        addToNodeMenuItem.addActionListener(this);
+        popupResource.add(addToNodeMenuItem);
+        addToSlideMenuItem = new JMenuItem(ADD_TO_SLIDE);
+        addToSlideMenuItem.addActionListener(this);
+        popupResource.add(addToSlideMenuItem);
+        popupResource.addSeparator();
+
         menuItem = new JMenuItem(REMOVE_RESOURCE);
         menuItem.addActionListener(this);
         popupResource.add(menuItem);
@@ -152,9 +173,22 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
         
         MouseListener popupListener = new PopupListener(popup,popupResource,popupAdd);
         favoritesTree.addMouseListener(popupListener);
+
+        enablePopupMenu();
     }
-    
-    
+
+    public void enablePopupMenu() {
+        LWSelection  sel = VUE.getActiveViewer().getSelection();
+        LWComponent  comp = sel.only();
+        boolean      isNode = (comp != null && comp instanceof LWNode),
+                     isSlide = (comp != null && comp instanceof LWSlide),
+                     hasResource = isNode && comp.hasResource();
+
+        addToNodeMenuItem.setText(hasResource? REPLACE_ON_NODE : ADD_TO_NODE);
+        addToNodeMenuItem.setEnabled(isNode);
+        addToSlideMenuItem.setEnabled(isSlide);
+    }
+
     public void actionPerformed(ActionEvent e) {
         ResourceNode resNode;
         FavoritesNode favresNode;
@@ -178,8 +212,32 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
                             favoritesTree.setSelectionRow(DEFAULT_SELECTION_ROW);
                     }
                 }
-            } else if (e.getActionCommand().toString().equals(ADD_FAVORITES)){
-                addFavorites(model,resNode);
+            } else if (e.getActionCommand().toString().equals(ADD_TO_MAP)){
+                String  label = Util.formatLines(resNode.getResource().getName(), MAX_LABEL_LINE_LENGTH);
+                LWNode  end = NodeTool.NodeModeTool.createNewNode(label);
+
+                end.setResource(resNode.getResource());
+                VUE.getActiveMap().addNode(end);
+                ResourceList.setXYByClustering(end);
+            } else if (e.getActionCommand().toString().equals(ADD_TO_NODE) ||
+                    e.getActionCommand().toString().equals(REPLACE_ON_NODE)){
+                LWSelection  sel = VUE.getActiveViewer().getSelection();
+                LWComponent  c = sel.only();
+
+                VUE.setActive(LWComponent.class, this, null);            
+                c.setResource(resNode.getResource());
+                c.setLabel(resNode.getResource().getName());
+                VUE.setActive(LWComponent.class, this, c);
+            } else if (e.getActionCommand().toString().equals(ADD_TO_SLIDE)){
+                LWSelection  sel = VUE.getActiveViewer().getSelection();
+                LWSlide      c = (LWSlide)sel.only();
+                LWImage      end = new LWImage();
+
+                end.setResource(resNode.getResource());
+                end.setStyle(c);
+                end.setResource(resNode.getResource());
+                end.setLabel(resNode.getResource().getName());
+                c.addChild(end);
             } else {
                 if (resNode instanceof FileNode) { ((FileNode)resNode).displayContent();} else {
                     resNode.getResource().displayContent();
@@ -189,7 +247,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
             performSearch();
         }
     }
-    
+
     private void addFavorites(DefaultTreeModel model, ResourceNode resNode){
         TreePath tp = new TreePath(resNode.getPath());
         FavoritesNode favresNode = (FavoritesNode)tp.getLastPathComponent();
@@ -431,6 +489,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
                     if (vtree.getSelectionPath().getLastPathComponent() instanceof FavoritesNode){
                         popup.show(e.getComponent(),e.getX(), e.getY());
                     } else{
+                        enablePopupMenu();
                         popupResource.show(e.getComponent(),e.getX(), e.getY());
                     }
                 } else {
