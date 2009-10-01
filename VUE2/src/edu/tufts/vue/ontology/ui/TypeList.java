@@ -1004,7 +1004,7 @@ public class TypeList extends JList implements MouseListener,ActionListener {
         if(o instanceof LWNode)
             addToMap.setText(VueResources.getString("typelist.addnodetomap.tooltip"));
         if(o instanceof LWLink)
-            addToMap.setText(VueResources.getString("typelist.addlinktonode.tooltip"));
+            addToMap.setText(VueResources.getString("typelist.addlinktomap.tooltip"));
         
         getPopup(e).show(e.getComponent(), e.getX(), e.getY());
     }
