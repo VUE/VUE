@@ -18,6 +18,8 @@ package tufts.vue;
 import tufts.Util;
 import tufts.vue.gui.DeleteSlideDialog;
 import tufts.vue.gui.GUI;
+import tufts.vue.gui.WindowDisplayAction;
+
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -61,7 +63,7 @@ import osid.dr.Asset;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.113 $ / $Date: 2009-09-30 18:53:36 $ / $Author: brian $
+ * @version $Revision: 1.114 $ / $Date: 2009-10-01 20:28:10 $ / $Author: brian $
  */
 
 public class PathwayTable extends JTable
@@ -1243,7 +1245,10 @@ public class PathwayTable extends JTable
         PathwayTableModel tableModel = getTableModel();
 		int col = this.getColumnModel().getColumnIndexAtX(e.getX());
 	    final LWPathway.Entry entry = tableModel.getEntry(row);
-	    
+        WindowDisplayAction  infoAction = new WindowDisplayAction(VUE.getInfoDock());
+        JCheckBoxMenuItem    infoCheckBox = new JCheckBoxMenuItem(infoAction);
+
+        infoCheckBox.setSelected(VUE.getInfoDock().isShowing());
 	    
 	    VUE.setActive(LWPathway.Entry.class, this, entry);
 	    
@@ -1254,6 +1259,8 @@ public class PathwayTable extends JTable
 	    selectedY = row;
 	    if (entry.isPathway())
 	    {
+	        infoCheckBox.setText(VueResources.getString("pathwaytable.menu.pathwayinfo"));
+	        m.add(infoCheckBox);
 	    	m.add(playbackPresentation);
 	    	m.addSeparator();
 	    	m.add(addNoteEntry);
@@ -1265,6 +1272,8 @@ public class PathwayTable extends JTable
 	    }
 	    else
 	    {
+	        infoCheckBox.setText(VueResources.getString("pathwaytable.menu.slideinfo"));
+	        m.add(infoCheckBox);
 	    	m.add(previewEntry);
 	    	m.addSeparator();
 	    	m.add(addNoteEntry);
