@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.191 $ / $Date: 2009-10-01 17:49:42 $ / $Author: mike $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.191 2009-10-01 17:49:42 mike Exp $ -->
+<!-- $Revision: 1.192 $ / $Date: 2009-10-01 18:06:52 $ / $Author: mike $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.192 2009-10-01 18:06:52 mike Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -1455,7 +1455,7 @@ cclass Version {
          </zip>
     	 <zip destfile="${release.home}/VUEApplet.zip">
     	            <zipfileset dir="${build.home}" includes="VUEApplet.jar" prefix="vueapplet" filemode="755"/>
-    	 			<zipfileset dir="${build.home}../apple-samplehtml/" includes="**/*.*" prefix="vueapplet" filemode="755"/>
+    	 			<zipfileset dir="${build.home}/../applet-samplehtml/" includes="**/*.*" prefix="vueapplet" filemode="755"/>
     	  </zip>
          <checksum file="${release.home}/VUE.zip" property="genericMD5"/>
          <zip destfile="${release.home}/VUE.app.zip">
