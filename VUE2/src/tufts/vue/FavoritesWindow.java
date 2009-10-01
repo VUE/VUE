@@ -16,8 +16,8 @@
 package tufts.vue;
 
 import tufts.vue.action.ActionUtil;
+import tufts.vue.gui.WindowDisplayAction;
 
-import javax.swing.JFrame;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -46,6 +46,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
     public static final String NEW_FAVORITES = VueResources.getString("dialog.favoriteswindow.newfFavoritesfolder");
     public static final String ADD_FAVORITES = VueResources.getString("dialog.favoriteswindow.addfavoritesfolder");
     public static final String REMOVE_FAVORITES = VueResources.getString("dialog.favoriteswindow.removefavoritesfolder");
+    public static final String RESOURCE_INFO = VueResources.getString("dialog.favoriteswindow.resourceinfo");
     public static final String OPEN_RESOURCE = VueResources.getString("dialog.favoriteswindow.openresource");
     public static final String REMOVE_RESOURCE = VueResources.getString("dialog.favoriteswindow.removeresource");
     public static final String CONFIRM_DEL_RESOURCE =VueResources.getString("dialog.favoriteswindow.deleteresource");
@@ -117,6 +118,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
     }
     
     public void createPopupMenu() {
+
         JMenuItem menuItem;
         JPopupMenu popup = new JPopupMenu();
         menuItem = new JMenuItem(ADD_FAVORITES);
@@ -126,7 +128,16 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
         menuItem.addActionListener(this);
         popup.add(menuItem);
         
-        JPopupMenu popupResource = new JPopupMenu();
+		JPopupMenu popupResource = new JPopupMenu();
+
+    	WindowDisplayAction infoAction = new WindowDisplayAction(VUE.getInfoDock());
+        JCheckBoxMenuItem infoCheckBox = new JCheckBoxMenuItem(infoAction);
+
+		infoCheckBox.setText(RESOURCE_INFO);
+		infoCheckBox.setSelected(VUE.getInfoDock().isShowing());
+		popupResource.add(infoCheckBox);
+		popupResource.addSeparator();
+
         menuItem = new JMenuItem(OPEN_RESOURCE);
         menuItem.addActionListener(this);
         popupResource.add(menuItem);
