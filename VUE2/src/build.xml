@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.193 $ / $Date: 2009-10-01 18:41:32 $ / $Author: mike $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.193 2009-10-01 18:41:32 mike Exp $ -->
+<!-- $Revision: 1.194 $ / $Date: 2009-10-05 20:42:22 $ / $Author: mike $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.194 2009-10-05 20:42:22 mike Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -155,24 +155,41 @@
 	  		   saaj-api-unsigned.jar
 		       saaj-impl-unsigned.jar		    
 		       okiSIDimpl.jar
-	           OSIDLoggingPlain-1.0.jar
- 		 	   jaxrpc-api-unsigned.jar
-		       jaxrpc-impl-unsigned.jar
+	           OSIDLoggingPlain-1.0.jar 		 	   
 		       jaxrpc-spi-unsigned.jar	   		   
 	  	  	   fedora-client_2_2.jar
 			   axis_1_5_3.jar
+		 	   joscar-0.9.3-bin.jar
+	  		   TuftsOsidProvider.jar
+		  	   VUE-Java15.jar
+		       XmlfileRepositoryOSID-1.0.jar
+		 	   axis-ant.jar 
+			   MITAuthenticationTypes.jar
+			   MIT-OTS-NO_PROVIDER.jar
+			   MITRepositoryTypes.jar
+		       MITSearchTypes.jar		       
+			   OsidRegistry.jar
+			   plugin.jar
+		       apple-laf.jar
+			   splash.jar
+			   xalan.jar
+			   mail.jar 
+			   googleapi.jar
+			   activation_unsigned.jar
+		       
 	"/>
   <property name="thirdparty.jarfiles.names"
-            value="TuftsOsidProvider.jar
-				   joscar-0.9.3-bin.jar
-				   xercesImpl-2.7.1.jar
+            value="xercesImpl-2.7.1.jar
+			       jaxrpc-api-unsigned.jar
+  			       jaxrpc-impl-unsigned.jar
 				   okiSID_rc6_1.jar
-			       okiOSID-2.0a.jar				  
-  	        	   xerces-2.7.1-xml-apis.jar	   
-            	   XmlfileRepositoryOSID-1.0.jar
+			       okiOSID-2.0a.jar		
+				   OsidProvider.jar
+  	        	   xerces-2.7.1-xml-apis.jar	               	   
             	   google-collect-snapshot-20090211.jar
   				   json.jar
-  				   calais.jar				   
+  				   calais.jar	
+				   arq-2.5.3.jar     
                    trippi-1.1.2-core.jar
                    commons-httpclient-3.1-beta1.jar 
 				   commons-lang-2.4.jar                   
@@ -184,27 +201,19 @@
                    relaxngDatatype.jar
                    namespace-unsigned.jar
                    xsdlib_unsigned.jar                  
-                   VUE-MacOSX.jar
-                   VUE-Java15.jar
-                   activation_unsigned.jar
-                   arq-2.5.3.jar
-                   mail.jar  
+                   VUE-MacOSX.jar                                                    
 			  	   iText-2.1.4.jar
-  			       dom2.jar
-  			  	   axis-ant.jar 
-                   apache-commons.jar
-                   apple-laf.jar
+  			       dom2.jar  			  	   
+                   apache-commons.jar                   
                    avalon-framework-cvs-20020806.jar                   
                    commons-codec-1.3.jar
                    commons-discovery.jar
                    commons-logging.jar
                    concurrent.jar
                    cryptix-asn1.jar
-                   cryptix32.jar                 
-  				   plugin.jar
+                   cryptix32.jar                   				   
                    fedoragentypes.jar
-                   gnu-getopt-1.0.9.jar
-                   googleapi.jar
+                   gnu-getopt-1.0.9.jar                   
                    icu4j-3_6.jar
                    id.jar
                    jakarta-regexp-1.2.jar
@@ -220,22 +229,14 @@
                    jxtaid.jar
                    jxtasecurity.jar
                    iri.jar
-                   log4j-1.2.12.jar
-                   MITAuthenticationTypes.jar
-				   MIT-OTS-NO_PROVIDER.jar
-				   MITRepositoryTypes.jar
-                   MITSearchTypes.jar
+                   log4j-1.2.12.jar                   
                    rome-0.9.jar                   
-                   opencsv-1.8.jar 
-				   OsidProvider.jar
-				   OsidRegistry.jar
+                   opencsv-1.8.jar 				   
                    saxon6.5.jar
                    servlet.jar
                    smete.jar
-                   smeteclient.jar
-                   splash.jar
-                   wsdl4j.jar
-                   xalan.jar
+                   smeteclient.jar                   
+                   wsdl4j.jar                   
                    xalan-2.4.1.jar
                    xmlrpc-1.1.jar                                      
                    simplyhtml2.jar    
@@ -821,6 +822,7 @@
       	<exclude name="MacOS/**"/>      
       	<exclude name="maclib/**"/>
       	<exclude name="java15/**"/>
+      	<exclude name="tufts/vue/images/*.ico"/>
         <include name="**/*.xml"/>
         <include name="**/*.conf"/>
         <include name="**/*.css"/>
