@@ -26,7 +26,7 @@ import java.util.*;
 import org.apache.commons.lang.StringEscapeUtils;
 
 /**
- * @version $Revision: 1.25 $ / $Date: 2009-09-28 18:55:21 $ / $Author: sfraize $
+ * @version $Revision: 1.26 $ / $Date: 2009-10-05 01:48:45 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -724,9 +724,13 @@ public final class DataAction
     private static int NextColor = 0;
 
     static LWComponent initNewStyleNode(LWComponent style) {
-        //style.setFlag(Flag.INTERNAL);
-        style.setFlag(Flag.DATA_STYLE); // must set before setting label, or template will atttempt to resolve
+
         //style.setID(style.getURI().toString());
+
+        //style.setFlag(Flag.DATA_STYLE); // must set before setting label, or template will atttempt to resolve
+        
+        Schema.runtimeInitStyleNode(style);
+        
         // we use the persisted visible bit to store a bit for DataTree node expanded state
         // -- the actual visibility of the style node will never come into play as it's never
         // on a map
@@ -735,7 +739,7 @@ public final class DataAction
     }
     
     /** @return an empty styling node (appearance values to be set elsewhere) */ 
-    public static LWComponent makeStyleNode() {
+    private static LWComponent makeStyleNode() {
         return initNewStyleNode(new LWNode());
     }
 
@@ -769,7 +773,7 @@ public final class DataAction
 
         //if (DEBUG.Enabled) notes += ("\n\nSchema: " + schema.getDump());
         style.setNotes(notes);
-        style.setFlag(Flag.STYLE); // do last
+        //style.setFlag(Flag.STYLE); // do last
 
         return style;
     }
@@ -827,7 +831,7 @@ public final class DataAction
         //style.disableProperty(LWKey.Label);
 //         if (repainter != null)
 //             style.addLWCListener(repainter);
-        style.setFlag(Flag.STYLE); // set last so creation property sets don't attempt updates
+        //style.setFlag(Flag.STYLE); // set last so creation property sets don't attempt updates
         
         return style;
     }
