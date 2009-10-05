@@ -16,7 +16,7 @@
 /** 
  * Provides an editable note panel for an LWComponents notes.
  *
- * @version $Revision: 1.27 $ / $Date: 2009-04-26 21:05:13 $ / $Author: vaibhav $
+ * @version $Revision: 1.28 $ / $Date: 2009-10-05 01:48:06 $ / $Author: sfraize $
  */
 
 package tufts.vue;
@@ -37,11 +37,24 @@ public class NotePanel extends tufts.vue.gui.Widget
     /** the text pane **/
     private VueTextPane mTextPane = new VueTextPane();
 
-    public NotePanel(boolean autoAttach)
+    public NotePanel() {
+        this(true);
+    }
+    
+    public NotePanel(String name) {
+        this(name, true);
+    }
+    
+    public NotePanel(boolean autoAttach) {
+        this("NotePanel", autoAttach);
+    }
+    
+    public NotePanel(String name, boolean autoAttach)
     {
         super("Notes");
         setLayout(new BorderLayout());
 
+        mTextPane.setName(name);
         mTextPane.setFont(tufts.vue.gui.GUI.LabelFace);
 
         if (false) {
@@ -74,10 +87,6 @@ public class NotePanel extends tufts.vue.gui.Widget
             VUE.addActiveListener(LWComponent.class, this);
     }
 
-    public NotePanel() {
-        this(true);
-    }
-    
     
     @Override
     public Dimension getMinimumSize() {
