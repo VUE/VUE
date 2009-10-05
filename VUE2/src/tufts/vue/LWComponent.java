@@ -48,7 +48,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.493 $ / $Date: 2009-10-05 02:15:24 $ / $Author: sfraize $
+ * @version $Revision: 1.494 $ / $Date: 2009-10-05 02:42:28 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2348,6 +2348,8 @@ u                    getSlot(c).setFromString((String)value);
         }
     }
 
+    private static final int MaxLabelLineLength = VueResources.getInt("dataNode.labelLength", 50);
+
     private String fillLabelFormat(final String fmt)
     {
         final String[] parts = fmt.split("\\$");
@@ -2401,7 +2403,10 @@ u                    getSlot(c).setFromString((String)value);
             else
                 Log.debug(this + " FILL; NO REPLACEMENTS MADE in " + Util.tags(fmt));
         }
-        return anyReplacement ? buf.toString() : fmt;
+        
+        return anyReplacement
+            ? Util.formatLines(buf.toString(), MaxLabelLineLength)
+            : fmt;
     }
 
     private String findLabelFormatDataValue(String key) {

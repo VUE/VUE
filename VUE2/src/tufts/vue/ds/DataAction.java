@@ -26,7 +26,7 @@ import java.util.*;
 import org.apache.commons.lang.StringEscapeUtils;
 
 /**
- * @version $Revision: 1.26 $ / $Date: 2009-10-05 01:48:45 $ / $Author: sfraize $
+ * @version $Revision: 1.27 $ / $Date: 2009-10-05 02:42:28 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -596,10 +596,8 @@ public final class DataAction
             mediaDescription = schema.findField("media:content.media:description");
         final Field imageField = schema.getImageField();
         
-        final int maxLabelLineLength = VueResources.getInt("dataNode.labelLength", 50);
-        
+        //final int maxLabelLineLength = VueResources.getInt("dataNode.labelLength", 50);
 //         final Collection<DataRow> rows;
-
 //         if (singleRow != null) {
 //             Log.debug("PRODUCING SINGLE ROW NODE FOR " + schema + "; row=" + singleRow);
 //             rows = Collections.singletonList(singleRow);
@@ -695,11 +693,11 @@ public final class DataAction
                     node.addChild(new tufts.vue.LWImage(IR));
                 }
 
-                //Log.debug("produced node " + node);
-                String label = node.getLabel();
-
-                label = Util.formatLines(label, maxLabelLineLength);
-                node.setLabel(label);
+                // This is now handled by LWComponent.fillLabelFormat for all data value replacements
+                //String label = node.getLabel();
+                //label = Util.formatLines(label, maxLabelLineLength);
+                //node.setLabel(label);
+                
                 nodes.add(node);
             } catch (Throwable t) {
                 Log.error("failed to create node for row " + row, t);
