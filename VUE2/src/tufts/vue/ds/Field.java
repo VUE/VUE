@@ -36,7 +36,7 @@ import org.apache.commons.lang.StringEscapeUtils;
  * types and doing some data-type analysis.  It also includes the ability to
  * associate a LWComponent node style with specially marked values.
  * 
- * @version $Revision: 1.23 $ / $Date: 2009-09-30 22:29:25 $ / $Author: sfraize $
+ * @version $Revision: 1.24 $ / $Date: 2009-10-05 17:34:18 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -240,7 +240,7 @@ public class Field implements tufts.vue.XMLUnmarshalListener
             for (String value : valuesToCheck) {
                 //if (c.getDataSchema() == schema && c.hasDataValue(this.name, value)) {
                 if (c.hasDataValue(this.name, value)) {
-                    if (!c.isDataValueNode())
+                    //if (!c.isDataValueNode()) // SMF - changed to allow data-value nodes 2009-10-04
                         mContextValues.add(value);
                     //Log.debug(String.format("found in context: %s=[%s], count=%d", this.name, value, mContextValues.count(value)));
                 }
