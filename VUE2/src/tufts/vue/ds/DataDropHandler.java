@@ -24,7 +24,7 @@ import java.util.ArrayList;
  * this handles what happens when it's dropped on the map.  What happends depends
  * on what it's dropped on.
  *
- * @version $Revision: 1.2 $ / $Date: 2009-09-04 19:52:17 $ / $Author: sfraize $
+ * @version $Revision: 1.3 $ / $Date: 2009-10-05 01:49:16 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -112,12 +112,46 @@ class DataDropHandler extends MapDropTarget.DropHandler
         // regarding application focus it is going to handle after we return,
         // and we don't want to be worrying about that in DropHandler's)
 
+//         if (clusteringTargets.size() > 0) {
+//             drop.select = new ArrayList(newNodes);
+//             drop.select.addAll(clusteringTargets);
+//         } else {
+//             drop.select = newNodes;
+//         }
+        
+        drop.select = null; // tells MapDropTarget to skip selection handling (we do it here)
+        final tufts.vue.LWSelection s = drop.viewer.getSelection();
+        s.clear();
+        s.setSource(drop.viewer);
+        s.setSelectionSourceFocal(drop.viewer.getFocal());
+        
+        // USER USE-CASE CONFLICT:
+        //
+        // If what the user wants to do next after this drop would be to style all the row nodes that
+        // appeared (say, change the fill color), what we'd like is to select only the NEW NODES,
+        // and set the selection with the style for those nodes.
+        //
+        // If what the user wants to do is drag the new nodes created along with their center clustering
+        // node to somewhere else on the map, we *do* want the center cluster node in the selection, but then
+        // we can't set the selection style, as both the row-node selection style and the center-clutering
+        // value-node style are in play.
+        //
+        // For now, we're prioritizing the first case: dragging the new cluster somewhere.
+
+            
         if (clusteringTargets.size() > 0) {
-            drop.select = new ArrayList(newNodes);
-            drop.select.addAll(clusteringTargets);
+
+            if (DEBUG.Enabled) Log.debug("SELECTING based on both new nodes and clustering targets " + Util.tags(clusteringTargets));
+            s.add(new Util.GroupIterator(newNodes, clusteringTargets));
         } else {
-            drop.select = newNodes;
+            if (DEBUG.Enabled) Log.debug("SELECTING based on " + droppingDataItem + "; hasStyle=" + droppingDataItem.hasStyle());
+            if (droppingDataItem.hasStyle()) {
+                s.setWithStyle(newNodes, "", droppingDataItem.getStyle());
+            } else {
+                s.setTo(newNodes);
+            }
         }
+        
 
         if (doZoomFit) {
             drop.viewer.setZoomFit();
