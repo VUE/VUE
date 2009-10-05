@@ -48,7 +48,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.492 $ / $Date: 2009-10-05 01:54:19 $ / $Author: sfraize $
+ * @version $Revision: 1.493 $ / $Date: 2009-10-05 02:15:24 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2251,7 +2251,7 @@ u                    getSlot(c).setFromString((String)value);
     }
     /** for persistance -- will not update the label */
     public void setLabelFormat(String s) {
-        if (s == mLabelFormat)
+        if (s == mLabelFormat || (s != null && s.equals(mLabelFormat)))
             return;
         
         final Object old = mLabelFormat;
@@ -2305,11 +2305,13 @@ u                    getSlot(c).setFromString((String)value);
         }
 
         
-        Object old = this.label;
         if (this.label == newLabel)
             return;
         if (this.label != null && this.label.equals(newLabel))
             return;
+
+        Object old = this.label;
+        
         if (newLabel == null || newLabel.length() == 0) {
             this.label = null;
             if (labelBox != null)
