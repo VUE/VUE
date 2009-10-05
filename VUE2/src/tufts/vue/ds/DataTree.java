@@ -53,7 +53,7 @@ import com.google.common.collect.*;
  * currently active map, code for adding new nodes to the current map,
  * and initiating drags of fields or rows destined for a map.
  *
- * @version $Revision: 1.94 $ / $Date: 2009-09-30 15:43:01 $ / $Author: mike $
+ * @version $Revision: 1.95 $ / $Date: 2009-10-05 01:49:51 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -548,7 +548,7 @@ public class DataTree extends javax.swing.JTree
         // make sure selection bounds are drawn in MapViewer:
         selection.setSelectionSourceFocal(VUE.getActiveFocal());
         // now set the selection, along with a description
-        selection.setTo(hits, desc, styleRecord);
+        selection.setWithStyle(hits, desc, styleRecord);
     }
 
     private Criteria dataNodeToSearchCriteria(final DataNode treeNode) {
@@ -1002,6 +1002,14 @@ public class DataTree extends javax.swing.JTree
 //         refreshAllChildren(mRootNode);
 //     }
 
+    private void refreshTopLevel() {
+        refreshAllChildren(mRootNode);
+    }
+    
+    private void refreshAllStyleNodes() {
+        refreshTopLevel();
+    }
+
     private void refreshAll()
     {
         //mTreeModel.reload(mRootNode);
@@ -1009,8 +1017,7 @@ public class DataTree extends javax.swing.JTree
         // using nodesChanged instead of reload preserves the expanded state of nodes in the tree
 
         if (DEBUG.THREAD) Log.debug("REFRESHING " + Util.tags(mRootNode.getChildren()));
-        refreshAllChildren(mRootNode);
-        //refreshRoot();
+        refreshTopLevel();
         for (TreeNode n : mRootNode.getChildren())
             if (!n.isLeaf())
                 refreshAllChildren(n);
@@ -1295,18 +1302,16 @@ public class DataTree extends javax.swing.JTree
                 }
             });
 
-        final LWComponent.Listener repainter = new LWComponent.Listener() {
+        final LWComponent.Listener styleRepainter = new LWComponent.Listener() {
                 // todo: schema style nodes are currently parentless, which means
                 // their property change events don't go up through the map to
                 // the undo-manager, making changes to them not undoable -- either
                 // manually relay style property change events up through the appropriate
                 // map, or have a way for a map to have hidden list of style children.
                 public void LWCChanged(tufts.vue.LWCEvent e) {
-                    if (e.getName() == LWKey.UserActionCompleted) {
-                        // changes to style nodes need to repaint the tree
-                        // todo: don't need to refresh everything, could just refresh top-levels
-                        DataTree.this.refreshAll();
-                        //DataTree.this.repaint();
+                    if (DEBUG.EVENTS) Log.debug("REPAINTER UPDATE ON " + e);
+                    if (e.getKey() == LWKey.FillColor) {
+                        DataTree.this.refreshAllStyleNodes();
                     }
                 }
             };
@@ -1317,7 +1322,7 @@ public class DataTree extends javax.swing.JTree
 //             if (field.isSingleton())
 //                 continue;
 
-            DataNode fieldNode = new FieldNode(field, repainter, null);
+            DataNode fieldNode = new FieldNode(field, styleRepainter, null);
             root.add(fieldNode);
             
 //             if (field.uniqueValueCount() == schema.getRowCount()) {
@@ -1880,23 +1885,26 @@ public class DataTree extends javax.swing.JTree
 
         final Schema schema;
 
-        AllRowsNode(Schema schema, LWComponent.Listener repainter) {
-            super(null, repainter, "All Rows");
+        AllRowsNode(Schema schema, LWComponent.Listener _repainter_ignored) {
+            super(null, /*repainter*/null, "All Rows");
             //String.format(HTML("<b><u>All Records in %s (%d)"), schema.getName(), schema.getRowCount()));
             this.schema = schema;
             if (schema.getRowNodeStyle() == null)
                 schema.setRowNodeStyle(DataAction.makeStyleNode(schema));
             schema.getRowNodeStyle().addLWCListener(new LWComponent.Listener() {
                     public void LWCChanged(tufts.vue.LWCEvent e) {
-                        updateLabel(true);
+                        if (DEBUG.EVENTS) Log.debug("ALL-ROWS-NODE UPDATE " + e);
+                        DataTree.this.refreshRootNode();
+                        //updateLabel(true);
                     }
-                },
-                LWKey.Label);
+                });
             updateLabel(false);
         }
 
 
         private void updateLabel(boolean refresh) {
+
+            // as it currently stands, this never actually needs updating
 
             setDisplay(String.format(HTML("All Records (%d)"), schema.getRowCount()));
             
