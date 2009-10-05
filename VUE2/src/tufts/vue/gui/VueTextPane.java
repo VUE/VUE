@@ -29,7 +29,7 @@ import javax.swing.text.*;
  * and enters an undo entry.
  *
  * @author Scott Fraize
- * @version $Revision: 1.17 $ / $Date: 2009-06-03 02:42:13 $ / $Author: sfraize $
+ * @version $Revision: 1.18 $ / $Date: 2009-10-05 01:51:03 $ / $Author: sfraize $
  */
 
 // todo: create an abstract class for handling property & undo code, and subclass this and VueTextField from it.
@@ -77,6 +77,10 @@ public class VueTextPane extends JTextPane
     public VueTextPane() {
         this(null, null, null);
     }
+
+    private void debug(String s) {
+        Log.debug(String.format("%08X[%s/%s] %s", System.identityHashCode(this), getName(), propertyKey, s));;
+    }
     
     /** We override this to do nothing, so that default focus traversal keys are left in
      * place (and so you can't use TAB in this class.  See java 1.4 JEditorPane constructor
@@ -93,14 +97,27 @@ public class VueTextPane extends JTextPane
         tufts.Util.printStackTrace("setName " + s);
         super.setName(s);
     }
+
+    @Override public void setText(String s) {
+        if (DEBUG.TEXT) debug("setText: curText=" + Util.tags(getText()) + " newText=" + Util.tags(s));
+        super.setText(s);
+    }
+    
     
     @Override
     protected void processKeyEvent(KeyEvent e) {
         if (DEBUG.KEYS && e.getID() == KeyEvent.KEY_PRESSED) Log.debug("processKeyEvent " + e.paramString() + "; " + this);
         // if any key activity, assume it may have changed
         // (to make sure we catch cut's and paste's as well newly input characters)
-        keyWasPressed = true;
-        super.processKeyEvent(e);
+        //if (DEBUG.TEXT) debug("curTextA " + Util.tags(getText()));
+
+        if (e.getKeyCode() == KeyEvent.VK_ENTER && e.getKeyLocation() == KeyEvent.KEY_LOCATION_NUMPAD) {
+            saveText("numpad-enter");
+        } else {
+            keyWasPressed = true;
+            super.processKeyEvent(e);
+        }
+        //if (DEBUG.TEXT) debug("curTextZ " + Util.tags(getText()));
     }
 
     public void attachProperty(LWComponent c, Object key) {
@@ -114,19 +131,22 @@ public class VueTextPane extends JTextPane
         lwc = c;
         propertyKey = key;
         loadPropertyValue();
-        if (DEBUG.TEXT||DEBUG.EVENTS) Log.debug("attachProperty " + Util.tags(key) + "; " + c);
+        if (DEBUG.TEXT||DEBUG.EVENTS) debug("attachProperty " + Util.tags(key) + "; " + c);
         lwc.addLWCListener(this, propertyKey, LWKey.Deleting);
         keyWasPressed = false;
     }
 
     public void detachProperty() {
-        //saveText("detach"); // overkill & causing problems w/multi-label text edit (check note panel for any possible new problems)
+        //saveText("detach"); // overkill & causing problems w/multi-label text edit (check note panel for any possible new problems) [BREAKS NOTES!]
+        saveText("detach");
         if (lwc != null) {
-            if (DEBUG.TEXT||DEBUG.EVENTS) Log.debug("detach from " + lwc);
+            if (DEBUG.TEXT||DEBUG.EVENTS) debug("detach from " + lwc);
+            //Util.printStackTrace("DETACH");
             lwc.removeLWCListener(this);
             lwc = null;
         }
         setText("");
+        //saveText("autoDetach");
     }
 
     /** an optional special undo name for this property */
@@ -138,7 +158,7 @@ public class VueTextPane extends JTextPane
     // TODO: DROP OF TEXT (this is a paste, but with no keypress!)
     protected void saveText(Object src) {
         final String currentText = getText();
-        if (DEBUG.TEXT||DEBUG.EVENTS) Log.debug("saveText;"
+        if (DEBUG.TEXT||DEBUG.EVENTS) debug("saveText;"
                                   + "\n\tsrc=" + tufts.Util.tags(src)
                                   + "\n\t" + this
                                   + "\n\tcurText=[" + currentText + "]"
@@ -150,7 +170,7 @@ public class VueTextPane extends JTextPane
 
             // rtfTestHack();
 
-            if (DEBUG.EVENTS) Log.debug(String.format("saveText: apply %s -> %s",  Util.tags(propertyKey), lwc));
+            if (DEBUG.EVENTS) debug(String.format("saveText: apply %s -> %s",  Util.tags(propertyKey), lwc));
             applyText(currentText);
             
         }	
@@ -166,7 +186,7 @@ public class VueTextPane extends JTextPane
         if (lwc == null)
             return;
         
-        if (DEBUG.EVENTS) Log.debug(String.format("applyText: '%.16s'... to: %s -> %s", text, Util.tags(propertyKey), lwc));
+        if (DEBUG.EVENTS || DEBUG.TEXT) debug(String.format("applyText: '%.16s'... to: %s -> %s", text, Util.tags(propertyKey), lwc));
         lwc.setProperty(propertyKey, text);
         loadedText = text;
         if (undoName != null)
@@ -199,7 +219,11 @@ public class VueTextPane extends JTextPane
         String text = null;
         if (lwc != null) {
             try {
-                text = (String) lwc.getPropertyValue(propertyKey);
+                if (propertyKey == LWKey.Label && lwc.getLabelFormat() != null) {
+                    text = lwc.getLabelFormat();
+                } else {
+                    text = (String) lwc.getPropertyValue(propertyKey);
+                }
             } catch (ClassCastException e) {
                 throw new IllegalArgumentException("VueTextPane only handles properties of type String");
             }
