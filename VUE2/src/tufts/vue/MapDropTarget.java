@@ -51,7 +51,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.123 $ / $Date: 2009-09-30 16:05:59 $ / $Author: mike $  
+ * @version $Revision: 1.124 $ / $Date: 2009-10-05 01:47:36 $ / $Author: sfraize $  
  */
 public class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -945,7 +945,7 @@ public class MapDropTarget
                 // TODO: SlideViewer currently not handling this properly...
                 mViewer.grabVueApplicationFocus("drop", null);
             }
-            if (drop.select != null & drop.select.size() > 0) {
+            if (drop.select != null && drop.select.size() > 0) {
                 mViewer.selectionSet(drop.select); // VUE-978: selection focal should also be set
             }
 //             if (drop.select.size() > 0) {
