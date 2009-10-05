@@ -114,6 +114,7 @@
                 
                 <field name="ID"><bind-xml node="attribute"/></field>
 		<field name="XMLlabel"><bind-xml name="label" node="attribute"/></field>
+		<field name="labelFormat"><bind-xml name="labelFormat" node="element"/></field>
 
 		<field name="persistLayer" type="tufts.vue.LWMap$Layer">
                   <bind-xml name="layerID" node="attribute" reference="true"/>
