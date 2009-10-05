@@ -33,7 +33,7 @@ import tufts.vue.gui.*;
  * A tabbed-pane collection of property sheets that apply
  * globally to a given map.
  *
- * @version $Revision: 1.76 $ / $Date: 2009-08-13 19:10:15 $ / $Author: brian $ 
+ * @version $Revision: 1.77 $ / $Date: 2009-10-05 01:47:51 $ / $Author: sfraize $ 
  *
  */
 public class MapInspectorPanel extends JPanel
@@ -61,7 +61,7 @@ public class MapInspectorPanel extends JPanel
     //private PathwayPane mPathPanel = null;
 
     /** description panel **/
-    private NotePanel mDescriptionPanel = new NotePanel();
+    private NotePanel mDescriptionPanel = new NotePanel("map", false);
     
     /** filter panel **/
     //private FilterApplyPanel mFilterApplyPanel = null;
