@@ -40,7 +40,7 @@ import com.google.common.collect.Multimaps;
  * generally "short" enough, it will enumerate all the unique values found in that
  * column.
  *
- * @version $Revision: 1.52 $ / $Date: 2009-09-30 23:12:19 $ / $Author: sfraize $
+ * @version $Revision: 1.53 $ / $Date: 2009-10-05 01:50:04 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -653,17 +653,29 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
         return addField(new Field(name.trim(), this));
     }
     
-    private static LWComponent runtimeInitStyleNode(LWComponent style) {
+    static LWComponent runtimeInitStyleNode(LWComponent style) {
         if (style != null) {
             // the INTERNAL flag permits the style to operate (deliver events) w/out a parent
-            //style.setFlag(LWComponent.Flag.INTERNAL);
-            style.clearFlag(LWComponent.Flag.INTERNAL); // no longer used to deliver events
+            style.setFlag(LWComponent.Flag.INTERNAL);
+            //style.clearFlag(LWComponent.Flag.INTERNAL); // no longer used to deliver events
+
             // the DATA_STYLE bit is not persisted, must restore this bit manually:
             style.setFlag(LWComponent.Flag.DATA_STYLE);
+            // no-longer principally need DATA_STYLE -- that's for the style object
+            // manually updating it's referrers if a DATA style property changes, such
+            // as the label, which is now handled via the selection, tho having this set
+            // also ensure label-template strings will never attempt to resolve (tho
+            // with no meta-data the style objects should never end up changing the
+            // template string even if they do attempt to resolve)
 
             // as the style objects aren't proper children of the map, they never get this
             // cleared, and we have to do it here manually to make sure
             style.markAsRestored();
+
+            // Note that we don't even mark these with Flag.STYLE anymore, as their
+            // "styling" ability is now handled through the selection (and some
+            // old persisted styles may still have this bit set)
+            style.clearFlag(LWComponent.Flag.STYLE);
 
             // hack to give the style a parent so it is considered "alive" and can deliver events
             //style.setParent(FalseStyleParent);
