@@ -315,7 +315,7 @@ public class UndoManager
                     
                     if (DEBUG.Enabled) Log.debug("SKIPPING undo item for deleted (parentless) component: " + component + "; " + this);
                 } else 
-                    component.setProperty(propKey, oldValue);
+                    component.undoProperty(propKey, oldValue);
                 
             }
         }
