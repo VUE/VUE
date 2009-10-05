@@ -491,7 +491,7 @@ public class MetaDataPane extends tufts.vue.gui.Widget
                                     + " slotsAvail=" + mLabels.length
                                     );
            
-            if (ensureSlots(model.getRowCount())) {
+            if (ensureSlots(model.getRowCount() + 2)) { // allow for some debug
                 mGridBag.removeAll();
                 addLabelTextRows(0, mLabels, mValues, mGridBag, null, null);
             }

@@ -57,7 +57,7 @@ import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.154 $ / $Date: 2009-09-21 21:32:34 $ / $Author: sfraize $
+ * @version $Revision: 1.155 $ / $Date: 2009-10-05 17:34:27 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1251,19 +1251,19 @@ public class GUI
     
     public static synchronized void activateWaitCursor() {
         //tufts.Util.printStackTrace("ACTIAVTE WAIT-CURSOR");
-        if (DEBUG.THREAD) Log.info("ACTIVATE WAIT CURSOR");
+        if (DEBUG.FOCUS) Log.info("ACTIVATE WAIT CURSOR");
         activateWaitCursorInAllWindows();
     }
     
     private static synchronized void activateWaitCursorInAllWindows() {
 
         synchronized (CursorMap) {
-            if (DEBUG.THREAD) Log.info("ACTIVATE WAIT CURSOR IN ALL WINDOWS");
+            if (DEBUG.FOCUS) Log.info("ACTIVATE WAIT CURSOR IN ALL WINDOWS");
 
             //if (!CursorMap.isEmpty()) {
             if (WaitCursorActive) {
                 //VUE.Log.error("attempting to activate wait cursor while one is already active");
-                if (DEBUG.THREAD) Log.info("FYI, activating wait cursor for all windows while one is already active");
+                if (DEBUG.FOCUS) Log.info("FYI, activating wait cursor for all windows while one is already active");
                 //return;
             }
 
@@ -1305,21 +1305,21 @@ public class GUI
         else
         	c.setCursor(CURSOR_WAIT);
         
-        if (DEBUG.THREAD) Log.info("set wait cursor on " + name(c) + " (old=" + curCursor + ")");
+        if (DEBUG.FOCUS) Log.info("set wait cursor on " + name(c) + " (old=" + curCursor + ")");
     }
           
     public static synchronized void clearWaitCursor() {
         //tufts.Util.printStackTrace("CLEAR WAIT-CURSOR");
-        if (DEBUG.THREAD) Log.info("CLEAR WAIT CURSOR SCHEDULED");
+        if (DEBUG.FOCUS) Log.info("CLEAR WAIT CURSOR SCHEDULED");
         VUE.invokeAfterAWT(new Runnable() { public void run() { clearAllWaitCursors(); }});
     }
     
     private static synchronized void clearAllWaitCursors() {
 
         synchronized (CursorMap) {
-            if (DEBUG.THREAD) Log.info("CLEAR ALL WAIT CURSORS");
+            if (DEBUG.FOCUS) Log.info("CLEAR ALL WAIT CURSORS");
             if (!WaitCursorActive) {
-                if (DEBUG.THREAD) Log.info("\t(wait cursors already cleared)");
+                if (DEBUG.FOCUS) Log.info("\t(wait cursors already cleared)");
                 return;
             }
             //clearWaitCursor(ViewerWithWaitCursor);
@@ -1339,7 +1339,7 @@ public class GUI
         if (oldCursor == null || oldCursor == CURSOR_WAIT) {
             if (oldCursor == CURSOR_WAIT)
                 Log.error("old cursor on " + name(c) + " was wait cursor!  Restoring to default.");
-            if (DEBUG.THREAD) Log.info("cleared wait cursor on " + name(c) + " to default");
+            if (DEBUG.FOCUS) Log.info("cleared wait cursor on " + name(c) + " to default");
             
             if (c instanceof JComponent)
             {
@@ -1356,7 +1356,7 @@ public class GUI
                         
             c.setCursor(CURSOR_DEFAULT);
         } else {
-            if (DEBUG.THREAD) Log.info("cleared wait cursor on " + name(c) + " to old: " + oldCursor);
+            if (DEBUG.FOCUS) Log.info("cleared wait cursor on " + name(c) + " to old: " + oldCursor);
             
             if (c instanceof JComponent)
             {
