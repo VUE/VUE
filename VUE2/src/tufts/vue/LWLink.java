@@ -43,7 +43,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.229 $ / $Date: 2009-09-24 18:41:05 $ / $Author: sfraize $
+ * @version $Revision: 1.230 $ / $Date: 2009-10-05 01:53:17 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -444,8 +444,7 @@ public class LWLink extends LWComponent
             return super.getPropertyValue(key);
     }
 
-    @Override
-    public void setProperty(final Object key, Object val)
+    @Override public void setPropertyImpl(Object key, Object val, Object context)
     {
         //if (key == LWKey.LinkCurves)       setControlCount(((Integer) val).intValue());else
         
@@ -460,7 +459,7 @@ public class LWLink extends LWComponent
              if (key == Key_Control_0)          setCtrlPoint0((Point2D)val);
         else if (key == Key_Control_1)          setCtrlPoint1((Point2D)val);
         else
-            super.setProperty(key, val);
+            super.setPropertyImpl(key, val, context);
     }
 
     @Override
