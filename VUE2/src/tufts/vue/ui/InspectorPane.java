@@ -42,7 +42,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.126 $ / $Date: 2009-09-24 21:09:51 $ / $Author: brian $
+ * @version $Revision: 1.127 $ / $Date: 2009-10-05 01:52:56 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends WidgetStack
@@ -65,8 +65,8 @@ public class InspectorPane extends WidgetStack
     //-------------------------------------------------------
 
     private final LabelPane mLabelPane = new LabelPane(); // old style; new SummaryPane()
-    private final NotePanel mNotes = new NotePanel();
-    private final NotePanel mPathwayNotes = new NotePanel(false);
+    private final NotePanel mNotes = new NotePanel("LWNotes");
+    private final NotePanel mPathwayNotes = new NotePanel("PathwayNotes", false);
     private final UserMetaData mKeywords = new UserMetaData();
     private final OntologicalMembershipPane ontologicalMetadata = new OntologicalMembershipPane();
     
@@ -423,6 +423,7 @@ public class InspectorPane extends WidgetStack
         Widget.show(mSelectionInfo);
       //Widget.setExpanded(mKeywords, true);
         Widget.show(mKeywords);
+
     }
 
     protected String countObjects(LWSelection sel) {
@@ -1431,18 +1432,21 @@ public class InspectorPane extends WidgetStack
 
     public class LabelPane extends tufts.Util.JPanelAA
     {
+        private LWSelection selection;
+        private LWComponent dataStyle;
         
         private final VueTextPane labelValue = new VueTextPane() {
                 @Override
                 protected void applyText(String text) {
 
-                    // TODO: as dataStyle nodes are NOT officially part of the map, their edits will
-                    // not be undoable -- will need to fix this.  Can we just manually deliver
-                    // the event up thru the active map?  Oh, damn... the dataStyle is owned the Schema,
-                    // which while saved with the map is actually within the DataTree at runtime and
-                    // applies to all open maps, and we have no "global" portion of the undo queue
-                    // to handle this...  well, we could ignore the global aspect and just live
-                    // with the conflict for now.
+                    // TODO: as dataStyle nodes in the Schema/Field are not part of the map model
+                    // proper, their edits will not be undoable.  Can we just manually deliver the
+                    // event up thru the active map?  Oh, damn... the dataStyle is owned the
+                    // Schema, which while saved with the map is actually within the DataTree at
+                    // runtime and applies to all open maps, and we have no "global" portion of the
+                    // undo queue to handle this...  well, we could try and just ignore the global
+                    // aspect and see what happens...
+                    
                     super.applyText(text);
                     
                     if (selection != null && text != null && text.trim().length() > 0) {
@@ -1458,14 +1462,11 @@ public class InspectorPane extends WidgetStack
                 }
             };
 
-        private LWSelection selection;
-        private LWComponent dataStyle;
-        
         LabelPane() {
             super(new BorderLayout());
 
             labelValue.setFont(tufts.vue.gui.GUI.LabelFace);
-
+            labelValue.setName(getClass().getName());
             final int insetInner = 5;
 
             if (Util.isMacPlatform()) {
@@ -1496,7 +1497,14 @@ public class InspectorPane extends WidgetStack
                 dataStyle = null;
                 setName(String.format(VueResources.getString("infowindow.multiplelabel"), s.size()));
             }
-            selection = s;
+
+
+            // selection = s;
+            // The clone is usually overkill, but needed in case selection is cleared before our applyText handler is called.
+            // (which can happen if the user manages to click empty space on the map w/out the mouse-entered
+            // handler have triggered a save-text).
+            selection = s.clone();
+            
             //labelValue.loadText(String.format("<changes will apply to all %d nodes>", s.size()));
             //setTypeName(this, null, "Multiple Labels");
             labelValue.setEditable(true);
@@ -1530,6 +1538,7 @@ public class InspectorPane extends WidgetStack
             //setBorder(new EmptyBorder(4, GUI.WidgetInsets.left, 4, 0));
             setBorder(GUI.WidgetInsetBorder);
             setName("nodeSummary");
+            labelValue.setName(getClass().getSimpleName());            
             
             //If you're trying to debug lists, you'll want to see the HTML code somewhere,
             //and here is as good as any place right now.  It may be a TODO to put this label
