@@ -33,7 +33,7 @@ import tufts.vue.gui.*;
  * A tabbed-pane collection of property sheets that apply
  * globally to a given map.
  *
- * @version $Revision: 1.77 $ / $Date: 2009-10-05 01:47:51 $ / $Author: sfraize $ 
+ * @version $Revision: 1.78 $ / $Date: 2009-10-05 20:41:55 $ / $Author: mike $ 
  *
  */
 public class MapInspectorPanel extends JPanel
@@ -57,7 +57,7 @@ public class MapInspectorPanel extends JPanel
     
     /** info tab panel **/
     private InfoPanel mInfoPanel = null;
-    private VueAimPanel mVueAimPanel = null;
+  //  private VueAimPanel mVueAimPanel = null;
     //private PathwayPane mPathPanel = null;
 
     /** description panel **/
@@ -106,11 +106,11 @@ public class MapInspectorPanel extends JPanel
        //   mTabbedPane.addTab(mFilterCreatePanel.getName(),mFilterCreatePanel);
        // }
         
-        if (DEBUG.IM)
-        {
-        	mVueAimPanel = new VueAimPanel();
-        	mVueAimPanel.setName(VueResources.getString("im.tabname"));
-        }
+  //      if (DEBUG.IM)
+  //      {
+      //  	mVueAimPanel = new VueAimPanel();
+      //  	mVueAimPanel.setName(VueResources.getString("im.tabname"));
+      //  }
         
         Widget.setWantsScroller(mapInfoStack, true);
         Widget.setWantsScrollerAlways(mapInfoStack, true);
@@ -119,8 +119,8 @@ public class MapInspectorPanel extends JPanel
         mapInfoStack.addPane(mInfoPanel,0f);
         mapInfoStack.addPane(mDescriptionPanel, 0f);
         mapInfoStack.addPane(metadataPanel,0f);
-        if (DEBUG.IM)
-        	mapInfoStack.addPane(mVueAimPanel ,0f);
+      //  if (DEBUG.IM)
+        //	mapInfoStack.addPane(mVueAimPanel ,0f);
         metadataPanel.adjustColumnModel();
         
         //Widget.setWantsScroller(mapInfoStack, true);
