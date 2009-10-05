@@ -29,7 +29,7 @@ import com.google.common.collect.HashMultiset;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.110 $ / $Date: 2009-08-03 17:46:57 $ / $Author: sfraize $
+ * @version $Revision: 1.111 $ / $Date: 2009-10-05 01:47:23 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -319,25 +319,38 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     }
     
     public void setTo(Iterable bag) {
-        setTo(bag, "", null);
+        setImpl(bag, null, "", null);
     }
     
-    public void setTo(Iterable bag, String description, LWComponent styleRecord)
+    public void setWithStyle(Iterable bag, String description, LWComponent styleRecord)
     {
-        if (DEBUG.SELECTION||DEBUG.PERF) Log.debug("setTo: " + Util.tags(bag));
-        setTo(bag.iterator(), description, styleRecord);
+        //if (DEBUG.SELECTION||DEBUG.PERF) Log.debug("setTo: " + Util.tags(bag));
+        setImpl(bag, null, description, styleRecord);
     }
     
     public void setTo(Iterator i) {
-        setTo(i, "", null);
+        setImpl(null, i, "", null);
     }
             
-    private synchronized void setTo(Iterator i, String description, LWComponent styleRecord)
+    private synchronized void setImpl(Iterable bag, Iterator i, String description, LWComponent styleRecord)
     {
-        if (notifyUnderway())
+        final Iterator iter = bag.iterator();
+        
+        if (DEBUG.SELECTION) Log.debug("setImpl: " + Util.tags(description)
+                                        + "\n\t     bag: " + Util.tags(bag)
+                                        + "\n\t bagIter: " + Util.tags(iter)
+                                        + "\n\titerator: " + Util.tags(i)
+                                        + "\n\t   style: " + Util.tags(styleRecord));
+        
+        if (notifyUnderway()) {
+            if (DEBUG.SELECTION) Log.debug("setImpl: ABORTING, notify is underway");
             return;
+        }
 
         final boolean hadContents = !isEmpty();
+
+        if (i == null)
+            i = iter;
         
         clearSilent();
         setDescription(description);
@@ -610,7 +623,14 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
             LWSelection reselecting = lastSelection;
             lastSelection = null;
             clearSilent();
-            setDescription(reselecting.getDescription()); // not working?
+            
+            // not working?  Actually, at moment, is not working in
+            // the first place -- someone disabled the display of the
+            // description string in the info window -- was that on
+            // purpose?
+            setDescription(reselecting.getDescription());
+            
+            // todo: also need to restore the STYLE-RECORD
             add(reselecting);
         } else 
             clear();
@@ -818,7 +838,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         copy.listeners = null;
         copy.controlListeners = null;
         copy.mDescription = mDescription;
-        // not that statistics are currently shared in the clone!
+        // note that statistics are currently shared in the clone!
         return copy;
     }
 
