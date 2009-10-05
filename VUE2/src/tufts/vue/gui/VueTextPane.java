@@ -29,7 +29,7 @@ import javax.swing.text.*;
  * and enters an undo entry.
  *
  * @author Scott Fraize
- * @version $Revision: 1.18 $ / $Date: 2009-10-05 01:51:03 $ / $Author: sfraize $
+ * @version $Revision: 1.19 $ / $Date: 2009-10-05 02:15:30 $ / $Author: sfraize $
  */
 
 // todo: create an abstract class for handling property & undo code, and subclass this and VueTextField from it.
@@ -163,6 +163,11 @@ public class VueTextPane extends JTextPane
                                   + "\n\t" + this
                                   + "\n\tcurText=[" + currentText + "]"
                                   );
+
+        // TODO: this is missing cases where text hasn't changed,
+        // causing multple needless text-set events (e.g., hit
+        // "enter", then focus-loss w/out changing text, and an apply
+        // cycle still takes place)
 
         if (keyWasPressed || !currentText.equals(loadedText)) {
         //if (lwc != null && (keyWasPressed || !currentText.equals(loadedText))) {
