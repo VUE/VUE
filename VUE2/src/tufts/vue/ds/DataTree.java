@@ -53,7 +53,7 @@ import com.google.common.collect.*;
  * currently active map, code for adding new nodes to the current map,
  * and initiating drags of fields or rows destined for a map.
  *
- * @version $Revision: 1.95 $ / $Date: 2009-10-05 01:49:51 $ / $Author: sfraize $
+ * @version $Revision: 1.96 $ / $Date: 2009-10-05 17:33:54 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -890,22 +890,29 @@ public class DataTree extends javax.swing.JTree
             return;
         }
 
+        Log.debug("SCANNING DATA EVENT: " + e + "; seenOne=" + mDataEventWasSeen);
+
         if (e.key == LWKey.UserActionCompleted && mDataEventWasSeen) {
             // technically, don't need to check after ANY action has been completed:
             // only if a data node was added/removed from the map.  todo: we'll need
             // a data-changed LWCEvent.
+            Log.debug("RUNNING ANNOTATE on: " + e);
             runAnnotate();
             mDataEventWasSeen = false;
         } else if (isDataEvent(e)) {
             mDataEventWasSeen = true;
+            Log.debug("   FOUND DATA EVENT: " + e + "; seenOne=" + mDataEventWasSeen);
         }
     }
 
     private static boolean isDataEvent(tufts.vue.LWCEvent e) {
         // we need to check for any childrenAdded/childrenRemoved right now, just in case ANY of them were data nodes
         return e.key == LWKey.DataUpdate
-            || e.key == LWKey.ChildrenAdded
-            || e.key == LWKey.ChildrenRemoved;
+            || e.key == LWKey.HierarchyChanging;
+
+//             || e.key == LWKey.ChildrenAdded
+//             || e.key == LWKey.ChildrenRemoved
+//             || e.key == LWKey.Created;
     }
 
     private void runAnnotate() {
