@@ -48,7 +48,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.491 $ / $Date: 2009-09-30 22:29:25 $ / $Author: sfraize $
+ * @version $Revision: 1.492 $ / $Date: 2009-10-05 01:54:19 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -239,6 +239,7 @@ public class LWComponent
     protected String label = null; // protected for debugging purposes
     private String notes = null;
     private Resource resource = null;
+    private String mLabelFormat; // if there's a data-format, it's stored here
     
     /*
      * Persistent information
@@ -657,12 +658,16 @@ public class LWComponent
             }
         }
 
-        void setValueInternal(TSubclass c, TValue value) {
-            setValue(c, value);
+//         void setValueInternal(TSubclass c, TValue value) {
+//             setValue(c, value);
+//         }
+        
+        void setValue(TSubclass c, TValue value) {
+            setValue(c, value, PROPERTY_SET_DEFAULT);
         }
         
         /** non slot-based property keys can override this */
-        void setValue(TSubclass c, TValue value) {
+        void setValue(TSubclass c, TValue value, Object context) {
             final Property slot = getSlotSafely(c);
             if (slot == null || slot == NO_SLOT_PROVIDED)
                 return;
@@ -1379,14 +1384,20 @@ u                    getSlot(c).setFromString((String)value);
         };
 
 
+    public static final String KEY_LabelFormat = "label.format";
     public static final Key KEY_Label = new Key<LWComponent,String>("label", KeyType.DATA) {
-            public void setValue(LWComponent c, String val) { c.setLabel(val); }
-            public String getValue(LWComponent c) { return c.getLabel(); }
-        };
+        public void setValue(LWComponent c, String val, Object context) {
+            if (context == PROPERTY_SET_UNDO)
+                c.setLabelImpl(val, true, false);
+            else
+                c.setLabel(val);
+        }
+        public String getValue(LWComponent c) { return c.getLabel(); }
+    };
     public static final Key KEY_Notes = new Key<LWComponent,String>("notes", KeyType.DATA) {
-            public void setValue(LWComponent c, String val) { c.setNotes(val); }
-            public String getValue(LWComponent c) { return c.getNotes(); }
-        };
+        public void setValue(LWComponent c, String val) { c.setNotes(val); }
+        public String getValue(LWComponent c) { return c.getNotes(); }
+    };
 
 
     //===================================================================================================
@@ -1508,20 +1519,29 @@ u                    getSlot(c).setFromString((String)value);
         return null;
     }
 
-    public void setProperty(final Object key, final Object val)
+    public static final Object PROPERTY_SET_DEFAULT = "default";
+    public static final Object PROPERTY_SET_UNDO = "undo";
+    //public static final Object PROPERTY_SET_USER = "propertyUser";
+
+    void undoProperty(Object key, Object val) {
+        setPropertyImpl(key, val, PROPERTY_SET_UNDO);
+    }
+    
+    public final void setProperty(final Object key, final Object val) {
+        setPropertyImpl(key, val, PROPERTY_SET_DEFAULT);
+    }
+    
+    protected void setPropertyImpl(final Object key, final Object val, final Object context)
     {
-        if (DEBUG.TOOL||DEBUG.UNDO) System.out.println("setProperty: " + vtag(key, val, null) + " on " + LWComponent.this);
+        if (DEBUG.TOOL||DEBUG.UNDO) Log.debug("setPropertyImpl[" + context + "] " + this + " " + vtag(key, val, null));
 
         if (key instanceof Key) {
             final Key k = (Key) key;
-            k.setValue(this, val);
-            // Experiment it auto-copying over data elements to siblings
-            // TODO: label's a special case due to TextBox use of non-key'd setLabel0
-            //if (k.keyType == KeyType.DATA && mSibling != null)
-            //    k.setValue(mSibling, val);
+            k.setValue(this, val, context);
         }
         // Old property keys that don't make use of the Key class yet:
         //else if (key == LWKey.Hidden)        setHidden( ((Boolean)val).booleanValue());
+        else if (key == KEY_LabelFormat)     setLabelFormat((String)val);
         else if (key == LWKey.DataUpdate)    setDataMap((MetaMap) val);
         else if (key == LWKey.Scale)         setScale((Double) val);
         else if (key == LWKey.Resource)      setResource( (Resource) val);
@@ -1881,6 +1901,9 @@ u                    getSlot(c).setFromString((String)value);
         Object old = this.mDataMap;
         mDataMap = dataMap;
         notify(LWKey.DataUpdate, old);
+        if (mLabelFormat != null) {
+            setLabelImpl(fillLabelFormat(mLabelFormat), true, false);
+        }
     }
 
     
@@ -1923,21 +1946,6 @@ u                    getSlot(c).setFromString((String)value);
 //         VueMetadataElement vme = getMetadataList().get(key);
 //         return vme == null ? null : vme.getValue();
             
-    }
-
-    private String extractTemplateValue(String key) {
-
-        String value = getDataValue(key);
-
-        if (value == null && hasResource())
-            value = getResource().getProperty(key);
-        
-        if (value == null) {
-            VueMetadataElement vme = getMetadataList().get(key);
-            value = (vme == null ? null : vme.getValue());
-        }
-        
-        return tufts.vue.ds.Field.valueText(value);
     }
 
     // TODO: rename all these getDataValue* to getSingleValue*
@@ -2157,7 +2165,8 @@ u                    getSlot(c).setFromString((String)value);
 
     protected boolean alive() {
         // "internal" objects should always report events (e.g., special styles, such as data-styles)
-        return parent != null ; //|| hasFlag(Flag.INTERNAL);
+        return parent != null
+            || hasFlag(Flag.INTERNAL); // re-enabled for data-style records reporting thier changes to the DataTree
     }
 
     /** This should only be called once when added to the map, and on deserializations */
@@ -2231,31 +2240,70 @@ u                    getSlot(c).setFromString((String)value);
         setLabelImpl(label, true, true);
     }
 
-    /** @deprecated -- use setLabelImpl */
+    // todo: rename / use a package private setLabelImpl
     void setLabel0(String newLabel, boolean setDocument) {
         setLabelImpl(newLabel, setDocument, true);
     }
 
+    /** for persistance */
+    public String getLabelFormat() {
+        return mLabelFormat;
+    }
+    /** for persistance -- will not update the label */
+    public void setLabelFormat(String s) {
+        if (s == mLabelFormat)
+            return;
+        
+        final Object old = mLabelFormat;
+        mLabelFormat = s;
+        if (alive()) notify(KEY_LabelFormat, old);
+        //if (alive()) notify("label.format", new Undoable(oldFormat) { void undo() { setLabelFormat(oldFormat); }} );
+    }
+    
     public void setLabelTemplate(String s) {
         setLabelImpl(s, false, false);
     }
 
+    private static boolean isDataFormatString(String s) {
+        return s != null && s.indexOf('$') >= 0;
+        // todo: check with full regex: e.g: \$\{.+\}
+        // however, it's okay to over-match, as replacements that can't be understood are left as-is
+    }
+
     /**
-     * Called directly by TextBox after document edit with setDocument=false,
+     * @param setDocument -- we're called by TextBox after document edit with setDocument=false,
      * so we don't attempt to re-update the TextBox, which has just been
      * updated.
+     *
+     * @param allowFillData -- called with allowFillData=false if we don't
+     * want to actually do a data-fill and just want to leave the
+     * label as the actual format (e.g.  we just computed filled data
+     * and now want to set the label for real, or this is an undo).
      */
-    void setLabelImpl(String newLabel, boolean setDocument, boolean fillData)
+    private void setLabelImpl
+        (String newLabel,
+         final boolean setDocument,
+         final boolean allowDataFill)
     {
-        if (DEBUG.TEXT || DEBUG.DATA) out("setLabelImpl " + Util.tags(newLabel) + " setDoc=" + setDocument + " fillData=" + fillData);
+        if (DEBUG.TEXT || DEBUG.DATA) out("setLabelImpl " + Util.tags(newLabel) + " setDoc=" + setDocument + " allowDataFill=" + allowDataFill);
         newLabel = cleanControlChars(newLabel);
 
-        if (fillData && !mXMLRestoreUnderway && newLabel != null && newLabel.indexOf('$') >= 0) {
-            if (isStyling(LWKey.Label)) {
-                //if (DEBUG.Enabled) createDataLabel(newLabel); // for debug
-            } else
-                newLabel = fillLabel(newLabel);
+        if (!mXMLRestoreUnderway && allowDataFill && !isStyling(LWKey.Label)) {
+            
+            // If we're "styling" the label, DATA_STYLE is set -- if this is a
+            // DATA_STYLE, we never want to attempt a template fill -- this is a styling
+            // node where templates themseleves are stored.
+            
+            if (isDataFormatString(newLabel)) {
+                final String filled = fillLabelFormat(newLabel);
+                setLabelFormat(newLabel);
+                newLabel = filled;
+            } else {
+                // clear out the saved template for dynamic data-update
+                setLabelFormat(null);
+            }
         }
+
         
         Object old = this.label;
         if (this.label == newLabel)
@@ -2277,6 +2325,7 @@ u                    getSlot(c).setFromString((String)value);
                 //getLabelBox();
             } else if (setDocument) {
                 try {
+                    // note: this needs to happen before the call to layout below
                     getLabelBox().setText(newLabel);
                 } catch (Throwable t) {
                     Log.error(String.format("failed to set label '%s' on %s in %s", newLabel, Util.tags(getLabelBox()), this), t);
@@ -2287,6 +2336,7 @@ u                    getSlot(c).setFromString((String)value);
         notify(LWKey.Label, old);
     }
 
+
     public void wrapLabelToWidth(final int charWidth) {
         final String existingLabel = getLabel();
         final String wrappedLabel = Util.formatLines(existingLabel, charWidth);
@@ -2296,55 +2346,75 @@ u                    getSlot(c).setFromString((String)value);
         }
     }
 
-    private String fillLabel(final String fmt)
+    private String fillLabelFormat(final String fmt)
     {
-        //if (DEBUG.EVENTS || DEBUG.TEXT || DEBUG.DATA) Log.debug(this + " fillLabel from " + Util.tags(fmt));
-
-        //Log.debug("splitting[" + fmt + "]");
         final String[] parts = fmt.split("\\$");
 
         if (parts.length == 1)
             return fmt;
 
         final StringBuilder buf = new StringBuilder();
-        boolean didReplacement = false;
+        boolean anyReplacement = false;
 
         int part = 0;
         for (String s : parts) {
-            //Log.debug("got part[" + s + "]");
-            final int iopen = s.indexOf('{');
-            final int iclose = s.indexOf('}');
-            if (iopen == 0 && iclose > 1) {
-                String var = s.substring(1, iclose).trim();
-                //Log.debug("got variable[" + var + "]");
-                String val = extractTemplateValue(var);
-                if (val != null) {
-                    buf.append(org.apache.commons.lang.StringEscapeUtils.unescapeHtml(val));
-                    didReplacement = true;
-                } else {
-                    //buf.append("?{");
-                    buf.append("${");
-                    buf.append(var);
-                    buf.append('}');
+            //Log.debug("got _part[" + s + "]");
+            boolean noValueFound = true;
+            try {
+                final int braceOpen = s.indexOf('{');
+                final int braceClose = s.indexOf('}');
+                if (braceOpen == 0 && braceClose > 1) {
+                    final String keyName = s.substring(1, braceClose).trim();
+                    //Log.debug("got __key[" + keyName + "]");
+                    final String value = findLabelFormatDataValue(keyName);
+                    if (value != null) {
+                        //Log.debug("got value[" + value + "]");
+                        
+                        // replace ${someDataKey} with the value found
+                        buf.append(org.apache.commons.lang.StringEscapeUtils.unescapeHtml(value));
+                        
+                        // include untouched any/all text found after the '}'
+                        buf.append(s.substring(braceClose + 1, s.length()));
+                        
+                        noValueFound = false;
+                        anyReplacement = true;
+                    }
                 }
-                buf.append(s.substring(iclose + 1, s.length()));
-            } else {
+            } catch (Throwable t) {
+                Log.error("exception processing replacement braces " + Util.tags(s) + " in format " + Util.tags(fmt) + " for " + this, t);
+            }
+
+            if (noValueFound) {
+                // leave un-touched
                 if (part > 0)
-                    buf.append('$');
+                    buf.append('$'); // restore the '$' we split on
                 buf.append(s);
             }
             part++;
         }
 
+        if (DEBUG.TEXT || DEBUG.DATA) {
+            if (anyReplacement)
+                Log.debug(this + " FILL made from " + Util.tags(fmt) + "->" + Util.tags(buf.toString()));
+            else
+                Log.debug(this + " FILL; NO REPLACEMENTS MADE in " + Util.tags(fmt));
+        }
+        return anyReplacement ? buf.toString() : fmt;
+    }
 
-        final String result = didReplacement ? buf.toString() : fmt;
+    private String findLabelFormatDataValue(String key) {
 
-        if (DEBUG.EVENTS || DEBUG.TEXT || DEBUG.DATA) Log.debug(this +
-                                                                " fillLabel made from " + Util.tags(fmt) + ": "
-                                                                + Util.tags(result));
-        //if (DEBUG.EVENTS || DEBUG.TEXT || DEBUG.DATA) Log.debug(this + " fillLabel made " + Util.tags(result));
-        //Log.debug("made label[" + buf + "]");
-        return result;
+        String value = getDataValue(key);
+
+        if (value == null && hasResource())
+            value = getResource().getProperty(key);
+        
+        if (value == null) {
+            VueMetadataElement vme = getMetadataList().get(key);
+            value = (vme == null ? null : vme.getValue());
+        }
+        
+        return tufts.vue.ds.Field.valueText(value);
     }
 
     
