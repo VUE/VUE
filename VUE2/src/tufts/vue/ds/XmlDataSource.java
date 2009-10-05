@@ -33,7 +33,7 @@ import au.com.bytecode.opencsv.CSVReader;
 
 
 /**
- * @version $Revision: 1.24 $ / $Date: 2009-09-30 18:32:04 $ / $Author: sfraize $
+ * @version $Revision: 1.25 $ / $Date: 2009-10-05 01:50:12 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class XmlDataSource extends BrowseDataSource
@@ -322,6 +322,9 @@ public class XmlDataSource extends BrowseDataSource
             // besides being cleaner and faster, if we did that, we could keep any
             // existing field style information alive that had been stored in the
             // schema.
+
+            // TODO: What's different about XML schema loading that's not loading
+            // the user styles?
             
             schema = XMLIngest.ingestXML(openInput(), getItemKey());
             newIngest = true;
