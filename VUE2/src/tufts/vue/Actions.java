@@ -944,14 +944,26 @@ public class Actions implements VueConstants
     
     public static final LWCAction Delete =
         // "/tufts/vue/images/delete.png" looks greate (from jide), but too unlike others
-        new LWCAction(VueResources.local("menu.edit.delete"), keyStroke(KeyEvent.VK_DELETE), ":general/Delete") {
+        new LWCAction(VueResources.local("menu.edit.delete"), keyStroke(KeyEvent.VK_BACK_SPACE), ":general/Delete") {
+      //new LWCAction(VueResources.local("menu.edit.delete"), keyStroke(KeyEvent.VK_DELETE), ":general/Delete") {
             
-            // We could use BACK_SPACE instead of DELETE because that key is bigger, and
+            // OLD: [We could use BACK_SPACE instead of DELETE because that key is bigger, and
             // on the mac it's actually LABELED "delete", even tho it sends BACK_SPACE.
-            // BUT, if we use backspace, trying to use it in a text field in, say
-            // the object inspector panel causes it to delete the selection instead of
-            // backing up a char...
-            // The MapViewer special-case handles both anyway as a backup.
+            // BUT, if we use backspace, trying to use it in a text field in, say the
+            // object inspector panel causes it to delete the selection instead of
+            // backing up a char...  The MapViewer special-case handles both anyway as a
+            // backup.]
+
+            // Update, SMF Oct 2009: BACK_SPACE is the default key-code when hitting "delete" on a
+            // laptop, so it's better to use BACK_SPACE here.  Again, the MapViewer directly
+            // handles both keys in special-case code so we don't need to worry about what happens
+            // when the MapViewer has focus.  The issue with hitting the "delete" key in text fields
+            // triggering the global Delete action appear to have gone away.  Changing this to
+            // BACK_SPACE now is allowing the use of hitting "delete" after clicking on nodes in
+            // the DataTree -- the unconsumed KeyPress is relayed through the FocusManager to the
+            // VueMenuBar which then can correctly recognize the KeyPress as triggering the Delete
+            // action, w/out the user having to press Fn-Delete, which is whats needed to actually
+            // generate the VK_DELETE key code.
                       
         boolean mayModifySelection() { return true; }
         boolean enabledFor(LWSelection s) { return canEdit(s); }
