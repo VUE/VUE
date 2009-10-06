@@ -120,7 +120,7 @@ public class ProviderListCellRenderer extends DefaultListCellRenderer
                 bg = AlternateRowColor;
         }
         
-        if (index == waitingMode)
+     /*   if (index == waitingMode)
         {
         	mRow.remove(1);
          	waitIcon.setImageObserver(mRow); 
@@ -131,7 +131,7 @@ public class ProviderListCellRenderer extends DefaultListCellRenderer
         	mRow.remove(1);
         	mRow.add(blankArea,1);
         }
-        
+        */
         if (checklist.size() == 0 || checklist.size() <= index)
         	checklist.add(index,new Boolean(false));
         
