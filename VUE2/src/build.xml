@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.194 $ / $Date: 2009-10-05 20:42:22 $ / $Author: mike $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.194 2009-10-05 20:42:22 mike Exp $ -->
+<!-- $Revision: 1.195 $ / $Date: 2009-10-06 14:10:10 $ / $Author: mike $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.195 2009-10-06 14:10:10 mike Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -104,7 +104,7 @@
          We need to leave that out to be sure our runtime test classpath is exactly
          the same as the classpath we distribute with -->
     <pathelement path="/System/Library/Java"/> <!-- This for MacOSX only -->
-    <path refid="thirdparty.jarfiles.classpath"/>
+    <path refid="thirdparty.jarfiles.classpath"/>  	
     <pathelement path="${build.class}"/>
     <pathelement path="."/>
     <pathelement location="${junit.jar}"/>
@@ -677,6 +677,7 @@
   <!-- Create a classpath based on all the 3rd party jarfiles -->
   <path id="thirdparty.jarfiles.classpath">
     <filelist dir="${lib.home}" files="${thirdparty.jarfiles.names}"/>
+  	<filelist dir="${lib.home}" files="${thirdparty.jarfiles.names.extendedFeatures}"/>
   </path>
 
 <!-- ==================== Vue JAR files ================================ -->
@@ -823,6 +824,7 @@
       	<exclude name="maclib/**"/>
       	<exclude name="java15/**"/>
       	<exclude name="tufts/vue/images/*.ico"/>
+      	<exclude name="tufts/vue/images/archived/**"/>
         <include name="**/*.xml"/>
         <include name="**/*.conf"/>
         <include name="**/*.css"/>
