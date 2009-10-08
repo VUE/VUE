@@ -49,7 +49,7 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
     public static final int ONT_CHOOSER_X_LOCATION = 300;
     public static final int ONT_CHOOSER_Y_LOCATION = 300;
     
-    public static final String ontTitle = "<html><b>"+VueResources.getString("ontology.title")+ "</b><html>";
+    public static final String ontTitle = "<html><b>"+VueResources.getString("ontology2.title")+ "</b><html>";
     //public static final String cssTitle = "<html><b>Ontology Style Sheet*</b></html>";
     public static final String cssTitle = "<html><b>"+ VueResources.getString("ontology2.stylesheet") +"</b></html>";
     public static final String browseFileMessage = VueResources.getString("ontology2.selectfile");
