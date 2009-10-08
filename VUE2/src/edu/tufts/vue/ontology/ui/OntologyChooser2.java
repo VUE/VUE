@@ -611,7 +611,7 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
                            String [] choices = {VueResources.getString("button.close.label")};
                            
                            VueUtil.option(this,
-                                   "<HTML>"+VueResources.getString("ontology2.cannotbeinstalled")+"</HTML>",
+                                   VueResources.getString("ontology2.cannotbeinstalled"),
                                    VueResources.getString("optiondialog.ontology2.alert"),
                                    javax.swing.JOptionPane.YES_NO_OPTION,
                                    javax.swing.JOptionPane.ERROR_MESSAGE,
