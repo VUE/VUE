@@ -89,7 +89,7 @@ public class MetadataSearchGUI extends JPanel {
     public final static int KEYWORD = 2;
     
     public final static String AND = VueResources.getString("searchgui.and");
-    public final static String OR = VueResources.getString("sarcghgui.or");
+    public final static String OR = VueResources.getString("searcghgui.or");
     
     public final static String SELECTED_MAP_STRING = VueResources.getString("searchgui.currentmap");
     public final static String ALL_MAPS_STRING = VueResources.getString("searchgui.allopenmaps");
