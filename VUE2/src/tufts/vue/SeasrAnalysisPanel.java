@@ -62,9 +62,9 @@ public class SeasrAnalysisPanel extends JPanel implements ActionListener, FocusL
 						buttonPanel = new JPanel(new GridBagLayout());
 		Color			background = getBackground();
 		JTextArea		subtitle = newTextArea(VueResources.getString("seasr.analysis.subtitle"), background, COLUMNS),
-						step1Number = newTextArea("1", background),
-						step2Number = newTextArea("2", background),
-						step3Number = newTextArea("3", background),
+						step1Number = newTextArea(VueResources.getString("seasr.analysis.1"), background),
+						step2Number = newTextArea(VueResources.getString("seasr.analysis.2"), background),
+						step3Number = newTextArea(VueResources.getString("seasr.analysis.3"), background),
 						step1Title = newTextArea(VueResources.getString("seasr.analysis.step1"), background, COLUMNS),
 						step2Title = newTextArea(VueResources.getString("seasr.analysis.step2"), background, COLUMNS),
 						step3Title = newTextArea(VueResources.getString("seasr.analysis.step3"), background, COLUMNS);
