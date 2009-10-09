@@ -59,7 +59,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.255 $ / $Date: 2009-09-30 18:32:18 $ / $Author: sfraize $
+ * @version $Revision: 1.256 $ / $Date: 2009-10-09 20:37:50 $ / $Author: brian $
  */
 
 public class LWMap extends LWContainer
@@ -550,16 +550,20 @@ public class LWMap extends LWContainer
         	mMinConnections = 0;
         }
 
-        return String.format(Locale.getDefault(), VueResources.getString("mapinspectorpanel.objectStats"),
-                mNodeCount, mLinkCount, mGroupCount);
+        return String.format(Locale.getDefault(), VueResources.getString("mapinspectorpanel.objectStats.format"),
+        		VueResources.getString("mapinspectorpanel.objectStats.nodes"), mNodeCount,
+        		VueResources.getString("mapinspectorpanel.objectStats.links"), mLinkCount,
+        		VueResources.getString("mapinspectorpanel.objectStats.groups"), mGroupCount);
     }
     
     public String getConnectivityStatistics() {
     	// Expects that getObjectStatistics() will be called first to make counts -- no need to do it again.
     	double	avg = (mNodeCount == 0 ? 0.0 : ((double)mConnectionCount) / (double)mNodeCount);
 
-		return String.format(Locale.getDefault(), VueResources.getString("mapinspectorpanel.connectivityStats"),
-				mMinConnections, mMaxConnections, avg);
+		return String.format(Locale.getDefault(), VueResources.getString("mapinspectorpanel.connectivityStats.format"),
+				VueResources.getString("mapinspectorpanel.connectivityStats.min"), mMinConnections,
+				VueResources.getString("mapinspectorpanel.connectivityStats.max"), mMaxConnections,
+				VueResources.getString("mapinspectorpanel.connectivityStats.avg"), avg);
     }
     
     public PropertyMap getMetadata(){

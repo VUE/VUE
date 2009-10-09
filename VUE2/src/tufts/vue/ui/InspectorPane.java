@@ -42,7 +42,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.127 $ / $Date: 2009-10-05 01:52:56 $ / $Author: sfraize $
+ * @version $Revision: 1.128 $ / $Date: 2009-10-09 20:37:50 $ / $Author: brian $
  */
 
 public class InspectorPane extends WidgetStack
@@ -441,8 +441,10 @@ public class InspectorPane extends WidgetStack
 			}
         }
 
-        return String.format(Locale.getDefault(), VueResources.getString("mapinspectorpanel.objectStats"),
-                nodeCount, linkCount, groupCount);
+        return String.format(Locale.getDefault(), VueResources.getString("mapinspectorpanel.objectStats.format"),
+        		VueResources.getString("mapinspectorpanel.objectStats.nodes"), nodeCount,
+        		VueResources.getString("mapinspectorpanel.objectStats.links"), linkCount,
+        		VueResources.getString("mapinspectorpanel.objectStats.groups"), groupCount);
     }
     
     private void loadAllNodePanes(LWComponent c) {
