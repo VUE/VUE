@@ -48,7 +48,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.495 $ / $Date: 2009-10-12 16:12:06 $ / $Author: sfraize $
+ * @version $Revision: 1.496 $ / $Date: 2009-10-12 17:54:48 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1343,17 +1343,18 @@ public class LWComponent
     public final IntProperty mFontStyle = new CSSFontStyleProperty(KEY_FontStyle)       { void onChange() { rebuildFont(); } };
     public final IntProperty mFontSize = new IntProperty(KEY_FontSize)                  { void onChange() { rebuildFont(); } };
     public final StringProperty mFontName = new CSSFontFamilyProperty(KEY_FontName)     { void onChange() { rebuildFont(); } };
-    public final StringProperty mFontUnderline = new StringProperty(KEY_FontUnderline)     {  
-    	
+    
+    public final StringProperty mFontUnderline = new StringProperty(KEY_FontUnderline) {  
     	boolean isChanged(String newValue) {
     		return true;
     	} 
     	
-    	void onChange() { rebuildFont();
-    	 if (labelBox != null)
-             labelBox.copyStyle(LWComponent.this);
-         layout(this.key); // could make this generic: add a key bit that says "layout needed on-change";
-    	
+    	@Override void onChange() {
+            rebuildFont();
+            if (labelBox != null) {
+                labelBox.copyStyle(LWComponent.this);
+                layout(this.key); // could make this generic: add a key bit that says "layout needed on-change";
+            }
     	} 
     	
     	};
@@ -1372,8 +1373,7 @@ public class LWComponent
     }
     
     public final FontProperty mFont = new FontProperty(KEY_Font) {
-    
-            void onChange() {
+            @Override void onChange() {
                 if (!fontIsRebuilding) {
                     final Font f = get();
                 
@@ -1383,9 +1383,10 @@ public class LWComponent
                     mFontName.take(f.getName());
                 }
 
-                if (labelBox != null)
+                if (labelBox != null) {
                     labelBox.copyStyle(LWComponent.this);
-                layout(this.key); // could make this generic: add a key bit that says "layout needed on-change";
+                    layout(this.key); // could make this generic: add a key bit that says "layout needed on-change";
+                }
             }
         };
 
@@ -1694,6 +1695,8 @@ public class LWComponent
             return null;
         }
 
+        c.mXMLRestoreUnderway = true; // todo: this flag really "initUnderway"
+
         c.copySupportedProperties(this);
         
         c.x = this.x;
@@ -1703,47 +1706,44 @@ public class LWComponent
         c.scale = this.scale;
         c.stroke = this.stroke; // cached info only
 
-        
-        // duplicate meta-data list
-        List<edu.tufts.vue.metadata.VueMetadataElement> md = getMetadataList().getMetadata();
-        List<edu.tufts.vue.metadata.VueMetadataElement> mdc = c.getMetadataList().getMetadata();
-        Iterator<edu.tufts.vue.metadata.VueMetadataElement> i = md.iterator();
-        while(i.hasNext())
-        {
-            mdc.add(i.next());
-        }
+        c.dupeMetaData(this);
 
         c.copyStyle(this);
 
-        c.setAutoSized(isAutoSized());
-        //c.setFillColor(getFillColor());
-        //c.setTextColor(getTextColor());
-        //c.setStrokeColor(getStrokeColor());
-        if (c instanceof LWText)
-        {
-        	c.label=this.label;
-        	((LWText)c).getRichLabelBox().setText(((LWText)this).getRichLabelBox().getRichText());
-        }
-        else
-        {
-            //c.setLabel(this.label); // use setLabel so new TextBox will be created [!no longer an effect]
+        c.setAutoSized(isAutoSized()); // may be sensitive to order of operations during init
+        
+        if (c instanceof LWText) {
+            c.label=this.label;
+            ((LWText)c).getRichLabelBox().setText(((LWText)this).getRichLabelBox().getRichText());
+        } else {
             c.setLabelImpl(this.label, true, false);
             c.getLabelBox().setSize(getLabelBox().getSize());
         }
-
         
         if (hasResource())
             c.setResource(getResource());
         if (hasNotes())
             c.setNotes(getNotes());
 
-        if (mDataMap != null)
-            c.mDataMap = mDataMap.clone();
-
         if (cc.patcher != null)
             cc.patcher.track(this, c);
+
+        c.mXMLRestoreUnderway = false;
+        c.layout("duplicate");
                 
         return c;
+    }
+
+    private void dupeMetaData(LWComponent src) {
+        // duplicate original style meta-data list
+        final List<edu.tufts.vue.metadata.VueMetadataElement> srcVMD = src.getMetadataList().getMetadata();
+        final List<edu.tufts.vue.metadata.VueMetadataElement> targetVMD = getMetadataList().getMetadata();
+        for (VueMetadataElement vme : srcVMD)
+            targetVMD.add(vme);
+
+        // duplicate data-set data
+        if (src.mDataMap != null)
+            mDataMap = src.mDataMap.clone();
     }
 
     public LWComponent duplicate() {
@@ -3014,6 +3014,8 @@ public class LWComponent
             return text.replaceAll("%pct;", "%");
         }
     }
+
+    private static final Object LAYOUT_DEFAULT = "default";
     
     /**
      * If this component supports special layout for it's children,
@@ -3021,16 +3023,14 @@ public class LWComponent
      */
     public final void layout() {
         if (mXMLRestoreUnderway == false)
-            layout("default");
+            layout(LAYOUT_DEFAULT);
     }
     
     final void layout(Object triggerKey) {
         if (mXMLRestoreUnderway == false) {
             
-            //validateCoordinates();
-            
             layoutImpl(triggerKey);
-
+            
             if (triggerKey == LWMap.NODE_INIT_LAYOUT) {
                 validateInitialValues();
                 layoutSlideIcons(null);
@@ -3042,10 +3042,6 @@ public class LWComponent
             //    mSlideIconBounds.x = Float.NaN; // invalidate
         }
     }
-
-//     public void validate() {
-//         validateInitialValues();
-//     }
 
     protected boolean validateInitialValues() {
         boolean bad = false;
