@@ -91,6 +91,8 @@ public class DEBUG
     public static boolean SCHEMA; // schema's
     
     public static boolean QUARTILE; // quartile import
+    
+    public static boolean ANNOTATE; // data annotations
 
     public static  void setAllEnabled(boolean enabled) {
         for (Field f : Fields)
