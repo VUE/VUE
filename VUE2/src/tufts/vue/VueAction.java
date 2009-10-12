@@ -35,7 +35,7 @@ import javax.swing.Icon;
  * Base class for VueActions that don't use the selection.
  * @see Actions.LWCAction for actions that use the selection
  *
- * @version $Revision: 1.49 $ / $Date: 2009-08-10 22:48:43 $ / $Author: sfraize $ 
+ * @version $Revision: 1.50 $ / $Date: 2009-10-12 16:13:13 $ / $Author: sfraize $ 
  */
 public class VueAction extends javax.swing.AbstractAction
 {
@@ -76,7 +76,7 @@ public class VueAction extends javax.swing.AbstractAction
         allIgnored = disabled;
         for (VueAction a : AllActionList) {
             final boolean enabled = a.isUserEnabled();
-            if (DEBUG.EVENTS && disabled && enabled) Log.debug("setAllActionsIgnored override; always enabled: " + a);
+            if (DEBUG.EVENTS && DEBUG.META && disabled && enabled) Log.debug("setAllActionsIgnored override; always enabled: " + a);
             a.setEnabled(enabled);
         }
     }
