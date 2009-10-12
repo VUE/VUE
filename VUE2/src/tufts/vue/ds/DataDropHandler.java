@@ -18,13 +18,14 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.ArrayList;
     
+import com.google.common.collect.Multiset;
 
 /**
  * Once a Row, Field, or Value has been selected for dragging from the DataTree,
  * this handles what happens when it's dropped on the map.  What happends depends
  * on what it's dropped on.
  *
- * @version $Revision: 1.3 $ / $Date: 2009-10-05 01:49:16 $ / $Author: sfraize $
+ * @version $Revision: 1.4 $ / $Date: 2009-10-12 19:31:52 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -106,18 +107,16 @@ class DataDropHandler extends MapDropTarget.DropHandler
         drop.items = newNodes; // tells MapDropTarget to add these to the map
 
         // tell MapDropTarget what to select:
-        
         // todo: either make this always handled by the drop handler or make
         // a clean API for this (MapDropTargets has standard things to do
         // regarding application focus it is going to handle after we return,
         // and we don't want to be worrying about that in DropHandler's)
-
-//         if (clusteringTargets.size() > 0) {
-//             drop.select = new ArrayList(newNodes);
-//             drop.select.addAll(clusteringTargets);
-//         } else {
-//             drop.select = newNodes;
-//         }
+        //         if (clusteringTargets.size() > 0) {
+        //             drop.select = new ArrayList(newNodes);
+        //             drop.select.addAll(clusteringTargets);
+        //         } else {
+        //             drop.select = newNodes;
+        //         }
         
         drop.select = null; // tells MapDropTarget to skip selection handling (we do it here)
         final tufts.vue.LWSelection s = drop.viewer.getSelection();
@@ -161,6 +160,10 @@ class DataDropHandler extends MapDropTarget.DropHandler
             // TODO: debug what the layout actions are doing to the view.
             drop.viewer.ensureMapVisible();
         }
+
+        // can't do this yet: MapDropTarget still has yet to do the actual add-to-map,
+        // and then it will generate the generic "Drop" undo-mark.
+        //drop.viewer.getMap().getUndoManager().mark("Data Drop: " + droppingDataItem);
 
         return true;
         
@@ -319,9 +322,18 @@ class DataDropHandler extends MapDropTarget.DropHandler
                 
         MapDropTarget.setCenterAt(newNodes, drop.location);
 
-        boolean didAddLinks = DataAction.addDataLinksForNodes(drop.viewer.getMap(),
-                                                              newNodes,
-                                                              droppingDataItem.getField());
+//         final List<tufts.vue.LWLink> linksAdded =
+//             DataAction.addDataLinksForNodes(drop.viewer.getMap(),
+//                                             newNodes,
+//                                             droppingDataItem.getField());
+//        final boolean didAddLinks = linksAdded.size() > 0;
+        
+        final Multiset<tufts.vue.LWComponent> targetsUsed =
+            DataAction.addDataLinksForNodes(drop.viewer.getMap(),
+                                            newNodes,
+                                            droppingDataItem.getField());
+
+        final boolean didAddLinks = targetsUsed.size() > 0;
 
         if (clusteringTargets.size() > 0) {
             //tufts.vue.Actions.MakeCluster.doClusterAction(clusterNode, newNodes);                
