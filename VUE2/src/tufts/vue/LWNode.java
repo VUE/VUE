@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.255 $ / $Date: 2009-09-28 18:59:49 $ / $Author: sfraize $
+ * @version $Revision: 1.256 $ / $Date: 2009-10-12 17:56:58 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -328,7 +328,7 @@ public class LWNode extends LWContainer
         isRectShape = (shape instanceof Rectangle2D || shape instanceof RoundRectangle2D);
         mShape = shape;
         mShape.setFrame(0, 0, getWidth(), getHeight());
-        layout();
+        layout(LWKey.Shape);
         updateConnectedLinks(null);
         notify(LWKey.Shape, new Undoable(old) { void undo() { setShapeInstance((RectangularShape)old); }} );
         
@@ -1118,7 +1118,7 @@ public class LWNode extends LWContainer
         }
         inLayout = true;
         if (DEBUG.LAYOUT) {
-            String msg = "*** LAYOUT, trigger="+triggerKey
+            String msg = "*** layoutNode, trigger="+triggerKey
                 + " cur=" + curSize
                 + " request=" + request
                 + " isAutoSized=" + isAutoSized();
@@ -1131,11 +1131,16 @@ public class LWNode extends LWContainer
 
         mIconBlock.layout(); // in order to compute the size & determine if anything showing
 
-        if (DEBUG.LAYOUT && getLabelBox().getHeight() != getLabelBox().getPreferredSize().height) {
+        if (DEBUG.LAYOUT && labelBox != null) {
+            // do NOT call getLabelBox -- has caching side effect
+            final int prefHeight = labelBox.getPreferredSize().height;
+            final int realHeight = labelBox.getHeight();
             // NOTE: prefHeight often a couple of pixels less than getHeight
-            System.err.println("prefHeight != height in " + this);
-            System.err.println("\tpref=" + getLabelBox().getPreferredSize().height);
-            System.err.println("\treal=" + getLabelBox().getHeight());
+            if (prefHeight != realHeight) {
+                Log.debug("prefHeight != height in " + this
+                          + "\n\tprefHeight=" + prefHeight
+                          + "\n\trealHeight=" + realHeight);
+            }
         }
 
         if (triggerKey == Flag.COLLAPSED) {
