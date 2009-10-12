@@ -2043,8 +2043,6 @@ public class Actions implements VueConstants
     // in follow-ons)
     //-------------------------------------------------------
 
-    private static final Object ClusterTimeKey = new LWComponent.PersistClientDataKey("clusterTime");
-
     public abstract static class ArrangeAction extends LWCAction {
         static float minX, minY;
         static float maxX, maxY;
@@ -2169,7 +2167,7 @@ public class Actions implements VueConstants
             // recording the current action time on the centering node can later help
             // us determine the layout priority for new data items when adding to the map
             // (by looking at the most recent clustering centers)
-            center.setClientData(ClusterTimeKey, currentActionTime);
+            center.setClientData(tufts.vue.ds.DataAction.ClusterTimeKey, currentActionTime);
             
             final LWContainer commonParent = center.getParent();
             final List<LWComponent> toReparent = new ArrayList();
