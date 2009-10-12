@@ -36,7 +36,7 @@ import com.google.common.collect.Iterators;
  * The insertion order of each key/value is preserved, even for each use of
  * the same key with different values.
  *
- * @version $Revision: 1.17 $ / $Date: 2009-08-28 17:13:05 $ / $Author: sfraize $
+ * @version $Revision: 1.18 $ / $Date: 2009-10-12 19:30:17 $ / $Author: sfraize $
  */
 
 public class MetaMap implements TableBag, XMLUnmarshalListener, tufts.vue.ds.Relation.Scannable
@@ -491,60 +491,60 @@ public class MetaMap implements TableBag, XMLUnmarshalListener, tufts.vue.ds.Rel
     public void XML_addNotify(Object context, String name, Object parent) {}
 
     
-//     public Iterable<Map.Entry<String,Object>> entries() {
-//         return mData.entries();
-//     }
+// //     public Iterable<Map.Entry<String,Object>> entries() {
+// //         return mData.entries();
+// //     }
     
-//     public Util.Itering<Map.Entry<String,?>> entries() {
-//         return new FlatteningIterator(mData);
-//     }
+// //     public Util.Itering<Map.Entry<String,?>> entries() {
+// //         return new FlatteningIterator(mData);
+// //     }
     
-    private static Util.Itering<Map.Entry<String,?>> entries(Map<String,Collection> map) {
-        return new FlatteningIterator(map);
-    }
+//     private static Util.Itering<Map.Entry<String,?>> entries(Map<String,Collection> map) {
+//         return new FlatteningIterator(map);
+//     }
 
-    /** Flatten's a Map who's values are collections: returns a key/value for each value in each collection */
-    private static final class FlatteningIterator<K,V> extends Util.AbstractItering<Map.Entry<K,V>> {
+//     /** Flatten's a Map who's values are collections: returns a key/value for each value in each collection */
+//     private static final class FlatteningIterator<K,V> extends Util.AbstractItering<Map.Entry<K,V>> {
 
-        final Iterator<Map.Entry<Object,Collection>> keyIterator;
+//         final Iterator<Map.Entry<Object,Collection>> keyIterator;
         
-        /** this object returned as the result every time */
-        final KVEntry entry = new KVEntry();
+//         /** this object returned as the result every time */
+//         final KVEntry entry = new KVEntry();
         
-        Iterator valueIterator;
+//         Iterator valueIterator;
 
-        public FlatteningIterator(Map<Object,Collection> map) {
-            keyIterator = map.entrySet().iterator();
-            if (keyIterator.hasNext()) {
-                findValueIteratorAndKey();
-            } else {
-                valueIterator = Iterators.emptyIterator();
-            }
-        }
+//         public FlatteningIterator(Map<Object,Collection> map) {
+//             keyIterator = map.entrySet().iterator();
+//             if (keyIterator.hasNext()) {
+//                 findValueIteratorAndKey();
+//             } else {
+//                 valueIterator = Iterators.emptyIterator();
+//             }
+//         }
 
-        void findValueIteratorAndKey() {
-            final Map.Entry e = keyIterator.next();
-            entry.key = e.getKey();
-            Collection collection = (Collection) e.getValue();
-            valueIterator = collection.iterator();
-        }
+//         void findValueIteratorAndKey() {
+//             final Map.Entry e = keyIterator.next();
+//             entry.key = e.getKey();
+//             Collection collection = (Collection) e.getValue();
+//             valueIterator = collection.iterator();
+//         }
 
-        public boolean hasNext() {
-            return valueIterator.hasNext() || keyIterator.hasNext();
-        }
+//         public boolean hasNext() {
+//             return valueIterator.hasNext() || keyIterator.hasNext();
+//         }
 
-        /** note: current impl will always return the same Map.Entry object */
-        public Map.Entry next() {
-            if (!hasNext()) throw new NoSuchElementException();
+//         /** note: current impl will always return the same Map.Entry object */
+//         public Map.Entry next() {
+//             if (!hasNext()) throw new NoSuchElementException();
             
-            if (!valueIterator.hasNext())
-                findValueIteratorAndKey();
+//             if (!valueIterator.hasNext())
+//                 findValueIteratorAndKey();
 
-            entry.value = valueIterator.next();
+//             entry.value = valueIterator.next();
             
-            return entry;
-        }
-    }
+//             return entry;
+//         }
+//     }
 
     private void markChange() {
         if (mHoldingChanges)
