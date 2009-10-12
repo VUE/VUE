@@ -16,17 +16,20 @@ import static tufts.vue.ds.Relation.*;
 
 import static tufts.vue.LWComponent.Flag;
 
-import edu.tufts.vue.metadata.VueMetadataElement;
+//import edu.tufts.vue.metadata.VueMetadataElement;
 
 import java.awt.Color;
 import java.awt.Font;
 
 import java.util.*;
 
+import com.google.common.collect.Multiset;
+
 import org.apache.commons.lang.StringEscapeUtils;
 
+
 /**
- * @version $Revision: 1.27 $ / $Date: 2009-10-05 02:42:28 $ / $Author: sfraize $
+ * @version $Revision: 1.28 $ / $Date: 2009-10-12 19:30:45 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -34,28 +37,7 @@ public final class DataAction
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(DataAction.class);
 
-    /** annotate the given schema (note what is present and what isn't) based on the data nodes found in the given map */
-    public static void annotateForMap(final Schema schema, final LWMap map)
-    {
-        //if (DEBUG.Enabled) Log.debug("ANNOTATING for " + map + "; " + schema);
-
-        final Collection<LWComponent> allDataNodes;
-
-        if (map == null) {
-            // if map is null, we annotate with an empty list, which will clear all annotation data
-            // (everything in the schema will be marked as newly present)
-            allDataNodes = Collections.EMPTY_LIST;
-        } else {
-            final Collection<LWComponent> allNodes = map.getAllDescendents();
-            allDataNodes = new ArrayList(allNodes.size());
-            for (LWComponent c : allNodes)
-                if (c.isDataNode())
-                    allDataNodes.add(c);
-        }
-
-        schema.annotateFor(allDataNodes);
-    }
-    
+    public static final Object ClusterTimeKey = new tufts.vue.LWComponent.PersistClientDataKey("clusterTime");
 
     public static String valueText(Object value) {
         return StringEscapeUtils.escapeHtml(Field.valueText(value));
@@ -85,10 +67,11 @@ public final class DataAction
     
     private static List<LWLink> makeDataLinksForNode
         (final LWComponent node,
-         final Collection<? extends LWComponent> linkTargets)
+         final Collection<? extends LWComponent> linkTargets,
+         final Multiset<LWComponent> targetsUsed)
     {
         if (linkTargets.size() > 0) {
-            return makeLinks(linkTargets, node, node.getDataValueField()); // seems wrong to be providing this last argumen
+            return makeLinks(linkTargets, node, node.getDataValueField(), targetsUsed); // seems wrong to be providing this last argumen
         } else {
             return Collections.EMPTY_LIST;
         }
@@ -97,12 +80,12 @@ public final class DataAction
 
     private static final Picker DataNodePicker = new Picker<LWComponent>() {
             public boolean match(LWComponent c) {
-                return c.getClass() == LWNode.class && c.isDataNode();
+                return c.getClass() == LWNode.class;
+                //return c.getClass() == LWNode.class && c.isDataNode();
             }};
 
     /** @return a list of all *possible* targets we may want to be linking to */
     private static List<? extends LWComponent> getLinkTargets(LWMap map) {
-
         return Util.extract(map.getAllDescendents(),
                             DataNodePicker);
         
@@ -110,26 +93,27 @@ public final class DataAction
 
 
     /** @field -- if null, will make exaustive row-node links */
-    public static boolean addDataLinksForNodes
+    public static Multiset<LWComponent> addDataLinksForNodes
         (final LWMap map,
          final List<? extends LWComponent> nodes,
          final Field field)
     {
         if (DEBUG.Enabled) Log.debug("addDataLinksForNodes; field=" + quoteKey(field));
         
-        final List<LWLink> links = makeDataLinksForNodes(map, nodes, field);
+        final Multiset<LWComponent> targetsUsed = com.google.common.collect.HashMultiset.create();
+        final List<LWLink> links = makeDataLinksForNodes(map, nodes, field, targetsUsed);
 
-        if (links.size() > 0) {
+        if (links.size() > 0)
             map.getInternalLayer("*Data Links*").addChildren(links);
-            return true;
-        } else
-            return false;
+
+        return targetsUsed;
     }
 
     private static List<LWLink> makeDataLinksForNodes
         (final LWMap map,
          final List<? extends LWComponent> nodes,
-         final Field field)
+         final Field field,
+         final Multiset<LWComponent> targetsUsed)
     {
         final Collection linkTargets = getLinkTargets(map);
 
@@ -139,8 +123,8 @@ public final class DataAction
         
         if (linkTargets.size() > 0) {
             links = new ArrayList();
-            for (LWComponent c : nodes) {
-                links.addAll(makeLinks(linkTargets, c, field));
+            for (LWComponent newNode : nodes) {
+                links.addAll(makeLinks(linkTargets, newNode, field, targetsUsed));
             }
         }
 
@@ -151,14 +135,16 @@ public final class DataAction
     private static List<LWLink> makeLinks
         (final Collection<? extends LWComponent> linkTargets,
          final LWComponent node,
-         final Field field)
+         final Field field,
+         final Multiset<LWComponent> targetsUsed
+        )
     {
         //Log.debug("makeLinks: " + field + "; " + node);
 
         if (field == null)
-            return makeRowNodeLinks(linkTargets, node);
+            return makeRowNodeLinks(linkTargets, node, targetsUsed);
         else
-            return makeValueNodeLinks(linkTargets, node, field);
+            return makeValueNodeLinks(linkTargets, node, field, targetsUsed);
     }
 
     public static List<LWComponent> makeRelatedNodes(Field dragField, LWComponent dropTarget) {
@@ -217,7 +203,8 @@ public final class DataAction
     private static List<LWLink> makeValueNodeLinks
         (final Collection<? extends LWComponent> linkTargets,
          final LWComponent node,
-         final Field field) // todo: remove arg? is not immediately clear this MUST be the Field in node (which MUST be a value node, yes?)
+         final Field field,// todo: remove arg? is not immediately clear this MUST be the Field in node (which MUST be a value node, yes?)
+         final Multiset<LWComponent> targetsUsed) 
     {
         if (DEBUG.SCHEMA || DEBUG.WORK) {
             Log.debug("makeValueNodeLinks:"
@@ -262,6 +249,7 @@ public final class DataAction
                     //boolean sameField = fieldName.equals(c.getSchematicFieldName());
                     final boolean sameField = target.isDataValueNode();
                     links.add(makeLink(node, target, fieldName, fieldValue, sameField ? Color.red : null));
+                    targetsUsed.add(target);
                 }
 
                 final Relation relation = Relation.getCrossSchemaRelation(field, target.getRawData(), fieldValue);
@@ -292,7 +280,8 @@ public final class DataAction
      or between row nodes from different schema's that are considered "auto-joined" (e.g., a matching key field appears) */
     private static List<LWLink> makeRowNodeLinks
         (final Collection<? extends LWComponent> linkTargets,
-         final LWComponent rowNode)
+         final LWComponent rowNode,
+         final Multiset<LWComponent> targetsUsed)
     {
         if (!rowNode.isDataRowNode())
             Log.warn("making row links to non-row node: " + rowNode, new Throwable("FYI"));
@@ -314,26 +303,28 @@ public final class DataAction
         final List<LWComponent> singletonTargetList = new ArrayList(2);
         singletonTargetList.add(null);
         
-        for (LWComponent c : linkTargets) {
+        for (LWComponent target : linkTargets) {
 
-            if (c == rowNode) // never link to ourself
+            if (target == rowNode) // never link to ourself
                 continue;
 
             try {
             
-                final Schema targetSchema = c.getDataSchema();
+                final Schema targetSchema = target.getDataSchema();
 
                 if (targetSchema == null) {
-                    // if no data schema, nothing to do (someday: check for resource meta-data)
+                    //-----------------------------------------------------------------------------
+                    // CHECK FOR RESOURCE META-DATA AND LABEL META-DATA
+                    //-----------------------------------------------------------------------------
                     continue;
                 }
             
-                final Field singleValueField = c.getDataValueField();
+                final Field singleValueField = target.getDataValueField();
 
                 if (singleValueField != null) {
                     singletonTargetList.set(0, rowNode);
                     final List<LWLink> valueLinks
-                        = makeValueNodeLinks(singletonTargetList, c, singleValueField);
+                        = makeValueNodeLinks(singletonTargetList, target, singleValueField, targetsUsed);
                     if (valueLinks.size() > 1)
                         Log.warn("more than 1 link added for single value node: " + Util.tags(valueLinks), new Throwable("HERE"));
                     links.addAll(valueLinks);
@@ -357,30 +348,33 @@ public final class DataAction
 
                 else if (sourceSchema == targetSchema) {
 
-                    final MetaMap targetRow = c.getRawData();
+                    final MetaMap targetRow = target.getRawData();
 
                     if (Relation.isSameRow(targetSchema, targetRow, sourceRow)) {
-                        links.add(makeLink(rowNode, c, null, null, Color.orange));
+                        links.add(makeLink(rowNode, target, null, null, Color.orange));
+                        targetsUsed.add(target);
                     }
                 }
 
                 else { // if (sourceSchema != targetSchema) {
 
-                    final MetaMap targetRow = c.getRawData();
+                    final MetaMap targetRow = target.getRawData();
 
                     //Log.debug("looking for x-schema relation: " + sourceRow + "; " + targetRow);
 
                     final Relation relation = Relation.getRelation(sourceRow, targetRow);
                     
-                    if (relation != null)
-                        links.add(makeLink(rowNode, c, relation));
+                    if (relation != null) {
+                        links.add(makeLink(rowNode, target, relation));
+                        targetsUsed.add(target);
+                    }
                     
                     //makeCrossSchemaRowNodeLinks(links, sourceSchema, targetSchema, rowNode, c);
                 }
                                   
                 
             } catch (Throwable t) {
-                Log.warn("makeRowNodeLinks: processing target: " + c, t);
+                Log.warn("makeRowNodeLinks: processing target: " + target, t);
             }
         }
         
