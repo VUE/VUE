@@ -45,7 +45,7 @@ import com.lightdev.app.shtm.Util;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.87 $ / $Date: 2009-09-02 02:38:54 $ / $Author: mike $
+ * @version $Revision: 1.88 $ / $Date: 2009-10-12 00:07:29 $ / $Author: mike $
  *
  */
 public class FontEditorPanel extends JPanel
@@ -816,7 +816,7 @@ public class FontEditorPanel extends JPanel
         add(unorderedListButton,gbc);
                                         
         gbc.gridy=1;
-        gbc.gridx=6;
+        gbc.gridx=7;
         gbc.insets=new Insets(1,5,1,1);
         gbc.anchor=GridBagConstraints.EAST;
         gbc.fill=GridBagConstraints.NONE;
