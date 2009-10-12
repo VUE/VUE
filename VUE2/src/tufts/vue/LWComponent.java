@@ -48,7 +48,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.494 $ / $Date: 2009-10-05 02:42:28 $ / $Author: sfraize $
+ * @version $Revision: 1.495 $ / $Date: 2009-10-12 16:12:06 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -297,7 +297,7 @@ public class LWComponent
     protected transient List<LWPathway.Entry> mEntries;
     
     /** properties for use by model clients (e.g., UI components) */
-    protected transient HashMap mClientProperties;
+    protected transient HashMap mClientData;
     // need MetaMap (a multi-map) for XML data-sets that can have more than one value per key
     protected transient MetaMap mDataMap;
     
@@ -658,16 +658,29 @@ public class LWComponent
             }
         }
 
-//         void setValueInternal(TSubclass c, TValue value) {
-//             setValue(c, value);
-//         }
-        
-        void setValue(TSubclass c, TValue value) {
-            setValue(c, value, PROPERTY_SET_DEFAULT);
+        // The design of the below two methods, setValue and setValueWithContext, is such that either
+        // can be overridden depending on the needs of the Key implementation, but never BOTH.
+        // Also, the setValue(TSubclass, TValue) method can never be called directly, except by
+        // the single call made to it in setValueWithContext.  This is so that the context
+        // argument can be completely ignored in simple Key implementations, and only made
+        // use of where needed.
+
+        /** non slot-based property keys can override this -- only override ONE of the two setValue methods -- note that this
+         particular method should NOT EVER be called directly -- only overridden */
+        // what we really want here is some kind of access modifier that make this protected for overriding, but private to calling
+        protected void setValue(TSubclass c, TValue value) {
+            setValueBySlot(c, value);
         }
-        
-        /** non slot-based property keys can override this */
-        void setValue(TSubclass c, TValue value, Object context) {
+
+        /** non slot-based property keys can override this -- only override ONE of the two setValue methods
+         * Override the 2-argument version unless the context is needed */
+        void setValueWithContext(TSubclass c, TValue value, Object context) {
+            // if this has NOT been overriden (the usual case), defer to the default non-context setValue, which will defer to slot
+            // based value-set if needed.
+            setValue(c, value); // this is the only place that the 2-arg setValue should ever be called
+        }
+
+        private final void setValueBySlot(TSubclass c, TValue value) {
             final Property slot = getSlotSafely(c);
             if (slot == null || slot == NO_SLOT_PROVIDED)
                 return;
@@ -677,19 +690,8 @@ public class LWComponent
             } else {
                 slot.set(value);
             }
-                /*
-            try {
-                if (value instanceof String) {
-                    // If a String value comes in, this allows us to auto-parse it
-u                    getSlot(c).setFromString((String)value);
-                } else {
-                    getSlot(c).set(value);
-                }
-            } catch (ClassCastException e) {
-                tufts.Util.printStackTrace(e, "Bad setValue type for " + getSlot(c) + ": " + (value == null ? "null" : value.getClass()));
-            }
-                */
         }
+        
         
         private Property getSlotSafely(TSubclass c) {
             Property slot = null;
@@ -743,18 +745,22 @@ u                    getSlot(c).setFromString((String)value);
             if (slot != NO_SLOT_PROVIDED) {
                 slot.setFromString(stringValue);
             } else {
-                TValue curValue = getValue(c);
+                TValue v = getValue(c);
                 // handle a few special cases for standard java types, even if there's no slot (Property object) to parse the string
-                // FYI, this won't work if getValue returns null, as we'll have no class object to check for type information.
-                     if (curValue instanceof String)    setValue(c, (TValue) stringValue);
-                else if (curValue instanceof Integer)   setValue(c, (TValue) Integer.valueOf(stringValue));
-                else if (curValue instanceof Long)      setValue(c, (TValue) Long.valueOf(stringValue));
-                else if (curValue instanceof Float)     setValue(c, (TValue) Float.valueOf(stringValue));
-                else if (curValue instanceof Double)    setValue(c, (TValue) Double.valueOf(stringValue));
-                else if (curValue instanceof Boolean)   setValue(c, (TValue) Boolean.valueOf(stringValue));
+                // This won't work if getValue returns null, as we'll have no class object to check for type information.
+                     if (v instanceof String)    stringSet(c, stringValue);
+                else if (v instanceof Integer)   stringSet(c, Integer.valueOf(stringValue));
+                else if (v instanceof Long)      stringSet(c, Long.valueOf(stringValue));
+                else if (v instanceof Float)     stringSet(c, Float.valueOf(stringValue));
+                else if (v instanceof Double)    stringSet(c, Double.valueOf(stringValue));
+                else if (v instanceof Boolean)   stringSet(c, Boolean.valueOf(stringValue));
                 else
-                    tufts.Util.printStackTrace(this + ":setValue(" + stringValue + "); no slot provided for parsing string value");
+                    Log.error(this + ":setValue(" + stringValue + "); no slot provided for parsing string value", new Throwable("HERE"));
             }
+        }
+
+        private final void stringSet(TSubclass c, Object v) {
+            setValueWithContext(c, (TValue) v, PROPERTY_SET_DEFAULT); // may want a seperate context here, e.g., PROPERTY_SET_FROM_STRING
         }
 
         /** @return true if was successful */
@@ -806,7 +812,7 @@ u                    getSlot(c).setFromString((String)value);
                                                        Util.tags(getStringValue(source)),
                                                        target,
                                                        oldValue);
-                    setValue(target, newValue);
+                    setValueWithContext(target, newValue, PROPERTY_SET_DEFAULT); // may want a specific context here, e.g., PROPERTY_COPY
                 }
 
 
@@ -1386,17 +1392,17 @@ u                    getSlot(c).setFromString((String)value);
 
     public static final String KEY_LabelFormat = "label.format";
     public static final Key KEY_Label = new Key<LWComponent,String>("label", KeyType.DATA) {
-        public void setValue(LWComponent c, String val, Object context) {
+        @Override public void setValueWithContext(LWComponent c, String val, Object context) {
             if (context == PROPERTY_SET_UNDO)
                 c.setLabelImpl(val, true, false);
             else
                 c.setLabel(val);
         }
-        public String getValue(LWComponent c) { return c.getLabel(); }
+        @Override public String getValue(LWComponent c) { return c.getLabel(); }
     };
     public static final Key KEY_Notes = new Key<LWComponent,String>("notes", KeyType.DATA) {
-        public void setValue(LWComponent c, String val) { c.setNotes(val); }
-        public String getValue(LWComponent c) { return c.getNotes(); }
+        @Override public void setValue(LWComponent c, String val) { c.setNotes(val); }
+        @Override public String getValue(LWComponent c) { return c.getNotes(); }
     };
 
 
@@ -1429,7 +1435,7 @@ u                    getSlot(c).setFromString((String)value);
 
     public static class PersistClientDataKey {
         final String name;
-        PersistClientDataKey(String s) { name = s; }
+        public PersistClientDataKey(String s) { name = s; }
         @Override public String toString() {
             return name;
         }
@@ -1441,8 +1447,8 @@ u                    getSlot(c).setFromString((String)value);
      * they're using are unique with respect to any other potential users of this API.
      * Setting a property value to null removes the property */
     public void setClientData(Object key, Object o) {
-        if (mClientProperties == null)
-            mClientProperties = new HashMap();
+        if (mClientData == null)
+            mClientData = new HashMap();
 
         if (DEBUG.DATA) {
             String keyName = key instanceof Class ? key.toString() : Util.tags(key);
@@ -1450,13 +1456,13 @@ u                    getSlot(c).setFromString((String)value);
         }
 
         if (o == null)
-            mClientProperties.remove(key);
+            mClientData.remove(key);
         else
-            mClientProperties.put(key, o);
+            mClientData.put(key, o);
     }
     
     public Object getClientData(Object key) {
-        return mClientProperties == null ? null : mClientProperties.get(key);
+        return mClientData == null ? null : mClientData.get(key);
     }
     
     public void setClientData(Class classKey, String subKey, Object o) {
@@ -1537,7 +1543,7 @@ u                    getSlot(c).setFromString((String)value);
 
         if (key instanceof Key) {
             final Key k = (Key) key;
-            k.setValue(this, val, context);
+            k.setValueWithContext(this, val, context);
         }
         // Old property keys that don't make use of the Key class yet:
         //else if (key == LWKey.Hidden)        setHidden( ((Boolean)val).booleanValue());
