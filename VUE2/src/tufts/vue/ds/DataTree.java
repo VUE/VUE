@@ -53,12 +53,12 @@ import com.google.common.collect.*;
  * currently active map, code for adding new nodes to the current map,
  * and initiating drags of fields or rows destined for a map.
  *
- * @version $Revision: 1.96 $ / $Date: 2009-10-05 17:33:54 $ / $Author: sfraize $
+ * @version $Revision: 1.97 $ / $Date: 2009-10-12 19:29:35 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
 public class DataTree extends javax.swing.JTree
-    implements DragGestureListener, LWComponent.Listener
+    implements DragGestureListener
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(DataTree.class);
     
@@ -77,12 +77,113 @@ public class DataTree extends javax.swing.JTree
     private final static Color MEDIUM_DARK_GRAY = new Color(96, 96, 96);
     private final static boolean DEBUG_LOCAL = false;
 
-    private volatile LWMap mActiveMap;
-
     private Thread mAnnotateThread;
 
-    //private final Object annotateLock = new Object();
+    private static final MapListener ActiveMapListener = new MapListener();
+    private static final java.util.concurrent.atomic.AtomicBoolean FirstInstance = new java.util.concurrent.atomic.AtomicBoolean(true);
+    
+    private static final Collection<DataTree> ActiveTrees = new java.util.concurrent.CopyOnWriteArrayList();
+    private static volatile DataTree ForegroundTree;
+    private static volatile LWMap mActiveMap;
+    private static volatile Collection<LWComponent> ActiveMapDataNodes = Collections.EMPTY_LIST;
+    
+    
+    public static final class MapListener implements LWComponent.Listener {
 
+        private static boolean mDataEventWasSeen;
+        
+        /** if the active map changes, we need to wake the annotation thread to re-annotate against the newly active map,
+         * as well as start listening for changes in the active map for running future annotation updates */
+        public void activeChanged(tufts.vue.ActiveEvent e, final LWMap map)
+        {
+            if (mActiveMap == map)
+                return;
+            
+            if (mActiveMap != null)
+                mActiveMap.removeLWCListener(this);
+            
+            mActiveMap = map;
+            
+            if (map == null)
+                return;
+            
+            kickOffAnnotations();
+            
+            mActiveMap.addLWCListener(this);
+        }
+    
+        public void LWCChanged(tufts.vue.LWCEvent e) {
+
+            if (mActiveMap == null) {
+                Log.warn("LWCEvent w/no active map: " + e);
+                return;
+            }
+
+            //if (DEBUG.ANNOTATE) Log.debug("SCANNING DATA EVENT: " + e + "; seenOne=" + mDataEventWasSeen);
+
+            // TODO: pull one copy of all the active map's descendents, once, in the AWT thread,
+            // before all the annotate's kick off.  Will probably need to have a single active map
+            // listener with a list of all active data-tree's instead of each tree listening
+            // to the active map itself.
+
+            if (e.key == LWKey.UserActionCompleted && mDataEventWasSeen) {
+                // technically, don't need to check after ANY action has been completed:
+                // only if a data node was added/removed from the map.  todo: we'll need
+                // a data-changed LWCEvent.
+                if (DEBUG.ANNOTATE) Log.debug("RUNNING ANNOTATE on: " + e);
+                kickOffAnnotations();
+                mDataEventWasSeen = false;
+            } else if (isDataEvent(e)) {
+                mDataEventWasSeen = true;
+                if (DEBUG.ANNOTATE) Log.debug("   FOUND DATA EVENT: " + e + "; seenOne=" + mDataEventWasSeen);
+            }
+        }
+
+        private void kickOffAnnotations() {
+
+            if (DEBUG.ANNOTATE) Log.debug("kicking off annotations for: " + Util.tags(ActiveTrees));
+
+            if (ActiveTrees.size() > 0) {
+                loadGlobalDataForAnnotations();
+                for (DataTree tree : ActiveTrees)
+                    tree.kickAnnotate();
+            }
+        }
+        
+    }
+
+    // note: this should be called from the AWT thread as it's going to access the main map model
+    private static void loadGlobalDataForAnnotations()
+    {
+        if (mActiveMap == null)
+            mActiveMap = VUE.getActiveMap();
+
+        if (DEBUG.Enabled) Log.debug("loading global annotation data from map " + mActiveMap);
+        
+        if (mActiveMap != null) {
+
+            final Collection<LWComponent> allNodes = mActiveMap.getAllDescendents();
+            final Collection<LWComponent> dataNodes = new ArrayList(allNodes.size());
+            
+            for (LWComponent c : allNodes) {
+                if (c.isDataNode() && c instanceof LWNode) // leave out data-links for now
+                    dataNodes.add(c);
+            }
+            ActiveMapDataNodes = dataNodes;
+            
+        } else {
+            ActiveMapDataNodes = Collections.EMPTY_LIST;
+        }
+        
+    }
+
+    private static boolean isDataEvent(tufts.vue.LWCEvent e) {
+        // we need to check for any childrenAdded/childrenRemoved right now, just in case ANY of them were data nodes
+        return e.key == LWKey.DataUpdate
+            || e.key == LWKey.HierarchyChanging;
+    }
+
+    // note: this is usually NOT called from the AWT thread -- is called from a data-source load thread
     public static JComponent create(Schema schema) {
         final DataTree tree = new DataTree(schema);
 
@@ -93,10 +194,18 @@ public class DataTree extends javax.swing.JTree
         } catch (Throwable t) {
             Log.warn(t); // an assistave measure only -- non fatal
         }
-        
-        tree.activeChanged(null, VUE.getActiveMap()); // simulate event for initial annotations
-        VUE.addActiveListener(LWMap.class, tree);
 
+        GUI.invokeOnEDT(new Runnable() { public void run() {
+            if (FirstInstance.getAndSet(false)) {
+                if (DEBUG.ANNOTATE) Log.debug("FIRST RUN");
+                VUE.addActiveListener(LWMap.class, ActiveMapListener);
+                ActiveMapListener.activeChanged(null, VUE.getActiveMap()); // simulate change for 1st init
+                loadGlobalDataForAnnotations();
+            }
+            tree.kickAnnotate();
+            ActiveTrees.add(tree); // make sure to do this last -- activeChanged above will kick all 1st time
+        }});
+        
         return buildControllerUI(tree);
     }
 
@@ -182,7 +291,7 @@ public class DataTree extends javax.swing.JTree
 
         if (DEBUG.Enabled) Log.debug("Updated " + patched.size() + " nodes with fresh data");
         
-        runAnnotate();
+        kickAnnotate();
 
         VUE.getSelection().setTo(patched);
 
@@ -844,110 +953,54 @@ public class DataTree extends javax.swing.JTree
         
     }
 
-    /** if the active map changes, we need to wake the annotation thread to re-annotate against the newly active map,
-     * as well as start listening for changes in the active map for running future annotation updates */
-    public void activeChanged(tufts.vue.ActiveEvent e, final LWMap map)
-    {
-        if (mActiveMap == map)
-            return;
-
-        if (mActiveMap != null)
-            removeMapListener(mActiveMap);
-
-        mActiveMap = map;
-
-        if (map == null)
-            return;
-
-        runAnnotate(); // mActiveMap must be pre-set
-        
-        addMapListener(mActiveMap);
+    private void debug(String s) {
+        Log.debug(String.format("%s%-20s%s %s", Util.TERM_PURPLE, "[" + mSchema.getName() + "]", Util.TERM_CLEAR, s));
     }
 
-    private void removeMapListener(LWMap map) {
-        map.removeLWCListener(this);
-    }
-    private void addMapListener(LWMap map) {
-        map.addLWCListener(this);
-    }
+    // For annotations, we create a single handler for listening to user changes to the
+    // current map (UseActionCompleted), that keeps background threads running for the
+    // annotations for each loaded DataTree.  It is designed so that the annotate thread
+    // for the currently visible DataTree(s) runs at a higher priority, and the loaded
+    // but not currently displated DataTree's run at a lower priority.  If a second
+    // update comes through before the current pass is completed, the prior update can
+    // be aborted.
 
-    // TODO: create a single handler for listening to user changes to the current map
-    // (UseActionCompleted), that keeps a background thread running for the annotations
-    // & refresh triggers.  It will always FIRST annotate and refresh the VISIBLE
-    // DataTree(s), then continue with the others.  Ultimately interruptable, so if a
-    // second update comes through before the current pass is completed, the prior
-    // update can be aborted.  Also, the running on a special thread handling could
-    // somehow be build into generic change support, where when the listener is added it
-    // can either request to happen on it's own thread, and/or provide one that will be
-    // woken up / interrupted.
-
-    private boolean mDataEventWasSeen;
-    
-    public void LWCChanged(tufts.vue.LWCEvent e) {
-
-        if (mActiveMap == null) {
-            Log.warn("LWCEvent w/no active map: " + e);
-            return;
-        }
-
-        Log.debug("SCANNING DATA EVENT: " + e + "; seenOne=" + mDataEventWasSeen);
-
-        if (e.key == LWKey.UserActionCompleted && mDataEventWasSeen) {
-            // technically, don't need to check after ANY action has been completed:
-            // only if a data node was added/removed from the map.  todo: we'll need
-            // a data-changed LWCEvent.
-            Log.debug("RUNNING ANNOTATE on: " + e);
-            runAnnotate();
-            mDataEventWasSeen = false;
-        } else if (isDataEvent(e)) {
-            mDataEventWasSeen = true;
-            Log.debug("   FOUND DATA EVENT: " + e + "; seenOne=" + mDataEventWasSeen);
-        }
-    }
-
-    private static boolean isDataEvent(tufts.vue.LWCEvent e) {
-        // we need to check for any childrenAdded/childrenRemoved right now, just in case ANY of them were data nodes
-        return e.key == LWKey.DataUpdate
-            || e.key == LWKey.HierarchyChanging;
-
-//             || e.key == LWKey.ChildrenAdded
-//             || e.key == LWKey.ChildrenRemoved
-//             || e.key == LWKey.Created;
-    }
-
-    private void runAnnotate() {
+    private void kickAnnotate() {
 
         GUI.invokeOnEDT(new Runnable() { public void run() {
             mUpdateButton.setEnabled(false);
         }});
-        //Log.info("WAKING " + mAnnotateThread, new Throwable("HERE"));
-        if (DEBUG.THREAD) Log.debug("**WAKING ANNOTATION THREAD " + mAnnotateThread + "; pri=" + mAnnotateThread.getPriority());
 
-        if (mAnnotateThread.getPriority() > Thread.NORM_PRIORITY) {
-            // first time it will be at MAX_PRIORITY
-            mAnnotateThread.setPriority(Thread.NORM_PRIORITY - 1);
-        }
+        if (DEBUG.THREAD) debug("WAKING-> ANNOTATION THREAD " + mAnnotateThread);
 
         // note: if we're already on a thread that's NOT the AWT EDT, we could
         // assume we're in a builder thread and instead of waking the annotation
         // thread just run in the builder thread, tho better to keep all that
-        // done there as sometimes that can take a whilte to run, and this will
+        // done there as sometimes that can take a while to run, and this will
         // allow initial tree creations to run faster.
         
         synchronized (mAnnotateThread) {
             mAnnotateThread.notify();
         }
-        if (DEBUG.THREAD) Log.debug("NOTIFIED ANNOTATION THREAD " + mAnnotateThread);
+        if (DEBUG.THREAD||DEBUG.ANNOTATE) debug("NOTIFIED ANNOTATION THREAD " + mAnnotateThread);
     }
 
     // TODO: add another kind of annotation pass that runs after a search, and greys out enumerated
-    // values that have dropped out of the search set.
+    // values that have dropped out of the search set.  (?)
 
+    /** @return true if interrupted */
+    private boolean annotateForMap() {
+        return annotateForMap(mActiveMap);
+    }
+
+    /** @return true if interrupted */
     private boolean annotateForMap(final LWMap map)
     {
-        if (DEBUG.THREAD || DEBUG.SCHEMA) Log.debug("ANNOTATING against " + map);
+        if (DEBUG.THREAD || DEBUG.SCHEMA || DEBUG.ANNOTATE) Log.debug("ANNOTATING against " + map + "; " + Util.tags(ActiveMapDataNodes));
         
-        DataAction.annotateForMap(mSchema, map);
+        mSchema.annotateFor(ActiveMapDataNodes);
+
+        // note: the map isn't actually needed by any of the below annotation calls
 
         if (map != null) {
             final String annot = map.getLabel();
@@ -976,6 +1029,8 @@ public class DataTree extends javax.swing.JTree
         
         if (DEBUG.THREAD || DEBUG.SCHEMA) Log.debug("annotateForMap: newRows " + newRowCount + "; changedRows " + changedRowCount);
 
+        if (Thread.interrupted()) return true;
+        
         GUI.invokeOnEDT(new Runnable() { public void run() {
             String	newRowsMessage = "",
             		changedRowsMessage = "";
@@ -1099,10 +1154,12 @@ public class DataTree extends javax.swing.JTree
         // empty.
         
         mSchema.flushData();
+
+        ActiveTrees.remove(this);
         
-        if (mActiveMap != null)
-            mActiveMap.removeLWCListener(this);
-        VUE.removeActiveListener(LWMap.class, this);
+//         if (mActiveMap != null)
+//             mActiveMap.removeLWCListener(this);
+//         VUE.removeActiveListener(LWMap.class, this);
     }
 
     private DataTree(final Schema schema) {
@@ -1116,26 +1173,30 @@ public class DataTree extends javax.swing.JTree
 
         final int ac = AnnotationThreadCount++;
 
-        mAnnotateThread = new Thread(String.format("Annotate%d: %s", ac, schema.getName())) {
+        mAnnotateThread = new Thread(String.format("Annotate%d: %-20.20s", ac, schema.getName())) {
                 { setPriority(MAX_PRIORITY); }
                 public synchronized void run() {
                     while (true) {
                         try {
-                            // must be careful: if we get a notify before the 1st time
-                            // we go to sleep, we'll never wake up!  So we start this
-                            // thread at high priority, and kick it off immediately,
-                            // because as soon as the DataTree is done constructing,
-                            // we're going to get notified the first time -- still
-                            // theoretically risky but should work.
+                            // must be careful: if we get a notify before the 1st time we go to
+                            // sleep, we'll never wake up!  So we start this thread at high
+                            // priority, and kick it off ("start()") immediately, because as soon
+                            // as the DataTree is done constructing, we're going to get notified
+                            // the first time -- still theoretically risky but it appears to 
+                            // be working reliably.
                             
-                            if (DEBUG.THREAD) Log.debug("annotation thread sleeping, pri=" + getPriority());
+                            if (DEBUG.THREAD || DEBUG.ANNOTATE) Log.debug("annotation thread sleeping, pri=" + getPriority());
                             wait();
                         } catch (InterruptedException e) {
                             Log.error("interrupted; exiting; " + schema);
                             return;
                         }
-                        if (DEBUG.THREAD) Log.debug("annotation thread woke, pri=" + getPriority() + "; running...");
-                        final boolean interrupted = annotateForMap(mActiveMap);
+                        if (DataTree.this == ForegroundTree && !VUE.isApplet()) // referring to NORM_PRIORITY can fail in Applets
+                            setPriority(NORM_PRIORITY - 1);
+                        else
+                            setPriority(MIN_PRIORITY);
+                        if (DEBUG.THREAD || DEBUG.ANNOTATE) Log.debug("annotation thread woke, pri=" + getPriority() + "; running...");
+                        final boolean interrupted = annotateForMap();
                         if (DEBUG.Enabled) {
                             if (interrupted)
                                 Log.debug("annotation aborted");
@@ -1232,22 +1293,17 @@ public class DataTree extends javax.swing.JTree
 
     @Override
     public void addNotify() {
-        if (DEBUG.Enabled) Log.debug("ADDNOTIFY " + this + "; thread=" + mAnnotateThread);
-        /*
-		At least on Mac Thread.NORM_PRIORITY is null when running as applet.
-		*/
-        if (!VUE.isApplet())
-        	mAnnotateThread.setPriority(Thread.NORM_PRIORITY - 1);
+        ForegroundTree = this;
         super.addNotify();
     }
+    
     @Override
     public void removeNotify() {
-        if (DEBUG.Enabled) Log.debug("REMOVENOTIFY " + this + "; thread=" + mAnnotateThread);
-        if (mAnnotateThread != null)
-            mAnnotateThread.setPriority(Thread.MIN_PRIORITY);
+        if (ForegroundTree == this)
+            ForegroundTree = null;
         super.removeNotify();
     }
-
+    
     private static String HTML(String s) {
         //if (true) return s;
         final StringBuilder b = new StringBuilder(s.length() + 6);
@@ -1365,7 +1421,6 @@ public class DataTree extends javax.swing.JTree
         final Set<Multiset.Entry<String>> entrySet = valueCounts.entrySet();
 
         final Iterable<Multiset.Entry<String>> valueEntries;
-
             
         if (field.isQuantile() || (SORT_BY_COUNT && field.isPossibleKeyField())) {
             // cases we don't need to bother sorting: (1) quantiles, which are
@@ -1535,55 +1590,67 @@ public class DataTree extends javax.swing.JTree
             return;
         Log.debug("SENDING TO MAP: " + treeNode);
     }
+
+    // For NEW DATA CLUSTERING: whenever new nodes are added to the map
+    // and there is no layout specified / going to be applied, we want
+    // to place nodes near items their related to.  We should do this
+    // based on the links.
+    //
+    // TWO VERSIONS of this:
+    //
+    // 1 - re-clustering around the last clustered nodes
+    // as marked by the clustering time-stamp for row-node additions
+    //
+    // 2 - placing new value-nodes most near the nodes their related to based on links
     
     private void addNewRowsToMap(final LWMap map) {
 
-        // todo: may want to merge some of this code w/DropHandler code, as
+        // todo: we'll want to merge some of this code w/DropHandler code, as
         // this is somewhat of a special case of doing a drop
     	
-    	try
-    	{
-    		VUE.activateWaitCursor();
+    	try {
+            VUE.activateWaitCursor();
     	
-	        final List<DataRow> newRows = new ArrayList();
+            final List<DataRow> newRows = new ArrayList();
 	
-	        for (DataNode n : mAllRowsNode.getChildren()) {
-	            if (!n.isMapPresent()) {
-	                //Log.debug("ADDING TO MAP: " + n);
-	                newRows.add(n.getRow());
-	            }
-	        }
+            for (DataNode n : mAllRowsNode.getChildren()) {
+                if (!n.isMapPresent()) {
+                    //Log.debug("ADDING TO MAP: " + n);
+                    newRows.add(n.getRow());
+                }
+            }
 	
-	        final List<LWComponent> nodes = DataAction.makeRowNodes(mSchema, newRows);
+            final List<LWComponent> nodes = DataAction.makeRowNodes(mSchema, newRows);
+
+            Multiset<LWComponent> targetsUsed = null;
 	
-	        try {
-	            DataAction.addDataLinksForNodes(map, nodes, null);
-	        } catch (Throwable t) {
-	            Log.error("problem creating links on " + map + " for new nodes: " + Util.tags(nodes), t);
-	        }
+            try {
+                targetsUsed = DataAction.addDataLinksForNodes(map, nodes, null);
+            } catch (Throwable t) {
+                Log.error("problem creating links on " + map + " for new nodes: " + Util.tags(nodes), t);
+            }
+
+            Log.debug("TARGETS USED: " + targetsUsed.entrySet());
 	        
+            if (nodes.size() > 0) {
+                map.getOrCreateLayer("New Data Nodes").addChildren(nodes);
 	
-	        if (nodes.size() > 0) {
-	            map.getOrCreateLayer("New Data Nodes").addChildren(nodes);
+                if (nodes.size() > 1) {
+                    tufts.vue.LayoutAction.random.act(nodes);
+//                     if (DEBUG.Enabled) 
+//                         tufts.vue.LayoutAction.table.act(nodes);
+//                     else
+//                         tufts.vue.LayoutAction.random.act(nodes);
+                }
 	
-	            if (nodes.size() > 1) {
-	                if (DEBUG.Enabled) 
-	                    tufts.vue.LayoutAction.table.act(nodes);
-	                else {
-	                	
-	                    tufts.vue.LayoutAction.random.act(nodes);
-	                }
-	            }
+                VUE.getSelection().setTo(nodes);
+            }
 	
-	            VUE.getSelection().setTo(nodes);
-	        }
-	
-	        map.getUndoManager().mark("Add New Data Nodes");
-    	}
-    	finally
-    	{
-    		VUE.clearWaitCursor();
-    	}
+            map.getUndoManager().mark("Add New Data Nodes");
+        }
+    	finally {
+            VUE.clearWaitCursor();
+        }
     }
 
     private static String makeFieldLabel(final Field field)
@@ -1684,6 +1751,11 @@ public class DataTree extends javax.swing.JTree
             display = s;
             setUserObject(s);  // sets display label
         }
+
+        public String getDisplay() {
+            return (String) getUserObject();
+        }
+        
 
         /** noop -- override to provide annotations againast the given map */
         void annotate(LWMap map) {}
@@ -1892,7 +1964,8 @@ public class DataTree extends javax.swing.JTree
 
         final Schema schema;
 
-        AllRowsNode(Schema schema, LWComponent.Listener _repainter_ignored) {
+        //AllRowsNode(Schema schema, LWComponent.Listener _repainter_ignored) {
+        AllRowsNode(Schema schema, Object _repainter_ignored) {
             super(null, /*repainter*/null, "All Rows");
             //String.format(HTML("<b><u>All Records in %s (%d)"), schema.getName(), schema.getRowCount()));
             this.schema = schema;
@@ -2149,6 +2222,8 @@ public class DataTree extends javax.swing.JTree
         Color fill;
 
         public Icon load(LWComponent c, Color fill) {
+            if (c == null)
+                Log.error("null node; fill=" + fill, new Throwable("HERE"));
             this.node = c;
             this.fill = fill;
             return this;
@@ -2159,6 +2234,11 @@ public class DataTree extends javax.swing.JTree
         
         public void paintIcon(Component c, Graphics _g, int x, int y) {
             //Log.debug("x="+x+", y="+y);
+
+            if (node == null) {
+                if (DEBUG.Enabled) Log.warn("null node in " + getClass().getName());
+                return;
+            }
             
             java.awt.Graphics2D g = (java.awt.Graphics2D) _g;
             
