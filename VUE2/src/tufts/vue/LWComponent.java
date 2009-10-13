@@ -48,7 +48,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.496 $ / $Date: 2009-10-12 17:54:48 $ / $Author: sfraize $
+ * @version $Revision: 1.497 $ / $Date: 2009-10-13 20:15:07 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -3073,7 +3073,7 @@ public class LWComponent
 
         if (supportsProperty(KEY_FontSize) && mFontSize.get() < 1) {
             Log.warn("bad font size " + mFontSize.get() + " " + this);
-            mFontSize.set(1);
+            mFontSize.take(1); // don't risk triggering an event at a bad time
             bad = true;
         }
 
@@ -4259,8 +4259,22 @@ public class LWComponent
             out("takeLocation " + x + "," + y);
             //if (DEBUG.META) tufts.Util.printStackTrace("takeLocation");
         }
-        this.x = x;
-        this.y = y;
+        if (x != x || y != y) { // checking for Float.NaN
+            String msg = "bad location: " + x + "," + y + " for " + this;
+            if (DEBUG.Enabled) {
+                Log.warn(msg, new Throwable("HERE"));
+                //System.exit(-1);
+            } else {
+                Log.warn(msg);
+            }
+            if (x == x)
+                this.x = x;
+            if (y == y)
+                this.y = y;
+        } else {
+            this.x = x;
+            this.y = y;
+        }
     }
     
 //     public void userTranslate(float dx, float dy) {
