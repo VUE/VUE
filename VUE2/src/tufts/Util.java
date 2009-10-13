@@ -17,9 +17,10 @@ package tufts;
 
 import java.awt.Color;
 import java.awt.Shape;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.awt.geom.CubicCurve2D;
 import java.awt.geom.QuadCurve2D;
-import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;
@@ -2008,7 +2009,52 @@ public class Util
         return r;
     }
     
+    /** @return true if any value (x,y,width,height) is Float.NaN.  As a single
+     * Float.NaN (or Double.NaN) will corrupt any accumulation of values, they can
+     * ultimately cause java Graphics2D renderings to fail completely. For this reason
+     * it's important to exclude bad Rectangle's from all manner of bounds computation
+     * or drawing code. */
+    public static boolean isBadRect(Rectangle2D.Float r) {
+        return r.x != r.x
+            || r.y != r.y
+            || r.width != r.width
+            || r.height != r.height;
+    }
+    
+    /** @return true if any value (x,y,width,height) is Double.NaN */
+    public static boolean isBadRect(Rectangle2D.Double r) {
+        return r.x != r.x
+            || r.y != r.y
+            || r.width != r.width
+            || r.height != r.height;
+    }
+    
+    /** @return true if any value (x,y,width,height) is Double.NaN */
+    public static boolean isBadRect(Rectangle2D r) {
+        return Double.isNaN(r.getX())
+            || Double.isNaN(r.getY())
+            || Double.isNaN(r.getWidth())
+            || Double.isNaN(r.getHeight());
 
+    }
+    
+    /** @return true if either value is Double.NaN */
+    public static boolean isBadPoint(Point2D p) {
+        return Double.isNaN(p.getX())
+            || Double.isNaN(p.getY());
+    }
+    
+    /** @return true if either value is Float.NaN */
+    public static boolean isBadPoint(Point2D.Float p) {
+        return p.x != p.x
+            || p.y != p.y;
+    }
+    
+    /** @return true if either value is Double.NaN */
+    public static boolean isBadPoint(Point2D.Double p) {
+        return p.x != p.x
+            || p.y != p.y;
+    }
 
     public static String fmt(final Shape shape) {
 
@@ -2029,7 +2075,7 @@ public class Util
         
         return shape == null
             ? "<null-" + name + ">"
-            : String.format("%s@%07x[%7.1f,%-7.1f %5.1fx%-5.1f]",
+            : String.format("%s@%08x[%7.1f,%-7.1f %5.1fx%-5.1f]",
                             name,
                             shape == null ? 0 : System.identityHashCode(shape),
                             r.getX(), r.getY(), r.getWidth(), r.getHeight());
@@ -2457,7 +2503,7 @@ public class Util
         if (o == null)
             return "null";
         else
-            return String.format("%s@%07x", o.getClass().getName(), System.identityHashCode(o));
+            return String.format("%s@%08x", o.getClass().getName(), System.identityHashCode(o));
     }
 
     public static String quote(String s) {
@@ -2552,7 +2598,7 @@ public class Util
 
             } else if (o instanceof java.awt.image.BufferedImage) {
                 BufferedImage bi = (BufferedImage) o;
-                return String.format("BufferedImage@%07x[%dx%d]", ident, bi.getWidth(), bi.getHeight());
+                return String.format("BufferedImage@%08x[%dx%d]", ident, bi.getWidth(), bi.getHeight());
             } else {
                 txt = o.toString();
                 
