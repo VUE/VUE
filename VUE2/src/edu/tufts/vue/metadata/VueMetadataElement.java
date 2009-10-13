@@ -28,7 +28,7 @@ import java.net.*;
  *
  * @author dhelle01
  */
-public class VueMetadataElement {
+public final class VueMetadataElement {
     
    public final static String NONE_ONT = "http://vue.tufts.edu/vue.rdfs#none"; 
     
