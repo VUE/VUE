@@ -114,13 +114,18 @@ public class LWImage extends LWComponent
 //                          null,
 //                          LWIcon.Block.VERTICAL);
 
-
+    private void initImage() {
+        disableProperty(LWKey.FontSize); // prevent 0 font size warnings (font not used on images)
+    }
+    
     public LWImage() {
+        initImage();
         setFillColor(null);
     	//edu.tufts.vue.preferences.implementations.ImageSizePreference.getInstance().addVuePrefListener(this);
     }
 
     public LWImage(Resource r) {
+        initImage();
         if (r == null)
             throw new IllegalArgumentException("resource is not image content: " + r);
         if (!r.isImage())
