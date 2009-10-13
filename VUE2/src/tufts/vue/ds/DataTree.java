@@ -53,7 +53,7 @@ import com.google.common.collect.*;
  * currently active map, code for adding new nodes to the current map,
  * and initiating drags of fields or rows destined for a map.
  *
- * @version $Revision: 1.97 $ / $Date: 2009-10-12 19:29:35 $ / $Author: sfraize $
+ * @version $Revision: 1.98 $ / $Date: 2009-10-13 20:25:07 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -180,7 +180,8 @@ public class DataTree extends javax.swing.JTree
     private static boolean isDataEvent(tufts.vue.LWCEvent e) {
         // we need to check for any childrenAdded/childrenRemoved right now, just in case ANY of them were data nodes
         return e.key == LWKey.DataUpdate
-            || e.key == LWKey.HierarchyChanging;
+            || e.key == LWKey.HierarchyChanging
+            || e.key == LWKey.Created;
     }
 
     // note: this is usually NOT called from the AWT thread -- is called from a data-source load thread
@@ -198,8 +199,11 @@ public class DataTree extends javax.swing.JTree
         GUI.invokeOnEDT(new Runnable() { public void run() {
             if (FirstInstance.getAndSet(false)) {
                 if (DEBUG.ANNOTATE) Log.debug("FIRST RUN");
+                // Listen for changes to the ActiveMap
                 VUE.addActiveListener(LWMap.class, ActiveMapListener);
-                ActiveMapListener.activeChanged(null, VUE.getActiveMap()); // simulate change for 1st init
+                // Simulate an active-map changed event to make sure we're listening to the active map.
+                ActiveMapListener.activeChanged(null, VUE.getActiveMap());
+                // ensure the global data is loaded 1st time from the ActiveMap
                 loadGlobalDataForAnnotations();
             }
             tree.kickAnnotate();
