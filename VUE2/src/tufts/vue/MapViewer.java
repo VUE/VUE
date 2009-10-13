@@ -75,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.638 $ / $Date: 2009-09-29 16:24:18 $ / $Author: brian $ 
+ * @version $Revision: 1.639 $ / $Date: 2009-10-13 20:24:12 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2023,6 +2023,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             zoom = mZoomFactor;
             focal = mFocal;
             mapRegion = getVisibleMapBounds();
+            if (mapRegion.isEmpty() || Util.isBadRect(mapRegion)) {
+                // todo: shouldn't create a bad view in the first place, tho we "shouldn't be seeing this" anymore...
+                Log.error("bad map region " + mapRegion, new Throwable("HERE"));
+            }
         }
 
         final boolean isSameAsCurrentView() {
