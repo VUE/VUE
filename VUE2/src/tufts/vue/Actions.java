@@ -2534,6 +2534,12 @@ public class Actions implements VueConstants
         // and always use local bounds
         private static void projectNodes(final Iterable<LWComponent> toPush, final LWComponent pushing, final int distance)
         {
+            if (DEBUG.Enabled) Log.debug("projectNodes: "
+                                         + "\n\t  pusher: " + pushing
+                                         + "\n\t  toPush: " + Util.tags(toPush)
+                                         + "\n\tdistance: " + distance
+                                         );//,new Throwable("HERE"));
+            
             final Point2D.Float groundZero = new Point2D.Float(pushing.getMapCenterX(),
                                                                pushing.getMapCenterY());
             //final Rectangle2D pushingRect = pushing.getMapBounds();
@@ -2560,7 +2566,7 @@ public class Actions implements VueConstants
                 final boolean overlap = VueUtil.computeConnectorAndCenterHit(pushing, node, connector);
                 //VueUtil.computeConnector(pushing, node, connector);
 
-                final Point2D newCenter;
+                Point2D newCenter = null;
             
                 float adjust = distance;
 
@@ -2585,15 +2591,14 @@ public class Actions implements VueConstants
                     if (distance < 0) // do nothing further if pulling on
                          continue;
                 
-                    // If overlapping, we want to move the node along a line away from
-                    // the center of the pushing node until it no longer overlaps.  As
-                    // part of this process, we compute the point at the edge of the
-                    // pushing node that the overlapping node would be at if all we were
-                    // going to do was move it to the edge.  This isn't strictly needed
-                    // to produce the end result (we could start iterating immediately,
-                    // we don't need to start at the intersect), but it's useful for
-                    // debugging, and it may be a useful location to know for future
-                    // tweaks to this code.
+                    // If overlapping, we want to move the node along a line away from the center
+                    // of the pushing node until it no longer overlaps.  As part of this process,
+                    // we compute the point at the edge of the pushing node that the overlapping
+                    // node would be at if all we were going to do was move it to the edge.  This
+                    // isn't strictly needed to produce the end result (we could start iterating
+                    // immediately, we don't need to start at the intersect), but it's useful for
+                    // debugging, and it may be a useful location to know for future tweaks to this
+                    // code.
                 
                     // first, find a point along the line from center of pushing to the center of node
                     // that we know is outside of the pushing node
@@ -2606,20 +2611,38 @@ public class Actions implements VueConstants
                     // now project the node along the connector line from the intersect
                     // by small increments until the node no longer overlaps the
                     // pushing node
+
+                    if (Util.isBadPoint(farOut) || Util.isBadPoint(intersect)) {
+                        Log.warn("bad projection points:"
+                                 + "\n\tgroundZero: " + Util.fmt(groundZero)
+                                 + "\n\t connector: " + Util.fmt(connector)
+                                 + "\n\t    farOut: " + Util.fmt(farOut)
+                                 + "\n\t   testRay: " + Util.fmt(testRay)
+                                 + "\n\t intersect: " + Util.fmt(intersect)
+                                 + "\n\t    pusher: " + pushing
+                                 + "\n\t    pushee: " + node
+                                 );
+                    } else {
                         
-                    for (int i = 0; i < 1000; i++) {
-                        node.setCenterAt(VueUtil.projectPoint(intersect, connector, i * 2f));
-//                         if (!node.intersects(pushingRect)) // problems w/slide icons
-//                             break;
-                        if (!pushingShape.intersects(node.getMapBounds()))
-                            break;
-                        if (DEBUG_PUSH) Log.debug("PUSH ITER " + i + " on " + node);
+                        for (int i = 0; i < 1000; i++) {
+                            node.setCenterAt(VueUtil.projectPoint(intersect, connector, i * 2f));
+                            //                         if (!node.intersects(pushingRect)) // problems w/slide icons
+                            //                             break;
+                            if (!pushingShape.intersects(node.getMapBounds()))
+                                break;
+                            if (DEBUG_PUSH) Log.debug("PUSH ITER " + i + " on " + node);
+                        }
                     }
 
                     adjust /= 2; // we'll only push half the standard amount from here
                 }
 
                 newCenter = VueUtil.projectPoint(node.getMapCenterX(), node.getMapCenterY(), connector, adjust);
+
+                if (Util.isBadPoint(newCenter)) {
+                    Log.error("bad newCenter: " + newCenter);
+                    newCenter = null;
+                }
 
                 if (DEBUG_PUSH) {
                     float dist = (float) connector.getP1().distance(connector.getP2());
@@ -2650,9 +2673,11 @@ public class Actions implements VueConstants
                         n.mFontStyle.set(java.awt.Font.BOLD);
                     }
                     n.setNotes(notes);
-                    n.setCenterAt(newCenter);
+                    if (newCenter != null)
+                        n.setCenterAt(newCenter);
                 } else {
-                    node.setCenterAt(newCenter);
+                    if (newCenter != null)
+                        node.setCenterAt(newCenter);
                 }
             
             
