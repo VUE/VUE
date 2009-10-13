@@ -59,7 +59,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.256 $ / $Date: 2009-10-09 20:37:50 $ / $Author: brian $
+ * @version $Revision: 1.257 $ / $Date: 2009-10-13 20:17:29 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -2356,75 +2356,109 @@ public class LWMap extends LWContainer
             //new Throwable("computedBounds").printStackTrace();
         return mCachedBounds;
     }
-    
-    /*
-    public java.awt.geom.Rectangle2D getCachedBounds()
-    {
-        return super.getBounds();
-    }
-     */
-    
-//     public static Rectangle2D.Float getBounds(Iterator<LWComponent> i) {
-//         return getBounds(i, Short.MAX_VALUE);
-//     }
 
-    /** this object returned if getBounds result had no contents / produced no actual bounds */
+    /** this object is returned if a get*Bounds result had no contents / produced no actual bounds */
     public static final Rectangle2D.Float EmptyBounds = new Rectangle2D.Float();
     
-    /**
-     * return the bounds for all LWComponents in the iterator
-     */
-    //public static Rectangle2D.Float getBounds(Iterator<LWComponent> i, int maxLayer)
-    public static Rectangle2D.Float getBounds(Iterator<LWComponent> i)
-    {
-        Rectangle2D.Float rect = null;
+//     private static final class Rect // extends Rectangle2D.Float
+//     {
+//         private final String type; // for debug
+//         private Rectangle2D.Float rect;
+
+//         Rect(String type) {
+//             this.type = type;
+//         }
         
-        while (i.hasNext()) {
-            final LWComponent c = i.next();
-            if (c.isDrawn()) {
-                if (rect == null) {
-                    rect = new Rectangle2D.Float();
-                    rect.setRect(c.getBounds());
-                } else
-                    rect.add(c.getBounds());
+//         void add(final Rectangle2D.Float r,
+//                  final LWComponent debug)
+//         {
+//             try {
+//                 if (Util.isBadRect(r)) {
+//                     Log.error(String.format("%s%-17s %s%s for %s",
+//                                             Util.TERM_RED,
+//                                             "bad " + type + ": ",
+//                                             Util.fmt(r),
+//                                             Util.TERM_CLEAR,
+//                                             debug));
+//                 } else if (rect == null) {
+//                     rect = new Rectangle2D.Float();
+//                     rect.setRect(r);
+//                 } else {
+//                     rect.add(r);
+//                 }
+//             } catch (Throwable t) {
+//                 Log.error("AccumeRect " + type + " for " + debug, t);
+//             }
+//         }
+
+//         Rectangle2D.Float result() {
+//             return rect == null ? EmptyBounds : rect;
+//         }
+        
+//     }
+//     /**
+//      * @return the bounds for all LWComponents in the iterator
+//      */
+//     public static Rectangle2D.Float getBounds(Iterator<LWComponent> i)
+//     {
+//         final Rect rect = new Rect("bounds");
+
+//         while (i.hasNext()) {
+//             final LWComponent c = i.next();
+//             if (c.isDrawn())
+//                 rect.add(c.getBounds(), c);
+//         }
+//         return rect.result();
+//     }
+    
+    private static void accumulate
+        (final Rectangle2D.Float accume,
+         final Rectangle2D.Float r,
+         final LWComponent debug,
+         final String debugMsg)
+    {
+        try {
+            if (Util.isBadRect(r)) {
+                Log.error(String.format("%s%-17s %s%s for %s",
+                                        Util.TERM_RED,
+                                        "bad " + debugMsg + ": ",
+                                        Util.fmt(r),
+                                        Util.TERM_CLEAR,
+                                        debug));
+                
+            } else if (accume.isEmpty()) {
+                accume.setRect(r);
+            } else {
+                accume.add(r);
             }
+        } catch (Throwable t) {
+            Log.error("accumulate " + debugMsg + " for " + debug, t);
         }
-        return rect == null ? EmptyBounds : rect;
-        //return rect == null ? new Rectangle2D.Float() : rect;
     }
 
     @Override
     public Rectangle2D.Float getPaintBounds() {
-
-        //return mChildren == null ? EmptyBounds : getPaintBounds(mChildren.iterator());
 
         if (mChildren == NO_CHILDREN)
             return EmptyBounds;
 
         final Rectangle2D.Float bounds = new Rectangle2D.Float();
         
-        if (true /*isLayered()*/) {
-            
-            for (LWComponent layer : getChildren()) {
-                if (layer.isVisible()) {
-                    if (layer instanceof Layer) { // this should always be the case
-
-                        accruePaintBounds(layer.getChildren(), bounds);
-                        
-                    } else {
-                        
-                        // but in case of error in maintaining the hierarchy, if any
-                        // regular components leak up to the top of the map, still
-                        // compute bounds correctly.
-                        
-                        accruePaintBounds(Util.iterable(layer), bounds);
-                    }
+        for (LWComponent layer : getChildren()) {
+            if (layer.isVisible()) {
+                if (layer instanceof Layer) { // this should always be the case
+                    
+                    accruePaintBounds(layer.getChildren(), bounds);
+                    
+                } else {
+                    
+                    // but in case of error in maintaining the hierarchy, if any
+                    // regular components leak up to the top of the map, still
+                    // compute bounds correctly.
+                    
+                    accruePaintBounds(Util.iterable(layer), bounds);
                 }
             }
-
-        } else {
-
-            accruePaintBounds(getChildren(), bounds);
         }
         
         return bounds.isEmpty() ? EmptyBounds : bounds;
@@ -2433,124 +2467,69 @@ public class LWMap extends LWContainer
 
     public static void accruePaintBounds(Iterable<LWComponent> iterable, Rectangle2D.Float rect)
     {
-        for (LWComponent c : iterable) {
-            if (c.isDrawn()) {
-                if (rect.isEmpty())
-                    rect.setRect(c.getPaintBounds());
-                else
-                    rect.add(c.getPaintBounds());
-            }
-        }
+        for (LWComponent c : iterable)
+            if (c.isDrawn())
+                accumulate(rect, c.getPaintBounds(), c, "paintBounds");
     }
     
     @Override
     public Rectangle2D.Float getFocalBounds() {
         return getPaintBounds();
     }
+
+    /**
+     * @return the bounds for all LWComponents in the iterator
+     */
+    public static Rectangle2D.Float getBounds(Iterator<LWComponent> i)
+    {
+        final Rectangle2D.Float rect = new Rectangle2D.Float();
+        while (i.hasNext()) {
+            final LWComponent c = i.next();
+            if (c.isDrawn())
+                accumulate(rect, c.getBounds(), c, "bounds");
+        }
+        return rect.isEmpty() ? EmptyBounds : rect;
+    }
     
-
-//     public static Rectangle2D.Float getPaintBounds(Iterator<LWComponent> i)
-//     {
-//         Rectangle2D.Float rect = null;
-        
-//         while (i.hasNext()) {
-//             final LWComponent c = i.next();
-//             if (c.isDrawn()) {
-//                 if (rect == null) {
-//                     rect = new Rectangle2D.Float();
-//                     rect.setRect(c.getPaintBounds());
-//                 } else
-//                     rect.add(c.getPaintBounds());
-//             }
-//         }
-//         return rect == null ? EmptyBounds : rect;
-//         //return rect == null ? new Rectangle2D.Float() : rect;
-//     }
-
     public static Rectangle2D.Float getBorderBounds(Iterable<LWComponent> iterable)
     {
-        final Iterator<LWComponent> i = iterable.iterator();
-        if (i.hasNext()) {
-            final Rectangle2D.Float rect = new Rectangle2D.Float();
-            rect.setRect(i.next().getBorderBounds());
-            while (i.hasNext()) {
-                final LWComponent c = i.next();
-                if (c.isDrawn())
-                    rect.add(c.getBorderBounds());
-            }
-            return rect;
-        } else
-            return EmptyBounds;
+        final Rectangle2D.Float rect = new Rectangle2D.Float();
+        for (LWComponent c : iterable) {
+            if (c.isDrawn())
+                accumulate(rect, c.getBorderBounds(), c, "borderBounds");
+        }
+        return rect.isEmpty() ? EmptyBounds : rect;
     }
 
     public static Rectangle2D.Float getLocalBorderBounds(Iterable<LWComponent> iterable)
     {
-        final Iterator<LWComponent> i = iterable.iterator();
-        if (i.hasNext()) {
-            final Rectangle2D.Float rect = new Rectangle2D.Float();
-            rect.setRect(i.next().getLocalBorderBounds());
-            while (i.hasNext()) {
-                final LWComponent c = i.next();
-                if (c.isDrawn())
-                    rect.add(c.getLocalBorderBounds());
-            }
-            return rect;
-        } else
-            return EmptyBounds;
+        final Rectangle2D.Float rect = new Rectangle2D.Float();
+        for (LWComponent c : iterable) {
+            if (c.isDrawn())
+                accumulate(rect, c.getLocalBorderBounds(), c, "localBorderBounds");
+        }
+        return rect.isEmpty() ? EmptyBounds : rect;
     }
 
     public static Rectangle2D.Float getLocalBounds(Iterable<LWComponent> iterable)
     {
-        final Iterator<LWComponent> i = iterable.iterator();
-        if (i.hasNext()) {
-            final Rectangle2D.Float rect = new Rectangle2D.Float();
-            rect.setRect(i.next().getLocalBounds());
-            while (i.hasNext()) {
-                final LWComponent c = i.next();
-                if (c.isDrawn())
-                    rect.add(c.getLocalBounds());
-            }
-            return rect;
-        } else
-            return EmptyBounds;
+        final Rectangle2D.Float rect = new Rectangle2D.Float();
+        for (LWComponent c : iterable) {
+            if (c.isDrawn())
+                accumulate(rect, c.getLocalBounds(), c, "localBounds");
+        }
+        return rect.isEmpty() ? EmptyBounds : rect;
     }
 
     public static Rectangle2D.Float getLayoutBounds(Iterable<LWComponent> iterable)
     {
-        final Iterator<LWComponent> i = iterable.iterator();
-        if (i.hasNext()) {
-            final Rectangle2D.Float rect = new Rectangle2D.Float();
-            rect.setRect(i.next().getLayoutBounds());
-            while (i.hasNext()) {
-                final LWComponent c = i.next();
-                if (c.isDrawn())
-                    rect.add(c.getLayoutBounds());
-            }
-            return rect;
-        } else
-            return EmptyBounds;
+        final Rectangle2D.Float rect = new Rectangle2D.Float();
+        for (LWComponent c : iterable) {
+            if (c.isDrawn())
+                accumulate(rect, c.getLayoutBounds(), c, "layoutBounds");
+        }
+        return rect.isEmpty() ? EmptyBounds : rect;
     }
-    
-    
-    
-    
-    
-    
-//     /**
-//      * return the shape bounds for all LWComponents in the iterator
-//      * (does NOT include stroke widths) -- btw -- would make
-//      * more sense to put these in the LWContainer class.
-//      */
-//     public static Rectangle2D getShapeBounds(Iterator<LWComponent> i) {
-//         Rectangle2D rect = new Rectangle2D.Float();
-        
-//         if (i.hasNext()) {
-//             rect.setRect(((LWComponent)i.next()).getShapeBounds());
-//             while (i.hasNext())
-//                 rect.add(((LWComponent)i.next()).getShapeBounds());
-//         }
-//         return rect;
-//     }
     
     /** returing a bounding rectangle that includes all the upper left
      * hand corners of the given components */
