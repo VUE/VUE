@@ -263,7 +263,7 @@ resultList.add(new AnalyzerResult("foo", "result2"));
 
 				while (resultIter.hasNext()) {
 					AnalyzerResult	analyzerResult = resultIter.next();
-					LWNode			node = new LWNode(analyzerResult.getValue());
+					LWNode			node = new LWNode(analyzerResult.getType());
 
 					nodes.add(node);
 					node.layout();
