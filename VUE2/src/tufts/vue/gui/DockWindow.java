@@ -55,7 +55,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.161 $ / $Date: 2009-09-27 20:31:49 $ / $Author: brian $
+ * @version $Revision: 1.162 $ / $Date: 2009-10-14 17:57:38 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -354,7 +354,9 @@ public class DockWindow
      */
     public DockWindow(String title, Window owner, JComponent content, boolean asToolbar, boolean showCloseButton)
     {
-        if (!VUE.isApplet() && Util.isUnixPlatform()) {
+    	// As of Java 6 we no longer need this for linux support.
+        //if (!VUE.isApplet() && Util.isUnixPlatform()) {
+    	if (false) {
             
             _peer = new DialogPeer(VUE.getApplicationFrame(), title, !ON_TOP, !DECORATED);
             
