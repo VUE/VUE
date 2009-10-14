@@ -298,17 +298,14 @@ resultList.add(new AnalyzerResult("foo", "result2"));
 				selectedNode.layout();
 				selectedNode.notify("meta-data");
 			} else if (method == NEW_NOTES && selectedNode != null) {
-				String	info = VueResources.getString("seasr.analysis.mostcommonwords"),
-						separator = ": ";
-
+				String OUT_TITLE = "Output from SEASR Flow: ";
+				String		separator = ": ";
+				String info = OUT_TITLE+analyzer.getFlow().getLabel()+"\n\n";
+		    	
 				while (resultIter.hasNext()) {		
 					AnalyzerResult	analyzerResult = resultIter.next();
-
-					info += separator + analyzerResult.getValue();
-					separator = ", ";
-				}
-
-				info += ".";
+					info += analyzerResult.getType()+" - "+analyzerResult.getValue()+"\n";
+		    	}
 
 				String				notes = selectedNode.getNotes();
 
