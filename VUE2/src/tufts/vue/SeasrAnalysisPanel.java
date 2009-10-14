@@ -292,7 +292,7 @@ resultList.add(new AnalyzerResult("foo", "result2"));
 				while (resultIter.hasNext()) {
 					AnalyzerResult	analyzerResult = resultIter.next();
 
-					mList.add("tag", analyzerResult.getValue());
+					mList.add(analyzerResult.getType(), analyzerResult.getValue());
 				}
 				
 				selectedNode.layout();
