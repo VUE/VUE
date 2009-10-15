@@ -41,7 +41,7 @@ import com.google.common.collect.Multiset;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.67 $ / $Date: 2009-08-29 22:12:27 $ / $Author: sfraize $
+ * @version $Revision: 1.68 $ / $Date: 2009-10-15 19:39:35 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -822,7 +822,7 @@ public final class DrawContext
             return false;
     }
 
-    private static boolean isImageQualityRequested() {
+    public static boolean isImageQualityRequested() {
         //return ImageQualityPreference != null && ImageQualityPreference.isTrue();
         return ImageQualityPreference.isTrue();
     }
