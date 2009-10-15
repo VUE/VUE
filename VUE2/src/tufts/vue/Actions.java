@@ -713,7 +713,6 @@ public class Actions implements VueConstants
 
     
     private static final List<LWComponent> ScratchBuffer = new ArrayList();
-    //private static LWContainer ScratchMap;
     private static LWComponent StyleBuffer; // this holds the style copied by "Copy Style"
     
     private static final LWComponent.CopyContext CopyContext = new LWComponent.CopyContext(new LWComponent.LinkPatcher(), true);
@@ -721,8 +720,8 @@ public class Actions implements VueConstants
     
     private static final int CopyOffset = 10;
     
-    private static final boolean RECORD_OLD_PARENT = true;
-    private static final boolean SORT_BY_Z_ORDER = true;
+    private static final boolean RECORD_OLD_PARENT = true; // not a flag: a constant for readability
+    private static final boolean SORT_BY_Z_ORDER = true; // not a flag: a constant for readability
     
     public static List<LWComponent> duplicatePreservingLinks(Collection<LWComponent> items) {
         return duplicatePreservingLinks(items, !RECORD_OLD_PARENT, !SORT_BY_Z_ORDER);
@@ -731,6 +730,8 @@ public class Actions implements VueConstants
     /**
      * @param preserveParents - if true, the old parent will be stored in the copy as a clientProperty
      * @param sortByZOrder - if true, will maintain the relative z-order of components in the dupe-set
+     *
+     * note: preserving old parents has different effect when duplicating the ScratchBuffer -- it will copy over old-parent client data
      */
     public static List<LWComponent> duplicatePreservingLinks
         (Collection<LWComponent> items, boolean preserveParents, boolean sortByZOrder)
@@ -772,11 +773,16 @@ public class Actions implements VueConstants
             }
             LWComponent copy = c.duplicate(CopyContext);
             if (preserveParents) {
-                // we could store this as the actual parent, but if we do that,
-                // changes made to the components before they're fully baked
-                // (e.g., link reconnections, translations) will generate events
-                // that will confuse the UndoManager.
-                copy.setClientData(LWContainer.class, c.parent);
+                if (items == ScratchBuffer) {
+                    // parent will be null -- copy over the client data we stored when loading the ScratchBuffer
+                    copy.setClientData(LWContainer.class, c.getClientData(LWContainer.class));
+                } else {
+                    // we could store this as the actual parent, but if we do that,
+                    // changes made to the components before they're fully baked
+                    // (e.g., link reconnections, translations) will generate events
+                    // that will confuse the UndoManager.
+                    copy.setClientData(LWContainer.class, c.parent);
+                }
             }
             if (copy != null)
                 DupeList.add(copy);
@@ -847,6 +853,10 @@ public class Actions implements VueConstants
                 copy.translate(CopyOffset, CopyOffset);
             }
 
+            //-----------------------------------------------------------------------------
+            // Add the newly duplicated items to the appropriate new parent
+            //-----------------------------------------------------------------------------
+
             if (allHaveSameParent) {
                 parent0.addChildren(dupes, LWComponent.ADD_PASTE);
             } else {
@@ -857,6 +867,8 @@ public class Actions implements VueConstants
                     
             }
 
+            //-----------------------------------------------------------------------------
+            
             // clear out old parent references now that we're done with them
             for (LWComponent copy : dupes)
                 copy.setClientData(LWContainer.class, null);
@@ -882,7 +894,12 @@ public class Actions implements VueConstants
         boolean enabledFor(LWSelection s) { return canEdit(s); }
         void act(LWSelection selection) {
             ScratchBuffer.clear();
-            ScratchBuffer.addAll(duplicatePreservingLinks(selection, !RECORD_OLD_PARENT, SORT_BY_Z_ORDER));
+            // always record old parent when loading the ScratchBuffer -- the client data
+            // that gets added never needs to be cleared, as client data isn't copied
+            // when an individual LWComponent is duplicated, and once a LWComponent is in the
+            // ScratchBuffer, that instance will never appear anywhere in a map -- it's only
+            // used as a duplicating source.
+            ScratchBuffer.addAll(duplicatePreservingLinks(selection, RECORD_OLD_PARENT, SORT_BY_Z_ORDER));
             
             // Enable if want to use system clipboard.  FYI: the clip board manager
             // will immediately grab all the data available from the transferrable
@@ -901,8 +918,9 @@ public class Actions implements VueConstants
         private Point2D.Float lastPasteLocation;
         public void act() {
             
-            final MapViewer viewer = VUE.getActiveViewer();
-            final List pasted = duplicatePreservingLinks(ScratchBuffer);
+            final MapViewer viewer = viewer();
+            // note: preserving old parents has different effect when duplicating the ScratchBuffer -- it will copy over old-parent client data
+            final List<LWComponent> pasted = duplicatePreservingLinks(ScratchBuffer, RECORD_OLD_PARENT, !SORT_BY_Z_ORDER);
             final Point2D.Float mouseLocation = viewer.getLastFocalMousePoint();
             final Point2D.Float pasteLocation;
 
@@ -915,10 +933,36 @@ public class Actions implements VueConstants
                 pasteLocation = mouseLocation;
                 lastPasteLocation = pasteLocation;
             }
+
+            final LWComponent newParent = viewer.getDropFocal();
+
+            if (newParent instanceof LWSlide) {
+                // When pasting content from one slide to another slide, keep the relative x/y
+                // position of the content from the old slide
+                
+                //final List<LWComponent> pasteToOldLocations = new ArrayList();
+                final List<LWComponent> pasteToNewLocations = new ArrayList();
+                for (LWComponent c : pasted) {
+                    final LWContainer oldParent = c.getClientData(LWContainer.class);
+                    if (oldParent instanceof LWSlide && oldParent != newParent) {
+                        // if old parent was a slide (a different one), leave it's x/y alone when pasting
+                        //pasteToOldLocations.add(c);
+                        // don't actually need to record these
+                    } else {
+                        pasteToNewLocations.add(c);
+                    }
+                }
+                if (pasteToNewLocations.size() > 0)
+                    MapDropTarget.setCenterAt(pasteToNewLocations, pasteLocation);
+            } else {
+                MapDropTarget.setCenterAt(pasted, pasteLocation); // note: this method only works on un-parented nodes
+            }
             
-            MapDropTarget.setCenterAt(pasted, pasteLocation); // only works on un-parented nodes
-            viewer.getDropFocal().addChildren(pasted, LWComponent.ADD_PASTE);
-            viewer.getSelection().setTo(pasted);
+            for (LWComponent c : pasted)
+                c.setClientData(LWContainer.class, null); // clear out any old-parent client data
+            
+            newParent.addChildren(pasted, LWComponent.ADD_PASTE);
+            selection().setTo(pasted);
             lastMouseLocation = mouseLocation;
         }
 
