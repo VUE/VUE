@@ -48,7 +48,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.499 $ / $Date: 2009-10-15 19:28:13 $ / $Author: sfraize $
+ * @version $Revision: 1.500 $ / $Date: 2009-10-15 19:48:13 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1452,7 +1452,7 @@ public class LWComponent
             if (o == null) // storing null means remove value
                 return;
             else
-                mClientData = new HashMap();
+                mClientData = new HashMap(2);
         }
 
         if (DEBUG.DATA) {
