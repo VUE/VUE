@@ -678,7 +678,7 @@ public class LWImage extends LWComponent
 
     @Override
     public void setSize(float w, float h) {
-        if (DEBUG.IMAGE||DEBUG.Enabled) out("setSize " + w + "x" + h);
+        if (DEBUG.IMAGE||DEBUG.WORK) out("setSize " + w + "x" + h);
         super.setSize(w, h);
     }
     
@@ -689,7 +689,7 @@ public class LWImage extends LWComponent
 
             if (this.width == NEEDS_DEFAULT || this.height == NEEDS_DEFAULT) {
                 //Log.error("cannot auto-shape without request size: " + this, new Throwable("HERE"));
-                if (DEBUG.Enabled) out("autoshaping from scratch to " + DefaultMaxDimension);
+                if (DEBUG.WORK||DEBUG.IMAGE) out("autoshaping from scratch to " + DefaultMaxDimension);
                 setMaxDimension(DefaultMaxDimension);
                 return;
             }
@@ -704,7 +704,7 @@ public class LWImage extends LWComponent
             /*
              * Added this in response to VUE-948
              */
-            if ((DEBUG.Enabled || DEBUG.IMAGE) && (newSize.width != width || newSize.height != height))
+            if ((DEBUG.WORK || DEBUG.IMAGE) && (newSize.width != width || newSize.height != height))
                 out(String.format("autoShapeToAspect: a=%.2f dw=%g dh=%g; %.1fx%.1f -> %s",
                                   mImageAspect,
                                   dw, dh,

@@ -903,7 +903,9 @@ public class EditorManager
         }
         
         if (mEditors.add(editor)) {
-            if (DEBUG.TOOL || DEBUG.INIT || !VUE.isStartupUnderway()) out("REGISTERED EDITOR: " + editor);
+            // apparently things have changed such that starutp underway is done before most all
+            // the editors are registered -- don't think this should be a problem, but marking with DEBUG.WORK just in case
+            if (DEBUG.TOOL || DEBUG.INIT || (DEBUG.WORK && !VUE.isStartupUnderway()) ) out("REGISTERED EDITOR: " + editor);
 
             Object curVal = null;
 
