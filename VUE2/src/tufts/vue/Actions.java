@@ -787,6 +787,10 @@ public class Actions implements VueConstants
                     // that will confuse the UndoManager.
                     copy.setClientData(LWKey.OLD_PARENT, c.parent);
                 }
+                // Note: forcing the addition of client-data (a HashMap) on every
+                // component during a duplicate/cut/paste just to store the old parent
+                // is a bit expensive given how little we currently use
+                // LWComponent.clientData.
             }
             if (copy != null)
                 DupeList.add(copy);
@@ -875,8 +879,8 @@ public class Actions implements VueConstants
             
             // clear out old parent references now that we're done with them
             for (LWComponent copy : dupes) {
-                copy.flushAllClientData(); // start entirely fresh
-                //setClientData(LWKey.OLD_PARENT, null);
+                //copy.flushAllClientData(); // start entirely fresh
+                copy.setClientData(LWKey.OLD_PARENT, null);
             }
 
 //             if (selection.only() instanceof LWLink) {
@@ -967,8 +971,8 @@ public class Actions implements VueConstants
             newParent.addChildren(pasted, LWComponent.ADD_PASTE);
 
             for (LWComponent c : pasted) {
-                c.flushAllClientData(); // start entirely fresh
-                //setClientData(LWKey.OLD_PARENT, null); // clear out any old-parent client data
+                //c.flushAllClientData(); // start entirely fresh
+                c.setClientData(LWKey.OLD_PARENT, null); // clear out any old-parent client data
             }
             
             selection().setTo(pasted);
