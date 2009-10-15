@@ -75,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.639 $ / $Date: 2009-10-13 20:24:12 $ / $Author: sfraize $ 
+ * @version $Revision: 1.640 $ / $Date: 2009-10-15 19:37:26 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -5920,6 +5920,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
             if (isPathwayEntryMode() && VueSelection != null && (VueSelection.isEmpty() || VueSelection.first() == mFocal)) {
 
+                // todo: would like to be able to Command-(Up/Down) to go to next/prior slide even if there is
+                // a selection present. Use case: copy a bunch of on-slide nodes -- you have to de-select
+                // them before using VK_DOWN/VK_UP to jump to the next slide if what you want to do is paste them on
+                // another slide.
+                // Note we'd also want to auto-clear the selection when paging down to the next silde.
                 PathwayTable.PathwayKeyHandler.keyPressed(e);
                 handled = e.isConsumed();
 
