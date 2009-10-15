@@ -48,7 +48,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.500 $ / $Date: 2009-10-15 19:48:13 $ / $Author: sfraize $
+ * @version $Revision: 1.501 $ / $Date: 2009-10-15 19:51:47 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1462,7 +1462,8 @@ public class LWComponent
 
         if (o == null) {
             mClientData.remove(key);
-            // todo: flush the HashMap entirely if it's down to size 0?
+            if (mClientData.size() == 0)
+                mClientData = null;
         } else {
             mClientData.put(key, o);
         }
