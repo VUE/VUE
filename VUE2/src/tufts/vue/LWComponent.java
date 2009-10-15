@@ -48,7 +48,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.498 $ / $Date: 2009-10-15 18:49:10 $ / $Author: sfraize $
+ * @version $Revision: 1.499 $ / $Date: 2009-10-15 19:28:13 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1689,6 +1689,10 @@ public class LWComponent
         return true;
     }
     
+    public LWComponent duplicate() {
+        return duplicate(new CopyContext());
+    }
+
     /**
      * Create a component with duplicate content & style.  Does not
      * duplicate any links to this component, and leaves it an
@@ -1760,10 +1764,6 @@ public class LWComponent
         // duplicate data-set data
         if (src.mDataMap != null)
             mDataMap = src.mDataMap.clone();
-    }
-
-    public LWComponent duplicate() {
-        return duplicate(new CopyContext());
     }
 
     protected boolean isPresentationContext() {
@@ -3388,13 +3388,18 @@ public class LWComponent
     public void setStyle(LWComponent parentStyle)
     {
         if (DEBUG.STYLE) out("setStyle " + parentStyle);
-        mParentStyle = parentStyle;
-        if (parentStyle == null)
-            return;
-        parentStyle.setFlag(Flag.STYLE);
-        if (!mXMLRestoreUnderway)       // we can skip the copy during restore
-            copyStyle(parentStyle);
+        takeStyle(parentStyle);
+        if (parentStyle != null) {
+            parentStyle.setFlag(Flag.STYLE);
+            if (!mXMLRestoreUnderway)       // we can skip the copy during restore
+                copyStyle(parentStyle);
+        }
     }
+
+    void takeStyle(LWComponent parentStyle) {
+        mParentStyle = parentStyle;
+    }
+    
 
     /** for castor persist */
     public LWComponent getStyle() {

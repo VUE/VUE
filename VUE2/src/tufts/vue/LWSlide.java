@@ -30,7 +30,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.111 $ / $Date: 2009-10-15 18:49:10 $ / $Author: sfraize $
+ * @version $Revision: 1.112 $ / $Date: 2009-10-15 19:28:13 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -281,7 +281,7 @@ public class LWSlide extends LWContainer
                 // style, this should re-attach it, tho we need a bit in the node
                 // to know if we never want to do this: e.g. we always want a node
                 // to stay "regular" node on the slide.
-                applyMasterStyle(c);
+                applyMasterStyle(c, true);
             }
         }
         setFillColor(null); // this is how we revert a slide's bg color to that of the master slide
@@ -335,17 +335,27 @@ public class LWSlide extends LWContainer
     }
     
 
-    private void applyMasterStyle(LWComponent node) {
+    private void applyMasterStyle(LWComponent node, final boolean resetStyle) {
         final MasterSlide master = getMasterSlide();
 
         new SlideStylingTraversal() {
             public void visit(LWComponent c) {
-                applyMasterStyle(master, c);
+                applyMasterStyle(master, c, resetStyle);
             }
         }.traverse(node);
     }
+
+    /**
+     * SMF 2009-10-15: keep existing semantics for now, and always fully reset
+     * the style of any object added to a slide, even if it was duplicated
+     * from the same slide and it had already diverged from the master style.
+     * This can run counter to user expectation when duplicating an object
+     * on a slide (or cut/pasting from a slide in the same pathway), as
+     * it can look unexpectedly different.
+     */
+    private static boolean KEEP_DIVERGENT_STYLES_ON_DUPLICATE = false;
             
-    private static void applyMasterStyle(MasterSlide master, LWComponent c) {
+    private static void applyMasterStyle(MasterSlide master, LWComponent c, boolean resetStyle) {
         if (master == null) {
             Log.error("NULL MASTER SLIDE: can't apply master style to " + c);
             return;
@@ -353,16 +363,30 @@ public class LWSlide extends LWContainer
         
         c.setFlag(Flag.SLIDE_STYLE);
         c.mAlignment.set(Alignment.LEFT);
+
+        final LWComponent style;
         
-        //if (c.hasResource() && !c.hasChildren())
         if (c.hasResource() && !c.getResource().isImage())
-            c.setStyle(master.getLinkStyle());
-        else if (c instanceof LWPortal)
-            ; // do nothing
+            style = master.getLinkStyle();
         else if (c instanceof LWText)
-            c.setStyle(master.getTextStyle());
+            style = master.getTextStyle();
         else if (c instanceof LWNode)
-            c.setStyle(master.getTextStyle());
+            style = master.getTextStyle();
+        //else if (c instanceof LWPortal)
+        //style = null;
+        else
+            style = null;
+
+        if (style != null) {
+            if (KEEP_DIVERGENT_STYLES_ON_DUPLICATE) {
+                if (resetStyle) 
+                    c.setStyle(style);
+                else
+                    c.takeStyle(style);
+            } else {
+                c.setStyle(style);
+            }
+        }
 
         if (DEBUG.Enabled) {
             if (c.getStyle() == null)
@@ -375,20 +399,22 @@ public class LWSlide extends LWContainer
     }
 
 
-    /** @return true if adjusted */
-    boolean applyStyle(LWComponent c) {
+    void applyStyle(LWComponent c) {
+        applyStyle(c, true);
+    }
+    
+    private void applyStyle(LWComponent c, boolean resetStyle) {
         
         //if (DEBUG.PRESENT || DEBUG.STYLE)
         //track("styling", c + "; curStyle=" + c.getStyle());
         
         c.setFlag(Flag.SLIDE_STYLE);
         if (c.getStyle() == null)
-            applyMasterStyle(c);
+            applyMasterStyle(c, resetStyle);
 
 //         if (LWNode.isImageNode(c))
 //             c.mAlignment.set(Alignment.RIGHT);
 
-       return true;
     }
 
     private static void track(String where, Object o) {
@@ -442,18 +468,29 @@ public class LWSlide extends LWContainer
 
         if (context == ADD_PASTE || context == ADD_DROP) {
 
-            applyStyle(c);
+            final LWContainer oldParent = c.getClientData(LWKey.OLD_PARENT);
 
-            // TODO: need a size request for LWImage, as the image itself
-            // may not be loaded yet (or just auto-handle this in userSetSize,
-            // or setSize or something.
-            if (c instanceof LWImage && !(c.getClientData(LWKey.OLD_PARENT) instanceof LWSlide)) {
-                ((LWImage)c).userSetSize(SlideWidth / 4, SlideWidth / 4, null);
-                track("resized", c);
-                // todo: we actually want this to happen after we're sure we know the image's aspect,
-                // which we won't if it's slowly loading -- perhaps we can handle this via a cleanup task.
+            if (oldParent instanceof LWSlide) {
+                if (((LWSlide)oldParent).getEntry().pathway == getEntry().pathway) {
+                    // if this component was from any other slide on this same pathway,
+                    // don't override any master-style divergent properties the user may
+                    // have applied to the item is case this add is the result of a duplicate/cut/paste
+                    applyStyle(c, false);
+                } else {
+                    applyStyle(c);
+                }
+            } else {
+                applyStyle(c);
+                // TODO: need a size request for LWImage, as the image itself
+                // may not be loaded yet (or just auto-handle this in userSetSize,
+                // or setSize or something.
+                if (c instanceof LWImage) {
+                    ((LWImage)c).userSetSize(SlideWidth / 4, SlideWidth / 4, null);
+                    track("resized", c);
+                    // todo: we actually want this to happen after we're sure we know the image's aspect,
+                    // which we won't if it's slowly loading -- perhaps we can handle this via a cleanup task.
+                }
             }
-            
         }
         
         super.addChildImpl(c, context);
