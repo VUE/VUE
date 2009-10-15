@@ -48,7 +48,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.501 $ / $Date: 2009-10-15 19:51:47 $ / $Author: sfraize $
+ * @version $Revision: 1.502 $ / $Date: 2009-10-15 19:59:36 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -3544,16 +3544,15 @@ public class LWComponent
     }
     
     
-    public void addChild(LWComponent c) {
-        //Util.printStackTrace(this + ": can't take children; ignored new child: " + c);
+    public final void addChild(LWComponent c) {
         addChildren(Collections.singletonList(c), ADD_DEFAULT);
     }
 
-    public void dropChild(LWComponent c) {
+    public final void dropChild(LWComponent c) {
         addChildren(Collections.singletonList(c), ADD_DROP);
     }
     
-    public void pasteChild(LWComponent c) {
+    public final void pasteChild(LWComponent c) {
         addChildren(Collections.singletonList(c), ADD_PASTE);
     }
 
