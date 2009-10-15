@@ -30,7 +30,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.110 $ / $Date: 2008-07-14 17:12:28 $ / $Author: sfraize $
+ * @version $Revision: 1.111 $ / $Date: 2009-10-15 18:49:10 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -447,7 +447,7 @@ public class LWSlide extends LWContainer
             // TODO: need a size request for LWImage, as the image itself
             // may not be loaded yet (or just auto-handle this in userSetSize,
             // or setSize or something.
-            if (c instanceof LWImage) {
+            if (c instanceof LWImage && !(c.getClientData(LWKey.OLD_PARENT) instanceof LWSlide)) {
                 ((LWImage)c).userSetSize(SlideWidth / 4, SlideWidth / 4, null);
                 track("resized", c);
                 // todo: we actually want this to happen after we're sure we know the image's aspect,

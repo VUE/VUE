@@ -93,6 +93,12 @@ public interface LWKey {
     public String MapFilter = "map.filter";
     
     public String DataUpdate = "data.update";
+
+    //-----------------------------------------------------------------------------
+    // client-data keys:
+    //-----------------------------------------------------------------------------
+    
+    public static final Class<LWContainer> OLD_PARENT = LWContainer.class;
     
     
     

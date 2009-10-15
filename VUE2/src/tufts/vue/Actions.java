@@ -728,13 +728,16 @@ public class Actions implements VueConstants
     }
 
     /**
-     * @param preserveParents - if true, the old parent will be stored in the copy as a clientProperty
+     * @param recordOldParent - if true, the old parent will be stored in the copy as a clientProperty
      * @param sortByZOrder - if true, will maintain the relative z-order of components in the dupe-set
      *
      * note: preserving old parents has different effect when duplicating the ScratchBuffer -- it will copy over old-parent client data
+     * that was collected when the ScratchBuffer was loaded
      */
     public static List<LWComponent> duplicatePreservingLinks
-        (Collection<LWComponent> items, boolean preserveParents, boolean sortByZOrder)
+        (final Collection<LWComponent> items,
+         final boolean recordOldParent,
+         final boolean sortByZOrder)
     {
         CopyContext.reset();
         DupeList.clear();
@@ -772,16 +775,17 @@ public class Actions implements VueConstants
                 continue;
             }
             LWComponent copy = c.duplicate(CopyContext);
-            if (preserveParents) {
+            if (recordOldParent) {
+                // note check for the special instance of ScratchBuffer as the input Collection to this method:
                 if (items == ScratchBuffer) {
                     // parent will be null -- copy over the client data we stored when loading the ScratchBuffer
-                    copy.setClientData(LWContainer.class, c.getClientData(LWContainer.class));
+                    copy.setClientData(LWKey.OLD_PARENT, c.getClientData(LWKey.OLD_PARENT));
                 } else {
                     // we could store this as the actual parent, but if we do that,
                     // changes made to the components before they're fully baked
                     // (e.g., link reconnections, translations) will generate events
                     // that will confuse the UndoManager.
-                    copy.setClientData(LWContainer.class, c.parent);
+                    copy.setClientData(LWKey.OLD_PARENT, c.parent);
                 }
             }
             if (copy != null)
@@ -841,14 +845,14 @@ public class Actions implements VueConstants
             final List<LWComponent> dupes =
                 duplicatePreservingLinks(selection, RECORD_OLD_PARENT, SORT_BY_Z_ORDER);
 
-            final LWContainer parent0 = dupes.get(0).getClientData(LWContainer.class);
+            final LWContainer parent0 = dupes.get(0).getClientData(LWKey.OLD_PARENT);
             boolean allHaveSameParent = true;
 
             // dupes may have fewer items in it that the selection: it will only
             // contain the top-level items duplicated -- not any of their children
 
             for (LWComponent copy : dupes) {
-                if (copy.getClientData(LWContainer.class) != parent0)
+                if (copy.getClientData(LWKey.OLD_PARENT) != parent0)
                     allHaveSameParent = false;
                 copy.translate(CopyOffset, CopyOffset);
             }
@@ -863,15 +867,17 @@ public class Actions implements VueConstants
                 // Todo: would be smoother to collect all the nodes by parent
                 // and do a separate collective adds for each parent
                 for (LWComponent copy : dupes) 
-                    copy.getClientData(LWContainer.class).pasteChild(copy);
+                    copy.getClientData(LWKey.OLD_PARENT).pasteChild(copy);
                     
             }
 
             //-----------------------------------------------------------------------------
             
             // clear out old parent references now that we're done with them
-            for (LWComponent copy : dupes)
-                copy.setClientData(LWContainer.class, null);
+            for (LWComponent copy : dupes) {
+                copy.flushAllClientData(); // start entirely fresh
+                //setClientData(LWKey.OLD_PARENT, null);
+            }
 
 //             if (selection.only() instanceof LWLink) {
 //                 LWLink oneLink = (LWLink) selection.first();
@@ -943,7 +949,7 @@ public class Actions implements VueConstants
                 //final List<LWComponent> pasteToOldLocations = new ArrayList();
                 final List<LWComponent> pasteToNewLocations = new ArrayList();
                 for (LWComponent c : pasted) {
-                    final LWContainer oldParent = c.getClientData(LWContainer.class);
+                    final LWContainer oldParent = c.getClientData(LWKey.OLD_PARENT);
                     if (oldParent instanceof LWSlide && oldParent != newParent) {
                         // if old parent was a slide (a different one), leave it's x/y alone when pasting
                         //pasteToOldLocations.add(c);
@@ -958,10 +964,13 @@ public class Actions implements VueConstants
                 MapDropTarget.setCenterAt(pasted, pasteLocation); // note: this method only works on un-parented nodes
             }
             
-            for (LWComponent c : pasted)
-                c.setClientData(LWContainer.class, null); // clear out any old-parent client data
-            
             newParent.addChildren(pasted, LWComponent.ADD_PASTE);
+
+            for (LWComponent c : pasted) {
+                c.flushAllClientData(); // start entirely fresh
+                //setClientData(LWKey.OLD_PARENT, null); // clear out any old-parent client data
+            }
+            
             selection().setTo(pasted);
             lastMouseLocation = mouseLocation;
         }

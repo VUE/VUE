@@ -48,7 +48,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.497 $ / $Date: 2009-10-13 20:15:07 $ / $Author: sfraize $
+ * @version $Revision: 1.498 $ / $Date: 2009-10-15 18:49:10 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1448,18 +1448,24 @@ public class LWComponent
      * they're using are unique with respect to any other potential users of this API.
      * Setting a property value to null removes the property */
     public void setClientData(Object key, Object o) {
-        if (mClientData == null)
-            mClientData = new HashMap();
+        if (mClientData == null) {
+            if (o == null) // storing null means remove value
+                return;
+            else
+                mClientData = new HashMap();
+        }
 
         if (DEBUG.DATA) {
             String keyName = key instanceof Class ? key.toString() : Util.tags(key);
             out("setClientData: " + keyName + "=" + Util.tags(o));
         }
 
-        if (o == null)
+        if (o == null) {
             mClientData.remove(key);
-        else
+            // todo: flush the HashMap entirely if it's down to size 0?
+        } else {
             mClientData.put(key, o);
+        }
     }
     
     public Object getClientData(Object key) {
@@ -1472,6 +1478,16 @@ public class LWComponent
     
     public boolean hasClientData(Object o) {
         return getClientData(o) != null;
+    }
+    
+    public void flushAllClientData() {
+        if (mClientData != null) {
+            if (DEBUG.DATA && mClientData.size() > 0) {
+                Log.debug("flushing all client data;");
+                Util.dump(mClientData);
+            }
+            mClientData = null;
+        }
     }
     
 //     public void setInstanceProperty(String subKey, Object o) {
