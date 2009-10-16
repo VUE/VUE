@@ -38,6 +38,8 @@ public class SeasrAnalyzer implements LWComponentAnalyzer {
 			if(flow != null) {
 				url = new URL(flow.getUrl()+"?"+flow.getInputList().get(0)+"="+ getSpecFromComponent(c));
 			}
+			System.setProperty("javax.xml.parsers.SAXParserFactory",
+			  "org.apache.xerces.jaxp.SAXParserFactoryImpl");
 			XMLDecoder decoder = new XMLDecoder(url.openStream());
 			Map map =  (Map)decoder.readObject();
 			for(Object key: map.keySet()) {
@@ -62,6 +64,9 @@ public class SeasrAnalyzer implements LWComponentAnalyzer {
 				url = new URL(flow.getUrl() + "?" + flow.getInputList().get(0) + "=" + urlString);
 				
 			}
+
+			System.setProperty("javax.xml.parsers.SAXParserFactory",
+			  "org.apache.xerces.jaxp.SAXParserFactoryImpl");
 			System.out.println("Executing: "+url.toString());
 			XMLDecoder decoder = new XMLDecoder(url.openStream());
 			Map map =  (Map)decoder.readObject();
