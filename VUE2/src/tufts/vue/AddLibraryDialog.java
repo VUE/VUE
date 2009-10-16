@@ -21,7 +21,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.87 $ / $Date: 2009-08-04 21:13:36 $ / $Author: brian $
+ * @version $Revision: 1.88 $ / $Date: 2009-10-16 13:59:05 $ / $Author: mike $
  * @author  akumar03
  */
 import java.awt.BorderLayout;
@@ -549,7 +549,13 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                             java.util.Properties p = cui.getProperties();
                             FavoritesDataSource ds = (FavoritesDataSource)this.oldDataSource;
                             ds.setDisplayName(p.getProperty("name"));
-                        } else if (s.equals(DS_FTP)) {
+                        } else if (s.equals(DS_RSS)) {
+                        	 java.util.Properties p = cui.getProperties();
+                             RSSDataSource ds = (RSSDataSource)this.oldDataSource;
+                             ds.setDisplayName(p.getProperty("name"));
+                             ds.setAddress(p.getProperty("address"));
+                        }
+                        else if (s.equals(DS_FTP)) {
                             java.util.Properties p = cui.getProperties();
                             RemoteFileDataSource ds = (RemoteFileDataSource)this.oldDataSource;
                             ds.setDisplayName(p.getProperty("name"));
