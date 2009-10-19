@@ -22,7 +22,6 @@
 	<string>6.0</string>
 	<key>CFBundleIconFile</key>
 	<string>VUE.icns</string>
-
 	<key>CFBundleDocumentTypes</key>
 	<array>
 	  <dict>
@@ -43,7 +42,7 @@
 	<key>Java</key>
 	<dict>
 		<key>VMOptions</key>
-		<string>-Xms200m -Xmx1024m</string>
+		<string>-Xms256m -Xmx1g -XX:MinHeapFreeRatio=20 -XX:MaxHeapFreeRatio=40 -XX:NewSize=100m -XX:MaxNewSize=100m -XX:SurvivorRatio=6 -XX:TargetSurvivorRatio=80 -XX:+CMSClassUnloadingEnabled -XX:+CMSPermGenSweepingEnabled</string>
 
 		<key>WorkingDirectory</key>
 		<string>$APP_PACKAGE/Contents/Resources/Java</string>
