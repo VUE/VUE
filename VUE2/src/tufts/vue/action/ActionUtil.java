@@ -65,7 +65,7 @@ import java.net.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistence thru castor XML.
  *
- * @version $Revision: 1.140 $ / $Date: 2009-09-02 16:02:41 $ / $Author: mike $
+ * @version $Revision: 1.141 $ / $Date: 2009-10-19 15:06:03 $ / $Author: mike $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -150,7 +150,7 @@ public class ActionUtil
         if (fileType != null && !fileType.equals("export"))
         	saveChooser.setFileFilter(new VueFileFilter(fileType)); 
         else if (fileType != null && fileType.equals("export"))
-        {
+        { 
         	saveChooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.JPEG_DESCRIPTION));
         	saveChooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.PNG_DESCRIPTION));
             saveChooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.SVG_DESCRIPTION));        	
@@ -189,12 +189,15 @@ public class ActionUtil
             picked = saveChooser.getSelectedFile();
             
             String fileName = picked.getAbsolutePath();
-            int start = picked.getName().lastIndexOf(".");
-        	if(fileName.length()!=0 && start != -1){
-        		fileName = fileName.substring(0,start);
-        	}        	
-            //String extension = chooser.getFileFilter().getDescription();
-              String extension = ((VueFileFilter)saveChooser.getFileFilter()).getExtensions()[0];  
+
+            /**
+             * 2009-10-16 There was a bug in here that sliced up the filename, I think removing this block
+             * of code should fix the issue. If you had a name like Object.Generic-Tufts, VUE would get
+             * all confused and put files in the wrong directory or make a file called Object the filename
+             * slicing seemed unnecessary. -MK
+             * 
+             */
+            String extension = ((VueFileFilter)saveChooser.getFileFilter()).getExtensions()[0];  
             //if it isn't a file name with the right extension 
             if (!picked.getName().endsWith("." + extension)) {
                 fileName += "." + extension;
