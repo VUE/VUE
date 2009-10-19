@@ -27,6 +27,7 @@ import javax.swing.*;
 
 import tufts.vue.*;
 import tufts.vue.LWComponent.HideCause;
+import tufts.vue.LWMap.Layer;
 
 /*
  * SearchAction.java
@@ -874,8 +875,9 @@ public class SearchAction extends AbstractAction {
                else
                {
                  LWComponent comp = it3.next();
+                 LWMap.Layer compLayer = comp.getLayer();
                  
-                 if(!comp.getLayer().isHidden() && !(comp instanceof LWSlide) && !comp.hasFlag(LWComponent.Flag.SLIDE_STYLE)
+                 if(!(compLayer != null && compLayer.isHidden()) && !(comp instanceof LWSlide) && !comp.hasFlag(LWComponent.Flag.SLIDE_STYLE)
                    && (!(comp.hasAncestorOfType(LWSlide.class))))  
                    VUE.getSelection().add(comp);
                }
