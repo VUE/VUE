@@ -21,7 +21,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.88 $ / $Date: 2009-10-16 13:59:05 $ / $Author: mike $
+ * @version $Revision: 1.89 $ / $Date: 2009-10-20 20:19:53 $ / $Author: brian $
  * @author  akumar03
  */
 import java.awt.BorderLayout;
@@ -270,7 +270,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
             listModel.addElement(MY_COMPUTER);            
             listModel.addElement(MY_SAVED_CONTENT);         
            // listModel.addElement(ZOTERO);   
-            listModel.addElement(DS_RSS);
+            //listModel.addElement(DS_RSS);
             listModel.addElement(DS_FTP);
             listModel.addElement(LOADING);
        int ONE_TNTH_SECOND = 100;
