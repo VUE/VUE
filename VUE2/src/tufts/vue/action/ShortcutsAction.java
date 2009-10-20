@@ -27,7 +27,7 @@ import javax.swing.JScrollPane;
 /**
  * Produce a shortcuts window.
  *
- * @version $Revision: 1.16 $ / $Date: 2009-04-02 23:32:51 $ / $Author: vaibhav $
+ * @version $Revision: 1.17 $ / $Date: 2009-10-20 13:20:35 $ / $Author: brian $
  * @author Scott Fraize
  */
 public class ShortcutsAction extends tufts.vue.VueAction
@@ -47,7 +47,7 @@ public class ShortcutsAction extends tufts.vue.VueAction
     /** display the shortcuts DockWindow (create it if needed) */
     public void act() {
         if (window == null)
-            window = GUI.createDockWindow(VUE.getName() + VueResources.getString("shortcutactions.shortcutkeys"));
+            window = GUI.createDockWindow(VUE.getName() + " " + VueResources.getString("shortcutactions.shortcutkeys"));
 
         if (content == null || (wasDebug != DEBUG.Enabled)) {
             wasDebug = DEBUG.Enabled;
