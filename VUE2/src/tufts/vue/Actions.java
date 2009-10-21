@@ -352,7 +352,7 @@ public class Actions implements VueConstants
         };
 
     public static final LWCAction ExpandSelection =
-        new LWCAction(VueResources.local("menu.edit.expandselection"), keyStroke(KeyEvent.VK_L, ALT)) {
+        new LWCAction(VueResources.local("menu.edit.expandselection"), keyStroke(KeyEvent.VK_SLASH, COMMAND)) {
             public void act() {
             	VUE.getInteractionToolsPanel().doExpand();
             }
@@ -362,7 +362,7 @@ public class Actions implements VueConstants
         };
 
     public static final LWCAction ShrinkSelection =
-        new LWCAction(VueResources.local("menu.edit.shrinkselection"), keyStroke(KeyEvent.VK_K, ALT)) {
+        new LWCAction(VueResources.local("menu.edit.shrinkselection"), keyStroke(KeyEvent.VK_PERIOD, COMMAND)) {
             public void act() {
             	VUE.getInteractionToolsPanel().doShrink();
             }
