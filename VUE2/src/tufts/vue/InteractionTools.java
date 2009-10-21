@@ -52,6 +52,8 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 									zoomInnerPanel = null,
 									linePanel = null;
 	protected WidgetStack			widgetStack = null;
+	protected int					depthSliderMax = 0,
+									depthSliderMin = 0;
 
 
 	public InteractionTools(DockWindow dw) {
@@ -122,6 +124,8 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 		labelTable.put(new Integer(3), label3);
 		labelTable.put(new Integer(4), label4);
 		labelTable.put(new Integer(5), label5);
+		depthSliderMin = 0;
+		depthSliderMax = 5;
 		depthSlider.setLabelTable(labelTable);
 		depthSlider.setPaintLabels(true);
 		depthSlider.setSnapToTicks(true);
@@ -271,6 +275,26 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 
 	public double getAlpha() {
 		return (VUE.getSelection().size() == 0 ? 1.0 : ((double)fadeSlider.getValue()) / 100.0);
+	}
+
+
+	public boolean canExpand() {
+		return depthSlider.getValue() < depthSliderMax;
+	}
+
+
+	public void doExpand() {
+		depthSlider.setValue(depthSlider.getValue() + 1);
+	}
+
+
+	public boolean canShrink() {
+		return depthSlider.getValue() > depthSliderMin;
+	}
+
+
+	public void doShrink() {
+		depthSlider.setValue(depthSlider.getValue() - 1);
 	}
 
 

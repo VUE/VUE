@@ -89,7 +89,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.160 $ / $Date: 2009-10-05 20:42:09 $ / $Author: mike $
+ * @version $Revision: 1.161 $ / $Date: 2009-10-21 16:07:45 $ / $Author: brian $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -260,7 +260,6 @@ public class VueMenuBar extends javax.swing.JMenuBar
         layoutMenu = makeMenu(VueResources.getString("menu.layout"));
         layoutMenu.setEnabled(false);        
         
-        final JMenu extendMenu = makeMenu(VueResources.getString("menu.extended"));
         linkMenu = makeMenu(VueResources.getString("menu.link"));
         linkMenu.setEnabled(false); 
         final JMenu helpMenu = add(makeMenu(VueResources.getString("menu.help")));
@@ -627,6 +626,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
         editMenu.add(Actions.SelectAll);
         editMenu.add(Actions.SelectAllNodes);
         editMenu.add(Actions.SelectAllLinks);
+        editMenu.add(Actions.ExpandSelection);
+        editMenu.add(Actions.ShrinkSelection);
         editMenu.add(Actions.Reselect);
         editMenu.add(Actions.DeselectAll);
         if (!tufts.Util.isMacPlatform() || VUE.isApplet())
@@ -746,14 +747,6 @@ public class VueMenuBar extends javax.swing.JMenuBar
 			private void handleActivation()
 			{
 				LWSelection selection = VUE.getSelection();
-				if (selection.size() > 1 && selection.count(LWLink.class) ==0)
-				{
-					extendMenu.setEnabled(true);
-				}
-				else
-				{
-					extendMenu.setEnabled(false);
-				}
 				
 				if (selection.count(LWText.class) > 0)
 				{

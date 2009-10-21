@@ -350,8 +350,27 @@ public class Actions implements VueConstants
                 selection().reselect();
             }
         };
-    
-    
+
+    public static final LWCAction ExpandSelection =
+        new LWCAction(VueResources.local("menu.edit.expandselection"), keyStroke(KeyEvent.VK_L, ALT)) {
+            public void act() {
+            	VUE.getInteractionToolsPanel().doExpand();
+            }
+            boolean enabledFor(LWSelection s) {
+                return s.size() > 0 && VUE.getInteractionToolsPanel().canExpand();
+            }
+        };
+
+    public static final LWCAction ShrinkSelection =
+        new LWCAction(VueResources.local("menu.edit.shrinkselection"), keyStroke(KeyEvent.VK_K, ALT)) {
+            public void act() {
+            	VUE.getInteractionToolsPanel().doShrink();
+            }
+            boolean enabledFor(LWSelection s) {
+                return s.size() > 0 && VUE.getInteractionToolsPanel().canShrink();
+            }
+        };
+
     public static final Action AddPathwayItem =
     new LWCAction(VueResources.local("actions.addPathwayItem.label")) {
         public void act(Iterator i) {
@@ -3191,11 +3210,6 @@ public class Actions implements VueConstants
    
     /** Helpers for menu creation.  Null's indicate good places
      * for menu separators. */
-
-    public static final Action[] EXTEND_MENU_ACTIONS = {
-        FillWidth,
-        FillHeight
-    };
 
     public static final Action[] ALIGN_MENU_ACTIONS = {
         AlignLeftEdges,
