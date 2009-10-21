@@ -309,9 +309,16 @@ save: function(data)
                  .createInstance(Components.interfaces.nsIFileOutputStream);
 
            foStream.init(file, 0x02 | 0x08 | 0x20, 0666, 0);
-           foStream.write(data,data.length);
+      //     foStream.write(data,data.length);
        //    alert(data.length);
-           foStream.close();
+        // if you are sure there will never ever be any non-ascii text in data you can 
+        // also call foStream.writeData directly
+           var converter = Components.classes["@mozilla.org/intl/converter-output-stream;1"].
+                                  createInstance(Components.interfaces.nsIConverterOutputStream);
+           converter.init(foStream, "UTF-8", 0, 0);
+           converter.writeString(data);
+           converter.close(); // this closes foStream
+//           foStream.close();
 
 },
 /**
@@ -617,6 +624,11 @@ sendToVue: function(collectionName,fileName,addToMap) {
 addMapFromVueToCollection: function() {
     	return;
     },    
+filterNum: function(str)  {
+    	re = /\$|,|@|#|~|`|\%|\*|\^|\&|\(|\)|\+|\=|\[|\-|\_|\]|\[|\}|\{|\;|\:|\'|\"|\<|\>|\?|\||\\|\!|\$|\./g;
+    	// remove special characters like "$" and "," etc...
+    	return str.replace(re, "");
+},    
 exportCSV: function(addToMap) {	
     	    	
         var currentCollection = this.zPane.getSelectedCollection();
@@ -635,7 +647,7 @@ exportCSV: function(addToMap) {
         
         atts = {id:""+currentCollectionId};
 
-        xml+='<?xml version="1.0"?>\n';
+        xml+='<?xml version="1.0" encoding="UTF-8"?>\n';
         xml+=element('zoteroCollection',null, atts,true);
         xml+="\n";
         

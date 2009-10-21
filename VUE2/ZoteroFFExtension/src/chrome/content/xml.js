@@ -64,7 +64,7 @@ function element(name,content,attributes){
         xml='<' + name + att_str + '/>';
     }
     else {
-        xml='<' + name + att_str + '>' + content + '</'+name+'>';
+        xml='<' + name + att_str + '>' + encodeURIComponent(content) + '</'+name+'>';
     }
     return xml;
 }
