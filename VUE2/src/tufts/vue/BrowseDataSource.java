@@ -23,7 +23,7 @@ package tufts.vue;
  * on the configuration.  E.g., a local directory, a list of user favorites, a remote FTP
  * site, an RSS feed, etc.
  * 
- * @version $Revision: 1.12 $ / $Date: 2009-08-11 15:27:10 $ / $Author: mike $
+ * @version $Revision: 1.13 $ / $Date: 2009-10-22 22:08:09 $ / $Author: mike $
  * @author  rsaigal
  * @author  sfraize
  */
@@ -382,7 +382,7 @@ public abstract class BrowseDataSource implements DataSource
         
         if (encoding != null) {
             try {
-                reader = new InputStreamReader(conn.getInputStream(), encoding);
+                reader = new InputStreamReader(conn.getInputStream());
             } catch (Throwable t) {
                 Log.warn("opening " + conn + " with encoding [" + encoding + "]", t);
             }
@@ -390,7 +390,7 @@ public abstract class BrowseDataSource implements DataSource
         
         if (reader == null) {
             try {
-                reader = new InputStreamReader(conn.getInputStream());
+                reader = new InputStreamReader(conn.getInputStream(),"UTF-8");
             } catch (Throwable t) {
                 throw new DataSourceException("Failed to get reader for stream " + conn, t);
             }
@@ -403,9 +403,9 @@ public abstract class BrowseDataSource implements DataSource
     {
         InputSource is = new InputSource(getAddress());
         Reader reader = openReader();
-
+        System.out.println(is.getEncoding());
         // We don't use is.setEncoding(), as openReader will already have handled that
-        is.setCharacterStream(reader);
+      
         
         return is;
     }
