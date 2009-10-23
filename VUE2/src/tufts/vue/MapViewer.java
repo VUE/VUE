@@ -19,6 +19,8 @@ import tufts.Util;
 import static tufts.Util.*;
 
 
+import tufts.vue.LinkTool.ComboModeTool;
+import tufts.vue.NodeTool.NodeModeTool;
 import tufts.vue.gui.GUI;
 import tufts.vue.gui.DockWindow;
 import tufts.vue.gui.FocusManager;
@@ -75,7 +77,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.641 $ / $Date: 2009-10-23 19:44:55 $ / $Author: mike $ 
+ * @version $Revision: 1.642 $ / $Date: 2009-10-23 21:14:37 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -6455,6 +6457,23 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             if (activeTool.supportsSelection()) {
                 //hitComponent = activeTool.pickNodeAt(getPickContext(mapX, mapY));
                 hitComponent = pickNode(mapX, mapY);
+                
+                if (hitComponent == null && activeTool instanceof ComboModeTool)
+                {
+                	//VUE-1597
+                	/*
+                	 * Problem with the prototyping tool is that users want to use 
+                	 * it on a blank map. currently, we are asking them to select the 
+                	 * node tool, create a node, then switch to the RP tool (not much 
+                	 * of a rapid process to get started!). It goes against user 
+                	 * expectations where they want to use the RP right away.
+                	 */
+                	LWComponent newNode = NodeTool.NodeModeTool.createNewNode();//VUE.getActiveViewer().NodeModeTool.createNewNode();
+                	newNode.setLocation(mapX,mapY);
+                	VUE.getActiveViewer().getFocal().dropChild(newNode);
+                	VUE.getActiveViewer().getSelection().setTo(newNode);
+                	hitComponent = newNode;
+                }
                 if (DEBUG.MOUSE && hitComponent != null)
                     System.out.println("\t    on " + hitComponent + "\n" +
                     "\tparent " + hitComponent.getParent());
@@ -6536,6 +6555,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     
                 }
                 else {
+                	
                     //-------------------------------------------------------
                     // Vanilla mouse press:
                     //          (1) SET SELECTION
@@ -6572,34 +6592,36 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 //-------------------------------------------------------
                 // hitComponent was null
                 //-------------------------------------------------------
-                
-                // SPECIAL CASE for dragging the entire selection
-                if (activeTool.supportsSelection()
-                    && (GUI.noModifierKeysDown(e) || isSystemDragStart(e))
-                    //&& VueSelection.size() > 1
-                    && VueSelection.contains(mapX, mapY))
-                {
-                    //-------------------------------------------------------
-                    // PICK UP A GROUP SELECTION FOR DRAGGING
-                    //
-                    // If we clicked on nothing, but are actually within
-                    // the bounds of an existing selection, pick it
-                    // up for dragging.
-                    //-------------------------------------------------------
-                   setToDrag(getSelection());
-                
-                    //draggedSelectionGroup.useSelection(VueSelection);
-                    //setDragger(draggedSelectionGroup);
-                } else if (!e.isShiftDown() && activeTool.supportsSelection()) {
-                    //-------------------------------------------------------
-                    // CLEAR CURRENT SELECTION & START DRAGGING FOR A NEW ONE
-                    //
-                    // If we truly clicked on nothing, clear the selection,
-                    // unless shift was down, which is easy to accidentally
-                    // have happen if user is toggling the selection.
-                    //-------------------------------------------------------
-                    selectionClear();
-                    //repaint(); // if selection handles not on, we need manual repaint here
+               
+	                // SPECIAL CASE for dragging the entire selection
+	                if (activeTool.supportsSelection()
+	                    && (GUI.noModifierKeysDown(e) || isSystemDragStart(e))
+	                    //&& VueSelection.size() > 1
+	                    && VueSelection.contains(mapX, mapY))
+	                {
+	                    //-------------------------------------------------------
+	                    // PICK UP A GROUP SELECTION FOR DRAGGING
+	                    //
+	                    // If we clicked on nothing, but are actually within
+	                    // the bounds of an existing selection, pick it
+	                    // up for dragging.
+	                    //-------------------------------------------------------
+	                   setToDrag(getSelection());
+	                
+	                    //draggedSelectionGroup.useSelection(VueSelection);
+	                    //setDragger(draggedSelectionGroup);
+	                
+	                } else if (!e.isShiftDown() && activeTool.supportsSelection()) {
+	                    //-------------------------------------------------------
+	                    // CLEAR CURRENT SELECTION & START DRAGGING FOR A NEW ONE
+	                    //
+	                    // If we truly clicked on nothing, clear the selection,
+	                    // unless shift was down, which is easy to accidentally
+	                    // have happen if user is toggling the selection.
+	                    //-------------------------------------------------------
+	                    selectionClear();
+	                    //repaint(); // if selection handles not on, we need manual repaint here
+	                
                 }
 //                 if (activeTool.supportsDraggedSelector(mme))
 //                     isDraggingSelectorBox = true;
