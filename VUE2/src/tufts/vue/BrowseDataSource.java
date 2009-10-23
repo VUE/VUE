@@ -23,15 +23,18 @@ package tufts.vue;
  * on the configuration.  E.g., a local directory, a list of user favorites, a remote FTP
  * site, an RSS feed, etc.
  * 
- * @version $Revision: 1.13 $ / $Date: 2009-10-22 22:08:09 $ / $Author: mike $
+ * @version $Revision: 1.14 $ / $Date: 2009-10-23 19:30:17 $ / $Author: mike $
  * @author  rsaigal
  * @author  sfraize
  */
 
+import sun.net.www.protocol.file.FileURLConnection;
 import tufts.Util;
 import tufts.vue.DEBUG;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
@@ -357,10 +360,52 @@ public abstract class BrowseDataSource implements DataSource
         // something any Resource can do.
         // TODO: handle for local-file case
 
-        final URLConnection conn = openAddress();
+       URLConnection conn = openAddress();
 
-        String encoding = conn.getContentEncoding();
+        String encoding = null;
 
+        if (conn instanceof FileURLConnection)
+        {
+           
+            BufferedReader bufferedReader = null;
+            String xmlDeclaration = null;
+			try {
+				bufferedReader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+				xmlDeclaration = bufferedReader.readLine();
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+
+			if (xmlDeclaration !=null)
+			{
+				Pattern p = Pattern.compile(".*encoding=\"(.*?)\".*");
+				Matcher m = p.matcher(xmlDeclaration);
+				m.find();
+
+				try {
+					encoding = m.group(1);
+				} catch(Exception e) {
+					e.printStackTrace();
+				}
+				finally {
+					if (bufferedReader!=null)
+						try {
+							bufferedReader.close();
+						} catch (IOException e) {							
+							e.printStackTrace();
+						}
+					conn = openAddress();
+				}
+
+			}
+        }
+        else
+        {
+        	encoding = conn.getContentEncoding();
+        }
+        
+        
+        
         if (encoding == null) {
             String ct = conn.getContentType();
             Log.debug("content-type[" + ct + "]");
@@ -382,7 +427,7 @@ public abstract class BrowseDataSource implements DataSource
         
         if (encoding != null) {
             try {
-                reader = new InputStreamReader(conn.getInputStream());
+                reader = new InputStreamReader(conn.getInputStream(), encoding);
             } catch (Throwable t) {
                 Log.warn("opening " + conn + " with encoding [" + encoding + "]", t);
             }
@@ -390,7 +435,7 @@ public abstract class BrowseDataSource implements DataSource
         
         if (reader == null) {
             try {
-                reader = new InputStreamReader(conn.getInputStream(),"UTF-8");
+                reader = new InputStreamReader(conn.getInputStream());
             } catch (Throwable t) {
                 throw new DataSourceException("Failed to get reader for stream " + conn, t);
             }
@@ -403,9 +448,9 @@ public abstract class BrowseDataSource implements DataSource
     {
         InputSource is = new InputSource(getAddress());
         Reader reader = openReader();
-        System.out.println(is.getEncoding());
+
         // We don't use is.setEncoding(), as openReader will already have handled that
-      
+        is.setCharacterStream(reader);
         
         return is;
     }
