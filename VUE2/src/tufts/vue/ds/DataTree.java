@@ -53,7 +53,7 @@ import com.google.common.collect.*;
  * currently active map, code for adding new nodes to the current map,
  * and initiating drags of fields or rows destined for a map.
  *
- * @version $Revision: 1.98 $ / $Date: 2009-10-13 20:25:07 $ / $Author: sfraize $
+ * @version $Revision: 1.99 $ / $Date: 2009-10-23 14:43:34 $ / $Author: mike $
  * @author  Scott Fraize
  */
 
@@ -2117,6 +2117,10 @@ public class DataTree extends javax.swing.JTree
                 final boolean hasFocus)
         {
             //Log.debug(Util.tags(value));
+            //Log.debug(Util.tags(value));
+            if (!(value instanceof DataNode)) 
+            	return super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
+
             final DataNode treeNode = (DataNode) value;
             final Field field = treeNode.getField();
             
