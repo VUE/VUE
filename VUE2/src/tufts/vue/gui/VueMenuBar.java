@@ -89,7 +89,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.161 $ / $Date: 2009-10-21 16:07:45 $ / $Author: brian $
+ * @version $Revision: 1.162 $ / $Date: 2009-10-24 12:05:03 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -921,8 +921,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
         ////////////////////////////////////////////////////////////////////////////////////
         // Build Analysis Menu
         ////////////////////////////////////////////////////////////////////////////////////
-        if (!VUE.isApplet())
-        {
+       // if (!VUE.isApplet())
+        //{
         	analysisMenu.add(createCMAction);
 
         	if (VUE.getMergeMapsDock()!= null ){
@@ -931,7 +931,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         	//analysisMenu.add(analyzeCMAction);
 
         	analysisMenu.add(createWindowItem(SeasrAnalysisPanel.getSeasrAnalysisDock(), 0, VueResources.getString("menu.windows.seasr")));            
-        }
+        //}
        
         
       rebuildWindowsMenu();
@@ -979,7 +979,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         add(formatMenu);
         add(contentMenu);
         add(presentationMenu);
-        if (!VUE.isApplet())
+      //  if (!VUE.isApplet())
         	add(analysisMenu);        
         add(windowMenu);
         add(helpMenu);
