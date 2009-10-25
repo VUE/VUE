@@ -2030,6 +2030,14 @@ public class Actions implements VueConstants
             c.mFontStyle.set(c.mFontStyle.get() ^ Font.ITALIC);
         }
     };
+    
+    public static final LWCAction FontUnderline =
+        new LWCAction(VueResources.local("menu.format.font.fontunderline"), keyStroke(KeyEvent.VK_U, COMMAND)) {
+            void act(LWComponent c) {
+                c.mFontUnderline.set((c.mFontUnderline.get().toString()).equals("underline") ? "normal" : "underline");
+
+            }
+        };
 
     /** this will toggle the collapsed state flag on the selected nodes */
     public static final LWCAction Collapse =

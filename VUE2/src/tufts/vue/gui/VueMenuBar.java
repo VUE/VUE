@@ -89,7 +89,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.162 $ / $Date: 2009-10-24 12:05:03 $ / $Author: mike $
+ * @version $Revision: 1.163 $ / $Date: 2009-10-25 13:09:01 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -710,7 +710,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
         transformMenu.add(Actions.FontBigger);
         transformMenu.add(Actions.FontSmaller);
         transformMenu.add(Actions.FontBold);
-        transformMenu.add(Actions.FontItalic);         
+        transformMenu.add(Actions.FontItalic);      
+        transformMenu.add(Actions.FontUnderline);
         formatMenu.add(buildMenu("menu.node",Actions.NODE_FORMAT_MENU_ACTIONS));
         formatMenu.add(transformMenu);
         formatMenu.add(buildMenu("menu.image", Actions.IMAGE_MENU_ACTIONS));
