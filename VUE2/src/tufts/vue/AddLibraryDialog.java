@@ -21,7 +21,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.89 $ / $Date: 2009-10-20 20:19:53 $ / $Author: brian $
+ * @version $Revision: 1.90 $ / $Date: 2009-10-26 20:32:09 $ / $Author: mike $
  * @author  akumar03
  */
 import java.awt.BorderLayout;
@@ -247,7 +247,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
     }
 
     /** apparently, the number of data sources before "LOADING" ? */
-    private static final int LIST_PARTITION_CONSTANT = 4;
+    private static final int LIST_PARTITION_CONSTANT = 3;
     
     private void populate() {
         listModel.removeAllElements();
