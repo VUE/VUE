@@ -17,6 +17,7 @@ package tufts;
 
 import java.awt.Color;
 import java.awt.Shape;
+import java.awt.Transparency;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.CubicCurve2D;
@@ -2597,8 +2598,12 @@ public class Util
                 }
 
             } else if (o instanceof java.awt.image.BufferedImage) {
-                BufferedImage bi = (BufferedImage) o;
-                return String.format("BufferedImage@%08x[%dx%d]", ident, bi.getWidth(), bi.getHeight());
+                final BufferedImage bi = (BufferedImage) o;
+                final int t = bi.getTransparency();
+                return String.format("BufferedImage@%08x[%dx%d %s]", ident,
+                                     bi.getWidth(),
+                                     bi.getHeight(),
+                                     transparency(t));
             } else {
                 txt = o.toString();
                 
@@ -2637,6 +2642,15 @@ public class Util
             s = String.format("%s@%08x", type, ident);
             
         return s;
+    }
+
+    private static String transparency(int i) {
+        switch (i) {
+        case Transparency.OPAQUE: return "OPAQUE";
+        case Transparency.BITMASK: return "BITMASK";
+        case Transparency.TRANSLUCENT: return "HASALPHA";
+        }
+        return "*UNKOWN-TRANSPARENCY*";
     }
     
     public static String objectTag(Object o) {
