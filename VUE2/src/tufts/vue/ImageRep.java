@@ -176,7 +176,7 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
         }
         final Image image;
 
-        if (immediate||LOW_MEMORY_CONDITIONS) {
+        if (immediate /*&& LOW_MEMORY_CONDITIONS*/) {
             //_data = _data.clone();
             _data.setImmediateRequest(immediate);
         }
