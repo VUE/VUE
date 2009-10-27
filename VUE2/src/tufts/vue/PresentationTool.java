@@ -2080,6 +2080,12 @@ public class PresentationTool extends VueTool
     private boolean startUnderway;
     public void startPresentation()
     {
+        // TODO: start pre-caching for all image content in the presentation, or, perhaps, only for
+        // the next slide?  E.g., walk slide / slides / entries looking for LWImages and asking
+        // them to pre-cache (which they'll just hand off to the ImageRef's).  This process should
+        // STOP should we ever see an OutOfMemory error, or, even, if we're getting close to maximum
+        // memory usage.
+        
         out("startPresentation");
         //new Throwable("FYI: startPresentation (debug)").printStackTrace();
         
@@ -2969,6 +2975,7 @@ public class PresentationTool extends VueTool
         if (VueUtil.isMacPlatform() && VUE.inNativeFullScreen()) {
             //out("makeInvisible");
             try {
+                // TODO: don't call unless Mac extensions available: is generating needless error log output
                 MacOSX.makeMainInvisible();
                 mScreenBlanked = true;
             } catch (Error e) {

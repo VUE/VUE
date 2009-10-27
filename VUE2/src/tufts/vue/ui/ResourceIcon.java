@@ -31,7 +31,7 @@ import javax.swing.*;
  * TODO: merge common code with PreviewPane, and perhaps put in a 3rd class
  * so can have multiple icons referencing the same underlying image.
  *
- * @version $Revision: 1.15 $ / $Date: 2008-06-30 20:53:00 $ / $Author: mike $
+ * @version $Revision: 1.16 $ / $Date: 2009-10-27 15:03:03 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -181,8 +181,11 @@ public class ResourceIcon
 
         // test of synchronous loading:
         //out("***GOT IMAGE " + Images.getImage(imageData));
+
+        // TODO: refactor ResourceIcon to use the new ImageRef --
+        // will be much simpler.
         
-        if (!Images.getImage(imageData, this)) {
+        if (Images.getImage(imageData, this) == null) {
             // will make callback to gotImage when we have it
             isLoading = true;
             showLoadingStatus();
@@ -203,10 +206,10 @@ public class ResourceIcon
     }
     
     /** @see Images.Listener */
-    public synchronized void gotBytes(Object imageSrc, long bytesSoFar) {}
+    public synchronized void gotImageProgress(Object imageSrc, long bytesSoFar, float pct) {}
     
     /** @see Images.Listener */
-    public synchronized void gotImage(Object imageSrc, Image image, int w, int h) {
+    public synchronized void gotImage(Object imageSrc, Image image, ImageRef ref) {
 
         //if (imageSrc != mPreviewData) return;
             
@@ -237,7 +240,7 @@ public class ResourceIcon
         repaint();
     }
 
-    public synchronized void run() {
+    @Override public synchronized void run() {
         //loadPreview(mPreviewData);
         if (!isLoading)
             loadResource(mResource);
@@ -251,7 +254,7 @@ public class ResourceIcon
 
     private static final boolean CropToSquare = true;
     
-    public void paintIcon(Component c, Graphics g, int x, int y)
+    @Override public void paintIcon(Component c, Graphics g, int x, int y)
     {
         final boolean expandToFit = (mWidth < 1);
 

@@ -48,7 +48,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.502 $ / $Date: 2009-10-15 19:59:36 $ / $Author: sfraize $
+ * @version $Revision: 1.503 $ / $Date: 2009-10-27 15:03:01 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -858,11 +858,12 @@ public class LWComponent
         void set(T newValue) {
             //final Object old = get(); // if "get" actually does anything tho, this is a BAD idea; if needbe, create a "curValue"
          
-        	if (!isChanged(newValue))
-        		return;
+            if (!isChanged(newValue))
+                return;
             final Object oldValue = this.value;
             take(newValue);
             onChange();
+            // todo: if (alive()) ?
             LWComponent.this.notify(this.key, oldValue);
         }
 
@@ -1118,22 +1119,22 @@ public class LWComponent
         void set(Color newColor) {
 
             if (fixedAlpha < 0) {
+                // the common case
                 super.set(newColor);
-                return;
+            } else {
+
+                if (value == newColor)
+                    return;
+
+                // enforce the fixed alpha on any incoming color:
+                if (newColor != null && newColor.getAlpha() != fixedAlpha && newColor.getAlpha() != 0) {
+                    //out("COLOR VALUE: " + newColor + " " + ColorToString(newColor) + " alpha=" + newColor.getAlpha());
+                    newColor = new Color((newColor.getRGB() & 0xFFFFFF) + (fixedAlpha << 24), true);
+                    //out("used fixed alpha " + fixedAlpha + " producing " + newColor + " alpha=" + newColor.getAlpha()
+                    //+ " " + ColorToString(newColor));
+                }
+                super.set(newColor);
             }
-
-            if (value == newColor)
-                return;
-
-            // enforce the fixed alpha on any incoming color:
-            if (newColor != null && newColor.getAlpha() != fixedAlpha && newColor.getAlpha() != 0) {
-                //out("COLOR VALUE: " + newColor + " " + ColorToString(newColor) + " alpha=" + newColor.getAlpha());
-                newColor = new Color((newColor.getRGB() & 0xFFFFFF) + (fixedAlpha << 24), true);
-                //out("used fixed alpha " + fixedAlpha + " producing " + newColor + " alpha=" + newColor.getAlpha()
-                //+ " " + ColorToString(newColor));
-            }
-
-            super.set(newColor);
         }
         
         @Override
@@ -1695,27 +1696,35 @@ public class LWComponent
     }
 
     /**
-     * Create a component with duplicate content & style.  Does not
-     * duplicate any links to this component, and leaves it an
-     * unparented orphan.  Leaving the parent null is important
-     * until we know what we're doing with the duplicate.
+     * Create a component with duplicate content & style.  Does not duplicate any links
+     * to this component, and leaves it an unparented orphan.  Leaving the parent null
+     * is important until we know what we're doing with the duplicate. E.g., it may
+     * just sit in a scratch buffer and used as a down-stream duplicating source
+     * for pasting, and never be added to the model anywhere.
      *
-     * @param linkPatcher may be null.  If not, it's used when
-     * duplicating group's of objects containing links that need to be
-     * reconnected at the end of the duplicate.
+     * @param CopyContext may be null.  If not, it's used when duplicating group's of
+     * objects containing links that need to be reconnected at the end of the duplicate.
      */
 
     public LWComponent duplicate(CopyContext cc)
     {
         final LWComponent c;
-
         try {
             c = getClass().newInstance();
         } catch (Throwable t) {
-            tufts.Util.printStackTrace(t, "duplicate " + getClass());
+            Log.error("duplicate " + getClass(), t);
             return null;
         }
+        return duplicateTo(c, cc);
+    }
 
+    /**
+     * Provided for subclass impl's that need to support final members, which can use a
+     * pre-constructed empty object in their override of duplicate v.s. relying on the
+     * default use of newInstance via calls to super.duplicate. 
+     */
+    protected <Ts extends LWComponent> Ts duplicateTo(Ts c, CopyContext cc)
+    {
         c.mXMLRestoreUnderway = true; // todo: this flag really "initUnderway"
 
         c.copySupportedProperties(this);
@@ -5619,7 +5628,7 @@ public class LWComponent
         if (dc.isClipOptimized()) {
 
             //-----------------------------------------------------------------------------
-            // Returning true when parent.fullContainsChildren() is true will prevent a
+            // Returning true when parent.fullyContainsChildren() is true will prevent a
             // ton of intersects calls (and subsequent map-bounds computations involving
             // transform fetches and their application to rectangles) when we have lots
             // objects that are going to need drawing no matter what (e.g., lots of
@@ -5649,9 +5658,9 @@ public class LWComponent
             
             //-----------------------------------------------------------------------------
 
-            if (hasEntries()) {
+            if (hasEntries() && !(this instanceof LWImage)) {
                 
-                // for now, if we have ANY pathway entries, we say we have to draw, so
+                // HACK: for now, if we have ANY pathway entries, we say we have to draw, so
                 // that if they're needed, any slide icons will draw (even if the parent
                 // node is clipped: this is because the slide icons lie outside the
                 // node).  Really, we only need to return true here if we're on any
@@ -5665,6 +5674,11 @@ public class LWComponent
                 // also want to check each of their bounds to see if they're within
                 // the master clip rect, tho right now they all scrunch together,
                 // so that would be a bit of overkill.
+
+                // 2009-10-21: too expensive for images as it may force them to load a
+                // full image representation which takes up tons of memory.  Images
+                // don't display slide icons, so I don't think we ever needed it
+                // for those anyway.
                 
                 return true;
             }

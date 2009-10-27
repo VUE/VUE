@@ -37,7 +37,7 @@ import javax.swing.ImageIcon;
  *  objects, displaying their content, and fetching their data.
 
  *
- * @version $Revision: 1.91 $ / $Date: 2009-09-30 22:29:25 $ / $Author: sfraize $
+ * @version $Revision: 1.92 $ / $Date: 2009-10-27 15:03:02 $ / $Author: sfraize $
  */
 
 public abstract class Resource implements Cloneable
@@ -868,8 +868,8 @@ public abstract class Resource implements Cloneable
         return "";
     }
 
-    private static final String _fmt0 = "%s@%07x[%s; %s%s]";
-    private static final String _fmt1 = "%s@%08x[%s; %s%s]";
+    private static final String _fmt0 = "%s@%07x[%s; %sF%s]";
+    private static final String _fmt1 = "%s@%08x[%s; %sF%s]";
     private static final String _debugFmt = Util.getJavaVersion() > 1.5 ? _fmt1 : _fmt0;
 
     public String asDebug() {
@@ -878,7 +878,7 @@ public abstract class Resource implements Cloneable
                              System.identityHashCode(this),
                              TYPE_NAMES[getClientType()],
                              paramString(),
-                             mDataFile == null ? getSpec() : Util.tags(mDataFile)
+                             mDataFile == null ? getSpec() : Util.tags(mDataFile.toString())
                              //getLocationName() // may trigger property fetches during debug which is very messy
                              //(mDataFile != null && hasProperty(PACKAGE_FILE)) ? mDataFile.getName() : getSpec()
                              );

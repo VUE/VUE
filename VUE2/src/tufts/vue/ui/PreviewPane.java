@@ -31,7 +31,7 @@ import java.awt.datatransfer.*;
 /**
  * Display a preview of the selected resource.  E.g., and image or an icon.
  *
- * @version $Revision: 1.34 $ / $Date: 2009-06-26 21:35:02 $ / $Author: sfraize $
+ * @version $Revision: 1.35 $ / $Date: 2009-10-27 15:03:03 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -226,8 +226,13 @@ public class PreviewPane extends JPanel
 
         // test of synchronous loading:
         //out("***GOT IMAGE " + Images.getImage(imageData));
+
+        // TODO: refactor this class to use an ImageRef.  It'll make
+        // things simpler here, and it will remove the hard reference
+        // to an Image we're keeping which prevents it from being
+        // garbage-collected.
         
-        if (!Images.getImage(imageData, this)) {
+        if (Images.getImage(imageData, this) == null) {
             // will make callback to gotImage when we have it
             isLoading = true;
             showLoadingStatus(imageData);
@@ -249,11 +254,11 @@ public class PreviewPane extends JPanel
     }
 
     /** @see Images.Listener */
-    public void gotBytes(Object imageSrc, long bytesSoFar) {}
+    public void gotImageProgress(Object imageSrc, long bytesSoFar, float pct) {}
     
     
     /** @see Images.Listener */
-    public synchronized void gotImage(Object imageSrc, Image image, int w, int h) {
+    public synchronized void gotImage(Object imageSrc, Image image, ImageRef ref) {
 
         if (imageSrc != mPreviewData && !imageSrc.equals(mPreviewData)) {
             if (DEBUG.Enabled) Log.info("skipping: image source != mPreviewData;\n\t"

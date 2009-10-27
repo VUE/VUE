@@ -51,7 +51,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.124 $ / $Date: 2009-10-05 01:47:36 $ / $Author: sfraize $  
+ * @version $Revision: 1.125 $ / $Date: 2009-10-27 15:03:02 $ / $Author: sfraize $  
  */
 public class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -324,7 +324,7 @@ public class MapDropTarget
                 if (image.isNodeIcon()) {
                     dropHit =  hit.getParent();
                 }
-                else if (image.getStatus() == LWImage.Status.ERROR || dropAccept == ACTION_LINK) {
+                else if (image.hasImageError() || dropAccept == ACTION_LINK) {
                     dropHit = hit;
                     dropAccept = ACTION_LINK;
                 }
@@ -1355,7 +1355,7 @@ public class MapDropTarget
             if (ws != null && hs != null) {
                 int w = Integer.parseInt(ws);
                 int h = Integer.parseInt(hs);
-                lwImage.setImageSize(w, h);
+                lwImage.suggestSize(w, h);
                 resource.setProperty("image.width", ws);
                 resource.setProperty("image.height", hs);
                 /*
@@ -1369,7 +1369,8 @@ public class MapDropTarget
                 // todo: this causes off-standard image sizes to be created as the image
                 // ends up being shaped via ConstrainToAspect instead of setMaxDimension,
                 // tho I also note the sizes this produces tend to be more pleasing/balanced.
-                lwImage.setSize(LWImage.DefaultMaxDimension, LWImage.DefaultMaxDimension);
+                //lwImage.setSize(LWImage.DefaultMaxDimension, LWImage.DefaultMaxDimension);
+                lwImage.suggestSize(LWImage.DefaultMaxDimension, LWImage.DefaultMaxDimension);
             }
             
             

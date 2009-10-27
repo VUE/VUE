@@ -13,7 +13,7 @@ import java.util.*;
  * methods return instances of a Relation which say something about
  * how the data was related.
  *
- * @version $Revision: 1.5 $ / $Date: 2009-09-04 19:52:26 $ / $Author: sfraize $
+ * @version $Revision: 1.6 $ / $Date: 2009-10-27 15:03:03 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public final class Relation {
@@ -116,7 +116,7 @@ public final class Relation {
     }
 
     
-    /** @return null if none found, or the VALUE of what was the relation was based on otherwise */
+//    /** @return null if none found, or the VALUE of what was the relation was based on otherwise */
 //     static String getCrossSchemaRelation
 //         (final Field field,
 //          final MetaMap rowData,
@@ -139,6 +139,7 @@ public final class Relation {
 
 //         return relation;
 //     }
+    
     /** @return the first Relation found if any, null otherwise */
     static Relation getCrossSchemaRelation
         (final Field field,
@@ -522,6 +523,12 @@ public final class Relation {
 
     /** search the given Scannable's for the given Field=fieldValue, using association's, and add matches to results
      * This essentially does an "A.K.A" with the Field based on the user associations */
+    
+    //---------------------------------------------------------------------------------------------------
+    // TODO: currently only being used with schema rows as searchSet -- meant to also use with
+    // LWComponent's to normalize data-search code.
+    // ---------------------------------------------------------------------------------------------------
+    
     static void searchDataWithField
         (final Field fieldKey,
          final String fieldValue,
@@ -570,6 +577,12 @@ public final class Relation {
      * Schema-OnMap.
      *
      */
+    
+    //---------------------------------------------------------------------------------------------------
+    // TODO: currently only being used with schema rows as searchSet -- meant to also use with
+    // LWComponent's to normalize data-search code.
+    // ---------------------------------------------------------------------------------------------------
+    
     static void searchDataWithRow
         (final Scannable rowKey, // e.g., a MetaMap, from a DIFFERENT schema than the search-set
          final Collection<? extends Scannable> searchSet,
