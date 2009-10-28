@@ -31,7 +31,7 @@ import javax.swing.*;
  * TODO: merge common code with PreviewPane, and perhaps put in a 3rd class
  * so can have multiple icons referencing the same underlying image.
  *
- * @version $Revision: 1.16 $ / $Date: 2009-10-27 15:03:03 $ / $Author: sfraize $
+ * @version $Revision: 1.17 $ / $Date: 2009-10-28 21:28:27 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -240,7 +240,7 @@ public class ResourceIcon
         repaint();
     }
 
-    @Override public synchronized void run() {
+    /*@Override*/ public synchronized void run() {
         //loadPreview(mPreviewData);
         if (!isLoading)
             loadResource(mResource);
@@ -254,7 +254,7 @@ public class ResourceIcon
 
     private static final boolean CropToSquare = true;
     
-    @Override public void paintIcon(Component c, Graphics g, int x, int y)
+    /*@Override*/ public void paintIcon(Component c, Graphics g, int x, int y)
     {
         final boolean expandToFit = (mWidth < 1);
 
