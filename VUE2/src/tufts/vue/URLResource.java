@@ -45,7 +45,7 @@ import java.util.regex.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.85 $ / $Date: 2009-06-02 13:43:13 $ / $Author: mike $
+ * @version $Revision: 1.86 $ / $Date: 2009-10-28 04:57:27 $ / $Author: sfraize $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -1252,13 +1252,13 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         } else {
 
             if (mURL == null && getClientType() != NONE) {
-                // If clientType is NONE, this is normal: e.g., a C:\file\path resource
+                // This can happen if we're point to a missing local file.
+                // Also, if clientType is NONE, this is normal: e.g., a C:\file\path resource
                 // opened on a Mac.
-                // This can also happen if we're point to a missing local file.
                 if (DEBUG.RESOURCE) {
-                    Log.warn("mURL == null;", new Throwable(toString()));
+                    Log.warn("mURL == null, likely missing file.", new Throwable(toString()));
                 } else {
-                    Log.warn("mURL == null; " + this);
+                    Log.warn("mURL == null, likely missing file: " + this);
                 }
             }
             
