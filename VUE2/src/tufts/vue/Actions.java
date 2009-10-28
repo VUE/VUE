@@ -2551,7 +2551,15 @@ public class Actions implements VueConstants
     new LWCAction(VueResources.local("menu.format.arrange.pushout"), keyStroke(KeyEvent.VK_EQUALS, ALT)) {
         
         boolean enabledFor(LWSelection s) {
-            return enabledForPushPull(s);
+        //   return enabledForPushPull(s);
+        	return s.size()>=1;
+        }
+        void act(LWSelection s) {
+        	if(s.size()==1) {
+        		act(s.get(0));
+        	} else {
+        		LayoutAction.stretch.act(s);
+        	}
         }
         // todo: for selection size > 1, push on bounding box
         void act(LWComponent c) {
