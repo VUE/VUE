@@ -45,7 +45,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.65 $ / $Date: 2009-10-28 17:46:10 $ / $Author: sfraize $
+ * @version $Revision: 1.66 $ / $Date: 2009-10-28 19:11:24 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -418,19 +418,19 @@ public class Images
             this(l0, null);
         }
 
-        @Override public void gotImageSize(Object src, int w, int h, long bytes) {
+        public void gotImageSize(Object src, int w, int h, long bytes) {
             relaySize(head, src, w, h, bytes);
             relaySize(tail, src, w, h, bytes);
         }
-        @Override public void gotImageProgress(Object src, long bytes, float pct) {
+        public void gotImageProgress(Object src, long bytes, float pct) {
             relayProgress(head, src, bytes, pct);
             relayProgress(tail, src, bytes, pct);
         }
-        @Override public void gotImage(Object src, Image image, ImageRef ref) {
+        public void gotImage(Object src, Image image, ImageRef ref) {
             relayImage(head, src, image, ref);
             relayImage(tail, src, image, ref);
         }
-        @Override public void gotImageError(Object src, String msg) {
+        public void gotImageError(Object src, String msg) {
             relayError(head, src, msg);
             relayError(tail, src, msg);
         }
@@ -747,8 +747,8 @@ public class Images
 
     private static final Object IMAGE_LOADER_STARTED = "<image-loader-created>";
     
-    // declare as ThreadPoolExecutor when/if we want to reconfigure it later
-    private static final ExecutorService PoolForMinimallyBlockingTasks;
+    private static final ThreadPoolExecutor PoolForMinimallyBlockingTasks;
+    private static BlockingQueue<Runnable> TaskQueue;
     
     private static final int ImageThreadPriority;
 
@@ -769,20 +769,18 @@ public class Images
 
     static {
         final int cores = Runtime.getRuntime().availableProcessors();
-        final int useCores = cores;
+        final int useCores = DEBUG.SINGLE_THREAD ? 1 : cores;
         // rough test: on a 2-core laptop, our use-case came in at 1min v.s. 1:30min w/all cores in use
         // (all icons being generated)
 
-        if (useCores <= 1 || DEBUG.SINGLE_THREAD) {
-            // note: no real advantage to using newSingleThreadExecutor -- just prevents
-            // anyone from reconfiguring it later.
-            PoolForMinimallyBlockingTasks = Executors.newSingleThreadExecutor(ImageThreadFactory);
-        } else {
-            PoolForMinimallyBlockingTasks = Executors.newFixedThreadPool(useCores, ImageThreadFactory);
-        }
-
-        Log.debug("CREATED THREAD POOL: " + Util.tags(PoolForMinimallyBlockingTasks) + "; size=" + useCores);
-
+//         if (useCores <= 1 || DEBUG.SINGLE_THREAD) {
+//             // note: no real advantage to using newSingleThreadExecutor -- just prevents
+//             // anyone from reconfiguring it later.
+//             PoolForMinimallyBlockingTasks = Executors.newSingleThreadExecutor(ImageThreadFactory);
+//         } else {
+//             PoolForMinimallyBlockingTasks = Executors.newFixedThreadPool(useCores, ImageThreadFactory);
+//         }
+ 
         int priority = 1; // should be lowest
 
         try {
@@ -790,8 +788,21 @@ public class Images
             // in case NORM_PRIORITY access fails -- there was some case of this happening in Applets?
         } catch (Throwable t) {}
 
-        ImageThreadPriority = priority;
+        ImageThreadPriority = priority; // for thread factory
         
+        PoolForMinimallyBlockingTasks = createThreadPool(useCores);
+    }
+
+    private static ThreadPoolExecutor createThreadPool(int nThreads) {
+        final ThreadPoolExecutor pool =
+            new ThreadPoolExecutor(nThreads, nThreads,
+                                   0L, TimeUnit.MILLISECONDS,
+                                   TaskQueue = new LinkedBlockingQueue<Runnable>(),
+                                   ImageThreadFactory);
+
+        Log.info("created thread pool: " + Util.tags(pool) + "; maxSize=" + pool.getMaximumPoolSize());
+        
+        return pool;
     }
     
     static abstract class Loader implements Runnable
@@ -853,14 +864,14 @@ public class Images
     }
 
     /** a marker class to differentiate from LoadThread */
-    static final class LoadTask extends Loader {
+    private static final class LoadTask extends Loader {
         LoadTask(ImageSource is, Listener relay) {
             super(is, relay);
         }
     }
 
     /** a task to generate an icon */
-    static final class IconTask extends Loader {
+    private static final class IconTask extends Loader {
         IconTask(ImageSource is, Listener relay) {
             super(is, relay);
         }
@@ -875,12 +886,19 @@ public class Images
         }
     }
 
+    /** a marker class */
+    private static final class ImgThread extends Thread {
+        ImgThread(Runnable r, String name) {
+            super(r, name);
+        }
+    }
+
     
     /**
      * A thread for loading a single image.  Images.Listener results are delievered
      * from this thread (unless the image was already cached).
      */
-    static final class LoadThread extends Loader {
+    private static final class LoadThread extends Loader {
         private static int LoaderCount = 0;
         private final Thread thread;
 
@@ -890,7 +908,7 @@ public class Images
          */
         LoadThread(ImageSource imageSRC, Listener firstRelay) {
             super(imageSRC, firstRelay);
-            thread = new Thread(this, String.format("ImgLoader-%02d", LoaderCount++));
+            thread = new ImgThread(this, String.format("ImgLoader-%02d", LoaderCount++));
             thread.setDaemon(true);
             thread.setPriority(Thread.MIN_PRIORITY);
         }
@@ -1323,27 +1341,58 @@ public class Images
                 image = readAndCreateImage(imageSRC, listener);
             } catch (OutOfMemoryError eom) {
                 Log.warn(Util.TERM_YELLOW + "out of memory reading " + imageSRC.readable + Util.TERM_CLEAR);
-//                 if (Thread.currentThread() instanceof LoadThread) {
-//                     Log.info("reader sleeping & retrying...");
-//                     try {
-//                         // Todo: sleep until all other image load threads have finished, or,
-//                         // ideally, until there aren't any running (those still running are
-//                         // blocked).  May actually just be easiest to to abort and re-submit this
-//                         // to entirely new execution queue, or could just stick it on the end of
-//                         // the existing queue, tho if this is a network IO thread, we still want to
-//                         // run it later in it's own thread, so it could just be a task the
-//                         // re-creates a new LoadThread
-//                         Thread.currentThread().sleep(1000 * 45);
-//                     } catch (InterruptedException e) {
-//                         Log.warn("reader interrupted");
-//                     }
-//                     Log.info(Util.TERM_GREEN + "reader re-awakened, retrying... " + imageSRC.readable + Util.TERM_CLEAR);
-//                 } else {
-                    // we must be running in the thread-pool accessing local disk
+                if (Thread.currentThread() instanceof ImgThread) {
+                    Log.info("reader sleeping & retrying...");
+                    try {
+                        // Todo: sleep until all other image load threads have finished, or,
+                        // ideally, until there aren't any running (those still running are
+                        // blocked).  May actually just be easiest to to abort and re-submit this
+                        // to entirely new execution queue, or could just stick it on the end of
+                        // the existing queue, tho if this is a network IO thread, we still want to
+                        // run it later in it's own thread, so it could just be a task the
+                        // re-creates a new LoadThread
+                        Thread.currentThread().sleep(1000 * 45);
+                    } catch (InterruptedException e) {
+                        Log.warn("reader interrupted");
+                    }
+                    Log.info(Util.TERM_GREEN + "reader re-awakened, retrying... " + imageSRC.readable + Util.TERM_CLEAR);
+                } else { // if instanceof POOLTHREAD
+
+                    final int curPoolSize = PoolForMinimallyBlockingTasks.getPoolSize();
+                    if (curPoolSize > 1) {
+                        // reduce pool size, as fewer concurrent image
+                        // operations should reduce the maximum memory
+                        // consumption peak
+                        //Log.info("reducing thread pool size to " + (curPoolSize-1));
+                        Log.info("reducing thread pool size to " + 1);
+                        //                        final List<Runnable> out = new ArrayList();
+//                         TaskQueue.drainTo(out);
+//                         Util.dump(out);
+                        //Log.debug("setMaxSize...");
+                        // never heard from again???
+                        //PoolForMinimallyBlockingTasks.setMaximumPoolSize(1); // no effect when useing LinkedBlockingQueue
+                        Log.debug("setCoreSize...");
+                        PoolForMinimallyBlockingTasks.setCorePoolSize(1);
+//                         //PoolForMinimallyBlockingTasks.setMaximumPoolSize(curPoolSize - 1);
+//                         // what the hell -- this thread appears to die & be re-used immediately
+//                         // after the above call!
+// //                         Log.debug("shutdown...");
+// //                         PoolForMinimallyBlockingTasks.shutdown();
+//                         Log.debug("yielding...");
+//                         //Thread.currentThread().interrupt();
+// //                         Thread.yield();
+// //                         Log.debug("yielded...");
+//                         for (Runnable r : out) {
+//                             Log.debug("resumbit " + r);
+//                             PoolForMinimallyBlockingTasks.submit(r);
+//                         }
+                        
+                    }
+                    //we must be running in the thread-pool accessing local disk
                     Log.info("EOM; consider re-kicking a LoadTask for " + imageSRC);
                     //kickLoadTask(imageSRC, listener); // todo: test
                     throw eom;
-//                }
+               }
             } catch (Throwable t) {
                 throw new ImageException("reader failed: " + t.toString());
             }
