@@ -414,8 +414,8 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
         final T o;
         HardRef(T o) { this.o = o; }
         /*@Override*/ public T get() { return o; }
-        /*@Override*/ public String toString() { return "HARD"; }
         /*@Override*/ public boolean isLoader() { return false; }
+        @Override public String toString() { return "HARD"; }
     }
     // Note: garbage collection slows relative to the total number of
     // Reference objects in the runtime at any given time.  Probably
@@ -428,14 +428,14 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
             else
                 return "SOFT";
         }
-        @Override public boolean isLoader() { return false; }
+        /*@Override*/ public boolean isLoader() { return false; }
     }
     private static class NullRef implements Ref {
         final String type;
         NullRef(String s) { type = s; }
         /*@Override*/ public Object get() { return null; }
-        /*@Override*/ public String toString() { return type; }
         /*@Override*/ public boolean isLoader() { return false; }
+        @Override public String toString() { return type; }
     }
     private static class LoadingRef extends NullRef {
         LoadingRef(String s) { super(s); }
