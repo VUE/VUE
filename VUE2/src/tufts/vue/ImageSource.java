@@ -25,16 +25,16 @@ class ImageSource {
 
     final int iconSize;
 
-    boolean nextLoadIsImmediate;
+//     boolean nextLoadIsImmediate;
 
-//     interface Scaler {
-//         int size();
-//         java.awt.Image getScaled();
+// //     interface Scaler {
+// //         int size();
+// //         java.awt.Image getScaled();
+// //     }
+
+//     void setImmediateRequest(boolean b) {
+//         nextLoadIsImmediate = b;
 //     }
-
-    void setImmediateRequest(boolean b) {
-        nextLoadIsImmediate = b;
-    }
 
     public static ImageSource create(Object o) {
         if (o instanceof ImageSource) {
@@ -54,6 +54,11 @@ class ImageSource {
         
     /** @return a key that could be used for an icon version of this image */
     URI getIconKey(int size) {
+        if (key == null) {
+            // todo: this will happen for a local files -- only if they're missing or always?
+            Log.warn("can't create icon key w/null key: " + this);
+            return null;
+        }
         if (isImageSourceForIcon())
             throw new Error("can't make icon key from another icon image source");
         return makeIconKey(this.key, size);
@@ -251,7 +256,7 @@ class ImageSource {
 
     private static URI makeIconKey(URI cacheKey, int size) {
         if (cacheKey == null)
-            throw new NullPointerException("makeIconKey: null source key");
+            throw new IllegalArgumentException("makeIconKey: null source key");
         if (size <= 0)
             throw new IllegalArgumentException("makeIconKey: bad size " + size);
         try {

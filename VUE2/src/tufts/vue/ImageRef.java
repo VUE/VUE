@@ -27,7 +27,7 @@ public class ImageRef
     
     private volatile ImageRep _full = ImageRep.UNAVAILABLE;
     private volatile ImageRep _icon = ImageRep.UNAVAILABLE;
-    private volatile Object _desired = SIZE_UNKNOWN;
+    //private volatile Object _desired = SIZE_UNKNOWN;
     // _desired not used at moment -- would be easy to have one global instance of an ImageRef per image w/out it,
     // and could add back in this functionality by allowing a client to implement a simple recording API for desired
     // e.g., set/getDesired -- is only needed to prevent extra repaints when a new image rep arrives.
@@ -53,6 +53,12 @@ public class ImageRef
     public void setImageSource(Object is) {
         //if (_source != null) throw new Error("ImageSource re-set not permitted: " + this);
         if (_source != is) {
+            //-----------------------------------------------------------------------------
+            // PROBLEM: if this is a local file, the URI cache key in the _source.key
+            // will be null, meaning we can't later create an icon cache key from it.
+            // Yet at the moment we're only seeing this as a problem if the local
+            // file is missing -- so how is this being working in the regular case?
+            //-----------------------------------------------------------------------------
             _source = ImageSource.create(is);
             //if (DEBUG.IMAGE) Log.debug("created image source " + _source + " from " + is);
             initReps();
@@ -95,23 +101,27 @@ public class ImageRef
 
         final java.net.URI iconKey = _source.getIconKey(DEFAULT_ICON_SIZE);
 
-        synchronized (Images.getCacheLock()) {
-            // we do this in a cache-lock to ensure the cache entry can't
-            // have been GC'd or changed from the time we check for it to the time
-            // we kick a load for it.  Oh, wait -- we could dead-lock -- we want
-            // to release the lock at the point getImage returns in ImageRep.reconstitute,
-            // otherwise it's ImageRef callback, notifyRepHasArrived, will also
-            // happen in the cache-lock, which is dangerous -- it will block
-            // all other image processing threads till it returns.
-            if (iconKey != null && Images.hasCacheEntry(iconKey)) { // TODO: less special case? use same logic for loading this elsewhere? 
-                _icon = ImageRep.create(this,
-                                        ImageSource.create(iconKey),
-                                        ICONS_ARE_DISPOSABLE);
-                //Log.debug("found icon cache entry for " + iconKey);
-                // immediately request a load
-                // We could wait till it tries to draw just as _full does.  For now this is a mild
-                // form a pre-loading.
-                kickLoad(_icon);
+        if (iconKey != null) {
+            synchronized (Images.getCacheLock()) {
+                // we do this in a cache-lock to ensure the cache entry can't
+                // have been GC'd or changed from the time we check for it to the time
+                // we kick a load for it.  Oh, wait -- we could dead-lock -- we want
+                // to release the lock at the point getImage returns in ImageRep.reconstitute,
+                // otherwise it's ImageRef callback, notifyRepHasArrived, will also
+                // happen in the cache-lock, which is dangerous -- it will block
+                // all other image processing threads till it returns.
+                if (Images.hasCacheEntry(iconKey)) { // TODO: less special case? use same logic for loading this elsewhere? 
+                    _icon = ImageRep.create(this,
+                                            ImageSource.create(iconKey),
+                                            ICONS_ARE_DISPOSABLE);
+                    //Log.debug("found icon cache entry for " + iconKey);
+
+                    // PRE-LOAD BY IMMEDIATELY REQUESTING A LOAD:
+                    
+                    // We could wait till it tries to draw just as _full does.  For now
+                    // this is a mild form a pre-loading.
+                    //kickLoad(_icon);
+                }
             }
         }
         
@@ -184,13 +194,13 @@ public class ImageRef
             // tho this lets us not worry if it's been loaded or not
             desiredRep = _icon;
             backupRep = _full;
-            _desired = SIZE_ICON;
+            //_desired = SIZE_ICON;
 
             
             //debug("onScreenMaxDim below thresh " + PIXEL_THRESHOLD_FOR_ICON_DRAWING + " at " + onScreenMaxDim);
         } else {
             //debug("onScreenMaxDim ABOVE thresh " + PIXEL_THRESHOLD_FOR_ICON_DRAWING + " at " + onScreenMaxDim);
-            _desired = SIZE_FULL;
+            //_desired = SIZE_FULL;
             desiredRep = _full;
             backupRep = _icon;
         }
@@ -201,7 +211,7 @@ public class ImageRef
             drawRep = desiredRep;
         } else {
             if (desiredRep != UNAVAILABLE) {
-                _desired = desiredRep; // most likely it has expired
+                //_desired = desiredRep; // most likely it has expired
                 kickLoad(desiredRep);
             }
 
@@ -296,15 +306,6 @@ public class ImageRef
             } // else _icon left as ImageRep.UNAVAILABLE
              
         }
-        
-//         if (freshRep == _full && _icon == ImageRep.UNAVAILABLE) {
-//             processNewlyArrivedFullRep(freshRep);
-//         } else {
-//             if (DEBUG.IMAGE) debug("notifyRepHasArrived: desired=" + _desired);
-//             if (_desired == freshRep || _desired == SIZE_UNKNOWN)
-//                 repaint();
-//         }
-        
     }
 
     private ImageRep createIconRep(final ImageRep full, final Image hardFullImageRef) {
@@ -330,112 +331,7 @@ public class ImageRef
         return icon;
         
      }
-
-//     private ImageRep loadOrCreateIconRep(final ImageRep full, final Image hardFullImageRef) 
-//     {
-//         // this needs to happen in a cache-lock, as simultaneous threads may attempt
-//         // this at the same time, and we only want one of them to actually create the
-//         // icon, and we want the other ones to block until the first has at least got a
-//         // loader into the cache, and the others to completle immediately, waiting for
-//         // callbacks from this load thread when the content (icon) arrives.
-        
-//         // Currently, this means an ImageRep will need to be created to do the
-//         // listening.  The result of doing this is to create an ImageRep anyway.
-//         // As long as this method is only called when we already know we should
-//         // have an icon (the image is big enough), that should work fine.
-
-//         final java.net.URI iconKey = _source.getIconKey(); // better if full.getImageSource
-        
-//         final ImageRep icon = ImageRep.create(this,
-//                                               ImageSource.create(iconKey), 
-//                                               ICONS_ARE_DISPOSABLE);
-
-//         // issue: the icon-key, if a new icon, is going to refer to a non-existent
-//         // cache file, and using ImageRep.reconstitute we'll only know that
-//         // if we get an error.
-
-//         //========================================================================================
-//         // okay, this is crazy -- this can all happen very simply in Images when a cache-lookup
-//         // fails for an ICON ImageSource (so we just need to be able to clearly identify those,
-//         // and include pixel request size information).  If we want to get fancy and/or not have
-//         // to figure out the pixel info, we could pass in a factory of some kind.
-//         //========================================================================================
-
-//         boolean iconIsCreating = false;
-
-//         synchronized (Images.getCacheLock()) {
-//             final Object _GC_preventing_hard_ref_ = Images.getHardRefToCacheEntry(iconKey);
-//             // We fetch and hold a ref to whatever the cache contents are, in
-//             // case the image has already been loaded -- we want to make sure the GC
-//             // doesn't clear the SoftReferece before we're done here.
-//             if (_GC_preventing_hard_ref_ != null) {
-//                 // as long as there was something in the cache, and we've got the
-//                 // contents locked as well, this should return immediately -- either
-//                 // having got the image, or set it self up to get a callback when
-//                 // a loader finishes (if that's what was in the cache).
-//                 icon.reconstitute();
-//             } else {
-                
-//                 // WE NEED TO CREATE THE ICON
-                
-//                 // In order to not lock the entire cache while we do this, insert a
-//                 // loading cache entry for any cache requests from other ImageReps to
-//                 // discover.
-
-//                 // [ This is what was entirely missing from our 1st pass implementation]
-
-//                 //Object loadingCacheEntry = Images.getNewLoadingCacheEntry(iconKey);
-
-//                 // We need an Images.LoadTask?  Note that we're normally already
-//                 // running in one of those, but that's the the FULL rep -- can't
-//                 // use that -- we need a new load task for the icon-generation,
-//                 // unless we're willing to block all other image loading threads
-//                 // while the icon is created.  Under normal usage that wouldn't
-//                 // be particularly bad -- it's just the multi-core machines
-//                 // then wouldn't get any benefit.
-
-//                 iconIsCreating = true;
-                
-
-//             }
-//         }
-
-//         // it's best for memory performance to run out this load task with creating the
-//         // icon -- the problem is how to notify requests for the icon that have
-//         // subsequently come in -- the Images API handles all that automatically, but to
-//         // use that we'd need to submit a new load task just for the icon creation?  Any
-//         // way around that?  On the other hand, running out the load task for the full
-//         // image is going to prevent any other downstream relayed listeners for the full
-//         // image from knowing the full image is actually ready (and being able to draw
-//         // it) until the icon is ready (we're here as a result of an Images.gotImage
-//         // call to an ImageRep already).
-
-//         if (iconIsCreating) {
-//             final Image iconImage = createIcon(full.image(), DEFAULT_ICON_SIZE);
-            
-//             // [X] Need to update the cache entry with the new content!
-//             // Actually, cacheIconToDisk could do this, and in fact take
-//             // a CacheEntry!  Which could be hidden beind an Object ref --
-//             // we don't need to know what it is.
-            
-//             // now write the newly generated icon to the disk cache:
-//             Images.cacheIconToDisk(iconKey, iconImage);
-//         }
-        
-
-//         return null;
-//     }
     
-        
-        
-
-        
-//     private void processNewlyArrivedFullRep(final ImageRep full)
-//     {
-//         if (DEBUG.IMAGE) debug("processNewlyArrivedFullRep: desired=" + _desired);
-        
-//         this._full = full; // should be redundant
-        
 //         // issue a repaint for the full image, which will normally be fine till the icon
 //         // comes in, except in cases of low memory where the full image may appear, then
 //         // dissapear after a GC.  Technically, we only need to do this if we do NOT have
@@ -450,51 +346,6 @@ public class ImageRef
 //         // data is guaranteed to be around (in case we're running low
 //         // on memory and the full image may be GC'd shortly).
 
-//         //========================================================================================
-//         // WHOA: we're always doing this because this method was only called
-//         // when _icon was UNAVAILABLE, but multple instances of ImageRef could
-//         // then create the icon!  And that generated icon was never being
-//         // added to the cache at runtime -- it would only appear there
-//         // the next time VUE was started up!
-//         //========================================================================================
-        
-//         if (full.area() > PIXEL_THRESHOLD_FOR_ICON_GENERATION) {
-            
-//             //-----------------------------------------------------------------------------
-//             // Note: we are blocking this thread while we generate the icon:
-
-//             final Image iconImage = createIcon(full.image(), DEFAULT_ICON_SIZE);
-
-//             //-----------------------------------------------------------------------------
-
-//             final java.net.URI iconKey = _source.getIconKey();
-
-//             // Technically, at this point, the icon has a reference to a cache-key that
-//             // won't exist until the icon has been written to disk -- if icons are allowed
-//             // to garbage collect, it could theoretically be GC'd before the cache entry
-//             // is created, and fail to reconstitute, tho it should succeed on a subsequent try.
-            
-//             this._icon = ImageRep.create(this,
-//                                          iconImage,
-//                                          ImageSource.create(iconKey),
-//                                          ICONS_ARE_DISPOSABLE);
-            
-//             if (_desired == SIZE_ICON)
-//                 repaint();
-            
-//             // now write the newly generated icon to the disk cache:
-//             Images.cacheIconToDisk(iconKey, iconImage);
-
-// //             final Image tinyImage = createIcon(iconImage, 32);
-// //             this._tiny = ImageRep.create(this,
-// //                                          tinyImage,
-// //                                          null,//ImageSource.create(iconKey),
-// //                                          true);
-            
-//         }
-
-//         // else: leave _icon as unavailable (mark as uneeded?)    }
-//     }
 
     private void debug(String s) 
     {
@@ -533,20 +384,6 @@ public class ImageRef
         repaint();
     }
     
-    //private static final boolean USE_SCALED_INSTANCE = false; // DO NOT USE: will not release image resources, consuming enormous memory
-
-//     private Image createIcon(Image source, int maxSide) {
-
-//         if (DEBUG.Enabled) debug("image pre-scaled: " + Util.tags(source) + " -> toMaxSide " + maxSide);
-        
-//         final Image icon = produceIcon(source, maxSide);
-        
-//         if (DEBUG.Enabled) debug("icon post-scaled: " + Util.tags(icon));
-
-//         return icon;
-//     }
-    
-            
     @Override public String toString() {
         //return "ImageRef[full=" + fullRep() + "; icon=" + iconRep() + "; src=" + _source + "]";
         
@@ -554,48 +391,7 @@ public class ImageRef
         return String.format("ImageRef[full: %s\n\ticon: %s\n\tsrc: %s]", _full, _icon, _source);
     }
 
-//     private static final Image ScratchImage;
-//     private static final Graphics2D ScratchGraphics;
-
-//     static {
-//         if (USE_SCALED_INSTANCE) {
-//             ScratchImage = new BufferedImage(2, 2, BufferedImage.TYPE_INT_RGB);
-//             ScratchGraphics = (Graphics2D) ScratchImage.getGraphics();
-//         } else {
-//             ScratchImage = null;
-//             ScratchGraphics = null;
-//         }
-//     }
-
-    
-        
 }
-
-//     interface Rep {
-//         boolean available();
-//         boolean loading();
-//         boolean isTrackingProgress();
-//         boolean hasError();
-//         int width();
-//         int height();
-//         void renderRep(Graphics2D g, float toW, float toH);
-//         void reconstitute();
-//     }
-
-// class ImageSizeCollector // RepCollector?
-// {
-//     int width, height;
-//     //Rep collected;//?
-    
-//     public void gotImageSize(Object imageSrc, int w, int h, long byteSize) {
-//         width = w;
-//         height = h;
-//     }
-//     public void gotImage(Object imageSrc, Image image, ImageRef ref) {}
-//     public void gotImageProgress(Object imageSrc, long bytesSoFar, float pct) {}
-//     public void gotImageError(Object imageSrc, String msg) {}
-// }
-
 
 // ALTERNATIVE DESIGN: Images.getImageRef returns an ImageRef, so that multiple
 // LWImage's, preview panes, etc, are all pointing to the same ImageRef.  Which means
