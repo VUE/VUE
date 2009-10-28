@@ -45,7 +45,7 @@ import java.util.regex.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.86 $ / $Date: 2009-10-28 04:57:27 $ / $Author: sfraize $
+ * @version $Revision: 1.87 $ / $Date: 2009-10-28 17:46:10 $ / $Author: sfraize $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -950,7 +950,8 @@ public class URLResource extends Resource implements XMLUnmarshalListener
                 setRelativeURI(relativeURI);
                 setSpecByFile(file);
             } else {
-                out_warn(TERM_RED + "can't find data at new location: " + file + TERM_CLEAR);
+                out_warn(TERM_RED + "can't find data relative to " + root + " at " + relative + "; can't read " + file + TERM_CLEAR);
+                // todo: should probably delete the relative property key/value at this point
             }
         } else {
             out_error("failed to find relative " + relative + "; in " + root + " for " + this);

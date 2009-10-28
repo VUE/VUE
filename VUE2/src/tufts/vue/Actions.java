@@ -373,13 +373,22 @@ public class Actions implements VueConstants
 
     public static final Action AddPathwayItem =
     new LWCAction(VueResources.local("actions.addPathwayItem.label")) {
+//         @Override public void act(LWSelection s) {
+//             LWPathway pathway = VUE.getActivePathway();
+//             if (!pathway.isOpen())
+//                 pathway.setOpen(true);
+//             LWComponent[] sorted = s.asArray();
+//             java.util.Arrays.sort(sorted, LWComponent.GridSorter);
+//             Util.printStackTrace("SORTED");
+//             VUE.getActivePathway().add(Util.asList(sorted).iterator());
+//             GUI.makeVisibleOnScreen(VUE.getActiveViewer(), PathwayPanel.class);
+//         }
         public void act(Iterator i) {
         	LWPathway pathway = VUE.getActivePathway();
         	if (!pathway.isOpen())
         		pathway.setOpen(true);
             VUE.getActivePathway().add(i);
             GUI.makeVisibleOnScreen(VUE.getActiveViewer(), PathwayPanel.class);
-            
         }
         boolean enabledFor(LWSelection s) {
             // items can be added to pathway as many times as you want

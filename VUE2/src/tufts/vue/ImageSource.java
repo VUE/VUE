@@ -235,6 +235,8 @@ class ImageSource {
             if (readable instanceof File) {
                 if (original instanceof Resource && ((Resource)original).getImageSource() == readable) {
                     s.append('F');
+                } else if (_cacheFile == readable) {
+                    s.append('F');
                 } else {
                     s.append('F');
                     s.append(readable.toString());

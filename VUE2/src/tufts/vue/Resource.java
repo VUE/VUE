@@ -37,7 +37,7 @@ import javax.swing.ImageIcon;
  *  objects, displaying their content, and fetching their data.
 
  *
- * @version $Revision: 1.92 $ / $Date: 2009-10-27 15:03:02 $ / $Author: sfraize $
+ * @version $Revision: 1.93 $ / $Date: 2009-10-28 17:46:10 $ / $Author: sfraize $
  */
 
 public abstract class Resource implements Cloneable
@@ -911,19 +911,19 @@ public abstract class Resource implements Cloneable
     
     
     protected void out(String s) {
-        Log.debug(String.format("%s@%07x: %s", getClass().getSimpleName(), System.identityHashCode(this), s));
+        Log.debug(String.format("%s@%08x: %s", getClass().getSimpleName(), System.identityHashCode(this), s));
     }
     
     protected void out_info(String s) {
-         Log.info(String.format("%s@%07x: %s", getClass().getSimpleName(), System.identityHashCode(this), s));
+         Log.info(String.format("%s@%08x: %s", getClass().getSimpleName(), System.identityHashCode(this), s));
     }
     
     protected void out_warn(String s) {
-         Log.warn(String.format("%s@%07x: %s", getClass().getSimpleName(), System.identityHashCode(this), s));
+         Log.warn(String.format("%s@%08x: %s", getClass().getSimpleName(), System.identityHashCode(this), s));
     }
     
     protected void out_error(String s) {
-        Log.error(String.format("%s@%07x: %s", getClass().getSimpleName(), System.identityHashCode(this), s));
+        Log.error(String.format("%s@%08x: %s", getClass().getSimpleName(), System.identityHashCode(this), s));
     }
 
     

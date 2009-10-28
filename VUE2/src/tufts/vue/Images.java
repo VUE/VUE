@@ -45,7 +45,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.64 $ / $Date: 2009-10-28 04:58:07 $ / $Author: sfraize $
+ * @version $Revision: 1.65 $ / $Date: 2009-10-28 17:46:10 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -747,6 +747,7 @@ public class Images
 
     private static final Object IMAGE_LOADER_STARTED = "<image-loader-created>";
     
+    // declare as ThreadPoolExecutor when/if we want to reconfigure it later
     private static final ExecutorService PoolForMinimallyBlockingTasks;
     
     private static final int ImageThreadPriority;
@@ -772,10 +773,13 @@ public class Images
         // rough test: on a 2-core laptop, our use-case came in at 1min v.s. 1:30min w/all cores in use
         // (all icons being generated)
 
-        if (useCores > 1)
-            PoolForMinimallyBlockingTasks = Executors.newFixedThreadPool(useCores, ImageThreadFactory);
-        else
+        if (useCores <= 1 || DEBUG.SINGLE_THREAD) {
+            // note: no real advantage to using newSingleThreadExecutor -- just prevents
+            // anyone from reconfiguring it later.
             PoolForMinimallyBlockingTasks = Executors.newSingleThreadExecutor(ImageThreadFactory);
+        } else {
+            PoolForMinimallyBlockingTasks = Executors.newFixedThreadPool(useCores, ImageThreadFactory);
+        }
 
         Log.debug("CREATED THREAD POOL: " + Util.tags(PoolForMinimallyBlockingTasks) + "; size=" + useCores);
 

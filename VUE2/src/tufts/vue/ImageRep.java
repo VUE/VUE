@@ -164,12 +164,14 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
     }
 
     private /*synchronized*/ Image reconstitute(boolean immediate) {
+
         if (_handle == IMG_ERROR) {
             // if this was an OutOfMemoryError (a potentially recoverable error), we allow us to retry indefinitely
             if (DEBUG.IMAGE) debug("skipping reconstitue: last load had error: " + this);
             return null;
         }
         if (DEBUG.IMAGE) debug(Util.TERM_CYAN + "RECONSTITUTE " + Util.TERM_CLEAR + _data);//, new Throwable("HERE"));
+        //if (DEBUG.IMAGE) Log.debug(Util.TERM_CYAN + "RECONSTITUTE " + Util.TERM_CLEAR + _data, new Throwable("HERE"));
         if (_handle.isLoader()) {
             if (DEBUG.IMAGE) debug("rep already loading " + _data);//, new Throwable("HERE"));
             return null;

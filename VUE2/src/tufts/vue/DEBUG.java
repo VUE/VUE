@@ -56,6 +56,7 @@ public class DEBUG
     public static boolean CASTOR; // castor persist (save/restore)
     public static boolean XML; // castor persist (save/restore)
     public static boolean THREAD; // threading
+    public static boolean SINGLE_THREAD; // where can, run with as few threads as possible for debugging (e.g., image loaders)
     public static boolean TEXT; // text objects
     public static boolean IO; // file and network i/o
     public static boolean DOCK; // DockWindow's

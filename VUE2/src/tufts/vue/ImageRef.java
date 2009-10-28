@@ -65,6 +65,8 @@ public class ImageRef
         }
     }
 
+    private static final boolean PRE_LOAD_ICONS = false;
+
     private void initReps() {
 
         if (DEBUG.IMAGE) debug("initReps");
@@ -72,69 +74,33 @@ public class ImageRef
         if (_icon != UNAVAILABLE || _full != UNAVAILABLE)
             throw new Error("re-init of reps");
         
-        // first time through:
-        //
-        // (1) if there's an icon on disk, initiate it's loading.
-        //
-        //     (a) if there's an unloaded cache entry, initiate it's loading
-        //
-        //     (b) if there's a LOADED cache entry, init icon right away w/no callback
-        //         This is what standard Images.getImage calls do -- but we need the
-        //         icon cache key and a getImage call or ImageSource that understands
-        //         that.
-        //
-        //     (c) If there's a loader (icon request is underway), hook up.
-        //     ImageRep uses the standard Images.getImage API for this.
-        //
-        // (2) if there's no icon on disk, initial FULL load, and immediately after
-        //     callback for full load, CREATE the icon (if the full image is big enough
-        //     to warrant it) while the fully loaded image is availble in memory.  This
-        //     is so that if memory runs low, we'll have the icon to use, and the full
-        //     image can be GC'd.
-        //
-        // If it's not worth creating an icon for the full image, set this._icon to
-        // UNAVAILABLE.  We immediately init the _full image ImageRep witht the
-        // ImageSource.  If it's asked to draw, it will automatically start loading.
-
         // As icons only exist in the cache, we know we don't have an icon
         // created yet if there isn't at least a unloaded cache entry for the icon.
 
         final java.net.URI iconKey = _source.getIconKey(DEFAULT_ICON_SIZE);
 
         if (iconKey != null) {
-            synchronized (Images.getCacheLock()) {
-                // we do this in a cache-lock to ensure the cache entry can't
-                // have been GC'd or changed from the time we check for it to the time
-                // we kick a load for it.  Oh, wait -- we could dead-lock -- we want
-                // to release the lock at the point getImage returns in ImageRep.reconstitute,
-                // otherwise it's ImageRef callback, notifyRepHasArrived, will also
-                // happen in the cache-lock, which is dangerous -- it will block
-                // all other image processing threads till it returns.
-                if (Images.hasCacheEntry(iconKey)) { // TODO: less special case? use same logic for loading this elsewhere? 
-                    _icon = ImageRep.create(this,
-                                            ImageSource.create(iconKey),
-                                            ICONS_ARE_DISPOSABLE);
-                    //Log.debug("found icon cache entry for " + iconKey);
-
-                    // PRE-LOAD BY IMMEDIATELY REQUESTING A LOAD:
-                    
-                    // We could wait till it tries to draw just as _full does.  For now
-                    // this is a mild form a pre-loading.
-                    //kickLoad(_icon);
+            if (PRE_LOAD_ICONS) {
+                synchronized (Images.getCacheLock()) {
+                    // we do this in a cache-lock to ensure the cache entry can't have
+                    // been GC'd or changed from the time we check for it to the time we
+                    // kick a load for it.  Could we dead-lock? -- Ideally, we want to
+                    // release the lock at the point getImage returns in
+                    // ImageRep.reconstitute, otherwise it's ImageRef callback,
+                    // notifyRepHasArrived, will also happen in the cache-lock, which is
+                    // dangerous -- it will block all other image processing threads
+                    // till it returns [todo: verify this statement]
+                    if (Images.hasCacheEntry(iconKey)) {
+                        _icon = createPreLoadedIconRep(iconKey);
+                        kickLoad(_icon);
+                    }
+                }
+            } else {
+                if (Images.hasCacheEntry(iconKey)) {
+                    _icon = createPreLoadedIconRep(iconKey);
                 }
             }
         }
-        
-//         else {
-//             if (DEBUG.IMAGE) {
-//                 if (iconKey == null) {
-//                     Log.debug(Util.TERM_RED + "NO ICON KEY FOR " + _source + Util.TERM_CLEAR);
-//                 } else {
-//                     Log.debug("NO ICON CACHE ENTRY: " + iconKey);
-//                 }
-//             }
-//             // leave _icon as UNAVAILABLE -- it will be generated and re-assigned once the full image loads.
-//         }
 
         // rep won't load until it attempts to draw:
         _full = ImageRep.create(this, _source);
@@ -205,29 +171,61 @@ public class ImageRef
             backupRep = _icon;
         }
 
+
         final ImageRep drawRep;
 
         if (desiredRep.available()) {
+            // best case: desired rep is already available
+            drawRep = desiredRep;
+        } else if (!backupRep.available()) {
+            // backup is not available -- draw the unavailable desiredRep anyway,
+            // and it will auto-kick a load (reconsititute)
             drawRep = desiredRep;
         } else {
-            if (desiredRep != UNAVAILABLE) {
-                //_desired = desiredRep; // most likely it has expired
-                kickLoad(desiredRep);
-            }
-
-            //drawRep = backupRep;
-
-            // TODO: COMMENT THE BELOW LOGIC MORE CLEARLY
-            
-            if (backupRep.available() || !desiredRep.loading()) { // if reps auto-load on draw, don't try if the desired rep is already loading
-                // if backupRep not available, could handle the loading draw in ImageRef v.s. ImageRep
-                drawRep = backupRep; // note: triggers auto-load: may want to control that in ImageRef instead
-            }
-            else if (_full.isTrackingProgress()) {
+            if (_full.isTrackingProgress()) {
                 drawRep = _full;
-            } else
-                drawRep = UNAVAILABLE;
+            } else {
+                drawRep = backupRep;
+            }
         }
+
+        if (DEBUG.IMAGE && DEBUG.PAINT) {
+            debug("  desired " + desiredRep);
+            debug("   backup " + backupRep);
+            debug("   toDraw " + drawRep);
+        }
+
+        if (drawRep == ImageRep.UNAVAILABLE) {
+            // we don't even have an unloaded rep to draw and let
+            // auto-kick, so forcing loading of the full-rep:
+            kickLoad(_full);
+        }
+        
+// Actually, don't even need this -- it'll kick loading automatically
+//         if (!drawRep.available() && drawRep != UNAVAILABLE && !drawRep.loading())
+//             kickLoad(drawRep);
+
+//         if (desiredRep.available()) {
+//             drawRep = desiredRep;
+//         } else {
+//             if (desiredRep != UNAVAILABLE) {
+//                 //_desired = desiredRep; // most likely it has expired
+//                 kickLoad(desiredRep);
+//             }
+
+//             //drawRep = backupRep;
+
+//             // TODO: COMMENT THE BELOW LOGIC MORE CLEARLY
+            
+//             if (backupRep.available() || !desiredRep.loading()) { // if reps auto-load on draw, don't try if the desired rep is already loading
+//                 // if backupRep not available, could handle the loading draw in ImageRef v.s. ImageRep
+//                 drawRep = backupRep; // note: triggers auto-load: may want to control that in ImageRef instead
+//             }
+//             else if (_full.isTrackingProgress()) {
+//                 drawRep = _full;
+//             } else
+//                 drawRep = UNAVAILABLE;
+//         }
 
         drawRep.renderRep(g, width, height);
 
@@ -262,11 +260,12 @@ public class ImageRef
     }
 
     private void kickLoad(ImageRep rep) {
-        if (DEBUG.IMAGE) debug("kickLoad " + rep);
+        if (DEBUG.IMAGE) debug(" kickLoad " + rep);
+        //if (DEBUG.IMAGE && rep == _full) Log.debug("FULL REP LOAD " + rep, new Throwable("HERE"));
         rep.reconstitute();
     }
     private void requestImmediateLoad(ImageRep rep) {
-        if (DEBUG.IMAGE) debug("IMMEDIATE-LOAD " + rep);
+        if (DEBUG.IMAGE) debug("IMMEDIATE " + rep);
         rep.reconstituteNow();
     }
 
@@ -302,32 +301,49 @@ public class ImageRef
             // one has been generated elsewhere in this runtime,
             // or if not, create it now.
             if (_full.area() > PIXEL_THRESHOLD_FOR_ICON_GENERATION) {
-                _icon = createIconRep(freshRep, hardImageRef);
+                _icon = createRuntimeScaledIconRep(freshRep, hardImageRef);
             } // else _icon left as ImageRep.UNAVAILABLE
              
         }
     }
 
-    private ImageRep createIconRep(final ImageRep full, final Image hardFullImageRef) {
+    private ImageRep createPreLoadedIconRep(java.net.URI iconKey)
+    {
+        return ImageRep.create(this,
+                               ImageSource.create(iconKey),
+                               ICONS_ARE_DISPOSABLE);
+    }
+    
+
+    private ImageRep createRuntimeScaledIconRep(final ImageRep full, final Image hardFullImageRef) {
         // could pass in something like Scaler with just a produceIcon method into the image source
         // for creating the icon, or a general FutureTask.
 
         final ImageRep icon = ImageRep.create(this,
                                               ImageSource.createIconSource(_source, hardFullImageRef, DEFAULT_ICON_SIZE),
                                               ICONS_ARE_DISPOSABLE);
-        //kickLoad(icon);
-        requestImmediateLoad(icon); // TODO: should work to run us synchronously, but is NPE in Images somewhere
 
-        //========================================================================================
-        // OH, ALSO: still need to deal with contention -- if someone is ALREADY running
-        // a synchronous load, we do NOT want to block, tho really what we want is the option
-        // to do either.  The reason we want to do this immediately is so that we can
-        // create the icon ASAP while the original image is still in memory, just in case
-        // we're running low.  A fancier impl might allow icons to generate later, which
-        // provides faster initial map painting under normal conditions (plenty of RAM),
-        // but switches to the conservative method once any OutOfMemoryError is seen.
-        //========================================================================================
+
         
+        //========================================================================================
+        // The reason we always want to request a load immediately is so that we can
+        // create the icon ASAP while the original image is still in memory, just in
+        // case we're running low -- doing it now in the existing thread will allow the
+        // full image to be garbage collected soon if need be.  Note that we can only
+        // request an immediate load -- if another thread has already started generating
+        // this icon, we'll get an an immediate return with a callback for the results
+        // later.
+        //
+        // A fancier impl might allow icons to generate later, which provides faster
+        // initial map painting and a better user experience under "normal" conditions
+        // (plenty of RAM), but switches to the conservative method once any
+        // OutOfMemoryError is seen.  This is still only a releveant tradeoff the 1st
+        // time a map with images loads tho -- once icons are generated everything
+        // starts up very fast -- faster than any previous version of VUE.
+        // ========================================================================================
+        
+        requestImmediateLoad(icon);
+
         return icon;
         
      }
