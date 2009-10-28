@@ -49,15 +49,23 @@ public class DatasetAction  extends VueAction {
         }
         try {
             VUE.activateWaitCursor();
+            javax.swing.UIManager.put("FileChooser.openDialogTitleText", VueResources.getString("FileChooser.openDatasetTitleText"));   // wrong!!
+    		
             VueFileChooser chooser = VueFileChooser.getVueFileChooser();
             chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+             
             int option = chooser.showOpenDialog(VUE.getDialogParent());
             final File file =     chooser.getSelectedFile();
-            DatasetLoader dsl = new DatasetLoader();
-            Dataset ds = dsl.load(file);
-            LWMap loadedMap = ds.createMap();
-            VUE.displayMap(loadedMap);
-            VUE.clearWaitCursor();
+            File picked = null;
+            picked = chooser.getSelectedFile();
+            if(picked!=null) {
+		        DatasetLoader dsl = new DatasetLoader(); 
+		        Dataset ds = dsl.load(file);
+		        LWMap loadedMap = ds.createMap();
+		        VUE.displayMap(loadedMap);
+		        javax.swing.UIManager.put("FileChooser.openDialogTitleText", VueResources.getString("FileChooser.openDialogTitleText"));   // wrong!!
+            }
+	        VUE.clearWaitCursor();
             System.out.println("Action["+e.getActionCommand()+"] completed.");
         } catch(Exception ex) {
             ex.printStackTrace();
