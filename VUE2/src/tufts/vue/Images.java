@@ -45,7 +45,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.63 $ / $Date: 2009-10-27 15:03:01 $ / $Author: sfraize $
+ * @version $Revision: 1.64 $ / $Date: 2009-10-28 04:58:07 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -97,12 +97,34 @@ public class Images
         return getImage(imageSRC, listener, false);
     }
 
+    /**
+     * If the requested content is not already loading,
+     * it will be immediately loaded in the current thread.
+     */
+    public static Image getImageASAP(Object imageSRC, Images.Listener listener)
+    {
+        return getImage(imageSRC, listener, true);
+    }
     
-    // note: ignoreCache not currently used (always called false)
-    private static Image getImage(Object imageSRC, Images.Listener listener, boolean ignoreCache)
+    /**
+     * Fetch the given image.  If it's cached, listener.gotImage is called back immediately
+     * in the current thread.  If not, the image is fetched asynchronously, and the
+     * callbacks are made later from a special image loading thread.
+     *
+     * @param imageSRC - anything that might be converted to an image: a Resource, File, URL, InputStream, etc.
+     *
+     * @param listener - the Images.Listener to callback.  If null, the result
+     * of the call would be only to ensure the given image is cached.
+     *
+     * @param immediate - if the requested content is not already loading,
+     * it will be immediately loaded in the current thread.
+     *
+     * @return the Image if immediately available, null if the listener will be called back.
+     **/
+    private static Image getImage(Object imageSRC, Images.Listener listener, boolean immediate)
     {
         try {
-            return getCachedOrCallbackOnLoad(imageSRC, listener, ignoreCache);
+            return getCachedOrCallbackOnLoad(imageSRC, listener, immediate);
         } catch (Throwable t) {
             if (DEBUG.IMAGE) tufts.Util.printStackTrace(t);
             if (listener != null)
@@ -112,16 +134,16 @@ public class Images
     }
     
     
-    /** SYNCHRONOUSLY retrive an image from the given data source: e.g., a Resource, File, URL, InputStream, etc */
-    public static Image getImage(Object imageData)
-    {
-        try {
-            return getCachedOrCallbackOnLoad(imageData, null);
-        } catch (Throwable t) {
-            Log.error("getImage " + imageData, t);
-            return null;
-        }
-    }
+//     /** SYNCHRONOUSLY retrive an image from the given data source: e.g., a Resource, File, URL, InputStream, etc */
+//     public static Image getImage(Object imageData)
+//     {
+//         try {
+//             return getCachedOrCallbackOnLoad(imageData, null);
+//         } catch (Throwable t) {
+//             Log.error("getImage " + imageData, t);
+//             return null;
+//         }
+//     }
 
     public static void loadDiskCache()
     {
@@ -171,9 +193,11 @@ public class Images
     }
     
 
-    public static class CacheEntry {
-        private Reference<Image> ref;
-        private File file;
+    // todo: really, ImageCacheEntry v.s. Loader cache entries, tho they don't
+    // currently have a common super-class.
+    private static class CacheEntry {
+        private final Reference<Image> ref;
+        private final File file;
         // Loader loader;
         // todo: add loader here so we can always have CacheEntry's in the cache, and
         // so file is information always available, tho that could be extracted from the
@@ -188,8 +212,14 @@ public class Images
                 throw new IllegalArgumentException("CacheEntry: at least one of image or file must be non null");
             if (image != null)
                 this.ref = new SoftReference(image);
+            else
+                this.ref = null;
             this.file = cacheFile;
             if (DEBUG.IMAGE) out("new " + this);
+        }
+
+        boolean isPreloadedDiskEntry() {
+            return ref == null;
         }
 
         Image getCachedImage() {
@@ -564,12 +594,11 @@ public class Images
 
     }
     
-    
-    private static Image getCachedOrCallbackOnLoad(Object imageSource, Images.Listener listener)
-        throws java.io.IOException, java.lang.InterruptedException
-    {
-        return getCachedOrCallbackOnLoad(imageSource, listener, false);
-    }
+//     private static Image getCachedOrCallbackOnLoad(Object imageSource, Images.Listener listener)
+//         throws java.io.IOException, java.lang.InterruptedException
+//     {
+//         return getCachedOrCallbackOnLoad(imageSource, listener, false);
+//     }
 
     /**
      * @return Image if cached or listener is null, otherwise makes callbacks to the listener from
@@ -578,7 +607,7 @@ public class Images
     private static Image getCachedOrCallbackOnLoad
         (final Object imageSource,
          final Images.Listener listener,
-         final boolean ignoreCache)
+         final boolean immediate)
         throws java.io.IOException, java.lang.InterruptedException
     {
         if (imageSource instanceof Image) {
@@ -608,65 +637,79 @@ public class Images
         //if (DEBUG.Enabled) Log.debug("fetching " + imageSRC + " for listener " + Util.tag(listener));
         if (DEBUG.IMAGE) Log.debug("fetching for listener " + Util.tag(listener) + " " + imageSRC);
 
-
-        Object cacheEntry;
-        Image cachedImage = null;
-        
-        if (ignoreCache) {
-
-            cacheEntry = null;
-
-        } else {
-
-            cacheEntry = getCachedOrKickLoad(imageSRC, listener);
-
-            if (cacheEntry == IMAGE_LOADER_STARTED)
-                return null;
-        }
+        final Object cacheEntry = getCachedOrKickLoad(imageSRC, listener, immediate);
 
         // TODO: if nothing was found in the cache and an ICON for the
         // given source exists in the cache, return that.  Either that
         // or change all Images callers to request an ImageRef, which
         // will handle that for us.
+        
+        if (cacheEntry == IMAGE_LOADER_STARTED) {
+            // if this is the START of a new load, the caller has already been attached
+            // as a listener, and the results will be coming via callback.
+            return null;
+        }
+            
 
+        Image cachedImage = null;
         if (cacheEntry instanceof Loader) {
+
+            // Another request has already put a Loader into the cache -- have
+            // the listener observe the existing loader.
+            
             final Loader loader = (Loader) cacheEntry;
 
             if (listener != null) {
                 //if (DEBUG.IMAGE) out("Adding us as listener to existing Loader");
                 loader.addListener(listener);
                 return null;
-            }
                 
-            // We had no listener, so run synchronous & wait on existing loader thread to die:
-            // We can't have a cache-lock when we do this.
-            
-            Log.info("Joining " + tag(loader) + "...");
-            loader.join();
-            Log.info("Join of " + tag(loader) + " completed, cache has filled.");
-            
-            // Note we get here only in one rare case: there was an entry in the
-            // cache that was already loading on another thread, and somebody new
-            // requested the image that did NOT have a listener, so we joined the
-            // existing thread and waited for it to finish (with no listener, we
-            // have to run synchronous).
-            
-            // So now that we've waited, we should be guaranteed to have a full
-            // Image result in the cache at this point.
-            
-            // Note: theoretically, the GC could have cleared our SoftReference
-            // betwen loading the cache and now.
-            
-            cachedImage = ((CacheEntry)Cache.get(imageSRC.key)).getCachedImage();
-            if (cachedImage == null)
-                Log.warn("Zealous GC: image tossed immediately " + imageSRC);
+            } else {
+                
+                // We had no listener, so run synchronous & wait on existing loader thread to die:
+                // We can't have a cache-lock when we do this.
+                
+                // NOTE: this is dangerous -- multiple non-listener requests for the
+                // same loading content will quickly have all image processing threads
+                // hung waiting on the same load -- do we still need this?  Generally
+                // speaking, image requests w/out listeners are not safe.  For now,
+                // we'll only allow this if this was an immediate requrest.
 
+                if (!immediate) {
+                    // No listener, no cache entry, no result.  Caller simply
+                    // gets null and doesn't know why, even tho the image
+                    // may now be loading.
+                    Log.warn("no listener for non-cached content: caller in the dark as to the presence of image content: " + imageSRC);
+                    return null;
+                }
+
+                Log.info("Joining " + tag(loader) + "...");
+                loader.join();
+                Log.info("Join of " + tag(loader) + " completed, cache has filled.");
+                
+                // Note we get here only in one rare case: there was an entry in the
+                // cache that was already loading on another thread, and somebody new
+                // requested the image that did NOT have a listener, so we joined the
+                // existing thread and waited for it to finish (with no listener, we
+                // have to run synchronous).
+                
+                // So now that we've waited, we should be guaranteed to have a full
+                // Image result in the cache at this point.
+                
+                // Note: theoretically, the GC could have cleared our SoftReference
+                // betwen loading the cache and now.  We can't lock the cache while
+                // we're waiting on the join tho.
+                
+                cachedImage = ((CacheEntry)Cache.get(imageSRC.key)).getCachedImage();
+                if (cachedImage == null)
+                    Log.warn("Zealous GC: image tossed immediately " + imageSRC);
+            }
         }
         else if (cacheEntry instanceof Image) {
             cachedImage = (Image) cacheEntry;
         } else {
-            if (listener != null)
-                Log.warn("Unhandled cache entry w/listener: " + Util.tags(cacheEntry), new Throwable("HERE"));
+            //if (listener != null)
+                Log.warn("Unhandled cache entry: " + Util.tags(cacheEntry), new Throwable("HERE"));
             // if we have no listener, it's reasonable for the getCachedOrKickLoad to return null,
             // tho wouldn't it be better just to return one anyway, and allow quiet async caching?
             // later requests could still hook up to the loader
@@ -680,27 +723,31 @@ public class Images
                                   null);
 
             }
-            return cachedImage;
+            //return cachedImage;
         }
 
-        // We had no image, and no Loader was started: this should
-        // only happen if there was no listener for the Loader, tho we
-        // allow the sync load to go ahead just in case.  (Could get
-        // here due to an over-zealous GC).
-
-        if (listener != null)
-            Log.warn("had a listener, but no Loader created: backup synchronous loading for " + imageSRC);
-
-        if (DEBUG.IMAGE) out("synchronous load of " + imageSRC);
+        return cachedImage;
         
-        // load the image and don't return until we have it
-        return loadImageAndCache(imageSRC, listener);
+        
+// [no longer needed: request can be immediate]        
+//         // We had no image, and no Loader was started: this should
+//         // only happen if there was no listener for the Loader, tho we
+//         // allow the sync load to go ahead just in case.  (Could get
+//         // here due to an over-zealous GC).
+
+//         if (listener != null)
+//             Log.warn("had a listener, but no Loader created: backup synchronous loading for " + imageSRC);
+
+//         if (DEBUG.IMAGE) out("synchronous load of " + imageSRC);
+        
+//         // load the image and don't return until we have it
+//         return loadImageAndCache(imageSRC, listener);
     }
     
 
     private static final Object IMAGE_LOADER_STARTED = "<image-loader-created>";
     
-    private static final ExecutorService PoolForLocalFiles;
+    private static final ExecutorService PoolForMinimallyBlockingTasks;
     
     private static final int ImageThreadPriority;
 
@@ -726,11 +773,11 @@ public class Images
         // (all icons being generated)
 
         if (useCores > 1)
-            PoolForLocalFiles = Executors.newFixedThreadPool(useCores, ImageThreadFactory);
+            PoolForMinimallyBlockingTasks = Executors.newFixedThreadPool(useCores, ImageThreadFactory);
         else
-            PoolForLocalFiles = Executors.newSingleThreadExecutor(ImageThreadFactory);
+            PoolForMinimallyBlockingTasks = Executors.newSingleThreadExecutor(ImageThreadFactory);
 
-        Log.debug("CREATED THREAD POOL: " + PoolForLocalFiles + "; size=" + useCores);
+        Log.debug("CREATED THREAD POOL: " + Util.tags(PoolForMinimallyBlockingTasks) + "; size=" + useCores);
 
         int priority = 1; // should be lowest
 
@@ -765,6 +812,7 @@ public class Images
             runToResult();
         }
 
+        /** @return an Image that's already been put into the cache */
         private final Image runToResult() {
             if (DEBUG.IMAGE) debugMark(">>>>>");
             final Image i = produceResult();
@@ -781,6 +829,7 @@ public class Images
                       );
         }
 
+        /** @return an Image that's already been put into the cache */
         Image produceResult() {
             if (DEBUG.IMAGE || DEBUG.THREAD) out("loadAndCache kick: " + imageSRC);
             Image i = loadImageAndCache(imageSRC, relay);
@@ -946,7 +995,7 @@ public class Images
      * nothing to do be done for now -- just wait for the callbacks to the listener if
      * one was provided.
      */
-    private static Object getCachedOrKickLoad(ImageSource imageSRC, Images.Listener listener) 
+    private static Object getCachedOrKickLoad(ImageSource imageSRC, Images.Listener listener, boolean immediate)
     {
         Loader loader = null;
 
@@ -966,8 +1015,13 @@ public class Images
         
             if (imageSRC.key == null) Util.printStackTrace("attempting to load cache w/null key: " + imageSRC);
         
-            // okay if listener is null: a CachingRelayer will still be created,
-            // and listeners can be added later.
+            // It's okay if listener is null: a CachingRelayer will still be created, in
+            // the Loader, and listeners can be added later.
+
+            // note: if imageSRC is a file, and it doesn't exist, we could fail-fast
+            // (perhaps if immediate is requested?), rather than wait for the error to
+            // be reported via Listener.gotImageError, tho that's the standard API for
+            // now.
         
             if (imageSRC.mayBlockIndefinitely()) {
                 loader = new LoadThread(imageSRC, listener);
@@ -984,110 +1038,41 @@ public class Images
             // callback when the previous immediate load finishes.
             
             markCacheAsLoading(imageSRC.key, loader);
-            
-        } // CACHE LOCK IS RELEASED
 
-        if (listener != null && !imageSRC.nextLoadIsImmediate) {
+        }
+        //-------------------------------------------------------
+        // CACHE LOCK IS RELEASED
+        //-------------------------------------------------------
+
+        if (listener == null || immediate) {
+            // It's crucial that this NOT be run in a Cache-lock, or
+            // every other image thread will soon hang until this is
+            // done, including the AWT thread if anything requests
+            // image data.
+
+            // runToResult should always return an image that's been loaded into the cache
+            return loader.runToResult();
+            
+        } else {
             kickTask(loader);
             return IMAGE_LOADER_STARTED;
-        } else {
-            if (imageSRC.nextLoadIsImmediate)
-                imageSRC.nextLoadIsImmediate = false;
-            // With no listener, and nothing found in the cache, this
-            // image will need to be loaded immediately in the current thread.
-            if (DEBUG.IMAGE) Log.debug("IMMEDIATE RUN: " + loader);
-            // it's crucial that this NOT be run in a Cache-lock, or every other image thread PLUS the AWT thread will soon hang until this is done!
-            return loader.runToResult(); // currently: should always return an image, that's been put into the cache already
         }
-        
     }
-
-//     /**
-//      * This method should only be called in a cache lock.  It has all sorts of side
-//      * effects to the cache.  At the end of this call, we usually know there is
-//      * something in the cache for the given imageSRC.key -- either we found the image
-//      * already there, or we found a Loader thread already started there, or we put and
-//      * started a new Loader thread there.  Unless there was no listener and nothing in
-//      * the cache, in which case the image needs to be loaded synchronously (and we
-//      * return null).
-//      *
-//      * This method also deals with cache cleanup: if an entry is found to be
-//      * empty (it has no disk file, and it's image has been GC'd), the entry
-//      * is removed.
-//      *
-//      * @return If an Image, we had the image in the cache immediately availble.  If a
-//      * Loader thread object, the image is loading, and we should become and additional
-//      * listener (if there is a listener given), or wait for the Loader to die to get
-//      * it's results.  If the special value IMAGE_LOADER_STARTED is returned, there is
-//      * nothing to do be done for now -- just wait for the callbacks to the listener if
-//      * one was provided.
-//      */
-//     private static Object getCachedOrKickLoad_locked
-//         (final ImageSource imageSRC,
-//          final Images.Listener listener)
-//     {
-//         final Object entry = getCacheContentsWithAutoFlush(imageSRC);
-
-//         if (entry != null)
-//             return entry;
-        
-//         // Nothing was in the cache.  If we have a listener, handle
-//         // the image loading in another thread.  If we don't, return
-//         // null -- caller must handle that condition.
-        
-//         if (imageSRC.key == null) Util.printStackTrace("attempting to load cache w/null key: " + imageSRC);
-        
-//         final Loader loader;
-
-//         // okay if listener is null: a CachingRelayer will still be created,
-//         // and listeners can be added later.
-        
-//         if (imageSRC.mayBlockIndefinitely()) {
-//             loader = new LoadThread(imageSRC, listener);
-//         } else if (imageSRC.isImageSourceForIcon()) {
-//             loader = new IconTask(imageSRC, listener);
-//         } else {
-//             loader = new LoadTask(imageSRC, listener);
-//         }
-
-//         // Note that even if we've been requested to run synchronously, we still want
-//         // a Loader created that can have listeners added later, and have it marked in the
-//         // cache, in case subsequent asynchronous requests come in for this image, or
-//         // even future immediate requests, which then won't be honored: they'll get a
-//         // callback when the previous immediate load finishes.
-            
-//         markCacheAsLoading(imageSRC.key, loader);
-
-//         if (listener != null && !imageSRC.nextLoadIsImmediate) {
-//             kickTask(loader);
-//             return IMAGE_LOADER_STARTED;
-//         } else {
-//             if (imageSRC.nextLoadIsImmediate)
-//                 imageSRC.nextLoadIsImmediate = false;
-//             // With no listener, and nothing found in the cache, this
-//             // image will need to be loaded immediately in the current thread.
-//             if (DEBUG.IMAGE) Log.debug("IMMEDIATE RUN: " + loader);
-
-//             // WE'RE IN A CACHE LOCK!!!!
-//             return loader.runToResult(); // currently: should always return an image, that's been put into the cache already
-//         }
-//     }
 
     private static void markCacheAsLoading(URI key, Loader loader) {
-        Object collision = Cache.put(key, loader); // todo: under what conditiions is this normal?
-        if (collision != null) {
-            Log.warn("blew away existing cache content " + Util.tags(collision) + " for " + Util.tags(loader));
+        final Object old = Cache.put(key, loader); // todo: under what conditiions is this normal?
+        if (old != null && old instanceof CacheEntry && !((CacheEntry)old).isPreloadedDiskEntry()) {
+            Log.warn("blew away existing cache content:\n\told: " + Util.tags(old) + "\n\tfor: " + Util.tags(loader));
         }
     }
 
-    // make sure this is called from within a cache-lock
     private static void kickTask(Loader loader)
     {
         if (loader instanceof LoadThread) {
             // could submit to a special pool or some future fancy non-blocking NIO multi-stream handler
             ((LoadThread)loader).start();
         } else {
-            PoolForLocalFiles.submit(loader);
+            PoolForMinimallyBlockingTasks.submit(loader);
         }
     }
 
@@ -1333,7 +1318,7 @@ public class Images
             try {
                 image = readAndCreateImage(imageSRC, listener);
             } catch (OutOfMemoryError eom) {
-                Log.warn(Util.TERM_RED + "out of memory reading " + imageSRC.readable + Util.TERM_CLEAR);
+                Log.warn(Util.TERM_YELLOW + "out of memory reading " + imageSRC.readable + Util.TERM_CLEAR);
 //                 if (Thread.currentThread() instanceof LoadThread) {
 //                     Log.info("reader sleeping & retrying...");
 //                     try {
@@ -1525,7 +1510,7 @@ public class Images
     private static Image readAndCreateImage(ImageSource imageSRC, Images.Listener listener)
         throws java.io.IOException, ImageException
     {
-        if (DEBUG.IMAGE) out("READING " + imageSRC);
+        if (DEBUG.IMAGE) out("trying: " + imageSRC);
 
         InputStream urlStream = null; // if we create one, we need to keep this ref to close it later
         File tmpCacheFile = null; // if we create a tmp cache file, it will be put here
@@ -1721,13 +1706,14 @@ public class Images
         // course would only work for the original java image types: GIF, JPG, and PNG.
         //-----------------------------------------------------------------------------
 
-        if (DEBUG.IMAGE) out("Reading " + reader);
+        if (DEBUG.Enabled) out("reading " + imageSRC + "; " + reader + "...");
         
         Image image = null;
         Throwable exception = null;
 
         try {
             image = reader.read(0);
+            if (DEBUG.Enabled) out("    got " + imageSRC + ".");
             //testImageInspect(reader, image, imageSRC);
         } catch (Throwable t) {
             exception = t;
@@ -1895,6 +1881,19 @@ public class Images
 
         return icon;
     }
+//     private static final Image ScratchImage;
+//     private static final Graphics2D ScratchGraphics;
+
+//     static {
+//         if (USE_SCALED_INSTANCE) {
+//             ScratchImage = new BufferedImage(2, 2, BufferedImage.TYPE_INT_RGB);
+//             ScratchGraphics = (Graphics2D) ScratchImage.getGraphics();
+//         } else {
+//             ScratchImage = null;
+//             ScratchGraphics = null;
+//         }
+//     }
+
     
     public static void dumpImage(Image image, String debug) {
 
