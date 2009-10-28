@@ -177,11 +177,9 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
         final Image image;
 
         if (immediate /*&& LOW_MEMORY_CONDITIONS*/) {
-            //_data = _data.clone();
-            _data.setImmediateRequest(immediate);
-        }
-
-        image = Images.getImage(_data, this);
+            image = Images.getImageASAP(_data, this);
+        } else
+            image = Images.getImage(_data, this);
         
         if (image != null) {
             // if we knew the return value was attented to we could skip the notify (they're not always)
