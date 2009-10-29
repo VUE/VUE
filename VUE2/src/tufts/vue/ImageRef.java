@@ -89,7 +89,7 @@ public class ImageRef
                     // ImageRep.reconstitute, otherwise it's ImageRef callback,
                     // notifyRepHasArrived, will also happen in the cache-lock, which is
                     // dangerous -- it will block all other image processing threads
-                    // till it returns [todo: verify this statement]
+                    // till it returns [todo: test/verify]
                     if (Images.hasCacheEntry(iconKey)) {
                         _icon = createPreLoadedIconRep(iconKey);
                         kickLoad(_icon);
@@ -115,10 +115,14 @@ public class ImageRef
     
     public void drawInto(DrawContext dc, float width, float height)
     {
-        if (dc.isAnimating() || dc.isDraftQuality()) {
-            drawAvailable(dc.g, width, height);
-        } else {
-            drawBestAvailable(dc.g, width, height);
+        try {
+            if (dc.isAnimating() || dc.isDraftQuality()) {
+                drawAvailable(dc.g, width, height);
+            } else {
+                drawBestAvailable(dc.g, width, height);
+            }
+        } catch (Throwable t) {
+            Log.error("exception painting " + this, t);
         }
     }
 
@@ -137,8 +141,8 @@ public class ImageRef
     private static final java.awt.Color DebugBlue = new java.awt.Color(0,0,255,128);
     private static final java.awt.Color DebugYellow = new java.awt.Color(255,255,0,128);
     
-    private void drawBestAvailable(Graphics2D g, float width, float height) {
-
+    private void drawBestAvailable(Graphics2D g, float width, float height)
+    {
         final ImageRep backupRep;
         final ImageRep desiredRep;
 
@@ -230,33 +234,13 @@ public class ImageRef
         }
     }
 
-    private void kickLoad(ImageRep rep) {
-        if (DEBUG.IMAGE) debug(" kickLoad " + rep);
-        //if (DEBUG.IMAGE && rep == _full) Log.debug("FULL REP LOAD " + rep, new Throwable("HERE"));
-        rep.reconstitute();
-    }
-    private void requestImmediateLoad(ImageRep rep) {
-        if (DEBUG.IMAGE) debug("IMMEDIATE " + rep);
-        rep.reconstituteNow();
+    private void repaint() {
+        _repainter.imageRefChanged("repaint");
     }
 
     public void notifyRepHasProgress(final ImageRep rep, final float pct) {
-        //debug("progress " + pct);
-        //_repainter.imageRefChanged("progress");
         repaint();
     }
-    
-//     public void notifyRepIsReplaced(ImageRep oldRep, ImageRep newRep)
-//     {
-//         // can load the aspect from the newRep, which should have size now
-//         if (oldRep == _full) {
-//             _full = newRep;
-//         } else if (oldRep == _icon) {
-//             _icon = newRep;
-//         } else {
-//             Log.error("lost rep-replacement:\n\told=" + oldRep + "\n\tnew=" + newRep, new Throwable("HERE"));
-//         }
-//     }
     
     /** the ImageRep is done loading -- it has all the renderable image data */
     public void notifyRepHasArrived(final ImageRep freshRep, final Image hardImageRef)
@@ -270,7 +254,7 @@ public class ImageRef
         if (freshRep == _full && _icon == ImageRep.UNAVAILABLE) {
             // no icon was previously generated -- look to see if
             // one has been generated elsewhere in this runtime,
-            // or if not, create it now.
+            // or if not, and we need one, create it now.
             if (_full.area() > PIXEL_THRESHOLD_FOR_ICON_GENERATION) {
                 _icon = createRuntimeScaledIconRep(freshRep, hardImageRef);
             } // else _icon left as ImageRep.UNAVAILABLE
@@ -278,10 +262,10 @@ public class ImageRef
         }
     }
 
-    private ImageRep createPreLoadedIconRep(java.net.URI iconKey)
+    private ImageRep createPreLoadedIconRep(java.net.URI cacheKey)
     {
         return ImageRep.create(this,
-                               ImageSource.create(iconKey),
+                               ImageSource.create(cacheKey),
                                ICONS_ARE_DISPOSABLE);
     }
     
@@ -290,9 +274,17 @@ public class ImageRef
         // could pass in something like Scaler with just a produceIcon method into the image source
         // for creating the icon, or a general FutureTask.
 
-        // NOTE: if the icon is NOT created immediately, that hard image reference is going
-        // to stay around referenced by a thread-pool task queue, unable to be freed --
-        // not such a good idea in the end.
+        // NOTE: if the icon is NOT created immediately, and we're in the middle of loading lots of
+        // images, that hard image reference is going to stay around, held by the ImageSource in an
+        // Images IconTask, in the the thread-pool task queue, unable to be GC'd, which will lead
+        // to contention that's very difficult to recover from should we start running out of
+        // memory.
+
+        // If we ever want to try another method for handling that case, we could pass put the full
+        // ImageRep into the icon-source ImageSource instead of the hard image reference, and
+        // attempt to reconstitute it if it's been GC'd once the IconTask get's around to running.
+        // That would create a different kind of complex contention that would need to be
+        // tested.
 
         final ImageRep icon = ImageRep.create(this,
                                               ImageSource.createIconSource(_source, hardFullImageRef, DEFAULT_ICON_SIZE),
@@ -301,27 +293,26 @@ public class ImageRef
 
         
         //========================================================================================
-        // The reason we always to request a load immediately is so that we can create
-        // the icon ASAP while the original image is still in memory, just in case we're
-        // running low -- doing it now in the existing thread will allow the full image
-        // to be garbage collected soon if need be.  Note that we can only request an
-        // immediate load -- if another thread has already started generating this icon,
-        // we'll get an an immediate return with a callback for the results later.
+        // The reason we always want to request a load immediately is so that we can create the
+        // icon ASAP while the original image is still in memory, just in case we're running low --
+        // doing it now in the existing thread will allow the full image to be garbage collected as
+        // soon as possible if that's needed.  Note that we can only request an immediate load --
+        // if another thread has already started generating this icon, we'll get an an immediate
+        // return with a callback for the results later.
         //
-        // A fancier impl might allow icons to generate later, which provides faster
-        // initial map painting and a better user experience under "normal" conditions
-        // (plenty of RAM), but switches to the conservative method once any
-        // OutOfMemoryError is seen.  This is still only a tradeoff for the the 1st
-        // time a map with images loads tho -- once icons are generated everything
-        // starts up very fast -- faster than any previous version of VUE.
+        // A fancier impl might allow icons to generate later, which provides faster initial map
+        // painting and a better user experience under "normal" conditions (plenty of RAM), but
+        // switches to the conservative method once any OutOfMemoryError is seen.  This is still
+        // only a tradeoff for the the 1st time a map with images loads tho -- once icons are
+        // generated everything starts up very fast -- faster than any previous version of VUE.
         //
         // -----------------------------------------------------------------------------
         //
         // Note: the Images thread pool can now shrink itself dynamically for better
         // performance, but the "wall" the application hits when we run out of memory
         // with lots of waiting icon tasks holding hard-refs to image data is still to
-        // steep to recover well from if wait to request immediate loads until memory
-        // goes low.
+        // steep to recover well from if we wait to request immediate loads until memory
+        // runs low.
         // ========================================================================================
         
         if (true || ImageRep.LOW_MEMORY_CONDITIONS)
@@ -333,20 +324,19 @@ public class ImageRef
         
      }
     
-//         // issue a repaint for the full image, which will normally be fine till the icon
-//         // comes in, except in cases of low memory where the full image may appear, then
-//         // dissapear after a GC.  Technically, we only need to do this if we do NOT have
-//         // an icon already displayed, and the full-rep is not currently desired.  But if
-//         // we haven't generated an icon yet, that could take a while, so at least get
-//         // this on screen before we start doing that.  As long as as the repaint happens
-//         // before this thread is finished out, the full image will be guaranteed not to
-//         // be GC'd as we're keeping a hard reference to in throughout this call-stack.
-//         repaint();
-//         // If this image is big enough to warrant generating a small
-//         // icon, generate it now in the current thread while the image
-//         // data is guaranteed to be around (in case we're running low
-//         // on memory and the full image may be GC'd shortly).
+    private void kickLoad(ImageRep rep) {
+        if (DEBUG.IMAGE) debug(" kickLoad " + rep);
+        //if (DEBUG.IMAGE && rep == _full) Log.debug("FULL REP LOAD " + rep, new Throwable("HERE"));
+        rep.reconstitute();
+    }
+    private void requestImmediateLoad(ImageRep rep) {
+        if (DEBUG.IMAGE) debug("IMMEDIATE " + rep);
+        rep.reconstituteNow();
+    }
 
+    void preLoadFullSize() {
+        kickLoad(_full);
+    }
 
     private void debug(String s) 
     {
@@ -356,11 +346,6 @@ public class ImageRef
         if (lastSlash < (basename.length()-2))
             basename = basename.substring(lastSlash+1, basename.length());
         Log.debug(String.format("[%s] %s", basename, s));
-    }
-
-    private void repaint() {
-        //debug("repaint");
-        _repainter.imageRefChanged("repaint");
     }
 
     public boolean available() {
