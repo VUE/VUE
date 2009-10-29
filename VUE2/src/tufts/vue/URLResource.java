@@ -45,7 +45,7 @@ import java.util.regex.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.87 $ / $Date: 2009-10-28 17:46:10 $ / $Author: sfraize $
+ * @version $Revision: 1.88 $ / $Date: 2009-10-29 19:04:35 $ / $Author: mike $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -1790,7 +1790,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
             else {
 
                 // if previously determined (e.g., was persisted), don't bother to look-up again
-                String type = getProperty(CONTENT_TYPE); 
+                String type =  getProperty(CONTENT_TYPE); 
             
                 if (type == null || type.length() < 1) {
 
@@ -1803,8 +1803,15 @@ public class URLResource extends Resource implements XMLUnmarshalListener
                         //Log.info("opening URL " + url);
                         
                         if (DEBUG.Enabled) out("polling actual HTTP server for content-type: " + url);
-                        
-                        type = url.openConnection().getHeaderField("Content-type");
+                        /**
+                         * If you try to get Headerfield on some websites, notably
+                         * www.fedoracommons.org from an applet in Firefox on the mac it will hang
+                         * Java and firefox and you have to force quit the application.
+                         */
+                        if (!VUE.isApplet())
+                        	type = url.openConnection().getHeaderField("Content-type");
+                        else
+                        	type = null;
                         if (DEBUG.Enabled) {
                             out("got contentType " + url + " [" + type + "]");
                             //Util.printStackTrace("GOT CONTENT TYPE");
