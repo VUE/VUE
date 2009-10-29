@@ -21,7 +21,7 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
 
     static final int[] ZERO_SIZE = new int[2];
 
-    private static volatile boolean LOW_MEMORY_CONDITIONS = false;
+    static volatile boolean LOW_MEMORY_CONDITIONS = false;
     
     private static interface Ref<T> {
         T get();
@@ -163,14 +163,14 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
         return reconstitute(true);
     }
 
-    private /*synchronized*/ Image reconstitute(boolean immediate) {
+    private synchronized Image reconstitute(boolean immediate) {
 
         if (_handle == IMG_ERROR) {
             // if this was an OutOfMemoryError (a potentially recoverable error), we allow us to retry indefinitely
             if (DEBUG.IMAGE) debug("skipping reconstitue: last load had error: " + this);
             return null;
         }
-        if (DEBUG.IMAGE) debug(Util.TERM_CYAN + "RECONSTITUTE " + Util.TERM_CLEAR + _data);//, new Throwable("HERE"));
+        if (DEBUG.IMAGE) debug(Util.TERM_CYAN + "RECONSTITUTE " + Util.TERM_CLEAR + _data);
         //if (DEBUG.IMAGE) Log.debug(Util.TERM_CYAN + "RECONSTITUTE " + Util.TERM_CLEAR + _data, new Throwable("HERE"));
         if (_handle.isLoader()) {
             if (DEBUG.IMAGE) debug("rep already loading " + _data);//, new Throwable("HERE"));
@@ -178,16 +178,21 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
         }
         final Image image;
 
-        if (immediate /*&& LOW_MEMORY_CONDITIONS*/) {
+        if (immediate ) {
+            // Note that immediate=true is generally only specified if we're attempting to create an icon.
+            // Under low-memory conditions, we want to create the icon while in the current thread
+            // while the original raw image data is freshly available, otherwise it may be GC'd
+            // before the image processing thread pool might get around to running the icon-scaling
+            // task.  Note that this is not guaranteed to run before returning -- if another
+            // ImageRep has started the icon generation, we'll see a return immediately, and get a
+            // callback later when the already running task completes.
             image = Images.getImageASAP(_data, this);
         } else
             image = Images.getImage(_data, this);
         
         if (image != null) {
-            // if we knew the return value was attented to we could skip the notify (they're not always)
-            // note: this only happens if the image was already in cached in runtime memory, which is usually
-            // unlikely for a reconstitute, unless this is the first time init for duplicate of another ImageRep
-            // in the runtime.  (?)
+            // if we knew the return value of reconstitute was attented to we could skip the notify
+            // (the return value is often ignored)
             cacheData(image, true); 
         } else {
             _handle = IMG_LOADING;
@@ -209,7 +214,7 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
     protected void cacheData(Image image, boolean notify) {
         synchronized (this) {
             // Recording the size here should be redundant to the gotImageSize we've already received,
-            // tho there are some special cases where that call may not arrive (e.g., icon generation?).
+            // tho there are some special cases where that call may not arrive (e.g., icon generation).
             // note: multi-threaded coherency agaist AWT thread for the next 3 stores,
             // as well as locked against cacheData calls happening in AWT via reconstitute
             setSize(image.getWidth(null),

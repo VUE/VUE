@@ -45,7 +45,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.66 $ / $Date: 2009-10-28 19:11:24 $ / $Author: sfraize $
+ * @version $Revision: 1.67 $ / $Date: 2009-10-29 04:05:23 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -728,7 +728,6 @@ public class Images
 
         return cachedImage;
         
-        
 // [no longer needed: request can be immediate]        
 //         // We had no image, and no Loader was started: this should
 //         // only happen if there was no listener for the Loader, tho we
@@ -747,7 +746,140 @@ public class Images
 
     private static final Object IMAGE_LOADER_STARTED = "<image-loader-created>";
     
-    private static final ThreadPoolExecutor PoolForMinimallyBlockingTasks;
+    
+    /**
+     * Although ThreadPoolExecutors have an API to allow resizing, the resize does not
+     * appear to take effect until all tasks are completed and the pool has has run to
+     * idle.  This class wraps an ExecutorService (a ThreadPoolExecutor), and allows it
+     * to be immediately shut down and all of it's tasks transferred to a new, smaller
+     * pool at any time.  This needs to happen ASAP if we start getting
+     * OutOfMemoryError's.
+     */
+    private static class ImmediatelyResizablePool implements Runnable {
+        
+        private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(ImmediatelyResizablePool.class);
+
+        private Thread _thread;
+        private ThreadPoolExecutor _pool;
+        private ExecutorService _poolInShutdown;
+        private final List<Runnable> _deferredTasks = new ArrayList();
+        private int _nextSmallerPoolSize;
+            
+        ImmediatelyResizablePool(int startSize) {
+            _pool = createThreadPool(startSize);
+            _nextSmallerPoolSize = startSize / 2;
+        }
+        
+        public void run() {
+            Log.info("resizer started");
+            ExecutorService oldPool = null;
+            for (;;) {
+                synchronized (this) {
+                    if (oldPool == _poolInShutdown)
+                        Log.error("should never happen: re-waiting on the same pool " + oldPool);
+                    oldPool = _poolInShutdown;
+                }
+                waitForTermination(oldPool);
+                synchronized (this) {
+                    _poolInShutdown = null;
+                    createAndLoadNewPool();
+                    Log.info("pool resized to " + _nextSmallerPoolSize);
+                    if (_nextSmallerPoolSize < 2) {
+                        _nextSmallerPoolSize = 0;
+                        _thread = null; // allow GC
+                        break; // no more resizes possible
+                    }
+                    _nextSmallerPoolSize /= 2;
+                    Log.info("next pool size: " + _nextSmallerPoolSize);
+                    try {
+                        Log.info("resizer sleeping...");
+                        wait();
+                        Log.info("resizer woke");
+                    } catch (InterruptedException e) {
+                        Log.error("interrupted " + this, e);
+                    }
+                }
+            }
+            Log.info("resizer terminating, pool at size = 1, no further shrinkages possible");
+        }
+
+        private synchronized void forkAndWaitForTermination(ExecutorService pool) {
+            _poolInShutdown = pool;
+            if (_thread == null) {
+                // if we never run out of memory, we'll never need to start this thread
+                _thread = new Thread(this, "PoolResizer");
+                _thread.start();
+            } else {
+                notify();
+            }
+        }
+        
+        private void waitForTermination(final ExecutorService poolInShutdown) {
+            Log.info("awaitTermination...");
+            try {
+                poolInShutdown.awaitTermination(15L, TimeUnit.SECONDS);
+                Log.info("termination complete: " + poolInShutdown);
+            } catch (InterruptedException e) {
+                Log.error("awaiting termination", e);
+            }
+        }
+        
+        private synchronized void createAndLoadNewPool() {
+            _pool = createThreadPool(_nextSmallerPoolSize);
+            Log.debug("RESUBMIT: " + Util.tags(_deferredTasks));
+            //Util.dump(_deferredTasks);
+            for (Runnable r : _deferredTasks) {
+                _pool.submit(r);
+            }
+            _deferredTasks.clear();
+        }
+
+        public synchronized void submit(Runnable r) {
+            if (_pool == null) {
+                Log.debug("DEFERRED " + r);
+                _deferredTasks.add(r);
+            } else {
+                _pool.submit(r);
+            }
+        }
+        
+        public synchronized void shrinkIfPossible()
+        {
+            if (_nextSmallerPoolSize < 1)
+                return;
+
+            if (_pool != null) {
+                // if EOM's stack up, we may try and shrink while
+                // already waiting for a shrink, and _pool will be null
+        
+                final List<Runnable> dequeued;
+                if (false) {
+                    dequeued = new ArrayList();
+                    TaskQueue.drainTo(dequeued);
+                    Log.debug("shutdown...");
+                    _pool.shutdown();
+                } else {
+                    Log.debug("shutdownNow...");
+                    dequeued = _pool.shutdownNow();
+                }
+                Log.debug("back from shutdown, drained=" + Util.tags(dequeued));
+                //Util.dump(out);
+                _deferredTasks.addAll(dequeued);
+
+                final ExecutorService oldPool = _pool;
+                _pool = null;
+                forkAndWaitForTermination(oldPool);
+                
+            } else {
+                
+                _nextSmallerPoolSize /= 2;
+                Log.warn("stacked OutOfMemoryError conditions: severely low memory, pool size reduced to " + _nextSmallerPoolSize);
+            }
+        }
+    }
+
+    private static final ImmediatelyResizablePool ProcessingPool;
+
     private static BlockingQueue<Runnable> TaskQueue;
     
     private static final int ImageThreadPriority;
@@ -790,7 +922,8 @@ public class Images
 
         ImageThreadPriority = priority; // for thread factory
         
-        PoolForMinimallyBlockingTasks = createThreadPool(useCores);
+        //PoolForMinimallyBlockingTasks = createThreadPool(useCores);
+        ProcessingPool = new ImmediatelyResizablePool(useCores);
     }
 
     private static ThreadPoolExecutor createThreadPool(int nThreads) {
@@ -804,7 +937,7 @@ public class Images
         
         return pool;
     }
-    
+
     static abstract class Loader implements Runnable
     {
         final CachingRelayer relay;
@@ -1094,7 +1227,8 @@ public class Images
             // could submit to a special pool or some future fancy non-blocking NIO multi-stream handler
             ((LoadThread)loader).start();
         } else {
-            PoolForMinimallyBlockingTasks.submit(loader);
+            ProcessingPool.submit(loader);
+            //PoolForMinimallyBlockingTasks.submit(loader);
         }
     }
 
@@ -1358,38 +1492,12 @@ public class Images
                     Log.info(Util.TERM_GREEN + "reader re-awakened, retrying... " + imageSRC.readable + Util.TERM_CLEAR);
                 } else { // if instanceof POOLTHREAD
 
-                    final int curPoolSize = PoolForMinimallyBlockingTasks.getPoolSize();
-                    if (curPoolSize > 1) {
-                        // reduce pool size, as fewer concurrent image
-                        // operations should reduce the maximum memory
-                        // consumption peak
-                        //Log.info("reducing thread pool size to " + (curPoolSize-1));
-                        Log.info("reducing thread pool size to " + 1);
-                        //                        final List<Runnable> out = new ArrayList();
-//                         TaskQueue.drainTo(out);
-//                         Util.dump(out);
-                        //Log.debug("setMaxSize...");
-                        // never heard from again???
-                        //PoolForMinimallyBlockingTasks.setMaximumPoolSize(1); // no effect when useing LinkedBlockingQueue
-                        Log.debug("setCoreSize...");
-                        PoolForMinimallyBlockingTasks.setCorePoolSize(1);
-//                         //PoolForMinimallyBlockingTasks.setMaximumPoolSize(curPoolSize - 1);
-//                         // what the hell -- this thread appears to die & be re-used immediately
-//                         // after the above call!
-// //                         Log.debug("shutdown...");
-// //                         PoolForMinimallyBlockingTasks.shutdown();
-//                         Log.debug("yielding...");
-//                         //Thread.currentThread().interrupt();
-// //                         Thread.yield();
-// //                         Log.debug("yielded...");
-//                         for (Runnable r : out) {
-//                             Log.debug("resumbit " + r);
-//                             PoolForMinimallyBlockingTasks.submit(r);
-//                         }
-                        
-                    }
-                    //we must be running in the thread-pool accessing local disk
+                    // we must be running in the thread-pool accessing local disk
+
                     Log.info("EOM; consider re-kicking a LoadTask for " + imageSRC);
+                    
+                    ProcessingPool.shrinkIfPossible();
+
                     //kickLoadTask(imageSRC, listener); // todo: test
                     throw eom;
                }

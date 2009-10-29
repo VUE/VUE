@@ -132,14 +132,13 @@ public class ImageRef
             ; //UNAVAILABLE.drawRep(g, width, height);
     }
     
-    
     private static final java.awt.Color DebugRed = new java.awt.Color(255,0,0,128);
     private static final java.awt.Color DebugGreen = new java.awt.Color(0,255,0,128);
     private static final java.awt.Color DebugBlue = new java.awt.Color(0,0,255,128);
     private static final java.awt.Color DebugYellow = new java.awt.Color(255,255,0,128);
     
-    private void drawBestAvailable(Graphics2D g, float width, float height)
-    {
+    private void drawBestAvailable(Graphics2D g, float width, float height) {
+
         final ImageRep backupRep;
         final ImageRep desiredRep;
 
@@ -161,8 +160,6 @@ public class ImageRef
             desiredRep = _icon;
             backupRep = _full;
             //_desired = SIZE_ICON;
-
-            
             //debug("onScreenMaxDim below thresh " + PIXEL_THRESHOLD_FOR_ICON_DRAWING + " at " + onScreenMaxDim);
         } else {
             //debug("onScreenMaxDim ABOVE thresh " + PIXEL_THRESHOLD_FOR_ICON_DRAWING + " at " + onScreenMaxDim);
@@ -171,6 +168,8 @@ public class ImageRef
             backupRep = _icon;
         }
 
+        if (!desiredRep.available() && desiredRep != UNAVAILABLE)
+            kickLoad(desiredRep);
 
         final ImageRep drawRep;
 
@@ -189,7 +188,7 @@ public class ImageRef
             }
         }
 
-        if (DEBUG.IMAGE && DEBUG.PAINT) {
+        if (DEBUG.IMAGE && DEBUG.BOXES) {
             debug("  desired " + desiredRep);
             debug("   backup " + backupRep);
             debug("   toDraw " + drawRep);
@@ -201,32 +200,6 @@ public class ImageRef
             kickLoad(_full);
         }
         
-// Actually, don't even need this -- it'll kick loading automatically
-//         if (!drawRep.available() && drawRep != UNAVAILABLE && !drawRep.loading())
-//             kickLoad(drawRep);
-
-//         if (desiredRep.available()) {
-//             drawRep = desiredRep;
-//         } else {
-//             if (desiredRep != UNAVAILABLE) {
-//                 //_desired = desiredRep; // most likely it has expired
-//                 kickLoad(desiredRep);
-//             }
-
-//             //drawRep = backupRep;
-
-//             // TODO: COMMENT THE BELOW LOGIC MORE CLEARLY
-            
-//             if (backupRep.available() || !desiredRep.loading()) { // if reps auto-load on draw, don't try if the desired rep is already loading
-//                 // if backupRep not available, could handle the loading draw in ImageRef v.s. ImageRep
-//                 drawRep = backupRep; // note: triggers auto-load: may want to control that in ImageRef instead
-//             }
-//             else if (_full.isTrackingProgress()) {
-//                 drawRep = _full;
-//             } else
-//                 drawRep = UNAVAILABLE;
-//         }
-
         drawRep.renderRep(g, width, height);
 
         if (DEBUG.BOXES) {
@@ -319,6 +292,10 @@ public class ImageRef
         // could pass in something like Scaler with just a produceIcon method into the image source
         // for creating the icon, or a general FutureTask.
 
+        // NOTE: if the icon is NOT created immediately, that hard image reference is going
+        // to stay around referenced by a thread-pool task queue, unable to be freed --
+        // not such a good idea in the end.
+
         final ImageRep icon = ImageRep.create(this,
                                               ImageSource.createIconSource(_source, hardFullImageRef, DEFAULT_ICON_SIZE),
                                               ICONS_ARE_DISPOSABLE);
@@ -326,23 +303,33 @@ public class ImageRef
 
         
         //========================================================================================
-        // The reason we always want to request a load immediately is so that we can
-        // create the icon ASAP while the original image is still in memory, just in
-        // case we're running low -- doing it now in the existing thread will allow the
-        // full image to be garbage collected soon if need be.  Note that we can only
-        // request an immediate load -- if another thread has already started generating
-        // this icon, we'll get an an immediate return with a callback for the results
-        // later.
+        // The reason we always to request a load immediately is so that we can create
+        // the icon ASAP while the original image is still in memory, just in case we're
+        // running low -- doing it now in the existing thread will allow the full image
+        // to be garbage collected soon if need be.  Note that we can only request an
+        // immediate load -- if another thread has already started generating this icon,
+        // we'll get an an immediate return with a callback for the results later.
         //
         // A fancier impl might allow icons to generate later, which provides faster
         // initial map painting and a better user experience under "normal" conditions
         // (plenty of RAM), but switches to the conservative method once any
-        // OutOfMemoryError is seen.  This is still only a releveant tradeoff the 1st
+        // OutOfMemoryError is seen.  This is still only a tradeoff for the the 1st
         // time a map with images loads tho -- once icons are generated everything
         // starts up very fast -- faster than any previous version of VUE.
+        //
+        // -----------------------------------------------------------------------------
+        //
+        // Note: the Images thread pool can now shrink itself dynamically for better
+        // performance, but the "wall" the application hits when we run out of memory
+        // with lots of waiting icon tasks holding hard-refs to image data is still to
+        // steep to recover well from if wait to request immediate loads until memory
+        // goes low.
         // ========================================================================================
         
-        requestImmediateLoad(icon);
+        if (true || ImageRep.LOW_MEMORY_CONDITIONS)
+            requestImmediateLoad(icon);
+        else
+            kickLoad(icon);
 
         return icon;
         
