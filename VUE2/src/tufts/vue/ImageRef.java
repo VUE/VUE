@@ -171,7 +171,7 @@ public class ImageRef
         if (!desiredRep.available() && desiredRep != UNAVAILABLE)
             kickLoad(desiredRep);
 
-        final ImageRep drawRep;
+        ImageRep drawRep;
 
         if (desiredRep.available()) {
             // best case: desired rep is already available
@@ -180,13 +180,11 @@ public class ImageRef
             // backup is not available -- draw the unavailable desiredRep anyway,
             // and it will auto-kick a load (reconsititute)
             drawRep = desiredRep;
-        } else {
-            if (_full.isTrackingProgress()) {
-                drawRep = _full;
-            } else {
-                drawRep = backupRep;
-            }
-        }
+        } else
+            drawRep = backupRep;
+
+        if (_full.isTrackingProgress() && !desiredRep.available())
+            drawRep = _full;
 
         if (DEBUG.IMAGE && DEBUG.BOXES) {
             debug("  desired " + desiredRep);
