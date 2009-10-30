@@ -39,7 +39,7 @@ import javax.swing.border.*;
  * transparency, etc, based on button state.  Can also handle a null raw icon for just drawing borders.
  * Can install, via installGenerated, a set of icons into any AbstractButton using our default VUE GUI scheme.
  *
- * @version $Revision: 1.14 $ / $Date: 2008-06-30 20:53:06 $ / $Author: mike $
+ * @version $Revision: 1.15 $ / $Date: 2009-10-30 06:03:24 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -151,7 +151,7 @@ public class VueButtonIcon implements Icon
      * paint the entire button as an icon plus it's visible icon graphic
      */
     public void paintIcon(Component c, Graphics g, int x, int y) {
-        if (debug||DEBUG.BOXES) System.out.println("painting "
+        if (debug||DEBUG.PAINT) System.out.println("painting "
                                                    + mRawIcon + " type " + mType + "(" + _types[mType]
                                                    + ") on " + c + " bg=" + c.getBackground());
         Graphics2D g2 = (Graphics2D) g;
