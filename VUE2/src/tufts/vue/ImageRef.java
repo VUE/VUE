@@ -10,6 +10,8 @@ import static tufts.vue.ImageRep.UNAVAILABLE;
 
 public class ImageRef
 {
+    public static final boolean IMMEDIATE_ICONS = true;
+    
     public static final int DEFAULT_ICON_SIZE = 128;
     public static final int[] ZERO_SIZE = ImageRep.ZERO_SIZE;
 
@@ -81,7 +83,7 @@ public class ImageRef
 
         if (iconKey != null) {
             if (PRE_LOAD_ICONS) {
-                synchronized (Images.getCacheLock()) {
+                //synchronized (Images.getCacheLock()) {
                     // we do this in a cache-lock to ensure the cache entry can't have
                     // been GC'd or changed from the time we check for it to the time we
                     // kick a load for it.  Could we dead-lock? -- Ideally, we want to
@@ -94,13 +96,13 @@ public class ImageRef
                         _icon = createPreLoadedIconRep(iconKey);
                         kickLoad(_icon);
                     }
-                }
+                    //}
             } else {
                 if (Images.hasCacheEntry(iconKey)) {
                     _icon = createPreLoadedIconRep(iconKey);
                 }
             }
-        }
+        } // _icon left as ImageRep.UNAVAILABLE
 
         // rep won't load until it attempts to draw:
         _full = ImageRep.create(this, _source);
@@ -140,9 +142,40 @@ public class ImageRef
     private static final java.awt.Color DebugGreen = new java.awt.Color(0,255,0,128);
     private static final java.awt.Color DebugBlue = new java.awt.Color(0,0,255,128);
     private static final java.awt.Color DebugYellow = new java.awt.Color(255,255,0,128);
+
+    private ImageRep pickRepToDraw(final ImageRep desired, final ImageRep backup) {
+        if (desired.available()) // the most common case at runtime
+            return desired; 
+        else if (backup.available())
+            return backup;
+        else if (desired == backup) {
+            // this is the common case at init
+            if (desired != ImageRep.UNAVAILABLE) {
+                // should never happen
+                Log.error("desired == backup != UNAVAILABLE: " + desired, new Throwable("HERE"));
+                reload();
+            }
+            return ImageRep.UNAVAILABLE;
+        }
+        else if (desired.loading())
+            return desired;
+        else if (backup.loading())
+            return backup;
+        else if (desired.hasError())
+            return desired;
+        else if (backup.hasError())
+            return backup;
+        else
+            return ImageRep.UNAVAILABLE;
+        
+    }
     
     private void drawBestAvailable(Graphics2D g, float width, float height)
     {
+        // We have two main tasks to accomplish here:
+        // (1) pick the best representation available to draw
+        // (2) start loading a better (or any) representation if we can
+        
         final ImageRep backupRep;
         final ImageRep desiredRep;
 
@@ -158,6 +191,10 @@ public class ImageRef
             onScreenMaxDim = (int) (scale * height);
         }
 
+        // We don't worry about coherency sync issues with _full & _icon here -- we should handle
+        // whatever's thrown at us on a best-available basis. The only thing we rely on is they
+        // should never be null.
+
         if (onScreenMaxDim <= PIXEL_THRESHOLD_FOR_ICON_DRAWING) {
             // todo: would be better to check actual iconRep size v.s. our constant,
             // tho this lets us not worry if it's been loaded or not
@@ -172,37 +209,31 @@ public class ImageRef
             backupRep = _icon;
         }
 
-        if (!desiredRep.available() && desiredRep != UNAVAILABLE)
-            kickLoad(desiredRep);
-
-        ImageRep drawRep;
-
-        if (desiredRep.available()) {
-            // best case: desired rep is already available
-            drawRep = desiredRep;
-        } else if (!backupRep.available()) {
-            // backup is not available -- draw the unavailable desiredRep anyway,
-            // and it will auto-kick a load (reconsititute)
-            drawRep = desiredRep;
-        } else
-            drawRep = backupRep;
-
-        if (_full.isTrackingProgress() && !desiredRep.available())
-            drawRep = _full;
+        final ImageRep drawRep = pickRepToDraw(desiredRep, backupRep);
 
         if (DEBUG.IMAGE && DEBUG.BOXES) {
             debug("  desired " + desiredRep);
             debug("   backup " + backupRep);
             debug("   toDraw " + drawRep);
         }
-
-        if (drawRep == ImageRep.UNAVAILABLE) {
-            // we don't even have an unloaded rep to draw and let
-            // auto-kick, so forcing loading of the full-rep:
-            kickLoad(_full);
-        }
         
-        drawRep.renderRep(g, width, height);
+        if (!desiredRep.available() && desiredRep != UNAVAILABLE) {
+            kickLoad(desiredRep);
+        } else if (!drawRep.available()) {
+            if (drawRep == UNAVAILABLE) { // if icon load failed, must create a new one (low memory) [NOT ENOUGH!]
+                if (DEBUG.Enabled) debug("forcing full load");
+                kickLoad(_full);
+            } else if (drawRep == _icon && drawRep.hasError()) {
+                //****************************************************************************************
+                // if icon load failed, must create a new one (low memory) [TODO: NOT ENOUGH]
+                //****************************************************************************************
+                if (DEBUG.Enabled) debug("forcing full load on bad icon");
+                kickLoad(_full);
+            } else
+                kickLoad(drawRep);
+        }
+
+        drawRep.renderRep(g, width, height); // before/after kickloads doesn't matter as long as reps don't auto-constitute
 
         if (DEBUG.BOXES) {
             final float hw = width / 2f;
@@ -287,7 +318,7 @@ public class ImageRef
         // tested.
 
         final ImageRep icon = ImageRep.create(this,
-                                              ImageSource.createIconSource(_source, hardFullImageRef, DEFAULT_ICON_SIZE),
+                                              ImageSource.createIconSource(_source, full, hardFullImageRef, DEFAULT_ICON_SIZE),
                                               ICONS_ARE_DISPOSABLE);
 
 
@@ -314,10 +345,31 @@ public class ImageRef
         // steep to recover well from if we wait to request immediate loads until memory
         // runs low.
         // ========================================================================================
+
+        //****************************************************************************************
+        //****************************************************************************************
+        // PROBLEM: if there are multiple Ref's to the same content, they'll all be
+        // in the listener-relay chain, but the FIRST one to get this callback is going
+        // to hang up the rest of the thread while generating the icon if we request
+        // an immediate load, and the the down-relay ImageRef's, which could at least
+        // draw the full-rep while waiting, will be waiting until the icon generation is done.
+        //
+        // Possible solutions:
+        // (1) handle icon generation in Images behind the scenes automatically somehow
+        // (2) leave as seperate, trailing tasks (ideal for the high-memory "normal" case), and
+        //     if we hit low-memory, change the task queue to prioritize icon tasks
+        // (3) just allow the problem above under low-memory, and handle via forcing
+        //     the right repaints/relaods to recover from low-memory
+        //
+        //****************************************************************************************
+        //****************************************************************************************
         
-        if (true || ImageRep.LOW_MEMORY_CONDITIONS)
+        if (IMMEDIATE_ICONS || ImageRep.LOW_MEMORY_CONDITIONS) {
+            // advantage: currently the best method to guarantee eventual loading
+            // under low memory conditions
+            // drawback: slower 1st-time starts when theres lots of memory
             requestImmediateLoad(icon);
-        else
+        } else
             kickLoad(icon);
 
         return icon;
@@ -338,14 +390,15 @@ public class ImageRef
         kickLoad(_full);
     }
 
-    private void debug(String s) 
+    private void debug(String s) {
+        Log.debug(String.format("%08x[%s] %s", System.identityHashCode(this), debugSRC(_source), s));
+    }
+    static String debugSRC(ImageSource s)
     {
-        // todo: put this in the image source?
-        String basename = _source.key.getPath();
-        final int lastSlash = basename.lastIndexOf('/');
-        if (lastSlash < (basename.length()-2))
-            basename = basename.substring(lastSlash+1, basename.length());
-        Log.debug(String.format("[%s] %s", basename, s));
+        if (s == null)
+            return "[null ImageSource]";
+        else
+            return s.debugName();
     }
 
     public boolean available() {
