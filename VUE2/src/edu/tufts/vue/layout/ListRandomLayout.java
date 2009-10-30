@@ -25,10 +25,13 @@ package edu.tufts.vue.layout;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.util.List;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import tufts.vue.*;
+import tufts.vue.ds.DataAction;
+import tufts.vue.ds.XmlDataSource;
 import edu.tufts.vue.metadata.MetadataList;
 import edu.tufts.vue.metadata.VueMetadataElement;
 import edu.tufts.vue.dataset.*;
@@ -51,40 +54,25 @@ public class ListRandomLayout extends Layout {
         Map<String, LWNode> nodeMap = new HashMap<String, LWNode>();
         Map<String, Integer> repeatMap = new HashMap<String, Integer>();
         LWMap map = new LWMap(mapName);
-        int count = 0;
-        // set map size of the map
-        double rowCount = ds.getRowList().size();
-        double goodSize = (int) Math.sqrt(rowCount) * 100;
-        MAP_SIZE = MAP_SIZE > goodSize ? MAP_SIZE : goodSize;
-        for (ArrayList<String> row : ds.getRowList()) {
-            String node1Label = row.get(0);
-            LWNode node1;
-            if (!nodeMap.containsKey(node1Label)) {
-                node1 = new LWNode();
-                node1.setLabel(node1Label);
-                for (int i = 1; i < row.size(); i++) {
-                    String value = row.get(i);
-                    String key = ((ds.getHeading() == null) || ds.getHeading().size() < i) ? DEFAULT_METADATA_LABEL : ds.getHeading().get(i);
-                    VueMetadataElement vm = new VueMetadataElement();
-                    vm.setKey(key);
-                    vm.setValue(value);
-                    vm.setType(VueMetadataElement.CATEGORY);
-                    node1.getMetadataList().addElement(vm);
-                }
-                if (ds.getHeading().size() > 1 && ds.getHeading().get(1).equals("resource")) {
-                    Resource resource = node1.getResourceFactory().get(new File(row.get(1)));
-                    node1.setResource(resource);
-                }
-                nodeMap.put(node1Label, node1);
-                node1.layout();
-                map.add(node1);
-            } else {
-                node1 = nodeMap.get(node1Label);
-            }
-            node1.setFillColor(Color.green);
-            node1.setLocation(MAP_SIZE * Math.random(), MAP_SIZE * Math.random());
-
+        XmlDataSource	datasource = new XmlDataSource(mapName,ds.getFileName());
+        Properties props = new Properties();
+		props.put("displayName", mapName);
+		props.put("name", mapName);
+		props.put("address", ds.getFileName());
+		datasource.setConfiguration(props);
+		VUE.getContentDock().setVisible(true);
+		VUE.getContentPanel().showDatasetsTab();
+		DataSetViewer.getDataSetList().addOrdered(datasource);
+		VUE.getContentPanel().getDSBrowser().getDataSetViewer().setActiveDataSource(datasource);			
+		DataSourceViewer.saveDataSourceViewer();		
+		List<LWComponent> nodes =  DataAction.makeRowNodes(datasource.getSchema());
+     
+        for(LWComponent component: nodes) {
+            map.add(component);
         }
+        LayoutAction.random.act(new LWSelection(nodes));
+         
+      
         return map;
     }
 
