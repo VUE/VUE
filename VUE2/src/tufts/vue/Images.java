@@ -45,7 +45,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.67 $ / $Date: 2009-10-29 04:05:23 $ / $Author: sfraize $
+ * @version $Revision: 1.68 $ / $Date: 2009-10-30 06:07:07 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -435,33 +435,48 @@ public class Images
             relayError(tail, src, msg);
         }
 
-        // todo: all these callbacks should be wrapped in try/catch
-        private void relaySize(Listener l, Object src, int w, int h, long bytes) {
+        protected final void relaySize(Listener l, Object src, int w, int h, long bytes) {
             if (l != null) {
-                if (DEBUG.IMAGE && l instanceof ListenerRelay == false)
-                    out("relay SIZE to " + tag(l));
-                l.gotImageSize(src, w, h, bytes);
+                try {
+                    if (DEBUG.IMAGE && l instanceof ListenerRelay == false)
+                        out("relay SIZE to " + tag(l));
+                    l.gotImageSize(src, w, h, bytes);
+                } catch (Throwable t) {
+                    Log.error("relaying size to " + Util.tags(l), t);
+                }
             }
         }
-        private void relayProgress(Listener l, Object src, long bytes, float pct) {
+        protected final void relayProgress(Listener l, Object src, long bytes, float pct) {
             if (l != null) {
-                if (DEBUG.IMAGE && DEBUG.META && l instanceof ListenerRelay == false)
-                    out(String.format("relay PROGRESS %.2f %5d to %s", pct, bytes, tag(l)));
-                l.gotImageProgress(src, bytes, pct);
+                try {
+                    if (DEBUG.IMAGE && DEBUG.META && l instanceof ListenerRelay == false)
+                        out(String.format("relay PROGRESS %.2f %5d to %s", pct, bytes, tag(l)));
+                    l.gotImageProgress(src, bytes, pct);
+                } catch (Throwable t) {
+                    Log.error("relaying progress to " + Util.tags(l), t);
+                }
             }
         }
-        private void relayImage(Listener l, Object src, Image image, ImageRef ref) {
+        protected final void relayImage(Listener l, Object src, Image image, ImageRef ref) {
             if (l != null) {
-                if (DEBUG.IMAGE && l instanceof ListenerRelay == false)
-                    out(Util.TERM_CYAN + "relay IMAGE to " + tag(l) + Util.TERM_CLEAR);
-                l.gotImage(src, image, ref);
+                try {
+                    if (DEBUG.IMAGE && l instanceof ListenerRelay == false)
+                        out(Util.TERM_CYAN + "relay IMAGE to " + tag(l) + Util.TERM_CLEAR);
+                    l.gotImage(src, image, ref);
+                } catch (Throwable t) {
+                    Log.error("relaying image to " + Util.tags(l), t);
+                }
             }
         }
-        private void relayError(Listener l, Object src, String msg) {
+        protected final void relayError(Listener l, Object src, String msg) {
             if (l != null) {
-                if (DEBUG.IMAGE && l instanceof ListenerRelay == false)
-                    out("relay ERROR to " + tag(head) + "; is=" + src);
-                l.gotImageError(src, msg);
+                try {
+                    if (DEBUG.IMAGE && l instanceof ListenerRelay == false)
+                        out("relay ERROR to " + tag(head) + "; is=" + src);
+                    l.gotImageError(src, msg);
+                } catch (Throwable t) {
+                    Log.error("relaying error to " + Util.tags(l), t);
+                }
             }
         }
 
@@ -497,14 +512,14 @@ public class Images
             imageSRC = is;
         }
 
-        @Override public void gotImageSize(Object imageSrc, int w, int h, long byteSize) {
+        @Override public synchronized void gotImageSize(Object imageSrc, int w, int h, long byteSize) {
             this.width = w;
             this.height = h;
             this.byteSize = byteSize;
             super.gotImageSize(imageSrc, w, h, byteSize);
         }
 
-        @Override public void gotImageProgress(Object imageSrc, long bytesSoFar, float _p) {
+        @Override public synchronized void gotImageProgress(Object imageSrc, long bytesSoFar, float _p) {
             this.bytesSoFar = bytesSoFar;
             // incoming percent is empty -- we fill it here
             // Note that the underlying raw stream may send us byte progress reports before
@@ -516,14 +531,14 @@ public class Images
                 super.gotImageProgress(imageSrc, bytesSoFar, percentProgress());
         }
         
-        @Override public void gotImage(Object imageSrc, Image image, ImageRef ref) {
+        @Override public synchronized void gotImage(Object imageSrc, Image image, ImageRef ref) {
             this.image = image;
             this.ref = ref;
             super.gotImage(imageSrc, image, ref);
 
         }
         
-        @Override public void gotImageError(Object imageSrc, String msg) {
+        @Override public synchronized void gotImageError(Object imageSrc, String msg) {
             this.errorMsg = msg;
             super.gotImageError(imageSrc, msg);
 
@@ -547,10 +562,11 @@ public class Images
                     return; 
                 }
                 if (tail == null)  {
-                    tail = newListener;
+                    super.tail = newListener;
                 } else {
-                    tail = new ListenerRelay(tail, newListener);
+                    super.tail = new ListenerRelay(tail, newListener);
                 }
+                deliverPartialResults(newListener);
             }
 
             // Note: WE CAN DEADLOCK if deliverPartialResults is in the sync.  E.g. --
@@ -563,30 +579,39 @@ public class Images
             // inherently dangerous tho, in that anything may generally happen during
             // client code callbacks, including calls back into this API.
             
-            // Deliver any results we've already got.  It's possible for this to happen
-            // even after we have all our results, if the image completed between the
-            // time we found the Loader in the cache, and the time the requestor was
-            // added as a listener.
-            
-            deliverPartialResults(newListener);
+            //deliverPartialResults(newListener);
 
         }
+
+        Image getImage() {
+            return image;
+        }
         
+        /**
+         * Deliver any results we've already got.  It's possible for this to happen
+         * even after we have all our results, if the image completed between the
+         * time we found the Loader in the cache, and the time the requestor was
+         * added as a listener.
+         */
         private void deliverPartialResults(Listener l)
         {
             if (DEBUG.IMAGE) out("DELIVERING PARTIAL RESULTS TO: " + tag(l));
             
             if (width > 0)
-                l.gotImageSize(imageSRC.original, width, height, byteSize);
+                relaySize(l, imageSRC.original, width, height, byteSize);
 
             if (bytesSoFar > 0)
-                l.gotImageProgress(imageSRC.original, bytesSoFar, percentProgress());
+                relayProgress(l, imageSRC.original, bytesSoFar, percentProgress());
 
             if (image != null)
-                l.gotImage(imageSRC.original, image, ref);
+                relayImage(l, imageSRC.original, image, ref);
+            
+            if (errorMsg != null) {
+                if (image != null)
+                    Log.warn("had both image and error: " + errorMsg + "; for " + l);
+                relayError(l, imageSRC.original, errorMsg);
+            }
 
-            if (errorMsg != null) 
-                l.gotImageError(imageSRC.original, errorMsg);
 
             if (DEBUG.IMAGE) out(" DELIVERED PARTIAL RESULTS TO: " + tag(l));
             
@@ -658,6 +683,18 @@ public class Images
             // the listener observe the existing loader.
             
             final Loader loader = (Loader) cacheEntry;
+
+            final Image loaderImage = loader.getImage();
+
+            if (loaderImage != null) {
+                // This can happen if a loader has completed, but hasn't left the cache yet.  We
+                // can just return the image immediately w/out delivering partial-result callbacks
+                // (or in this case, it would be full-result callbacks).  We're ignoring any sync
+                // issues on the call to loader.getImage(), because even if we see null when it's
+                // really there, the results will still be delivered by our fully synced partial
+                // results delivery, and we don't need any more sync issues to test.
+                return loaderImage;
+            }
 
             if (listener != null) {
                 //if (DEBUG.IMAGE) out("Adding us as listener to existing Loader");
@@ -762,12 +799,18 @@ public class Images
         private Thread _thread;
         private ThreadPoolExecutor _pool;
         private ExecutorService _poolInShutdown;
-        private final List<Runnable> _deferredTasks = new ArrayList();
+        private List<Runnable> _deferredTasks;
         private int _nextSmallerPoolSize;
             
         ImmediatelyResizablePool(int startSize) {
             _pool = createThreadPool(startSize);
-            _nextSmallerPoolSize = startSize / 2;
+            if (startSize > 1) {
+                //_nextSmallerPoolSize = startSize / 2;
+                // for now, any EOM will ramp us straight down to a single processing thread
+                _nextSmallerPoolSize = 1;
+            } else {
+                _nextSmallerPoolSize = 0;
+            }
         }
         
         public void run() {
@@ -779,28 +822,39 @@ public class Images
                         Log.error("should never happen: re-waiting on the same pool " + oldPool);
                     oldPool = _poolInShutdown;
                 }
+                //---------------------------------
                 waitForTermination(oldPool);
+                //---------------------------------
                 synchronized (this) {
                     _poolInShutdown = null;
-                    createAndLoadNewPool();
-                    Log.info("pool resized to " + _nextSmallerPoolSize);
-                    if (_nextSmallerPoolSize < 2) {
+                    createAndLoadNewPool(_nextSmallerPoolSize);
+                    Log.info(Util.TERM_YELLOW + "pool resized to " + _nextSmallerPoolSize + Util.TERM_CLEAR);
+                    if (_nextSmallerPoolSize <= 1) {
                         _nextSmallerPoolSize = 0;
                         _thread = null; // allow GC
+                        _deferredTasks = null; // allow GC
                         break; // no more resizes possible
-                    }
-                    _nextSmallerPoolSize /= 2;
-                    Log.info("next pool size: " + _nextSmallerPoolSize);
-                    try {
-                        Log.info("resizer sleeping...");
-                        wait();
-                        Log.info("resizer woke");
-                    } catch (InterruptedException e) {
-                        Log.error("interrupted " + this, e);
+                    } else {
+                        reduceNextPoolSize();
+                        Log.info("next pool size: " + _nextSmallerPoolSize);
+                        try {
+                            Log.info("resizer sleeping...");
+                            wait();
+                            Log.info("resizer woke");
+                        } catch (InterruptedException e) {
+                            Log.error("interrupted " + this, e);
+                        }
                     }
                 }
             }
             Log.info("resizer terminating, pool at size = 1, no further shrinkages possible");
+        }
+
+        private void reduceNextPoolSize() {
+            if (_nextSmallerPoolSize > 1)
+                _nextSmallerPoolSize /= 2;
+            else
+                _nextSmallerPoolSize = 1;
         }
 
         private synchronized void forkAndWaitForTermination(ExecutorService pool) {
@@ -817,26 +871,33 @@ public class Images
         private void waitForTermination(final ExecutorService poolInShutdown) {
             Log.info("awaitTermination...");
             try {
-                poolInShutdown.awaitTermination(15L, TimeUnit.SECONDS);
-                Log.info("termination complete: " + poolInShutdown);
+                if (poolInShutdown.awaitTermination(60L, TimeUnit.SECONDS)) {
+                    Log.info("pool terminated gracefully: " + poolInShutdown);
+                } else {
+                    Log.warn("pool shutdown timed out: " + poolInShutdown);
+                }
             } catch (InterruptedException e) {
                 Log.error("awaiting termination", e);
             }
         }
         
-        private synchronized void createAndLoadNewPool() {
-            _pool = createThreadPool(_nextSmallerPoolSize);
-            Log.debug("RESUBMIT: " + Util.tags(_deferredTasks));
+        private synchronized void createAndLoadNewPool(int size) {
+            if (size < 1) {
+                Log.error("createAndLoadNewPool, bad size " + size);
+                size = 1;
+            }
+            _pool = createThreadPool(size);
+            Log.info("resubmit: " + Util.tags(_deferredTasks));
             //Util.dump(_deferredTasks);
             for (Runnable r : _deferredTasks) {
                 _pool.submit(r);
             }
-            _deferredTasks.clear();
+            _deferredTasks = null;
         }
 
         public synchronized void submit(Runnable r) {
             if (_pool == null) {
-                Log.debug("DEFERRED " + r);
+                Log.info("deferred " + r);
                 _deferredTasks.add(r);
             } else {
                 _pool.submit(r);
@@ -862,9 +923,13 @@ public class Images
                     Log.debug("shutdownNow...");
                     dequeued = _pool.shutdownNow();
                 }
-                Log.debug("back from shutdown, drained=" + Util.tags(dequeued));
-                //Util.dump(out);
-                _deferredTasks.addAll(dequeued);
+                Log.info("back from shutdown, drained=" + Util.tags(dequeued));
+                if (DEBUG.Enabled) Util.dump(dequeued);
+                if (_deferredTasks == null) {
+                    _deferredTasks = new ArrayList(dequeued);
+                } else {
+                    _deferredTasks.addAll(dequeued);
+                }
 
                 final ExecutorService oldPool = _pool;
                 _pool = null;
@@ -872,7 +937,7 @@ public class Images
                 
             } else {
                 
-                _nextSmallerPoolSize /= 2;
+                reduceNextPoolSize();
                 Log.warn("stacked OutOfMemoryError conditions: severely low memory, pool size reduced to " + _nextSmallerPoolSize);
             }
         }
@@ -905,14 +970,6 @@ public class Images
         // rough test: on a 2-core laptop, our use-case came in at 1min v.s. 1:30min w/all cores in use
         // (all icons being generated)
 
-//         if (useCores <= 1 || DEBUG.SINGLE_THREAD) {
-//             // note: no real advantage to using newSingleThreadExecutor -- just prevents
-//             // anyone from reconfiguring it later.
-//             PoolForMinimallyBlockingTasks = Executors.newSingleThreadExecutor(ImageThreadFactory);
-//         } else {
-//             PoolForMinimallyBlockingTasks = Executors.newFixedThreadPool(useCores, ImageThreadFactory);
-//         }
- 
         int priority = 1; // should be lowest
 
         try {
@@ -922,11 +979,42 @@ public class Images
 
         ImageThreadPriority = priority; // for thread factory
         
-        //PoolForMinimallyBlockingTasks = createThreadPool(useCores);
         ProcessingPool = new ImmediatelyResizablePool(useCores);
     }
 
     private static ThreadPoolExecutor createThreadPool(int nThreads) {
+
+        // Note: LinkedBlockingQueue is a FIFO queue.  An argument could be made that
+        // LIFO would be better for drawing -- e.g., older requests may no longer be
+        // needed on screen.  Example: a map is loading triggering tons of image loads.
+        // A presentation is immediately started, requesting the the content at the
+        // start of the presentation (which is already queued up with a LoadTask from
+        // the original map paint) -- this content at the head of the presentation
+        // should now get priority over other content waiting to load.  This could
+        // include re-ordering the queue to move older items at the the head of a LIFO
+        // queue to the higher-priority tail if a second request comes in for the same
+        // content.  This might generally be supported through using a PriorityQueue /
+        // PriorityBlockingQueue.
+
+        // Tho note that with a PriorityQueue, there could be lots of queue shuffling
+        // during repaints of maps with lots unloaded images -- the entire queue could
+        // be rotated front to back to front again on each repaint.
+
+        // A wrapped LinkedBlockingDequeue forced to LIFO may do the trick
+
+        // An implementaiton that maximally adressed user concerns would record the
+        // canvas object draw to (e.g., MapViewer object: the full-screen v.s. standard
+        // map instances, etc) for each desired representation, and an API call for the
+        // application to report the current priority canvas (e.g., when a MapViewer
+        // gets application focus).  Within the priority canvas items, the most recently
+        // desired reps would take priority (e.g., the most recently requested content
+        // to be drawn to the full-screen viewer when in presentation mode has
+        // priority). As ImageRep's won't re-poll the cache (call getImage) if their
+        // alreadly loading (and that would be messy to enforce) this would require
+        // coordination with the ImageRef's desired reps each time their drawn.  This
+        // would probably be most simply done by changing ImageRef's to singleton
+        // instances that are stored in the cache.
+
         final ThreadPoolExecutor pool =
             new ThreadPoolExecutor(nThreads, nThreads,
                                    0L, TimeUnit.MILLISECONDS,
@@ -951,6 +1039,10 @@ public class Images
                 Log.info(this + "; nobody currently listening: image may be quietly cached: " + imageSRC);
         }
 
+        Image getImage() {
+            return relay.getImage();
+        }
+
         public void join() throws InterruptedException {
             if (DEBUG.Enabled) Log.debug(this + " has been joined...");
             Thread.currentThread().join();
@@ -972,6 +1064,8 @@ public class Images
             Log.debug(Util.TERM_YELLOW
                       + s + "---"
                       + getClass().getSimpleName()
+                      + "---"
+                      + imageSRC.debugName()
                       + "-----------------------------------------------------------------------------"
                       + Util.TERM_CLEAR
                       );
@@ -1319,9 +1413,27 @@ public class Images
     
     private static Image createAndCacheIcon(Listener listener, ImageSource iconSource)
     {
+        final Image hardImage;
+
+        if (iconSource.readable instanceof Image)
+            hardImage = (Image) iconSource.readable;
+        else if (iconSource.readable instanceof ImageRep)
+            hardImage = ((ImageRep) iconSource.readable).image();
+        else
+            throw new Error("iconSource had no image content: " + iconSource);
+
+        if (hardImage == null) {
+            Log.warn("hard image GC'd before icon creation, forcing low-memory conditions (" + iconSource.readable + ")");
+            // todo: nobody to catch this error and deliver gotImageError!
+            //throw new OutOfMemoryError("full-rep was GC'd: forcing low memory conditions");
+            if (listener != null) {
+                listener.gotImageError(iconSource, OUT_OF_MEMORY);
+                return null;
+            }
+        }
+        
         final Image iconImage =
-            createIcon((Image) iconSource.readable,
-                       iconSource.iconSize);
+            createIcon(hardImage, iconSource.iconSize);
 
         iconSource.readable = null; // lose hard reference to the original image so it can be GC'd
 
@@ -1474,7 +1586,7 @@ public class Images
             try {
                 image = readAndCreateImage(imageSRC, listener);
             } catch (OutOfMemoryError eom) {
-                Log.warn(Util.TERM_YELLOW + "out of memory reading " + imageSRC.readable + Util.TERM_CLEAR);
+                Log.warn(Util.TERM_YELLOW + "out of memory reading " + imageSRC.readable + ": " + eom + Util.TERM_CLEAR);
                 if (Thread.currentThread() instanceof ImgThread) {
                     Log.info("reader sleeping & retrying...");
                     try {
