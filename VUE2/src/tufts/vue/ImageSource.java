@@ -48,8 +48,8 @@ class ImageSource {
         }
     }
 
-    public static ImageSource createIconSource(ImageSource is, java.awt.Image hardImage, int size) {
-        return new ImageSource(is, hardImage, size);
+    public static ImageSource createIconSource(ImageSource is, ImageRep fullRep, java.awt.Image hardFullImage, int size) {
+        return new ImageSource(is, fullRep, hardFullImage, size);
     }
         
     /** @return a key that could be used for an icon version of this image */
@@ -65,16 +65,22 @@ class ImageSource {
     }
     
     /** create an icon entry */
-    private ImageSource(ImageSource is, java.awt.Image hardImageSource, int iconSize) {
+    private ImageSource(ImageSource is, ImageRep softImageSource, java.awt.Image hardImageSource, int iconSize) {
         if (iconSize <= 0)
             throw new IllegalArgumentException("bad icon size " + iconSize);
         this.original = is.original;
         this.iconSize = iconSize;
-        // Note: this.readable must be cleared later to ensure
-        // disposability. It is provided and held as a reference here
-        // exactly so that it is NOT disposable until we're done with it
-        // (e.g., created an icon from it).
-        this.readable = hardImageSource; 
+
+        if (ImageRef.IMMEDIATE_ICONS) {
+            // drawback to this case: lots of memory contention when we run low
+            
+            // Note: this.readable must be cleared later to ensure
+            // disposability. It is provided and held as a reference here
+            // exactly so that it is NOT disposable until we're done with it
+            // (e.g., created an icon from it).
+            this.readable = hardImageSource; 
+        } else
+            this.readable = softImageSource;
         this.key = makeIconKey(is.key, iconSize);
         this.resource = null;
         this._cacheFile = new File(Images.keyToCacheFileName(this.key));
@@ -219,6 +225,24 @@ class ImageSource {
         else
             return true;
     }
+
+    String debugName()
+    {
+        if (key == null)
+            return "[null ImageSource.key]";
+        
+        try {
+            // todo: put this in the image source?
+            String basename = key.getPath();
+            final int lastSlash = basename.lastIndexOf('/');
+            if (lastSlash < (basename.length()-2))
+                basename = basename.substring(lastSlash+1, basename.length());
+            return basename;
+        } catch (Throwable t) {
+            return "[" + t.toString() + "]";
+        }
+    }
+    
 
     @Override public String toString() {
         final StringBuilder s = new StringBuilder("IS[");
