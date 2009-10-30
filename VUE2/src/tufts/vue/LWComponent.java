@@ -48,7 +48,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.503 $ / $Date: 2009-10-27 15:03:01 $ / $Author: sfraize $
+ * @version $Revision: 1.504 $ / $Date: 2009-10-30 06:05:36 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -6434,6 +6434,9 @@ public class LWComponent
 
     /** default impl: does nothing -- meant to be overriden */
     protected void drawImpl(DrawContext dc) {}
+
+    /** default impl: does nothing -- meant to be overriden */
+    protected void preCacheContent() {}
 
     protected LWChangeSupport getChangeSupport() {
         return mChangeSupport;

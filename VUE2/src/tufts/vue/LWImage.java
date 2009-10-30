@@ -575,6 +575,10 @@ public class LWImage extends LWComponent
     private ImageRef ref() {
         return mImageRef;
     }
+
+    @Override protected void preCacheContent() {
+        ref().preLoadFullSize();
+    }    
     
     private void drawImage(DrawContext dc)
     {
