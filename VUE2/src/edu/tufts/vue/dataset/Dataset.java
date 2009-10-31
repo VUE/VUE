@@ -59,6 +59,9 @@ public class Dataset {
     public void setFileName(String fileName) {
         this.fileName = fileName;
     }
+    public String getFileName() {
+    	return this.fileName;
+    }
     public void setHeading(ArrayList<String> heading) {
         this.heading = heading;
     }
