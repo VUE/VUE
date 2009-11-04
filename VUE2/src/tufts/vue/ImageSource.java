@@ -71,16 +71,37 @@ class ImageSource {
         this.original = is.original;
         this.iconSize = iconSize;
 
-        if (ImageRef.IMMEDIATE_ICONS) {
-            // drawback to this case: lots of memory contention when we run low
+        if (Images.DELAYED_ICONS) {
+            // Even if we end up getting DELAYED_ICONS to work under low-mem conditions,
+            // we may still want to keep the hard image source, tho that somewhat defeats
+            // the purpose of the fancy low-memory recovery code we'd need anyway to handle
+            // DELAYED_ICONS.  E.g., hard references in a bunch of IconTasks at the back
+            // of the queue when we run out of memory makes recovery even harder as we'd
+            // really want to flush those IconTasks to allow GC and free up space before
+            // proceeding single-threaded through outstanding image loads & icon tasks.
             
-            // Note: this.readable must be cleared later to ensure
-            // disposability. It is provided and held as a reference here
-            // exactly so that it is NOT disposable until we're done with it
-            // (e.g., created an icon from it).
-            this.readable = hardImageSource; 
-        } else
             this.readable = softImageSource;
+
+            // The problem attempting the DELAYED_ICONS impl: ImageRep will go bad when
+            // we clear this, tho that's easy to fix.  The big problem is an icon
+            // ImageRep would need to be able to trigger the reconstitute of the
+            // lost full rep, and then trigger the icon generation again when it
+            // comes back in.
+
+        } else {
+            
+            this.readable = hardImageSource;
+            
+            // drawback to this impl: lots of memory contention when we run low (longer
+            // to recover), tho mainly if we were attempting the DELAYED_ICONS impl.
+            // advantage: we know sooner if we're running low on memory, and Images EOM
+            // recovery doesn't need to be as sophisticated.
+
+            // Note: this.readable must be cleared later to ensure disposability. It is
+            // provided and held as a reference here exactly so that it is NOT
+            // disposable until we're done with it (e.g., created an icon from it).
+        }
+        
         this.key = makeIconKey(is.key, iconSize);
         this.resource = null;
         this._cacheFile = new File(Images.keyToCacheFileName(this.key));

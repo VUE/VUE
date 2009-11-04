@@ -10,7 +10,7 @@ import static tufts.vue.ImageRep.UNAVAILABLE;
 
 public class ImageRef
 {
-    public static final boolean IMMEDIATE_ICONS = true;
+    public static final boolean IMMEDIATE_ICONS = false;
     
     public static final int DEFAULT_ICON_SIZE = 128;
     public static final int[] ZERO_SIZE = ImageRep.ZERO_SIZE;
@@ -247,7 +247,7 @@ public class ImageRef
             }
             if (drawRep != desiredRep) {
                 // we're waiting for a better rep
-                g.setColor(DebugBlue);
+                g.setColor(DebugRed);
                 r.setRect(0, hh, hw, hh);
                 g.fill(r);
             }
@@ -311,66 +311,32 @@ public class ImageRef
         // to contention that's very difficult to recover from should we start running out of
         // memory.
 
-        // If we ever want to try another method for handling that case, we could pass put the full
-        // ImageRep into the icon-source ImageSource instead of the hard image reference, and
-        // attempt to reconstitute it if it's been GC'd once the IconTask get's around to running.
-        // That would create a different kind of complex contention that would need to be
-        // tested.
+        // Although an incompletely impl, Images.DELAYED_ICONS uses the full ImageRep into the
+        // icon-source ImageSource instead of the hard image reference, and could attempt to
+        // reconstitute it if it's been GC'd once the IconTask get's around to running.  That
+        // implies a bunch more complexity to the code.  We're going with simpler and more reliable
+        // for now.
 
         final ImageRep icon = ImageRep.create(this,
                                               ImageSource.createIconSource(_source, full, hardFullImageRef, DEFAULT_ICON_SIZE),
                                               ICONS_ARE_DISPOSABLE);
 
+        // For ideal memory usage, we'd create the icon immediately in this thread, but we don't
+        // actually want to do this: if there are multiple Ref's to the same content, they'll all
+        // be in the listener-relay chain, but the FIRST one to get this callback is going to hang
+        // up the rest of the thread while generating the icon if we request an immediate load, and
+        // the down-relay ImageRef's, which could at least draw the full-rep while waiting, will be
+        // waiting until the icon generation is done.  Furthermore: this will trigger callbacks
+        // with icon data to nodes, THEN the backed up relay's will fire, making it look like the
+        // full rep has arrived after the icon, which explains why when we tried this some of the
+        // images in our repeats test are displaying the full image AFTER it's been generated, tho
+        // that gets fixed on the first repaint after the updates.
 
-        
-        //========================================================================================
-        // The reason we always want to request a load immediately is so that we can create the
-        // icon ASAP while the original image is still in memory, just in case we're running low --
-        // doing it now in the existing thread will allow the full image to be garbage collected as
-        // soon as possible if that's needed.  Note that we can only request an immediate load --
-        // if another thread has already started generating this icon, we'll get an an immediate
-        // return with a callback for the results later.
-        //
-        // A fancier impl might allow icons to generate later, which provides faster initial map
-        // painting and a better user experience under "normal" conditions (plenty of RAM), but
-        // switches to the conservative method once any OutOfMemoryError is seen.  This is still
-        // only a tradeoff for the the 1st time a map with images loads tho -- once icons are
-        // generated everything starts up very fast -- faster than any previous version of VUE.
-        //
-        // -----------------------------------------------------------------------------
-        //
-        // Note: the Images thread pool can now shrink itself dynamically for better
-        // performance, but the "wall" the application hits when we run out of memory
-        // with lots of waiting icon tasks holding hard-refs to image data is still to
-        // steep to recover well from if we wait to request immediate loads until memory
-        // runs low.
-        // ========================================================================================
+        // The issue of generating icons sooner rather than later is how handled
+        // in Images by giving higher priority to icon generating tasks than image loading tasks,
+        // and by keeping a hard-ref to the image in the ImageSource.
 
-        //****************************************************************************************
-        //****************************************************************************************
-        // PROBLEM: if there are multiple Ref's to the same content, they'll all be
-        // in the listener-relay chain, but the FIRST one to get this callback is going
-        // to hang up the rest of the thread while generating the icon if we request
-        // an immediate load, and the the down-relay ImageRef's, which could at least
-        // draw the full-rep while waiting, will be waiting until the icon generation is done.
-        //
-        // Possible solutions:
-        // (1) handle icon generation in Images behind the scenes automatically somehow
-        // (2) leave as seperate, trailing tasks (ideal for the high-memory "normal" case), and
-        //     if we hit low-memory, change the task queue to prioritize icon tasks
-        // (3) just allow the problem above under low-memory, and handle via forcing
-        //     the right repaints/relaods to recover from low-memory
-        //
-        //****************************************************************************************
-        //****************************************************************************************
-        
-        if (IMMEDIATE_ICONS || ImageRep.LOW_MEMORY_CONDITIONS) {
-            // advantage: currently the best method to guarantee eventual loading
-            // under low memory conditions
-            // drawback: slower 1st-time starts when theres lots of memory
-            requestImmediateLoad(icon);
-        } else
-            kickLoad(icon);
+        kickLoad(icon);
 
         return icon;
         
@@ -426,8 +392,8 @@ public class ImageRef
     @Override public String toString() {
         //return "ImageRef[full=" + fullRep() + "; icon=" + iconRep() + "; src=" + _source + "]";
         
-        //return String.format("ImageRef[src=%s\n\ticon: %s\n\tfull: %s]", _source, _icon, _full);
-        return String.format("ImageRef[full: %s\n\ticon: %s\n\tsrc: %s]", _full, _icon, _source);
+        return String.format("ImageRef[full=%s icon=%s]", _full, _icon.handle());
+        //return String.format("ImageRef[full: %s\n\ticon: %s\n\tsrc: %s]", _full, _icon, _source);
     }
 
 }

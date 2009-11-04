@@ -21,8 +21,6 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
 
     static final int[] ZERO_SIZE = new int[2];
 
-    static volatile boolean LOW_MEMORY_CONDITIONS = false;
-    
     private static interface Ref<T> {
         T get();
         boolean isLoader();
@@ -80,7 +78,9 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
             @Override protected Image image() { return (Image) error(); } // don't need override now as renderRep override covers
             @Override protected Image reconstitute() { return (Image) error(); }
             @Override protected void cacheData(Image i, String s) { error(); }
-            @Override void renderRep(Graphics2D g, float width, float height) { fillRect(g, width, height, Color.orange); }
+            @Override void renderRep(Graphics2D g, float width, float height) {
+                fillRect(g, width, height, DEBUG.Enabled ? Color.orange : LoadingColor);
+            }
             @Override public String toString() { return "REP.UNAVAILABLE"; }
             @Override Ref newRef(Image o) { return (Ref) error(); }
             private Object error() { throw new Error("constant-class"); }
@@ -150,6 +150,11 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
         return _handle == IMG_ERROR || _handle == IMG_ERROR_MEMORY;
     }
 
+    Ref handle() {
+        return _handle;
+    }
+    
+
     protected Image reconstitute() {
         return reconstitute(false);
     }
@@ -215,16 +220,42 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
     }
 
     private void debug(String s) {
-        Log.debug(String.format("%08x[%s] %s", System.identityHashCode(this), ImageRef.debugSRC(_data), s));
+        debug(s, false);
+    }
+    private void debug(String s, boolean dumpStack) {
+        String msg = String.format("%08x[%s] %s", System.identityHashCode(this), ImageRef.debugSRC(_data), s);
+        if (dumpStack)
+            Log.debug(msg, new Throwable("HERE"));
+        else
+            Log.debug(msg);
     }
 
     private void setHandle(Ref r, String debug) {
-        if (DEBUG.Enabled) debug("setHandle " + Util.tags(r) + " " + debug);
+        if (DEBUG.Enabled) {
+            String t;
+            if (r instanceof NullRef && !(r instanceof ProgressRef))
+                t = r.toString();
+            else
+                t = Util.tags(r);
+            debug("setHandle " + t + "; " + debug, false);
+        }
         _handle = r;
     }
 
     protected void cacheData(Image image, String debug) {
+        if (image() == image) {
+            if (DEBUG.Enabled) debug(" re-cache:"+debug);
+            return;
+        }
+
+        if (_data.readable instanceof Image) {
+            // In case this was a runtime generated icon, we MUST be certian to
+            // null any original raw image data in the source to allow for GC.
+            _data.readable = null;
+        }
+        
         synchronized (this) {
+
             // Recording the size here should be redundant to the gotImageSize we've already received,
             // tho there are some special cases where that call may not arrive (e.g., icon generation).
             // note: multi-threaded coherency agaist AWT thread for the next 3 stores,
@@ -232,7 +263,7 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
             setSize(image.getWidth(null),
                     image.getHeight(null));
             // record the new width & height first before installing the handle just in case
-            setHandle(newRef(image), "cacheData:"+debug);
+            setHandle(newRef(image), "[cacheData/"+debug+"]");
         }
 
         // We do not include the below notify in the sync.  AWT blocks we're avoiding:
@@ -298,11 +329,11 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
     public void gotImageError(Object imageSrc, String msg) {
         // todo: distinguish between recoverable v.s. non-recoverable (e.g. OutOfMemory v.s. no image file)
         if (msg == Images.OUT_OF_MEMORY) {
-            LOW_MEMORY_CONDITIONS = true;
             setHandle(IMG_ERROR_MEMORY, "gotMemoryError");
         } else {
             setHandle(IMG_ERROR, "gotError");
         }
+        //_ref.notifyRepHasProgress(this, -1); // force a repaint (don't: can create thrashing loop us during low-memory conditions)
     }
 
     private Image get(final Ref<Image> handle) {

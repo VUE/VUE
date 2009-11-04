@@ -21,6 +21,7 @@ import static tufts.vue.Resource.*;
 
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.lang.ref.*;
 import java.net.URL;
 import java.net.URI;
@@ -45,7 +46,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.68 $ / $Date: 2009-10-30 06:07:07 $ / $Author: sfraize $
+ * @version $Revision: 1.69 $ / $Date: 2009-11-04 22:27:57 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -53,6 +54,27 @@ public class Images
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(Images.class);
 
     private static final boolean ALLOW_HIGH_QUALITY_ICONS = true;
+
+    private static volatile int LOW_MEMORY_COUNT = 0;
+
+    // Setting DELAYED_ICONS to true allows maps with lots of images paint something for
+    // each image much faster the first time they're loaded under plentiful memory
+    // conditions, but cause horrible thrashing under low memory conditions, and it
+    // would take even more complexity than we've already got to fix that, so for now
+    // we're just going with immediately created icons.
+    static final boolean DELAYED_ICONS = false;
+
+    private static synchronized void setLowMemory(Object cause) {
+        if (DEBUG.Enabled) Log.debug("setLowMemory " + LOW_MEMORY_COUNT + ": " + Util.tags(cause));
+        
+        final boolean first = (LOW_MEMORY_COUNT == 0);
+        LOW_MEMORY_COUNT++;
+        ProcessingPool.shrinkIfPossible(first);
+    }
+
+    public static boolean lowMemoryConditions() {
+        return LOW_MEMORY_COUNT > 0;
+    }
     
     public static VueAction ClearCacheAction = new VueAction("Empty Image Cache") {
             public void act() { Cache.clear(); }
@@ -495,9 +517,16 @@ public class Images
      * Track what's been delivered, to send to listeners that are added when
      * partial results have already been delivered.
      */
+    
+    // note: would be simpler to have a single ImageResult/ImageProgress object that
+    // slowly accumulates it's results, and is reported to a single gotImageData call,
+    // with an added event type argument (size/progress/image/icon/error) An ImageRep
+    // might be tempting to serve this purpose, but that doesn't really make sense: the
+    // ImageRep doesn't need to know things like byteSize or bytesSoFar.
+    
     private static class CachingRelayer extends ListenerRelay
     {
-        private final ImageSource imageSRC;
+        private ImageSource imageSRC;
         
         private Image image;
         private ImageRef ref;
@@ -754,7 +783,7 @@ public class Images
 
         if (cachedImage != null) {
             if (listener != null) {
-                // immediately callback the listener with the result
+                // THE IMAGE WAS IN THE CACHE: immediately callback the listener with the result
                 listener.gotImage(imageSRC.original,
                                   cachedImage,
                                   null);
@@ -792,17 +821,17 @@ public class Images
      * pool at any time.  This needs to happen ASAP if we start getting
      * OutOfMemoryError's.
      */
-    private static class ImmediatelyResizablePool implements Runnable {
+    private static class ImmediatelyReducablePool implements Runnable {
         
-        private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(ImmediatelyResizablePool.class);
+        private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(ImmediatelyReducablePool.class);
 
-        private Thread _thread;
+        private Thread _shutdownThread;
         private ThreadPoolExecutor _pool;
         private ExecutorService _poolInShutdown;
         private List<Runnable> _deferredTasks;
         private int _nextSmallerPoolSize;
             
-        ImmediatelyResizablePool(int startSize) {
+        ImmediatelyReducablePool(int startSize) {
             _pool = createThreadPool(startSize);
             if (startSize > 1) {
                 //_nextSmallerPoolSize = startSize / 2;
@@ -814,7 +843,7 @@ public class Images
         }
         
         public void run() {
-            Log.info("resizer started");
+            Log.info("reducer started");
             ExecutorService oldPool = null;
             for (;;) {
                 synchronized (this) {
@@ -831,7 +860,7 @@ public class Images
                     Log.info(Util.TERM_YELLOW + "pool resized to " + _nextSmallerPoolSize + Util.TERM_CLEAR);
                     if (_nextSmallerPoolSize <= 1) {
                         _nextSmallerPoolSize = 0;
-                        _thread = null; // allow GC
+                        _shutdownThread = null; // allow GC
                         _deferredTasks = null; // allow GC
                         break; // no more resizes possible
                     } else {
@@ -859,10 +888,10 @@ public class Images
 
         private synchronized void forkAndWaitForTermination(ExecutorService pool) {
             _poolInShutdown = pool;
-            if (_thread == null) {
+            if (_shutdownThread == null) {
                 // if we never run out of memory, we'll never need to start this thread
-                _thread = new Thread(this, "PoolResizer");
-                _thread.start();
+                _shutdownThread = new Thread(this, "PoolReducer");
+                _shutdownThread.start();
             } else {
                 notify();
             }
@@ -887,12 +916,19 @@ public class Images
                 size = 1;
             }
             _pool = createThreadPool(size);
-            Log.info("resubmit: " + Util.tags(_deferredTasks));
+
+            loadTasks(_deferredTasks);
+
+            _deferredTasks = null;
+        }
+
+        private synchronized void loadTasks(Collection<Runnable> tasks) {
+
+            Log.info("resubmit: " + Util.tags(tasks));
             //Util.dump(_deferredTasks);
-            for (Runnable r : _deferredTasks) {
+            for (Runnable r : tasks) {
                 _pool.submit(r);
             }
-            _deferredTasks = null;
         }
 
         public synchronized void submit(Runnable r) {
@@ -903,11 +939,28 @@ public class Images
                 _pool.submit(r);
             }
         }
+
+        /** re-load the queue as the priority mechanism has changed -- any IconTasks need to be sorted to the front */
+        private synchronized void resortQueue() {
+            final BlockingQueue q = _pool.getQueue();
+
+            if (q.size() > 1) {
+                Log.info("resorting queue " + Util.tags(q));
+                final Collection<Runnable> qlist = new ArrayList(q.size());
+                q.drainTo(qlist);
+                loadTasks(qlist);
+            } else {
+                Log.info("queue doesn't need re-sorting: " + Util.tags(q));
+            }
+        }
         
-        public synchronized void shrinkIfPossible()
+        public synchronized void shrinkIfPossible(boolean firstLowMemory)
         {
-            if (_nextSmallerPoolSize < 1)
+            if (_nextSmallerPoolSize < 1) {
+                if (DELAYED_ICONS && firstLowMemory)
+                    resortQueue();
                 return;
+            }
 
             if (_pool != null) {
                 // if EOM's stack up, we may try and shrink while
@@ -934,16 +987,23 @@ public class Images
                 final ExecutorService oldPool = _pool;
                 _pool = null;
                 forkAndWaitForTermination(oldPool);
+
+                // note: will not need to re-sort queue: is automatically resorted when
+                // _deferredTasks is re-loaded
                 
             } else {
-                
+
                 reduceNextPoolSize();
-                Log.warn("stacked OutOfMemoryError conditions: severely low memory, pool size reduced to " + _nextSmallerPoolSize);
+
+                if (DELAYED_ICONS && firstLowMemory)
+                    resortQueue();
+                
+                Log.warn("stacked OutOfMemoryError conditions: next pool size reduced to " + _nextSmallerPoolSize);
             }
         }
     }
 
-    private static final ImmediatelyResizablePool ProcessingPool;
+    private static final ImmediatelyReducablePool ProcessingPool;
 
     private static BlockingQueue<Runnable> TaskQueue;
     
@@ -979,7 +1039,7 @@ public class Images
 
         ImageThreadPriority = priority; // for thread factory
         
-        ProcessingPool = new ImmediatelyResizablePool(useCores);
+        ProcessingPool = new ImmediatelyReducablePool(useCores);
     }
 
     private static ThreadPoolExecutor createThreadPool(int nThreads) {
@@ -996,14 +1056,14 @@ public class Images
         // content.  This might generally be supported through using a PriorityQueue /
         // PriorityBlockingQueue.
 
-        // Tho note that with a PriorityQueue, there could be lots of queue shuffling
-        // during repaints of maps with lots unloaded images -- the entire queue could
-        // be rotated front to back to front again on each repaint.
+        // Tho note that with an updating-on-request PriorityQueue, there could be lots of queue
+        // shuffling during repaints of maps with lots unloaded images -- the entire queue could be
+        // rotated front to back to on each repaint as every unloaded image is re-requested.
 
         // A wrapped LinkedBlockingDequeue forced to LIFO may do the trick
 
         // An implementaiton that maximally adressed user concerns would record the
-        // canvas object draw to (e.g., MapViewer object: the full-screen v.s. standard
+        // canvas object drawn to (e.g., MapViewer object: the full-screen v.s. standard
         // map instances, etc) for each desired representation, and an API call for the
         // application to report the current priority canvas (e.g., when a MapViewer
         // gets application focus).  Within the priority canvas items, the most recently
@@ -1011,25 +1071,117 @@ public class Images
         // to be drawn to the full-screen viewer when in presentation mode has
         // priority). As ImageRep's won't re-poll the cache (call getImage) if their
         // alreadly loading (and that would be messy to enforce) this would require
-        // coordination with the ImageRef's desired reps each time their drawn.  This
+        // coordination with the ImageRef's desired reps each time they're drawn.  This
         // would probably be most simply done by changing ImageRef's to singleton
         // instances that are stored in the cache.
 
-        final ThreadPoolExecutor pool =
-            new ThreadPoolExecutor(nThreads, nThreads,
-                                   0L, TimeUnit.MILLISECONDS,
-                                   TaskQueue = new LinkedBlockingQueue<Runnable>(),
-                                   ImageThreadFactory);
+        final ThreadPoolExecutor pool;
+
+        if (true) {
+            pool = new PriorityThreadPool(nThreads);
+        } else {
+            pool = new ThreadPoolExecutor(nThreads, nThreads,
+                                          0L, TimeUnit.MILLISECONDS,
+                                          /*TaskQueue =*/ new LinkedBlockingQueue<Runnable>(),
+                                          ImageThreadFactory);
+        }
 
         Log.info("created thread pool: " + Util.tags(pool) + "; maxSize=" + pool.getMaximumPoolSize());
         
         return pool;
     }
 
+    private static class PriorityThreadPool extends ThreadPoolExecutor {
+
+        private int lowMemoryRepaints;
+        
+        PriorityThreadPool(int nThreads) {
+            super(nThreads, nThreads,
+                  0L, TimeUnit.MILLISECONDS,
+                  new PriorityBlockingQueue<Runnable>(),
+                  ImageThreadFactory);
+        }
+
+        @Override protected <T> RunnableFuture<T> newTaskFor(Runnable runnable, T value) {
+            if (runnable instanceof RunnableFuture) {
+                if (DEBUG.Enabled) Log.debug("resubmit " + runnable);
+                return (RunnableFuture) runnable; // for re-submits
+            } else {
+                if (DEBUG.IMAGE) Log.debug("newTaskFor runnable " + Util.tags(runnable));
+                return new PriorityTask((Loader)runnable);
+            }
+        }
+
+        @Override protected <T> RunnableFuture<T> newTaskFor(Callable<T> callable) {
+            throw new UnsupportedOperationException("newTaskFor Callable; " + callable);
+        }
+
+        @Override protected void afterExecute(Runnable r, Throwable t) {
+            if (DEBUG.IMAGE) Log.debug("AFTER-EXECUTE " + Util.tags(r) + "; ex=" + t); // don't toString the task -- members flushed for GC
+            // Only allow a few of these, otherwise we can get continuous looping failures if
+            // memory becomes full enough.  This is mainly needed for recovery from the first
+            // low-memory failure.
+            //if (DEBUG.Enabled) Util.dump(Cache);
+            if (lowMemoryRepaints < 3 && lowMemoryConditions() && !isShutdown() && getQueue().isEmpty()) {
+                java.awt.Component v = VUE.getActiveViewer();
+                if (v != null) {
+                    Log.info("LOW-MEMORY-REPAINT " + lowMemoryRepaints);
+                    v.repaint();
+                    lowMemoryRepaints++;
+                }
+            }
+            if (r instanceof Loader)
+                ((Loader)r).flushForGC();
+            
+        }
+    }
+
+
+    /** A task that can have a priority, that defaults to FIFO if priorities are equal */
+    private static final class PriorityTask extends FutureTask
+        implements Comparable<PriorityTask>
+    {
+        final static AtomicLong seq = new AtomicLong();
+        final long seqNum;
+        final Loader loader; // is Loader just for getPriority -- could be a Comparable
+        public PriorityTask(Loader loader) {
+            super(loader, null);
+            this.loader = loader;
+            this.seqNum = seq.getAndIncrement();
+        }
+        public int compareTo(PriorityTask other) {
+            if (!(other instanceof PriorityTask)) {
+                Log.error("can't compare to " + Util.tags(other));
+                return 0;
+            }
+            final int diff = other.priority() - priority();
+            final int priority;
+            if (diff == 0) {
+                //priority = seqNum > other.seqNum ? -1 : 1; // follow LIFO sequence
+                priority = seqNum > other.seqNum ? 1 : -1; // follow FIFO sequence
+                // FIFO is better for VUE right now, as it gives us better
+                // control over pre-caching when kicking off a presentation.
+            } else {
+                priority = diff; // follow task-type priority
+            }
+            return priority;
+        }
+
+        private int priority() {
+            return loader.getPriority();
+        }
+        
+        @Override public String toString() {
+            return "PriorityTask[#" + seqNum + " " + loader + "]";
+        }
+
+    }
+
+    // what was the problem with making the Loader a FutureTask itself?
     static abstract class Loader implements Runnable
     {
-        final CachingRelayer relay;
-        final ImageSource imageSRC; 
+        CachingRelayer relay;
+        ImageSource imageSRC; 
 
         Loader(ImageSource _imageSRC, Listener firstRelay) 
         {
@@ -1049,8 +1201,25 @@ public class Images
         }
 
         public final void run() {
-            runToResult();
+            try {
+                runToResult();
+            } catch (OutOfMemoryError eom) {
+                setLowMemory(eom);
+                Log.error("Uncaught EOM running " + this, eom);
+            } catch (Throwable t) {
+                Log.error("Uncaught Exception running " + this, t);
+            }
         }
+
+        private void flushForGC() {
+            // assist GC -- may help it run slightly faster:
+            imageSRC = null;
+            relay.imageSRC = null;
+            relay.image = null; // this is the most important
+            relay.ref = null;
+            relay = null;
+        }
+        
 
         /** @return an Image that's already been put into the cache */
         private final Image runToResult() {
@@ -1084,8 +1253,13 @@ public class Images
             relay.addListener(newListener);
         }
 
+        public int getPriority() {
+            return 5;
+        }
+        
+
         @Override public String toString() {
-            return String.format("%s[%s head=%s]", getClass().getSimpleName(), imageSRC, relay.head);
+            return String.format("%s[%s ->%s]", getClass().getSimpleName(), imageSRC.debugName(), relay.head);
         }
 
     }
@@ -1111,8 +1285,32 @@ public class Images
             // callback.
             return createAndCacheIcon(relay, imageSRC);
         }
+        public int getPriority() {
+            // Note: if we change from normal to low-mem conditions with DELAYED_ICONS
+            // enabled, the priority of IconTasks jumps from lowest to highest, so to
+            // ensure that the next task pulled is an IconTask if there are any in the
+            // queue, the queue will need to be re-sorted when memory conditions change.
+            if (DELAYED_ICONS) {
+                // A fancier impl that allows us to generate icons later, which provides faster initial map
+                // painting and a better user experience under "normal" conditions (plenty of RAM), but
+                // switches to the conservative method once any OutOfMemoryError is seen.  This is still
+                // only a tradeoff for the the 1st time a map with images loads tho -- once icons are
+                // generated everything starts up very fast -- faster than any previous version of VUE.
+                // This impl would still need work: recovering from the "wall" that's hit when memory
+                // runs low is much more complicated.
+                return lowMemoryConditions() ? 10 : 1;
+            } else {
+                // In this impl we just give IconTask's the highest priority is so that
+                // we can create the icon ASAP while original image is still in memory
+                // (normall forced there via a hard-ref in an ImageSource).  We can't
+                // normally toss the original full image until the icon is generated,
+                // which puts a big strain on memory.
+                return 10;
+            }
+        }
     }
 
+    
     /** a marker class */
     private static final class ImgThread extends Thread {
         ImgThread(Runnable r, String name) {
@@ -1152,78 +1350,6 @@ public class Images
         }        
     }
     
-//     private static interface Loader extends Runnable {
-//         void addListener(Listener l);
-//         void join() throws InterruptedException;
-//     }
-
-//     static final class LoadTask implements Loader 
-//     {
-//         final CachingRelayer relay;
-//         final ImageSource imageSRC; 
-
-//         LoadTask(ImageSource _imageSRC, Listener firstRelay) 
-//         {
-//             imageSRC = _imageSRC;
-//             relay = new CachingRelayer(imageSRC, firstRelay);
-//         }
-
-//         public void join() throws InterruptedException {
-//             if (DEBUG.Enabled) Log.debug(this + " has been joined...");
-//             Thread.currentThread().join();
-//         }
-
-//         public void run() {
-//             //Log.debug("loadImage in " + Thread.currentThread());
-//             if (DEBUG.IMAGE || DEBUG.THREAD) out("Loader: load " + imageSRC + " kicked off");
-//             Object o = loadImage(imageSRC, relay);
-//             if (DEBUG.IMAGE || DEBUG.THREAD) out("Loader: load returned, result=" + tag(o));
-//         }
-//         //public abstract void run();
-        
-//         public void addListener(Listener newListener) {
-//             relay.addListener(newListener);
-//         }
-
-//     }
-    
-
-//     /**
-//      * A thread for loading a single image.  Images.Listener results are delievered
-//      * from this thread (unless the image was already cached).
-//      */
-//     static class LoadThread extends Thread implements Loader {
-//         private static int LoaderCount = 0;
-//         private final ImageSource imageSRC; 
-//         private final CachingRelayer relay;
-
-//         /**
-//          * @param src must be any valid src *except* a Resource
-//          * @param resource - if this is tied to a resource to update with meta-data after loading
-//          */
-//         LoadThread(ImageSource imageSRC, Listener l) {
-//             //super(String.format("IL-%02d %s", LoaderCount++, imageSRC));
-//             super(String.format("ImgLoader-%02d", LoaderCount++));
-//             if (l == null)
-//                 Log.warn(this + "; nobody listening: image will be quietly cached: " + imageSRC);
-//             this.imageSRC = imageSRC;
-//             this.relay = new CachingRelayer(imageSRC, l);
-//             setDaemon(true);
-//             setPriority(Thread.MIN_PRIORITY);
-//             //setPriority(Thread.currentThread().getPriority() - 2);
-//         }
-
-//         public void run() {
-//             if (DEBUG.IMAGE || DEBUG.THREAD) out("Loader: load " + imageSRC + " kicked off");
-//             Object o = loadImage(imageSRC, relay);
-//             if (DEBUG.IMAGE || DEBUG.THREAD) out("Loader: load returned, result=" + tag(o));
-//         }
-
-//         public void addListener(Listener newListener) {
-//             relay.addListener(newListener);
-//         }
-//     }
-
 
     /**
      * This method has side effects to the cache.  At the end of this call, we know
@@ -1414,16 +1540,48 @@ public class Images
     private static Image createAndCacheIcon(Listener listener, ImageSource iconSource)
     {
         final Image hardImage;
+        boolean badReadable = false;
 
-        if (iconSource.readable instanceof Image)
+        if (iconSource.readable instanceof Image) {
             hardImage = (Image) iconSource.readable;
-        else if (iconSource.readable instanceof ImageRep)
+            // lose hard reference to the original image so it can be GC'd,
+            // and be sure do this before we're start creating the icon, so if we
+            // EOM or error it's already been cleared.  THIS IS CRUCIAL --
+            // if we don't do this, recovering from OutOfMemoryError's when
+            // generating icons is virtually impossible.
+            iconSource.readable = null;
+
+            //========================================================================================
+            // TODO: OUTSTANDING PROBLEM:
+            // If we hit EOM creating this icon, the icon-source readable is cleared, and
+            // thus the icon ImageRep goes permanently bad -- it can't reconsititute.
+            // Yet the icon ImageSource (can) has a ref to the full ImageRep, which it
+            // could reconstitute, and then generate the image from, but then
+            // the Icon ImageRep would need to listen first for the full callbacks,
+            // then the the icon callbacks.  We could just try NOT clearing it here,
+            // and let the ImageRep clear it only if it gets the image, but then we
+            // can run lower on memory by leaving this hard-ref around...  Need to run tests.
+            //========================================================================================
+            
+        } else if (iconSource.readable instanceof ImageRep) {
             hardImage = ((ImageRep) iconSource.readable).image();
-        else
-            throw new Error("iconSource had no image content: " + iconSource);
+        } else {
+            badReadable = true;
+            hardImage = null;
+        }
+
+
+        if (badReadable)
+            throw new Error("iconSource had no image content in readable: " + iconSource);
 
         if (hardImage == null) {
-            Log.warn("hard image GC'd before icon creation, forcing low-memory conditions (" + iconSource.readable + ")");
+            Log.warn("hard image GC'd before icon creation, forcing low-memory conditions (" + iconSource + ")");
+
+            setLowMemory("GC-wanted-data");
+
+            // REMOVE THE FAILED LOADER FROM THE CACHE
+            Cache.remove(iconSource.key); // todo: generally handle caching in our caller based on return value?
+            
             // todo: nobody to catch this error and deliver gotImageError!
             //throw new OutOfMemoryError("full-rep was GC'd: forcing low memory conditions");
             if (listener != null) {
@@ -1432,10 +1590,9 @@ public class Images
             }
         }
         
+
         final Image iconImage =
             createIcon(hardImage, iconSource.iconSize);
-
-        iconSource.readable = null; // lose hard reference to the original image so it can be GC'd
 
         if (listener != null)
             listener.gotImage(iconSource, iconImage, null);
@@ -1479,7 +1636,10 @@ public class Images
 
     
     /** An wrapper for readAndCreateImage that deals with exceptions, and puts successful results in the cache */
-    private static Image loadImageAndCache(ImageSource imageSRC, Images.Listener listener)
+    // note: we don't actually need to know the second arg is a ListenerRelay -- it could just be a
+    // Listener, tho it never is -- this is for clarity -- remember that the callbacks may be
+    // happening to a chain of pending listeners, not just one.
+    private static Image loadImageAndCache(final ImageSource imageSRC, final ListenerRelay relay)
     {
         Image image = null;
 
@@ -1487,14 +1647,14 @@ public class Images
             imageSRC.resource.getProperties().holdChanges();
 
         try {
-            image = readImageInAvailableMemory(imageSRC, listener);
+            image = readImageInAvailableMemory(imageSRC, relay);
         } catch (Throwable t) {
             
             if (DEBUG.IMAGE) Util.printStackTrace(t);
 
             Cache.remove(imageSRC.key);
             
-            if (listener != null) {
+            if (relay != null) {
                 String msg;
                 boolean dumpTrace = false;
                 if (t instanceof java.io.FileNotFoundException) {
@@ -1508,6 +1668,7 @@ public class Images
                     msg = null; // don't bother to report an error
                 }
                 else if (t instanceof OutOfMemoryError) {
+                    setLowMemory(t);
                     msg = OUT_OF_MEMORY;
                 }
                 else if (t instanceof ImageException) {
@@ -1527,7 +1688,7 @@ public class Images
 
                 // this is the one place we deliver caught exceptions
                 // during image loading:
-                listener.gotImageError(imageSRC.original, msg);
+                relay.gotImageError(imageSRC.original, msg);
 
                 if (dumpTrace)
                     Log.warn(imageSRC + ":", t);
@@ -1539,13 +1700,17 @@ public class Images
                 imageSRC.resource.getProperties().releaseChanges();
         }
 
-        if (listener != null && image != null) {
-            listener.gotImage(imageSRC.original,
-                              image,
-                              null);
+        if (relay != null && image != null) {
+            relay.gotImage(imageSRC.original,
+                           image,
+                           null);
         }
+
+        //-----------------------------------------------------------------------------
+        // If we were to auto-generate icons in Images, this would be the place to do it.
+        //-----------------------------------------------------------------------------
         
-        // TODO opt: if this items was loaded from the disk cache, we're needlessly
+        // TODO opt: if this item was loaded from the disk cache, we're needlessly
         // replacing the existing CacheEntry with a new one, instead of
         // updating the old with the new in-memory image buffer.
 
@@ -1586,6 +1751,7 @@ public class Images
             try {
                 image = readAndCreateImage(imageSRC, listener);
             } catch (OutOfMemoryError eom) {
+                setLowMemory(eom);
                 Log.warn(Util.TERM_YELLOW + "out of memory reading " + imageSRC.readable + ": " + eom + Util.TERM_CLEAR);
                 if (Thread.currentThread() instanceof ImgThread) {
                     Log.info("reader sleeping & retrying...");
@@ -1606,11 +1772,9 @@ public class Images
 
                     // we must be running in the thread-pool accessing local disk
 
-                    Log.info("EOM; consider re-kicking a LoadTask for " + imageSRC);
+                    if (DEBUG.Enabled) Log.info("EOM; consider re-kicking a LoadTask for " + imageSRC);
+                    //e.g., somehing like: kickLoad(imageSRC, listener);
                     
-                    ProcessingPool.shrinkIfPossible();
-
-                    //kickLoadTask(imageSRC, listener); // todo: test
                     throw eom;
                }
             } catch (Throwable t) {
@@ -1998,6 +2162,7 @@ public class Images
         }
 
         if (exception instanceof OutOfMemoryError) {
+            setLowMemory(exception);
             throw (Error) exception;
         } else if (exception != null) {
             throw new ImageException("reader.read(0) failure: " + exception);
