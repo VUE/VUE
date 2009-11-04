@@ -2112,6 +2112,11 @@ public class PresentationTool extends VueTool
 
         mStartPathway = pathway;
         startUnderway = true;
+
+//         if (pathway != null && !Images.lowMemoryConditions()) {
+//             // If running really low on memory, this might make a presentation worse.
+//             pathway.preCacheContent();
+//         }
         
         try {
         
@@ -2140,7 +2145,6 @@ public class PresentationTool extends VueTool
 
         if (DEBUG.Enabled) out("startPresentation: completed");
     }
-    
 
     
     /** @param direction either FORWARD or BACKWARD */
@@ -2190,6 +2194,8 @@ public class PresentationTool extends VueTool
         if (DEBUG.PRESENT) out("loadPathway " + pathway);
         LWComponent.swapLWCListener(this, mPathway, pathway);
         mPathway = pathway;
+//         if (pathway != null)
+//             preCacheContent(pathway);
     }
 
     public void LWCChanged(LWCEvent e) {
@@ -2972,31 +2978,31 @@ public class PresentationTool extends VueTool
         // requests while in a transition to full-screen, waiting for the first paint to
         // happen, tho checking for startUnderway where these are called works for us now.
         
-        if (VueUtil.isMacPlatform() && VUE.inNativeFullScreen()) {
+        if (Util.isMacCocoaSupported() && VUE.inNativeFullScreen()) {
             //out("makeInvisible");
             try {
                 // TODO: don't call unless Mac extensions available: is generating needless error log output
                 MacOSX.makeMainInvisible();
                 mScreenBlanked = true;
             } catch (Error e) {
-                Log.error(e);
+                Log.error("makeInvisible;", e);
             }
         }
     }
     public static void fadeUp() {
-        if (VueUtil.isMacPlatform() && VUE.inNativeFullScreen()) {
+        if (Util.isMacCocoaSupported() && VUE.inNativeFullScreen()) {
             try {
                 if (DEBUG.PRESENT) Log.debug("fadeUp");
                 //if (MacOSX.isMainInvisible())
                     MacOSX.fadeUpMainWindow();
                 mScreenBlanked = false;
             } catch (Error e) {
-                System.err.println(e);
+                Log.error("fadeUp;", e);
             }
         }
     }
     public static void fadeUpLater() {
-        if (VueUtil.isMacPlatform() && VUE.inNativeFullScreen()) {
+        if (Util.isMacCocoaSupported() && VUE.inNativeFullScreen()) {
             if (DEBUG.PRESENT) Log.debug("requesting fadeUp");
             VUE.invokeAfterAWT(new Runnable() { public void run() {
                 fadeUp();

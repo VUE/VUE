@@ -37,7 +37,7 @@ import org.apache.log4j.NDC;
 /**
  * Code for providing, entering and exiting VUE full screen modes.
  *
- * @version $Revision: 1.43 $ / $Date: 2009-09-21 21:33:07 $ / $Author: sfraize $
+ * @version $Revision: 1.44 $ / $Date: 2009-11-04 22:19:04 $ / $Author: sfraize $
  *
  */
 
@@ -291,7 +291,7 @@ public class FullScreen
         private void fadeUp()
         {
             isHidden = false;
-            if (Util.isMacPlatform()) {
+            if (Util.isMacCocoaSupported()) {
                 if (DEBUG.Enabled) Log.debug("requesting fadeup");
                 GUI.invokeAfterAWT(new Runnable() { public void run() {
                     doFadeUp();
@@ -302,12 +302,12 @@ public class FullScreen
         private void doFadeUp()
         {
             if (DEBUG.Enabled) Log.debug("fadeup invoked");
-            if (Util.isMacPlatform()) {
+            if (Util.isMacCocoaSupported()) {
                 try {
                     //if (MacOSX.isMainInvisible())
                     MacOSX.fadeUpMainWindow();
                 } catch (Throwable t) {
-                    Log.error(t);
+                    Log.error("doFadeUp", t);
                 }
             }
             isHidden = false;
@@ -376,7 +376,7 @@ public class FullScreen
     
 
     private static void goBlack() {
-        if (Util.isMacPlatform()) {
+        if (Util.isMacCocoaSupported()) {
             try {
                 MacOSX.goBlack();
             } catch (Error e) {
@@ -386,7 +386,7 @@ public class FullScreen
     }
 
     private static void goClear() {
-        if (Util.isMacPlatform()) {
+        if (Util.isMacCocoaSupported()) {
             try {
                 MacOSX.hideFSW();
             } catch (Error e) {
@@ -397,7 +397,7 @@ public class FullScreen
     
 
     private static void fadeFromBlack() {
-        if (Util.isMacPlatform()) {
+        if (Util.isMacCocoaSupported()) {
             try {
                 MacOSX.fadeFromBlack();
             } catch (Error e) {
