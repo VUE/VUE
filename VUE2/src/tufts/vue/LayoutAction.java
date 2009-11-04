@@ -61,7 +61,7 @@ public abstract  class LayoutAction extends Actions.LWCAction
     boolean supportsSingleMover() { return true; }
     
     public void act(List<? extends LWComponent> bag) {
-        act(bag, true);
+        act(bag, false);
     }
     
     public void act(List<? extends LWComponent> bag, boolean autoFit) {
@@ -69,14 +69,16 @@ public abstract  class LayoutAction extends Actions.LWCAction
     }
     
     void act(LWSelection selection) {
-    	act(selection, true);
+    	act(selection, false);
     }
     public void act(LWSelection selection, boolean autoFit) {
         if (DEBUG.Enabled) Log.debug(this + "; autoFit=" + autoFit);
         try {
             layout.layout(selection);
-            if (autoFit)
+            if (DEBUG.Enabled)Log.debug("autoFit: "+autoFit+" s.size "+selection.size()+" map.size:"+VUE.getActiveMap().getAllDescendents(LWContainer.ChildKind.PROPER).size());
+            if (autoFit || (selection.size() == VUE.getActiveMap().getAllDescendents(LWContainer.ChildKind.PROPER).size())) {
             	Actions.ZoomFit.act();
+            }
         } catch(Throwable t) {
             Log.debug("LayoutAction.act: "+t.getMessage());
              tufts.Util.printStackTrace(t);
