@@ -77,7 +77,7 @@ public abstract  class LayoutAction extends Actions.LWCAction
             layout.layout(selection);
             if (DEBUG.Enabled)Log.debug("autoFit: "+autoFit+" s.size "+selection.size()+" map.size:"+VUE.getActiveMap().getAllDescendents(LWContainer.ChildKind.PROPER).size());
             if (autoFit || (selection.size() == VUE.getActiveMap().getAllDescendents(LWContainer.ChildKind.PROPER).size())) {
-            	Actions.ZoomFit.act();
+            	 ZoomTool.setZoomOutFit();
             }
         } catch(Throwable t) {
             Log.debug("LayoutAction.act: "+t.getMessage());
