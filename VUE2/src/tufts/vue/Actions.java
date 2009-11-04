@@ -2818,10 +2818,10 @@ public class Actions implements VueConstants
         void arrange(LWComponent c) { c.setLocation(maxX - c.getWidth(), c.getY()); }
     };
     public static final ArrangeAction AlignCentersRow = new ArrangeAction(VueResources.local("menu.format.align.centerinrow"), keyStroke(KeyEvent.VK_R, ALT)) {
-        void arrange(LWComponent c) { c.setLocation(c.getX(), minY); }
+        void arrange(LWComponent c) { c.setLocation(c.getX(),centerY - c.getHeight()/2); }
     };
     public static final ArrangeAction AlignCentersColumn = new ArrangeAction(VueResources.local("menu.format.align.centerincolumn"), keyStroke(KeyEvent.VK_C, ALT)) {
-        void arrange(LWComponent c) { c.setLocation(minX, c.getY()); }
+        void arrange(LWComponent c) { c.setLocation(centerX - c.getWidth()/2, c.getY()); }
     };
     
 //     public static final ArrangeAction OLDMakeCluster = new ArrangeAction(VueResources.local("menu.format.align.makecluster"), keyStroke(KeyEvent.VK_PERIOD, ALT)) {
