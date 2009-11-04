@@ -34,7 +34,7 @@ import javax.swing.*;
  * zoom needed to display an arbitraty map region into an arbitrary
  * pixel region.
  *
- * @version $Revision: 1.90 $ / $Date: 2009-08-18 17:16:03 $ / $Author: sfraize $
+ * @version $Revision: 1.91 $ / $Date: 2009-11-04 15:55:48 $ / $Author: anoop $
  * @author Scott Fraize
  *
  */
@@ -843,7 +843,15 @@ public class ZoomTool extends VueTool
         setZoomFit(VUE.getActiveViewer());
     }
     
-    
+    /** Does exactly like zoom fit but never zooms in */
+    public static void setZoomOutFit() {
+    final Point2D.Float offset = new Point2D.Float();
+     double zoomFactor = computeZoomFit(VUE.getActiveViewer().getVisibleSize(),0f,VUE.getActiveViewer().getDisplayableMapBounds(),offset);
+     if(zoomFactor < 1) {
+    	 setZoomFit();
+     }
+     
+    }
     
     public static double computeZoomFit(Dimension2D viewport,
                                         float borderGap,
