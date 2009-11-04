@@ -91,7 +91,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.164 $ / $Date: 2009-11-04 16:23:19 $ / $Author: mike $
+ * @version $Revision: 1.165 $ / $Date: 2009-11-04 18:53:10 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -1322,11 +1322,14 @@ public class VueMenuBar extends javax.swing.JMenuBar
             if (errorDock == null)
                 buildGUI();
             textArea.setText(tufts.Util.getExceptionLog().toString());
-            errorDock.setVisible(true);
+           // errorDock.setVisible(true);
+            GUI.makeVisibleOnScreen(panel);
     	}
-
-        private void buildGUI() {
-            final JPanel panel = new JPanel(new BorderLayout());
+    	
+    	JPanel panel = null;
+        
+    	private void buildGUI() {
+            panel = new JPanel(new BorderLayout());
             textArea = new JTextArea();
             textArea.setFont(VueConstants.SmallFixedFont);
             textArea.setLineWrap(true);

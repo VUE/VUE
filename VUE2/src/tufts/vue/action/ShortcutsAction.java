@@ -27,7 +27,7 @@ import javax.swing.JScrollPane;
 /**
  * Produce a shortcuts window.
  *
- * @version $Revision: 1.17 $ / $Date: 2009-10-20 13:20:35 $ / $Author: brian $
+ * @version $Revision: 1.18 $ / $Date: 2009-11-04 18:53:10 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class ShortcutsAction extends tufts.vue.VueAction
@@ -57,7 +57,8 @@ public class ShortcutsAction extends tufts.vue.VueAction
             window.setContent(content);
         }
         window.pack(); // fit to widest line
-        window.setVisible(true);
+        GUI.makeVisibleOnScreen(content);
+      //  window.setVisible(true);
         window.raise();
     }
 
