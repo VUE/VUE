@@ -91,7 +91,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.165 $ / $Date: 2009-11-04 18:53:10 $ / $Author: mike $
+ * @version $Revision: 1.166 $ / $Date: 2009-11-04 22:20:20 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -901,20 +901,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
 					{
 						public void actionPerformed(ActionEvent e)
 						{
-							VUE.setActive(LWPathway.class, this, path);
-								//VUE.getActiveMap().getPathwayList().setActivePathway(path);
-							    final PresentationTool presTool = PresentationTool.getTool();
-					            					            
-					            GUI.invokeAfterAWT(new Runnable() { public void run() {
-					                VUE.toggleFullScreen(true);
-					            }});
-					            GUI.invokeAfterAWT(new Runnable() { public void run() {
-					                //VueToolbarController.getController().setSelectedTool(presTool);
-					                VUE.setActive(VueTool.class, this, presTool);
-					            }});
-					            GUI.invokeAfterAWT(new Runnable() { public void run() {
-					                presTool.startPresentation();
-					            }});
+                                                    Actions.startPresentation(path, this);
 						}
 					});
 					playbackMenu.add(menuItem);

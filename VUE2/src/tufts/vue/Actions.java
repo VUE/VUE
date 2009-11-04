@@ -562,30 +562,52 @@ public class Actions implements VueConstants
                     return s instanceof LWSlide;
                 }
             };
+
+    public static void startPresentation(final LWPathway pathway, final Object source)
+    {
+        VUE.setActive(LWPathway.class, source, pathway);
+
+        // TODO: we should be able to start the pre-cache from
+        // PresentationTool.startPresentation(), but currently the map does a
+        // full-repaint on the full-screen viewer before we load the new focal for the
+        // first item in the presentation.  We should do this in such a way that the
+        // entire map does NOT paint on the full-screen viewer before the presentation
+        // starts.
+        
+        if (pathway != null && !Images.lowMemoryConditions()) {
+            // If running really low on memory, this might make a presentation worse.
+            pathway.preCacheContent();
+        }
+        
+        final PresentationTool presTool = PresentationTool.getTool();
+
+// We ideally want to do this first, so we don't seen a full-screen paint of the entire map,
+// but it's causing some problem when the presentation exits, where it leaves the viewer
+// at the last focal, instead of back out to the map.        
+//         GUI.invokeAfterAWT(new Runnable() { public void run() {
+//             presTool.startPresentation();
+//         }});
+        
+        GUI.invokeAfterAWT(new Runnable() { public void run() {
+            VUE.toggleFullScreen(true);
+        }});
+        GUI.invokeAfterAWT(new Runnable() { public void run() {
+            //VueToolbarController.getController().setSelectedTool(presTool);
+            VUE.setActive(VueTool.class, source, presTool);
+        }});
+        GUI.invokeAfterAWT(new Runnable() { public void run() {
+            presTool.startPresentation();
+        }});
+    }
                 
     
-            public static final VueAction LaunchPresentation = new VueAction(VueResources.local("action.preview"))
-            {
-            	public void act()
-            	{
-            		final PresentationTool presTool = PresentationTool.getTool();
-              
-            		GUI.invokeAfterAWT(new Runnable() { public void run() {
-            			VUE.toggleFullScreen(true);
-            		}});
-            		GUI.invokeAfterAWT(new Runnable() { public void run() {
-            			//VueToolbarController.getController().setSelectedTool(presTool);
-            			VUE.setActive(VueTool.class, this, presTool);
-            		}});
-            		GUI.invokeAfterAWT(new Runnable() { public void run() {
-            			presTool.startPresentation();
-            		}});
-            	}
-
-                @Override
-                public boolean overrideIgnoreAllActions() { return true; }        
-                
-            };
+    public static final VueAction LaunchPresentation = new VueAction(VueResources.local("action.preview")) {
+            @Override public void act() {
+                startPresentation(VUE.getActivePathway(), this);
+            }
+            @Override public boolean overrideIgnoreAllActions() { return true; }        
+            
+        };
             
             public static final Action DeleteSlide = new VueAction(VueResources.local("action.delete"))
             {
