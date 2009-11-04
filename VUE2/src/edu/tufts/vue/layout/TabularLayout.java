@@ -84,8 +84,8 @@ public class TabularLayout extends Layout {
         Iterator<LWComponent> i = selection.iterator();
         while (i.hasNext()) {
             LWComponent c = i.next();
-            if (c instanceof LWNode) {
-                LWNode node = (LWNode) c;
+            if (c instanceof LWNode || c instanceof LWImage || c instanceof LWText) {
+                LWComponent node = (LWComponent) c;
                 
                 /*
                  * If we're using the collaborative IM layout, then we need to be careful about this, in the current layout
@@ -118,8 +118,8 @@ public class TabularLayout extends Layout {
         i = selection.iterator();
         while (i.hasNext()) {
             LWComponent c = i.next();
-            if (c instanceof LWNode) {
-                LWNode node = (LWNode) c;
+            if (c instanceof LWNode || c instanceof LWImage || c instanceof LWText) {
+                LWComponent node = (LWComponent) c;
                 total++;
                 if (count % mod == 0) {
                     if (count != 0) {
