@@ -54,6 +54,7 @@ import tufts.vue.gui.DeleteSlideDialog;
 import tufts.vue.gui.GUI;
 import tufts.vue.gui.VueFileChooser;
 import tufts.vue.gui.renderer.SearchResultTableModel;
+import edu.tufts.vue.metadata.MetadataList;
 import edu.tufts.vue.preferences.ui.PreferencesDialog;
 
 /**
@@ -1739,9 +1740,50 @@ public class Actions implements VueConstants
     
     public static final LWCAction RemoveResourceAction = new LWCAction(VueResources.local("mapViewer.componentMenu.removeResource.label")) {
         public void act(LWComponent c) 
-        {        	             
+        {        	    
+        	final LWSelection sel = new LWSelection();
+        	Resource resource = c.getResource();
+        	//sel.clear();
         	URLResource nullResource = null;
-        	c.setResource(nullResource);                                    
+        	c.setResource(nullResource);            
+        	
+        	if (c.hasChildren())
+        	{
+        		List<LWComponent> children = c.getChildren();
+        		Iterator<LWComponent> childIterator = children.iterator();
+        		
+        		while (childIterator.hasNext())
+        		{
+        			LWComponent comp = childIterator.next();
+        			if (comp instanceof LWImage)
+        			{
+    					LWImage image = ((LWImage)comp);
+        				if (image.getResource().equals(resource))
+        					sel.add(comp);        				         			
+        			}
+        		}
+        
+        		for (LWContainer parent : sel.getParents()) 
+        		{
+                      if (DEBUG.Enabled) info("deleting for parent " + parent);
+                       parent.deleteChildrenPermanently(sel);
+
+                       // someday: would be nice if this could simply be
+                       // handled as a traversal on the map: pass down
+                       // the list of items to remove, and any parent
+                       // that notices one of it's children removes it.
+                       
+                }		
+        	}
+        }
+    };
+    
+    public static final LWCAction RemoveResourceKeepImageAction = new LWCAction(VueResources.local("mapViewer.componentMenu.removeResourceKeepImage.label")) {
+        public void act(LWComponent c) 
+        {        	    
+       
+        	URLResource nullResource = null;
+        	c.setResource(nullResource);                  
         }
     };
 

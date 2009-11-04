@@ -45,6 +45,7 @@ import tufts.vue.ActiveInstance;
 import tufts.vue.DEBUG;
 import tufts.vue.Images;
 import tufts.vue.LWComponent;
+import tufts.vue.LWImage;
 import tufts.vue.LWLink;
 import tufts.vue.LWMap;
 import tufts.vue.LWNode;
@@ -58,6 +59,7 @@ import tufts.vue.MapTabbedPane;
 import tufts.vue.MapViewer;
 import tufts.vue.PresentationTool;
 import tufts.vue.RecentlyOpenedFilesManager;
+import tufts.vue.Resource;
 import tufts.vue.SeasrAnalysisPanel;
 import tufts.vue.VUE;
 import tufts.vue.VueAction;
@@ -89,7 +91,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.163 $ / $Date: 2009-10-25 13:09:01 $ / $Author: mike $
+ * @version $Revision: 1.164 $ / $Date: 2009-11-04 16:23:19 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -735,11 +737,14 @@ public class VueMenuBar extends javax.swing.JMenuBar
         final JMenuItem newSlideItem = new JMenuItem(Actions.NewSlide);
         final JMenuItem newMergeNodeItem = new JMenuItem(Actions.MergeNodeSlide);        
         final JMenuItem removeResourceItem = new JMenuItem(Actions.RemoveResourceAction);
+        final JMenuItem removeResourceKeepImageItem = new JMenuItem(Actions.RemoveResourceKeepImageAction);
         
         contentMenu.add(addFileItem);
         contentMenu.add(addURLItem);
         contentMenu.addSeparator();
         contentMenu.add(removeResourceItem);
+        contentMenu.add(removeResourceKeepImageItem);
+        
         
         formatMenu.addMenuListener(new MenuListener(){        	
         	public void menuCanceled(MenuEvent e) {/* no op	*/}
@@ -776,14 +781,39 @@ public class VueMenuBar extends javax.swing.JMenuBar
 				{
 					if ((c).hasResource())
 					{
-					
+						final Resource resource = c.getResource();
 						removeResourceItem.setEnabled(true);
+						if (c.hasChildren())
+			        	{
+			        		List<LWComponent> children = c.getChildren();
+			        		Iterator<LWComponent> childIterator = children.iterator();
+			        		boolean enabled= false;
+			        		while (childIterator.hasNext())
+			        		{
+			        			LWComponent comp = childIterator.next();
+			        			if (comp instanceof LWImage)
+			        			{
+			    					LWImage image = ((LWImage)comp);
+			        				if (image.getResource().equals(resource))
+			        				{
+			        					removeResourceKeepImageItem.setEnabled(true);
+			        					enabled=true;
+			        					break;
+			        				}
+			        			}
+			        		}
+			        		if (!enabled)
+			        			removeResourceKeepImageItem.setEnabled(false);
+			        	}
+					
+						
 						addFileItem.setLabel(VueResources.getString("mapViewer.componentMenu.replaceFile.label"));
 						addURLItem.setLabel(VueResources.getString("mapViewer.componentMenu.replaceURL.label"));						
 					}
 					else
 					{
 						removeResourceItem.setEnabled(false);
+						removeResourceKeepImageItem.setEnabled(false);
 						addFileItem.setLabel(VueResources.getString("mapViewer.componentMenu.addFile.label"));
 						addURLItem.setLabel(VueResources.getString("mapViewer.componentMenu.addURL.label"));
 					}

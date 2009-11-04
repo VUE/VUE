@@ -30,6 +30,8 @@ import tufts.vue.gui.VuePopupFactory;
 import tufts.vue.gui.WindowDisplayAction;
 import static tufts.vue.MapDropTarget.*;
 import tufts.vue.NodeTool;
+
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -77,7 +79,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.644 $ / $Date: 2009-10-30 06:04:57 $ / $Author: sfraize $ 
+ * @version $Revision: 1.645 $ / $Date: 2009-11-04 16:23:18 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -5116,6 +5118,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     private static final WindowDisplayAction infoAction = new WindowDisplayAction(VUE.getInfoDock());
     private static final JCheckBoxMenuItem infoCheckBox = new JCheckBoxMenuItem(infoAction);
     private static Component sRemoveResourceItem;
+    private static Component sRemoveResourceKeepImageItem;
 
     private void buildSingleSelectionNodePopup(LWComponent c)
     {
@@ -5150,6 +5153,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     	sAddFileItem = sSinglePopup.add(Actions.AddFileAction);
     	sSinglePopup.add(AnalyzerAction.luckyImageAction);
     	sRemoveResourceItem = sSinglePopup.add(Actions.RemoveResourceAction);
+    	sRemoveResourceKeepImageItem = sSinglePopup.add(Actions.RemoveResourceKeepImageAction);
 
     	sSinglePopup.addSeparator();
     	sSinglePopup.add(Actions.ZoomToSelection);
@@ -5193,12 +5197,40 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         if (r == null) {
         	sRemoveResourceItem.setEnabled(false);
+        	sRemoveResourceKeepImageItem.setEnabled(false);
         	sAddFileItem.setLabel(VueResources.getString("mapViewer.componentMenu.addFile.label"));
         	sAddURLItem.setLabel(VueResources.getString("mapViewer.componentMenu.addURL.label"));
         } else {
         	sRemoveResourceItem.setEnabled(true);
         	sAddFileItem.setLabel(VueResources.getString("mapViewer.componentMenu.replaceFile.label"));
         	sAddURLItem.setLabel(VueResources.getString("mapViewer.componentMenu.replaceURL.label"));
+        	
+        	
+			
+			if (c.hasChildren())
+        	{
+        		List<LWComponent> children = c.getChildren();
+        		Iterator<LWComponent> childIterator = children.iterator();
+        		boolean enabled= false;
+        		while (childIterator.hasNext())
+        		{
+        			LWComponent comp = childIterator.next();
+        			if (comp instanceof LWImage)
+        			{
+    					LWImage image = ((LWImage)comp);
+        				if (image.getResource().equals(r))
+        				{
+        					sRemoveResourceKeepImageItem.setEnabled(true);
+        					enabled=true;
+        					break;
+        				}
+        			}
+        		}
+        		if (!enabled)
+        			sRemoveResourceKeepImageItem.setEnabled(false);
+        	}
+			else
+				sRemoveResourceKeepImageItem.setEnabled(false);
         }
     }
 
