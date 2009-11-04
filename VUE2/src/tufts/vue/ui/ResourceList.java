@@ -52,13 +52,16 @@ import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.border.*;
 
+import edu.tufts.vue.metadata.MetadataList;
+import edu.tufts.vue.metadata.VueMetadataElement;
+
 /**
  * A list of Resource's with their icons & title's that is selectable, draggable & double-clickable
  * for resource actions.  Also uses a "masking" data-model that can abbreviate the results
  * until a synthetic model item at the end of this shortened list is selected, at which
  * time the rest of the items are "unmaksed" and displayed.
  *
- * @version $Revision: 1.27 $ / $Date: 2009-10-01 19:34:14 $ / $Author: brian $
+ * @version $Revision: 1.28 $ / $Date: 2009-11-04 19:35:02 $ / $Author: anoop $
  */
 public class ResourceList extends JList
     implements DragGestureListener, /*tufts.vue.ResourceSelection.Listener,*/ MouseListener,ActionListener
@@ -594,6 +597,17 @@ public class ResourceList extends JList
 			content2 += " "+n2.getNotes();
 			if(n1.getResource()!= null) content1 += " "+n1.getResource().getSpec();
 			if(n2.getResource()!= null) content2 += " "+n2.getResource().getSpec();
+			MetadataList mList1 = n1.getMetadataList();
+			for(VueMetadataElement vme: mList1.getMetadata()){
+				content1 +=" "+vme.getKey();
+				content1 +=" "+vme.getValue();
+			}
+			MetadataList mList2 = n2.getMetadataList();
+			for(VueMetadataElement vme: mList2.getMetadata()){
+				content2 +=" "+vme.getKey();
+				content2 +=" "+vme.getValue();
+			}
+			
 		}
 		String[] words1 = content1.split("\\s+");
 		String[] words2 = content2.split("\\s+");
