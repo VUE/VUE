@@ -3833,7 +3833,7 @@ public class Actions implements VueConstants
 
         public void act() {
             final MapViewer viewer = VUE.getActiveViewer();
-            final Point currentMouse = viewer.getLastMousePoint();
+            final Point currentMouse = viewer.getLastMousePressPoint();
             final Point2D newLocation = viewer.screenToFocalPoint(currentMouse);
             
             if (currentMouse.equals(lastMouse) && lastItem.getLocation().equals(lastLocation)) {
