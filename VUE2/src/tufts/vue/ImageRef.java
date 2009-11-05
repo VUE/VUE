@@ -273,16 +273,19 @@ public class ImageRef
         repaint();
     }
     
-    /** the ImageRep is done loading -- it has all the renderable image data */
+    /** the ImageRep is done loading -- it has all the renderable image data, unless hardImageRef is null,
+     in which case we had an error */
     public void notifyRepHasArrived(final ImageRep freshRep, final Image hardImageRef)
     {
         if (_aspect == 0 || freshRep == _full)
             _aspect = freshRep.aspect(); // the one place aspect is loaded
 
         //if (_desired == freshRep || _desired == SIZE_UNKNOWN)  // may be easiest/safest just to always repaint
-            repaint();
-
-        if (freshRep == _full && _icon == ImageRep.UNAVAILABLE) {
+        repaint();
+            
+        // note that we may actually get this call with hardImageRef set to null, which means we got an error,
+        // and just want to repaint
+        if (freshRep == _full && _icon == ImageRep.UNAVAILABLE && hardImageRef != null) {
             // no icon was previously generated -- look to see if
             // one has been generated elsewhere in this runtime,
             // or if not, and we need one, create it now.
@@ -353,6 +356,14 @@ public class ImageRef
     }
 
     void preLoadFullSize() {
+        // TODO: would be better if we could somehow tag this as a low-priority task --
+        // e.g., these pre-caching tasks should only ever consume a single thread (low
+        // CPU usage, especially during a presentation), and if we transition to a
+        // low-memory state, all outstanding pre-caches should be flushed.  And if we
+        // get really fancy, we might be able to flush outstanding pre-caches if if the
+        // content is no longer needed -- e.g., you're fast-paging through a
+        // presentation in low-memory conditions, and you only need previews until you
+        // settle on where you want to be.
         kickLoad(_full);
     }
 

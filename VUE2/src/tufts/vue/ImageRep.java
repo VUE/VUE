@@ -30,6 +30,7 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
 
     private static final Ref IMG_UNLOADED = new NullRef("UNLOADED");
     private static final Ref IMG_LOADING = new LoadingRef("LOADING");
+    private static final Ref IMG_LOADING_AFTER_ERROR = new LoadingRef("LOADING-ERR");
     private static final Ref IMG_ERROR = new NullRef("ERROR");
     private static final Ref IMG_ERROR_MEMORY = new NullRef("LOW_MEMORY");
 
@@ -153,7 +154,6 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
     Ref handle() {
         return _handle;
     }
-    
 
     protected Image reconstitute() {
         return reconstitute(false);
@@ -178,6 +178,9 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
             if (DEBUG.IMAGE) debug("skipping reconstitue: last load had error: " + this);
             return null;
         }
+
+        final boolean hadError = (_handle == IMG_ERROR_MEMORY);
+        
         //if (DEBUG.IMAGE) Log.debug(Util.TERM_CYAN + "RECONSTITUTE " + Util.TERM_CLEAR + _data, new Throwable("HERE"));
         if (_handle.isLoader()) {
             if (DEBUG.IMAGE) debug("recon: rep already loading: " + _data);//, new Throwable("HERE"));
@@ -196,6 +199,10 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
             // task.  Note that this is not guaranteed to run before returning -- if another
             // ImageRep has started the icon generation, we'll see a return immediately, and get a
             // callback later when the already running task completes.
+            // Addendum: there is a general problem with creating icons in the current thread,
+            // in that this holds up callbacks to other ImageRef's that may be wanting the full
+            // image and don't get to know that it's already arrived, so immediate is not used
+            // in the current impl.
             image = Images.getImageASAP(_data, this);
         } else
             image = Images.getImage(_data, this);
@@ -206,7 +213,10 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
             cacheData(image, "recon-got-immediate-return"); 
         } else {
             if (_handle == oldHandle) {
-                setHandle(IMG_LOADING, "recon-kick-to-loading");
+                if (hadError)
+                    setHandle(IMG_LOADING_AFTER_ERROR, "recon-kick-to-loading");
+                else
+                    setHandle(IMG_LOADING, "recon-kick-to-loading");
             } else {
                 // This can happen if a loader has completed and has it's image, but it hasn't left
                 // the cache yet, so our getImage call returned null, but the image content was
@@ -318,7 +328,7 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
             if (((ProgressRef)handle).trackProgress(pct)) {
                 _ref.notifyRepHasProgress(this, pct);
             }
-        } else if (handle == IMG_LOADING && pct > 0 /*&& pct < Float.POSITIVE_INFINITY*/) { // todo: should never see infinity
+        } else if (handle.isLoader() && pct > 0 /*&& pct < Float.POSITIVE_INFINITY*/) { // todo: should never see infinity
             setHandle(new ProgressRef(pct), "newProgress");
             _ref.notifyRepHasProgress(this, pct);
         } else {
@@ -333,6 +343,7 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
         } else {
             setHandle(IMG_ERROR, "gotError");
         }
+        _ref.notifyRepHasArrived(this, null);
         //_ref.notifyRepHasProgress(this, -1); // force a repaint (don't: can create thrashing loop us during low-memory conditions)
     }
 
@@ -341,6 +352,7 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
         if (image == null) {
             if (handle.getClass() == SoftRef.class) {
                 if (DEBUG.Enabled) Log.debug("GC'd: " + _data.original);
+                Images.setLowMemory("image-data-GC");
                 setHandle(IMG_UNLOADED, "GC'd"); // don't do this if want to know of an EXPIRED state
             }
             return null;
@@ -416,7 +428,7 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
         if (status == IMG_ERROR) {
             g.setColor(ErrorColor);
         }
-        else if (status == IMG_ERROR_MEMORY) {
+        else if (status == IMG_ERROR_MEMORY || status == IMG_LOADING_AFTER_ERROR) {
             g.setColor(LowMemoryColor);
         }
         else if (DEBUG.Enabled) {
