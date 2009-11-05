@@ -46,7 +46,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.69 $ / $Date: 2009-11-04 22:27:57 $ / $Author: sfraize $
+ * @version $Revision: 1.70 $ / $Date: 2009-11-05 16:33:05 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -64,12 +64,18 @@ public class Images
     // we're just going with immediately created icons.
     static final boolean DELAYED_ICONS = false;
 
-    private static synchronized void setLowMemory(Object cause) {
-        if (DEBUG.Enabled) Log.debug("setLowMemory " + LOW_MEMORY_COUNT + ": " + Util.tags(cause));
-        
+    public static synchronized void setLowMemory(Object cause) {
+        if (LOW_MEMORY_COUNT == 0)
+            Log.info(Util.TERM_CYAN + "entering low-memory conditions, cause=" + Util.tags(cause) + Util.TERM_CLEAR);
+        else
+            if (DEBUG.Enabled) Log.debug("setLowMemory " + LOW_MEMORY_COUNT + ": " + Util.tags(cause));
         final boolean first = (LOW_MEMORY_COUNT == 0);
         LOW_MEMORY_COUNT++;
         ProcessingPool.shrinkIfPossible(first);
+    }
+
+    public static int lowMemoryCount() {
+        return LOW_MEMORY_COUNT;
     }
 
     public static boolean lowMemoryConditions() {
@@ -924,19 +930,21 @@ public class Images
 
         private synchronized void loadTasks(Collection<Runnable> tasks) {
 
-            Log.info("resubmit: " + Util.tags(tasks));
+            Log.info("RESUBMIT: " + Util.tags(tasks));
             //Util.dump(_deferredTasks);
             for (Runnable r : tasks) {
-                _pool.submit(r);
+                //_pool.submit(r); // java 1.6 impl
+                _pool.execute(r); // java 1.5 impl
             }
         }
 
-        public synchronized void submit(Runnable r) {
+        public synchronized void addTask(Runnable r) {
             if (_pool == null) {
                 Log.info("deferred " + r);
                 _deferredTasks.add(r);
             } else {
-                _pool.submit(r);
+                // _pool.submit(r); // java 1.6 impl
+                _pool.execute(r); // java 1.5 impl
             }
         }
 
@@ -1102,20 +1110,42 @@ public class Images
                   ImageThreadFactory);
         }
 
-        @Override protected <T> RunnableFuture<T> newTaskFor(Runnable runnable, T value) {
-            if (runnable instanceof RunnableFuture) {
-                if (DEBUG.Enabled) Log.debug("resubmit " + runnable);
-                return (RunnableFuture) runnable; // for re-submits
+//         /** This method was added to AbstractExecutorService in Java 1.6 -- is not available in java 1.5 */
+//         @Override protected <T> RunnableFuture<T> newTaskFor(Runnable runnable, T value) {
+//             if (runnable instanceof RunnableFuture) {
+//                 if (DEBUG.Enabled) Log.debug("resubmit " + runnable);
+//                 return (RunnableFuture) runnable; // for re-submits
+//             } else {
+//                 if (DEBUG.IMAGE) Log.debug("newTaskFor runnable " + Util.tags(runnable));
+//                 return new PriorityTask((Loader)runnable);
+//             }
+//         }
+
+//         /** This method was added to AbstractExecutorService in Java 1.6 -- is not available in java 1.5 */
+//         @Override protected <T> RunnableFuture<T> newTaskFor(Callable<T> callable) {
+//             throw new UnsupportedOperationException("newTaskFor Callable; " + callable);
+//         }
+
+        @Override public Future<?> submit(Runnable task) {
+            throw new Error("use execute; " + task);
+        }
+        @Override public <T> Future<T> submit(Runnable task, T result) {
+            throw new Error("use execute; " + task);
+        }
+        @Override public <T> Future<T> submit(Callable<T> task) {
+            throw new Error("use execute; " + task);
+        }
+        
+        @Override public void execute(Runnable runnable) {
+            if (runnable instanceof Loader) {
+                if (DEBUG.Enabled) Log.debug("new-task " + runnable);
+                super.execute(new PriorityTask((Loader)runnable));
             } else {
-                if (DEBUG.IMAGE) Log.debug("newTaskFor runnable " + Util.tags(runnable));
-                return new PriorityTask((Loader)runnable);
+                if (DEBUG.Enabled) Log.debug("resubmit " + runnable);
+                super.execute(runnable);
             }
         }
-
-        @Override protected <T> RunnableFuture<T> newTaskFor(Callable<T> callable) {
-            throw new UnsupportedOperationException("newTaskFor Callable; " + callable);
-        }
-
+        
         @Override protected void afterExecute(Runnable r, Throwable t) {
             if (DEBUG.IMAGE) Log.debug("AFTER-EXECUTE " + Util.tags(r) + "; ex=" + t); // don't toString the task -- members flushed for GC
             // Only allow a few of these, otherwise we can get continuous looping failures if
@@ -1447,8 +1477,7 @@ public class Images
             // could submit to a special pool or some future fancy non-blocking NIO multi-stream handler
             ((LoadThread)loader).start();
         } else {
-            ProcessingPool.submit(loader);
-            //PoolForMinimallyBlockingTasks.submit(loader);
+            ProcessingPool.addTask(loader);
         }
     }
 
@@ -1507,7 +1536,7 @@ public class Images
             // happen if the disk cache is not operating, and the memory
             // image was garbage collected: we need to remove this entry
             // from the cache completely and start from scratch:
-            if (DEBUG.Enabled) out("REMOVING FROM CACHE: " + imageSRC);
+            if (DEBUG.IMAGE) out("REMOVING FROM CACHE: " + imageSRC);
             Cache.remove(imageSRC.key);
         }
 
@@ -1561,6 +1590,10 @@ public class Images
             // then the the icon callbacks.  We could just try NOT clearing it here,
             // and let the ImageRep clear it only if it gets the image, but then we
             // can run lower on memory by leaving this hard-ref around...  Need to run tests.
+            //
+            // The best fix for this probably includes going all the way to keeping singleton
+            // ImageRef's in the cache, perhaps only allow icons to be obtained through their
+            // ImageRef.
             //========================================================================================
             
         } else if (iconSource.readable instanceof ImageRep) {
