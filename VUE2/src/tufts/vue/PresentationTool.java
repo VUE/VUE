@@ -2173,6 +2173,8 @@ public class PresentationTool extends VueTool
     private void setEntry(LWPathway.Entry e) {
         setEntry(e, RECORD_BACKUP);
     }
+
+    //private Entry mNextEntryToCache;
     
     /** this will jump us to the pathway for the entry, and set us viewing the given entry */
     private void setEntry(LWPathway.Entry entry, boolean recordBackup)
@@ -2180,13 +2182,10 @@ public class PresentationTool extends VueTool
         //out("setEntry " + entry);
         if (entry == null)
             return;
-        //mEntry = e;
-        //mPathway = entry.pathway;
-        //mPathwayIndex = entry.index();
+
         setPage(new Page(entry), recordBackup);
-        //setPage(new Page(mEntry), recordBackup);
-        //setPage(mEntry.getFocal(), recordBackup);
-        //VUE.setActive(LWPathway.Entry.class, this, entry);
+
+        //mNextEntryToCache = entry.next();
     }
 
     private void loadPathway(LWPathway pathway) {
@@ -2778,6 +2777,60 @@ public class PresentationTool extends VueTool
             
             //dc.g.drawString("  Backup: " + mVisited.peek(), 10, y+=15);
             //dc.g.drawString("BackNode: " + mVisited.peekNode(), 10, y+=15);
+        }
+
+        if (Images.lowMemoryConditions()) {
+            // todo: if we ever get a second EOM while attempting local-caching,
+            // we may want to then abandon pathway-local caching entirely.
+            attemptPathwayLocalPreCaching();
+        }
+        
+    }
+
+    private Entry mLastCacheCheckedEntry = null;
+
+    /** try and pre-cache slides near is in the presentation */
+    private void attemptPathwayLocalPreCaching() {
+        // if we're low memory, at least try and cache the next (or prev) slide's
+        // content.  If we're REALLY low in memory, this may actually be a bad idea --
+        // would be best to obtain hard image locks for all content on the current page
+        // first before doing this, as we don't want anything currently on the screen to
+        // be GC'd in service to anything else, tho as long as there's no repaint, it'll
+        // still be in the graphics buffer.
+
+        final Entry thisEntry = mCurrentPage.entry;
+
+        if (mLastCacheCheckedEntry == thisEntry && thisEntry != null) {
+            // don't repeat this just because we repainted
+            return;
+        }
+
+        mLastCacheCheckedEntry = thisEntry;
+
+        final Entry lastEntry = mLastPage.entry;
+            
+        Entry cachingEntry = null;
+
+        if (lastEntry != null && thisEntry != null && lastEntry != thisEntry) {
+            if (lastEntry.index() < thisEntry.index()) {
+                cachingEntry = thisEntry.next(); // moving forward
+                //Log.debug("CACHING FORWARD CONTENT " + cachingEntry);
+            } else {
+                cachingEntry = thisEntry.prev(); // moving backward
+                //Log.debug("CACHING BACKWARD CONTENT " + cachingEntry);
+            }
+        } else if (thisEntry != null) {
+            cachingEntry = thisEntry.next();
+            //Log.debug("DEFAULTING TO FORWARD CACHING " + cachingEntry);
+        }
+            
+        if (cachingEntry != null) {
+            final LWComponent focal = cachingEntry.getFocal();
+            if (focal != null) {
+                GUI.invokeAfterAWT(new Runnable() { public void run() {
+                    focal.preCacheContent();
+                }});
+            }
         }
     }
 
