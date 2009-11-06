@@ -268,14 +268,14 @@ public class SeasrAnalysisPanel extends JPanel implements ActionListener, FocusL
 
 
 	protected void analyze() {
-		Object							method = methodComboBox.getSelectedItem();
-		Flow							flow = (Flow)flowComboBox.getSelectedItem();
-		LWSelection						selection = VUE.getSelection().clone();
-		LWComponent						selectedNode = selection != null && selection.size() == 1 ? selection.first() : null;
-		LWMap							activeMap = VUE.getActiveMap();
+		final Object							method = methodComboBox.getSelectedItem();
+		final Flow							flow = (Flow)flowComboBox.getSelectedItem();
+		final LWSelection						selection = VUE.getSelection().clone();
+		final LWComponent						selectedNode = selection != null && selection.size() == 1 ? selection.first() : null;
+		final LWMap							activeMap = VUE.getActiveMap();
 		try {
 			
-			SeasrAnalyzer				analyzer = new SeasrAnalyzer(flow);
+			final SeasrAnalyzer				analyzer = new SeasrAnalyzer(flow);
 			List<AnalyzerResult>		resultList = analyzer.analyze(urlTextField.getText(), true);
 /*
 // for debugging, comment out the above line and do something like this:
@@ -283,11 +283,13 @@ List<AnalyzerResult> resultList = new ArrayList<AnalyzerResult>();
 resultList.add(new AnalyzerResult("foo", "result1"));
 resultList.add(new AnalyzerResult("foo", "result2"));
 */
-			Iterator<AnalyzerResult>	resultIter = resultList.iterator();
+		final Iterator<AnalyzerResult>	resultIter = resultList.iterator();
 
+			
+		GUI.invokeAfterAWT(new Runnable() { public void run() {
 			if (method == NEW_NODES) {
-				List<LWComponent>	nodes = new ArrayList<LWComponent>(),
-									links = new ArrayList<LWComponent>();
+					final List<LWComponent>	nodes = new ArrayList<LWComponent>(),
+											links = new ArrayList<LWComponent>();
 
 				while (resultIter.hasNext()) {
 					AnalyzerResult	analyzerResult = resultIter.next();
@@ -304,9 +306,11 @@ resultList.add(new AnalyzerResult("foo", "result2"));
 						link.layout();
 					}
 				}
+				
 
 				activeMap.addChildren(nodes);
 				activeMap.addChildren(links);
+			
 
 				if (selectedNode == null) {
 					LayoutAction.circle.act(nodes);
@@ -338,7 +342,10 @@ resultList.add(new AnalyzerResult("foo", "result2"));
 				String				notes = selectedNode.getNotes();
 
 				selectedNode.setNotes((notes != null && notes.length() != 0 ? notes + "\n" : "") + info);
+				
+			
 			}
+		  }});
 
 		} catch (Exception ex) {
 			ex.printStackTrace();
