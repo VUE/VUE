@@ -243,7 +243,7 @@ public class SeasrAnalysisPanel extends JPanel implements ActionListener, FocusL
 	protected void analyze() {
 		Object							method = methodComboBox.getSelectedItem();
 		Flow							flow = (Flow)flowComboBox.getSelectedItem();
-		LWSelection						selection = VUE.getSelection();
+		LWSelection						selection = VUE.getSelection().clone();
 		LWComponent						selectedNode = selection != null && selection.size() == 1 ? selection.first() : null;
 		LWMap							activeMap = VUE.getActiveMap();
 		try {
