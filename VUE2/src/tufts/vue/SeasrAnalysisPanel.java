@@ -486,6 +486,7 @@ resultList.add(new AnalyzerResult("foo", "result2"));
 			{
 				analyzeButton.setText(VueResources.getString("seasr.analysis.analyze"));
 				VUE.getSelection().clear();
+				thread = null;
 			}
 		}
 	}
