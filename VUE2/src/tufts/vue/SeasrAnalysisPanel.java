@@ -247,6 +247,7 @@ public class SeasrAnalysisPanel extends JPanel implements ActionListener, FocusL
 		LWComponent						selectedNode = selection != null && selection.size() == 1 ? selection.first() : null;
 		LWMap							activeMap = VUE.getActiveMap();
 		try {
+			
 			SeasrAnalyzer				analyzer = new SeasrAnalyzer(flow);
 			List<AnalyzerResult>		resultList = analyzer.analyze(urlTextField.getText(), true);
 /*
@@ -361,7 +362,7 @@ resultList.add(new AnalyzerResult("foo", "result2"));
 		container.add(component, constraints);
 	}
 
-
+	AnalyzeThread thread = null;
 	// ActionListener method
 	public void actionPerformed(ActionEvent event) {
 		Object	source = event.getSource();
@@ -375,8 +376,18 @@ resultList.add(new AnalyzerResult("foo", "result2"));
 		} else if (source == closeButton) {
 			dock.setVisible(false);
 		} else if (source == analyzeButton) {
-			AnalyzeThread thread = new AnalyzeThread();
-			thread.start();
+			if (thread == null)
+			{
+				analyzeButton.setText(VueResources.getString("seasr.analysis.stop"));
+				thread = new AnalyzeThread();
+				thread.start();
+			}
+			else
+			{
+				analyzeButton.setText(VueResources.getString("seasr.analysis.analyze"));
+				thread.interrupt();
+				thread = null;
+			}
 		}
 	}
 
@@ -436,6 +447,10 @@ resultList.add(new AnalyzerResult("foo", "result2"));
 			} catch(Exception ex) {
 				ex.printStackTrace();
 				VueUtil.alert(ex.getMessage(), VueResources.getString("seasr.analysis.error"));
+			}
+			finally
+			{
+				analyzeButton.setText(VueResources.getString("seasr.analysis.analyze"));
 			}
 		}
 	}
