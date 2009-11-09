@@ -72,7 +72,7 @@ import tufts.vue.gui.VueMenuBar;
 /**
  * Experimental VUE applet.
  * 
- * @version $Revision: 1.21 $ / $Date: 2009-09-29 21:37:18 $ / $Author: mike $
+ * @version $Revision: 1.22 $ / $Date: 2009-11-09 22:41:22 $ / $Author: mike $
  */
 public class VueApplet extends JApplet {
 
@@ -101,6 +101,8 @@ public class VueApplet extends JApplet {
 	public VueApplet()
 	{
 		instance = this;
+		this.getRootPane().setDoubleBuffered(true);
+	
 	//	VUE.setAppletContext(this.getAppletContext());
 	}
 	public void init() 
@@ -208,8 +210,10 @@ public class VueApplet extends JApplet {
 	
 	public void ToggleAllVisible() {
 		tufts.vue.gui.DockWindow.ToggleAllVisible();
+		
 	}
 	
+
 	public boolean AllWindowsHidden()
 	{
 		return tufts.vue.gui.DockWindow.AllWindowsHidden();
@@ -303,6 +307,8 @@ public class VueApplet extends JApplet {
         return items;
     }
 
+	
+
 	public synchronized void loadViewer() {
 	
 		msg("got viewer");
@@ -347,11 +353,11 @@ public class VueApplet extends JApplet {
 			c.validate();
 			c = c.getParent();
 		}
-		this.invalidate();
-		this.getContentPane().validate();
-		this.validate();
+	//	this.invalidate();
+	//	this.getContentPane().validate();
+		//	this.validate();
 		
-		this.repaint();
+		//this.repaint();
 	}
 	private void msg(String s) {
 		System.out.println("VueApplet: " + s);
@@ -796,8 +802,11 @@ public class VueApplet extends JApplet {
 
 		return input;
 	}
+	
+
 
 	protected static MapViewer getMapViewer() {
+		
 		return viewer;
 	}
 
