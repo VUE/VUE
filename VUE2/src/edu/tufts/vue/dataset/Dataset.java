@@ -28,6 +28,9 @@ package edu.tufts.vue.dataset;
 import java.util.*;
 import java.io.*;
 import tufts.vue.*;
+import tufts.vue.ds.DataAction;
+import tufts.vue.ds.XmlDataSource;
+
 import java.net.*;
 
 
@@ -46,6 +49,7 @@ public class Dataset {
     ArrayList<ArrayList<String>> rowList;
     
     String baseClass;
+    XmlDataSource	datasource; 
     /** Creates a new instance of Dataset */
     
     Layout layout = new ListRandomLayout(); // this is the default if no layout is set
@@ -78,10 +82,31 @@ public class Dataset {
     }
     
     public LWMap createMap() throws Exception{
-        return layout.createMap(this,getMapName(fileName));
+    	String mapName = getMapName(fileName);
+        datasource = new XmlDataSource(mapName,getFileName());
+        Properties props = new Properties();
+ 		props.put("displayName", mapName);
+ 		props.put("name", mapName);
+ 		props.put("address", getFileName());
+ 		datasource.setConfiguration(props);
+ 		VUE.getContentDock().setVisible(true);
+ 		VUE.getContentPanel().showDatasetsTab();
+ 		DataSetViewer.getDataSetList().addOrdered(datasource);
+ 		VUE.getContentPanel().getDSBrowser().getDataSetViewer().setActiveDataSource(datasource);			
+ 		DataSourceViewer.saveDataSourceViewer();	
+    	LWMap map  = new LWMap(getMapName(fileName));
+    	List<LWComponent> nodes =  DataAction.makeRowNodes(datasource.getSchema());
+        for(LWComponent component: nodes) {
+            map.add(component);
+        }
+        LayoutAction.random.act(new LWSelection(nodes));
+        return map;
     }
-    
-    
+    public void loadDataset() throws Exception {
+    		
+ 		
+    }
+    /**
     public  void loadDataset() throws Exception {
         rowList = new ArrayList<ArrayList<String>>();
         label = fileName;
@@ -114,8 +139,9 @@ public class Dataset {
         }
         reader.close();
     }
+    **/
     
-    private  String getMapName(String fileName) {
+    final protected String getMapName(String fileName) {
         String mapName = fileName.substring(fileName.lastIndexOf(File.separator)+1,fileName.length());
         if(mapName.lastIndexOf(".")>0)
             mapName = mapName.substring(0,mapName.lastIndexOf("."));

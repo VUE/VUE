@@ -24,10 +24,51 @@
  */
 package edu.tufts.vue.dataset;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+
+import tufts.vue.DataSetViewer;
+import tufts.vue.DataSourceViewer;
+import tufts.vue.LWComponent;
+import tufts.vue.LWLink;
+import tufts.vue.LWMap;
+import tufts.vue.LWNode;
+import tufts.vue.LWSelection;
+import tufts.vue.LayoutAction;
+import tufts.vue.VUE;
+import tufts.vue.ds.DataAction;
+import tufts.vue.ds.XmlDataSource;
+
 public class RelationalDataset extends Dataset {
     
     /** Creates a new instance of RelationalDataset */
     public RelationalDataset() {
+    }
+    public LWMap createMap() throws Exception{
+    	String mapName = getMapName(fileName);
+        datasource = new XmlDataSource(mapName,getFileName());
+        Properties props = new Properties();
+ 		props.put("displayName", mapName);
+ 		props.put("name", mapName);
+ 		props.put("address", getFileName());
+ 		datasource.setConfiguration(props);
+ 		VUE.getContentDock().setVisible(true);
+ 		VUE.getContentPanel().showDatasetsTab();
+ 		DataSetViewer.getDataSetList().addOrdered(datasource);
+ 		VUE.getContentPanel().getDSBrowser().getDataSetViewer().setActiveDataSource(datasource);			
+ 		DataSourceViewer.saveDataSourceViewer();	
+ 		List<LWComponent> nodes =  DataAction.makeRowNodes(datasource.getSchema());
+ 		LWMap map  = new LWMap(getMapName(fileName));
+        for(LWComponent component: nodes) {
+            map.add(component);
+        }
+       
+        LayoutAction.random.act(new LWSelection(nodes));
+        return map;
+         
     }
     
 }

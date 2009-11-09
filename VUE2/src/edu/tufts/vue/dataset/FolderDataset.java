@@ -24,27 +24,57 @@
 package edu.tufts.vue.dataset;
 import java.util.*;
 import java.io.*;
+import tufts.vue.*;
+import edu.tufts.vue.metadata.MetadataList;
+import edu.tufts.vue.metadata.VueMetadataElement;
+
+
 public class FolderDataset  extends Dataset {
-    
+	 public static String DEFAULT_METADATA_LABEL = "default";
+	    
     /** Creates a new instance of ListDataset */
     public FolderDataset() {
     }
     public  void loadDataset() throws Exception{
-        // setthing the heading
-        ArrayList<String> heading = new ArrayList<String>();
-        heading.add("label");
-        heading.add("resource");
-         setHeading(heading);
-       
-        rowList = new ArrayList<ArrayList<String>>();
-        File file = new File(fileName);
-        if(!file.isDirectory()) throw new Exception("FolderDataset.loadDataset: The file " + fileName +" is not a folder");
-        File[] children = file.listFiles();
-        for(int i =0;i<children.length;i++) {
-            ArrayList<String> row = new ArrayList<String>();
-            row.add(children[i].getName());
-            row.add(children[i].getAbsolutePath());
-            rowList.add(row);
-        }
+         
+      
+    }
+    
+    
+    public LWMap createMap() throws Exception{
+    	Map<String, LWNode> nodeMap = new HashMap<String, LWNode>();
+    	  ArrayList<String> heading = new ArrayList<String>();
+          heading.add("label");
+          heading.add("resource");
+          setHeading(heading);
+          LWMap map  = new LWMap(getMapName(fileName));
+          File file = new File(fileName);
+          if(!file.isDirectory()) throw new Exception("FolderDataset.loadDataset: The file " + fileName +" is not a folder");
+          File[] children = file.listFiles();
+          List<LWComponent> nodeList = new ArrayList<LWComponent>();
+          for(int i =0;i<children.length;i++) { 
+              String nodeLabel = children[i].getName();
+              
+//               node.setLabel(nodeLabel);
+                  String key = ((getHeading() == null) || getHeading().size() < 1) ? DEFAULT_METADATA_LABEL : getHeading().get(1);
+                  
+ 
+                      Resource resource = map.getResourceFactory().get(children[i]);
+                      LWNode node = new LWNode(nodeLabel);
+                      node.setResource(resource);
+                      
+                      
+                      VueMetadataElement vm = new VueMetadataElement();
+                      vm.setKey(key);
+                      vm.setValue(children[i].getAbsolutePath());
+                      vm.setType(VueMetadataElement.CATEGORY);
+                      node.getMetadataList().addElement(vm);
+                      
+                  node.layout();
+                  map.add(node);
+                  nodeList.add(node);
+          }
+          LayoutAction.random.act(new LWSelection(nodeList));
+        return  map;
     }
 }
