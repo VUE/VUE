@@ -150,25 +150,32 @@
 	             }   
             }, false);
             
-          document.addEventListener("MyExtensionEvent", function(e){VUEExport.mainMenuListener(e);} , false);
-          document.addEventListener("ImportMapDataEvent",function(e){VUEExport.importMapDataListener(e);} , false);
-          document.addEventListener("ImportUrlDataEvent", function(e){VUEExport.importUrlDataListener(e);}, false);
-          document.addEventListener("ImportFileDataEvent", function(e){VUEExport.importFileDataListener(e);} , false);
+             document.addEventListener("MyExtensionEvent", listeners[0] , false, true);
+             document.addEventListener("ImportMapDataEvent",listeners[1] , false, true);
+             document.addEventListener("ImportUrlDataEvent", listeners[2], false, true);
+             document.addEventListener("ImportFileDataEvent", listeners[3] , false, true);
              
-             
+            
             VUEExport.init();
             
         }
+        var listeners = [
+		function(e) { VUEExport.mainMenuListener(e);},
+		function(e) { VUEExport.importMapDataListener(e);},
+		function(e) { VUEExport.importUrlDataListener(e);},
+		function(e) { VUEExport.importFileDataListener(e);}
+		
+		];
         
         function isVueRunning()
         {
         	return VUEExport.isVueRunning();
         }
         function vueDispose() {
-         	document.removeEventListener("MyExtensionEvent", function(e){VUEExport.mainMenuListener(e);} , false, true);
-            document.removeEventListener("ImportMapDataEvent",  function(e){VUEExport.importMapDataListener(e);} , false, true);
-            document.removeEventListener("ImportUrlDataEvent", function(e){VUEExport.importUrlDataListener(e);}, false, true);
-            document.removeEventListener("ImportFileDataEvent", function(e){VUEExport.importFileDataListener(e);} , false, true);
+         	document.removeEventListener("MyExtensionEvent", listeners[0] , false, true);
+            document.removeEventListener("ImportMapDataEvent",listeners[1] , false, true);
+            document.removeEventListener("ImportUrlDataEvent", listeners[2], false, true);
+            document.removeEventListener("ImportFileDataEvent", listeners[3] , false, true);
             VUEExport.dispose();
         }
         
