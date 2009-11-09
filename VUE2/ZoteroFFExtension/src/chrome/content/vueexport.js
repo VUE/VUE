@@ -51,7 +51,7 @@ var VUEExport = new function() {
 	{
 		//var fileName = Zotero.Utilities.prototype.htmlSpecialChars(evt.target.getAttribute("path"));
 		//var title = Zotero.Utilities.prototype.htmlSpecialChars(evt.target.getAttribute("title"));
-	alert("TEST");
+
 		var fileName = content.document.getElementById("VUE").wrappedJSObject.getActiveMapPath();
 		var title = content.document.getElementById("VUE").wrappedJSObject.getActiveMapDisplayTitle();
 	
@@ -261,8 +261,8 @@ var VUEExport = new function() {
 		  if (!isLoaded() && count > 0) 
 		  {
 			  count--;
-			  var _self = this;
-			  setTimeout( function(){ _self.performLoadedCheck();} , 1000 );
+			//  var _self = this;
+			  setTimeout( function(){ VUEExport.performLoadedCheck();} , 1000 );
 		  }
 		  return;
 		  
