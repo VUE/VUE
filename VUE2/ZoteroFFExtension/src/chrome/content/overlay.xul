@@ -61,30 +61,30 @@
  		
         function vueInit() {
             document.getElementById('start-vue-tool').addEventListener('click', function (e) {                
-               Zotero.VUEExport.startVUE();
+               VUEExport.startVUE();
             }, false);
             
             
             document.getElementById('add-relations-to-map').addEventListener('click', function (e) {                
-               Zotero.VUEExport.addRelationsToMap();
+               VUEExport.addRelationsToMap();
             }, false);
             
              document.getElementById('add-notes-to-map').addEventListener('click', function (e) {                
-               Zotero.VUEExport.addNotesToMap();
+               VUEExport.addNotesToMap();
             }, false);
             
             document.getElementById('export-to-vue').addEventListener('click', function (e) {                
-               Zotero.VUEExport.exportCSV(false);
+               VUEExport.exportCSV(false);
             }, false);
 
             document.getElementById('export-to-vue-add').addEventListener('click', function (e) {                
-               Zotero.VUEExport.exportCSV(true);
+               VUEExport.exportCSV(true);
             }, false);
           //  document.getElementById('add-map-from-vue').addEventListener('click', function (e) {                
-           //    Zotero.VUEExport.addMapFromVueToCollection();
+           //    VUEExport.addMapFromVueToCollection();
            // }, false);
              document.getElementById('vue-open-map').addEventListener('click', function (e) {                
-               Zotero.VUEExport.openZoteroMap();
+               VUEExport.openZoteroMap();
             }, false);
 
 		   document.getElementById('zotero-itemmenu').addEventListener('popupshowing', function (e) {                
@@ -150,33 +150,26 @@
 	             }   
             }, false);
             
-             document.addEventListener("MyExtensionEvent", listeners[0] , false);
-             document.addEventListener("ImportMapDataEvent",listeners[1] , false);
-             document.addEventListener("ImportUrlDataEvent", listeners[2], false);
-             document.addEventListener("ImportFileDataEvent", listeners[3] , false);
+          document.addEventListener("MyExtensionEvent", function(e){VUEExport.mainMenuListener(e);} , false);
+          document.addEventListener("ImportMapDataEvent",function(e){VUEExport.importMapDataListener(e);} , false);
+          document.addEventListener("ImportUrlDataEvent", function(e){VUEExport.importUrlDataListener(e);}, false);
+          document.addEventListener("ImportFileDataEvent", function(e){VUEExport.importFileDataListener(e);} , false);
              
-            
-            Zotero.VUEExport.init();
+             
+            VUEExport.init();
             
         }
-        var listeners = [
-		function(e) { Zotero.VUEExport.mainMenuListener(e);},
-		function(e) { Zotero.VUEExport.importMapDataListener(e);},
-		function(e) { Zotero.VUEExport.importUrlDataListener(e);},
-		function(e) { Zotero.VUEExport.importFileDataListener(e);}
-		
-		];
         
         function isVueRunning()
         {
-        	return Zotero.VUEExport.isVueRunning();
+        	return VUEExport.isVueRunning();
         }
         function vueDispose() {
-         	document.removeEventListener("MyExtensionEvent", listeners[0] , false, true);
-            document.removeEventListener("ImportMapDataEvent",listeners[1] , false, true);
-            document.removeEventListener("ImportUrlDataEvent", listeners[2], false, true);
-            document.removeEventListener("ImportFileDataEvent", listeners[3] , false, true);
-            Zotero.VUEExport.dispose();
+         	document.removeEventListener("MyExtensionEvent", function(e){VUEExport.mainMenuListener(e);} , false, true);
+            document.removeEventListener("ImportMapDataEvent",  function(e){VUEExport.importMapDataListener(e);} , false, true);
+            document.removeEventListener("ImportUrlDataEvent", function(e){VUEExport.importUrlDataListener(e);}, false, true);
+            document.removeEventListener("ImportFileDataEvent", function(e){VUEExport.importFileDataListener(e);} , false, true);
+            VUEExport.dispose();
         }
         
         window.addEventListener('load', function (e) { vueInit(); }, false);
