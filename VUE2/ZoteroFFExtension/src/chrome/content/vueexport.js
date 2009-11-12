@@ -702,7 +702,7 @@ var VUEExport = new function() {
 				for (var tagLength=0; tagLength<tags.length; tagLength++) 
 				{
 					var tag = tags[tagLength];
-					xml+=element('tag',tag.name);
+					xml+=element('tag',Zotero.Utilities.prototype.htmlSpecialChars(tag.name));
 			    xml += "\n";
 				}
 			}
@@ -725,7 +725,7 @@ var VUEExport = new function() {
 					var creatorType =
 						Zotero.CreatorTypes.getName(creators[k].creatorTypeID);
 
-						xml+=element(creatorType,creatorString);
+						xml+=element(creatorType,Zotero.Utilities.prototype.htmlSpecialChars(creatorString));
 						xml+="\n";
 						
 						k++;
