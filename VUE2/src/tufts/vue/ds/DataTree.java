@@ -53,7 +53,7 @@ import com.google.common.collect.*;
  * currently active map, code for adding new nodes to the current map,
  * and initiating drags of fields or rows destined for a map.
  *
- * @version $Revision: 1.99 $ / $Date: 2009-10-23 14:43:34 $ / $Author: mike $
+ * @version $Revision: 1.100 $ / $Date: 2009-11-13 22:20:20 $ / $Author: mike $
  * @author  Scott Fraize
  */
 
@@ -1250,9 +1250,16 @@ public class DataTree extends javax.swing.JTree
                     }
                     else if (treeNode instanceof ValueNode && treeNode.getField().isPossibleKeyField()) {
                         DataRow row = mSchema.findRow(treeNode.getField(), treeNode.getValue());
-                        VUE.setActive(tufts.vue.MetaMap.class,
+                        if (row!=null)
+                        {
+                        	VUE.setActive(tufts.vue.MetaMap.class,
                                       DataTree.this,
                                       row.getData());
+                        }
+                        else
+                        {
+                        	Log.warn("Row is NULL while trying to set active in tree selection value changed");
+                        }
                     }
                     //                         else if (treeNode.hasStyle()) {
                     //                             final tufts.vue.LWSelection selection = VUE.getSelection();
