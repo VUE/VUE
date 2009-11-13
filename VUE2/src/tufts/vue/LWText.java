@@ -423,10 +423,27 @@ public class LWText extends LWComponent {
 
     private void drawLODTextLine(final DrawContext dc) {
         final int hh = (int) ((getHeight() / 2f) + 0.5f);
+        
+        int height = (int) getHeight();
         //dc.setAntiAlias(false); // too crappy
         dc.g.setStroke(STROKE_SEVEN);
         dc.g.setColor(Color.black);
-        dc.g.drawLine(0, hh, getLabelBox().getWidth(), hh);
+        double zoomFactor;
+        
+        if (VUE.getActiveViewer()!=null)
+        	zoomFactor = VUE.getActiveViewer().getZoomFactor();
+        else 
+        	zoomFactor =1;
+        
+        int scaledHeight =height;
+        
+        int line =0;
+        while (line < scaledHeight)
+        {
+        	dc.g.drawLine(0, line, (int) (getLabelBox().getWidth() * zoomFactor), line);
+        	line+=100;
+        }
+        
     }
     
 
