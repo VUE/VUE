@@ -91,7 +91,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.166 $ / $Date: 2009-11-04 22:20:20 $ / $Author: sfraize $
+ * @version $Revision: 1.167 $ / $Date: 2009-11-16 16:45:25 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -651,13 +651,13 @@ public class VueMenuBar extends javax.swing.JMenuBar
         viewMenu.add(Actions.ZoomToSelection);
         viewMenu.add(Actions.ZoomActual);
         viewMenu.addSeparator();            
-        if (!Util.isUnixPlatform())
+        if (!(Util.isUnixPlatform() || VUE.isApplet()) ) 
         	viewMenu.add(viewFullScreen);
         
         if (!VUE.isApplet())
         	viewMenu.add(splitScreenItem);
-        
-        viewMenu.addSeparator();
+        if (!VUE.isApplet())
+        	viewMenu.addSeparator();
         if (!VUE.isApplet())
         {
         	viewMenu.add(toggleSlideIconsItem);
@@ -1065,7 +1065,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
         	fullScreenToolbarItem = createWindowItem(VUE.getFloatingZoomDock(),KeyEvent.VK_0, VueResources.getString("menu.windows.fullscreentoolbar"));
         	fullScreenToolbarItem.setEnabled(false);
         	windowMenu.add(fullScreenToolbarItem);        	
-        }        
+        }     
+      //  windowMenu.add(Actions.GatherWindows);
     }
     private final JMenuItem TitleItem = new JMenu("");
     //private final java.util.Map<LWMap,JMenuItem> items = new java.util.HashMap();

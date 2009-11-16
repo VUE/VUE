@@ -79,7 +79,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.646 $ / $Date: 2009-11-04 22:18:42 $ / $Author: sfraize $ 
+ * @version $Revision: 1.647 $ / $Date: 2009-11-16 16:45:27 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -5705,7 +5705,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             sMapPopup.add(Actions.ZoomFit);
             sMapPopup.add(Actions.ZoomActual);
 
-            if (!Util.isUnixPlatform()) {
+            if (!(Util.isUnixPlatform() || VUE.isApplet()) ) {
             	sMapPopup.add(Actions.ToggleFullScreen);
             }
 
