@@ -79,7 +79,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.647 $ / $Date: 2009-11-16 16:45:27 $ / $Author: mike $ 
+ * @version $Revision: 1.648 $ / $Date: 2009-11-16 19:22:25 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -6570,11 +6570,35 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 // (a "non-selectable" focal, such as the default map, will have picked as null, so hitComponent
                 // will be null)
                 selectionSet(justSelected = hitComponent);                
-            } else if (hitComponent != null) { // check focal in case of on-slide
+            } else if (hitComponent != null || (hitComponent == null && tempToolPendingActivation instanceof ComboModeTool)) { // check focal in case of on-slide
                 // special case handling for KEY_TOOL_LINK which
                 // doesn't want to be fully activated till the
                 // key is down (ctrl) AND the left mouse has been
                 // pressed over a component to drag a link off.
+            	if (tempToolPendingActivation != null) {
+                    
+                    if (hitComponent==null  && tempToolPendingActivation instanceof ComboModeTool)
+                    {
+                    	activateTool(tempToolPendingActivation, true);
+                    	//VUE-1597
+                    	/*
+                    	 * Problem with the prototyping tool is that users want to use 
+                    	 * it on a blank map. currently, we are asking them to select the 
+                    	 * node tool, create a node, then switch to the RP tool (not much 
+                    	 * of a rapid process to get started!). It goes against user 
+                    	 * expectations where they want to use the RP right away.
+                    	 */
+                    	LWComponent newNode = NodeTool.NodeModeTool.createNewNode();//VUE.getActiveViewer().NodeModeTool.createNewNode();
+                    	newNode.setLocation(mapX,mapY);
+                    	VUE.getActiveViewer().getFocal().dropChild(newNode);
+                    	VUE.getActiveViewer().getSelection().setTo(newNode);
+                    	hitComponent = newNode;
+                    	 mme.setPicked(hitComponent);
+                    	
+                    }
+                    
+                }
+        
                 if (tempToolPendingActivation != null) {
                     activateTool(tempToolPendingActivation, true);
                     tempToolPendingActivation = null;
@@ -6634,8 +6658,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             } else {
                 //-------------------------------------------------------
                 // hitComponent was null
-                //-------------------------------------------------------
-               
+                //-------------------------------------------------------            	
+            	
 	                // SPECIAL CASE for dragging the entire selection
 	                if (activeTool.supportsSelection()
 	                    && (GUI.noModifierKeysDown(e) || isSystemDragStart(e))
@@ -6664,8 +6688,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 	                    //-------------------------------------------------------
 	                    selectionClear();
 	                    //repaint(); // if selection handles not on, we need manual repaint here
-	                
-                }
+	                                
+            	}
 //                 if (activeTool.supportsDraggedSelector(mme))
 //                     isDraggingSelectorBox = true;
 //                 else
