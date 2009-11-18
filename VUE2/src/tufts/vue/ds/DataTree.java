@@ -20,6 +20,7 @@
 package tufts.vue.ds;
 
 import tufts.vue.LWSelection;
+import tufts.vue.MapViewer;
 import tufts.vue.VUE;
 import tufts.vue.DEBUG;
 import tufts.vue.Resource;
@@ -53,7 +54,7 @@ import com.google.common.collect.*;
  * currently active map, code for adding new nodes to the current map,
  * and initiating drags of fields or rows destined for a map.
  *
- * @version $Revision: 1.100 $ / $Date: 2009-11-13 22:20:20 $ / $Author: mike $
+ * @version $Revision: 1.101 $ / $Date: 2009-11-18 20:54:56 $ / $Author: mike $
  * @author  Scott Fraize
  */
 
@@ -85,10 +86,12 @@ public class DataTree extends javax.swing.JTree
     private static final Collection<DataTree> ActiveTrees = new java.util.concurrent.CopyOnWriteArrayList();
     private static volatile DataTree ForegroundTree;
     private static volatile LWMap mActiveMap;
+    
+    private static volatile MapViewer mActiveViewer;
     private static volatile Collection<LWComponent> ActiveMapDataNodes = Collections.EMPTY_LIST;
     
     
-    public static final class MapListener implements LWComponent.Listener {
+    public static final class MapListener implements LWComponent.Listener, LWSelection.Listener {
 
         private static boolean mDataEventWasSeen;
         
@@ -100,16 +103,22 @@ public class DataTree extends javax.swing.JTree
                 return;
             
             if (mActiveMap != null)
+            {
                 mActiveMap.removeLWCListener(this);
+                mActiveViewer.getSelection().removeListener(this);
+            }
             
             mActiveMap = map;
-            
+            mActiveViewer = VUE.getActiveViewer();
+           
             if (map == null)
                 return;
             
             kickOffAnnotations();
             
             mActiveMap.addLWCListener(this);
+            mActiveViewer.getSelection().addListener(this);
+          
         }
     
         public void LWCChanged(tufts.vue.LWCEvent e) {
@@ -149,15 +158,30 @@ public class DataTree extends javax.swing.JTree
                     tree.kickAnnotate();
             }
         }
+
+		public void selectionChanged(LWSelection selection) {
+
+			if (selection.isEmpty())
+			{
+				if (ActiveTrees.size() > 0) {
+					for (DataTree tree : ActiveTrees)
+						tree.setSelectionPath(null);
+            	}
+			}
+		
+			
+		}
         
     }
-
+   
     // note: this should be called from the AWT thread as it's going to access the main map model
     private static void loadGlobalDataForAnnotations()
     {
         if (mActiveMap == null)
+        {
             mActiveMap = VUE.getActiveMap();
-
+            mActiveViewer = VUE.getActiveViewer();
+        }
         if (DEBUG.Enabled) Log.debug("loading global annotation data from map " + mActiveMap);
         
         if (mActiveMap != null) {
@@ -201,6 +225,7 @@ public class DataTree extends javax.swing.JTree
                 if (DEBUG.ANNOTATE) Log.debug("FIRST RUN");
                 // Listen for changes to the ActiveMap
                 VUE.addActiveListener(LWMap.class, ActiveMapListener);
+                
                 // Simulate an active-map changed event to make sure we're listening to the active map.
                 ActiveMapListener.activeChanged(null, VUE.getActiveMap());
                 // ensure the global data is loaded 1st time from the ActiveMap
