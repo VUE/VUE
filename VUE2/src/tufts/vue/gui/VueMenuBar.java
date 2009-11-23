@@ -91,7 +91,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.167 $ / $Date: 2009-11-16 16:45:25 $ / $Author: mike $
+ * @version $Revision: 1.168 $ / $Date: 2009-11-23 21:13:01 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -1066,7 +1066,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         	fullScreenToolbarItem.setEnabled(false);
         	windowMenu.add(fullScreenToolbarItem);        	
         }     
-      //  windowMenu.add(Actions.GatherWindows);
+        windowMenu.add(Actions.GatherWindows);
     }
     private final JMenuItem TitleItem = new JMenu("");
     //private final java.util.Map<LWMap,JMenuItem> items = new java.util.HashMap();

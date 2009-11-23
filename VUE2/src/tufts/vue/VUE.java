@@ -117,7 +117,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.690 $ / $Date: 2009-11-23 18:23:15 $ / $Author: brian $ 
+ * @version $Revision: 1.691 $ / $Date: 2009-11-23 21:13:00 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -146,6 +146,7 @@ public class VUE
     private static MapTabbedPane mMapTabsLeft;
     private static MapTabbedPane mMapTabsRight;
     public static JSplitPane mViewerSplit;
+    public static DockWindow[] acrossTop = null;
     
     private static tufts.vue.ui.SlideViewer slideViewer;
     
@@ -1822,10 +1823,17 @@ public class VUE
        // 	acrossTopList.add(mergeMapsDock);
        // if (!ontologyDock.getWindowProperties().isEnabled() || !ontologyDock.getWindowProperties().isWindowVisible())
         //	acrossTopList.add(ontologyDock);
-        
-        
-        
-        final DockWindow[] acrossTop = acrossTopList.toArray(new DockWindow[acrossTopList.size()]);
+       
+      //  acrossTopList.add(formatDock);
+        acrossTopList.add(outlineDock);
+        acrossTopList.add(pannerDock);
+        acrossTopList.add(metaDataSearchDock);
+        acrossTopList.add(layersDock);
+        acrossTopList.add(interactionToolsDock);
+        acrossTopList.add(contentDock);
+        acrossTopList.add(mergeMapsDock);
+        acrossTopList.add(interactionToolsDock);
+        acrossTop = acrossTopList.toArray(new DockWindow[acrossTopList.size()]);
         
         if (outlineDock != null)
             outlineDock.setLowerLeftCorner(0,
@@ -2587,20 +2595,20 @@ public class VUE
      * into position.
      */
     // todo: this no longer as to do with our DockRegions: is just use for positioning
-    private static void positionForDocking(DockWindow[] preShown) {
+    public static void positionForDocking(DockWindow[] preShown) {
         // Set last in preSown at the right, moving back up list
         // setting them to the left of that, and then set first in
         // preShown at left edge of screen
 
         if (DEBUG.DOCK) Log.debug("positionForDocking " + Arrays.asList(preShown));
         if (DEBUG.INIT || (DEBUG.DOCK && DEBUG.META)) Util.printStackTrace("\n\nSTARTING PLACEMENT");
-        
+
         int top = GUI.GInsets.top;
 
         if (ToolbarAtTopScreen)
             top += DockWindow.ToolbarHeight;
         else
-            top += 52; // todo: tweak for PC
+            top += 152; // todo: tweak for PC
 
         boolean squeezeDown = GUI.GScreenWidth < 1200;
         boolean didSqueeze = false;
@@ -2614,7 +2622,10 @@ public class VUE
             preShown[nextLayout - 1] = tmp;
         }
         
-        DockWindow toRightDW = preShown[nextLayout];
+        DockWindow toRightDW = null;
+       
+        toRightDW = preShown[nextLayout];
+        
         toRightDW.setUpperRightCorner(GUI.GScreenWidth, top);
         if (squeezeDown)
             toRightDW.setHeight(toRightDW.getHeight() / 2);
@@ -2625,7 +2636,16 @@ public class VUE
                 didSqueeze = true;
                 toRightDW.addChild(curDW);
             } else {
-                curDW.setUpperRightCorner(toRightDW.getX(), top);
+            	int spot=GUI.GScreenWidth;
+            	
+            	if (nextLayout %3 != 0)
+            	{
+            		spot = toRightDW.getX();
+            	}
+            	else
+            		top +=50;
+            	
+                curDW.setUpperRightCorner(spot, top);
                 toRightDW = curDW;
             }
         }

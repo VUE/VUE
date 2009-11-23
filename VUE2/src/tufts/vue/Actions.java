@@ -45,12 +45,15 @@ import javax.swing.Icon;
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 
+import org.apache.commons.lang.ArrayUtils;
+
 import tufts.Util;
 import tufts.vue.LWComponent.ChildKind;
 import tufts.vue.LWComponent.Flag;
 import tufts.vue.LWComponent.HideCause;
 import tufts.vue.NodeTool.NodeModeTool;
 import tufts.vue.gui.DeleteSlideDialog;
+import tufts.vue.gui.DockWindow;
 import tufts.vue.gui.GUI;
 import tufts.vue.gui.VueFileChooser;
 import tufts.vue.gui.renderer.SearchResultTableModel;
@@ -3526,6 +3529,25 @@ public class Actions implements VueConstants
     //-----------------------------------------------------------------------------
     // VueActions
     //-----------------------------------------------------------------------------
+    public static final Action GatherWindows =
+        new VueAction(VueResources.local("menu.windows.gather")) {
+            boolean undoable() { return false; }
+            protected boolean enabled() { return true; }
+            public void act() 
+            {
+            	GUI.resetScreenSize();
+            	GUI.invokeAfterAWT(new Runnable() { public void run() {
+            		DockWindow acrossTop[] = new DockWindow[VUE.acrossTop.length];
+            		System.arraycopy(VUE.acrossTop, 0, acrossTop, 0, VUE.acrossTop.length);
+            		//acrossTop[VUE.acrossTop.length] = VUE.getMergeMapsDock();
+            		//acrossTop[VUE.acrossTop.length+1] = VUE.getFormatDock();
+            		//acrossTop[VUE.acrossTop.length+1] = VUE.getInteractionToolsDock();
+            		VUE.getFormatDock().setLocation(150,150);
+            		VUE.getMergeMapsDock().setLocation(150,150);
+            		VUE.positionForDocking(acrossTop);
+            	}});
+            }
+        };
     public static final Action NewMap =
     new VueAction(VueResources.local("menu.file.new"), keyStroke(KeyEvent.VK_N, COMMAND+SHIFT), ":general/New") {
         private int count = 1;
