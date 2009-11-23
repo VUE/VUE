@@ -57,7 +57,7 @@ import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.155 $ / $Date: 2009-10-05 17:34:27 $ / $Author: sfraize $
+ * @version $Revision: 1.156 $ / $Date: 2009-11-23 19:05:45 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -477,6 +477,14 @@ public class GUI
         return isOceanTheme;
     }
 
+    public static void resetScreenSize()
+    {
+    	GBounds = GConfig.getBounds();
+        GInsets = GToolkit.getScreenInsets(GConfig); // this may change at any time
+        GScreenWidth = GBounds.width;
+        GScreenHeight = GBounds.height;
+        GMaxWindowBounds = GEnvironment.getMaximumWindowBounds();
+    }
     private static void initGraphicsInfo() {
         GToolkit = Toolkit.getDefaultToolkit();
         GEnvironment = GraphicsEnvironment.getLocalGraphicsEnvironment();
