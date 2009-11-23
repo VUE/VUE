@@ -117,7 +117,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.689 $ / $Date: 2009-11-04 22:18:54 $ / $Author: sfraize $ 
+ * @version $Revision: 1.690 $ / $Date: 2009-11-23 18:23:15 $ / $Author: brian $ 
  */
 
 public class VUE
@@ -1941,7 +1941,7 @@ public class VUE
         //-----------------------------------------------------------------------------
         if (pannerDock == null || VUE.isApplet())
         {
-        	pannerDock = GUI.createDockWindow("Panner", new MapPanner());
+        	pannerDock = GUI.createDockWindow(VueResources.getString("dockWindow.panner.title"), new MapPanner());
         	//pannerDock.getWidgetPanel().setBorder(new javax.swing.border.MatteBorder(5,5,5,5, Color.green));
         	//pannerDock.getContentPanel().setBorder(new EmptyBorder(1,2,2,2));
         	//pannerDock.setSize(120,120);
