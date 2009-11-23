@@ -55,7 +55,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.162 $ / $Date: 2009-10-14 17:57:38 $ / $Author: mike $
+ * @version $Revision: 1.163 $ / $Date: 2009-11-23 21:32:22 $ / $Author: brian $
  * @author Scott Fraize
  */
 
@@ -663,6 +663,10 @@ public class DockWindow
             setSize(300, minHeight);
         */
         
+    }
+
+    public void setHelpText(String helpText) {
+    	mContentPane.setHelpText(helpText);
     }
 
     /** this is overriden from Container just in case it is accidentally called.  An Error is thrown if this is called. */
@@ -4175,6 +4179,10 @@ public class DockWindow
 
         }
 
+        public void setHelpText(String helpText) {
+        	mTitle.setHelpText(helpText);
+        }
+
         public void XaddNotify() {
             changeAll(mContent);
             super.addNotify();
@@ -4403,6 +4411,7 @@ public class DockWindow
      //   private JLabel mOpenLabel; // for open/close icon
         private boolean isVertical = false;
         private MenuButton mMenuButton; // null of has no menu
+        private JComponent mHelpButton = null;
 
         //private final Icon DownArrow = GUI.getIcon("DockDownArrow.gif");
         //private final Icon RightArrow = GUI.getIcon("DockRightArrow.gif");
@@ -4459,9 +4468,7 @@ public class DockWindow
              // todo for Melanie: new icons should be appearing in gui/icons
              final String helpTextHeader = VueResources.getString("dockWindow.helpTextHeader");
              final String helpTextFooter = VueResources.getString("dockWindow.helpTextFooter");
-             final String helpText = helpTextHeader + VueResources.getString("dockWindow." + getName().replaceAll(" ","") + ".helpText") + helpTextFooter;
-             
-             JComponent helpButton = null;
+             final String helpText = helpTextHeader + "No help for " + getName() + "." + helpTextFooter;
 
              if (helpText != null && helpText.length() > 0) {
              
@@ -4498,14 +4505,14 @@ public class DockWindow
                      onePixelUp.setBorder(new EmptyBorder(0,0,2,0));
                      //onePixelUp.setBorder(new MatteBorder(0,0,2,0, Color.green));
 
-                     helpButton = onePixelUp;
+                     mHelpButton = onePixelUp;
                      
                      
                  } else {
-                     helpButton = new VueLabel(VueResources.getImageIconResource("/tufts/vue/images/btn_help_top.gif"));
+                	 mHelpButton = new VueLabel(VueResources.getImageIconResource("/tufts/vue/images/btn_help_top.gif"));
                  }
                  
-                 helpButton.setToolTipText(helpText);
+                 mHelpButton.setToolTipText(helpText);
              }
              
                           
@@ -4517,8 +4524,8 @@ public class DockWindow
                  //add(mOpenLabel);
                  add(mLabel);
                  add(Box.createGlue());
-                 if (helpButton != null)
-                     add(helpButton);
+                 if (mHelpButton != null)
+                     add(mHelpButton);
              } else {
                  // close button at right
                  add(Box.createHorizontalStrut(8));
@@ -4526,8 +4533,8 @@ public class DockWindow
                  //add(Box.createHorizontalStrut(2));
                  add(mLabel);
                  add(Box.createGlue());
-                 if (helpButton != null)
-                     add(helpButton);
+                 if (mHelpButton != null)
+                     add(mHelpButton);
                  add(Box.createHorizontalStrut(3));
                  add(mCloseButton);
              }
@@ -4540,6 +4547,12 @@ public class DockWindow
 
         void setTitle(String title) {
             mLabel.setText(title);
+        }
+
+        void setHelpText(String helpText) {
+            final String helpTextHeader = VueResources.getString("dockWindow.helpTextHeader");
+            final String helpTextFooter = VueResources.getString("dockWindow.helpTextFooter");
+            mHelpButton.setToolTipText(helpTextHeader + helpText + helpTextFooter);
         }
 
         void showAsOpen(boolean open) {

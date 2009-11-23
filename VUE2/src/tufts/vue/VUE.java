@@ -117,7 +117,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.691 $ / $Date: 2009-11-23 21:13:00 $ / $Author: mike $ 
+ * @version $Revision: 1.692 $ / $Date: 2009-11-23 21:32:26 $ / $Author: brian $ 
  */
 
 public class VUE
@@ -1925,7 +1925,7 @@ public class VUE
         pathwayPanel = new PathwayPanel(VUE.getDialogParentAsFrame());
         if (pathwayDock == null  || VUE.isApplet())
         pathwayDock = GUI.createDockWindow(VueResources.getString("dockWindow.presentation.title"),
-                                                            pathwayPanel);
+        		VueResources.getString("dockWindow.Pathways.helpText"), pathwayPanel);
 
        
         
@@ -1949,7 +1949,8 @@ public class VUE
         //-----------------------------------------------------------------------------
         if (pannerDock == null || VUE.isApplet())
         {
-        	pannerDock = GUI.createDockWindow(VueResources.getString("dockWindow.panner.title"), new MapPanner());
+        	pannerDock = GUI.createDockWindow(VueResources.getString("dockWindow.panner.title"),
+        			VueResources.getString("dockWindow.Panner.helpText"), new MapPanner());
         	//pannerDock.getWidgetPanel().setBorder(new javax.swing.border.MatteBorder(5,5,5,5, Color.green));
         	//pannerDock.getContentPanel().setBorder(new EmptyBorder(1,2,2,2));
         	//pannerDock.setSize(120,120);
@@ -1970,7 +1971,8 @@ public class VUE
         //-----------------------------------------------------------------------------
         if (MapInspector == null || VUE.isApplet())
         {
-        	MapInspector = GUI.createDockWindow(VueResources.getString("mapInspectorTitle"));
+        	MapInspector = GUI.createDockWindow(VueResources.getString("mapInspectorTitle"),
+        			VueResources.getString("dockWindow.MapInfo.helpText"));
         	mapInspectorPanel = new MapInspectorPanel(MapInspector);
         	//        MapInspector.setContent(mapInspectorPanel.getMapInfoStack());
         	//      MapInspector.setHeight(450);
@@ -1980,7 +1982,8 @@ public class VUE
         //-----------------------------------------------------------------------------
         if (metaDataSearchDock == null || VUE.isApplet())
         {        	
-        	metaDataSearchDock = GUI.createDockWindow(VueResources.getString("dockWindow.search.title"));        	
+        	metaDataSearchDock = GUI.createDockWindow(VueResources.getString("dockWindow.search.title"),
+        			VueResources.getString("dockWindow.Search.helpText"));        	
         	metadataSearchMainPanel = new MetadataSearchMainGUI(metaDataSearchDock);       	
         }
         //-----------------------------------------------------------------------------
@@ -1988,7 +1991,8 @@ public class VUE
         //-----------------------------------------------------------------------------
         if (interactionToolsDock == null || VUE.isApplet())
         {
-        	interactionToolsDock = GUI.createDockWindow(VueResources.getString("dockWindow.interactionTools.title"));
+        	interactionToolsDock = GUI.createDockWindow(VueResources.getString("dockWindow.interactionTools.title"),
+        			VueResources.getString("dockWindow.ExplorationTools.helpText"));
         	interactionToolsPanel = new InteractionTools(interactionToolsDock);
         }
         //-----------------------------------------------------------------------------
@@ -1996,7 +2000,8 @@ public class VUE
         //-----------------------------------------------------------------------------
         if (!SKIP_DR && (contentDock == null || VUE.isApplet()))
         {
-        	contentDock = GUI.createDockWindow(VueResources.getString("dockWindow.contentPanel.title"));
+        	contentDock = GUI.createDockWindow(VueResources.getString("dockWindow.contentPanel.title"),
+        			VueResources.getString("dockWindow.Content.helpText"));
         	contentPanel = new ContentPanel(contentDock);
         	contentDock.setSize(300, (int) (GUI.GScreenHeight * 0.75));
 
@@ -2006,7 +2011,8 @@ public class VUE
         //-----------------------------------------------------------------------------
         if (mergeMapsDock == null || VUE.isApplet())
         {        	
-        	mergeMapsDock = GUI.createDockWindow(VueResources.getString("dockWindow.mergemaps.title"));        	
+        	mergeMapsDock = GUI.createDockWindow(VueResources.getString("dockWindow.mergemaps.title"),
+        			VueResources.getString("dockWindow.MergeMaps.helpText"));        	
         	mergeMapsControlPanel = new MergeMapsControlPanel(mergeMapsDock);       	
         }
         //-----------------------------------------------------------------------------
@@ -2017,7 +2023,8 @@ public class VUE
         inspectorPane = new tufts.vue.ui.InspectorPane();
         if (ObjectInspector == null || VUE.isApplet())
         {
-        	ObjectInspector = GUI.createDockWindow(VueResources.getString("dockWindow.info.title"));
+        	ObjectInspector = GUI.createDockWindow(VueResources.getString("dockWindow.info.title"),
+        			VueResources.getString("dockWindow.Info.helpText"));
         	ObjectInspector.setContent(inspectorPane.getWidgetStack());
         	ObjectInspector.setMenuName(VueResources.getString("dockWindow.infopreview.menu"));
         	ObjectInspector.setHeight(575);
@@ -2025,7 +2032,8 @@ public class VUE
         
     	if (layersDock == null || VUE.isApplet())
     	{
-    		layersDock = GUI.createDockWindow(VueResources.getString("dockWindow.layers.title"), new tufts.vue.ui.LayersUI());
+    		layersDock = GUI.createDockWindow(VueResources.getString("dockWindow.layers.title"),
+    				VueResources.getString("dockWindow.Layers.helpText"), new tufts.vue.ui.LayersUI());
     		//layersDock.setFocusableWindowState(false);
     		layersDock.setSize(300,260);        		
     		layersDock.setLocation(0, 144);
@@ -2099,7 +2107,8 @@ public class VUE
             outlineScroller.setPreferredSize(new Dimension(500, 300));
             //outlineScroller.setBorder(null); // so DockWindow will add 1 pixel to bottom
             if (outlineDock == null  || VUE.isApplet())
-            	outlineDock =  GUI.createDockWindow(VueResources.getString("dockWindow.outline.title"), outlineScroller);
+            	outlineDock =  GUI.createDockWindow(VueResources.getString("dockWindow.outline.title"),
+            			VueResources.getString("dockWindow.Outline.helpText"), outlineScroller);
 
             DataSourceViewer.initUI();
             

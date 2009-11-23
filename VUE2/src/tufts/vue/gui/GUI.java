@@ -57,7 +57,7 @@ import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.156 $ / $Date: 2009-11-23 19:05:45 $ / $Author: mike $
+ * @version $Revision: 1.157 $ / $Date: 2009-11-23 21:32:22 $ / $Author: brian $
  * @author Scott Fraize
  */
 
@@ -1121,6 +1121,19 @@ public class GUI
     public static DockWindow createDockWindow(String title, javax.swing.JComponent content) {
         DockWindow dw = createDockWindow(title);
         dw.setContent(content);
+        return dw;
+    }
+
+    public static DockWindow createDockWindow(String title, String helpText, javax.swing.JComponent content) {
+        DockWindow dw = createDockWindow(title);
+        dw.setHelpText(helpText);
+        dw.setContent(content);
+        return dw;
+    }
+
+    public static DockWindow createDockWindow(String title, String helpText) {
+        DockWindow dw = createDockWindow(title);
+        dw.setHelpText(helpText);
         return dw;
     }
 

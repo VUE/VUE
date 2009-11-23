@@ -175,7 +175,8 @@ public class SeasrAnalysisPanel extends JPanel implements ActionListener, FocusL
 		if (dock == null) {
 			singleton = new SeasrAnalysisPanel();
 
-			dock = GUI.createDockWindow(VueResources.getString("seasr.analysis.title"), singleton);
+			dock = GUI.createDockWindow(VueResources.getString("seasr.analysis.title"), 
+					VueResources.getString("dockWindow.SEASRAnalysis.helpText"), singleton);
 			dock.pack();
 			dock.setResizeEnabled(false);
 			
