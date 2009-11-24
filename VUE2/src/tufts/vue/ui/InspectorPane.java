@@ -42,7 +42,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.128 $ / $Date: 2009-10-09 20:37:50 $ / $Author: brian $
+ * @version $Revision: 1.129 $ / $Date: 2009-11-24 17:03:26 $ / $Author: mike $
  */
 
 public class InspectorPane extends WidgetStack
@@ -1516,13 +1516,32 @@ public class InspectorPane extends WidgetStack
             loadLabel(c, c);
         }
         
+        private boolean first = true;
+        private Border border = null;
+       
+        
         void loadLabel(LWComponent c, LWComponent editType) {
             selection = null;
+            
+            if (first)
+            {
+            	border = labelValue.getBorder();            	
+            	first = false;
+            }
+            
             setTypeName(this, editType, VueResources.getString("inspectorpane.label"));
             if (c instanceof LWText)
+            {	
+            	labelValue.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
+            	labelValue.setBackground(this.getBackground());
             	labelValue.setEditable(false);
+            }
             else
+            {
+            	labelValue.setBackground(Color.white);
+            	labelValue.setBorder(border);
             	labelValue.setEditable(true);
+            }
             labelValue.attachProperty(c, LWKey.Label);
         }
     }
