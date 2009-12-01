@@ -156,7 +156,7 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
         ontLabel = new JLabel(ontTitle);
         cssLabel = new JLabel(cssTitle);
         JLabel info = new JLabel(tufts.vue.VueResources.getIcon("helpIcon.raw"));
-        info.setToolTipText("Add an Ontology help here - TBD");
+        info.setToolTipText(VueResources.getString("ontology.help"));
         tufts.vue.PolygonIcon lineIcon = new tufts.vue.PolygonIcon(new java.awt.Color(153,153,153));
         lineIcon.setIconWidth(ONT_CHOOSER_WIDTH-40);
         lineIcon.setIconHeight(1);

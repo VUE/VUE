@@ -96,40 +96,53 @@ public class QuickImportAction extends VueAction{
 			JPanel			outerPanel = new JPanel(new GridBagLayout()),
 							innerPanel = new JPanel(new GridBagLayout()),
 							locationPanel = new JPanel(new GridBagLayout()),
+							locationRadioPanel = new JPanel(new GridBagLayout()),
+							locationRemainderPanel = new JPanel(),
 							selectFilePanel = new JPanel(new GridBagLayout()),
 							cancelAddPanel = new JPanel(new GridBagLayout());
-			JLabel			locationLabel = new JLabel(VueResources.getString("quickImport.location")),
+			JLabel			infoLabel = new JLabel(tufts.vue.VueResources.getIcon("helpIcon.raw")),
+							locationLabel = new JLabel(VueResources.getString("quickImport.location")),
 							selectFileLabel = new JLabel(VueResources.getString("quickImport.selectfile"));
 			ButtonGroup		locationGroup = new ButtonGroup();
 			Insets			gutter = new Insets(GUTTER, GUTTER, GUTTER, GUTTER),
 							noGutter = new Insets(0, 0, 0, 0);
-	
+
 			locationLabel.setFont(tufts.vue.gui.GUI.LabelFace);
 			addToGridBag(innerPanel, locationLabel, 0, 0, 1, 1,
 				GridBagConstraints.LINE_END, GridBagConstraints.NONE, gutter);
-	
+
 			locationGroup.add(fileRadioButton);
 			locationGroup.add(URLRadioButton);
-	
+
 			fileRadioButton.setFont(tufts.vue.gui.GUI.LabelFace);
 			fileRadioButton.setSelected(true);
 			fileRadioButton.addActionListener(this);
-			addToGridBag(locationPanel, fileRadioButton, 0, 0, 1, 1,
+			addToGridBag(locationRadioPanel, fileRadioButton, 0, 0, 1, 1,
 				GridBagConstraints.LINE_START, GridBagConstraints.NONE, gutter);
-	
+
 			URLRadioButton.setFont(tufts.vue.gui.GUI.LabelFace);
 			URLRadioButton.addActionListener(this);
-			addToGridBag(locationPanel, URLRadioButton, 1, 0, 1, 1,
+			addToGridBag(locationRadioPanel, URLRadioButton, 1, 0, 1, 1,
 				GridBagConstraints.LINE_START, GridBagConstraints.NONE, gutter);
-	
+
+			addToGridBag(locationPanel, locationRadioPanel, 0, 0, 1, 1,
+					GridBagConstraints.LINE_START, GridBagConstraints.NONE, noGutter);
+
+			addToGridBag(locationPanel, locationRemainderPanel, 1, 0, 1, 1,
+					GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL, noGutter);
+
+			infoLabel.setToolTipText(VueResources.getString("quickImport.help"));
+			addToGridBag(locationPanel, infoLabel, 2, 0, 1, 1,
+					GridBagConstraints.LINE_END, GridBagConstraints.NONE, gutter);
+
 			addToGridBag(innerPanel, locationPanel, 1, 0, 1, 1,
-				GridBagConstraints.LINE_START, GridBagConstraints.NONE, noGutter);
+				GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL, noGutter);
 	
 	
 			selectFileLabel.setFont(tufts.vue.gui.GUI.LabelFace);
 			addToGridBag(innerPanel, selectFileLabel, 0, 1, 1, 1,
 				GridBagConstraints.LINE_END, GridBagConstraints.NONE, gutter);
-	
+
 			fileTextField.setFont(tufts.vue.gui.GUI.LabelFace);
 			fileTextField.setColumns(COLUMNS);
 			fileTextField.addActionListener(this);
@@ -140,34 +153,34 @@ public class QuickImportAction extends VueAction{
 			});
 			addToGridBag(selectFilePanel, fileTextField, 0, 0, 1, 1,
 				GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL, gutter);
-	
+
 			browseButton.setFont(tufts.vue.gui.GUI.LabelFace);
 			browseButton.addActionListener(this);
 			addToGridBag(selectFilePanel, browseButton, 1, 0, 1, 1,
 				GridBagConstraints.LINE_START, GridBagConstraints.NONE, gutter);
-	
+
 			addToGridBag(innerPanel, selectFilePanel, 1, 1, 1, 1,
 				GridBagConstraints.LINE_START, GridBagConstraints.BOTH, noGutter);
-	
-	
+
+
 			cancelButton.setFont(tufts.vue.gui.GUI.LabelFace);
 			cancelButton.addActionListener(this);
 			addToGridBag(cancelAddPanel, cancelButton, 0, 0, 1, 1,
 				GridBagConstraints.LINE_START, GridBagConstraints.NONE, gutter);
-	
+
 			addButton.setFont(tufts.vue.gui.GUI.LabelFace);
 			addButton.setEnabled(false);
 			addButton.addActionListener(this);
 			addToGridBag(cancelAddPanel, addButton, 1, 0, 1, 1,
 				GridBagConstraints.LINE_START, GridBagConstraints.NONE, gutter);
-	
+
 			addToGridBag(innerPanel, cancelAddPanel, 1, 2, 1, 1,
 				GridBagConstraints.LINE_END, GridBagConstraints.NONE, noGutter);
-	
-	
+
+
 			addToGridBag(outerPanel, innerPanel, 0, 0, 1, 1,
 				GridBagConstraints.LINE_START, GridBagConstraints.BOTH, gutter);
-	
+
 			dialog = new JDialog(tufts.vue.VUE.getApplicationFrame(), VueResources.getString("quickImport.dialogtitle"));
 			dialog.setContentPane(outerPanel);
 			dialog.pack();
@@ -180,7 +193,9 @@ public class QuickImportAction extends VueAction{
 				outerPanel.setBackground(Color.CYAN);
 				innerPanel.setBackground(Color.YELLOW);
 				locationPanel.setBackground(Color.BLUE);
-				selectFilePanel.setBackground(Color.BLUE);
+				locationRadioPanel.setBackground(Color.RED);
+				locationRemainderPanel.setBackground(Color.MAGENTA);
+				selectFilePanel.setBackground(Color.GREEN);
 				cancelAddPanel.setBackground(Color.BLUE);
 				locationLabel.setBackground(Color.MAGENTA);
 				selectFileLabel.setBackground(Color.MAGENTA);
@@ -189,7 +204,7 @@ public class QuickImportAction extends VueAction{
 				browseButton.setBackground(Color.MAGENTA);
 				cancelButton.setBackground(Color.MAGENTA);
 				addButton.setBackground(Color.MAGENTA);
-	
+
 				locationLabel.setOpaque(true);
 				selectFileLabel.setOpaque(true);
 				fileRadioButton.setOpaque(true);
