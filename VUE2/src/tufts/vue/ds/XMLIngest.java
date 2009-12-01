@@ -53,7 +53,7 @@ import org.xml.sax.*;
 
 
 /**
- * @version $Revision: 1.12 $ / $Date: 2009-07-06 15:39:48 $ / $Author: sfraize $
+ * @version $Revision: 1.13 $ / $Date: 2009-12-01 22:20:48 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -217,7 +217,7 @@ public class XMLIngest {
         }
     }
 
-    public static Schema ingestXML(org.xml.sax.InputSource input, String itemKey)
+    public static Schema ingestXML(XmlSchema schema, org.xml.sax.InputSource input, String itemKey)
     {
         final org.w3c.dom.Document doc = parseXML(input, false);
 
@@ -248,8 +248,12 @@ public class XMLIngest {
 
         //outln("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>");
         //outln("<!-- created by RSSTest " + new Date() + " from " + src + " -->");
-
-        final XmlSchema schema = new XmlSchema(tufts.vue.Resource.instance(input), itemKey);
+   
+        
+        if (schema == null)
+        	schema = new XmlSchema(tufts.vue.Resource.instance(input), itemKey);
+        else
+        	schema.flushData();
         
         if (false)
             XPathExtract(schema, doc);
@@ -809,7 +813,7 @@ public class XMLIngest {
 
         //XMLIngest.XML_DEBUG = true;
 
-        Schema schema = ingestXML(is, key);
+        Schema schema = ingestXML(null,is, key);
         
         //schema.dumpSchema(System.err);
 

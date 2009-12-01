@@ -16,6 +16,7 @@
 package tufts.vue.ds;
 
 import tufts.vue.*;
+import tufts.vue.ds.XMLIngest.XmlSchema;
 import tufts.Util;
 
 import java.util.*;
@@ -33,7 +34,7 @@ import au.com.bytecode.opencsv.CSVReader;
 
 
 /**
- * @version $Revision: 1.25 $ / $Date: 2009-10-05 01:50:12 $ / $Author: sfraize $
+ * @version $Revision: 1.26 $ / $Date: 2009-12-01 22:20:48 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class XmlDataSource extends BrowseDataSource
@@ -326,7 +327,7 @@ public class XmlDataSource extends BrowseDataSource
             // TODO: What's different about XML schema loading that's not loading
             // the user styles?
             
-            schema = XMLIngest.ingestXML(openInput(), getItemKey());
+            schema = XMLIngest.ingestXML((XmlSchema) mSchema,openInput(), getItemKey());
             newIngest = true;
             schema.setDSGUID(getGUID());
             mSchema = schema;
