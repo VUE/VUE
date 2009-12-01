@@ -82,6 +82,7 @@ import tufts.vue.action.SaveAction;
 import tufts.vue.action.ShortcutsAction;
 import tufts.vue.action.ShowURLAction;
 import tufts.vue.action.TextOpenAction;
+import edu.tufts.vue.dataset.QuickImportAction;
 import edu.tufts.vue.dsm.impl.VueDataSourceManager;
 import edu.tufts.vue.ontology.action.OntologyControlsOpenAction;
 import edu.tufts.vue.ontology.ui.OntologyBrowser;
@@ -91,7 +92,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.168 $ / $Date: 2009-11-23 21:13:01 $ / $Author: mike $
+ * @version $Revision: 1.169 $ / $Date: 2009-12-01 17:40:56 $ / $Author: brian $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -295,11 +296,12 @@ public class VueMenuBar extends javax.swing.JMenuBar
         final ExitAction exitAction = new ExitAction(Util.isMacPlatform() ? VueResources.getString("menu.windows.quit") : VueResources.getString("menu.windows.exit"));
         
         importMenu = makeMenu(VueResources.getString("menu.file.import"));        
+        final  QuickImportAction quickImport = new QuickImportAction();
         publishMenu = makeMenu(VueResources.getString("menu.windows.publish"));        
         final  edu.tufts.vue.dataset.DatasetAction dataAction = new edu.tufts.vue.dataset.DatasetAction();
         //final JMenu publishAction =  Publish.getPublishMenu();
         final RDFOpenAction rdfOpen = new RDFOpenAction();
-        
+
         final TextOpenAction textOpen = new TextOpenAction();
         final CreateCM createCMAction = new CreateCM(VueResources.getString("menu.windows.conanalysis"));
         final AnalyzeCM analyzeCMAction = new AnalyzeCM(VueResources.getString("menu.windows.mergemaps"));
@@ -456,7 +458,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
 
                     publishMenu.setEnabled(false);
                     fileMenu.remove(publishMenu);
-                    fileMenu.add(publishMenu,11);
+//                    fileMenu.add(publishMenu,11);
+fileMenu.add(publishMenu,12);
                     
                 }});
                 
@@ -527,6 +530,9 @@ public class VueMenuBar extends javax.swing.JMenuBar
         }
         //fileMenu.add(exportAction);
         importMenu.add(rdfOpen);
+
+        fileMenu.add(quickImport);
+
         //publishMenu.setEnabled(false);
         if (!VUE.isApplet())
         	fileMenu.add(publishMenu);

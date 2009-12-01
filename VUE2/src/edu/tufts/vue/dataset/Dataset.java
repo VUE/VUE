@@ -26,12 +26,16 @@ package edu.tufts.vue.dataset;
 
 
 import java.util.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.*;
 import tufts.vue.*;
 import tufts.vue.ds.DataAction;
 import tufts.vue.ds.XmlDataSource;
 
 import java.net.*;
+
+import javax.swing.Timer;
 
 
 
@@ -48,8 +52,12 @@ public class Dataset {
     ArrayList<String> heading;
     ArrayList<ArrayList<String>> rowList;
     
-    String baseClass;
-    XmlDataSource	datasource; 
+    String          baseClass;
+    XmlDataSource   datasource;
+    LWMap           map;
+    ActionListener  createMapListener = null;
+    Timer           timer = null;
+
     /** Creates a new instance of Dataset */
     
     Layout layout = new ListRandomLayout(); // this is the default if no layout is set
@@ -102,9 +110,56 @@ public class Dataset {
         LayoutAction.random.act(new LWSelection(nodes));
         return map;
     }
+
+    public LWMap createMap(QuickImportAction listener) throws Exception{
+    	createMapListener = listener;
+
+    	String mapName = getMapName(fileName);
+        datasource = new XmlDataSource(mapName,getFileName());
+        Properties props = new Properties();
+ 		props.put("displayName", mapName);
+ 		props.put("name", mapName);
+ 		props.put("address", getFileName());
+ 		datasource.setConfiguration(props);
+ 		VUE.getContentDock().setVisible(true);
+ 		VUE.getContentPanel().showDatasetsTab();
+ 		DataSetViewer.getDataSetList().addOrdered(datasource);
+ 		VUE.getContentPanel().getDSBrowser().getDataSetViewer().setActiveDataSource(datasource);
+ 		DataSourceViewer.saveDataSourceViewer();
+
+		map = new LWMap(getMapName(fileName));
+
+ 		// Must wait until XmlDataSource.isLoading() returns false before creating map.
+		timer = new Timer(100, new ActionListener() {
+			public void actionPerformed(ActionEvent event) {
+				try {
+			    	if (!datasource.isLoading()) {
+						timer.stop();
+
+			    		List<LWComponent> nodes =  DataAction.makeRowNodes(datasource.getSchema());
+
+			    		for(LWComponent component: nodes) {
+			    			map.add(component);
+			    		}
+
+			    		LayoutAction.random.act(new LWSelection(nodes));
+
+			    		// Call back to the listener to tell it the map is ready to be displayed.
+			    		createMapListener.actionPerformed(event);
+			    	}
+				} catch(Exception ex) {
+					ex.printStackTrace();
+					timer.stop();
+				}
+		}});
+
+		timer.setInitialDelay(100);
+		timer.start();
+
+		return map;
+    }
+
     public void loadDataset() throws Exception {
-    		
- 		
     }
     /**
     public  void loadDataset() throws Exception {
