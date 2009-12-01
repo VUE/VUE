@@ -23,7 +23,7 @@ package tufts.vue;
  * on the configuration.  E.g., a local directory, a list of user favorites, a remote FTP
  * site, an RSS feed, etc.
  * 
- * @version $Revision: 1.14 $ / $Date: 2009-10-23 19:30:17 $ / $Author: mike $
+ * @version $Revision: 1.15 $ / $Date: 2009-12-01 17:36:15 $ / $Author: brian $
  * @author  rsaigal
  * @author  sfraize
  */
@@ -284,7 +284,7 @@ public abstract class BrowseDataSource implements DataSource
     }
     
     // call from AWT only
-    boolean isLoading() {
+    public boolean isLoading() {
         return mLoadThread != null;
     }
 
