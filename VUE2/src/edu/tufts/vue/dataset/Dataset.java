@@ -115,7 +115,7 @@ public class Dataset {
     	createMapListener = listener;
 
     	String mapName = getMapName(fileName);
-        datasource = new XmlDataSource(mapName,getFileName());
+        datasource = new XmlDataSource(mapName, getFileName());
         Properties props = new Properties();
  		props.put("displayName", mapName);
  		props.put("name", mapName);
@@ -143,13 +143,13 @@ public class Dataset {
 			    		}
 
 			    		LayoutAction.random.act(new LWSelection(nodes));
-
-			    		// Call back to the listener to tell it the map is ready to be displayed.
-			    		createMapListener.actionPerformed(event);
 			    	}
 				} catch(Exception ex) {
 					ex.printStackTrace();
 					timer.stop();
+				} finally {
+		    		// Call back to the listener to tell it the map is ready to be displayed.
+		    		createMapListener.actionPerformed(event);
 				}
 		}});
 
