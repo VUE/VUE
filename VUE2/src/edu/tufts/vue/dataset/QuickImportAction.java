@@ -279,18 +279,21 @@ public class QuickImportAction extends VueAction{
 				VUE.activateWaitCursor();
 
 				try {
-					boolean	isURL = URLRadioButton.isSelected(),
-							isFolder = file.isDirectory();
+					boolean	isFile = fileRadioButton.isSelected();
 
-					if (isURL || file == null) {
+					if (isFile && file == null) {
 						file = new File(fileTextField.getText());
 					}
 
 					switch (typeComboBox.getSelectedIndex()) {
 					case DATASET_TYPE_INDEX:
+					case DATASOURCE_TYPE_INDEX:
+					default:
+						boolean isFolder = isFile && file.isDirectory();
+
 						Dataset	dataset = (isFolder ? new FolderDataset() : new ListDataset());
 
-						dataset.setFileName(file.getAbsolutePath());
+						dataset.setFileName(isFile ? file.getAbsolutePath() : fileTextField.getText());
 						dataset.loadDataset();
 
 						if (isFolder) {
@@ -304,13 +307,9 @@ public class QuickImportAction extends VueAction{
 
 						break;
 
-					case DATASOURCE_TYPE_INDEX:
-					default:
-						showMap();
-						break;
-
 					case ONTOLOGY_TYPE_INDEX:
-						map = RDFOpenAction.loadMap(file.getAbsolutePath());
+
+						map = RDFOpenAction.loadMap(isFile ? file.getAbsolutePath() : fileTextField.getText());
 						showMap();
 						break;
 					}
