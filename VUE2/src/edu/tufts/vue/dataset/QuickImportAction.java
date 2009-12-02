@@ -29,23 +29,24 @@ import tufts.vue.LWMap;
 import tufts.vue.VUE;
 import tufts.vue.VueAction;
 import tufts.vue.VueResources;
+import tufts.vue.action.RDFOpenAction;
 import tufts.vue.gui.VueFileChooser;
 
 
 public class QuickImportAction extends VueAction{
 	public static final long		serialVersionUID = 1;
-	private static final Object		LOCK = new Object();
 	private static boolean			openUnderway = false;
-	protected static int			COLUMNS = 30,
+	private static final Object		LOCK = new Object();
+	protected static final int		COLUMNS = 30,
 									GUTTER = 4;
-	protected static String			DATASET_TYPE = VueResources.getString("quickImport.datasetTypes"),
+	protected static final String	DATASET_TYPE = VueResources.getString("quickImport.datasetTypes"),
 									DATASOURCE_TYPE = VueResources.getString("quickImport.datasourceTypes"),
 									ONTOLOGY_TYPE = VueResources.getString("quickImport.ontologyTypes"),
 									TYPES[] = {DATASET_TYPE, DATASOURCE_TYPE, ONTOLOGY_TYPE};
-	protected static int			DATASET_TYPE_INDEX = 0,
+	protected static final int		DATASET_TYPE_INDEX = 0,
 									DATASOURCE_TYPE_INDEX = 1,
 									ONTOLOGY_TYPE_INDEX = 2;
-	protected static boolean		DEBUG_LOCAL = false;
+	protected static final boolean	DEBUG_LOCAL = false;
 
 	protected JDialog				dialog = null;
 	protected JRadioButton			fileRadioButton = new JRadioButton(VueResources.getString("quickImport.file")),
@@ -285,19 +286,36 @@ public class QuickImportAction extends VueAction{
 						file = new File(fileTextField.getText());
 					}
 
-					Dataset	dataset = (isFolder ? new FolderDataset() : new ListDataset());
+					switch (typeComboBox.getSelectedIndex()) {
+					case DATASET_TYPE_INDEX:
+						Dataset	dataset = (isFolder ? new FolderDataset() : new ListDataset());
 
-					dataset.setFileName(file.getAbsolutePath());
-					dataset.loadDataset();
+						dataset.setFileName(file.getAbsolutePath());
+						dataset.loadDataset();
 
-					if (isFolder) {
-						map = dataset.createMap();
+						if (isFolder) {
+							map = dataset.createMap();
+							showMap();
+						} else {
+							// For ListDataset call createMap(this), so that this.actionPerformed(ActionEvent) will be called
+							// when the dataset has finished loading.
+							map = dataset.createMap(this);
+						}
+
+						break;
+
+					case DATASOURCE_TYPE_INDEX:
+					default:
 						showMap();
-					} else {
-						// For ListDataset call createMap(this), so that this.actionPerformed(ActionEvent) will be called
-						// when the dataset has finished loading.
-						map = dataset.createMap(this);
+						break;
+
+					case ONTOLOGY_TYPE_INDEX:
+						map = RDFOpenAction.loadMap(file.getAbsolutePath());
+						showMap();
+						break;
 					}
+
+					file = null;
 
 				} catch(Exception ex) {
 					ex.printStackTrace();
@@ -310,8 +328,12 @@ public class QuickImportAction extends VueAction{
 
 
 	protected void showMap() {
-		VUE.displayMap(map);
-		map.markAsModified();
+		if (map != null) {
+			VUE.displayMap(map);
+			map.markAsModified();
+
+			map = null;
+		}
 
 		VUE.clearWaitCursor();
 		openUnderway = false;
