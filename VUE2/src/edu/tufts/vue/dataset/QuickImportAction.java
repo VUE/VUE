@@ -13,6 +13,7 @@ import java.io.File;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -22,6 +23,7 @@ import javax.swing.JTextField;
 import javax.swing.Timer;
 
 import edu.tufts.vue.layout.RelRandomLayout;
+import edu.tufts.vue.rss.RSSDataSource;
 
 import tufts.vue.LWMap;
 import tufts.vue.VUE;
@@ -36,6 +38,13 @@ public class QuickImportAction extends VueAction{
 	private static boolean			openUnderway = false;
 	protected static int			COLUMNS = 30,
 									GUTTER = 4;
+	protected static String			DATASET_TYPE = VueResources.getString("quickImport.datasetTypes"),
+									DATASOURCE_TYPE = VueResources.getString("quickImport.datasourceTypes"),
+									ONTOLOGY_TYPE = VueResources.getString("quickImport.ontologyTypes"),
+									TYPES[] = {DATASET_TYPE, DATASOURCE_TYPE, ONTOLOGY_TYPE};
+	protected static int			DATASET_TYPE_INDEX = 0,
+									DATASOURCE_TYPE_INDEX = 1,
+									ONTOLOGY_TYPE_INDEX = 2;
 	protected static boolean		DEBUG_LOCAL = false;
 
 	protected JDialog				dialog = null;
@@ -44,6 +53,7 @@ public class QuickImportAction extends VueAction{
 	protected JButton				browseButton = new JButton(VueResources.getString("quickImport.browse")),
 									cancelButton = new JButton(VueResources.getString("quickImport.cancel")),
 									addButton = new JButton(VueResources.getString("quickImport.add"));
+	protected JComboBox				typeComboBox = new JComboBox(TYPES);
 	protected JTextField			fileTextField = new JTextField();
 	protected File					file = null,
 									lastDirectory = null;
@@ -125,6 +135,11 @@ public class QuickImportAction extends VueAction{
 			addToGridBag(locationRadioPanel, URLRadioButton, 1, 0, 1, 1,
 				GridBagConstraints.LINE_START, GridBagConstraints.NONE, gutter);
 
+			typeComboBox.setFont(tufts.vue.gui.GUI.LabelFace);
+			typeComboBox.setSelectedIndex(DATASET_TYPE_INDEX);
+			addToGridBag(locationRadioPanel, typeComboBox, 2, 0, 1, 1,
+				GridBagConstraints.LINE_START, GridBagConstraints.NONE, gutter);
+
 			addToGridBag(locationPanel, locationRadioPanel, 0, 0, 1, 1,
 					GridBagConstraints.LINE_START, GridBagConstraints.NONE, noGutter);
 
@@ -201,6 +216,7 @@ public class QuickImportAction extends VueAction{
 				selectFileLabel.setBackground(Color.MAGENTA);
 				fileRadioButton.setBackground(Color.MAGENTA);
 				URLRadioButton.setBackground(Color.MAGENTA);
+				typeComboBox.setBackground(Color.MAGENTA);
 				browseButton.setBackground(Color.MAGENTA);
 				cancelButton.setBackground(Color.MAGENTA);
 				addButton.setBackground(Color.MAGENTA);
@@ -209,6 +225,7 @@ public class QuickImportAction extends VueAction{
 				selectFileLabel.setOpaque(true);
 				fileRadioButton.setOpaque(true);
 				URLRadioButton.setOpaque(true);
+				typeComboBox.setOpaque(true);
 				browseButton.setOpaque(true);
 				cancelButton.setOpaque(true);
 				addButton.setOpaque(true);
@@ -261,17 +278,26 @@ public class QuickImportAction extends VueAction{
 				VUE.activateWaitCursor();
 
 				try {
-					if (URLRadioButton.isSelected() || file == null) {
+					boolean	isURL = URLRadioButton.isSelected(),
+							isFolder = file.isDirectory();
+
+					if (isURL || file == null) {
 						file = new File(fileTextField.getText());
 					}
 
-					Dataset	dataset = (file.isDirectory() ? new FolderDataset() : new ListDataset());
+					Dataset	dataset = (isFolder ? new FolderDataset() : new ListDataset());
 
-					dataset.setLayout(new RelRandomLayout());
 					dataset.setFileName(file.getAbsolutePath());
 					dataset.loadDataset();
 
-					map = dataset.createMap(this);	// this.actionPerformed(ActionEvent) will be called when dataset is loaded.
+					if (isFolder) {
+						map = dataset.createMap();
+						showMap();
+					} else {
+						// For ListDataset call createMap(this), so that this.actionPerformed(ActionEvent) will be called
+						// when the dataset has finished loading.
+						map = dataset.createMap(this);
+					}
 
 				} catch(Exception ex) {
 					ex.printStackTrace();
