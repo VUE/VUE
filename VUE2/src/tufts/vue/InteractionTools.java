@@ -233,6 +233,14 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 			linePanel.setOpaque(true);
 		}
 
+		// Set properties of the JSlider on the toolbar to match those of the JSlider on this panel.
+		VUE.depthSelectionSlider.setLabelTable(labelTable);
+		VUE.depthSelectionSlider.setPaintLabels(true);
+		VUE.depthSelectionSlider.setSnapToTicks(true);
+		VUE.depthSelectionSlider.setMinimumSize(depthSlider.getPreferredSize());
+		VUE.depthSelectionSlider.addChangeListener(new ToolbarDepthSelectionListener());
+		VUE.depthSelectionSlider.setToolTipText(VueResources.getString("interactionTools.depth.toolTip"));
+
 		setVisible(true);
 	}
 
@@ -295,6 +303,13 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 
 	public void doShrink() {
 		depthSlider.setValue(depthSlider.getValue() - 1);
+	}
+
+
+	public void setDepthValue(int value) {
+		if (depthSlider.getValue() != value) {
+			depthSlider.setValue(value);
+		}
 	}
 
 
@@ -389,11 +404,17 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 		DepthSelectionListener() {}
 
 
-		// ChangeListener method for depthSelectionSlider
+		// ChangeListener method for depthSlider
 		public void stateChanged(ChangeEvent event) {
 			JSlider	source = (JSlider)event.getSource();
 
 			if (!source.getValueIsAdjusting()) {
+				int value = source.getValue();
+
+				if (VUE.depthSelectionSlider.getValue() != value) {
+					VUE.depthSelectionSlider.setValue(value);
+				}
+
 				GUI.invokeAfterAWT(sliderMoved);
 			}
 		}
@@ -532,6 +553,23 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 						findChildrenToDepth(node.getLinked(), depth - 1);
 					}
 				}
+			}
+		}
+	}
+
+
+	protected class ToolbarDepthSelectionListener implements ChangeListener {
+
+
+		ToolbarDepthSelectionListener() {}
+
+
+		// ChangeListener method for depthSlider
+		public void stateChanged(ChangeEvent event) {
+			JSlider	source = (JSlider)event.getSource();
+
+			if (!source.getValueIsAdjusting()) {
+				VUE.getInteractionToolsPanel().setDepthValue(source.getValue());
 			}
 		}
 	}

@@ -117,7 +117,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.693 $ / $Date: 2009-12-03 20:35:14 $ / $Author: brian $ 
+ * @version $Revision: 1.694 $ / $Date: 2009-12-03 22:24:40 $ / $Author: brian $ 
  */
 
 public class VUE
@@ -1829,7 +1829,6 @@ public class VUE
         acrossTopList.add(pannerDock);
         acrossTopList.add(metaDataSearchDock);
         acrossTopList.add(layersDock);
-        acrossTopList.add(interactionToolsDock);
         acrossTopList.add(contentDock);
         acrossTopList.add(mergeMapsDock);
         acrossTopList.add(interactionToolsDock);
@@ -2281,6 +2280,7 @@ public class VUE
         //framesPerSecond.setMajorTickSpacing(6);
 
         //framesPerSecond.setPaintTicks(true);
+        searchPanel.add(depthSelectionSlider);
         searchPanel.add(new JLabel(" "));
         //mSearchtextFld.setPreferredSize(new Dimension(200,23));
         
