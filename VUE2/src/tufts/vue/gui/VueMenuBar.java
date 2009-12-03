@@ -77,11 +77,9 @@ import tufts.vue.action.OpenAction;
 import tufts.vue.action.OpenURLAction;
 import tufts.vue.action.PrintAction;
 import tufts.vue.action.PublishActionFactory;
-import tufts.vue.action.RDFOpenAction;
 import tufts.vue.action.SaveAction;
 import tufts.vue.action.ShortcutsAction;
 import tufts.vue.action.ShowURLAction;
-import tufts.vue.action.TextOpenAction;
 import edu.tufts.vue.dataset.QuickImportAction;
 import edu.tufts.vue.dsm.impl.VueDataSourceManager;
 import edu.tufts.vue.ontology.action.OntologyControlsOpenAction;
@@ -92,7 +90,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.169 $ / $Date: 2009-12-01 17:40:56 $ / $Author: brian $
+ * @version $Revision: 1.170 $ / $Date: 2009-12-03 19:47:37 $ / $Author: brian $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -298,11 +296,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
         importMenu = makeMenu(VueResources.getString("menu.file.import"));        
         final  QuickImportAction quickImport = new QuickImportAction();
         publishMenu = makeMenu(VueResources.getString("menu.windows.publish"));        
-        final  edu.tufts.vue.dataset.DatasetAction dataAction = new edu.tufts.vue.dataset.DatasetAction();
         //final JMenu publishAction =  Publish.getPublishMenu();
-        final RDFOpenAction rdfOpen = new RDFOpenAction();
 
-        final TextOpenAction textOpen = new TextOpenAction();
         final CreateCM createCMAction = new CreateCM(VueResources.getString("menu.windows.conanalysis"));
         final AnalyzeCM analyzeCMAction = new AnalyzeCM(VueResources.getString("menu.windows.mergemaps"));
      
@@ -458,8 +453,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
 
                     publishMenu.setEnabled(false);
                     fileMenu.remove(publishMenu);
-//                    fileMenu.add(publishMenu,11);
-fileMenu.add(publishMenu,12);
+                    fileMenu.add(publishMenu,11);
                     
                 }});
                 
@@ -521,15 +515,7 @@ fileMenu.add(publishMenu,12);
         Actions.Revert.setEnabled(false);
         fileMenu.addSeparator();
      //   fileMenu.add(Actions.ZoteroAction);
-        fileMenu.add(importMenu);
-        importMenu.add(dataAction);
-        String includeText = VueResources.getString("text.file.menu.include");
-        if(includeText != null && includeText.equals("TRUE"))
-        {
-          importMenu.add(textOpen);
-        }
         //fileMenu.add(exportAction);
-        importMenu.add(rdfOpen);
 
         fileMenu.add(quickImport);
 
