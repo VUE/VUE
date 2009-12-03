@@ -53,7 +53,7 @@ import org.xml.sax.*;
 
 
 /**
- * @version $Revision: 1.13 $ / $Date: 2009-12-01 22:20:48 $ / $Author: mike $
+ * @version $Revision: 1.14 $ / $Date: 2009-12-03 15:41:38 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -187,6 +187,8 @@ public class XMLIngest {
             
             // First, obtain the element as a node.
 
+            //tufts.DocDump.dump(document);
+                        
             Node nodeValue = (Node) xpath.evaluate(expression, document, XPathConstants.NODE);
             errout("   Node: " + nodeValue);
 
@@ -255,7 +257,7 @@ public class XMLIngest {
         else
         	schema.flushData();
         
-        if (false)
+        if (true)
             XPathExtract(schema, doc);
         else
             scanNode(schema, doc.getDocumentElement(), null, null);

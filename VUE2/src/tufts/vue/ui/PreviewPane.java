@@ -31,7 +31,7 @@ import java.awt.datatransfer.*;
 /**
  * Display a preview of the selected resource.  E.g., and image or an icon.
  *
- * @version $Revision: 1.35 $ / $Date: 2009-10-27 15:03:03 $ / $Author: sfraize $
+ * @version $Revision: 1.36 $ / $Date: 2009-12-03 15:41:38 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -173,9 +173,12 @@ public class PreviewPane extends JPanel
         // have thumbshots)  This on Leopard Java 1.5 as of 2008-05-21.
         if (!LazyLoadOnPaint || isShowing()) { 
 
-            if (DEBUG.IMAGE && !isShowing()) Log.debug("claims not visible on screen");
-            loadPreview(mPreviewData);
-            FirstPreview = false;
+            if (DEBUG.IMAGE && !isShowing()) {
+                Log.debug("claims not visible on screen, SKIPPING ON DEBUG");
+            } else {
+                loadPreview(mPreviewData);
+                FirstPreview = false;
+            }
 
         } else {
 
@@ -243,8 +246,11 @@ public class PreviewPane extends JPanel
     }
 
 
+//     /** @see Images.Listener */
+//     public void gotImageUpdate(Object key, Images.Progress p) {}
+    
     /** @see Images.Listener */
-    public void gotImageSize(Object imageSrc, int width, int height, long byteSize) {
+    public void gotImageSize(Object imageSrc, int width, int height, long byteSize, int[] ss) {
 
         if (imageSrc != mPreviewData)
             return;
@@ -258,14 +264,14 @@ public class PreviewPane extends JPanel
     
     
     /** @see Images.Listener */
-    public synchronized void gotImage(Object imageSrc, Image image, ImageRef ref) {
+    public synchronized void gotImage(Object imageSrc, Images.Handle handle) {
 
         if (imageSrc != mPreviewData && !imageSrc.equals(mPreviewData)) {
             if (DEBUG.Enabled) Log.info("skipping: image source != mPreviewData;\n\t"
                                         + Util.tags(imageSrc)
                                         + "\n\t" + Util.tags(mPreviewData));
         } else {
-            displayImage(image);
+            displayImage(handle.image);
             isLoading = false;
         }
     }

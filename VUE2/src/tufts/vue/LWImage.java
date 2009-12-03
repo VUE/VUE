@@ -62,6 +62,7 @@ public class LWImage extends LWComponent
 
     /** is this image currently serving as an icon for an LWNode? */
     private boolean isNodeIcon = false; // this is a messy way of supporting 2 modes of operation
+    private volatile boolean isValidSize = false;
     
     private void initImage() {
         disableProperty(LWKey.FontSize); // prevent 0 font size warnings (font not used on images)
@@ -159,7 +160,7 @@ public class LWImage extends LWComponent
     private void updateNodeIconStatus(LWContainer parent) {
 
         //tufts.Util.printStackTrace("updateNodeIconStatus, mImage=" + mImage + " parent=" + parent);
-        if (DEBUG.IMAGE) out("updateNodeIconStatus " + mImageRef + "; parent=" + parent);
+        if (DEBUG.Enabled) out("updateNodeIconStatus " + mImageRef + "; parent=" + parent);
 
         if (parent == null)
             return;
@@ -185,46 +186,74 @@ public class LWImage extends LWComponent
     }
 
     /** used by Actions to size the image */
-    public void setMaxDimension(final double max)
+    public void setMaxDimension(final float max)
     {
-        if (DEBUG.IMAGE) out("setMaxDimension " + max);
-
 //         if (mImageWidth <= 0) {
-
 //             // this fixes the "gray link" which was being created when an image was
 //             // dropped into a node on a slide -- it's size was never being set, leaving
 //             // it infintesimally small / invisible, making it look like a link.  (see
 //             // above condition on updateNodeIconStatus, where SLIDE_STYLE is checked).
-            
 //             setSize((float)max, (float)max);
 //             return;
 //         }
 
-        final int[] rawPixels = ref().fullPixelSize();
+        // Todo: if the source image changes on disk, any icon needs to be re-generated
 
-        final double width = rawPixels[0];
-        final double height = rawPixels[1];
+        //========================================================================================
+        // This problem is what determined that we MUST save this size in the cache somehow (e.g.,
+        // with the icon).  PROBLEM: if an image has an icon in cache, and we're creating a NEW
+        // RESOURCE, such that resource properties image.width & image.height were never set, we
+        // can't know the full pixel size.  Well HAVE to use the aspect (old image code didn't use
+        // aspect here -- always used full pixel size).  The ONLY WAY around that one, w/out
+        // forcing a load of a the whole image (which defeats the purpose of the image code
+        // entirely) would be to store the full pixel size in the icon itself somehow.  That would
+        // be a good idea anyway... how to best do it?  .PNG meta-data would be great, tho putting
+        // it in the filename would be easier, tho if if the source image changed...  actually,
+        // that could be one way we detect that the source image has changed, tho including the
+        // modification date would be ideal -- now we REALLY need meta-data...  Oh, wait, we could
+        // actually use the modification date of the icon file -- just make sure it's AFTER the
+        // on-disk file.
+        // ========================================================================================
 
-        if (DEBUG.IMAGE) out("setMaxDimension curSize " + width + "x" + height);
-        
-        double newWidth, newHeight;
+        final int[] rawPixels = getFullPixelSize();
 
-        if (width > height) {
-            newWidth = max;
-            newHeight = height * max / width;
-            //newHeight = Math.round(height * max / width);
+        if (rawPixels == ImageRep.ZERO_SIZE) {
+            Log.warn("setMaxDimension: image rep has unset size: " + ref());
+            putSize(DefaultMaxDimension, DefaultMaxDimension, false);
         } else {
-            newHeight = max;
-            newWidth = width * max / height;
-            //newWidth = Math.round(width * max / height);
-        }
-        final float w = (float) newWidth;
-        final float h = (float) newHeight;
-        
-        //if (DEBUG.IMAGE) out("setMaxDimension newSize " + newWidth + "x" + newHeight);
-        if (DEBUG.IMAGE)  out("setMaxDimension newSize " + w + "x" + h);
 
-        setSize(w, h);
+            Size newSize = Images.fitInto(max, rawPixels);
+            
+            if (DEBUG.Enabled) out("setMaxDimension " + max + " -> " + newSize);
+            
+            putSize(newSize.width, newSize.height, true);
+        
+        }
+        
+        
+//         final double width = rawPixels[0];
+//         final double height = rawPixels[1];
+
+//         if (DEBUG.IMAGE) out("setMaxDimension curSize " + width + "x" + height);
+        
+//         double newWidth, newHeight;
+
+//         if (width > height) {
+//             newWidth = max;
+//             newHeight = height * max / width;
+//             //newHeight = Math.round(height * max / width);
+//         } else {
+//             newHeight = max;
+//             newWidth = width * max / height;
+//             //newWidth = Math.round(width * max / height);
+//         }
+//         final float w = (float) newWidth;
+//         final float h = (float) newHeight;
+        
+//         //if (DEBUG.IMAGE) out("setMaxDimension newSize " + newWidth + "x" + newHeight);
+//         if (DEBUG.IMAGE)  out("setMaxDimension newSize " + w + "x" + h);
+
+//        setSize(w, h);
     }
 
     @Override
@@ -359,7 +388,7 @@ public class LWImage extends LWComponent
         // not, we'll set us to a minimum size for display until we know the real size.
 
         if (suggestWidth > 0 && suggestHeight > 0 && (ref().fullPixelSize() == ImageRef.ZERO_SIZE))
-            setSize(suggestWidth, suggestHeight);
+            putSize(suggestWidth, suggestHeight, false);
         //setImageSize(suggestWidth, suggestHeight);
         
         // save a key that marks the current location in the undo-queue,
@@ -384,9 +413,24 @@ public class LWImage extends LWComponent
     
     /** @see ImageRef.Listener */
     public /*synchronized*/ void imageRefChanged(Object cause) {
-        // note: this won't be in the AWT thread
-        autoShape();
-        repaintPixels();
+        // note: this won't be in the AWT thread, so for full thread safety any
+        // size changes should happen on AWT, tho that may conflict with our undo-tracking
+        // for threaded inits?  Tho as long as we make use of the mark we obtain,
+        // that shouldn't matter, right?
+        //
+        // Oh -- that happens via UndoManager.attachCurrentThreadToMark(mUndoMarkForThread),
+        // which if we do in AWT will then attach all of AWT to that undo mark?  That
+        // whole mechanism probably really needs to passed all the way through to the
+        // notify so the undo manager can detect that there?
+        
+        if (!isValidSize) {
+            autoShape();
+            //repaintOnResize(); // may have shrunk -- need to repaint everything
+            // todo: really, repaint the intersection of old size & new size
+            repaintPixels();
+        } else {
+            repaintPixels();
+        }
     }
 
 //     private class Repainter implements Runnable {
@@ -411,6 +455,9 @@ public class LWImage extends LWComponent
         if (alive()) notify(LWKey.RepaintRegion);
         //if (alive()) notify(LWKey.Repaint); // for DEBUG.BOXES debug visibility in other images
     }
+    private void repaintOnResize() {
+        if (alive()) notify(LWKey.Repaint);
+    }
 
 //     @Override
 //     protected boolean intersectsImpl(Rectangle2D mapRect) {
@@ -425,24 +472,72 @@ public class LWImage extends LWComponent
 //         return i;
 //     }
 
-    @Override
-    public void setToNaturalSize() {
-        int[] size = ref().fullPixelSize();
-        setSize(size[0], size[1]);
+    @Override public void setToNaturalSize() {
+        setSize(getFullPixelSize());
     }
 
-    public void suggestSize(int w, int h) 
-    {
-        //Util.printStackTrace("suggestSize " + w + "x" + h);
-        setSize(w,h);
+    private int[] getFullPixelSize() {
+        int[] size = ref().fullPixelSize();
+        
+        if (size == ImageRep.ZERO_SIZE && hasResource()) {
+
+            // It's possible to have only the icon loaded, and not the full representation, and
+            // thus not immediately know the size of the full representation.
+
+            // todo: note that even if one ImageRep loads it's full size, others that haven't
+            // reqested it yet will still end up using this method.  As soon as one rep has a real
+            // size, all should get their real size.  (also another argument for making them
+            // singleton)
+            
+            final Resource r = getResource();
+            final int w = r.getProperty(Resource.IMAGE_WIDTH, -1);
+            final int h = r.getProperty(Resource.IMAGE_HEIGHT, -1);
+            if (w > 0 && h > 0) {
+                size = new int[2];
+                size[0] = w;
+                size[1] = h;
+                // todo: would be better to NOT let this be used as a "valid" size -- if it later
+                // disagrees with something found on disk (the image has changed on disk since this
+                // resource was created), the new, real image size should take priority.
+            }
+        }
+        return size;
+    }
+                                      
+
+    private void setSize(int[] size) {
+        if (size == ImageRep.ZERO_SIZE) {
+            Log.warn("skipping setSize of ZERO_SIZE; " + this);
+        } else {
+            putSize(size[0], size[1], true);
+        }
     }
     
+    public void suggestSize(int w, int h) 
+    {
+        if (DEBUG.Enabled) out("suggestSize " + w + "x" + h);
+        putSize(w,h, false);
+    }
 
-//     @Override
-//     public void setSize(float w, float h) {
-//         if (DEBUG.IMAGE||DEBUG.WORK) out("setSize " + w + "x" + h);
-//         super.setSize(w, h);
-//     }
+    private void putSize(float w, float h, boolean validated) {
+        setSize(w, h);
+        if (validated) {
+            if (!isValidSize) {
+                if (DEBUG.Enabled) out("set first VALID size " + w + "x" + h);
+                isValidSize = true;
+            }
+        } else {
+            if (isValidSize) {
+                Log.error("DE-VALIDATING SIZE; " + this, new Throwable("HERE"));
+                isValidSize = false;
+            }
+        }
+    }
+
+    @Override public void setSize(float w, float h) {
+        if (DEBUG.Enabled) out("setSize " + w + "x" + h);
+        super.setSize(w, h);
+    }
     
     private float aspect() {
         return ref().aspect();
@@ -451,42 +546,58 @@ public class LWImage extends LWComponent
     private void autoShape() {
         autoShapeToAspect();
     }
+
+    @Override protected void out(String s) {
+        Log.debug(String.format("%s: %s", paramString(), s));
+    }
+    
+    @Override
+    public String paramString() {
+        return super.paramString() + (isNodeIcon ? " <NodeIcon> " : " ");// + mImageRef;
+        //return super.paramString() + " " + mImageStatus + " raw=" + mImageWidth + "x" + mImageHeight + (isNodeIcon ? " <NodeIcon>" : "");
+    }
+
+
     
     private void autoShapeToAspect() {
+
+        final float aspect = aspect();
         
-        if (aspect() > 0) {
+        if (aspect <= 0) {
+            Log.warn("bad aspect in autoShapeToAspect: " + aspect);
+            return;
+        }
 
-            if (this.width == NEEDS_DEFAULT || this.height == NEEDS_DEFAULT) {
-                //Log.error("cannot auto-shape without request size: " + this, new Throwable("HERE"));
-                if (DEBUG.WORK||DEBUG.IMAGE) out("autoshaping from scratch to " + DefaultMaxDimension);
-                setMaxDimension(DefaultMaxDimension);
-                return;
-            }
+        if (this.width == NEEDS_DEFAULT || this.height == NEEDS_DEFAULT) {
+            //Log.error("cannot auto-shape without request size: " + this, new Throwable("HERE"));
+            if (DEBUG.WORK||DEBUG.IMAGE) out("autoshaping from scratch to " + DefaultMaxDimension);
+            setMaxDimension(DefaultMaxDimension);
+            return;
+        }
      
-            //if (DEBUG.IMAGE) out("autoShapeToAspect in: " + width + "," + height);
+        if (DEBUG.Enabled) out("autoShapeToAspect in: " + width + "," + height);
              
-            final Size newSize = ConstrainToAspect(aspect(), this.width, this.height);
+        final Size newSize = ConstrainToAspect(aspect, this.width, this.height);
 
-            final float dw = this.width - newSize.width;
-            final float dh = this.height - newSize.height;
+        final float dw = this.width - newSize.width;
+        final float dh = this.height - newSize.height;
             
-            /*
-             * Added this in response to VUE-948
-             */
-            if ((DEBUG.WORK || DEBUG.IMAGE) && (newSize.width != width || newSize.height != height))
-                out(String.format("autoShapeToAspect: a=%.2f dw=%g dh=%g; %.1fx%.1f -> %s",
-                                  aspect(),
-                                  dw, dh,
-                                  width, height,
-                                  newSize));
+        /*
+         * Added this in response to VUE-948
+         */
+        if ((DEBUG.WORK || DEBUG.IMAGE) && (newSize.width != width || newSize.height != height))
+            out(String.format("autoShapeToAspect: a=%.2f dw=%g dh=%g; %.1fx%.1f -> %s",
+                              aspect,
+                              dw, dh,
+                              width, height,
+                              newSize));
                                   
-            //out("autoShapeToAspect: a=" + mImageAspect + "; dw=" + dw + ", dh=" + dh + "; " + width + "," + height + " -> adj " + newSize);
-            //out("autoShapeToAspect: " + width + "," + height + " -> newSize: " + newSize.width + "," + newSize.height);
+        //out("autoShapeToAspect: a=" + mImageAspect + "; dw=" + dw + ", dh=" + dh + "; " + width + "," + height + " -> adj " + newSize);
+        //out("autoShapeToAspect: " + width + "," + height + " -> newSize: " + newSize.width + "," + newSize.height);
             
-            if (Math.abs(dw) > 1 || Math.abs(dh) > 1) {
-                // above check helps reduce needless tweaks, which make things messy during map loading
-                setSize(newSize.width, newSize.height);
-            }
+        if (Math.abs(dw) > 1 || Math.abs(dh) > 1) {
+            // above check helps reduce needless tweaks, which make things messy during map loading
+            setSize(newSize.width, newSize.height);
         }
     }
 
@@ -503,9 +614,9 @@ public class LWImage extends LWComponent
             super.userSetSize(width, height, e);
         } else if (aspect() > 0) {
             Size newSize = ConstrainToAspect(aspect(), width, height);
-            setSize(newSize.width, newSize.height);
+            putSize(newSize.width, newSize.height, true);
         } else
-            setSize(width, height);
+            putSize(width, height, true);
 
 //         If (e != null && e.isShiftDown())
 //             croppingSetSize(width, height);
@@ -577,7 +688,7 @@ public class LWImage extends LWComponent
     }
 
     @Override protected void preCacheContent() {
-        ref().preLoadFullSize();
+        ref().preLoadFullRep();
     }    
     
     private void drawImage(DrawContext dc)
@@ -837,13 +948,6 @@ public class LWImage extends LWComponent
             return Color.black.equals(pc) ? LoadedColorLight : LoadedColorDark;
         } else
             return LoadedColorDark;
-    }
-
-
-    @Override
-    public String paramString() {
-        return super.paramString() + (isNodeIcon ? " <NodeIcon> " : " ") + mImageRef;
-        //return super.paramString() + " " + mImageStatus + " raw=" + mImageWidth + "x" + mImageHeight + (isNodeIcon ? " <NodeIcon>" : "");
     }
 
 

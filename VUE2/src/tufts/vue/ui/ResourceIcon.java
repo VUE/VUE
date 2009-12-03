@@ -31,7 +31,7 @@ import javax.swing.*;
  * TODO: merge common code with PreviewPane, and perhaps put in a 3rd class
  * so can have multiple icons referencing the same underlying image.
  *
- * @version $Revision: 1.17 $ / $Date: 2009-10-28 21:28:27 $ / $Author: sfraize $
+ * @version $Revision: 1.18 $ / $Date: 2009-12-03 15:41:38 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -196,8 +196,10 @@ public class ResourceIcon
     }
 
 
-    /** @see Images.Listener */
-    public synchronized void gotImageSize(Object imageSrc, int width, int height, long byteSize) {
+//     /** @see Images.Listener */
+//     public void gotImageUpdate(Object key, Images.Progress p) {}
+
+    public synchronized void gotImageSize(Object imageSrc, int width, int height, long byteSize, int[] ss) {
 
         //if (imageSrc != mPreviewData) return;
             
@@ -209,11 +211,11 @@ public class ResourceIcon
     public synchronized void gotImageProgress(Object imageSrc, long bytesSoFar, float pct) {}
     
     /** @see Images.Listener */
-    public synchronized void gotImage(Object imageSrc, Image image, ImageRef ref) {
+    public synchronized void gotImage(Object imageSrc, Images.Handle handle) {
 
         //if (imageSrc != mPreviewData) return;
             
-        displayImage(image);
+        displayImage(handle.image);
         isLoading = false;
     }
     /** @see Images.Listener */

@@ -16,6 +16,7 @@
 package tufts.vue;
 
 import tufts.Util;
+import tufts.DocDump;
 
 import static tufts.vue.Resource.*;
 
@@ -36,8 +37,12 @@ import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
 import javax.swing.ImageIcon;
 import javax.imageio.*;
+import javax.imageio.metadata.*;
 import javax.imageio.event.*;
 import javax.imageio.stream.*;
+
+import javax.xml.xpath.*;
+import org.w3c.dom.NodeList;
 
 /**
  *
@@ -46,7 +51,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.70 $ / $Date: 2009-11-05 16:33:05 $ / $Author: sfraize $
+ * @version $Revision: 1.71 $ / $Date: 2009-12-03 15:41:38 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -83,11 +88,9 @@ public class Images
     }
     
     public static VueAction ClearCacheAction = new VueAction("Empty Image Cache") {
-            public void act() { Cache.clear(); }
+            public void act() { RawCache.clear(); }
         };
     
-    private static final CacheMap Cache = new CacheMap();
-
     
     /**
      * Calls to Images.getImage must pass in a Listener to get results.
@@ -95,20 +98,26 @@ public class Images
      * passed in to getImage as the imageSRC.
      */
     public interface Listener {
-        /** If image is already cached, this will NOT be called -- is only called from an image loading thread. */
-        void gotImageSize(Object imageSrc, int w, int h, long byteSize);
+
+        /** If image is already cached, this will NOT be called -- is only called from an image loading thread.
+         * If sourceSize is non-null, this is an icon, and that represents the full-size */
+        void gotImageSize(Object imageSrc, int w, int h, long byteSize, int[] sourceSize);
         /** If byte-tracking is enabled on the input source, this will be called periodically during loading */
         void gotImageProgress(Object imageSrc, long bytesSoFar, float percentSoFar);
         /** Will be called immediately in same thread if image cached, later in different thread if not. */
         //void gotImage(Object imageSrc, Image image, int w, int h);
-        void gotImage(Object imageSrc, Image image, ImageRef ref); // todo: ImageRef arg not currently used
+        void gotImage(Object imageSrc, Handle handle);
         /** If there is an exception or problem loading the image, this will be called */
         void gotImageError(Object imageSrc, String msg);
+
+//         /** intended to ultimately replace all the below calls */
+//         void gotImageData(Object key, Progress p);
+        
     }
 
 
     /**
-     * Fetch the given image.  If it's cached, listener.gotImage is called back immediately
+     * Fetch the given image with meta-data.  If it's cached, listener.gotImage is called back immediately
      * in the current thread.  If not, the image is fetched asynchronously, and the
      * callbacks are made later from a special image loading thread.
      *
@@ -120,10 +129,17 @@ public class Images
      * @return the Image if immediately available, null if the listener will be called back.
      **/
     
-    public static Image getImage(Object imageSRC, Images.Listener listener)
+    public static Handle getImageHandle(Object imageSRC, Images.Listener listener)
     {
         return getImage(imageSRC, listener, false);
     }
+    
+    public static Image getImage(Object imageSRC, Images.Listener listener)
+    {
+        //return getImage(imageSRC, listener, false).image;
+        return handleImage(getImage(imageSRC, listener, false));
+    }
+
 
     /**
      * If the requested content is not already loading,
@@ -131,7 +147,7 @@ public class Images
      */
     public static Image getImageASAP(Object imageSRC, Images.Listener listener)
     {
-        return getImage(imageSRC, listener, true);
+        return getImage(imageSRC, listener, true).image;
     }
     
     /**
@@ -149,7 +165,7 @@ public class Images
      *
      * @return the Image if immediately available, null if the listener will be called back.
      **/
-    private static Image getImage(Object imageSRC, Images.Listener listener, boolean immediate)
+    private static Handle getImage(Object imageSRC, Images.Listener listener, boolean immediate)
     {
         try {
             return getCachedOrCallbackOnLoad(imageSRC, listener, immediate);
@@ -183,7 +199,7 @@ public class Images
         File[] files = dir.listFiles();
         Log.debug("listing disk cache: done; entries=" + files.length);
         
-        synchronized (Cache) {
+        synchronized (RawCache) {
             for (int i = 0; i < files.length; i++) {
                 File file = files[i];
                 String name = file.getName();
@@ -194,8 +210,10 @@ public class Images
                 try {
                     key = cacheFileNameToKey(name);
                     if (DEBUG.IMAGE && DEBUG.META) out("made cache key: " + key);
-                    if (key != null)
-                        Cache.put(key, new CacheEntry(null, file));
+                    if (key != null) {
+                        RawCache.put(key, new CacheEntry(file));
+                        //RefCache.put(key, file);
+                   }
                 } catch (Throwable t) {
                     Log.error("failed to load cache with [" + name + "]; key=" + key);
                 }
@@ -209,7 +227,7 @@ public class Images
         final ImageSource imageSRC = ImageSource.create(r);
 
         if (imageSRC.key != null) {
-            final Object entry = Cache.get(imageSRC.key);
+            final Object entry = RawCache.get(imageSRC.key);
             if (entry instanceof CacheEntry) {
                 return ((CacheEntry)entry).file;
             } else {
@@ -225,6 +243,7 @@ public class Images
     // currently have a common super-class.
     private static class CacheEntry {
         private final Reference<Image> ref;
+        private final Map<String,?> data;
         private final File file;
         // Loader loader;
         // todo: add loader here so we can always have CacheEntry's in the cache, and
@@ -234,7 +253,7 @@ public class Images
         // want a separate icon cache.
 
         /** image should only be null for startup init with existing cache files */
-        CacheEntry(Image image, File cacheFile)
+        CacheEntry(Image image, File cacheFile, Map<String,?> props)
         {
             if (image == null && cacheFile == null)
                 throw new IllegalArgumentException("CacheEntry: at least one of image or file must be non null");
@@ -243,8 +262,24 @@ public class Images
             else
                 this.ref = null;
             this.file = cacheFile;
+            this.data = props;
             if (DEBUG.IMAGE) out("new " + this);
         }
+
+        CacheEntry(Image image, File cacheFile) {
+            this(image, cacheFile, Collections.EMPTY_MAP);
+        }
+        
+        CacheEntry(Handle handle, File cacheFile) {
+            this(handle.image, cacheFile, handle.data);
+        }
+        
+        // for startup disk entries: note that props can't change (is final), so this
+        // entry must be replaced once the image is loaded.
+        CacheEntry(File cacheFile) {
+            this(null, cacheFile, Collections.EMPTY_MAP); 
+        }
+        
 
         boolean isPreloadedDiskEntry() {
             return ref == null;
@@ -265,6 +300,15 @@ public class Images
                 return image;
         }
 
+        Handle getHandle() {
+            //return Handle.create(getCachedImage(), data);
+            Image i = getCachedImage();
+            if (i != null)
+                return new Handle(i, data);
+            else
+                return null;
+        }
+
         File getFile() {
             return file;
         }
@@ -279,6 +323,73 @@ public class Images
         }
     }
 
+    private static final CacheMap RawCache = new CacheMap();
+    //private static final NewCache RefCache = new NewCache();
+    //private static final NewCache<URI,ImageRef> RefCache = new NewCache();
+    
+//     private static class NewCache {
+
+//         private final Map<URI,ImageRef> map = new ConcurrentHashMap();
+        
+//         // can ultimately refactor access code to make all transactions explicit
+//         // so don't need to be synchronized here and can rely on ConcurrentHashMap
+//         // for simple ops, but leaving synchronized for now as our existing
+//         // cache transactions may depend on it.
+    
+//         synchronized ImageRef get(URI key) {
+//             return map.get(key);
+//         }
+        
+//         synchronized boolean containsKey(URI key) {
+//             return map.containsKey(key);
+//         }
+        
+//         synchronized ImageRef put(URI key, ImageRef value) {
+//             return map.put(key, value);
+//         }
+        
+//         synchronized ImageRef put(URI key, File file) {
+//             //return map.put(key, value);
+//             //return map.put(key, ImageRef.create(file));
+//             return null;
+//         }
+        
+//         synchronized ImageRef remove(URI key) {
+//             return map.remove(key);
+//         }
+        
+//         synchronized void clear() {
+//             throw new UnsupportedOperationException("unimplemented");
+//         }
+//     }
+        //===================================================================================================
+        // This would all be much simpler if the cache contained ImageRef's.  They could contain
+        // whatever reps are available, and be the place where the full size was always recorded
+        // (possibly in the size of it's full-rep, left in an UNLOADED state, but with size
+        // recorded.  In that case, the _full rep may be able to be made final).  The only
+        // high-level extra complexity would be that ImageRef's would then need to keep a list of
+        // listeners (LWImage's), which would also want to be flushed when LWImage's leave the
+        // model (and re-add if they re-join the model).  Also tho, w/out extra work, any update to
+        // an ImageRef (e.g., full-rep-has-arrived), would trigger repaints to all LWImage's, even
+        // if their happy displaying just an icon image.  That's probably a good trade-off to make
+        // tho -- it's not often that you have a map with the same image repeated anyway (well, may
+        // presentations when slide icons are turned on), and it's extra repaints that will only
+        // happen once -- when the full rep fully arrives.
+        //
+        // Also, either all existing API's would need to change to work w/ImageRef's, or we'd need
+        // to keep things backward compat.  That probably wouldn't be that much of an issue.
+        // Okay, only two places use the image api: PreviewPane & ResourceIcon.  And only PreviewPane
+        // makes any use of the tracking the original update source (in case we've switched to a new
+        // preview after results of an old preview finally arrived).
+        //
+        // The big change is that the cache would now contain entries for multiple reps (full + icons).
+        // Maybe this isn't an issue at all tho?  Currently, this lets full reps and icon reps
+        // exist separately in the cache, and for them to be GC's separately.  If the cache contained
+        // ImageRef's, nobody would actually request icon reps -- ImageRef is the only thing that does
+        // that.  Normal requestors only request the original rep -- it's just sometimes they'll get
+        // the icon rep instead.
+        //===================================================================================================
+        
 
     /*
      * Not all HashMap methods covered: only safe to use
@@ -351,7 +462,7 @@ public class Images
      */
     public static void flushCache(File file) {
         final Object key = makeKey(file);
-        final Object entry = Cache.remove(key);
+        final Object entry = RawCache.remove(key);
         if (entry != null) {
             Log.info(Util.TERM_RED + "flushed cache entry: " + key + "; " + entry + Util.TERM_CLEAR);
         } else {
@@ -446,29 +557,43 @@ public class Images
             this(l0, null);
         }
 
-        public void gotImageSize(Object src, int w, int h, long bytes) {
-            relaySize(head, src, w, h, bytes);
-            relaySize(tail, src, w, h, bytes);
+//         public void gotImageUpdate(Object key, Progress p) {
+//             if (head != null) relayUpdate(head, key, p);
+//             if (tail != null) relayUpdate(tail, key, p);
+//         }
+//         protected final void relayUpdate(Listener l, Object key, Progress p) {
+//             try {
+//                 if (DEBUG.IMAGE && l instanceof ListenerRelay == false)
+//                     out("relay UPDATE of " + key + " to " + tag(l));
+//                 l.gotImageUpdate(key, p);
+//             } catch (Throwable t) {
+//                 Log.error("relaying UPDATE " + key + " to " + Util.tags(l), t);
+//             }
+//         }
+        
+        public void gotImageSize(Object src, int w, int h, long bytes, int[] sourceSize) {
+            relaySize(head, src, w, h, bytes, sourceSize);
+            relaySize(tail, src, w, h, bytes, sourceSize);
         }
         public void gotImageProgress(Object src, long bytes, float pct) {
             relayProgress(head, src, bytes, pct);
             relayProgress(tail, src, bytes, pct);
         }
-        public void gotImage(Object src, Image image, ImageRef ref) {
-            relayImage(head, src, image, ref);
-            relayImage(tail, src, image, ref);
+        public void gotImage(Object src, Handle handle) {
+            relayImage(head, src, handle);
+            relayImage(tail, src, handle);
         }
         public void gotImageError(Object src, String msg) {
             relayError(head, src, msg);
             relayError(tail, src, msg);
         }
 
-        protected final void relaySize(Listener l, Object src, int w, int h, long bytes) {
+        protected final void relaySize(Listener l, Object src, int w, int h, long bytes, int[] sourceSize) {
             if (l != null) {
                 try {
                     if (DEBUG.IMAGE && l instanceof ListenerRelay == false)
                         out("relay SIZE to " + tag(l));
-                    l.gotImageSize(src, w, h, bytes);
+                    l.gotImageSize(src, w, h, bytes, sourceSize);
                 } catch (Throwable t) {
                     Log.error("relaying size to " + Util.tags(l), t);
                 }
@@ -485,12 +610,12 @@ public class Images
                 }
             }
         }
-        protected final void relayImage(Listener l, Object src, Image image, ImageRef ref) {
+        protected final void relayImage(Listener l, Object src, Handle handle) {
             if (l != null) {
                 try {
                     if (DEBUG.IMAGE && l instanceof ListenerRelay == false)
                         out(Util.TERM_CYAN + "relay IMAGE to " + tag(l) + Util.TERM_CLEAR);
-                    l.gotImage(src, image, ref);
+                    l.gotImage(src, handle);
                 } catch (Throwable t) {
                     Log.error("relaying image to " + Util.tags(l), t);
                 }
@@ -517,6 +642,33 @@ public class Images
                 return false;
         }
 
+        protected boolean addListener(Listener newListener) {
+            
+            synchronized (this) {
+                if (hasListener(newListener)) {
+                    if (DEBUG.Enabled) out("CachingRelayer: ALREADY A LISTENER FOR THIS IMAGE: " + tag(newListener));
+                    return false;
+                }
+                if (tail == null)  {
+                    this.tail = newListener;
+                } else {
+                    this.tail = new ListenerRelay(tail, newListener);
+                }
+                return true;
+            }
+
+            // Note: WE CAN DEADLOCK if deliverPartialResults is in the sync.  E.g. --
+            // trying moving around raw images as they're loading / icon generating.
+            
+            // TODO: this really should be in the sync, as well as all the above
+            // Listener API methods -- normally we'll be in the AWT thread, and if a
+            // loader modifies the partial results while this call is being made, they
+            // may be incoherent, and not all partial data may delivered.  The lock is
+            // inherently dangerous tho, in that anything may generally happen during
+            // client code callbacks, including calls back into this API.
+            
+            //deliverPartialResults(newListener);
+        }
     }
 
     /**
@@ -528,33 +680,65 @@ public class Images
     // slowly accumulates it's results, and is reported to a single gotImageData call,
     // with an added event type argument (size/progress/image/icon/error) An ImageRep
     // might be tempting to serve this purpose, but that doesn't really make sense: the
-    // ImageRep doesn't need to know things like byteSize or bytesSoFar.
-    
-    private static class CachingRelayer extends ListenerRelay
-    {
-        private ImageSource imageSRC;
+    // ImageRep doesn't need to know things like byteSize or bytesSoFar.  This Progress
+    // class is an an attempt to that, tho we'd need to change all the Listener API
+    // impls to make use of it -- cleanup for another day.
+
+    /*public*/ static class Progress {
+
+//         public static final String SIZE = "IMG_SIZE";
+//         public static final String SOURCE_SIZE = "IMG_SOURCE_SIZE";
+//         public static final String PROGRESS = "IMG_BYTE_PROGRESS";
+//         public static final String IMAGE = "IMG_RENDERABLE";
+//         public static final String ERROR = "IMG_ERROR";
+
+        protected final ImageSource imageSRC;
         
-        private Image image;
-        private ImageRef ref;
-        private int width = -1;
-        private int height = -1;
-        private long byteSize;
-        private long bytesSoFar;
-        private String errorMsg;
-        
-        CachingRelayer(ImageSource is, Listener firstListener) {
-            super(firstListener, null);
+        protected Handle handle;
+        protected int width = -1;
+        protected int height = -1;
+        protected int[] sourceSize;
+        protected long byteSize;
+        protected long bytesSoFar;
+        protected String errorMsg;
+
+        private Progress(ImageSource is) {
             imageSRC = is;
         }
+        
+        public ImageSource source() { return imageSRC; }
+        public Image image() { return handle == null ? null : handle.image; }
+        public int width() { return width; }
+        public int height() { return height; }
+        public long byteSize() { return byteSize; }
+        public long bytesSoFar() { return bytesSoFar; }
+        public String errorMessage() { return errorMsg; }
+    }
+    
+    private static final class CachingRelayer extends Progress implements Listener
+    {
+        final ListenerRelay chain;
+        
+        CachingRelayer(ImageSource is, Listener firstListener) {
+            //super(firstListener, null);
+            super(is);
+            chain = new ListenerRelay(firstListener);
+        }
 
-        @Override public synchronized void gotImageSize(Object imageSrc, int w, int h, long byteSize) {
+//         public void gotImageData(Object key, Progress p) {
+//             chain.gotImageUpdate(key, p);
+//         }
+        
+        public synchronized void gotImageSize(Object imageSrc, int w, int h, long byteSize, int[] sourceSize) {
             this.width = w;
             this.height = h;
             this.byteSize = byteSize;
-            super.gotImageSize(imageSrc, w, h, byteSize);
+            if (sourceSize != null)
+                this.sourceSize = sourceSize;
+            chain.gotImageSize(imageSrc, w, h, byteSize, sourceSize);
         }
 
-        @Override public synchronized void gotImageProgress(Object imageSrc, long bytesSoFar, float _p) {
+        public synchronized void gotImageProgress(Object imageSrc, long bytesSoFar, float _p) {
             this.bytesSoFar = bytesSoFar;
             // incoming percent is empty -- we fill it here
             // Note that the underlying raw stream may send us byte progress reports before
@@ -563,19 +747,19 @@ public class Images
             // the image size is known is usually negligable tho.  For now we just don't report
             // the progress until we have a byteSize.
             if (byteSize > 0)
-                super.gotImageProgress(imageSrc, bytesSoFar, percentProgress());
+                chain.gotImageProgress(imageSrc, bytesSoFar, percentProgress());
         }
         
-        @Override public synchronized void gotImage(Object imageSrc, Image image, ImageRef ref) {
-            this.image = image;
-            this.ref = ref;
-            super.gotImage(imageSrc, image, ref);
+        public synchronized void gotImage(Object imageSrc, Handle handle) {
+            //this.image = image;
+            this.handle = handle;
+            chain.gotImage(imageSrc, handle);
 
         }
         
-        @Override public synchronized void gotImageError(Object imageSrc, String msg) {
+        public synchronized void gotImageError(Object imageSrc, String msg) {
             this.errorMsg = msg;
-            super.gotImageError(imageSrc, msg);
+            chain.gotImageError(imageSrc, msg);
 
         }
 
@@ -591,35 +775,15 @@ public class Images
 
         void addListener(Listener newListener)
         {
-            synchronized (this) {
-                if (hasListener(newListener)) {
-                    if (DEBUG.Enabled) out("CachingRelayer: ALREADY A LISTENER FOR THIS IMAGE: " + tag(newListener));
-                    return; 
-                }
-                if (tail == null)  {
-                    super.tail = newListener;
-                } else {
-                    super.tail = new ListenerRelay(tail, newListener);
-                }
+            if (chain.addListener(newListener))
                 deliverPartialResults(newListener);
-            }
-
-            // Note: WE CAN DEADLOCK if deliverPartialResults is in the sync.  E.g. --
-            // trying moving around raw images as they're loading / icon generating.
-            
-            // TODO: this really should be in the sync, as well as all the above
-            // Listener API methods -- normally we'll be in the AWT thread, and if a
-            // loader modifies the partial results while this call is being made, they
-            // may be incoherent, and not all partial data may delivered.  The lock is
-            // inherently dangerous tho, in that anything may generally happen during
-            // client code callbacks, including calls back into this API.
-            
-            //deliverPartialResults(newListener);
-
         }
 
-        Image getImage() {
-            return image;
+        void flushForGC() {
+            //chain.imageSRC = null; // is now final
+            //image = null; // this is the most important
+            // chain = null; // is final
+            handle = null;
         }
         
         /**
@@ -633,18 +797,18 @@ public class Images
             if (DEBUG.IMAGE) out("DELIVERING PARTIAL RESULTS TO: " + tag(l));
             
             if (width > 0)
-                relaySize(l, imageSRC.original, width, height, byteSize);
+                chain.relaySize(l, imageSRC.original, width, height, byteSize, sourceSize);
 
             if (bytesSoFar > 0)
-                relayProgress(l, imageSRC.original, bytesSoFar, percentProgress());
+                chain.relayProgress(l, imageSRC.original, bytesSoFar, percentProgress());
 
-            if (image != null)
-                relayImage(l, imageSRC.original, image, ref);
-            
+            if (handle != null)
+                chain.relayImage(l, imageSRC.original, handle);
+
             if (errorMsg != null) {
-                if (image != null)
+                if (handle != null)
                     Log.warn("had both image and error: " + errorMsg + "; for " + l);
-                relayError(l, imageSRC.original, errorMsg);
+                chain.relayError(l, imageSRC.original, errorMsg);
             }
 
 
@@ -664,7 +828,7 @@ public class Images
      * @return Image if cached or listener is null, otherwise makes callbacks to the listener from
      * a new thread.
      */
-    private static Image getCachedOrCallbackOnLoad
+    private static Handle getCachedOrCallbackOnLoad
         (final Object imageSource,
          final Images.Listener listener,
          final boolean immediate)
@@ -682,11 +846,14 @@ public class Images
                 w = image.getWidth(null);
                 h = image.getHeight(null);
             }
+
+            final Handle handle = new Handle(image);
+            
             if (listener != null)
                 listener.gotImage(imageSource, // same as image
-                                  image,
-                                  null);
-            return image;
+                                  handle);
+
+            return handle;
         }
         
         final ImageSource imageSRC = ImageSource.create(imageSource);
@@ -710,8 +877,8 @@ public class Images
             return null;
         }
             
-
-        Image cachedImage = null;
+        Handle handle = null;
+        
         if (cacheEntry instanceof Loader) {
 
             // Another request has already put a Loader into the cache -- have
@@ -719,7 +886,7 @@ public class Images
             
             final Loader loader = (Loader) cacheEntry;
 
-            final Image loaderImage = loader.getImage();
+            final Image loaderImage = loader.getLoaderImage();
 
             if (loaderImage != null) {
                 // This can happen if a loader has completed, but hasn't left the cache yet.  We
@@ -728,7 +895,7 @@ public class Images
                 // issues on the call to loader.getImage(), because even if we see null when it's
                 // really there, the results will still be delivered by our fully synced partial
                 // results delivery, and we don't need any more sync issues to test.
-                return loaderImage;
+                return new Handle(loaderImage);
             }
 
             if (listener != null) {
@@ -772,13 +939,22 @@ public class Images
                 // betwen loading the cache and now.  We can't lock the cache while
                 // we're waiting on the join tho.
                 
-                cachedImage = ((CacheEntry)Cache.get(imageSRC.key)).getCachedImage();
-                if (cachedImage == null)
+//                 cachedImage = ((CacheEntry)RawCache.get(imageSRC.key)).getCachedImage();
+//                 if (cachedImage == null)
+//                     Log.warn("Zealous GC: image tossed immediately " + imageSRC);
+                
+                handle = ((CacheEntry)RawCache.get(imageSRC.key)).getHandle();
+                if (handle == null)
                     Log.warn("Zealous GC: image tossed immediately " + imageSRC);
             }
         }
+        else if (cacheEntry instanceof Handle) {
+            handle = (Handle) cacheEntry;
+        }
         else if (cacheEntry instanceof Image) {
-            cachedImage = (Image) cacheEntry;
+            Log.warn("DEPRECATED USE OF CACHE ENTRY -- USE HANDLE; " + imageSRC, new Throwable("HERE"));
+            //cachedImage = (Image) cacheEntry;
+            handle = new Handle((Image) cacheEntry);
         } else {
             //if (listener != null)
                 Log.warn("Unhandled cache entry: " + Util.tags(cacheEntry), new Throwable("HERE"));
@@ -787,18 +963,25 @@ public class Images
             // later requests could still hook up to the loader
         }
 
-        if (cachedImage != null) {
-            if (listener != null) {
-                // THE IMAGE WAS IN THE CACHE: immediately callback the listener with the result
-                listener.gotImage(imageSRC.original,
-                                  cachedImage,
-                                  null);
-
-            }
-            //return cachedImage;
+        if (handle != null && listener != null) {
+            // THE IMAGE WAS IN THE CACHE: immediately callback the listener with the result
+//             if (handle.data.size() > 0)
+//                 listener.gotImageUpdate(imageSRC.original, handle.data);
+            listener.gotImage(imageSRC.original, handle);
         }
+//         if (cachedImage != null) {
+//             if (listener != null) {
+//                 // THE IMAGE WAS IN THE CACHE: immediately callback the listener with the result
+//                 listener.gotImage(imageSRC.original,
+//                                   cachedImage,
+//                                   null);
 
-        return cachedImage;
+//             }
+//             //return cachedImage;
+//         }
+
+        return handle;
+        //return cachedImage;
         
 // [no longer needed: request can be immediate]        
 //         // We had no image, and no Loader was started: this should
@@ -1026,7 +1209,11 @@ public class Images
                 } catch (Throwable t) {
                     Log.warn("failed to set image thread priority to " + ImageThreadPriority, t);
                 }
-                it.setName("imageProcessor-" + (++count));
+                count++;
+                if (DEBUG.Enabled)
+                    it.setName("IPX-" + count);
+                else
+                    it.setName("imageProcessor-" + count);
                 if (DEBUG.Enabled) Log.debug("created thread: " + it);
                 return it;
             }
@@ -1221,8 +1408,8 @@ public class Images
                 Log.info(this + "; nobody currently listening: image may be quietly cached: " + imageSRC);
         }
 
-        Image getImage() {
-            return relay.getImage();
+        Image getLoaderImage() {
+            return relay.image();
         }
 
         public void join() throws InterruptedException {
@@ -1244,19 +1431,20 @@ public class Images
         private void flushForGC() {
             // assist GC -- may help it run slightly faster:
             imageSRC = null;
-            relay.imageSRC = null;
-            relay.image = null; // this is the most important
-            relay.ref = null;
+            relay.flushForGC();
+//             relay.imageSRC = null;
+//             relay.image = null; // this is the most important
+//             //relay.ref = null;
             relay = null;
         }
         
 
         /** @return an Image that's already been put into the cache */
-        private final Image runToResult() {
+        private final Handle runToResult() {
             if (DEBUG.IMAGE) debugMark(">>>>>");
-            final Image i = produceResult();
+            final Handle h = produceResult();
             if (DEBUG.IMAGE) debugMark("<<<<<");
-            return i;
+            return h;
         }
 
         private void debugMark(String s) {
@@ -1271,11 +1459,11 @@ public class Images
         }
 
         /** @return an Image that's already been put into the cache */
-        Image produceResult() {
+        Handle produceResult() {
             if (DEBUG.IMAGE || DEBUG.THREAD) out("loadAndCache kick: " + imageSRC);
-            Image i = loadImageAndCache(imageSRC, relay);
-            if (DEBUG.IMAGE || DEBUG.THREAD) out("loadAndCache return: " + tag(i));
-            return i;
+            Handle h = loadImageAndCache(imageSRC, relay);
+            if (DEBUG.IMAGE || DEBUG.THREAD) out("loadAndCache return: " + h);
+            return h;
         }
         
         public void addListener(Listener newListener) {
@@ -1289,7 +1477,7 @@ public class Images
         
 
         @Override public String toString() {
-            return String.format("%s[%s ->%s]", getClass().getSimpleName(), imageSRC.debugName(), relay.head);
+            return String.format("%s[%s ->%s]", getClass().getSimpleName(), imageSRC.debugName(), relay.chain.head);
         }
 
     }
@@ -1306,7 +1494,7 @@ public class Images
         IconTask(ImageSource is, Listener relay) {
             super(is, relay);
         }
-        @Override Image produceResult() {
+        @Override Handle produceResult() {
             //if (DEBUG.IMAGE || DEBUG.THREAD) out("ICON-TASK for " + imageSRC + " kicked off");
 
             // At this point, there's a cache entry containing this IconTask, so no
@@ -1404,7 +1592,7 @@ public class Images
     {
         Loader loader = null;
 
-        synchronized (Cache) {
+        synchronized (RawCache) {
 
             final Object entry = getCacheContentsWithAutoFlush(imageSRC);
 
@@ -1465,7 +1653,7 @@ public class Images
     }
 
     private static void markCacheAsLoading(URI key, Loader loader) {
-        final Object old = Cache.put(key, loader); // todo: under what conditiions is this normal?
+        final Object old = RawCache.put(key, loader); // todo: under what conditiions is this normal?
         if (old != null && old instanceof CacheEntry && !((CacheEntry)old).isPreloadedDiskEntry()) {
             Log.warn("blew away existing cache content:\n\told: " + Util.tags(old) + "\n\tfor: " + Util.tags(loader));
         }
@@ -1494,7 +1682,7 @@ public class Images
         if (imageSRC.key == null)
             return null;
         
-        final Object entry = Cache.get(imageSRC.key);
+        final Object entry = RawCache.get(imageSRC.key);
 
         if (entry == null)
             return null;
@@ -1506,10 +1694,9 @@ public class Images
             return entry;
         }
 
-        // Entry is not a Loader, so it must be a regular CacheEntry
-        // We still may not have an image tho: it may have be been
-        // garbage collected, or the entry may actually be for a file
-        // on disk.
+        // Entry is not a Loader, so it must be a regular CacheEntry We still may not
+        // have an image tho: it may have be been garbage collected, or the entry may
+        // actually be for a file on disk.
 
         final CacheEntry ce = (CacheEntry) entry;
         final Image cachedImage = ce.getCachedImage();
@@ -1537,10 +1724,15 @@ public class Images
             // image was garbage collected: we need to remove this entry
             // from the cache completely and start from scratch:
             if (DEBUG.IMAGE) out("REMOVING FROM CACHE: " + imageSRC);
-            Cache.remove(imageSRC.key);
+            RawCache.remove(imageSRC.key);
         }
 
-        return cachedImage;
+        if (cachedImage == null)
+            return null;
+        else
+            return new Handle(cachedImage, ce.data);
+        
+        //return cachedImage;
 
         // If cachedImage is null at this point, there was an entry in the cache, but it was of no use:
             
@@ -1563,10 +1755,10 @@ public class Images
      */
     public static boolean hasCacheEntry(URI cacheKey)
     {
-        return cacheKey != null && Cache.get(cacheKey) != null;
+        return cacheKey != null && RawCache.get(cacheKey) != null;
     }
     
-    private static Image createAndCacheIcon(Listener listener, ImageSource iconSource)
+    private static Handle createAndCacheIcon(Listener listener, ImageSource iconSource)
     {
         final Image hardImage;
         boolean badReadable = false;
@@ -1613,7 +1805,7 @@ public class Images
             setLowMemory("GC-wanted-data");
 
             // REMOVE THE FAILED LOADER FROM THE CACHE
-            Cache.remove(iconSource.key); // todo: generally handle caching in our caller based on return value?
+            RawCache.remove(iconSource.key); // todo: generally handle caching in our caller based on return value?
             
             // todo: nobody to catch this error and deliver gotImageError!
             //throw new OutOfMemoryError("full-rep was GC'd: forcing low memory conditions");
@@ -1624,11 +1816,19 @@ public class Images
         }
         
 
-        final Image iconImage =
+        final Dimension originalSize = new Dimension(hardImage.getWidth(null), hardImage.getHeight(null));
+        
+        final Handle iconImage =
             createIcon(hardImage, iconSource.iconSize);
 
-        if (listener != null)
-            listener.gotImage(iconSource, iconImage, null);
+        if (listener != null) {
+            // note that we could init the handle with data containing he size of the source image,
+            // but that info is only useful when we do NOT already have the full rep loaded,
+            // and we only get here if we just created an icon from the full rep, so it's okay to leave
+            // the image data blank in the delivered handle.  That data shouldn't even need to go into
+            // the cache this runtime?  It should probably go there anyway just to be safe.
+            listener.gotImage(iconSource, iconImage);
+        }
 
         File cacheFile = null;
         try {
@@ -1637,18 +1837,38 @@ public class Images
             Log.error("creating cache file for " + iconSource, t);
         }
         // if for any reason the disk cache has failed, we can still create the CacheEntry with a null file
-        Cache.put(iconSource.key, new CacheEntry(iconImage, cacheFile));
-        if (cacheFile != null)
-            cacheIconToDisk(iconSource.key, (RenderedImage) iconImage, cacheFile);
+        RawCache.put(iconSource.key, new CacheEntry(iconImage, cacheFile));
+        if (cacheFile != null && iconImage.image != null)
+            cacheIconToDisk(iconSource.key, (RenderedImage) iconImage.image, cacheFile, originalSize);
         return iconImage;
     }
-    
-    private static boolean cacheIconToDisk(URI iconKey, RenderedImage image, File cacheFile)
+
+    private static boolean cacheIconToDisk(URI iconKey, RenderedImage image, File cacheFile, Dimension originalSize)
     {
+        final Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName("png");
+
+        ImageWriter writer = null;
+
+        int count = 1;
+        while (writers.hasNext()) {
+            ImageWriter i = writers.next();
+            if (writer == null)
+                writer = i;
+            if (count > 1 || (DEBUG.IMAGE && DEBUG.IO)) {
+                Log.debug("FOUND WRITER #" + count + "for PNG: " + Util.tags(i));
+            }
+            count++;
+        }
+        
         try {
             //File cacheFile = makePermanentCacheFile(iconKey);
             if (DEBUG.IMAGE||DEBUG.IO) Log.debug("writing " + cacheFile);
-            ImageIO.write(image, "png", cacheFile);
+            if (writer != null) {
+                writeWithComments(writer, image, cacheFile, originalSize);
+            } else {
+                Log.warn("unable to find writer for PNG; " + cacheFile);
+                ImageIO.write(image, "png", cacheFile);
+            }
             if (DEBUG.IMAGE||DEBUG.IO) Log.debug("  wrote " + cacheFile);
             return true;
         } catch (Throwable t) {
@@ -1657,10 +1877,183 @@ public class Images
         }
     }
 
-    public static Object getCacheLock() {
-        return Cache;
+    /** see com.sun.imageio.plugins.png.PNGMetadata */
+    private static final String PNG_META_DATA = "javax_imageio_png_1.0";
+    private static final String GENERIC_META_DATA = IIOMetadataFormatImpl.standardMetadataFormatName;
+    
+    //private static final String VUE_META_DATA = GENERIC_META_DATA;
+    
+    private static final String VUE_IMAGE_META_KEY = "VueData";
+    private static final String VUE_IMAGE_META_VALUE_PREFIX = "@(#)VUE-DATA/";
+    
+
+    private static void writeWithComments(ImageWriter writer, RenderedImage image, File file, Dimension originalSize)
+        throws IOException
+    {
+        if (DEBUG.Enabled||DEBUG.IMAGE||DEBUG.IO) Log.debug("WRITER WRITE " + writer + "; " + file);
+        
+        //ImageWriteParam param = writer.getDefaultWriteParam();
+        //Log.debug("DEFAULT WRITE PARAM: " + Util.tags(param));
+
+        final ImageTypeSpecifier image_type = new ImageTypeSpecifier(image);
+        final IIOMetadata meta_data = writer.getDefaultImageMetadata(image_type, null);
+
+//         Log.debug("GOT META-DATA: " + Util.tags(meta_data));
+        if (DEBUG.IMAGE && DEBUG.IO) {
+            Log.debug(" FORMAT-NAMES: " + Arrays.asList(meta_data.getMetadataFormatNames()));
+            Log.debug("NATIVE-FORMAT: " + meta_data.getNativeMetadataFormatName());
+        }
+
+        final org.w3c.dom.Node metaTree = meta_data.getAsTree(GENERIC_META_DATA);
+
+        addData(metaTree, "cacheFile", file.getName());
+        addData(metaTree, "sourceSize", String.format("%d,%d", originalSize.width, originalSize.height));
+
+        meta_data.mergeTree(GENERIC_META_DATA, metaTree);
+
+        if (DEBUG.Enabled) {
+            //Log.debug("TREE: " + Util.tags(tree));
+            //Log.debug("ATTRIBS: " + Util.tags(tree.getAttributes()));
+            //Log.debug("CHILDREN: " + Util.tags(tree.getChildNodes()));
+            //DocDump.dump(meta_data.getAsTree(GENERIC_META_DATA));
+            DocDump.dump(meta_data.getAsTree(PNG_META_DATA));
+        }
+        
+        final IIOImage io_image = new IIOImage(image, Collections.EMPTY_LIST, meta_data);
+
+        final ImageOutputStream output = ImageIO.createImageOutputStream(file);
+
+        writer.setOutput(output);
+        writer.write(io_image);
+        output.close();
+    }
+
+    private static void addData
+        (final org.w3c.dom.Node tree,
+         final String key,
+         final String value)
+        throws IOException
+    {
+        // note: we add a trailing newline for /usr/bin/what
+        final String comment = String.format("%s%s: %s\n", VUE_IMAGE_META_VALUE_PREFIX, key, value); 
+        final String keyword = VUE_IMAGE_META_KEY + "/" + key;
+
+        // note: the keyword data is currently redundant (ignored by us when loading icons we've written out),
+        // but its presence is required by the ImageIO meta-data API.
+        
+        final IIOMetadataNode text;
+        final IIOMetadataNode textRoot;
+
+        if (DEBUG.IO||DEBUG.IMAGE) Log.debug("addData; " + keyword + "=" + comment);
+
+        if (false) {
+            // use PNG-specific meta-data -- simpler, but can only be used with PNG's
+            text = new IIOMetadataNode("tEXtEntry"); // PNG name
+            text.setAttribute("keyword", keyword);
+            text.setAttribute("value", comment);
+            
+            textRoot = new IIOMetadataNode("tEXt"); // PNG name
+        } else {
+            
+            //-----------------------------------------------------------------------------
+            // The most generic method -- we should be able to use this with image
+            // formats beyond PNG, tho that's untested.  The meta-data format in the tree
+            // (root node) should be IOMetadataFormatImpl.standardMetadataFormatName
+            // ("javax_imageio_1.0").
+            // -----------------------------------------------------------------------------
+            
+            text = new IIOMetadataNode("TextEntry"); // generic name
+            text.setAttribute("keyword", keyword);
+            text.setAttribute("value", comment);
+            // required, but ignored in PNGMetadata:
+            text.setAttribute("encoding", "ISO-8859-1");
+            // required, but ignored in PNGMetadata as long as 1st 255 chars all ascii:
+            text.setAttribute("language", ""); // apparently safest: empty means undefined
+            text.setAttribute("compression", "none");
+            
+            textRoot = new IIOMetadataNode("Text"); // generic name
+        }
+        
+        textRoot.appendChild(text);
+
+        tree.appendChild(textRoot);
+    }
+
+    private static Map<String,Object> extractVueImageMetaData(IIOMetadata metaData) {
+        //final org.w3c.dom.Node metaTree
+        final IIOMetadataNode metaTree = (IIOMetadataNode) metaData.getAsTree(GENERIC_META_DATA);
+        
+        if (DEBUG.IMAGE && DEBUG.IO) {
+            Log.debug(" FORMAT-NAMES: " + Arrays.asList(metaData.getMetadataFormatNames()));
+            Log.debug("GOT META-DATA: " + Util.tags(metaData) + " for format " + GENERIC_META_DATA);
+            DocDump.dump(metaTree);
+            //DocDump.dump(data.getAsTree(IIOMetadataFormatImpl.standardMetadataFormatName));
+            //DocDump.dump(data.getAsTree(PNG_FORMAT_NAME));
+        }
+
+        return extractVueImageMetaData(metaTree);
+    }
+
+    private static Map<String,Object> extractVueImageMetaData(IIOMetadataNode metaTree)
+    {
+        Map result = Collections.EMPTY_MAP;
+        for (org.w3c.dom.Node n : Util.iterable(metaTree.getElementsByTagName("TextEntry"))) {
+            //Log.debug("FOUND TEXT NODE " + Util.tags(n) + " " + Util.tags(n.getAttributes()));
+            if (DEBUG.IO && DEBUG.DATA) Log.debug("FOUND TEXT NODE " + Util.tags(n));
+            //Log.debug("FOUND TEXT " + n.getTextContent());
+            for (org.w3c.dom.Node a : Util.iterable(n.getAttributes())) {
+                if (DEBUG.IO && DEBUG.DATA) Log.debug("FOUND TEXT ATTRIB " + Util.tags(a));
+                String text = a.getNodeValue();
+                // we don't bother to check for the keyword=value attribute -- it's all in the value anyway
+                if (text != null && text.startsWith(VUE_IMAGE_META_VALUE_PREFIX)) {
+                    final String s, key, value;
+                    s = text.substring(VUE_IMAGE_META_VALUE_PREFIX.length());
+                    key = s.substring(0, s.indexOf(':'));
+                    value = s.substring(key.length()+2, s.length()-1);
+                    if (DEBUG.IO || DEBUG.DATA) Log.debug(String.format("VUE-DATA: key=%s value=%s", key, Util.tags(value)));
+
+                    if ("cacheFile".equals(key)) {
+                        // skip this one -- is not currently needed, and clutters up debug bigtime
+                        continue;
+                    }
+                    
+                    if (result == Collections.EMPTY_MAP)
+                        result = new HashMap(4);
+                    result.put(key, value);
+                }
+            }
+
+        }
+        return result;
     }
     
+// Our test w/NODESET works in XML-INGEST w/NY-TIMES RSS feed, but not here...
+//                     XPath xpath = XPathFactory.newInstance().newXPath();
+//                     //String expression = "javax_imageio_1.0" + "/Text/TextEntry/VueMetaData";
+//                     //String expression = "/javax_imageio_1.0" + "/Text";
+//                     //String expression = "/javax_imageio_1.0" + "/Text/TextEntry";
+//                     String expression = "/Text";
+//                     //String expression = "/Text/TextEntry";
+
+//                     Log.debug("Extracting " + Util.tags(expression) + " from " + Util.tags(metaTree));
+                    
+//                     // First, obtain the element as a node.
+                    
+//                     NodeList nodeSet = (NodeList) xpath.evaluate(expression,
+//                     //Object nodeSet = xpath.evaluate(expression,
+//                                                     metaTree,
+//                                                     XPathConstants.NODESET); // NODE will only do 1 node
+//                         //Log.debug("   Node: " + nodeValue);
+                    
+//                     Log.debug("NodeList: " + Util.tags(nodeSet) + "; size=" + nodeSet.getLength());
+//                     //Log.debug("NodeResult: " + Util.tags(nodeSet));
+                    
+                    
+                    
+    
+    public static Object getCacheLock() {
+        return RawCache;
+    }
 
     static class ImageException extends Exception { ImageException(String s) { super(s); }}
     static class DataException extends ImageException { DataException(String s) { super(s); }}
@@ -1672,20 +2065,21 @@ public class Images
     // note: we don't actually need to know the second arg is a ListenerRelay -- it could just be a
     // Listener, tho it never is -- this is for clarity -- remember that the callbacks may be
     // happening to a chain of pending listeners, not just one.
-    private static Image loadImageAndCache(final ImageSource imageSRC, final ListenerRelay relay)
+    private static Handle loadImageAndCache(final ImageSource imageSRC, final Listener relay)
     {
-        Image image = null;
+        //Image image = null;
+        Handle imageData = null;
 
         if (imageSRC.resource != null)
             imageSRC.resource.getProperties().holdChanges();
 
         try {
-            image = readImageInAvailableMemory(imageSRC, relay);
+            imageData = readImageInAvailableMemory(imageSRC, relay);
         } catch (Throwable t) {
             
             if (DEBUG.IMAGE) Util.printStackTrace(t);
 
-            Cache.remove(imageSRC.key);
+            RawCache.remove(imageSRC.key);
             
             if (relay != null) {
                 String msg;
@@ -1733,10 +2127,8 @@ public class Images
                 imageSRC.resource.getProperties().releaseChanges();
         }
 
-        if (relay != null && image != null) {
-            relay.gotImage(imageSRC.original,
-                           image,
-                           null);
+        if (relay != null && imageData != null) {
+            relay.gotImage(imageSRC.original, imageData);
         }
 
         //-----------------------------------------------------------------------------
@@ -1748,13 +2140,13 @@ public class Images
         // updating the old with the new in-memory image buffer.
 
         if (imageSRC.useCacheFile()) {
-            if (image != null) {
+            if (imageData != null) {
                 File permanentCacheFile = null;
                 if (imageSRC.hasCacheFile())
                     permanentCacheFile = ensurePermanentCacheFile(imageSRC.getCacheFile());
                 
                 if (DEBUG.IMAGE) out("getting cache lock for storing result; " + imageSRC);
-                Cache.put(imageSRC.key, new CacheEntry(image, permanentCacheFile));
+                RawCache.put(imageSRC.key, new CacheEntry(imageData, permanentCacheFile));
                 
                 // If the cache file has moved from tmp to permanent, we'd need to do this to keep imageSRC
                 // current, tho at the moment this is a bit overkill as we should no longer need imageSRC
@@ -1767,22 +2159,24 @@ public class Images
 //                     imageSRC.resource.setCacheFile(permanentCacheFile);
             }
         } else {
-            if (image != null)
-                Cache.put(imageSRC.key, new CacheEntry(image, null));
+            if (imageData.image != null)
+                RawCache.put(imageSRC.key, new CacheEntry(imageData, null));
+            //RawCache.put(imageSRC.key, new CacheEntry(image, null));
         }
 
-        return image;
+        return imageData;
         
     }
 
-    private static Image readImageInAvailableMemory(ImageSource imageSRC, Listener listener)
+    private static Handle readImageInAvailableMemory(ImageSource imageSRC, Listener listener)
         throws ImageException
     {
-        Image image = null;
+        //Image image = null;
+        Handle imageData = null;
         
         do {
             try {
-                image = readAndCreateImage(imageSRC, listener);
+                imageData = readAndCreateImage(imageSRC, listener);
             } catch (OutOfMemoryError eom) {
                 setLowMemory(eom);
                 Log.warn(Util.TERM_YELLOW + "out of memory reading " + imageSRC.readable + ": " + eom + Util.TERM_CLEAR);
@@ -1813,11 +2207,11 @@ public class Images
             } catch (Throwable t) {
                 throw new ImageException("reader failed: " + t.toString());
             }
-        } while (image == null);
+        } while (imageData == null);
 
-        if (DEBUG.IMAGE) out("ImageReader.read(0) got " + Util.tags(image));
+        if (DEBUG.IMAGE) out("readAndCreateImage got " + Util.tags(imageData));
 
-        return image;
+        return imageData;
     }
     
 
@@ -1969,15 +2363,52 @@ public class Images
         }
         return CacheDir;
     }
+//     private static final class ImageProps extends HashMap<String,?> {
+//         ImageProps() {
+//             super(6);
+//         }
+//     }
 
+    public static final class Handle {
+        public final Image image;
+        final Map<String,?> data; // note: shouldn't expose this globally as modifiable
+        Handle(Image i, Map<String,?> data) {
+            if (i == null)
+                throw new NullPointerException("null image");
+            if (data == null)
+                throw new NullPointerException("null data");
+            this.image = i;
+            this.data = data;
+        }
+        Handle(Image i) {
+            this(i, Collections.EMPTY_MAP);
+        }
+
+//         private Handle() {
+//             image = null;
+//             data = Collections.EMPTY_MAP;
+//         }
+
+        //Handle create(image i
+        
+        @Override public String toString() {
+            return Util.tags(image) + "; " + data;
+        }
+    }
+
+    private static Image handleImage(Handle h) {
+        return h == null ? null : h.image;
+    }
+
+    //private static Handle NULL_HANDLE = new Handle();
 
     /**
      * @param imageSRC - see ImageSource ("anything" that we can get an image data stream from)
-     * @param listener - an Images.Listener: if non-null, will be issued callbacks for size & completion
+     * @param listener - an Images.Listener: if non-null, will be issued a callback for when the size is first obtained
      * @return the loaded image, or null if none found
      */
     private static boolean FirstFailure = true;
-    private static Image readAndCreateImage(ImageSource imageSRC, Images.Listener listener)
+    private static Handle readAndCreateImage(ImageSource imageSRC, Images.Listener listener)
         throws java.io.IOException, ImageException
     {
         if (DEBUG.IMAGE) out("trying: " + imageSRC);
@@ -2131,7 +2562,20 @@ public class Images
         //reader.addIIOReadProgressListener(new ReadListener());
         //out("added progress listener");
 
-        reader.setInput(inputStream, false, true); // allow seek back, can ignore meta-data (can generate exceptions)
+        final boolean allowSeekBack = false;
+        final boolean ignoreMetadata;
+
+        if (imageSRC.isDiskCacheEntry()) {
+            ignoreMetadata = false;
+        } else {
+            // Note that basic meta-data is still present on the resulting image when we
+            // say to ignore it, tho extra meta-data we've added won't be there.  This
+            // may just be because it's creating it from scratch for the newly built
+            // image instead of reading it from the on-disk image -- not sure.
+            ignoreMetadata = true;
+        }
+        
+        reader.setInput(inputStream, allowSeekBack, ignoreMetadata);
         if (DEBUG.IMAGE) out("Input for reader set to " + inputStream);
         if (DEBUG.IMAGE) out("Getting size...");
         int w = reader.getWidth(0);
@@ -2159,7 +2603,7 @@ public class Images
 
         if (listener != null) {
             if (DEBUG.IMAGE) out("Sending size to " + tag(listener));
-            listener.gotImageSize(imageSRC.original, w, h, dataSize);
+            listener.gotImageSize(imageSRC.original, w, h, dataSize, null);
         }
 
         // FYI, if fetch meta-data, will need to trap exceptions here, as if there are
@@ -2179,12 +2623,71 @@ public class Images
         if (DEBUG.Enabled) out("reading " + imageSRC + "; " + reader + "...");
         
         Image image = null;
+        Map<String,Object> imageData = Collections.EMPTY_MAP;
         Throwable exception = null;
 
         try {
             image = reader.read(0);
             if (DEBUG.Enabled) out("    got " + imageSRC + ".");
             //testImageInspect(reader, image, imageSRC);
+
+            //========================================================================================
+            //========================================================================================
+            //========================================================================================
+            // IF LISTENER IS NON-NULL, then fetch full-size, only to make a callback
+            // analogue to gotImageSize.  Tho would be better to stuff this info into
+            // the cache, AS, OH, CRAP, WE NEED TO STUFF THIS INFO INTO THE CACHE....
+            // Subsequent callers, after load, are still going to need the full pixel
+            // size.
+            //========================================================================================
+            //========================================================================================
+            //========================================================================================
+
+            if (listener != null && !ignoreMetadata) {
+                // look for meta-data we may have written with the image:
+                
+                // Note that arbitrary image meta-data created by god knows what app may
+                // at any time be considered "bad" according to java, and cause an
+                // exception to be thrown here.  E.g., reading a random JPG:
+                // "javax.imageio.IIOException: ICC APP2 encountered without prior
+                // JFIF!"  thrown from com.sun.imageio.plugins.jpeg.JPEGMetadata.
+
+                // If we successfully wrote the meta-data ourselves, we should be pretty
+                // darn safe tho.
+
+                try {
+                    // note: the meta-data should have been cached by the reader -- it's
+                    // normally stored & read first
+                    final IIOMetadata data = reader.getImageMetadata(0);
+
+                    imageData = extractVueImageMetaData(data);
+
+                    String sourceSize = (String) imageData.get("sourceSize");
+
+                    if (sourceSize != null) {
+                        if (DEBUG.IO) Log.debug("FOUND SOURCE SIZE[" + sourceSize + "]");
+                        String[] dim = sourceSize.split(",");
+                        int sw = Integer.parseInt(dim[0]);
+                        int sh = Integer.parseInt(dim[1]);
+                        if (DEBUG.IO || DEBUG.IMAGE) Log.debug(String.format("parsed meta-data source size: %dx%d", sw, sh));
+                        //imageData.put("sourceWidth", w);
+                        //imageData.put("sourceHeight", h);
+                        //listener.gotImageUpdate(Progress.SOURCE_SIZE, null); // NEED TO PASS IMAGE WIDTH/HEIGHT
+                        int[] srcSize = new int[2];
+                        srcSize[0] = sw;
+                        srcSize[1] = sh;
+                        imageData.put("sourcePixels", srcSize);
+                        // we could deliver this, but we'll eventually get it with the image
+                        //listener.gotImageSize(imageSRC.original, w, h, dataSize, srcSize);
+                    } else {
+                        Log.warn("failed to find sourceSize in meta-data: " + imageData + " for " + imageSRC);
+                    }
+
+                } catch (Throwable t) {
+                    Log.error("loading meta-data for " + imageSRC, t);
+                }
+            }
+            
         } catch (Throwable t) {
             exception = t;
         } finally {
@@ -2194,6 +2697,7 @@ public class Images
                 urlStream.close();
         }
 
+
         if (exception instanceof OutOfMemoryError) {
             setLowMemory(exception);
             throw (Error) exception;
@@ -2201,8 +2705,9 @@ public class Images
             throw new ImageException("reader.read(0) failure: " + exception);
         }
 
-        return image;
+        return new Handle(image, imageData);
     }
+
 
     private void testImageInspect(ImageReader reader, Image image, ImageSource imageSRC) {
         try {
@@ -2223,9 +2728,9 @@ public class Images
         
     }
 
-    static Image createIcon(Image source, int maxSide) {
+    static Handle createIcon(Image source, int maxSide) {
 
-        final Image icon;
+        final Handle icon;
 
 //         if (USE_SCALED_INSTANCE) {
 //             return producePlatformIcon(source, maxSide);
@@ -2234,7 +2739,7 @@ public class Images
 //         }
         if (DEBUG.Enabled) Log.debug("image pre-scaled: " + Util.tags(source) + " -> toMaxSide " + maxSide);
         icon = produceDrawnIcon(source, maxSide);
-        if (DEBUG.Enabled) Log.debug("icon post-scaled: " + Util.tags(icon));
+        if (DEBUG.Enabled) Log.debug("icon post-scaled: " + icon);
 
         return icon;
     }
@@ -2257,7 +2762,34 @@ public class Images
         return new java.awt.Dimension(width, height);
     }
 
-    private static Image produceDrawnIcon(Image source, int maxSide)
+    public static tufts.vue.Size fitInto(float maxSide, int[] srcSize) {
+        float srcW = srcSize[0];
+        float srcH = srcSize[1];
+
+        final float width, height;
+
+        if (srcW < 1 || srcH < 1) {
+            Log.error("fitInto " + maxSide + ": bad source size " + srcW + "x" + srcH);
+            // make sure we never generate NaN results
+            if (srcW < 1)
+                srcW = 16;
+            if (srcH < 1)
+                srcH = 16;
+        }
+
+        if (srcW > srcH) {
+            width = maxSide;
+            height = srcH * maxSide / srcW;
+        } else {
+            height = maxSide;
+            width = srcW * maxSide / srcH;
+        }
+
+        return new tufts.vue.Size(width, height);
+    }
+    
+
+    private static Handle produceDrawnIcon(Image source, int maxSide)
     {
         final java.awt.Dimension size = fitInto(maxSide, source.getWidth(null), source.getHeight(null));
 
@@ -2314,7 +2846,7 @@ public class Images
         if (iconSource != source)
             iconSource.flush(); // crucial to release the memory consumed
         
-        return icon;
+        return new Handle(icon); // note: could load with source size info, but not needed in this case
     }
 
     private static Image producePlatformIcon(Image source, int maxSide)

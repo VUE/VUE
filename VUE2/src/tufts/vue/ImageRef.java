@@ -10,8 +10,6 @@ import static tufts.vue.ImageRep.UNAVAILABLE;
 
 public class ImageRef
 {
-    public static final boolean IMMEDIATE_ICONS = false;
-    
     public static final int DEFAULT_ICON_SIZE = 128;
     public static final int[] ZERO_SIZE = ImageRep.ZERO_SIZE;
 
@@ -44,10 +42,14 @@ public class ImageRef
         public void imageRefChanged(Object cause);
     }
 
+//     static ImageRef create(java.io.File file) {
+//         return null;
+//     }
+
     public ImageRef(Listener listener) {
         _repainter = (Listener) listener;
     }
-    
+
     public boolean isBlank() {
         return _source == null;
     }
@@ -59,7 +61,7 @@ public class ImageRef
             // PROBLEM: if this is a local file, the URI cache key in the _source.key
             // will be null, meaning we can't later create an icon cache key from it.
             // Yet at the moment we're only seeing this as a problem if the local
-            // file is missing -- so how is this being working in the regular case?
+            // file is missing -- so how is this working in the regular case?
             //-----------------------------------------------------------------------------
             _source = ImageSource.create(is);
             //if (DEBUG.IMAGE) Log.debug("created image source " + _source + " from " + is);
@@ -76,6 +78,11 @@ public class ImageRef
         if (_icon != UNAVAILABLE || _full != UNAVAILABLE)
             throw new Error("re-init of reps");
         
+        // rep won't load until it attempts to draw:
+        // We init this first so it's available for the icon to init with
+        // the full pixel original size pulled from the icon.
+        _full = ImageRep.create(this, _source);
+        
         // As icons only exist in the cache, we know we don't have an icon
         // created yet if there isn't at least a unloaded cache entry for the icon.
 
@@ -84,14 +91,13 @@ public class ImageRef
         if (iconKey != null) {
             if (PRE_LOAD_ICONS) {
                 //synchronized (Images.getCacheLock()) {
-                    // we do this in a cache-lock to ensure the cache entry can't have
-                    // been GC'd or changed from the time we check for it to the time we
-                    // kick a load for it.  Could we dead-lock? -- Ideally, we want to
-                    // release the lock at the point getImage returns in
-                    // ImageRep.reconstitute, otherwise it's ImageRef callback,
-                    // notifyRepHasArrived, will also happen in the cache-lock, which is
-                    // dangerous -- it will block all other image processing threads
-                    // till it returns [todo: test/verify]
+                    // we did this in a cache-lock to ensure the cache entry can't have been GC'd or
+                    // changed from the time we check for it to the time we kick a load for it,
+                    // but could we dead-lock? -- Ideally, we want to release the lock at the point
+                    // getImage returns in ImageRep.reconstitute, otherwise it's ImageRef callback,
+                    // notifyRepHasArrived, will also happen in the cache-lock, which is dangerous
+                    // -- it will block all other image processing threads till it returns [todo:
+                    // test/verify]
                     if (Images.hasCacheEntry(iconKey)) {
                         _icon = createPreLoadedIconRep(iconKey);
                         kickLoad(_icon);
@@ -104,8 +110,8 @@ public class ImageRef
             }
         } // _icon left as ImageRep.UNAVAILABLE
 
-        // rep won't load until it attempts to draw:
-        _full = ImageRep.create(this, _source);
+//         // rep won't load until it attempts to draw:
+//         _full = ImageRep.create(this, _source);
     }
     
 //     public void drawInto(Graphics2D g, float width, float height)
@@ -275,25 +281,88 @@ public class ImageRef
     
     /** the ImageRep is done loading -- it has all the renderable image data, unless hardImageRef is null,
      in which case we had an error */
-    public void notifyRepHasArrived(final ImageRep freshRep, final Image hardImageRef)
+    public void notifyRepHasArrived(final ImageRep freshRep, final Images.Handle hardImageRef)
     {
-        if (_aspect == 0 || freshRep == _full)
-            _aspect = freshRep.aspect(); // the one place aspect is loaded
-
         //if (_desired == freshRep || _desired == SIZE_UNKNOWN)  // may be easiest/safest just to always repaint
-        repaint();
+        // used to force some reasonable aspect at top and always issue the repaint first
+        //repaint();
             
         // note that we may actually get this call with hardImageRef set to null, which means we got an error,
         // and just want to repaint
-        if (freshRep == _full && _icon == ImageRep.UNAVAILABLE && hardImageRef != null) {
+        if (freshRep == _full && _icon == UNAVAILABLE && hardImageRef != null) {
             // no icon was previously generated -- look to see if
             // one has been generated elsewhere in this runtime,
             // or if not, and we need one, create it now.
             if (_full.area() > PIXEL_THRESHOLD_FOR_ICON_GENERATION) {
-                _icon = createRuntimeScaledIconRep(freshRep, hardImageRef);
+                _icon = createRuntimeScaledIconRep(freshRep, hardImageRef.image);
             } // else _icon left as ImageRep.UNAVAILABLE
              
         }
+        else if (freshRep == _icon && (_full == UNAVAILABLE || _full.size() == ZERO_SIZE)) {
+            // We don't have a full rep loaded -- pull it from meta-data stored with the icon.
+            // There are several reasons this is important: (1) We may need to know the full
+            // pixel size before the full representation is available (e.g., set to natural size).
+            // (2) We want to know our "perfect" aspect even if we don't have the full image.
+            // Generated icons may have slight changes in aspect, and even slight changes in aspect
+            // has given us major problems in the past (e.g., maps w/images changing the first time
+            // they're opened). (3) an interaction of these various problems had completey broken
+            // image folder import.
+            loadFullPixelSize(hardImageRef);
+        }
+
+        if (_aspect == 0 || freshRep == _full) {
+            // note: this used to be at the very top, before the repaint() issue
+            _aspect = freshRep.aspect(); 
+        }
+        repaint();
+    }
+
+    private void loadFullPixelSize(Images.Handle icon) {
+        try {
+            unpackFullPixelSize(icon);
+        } catch (Throwable t) {
+            Log.error("extracting full pixel size from " + icon, t);
+        }
+    }
+        
+    private void unpackFullPixelSize(Images.Handle icon) {
+        Object ss = icon.data.get("sourcePixels");
+        if (ss != null) {
+
+            if (_full == UNAVAILABLE) {
+                Log.error("UNAVAILABLE FULL-REP", new Throwable("HERE"));
+
+                // note: we could lazily force create the _full rep with just the size info,
+                // but currently reps should have always already been created at init (containing
+                // no data at all except their ImageSource)
+                    
+                //_full = ImageRep.create(this, _source);
+                    
+            } else {
+                if (DEBUG.Enabled) Util.dump(icon.data, "FOUND SOURCE PIXEL SIZE");
+                _full.takeSize((int[])ss);
+                _aspect = _full.aspect(); // force aspect based on exact pixel dimensions
+            }
+        }
+
+        //========================================================================================
+        // This problem is what determined that we MUST save this size in the cache somehow (e.g.,
+        // with the icon).  PROBLEM: if an image has an icon in cache, and we're creating a NEW
+        // RESOURCE, such that resource properties image.width & image.height were never set, we
+        // can't know the full pixel size.  Well HAVE to use the aspect (old image code didn't use
+        // aspect here -- always used full pixel size).  The ONLY WAY around that one, w/out
+        // forcing a load of a the whole image (which defeats the purpose of the image code
+        // entirely) would be to store the full pixel size in the icon itself somehow.  That would
+        // be a good idea anyway... how to best do it?  .PNG meta-data would be great, tho putting
+        // it in the filename would be easier, tho if if the source image changed...  actually,
+        // that could be one way we detect that the source image has changed, tho including the
+        // modification date would be ideal -- now we REALLY need meta-data...  Oh, wait, we could
+        // actually use the modification date of the icon file -- just make sure it's AFTER the
+        // on-disk file.
+        // ========================================================================================
+
+
+        
     }
 
     private ImageRep createPreLoadedIconRep(java.net.URI cacheKey)
@@ -350,12 +419,12 @@ public class ImageRef
         //if (DEBUG.IMAGE && rep == _full) Log.debug("FULL REP LOAD " + rep, new Throwable("HERE"));
         rep.reconstitute();
     }
-    private void requestImmediateLoad(ImageRep rep) {
-        if (DEBUG.IMAGE) debug("IMMEDIATE " + rep);
-        rep.reconstituteNow();
-    }
+//     private void requestImmediateLoad(ImageRep rep) {
+//         if (DEBUG.IMAGE) debug("IMMEDIATE " + rep);
+//         rep.reconstituteNow();
+//     }
 
-    void preLoadFullSize() {
+    void preLoadFullRep() {
         // TODO: would be better if we could somehow tag this as a low-priority task --
         // e.g., these pre-caching tasks should only ever consume a single thread (low
         // CPU usage, especially during a presentation), and if we transition to a

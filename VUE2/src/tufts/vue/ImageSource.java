@@ -15,7 +15,7 @@ class ImageSource {
     // Note: we use a URI, *not* a URL as the cache key.  URL's can be very slow to compare: they use host name resolution
     // to produce the IP address and compare by that.
     
-    final Object original;  // anything plausably covertable image source (e.g. a Resource, URL, File, stream)
+    final Object original;  // any plausably covertable image source (e.g. a Resource, URL, File, stream)
     final URI key;          // Unique key for caching
     final Resource resource;// if original was a resource, it goes here.
         

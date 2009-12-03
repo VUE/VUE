@@ -77,8 +77,8 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
     public static final ImageRep UNAVAILABLE = new ImageRep() {
             @Override public boolean available() { return false; }
             @Override protected Image image() { return (Image) error(); } // don't need override now as renderRep override covers
-            @Override protected Image reconstitute() { return (Image) error(); }
-            @Override protected void cacheData(Image i, String s) { error(); }
+            @Override protected void reconstitute() { error(); }
+            @Override protected void cacheData(Images.Handle i, String s) { error(); }
             @Override void renderRep(Graphics2D g, float width, float height) {
                 fillRect(g, width, height, DEBUG.Enabled ? Color.orange : LoadingColor);
             }
@@ -119,11 +119,16 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
             _size = ZERO_SIZE;
         } else {
             if (_size == ZERO_SIZE || w != _size[0] || h != _size[1]) {
-                _size = new int[2];
-                _size[0] = w;
-                _size[1] = h;
+                final int[] size = new int[2];
+                size[0] = w;
+                size[1] = h;
+                takeSize(size);
             }
         }
+    }
+    
+    synchronized void takeSize(int[] size) {
+        _size = size;
     }
 
     // todo: could change _size to volatile (and fetch into a final in methods that make 2 refs to it)
@@ -155,28 +160,19 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
         return _handle;
     }
 
-    protected Image reconstitute() {
-        return reconstitute(false);
-    }
-    
-    protected Image reconstituteNow() {
-        return reconstitute(true);
-    }
-
-    // Warning: old DEADLOCK if reconstitute is synchronized:
-    //
+    // Note: old DEADLOCK if reconstitute was synchronized:
     // AWT: ImageRep locks in reconstitute, calling getImage, which is trigger a sync callback
     // through synchronized CachingRelayer (addListener) ImageProcessor: CachingRelayer gotImage
     // locks CachingRelayer, which after calling gotImage to notifyRepHasArrived attempts to pull
     // ImageRep aspect, which is locked above on AWT on reconstitute.  Doesn't appear to
     // be a problem now, but take heed.
     
-    private synchronized Image reconstitute(boolean immediate) {
-
+    protected synchronized void reconstitute()
+    {
         if (_handle == IMG_ERROR) {
             // if this was an OutOfMemoryError (a potentially recoverable error), we allow us to retry indefinitely
             if (DEBUG.IMAGE) debug("skipping reconstitue: last load had error: " + this);
-            return null;
+            return;
         }
 
         final boolean hadError = (_handle == IMG_ERROR_MEMORY);
@@ -184,33 +180,18 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
         //if (DEBUG.IMAGE) Log.debug(Util.TERM_CYAN + "RECONSTITUTE " + Util.TERM_CLEAR + _data, new Throwable("HERE"));
         if (_handle.isLoader()) {
             if (DEBUG.IMAGE) debug("recon: rep already loading: " + _data);//, new Throwable("HERE"));
-            return null;
+            return;
         }
         if (DEBUG.IMAGE) debug(Util.TERM_CYAN + "RECONSTITUTE " + Util.TERM_CLEAR + _data);
-        final Image image;
 
         final Ref oldHandle = _handle;
 
-        if (immediate) {
-            // Note that immediate=true is generally only specified if we're attempting to create an icon.
-            // Under low-memory conditions, we want to create the icon while in the current thread
-            // while the original raw image data is freshly available, otherwise it may be GC'd
-            // before the image processing thread pool might get around to running the icon-scaling
-            // task.  Note that this is not guaranteed to run before returning -- if another
-            // ImageRep has started the icon generation, we'll see a return immediately, and get a
-            // callback later when the already running task completes.
-            // Addendum: there is a general problem with creating icons in the current thread,
-            // in that this holds up callbacks to other ImageRef's that may be wanting the full
-            // image and don't get to know that it's already arrived, so immediate is not used
-            // in the current impl.
-            image = Images.getImageASAP(_data, this);
-        } else
-            image = Images.getImage(_data, this);
-        
-        if (image != null) {
+        final Images.Handle imageData = Images.getImageHandle(_data, this);
+
+        if (imageData != null) {
             // if we knew the return value of reconstitute was attented to we could skip the notify
             // (the return value is often ignored) [note: notify 2nd arg is now always true]
-            cacheData(image, "recon-got-immediate-return"); 
+            cacheData(imageData, "recon-got-immediate-return"); 
         } else {
             if (_handle == oldHandle) {
                 if (hadError)
@@ -226,7 +207,6 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
                 if (DEBUG.Enabled) debug("got immediate callback w/image, handle is now " + _handle);
             }
         }
-        return image;
     }
 
     private void debug(String s) {
@@ -252,7 +232,10 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
         _handle = r;
     }
 
-    protected void cacheData(Image image, String debug) {
+    protected void cacheData(Images.Handle imageData, String debug) {
+
+        final Image image = imageData.image;
+        
         if (image() == image) {
             if (DEBUG.Enabled) debug(" re-cache:"+debug);
             return;
@@ -263,7 +246,7 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
             // null any original raw image data in the source to allow for GC.
             _data.readable = null;
         }
-        
+
         synchronized (this) {
 
             // Recording the size here should be redundant to the gotImageSize we've already received,
@@ -286,34 +269,23 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
             // we send the image as an argument so there's at least a temporary
             // guaranteed, hard, non-GC-able reference to it in case the ImageRef wants
             // to do something with the image data.
-            _ref.notifyRepHasArrived(this, image);
+            _ref.notifyRepHasArrived(this, imageData);
         }
     }
 
-    // consider moving the below 4 listener methods to ImageRef, and ignore the gotImageSize
-    // results entirely, creating the ImageRep instance itself when gotImage arrives, tho that
-    // wouldn't let us have a Rep in an an IMG_ERROR state except for a global-constant IMG_ERROR rep, that
-    // couldn't do things like draw anything based on the error or image source -- all that would
-    // need to be moved to ImageRef as well.  Another benefit tho: wouldn't need to keep _ref in
-    // this class at all or make notifyRepHasArrived calls.  Ah -- but then reconstitue would need
-    // to move to ImageRef as all, as ImageRef wouldn't know when an ImageRep was rebuilt
-    // otherwise.
-    public void gotImageSize(Object imageSrc, int w, int h, long byteSize) {
+    //public void gotImageUpdate(Object key, Images.Progress p) {}
+    
+    public void gotImageSize(Object imageSrc, int w, int h, long bytes, int[] ss) {
         setSize(w, h); // could issue a special notifyRepHasProgress with a cause token
-//         if (_width < 0) {
-//             _ref.notifyRepIsReplaced(this, _provide_a_new_rep_);
-//         } else {
-//             if (_width != w || _height != h) {
-//                 Log.warn("rep has size disagreement: " + w + "x" + h + " != " + this);
-//             }
-//         }
     }
-    public void gotImage(Object imageSrc, Image image, ImageRef ref) {
+    
+    public void gotImage(Object imageSrc, Images.Handle imageData) {
         // note: coherency control point against AWT (this an image processing thread)
         // could there ever be a problem if this runs while an AWT thread is issuing
         // a reconstitue call at the same time?
-        cacheData(image, "gotImage");
+        cacheData(imageData, "gotImage");
     }
+    
     public void gotImageProgress(Object imageSrc, long bytesSoFar, float pct) {
 
         // Currently, only the full rep can report progress (if it's loading over the network) --
