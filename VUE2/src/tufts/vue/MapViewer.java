@@ -79,7 +79,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.648 $ / $Date: 2009-11-16 19:22:25 $ / $Author: mike $ 
+ * @version $Revision: 1.649 $ / $Date: 2009-12-03 15:00:44 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -634,7 +634,16 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     // MapPanner (which also generate no MOUSE_PRESS/RELEASE events), so for that case we'll just
     // have to generate a new view for every MOUSE_WHEEL pan or zoom.
 
-    synchronized void trackViewChanges(Object source) {
+    void trackViewChanges(Object source) {
+        if (false) {
+            // We're disabling this feature as not useful enough unless it integrates
+            // with the UNDO queue.  -- SMF 12/3/09
+            _trackViewChanges(source);
+        }
+        
+    }
+    
+    synchronized void _trackViewChanges(Object source) {
         //if (!viewIsChanging()) {
         //if (source == PAINT_TRACKPOINT) {
         if (viewIsTrackable()) {
