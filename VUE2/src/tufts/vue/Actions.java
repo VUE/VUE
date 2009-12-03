@@ -3470,7 +3470,7 @@ public class Actions implements VueConstants
     private static final LWCAction ImageShow = new ImageAdjustAction("action.image.show", IMAGE_SHOW);
     
 
-    private static final int ImageSizes[] = { 512, 256, 128, 64, 32, 16 };
+    private static final int ImageSizes[] = { 1024, 768, 640, 512, 384, 256, 128, 64, 32, 16 };
 
     public static final Action[] IMAGE_MENU_ACTIONS;
     public static final Action[] NODE_FORMAT_MENU_ACTIONS = {ResizeNode};
