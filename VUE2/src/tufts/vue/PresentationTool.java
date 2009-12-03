@@ -2789,7 +2789,7 @@ public class PresentationTool extends VueTool
 
     private Entry mLastCacheCheckedEntry = null;
 
-    /** try and pre-cache slides near is in the presentation */
+    /** try and pre-cache slides near us in the presentation */
     private void attemptPathwayLocalPreCaching() {
         // if we're low memory, at least try and cache the next (or prev) slide's
         // content.  If we're REALLY low in memory, this may actually be a bad idea --
