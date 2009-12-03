@@ -1146,7 +1146,7 @@ public class Util
     }
 
     public interface Itering<T> extends java.util.Iterator<T>, Iterable<T> {}
-    
+
     public static abstract class AbstractItering<T> implements Itering<T> {
         public Iterator<T> iterator() {
             return this;
@@ -1155,10 +1155,39 @@ public class Util
             throw new UnsupportedOperationException();
         }
     }
+    private static abstract class IndexedItering<T> extends AbstractItering<T> {
+        final int length;
+        int index = 0;
+        IndexedItering(int len) { length = len; }
+        public boolean hasNext() {
+            return index < length;
+        }
+        // could reset index if another "instance" is requested via iterator()
+    }
 
     public static <T> Itering<T> iterable(T o) {
         return new SingletonIterable<T>(o);
     }
+
+    public static Itering<org.w3c.dom.Node> iterable(final org.w3c.dom.NodeList nl) {
+        return new IndexedItering<org.w3c.dom.Node>(nl.getLength()) {
+            public org.w3c.dom.Node next() {
+                return nl.item(index++);
+            }
+        };
+    }
+    public static Itering<org.w3c.dom.Node> iterable(final org.w3c.dom.NamedNodeMap nm) {
+        return new IndexedItering<org.w3c.dom.Node>(nm.getLength()) {
+            public org.w3c.dom.Node next() {
+                return nm.item(index++);
+            }
+        };
+    }
+
+    public static Itering<org.w3c.dom.Node> iterable(final org.w3c.dom.Node n) {
+        return iterable(n.getChildNodes());
+    }
+    
     
         
     /** Convenience class: provides a single element iterator.  Is also an iterable, returning self.
@@ -2569,6 +2598,11 @@ public class Util
             return o.toString() + " (" + o.getClass().getSimpleName() + ")";
             //return TERM_RED + '"' + o.toString() + '"' + TERM_CLEAR;
         }
+        
+        if (o instanceof int[]) {
+            int[] ia = (int[]) o;
+            return String.format("int[%d]=%s", ia.length, Arrays.toString(ia));
+        }
             
         final String type = o.getClass().getName();
         final String simpleType = o.getClass().getSimpleName();
@@ -2588,23 +2622,33 @@ public class Util
                     item = ((Collection)o).toArray()[0];
                 if (item != null) {
                     if (size == 1) 
-                        txt += "; only=" + tags(item);
+                        txt += "; only=" + tags(item);  // note: recursion
                     else
-                        txt += "; first=" + tags(item);
+                        txt += "; first=" + tags(item);  // note: recursion
 //                     if (size == 1) 
 //                         txt += "; " + tags(item);
 //                     else
 //                         txt += "type[0]=" + item.getClass().getName();
                 }
 
-            } else if (o instanceof java.awt.image.BufferedImage) {
+            }
+            else if (o instanceof java.awt.image.BufferedImage) {
                 final BufferedImage bi = (BufferedImage) o;
                 final int t = bi.getTransparency();
                 return String.format("BufferedImage@%08x[%dx%d %s]", ident,
                                      bi.getWidth(),
                                      bi.getHeight(),
                                      transparency(t));
-            } else {
+            }
+            else if (o instanceof org.w3c.dom.Node) {
+                final org.w3c.dom.Node n = (org.w3c.dom.Node) o;
+                final Object value = n.getNodeValue();
+                if (value == null)
+                    return String.format("%s@%08x[%s]", simpleType, ident, n.getNodeName());
+                else
+                    return String.format("%s@%08x[%s=%s]", simpleType, ident, n.getNodeName(), tags(n.getNodeValue())); // note: recursion
+            }
+            else {
                 txt = o.toString();
                 
                 final String stdShortTag = String.format("%s@%x", simpleType, ident); 
