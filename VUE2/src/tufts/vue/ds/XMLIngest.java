@@ -53,7 +53,7 @@ import org.xml.sax.*;
 
 
 /**
- * @version $Revision: 1.14 $ / $Date: 2009-12-03 15:41:38 $ / $Author: sfraize $
+ * @version $Revision: 1.15 $ / $Date: 2009-12-03 15:42:19 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -257,7 +257,7 @@ public class XMLIngest {
         else
         	schema.flushData();
         
-        if (true)
+        if (false)
             XPathExtract(schema, doc);
         else
             scanNode(schema, doc.getDocumentElement(), null, null);
