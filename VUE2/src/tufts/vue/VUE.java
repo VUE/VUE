@@ -117,7 +117,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.692 $ / $Date: 2009-11-23 21:32:26 $ / $Author: brian $ 
+ * @version $Revision: 1.693 $ / $Date: 2009-12-03 20:35:14 $ / $Author: brian $ 
  */
 
 public class VUE
@@ -2179,7 +2179,7 @@ public class VUE
         gBC.gridy = 0;
         gBC.weightx = 0.0;
         gBC.insets = new Insets(0, 0, 0, 0);
-        toolbarPanel.add(new BackwardForwardPanel(), gBC);
+//        toolbarPanel.add(new BackwardForwardPanel(), gBC);
 
         returnToMapButton = new JButton(VueResources.getString("returnToMap.label"));        
         returnToMapButton.addActionListener(new ActionListener(){
