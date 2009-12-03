@@ -79,7 +79,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.649 $ / $Date: 2009-12-03 15:00:44 $ / $Author: sfraize $ 
+ * @version $Revision: 1.650 $ / $Date: 2009-12-03 20:39:19 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -6510,7 +6510,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 //hitComponent = activeTool.pickNodeAt(getPickContext(mapX, mapY));
                 hitComponent = pickNode(mapX, mapY);
                 
-                if (hitComponent == null && activeTool instanceof ComboModeTool)
+                if (hitComponent == null && activeTool instanceof ComboModeTool && VUE.getSelection() != null && VUE.getSelection().isEmpty())
                 {
                 	//VUE-1597
                 	/*
