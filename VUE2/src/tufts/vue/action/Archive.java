@@ -23,7 +23,7 @@ import static tufts.vue.Resource.*;
 /**
  * Code related to identifying, creating and unpacking VUE archives.
  *
- * @version $Revision: 1.12 $ / $Date: 2009-03-17 15:59:35 $ / $Author: sfraize $ 
+ * @version $Revision: 1.13 $ / $Date: 2009-12-03 15:01:35 $ / $Author: sfraize $ 
  */
 public class Archive
 {
@@ -728,7 +728,8 @@ public class Archive
         final ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(archive)));
         final ZipEntry mapEntry = new ZipEntry(dirName + "/" + mapName + "$map.vue");
         final String comment = MAP_ARCHIVE_KEY + "; VERSION: 2;"
-            + " Saved " + new Date() + " by " + VUE.getName() + " built " + Version.AllInfo + "; items=" + items.size()
+            + " Saved " + new Date() + " by " + VUE.getName() + " built " + Version.AllInfo + "; items=" + items.size() + ";"
+            + ">" // /usr/bin/what terminatior
             //+ "\n\tmap-name(" + mapName + ")"
             //+ "\n\tunique-resources(" + resources.size() + ")"
             ;
