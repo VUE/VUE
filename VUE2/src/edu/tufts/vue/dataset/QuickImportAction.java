@@ -39,13 +39,6 @@ public class QuickImportAction extends VueAction{
 	private static final Object		LOCK = new Object();
 	protected static final int		COLUMNS = 30,
 									GUTTER = 4;
-	protected static final String	DATASET_TYPE = VueResources.getString("quickImport.datasetTypes"),
-									DATASOURCE_TYPE = VueResources.getString("quickImport.datasourceTypes"),
-									ONTOLOGY_TYPE = VueResources.getString("quickImport.ontologyTypes"),
-									TYPES[] = {DATASET_TYPE, DATASOURCE_TYPE, ONTOLOGY_TYPE};
-	protected static final int		DATASET_TYPE_INDEX = 0,
-									DATASOURCE_TYPE_INDEX = 1,
-									ONTOLOGY_TYPE_INDEX = 2;
 	protected static final boolean	DEBUG_LOCAL = false;
 
 	protected JDialog				dialog = null;
@@ -54,7 +47,6 @@ public class QuickImportAction extends VueAction{
 	protected JButton				browseButton = new JButton(VueResources.getString("quickImport.browse")),
 									cancelButton = new JButton(VueResources.getString("quickImport.cancel")),
 									addButton = new JButton(VueResources.getString("quickImport.add"));
-	protected JComboBox				typeComboBox = new JComboBox(TYPES);
 	protected JTextField			fileTextField = new JTextField();
 	protected File					file = null,
 									lastDirectory = null;
@@ -136,11 +128,6 @@ public class QuickImportAction extends VueAction{
 			addToGridBag(locationRadioPanel, URLRadioButton, 1, 0, 1, 1,
 				GridBagConstraints.LINE_START, GridBagConstraints.NONE, gutter);
 
-			typeComboBox.setFont(tufts.vue.gui.GUI.LabelFace);
-			typeComboBox.setSelectedIndex(DATASET_TYPE_INDEX);
-			addToGridBag(locationRadioPanel, typeComboBox, 2, 0, 1, 1,
-				GridBagConstraints.LINE_START, GridBagConstraints.NONE, gutter);
-
 			addToGridBag(locationPanel, locationRadioPanel, 0, 0, 1, 1,
 					GridBagConstraints.LINE_START, GridBagConstraints.NONE, noGutter);
 
@@ -217,7 +204,6 @@ public class QuickImportAction extends VueAction{
 				selectFileLabel.setBackground(Color.MAGENTA);
 				fileRadioButton.setBackground(Color.MAGENTA);
 				URLRadioButton.setBackground(Color.MAGENTA);
-				typeComboBox.setBackground(Color.MAGENTA);
 				browseButton.setBackground(Color.MAGENTA);
 				cancelButton.setBackground(Color.MAGENTA);
 				addButton.setBackground(Color.MAGENTA);
@@ -226,7 +212,6 @@ public class QuickImportAction extends VueAction{
 				selectFileLabel.setOpaque(true);
 				fileRadioButton.setOpaque(true);
 				URLRadioButton.setOpaque(true);
-				typeComboBox.setOpaque(true);
 				browseButton.setOpaque(true);
 				cancelButton.setOpaque(true);
 				addButton.setOpaque(true);
@@ -285,33 +270,28 @@ public class QuickImportAction extends VueAction{
 						file = new File(fileTextField.getText());
 					}
 
-					switch (typeComboBox.getSelectedIndex()) {
-					case DATASET_TYPE_INDEX:
-					case DATASOURCE_TYPE_INDEX:
-					default:
+					String	location = isFile ? file.getAbsolutePath() : fileTextField.getText(),
+							locationLower = location.toLowerCase();
+
+					if (locationLower.endsWith(".rdf") || locationLower.endsWith(".rdfs") || locationLower.endsWith(".owl")) {
+						map = RDFOpenAction.loadMap(location);
+						showMap();
+					} else {
 						boolean isFolder = isFile && file.isDirectory();
 
 						Dataset	dataset = (isFolder ? new FolderDataset() : new ListDataset());
 
-						dataset.setFileName(isFile ? file.getAbsolutePath() : fileTextField.getText());
+						dataset.setFileName(location);
 						dataset.loadDataset();
 
 						if (isFolder) {
 							map = dataset.createMap();
 							showMap();
 						} else {
-							// For ListDataset call createMap(this), so that this.actionPerformed(ActionEvent) will be called
+							// For ListDataset, call createMap(this) so that this.actionPerformed(ActionEvent) will be called
 							// when the dataset has finished loading.
 							map = dataset.createMap(this);
 						}
-
-						break;
-
-					case ONTOLOGY_TYPE_INDEX:
-
-						map = RDFOpenAction.loadMap(isFile ? file.getAbsolutePath() : fileTextField.getText());
-						showMap();
-						break;
 					}
 
 					file = null;
