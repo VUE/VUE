@@ -51,7 +51,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.125 $ / $Date: 2009-10-27 15:03:02 $ / $Author: sfraize $  
+ * @version $Revision: 1.126 $ / $Date: 2009-12-04 20:03:11 $ / $Author: sfraize $  
  */
 public class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -1321,7 +1321,6 @@ public class MapDropTarget
         
 
         LWComponent node;
-        LWImage lwImage = null;
         String displayName = (String) properties.get("title");
 
         if (displayName == null)
@@ -1332,6 +1331,8 @@ public class MapDropTarget
         if (shortName.length() > MaxNodeTitleLen)
             shortName = shortName.substring(0,MaxNodeTitleLen) + "...";
 
+        LWImage lwImage = null;
+        
         /*
         MapResource mapResource = null;
         if (resource instanceof MapResource) { // todo: fix Resource so no more of this kind of hacking
@@ -1346,50 +1347,88 @@ public class MapDropTarget
          * SMF: no longer meaningful -- we're removing the image size preference.
          */
         //if (resource.isImage() && LWImage.getMaxRenderSize() > 0) {
+        
+//         if (resource.isImage()) {
+//             if (DEBUG.DND || DEBUG.IMAGE) Log.debug(drop + "; IMAGE DROP " + resource + " " + properties);
+//             //node = new LWImage(resource, viewer.getMap().getUndoManager());
+//             lwImage = new LWImage();
+//             String ws = (String) properties.get("width");
+//             String hs = (String) properties.get("height");
+//             if (ws != null && hs != null) {
+//                 int w = Integer.parseInt(ws);
+//                 int h = Integer.parseInt(hs);
+//                 lwImage.suggestSize(w, h);
+//                 resource.setProperty("image.width", ws);
+//                 resource.setProperty("image.height", hs);
+//                 /*
+//                 if (mapResource != null) {
+//                     mapResource.setProperty("image.width", ws);
+//                     mapResource.setProperty("image.height", hs);
+//                 }
+//                 */
+//             } else {
+//                 // give it some kind of size so the center-on-drop code can at least do something
+//                 // todo: this causes off-standard image sizes to be created as the image
+//                 // ends up being shaped via ConstrainToAspect instead of setMaxDimension,
+//                 // tho I also note the sizes this produces tend to be more pleasing/balanced.
+//                 //lwImage.setSize(LWImage.DefaultMaxDimension, LWImage.DefaultMaxDimension);
+//                 lwImage.suggestSize(LWImage.DefaultMaxDimension, LWImage.DefaultMaxDimension);
+//             }
+//             //lwImage.setLabel(displayName);
+//         }
+        
+//         if (lwImage == null || dropImagesAsNodes) {
+//             if (false && where == null && lwImage != null) {
+//                 // don't wrap image if we're about to drop it into something else
+//                 node = lwImage;
+//             } else {
+//             	shortName = Util.formatLines(shortName, VueResources.getInt("dataNode.labelLength"));
+//                 node = NodeModeTool.createNewNode(shortName);
+//                 node.setResource(resource); // doing this first would let the image know it's a node-icon,
+//                 // but this code will auto-add the image now!
+//                 if (lwImage != null)
+//                     ((LWNode)node).addChild(lwImage);
+//                 node.setResource(resource); // 
+//             }
+//         } else {
+//             // we're dropping the image raw (either on map or into something else)
+//             node = lwImage;
+//         }
+
+        int suggestWidth = -1, suggestHeight = -1;
+        
         if (resource.isImage()) {
             if (DEBUG.DND || DEBUG.IMAGE) Log.debug(drop + "; IMAGE DROP " + resource + " " + properties);
-            //node = new LWImage(resource, viewer.getMap().getUndoManager());
-            lwImage = new LWImage();
             String ws = (String) properties.get("width");
             String hs = (String) properties.get("height");
             if (ws != null && hs != null) {
-                int w = Integer.parseInt(ws);
-                int h = Integer.parseInt(hs);
-                lwImage.suggestSize(w, h);
-                resource.setProperty("image.width", ws);
-                resource.setProperty("image.height", hs);
-                /*
-                if (mapResource != null) {
-                    mapResource.setProperty("image.width", ws);
-                    mapResource.setProperty("image.height", hs);
+                suggestWidth = Integer.parseInt(ws);
+                suggestHeight = Integer.parseInt(hs);
+                if (suggestWidth > 0 && suggestHeight > 0) {
+                    resource.setProperty("image.width", ws);
+                    resource.setProperty("image.height", hs);
+                } else {
+                    suggestWidth = suggestHeight = -1;
                 }
-                */
-            } else {
-                // give it some kind of size so the center-on-drop code can at least do something
-                // todo: this causes off-standard image sizes to be created as the image
-                // ends up being shaped via ConstrainToAspect instead of setMaxDimension,
-                // tho I also note the sizes this produces tend to be more pleasing/balanced.
-                //lwImage.setSize(LWImage.DefaultMaxDimension, LWImage.DefaultMaxDimension);
-                lwImage.suggestSize(LWImage.DefaultMaxDimension, LWImage.DefaultMaxDimension);
             }
-            
-            
-            //lwImage.setLabel(displayName);
         }
         
-        if (lwImage == null || dropImagesAsNodes) {
-            if (false && where == null && lwImage != null) {
-                // don't wrap image if we're about to drop it into something else
-                node = lwImage;
-            } else {
-            	shortName = Util.formatLines(shortName, VueResources.getInt("dataNode.labelLength"));
-                node = NodeModeTool.createNewNode(shortName);
-                if (lwImage != null)
-                    ((LWNode)node).addChild(lwImage);
-                node.setResource(resource);
-            }
+        if (dropImagesAsNodes) {
+            shortName = Util.formatLines(shortName, VueResources.getInt("dataNode.labelLength"));
+            node = NodeModeTool.createNewNode(shortName);
+
+            node.setResource(resource);  // this will force the creation of an image-icon on the node from the resource
+
+            // doing this first would let the image know it's a node-icon,
+            // but this code will auto-add the image now!
+//             if (lwImage != null)
+//                 ((LWNode)node).addChild(lwImage);
+//             node.setResource(resource); // 
         } else {
             // we're dropping the image raw (either on map or into something else)
+            lwImage = new LWImage();
+            if (suggestWidth > 0)
+                lwImage.suggestSize(suggestWidth, suggestHeight);
             node = lwImage;
         }
 

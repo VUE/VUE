@@ -364,6 +364,8 @@ public class LWImage extends LWComponent
             
             setResourceAndLoad(r, null);
         }
+
+        updateNodeIconStatus(getParent()); // NEW
     }
 
     // todo: find a better way to do this than passing in an undo manager, which is dead ugly

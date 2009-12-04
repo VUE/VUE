@@ -51,7 +51,7 @@ import org.w3c.dom.NodeList;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.72 $ / $Date: 2009-12-04 00:23:49 $ / $Author: sfraize $
+ * @version $Revision: 1.73 $ / $Date: 2009-12-04 20:03:10 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -1913,7 +1913,7 @@ public class Images
 
         meta_data.mergeTree(GENERIC_META_DATA, metaTree);
 
-        if (DEBUG.Enabled) {
+        if (DEBUG.IO) {
             //Log.debug("TREE: " + Util.tags(tree));
             //Log.debug("ATTRIBS: " + Util.tags(tree.getAttributes()));
             //Log.debug("CHILDREN: " + Util.tags(tree.getChildNodes()));
@@ -2394,7 +2394,7 @@ public class Images
         //Handle create(image i
         
         @Override public String toString() {
-            return Util.tags(image) + "; " + data;
+            return Util.tags(image) + data;
         }
     }
 
