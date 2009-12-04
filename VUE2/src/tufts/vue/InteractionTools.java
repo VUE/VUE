@@ -37,6 +37,7 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 									GUTTER = 2 * HALF_GUTTER;
 	private static final org.apache.log4j.Logger
 									Log = org.apache.log4j.Logger.getLogger(InteractionTools.class);
+	public static JSlider			toolbarDepthSlider = null;
 	protected JSlider				fadeSlider = null,
 									depthSlider = null;
 	protected JButton				zoomSelButton = null,
@@ -68,12 +69,12 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 
 		fadeSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 100);
 
-		JLabel						label100 = new JLabel("100%");
-		JLabel						label80 = new JLabel("80%");
-		JLabel						label60 = new JLabel("60%");
-		JLabel						label40 = new JLabel("40%");
-		JLabel						label20 = new JLabel("20%");
-		JLabel						label0 = new JLabel("0%");
+		JLabel						label100 = new JLabel("100%"),
+									label80 = new JLabel("80%"),
+									label60 = new JLabel("60%"),
+									label40 = new JLabel("40%"),
+									label20 = new JLabel("20%"),
+									label0 = new JLabel("0%");
 		Hashtable<Integer, JLabel>	labelTable = new Hashtable<Integer, JLabel>();
 
 		label100.setFont(tufts.vue.gui.GUI.LabelFace);
@@ -100,39 +101,14 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 		depthLabel.setFont(tufts.vue.gui.GUI.LabelFace);
 		addToGridBag(fadeInnerPanel, depthLabel, 0, 1, 1, 1, GridBagConstraints.LINE_END, halfGutterInsets);
 
-		depthSlider = new JSlider(JSlider.HORIZONTAL, 0, 5, 0);
-
-		JLabel						label1 = new JLabel("1");
-		JLabel						label2 = new JLabel("2");
-		JLabel						label3 = new JLabel("3");
-		JLabel						label4 = new JLabel("4");
-		JLabel						label5 = new JLabel("5");
 		DepthSelectionListener		depthListener = new DepthSelectionListener();
 
-		labelTable = new Hashtable<Integer, JLabel>();
+		depthSlider = createDepthSlider();
+		depthSlider.addChangeListener(depthListener);
+		VUE.getSelection().addListener(depthListener);
 
-		label0 = new JLabel(VueResources.getString("interactionTools.off"));
-		label0.setFont(tufts.vue.gui.GUI.LabelFace);
-		label1.setFont(tufts.vue.gui.GUI.LabelFace);
-		label2.setFont(tufts.vue.gui.GUI.LabelFace);
-		label3.setFont(tufts.vue.gui.GUI.LabelFace);
-		label4.setFont(tufts.vue.gui.GUI.LabelFace);
-		label5.setFont(tufts.vue.gui.GUI.LabelFace);
-		labelTable.put(new Integer(0), label0);
-		labelTable.put(new Integer(1), label1);
-		labelTable.put(new Integer(2), label2);
-		labelTable.put(new Integer(3), label3);
-		labelTable.put(new Integer(4), label4);
-		labelTable.put(new Integer(5), label5);
 		depthSliderMin = 0;
 		depthSliderMax = 5;
-		depthSlider.setLabelTable(labelTable);
-		depthSlider.setPaintLabels(true);
-		depthSlider.setSnapToTicks(true);
-		depthSlider.setMinimumSize(depthSlider.getPreferredSize());
-		depthSlider.addChangeListener(depthListener);
-		depthSlider.setToolTipText(VueResources.getString("interactionTools.depth.toolTip"));
-		VUE.getSelection().addListener(depthListener);
 
 		addToGridBag(fadeInnerPanel, depthSlider, 1, 1, 1, 1, GridBagConstraints.LINE_END, GridBagConstraints.HORIZONTAL, 1.0, 0.0, halfGutterInsets);
 
@@ -232,14 +208,6 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 			linePanel.setBackground(Color.CYAN);
 			linePanel.setOpaque(true);
 		}
-
-		// Set properties of the JSlider on the toolbar to match those of the JSlider on this panel.
-		VUE.depthSelectionSlider.setLabelTable(labelTable);
-		VUE.depthSelectionSlider.setPaintLabels(true);
-		VUE.depthSelectionSlider.setSnapToTicks(true);
-		VUE.depthSelectionSlider.setMinimumSize(depthSlider.getPreferredSize());
-		VUE.depthSelectionSlider.addChangeListener(new ToolbarDepthSelectionListener());
-		VUE.depthSelectionSlider.setToolTipText(VueResources.getString("interactionTools.depth.toolTip"));
 
 		setVisible(true);
 	}
@@ -347,6 +315,49 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 
 	/* Static methods */
 
+	public static JSlider getToolbarDepthSlider() {
+		if (toolbarDepthSlider == null) {
+			toolbarDepthSlider = createDepthSlider();
+			toolbarDepthSlider.addChangeListener(new ToolbarDepthSelectionListener());
+		}
+
+		return toolbarDepthSlider;
+	}
+
+
+	public static JSlider createDepthSlider() {
+		JSlider newSlider = new JSlider(JSlider.HORIZONTAL, 0, 5, 0);
+
+		JLabel						label0 = new JLabel(VueResources.getString("interactionTools.off")),
+									label1 = new JLabel("1"),
+									label2 = new JLabel("2"),
+									label3 = new JLabel("3"),
+									label4 = new JLabel("4"),
+									label5 = new JLabel("5");
+		Hashtable<Integer, JLabel>	labelTable = new Hashtable<Integer, JLabel>();
+
+		label0.setFont(tufts.vue.gui.GUI.LabelFace);
+		label1.setFont(tufts.vue.gui.GUI.LabelFace);
+		label2.setFont(tufts.vue.gui.GUI.LabelFace);
+		label3.setFont(tufts.vue.gui.GUI.LabelFace);
+		label4.setFont(tufts.vue.gui.GUI.LabelFace);
+		label5.setFont(tufts.vue.gui.GUI.LabelFace);
+		labelTable.put(new Integer(0), label0);
+		labelTable.put(new Integer(1), label1);
+		labelTable.put(new Integer(2), label2);
+		labelTable.put(new Integer(3), label3);
+		labelTable.put(new Integer(4), label4);
+		labelTable.put(new Integer(5), label5);
+		newSlider.setLabelTable(labelTable);
+		newSlider.setPaintLabels(true);
+		newSlider.setSnapToTicks(true);
+		newSlider.setMinimumSize(newSlider.getPreferredSize());
+		newSlider.setToolTipText(VueResources.getString("interactionTools.depth.toolTip"));
+
+		return newSlider;
+	}
+
+
 	protected static void addToGridBag(Container container, Component component,
 			int gridX, int gridY, int gridWidth, int gridHeight,
 			Insets insets) {
@@ -411,8 +422,8 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 			if (!source.getValueIsAdjusting()) {
 				int value = source.getValue();
 
-				if (VUE.depthSelectionSlider.getValue() != value) {
-					VUE.depthSelectionSlider.setValue(value);
+				if (toolbarDepthSlider != null && toolbarDepthSlider.getValue() != value) {
+					toolbarDepthSlider.setValue(value);
 				}
 
 				GUI.invokeAfterAWT(sliderMoved);
@@ -558,7 +569,7 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 	}
 
 
-	protected class ToolbarDepthSelectionListener implements ChangeListener {
+	protected static class ToolbarDepthSelectionListener implements ChangeListener {
 
 
 		ToolbarDepthSelectionListener() {}

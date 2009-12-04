@@ -12,7 +12,6 @@
  * or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
-
 package tufts.vue;
 
 import java.applet.AppletContext;
@@ -117,7 +116,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.694 $ / $Date: 2009-12-03 22:24:40 $ / $Author: brian $ 
+ * @version $Revision: 1.695 $ / $Date: 2009-12-04 21:03:09 $ / $Author: brian $ 
  */
 
 public class VUE
@@ -171,7 +170,7 @@ public class VUE
     private static SearchTextField mSearchtextFld = new SearchTextField();
     public static final int FIRST_TAB_STOP = 6;   
     //public static JCheckBoxMenuItem  resetSettingsMenuItem;
-    public static JSlider depthSelectionSlider = new JSlider(JSlider.HORIZONTAL, 0, 5, 0); // unused but referenced from many files
+    public static JSlider depthSelectionSlider = null;
     public static JPanel searchPanel = new JPanel(new FlowLayout());  
     public static void finalizeDocks()
     {
@@ -2280,6 +2279,7 @@ public class VUE
         //framesPerSecond.setMajorTickSpacing(6);
 
         //framesPerSecond.setPaintTicks(true);
+        depthSelectionSlider = InteractionTools.getToolbarDepthSlider();
         searchPanel.add(depthSelectionSlider);
         searchPanel.add(new JLabel(" "));
         //mSearchtextFld.setPreferredSize(new Dimension(200,23));
