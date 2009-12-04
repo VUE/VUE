@@ -51,7 +51,7 @@ import org.w3c.dom.NodeList;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.71 $ / $Date: 2009-12-03 15:41:38 $ / $Author: sfraize $
+ * @version $Revision: 1.72 $ / $Date: 2009-12-04 00:23:49 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -1021,6 +1021,8 @@ public class Images
         private int _nextSmallerPoolSize;
             
         ImmediatelyReducablePool(int startSize) {
+            if (startSize < 1)
+                startSize = 1;
             _pool = createThreadPool(startSize);
             if (startSize > 1) {
                 //_nextSmallerPoolSize = startSize / 2;
@@ -1220,7 +1222,7 @@ public class Images
         };
 
     static {
-        final int cores = Runtime.getRuntime().availableProcessors();
+        final int cores = Runtime.getRuntime().availableProcessors() - 1;
         final int useCores = DEBUG.SINGLE_THREAD ? 1 : cores;
         // rough test: on a 2-core laptop, our use-case came in at 1min v.s. 1:30min w/all cores in use
         // (all icons being generated)
