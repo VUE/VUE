@@ -37,7 +37,7 @@ import javax.swing.ImageIcon;
  *  objects, displaying their content, and fetching their data.
 
  *
- * @version $Revision: 1.94 $ / $Date: 2009-12-06 18:00:37 $ / $Author: sfraize $
+ * @version $Revision: 1.95 $ / $Date: 2009-12-06 18:27:00 $ / $Author: sfraize $
  */
 
 public abstract class Resource implements Cloneable
@@ -1060,7 +1060,10 @@ public abstract class Resource implements Cloneable
         
         return file;
     }
+
+    private static final String DEFAULT_ENCODING = "DEFAULT";
     
+    private static final String[] Encodings = { DEFAULT_ENCODING, "UTF-8", "MacRoman", "windows-1252", "ISO-8859-1" };
 
     // this will only return files that already exist
     public static File getLocalFileIfPresent(URL url)
@@ -1148,12 +1151,29 @@ public abstract class Resource implements Cloneable
                     final String fullpath = file.toString();
                     if (fullpath.indexOf('%') >= 0) {
                         Log.info(Util.tags(file) + "; claims non-existent, attempting decode:");
-                        // Try all different encodings? UTF-8? MacRoman? Windows?  specify to platform?
-                        file = new File(java.net.URLDecoder.decode(fullpath));
-                        exists = file.exists();
-                        if (exists) 
-                            Log.info(Util.tags(file) + "; file findable after decoding");
+
+                        for (String encoding : Encodings) {
+                            String decoded = "<failed>";
+                            try {
+                                if (encoding == DEFAULT_ENCODING)
+                                    decoded = java.net.URLDecoder.decode(fullpath);
+                                else
+                                    decoded = java.net.URLDecoder.decode(fullpath, encoding);
+                                file = new File(decoded);
+                            } catch (Throwable t) {
+                                Log.error("decoding failure on " + Util.tags(fullpath) + " as " + encoding, t);
+                                continue;
+                            }
+                            Log.info(String.format("Decoded to %12s: ", encoding) + Util.tags(decoded));
+                            if (exists = file.exists()) {
+                                Log.info(Util.tags(file) + "; file findable after decoding");
+                                break;
+                            }
+                        }
+                        if (!exists)
+                            Log.info(Util.tags(file) + "; cannot find under any decoding.");
                     }
+                        
                     if (!exists) {
                         Log.info(Util.tags(file) + "; ignoring non-existent");
                         return null;
