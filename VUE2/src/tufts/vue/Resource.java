@@ -37,7 +37,7 @@ import javax.swing.ImageIcon;
  *  objects, displaying their content, and fetching their data.
 
  *
- * @version $Revision: 1.93 $ / $Date: 2009-10-28 17:46:10 $ / $Author: sfraize $
+ * @version $Revision: 1.94 $ / $Date: 2009-12-06 18:00:37 $ / $Author: sfraize $
  */
 
 public abstract class Resource implements Cloneable
@@ -868,8 +868,8 @@ public abstract class Resource implements Cloneable
         return "";
     }
 
-    private static final String _fmt0 = "%s@%07x[%s; %sF%s]";
-    private static final String _fmt1 = "%s@%08x[%s; %sF%s]";
+    private static final String _fmt0 = "%s@%07x[%s; %s%c%s]";
+    private static final String _fmt1 = "%s@%08x[%s; %s%c%s]";
     private static final String _debugFmt = Util.getJavaVersion() > 1.5 ? _fmt1 : _fmt0;
 
     public String asDebug() {
@@ -878,7 +878,8 @@ public abstract class Resource implements Cloneable
                              System.identityHashCode(this),
                              TYPE_NAMES[getClientType()],
                              paramString(),
-                             mDataFile == null ? getSpec() : Util.tags(mDataFile.toString())
+                             mDataFile == null ? 'S' : 'F',
+                             mDataFile == null ? Util.tags(getSpec()) : (Util.TERM_PURPLE + mDataFile + Util.TERM_CLEAR)
                              //getLocationName() // may trigger property fetches during debug which is very messy
                              //(mDataFile != null && hasProperty(PACKAGE_FILE)) ? mDataFile.getName() : getSpec()
                              );
@@ -1143,10 +1144,22 @@ public abstract class Resource implements Cloneable
 
                 if (DEBUG.IO) Log.debug(Util.tags(file) + "; getLocalFileIfPresent(URL): testing");
                 if (!file.exists()) {
-                    Log.info(Util.tags(file) + "; ignoring non-existent");
-                    return null;
+                    boolean exists = false;
+                    final String fullpath = file.toString();
+                    if (fullpath.indexOf('%') >= 0) {
+                        Log.info(Util.tags(file) + "; claims non-existent, attempting decode:");
+                        // Try all different encodings? UTF-8? MacRoman? Windows?  specify to platform?
+                        file = new File(java.net.URLDecoder.decode(fullpath));
+                        exists = file.exists();
+                        if (exists) 
+                            Log.info(Util.tags(file) + "; file findable after decoding");
+                    }
+                    if (!exists) {
+                        Log.info(Util.tags(file) + "; ignoring non-existent");
+                        return null;
+                    }
                 }
-                
+
 
                 //if (DEBUG.Enabled) Log.debug("got canonical path: " + file.getCanonicalPath());
                 
