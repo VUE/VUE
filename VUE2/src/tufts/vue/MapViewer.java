@@ -79,7 +79,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.650 $ / $Date: 2009-12-03 20:39:19 $ / $Author: mike $ 
+ * @version $Revision: 1.651 $ / $Date: 2009-12-07 21:01:48 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1331,7 +1331,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             return;
         }
         
-        if (getVisibleWidth() == 0 || getVisibleHeight() == 0) {
+        if ((getVisibleWidth() == 0 || getVisibleHeight() == 0) ||
+        		(getVisibleWidth() == 1 && getVisibleHeight() == 1)){
             if (DEBUG.PRESENT) out("requesting delayed autoZoom; visSize=" + getVisibleSize());
             mFitToFocalRequested = true;
             return;
