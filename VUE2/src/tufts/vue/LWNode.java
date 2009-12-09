@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.257 $ / $Date: 2009-12-09 17:50:53 $ / $Author: sfraize $
+ * @version $Revision: 1.258 $ / $Date: 2009-12-09 19:46:05 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -967,11 +967,16 @@ public class LWNode extends LWContainer
  //               }
  //           }
         } else if (r.isImage()) {
-            final LWImage imageIcon = new LWImage();
+//             final LWImage imageIcon = new LWImage();
+//             imageIcon.setNodeIcon(true);
+//             imageIcon.setNodeIconResource(r);
+            final LWImage imageIcon = LWImage.createNodeIcon(r);
             addChild(imageIcon);
             sendToBack(imageIcon);
             // set resource last so picks update node-icon status reliably:
-            imageIcon.setResource(r);
+            //imageIcon.setResource(r);
+//             imageIcon.setNodeIcon(true);
+//             imageIcon.setNodeIconResource(r);
         }
     }
 
