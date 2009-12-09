@@ -48,7 +48,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.504 $ / $Date: 2009-10-30 06:05:36 $ / $Author: sfraize $
+ * @version $Revision: 1.505 $ / $Date: 2009-12-09 17:50:12 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -168,7 +168,11 @@ public class LWComponent
 
             /** for links: this is data-relation link */
             DATA_LINK,
-            
+
+            /** for subclass that want to distinguish between a default size and a validated size (e.g., LWImage)
+             * "default size" could actually mean any suggested or invalid size before a final definite size */
+            SIZE_UNSET,
+
 
 //             /** if temporarily changing locked state, can save old value here (layers use this) */
 //             WAS_LOCKED,
@@ -4246,7 +4250,7 @@ public class LWComponent
     {
         if (DEBUG.LAYOUT) out("*** setFrame " + x+","+y + " " + w+"x"+h);
 
-        setSize(w, h);
+        setSize(w, h); // todo: can use setSizeImpl w/internal flag?
         setLocation(x, y);
 
         /*
@@ -4514,26 +4518,54 @@ public class LWComponent
     }
     
     /** set component to this many pixels in size */
-    public void setSize(float w, float h)
+    public final void setSize(float w, float h) {
+        setSizeImpl(w, h, false);
+    }
+    
+    /** set component to this many pixels in size
+     * @param intetrnal -- if true, the event is not undoable
+     */
+    protected void setSizeImpl(float w, float h, boolean internal)
     {
         if (this.width == w && this.height == h)
             return;
+        
         if (DEBUG.LAYOUT) out("*** setSize  (LWC)  " + w + "x" + h);
-        final Size old = new Size(width, height);
+
+        final boolean quiet = (this.width == NEEDS_DEFAULT);
+
+//         final boolean undoable;
+//         if (this.width == NEEDS_DEFAULT) {
+//             // in this case, we don't even want to bother with an event at all
+//             quiet = true;
+//             undoable = false;
+//         }
+//         else if (validSize && hasFlag(Flag.SIZE_UNSET)) {
+//             // in this case, we want an event for updates, but we don't want it undoable
+//             if (DEBUG.Enabled) out("setting first VALID size " + w + "x" + h);
+//             clearFlag(Flag.SIZE_UNSET);
+//             undoable = false;
+//         }
+//         else {
+//             // default case:
+//             undoable = true;
+//         }
+        
+        final Size old = internal ? null : new Size(width, height);
 
         if (mAspect > 0) {
             Size constrained = ConstrainToAspect(mAspect, w, h);
             w = constrained.width;
             h = constrained.height;
         }
-        
+
         if (w < MIN_SIZE) w = MIN_SIZE;
         if (h < MIN_SIZE) h = MIN_SIZE;
         takeSize(w, h);
         if (isLaidOut())
             getParent().layout();
         updateConnectedLinks(null);
-        if (!isAutoSized())
+        if (!quiet && isAutoSized())
             notify(LWKey.Size, old); // todo perf: can we optimize this event out?
     }
 
