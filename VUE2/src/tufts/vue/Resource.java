@@ -37,7 +37,7 @@ import javax.swing.ImageIcon;
  *  objects, displaying their content, and fetching their data.
 
  *
- * @version $Revision: 1.95 $ / $Date: 2009-12-06 18:27:00 $ / $Author: sfraize $
+ * @version $Revision: 1.96 $ / $Date: 2009-12-09 17:51:54 $ / $Author: sfraize $
  */
 
 public abstract class Resource implements Cloneable
@@ -879,7 +879,7 @@ public abstract class Resource implements Cloneable
                              TYPE_NAMES[getClientType()],
                              paramString(),
                              mDataFile == null ? 'S' : 'F',
-                             mDataFile == null ? Util.tags(getSpec()) : (Util.TERM_PURPLE + mDataFile + Util.TERM_CLEAR)
+                             mDataFile == null ? Util.tags(getSpec()) : (Util.TERM_RED + mDataFile + Util.TERM_CLEAR)
                              //getLocationName() // may trigger property fetches during debug which is very messy
                              //(mDataFile != null && hasProperty(PACKAGE_FILE)) ? mDataFile.getName() : getSpec()
                              );
@@ -1149,7 +1149,7 @@ public abstract class Resource implements Cloneable
                 if (!file.exists()) {
                     boolean exists = false;
                     final String fullpath = file.toString();
-                    if (fullpath.indexOf('%') >= 0) {
+                    if (fullpath.indexOf('%') >= 0) { // TODO: keep repeating this until no more % or no change after decoding
                         Log.info(Util.tags(file) + "; claims non-existent, attempting decode:");
 
                         for (String encoding : Encodings) {

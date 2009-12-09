@@ -45,7 +45,7 @@ import java.util.regex.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.88 $ / $Date: 2009-10-29 19:04:35 $ / $Author: mike $
+ * @version $Revision: 1.89 $ / $Date: 2009-12-09 17:52:01 $ / $Author: sfraize $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -274,6 +274,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         }
     }
 
+
     /**
      * Set the local file that refers to this resource, if there is one.
      * If mFile is set, mDataFile will always to same.  If this is a packaged
@@ -305,7 +306,10 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         if (type == FILE_UNKNOWN) {
             if (DEBUG.IO) out("testing " + file);
             if (!file.exists()) {
-                out_warn("no such active data file: " + file);
+                // todo: could attempt decodings if a '%' is present
+                // todo: if any SPECIAL chars present, could attempt encoding in all formats and then DECODING to at least the platform format
+                out_warn(TERM_RED + "no such active data file: " + file + TERM_CLEAR);
+                //Util.printStackTrace("HERE");
                 //throw new IllegalStateException(this + "; no such active data file: " + file);
                 return FILE_UNKNOWN;
             }

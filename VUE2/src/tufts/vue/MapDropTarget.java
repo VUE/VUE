@@ -51,7 +51,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.126 $ / $Date: 2009-12-04 20:03:11 $ / $Author: sfraize $  
+ * @version $Revision: 1.127 $ / $Date: 2009-12-09 17:51:22 $ / $Author: sfraize $  
  */
 public class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -1159,14 +1159,14 @@ public class MapDropTarget
     private boolean processDroppedFileList(DropContext drop)
     {
         if (DEBUG.DND) out("processDroppedFileList");
-        
-        Iterator i = drop.items.iterator();
-        while (i.hasNext()) {
-            
-            processDroppedFile((File) i.next(), drop);
-            
+
+        for (Object o : drop.items) {
+            try {
+                processDroppedFile((File) o, drop);
+            } catch (Throwable t) {
+                Log.error("processing dropped file " + Util.tags(o), t);
+            }
         }
-        
         return true;
     }
 
@@ -1177,6 +1177,8 @@ public class MapDropTarget
 
         Map props = new HashMap();
 
+        if ((DEBUG.IO || DEBUG.DND) && !file.exists()) examineBadFile(file);
+        
         if (path.toLowerCase().endsWith(".url")) {
             // Search a windows .url file (an internet shortcut)
             // for the actual web reference.
@@ -1252,7 +1254,6 @@ public class MapDropTarget
             createNodeAndResource(drop, file, resourceSpec, props, drop.nextDropLocation());
         }
     }
-
 
     private LWComponent createNodeAndResource(DropContext drop, File file, String resourceSpec, Map properties, Point2D where)
     {
@@ -1419,11 +1420,10 @@ public class MapDropTarget
 
             node.setResource(resource);  // this will force the creation of an image-icon on the node from the resource
 
-            // doing this first would let the image know it's a node-icon,
-            // but this code will auto-add the image now!
 //             if (lwImage != null)
 //                 ((LWNode)node).addChild(lwImage);
-//             node.setResource(resource); // 
+//             node.setResource(resource);
+            
         } else {
             // we're dropping the image raw (either on map or into something else)
             lwImage = new LWImage();
@@ -1930,7 +1930,7 @@ public class MapDropTarget
         return value;
     }
 
-    // TODO TODO TODO: to cleanup the dropping onto hit/hitParent v.s. dropping into the focal in
+    // TODO: to cleanup the dropping onto hit/hitParent v.s. dropping into the focal in
     // all the below code, have a single drop.hit that is allowed to take on the value
     // of the focal (e.g., the LWMap, or a master slide, or any slide in the slide
     // viewer).  Always assume you may need to set the coords on new children, and do
@@ -2064,49 +2064,105 @@ public class MapDropTarget
 //     }
     
 
-    /*
-        
-    private void XcreateNewNode(java.awt.Image image, Point2D where)
-    {
-        // todo: query the NodeTool for current node shape, etc.
-        LWNode node = NodeTool.createNode();
-        node.setImage(image);
-        node.setNotes(image.toString());
-
-        addNodeToMap(node, where);
-        
-        /*
-        String label = "[image]";
-        if (image instanceof BufferedImage) {
-            BufferedImage bi = (BufferedImage) image;
-            label = "[image "
-                + bi.getWidth() + "x"
-                + bi.getHeight()
-                + " type " + bi.getType()
-                + "]";
-            //System.out.println("BufferedImage: " + bi.getColorModel());
-            // is null System.out.println("BufferedImage props: " + java.util.Arrays.asList(bi.getPropertyNames()));
-            }*
-    }
-
-    private void createNewNode(Asset asset, java.awt.Point p) {
-        String resourceTitle = "Fedora Node";
-        Resource resource =new Resource(resourceTitle);
-        try {
-            resourceTitle = asset.getDisplayName();
-             resource.setAsset(asset);
-        } catch(Exception e) { System.out.println("MapDropTarget.createNewNode " +e ) ; }
-      
-       
-        LWNode node = NodeTool.createNode(resourceTitle);
-        node.setCenterAt(dropToMapLocation(p));
-        node.setResource(resource);
-        viewer.getMap().addNode(node);
-    }
-
-    */
-
     
+    private static void examineBadFile(File file) {
+        examineBadFile(file, true);
+    }
+    private static void examineBadFile(File file, boolean descend) {
+        // note: on at least mac, file names can exist that are not actually accessable:
+            
+        // BAD-CHARACTER[x].jpg
+            
+        // The file works fine if the "not-equals" special char is changed to an 'x', but not as-is.
+        // Actually, I can't even save this source file with that character in it w/out changing
+        // to UTF-8 or mac-roman encoding.  This is a java bug (mac platform, maybe other platforms).
+        // Note: The bad character in this example URL encodes to "%E2%89%A0".  Mac URL open doesn't
+        // handle it either tho, but it can be visibly seen in the meta-data window and content summary window.
+            
+        // This is as of java version "1.6.0_17", which happened to just update to my mac today, 2009-12-04. --SMF
+
+        // Addendum: See http://bugs.sun.com/bugdatabase/view%5Fbug.do?bug%5Fid=4733494
+        // Has been known since 2002!  And was declared "Not a Defect" !
+        // The reasoning being only characters that are supported by the current locale language
+        // are supported.  What crap.
+        // Also see: http://stackoverflow.com/questions/1545625/java-cant-open-a-file-with-surrogate-unicode-values-in-the-filename
+        // Apparently, there's no workaround w/out writing native code.
+
+        Log.warn("BAD DROPPED FILE:"
+                 + "\n\t      file: " + file
+                 + "\n\t      name: " + Util.tags(file.getName())
+                 + "\n\t    exists: false"
+                 + "\n\t   canRead: " + file.canRead());
+                     
+        URI uri = null;
+        String nameUTF = null;
+        String nameMac = null;
+        //String nameUNI = null;
+        File fileUTF = null;
+        File fileMac = null;
+        File uriUTF = null;
+        File uriMac = null;
+            
+        try {
+            uri = file.toURI();
+            nameUTF = java.net.URLEncoder.encode(file.getName(), "UTF-8");
+            nameMac = java.net.URLEncoder.encode(file.getName(), "MacRoman");
+            //nameUNI = java.nio.charset.Charset.defaultCharset().decode(file.getName().getBytes());
+            fileUTF = new File(file.getParent(), nameUTF);
+            fileMac = new File(file.getParent(), nameMac);
+            URI utf, mac;
+            utf = new URI("file://" + file.getParent() + File.separator + nameUTF);
+            mac = new URI("file://" + file.getParent() + File.separator + nameMac);
+            Log.debug("URIUTF " + utf);
+            Log.debug("URIMac " + mac);
+            uriUTF = new File(utf);
+            uriMac = new File(mac);
+            URL url = new URL(utf.toString());
+            Log.debug("URL: " + url);
+            URLConnection c = url.openConnection(); // this fails as well
+            Log.debug("URL-CONTENT: " + Util.tags(c.getContent()));
+        } catch (Throwable t) {
+            Log.error("meta-debug", t);
+        }
+
+            
+        Log.warn("BAD DROPPED FILE ANALYSIS:"
+                 + "\n\t     toURI: " + uri
+                 + "\n\t    asUTF8: " + Util.tags(nameUTF)
+                 + "\n\tasMacRoman: " + Util.tags(nameMac)
+                 + "\n\t   fileUTF: " + fileUTF
+                 + "\n\t existsUTF: " + fileUTF.exists()
+                 + "\n\t   fileMac: " + fileMac
+                 + "\n\t existsMac: " + fileMac.exists()
+                 + "\n\t    uriUTF: " + uriUTF
+                 + "\n\t existsUTF: " + uriUTF.exists()
+                 + "\n\t    uriMac: " + uriMac
+                 + "\n\t existsMac: " + uriMac.exists()
+                 + "\n\t(probably contains unicode character(s) unhandled by java: this is a java bug)");
+
+//         try {
+//             FileInputStream fin = new FileInputStream(file);
+//             Log.debug("AVAILABLE: " + fin.available());
+//         } catch (Throwable t) {
+//             Log.error("FIN", t);
+//         }
+
+
+//         if (descend) {
+//             File[] all = file.getParentFile().listFiles();
+//             for (File f : all) {
+//                 if (f.equals(file)) {
+//                     Log.debug("FOUND MATCH IN PARENT " + Util.tags(f));
+//                     // Even the File object obtained from the parent is bad!!!
+//                     examineBadFile(f, false);
+//                 }
+//             }
+//             //Util.dump(all);
+//         }
+    }
+            
+
+
 
 
     private static final String MIME_TYPE_MAC_URLN = "application/x-mac-ostype-75726c6e";

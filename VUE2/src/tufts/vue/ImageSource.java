@@ -56,7 +56,7 @@ class ImageSource {
     URI getIconKey(int size) {
         if (key == null) {
             // todo: this will happen for a local files -- only if they're missing or always?
-            Log.warn("can't create icon key w/null key: " + this);
+            Log.warn("can't create icon key w/null key: " + this, new Throwable("HERE"));
             return null;
         }
         if (isImageSourceForIcon())
@@ -130,6 +130,7 @@ class ImageSource {
         if (original instanceof Resource) {
             resource = (Resource) original;
             readable = resource.getImageSource();
+            if (DEBUG.RESOURCE) Log.debug("NEW IMAGE SOURCE FROM " + Util.tags(original) + "; readable=" + Util.tags(readable));
         } else {
             resource = null;
             if (original instanceof File) {
@@ -176,7 +177,10 @@ class ImageSource {
         } else {
 
             this.key = null; // will not be cacheable
-            //Log.debug("CONSTRUCT NULL-KEY NON-CACHEABLE IMAGE SOURCE", new Throwable(toString()));
+            if (DEBUG.IMAGE) Log.debug("CREATED NULL-KEY NON-CACHEABLE IMAGE SOURCE:"
+                                       + "\n\treadable="+Util.tags(readable)
+                                       + "\n\toriginal="+Util.tags(original)
+                                       , new Throwable(toString()));
                 
         }
 
@@ -279,11 +283,11 @@ class ImageSource {
             s.append("; R=");
             if (readable instanceof File) {
                 if (original instanceof Resource && ((Resource)original).getImageSource() == readable) {
-                    s.append('F');
+                    s.append("FF");
                 } else if (_cacheFile == readable) {
-                    s.append('F');
+                    s.append("FC");
                 } else {
-                    s.append('F');
+                    s.append("Fx");
                     s.append(readable.toString());
                 }
             } else
