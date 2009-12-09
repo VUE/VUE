@@ -36,37 +36,32 @@ import java.awt.AlphaComposite;
  */
 
 public class LWImage extends LWComponent
-    implements /*Images.Listener,*/ ImageRef.Listener
+    implements ImageRef.Listener
 {
-    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LWImage.class);
+    private static final class X__________ {}
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(X__________.class); // debug marker
+    //private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LWImage.class);
 
     public static final boolean SLIDE_LABELS = false;
     
-    public static final int DefaultMaxDimension = 128;
+    private static final int DefaultWidth = 128;
+    private static final int DefaultHeight = 128;
     
     private final static int MinWidth = 16;
     private final static int MinHeight = 16;
-
-    // May want move most of the media-tracking code to be done generically in URLResource, (e.g.,
-    // bytes size, byte progress & status are somewhat generic for all content), and either just
-    // auto-handle the special case of width/height for everything, or add generic properties based
-    // on content type for the URLResource (we sort of already have this with stuff that comes from
-    // MapDropTarget).  Tho we only need this for content that has a needed/useful in-memory
-    // representation that's different than it's on-disk content.  Currently, this only applies to
-    // images.  If we were to support, say, dynamically generating icons (or even a document model)
-    // for HTML or PDF content, the problem would then become a truly generic one.
 
     private Object mUndoMarkForInit;
     
     private final ImageRef mImageRef = new ImageRef(this);
 
     /** is this image currently serving as an icon for an LWNode? */
-    private boolean isNodeIcon = false; // this is a messy way of supporting 2 modes of operation
-    private volatile boolean isValidSize = false;
+    private boolean isNodeIcon = false;  // kind of a hack...
     
     private void initImage() {
         disableProperty(LWKey.FontSize); // prevent 0 font size warnings (font not used on images)
         takeFillColor(null);
+        takeSize(DefaultWidth, DefaultHeight);
+        setFlag(Flag.SIZE_UNSET);
     }
     
     public LWImage() {
@@ -165,95 +160,44 @@ public class LWImage extends LWComponent
         if (parent == null)
             return;
 
-        if (parent instanceof LWNode
-            && parent.getChild(0) == this
-            && getResource() != null
-            && getResource().equals(parent.getResource()))
+        if (parent instanceof LWNode &&
+            parent.getChild(0) == this &&
+            getResource() != null &&
+            getResource().equals(parent.getResource()))
         {
-            // special case: if first child of a LWNode is an LWImage, treat it as an icon
+            // if first child of a LWNode is an LWImage, treat it as an icon
             isNodeIcon = true;
-//             if (mImageWidth <= 0)
-//                 return;
-// //             if (!hasFlag(Flag.SLIDE_STYLE))
-// //                 setMaxDimension(DefaultMaxDimension);
         } else {
             isNodeIcon = false;
-            if (super.width == NEEDS_DEFAULT) {
-                // use icon size also as default size for plain (non-icon) images
-                setMaxDimension(DefaultMaxDimension);
-            }
         }
     }
 
     /** used by Actions to size the image */
-    public void setMaxDimension(final float max)
+    void setMaxDimension(final float max)
     {
-//         if (mImageWidth <= 0) {
-//             // this fixes the "gray link" which was being created when an image was
-//             // dropped into a node on a slide -- it's size was never being set, leaving
-//             // it infintesimally small / invisible, making it look like a link.  (see
-//             // above condition on updateNodeIconStatus, where SLIDE_STYLE is checked).
-//             setSize((float)max, (float)max);
-//             return;
-//         }
-
-        // Todo: if the source image changes on disk, any icon needs to be re-generated
-
         //========================================================================================
-        // This problem is what determined that we MUST save this size in the cache somehow (e.g.,
-        // with the icon).  PROBLEM: if an image has an icon in cache, and we're creating a NEW
-        // RESOURCE, such that resource properties image.width & image.height were never set, we
-        // can't know the full pixel size.  Well HAVE to use the aspect (old image code didn't use
-        // aspect here -- always used full pixel size).  The ONLY WAY around that one, w/out
-        // forcing a load of a the whole image (which defeats the purpose of the image code
-        // entirely) would be to store the full pixel size in the icon itself somehow.  That would
-        // be a good idea anyway... how to best do it?  .PNG meta-data would be great, tho putting
-        // it in the filename would be easier, tho if if the source image changed...  actually,
-        // that could be one way we detect that the source image has changed, tho including the
-        // modification date would be ideal -- now we REALLY need meta-data...  Oh, wait, we could
-        // actually use the modification date of the icon file -- just make sure it's AFTER the
-        // on-disk file.
+        // PROBLEM [FIXED]: if an image has an icon in cache, and we're creating a NEW RESOURCE,
+        // such that resource properties image.width & image.height were never set, we can't know
+        // the full pixel size, thus we can't be certiain of the *precise* aspect, which is
+        // important to prevent minor pixel size tweaking later.  The only way around that
+        // w/out forcing a load of a the whole image (which defeats the purpose of the image code
+        // entirely) is to store the full pixel size in the icon itself.  We now do this
+        // when we write generated icons to disk, but saving the original full pixel size
+        // in the image meta-data.
         // ========================================================================================
 
         final int[] rawPixels = getFullPixelSize();
 
+        // note: we used to do this via aspect, not full pixel size (which is much safer), tho that
+        // means we can no longer adjust the icon size until we have the full pixel size loaded.
+
         if (rawPixels == ImageRep.ZERO_SIZE) {
-            Log.warn("setMaxDimension: image rep has unset size: " + ref());
-            putSize(DefaultMaxDimension, DefaultMaxDimension, false);
+            Log.warn("setMaxDimension: image rep has unset size; " + ref());
         } else {
-
             Size newSize = Images.fitInto(max, rawPixels);
-            
             if (DEBUG.Enabled) out("setMaxDimension " + max + " -> " + newSize);
-            
-            putSize(newSize.width, newSize.height, true);
-        
+            setSize(newSize.width, newSize.height);
         }
-        
-        
-//         final double width = rawPixels[0];
-//         final double height = rawPixels[1];
-
-//         if (DEBUG.IMAGE) out("setMaxDimension curSize " + width + "x" + height);
-        
-//         double newWidth, newHeight;
-
-//         if (width > height) {
-//             newWidth = max;
-//             newHeight = height * max / width;
-//             //newHeight = Math.round(height * max / width);
-//         } else {
-//             newHeight = max;
-//             newWidth = width * max / height;
-//             //newWidth = Math.round(width * max / height);
-//         }
-//         final float w = (float) newWidth;
-//         final float h = (float) newHeight;
-        
-//         //if (DEBUG.IMAGE) out("setMaxDimension newSize " + newWidth + "x" + newHeight);
-//         if (DEBUG.IMAGE)  out("setMaxDimension newSize " + w + "x" + h);
-
-//        setSize(w, h);
     }
 
     @Override
@@ -272,36 +216,20 @@ public class LWImage extends LWComponent
         textBox.setBoxLocation(0, -textBox.getHeight());
     }
 
-    @Override
-    public void layoutImpl(Object triggerKey) {
-        if (false&&getClass().isAssignableFrom(LWNode.class)) {
-            super.layoutImpl(triggerKey);
-        } else {
-            //mIconBlock.layout();
-//             if (super.labelBox != null) {
-//                 out("layoutImpl " + triggerKey + "; SET BOX LOCATION AT Y " + getHeight() + " in " + this);
-//                 super.labelBox.setBoxLocation(0, getHeight());
-//             }
-        }
-    }
-
-//     public Status getStatus() {
-//         return mImageStatus;
-//     }
-
     public boolean hasImageError() {
         return ref().hasError();
     }
     
-    // TODO: this wants to be on LWComponent or LWNode, in case this is a regular node containing an LWImage,
-    // we want the image to update, as it doesn't get selected.  Even better is actually to handle
-    // this in the global selection listener or ActiveInstance of LWComponent listener.
-    
-    @Override
-    public void setSelected(boolean selected) {
+    @Override public void setSelected(boolean selected) {
         boolean wasSelected = isSelected();
         super.setSelected(selected);
         if (selected && !wasSelected && hasImageError() && hasResource()) {
+
+            // TODO: this check wants to be on LWComponent or LWNode, in case this is a regular
+            // node containing an LWImage, we want the image to update, as it doesn't get selected.
+            // Even better is actually to handle this in the global selection listener or
+            // ActiveInstance of LWComponent listener.
+    
             //Util.printStackTrace("ADD SELCTED IMAGE CLEANUP " + this);
             // don't know if this really needs to be a cleanup task,
             // or just an after-AWT task, but safer to do one of them:
@@ -322,12 +250,11 @@ public class LWImage extends LWComponent
         }
     }
     
-    @Override
-    public void setResource(Resource r) {
+    @Override public void setResource(Resource r) {
         setImageResource(r, false);
     }
     
-    public void setNodeIconResource(Resource r) {
+    void setNodeIconResource(Resource r) {
         setImageResource(r, true);
     }
     
@@ -343,9 +270,6 @@ public class LWImage extends LWComponent
             // (altho this is kind of pointless: may want to just deny this, tho we
             // see zombie events if we do that)
             if (DEBUG.Enabled) out("nulling resource");
-//             mImage = null;
-//             mImageWidth = -1;
-//             mImageHeight = -1;
 //             mImageStatus = Status.EMPTY;
 //             mImageAspect = NO_ASPECT;
             super.setResource(r);
@@ -355,17 +279,12 @@ public class LWImage extends LWComponent
             // we should be called back again with isNodeIconSync == true
             getParent().setResource(r);
         } else {
-
-//             mImage = null;
-//             mImageWidth = -1;
-//             mImageHeight = -1;
 //             mImageStatus = Status.UNLOADED;
 //             mImageAspect = NO_ASPECT;
-            
             setResourceAndLoad(r, null);
         }
 
-        updateNodeIconStatus(getParent()); // NEW
+        updateNodeIconStatus(getParent()); // new to ImageRef's impl
     }
 
     // todo: find a better way to do this than passing in an undo manager, which is dead ugly
@@ -390,7 +309,7 @@ public class LWImage extends LWComponent
         // not, we'll set us to a minimum size for display until we know the real size.
 
         if (suggestWidth > 0 && suggestHeight > 0 && (ref().fullPixelSize() == ImageRef.ZERO_SIZE))
-            putSize(suggestWidth, suggestHeight, false);
+            setTmpSize(suggestWidth, suggestHeight);
         //setImageSize(suggestWidth, suggestHeight);
         
         // save a key that marks the current location in the undo-queue,
@@ -414,8 +333,8 @@ public class LWImage extends LWComponent
     }
     
     /** @see ImageRef.Listener */
-    public /*synchronized*/ void imageRefChanged(Object cause) {
-        // note: this won't be in the AWT thread, so for full thread safety any
+    public /*TESTSYNC*/ synchronized void imageRefChanged(Object cause) {
+        // note: this WILL NOT be in the AWT thread, so for full thread safety any
         // size changes should happen on AWT, tho that may conflict with our undo-tracking
         // for threaded inits?  Tho as long as we make use of the mark we obtain,
         // that shouldn't matter, right?
@@ -424,56 +343,43 @@ public class LWImage extends LWComponent
         // which if we do in AWT will then attach all of AWT to that undo mark?  That
         // whole mechanism probably really needs to passed all the way through to the
         // notify so the undo manager can detect that there?
-        
-        if (!isValidSize) {
-            autoShape();
-            //repaintOnResize(); // may have shrunk -- need to repaint everything
-            // todo: really, repaint the intersection of old size & new size
-            repaintPixels();
-        } else {
-            repaintPixels();
-        }
-    }
 
-//     private class Repainter implements Runnable {
-//             public void run() {
-//                 //if (alive()) LWImage.this.notify(LWKey.RepaintAsync);
-//                 //if (alive()) LWImage.this.notify(ImageRepaint);
-//                 if (alive()) LWImage.this.notify(LWKey.RepaintRegion);
-//             }
-//         }
-//     private final Runnable mRepainter = new Repainter();
+        if (DEBUG.IMAGE) Log.debug("imageRefChanged: cause=" + cause);
+
+        if (hasFlag(Flag.SIZE_UNSET)) { // TODO: flag bits need sync access!
+            // **** Why is SIZE_UNSET for an LWImage that was restored???
+            if (DEBUG.IMAGE) Log.debug("imageRefChanged: SIZE IS UNSET");
+            if (isNodeIcon)
+                autoShape();
+            else
+                setToNaturalSize(); // todo: shouldn't be undoable, tho it's already working that way??
+        }
+
+        // always repaint -- e.g., we may already have the valid size, so no
+        // new size event will trigger a repaint, or this just may mean the
+        // pixels have arrived.  Technically, we should be able to skip this
+        // unless we've got new pixel data, but we don't get a separate message
+        // for that at the moment.
+        repaintPixels(); 
+    }
 
     private void repaintPixels() {
         //Log.debug("ISSUING PIXEL REPAINT " + getLabel());
-
-        //tufts.vue.gui.GUI.invokeOnEDT(mRepainter);
 
         // tho we're not going to be on the AWT thread, the result of a Repaint/RepaintRegion is
         // ultimately going to be to safely stick a repaint request into the AWT queue, so we
         // should be okay.  We will have to pull the bounds of this LWImage non-synchronized
         // tho.
 
-        if (alive()) notify(LWKey.RepaintRegion);
-        //if (alive()) notify(LWKey.Repaint); // for DEBUG.BOXES debug visibility in other images
+        if (alive()) {
+            if (isSelected()) { // can force on for seeing DEBUG.BOXES behind-scenes status changes in other images
+                // need to also redraw selection boxes
+                notify(LWKey.Repaint);
+            } else
+                notify(LWKey.RepaintRegion);
+        }
     }
-    private void repaintOnResize() {
-        if (alive()) notify(LWKey.Repaint);
-    }
-
-//     @Override
-//     protected boolean intersectsImpl(Rectangle2D mapRect) {
-//         boolean i = super.intersectsImpl(mapRect);
-//         Log.info("INTERSECTS " + Util.tags(i?"YES":" NO") + " " + Util.tags(mapRect) + " " + getLabel());
-//         return i;
-//     }
-//     @Override
-//     public boolean requiresPaint(DrawContext dc) {
-//         boolean i = super.requiresPaint(dc);
-//         Log.info("REQRSPAINT " + Util.tags(i?"YES":" NO") + getLabel());
-//         return i;
-//     }
-
+    
     @Override public void setToNaturalSize() {
         setSize(getFullPixelSize());
     }
@@ -511,36 +417,40 @@ public class LWImage extends LWComponent
         if (size == ImageRep.ZERO_SIZE) {
             Log.warn("skipping setSize of ZERO_SIZE; " + this);
         } else {
-            putSize(size[0], size[1], true);
+            setSize(size[0], size[1]);
         }
     }
     
     public void suggestSize(int w, int h) 
     {
         if (DEBUG.Enabled) out("suggestSize " + w + "x" + h);
-        putSize(w,h, false);
+        setTmpSize(w, h);
     }
 
-    private void putSize(float w, float h, boolean validated) {
-        setSize(w, h);
-        if (validated) {
-            if (!isValidSize) {
-                if (DEBUG.Enabled) out("set first VALID size " + w + "x" + h);
-                isValidSize = true;
+    private void setTmpSize(float w, float h) {
+        //putSize(w, h, true);
+        setSizeImpl(w, h, true);
+    }
+
+    @Override protected synchronized void setSizeImpl(float w, float h, boolean internal) {
+        
+        if (DEBUG.Enabled) out("setSizeImpl " + w + "x" + h + "; internal=" + internal);
+        
+        super.setSizeImpl(w, h, internal);
+        
+        if (!internal) {
+            if (hasFlag(Flag.SIZE_UNSET)) {
+                if (DEBUG.Enabled) out("setting first VALID size " + w + "x" + h);
+                clearFlag(Flag.SIZE_UNSET);
             }
         } else {
-            if (isValidSize) {
-                Log.error("DE-VALIDATING SIZE; " + this, new Throwable("HERE"));
-                isValidSize = false;
+            if (!hasFlag(Flag.SIZE_UNSET)) {
+                if (DEBUG.Enabled) Log.error("ATTEMPT TO DE-VALIDATE SIZE! " + this, new Throwable("HERE"));
+                //setFlag(Flag.SIZE_UNSET);
             }
         }
     }
 
-    @Override public void setSize(float w, float h) {
-        if (DEBUG.Enabled) out("setSize " + w + "x" + h);
-        super.setSize(w, h);
-    }
-    
     private float aspect() {
         return ref().aspect();
     }
@@ -570,16 +480,22 @@ public class LWImage extends LWComponent
             return;
         }
 
-        if (this.width == NEEDS_DEFAULT || this.height == NEEDS_DEFAULT) {
-            //Log.error("cannot auto-shape without request size: " + this, new Throwable("HERE"));
-            if (DEBUG.WORK||DEBUG.IMAGE) out("autoshaping from scratch to " + DefaultMaxDimension);
-            setMaxDimension(DefaultMaxDimension);
-            return;
-        }
+//         if (hasFlag(Flag.SIZE_UNSET) && aspect == ) {
+//             if (DEBUG.IMAGE) Log.debug("autoShapeToAspect: size not yet valid");
+//             return;
+//         }
+
+//         if (this.width == NEEDS_DEFAULT || this.height == NEEDS_DEFAULT) {
+//             //Log.error("cannot auto-shape without request size: " + this, new Throwable("HERE"));
+//             if (DEBUG.WORK||DEBUG.IMAGE) out("autoshaping from scratch to " + DefaultMaxDimension);
+//             setMaxDimension(DefaultMaxDimension);
+//             return;
+//         }
      
         if (DEBUG.Enabled) out("autoShapeToAspect in: " + width + "," + height);
              
-        final Size newSize = ConstrainToAspect(aspect, this.width, this.height);
+        // TODO: reconcile w/Imags.fitInto used in setMaxDimension
+        final Size newSize = ConstrainToAspect(aspect, this.width, this.height); 
 
         final float dw = this.width - newSize.width;
         final float dh = this.height - newSize.height;
@@ -616,9 +532,9 @@ public class LWImage extends LWComponent
             super.userSetSize(width, height, e);
         } else if (aspect() > 0) {
             Size newSize = ConstrainToAspect(aspect(), width, height);
-            putSize(newSize.width, newSize.height, true);
+            setSize(newSize.width, newSize.height);
         } else
-            putSize(width, height, true);
+            setSize(width, height);
 
 //         If (e != null && e.isShiftDown())
 //             croppingSetSize(width, height);
@@ -886,15 +802,11 @@ public class LWImage extends LWComponent
 
         if (super.width < MinWidth || super.height < MinHeight) {
             Log.info(String.format("bad size: adjusting to minimum %dx%d: %s", MinWidth, MinHeight, this));
-            super.width = MinWidth;
-            super.height = MinHeight;
+            takeSize(MinWidth, MinHeight);
         }
         
-//         // This will cause images to start loading during parsing of persisted map files:
-//         if (mImageStatus == Status.UNLOADED) {
-//             mImageStatus = Status.LOADING;
-//             loadResourceImage(getResource(), null);
-//         }
+        // we can't rely on this being cleared via setSizeImpl, as persistance currently accesses width/height directly
+        clearFlag(Flag.SIZE_UNSET); 
     }
     
 //     private void OLDdrawImage(DrawContext dc)
@@ -952,6 +864,18 @@ public class LWImage extends LWComponent
             return LoadedColorDark;
     }
 
+//     @Override
+//     protected boolean intersectsImpl(Rectangle2D mapRect) {
+//         boolean i = super.intersectsImpl(mapRect);
+//         Log.info("INTERSECTS " + Util.tags(i?"YES":" NO") + " " + Util.tags(mapRect) + " " + getLabel());
+//         return i;
+//     }
+//     @Override
+//     public boolean requiresPaint(DrawContext dc) {
+//         boolean i = super.requiresPaint(dc);
+//         Log.info("REQRSPAINT " + Util.tags(i?"YES":" NO") + getLabel());
+//         return i;
+//     }
 
     // TODO: have the LWMap make a call at the end of a restore to all LWComponents
     // telling them to start loading any media they need.  Pass in a media tracker
