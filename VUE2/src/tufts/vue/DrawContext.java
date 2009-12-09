@@ -41,7 +41,7 @@ import com.google.common.collect.Multiset;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.68 $ / $Date: 2009-10-15 19:39:35 $ / $Author: sfraize $
+ * @version $Revision: 1.69 $ / $Date: 2009-12-09 17:49:35 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -810,7 +810,6 @@ public final class DrawContext
         DebugRecording.clear();
     }
 
-    private final static BooleanPreference ImageQualityPreference;
     private final static boolean PlatformQualityIsSlow;
     
     public static boolean drawingMayBeSlow(final LWComponent focal) {
@@ -822,9 +821,12 @@ public final class DrawContext
             return false;
     }
 
+    //private final static BooleanPreference ImageQualityPreference;
+    
     public static boolean isImageQualityRequested() {
         //return ImageQualityPreference != null && ImageQualityPreference.isTrue();
-        return ImageQualityPreference.isTrue();
+        //return ImageQualityPreference.isTrue();
+        return true;
     }
 
     static {
@@ -833,15 +835,15 @@ public final class DrawContext
         else
             PlatformQualityIsSlow = false;
         
-        ImageQualityPreference = BooleanPreference.create
-                (edu.tufts.vue.preferences.PreferenceConstants.MAPDISPLAY_CATEGORY,
-                 "imageQuality", 
-                 VueResources.getString("preference.imageQuality.title", "Image Quality"), 
-                 VueResources.getString("preference.imageQuality.description",
-                                        "Disabling this will make VUE faster when working on maps with images"
-                                        ),
-                 Boolean.TRUE,
-                 true);
+//         ImageQualityPreference = BooleanPreference.create
+//                 (edu.tufts.vue.preferences.PreferenceConstants.MAPDISPLAY_CATEGORY,
+//                  "imageQuality", 
+//                  VueResources.getString("preference.imageQuality.title", "Image Quality"), 
+//                  VueResources.getString("preference.imageQuality.description",
+//                                         "Disabling this will make VUE faster when working on maps with images"
+//                                         ),
+//                  Boolean.TRUE,
+//                  true);
 
 
     }
