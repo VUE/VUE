@@ -44,6 +44,7 @@ public class LWImage extends LWComponent
 
     public static final boolean SLIDE_LABELS = false;
     
+    private static final int DefaultIconMaxSide = 128;
     private static final int DefaultWidth = 128;
     private static final int DefaultHeight = 128;
     
@@ -75,6 +76,14 @@ public class LWImage extends LWComponent
         if (!r.isImage())
             Log.warn("making LWImage: may not be image content: " + r);
         setResource(r);
+    }
+
+    static LWImage createNodeIcon(Resource r) {
+        if (DEBUG.IMAGE) Log.debug("createNodeIcon: " + r);
+        final LWImage icon = new LWImage();
+        icon.setNodeIcon(true);
+        icon.setImageResource(r, true);
+        return icon;
     }
 
     /** @return true -- an image is always it's own content */
@@ -121,6 +130,11 @@ public class LWImage extends LWComponent
     /** @return true if this LWImage is being used as an icon for an LWNode */
     public boolean isNodeIcon() {
         return isNodeIcon;
+    }
+
+    void setNodeIcon(boolean t) {
+        if (DEBUG.IMAGE) Log.debug("setNodeIcon " + t + "; " + this);
+        isNodeIcon = t;
     }
 
     /** This currently makes LWImages invisible to selection (they're locked in their parent node */
@@ -171,9 +185,9 @@ public class LWImage extends LWComponent
             getResource().equals(parent.getResource()))
         {
             // if first child of a LWNode is an LWImage, treat it as an icon
-            isNodeIcon = true;
+            setNodeIcon(true);
         } else {
-            isNodeIcon = false;
+            setNodeIcon(false);
         }
     }
 
@@ -201,7 +215,7 @@ public class LWImage extends LWComponent
         } else {
             Size newSize = Images.fitInto(max, rawPixels);
             if (DEBUG.Enabled) out("setMaxDimension " + max + " -> " + newSize);
-            setSize(newSize.width, newSize.height);
+            setSize(newSize);
         }
     }
 
@@ -250,7 +264,7 @@ public class LWImage extends LWComponent
             
             addCleanupTask(new Runnable() { public void run() {
                 if (VUE.getSelection().only() == LWImage.this)
-                    loadResourceImage(getResource(), null);
+                    loadSizeAndRef(getResource(), null);
             }});
         }
     }
@@ -264,7 +278,7 @@ public class LWImage extends LWComponent
     }
     
     private void setImageResource(Resource r, boolean isNodeIconSync) {
-        if (DEBUG.IMAGE) Log.debug("setImageResource " + r  + "; isNodeIconSync=" + isNodeIconSync + "; restore=" + mXMLRestoreUnderway);
+        if (DEBUG.IMAGE) Log.debug("setImageResource " + r  + "; isNodeIconSync=" + isNodeIconSync + "; restoring=" + mXMLRestoreUnderway);
 
 //         if (r != null && !mXMLRestoreUnderway) // todo: re-init / dump ImageRef
 //             ref().setImageSource(r);
@@ -282,40 +296,48 @@ public class LWImage extends LWComponent
             super.setResource(r);
         } else if (isNodeIcon() && !isNodeIconSync) {
             // we should be called back again with isNodeIconSync == true
+            if (DEBUG.IMAGE) Log.debug("forcing parent resource to match; " + this);
             getParent().setResource(r);
         } else {
 //             mImageStatus = Status.UNLOADED;
 //             mImageAspect = NO_ASPECT;
-            setResourceAndLoad(r, null);
+            setResourceAndTitle(r, null);
         }
 
-        updateNodeIconStatus(getParent()); // new to ImageRef's impl
+        if (!isNodeIconSync)
+            updateNodeIconStatus(getParent()); // new to ImageRef's impl
     }
 
     // todo: find a better way to do this than passing in an undo manager, which is dead ugly
-    public void setResourceAndLoad(Resource r, UndoManager undoManager) {
+    void setResourceAndTitle(Resource r, UndoManager undoManager) {
         super.setResource(r);
         if (r != null) {
             setLabel(MapDropTarget.makeNodeTitle(r));
-            loadResourceImage(r, undoManager);
+            loadSizeAndRef(r, undoManager);
         }
     }
 
-    public void reloadImage() {
-        ref().reload();
-    }
-
-    private void loadResourceImage(final Resource r, final UndoManager _ignored_undo_manager)
+    private void loadSizeAndRef(final Resource r, final UndoManager _ignored_undo_manager)
     {
-        final int suggestWidth = r.getProperty("image.width", -1);
-        final int suggestHeight = r.getProperty("image.height", -1);
+        if (DEBUG.IMAGE) {
+            Log.debug("loadSizeAndRef: " + r + "; props=" + r.getProperties());
+            if (!java.awt.EventQueue.isDispatchThread())
+                Log.debug("loadSizeAndRef: NOT ON AWT: " + Thread.currentThread());
+        }
 
-        // If we know a size before loading, this will get us displaying that size.  If
-        // not, we'll set us to a minimum size for display until we know the real size.
+//         if (hasFlag(Flag.SIZE_UNSET) && r.getProperties() != null) {
 
-        if (suggestWidth > 0 && suggestHeight > 0 && (ref().fullPixelSize() == ImageRef.ZERO_SIZE))
-            setTmpSize(suggestWidth, suggestHeight);
-        //setImageSize(suggestWidth, suggestHeight);
+//             if (DEBUG.IMAGE) Log.debug("checking for resource size props in: " + r.getProperties().asProperties());
+        
+//             final float suggestWidth = r.getProperty(Resource.IMAGE_WIDTH, -1);
+//             final float suggestHeight = r.getProperty(Resource.IMAGE_HEIGHT, -1);
+
+//             // If we know a size before loading, this will get us displaying that size.  If
+//             // not, we'll set us to a minimum size for display until we know the real size.
+
+//             if (suggestWidth > 0 && suggestHeight > 0 && (ref().fullPixelSize() == ImageRef.ZERO_SIZE))
+//                 setTmpSize(suggestWidth, suggestHeight);
+//         }
         
         // save a key that marks the current location in the undo-queue,
         // to be applied to the subsequent thread that make callbacks
@@ -334,6 +356,53 @@ public class LWImage extends LWComponent
                 mUndoMarkForInit = null;
             else
                 mUndoMarkForInit = UndoManager.getKeyForNextMark(this);
+        }
+
+        // this used to be ONLY for handling temporary/suggest size, but as long
+        // as we're here, we MIGHT already know the real pixel dimensions of our reference.
+
+        if (hasFlag(Flag.SIZE_UNSET)) {
+            // okay to do this after undo-mark was obtained, as this should NOT be generating
+            // undoable events.
+            guessAtBestSize(r);
+        }
+
+
+    }
+
+    // if the size in the ref() is already known, we'll be using that, otherwise,
+    // if we find any size info in the resource, use that as a temporary size
+    private void guessAtBestSize(Resource r) {
+        final int[] fullSize = ref().fullPixelSize();
+
+        Size guess = null;
+
+        if (fullSize != ImageRef.ZERO_SIZE) {
+            if (isNodeIcon()) {
+                guess = Images.fitInto(DefaultIconMaxSide, fullSize);
+            } else {
+                guess = new Size(fullSize);
+            }
+            // really, we want to just do setSize, but we need to do setSizeImpl so it's
+            // not undoable, but then we have to clear our own SIZE_UNSET bit
+            setSizeImpl(guess.width, guess.height, true/*=INTERNAL*/);
+            clearFlag(Flag.SIZE_UNSET);
+        }
+        else {
+
+            final int[] suggestSize = getResourceImageSize(r);
+            
+            if (suggestSize != null) {
+                // If we know a size before loading, this will get us displaying that size.  If
+                // not, we'll set us to a minimum size for display until we know the real size.
+                
+                guess = new Size(suggestSize);
+                
+                if (isNodeIcon())
+                    guess = Images.fitInto(DefaultIconMaxSide, guess);
+                
+                setTmpSize(guess.width, guess.height);
+            }
         }
     }
     
@@ -366,6 +435,10 @@ public class LWImage extends LWComponent
         // unless we've got new pixel data, but we don't get a separate message
         // for that at the moment.
         repaintPixels(); 
+    }
+
+    public void reloadImage() {
+        ref().reload();
     }
 
     private void repaintPixels() {
@@ -401,22 +474,40 @@ public class LWImage extends LWComponent
             // reqested it yet will still end up using this method.  As soon as one rep has a real
             // size, all should get their real size.  (also another argument for making them
             // singleton)
-            
-            final Resource r = getResource();
-            final int w = r.getProperty(Resource.IMAGE_WIDTH, -1);
-            final int h = r.getProperty(Resource.IMAGE_HEIGHT, -1);
-            if (w > 0 && h > 0) {
-                size = new int[2];
-                size[0] = w;
-                size[1] = h;
-                // todo: would be better to NOT let this be used as a "valid" size -- if it later
-                // disagrees with something found on disk (the image has changed on disk since this
-                // resource was created), the new, real image size should take priority.
-            }
+
+            return getResourceImageSize(getResource());
+        } else {
+            return size;
         }
-        return size;
     }
+
+    private int[] getResourceImageSize(Resource r) {
+
+        if (r == null || r.getProperties() == null)
+            return null;
+
+        if (DEBUG.IMAGE) Log.debug("checking for resource size props in: " + r.getProperties().asProperties());
+        
+        final int w = r.getProperty(Resource.IMAGE_WIDTH, -1);
+        final int h = r.getProperty(Resource.IMAGE_HEIGHT, -1);
+        
+        if (w > 0 && h > 0) {
+            final int[] size = new int[2];
+            size[0] = w;
+            size[1] = h;
+            // todo: would be better to NOT let this be used as a "valid" size -- if it later
+            // disagrees with something found on disk (the image has changed on disk since this
+            // resource was created), the new, real image size should take priority.
+            return size;
+        } else {
+            return null;
+        }
+    }
+    
                                       
+    private void setSize(Size s) {
+        setSize(s.width, s.height);
+    }
 
     private void setSize(int[] size) {
         if (size == ImageRep.ZERO_SIZE) {
@@ -433,7 +524,6 @@ public class LWImage extends LWComponent
     }
 
     private void setTmpSize(float w, float h) {
-        //putSize(w, h, true);
         setSizeImpl(w, h, true);
     }
 
@@ -461,7 +551,7 @@ public class LWImage extends LWComponent
     }
     
     private void autoShape() {
-        autoShapeToAspect();
+        shapeToAspect(aspect());
     }
 
     @Override protected void out(String s) {
@@ -474,17 +564,12 @@ public class LWImage extends LWComponent
         //return super.paramString() + " " + mImageStatus + " raw=" + mImageWidth + "x" + mImageHeight + (isNodeIcon ? " <NodeIcon>" : "");
     }
 
+    private void shapeToAspect(float aspect) {
 
-    
-    private void autoShapeToAspect() {
-
-        final float aspect = aspect();
-        
         if (aspect <= 0) {
-            Log.warn("bad aspect in autoShapeToAspect: " + aspect);
+            Log.warn("bad aspect in shapeToAspect: " + aspect);
             return;
         }
-
 //         if (hasFlag(Flag.SIZE_UNSET) && aspect == ) {
 //             if (DEBUG.IMAGE) Log.debug("autoShapeToAspect: size not yet valid");
 //             return;
@@ -497,7 +582,7 @@ public class LWImage extends LWComponent
 //             return;
 //         }
      
-        if (DEBUG.Enabled) out("autoShapeToAspect in: " + width + "," + height);
+        if (DEBUG.Enabled) out("shapeToAspect " + aspect + " in: " + width + "," + height);
              
         // TODO: reconcile w/Imags.fitInto used in setMaxDimension
         final Size newSize = ConstrainToAspect(aspect, this.width, this.height); 
@@ -509,7 +594,7 @@ public class LWImage extends LWComponent
          * Added this in response to VUE-948
          */
         if ((DEBUG.WORK || DEBUG.IMAGE) && (newSize.width != width || newSize.height != height))
-            out(String.format("autoShapeToAspect: a=%.2f dw=%g dh=%g; %.1fx%.1f -> %s",
+            out(String.format("shapeToAspect: a=%.2f dw=%g dh=%g; %.1fx%.1f -> %s",
                               aspect,
                               dw, dh,
                               width, height,
