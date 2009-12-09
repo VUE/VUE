@@ -51,7 +51,7 @@ import org.w3c.dom.NodeList;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.73 $ / $Date: 2009-12-04 20:03:10 $ / $Author: sfraize $
+ * @version $Revision: 1.74 $ / $Date: 2009-12-09 19:45:00 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -592,7 +592,7 @@ public class Images
             if (l != null) {
                 try {
                     if (DEBUG.IMAGE && l instanceof ListenerRelay == false)
-                        out("relay SIZE to " + tag(l));
+                        out(Util.TERM_CYAN + "relay SIZE to " + tag(l) + Util.TERM_CLEAR);
                     l.gotImageSize(src, w, h, bytes, sourceSize);
                 } catch (Throwable t) {
                     Log.error("relaying size to " + Util.tags(l), t);
@@ -2765,8 +2765,14 @@ public class Images
     }
 
     public static tufts.vue.Size fitInto(float maxSide, int[] srcSize) {
-        float srcW = srcSize[0];
-        float srcH = srcSize[1];
+        return fitInto(maxSide, srcSize[0], srcSize[1]);
+    }
+    
+    public static tufts.vue.Size fitInto(float maxSide, Size s) {
+        return fitInto(maxSide, s.width, s.height);
+    }
+    
+    public static tufts.vue.Size fitInto(float maxSide, float srcW, float srcH) {
 
         final float width, height;
 
