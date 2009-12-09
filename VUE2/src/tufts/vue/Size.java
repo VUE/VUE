@@ -45,12 +45,14 @@ public final class Size extends java.awt.geom.Dimension2D {
 	this.height = (float) height;
     }
     
-    
     public Size() {
 	this(0, 0);
     }
     public Size(Size s) {
 	this(s.width, s.height);
+    }
+    public Size(int[] wh) {
+	this(wh[0], wh[1]);
     }
     public Size(Dimension d) {
 	this(d.width, d.height);
