@@ -94,7 +94,12 @@ public class LWImage extends LWComponent
         // should just try to access the image again and generate it's
         // own status.
 
-        return super.duplicateTo(new LWImage(), cc);
+        final LWImage newImage = new LWImage();
+
+        if (!hasFlag(Flag.SIZE_UNSET))
+            newImage.clearFlag(Flag.SIZE_UNSET);
+
+        return super.duplicateTo(newImage, cc);
     }
 
     /** @return false: images are never auto-sized */
@@ -269,7 +274,7 @@ public class LWImage extends LWComponent
             // this will happen normally if when the creation of a new image is undone
             // (altho this is kind of pointless: may want to just deny this, tho we
             // see zombie events if we do that)
-            if (DEBUG.Enabled) out("nulling resource");
+            if (DEBUG.Enabled && hasResource()) out("nulling resource");
 //             mImageStatus = Status.EMPTY;
 //             mImageAspect = NO_ASPECT;
             super.setResource(r);
