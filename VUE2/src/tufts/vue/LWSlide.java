@@ -30,7 +30,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.113 $ / $Date: 2009-10-15 19:32:52 $ / $Author: sfraize $
+ * @version $Revision: 1.114 $ / $Date: 2009-12-09 20:03:34 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -444,15 +444,17 @@ public class LWSlide extends LWContainer
                 }
             } else {
                 applyStyle(c);
+// Below now handled in LWImage.guessAtBestSize                
                 // TODO: need a size request for LWImage, as the image itself
                 // may not be loaded yet (or just auto-handle this in userSetSize,
                 // or setSize or something.
-                if (c instanceof LWImage) {
-                    ((LWImage)c).userSetSize(SlideWidth / 4, SlideWidth / 4, null);
-                    track("resized", c);
-                    // todo: we actually want this to happen after we're sure we know the image's aspect,
-                    // which we won't if it's slowly loading -- perhaps we can handle this via a cleanup task.
-                }
+//                 if (c instanceof LWImage) {
+//                     //((LWImage)c).userSetSize(SlideWidth / 4, SlideWidth / 4, null);
+//                     ((LWImage)c).setTmpSize(SlideWidth / 4, SlideWidth / 4); // not good enough -- no longer auto-sizes to old aspects
+//                     track("resized", c);
+//                     // todo: we actually want this to happen after we're sure we know the image's aspect,
+//                     // which we won't if it's slowly loading -- perhaps we can handle this via a cleanup task.
+//                 }
             }
         }
         

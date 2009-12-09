@@ -380,6 +380,8 @@ public class LWImage extends LWComponent
         if (fullSize != ImageRef.ZERO_SIZE) {
             if (isNodeIcon()) {
                 guess = Images.fitInto(DefaultIconMaxSide, fullSize);
+            } else if (hasFlag(Flag.SLIDE_STYLE)) {
+                guess = Images.fitInto(LWSlide.SlideWidth / 4, fullSize);
             } else {
                 guess = new Size(fullSize);
             }
@@ -400,6 +402,8 @@ public class LWImage extends LWComponent
                 
                 if (isNodeIcon())
                     guess = Images.fitInto(DefaultIconMaxSide, guess);
+                else if (hasFlag(Flag.SLIDE_STYLE))
+                    guess = Images.fitInto(LWSlide.SlideWidth / 4, guess);
                 
                 setTmpSize(guess.width, guess.height);
             }
@@ -523,7 +527,7 @@ public class LWImage extends LWComponent
         setTmpSize(w, h);
     }
 
-    private void setTmpSize(float w, float h) {
+    void setTmpSize(float w, float h) {
         setSizeImpl(w, h, true);
     }
 
