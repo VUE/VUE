@@ -393,6 +393,8 @@ public class ImageRef
                                               ImageSource.createIconSource(_source, full, hardFullImageRef, DEFAULT_ICON_SIZE),
                                               ICONS_ARE_DISPOSABLE);
 
+        // TODO: if the source image changes on disk, any icon needs to be re-generated
+
         // For ideal memory usage, we'd create the icon immediately in this thread, but we don't
         // actually want to do this: if there are multiple Ref's to the same content, they'll all
         // be in the listener-relay chain, but the FIRST one to get this callback is going to hang
