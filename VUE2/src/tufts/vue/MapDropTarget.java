@@ -51,7 +51,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.127 $ / $Date: 2009-12-09 17:51:22 $ / $Author: sfraize $  
+ * @version $Revision: 1.128 $ / $Date: 2009-12-09 19:46:54 $ / $Author: sfraize $  
  */
 public class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -1427,8 +1427,12 @@ public class MapDropTarget
         } else {
             // we're dropping the image raw (either on map or into something else)
             lwImage = new LWImage();
-            if (suggestWidth > 0)
+            if (suggestWidth > 0) {
+                //-----------------------------------------------------------------------------
+                // do we still need this?  Won't the image pull this itself from the Resource?
+                //-----------------------------------------------------------------------------
                 lwImage.suggestSize(suggestWidth, suggestHeight);
+            }
             node = lwImage;
         }
 
@@ -1449,8 +1453,7 @@ public class MapDropTarget
         //-----------------------------------------------------------------------------
 
         if (lwImage != null) {
-            // this will cause the LWImage to start loading the image
-            lwImage.setResourceAndLoad(resource, mViewer.getMap().getUndoManager());
+            lwImage.setResourceAndTitle(resource, mViewer.getMap().getUndoManager());
         } else if (newResource) {
             // if image, it will do this at end of loading
             ((URLResource)resource).scanForMetaDataAsync(node, true);
