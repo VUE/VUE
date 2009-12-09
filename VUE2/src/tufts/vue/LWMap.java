@@ -59,7 +59,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.257 $ / $Date: 2009-10-13 20:17:29 $ / $Author: sfraize $
+ * @version $Revision: 1.258 $ / $Date: 2009-12-09 17:50:41 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -2270,11 +2270,21 @@ public class LWMap extends LWContainer
 
         if (!javax.swing.SwingUtilities.isEventDispatchThread()) {
             
-            // for now, anything from a non AWT Event Dispatch Thread (EDT) is assumed
-            // to not be a real undoable change -- this mainly to prevent image size sets
-            // after the map loads from leaving the map appearing to have been modified.
-            // A more complete solution might mark all events generated on specific
-            // threads known to be behaving this way.
+            // for now, anything from a non AWT Event Dispatch Thread (EDT) is assumed to not be a
+            // real undoable change -- this mainly to prevent image size sets after the map loads
+            // from leaving the map appearing to have been modified.  A more complete solution
+            // might mark all events generated on specific threads known to be behaving this way.
+
+            // NOTE: VUE features that modify the map OFF the AWT thread will need to compensate
+            // for this by manually marking the map as changed.  Better would be to only skip this
+            // if the modification comes from an image load thread, which is why this was
+            // implemented in the first place: to prevent freshly loaded maps with images to
+            // immediately present as having already been modified.  This was much more of an issue
+            // when we had a preference for image icon size, as changing this preference between
+            // the saves of a particular map file would force all the image icons in the map to
+            // "modify" themselves when the map was openened.  Now it's only an issue if image data
+            // actually changes on disk.  And in fact, in that case, we may well want to report it
+            // as modified...
             
             if (DEBUG.WORK || DEBUG.EVENTS || DEBUG.INIT) Log.debug("staying clean for non-AWT event: " + e);
             return;
