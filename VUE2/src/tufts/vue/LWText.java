@@ -654,16 +654,14 @@ public class LWText extends LWComponent {
             layout(triggerKey, new Size(getWidth(), getHeight()), null);
 	}
 
-	@Override
-	public void setSize(float w, float h) {
-		if (DEBUG.LAYOUT)
-			out("*** setSize         " + w + "x" + h);
-		if (isAutoSized() && (w > this.width || h > this.height)) // does this
-																	// handle
-																	// scaling?
-			setAutomaticAutoSized(false);
-		layout(LWKey.Size, new Size(getWidth(), getHeight()), new Size(w, h));
-	}
+    @Override protected void setSizeImpl(float w, float h, boolean internal) {
+        if (DEBUG.LAYOUT) out("*** setSize         " + w + "x" + h);
+        if (isAutoSized() && (w > this.width || h > this.height)) // does this
+            // handle
+            // scaling?
+            setAutomaticAutoSized(false);
+        layout(LWKey.Size, new Size(getWidth(), getHeight()), new Size(w, h));
+    }
 
 	/**
 	 * For triggering automatic shifts in the auto-size bit based on a call to

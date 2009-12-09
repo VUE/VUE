@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.256 $ / $Date: 2009-10-12 17:56:58 $ / $Author: sfraize $
+ * @version $Revision: 1.257 $ / $Date: 2009-12-09 17:50:53 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1058,8 +1058,7 @@ public class LWNode extends LWContainer
         super.removeChildImpl(c);
     }
     
-    @Override
-    public void setSize(float w, float h)
+    @Override protected final void setSizeImpl(float w, float h, boolean internal)
     {
         if (DEBUG.LAYOUT) out("*** setSize         " + w + "x" + h);
         if (isAutoSized() && (w > this.width || h > this.height)) // does this handle scaling?
@@ -1072,7 +1071,7 @@ public class LWNode extends LWContainer
     private void setSizeNoLayout(float w, float h)
     {
         if (DEBUG.LAYOUT) out("*** setSizeNoLayout " + w + "x" + h);
-        super.setSize(w, h);
+        super.setSizeImpl(w, h, false);
         mShape.setFrame(0, 0, getWidth(), getHeight());
     }
 
