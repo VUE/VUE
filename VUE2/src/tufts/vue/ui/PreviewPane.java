@@ -31,7 +31,7 @@ import java.awt.datatransfer.*;
 /**
  * Display a preview of the selected resource.  E.g., and image or an icon.
  *
- * @version $Revision: 1.36 $ / $Date: 2009-12-03 15:41:38 $ / $Author: sfraize $
+ * @version $Revision: 1.37 $ / $Date: 2009-12-09 19:47:13 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -173,7 +173,7 @@ public class PreviewPane extends JPanel
         // have thumbshots)  This on Leopard Java 1.5 as of 2008-05-21.
         if (!LazyLoadOnPaint || isShowing()) { 
 
-            if (DEBUG.IMAGE && !isShowing()) {
+            if (false && DEBUG.IMAGE && !isShowing()) {
                 Log.debug("claims not visible on screen, SKIPPING ON DEBUG");
             } else {
                 loadPreview(mPreviewData);
