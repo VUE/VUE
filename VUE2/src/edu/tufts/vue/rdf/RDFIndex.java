@@ -133,7 +133,7 @@ public class RDFIndex extends ModelCom
                   VueIndexedObjectsMap.setID(comp.getURI(),comp);
                 }
                 
-                if(! (comp instanceof LWPathway) )
+                if(!( (comp instanceof LWPathway) || (comp instanceof LWMap.Layer) ))
                 {
                   if(metadataOnly)
                   {
@@ -266,7 +266,7 @@ public class RDFIndex extends ModelCom
             
             if(!metadataOnly)
             {    
-              addProperty(r,idOf,component.getID());
+//              addProperty(r,idOf,component.getID());
               if(component.getLabel() != null){
                   addProperty(r,labelOf,component.getLabel());
               }
