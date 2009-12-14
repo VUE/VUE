@@ -51,7 +51,7 @@ import org.w3c.dom.NodeList;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.75 $ / $Date: 2009-12-14 15:52:20 $ / $Author: sfraize $
+ * @version $Revision: 1.76 $ / $Date: 2009-12-14 19:09:31 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -592,7 +592,7 @@ public class Images
             if (l != null) {
                 try {
                     if (DEBUG.IMAGE && l instanceof ListenerRelay == false)
-                        out(Util.TERM_CYAN + "relay SIZE to " + tag(l) + Util.TERM_CLEAR);
+                        out(Util.TERM_CYAN + "relay SIZE " + w + "x" + h + " ss=" + Util.tags(sourceSize) + " to " + tag(l) + Util.TERM_CLEAR);
                     l.gotImageSize(src, w, h, bytes, sourceSize);
                 } catch (Throwable t) {
                     Log.error("relaying size to " + Util.tags(l), t);
@@ -1822,10 +1822,9 @@ public class Images
             }
         }
         
-
         final Dimension originalSize = new Dimension(hardImage.getWidth(null), hardImage.getHeight(null));
         
-        final Handle iconImage =
+        final Handle iconHandle =
             createIcon(hardImage, iconSource.iconSize);
 
         if (listener != null) {
@@ -1834,7 +1833,7 @@ public class Images
             // and we only get here if we just created an icon from the full rep, so it's okay to leave
             // the image data blank in the delivered handle.  That data shouldn't even need to go into
             // the cache this runtime?  It should probably go there anyway just to be safe.
-            listener.gotImage(iconSource, iconImage);
+            listener.gotImage(iconSource, iconHandle);
         }
 
         File cacheFile = null;
@@ -1844,10 +1843,15 @@ public class Images
             Log.error("creating cache file for " + iconSource, t);
         }
         // if for any reason the disk cache has failed, we can still create the CacheEntry with a null file
-        RawCache.put(iconSource.key, new CacheEntry(iconImage, cacheFile));
-        if (cacheFile != null && iconImage.image != null)
-            cacheIconToDisk(iconSource.key, (RenderedImage) iconImage.image, cacheFile, originalSize);
-        return iconImage;
+        RawCache.put(iconSource.key, new CacheEntry(iconHandle, cacheFile));
+        
+        // TODO: Make sure size data is in icon cache entry to be consistent with state of cache on re-init.
+        // Some code is actually sensitive to this.  Oh -- wait -- maybe the problem is that it is NOT
+        // in after it's been loaded to the disk cache?
+        
+        if (cacheFile != null && iconHandle.image != null)
+            cacheIconToDisk(iconSource.key, (RenderedImage) iconHandle.image, cacheFile, originalSize);
+        return iconHandle;
     }
 
     private static boolean cacheIconToDisk(URI iconKey, RenderedImage image, File cacheFile, Dimension originalSize)
