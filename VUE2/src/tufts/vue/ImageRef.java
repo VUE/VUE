@@ -12,6 +12,19 @@ public class ImageRef
 {
     public static final int DEFAULT_ICON_SIZE = 128;
     public static final int[] ZERO_SIZE = ImageRep.ZERO_SIZE;
+    public static final Object GOT_SIZE = "ImageRef.GOT-SIZE";
+    public static final Object REPAINT = "ImageRef.REPAINT";
+    public static final Object KICKED = "ImageRef.*****KICKED*****";
+    
+    public static final ImageRef EMPTY = new ImageRef() {
+//             @Override public void setImageSource(Object is) {
+//                 Log.error("attempt to set image source on the empty ImageRef: " + Util.tags(is), new Throwable("HERE"));
+//             }
+            @Override protected void repaint() {}
+            @Override void preLoadFullRep() {}
+            @Override public boolean equals(Object o) { return false; }
+            @Override public String toString() { return "ImageRef[___EMPTY___]"; }
+        };
 
     //===================================================================================================
 
@@ -25,49 +38,67 @@ public class ImageRef
     private static final String SIZE_ICON = "ICON-SIZE";
     private static final String SIZE_UNKNOWN = "UNKNOWN-SIZE";
     
+    private final ImageSource _source;
+
+    private final Listener _repainter;
+    
+    private volatile float _aspect = 0;
+
     private volatile ImageRep _full = ImageRep.UNAVAILABLE;
     private volatile ImageRep _icon = ImageRep.UNAVAILABLE;
+    
     //private volatile Object _desired = SIZE_UNKNOWN;
     // _desired not used at moment -- would be easy to have one global instance of an ImageRef per image w/out it,
     // and could add back in this functionality by allowing a client to implement a simple recording API for desired
     // e.g., set/getDesired -- is only needed to prevent extra repaints when a new image rep arrives.
     
-    private volatile ImageSource _source;
-
-    private volatile float _aspect = 0;
-
-    private Listener _repainter;
-    
     public static interface Listener {
-        public void imageRefChanged(Object cause);
+        public void imageRefUpdate(Object cause);
     }
 
 //     static ImageRef create(java.io.File file) {
 //         return null;
 //     }
 
-    public ImageRef(Listener listener) {
-        _repainter = (Listener) listener;
+    public static ImageRef create(Listener listener, Object imageData) {
+        // could allow for single-instance per Resource/URI caching here
+        return new ImageRef(listener, imageData);
     }
 
-    public boolean isBlank() {
-        return _source == null;
+    private ImageRef(Listener listener, Object imageData) {
+        _repainter = listener;
+        _source = ImageSource.create(imageData);
+        //if (DEBUG.IMAGE) Log.debug("created image source " + _source + " from " + is);
+        initReps();
     }
+
+    private ImageRef() {
+        _source = null;
+        _repainter = null;
+    }
+
+    ImageSource source() {
+        return _source;
+    }
+
+//     public boolean isBlank() {
+//         return _source == null;
+//     }
     
-    public void setImageSource(Object is) {
-        //if (_source != null) throw new Error("ImageSource re-set not permitted: " + this);
-        if (_source != is) {
-            //-----------------------------------------------------------------------------
-            // PROBLEM: if this is a local file, the URI cache key in the _source.key
-            // will be null, meaning we can't later create an icon cache key from it.
-            // Yet at the moment we're only seeing this as a problem if the local
-            // file is missing -- so how is this working in the regular case?
-            //-----------------------------------------------------------------------------
-            _source = ImageSource.create(is);
-            //if (DEBUG.IMAGE) Log.debug("created image source " + _source + " from " + is);
-            initReps();
-        }
-    }
+//     private void setImageSource(Object is) {
+//         //if (_source != null) throw new Error("ImageSource re-set not permitted: " + this);
+//         if (_source != is) {
+//             //-----------------------------------------------------------------------------
+//             // PROBLEM: if this is a local file, the URI cache key in the _source.key
+//             // will be null, meaning we can't later create an icon cache key from it.
+//             // Yet at the moment we're only seeing this as a problem if the local
+//             // file is missing -- so how is this working in the regular case?
+//             //-----------------------------------------------------------------------------
+//             _source = ImageSource.create(is);
+//             //if (DEBUG.IMAGE) Log.debug("created image source " + _source + " from " + is);
+//             initReps();
+//         }
+//     }
 
     private static final boolean PRE_LOAD_ICONS = false;
 
@@ -75,8 +106,12 @@ public class ImageRef
 
         if (DEBUG.IMAGE) debug("initReps");
 
-        if (_icon != UNAVAILABLE || _full != UNAVAILABLE)
-            throw new Error("re-init of reps");
+        //boolean reload = false;
+
+//         if (_icon != UNAVAILABLE || _full != UNAVAILABLE) {
+//             //Log.info("re-loading ref " + ref);
+//             throw new Error("re-init of reps");
+//         }
         
         // rep won't load until it attempts to draw:
         // We init this first so it's available for the icon to init with
@@ -271,12 +306,19 @@ public class ImageRef
         }
     }
 
-    private void repaint() {
-        _repainter.imageRefChanged("repaint");
+    protected void repaint() {
+        _repainter.imageRefUpdate(REPAINT);
     }
 
+    private static final boolean ENABLE_IMMEDIATE_SIZES = true; // turn off for debugging undo of delayed size reports/layouts
+
     public void notifyRepHasProgress(final ImageRep rep, final float pct) {
-        repaint();
+        if (ENABLE_IMMEDIATE_SIZES && _aspect == 0 && rep == _full && rep.size() != ZERO_SIZE) {
+            _aspect = rep.aspect();
+            _repainter.imageRefUpdate(GOT_SIZE);
+        } else {
+            repaint();
+        }
     }
     
     /** the ImageRep is done loading -- it has all the renderable image data, unless hardImageRef is null,
@@ -417,9 +459,15 @@ public class ImageRef
      }
     
     private void kickLoad(ImageRep rep) {
-        if (DEBUG.IMAGE) debug(" kickLoad " + rep);
         //if (DEBUG.IMAGE && rep == _full) Log.debug("FULL REP LOAD " + rep, new Throwable("HERE"));
-        rep.reconstitute();
+        if (DEBUG.IMAGE) debug(" kickLoad " + rep);
+        if (!rep.loading()) {
+            //if (DEBUG.IMAGE) debug(" kickLoad " + rep);
+            final boolean waitingForCallback = rep.reconstitute();
+            //if (waitingForCallback && rep == _full)
+            if (waitingForCallback)
+                _repainter.imageRefUpdate(KICKED);
+        }
     }
 //     private void requestImmediateLoad(ImageRep rep) {
 //         if (DEBUG.IMAGE) debug("IMMEDIATE " + rep);
@@ -469,6 +517,13 @@ public class ImageRef
         _full = ImageRep.UNAVAILABLE;
         _icon = ImageRep.UNAVAILABLE;
         repaint();
+    }
+    
+    @Override public boolean equals(Object o) {
+        if (o instanceof ImageRef)
+            return ((ImageRef)o)._source.original == _source.original;
+        else
+            return false;
     }
     
     @Override public String toString() {

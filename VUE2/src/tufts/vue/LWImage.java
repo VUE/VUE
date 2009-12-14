@@ -51,18 +51,16 @@ public class LWImage extends LWComponent
     private final static int MinWidth = 16;
     private final static int MinHeight = 16;
 
-    private Object mUndoMarkForInit;
-    
-    private final ImageRef mImageRef = new ImageRef(this);
+    private volatile ImageRef mImageRef = ImageRef.EMPTY;
 
-    /** is this image currently serving as an icon for an LWNode? */
-    private boolean isNodeIcon = false;  // kind of a hack...
-    
+    // point on AWT thread where the undo queue was before an async load operation was triggered
+    private volatile Object mAWTUndoMark;
+
     private void initImage() {
         disableProperty(LWKey.FontSize); // prevent 0 font size warnings (font not used on images)
         takeFillColor(null);
         takeSize(DefaultWidth, DefaultHeight);
-        setFlag(Flag.SIZE_UNSET);
+        setFlag(Flag.UNSIZED);
     }
     
     public LWImage() {
@@ -78,11 +76,28 @@ public class LWImage extends LWComponent
         setResource(r);
     }
 
+    static LWImage create(Resource r) {
+        return new LWImage(r);
+        // auto set title based on MapDropTarget.makeNodeTitle?
+    }
+
     static LWImage createNodeIcon(Resource r) {
         if (DEBUG.IMAGE) Log.debug("createNodeIcon: " + r);
         final LWImage icon = new LWImage();
         icon.setNodeIcon(true);
-        icon.setImageResource(r, true);
+        icon.setResource(r);
+        return icon;
+    }
+    static LWImage createNodeIcon(LWImage i, Resource r) {
+        if (DEBUG.IMAGE) Log.debug("createNodeIcon: " + i + "; " + r);
+        final LWImage icon = (LWImage) i.duplicate(); // copy styling, title & notes
+        // note: above will copy the resource over, but will skip initRef as mXMLRestoreUnderway is true during duplicates 
+        icon.setNodeIcon(true);
+        icon.setFlag(Flag.UNSIZED);
+        icon.setResource(r);
+        // as we've created a duplicate LWImage, which will have the same
+        // size as the original, the newly loaded image Resource will
+        // be automatically aspect-fit to the existing image size.
         return icon;
     }
 
@@ -105,44 +120,27 @@ public class LWImage extends LWComponent
 
         final LWImage newImage = new LWImage();
 
-        if (!hasFlag(Flag.SIZE_UNSET))
-            newImage.clearFlag(Flag.SIZE_UNSET);
+        if (!hasFlag(Flag.UNSIZED))
+            newImage.clearFlag(Flag.UNSIZED);
 
         return super.duplicateTo(newImage, cc);
     }
 
     /** @return false: images are never auto-sized */
-    @Override public boolean isAutoSized() {
-        return false;
-    }
+    @Override public boolean isAutoSized() { return false; }
     /** @return false: images are never transparent */
-    @Override public boolean isTransparent() {
-        return false;
-    }
+    @Override public boolean isTransparent() { return false; }
     /** @return false: images are never translucent */
-    @Override public boolean isTranslucent() {
-        return false;
-    }
+    @Override public boolean isTranslucent() { return false; }
     /** @return 0 */
-    @Override public int getFocalMargin() {
-        return 0;
-    }
+    @Override public int getFocalMargin() { return 0; }
+    
     /** @return true if this LWImage is being used as an icon for an LWNode */
-    public boolean isNodeIcon() {
-        return isNodeIcon;
-    }
+    public boolean isNodeIcon() { return hasFlag(Flag.ICON); }
 
     void setNodeIcon(boolean t) {
         if (DEBUG.IMAGE) Log.debug("setNodeIcon " + t + "; " + this);
-        isNodeIcon = t;
-    }
-
-    /** This currently makes LWImages invisible to selection (they're locked in their parent node */
-    @Override protected LWComponent defaultPickImpl(PickContext pc) {
-        if (!hasFlag(Flag.SLIDE_STYLE) && isNodeIcon())
-            return pc.pickDepth > 0 ? this : getParent();
-        else
-            return this;
+        setFlag(Flag.ICON, t);
     }
 
     @Override public boolean supportsCopyOnDrag() {
@@ -195,7 +193,7 @@ public class LWImage extends LWComponent
     void setMaxDimension(final float max)
     {
         //========================================================================================
-        // PROBLEM [FIXED]: if an image has an icon in cache, and we're creating a NEW RESOURCE,
+        // [FIXED]: if an image has an icon in cache, and we're creating a NEW RESOURCE,
         // such that resource properties image.width & image.height were never set, we can't know
         // the full pixel size, thus we can't be certiain of the *precise* aspect, which is
         // important to prevent minor pixel size tweaking later.  The only way around that
@@ -219,22 +217,6 @@ public class LWImage extends LWComponent
         }
     }
 
-    @Override
-    protected TextBox getLabelBox()
-    {
-        if (super.labelBox == null) {
-            initTextBoxLocation(super.getLabelBox());
-            //layoutImpl("LWImage.labelBox-init");
-        }
-        return this.labelBox;
-    }
-    
-    
-    @Override
-    public void initTextBoxLocation(TextBox textBox) {
-        textBox.setBoxLocation(0, -textBox.getHeight());
-    }
-
     public boolean hasImageError() {
         return ref().hasError();
     }
@@ -242,6 +224,7 @@ public class LWImage extends LWComponent
     @Override public void setSelected(boolean selected) {
         boolean wasSelected = isSelected();
         super.setSelected(selected);
+        
         if (selected && !wasSelected && hasImageError() && hasResource()) {
 
             // TODO: this check wants to be on LWComponent or LWNode, in case this is a regular
@@ -253,162 +236,88 @@ public class LWImage extends LWComponent
             // don't know if this really needs to be a cleanup task,
             // or just an after-AWT task, but safer to do one of them:
 
-            // TODO: this may be conflicting with our new image update code, and this
-            // would much better be handled in the ActiveComponentHandler than via a
-            // cleanup task (which should generally be a solution of last resort)
-            // See if we can handle this in VUE.checkForAndHandleResourceUpdate
+            // TODO: this may be conflicting with our new image update code, and this would much
+            // better be handled in the ActiveComponentHandler than via a cleanup task (which
+            // should generally be a solution of last resort) See if we can handle this in
+            // VUE.checkForAndHandleResourceUpdate
 
-            // Note that this code does however also deal with a missing
-            // network resource suddenly appearing, and then we can
-            // load the image from that
+            // Note that this code does however also deal with a missing network resource suddenly
+            // appearing, and then we can load the image from that
             
             addCleanupTask(new Runnable() { public void run() {
-                if (VUE.getSelection().only() == LWImage.this)
-                    loadSizeAndRef(getResource(), null);
+                if (hasResource() && VUE.getSelection().only() == LWImage.this)
+                    //loadSizeAndRef(getResource(), null);
+                    // TODO: would need an UNDO-MARK for this, so really
+                    // this wants to trigger our new LWNode image0 replacement code
+                    initRef(getResource());
             }});
         }
     }
     
+    @Override public void XML_completed(Object context) {
+        super.XML_completed(context);
+
+        if (super.width < MinWidth || super.height < MinHeight) {
+            Log.info(String.format("bad size: adjusting to minimum %dx%d: %s", MinWidth, MinHeight, this));
+            takeSize(MinWidth, MinHeight);
+        }
+        
+        // we can't rely on this being cleared via setSizeImpl, as persistance currently accesses width/height directly
+        clearFlag(Flag.UNSIZED); 
+    }
+
     @Override public void setResource(Resource r) {
-        setImageResource(r, false);
-    }
-    
-    void setNodeIconResource(Resource r) {
-        setImageResource(r, true);
-    }
-    
-    private void setImageResource(Resource r, boolean isNodeIconSync) {
-        if (DEBUG.IMAGE) Log.debug("setImageResource " + r  + "; isNodeIconSync=" + isNodeIconSync + "; restoring=" + mXMLRestoreUnderway);
-
-//         if (r != null && !mXMLRestoreUnderway) // todo: re-init / dump ImageRef
-//             ref().setImageSource(r);
-// can't init this here -- could be during resource, and Resource itself may be bad -- not having finalized it's init
-
-        if (r == null) {
-            // this will happen normally if when the creation of a new image is undone
-            // (altho this is kind of pointless: may want to just deny this, tho we
-            // see zombie events if we do that)
-            if (DEBUG.Enabled && hasResource()) out("nulling resource");
-//             mImageStatus = Status.EMPTY;
-//             mImageAspect = NO_ASPECT;
-            super.setResource(r);
-        } else if (mXMLRestoreUnderway) {
-            super.setResource(r);
-        } else if (isNodeIcon() && !isNodeIconSync) {
-            // we should be called back again with isNodeIconSync == true
-            if (DEBUG.IMAGE) Log.debug("forcing parent resource to match; " + this);
-            getParent().setResource(r);
-        } else {
-//             mImageStatus = Status.UNLOADED;
-//             mImageAspect = NO_ASPECT;
-            setResourceAndTitle(r, null);
-        }
-
-        if (!isNodeIconSync)
-            updateNodeIconStatus(getParent()); // new to ImageRef's impl
-    }
-
-    // todo: find a better way to do this than passing in an undo manager, which is dead ugly
-    void setResourceAndTitle(Resource r, UndoManager undoManager) {
         super.setResource(r);
-        if (r != null) {
-            setLabel(MapDropTarget.makeNodeTitle(r));
-            loadSizeAndRef(r, undoManager);
+        // note: mXMLRestoreUnderway is set to true during duplicate operations
+        if (mXMLRestoreUnderway || r == null) {
+            // don't need to init anything -- size already known
+            if (r == null)
+                setFlag(Flag.UNSIZED);
+        } else {
+            initRef(r);
         }
     }
 
-    private void loadSizeAndRef(final Resource r, final UndoManager _ignored_undo_manager)
-    {
-        if (DEBUG.IMAGE) {
-            Log.debug("loadSizeAndRef: " + r + "; props=" + r.getProperties());
-            if (!java.awt.EventQueue.isDispatchThread())
-                Log.debug("loadSizeAndRef: NOT ON AWT: " + Thread.currentThread());
-        }
-
-//         if (hasFlag(Flag.SIZE_UNSET) && r.getProperties() != null) {
-
-//             if (DEBUG.IMAGE) Log.debug("checking for resource size props in: " + r.getProperties().asProperties());
-        
-//             final float suggestWidth = r.getProperty(Resource.IMAGE_WIDTH, -1);
-//             final float suggestHeight = r.getProperty(Resource.IMAGE_HEIGHT, -1);
-
-//             // If we know a size before loading, this will get us displaying that size.  If
-//             // not, we'll set us to a minimum size for display until we know the real size.
-
-//             if (suggestWidth > 0 && suggestHeight > 0 && (ref().fullPixelSize() == ImageRef.ZERO_SIZE))
-//                 setTmpSize(suggestWidth, suggestHeight);
+    private void recordUndoMark() {
+//         if (!javax.swing.SwingUtilities.isEventDispatchThread())
+//             throw new Error("can only record marks in AWT");
+//         mAWTUndoMark = UndoManager.getKeyForNextMark(this);
+//         out("SET MARK TO " + Util.tags(mAWTUndoMark));
+//         Util.printStackTrace("SET-MARK " + mAWTUndoMark);
+    }
+    
+    private void syncFurtherEventsToLastMark() {
+//         if (javax.swing.SwingUtilities.isEventDispatchThread()) {
+//             out("can only sync to events in non-AWT threads");
+//         } else {
+//             UndoManager.attachCurrentThreadToMark(mAWTUndoMark);
+//             out("ATTACHED TO MARK " + Util.tags(mAWTUndoMark));
+//             if (mAWTUndoMark != null) Util.printStackTrace("ATTACHED TO MARK " + mAWTUndoMark);
 //         }
-        
-        // save a key that marks the current location in the undo-queue,
-        // to be applied to the subsequent thread that make callbacks
-        // with image data, so that all further property changes eminating
-        // from that thread are applied to the same location in the undo queue.
-        
-        synchronized (this) {
-            // If the image is not immediately availble, need to mark current
-            // place in undo key for changes that happen due to the image
-            // arriving.  We sync to be certian the key is set before
-            // we can get any image callbacks.
-
-            // TODO: can we get rid of this for most cases?  E.g., only for newly dropped nodes?
-            ref().setImageSource(r);
-            if (ref().available())
-                mUndoMarkForInit = null;
-            else
-                mUndoMarkForInit = UndoManager.getKeyForNextMark(this);
-        }
-
-        // this used to be ONLY for handling temporary/suggest size, but as long
-        // as we're here, we MIGHT already know the real pixel dimensions of our reference.
-
-        if (hasFlag(Flag.SIZE_UNSET)) {
-            // okay to do this after undo-mark was obtained, as this should NOT be generating
-            // undoable events.
-            guessAtBestSize(r);
-        }
-
-
     }
 
-    // if the size in the ref() is already known, we'll be using that, otherwise,
-    // if we find any size info in the resource, use that as a temporary size
-    private void guessAtBestSize(Resource r) {
-        final int[] fullSize = ref().fullPixelSize();
+//     private void forceUndoSizeRecords() {
+//         UndoManager undoQueue = getUndoManager();
+//         if (undoQueue == null)
+//             return;
+//         LWComponent sizeMayChange = getParent();
+//         while (sizeMayChange != null && !sizeMayChange.isTopLevel()) {
+//             // Simulate a size record to make certain there's one in there, just in case.
+//             // There's no problem if the size doesn't actually end up changing -- the event
+//             // will be applied but then ignored.
+//             // Oh, crap -- this won't handle the REDO case for user-sized nodes tho, will it -- the
+//             // size they took on after the image load completed was ignored!
 
-        Size guess = null;
+//             // Oh, and our undo-mark hack won't even work now, as image-load threads are reused....
 
-        if (fullSize != ImageRef.ZERO_SIZE) {
-            if (isNodeIcon()) {
-                guess = Images.fitInto(DefaultIconMaxSide, fullSize);
-            } else if (hasFlag(Flag.SLIDE_STYLE)) {
-                guess = Images.fitInto(LWSlide.SlideWidth / 4, fullSize);
-            } else {
-                guess = new Size(fullSize);
-            }
-            // really, we want to just do setSize, but we need to do setSizeImpl so it's
-            // not undoable, but then we have to clear our own SIZE_UNSET bit
-            setSizeImpl(guess.width, guess.height, true/*=INTERNAL*/);
-            clearFlag(Flag.SIZE_UNSET);
-        }
-        else {
-
-            final int[] suggestSize = getResourceImageSize(r);
-            
-            if (suggestSize != null) {
-                guess = new Size(suggestSize);
-                
-                if (isNodeIcon())
-                    guess = Images.fitInto(DefaultIconMaxSide, guess);
-                else if (hasFlag(Flag.SLIDE_STYLE))
-                    guess = Images.fitInto(LWSlide.SlideWidth / 4, guess);
-                
-                setTmpSize(guess.width, guess.height);
-            }
-        }
-    }
+//             undoQueue.LWCChanged(new LWCEvent(this, sizeMayChange, LWKey.Size, sizeMayChange.getSize()));
+//             Log.info("FORCED SIZE RECORDING FOR " + sizeMayChange + ": " + sizeMayChange.getSize());
+//             sizeMayChange = sizeMayChange.getParent();
+//         } 
+//     }
     
     /** @see ImageRef.Listener */
-    public /*TESTSYNC*/ synchronized void imageRefChanged(Object cause) {
+    public synchronized void imageRefUpdate(Object cause) {
 
         // We will ONLY get this message once we already know the full image size.
         
@@ -422,23 +331,35 @@ public class LWImage extends LWComponent
         // whole mechanism probably really needs to passed all the way through to the
         // notify so the undo manager can detect that there?
 
-        if (DEBUG.IMAGE) Log.debug("imageRefChanged: cause=" + cause);
+        if (DEBUG.IMAGE) Log.debug("imageRefUpdate: cause=" + Util.tags(cause));
 
-        if (hasFlag(Flag.SIZE_UNSET)) { // TODO: flag bits need sync access!
-            // **** Why is SIZE_UNSET for an LWImage that was restored???
-            if (DEBUG.IMAGE) Log.debug("imageRefChanged: SIZE IS UNSET");
+        if (cause == ImageRef.KICKED) {
+            // doesn't work: the mark's already been made
+            //forceUndoSizeRecords();
+            recordUndoMark();
+            // In any case, now that we ignore non-AWT size updates, in practice,
+            // this is a rare bug -- only when an image load is so slow that even
+            // the size comes in delayed.
+            return;
+        }
+
+        if (hasFlag(Flag.UNSIZED) && ref().fullPixelSize() != ImageRef.ZERO_SIZE) {
+
+            syncFurtherEventsToLastMark();
+
+            if (DEBUG.IMAGE) Log.debug("imageRefUpdate: SIZE IS UNSET; pixels=" + Util.tags(ref().fullPixelSize()));
 
             //========================================================================================
             // todo: call a method, that will have half of the guessAtBestSizeCode,
-            // which if SIZE_UNSET is true, will handle aspecting for both
+            // which if UNSIZED is true, will handle aspecting for both
             // node icons and slide styles.  The our guess method will become much simpler.
             // This might even be able to happen in setSizeImpl?
             //========================================================================================
             
-            if (isNodeIcon)
+            if (isNodeIcon())
                 autoShape();
             else
-                setToNaturalSize(); // todo: shouldn't be undoable, tho it's already working that way??
+                setToNaturalSize(); // PROBLEM?: shouldn't be undoable, tho it's already working that way because of general setSizeImpl?
         }
 
         // always repaint -- e.g., we may already have the valid size, so no
@@ -542,21 +463,38 @@ public class LWImage extends LWComponent
         setSizeImpl(w, h, true);
     }
 
-    @Override protected synchronized void setSizeImpl(float w, float h, boolean internal) {
+    @Override protected synchronized void setSizeImpl(float w, float h, final boolean internal) {
         
         if (DEBUG.Enabled) out("setSizeImpl " + w + "x" + h + "; internal=" + internal);
+
+        // Tracking UNSIZED lets us skip the undo-queue for size changes, but not for size
+        // changes to auto-sizing containers (e.g., LWNode) that happen due to re-layoutl E.g., you
+        // drop an image, it takes a long time to load, you do other stuff to the map, the image
+        // finally gets it's size, resizing it's parents -- if we purely ignore all those size
+        // changes, then you UNDO THE DROP, those nodes won't be sized back.  We used to handle
+        // this via our undo-mark hack.
+
+        // This is now handled very nicely in LWComponent by skipping undo events for
+        // size reports from non-AWT threads.  This works most of the time because
+        // most nodes are auto-sized and auto-relayout.  But user-sized nodes are still
+        // a problem.
+
+        // The way to handle that instead to FORCE a size report for all parents
+        // when we begin a threaded image load, so no matter what there will be
+        // a size recorded into the undo-queue at that point.  This is much simpler
+        // than our our undo-mark hack.
         
         super.setSizeImpl(w, h, internal);
         
-        if (!internal) {
-            if (hasFlag(Flag.SIZE_UNSET)) {
-                if (DEBUG.Enabled) out("setting first VALID size " + w + "x" + h);
-                clearFlag(Flag.SIZE_UNSET);
+        if (internal) {
+            if (!hasFlag(Flag.UNSIZED)) {
+                if (DEBUG.Enabled) Log.error("ATTEMPT TO DE-VALIDATE SIZE! " + this, new Throwable("HERE"));
+                //setFlag(Flag.UNSIZED);
             }
         } else {
-            if (!hasFlag(Flag.SIZE_UNSET)) {
-                if (DEBUG.Enabled) Log.error("ATTEMPT TO DE-VALIDATE SIZE! " + this, new Throwable("HERE"));
-                //setFlag(Flag.SIZE_UNSET);
+            if (hasFlag(Flag.UNSIZED)) {
+                if (DEBUG.Enabled) out("setting first VALID size " + w + "x" + h);
+                clearFlag(Flag.UNSIZED);
             }
         }
     }
@@ -565,20 +503,22 @@ public class LWImage extends LWComponent
         return ref().aspect();
     }
     
+//     private void autoShape() {
+//         float maxSide = (float) Math.max(this.width, this.height);
+             
+//         final Size newSize = Images.fitInto(maxSide, this.width, this.height);
+
+//         if (DEBUG.Enabled) out("autoShape: maxSiide=" + maxSide
+//                                + "\n\t in: " + width + "," + height
+//                                + "\n\tout: " + newSize);
+        
+//         setSize(newSize);
+//     }
+    
     private void autoShape() {
         shapeToAspect(aspect());
     }
-
-    @Override protected void out(String s) {
-        Log.debug(String.format("%s: %s", paramString(), s));
-    }
     
-    @Override
-    public String paramString() {
-        return super.paramString() + (isNodeIcon ? " <NodeIcon> " : " ");// + mImageRef;
-        //return super.paramString() + " " + mImageStatus + " raw=" + mImageWidth + "x" + mImageHeight + (isNodeIcon ? " <NodeIcon>" : "");
-    }
-
     private void shapeToAspect(float aspect) {
 
         if (aspect <= 0) {
@@ -597,40 +537,6 @@ public class LWImage extends LWComponent
         setSize(newSize);
     }
     
-//     private void shapeToAspect(float aspect) {
-
-//         if (aspect <= 0) {
-//             Log.warn("bad aspect in shapeToAspect: " + aspect);
-//             return;
-//         }
-//         if (DEBUG.Enabled) out("shapeToAspect " + aspect + " in: " + width + "," + height);
-             
-//         // TODO: reconcile w/Imags.fitInto used in setMaxDimension
-//         final Size newSize = ConstrainToAspect(aspect, this.width, this.height); 
-
-//         final float dw = this.width - newSize.width;
-//         final float dh = this.height - newSize.height;
-            
-//         /*
-//          * Added this in response to VUE-948
-//          */
-//         if ((DEBUG.WORK || DEBUG.IMAGE) && (newSize.width != width || newSize.height != height))
-//             out(String.format("shapeToAspect: a=%.2f dw=%g dh=%g; %.1fx%.1f -> %s",
-//                               aspect,
-//                               dw, dh,
-//                               width, height,
-//                               newSize));
-                                  
-//         //out("autoShapeToAspect: a=" + mImageAspect + "; dw=" + dw + ", dh=" + dh + "; " + width + "," + height + " -> adj " + newSize);
-//         //out("autoShapeToAspect: " + width + "," + height + " -> newSize: " + newSize.width + "," + newSize.height);
-            
-// // Shouldn't need this anymore:
-//         if (Math.abs(dw) > 1 || Math.abs(dh) > 1) {
-//             // above check helps reduce needless tweaks, which make things messy during map loading
-//             setSize(newSize.width, newSize.height);
-//         }
-//     }
-
     /**
      * Don't let us get bigger than the size of our image, or
      * smaller than MinWidth/MinHeight.
@@ -654,40 +560,6 @@ public class LWImage extends LWComponent
 //             scalingSetSize(width, height);
     }
 
-    public static final Key KEY_Rotation = new Key("image.rotation", KeyType.STYLE) { // rotation in radians
-            public void setValue(LWComponent c, Object val) { ((LWImage)c).setRotation(((Double)val).doubleValue()); }
-            public Object getValue(LWComponent c) { return new Double(((LWImage)c).getRotation()); }
-        };
-    
-    public void setRotation(double rad) {
-//         Object old = new Double(mRotation);
-//         this.mRotation = rad;
-//         notify(KEY_Rotation, old);
-    }
-    public double getRotation() {
-        //return mRotation;
-        return 0;
-    }
-
-//     public static final Key Key_ImageOffset = new Key("image.pan", KeyType.STYLE) {
-//             public void setValue(LWComponent c, Object val) { ((LWImage)c).setOffset((Point2D)val); }
-//             public Object getValue(LWComponent c) { return ((LWImage)c).getOffset(); }
-//         };
-
-    public void setOffset(Point2D p) {
-//         if (p.getX() == mOffset.x && p.getY() == mOffset.y)
-//             return;
-//         Object oldValue = new Point2D.Float(mOffset.x, mOffset.y);
-//         if (DEBUG.IMAGE) out("LWImage setOffset " + VueUtil.out(p));
-//         this.mOffset.setLocation(p.getX(), p.getY());
-//         notify(Key_ImageOffset, oldValue);
-    }
-
-    public Point2D getOffset() {
-        return null;
-//         return new Point2D.Float(mOffset.x, mOffset.y);
-    }
-    
     private Shape getClipShape() {
         //return super.drawnShape;
         // todo: cache & handle knowing if we need to update
@@ -699,54 +571,140 @@ public class LWImage extends LWComponent
     //private static final Color IconBorderColor = new Color(0,0,0,64); // screwing up in composite drawing
     //private static final Color IconBorderColor = Color.gray;
 
-    // FOR LWNode IMPL:
-    /*
-    protected void drawNode(DrawContext dc) {
-        // do this for implmemented as a subclass of node
-        drawImage(dc);
-        super.drawNode(dc);
-    }
-    */
-
-//     public void drawRaw(DrawContext dc) {
-//         // (skip default composite cleanup for images)
-//         drawImpl(dc);        
-//     }
-
     private ImageRef ref() {
         return mImageRef;
     }
-
-    @Override protected void preCacheContent() {
-        ref().preLoadFullRep();
-    }    
     
-    private void drawImage(DrawContext dc)
-    {
-        if (ref().isBlank())
-            ref().setImageSource(getResource());
+    private ImageRef refLoaded() {
+        if (mImageRef == ImageRef.EMPTY && hasResource())
+            return initRef(getResource());
+        else
+            return ref();
+    }
+
+    private ImageRef initRef(Resource r) {
         
-        ref().drawInto(dc, getWidth(), getHeight());
+        if (DEBUG.IMAGE) {
+            Log.debug("initRef: " + r + "; props=" + r.getProperties());
+            if (!java.awt.EventQueue.isDispatchThread())
+                Log.debug("initRef: NOT ON AWT: " + Thread.currentThread());
+        }
+        
+        if (mImageRef != ImageRef.EMPTY && mImageRef.source().original == r) {
+            Log.info("re-init of same image source: " + this + "; " + r, new Throwable("HERE"));
+        }
+        
+        final ImageRef newRef = ImageRef.create(this, r);
+        mImageRef = newRef;
+
+        // we should also auto-shape if we already have the size info, which we should
+        // if the image is in the cache -- both for proper node icones when alread in cache,
+        // and for replacing the ImageRef on a raw images -- both to get the right aspect
+
+        // THIS IS WHERE WE USED TO CREATE AN UNDO MARK -- I think we
+        // can now handle this by just ignoring async size events?
+
+        if (hasFlag(Flag.UNSIZED)) {
+            // okay to do this after undo-mark was obtained, as this should NOT be generating
+            // undoable events.
+            guessAtBestSize(r);
+        }
+
+        return newRef;
+        
+    }
+
+    // if the size in the ref() is already known, we'll be using that, otherwise,
+    // if we find any size info in the resource, use that as a temporary size
+    private void guessAtBestSize(Resource r) {
+
+        if (DEBUG.IMAGE) Log.debug("guessAtBestSize: " + ref() + "; " + r);
+        
+        final int[] fullSize = ref().fullPixelSize();
+
+        Size guess = null;
+
+        if (fullSize != ImageRef.ZERO_SIZE) {
+            if (isNodeIcon()) {
+                guess = Images.fitInto(DefaultIconMaxSide, fullSize);
+            } else if (hasFlag(Flag.SLIDE_STYLE)) {
+                guess = Images.fitInto(LWSlide.SlideWidth / 4, fullSize);
+            } else {
+                guess = new Size(fullSize);
+            }
+            // really, we want to just do setSize, but we need to do setSizeImpl so it's
+            // not undoable, but then we have to clear our own UNSIZED bit
+            setSizeImpl(guess.width, guess.height, true/*=INTERNAL*/);
+            clearFlag(Flag.UNSIZED);
+        }
+        else {
+
+            final int[] suggestSize = getResourceImageSize(r);
+            
+            if (suggestSize != null) {
+                guess = new Size(suggestSize);
+                
+                if (isNodeIcon())
+                    guess = Images.fitInto(DefaultIconMaxSide, guess);
+                else if (hasFlag(Flag.SLIDE_STYLE))
+                    guess = Images.fitInto(LWSlide.SlideWidth / 4, guess);
+                
+                setTmpSize(guess.width, guess.height);
+            }
+        }
     }
     
+    @Override protected void preCacheContent() {
+        refLoaded().preLoadFullRep();
+    }    
+    
+    /** This currently makes LWImages invisible to selection (they're locked in their parent node */
+    @Override protected LWComponent defaultPickImpl(PickContext pc) {
+        if (!hasFlag(Flag.SLIDE_STYLE) && isNodeIcon())
+            return pc.pickDepth > 0 ? this : getParent();
+        else
+            return this;
+    }
 
-    @Override
-    protected void drawImpl(DrawContext dc)
+    private void drawImage(DrawContext dc)
+    {
+        final ImageRef ref = refLoaded();
+        
+        if (hasFlag(Flag.UNSIZED)) {
+            // seems a bit overkill, but oddly needed if the image is already in the cache, as we
+            // don't currently immediately pull the aspect from the icon image size data in the
+            // cache at init time (we're still waiting for a draw to do that), which we should be
+            // doing in ImageRef/ImageRep
+            guessAtBestSize(getResource());
+        }
+
+        if (isSelected() && dc.isInteractive() && dc.focal != this) {
+            dc.g.setColor(COLOR_HIGHLIGHT);
+            dc.g.setStroke(new BasicStroke(getStrokeWidth() + SelectionStrokeWidth));
+            dc.g.draw(getZeroShape());
+        }
+        
+        ref.drawInto(dc, getWidth(), getHeight());
+
+        
+    }
+    
+    @Override protected void drawImpl(DrawContext dc)
     {
         drawImage(dc);
     }
     
-    private boolean isIndicatedIn(DrawContext dc) {
+//     private boolean isIndicatedIn(DrawContext dc) {
 
-        if (dc.hasIndicated()) {
-            final LWComponent indication = dc.getIndicated();
+//         if (dc.hasIndicated()) {
+//             final LWComponent indication = dc.getIndicated();
 
-            return indication == this
-                || (isNodeIcon() && getParent() == indication);
-        } else {
-            return false;
-        }
-    }
+//             return indication == this
+//                 || (isNodeIcon() && getParent() == indication);
+//         } else {
+//             return false;
+//         }
+//     }
 
     
 //     public void drawWithoutShape(DrawContext dc)
@@ -868,85 +826,10 @@ public class LWImage extends LWComponent
     }
 */
 
-//     private void drawImageBox(DrawContext dc)
-//     {
-//         if (mImage == null && !dc.isIndicated(this)) 
-//             drawImageStatus(dc);
-//         else
-//             drawImage(dc);
-        
-//         if (mImageStatus == Status.UNLOADED && getResource() != null) {
-
-//             // Doing this here (in a draw method) prevents images from loading until
-//             // they actually attempt to paint, which is handy when loading a map with
-//             // lots of large images: you can quickly see the map before the images need
-//             // to start loading.  Also handy if loading a large number of maps at once
-//             // -- images on undisplayed maps won't start to load until the first time
-//             // they're asked to paint.
-        
-//             synchronized (this) {
-//                 if (mImageStatus == Status.UNLOADED) {
-//                     mImageStatus = Status.LOADING;
-                    
-//                     // TODO: running this on AWT can cause problems during map loading,
-//                     // as events on an image load thread we want to be ignoring in terms
-//                     // of map modifications will be taken seriously when appearing on
-//                     // the AWT thread.  We need a better system for ignoring image
-//                     // events during map loading (events that don't want to be incrementing
-//                     // the map modification count).  We should at least include new code
-//                     // to ignore all events prior to the first user event, which will at
-//                     // least catch everything that happens before the very first undo mark.
-                    
-//                     if (DEBUG.IMAGE) out("invokeLater loadResourceImage " + getResource());
-//                     tufts.vue.gui.GUI.invokeAfterAWT(new Runnable() { public void run() {
-//                         loadResourceImage(getResource(), null);
-//                     }});
-//                 }
-//             }
-//         }
-        
-//     }
-
-
-    @Override
-    public void XML_completed(Object context) {
-        super.XML_completed(context);
-
-        if (super.width < MinWidth || super.height < MinHeight) {
-            Log.info(String.format("bad size: adjusting to minimum %dx%d: %s", MinWidth, MinHeight, this));
-            takeSize(MinWidth, MinHeight);
-        }
-        
-        // we can't rely on this being cleared via setSizeImpl, as persistance currently accesses width/height directly
-        clearFlag(Flag.SIZE_UNSET); 
-    }
+    //----------------------------------------------------------------------------------------
+    // some old status code
+    //----------------------------------------------------------------------------------------
     
-//     private void OLDdrawImage(DrawContext dc)
-//     {
-//         final AffineTransform transform = new AffineTransform();
-        
-// //    private static final AlphaComposite MatteTransparency = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f);
-// // Todo: when/if put this back in, see if we can handle it in the ImageTool so we don't need active tool in the DrawContext
-// //         if (isSelected() && dc.isInteractive() && dc.getActiveTool() instanceof ImageTool) {
-// //             dc.g.setComposite(MatteTransparency);
-// //             dc.g.drawImage(mImage, transform, null);
-// //             dc.g.setComposite(AlphaComposite.Src);
-// //         }
-
-//         if (false && isCropped()) {
-//             Shape oldClip = dc.g.getClip();
-//             dc.g.clip(getClipShape()); // this clip/restore clip may be screwing up our PDF export library
-//             dc.g.drawImage(mImage, transform, null);
-//             dc.g.setClip(oldClip);
-//         } else {
-//             //dc.g.clip(super.drawnShape);
-//             transform.scale(getWidth() / mImageWidth, getHeight() / mImageHeight);
-//             dc.g.drawImage(mImage, transform, null);
-//             //dc.g.drawImage(mImage, 0, 0, (int)super.width, (int)super.height, null);
-//             //dc.g.drawImage(mImage, 0, 0, mImageWidth, mImageHeight, null);
-//         }
-//    }
-
     private static final Color EmptyColorDark = new Color(0,0,0,128);
     private static final Color LoadedColorDark = new Color(0,0,0,160);
     private static final Color EmptyColorLight = new Color(128,128,128,64);
@@ -976,6 +859,67 @@ public class LWImage extends LWComponent
             return LoadedColorDark;
     }
 
+    //----------------------------------------------------------------------------------------
+    // old experimental on-map text label code
+    //----------------------------------------------------------------------------------------
+    
+    @Override protected TextBox getLabelBox()
+    {
+        if (super.labelBox == null) {
+            initTextBoxLocation(super.getLabelBox());
+            //layoutImpl("LWImage.labelBox-init");
+        }
+        return this.labelBox;
+    }
+    
+    
+    @Override public void initTextBoxLocation(TextBox textBox) {
+        textBox.setBoxLocation(0, -textBox.getHeight());
+    }
+
+    //----------------------------------------------------------------------------------------
+    // Image rotation was old feature we removed, but this stuff may still be in some old save files.
+    //----------------------------------------------------------------------------------------
+
+    public static final Key KEY_Rotation = new Key("image.rotation", KeyType.STYLE) { // rotation in radians
+            public void setValue(LWComponent c, Object val) { ((LWImage)c).setRotation(((Double)val).doubleValue()); }
+            public Object getValue(LWComponent c) { return new Double(((LWImage)c).getRotation()); }
+        };
+    
+    public void setRotation(double rad) {
+//         Object old = new Double(mRotation);
+//         this.mRotation = rad;
+//         notify(KEY_Rotation, old);
+    }
+    public double getRotation() {
+        //return mRotation;
+        return 0;
+    }
+
+//     public static final Key Key_ImageOffset = new Key("image.pan", KeyType.STYLE) {
+//             public void setValue(LWComponent c, Object val) { ((LWImage)c).setOffset((Point2D)val); }
+//             public Object getValue(LWComponent c) { return ((LWImage)c).getOffset(); }
+//         };
+
+    public void setOffset(Point2D p) {
+//         if (p.getX() == mOffset.x && p.getY() == mOffset.y)
+//             return;
+//         Object oldValue = new Point2D.Float(mOffset.x, mOffset.y);
+//         if (DEBUG.IMAGE) out("LWImage setOffset " + VueUtil.out(p));
+//         this.mOffset.setLocation(p.getX(), p.getY());
+//         notify(Key_ImageOffset, oldValue);
+    }
+
+    public Point2D getOffset() {
+        return null;
+//         return new Point2D.Float(mOffset.x, mOffset.y);
+    }
+
+    
+    @Override protected void out(String s) {
+        Log.debug(String.format("%s: %s", paramString(), s));
+    }
+    
 //     @Override
 //     protected boolean intersectsImpl(Rectangle2D mapRect) {
 //         boolean i = super.intersectsImpl(mapRect);
@@ -988,46 +932,6 @@ public class LWImage extends LWComponent
 //         Log.info("REQRSPAINT " + Util.tags(i?"YES":" NO") + getLabel());
 //         return i;
 //     }
-
-    // TODO: have the LWMap make a call at the end of a restore to all LWComponents
-    // telling them to start loading any media they need.  Pass in a media tracker
-    // that the LWMap and/or MapViewer can use to track/report the status of
-    // loading, and know when it's 100% complete.
-    
-    // Note: all this code will likely be superceeded by generic content
-    // loading & caching code, in which case we may not be using
-    // an ImageObserver anymore, just a generic input stream, tho actually,
-    // we wouldn't have the chance to get the size as soon as it comes in,
-    // so probably not all will be superceeded.
-
-    // TODO: problem: if you drop a second image before the first one
-    // has finished loading, both will try and set an undo mark for their thread,
-    // but the're both in the Image Fetcher thread!  So we're going to need
-    // todo our own loading after all, as I see no way for the UndoManager
-    // to tell between events coming in on the same thread, unless maybe
-    // the mark can be associated with a particular object?  I guess that
-    // COULD work: all the updates are just happening on the LWImage...
-    // Well, not exactly: the parent could resize due to setting the image
-    // size, tho that would be overriden by the un-drop of the image
-    // and removing it as child -- oh, but the hierarchy event wouldn't get
-    // tagged, so it would have be tied to any events that TOUCH that object,
-    // which does not work anyway as the image could be user changed.  Well,
-    // no, that would be detected by it coming from the unmarked thread.
-    // So any event coming from the thread and "touching" this object could
-    // be done, but that's just damn hairy...
-    
-    // Well, UndoManager is coalescing them for now, which seems to
-    // work pretty well, but will probably break if user drops more
-    // than one image and starts tweaking anyone but the first one before they load
-
-    // TODO[old]: update bad (error) images if preview gets good data Better: handle this via
-    //       listening to the resource for updates (the LWCopmonent can do this), and if
-    //       it's a CONTENT_CHANGED update (v.s., say, a META_DATA_CHANGED), then we can
-    //       refetch the content.  Actually, would still be nice if this happened just by
-    //       selecting the object, in case the resource previewer didn't happen to be open.
-
-    
-    
 
     public static void main(String args[]) throws Exception {
 

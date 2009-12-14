@@ -56,7 +56,10 @@ class ImageSource {
     URI getIconKey(int size) {
         if (key == null) {
             // todo: this will happen for a local files -- only if they're missing or always?
-            Log.warn("can't create icon key w/null key: " + this, new Throwable("HERE"));
+            if (DEBUG.Enabled) 
+                Log.warn("can't create icon key w/null key: " + this, new Throwable("HERE"));
+            else
+                Log.warn("can't create icon key w/null key: " + this);
             return null;
         }
         if (isImageSourceForIcon())

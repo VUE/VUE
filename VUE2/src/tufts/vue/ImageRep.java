@@ -77,7 +77,7 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
     public static final ImageRep UNAVAILABLE = new ImageRep() {
             @Override public boolean available() { return false; }
             @Override protected Image image() { return (Image) error(); } // don't need override now as renderRep override covers
-            @Override protected void reconstitute() { error(); }
+            @Override protected boolean reconstitute() { error(); return false; }
             @Override protected void cacheData(Images.Handle i, String s) { error(); }
             @Override void renderRep(Graphics2D g, float width, float height) {
                 fillRect(g, width, height, DEBUG.Enabled ? Color.orange : LoadingColor);
@@ -167,12 +167,13 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
     // ImageRep aspect, which is locked above on AWT on reconstitute.  Doesn't appear to
     // be a problem now, but take heed.
     
-    protected synchronized void reconstitute()
+    /** @return true if all data was immediately available, false if we're waiting for more info from a callback */
+    protected synchronized boolean reconstitute()
     {
         if (_handle == IMG_ERROR) {
             // if this was an OutOfMemoryError (a potentially recoverable error), we allow us to retry indefinitely
             if (DEBUG.IMAGE) debug("skipping reconstitue: last load had error: " + this);
-            return;
+            return true;
         }
 
         final boolean hadError = (_handle == IMG_ERROR_MEMORY);
@@ -180,7 +181,7 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
         //if (DEBUG.IMAGE) Log.debug(Util.TERM_CYAN + "RECONSTITUTE " + Util.TERM_CLEAR + _data, new Throwable("HERE"));
         if (_handle.isLoader()) {
             if (DEBUG.IMAGE) debug("recon: rep already loading: " + _data);//, new Throwable("HERE"));
-            return;
+            return false;
         }
         if (DEBUG.IMAGE) debug(Util.TERM_CYAN + "RECONSTITUTE " + Util.TERM_CLEAR + _data);
 
@@ -191,7 +192,8 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
         if (imageData != null) {
             // if we knew the return value of reconstitute was attented to we could skip the notify
             // (the return value is often ignored) [note: notify 2nd arg is now always true]
-            cacheData(imageData, "recon-got-immediate-return"); 
+            cacheData(imageData, "recon-got-immediate-return");
+            return true;
         } else {
             if (_handle == oldHandle) {
                 if (hadError)
@@ -206,6 +208,7 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
                 // internal Images sync issues.
                 if (DEBUG.Enabled) debug("got immediate callback w/image, handle is now " + _handle);
             }
+            return false;
         }
     }
 

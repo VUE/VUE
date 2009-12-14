@@ -71,7 +71,7 @@ public class UndoManager
     private UndoAction mCurrentUndo;
 
     /** map of threads currently attched to a particular undo mark */
-    private Map mThreadsWithMark = Collections.synchronizedMap(new HashMap());
+    private Map<Thread,UndoMark> mThreadsWithMark = Collections.synchronizedMap(new HashMap());
 
     ///** map of threads currently attched to no undo manager (events to discard) */
     //private static Map ThreadsToIgnore = Collections.synchronizedMap(new HashMap());
@@ -1163,8 +1163,15 @@ public class UndoManager
             // extract the mark, because it contains the manager we need to insert the thread:mark mapping
             UndoMark mark = (UndoMark) undoActionKey;
             // store the mark in the appropriate UndoManager, and notify of error if thread was already marked
-            if (mark.manager.mThreadsWithMark.containsKey(thread)) {
-                if (DEBUG.Enabled) Log.debug(thread + " already tied mark " + mark + " grouping as one undo for now");
+            UndoMark existingMark = mark.manager.mThreadsWithMark.get(thread);
+            if (existingMark != null) {
+                if (existingMark != mark) {
+                    Log.warn(thread + " CONFLICTING MARKS:"
+                             + "\n\texisting: " + existingMark
+                             + "\n\t   newer: " + mark);
+                } else if (DEBUG.Enabled) {
+                    Log.debug(thread + " already tied mark " + mark + " grouping as one undo for now");
+                }
                 // this seems to actually be "working" as we get two undoables... ?
             } else {
                 mark.manager.mThreadsWithMark.put(thread, mark);
@@ -1258,7 +1265,7 @@ public class UndoManager
         checkAndHandleSelectionCleanups();
         mMap.notify(this, LWKey.UserActionCompleted);        
     }
-    
+
     /**
      * Every event anywhere in the map we're listening to, including events as a result of
      * an Undo or Redo, will get delivered to us here.  If the event has an old value in
@@ -1372,6 +1379,18 @@ public class UndoManager
             if (DEBUG.UNDO || DEBUG.THREAD) System.out.println("\n" + thread + " initiating change in " + relevantUndoAction);
 
         } else if (mThreadsWithMark.size() > 0 && mThreadsWithMark.containsKey(thread)) {
+
+            //-----------------------------------------------------------------------------
+            // NOTE: this will no longer work except for network-IO image threads, as
+            // other image handling operations now happen in a thread-pool.  We'd need
+            // some way of getting a general key out of Images code (maybe the Task
+            // object?) that is stored in a changing ThreadLocal variable as the tasks
+            // run.  This is an argument for generally supporting some kind of a
+            // TRANSACTION object in the model, which would be used for things like
+            // this, as well as bits for user v.s. internal, etc.  A general update/edit
+            // context.
+            //-----------------------------------------------------------------------------
+            
             final UndoMark mark = (UndoMark) mThreadsWithMark.get(thread);
             if (DEBUG.UNDO || DEBUG.THREAD)
                 Log.debug("FOUND MARK FOR CURRENT THREAD " + thread

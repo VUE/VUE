@@ -48,7 +48,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.506 $ / $Date: 2009-12-14 04:32:05 $ / $Author: sfraize $
+ * @version $Revision: 1.507 $ / $Date: 2009-12-14 15:52:20 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -169,9 +169,15 @@ public class LWComponent
             /** for links: this is data-relation link */
             DATA_LINK,
 
+            /** currently used for marking LWImage's as being node-icons */
+            ICON,
+            
             /** for subclass that want to distinguish between a default size and a validated size (e.g., LWImage)
              * "default size" could actually mean any suggested or invalid size before a final definite size */
-            SIZE_UNSET,
+            UNSIZED,
+            
+            /** lets us know this is in the process of duplicating */
+            DUPLICATING,
 
 
 //             /** if temporarily changing locked state, can save old value here (layers use this) */
@@ -285,7 +291,7 @@ public class LWComponent
     //protected transient boolean selected = false;
 
     protected int mHideBits = 0x0; // any bit set means we're hidden (not managed by undo)
-    protected int mFlags = 0x0; // explicitly set/cleared: not managed by undo
+    protected volatile int mFlags = 0x0; // explicitly set/cleared: not managed by undo
     protected int mState = 0x0; // managed by undo (and individual bits may optionally be persisted)
 
     protected transient LWContainer parent;
@@ -1729,7 +1735,8 @@ public class LWComponent
      */
     protected <Ts extends LWComponent> Ts duplicateTo(Ts c, CopyContext cc)
     {
-        c.mXMLRestoreUnderway = true; // todo: this flag really "initUnderway"
+        c.setFlag(Flag.DUPLICATING);
+        c.mXMLRestoreUnderway = true; // todo: this flag really "initUnderway" -- need to double-check all our semantics tho...
 
         c.copySupportedProperties(this);
         
@@ -1764,6 +1771,7 @@ public class LWComponent
 
         c.mXMLRestoreUnderway = false;
         c.layout("duplicate");
+        c.clearFlag(Flag.DUPLICATING);
                 
         return c;
     }
@@ -4534,24 +4542,17 @@ public class LWComponent
 
         final boolean quiet = (this.width == NEEDS_DEFAULT);
 
-//         final boolean undoable;
-//         if (this.width == NEEDS_DEFAULT) {
-//             // in this case, we don't even want to bother with an event at all
-//             quiet = true;
-//             undoable = false;
-//         }
-//         else if (validSize && hasFlag(Flag.SIZE_UNSET)) {
-//             // in this case, we want an event for updates, but we don't want it undoable
-//             if (DEBUG.Enabled) out("setting first VALID size " + w + "x" + h);
-//             clearFlag(Flag.SIZE_UNSET);
-//             undoable = false;
-//         }
-//         else {
-//             // default case:
-//             undoable = true;
-//         }
+        //final boolean skipUndo = internal;
         
-        final Size old = internal ? null : new Size(width, height);
+        final boolean skipUndo;
+        if (!internal && !javax.swing.SwingUtilities.isEventDispatchThread()) {
+            Log.info("skipping undo on non-AWT size change: " + this + "; newSize=" + w + "x" + h);
+            skipUndo = true;
+        } else {
+            skipUndo = internal;
+        }
+        
+        final Object old = skipUndo ? LWCEvent.NO_OLD_VALUE : new Size(width, height);
 
         if (mAspect > 0) {
             Size constrained = ConstrainToAspect(mAspect, w, h);
@@ -4566,7 +4567,7 @@ public class LWComponent
             getParent().layout();
         updateConnectedLinks(null);
         if (!quiet && isAutoSized())
-            notify(LWKey.Size, old); // todo perf: can we optimize this event out?
+            notify(LWKey.Size, old); // technically only needed if is user-sized (otherwise layout code handles this)
     }
 
     public static Size ConstrainToAspect(double aspect, double w, double h)
@@ -4677,6 +4678,11 @@ public class LWComponent
     public float getLocalBorderWidth() { return (float) ((this.width + mStrokeWidth.get()) * getScale()); }
     /** @return local height including any border stroke ((height + stroke) * scale) */
     public float getLocalBorderHeight() { return (float) ((this.height + mStrokeWidth.get()) * getScale()); }
+
+    /** convenience */
+    public Size getSize() {
+        return new Size(this.width, this.height);
+    }
     
 
 

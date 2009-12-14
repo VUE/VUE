@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.258 $ / $Date: 2009-12-09 19:46:05 $ / $Author: sfraize $
+ * @version $Revision: 1.259 $ / $Date: 2009-12-14 15:52:20 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -943,41 +943,58 @@ public class LWNode extends LWContainer
     
     
     @Override
-    public void setResource(Resource r)
+    public void setResource(final Resource r)
     {
         super.setResource(r);
         if (r == null || mXMLRestoreUnderway)
             return;
+
+        //=============================================================================
+        // LWImage would be dramatically simplified if we could just CREATE A NEW ONE if
+        // the resource changes.  We wouldn't have to to deal with any async undo stuff.
+        // That could be one case where we preserve the aspect for the new content.
+        // We'd still want to do a duplicate in case of any styling/title/notes info.
+        //=============================================================================
+
+        LWImage newImageIcon = null;
+
+        boolean rebuildImageIcon = true;
+        
         if (getChild(0) instanceof LWImage) {
-            LWImage image = (LWImage) getChild(0);
+            rebuildImageIcon = false;
+            final LWImage image0 = (LWImage) getChild(0);
+            if (DEBUG.IMAGE) out("checking for resource sync to image @child(0): " + image0);
             if (r.isImage()) {
-                if (image.isNodeIcon() && image.getResource() != null && !image.getResource().equals(getResource())) {
-                    // above hack: image resource will be null while being created in MapDropTarget
-                    image.setNodeIconResource(r);
+                if (image0.isNodeIcon() && !r.equals(image0.getResource())) { // we already know r can't be null
+                    deleteChildPermanently(image0);
+                    //image0.setNodeIconResource(r);
+                    newImageIcon = LWImage.createNodeIcon(image0, r);
                 }
             } else {
-                deleteChildPermanently(image);
+                deleteChildPermanently(image0);
             }
-// commented for now. Need to think of an elegant way of implementing this.
-//            if (r instanceof Osid2AssetResource) {
-//                try {
-//                    loadAssetToVueMetadata((Osid2AssetResource) r);
-//                } catch (Throwable t) {
- //                   Log.error(r, t);
- //               }
- //           }
         } else if (r.isImage()) {
-//             final LWImage imageIcon = new LWImage();
-//             imageIcon.setNodeIcon(true);
-//             imageIcon.setNodeIconResource(r);
-            final LWImage imageIcon = LWImage.createNodeIcon(r);
-            addChild(imageIcon);
-            sendToBack(imageIcon);
-            // set resource last so picks update node-icon status reliably:
-            //imageIcon.setResource(r);
-//             imageIcon.setNodeIcon(true);
-//             imageIcon.setNodeIconResource(r);
+            newImageIcon = LWImage.createNodeIcon(r); 
         }
+
+//         if (rebuildImageIcon) {
+// //             final LWImage imageIcon = new LWImage();
+// //             imageIcon.setNodeIcon(true);
+// //             imageIcon.setNodeIconResource(r);
+//             final LWImage imageIcon = LWImage.createNodeIcon(r);
+//             addChild(imageIcon);
+//             sendToBack(imageIcon);
+//             // set resource last so picks update node-icon status reliably:
+//             //imageIcon.setResource(r);
+// //             imageIcon.setNodeIcon(true);
+// //             imageIcon.setNodeIconResource(r);
+//         }
+
+        if (newImageIcon != null) {
+            addChild(newImageIcon);
+            sendToBack(newImageIcon);
+        }
+        
     }
 
     private void loadAssetToVueMetadata(Osid2AssetResource r)

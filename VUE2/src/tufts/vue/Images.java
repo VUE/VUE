@@ -51,7 +51,7 @@ import org.w3c.dom.NodeList;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.74 $ / $Date: 2009-12-09 19:45:00 $ / $Author: sfraize $
+ * @version $Revision: 1.75 $ / $Date: 2009-12-14 15:52:20 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -1608,7 +1608,12 @@ public class Images
             // the image loading in another thread.  If we don't, return
             // null -- caller must handle that condition.
         
-            if (imageSRC.key == null) Util.printStackTrace("attempting to load cache w/null key: " + imageSRC);
+            if (imageSRC.key == null) {
+                if (DEBUG.Enabled) 
+                    Util.printStackTrace("attempting to load cache w/null key: " + imageSRC);
+                else
+                    Log.warn("attempting to load cache w/null key: " + imageSRC);
+            }
         
             // It's okay if listener is null: a CachingRelayer will still be created, in
             // the Loader, and listeners can be added later.
