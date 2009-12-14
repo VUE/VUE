@@ -980,6 +980,7 @@ public class SearchAction extends AbstractAction {
         	Cluster2Layout layout = new Cluster2Layout();
 
         	layout.layout(VUE.getSelection());
+            VUE.getUndoManager().mark(VueResources.getString("searchgui.cluster"));
         }
 
         if (resultsType == LINK_ACTION) {
