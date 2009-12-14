@@ -86,6 +86,8 @@ public class TabularLayout extends Layout {
 
         for (LWComponent c : selection) {
 
+            // TODO: this should be done in the caller for all layout actions?
+
             if (c.isManagedLocation())
                 continue;
             
