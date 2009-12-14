@@ -81,58 +81,67 @@ public class TabularLayout extends Layout {
         double  yAdd = Y_COL_SIZE; //default vertical distance between nodes
         int count = 0;
         int total = 0;
-        Iterator<LWComponent> i = selection.iterator();
-        while (i.hasNext()) {
-            LWComponent c = i.next();
-            if (c instanceof LWNode || c instanceof LWImage || c instanceof LWText) {
-                LWComponent node = (LWComponent) c;
-                
-                /*
-                 * If we're using the collaborative IM layout, then we need to be careful about this, in the current layout
-                 * if you're not zoom fitting things can get pulled to the upper left, not sure if this is intended
-                 * so i'm leaving it alone, and just special casing the instant messenging case.
-                 */
-                if (IM_LAYOUT)
+
+        final java.util.List<LWComponent> toLayout = new ArrayList(selection.size());
+
+        for (LWComponent c : selection) {
+
+            if (c.isManagedLocation())
+                continue;
+            
+            if (c instanceof LWNode || c instanceof LWText) {
+                toLayout.add(c);
+            } else if (c instanceof LWImage) {
+                // should already be handled by checking isManagedLocation, but just in case
+                final LWImage image = (LWImage) c;
+                if (!image.isNodeIcon())
+                    toLayout.add(c);
+            }
+        }
+
+        for (LWComponent node : toLayout) {
+            /*
+             * If we're using the collaborative IM layout, then we need to be careful about this, in the current layout
+             * if you're not zoom fitting things can get pulled to the upper left, not sure if this is intended
+             * so i'm leaving it alone, and just special casing the instant messenging case.
+             */
+            if (IM_LAYOUT)
                 {
-                	minX = node.getLocation().getX() !=0.0 && node.getLocation().getX() < minX ? node.getLocation().getX() : minX;
-                	minY = node.getLocation().getX() !=0.0 && node.getLocation().getY() < minY ? node.getLocation().getY() : minY;
+                    minX = node.getLocation().getX() !=0.0 && node.getLocation().getX() < minX ? node.getLocation().getX() : minX;
+                    minY = node.getLocation().getX() !=0.0 && node.getLocation().getY() < minY ? node.getLocation().getY() : minY;
                 }
-                else
+            else
                 {
-                	minX = node.getLocation().getX() < minX ? node.getLocation().getX() : minX;
+                    minX = node.getLocation().getX() < minX ? node.getLocation().getX() : minX;
                     minY = node.getLocation().getY() < minY ? node.getLocation().getY() : minY;
                 }
                 
-                xAdd = xAdd > node.getWidth() ? xAdd : node.getWidth();
-                yAdd = yAdd > node.getHeight() ? yAdd : node.getHeight();
-                total++;
-//               System.out.println(node.getLabel()+"X= "+node.getLocation().getX()+" Y= "+node.getLocation().getY()+" MIN: "+minX+" : "+minY);
-            }
+            xAdd = xAdd > node.getWidth() ? xAdd : node.getWidth();
+            yAdd = yAdd > node.getHeight() ? yAdd : node.getHeight();
+            total++;
+            //               System.out.println(node.getLabel()+"X= "+node.getLocation().getX()+" Y= "+node.getLocation().getY()+" MIN: "+minX+" : "+minY);
         }
+    
         xAdd += X_SPACING; // spacing between nodes
         yAdd += Y_SPACING; // vertical spacing
         double x = minX;
         double y = minY;
         if (!STRICT_COL_COUNT)
         	mod = (int) Math.ceil(Math.sqrt((double) total));
-        i = selection.iterator();
-        while (i.hasNext()) {
-            LWComponent c = i.next();
-            if (c instanceof LWNode || c instanceof LWImage || c instanceof LWText) {
-                LWComponent node = (LWComponent) c;
-                total++;
-                if (count % mod == 0) {
-                    if (count != 0) {
-                        y += yAdd;
-                        System.out.println("Y : " +y +"," + " yAdd : " + yAdd);
-                    }
-                    x = minX;
-                } else {
-                    x += xAdd;
+
+        for (LWComponent node : toLayout) {
+            total++;
+            if (count % mod == 0) {
+                if (count != 0) {
+                    y += yAdd;
+                    System.out.println("Y : " +y +"," + " yAdd : " + yAdd);
                 }
-                count++;
-              	node.setLocation(x, y);
+                x = minX;
+            } else {
+                x += xAdd;
             }
+            count++;
+            node.setLocation(x, y);
         }
     }
 }
