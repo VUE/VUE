@@ -38,9 +38,9 @@ import java.awt.AlphaComposite;
 public class LWImage extends LWComponent
     implements ImageRef.Listener
 {
-    private static final class X__________ {}
-    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(X__________.class); // debug marker
-    //private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LWImage.class);
+    //private static final class X__________ {}
+    //private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(X__________.class); // debug marker
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LWImage.class);
 
     public static final boolean SLIDE_LABELS = false;
     
