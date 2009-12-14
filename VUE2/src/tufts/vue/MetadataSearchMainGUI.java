@@ -79,7 +79,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.57 $ / $Date: 2009-12-14 15:21:35 $ / $Author: Sheejo
+ * @version $Revision: 1.58 $ / $Date: 2009-12-14 16:57:32 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -1805,9 +1805,6 @@ public class MetadataSearchMainGUI extends JPanel
          if(data.getDataList()!=null){        	 
              termsAction = new SearchAction(data.getDataList());
          }
-         termsAction.setBasic(false);
-         termsAction.setTextOnly(true);
-         termsAction.setMetadataOnly(false);
          int iAndOr = 0;
          String andOrStr = data.getAndOrType();
          if(andOrStr.equals(VueResources.getString("searchgui.and"))){
@@ -1817,7 +1814,30 @@ public class MetadataSearchMainGUI extends JPanel
          }
          termsAction.setResultsType(data.getResultType());                 
          termsAction.setOperator(iAndOr);
-         termsAction.setEverything(true);
+
+         String searchType = data.getSearchType();
+         if (searchType.equals(SEARCH_LABELS_ONLY)) {
+             termsAction.setBasic(true);
+             termsAction.setTextOnly(false);
+             termsAction.setMetadataOnly(false);
+             termsAction.setEverything(false);
+         } else if (searchType.equals(SEARCH_ALL_KEYWORDS)) {
+             termsAction.setBasic(false);
+             termsAction.setTextOnly(true);
+             termsAction.setMetadataOnly(true);
+             termsAction.setEverything(false);
+         } else if (searchType.equals(SEARCH_CATEGORIES_AND_KEYWORDS)) {
+             termsAction.setBasic(false);
+             termsAction.setTextOnly(false);
+             termsAction.setMetadataOnly(false);
+             termsAction.setEverything(false);
+         } else /* if (searchType.equals(SEARCH_EVERYTHING)) */ {
+             termsAction.setBasic(false);
+             termsAction.setTextOnly(true);
+             termsAction.setMetadataOnly(false);
+             termsAction.setEverything(true);
+         }
+
          // termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
 
          if (DEBUG_LOCAL) {

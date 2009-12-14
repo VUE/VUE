@@ -304,7 +304,8 @@ public class SearchAction extends AbstractAction {
               }
               else
               {    
-                currentQuery.addCriteria(criteria.getKey(),criteria.getValue(),statement[2]); // would be nice to be able to say
+                currentQuery.addCriteria(criteria.getKey(),criteria.getValue(),"CONTAINS");
+                // currentQuery.addCriteria(criteria.getKey(),criteria.getValue(),statement[2]); // would be nice to be able to say
                 // query condition here -- could do as subclass of VueMetadataElement? getCondition()? then a search
                 // can be metadata too..
                 actualCriteriaAdded = true;
@@ -313,7 +314,8 @@ public class SearchAction extends AbstractAction {
             else
             {
               //System.out.println("query -- setBasic == true");
-              currentQuery.addCriteria(RDFIndex.VUE_ONTOLOGY+Constants.LABEL,criteria.getValue(),statement[2]); // see comments just above
+              currentQuery.addCriteria(RDFIndex.VUE_ONTOLOGY+Constants.LABEL,criteria.getValue(),"CONTAINS");
+              // currentQuery.addCriteria(RDFIndex.VUE_ONTOLOGY+Constants.LABEL,criteria.getValue(),statement[2]); // see comments just above
               actualCriteriaAdded = true;
             }
             
