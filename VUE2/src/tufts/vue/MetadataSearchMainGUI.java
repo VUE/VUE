@@ -79,7 +79,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.59 $ / $Date: 2009-12-14 17:06:20 $ / $Author: Sheejo
+ * @version $Revision: 1.60 $ / $Date: 2009-12-14 23:48:27 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -141,7 +141,7 @@ public class MetadataSearchMainGUI extends JPanel
     private boolean singleLine = false;
 
     private String[] currentMapResultsTypes = { VueResources.getString("searchgui.select"), VueResources.getString("searchgui.show"), VueResources.getString("searchgui.hide"),
-    		VueResources.getString("searchgui.cluster"), VueResources.getString("searchgui.copynewmap") };
+    		VueResources.getString("searchgui.cluster"), VueResources.getString("searchgui.link"), VueResources.getString("searchgui.copynewmap") };
     static public final int ANY_MODE = 0;
     static public final int ALL_MODE = 1;
     static public final int NOT_ANY_MODE = 2;

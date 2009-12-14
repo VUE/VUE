@@ -21,13 +21,16 @@ import edu.tufts.vue.layout.Cluster2Layout;
 import edu.tufts.vue.metadata.*;
 
 import java.awt.event.*;
+import java.awt.geom.Rectangle2D;
 import java.net.*;
 import java.util.*;
+
 import javax.swing.*;
 
 import tufts.vue.*;
 import tufts.vue.LWComponent.HideCause;
 import tufts.vue.LWMap.Layer;
+import tufts.vue.gui.GUI;
 
 /*
  * SearchAction.java
@@ -59,6 +62,7 @@ public class SearchAction extends AbstractAction {
     public static final int SELECT_ACTION = 2;
     public static final int COPY_ACTION = 3;
     public static final int CLUSTER_ACTION = 4;
+    public static final int LINK_ACTION = 5;
     
     public static final int SEARCH_SELECTED_MAP = 0;
     public static final int SEARCH_ALL_OPEN_MAPS = 1;
@@ -263,7 +267,7 @@ public class SearchAction extends AbstractAction {
     public void createQueries()
     {
         queryList = new ArrayList<Query>();
-        
+
         //query = new Query();
         textToFind = new ArrayList<String>();
         Iterator<VueMetadataElement> criterias = searchTerms.iterator();
@@ -861,14 +865,14 @@ public class SearchAction extends AbstractAction {
             comps.addAll(groupDescendants);
         }
         
-        if(resultsType == HIDE_ACTION || resultsType == SELECT_ACTION || resultsType == CLUSTER_ACTION)
+        if(resultsType == HIDE_ACTION || resultsType == SELECT_ACTION || resultsType == CLUSTER_ACTION || resultsType == LINK_ACTION)
         {    
             
           Iterator<LWComponent> it3 = comps.iterator();  
             
           while(it3.hasNext())
           {
-             if(resultsType == SELECT_ACTION || resultsType == CLUSTER_ACTION)
+             if(resultsType == SELECT_ACTION || resultsType == CLUSTER_ACTION || resultsType == LINK_ACTION)
              {
                if(MARQUEE == false)
                {
@@ -978,6 +982,37 @@ public class SearchAction extends AbstractAction {
         	layout.layout(VUE.getSelection());
         }
 
+        if (resultsType == LINK_ACTION) {
+            // Create a new node, name it based on the search, and link the selected nodes to it.
+            GUI.invokeAfterAWT(new Runnable() { public void run() {
+                Iterator<LWComponent>   selectionIter = VUE.getSelection().iterator();
+                LWMap                   activeMap = VUE.getActiveMap();
+                LWNode                  newNode = new LWNode("New Node");
+                List<LWComponent>       newComps = new ArrayList<LWComponent>(),
+                                        selectedNodes = new ArrayList<LWComponent>();
+                Rectangle2D             selectionBounds = VUE.getSelection().getBounds();
+
+                newComps.add(newNode);
+
+                while (selectionIter.hasNext()) {
+                    LWComponent         selectedComp = selectionIter.next();
+
+                    if (selectedComp instanceof LWNode) {
+                        LWLink          newLink = new LWLink(selectedComp, newNode);
+
+                        selectedNodes.add(selectedComp);
+                        newComps.add(newLink);
+                        }
+                    }
+
+                newNode.setLocation(selectionBounds.getCenterX(), selectionBounds.getCenterY());
+                activeMap.addChildren(newComps);
+                VUE.getUndoManager().mark(VueResources.getString("searchgui.link"));
+                tufts.vue.Actions.MakeCluster.doClusterAction(newNode, selectedNodes);
+                VUE.getUndoManager().mark(VueResources.getString("menu.format.layout.makecluster"));
+            }});
+        }
+
         // also need to save last results type...
         globalResultsType = resultsType;
         
@@ -1071,6 +1106,8 @@ public class SearchAction extends AbstractAction {
             resultsType = COPY_ACTION;
         else if(type.equals(VueResources.getString("searchgui.cluster")))
             resultsType = CLUSTER_ACTION;
+        else if(type.equals(VueResources.getString("searchgui.link")))
+            resultsType = LINK_ACTION;
         
         //globalResultsType = resultsType;
     }
