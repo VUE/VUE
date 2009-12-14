@@ -51,7 +51,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.128 $ / $Date: 2009-12-09 19:46:54 $ / $Author: sfraize $  
+ * @version $Revision: 1.129 $ / $Date: 2009-12-14 04:40:54 $ / $Author: sfraize $  
  */
 public class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -1005,7 +1005,10 @@ public class MapDropTarget
 
         // TODO: foundURL may need to be decoded once to see query (e.g., 2008 Yahoo image search lightbox)
 
-        if (foundURL != null && foundURL.getQuery() != null && !drop.isLinkAction) {
+        // why did we skip this if it was a link action? this is now breaking the dropping of light-box images
+        // entirely when we use the link action -- maybe it was for resource replacement?  test with
+        // OSID's that have queries inthe URL's.  -- SMF 2009-12-09
+        if (foundURL != null && foundURL.getQuery() != null /*&& !drop.isLinkAction*/) {
             // if this URL is from a common search engine, we can find
             // the original source for the image instead of the search
             // engine's context page for the image.
@@ -1396,9 +1399,9 @@ public class MapDropTarget
 //             node = lwImage;
 //         }
 
-        int suggestWidth = -1, suggestHeight = -1;
         
         if (resource.isImage()) {
+            int suggestWidth = -1, suggestHeight = -1;
             if (DEBUG.DND || DEBUG.IMAGE) Log.debug(drop + "; IMAGE DROP " + resource + " " + properties);
             String ws = (String) properties.get("width");
             String hs = (String) properties.get("height");
@@ -1406,11 +1409,12 @@ public class MapDropTarget
                 suggestWidth = Integer.parseInt(ws);
                 suggestHeight = Integer.parseInt(hs);
                 if (suggestWidth > 0 && suggestHeight > 0) {
-                    resource.setProperty("image.width", ws);
-                    resource.setProperty("image.height", hs);
-                } else {
-                    suggestWidth = suggestHeight = -1;
+                    resource.setProperty(Resource.IMAGE_WIDTH, ws);
+                    resource.setProperty(Resource.IMAGE_HEIGHT, hs);
                 }
+//                 else {
+//                     suggestWidth = suggestHeight = -1;
+//                 }
             }
         }
         
@@ -1427,12 +1431,13 @@ public class MapDropTarget
         } else {
             // we're dropping the image raw (either on map or into something else)
             lwImage = new LWImage();
-            if (suggestWidth > 0) {
-                //-----------------------------------------------------------------------------
-                // do we still need this?  Won't the image pull this itself from the Resource?
-                //-----------------------------------------------------------------------------
-                lwImage.suggestSize(suggestWidth, suggestHeight);
-            }
+//             if (suggestWidth > 0) {
+//                 //-----------------------------------------------------------------------------
+//                 // do we still need this?  Won't the image pull this itself from the Resource?
+//                 //-----------------------------------------------------------------------------
+//                 lwImage.suggestSize(suggestWidth, suggestHeight);
+//             }
+            lwImage.setResourceAndTitle(resource, mViewer.getMap().getUndoManager()); // NEW
             node = lwImage;
         }
 
@@ -1452,12 +1457,12 @@ public class MapDropTarget
             addNodeToFocal(node, where);
         //-----------------------------------------------------------------------------
 
-        if (lwImage != null) {
-            lwImage.setResourceAndTitle(resource, mViewer.getMap().getUndoManager());
-        } else if (newResource) {
-            // if image, it will do this at end of loading
-            ((URLResource)resource).scanForMetaDataAsync(node, true);
-        }
+//         if (lwImage != null) {
+//             lwImage.setResourceAndTitle(resource, mViewer.getMap().getUndoManager());
+//         } else if (newResource) {
+//             // if image, it will do this at end of loading
+//             ((URLResource)resource).scanForMetaDataAsync(node, true);
+//         }
 
         //if (where != null) addNodeToFocal(node, where);
          

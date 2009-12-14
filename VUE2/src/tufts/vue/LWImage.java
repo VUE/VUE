@@ -395,9 +395,6 @@ public class LWImage extends LWComponent
             final int[] suggestSize = getResourceImageSize(r);
             
             if (suggestSize != null) {
-                // If we know a size before loading, this will get us displaying that size.  If
-                // not, we'll set us to a minimum size for display until we know the real size.
-                
                 guess = new Size(suggestSize);
                 
                 if (isNodeIcon())
@@ -412,6 +409,9 @@ public class LWImage extends LWComponent
     
     /** @see ImageRef.Listener */
     public /*TESTSYNC*/ synchronized void imageRefChanged(Object cause) {
+
+        // We will ONLY get this message once we already know the full image size.
+        
         // note: this WILL NOT be in the AWT thread, so for full thread safety any
         // size changes should happen on AWT, tho that may conflict with our undo-tracking
         // for threaded inits?  Tho as long as we make use of the mark we obtain,
@@ -427,6 +427,14 @@ public class LWImage extends LWComponent
         if (hasFlag(Flag.SIZE_UNSET)) { // TODO: flag bits need sync access!
             // **** Why is SIZE_UNSET for an LWImage that was restored???
             if (DEBUG.IMAGE) Log.debug("imageRefChanged: SIZE IS UNSET");
+
+            //========================================================================================
+            // todo: call a method, that will have half of the guessAtBestSizeCode,
+            // which if SIZE_UNSET is true, will handle aspecting for both
+            // node icons and slide styles.  The our guess method will become much simpler.
+            // This might even be able to happen in setSizeImpl?
+            //========================================================================================
+            
             if (isNodeIcon)
                 autoShape();
             else
@@ -479,10 +487,13 @@ public class LWImage extends LWComponent
             // size, all should get their real size.  (also another argument for making them
             // singleton)
 
-            return getResourceImageSize(getResource());
-        } else {
-            return size;
+            int[] suggested = getResourceImageSize(getResource());
+            if (suggested != null)
+                return suggested;
+            // if no resource suggestion, be sure to return ImageRep.ZERO_SIZE
         }
+        
+        return size;
     }
 
     private int[] getResourceImageSize(Resource r) {
@@ -574,44 +585,51 @@ public class LWImage extends LWComponent
             Log.warn("bad aspect in shapeToAspect: " + aspect);
             return;
         }
-//         if (hasFlag(Flag.SIZE_UNSET) && aspect == ) {
-//             if (DEBUG.IMAGE) Log.debug("autoShapeToAspect: size not yet valid");
-//             return;
-//         }
-
-//         if (this.width == NEEDS_DEFAULT || this.height == NEEDS_DEFAULT) {
-//             //Log.error("cannot auto-shape without request size: " + this, new Throwable("HERE"));
-//             if (DEBUG.WORK||DEBUG.IMAGE) out("autoshaping from scratch to " + DefaultMaxDimension);
-//             setMaxDimension(DefaultMaxDimension);
-//             return;
-//         }
-     
-        if (DEBUG.Enabled) out("shapeToAspect " + aspect + " in: " + width + "," + height);
              
         // TODO: reconcile w/Imags.fitInto used in setMaxDimension
         final Size newSize = ConstrainToAspect(aspect, this.width, this.height); 
+        //final Size newSize = Images.fitInto(
 
-        final float dw = this.width - newSize.width;
-        final float dh = this.height - newSize.height;
-            
-        /*
-         * Added this in response to VUE-948
-         */
-        if ((DEBUG.WORK || DEBUG.IMAGE) && (newSize.width != width || newSize.height != height))
-            out(String.format("shapeToAspect: a=%.2f dw=%g dh=%g; %.1fx%.1f -> %s",
-                              aspect,
-                              dw, dh,
-                              width, height,
-                              newSize));
-                                  
-        //out("autoShapeToAspect: a=" + mImageAspect + "; dw=" + dw + ", dh=" + dh + "; " + width + "," + height + " -> adj " + newSize);
-        //out("autoShapeToAspect: " + width + "," + height + " -> newSize: " + newSize.width + "," + newSize.height);
-            
-        if (Math.abs(dw) > 1 || Math.abs(dh) > 1) {
-            // above check helps reduce needless tweaks, which make things messy during map loading
-            setSize(newSize.width, newSize.height);
-        }
+        if (DEBUG.Enabled) out("shapeToAspect " + aspect
+                               + "\n\t in: " + width + "," + height
+                               + "\n\tout: " + newSize);
+        
+        setSize(newSize);
     }
+    
+//     private void shapeToAspect(float aspect) {
+
+//         if (aspect <= 0) {
+//             Log.warn("bad aspect in shapeToAspect: " + aspect);
+//             return;
+//         }
+//         if (DEBUG.Enabled) out("shapeToAspect " + aspect + " in: " + width + "," + height);
+             
+//         // TODO: reconcile w/Imags.fitInto used in setMaxDimension
+//         final Size newSize = ConstrainToAspect(aspect, this.width, this.height); 
+
+//         final float dw = this.width - newSize.width;
+//         final float dh = this.height - newSize.height;
+            
+//         /*
+//          * Added this in response to VUE-948
+//          */
+//         if ((DEBUG.WORK || DEBUG.IMAGE) && (newSize.width != width || newSize.height != height))
+//             out(String.format("shapeToAspect: a=%.2f dw=%g dh=%g; %.1fx%.1f -> %s",
+//                               aspect,
+//                               dw, dh,
+//                               width, height,
+//                               newSize));
+                                  
+//         //out("autoShapeToAspect: a=" + mImageAspect + "; dw=" + dw + ", dh=" + dh + "; " + width + "," + height + " -> adj " + newSize);
+//         //out("autoShapeToAspect: " + width + "," + height + " -> newSize: " + newSize.width + "," + newSize.height);
+            
+// // Shouldn't need this anymore:
+//         if (Math.abs(dw) > 1 || Math.abs(dh) > 1) {
+//             // above check helps reduce needless tweaks, which make things messy during map loading
+//             setSize(newSize.width, newSize.height);
+//         }
+//     }
 
     /**
      * Don't let us get bigger than the size of our image, or
