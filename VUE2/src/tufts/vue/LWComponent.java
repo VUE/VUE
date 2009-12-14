@@ -48,7 +48,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.505 $ / $Date: 2009-12-09 17:50:12 $ / $Author: sfraize $
+ * @version $Revision: 1.506 $ / $Date: 2009-12-14 04:32:05 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -6875,6 +6875,7 @@ public class LWComponent
 
 
     public void setFlag(Flag flag) {
+        if (DEBUG.DATA) out("setFlag " + flag);
         mFlags |= flag.bit;
     }
 
@@ -6887,6 +6888,7 @@ public class LWComponent
     
 
     public void clearFlag(Flag flag) {
+        if (DEBUG.DATA) out("clearFlag " + flag);
         mFlags &= ~flag.bit;
     }
 
