@@ -79,7 +79,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.58 $ / $Date: 2009-12-14 16:57:32 $ / $Author: Sheejo
+ * @version $Revision: 1.59 $ / $Date: 2009-12-14 17:06:20 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */
@@ -547,6 +547,7 @@ public class MetadataSearchMainGUI extends JPanel
 	                    searchResultModel.addRow(data);
 	                    searchTerms = new ArrayList<VueMetadataElement>();
 	                    ((SearchTermsTableModel) searchTermsTbl.getModel()).refresh();
+	                    VUE.getActiveMap().markAsModified();
 
 	                    if (searchResultModel.getData() != null && VUE.getActiveMap() != null) {
 	                    	VUE.getActiveMap().setSearchArrLst(searchResultModel.getData());
