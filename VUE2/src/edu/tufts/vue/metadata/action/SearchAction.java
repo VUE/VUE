@@ -985,21 +985,37 @@ public class SearchAction extends AbstractAction {
 
         if (resultsType == LINK_ACTION) {
             // Create a new node, name it based on the search, and link the selected nodes to it.
+
             GUI.invokeAfterAWT(new Runnable() { public void run() {
-                Iterator<LWComponent>   selectionIter = VUE.getSelection().iterator();
-                LWMap                   activeMap = VUE.getActiveMap();
-                LWNode                  newNode = new LWNode("New Node");
-                List<LWComponent>       newComps = new ArrayList<LWComponent>(),
-                                        selectedNodes = new ArrayList<LWComponent>();
-                Rectangle2D             selectionBounds = VUE.getSelection().getBounds();
+                Iterator<VueMetadataElement> criterias = searchTerms.iterator();
+                String                       operator = (crossTermOperator == OR ? " or " : " and ");
+                StringBuffer                 newNodeName = new StringBuffer();
+                boolean                      firstTerm = true;
+
+                while (criterias.hasNext()) {
+                	if (!firstTerm) {
+                		newNodeName.append(operator);
+                	} else {
+                		firstTerm = false;
+                	}
+
+                	newNodeName.append(criterias.next().getValue());
+                }
+
+                Iterator<LWComponent>        selectionIter = VUE.getSelection().iterator();
+                LWMap                        activeMap = VUE.getActiveMap();
+                LWNode                       newNode = new LWNode(newNodeName.toString());
+                List<LWComponent>            newComps = new ArrayList<LWComponent>(),
+                                             selectedNodes = new ArrayList<LWComponent>();
+                Rectangle2D                  selectionBounds = VUE.getSelection().getBounds();
 
                 newComps.add(newNode);
 
                 while (selectionIter.hasNext()) {
-                    LWComponent         selectedComp = selectionIter.next();
+                    LWComponent              selectedComp = selectionIter.next();
 
                     if (selectedComp instanceof LWNode) {
-                        LWLink          newLink = new LWLink(selectedComp, newNode);
+                        LWLink               newLink = new LWLink(selectedComp, newNode);
 
                         selectedNodes.add(selectedComp);
                         newComps.add(newLink);
