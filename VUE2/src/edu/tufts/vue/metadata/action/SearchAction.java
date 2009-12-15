@@ -352,12 +352,12 @@ public class SearchAction extends AbstractAction {
     // note: performSearch determines if this is actually a seperate thread
     public void runSearchThread(int searchLocationType)
     {      	
-        if(searchType == QUERY && VUE.getMetadataSearchMainPanel().getSelectedOperator() == AND)
+        if(searchType == QUERY && crossTermOperator == AND)
         {        	
             createQuery();
         }
         else // todo: AND in first query
-        if(searchType == QUERY && VUE.getMetadataSearchMainPanel().getSelectedOperator() == OR)
+        if(searchType == QUERY && crossTermOperator == OR)
         {      
             createQueries();
         }
@@ -421,11 +421,11 @@ public class SearchAction extends AbstractAction {
         {
             //System.out.println("query result " + index.search(query) + " for query " + query.createSPARQLQuery());
             
-            if(actualCriteriaAdded && VUE.getMetadataSearchMainPanel().getSelectedOperator() == AND)
+            if(actualCriteriaAdded && crossTermOperator == AND)
             {    
               finds.add(index.search(query));
             }
-            else if(actualCriteriaAdded && VUE.getMetadataSearchMainPanel().getSelectedOperator() == OR)
+            else if(actualCriteriaAdded && crossTermOperator == OR)
             {
               Iterator<Query> queries = queryList.iterator();
               while(queries.hasNext())
