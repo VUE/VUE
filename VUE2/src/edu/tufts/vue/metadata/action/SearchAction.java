@@ -985,48 +985,54 @@ public class SearchAction extends AbstractAction {
 
         if (resultsType == LINK_ACTION) {
             // Create a new node, name it based on the search, and link the selected nodes to it.
-
             GUI.invokeAfterAWT(new Runnable() { public void run() {
-                Iterator<VueMetadataElement> criterias = searchTerms.iterator();
-                String                       operator = (crossTermOperator == OR ? " or " : " and ");
-                StringBuffer                 newNodeName = new StringBuffer();
-                boolean                      firstTerm = true;
+                LWSelection                      selection = VUE.getSelection();
 
-                while (criterias.hasNext()) {
-                	if (!firstTerm) {
-                		newNodeName.append(operator);
-                	} else {
-                		firstTerm = false;
-                	}
+                if (selection.size() > 0) {
+                    Iterator<VueMetadataElement> criterias = searchTerms.iterator();
+                    String                       operator = (crossTermOperator == OR ? " or " : " and ");
+                    StringBuffer                 newNodeName = new StringBuffer();
+                    boolean                      firstTerm = true;
 
-                	newNodeName.append(criterias.next().getValue());
-                }
+                    while (criterias.hasNext()) {
+                        if (!firstTerm) {
+                            newNodeName.append(operator);
+                        } else {
+                            firstTerm = false;
+                        }
 
-                Iterator<LWComponent>        selectionIter = VUE.getSelection().iterator();
-                LWMap                        activeMap = VUE.getActiveMap();
-                LWNode                       newNode = new LWNode(newNodeName.toString());
-                List<LWComponent>            newComps = new ArrayList<LWComponent>(),
-                                             selectedNodes = new ArrayList<LWComponent>();
-                Rectangle2D                  selectionBounds = VUE.getSelection().getBounds();
+                        newNodeName.append(criterias.next().getValue());
+                    }
 
-                newComps.add(newNode);
+                    Iterator<LWComponent>        selectionIter = selection.iterator();
+                    LWNode                       newNode = new LWNode(newNodeName.toString());
+                    List<LWComponent>            newComps = new ArrayList<LWComponent>(),
+                                                 selectedNodes = new ArrayList<LWComponent>();
 
-                while (selectionIter.hasNext()) {
-                    LWComponent              selectedComp = selectionIter.next();
+                    newComps.add(newNode);
 
-                    if (selectedComp instanceof LWNode) {
-                        LWLink               newLink = new LWLink(selectedComp, newNode);
+                    while (selectionIter.hasNext()) {
+                        LWComponent              selectedComp = selectionIter.next();
 
-                        selectedNodes.add(selectedComp);
-                        newComps.add(newLink);
+                        if (selectedComp instanceof LWNode) {
+                            LWLink               newLink = new LWLink(selectedComp, newNode);
+
+                            selectedNodes.add(selectedComp);
+                            newComps.add(newLink);
                         }
                     }
 
-                newNode.setLocation(selectionBounds.getCenterX(), selectionBounds.getCenterY());
-                activeMap.addChildren(newComps);
-                VUE.getUndoManager().mark(VueResources.getString("searchgui.link"));
-                tufts.vue.Actions.MakeCluster.doClusterAction(newNode, selectedNodes);
-                VUE.getUndoManager().mark(VueResources.getString("menu.format.layout.makecluster"));
+                    if (selectedNodes.size() > 0) {
+                        LWMap                    activeMap = VUE.getActiveMap();
+                        Rectangle2D              selectionBounds = selection.getBounds();
+
+                        newNode.setLocation(selectionBounds.getCenterX(), selectionBounds.getCenterY());
+                        activeMap.addChildren(newComps);
+                        VUE.getUndoManager().mark(VueResources.getString("searchgui.link"));
+                        tufts.vue.Actions.MakeCluster.doClusterAction(newNode, selectedNodes);
+                        VUE.getUndoManager().mark(VueResources.getString("menu.format.layout.makecluster"));
+                    }
+                }
             }});
         }
 
