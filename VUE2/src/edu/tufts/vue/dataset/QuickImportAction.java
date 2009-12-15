@@ -23,6 +23,7 @@ import javax.swing.JTextField;
 import javax.swing.Timer;
 
 import edu.tufts.vue.layout.RelRandomLayout;
+import edu.tufts.vue.ontology.ui.TypeList;
 import edu.tufts.vue.rss.RSSDataSource;
 
 import tufts.vue.LWMap;
@@ -31,6 +32,11 @@ import tufts.vue.VueAction;
 import tufts.vue.VueResources;
 import tufts.vue.action.RDFOpenAction;
 import tufts.vue.gui.VueFileChooser;
+
+import edu.tufts.vue.ontology.ui.OntologyBrowser;
+import edu.tufts.vue.ontology.ui.TypeList;
+
+import java.net.URL;
 
 
 public class QuickImportAction extends VueAction{
@@ -272,10 +278,29 @@ public class QuickImportAction extends VueAction{
 
 					String	location = isFile ? file.getAbsolutePath() : fileTextField.getText(),
 							locationLower = location.toLowerCase();
-
-					if (locationLower.endsWith(".rdf") || locationLower.endsWith(".rdfs") || locationLower.endsWith(".owl")) {
+// loading ontologies, we load rdfs ontology and also create a map
+//TOD0: refactor the ontology code so the viewer need not be touched
+					
+					if(locationLower.endsWith(".owl") ||locationLower.endsWith(".rdfs") ) {
+						edu.tufts.vue.ontology.ui.TypeList list = new edu.tufts.vue.ontology.ui.TypeList();
+						OntologyBrowser browser = OntologyBrowser.getBrowser();
+ 
+						URL ontURL;
+						if(isFile) {
+							ontURL = file.toURI().toURL();
+						} else {
+							ontURL = new URL(location);	 
+						}
+						tufts.vue.gui.Widget w = browser.addTypeList(list,edu.tufts.vue.ontology.Ontology. getLabelFromUrl(ontURL.getFile()),ontURL);
+                        list.loadOntology(ontURL,null,edu.tufts.vue.ontology.ui.OntologyChooser2.getOntType(ontURL),browser,w);     
+					}
+					
+					if (locationLower.endsWith(".rdf") || locationLower.endsWith(".rdfs")  ) {
 						map = RDFOpenAction.loadMap(location);
-						showMap();
+						showMap(); 
+					} else if(locationLower.endsWith(".owl")) {
+						VUE.clearWaitCursor();
+						// ignore owl extension
 					} else {
 						boolean isFolder = isFile && file.isDirectory();
 
