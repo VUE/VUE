@@ -778,7 +778,7 @@ public class SearchAction extends AbstractAction {
         
         comps.addAll(images);
         
-        if(resultsType == SELECT_ACTION && DO_NOT_SELECT_SLIDE_COMPONENTS)
+        if((resultsType == SELECT_ACTION || resultsType == CLUSTER_ACTION || resultsType == LINK_ACTION) && DO_NOT_SELECT_SLIDE_COMPONENTS)
         {
                  
            Iterator<LWComponent> it = comps.iterator();        
@@ -804,7 +804,7 @@ public class SearchAction extends AbstractAction {
            
         }
         
-        if(resultsType == SELECT_ACTION && DO_NOT_SELECT_NESTED_IMAGES)
+        if((resultsType == SELECT_ACTION || resultsType == CLUSTER_ACTION || resultsType == LINK_ACTION) && DO_NOT_SELECT_NESTED_IMAGES)
         {
            Iterator<LWComponent> it2 = comps.iterator(); 
            
@@ -1026,11 +1026,12 @@ public class SearchAction extends AbstractAction {
                         LWMap                    activeMap = VUE.getActiveMap();
                         Rectangle2D              selectionBounds = selection.getBounds();
 
-                        newNode.setLocation(selectionBounds.getCenterX(), selectionBounds.getCenterY());
+                        newNode.setCenterAt(selectionBounds.getCenterX(), selectionBounds.getCenterY());
                         activeMap.addChildren(newComps);
                         VUE.getUndoManager().mark(VueResources.getString("searchgui.link"));
                         tufts.vue.Actions.MakeCluster.doClusterAction(newNode, selectedNodes);
                         VUE.getUndoManager().mark(VueResources.getString("menu.format.layout.makecluster"));
+                        VUE.getActiveViewer().scrollRectToVisible(VUE.getSelection().getBounds().getBounds());  // must get bounds again after cluster action
                     }
                 }
             }});
@@ -1155,7 +1156,7 @@ public class SearchAction extends AbstractAction {
     
     public static void revertGlobalSearchSelection()
     {
-        if(globalResultsType == SELECT_ACTION)
+        if(globalResultsType == SELECT_ACTION || globalResultsType == CLUSTER_ACTION || globalResultsType == LINK_ACTION)
           revertSelections(globalResults);
         if(globalResultsType == HIDE_ACTION)
           showHiddenComponents(globalResults);
@@ -1165,7 +1166,7 @@ public class SearchAction extends AbstractAction {
     
     public static void revertGlobalSearchSelectionFromMSGUI()
     {
-        if(globalResultsType == SELECT_ACTION)
+        if(globalResultsType == SELECT_ACTION || globalResultsType == CLUSTER_ACTION || globalResultsType == LINK_ACTION)
           revertSelectionsFromMSGUI(globalResults);
         if(globalResultsType == HIDE_ACTION)
           showHiddenComponents(globalResults);
