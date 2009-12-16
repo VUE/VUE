@@ -992,23 +992,32 @@ public class SearchAction extends AbstractAction {
                     Iterator<VueMetadataElement> criterias = searchTerms.iterator();
                     String                       operator = (crossTermOperator == OR ? " or " : " and ");
                     StringBuffer                 newNodeName = new StringBuffer();
+                    LWNode                       newNode = new LWNode("New Node");
                     boolean                      firstTerm = true;
 
                     while (criterias.hasNext()) {
+                        VueMetadataElement       criteria = criterias.next();
+                        String                   key = criteria.getKey(),
+                                                 value = criteria.getValue();
+
                         if (!firstTerm) {
                             newNodeName.append(operator);
                         } else {
                             firstTerm = false;
                         }
 
-                        newNodeName.append(criterias.next().getValue());
+                        newNodeName.append(value);
+
+                        if (!key.equals("http://vue.tufts.edu/vue.rdfs#none")) {
+                        	newNode.addDataValue(key, value);
+                        }
                     }
 
                     Iterator<LWComponent>        selectionIter = selection.iterator();
-                    LWNode                       newNode = new LWNode(newNodeName.toString());
                     List<LWComponent>            newComps = new ArrayList<LWComponent>(),
                                                  selectedNodes = new ArrayList<LWComponent>();
 
+                    newNode.setLabel(newNodeName.toString());
                     newComps.add(newNode);
 
                     while (selectionIter.hasNext()) {
