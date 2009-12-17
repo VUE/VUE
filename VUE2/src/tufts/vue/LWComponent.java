@@ -48,7 +48,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.507 $ / $Date: 2009-12-14 15:52:20 $ / $Author: sfraize $
+ * @version $Revision: 1.508 $ / $Date: 2009-12-17 19:23:21 $ / $Author: brian $
  * @author Scott Fraize
  */
 
@@ -7057,7 +7057,7 @@ public class LWComponent
 
     // todo: this is no longer referenced in requiredPaint -- confusing inconsistency
     public boolean isDrawn() {
-        return isVisible() && !isFiltered();
+        return isVisible() && !(isFiltered() && !hasChildren());        
     }
     
     protected boolean updatingLinks() {
