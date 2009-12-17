@@ -46,7 +46,7 @@ import javax.swing.Icon;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.228 $ / $Date: 2009-11-04 22:18:00 $ / $Author: sfraize $
+ * @version $Revision: 1.229 $ / $Date: 2009-12-17 22:27:22 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -651,13 +651,14 @@ public class LWPathway extends LWContainer
 //         updateMemberVisibility();
     }
     
-    @Override
-    public boolean isDrawn() {
-        return !isRevealer() && super.isDrawn() && mEntries.size() > 0;
+    @Override public boolean isDrawn() {
+        return !isRevealer()
+            && (isVisible() && !isFiltered()) // old isDrawn
+            && mEntries.size() > 0;
+        //return !isRevealer() && super.isDrawn() && mEntries.size() > 0;
     }
 
-    @Override
-    public void setVisible(boolean visible) {
+    @Override public void setVisible(boolean visible) {
         if (DEBUG.PATHWAY) out("setVisible " + visible);
         super.setVisible(visible);
 

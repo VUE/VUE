@@ -35,7 +35,7 @@ import java.awt.geom.Rectangle2D;
  * 
  * This class is meant to be overriden to do something useful.
  *
- * @version $Revision: 1.51 $ / $Date: 2009-09-02 16:25:33 $ / $Author: sfraize $
+ * @version $Revision: 1.52 $ / $Date: 2009-12-17 22:27:22 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -310,6 +310,9 @@ public class LWTraversal {
                     return false;
                 }
                 
+                // TODO BUG: if any parent(s) are filtered, we need to allow
+                // depths down through all filtered parents to select any
+                // still visible children.
                 if (depth > pc.maxDepth) {
                     if (DEBUG.PICK) eoutln("DENIED: depth " + target + " depth " + depth + " > maxDepth " + pc.maxDepth);
                     return false;

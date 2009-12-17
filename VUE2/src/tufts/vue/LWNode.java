@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.259 $ / $Date: 2009-12-14 15:52:20 $ / $Author: sfraize $
+ * @version $Revision: 1.260 $ / $Date: 2009-12-17 22:27:22 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2292,37 +2292,9 @@ public class LWNode extends LWContainer
         return fillColor;
     }
     
-    @Override
-    protected void drawImpl(DrawContext dc)
+    @Override protected void drawImpl(DrawContext dc)
     {
-        if (dc.isLODEnabled()) {
-
-            // if net on-screen point size is less than 5 for all text, we allow drawing
-            // with reduced LOD (level-of-detail)
-        
-            final float renderScale = (float) dc.getAbsoluteScale();            
-            final float renderFont = mFontSize.get() * renderScale;
-            final boolean canSkipLabel = renderFont < 5; 
-            final boolean canSkipIcon;
-
-            if (iconShowing())
-                canSkipIcon = LWIcon.FONT_ICON.getSize() * renderScale < 5;
-            else
-                canSkipIcon = true;
-
-            if (canSkipLabel && canSkipIcon) {
-                drawNodeWithReducedLOD(dc, renderScale);
-                return; // WE'RE DONE
-            }
-        }
-
-            
-        //=============================================================================
-        // DRAW COMPLETE (with full detail)
-        //=============================================================================
-            
         if (!isFiltered()) {
-
             // Desired functionality is that if this node is filtered, we don't draw it, of course.
             // But also, even if this node is filtered, we still draw any children who are
             // NOT filtered -- we just drop out the parent background.
@@ -2337,6 +2309,9 @@ public class LWNode extends LWContainer
             //if (isZoomedFocus()) dc.g.setComposite(ZoomTransparency);
             drawChildren(dc);
         }
+
+        // even if filtered, we indicate if it's selected, as it *shouldn't* be selected
+        // if it's filtered, but we'll want to know if that is happening.
 
         if (isSelected() && dc.isInteractive() && dc.focal != this)
             drawSelection(dc);
@@ -2466,7 +2441,35 @@ public class LWNode extends LWContainer
         dc.g.draw(mShape);
     }
 
-    protected void drawNode(DrawContext dc)
+    private void drawNode(DrawContext dc) {
+        
+        if (dc.isLODEnabled()) {
+
+            // if net on-screen point size is less than 5 for all text, we allow drawing
+            // with reduced LOD (level-of-detail)
+            
+            final float renderScale = (float) dc.getAbsoluteScale();            
+            final float renderFont = mFontSize.get() * renderScale;
+            final boolean canSkipLabel = renderFont < 5; 
+            final boolean canSkipIcon;
+            
+            if (iconShowing())
+                canSkipIcon = LWIcon.FONT_ICON.getSize() * renderScale < 5;
+            else
+                canSkipIcon = true;
+
+            if (canSkipLabel && canSkipIcon) {
+                drawNodeWithReducedLOD(dc, renderScale);
+                return; // WE'RE DONE
+            } // else: fall thru and draw full node
+        }
+
+        drawFullNode(dc);
+    }
+    
+
+    /**  DRAW COMPLETE (with full detail) */
+    private void drawFullNode(DrawContext dc)
     {
         //-------------------------------------------------------
         // Fill the shape (if it's not transparent)

@@ -48,7 +48,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.508 $ / $Date: 2009-12-17 19:23:21 $ / $Author: brian $
+ * @version $Revision: 1.509 $ / $Date: 2009-12-17 22:27:22 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -156,39 +156,25 @@ public class LWComponent
             FIXED_LOCATION,
             /** has been specially styled for for appearance on a slide */
             SLIDE_STYLE,
-
             /** was created to serve some internal purpose: not intended to exist on a regular user map */
             INTERNAL,
-            
             /** this component should NOT broadast change events */
             EVENT_SILENT,
-            
             /** this component is in a "collapsed" or closed view state */
             COLLAPSED,
-
             /** for links: this is data-relation link */
             DATA_LINK,
-
             /** currently used for marking LWImage's as being node-icons */
             ICON,
-            
-            /** for subclass that want to distinguish between a default size and a validated size (e.g., LWImage)
+            /** for subclasses that want to distinguish between a default size and a validated size (e.g., LWImage)
              * "default size" could actually mean any suggested or invalid size before a final definite size */
             UNSIZED,
-            
             /** lets us know this is in the process of duplicating */
             DUPLICATING,
-
-
-//             /** if temporarily changing locked state, can save old value here (layers use this) */
-//             WAS_LOCKED,
-//             /** if temporarily changing default hidden state, can save old value here (layers use this) */
-//             WAS_HIDDEN,
-
-
+            
             ;
 
-        // TODO: general LOCKED which means fixed,no-delete,no-duplicate?,no-reorder(forward/back),no-link
+        // do we want a generalized LOCKED which means fixed,no-delete,no-duplicate?,no-reorder(forward/back),no-link?
             
         final int bit = 1 << ordinal();
     }
@@ -5660,7 +5646,8 @@ public class LWComponent
         
         // if filtered, don't draw, unless has children, in which case
         // we need to draw just in case any of the children are NOT filtered.
-        if (isHidden() || (isFiltered() && !hasChildren()))
+        //if (isHidden() || (isFiltered() && !hasChildren()))
+        if (!hasDraws())
             return false;
 
         if (dc.isClipOptimized()) {
@@ -7055,8 +7042,14 @@ public class LWComponent
         setVisible(!b.booleanValue());
     }
 
-    // todo: this is no longer referenced in requiredPaint -- confusing inconsistency
     public boolean isDrawn() {
+        return hasDraws();
+    }
+    
+    /** @return true if this node may have any drawing to do: (e.g., itself or children)
+     * Note that a return of true does not guarantee that we will draw anything,
+     * but if it returns false it does guarantee that nothing needs drawing */
+    public final boolean hasDraws() {
         return isVisible() && !(isFiltered() && !hasChildren());        
     }
     
