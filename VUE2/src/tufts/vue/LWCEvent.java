@@ -57,7 +57,7 @@ import static tufts.Util.*;
  * event to the GUI, although these are stop-gap cases that ultimately
  * would be better handled as a recognized property change.
 
- * @version $Revision: 1.39 $ / $Date: 2009-09-04 19:25:41 $ / $Author: sfraize $  
+ * @version $Revision: 1.40 $ / $Date: 2009-12-18 18:43:14 $ / $Author: sfraize $  
  
  */
 
@@ -188,7 +188,12 @@ public class LWCEvent
     }
 
     public boolean isUndoable() {
-        return hasOldValue();
+        // this is really only used in LWMap to determine if an event should
+        // trigger a change in the edited status of a map.  We need to
+        // check HierarchyChanging explicitly, as these are change events
+        // w/out old-values -- the "old" values are determined specially
+        // in the UndoManager itself.
+        return hasOldValue() || key == LWKey.HierarchyChanging;
     }
     
     public String toString() {
