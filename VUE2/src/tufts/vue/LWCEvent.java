@@ -57,7 +57,7 @@ import static tufts.Util.*;
  * event to the GUI, although these are stop-gap cases that ultimately
  * would be better handled as a recognized property change.
 
- * @version $Revision: 1.40 $ / $Date: 2009-12-18 18:43:14 $ / $Author: sfraize $  
+ * @version $Revision: 1.41 $ / $Date: 2009-12-18 18:49:47 $ / $Author: sfraize $  
  
  */
 
@@ -192,7 +192,7 @@ public class LWCEvent
         // trigger a change in the edited status of a map.  We need to
         // check HierarchyChanging explicitly, as these are change events
         // w/out old-values -- the "old" values are determined specially
-        // in the UndoManager itself.
+        // in the UndoManager itself.  This fixes VUE-1654.
         return hasOldValue() || key == LWKey.HierarchyChanging;
     }
     
