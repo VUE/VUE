@@ -1034,13 +1034,17 @@ public class SearchAction extends AbstractAction {
                     if (selectedNodes.size() > 0) {
                         LWMap                    activeMap = VUE.getActiveMap();
                         Rectangle2D              selectionBounds = selection.getBounds();
+                        UndoManager              undoMgr = VUE.getUndoManager();
 
                         newNode.setCenterAt(selectionBounds.getCenterX(), selectionBounds.getCenterY());
                         activeMap.addChildren(newComps);
-                        VUE.getUndoManager().mark(VueResources.getString("searchgui.link"));
+                        undoMgr.mark(VueResources.getString("searchgui.link"));
                         tufts.vue.Actions.MakeCluster.doClusterAction(newNode, selectedNodes);
-                        VUE.getUndoManager().mark(VueResources.getString("menu.format.layout.makecluster"));
+                        undoMgr.mark(VueResources.getString("menu.format.layout.makecluster"));
                         VUE.getActiveViewer().scrollRectToVisible(VUE.getSelection().getBounds().getBounds());  // must get bounds again after cluster action
+                        selection.add(newComps);
+                        tufts.vue.Actions.PushOut.act();
+                        undoMgr.mark(VueResources.local("menu.format.arrange.pushout"));
                     }
                 }
             }});
