@@ -116,7 +116,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.695 $ / $Date: 2009-12-04 21:03:09 $ / $Author: brian $ 
+ * @version $Revision: 1.696 $ / $Date: 2009-12-18 16:29:22 $ / $Author: brian $ 
  */
 
 public class VUE
@@ -3140,7 +3140,7 @@ public class VUE
         int response = VueUtil.option
             (c,
              VueResources.getString("optiondialog.savechages.message")
-             + "'" + map.getLabel() + "'?"
+             + " '" + map.getLabel() + "'?"
              + debug,
         
              VueResources.getString("optiondialog.savechages.title"),
