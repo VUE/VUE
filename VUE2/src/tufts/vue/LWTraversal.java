@@ -35,7 +35,7 @@ import java.awt.geom.Rectangle2D;
  * 
  * This class is meant to be overriden to do something useful.
  *
- * @version $Revision: 1.52 $ / $Date: 2009-12-17 22:27:22 $ / $Author: sfraize $
+ * @version $Revision: 1.53 $ / $Date: 2009-12-18 01:55:06 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -58,6 +58,7 @@ public class LWTraversal {
     protected final boolean preOrder;
     protected boolean done = false;
     protected int depth = 0;
+    protected int depthVisible = 0;
     
     protected final PickContext pc;
     
@@ -91,8 +92,11 @@ public class LWTraversal {
         } else {
             if (DEBUG.PICK) eoutln("Travers0: " + c);
             if (acceptChildren(c)) {
-                if (DEBUG.PICK) eoutln("Travers1: " + c);
+                final boolean painted = c.isPainted();
+                if (DEBUG.PICK) eoutln("Travers1: " + c + "; painted=" + painted);
                 depth++;
+                if (painted)
+                    depthVisible++;
 
                 List<LWComponent> pickables = null;
 
@@ -144,6 +148,8 @@ public class LWTraversal {
                     Util.printStackTrace(t, "traversal failure on " + c + "; pickables=" + pickables);
                 } finally {
                     depth--;
+                    if (painted)
+                        depthVisible--;
                     if (pickables == pickCache)
                         iteratingPickCache = false;
                 }
@@ -313,8 +319,8 @@ public class LWTraversal {
                 // TODO BUG: if any parent(s) are filtered, we need to allow
                 // depths down through all filtered parents to select any
                 // still visible children.
-                if (depth > pc.maxDepth) {
-                    if (DEBUG.PICK) eoutln("DENIED: depth " + target + " depth " + depth + " > maxDepth " + pc.maxDepth);
+                if (depthVisible > pc.maxDepth) {
+                    if (DEBUG.PICK) eoutln("DENIED: depth " + target + " depthVisible " + depthVisible + " > maxDepth " + pc.maxDepth);
                     return false;
                 }
                 

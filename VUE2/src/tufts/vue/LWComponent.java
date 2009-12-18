@@ -48,7 +48,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.509 $ / $Date: 2009-12-17 22:27:22 $ / $Author: sfraize $
+ * @version $Revision: 1.510 $ / $Date: 2009-12-18 01:55:06 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -7042,8 +7042,14 @@ public class LWComponent
         setVisible(!b.booleanValue());
     }
 
+    /** @deprecated -- use hasDraws() */
     public boolean isDrawn() {
         return hasDraws();
+    }
+    
+    /** @return true if ths component is going to be painting itself (independent of weather any children may do so) */
+    public boolean isPainted() {
+        return isVisible() && !isFiltered();
     }
     
     /** @return true if this node may have any drawing to do: (e.g., itself or children)
