@@ -28,7 +28,7 @@ import java.awt.Font;
  * is the the current focal.
  *
  * @author Scott Fraize
- * @version $Revision: 1.16 $ / $Date: 2008-08-09 21:25:16 $ / $Author: sfraize $ 
+ * @version $Revision: 1.17 $ / $Date: 2009-12-22 18:17:38 $ / $Author: sfraize $ 
  */
 public final class MasterSlide extends LWSlide
 {
@@ -362,26 +362,22 @@ public final class MasterSlide extends LWSlide
         }
     }
 
-    @Override
-    public void setLabel(String label) {
+    @Override public void setLabel(String label) {
         if (mXMLRestoreUnderway)
             ; // ignore
         else
             getEntry().pathway.setLabel(label);
     }
         
-    @Override
-    public boolean hasLabel() { return true; }
+    @Override public boolean hasLabel() { return true; }
 
     /** @return true -- always has picks, even if no proper children (the slide style objects) */
-    @Override
-    public boolean hasPicks() {
+    @Override public boolean hasPicks() {
         return true;
     }
 
     // override LWSlide impl that tries to draw master slide -- only draw children -- no fill
-    @Override
-    protected void drawImpl(DrawContext dc) {
+    @Override protected void drawImpl(DrawContext dc) {
         drawChildren(dc);
         if (dc.focal == this) {
             headerStyle.drawLocal(dc.push()); dc.pop();
@@ -390,8 +386,7 @@ public final class MasterSlide extends LWSlide
         }
     }
     
-    @Override
-    public java.util.List<LWComponent> getPickList(PickContext pc, java.util.List<LWComponent> stored)
+    @Override public java.util.List<LWComponent> getPickList(PickContext pc, java.util.List<LWComponent> stored)
     {
         stored.clear();
         stored.addAll(getChildren());
@@ -402,8 +397,7 @@ public final class MasterSlide extends LWSlide
     }
 
     
-    @Override
-    public Collection<LWComponent> getAllDescendents(final ChildKind kind, final Collection bag, Order order)
+    @Override public Collection<LWComponent> getAllDescendents(final ChildKind kind, final Collection bag, Order order)
     {
         if (kind == ChildKind.ANY) {
             bag.add(headerStyle);
@@ -415,20 +409,17 @@ public final class MasterSlide extends LWSlide
     
     
     /** @return true -- is never considered "empty" */
-    @Override
-    public boolean hasContent() {
+    @Override public boolean hasContent() {
         return true;
     }
 
     /** @return true */
-    @Override
-    public boolean isDrawn() {
+    @Override public boolean hasDraws() {
         return true;
     }
 
     /** @return true */
-    @Override
-    public boolean isVisible() {
+    @Override public boolean isVisible() {
         return true;
     }
 
@@ -437,12 +428,10 @@ public final class MasterSlide extends LWSlide
     // itself.  The notes for the MasterSlide object itself
     // will remain unused.
         
-    @Override
-    public String getNotes() {
+    @Override public String getNotes() {
         return getEntry().pathway.getNotes();
     }
-    @Override
-    public boolean hasNotes() {
+    @Override public boolean hasNotes() {
         return getEntry().pathway.hasNotes();
     }
         

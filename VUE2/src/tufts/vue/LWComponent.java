@@ -48,7 +48,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.510 $ / $Date: 2009-12-18 01:55:06 $ / $Author: sfraize $
+ * @version $Revision: 1.511 $ / $Date: 2009-12-22 18:17:38 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -108,8 +108,6 @@ public class LWComponent
     public enum HideCause {
         /** each subclass of LWComponent can use this for it's own purposes */
         DEFAULT (),
-            /* we've been hidden by a filter */
-            //FILTER (), 
             /** we've been hidden by link pruning */
             PRUNE (),
             /** another layer is set to be the exclusive layer */
@@ -140,6 +138,9 @@ public class LWComponent
     public enum Flag {
         /** been deleted (is in undo queue) */
         DELETED,
+            /** we've been hidden due to filtering -- note that this isn't a hide-bit in that children may still be visible even when
+             * this is set*/
+            FILTERED, 
             /** is in the process of being deleted */
             DELETING,
             /** is in the process of being un-deleted (undo) */
@@ -255,7 +256,7 @@ public class LWComponent
     // xAnchor/yAnchor, which could even be a list of actions to perform every time the
     // object is laid out, or it's parent resizes.
     
-    private boolean isFiltered = false; // replace with hidebits
+    //private boolean isFiltered = false;
     
     private MetadataList metadataList = new MetadataList();
     private static final NodeFilter NEEDS_NODE_FILTER = new NodeFilter();
@@ -277,6 +278,7 @@ public class LWComponent
     //protected transient boolean selected = false;
 
     protected int mHideBits = 0x0; // any bit set means we're hidden (not managed by undo)
+    //protected int mFilterBits = 0x0; // may need this to get pathway filtering not in conflict with search filtering
     protected volatile int mFlags = 0x0; // explicitly set/cleared: not managed by undo
     protected int mState = 0x0; // managed by undo (and individual bits may optionally be persisted)
 
@@ -2177,22 +2179,30 @@ public class LWComponent
     }
     
     /**
+     * @return true if should be hidden due to a currently applied filter, false if not
+     **/
+    public boolean isFiltered() {
+        return hasFlag(Flag.FILTERED);
+    }
+
+    /**
      * This sets the flag for the component so that it is either
      * hidden or visible based on a match to the active LWCFilter
      **/
     public void setFiltered(boolean filtered) {
-    	isFiltered = filtered;
-        //setHidden(HideCause.FILTER, filtered);
-    }
-    
-    /**
-     * @return true if should be hidden due to a currently applied filter, false if not
-     **/
-    public boolean isFiltered() {
-    	return isFiltered;
-        //return (mHideBits & HideCause.FILTER.bit) != 0;
+        if (DEBUG.Enabled) Log.debug("setFiltered " + filtered + "; " + this);
+        setFlag(Flag.FILTERED, filtered);
     }
 
+//     protected void setFilterBits(int bits) {
+//         final boolean wasFiltered = isFiltered()
+//         mHideBits = bits;
+//         if (wasHidden != isHidden())
+//             notify(LWKey.Hidden);
+//         //notify(LWKey.Hidden, wasHidden); // if we need it to be undoable
+//     }
+    
+    
     protected boolean alive() {
         // "internal" objects should always report events (e.g., special styles, such as data-styles)
         return parent != null
@@ -7043,11 +7053,11 @@ public class LWComponent
     }
 
     /** @deprecated -- use hasDraws() */
-    public boolean isDrawn() {
+    public final boolean isDrawn() {
         return hasDraws();
     }
     
-    /** @return true if ths component is going to be painting itself (independent of weather any children may do so) */
+    /** @return true if ths component is going to be painting itself (independent of any children may do so) */
     public boolean isPainted() {
         return isVisible() && !isFiltered();
     }
@@ -7055,8 +7065,11 @@ public class LWComponent
     /** @return true if this node may have any drawing to do: (e.g., itself or children)
      * Note that a return of true does not guarantee that we will draw anything,
      * but if it returns false it does guarantee that nothing needs drawing */
-    public final boolean hasDraws() {
-        return isVisible() && !(isFiltered() && !hasChildren());        
+    public boolean hasDraws() {
+        if (isFiltered())
+            return hasChildren();
+        else 
+            return isVisible();
     }
     
     protected boolean updatingLinks() {

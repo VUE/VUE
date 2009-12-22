@@ -46,7 +46,7 @@ import javax.swing.Icon;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.229 $ / $Date: 2009-12-17 22:27:22 $ / $Author: sfraize $
+ * @version $Revision: 1.230 $ / $Date: 2009-12-22 18:17:38 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -651,12 +651,25 @@ public class LWPathway extends LWContainer
 //         updateMemberVisibility();
     }
     
-    @Override public boolean isDrawn() {
-        return !isRevealer()
-            && (isVisible() && !isFiltered()) // old isDrawn
-            && mEntries.size() > 0;
-        //return !isRevealer() && super.isDrawn() && mEntries.size() > 0;
+    /** @return false -- cannot filter out entire pathways */
+    @Override public final boolean isFiltered() {
+        if (DEBUG.Enabled) Util.printStackTrace("isFiltered called " + this);
+        return false;
     }
+    @Override public final void setFiltered(boolean t) {
+        if (DEBUG.Enabled) Util.printStackTrace("setFiltered  " + t + "; " + this);
+    }
+    
+    @Override public boolean hasDraws() {
+        return isVisible() && mEntries.size() > 0;
+    }
+    
+//     @Override public boolean isDrawn() {
+//         return !isRevealer() // deprecated
+//             && (isVisible() && !isFiltered()) // old isDrawn
+//             && mEntries.size() > 0;
+//         //return !isRevealer() && super.isDrawn() && mEntries.size() > 0;
+//     }
 
     @Override public void setVisible(boolean visible) {
         if (DEBUG.PATHWAY) out("setVisible " + visible);

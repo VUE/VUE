@@ -59,7 +59,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.258 $ / $Date: 2009-12-09 17:50:41 $ / $Author: sfraize $
+ * @version $Revision: 1.259 $ / $Date: 2009-12-22 18:17:38 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -634,6 +634,8 @@ public class LWMap extends LWContainer
             else if (layer instanceof Layer) {            
                 // should always be the case (is a Layer)
                 if (onlyTopLevel) {
+                    // note: this will add hidden/filtered items as well -- could argue either way given
+                    // the usage (currently only used for getting nodes to project)
                     bag.addAll(layer.getChildren());
                 } else {
                     layer.getAllDescendents(kind, bag, order);
@@ -653,7 +655,7 @@ public class LWMap extends LWContainer
     @Override
     public Collection<LWComponent> getAllDescendents(final ChildKind kind, final Collection bag, Order order) {
 
-        if (kind == ChildKind.ANY /*|| !isLayered()*/) {
+        if (kind == ChildKind.ANY) {
             // include the layers and all descendents
             super.getAllDescendents(kind, bag, order);
         } else {
@@ -908,6 +910,10 @@ public class LWMap extends LWContainer
         /** @return null */
         @Override public Layer getPersistLayer() {return null; }
 
+        @Override public boolean isFiltered() {
+            return false;
+        }
+        
         /** currently a no-op: layers not allowed to be filtered */
         @Override public void setFiltered(boolean filtered) {
             //super.setFiltered(filtered);

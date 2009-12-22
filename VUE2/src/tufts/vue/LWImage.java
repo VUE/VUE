@@ -139,7 +139,7 @@ public class LWImage extends LWComponent
     public boolean isNodeIcon() { return hasFlag(Flag.ICON); }
 
     void setNodeIcon(boolean t) {
-        if (DEBUG.IMAGE) Log.debug("setNodeIcon " + t + "; " + this);
+        if (DEBUG.IMAGE) out("setNodeIcon " + t + "; " + this);
         setFlag(Flag.ICON, t);
     }
 
@@ -331,7 +331,7 @@ public class LWImage extends LWComponent
         // whole mechanism probably really needs to passed all the way through to the
         // notify so the undo manager can detect that there?
 
-        if (DEBUG.IMAGE) Log.debug("imageRefUpdate: cause=" + Util.tags(cause));
+        if (DEBUG.IMAGE) out("imageRefUpdate: cause=" + Util.tags(cause));
 
         if (cause == ImageRef.KICKED) {
             // doesn't work: the mark's already been made
@@ -343,11 +343,26 @@ public class LWImage extends LWComponent
             return;
         }
 
+        //---------------------------------------------------------------------------------------------------
+        // Note: there are an absurd number of codepaths to test for the proper handlding of size & aspect setting:
+        //  - runtime 0: fresh raw disk image load, then w/icon generation
+        //  - runtime 0: now icon is generated, is now in memory cache (TODO: check: is the full sourceSize in the cache?)
+        //  - new runtime, icon in disk cache
+        //  - new runtime, icon in memory cache
+        //  - quick import
+        //  - file system drags
+        //  - web browser URL field drag
+        //  - web browser image drag (different for different browsers)
+        //  - web browser image search light-tray drag (sizes sometimes decoded from the URLs)
+        //  - persisted map restores
+        // ++ PLUS POSSIBLE COMBINATIONS OF THE ABOVE (!)
+        //---------------------------------------------------------------------------------------------------
+
         if (hasFlag(Flag.UNSIZED) && ref().fullPixelSize() != ImageRef.ZERO_SIZE) {
 
             syncFurtherEventsToLastMark();
 
-            if (DEBUG.IMAGE) Log.debug("imageRefUpdate: SIZE IS UNSET; pixels=" + Util.tags(ref().fullPixelSize()));
+            if (DEBUG.IMAGE) out("imageRefUpdate: SIZE IS UNSET; pixels=" + Util.tags(ref().fullPixelSize()));
 
             //========================================================================================
             // todo: call a method, that will have half of the guessAtBestSizeCode,
@@ -422,7 +437,7 @@ public class LWImage extends LWComponent
         if (r == null || r.getProperties() == null)
             return null;
 
-        if (DEBUG.IMAGE) Log.debug("checking for resource size props in: " + r.getProperties().asProperties());
+        if (DEBUG.IMAGE) out("checking for resource size props in: " + r.getProperties().asProperties());
         
         final int w = r.getProperty(Resource.IMAGE_WIDTH, -1);
         final int h = r.getProperty(Resource.IMAGE_HEIGHT, -1);
@@ -468,7 +483,7 @@ public class LWImage extends LWComponent
         if (DEBUG.Enabled) out("setSizeImpl " + w + "x" + h + "; internal=" + internal);
 
         // Tracking UNSIZED lets us skip the undo-queue for size changes, but not for size
-        // changes to auto-sizing containers (e.g., LWNode) that happen due to re-layoutl E.g., you
+        // changes to auto-sizing containers (e.g., LWNode) that happen due to re-layout. E.g., you
         // drop an image, it takes a long time to load, you do other stuff to the map, the image
         // finally gets it's size, resizing it's parents -- if we purely ignore all those size
         // changes, then you UNDO THE DROP, those nodes won't be sized back.  We used to handle
@@ -479,10 +494,10 @@ public class LWImage extends LWComponent
         // most nodes are auto-sized and auto-relayout.  But user-sized nodes are still
         // a problem.
 
-        // The way to handle that instead to FORCE a size report for all parents
-        // when we begin a threaded image load, so no matter what there will be
-        // a size recorded into the undo-queue at that point.  This is much simpler
-        // than our our undo-mark hack.
+        // A way to handle that could be to force a size report for all parents when we begin a
+        // threaded image load, so no matter what there will be a size recorded into the undo-queue
+        // at that point.  This is much simpler than our our undo-mark hack.  The problem is doing
+        // this BEFORE the "Drop" mark happens -- it will only work if that's possible.
         
         super.setSizeImpl(w, h, internal);
         
@@ -585,9 +600,9 @@ public class LWImage extends LWComponent
     private ImageRef initRef(Resource r) {
         
         if (DEBUG.IMAGE) {
-            Log.debug("initRef: " + r + "; props=" + r.getProperties());
+            out("initRef: " + r + "; props=" + r.getProperties());
             if (!java.awt.EventQueue.isDispatchThread())
-                Log.debug("initRef: NOT ON AWT: " + Thread.currentThread());
+                out("initRef: NOT ON AWT: " + Thread.currentThread());
         }
         
         if (mImageRef != ImageRef.EMPTY && mImageRef.source().original == r) {
@@ -618,7 +633,7 @@ public class LWImage extends LWComponent
     // if we find any size info in the resource, use that as a temporary size
     private void guessAtBestSize(Resource r) {
 
-        if (DEBUG.IMAGE) Log.debug("guessAtBestSize: " + ref() + "; " + r);
+        if (DEBUG.IMAGE) out("guessAtBestSize: " + ref() + "; " + r);
         
         final int[] fullSize = ref().fullPixelSize();
 
@@ -917,7 +932,7 @@ public class LWImage extends LWComponent
 
     
     @Override protected void out(String s) {
-        Log.debug(String.format("%s: %s", paramString(), s));
+        Log.debug(String.format("%s %s", this, s));
     }
     
 //     @Override

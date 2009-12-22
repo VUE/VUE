@@ -52,7 +52,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.138 $ / $Date: 2009-05-14 22:18:44 $ / $Author: brian $
+ * @version $Revision: 1.139 $ / $Date: 2009-12-22 18:17:38 $ / $Author: sfraize $
  */
 
 public class PathwayPanel extends JPanel
@@ -1229,6 +1229,8 @@ public class PathwayPanel extends JPanel
 
         final Collection<LWComponent> allNodes = map.getAllDescendents();
 
+        if (DEBUG.Enabled) Log.debug("toggle; clear=" + clearFilter + "; all=" + Util.tags(allNodes));
+
         for (LWComponent c : allNodes)
             c.setFiltered(false);
         
@@ -1244,7 +1246,7 @@ public class PathwayPanel extends JPanel
             // that isn't in it.  Currently, any child of an LWComponent that is on a
             // pathway, is also considered on that pathway for display purposes.
             
-            filterAllOutsidePathway(map.getChildList(), pathway);
+            filterAllOutsidePathway(map, pathway);
             exclusiveDisplay = pathway;
             
             // Include anything that intersects a portal:
@@ -1270,22 +1272,26 @@ public class PathwayPanel extends JPanel
         }
 
 
-        // Now we make sure the Pathway objects themselves
-        // have their filter flag properly set.
+//         // Now we make sure the Pathway objects themselves
+//         // have their filter flag properly set.
 
-        for (LWPathway path : map.getPathwayList()) {
-            if (clearFilter)
-                path.setFiltered(false);
-            else
-                path.setFiltered(path != pathway);
-        }
+//         for (LWPathway path : map.getPathwayList()) {
+//             if (clearFilter)
+//                 path.setFiltered(false);
+//             else
+//                 path.setFiltered(path != pathway);
+//         }
         
         pathway.notify(this, LWKey.Repaint);
         //pathway.notify(this, "pathway.exclusive.display");
     }
 
-    private void filterAllOutsidePathway(Iterable<LWComponent> iterable, LWPathway pathway) {
-        for (LWComponent c : iterable) {
+    //private void filterAllOutsidePathway(Iterable<LWComponent> iterable, LWPathway pathway) {
+    private void filterAllOutsidePathway(LWComponent node, LWPathway pathway) {
+        
+        if (DEBUG.Enabled) Log.debug("filter against " + pathway + ": " + node); 
+
+        for (LWComponent c : node.getChildren()) {
             if (c.inPathway(pathway)) {
                 // this means we will NOT filter all the children of this component also --
                 // they are considered part of the visible pathway.
@@ -1293,7 +1299,7 @@ public class PathwayPanel extends JPanel
             }
             c.setFiltered(true);
             if (c.hasChildren())
-                filterAllOutsidePathway(c.getChildList(), pathway);
+                filterAllOutsidePathway(c, pathway);
         }
     }
     

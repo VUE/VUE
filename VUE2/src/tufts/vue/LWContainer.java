@@ -32,7 +32,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, duplication, adding/removing and reordering (z-order) of children.
  *
- * @version $Revision: 1.163 $ / $Date: 2009-10-15 19:59:36 $ / $Author: sfraize $
+ * @version $Revision: 1.164 $ / $Date: 2009-12-22 18:17:38 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -889,20 +889,37 @@ public abstract class LWContainer extends LWComponent
     @Override
     public Collection<LWComponent> getAllDescendents(final ChildKind kind, final Collection bag, Order order)
     {
-        for (LWComponent c : getChildren()) {
-            if ((kind == ChildKind.VISIBLE || kind == ChildKind.EDITABLE) && c.isHidden())
-                continue;
+        if (DEBUG.PARENTING) Log.debug("getAllDescentends " + kind + "," + order + "; in=" +  Util.tags(bag));
+        
+        for (LWComponent child : getChildren()) {
+
+            // Note: be careful with changes here: breaking this will break
+            // all sorts of operations throughout VUE that fetch descendent lists.
+
+            if (kind == ChildKind.VISIBLE) {
+                if (child.isHidden())
+                    continue;
+            }
+            else if (kind == ChildKind.EDITABLE) {
+                if (child.isHidden()) {
+                    continue;
+                } else if (child.isFiltered()) {
+                    // we still want to process any further children, but we can ignore this child
+                    child.getAllDescendents(kind, bag, order);
+                }
+            }
+
             if (order == Order.TREE) {
-                bag.add(c);
-                c.getAllDescendents(kind, bag, order);
+                bag.add(child);
+                child.getAllDescendents(kind, bag, order);
             } else {
-                // Order.DEPTH
-                c.getAllDescendents(kind, bag, order);
-                bag.add(c);
+                // Order.DEPTH:
+                child.getAllDescendents(kind, bag, order);
+                bag.add(child);
             }
         }
 
-        super.getAllDescendents(kind, bag, order);
+        // super.getAllDescendents(kind, bag, order); // is a NO-OP
         
         return bag;
     }

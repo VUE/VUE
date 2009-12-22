@@ -590,7 +590,7 @@ public class UndoManager
 
     private static class UndoActionList extends ArrayList
     {
-        private String name;
+        private final String name;
         private int current = -1;
 
         UndoActionList(String name) {
