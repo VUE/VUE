@@ -13,6 +13,7 @@ This sample schedules a task to start on a daily basis.
             <StartBoundary>2005-01-01T00:00:00</StartBoundary>
             <EndBoundary>2015-01-01T00:00:00</EndBoundary>
             <Enabled>true</Enabled>
+            <Delay>PT120S</Delay>
         </LogonTrigger>
     </Triggers>
     <Principals>
