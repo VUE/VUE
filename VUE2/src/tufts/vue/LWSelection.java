@@ -29,7 +29,7 @@ import com.google.common.collect.HashMultiset;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.112 $ / $Date: 2009-11-04 22:18:23 $ / $Author: sfraize $
+ * @version $Revision: 1.113 $ / $Date: 2009-12-22 18:11:41 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -240,6 +240,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
                 if (DEBUG.SELECTION)
                     System.out.println("\n-----------------------------------------------------------------------------");
                 debug("NOTIFYING " + listeners.size() + " LISTENERS");
+                Log.debug("content summary: " + mTypes);
             }
             Listener[] listener_iter = (Listener[]) listeners.toArray(listener_buf);
             int nlistener = listeners.size();
