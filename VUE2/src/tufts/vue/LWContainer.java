@@ -32,7 +32,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, duplication, adding/removing and reordering (z-order) of children.
  *
- * @version $Revision: 1.164 $ / $Date: 2009-12-22 18:17:38 $ / $Author: sfraize $
+ * @version $Revision: 1.165 $ / $Date: 2009-12-22 19:15:57 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -889,33 +889,48 @@ public abstract class LWContainer extends LWComponent
     @Override
     public Collection<LWComponent> getAllDescendents(final ChildKind kind, final Collection bag, Order order)
     {
-        if (DEBUG.PARENTING) Log.debug("getAllDescentends " + kind + "," + order + "; in=" +  Util.tags(bag));
+        if (DEBUG.PARENTING) Log.debug("getAllDescendents " + kind + "," + order + "; in=" +  Util.tags(bag));
+
+        final boolean visibleOnly = (kind == ChildKind.VISIBLE || kind == ChildKind.EDITABLE);
+        final boolean editableOnly = (kind == ChildKind.EDITABLE);
         
         for (LWComponent child : getChildren()) {
 
-            // Note: be careful with changes here: breaking this will break
-            // all sorts of operations throughout VUE that fetch descendent lists.
+            if (visibleOnly) {
 
-            if (kind == ChildKind.VISIBLE) {
-                if (child.isHidden())
-                    continue;
-            }
-            else if (kind == ChildKind.EDITABLE) {
+                // This is the central place where VISIBLE/EDITABLE logic is handled,
+                // tho there is some in LWMap in dealing with layers as well.  Note: be
+                // careful with changes here: breaking this, or the semantics of
+                // isHidden / isFiltered, will break all sorts of operations throughout
+                // VUE that fetch descendent lists.
+                
                 if (child.isHidden()) {
+                    // stop all descent: if a node isn't visible, it's children
+                    // are guaranteed not to be visible (and thus also not editable).
                     continue;
                 } else if (child.isFiltered()) {
-                    // we still want to process any further children, but we can ignore this child
+                    // we still want to process any further children who may not be filtered,
+                    // and thus may still be visible, but we can ignore this child
+                    // as being filtered means it's not visible or editable.
                     child.getAllDescendents(kind, bag, order);
+                    continue;
                 }
+                // go ahead and process normally, paying attention or Order,
+                // as we'll now be adding both this child and it's descendents.
+            }
+
+            if (editableOnly && child.isLocked()) {
+                // no descent: children of locked items are also locked
+                continue;
             }
 
             if (order == Order.TREE) {
-                bag.add(child);
+                bag.add(child); // outline-style: parent added before children
                 child.getAllDescendents(kind, bag, order);
             } else {
                 // Order.DEPTH:
                 child.getAllDescendents(kind, bag, order);
-                bag.add(child);
+                bag.add(child); // depth style: deepest components appear first (children before parents)
             }
         }
 
@@ -923,6 +938,7 @@ public abstract class LWContainer extends LWComponent
         
         return bag;
     }
+
 
     /** @return an iterable containing all ChildKind.PROPER descendents that are instances of the given class */
     public <A extends LWComponent> Iterable<A> getDescendentsOfType(ChildKind kind, Class<A> clazz) {
