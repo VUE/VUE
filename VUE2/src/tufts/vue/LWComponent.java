@@ -48,7 +48,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.511 $ / $Date: 2009-12-22 18:17:38 $ / $Author: sfraize $
+ * @version $Revision: 1.512 $ / $Date: 2009-12-22 19:15:38 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -72,7 +72,7 @@ public class LWComponent
         ANY,
 
         /** include only default, conceptually significant chilren, leaving out items such a slides, layers and pathways */
-        PROPER,
+        PROPER, // might better be termed what is a "user" or "user-content" object
             
         /** VISIBLE is PROPER, excluding those that are not currently visible */
         VISIBLE,
