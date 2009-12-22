@@ -3243,7 +3243,13 @@ public class Actions implements VueConstants
                 maxX = minX + totalWidth;
                 DistributeHorizontally.arrange(selection);
                 if (selection.size() == VUE.getActiveMap().getAllDescendents(LWContainer.ChildKind.EDITABLE).size()) {
-               	 ZoomTool.setZoomOutFit();
+                    // Would this feature be better be served by a general LWCAction flag that says
+                    // at the end of the action, make sure the entire selection is visible on the
+                    // map?  We could do a zoom-fit to the bounds of everything currently visible
+                    // on the map, plus everything in the current selection.  This covers both
+                    // cases of partial map selection and full-map selection.  We could skip
+                    // the zoom fit entirely if the current selection is already fully visible.
+                    ZoomTool.setZoomOutFit();
                }
             }
     };
