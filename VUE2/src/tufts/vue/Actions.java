@@ -3242,7 +3242,7 @@ public class Actions implements VueConstants
                 AlignCentersRow.arrange(selection);
                 maxX = minX + totalWidth;
                 DistributeHorizontally.arrange(selection);
-                if (selection.size() == VUE.getActiveMap().getAllDescendents(LWContainer.ChildKind.PROPER).size()) {
+                if (selection.size() == VUE.getActiveMap().getAllDescendents(LWContainer.ChildKind.EDITABLE).size()) {
                	 ZoomTool.setZoomOutFit();
                }
             }
@@ -3262,7 +3262,7 @@ public class Actions implements VueConstants
 //                 maxY = minY + height;
                 maxY = minY + totalHeight;
                 DistributeVertically.arrange(selection);
-                if (selection.size() == VUE.getActiveMap().getAllDescendents(LWContainer.ChildKind.PROPER).size()) {
+                if (selection.size() == VUE.getActiveMap().getAllDescendents(LWContainer.ChildKind.EDITABLE).size()) {
                   	 ZoomTool.setZoomOutFit();
                  }
             }
