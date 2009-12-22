@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.195 $ / $Date: 2009-10-06 14:10:10 $ / $Author: mike $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.195 2009-10-06 14:10:10 mike Exp $ -->
+<!-- $Revision: 1.196 $ / $Date: 2009-12-22 15:11:12 $ / $Author: mike $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.196 2009-12-22 15:11:12 mike Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -62,6 +62,8 @@
   <property name="test.lib"   value="${test.home}/lib" />
   <property name="junit.jar"   value="${test.lib}/junit.jar" />
   <property name="target.version" value="1.5"/>
+  <property name="MacDist" value="MacDist"/>
+  <property name="MacDist16" value="MacDist16"/>
 
   <!-- NarraVision.jar is just a copy of VUE.jar.  On the PC, It detects via
        the classpath if it's called anything with "NarraVision" in the
@@ -1199,11 +1201,16 @@
     <property name="mac.bundle_signature" value="TVUE"/> <!-- must match MacOS/Info.plist CFBundleSignature -->
 
     <target name="mac-dist" depends="jar" description="Creates a Mac OS X distributable Applcation directory for VUE">
-      <make-mac-osx-application name="VUE" plist="Info.plist"/>
-      <!--sleep seconds="20"/-->
+      <make-mac-osx-application dir="${MacDist}" name="VUE" plist="Info.plist"/>
     </target>
+	
+	 <target name="mac-16-dist" depends="jar" description="Creates a Mac OS X distributable Applcation directory for VUE">
+	      <make-mac-osx-application dir="${MacDist16}" name="VUE" plist="Info16.plist"/>
+	 </target>
 
-    <target name="mac-dist-raw"> <make-mac-osx-application name="VUE" plist="Info.plist"/> </target>
+    <target name="mac-dist-raw"> 
+    	<make-mac-osx-application name="VUE" plist="Info.plist"/> 
+    </target>
     
     
     <target name="mac-dist-15" depends="jar" description="Creates a Mac OS X distributable Applcation directory for VUE under Java 1.5">
@@ -1228,10 +1235,11 @@
     <macrodef name="make-mac-osx-application">
       <attribute name="name" description="Application name"/>
       <attribute name="plist" description="Source for Info.plist file"/>
+      <attribute name="dir" description="Subdir to put build in"/>
       <element name="extra-tasks" optional="yes"/>
       <!-- Under normal cirumstances, the caller will never make use of any of the attributes below.
            They mostly operate as local variables. -->
-      <attribute name="mac.appdir" default="${build.home}/@{name}.app"/>
+      <attribute name="mac.appdir" default="${build.home}/@{dir}/@{name}.app"/>
       <attribute name="contents" default="@{mac.appdir}/Contents"/>
       <attribute name="jar-0" default="${vue.jar}"/>
       <!--attribute name="jar-1" default="@{jar-0}"/-->
@@ -1451,7 +1459,7 @@ cclass Version {
     </target>
     
     <!-- Tasks to create releases for VUE -->
-    <target name="release" depends="clean,mac-dist,linux-jar,vue-applet">
+    <target name="release" depends="clean,mac-dist,mac-16-dist,linux-jar,vue-applet">
         <delete dir="${release.home}"/>
         <mkdir dir="${release.home}"/>
         <zip destfile="${release.home}/VUE.zip">
@@ -1461,10 +1469,15 @@ cclass Version {
     	            <zipfileset dir="${build.home}" includes="VUEApplet.jar" prefix="vueapplet" filemode="755"/>
     	 			<zipfileset dir="${build.home}/../../applet-samplehtml/" includes="**/*.*" prefix="vueapplet" filemode="755"/>
     	  </zip>
+        <checksum file="${release.home}/VUEApplet.zip" property="appletMD5"/>
          <checksum file="${release.home}/VUE.zip" property="genericMD5"/>
          <zip destfile="${release.home}/VUE.app.zip">
-           <zipfileset dir="${build.home}"  includes="**/VUE.app/**" filemode="755"/>
+           <zipfileset dir="${build.home}/${MacDist}"  includes="**/VUE.app/**" filemode="755"/>
          </zip>
+    	 <zip destfile="${release.home}/VUE-Java16.app.zip">
+    	   <zipfileset dir="${build.home}/${MacDist16}"  includes="**/VUE.app/**" filemode="755"/>
+    	 </zip>
+    	 <checksum file="${release.home}/VUE-Java16.app.zip" property="mac16MD5"/>
          <checksum file="${release.home}/VUE.app.zip" property="macMD5"/>
          <zip destfile="${release.home}/VUE_src.zip">
 <!--            <fileset dir="${lib.home}"/> -->
@@ -1486,7 +1499,9 @@ cclass Version {
          <echo file="${release.home}/checksum.txt" >
 VUE.zip - ${genericMD5}
 VUE.app.zip- ${macMD5}
+VUE-Java16.app.zip- ${mac16MD5}
 VUE_src.zip - ${srcMD5}     
+VUEApplet.zip - ${appletMD5}
         </echo>
     </target>
     
@@ -1505,16 +1520,19 @@ VUE_src.zip - ${srcMD5}
            <zip destfile="${basedir}/installer/VUE_Installer.zip">
             <zipfileset dir="${basedir}/installer/" includes="VUE.exe" filemode="755"/>
          </zip>
-
+	 
+   	 	 <checksum file="${release.home}/VUEApplet.zip" property="appletMD5"/>
          <checksum file="${release.home}/VUE.zip" property="genericMD5"/>
+		 <checksum file="${release.home}/VUE-Java16.app.zip" property="mac16MD5"/>   	
          <checksum file="${release.home}/VUE.app.zip" property="macMD5"/>
          <checksum file="${release.home}/VUE_src.zip" property="srcMD5"/>
          <checksum file="${basedir}/installer/VUE_Installer.zip" property="installerMD5"/>
            <echo file="${release.home}/checksum.txt" >
 VUE.zip - ${genericMD5}
 VUE.app.zip- ${macMD5}
+VUE-Java16.app.zip- ${mac16MD5}
 VUE_src.zip - ${srcMD5}     
-VUE_Installer.zip - ${installerMD5}
+VUEApplet.zip - ${appletMD5}
         </echo>
          
     </target>
