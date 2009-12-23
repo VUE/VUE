@@ -32,7 +32,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, duplication, adding/removing and reordering (z-order) of children.
  *
- * @version $Revision: 1.165 $ / $Date: 2009-12-22 19:15:57 $ / $Author: sfraize $
+ * @version $Revision: 1.166 $ / $Date: 2009-12-23 22:18:02 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -915,13 +915,14 @@ public abstract class LWContainer extends LWComponent
                     child.getAllDescendents(kind, bag, order);
                     continue;
                 }
-                // go ahead and process normally, paying attention or Order,
-                // as we'll now be adding both this child and it's descendents.
-            }
 
-            if (editableOnly && child.isLocked()) {
-                // no descent: children of locked items are also locked
-                continue;
+                if (editableOnly && child.isLocked()) {
+                    // no descent: children of locked items are also locked
+                    continue;
+                }
+                
+                // go ahead and process normally, paying attention or Order (TREE or DEPTH),
+                // as we'll now be adding both this child and it's descendents.
             }
 
             if (order == Order.TREE) {
