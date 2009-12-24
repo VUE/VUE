@@ -29,7 +29,7 @@ import com.google.common.collect.HashMultiset;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.113 $ / $Date: 2009-12-22 18:11:41 $ / $Author: sfraize $
+ * @version $Revision: 1.114 $ / $Date: 2009-12-24 20:41:44 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -240,7 +240,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
                 if (DEBUG.SELECTION)
                     System.out.println("\n-----------------------------------------------------------------------------");
                 debug("NOTIFYING " + listeners.size() + " LISTENERS");
-                Log.debug("content summary: " + mTypes);
+                //Log.debug("content summary: " + mTypes);
             }
             Listener[] listener_iter = (Listener[]) listeners.toArray(listener_buf);
             int nlistener = listeners.size();
@@ -490,7 +490,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
                 return false; // don't add
         }
 
-        if (DEBUG.SELECTION) debug("      add " + c);
+        if (DEBUG.SELECTION) debug("add: " + c);
         
         if (!c.isSelected()) {
             if (!isClone) c.setSelected(true);
@@ -676,7 +676,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         mDataValueCount = 0;
         mDataRowCount = 0;
         if (size() > 0) {
-            if (DEBUG.Enabled) Log.debug("RECOMPUTING STATISTICS; n=" + size());
+            if (DEBUG.Enabled) debug("RECOMPUTING STATISTICS; n=" + size());
             
             // TODO: ideally, we would listen for hierarchy change events on the
             // selection contents, and auto-recompute mParents whenever a change was
@@ -748,8 +748,8 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         return size() == 0 ? null : (LWComponent) get(size()-1);
     }
 
-    public Multiset<Class> getTypes() {
-        return mTypes;
+    public Set<Class> getTypes() {
+        return mTypes.elementSet();
     }
 
     public int getDataRowCount() {
@@ -763,10 +763,10 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     {
         return mTypes.count(clazz);
     }
-    
+
     public boolean containsType(Class clazz)
     {
-        for (Class contentClass : mTypes)
+        for (Class contentClass : getTypes())
             if (clazz.isAssignableFrom(contentClass))
                 return true;
         
@@ -775,7 +775,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     
     public boolean allOfType(Class clazz)
     {
-        for (Class contentClass : mTypes)
+        for (Class contentClass : getTypes())
             if (!clazz.isAssignableFrom(contentClass))
                 return false;
         
@@ -784,7 +784,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
 
     public boolean allOfSameType()
     {
-        return size() < 2 || mTypes.size() == 1;
+        return size() < 2 || getTypes().size() == 1;
     }
 
     public Set<LWContainer> getParents() {
@@ -848,29 +848,59 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     }
 
     private void debug(String s) {
-        Log.debug(String.format("%s %s", this, s));
+        Log.debug(String.format("[%s] %s", paramString(), s));
         //Log.debug(String.format("[%s] %s", paramString(), s));
     }
 
     protected String paramString()
     {
-        String content = (size() != 1 ? "" : " (" + first().toString() + ")");
+        final StringBuilder s = new StringBuilder();
 
-        return String.format("%d src=%s%s", size(), source, isClone ? " CLONE" : content);
-                             
-//         return "LWSelection["
-//             + size()
-//             + " src=" + source
-//             + 
-//             (isClone
-//              ? " CLONE]"
-//              : ("]" + content)
-//              );
+        if (isClone) {
+            s.append(String.format("CLONE@%08x: ", System.identityHashCode(this)));
+        }
+        
+        if (isEmpty()) {
+            //s.append("EMPTY");
+            s.append("0");
+        } else {
+            s.append(size());
+            s.append(": ");
+            if (size() == 1) {
+                s.append(first().toString());
+            } else {
+                // size > 1
+                boolean first = true;
+                for (Class clazz : getTypes()) {
+                    if (first) 
+                        first = false;
+                    else
+                        s.append(", ");
+                    if (clazz.getName().startsWith("tufts.vue.LW")) {
+                        s.append(clazz.getSimpleName().substring(2));
+                    } else
+                        s.append(clazz.getName());
+                    s.append(" x ");
+                    s.append(mTypes.count(clazz));
+                }
+            }
+        }
+
+
+        if (DEBUG.META) {
+            s.append(' ');
+            s.append(source);
+        }
+
+        return s.toString();
+        //        return String.format("%d%s src=%s%s", size(), s, source, isClone ? " CLONE" : "");
     }
 
-    @Override
-    public String toString() {
-        return "LWSelection[" + paramString() + "]";
+    @Override public String toString() {
+//         if (isClone || this != VUE.getSelection())
+//             return String.format("SELECTION@%08x[%s]", System.identityHashCode(this), paramString());
+//         else
+        return String.format("LWSelection[%s]", paramString());
     }
     
     
