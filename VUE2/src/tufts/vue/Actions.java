@@ -3242,7 +3242,9 @@ public class Actions implements VueConstants
                 AlignCentersRow.arrange(selection);
                 maxX = minX + totalWidth;
                 DistributeHorizontally.arrange(selection);
-                if (selection.size() == VUE.getActiveMap().getAllDescendents(LWContainer.ChildKind.EDITABLE).size()) {
+                // note that we need to check the global selection, not the passed in selection,
+                // as the passed in selection for arrange actions have links filtered out.
+                if (VUE.getSelection().size() == viewer().getMap().getAllDescendents(LWContainer.ChildKind.EDITABLE).size()) {
                     // Would this feature be better be served by a general LWCAction flag that says
                     // at the end of the action, make sure the entire selection is visible on the
                     // map?  We could do a zoom-fit to the bounds of everything currently visible
@@ -3268,9 +3270,13 @@ public class Actions implements VueConstants
 //                 maxY = minY + height;
                 maxY = minY + totalHeight;
                 DistributeVertically.arrange(selection);
-                if (selection.size() == VUE.getActiveMap().getAllDescendents(LWContainer.ChildKind.EDITABLE).size()) {
-                  	 ZoomTool.setZoomOutFit();
-                 }
+                //Log.debug("   VUE-SELECTION: " + VUE.getSelection());
+                //Log.debug("ACTION-SELECTION: " + selection);
+                // note that we need to check the global selection, not the passed in selection,
+                // as the passed in selection for arrange actions have links filtered out.
+                if (VUE.getSelection().size() == viewer().getMap().getAllDescendents(LWContainer.ChildKind.EDITABLE).size()) {
+                    ZoomTool.setZoomOutFit();
+                }
             }
         };
     
