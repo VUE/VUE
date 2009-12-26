@@ -3765,7 +3765,7 @@ public class Actions implements VueConstants
 
         LWLink.setPruningEnabled(!wasEnabled);
 
-        setAllPruneBitsEnabled(!wasEnabled);
+        setAllPruneHidesEnabled(!wasEnabled);
 
         return wasEnabled;
     }
@@ -3782,18 +3782,19 @@ public class Actions implements VueConstants
     /** erase all pruning state from the given map */
     private static void clearAllPruneStates(LWMap map) {
         for (LWComponent c : map.getAllDescendents()) {
-            c.clearHidden(HideCause.PRUNE);
-            c.clearFlag(Flag.PRUNED);
+            c.setPruned(false);
+            //c.clearHidden(HideCause.PRUNE);
+            //c.clearFlag(Flag.PRUNED);
             if (c instanceof LWLink)
                 ((LWLink)c).enablePrunes(false);
         }
     }
     
 
-    private static void setAllPruneBitsEnabled(final boolean enable) {
+    private static void setAllPruneHidesEnabled(final boolean enable) {
         for (LWMap map : VUE.getAllMaps()) {
             for (LWComponent c : map.getAllDescendents()) {
-                if (c.hasFlag(Flag.PRUNED)) 
+                if (c.isPruned())
                     c.setHidden(HideCause.PRUNE, enable);
                 if (c instanceof LWLink)
                     ((LWLink)c).enablePrunes(enable);

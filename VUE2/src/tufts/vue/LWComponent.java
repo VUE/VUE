@@ -48,7 +48,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.513 $ / $Date: 2009-12-26 21:46:54 $ / $Author: sfraize $
+ * @version $Revision: 1.514 $ / $Date: 2009-12-26 22:38:35 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -111,32 +111,31 @@ public class LWComponent
 
     public enum HideCause {
         /** each subclass of LWComponent can use this for it's own purposes */
-        DEFAULT (),
+        DEFAULT
             /** we've been hidden by link pruning */
-            PRUNE (/*CAUSE_PERSIST*/),
+            ,PRUNE // (CAUSE_PERSIST),
             /** another layer is set to be the exclusive layer */
-            LAYER_EXCLUDED (),
+            ,LAYER_EXCLUDED
             /** we're a member of a pathway that hides when the pathway hides, and all pathways we're on are hidden */
-            HIDES_WITH_PATHWAY (CAUSE_PATHWAY),
+            ,HIDES_WITH_PATHWAY (CAUSE_PATHWAY)
             /** we've been hidden by a pathway that is in the process of revealing */
-            PATH_UNREVEALED (CAUSE_PATHWAY),
+            ,PATH_UNREVEALED (CAUSE_PATHWAY)
             /** we've been hidden because the current pathway is all we we want to see, and we're not on it */
-            NOT_ON_CURRENT_PATH (CAUSE_PATHWAY),
-            
+            ,NOT_ON_CURRENT_PATH (CAUSE_PATHWAY)
             /** we've been hidden due to the collapse of a parent (different from Flag.COLLAPSED, which is for the collapsed parent) */
-            COLLAPSED (),
-            
+            ,COLLAPSED
             /** we're an LWImage that's a node-icon image, and we're hidden */
-            IMAGE_ICON_OFF ();
+            ,IMAGE_ICON_OFF
                 ;
-
-            
         final int bit = 1 << ordinal();
         final Object type;
 
         HideCause(Object typeKey) { type = typeKey; }
         HideCause() { type = CAUSE_DEFAULT; }
     }
+
+    private static Object FLAG_DEFAULT = "flag_default";
+    private static Object FLAG_UNDOABLE = "flag_undoable";
 
     /** runtime flags explicitly set and cleared by VUE code -- not managed by UNDO */
     public enum Flag {
@@ -168,32 +167,41 @@ public class LWComponent
             /** this component is in a "collapsed" or closed view state */
             COLLAPSED,
             /** for links: this is data-relation link */
-            DATA_LINK,
+            DATA_LINK
+            
             /** currently used for marking LWImage's as being node-icons */
-            ICON,
+            , ICON
+            
             /** for subclasses that want to distinguish between a default size and a validated size (e.g., LWImage)
              * "default size" could actually mean any suggested or invalid size before a final definite size */
-            UNSIZED,
-            /** lets us know this is in the process of duplicating */
-            DUPLICATING,
+            , UNSIZED
             
-            /** persistent prune state */
-            PRUNED,
+            /** lets us know this is in the process of duplicating */
+            , DUPLICATING
             
             ;
 
         // do we want a generalized LOCKED which means fixed,no-delete,no-duplicate?,no-reorder(forward/back),no-link?
             
         final int bit = 1 << ordinal();
+
+        final Object type;
+
+        Flag(Object typeKey) { type = typeKey; }
+        Flag() { this(FLAG_DEFAULT); }
+        
     }
 
 
     /** runtime persistant flags, managed by UNDO */
-    public enum State {
-
+    public enum State
+    {
         /** a map/layer has been auto-clustered by a data-drop */
         HAS_AUTO_CLUSTERED
-
+            
+            /** a map/layer has been auto-clustered by a data-drop */
+            , PRUNED
+            
             ;
             
         final int bit = 1 << ordinal();
@@ -6860,11 +6868,20 @@ public class LWComponent
         return parent == null ? false : parent.selectedOrParent();
     }
 
+    public final boolean isPruned() {
+        return hasState(State.PRUNED);
+    }
+    public final void setPruned(boolean pruned) {
+        setState(State.PRUNED, pruned);
+    }
+
     public static final Key KEY_State =
         new Key<LWComponent,Integer>("state") {
         @Override public void setValue(LWComponent c, Integer state) { c.mState = state; } // for undo
         @Override public Integer getValue(LWComponent c) { return c.mState; } // for undo/debug
         @Override public String getStringValue(LWComponent c) { return Integer.toHexString(c.mState); }
+        // arch: would be nice if all the stuff for dealing with bitfields was handled in a single
+        // BooleanKey which could be used for multiple bit fields.
     };
     
     public void setState(State s) {
@@ -6876,6 +6893,24 @@ public class LWComponent
             mState |= s.bit;
         else
             mState &= ~s.bit;
+        
+        
+// Problems getting below to fully work:
+//      (1) map not repainting when undoing a clear all pruning (should be easy)
+//      (2) LWLink internal head/tail prune states also need to be synced -- would need to make these
+//      state bits as well for being able to undo individual mouse-click prunes.
+        
+//         if (s == State.PRUNED) {
+//             // this is a hack, but could make this work for undo:
+//             if (on) {
+//                 if (LWLink.isPruningEnabled()) {
+//                     setHidden(HideCause.PRUNE, true);
+//                 }
+//             } else {
+//                 setHidden(HideCause.PRUNE, false);
+//             }
+//         }
+        
         if (mState != old)
             notify(KEY_State, Integer.valueOf(old));
     }
@@ -6884,10 +6919,14 @@ public class LWComponent
         return (mState & s.bit) != 0;
     }
 
-
     public void setFlag(Flag flag) {
         if (DEBUG.DATA) out("setFlag " + flag);
         mFlags |= flag.bit;
+    }
+
+    public void clearFlag(Flag flag) {
+        if (DEBUG.DATA) out("clearFlag " + flag);
+        mFlags &= ~flag.bit;
     }
 
     public void setFlag(Flag flag, boolean set) {
@@ -6897,11 +6936,6 @@ public class LWComponent
             clearFlag(flag);
     }
     
-
-    public void clearFlag(Flag flag) {
-        if (DEBUG.DATA) out("clearFlag " + flag);
-        mFlags &= ~flag.bit;
-    }
 
     public boolean hasFlag(Flag flag) {
         return (mFlags & flag.bit) != 0;
@@ -7064,13 +7098,13 @@ public class LWComponent
     public Boolean getXMLpruned() {
         // note: could store this as two bits on the links instrea and reconsitute
         // from that as opposed to saving on every node
-        return hasFlag(Flag.PRUNED) ? Boolean.TRUE : null;
+        return hasState(State.PRUNED) ? Boolean.TRUE : null;
     }
 
     public void setXMLpruned(Boolean b) {
         // note: should normally only be called if b is true,
         // as when false it shouldn't be persisted at all
-        setFlag(Flag.PRUNED, b.booleanValue());
+        setState(State.PRUNED, b.booleanValue());
     }
     
 
