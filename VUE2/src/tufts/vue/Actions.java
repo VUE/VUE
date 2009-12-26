@@ -3783,8 +3783,7 @@ public class Actions implements VueConstants
     private static void clearAllPruneStates(LWMap map) {
         for (LWComponent c : map.getAllDescendents()) {
             c.setPruned(false);
-            //c.clearHidden(HideCause.PRUNE);
-            //c.clearFlag(Flag.PRUNED);
+            c.clearHidden(HideCause.PRUNE);
             if (c instanceof LWLink)
                 ((LWLink)c).enablePrunes(false);
         }
