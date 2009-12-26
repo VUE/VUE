@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.260 $ / $Date: 2009-12-17 22:27:22 $ / $Author: sfraize $
+ * @version $Revision: 1.261 $ / $Date: 2009-12-26 21:30:41 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -950,18 +950,17 @@ public class LWNode extends LWContainer
             return;
 
         //=============================================================================
-        // LWImage would be dramatically simplified if we could just CREATE A NEW ONE if
-        // the resource changes.  We wouldn't have to to deal with any async undo stuff.
-        // That could be one case where we preserve the aspect for the new content.
-        // We'd still want to do a duplicate in case of any styling/title/notes info.
-        //=============================================================================
+        // LWImage ise dramatically simplified by just creating a new one when the
+        // resource changes.  We don't have to to deal with async undo stuff(?)  That
+        // could be one case where we preserve the aspect for the new content.  We'd
+        // still want to do a duplicate in case of any styling/title/notes info.
+        // =============================================================================
 
         LWImage newImageIcon = null;
 
         boolean rebuildImageIcon = true;
         
         if (getChild(0) instanceof LWImage) {
-            rebuildImageIcon = false;
             final LWImage image0 = (LWImage) getChild(0);
             if (DEBUG.IMAGE) out("checking for resource sync to image @child(0): " + image0);
             if (r.isImage()) {
@@ -976,19 +975,6 @@ public class LWNode extends LWContainer
         } else if (r.isImage()) {
             newImageIcon = LWImage.createNodeIcon(r); 
         }
-
-//         if (rebuildImageIcon) {
-// //             final LWImage imageIcon = new LWImage();
-// //             imageIcon.setNodeIcon(true);
-// //             imageIcon.setNodeIconResource(r);
-//             final LWImage imageIcon = LWImage.createNodeIcon(r);
-//             addChild(imageIcon);
-//             sendToBack(imageIcon);
-//             // set resource last so picks update node-icon status reliably:
-//             //imageIcon.setResource(r);
-// //             imageIcon.setNodeIcon(true);
-// //             imageIcon.setNodeIconResource(r);
-//         }
 
         if (newImageIcon != null) {
             addChild(newImageIcon);
