@@ -48,7 +48,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.514 $ / $Date: 2009-12-26 22:38:35 $ / $Author: sfraize $
+ * @version $Revision: 1.515 $ / $Date: 2009-12-26 22:48:37 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -178,6 +178,9 @@ public class LWComponent
             
             /** lets us know this is in the process of duplicating */
             , DUPLICATING
+            
+            /** this is part of a pruned map sub-graph */
+            , PRUNED
             
             ;
 
@@ -6869,10 +6872,12 @@ public class LWComponent
     }
 
     public final boolean isPruned() {
-        return hasState(State.PRUNED);
+        //return hasState(State.PRUNED); // for undo attempts
+        return hasFlag(Flag.PRUNED);
     }
     public final void setPruned(boolean pruned) {
-        setState(State.PRUNED, pruned);
+        //setState(State.PRUNED, pruned); // for undo attempts
+        setFlag(Flag.PRUNED, pruned);
     }
 
     public static final Key KEY_State =
@@ -7098,13 +7103,13 @@ public class LWComponent
     public Boolean getXMLpruned() {
         // note: could store this as two bits on the links instrea and reconsitute
         // from that as opposed to saving on every node
-        return hasState(State.PRUNED) ? Boolean.TRUE : null;
+        return isPruned() ? Boolean.TRUE : null;
     }
 
     public void setXMLpruned(Boolean b) {
         // note: should normally only be called if b is true,
         // as when false it shouldn't be persisted at all
-        setState(State.PRUNED, b.booleanValue());
+        setPruned(b.booleanValue());
     }
     
 
