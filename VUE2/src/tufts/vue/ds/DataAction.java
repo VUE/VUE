@@ -29,7 +29,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 
 
 /**
- * @version $Revision: 1.28 $ / $Date: 2009-10-12 19:30:45 $ / $Author: sfraize $
+ * @version $Revision: 1.29 $ / $Date: 2009-12-26 21:31:22 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -684,7 +684,7 @@ public final class DataAction
                     }
                     
                     if (DEBUG.WORK) Log.debug("image resource: " + IR);
-                    node.addChild(new tufts.vue.LWImage(IR));
+                    node.addChild(tufts.vue.LWImage.createNodeIcon(IR));
                 }
 
                 // This is now handled by LWComponent.fillLabelFormat for all data value replacements
