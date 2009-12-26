@@ -81,7 +81,7 @@ public class LWImage extends LWComponent
         // auto set title based on MapDropTarget.makeNodeTitle?
     }
 
-    static LWImage createNodeIcon(Resource r) {
+    public static LWImage createNodeIcon(Resource r) {
         if (DEBUG.IMAGE) Log.debug("createNodeIcon: " + r);
         final LWImage icon = new LWImage();
         icon.setNodeIcon(true);
