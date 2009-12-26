@@ -3733,32 +3733,74 @@ public class Actions implements VueConstants
     public static final VueAction TogglePruning =
         new VueAction(VueResources.local("menu.view.pruning"), keyStroke(KeyEvent.VK_J, COMMAND)) {
         public void act() {
-            final boolean wasEnabled = LWLink.isPruningEnabled();
+            final boolean wasEnabled = togglePruningEnabled();
+            
+            // Currently, this action is ONLY fired via a menu item.  If other code points might
+            // set this directly (the global pruning state), this should be changed to a
+            // toggleState action (impl getToggleState), and those code points should call this
+            // action to do the toggle, so the menu item checkbox state will stay synced.
 
-            // Currently, this action is ONLY fired via a menu item.  If other code
-            // points might set this directly, this should be changed to a toggleState
-            // action (impl getToggleState), and those code points should call this
-            // action to do the toggle, so the menu item checkbox state will stay
-            // synced.
-
-            LWLink.setPruningEnabled(!wasEnabled);
-
-            if (wasEnabled) {
-                // turning off pruning
-                for (LWMap map : VUE.getAllMaps()) {
-                    for (LWComponent c : map.getAllDescendents()) {
-                        c.clearHidden(HideCause.PRUNE);
-                        if (c instanceof LWLink)
-                            ((LWLink)c).clearPrunes();
-                    }
-                }
-                VUE.layoutAllMaps(HideCause.PRUNE);
-            } else {
-                // turning on pruning -- show prune controls on any selected links
-                viewer().repaint();
-            }
+            VUE.layoutAllMaps(HideCause.PRUNE);
+            viewer().repaint();
+            
+//             if (wasEnabled) {
+//                 // turning off pruning
+//                 for (LWMap map : VUE.getAllMaps()) {
+//                     for (LWComponent c : map.getAllDescendents()) {
+//                         c.clearHidden(HideCause.PRUNE);
+//                         if (c instanceof LWLink)
+//                             ((LWLink)c).clearPrunes();
+//                     }
+//                 }
+//                 VUE.layoutAllMaps(HideCause.PRUNE);
+//             } else {
+//                 // turning on pruning -- show prune controls on any selected links
+//                 viewer().repaint();
+//             }
         }
     };
+
+    private static boolean togglePruningEnabled() {
+        final boolean wasEnabled = LWLink.isPruningEnabled();
+
+        LWLink.setPruningEnabled(!wasEnabled);
+
+        setAllPruneBitsEnabled(!wasEnabled);
+
+        return wasEnabled;
+    }
+
+    
+    public static final VueAction ClearAllPruning =
+        new VueAction(VueResources.local("menu.view.clearpruning")) {
+        public void act() {
+            clearAllPruneStates(viewer().getMap());
+            viewer().repaint();
+        }
+    };
+
+    /** erase all pruning state from the given map */
+    private static void clearAllPruneStates(LWMap map) {
+        for (LWComponent c : map.getAllDescendents()) {
+            c.clearHidden(HideCause.PRUNE);
+            c.clearFlag(Flag.PRUNED);
+            if (c instanceof LWLink)
+                ((LWLink)c).enablePrunes(false);
+        }
+    }
+    
+
+    private static void setAllPruneBitsEnabled(final boolean enable) {
+        for (LWMap map : VUE.getAllMaps()) {
+            for (LWComponent c : map.getAllDescendents()) {
+                if (c.hasFlag(Flag.PRUNED)) 
+                    c.setHidden(HideCause.PRUNE, enable);
+                if (c instanceof LWLink)
+                    ((LWLink)c).enablePrunes(enable);
+            }
+        }
+    }
+    
 
     public static final VueAction ToggleLinkLabels =
         new VueAction("Link Labels") {

@@ -90,7 +90,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.170 $ / $Date: 2009-12-03 19:47:37 $ / $Author: brian $
+ * @version $Revision: 1.171 $ / $Date: 2009-12-26 21:46:55 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -662,6 +662,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
             viewMenu.add(Actions.Collapse);
         
         viewMenu.add(togglePruningItem);
+        viewMenu.add(Actions.ClearAllPruning);
         
         // JAVA BUG: ADDING A JMenuItem (maybe just JCheckBoxMenuItem)
         // already constructe, instead of letting the menu code do it

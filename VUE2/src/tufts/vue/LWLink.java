@@ -43,7 +43,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.230 $ / $Date: 2009-10-05 01:53:17 $ / $Author: sfraize $
+ * @version $Revision: 1.231 $ / $Date: 2009-12-26 21:46:54 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -614,8 +614,19 @@ public class LWLink extends LWComponent
         tail.pruned = !tail.pruned;
     }
 
-    public void clearPrunes() {
-        tail.pruned = head.pruned = false;
+    public void enablePrunes(boolean enable) {
+        if (enable) {
+            if (head.hasNode() && head.node.hasFlag(Flag.PRUNED))
+                tail.pruned = true;
+            else
+                tail.pruned = false;
+            if (tail.hasNode() && tail.node.hasFlag(Flag.PRUNED))
+                head.pruned = true;
+            else
+                head.pruned = false;
+        } else {
+            tail.pruned = head.pruned = false;
+        }
     }
 
 
@@ -628,10 +639,8 @@ public class LWLink extends LWComponent
 
     private static void pruneNode(final LWComponent c, final boolean prune)
     {
-        if (prune)
-            c.setHidden(HideCause.PRUNE);
-        else
-            c.clearHidden(HideCause.PRUNE);
+        c.setFlag(Flag.PRUNED, prune);
+        c.setHidden(HideCause.PRUNE, prune);
         
         for (LWComponent child : c.getChildren())
             pruneNode(child, prune);

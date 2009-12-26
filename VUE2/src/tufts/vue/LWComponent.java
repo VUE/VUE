@@ -48,7 +48,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.512 $ / $Date: 2009-12-22 19:15:38 $ / $Author: sfraize $
+ * @version $Revision: 1.513 $ / $Date: 2009-12-26 21:46:54 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -103,21 +103,25 @@ public class LWComponent
 			true);
 
     */
+
+    private static final Object CAUSE_DEFAULT = "cause_default";
+    private static final Object CAUSE_PATHWAY = "cause_pathway";
+    //private static final Object CAUSE_PERSIST = "cause_persist";
     
 
     public enum HideCause {
         /** each subclass of LWComponent can use this for it's own purposes */
         DEFAULT (),
             /** we've been hidden by link pruning */
-            PRUNE (),
+            PRUNE (/*CAUSE_PERSIST*/),
             /** another layer is set to be the exclusive layer */
             LAYER_EXCLUDED (),
             /** we're a member of a pathway that hides when the pathway hides, and all pathways we're on are hidden */
-            HIDES_WITH_PATHWAY (true),
+            HIDES_WITH_PATHWAY (CAUSE_PATHWAY),
             /** we've been hidden by a pathway that is in the process of revealing */
-            PATH_UNREVEALED (true),
+            PATH_UNREVEALED (CAUSE_PATHWAY),
             /** we've been hidden because the current pathway is all we we want to see, and we're not on it */
-            NOT_ON_CURRENT_PATH (true),
+            NOT_ON_CURRENT_PATH (CAUSE_PATHWAY),
             
             /** we've been hidden due to the collapse of a parent (different from Flag.COLLAPSED, which is for the collapsed parent) */
             COLLAPSED (),
@@ -128,10 +132,10 @@ public class LWComponent
 
             
         final int bit = 1 << ordinal();
-        final boolean isPathwayCause;
+        final Object type;
 
-        HideCause(boolean isPathCause) { isPathwayCause = isPathCause; }
-        HideCause() { isPathwayCause = false; }
+        HideCause(Object typeKey) { type = typeKey; }
+        HideCause() { type = CAUSE_DEFAULT; }
     }
 
     /** runtime flags explicitly set and cleared by VUE code -- not managed by UNDO */
@@ -172,6 +176,9 @@ public class LWComponent
             UNSIZED,
             /** lets us know this is in the process of duplicating */
             DUPLICATING,
+            
+            /** persistent prune state */
+            PRUNED,
             
             ;
 
@@ -2914,7 +2921,7 @@ public class LWComponent
         // clear any hidden bits that may be set as a result
         // of the membership in the pathway.
         for (HideCause cause : HideCause.values())
-            if (cause.isPathwayCause)
+            if (cause.type == CAUSE_PATHWAY)
                 clearHidden(cause);
 
         if (!hasFlag(Flag.DELETING) && LWIcon.IconPref.getPathwayIconValue())  {
@@ -6872,6 +6879,7 @@ public class LWComponent
         if (mState != old)
             notify(KEY_State, Integer.valueOf(old));
     }
+    
     public boolean hasState(State s) {
         return (mState & s.bit) != 0;
     }
@@ -7051,6 +7059,20 @@ public class LWComponent
     public void setXMLhidden(Boolean b) {
         setVisible(!b.booleanValue());
     }
+
+    /** persist with a true value only if HideCause.PRUNE is set */
+    public Boolean getXMLpruned() {
+        // note: could store this as two bits on the links instrea and reconsitute
+        // from that as opposed to saving on every node
+        return hasFlag(Flag.PRUNED) ? Boolean.TRUE : null;
+    }
+
+    public void setXMLpruned(Boolean b) {
+        // note: should normally only be called if b is true,
+        // as when false it shouldn't be persisted at all
+        setFlag(Flag.PRUNED, b.booleanValue());
+    }
+    
 
     /** @deprecated -- use hasDraws() */
     public final boolean isDrawn() {

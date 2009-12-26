@@ -146,6 +146,7 @@
 		<field name="XMLtextColor">     <bind-xml name="textColor" node="element"/></field>
 		<field name="XMLfont">          <bind-xml name="font" node="element"/></field>
 		<field name="XMLhidden">        <bind-xml name="hidden" node="attribute"/></field>
+		<field name="XMLpruned">        <bind-xml name="pruned" node="attribute"/></field>
 		<field name="XMLlocked">        <bind-xml name="locked" node="attribute"/></field>
 		<field name="XMLtextBox">       <bind-xml name="textBox" node="element"/></field>
                 <field name="strokeWidth">      <bind-xml name="strokeWidth" node="attribute"/></field>
