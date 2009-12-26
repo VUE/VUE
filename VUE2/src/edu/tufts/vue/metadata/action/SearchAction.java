@@ -944,7 +944,13 @@ public class SearchAction extends AbstractAction {
           }
             
             
-          //globalHides = // opposite of comps 
+          //globalHides = // opposite of comps
+
+          // todo: really, we want to do this on VISIBLE, not EDITABLE (e.g., even
+          // filter locked objects), but we would need to change all other duplicate code
+          // references, and then regression test.
+          //Collection<LWComponent> allComps = tufts.vue.VUE.getActiveMap().getAllDescendents(LWComponent.ChildKind.VISIBLE);
+          
           Collection<LWComponent> allComps = tufts.vue.VUE.getActiveMap().getAllDescendents(LWComponent.ChildKind.EDITABLE);
           globalHides = new ArrayList();
           Iterator<LWComponent> allIt = allComps.iterator();
@@ -964,7 +970,7 @@ public class SearchAction extends AbstractAction {
                   if(!(comp instanceof LWSlide) && !comp.hasFlag(LWComponent.Flag.SLIDE_STYLE)
                     && (!(comp.hasAncestorOfType(LWSlide.class))) && !(comp instanceof LWGroup) )  
                   {
-                    comp.setFiltered(true);
+                      comp.setFiltered(true); // SHOW/HIDE
                     globalHides.add(comp);
                   }
               }
@@ -1163,7 +1169,7 @@ public class SearchAction extends AbstractAction {
             
             if(!(comp instanceof LWSlide) && !comp.hasFlag(LWComponent.Flag.SLIDE_STYLE)
                && (!(comp.hasAncestorOfType(LWSlide.class))))  
-              comp.setFiltered(false);
+                comp.setFiltered(false); // REVERT FILTER
         } 
     }
     
