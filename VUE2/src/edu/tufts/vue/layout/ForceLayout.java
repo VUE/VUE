@@ -67,6 +67,8 @@ public class ForceLayout extends Layout {
         
         while (i.hasNext()) {
             LWComponent c = i.next();
+            if (c.isManagedLocation())
+                continue; 
             if(c instanceof LWNode) {
                 LWNode node = (LWNode)c;
                 minX = node.getLocation().getX()<minX?node.getLocation().getX():minX;
@@ -106,6 +108,8 @@ public class ForceLayout extends Layout {
             i = selection.iterator();
             while (i.hasNext()) {
                 LWComponent c = i.next();
+                if (c.isManagedLocation())
+                    continue; 
                 if(c instanceof LWNode) {
                     LWNode node = (LWNode)c;
                     double angle = Math.PI*2 * Math.random();

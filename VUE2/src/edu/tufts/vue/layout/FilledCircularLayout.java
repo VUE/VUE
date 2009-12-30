@@ -59,7 +59,10 @@ public class FilledCircularLayout extends Layout {
         int total = 0;
         Iterator<LWComponent> i = selection.iterator();
         while (i.hasNext()) {
+        	
             LWComponent c = i.next();
+            if (c.isManagedLocation())
+                continue; 
             if (c instanceof LWNode) {
                 LWNode node = (LWNode) c;
                 minX = node.getLocation().getX() < minX ? node.getLocation().getX() : minX;
@@ -79,7 +82,10 @@ public class FilledCircularLayout extends Layout {
         double centerY = y + radius;
         i = selection.iterator();
         while (i.hasNext()) {
+        	
             LWComponent c = i.next();
+            if (c.isManagedLocation())
+                continue; 
             if (c instanceof LWNode) {
                 LWNode node = (LWNode) c;
                 double angle = Math.PI * 2 * Math.random();

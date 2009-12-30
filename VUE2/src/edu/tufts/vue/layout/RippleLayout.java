@@ -54,7 +54,10 @@ public class RippleLayout extends Layout {
             double centerY = component.getLocation().getY();
             Iterator<LWComponent> i = VUE.getActiveMap().getAllDescendents(LWContainer.ChildKind.PROPER).iterator();
             while(i.hasNext()) {
+            	 
                 LWComponent c = i.next();
+                if (c.isManagedLocation())
+                    continue; 
                 if(!selection.contains(c) && c instanceof LWNode) {
                     double x = c.getLocation().getX();
                     double y = c.getLocation().getY();
