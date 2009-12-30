@@ -25,6 +25,8 @@ public class HierarchicalLayout extends Layout {
 		Iterator<LWComponent> iter = selection.iterator();
 		while (iter.hasNext()) {
 			LWComponent c = iter.next();
+			  if (c.isManagedLocation())
+	                continue; 
 			if (c instanceof LWNode) {
 				LWNode node = (LWNode) c;
 				double centerX = c.getX() + c.getWidth() / 2;

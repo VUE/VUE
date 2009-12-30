@@ -71,6 +71,8 @@ public class StretchLayout extends Layout {
         Iterator<LWComponent> i = VUE.getActiveMap().getAllDescendents(LWContainer.ChildKind.PROPER).iterator();
         while (i.hasNext()) {
             LWComponent c = i.next();
+            if (c.isManagedLocation())
+                continue; 
             if(!selection.contains(c) && c instanceof LWNode) {
                 // if node is within the selection move it to the bounding box
                 

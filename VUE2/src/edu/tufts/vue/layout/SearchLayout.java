@@ -58,7 +58,10 @@ public class SearchLayout extends Layout {
         // determine the mean node size
         Iterator<LWComponent> iter = selection.iterator();
         while (iter.hasNext()) {
+         
             LWComponent c = iter.next();
+            if (c.isManagedLocation())
+                continue; 
             if (c instanceof LWNode) {
                 LWNode node = (LWNode) c;
                 centerX += node.getLocation().getX();
@@ -98,6 +101,8 @@ public class SearchLayout extends Layout {
         i = selection.iterator();
         while (i.hasNext()) {
             LWComponent c = i.next();
+            if (c.isManagedLocation())
+                continue; 
             if (c instanceof LWNode) {
                 LWNode node = (LWNode) c;
                 double angle = Math.PI * 2 * Math.random();

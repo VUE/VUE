@@ -86,6 +86,8 @@ public class Cluster2Layout extends Layout {
 				LWContainer.ChildKind.PROPER).iterator();
 		while (i.hasNext()) {
 			LWComponent c = i.next();
+			  if (c.isManagedLocation())
+	                continue; 
 			if (c instanceof LWNode) {
 				LWNode node = (LWNode) c;
 				double x = node.getX();

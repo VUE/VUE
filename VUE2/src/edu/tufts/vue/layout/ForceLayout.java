@@ -82,6 +82,8 @@ public class ForceLayout extends Layout {
         i = VUE.getActiveMap().getAllDescendents(LWContainer.ChildKind.PROPER).iterator();
         while (i.hasNext()) {
             LWComponent c = i.next();
+            if (c.isManagedLocation())
+                continue; 
             if(c instanceof LWLink) {
                 applyLayout = true;
                 LWLink link = (LWLink)c;
