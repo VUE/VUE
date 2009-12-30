@@ -65,15 +65,15 @@ public class CircularLayout extends Layout {
         Iterator<LWComponent> i = selection.iterator();
         while (i.hasNext()) {
             LWComponent c = i.next();
-            if(c instanceof LWNode) {
-                LWNode node = (LWNode)c;
-                minX = node.getLocation().getX()<minX?node.getLocation().getX():minX;
-                minY =node.getLocation().getY()<minY?node.getLocation().getY():minY;
-                maxX = node.getLocation().getX() > maxX ? node.getLocation().getX() : maxX;
-                maxY = node.getLocation().getY() > maxY ? node.getLocation().getY() : maxY;
-               
-                xAdd = xAdd > node.getWidth() ? xAdd : node.getWidth();
-                yAdd = yAdd > node.getHeight() ? yAdd : node.getHeight();
+            if (c.isManagedLocation())
+                continue; 
+            if(c instanceof LWNode ) {
+                minX = c.getLocation().getX()<minX?c.getLocation().getX():minX;
+                minY =c.getLocation().getY()<minY?c.getLocation().getY():minY;
+                maxX = c.getLocation().getX() > maxX ? c.getLocation().getX() : maxX;
+                maxY = c.getLocation().getY() > maxY ? c.getLocation().getY() : maxY;               
+                xAdd = xAdd > c.getWidth() ? xAdd : c.getWidth();
+                yAdd = yAdd > c.getHeight() ? yAdd : c.getHeight();
                 total++;
 //               System.out.println(node.getLabel()+"X= "+node.getLocation().getX()+" Y= "+node.getLocation().getY()+" MIN: "+minX+" : "+minY);
             }
@@ -88,9 +88,11 @@ public class CircularLayout extends Layout {
         double angle = 0.0;
         while (i.hasNext()) {
             LWComponent c = i.next();
-            if(c instanceof LWNode) {
-                LWNode node = (LWNode)c;
-                node.setLocation(centerX+radiusX*Math.cos(angle),centerY+radiusY*Math.sin(angle));
+            if (c.isManagedLocation())
+                continue; 
+            if(c instanceof LWNode ) {
+ 
+                c.setLocation(centerX+radiusX*Math.cos(angle),centerY+radiusY*Math.sin(angle));
                 count++;
                 angle = Math.PI*2*count/total;
             }
