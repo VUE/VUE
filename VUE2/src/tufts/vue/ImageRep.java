@@ -341,10 +341,10 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
         return get(_handle);
     }
 
-    private static final Color LoadingColor = new Color(0,0,0,64);
+    /** LoadingColor chosen as what has best chance of presenting some contrast against all backgrounds */
+    private static final Color LoadingColor = new Color(128,128,128,128);
     private static final Color ErrorColor = new Color(255,0,0,128);
     private static final Color LowMemoryColor = new Color(0,255,255,128);
-
 
     /**
      * Draw the representation into the given width/height with floating point scaling
