@@ -1369,7 +1369,7 @@ public class Actions implements VueConstants
                     resourceString = r.getSpec();
     		
                 String title = VueResources.local((c instanceof LWNode ) ? "dialog.addurl.node.title" : "dialog.addurl.link.title");
-                String option = (String)VueUtil.input(VUE.getApplicationFrame(), VueResources.local("dialog.addurl.label") + " ", title, JOptionPane.PLAIN_MESSAGE, null, resourceString);
+                String option = (String)VueUtil.input(VUE.getApplicationFrame(), VueResources.local("dialog.addurl.label"), title, JOptionPane.PLAIN_MESSAGE, null, resourceString);
 
                 if (option == null || option.length() <= 0)
                     return;
