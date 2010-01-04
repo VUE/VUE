@@ -1368,8 +1368,8 @@ public class Actions implements VueConstants
                 if (r != null)
                     resourceString = r.getSpec();
     		
-                String title = "Add URL to " + ((c instanceof LWNode ) ? "Node" : "Link");
-                String option = (String)VueUtil.input(VUE.getApplicationFrame(), "Enter the URL to add: ", title, JOptionPane.PLAIN_MESSAGE, null, resourceString);
+                String title = VueResources.local((c instanceof LWNode ) ? "dialog.addurl.node.title" : "dialog.addurl.link.title");
+                String option = (String)VueUtil.input(VUE.getApplicationFrame(), VueResources.local("dialog.addurl.label") + " ", title, JOptionPane.PLAIN_MESSAGE, null, resourceString);
 
                 if (option == null || option.length() <= 0)
                     return;
