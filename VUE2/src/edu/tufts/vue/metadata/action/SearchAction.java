@@ -1045,12 +1045,13 @@ public class SearchAction extends AbstractAction {
                         newNode.setCenterAt(selectionBounds.getCenterX(), selectionBounds.getCenterY());
                         activeMap.addChildren(newComps);
                         undoMgr.mark(VueResources.getString("searchgui.link"));
-                        tufts.vue.Actions.MakeCluster.doClusterAction(newNode, selectedNodes);
-                        undoMgr.mark(VueResources.getString("menu.format.layout.makecluster"));
-                        VUE.getActiveViewer().scrollRectToVisible(VUE.getSelection().getBounds().getBounds());  // must get bounds again after cluster action
+//                      tufts.vue.Actions.MakeCluster.doClusterAction(newNode, selectedNodes);
+//                      undoMgr.mark(VueResources.getString("menu.format.layout.makecluster"));
+//                      VUE.getActiveViewer().scrollRectToVisible(VUE.getSelection().getBounds().getBounds());  // must get bounds again after cluster action
+                        VUE.getActiveViewer().scrollRectToVisible(selectionBounds.getBounds());
                         selection.add(newComps);
-                        tufts.vue.Actions.PushOut.act();
-                        undoMgr.mark(VueResources.local("menu.format.arrange.pushout"));
+//                      tufts.vue.Actions.PushOut.act();
+//                      undoMgr.mark(VueResources.local("menu.format.arrange.pushout"));
                     }
                 }
             }});
