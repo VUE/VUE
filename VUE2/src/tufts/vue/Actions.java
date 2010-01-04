@@ -2022,7 +2022,7 @@ public class Actions implements VueConstants
     
     public static final LWCAction BringToFront =
     new LWCAction(VueResources.local("menu.format.arrange.bringtofront"),
-    "Raise object to the top, completely unobscured",
+    VueResources.local("menu.format.arrange.bringtofront.tooltip"),
     keyStroke(KeyEvent.VK_F, ALT)) {
         boolean enabledFor(LWSelection s) {
             if (s.size() == 1)
@@ -2036,7 +2036,7 @@ public class Actions implements VueConstants
     };
     public static final LWCAction SendToBack =
     new LWCAction(VueResources.local("menu.format.arrange.sendtoback"),
-    "Make sure this object doesn't obscure any other object",
+    VueResources.local("menu.format.arrange.sendtoback.tooltip"),
     keyStroke(KeyEvent.VK_B, ALT)) {
         boolean enabledFor(LWSelection s) {
             if (s.size() == 1)
