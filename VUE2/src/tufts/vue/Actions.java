@@ -3181,6 +3181,7 @@ public class Actions implements VueConstants
 
     public static final ClusterAction MakeDataLists = new ClusterAction("menu.format.layout.makedatalists", keyStroke(KeyEvent.VK_COMMA, ALT)) {
             @Override
+            boolean enabledFor(LWSelection s) { return s.size() == 1 && s.first().hasLinks(); }
             public void doClusterAction(LWComponent c, Collection<LWComponent> nodes) {
                 if (c instanceof LWNode) {
                     // grab linked
