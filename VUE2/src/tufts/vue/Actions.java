@@ -3460,19 +3460,18 @@ public class Actions implements VueConstants
     private static final Object IMAGE_HIDE = "hide";
     private static final Object IMAGE_SHOW = "show";
     
-        private static final class ImageAdjustAction extends ImageSizeAction {
-            final Object actionKey;
-            ImageAdjustAction(String localizationKey, Object key) {
-                super(VueResources.local(localizationKey));
-                this.actionKey = key;
-            }
-            ImageAdjustAction(String localizationKey, Object key, KeyStroke shortcut) {
-                super(VueResources.local(localizationKey), shortcut);
-                this.actionKey = key;
-            }
-
-        @Override
-        public void act(LWImage im) {
+    private static final class ImageAdjustAction extends ImageSizeAction {
+        final Object actionKey;
+        ImageAdjustAction(String localizationKey, Object key) {
+            super(VueResources.local(localizationKey));
+            this.actionKey = key;
+        }
+        ImageAdjustAction(String localizationKey, Object key, KeyStroke shortcut) {
+            super(VueResources.local(localizationKey), shortcut);
+            this.actionKey = key;
+        }
+        
+        @Override public void act(LWImage im) {
             imageAct(im, actionKey);
         }
     }
