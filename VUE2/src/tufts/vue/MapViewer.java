@@ -79,7 +79,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.654 $ / $Date: 2010-01-11 21:56:57 $ / $Author: sfraize $ 
+ * @version $Revision: 1.655 $ / $Date: 2010-01-11 22:24:42 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -4551,7 +4551,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             if (true||sDragUnderway) {
                 if (c instanceof LWMap && !DEBUG.CONTAINMENT)
                     continue;
-                drawSelectionGhost(dc, c);
+
+                if (c instanceof LWLink && ((LWLink)c).isCurrentlyPruned())
+                    ; // skip
+                else
+                    drawSelectionGhost(dc, c);
 
                 // Hack for groups in groups: show the parent group:
                 final LWComponent parent = c.getParent();
