@@ -48,7 +48,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.515 $ / $Date: 2009-12-26 22:48:37 $ / $Author: sfraize $
+ * @version $Revision: 1.516 $ / $Date: 2010-01-11 15:28:13 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -181,6 +181,11 @@ public class LWComponent
             
             /** this is part of a pruned map sub-graph */
             , PRUNED
+            
+            /** this is link with head pruned */
+            , PRUNE_HEAD
+            /** this is link with tail pruned */
+            , PRUNE_TAIL
             
             ;
 
@@ -4586,6 +4591,7 @@ public class LWComponent
 
     public static Size ConstrainToAspect(double aspect, double w, double h)
     {
+        if (DEBUG.IMAGE) Log.debug("constrainToAspect " + aspect + " " + w + "x" + h);
         // Given width & height are MINIMUM size: expand to keep aspect
             
         if (w <= 0) w = 1;
@@ -4616,7 +4622,10 @@ public class LWComponent
         }
         //else out("NO ASPECT CHANGE");
 
-        return new Size(w, h);
+        Size s = new Size(w, h);
+
+        if (DEBUG.IMAGE) Log.debug("constrainToAspect out: " + s);
+        return s;
 
         /*
           if (false) {
@@ -7724,10 +7733,11 @@ public class LWComponent
         String label = "";
         String s;
         if (getLabel() != null) {
-            if (true||isAutoSized())
-                label = " \"" + getDisplayLabel() + "\"";
-            else
-                label = " (" + getDisplayLabel() + ")";
+            label = " " + Util.tags(getDisplayLabel());
+//             if (true||isAutoSized())
+//                 label = " \"" + getDisplayLabel() + "\"";
+//             else
+//                 label = " (" + getDisplayLabel() + ")";
         }
 
         if (getID() == null) {
