@@ -43,7 +43,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.234 $ / $Date: 2010-01-11 18:53:09 $ / $Author: sfraize $
+ * @version $Revision: 1.235 $ / $Date: 2010-01-11 21:56:57 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -277,6 +277,53 @@ public class LWLink extends LWComponent
         return PruneControlsEnabled;
     }
 
+    private boolean isCurrentlyPruned() {
+        return PruneControlsEnabled && (head.pruned || tail.pruned);
+    }
+
+    /** persist with a true value only if the head was user-pruned */
+    // todo: head/tail user pruning is another bit that would be cleaner
+    // to have persisted inside the End object, which would allow us
+    // to have multiple end points.
+    public Boolean getHeadUserPruned() {
+        return head.pruned ? Boolean.TRUE : null;
+    }
+    public void setHeadUserPruned(Boolean p) {
+        if (head.pruned == p)
+            return;
+
+        if (alive() && !mXMLRestoreUnderway) {
+            pruneToggle(!head.pruned, getEndpointChain(tail.node));
+            head.pruned = p;
+            notify(KEY_HeadPruned, head.pruned ? Boolean.FALSE : Boolean.TRUE);
+        } else {
+            head.pruned = p;
+        }
+    }
+    
+    /** persist with a true value only if the tail was user-pruned */
+    public Boolean getTailUserPruned() {
+        return tail.pruned ? Boolean.TRUE : null;
+    }
+    public void setTailUserPruned(Boolean p) {
+        if (tail.pruned == p)
+            return;
+        
+        if (alive() && !mXMLRestoreUnderway) {
+            pruneToggle(!tail.pruned, getEndpointChain(head.node));
+            tail.pruned = p;
+            notify(KEY_TailPruned, tail.pruned ? Boolean.FALSE : Boolean.TRUE);
+        } else {
+            tail.pruned = p;
+        }
+    }
+
+    public void setXMLpruned(Boolean b) {
+        // note: should normally only be called if b is true,
+        // as when false it shouldn't be persisted at all
+        setPruned(b.booleanValue());
+    }
+    
 
     public static void setDisplayLabelsEnabled(boolean display) {
         DisplayLabels = display;
@@ -419,16 +466,26 @@ public class LWLink extends LWComponent
     
     
     public static final Key KEY_LinkHeadPoint = new Key<LWLink,Point2D>("link.head.location") {
-        @Override
-        public void setValue(LWLink l, Point2D val) { l.setHeadPoint(val); }
-        @Override
-        public Point2D getValue(LWLink l) { return l.getHeadPoint(); }
+        @Override public void setValue(LWLink l, Point2D val) { l.setHeadPoint(val); }
+        @Override public Point2D getValue(LWLink l) { return l.getHeadPoint(); }
     };
     public static final Key KEY_LinkTailPoint = new Key<LWLink,Point2D>("link.tail.location") {
-        @Override
-        public void setValue(LWLink l, Point2D val) { l.setTailPoint(val); }
-        @Override
-        public Point2D getValue(LWLink l) { return l.getTailPoint(); }
+        @Override public void setValue(LWLink l, Point2D val) { l.setTailPoint(val); }
+        @Override public Point2D getValue(LWLink l) { return l.getTailPoint(); }
+    };
+
+    // another case where a pre-defined boolean key would be handy, that would
+    // automatically handle producing null for false values on persistance
+    // For stuff like this, it could be introspected and/or determined via annotations,
+    // as this kind of property does not need fast setters / getters.  Also,
+    // it would automatically handle event generation / undo.
+    public static final Key KEY_HeadPruned = new Key<LWLink,Boolean>("prune.link.head") {
+        @Override public void setValue(LWLink l, Boolean b) { l.setHeadUserPruned(b); }
+        @Override public Boolean getValue(LWLink l) { return l.head.pruned; }
+    };
+    public static final Key KEY_TailPruned = new Key<LWLink,Boolean>("prune.link.tail") {
+        @Override public void setValue(LWLink l, Boolean b) { l.setTailUserPruned(b); }
+        @Override public Boolean getValue(LWLink l) { return l.tail.pruned; }
     };
 
     private final static String Key_Control_0 = "link.control.0";
@@ -606,6 +663,8 @@ public class LWLink extends LWComponent
                                            + "\n\thead: " + head
                                            + "\n\ttail: " + tail
                                            );
+        boolean acted = true;
+        
         if (index == CPruneHead && head.hasNode()) {
             toggleHeadPrune();
             if (SKIP_NODE_ENDPOINT_PRUNE) // may have no model effect of no outbound links on pruned node
@@ -614,57 +673,42 @@ public class LWLink extends LWComponent
             toggleTailPrune();
             if (SKIP_NODE_ENDPOINT_PRUNE)
                 notify(LWKey.Repaint);
+        } else
+            acted = false;
+
+        if (acted) {
+            // todo: this would make more sense handled in our caller (MapViewer)
+            UndoManager um = getUndoManager();
+            if (um != null)
+                um.mark();
         }
     }
 
     private void toggleHeadPrune() {
         if (DEBUG.LINK) debug("toggleHeadPrune");
 
-        // PROBLEM: here's the recursive prune problem: getEndpointChain is proceeding
+        // [FIXED] here's the recursive prune problem: getEndpointChain is proceeding
         // through other prunes.  We can presumably stop that, but I've no idea if
         // that's going to break all sorts of other stuff.
         
-        pruneToggle(!head.pruned, getEndpointChain(tail.node));
-        head.pruned = !head.pruned;
+        //pruneToggle(!head.pruned, getEndpointChain(tail.node));
+        setHeadUserPruned(!head.pruned);
+        //head.pruned = !head.pruned;
     }
 
     private void toggleTailPrune() {
         if (DEBUG.LINK) debug("toggleTailPrune");
-        pruneToggle(!tail.pruned, getEndpointChain(head.node));
-        tail.pruned = !tail.pruned;
+        //pruneToggle(!tail.pruned, getEndpointChain(head.node));
+        setTailUserPruned(!tail.pruned);
+        //tail.pruned = !tail.pruned;
     }
 
-    public void enablePrunes(boolean enable) {
-        if (enable) {
-            
-            // PROBLEM: THIS IS FAILING ON DESERIALIZE: IS OVER-SETTING PRUNED STATE.  I
-            // think we can only solve this via a separate persist bit for the
-            // head/tail, either that or ONLY persist that bit for the node at the end
-            // of the link that has actually been pruned, not for everything that's been
-            // pruned, and then RE-RUN the pruneToggle when pruning is re-enabled, which
-            // is really the safest thing to do.
-
-            // PROBLEM: actually, recursive prunes are failing even at runtime -- looks
-            // to be the same problem, which is nice, in that this makes more sense now --
-            // deserialize appears to be working just fine.
-
-            // DETAIL: a single prune / un-prune of a big complex graph is working
-            // fine.  But turn all pruning off, then on again, and de-pruning
-            // starts to fail.
-            
-            if (head.hasNode() && head.node.isPruned())
-                tail.pruned = true;
-            else
-                tail.pruned = false;
-            if (tail.hasNode() && tail.node.isPruned())
-                head.pruned = true;
-            else
-                head.pruned = false;
-        } else {
-            tail.pruned = head.pruned = false;
-        }
+    void clearUserPrunes() {
+        setHeadUserPruned(false);
+        setTailUserPruned(false);
+        //tail.pruned = head.pruned = false;
     }
-
+    
     boolean isPrunedBelow(LWComponent node) {
         if (node == head.node)
             return head.isPruning();
@@ -675,7 +719,6 @@ public class LWLink extends LWComponent
             return false;
         }
     }
-
 
     private void pruneToggle(final boolean hide, Collection<LWComponent> bag) {
         for (LWComponent c : bag) {
@@ -1648,12 +1691,36 @@ public class LWLink extends LWComponent
      * the passed in coordinate to the stroke of the link (ignoring any label box)
      */
     
-    @Override
-    protected float pickDistance(float x, float y, PickContext pc)
+    @Override protected float pickDistance(float x, float y, PickContext pc)
     {
         if (mRecompute)
             computeLink();
 
+        if (isCurrentlyPruned())
+            return pickPruneDistance(x, y, pc);
+        else
+            return pickLineDistance(x, y, pc);
+    }
+    
+    private float pickPruneDistance(float x, float y, PickContext pc) {
+
+        final float distSq;
+        
+        if (head.pruned)
+            distSq =  (float) head.distanceSq(x, y);
+        else if (tail.pruned)
+            distSq =  (float) tail.distanceSq(x, y);
+        else
+            distSq = -1;
+
+        if (distSq <= PruneDotHitRadiusSq)
+            return 0;
+        else
+            return distSq;
+    }
+    
+    private float pickLineDistance(float x, float y, PickContext pc)
+    {
         final float hitDist = getStrokeWidth() / 2f; 
         final float hitDistSq = hitDist * hitDist;
 
@@ -2835,8 +2902,7 @@ public class LWLink extends LWComponent
             return false;
     }
 
-    @Override
-    protected void drawImpl(DrawContext dc)
+    @Override protected void drawImpl(DrawContext dc)
     {
         if (mRecompute)
             computeLink();
@@ -2850,6 +2916,85 @@ public class LWLink extends LWComponent
             g.draw(getZeroShape());
         }
 
+        if (isCurrentlyPruned()) {
+            drawPruned(dc);
+        } else {
+            drawLink(dc);
+        }
+    }
+
+    private static final float PruneDotSize = 7;
+    private static final float PruneDotRadius = PruneDotSize / 2.0f; 
+    // the below radius constants are for hit-detection (note that we add 1 for the stroke)
+    private static final float PruneDotHitRadius = (PruneDotSize+1) / 2.0f; 
+    private static final float PruneDotHitRadiusSq = PruneDotHitRadius * PruneDotHitRadius;
+
+    private static final RectangularShape PruneDot = new java.awt.geom.Ellipse2D.Float(0,0, PruneDotSize,PruneDotSize);
+
+    // Note: PruneDot is the kind of object it would be handy to have one of per
+    // rendering thread, presuming we never have to worry about some kind of crazy
+    // higher-level multi-threaded rendering pipeline calling down into us from
+    // different threads.  We could probably get away with a single static object for
+    // all drawing, but if a non-AWT thread ever attempted to render a map there could
+    // be conflicts. A simple bit in the DC could allow us to check for AWT
+    // rendering (which would obviously be subject to incorrectness, but would be good
+    // enough w/out having to check the current thread against the EDT all the time).
+
+    private void drawPruned(DrawContext dc)
+    {
+        dc.g.setStroke(VueConstants.STROKE_ONE); // sync to +strokeSize in PruneDotHitRadius
+
+        // TODO: the prune-dots currently do NOT scale with the node's context, as links
+        // handling scaling specially.  This is messy.  These are somewhat map
+        // "controls", and in that sense they should have fixed size, but they don't
+        // look like controls, so it looks wrong when the node is in a scaled context.
+        // Resoloving this will require a design decision.  It would probably be
+        // easiest to have these drawn with the node, and have that own the prune
+        // control, which could be a completely separate runtime object.
+            
+        // note: only one prune-dot should ever actually draw (only
+        // one endpoint can ever be user-pruned at a time) tho we
+        // allow drawing both for error detection.
+
+        if (head.isPruning()) {
+            drawPruneDot(dc, PruneDot, head);
+        }
+        if (tail.isPruning()) {
+            drawPruneDot(dc, PruneDot, tail);
+        }
+    }
+
+    private static final boolean STYLED_DOTS = false;
+
+    private void drawPruneDot(DrawContext dc, RectangularShape dot, End end)
+    {
+        // note: this is not thread-safe -- convert to translations in/out to support that:
+        dot.setFrameFromCenter(end.x,
+                               end.y,
+                               end.x+PruneDotRadius,
+                               end.y+PruneDotRadius);
+        
+        if (STYLED_DOTS && end.node != null) {
+            // an interesting option -- make the dots "merge" visually into the node
+            // todo: technically, would need to ensure this link got a repaint update
+            // when node colors changed, tho only needed cover extreme corner case(s).
+            dc.g.setColor(end.node.getRenderFillColor(dc));
+            dc.g.fill(dot);
+            dc.g.setColor(end.node.getStrokeColor());
+            dc.g.draw(dot);
+        } else {
+            dc.g.setColor(Color.lightGray);
+            dc.g.fill(dot);
+            dc.g.setColor(Color.darkGray);
+            dc.g.draw(dot);
+        }
+            
+    }
+    
+
+
+    private void drawLink(DrawContext dc)
+    {
         if (DEBUG.BOXES) drawDebugCurve(dc);
         
 //         if (!isSelected()) {
@@ -2860,15 +3005,13 @@ public class LWLink extends LWComponent
 //             }
 //         }
 
-        g.setColor(getStrokeColor());
-
-        final boolean isPruned = head.isPruning() || tail.isPruning();
+        dc.g.setColor(getStrokeColor());
 
         //-------------------------------------------------------
         // Draw arrow heads if there are any
         //-------------------------------------------------------
         
-        if (!isPruned && mArrowState.get() != 0) {
+        if (mArrowState.get() != 0) {
             if (dc.zoom <= 0.125 && dc.isLODEnabled())
                 ; // don't draw arrows
             else
@@ -2893,75 +3036,48 @@ public class LWLink extends LWComponent
 //         } else {
         if (stroke == STROKE_ZERO) { // mStrokeWidth.get() was 0
             // never draw an invisible link: draw zero strokes at small absolute scale tho
-            float curScale = (float) g.getTransform().getScaleX();
+            float curScale = (float) dc.g.getTransform().getScaleX();
             if (curScale > 1)
                 strokeWidth /= curScale;
-            g.setStroke(mStrokeStyle.get().makeStroke(strokeWidth));
+            dc.g.setStroke(mStrokeStyle.get().makeStroke(strokeWidth));
         } else {
-            g.setStroke(stroke);
+            dc.g.setStroke(stroke);
         }
 
-        if (!isPruned) {
-            drawStroke(dc);
-
-            if (!isNestedLink())
-                drawLinkDecorations(dc);
-        }
+        drawStroke(dc);
         
-        if (isPruned) {
-            float size = 7;
-            //if (dc.zoom < 1) size /= dc.zoom;
-            RectangularShape dot = new java.awt.geom.Ellipse2D.Float(0,0, size,size);
-            //Composite composite = dc.g.getComposite();
-            //dc.g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
-            if (head.isPruning()) {
-                dot.setFrameFromCenter(head.x, head.y, head.x+size/2, head.y+size/2);
-                dc.g.setColor(Color.lightGray);
-                dc.g.fill(dot);
-                dc.g.setColor(Color.darkGray);
-                dc.g.draw(dot);
-            }
-            if (tail.isPruning()) {
-                dot.setFrameFromCenter(tail.x, tail.y, tail.x+size/2, tail.y+size/2);
-                dc.g.setColor(Color.lightGray);
-                dc.g.fill(dot);
-                dc.g.setColor(Color.darkGray);
-                dc.g.draw(dot);
-            }
-            //dc.g.setComposite(composite);
-        }
+        if (!isNestedLink())
+            drawLinkDecorations(dc);
 
-        /*
-        boolean headgroup = head instanceof LWGroup;
-        boolean tailgroup = tail instanceof LWGroup;
-        if ((headgroup || tailgroup) && dc.isInteractive() || DEBUG.BOXES) {
-            float size = 8;
-            if (dc.zoom < 1)
-                size /= dc.zoom;
-            RectangularShape dot = new java.awt.geom.Ellipse2D.Float(0,0, size,size);
-            Composite composite = dc.g.getComposite();
-            dc.g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
-            dc.g.setColor(Color.green);
-            if (headgroup || DEBUG.BOXES) {
-                dot.setFrameFromCenter(head.x, head.y, head.x+size/2, head.y+size/2);
-                dc.g.fill(dot);
-            }
-            if (tailgroup || DEBUG.BOXES) {
-                dot.setFrameFromCenter(tail.x, tail.y, tail.x+size/2, tail.y+size/2);
-                if (DEBUG.BOXES) dc.g.setColor(Color.red);
-                dc.g.fill(dot);
-            }
-            dc.g.setComposite(composite);
-        }
-        */
-                
         if (DEBUG.CONTAINMENT) {
             dc.setAbsoluteStroke(0.75);
             dc.g.setColor(COLOR_SELECTION);
-            g.draw(getLocalPaintBounds());
+            dc.g.draw(getLocalPaintBounds());
         }
-
-        //if (dc.drawAbsoluteLinks) dc.setAbsoluteDrawing(false);
+        
+        /*
+          boolean headgroup = head instanceof LWGroup;
+          boolean tailgroup = tail instanceof LWGroup;
+          if ((headgroup || tailgroup) && dc.isInteractive() || DEBUG.BOXES) {
+          float size = 8;
+          if (dc.zoom < 1)
+          size /= dc.zoom;
+          RectangularShape dot = new java.awt.geom.Ellipse2D.Float(0,0, size,size);
+          Composite composite = dc.g.getComposite();
+          dc.g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
+          dc.g.setColor(Color.green);
+          if (headgroup || DEBUG.BOXES) {
+          dot.setFrameFromCenter(head.x, head.y, head.x+size/2, head.y+size/2);
+          dc.g.fill(dot);
+          }
+          if (tailgroup || DEBUG.BOXES) {
+          dot.setFrameFromCenter(tail.x, tail.y, tail.x+size/2, tail.y+size/2);
+          if (DEBUG.BOXES) dc.g.setColor(Color.red);
+          dc.g.fill(dot);
+          }
+          dc.g.setComposite(composite);
+          }
+        */
         
     }
 

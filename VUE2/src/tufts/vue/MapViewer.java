@@ -79,7 +79,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.653 $ / $Date: 2010-01-11 16:22:00 $ / $Author: sfraize $ 
+ * @version $Revision: 1.654 $ / $Date: 2010-01-11 21:56:57 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -4622,7 +4622,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         final LWComponent only = selection.only();
         final LWComponent first = selection.first();
 
-        final boolean TEST = DEBUG.LINK; // if TEST is true, we always show the selection bounds & handles no matter what
+        //final boolean TEST = DEBUG.LINK; // if TEST is true, we always show the selection bounds & handles no matter what
+        final boolean TEST = false;
 
         //if (!selection.first().isMoveable() || !selection.first().supportsUserResize()) { // todo: check all, not any
         if (!TEST && selection.size() == 1 && (!only.isMoveable() || !only.supportsUserResize())) {

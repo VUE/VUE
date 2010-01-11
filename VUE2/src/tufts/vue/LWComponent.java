@@ -48,7 +48,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.518 $ / $Date: 2010-01-11 18:52:55 $ / $Author: sfraize $
+ * @version $Revision: 1.519 $ / $Date: 2010-01-11 21:56:57 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -7138,7 +7138,7 @@ public class LWComponent
 
     /** persist with a true value only if HideCause.PRUNE is set */
     public Boolean getXMLpruned() {
-        // note: could store this as two bits on the links instrea and reconsitute
+        // note: could store this as two bits on the links instead and reconsitute
         // from that as opposed to saving on every node
         return isPruned() ? Boolean.TRUE : null;
     }

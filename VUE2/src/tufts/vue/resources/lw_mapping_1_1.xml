@@ -294,6 +294,14 @@
 	        <field name="ctrlPoint1">
 			<bind-xml name="ctrlPoint1" node="element"/>
 		</field>
+                <!-- bits for user-applied pruning -->
+	        <field name="headUserPruned">
+                  <bind-xml name="headUserPruned" node="element"/>
+		</field>
+	        <field name="tailUserPruned">
+                  <bind-xml name="tailUserPruned" node="element"/>
+		</field>
+                
 	</class>
 
 	<class name="tufts.vue.LWMap" extends="tufts.vue.LWContainer">

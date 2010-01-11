@@ -3785,7 +3785,7 @@ public class Actions implements VueConstants
             c.setPruned(false);
             c.clearHidden(HideCause.PRUNE);
             if (c instanceof LWLink)
-                ((LWLink)c).enablePrunes(false);
+                ((LWLink)c).clearUserPrunes();
         }
     }
     
