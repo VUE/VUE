@@ -43,7 +43,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.236 $ / $Date: 2010-01-11 22:00:44 $ / $Author: sfraize $
+ * @version $Revision: 1.237 $ / $Date: 2010-01-11 22:24:07 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -277,7 +277,7 @@ public class LWLink extends LWComponent
         return PruneControlsEnabled;
     }
 
-    private boolean isCurrentlyPruned() {
+    boolean isCurrentlyPruned() {
         return PruneControlsEnabled && (head.pruned || tail.pruned);
     }
 
@@ -524,10 +524,8 @@ public class LWLink extends LWComponent
             super.setPropertyImpl(key, val, context);
     }
 
-    @Override
-    public boolean supportsUserLabel() { return true; }
-    @Override
-    public boolean supportsReparenting() { return false; }
+    @Override public boolean supportsUserLabel() { return !isCurrentlyPruned(); }
+    @Override public boolean supportsReparenting() { return false; }
     
     @Override
     public boolean handleSingleClick(MapMouseEvent e)
@@ -2901,18 +2899,19 @@ public class LWLink extends LWComponent
         if (mRecompute)
             computeLink();
 
-        final Graphics2D g = dc.g;
-        
         if (isSelected() && dc.isInteractive()) {
-            g.setColor(COLOR_HIGHLIGHT);
+            dc.g.setColor(COLOR_HIGHLIGHT);
             // todo peformance: cache these at common widths!
-            g.setStroke(new BasicStroke(stroke.getLineWidth() + 5, BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL));
-            g.draw(getZeroShape());
+            dc.g.setStroke(new BasicStroke(stroke.getLineWidth() + 5, BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL));
+            dc.g.draw(getZeroShape());
         }
-
+            
         if (isCurrentlyPruned()) {
+            
             drawPruned(dc);
+            
         } else {
+
             drawLink(dc);
         }
     }
