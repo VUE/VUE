@@ -43,7 +43,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.235 $ / $Date: 2010-01-11 21:56:57 $ / $Author: sfraize $
+ * @version $Revision: 1.236 $ / $Date: 2010-01-11 22:00:44 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -780,12 +780,6 @@ public class LWLink extends LWComponent
 
         final List links = getLinks();
         final Collection bag = new HashSet(links.size() + 2); // common case size
-
-        // PROBLEM: THIS IS WHERE SHOWING  ALL NODES ON A LINK-CHAIN
-        // IS FAILING AFTER PERSIST -- QUESTION IS, WHY DOES IT WORK
-        // AT RUNTIME, BUT NOT AFTER A PERSIST?  isPruned must be
-        // returning false after persist, but not at runtime.
-        // Ahh, it's being called on the End object, not the node...
 
         if (head.hasNode() && !head.isPruning())
             bag.add(head.node);
