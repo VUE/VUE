@@ -29,7 +29,7 @@ import java.awt.Color;
  * (A pathway entry usually pairs a node with a slide, although they don't require a slide).
  *
  * @author Scott Fraize
- * @version $Revision: 1.10 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $
+ * @version $Revision: 1.11 $ / $Date: 2010-01-11 15:30:58 $ / $Author: sfraize $
  */
 class Slides {
 
@@ -299,11 +299,20 @@ class Slides {
         
         if (images.size() == 1) {
 
-            // Special layout for a single image:
+            //-------------------------------------------------------
+            // Special layout for a SINGLE IMAGE:
+            //-------------------------------------------------------
             
             final LWImage image = images.get(0).image;
-            image.userSetSize(0,
-                              slide.getHeight() - SlideMargin * 6, null); // aspect preserving
+
+            // Note: the old aspect preserving properties of userSetSize are sometimes
+            // being foiled by the aspect not yet being known in the ImageRef -- using
+            // setMaxDimension fixes this (it will pull width/height from the resource
+            // if the ImageRef doesn't have it's aspect yet).
+            
+//             image.userSetSize(0,
+//                               slide.getHeight() - SlideMargin * 6, null); // aspect preserving
+            image.setMaxDimension(slide.getHeight() - SlideMargin * 6);
             image.setLocation((slide.getWidth() - image.getWidth()) / 2,
                               imageRegionTop + (imageRegionHeight - image.getHeight()) / 2);
 
