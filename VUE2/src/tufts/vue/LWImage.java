@@ -542,7 +542,7 @@ public class LWImage extends LWComponent
         }
              
         // TODO: reconcile w/Imags.fitInto used in setMaxDimension
-        final Size newSize = ConstrainToAspect(aspect, this.width, this.height); 
+        final Size newSize = ConstrainToAspect(aspect, this.width, this.height);
         //final Size newSize = Images.fitInto(
 
         if (DEBUG.Enabled) out("shapeToAspect " + aspect
@@ -558,16 +558,22 @@ public class LWImage extends LWComponent
      */
     protected void userSetSize(float width, float height, MapMouseEvent e)
     {
-        if (DEBUG.IMAGE) out("userSetSize " + Util.fmt(new Point2D.Float(width, height)) + "; e=" + e);
+        final float aspect = aspect();
+        
+        if (DEBUG.IMAGE) out("userSetSize " + Util.fmt(new Point2D.Float(width, height)) + "; aspect=" + aspect + "; e=" + e);
+        //Util.printStackTrace("HERE");
 
         if (e != null && e.isShiftDown()) {
-            // Unconstrained aspect ration scaling
+            // Unconstrained aspect ratio scaling
             super.userSetSize(width, height, e);
-        } else if (aspect() > 0) {
-            Size newSize = ConstrainToAspect(aspect(), width, height);
+        } else if (aspect > 0) {
+            Size newSize = ConstrainToAspect(aspect, width, height);
             setSize(newSize.width, newSize.height);
-        } else
+        } else if (width > 0 && height > 0) {
             setSize(width, height);
+        } else {
+            Log.error("unhandled userSetSize w/aspect " + aspect + ": " + width + "x" + height + " on " + this);
+        }
 
 //         If (e != null && e.isShiftDown())
 //             croppingSetSize(width, height);
@@ -698,10 +704,8 @@ public class LWImage extends LWComponent
             dc.g.setStroke(new BasicStroke(getStrokeWidth() + SelectionStrokeWidth));
             dc.g.draw(getZeroShape());
         }
-        
-        ref.drawInto(dc, getWidth(), getHeight());
 
-        
+        ref.drawInto(dc, getWidth(), getHeight());
     }
     
     @Override protected void drawImpl(DrawContext dc)
