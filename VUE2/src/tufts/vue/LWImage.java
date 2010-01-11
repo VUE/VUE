@@ -199,7 +199,7 @@ public class LWImage extends LWComponent
         // important to prevent minor pixel size tweaking later.  The only way around that
         // w/out forcing a load of a the whole image (which defeats the purpose of the image code
         // entirely) is to store the full pixel size in the icon itself.  We now do this
-        // when we write generated icons to disk, but saving the original full pixel size
+        // when we write generated icons to disk, by saving the original full pixel size
         // in the image meta-data.
         // ========================================================================================
 
