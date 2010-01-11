@@ -79,7 +79,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.652 $ / $Date: 2009-12-23 23:13:00 $ / $Author: sfraize $ 
+ * @version $Revision: 1.653 $ / $Date: 2010-01-11 16:22:00 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3876,8 +3876,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             // for data-actions, could increase the size of this splash based on # of items
             // in the dropping set, tho if we bother to get that fancy, we almost might
             // as well generate a full preview of what would be dropped w/links, etc.
-            final float wide = width + 200;
-            final float tall = height + 200;
+            final float wide = width + 150;
+            final float tall = height + 150;
             final RectangularShape dataSplash =
                 new java.awt.geom.Ellipse2D.Float(-wide / 2 + width / 2,
                                                   -tall / 2 + height / 2,
