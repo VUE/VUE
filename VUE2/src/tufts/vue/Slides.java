@@ -29,7 +29,7 @@ import java.awt.Color;
  * (A pathway entry usually pairs a node with a slide, although they don't require a slide).
  *
  * @author Scott Fraize
- * @version $Revision: 1.11 $ / $Date: 2010-01-11 15:30:58 $ / $Author: sfraize $
+ * @version $Revision: 1.12 $ / $Date: 2010-01-11 16:00:51 $ / $Author: sfraize $
  */
 class Slides {
 
@@ -334,8 +334,10 @@ class Slides {
                                           (((images.size()-1)*verticalMargin) + images.size() * labelHeight))
                 / images.size();
 
-            for (TitledImage t : images)
-                t.image.userSetSize(0, maxImageHeight, null); // aspect preserving
+            for (TitledImage t : images) {
+                t.image.setMaxDimension(maxImageHeight);
+                //t.image.userSetSize(0, maxImageHeight, null); // aspect preserving
+            }
 
             float y = imageRegionTop / 2;
             for (TitledImage t : images) {
