@@ -48,7 +48,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.517 $ / $Date: 2010-01-11 18:28:11 $ / $Author: sfraize $
+ * @version $Revision: 1.518 $ / $Date: 2010-01-11 18:52:55 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -3930,22 +3930,30 @@ public class LWComponent
             return bag;
         }
 
-        if (DEBUG.LINK) {
-            //tabout(depth, "getLinkChainImpl: " + this);
-            tabout(depth, "  DESCEND>" + this);
-            //tabout(depth, "include=" + c);
-            //Util.dump(getConnected());
-        }
+        if (DEBUG.LINK) tabout(depth, "  DESCEND>" + this);
         
         for (LWComponent c : getConnected()) {
-            depth++;
-            if (c != backstop) {
-                if (DEBUG.LINK) tabout(depth, "  include>" + c);
-                c.getLinkChainImpl(bag, backstop, depth);
-            } else {
-                if (DEBUG.LINK) tabout(depth, "(BACKSTOP)" + c);
+            depth++; // for debug
+            try {
+                if (c != backstop) {
+                    if (c instanceof LWLink && ((LWLink)c).isPrunedBelow(this)) {
+                        bag.add(c);
+                        if (DEBUG.LINK) tabout(depth, "  (pruned)" + c); // note: could also be a dupe at this point
+                    } else {
+                        if (DEBUG.LINK) tabout(depth, "  include>" + c);
+                        c.getLinkChainImpl(bag, backstop, depth);
+                    }
+                } else {
+                    // loop-prevention: never traverse through the backstop,
+                    // otherwise the entire map could wind up pruned, such that
+                    // nothing is visible
+                    if (DEBUG.LINK) tabout(depth, "(BACKSTOP)" + c);
+                }
+            } catch (Throwable t) {
+                Log.error("processing " + c + " at depth " + depth, t);
+            } finally {
+                depth--; // for debug
             }
-            depth--;
         }
 
         return bag;
