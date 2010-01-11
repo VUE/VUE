@@ -48,7 +48,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.516 $ / $Date: 2010-01-11 15:28:13 $ / $Author: sfraize $
+ * @version $Revision: 1.517 $ / $Date: 2010-01-11 18:28:11 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -3911,21 +3911,41 @@ public class LWComponent
      * Note that if this collection isn't a Set of some kind, components will appear in the bag more than once.
      * (Once for every time they were visited).
      */
-    public Collection<LWComponent> getLinkChain(Collection bag, LWComponent exclude)
+    public final Collection<LWComponent> getLinkChain(Collection bag, LWComponent backstop)
+    {
+        if (DEBUG.LINK) Log.debug("getLinkChain: " + this);
+        return getLinkChainImpl(bag, backstop, 0);
+    }
+    
+    private static void tabout(int depth, String s) {
+        for (int x = 0; x < depth; x++) System.out.print("    ");
+        System.out.println(s);
+    }
+    
+    private Collection<LWComponent> getLinkChainImpl(Collection bag, LWComponent backstop, int depth)
     {
         if (!bag.add(this)) {
             // already added to the set with all connections -- don't process again            
+            if (DEBUG.LINK) tabout(depth, "    (dupe)" + this);            
             return bag;
         }
 
         if (DEBUG.LINK) {
-            Log.debug("getLinkChain: " + this);
-            Util.dump(getConnected());
+            //tabout(depth, "getLinkChainImpl: " + this);
+            tabout(depth, "  DESCEND>" + this);
+            //tabout(depth, "include=" + c);
+            //Util.dump(getConnected());
         }
         
         for (LWComponent c : getConnected()) {
-            if (c != exclude)
-                c.getLinkChain(bag, exclude);
+            depth++;
+            if (c != backstop) {
+                if (DEBUG.LINK) tabout(depth, "  include>" + c);
+                c.getLinkChainImpl(bag, backstop, depth);
+            } else {
+                if (DEBUG.LINK) tabout(depth, "(BACKSTOP)" + c);
+            }
+            depth--;
         }
 
         return bag;

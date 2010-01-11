@@ -3795,8 +3795,6 @@ public class Actions implements VueConstants
             for (LWComponent c : map.getAllDescendents()) {
                 if (c.isPruned())
                     c.setHidden(HideCause.PRUNE, enable);
-                if (c instanceof LWLink)
-                    ((LWLink)c).enablePrunes(enable);
             }
         }
     }

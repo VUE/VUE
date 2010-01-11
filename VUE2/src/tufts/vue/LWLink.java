@@ -43,7 +43,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.232 $ / $Date: 2009-12-26 22:38:35 $ / $Author: sfraize $
+ * @version $Revision: 1.233 $ / $Date: 2010-01-11 18:28:11 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -114,10 +114,10 @@ public class LWLink extends LWComponent
             return node != null && node.isHidden(HideCause.PRUNE);
         }
 
-        boolean isPruned() {
+        boolean isPruning() {
             return PruneControlsEnabled && pruned;
+            //return PruneControlsEnabled && node != null && node.isPruned();
         }
-
         
         boolean isConnected() {
             return node != null;
@@ -190,8 +190,13 @@ public class LWLink extends LWComponent
 
         public String toString() 
         {
-            //String s = "End[" + fmt(this);
-            String s = "End[" + String.format("%4.0f,%4.0f", x, y);
+            String s = "End[";
+            if (pruned)
+                s += "PRUNED ";
+            else
+                s += "-open- ";
+            s += String.format("%4.0f,%4.0f", x, y);
+            //String s = "End[" + String.format("%4.0f,%4.0f", x, y);
             if (node != null)
                 s += " " + node;
             return s + "]";
@@ -543,7 +548,7 @@ public class LWLink extends LWComponent
         if (c == head.node)
             return;
         if (head.hasNode())
-            head.node.removeLinkRef(this);            
+            head.node.removeLinkRef(this);
         final LWComponent oldHead = head.node;
         setPersistHead(c);
         mRecompute = true;
@@ -591,8 +596,16 @@ public class LWLink extends LWComponent
     // they're interested in.  See VUE-1239 for what prompted this.
     private static final boolean SKIP_NODE_ENDPOINT_PRUNE = false;
     
+    private void debug(String s) {
+        Log.debug(toString() + ": " + s);
+    }
+
     /** interface ControlListener handler */
     public void controlPointPressed(int index, MapMouseEvent e) {
+        if (DEBUG.LINK||DEBUG.MOUSE) debug("controlPointPressed " + index
+                                           + "\n\thead: " + head
+                                           + "\n\ttail: " + tail
+                                           );
         if (index == CPruneHead && head.hasNode()) {
             toggleHeadPrune();
             if (SKIP_NODE_ENDPOINT_PRUNE) // may have no model effect of no outbound links on pruned node
@@ -605,17 +618,40 @@ public class LWLink extends LWComponent
     }
 
     private void toggleHeadPrune() {
+        if (DEBUG.LINK) debug("toggleHeadPrune");
+
+        // PROBLEM: here's the recursive prune problem: getEndpointChain is proceeding
+        // through other prunes.  We can presumably stop that, but I've no idea if
+        // that's going to break all sorts of other stuff.
+        
         pruneToggle(!head.pruned, getEndpointChain(tail.node));
         head.pruned = !head.pruned;
     }
 
     private void toggleTailPrune() {
+        if (DEBUG.LINK) debug("toggleTailPrune");
         pruneToggle(!tail.pruned, getEndpointChain(head.node));
         tail.pruned = !tail.pruned;
     }
 
     public void enablePrunes(boolean enable) {
         if (enable) {
+            
+            // PROBLEM: THIS IS FAILING ON DESERIALIZE: IS OVER-SETTING PRUNED STATE.  I
+            // think we can only solve this via a separate persist bit for the
+            // head/tail, either that or ONLY persist that bit for the node at the end
+            // of the link that has actually been pruned, not for everything that's been
+            // pruned, and then RE-RUN the pruneToggle when pruning is re-enabled, which
+            // is really the safest thing to do.
+
+            // PROBLEM: actually, recursive prunes are failing even at runtime -- looks
+            // to be the same problem, which is nice, in that this makes more sense now --
+            // deserialize appears to be working just fine.
+
+            // DETAIL: a single prune / un-prune of a big complex graph is working
+            // fine.  But turn all pruning off, then on again, and de-pruning
+            // starts to fail.
+            
             if (head.hasNode() && head.node.isPruned())
                 tail.pruned = true;
             else
@@ -639,20 +675,33 @@ public class LWLink extends LWComponent
 
     private static void pruneNode(final LWComponent c, final boolean prune)
     {
+        if (DEBUG.LINK) Log.debug("prune to " + prune + ": " + c);
         c.setPruned(prune);
-        //c.setHidden(HideCause.PRUNE, prune);
+        c.setHidden(HideCause.PRUNE, prune);
         
         for (LWComponent child : c.getChildren())
             pruneNode(child, prune);
+
+        if (DEBUG.LINK) Log.debug("prunedto " + prune + ": " + c);
+        
         
     }
 
-    public Collection<LWComponent> getEndpointChain(LWComponent endpoint) {
+    private Collection<LWComponent> getEndpointChain(LWComponent endpoint) {
+
+        if (endpoint == null)
+            return Collections.EMPTY_LIST;
+        
         final HashSet set = new HashSet();
         // pre-add us to the set, so we can't back up through our other endpoint:
         //set.add(this);
         final LWComponent exclude  = (endpoint == head.node ? tail.node : head.node);
-        if (DEBUG.LINK) Log.debug(this + "; getEndpointChain: " + endpoint + "; EXCLUDE=" + exclude);
+        if (DEBUG.LINK) {
+            Log.debug("getEndpointChain:"
+                      + "\n\tlink(this): " + this
+                      + "\n\t  endpoint: " + endpoint
+                      + "\n\t excluding: " + exclude);
+        }
         endpoint.getLinkChain(set, exclude);
         if (SKIP_NODE_ENDPOINT_PRUNE)
             set.remove(endpoint);
@@ -678,9 +727,15 @@ public class LWLink extends LWComponent
         final List links = getLinks();
         final Collection bag = new HashSet(links.size() + 2); // common case size
 
-        if (head.hasNode() && !head.isPruned())
+        // PROBLEM: THIS IS WHERE SHOWING  ALL NODES ON A LINK-CHAIN
+        // IS FAILING AFTER PERSIST -- QUESTION IS, WHY DOES IT WORK
+        // AT RUNTIME, BUT NOT AFTER A PERSIST?  isPruned must be
+        // returning false after persist, but not at runtime.
+        // Ahh, it's being called on the End object, not the node...
+
+        if (head.hasNode() && !head.isPruning())
             bag.add(head.node);
-        if (tail.hasNode() && !tail.isPruned())
+        if (tail.hasNode() && !tail.isPruning())
             bag.add(tail.node);
 
         if (links.size() > 0)
@@ -806,12 +861,12 @@ public class LWLink extends LWComponent
         // TODO: need to getLocalTransform().inverseTransform the x/y back down to local coords.
         // Would be better if the coords were already translated to local coords?
         
-        if (index == CHead && !head.isPruned()) {
+        if (index == CHead && !head.isPruning()) {
             setHead(null); // disconnect from node (already so if e == null)
             setHeadPoint(local.x, local.y);
             if (e != null)
                 LinkTool.setMapIndicationIfOverValidTarget(tail.node, this, e);
-        } else if (index == CTail && !tail.isPruned()) {
+        } else if (index == CTail && !tail.isPruning()) {
             setTail(null);  // disconnect from node (already so if e == null)
             setTailPoint(local.x, local.y); 
             if (e != null)
@@ -2796,7 +2851,7 @@ public class LWLink extends LWComponent
 
         g.setColor(getStrokeColor());
 
-        final boolean isPruned = head.isPruned() || tail.isPruned();
+        final boolean isPruned = head.isPruning() || tail.isPruning();
 
         //-------------------------------------------------------
         // Draw arrow heads if there are any
@@ -2848,14 +2903,14 @@ public class LWLink extends LWComponent
             RectangularShape dot = new java.awt.geom.Ellipse2D.Float(0,0, size,size);
             //Composite composite = dc.g.getComposite();
             //dc.g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
-            if (head.isPruned()) {
+            if (head.isPruning()) {
                 dot.setFrameFromCenter(head.x, head.y, head.x+size/2, head.y+size/2);
                 dc.g.setColor(Color.lightGray);
                 dc.g.fill(dot);
                 dc.g.setColor(Color.darkGray);
                 dc.g.draw(dot);
             }
-            if (tail.isPruned()) {
+            if (tail.isPruning()) {
                 dot.setFrameFromCenter(tail.x, tail.y, tail.x+size/2, tail.y+size/2);
                 dc.g.setColor(Color.lightGray);
                 dc.g.fill(dot);
@@ -3121,7 +3176,7 @@ public class LWLink extends LWComponent
         dc.g.translate(lx, ly);
         textBox.draw(dc);
 
-        if (DEBUG.LINK) {
+        if (DEBUG.LINK && DEBUG.META) {
             dc.g.setColor(Color.red);
             //dc.g.setFont(getFont().deriveFont(Font.BOLD, 8f));
             dc.g.setFont(VueConstants.FixedSmallFont.deriveFont(Font.BOLD, 7f));
@@ -3413,6 +3468,10 @@ public class LWLink extends LWComponent
         else if (getControlCount() == 2)
             s += String.format(" (%.0f,%.0f & %.0f,%.0f)",
                                mCubic.ctrlx1,  mCubic.ctrly1, mCubic.ctrlx2,  mCubic.ctrly2);
+        if (head.pruned)
+            s += " X-HEAD";
+        if (tail.pruned)
+            s += " X-TAIL";
         return s;
     }
 
