@@ -42,7 +42,7 @@
 	<key>Java</key>
 	<dict>
 		<key>VMOptions</key>
-		<string>-Xms256m -Xmx4g -XX:MinHeapFreeRatio=20 -XX:MaxHeapFreeRatio=40 -XX:NewSize=100m -XX:MaxNewSize=100m -XX:SurvivorRatio=6 -XX:TargetSurvivorRatio=80 -XX:+CMSClassUnloadingEnabled -XX:+CMSPermGenSweepingEnabled</string>
+		<string>-Xms256m -Xmx16g -XX:MinHeapFreeRatio=20 -XX:MaxHeapFreeRatio=40 -XX:NewSize=100m -XX:MaxNewSize=100m -XX:SurvivorRatio=6 -XX:TargetSurvivorRatio=80 -XX:+CMSClassUnloadingEnabled -XX:+CMSPermGenSweepingEnabled</string>
 
 		<key>WorkingDirectory</key>
 		<string>$APP_PACKAGE/Contents/Resources/Java</string>
