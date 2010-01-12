@@ -116,7 +116,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.696 $ / $Date: 2009-12-18 16:29:22 $ / $Author: brian $ 
+ * @version $Revision: 1.697 $ / $Date: 2010-01-12 16:14:12 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -2150,6 +2150,9 @@ public class VUE
                 GUI.setOffScreen(anchor.window());
             anchor.pack();
             anchor.setVisible(true);
+            // NOTE: changes to the graphics configuration appear to cause a
+            // COMPONENT_MOVED event on this window, which could be a way to
+            // to auto-detect changes after a "Detect Displays"
         }
 
     }
