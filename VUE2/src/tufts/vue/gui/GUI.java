@@ -57,7 +57,7 @@ import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.157 $ / $Date: 2009-11-23 21:32:22 $ / $Author: brian $
+ * @version $Revision: 1.158 $ / $Date: 2010-01-12 15:56:49 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -122,11 +122,13 @@ public class GUI
     public static Insets GInsets; // todo: this should be at least package private
     public static int GScreenWidth;
     public static int GScreenHeight;
+    private static int GOffScreenPixelY; // first off-screen (all displays) y value
 
     public static final Dimension MaxWidth = new Dimension(Short.MAX_VALUE, 1);
     public static final Dimension MaxHeight = new Dimension(1, Short.MAX_VALUE);
     public static final Dimension MaxSize = new Dimension(Short.MAX_VALUE, Short.MAX_VALUE);
     public static final Dimension ZeroSize = new Dimension(0,0);
+
 
     private static Window FullScreenWindow;
 
@@ -496,6 +498,17 @@ public class GUI
         GScreenWidth = GBounds.width;
         GScreenHeight = GBounds.height;
         GMaxWindowBounds = GEnvironment.getMaximumWindowBounds();
+
+        GOffScreenPixelY = GBounds.y + GBounds.height + 1;
+        
+        for (int i = 0; i < GScreenDevices.length; i++) {
+            if (GScreenDevices[i] != GDevice) {
+                Rectangle bounds = GScreenDevices[i].getDefaultConfiguration().getBounds();
+                int offY = bounds.y + bounds.height + 1;
+                if (offY > GOffScreenPixelY)
+                    GOffScreenPixelY = offY;;
+            }
+        }
 
         if (DEBUG.INIT) dumpGraphicsConfig();
     }
@@ -1523,7 +1536,7 @@ public class GUI
     public static void setOffScreen(java.awt.Window window)
     {
         refreshGraphicsInfo();
-        window.setLocation(0, GScreenHeight + 1);
+        window.setLocation(0, GOffScreenPixelY);
         //window.setLocation(-999, 8000); // may have been making Mac OS X Expose display too messy
     }
     
