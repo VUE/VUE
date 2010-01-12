@@ -3547,7 +3547,7 @@ public class Actions implements VueConstants
             protected boolean enabled() { return true; }
             public void act() 
             {
-            	GUI.resetScreenSize();
+            	GUI.reloadGraphicsInfo();
             	GUI.invokeAfterAWT(new Runnable() { public void run() {
             		DockWindow acrossTop[] = new DockWindow[VUE.acrossTop.length];
             		System.arraycopy(VUE.acrossTop, 0, acrossTop, 0, VUE.acrossTop.length);

@@ -37,7 +37,7 @@ import org.apache.log4j.NDC;
 /**
  * Code for providing, entering and exiting VUE full screen modes.
  *
- * @version $Revision: 1.44 $ / $Date: 2009-11-04 22:19:04 $ / $Author: sfraize $
+ * @version $Revision: 1.45 $ / $Date: 2010-01-12 16:11:22 $ / $Author: sfraize $
  *
  */
 
@@ -567,6 +567,8 @@ public class FullScreen
     private synchronized static void enterFullScreenMode(final boolean goNative)
     {
         NDC.push("[FS->]");
+        
+        GUI.reloadGraphicsInfo();
 
         boolean wentBlack = false;
         if (goNative && inWorkingFullScreen()) {
@@ -720,6 +722,9 @@ public class FullScreen
     private synchronized static void exitFullScreenMode()
     {
         NDC.push("[<-FS]");
+
+        GUI.reloadGraphicsInfo();
+        
         final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         final GraphicsDevice device = ge.getDefaultScreenDevice();
         final boolean wasNative = inNativeFullScreen();

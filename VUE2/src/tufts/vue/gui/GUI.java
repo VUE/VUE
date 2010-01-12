@@ -57,7 +57,7 @@ import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.158 $ / $Date: 2010-01-12 15:56:49 $ / $Author: sfraize $
+ * @version $Revision: 1.159 $ / $Date: 2010-01-12 16:11:22 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -479,14 +479,19 @@ public class GUI
         return isOceanTheme;
     }
 
-    public static void resetScreenSize()
-    {
-    	GBounds = GConfig.getBounds();
-        GInsets = GToolkit.getScreenInsets(GConfig); // this may change at any time
-        GScreenWidth = GBounds.width;
-        GScreenHeight = GBounds.height;
-        GMaxWindowBounds = GEnvironment.getMaximumWindowBounds();
+    public static void reloadGraphicsInfo() {
+        initGraphicsInfo();
     }
+
+//     public static void resetScreenSize()
+//     {
+//     	GBounds = GConfig.getBounds();
+//         GInsets = GToolkit.getScreenInsets(GConfig); // this may change at any time
+//         GScreenWidth = GBounds.width;
+//         GScreenHeight = GBounds.height;
+//         GMaxWindowBounds = GEnvironment.getMaximumWindowBounds();
+//     }
+    
     private static void initGraphicsInfo() {
         GToolkit = Toolkit.getDefaultToolkit();
         GEnvironment = GraphicsEnvironment.getLocalGraphicsEnvironment();
@@ -510,7 +515,7 @@ public class GUI
             }
         }
 
-        if (DEBUG.INIT) dumpGraphicsConfig();
+        if (DEBUG.Enabled) dumpGraphicsConfig();
     }
 
     public static void dumpGraphicsConfig() {
@@ -608,7 +613,6 @@ public class GUI
     public static GraphicsConfiguration getDeviceConfigForWindow(Window w) {
         return getDeviceForWindow(w).getDefaultConfiguration();
     }
-    
 
     public static void refreshGraphicsInfo() {
         // GraphicsConfiguration changes on DisplayMode change -- update everything.
@@ -623,6 +627,7 @@ public class GUI
             if (DEBUG.FOCUS) dumpGraphicsConfig();
         }
 
+        // Note: all the below code is basically deprecated/unused: shouldn't be called
         if (!VUE.isStartupUnderway() && VUE.getApplicationFrame() != null) {
             if (ControlMaxWindow)
                 VUE.getApplicationFrame().setMaximizedBounds(VueMaxWindowBounds(GMaxWindowBounds));
