@@ -79,7 +79,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.655 $ / $Date: 2010-01-11 22:24:42 $ / $Author: sfraize $ 
+ * @version $Revision: 1.656 $ / $Date: 2010-01-14 21:42:00 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3058,7 +3058,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
      * @param pAvoidRegion - the region to avoid (usually LWComponent bounds)
      * @param pTipRegion - the region, in map coords, that triggered this tool-tip
      */
-    void setTip(JComponent pJComponent, Rectangle2D pAvoidRegion, Rectangle2D pTipRegion) {
+    void activateRolloverToolTip
+        (MouseEvent mouseEvent,
+         JComponent pJComponent,
+         Rectangle2D pAvoidRegion,
+         Rectangle2D pTipRegion)
+    {
         if (pJComponent == null)
             throw new IllegalArgumentException("JComponent is null");
 
@@ -3119,43 +3124,19 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         Rectangle viewer = getVisibleBounds();
         Box avoid = new Box(viewer.intersection(mapToScreenRect(pAvoidRegion)));
         Box trigger = new Box(mapToScreenRect(pTipRegion));
+
+        final Point mouse = mouseEvent.getPoint();
             
         SwingUtilities.convertPointToScreen(avoid.ul, this);
         SwingUtilities.convertPointToScreen(avoid.lr, this);
         SwingUtilities.convertPointToScreen(trigger.ul, this);
+        SwingUtilities.convertPointToScreen(mouse, this);
         //SwingUtilities.convertPointToScreen(trigger.lr, this); // unused
             
-        Dimension tip = pJComponent.getPreferredSize();
+        final Dimension tipSize = pJComponent.getPreferredSize();
             
-        GUI.refreshGraphicsInfo();
+        final Point loc = keepTipOnScreen(mouse, trigger, avoid, tipSize);
 
-        // Default placement starts from left of component,
-        // at same height as the rollover region that triggered us
-        // in the component.
-        Point screen = new Point(avoid.ul.x - tip.width,  trigger.ul.y);
-            
-        if (screen.x < 0) {
-            // if would go off left of screen, try placing above the component
-            screen.x = avoid.ul.x;
-            screen.y = avoid.ul.y - tip.height;
-            GUI.keepLocationOnScreen(screen, tip);
-            // if too tall and would then overlap rollover region, move to right of component
-            //if (screen.y + tip.height >= placementLeft.y) {
-            // if too tall and would then overlap component, move to right of component
-            if (screen.y + tip.height > avoid.ul.y) {
-                screen.x = avoid.lr.x;
-                screen.y = trigger.ul.y;
-            }
-            // todo: consider moving tall tips from tip to right
-            // of component -- looks ugly having all that on top.
-                
-            // todo: consider a 2nd pass to ensure not overlapping
-            // the rollover region, to prevent window-exit/enter loop.
-            // (flashes the rollover till mouse moved away)
-        }
-        
-        GUI.keepLocationOnScreen(screen, tip);
-            
         // todo java bug: there are some java bugs, perhaps in the Popup caching code
         // (happens on PC & Mac both), where the first time a pop-up appears (actually
         // only seeing with tall JTextArea's), it's height is truncated.  Sometimes even
@@ -3168,11 +3149,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // when you go elsewhere, but elsewhere never ever gets FOCUS_GAINED...
         // Hopefully we can workaround this in our FocusManager.
         // [ This only appears to happen with alwaysOnTop, which we're not using right now ]
-            
+
         synchronized (sTipLock) {
             PopupFactory popupFactory = PopupFactory.getSharedInstance();
             
-            sTipPopup = popupFactory.getPopup(this, pJComponent, screen.x, screen.y);
+            sTipPopup = popupFactory.getPopup(this, pJComponent, loc.x, loc.y);
             sTipComponent = pJComponent;
 
             // this isn't helping: it's still allowing focus!  The problem case a
@@ -3202,6 +3183,47 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             sTipDisplayInstance++;
         }
     }
+
+    private Point keepTipOnScreen
+        (Point mouse, // screen determined from this
+         Box trigger, // hit region that triggered the tip
+         Box avoid, // a region we'd like to avoid
+         Dimension tip) // the size of the tip
+    {
+        //GUI.refreshGraphicsInfo();
+
+        final Insets screen = GUI.getScreenForPoint(mouse);
+
+        // Default placement starts from left of component,
+        // at same height as the rollover region that triggered us
+        // in the component.
+
+        final Point loc = new Point(avoid.ul.x - tip.width, trigger.ul.y);
+        if (loc.x < screen.left) {
+            // if would go off left of screen, try placing above the component
+            loc.x = avoid.ul.x;
+            loc.y = avoid.ul.y - tip.height;
+            GUI.keepRegionOnScreen(screen, loc, tip);
+            // if too tall and would then overlap rollover region, move to right of component
+            //if (screen.y + tip.height >= placementLeft.y) {
+            // if too tall and would then overlap component, move to right of component
+            if (loc.y + tip.height > avoid.ul.y) {
+                loc.x = avoid.lr.x;
+                loc.y = trigger.ul.y;
+            }
+            // todo: consider moving tall tips from tip to right
+            // of component -- looks ugly having all that on top.
+                
+            // todo: consider a 2nd pass to ensure not overlapping
+            // the rollover region, to prevent window-exit/enter loop.
+            // (flashes the rollover till mouse moved away)
+        }
+        GUI.keepRegionOnScreen(screen, loc, tip);
+
+        return loc;
+    }
+
+    
 
     // TODO: find a workaround for this java focus bug.  HeaveWeight pop-ups
     // are fine, but not medium weight (ones that use java.awt.Panel).
@@ -3263,7 +3285,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     //public boolean isOpaque() {return false;}
     
     protected boolean skipAllPainting() {
-        return VUE.inFullScreen() && instanceName != tufts.vue.gui.FullScreen.VIEWER_NAME;
+        return VUE.inFullScreen()
+            && instanceName != tufts.vue.gui.FullScreen.VIEWER_NAME
+            && !GUI.hasMultipleScreens(); // enables dual-display of same map if you know the trick to activate
     }
     
 //     private boolean immediateRepaint = false;
@@ -8501,6 +8525,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             width = r.width;
             height = r.width;
         }
+
+        int top() { return ul.y; }
+        int left() { return ul.x; }
+        int bottom() { return lr.y; }
+        int right() { return lr.x; }
         
         Rectangle getRect() {
             return new Rectangle(ul.x, ul.y, lr.x - ul.x, lr.y - ul.y);
