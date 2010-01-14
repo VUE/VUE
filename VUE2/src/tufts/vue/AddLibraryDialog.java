@@ -21,7 +21,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.90 $ / $Date: 2009-10-26 20:32:09 $ / $Author: mike $
+ * @version $Revision: 1.91 $ / $Date: 2010-01-14 20:54:03 $ / $Author: mike $
  * @author  akumar03
  */
 import java.awt.BorderLayout;
@@ -641,7 +641,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
     public void actionPerformed(ActionEvent ae) {
         
         
-        if (ae.getActionCommand().equals("Add")) {
+        if (ae.getActionCommand().equals(VueResources.getString("addLibrary.ok.label"))) {
             this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
             GUI.activateWaitCursor();
             providerListRenderer.invokeWaitingMode(addLibraryList.getSelectedIndex());
