@@ -55,7 +55,7 @@ public class FilledCircularLayout extends Layout {
         double minX = Double.POSITIVE_INFINITY;
         double minY = Double.POSITIVE_INFINITY;
         double xAdd = X_COL_SIZE; // default horizontal distance between the nodes
-        double yAdd = Y_COL_SIZE; //default vertica
+        double yAdd = Y_COL_SIZE; //default vertical distance between nodes
         int total = 0;
         Iterator<LWComponent> i = selection.iterator();
         while (i.hasNext()) {
@@ -74,12 +74,13 @@ public class FilledCircularLayout extends Layout {
 //               System.out.println(node.getLabel()+"X= "+node.getLocation().getX()+" Y= "+node.getLocation().getY()+" MIN: "+minX+" : "+minY);
             }
         }
+        xAdd = xAdd*1.10; // 10% gap
+        xAdd = xAdd*1.10; 
         double x = minX;
         double y = minY;
-        double size = total * xAdd / 4;
         double radius = Math.sqrt(FACTOR * total * xAdd * yAdd / Math.PI);
-        double centerX = x + radius;
-        double centerY = y + radius;
+        double centerX = selection.getBounds().getCenterX(); 
+        double centerY = selection.getBounds().getCenterY();
         i = selection.iterator();
         while (i.hasNext()) {
         	
@@ -98,8 +99,8 @@ public class FilledCircularLayout extends Layout {
                     if ((VUE.getActiveViewer().pickNode((float) x, (float) y) != null) || (VUE.getActiveViewer().pickNode((float) x + node.getWidth(), (float) y + node.getHeight()) != null) || (VUE.getActiveViewer().pickNode((float) x , (float) y + node.getHeight()) != null ) || (VUE.getActiveViewer().pickNode((float) x + node.getWidth(), (float) y) != null))  {
                         angle = Math.PI * 2 * Math.random();
                         r = radius * (1 - Math.pow(Math.random(), 2.0));
-                        x = centerX + r * Math.cos(angle);
-                        y = centerY + r * Math.sin(angle);
+                        x = centerX + r * Math.cos(angle)-node.getWidth();
+                        y = centerY + r * Math.sin(angle)-node.getHeight();
                     } else {
                         flag = false;
                     }
