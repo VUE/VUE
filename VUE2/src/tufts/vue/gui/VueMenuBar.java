@@ -90,7 +90,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.171 $ / $Date: 2009-12-26 21:46:55 $ / $Author: sfraize $
+ * @version $Revision: 1.172 $ / $Date: 2010-01-14 21:45:18 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -225,7 +225,21 @@ public class VueMenuBar extends javax.swing.JMenuBar
     }
     
 
-    private final JCheckBoxMenuItem viewFullScreen = makeCheckBox(Actions.ToggleFullScreen);
+    private final JCheckBoxMenuItem viewFullScreen = makeLinkedCheckBox(Actions.ToggleFullScreen);
+    
+    private final JCheckBoxMenuItem viewSuperScreen = new JCheckBoxMenuItem(Actions.SuperScreen) {
+            {
+                Actions.SuperScreen.trackToggler(this);
+            }
+            @Override public void setEnabled(boolean b) {
+                //Log.debug("SS SET ENABLED " + b);
+                super.setEnabled(b);
+                setVisible(b);
+            }
+        };
+    
+
+    
     Object[] arguments = { new Date(), "TestFile" };
     private final JMenu windowMenu = makeMenu(VueResources.getFormatMessage(arguments, "menu.windows"));
     //private final OntologyControlsOpenAction ontcontrls = new OntologyControlsOpenAction(VueResources.getString("menu.windows.ontologies"));
@@ -643,11 +657,14 @@ public class VueMenuBar extends javax.swing.JMenuBar
         viewMenu.add(Actions.ZoomToSelection);
         viewMenu.add(Actions.ZoomActual);
         viewMenu.addSeparator();            
-        if (!(Util.isUnixPlatform() || VUE.isApplet()) ) 
-        	viewMenu.add(viewFullScreen);
+        if (!(Util.isUnixPlatform() || VUE.isApplet()) ) {
+            viewMenu.add(viewFullScreen);
+        }
         
-        if (!VUE.isApplet())
-        	viewMenu.add(splitScreenItem);
+        if (!VUE.isApplet()) {
+            viewMenu.add(splitScreenItem);
+            viewMenu.add(viewSuperScreen);
+        }
         if (!VUE.isApplet())
         	viewMenu.addSeparator();
         if (!VUE.isApplet())
