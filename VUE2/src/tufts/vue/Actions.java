@@ -3664,6 +3664,42 @@ public class Actions implements VueConstants
     };
 
     
+    public static final VueAction SuperScreen =
+        new VueAction("Use all screens for Full Screen")
+        {
+            private boolean selected;
+
+            { update("init"); }
+            
+            boolean undoable() { return false; }
+            protected boolean enabled() { return true; }
+            public void act() {
+                GUI.reloadGraphicsInfo();
+                update("firing");
+                if (isEnabled()) {
+                    selected = !selected;
+                } else {
+                    selected = false;
+                }
+            }
+            @Override public Boolean getToggleState() {
+        	return selected ? Boolean.TRUE : Boolean.FALSE;
+            }
+            // for GUI.java -- would be better as a listener
+            @Override public void update(Object key) {
+                if (DEBUG.Enabled) Log.debug("SuperScreen update: " + Util.tags(key));
+                if (GUI.hasMultipleScreens()) {
+                    java.awt.Rectangle b = GUI.getAllScreenBounds();
+                    setActionName(String.format("Max Screen (%dx%d)", b.width, b.height));
+                    setEnabled(true);
+                } else {
+                    setEnabled(false);
+                    setActionName("Max Screen");
+                }
+            }
+        };
+
+
     public static final VueAction ToggleFullScreen =
         new VueAction(VueResources.local("menu.view.fullscreen"), keyStroke(KeyEvent.VK_BACK_SLASH, COMMAND)) {
             public void act() {
