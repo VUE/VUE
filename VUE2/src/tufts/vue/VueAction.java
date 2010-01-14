@@ -35,7 +35,7 @@ import javax.swing.Icon;
  * Base class for VueActions that don't use the selection.
  * @see Actions.LWCAction for actions that use the selection
  *
- * @version $Revision: 1.50 $ / $Date: 2009-10-12 16:13:13 $ / $Author: sfraize $ 
+ * @version $Revision: 1.51 $ / $Date: 2010-01-14 21:42:55 $ / $Author: sfraize $ 
  */
 public class VueAction extends javax.swing.AbstractAction
 {
@@ -547,6 +547,9 @@ public class VueAction extends javax.swing.AbstractAction
     protected boolean isSelectionWatcher() { return false; }
     /** does nothing in this impl: override to make use of */
     protected void updateEnabled(LWSelection s) { }
+    
+    /** generic public overridable call for specialized impl's */
+    public void update(Object arg) { }
 
     /** Note that overriding enabled() will not update the action's enabled
      * state based on what's in the selection -- you need to subclass
