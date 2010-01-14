@@ -36,7 +36,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  *
  * Set's the icon-image for the vue application and set's the window title.
  *
- * @version $Revision: 1.25 $ / $Date: 2009-11-04 18:44:20 $ / $Author: mike $ 
+ * @version $Revision: 1.26 $ / $Date: 2010-01-14 21:45:37 $ / $Author: sfraize $ 
  */
 public class VueFrame extends javax.swing.JFrame
     implements ActiveListener<MapViewer>, WindowListener, WindowStateListener, WindowFocusListener               
@@ -70,8 +70,8 @@ public class VueFrame extends javax.swing.JFrame
         } else {
             setIconImage(VueResources.getImage("vueIcon32"));
         }
-        if (GUI.ControlMaxWindow)
-            setMaximizedBounds(GUI.getMaximumWindowBounds());
+//         if (GUI.ControlMaxWindow)
+//             setMaximizedBounds(GUI.getMaximumWindowBounds());
 
         // we need this to make sure kdb input
         //setJMenuBar(new VueMenuBar());        
@@ -83,7 +83,7 @@ public class VueFrame extends javax.swing.JFrame
         addComponentListener(new java.awt.event.ComponentAdapter() {
                 public void componentMoved(ComponentEvent e) {
                     //out("MOVED " + e);
-                    GUI.refreshGraphicsInfo();
+                    GUI.reloadGraphicsInfo();
                 }
             });
         
