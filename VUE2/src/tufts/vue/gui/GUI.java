@@ -57,7 +57,7 @@ import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.159 $ / $Date: 2010-01-12 16:11:22 $ / $Author: sfraize $
+ * @version $Revision: 1.160 $ / $Date: 2010-01-14 21:40:20 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -102,7 +102,7 @@ public class GUI
 
     public static final Color AquaFocusBorderLight = new Color(157, 191, 222);
     public static final Color AquaFocusBorderDark = new Color(137, 170, 201);
-    public static final boolean ControlMaxWindow = false;
+    //public static final boolean ControlMaxWindow = false;
 
     //public static final Image NoImage32 = VueResources.getImage("NoImage");
     public static final Image NoImage32 = VueResources.getImage("/icon_noimage32.gif");
@@ -111,24 +111,70 @@ public class GUI
     
     
     public static boolean UseAlwaysOnTop = false;
+
+    public static final class Screen extends Rectangle {
+        final int top, left, bottom, right;
+
+        final Insets in;
+
+        //final int header, footer, l_margin, r_margin;
+
+        Screen(Rectangle bounds, Insets insets) {
+            super(bounds);
+
+            top = this.y;
+            left = this.x;
+            right = left + this.width;
+            bottom = top + this.height;
+
+            in = insets;
+        }
+
+        public static Screen create(GraphicsDevice device)
+        {
+            // note: the config changes when the display mode changes (e.g., resolution change)
+            final GraphicsConfiguration config = device.getDefaultConfiguration(); 
+
+            // note: the screen insets may change at any time due to user changes (e.g., dock hiding)
+            final Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(config);
+
+            return new Screen(config.getBounds(), insets);
+        }
+        
+    }
     
-    static Toolkit GToolkit;
-    static GraphicsEnvironment GEnvironment;
-    static GraphicsDevice GDevice;
-    static GraphicsDevice[] GScreenDevices;
-    static GraphicsConfiguration GConfig;
-    static Rectangle GBounds;
-    static Rectangle GMaxWindowBounds;
-    public static Insets GInsets; // todo: this should be at least package private
+    // todo: these three should be private (currenlty referenced directly by DockWindow & VUE.java)    
+    public static Insets GInsets;
     public static int GScreenWidth;
     public static int GScreenHeight;
-    private static int GOffScreenPixelY; // first off-screen (all displays) y value
+    
+    //static Toolkit GToolkit;
+    private static GraphicsEnvironment GEnvironment;
+    private static GraphicsDevice GDevice;
+    private static GraphicsDevice[] GScreenDevices;
+
+    private static GraphicsConfiguration GConfig;
+    //static Rectangle GBounds;
+    //static Rectangle GMaxWindowBounds; // only useful for single-device displays
+    
+    /** The raw screen coordiates of the currently "active" display.  This is relative
+     * to the entire space of all displays.  In a multi-monitor environment, each
+     * display device will have it's own coordiates in the global space of all attached
+     * display devices.
+     */
+    private static Insets GScreen;
+    /** the maximum coordinates of the entire space of all devices -- note that
+     * this will actually include off-screen regions if the display layout is not perfectly
+     * rectangular */
+    private static Insets GSpace;
+    private static Rectangle GSpaceBounds;
+
+    private static final boolean SUPER_SCREEN = true;
 
     public static final Dimension MaxWidth = new Dimension(Short.MAX_VALUE, 1);
     public static final Dimension MaxHeight = new Dimension(1, Short.MAX_VALUE);
     public static final Dimension MaxSize = new Dimension(Short.MAX_VALUE, Short.MAX_VALUE);
     public static final Dimension ZeroSize = new Dimension(0,0);
-
 
     private static Window FullScreenWindow;
 
@@ -480,7 +526,7 @@ public class GUI
     }
 
     public static void reloadGraphicsInfo() {
-        initGraphicsInfo();
+        loadGraphicsInfo();
     }
 
 //     public static void resetScreenSize()
@@ -491,157 +537,304 @@ public class GUI
 //         GScreenHeight = GBounds.height;
 //         GMaxWindowBounds = GEnvironment.getMaximumWindowBounds();
 //     }
-    
-    private static void initGraphicsInfo() {
-        GToolkit = Toolkit.getDefaultToolkit();
-        GEnvironment = GraphicsEnvironment.getLocalGraphicsEnvironment();
-        GDevice = GEnvironment.getDefaultScreenDevice();
-        GScreenDevices = GEnvironment.getScreenDevices();
-        GConfig = GDevice.getDefaultConfiguration(); // this changes when display mode changes
-        GBounds = GConfig.getBounds();
-        GInsets = GToolkit.getScreenInsets(GConfig); // this may change at any time
-        GScreenWidth = GBounds.width;
-        GScreenHeight = GBounds.height;
-        GMaxWindowBounds = GEnvironment.getMaximumWindowBounds();
 
-        GOffScreenPixelY = GBounds.y + GBounds.height + 1;
+    public static boolean hasMultipleScreens() 
+    {
+        if (GScreenDevices == null)
+            loadGraphicsInfo();
+        
+        return GScreenDevices.length > 1;
+    }
+    
+    public static Rectangle getAllScreenBounds()
+    {
+        if (GSpaceBounds == null)
+            loadGraphicsInfo();
+        
+        return new Rectangle(GSpaceBounds);
+    }
+    
+    private static void loadGraphicsInfo()
+    {
+        Toolkit GToolkit = Toolkit.getDefaultToolkit();
+        GEnvironment = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        GDevice = getActiveDevice();
+
+        Screen screen = Screen.create(GDevice);
+        
+        GConfig = GDevice.getDefaultConfiguration(); // this changes when display mode changes
+        GScreenDevices = GEnvironment.getScreenDevices();
+
+        //GBounds = GConfig.getBounds();
+        Rectangle bounds = GConfig.getBounds();
+        
+        GInsets = GToolkit.getScreenInsets(GConfig); // this may change at any time
+        
+        GScreenWidth = bounds.width;
+        GScreenHeight = bounds.height;
+        
+        // Global raw offsets for the screen: in multi-monitor setup, this will be different
+        // for each display.
+        GScreen = boundsToInsets(bounds);
+        
+        //GMaxWindowBounds = GEnvironment.getMaximumWindowBounds();
+
+        GSpaceBounds = new Rectangle(bounds);
         
         for (int i = 0; i < GScreenDevices.length; i++) {
-            if (GScreenDevices[i] != GDevice) {
-                Rectangle bounds = GScreenDevices[i].getDefaultConfiguration().getBounds();
-                int offY = bounds.y + bounds.height + 1;
-                if (offY > GOffScreenPixelY)
-                    GOffScreenPixelY = offY;;
-            }
+            if (GScreenDevices[i] != GDevice)
+                GSpaceBounds.add(GScreenDevices[i].getDefaultConfiguration().getBounds());
         }
+
+        GSpace = boundsToInsets(GSpaceBounds);
+
+        // todo: the below should really be on some kind of observer of a GUI.java state:
+        if (tufts.vue.Actions.SuperScreen != null) {
+            // above could be null during init
+            tufts.vue.Actions.SuperScreen.update(GUI.class);
+        }
+        
 
         if (DEBUG.Enabled) dumpGraphicsConfig();
     }
 
-    public static void dumpGraphicsConfig() {
-        System.out.println("GUI.initGraphicsInfo:"
-                           + "\n\t    toolkit: " + GToolkit
-                           + "\n\tenvironment: " + GEnvironment
-                           + "\n\t  envMaxWin: " + GEnvironment.getMaximumWindowBounds()
+    public static Insets boundsToInsets(Rectangle r) 
+    {
+        return new Insets(r.y,
+                          r.x,
+                          r.y + r.height,
+                          r.x + r.width);
+
+    }
+    
+
+    private static void dumpGraphicsConfig() {
+        Log.debug("screen stats:");
+        System.out.println(
+                           //+ "\n\t     toolkit: " + Util.tags(GToolkit)
+                             "\t environment: " + Util.tags(GEnvironment)
+                           + "\n\tenviroMaxWin: " + GEnvironment.getMaximumWindowBounds()
+                           + "\n\tactiveScreen: " + GScreen
+                           + "\n\t    allSpace: " + GSpace
+                           + "\n\t   allBounds: " + GSpaceBounds
                            );
 
-        dumpGraphicsDevice(GDevice, "DEFAULT");
+        //dumpGraphicsDevice(GDevice, "VUE-ACTIVE");
 
         for (int i = 0; i < GScreenDevices.length; i++) {
-            if (GScreenDevices[i] != GDevice)
-                dumpGraphicsDevice(GScreenDevices[i], "#"+i);
+            if (GScreenDevices[i] == GDevice)
+                dumpGraphicsDevice(GScreenDevices[i], null);
+            else
+                dumpGraphicsDevice(GScreenDevices[i], "VUE-ACTIVE");
         }
     }
 
     public static void dumpGraphicsDevice(GraphicsDevice d, String key) {
-        System.out.println("\tDevice " + key + ": " + d + " ID=" + d.getIDstring()
-                           + "\n\t\t        config: " + d.getDefaultConfiguration()
-                           + "\n\t\t config bounds: " + d.getDefaultConfiguration().getBounds()
-                           + "\n\t\t screen insets: " + GToolkit.getScreenInsets(d.getDefaultConfiguration())
+        //System.out.println("\tDevice " + key + ": " + d + " ID=" + Util.tags(d.getIDstring())
+        final GraphicsConfiguration config = d.getDefaultConfiguration();
+        System.out.println("\t" + Util.tags(d.getIDstring()) + " " + d + " " + (key==null?"":Util.tags(key))
+                           + "\n\t\t        config: " + config
+                           + "\n\t\t config bounds: " + config.getBounds()
+                           + "\n\t\t screen insets: " + Toolkit.getDefaultToolkit().getScreenInsets(config)
                            );
     }
     
     public static int getScreenWidth() {
-        if (GScreenWidth == 0)
-            initGraphicsInfo();
+        if (GScreenWidth <= 0)
+            loadGraphicsInfo();
         return GScreenWidth;
     }
     
     public static int getScreenHeight() {
-        if (GScreenHeight == 0)
-            initGraphicsInfo();
+        if (GScreenHeight <= 0)
+            loadGraphicsInfo();
         return GScreenHeight;
     }
 
-    
-
-    public static Rectangle getMaximumWindowBounds() {
-        refreshGraphicsInfo();
-        if (ControlMaxWindow)
-            return VueMaxWindowBounds(GMaxWindowBounds);
-        else
-            return GMaxWindowBounds;
-    }
+//     public static Rectangle getMaximumWindowBounds() {
+//         refreshGraphicsInfo();
+//         if (ControlMaxWindow)
+//             return VueMaxWindowBounds(GMaxWindowBounds);
+//         else
+//             return GMaxWindowBounds;
+//     }
 
     /** Return the max window bounds for the given window, for screen device it's currently displayed on */
-    public static Rectangle getMaximumWindowBounds(Window w) {
-        refreshGraphicsInfo();
-        GraphicsDevice d = getDeviceForWindow(w);
-        Rectangle bounds = d.getDefaultConfiguration().getBounds();
-        Insets insets = GToolkit.getScreenInsets(d.getDefaultConfiguration());
+    public static Rectangle getMaximumWindowBounds(Window w)
+    {
+        final GraphicsDevice device = getDeviceForWindow(w);
+        final GraphicsConfiguration config = device.getDefaultConfiguration();
+        final Rectangle bounds = config.getBounds();
+        final Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(config);
+
         //out("selected bounds " + bounds);
         //out("selected insets " + insets);
+
         bounds.x += insets.left;
         bounds.y += insets.top;
         bounds.width -= insets.left;
         bounds.height -= insets.top;
         bounds.width -= insets.right;
         bounds.height -= insets.bottom;
+        
         //out("result bounds " + bounds);
+        
         return bounds;
     }
 
+//     public static int getMaxWindowHeight() {
+//         refreshGraphicsInfo();
+//         return GMaxWindowBounds.height;
+//     }
+
     /** @return the GraphicsDevice the given window is currently displayed on.
      *
-     * In the case where the Window currently overlaps two physical devices, the device
-     * the window is "on" is determined by the device which is displaying the greatest
-     * portion of the total area of the Window
+     * In the case where the Window currently overlaps two physical or logical devices,
+     * the device the window is "on" is determined by the device which is displaying the
+     * greatest portion of the total area of the Window
      *
-     * If Window is null, return the default device.
+     * If the given Window is null, this return the default device.
      */
     
-    public static GraphicsDevice getDeviceForWindow(Window w) {
-        refreshGraphicsInfo();
+    public static GraphicsDevice getDeviceForWindow(Window w) 
+    {
+        final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        final GraphicsDevice defaultDevice = ge.getDefaultScreenDevice();
+        
         if (w == null)
-            return GDevice;
-        Rectangle windowBounds = w.getBounds();
-        GraphicsDevice selected = null;
+            return defaultDevice;
+        
+        final GraphicsDevice[] devices = ge.getScreenDevices();
+
+        if (devices.length < 2)
+            return defaultDevice;
+        
+        return getDeviceForRegion(w.getBounds());
+    }
+    
+        
+    /** @return the GraphicsDevice the given region is currently displayed on.
+     *
+     * In the case where the region currently overlaps two physical or logical devices,
+     * the device the region is "on" is determined by the device which is displaying the
+     * greatest portion of the total area of the region
+     *
+     * If the given region is null or empty, this return the default device.
+     */
+    public static GraphicsDevice getDeviceForRegion(final Rectangle region) 
+    {
+        final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        GraphicsDevice selected = ge.getDefaultScreenDevice();
+        
+        if (region == null || region.isEmpty())
+            return selected;
+        
+        final GraphicsDevice[] devices = ge.getScreenDevices();
+
+        if (devices.length < 2)
+            return selected;
+
+        // scan all screen devices, and find the one that this
+        // window most overlaps:
+        
         int maxArea = 0;
-        for (int i = 0; i < GScreenDevices.length; i++) {
-            GraphicsDevice device = GScreenDevices[i];
-            GraphicsConfiguration config = device.getDefaultConfiguration();
-            Rectangle overlap = config.getBounds().intersection(windowBounds);
-            int area = overlap.width * overlap.height;
-            if (area > maxArea) {
-                maxArea = area;
-                selected = device;
+        for (int i = 0; i < devices.length; i++) {
+            GraphicsDevice device = devices[i];
+            try {
+                GraphicsConfiguration config = device.getDefaultConfiguration();
+                Rectangle overlap = config.getBounds().intersection(region);
+                int area = overlap.width * overlap.height;
+                if (area > maxArea) {
+                    maxArea = area;
+                    selected = device;
+                }
+            } catch (Throwable t) {
+                Log.error("scanning device: " + Util.tags(device));
             }
         }
-        return selected == null ? GDevice : selected;
+        
+        return selected;
     }
+
+    public static GraphicsDevice getDeviceForPoint(final Point point)
+    {
+        final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        GraphicsDevice selected = ge.getDefaultScreenDevice();
+        
+        if (point == null)
+            return selected;
+        
+        final GraphicsDevice[] devices = ge.getScreenDevices();
+
+        if (devices.length < 2)
+            return selected;
+
+        // scan all screen devices, and find the one that this point is on:
+        
+        for (int i = 0; i < devices.length; i++) {
+            GraphicsDevice device = devices[i];
+            try {
+                GraphicsConfiguration config = device.getDefaultConfiguration();
+                if (config.getBounds().contains(point)) {
+                    selected = device;
+                    break;
+                }
+            } catch (Throwable t) {
+                Log.error("scanning device: " + Util.tags(device));
+            }
+        }
+        return selected;
+    }
+
+    public static Insets getScreenForPoint(final Point point) 
+    {
+        return boundsToInsets(getDeviceForPoint(point).getDefaultConfiguration().getBounds());
+    }
+    
 
     public static GraphicsConfiguration getDeviceConfigForWindow(Window w) {
         return getDeviceForWindow(w).getDefaultConfiguration();
+    }
+    
+    /** @return the GraphicsDevice currently determined to be the "active" one for VUE */
+    public static GraphicsDevice getActiveDevice()
+    {
+        return getDeviceForWindow(VUE.getMainWindow());
     }
 
     public static void refreshGraphicsInfo() {
         // GraphicsConfiguration changes on DisplayMode change -- update everything.
         if (GDevice == null) {
-            initGraphicsInfo();
+            loadGraphicsInfo();
         } else {
             GraphicsConfiguration currentConfig = GDevice.getDefaultConfiguration();
             if (currentConfig != GConfig)
-                initGraphicsInfo();
+                loadGraphicsInfo();
             else
-                GInsets = GToolkit.getScreenInsets(GConfig); // this may change at any time
+                GInsets = Toolkit.getDefaultToolkit().getScreenInsets(GConfig); // this may change at any time
+            //GInsets = GToolkit.getScreenInsets(GConfig); // this may change at any time
             if (DEBUG.FOCUS) dumpGraphicsConfig();
         }
 
-        // Note: all the below code is basically deprecated/unused: shouldn't be called
-        if (!VUE.isStartupUnderway() && VUE.getApplicationFrame() != null) {
-            if (ControlMaxWindow)
-                VUE.getApplicationFrame().setMaximizedBounds(VueMaxWindowBounds(GMaxWindowBounds));
+        //-----------------------------------------------------------------------------
+        // Note: all the below code is basically deprecated/unused -- MainDock
+        // will be null, as the DockRegion code is not being used.
+        //-----------------------------------------------------------------------------
+        
+//         if (!VUE.isStartupUnderway() && VUE.getApplicationFrame() != null) {
+// //             if (ControlMaxWindow)
+// //                 VUE.getApplicationFrame().setMaximizedBounds(VueMaxWindowBounds(GMaxWindowBounds));
 
-            if (DockWindow.MainDock != null) {
-                if (DockWindow.MainDock.mGravity == DockRegion.BOTTOM) {
-                    DockWindow.MainDock.moveToY(VUE.getApplicationFrame().getY());
-                } else {
-                    Point contentLoc = VUE.mViewerSplit.getLocation();
-                    SwingUtilities.convertPointToScreen(contentLoc, VUE.getApplicationFrame().getContentPane());
-                    DockWindow.MainDock.moveToY(contentLoc.y);
-                }
-            }
-        }
+//             if (DockWindow.MainDock != null) {
+//                 if (DockWindow.MainDock.mGravity == DockRegion.BOTTOM) {
+//                     DockWindow.MainDock.moveToY(VUE.getApplicationFrame().getY());
+//                 } else {
+//                     Point contentLoc = VUE.mViewerSplit.getLocation();
+//                     SwingUtilities.convertPointToScreen(contentLoc, VUE.getApplicationFrame().getContentPane());
+//                     DockWindow.MainDock.moveToY(contentLoc.y);
+//                 }
+//             }
+//         }
     }
 
 
@@ -659,19 +852,12 @@ public class GUI
         }
         return font.getStringBounds(s, GUI.DefaultFontContext).getWidth();
     }
-    
 
-
-    public static int getMaxWindowHeight() {
-        refreshGraphicsInfo();
-        return GMaxWindowBounds.height;
-    }
-
-    /** VUE specific threshold for configuring UI */
-    public static boolean isSmallScreen() {
-        refreshGraphicsInfo();
-        return GScreenWidth < 1024;
-    }
+//     /** VUE specific threshold for configuring UI */
+//     public static boolean isSmallScreen() {
+//         refreshGraphicsInfo();
+//         return GScreenWidth < 1024;
+//     }
     
     /** center the given window on default physical screen, but never let it go above whatever
      * our max window bounds are.
@@ -683,7 +869,7 @@ public class GUI
         int x = GScreenWidth/2 - window.getWidth()/2;
         int y = GScreenHeight/2 - window.getHeight()/2;
 
-        Rectangle wb = getMaximumWindowBounds();
+        Rectangle wb = getMaximumWindowBounds(window);
 
         if (y < wb.y)
             y = wb.y;
@@ -1415,83 +1601,23 @@ public class GUI
     }
     
     
-    /**
-     * Size a normal Window to the maximum size usable in the current
-     * platform & desktop configuration, <i>without</i> using the java
-     * special full-screen mode, which can't have any other windows
-     * on top of it, and changes the way user input events are handled.
-     * On the PC, this will just be the whole screen (bug: probably
-     * not good enough if they have non-hiding menu bar set to always-
-     * on-top). On the Mac, it will be adjusted for the top menu
-     * bar and the dock if it's visible.
-     */
-    // todo: test in multi-screen environment
-    private static void XsetFullScreen(Window window)
-    {
-        refreshGraphicsInfo();
-        
-        Dimension screen = window.getToolkit().getScreenSize();
-        
-        if (Util.isMacPlatform()) {
-            // mac won't layer a regular window over the menu bar, so
-            // we need to limit the size
-            Rectangle desktop = GEnvironment.getMaximumWindowBounds();
-            out("setFullScreen: mac maximum bounds  " + Util.out(desktop));
-            if (desktop.x > 0 && desktop.x <= 4) {
-                // hack for smidge of space it attempts to leave if the dock is
-                // at left and auto-hiding
-                desktop.width += desktop.x;
-                desktop.x = 0;
-            } else {
-                // dock at bottom & auto-hiding
-                int botgap = screen.height - (desktop.y + desktop.height);
-                if (botgap > 0 && botgap <= 4) {
-                    desktop.height += botgap;
-                } else {
-                    // dock at right & auto-hiding
-                    int rtgap = screen.width - desktop.width;
-                    if (rtgap > 0 && rtgap <= 4)
-                        desktop.width += rtgap;
-                }
-            }
-            
-            if (DEBUG.FOCUS) desktop.height /= 5;
-            
-            out("setFullScreen: mac adjusted bounds " + Util.out(desktop));
-
-            window.setLocation(desktop.x, desktop.y);
-            window.setSize(desktop.width, desktop.height);
-        } else {
-            if (DEBUG.FOCUS) screen.height /= 5;
-            window.setLocation(0, 0);
-            window.setSize(screen.width, screen.height);
-        }
-        out("setFullScreen: set to " + window);
-    }
-    
     private static Rectangle getFullScreenBounds()
     {
-        refreshGraphicsInfo();
-
-        //out(" GBounds: " + GBounds);
-
-        return new Rectangle(GBounds);
-
+        if (tufts.vue.Actions.SuperScreen.getToggleState())
+            return GSpaceBounds;
+        else
+            return getActiveDevice().getDefaultConfiguration().getBounds();
     }
 
-    public static Icon getIcon(String name) {
-        return VueResources.getIcon(GUI.class, "icons/" + name);
-    }
-
-
-    public static Rectangle getFullScreenWindowBounds()
+    private static Rectangle getFullScreenWorkingBounds()
     {
-        Rectangle bounds = getFullScreenBounds();
+        final Rectangle bounds = new Rectangle(getFullScreenBounds());
 
         if (Util.isMacPlatform()) {
             // place us under the mac menu bar
             bounds.y += GInsets.top;
             bounds.height -= GInsets.top;
+            // we explicitly ignore any left/bottom/right insets (for the dock)
         }
 
         if (DEBUG.PRESENT) {
@@ -1515,7 +1641,7 @@ public class GUI
     
     public static void setFullScreenVisible(Window window)
     {
-        final Rectangle bounds = getFullScreenWindowBounds();
+        final Rectangle bounds = getFullScreenWorkingBounds();
 
         window.setSize(bounds.width, bounds.height);
         window.setVisible(true);
@@ -1523,7 +1649,7 @@ public class GUI
     }
 
     public static void setFullScreen(Window window) {
-        final Rectangle bounds = getFullScreenWindowBounds();
+        final Rectangle bounds = getFullScreenWorkingBounds();
 
         window.setSize(bounds.width, bounds.height);
         window.setLocation(bounds.x, bounds.y);
@@ -1541,7 +1667,7 @@ public class GUI
     public static void setOffScreen(java.awt.Window window)
     {
         refreshGraphicsInfo();
-        window.setLocation(0, GOffScreenPixelY);
+        window.setLocation(0, GSpace.bottom + 1);
         //window.setLocation(-999, 8000); // may have been making Mac OS X Expose display too messy
     }
     
@@ -1552,36 +1678,58 @@ public class GUI
         w.setAlwaysOnTop(onTop);
     }
 
+    public static Icon getIcon(String name) {
+        return VueResources.getIcon(GUI.class, "icons/" + name);
+    }
+
+    /** @deprecated - use keepRegionOnScreen */
+    public static void keepLocationOnScreen(Point loc, Dimension size) {
+        keepRegionOnScreen(loc, loc, size);
+    }
+    
+    public static void keepRegionOnScreen(Point onScreen, Point loc, Dimension size) {
+        keepRegionOnScreen(getScreenForPoint(onScreen), loc, size);
+    }
+
     /**
      * Given location and size (of presumably a Window) modify location
      * such that the resulting bounds are on screen.  If the window
      * is bigger than the screen, it will keep the upper left corner
      * visible.
-     * 
-     * Can be used to keep tool-tips on-screen.
      *
-     * Note: this does not refresh the graphics config as may be used
-     * several times while attempting a placement.
+     * @param screen - the inset-bounds of the screen to keep the region on
+     * @param loc - the location of the region to keep entirely on the screen -- may be directly modified by this call
+     * @param size - the size of the region
+     * 
+     * E.g., can be used to keep tool-tips on-screen.
+     *
+     * Note: a complete solution would need to pass in which screen we want to keep the
+     * point on (for multi-monitor setups) -- for now we just assume the current VUE
+     * "active" screen.
+     *
+     * Note: this does not refresh the current graphics display stats --
+     * it references currently cached values only.
      */
-    public static void keepLocationOnScreen(Point loc, Dimension size) {
-
+    
+    public static void keepRegionOnScreen(Insets screen, Point loc, Dimension size)
+    {
         // if would go off bottom, move up
-        if (loc.y + size.height >= GScreenHeight)
-            loc.y = GScreenHeight - (size.height + 1);
+        if (loc.y + size.height >= screen.bottom)
+            loc.y = screen.bottom - (size.height + 1);
         
         // if would go off top, move back down
-        // Avoid top insets as windows don't normally go
-        // over the menu bar at the top.
-        if (loc.y < GUI.GInsets.top)
-            loc.y = GUI.GInsets.top;
+        // [old: avoid top insets as windows don't normally go
+        // over the menu bar at the top.]
+        if (loc.y < screen.top)
+            loc.y = screen.top;
         
         // if would go off right, move back left
-        if (loc.x + size.width > GScreenWidth)
-            loc.x = GScreenWidth - size.width;
+        if (loc.x + size.width > screen.right)
+            loc.x = screen.right - size.width;
 
         // if would go off left, just put at left
-        if (loc.x < 0)
-            loc.x = 0;
+        if (loc.x < screen.left)
+            loc.x = screen.left;
     }
 
     /*
@@ -3273,6 +3421,60 @@ public class GUI
         }
     }
     */
+//     /**
+//      * Size a normal Window to the maximum size usable in the current
+//      * platform & desktop configuration, <i>without</i> using the java
+//      * special full-screen mode, which can't have any other windows
+//      * on top of it, and changes the way user input events are handled.
+//      * On the PC, this will just be the whole screen (bug: probably
+//      * not good enough if they have non-hiding menu bar set to always-
+//      * on-top). On the Mac, it will be adjusted for the top menu
+//      * bar and the dock if it's visible.
+//      */
+//     // todo: test in multi-screen environment
+//     private static void XsetFullScreen(Window window)
+//     {
+//         refreshGraphicsInfo();
+        
+//         Dimension screen = window.getToolkit().getScreenSize();
+        
+//         if (Util.isMacPlatform()) {
+//             // mac won't layer a regular window over the menu bar, so
+//             // we need to limit the size
+//             Rectangle desktop = GEnvironment.getMaximumWindowBounds();
+//             out("setFullScreen: mac maximum bounds  " + Util.out(desktop));
+//             if (desktop.x > 0 && desktop.x <= 4) {
+//                 // hack for smidge of space it attempts to leave if the dock is
+//                 // at left and auto-hiding
+//                 desktop.width += desktop.x;
+//                 desktop.x = 0;
+//             } else {
+//                 // dock at bottom & auto-hiding
+//                 int botgap = screen.height - (desktop.y + desktop.height);
+//                 if (botgap > 0 && botgap <= 4) {
+//                     desktop.height += botgap;
+//                 } else {
+//                     // dock at right & auto-hiding
+//                     int rtgap = screen.width - desktop.width;
+//                     if (rtgap > 0 && rtgap <= 4)
+//                         desktop.width += rtgap;
+//                 }
+//             }
+            
+//             if (DEBUG.FOCUS) desktop.height /= 5;
+            
+//             out("setFullScreen: mac adjusted bounds " + Util.out(desktop));
+
+//             window.setLocation(desktop.x, desktop.y);
+//             window.setSize(desktop.width, desktop.height);
+//         } else {
+//             if (DEBUG.FOCUS) screen.height /= 5;
+//             window.setLocation(0, 0);
+//             window.setSize(screen.width, screen.height);
+//         }
+//         out("setFullScreen: set to " + window);
+//     }
+    
 
 
     private GUI() {}
