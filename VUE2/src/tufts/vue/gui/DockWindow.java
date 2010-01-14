@@ -55,7 +55,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.163 $ / $Date: 2009-11-23 21:32:22 $ / $Author: brian $
+ * @version $Revision: 1.164 $ / $Date: 2010-01-14 21:48:19 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -859,9 +859,9 @@ public class DockWindow
         return CollapsedHeight;
     }
 
-    public static int getMaxContentHeight() {
-        return GUI.getMaxWindowHeight() - (getCollapsedHeight() + GUI.GInsets.bottom + 50);
-    }
+//     public static int getMaxContentHeight() {
+//         return GUI.getMaxWindowHeight() - (getCollapsedHeight() + GUI.GInsets.bottom + 50);
+//     }
 
     /** @return a border, if any, for the entire DockWindow (null if none) */
     private Border getWindowBorder() {
@@ -1325,6 +1325,7 @@ public class DockWindow
     
     
     /** keep the bottom of the window from going below the bottom screen edge */
+    // TODO: this should actually only keep it on ALL screens
     private void keepOnScreen() {
         Rectangle r = _win.getBounds();
         if (keepOnScreen(r))
