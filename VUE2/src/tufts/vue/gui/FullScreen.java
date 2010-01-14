@@ -37,7 +37,7 @@ import org.apache.log4j.NDC;
 /**
  * Code for providing, entering and exiting VUE full screen modes.
  *
- * @version $Revision: 1.45 $ / $Date: 2010-01-12 16:11:22 $ / $Author: sfraize $
+ * @version $Revision: 1.46 $ / $Date: 2010-01-14 21:43:35 $ / $Author: sfraize $
  *
  */
 
@@ -61,6 +61,8 @@ public class FullScreen
     private static MapViewer FullScreenViewer;
     private static MapViewer FullScreenLastActiveViewer;
 
+    private static GraphicsDevice FullScreenDevice;
+    
     private static final String FULLSCREEN_NAME = "*FULLSCREEN*";
 
     public static final String VIEWER_NAME = "FULL";
@@ -375,14 +377,17 @@ public class FullScreen
 
     
 
-    private static void goBlack() {
+    private static boolean goBlack() {
         if (Util.isMacCocoaSupported()) {
             try {
                 MacOSX.goBlack();
+                return true;
             } catch (Error e) {
                 Log.error(e);
+                return false;
             }
         }
+        return false;
     }
 
     private static void goClear() {
@@ -579,8 +584,7 @@ public class FullScreen
             // seeing the black screen of the initial native window at 0 alpha.
             // Okay to leave this up while in native, as it'll be torn down automatically
             // on exit, tho it safer to tear it down just in case.
-            goBlack();
-            wentBlack = true;
+            wentBlack = goBlack();
         }
 
         activeMap = VUE.getActiveMap();
@@ -608,14 +612,6 @@ public class FullScreen
             // to have it property take effect?
         }
 
-        final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-        final GraphicsDevice device = ge.getDefaultScreenDevice();
-        final VueTool activeTool = VueToolbarController.getActiveTool();
-        
-        //out("Native full screen support available: " + device.isFullScreenSupported());
-        // todo: crap: if the screen resolution changes, we'll need to resize the full-screen window
-
-
         Log.debug("Entering full screen mode; goNative=" + goNative);
         if (FullScreenWindow == null) {
             FullScreenWindow = (FSWindow) GUI.getFullScreenWindow();
@@ -632,6 +628,18 @@ public class FullScreen
 
         if (!Util.isWindowsPlatform() && goNative) {
 
+            // MAC & LINUX:
+
+            //final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+            final GraphicsDevice device = GUI.getActiveDevice();
+
+            if (DEBUG.Enabled) {
+                Log.debug("entering NATIVE full-screen on " + Util.tags(device));
+                GUI.dumpGraphicsDevice(device, "VUE-ACTIVE");
+            }
+            //out("Native full screen support available: " + device.isFullScreenSupported());
+            // todo: crap: if the screen resolution changes, we'll need to resize the full-screen window
+            
             // Try and prevent us from flashing a big white screen while we load.
             // Tho immediately loading the focal below will quickly override this...
             FullScreenWindow.setBackground(Color.black);
@@ -642,12 +650,15 @@ public class FullScreen
                     
             FullScreenWindow.makeInvisible();
             device.setFullScreenWindow(FullScreenWindow);
+            FullScreenDevice = device;
 
             // We run into a serious problem using the special java full-screen mode on the mac: if
             // you right-click, it attemps to pop-up a menu over the full screen window, which is not
             // allowed in mac full-screen, and it apparently auto-switches context somehow for you,
             // but just leaves you at a fully blank screen that you can sometimes never recover from
             // without powering off!  This true as of java version "1.4.2_05-141.3", Mac OS X 10.3.5/6.
+            // [TODO: JAN 2010: we at worst run in java 1.5 now, and usually java 1.6 -- probably
+            // don't need this anymore -- retest]
 
             if (ExtraDockWindowHiding && !DockWindow.AllWindowsHidden()) {
                 nativeModeHidAllDockWindows = true;
@@ -655,12 +666,18 @@ public class FullScreen
             }
 
         } else {
+
+            // WINDOWS: (why don't we ever use native full-screen w/windows?)
+            
             if (goNative) {
                 if (ExtraDockWindowHiding && !DockWindow.AllWindowsHidden()) {
                     nativeModeHidAllDockWindows = true;
                     DockWindow.HideAllWindows();
                 }
             }
+
+            // This is what needs to get fixed, generally, to pick the right display,
+            // and for VISWALL.
             GUI.setFullScreenVisible(FullScreenWindow);
         }
                 
@@ -687,6 +704,8 @@ public class FullScreen
         
         FullScreenViewer.grabVueApplicationFocus("FullScreen.enter-1", null);
         
+        final VueTool activeTool = VueToolbarController.getActiveTool();
+        
         GUI.invokeAfterAWT(new Runnable() { public void run() {
             if (DEBUG.PRESENT) Log.debug("AWT thread activeTool.handleFullScreen for " + activeTool);
             activeTool.handleFullScreen(true, goNative);
@@ -712,6 +731,10 @@ public class FullScreen
                 // leave as loading if we're clearing out (leaving full-screen) so we'll be ready with it at the next display
                 FullScreenViewer.setLoading(false);
             }
+            // added this repaint for going native full-screen on the NON-DEFAULT device
+            // in a Mac OSX multi-monitor setup -- window was appearing, but needed to
+            // move mouse to see the first paint.
+            FullScreenViewer.repaint(); 
             NDC.pop();
         }});
         
@@ -725,11 +748,23 @@ public class FullScreen
 
         GUI.reloadGraphicsInfo();
         
-        final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-        final GraphicsDevice device = ge.getDefaultScreenDevice();
+        //final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        //final GraphicsDevice device = ge.getDefaultScreenDevice();
+        
+        final GraphicsDevice device;
+
+        if (FullScreenDevice == null) {
+            // this should only happen if an external display was literally disconnected
+            // while we were in full-screen mode
+            device = GUI.getActiveDevice();
+        } else {
+            device = FullScreenDevice;
+        }
+
         final boolean wasNative = inNativeFullScreen();
         final tufts.vue.LWComponent fullScreenFocal = FullScreenViewer.getFocal();
         final tufts.vue.LWMap fullScreenMap = FullScreenViewer.getMap();
+
         final Rectangle2D fullScreenVisibleMapBounds = FullScreenViewer.getVisibleMapBounds();
         //final Rectangle2D fullScreenMapBounds = fullScreenMap.getBounds();
 
@@ -746,18 +781,27 @@ public class FullScreen
         }
 
         //javax.swing.JPopupMenu.setDefaultLightWeightPopupEnabled(true);
+
+        // PROBLEM / QUESTION: WHAT HAPPENS IF THE FS DEVICE LITERALLY
+        // GOES AWAY (is disconnected) while we're in FS mode?
         
-        if (device.getFullScreenWindow() != null) {
+        if (device == null) {
+            Log.error("missing device exiting FS mode");
+        } else if (device.getFullScreenWindow() != null) {
             // this will take us out of true full screen mode
-            Log.debug("clearing native full screen window:"
-                          + "\n\t  controlling device: " + device
-                          + "\n\tcur device FS window: " + device.getFullScreenWindow());
-            device.setFullScreenWindow(null);
+            Log.info("clearing native full screen window:"
+                      + "\n\t  controlling device: " + device
+                      + "\n\tcur device FS window: " + device.getFullScreenWindow());
+
             // note that when coming out of full screen, the java impl
             // first restores the given  window to it's state before
             // we made it the FSW, which is annoying on the mac cause
             // it flashes a small window briefly in the upper left.
+            device.setFullScreenWindow(null);
+        } else {
+            Log.warn("device no longer has FS window: " + device);
         }
+        FullScreenDevice = null; // ensure global record of current FS device is nulled
         
         fullScreenWorking = false;
         fullScreenNative = false;
