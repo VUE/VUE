@@ -26,6 +26,8 @@ import tufts.vue.VueUtil;
 import tufts.vue.EventRaiser;
 import tufts.vue.VueResources;
 
+import tufts.vue.gui.GUI.Screen;
+
 import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -55,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.164 $ / $Date: 2010-01-14 21:48:19 $ / $Author: sfraize $
+ * @version $Revision: 1.165 $ / $Date: 2010-01-14 23:37:16 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2281,19 +2283,19 @@ public class DockWindow
         } else
             p = getConstrainedLocation(x, y);
 
-        final Rectangle r = GUI.getMaximumWindowBounds(_win);
-        //Log.debug("MAX WIN BOUNDS: " + r);
+//         final Rectangle r = GUI.getMaximumWindowBounds(_win);
+//         //Log.debug("MAX WIN BOUNDS: " + r);
 
-        if (p.y < r.y)
-            p.y = r.y;
-        else if (p.y > GUI.GScreenHeight - CollapsedHeightVisible)
-            p.y = GUI.GScreenHeight - CollapsedHeightVisible;
-        
-//         // TODO: this is preventing us from moving a window to the top on a secondary screen
-//         if (p.y < GUI.GInsets.top)
-//             p.y = GUI.GInsets.top;
+//         if (p.y < r.y)
+//             p.y = r.y;
 //         else if (p.y > GUI.GScreenHeight - CollapsedHeightVisible)
 //             p.y = GUI.GScreenHeight - CollapsedHeightVisible;
+        
+// //         // TODO: this is preventing us from moving a window to the top on a secondary screen
+// //         if (p.y < GUI.GInsets.top)
+// //             p.y = GUI.GInsets.top;
+// //         else if (p.y > GUI.GScreenHeight - CollapsedHeightVisible)
+// //             p.y = GUI.GScreenHeight - CollapsedHeightVisible;
 
         
         if (DEBUG.DOCK) out("dragToConstrained " + x + "," + y + ((p.x == x && p.y == y) ? "" : " = " + Util.out(p)));
@@ -2581,45 +2583,38 @@ public class DockWindow
         for (DockWindow dw : AllWindows)
             dw.toFront();
     }
+
+    private static void addScreenEdges(Screen screen)
+    {
+        if (DEBUG.EDGE) Log.debug("ADDING SCREEN " + screen);
+        
+        final int left;
+
+        if (screen.margin.left <= 4) {
+            left = screen.left;  // ignore Mac OS X hidden dock margin
+        } else {
+            left = screen.left + screen.margin.left;
+        }
+
+        StickyTopEdges.add(new Edge(screen.top + screen.margin.top, screen.left, screen.right));
+        StickyLeftEdges.add(new Edge(left, screen.top, screen.bottom));
+        StickyRightEdges.add(new Edge(screen.right, screen.top, screen.bottom));
+        StickyBottomEdges.add(new Edge(screen.bottom - screen.margin.bottom, screen.left, screen.right));
+    }
+
+    
         
     private static void refreshScreenInfo(DockWindow mover)
     {
-        GUI.refreshGraphicsInfo();
+        Screen[] screens = GUI.getAllScreens();
 
         StickyLeftEdges.reset();
         StickyRightEdges.reset();
         StickyTopEdges.reset();
         StickyBottomEdges.reset();
-        
-        if (GUI.GInsets.left <= 4) {
-            StickyLeftEdges.add(0);
-        } else {
-            StickyLeftEdges.add(GUI.GInsets.left);
-        }
 
-        StickyRightEdges.add(GUI.GScreenWidth);
-        StickyBottomEdges.add(GUI.GScreenHeight - GUI.GInsets.bottom);
-
-        StickyRightEdges.add(0); // in case multi-monitor
-        StickyLeftEdges.add(GUI.GScreenWidth); // in case multi-monitor
-
-        // todo: add bottom edge of other displays in case resolution
-        // is different: should really only take effect if on that
-        // screen tho, not across entire virtual desktop.
-        
-        //if (GUI.GInsets.bottom > 0)
-        //    StickyBottomEdges.add(GUI.GScreenHeight - GUI.GInsets.bottom);
-
-        if (MainDock != null) {
-            if (MainDock.mGravity == DockRegion.BOTTOM)
-                StickyBottomEdges.add(MainDock.getY());
-            else
-                StickyTopEdges.add(MainDock.getY());
-        }
-        if (TopDock != null) {
-            TopDock.moveToY(GUI.GInsets.top);
-            BottomDock.moveToY(GUI.GScreenHeight - GUI.GInsets.bottom);
-        }
+        for (Screen s : screens)
+            addScreenEdges(s);
         
         if (mover == null)
             return;
@@ -2637,6 +2632,61 @@ public class DockWindow
         }
         
     }
+//     private static void refreshScreenInfo(DockWindow mover)
+//     {
+//         GUI.reloadGraphicsInfo();
+
+//         StickyLeftEdges.reset();
+//         StickyRightEdges.reset();
+//         StickyTopEdges.reset();
+//         StickyBottomEdges.reset();
+        
+//         if (GUI.GInsets.left <= 4) {
+//             StickyLeftEdges.add(0);
+//         } else {
+//             StickyLeftEdges.add(GUI.GInsets.left);
+//         }
+
+//         StickyRightEdges.add(GUI.GScreenWidth);
+//         StickyBottomEdges.add(GUI.GScreenHeight - GUI.GInsets.bottom);
+
+//         StickyRightEdges.add(0); // in case multi-monitor
+//         StickyLeftEdges.add(GUI.GScreenWidth); // in case multi-monitor
+
+//         // todo: add bottom edge of other displays in case resolution
+//         // is different: should really only take effect if on that
+//         // screen tho, not across entire virtual desktop.
+        
+//         //if (GUI.GInsets.bottom > 0)
+//         //    StickyBottomEdges.add(GUI.GScreenHeight - GUI.GInsets.bottom);
+
+//         if (MainDock != null) {
+//             if (MainDock.mGravity == DockRegion.BOTTOM)
+//                 StickyBottomEdges.add(MainDock.getY());
+//             else
+//                 StickyTopEdges.add(MainDock.getY());
+//         }
+//         if (TopDock != null) {
+//             TopDock.moveToY(GUI.GInsets.top);
+//             BottomDock.moveToY(GUI.GScreenHeight - GUI.GInsets.bottom);
+//         }
+        
+//         if (mover == null)
+//             return;
+        
+//         addEdges(VUE.getMainWindow());
+//         //addEdges(VUE.getActiveViewer());
+
+        
+//         for (DockWindow dw : AllWindows) {
+//             //if (dw == mover || !dw.isVisible() || dw.inSameStack(mover))
+//             if (dw == mover || !dw.isVisible() || mover.hasDescendant(dw))
+//                 continue;
+
+//             addEdges(dw);
+//         }
+        
+//     }
 
     private DockWindow getStackTop() {
         if (mParent == null)
