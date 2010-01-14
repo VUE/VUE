@@ -51,7 +51,7 @@ import org.w3c.dom.NodeList;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.76 $ / $Date: 2009-12-14 19:09:31 $ / $Author: sfraize $
+ * @version $Revision: 1.77 $ / $Date: 2010-01-14 21:39:30 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -2631,7 +2631,7 @@ public class Images
         // course would only work for the original java image types: GIF, JPG, and PNG.
         //-----------------------------------------------------------------------------
 
-        if (DEBUG.Enabled) out("reading " + imageSRC + "; " + reader + "...");
+        if (DEBUG.IMAGE || DEBUG.IO) out("reading " + imageSRC + "; " + reader + "...");
         
         Image image = null;
         Map<String,Object> imageData = Collections.EMPTY_MAP;
