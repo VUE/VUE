@@ -2313,11 +2313,19 @@ public class Actions implements VueConstants
         }
         
         void arrange(LWSelection selection) {
-            for (LWComponent c : selection)
-                arrange(c);
+           arrange(selection,Float.NaN,Float.NaN);
         }
+        void arrange(LWSelection selection,float centerX,float centerY) {
+        	for (LWComponent c : selection)
+                arrange(c,centerX,centerY);
+        }
+        
+        
         void arrange(LWComponent c) { throw new RuntimeException("unimplemented arrange action"); }
-
+        
+        void arrange(LWComponent c,float centerX,float centerY) {
+        	arrange(c);
+        }
 
         protected void clusterNodesAbout(final LWComponent center, final Collection<LWComponent> clustering) {
 
@@ -3239,10 +3247,13 @@ public class Actions implements VueConstants
             boolean enabledFor(LWSelection s) { return s.size() >= 2; }
             // todo bug: an already made row is shifting everything to the left
             // (probably always, actually)
+  
             void arrange(LWSelection selection) {
                 AlignCentersRow.arrange(selection);
+                float oldCenterX = AlignCentersRow.centerX;
+                float oldCenterY = AlignCentersRow.centerY;
                 maxX = minX + totalWidth;
-                DistributeHorizontally.arrange(selection);
+                DistributeHorizontally.arrange(selection,oldCenterX,oldCenterY);
                 // note that we need to check the global selection, not the passed in selection,
                 // as the passed in selection for arrange actions have links filtered out.
                 if (VUE.getSelection().size() == viewer().getMap().getAllDescendents(LWContainer.ChildKind.EDITABLE).size()) {
@@ -3303,18 +3314,24 @@ public class Actions implements VueConstants
     public static final ArrangeAction DistributeHorizontally = new ArrangeAction(VueResources.local("menu.format.arrange.distributehorizontally"), keyStroke(KeyEvent.VK_H, ALT)) {
             boolean supportsSingleMover() { return false; }
             boolean enabledFor(LWSelection s) { return s.size() >= 3; }
-            void arrange(LWSelection selection) {
+            void arrange(LWSelection selection,float centerX,float centerY) {
                 final LWComponent[] comps = sortByX(sortByY(selection.asArray()));
                 final float layoutRegion = maxX - minX;
                 //if (layoutRegion < totalWidth)
                 //  layoutRegion = totalWidth;
                 final float horizontalGap = (layoutRegion - totalWidth) / (selection.size() - 1);
-                float x = minX;
+                float x;
+                if(Float.isNaN(centerX)) {
+                	x = minX;
+                } else {
+                 x=  centerX - layoutRegion/2;
+                }
                 for (LWComponent c : comps) {
                     c.setLocation(x, c.getY());
                     x += c.getWidth() + horizontalGap;
                 }
         }
+            
     };
     
    
