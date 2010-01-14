@@ -30,6 +30,10 @@ public class ImageRef
 
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(ImageRef.class);
     private static final int PIXEL_THRESHOLD_FOR_ICON_GENERATION = (2*DEFAULT_ICON_SIZE) * (2*DEFAULT_ICON_SIZE);
+    /**
+     * This determins when icons are drawn v.s. the full rep.  The smaller this is, the more
+     * often the full representation will be requested for drawing.
+     */
     private static final int PIXEL_THRESHOLD_FOR_ICON_DRAWING = DEFAULT_ICON_SIZE*2;
 
     private static final boolean ICONS_ARE_DISPOSABLE = false; // todo: true case needs testing / may not work
