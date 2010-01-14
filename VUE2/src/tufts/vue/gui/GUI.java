@@ -57,7 +57,7 @@ import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.160 $ / $Date: 2010-01-14 21:40:20 $ / $Author: sfraize $
+ * @version $Revision: 1.161 $ / $Date: 2010-01-14 23:36:52 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -112,23 +112,44 @@ public class GUI
     
     public static boolean UseAlwaysOnTop = false;
 
-    public static final class Screen extends Rectangle {
-        final int top, left, bottom, right;
+    public static final class Screen extends Insets {
 
-        final Insets in;
+        final Insets margin;
 
-        //final int header, footer, l_margin, r_margin;
+        final int width, height;
 
-        Screen(Rectangle bounds, Insets insets) {
-            super(bounds);
+        Screen(Rectangle b, Insets insets) {
+            super(0,0,0,0);
+            
+            this.width = b.width;
+            this.height = b.height;
+            
+            this.top = b.y;
+            this.left = b.x;
+            this.right = left + width;
+            this.bottom = top + height;
 
-            top = this.y;
-            left = this.x;
-            right = left + this.width;
-            bottom = top + this.height;
-
-            in = insets;
+            this.margin = insets;
         }
+
+        @Override public String toString() {
+            StringBuilder s = new StringBuilder
+                (String.format("Screen[%dx%d t=%d,l=%d,b=%d,r=%d", width, height, top, left, bottom, right));
+            if (margin.hashCode() == 0){
+                s.append(']');
+            } else {
+                if (margin.top != 0)
+                    s.append(" mt="+margin.top);
+                else
+                    s.append(' ');
+                if (margin.left != 0) s.append(",ml="+margin.left);
+                if (margin.bottom != 0) s.append(",mb="+margin.bottom);
+                if (margin.right != 0) s.append(",mr="+margin.right);
+                s.append(']');
+            }
+            return s.toString();
+        }
+        
 
         public static Screen create(GraphicsDevice device)
         {
@@ -553,6 +574,18 @@ public class GUI
         
         return new Rectangle(GSpaceBounds);
     }
+
+    public static Screen[] getAllScreens() {
+
+        loadGraphicsInfo();
+        final GraphicsDevice[] devices = GScreenDevices;
+        final Screen[] screens = new Screen[devices.length];
+        for (int i = 0; i < devices.length; i++) {
+            screens[i] = Screen.create(devices[i]);
+        }
+        return screens;
+    }
+    
     
     private static void loadGraphicsInfo()
     {
