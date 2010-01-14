@@ -57,12 +57,13 @@ public class CircularLayout extends Layout {
         double maxX = Double.NEGATIVE_INFINITY;
         double maxY = Double.NEGATIVE_INFINITY;
 
-        double xAdd = X_COL_SIZE; // default horizontal distance between the nodes
-        double  yAdd = Y_COL_SIZE; //default vertical distance between nodes
+        double xAdd =0; // default horizontal distance between the nodes
+        double  yAdd = 0; //default vertical distance between nodes
 
         int count = 0;
         int total = 0;
         Iterator<LWComponent> i = selection.iterator();
+        System.out.println("BEGIN SEL CENTER:"+selection.getBounds().getCenterX()+":"+selection.getBounds().getCenterY());
         while (i.hasNext()) {
             LWComponent c = i.next();
             if (c.isManagedLocation())
@@ -78,12 +79,12 @@ public class CircularLayout extends Layout {
 //               System.out.println(node.getLabel()+"X= "+node.getLocation().getX()+" Y= "+node.getLocation().getY()+" MIN: "+minX+" : "+minY);
             }
         }
-       
-        double size = total* xAdd/6;
-        double radiusX = size;
+        xAdd = xAdd*1.10; // 10% gap
+        xAdd = xAdd*1.10; 
+        double radiusX = total*xAdd/6;
         double radiusY = total*yAdd/3;
-        double centerX = (minX + maxX+xAdd) / 2; 
-        double centerY = (minY+maxY+yAdd)/2;
+        double centerX =  (minX+maxX)/2; 
+        double centerY = (minY+maxY)/2;
         i = selection.iterator();
         double angle = 0.0;
         while (i.hasNext()) {
@@ -91,12 +92,12 @@ public class CircularLayout extends Layout {
             if (c.isManagedLocation())
                 continue; 
             if(c instanceof LWNode ) {
- 
                 c.setLocation(centerX+radiusX*Math.cos(angle),centerY+radiusY*Math.sin(angle));
                 count++;
                 angle = Math.PI*2*count/total;
             }
         }
+        System.out.println("END SEL CENTER:"+selection.getBounds().getCenterX()+":"+selection.getBounds().getCenterY());
     }
     
 }
