@@ -63,7 +63,9 @@ public class CircularLayout extends Layout {
         int count = 0;
         int total = 0;
         Iterator<LWComponent> i = selection.iterator();
-        System.out.println("BEGIN SEL CENTER:"+selection.getBounds().getCenterX()+":"+selection.getBounds().getCenterY());
+        double initialCenterX = selection.getBounds().getCenterX();
+        double initialCenterY = selection.getBounds().getCenterY();
+ 
         while (i.hasNext()) {
             LWComponent c = i.next();
             if (c.isManagedLocation())
@@ -97,7 +99,25 @@ public class CircularLayout extends Layout {
                 angle = Math.PI*2*count/total;
             }
         }
-        System.out.println("END SEL CENTER:"+selection.getBounds().getCenterX()+":"+selection.getBounds().getCenterY());
+        double finalCenterX = selection.getBounds().getCenterX();
+        double finalCenterY = selection.getBounds().getCenterY();
+        double driftX = finalCenterX-initialCenterX;
+        double driftY = finalCenterY-initialCenterY;
+        
+         // adjust for the drift
+        if(Math.abs(driftX)>0 || Math.abs(driftY)>0) {
+        i = selection.iterator();
+        while (i.hasNext()) {
+        	  LWComponent c = i.next();
+              if (c.isManagedLocation())
+                  continue; 
+              if(c instanceof LWNode ) {
+                  c.setLocation(c.getX()-driftX,c.getY()-driftY);
+                  count++;
+                  angle = Math.PI*2*count/total;
+              }
+        }
+        }
     }
     
 }
