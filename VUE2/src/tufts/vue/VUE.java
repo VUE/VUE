@@ -116,7 +116,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.697 $ / $Date: 2010-01-12 16:14:12 $ / $Author: sfraize $ 
+ * @version $Revision: 1.698 $ / $Date: 2010-01-14 21:42:34 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -1675,6 +1675,7 @@ public class VUE
         
         	//GUI.centerOnScreen(ApplicationFrame);
 
+                /*-------------------------------------------------------
         	final boolean loadTopDock = false;
 
         	if (loadTopDock && DockWindow.getMainDock() != null) {
@@ -1686,8 +1687,8 @@ public class VUE
         		ApplicationFrame.setMaximizedBounds(maxBounds);
         	}
             
-        	if (false)
-        		ApplicationFrame.setExtendedState(Frame.MAXIMIZED_BOTH);
+        	if (false) ApplicationFrame.setExtendedState(Frame.MAXIMIZED_BOTH);
+                -------------------------------------------------------*/
 
         	/*
         	if (!SKIP_DR) {
