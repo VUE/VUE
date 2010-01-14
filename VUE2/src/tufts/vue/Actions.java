@@ -2206,6 +2206,7 @@ public class Actions implements VueConstants
         static float minX, minY;
         static float maxX, maxY;
         static float centerX, centerY;
+        static float oldCenterX = Float.NaN,oldCenterY= Float.NaN;
         static float totalWidth, totalHeight; // added width/height of all in selection
         static float maxWide, maxTall; // width of widest, height of tallest
         static double radiusWide, radiusTall;
@@ -2313,20 +2314,23 @@ public class Actions implements VueConstants
         }
         
         void arrange(LWSelection selection) {
-           arrange(selection,Float.NaN,Float.NaN);
+        	for (LWComponent c : selection) {
+        		arrange(c);
+        	}
         }
+        /**
         void arrange(LWSelection selection,float centerX,float centerY) {
         	for (LWComponent c : selection)
                 arrange(c,centerX,centerY);
         }
-        
+        */
         
         void arrange(LWComponent c) { throw new RuntimeException("unimplemented arrange action"); }
-        
+        /**
         void arrange(LWComponent c,float centerX,float centerY) {
         	arrange(c);
         }
-
+*/
         protected void clusterNodesAbout(final LWComponent center, final Collection<LWComponent> clustering) {
 
             if (DEBUG.Enabled) Log.debug("clustering around " + center + ": " + Util.tags(clustering));
@@ -3250,10 +3254,10 @@ public class Actions implements VueConstants
   
             void arrange(LWSelection selection) {
                 AlignCentersRow.arrange(selection);
-                float oldCenterX = AlignCentersRow.centerX;
-                float oldCenterY = AlignCentersRow.centerY;
+                AlignCentersRow.oldCenterX = AlignCentersRow.centerX;
+                AlignCentersRow.oldCenterY = AlignCentersRow.centerY;
                 maxX = minX + totalWidth;
-                DistributeHorizontally.arrange(selection,oldCenterX,oldCenterY);
+                DistributeHorizontally.arrange(selection);
                 // note that we need to check the global selection, not the passed in selection,
                 // as the passed in selection for arrange actions have links filtered out.
                 if (VUE.getSelection().size() == viewer().getMap().getAllDescendents(LWContainer.ChildKind.EDITABLE).size()) {
@@ -3302,7 +3306,12 @@ public class Actions implements VueConstants
                 //if (layoutRegion < totalHeight)
                 //  layoutRegion = totalHeight;
                 float verticalGap = (layoutRegion - totalHeight) / (selection.size() - 1);
-                float y = minY;
+                float y;
+                if(Float.isNaN(oldCenterY)){
+                	y = minY;
+                } else {
+                    y = oldCenterY - layoutRegion/2;
+                }
                 for (int i = 0; i < comps.length; i++) {
                     LWComponent c = comps[i];
                     c.setLocation(c.getX(), y);
@@ -3314,17 +3323,17 @@ public class Actions implements VueConstants
     public static final ArrangeAction DistributeHorizontally = new ArrangeAction(VueResources.local("menu.format.arrange.distributehorizontally"), keyStroke(KeyEvent.VK_H, ALT)) {
             boolean supportsSingleMover() { return false; }
             boolean enabledFor(LWSelection s) { return s.size() >= 3; }
-            void arrange(LWSelection selection,float centerX,float centerY) {
+            void arrange(LWSelection selection) {
                 final LWComponent[] comps = sortByX(sortByY(selection.asArray()));
                 final float layoutRegion = maxX - minX;
                 //if (layoutRegion < totalWidth)
                 //  layoutRegion = totalWidth;
                 final float horizontalGap = (layoutRegion - totalWidth) / (selection.size() - 1);
                 float x;
-                if(Float.isNaN(centerX)) {
+                if(Float.isNaN(oldCenterX)) {
                 	x = minX;
                 } else {
-                 x=  centerX - layoutRegion/2;
+                 x=  oldCenterX - layoutRegion/2;
                 }
                 for (LWComponent c : comps) {
                     c.setLocation(x, c.getY());
