@@ -51,7 +51,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.130 $ / $Date: 2009-12-14 15:52:20 $ / $Author: sfraize $  
+ * @version $Revision: 1.131 $ / $Date: 2010-01-14 21:31:43 $ / $Author: sfraize $  
  */
 public class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -1503,8 +1503,9 @@ public class MapDropTarget
         //if (node.getParent().isTopLevel())
         //      makeRoomFor(node);
 
-        // for now, we'll let the cleanup-task always run, and check the parent later
-        makeRoomFor(node);
+        // JAN 2010: DISABLING auto-push when dropping onto the map.
+        // See form post: https://vue-forums.uit.tufts.edu/posts/list/620.page
+        // makeRoomFor(node);
          	
         return node;
     }
