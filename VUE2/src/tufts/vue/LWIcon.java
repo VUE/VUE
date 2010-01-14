@@ -476,7 +476,7 @@ public abstract class LWIcon extends Rectangle2D.Float
                 
                 //if (!(tipIcon instanceof LWIcon.Resource))
                // {
-                    e.getViewer().setTip(tipComponent, avoidRegion, tipRegion);
+                e.getViewer().activateRolloverToolTip(e, tipComponent, avoidRegion, tipRegion);
                // }
             }
         }
