@@ -37,7 +37,7 @@ import org.apache.log4j.NDC;
 /**
  * Code for providing, entering and exiting VUE full screen modes.
  *
- * @version $Revision: 1.48 $ / $Date: 2010-01-15 20:40:00 $ / $Author: sfraize $
+ * @version $Revision: 1.49 $ / $Date: 2010-01-15 20:59:33 $ / $Author: sfraize $
  *
  */
 
@@ -627,9 +627,14 @@ public class FullScreen
         fullScreenWorking = true; // we're in the mode as soon as the add completes (no going back then)
         fullScreenNative = goNative;
 
-        if (!Util.isWindowsPlatform() && goNative) {
+        final boolean useNativeMode =
+            goNative &&
+            !Util.isWindowsPlatform() &&
+            !tufts.vue.Actions.SuperScreen.getToggleState();
 
-            // MAC & LINUX:
+        if (useNativeMode) {
+
+            // MAC & LINUX ONLY:
 
             //final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
             final GraphicsDevice device = GUI.getActiveDevice();
@@ -669,6 +674,9 @@ public class FullScreen
         } else {
 
             // WINDOWS: (why don't we ever use native full-screen w/windows?)
+
+            // Or: Mac/Linux when All Screens (SuperScreen) is being used.
+            // Note that on Mac, this means that the top menu bar will NOT be hidden.
             
             if (goNative) {
                 if (ExtraDockWindowHiding && !DockWindow.AllWindowsHidden()) {
@@ -677,8 +685,6 @@ public class FullScreen
                 }
             }
 
-            // This is what needs to get fixed, generally, to pick the right display,
-            // and for VISWALL.
             GUI.setFullScreenVisible(FullScreenWindow);
         }
                 
