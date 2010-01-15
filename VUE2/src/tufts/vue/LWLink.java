@@ -43,7 +43,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.238 $ / $Date: 2010-01-15 22:40:21 $ / $Author: sfraize $
+ * @version $Revision: 1.239 $ / $Date: 2010-01-15 22:58:25 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -122,7 +122,6 @@ public class LWLink extends LWComponent
         boolean isConnected() {
             return node != null;
         }
-        
         boolean hasNode() {
             return node != null;
         }
@@ -643,14 +642,14 @@ public class LWLink extends LWComponent
         tail.setPoint(this, x, y, KEY_LinkTailPoint);
     }
 
-    // TODO: setting SKIP_NODE_ENPOINT_PRUNE to true is probably a
-    // better tradeoff, tho even better would probably be to reverse
-    // the endpoint effect of the prune controls, where the link
-    // itself is pruned down to a stub at the node you want to have
-    // more focus on, including an action to prune ALL outbound links
-    // on that node, and then users could re-enabled just the stubs
-    // they're interested in.  See VUE-1239 for what prompted this.
-    private static final boolean SKIP_NODE_ENDPOINT_PRUNE = false;
+//     // TODO: setting SKIP_NODE_ENPOINT_PRUNE to true is probably a
+//     // better tradeoff, tho even better would probably be to reverse
+//     // the endpoint effect of the prune controls, where the link
+//     // itself is pruned down to a stub at the node you want to have
+//     // more focus on, including an action to prune ALL outbound links
+//     // on that node, and then users could re-enabled just the stubs
+//     // they're interested in.  See VUE-1239 for what prompted this.
+//     private static final boolean SKIP_NODE_ENDPOINT_PRUNE = false;
     
     private void debug(String s) {
         Log.debug(toString() + ": " + s);
@@ -664,17 +663,28 @@ public class LWLink extends LWComponent
                                            );
         boolean acted = true;
         
+//         if (PruneControlsEnabled) {
+//           //if (index == CPruneHead && head.hasNode()) {
+//             if (index == CHead && head.hasNode()) {
+//                 toggleHeadPrune();
+//                 if (SKIP_NODE_ENDPOINT_PRUNE) // may have no model effect of no outbound links on pruned node
+//                     notify(LWKey.Repaint);
+//           //} else if (index == CPruneTail && tail.hasNode()) {
+//             } else if (index == CTail && tail.hasNode()) {
+//                 toggleTailPrune();
+//                 if (SKIP_NODE_ENDPOINT_PRUNE)
+//                     notify(LWKey.Repaint);
+//             }
+//         } else
+//             acted = false;
+        
         if (PruneControlsEnabled) {
-          //if (index == CPruneHead && head.hasNode()) {
             if (index == CHead && head.hasNode()) {
-                toggleHeadPrune();
-                if (SKIP_NODE_ENDPOINT_PRUNE) // may have no model effect of no outbound links on pruned node
-                    notify(LWKey.Repaint);
-          //} else if (index == CPruneTail && tail.hasNode()) {
+                if (head.isPruning() || tail.hasNode())
+                    toggleHeadPrune();
             } else if (index == CTail && tail.hasNode()) {
-                toggleTailPrune();
-                if (SKIP_NODE_ENDPOINT_PRUNE)
-                    notify(LWKey.Repaint);
+                if (tail.isPruning() || head.hasNode())
+                    toggleTailPrune();
             }
         } else
             acted = false;
@@ -760,8 +770,8 @@ public class LWLink extends LWComponent
                       + "\n\t excluding: " + exclude);
         }
         endpoint.getLinkChain(set, exclude);
-        if (SKIP_NODE_ENDPOINT_PRUNE)
-            set.remove(endpoint);
+//         if (SKIP_NODE_ENDPOINT_PRUNE)
+//             set.remove(endpoint);
         //set.remove(endpoint == head.node ? tail.node : head.node);
         if (DEBUG.LINK) {
             Util.dump(set);
@@ -981,15 +991,12 @@ public class LWLink extends LWComponent
     private static final RectangularShape PruneCtrlShape = new Rectangle2D.Float(0,0,8,8);
 
     private static class ConnectCtrl extends LWSelection.Controller {
-        //ConnectCtrl(End end) {
-        ConnectCtrl(float x, float y, boolean nearConnect, boolean farConnect) {
-            super(x, y);
-            if (PruneControlsEnabled && nearConnect && farConnect)
-                setColor(COLOR_SELECTION);
+        ConnectCtrl(Point2D.Float mapLoc, End end, boolean farConnect) {
+            super(mapLoc.x, mapLoc.y);
+            if (PruneControlsEnabled && end.isConnected() && farConnect)
+                setColor(end.isPruning() ? Color.red : COLOR_SELECTION);
             else
-                setColor(nearConnect ? null : COLOR_SELECTION_HANDLE);
-            //super(end.x, end.y);
-            //setColor(end.isConnected() ? null : COLOR_SELECTION_HANDLE);
+                setColor(end.isConnected() ? null : COLOR_SELECTION_HANDLE);
         }
         public final RectangularShape getShape() { return ConnectCtrlShape; }
     }
@@ -997,8 +1004,6 @@ public class LWLink extends LWComponent
         CurveCtrl(Point2D p) {
             super(p);
             setColor(COLOR_SELECTION_CONTROL);
-            //super(p, COLOR_SELECTION_HANDLE);
-            //super(p, COLOR_SELECTION);
         }
         CurveCtrl(Point2D p, float epx, float epy) {
             //super(p);
@@ -1081,7 +1086,7 @@ public class LWLink extends LWComponent
         if (excludeConnected && head.isConnected()) {
             mControlPoints[CHead] = null;
         }  else if (endpointDrags && !head.hasPrunedNode()) {
-            mControlPoints[CHead] = new ConnectCtrl(mapHead.x, mapHead.y, head.isConnected(), tail.isConnected());
+            mControlPoints[CHead] = new ConnectCtrl(mapHead, head, tail.isConnected());
             if (DEBUG.BOXES) mControlPoints[CHead].setColor(Color.green); // mark the head
         } else  {
             mControlPoints[CHead] = null;
@@ -1090,7 +1095,7 @@ public class LWLink extends LWComponent
         if (excludeConnected && tail.isConnected())
             mControlPoints[CTail] = null;
         else if (endpointDrags && !tail.hasPrunedNode())
-            mControlPoints[CTail] = new ConnectCtrl(mapTail.x, mapTail.y, tail.isConnected(), head.isConnected());
+            mControlPoints[CTail] = new ConnectCtrl(mapTail, tail, head.isConnected());
         else
             mControlPoints[CTail] = null;
 
