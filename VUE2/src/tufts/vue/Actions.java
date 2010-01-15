@@ -3721,12 +3721,16 @@ public class Actions implements VueConstants
             @Override public void update(Object key) {
                 if (DEBUG.Enabled) Log.debug("SuperScreen update: " + Util.tags(key));
                 if (GUI.hasMultipleScreens()) {
-                    java.awt.Rectangle b = GUI.getAllScreenBounds();
-                    setActionName(String.format("All Screens (%dx%d)", b.width, b.height));
-                    setEnabled(true);
+                    if (!isEnabled()) {
+                        java.awt.Rectangle b = GUI.getAllScreenBounds();
+                        setActionName(String.format("All Screens (%dx%d)", b.width, b.height));
+                        setEnabled(true);
+                    }
                 } else {
-                    setEnabled(false);
-                    setActionName("All Screens");
+                    if (isEnabled()) {
+                        setEnabled(false);
+                        setActionName("All Screens");
+                    }
                 }
             }
         };
