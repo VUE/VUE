@@ -41,7 +41,7 @@ import static tufts.Util.*;
 
 
  * @author Scott Fraize 2007-05-05
- * @version $Revision: 1.27 $ / $Date: 2009-10-05 01:43:09 $ / $Author: sfraize $
+ * @version $Revision: 1.28 $ / $Date: 2010-01-15 19:46:02 $ / $Author: sfraize $
  */
 
 public class ActiveInstance<T>
@@ -244,7 +244,11 @@ public class ActiveInstance<T>
 
     protected void notifyListeners(ActiveEvent<T> e) {
         if (inNotify) {
-            Log.warn(this + " event loop: skipping delivery of: " + e, new Throwable("HERE"));
+            String msg = this + " event loop: skipping delivery of: " + e;
+            if (DEBUG.EVENTS)
+                Log.warn(msg, new Throwable("HERE"));
+            else
+                Log.warn(msg);
             return;
         }
         
