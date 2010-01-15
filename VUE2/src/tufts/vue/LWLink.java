@@ -43,7 +43,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.237 $ / $Date: 2010-01-11 22:24:07 $ / $Author: sfraize $
+ * @version $Revision: 1.238 $ / $Date: 2010-01-15 22:40:21 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -162,31 +162,32 @@ public class LWLink extends LWComponent
         }
         
 
-        //-----------------------------------------------------------------------------
-        // Prune control support
-        //-----------------------------------------------------------------------------
+//         //-----------------------------------------------------------------------------
+//         // Prune control support
+//         //-----------------------------------------------------------------------------
 
-        float pruneCtrlOffset;
-
-        private class PruneCtrl extends LWSelection.Controller {
-            final AffineTransform tx = new AffineTransform();
-            double ctrlRotation;
-            void update(double onScreenScale) {
-                super.x = super.y = 0;
-                tx.setToTranslation(mapPoint.x, mapPoint.y);
-                tx.rotate(rotation);
-                tx.translate(0, pruneCtrlOffset / onScreenScale);
-                tx.transform(this,this);
-                setColor(pruned ? Color.red : Color.lightGray);
-                ctrlRotation = rotation + Math.PI / 4; // rotate to square parallel on line, plus 45 degrees to get diamond display
-            }
+//         float pruneCtrlOffset;
+//         private class PruneCtrl extends LWSelection.Controller {
+//             final AffineTransform tx = new AffineTransform();
+//             double ctrlRotation;
+//             void update(double onScreenScale) {
+//                 super.x = super.y = 0;
+//                 tx.setToTranslation(mapPoint.x, mapPoint.y);
+//                 tx.rotate(rotation);
+//                 tx.translate(0, pruneCtrlOffset / onScreenScale);
+//                 tx.transform(this,this);
+//                 setColor(pruned ? Color.red : Color.lightGray);
+//                 // rotate to square parallel on line, plus 45 degrees
+//                 // to get diamond display
+//                 ctrlRotation = rotation + Math.PI / 4;
+//             }
         
-            public final RectangularShape getShape() { return PruneCtrlShape; }
-            public final double getRotation() { return ctrlRotation; }
-        }
+//             public final RectangularShape getShape() { return PruneCtrlShape; }
+//             public final double getRotation() { return ctrlRotation; }
+//         }
 
-        // todo opt: could lazy create these...
-        final PruneCtrl pruneControl = new PruneCtrl();
+//         // todo opt: could lazy create these...
+//         final PruneCtrl pruneControl = new PruneCtrl();
 
         public String toString() 
         {
@@ -663,14 +664,18 @@ public class LWLink extends LWComponent
                                            );
         boolean acted = true;
         
-        if (index == CPruneHead && head.hasNode()) {
-            toggleHeadPrune();
-            if (SKIP_NODE_ENDPOINT_PRUNE) // may have no model effect of no outbound links on pruned node
-                notify(LWKey.Repaint);
-        } else if (index == CPruneTail && tail.hasNode()) {
-            toggleTailPrune();
-            if (SKIP_NODE_ENDPOINT_PRUNE)
-                notify(LWKey.Repaint);
+        if (PruneControlsEnabled) {
+          //if (index == CPruneHead && head.hasNode()) {
+            if (index == CHead && head.hasNode()) {
+                toggleHeadPrune();
+                if (SKIP_NODE_ENDPOINT_PRUNE) // may have no model effect of no outbound links on pruned node
+                    notify(LWKey.Repaint);
+          //} else if (index == CPruneTail && tail.hasNode()) {
+            } else if (index == CTail && tail.hasNode()) {
+                toggleTailPrune();
+                if (SKIP_NODE_ENDPOINT_PRUNE)
+                    notify(LWKey.Repaint);
+            }
         } else
             acted = false;
 
@@ -965,9 +970,9 @@ public class LWLink extends LWComponent
     private static final int CTail = 1;
     private static final int CCurve1 = 2;
     private static final int CCurve2 = 3;
-    private static final int CPruneHead = 4;
-    private static final int CPruneTail = 5;
-    private static final int MAX_CONTROL = CPruneTail + 1;
+    //private static final int CPruneHead = 4;
+    //private static final int CPruneTail = 5;
+    private static final int MAX_CONTROL = 4;
 
     private final LWSelection.Controller[] mControlPoints = new LWSelection.Controller[MAX_CONTROL];
 
@@ -977,9 +982,12 @@ public class LWLink extends LWComponent
 
     private static class ConnectCtrl extends LWSelection.Controller {
         //ConnectCtrl(End end) {
-        ConnectCtrl(float x, float y, boolean isConnected) {
+        ConnectCtrl(float x, float y, boolean nearConnect, boolean farConnect) {
             super(x, y);
-            setColor(isConnected ? null : COLOR_SELECTION_HANDLE);
+            if (PruneControlsEnabled && nearConnect && farConnect)
+                setColor(COLOR_SELECTION);
+            else
+                setColor(nearConnect ? null : COLOR_SELECTION_HANDLE);
             //super(end.x, end.y);
             //setColor(end.isConnected() ? null : COLOR_SELECTION_HANDLE);
         }
@@ -1041,10 +1049,11 @@ public class LWLink extends LWComponent
                            EXCLUDE_PRUNES);
     }
         
-    private LWSelection.Controller[] getControls(double onScreenScale,
-                                                 boolean endpointDrags,
-                                                 boolean excludeConnected,
-                                                 boolean prunes)
+    private LWSelection.Controller[] getControls
+        (double onScreenScale,
+         boolean endpointDrags,
+         boolean excludeConnected,
+         boolean prunes)
     {
         if (mRecompute)
             computeLink();
@@ -1072,7 +1081,7 @@ public class LWLink extends LWComponent
         if (excludeConnected && head.isConnected()) {
             mControlPoints[CHead] = null;
         }  else if (endpointDrags && !head.hasPrunedNode()) {
-            mControlPoints[CHead] = new ConnectCtrl(mapHead.x, mapHead.y, head.isConnected());
+            mControlPoints[CHead] = new ConnectCtrl(mapHead.x, mapHead.y, head.isConnected(), tail.isConnected());
             if (DEBUG.BOXES) mControlPoints[CHead].setColor(Color.green); // mark the head
         } else  {
             mControlPoints[CHead] = null;
@@ -1081,7 +1090,7 @@ public class LWLink extends LWComponent
         if (excludeConnected && tail.isConnected())
             mControlPoints[CTail] = null;
         else if (endpointDrags && !tail.hasPrunedNode())
-            mControlPoints[CTail] = new ConnectCtrl(mapTail.x, mapTail.y, tail.isConnected());
+            mControlPoints[CTail] = new ConnectCtrl(mapTail.x, mapTail.y, tail.isConnected(), head.isConnected());
         else
             mControlPoints[CTail] = null;
 
@@ -1100,26 +1109,25 @@ public class LWLink extends LWComponent
             mControlPoints[CCurve2] = null;
         }
             
-        //-------------------------------------------------------
-        // Pruning control points
-        //-------------------------------------------------------
-
-        if (prunes && PruneControlsEnabled) {
-            if (head.pruned || getHead() != null) {
-                head.pruneControl.update(onScreenScale);
-                mControlPoints[CPruneHead] = head.pruneControl;
-            } else
-                mControlPoints[CPruneHead] = null;
+//         //-------------------------------------------------------
+//         // Pruning control points
+//         //-------------------------------------------------------
+//         if (prunes && PruneControlsEnabled) {
+//             if (head.pruned || getHead() != null) {
+//                 head.pruneControl.update(onScreenScale);
+//                 mControlPoints[CPruneHead] = head.pruneControl;
+//             } else
+//                 mControlPoints[CPruneHead] = null;
             
-            if (tail.pruned || getTail() != null) {
-                tail.pruneControl.update(onScreenScale);
-                mControlPoints[CPruneTail] = tail.pruneControl;
-            } else
-                mControlPoints[CPruneTail] = null;
-        } else {
-            mControlPoints[CPruneHead] = null;
-            mControlPoints[CPruneTail] = null;
-        }
+//             if (tail.pruned || getTail() != null) {
+//                 tail.pruneControl.update(onScreenScale);
+//                 mControlPoints[CPruneTail] = tail.pruneControl;
+//             } else
+//                 mControlPoints[CPruneTail] = null;
+//         } else {
+//             mControlPoints[CPruneHead] = null;
+//             mControlPoints[CPruneTail] = null;
+//         }
             
         return mControlPoints;
     }
@@ -2456,23 +2464,29 @@ public class LWLink extends LWComponent
 
         if (DEBUG.LINK && DEBUG.META) out("rotHead0 " + head.rotation + " rotTail0 " + tail.rotation);
 
-        float controlOffset = (float) HeadShape.getHeight() * 3;
-        //final int controlSize = 6;
-        //final double minControlSize = MapViewer.SelectionHandleSize / dc.zoom;
-        // can get zoom by passing into getControlPoints from MapViewer.drawSelection,
-        // which could then pass it to computeLink, so we could have it here...
-        final float minControlSize = 2; // fudged: ignoring zoom for now
-        final float room = mLength - controlOffset * 2;
+        //----------------------------------------------------------------------------------------
+        
+//         //-------------------------------------------------------
+//         // Old-style prune controls
+//         //-------------------------------------------------------
 
-        if (room <= minControlSize*2)
-            controlOffset = mLength/3;
+//         float controlOffset = (float) HeadShape.getHeight() * 3;
+//         //final int controlSize = 6;
+//         //final double minControlSize = MapViewer.SelectionHandleSize / dc.zoom;
+//         // can get zoom by passing into getControlPoints from MapViewer.drawSelection,
+//         // which could then pass it to computeLink, so we could have it here...
+//         final float minControlSize = 2; // fudged: ignoring zoom for now
+//         final float room = mLength - controlOffset * 2;
 
-        if (DEBUG.LINK && DEBUG.META) out("controlOffset " + controlOffset);
-        //if (room <= controlSize*2)
-        //    controlOffset = mLength/2 - controlSize;
+//         if (room <= minControlSize*2)
+//             controlOffset = mLength/3;
 
-        head.pruneCtrlOffset = controlOffset;
-        tail.pruneCtrlOffset = controlOffset;
+//         if (DEBUG.LINK && DEBUG.META) out("controlOffset " + controlOffset);
+//         //if (room <= controlSize*2)
+//         //    controlOffset = mLength/2 - controlSize;
+
+//         head.pruneCtrlOffset = controlOffset;
+//         tail.pruneCtrlOffset = controlOffset;
 
         //----------------------------------------------------------------------------------------
         
