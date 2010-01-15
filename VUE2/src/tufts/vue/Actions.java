@@ -3707,7 +3707,7 @@ public class Actions implements VueConstants
                     
                     selected = !selected; // this line changes behavior of GUI.setFullScreen
                     
-                    if (VUE.inWorkingFullScreen()) {
+                    if (VUE.inWorkingFullScreen() && !VUE.inNativeFullScreen()) {
                         tufts.vue.gui.GUI.setFullScreen(GUI.getFullScreenWindow());
                     }
                     
