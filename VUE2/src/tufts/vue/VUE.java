@@ -116,7 +116,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.698 $ / $Date: 2010-01-14 21:42:34 $ / $Author: sfraize $ 
+ * @version $Revision: 1.699 $ / $Date: 2010-01-15 20:07:55 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -1530,6 +1530,9 @@ public class VUE
         }
         
         createDockWindows();
+
+        
+        final tufts.vue.gui.GUI.Screen screen = GUI.getScreenForWindow(null);
         
         if (!VUE.isApplet())
         {
@@ -1628,14 +1631,13 @@ public class VUE
         	if (appHeight > 1024)
             	appHeight = 1024;
         	 */
+
+        	int appWidth = (int) (screen.width * 0.90);
+        	int appHeight = (int) (screen.height * 0.90);
         
-        	int appWidth = (int) (GUI.GScreenWidth * 0.90);
-        	int appHeight = (int) (GUI.GScreenHeight * 0.90);
-        
-        
-        	if (GUI.GScreenWidth > 1280) {             
-        		appWidth = (int) (GUI.GScreenWidth * 0.75);
-        		appHeight = (int) (GUI.GScreenHeight * 0.90);
+        	if (screen.width > 1280) {             
+                    appWidth = (int) (screen.width * 0.75);
+                    appHeight = (int) (screen.height * 0.90);
         	}
 
         	WindowPropertiesPreference wpframe = ApplicationFrame.getWindowProperties();
@@ -1646,27 +1648,25 @@ public class VUE
         	if (wpframe.isEnabled() && !wpframe.isAllValuesDefaults() &&
         			ApplicationFrame.isPointFullyOnScreen(pos,sz))
         	{
-        		if ((sz.getWidth() < 100) || (sz.getHeight() < 100))
-        			ApplicationFrame.setSize((int)appWidth, (int)appHeight);
-        		else        		
-        			ApplicationFrame.setSize((int)sz.getWidth(), (int)sz.getHeight());
-
-        		if ((pos.getX() < 0) || (pos.getY() < 0))
-        		{
-        			ApplicationFrame.setLocation(GUI.GInsets.left,
-                        GUI.GInsets.top
-                        + (ToolbarAtTopScreen ? DockWindow.ToolbarHeight : 0));
-        		}
-        		else
-        			ApplicationFrame.setLocation((int)pos.getX(),(int)pos.getY());        	
+                    if ((sz.getWidth() < 100) || (sz.getHeight() < 100))
+                        ApplicationFrame.setSize((int)appWidth, (int)appHeight);
+                    else        		
+                        ApplicationFrame.setSize((int)sz.getWidth(), (int)sz.getHeight());
+                    
+                    if ((pos.getX() < 0) || (pos.getY() < 0)) {
+                        ApplicationFrame.setLocation
+                            (screen.margin.left,
+                             screen.margin.top + (ToolbarAtTopScreen ? DockWindow.ToolbarHeight : 0));
+                    } else {
+                        ApplicationFrame.setLocation((int)pos.getX(),(int)pos.getY());
+                    }
         	}
         	else
-        	{        	        
-        		ApplicationFrame.setSize(appWidth, appHeight);
-
-        		ApplicationFrame.setLocation(GUI.GInsets.left,
-                                     GUI.GInsets.top
-                                     + (ToolbarAtTopScreen ? DockWindow.ToolbarHeight : 0));
+                    {        	        
+                    ApplicationFrame.setSize(appWidth, appHeight);
+                    ApplicationFrame.setLocation
+                        (screen.margin.left,
+                         screen.margin.top + (ToolbarAtTopScreen ? DockWindow.ToolbarHeight : 0));
         	}
         	// MAC NOTE WITH MAXIMIZING: if Frame's current location y value
         	// is less than whatever's it's maximized value is set to, maximizing
@@ -1781,8 +1781,8 @@ public class VUE
         
         }
         if (toolbarDock != null) {
-            toolbarDock.suggestLocation(0,0);
-            toolbarDock.setWidth(GUI.GScreenWidth);
+            toolbarDock.suggestLocation(screen.top, screen.left);
+            toolbarDock.setWidth(screen.width);
             toolbarDock.setVisible(true);
         }
 
@@ -1835,11 +1835,9 @@ public class VUE
         acrossTop = acrossTopList.toArray(new DockWindow[acrossTopList.size()]);
         
         if (outlineDock != null)
-            outlineDock.setLowerLeftCorner(0,
-                                           GUI.GScreenHeight - GUI.GInsets.bottom);
+            outlineDock.setLowerLeftCorner(screen.left, screen.bottomIn);
         if (pannerDock != null)
-            pannerDock.setLowerRightCorner(GUI.GScreenWidth - GUI.GInsets.right,
-                                           GUI.GScreenHeight - GUI.GInsets.bottom);
+            pannerDock.setLowerRightCorner(screen.rightIn, screen.bottomIn);
         
         if (DockWindow.getTopDock() != null)
             prepareForTopDockDisplay(acrossTop);
@@ -1900,8 +1898,8 @@ public class VUE
         	else
         		;
         	
-        	formatDock.setLocation(GUI.GInsets.left+VueResources.getInt("formatting.location.x"),
-                    			   GUI.GInsets.top +VueResources.getInt("formatting.location.y"));        	
+        	formatDock.setLocation(screen.leftIn+VueResources.getInt("formatting.location.x"),
+                                       screen.rightIn+VueResources.getInt("formatting.location.y"));        	
         	
             DockWindow.flickerAnchorDock();
             if (!VUE.isApplet())
@@ -1912,6 +1910,8 @@ public class VUE
     
     protected static void createDockWindows()
     {
+        final tufts.vue.gui.GUI.Screen screen = GUI.getScreenForWindow(null);
+        
     	  //=============================================================================
         //
         // Create all the DockWindow's
@@ -1941,7 +1941,7 @@ public class VUE
         	floatingZoomDock.setContent(floatingZoomPanel);
         	//floatingZoomDock.setFocusable(true); // can grab key events causing MapViewer actions to be disabled
         	floatingZoomDock.setSize(new Dimension(280,30));
-        	floatingZoomDock.setLocation(0,GUI.GInsets.top+15);        
+        	floatingZoomDock.setLocation(screen.left, screen.topIn + 15);
         }
         //-----------------------------------------------------------------------------
         // Panner
@@ -2002,7 +2002,7 @@ public class VUE
         	contentDock = GUI.createDockWindow(VueResources.getString("dockWindow.contentPanel.title"),
         			VueResources.getString("dockWindow.Content.helpText"));
         	contentPanel = new ContentPanel(contentDock);
-        	contentDock.setSize(300, (int) (GUI.GScreenHeight * 0.75));
+        	contentDock.setSize(300, (int) (screen.height * 0.75));
 
         }
       //-----------------------------------------------------------------------------
@@ -2616,14 +2616,16 @@ public class VUE
         if (DEBUG.DOCK) Log.debug("positionForDocking " + Arrays.asList(preShown));
         if (DEBUG.INIT || (DEBUG.DOCK && DEBUG.META)) Util.printStackTrace("\n\nSTARTING PLACEMENT");
 
-        int top = GUI.GInsets.top;
+        final tufts.vue.gui.GUI.Screen screen = GUI.getScreenForWindow(null);
+        
+        int top = screen.topIn;
 
         if (ToolbarAtTopScreen)
             top += DockWindow.ToolbarHeight;
         else
             top += 152; // todo: tweak for PC
 
-        boolean squeezeDown = GUI.GScreenWidth < 1200;
+        boolean squeezeDown = screen.width < 1200;
         boolean didSqueeze = false;
 
         int nextLayout = preShown.length - 1;
@@ -2639,7 +2641,7 @@ public class VUE
        
         toRightDW = preShown[nextLayout];
         
-        toRightDW.setUpperRightCorner(GUI.GScreenWidth, top);
+        toRightDW.setUpperRightCorner(screen.width, top);
         if (squeezeDown)
             toRightDW.setHeight(toRightDW.getHeight() / 2);
         DockWindow curDW = null;
@@ -2649,17 +2651,20 @@ public class VUE
                 didSqueeze = true;
                 toRightDW.addChild(curDW);
             } else {
-            	int spot=GUI.GScreenWidth;
-            	
-            	if (nextLayout %3 != 0)
-            	{
-            		spot = toRightDW.getX();
-            	}
-            	else
-            		top +=50;
-            	
+            	int spot = screen.right;
+            	if (nextLayout %3 != 0) {
+                    spot = toRightDW.getX();
+            	} else
+                    top +=50;
                 curDW.setUpperRightCorner(spot, top);
                 toRightDW = curDW;
+//             	int spot=GUI.GScreenWidth;
+//             	if (nextLayout %3 != 0) {
+//                     spot = toRightDW.getX();
+//             	} else
+//                     top +=50;
+//                 curDW.setUpperRightCorner(spot, top);
+//                 toRightDW = curDW;
             }
         }
         if (preShown.length > 1)
