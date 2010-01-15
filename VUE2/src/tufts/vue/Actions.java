@@ -3703,7 +3703,20 @@ public class Actions implements VueConstants
                 GUI.reloadGraphicsInfo();
                 update("firing");
                 if (isEnabled()) {
-                    selected = !selected;
+                    
+                    selected = !selected; // this line changes behavior of GUI.setFullScreen
+                    
+                    if (VUE.inWorkingFullScreen()) {
+                        tufts.vue.gui.FullScreen.toggleFullScreen(false);
+                        GUI.invokeAfterAWT(new Runnable() { public void run() {
+                            tufts.vue.gui.FullScreen.toggleFullScreen(false);
+                        }});
+                        //// This appears to work for shrinking, but not growing...
+                        //java.awt.Window fsw = GUI.getFullScreenWindow();
+                        //fsw.setVisible(false);
+                        //tufts.vue.gui.GUI.setFullScreen(fsw);
+                        //fsw.setVisible(true);
+                    }
                 } else {
                     selected = false;
                 }
@@ -3716,11 +3729,11 @@ public class Actions implements VueConstants
                 if (DEBUG.Enabled) Log.debug("SuperScreen update: " + Util.tags(key));
                 if (GUI.hasMultipleScreens()) {
                     java.awt.Rectangle b = GUI.getAllScreenBounds();
-                    setActionName(String.format("Max Screen (%dx%d)", b.width, b.height));
+                    setActionName(String.format("All Screens (%dx%d)", b.width, b.height));
                     setEnabled(true);
                 } else {
                     setEnabled(false);
-                    setActionName("Max Screen");
+                    setActionName("All Screens");
                 }
             }
         };
