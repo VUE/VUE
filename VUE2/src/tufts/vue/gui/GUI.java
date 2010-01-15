@@ -57,7 +57,7 @@ import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.162 $ / $Date: 2010-01-15 20:07:25 $ / $Author: sfraize $
+ * @version $Revision: 1.163 $ / $Date: 2010-01-15 20:39:34 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1668,9 +1668,10 @@ public class GUI
 
     public static void setFullScreen(Window window) {
         final Rectangle bounds = getFullScreenWorkingBounds();
+//         window.setSize(bounds.width, bounds.height);
+//         window.setLocation(bounds.x, bounds.y);
 
-        window.setSize(bounds.width, bounds.height);
-        window.setLocation(bounds.x, bounds.y);
+        window.setBounds(bounds);
     }
     
     
@@ -1682,7 +1683,8 @@ public class GUI
 
     public static int getOffScreenY()
     {
-        refreshGraphicsInfo();
+        if (GSpace == null)
+            refreshGraphicsInfo();
         return GSpace.bottom + 1;
     }
     
