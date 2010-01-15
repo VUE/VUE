@@ -57,7 +57,7 @@ import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.164 $ / $Date: 2010-01-15 21:54:15 $ / $Author: sfraize $
+ * @version $Revision: 1.165 $ / $Date: 2010-01-15 22:01:11 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1669,13 +1669,6 @@ public class GUI
     public static void setFullScreen(Window window) {
         window.setBounds(getFullScreenWorkingBounds());
     }
-    
-    
-//     public static void setFullScreenVisible(Window window) {
-//         setFullScreenSize(window);
-//         setFullScreen
-//     }
-    
 
     public static int getOffScreenY()
     {
@@ -1684,11 +1677,21 @@ public class GUI
         return GSpace.bottom + 1;
     }
     
-    /** set window to be as off screen as possible */
+    public static int getOffScreenX()
+    {
+        if (GSpace == null)
+            refreshGraphicsInfo();
+        return GSpace.right + 1;
+    }
+    
+    /** set window's location such that it will not be visible on any screen */
     public static void setOffScreen(java.awt.Window window)
     {
         window.setLocation(0, getOffScreenY());
-        //window.setLocation(-999, 8000); // may have been making Mac OS X Expose display too messy
+        // note that we want this *minimally* off-screen, as
+        // apps like Mac OS X Expose will still find and display
+        // this window, and if it's far out, it degrades the
+        // usefulness of that feature.
     }
     
     public static void setAlwaysOnTop(Window w, boolean onTop) {
