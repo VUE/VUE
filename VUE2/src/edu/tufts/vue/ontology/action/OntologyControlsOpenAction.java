@@ -59,8 +59,11 @@ public class OntologyControlsOpenAction extends tufts.vue.VueAction {
             browser.initializeBrowser(false,searchDock);
         //browser = new edu.tufts.vue.ontology.ui.OntologyBrowser(false, ontologyDock, searchDock);
             ontologyDock = OntologyBrowser.getBrowser().getDockWindow();
-            ontologyDock.setBounds(0,tufts.vue.gui.DockWindow.ToolbarHeight+100,
-                                   300, (int) (tufts.vue.gui.GUI.GScreenHeight * 0.75));
+            
+//             ontologyDock.setBounds(0,tufts.vue.gui.DockWindow.ToolbarHeight+100,
+//                                    300, (int) (tufts.vue.gui.GUI.GScreenHeight * 0.75));
+            // THIS CLASS FILE NO LONGER USED -- replacing w/fixed values below just for compliation:
+            ontologyDock.setBounds(0,170,300,600);
         }
 
         ontologyDock.setVisible(true);
