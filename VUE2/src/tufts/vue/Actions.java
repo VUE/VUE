@@ -3693,9 +3693,10 @@ public class Actions implements VueConstants
     public static final VueAction SuperScreen =
         new VueAction("Use all screens for Full Screen")
         {
+            private final Object INIT = "init";
             private boolean selected;
 
-            { update("init"); }
+            { update(INIT); }
             
             boolean undoable() { return false; }
             protected boolean enabled() { return true; }
@@ -3721,13 +3722,13 @@ public class Actions implements VueConstants
             @Override public void update(Object key) {
                 if (DEBUG.Enabled) Log.debug("SuperScreen update: " + Util.tags(key));
                 if (GUI.hasMultipleScreens()) {
-                    if (!isEnabled()) {
+                    if (key == INIT || !isEnabled()) {
                         java.awt.Rectangle b = GUI.getAllScreenBounds();
                         setActionName(String.format("All Screens (%dx%d)", b.width, b.height));
                         setEnabled(true);
                     }
                 } else {
-                    if (isEnabled()) {
+                    if (key == INIT || isEnabled()) {
                         setEnabled(false);
                         setActionName("All Screens");
                     }
