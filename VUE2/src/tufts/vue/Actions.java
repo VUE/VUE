@@ -3707,16 +3707,9 @@ public class Actions implements VueConstants
                     selected = !selected; // this line changes behavior of GUI.setFullScreen
                     
                     if (VUE.inWorkingFullScreen()) {
-                        tufts.vue.gui.FullScreen.toggleFullScreen(false);
-                        GUI.invokeAfterAWT(new Runnable() { public void run() {
-                            tufts.vue.gui.FullScreen.toggleFullScreen(false);
-                        }});
-                        //// This appears to work for shrinking, but not growing...
-                        //java.awt.Window fsw = GUI.getFullScreenWindow();
-                        //fsw.setVisible(false);
-                        //tufts.vue.gui.GUI.setFullScreen(fsw);
-                        //fsw.setVisible(true);
+                        tufts.vue.gui.GUI.setFullScreen(GUI.getFullScreenWindow());
                     }
+                    
                 } else {
                     selected = false;
                 }
