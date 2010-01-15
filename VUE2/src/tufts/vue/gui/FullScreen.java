@@ -37,7 +37,7 @@ import org.apache.log4j.NDC;
 /**
  * Code for providing, entering and exiting VUE full screen modes.
  *
- * @version $Revision: 1.47 $ / $Date: 2010-01-15 20:07:25 $ / $Author: sfraize $
+ * @version $Revision: 1.48 $ / $Date: 2010-01-15 20:40:00 $ / $Author: sfraize $
  *
  */
 
@@ -260,7 +260,8 @@ public class FullScreen
         @Override
         public void paint(Graphics g) {
 
-            boolean offscreen = getX() < 0 || getY() < 0;
+            //boolean offscreen = getX() < 0 || getY() < 0;
+            final boolean offscreen = getY() >= GUI.getOffScreenY();
             
             if (DEBUG.Enabled) Log.debug("paint " + this + ";  hidden=" + isHidden + "; offscreen=" + offscreen);
 
