@@ -90,7 +90,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.172 $ / $Date: 2010-01-14 21:45:18 $ / $Author: sfraize $
+ * @version $Revision: 1.173 $ / $Date: 2010-01-15 21:32:51 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -691,9 +691,9 @@ public class VueMenuBar extends javax.swing.JMenuBar
         viewMenu.add(toggleAutoZoomItem);
         if (DEBUG.Enabled && DEBUG.KEYS) viewMenu.add(Actions.ToggleAutoZoom);
         
-        viewMenu.addSeparator();
-        viewMenu.add(Actions.ViewBackward);
-        viewMenu.add(Actions.ViewForward);
+//         viewMenu.addSeparator();
+//         viewMenu.add(Actions.ViewBackward);
+//         viewMenu.add(Actions.ViewForward);
 
 //         GUI.getFullScreenWindow().addWindowFocusListener(new WindowFocusListener()
 //         {
