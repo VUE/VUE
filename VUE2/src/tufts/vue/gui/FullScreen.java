@@ -37,7 +37,7 @@ import org.apache.log4j.NDC;
 /**
  * Code for providing, entering and exiting VUE full screen modes.
  *
- * @version $Revision: 1.46 $ / $Date: 2010-01-14 21:43:35 $ / $Author: sfraize $
+ * @version $Revision: 1.47 $ / $Date: 2010-01-15 20:07:25 $ / $Author: sfraize $
  *
  */
 
@@ -175,8 +175,8 @@ public class FullScreen
                 // turns out it's also important on Leopard for this to work at all (see
                 // comment below)
                 setBackground(Color.red);
-                
-                setSize(GUI.getScreenWidth() / 10, GUI.getScreenHeight() / 10);
+                //setSize(GUI.getScreenWidth() / 10, GUI.getScreenHeight() / 10);
+                setSize(240,135);
                 
             } else {
                 GUI.setOffScreen(this);

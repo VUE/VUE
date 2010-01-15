@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.165 $ / $Date: 2010-01-14 23:37:16 $ / $Author: sfraize $
+ * @version $Revision: 1.166 $ / $Date: 2010-01-15 20:07:25 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -384,6 +384,8 @@ public class DockWindow
             //_peer = new FramePeer(title, ON_TOP, DECORATED && !asToolbar);
         }
         _win = (Window) _peer;
+
+        refreshGS();
 
         /* Black ghosts on windows...
          * This is fixed in 1.6 as far as I can tell, but this has become an annoying
@@ -830,7 +832,7 @@ public class DockWindow
         //int midColor = (sBottomGradientColor.getRed() + sTopGradientColor.getRed()) / 2;
         //sMidGradientColor = new Color(midColor, midColor, midColor);
 
-        refreshScreenInfo(null);
+        refreshScreenEdges(null);
 
         //TopDock = new DockRegion(GUI.GInsets.top, DockRegion.TOP, "TopScreen");
         //BottomDock = new DockRegion(GUI.GScreenHeight - GUI.GInsets.bottom, DockRegion.BOTTOM, "BotScreen");
@@ -1771,17 +1773,15 @@ public class DockWindow
     //@Override
     public void setBounds(int x, int y, int width, int height)
     {
-    	if (this.getTitle().equals(ANCHOR_TITLE))
-    	{
-    		 if (!DEBUG.DOCK)
-    		 {
-
-    			 	if (_peer !=null)
-    		       _peer.peer_setBounds(0, GUI.getScreenHeight() + 1,getWidth(),getHeight());
-    		        return;
-    		 }
-
+    	if (this.getTitle().equals(ANCHOR_TITLE)) {
+            if (!DEBUG.DOCK) {
+                if (_peer != null) {
+                    _peer.peer_setBounds(0, GUI.getOffScreenY(), getWidth(),getHeight());
+                }
+                return;
+            }
     	}
+        
         if (DEBUG.DOCK) out("setBounds " + x+","+y + " " + width+"x"+height);
 
         if (DEBUG.Enabled && width == 0 && mTitleName != null) // mTitle only null during <init>
@@ -1956,20 +1956,25 @@ public class DockWindow
     */
 
     public boolean atScreenTop() {
+        // TODO: should also be at top off off-screen to the top and no other screen is above
+
+        return GS != null && GS.inTop(getY());
+
         //if (DEBUG.Enabled) out("atScreenTop: y=" + getY() + " <= " + GUI.GInsets.top);
-        return getY() <= GUI.GInsets.top;
+        //return getY() <= GUI.GInsets.top;
     }
     
     public boolean atScreenLeft() {
-        return getX() == 0;
+        return GS != null && GS.atLeft(getX());
+        //return getX() == 0;
         //return getX() <= GUI.GInsets.left;
     }
     
     public boolean atScreenRight() {
-        return (getX() + getWidth()) == GUI.GScreenWidth;
+        return GS != null && GS.atRight(getY());
+        //return (getX() + getWidth()) == GUI.GScreenWidth;
         /*
         // will need to align to the PARENT, not the screen, if to support this.
-        
         if (GUI.GScreenWidth == 0)
             return false;
         else
@@ -1978,20 +1983,21 @@ public class DockWindow
     }
     
     public boolean atScreenBottom() {
-        int bottomEdge = getY() + getHeight();
 
         // don't allow this for anything with a top in the upper half of the screen
-        if (getY() < GUI.GScreenHeight / 2)
+        if (GS == null || getY() < GS.top + GS.height / 2)
             return false;
 
-        if (GUI.GInsets.bottom > 0) {
+        final int bottomEdge = getY() + getHeight();
 
-            return bottomEdge <= GUI.GScreenHeight
-                && bottomEdge >= GUI.GScreenHeight - GUI.GInsets.bottom;
-                
-        } else {
-            return bottomEdge == GUI.GScreenHeight;
-        }
+        return GS.inBottom(bottomEdge);
+        
+//         if (GS.margin.bottom > 0) {
+//             return bottomEdge <= GUI.GScreenHeight
+//                 && bottomEdge >= GUI.GScreenHeight - GUI.GInsets.bottom;
+//         } else {
+//             return bottomEdge == GUI.GScreenHeight;
+//         }
     }
 
 
@@ -2013,6 +2019,8 @@ public class DockWindow
         if (DEBUG.DOCK) out("setRolledUp " + makeRolledUp + " animate=" + animate + " propertyChangeEvent="+propertyChangeEvent);
         if (isRolledUp == makeRolledUp || isToolbar)
             return;
+
+        final Screen screen = refreshGS();
 
         /*
          * i can't find a case where removing this breaks something.  It would seem
@@ -2065,7 +2073,7 @@ public class DockWindow
                 rolledY = getY() + getHeight() - rolledHeight;
             } else if (atScreenRight()) {
                 mStickingRight = true;
-                rolledX = GUI.GScreenWidth - rolledWidth;
+                rolledX = screen.right - rolledWidth;
             }
             
             if (animate)
@@ -2105,7 +2113,7 @@ public class DockWindow
                 
             } else if (atScreenRight()) {
 
-                newShape.x = GUI.GScreenWidth - mUnrolledShape.width;
+                newShape.x = screen.right - mUnrolledShape.width;
                 newShape.y = getY();
                 mStickingRight = true;
 
@@ -2602,9 +2610,13 @@ public class DockWindow
         StickyBottomEdges.add(new Edge(screen.bottom - screen.margin.bottom, screen.left, screen.right));
     }
 
-    
-        
-    private static void refreshScreenInfo(DockWindow mover)
+    private Screen GS;
+
+    private Screen refreshGS() {
+        return (this.GS = GUI.getScreenForWindow(_win));
+    }
+
+    private static void refreshScreenEdges(DockWindow mover)
     {
         Screen[] screens = GUI.getAllScreens();
 
@@ -2621,7 +2633,6 @@ public class DockWindow
         
         addEdges(VUE.getMainWindow());
         //addEdges(VUE.getActiveViewer());
-
         
         for (DockWindow dw : AllWindows) {
             //if (dw == mover || !dw.isVisible() || dw.inSameStack(mover))
@@ -3143,6 +3154,10 @@ public class DockWindow
 
             e = SwingUtilities.convertMouseEvent(e.getComponent(), e, _win);
         }
+        
+        // update screen size, insets, etc for window dragging constraints.
+        refreshGS();
+        refreshScreenEdges(this);
 
         mDragStart = e.getPoint();
         mDragStartScreen = e.getPoint();
@@ -3159,8 +3174,6 @@ public class DockWindow
             raiseStack();
         }
 
-        // update screen size, insets, etc for window dragging constraints.
-        refreshScreenInfo(this);
     }
     
     public void mouseDragged(MouseEvent e)
@@ -3484,18 +3497,18 @@ public class DockWindow
     }
 
     void assignDockRegion(DockRegion region) {
-        if (mDockRegion != region) {
-            mDockRegion = region;
-            if (DEBUG.DOCK) out("assignDockRegion: " + region);
+//         if (mDockRegion != region) {
+//             mDockRegion = region;
+//             if (DEBUG.DOCK) out("assignDockRegion: " + region);
 
-            // if we just dragged an unrolled window to the bottom with
-            // just the title bar showing (we dragged the visible part off
-            // the bottom of the screen), auto roll-up the DockWindow
-            // so when it's clicked on again it will roll upwards.
+//             // if we just dragged an unrolled window to the bottom with
+//             // just the title bar showing (we dragged the visible part off
+//             // the bottom of the screen), auto roll-up the DockWindow
+//             // so when it's clicked on again it will roll upwards.
             
-            if (region == BottomDock && !isRolledUp() && getY() + getHeight() > GUI.GScreenHeight)
-                setRolledUp(true);
-        }
+//             if (region == BottomDock && !isRolledUp() && getY() + getHeight() > GUI.GScreenHeight)
+//                 setRolledUp(true);
+//         }
     }
     void assignDockSiblings(DockWindow prev, DockWindow next) {
         boolean changed = false;
@@ -3748,8 +3761,10 @@ public class DockWindow
             int x;
             int y = upcomingY + upcomingHeight;
 
+            final Screen screen = refreshGS();
+
             if (mStickingRight) {
-                x = GUI.GScreenWidth - mChild.getWidth();
+                x = screen.right - mChild.getWidth();
                 mChild.mStickingRight = true;
             } else {
                 x = getX();
@@ -4097,22 +4112,22 @@ public class DockWindow
 			return mScroller;
 		}
         //public void validate() { out("validate"); super.validate(); }
-        public void doLayout() {
+//         public void doLayout() {
 
 
-            if (false && !mWindowDragUnderway && !isRolledUp()) {
-                if (DEBUG.DOCK && DEBUG.SCROLL) GUI.dumpSizes(this, "doLayout");
+//             if (false && !mWindowDragUnderway && !isRolledUp()) {
+//                 if (DEBUG.DOCK && DEBUG.SCROLL) GUI.dumpSizes(this, "doLayout");
                 
-                int height = getHeight();
-                int prefHeight = Math.max(getPreferredSize().height, getMinimumSize().height);
-                prefHeight = Math.min(prefHeight, GUI.GScreenHeight);
+//                 int height = getHeight();
+//                 int prefHeight = Math.max(getPreferredSize().height, getMinimumSize().height);
+//                 prefHeight = Math.min(prefHeight, GUI.GScreenHeight);
                 
-                if (height != prefHeight)
-                    setHeight(prefHeight);
-            }
+//                 if (height != prefHeight)
+//                     setHeight(prefHeight);
+//             }
             
-            super.doLayout();
-        }
+//             super.doLayout();
+//         }
 
         /*
         public _ContentPane(String title, boolean asToolbar)
