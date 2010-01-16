@@ -46,7 +46,7 @@ import javax.swing.Icon;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.230 $ / $Date: 2009-12-22 18:17:38 $ / $Author: sfraize $
+ * @version $Revision: 1.231 $ / $Date: 2010-01-16 23:36:22 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -1263,11 +1263,12 @@ public class LWPathway extends LWContainer
     }
 
     @Override protected void preCacheContent() {
-        //for (Entry e : Util.reverse(mEntries)) { // reverse because Images uses LIFO queue
-        for (Entry e : mEntries) { // Now uses FIFO
-            //Log.debug("PRE-CACHE-ENTRY " + e);
-            preCacheEntryContent(e.getFocal());
-        }
+        if (DEBUG.Enabled) Log.debug("preCacheContent: not currently supported");
+//         //for (Entry e : Util.reverse(mEntries)) { // reverse because Images uses LIFO queue
+//         for (Entry e : mEntries) { // Now uses FIFO
+//             //Log.debug("PRE-CACHE-ENTRY " + e);
+//             preCacheEntryContent(e.getFocal());
+//         }
     }
     
     private static void preCacheEntryContent(LWComponent focal) {
