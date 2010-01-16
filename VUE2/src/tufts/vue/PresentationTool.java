@@ -2779,12 +2779,14 @@ public class PresentationTool extends VueTool
             //dc.g.drawString("BackNode: " + mVisited.peekNode(), 10, y+=15);
         }
 
-        if (Images.lowMemoryConditions()) {
-            // todo: if we ever get a second EOM while attempting local-caching,
-            // we may want to then abandon pathway-local caching entirely.
-            attemptPathwayLocalPreCaching();
-        }
-        
+//         if (Images.lowMemoryConditions()) {
+//             // todo: if we ever get a second EOM while attempting local-caching,
+//             // we may want to then abandon pathway-local caching entirely.
+//             attemptPathwayLocalPreCaching();
+//         }
+        // This is now the ONLY caching we attempt:
+        attemptPathwayLocalPreCaching();
+            
     }
 
     private Entry mLastCacheCheckedEntry = null;
@@ -2797,6 +2799,9 @@ public class PresentationTool extends VueTool
         // first before doing this, as we don't want anything currently on the screen to
         // be GC'd in service to anything else, tho as long as there's no repaint, it'll
         // still be in the graphics buffer.
+
+        // NOTE: sometimes the entry is the pathway itself, whose
+        // pre-cache loads ALL pathway data, so that was disabled in LWPatyway for now.
 
         final Entry thisEntry = mCurrentPage.entry;
 
