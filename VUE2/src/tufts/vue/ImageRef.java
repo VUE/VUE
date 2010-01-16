@@ -182,6 +182,8 @@ public class ImageRef
 //     }
     
     private static final java.awt.Color LoadingOverlay = new java.awt.Color(128,128,128,128);
+    private static final java.awt.Color LoadingOverlayWhite = new java.awt.Color(255,255,255,128);
+    private static final java.awt.Color LoadingOverlayBlack = new java.awt.Color(0,0,0,128);
     private static final java.awt.Color DebugRed = new java.awt.Color(255,0,0,128);
     private static final java.awt.Color DebugGreen = new java.awt.Color(0,255,0,128);
     private static final java.awt.Color DebugBlue = new java.awt.Color(0,0,255,128);
@@ -346,7 +348,7 @@ public class ImageRef
             // rendering before/after kickloads doesn't matter as long as reps don't auto-constitute
             drawable.renderRep(dc.g, width, height);
 
-            if (drawable != ideal && dc.isInteractive())
+            if (drawable != ideal && !dc.isPrintQuality() && drawable.available())
                 drawBetterRepAvailableIndicator(dc.g, width, height);
         }
 
@@ -383,14 +385,21 @@ public class ImageRef
         //                 dc.g.setColor(DebugRed);
         //             else
         //                 dc.g.setColor(DebugGreen);
-        g.setColor(LoadingOverlay);
         final float sw = Math.max(width,height) / 32f;
         g.setStroke(new java.awt.BasicStroke(sw));
         final float xoff, yoff;
         xoff = yoff = sw / 2f;
         //xoff = width / 8f;
         //yoff = height / 8f;
-        g.draw(new Rectangle2D.Float(xoff,yoff,width-xoff*2,height-yoff*2));
+        final Rectangle2D.Float r = new Rectangle2D.Float(xoff,yoff,width-xoff*2,height-yoff*2);
+        g.setColor(LoadingOverlayBlack);
+        g.draw(r);
+        g.setColor(LoadingOverlayWhite);
+        r.x += xoff;
+        r.y += yoff;
+        r.width -= xoff * 2;
+        r.height -= yoff * 2;
+        g.draw(r);
     }
     
 
