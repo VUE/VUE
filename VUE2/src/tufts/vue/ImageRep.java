@@ -7,6 +7,7 @@ import java.awt.Image;
 import java.awt.Graphics2D;
 import java.awt.Color;
 import java.awt.geom.AffineTransform;
+import tufts.vue.Images.Handle;
 
 /**
  * A representation of an image that can allow itself to be garbage collected, and reconstituted
@@ -76,7 +77,7 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
 
     public static final ImageRep UNAVAILABLE = new ImageRep() {
             @Override public boolean available() { return false; }
-            @Override protected Image image() { return (Image) error(); } // don't need override now as renderRep override covers
+            @Override protected Image image() { return null; }
             @Override protected boolean reconstitute() { error(); return false; }
             @Override protected void cacheData(Images.Handle i, String s) { error(); }
             @Override void renderRep(Graphics2D g, float width, float height) {
@@ -166,14 +167,21 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
     // locks CachingRelayer, which after calling gotImage to notifyRepHasArrived attempts to pull
     // ImageRep aspect, which is locked above on AWT on reconstitute.  Doesn't appear to
     // be a problem now, but take heed.
-    
+
     /** @return true if all data was immediately available, false if we're waiting for more info from a callback */
-    protected synchronized boolean reconstitute()
+    protected boolean reconstitute() {
+        return reconstitute(false) != IS_WAITING;
+    }
+
+    private static final Handle AT_ERROR = Handle.emptyInstance();
+    private static final Handle IS_WAITING = Handle.emptyInstance();
+    
+    private synchronized Handle reconstitute(boolean immediate)
     {
         if (_handle == IMG_ERROR) {
             // if this was an OutOfMemoryError (a potentially recoverable error), we allow us to retry indefinitely
             if (DEBUG.IMAGE) debug("skipping reconstitue: last load had error: " + this);
-            return true;
+            return AT_ERROR;
         }
 
         final boolean hadError = (_handle == IMG_ERROR_MEMORY);
@@ -181,19 +189,29 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
         //if (DEBUG.IMAGE) Log.debug(Util.TERM_CYAN + "RECONSTITUTE " + Util.TERM_CLEAR + _data, new Throwable("HERE"));
         if (_handle.isLoader()) {
             if (DEBUG.IMAGE) debug("recon: rep already loading: " + _data);//, new Throwable("HERE"));
-            return false;
+            return IS_WAITING;
         }
         if (DEBUG.IMAGE) debug(Util.TERM_CYAN + "RECONSTITUTE " + Util.TERM_CLEAR + _data);
 
         final Ref oldHandle = _handle;
 
-        final Images.Handle imageData = Images.getImageHandle(_data, this);
+        // if immmediate is true, we do not provide a listener for callback, which means run
+        // and load the image syncronously.
+
+        // note: could also use Images.getImageASAP if we also want to get progress callbacks
+        // as image size, etc, comes in.
+
+        final Images.Handle imageData = Images.getImageHandle(_data, immediate ? null : this);
+
+        if (immediate && imageData == null) {
+            Log.warn("failed immediate request: " + this);
+        }
 
         if (imageData != null) {
             // if we knew the return value of reconstitute was attented to we could skip the notify
             // (the return value is often ignored) [note: notify 2nd arg is now always true]
-            cacheData(imageData, "recon-got-immediate-return");
-            return true;
+            cacheData(imageData, immediate ? "on-immediate" : "recon-got-immediate-return");
+            return imageData;
         } else {
             if (_handle == oldHandle) {
                 if (hadError)
@@ -208,7 +226,7 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
                 // internal Images sync issues.
                 if (DEBUG.Enabled) debug("got immediate callback w/image, handle is now " + _handle);
             }
-            return false;
+            return IS_WAITING; // is this really true for both above cases?
         }
     }
 
@@ -341,10 +359,30 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
         return get(_handle);
     }
 
+    Image getImageBlocking()
+    {
+        final Image image = image();
+
+        if (image == null) {
+            final Handle rawHandle = reconstitute(true);
+            if (rawHandle == null || rawHandle.image == null) {
+                return null;
+            } else {
+                return rawHandle.image;
+            }
+        } else
+            return image;
+    }
+    
+    
+
+    
+
     /** LoadingColor chosen as what has best chance of presenting some contrast against all backgrounds */
     private static final Color LoadingColor = new Color(128,128,128,128);
     private static final Color ErrorColor = new Color(255,0,0,128);
     private static final Color LowMemoryColor = new Color(0,255,255,128);
+
 
     /**
      * Draw the representation into the given width/height with floating point scaling
@@ -364,18 +402,21 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
 //                 reconstitute(); // could pass handle as arg to improve coherency?  Or would we just miss updates we want to see?
             
         } else {
-
-            final int[] size = size();
-            final float pixelsWide = size[0];
-            final float pixelsTall = size[1];
-
-            g.drawImage(image,
-                        AffineTransform.getScaleInstance(toWidth / pixelsWide,
-                                                         toHeight / pixelsTall),
-                        null);
-
+            ImageRef.renderImage(g, image, toWidth, toHeight);
         }
     }
+
+//     void renderImage(Graphics2D g, Image image, float toWidth, float toHeight) {
+//         final int[] size = size();
+//         final float pixelsWide = size[0];
+//         final float pixelsTall = size[1];
+
+//         g.drawImage(image,
+//                     AffineTransform.getScaleInstance(toWidth / pixelsWide,
+//                                                      toHeight / pixelsTall),
+//                     null);
+        
+//     }
 
     boolean isFading() {
         return false;
@@ -445,11 +486,12 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
         // Fetch handle & contents once so don't have to worry about threading inconsistencies
         final Ref handle = _handle;
         final Object ptr = get(handle);
-        return String.format("ImageRep@%08x[%s,%s %s]",
+        return String.format("ImageRep@%08x[%s,%s %4dx%-4d %s]",
                              System.identityHashCode(this),
                              //state(handle, ptr),
                              handle == null ? "<<<BAD HANDLE>>>" : handle,
                              ptr == null ? "" : (" " + Util.tags(ptr) + ","),
+                             _size[0], _size[1],
                              _data == null ? "NULL" : _data);
         //_data == null ? "NULL" : _data.original); // os=original-source
                              

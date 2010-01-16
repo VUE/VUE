@@ -41,7 +41,7 @@ import com.google.common.collect.Multiset;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.69 $ / $Date: 2009-12-09 17:49:35 $ / $Author: sfraize $
+ * @version $Revision: 1.70 $ / $Date: 2010-01-16 22:56:48 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -52,17 +52,22 @@ public final class DrawContext
     
     public final float offsetX;
     public final float offsetY;
+
+    private static final String QUALITY_DRAFT = "draft";
+    private static final String QUALITY_NORMAL = "normal";
+    private static final String QUALITY_PRINT = "print";
     
     
     private int index;
     private int maxLayer = Short.MAX_VALUE; // don't draw layers above this level
     private boolean disableAntiAlias;
     private boolean isInteractive;
-    private boolean isDraftQuality;
     private boolean isBlackWhiteReversed;
     private boolean isPresenting;
     private boolean isDrawingPathways = true;
     public final Rectangle frame; // if we have the pixel dimensions of the surface we're drawing on, they go here
+
+    private Object quality = QUALITY_NORMAL;
 
     public final LWComponent focal;
     
@@ -224,6 +229,10 @@ public final class DrawContext
     }
     public void setAnimating(boolean animating) {
         isAnimating = animating;
+//         if (animating)
+//             quality = QUALITY_DRAFT;
+//         else
+//             quality = QUALITY_NORMAL;
     }
     
     public void setMapDrawing() {
@@ -491,17 +500,17 @@ public final class DrawContext
         setFontQuality(g, DEFAULT);
         setAntiAlias(true);
         //setDitherQuality(g, TRUE);
-        isDraftQuality = false;
+        quality = QUALITY_NORMAL;
     }
 
     public boolean isDraftQuality() {
-        return isDraftQuality;
+        return quality == QUALITY_DRAFT;
     }
 
     /** fast rendering with bit set for renderers to check */
     public void setDraftQuality() {
         setFastQuality();
-        isDraftQuality = true;
+        quality = QUALITY_DRAFT;
     }
     
     /** "fast" quality */
@@ -520,8 +529,18 @@ public final class DrawContext
         setImageQuality(g, TRUE);
         setAlphaQuality(g, TRUE);
         setColorQuality(g, TRUE);
-        setFontQuality(g, TRUE);
+        // improve quality of printed text (high DPI's are needed to take advantage of fractional metrics)
+        setFontQuality(g, TRUE); 
         setAntiAlias(true);
+        quality = QUALITY_PRINT;
+    }
+
+    public boolean isPrintQuality() {
+        return quality == QUALITY_PRINT;
+    }
+    
+    public boolean isNormalQuality() {
+        return quality == QUALITY_NORMAL;
     }
     
     public void setAnimatingQuality()
@@ -755,7 +774,7 @@ public final class DrawContext
         this.disableAntiAlias = dc.disableAntiAlias;
         this.index = dc.index;
         this.isInteractive = dc.isInteractive;
-        this.isDraftQuality = dc.isDraftQuality;
+        this.quality = dc.quality;
         this.isBlackWhiteReversed = dc.isBlackWhiteReversed;
         this.isPresenting = dc.isPresenting;
 

@@ -51,7 +51,7 @@ import org.w3c.dom.NodeList;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.77 $ / $Date: 2010-01-14 21:39:30 $ / $Author: sfraize $
+ * @version $Revision: 1.78 $ / $Date: 2010-01-16 22:56:48 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -956,8 +956,10 @@ public class Images
             //cachedImage = (Image) cacheEntry;
             handle = new Handle((Image) cacheEntry);
         } else {
-            //if (listener != null)
-                Log.warn("Unhandled cache entry: " + Util.tags(cacheEntry), new Throwable("HERE"));
+            if (DEBUG.IMAGE)
+                Log.warn("unhandled fetch result: " + Util.tags(cacheEntry), new Throwable("HERE"));
+            else
+                Log.warn("unhandled fetch result: " + Util.tags(cacheEntry));
             // if we have no listener, it's reasonable for the getCachedOrKickLoad to return null,
             // tho wouldn't it be better just to return one anyway, and allow quiet async caching?
             // later requests could still hook up to the loader
@@ -1406,8 +1408,8 @@ public class Images
         {
             imageSRC = _imageSRC;
             relay = new CachingRelayer(imageSRC, firstRelay);
-            if (firstRelay == null)
-                Log.info(this + "; nobody currently listening: image may be quietly cached: " + imageSRC);
+            if (DEBUG.Enabled && firstRelay == null)
+                Log.debug(this + "; nobody currently listening: image may be quietly cached: " + imageSRC);
         }
 
         Image getLoaderImage() {
@@ -2209,6 +2211,7 @@ public class Images
                 } else { // if instanceof POOLTHREAD
 
                     // we must be running in the thread-pool accessing local disk
+                    // (or, e.g., we could be in a print job thread processing immediate requests)
 
                     if (DEBUG.Enabled) Log.info("EOM; consider re-kicking a LoadTask for " + imageSRC);
                     //e.g., somehing like: kickLoad(imageSRC, listener);
@@ -2395,12 +2398,14 @@ public class Images
             this(i, Collections.EMPTY_MAP);
         }
 
-//         private Handle() {
-//             image = null;
-//             data = Collections.EMPTY_MAP;
-//         }
+        private Handle() {
+            image = null;
+            data = Collections.EMPTY_MAP;
+        }
 
-        //Handle create(image i
+        public static Handle emptyInstance() {
+            return new Handle();
+        }
         
         @Override public String toString() {
             return Util.tags(image) + data;

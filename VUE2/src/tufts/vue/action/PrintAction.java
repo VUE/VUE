@@ -36,7 +36,7 @@ import java.awt.event.ActionEvent;
  * means that VUE can't repaint itself while the print dialogs are
  * active (not true on Mac OS X, but true at least on W2K/JVM1.4.2).
  * 
- * @version $Revision: 1.46 $ / $Date: 2009-08-28 17:13:05 $ / $Author: sfraize $
+ * @version $Revision: 1.47 $ / $Date: 2010-01-16 22:56:49 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -228,12 +228,19 @@ public class PrintAction extends tufts.vue.VueAction
                 return Printable.NO_SUCH_PAGE;
             }
 
-            out("asked to render page " + pageIndex + " in " + outpf(format));
-
             Dimension page = new Dimension((int) format.getImageableWidth() - 1,
                                            (int) format.getImageableHeight() - 1);
 
             Graphics2D g = (Graphics2D) gc;
+
+            out("asked to render page " + pageIndex + " in " + outpf(format) + " w/transform " + g.getTransform());
+
+            // note: supposedly, perhaps on Windows with JVM's 1.5 and newer, the
+            // transform scale provided can actually allow us to derive the DPI of the
+            // print device, which we could use for image rendering optimization's
+            // during prints.  Mac OS X Snow Leopard w/JVM 1.6 always reports a 1.0
+            // scale though.  And operations like "print preview" or "print to PDF"
+            // wouldn't have a fixed DPI anyway.
 
             if (DEBUG.CONTAINMENT) {
                 g.setColor(Color.lightGray);

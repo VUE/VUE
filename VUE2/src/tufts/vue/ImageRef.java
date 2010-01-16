@@ -5,6 +5,8 @@ import tufts.Util;
 import java.lang.ref.*;
 import java.awt.Image;
 import java.awt.Graphics2D;
+import java.awt.geom.Rectangle2D;
+import java.awt.geom.AffineTransform;
 
 import static tufts.vue.ImageRep.UNAVAILABLE;
 
@@ -38,9 +40,9 @@ public class ImageRef
 
     private static final boolean ICONS_ARE_DISPOSABLE = false; // todo: true case needs testing / may not work
     
-    private static final String SIZE_FULL = "FULL-SIZE";
-    private static final String SIZE_ICON = "ICON-SIZE";
-    private static final String SIZE_UNKNOWN = "UNKNOWN-SIZE";
+//     private static final String SIZE_FULL = "FULL-SIZE";
+//     private static final String SIZE_ICON = "ICON-SIZE";
+//     private static final String SIZE_UNKNOWN = "UNKNOWN-SIZE";
     
     private final ImageSource _source;
 
@@ -163,32 +165,39 @@ public class ImageRef
     public void drawInto(DrawContext dc, float width, float height)
     {
         try {
-            if (dc.isAnimating() || dc.isDraftQuality()) {
-                drawAvailable(dc.g, width, height);
-            } else {
-                drawBestAvailable(dc.g, width, height);
-            }
+            drawBestAvailable(dc, width, height);
         } catch (Throwable t) {
             Log.error("exception painting " + this, t);
         }
     }
 
-    private void drawAvailable(Graphics2D g, float width, float height) 
-    {
-        if (_icon.available())
-            _icon.renderRep(g, width, height);
-        else if (_full.available())
-            _full.renderRep(g, width, height);
-        else 
-            ; //UNAVAILABLE.drawRep(g, width, height);
-    }
+//     private void drawAvailable(Graphics2D g, float width, float height) 
+//     {
+//         if (_icon.available())
+//             _icon.renderRep(g, width, height);
+//         else if (_full.available())
+//             _full.renderRep(g, width, height);
+//         else 
+//             ; //UNAVAILABLE.drawRep(g, width, height);
+//     }
     
+    private static final java.awt.Color LoadingOverlay = new java.awt.Color(128,128,128,128);
     private static final java.awt.Color DebugRed = new java.awt.Color(255,0,0,128);
     private static final java.awt.Color DebugGreen = new java.awt.Color(0,255,0,128);
     private static final java.awt.Color DebugBlue = new java.awt.Color(0,0,255,128);
     private static final java.awt.Color DebugYellow = new java.awt.Color(255,255,0,128);
 
-    private ImageRep pickRepToDraw(final ImageRep desired, final ImageRep backup) {
+    private ImageRep pickRepToDraw(final ImageRep ideal) {
+        return pickRepToDraw(ideal, ideal == _full ? _icon : _full);
+    }
+    
+    private ImageRep pickRepToDraw(final ImageRep desired, final ImageRep backup)
+    {
+        // Note that a rep that is not "available" may also be "loading", and be receiving progress
+        // on that load which it is able to display. (Maybe different semantics would be helpful
+        // e.g. -- provide a "drawable" as well as "available" and/or rename "available" to
+        // "loaded").
+        
         if (desired.available()) // the most common case at runtime
             return desired; 
         else if (backup.available())
@@ -214,99 +223,224 @@ public class ImageRef
             return ImageRep.UNAVAILABLE;
         
     }
+
+    //private static final double ASSUMED_PRINTER_DPI = 600;
     
-    private void drawBestAvailable(Graphics2D g, float width, float height)
+    private ImageRep getIdealRep(DrawContext dc, float width, float height, Image[] GC_lock)
     {
-        // We have two main tasks to accomplish here:
-        // (1) pick the best representation available to draw
-        // (2) start loading a better (or any) representation if we can
+        if (dc.isPrintQuality()) {
+            // Note: Even the non-blocking image fetch runes in ImageRep w/out a listener, ImageRep
+            // still generates needed callbacks to us as this comes in via cacheData.  It's
+            // possibly we may at some point want to skip even that though, as it could place less
+            // strain on memory if we're running low.  Memory constraints while printing appear to
+            // be worse than just for rendering maps to the screen.  E.g., we would never want to
+            // start generating an icon during a print job, tho that is theoretically possible.  So,
+            // todo: at some point ensure that ImageRep.cacheData w/immediate call does NOT make
+            // the ImageRef callback, and we do anything we need to do for recording an arrived
+            // full rep right here, immediately (e.g., record the size if this is the first time
+            // we've seen the full rep).  So ImageRef may want it's own cacheData style method to
+            // serve the same purpose it does in ImageRep.
+            GC_lock[0] = _full.getImageBlocking();
+            return _full;
+        }
         
-        final ImageRep backupRep;
-        final ImageRep desiredRep;
+//         final double scale;
+//         // Actually, little point in trying this optimization -- e.g., if
+//         // we're "printing" to a PDF or a print-preview, it's generated with essentially infinte scale,
+//         // as the result will be user-zoomable. [HOWEVER: we may wish to restore this just to reduce memory consumption]
+//         if (dc.isPrintQuality()) {
+//             scale = dc.g.getTransform().getScaleX() * (ASSUMED_PRINTER_DPI / 72.0);
+//         } else {
+//             scale = dc.g.getTransform().getScaleX();
+//         }
 
-        final double scale = g.getTransform().getScaleX();
-
-        final int onScreenMaxDim;
+        final double scale = dc.g.getTransform().getScaleX();
+        final int onDisplayMaxDim;
 
         if (aspect() > 1f) {
             //debug("aspect="+aspect() + " picking width " + width);
-            onScreenMaxDim = (int) (scale * width);
+            onDisplayMaxDim = (int) (scale * width);
         } else {
             //debug("aspect="+aspect() + " picking height " + height);
-            onScreenMaxDim = (int) (scale * height);
+            onDisplayMaxDim = (int) (scale * height);
         }
 
-        // We don't worry about coherency sync issues with _full & _icon here -- we should handle
-        // whatever's thrown at us on a best-available basis. The only thing we rely on is they
-        // should never be null.
+        final ImageRep idealRep;
+        
+        // We don't worry about coherency sync issues between _full & _icon here -- we should
+        // handle whatever's thrown at us on a best-available basis. The only thing we rely on is
+        // they should never be null.
 
-        if (onScreenMaxDim <= PIXEL_THRESHOLD_FOR_ICON_DRAWING) {
-            // todo: would be better to check actual iconRep size v.s. our constant,
-            // tho this lets us not worry if it's been loaded or not
-            desiredRep = _icon;
-            backupRep = _full;
+        if (onDisplayMaxDim <= PIXEL_THRESHOLD_FOR_ICON_DRAWING) {
+            // It would be more complete to check the actual iconRep size v.s. our constant, tho this
+            // lets us not worry if it's been loaded or not, and currently we only ever generate
+            // icons of a single size.  Note that this also assumes the icon will always be smaller
+            // than the full rep, which should hold true as we don't bother to generate an icon
+            // otherwise.
+            idealRep = _icon;
+            //backupRep = _full;
             //_desired = SIZE_ICON;
             //debug("onScreenMaxDim below thresh " + PIXEL_THRESHOLD_FOR_ICON_DRAWING + " at " + onScreenMaxDim);
         } else {
             //debug("onScreenMaxDim ABOVE thresh " + PIXEL_THRESHOLD_FOR_ICON_DRAWING + " at " + onScreenMaxDim);
             //_desired = SIZE_FULL;
-            desiredRep = _full;
-            backupRep = _icon;
+            idealRep = _full;
+            //backupRep = _icon;
         }
 
-        final ImageRep drawRep = pickRepToDraw(desiredRep, backupRep);
+        // Technically, we only need a GC lock for _full, as _icon reps are permanently GC locked internally
+        // in the current implementation.
+        GC_lock[0] = idealRep.image();
 
-        if (DEBUG.IMAGE && DEBUG.BOXES) {
-            debug("  desired " + desiredRep);
-            debug("   backup " + backupRep);
-            debug("   toDraw " + drawRep);
-        }
+//         if (dc.isPrintQuality()) {
+//             Log.debug(String.format("print GC scale %.2f net=%.2f px=%4d %s",
+//                                     dc.g.getTransform().getScaleX(), scale, onDisplayMaxDim, idealRep));
+//         }
+
+        return idealRep;
         
-        if (!desiredRep.available() && desiredRep != UNAVAILABLE) {
-            kickLoad(desiredRep);
-        } else if (!drawRep.available()) {
-            if (drawRep == UNAVAILABLE) { // if icon load failed, must create a new one (low memory) [NOT ENOUGH!]
+    }
+    
+    private void drawBestAvailable(DrawContext dc, float width, float height)
+    {
+        // Tasks to accomplish here:
+        // (1) find the ideal representation for the situation (the current rendering size v.s. available pixels)
+        // (2) pick the best representation to draw given what's actually available
+        // (3) start loading the ideal represation for future use if it wasn't available
+
+        final Image[] idealImageLock = new Image[1]; // for holding a GC-lock on the image if it's there
+        final ImageRep ideal = getIdealRep(dc, width, height, idealImageLock);
+        final ImageRep drawable;
+        
+        if (idealImageLock[0] != null) {
+            // This is the common case once everything has been loaded and cached in memory, and presuming
+            // we're not running low on memory.
+            
+            renderImage(dc.g, idealImageLock[0], width, height);
+
+            idealImageLock[0] = null; // ensure GC-lock is immediately released
+            
+            // setting drawable here is now just for possible debug, which could probably be factored out,
+            // and allow us to return an object from getIdealRep, which is sometimes an Image, sometimes
+            // an ImageRep.
+            drawable = ideal;
+
+        } else {
+
+            // Note: the logic below is tuned to cover many possible corner cases,
+            // and is not easy to refactor w/out breaking one or more of them.
+            
+            drawable = pickRepToDraw(ideal);
+
+            if (DEBUG.IMAGE && DEBUG.BOXES) {
+                debug("    ideal " + ideal);
+                debug(" drawable " + drawable);
+            }
+
+            if (!dc.isAnimating()) {
+                // We never kick image data loading during animations, as the desired representation
+                // may only be a momentary need (and it could suddenly slow down the animation to boot).
+                kickLoad(ideal, drawable);
+            }
+
+            // rendering before/after kickloads doesn't matter as long as reps don't auto-constitute
+            drawable.renderRep(dc.g, width, height);
+
+            if (drawable != ideal && dc.isInteractive())
+                drawBetterRepAvailableIndicator(dc.g, width, height);
+        }
+
+
+        if (DEBUG.BOXES) drawDebugStatus(dc.g, ideal, drawable, width, height);
+
+    }
+    
+    /** render a fully loaded image who's size is known to the java.awt.Image provided into the given width/height */
+    static void renderImage
+        (final Graphics2D g,
+         Image image,
+         final float toWidth,
+         final float toHeight)
+    {
+        final float pixelsWide = image.getWidth(null);
+        final float pixelsTall = image.getHeight(null);
+        g.drawImage(image,
+                    AffineTransform.getScaleInstance(toWidth / pixelsWide,
+                                                     toHeight / pixelsTall),
+                    null);
+
+        image = null; // attempt to help GC
+
+        // todo performance: keep a re-usable AffineTransform in the DrawContext for the above
+        // kinds of usage, and just use setToScale on it?  Add image rendering to the DrawContext?
+        
+    }
+    
+
+    private void drawBetterRepAvailableIndicator(Graphics2D g, float width, float height) {
+        // draw a "loading" indicator
+        //             if (drawable != ideal)
+        //                 dc.g.setColor(DebugRed);
+        //             else
+        //                 dc.g.setColor(DebugGreen);
+        g.setColor(LoadingOverlay);
+        final float sw = Math.max(width,height) / 32f;
+        g.setStroke(new java.awt.BasicStroke(sw));
+        final float xoff, yoff;
+        xoff = yoff = sw / 2f;
+        //xoff = width / 8f;
+        //yoff = height / 8f;
+        g.draw(new Rectangle2D.Float(xoff,yoff,width-xoff*2,height-yoff*2));
+    }
+    
+
+    private void kickLoad(ImageRep ideal, ImageRep drawable)
+    {
+        // Note: the logic below is tuned to cover many possible corner cases,
+        // and is not easy to refactor w/out breaking one or more of them.
+        
+        if (ideal != UNAVAILABLE) {
+            kickLoad(ideal);
+        } else if (!drawable.available()) {
+            if (drawable == UNAVAILABLE) { // if icon load failed, must create a new one (low memory) [NOT ENOUGH!]
                 if (DEBUG.Enabled) debug("forcing full load");
                 kickLoad(_full);
-            } else if (drawRep == _icon && drawRep.hasError()) {
+            } else if (drawable == _icon && drawable.hasError()) {
                 //****************************************************************************************
                 // if icon load failed, must create a new one (low memory) [TODO: NOT ENOUGH]
                 //****************************************************************************************
                 if (DEBUG.Enabled) debug("forcing full load on bad icon");
                 kickLoad(_full);
             } else
-                kickLoad(drawRep);
+                kickLoad(drawable);
         }
+    }
 
-        drawRep.renderRep(g, width, height); // before/after kickloads doesn't matter as long as reps don't auto-constitute
-
-        if (DEBUG.BOXES) {
-            final float hw = width / 2f;
-            final float hh =  height / 2f;
-            final java.awt.geom.Rectangle2D.Float r = new java.awt.geom.Rectangle2D.Float();
-            if (drawRep == _icon) {
-                // we're looking at the icon rep
-                g.setColor(DebugYellow);
-                r.setRect(0, 0, hw, hh);
-                g.fill(r);
-            }
-            if (drawRep != desiredRep) {
-                // we're waiting for a better rep
-                g.setColor(DebugRed);
-                r.setRect(0, hh, hw, hh);
-                g.fill(r);
-            }
-            if (_full.available()) {
-//                 // we've got the full rep loaded
-//                 if (_full.isFading()) // was to check to Reference enequing
-//                     g.setColor(DebugYellow);
-//                 else
-                    g.setColor(DebugBlue);
-                r.setRect(hw, 0, hw, height);
-                g.fill(r);
-            }
-            
-            
+    private void drawDebugStatus(Graphics2D g, ImageRep idealRep, ImageRep drawRep, float width, float height)
+    {
+        final float hw = width / 2f;
+        final float hh =  height / 2f;
+        final java.awt.geom.Rectangle2D.Float r = new java.awt.geom.Rectangle2D.Float();
+        if (drawRep == _icon) {
+            // we're looking at the icon rep
+            g.setColor(DebugYellow);
+            r.setRect(0, 0, hw, hh);
+            g.fill(r);
+        }
+        if (drawRep != idealRep) {
+            // we're waiting for a better rep
+            g.setColor(DebugRed);
+            r.setRect(0, hh, hw, hh);
+            g.fill(r);
+        }
+        if (_full.available()) {
+            //                 // we've got the full rep loaded
+            //                 if (_full.isFading()) // was to check to Reference enequing
+            //                     g.setColor(DebugYellow);
+            //                 else
+            g.setColor(DebugBlue);
+            r.setRect(hw, 0, hw, height);
+            g.fill(r);
         }
     }
 
