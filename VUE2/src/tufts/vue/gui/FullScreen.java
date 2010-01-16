@@ -37,7 +37,7 @@ import org.apache.log4j.NDC;
 /**
  * Code for providing, entering and exiting VUE full screen modes.
  *
- * @version $Revision: 1.49 $ / $Date: 2010-01-15 20:59:33 $ / $Author: sfraize $
+ * @version $Revision: 1.50 $ / $Date: 2010-01-16 22:55:49 $ / $Author: sfraize $
  *
  */
 
@@ -626,6 +626,9 @@ public class FullScreen
         // FullScreenViewer.loadFocal(VUE.getActiveMap()); // can't do till we're sure it has a size!
         fullScreenWorking = true; // we're in the mode as soon as the add completes (no going back then)
         fullScreenNative = goNative;
+
+        // TODO: above two bits need to be more semantic: e.g., inFullScreen
+        // and inFullScreenPresentation
 
         final boolean useNativeMode =
             goNative &&
