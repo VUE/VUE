@@ -2077,8 +2077,13 @@ public class PresentationTool extends VueTool
         //repaint();
     }
 
+    public void startPresentation() {
+        startPresentation(VUE.getSelection());
+    }
+    
+
     private boolean startUnderway;
-    public void startPresentation()
+    public void startPresentation(LWSelection selection)
     {
         // TODO: start pre-caching for all image content in the presentation, or, perhaps, only for
         // the next slide?  E.g., walk slide / slides / entries looking for LWImages and asking
@@ -2101,14 +2106,7 @@ public class PresentationTool extends VueTool
         mLastPathwayPage = null;
         mLastStartPathwayPage = null;
 
-        LWPathway pathway = VUE.getActivePathway();
-
-        if (pathway != null && !pathway.isVisible()) {
-            if (!pathway.isLocked() && pathway.hasEntries())
-                pathway.setVisible(true);
-            else
-                pathway = null; // non-pathway presentation mode
-        }
+        final LWPathway pathway = pickStartingPathway(selection);
 
         mStartPathway = pathway;
         startUnderway = true;
@@ -2132,7 +2130,7 @@ public class PresentationTool extends VueTool
             } else {
                 loadPathway(null);
                 //mPathwayIndex = 0;
-                if (VUE.getSelection().size() > 0)
+                if (selection.size() > 0)
                     setPage(VUE.getSelection().first());
                 //             else if (mCurrentPage != NO_PAGE) // won't have any effect!
                 //                 setPage(mCurrentPage);
@@ -2145,6 +2143,47 @@ public class PresentationTool extends VueTool
 
         if (DEBUG.Enabled) out("startPresentation: completed");
     }
+
+    private LWPathway pickStartingPathway(LWSelection selection)
+    {
+        final LWComponent singleSelect = selection.only();
+        LWPathway pathway = null;
+        
+        if (singleSelect != null) {
+            Log.debug("FOUND SINGLE SELECT: " + singleSelect);
+            pathway = singleSelect.getExclusiveVisiblePathway();
+            Log.debug("FOUND EXCLUSIVE VISIBLE PATHWAY: " + pathway);
+        } else {
+            Log.debug("NO SINGLE SELECT IN: " + selection);
+        }
+
+        // Could ALSO do: if the current single select is on the current ACTIVE pathway,
+        // use that as the starting point, tho I think we may already have that, as the
+        // currently active pathway should already have the current single-select as the
+        // active entry.
+
+        if (pathway != null) {
+            // single-selection of a node with a single visible pathway entry
+            // overrides current pathway status.
+            pathway.setIndex(pathway.firstIndexOf(singleSelect));
+            VUE.setActive(LWPathway.class, this, pathway);
+        } else {
+
+            // Use the currently active pathway, and force it to be visible
+            // if it currently isn't.
+             	
+            pathway = VUE.getActivePathway();
+            if (pathway != null && !pathway.isVisible()) {
+                if (!pathway.isLocked() && pathway.hasEntries())
+                    pathway.setVisible(true);
+                else
+                    pathway = null; // non-pathway presentation mode
+            }
+        }
+
+        return pathway;
+    }
+    
 
     
     /** @param direction either FORWARD or BACKWARD */
@@ -2784,8 +2823,17 @@ public class PresentationTool extends VueTool
 //             // we may want to then abandon pathway-local caching entirely.
 //             attemptPathwayLocalPreCaching();
 //         }
+        
         // This is now the ONLY caching we attempt:
-        attemptPathwayLocalPreCaching();
+
+        // We also try and delay it a bit (AWT EDT task) so if the Images cache is
+        // running in LIFO mode, the next slide contents will not override the loads for
+        // the current slide.  We'd really need a separate Images API entry point for
+        // caching to specity low-priority tasks for this to work perfectly.
+        
+        GUI.invokeAfterAWT(new Runnable() { public void run() {
+            attemptPathwayLocalPreCaching();
+        }});
             
     }
 
