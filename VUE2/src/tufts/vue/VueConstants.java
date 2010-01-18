@@ -26,7 +26,7 @@ import java.awt.font.FontRenderContext;
  *
  * Is an interface so can be "implemented" as virtual java 1.5 static import.
  *
- * @version $Revision: 1.63 $ / $Date: 2009-01-05 17:39:45 $ / $Author: sraphe01 $ 
+ * @version $Revision: 1.64 $ / $Date: 2010-01-18 22:26:24 $ / $Author: sfraize $ 
  */
 
 // todo: rename GUI constants & move to GUI
@@ -110,6 +110,13 @@ public interface VueConstants
     static java.awt.Color COLOR_HIGHLIGHT = VueResources.getColor("mapViewer.highlight.color");
     static java.awt.Color COLOR_TOOLTIP = new Color(255,255,192);
     static java.awt.Color COLOR_TOOLTIP_TRANSPARENT = new Color(255,255,192, 192);
+
+    static java.awt.Color ContrastWhite = new java.awt.Color(255,255,255,128);
+    static java.awt.Color ContrastBlack = new java.awt.Color(0,0,0,128);
+    static java.awt.Color ContrastGray = new java.awt.Color(128,128,128,128);
+    static java.awt.Color ContrastRed = new java.awt.Color(255,0,0,128);
+    static java.awt.Color ContrastGreen = new java.awt.Color(0,255,0,128);
+    static java.awt.Color ContrastBlue = new java.awt.Color(0,0,255,128);
     
     // todo: create our own cursors for most of these
     // named cursor types
