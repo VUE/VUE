@@ -48,7 +48,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.519 $ / $Date: 2010-01-11 21:56:57 $ / $Author: sfraize $
+ * @version $Revision: 1.520 $ / $Date: 2010-01-18 22:30:26 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2820,8 +2820,6 @@ public class LWComponent
                     return true;
         return false;
     }
-    
-
 
     /** Is component in the given pathway? */
     // rename onPathway?
@@ -6528,6 +6526,14 @@ public class LWComponent
     /** default impl: does nothing -- meant to be overriden */
     protected void preCacheContent() {}
 
+    protected static void preCacheDescendents(LWComponent focal) {
+        //Log.debug("PRE CACHE FOCAL " + focal);
+        for (LWComponent c : focal.getAllDescendents()) {
+            //Log.debug("PRE-CACHE-CHILD " + c);
+            c.preCacheContent();
+        }
+    }
+    
     protected LWChangeSupport getChangeSupport() {
         return mChangeSupport;
     }
