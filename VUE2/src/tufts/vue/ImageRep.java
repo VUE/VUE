@@ -31,7 +31,7 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
 
     private static final Ref IMG_UNLOADED = new NullRef("UNLOADED");
     private static final Ref IMG_LOADING = new LoadingRef("LOADING");
-    private static final Ref IMG_LOADING_AFTER_ERROR = new LoadingRef("LOADING-ERR");
+    private static final Ref IMG_LOADING_AFTER_ERROR = new LoadingRef("LOADING-POST-ERROR");
     private static final Ref IMG_ERROR = new NullRef("ERROR");
     private static final Ref IMG_ERROR_MEMORY = new NullRef("LOW_MEMORY");
 
