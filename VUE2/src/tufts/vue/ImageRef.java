@@ -348,7 +348,7 @@ public class ImageRef
             // rendering before/after kickloads doesn't matter as long as reps don't auto-constitute
             drawable.renderRep(dc.g, width, height);
 
-            if (drawable != ideal && !dc.isPrintQuality() && drawable.available())
+            if (drawable != ideal && !dc.isPrintQuality() && drawable.available() && !ideal.hasError())
                 drawBetterRepAvailableIndicator(dc.g, width, height);
         }
 
@@ -385,7 +385,7 @@ public class ImageRef
         //                 dc.g.setColor(DebugRed);
         //             else
         //                 dc.g.setColor(DebugGreen);
-        final float sw = Math.max(width,height) / 32f;
+        final float sw = Math.max(width,height) / 64f;
         g.setStroke(new java.awt.BasicStroke(sw));
         final float xoff, yoff;
         xoff = yoff = sw / 2f;
