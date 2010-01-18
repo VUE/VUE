@@ -51,7 +51,7 @@ import org.w3c.dom.NodeList;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.78 $ / $Date: 2010-01-16 22:56:48 $ / $Author: sfraize $
+ * @version $Revision: 1.79 $ / $Date: 2010-01-18 22:30:51 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -1357,7 +1357,6 @@ public class Images
         }
     }
 
-
     /** A task that can have a priority, that defaults to FIFO if priorities are equal */
     private static final class PriorityTask extends FutureTask
         implements Comparable<PriorityTask>
@@ -1378,13 +1377,31 @@ public class Images
             final int diff = other.priority() - priority();
             final int priority;
             if (diff == 0) {
-                //priority = seqNum > other.seqNum ? -1 : 1; // follow LIFO sequence
-                priority = seqNum > other.seqNum ? 1 : -1; // follow FIFO sequence
-                // FIFO is better for VUE right now, as it gives us better
-                // control over pre-caching when kicking off a presentation.
+                if (false /*tufts.vue.gui.FullScreen.inNativeFullScreen()*/) {
+                    // (It's a hack to test FullScreen native here -- should add an Images API
+                    // call.)  LIFO is better for interactivity during fast-paging through
+                    // presentations, (we want to load the contents of slide we "stop" on with the
+                    // highest priority) tho it could cause pre-caching of the next slide to happen
+                    // before the current slide images are loaded, which defeats our purpose
+                    // in that case entirely.
+                    priority = seqNum > other.seqNum ? -1 : 1; // follow LIFO sequence
+                } else {
+                    // FIFO
+                    priority = seqNum > other.seqNum ? 1 : -1; // follow FIFO sequence
+                    // FIFO is better for giving us control control over pre-caching
+                    // when kicking off a presentation, or when loading a single
+                    // slide and kicking off pre-caching of the next slide.
+                }
             } else {
                 priority = diff; // follow task-type priority
             }
+
+            // An ideal impl would provide default LIFO priority to all requests (which would
+            // address fast presentation paging), and would handle caching requests specially via
+            // low priority's or a separate queue, and crucially be able to UPGRADE the priority of
+            // existing tasks from cache-level to top-priority LIFO if they come in as non-caching
+            // requests later.
+            
             return priority;
         }
 
