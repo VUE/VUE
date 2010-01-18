@@ -116,7 +116,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.699 $ / $Date: 2010-01-15 20:07:55 $ / $Author: sfraize $ 
+ * @version $Revision: 1.700 $ / $Date: 2010-01-18 22:28:06 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -290,12 +290,42 @@ public class VUE
 
             if (node == null) {
                 ActiveResourceHandler.setActive(e, null);
+                return;
             } else {
                 ActiveResourceHandler.setActive(e, node.getResource());
             }
             
+            // Note: the below problem also applies to the selection of raw images (raw
+            // images are nodes) that have been added to a pathway.  This is
+            // particularly a problem there in that raw images on a pathway never have a
+            // slide, so there's never an option for picking as the start of a
+            // presentation via selection -- that will have to be handled specially in
+            // the presentation tool.
+
+            // SOLUTION: there should be an "add" ('+') button on each pathway line
+            // in the pathway table, analogous to the "move here" button on each
+            // layer line, instead of the one "add" button at top that applies
+            // only to the selected pathway -- then we'd never have this problem.
+
+            // However, for some cases, we should be able to work around this, yes?
+            // E.g., if the node is only on ONE pathway, this should be safe.  Also,
+            // we could only apply this to the VISIBLE pathways it's on, yes?
+            // We'd still then have the problem of not being able to add to a hidden
+            // pathway, and then this would also be confusing -- sometimes it would
+            // appear to work, othertimes it wouldn't.
+
+            // Or, howabout it selects the pathway entry ONLY if it's on the
+            // currently selected pathway?  Then it's guaranteed never to change
+            // the selected pathway, which fixes for now the add problem, and
+            // gives us at least some benefit.
+
+            LWPathway.Entry newActiveEntry = null;
+            final LWPathway activePathway = ActivePathwayHandler.getActive();
+            if (activePathway != null && node.inPathway(activePathway))
+                newActiveEntry = activePathway.getEntry(activePathway.firstIndexOf(node));
+            if (newActiveEntry != null)
+                ActivePathwayEntryHandler.setActive(e, newActiveEntry);
             
-//             else if (false) {
 //                 // This code will auto-select the first pathway entry for a selected node.
 //                 // There is a problem if we do this tho, in that changing the active
 //                 // entry also changes the active pathway, and doing that means
@@ -313,7 +343,6 @@ public class VUE
 //                 }
 //                 if (newActiveEntry != null)
 //                     ActivePathwayEntryHandler.setActive(e, newActiveEntry);
-//             }
             
         }
     };
@@ -477,7 +506,7 @@ public class VUE
                 }
             }
 
-            if (DEBUG.BOXES && e.active.isPathway() && !Images.lowMemoryConditions()) {
+            if ((DEBUG.BOXES&&DEBUG.META) && e.active.isPathway() && !Images.lowMemoryConditions()) {
                 // for visually verifying the load-order
                 e.active.pathway.preCacheContent();
             }
