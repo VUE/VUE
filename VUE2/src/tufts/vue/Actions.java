@@ -590,6 +590,10 @@ public class Actions implements VueConstants
 //         GUI.invokeAfterAWT(new Runnable() { public void run() {
 //             presTool.startPresentation();
 //         }});
+
+        final LWSelection savedSelection = VUE.getSelection().clone();
+        // activating the presentation tool is going to clear the selection,
+        // so we need to save it here and then pass it to startPresentation.
         
         GUI.invokeAfterAWT(new Runnable() { public void run() {
             VUE.toggleFullScreen(true);
@@ -599,7 +603,7 @@ public class Actions implements VueConstants
             VUE.setActive(VueTool.class, source, presTool);
         }});
         GUI.invokeAfterAWT(new Runnable() { public void run() {
-            presTool.startPresentation();
+            presTool.startPresentation(savedSelection);
         }});
     }
                 
