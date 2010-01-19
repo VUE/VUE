@@ -348,8 +348,10 @@ public class ImageRef
             // rendering before/after kickloads doesn't matter as long as reps don't auto-constitute
             drawable.renderRep(dc.g, width, height);
 
-            if (drawable != ideal && !dc.isPrintQuality() && drawable.available() && !ideal.hasError())
-                drawBetterRepAvailableIndicator(dc.g, width, height);
+            if (DEBUG.Enabled) {
+                if (drawable != ideal && !dc.isPrintQuality() && drawable.available() && !ideal.hasError())
+                    drawBetterRepAvailableIndicator(dc.g, width, height);
+            }
         }
 
 
