@@ -57,7 +57,7 @@ import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.166 $ / $Date: 2010-01-19 17:48:25 $ / $Author: sfraize $
+ * @version $Revision: 1.167 $ / $Date: 2010-01-19 20:34:50 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -625,10 +625,6 @@ public class GUI
 
     private static Rectangle getAllDeviceBounds(GraphicsDevice[] devices)
     {
-        // For some reason, bounds not working properly if the first
-        // one isn't added first -- at least on Anoop's machine --
-        // can't make sense of that yet.
-
         Rectangle bounds = null;
         
         //for (int i = devices.length-1; i >= 0; i--) {
@@ -636,15 +632,15 @@ public class GUI
             final GraphicsDevice device = devices[i];
             final GraphicsConfiguration config = device.getDefaultConfiguration();
             final Rectangle newBounds = config.getBounds();
-            Log.info("adding bounds: " + Util.fmt(newBounds) + " for " + device);
+            //Log.info("adding bounds: " + Util.fmt(newBounds) + " for " + device);
             if (bounds == null) {
                 bounds = new Rectangle(newBounds);
             } else {
                 bounds.add(newBounds);
             }
-            Log.info("result bounds: " + Util.fmt(bounds));
+            //Log.info("result bounds: " + Util.fmt(bounds));
         }
-        Log.info("*FINAL BOUNDS: " + Util.fmt(bounds));
+        //Log.info("*FINAL BOUNDS: " + Util.fmt(bounds));
         return bounds;
     }
 
