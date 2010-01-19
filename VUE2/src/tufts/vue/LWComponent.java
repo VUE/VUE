@@ -48,7 +48,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.521 $ / $Date: 2010-01-19 17:39:51 $ / $Author: brian $
+ * @version $Revision: 1.522 $ / $Date: 2010-01-19 20:37:47 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -5693,25 +5693,29 @@ public class LWComponent
         return hit;
     }
     
-
-    /** @return true if this component currently requires painting and intersects the master paint region */
     public boolean requiresPaint(DrawContext dc)
     {
+        return requiresPaintImpl(dc) != null;
+    }
+
+    /** @return true if this component currently requires painting and intersects the master paint region */
+    protected Object requiresPaintImpl(DrawContext dc)
+    {
         if (dc.skipDraw == this)
-            return false;
+            return null;
 
         // always draw the focal
         if (dc.focal == this)
-            return true;
+            return "isFocal";
 
         if (isZoomedFocus())
-            return false;
+            return null;
         
         // if filtered, don't draw, unless has children, in which case
         // we need to draw just in case any of the children are NOT filtered.
         //if (isHidden() || (isFiltered() && !hasChildren()))
         if (!hasDraws())
-            return false;
+            return null;
 
         if (dc.isClipOptimized()) {
 
@@ -5741,8 +5745,10 @@ public class LWComponent
             // and it fully contains it's children, if the parent is likely to
             // be fully on-screen, we should just go ahead and paint all the children.
             
-            if (parent != null && dc.zoom <= 1.0 && parent.fullyContainsChildren())
-                return true;
+            if (parent != null && dc.focal != parent && dc.zoom <= 1.0 && parent.fullyContainsChildren()) {
+                //return "parentIsLikelySlideIcon " + dc.zoom;
+                return "parentIsLikelySlideIcon";
+            }
             
             //-----------------------------------------------------------------------------
 
@@ -5768,16 +5774,18 @@ public class LWComponent
                 // don't display slide icons, so I don't think we ever needed it
                 // for those anyway.
                 
-                return true;
+                return "hasEntriesHack";
             }
             
             if (intersects(dc.getMasterClipRect()))
-                return true;
+                return "inClipRegion";
             
 //             if (isDrawingSlideIcon())
 //                 return getMapSlideIconBounds().intersects(dc.getMasterClipRect());
 //             else
-                return false;
+            
+            return null;
+            
         } else {
             
             // Not clip optimized means don't bother to check the master clip to see if
@@ -5791,7 +5799,7 @@ public class LWComponent
             // elements (e.g., we may be drawing a LWComponent that's a decoration or
             // GUI element, like a navigation node, or a master slide background).
             
-            return true;
+            return "noClip";
         }
 
     }
@@ -6134,7 +6142,9 @@ public class LWComponent
      *
      */
     public void draw(DrawContext dc) {
-        dc.setClipOptimized(false); // ensure all children draw even if not inside clip
+        //dc.setClipOptimized(false); // ensure all children draw even if not inside clip
+        // todo: above is causing repaint-region's to cause all images to draw in a slide
+        // focal, which can cause them to LOSE resolution under low memory conditions.
         transformZero(dc.g);
         if (dc.focal == this) {
             drawZero(dc);
@@ -6156,6 +6166,7 @@ public class LWComponent
         final AffineTransform zeroTransform = DEBUG.PDF ? dc.g.getTransform() : null;
         
         dc.checkComposite(this);
+        if (DEBUG.Enabled) dc.recordDebug(this);
 
         try {
 
@@ -7732,6 +7743,10 @@ public class LWComponent
         Pattern control = Pattern.compile(patternString); // need to make this better
         Matcher m = control.matcher(s);
         s=  m.replaceAll("");
+
+        // todo performance: if no modifications are made, pass
+        // back the same passed in object
+        
         return s;
     }
     
