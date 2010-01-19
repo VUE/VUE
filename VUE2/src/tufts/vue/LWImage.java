@@ -224,6 +224,8 @@ public class LWImage extends LWComponent
     @Override public void setSelected(boolean selected) {
         boolean wasSelected = isSelected();
         super.setSelected(selected);
+
+        if (DEBUG.IMAGE) out("setSelected="+selected);
         
         if (selected && !wasSelected && hasImageError() && hasResource()) {
 
@@ -243,6 +245,29 @@ public class LWImage extends LWComponent
 
             // Note that this code does however also deal with a missing network resource suddenly
             // appearing, and then we can load the image from that
+
+            //-----------------------------------------------------------------------------
+            // PROBLEM: raw image focals can become selected during a presentation (a
+            // result of our code auto-handling the selection of the current pathway
+            // entry I presume), but CLEAUP TASKS are only run when undo marks are
+            // generated, which is presumably NOT happening during a presentation, as no
+            // edits should be happening, so in any case it may be fundamentally flawed
+            // to add a cleanup tasks simply due to selection changes?  Also, the net
+            // problem is that MapViewers will NOT repaint with outstanding cleanup tasks!
+            //
+            // That results in failures to repaint raw image focals during presentations
+            // after recovery from low-memory repaints -- e.g., the scaled up icon
+            // remains on screen, even tho the full image data has actually arrived.
+            //
+            // Solution: for now, MapViewers will repaint even with outstanding cleanup
+            // tasks when the focal is anything other than a full map.
+            //
+            // A fuller solution would distingush an EOM error above from
+            // an IO error -- we actually only want to attempt re-init on IO errors,
+            // NOT memory errors.
+            // -----------------------------------------------------------------------------
+
+            //Util.printStackTrace("SELECTED WITH ERROR " + this);
             
             addCleanupTask(new Runnable() { public void run() {
                 if (hasResource() && VUE.getSelection().only() == LWImage.this)
@@ -398,11 +423,21 @@ public class LWImage extends LWComponent
         // tho.
 
         if (alive()) {
-            if (isSelected()) { // can force on for seeing DEBUG.BOXES behind-scenes status changes in other images
-                // need to also redraw selection boxes
-                notify(LWKey.Repaint);
-            } else
-                notify(LWKey.RepaintRegion);
+            
+            notify(LWKey.RepaintRegion);
+            
+//             // BELOW TURNED OFF: BETTER FOR PRESENTATIONS (e.g., image cycling can settle down)
+//             // Note: settle-down isn't actually working on our 4 images on a slide test where on
+//             // only 3 fit in memory...
+            
+//             if (false && isSelected()) { // can force on for seeing DEBUG.BOXES behind-scenes status changes in other images
+//                 // we check selected, because we need to also redraw selection boxes if they're
+//                 // visible -- a better way to handle that would be to increase the size of the
+//                 // region here, or better yet, have MapViewer automatically handle that
+//                 // if the requested region repaint was on a selected component.
+//                 notify(LWKey.Repaint);
+//             } else
+//                 notify(LWKey.RepaintRegion);
         }
     }
     
