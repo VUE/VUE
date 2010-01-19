@@ -57,7 +57,7 @@ import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.165 $ / $Date: 2010-01-15 22:01:11 $ / $Author: sfraize $
+ * @version $Revision: 1.166 $ / $Date: 2010-01-19 17:48:25 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -610,15 +610,7 @@ public class GUI
         GScreen = Screen.create(GDevice);
         GScreenDevices = GEnvironment.getScreenDevices();
 
-        Rectangle bounds = GScreen.getBounds();
-        
-        GSpaceBounds = new Rectangle(bounds);
-        
-        for (int i = 0; i < GScreenDevices.length; i++) {
-            if (GScreenDevices[i] != GDevice)
-                GSpaceBounds.add(GScreenDevices[i].getDefaultConfiguration().getBounds());
-        }
-
+        GSpaceBounds = getAllDeviceBounds(GScreenDevices);
         GSpace = boundsToInsets(GSpaceBounds);
 
         // todo: the below should really be on some kind of observer of a GUI.java state:
@@ -629,6 +621,31 @@ public class GUI
         
 
         if (DEBUG.Enabled) dumpGraphicsConfig();
+    }
+
+    private static Rectangle getAllDeviceBounds(GraphicsDevice[] devices)
+    {
+        // For some reason, bounds not working properly if the first
+        // one isn't added first -- at least on Anoop's machine --
+        // can't make sense of that yet.
+
+        Rectangle bounds = null;
+        
+        //for (int i = devices.length-1; i >= 0; i--) {
+        for (int i = 0; i < devices.length; i++) {
+            final GraphicsDevice device = devices[i];
+            final GraphicsConfiguration config = device.getDefaultConfiguration();
+            final Rectangle newBounds = config.getBounds();
+            Log.info("adding bounds: " + Util.fmt(newBounds) + " for " + device);
+            if (bounds == null) {
+                bounds = new Rectangle(newBounds);
+            } else {
+                bounds.add(newBounds);
+            }
+            Log.info("result bounds: " + Util.fmt(bounds));
+        }
+        Log.info("*FINAL BOUNDS: " + Util.fmt(bounds));
+        return bounds;
     }
 
     public static Insets boundsToInsets(Rectangle r) 
