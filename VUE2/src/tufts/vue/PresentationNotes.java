@@ -189,22 +189,23 @@ public class PresentationNotes {
                 System.out.println("PDF DOCUMENT: pageSize " + document.getPageSize());
                 System.out.println("fillWidth=" + fillWidth + " fillHeight=" + fillHeight);
             }
-            
 
             for (LWPathway.Entry entry : VUE.getActivePathway().getEntries()) {
 
-                if (DEBUG.Enabled) Log.debug("HANDLING DECK ENTRY " + entry);
+                if (DEBUG.Enabled) Log.debug("\n\nHANDLING DECK ENTRY " + entry);
                 final LWSlide slide = entry.produceSlide();
                 final LWComponent toDraw = (slide == null ? entry.node : slide);
                 
                 final PdfTemplate template = PdfTemplate.createTemplate(writer, fillWidth, fillHeight);
                 final PdfGraphics2D graphics = (PdfGraphics2D) template.createGraphics(fillWidth, fillHeight, getFontMapper(), false, 60.0f);
                 final DrawContext dc = new DrawContext(graphics, 1.0);
-                //final DrawContext dc = new DrawContext(graphics, scale);
-                //final DrawContext dc = new DrawContext(graphics, toDraw);
+//                 //final DrawContext dc = new DrawContext(graphics, scale);
+                //final DrawContext dc = new DrawContext(graphics, toDraw); // ideally, should use this
                 dc.setClipOptimized(false);
-                dc.setInteractive(false);
+                dc.setInteractive(false); // should be un-needed
                 dc.setPrintQuality();
+
+                // PROBLEM TOFIX: portals, when rendered as a map-slide, are not showing what's below them
                 
                 if (DEBUG.Enabled) {
                     Log.debug("DRAWING INTO " + dc + " g=" + graphics + " clip=" + tufts.Util.fmt(graphics.getClip()));
@@ -213,25 +214,38 @@ public class PresentationNotes {
                         dc.g.fillRect(-Short.MAX_VALUE/2, -Short.MAX_VALUE/2, Short.MAX_VALUE, Short.MAX_VALUE);
                     }
                 }
-
-                toDraw.drawFit(dc, 0);
-                if (DEBUG.PDF) {
-                    final String dcDesc = dc.toString() + String.format(" scale=%.1f%%", dc.g.getTransform().getScaleX() * 100);
-                    dc.setRawDrawing();
-                    dc.g.setColor(Color.red);
-                    dc.g.setFont(VueConstants.FixedSmallFont);
-                    dc.g.drawString(dcDesc, 10, fillHeight - 27);
-                    dc.g.drawString(entry.toString(), 10, fillHeight - 16);
-                    dc.g.drawString(toDraw.toString(), 10, fillHeight - 5);
+                
+                try {
+                    if (DEBUG.Enabled) dc.clearDebug();
+                    toDraw.drawFit(dc, 0);
+                } catch (Throwable t) {
+                    Log.error("exception drawing " + toDraw, t);
                 }
                 
-                // the graphics dispose appears to be very important -- we've seen completely intermittant
-                // problems with generating many page PDF documents, which would be well explained by
-                // java or internal itext buffers running out of memory.
-                graphics.dispose();
+                try {
+                
+                    if (DEBUG.Enabled) Log.debug("painted " + DrawContext.getDebug() + " to " + dc);
 
-                document.add(Image.getInstance(template));
-                document.newPage();
+                    if (DEBUG.PDF) {
+                        final String dcDesc = dc.toString() + String.format(" scale=%.1f%%", dc.g.getTransform().getScaleX() * 100);
+                        dc.setRawDrawing();
+                        dc.g.setColor(Color.red);
+                        dc.g.setFont(VueConstants.FixedSmallFont);
+                        dc.g.drawString(dcDesc, 10, fillHeight - 27);
+                        dc.g.drawString(entry.toString(), 10, fillHeight - 16);
+                        dc.g.drawString(toDraw.toString(), 10, fillHeight - 5);
+                    }
+                    
+                    // the graphics dispose appears to be very important -- we've seen completely intermittant
+                    // problems with generating many page PDF documents, which would be well explained by
+                    // java or internal itext buffers running out of memory.
+                    graphics.dispose();
+                    
+                    document.add(Image.getInstance(template));
+                    document.newPage();
+                } catch (Throwable t) {
+                    Log.error("exception finishing " + toDraw + " in " + dc, t);
+                }
             }
             if (DEBUG.Enabled) Log.debug("PROCESSED ALL ENTRIES");
             
