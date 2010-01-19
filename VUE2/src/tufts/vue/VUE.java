@@ -116,7 +116,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.700 $ / $Date: 2010-01-18 22:28:06 $ / $Author: sfraize $ 
+ * @version $Revision: 1.701 $ / $Date: 2010-01-19 17:39:51 $ / $Author: brian $ 
  */
 
 public class VUE
@@ -170,7 +170,7 @@ public class VUE
     private static SearchTextField mSearchtextFld = new SearchTextField();
     public static final int FIRST_TAB_STOP = 6;   
     //public static JCheckBoxMenuItem  resetSettingsMenuItem;
-    public static JSlider depthSelectionSlider = null;
+    public static JComponent depthSelectionControl = null;
     public static JPanel searchPanel = new JPanel(new FlowLayout());  
     public static void finalizeDocks()
     {
@@ -2312,8 +2312,8 @@ public class VUE
         //framesPerSecond.setMajorTickSpacing(6);
 
         //framesPerSecond.setPaintTicks(true);
-        depthSelectionSlider = InteractionTools.getToolbarDepthSlider();
-        searchPanel.add(depthSelectionSlider);
+        depthSelectionControl = InteractionTools.getToolbarDepthControl();
+        searchPanel.add(depthSelectionControl);
         searchPanel.add(new JLabel(" "));
         //mSearchtextFld.setPreferredSize(new Dimension(200,23));
         

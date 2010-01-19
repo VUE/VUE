@@ -79,7 +79,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.658 $ / $Date: 2010-01-19 15:57:27 $ / $Author: sfraize $ 
+ * @version $Revision: 1.659 $ / $Date: 2010-01-19 17:39:51 $ / $Author: brian $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1680,7 +1680,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             PoppingToTop = true;
             try {
             	VUE.getReturnToMapButton().setVisible(false);
-            	VUE.depthSelectionSlider.setVisible(true);
+            	VUE.depthSelectionControl.setVisible(true);
             	Actions.ReturnToMap.fire(this);
                 //switchFocal(mFocal.getMap(), animate);
             } finally {
