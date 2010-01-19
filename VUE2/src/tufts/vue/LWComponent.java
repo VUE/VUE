@@ -48,7 +48,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.522 $ / $Date: 2010-01-19 20:37:47 $ / $Author: sfraize $
+ * @version $Revision: 1.523 $ / $Date: 2010-01-19 23:09:42 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -6142,9 +6142,12 @@ public class LWComponent
      *
      */
     public void draw(DrawContext dc) {
-        //dc.setClipOptimized(false); // ensure all children draw even if not inside clip
-        // todo: above is causing repaint-region's to cause all images to draw in a slide
-        // focal, which can cause them to LOSE resolution under low memory conditions.
+//         if (dc.isPrintQuality()) {
+//             dc.setClipOptimized(false); // ensure all children draw even if not inside clip
+//             // in interactive presentation mode, the above causes repaint-region's to
+//             // cause all images to draw in a slide focal, which can cause them to LOSE
+//             // resolution under low memory conditions.
+//         }
         transformZero(dc.g);
         if (dc.focal == this) {
             drawZero(dc);
