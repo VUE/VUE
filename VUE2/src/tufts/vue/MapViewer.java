@@ -79,7 +79,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.659 $ / $Date: 2010-01-19 17:39:51 $ / $Author: brian $ 
+ * @version $Revision: 1.660 $ / $Date: 2010-01-19 20:38:47 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2320,6 +2320,14 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         if (DEBUG.VIEWER) {
             if (DEBUG.META || VUE.getActiveViewer() == this) out(e);
         }
+
+        // TODO PERFORMANCE: when in full-screen presentation mode, the hidden viewer is
+        // still repainting based on image load (higher-res) repaint updates.  Also,
+        // apparently the full-screen view is NOT repainting with clipping, which is
+        // preventing repaint-region from working properly?  Yet we're SEEING it work
+        // properly... -- this is actually handled in skipAllPainting, tho could
+        // be handled even sooner righ here.
+        
         
 //         if (DEBUG.EVENTS) {
 //             if (DEBUG.META || VUE.getActiveViewer() == this) out(e);
@@ -3318,7 +3326,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     protected boolean skipAllPainting() {
         return VUE.inFullScreen()
             && instanceName != tufts.vue.gui.FullScreen.VIEWER_NAME
-            && !GUI.hasMultipleScreens(); // enables dual-display of same map if you know the trick to activate
+            //&& !GUI.hasMultipleScreens() // enables dual-display of same map if you know the trick to activate
+            ;
     }
     
 //     private boolean immediateRepaint = false;
@@ -4077,7 +4086,14 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             dc.skipDraw = mRollover;
         }
 
-        // normally draw the map / focal
+        //----------------------------------------------------------------------------------------
+        // DRAW THE FOCAL (usually an LWMap, but may be a LWSlide, an LWNode, etc)
+        //----------------------------------------------------------------------------------------
+        
+        // note that LWComponent draw (v.s. LWMap.draw) will normally force NON-clip optimized, which is conflicting with
+        // ideal image memory cache behaviour when drawing slides (e.g., a slide with 4 images, of which only 3 actually
+        // fit into memory).
+        
         mFocal.draw(dc);
 
         if (mRollover != null && mRollover.hasAncestor(mFocal)) {
