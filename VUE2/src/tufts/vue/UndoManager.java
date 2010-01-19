@@ -839,6 +839,11 @@ public class UndoManager
     public boolean hasCleanupTasks() {
         return mCleanupTasks.size() > 0 || mLastTasks.size() > 0;
     }
+
+    void dumpCleanupTasks() {
+        Util.dump(mCleanupTasks, "cleanupTasks");
+        Util.dump(mLastTasks, "lastTasks");
+    }
     
 
     /**
