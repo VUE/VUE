@@ -356,7 +356,7 @@ public class LWImage extends LWComponent
         // whole mechanism probably really needs to passed all the way through to the
         // notify so the undo manager can detect that there?
 
-        if (DEBUG.IMAGE) out("imageRefUpdate: cause=" + Util.tags(cause));
+        if (DEBUG.Enabled) out("imageRefUpdate: cause=" + Util.tags(cause));
 
         if (cause == ImageRef.KICKED) {
             // doesn't work: the mark's already been made
@@ -407,7 +407,8 @@ public class LWImage extends LWComponent
         // pixels have arrived.  Technically, we should be able to skip this
         // unless we've got new pixel data, but we don't get a separate message
         // for that at the moment.
-        repaintPixels(); 
+        //if (cause == ImageRef.REPAINT)
+            repaintPixels(); 
     }
 
     public void reloadImage() {
@@ -974,17 +975,17 @@ public class LWImage extends LWComponent
         Log.debug(String.format("%s %s", this, s));
     }
     
-//     @Override
-//     protected boolean intersectsImpl(Rectangle2D mapRect) {
+//     @Override protected boolean intersectsImpl(Rectangle2D mapRect) {
 //         boolean i = super.intersectsImpl(mapRect);
-//         Log.info("INTERSECTS " + Util.tags(i?"YES":" NO") + " " + Util.tags(mapRect) + " " + getLabel());
+//         Log.info("INTERSECTS " + Util.tags(i?"YES ":" NO ") + Util.tags(mapRect) + " " + getLabel());
 //         return i;
 //     }
-//     @Override
-//     public boolean requiresPaint(DrawContext dc) {
-//         boolean i = super.requiresPaint(dc);
-//         Log.info("REQRSPAINT " + Util.tags(i?"YES":" NO") + getLabel());
-//         return i;
+//     @Override protected Object requiresPaintImpl(DrawContext dc) {
+//         Object o = super.requiresPaintImpl(dc);
+//         //Log.info("REQRSPAINT " + Util.tags(i?"YES ":" NO ") + getLabel());
+//         Log.info("REQRSPAINT " + Util.tags(o) + " in " + dc + " " + getLabel());
+//         // we're see "noClip" here for some reason...
+//         return o;
 //     }
 
     public static void main(String args[]) throws Exception {
