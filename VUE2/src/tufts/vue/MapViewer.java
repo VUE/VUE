@@ -79,7 +79,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.657 $ / $Date: 2010-01-16 23:40:01 $ / $Author: sfraize $ 
+ * @version $Revision: 1.658 $ / $Date: 2010-01-19 15:57:27 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2316,6 +2316,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
      * for updating the current rollover zoom.
      */
     public void LWCChanged(LWCEvent e) {
+        if (DEBUG.EVENTS && DEBUG.PAINT) out(e);
         if (DEBUG.VIEWER) {
             if (DEBUG.META || VUE.getActiveViewer() == this) out(e);
         }
@@ -2358,13 +2359,25 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
         
         if (e.key == LWKey.RepaintRegion) {
+            if (DEBUG.PAINT) out(e);
             //setFastPaint? feature is turned off
-            if (false&&e.component == getFocal()) {
-                // special case (todo: test to see if mapToScreenRect is working right in this condition)
-                // [*THIS* case isn't working for some reason, but the below one is, so we're okay for now]
+            if (e.component == getFocal()) {
+                // special case -- if it's the focal, just repaint everything no matter what
                 repaint();
+            } else if (e.component != null) {
+                
+                if (e.component.isSelected()) {
+                    // TODO: know if selection isn't be drawn (e.g., presentation) and don't
+                    // bother in that case.
+                    final Rectangle selectionBounds = mapToScreenRect(e.component.getBounds());
+                    growForSelection(selectionBounds);
+                    repaint(selectionBounds);
+                } else {
+                    repaint(mapToScreenRect(e.component.getBounds()));
+                }
             } else {
-                repaint(mapToScreenRect(e.getComponent().getBounds()));
+                if (DEBUG.Enabled) out("region w/out component: " + e);
+                repaint();
             }
             return;
         }
@@ -2391,9 +2404,25 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             return;
         }
 
-        if (mUndoManager != null && mUndoManager.hasCleanupTasks()) {
+        if (mUndoManager != null && mUndoManager.hasCleanupTasks() && (getFocal() == getMap())) {
             // once we have cleanup tasks, we're in an intermediate state:
             // don't ever draw until we're complete.
+
+            // PROBLEM: when a raw image is the focal during presentations,
+            // a needed repaint is being skipped here once the image finally
+            // loads.  Are the cleanup tasks even being RUN during a presentation?
+            // Don't those only get run when an undo mark is created?
+
+            // Solution: for now, we only do this skip if the focal is the map
+            // (e.g., not a slide or single image).  It may actually be fine
+            // to always allow this repaint these days, but it was/is probably
+            // important for some group operations (for which cleanup tasks
+            // are critical) and we'd need regression test that.
+            
+            if (DEBUG.PAINT) {
+                out("skipping draw till cleanup-tasks complete");
+                mUndoManager.dumpCleanupTasks();
+            }
             return;
         }
 
@@ -2437,6 +2466,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 //         }
 
         if (e.key == LWKey.RepaintComponent) {
+            if (DEBUG.PAINT) out(e);
             Rectangle r = mapToScreenRect(e.getComponent().getBounds());
             super.paintImmediately(r);
             //super.repaint(0,r.x,r.y,r.width,r.height);            
@@ -3307,7 +3337,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
     @Override public void repaint() { // heavy-duty debug
 
-        if (!isDisplayed()) return;
+        if (!isDisplayed()) {
+            if (DEBUG.Enabled) out("not-displayed: skipping repaint");
+            return;
+        }
 
         int frCount = 0;
         if (mFastPainting)
@@ -3417,6 +3450,20 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             //try { Thread.sleep(500); } catch (Exception e) {}            
             final float fps = delta > 0 ? 1000f/delta : -1;
 
+            if (DEBUG.PAINT) {
+                g.setFont(BigFont);
+                g.setColor(ContrastBlack);
+                g.drawString(""+mPaints, 100, 200);
+                g.setColor(ContrastWhite);
+                g.drawString(""+mPaints, 100, 300);
+                g.setColor(ContrastRed);
+                g.drawString(""+mPaints, 100, 400);
+                g.setColor(ContrastGreen);
+                g.drawString(""+mPaints, 100, 500);
+                g.setColor(ContrastBlue);
+                g.drawString(""+mPaints, 100, 600);
+            }
+            
             out("painted " + DrawContext.getDebug());
             pout(String.format("paint <-[%d]%s (%.2f fps) %dms",
                                mPaints,
@@ -3429,6 +3476,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         RepaintRegion = null;
         
     }
+
+    private static final Font BigFont = new Font("SansSerif", Font.BOLD, 96);
 
     private void scheduleQualityPaintIfNeeded(final Graphics g, final int fastRequestsAtStartOfPaint)
     {
