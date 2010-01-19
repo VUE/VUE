@@ -29,7 +29,7 @@ import javax.swing.*;
 import javax.swing.border.*;
 
 /**
- * @version $Revision: 1.12 $ / $Date: 2008-06-30 20:53:05 $ / $Author: mike $
+ * @version $Revision: 1.13 $ / $Date: 2010-01-19 15:12:33 $ / $Author: sfraize $
  */
 
 // as this class is now specialized to handle vue LWKey properties,
@@ -55,7 +55,8 @@ public abstract class ComboBoxMenuButton<T> extends JComboBox
 
     public ComboBoxMenuButton() {
         setFocusable(false);
-        if (DEBUG.Enabled && tufts.Util.isMacPlatform()) {
+        if (false && tufts.Util.isMacPlatform()) {
+            // disabled for now: for some reason, is not taking effect for LinkToolPanel subclass
             //putClientProperty("JComboBox.isPopDown", Boolean.TRUE); // can't see what difference this makes
             putClientProperty("JComboBox.isSquare", Boolean.TRUE);
         }
