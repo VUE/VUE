@@ -45,7 +45,8 @@ import com.lowagie.text.pdf.PdfWriter;
 import edu.tufts.vue.pdf.VueFontMapper;
 
 public class PresentationNotes {
-
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(PresentationNotes.class);
+    
 	private static FontMapper dfm = null;
 	
 	private static FontMapper getFontMapper()
@@ -192,7 +193,7 @@ public class PresentationNotes {
 
             for (LWPathway.Entry entry : VUE.getActivePathway().getEntries()) {
 
-                if (DEBUG.Enabled) System.out.println("\nHANDLING ENTRY " + entry);
+                if (DEBUG.Enabled) Log.debug("HANDLING DECK ENTRY " + entry);
                 final LWSlide slide = entry.produceSlide();
                 final LWComponent toDraw = (slide == null ? entry.node : slide);
                 
@@ -203,9 +204,10 @@ public class PresentationNotes {
                 //final DrawContext dc = new DrawContext(graphics, toDraw);
                 dc.setClipOptimized(false);
                 dc.setInteractive(false);
+                dc.setPrintQuality();
                 
                 if (DEBUG.Enabled) {
-                    System.out.println("  DRAWING INTO " + dc + " g=" + graphics + " clip=" + tufts.Util.fmt(graphics.getClip()));
+                    Log.debug("DRAWING INTO " + dc + " g=" + graphics + " clip=" + tufts.Util.fmt(graphics.getClip()));
                     if (DEBUG.PDF) {
                         dc.g.setColor(Color.green);
                         dc.g.fillRect(-Short.MAX_VALUE/2, -Short.MAX_VALUE/2, Short.MAX_VALUE, Short.MAX_VALUE);
@@ -231,6 +233,8 @@ public class PresentationNotes {
                 document.add(Image.getInstance(template));
                 document.newPage();
             }
+            if (DEBUG.Enabled) Log.debug("PROCESSED ALL ENTRIES");
+            
         }
         catch(DocumentException de) {
             System.err.println(de.getMessage());
@@ -308,6 +312,7 @@ public class PresentationNotes {
                         false); // todo: absolute links shouldn't be spec'd here
  
                 dc.setClipOptimized(false);                        	
+                dc.setPrintQuality();
                 //slide.drawZero(dc);
                 toDraw.drawFit(dc, 0);
                                                                                             
@@ -483,6 +488,8 @@ public class PresentationNotes {
                         false); // todo: absolute links shouldn't be spec'd here
  
                 dc.setClipOptimized(false);
+                dc.setPrintQuality();
+                
                 toDraw.drawFit(dc,0);
 
                                                                                             
@@ -598,6 +605,7 @@ public class PresentationNotes {
                     false); // todo: absolute links shouldn't be spec'd here
 
                 dc.setClipOptimized(false);
+                dc.setPrintQuality();
                 /*if (!entry.isMapView())                	
                 	slide.drawZero(dc);
                 else
@@ -769,6 +777,7 @@ public class PresentationNotes {
                         false); // todo: absolute links shouldn't be spec'd here
  
                 dc.setClipOptimized(false);
+                dc.setPrintQuality();
                 /*if (!entry.isMapView())                	
                 	slide.drawZero(dc);
                 else
@@ -904,6 +913,7 @@ public class PresentationNotes {
                         false); // todo: absolute links shouldn't be spec'd here
  
                 	dc.setClipOptimized(false);
+                        dc.setPrintQuality();
                     node.drawFit(dc,15);
                     
 
