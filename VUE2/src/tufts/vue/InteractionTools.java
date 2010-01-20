@@ -369,6 +369,7 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 
 			toolbarDepthComboBox.setSelectedIndex(0);
 			toolbarDepthComboBox.setFont(tufts.vue.gui.GUI.LabelFace);
+			toolbarDepthComboBox.putClientProperty("JComponent.sizeVariant", "small");
 			toolbarDepthComboBox.setMinimumSize(toolbarDepthComboBox.getPreferredSize());
 			toolbarDepthComboBox.setToolTipText(VueResources.getString("interactionTools.depth.toolTip"));
 			toolbarDepthComboBox.addActionListener(new ToolbarDepthSelectionListener());
