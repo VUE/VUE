@@ -32,9 +32,14 @@ import edu.tufts.vue.layout.*;
 import tufts.vue.action.SaveAction;
 import tufts.vue.action.ActionUtil;
 import tufts.vue.*;
+
 import java.io.File;
 import java.util.*;
 import java.awt.Color;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.Timer;
 
 
 public class Import {
@@ -49,6 +54,10 @@ public class Import {
 
     public static final String[] LAYOUT_SHORTCUT = {"default","random","cirlce","filledCircle","table"};
 
+    Timer           timer = null;
+    XmlDataSource   datasource;
+    ActionListener  createMapListener = null;
+    LWMap           map;
     /**
      * Create a map of specified layout with specific layout id
      * @param inputFile comma or tab delimited import file
@@ -65,30 +74,39 @@ public class Import {
      *
      * @param inputFile   comma or tab delimited import file
      * @param outputFile  a map generated from input file
-     * @param layout layout oject type of layout
+     * @param layout layout object type of layout
      * @throws java.lang.Exception
      */
 
     public void createMap(String inputFile,String outputFile, Layout layout) throws Exception {
-        Schema schema = Schema.getInstance(Resource.instance(inputFile),edu.tufts.vue.util.GUID.generate());
-        XmlDataSource datasource = new XmlDataSource();
-        datasource.ingestCSV(schema,inputFile,true);
-        List<LWComponent> nodes =  DataAction.makeRowNodes(schema);
-        LWMap map = new LWMap("test");
-        System.out.println("Adding nodes to map");
-        for(LWComponent component: nodes) {
-            component.setFillColor(Color.green.darker());
-            component.setLabel("${CitizenID}");
-            map.add(component);
-            System.out.println("Adding: "+component.getLabel());
-        }
-        layout.layout(new LWSelection(nodes));
+    	 Schema schema = Schema.getInstance(Resource.instance(inputFile),edu.tufts.vue.util.GUID.generate());
+         
+        String mapName = "test";
+        datasource = new XmlDataSource(mapName,inputFile);
+        Properties props = new Properties();
+ 		props.put("displayName", mapName);
+ 		props.put("name", mapName);
+ 		props.put("address", inputFile);
+ 		datasource.setConfiguration(props);
+ 	    schema = datasource.ingestCSV(schema,inputFile,true);
+ 		LWMap map = new LWMap("test");
+// 		schema.setRowNodeStyle(DataAction.makeStyleNode(schema));
+ 		List<LWComponent> nodes =  DataAction.makeRowNodes(schema);
+
+		for(LWComponent component: nodes) {
+			
+			map.add(component);
+		}
+
+		layout.layout(new LWSelection(nodes));
+		
+			     
         ActionUtil.marshallMap(new File(outputFile), map);
     }
 
     /** A method that creates a map from input file. The input file needs to be
      * comma or tab delimited similar to the ones used in VUE XML datasource. The
-     * default layout is random layout but can be set by passing params. The deault
+     * default layout is random layout but can be set by passing params. The default
      * is to make list random layout.
      *
      * @param inputFile comma or tab delimited import file
