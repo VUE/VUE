@@ -29,7 +29,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 
 
 /**
- * @version $Revision: 1.29 $ / $Date: 2009-12-26 21:31:22 $ / $Author: sfraize $
+ * @version $Revision: 1.30 $ / $Date: 2010-01-20 19:56:37 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -572,6 +572,11 @@ public final class DataAction
     {
         if (rows.isEmpty())
             return Collections.EMPTY_LIST;
+
+        if (schema.getRowNodeStyle() == null) {
+            schema.setRowNodeStyle(makeStyleNode(schema));
+            Log.info("auto-applied row-style to " + schema + ": " + schema.getRowNodeStyle());
+        }
         
         final java.util.List<LWComponent> nodes = new ArrayList();
 
