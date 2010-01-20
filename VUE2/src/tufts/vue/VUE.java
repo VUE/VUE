@@ -116,7 +116,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.703 $ / $Date: 2010-01-19 20:48:21 $ / $Author: brian $ 
+ * @version $Revision: 1.704 $ / $Date: 2010-01-20 16:05:17 $ / $Author: brian $ 
  */
 
 public class VUE
@@ -171,7 +171,7 @@ public class VUE
     public static final int FIRST_TAB_STOP = 6;   
     //public static JCheckBoxMenuItem  resetSettingsMenuItem;
     public static JComponent depthSelectionControl = null;
-    public static JPanel searchPanel = new JPanel(new FlowLayout());  
+    public static JPanel searchPanel = new JPanel(new GridBagLayout());  
     public static void finalizeDocks()
     {
     
@@ -2310,16 +2310,17 @@ public class VUE
         //sliderSearchPanel = new JPanel(new FlowLayout());         
                
         //framesPerSecond.setMajorTickSpacing(6);
-
         //framesPerSecond.setPaintTicks(true);
+
+        GridBagConstraints	searchPanelGBC = new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0,
+        						GridBagConstraints.SOUTHEAST, GridBagConstraints.NONE,
+        						new Insets(0, 0, 0, 8), 0, 0);
+
         depthSelectionControl = InteractionTools.getToolbarDepthControl();
-        searchPanel.add(depthSelectionControl);
-        searchPanel.add(new JLabel(" "));
-        //mSearchtextFld.setPreferredSize(new Dimension(200,23));
+        searchPanel.add(depthSelectionControl, searchPanelGBC);
         
-        searchPanel.add(mSearchtextFld);
-        searchPanel.add(new JLabel(" "));
-        //panel.setPreferredSize(new Dimension(430,40));
+        searchPanelGBC.gridx = 1;
+        searchPanel.add(mSearchtextFld, searchPanelGBC);
 
         if (!VUE.isApplet()) {
             gBC.fill = GridBagConstraints.NONE;			

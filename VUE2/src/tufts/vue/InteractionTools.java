@@ -53,6 +53,7 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 									THREE = new String("3"),
 									FOUR = new String("4"),
 									FIVE = new String("5");
+	public static JPanel			toolbarPanel = null;
 	public static JComboBox			toolbarDepthComboBox = null;
 	protected JSlider				fadeSlider = null,
 									depthSlider = null;
@@ -220,8 +221,6 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 			fadeSlider.setOpaque(true);
 			depthSlider.setBackground(Color.CYAN);
 			depthSlider.setOpaque(true);
-			toolbarDepthComboBox.setBackground(Color.CYAN);
-			toolbarDepthComboBox.setOpaque(true);
 			zoomSelButton.setBackground(Color.CYAN);
 			zoomSelButton.setOpaque(true);
 			zoomMapButton.setBackground(Color.CYAN);
@@ -358,6 +357,14 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 		if (toolbarDepthComboBox == null) {
 			String values[] = {OFF, ONE, TWO, THREE, FOUR, FIVE};
 
+			JLabel				toolbarLabel = new JLabel("ES:");
+			GridBagConstraints	toolbarGBC = new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0,
+									GridBagConstraints.EAST, GridBagConstraints.NONE,
+									new Insets(0, 0, 0, 0), 0, 0);
+
+			toolbarPanel = new JPanel(new GridBagLayout());
+			toolbarPanel.add(toolbarLabel, toolbarGBC);
+
 			toolbarDepthComboBox = new JComboBox(values);
 
 			toolbarDepthComboBox.setSelectedIndex(0);
@@ -365,9 +372,21 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 			toolbarDepthComboBox.setMinimumSize(toolbarDepthComboBox.getPreferredSize());
 			toolbarDepthComboBox.setToolTipText(VueResources.getString("interactionTools.depth.toolTip"));
 			toolbarDepthComboBox.addActionListener(new ToolbarDepthSelectionListener());
+
+			toolbarGBC.gridx = 1;
+			toolbarPanel.add(toolbarDepthComboBox, toolbarGBC);
+
+			if (DEBUG) {
+				toolbarPanel.setBackground(Color.MAGENTA);
+				toolbarPanel.setOpaque(true);
+				toolbarLabel.setBackground(Color.YELLOW);
+				toolbarLabel.setOpaque(true);
+				toolbarDepthComboBox.setBackground(Color.CYAN);
+				toolbarDepthComboBox.setOpaque(true);
+			}
 		}
 
-		return toolbarDepthComboBox;
+		return toolbarPanel;
 	}
 
 
