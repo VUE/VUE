@@ -11,6 +11,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -54,7 +56,12 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 									FOUR = new String("4"),
 									FIVE = new String("5");
 	public static JPanel			toolbarPanel = null;
-	public static JComboBox			toolbarDepthComboBox = null;
+	public static JLabel			toolbarLabels[] = {new JLabel("[]"),
+										new JLabel("-[]"),
+										new JLabel("-[]"),
+										new JLabel("-[]"),
+										new JLabel("-[]"),
+										new JLabel("-[]")};
 	protected JSlider				fadeSlider = null,
 									depthSlider = null;
 	protected JButton				zoomSelButton = null,
@@ -354,36 +361,32 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 	/* Static methods */
 
 	public static JComponent getToolbarDepthControl() {
-		if (toolbarDepthComboBox == null) {
-			String values[] = {OFF, ONE, TWO, THREE, FOUR, FIVE};
-
-			JLabel				toolbarLabel = new JLabel("ES:");
+		if (toolbarPanel == null) {
 			GridBagConstraints	toolbarGBC = new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0,
 									GridBagConstraints.EAST, GridBagConstraints.NONE,
 									new Insets(0, 0, 0, 0), 0, 0);
 
 			toolbarPanel = new JPanel(new GridBagLayout());
-			toolbarPanel.add(toolbarLabel, toolbarGBC);
 
-			toolbarDepthComboBox = new JComboBox(values);
+			for (int index = 0; index < 6; index++) {
+				toolbarLabels[index].setFont(tufts.vue.gui.GUI.LabelFace);
+				toolbarLabels[index].putClientProperty("JComponent.sizeVariant", "small");
+				toolbarLabels[index].setMinimumSize(toolbarLabels[index].getPreferredSize());
+				toolbarLabels[index].setToolTipText(VueResources.getString("interactionTools.depth.toolTip"));
+				toolbarLabels[index].setForeground(index == 0 ? Color.BLUE : Color.GRAY);
+				toolbarLabels[index].addMouseListener(new ToolbarDepthSelectionListener());
+				toolbarPanel.add(toolbarLabels[index], toolbarGBC);
+				toolbarGBC.gridx++;
 
-			toolbarDepthComboBox.setSelectedIndex(0);
-			toolbarDepthComboBox.setFont(tufts.vue.gui.GUI.LabelFace);
-			toolbarDepthComboBox.putClientProperty("JComponent.sizeVariant", "small");
-			toolbarDepthComboBox.setMinimumSize(toolbarDepthComboBox.getPreferredSize());
-			toolbarDepthComboBox.setToolTipText(VueResources.getString("interactionTools.depth.toolTip"));
-			toolbarDepthComboBox.addActionListener(new ToolbarDepthSelectionListener());
-
-			toolbarGBC.gridx = 1;
-			toolbarPanel.add(toolbarDepthComboBox, toolbarGBC);
+				if (DEBUG) {
+					toolbarLabels[index].setBackground(Color.YELLOW);
+					toolbarLabels[index].setOpaque(true);
+				}
+			}
 
 			if (DEBUG) {
 				toolbarPanel.setBackground(Color.MAGENTA);
 				toolbarPanel.setOpaque(true);
-				toolbarLabel.setBackground(Color.YELLOW);
-				toolbarLabel.setOpaque(true);
-				toolbarDepthComboBox.setBackground(Color.CYAN);
-				toolbarDepthComboBox.setOpaque(true);
 			}
 		}
 
@@ -455,8 +458,11 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 			if (!source.getValueIsAdjusting()) {
 				int value = source.getValue();
 
-				if (toolbarDepthComboBox != null && toolbarDepthComboBox.getSelectedIndex() != value) {
-					toolbarDepthComboBox.setSelectedIndex(value);
+				if (toolbarPanel != null)
+				{
+					for (int index = 0; index < 6; index++) {
+						toolbarLabels[index].setForeground(index <= value ? Color.BLUE : Color.GRAY);
+					}
 				}
 
 				GUI.invokeAfterAWT(sliderMoved);
@@ -602,17 +608,24 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 	}
 
 
-	protected static class ToolbarDepthSelectionListener implements ActionListener {
+	protected static class ToolbarDepthSelectionListener extends MouseAdapter {
 
 
 		ToolbarDepthSelectionListener() {}
 
 
 		// ActionListener method for depthComboBox
-		public void actionPerformed(ActionEvent event) {
-			JComboBox	source = (JComboBox)event.getSource();
+		public void mousePressed(MouseEvent event) {
+			JLabel	source = (JLabel)event.getSource();
+			int		index;
 
-			VUE.getInteractionToolsPanel().setDepthValue(source.getSelectedIndex());
+			for (index = 0; index < 6; index++) {
+				if (toolbarLabels[index] == source) {
+					break;
+				}
+			}
+
+			VUE.getInteractionToolsPanel().setDepthValue(index);
 		}
 	}
 }
