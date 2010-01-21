@@ -461,17 +461,7 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 			JSlider	source = (JSlider)event.getSource();
 
 			if (!source.getValueIsAdjusting()) {
-				int value = source.getValue();
-
-				if (toolbarPanel != null)
-				{
-					toolbarLabels[0].setForeground(value > 0 ? Color.BLUE : Color.GRAY);
-
-					for (int index = 1; index < 6; index++) {
-						toolbarLabels[index].setForeground(index <= value ? Color.BLUE : Color.GRAY);
-					}
-				}
-
+				ToolbarDepthSelectionListener.redrawToolbarControl();
 				GUI.invokeAfterAWT(sliderMoved);
 			}
 		}
@@ -632,8 +622,8 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 			}
 
 			VUE.getInteractionToolsPanel().setDepthValue(index);
+			redrawToolbarControl();
 		}
-
 
 		public void mouseEntered(MouseEvent event) {
 			JLabel	source = (JLabel)event.getSource();
@@ -651,7 +641,11 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 
 
 		public void mouseExited(MouseEvent event) {
-			JLabel	source = (JLabel)event.getSource();
+			redrawToolbarControl();
+		}
+
+
+		public static void redrawToolbarControl() {
 			int		value = VUE.getInteractionToolsPanel().getDepthValue();
 
 			toolbarLabels[0].setForeground(value > 0 ? Color.BLUE : Color.GRAY);
