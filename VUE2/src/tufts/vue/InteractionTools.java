@@ -319,6 +319,11 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 	}
 
 
+	public int getDepthValue() {
+		return depthSlider.getValue();
+	}
+
+
 	public void setDepthValue(int value) {
 		if (depthSlider.getValue() != value) {
 			depthSlider.setValue(value);
@@ -373,7 +378,7 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 				toolbarLabels[index].putClientProperty("JComponent.sizeVariant", "small");
 				toolbarLabels[index].setMinimumSize(toolbarLabels[index].getPreferredSize());
 				toolbarLabels[index].setToolTipText(VueResources.getString("interactionTools.depth.toolTip"));
-				toolbarLabels[index].setForeground(index == 0 ? Color.BLUE : Color.GRAY);
+				toolbarLabels[index].setForeground(Color.GRAY);
 				toolbarLabels[index].addMouseListener(new ToolbarDepthSelectionListener());
 				toolbarPanel.add(toolbarLabels[index], toolbarGBC);
 				toolbarGBC.gridx++;
@@ -460,7 +465,9 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 
 				if (toolbarPanel != null)
 				{
-					for (int index = 0; index < 6; index++) {
+					toolbarLabels[0].setForeground(value > 0 ? Color.BLUE : Color.GRAY);
+
+					for (int index = 1; index < 6; index++) {
 						toolbarLabels[index].setForeground(index <= value ? Color.BLUE : Color.GRAY);
 					}
 				}
@@ -614,7 +621,6 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 		ToolbarDepthSelectionListener() {}
 
 
-		// ActionListener method for depthComboBox
 		public void mousePressed(MouseEvent event) {
 			JLabel	source = (JLabel)event.getSource();
 			int		index;
@@ -626,6 +632,33 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 			}
 
 			VUE.getInteractionToolsPanel().setDepthValue(index);
+		}
+
+
+		public void mouseEntered(MouseEvent event) {
+			JLabel	source = (JLabel)event.getSource();
+			Color	color = Color.BLACK;
+
+			for (int index = 0; index < 6; index++) {
+				toolbarLabels[index].setForeground(color);
+
+				if (toolbarLabels[index] == source)
+				{
+					color = Color.GRAY;
+				}
+			}
+		}
+
+
+		public void mouseExited(MouseEvent event) {
+			JLabel	source = (JLabel)event.getSource();
+			int		value = VUE.getInteractionToolsPanel().getDepthValue();
+
+			toolbarLabels[0].setForeground(value > 0 ? Color.BLUE : Color.GRAY);
+
+			for (int index = 1; index < 6; index++) {
+				toolbarLabels[index].setForeground(index <= value ? Color.BLUE : Color.GRAY);
+			}
 		}
 	}
 }
