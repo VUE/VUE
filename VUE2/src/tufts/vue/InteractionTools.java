@@ -18,6 +18,7 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -56,12 +57,15 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 									FOUR = new String("4"),
 									FIVE = new String("5");
 	public static JPanel			toolbarPanel = null;
-	public static JLabel			toolbarLabels[] = {new JLabel("[]"),
-										new JLabel("-[]"),
-										new JLabel("-[]"),
-										new JLabel("-[]"),
-										new JLabel("-[]"),
-										new JLabel("-[]")};
+	public static Icon				toolbarIconOff = VueResources.getImageIcon("expandselection.off"),
+									toolbarIconOn = VueResources.getImageIcon("expandselection.on"),
+									toolbarIconOver = VueResources.getImageIcon("expandselection.over");
+	public static JLabel			toolbarLabels[] = {new JLabel(toolbarIconOff),
+										new JLabel(toolbarIconOff),
+										new JLabel(toolbarIconOff),
+										new JLabel(toolbarIconOff),
+										new JLabel(toolbarIconOff),
+										new JLabel(toolbarIconOff)};
 	protected JSlider				fadeSlider = null,
 									depthSlider = null;
 	protected JButton				zoomSelButton = null,
@@ -378,7 +382,8 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 				toolbarLabels[index].putClientProperty("JComponent.sizeVariant", "small");
 				toolbarLabels[index].setMinimumSize(toolbarLabels[index].getPreferredSize());
 				toolbarLabels[index].setToolTipText(VueResources.getString("interactionTools.depth.toolTip"));
-				toolbarLabels[index].setForeground(Color.GRAY);
+				toolbarLabels[index].setIcon(toolbarIconOff);
+System.out.println("!!!!!!!!!!!!!!!!!!!! toolbarIconOff is " + (toolbarIconOff == null ? "null." : "not null."));
 				toolbarLabels[index].addMouseListener(new ToolbarDepthSelectionListener());
 				toolbarPanel.add(toolbarLabels[index], toolbarGBC);
 				toolbarGBC.gridx++;
@@ -627,14 +632,14 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 
 		public void mouseEntered(MouseEvent event) {
 			JLabel	source = (JLabel)event.getSource();
-			Color	color = Color.BLACK;
+			Icon	icon = toolbarIconOver;
 
 			for (int index = 0; index < 6; index++) {
-				toolbarLabels[index].setForeground(color);
+				toolbarLabels[index].setIcon(icon);
 
 				if (toolbarLabels[index] == source)
 				{
-					color = Color.GRAY;
+					icon = toolbarIconOff;
 				}
 			}
 		}
@@ -648,10 +653,10 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 		public static void redrawToolbarControl() {
 			int		value = VUE.getInteractionToolsPanel().getDepthValue();
 
-			toolbarLabels[0].setForeground(value > 0 ? Color.BLUE : Color.GRAY);
+			toolbarLabels[0].setIcon(value > 0 ? toolbarIconOn : toolbarIconOff);
 
 			for (int index = 1; index < 6; index++) {
-				toolbarLabels[index].setForeground(index <= value ? Color.BLUE : Color.GRAY);
+				toolbarLabels[index].setIcon(index <= value ? toolbarIconOn : toolbarIconOff);
 			}
 		}
 	}
