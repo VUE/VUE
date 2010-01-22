@@ -41,7 +41,7 @@ import com.google.common.collect.Multiset;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.70 $ / $Date: 2010-01-16 22:56:48 $ / $Author: sfraize $
+ * @version $Revision: 1.71 $ / $Date: 2010-01-22 22:19:05 $ / $Author: brian $
  * @author Scott Fraize
  *
  */
@@ -90,6 +90,8 @@ public final class DrawContext
 
     private boolean isClipOptimized = true; // todo: rename isPaintOptimized, and make the default false
     private boolean isAnimating;
+
+    private boolean isBrowsing = false;
 
     // todo: consider including a Conatiner arg in here, for
     // MapViewer, etc.  And replace zoom with a getZoom
@@ -796,6 +798,7 @@ public final class DrawContext
         this.isClipOptimized = dc.isClipOptimized;
         this.isAnimating = dc.isAnimating;
         this.focused = dc.focused;
+        this.isBrowsing = dc.isBrowsing;
 
         if (DEBUG.PAINT&&DEBUG.META) out("CLONE of " + dc);
         //out("CLONED: " + Util.tag(masterClipRect) + " from " + dc);
@@ -846,6 +849,14 @@ public final class DrawContext
         //return ImageQualityPreference != null && ImageQualityPreference.isTrue();
         //return ImageQualityPreference.isTrue();
         return true;
+    }
+
+    public boolean isBrowsing() {
+    	return isBrowsing;
+    }
+
+    public void setBrowsing(boolean value) {
+    	isBrowsing = value;
     }
 
     static {

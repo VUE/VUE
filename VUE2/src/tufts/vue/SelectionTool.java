@@ -103,6 +103,14 @@ public class SelectionTool extends VueTool
         /** undo SelectionTool version */
         @Override public char getBackwardCompatShortcutKey() { return 0; }
 
+        @Override
+        public DrawContext getDrawContext(DrawContext dc) {
+            dc.setBrowsing(true);
+
+            return dc;
+        }
+        
+
     }
     
     

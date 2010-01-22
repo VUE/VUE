@@ -43,7 +43,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.239 $ / $Date: 2010-01-15 22:58:25 $ / $Author: sfraize $
+ * @version $Revision: 1.240 $ / $Date: 2010-01-22 22:19:05 $ / $Author: brian $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -3142,7 +3142,8 @@ public class LWLink extends LWComponent
                 }
             }
                     
-            if (dc.isInteractive() && (isSelected() || DEBUG.BOXES || DEBUG.CONTAINMENT)) {
+            if (dc.isInteractive() && (isSelected() || DEBUG.BOXES || DEBUG.CONTAINMENT) &&
+            		!dc.isBrowsing()) {
                 //-------------------------------------------------------
                 // draw faint lines to control points if selected TODO: need to do this
                 // at time we paint the selection, so these are always on top -- perhaps
