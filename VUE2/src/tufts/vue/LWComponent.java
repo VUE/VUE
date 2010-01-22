@@ -48,7 +48,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.524 $ / $Date: 2010-01-22 19:40:23 $ / $Author: sfraize $
+ * @version $Revision: 1.525 $ / $Date: 2010-01-22 21:43:59 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -6549,6 +6549,8 @@ public class LWComponent
     protected void preCacheImpl() {}
 
     protected static void preCacheDescendents(LWComponent focal) {
+        if (focal == null)
+            return;
         //Log.debug("PRE CACHE FOCAL " + focal);
         for (LWComponent c : focal.getAllDescendents()) {
             //Log.debug("PRE-CACHE-CHILD " + c);
