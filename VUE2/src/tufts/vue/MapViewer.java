@@ -79,7 +79,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.662 $ / $Date: 2010-01-22 20:14:07 $ / $Author: sfraize $ 
+ * @version $Revision: 1.663 $ / $Date: 2010-01-22 21:43:26 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1667,27 +1667,29 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
     }
 
-    private static void preCacheMap(LWMap map) {
+    private static void preCacheMap(final LWMap map) {
         if (DEBUG.Enabled) Log.debug("pre-caching " + map);
+
+        final Set<LWComponent> toCache = new LinkedHashSet();
+        
         try {
             for (LWPathway pathway : map.getPathwayList()) {
-                if (DEBUG.IMAGE||DEBUG.IO) Log.debug("pre-caching " + pathway);
-                if (Images.lowMemoryConditions())
-                    break;
+                if (DEBUG.Enabled) Log.debug("pre-caching " + pathway);
                 
-//                 for (LWComponent c : pathway.getAllDescendents(LWComponent.ChildKind.ANY)) {
-//                     //Log.debug("pre-caching " + c);
-//                     c.preCacheImpl();
-//                     if (Images.lowMemoryConditions())
-//                         break;
-//                 }
+                // this won't grab non-slide elements on the pathway:
+                //toCache.addAll(pathway.getAllDescendents(LWComponent.ChildKind.ANY))
+
+                toCache.addAll(pathway.getMasterSlide().getAllDescendents());
                 
                 // This handles raw-images on the pathway:
                 for (LWPathway.Entry e : pathway.getEntries()) {
-                    if (DEBUG.IMAGE||DEBUG.IO) Log.debug("pre-caching " + e);
-                    LWComponent.preCacheDescendents(e.getFocal());
-                    if (Images.lowMemoryConditions())
-                        break;
+                    if (e.isPathway())
+                        continue;
+                    final LWComponent focal = e.getFocal();
+                    if (focal != null) {
+                        toCache.add(focal);
+                        toCache.addAll(focal.getAllDescendents());
+                    }
                 }
                 
                 
@@ -1695,8 +1697,24 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         } catch (Throwable t) {
             Log.warn("preCacheMap pathways: " + map, t);
         }
-        if (!Images.lowMemoryConditions())
-            LWComponent.preCacheDescendents(map); // will be lots of dupes, but okay
+
+        toCache.addAll(map.getAllDescendents());
+        
+        if (!Images.lowMemoryConditions()) {
+            if (DEBUG.IMAGE) Util.dump(toCache);
+            VUE.invokeAfterAWT(new Runnable() { public void run() {
+                Log.info("caching " + map.getLabel() + ": " + Util.tags(toCache));
+                for (LWComponent c : toCache) {
+                    try {
+                        c.preCacheImpl();
+                    } catch (Throwable t) {
+                        Log.warn("pre-cache " + c, t);
+                    }
+                    if (Images.lowMemoryConditions())
+                        break;
+                }
+            }});
+        }
     }
 
     public void popToMapFocal() {
@@ -8041,13 +8059,18 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     private LWContainer reparentTarget(LWContainer oldParent, LWContainer picked) {
 
         LWContainer target = null;
-
+        
         if (picked == null) {
+            final LWComponent focal = getFocal();
+            if (oldParent == null)
+                return null;
             target = oldParent.getLayer();
+            if (focal == null)
+                return null;
             // never let rise above the focal
-            if (getFocal().getDepth() > target.getDepth()) {
-                if (getFocal() instanceof LWContainer)
-                    target = (LWContainer) getFocal();
+            if (focal.getDepth() > target.getDepth()) {
+                if (focal instanceof LWContainer)
+                    target = (LWContainer) focal;
                 else
                     target = null;
             }
