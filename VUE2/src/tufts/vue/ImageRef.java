@@ -378,7 +378,7 @@ public class ImageRef
     }
     
 
-    private void drawBetterRepAvailableIndicator(Graphics2D g, float width, float height) {
+    static void drawBetterRepAvailableIndicator(Graphics2D g, float width, float height) {
         // draw a "loading" indicator
         //             if (drawable != ideal)
         //                 dc.g.setColor(DebugRed);
