@@ -529,6 +529,7 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
             g.setColor(LoadingColor);
         }
         g.fillRect(0, 0, (int)width, (int)height); // okay if not a sub-pixel-perfect fill
+        ImageRef.drawBetterRepAvailableIndicator(g, width, height);
     }
 
     private static void fillRect(Graphics2D g, float width, float height, Color c) {
