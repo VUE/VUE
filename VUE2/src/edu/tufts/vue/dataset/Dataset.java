@@ -196,7 +196,7 @@ public class Dataset {
     }
     **/
     
-    final protected String getMapName(String fileName) {
+    public static final  String getMapName(String fileName) {
         String mapName = fileName.substring(fileName.lastIndexOf(File.separator)+1,fileName.length());
         if(mapName.lastIndexOf(".")>0)
             mapName = mapName.substring(0,mapName.lastIndexOf("."));
