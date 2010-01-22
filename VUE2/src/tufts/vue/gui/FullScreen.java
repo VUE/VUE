@@ -37,7 +37,7 @@ import org.apache.log4j.NDC;
 /**
  * Code for providing, entering and exiting VUE full screen modes.
  *
- * @version $Revision: 1.51 $ / $Date: 2010-01-22 19:40:25 $ / $Author: sfraize $
+ * @version $Revision: 1.52 $ / $Date: 2010-01-22 21:59:59 $ / $Author: sfraize $
  *
  */
 
@@ -635,7 +635,7 @@ public class FullScreen
             !Util.isWindowsPlatform() &&
             !tufts.vue.Actions.SuperScreen.getToggleState();
 
-        if (false&&useNativeMode) {
+        if (useNativeMode) {
 
             // MAC & LINUX ONLY:
 
