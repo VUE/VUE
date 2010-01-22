@@ -57,15 +57,18 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 									FOUR = new String("4"),
 									FIVE = new String("5");
 	public static JPanel			toolbarPanel = null;
-	public static Icon				toolbarIconOff = VueResources.getImageIcon("expandselection.off"),
-									toolbarIconOn = VueResources.getImageIcon("expandselection.on"),
-									toolbarIconOver = VueResources.getImageIcon("expandselection.over");
-	public static JLabel			toolbarLabels[] = {new JLabel(toolbarIconOff),
-										new JLabel(toolbarIconOff),
-										new JLabel(toolbarIconOff),
-										new JLabel(toolbarIconOff),
-										new JLabel(toolbarIconOff),
-										new JLabel(toolbarIconOff)};
+	public static Icon				toolbarIconFirstOff = VueResources.getImageIcon("expandselection.first.off"),
+									toolbarIconFirstOn = VueResources.getImageIcon("expandselection.first.on"),
+									toolbarIconFirstOver = VueResources.getImageIcon("expandselection.first.over");
+	public static Icon				toolbarIconRestOff = VueResources.getImageIcon("expandselection.rest.off"),
+									toolbarIconRestOn = VueResources.getImageIcon("expandselection.rest.on"),
+									toolbarIconRestOver = VueResources.getImageIcon("expandselection.rest.over");
+	public static JLabel			toolbarLabels[] = {new JLabel(toolbarIconFirstOff),
+										new JLabel(toolbarIconRestOff),
+										new JLabel(toolbarIconRestOff),
+										new JLabel(toolbarIconRestOff),
+										new JLabel(toolbarIconRestOff),
+										new JLabel(toolbarIconRestOff)};
 	protected JSlider				fadeSlider = null,
 									depthSlider = null;
 	protected JButton				zoomSelButton = null,
@@ -382,8 +385,6 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 				toolbarLabels[index].putClientProperty("JComponent.sizeVariant", "small");
 				toolbarLabels[index].setMinimumSize(toolbarLabels[index].getPreferredSize());
 				toolbarLabels[index].setToolTipText(VueResources.getString("interactionTools.depth.toolTip"));
-				toolbarLabels[index].setIcon(toolbarIconOff);
-System.out.println("!!!!!!!!!!!!!!!!!!!! toolbarIconOff is " + (toolbarIconOff == null ? "null." : "not null."));
 				toolbarLabels[index].addMouseListener(new ToolbarDepthSelectionListener());
 				toolbarPanel.add(toolbarLabels[index], toolbarGBC);
 				toolbarGBC.gridx++;
@@ -403,6 +404,16 @@ System.out.println("!!!!!!!!!!!!!!!!!!!! toolbarIconOff is " + (toolbarIconOff =
 		return toolbarPanel;
 	}
 
+
+	public static void redrawToolbarDepthControl() {
+		int		value = VUE.getInteractionToolsPanel().getDepthValue();
+
+		toolbarLabels[0].setIcon(value > 0 ? toolbarIconFirstOn : toolbarIconFirstOff);
+
+		for (int index = 1; index < 6; index++) {
+			toolbarLabels[index].setIcon(index <= value ? toolbarIconRestOn : toolbarIconRestOff);
+		}
+	}
 
 	protected static void addToGridBag(Container container, Component component,
 			int gridX, int gridY, int gridWidth, int gridHeight,
@@ -466,7 +477,7 @@ System.out.println("!!!!!!!!!!!!!!!!!!!! toolbarIconOff is " + (toolbarIconOff =
 			JSlider	source = (JSlider)event.getSource();
 
 			if (!source.getValueIsAdjusting()) {
-				ToolbarDepthSelectionListener.redrawToolbarControl();
+				redrawToolbarDepthControl();
 				GUI.invokeAfterAWT(sliderMoved);
 			}
 		}
@@ -627,37 +638,31 @@ System.out.println("!!!!!!!!!!!!!!!!!!!! toolbarIconOff is " + (toolbarIconOff =
 			}
 
 			VUE.getInteractionToolsPanel().setDepthValue(index);
-			redrawToolbarControl();
+			redrawToolbarDepthControl();
 		}
 
 		public void mouseEntered(MouseEvent event) {
 			JLabel	source = (JLabel)event.getSource();
-			Icon	icon = toolbarIconOver;
+			Icon	icon = toolbarIconRestOver;
 
-			for (int index = 0; index < 6; index++) {
+			toolbarLabels[0].setIcon(toolbarIconFirstOver);
+
+			if (toolbarLabels[0] == source) {
+				icon = toolbarIconRestOff;
+			}
+
+			for (int index = 1; index < 6; index++) {
 				toolbarLabels[index].setIcon(icon);
 
-				if (toolbarLabels[index] == source)
-				{
-					icon = toolbarIconOff;
+				if (toolbarLabels[index] == source) {
+					icon = toolbarIconRestOff;
 				}
 			}
 		}
 
 
 		public void mouseExited(MouseEvent event) {
-			redrawToolbarControl();
-		}
-
-
-		public static void redrawToolbarControl() {
-			int		value = VUE.getInteractionToolsPanel().getDepthValue();
-
-			toolbarLabels[0].setIcon(value > 0 ? toolbarIconOn : toolbarIconOff);
-
-			for (int index = 1; index < 6; index++) {
-				toolbarLabels[index].setIcon(index <= value ? toolbarIconOn : toolbarIconOff);
-			}
+			redrawToolbarDepthControl();
 		}
 	}
 }
