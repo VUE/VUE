@@ -23,6 +23,7 @@ public class ImageRef
 //                 Log.error("attempt to set image source on the empty ImageRef: " + Util.tags(is), new Throwable("HERE"));
 //             }
             @Override protected void repaint() {}
+            @Override protected void ensureLoading(ImageRep rep, boolean lowPriorityCache) {}
             @Override void preCacheRef() {}
             @Override public boolean equals(Object o) { return false; }
             @Override public String toString() { return "ImageRef[___EMPTY___]"; }
@@ -610,11 +611,11 @@ public class ImageRef
     }
     
     void preCacheRef() {
-        ensureLoading(_icon, true);
-        ensureLoading(_full, true);
+        if (_icon != UNAVAILABLE) ensureLoading(_icon, true);
+        if (_full != UNAVAILABLE) ensureLoading(_full, true);
     }
 
-    private void ensureLoading(ImageRep rep, boolean lowPriorityCache) {
+    protected void ensureLoading(ImageRep rep, boolean lowPriorityCache) {
         if (rep.loading() || rep.available()) {
 
             // note: this is probably being called more often than need be
