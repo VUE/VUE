@@ -116,7 +116,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.705 $ / $Date: 2010-01-21 18:01:19 $ / $Author: brian $ 
+ * @version $Revision: 1.706 $ / $Date: 2010-01-22 17:01:23 $ / $Author: brian $ 
  */
 
 public class VUE
@@ -2320,13 +2320,15 @@ public class VUE
         searchPanel.add(depthSelectionControl, searchPanelGBC);
         
         searchPanelGBC.gridx = 1;
+        searchPanelGBC.fill = GridBagConstraints.HORIZONTAL;
+        searchPanelGBC.weightx = 1.0;
         searchPanel.add(mSearchtextFld, searchPanelGBC);
 
         if (!VUE.isApplet()) {
-            gBC.fill = GridBagConstraints.NONE;			
+            gBC.fill = GridBagConstraints.HORIZONTAL;			
             gBC.gridx = 4;
             gBC.gridy = 0;
-            gBC.weightx = 0.0;
+            gBC.weightx = 1.0;
             gBC.insets = new Insets(0, 0, 0, 0);
         	toolbarPanel.add(searchPanel, gBC);		
         }
