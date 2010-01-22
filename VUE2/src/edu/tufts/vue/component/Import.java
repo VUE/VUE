@@ -56,11 +56,8 @@ public class Import {
 
     public static final String[] LAYOUT_SHORTCUT = {"default","random","cirlce","filledCircle","table"};
 
-    Timer           timer = null;
     XmlDataSource   datasource;
-    ActionListener  createMapListener = null;
-    LWMap           map;
-    /**
+     /**
      * Create a map of specified layout with specific layout id
      * @param inputFile comma or tab delimited import file
      * @param outputFile  a map generated from input file
@@ -86,7 +83,7 @@ public class Import {
     public void createMap(String inputFile,String outputFile, Layout layout) throws Exception {
     	 Schema schema = Schema.getInstance(Resource.instance(inputFile),edu.tufts.vue.util.GUID.generate());
          
-        String mapName = "test";
+        String mapName = Dataset.getMapName(outputFile);
         datasource = new XmlDataSource(mapName,inputFile);
         Properties props = new Properties();
  		props.put("displayName", mapName);
