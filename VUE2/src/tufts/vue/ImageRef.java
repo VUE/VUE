@@ -615,7 +615,8 @@ public class ImageRef
 
     private void ensureLoading(ImageRep rep, boolean lowPriorityCache) {
         if (rep.loading() || rep.available()) {
-            // todo cleanup: this is probably being called more often than need be
+
+            // note: this is probably being called more often than need be
             
             // Currently, ImageRep's handle being in first a CACHING state, and then
             // upgrading to a LOADING state if they're later requested for a real paint.
@@ -628,6 +629,17 @@ public class ImageRef
             // to make that request.  Generally, that should actually work fine, tho in
             // rare cases where lots of high-res images are being requested at once, the
             // queue will thrash a bit -- that is, be fully rotating on each paint.
+
+            // Note: this is also a point where we can see coherency issues arise with
+            // the internal Images cache.  E.g., Images keeps a cache of images, or, if
+            // requested but not loaded, tasks to load those images.  ImageRep maintains
+            // a state of request & result, which needs to be in agreement with the
+            // Images state.  E.g., Images can't just punt items from it's task queue
+            // w/out doing something to notify the ImageRep about to udpate it's state,
+            // which determines if it thinks theres callbacks coming (e.g., the call to
+            // rep.loading() above). Making that issue go away is a greenfield operation
+            // that would likely entail keeping ImageRef's directly in the cache, so
+            // there's only ever one state, and it's maintained there.
             
             return;
         }
