@@ -506,7 +506,7 @@ public class ImageRef
                 //_full = ImageRep.create(this, _source);
                     
             } else {
-                if (DEBUG.Enabled) Util.dump(icon.data, "FOUND SOURCE PIXEL SIZE");
+                //if (DEBUG.Enabled) Util.dump(icon.data, "FOUND SOURCE PIXEL SIZE");
                 _full.takeSize((int[])ss);
                 _aspect = _full.aspect(); // force aspect based on exact pixel dimensions
             }
