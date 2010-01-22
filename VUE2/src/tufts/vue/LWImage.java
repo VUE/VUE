@@ -172,7 +172,7 @@ public class LWImage extends LWComponent
     private void updateNodeIconStatus(LWContainer parent) {
 
         //tufts.Util.printStackTrace("updateNodeIconStatus, mImage=" + mImage + " parent=" + parent);
-        if (DEBUG.Enabled) out("updateNodeIconStatus " + mImageRef + "; parent=" + parent);
+        if (DEBUG.IMAGE) out("updateNodeIconStatus " + mImageRef + "; parent=" + parent);
 
         if (parent == null)
             return;
@@ -712,7 +712,7 @@ public class LWImage extends LWComponent
     }
     
     @Override protected void preCacheImpl() {
-        refLoaded().preLoadFullRep();
+        refLoaded().preCacheRef();
     }    
     
     /** This currently makes LWImages invisible to selection (they're locked in their parent node */

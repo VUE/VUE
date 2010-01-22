@@ -23,7 +23,7 @@ public class ImageRef
 //                 Log.error("attempt to set image source on the empty ImageRef: " + Util.tags(is), new Throwable("HERE"));
 //             }
             @Override protected void repaint() {}
-            @Override void preLoadFullRep() {}
+            @Override void preCacheRef() {}
             @Override public boolean equals(Object o) { return false; }
             @Override public String toString() { return "ImageRef[___EMPTY___]"; }
         };
@@ -609,7 +609,8 @@ public class ImageRef
         ensureLoading(rep, false);
     }
     
-    void preLoadFullRep() {
+    void preCacheRef() {
+        ensureLoading(_icon, true);
         ensureLoading(_full, true);
     }
 
