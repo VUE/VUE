@@ -51,7 +51,7 @@ import org.w3c.dom.NodeList;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.81 $ / $Date: 2010-01-22 20:13:19 $ / $Author: sfraize $
+ * @version $Revision: 1.82 $ / $Date: 2010-01-22 21:44:27 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -1378,20 +1378,40 @@ public class Images
                 // typing in this class is currently a bit hacked-up
                 final Object pri = ((Task)task).getPriority();
                 if (DEBUG.IMAGE) debug("QUEUE(" + pri + "):  " + task);
-                queueTask(task, pri);
+                queueTaskAtPriority(task, pri);
             } else {
                 Log.error("cannot queue: " + Util.tags(task));
             }
         }
         
-        synchronized void queueTask(E task, Object pri) {
+        synchronized void queueTaskAtPriority(E task, Object pri) {
                 
-            if (pri == PRI_HIGH) 
+            if (pri == PRI_HIGH) {
                 q1.addLast(task);
-            else if (pri == PRI_NORM)
+            } else if (pri == PRI_NORM) {
                 q2.addFirst(task); // push front for LIFO
-            else //if (pri == PRI_LOW)
+            } else { //if (pri == PRI_LOW)
                 q3.addLast(task);
+
+                // If this is an ICON we're wanting to pre-cache, they should take
+                // priority over any full-reps.  Right now, we don't have a bit for
+                // that, but could hack it in by recognizing the "i128.png" extension.
+                // To handle this properly, there should be a another FIFO queue
+                // inserted before the current LAST priorities (pre-caching of full-reps)
+                // for the pre-caching of the ICON reps.
+                
+                // We could just do a q3.addFirst if this is an icon-key, tho that would
+                // change those to LIFO order.  Note that this is ONLY important when
+                // opening multiple maps at once tho, which users pretty much are never
+                // going to do (can only do that from the command line).  Actually, no
+                // this could happen if there are a bunch of images on a slide that are
+                // not on a map, so they never get that first paint request that will
+                // request the icon.  Not common, but it could happen. In these funny
+                // cases, if we don't handle this, the full-rep could be cached first.
+                // It really just means that the full-rep will paint in place of the
+                // icon rep until it loads.  Chances are, pre-caching will have loaded
+                // both anyway by the time users would see any of this tho.
+            }
             
             // typing in this class is currently a bit hacked-up:
             ((Task)task).setPriority(pri);
@@ -1456,7 +1476,7 @@ public class Images
                     //if (DEBUG.Enabled) debug("re-queue loMem orphan: " + task);
                     
                 }
-                queueTask((E)task, newPri);
+                queueTaskAtPriority((E)task, newPri);
                 if (DEBUG.IMAGE) dump();
             }
 
@@ -1807,22 +1827,6 @@ public class Images
         }
     }
     
-//     /** a marker class to differentiate from LoadThread */
-//     private static final class LoadTask extends Loader {
-//         LoadTask(ImageSource is, Listener relay) {
-//             super(is, relay);
-//             if (DEBUG.Enabled && relay == null)
-//                 Log.debug(this + "; nobody currently listening: image may be quietly cached: " + imageSRC);
-            
-//         }
-//     }
-//     /** a marker class to differentiate from LoadThread */
-//     private static final class CacheTask extends Loader {
-//         CacheTask(ImageSource is, Listener relay) {
-//             super(is, relay);
-//         }
-//     }
-
     /** a task to generate an icon */
     private static final class IconTask extends Task {
         IconTask(ImageSource is, Listener relay) {
@@ -1839,29 +1843,6 @@ public class Images
             // callback.
             return createAndCacheIcon(relay, imageSRC);
         }
-//         public int getPriority() {
-//             // Note: if we change from normal to low-mem conditions with DELAYED_ICONS
-//             // enabled, the priority of IconTasks jumps from lowest to highest, so to
-//             // ensure that the next task pulled is an IconTask if there are any in the
-//             // queue, the queue will need to be re-sorted when memory conditions change.
-//             if (DELAYED_ICONS) {
-//                 // A fancier impl that allows us to generate icons later, which provides faster initial map
-//                 // painting and a better user experience under "normal" conditions (plenty of RAM), but
-//                 // switches to the conservative method once any OutOfMemoryError is seen.  This is still
-//                 // only a tradeoff for the the 1st time a map with images loads tho -- once icons are
-//                 // generated everything starts up very fast -- faster than any previous version of VUE.
-//                 // This impl would still need work: recovering from the "wall" that's hit when memory
-//                 // runs low is much more complicated.
-//                 return lowMemoryConditions() ? 10 : 1;
-//             } else {
-//                 // In this impl we just give IconTask's the highest priority is so that
-//                 // we can create the icon ASAP while original image is still in memory
-//                 // (normall forced there via a hard-ref in an ImageSource).  We can't
-//                 // normally toss the original full image until the icon is generated,
-//                 // which puts a big strain on memory.
-//                 return 10;
-//             }
-//         }
     }
 
     

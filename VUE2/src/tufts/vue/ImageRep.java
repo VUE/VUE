@@ -350,6 +350,17 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
             // we send the image as an argument so there's at least a temporary
             // guaranteed, hard, non-GC-able reference to it in case the ImageRef wants
             // to do something with the image data.
+
+            // TODO: this is overkill if this was for a request during a paint, and the
+            // cache already had the content!  We could do the paint immediatley.  This
+            // is an mainly an issue only with multiple-maps tho -- the first paint of a
+            // new tab, even if all the images are loaded, will need to update all the
+            // image refs to the loaded state.  Currently, they make a default getImage
+            // call, which immediately makes a callback to here with the result, and
+            // then a second call to cacheData with the returned result.  All that
+            // points to another reason for an Images cache that holds ImageRef's
+            // directly.
+            
             _ref.notifyRepHasArrived(this, imageData);
         }
 
