@@ -643,9 +643,12 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 
 		public void mouseEntered(MouseEvent event) {
 			JLabel	source = (JLabel)event.getSource();
+			int		value = VUE.getInteractionToolsPanel().getDepthValue();
 			Icon	icon = toolbarIconRestOver;
 
-			toolbarLabels[0].setIcon(toolbarIconFirstOver);
+			if ((toolbarLabels[0] != source || value > 0)) {
+				toolbarLabels[0].setIcon(toolbarIconFirstOver);
+			}
 
 			if (toolbarLabels[0] == source) {
 				icon = toolbarIconRestOff;
