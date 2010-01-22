@@ -45,7 +45,7 @@ import java.util.regex.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.89 $ / $Date: 2009-12-09 17:52:01 $ / $Author: sfraize $
+ * @version $Revision: 1.90 $ / $Date: 2010-01-22 19:37:16 $ / $Author: sfraize $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -1161,13 +1161,15 @@ public class URLResource extends Resource implements XMLUnmarshalListener
 
         if (file != null) {
 
-            // Not an ideal impl, as only the first caller will find out if
-            // the data has changed.  Ideally, Resources will have to
-            // be enforced atomic (at least for local file resources), and
-            // track all listeners/owners, so when/if an udpate happens,
-            // they can all be notified.  Or, the called can just take
-            // care of finding all objects that need updating once
-            // this ever returns true.
+            // Not an ideal impl, as only the first caller will find out if the data has
+            // changed.  Ideally, Resources will have to be enforced atomic (at least
+            // for local file resources), and track all listeners/owners, so when/if an
+            // udpate happens, they can all be notified.  Or, the called can just take
+            // care of finding all objects that need updating once this ever returns
+            // true.
+
+            // TODO: this is mainly for updating images -- this would
+            // be better handled in the Images cache / ImageRef.
             
             if (DEBUG.Enabled||DEBUG.IO) dumpField("re-scanning", file);
             final long curLastMod = file.lastModified();
