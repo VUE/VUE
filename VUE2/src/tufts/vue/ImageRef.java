@@ -611,12 +611,12 @@ public class ImageRef
     }
     
     void preCacheRef() {
-        if (_icon != UNAVAILABLE) ensureLoading(_icon, true);
-        if (_full != UNAVAILABLE) ensureLoading(_full, true);
+        ensureLoading(_icon, true);
+        ensureLoading(_full, true);
     }
 
     protected void ensureLoading(ImageRep rep, boolean lowPriorityCache) {
-        if (rep.loading() || rep.available()) {
+        if (rep == UNAVAILABLE || rep.loading() || rep.available()) {
 
             // note: this is probably being called more often than need be
             
