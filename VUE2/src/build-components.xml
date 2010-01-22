@@ -29,7 +29,7 @@
         
 		 update="true" >
           <manifest>
-        <attribute name="Description" value="Tufts VUE 1.x (Visual Understanding Environment)"/>
+        <attribute name="Description" value="Tufts VUE   (Visual Understanding Environment)"/>
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Built" value="${TODAY} ${TSTAMP}"/>
         <attribute name="Build-Platform" value="${os.name} ${os.version} ${os.arch}"/>
@@ -53,4 +53,34 @@
      <classpath  refid="runtime.classpath"/>
      </java>
   </target>
+	
+ <target name="jar-export"
+	          depends="compile"
+	          description="Creates a jar file for import component">
+	 <property name="export.jar"              value="${component.home}/VUEExport.jar"/>
+	 <mkdir dir="${component.home}" />
+	    <echo message="Building jar component for VUE import "/>
+	    <antcall target="run-jar-core"/>
+	    <jar  destfile="${export.jar}" compress="true" index="true"   duplicate="preserve"
+			 update="true" >
+	          <manifest>
+	        <attribute name="Description" value="Tufts VUE  (Visual Understanding Environment)"/>
+	        <attribute name="Built-By" value="${user.name}"/>
+	        <attribute name="Built" value="${TODAY} ${TSTAMP}"/>
+	        <attribute name="Build-Platform" value="${os.name} ${os.version} ${os.arch}"/>
+	        <attribute name="Main-Class" value="edu.tufts.vue.component.Export"/>
+	      </manifest>
+	      <zipfileset src="${vue-core.jar}"/>
+	      <zipfileset src="${lib.home}/log4j-1.2.12.jar"/>
+	      <zipfileset src="${lib.home}/opencsv-1.8.jar"/>
+	      <zipfileset  src="${lib.home}/VUE-MacOSX.jar" />
+	      <zipfileset src="${lib.home}/rome-0.9.jar" />
+	      <zipfileset src="${lib.home}/okiOSID-2.0.jar" />
+	      <zipfileset src="${lib.home}/OsidProvider.jar" />
+	       <zipfileset src="${lib.home}/jena-2.5.3.jar" />
+	      <fileset dir="org" />
+	      <zipgroupfileset dir="${lib.home}" includes="${thirdparty.jarfiles.names.minimal}"/>
+	      </jar>
+
+	  </target>
 </project>
