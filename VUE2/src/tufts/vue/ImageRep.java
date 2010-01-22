@@ -408,7 +408,10 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
         } else {
             setHandle(IMG_ERROR, "gotError");
         }
-        _ref.notifyRepHasArrived(this, null);
+        if (_ref == null)
+            Log.warn("rep w/out null ref: " + this + "; error=" + msg);
+        else
+            _ref.notifyRepHasArrived(this, null);
         //_ref.notifyRepHasProgress(this, -1); // force a repaint (don't: can create thrashing loop us during low-memory conditions)
     }
 
