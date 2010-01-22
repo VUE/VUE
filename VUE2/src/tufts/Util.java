@@ -1725,7 +1725,11 @@ public class Util
     
     public static void dumpCollection(Collection c) {
         System.out.println("Collection of size: " + c.size() + " (" + tag(c) + ")");
-        dumpIterator(c.iterator());
+        try {
+            dumpIterator(c.iterator());
+        } catch (Throwable t) {
+            Log.warn("dumping " + tag(c), t);
+        }
     }
     public static void dumpIterator(Iterator i) {
         int x = 0;
