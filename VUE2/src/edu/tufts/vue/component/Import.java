@@ -49,7 +49,9 @@ public class Import {
     public static final int LAYOUT_CIRCLE =2;
     public static final int LAYOUT_FILLED_CIRCLE = 3;
     public static final int LAYOUT_TABLE = 4;
-
+    
+    public static final String  LAYOUT_PACKAGE = "edu.tufts.vue.layout.";
+    public static final String LAYOUT_EXTENSION = "Layout";
     public static final String[] LAYOUT_CLASS_NAME = {"ListRandom","ListRandom","Circular","FilledCircular","Tabular"};
 
     public static final String[] LAYOUT_SHORTCUT = {"default","random","cirlce","filledCircle","table"};
@@ -66,7 +68,10 @@ public class Import {
      * @throws java.lang.Exception
      */
     public void createMap(String inputFile,String outputFile,int layoutId) throws Exception {
-        Layout layout = (Layout) Class.forName(LAYOUT_CLASS_NAME[layoutId]+"Layout.class").newInstance();
+    	String className = LAYOUT_PACKAGE+LAYOUT_CLASS_NAME[layoutId]+LAYOUT_EXTENSION;
+    	ClassLoader classLoader =  ClassLoader.getSystemClassLoader();
+    	Class layoutClass = classLoader.loadClass(className);
+        Layout layout = (Layout) layoutClass.newInstance();
         createMap(inputFile,outputFile,layout);
     }
     /**
@@ -115,14 +120,26 @@ public class Import {
      */
 
     public void createMap(String inputFile, String outputFile) throws Exception {
-
+    	
         Layout layout = new ListRandomLayout();
         createMap(inputFile,outputFile,layout);
     }
+    
+ 
+     
+    
     public static void main(String[] args) throws Exception {
         String inputFile = args[0];
         String outputFile = args[1];
         Import importer = new Import();
-        importer.createMap(inputFile,outputFile);
+        if(args.length == 3 && args[2] != null) {
+        	int  layoutId= Integer.parseInt(args[2]);
+        	 if(layoutId > 4 || layoutId < 0 ) {
+        		 layoutId = 0;
+        	 }
+        	importer.createMap(inputFile,outputFile,layoutId);
+        } else {
+        	importer.createMap(inputFile,outputFile);
+        }
        }
 }
