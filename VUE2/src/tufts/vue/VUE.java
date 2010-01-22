@@ -116,7 +116,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.707 $ / $Date: 2010-01-22 19:40:23 $ / $Author: sfraize $ 
+ * @version $Revision: 1.708 $ / $Date: 2010-01-22 21:42:21 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -1383,7 +1383,8 @@ public class VUE
         boolean openedUserMap = false;
 
         if (FilesToOpen.size() > 0) {
-            Log.info("outstanding file open requests: " + FilesToOpen);
+            Log.info("outstanding file open requests: " + Util.tags(FilesToOpen));
+            if (DEBUG.Enabled) Util.dump(FilesToOpen);
             
             // [OLD: in case not already loaded, make absolutely sure
             // all data sources are loaded (VUE-879), so any needed
