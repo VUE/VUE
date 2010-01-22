@@ -278,7 +278,10 @@ class ImageSource {
         //s.append("<<<");
         if (original instanceof Resource)
             s.append(original);
-        else
+        else if (original instanceof URI) {
+            s.append("URI@");
+            s.append(Util.tags(original.toString()));
+        } else
             s.append(Util.tags(original));
         //s.append(">>>");
         
