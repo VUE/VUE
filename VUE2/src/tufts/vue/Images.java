@@ -44,9 +44,6 @@ import javax.imageio.stream.*;
 import javax.xml.xpath.*;
 import org.w3c.dom.NodeList;
 
-import tufts.vue.DoubleQueue.LinkedBlockingDeque;
-
-
 /**
  *
  * Handle the loading of images in background threads, making callbacks to deliver
@@ -54,7 +51,7 @@ import tufts.vue.DoubleQueue.LinkedBlockingDeque;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.80 $ / $Date: 2010-01-22 19:40:22 $ / $Author: sfraize $
+ * @version $Revision: 1.81 $ / $Date: 2010-01-22 20:13:19 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -1390,11 +1387,11 @@ public class Images
         synchronized void queueTask(E task, Object pri) {
                 
             if (pri == PRI_HIGH) 
-                q1.addLast(task); // append for FIFO
+                q1.addLast(task);
             else if (pri == PRI_NORM)
                 q2.addFirst(task); // push front for LIFO
             else //if (pri == PRI_LOW)
-                q3.addLast(task); // append for FIFO
+                q3.addLast(task);
             
             // typing in this class is currently a bit hacked-up:
             ((Task)task).setPriority(pri);
@@ -1532,17 +1529,8 @@ public class Images
 
         final ThreadPoolExecutor pool;
 
-        if (true) {
-            pool = new PriorityThreadPool(nThreads);
-        }
-//         else {
-//             pool = new ThreadPoolExecutor(nThreads, nThreads,
-//                                           0L, TimeUnit.MILLISECONDS,
-//                                           ///*TaskQueue =*/ new LinkedBlockingQueue<Runnable>(),
-//                                           TaskQueue = new tufts.vue.LinkedBlockingDeque<Runnable>(),
-//                                           ImageThreadFactory);
-//         }
-
+        pool = new PriorityThreadPool(nThreads);
+        
         Log.info("created thread pool: " + Util.tags(pool) + "; maxSize=" + pool.getMaximumPoolSize());
         
         return pool;
@@ -1556,7 +1544,6 @@ public class Images
             super(nThreads, nThreads,
                   0L, TimeUnit.MILLISECONDS,
                   (BlockingQueue<Runnable>) TaskQueue,
-                  //new PriorityBlockingQueue<Runnable>(),
                   ImageThreadFactory);
         }
 
@@ -3806,92 +3793,6 @@ class FileBackedImageInputStream extends ImageInputStreamImpl
         return getClass().getName() + "[" + file.toString() + "]";
     }
 
- }
+}
 
-
-
-
-    // oh crap.  POLLING across multiple queues will work, but which one would we
-    // wait on if all are empty?  I suppose we could have a single input queue...
-    // a synchronous queue?  a size 1 BlockingArrayQueue?
-//     private static class BlockingQueues<E> extends AbstractQueue<E> implements BlockingQueue<E> {
-//         final BlockingQueue<E>[] q;
-//         BlockingQueues(Object ... args) {}
-//         //boolean add(E e);
-//         @Override public int size() {
-//             return 0;
-//         }
-//         @Override public Iterator<E> iterator() { return null; }
-//         @Override public Iterator<E> peek() { return null; }
-//         public void put(E e) throws InterruptedException {}
-//         public boolean offer(E e, long timeout, TimeUnit unit) throws InterruptedException { return false; }
-//         public E take() throws InterruptedException { return null; }
-//         public E poll(long timeout, TimeUnit unit) throws InterruptedException { return null; }
-//         public int remainingCapacity() { return 0; }
-//         public boolean remove(Object o) { return false; }
-//         public boolean contains(Object o) { return false; }
-//         public int drainTo(Collection<? super E> c) { return 0; }
-//         public int drainTo(Collection<? super E> c, int maxElements) { return 0; }
-//     }
-
-
-
-
-//     /** A task that can have a priority, that defaults to FIFO if priorities are equal */
-//     private static final class PriorityTask extends FutureTask
-//         implements Comparable<PriorityTask>
-//     {
-//         final static AtomicLong seq = new AtomicLong();
-//         final long seqNum;
-//         final Loader loader; // is Loader just for getPriority -- could be a Comparable
-//         public PriorityTask(Loader loader) {
-//             super(loader, null);
-//             this.loader = loader;
-//             this.seqNum = seq.getAndIncrement();
-//         }
-//         public int compareTo(PriorityTask other) {
-//             if (!(other instanceof PriorityTask)) {
-//                 Log.error("can't compare to " + Util.tags(other));
-//                 return 0;
-//             }
-//             final int diff = other.priority() - priority();
-//             final int priority;
-//             if (diff == 0) {
-//                 if (false /*tufts.vue.gui.FullScreen.inNativeFullScreen()*/) {
-//                     // (It's a hack to test FullScreen native here -- should add an Images API
-//                     // call.)  LIFO is better for interactivity during fast-paging through
-//                     // presentations, (we want to load the contents of slide we "stop" on with the
-//                     // highest priority) tho it could cause pre-caching of the next slide to happen
-//                     // before the current slide images are loaded, which defeats our purpose
-//                     // in that case entirely.
-//                     priority = seqNum > other.seqNum ? -1 : 1; // follow LIFO sequence
-//                 } else {
-//                     // FIFO
-//                     priority = seqNum > other.seqNum ? 1 : -1; // follow FIFO sequence
-//                     // FIFO is better for giving us control control over pre-caching
-//                     // when kicking off a presentation, or when loading a single
-//                     // slide and kicking off pre-caching of the next slide.
-//                 }
-//             } else {
-//                 priority = diff; // follow task-type priority
-//             }
-
-//             // An ideal impl would provide default LIFO priority to all requests (which would
-//             // address fast presentation paging), and would handle caching requests specially via
-//             // low priority's or a separate queue, and crucially be able to UPGRADE the priority of
-//             // existing tasks from cache-level to top-priority LIFO if they come in as non-caching
-//             // requests later.
-            
-//             return priority;
-//         }
-
-//         private int priority() {
-//             return loader.getPriority();
-//         }
-        
-//         @Override public String toString() {
-//             return "PriorityTask[#" + seqNum + " " + loader + "]";
-//         }
-
-//     }
 
