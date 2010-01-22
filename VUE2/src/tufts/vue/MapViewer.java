@@ -79,7 +79,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.661 $ / $Date: 2010-01-22 19:40:23 $ / $Author: sfraize $ 
+ * @version $Revision: 1.662 $ / $Date: 2010-01-22 20:14:07 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1671,15 +1671,25 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         if (DEBUG.Enabled) Log.debug("pre-caching " + map);
         try {
             for (LWPathway pathway : map.getPathwayList()) {
-                if (DEBUG.IMAGE) Log.debug("pre-caching " + pathway);
+                if (DEBUG.IMAGE||DEBUG.IO) Log.debug("pre-caching " + pathway);
                 if (Images.lowMemoryConditions())
                     break;
-                for (LWComponent c : pathway.getAllDescendents(LWComponent.ChildKind.ANY)) {
-                    //Log.debug("pre-caching " + c);
-                    c.preCacheImpl();
+                
+//                 for (LWComponent c : pathway.getAllDescendents(LWComponent.ChildKind.ANY)) {
+//                     //Log.debug("pre-caching " + c);
+//                     c.preCacheImpl();
+//                     if (Images.lowMemoryConditions())
+//                         break;
+//                 }
+                
+                // This handles raw-images on the pathway:
+                for (LWPathway.Entry e : pathway.getEntries()) {
+                    if (DEBUG.IMAGE||DEBUG.IO) Log.debug("pre-caching " + e);
+                    LWComponent.preCacheDescendents(e.getFocal());
                     if (Images.lowMemoryConditions())
                         break;
                 }
+                
                 
             }
         } catch (Throwable t) {
