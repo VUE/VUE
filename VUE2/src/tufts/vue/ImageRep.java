@@ -80,6 +80,7 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
             @Override public boolean available() { return false; }
             @Override protected Image image() { return null; }
             @Override protected boolean reconstitute() { error(); return false; }
+            @Override protected Handle reconstitute(Object when) { error(); return null; }
             @Override protected void cacheData(Images.Handle i, Object debug) { error(); }
             @Override void renderRep(Graphics2D g, float width, float height) {
                 fillRect(g, width, height, DEBUG.Enabled ? Color.orange : LoadingColor);
@@ -185,7 +186,7 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
     private static final Handle AT_ERROR = Handle.emptyInstance();
     private static final Handle IS_WAITING = Handle.emptyInstance();
     
-    private synchronized Handle reconstitute(final Object when)
+    protected synchronized Handle reconstitute(final Object when)
     {
         if (_handle == IMG_ERROR) {
             // if this was an OutOfMemoryError (a potentially recoverable error), we allow us to retry indefinitely

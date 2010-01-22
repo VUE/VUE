@@ -51,7 +51,7 @@ import org.w3c.dom.NodeList;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.82 $ / $Date: 2010-01-22 21:44:27 $ / $Author: sfraize $
+ * @version $Revision: 1.83 $ / $Date: 2010-01-22 23:08:21 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -1466,9 +1466,9 @@ public class Images
                         debug("queue did not contain: " + task 
                               + "\n\t      was not in queue: " + Util.tags(src)
                               + "\n\trequested new priority: " + newPri
-                              + "\n\tThis task will not be re-queued."
+                              //+ "\n\tThis task will not be re-queued."
                               );
-                        dump();
+                        if (DEBUG.Enabled) dump();
                         //return; // allow re-queue for now: worst case, it re-runs
                     }
                     // if we're low-memory, this can happen as a result
@@ -1666,7 +1666,7 @@ public class Images
         }
 
         void setPriority(Object key) {}
-        Object getPriority() { return "_n/a"; }
+        Object getPriority() { return "-n/a"; }
         void raisePriority() {}
 
 
