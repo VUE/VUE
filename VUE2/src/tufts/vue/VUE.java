@@ -116,7 +116,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.706 $ / $Date: 2010-01-22 17:01:23 $ / $Author: brian $ 
+ * @version $Revision: 1.707 $ / $Date: 2010-01-22 19:40:23 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -376,8 +376,16 @@ public class VUE
         @Override
         protected void onChange(ActiveEvent<Resource> e)
         {
-            if (e.active != null)
-                checkForAndHandleResourceUpdate(e.active);
+            if (VUE.inPresentMode()) {
+                // do NOT attempt to update anything if we're in the
+                // middle of a presentation (e.g., the current focal
+                // is a raw image, making it also the active resource,
+                // as the current focal in a presentation is also
+                // set as the single selection).
+            } else {
+                if (e.active != null)
+                    checkForAndHandleResourceUpdate(e.active);
+            }
         }
     };
 
@@ -637,6 +645,10 @@ public class VUE
 
     /** @return the active tool as reported by the toolbar controller, which may only be a top-level tool*/
     public static VueTool getActiveTool() { return VueToolbarController.getActiveTool(); }
+    
+    public static boolean inPresentMode() {
+        return inFullScreen() && getActiveTool() instanceof PresentationTool;
+    }
     
     // TODO: refactor this so that the only place that makes a distinction between a top
     // level tool and a sub tool (e.g., SelectionTool v.s. SelectionTool.Direct) is in the toolbar

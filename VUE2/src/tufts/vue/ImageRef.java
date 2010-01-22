@@ -40,10 +40,6 @@ public class ImageRef
 
     private static final boolean ICONS_ARE_DISPOSABLE = false; // todo: true case needs testing / may not work
     
-//     private static final String SIZE_FULL = "FULL-SIZE";
-//     private static final String SIZE_ICON = "ICON-SIZE";
-//     private static final String SIZE_UNKNOWN = "UNKNOWN-SIZE";
-    
     private final ImageSource _source;
 
     private final Listener _repainter;
@@ -141,7 +137,7 @@ public class ImageRef
                     // test/verify]
                     if (Images.hasCacheEntry(iconKey)) {
                         _icon = createPreLoadedIconRep(iconKey);
-                        kickLoad(_icon);
+                        ensureLoading(_icon);
                     }
                     //}
             } else {
@@ -342,7 +338,8 @@ public class ImageRef
             if (!dc.isAnimating()) {
                 // We never kick image data loading during animations, as the desired representation
                 // may only be a momentary need (and it could suddenly slow down the animation to boot).
-                kickLoad(ideal, drawable);
+                // Note: ideal may already be loading -- kickLoad handles all that.
+                ensureLoading(ideal, drawable);
             }
 
             // rendering before/after kickloads doesn't matter as long as reps don't auto-constitute
@@ -390,13 +387,14 @@ public class ImageRef
         final float sw = Math.max(width,height) / 64f;
         g.setStroke(new java.awt.BasicStroke(sw));
         final float xoff, yoff;
-        xoff = yoff = sw / 2f;
+        xoff = yoff = sw / 2f + 0.5f;
         //xoff = width / 8f;
         //yoff = height / 8f;
         final Rectangle2D.Float r = new Rectangle2D.Float(xoff,yoff,width-xoff*2,height-yoff*2);
-        g.setColor(LoadingOverlayBlack);
-        g.draw(r);
+        //final Rectangle2D.Float r = new Rectangle2D.Float(xoff,yoff,width-sw,height-sw);
         g.setColor(LoadingOverlayWhite);
+        g.draw(r);
+        g.setColor(LoadingOverlayBlack);
         r.x += xoff;
         r.y += yoff;
         r.width -= xoff * 2;
@@ -404,28 +402,6 @@ public class ImageRef
         g.draw(r);
     }
     
-
-    private void kickLoad(ImageRep ideal, ImageRep drawable)
-    {
-        // Note: the logic below is tuned to cover many possible corner cases,
-        // and is not easy to refactor w/out breaking one or more of them.
-        
-        if (ideal != UNAVAILABLE) {
-            kickLoad(ideal);
-        } else if (!drawable.available()) {
-            if (drawable == UNAVAILABLE) { // if icon load failed, must create a new one (low memory) [NOT ENOUGH!]
-                if (DEBUG.Enabled) debug("forcing full load");
-                kickLoad(_full);
-            } else if (drawable == _icon && drawable.hasError()) {
-                //****************************************************************************************
-                // if icon load failed, must create a new one (low memory) [TODO: NOT ENOUGH]
-                //****************************************************************************************
-                if (DEBUG.Enabled) debug("forcing full load on bad icon");
-                kickLoad(_full);
-            } else
-                kickLoad(drawable);
-        }
-    }
 
     private void drawDebugStatus(Graphics2D g, ImageRep idealRep, ImageRep drawRep, float width, float height)
     {
@@ -601,38 +577,72 @@ public class ImageRef
         // in Images by giving higher priority to icon generating tasks than image loading tasks,
         // and by keeping a hard-ref to the image in the ImageSource.
 
-        kickLoad(icon);
+        ensureLoading(icon);
 
         return icon;
         
      }
     
-    private void kickLoad(ImageRep rep) {
-        //if (DEBUG.IMAGE && rep == _full) Log.debug("FULL REP LOAD " + rep, new Throwable("HERE"));
-        if (DEBUG.IMAGE) debug(" kickLoad " + rep);
-        if (!rep.loading()) {
-            //if (DEBUG.IMAGE) debug(" kickLoad " + rep);
-            final boolean waitingForCallback = rep.reconstitute();
-            //if (waitingForCallback && rep == _full)
-            if (waitingForCallback)
-                _repainter.imageRefUpdate(KICKED);
+    private void ensureLoading(ImageRep ideal, ImageRep drawable)
+    {
+        // Note: the logic below is tuned to cover many possible corner cases,
+        // and is not easy to refactor w/out breaking one or more of them.
+        
+        if (ideal != UNAVAILABLE) {
+            ensureLoading(ideal);
+        } else if (!drawable.available()) {
+            if (drawable == UNAVAILABLE) { // if icon load failed, must create a new one (low memory) [NOT ENOUGH!]
+                if (DEBUG.Enabled) debug("forcing full load");
+                ensureLoading(_full);
+            } else if (drawable == _icon && drawable.hasError()) {
+                //****************************************************************************************
+                // if icon load failed, must create a new one (low memory) [TODO: NOT ENOUGH]
+                //****************************************************************************************
+                if (DEBUG.Enabled) debug("forcing full load on bad icon");
+                ensureLoading(_full);
+            } else
+                ensureLoading(drawable);
         }
     }
-//     private void requestImmediateLoad(ImageRep rep) {
-//         if (DEBUG.IMAGE) debug("IMMEDIATE " + rep);
-//         rep.reconstituteNow();
-//     }
 
+    private void ensureLoading(ImageRep rep) {
+        ensureLoading(rep, false);
+    }
+    
     void preLoadFullRep() {
-        // TODO: would be better if we could somehow tag this as a low-priority task --
-        // e.g., these pre-caching tasks should only ever consume a single thread (low
-        // CPU usage, especially during a presentation), and if we transition to a
-        // low-memory state, all outstanding pre-caches should be flushed.  And if we
-        // get really fancy, we might be able to flush outstanding pre-caches if if the
-        // content is no longer needed -- e.g., you're fast-paging through a
-        // presentation in low-memory conditions, and you only need previews until you
-        // settle on where you want to be.
-        kickLoad(_full);
+        ensureLoading(_full, true);
+    }
+
+    private void ensureLoading(ImageRep rep, boolean lowPriorityCache) {
+        if (rep.loading() || rep.available()) {
+            // todo cleanup: this is probably being called more often than need be
+            
+            // Currently, ImageRep's handle being in first a CACHING state, and then
+            // upgrading to a LOADING state if they're later requested for a real paint.
+            // This allows us, for instance, to start caching all the items in a
+            // presentation, but then re-prioritize paint request if the user fast-pages
+            // through the presentation or jumps to the middle.  If we ALSO want to
+            // support being able to fast-page through, then fast-page BACK over items
+            // that have already been given LOADING priority, and re-prioritize them to
+            // the front of the LIFO queue, we'ld need to issue another Images call here
+            // to make that request.  Generally, that should actually work fine, tho in
+            // rare cases where lots of high-res images are being requested at once, the
+            // queue will thrash a bit -- that is, be fully rotating on each paint.
+            
+            return;
+        }
+
+        if (lowPriorityCache) {
+            //if (DEBUG.IMAGE) debug("->caching " + rep);
+            rep.requestCaching();
+        } else {
+            //if (DEBUG.IMAGE) debug(">kickLoad " + rep);
+            final boolean waitingForCallback = rep.reconstitute();
+            if (DEBUG.BOXES && waitingForCallback) {  //&& rep == _full)
+                // we should only need this for debug -- to repaint the status
+                _repainter.imageRefUpdate(KICKED);
+            }
+        }
     }
 
     private void debug(String s) {

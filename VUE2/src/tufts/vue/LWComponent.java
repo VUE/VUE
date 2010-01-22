@@ -48,7 +48,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.523 $ / $Date: 2010-01-19 23:09:42 $ / $Author: sfraize $
+ * @version $Revision: 1.524 $ / $Date: 2010-01-22 19:40:23 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1521,15 +1521,22 @@ public class LWComponent
 //         setClientProperty(o.getClass(), o);
 //     }
     
+    // todo: support client data via arbitrary ENUM values (e.g., with EnumMap, and maybe bits via an EnumSet)
+    
     /** convenience typing fetch when using a Class as a property key, that returns a value casted to the class type */
     public <A> A getClientData(Class<A> classKey, String subKey) {
-        return (A) getClientData(classKey.getName() + "/" + subKey);
+        final Object o = getClientData(classKey.getName() + "/" + subKey);
+        if (classKey == Boolean.class && o == null)
+            return (A) Boolean.FALSE; // special hack for null == boolean false
+        else
+            return (A) o;
     }
 
     /** convenience typing fetch when using a Class as a property key, that returns a value casted to the class type */
     public <A> A getClientData(Class<A> classKey) {
         return (A) getClientData((Object)classKey);
     }
+
     
     /**
      * Get the named property value from this component.
@@ -6537,14 +6544,15 @@ public class LWComponent
     /** default impl: does nothing -- meant to be overriden */
     protected void drawImpl(DrawContext dc) {}
 
-    /** default impl: does nothing -- meant to be overriden */
-    protected void preCacheContent() {}
+    /** default impl: does nothing -- meant to be overriden -- meant to potentially cache all children */
+    public void preCacheContent() {}
+    protected void preCacheImpl() {}
 
     protected static void preCacheDescendents(LWComponent focal) {
         //Log.debug("PRE CACHE FOCAL " + focal);
         for (LWComponent c : focal.getAllDescendents()) {
             //Log.debug("PRE-CACHE-CHILD " + c);
-            c.preCacheContent();
+            c.preCacheImpl();
         }
     }
     

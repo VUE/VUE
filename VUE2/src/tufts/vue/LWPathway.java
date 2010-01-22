@@ -46,7 +46,7 @@ import javax.swing.Icon;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.232 $ / $Date: 2010-01-18 22:30:07 $ / $Author: sfraize $
+ * @version $Revision: 1.233 $ / $Date: 2010-01-22 19:40:23 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -1262,10 +1262,9 @@ public class LWPathway extends LWContainer
             e.ensureModel();
     }
 
-    @Override protected void preCacheContent() {
-        if (DEBUG.Enabled) Log.debug("preCacheContent: not currently enabled");
-//         //for (Entry e : Util.reverse(mEntries)) { // reverse because Images uses LIFO queue
-//         for (Entry e : mEntries) { // Now uses FIFO
+    @Override public void preCacheContent() {
+        if (DEBUG.Enabled) Log.debug("preCacheContent: not currently enabled for " + getClass());
+//         for (Entry e : mEntries) { // cache sub-queue is FIFO, so handle front-to-back
 //             //Log.debug("PRE-CACHE-ENTRY " + e);
 //             preCacheEntryContent(e.getFocal());
 //         }

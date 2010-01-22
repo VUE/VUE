@@ -44,6 +44,9 @@ import javax.imageio.stream.*;
 import javax.xml.xpath.*;
 import org.w3c.dom.NodeList;
 
+import tufts.vue.DoubleQueue.LinkedBlockingDeque;
+
+
 /**
  *
  * Handle the loading of images in background threads, making callbacks to deliver
@@ -51,7 +54,7 @@ import org.w3c.dom.NodeList;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.79 $ / $Date: 2010-01-18 22:30:51 $ / $Author: sfraize $
+ * @version $Revision: 1.80 $ / $Date: 2010-01-22 19:40:22 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -69,14 +72,30 @@ public class Images
     // we're just going with immediately created icons.
     static final boolean DELAYED_ICONS = false;
 
-    public static synchronized void setLowMemory(Object cause) {
-        if (LOW_MEMORY_COUNT == 0)
-            Log.info(Util.TERM_CYAN + "entering low-memory conditions, cause=" + Util.tags(cause) + Util.TERM_CLEAR);
-        else
-            if (DEBUG.Enabled) Log.debug("setLowMemory " + LOW_MEMORY_COUNT + ": " + Util.tags(cause));
-        final boolean first = (LOW_MEMORY_COUNT == 0);
-        LOW_MEMORY_COUNT++;
-        ProcessingPool.shrinkIfPossible(first);
+    public static void setLowMemory(Object cause) {
+        synchronized (Images.class) {
+            if (LOW_MEMORY_COUNT == 0) {
+                Log.info(Util.TERM_PURPLE + "entering low-memory conditions, cause=" + Util.tags(cause) + Util.TERM_CLEAR);
+            } else {
+                if (DEBUG.Enabled) Log.debug(Util.TERM_PURPLE + "setLowMemory " + LOW_MEMORY_COUNT + ": "
+                                             + Util.TERM_CLEAR 
+                                             + Util.tags(cause));
+            }
+            final boolean first = (LOW_MEMORY_COUNT == 0);
+            LOW_MEMORY_COUNT++;
+            ProcessingPool.shrinkIfPossible(first);
+        }
+        // we do this out side of the sync just in case, as
+        // below will obtain it's own sync
+        //TaskQueue.flushCachingRequests(); // needs testing
+
+        // TODO: either allow the above flushing, or skip the tasks when popped off queue and force
+        // callbacks to listeners with an error.  At this point, we're getting into issues of
+        // coherency with ImageRep loading states, and it's getting so complex that this is the
+        // point to stop and wait for a day when we can do a greenfield impl w/out all the
+        // backward-compat Images API's, and just keeps ImageRef's themselves in the cache,
+        // possibly even with their own prev/next task-queue pointers for fast jumping & shuffling.
+        
     }
 
     public static int lowMemoryCount() {
@@ -116,6 +135,10 @@ public class Images
     }
 
 
+    private static final Object     LOAD_CACHE = "CACHE";
+    private static final Object    LOAD_NORMAL = "PAINT";
+    private static final Object LOAD_IMMEDIATE = "PRINT";
+
     /**
      * Fetch the given image with meta-data.  If it's cached, listener.gotImage is called back immediately
      * in the current thread.  If not, the image is fetched asynchronously, and the
@@ -131,24 +154,24 @@ public class Images
     
     public static Handle getImageHandle(Object imageSRC, Images.Listener listener)
     {
-        return getImage(imageSRC, listener, false);
+        return getImage(imageSRC, listener, LOAD_NORMAL);
     }
     
+    public static Handle getImageImmediately(Object imageSRC, Images.Listener listener)
+    {
+        return getImage(imageSRC, listener, LOAD_IMMEDIATE);
+    }
+    
+    public static Handle cacheImage(Object imageSRC, Images.Listener listener)
+    {
+        return getImage(imageSRC, listener, LOAD_CACHE);
+    }
+
     public static Image getImage(Object imageSRC, Images.Listener listener)
     {
-        //return getImage(imageSRC, listener, false).image;
-        return handleImage(getImage(imageSRC, listener, false));
+        return handleToImage(getImage(imageSRC, listener, LOAD_NORMAL));
     }
 
-
-    /**
-     * If the requested content is not already loading,
-     * it will be immediately loaded in the current thread.
-     */
-    public static Image getImageASAP(Object imageSRC, Images.Listener listener)
-    {
-        return getImage(imageSRC, listener, true).image;
-    }
     
     /**
      * Fetch the given image.  If it's cached, listener.gotImage is called back immediately
@@ -165,10 +188,10 @@ public class Images
      *
      * @return the Image if immediately available, null if the listener will be called back.
      **/
-    private static Handle getImage(Object imageSRC, Images.Listener listener, boolean immediate)
+    private static Handle getImage(Object imageSRC, Images.Listener listener, Object when)
     {
         try {
-            return getCachedOrCallbackOnLoad(imageSRC, listener, immediate);
+            return getCachedOrCallbackOnLoad(imageSRC, listener, when);
         } catch (Throwable t) {
             if (DEBUG.IMAGE) tufts.Util.printStackTrace(t);
             if (listener != null)
@@ -441,7 +464,7 @@ public class Images
                     if (entry instanceof LoadThread) {
                         Log.info("STOPPING THREAD ENTRY " + entry);
                         ((LoadThread)entry).stop();
-                    } else if (entry instanceof LoadTask) {
+                    } else { //if (entry instanceof Loader) {
                         Log.warn("LEAVING TO RUN OUT TASK ENTRY " + entry);
                         // if it was a Future, we could attempt to de-queue it
                     }
@@ -646,7 +669,8 @@ public class Images
             
             synchronized (this) {
                 if (hasListener(newListener)) {
-                    if (DEBUG.Enabled) out("CachingRelayer: ALREADY A LISTENER FOR THIS IMAGE: " + tag(newListener));
+                    if (DEBUG.IMAGE) out(getClass().getSimpleName() +
+                                         " redundant listener: " + tag(newListener));
                     return false;
                 }
                 if (tail == null)  {
@@ -826,12 +850,12 @@ public class Images
 
     /**
      * @return Image if cached or listener is null, otherwise makes callbacks to the listener from
-     * a new thread.
+     * a new thread.  Note: specifying both a listener, and immediate=true is untested.
      */
     private static Handle getCachedOrCallbackOnLoad
         (final Object imageSource,
          final Images.Listener listener,
-         final boolean immediate)
+         final Object when)
         throws java.io.IOException, java.lang.InterruptedException
     {
         if (imageSource instanceof Image) {
@@ -861,17 +885,18 @@ public class Images
         //if (DEBUG.IMAGE) System.out.println("-------------------------------------------------------");
 
         //Log.debug("fetching image source " + imageSRC + " for " + tag(listener));
-        //if (DEBUG.Enabled) Log.debug("fetching " + imageSRC + " for listener " + Util.tag(listener));
-        if (DEBUG.IMAGE) Log.debug("fetching for listener " + Util.tag(listener) + " " + imageSRC);
+        if (DEBUG.Enabled) Log.debug("fetching for "
+                                     + Util.tags(when)
+                                     + " to listener " + Util.tag(listener) + "; " + imageSRC);
 
-        final Object cacheEntry = getCachedOrKickLoad(imageSRC, listener, immediate);
+        final Object cacheEntry = getCachedOrKickLoad(imageSRC, listener, when);
 
-        // TODO: if nothing was found in the cache and an ICON for the
+        // Possibly: if nothing was found in the cache and an ICON for the
         // given source exists in the cache, return that.  Either that
         // or change all Images callers to request an ImageRef, which
         // will handle that for us.
         
-        if (cacheEntry == IMAGE_LOADER_STARTED) {
+        if (cacheEntry == LOADER_JUST_STARTED) {
             // if this is the START of a new load, the caller has already been attached
             // as a listener, and the results will be coming via callback.
             return null;
@@ -898,55 +923,74 @@ public class Images
                 return new Handle(loaderImage);
             }
 
+            if (when == LOAD_NORMAL)
+                loader.raisePriority();
+            
+            // TODO: if this is a "regular priority" request, and we find a loader in the cache
+            // that has NOT already been started, then the task queue(s) may need modification.
+            // If the existing task is in the caching queue, it needs to be moved (to the
+            // front) of the regular loading queue.  If the existing task is in the loading
+            // queue, it needs to be moved (LIFO style) to the front of the loading queue.
+
             if (listener != null) {
                 //if (DEBUG.IMAGE) out("Adding us as listener to existing Loader");
                 loader.addListener(listener);
-                return null;
-                
-            } else {
-                
-                // We had no listener, so run synchronous & wait on existing loader thread to die:
-                // We can't have a cache-lock when we do this.
-                
-                // NOTE: this is dangerous -- multiple non-listener requests for the
-                // same loading content will quickly have all image processing threads
-                // hung waiting on the same load -- do we still need this?  Generally
-                // speaking, image requests w/out listeners are not safe.  For now,
-                // we'll only allow this if this was an immediate requrest.
-
-                if (!immediate) {
-                    // No listener, no cache entry, no result.  Caller simply
-                    // gets null and doesn't know why, even tho the image
-                    // may now be loading.
-                    Log.warn("no listener for non-cached content: caller in the dark as to the presence of image content: " + imageSRC);
+                if (when != LOAD_IMMEDIATE) {
+                    // normal case: called has been added as a listener to an existing
+                    // load -- just return.
                     return null;
                 }
-
-                Log.info("Joining " + tag(loader) + "...");
-                loader.join();
-                Log.info("Join of " + tag(loader) + " completed, cache has filled.");
-                
-                // Note we get here only in one rare case: there was an entry in the
-                // cache that was already loading on another thread, and somebody new
-                // requested the image that did NOT have a listener, so we joined the
-                // existing thread and waited for it to finish (with no listener, we
-                // have to run synchronous).
-                
-                // So now that we've waited, we should be guaranteed to have a full
-                // Image result in the cache at this point.
-                
-                // Note: theoretically, the GC could have cleared our SoftReference
-                // betwen loading the cache and now.  We can't lock the cache while
-                // we're waiting on the join tho.
-                
-//                 cachedImage = ((CacheEntry)RawCache.get(imageSRC.key)).getCachedImage();
-//                 if (cachedImage == null)
-//                     Log.warn("Zealous GC: image tossed immediately " + imageSRC);
-                
-                handle = ((CacheEntry)RawCache.get(imageSRC.key)).getHandle();
-                if (handle == null)
-                    Log.warn("Zealous GC: image tossed immediately " + imageSRC);
             }
+
+            // We had no listener, so we can only run synchronous & wait on existing loader thread
+            // to die: We can't have a cache-lock when we do this.
+                
+            // Note: this can be dangerous -- multiple non-listener requests for the same
+            // loading content will quickly have all image processing threads hung waiting on
+            // the same load -- do we still need this?  Generally speaking, image requests
+            // w/out listeners are not safe.  For now, we'll only allow this if this was an
+            // immediate requrest.
+
+            // Note: our print code (ImageRef rendering in a print-quality DrawContext) makes
+            // use of non-listener requests regularly to ensure full-resolution image data is
+            // loaded before rendering, but each request is going to come in via a single
+            // thread, so we shouldn't have to worry about contention issues -- however,
+            // multiple print jobs running at the same time in different threads could cause a
+            // problem.  Actually, no -- if an image ALREADY has an active loader, and then we
+            // get a print request, we will need to take advantage of the join below.
+
+            if (when != LOAD_IMMEDIATE) {
+                // No listener, no cache entry, no result.  Caller simply
+                // gets null and doesn't know why, even tho the image
+                // may now be loading.
+                Log.warn("no listener for non-cached content: caller in the dark as to the presence of image content: " + imageSRC);
+                return null;
+            }
+
+            Log.info("Joining " + tag(loader) + "...");
+            loader.join();
+            Log.info("Join of " + tag(loader) + " completed, cache has filled.");
+                
+            // Note we get here only in one rare case: there was an entry in the
+            // cache that was already loading on another thread, and somebody new
+            // requested the image that did NOT have a listener, so we joined the
+            // existing thread and waited for it to finish (with no listener, we
+            // have to run synchronous).
+                
+            // So now that we've waited, we should be guaranteed to have a full
+            // Image result in the cache at this point.
+                
+            // Note: theoretically, the GC could have cleared our SoftReference
+            // betwen loading the cache and now.  We can't lock the cache while
+            // we're waiting on the join tho.
+                
+            //                 cachedImage = ((CacheEntry)RawCache.get(imageSRC.key)).getCachedImage();
+            //                 if (cachedImage == null)
+            //                     Log.warn("Zealous GC: image tossed immediately " + imageSRC);
+                
+            handle = ((CacheEntry)RawCache.get(imageSRC.key)).getHandle();
+            if (handle == null)
+                Log.warn("Zealous GC: image tossed immediately " + imageSRC);
         }
         else if (cacheEntry instanceof Handle) {
             handle = (Handle) cacheEntry;
@@ -1001,7 +1045,7 @@ public class Images
     }
     
 
-    private static final Object IMAGE_LOADER_STARTED = "<image-loader-created>";
+    private static final Object LOADER_JUST_STARTED = "<image-loader-created>";
     
     
     /**
@@ -1019,7 +1063,7 @@ public class Images
         private Thread _shutdownThread;
         private ThreadPoolExecutor _pool;
         private ExecutorService _poolInShutdown;
-        private List<Runnable> _deferredTasks;
+        //private List<Runnable> _deferredTasks;
         private int _nextSmallerPoolSize;
             
         ImmediatelyReducablePool(int startSize) {
@@ -1054,7 +1098,7 @@ public class Images
                     if (_nextSmallerPoolSize <= 1) {
                         _nextSmallerPoolSize = 0;
                         _shutdownThread = null; // allow GC
-                        _deferredTasks = null; // allow GC
+                        //_deferredTasks = null; // allow GC
                         break; // no more resizes possible
                     } else {
                         reduceNextPoolSize();
@@ -1110,43 +1154,43 @@ public class Images
             }
             _pool = createThreadPool(size);
 
-            loadTasks(_deferredTasks);
-
-            _deferredTasks = null;
+//             loadTasks(_deferredTasks);
+//             _deferredTasks = null;
         }
 
         private synchronized void loadTasks(Collection<Runnable> tasks) {
 
             Log.info("RESUBMIT: " + Util.tags(tasks));
-            //Util.dump(_deferredTasks);
             for (Runnable r : tasks) {
                 //_pool.submit(r); // java 1.6 impl
                 _pool.execute(r); // java 1.5 impl
             }
         }
 
-        public synchronized void addTask(Runnable r) {
+        private synchronized void addTask(Task r) {
             if (_pool == null) {
                 Log.info("deferred " + r);
-                _deferredTasks.add(r);
+                //_deferredTasks.add(r);
+                TaskQueue.queueTask(r);
             } else {
-                // _pool.submit(r); // java 1.6 impl
+                // _pool.submit(r); // java 1.6 impl -- (note: creates FutureTask's internally)
                 _pool.execute(r); // java 1.5 impl
             }
         }
 
         /** re-load the queue as the priority mechanism has changed -- any IconTasks need to be sorted to the front */
         private synchronized void resortQueue() {
-            final BlockingQueue q = _pool.getQueue();
+            Log.info("skipping queue resort: self-managed");
+//             final BlockingQueue q = _pool.getQueue();
 
-            if (q.size() > 1) {
-                Log.info("resorting queue " + Util.tags(q));
-                final Collection<Runnable> qlist = new ArrayList(q.size());
-                q.drainTo(qlist);
-                loadTasks(qlist);
-            } else {
-                Log.info("queue doesn't need re-sorting: " + Util.tags(q));
-            }
+//             if (q.size() > 1) {
+//                 Log.info("resorting queue " + Util.tags(q));
+//                 final Collection<Runnable> qlist = new ArrayList(q.size());
+//                 q.drainTo(qlist);
+//                 loadTasks(qlist);
+//             } else {
+//                 Log.info("queue doesn't need re-sorting: " + Util.tags(q));
+//             }
         }
         
         public synchronized void shrinkIfPossible(boolean firstLowMemory)
@@ -1161,24 +1205,27 @@ public class Images
                 // if EOM's stack up, we may try and shrink while
                 // already waiting for a shrink, and _pool will be null
         
-                final List<Runnable> dequeued;
-                if (false) {
-                    dequeued = new ArrayList();
-                    TaskQueue.drainTo(dequeued);
-                    Log.debug("shutdown...");
-                    _pool.shutdown();
-                } else {
-                    Log.debug("shutdownNow...");
-                    dequeued = _pool.shutdownNow();
-                }
-                Log.info("back from shutdown, drained=" + Util.tags(dequeued));
-                if (DEBUG.Enabled) Util.dump(dequeued);
-                if (_deferredTasks == null) {
-                    _deferredTasks = new ArrayList(dequeued);
-                } else {
-                    _deferredTasks.addAll(dequeued);
-                }
+//                 // We no longer need to drain the queue, as we self-manage it now
+//                 final List<Runnable> dequeued;
+//                 if (false) {
+//                     dequeued = new ArrayList();
+//                     TaskQueue.drainTo(dequeued);
+//                     Log.debug("shutdown...");
+//                     _pool.shutdown();
+//                 } else {
+//                     Log.debug("shutdownNow...");
+//                     dequeued = _pool.shutdownNow();
+//                 }
+//                 Log.info("back from shutdown, drained=" + Util.tags(dequeued));
+//                 if (DEBUG.Enabled) Util.dump(dequeued);
+//                 if (_deferredTasks == null) {
+//                     _deferredTasks = new ArrayList(dequeued);
+//                 } else {
+//                     _deferredTasks.addAll(dequeued);
+//                 }
 
+                Log.debug("shutdownNow...");
+                _pool.shutdownNow();
                 final ExecutorService oldPool = _pool;
                 _pool = null;
                 forkAndWaitForTermination(oldPool);
@@ -1198,9 +1245,237 @@ public class Images
         }
     }
 
-    private static final ImmediatelyReducablePool ProcessingPool;
+    private static final Runnable NOOP = new Runnable() {
+            volatile long count = 0;
+            public void run() {
+                if (DEBUG.Enabled) {
+                    Log.debug(Util.TERM_PURPLE + "NOOP RUNS " + count + Util.TERM_CLEAR);
+                    count++;
+                }
+            }
+            @Override public String toString() { return "NOOP"; }
+        };
 
-    private static BlockingQueue<Runnable> TaskQueue;
+
+    private static final String PRI_HIGH = "HIGH";
+    private static final String PRI_NORM = "NORM";
+    private static final String PRI_LOW = "LAST";
+
+    // ThreadPoolExectuor impl requires BlockingQueue methods:
+    //          offer, remove, isEmpty, poll, poll(time,timeUnit), take, drainTo(Collection), iterator,
+    //          remainingCapacity, size
+    // it does NOT need (so, it needs just about everything)
+    //          add, contains
+    // Primarily, we need to override TAKE/poll and OFFER to feed ThreadPoolExectuor properly
+    
+    private static final class TaskQueue<E> extends SynchronousQueue<E>
+    {
+        // An implementaiton that maximally adressed performance would record the canvas object
+        // drawn to (e.g., MapViewer object: the full-screen v.s. standard map instances, etc) for
+        // each desired representation, and an API call for the application to report the current
+        // priority canvas (e.g., when a MapViewer gets application focus).  Or perhaps an API call
+        // to report when the focal has changed or narrowed, so we should only then pay attention
+        // re-prioritizing due to repeated paint requests.  In any case, Within the priority canvas
+        // items, the most recently desired reps would take priority (e.g., the most recently
+        // requested content to be drawn to the full-screen viewer when in presentation mode has
+        // priority). As ImageRep's won't re-poll the cache (call getImage) if their alreadly
+        // loading (and that would be messy to enforce) this would require coordination with the
+        // ImageRef's desired reps each time they're drawn.  This would probably be most simply
+        // done by changing ImageRef's to singleton instances that are stored in the cache.  All
+        // that is to prevent excess queue thrashing (near full rotations on each paint), tho in
+        // practice that would only actually happen when there are lots of high-res full-scale
+        // images trying to draw at once, which is fundamentally limited by the pixel resoution of
+        // the screen.
+        
+        // For icon tasks, runs as FIFO (would be better as a JDK1.6 ArrayDeque, as this never needs shuffling)
+        private final LinkedList<E> q1 = new LinkedList();
+        // For normal priorities, runs as LIFO, and requires re-shuffling:
+        private final LinkedList<E> q2 = new LinkedList();
+        // For low priorities, runs as FIFO (also better as ArrayDeque)
+        private final LinkedList<E> q3 = new LinkedList();
+        
+        // The total queue can be seen as three regions arranged linearly in order of priority,
+        // left to right, to be fed to the TPE (ThreadPoolExecutor):
+        //
+        // TPE <- [FIFO priorities (icon generation)] <= [LIFO paint requests] <= [FIFO cache requests]
+
+        private static void debug(String s) {
+            Log.info(Util.TERM_GREEN + s + Util.TERM_CLEAR);
+        }
+
+        private void dump() {
+            Log.debug("TaskQueue:");
+            Util.dump(q1);
+            Util.dump(q2);
+            Util.dump(q3);
+        }
+
+// Actually, we leave this as the SynchronousQueue default, which is to always report as empty.
+//         @Override public synchronized boolean isEmpty() {
+//             return q0.size() + q1.size() + q2.size() < 1;
+//         }
+        
+        @Override public E take() throws InterruptedException {
+            E o = popNext();
+            if (o != null) {
+                if (DEBUG.IMAGE) debug("take provides " + o);
+                return o;
+            } else {
+                // There are currently no outstanding tasks.
+                if (DEBUG.IMAGE) debug("take is waiting on offer...");
+                // SynchronousQueue super.take() will put this thread to sleep, and it won't wake
+                // until another thread makes a call to super.offer(Runnable).  The codepath for
+                // that call is via ThreadPoolExecutor.execute(Runnable), which will call into our
+                // BlockingQueue to offer new tasks.  We don't just call offer ourselves when a new
+                // image request comes in -- we want the TPE to do that.
+                return super.take();
+            }
+        }
+        
+        @Override public boolean offer(E e)
+        {
+            // offer(E) This is called by ThreadPoolExecutor in execute() -- we run through that so
+            // we can take advantage of it's thread startup/restart code.
+        
+            // All we do is add it to our self-managed queue -- we don't immediately feed it to
+            // the TPE, as we may have other more important tasks outstanding.
+            
+            queueTask(e);
+            
+            // Ideally, this would offer up a PEEK, and if accepted, THEN pop the peek.  We always
+            // want to return true in any case -- we're unbounded.  queueTask could also return the task
+            // queued in the special case that it's the only item in the queue, which is a common condition.
+            // Doing it that way would at least leave the total real queue-size check inside the same sync.
+
+            // CRUCIAL: super.offer(E) is what signals the blocking run thread in
+            // ThreadPoolExecutor to wake and look for more tasks.  We do not transfer a task to be
+            // executed -- it's just a wake-up signal to call us back for another take().  The NOOP
+            // task we hand it will in fact run, just quickly and with no result.
+
+            /*final boolean wasAccepted = */ super.offer((E)NOOP);
+
+            // Note that we DO NOT want to use put() or some other superclass impl that would let
+            // us block here until the offer succeeds, as by the time the TPE is ready for another
+            // take(), our self-managed queue may well have something more important to offer up.
+            
+            return true;
+        }
+        
+        @Override public E poll() {
+            // This will be called by SyncQueue to DRAIN us if the TPE is shutting down.
+            // We never want or need to be drained, so we always return null.
+            debug(getClass() + ".poll() returning null");
+            return null;
+//             final E o = getNext();
+//             /*if (DEBUG.IMAGE)*/ debug("local poll " + o);
+//             if (o != null) {
+//                 return o;
+//             } else {
+//                 /*if (DEBUG.IMAGE)*/ debug("super poll " + o);
+//                 return super.poll();
+//             }
+        }
+        
+        private void queueTask(E task) {
+            if (task instanceof Task) {
+                // typing in this class is currently a bit hacked-up
+                final Object pri = ((Task)task).getPriority();
+                if (DEBUG.IMAGE) debug("QUEUE(" + pri + "):  " + task);
+                queueTask(task, pri);
+            } else {
+                Log.error("cannot queue: " + Util.tags(task));
+            }
+        }
+        
+        synchronized void queueTask(E task, Object pri) {
+                
+            if (pri == PRI_HIGH) 
+                q1.addLast(task); // append for FIFO
+            else if (pri == PRI_NORM)
+                q2.addFirst(task); // push front for LIFO
+            else //if (pri == PRI_LOW)
+                q3.addLast(task); // append for FIFO
+            
+            // typing in this class is currently a bit hacked-up:
+            ((Task)task).setPriority(pri);
+        }
+
+        /** @return the next highest priority processing task */
+        private synchronized E popNext() {
+
+            // Ideally, we would mark Tasks as RUNNING right here -- as soon as it's de-queued.
+                
+            if (q1.size() > 0)
+                return q1.removeFirst(); // pop front (was inserted FIFO)
+            else if (q2.size() > 0)
+                return q2.removeFirst(); // pop front (was inserted LIFO)
+            else 
+                return q3.poll(); // pop front (was inserted FIFO), but return null if empty
+        }
+
+        void raiseTaskPriority(Task task) {
+            //debug("RAISE-PRIORITY: " + task);
+            final Object pri = task.getPriority();
+            if (pri == PRI_LOW) {
+                jumpQueue(q3, task, PRI_NORM);
+            } else if (pri == PRI_NORM) {
+                jumpQueue(q2, task, PRI_NORM);
+            }
+        }
+        
+        // this needs testing: could be dangerous: even tho we're only
+        // flushing caching requests, the Loader's can still be in
+        // the RawCache, and we never want the possibility of a task
+        // being left orphaned there, as future requests for that image
+        // will think it's queued to be loaded, when that will never
+        // happen.
+//         synchronized void flushCachingRequests() {
+//                 // note: these task will still be in the RawCache, so
+//                 // they may later be found there and attempt to be re-prioritized...
+//                 if (q3.size() > 0) {
+//                     if (DEBUG.Enabled) Log.debug("flusing caching queue " + Util.tags(q3));
+//                     q3.clear();
+//                 }
+//         }
+
+        synchronized void jumpQueue(List src, Task task, Object newPri) {
+                if (DEBUG.Enabled) {
+                    if (DEBUG.IMAGE) dump();
+                    debug("jumpQueue to " + newPri + " for: " + task);
+                }
+                if (!src.remove(task)) {
+                    //if (!lowMemoryConditions() || task.isRunning()) { // really: is running, or has run
+                    if (true) { 
+                        debug("queue did not contain: " + task 
+                              + "\n\t      was not in queue: " + Util.tags(src)
+                              + "\n\trequested new priority: " + newPri
+                              + "\n\tThis task will not be re-queued."
+                              );
+                        dump();
+                        //return; // allow re-queue for now: worst case, it re-runs
+                    }
+                    // if we're low-memory, this can happen as a result
+                    // of flushing cache requests -- we allow the re-queuing
+                    //if (DEBUG.Enabled) debug("re-queue loMem orphan: " + task);
+                    
+                }
+                queueTask((E)task, newPri);
+                if (DEBUG.IMAGE) dump();
+            }
+
+        // Ideally, these caching tasks would only ever consume a single thread (low CPU
+        // usage, especially during a presentation), and if we transition to a
+        // low-memory state, all outstanding pre-cache requests should be flushed.
+
+        // We should at least be able to demote outstanding pre-caches if the content
+        // is no longer needed -- e.g., you're fast-paging through a presentation in
+        // low-memory conditions, and you only need previews until you settle on where
+        // you want to be.  The way to handle this is actually to promote more
+        // recent duplicate requests.
+    }
+    
+    
+    private static final TaskQueue<Runnable> TaskQueue = new TaskQueue();
     
     private static final int ImageThreadPriority;
 
@@ -1223,9 +1498,21 @@ public class Images
             }
         };
 
+    private static final ImmediatelyReducablePool ProcessingPool;
+
     static {
         final int cores = Runtime.getRuntime().availableProcessors() - 1;
-        final int useCores = DEBUG.SINGLE_THREAD ? 1 : cores;
+        final int useCores;
+
+        if (DEBUG.SINGLE_THREAD) {
+            if (cores == 1)
+                useCores = 2;
+            else
+                useCores = 1;
+        } else {
+            useCores = cores;
+        }
+
         // rough test: on a 2-core laptop, our use-case came in at 1min v.s. 1:30min w/all cores in use
         // (all icons being generated)
 
@@ -1243,61 +1530,33 @@ public class Images
 
     private static ThreadPoolExecutor createThreadPool(int nThreads) {
 
-        // Note: LinkedBlockingQueue is a FIFO queue.  An argument could be made that
-        // LIFO would be better for drawing -- e.g., older requests may no longer be
-        // needed on screen.  Example: a map is loading triggering tons of image loads.
-        // A presentation is immediately started, requesting the the content at the
-        // start of the presentation (which is already queued up with a LoadTask from
-        // the original map paint) -- this content at the head of the presentation
-        // should now get priority over other content waiting to load.  This could
-        // include re-ordering the queue to move older items at the the head of a LIFO
-        // queue to the higher-priority tail if a second request comes in for the same
-        // content.  This might generally be supported through using a PriorityQueue /
-        // PriorityBlockingQueue.
-
-        // Tho note that with an updating-on-request PriorityQueue, there could be lots of queue
-        // shuffling during repaints of maps with lots unloaded images -- the entire queue could be
-        // rotated front to back to on each repaint as every unloaded image is re-requested.
-
-        // A wrapped LinkedBlockingDequeue forced to LIFO may do the trick
-
-        // An implementaiton that maximally adressed user concerns would record the
-        // canvas object drawn to (e.g., MapViewer object: the full-screen v.s. standard
-        // map instances, etc) for each desired representation, and an API call for the
-        // application to report the current priority canvas (e.g., when a MapViewer
-        // gets application focus).  Within the priority canvas items, the most recently
-        // desired reps would take priority (e.g., the most recently requested content
-        // to be drawn to the full-screen viewer when in presentation mode has
-        // priority). As ImageRep's won't re-poll the cache (call getImage) if their
-        // alreadly loading (and that would be messy to enforce) this would require
-        // coordination with the ImageRef's desired reps each time they're drawn.  This
-        // would probably be most simply done by changing ImageRef's to singleton
-        // instances that are stored in the cache.
-
         final ThreadPoolExecutor pool;
 
         if (true) {
             pool = new PriorityThreadPool(nThreads);
-        } else {
-            pool = new ThreadPoolExecutor(nThreads, nThreads,
-                                          0L, TimeUnit.MILLISECONDS,
-                                          /*TaskQueue =*/ new LinkedBlockingQueue<Runnable>(),
-                                          ImageThreadFactory);
         }
+//         else {
+//             pool = new ThreadPoolExecutor(nThreads, nThreads,
+//                                           0L, TimeUnit.MILLISECONDS,
+//                                           ///*TaskQueue =*/ new LinkedBlockingQueue<Runnable>(),
+//                                           TaskQueue = new tufts.vue.LinkedBlockingDeque<Runnable>(),
+//                                           ImageThreadFactory);
+//         }
 
         Log.info("created thread pool: " + Util.tags(pool) + "; maxSize=" + pool.getMaximumPoolSize());
         
         return pool;
     }
-
-    private static class PriorityThreadPool extends ThreadPoolExecutor {
+    
+    private static final class PriorityThreadPool extends ThreadPoolExecutor {
 
         private int lowMemoryRepaints;
         
         PriorityThreadPool(int nThreads) {
             super(nThreads, nThreads,
                   0L, TimeUnit.MILLISECONDS,
-                  new PriorityBlockingQueue<Runnable>(),
+                  (BlockingQueue<Runnable>) TaskQueue,
+                  //new PriorityBlockingQueue<Runnable>(),
                   ImageThreadFactory);
         }
 
@@ -1326,19 +1585,51 @@ public class Images
         @Override public <T> Future<T> submit(Callable<T> task) {
             throw new Error("use execute; " + task);
         }
+
+//         private boolean first = true;
+//         @Override public void execute(Runnable runnable) {
+//             if (runnable instanceof Loader) {
+//                 if (DEBUG.Enabled) Log.debug("new-task " + runnable);
+//                 if (first) {
+//                     //super.execute(new PriorityTask((Loader)runnable));
+//                     super.execute(runnable);
+//                     first = false;
+//                 } else {
+//                     //TaskQueue.addFirst(new PriorityTask((Loader)runnable));
+//                     TaskQueue.addFirst(runnable);
+//                     // if caching task, do addLast...
+//                 }
+//             } else {
+//                 if (DEBUG.Enabled) Log.debug("resubmit " + runnable);
+//                 if (first) {
+//                     super.execute(runnable);
+//                     //first = false;
+//                 } else {
+//                     TaskQueue.addFirst(runnable);
+//                 }
+//             }
+//         }
         
         @Override public void execute(Runnable runnable) {
-            if (runnable instanceof Loader) {
-                if (DEBUG.Enabled) Log.debug("new-task " + runnable);
-                super.execute(new PriorityTask((Loader)runnable));
-            } else {
-                if (DEBUG.Enabled) Log.debug("resubmit " + runnable);
-                super.execute(runnable);
-            }
+            if (DEBUG.Enabled) Log.debug("submit " + runnable);
+            super.execute(runnable);
+            
+//             if (runnable instanceof Loader) {
+//                 if (DEBUG.Enabled) Log.debug("new-task " + runnable);
+//                 super.execute(new PriorityTask((Loader)runnable));
+//             } else {
+//                 if (DEBUG.Enabled) Log.debug("resubmit " + runnable);
+//                 super.execute(runnable);
+//             }
         }
         
         @Override protected void afterExecute(Runnable r, Throwable t) {
-            if (DEBUG.IMAGE) Log.debug("AFTER-EXECUTE " + Util.tags(r) + "; ex=" + t); // don't toString the task -- members flushed for GC
+
+            if (r == NOOP) return;
+            
+            // note: don't toString the task -- members flushed for GC, so you'll get NPE
+            //if (DEBUG.IMAGE) Log.debug("AFTER-EXECUTE " + Util.tags(r) + "; ex=" + t);
+            
             // Only allow a few of these, otherwise we can get continuous looping failures if
             // memory becomes full enough.  This is mainly needed for recovery from the first
             // low-memory failure.
@@ -1351,85 +1642,28 @@ public class Images
                     lowMemoryRepaints++;
                 }
             }
-            if (r instanceof Loader)
-                ((Loader)r).flushForGC();
-            
         }
-    }
-
-    /** A task that can have a priority, that defaults to FIFO if priorities are equal */
-    private static final class PriorityTask extends FutureTask
-        implements Comparable<PriorityTask>
-    {
-        final static AtomicLong seq = new AtomicLong();
-        final long seqNum;
-        final Loader loader; // is Loader just for getPriority -- could be a Comparable
-        public PriorityTask(Loader loader) {
-            super(loader, null);
-            this.loader = loader;
-            this.seqNum = seq.getAndIncrement();
-        }
-        public int compareTo(PriorityTask other) {
-            if (!(other instanceof PriorityTask)) {
-                Log.error("can't compare to " + Util.tags(other));
-                return 0;
-            }
-            final int diff = other.priority() - priority();
-            final int priority;
-            if (diff == 0) {
-                if (false /*tufts.vue.gui.FullScreen.inNativeFullScreen()*/) {
-                    // (It's a hack to test FullScreen native here -- should add an Images API
-                    // call.)  LIFO is better for interactivity during fast-paging through
-                    // presentations, (we want to load the contents of slide we "stop" on with the
-                    // highest priority) tho it could cause pre-caching of the next slide to happen
-                    // before the current slide images are loaded, which defeats our purpose
-                    // in that case entirely.
-                    priority = seqNum > other.seqNum ? -1 : 1; // follow LIFO sequence
-                } else {
-                    // FIFO
-                    priority = seqNum > other.seqNum ? 1 : -1; // follow FIFO sequence
-                    // FIFO is better for giving us control control over pre-caching
-                    // when kicking off a presentation, or when loading a single
-                    // slide and kicking off pre-caching of the next slide.
-                }
-            } else {
-                priority = diff; // follow task-type priority
-            }
-
-            // An ideal impl would provide default LIFO priority to all requests (which would
-            // address fast presentation paging), and would handle caching requests specially via
-            // low priority's or a separate queue, and crucially be able to UPGRADE the priority of
-            // existing tasks from cache-level to top-priority LIFO if they come in as non-caching
-            // requests later.
-            
-            return priority;
-        }
-
-        private int priority() {
-            return loader.getPriority();
-        }
-        
-        @Override public String toString() {
-            return "PriorityTask[#" + seqNum + " " + loader + "]";
-        }
-
     }
 
     // what was the problem with making the Loader a FutureTask itself?
     static abstract class Loader implements Runnable
     {
         CachingRelayer relay;
-        ImageSource imageSRC; 
+        ImageSource imageSRC;
+        volatile boolean started;
 
         Loader(ImageSource _imageSRC, Listener firstRelay) 
         {
             imageSRC = _imageSRC;
             relay = new CachingRelayer(imageSRC, firstRelay);
-            if (DEBUG.Enabled && firstRelay == null)
-                Log.debug(this + "; nobody currently listening: image may be quietly cached: " + imageSRC);
         }
 
-        Image getLoaderImage() {
+        void setPriority(Object key) {}
+        Object getPriority() { return "_n/a"; }
+        void raisePriority() {}
+
+
+        final Image getLoaderImage() {
             return relay.image();
         }
 
@@ -1439,6 +1673,7 @@ public class Images
         }
 
         public final void run() {
+            started = true;
             try {
                 runToResult();
             } catch (OutOfMemoryError eom) {
@@ -1449,29 +1684,36 @@ public class Images
             }
         }
 
-        private void flushForGC() {
+        // Mark as having been completed / potentially assist garbage collector
+        void dispose() {
             // assist GC -- may help it run slightly faster:
             imageSRC = null;
             relay.flushForGC();
-//             relay.imageSRC = null;
-//             relay.image = null; // this is the most important
-//             //relay.ref = null;
             relay = null;
         }
-        
+
+        final boolean isRunning() {
+            return started;
+        }
 
         /** @return an Image that's already been put into the cache */
         private final Handle runToResult() {
             if (DEBUG.IMAGE) debugMark(">>>>>");
-            final Handle h = produceResult();
-            if (DEBUG.IMAGE) debugMark("<<<<<");
-            return h;
+            final Handle handle = produceResult();
+            if (DEBUG.IMAGE) {
+                debugMark("<<<<<");
+                TaskQueue.dump();
+            }
+            dispose();
+            return handle;
         }
 
         private void debugMark(String s) {
             Log.debug(Util.TERM_YELLOW
                       + s + "---"
                       + getClass().getSimpleName()
+                      + "-"
+                      + getPriority()
                       + "---"
                       + imageSRC.debugName()
                       + "-----------------------------------------------------------------------------"
@@ -1492,28 +1734,114 @@ public class Images
             relay.addListener(newListener);
         }
 
-        public int getPriority() {
-            return 5;
-        }
+        //public int getPriority() { return 5; }
         
 
         @Override public String toString() {
-            return String.format("%s[%s ->%s]", getClass().getSimpleName(), imageSRC.debugName(), relay.chain.head);
+            try {
+                return String.format("%s[%s%s:%s ->%s]",
+                                     getClass().getSimpleName(),
+                                     isRunning() ? "<RUNNING> " : "",
+                                     getPriority(),
+                                     imageSRC == null ? "null-imageSRC" : imageSRC.debugName(),
+                                     relay == null ? "null-relay" : relay.chain.head);
+            } catch (Throwable t) {
+                return getClass().getSimpleName() + "[" + t + "]";
+            }
         }
 
     }
 
-    /** a marker class to differentiate from LoadThread */
-    private static final class LoadTask extends Loader {
-        LoadTask(ImageSource is, Listener relay) {
+    private static class Task extends Loader
+    {
+        static Loader create(ImageSource imageSRC, Listener listener, Object when)
+        {
+            final Loader loader;
+            
+            if (imageSRC.key == null) {
+                if (DEBUG.Enabled) 
+                    Util.printStackTrace("attempting to load cache w/null key: " + imageSRC);
+                else
+                    Log.warn("attempting to load cache w/null key: " + imageSRC);
+            }
+        
+            // It's okay if listener is null: a CachingRelayer will still be created, in
+            // the Loader, and listeners can be added later.
+
+            // note: if imageSRC is a file, and it doesn't exist, we could fail-fast
+            // (perhaps if immediate is requested?), rather than wait for the error to
+            // be reported via Listener.gotImageError, tho that's the standard API for
+            // now.
+
+            // ISSUE: if we use a Deque to deal with priorities (regular requests LIFO'd up front,
+            // caching requests at end), we still have the problem of ensuring that IconTasks take
+            // priority over everything else.
+        
+            if (imageSRC.mayBlockIndefinitely()) {
+                // run in a completely separate thread outside the thread pool:
+                loader = new LoadThread(imageSRC, listener);
+            } else if (imageSRC.isImageSourceForIcon()) {
+                // highest-priority tasks:
+                loader = new IconTask(imageSRC, listener);
+            } else if (when == LOAD_CACHE) {
+                loader = new Task(imageSRC, listener, PRI_LOW);
+                //             if (DEBUG.Enabled && listener != null) {
+                //                 Log.warn("cache tasks don't normally want listeners: " + loader);
+                //             }
+            } else {
+                // regular task:
+                loader = new Task(imageSRC, listener, PRI_NORM);
+            }
+
+            return loader;
+        }
+        
+        Object priority;
+        
+        private Task(ImageSource is, Listener relay, Object pri) {
             super(is, relay);
+            priority = pri;
+            if (DEBUG.IMAGE && relay == null)
+                Log.debug(this + "; nobody currently listening: image may be quietly cached: " + imageSRC);
+            
+        }
+        
+        void raisePriority() {
+            if (!isRunning())
+                TaskQueue.raiseTaskPriority(this);
+        }
+
+        synchronized void setPriority(Object key) {
+            priority = key;
+        }
+        
+        synchronized Object getPriority() {
+            return priority;
         }
     }
+    
+//     /** a marker class to differentiate from LoadThread */
+//     private static final class LoadTask extends Loader {
+//         LoadTask(ImageSource is, Listener relay) {
+//             super(is, relay);
+//             if (DEBUG.Enabled && relay == null)
+//                 Log.debug(this + "; nobody currently listening: image may be quietly cached: " + imageSRC);
+            
+//         }
+//     }
+//     /** a marker class to differentiate from LoadThread */
+//     private static final class CacheTask extends Loader {
+//         CacheTask(ImageSource is, Listener relay) {
+//             super(is, relay);
+//         }
+//     }
 
     /** a task to generate an icon */
-    private static final class IconTask extends Loader {
+    private static final class IconTask extends Task {
         IconTask(ImageSource is, Listener relay) {
-            super(is, relay);
+            super(is, relay, PRI_HIGH);
+            if (DEBUG.Enabled && relay == null)
+                Log.debug(this + "; nobody currently listening: image may be quietly cached: " + imageSRC);
         }
         @Override Handle produceResult() {
             //if (DEBUG.IMAGE || DEBUG.THREAD) out("ICON-TASK for " + imageSRC + " kicked off");
@@ -1524,29 +1852,29 @@ public class Images
             // callback.
             return createAndCacheIcon(relay, imageSRC);
         }
-        public int getPriority() {
-            // Note: if we change from normal to low-mem conditions with DELAYED_ICONS
-            // enabled, the priority of IconTasks jumps from lowest to highest, so to
-            // ensure that the next task pulled is an IconTask if there are any in the
-            // queue, the queue will need to be re-sorted when memory conditions change.
-            if (DELAYED_ICONS) {
-                // A fancier impl that allows us to generate icons later, which provides faster initial map
-                // painting and a better user experience under "normal" conditions (plenty of RAM), but
-                // switches to the conservative method once any OutOfMemoryError is seen.  This is still
-                // only a tradeoff for the the 1st time a map with images loads tho -- once icons are
-                // generated everything starts up very fast -- faster than any previous version of VUE.
-                // This impl would still need work: recovering from the "wall" that's hit when memory
-                // runs low is much more complicated.
-                return lowMemoryConditions() ? 10 : 1;
-            } else {
-                // In this impl we just give IconTask's the highest priority is so that
-                // we can create the icon ASAP while original image is still in memory
-                // (normall forced there via a hard-ref in an ImageSource).  We can't
-                // normally toss the original full image until the icon is generated,
-                // which puts a big strain on memory.
-                return 10;
-            }
-        }
+//         public int getPriority() {
+//             // Note: if we change from normal to low-mem conditions with DELAYED_ICONS
+//             // enabled, the priority of IconTasks jumps from lowest to highest, so to
+//             // ensure that the next task pulled is an IconTask if there are any in the
+//             // queue, the queue will need to be re-sorted when memory conditions change.
+//             if (DELAYED_ICONS) {
+//                 // A fancier impl that allows us to generate icons later, which provides faster initial map
+//                 // painting and a better user experience under "normal" conditions (plenty of RAM), but
+//                 // switches to the conservative method once any OutOfMemoryError is seen.  This is still
+//                 // only a tradeoff for the the 1st time a map with images loads tho -- once icons are
+//                 // generated everything starts up very fast -- faster than any previous version of VUE.
+//                 // This impl would still need work: recovering from the "wall" that's hit when memory
+//                 // runs low is much more complicated.
+//                 return lowMemoryConditions() ? 10 : 1;
+//             } else {
+//                 // In this impl we just give IconTask's the highest priority is so that
+//                 // we can create the icon ASAP while original image is still in memory
+//                 // (normall forced there via a hard-ref in an ImageSource).  We can't
+//                 // normally toss the original full image until the icon is generated,
+//                 // which puts a big strain on memory.
+//                 return 10;
+//             }
+//         }
     }
 
     
@@ -1609,10 +1937,14 @@ public class Images
      * nothing to do be done for now -- just wait for the callbacks to the listener if
      * one was provided.
      */
-    private static Object getCachedOrKickLoad(ImageSource imageSRC, Images.Listener listener, boolean immediate)
+    private static Object getCachedOrKickLoad(ImageSource imageSRC, Images.Listener listener, Object when)
     {
         Loader loader = null;
 
+        //-------------------------------------------------------
+        // OBTAIN CACHE LOCK
+        //-------------------------------------------------------
+        
         synchronized (RawCache) {
 
             final Object entry = getCacheContentsWithAutoFlush(imageSRC);
@@ -1620,50 +1952,42 @@ public class Images
             // if anything in the Cache, immediately return it.  Could
             // be the desired image, or an existing loader.
 
-            if (entry != null)
+            if (entry != null) {
+
+                // TODO: if this is a "regular priority" request, and we find a loader in the cache
+                // that has NOT already been started, then the task queue(s) may need modification.
+                // If the existing task is in the caching queue, it needs to be moved (to the
+                // front) of the regular loading queue.  If the existing task is in the loading
+                // queue, it needs to be moved (LIFO style) to the front of the loading queue.
+
                 return entry;
-        
-            // Nothing was in the cache.  If we have a listener, handle
-            // the image loading in another thread.  If we don't, return
-            // null -- caller must handle that condition.
-        
-            if (imageSRC.key == null) {
-                if (DEBUG.Enabled) 
-                    Util.printStackTrace("attempting to load cache w/null key: " + imageSRC);
-                else
-                    Log.warn("attempting to load cache w/null key: " + imageSRC);
-            }
-        
-            // It's okay if listener is null: a CachingRelayer will still be created, in
-            // the Loader, and listeners can be added later.
+                // cache lock released
 
-            // note: if imageSRC is a file, and it doesn't exist, we could fail-fast
-            // (perhaps if immediate is requested?), rather than wait for the error to
-            // be reported via Listener.gotImageError, tho that's the standard API for
-            // now.
-        
-            if (imageSRC.mayBlockIndefinitely()) {
-                loader = new LoadThread(imageSRC, listener);
-            } else if (imageSRC.isImageSourceForIcon()) {
-                loader = new IconTask(imageSRC, listener);
             } else {
-                loader = new LoadTask(imageSRC, listener);
+                
+                // Nothing was in the cache.  Create a task for loading
+                // the image, which will then normally be run in another thread.
+                // the task immediately in the current thread and return the
+                // result.
+                
+                loader = Task.create(imageSRC, listener, when);
+                
+                // Note that even if we've been requested to run synchronously (no listener or
+                // "immediate" is true) , we still want a Loader created that can have listeners
+                // added later, and have it marked in the cache, in case subsequent asynchronous
+                // requests come in for this image, or even future immediate requests, which then
+                // won't be honored: they'll get a callback when the previous immediate load
+                // finishes.
+                
+                markCacheAsLoading(imageSRC.key, loader);
             }
-            
-            // Note that even if we've been requested to run synchronously, we still want
-            // a Loader created that can have listeners added later, and have it marked in the
-            // cache, in case subsequent asynchronous requests come in for this image, or
-            // even future immediate requests, which then won't be honored: they'll get a
-            // callback when the previous immediate load finishes.
-            
-            markCacheAsLoading(imageSRC.key, loader);
-
         }
+        
         //-------------------------------------------------------
         // CACHE LOCK IS RELEASED
         //-------------------------------------------------------
 
-        if (listener == null || immediate) {
+        if (when == LOAD_IMMEDIATE) {
             // It's crucial that this NOT be run in a Cache-lock, or
             // every other image thread will soon hang until this is
             // done, including the AWT thread if anything requests
@@ -1674,9 +1998,52 @@ public class Images
             
         } else {
             kickTask(loader);
-            return IMAGE_LOADER_STARTED;
+            return LOADER_JUST_STARTED;
         }
     }
+
+//     private static Loader createTask(ImageSource imageSRC, Listener listener, Object when)
+//     {
+//         final Loader loader;
+        
+//         if (imageSRC.key == null) {
+//             if (DEBUG.Enabled) 
+//                 Util.printStackTrace("attempting to load cache w/null key: " + imageSRC);
+//             else
+//                 Log.warn("attempting to load cache w/null key: " + imageSRC);
+//         }
+        
+//         // It's okay if listener is null: a CachingRelayer will still be created, in
+//         // the Loader, and listeners can be added later.
+
+//         // note: if imageSRC is a file, and it doesn't exist, we could fail-fast
+//         // (perhaps if immediate is requested?), rather than wait for the error to
+//         // be reported via Listener.gotImageError, tho that's the standard API for
+//         // now.
+
+//         // ISSUE: if we use a Deque to deal with priorities (regular requests LIFO'd up front,
+//         // caching requests at end), we still have the problem of ensuring that IconTasks take
+//         // priority over everything else.
+        
+//         if (imageSRC.mayBlockIndefinitely()) {
+//             // run in a completely separate thread outside the thread pool:
+//             loader = new LoadThread(imageSRC, listener);
+//         } else if (imageSRC.isImageSourceForIcon()) {
+//             // highest-priority tasks:
+//             loader = new IconTask(imageSRC, listener);
+//         } else if (when == LOAD_CACHE) {
+//             loader = new CacheTask(imageSRC, listener);
+// //             if (DEBUG.Enabled && listener != null) {
+// //                 Log.warn("cache tasks don't normally want listeners: " + loader);
+// //             }
+//         } else {
+//             // regular task:
+//             loader = new LoadTask(imageSRC, listener);
+//         }
+
+//         return loader;
+//     }
+    
 
     private static void markCacheAsLoading(URI key, Loader loader) {
         final Object old = RawCache.put(key, loader); // todo: under what conditiions is this normal?
@@ -1691,7 +2058,7 @@ public class Images
             // could submit to a special pool or some future fancy non-blocking NIO multi-stream handler
             ((LoadThread)loader).start();
         } else {
-            ProcessingPool.addTask(loader);
+            ProcessingPool.addTask((Task)loader);
         }
     }
 
@@ -1717,6 +2084,14 @@ public class Images
                 
         if (entry instanceof Loader) {
             if (DEBUG.IMAGE) out("Image is loading into the cache via already existing Loader...");
+
+            // For ideal LIFO handling of image requests, we should at this point
+            // find out if the Loader is already running in the thread pool or not.  If
+            // it's NOT running, we should advance it's priority to the front of
+            // the queue since it's been requested again.  Unless this request
+            // is for low-priority PRE-CACHING, in which case we'd need not
+            // make any change -- the image is already loading with a high priority.
+            
             return entry;
         }
 
@@ -2097,7 +2472,6 @@ public class Images
     // happening to a chain of pending listeners, not just one.
     private static Handle loadImageAndCache(final ImageSource imageSRC, final Listener relay)
     {
-        //Image image = null;
         Handle imageData = null;
 
         if (imageSRC.resource != null)
@@ -2429,7 +2803,7 @@ public class Images
         }
     }
 
-    private static Image handleImage(Handle h) {
+    private static Image handleToImage(Handle h) {
         return h == null ? null : h.image;
     }
 
@@ -3433,3 +3807,91 @@ class FileBackedImageInputStream extends ImageInputStreamImpl
     }
 
  }
+
+
+
+
+    // oh crap.  POLLING across multiple queues will work, but which one would we
+    // wait on if all are empty?  I suppose we could have a single input queue...
+    // a synchronous queue?  a size 1 BlockingArrayQueue?
+//     private static class BlockingQueues<E> extends AbstractQueue<E> implements BlockingQueue<E> {
+//         final BlockingQueue<E>[] q;
+//         BlockingQueues(Object ... args) {}
+//         //boolean add(E e);
+//         @Override public int size() {
+//             return 0;
+//         }
+//         @Override public Iterator<E> iterator() { return null; }
+//         @Override public Iterator<E> peek() { return null; }
+//         public void put(E e) throws InterruptedException {}
+//         public boolean offer(E e, long timeout, TimeUnit unit) throws InterruptedException { return false; }
+//         public E take() throws InterruptedException { return null; }
+//         public E poll(long timeout, TimeUnit unit) throws InterruptedException { return null; }
+//         public int remainingCapacity() { return 0; }
+//         public boolean remove(Object o) { return false; }
+//         public boolean contains(Object o) { return false; }
+//         public int drainTo(Collection<? super E> c) { return 0; }
+//         public int drainTo(Collection<? super E> c, int maxElements) { return 0; }
+//     }
+
+
+
+
+//     /** A task that can have a priority, that defaults to FIFO if priorities are equal */
+//     private static final class PriorityTask extends FutureTask
+//         implements Comparable<PriorityTask>
+//     {
+//         final static AtomicLong seq = new AtomicLong();
+//         final long seqNum;
+//         final Loader loader; // is Loader just for getPriority -- could be a Comparable
+//         public PriorityTask(Loader loader) {
+//             super(loader, null);
+//             this.loader = loader;
+//             this.seqNum = seq.getAndIncrement();
+//         }
+//         public int compareTo(PriorityTask other) {
+//             if (!(other instanceof PriorityTask)) {
+//                 Log.error("can't compare to " + Util.tags(other));
+//                 return 0;
+//             }
+//             final int diff = other.priority() - priority();
+//             final int priority;
+//             if (diff == 0) {
+//                 if (false /*tufts.vue.gui.FullScreen.inNativeFullScreen()*/) {
+//                     // (It's a hack to test FullScreen native here -- should add an Images API
+//                     // call.)  LIFO is better for interactivity during fast-paging through
+//                     // presentations, (we want to load the contents of slide we "stop" on with the
+//                     // highest priority) tho it could cause pre-caching of the next slide to happen
+//                     // before the current slide images are loaded, which defeats our purpose
+//                     // in that case entirely.
+//                     priority = seqNum > other.seqNum ? -1 : 1; // follow LIFO sequence
+//                 } else {
+//                     // FIFO
+//                     priority = seqNum > other.seqNum ? 1 : -1; // follow FIFO sequence
+//                     // FIFO is better for giving us control control over pre-caching
+//                     // when kicking off a presentation, or when loading a single
+//                     // slide and kicking off pre-caching of the next slide.
+//                 }
+//             } else {
+//                 priority = diff; // follow task-type priority
+//             }
+
+//             // An ideal impl would provide default LIFO priority to all requests (which would
+//             // address fast presentation paging), and would handle caching requests specially via
+//             // low priority's or a separate queue, and crucially be able to UPGRADE the priority of
+//             // existing tasks from cache-level to top-priority LIFO if they come in as non-caching
+//             // requests later.
+            
+//             return priority;
+//         }
+
+//         private int priority() {
+//             return loader.getPriority();
+//         }
+        
+//         @Override public String toString() {
+//             return "PriorityTask[#" + seqNum + " " + loader + "]";
+//         }
+
+//     }
+

@@ -42,7 +42,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.129 $ / $Date: 2009-11-24 17:03:26 $ / $Author: mike $
+ * @version $Revision: 1.130 $ / $Date: 2010-01-22 19:40:27 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends WidgetStack
@@ -242,6 +242,8 @@ public class InspectorPane extends WidgetStack
             // handled all at once via our selectionChanged listener
             return;
         }
+
+        if (notShowing(e)) return;
         
         displayHold();
         //if (DEBUG.RESOURCE) out("resource selected: " + e.selected);
@@ -261,6 +263,8 @@ public class InspectorPane extends WidgetStack
         if (dataMap == null)
             return;
 
+        if (notShowing(e)) return;
+        
         // todo: below essentially repeats Resource active changed
         
         displayHold();
@@ -278,6 +282,8 @@ public class InspectorPane extends WidgetStack
 
     public void activeChanged(final tufts.vue.ActiveEvent _e, final LWPathway.Entry entry)
     {
+        if (notShowing(_e)) return;
+        
         displayHold();
         
         final int index = (entry == null ? -9 : entry.index() + 1);
@@ -341,10 +347,28 @@ public class InspectorPane extends WidgetStack
 //             });
         
     }
+
+    private boolean notShowing(Object event) {
+
+        // hack for now:
+        return VUE.inPresentMode();
+        
+// not good enough: may need to check our parent window, not the widget stack, which may
+// not be visible yet, even if the parent window is 
+//         if (isShowing()) {
+//             if (DEBUG.Enabled) Log.debug("SHOWING");
+//             return false;
+//         } else {
+//             if (DEBUG.Enabled) Log.debug("NOT SHOWING");
+//             return true;
+//         }
+    }
     
     public void selectionChanged(final LWSelection s)
     {
         selectionChanged = true;
+
+        if (notShowing(s)) return;
 
         displayHold();
         

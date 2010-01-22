@@ -2880,6 +2880,24 @@ public class PresentationTool extends VueTool
         if (cachingEntry != null) {
             final LWComponent focal = cachingEntry.getFocal();
             if (focal != null) {
+                
+                // IMAGE CACHING PERFORMANCE: ideally, even the cache-request sub-queue
+                // would support two further sub-priorities, allowing an initial map
+                // load to an ultra-low priority FIFO queue, and a runtime LIFO queue
+                // for calls relevant to immediate interactive as beow.
+                
+                // Note that there's a tradeoff as to doing this here as well -- under
+                // *extreme* low-memory conditions, pre-caching the next slide could
+                // cause images on the current slide to drop down from full-resolution
+                // to icon-resolution as they're GC'd to make room for images on the
+                // next slide.  An even fancier image architecture could allow for
+                // temorarily locking the current slide images into memory so they
+                // couldn't be GC'd.
+
+                // Note also tho that under low-memory conditions, the REPEATED calls to
+                // this may be helpful, as even images we've already seen may have, of
+                // course, been GC'd, and re-requesting them to be cached is releveant.
+                    
                 GUI.invokeAfterAWT(new Runnable() { public void run() {
                     focal.preCacheContent();
                 }});

@@ -30,6 +30,7 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
     //===================================================================================================
 
     private static final Ref IMG_UNLOADED = new NullRef("UNLOADED");
+    private static final Ref IMG_CACHING = new NullRef("CACHING");
     private static final Ref IMG_LOADING = new LoadingRef("LOADING");
     private static final Ref IMG_LOADING_AFTER_ERROR = new LoadingRef("LOADING-POST-ERROR");
     private static final Ref IMG_ERROR = new NullRef("ERROR");
@@ -79,7 +80,7 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
             @Override public boolean available() { return false; }
             @Override protected Image image() { return null; }
             @Override protected boolean reconstitute() { error(); return false; }
-            @Override protected void cacheData(Images.Handle i, String s) { error(); }
+            @Override protected void cacheData(Images.Handle i, Object debug) { error(); }
             @Override void renderRep(Graphics2D g, float width, float height) {
                 fillRect(g, width, height, DEBUG.Enabled ? Color.orange : LoadingColor);
             }
@@ -168,15 +169,23 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
     // ImageRep aspect, which is locked above on AWT on reconstitute.  Doesn't appear to
     // be a problem now, but take heed.
 
+    private static final Object LOAD_NORMAL = "painting";
+    private static final Object LOAD_IMMEDIATE = "immediate";
+    private static final Object LOAD_CACHE = "cache";
+
     /** @return true if all data was immediately available, false if we're waiting for more info from a callback */
     protected boolean reconstitute() {
-        return reconstitute(false) != IS_WAITING;
+        return reconstitute(LOAD_NORMAL) != IS_WAITING;
+    }
+    
+    protected void requestCaching() {
+        reconstitute(LOAD_CACHE);
     }
 
     private static final Handle AT_ERROR = Handle.emptyInstance();
     private static final Handle IS_WAITING = Handle.emptyInstance();
     
-    private synchronized Handle reconstitute(boolean immediate)
+    private synchronized Handle reconstitute(final Object when)
     {
         if (_handle == IMG_ERROR) {
             // if this was an OutOfMemoryError (a potentially recoverable error), we allow us to retry indefinitely
@@ -184,50 +193,98 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
             return AT_ERROR;
         }
 
-        final boolean hadError = (_handle == IMG_ERROR_MEMORY);
+        final boolean wasAtError = (_handle == IMG_ERROR_MEMORY); // why only memory?
         
         //if (DEBUG.IMAGE) Log.debug(Util.TERM_CYAN + "RECONSTITUTE " + Util.TERM_CLEAR + _data, new Throwable("HERE"));
         if (_handle.isLoader()) {
-            if (DEBUG.IMAGE) debug("recon: rep already loading: " + _data);//, new Throwable("HERE"));
+            if (DEBUG.IMAGE) debug("recon: already loading: " + _data);//, new Throwable("HERE"));
             return IS_WAITING;
         }
-        if (DEBUG.IMAGE) debug(Util.TERM_CYAN + "RECONSTITUTE " + Util.TERM_CLEAR + _data);
+        
+        if (DEBUG.IMAGE) debug(Util.TERM_CYAN + "RECONSTITUTE(" + when + ") " + Util.TERM_CLEAR + _data);
 
         final Ref oldHandle = _handle;
 
-        // if immmediate is true, we do not provide a listener for callback, which means run
-        // and load the image syncronously.
+        final Images.Handle imageData;
 
-        // note: could also use Images.getImageASAP if we also want to get progress callbacks
-        // as image size, etc, comes in.
+        if (when == LOAD_IMMEDIATE) {
 
-        final Images.Handle imageData = Images.getImageHandle(_data, immediate ? null : this);
-
-        if (immediate && imageData == null) {
-            Log.warn("failed immediate request: " + this);
+            // LOAD THE IMAGE SYNCHRONOUSLY, BLOCKING THE CURRENT THREAD IF NEEDED:
+            
+            // Due to the ImageRep impl using cacheData for result capture, the listener
+            // can be null for this call -- we don't need the listener callbacks if we
+            // know we'll immediately have a result.
+            
+            imageData = Images.getImageImmediately(_data, null);
+            if (imageData == null)
+                Log.warn("null on immediate request: " + this);
         }
+        else if (when == LOAD_CACHE) {
 
-        if (imageData != null) {
-            // if we knew the return value of reconstitute was attented to we could skip the notify
-            // (the return value is often ignored) [note: notify 2nd arg is now always true]
-            cacheData(imageData, immediate ? "on-immediate" : "recon-got-immediate-return");
-            return imageData;
-        } else {
-            if (_handle == oldHandle) {
-                if (hadError)
-                    setHandle(IMG_LOADING_AFTER_ERROR, "recon-kick-to-loading");
-                else
-                    setHandle(IMG_LOADING, "recon-kick-to-loading");
-            } else {
-                // This can happen if a loader has completed and has it's image, but it hasn't left
-                // the cache yet, so our getImage call returned null, but the image content was
-                // still available and was delivered immediately as part of partial results.
-                // Images now checks for this, tho this could still happen if we get unlucky with
-                // internal Images sync issues.
-                if (DEBUG.Enabled) debug("got immediate callback w/image, handle is now " + _handle);
+            if (_handle == IMG_CACHING) {
+                //Log.info("repeated cache request");
+                return IS_WAITING;
             }
-            return IS_WAITING; // is this really true for both above cases?
+
+            // Note, do NOT want callbacks (we're not providing a listener), as we don't
+            // want to be issuing repaint updates for images that were only requested to
+            // be cached.  However, in case this IS later requested to draw, we DO
+            // need the listener.  So for now we do listen and suffer the extra repaints.
+            // What we really need is to track our state as to CACHING v.s. LOADING, and
+            // only issue callbacks when an image arrives if we're LOADING.  What the means
+            // tho is being able to upgrade our state from CACHING to LOADING if a paint
+            // request comes in for us while we're already in queue for caching.
+            
+            imageData = Images.cacheImage(_data, this);
+            
+            if (imageData == null) {
+                // as expected:
+                setHandle(IMG_CACHING, "cacheRequest");
+                return IS_WAITING;
+            }
+            // Result will often be null, as expected, but if it's available, we'll
+            // want to QUIETLY load it w/out triggering callbacks / notifications.
         }
+        else { // LOAD_NORMAL
+            if (DEBUG.Enabled && when != LOAD_NORMAL) Log.error("bad recon code: " + Util.tags(when));
+            imageData = Images.getImageHandle(_data, this);
+        }
+
+        
+        if (imageData != null) {
+            // Record the image data and update our status:
+            cacheData(imageData, when);
+            // Old comment: if we knew the return value of reconstitute was attented to we
+            // could potentially skip the notify that's always made in cacheData.
+            return imageData;
+        }
+
+        //----------------------------------------------------------------------------------------
+        // There was no image data immediately available: make sure our status
+        // is set to some version of "loading"
+        //----------------------------------------------------------------------------------------
+
+        if (_handle == oldHandle) {
+            // As expected: _handle hasn't changed, as we had no result (only null returned)
+            // (Why, EXACTLY, might _handle change here?)
+            if (wasAtError) {
+                setHandle(IMG_LOADING_AFTER_ERROR, "recon-kicked:" + when);
+            } else {
+                // Note: this may also be upgrading our status from CACHING to LOADING:
+                setHandle(IMG_LOADING, "recon-kicked:" + when);
+            }
+        } else {
+            // No data was returned, and yet, our _handle has changed anyway!
+            
+            // This can happen if a loader has completed and has it's image, but it hasn't left
+            // the cache yet, so our getImage call returned null, but the image content was
+            // still available and was delivered immediately as part of partial results.
+            // That is, the result came via immediate callback, even though the return was null.
+            // Images now checks for this, tho we're leaving this check in just in case.
+            
+            if (DEBUG.Enabled) debug("*** got immediate callback w/image, handle is now " + _handle);
+        }
+        return IS_WAITING; // is this really true for both above cases?
     }
 
     private void debug(String s) {
@@ -253,12 +310,12 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
         _handle = r;
     }
 
-    protected void cacheData(Images.Handle imageData, String debug) {
-
+    protected void cacheData(Images.Handle imageData, Object cause)
+    {
         final Image image = imageData.image;
         
         if (image() == image) {
-            if (DEBUG.Enabled) debug(" re-cache:"+debug);
+            if (DEBUG.Enabled) debug(" re-cache:"+cause);
             return;
         }
 
@@ -272,13 +329,15 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
 
             // Recording the size here should be redundant to the gotImageSize we've already received,
             // tho there are some special cases where that call may not arrive (e.g., icon generation).
-            // note: multi-threaded coherency agaist AWT thread for the next 3 stores,
+            // Note: multi-threaded coherency agaist AWT thread for the next 3 stores,
             // as well as locked against cacheData calls happening in AWT via reconstitute
             setSize(image.getWidth(null),
                     image.getHeight(null));
             // record the new width & height first before installing the handle just in case
-            setHandle(newRef(image), "[cacheData/"+debug+"]");
+            setHandle(newRef(image), "[cacheData/"+cause+"]");
         }
+
+        // (at this point we could null local stack image var for potential GC help)
 
         // We do not include the below notify in the sync.  AWT blocks we're avoiding:
         // If the parent ImageRef uses this arrived rep to generate an icon, that could
@@ -286,12 +345,14 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
         // any local class syncs in the render code (renderRep) will block until this
         // thread runs out, hanging the AWT until then.
         
-        if (true /*notify*/) {
+        //if (true /*notify*/) {
+        if (cause != LOAD_CACHE) {
             // we send the image as an argument so there's at least a temporary
             // guaranteed, hard, non-GC-able reference to it in case the ImageRef wants
             // to do something with the image data.
             _ref.notifyRepHasArrived(this, imageData);
         }
+
     }
 
     //public void gotImageUpdate(Object key, Images.Progress p) {}

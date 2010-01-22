@@ -79,7 +79,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.660 $ / $Date: 2010-01-19 20:38:47 $ / $Author: sfraize $ 
+ * @version $Revision: 1.661 $ / $Date: 2010-01-22 19:40:23 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1552,8 +1552,14 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     public static final boolean ANIMATE = true;
     public static final boolean NO_ANIMATE = false;
 
+    private static final String MAP_REQUESTED_CACHING = "mapRequestedCaching";
+
     /** actualy load the new focal */
-    public void loadFocal(LWComponent focal, boolean fitToFocal, boolean animate) {
+    public void loadFocal
+        (final LWComponent focal,
+         final boolean fitToFocal,
+         final boolean animate)
+    {
         if (DEBUG.PRESENT || DEBUG.VIEWER || DEBUG.WORK) out("loadFocal", focal + "; autoFit=" + fitToFocal);
 
         // todo: should we ever want to hande LWLink focals, what we want is to zoom to the focal
@@ -1648,7 +1654,39 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         if (!loadingWasSet)
             setLoading(false);
-        
+
+        if (mMap != null && mMap == mFocal && !Images.lowMemoryConditions()) {
+            final LWMap map = mMap;
+            VUE.invokeAfterAWT(new Runnable() { public void run() {
+                //Log.debug("map=" + map);
+                if (map.getClientData(Boolean.class, MAP_REQUESTED_CACHING) == false) {
+                    map.setClientData(Boolean.class, MAP_REQUESTED_CACHING, true);
+                    preCacheMap(map);
+                }
+            }});
+        }
+    }
+
+    private static void preCacheMap(LWMap map) {
+        if (DEBUG.Enabled) Log.debug("pre-caching " + map);
+        try {
+            for (LWPathway pathway : map.getPathwayList()) {
+                if (DEBUG.IMAGE) Log.debug("pre-caching " + pathway);
+                if (Images.lowMemoryConditions())
+                    break;
+                for (LWComponent c : pathway.getAllDescendents(LWComponent.ChildKind.ANY)) {
+                    //Log.debug("pre-caching " + c);
+                    c.preCacheImpl();
+                    if (Images.lowMemoryConditions())
+                        break;
+                }
+                
+            }
+        } catch (Throwable t) {
+            Log.warn("preCacheMap pathways: " + map, t);
+        }
+        if (!Images.lowMemoryConditions())
+            LWComponent.preCacheDescendents(map); // will be lots of dupes, but okay
     }
 
     public void popToMapFocal() {

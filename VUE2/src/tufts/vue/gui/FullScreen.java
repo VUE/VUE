@@ -37,7 +37,7 @@ import org.apache.log4j.NDC;
 /**
  * Code for providing, entering and exiting VUE full screen modes.
  *
- * @version $Revision: 1.50 $ / $Date: 2010-01-16 22:55:49 $ / $Author: sfraize $
+ * @version $Revision: 1.51 $ / $Date: 2010-01-22 19:40:25 $ / $Author: sfraize $
  *
  */
 
@@ -635,7 +635,7 @@ public class FullScreen
             !Util.isWindowsPlatform() &&
             !tufts.vue.Actions.SuperScreen.getToggleState();
 
-        if (useNativeMode) {
+        if (false&&useNativeMode) {
 
             // MAC & LINUX ONLY:
 
@@ -682,7 +682,7 @@ public class FullScreen
             // Note that on Mac, this means that the top menu bar will NOT be hidden.
             
             if (goNative) {
-                if (ExtraDockWindowHiding && !DockWindow.AllWindowsHidden()) {
+                if (ExtraDockWindowHiding && !DockWindow.AllWindowsHidden() /*&& !GUI.hasMultipleScreens()*/) {
                     nativeModeHidAllDockWindows = true;
                     DockWindow.HideAllWindows();
                 }

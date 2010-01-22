@@ -641,7 +641,7 @@ public class LWImage extends LWComponent
 
     private ImageRef initRef(Resource r) {
         
-        if (DEBUG.IMAGE) {
+        if (DEBUG.Enabled) {
             out("initRef: " + r + "; props=" + r.getProperties());
             if (!java.awt.EventQueue.isDispatchThread())
                 out("initRef: NOT ON AWT: " + Thread.currentThread());
@@ -711,7 +711,7 @@ public class LWImage extends LWComponent
         }
     }
     
-    @Override protected void preCacheContent() {
+    @Override protected void preCacheImpl() {
         refLoaded().preLoadFullRep();
     }    
     
