@@ -26,7 +26,7 @@ import tufts.vue.action.*;
 /**
  * Main VUE application toolbar.
  *
- * @version $Revision: 1.4 $ / $Date: 2008-06-30 20:53:06 $ / $Author: mike $ 
+ * @version $Revision: 1.1 $ / $Date: 2010-01-23 21:10:16 $ / $Author: mike $ 
  */
 public class VueToolBar extends javax.swing.JToolBar
 // public static class VueToolBar extends com.jidesoft.action.CommandBar // JIDE ENABLE
