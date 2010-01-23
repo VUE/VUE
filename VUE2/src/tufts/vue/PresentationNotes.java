@@ -189,7 +189,8 @@ public class PresentationNotes {
                 System.out.println("PDF DOCUMENT: pageSize " + document.getPageSize());
                 System.out.println("fillWidth=" + fillWidth + " fillHeight=" + fillHeight);
             }
-
+            int currentIndex = VUE.getActivePathway().getIndex();
+            VUE.getActivePathway().setIndex(-1);
             for (LWPathway.Entry entry : VUE.getActivePathway().getEntries()) {
 
                 if (DEBUG.Enabled) Log.debug("\n\nHANDLING DECK ENTRY " + entry);
@@ -247,6 +248,7 @@ public class PresentationNotes {
                     Log.error("exception finishing " + toDraw + " in " + dc, t);
                 }
             }
+            VUE.getActivePathway().setIndex(currentIndex);
             if (DEBUG.Enabled) Log.debug("PROCESSED ALL ENTRIES");
             
         }
@@ -293,6 +295,10 @@ public class PresentationNotes {
            // PdfPCell cell;            
             int entryCount = 0;
             int entryOnPage =0;
+            int currentIndex = VUE.getActivePathway().getIndex();
+            
+            VUE.getActivePathway().setIndex(-1);
+            
             for (LWPathway.Entry entry : VUE.getActivePathway().getEntries()) {
             	
                 final LWSlide slide = entry.produceSlide();
@@ -383,6 +389,7 @@ public class PresentationNotes {
             	   entryOnPage =0;
                }
             }
+            VUE.getActivePathway().setIndex(currentIndex);
         }
         catch(DocumentException de) {
             System.err.println(de.getMessage());
@@ -466,6 +473,10 @@ public class PresentationNotes {
            // PdfPCell cell;            
             int entryCount = 0;
             int entryOnPage =0;
+            int currentIndex = VUE.getActivePathway().getIndex();
+            
+            VUE.getActivePathway().setIndex(-1);
+            
             for (LWPathway.Entry entry : VUE.getActivePathway().getEntries()) {
             	
                 final LWSlide slide = entry.produceSlide();
@@ -544,6 +555,7 @@ public class PresentationNotes {
             	   entryOnPage =0;
                }
             }
+            VUE.getActivePathway().setIndex(currentIndex);
         }
         catch(DocumentException de) {
             System.err.println(de.getMessage());
@@ -583,7 +595,10 @@ public class PresentationNotes {
             
             PdfPTable table;
             PdfPCell cell;            
-                                                  
+            int currentIndex = VUE.getActivePathway().getIndex();
+            
+            VUE.getActivePathway().setIndex(-1);
+            
             for (LWPathway.Entry entry : VUE.getActivePathway().getEntries()) {
             	
                 final LWSlide slide = entry.produceSlide();
@@ -675,12 +690,10 @@ public class PresentationNotes {
                // p2.setExtraParagraphSpace(230f);
                 document.add(p2);
                 document.add(phrase);
-                document.newPage();
-
-                
-              
-                
+                document.newPage();               
             }
+
+            VUE.getActivePathway().setIndex(currentIndex);
         }
         catch(DocumentException de) {
             System.err.println(de.getMessage());
@@ -726,6 +739,10 @@ public class PresentationNotes {
             PdfPCell cell;            
             int entryCount = 0;
             int entryOnPage =0;
+            int currentIndex = VUE.getActivePathway().getIndex();
+
+            VUE.getActivePathway().setIndex(-1);
+            
             for (LWPathway.Entry entry : VUE.getActivePathway().getEntries()) {
             	
 
@@ -816,7 +833,7 @@ public class PresentationNotes {
 	            p.add(table);
 	            document.add(p);
             }
-            
+            VUE.getActivePathway().setIndex(currentIndex);
         }
         catch(DocumentException de) {
             System.err.println(de.getMessage());
@@ -995,6 +1012,9 @@ public class PresentationNotes {
 			p1.add(new Phrase(
             */
             int entryCount=1;
+            int currentIndex = VUE.getActivePathway().getIndex();
+            
+            VUE.getActivePathway().setIndex(-1);
             for (LWPathway.Entry entry : VUE.getActivePathway().getEntries()) {
             	                
                 String notes = entry.getNotes();
@@ -1010,7 +1030,7 @@ public class PresentationNotes {
                 						   
                 entryCount++;
             }
-            
+            VUE.getActivePathway().setIndex(currentIndex);
         }
         catch(DocumentException de) {
             System.err.println(de.getMessage());
