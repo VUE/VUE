@@ -26,8 +26,11 @@
 <target name="init">
 	<mkdir dir="${dist_dir}"/>
 </target>
-	
-<target name="createDistributionXPI" depends="init">
+<target name="getApplet">
+	<ant antfile="../src/build.xml" dir="../src/"	target="vue-applet"/>
+	<copy file="../src/build/VUEApplet.jar" todir="${webcontent_dir}"/>
+</target>
+<target name="createDistributionXPI" depends="init,getApplet">
 <zip destfile="./dist/${ant.project.name}.xpi" update="false">
 	<zipfileset dir="${src_dir}/chrome" includes="content/**, locale/**, skin/**" prefix="chrome"/>	
 	<zipfileset dir="${src_dir}" includes="install.rdf, chrome.manifest" />
