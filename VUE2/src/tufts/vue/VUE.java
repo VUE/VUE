@@ -116,7 +116,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.708 $ / $Date: 2010-01-22 21:42:21 $ / $Author: sfraize $ 
+ * @version $Revision: 1.709 $ / $Date: 2010-01-23 20:28:04 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -1924,29 +1924,23 @@ public class VUE
         }   
         mapInspectorPanel.metadataPanel.refresh();
         
-        if (VUE.isApplet())
-        {
+    
         	//I'm just putting a comment in here becuase this seems odd to me, and I wanted it to be clear it was intentional.
         	//"As we move away from a "datasource" centric vision of VUE, the "Content" window should be collapsed when launching VUE"
         	//This will only take effect the first time VUE is started or when preference to remember window position is disabled.
         	// -MK
 
-        	//Different sized combobox components on each platform require this box to be two different
-        	//sizes.
-        	if (Util.isMacPlatform())
-                    ;//formatDock.setSize(new Dimension(690,54));        	
-        	else if (Util.isWindowsPlatform())
-        	;//	formatDock.setSize(new Dimension(620,54));
-        	else
-        		;
+        	if (!formatDock.getWindowProperties().isEnabled())
+        	{
+        		formatDock.setLowerLeftCorner(VueResources.getInt("formatting.location.x"),
+        			VueResources.getInt("formatting.location.y")+100);
+//        	formatDock.setLocation(,
+  //                                     );        	
         	
-        	formatDock.setLocation(screen.leftIn+VueResources.getInt("formatting.location.x"),
-                                       screen.rightIn+VueResources.getInt("formatting.location.y"));        	
-        	
-            DockWindow.flickerAnchorDock();
-            if (!VUE.isApplet())
-            	formatDock.setVisible(true);
-        }
+        		DockWindow.flickerAnchorDock();
+            	if (!VUE.isApplet())
+            		formatDock.setVisible(true);
+        	}
         
     }
     
@@ -1982,7 +1976,8 @@ public class VUE
         	floatingZoomDock = GUI.createDockWindow("Floating Zoom",true);
         	floatingZoomDock.setContent(floatingZoomPanel);
         	//floatingZoomDock.setFocusable(true); // can grab key events causing MapViewer actions to be disabled
-        	floatingZoomDock.setSize(new Dimension(280,30));
+        	//floatingZoomDock.setSize(new Dimension(280,30));
+        	floatingZoomDock.setHeight(40);
         	floatingZoomDock.setLocation(screen.left, screen.topIn + 15);
         }
         //-----------------------------------------------------------------------------
