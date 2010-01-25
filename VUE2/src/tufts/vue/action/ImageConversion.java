@@ -24,13 +24,14 @@ import javax.swing.*;
 import tufts.vue.*;
 
 /**
- * @version $Revision: 1.26 $ / $Date: 2008-06-30 20:53:48 $ / $Author: mike $ *
+ * @version $Revision: 1.27 $ / $Date: 2010-01-25 21:54:33 $ / $Author: anoop $ *
  * @author  Daisuke Fujiwara
  */
 
 /**a class which constructs a JPEG image of the current concept map*/
 public class ImageConversion extends VueAction {
-    
+    public static final String JPEG = "jpeg";
+    public static final String PNG = "png";
     /** Creates a new instance of ImageConversion */
     public ImageConversion() {
     }
@@ -63,14 +64,14 @@ public class ImageConversion extends VueAction {
     {
         // todo: jpeg output quality is poor; see:
         // http://www.universalwebservices.net/web-programming-resources/java/adjust-jpeg-image-compression-quality-when-saving-images-in-java
-        convert(VUE.getActiveMap().getAsImage(zoomFactor), location, "jpeg");
+        convert(VUE.getActiveMap().getAsImage(zoomFactor), location, JPEG);
     }
     
     /**A method which sets up for converting the active viewer to a Jpeg file*/
     public static Dimension createActiveMapPng(File location,double zoomFactor)
     {
     	BufferedImage bi = VUE.getActiveMap().getAsImage(zoomFactor);
-        convert(bi, location, "png");
+        convert(bi, location, PNG);
         Dimension d = new Dimension(bi.getWidth(),bi.getHeight());
         return d;
     }
@@ -78,7 +79,7 @@ public class ImageConversion extends VueAction {
     public void act() {
        try {
 
-           File selectedFile = ActionUtil.selectFile("Saving JPEG", "jpeg");
+           File selectedFile = ActionUtil.selectFile("Saving JPEG", JPEG);
            
            if (selectedFile != null)
                createActiveMapJpeg(selectedFile,tufts.vue.VueResources.getDouble("imageExportFactor"));
