@@ -48,18 +48,17 @@ public class SVGConversion extends AbstractAction {
         putValue(Action.SHORT_DESCRIPTION,label);
     }
     
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) {
+  
+    public static void createSVG(File location)
+    {
+        LWMap currentMap = VUE.getActiveMap();
+        createSVG(location,currentMap);
     }
     
     /**A method which converts the given Java graphics into the SVG form and writes the output
        to a given file*/
-    public void createSVG(File location)
+    public static void createSVG(File location,LWMap currentMap)
     {
-        //gets the currently selected map
-        LWMap currentMap = VUE.getActiveMap();
         
         //sets up the document object model
         DOMImplementation domImpl = GenericDOMImplementation.getDOMImplementation();
