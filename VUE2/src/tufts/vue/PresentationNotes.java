@@ -75,7 +75,12 @@ public class PresentationNotes {
 	         return dfm;
 		}
 	}
-	public static void createMapAsPDF(File file)
+	
+	public static void createMapAsPDF (File file)
+	{
+		createMapAsPDF(file,VUE.getActiveMap());
+	}
+	public static void createMapAsPDF(File file, LWMap map)
 	{
         // step 1: creation of a document-object
         Document document = new Document(PageSize.LETTER.rotate());
@@ -109,7 +114,7 @@ public class PresentationNotes {
             // center vertically only if landscape mode
             //if (format.getOrientation() == PageFormat.LANDSCAPE)
             //TODO: allow horizontal centering, but not vertical centering (handle in computeZoomFit)
-            Rectangle2D bounds = VUE.getActiveMap().getBounds();
+            Rectangle2D bounds = map.getBounds();
             double scale = ZoomTool.computeZoomFit(page, 5, bounds, offset, true);
           //  System.out.println(scale  + " zoom factor...");
             // set up the DrawContext
@@ -118,7 +123,7 @@ public class PresentationNotes {
                       -offset.x,
                       -offset.y,
                       null, // frame would be the PageFormat offset & size rectangle
-                      VUE.getActiveMap(),
+                      map,
                       false); // todo: absolute links shouldn't be spec'd here
 
         //    dc.setAntiAlias(true);
@@ -138,7 +143,7 @@ public class PresentationNotes {
 
             // VUE.getActiveMap().draw(dc);
             LWPathway.setShowSlides(false);
-            VUE.getActiveMap().drawZero(dc);
+            map.drawZero(dc);
             LWPathway.setShowSlides(true);
             g2d.dispose();
           //  document.add(new Paragraph(new Chunk().setAnchor("http://www.cnn.com")));
