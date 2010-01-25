@@ -20,6 +20,7 @@ package edu.tufts.vue.component;
 
 import tufts.vue.action.OpenAction;
 import tufts.vue.action.ImageConversion;
+import tufts.vue.action.SVGConversion;
 
 import java.io.File;
 
@@ -39,7 +40,8 @@ public class Export {
      * @throws java.lang.Exception
      */
 	public void createPdf(String  mapFile, String outputFile) throws Exception { 
-		
+		LWMap map = OpenAction.loadMap(mapFile);
+		PresentationNotes.createMapAsPDF(new File(outputFile), map);
 	}
 	
 	/** A method that creates a JPEG from map file. T 
@@ -50,8 +52,7 @@ public class Export {
     */
 	public void createJPEG(String  mapFile, String outputFile) throws Exception { 
 		LWMap map = OpenAction.loadMap(mapFile);
-		ImageConversion.convert(map.getAsImage(), new File(outputFile), ImageConversion.JPEG);
-		
+		ImageConversion.convert(map.getAsImage(), new File(outputFile), ImageConversion.JPEG);	
 	}
 	/** A method that creates a HTML from map file. T 
     *
@@ -71,7 +72,6 @@ public class Export {
 	public void createPNG(String  mapFile, String outputFile) throws Exception { 
 		LWMap map = OpenAction.loadMap(mapFile);
 		ImageConversion.convert(map.getAsImage(), new File(outputFile), ImageConversion.PNG);
-
 	}
 	
 	/** A method that creates a SVG from map file. T 
@@ -81,7 +81,8 @@ public class Export {
     * @throws java.lang.Exception
     */
 	public void createSVG(String  mapFile, String outputFile) throws Exception { 
-		
+		LWMap map = OpenAction.loadMap(mapFile);
+		SVGConversion.createSVG(new File(outputFile), map);
 	}
 	/** A method that creates a RDF from map file. T 
     *
@@ -110,7 +111,28 @@ public class Export {
 			case 1:
 				createPNG(inputFile,outputFile);
 				break;
+			case 2:
+				createPdf(inputFile,outputFile);
+				break;
+			case 3:
+				createHTML(inputFile,outputFile);
+				break;
+			case 4:
+				createSVG(inputFile,outputFile);
+				 break;
+			case 5:
+				createRDF(inputFile,outputFile);
+				 break;
+			case 6:
+				createVPK(inputFile,outputFile);
+				break;
+			default:
+				printHelp();
+				break;
 		}
+	}
+	public void printHelp() {
+		
 	}
 	public static void main(String[] args) throws Exception {
         String inputFile = args[0];
