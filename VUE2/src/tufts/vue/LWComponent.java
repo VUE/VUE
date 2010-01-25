@@ -48,7 +48,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.525 $ / $Date: 2010-01-22 21:43:59 $ / $Author: sfraize $
+ * @version $Revision: 1.526 $ / $Date: 2010-01-25 21:39:36 $ / $Author: anoop $
  * @author Scott Fraize
  */
 
@@ -6182,9 +6182,11 @@ public class LWComponent
 
             if (!isTopLevel()) { // e.g., isn't a Layer, which is never selected
                 // TODO: this should be a flag set up in the DrawContext
+            	if(VUE.getInteractionToolsPanel() != null ){
                 final double alpha = VUE.getInteractionToolsPanel().getAlpha();
                 if (alpha != 1 && !selectedOrParent()) 
                     dc.setAlpha(alpha); // fade nodes not in selection
+            	}
             }
 
             drawImpl(dc);
