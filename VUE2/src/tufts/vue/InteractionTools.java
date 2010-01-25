@@ -13,10 +13,12 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.swing.Icon;
 import javax.swing.JButton;
@@ -35,7 +37,8 @@ import tufts.vue.gui.GUI;
 import tufts.vue.gui.WidgetStack;
 
 
-public class InteractionTools extends JPanel implements ActionListener, ItemListener, ChangeListener {
+public class InteractionTools extends JPanel implements ActionListener, ItemListener, ChangeListener,
+		ExpandSelectionListener {
 	public static final long		serialVersionUID = 1;
 	private static final org.apache.log4j.Logger
 									Log = org.apache.log4j.Logger.getLogger(InteractionTools.class);
@@ -56,19 +59,9 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 									THREE = new String("3"),
 									FOUR = new String("4"),
 									FIVE = new String("5");
-	public static JPanel			toolbarPanel = null;
-	public static Icon				toolbarIconFirstOff = VueResources.getImageIcon("expandselection.first.off"),
-									toolbarIconFirstOn = VueResources.getImageIcon("expandselection.first.on"),
-									toolbarIconFirstOver = VueResources.getImageIcon("expandselection.first.over");
-	public static Icon				toolbarIconRestOff = VueResources.getImageIcon("expandselection.rest.off"),
-									toolbarIconRestOn = VueResources.getImageIcon("expandselection.rest.on"),
-									toolbarIconRestOver = VueResources.getImageIcon("expandselection.rest.over");
-	public static JLabel			toolbarLabels[] = {new JLabel(toolbarIconFirstOff),
-										new JLabel(toolbarIconRestOff),
-										new JLabel(toolbarIconRestOff),
-										new JLabel(toolbarIconRestOff),
-										new JLabel(toolbarIconRestOff),
-										new JLabel(toolbarIconRestOff)};
+	protected ArrayList<ExpandSelectionListener>
+									expandSelectionListeners = new ArrayList<ExpandSelectionListener>();
+	boolean							ignoreSliderEvents = false;
 	protected JSlider				fadeSlider = null,
 									depthSlider = null;
 	protected JButton				zoomSelButton = null,
@@ -326,18 +319,6 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 	}
 
 
-	public int getDepthValue() {
-		return depthSlider.getValue();
-	}
-
-
-	public void setDepthValue(int value) {
-		if (depthSlider.getValue() != value) {
-			depthSlider.setValue(value);
-		}
-	}
-
-
 	/* ActionListener method -- button has been clicked */
 	public void actionPerformed(ActionEvent event) {
 		Object	source = event.getSource();
@@ -370,50 +351,39 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 	}
 
 
+	/* ExpandSelectionListener method */
+	public void depthChanged(int newDepth) {
+		ignoreSliderEvents = true;
+		depthSlider.setValue(newDepth);
+		ignoreSliderEvents = false;
+	}
+
+
+	public void addExpandSelectionListener(ExpandSelectionListener listener) {
+		if (!expandSelectionListeners.contains(listener)) {
+			expandSelectionListeners.add(listener);
+		}
+	}
+
+
+	public void removeExpandSelectionListener(ExpandSelectionListener listener) {
+		if (expandSelectionListeners.contains(listener)) {
+			expandSelectionListeners.remove(listener);
+		}
+	}
+
+
+	public void notifyExpandSelectionListeners() {
+		if (!ignoreSliderEvents) {
+			for (ExpandSelectionListener listener : expandSelectionListeners) {
+				listener.depthChanged(depthSlider.getValue());
+			}
+		}
+
+	}
+
+
 	/* Static methods */
-
-	public static JComponent getToolbarDepthControl() {
-		if (toolbarPanel == null) {
-			GridBagConstraints	toolbarGBC = new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0,
-									GridBagConstraints.EAST, GridBagConstraints.NONE,
-									new Insets(0, 0, 0, 0), 0, 0);
-
-			toolbarPanel = new JPanel(new GridBagLayout());
-
-			for (int index = 0; index < 6; index++) {
-				toolbarLabels[index].setFont(tufts.vue.gui.GUI.LabelFace);
-				toolbarLabels[index].putClientProperty("JComponent.sizeVariant", "small");
-				toolbarLabels[index].setMinimumSize(toolbarLabels[index].getPreferredSize());
-				toolbarLabels[index].setToolTipText(VueResources.getString("interactionTools.depth.toolTip"));
-				toolbarLabels[index].addMouseListener(new ToolbarDepthSelectionListener());
-				toolbarPanel.add(toolbarLabels[index], toolbarGBC);
-				toolbarGBC.gridx++;
-
-				if (DEBUG) {
-					toolbarLabels[index].setBackground(Color.YELLOW);
-					toolbarLabels[index].setOpaque(true);
-				}
-			}
-
-			if (DEBUG) {
-				toolbarPanel.setBackground(Color.MAGENTA);
-				toolbarPanel.setOpaque(true);
-			}
-		}
-
-		return toolbarPanel;
-	}
-
-
-	public static void redrawToolbarDepthControl() {
-		int		value = VUE.getInteractionToolsPanel().getDepthValue();
-
-		toolbarLabels[0].setIcon(value > 0 ? toolbarIconFirstOn : toolbarIconFirstOff);
-
-		for (int index = 1; index < 6; index++) {
-			toolbarLabels[index].setIcon(index <= value ? toolbarIconRestOn : toolbarIconRestOff);
-		}
-	}
 
 	protected static void addToGridBag(Container container, Component component,
 			int gridX, int gridY, int gridWidth, int gridHeight,
@@ -477,7 +447,7 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 			JSlider	source = (JSlider)event.getSource();
 
 			if (!source.getValueIsAdjusting()) {
-				redrawToolbarDepthControl();
+				notifyExpandSelectionListeners();
 				GUI.invokeAfterAWT(sliderMoved);
 			}
 		}
@@ -617,55 +587,6 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 					}
 				}
 			}
-		}
-	}
-
-
-	protected static class ToolbarDepthSelectionListener extends MouseAdapter {
-
-
-		ToolbarDepthSelectionListener() {}
-
-
-		public void mousePressed(MouseEvent event) {
-			JLabel	source = (JLabel)event.getSource();
-			int		index;
-
-			for (index = 0; index < 6; index++) {
-				if (toolbarLabels[index] == source) {
-					break;
-				}
-			}
-
-			VUE.getInteractionToolsPanel().setDepthValue(index);
-			redrawToolbarDepthControl();
-		}
-
-		public void mouseEntered(MouseEvent event) {
-			JLabel	source = (JLabel)event.getSource();
-			int		value = VUE.getInteractionToolsPanel().getDepthValue();
-			Icon	icon = toolbarIconRestOver;
-
-			if ((toolbarLabels[0] != source || value > 0)) {
-				toolbarLabels[0].setIcon(toolbarIconFirstOver);
-			}
-
-			if (toolbarLabels[0] == source) {
-				icon = toolbarIconRestOff;
-			}
-
-			for (int index = 1; index < 6; index++) {
-				toolbarLabels[index].setIcon(icon);
-
-				if (toolbarLabels[index] == source) {
-					icon = toolbarIconRestOff;
-				}
-			}
-		}
-
-
-		public void mouseExited(MouseEvent event) {
-			redrawToolbarDepthControl();
 		}
 	}
 }

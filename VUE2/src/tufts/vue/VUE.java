@@ -116,7 +116,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.709 $ / $Date: 2010-01-23 20:28:04 $ / $Author: mike $ 
+ * @version $Revision: 1.710 $ / $Date: 2010-01-25 21:26:08 $ / $Author: brian $ 
  */
 
 public class VUE
@@ -170,7 +170,7 @@ public class VUE
     private static SearchTextField mSearchtextFld = new SearchTextField();
     public static final int FIRST_TAB_STOP = 6;   
     //public static JCheckBoxMenuItem  resetSettingsMenuItem;
-    public static JComponent depthSelectionControl = null;
+    public static ExpandSelectionControl depthSelectionControl = null;
     public static JPanel searchPanel = new JPanel(new GridBagLayout());  
     public static void finalizeDocks()
     {
@@ -2030,6 +2030,11 @@ public class VUE
         	interactionToolsDock = GUI.createDockWindow(VueResources.getString("dockWindow.interactionTools.title"),
         			VueResources.getString("dockWindow.ExplorationTools.helpText"));
         	interactionToolsPanel = new InteractionTools(interactionToolsDock);
+
+            if (depthSelectionControl != null) {
+            	depthSelectionControl.addExpandSelectionListener(interactionToolsPanel);
+            	interactionToolsPanel.addExpandSelectionListener(depthSelectionControl);
+            }
         }
         //-----------------------------------------------------------------------------
         // Content window
@@ -2324,9 +2329,14 @@ public class VUE
         						GridBagConstraints.EAST, GridBagConstraints.NONE,
         						new Insets(0, 0, 0, 8), 0, 0);
 
-        depthSelectionControl = InteractionTools.getToolbarDepthControl();
+        depthSelectionControl = new ExpandSelectionControl();
         searchPanel.add(depthSelectionControl, searchPanelGBC);
-        
+
+        if (interactionToolsPanel != null) {
+        	depthSelectionControl.addExpandSelectionListener(interactionToolsPanel);
+        	interactionToolsPanel.addExpandSelectionListener(depthSelectionControl);
+        }
+     
         searchPanelGBC.gridx = 1;
         searchPanelGBC.fill = GridBagConstraints.HORIZONTAL;
         searchPanelGBC.weightx = 1.0;
