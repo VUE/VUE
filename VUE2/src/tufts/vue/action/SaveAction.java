@@ -170,7 +170,7 @@ public class SaveAction extends VueAction
             else if (name.endsWith(".png"))
                 ImageConversion.createActiveMapPng(file,VueResources.getDouble("imageExportFactor"));
             else if (name.endsWith(".svg"))
-                new SVGConversion().createSVG(file);
+                SVGConversion.createSVG(file);
             
             else if (name.endsWith(".pdf"))
             {
