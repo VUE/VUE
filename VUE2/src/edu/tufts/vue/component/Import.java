@@ -54,7 +54,7 @@ public class Import {
     public static final String LAYOUT_EXTENSION = "Layout";
     public static final String[] LAYOUT_CLASS_NAME = {"ListRandom","ListRandom","Circular","FilledCircular","Tabular"};
 
-    public static final String[] LAYOUT_SHORTCUT = {"default","random","cirlce","filledCircle","table"};
+    public static final String[] LAYOUT_SHORTCUT = {"default","random","circle","filled","table"};
 
     XmlDataSource   datasource;
      /**
@@ -70,6 +70,22 @@ public class Import {
     	Class layoutClass = classLoader.loadClass(className);
         Layout layout = (Layout) layoutClass.newInstance();
         createMap(inputFile,outputFile,layout);
+    }
+    /**
+     * Create a map of specified layout with specific layout id
+     * @param inputFile comma or tab delimited import file
+     * @param outputFile  a map generated from input file
+     * @param layout    random, circle, filled, table
+     * @throws java.lang.Exception
+     */
+    public void createMap(String inputFile,String outputFile,String layout) throws Exception {
+    	HashMap<String,Integer> optionsMap = new HashMap<String,Integer>();
+		optionsMap.put("random",1);
+		optionsMap.put("circle",2);
+		optionsMap.put("filled",3);
+		optionsMap.put("table",4);
+		int layoutId = optionsMap.get(layout);
+    	createMap(inputFile,outputFile,layoutId);
     }
     /**
      * Create a map of specified layout
@@ -94,15 +110,10 @@ public class Import {
  		LWMap map = new LWMap("test");
 // 		schema.setRowNodeStyle(DataAction.makeStyleNode(schema));
  		List<LWComponent> nodes =  DataAction.makeRowNodes(schema);
-
-		for(LWComponent component: nodes) {
-			
+		for(LWComponent component: nodes) {	
 			map.add(component);
 		}
-
 		layout.layout(new LWSelection(nodes));
-		
-			     
         ActionUtil.marshallMap(new File(outputFile), map);
     }
 
@@ -122,19 +133,47 @@ public class Import {
         createMap(inputFile,outputFile,layout);
     }
     
- 
+	public void printHelp() {
+		System.out.println("Usage: java -jar VUEInport.jar <input file> <output file(vue map)> [option]");
+		System.out.println();
+		System.out.println("The arguments  are:");
+		System.out.println("-h or --help  : prints this informaion");
+		System.out.println("<input file>  :  this is a data file in csv or tab delimited format" );
+		System.out.println("<output file> : location to output vue file" );
+		System.out.println("[option]      : a number or format specifying the layout");
+		System.out.println("   			     0, 1 random or no option - random layout" );
+		System.out.println("   			     2, circle - circular layout" );
+		System.out.println("   			     3, filled - filled circular layout" );
+		System.out.println("   			     4, table - tabular layout" );	
+	}
      
     
     public static void main(String[] args) throws Exception {
+    	Import importer = new Import();
+        
+    	if(args.length < 2) {
+			importer.printHelp();
+			System.exit(0);
+		}
+		if(args[0] != null ) {
+			if(args[0].equalsIgnoreCase("-h") || args[0].equalsIgnoreCase("--help")) {
+				importer.printHelp();
+				System.exit(0);
+			}
+		}
         String inputFile = args[0];
         String outputFile = args[1];
-        Import importer = new Import();
         if(args.length == 3 && args[2] != null) {
+        	try {
         	int  layoutId= Integer.parseInt(args[2]);
         	 if(layoutId > 4 || layoutId < 0 ) {
         		 layoutId = 0;
         	 }
+        	
         	importer.createMap(inputFile,outputFile,layoutId);
+        	} catch(Exception ex) {
+        		importer.createMap(inputFile, outputFile,args[2]);
+        	}
         } else {
         	importer.createMap(inputFile,outputFile);
         }
