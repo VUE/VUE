@@ -21,6 +21,7 @@ package edu.tufts.vue.component;
 import tufts.vue.action.OpenAction;
 import tufts.vue.action.ImageConversion;
 import tufts.vue.action.SVGConversion;
+import tufts.vue.action.ImageMap;
 
 import java.io.File;
 
@@ -61,7 +62,8 @@ public class Export {
     * @throws java.lang.Exception
     */
 	public void createHTML(String  mapFile, String outputFile) throws Exception { 
-		
+		LWMap map = OpenAction.loadMap(mapFile); 
+		new ImageMap().createImageMap(new File(outputFile), map);
 	}
 	/** A method that creates a PNG from map file. T 
     *
