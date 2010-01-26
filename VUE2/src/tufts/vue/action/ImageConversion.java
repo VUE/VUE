@@ -24,7 +24,7 @@ import javax.swing.*;
 import tufts.vue.*;
 
 /**
- * @version $Revision: 1.27 $ / $Date: 2010-01-25 21:54:33 $ / $Author: anoop $ *
+ * @version $Revision: 1.28 $ / $Date: 2010-01-26 18:25:53 $ / $Author: anoop $ *
  * @author  Daisuke Fujiwara
  */
 
@@ -71,6 +71,13 @@ public class ImageConversion extends VueAction {
     public static Dimension createActiveMapPng(File location,double zoomFactor)
     {
     	BufferedImage bi = VUE.getActiveMap().getAsImage(zoomFactor);
+        convert(bi, location, PNG);
+        Dimension d = new Dimension(bi.getWidth(),bi.getHeight());
+        return d;
+    }
+    public static Dimension createActiveMapPng(File location,LWMap map,double zoomFactor)
+    {
+    	BufferedImage bi = map.getAsImage(zoomFactor);
         convert(bi, location, PNG);
         Dimension d = new Dimension(bi.getWidth(),bi.getHeight());
         return d;

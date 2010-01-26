@@ -33,7 +33,7 @@ import tufts.vue.LWComponent.ChildKind;
 import tufts.vue.LWComponent.Order;
 
 /**
- * @version $Revision: 1.35 $ / $Date: 2009-09-11 00:43:38 $ / $Author: mike $ *
+ * @version $Revision: 1.36 $ / $Date: 2010-01-26 18:25:53 $ / $Author: anoop $ *
  * @author Jay Briedis
  * 
  * Major revision: 2/17/09 -MK
@@ -74,6 +74,32 @@ public class ImageMap extends VueAction {
 
 		if (selectedFile != null)
 			createImageMap(selectedFile);
+	}
+	
+	public void createImageMap(File file,LWMap map) {
+		String imageLocation = file.getAbsolutePath().substring(0,
+				file.getAbsolutePath().length() - 5)
+				+ ".png";
+		String imageName = file.getName().substring(0,
+				file.getName().length() - 5)
+				+ ".png";
+		String fileName = file.getAbsolutePath().substring(0,
+				file.getAbsolutePath().length() - 5)
+				+ ".html";
+
+		File imageLocationFile = new File(imageLocation);
+
+		if (imageLocationFile.exists()) {
+			int confirm = VueUtil.confirm(
+					VueResources.getString("imagemap.fileexists.warning"),
+					VueResources.getString("imagemap.fileexists.title"));
+			if (confirm == javax.swing.JOptionPane.NO_OPTION) {
+				VueUtil.alert(VueResources.getString("imagemap.mapnotsaved.error"), VueResources.getString("imagemap.mapnotsaved.title"));
+				return;
+			}
+		}
+ 	 	imageDimensions = ImageConversion.createActiveMapPng(imageLocationFile,map,1.0);
+		createHtml(imageName, fileName,map);
 	}
 
 	public void createImageMap(File file) {
@@ -166,7 +192,7 @@ public class ImageMap extends VueAction {
 		return new Rectangle(ox, oy, ow, oh);
 	}
 
-	private String writeMapforContainer(LWContainer container) {
+	private String writeMapforContainer(LWContainer container,LWMap map) {
 		/*
 		 * I'm using an array list to gather all the lines of the image map
 		 * so that I can push things to the top.  Intersecting areas of the image map
@@ -179,8 +205,7 @@ public class ImageMap extends VueAction {
 		//java.util.ArrayList<LWComponent> comps = new ArrayList<LWComponent>();
 		
 		//get the current map.
-		LWMap map = VUE.getActiveMap();
-		
+ 
 		 // handle in reverse order (top layer on top)
         for (LWComponent layer : reverse(map.getChildren())) {         
                 //for (LWComponent c : reverse(layer.getChildren()))
@@ -272,7 +297,7 @@ public class ImageMap extends VueAction {
 						+ getRectCoords(getRectNode(comp)) + "\"></area>\n");
 
 				if (comp instanceof LWGroup) {
-					String groupOutput = writeMapforContainer((LWGroup) comp);
+					String groupOutput = writeMapforContainer((LWGroup) comp,map);
 					arrayList.add(groupOutput);
 				}
 			}// end else
@@ -288,11 +313,14 @@ public class ImageMap extends VueAction {
 		}
 		return buf;
 	}
+    private  void createHtml(String imageName, String fileName) {
+    	LWMap currentMap = VUE.getActiveMap();
+    	createHtml(imageName,fileName,currentMap);
+    }
+    
+	private  void createHtml(String imageName, String fileName,LWMap currentMap) {
 
-	private void createHtml(String imageName, String fileName) {
-
-		LWMap currentMap = VUE.getActiveMap();
-		Rectangle2D bounds = currentMap.getMapBounds();
+ 		Rectangle2D bounds = currentMap.getMapBounds();
 
 		xOffset = (int) bounds.getX() - UPPER_LEFT_MARGIN;
 		yOffset = (int) bounds.getY() - UPPER_LEFT_MARGIN;
@@ -337,7 +365,7 @@ public class ImageMap extends VueAction {
 				+ imageDimensions.getHeight() + "\" usemap=\"#usa\">";
 		out += "<map name=\"usa\">";
 		nodeCounter = 0;
-		out += writeMapforContainer(currentMap);
+		out += writeMapforContainer(currentMap,currentMap);
 		out += "\n</map></div></body></html>";
 		// write out to the selected file
 		FileWriter output = null;
