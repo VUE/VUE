@@ -59,8 +59,6 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 									THREE = new String("3"),
 									FOUR = new String("4"),
 									FIVE = new String("5");
-	protected ArrayList<ExpandSelectionListener>
-									expandSelectionListeners = new ArrayList<ExpandSelectionListener>();
 	boolean							ignoreSliderEvents = false;
 	protected JSlider				fadeSlider = null,
 									depthSlider = null;
@@ -352,34 +350,39 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 
 
 	/* ExpandSelectionListener method */
-	public void depthChanged(int newDepth) {
+	public void depthChanged(ExpandSelectionEvent event) {
 		ignoreSliderEvents = true;
-		depthSlider.setValue(newDepth);
+		depthSlider.setValue(event.getDepth());
 		ignoreSliderEvents = false;
 	}
 
 
-	public void addExpandSelectionListener(ExpandSelectionListener listener) {
-		if (!expandSelectionListeners.contains(listener)) {
-			expandSelectionListeners.add(listener);
-		}
+	public void addExpandSelectionListener(ExpandSelectionListener tel) {
+		listenerList.add(ExpandSelectionListener.class, tel);
 	}
 
 
-	public void removeExpandSelectionListener(ExpandSelectionListener listener) {
-		if (expandSelectionListeners.contains(listener)) {
-			expandSelectionListeners.remove(listener);
-		}
+	public void removeExpandSelectionListener(ExpandSelectionListener tel) {
+		listenerList.remove(ExpandSelectionListener.class, tel);
 	}
 
 
-	public void notifyExpandSelectionListeners() {
+	public ExpandSelectionListener[] getExpandSelectionListeners() {
+		return (ExpandSelectionListener[])listenerList.getListeners(
+				ExpandSelectionListener.class);
+	}
+
+
+	protected void fireDepthChanged(int depth) {
 		if (!ignoreSliderEvents) {
-			for (ExpandSelectionListener listener : expandSelectionListeners) {
-				listener.depthChanged(depthSlider.getValue());
+			ExpandSelectionListener[] listeners = getExpandSelectionListeners();
+	
+			ExpandSelectionEvent	event = new ExpandSelectionEvent(this, depth);
+	
+			for (ExpandSelectionListener listener : listeners) {
+				listener.depthChanged(event);
 			}
 		}
-
 	}
 
 
@@ -447,7 +450,7 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 			JSlider	source = (JSlider)event.getSource();
 
 			if (!source.getValueIsAdjusting()) {
-				notifyExpandSelectionListeners();
+				fireDepthChanged(source.getValue());
 				GUI.invokeAfterAWT(sliderMoved);
 			}
 		}

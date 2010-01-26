@@ -15,8 +15,6 @@ import javax.swing.JPanel;
 
 public class ExpandSelectionControl extends JPanel implements ExpandSelectionListener {
 	public static final long		serialVersionUID = 1;
-	private static final org.apache.log4j.Logger
-									Log = org.apache.log4j.Logger.getLogger(InteractionTools.class);
 	protected static final boolean	DEBUG = false;
 	protected static Icon			iconFirstOff = VueResources.getImageIcon("expandselection.first.off"),
 									iconFirstOn = VueResources.getImageIcon("expandselection.first.on"),
@@ -25,8 +23,6 @@ public class ExpandSelectionControl extends JPanel implements ExpandSelectionLis
 									iconRestOn = VueResources.getImageIcon("expandselection.rest.on"),
 									iconRestOver = VueResources.getImageIcon("expandselection.rest.over");
 	protected int					currentDepth = 0;
-	protected ArrayList<ExpandSelectionListener>
-									expandSelectionListeners = new ArrayList<ExpandSelectionListener>();
 	protected JLabel				labels[] = {new JLabel(iconFirstOff),
 										new JLabel(iconRestOff),
 										new JLabel(iconRestOff),
@@ -74,29 +70,35 @@ public class ExpandSelectionControl extends JPanel implements ExpandSelectionLis
 
 
 	/* ExpandSelectionListener method */
-	public void depthChanged(int newDepth) {
-		currentDepth = newDepth;
+	public void depthChanged(ExpandSelectionEvent event) {
+		currentDepth = event.getDepth();
 		redraw();
 	}
 
 
-	public void addExpandSelectionListener(ExpandSelectionListener listener) {
-		if (!expandSelectionListeners.contains(listener)) {
-			expandSelectionListeners.add(listener);
-		}
+	public void addExpandSelectionListener(ExpandSelectionListener tel) {
+		listenerList.add(ExpandSelectionListener.class, tel);
 	}
 
 
-	public void removeExpandSelectionListener(ExpandSelectionListener listener) {
-		if (expandSelectionListeners.contains(listener)) {
-			expandSelectionListeners.remove(listener);
-		}
+	public void removeExpandSelectionListener(ExpandSelectionListener tel) {
+		listenerList.remove(ExpandSelectionListener.class, tel);
 	}
 
 
-	public void notifyExpandSelectionListeners() {
-		for (ExpandSelectionListener listener : expandSelectionListeners) {
-			listener.depthChanged(currentDepth);
+	public ExpandSelectionListener[] getExpandSelectionListeners() {
+		return (ExpandSelectionListener[])listenerList.getListeners(
+				ExpandSelectionListener.class);
+	}
+
+
+	protected void fireDepthChanged(int depth) {
+		ExpandSelectionListener[] listeners = getExpandSelectionListeners();
+
+		ExpandSelectionEvent	event = new ExpandSelectionEvent(this, depth);
+
+		for (ExpandSelectionListener listener : listeners) {
+			listener.depthChanged(event);
 		}
 	}
 
@@ -121,7 +123,7 @@ public class ExpandSelectionControl extends JPanel implements ExpandSelectionLis
 
 			redraw();
 
-			notifyExpandSelectionListeners();
+			fireDepthChanged(currentDepth);
 		}
 
 		public void mouseEntered(MouseEvent event) {

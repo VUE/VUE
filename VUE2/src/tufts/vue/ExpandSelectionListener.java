@@ -1,6 +1,10 @@
 package tufts.vue;
 
+import java.util.EventListener;
 
-public interface ExpandSelectionListener {
-	public abstract void depthChanged(int newDepth);	
+
+public interface ExpandSelectionListener extends EventListener {
+
+
+	public abstract void depthChanged(ExpandSelectionEvent event);	
 }
