@@ -23,14 +23,20 @@ import java.awt.geom.*;
 import javax.swing.*;
 import tufts.vue.*;
 
+import java.util.Iterator;
+import javax.imageio.*;
+import javax.imageio.stream.*;
 /**
- * @version $Revision: 1.28 $ / $Date: 2010-01-26 18:25:53 $ / $Author: anoop $ *
+ * @version $Revision: 1.29 $ / $Date: 2010-01-26 19:08:22 $ / $Author: anoop $ *
  * @author  Daisuke Fujiwara
  */
 
 /**a class which constructs a JPEG image of the current concept map*/
 public class ImageConversion extends VueAction {
-    public static final String JPEG = "jpeg";
+    /**
+	 * 
+	 */
+	public static final String JPEG = "jpeg";
     public static final String PNG = "png";
     /** Creates a new instance of ImageConversion */
     public ImageConversion() {
@@ -50,8 +56,15 @@ public class ImageConversion extends VueAction {
         {
             if (DEBUG.IO || DEBUG.IMAGE)
                 System.out.println("ImageIO.write " + image + " fmt=" + format + " to " + location);
-
-            ImageIO.write(image, format, location);
+            Iterator iter = ImageIO.getImageWritersByFormatName(JPEG);
+            ImageWriter writer = (ImageWriter)iter.next();
+            ImageWriteParam iwp = writer.getDefaultWriteParam();
+            iwp.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+            iwp.setCompressionQuality(1); 
+            FileImageOutputStream output = new FileImageOutputStream(location);            
+            writer.setOutput(output);
+            IIOImage iioImage = new IIOImage((RenderedImage)image, null, null);
+            writer.write(null, iioImage, iwp);
         }
         catch (Exception e)
         {
