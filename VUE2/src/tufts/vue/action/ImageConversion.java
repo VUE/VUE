@@ -27,7 +27,7 @@ import java.util.Iterator;
 import javax.imageio.*;
 import javax.imageio.stream.*;
 /**
- * @version $Revision: 1.29 $ / $Date: 2010-01-26 19:08:22 $ / $Author: anoop $ *
+ * @version $Revision: 1.30 $ / $Date: 2010-01-26 19:09:28 $ / $Author: anoop $ *
  * @author  Daisuke Fujiwara
  */
 
@@ -56,8 +56,8 @@ public class ImageConversion extends VueAction {
         {
             if (DEBUG.IO || DEBUG.IMAGE)
                 System.out.println("ImageIO.write " + image + " fmt=" + format + " to " + location);
-            Iterator iter = ImageIO.getImageWritersByFormatName(JPEG);
-            ImageWriter writer = (ImageWriter)iter.next();
+            Iterator<ImageWriter> iter = ImageIO.getImageWritersByFormatName(JPEG);
+            ImageWriter writer =  iter.next();
             ImageWriteParam iwp = writer.getDefaultWriteParam();
             iwp.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
             iwp.setCompressionQuality(1); 
