@@ -627,7 +627,7 @@ public class ImageRef
             // through the presentation or jumps to the middle.  If we ALSO want to
             // support being able to fast-page through, then fast-page BACK over items
             // that have already been given LOADING priority, and re-prioritize them to
-            // the front of the LIFO queue, we'ld need to issue another Images call here
+            // the front of the LIFO queue, we'd need to issue another Images call here
             // to make that request.  Generally, that should actually work fine, tho in
             // rare cases where lots of high-res images are being requested at once, the
             // queue will thrash a bit -- that is, be fully rotating on each paint.
