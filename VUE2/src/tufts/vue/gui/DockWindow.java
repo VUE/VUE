@@ -26,7 +26,7 @@ import tufts.vue.VueUtil;
 import tufts.vue.EventRaiser;
 import tufts.vue.VueResources;
 
-import tufts.vue.gui.GUI.Screen;
+import tufts.vue.gui.Screen;
 
 import java.util.*;
 import java.awt.*;
@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.166 $ / $Date: 2010-01-15 20:07:25 $ / $Author: sfraize $
+ * @version $Revision: 1.167 $ / $Date: 2010-01-27 17:09:00 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
