@@ -57,7 +57,7 @@ import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.167 $ / $Date: 2010-01-19 20:34:50 $ / $Author: sfraize $
+ * @version $Revision: 1.168 $ / $Date: 2010-01-27 17:08:30 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -112,89 +112,6 @@ public class GUI
     
     public static boolean UseAlwaysOnTop = false;
 
-    public static final class Screen extends Insets {
-
-        public final Insets margin;
-        public final int width, height;
-        public final int topIn, leftIn, bottomIn, rightIn;
-
-        public Screen(final Rectangle b, final Insets insets) {
-            super(0,0,0,0);
-            
-            this.width = b.width;
-            this.height = b.height;
-            
-            super.top = b.y;
-            super.left = b.x;
-            super.bottom = top + height;
-            super.right = left + width;
-            
-            this.topIn = top + insets.top;
-            this.leftIn = left + insets.left;
-            this.bottomIn = bottom - insets.bottom;
-            this.rightIn = right - insets.right;
-
-            this.margin = insets;
-        }
-        
-        public Rectangle getBounds() {
-            return new Rectangle(top, left, width, height);
-        }
-        
-        public Rectangle getMaxWindowBounds() {
-            return new Rectangle(topIn,
-                                 leftIn,
-                                 width - (margin.left + margin.right), // rightIn - leftIn
-                                 height - (margin.top + margin.bottom)); // bottomIn - topIn
-        }
-
-        // todo: all the below could be smarter by accounting for other nearby screens
-        // e.g., if off-screen at any side, and there isn't a screen off to the side,
-        // those coordinates should be considered to be "at" that side.
-
-        public boolean atTop(int y) { return y == top; }
-        public boolean atLeft(int x) { return x == left; }
-        public boolean atBottom(int y) { return y == bottom; }
-        public boolean atRight(int x) { return x == right; }
-
-        // todo: should also include
-        public boolean inTop(int y) { return y >= top && y <= topIn; }
-        //public boolean inLeft(int x) { return x == left; }
-        public boolean inBottom(int y) { return y <= bottom && y >= bottomIn; }
-        //public boolean inRight(int x) { return x == right; }
-
-        @Override public String toString() {
-            StringBuilder s = new StringBuilder
-                (String.format("Screen[%dx%d t=%d,l=%d,b=%d,r=%d", width, height, top, left, bottom, right));
-            if (margin.hashCode() == 0){
-                s.append(']');
-            } else {
-                if (margin.top != 0)
-                    s.append(" mt="+margin.top);
-                else
-                    s.append(' ');
-                if (margin.left != 0) s.append(",ml="+margin.left);
-                if (margin.bottom != 0) s.append(",mb="+margin.bottom);
-                if (margin.right != 0) s.append(",mr="+margin.right);
-                s.append(']');
-            }
-            return s.toString();
-        }
-        
-
-        public static Screen create(GraphicsDevice device)
-        {
-            // note: the config changes when the display mode changes (e.g., resolution change)
-            final GraphicsConfiguration config = device.getDefaultConfiguration(); 
-
-            // note: the screen insets may change at any time due to user changes (e.g., dock hiding)
-            final Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(config);
-
-            return new Screen(config.getBounds(), insets);
-        }
-        
-    }
-    
     /** the currently most "active" device as determined by the position of VUE windows */
     private static GraphicsDevice GDevice;
     private static GraphicsEnvironment GEnvironment;
@@ -459,6 +376,7 @@ public class GUI
         Log.log(level, "LAF descr: " + UIManager.getLookAndFeel().getDescription());
         Log.log(level, "LAF class: " + UIManager.getLookAndFeel().getClass());
 
+
         initUnderway = false;
     }
 
@@ -580,6 +498,10 @@ public class GUI
         return GScreenDevices.length > 1;
     }
     
+    public static Screen[] getAllScreens() {
+        return Screen.getAllScreens();
+    }
+
     public static Rectangle getAllScreenBounds()
     {
         if (GSpaceBounds == null)
@@ -588,17 +510,6 @@ public class GUI
         return new Rectangle(GSpaceBounds);
     }
 
-    public static Screen[] getAllScreens() {
-
-        loadGraphicsInfo();
-        final GraphicsDevice[] devices = GScreenDevices;
-        final Screen[] screens = new Screen[devices.length];
-        for (int i = 0; i < devices.length; i++) {
-            screens[i] = Screen.create(devices[i]);
-        }
-        return screens;
-    }
-    
     private static void loadGraphicsInfo()
     {
         Toolkit GToolkit = Toolkit.getDefaultToolkit();
@@ -610,8 +521,8 @@ public class GUI
         GScreen = Screen.create(GDevice);
         GScreenDevices = GEnvironment.getScreenDevices();
 
-        GSpaceBounds = getAllDeviceBounds(GScreenDevices);
-        GSpace = boundsToInsets(GSpaceBounds);
+        GSpaceBounds = Screen.getAllDeviceBounds(GScreenDevices);
+        GSpace = Screen.boundsToInsets(GSpaceBounds);
 
         // todo: the below should really be on some kind of observer of a GUI.java state:
         if (tufts.vue.Actions.SuperScreen != null) {
@@ -622,37 +533,6 @@ public class GUI
 
         if (DEBUG.Enabled) dumpGraphicsConfig();
     }
-
-    private static Rectangle getAllDeviceBounds(GraphicsDevice[] devices)
-    {
-        Rectangle bounds = null;
-        
-        //for (int i = devices.length-1; i >= 0; i--) {
-        for (int i = 0; i < devices.length; i++) {
-            final GraphicsDevice device = devices[i];
-            final GraphicsConfiguration config = device.getDefaultConfiguration();
-            final Rectangle newBounds = config.getBounds();
-            //Log.info("adding bounds: " + Util.fmt(newBounds) + " for " + device);
-            if (bounds == null) {
-                bounds = new Rectangle(newBounds);
-            } else {
-                bounds.add(newBounds);
-            }
-            //Log.info("result bounds: " + Util.fmt(bounds));
-        }
-        //Log.info("*FINAL BOUNDS: " + Util.fmt(bounds));
-        return bounds;
-    }
-
-    public static Insets boundsToInsets(Rectangle r) 
-    {
-        return new Insets(r.y,
-                          r.x,
-                          r.y + r.height,
-                          r.x + r.width);
-
-    }
-    
 
     private static void dumpGraphicsConfig() {
         Log.debug("screen stats:");
@@ -685,148 +565,28 @@ public class GUI
                            );
     }
     
-//     public static int getScreenWidth() {
-//         if (GScreenWidth <= 0)
-//             loadGraphicsInfo();
-//         return GScreenWidth;
-//     }
-//     public static int getScreenHeight() {
-//         if (GScreenHeight <= 0)
-//             loadGraphicsInfo();
-//         return GScreenHeight;
-//     }
-//     public static Rectangle getMaximumWindowBounds() {
-//         refreshGraphicsInfo();
-//         if (ControlMaxWindow)
-//             return VueMaxWindowBounds(GMaxWindowBounds);
-//         else
-//             return GMaxWindowBounds;
-//     }
-
     /** Return the max window bounds for the given window, for screen device it's currently displayed on */
     public static Rectangle getMaximumWindowBounds(Window w) {
         return getScreenForWindow(w).getMaxWindowBounds();
     }
 
-    /** @return the GraphicsDevice the given window is currently displayed on.
-     *
-     * In the case where the Window currently overlaps two physical or logical devices,
-     * the device the window is "on" is determined by the device which is displaying the
-     * greatest portion of the total area of the Window
-     *
-     * If the given Window is null, this return the default device.
-     */
-    
-    public static GraphicsDevice getDeviceForWindow(Window w) 
-    {
-        final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-        final GraphicsDevice defaultDevice = ge.getDefaultScreenDevice();
-        
-        if (w == null)
-            return defaultDevice;
-        
-        final GraphicsDevice[] devices = ge.getScreenDevices();
-
-        if (devices.length < 2)
-            return defaultDevice;
-        
-        return getDeviceForRegion(w.getBounds());
-    }
-    
-        
-    /** @return the GraphicsDevice the given region is currently displayed on.
-     *
-     * In the case where the region currently overlaps two physical or logical devices,
-     * the device the region is "on" is determined by the device which is displaying the
-     * greatest portion of the total area of the region
-     *
-     * If the given region is null or empty, this return the default device.
-     */
-    public static GraphicsDevice getDeviceForRegion(final Rectangle region) 
-    {
-        final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-        GraphicsDevice selected = ge.getDefaultScreenDevice();
-        
-        if (region == null || region.isEmpty())
-            return selected;
-        
-        final GraphicsDevice[] devices = ge.getScreenDevices();
-
-        if (devices.length < 2)
-            return selected;
-
-        // scan all screen devices, and find the one that this
-        // window most overlaps:
-        
-        int maxArea = 0;
-        for (int i = 0; i < devices.length; i++) {
-            GraphicsDevice device = devices[i];
-            try {
-                GraphicsConfiguration config = device.getDefaultConfiguration();
-                Rectangle overlap = config.getBounds().intersection(region);
-                int area = overlap.width * overlap.height;
-                if (area > maxArea) {
-                    maxArea = area;
-                    selected = device;
-                }
-            } catch (Throwable t) {
-                Log.error("scanning device: " + Util.tags(device));
-            }
-        }
-        
-        return selected;
-    }
-
-    public static GraphicsDevice getDeviceForPoint(final Point point)
-    {
-        final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-        GraphicsDevice selected = ge.getDefaultScreenDevice();
-        
-        if (point == null)
-            return selected;
-        
-        final GraphicsDevice[] devices = ge.getScreenDevices();
-
-        if (devices.length < 2)
-            return selected;
-
-        // scan all screen devices, and find the one that this point is on:
-        
-        for (int i = 0; i < devices.length; i++) {
-            GraphicsDevice device = devices[i];
-            try {
-                GraphicsConfiguration config = device.getDefaultConfiguration();
-                if (config.getBounds().contains(point)) {
-                    selected = device;
-                    break;
-                }
-            } catch (Throwable t) {
-                Log.error("scanning device: " + Util.tags(device));
-            }
-        }
-        return selected;
-    }
-
-    public static Screen getScreenForPoint(final Point point) 
-    {
-        return Screen.create(getDeviceForPoint(point));
-        //return boundsToInsets(getDeviceForPoint(point).getDefaultConfiguration().getBounds());
-    }
-
     public static Screen getScreenForWindow(Window w)
     {
-        return Screen.create(getDeviceForWindow(w));
+        return Screen.getScreenForWindow(w);
     }
     
-
+    public static Screen getScreenForPoint(final Point point) {
+        return Screen.getScreenForPoint(point);
+    }
+    
     public static GraphicsConfiguration getDeviceConfigForWindow(Window w) {
-        return getDeviceForWindow(w).getDefaultConfiguration();
+        return Screen.getDeviceForWindow(w).getDefaultConfiguration();
     }
     
     /** @return the GraphicsDevice currently determined to be the "active" one for VUE */
     public static GraphicsDevice getActiveDevice()
     {
-        return getDeviceForWindow(VUE.getMainWindow());
+        return Screen.getDeviceForWindow(VUE.getMainWindow());
     }
 
     public static void refreshGraphicsInfo() {
@@ -1270,7 +1030,7 @@ public class GUI
     /** these may change at any time, so we must fetch them newly each time */
     public static Insets getScreenInsets() {
         refreshGraphicsInfo();
-        return GScreen;
+        return GScreen.getAsInsets();
     }
     
     
@@ -1630,13 +1390,21 @@ public class GUI
             c.setCursor((Cursor) oldCursor);
         }
     }
-    
+
+    private static Rectangle SpecialWorkingBounds = null; // e.g.,for VISWALL
+
+    public static void setSpecialWorkingBounds(Rectangle b) {
+        SpecialWorkingBounds = b;
+    }
     
     private static Rectangle getFullScreenBounds()
     {
-        if (tufts.vue.Actions.SuperScreen.getToggleState())
-            return GSpaceBounds;
-        else
+        if (tufts.vue.Actions.SuperScreen.getToggleState()) {
+            if (SpecialWorkingBounds != null && !SpecialWorkingBounds.isEmpty())
+                return SpecialWorkingBounds;
+            else
+                return GSpaceBounds;
+        } else
             return getActiveDevice().getDefaultConfiguration().getBounds();
     }
 
@@ -1724,7 +1492,7 @@ public class GUI
     }
     
     public static void keepRegionOnScreen(Point onScreen, Point loc, Dimension size) {
-        keepRegionOnScreen(getScreenForPoint(onScreen), loc, size);
+        keepRegionOnScreen(Screen.getScreenForPoint(onScreen), loc, size);
     }
 
     /**
@@ -1747,7 +1515,7 @@ public class GUI
      * it references currently cached values only.
      */
     
-    public static void keepRegionOnScreen(Insets screen, Point loc, Dimension size)
+    public static void keepRegionOnScreen(Screen screen, Point loc, Dimension size)
     {
         // if would go off bottom, move up
         if (loc.y + size.height >= screen.bottom)
@@ -1767,6 +1535,8 @@ public class GUI
         if (loc.x < screen.left)
             loc.x = screen.left;
     }
+
+    
 
     /*
     public interface KeyBindingRelayer {
