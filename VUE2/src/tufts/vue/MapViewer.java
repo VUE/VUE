@@ -79,7 +79,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.663 $ / $Date: 2010-01-22 21:43:26 $ / $Author: sfraize $ 
+ * @version $Revision: 1.664 $ / $Date: 2010-01-27 17:07:50 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3295,9 +3295,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
          Box avoid, // a region we'd like to avoid
          Dimension tip) // the size of the tip
     {
-        //GUI.refreshGraphicsInfo();
-
-        final Insets screen = GUI.getScreenForPoint(mouse);
+        final tufts.vue.gui.Screen screen = GUI.getScreenForPoint(mouse);
 
         // Default placement starts from left of component,
         // at same height as the rollover region that triggered us
@@ -8065,7 +8063,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             if (oldParent == null)
                 return null;
             target = oldParent.getLayer();
-            if (focal == null)
+            if (focal == null || target == null)
                 return null;
             // never let rise above the focal
             if (focal.getDepth() > target.getDepth()) {
