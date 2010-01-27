@@ -116,7 +116,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.710 $ / $Date: 2010-01-25 21:26:08 $ / $Author: brian $ 
+ * @version $Revision: 1.711 $ / $Date: 2010-01-27 17:10:55 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -1574,7 +1574,7 @@ public class VUE
         createDockWindows();
 
         
-        final tufts.vue.gui.GUI.Screen screen = GUI.getScreenForWindow(null);
+        final tufts.vue.gui.Screen screen = GUI.getScreenForWindow(null);
         
         if (!VUE.isApplet())
         {
@@ -1946,7 +1946,7 @@ public class VUE
     
     protected static void createDockWindows()
     {
-        final tufts.vue.gui.GUI.Screen screen = GUI.getScreenForWindow(null);
+        final tufts.vue.gui.Screen screen = GUI.getScreenForWindow(null);
         
     	  //=============================================================================
         //
@@ -2666,7 +2666,7 @@ public class VUE
         if (DEBUG.DOCK) Log.debug("positionForDocking " + Arrays.asList(preShown));
         if (DEBUG.INIT || (DEBUG.DOCK && DEBUG.META)) Util.printStackTrace("\n\nSTARTING PLACEMENT");
 
-        final tufts.vue.gui.GUI.Screen screen = GUI.getScreenForWindow(null);
+        final tufts.vue.gui.Screen screen = GUI.getScreenForWindow(null);
         
         int top = screen.topIn;
 
