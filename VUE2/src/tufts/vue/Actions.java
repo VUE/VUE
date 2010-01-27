@@ -21,6 +21,7 @@ import java.awt.Dimension;
 import java.awt.Event;
 import java.awt.Font;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.datatransfer.Clipboard;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -3700,7 +3701,55 @@ public class Actions implements VueConstants
             private final Object INIT = "init";
             private boolean selected;
 
-            { update(INIT); }
+            private final boolean ViswallMode;
+
+            //--------------------------------------------
+            // anonymous constructor init:
+            {
+                boolean foundViswall = false;
+                
+                try {
+                    foundViswall = checkForViswall();
+                } catch (Throwable t) {
+                    Log.info("checking for viswall", t);
+                }
+
+                ViswallMode = foundViswall;
+                if (!foundViswall)
+                    update(INIT);
+            }
+            //--------------------------------------------
+
+            boolean checkForViswall() {
+                String host = System.getenv("HOST");
+                if (host == null) host = System.getenv("HOSTNAME");
+                if (host == null) host = System.getenv("COMPUTERNAME");
+                if (host == null) host = System.getenv("USERDOMAIN");
+
+                Rectangle specialBounds = null;
+                
+                if (false) { // testing
+                    specialBounds = new Rectangle(128,128, 640,480);
+                }
+                else if ("VISWALL-WIN32".equalsIgnoreCase(host) && tufts.vue.gui.Screen.getAllScreens().length == 9) {
+                    // TODO: The below configuration(s) need testing and may need adjusting:
+                    // specialBounds = new Rectangle(1920,-1080, 4096,2160); // upper logical stero display
+                       specialBounds = new Rectangle(1920,    0, 4096,2160); // lower logical stero display
+                }
+                //else if ("insert-viswall-linux-hostname" etc..
+                // // config linux viswall bounds...
+                //}
+
+                if (specialBounds != null) {
+                    // manually init the action, as that will (must) be skipped when we return true:
+                    GUI.setSpecialWorkingBounds(specialBounds);
+                    setEnabled(true);
+                    setActionName("Enable Tufts VISWALL");
+                    return true;
+                } else {
+                    return false;
+                }
+            }
             
             boolean undoable() { return false; }
             protected boolean enabled() { return true; }
@@ -3725,6 +3774,8 @@ public class Actions implements VueConstants
             // for GUI.java -- would be better as a listener
             @Override public void update(Object key) {
                 if (DEBUG.Enabled) Log.debug("SuperScreen update: " + Util.tags(key));
+                if (ViswallMode)
+                    return;
                 if (GUI.hasMultipleScreens()) {
                     java.awt.Rectangle b = GUI.getAllScreenBounds();
                     setActionName(String.format("All Screens (%dx%d)", b.width, b.height));
