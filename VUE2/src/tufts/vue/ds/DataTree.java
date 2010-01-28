@@ -54,7 +54,7 @@ import com.google.common.collect.*;
  * currently active map, code for adding new nodes to the current map,
  * and initiating drags of fields or rows destined for a map.
  *
- * @version $Revision: 1.102 $ / $Date: 2010-01-28 03:04:49 $ / $Author: sfraize $
+ * @version $Revision: 1.103 $ / $Date: 2010-01-28 15:31:40 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -1683,17 +1683,25 @@ public class DataTree extends javax.swing.JTree
                 Log.error("problem creating links on " + map + " for new nodes: " + Util.tags(nodes), t);
             }
 
-            if (DEBUG.Enabled && targetsUsed != null) Log.debug("TARGETS USED: " + targetsUsed.entrySet());
+            if (DEBUG.Enabled && targetsUsed != null) {
+                Log.debug("TARGETS USED: " + targetsUsed.size());
+                Util.dump(targetsUsed.entrySet());
+            }
 	        
             if (nodes.size() > 0) {
+
+                //tufts.vue.VueUtil.setXYByClustering(map, nodes); // cannot do before adding to map w/out refactoring projectNodes
+                
                 map.getOrCreateLayer("New Data Nodes").addChildren(nodes);
 	
                 if (nodes.size() > 1) {
-                    tufts.vue.LayoutAction.random.act(nodes);
-//                     if (DEBUG.Enabled) 
-//                         tufts.vue.LayoutAction.table.act(nodes);
-//                     else
-//                         tufts.vue.LayoutAction.random.act(nodes);
+
+                    //tufts.vue.LayoutAction.random.act(nodes);
+                    
+                    // randomly layout anything that isn't first clustered -- works okay for now:
+                    tufts.vue.LayoutAction.random.act
+                        (tufts.vue.VueUtil.setXYByClustering(nodes));
+                    
                 }
 	
                 VUE.getSelection().setTo(nodes);
