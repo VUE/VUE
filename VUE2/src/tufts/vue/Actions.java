@@ -2696,8 +2696,9 @@ public class Actions implements VueConstants
     public static final Object PUSH_ALL = "pushAll";
     public static final Object PUSH_LINKED = "pushLinked";
     
-    public static void projectNodes(final LWComponent pushing, final int distance, Object pushKey) {
-
+    /** pushing must be a member of a map -- cannot push non-map member nodes.  todo: allow passing in of the map for this */
+    public static void projectNodes(final LWComponent pushing, final int distance, Object pushKey)
+    {
         Collection<LWComponent> toPush = null;
 
         if (pushKey == PUSH_LINKED && pushing.hasLinks())
@@ -2716,7 +2717,7 @@ public class Actions implements VueConstants
         // todo: combine into a Geometry.java with computeIntersection, computeConnector, projectPoint code from VueUtil
         // todo: to handle pushing inside slides, we'd need to get rid of the references to map bounds,
         // and always use local bounds
-        private static void projectNodes(final Iterable<LWComponent> toPush, final LWComponent pushing, final int distance)
+        public static void projectNodes(final Iterable<LWComponent> toPush, final LWComponent pushing, final int distance)
         {
             if (DEBUG.Enabled) Log.debug("projectNodes: "
                                          + "\n\t  pusher: " + pushing
