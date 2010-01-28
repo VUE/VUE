@@ -47,10 +47,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
@@ -116,7 +118,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.711 $ / $Date: 2010-01-27 17:10:55 $ / $Author: sfraize $ 
+ * @version $Revision: 1.712 $ / $Date: 2010-01-28 17:45:16 $ / $Author: anoop $ 
  */
 
 public class VUE
@@ -3853,24 +3855,73 @@ public class VUE
             Log.error("Error Checking latest VUE release:", t);
         }
    }
-
+   // check if v1 > v2
    private static boolean isHigherVersion(String v1,String v2) {
-       // if current version is same as latest version
+     
+	   HashMap<String,Integer> priorityMap = new HashMap<String,Integer>();
+	   priorityMap.put("alpha", 0);
+	   priorityMap.put("beta", 1);
+	   priorityMap.put("preview",2); 
+	   priorityMap.put("gold", 3);
+	   // if current version is same as latest version
+		  
        if(v1.equalsIgnoreCase(v2)) {
            return true;
        }
-       String[] v1Parts = v1.split("\\.");
-       String[] v2Parts = v2.split("\\.");
-       int size = v1Parts.length<v2Parts.length?v1Parts.length:v2Parts.length;
-       for(int i = 0;i <size;i++) {
-           int n1 = Integer.parseInt(v1Parts[i]);
-           int n2 = Integer.parseInt(v2Parts[i]);
-           //System.out.println(i+"\t"+v1Parts[i]+"\t"+v2Parts[i]+"\t"+(n1>n2));
-           if(n1 > n2) return true;
+       String[] v1Parts = v1.split("\\D+");
+       String[] v2Parts = v2.split("\\D+");
+      //check the first number in version
+       if(v1Parts.length>0 && v2Parts.length > 0) {
+    	   if(Integer.parseInt(v1Parts[0])> Integer.parseInt(v2Parts[0])) return true;
+    	   else if(Integer.parseInt(v1Parts[0])< Integer.parseInt(v2Parts[0])) return false;
+    	   else {
+    		   System.out.println("0\t"+v1Parts[0]+"\t"+v2Parts[0]+"\t"+v1Parts.length+"\t"+v2Parts.length);
+    		   if(v1Parts.length>1 && v2Parts.length > 1) {
+    	    	   if(Integer.parseInt(v1Parts[1])> Integer.parseInt(v2Parts[1]))  return true;
+    	    	   else if(Integer.parseInt(v1Parts[1])<  Integer.parseInt(v2Parts[1]))  return false;
+    	    	   else {
+    	    		   System.out.println("1\t"+v1Parts[1]+"\t"+v2Parts[1]);
+    	    		   String p1 = getPriority(v1, priorityMap);
+    	    		   String p2 = getPriority(v2,priorityMap);
+    	    		   if(priorityMap.get(p1)> priorityMap.get(p2))  return true;
+    	    		   else if(priorityMap.get(p1)<  priorityMap.get(p2))  return false;
+    	    		   else {
+    	    			   System.out.println("P\t"+p1+"\t"+p2);
+    	    			   if(v1Parts.length>2 ) {
+    	    				   if(v2Parts.length == 2)   return true;
+    	    				   else {
+    	    					   System.out.println("2\t"+v1Parts[2]+"\t"+v2Parts[2]);
+    	    					   if(Integer.parseInt(v1Parts[2])> Integer.parseInt(v2Parts[2])) return true;
+    	    					   else if(Integer.parseInt(v1Parts[2])< Integer.parseInt(v2Parts[2])) return false;
+    	    					   else {
+    	    						   if(v1Parts.length>3 ) {
+    	    							   if(v2Parts.length == 3) return true;
+    	    							   else {
+    	    								   System.out.println("1\t"+v1Parts[3]+"\t"+v2Parts[3]);
+    	    								   if(Integer.parseInt(v1Parts[3])>= Integer.parseInt(v2Parts[3]))  return true; 	    								    
+    	    							   }
+    	    						   }
+    	    					   }
+    	    				   } 
+    	    			   }
+    	    		   }
+    	    	   }
+    		   }
+    	   }
        }
+       
        return false;
    }
-
+   private static String getPriority(String version,HashMap<String, Integer> priorityMap) {
+	   String priority = "gold";
+	   for(String key: priorityMap.keySet()) {
+		   if(version.toLowerCase().contains(key)) {
+			   return key;
+		   }
+	   }
+	   return priority;
+   }
+   
     public static String getName() {
         if (NAME == null)
             NAME = VueResources.getString("application.name");
