@@ -11,18 +11,18 @@
       <cpuManufacturer>GenuineIntel</cpuManufacturer>
       <serialNumber>VMware-56 4d 6c f5 bf 31 8d 38-a3 f1 77 2e ee 27 fe 3d</serialNumber>
    </environment>
-   <registry urn="urn:st:f35e64e8-0a59-454a-9406-41c4ecaadf8e" version="1.0">
+   <registry urn="urn:st:ecb26372-4d48-4dae-9c80-f214d2217e80" version="1.0">
       <service_tag>
-         <instance_urn>urn:st:aa03b9e0-f317-433f-8297-c468dbf72c7e</instance_urn>
+         <instance_urn>urn:st:cc8f232b-3c0f-4d80-908e-0215910648c6</instance_urn>
          <product_name>Java SE 6 Runtime Environment</product_name>
-         <product_version>1.6.0_17</product_version>
+         <product_version>1.6.0_18</product_version>
          <product_urn>urn:uuid:92d1de8c-1e59-42c6-a280-1c379526bcbc</product_urn>
          <product_parent_urn>urn:uuid:fdc90b21-018d-4cab-b866-612c7c119ed3</product_parent_urn>
          <product_parent>Java Platform Standard Edition 6 (Java SE 6)</product_parent>
-         <product_defined_inst_id>id=1.6.0_17-b04 x86,dir=C:\Program Files\Java\jre6</product_defined_inst_id>
+         <product_defined_inst_id>id=1.6.0_18-b07 x86,dir=C:\Program Files\Java\jre6</product_defined_inst_id>
          <product_vendor>Sun Microsystems</product_vendor>
          <platform_arch>x86</platform_arch>
-         <timestamp>2009-12-22 20:29:11 GMT</timestamp>
+         <timestamp>2010-01-28 17:18:49 GMT</timestamp>
          <container>global</container>
          <source>Windows JRE installer</source>
          <installer_uid>-1</installer_uid>

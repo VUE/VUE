@@ -31,7 +31,7 @@ This sample schedules a task to start on a daily basis.
     </Settings>
     <Actions>
         <Exec>
-            <Command>%WINDIR%\System32\jusched.exe</Command>
+            <Command>%ProgramFiles%\Common Files\Java\Update\jusched.exe</Command>
         </Exec>
     </Actions>
 </Task>
