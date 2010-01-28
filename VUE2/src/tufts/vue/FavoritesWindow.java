@@ -218,7 +218,10 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
 
                 end.setResource(resNode.getResource());
                 VUE.getActiveMap().addNode(end);
-                ResourceList.setXYByClustering(end);
+                if (true)
+                    tufts.vue.VueUtil.setXYByClustering(end);
+                else
+                    ResourceList.setXYByClustering(end);
             } else if (e.getActionCommand().toString().equals(ADD_TO_NODE) ||
                     e.getActionCommand().toString().equals(REPLACE_ON_NODE)){
                 LWSelection  sel = VUE.getActiveViewer().getSelection();

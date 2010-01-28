@@ -1,4 +1,4 @@
- /*
+/*
  * Copyright 2003-2008 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
@@ -61,7 +61,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
  * until a synthetic model item at the end of this shortened list is selected, at which
  * time the rest of the items are "unmaksed" and displayed.
  *
- * @version $Revision: 1.28 $ / $Date: 2009-11-04 19:35:02 $ / $Author: anoop $
+ * @version $Revision: 1.29 $ / $Date: 2010-01-28 15:32:34 $ / $Author: sfraize $
  */
 public class ResourceList extends JList
     implements DragGestureListener, /*tufts.vue.ResourceSelection.Listener,*/ MouseListener,ActionListener
@@ -482,7 +482,11 @@ public class ResourceList extends JList
 			LWNode end = NodeTool.NodeModeTool.createNewNode(label);
 			end.setResource(o.getResource());
 			VUE.getActiveMap().addNode(end);
-			setXYByClustering(end);
+                        if (true)
+                            tufts.vue.VueUtil.setXYByClustering(end);
+                        else
+                            setXYByClustering(end);
+                        
 			
 		} else if (e.getSource().equals(addToSlide))
 		{
