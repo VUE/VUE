@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.168 $ / $Date: 2010-01-28 05:09:39 $ / $Author: sfraize $
+ * @version $Revision: 1.169 $ / $Date: 2010-01-28 15:14:31 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -3224,7 +3224,7 @@ public class DockWindow
         boolean relaxed = e.isShiftDown();
 
         //--------------------------------------------
-        // TODO: why can DockWindows now go up under the mac menu bar?
+        // TODO: PROBLEM: why can DockWindows now go up under the mac menu bar?
         // This is a hack for now:
         if (isMac && !GUI.hasMultipleScreens() && y < 22)
             y = 22;
