@@ -79,7 +79,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.664 $ / $Date: 2010-01-27 17:07:50 $ / $Author: sfraize $ 
+ * @version $Revision: 1.665 $ / $Date: 2010-01-28 15:43:53 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3411,7 +3411,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     @Override public void repaint() { // heavy-duty debug
 
         if (!isDisplayed()) {
-            if (DEBUG.Enabled) out("not-displayed: skipping repaint");
+            if (DEBUG.Enabled && (DEBUG.VIEWER||DEBUG.EVENTS||DEBUG.IMAGE)) out("not-displayed: skipping repaint");
             return;
         }
 
