@@ -16,6 +16,7 @@
 package tufts.vue;
 
 import java.io.File;
+import java.util.List;
 import java.util.*;
 import java.awt.*;
 import java.awt.geom.Point2D;
@@ -26,17 +27,21 @@ import javax.swing.*;
 import javax.swing.border.*;
 
 import javax.swing.JColorChooser;
-import tufts.vue.VueResources;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import edu.tufts.vue.metadata.MetadataList;
+import edu.tufts.vue.metadata.VueMetadataElement;
+import tufts.vue.VueResources;
+import tufts.vue.LWComponent.ChildKind;
+
 /**
  *
  * Various static utility methods for VUE.
  *
- * @version $Revision: 1.106 $ / $Date: 2009-09-28 18:54:46 $ / $Author: sfraize $
+ * @version $Revision: 1.107 $ / $Date: 2010-01-28 15:30:08 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -866,6 +871,135 @@ public class VueUtil extends tufts.Util
     }
     
 
+    //----------------------------------------------------------------------------------------
+    // Below generic relational clustiner code by Anoop -- refactored by SMF:
+    //----------------------------------------------------------------------------------------
+    
+    private static final boolean ALL_DATA = true; // use all data while comparing similarity between two LW Components. All includes notes and metadata
+
+    public static void setXYByClustering(LWNode node) {
+        setXYByClustering(Collections.singletonList(node));
+    }
+
+    public static List<LWComponent> setXYByClustering(Collection<? extends LWComponent> layoutNodes) {
+        return setXYByClustering(tufts.vue.VUE.getActiveMap(),
+                                 layoutNodes);
+    }
+        
+    public static List<LWComponent> setXYByClustering(LWMap map, Collection<? extends LWComponent> layoutNodes)
+    {
+        final Collection<LWComponent> all = map.getAllDescendents();
+        final Collection<LWNode> relatingNodes = new ArrayList(all.size() / 2);
+        
+        for (LWNode n : typeFilter(all, LWNode.class)) {
+            if (!layoutNodes.contains(n))
+                relatingNodes.add(n);
+        }
+
+        final List<LWComponent> untouched = new ArrayList();
+        
+        for (LWComponent c : layoutNodes) {
+            try {
+                // performance: pre-compute top-level-items for possible pushing and pass it in here:
+                if (!setXYByClustering(map, relatingNodes, c))
+                    untouched.add(c);
+            } catch (Throwable t) {
+                Log.warn("weighted cluster failed for " + c, t);
+            }
+        }
+
+        return untouched;
+    }
+    
+    
+    /** relations should NOT contain the node at this point */
+    private static boolean setXYByClustering(LWMap map, Collection<LWNode> relations, LWComponent node)
+    {
+        Log.debug("relating to " + tags(relations) + ": " + node);
+        
+        float xNumerator = 0 ;
+        float yNumerator = 0 ;
+        float denominator = 0 ;
+        
+        for (LWNode mapNode : relations) {
+            double score = computeScore(node, mapNode);
+            xNumerator += score*score*mapNode.getX();
+            yNumerator += score*score*mapNode.getY();
+            denominator += score*score;
+        }
+        
+        if (denominator != 0) {
+            float x = xNumerator/denominator;
+            float y = yNumerator/denominator;
+            node.setX(x);
+            node.setY(y);
+            
+            for (LWComponent mapNode : relations) {
+                if (checkCollision(mapNode, node)) {
+                    // ideally, we'd pre-fetch the list of all top-level items to
+                    // push -- projectNodes is going to refetch them for every push:
+                    try {
+                        //Actions.projectNodes(node, 24, Actions.PUSH_ALL);
+                        // performance: pass in pre-computed top-level-items to push, not the map
+                        Actions.projectNodes(map.getTopLevelItems(ChildKind.EDITABLE), node, 24);
+                    } catch (Throwable t) {
+                        Log.warn("projection failure " + node, t);
+                    }
+                }
+            }
+            return true;
+        } else
+            return false;
+    }
+	
+    public static double computeScore (LWComponent n1, LWComponent n2) {
+        double score = 0.0;
+        String content1 = n1.getLabel();
+        String content2 = n1.getLabel();
+        if(ALL_DATA) {
+            content1 += " "+n1.getNotes();
+            content2 += " "+n2.getNotes();
+            if(n1.getResource()!= null) content1 += " "+n1.getResource().getSpec();
+            if(n2.getResource()!= null) content2 += " "+n2.getResource().getSpec();
+            MetadataList mList1 = n1.getMetadataList();
+            for(VueMetadataElement vme: mList1.getMetadata()){
+                content1 +=" "+vme.getKey();
+                content1 +=" "+vme.getValue();
+            }
+            MetadataList mList2 = n2.getMetadataList();
+            for(VueMetadataElement vme: mList2.getMetadata()){
+                content2 +=" "+vme.getKey();
+                content2 +=" "+vme.getValue();
+            }
+			
+        }
+        String[] words1 = content1.split("\\s+");
+        String[] words2 = content2.split("\\s+");
+        int matches = 0;
+        for(int i = 0;i<words1.length;i++) {
+            if(n2.getLabel().contains(words1[i])){
+                matches++;
+            }
+        }
+        double p1 = (double) matches / words1.length;
+        double p2 = (double) matches/words2.length;
+        if(p1== 0 && p2 == 0 ){
+            score = 0.0; 
+        } else {
+            score = 2*p1*p2/(p1+p2); // harmonic mean
+        }
+        return score;
+    }
+	
+    public static boolean checkCollision(LWComponent c1, LWComponent c2)
+    {
+        boolean collide = false;
+        if(c2.getX()>= c1.getX() && c2.getX() <= c1.getX()+c1.getWidth() && c2.getY() >= c1.getY() && c2.getY() <=c1.getY()+c2.getHeight()) {
+            collide = true;
+        }
+        return collide;
+    }    
+
     
 }
 
@@ -966,8 +1100,6 @@ class VOptionPane extends JOptionPane
 		}
 
 		return result;
-	}
-
-
-    
+        }
 }
+
