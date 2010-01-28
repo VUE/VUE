@@ -43,7 +43,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.240 $ / $Date: 2010-01-22 22:19:05 $ / $Author: brian $
+ * @version $Revision: 1.241 $ / $Date: 2010-01-28 17:02:12 $ / $Author: mike $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -866,7 +866,10 @@ public class LWLink extends LWComponent
             // todo: if endpoint is in another parent, handle the partial transformation
             // to get there and draw it (or go back up to map and back down)
 
-            final boolean atTopLevel = getParent().isTopLevel();
+            final LWComponent parent = getParent();
+            final boolean atTopLevel = true;
+            if (getParent() !=null)
+            	getParent().isTopLevel();
 
             if (head.hasNode()) {
                 if (head.node.getParent() == getParent() ||
