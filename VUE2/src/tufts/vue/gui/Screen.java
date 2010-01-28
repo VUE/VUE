@@ -10,10 +10,11 @@ import java.awt.*;
  *
  * Currently does not provide for any handling of HeadlessException's
  *
- * @version $Revision: 1.1 $ / $Date: 2010-01-27 17:08:44 $ / $Author: sfraize $
+ * @version $Revision: 1.2 $ / $Date: 2010-01-28 03:04:10 $ / $Author: sfraize $
  * @author Scott Fraize
  */
-public class Screen{
+public class Screen
+{
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(Screen.class);
 
     /** normally 0,0 for single display systems, but could be anything if there are multiple displays */
@@ -284,14 +285,19 @@ public class Screen{
         return s.toString();
     }
         
-    /** @return the smallest single rectangle that when filled would fill ALL attached displays.
-     * If the displays do not have the same logical size, and do not have perfect logical alignment,
-     * then some regions of the rectangle will actually be off-screen (never visible).
-     * This can be used to size a singe window to cover all displays.
+    /** @return the smallest single rectangle that when filled would
+     * fill ALL attached displays.  If the displays do not have have
+     * perfect logical alignment and compatible sizes, then some
+     * regions of the rectangle will actually be off-screen (never
+     * visible).  This can be used to size a singe window to cover all
+     * displays.
      */
     public static Rectangle getSpaceBounds() {
         return getAllDeviceBounds(genv().getScreenDevices());
     }
+
+    // todo: add something like getSpaceFit that returns the largest
+    // rectangle that does NOT leave anything off screen.
 
     /** @see getSpaceBounds */
     public static Rectangle getAllDeviceBounds(GraphicsDevice[] devices)
