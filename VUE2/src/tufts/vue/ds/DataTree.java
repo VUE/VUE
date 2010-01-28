@@ -54,7 +54,7 @@ import com.google.common.collect.*;
  * currently active map, code for adding new nodes to the current map,
  * and initiating drags of fields or rows destined for a map.
  *
- * @version $Revision: 1.101 $ / $Date: 2009-11-18 20:54:56 $ / $Author: mike $
+ * @version $Revision: 1.102 $ / $Date: 2010-01-28 03:04:49 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -256,8 +256,9 @@ public class DataTree extends javax.swing.JTree
         // active map by running adding new rows based on our detection
         // of the rows already in the map.
         annotateForMap(mActiveMap);
-        applyChangesToMap(mActiveMap);
+        applyDataUpdatesToMap(mActiveMap);
     }
+    
     private void updateMap() {
         // failsafe: tho the Schema and our tree nodes should already
         // be updated, make absolutely certian we're current to the
@@ -265,16 +266,16 @@ public class DataTree extends javax.swing.JTree
         // of the rows already in the map.
         annotateForMap(mActiveMap);
 
-        LWSelection		newNodes = null;
+        LWSelection newNodes = null;
 
         if (mNewRowsCheckBox.isSelected()) {
             addNewRowsToMap(mActiveMap);
 
             newNodes = VUE.getSelection().clone();
-            }
+        }
 
         if (mChangedRowsCheckBox.isSelected()) {
-            applyChangesToMap(mActiveMap);
+            applyDataUpdatesToMap(mActiveMap);
 
             if (newNodes != null) {
                 VUE.getSelection().add(newNodes);
@@ -286,9 +287,15 @@ public class DataTree extends javax.swing.JTree
         mUpdateButton.setEnabled((mNewRowsCheckBox.isEnabled() && mNewRowsCheckBox.isSelected()) ||
             (mChangedRowsCheckBox.isEnabled() && mChangedRowsCheckBox.isSelected()));
     }
-   
-    private void applyChangesToMap(final LWMap map) {
 
+    /*
+     * This will find all nodes on the map where fresher/newer data is in the given
+     * data-set and update those nodes with the new data.  When done, it will leave the
+     * selection set to all nodes that have been updated with new data.
+     */
+   
+    private void applyDataUpdatesToMap(final LWMap map)
+    {
         final Map<String,DataRow> freshData = new HashMap();
         final Field keyField = mSchema.getKeyField();
         final String keyFieldName = keyField.getName();
@@ -319,6 +326,11 @@ public class DataTree extends javax.swing.JTree
         }
 
         if (DEBUG.Enabled) Log.debug("Updated " + patched.size() + " nodes with fresh data");
+        
+        // Note: kicking the annotation may no longer be required, as we also listen for
+        // changes to the map to kick annotations, but that code isn't as smart as it
+        // could be (though actually, it generally does overkill -- annotation happens
+        // more often than it need be).
         
         kickAnnotate();
 
@@ -1627,20 +1639,25 @@ public class DataTree extends javax.swing.JTree
         Log.debug("SENDING TO MAP: " + treeNode);
     }
 
-    // For NEW DATA CLUSTERING: whenever new nodes are added to the map
-    // and there is no layout specified / going to be applied, we want
-    // to place nodes near items their related to.  We should do this
-    // based on the links.
+    /*
+     * This will find all rows of data in this given data-set that are NOT in the map,
+     * create row-nodes for them, and send them to the map.  This also kicks off an
+     * annotation run to update the tree after the nodes have been added to the map.
+     */
+    
+    // For NEW DATA CLUSTERING: whenever new nodes are added to the map and there is no
+    // layout specified / going to be applied, we want to place nodes near items their
+    // related to.  We should do this based on the links.
     //
     // TWO VERSIONS of this:
     //
-    // 1 - re-clustering around the last clustered nodes
-    // as marked by the clustering time-stamp for row-node additions
+    // 1 - re-clustering around the last clustered nodes as marked by the clustering
+    // time-stamp for row-node additions
     //
     // 2 - placing new value-nodes most near the nodes their related to based on links
     
-    private void addNewRowsToMap(final LWMap map) {
-
+    private void addNewRowsToMap(final LWMap map)
+    {
         // todo: we'll want to merge some of this code w/DropHandler code, as
         // this is somewhat of a special case of doing a drop
     	
@@ -1666,7 +1683,7 @@ public class DataTree extends javax.swing.JTree
                 Log.error("problem creating links on " + map + " for new nodes: " + Util.tags(nodes), t);
             }
 
-            Log.debug("TARGETS USED: " + targetsUsed.entrySet());
+            if (DEBUG.Enabled && targetsUsed != null) Log.debug("TARGETS USED: " + targetsUsed.entrySet());
 	        
             if (nodes.size() > 0) {
                 map.getOrCreateLayer("New Data Nodes").addChildren(nodes);
