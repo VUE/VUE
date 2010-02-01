@@ -48,7 +48,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.526 $ / $Date: 2010-01-25 21:39:36 $ / $Author: anoop $
+ * @version $Revision: 1.527 $ / $Date: 2010-02-01 22:42:58 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -165,9 +165,12 @@ public class LWComponent
             /** this component should NOT broadast change events */
             EVENT_SILENT,
             /** this component is in a "collapsed" or closed view state */
-            COLLAPSED,
+            COLLAPSED
+            
             /** for links: this is data-relation link */
-            DATA_LINK
+            , DATA_LINK
+            /** for links: this is data-relation link and ALSO a data-count link */
+            , DATA_COUNT
             
             /** currently used for marking LWImage's as being node-icons */
             , ICON
@@ -3879,18 +3882,22 @@ public class LWComponent
         return getLinked(new HashSet(getLinks().size()));
     }
 
-    protected Collection<LWComponent> getLinked(Collection bag)
+    protected Collection<LWComponent> getLinked(Collection<LWComponent> bag) {
+        return getLinked(getLinks(), bag);
+    }
+
+    /** given the set of links, which should be sub-set of our own links, return a set containting the far endpoints */
+    public Collection<LWComponent> getLinked(Collection<LWLink> links, Collection<LWComponent> bag)
     {
-        for (LWLink link : getLinks()) {
+        for (LWLink link : links) {
             final LWComponent head = link.getHead();
-            if (head != this) {
-                if (head != null)
-                    bag.add(head);
-            } else {
-                final LWComponent tail = link.getTail();
-                if (tail != this && tail != null)
-                    bag.add(tail);
-            }
+            final LWComponent tail = link.getTail();
+            if (head == tail)
+                ; // ignore circular links
+            else if (head == this && tail != null)
+                bag.add(tail);
+            else if (tail == this && head != null)
+                bag.add(head);
         }
         return bag;
     }

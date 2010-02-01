@@ -51,7 +51,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.131 $ / $Date: 2010-01-14 21:31:43 $ / $Author: sfraize $  
+ * @version $Revision: 1.132 $ / $Date: 2010-02-01 22:42:58 $ / $Author: sfraize $  
  */
 public class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -1071,6 +1071,7 @@ public class MapDropTarget
     {
         if (DEBUG.Enabled) out("processDroppedHandler: " + Util.tags(handler));
         try {
+            VUE.activateWaitCursor(); // todo: the existing drag/drop cursor seems to be interfering with this
             boolean success = handler.handleDrop(drop);
             if (success) {
                 if (drop.items != null && drop.items.size() > 0)
@@ -1080,6 +1081,8 @@ public class MapDropTarget
                 return false;
         } catch (Throwable t) {
             Log.error("dropHandler failed: " + Util.tags(handler), t);
+        } finally {
+            VUE.clearWaitCursor();
         }
        
         return false;

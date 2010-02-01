@@ -43,7 +43,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.241 $ / $Date: 2010-01-28 17:02:12 $ / $Author: mike $
+ * @version $Revision: 1.242 $ / $Date: 2010-02-01 22:42:58 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -1170,9 +1170,20 @@ public class LWLink extends LWComponent
     public boolean isDataLink() {
         return hasFlag(Flag.DATA_LINK);
     }
+    public boolean isDataCountLink() {
+        return hasFlag(Flag.DATA_COUNT);
+    }
+
+    private void ensureDataBitsSet(String relation) {
+        if (relation != null) {
+            setFlag(Flag.DATA_LINK);
+            if (relation.startsWith("COUNT:"))
+                setFlag(Flag.DATA_COUNT);
+        }
+    }
 
     public void setAsDataLink(String relationship) {
-        setFlag(Flag.DATA_LINK);
+        ensureDataBitsSet(relationship);
         addDataValue("$Related", relationship);
         //setNotes("Related: " + relationship);
     }
@@ -1180,9 +1191,10 @@ public class LWLink extends LWComponent
     @Override
     public void XML_completed(Object context) {
         super.XML_completed(context);
-        // We also check for @DataLink as temporary backward-compat        
-        if (hasDataKey("@DataLink") || hasDataKey("$Related")) 
-            setFlag(Flag.DATA_LINK);
+        ensureDataBitsSet(getDataValue("$Related"));
+// We also check for @DataLink as temporary backward-compat
+//         if (hasDataKey("@DataLink") || hasDataKey("$Related")) 
+//             setFlag(Flag.DATA_LINK);
     }
     
 
@@ -2532,6 +2544,11 @@ public class LWLink extends LWComponent
         setX(bounds.x);
         setY(bounds.y);
         takeSize(bounds.width, bounds.height);
+
+        if (Util.isBadRect(bounds)) {
+            Log.warn("bad bounds in computeLink: " + this);
+            validateInitialValues();
+        }
         
         //if (DEBUG.LINK) System.out.println("computeLink " + this + " COMPLETED.");
 

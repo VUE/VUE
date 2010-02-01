@@ -2336,9 +2336,9 @@ public class Actions implements VueConstants
         	arrange(c);
         }
 */
-        protected void clusterNodesAbout(final LWComponent center, final Collection<LWComponent> clustering) {
+        protected static void clusterNodesAbout(final LWComponent center, final Collection<LWComponent> clustering) {
 
-            if (DEBUG.Enabled) Log.debug("clustering around " + center + ": " + Util.tags(clustering));
+            if (DEBUG.Enabled) Log.debug("clusterNodesAbout: " + center + ": " + Util.tags(clustering));
 
             // recording the current action time on the centering node can later help
             // us determine the layout priority for new data items when adding to the map
@@ -2389,10 +2389,67 @@ public class Actions implements VueConstants
         
         }
 
-        protected void clusterLinked(final LWComponent center) {
+        public static void clusterLinked(final LWComponent center) {
             if (DEBUG.Enabled) Log.debug("clustering linked " + center);
-            clusterNodesAbout(center, center.getLinked());
+            
+            final Collection<LWLink> allLinks = center.getLinks();
+            // note: DO NOT MODIFY the collection returned from getLinks()...
+
+            Collection<LWLink> usedLinks = allLinks;
+
+            if (DEBUG.Enabled) Log.debug(" all links: " + Util.tags(allLinks));
+
+            for (LWLink l : allLinks) {
+                if (l.isDataCountLink()) {
+                    usedLinks = getPriorityDataLinks(allLinks);
+                    break;
+                }
+            }
+            
+            if (DEBUG.Enabled) Log.debug("used links: " + Util.tags(usedLinks));
+            
+            clusterNodesAbout(center,
+                              center.getLinked(usedLinks, new HashSet(usedLinks.size())));
         }
+
+        private static Collection<LWLink> getPriorityDataLinks(Collection<LWLink> links)
+        {
+            // What we really need here is a way to tell the significance of the
+            // count-link itself.  E.g., if we find a count-link to an endpoint that has
+            // NO OTHER count-links to it all, that's an easy case -- we want to custer
+            // that item near us.  But if that endpoint has any OTHER count links,
+            // either we do NOT want it clustering near us, or we might want to go so
+            // far as to find the count link with the highest count and use that, etc.
+            // In any case, that's all getting quite complicated to add now.  We'd have
+            // to fetch all the endpoints and inspect them in conjunction with the
+            // links.
+
+            // For now, we just ignore count-links entirely, even tho they
+            // produce FANTASTIC clustering in certian special cases.
+            // (e.g., all the countries clustering around a region they're in)
+            
+            //final Collection<LWLink> countDataLinks = new ArrayList();
+            final Collection<LWLink> normalDataLinks = new ArrayList(links.size());
+
+            // todo performance: just produce integer counts, then construct the
+            // lists in the rare case they're needed
+            for (LWLink l : links) {
+                if (l.isDataCountLink())
+                    ;//countDataLinks.add(l);
+                else 
+                    normalDataLinks.add(l);
+            }
+
+            return normalDataLinks;
+            
+//             if (countDataLinks.size() == 1 && otherDataLinks.size() > 0) {
+//                 return otherDataLinks;
+//             } else {
+//                 return links;
+//             }
+        }
+
+        
         
         
         // todo: smarter algorithm that lays out concentric rings, with more nodes in
@@ -2646,7 +2703,7 @@ public class Actions implements VueConstants
         //   return enabledForPushPull(s);
         	return s.size()>=1;
         }
-        void act(LWSelection s) {
+        @Override void act(LWSelection s) {
         	if(s.size()==1) {
         		act(s.get(0));
         	} else {
@@ -2654,7 +2711,7 @@ public class Actions implements VueConstants
         	}
         }
         // todo: for selection size > 1, push on bounding box
-        void act(LWComponent c) {
+        @Override public void act(LWComponent c) {
             // although we don't currently want to support pushing inside anything other than
             // a layer, this generic call would handle other cases if we can support them
             projectNodes(c, PUSH_DISTANCE, PUSH_ALL);
@@ -2717,25 +2774,51 @@ public class Actions implements VueConstants
         // todo: combine into a Geometry.java with computeIntersection, computeConnector, projectPoint code from VueUtil
         // todo: to handle pushing inside slides, we'd need to get rid of the references to map bounds,
         // and always use local bounds
-        public static void projectNodes(final Iterable<LWComponent> toPush, final LWComponent pushing, final int distance)
+        public static void projectNodes(final Iterable<LWComponent> toPush, final LWComponent pusher, final int distance)
+        {
+//             if (DEBUG.Enabled) Log.debug("projectNodes: "
+//                                          + "\n\t  pusher: " + pushing
+//                                          + "\n\t  toPush: " + Util.tags(toPush)
+//                                          + "\n\tdistance: " + distance
+//                                          );//,new Throwable("HERE"));
+            
+            if (DEBUG.Enabled) Log.debug("projectNodes: pusher=" + pusher);
+
+            
+            //pusher.getMapCenterY())
+            //final Rectangle2D pushingRect = pushing.getMapBounds();
+            
+            final RectangularShape pushShape = pusher.getMapShape();
+
+            final Collection exclude = java.util.Collections.singletonList(pusher);
+
+            projectNodes(toPush, exclude, pusher, pushShape, distance);
+
+        }
+    
+        private static void projectNodes
+            (final Iterable<LWComponent> toPush,
+             final Collection toExclude,
+             final LWComponent pushing, // we want to remove this argument and only rely on pushShape, but we need alot more refactoring for that
+             final RectangularShape pushShape,
+             final int distance)
         {
             if (DEBUG.Enabled) Log.debug("projectNodes: "
-                                         + "\n\t  pusher: " + pushing
-                                         + "\n\t  toPush: " + Util.tags(toPush)
-                                         + "\n\tdistance: " + distance
+                                         + "\n\t  pushing: " + pushing
+                                         + "\n\tpushShape: " + pushShape
+                                         + "\n\t   toPush: " + Util.tags(toPush)
+                                         + "\n\t distance: " + distance
                                          );//,new Throwable("HERE"));
-            
-            final Point2D.Float groundZero = new Point2D.Float(pushing.getMapCenterX(),
-                                                               pushing.getMapCenterY());
-            //final Rectangle2D pushingRect = pushing.getMapBounds();
-            final RectangularShape pushingShape = pushing.getMapShape();
 
+            final Point2D.Float groundZero = new Point2D.Float((float) pushShape.getCenterX(),
+                                                               (float) pushShape.getCenterY());
+            
             final java.util.List<LWComponent> links = new java.util.ArrayList();
             final java.util.List<LWComponent> nodes = new java.util.ArrayList();
         
             for (LWComponent node : toPush) {
 
-                if (node == pushing)
+                if (toExclude.contains(node))
                     continue;
                 
                 if (node.isManagedLocation())
@@ -2756,8 +2839,7 @@ public class Actions implements VueConstants
                 float adjust = distance;
 
                 //final boolean intersects = node.intersects(pushingRect); // problems w/slide icons
-                //final boolean intersects = pushingRect.intersects(node.getMapBounds());
-                final boolean intersects = pushingShape.intersects(node.getMapBounds());
+                final boolean intersects = pushShape.intersects(node.getMapBounds());
 
                 final boolean moveToEdge = overlap || intersects;
 
@@ -2813,7 +2895,7 @@ public class Actions implements VueConstants
                             node.setCenterAt(VueUtil.projectPoint(intersect, connector, i * 2f));
                             //                         if (!node.intersects(pushingRect)) // problems w/slide icons
                             //                             break;
-                            if (!pushingShape.intersects(node.getMapBounds()))
+                            if (!pushShape.intersects(node.getMapBounds()))
                                 break;
                             if (DEBUG_PUSH) Log.debug("PUSH ITER " + i + " on " + node);
                         }
@@ -3198,8 +3280,12 @@ public class Actions implements VueConstants
         };
 
     public static final ClusterAction MakeDataLists = new ClusterAction("menu.format.layout.makedatalists", keyStroke(KeyEvent.VK_COMMA, ALT)) {
-            @Override
-            boolean enabledFor(LWSelection s) { return s.size() == 1 && s.first().hasLinks(); }
+            
+            // TODO: disabling this for multi-seletion breaks one of
+            // the main great use cases for this action: whats the
+            // issue we're addressing here?
+            // @Override boolean enabledFor(LWSelection s) { return s.size() == 1 && s.first().hasLinks(); }
+            
             public void doClusterAction(LWComponent c, Collection<LWComponent> nodes) {
                 if (c instanceof LWNode) {
                     // grab linked

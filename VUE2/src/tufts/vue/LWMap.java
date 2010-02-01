@@ -59,7 +59,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.259 $ / $Date: 2009-12-22 18:17:38 $ / $Author: sfraize $
+ * @version $Revision: 1.260 $ / $Date: 2010-02-01 22:42:58 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -1334,7 +1334,7 @@ public class LWMap extends LWContainer
 //         }
 //     }
 
-    void layoutAll(Object key) {
+    public void layoutAll(Object key) {
         // we specify Order.DEPTH to do children first (so children will already be laid out when parents
         // attempt to lay them out)
         final Collection<LWComponent> all = getAllDescendents(ChildKind.ANY, new ArrayList(), Order.DEPTH);
@@ -1550,6 +1550,9 @@ public class LWMap extends LWContainer
         mResourceFactory.loadResources(allResources);
 
         Schema.restoreSavedMapSchemas(this, mRestoredSchemas, allRestored);
+
+        // for now, any restored may is assumed to have already done an auto-cluster
+        setState(State.HAS_AUTO_CLUSTERED);
 
         //----------------------------------------------------------------------------------------
         // Now lay everything out.  allRestored should be in depth-first order for maximum

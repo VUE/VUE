@@ -41,7 +41,7 @@ import tufts.vue.LWComponent.ChildKind;
  *
  * Various static utility methods for VUE.
  *
- * @version $Revision: 1.107 $ / $Date: 2010-01-28 15:30:08 $ / $Author: sfraize $
+ * @version $Revision: 1.108 $ / $Date: 2010-02-01 22:42:58 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -464,13 +464,13 @@ public class VueUtil extends tufts.Util
     
     //public static Line2D.Float computeConnector(LWComponent c1, LWComponent c2, Line2D.Float result)
     /**
-     * On a line drawn from the center of c1 to the center of c2, compute the the line segment
-     * from the intersection at the edge of shape c1 to the intersection at the edge of shape c2.
+     * On a line drawn from the center of head to the center of tail, compute the the line segment
+     * from the intersection at the edge of shape head to the intersection at the edge of shape tail.
      * The returned line will be in the LWMap coordinate space.  If the components overlap sufficiently,
      * the segment returned will either be from the center of one component to the edge of the other,
      * or from center-to-center.
      *
-     * @param result: this line will be set to connecting segment
+     * @param result: this line will be set to the connecting segment
      * @return true if the components overlapped in such a way as to cause the segment to connect at one or
      * or both of the component centers, as opposed to their edges
      */
@@ -616,9 +616,38 @@ public class VueUtil extends tufts.Util
         tx.transform(p,p);
 
         return p;
-
-        
     }
+
+
+    /**
+     * @return the point at the "center" of all the given nodes.  If the given
+     * collection is null or contains no elements, null is returned.  If the given
+     * collection contains only one element, the center point of that element is
+     * returned.  The returned point is in coordinates at the top level map.  E.g., even
+     * if all the nodes are children of a slide, the returned coordinate will not be
+     * relative to the slide, it will be relative to the map.
+     */
+    public static Point2D.Float computeCentroid(Collection<LWComponent> nodes)
+    {
+        if (nodes == null || nodes.isEmpty())
+            return null;
+        
+        float sumX = 0, sumY = 0;
+        int count = 0;
+
+        for (LWComponent c : nodes) {
+            final float cx = c.getMapX() + c.getMapWidth() / 2;
+            final float cy = c.getMapY() + c.getMapHeight() / 2;
+            sumX += cx;
+            sumY += cy;
+            count++;
+        }
+
+        return new Point2D.Float(sumX / count,
+                                 sumY / count);
+    }
+
+    
     
     public static Point2D projectPoint(Point2D.Float p, Line2D ray, float distance) {
         return projectPoint(p.x, p.y, ray, distance);

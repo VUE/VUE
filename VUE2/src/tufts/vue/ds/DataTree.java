@@ -40,6 +40,7 @@ import java.net.URL;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.dnd.*;
+import java.awt.geom.Point2D;
 import java.awt.geom.RectangularShape;
 import javax.swing.*;
 import javax.swing.border.*;
@@ -54,7 +55,7 @@ import com.google.common.collect.*;
  * currently active map, code for adding new nodes to the current map,
  * and initiating drags of fields or rows destined for a map.
  *
- * @version $Revision: 1.103 $ / $Date: 2010-01-28 15:31:40 $ / $Author: sfraize $
+ * @version $Revision: 1.104 $ / $Date: 2010-02-01 22:42:58 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -247,16 +248,30 @@ public class DataTree extends javax.swing.JTree
         // be updated, make absolutely certian we're current to the
         // active map by running adding new rows based on our detection
         // of the rows already in the map.
-        annotateForMap(mActiveMap);
-        addNewRowsToMap(mActiveMap);
+        VUE.activateWaitCursor();
+    	try {
+            annotateForMap(mActiveMap);
+            addNewRowsToMap(mActiveMap);
+        } catch (Throwable t) {
+            Log.warn("addNewRowsToMap", t);
+        } finally {
+            VUE.clearWaitCursor();
+        }
     }
     private void applyChangesToMap() {
         // failsafe: tho the Schema and our tree nodes should already
         // be updated, make absolutely certian we're current to the
         // active map by running adding new rows based on our detection
         // of the rows already in the map.
-        annotateForMap(mActiveMap);
-        applyDataUpdatesToMap(mActiveMap);
+        VUE.activateWaitCursor();
+    	try {
+            annotateForMap(mActiveMap);
+            applyDataUpdatesToMap(mActiveMap);
+        } catch (Throwable t) {
+            Log.warn("applyChangesToMap", t);
+        } finally {
+            VUE.clearWaitCursor();
+        }
     }
     
     private void updateMap() {
@@ -264,23 +279,32 @@ public class DataTree extends javax.swing.JTree
         // be updated, make absolutely certian we're current to the
         // active map by running adding new rows based on our detection
         // of the rows already in the map.
-        annotateForMap(mActiveMap);
 
-        LWSelection newNodes = null;
+        VUE.activateWaitCursor();
+    	try {
+            annotateForMap(mActiveMap);
 
-        if (mNewRowsCheckBox.isSelected()) {
-            addNewRowsToMap(mActiveMap);
-
-            newNodes = VUE.getSelection().clone();
-        }
-
-        if (mChangedRowsCheckBox.isSelected()) {
-            applyDataUpdatesToMap(mActiveMap);
-
-            if (newNodes != null) {
-                VUE.getSelection().add(newNodes);
+            LWSelection newNodes = null;
+            
+            if (mNewRowsCheckBox.isSelected()) {
+                addNewRowsToMap(mActiveMap);
+                
+                newNodes = VUE.getSelection().clone();
             }
+            
+            if (mChangedRowsCheckBox.isSelected()) {
+                applyDataUpdatesToMap(mActiveMap);
+                
+                if (newNodes != null) {
+                    VUE.getSelection().add(newNodes);
+                }
+            }
+        } catch (Throwable t) {
+            Log.warn("updateMap", t);
+        } finally {
+            VUE.clearWaitCursor();
         }
+        
     }
 
     private void enableUpdateButton() {
@@ -1639,6 +1663,12 @@ public class DataTree extends javax.swing.JTree
         Log.debug("SENDING TO MAP: " + treeNode);
     }
 
+    private static final Ordering<Multiset.Entry> ByDecreasingFrequency = new Ordering<Multiset.Entry>() {
+        @Override public int compare(Multiset.Entry a, Multiset.Entry b) {
+            return b.getCount() - a.getCount();
+        }
+    };
+
     /*
      * This will find all rows of data in this given data-set that are NOT in the map,
      * create row-nodes for them, and send them to the map.  This also kicks off an
@@ -1660,59 +1690,77 @@ public class DataTree extends javax.swing.JTree
     {
         // todo: we'll want to merge some of this code w/DropHandler code, as
         // this is somewhat of a special case of doing a drop
-    	
-    	try {
-            VUE.activateWaitCursor();
-    	
-            final List<DataRow> newRows = new ArrayList();
+        final List<DataRow> newRows = new ArrayList();
 	
-            for (DataNode n : mAllRowsNode.getChildren()) {
-                if (!n.isMapPresent()) {
-                    //Log.debug("ADDING TO MAP: " + n);
-                    newRows.add(n.getRow());
-                }
+        for (DataNode n : mAllRowsNode.getChildren()) {
+            if (!n.isMapPresent()) {
+                //Log.debug("ADDING TO MAP: " + n);
+                newRows.add(n.getRow());
             }
+        }
 	
-            final List<LWComponent> nodes = DataAction.makeRowNodes(mSchema, newRows);
+        final List<LWComponent> newRowNodes = DataAction.makeRowNodes(mSchema, newRows);
 
-            Multiset<LWComponent> targetsUsed = null;
+        Multiset<LWComponent> targetsUsed = null;
 	
-            try {
-                targetsUsed = DataAction.addDataLinksForNodes(map, nodes, null);
-            } catch (Throwable t) {
-                Log.error("problem creating links on " + map + " for new nodes: " + Util.tags(nodes), t);
-            }
+        boolean didAddLinks = false;
+            
+        try {
+            targetsUsed = DataAction.addDataLinksForNodes(map, newRowNodes, (Field) null);
+            didAddLinks = targetsUsed.size() > 0;                
+        } catch (Throwable t) {
+            Log.error("problem creating links on " + map + " for new nodes: " + Util.tags(newRowNodes), t);
+        }
 
-            if (DEBUG.Enabled && targetsUsed != null) {
-                Log.debug("TARGETS USED: " + targetsUsed.size());
-                Util.dump(targetsUsed.entrySet());
-            }
+        if (DEBUG.Enabled && targetsUsed != null) {
+            final Set entries = targetsUsed.entrySet();
+            Log.debug("TARGETS USED: " + targetsUsed.size() + " / " + entries.size());
+            Util.dump(entries);
+        }
 	        
-            if (nodes.size() > 0) {
+        if (newRowNodes.size() > 0) {
 
-                //tufts.vue.VueUtil.setXYByClustering(map, nodes); // cannot do before adding to map w/out refactoring projectNodes
-                
-                map.getOrCreateLayer("New Data Nodes").addChildren(nodes);
+            //tufts.vue.VueUtil.setXYByClustering(map, nodes); // cannot do before adding to map w/out refactoring projectNodes
+            map.getOrCreateLayer("New Data Nodes").addChildren(newRowNodes);
 	
-                if (nodes.size() > 1) {
+            if (newRowNodes.size() > 1) {
 
-                    //tufts.vue.LayoutAction.random.act(nodes);
+                //tufts.vue.LayoutAction.random.act(nodes);
+
+                if (targetsUsed.size() > 0) {
+
+                    // note: if we wished, we could also decide here what to cluster on
+                    // based on what targets are selected
                     
+                    // If there is was more than one value-node link per row-node
+                    // created (e.g., multiple sets of value nodes are already on the
+                    // map), prioritizing those targets with the most first spreads the
+                    // nodes out the most as the targets with the fewest links would are
+                    // at least be guaranteed to get some of the row nodes.  Using the
+                    // push-method in this case would be far too slow -- we'd have to
+                    // push based on every row node.
+
+                    final List<Multiset.Entry<LWComponent>> ordered
+                        = ByDecreasingFrequency.sortedCopy(targetsUsed.entrySet());
+                    
+                    for (Multiset.Entry<LWComponent> e : ordered) {
+                        tufts.vue.Actions.ArrangeAction.clusterLinked(e.getElement());
+                    }
+                        
+                } else {
                     // randomly layout anything that isn't first clustered -- works okay for now:
                     tufts.vue.LayoutAction.random.act
-                        (tufts.vue.VueUtil.setXYByClustering(nodes));
-                    
+                        (tufts.vue.VueUtil.setXYByClustering(newRowNodes));
                 }
-	
-                VUE.getSelection().setTo(nodes);
+                    
             }
 	
-            map.getUndoManager().mark("Add New Data Nodes");
+            VUE.getSelection().setTo(newRowNodes);
         }
-    	finally {
-            VUE.clearWaitCursor();
-        }
+	
+        map.getUndoManager().mark("Add New Data Nodes");
     }
+
 
     private static String makeFieldLabel(final Field field)
     {

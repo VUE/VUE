@@ -29,7 +29,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 
 
 /**
- * @version $Revision: 1.30 $ / $Date: 2010-01-20 19:56:37 $ / $Author: sfraize $
+ * @version $Revision: 1.31 $ / $Date: 2010-02-01 22:42:58 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -195,6 +195,8 @@ public final class DataAction
         return nodes;
     }
 
+    private static final boolean CREATE_COUNT_LINKS = false;
+
 
     /**
      * Make links from the given node, which is a value node for the given Field,
@@ -231,7 +233,7 @@ public final class DataAction
             if (target == node)
                 continue;
 
-            Log.debug("makeValueNodeLinks: processing " + target);
+            if (DEBUG.DATA) Log.debug("makeValueNodeLinks: processing " + target);
 
             try {
 
@@ -249,12 +251,22 @@ public final class DataAction
                     //boolean sameField = fieldName.equals(c.getSchematicFieldName());
                     final boolean sameField = target.isDataValueNode();
                     links.add(makeLink(node, target, fieldName, fieldValue, sameField ? Color.red : null));
-                    targetsUsed.add(target);
+                    if (targetsUsed != null)
+                        targetsUsed.add(target);
                 }
 
                 final Relation relation = Relation.getCrossSchemaRelation(field, target.getRawData(), fieldValue);
                 if (relation != null) {
-                    links.add(makeLink(node, target, relation));
+                    if (!CREATE_COUNT_LINKS && relation.type == Relation.COUNT) {
+                        // We'll get here if we're ignoring the creation of count links.
+                        
+                        // This is the kind of link that makes being able to analyize an
+                        // iTunes library even possible -- e.g., there are zillions of
+                        // row nodes and you really don't want to see any of them --
+                        // just the relationships between them.
+                    } else {
+                        links.add(makeLink(node, target, relation));
+                    }
                 }
 //                 final String relatedValue = Relation.getCrossSchemaRelation(field, target.getRawData(), fieldValue);
 //                 if (relatedValue != null) {
@@ -324,9 +336,13 @@ public final class DataAction
                 if (singleValueField != null) {
                     singletonTargetList.set(0, rowNode);
                     final List<LWLink> valueLinks
-                        = makeValueNodeLinks(singletonTargetList, target, singleValueField, targetsUsed);
-                    if (valueLinks.size() > 1)
-                        Log.warn("more than 1 link added for single value node: " + Util.tags(valueLinks), new Throwable("HERE"));
+                        = makeValueNodeLinks(singletonTargetList, target, singleValueField, null); // do NOT accrue reverse targets!
+                    //= makeValueNodeLinks(singletonTargetList, target, singleValueField, targetsUsed);
+                    if (valueLinks.size() > 0) {
+                        targetsUsed.add(target);
+                        if (valueLinks.size() > 1)
+                            Log.warn("more than 1 link added for single value node: " + Util.tags(valueLinks), new Throwable("HERE"));
+                    }
                     links.addAll(valueLinks);
                     
                 }
@@ -814,16 +830,19 @@ public final class DataAction
 //             style.setLabel(String.format("%s\n${%s}", field.getName(), field.getName()));
 //         else
             style.setLabel(String.format("${%s}", field.getName()));
-        style.setNotes(String.format
-                       ("Style node for field '%s' in data-set '%s'\n\nSource: %s\n\n%s\n\nvalues=%d; unique=%d; type=%s",
-                        field.getName(),
-                        field.getSchema().getName(),
-                        field.getSchema().getResource(),
-                        field.valuesDebug(),
-                        field.valueCount(),
-                        field.uniqueValueCount(),
-                        field.getType()
-                       ));
+            // holy crap: when did single quotes in strings stop persisting? below was causing a failure
+            // due to single quotes (where brackets are now) -- CHIRST -- it's failing no matter what,
+            // complaining of single-quotes even when there are none -- what the hell...
+//         style.setNotes(String.format
+//                        ("Style node for field [%s] in data-set [%s]\n\nSource: %s\n\n%s\n\nvalues=%d; unique=%d; type=%s",
+//                         field.getName(),
+//                         field.getSchema().getName(),
+//                         field.getSchema().getResource(),
+//                         field.valuesDebug(),
+//                         field.valueCount(),
+//                         field.uniqueValueCount(),
+//                         field.getType()
+//                        ));
         style.setTextColor(ValueNodeTextColor);
         //style.disableProperty(LWKey.Label);
 //         if (repainter != null)
