@@ -25,7 +25,7 @@ import com.google.common.collect.Multiset;
  * this handles what happens when it's dropped on the map.  What happends depends
  * on what it's dropped on.
  *
- * @version $Revision: 1.5 $ / $Date: 2010-02-01 22:42:58 $ / $Author: sfraize $
+ * @version $Revision: 1.6 $ / $Date: 2010-02-01 23:21:28 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -318,7 +318,10 @@ class DataDropHandler extends MapDropTarget.DropHandler
 
         boolean zoomFit = false;
 
-        if (DEBUG.Enabled) Log.debug("NEW-DATA-NODES: " + Util.tags(newNodes));
+        if (DEBUG.Enabled) {
+            Log.debug("createLinksAndLayoutNodes: newNodes=" + Util.tags(newNodes) + "; clusteringTargets:");
+            Util.dump(clusteringTargets);
+        }
                 
         //-----------------------------------------------------------------------------
         // First, locate all the nodes at the drop location -- so that any that
