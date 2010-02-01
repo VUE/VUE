@@ -48,7 +48,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.527 $ / $Date: 2010-02-01 22:42:58 $ / $Author: sfraize $
+ * @version $Revision: 1.528 $ / $Date: 2010-02-01 22:50:09 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1459,6 +1459,9 @@ public class LWComponent
         return key + " " + valType + "(" + valRep + ")" + extra + "";
     }
 
+    // todo: this not yet implemented as actually persistant -- it
+    // meant to be picked out of client data at save time and be
+    // specially persisted
     public static class PersistClientDataKey {
         final String name;
         public PersistClientDataKey(String s) { name = s; }
