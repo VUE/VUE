@@ -48,7 +48,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.528 $ / $Date: 2010-02-01 22:50:09 $ / $Author: sfraize $
+ * @version $Revision: 1.529 $ / $Date: 2010-02-01 22:51:56 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -4608,7 +4608,7 @@ public class LWComponent
         
         final boolean skipUndo;
         if (!internal && !javax.swing.SwingUtilities.isEventDispatchThread()) {
-            Log.info("skipping undo on non-AWT size change: " + this + "; newSize=" + w + "x" + h);
+            if (DEBUG.Enabled) Log.info("skipping undo on non-AWT size change: " + this + "; newSize=" + w + "x" + h);
             skipUndo = true;
         } else {
             skipUndo = internal;
