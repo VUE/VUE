@@ -1382,6 +1382,13 @@ public class Util
 
      */
     public static <A, T extends A> Iterable<T> typeFilter
+                                (final Class<T> clazz,
+                                 final Iterable<A> iterable)
+    {
+        return new IteratorTypeFilter<A,T>(iterable, clazz);
+    }
+    
+    public static <A, T extends A> Iterable<T> typeFilter
                                 (final Iterable<A> iterable,
                                  final Class<T> clazz)
     {
