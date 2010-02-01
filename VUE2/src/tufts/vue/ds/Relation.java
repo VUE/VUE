@@ -13,7 +13,7 @@ import java.util.*;
  * methods return instances of a Relation which say something about
  * how the data was related.
  *
- * @version $Revision: 1.6 $ / $Date: 2009-10-27 15:03:03 $ / $Author: sfraize $
+ * @version $Revision: 1.7 $ / $Date: 2010-02-01 22:39:58 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public final class Relation {
@@ -195,7 +195,7 @@ public final class Relation {
     {
 
         if (rowData == null) {
-            Util.printStackTrace("NULL ROW DATA AGAINST FIELD: " + field);
+            //Util.printStackTrace("NULL ROW DATA AGAINST FIELD: " + field);
             return Collections.EMPTY_LIST;
         }
         
