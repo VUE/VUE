@@ -55,7 +55,7 @@ import com.google.common.collect.*;
  * currently active map, code for adding new nodes to the current map,
  * and initiating drags of fields or rows destined for a map.
  *
- * @version $Revision: 1.104 $ / $Date: 2010-02-01 22:42:58 $ / $Author: sfraize $
+ * @version $Revision: 1.105 $ / $Date: 2010-02-01 23:20:39 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -1664,7 +1664,7 @@ public class DataTree extends javax.swing.JTree
     }
 
     private static final Ordering<Multiset.Entry> ByDecreasingFrequency = new Ordering<Multiset.Entry>() {
-        @Override public int compare(Multiset.Entry a, Multiset.Entry b) {
+        /*@Override*/ public int compare(Multiset.Entry a, Multiset.Entry b) {
             return b.getCount() - a.getCount();
         }
     };
