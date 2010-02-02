@@ -47,7 +47,10 @@ public class SearchTextField extends JTextField {
 		//super(11);
 		
 		thisTxtFld = this;		
+		
 		thisTxtFld.setText(VueResources.getString("search.text.default"));
+		
+		
 		thisTxtFld.setForeground(Color.gray);
 		GUI.init();
 		initMenuSettings();
@@ -357,9 +360,11 @@ public class SearchTextField extends JTextField {
 					}
 				}
 			});
-			thisTxtFld.setEditable(true);
-			thisTxtFld.setLayout(new FlowLayout(FlowLayout.CENTER, 1, 0));
+			thisTxtFld.setEnabled(true);
+			thisTxtFld.setLayout(new BorderLayout());
+			//fieldTxt.setSize(thisTxtFld.getSize());
 			thisTxtFld.add(fieldTxt, BorderLayout.CENTER);
+			
 		}
 	}
 
