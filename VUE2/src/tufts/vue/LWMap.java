@@ -59,7 +59,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.260 $ / $Date: 2010-02-01 22:42:58 $ / $Author: sfraize $
+ * @version $Revision: 1.261 $ / $Date: 2010-02-02 00:24:53 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -2222,12 +2222,12 @@ public class LWMap extends LWContainer
         if (c instanceof LWPathway)
             throw new IllegalArgumentException("LWPathways not added as direct children of map: use addPathway " + c);
         
-        if (true /*isLayered()*/) {
-            //mActiveLayer.addChildImpl(c);
-            if (c instanceof Layer == false) {
-                Util.printStackTrace("Warning: LWMap adding non-layer: " + Util.tags(c));
-                //return;
-                //throw new IllegalArgumentException("only layers can be added directly to the map");
+        if (c instanceof Layer == false && !mXMLRestoreUnderway) {
+            if (mActiveLayer != null) {
+                Log.warn("addChildImpl: forcing to active layer: " + mActiveLayer + " in " + this);
+                mActiveLayer.addChildImpl(c, context);
+            } else {
+                Util.printStackTrace("LWMap adding non-layer: " + Util.tags(c));
             }
         }
         

@@ -79,7 +79,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.665 $ / $Date: 2010-01-28 15:43:53 $ / $Author: sfraize $ 
+ * @version $Revision: 1.666 $ / $Date: 2010-02-02 00:25:35 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1500,9 +1500,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
 
     public LWComponent getDropFocal() {
-        if (/*VUE.VUE3_LAYERS &&*/getFocal() instanceof LWMap) {
+        if (getFocal() instanceof LWMap) {
             if (((LWMap)getFocal()).getActiveLayer() == null) {
-                Util.printStackTrace("NO ACTIVE LAYER IN: " + getFocal());
+                String msg = "getDropFocal: NO ACTIVE LAYER FOR FOCAL: " + getFocal() + " in " + this;
+                if (DEBUG.Enabled)
+                    Util.printStackTrace(msg);
+                else
+                    Log.warn(msg);
                 return getFocal();
             }
             return ((LWMap)getFocal()).getActiveLayer();
