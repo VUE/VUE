@@ -29,7 +29,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 
 
 /**
- * @version $Revision: 1.34 $ / $Date: 2010-02-02 07:23:27 $ / $Author: sfraize $
+ * @version $Revision: 1.35 $ / $Date: 2010-02-02 17:16:53 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -800,7 +800,25 @@ public final class DataAction
                     }
                     
                     if (DEBUG.WORK) Log.debug("image resource: " + IR);
-                    node.addChild(tufts.vue.LWImage.createNodeIcon(IR));
+                    tufts.vue.LWImage image = tufts.vue.LWImage.createNodeIcon(IR);
+                    node.addChild(image);
+
+                    // HACK FOR NOW: set the ICON bit.  This will have been cleared
+                    // during the addChild when it is discovered that the resource for
+                    // the image is NOT the same as the resource for the node.  Setting
+                    // this here will force the image to keep icon-sizing when it's size
+                    // arrives, which fixes the sizing part of VUE-1637 for now, and
+                    // also half-fixes another outstanding bug which is that this images
+                    // can be dragged out (as they're not really node-icons).
+                    //
+                    // So as long as this bit is set, the image can't be dragged out.
+                    // But the bit is not persisted, so after saving / opening the map,
+                    // the drag-out bug will still exist.  To fix that, we'd need to
+                    // redesign all the code dealing with node-icons so that it isn't
+                    // triggered by having the same resource, which raises other issues
+                    // -- e.g., what, really, is a node-icon?
+                    
+                    image.setFlag(Flag.ICON);
                 }
 
                 // This is now handled by LWComponent.fillLabelFormat for all data value replacements
