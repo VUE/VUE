@@ -79,7 +79,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.666 $ / $Date: 2010-02-02 00:25:35 $ / $Author: sfraize $ 
+ * @version $Revision: 1.667 $ / $Date: 2010-02-02 23:41:21 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -7127,10 +7127,18 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             to a tip region that activates the tip again */
         private void clearTipSoon() {
             synchronized (sTipLock) {
-                if (sTipComponent != null) {
-                    ViewerTimer.schedule(new ClearTipTask(), 500);
-                    //mTipTimer.schedule(new ClearTipTask(), 500);
-                }
+            	try
+            	{
+            		if (sTipComponent != null) {
+            			ViewerTimer.schedule(new ClearTipTask(), 500);
+            			//mTipTimer.schedule(new ClearTipTask(), 500);
+            		}
+            	}
+            	catch(java.lang.IllegalStateException ise)
+            	{
+            		//keep getting timer already cancelled in applet.
+            		System.out.println(ise.toString());
+            	}
             }
         }
 
