@@ -271,7 +271,6 @@ public class LWImage extends LWComponent
             
             addCleanupTask(new Runnable() { public void run() {
                 if (hasResource() && VUE.getSelection().only() == LWImage.this)
-                    //loadSizeAndRef(getResource(), null);
                     // TODO: would need an UNDO-MARK for this, so really
                     // this wants to trigger our new LWNode image0 replacement code
                     initRef(getResource());
@@ -412,7 +411,8 @@ public class LWImage extends LWComponent
     }
 
     public void reloadImage() {
-        ref().reload();
+        mImageRef = ImageRef.EMPTY;
+        initRef(getResource());
     }
 
     private void repaintPixels() {
