@@ -2392,65 +2392,8 @@ public class Actions implements VueConstants
         public static void clusterLinked(final LWComponent center) {
             if (DEBUG.Enabled) Log.debug("clustering linked " + center);
             
-            final Collection<LWLink> allLinks = center.getLinks();
-            // note: DO NOT MODIFY the collection returned from getLinks()...
-
-            Collection<LWLink> usedLinks = allLinks;
-
-            if (DEBUG.Enabled) Log.debug(" all links: " + Util.tags(allLinks));
-
-            for (LWLink l : allLinks) {
-                if (l.isDataCountLink()) {
-                    usedLinks = getPriorityDataLinks(allLinks);
-                    break;
-                }
-            }
-            
-            if (DEBUG.Enabled) Log.debug("used links: " + Util.tags(usedLinks));
-            
-            clusterNodesAbout(center,
-                              center.getLinked(usedLinks, new HashSet(usedLinks.size())));
+            clusterNodesAbout(center, center.getClustered());
         }
-
-        private static Collection<LWLink> getPriorityDataLinks(Collection<LWLink> links)
-        {
-            // What we really need here is a way to tell the significance of the
-            // count-link itself.  E.g., if we find a count-link to an endpoint that has
-            // NO OTHER count-links to it all, that's an easy case -- we want to custer
-            // that item near us.  But if that endpoint has any OTHER count links,
-            // either we do NOT want it clustering near us, or we might want to go so
-            // far as to find the count link with the highest count and use that, etc.
-            // In any case, that's all getting quite complicated to add now.  We'd have
-            // to fetch all the endpoints and inspect them in conjunction with the
-            // links.
-
-            // For now, we just ignore count-links entirely, even tho they
-            // produce FANTASTIC clustering in certian special cases.
-            // (e.g., all the countries clustering around a region they're in)
-            
-            //final Collection<LWLink> countDataLinks = new ArrayList();
-            final Collection<LWLink> normalDataLinks = new ArrayList(links.size());
-
-            // todo performance: just produce integer counts, then construct the
-            // lists in the rare case they're needed
-            for (LWLink l : links) {
-                if (l.isDataCountLink())
-                    ;//countDataLinks.add(l);
-                else 
-                    normalDataLinks.add(l);
-            }
-
-            return normalDataLinks;
-            
-//             if (countDataLinks.size() == 1 && otherDataLinks.size() > 0) {
-//                 return otherDataLinks;
-//             } else {
-//                 return links;
-//             }
-        }
-
-        
-        
         
         // todo: smarter algorithm that lays out concentric rings, with more nodes in
         // each larger ring (compute ellipse circumference); tricky: either need a good
@@ -3138,7 +3081,7 @@ public class Actions implements VueConstants
                 // if a single item in selection, arrange all nodes linked to it in a circle around it
 
                 final LWComponent center = selection.first();
-                final Collection<LWComponent> linked = center.getLinked();
+                final Collection<LWComponent> linked = center.getClustered();
 
                 final List<LWComponent> toReparent = new ArrayList();
 
@@ -3194,7 +3137,7 @@ public class Actions implements VueConstants
 
                 if (anyLinks) {
                     for (LWComponent asCenter : selection) {
-                        Collection<LWComponent> outGroupLinked = new ArrayList(asCenter.getLinked());
+                        Collection<LWComponent> outGroupLinked = new ArrayList(asCenter.getClustered());
                         outGroupLinked.removeAll(selection);
                         if (DEBUG.Enabled) Log.debug("asCenter: " + asCenter + "; outGroupLinked=" + Util.tags(outGroupLinked));
                         doClusterAction(asCenter, outGroupLinked);

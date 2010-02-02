@@ -48,7 +48,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.529 $ / $Date: 2010-02-01 22:51:56 $ / $Author: sfraize $
+ * @version $Revision: 1.530 $ / $Date: 2010-02-02 06:58:51 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -3904,6 +3904,61 @@ public class LWComponent
         }
         return bag;
     }
+
+    /** @return all nodes that are *probable* clustering targets for this node.  Currently,
+     * this usually means most or all of the nodes this node is linked to */
+    public Collection<LWComponent> getClustered()
+    {
+        final List<LWLink> links = getLinks();
+        int dcl = 0;
+        for (LWLink l : links)
+            if (l.isDataCountLink())
+                dcl++;
+        
+        if (dcl == 0 || dcl == links.size())
+            return getLinked(links, new HashSet(links.size()));
+        else
+            return getLinked(getPriorityDataLinks(getLinks()), new HashSet(dcl));
+    }
+    
+    /** @return list will only contain LWLink */
+    private static Collection<LWLink> getPriorityDataLinks(Collection<LWLink> links)
+    {
+        // What we really need here is a way to tell the significance of the
+        // count-link itself.  E.g., if we find a count-link to an endpoint that has
+        // NO OTHER count-links to it all, that's an easy case -- we want to cluster
+        // that item near us.  But if that endpoint has any OTHER count links,
+        // either we do NOT want it clustering near us, or we might want to go so
+        // far as to find the count link with the highest count and use that, etc.
+        // In any case, that's all getting quite complicated to add now.  We'd have
+        // to fetch all the endpoints and inspect them in conjunction with the
+        // links.
+
+        // For now, we just ignore count-links entirely, even tho they
+        // produce FANTASTIC clustering in certian special cases.
+        // (e.g., all the countries clustering around a region they're in)
+            
+        //final Collection<LWLink> countDataLinks = new ArrayList();
+        final Collection<LWLink> normalDataLinks = new ArrayList(links.size());
+
+        // todo performance: just produce integer counts, then construct the
+        // lists in the rare case they're needed
+        for (LWLink l : links) {
+            if (l.isDataCountLink())
+                ;//countDataLinks.add(l);
+            else 
+                normalDataLinks.add(l);
+        }
+
+        return normalDataLinks;
+            
+        //             if (countDataLinks.size() == 1 && otherDataLinks.size() > 0) {
+        //                 return otherDataLinks;
+        //             } else {
+        //                 return links;
+        //             }
+    }
+    
 
     
     /** @return all components directly connected to this one: for most components, this

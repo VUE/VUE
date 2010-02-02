@@ -51,7 +51,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.133 $ / $Date: 2010-02-02 00:26:11 $ / $Author: sfraize $  
+ * @version $Revision: 1.134 $ / $Date: 2010-02-02 06:58:51 $ / $Author: sfraize $  
  */
 public class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -916,8 +916,9 @@ public class MapDropTarget
             switch (dropType) {
 
             case DROP_GENERAL_HANDLER:
-                success = processDroppedHandler(drop, foundHandler);
-                break;
+                //success = processDroppedHandler(drop, foundHandler);
+                // handlers now process their own completion if they think they'll succeed:
+                return processDroppedHandler(drop, foundHandler);
             case DROP_FILE_LIST:
                 success = processDroppedFileList(drop);
                 break;
@@ -939,25 +940,8 @@ public class MapDropTarget
                 throw new Error("unknown drop type " + dropType);
             }
 
-            if (drop.items != null && drop.items.size() > 0) {
-                // Must make sure the selection is owned
-                // by this map before we try and change it.
-                // TODO: SlideViewer currently not handling this properly...
-                mViewer.grabVueApplicationFocus("drop", null);
-            }
-            if (drop.select != null && drop.select.size() > 0) {
-                mViewer.selectionSet(drop.select); // VUE-978: selection focal should also be set
-            }
-//             if (drop.select.size() > 0) {
+            completeDrop(drop);
 
-//                 // Must make sure the selection is owned
-//                 // by this map before we try and change it.
-//                 // TODO: SlideViewer currently not handling this properly...
-//                 mViewer.grabVueApplicationFocus("drop", null);
-                
-//                 mViewer.selectionSet(drop.select); // VUE-978: selection focal should also be set
-//             }
-            
         } catch (Throwable t) {
             Util.printStackTrace(t, "drop processing failed");
         }
@@ -976,6 +960,27 @@ public class MapDropTarget
         mViewer.getMap().getUndoManager().mark("Drop");
 
         return success;
+    }
+
+    public static void completeDrop(DropContext drop) {
+        if (drop.items != null && drop.items.size() > 0) {
+            // Must make sure the selection is owned
+            // by this map before we try and change it.
+            // TODO: SlideViewer currently not handling this properly...
+            drop.viewer.grabVueApplicationFocus("drop", null);
+        }
+        if (drop.select != null && drop.select.size() > 0) {
+            drop.viewer.selectionSet(drop.select); // VUE-978: selection focal should also be set
+        }
+        //             if (drop.select.size() > 0) {
+
+        //                 // Must make sure the selection is owned
+        //                 // by this map before we try and change it.
+        //                 // TODO: SlideViewer currently not handling this properly...
+        //                 mViewer.grabVueApplicationFocus("drop", null);
+                
+        //                 mViewer.selectionSet(drop.select); // VUE-978: selection focal should also be set
+        //             }
     }
 
 
@@ -1070,25 +1075,26 @@ public class MapDropTarget
     private boolean processDroppedHandler(DropContext drop, DropHandler handler)
     {
         if (DEBUG.Enabled) out("processDroppedHandler: " + Util.tags(handler));
+        VUE.activateWaitCursor(); // todo: the existing drag/drop cursor seems to be interfering with this
+        boolean success = false;
         try {
-            VUE.activateWaitCursor(); // todo: the existing drag/drop cursor seems to be interfering with this
-            boolean success = handler.handleDrop(drop);
-            if (success) {
-                if (drop.items != null && drop.items.size() > 0)
-                    addNodesToMap(drop);
-                return true;
-            } else
-                return false;
+            success = handler.handleDrop(drop);
+//             if (success) {
+//                 // now handled by the drop-handler itself:
+//                 //if (drop.items != null && drop.items.size() > 0)
+//                 //      addNodesToMap(drop);
+//             }
         } catch (Throwable t) {
             Log.error("dropHandler failed: " + Util.tags(handler), t);
-        } finally {
+        }
+        finally {
             VUE.clearWaitCursor();
         }
        
-        return false;
+        return success;
     }
 
-    private void addNodesToMap(DropContext drop) 
+    public static void addNodesToMap(DropContext drop) 
     {
     	if (DEBUG.Enabled) Log.debug("addNodesToMap: " + Util.tags(drop.items));
         if (drop.hitParent != null && !(drop.hitParent instanceof LWMap)) {

@@ -2,10 +2,12 @@ package tufts.vue.ds;
 
 import tufts.Util;
 import tufts.vue.DEBUG;
+import tufts.vue.gui.GUI;
 
 import tufts.vue.MetaMap;
 import tufts.vue.LWComponent;
 import tufts.vue.LWNode;
+import tufts.vue.LWLink;
 import tufts.vue.LWMap;
 import tufts.vue.MapDropTarget;
 import static tufts.vue.MapDropTarget.*;
@@ -25,7 +27,7 @@ import com.google.common.collect.Multiset;
  * this handles what happens when it's dropped on the map.  What happends depends
  * on what it's dropped on.
  *
- * @version $Revision: 1.6 $ / $Date: 2010-02-01 23:21:28 $ / $Author: sfraize $
+ * @version $Revision: 1.7 $ / $Date: 2010-02-02 06:58:52 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -65,11 +67,11 @@ class DataDropHandler extends MapDropTarget.DropHandler
         return new DropIndication(DROP_ACCEPT_DATA, acceptAction, target);
     }
     
-    private static final boolean AUTO_FIT = false;
+    static final boolean AUTO_FIT = false;
     
             
     /** DropHandler */
-    @Override public boolean handleDrop(DropContext drop)
+    @Override public boolean handleDrop(final DropContext drop)
     {
         final List<LWComponent> clusteringTargets = new ArrayList(); // nodes already on the map
             
@@ -84,9 +86,10 @@ class DataDropHandler extends MapDropTarget.DropHandler
             // directly to the map.  Todo: something cleaner (allow an
             // override in the DropHandler for what to do w/parenting)
             drop.hit = drop.hitParent = null;
+            if (DEBUG.Enabled) Log.debug("FILTER EXTRACTED: " + Util.tags(newNodes));
             
         } else {
-            Log.debug("PRODUCING NODES ON THE MAP (no drop target for filtering)");
+            if (DEBUG.Enabled) Log.debug("PRODUCING NODES ON THE MAP (no drop target for filtering)");
                 
             newNodes = produceAllDroppedNodes(droppingDataItem);
 
@@ -96,7 +99,36 @@ class DataDropHandler extends MapDropTarget.DropHandler
         if (newNodes == null || newNodes.size() == 0)
             return false;
 
-        final boolean doZoomFit = createLinksAndLayoutNodes(drop, newNodes, clusteringTargets);
+// We might as well run in right in the drop action and at least get a chance at having the drop cursor:
+//         GUI.invokeAfterAWT(new Runnable() { public void run() {
+//             GUI.activateWaitCursor(); // *** STILL isn't working even though the drop is complete & drag/drop cursor should be cleared
+//             try {
+                Log.info("servicing the drop: " + drop);
+                serviceDrop(DataDropHandler.this, drop, newNodes, clusteringTargets);
+                if (drop.items != null && drop.items.size() > 0)
+                    MapDropTarget.addNodesToMap(drop);
+                MapDropTarget.completeDrop(drop);
+                String undoName = "Data Drop";
+                if (droppingDataItem.getField() != null)
+                    undoName += " (" + droppingDataItem.getField().getName() + ")";
+                drop.viewer.getMap().getUndoManager().mark(undoName);
+//             } catch (Throwable t) {
+//                 Log.error("servicing drop: " + drop, t);
+//             } finally {
+//                 GUI.clearWaitCursor();
+//             }
+//         }});
+
+        return true;
+    }
+
+    private static void serviceDrop
+        (DataDropHandler handler,
+         DropContext drop,
+         List<LWComponent> newNodes,
+         List<LWComponent> clusteringTargets)
+    {
+        final boolean doZoomFit = handler.createLinksAndLayoutNodes(drop, newNodes, clusteringTargets);
 
         //-------------------------------------------------------
         // TODO: handle selection manually (not in MapDropTarget)
@@ -136,6 +168,8 @@ class DataDropHandler extends MapDropTarget.DropHandler
         // value-node style are in play.
         //
         // For now, we're prioritizing the first case: dragging the new cluster somewhere.
+
+        final DataNode droppingDataItem = handler.droppingDataItem; // todo: need to refactor these methods to all be statics
             
         if (clusteringTargets.size() > 0) {
 
@@ -163,8 +197,6 @@ class DataDropHandler extends MapDropTarget.DropHandler
         // can't do this yet: MapDropTarget still has yet to do the actual add-to-map,
         // and then it will generate the generic "Drop" undo-mark.
         //drop.viewer.getMap().getUndoManager().mark("Data Drop: " + droppingDataItem);
-
-        return true;
         
     }
 
@@ -319,7 +351,9 @@ class DataDropHandler extends MapDropTarget.DropHandler
         boolean zoomFit = false;
 
         if (DEBUG.Enabled) {
-            Log.debug("createLinksAndLayoutNodes: newNodes=" + Util.tags(newNodes) + "; clusteringTargets:");
+            Log.debug("createLinksAndLayoutNodes:"
+                      + "\n\tnewNodes: " + Util.tags(newNodes)
+                      + "\n\tclusteringTargets: " + clusteringTargets.size());
             Util.dump(clusteringTargets);
         }
                 
@@ -330,17 +364,25 @@ class DataDropHandler extends MapDropTarget.DropHandler
         
         MapDropTarget.setCenterAt(newNodes, drop.location);
 
-        final Multiset<tufts.vue.LWComponent> targetsUsed =
+        final Object[] result =
             DataAction.addDataLinksForNodes(drop.viewer.getMap(),
                                             newNodes,
                                             droppingDataItem.getField());
+        
+        final Multiset<LWComponent> targetsUsed = (Multiset) result[0];
+        final List<LWLink> linksAdded = (List) result[1];
 
-        final boolean didAddLinks = targetsUsed.size() > 0;
+        if (DEBUG.Enabled) {
+            // TODO: targetsUsed is empty for targets found in cross-schema joins...
+            Log.debug("targetsUsed: " + Util.tags(targetsUsed));
+            Log.debug(" linksAdded: " + Util.tags(linksAdded));
+            //Util.dump(targetsUsed.entrySet());
+        }
 
         if (clusteringTargets.size() > 0) {
             //tufts.vue.Actions.MakeCluster.doClusterAction(clusterNode, newNodes);                
             for (LWComponent center : clusteringTargets) {
-                tufts.vue.Actions.MakeCluster.doClusterAction(center, center.getLinked());
+                tufts.vue.Actions.MakeCluster.doClusterAction(center, center.getClustered());
             }
         }
 //         else if (drop.isLinkAction) {
@@ -350,7 +392,7 @@ class DataDropHandler extends MapDropTarget.DropHandler
         else {
 
             // TODO: pass isLinkAction to clusterNodes and sort out there 
-            zoomFit = clusterNodes(drop, newNodes, didAddLinks);
+            zoomFit = clusterNodes(drop, newNodes, linksAdded.size() > 0);
 
         }
 
@@ -376,6 +418,14 @@ class DataDropHandler extends MapDropTarget.DropHandler
         final boolean didFullReorganization = map.hasState(LWMap.State.HAS_AUTO_CLUSTERED);
 
         if (DEBUG.Enabled) Log.debug("clusterNodes: map has already re-organized: " + didFullReorganization);
+
+        if (newLinksAvailable) {
+            // now we set this state ANY time new links are created: is screwing up too
+            // many maps and disabling other times when we actually want a map-deformation
+            // to happen.
+            map.setState(LWMap.State.HAS_AUTO_CLUSTERED);
+        }
+        
 
         try {
 
@@ -406,42 +456,8 @@ class DataDropHandler extends MapDropTarget.DropHandler
             else if (newLinksAvailable) {
 
                 final boolean DEFORM_MAP_FOR_NEW_NODES = !drop.isLinkAction;
-
-                // anything linked will be placed based on centroid:
-                final Collection<LWComponent> pushable = map.getTopLevelItems(tufts.vue.LWComponent.ChildKind.EDITABLE);
-                final Collection<LWComponent> toPush = new ArrayList(pushable.size() + nodes.size());
-                toPush.addAll(nodes); // also push other new nodes (they're not on the map yet)
-                for (LWComponent c : map.getTopLevelItems(tufts.vue.LWComponent.ChildKind.EDITABLE)) {
-                    if (c instanceof tufts.vue.LWLink)
-                        ; // performance filter
-                    else
-                        toPush.add(c);
-                }
-
-                final List<LWComponent> unpositioned = new ArrayList();
-                final List<LWComponent> pushers = new ArrayList();
                 
-                for (LWComponent node : nodes) {
-                    
-                    if (moveToCentroid(node, node.getLinked())) {
-                        // node was able to be moved:
-                        if (DEFORM_MAP_FOR_NEW_NODES)
-                            pushers.add(node);
-                    } else {
-                        unpositioned.add(node);
-                    }
-
-                }
-
-                if (unpositioned.size() > 0)
-                    tufts.vue.LayoutAction.filledCircle.act(unpositioned, AUTO_FIT);
-
-                if (DEFORM_MAP_FOR_NEW_NODES && pushers.size() > 0) {
-                    // we push everything last, so even the newly added nodes will be pushed
-                    for (LWComponent node : pushers) {
-                        tufts.vue.Actions.projectNodes(toPush, node, 12);
-                    }
-                }
+                DataAction.centroidCluster(map, nodes, DEFORM_MAP_FOR_NEW_NODES);
                     
             } else {
                 // may want to do this any way for anything that didn't have a centroid
@@ -456,35 +472,7 @@ class DataDropHandler extends MapDropTarget.DropHandler
         return zoomFit;
     }
 
-    /** @return true if the given mover node was able to be positioned based on related */
-    public static boolean moveToCentroid(LWComponent mover, Collection<LWComponent> related)
-    {
-        if (related == null || related.isEmpty()) {
-            return false;
-        }
-        else if (related.size() == 1) {
-            // If only one item, centroid will be center of the one item, and if we set
-            // a node *exactly* on center of another node, and theres a link between
-            // them (as there is here), the link will be exactly zero length, which is
-            // currently a condition that is mostly handled, but generates warnings
-            // which we don't want to wholesale turn off -- e.g., you'll see "bad
-            // paintBounds" or "bar projection points".  So we never set a node
-            // exaclty centered on another node.
-            final LWComponent onTopOf = Util.getFirst(related);
-            mover.setCenterAt(onTopOf.getMapCenterX(),
-                              onTopOf.getMapCenterY() - (mover.getHeight() + 12));
-            return true;
-        } else {
-            java.awt.geom.Point2D centroid = tufts.vue.VueUtil.computeCentroid(related);
-            if (centroid != null) {
-                //if (DEBUG.Enabled) Log.debug("CENTROID " + Util.fmt(centroid) + " for " + node + " with " + Util.tags(linked));
-                mover.setCenterAt(centroid);
-                return true;
-            } else {
-                return false;
-            }
-        }
-    }
+
 }
         
 

@@ -27,6 +27,7 @@ import tufts.vue.Resource;
 import tufts.vue.VueResources;
 import tufts.vue.LWComponent;
 import tufts.vue.LWNode;
+import tufts.vue.LWLink;
 import tufts.vue.LWMap;
 import tufts.vue.LWKey;
 import tufts.vue.gui.GUI;
@@ -55,7 +56,7 @@ import com.google.common.collect.*;
  * currently active map, code for adding new nodes to the current map,
  * and initiating drags of fields or rows destined for a map.
  *
- * @version $Revision: 1.105 $ / $Date: 2010-02-01 23:20:39 $ / $Author: sfraize $
+ * @version $Revision: 1.106 $ / $Date: 2010-02-02 06:58:52 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -1677,14 +1678,17 @@ public class DataTree extends javax.swing.JTree
     
     // For NEW DATA CLUSTERING: whenever new nodes are added to the map and there is no
     // layout specified / going to be applied, we want to place nodes near items their
-    // related to.  We should do this based on the links.
+    // related to.  We do this based on the links.
     //
-    // TWO VERSIONS of this:
+    // There are many versions of this.  E.g.:
     //
     // 1 - re-clustering around the last clustered nodes as marked by the clustering
     // time-stamp for row-node additions
     //
     // 2 - placing new value-nodes most near the nodes their related to based on links
+
+    /** adding more than this # of new row-nodes to the map permits a map-reorg */
+    private static final int NEW_ROW_NODE_MAP_REORG_THRESHOLD = 20;
     
     private void addNewRowsToMap(final LWMap map)
     {
@@ -1702,12 +1706,15 @@ public class DataTree extends javax.swing.JTree
         final List<LWComponent> newRowNodes = DataAction.makeRowNodes(mSchema, newRows);
 
         Multiset<LWComponent> targetsUsed = null;
+        List<LWLink> linksAdded = Collections.EMPTY_LIST;
 	
-        boolean didAddLinks = false;
-            
         try {
-            targetsUsed = DataAction.addDataLinksForNodes(map, newRowNodes, (Field) null);
-            didAddLinks = targetsUsed.size() > 0;                
+            final Object[] result
+                = DataAction.addDataLinksForNodes(map,
+                                                  newRowNodes,
+                                                  (Field) null);
+            targetsUsed = (Multiset) result[0];
+            linksAdded = (List) result[1];
         } catch (Throwable t) {
             Log.error("problem creating links on " + map + " for new nodes: " + Util.tags(newRowNodes), t);
         }
@@ -1721,24 +1728,23 @@ public class DataTree extends javax.swing.JTree
         if (newRowNodes.size() > 0) {
 
             //tufts.vue.VueUtil.setXYByClustering(map, nodes); // cannot do before adding to map w/out refactoring projectNodes
+            
             map.getOrCreateLayer("New Data Nodes").addChildren(newRowNodes);
 	
-            if (newRowNodes.size() > 1) {
+            if (newRowNodes.size() > NEW_ROW_NODE_MAP_REORG_THRESHOLD) {
 
-                //tufts.vue.LayoutAction.random.act(nodes);
+                if (targetsUsed.size() > 0) { // Note: won't currently trigger for cross-schema joins, as targesUsed aren't reported
 
-                if (targetsUsed.size() > 0) {
-
-                    // note: if we wished, we could also decide here what to cluster on
-                    // based on what targets are selected
+                    //-------------------------------------------------------
+                    // RE-CLUSTER THE ENTIRE MAP
+                    //-------------------------------------------------------
                     
-                    // If there is was more than one value-node link per row-node
-                    // created (e.g., multiple sets of value nodes are already on the
-                    // map), prioritizing those targets with the most first spreads the
-                    // nodes out the most as the targets with the fewest links would are
-                    // at least be guaranteed to get some of the row nodes.  Using the
-                    // push-method in this case would be far too slow -- we'd have to
-                    // push based on every row node.
+                    // If there is was more than one value-node link per row-node created (e.g.,
+                    // multiple sets of value nodes are already on the map), prioritizing those
+                    // targets with the most first spreads the nodes out the most as the targets
+                    // with the fewest links would are at least be guaranteed to get some of the
+                    // row nodes.  Using the push-method in this case would be far too slow -- we'd
+                    // have to push based on every row node.
 
                     final List<Multiset.Entry<LWComponent>> ordered
                         = ByDecreasingFrequency.sortedCopy(targetsUsed.entrySet());
@@ -1747,12 +1753,22 @@ public class DataTree extends javax.swing.JTree
                         tufts.vue.Actions.ArrangeAction.clusterLinked(e.getElement());
                     }
                         
+                    // note: if we wished, we could also decide here
+                    // what to cluster on based on what targets are
+                    // selected (currently have the selection bit set)
+                    
                 } else {
-                    // randomly layout anything that isn't first clustered -- works okay for now:
+                    // fallback: randomly layout anything that isn't first XY clustered:
                     tufts.vue.LayoutAction.random.act
                         (tufts.vue.VueUtil.setXYByClustering(newRowNodes));
                 }
-                    
+            }
+            else {
+                //-------------------------------------------------------
+                // Centroid cluster
+                //-------------------------------------------------------
+                DataAction.centroidCluster(map, newRowNodes, true);
+                //-------------------------------------------------------
             }
 	
             VUE.getSelection().setTo(newRowNodes);

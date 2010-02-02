@@ -29,7 +29,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 
 
 /**
- * @version $Revision: 1.31 $ / $Date: 2010-02-01 22:42:58 $ / $Author: sfraize $
+ * @version $Revision: 1.32 $ / $Date: 2010-02-02 06:58:52 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -38,6 +38,88 @@ public final class DataAction
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(DataAction.class);
 
     public static final Object ClusterTimeKey = new tufts.vue.LWComponent.PersistClientDataKey("clusterTime");
+
+    /** note that if deformMap is true, the clustering can take a quite a long time for large maps */
+    public static void centroidCluster
+        (final LWMap map,
+         final Collection<LWComponent> nodes,
+         final boolean deformMap)
+    {
+        if (DEBUG.Enabled) Log.debug("centroid custering of " + Util.tags(nodes));
+                
+        // anything linked will be placed based on centroid:
+        final Collection<LWComponent> pushable = map.getTopLevelItems(tufts.vue.LWComponent.ChildKind.EDITABLE);
+        final Collection<LWComponent> toPush = new ArrayList(pushable.size() + nodes.size());
+        toPush.addAll(nodes); // also push other new nodes (they're not on the map yet)
+        for (LWComponent c : map.getTopLevelItems(tufts.vue.LWComponent.ChildKind.EDITABLE)) {
+            if (c instanceof tufts.vue.LWLink)
+                ; // performance filter
+            else
+                toPush.add(c);
+        }
+
+        final List<LWComponent> unpositioned = new ArrayList();
+        final List<LWComponent> pushers = new ArrayList();
+                
+        for (LWComponent node : nodes) {
+                    
+            if (moveToCentroid(node, node.getLinked())) { // could also use getClustered(), which will leave out any count links
+                // node was able to be moved:
+                if (deformMap)
+                    pushers.add(node);
+            } else {
+                unpositioned.add(node);
+            }
+
+        }
+
+        if (unpositioned.size() > 0)
+            tufts.vue.LayoutAction.filledCircle.act(unpositioned, DataDropHandler.AUTO_FIT);
+
+        if (deformMap && pushers.size() > 0) {
+            // we push everything last, so even the newly added nodes will be pushed
+            for (LWComponent node : pushers) {
+                tufts.vue.Actions.projectNodes(toPush, node, 12);
+            }
+        }
+    }
+
+
+    /** @return true if the given mover-node was able to be positioned based on related */
+    public static boolean moveToCentroid(LWComponent mover, Collection<LWComponent> related)
+    {
+        if (related == null || related.isEmpty()) {
+            return false;
+        }
+        else if (related.size() == 1) {
+            // If only one item, centroid will be center of the one item, and if we set
+            // a node *exactly* on center of another node, and theres a link between
+            // them (as there is here), the link will be exactly zero length, which is
+            // currently a condition that is mostly handled, but generates warnings
+            // which we don't want to wholesale turn off -- e.g., you'll see "bad
+            // paintBounds" or "bar projection points".  So we never set a node
+            // exaclty centered on another node.
+            final LWComponent onTopOf = Util.getFirst(related);
+            mover.setCenterAt(onTopOf.getMapCenterX(),
+                              onTopOf.getMapCenterY() - (mover.getHeight() + 12));
+            return true;
+        } else {
+            java.awt.geom.Point2D.Float centroid = tufts.vue.VueUtil.computeCentroid(related);
+            if (centroid != null) {
+                //if (DEBUG.Enabled) Log.debug("CENTROID " + Util.fmt(centroid) + " for " + node + " with " + Util.tags(linked));
+
+                // randomly add +/- 2 coordinate units to prevent the exact-on-center problem mentioned above
+                centroid.x += (float) (2 - (Math.random() * 4));
+                centroid.y += (float) (2 - (Math.random() * 4));
+                
+                mover.setCenterAt(centroid);
+                
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
 
     public static String valueText(Object value) {
         return StringEscapeUtils.escapeHtml(Field.valueText(value));
@@ -92,8 +174,10 @@ public final class DataAction
     }
 
 
-    /** @field -- if null, will make exaustive row-node links */
-    public static Multiset<LWComponent> addDataLinksForNodes
+    /** @field -- if null, will make exaustive row-node links
+     * @return double result -- [0] is Multiset of LWComponent targetUsed w/counts, [1] is List of LWLink's created */
+    //public static Multiset<LWComponent> addDataLinksForNodes
+    public static Object[] addDataLinksForNodes
         (final LWMap map,
          final List<? extends LWComponent> nodes,
          final Field field)
@@ -106,7 +190,11 @@ public final class DataAction
         if (links.size() > 0)
             map.getInternalLayer("*Data Links*").addChildren(links);
 
-        return targetsUsed;
+        Object[] result = new Object[2];
+        result[0] = targetsUsed;
+        result[1] = links;
+
+        return result;
     }
 
     private static List<LWLink> makeDataLinksForNodes
@@ -195,7 +283,7 @@ public final class DataAction
         return nodes;
     }
 
-    private static final boolean CREATE_COUNT_LINKS = false;
+    private static final boolean CREATE_COUNT_LINKS = true;
 
 
     /**

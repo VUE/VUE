@@ -17,10 +17,11 @@ import com.google.common.collect.Multimaps;
  * the key field of two Schema's, which is considered to be a join in the classic
  * database sense.
  *
- * @version $Revision: 1.14 $ / $Date: 2009-09-30 23:09:33 $ / $Author: sfraize $
+ * @version $Revision: 1.15 $ / $Date: 2010-02-02 06:58:52 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
+// bug: associations are not persisting unless at least one node using the association is on the map
 public final class Association
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(Association.class);
