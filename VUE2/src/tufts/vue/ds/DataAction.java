@@ -29,7 +29,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 
 
 /**
- * @version $Revision: 1.32 $ / $Date: 2010-02-02 06:58:52 $ / $Author: sfraize $
+ * @version $Revision: 1.33 $ / $Date: 2010-02-02 07:10:26 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -108,9 +108,11 @@ public final class DataAction
             if (centroid != null) {
                 //if (DEBUG.Enabled) Log.debug("CENTROID " + Util.fmt(centroid) + " for " + node + " with " + Util.tags(linked));
 
-                // randomly add +/- 2 coordinate units to prevent the exact-on-center problem mentioned above
-                centroid.x += (float) (2 - (Math.random() * 4));
-                centroid.y += (float) (2 - (Math.random() * 4));
+                // randomly add +/- 4 coordinate units to prevent the exact-on-center problem mentioned above
+                // and provide some helpful off-center visual noise for nodes with exactly two links
+                // (less of a "straight line" appearance through the node)
+                centroid.x += (float) (4 - (Math.random() * 8));
+                centroid.y += (float) (4 - (Math.random() * 8));
                 
                 mover.setCenterAt(centroid);
                 
