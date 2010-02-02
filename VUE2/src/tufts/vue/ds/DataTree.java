@@ -56,7 +56,7 @@ import com.google.common.collect.*;
  * currently active map, code for adding new nodes to the current map,
  * and initiating drags of fields or rows destined for a map.
  *
- * @version $Revision: 1.106 $ / $Date: 2010-02-02 06:58:52 $ / $Author: sfraize $
+ * @version $Revision: 1.107 $ / $Date: 2010-02-02 07:29:56 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -244,7 +244,7 @@ public class DataTree extends javax.swing.JTree
         sendToMap(getSelectedNode(), mActiveMap);
     }
     
-    private void addNewRowsToMap() {
+    private void addMissingRowsToMap() {
         // failsafe: tho the Schema and our tree nodes should already
         // be updated, make absolutely certian we're current to the
         // active map by running adding new rows based on our detection
@@ -252,9 +252,9 @@ public class DataTree extends javax.swing.JTree
         VUE.activateWaitCursor();
     	try {
             annotateForMap(mActiveMap);
-            addNewRowsToMap(mActiveMap);
+            addMissingRowsToMap(mActiveMap);
         } catch (Throwable t) {
-            Log.warn("addNewRowsToMap", t);
+            Log.warn("addMissingRowsToMap", t);
         } finally {
             VUE.clearWaitCursor();
         }
@@ -288,7 +288,7 @@ public class DataTree extends javax.swing.JTree
             LWSelection newNodes = null;
             
             if (mNewRowsCheckBox.isSelected()) {
-                addNewRowsToMap(mActiveMap);
+                addMissingRowsToMap(mActiveMap);
                 
                 newNodes = VUE.getSelection().clone();
             }
@@ -1690,7 +1690,7 @@ public class DataTree extends javax.swing.JTree
     /** adding more than this # of new row-nodes to the map permits a map-reorg */
     private static final int NEW_ROW_NODE_MAP_REORG_THRESHOLD = 20;
     
-    private void addNewRowsToMap(final LWMap map)
+    private void addMissingRowsToMap(final LWMap map)
     {
         // todo: we'll want to merge some of this code w/DropHandler code, as
         // this is somewhat of a special case of doing a drop
@@ -1727,9 +1727,16 @@ public class DataTree extends javax.swing.JTree
 	        
         if (newRowNodes.size() > 0) {
 
-            //tufts.vue.VueUtil.setXYByClustering(map, nodes); // cannot do before adding to map w/out refactoring projectNodes
+            // we cannot run setXYByClustering before adding to the map w/out refactoring projectNodes
+            // (or for that matter, centroidCluster, which also uses projectNodes).  E.g. -- we
+            // can't use this as an initial fallback/failsafe.
+            //tufts.vue.VueUtil.setXYByClustering(map, nodes);
             
+            //-----------------------------------------------------------------------------
+            // add all the "missing" / newly-arrived rows to the map
+            //-----------------------------------------------------------------------------
             map.getOrCreateLayer("New Data Nodes").addChildren(newRowNodes);
+            //-----------------------------------------------------------------------------
 	
             if (newRowNodes.size() > NEW_ROW_NODE_MAP_REORG_THRESHOLD) {
 
