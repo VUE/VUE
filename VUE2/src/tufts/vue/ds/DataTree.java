@@ -56,7 +56,7 @@ import com.google.common.collect.*;
  * currently active map, code for adding new nodes to the current map,
  * and initiating drags of fields or rows destined for a map.
  *
- * @version $Revision: 1.107 $ / $Date: 2010-02-02 07:29:56 $ / $Author: sfraize $
+ * @version $Revision: 1.108 $ / $Date: 2010-02-02 07:39:53 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -1736,7 +1736,15 @@ public class DataTree extends javax.swing.JTree
             // add all the "missing" / newly-arrived rows to the map
             //-----------------------------------------------------------------------------
             map.getOrCreateLayer("New Data Nodes").addChildren(newRowNodes);
-            //-----------------------------------------------------------------------------
+
+            // PROBLEM/BUG: the above add to a special layer appears to be failing (to
+            // the user) somtimes and the nodes wind up in the same layer as the
+            // relating nodes -- this is when ArrangeAction.clusterLinked is then used
+            // below.  It does some reparenting which it needs to do in case nodes had
+            // been collected as children, but in some cases, it doesn't need doing and
+            // ends up just pulling the nodes right back out of the "New Data Nodes"
+            // layer after we just moved them there.
+            // -----------------------------------------------------------------------------
 	
             if (newRowNodes.size() > NEW_ROW_NODE_MAP_REORG_THRESHOLD) {
 
