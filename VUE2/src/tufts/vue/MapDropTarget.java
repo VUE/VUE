@@ -51,7 +51,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.132 $ / $Date: 2010-02-01 22:42:58 $ / $Author: sfraize $  
+ * @version $Revision: 1.133 $ / $Date: 2010-02-02 00:26:11 $ / $Author: sfraize $  
  */
 public class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -1091,11 +1091,14 @@ public class MapDropTarget
     private void addNodesToMap(DropContext drop) 
     {
     	if (DEBUG.Enabled) Log.debug("addNodesToMap: " + Util.tags(drop.items));
-	    if (drop.hitParent != null) {
-	         drop.hitParent.addChildren(drop.items, LWComponent.ADD_DROP);
-	    } else {
-	         drop.viewer.getDropFocal().addChildren(drop.items, LWComponent.ADD_DROP);
-	    } 
+        if (drop.hitParent != null && !(drop.hitParent instanceof LWMap)) {
+            // todo: refactor: hitParent never accounted for layers -- this
+            // is probably for dropping onto slides -- can we get rid of using
+            // hitParent entirely?
+            drop.hitParent.addChildren(drop.items, LWComponent.ADD_DROP);
+        } else {
+            drop.viewer.getDropFocal().addChildren(drop.items, LWComponent.ADD_DROP);
+        } 
     }
     
     private boolean processDroppedNodes(DropContext drop)
