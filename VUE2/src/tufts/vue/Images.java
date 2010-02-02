@@ -51,7 +51,7 @@ import org.w3c.dom.NodeList;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.83 $ / $Date: 2010-01-22 23:08:21 $ / $Author: sfraize $
+ * @version $Revision: 1.84 $ / $Date: 2010-02-02 08:15:35 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -481,13 +481,33 @@ public class Images
      * the file has changed on disk).
      */
     public static void flushCache(File file) {
-        final Object key = makeKey(file);
+        final URI key = makeKey(file);
+
+        flushEntry(key, "image");
+        
+        final URI iconKey = ImageSource.makeIconKey(key, 128);
+        // TODO: sync icon key 128 size with size in ImageRef, or better yet, search
+        // cache for all cache keys of any size (tho we only have one size for now)
+        
+        if (flushEntry(iconKey, "ic128")) {
+            File iconFile = new File(getCacheDirectory(), keyToCacheFileName(iconKey));
+            Log.info("looking for cache file " + iconFile);
+            if (iconFile.exists()) {
+                Log.info("   deleting cache file " + iconFile);
+                iconFile.delete();
+            }
+        }
+
+    }
+
+    private static boolean flushEntry(Object key, String debug) {
         final Object entry = RawCache.remove(key);
         if (entry != null) {
-            Log.info(Util.TERM_RED + "flushed cache entry: " + key + "; " + entry + Util.TERM_CLEAR);
+            Log.info(Util.TERM_RED + "flushed cache " + debug + " entry: " + key + "; " + entry + Util.TERM_CLEAR);
         } else {
             Log.info("failed to find cache entry for key: " + Util.tags(key));
         }
+        return entry != null;
     }
 
 //     private static URI makeKey(URL u) {
