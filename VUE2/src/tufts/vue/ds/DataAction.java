@@ -29,7 +29,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 
 
 /**
- * @version $Revision: 1.33 $ / $Date: 2010-02-02 07:10:26 $ / $Author: sfraize $
+ * @version $Revision: 1.34 $ / $Date: 2010-02-02 07:23:27 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -99,8 +99,13 @@ public final class DataAction
             // which we don't want to wholesale turn off -- e.g., you'll see "bad
             // paintBounds" or "bar projection points".  So we never set a node
             // exaclty centered on another node.
+
+            // This also produces an interesting vertical stacking when
+            // adding a bunch of value nodes on top of a single row node:
+            // e.g.: categories on top of an RSS news item row-node.
+
             final LWComponent onTopOf = Util.getFirst(related);
-            mover.setCenterAt(onTopOf.getMapCenterX(),
+            mover.setCenterAt(onTopOf.getMapCenterX() + (2 - Math.random() * 4),
                               onTopOf.getMapCenterY() - (mover.getHeight() + 12));
             return true;
         } else {
@@ -111,8 +116,8 @@ public final class DataAction
                 // randomly add +/- 4 coordinate units to prevent the exact-on-center problem mentioned above
                 // and provide some helpful off-center visual noise for nodes with exactly two links
                 // (less of a "straight line" appearance through the node)
-                centroid.x += (float) (4 - (Math.random() * 8));
-                centroid.y += (float) (4 - (Math.random() * 8));
+                centroid.x += (4 - Math.random() * 8);
+                centroid.y += (4 - Math.random() * 8);
                 
                 mover.setCenterAt(centroid);
                 
