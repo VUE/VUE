@@ -311,7 +311,7 @@ class ImageSource {
         return s.toString();
     }
 
-    private static URI makeIconKey(URI cacheKey, int size) {
+    static URI makeIconKey(URI cacheKey, int size) {
         if (cacheKey == null)
             throw new IllegalArgumentException("makeIconKey: null source key");
         if (size <= 0)
