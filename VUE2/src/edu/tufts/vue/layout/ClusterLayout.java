@@ -241,50 +241,52 @@ public class ClusterLayout extends Layout {
 			if (c instanceof LWNode) {	
 				LWNode node = (LWNode) c;
 				total++;
-				double radius = Math.sqrt(FACTOR * clusterMap.get(node).size()* meanNodeWidth * meanNodeHeight / Math.PI);				
-				int countLinked = 0;
-				for (LWComponent linkedNode : clusterMap.get(node)) {
-					// LWNode nodeLinked = (LWNode)c;
-					double angle = Math.PI * 2 * Math.random();	
-					x = node.getX();
-					y = node.getY();
-					double radiusX = node.getWidth()/2+ radius
-							* (1 - Math.pow(Math.random(), 2.0)); 
-					double radiusY =node.getWidth()/2+radius
-							* (1 - Math.pow(Math.random(), 2.0)) ;
-					double xLinkedNode = x+node.getWidth()/2 -linkedNode.getWidth()/2+ radiusX * Math.cos(angle);
-					double yLinkedNode =y+node.getHeight()/2-linkedNode.getHeight()/2+ radiusY * Math.sin(angle);
-					
-
-					boolean flag = true;
-					int col_count = 0;
-					while (flag && col_count < MAX_COLLISION_CHECK) {
-						if ((VUE.getActiveViewer().pickNode((float) x,
-								(float) y) != null)
-								|| (VUE.getActiveViewer().pickNode(
-										(float) x + node.getWidth(),
-										(float) y + node.getHeight()) != null)
-								|| (VUE.getActiveViewer().pickNode((float) x,
-										(float) y + node.getHeight()) != null)
-								|| (VUE.getActiveViewer().pickNode(
-										(float) x + node.getWidth(), (float) y) != null)) {
-							angle = Math.PI * 2 * Math.random();
-							radiusX = node.getWidth()/2 + radius
-									* (1 - Math.pow(Math.random(), 2.0));
-									
-							radiusY = node.getHeight()/2+radius
-									* (1 - Math.pow(Math.random(), 2.0));
-									
-							xLinkedNode = x+node.getWidth()/2 -linkedNode.getWidth()/2 + radiusX * Math.cos(angle);
-							yLinkedNode = y+node.getHeight()/2-linkedNode.getHeight()/2+ radiusY * Math.sin(angle);
-							col_count++;
-						} else {
-							flag = false;
+				if(clusterMap.get(node) != null && clusterMap.get(node).size() >0) {
+					double radius = Math.sqrt(FACTOR * clusterMap.get(node).size()* meanNodeWidth * meanNodeHeight / Math.PI);				
+					int countLinked = 0;
+					for (LWComponent linkedNode : clusterMap.get(node)) {
+						// LWNode nodeLinked = (LWNode)c;
+						double angle = Math.PI * 2 * Math.random();	
+						x = node.getX();
+						y = node.getY();
+						double radiusX = node.getWidth()/2+ radius
+								* (1 - Math.pow(Math.random(), 2.0)); 
+						double radiusY =node.getWidth()/2+radius
+								* (1 - Math.pow(Math.random(), 2.0)) ;
+						double xLinkedNode = x+node.getWidth()/2 -linkedNode.getWidth()/2+ radiusX * Math.cos(angle);
+						double yLinkedNode =y+node.getHeight()/2-linkedNode.getHeight()/2+ radiusY * Math.sin(angle);
+						
+		
+						boolean flag = true;
+						int col_count = 0;
+						while (flag && col_count < MAX_COLLISION_CHECK) {
+							if ((VUE.getActiveViewer().pickNode((float) x,
+									(float) y) != null)
+									|| (VUE.getActiveViewer().pickNode(
+											(float) x + node.getWidth(),
+											(float) y + node.getHeight()) != null)
+									|| (VUE.getActiveViewer().pickNode((float) x,
+											(float) y + node.getHeight()) != null)
+									|| (VUE.getActiveViewer().pickNode(
+											(float) x + node.getWidth(), (float) y) != null)) {
+								angle = Math.PI * 2 * Math.random();
+								radiusX = node.getWidth()/2 + radius
+										* (1 - Math.pow(Math.random(), 2.0));
+										
+								radiusY = node.getHeight()/2+radius
+										* (1 - Math.pow(Math.random(), 2.0));
+										
+								xLinkedNode = x+node.getWidth()/2 -linkedNode.getWidth()/2 + radiusX * Math.cos(angle);
+								yLinkedNode = y+node.getHeight()/2-linkedNode.getHeight()/2+ radiusY * Math.sin(angle);
+								col_count++;
+							} else {
+								flag = false;
+							}
 						}
+						linkedNode.setLocation(xLinkedNode, yLinkedNode);
+						countLinked++;
+		
 					}
-					linkedNode.setLocation(xLinkedNode, yLinkedNode);
-					countLinked++;
-
 				}
 			}
 		}
