@@ -40,7 +40,7 @@ import edu.tufts.vue.metadata.action.SearchAction;
 
 
 /**
- * @version $Revision: 1.82 $ / $Date: 2009-09-04 19:52:31 $ / $Author: sfraize $
+ * @version $Revision: 1.83 $ / $Date: 2010-02-02 00:23:43 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -746,8 +746,14 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 //                 if (c instanceof Layer)
 //                     mMap.setActiveLayer(c);
 
-        if (s.getParents().size() == 1)
-            setActiveLayer(s.first().getLayer());
+        if (s.getParents().size() == 1) {
+            LWMap.Layer layer = s.first().getLayer();
+            if (layer == null) {
+                Log.info("ignoring null layer in single selection parent (presumably not a map-member yet)");
+            } else {
+                setActiveLayer(layer);
+            }
+        }
 
 
 //         if (s.size() == 1 && s.first().getLayer() != null) {
