@@ -72,7 +72,7 @@ import tufts.vue.gui.VueMenuBar;
 /**
  * Experimental VUE applet.
  * 
- * @version $Revision: 1.22 $ / $Date: 2009-11-09 22:41:22 $ / $Author: mike $
+ * @version $Revision: 1.23 $ / $Date: 2010-02-03 00:44:04 $ / $Author: mike $
  */
 public class VueApplet extends JApplet {
 
@@ -229,18 +229,30 @@ public class VueApplet extends JApplet {
 	
 	public void stop() 
 	{
-		tufts.vue.gui.DockWindow.HideAllWindows();
-		VUE.finalizeDocks();
-		System.gc();
-		fullyStopped = true;
-		isInited=false;
-		msg("stop");
+		super.stop();
+		//
+		
+		
+	//	System.gc();
+		
 	}
 	
 	public void destroy() {
-		super.destroy();
-		isInited=false;
-		msg("destroy");
+		SwingUtilities.invokeLater(new Runnable() { public void run() {
+			tufts.vue.gui.DockWindow.HideAllWindows();
+				EditorManager.destroy();
+				VueToolbarController.destroyController();
+				VUE.getActiveViewer().destroyContextMenus();		
+		}});
+		//	VUE.finalizeDocks();	
+			fullyStopped = true;
+			isInited=false;
+			msg("stop");
+		
+
+			//msg("destroy");
+		
+
 	}		
 
 	public static boolean isInited()
@@ -609,13 +621,14 @@ public class VueApplet extends JApplet {
 		else
 			return null;
 	}
+	private static boolean sourceAdded = false;
+	
 	@SuppressWarnings("unchecked")
 	public static void addZoteroDatasource(final String collectionName, final String fileString, final boolean addToMap) {
+		sourceAdded=false;
 		AccessController.doPrivileged(new PrivilegedAction() {
-
 			public Object run() {
-				try 
-				{
+				try {				
 					DataSourceList l = DataSetViewer.getDataSetList();
 					int length = l.getModel().getSize();
 					for (int i = 0; i<length; i++)
@@ -623,14 +636,19 @@ public class VueApplet extends JApplet {
 						Object o = l.getModel().getElementAt(i);
 						if (o instanceof XmlDataSource) 
 						{
-							XmlDataSource xmlds = (XmlDataSource)o;
-							if (xmlds.getDisplayName().equals(collectionName) && xmlds.getAddress().equals(fileString))
+							final XmlDataSource xmlds = (XmlDataSource)o;
+							
+							if (xmlds.getDisplayName().equals(collectionName) && xmlds.getAddress().equals(fileString) && !sourceAdded)
 							{
+								sourceAdded=true;
 								//we already have it in the list refresh it and move on...
-								VUE.getContentDock().setVisible(true);
-								VUE.getContentPanel().showDatasetsTab();
-								VUE.getContentPanel().getDSBrowser().getDataSetViewer().setActiveDataSource(xmlds);
-								//VUE.getContentPanel().getDSBrowser().getDataSetViewer().refreshBrowser();
+								SwingUtilities.invokeLater(new Runnable() { public void run() {
+									VUE.getContentDock().setVisible(true);
+									VUE.getContentPanel().showDatasetsTab();
+									VUE.getContentPanel().getDSBrowser().getDataSetViewer().setActiveDataSource(xmlds);
+									VUE.getContentPanel().getDSBrowser().getDataSetViewer().refreshBrowser();
+								
+								
 								
 								if (addToMap)
 								{
@@ -662,18 +680,26 @@ public class VueApplet extends JApplet {
 											System.out.println(npe.toString());
 											added = false;
 											tries++;
-											Thread.sleep(1000);
+											try {
+												Thread.sleep(1000);
+											} catch (InterruptedException e) {
+												// TODO Auto-generated catch block
+												e.printStackTrace();
+											}
 										}
 									}
 								}
-
-								return null;
+								}});
+								
+								//return null;
 							}
 						}
 					}
 				
+					if (sourceAdded)
+						return new Object();
 					String xml;
-					tufts.vue.DataSource ds = new XmlDataSource(collectionName, fileString);	
+					final tufts.vue.DataSource ds = new XmlDataSource(collectionName, fileString);	
 					Properties props = new Properties();
 					props.put("displayName", collectionName);
 					props.put("name", collectionName);
@@ -683,39 +709,51 @@ public class VueApplet extends JApplet {
 					ds.setConfiguration(props);
 					final BrowseDataSource		bds = (BrowseDataSource)ds;
 					VUE.getContentDock().setVisible(true);
-					VUE.getContentPanel().showDatasetsTab();
-					DataSetViewer.getDataSetList().addOrdered(ds);
-					VUE.getContentPanel().getDSBrowser().getDataSetViewer().setActiveDataSource(ds);									       
-					DataSourceViewer.saveDataSourceViewer();			    			    																			
-					if (addToMap)
-					{
-						XmlDataSource xmlds = (XmlDataSource)ds;
-						boolean added = false;
-						int tries = 0;
-						
-						while (!added && tries < 10)
+					
+					SwingUtilities.invokeLater(new Runnable()
+					{	public void run()
 						{
-							try
+						VUE.getContentPanel().showDatasetsTab();
+						DataSetViewer.getDataSetList().addOrdered(ds);
+						VUE.getContentPanel().getDSBrowser().getDataSetViewer().setActiveDataSource(ds);									       
+						DataSourceViewer.saveDataSourceViewer();			    			    																			
+						if (addToMap)
+						{
+							XmlDataSource xmlds = (XmlDataSource)ds;
+							boolean added = false;
+							int tries = 0;
+							
+							while (!added && tries < 10)
 							{
-						       // DataTree.this.addNewRowsToMap();
-								added = true;
-								
-								List<LWComponent> nodes =  DataAction.makeRowNodes(xmlds.getSchema());
-						        LWMap map = VUE.getActiveMap();
-						     
-						        for(LWComponent component: nodes) {
-						            map.add(component);
-						        }
-						       LayoutAction.random.act(new LWSelection(nodes));
-							}
-							catch(NullPointerException npe)
-							{
-								added = false;
-								tries++;
-								Thread.sleep(1000);
+								try
+								{
+							       // DataTree.this.addNewRowsToMap();
+									added = true;
+									
+									List<LWComponent> nodes =  DataAction.makeRowNodes(xmlds.getSchema());
+							        LWMap map = VUE.getActiveMap();
+							     
+							        for(LWComponent component: nodes) {
+							            map.add(component);
+							        }
+							       LayoutAction.random.act(new LWSelection(nodes));
+								}
+								catch(NullPointerException npe)
+								{
+									added = false;
+									tries++;
+									try {
+										Thread.sleep(1000);
+									} catch (InterruptedException e) {
+										// TODO Auto-generated catch block
+										e.printStackTrace();
+									}
+								}
 							}
 						}
-					}
+						}
+						});
+										
 				} catch (Exception e) {
 					e.printStackTrace();
 				}											

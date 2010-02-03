@@ -77,6 +77,7 @@ import javax.swing.JTextField;
 import javax.swing.JWindow;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.border.Border;
 import javax.swing.event.ChangeEvent;
@@ -118,7 +119,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.712 $ / $Date: 2010-01-28 17:45:16 $ / $Author: anoop $ 
+ * @version $Revision: 1.713 $ / $Date: 2010-02-03 00:44:04 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -177,7 +178,8 @@ public class VUE
     public static void finalizeDocks()
     {
     
-    	inspectorPane.removeAll();
+    	//SwingUtilities.invokeLater(new Runnable() { public void run() {
+    	//inspectorPane.removeAll();
     //	inspectorPane = null;
     	
     //	formattingPanel.removeAll();
@@ -209,10 +211,10 @@ public class VUE
     	mergeMapsControlPanel = null;
     	interactionToolsPanel = null;
     	contentPanel = null;
-    	EditorManager.destroy();
-    	VueToolbarController.destroyController();
-    	VUE.getActiveViewer().destroyContextMenus();
-    
+    //	EditorManager.destroy();
+   // 	VueToolbarController.destroyController();
+   // 	VUE.getActiveViewer().destroyContextMenus();
+    	//
 
     }
     /** simplest form of threadsafe static lazy initializer: for CategoryModel */

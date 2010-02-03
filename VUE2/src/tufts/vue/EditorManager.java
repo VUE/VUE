@@ -152,8 +152,8 @@ public class EditorManager
 	*/
     public static void destroy() 
     {
-    	mEditors.clear();
-    	mLabels.clear();
+    	//mEditors.clear();
+    	//mLabels.clear();
     	singleton = null;
     }
     private static synchronized void _install() {
