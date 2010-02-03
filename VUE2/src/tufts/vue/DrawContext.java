@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2008 Tufts University  Licensed under the
+* Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -41,7 +41,7 @@ import com.google.common.collect.Multiset;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.71 $ / $Date: 2010-01-22 22:19:05 $ / $Author: brian $
+ * @version $Revision: 1.72 $ / $Date: 2010-02-03 19:17:40 $ / $Author: mike $
  * @author Scott Fraize
  *
  */

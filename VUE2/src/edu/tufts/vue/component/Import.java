@@ -7,7 +7,7 @@
  *
  * Created on Feb 20, 2009
  *
- * Copyright 2003-2009 Tufts University  Licensed under the
+ * Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at

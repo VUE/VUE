@@ -1,5 +1,5 @@
   /*
- * Copyright 2003-2008 Tufts University  Licensed under the
+* Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -24,7 +24,7 @@ import java.lang.ref.*;
  * 
  * A general HashMap for storing property values: e.g., meta-data.
  *
- * @version $Revision: 1.27 $ / $Date: 2008-11-20 17:35:58 $ / $Author: sfraize $
+ * @version $Revision: 1.28 $ / $Date: 2010-02-03 19:17:41 $ / $Author: mike $
  */
 
 public class PropertyMap extends java.util.HashMap<String,Object> implements TableBag

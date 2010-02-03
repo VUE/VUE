@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2008 Tufts University  Licensed under the
+* Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -106,7 +106,7 @@ import com.lightdev.app.shtm.Util;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.43 $ / $Date: 2009-03-29 03:34:20 $ / $Author: vaibhav $
+ * @version $Revision: 1.44 $ / $Date: 2010-02-03 19:17:40 $ / $Author: mike $
  *
  */
 

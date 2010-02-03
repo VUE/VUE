@@ -1,5 +1,5 @@
  /*
- * Copyright 2003-2008 Tufts University  Licensed under the
+* Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -30,7 +30,7 @@ import javax.swing.border.*;
  * The VueToolPanel is the component that holds the main VUE toolbar
  * and the contextual properties tools.
  *
- * @version $Revision: 1.39 $ / $Date: 2008-10-06 22:21:14 $ / $Author: mike $ 
+ * @version $Revision: 1.40 $ / $Date: 2010-02-03 19:17:41 $ / $Author: mike $ 
  *
  **/
 public class VueToolPanel extends JPanel

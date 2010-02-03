@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2008 Tufts University  Licensed under the
+* Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -51,7 +51,7 @@ import org.w3c.dom.NodeList;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.84 $ / $Date: 2010-02-02 08:15:35 $ / $Author: sfraize $
+ * @version $Revision: 1.85 $ / $Date: 2010-02-03 19:17:40 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class Images

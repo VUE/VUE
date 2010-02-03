@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2008 Tufts University  Licensed under the
+* Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -60,7 +60,7 @@ import edu.tufts.vue.preferences.implementations.ColorPreference;
  * This class provides a popup menu of items that supports named color values
  * with a corresponding color swatch.
  *
- * @version $Revision: 1.32 $ / $Date: 2009-09-15 21:02:00 $ / $Author: mike $
+ * @version $Revision: 1.33 $ / $Date: 2010-02-03 19:15:47 $ / $Author: mike $
  * @author csb
  * @author Scott Fraize
  */

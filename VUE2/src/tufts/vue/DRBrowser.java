@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2008 Tufts University  Licensed under the
+* Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -50,7 +50,7 @@ import javax.swing.border.*;
  * and browseable VUE ("old-style") data sources (tufts.vue.DataSource).
  * We'd probably need a delegating impl tho to handle that.
  *
- * @version $Revision: 1.87 $ / $Date: 2009-09-28 19:09:07 $ / $Author: brian $ 
+ * @version $Revision: 1.88 $ / $Date: 2010-02-03 19:17:41 $ / $Author: mike $ 
  */
 public class DRBrowser extends ContentBrowser
 {

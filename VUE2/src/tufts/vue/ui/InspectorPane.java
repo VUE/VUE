@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2008 Tufts University  Licensed under the
+* Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -42,7 +42,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.130 $ / $Date: 2010-01-22 19:40:27 $ / $Author: sfraize $
+ * @version $Revision: 1.131 $ / $Date: 2010-02-03 19:16:31 $ / $Author: mike $
  */
 
 public class InspectorPane extends WidgetStack

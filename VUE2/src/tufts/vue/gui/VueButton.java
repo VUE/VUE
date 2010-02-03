@@ -1,5 +1,5 @@
  /*
- * Copyright 2003-2008 Tufts University  Licensed under the
+* Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -32,7 +32,7 @@ import javax.swing.border.*;
  * VueResources in format buttonName.Up, buttonName.down,
  * buttonName.disabled, or .raw for generated buttons.
  *
- * @version $Revision: 1.12 $ / $Date: 2008-10-06 22:52:38 $ / $Author: mike $
+ * @version $Revision: 1.13 $ / $Date: 2010-02-03 19:15:47 $ / $Author: mike $
  * @author  akumar03
  * @author  Scott Fraize
  */

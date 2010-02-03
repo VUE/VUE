@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2008 Tufts University  Licensed under the
+* Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -27,7 +27,7 @@ import javax.swing.JMenuItem;
  * 
  * TODO: should probably be merged with ComboBoxMenuButton
  *
- * @version $Revision: 1.5 $ / $Date: 2008-06-30 20:53:05 $ / $Author: mike $
+ * @version $Revision: 1.6 $ / $Date: 2010-02-03 19:15:46 $ / $Author: mike $
  * @author Scott Fraize
  */
 

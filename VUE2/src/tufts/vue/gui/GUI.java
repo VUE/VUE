@@ -1,5 +1,5 @@
  /*
- * Copyright 2003-2008 Tufts University  Licensed under the
+* Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -57,7 +57,7 @@ import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.168 $ / $Date: 2010-01-27 17:08:30 $ / $Author: sfraize $
+ * @version $Revision: 1.169 $ / $Date: 2010-02-03 19:15:47 $ / $Author: mike $
  * @author Scott Fraize
  */
 

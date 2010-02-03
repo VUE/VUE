@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2008 Tufts University  Licensed under the
+* Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -39,7 +39,7 @@ import javax.swing.plaf.ColorUIResource;
  * Left.gif and Both.gif, which are needed for Aqua tabbed-pane's
  * when there isn't enough room to display all the tabs.
  *
- * @version $Revision: 1.9 $ / $Date: 2008-06-30 20:53:06 $ / $Author: mike $ 
+ * @version $Revision: 1.10 $ / $Date: 2010-02-03 19:15:47 $ / $Author: mike $ 
  */
 // superclass of AquaJideLookAndFeel is apple.laf.AquaLookAndFeel
 //public class VueAquaLookAndFeel extends com.jidesoft.plaf.aqua.AquaJideLookAndFeel { // JIDE

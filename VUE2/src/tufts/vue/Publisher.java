@@ -1,5 +1,5 @@
  /*
-  * Copyright 2003-2008 Tufts University  Licensed under the
+* Copyright 2003-2010 Tufts University  Licensed under the
   * Educational Community License, Version 2.0 (the "License"); you may
   * not use this file except in compliance with the License. You may
   * obtain a copy of the License at
@@ -41,7 +41,7 @@ import java.util.*;
 
 /**
  * @author  akumar03
- * @version $Revision: 1.100 $ / $Date: 2009-05-14 16:51:59 $ / $Author: brian $
+ * @version $Revision: 1.101 $ / $Date: 2010-02-03 19:17:41 $ / $Author: mike $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     

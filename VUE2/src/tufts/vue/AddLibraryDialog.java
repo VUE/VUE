@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2008 Tufts University  Licensed under the
+* Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -21,7 +21,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.91 $ / $Date: 2010-01-14 20:54:03 $ / $Author: mike $
+ * @version $Revision: 1.92 $ / $Date: 2010-02-03 19:17:41 $ / $Author: mike $
  * @author  akumar03
  */
 import java.awt.BorderLayout;

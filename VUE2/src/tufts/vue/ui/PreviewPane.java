@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2008 Tufts University  Licensed under the
+* Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -31,7 +31,7 @@ import java.awt.datatransfer.*;
 /**
  * Display a preview of the selected resource.  E.g., and image or an icon.
  *
- * @version $Revision: 1.37 $ / $Date: 2009-12-09 19:47:13 $ / $Author: sfraize $
+ * @version $Revision: 1.38 $ / $Date: 2010-02-03 19:16:31 $ / $Author: mike $
  * @author Scott Fraize
  */
 

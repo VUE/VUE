@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2008 Tufts University  Licensed under the
+* Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -33,7 +33,7 @@ import tufts.vue.gui.*;
  * A tabbed-pane collection of property sheets that apply
  * globally to a given map.
  *
- * @version $Revision: 1.78 $ / $Date: 2009-10-05 20:41:55 $ / $Author: mike $ 
+ * @version $Revision: 1.79 $ / $Date: 2010-02-03 19:17:40 $ / $Author: mike $ 
  *
  */
 public class MapInspectorPanel extends JPanel

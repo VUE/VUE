@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2008 Tufts University  Licensed under the
+* Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -119,7 +119,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.713 $ / $Date: 2010-02-03 00:44:04 $ / $Author: mike $ 
+ * @version $Revision: 1.714 $ / $Date: 2010-02-03 19:17:40 $ / $Author: mike $ 
  */
 
 public class VUE

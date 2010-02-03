@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2008 Tufts University  Licensed under the
+* Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -45,7 +45,7 @@ import java.util.regex.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.90 $ / $Date: 2010-01-22 19:37:16 $ / $Author: sfraize $
+ * @version $Revision: 1.91 $ / $Date: 2010-02-03 19:17:40 $ / $Author: mike $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener

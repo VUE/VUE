@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2008 Tufts University  Licensed under the
+* Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -34,7 +34,7 @@ import tufts.vue.LWComponent;
  * This class provides a popup button selector component for stroke widths.
  *
  * @author Scott Fraize
- * @version $Revision: 1.14 $ / $Date: 2008-06-30 20:53:06 $ / $Author: mike $
+ * @version $Revision: 1.15 $ / $Date: 2010-02-03 19:15:47 $ / $Author: mike $
  *
  **/
 public class StrokeMenuButton extends ComboBoxMenuButton<Float>

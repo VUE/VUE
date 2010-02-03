@@ -1,5 +1,5 @@
  /*
- * Copyright 2003-2008 Tufts University  Licensed under the
+* Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -51,7 +51,7 @@ import tufts.vue.propertyeditor.*;
  * A field:value editor currently specialized for resource properties displayed on
  * the object inspector info tab.
  *
- * @version $Revision: 1.33 $ / $Date: 2009-09-29 21:36:55 $ / $Author: mike $ 
+ * @version $Revision: 1.34 $ / $Date: 2010-02-03 19:17:40 $ / $Author: mike $ 
  * @author  akumar03
  */
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2008 Tufts University  Licensed under the
+* Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -17,7 +17,7 @@ package tufts.vue;
 /**
  * Generic interface for accepting / validating an object in any given scenario.
  *
- * @version $Revision: 1.3 $ / $Date: 2008-06-30 20:52:56 $ / $Author: mike $
+ * @version $Revision: 1.4 $ / $Date: 2010-02-03 19:17:41 $ / $Author: mike $
  */
 public interface Acceptor<T> {
 

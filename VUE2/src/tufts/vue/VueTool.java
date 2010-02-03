@@ -1,5 +1,5 @@
  /*
- * Copyright 2003-2008 Tufts University  Licensed under the
+* Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -33,7 +33,7 @@ import java.awt.event.*;
  * that usage is probably on it's way out when we get around
  * to cleaning up the VueTool code & it's supporting GUI classes.
  *
- * @version $Revision: 1.86 $ / $Date: 2008-12-16 23:14:07 $ / $Author: sfraize $
+ * @version $Revision: 1.87 $ / $Date: 2010-02-03 19:17:41 $ / $Author: mike $
  */
 
 public abstract class VueTool extends AbstractAction

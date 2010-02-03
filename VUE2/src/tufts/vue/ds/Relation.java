@@ -1,3 +1,18 @@
+/*
+* Copyright 2003-2010 Tufts University  Licensed under the
+ * Educational Community License, Version 2.0 (the "License"); you may
+ * not use this file except in compliance with the License. You may
+ * obtain a copy of the License at
+ * 
+ * http://www.osedu.org/licenses/ECL-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an "AS IS"
+ * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ */
+
 package tufts.vue.ds;
 
 import tufts.Util;
@@ -13,7 +28,7 @@ import java.util.*;
  * methods return instances of a Relation which say something about
  * how the data was related.
  *
- * @version $Revision: 1.7 $ / $Date: 2010-02-01 22:39:58 $ / $Author: sfraize $
+ * @version $Revision: 1.8 $ / $Date: 2010-02-03 19:13:16 $ / $Author: mike $
  * @author Scott Fraize
  */
 public final class Relation {

@@ -1,5 +1,5 @@
  /*
- * Copyright 2003-2008 Tufts University  Licensed under the
+* Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -52,7 +52,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.139 $ / $Date: 2009-12-22 18:17:38 $ / $Author: sfraize $
+ * @version $Revision: 1.140 $ / $Date: 2010-02-03 19:17:40 $ / $Author: mike $
  */
 
 public class PathwayPanel extends JPanel

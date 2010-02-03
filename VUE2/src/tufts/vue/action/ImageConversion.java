@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2008 Tufts University  Licensed under the
+* Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -27,7 +27,7 @@ import java.util.Iterator;
 import javax.imageio.*;
 import javax.imageio.stream.*;
 /**
- * @version $Revision: 1.30 $ / $Date: 2010-01-26 19:09:28 $ / $Author: anoop $ *
+ * @version $Revision: 1.31 $ / $Date: 2010-02-03 19:13:45 $ / $Author: mike $ *
  * @author  Daisuke Fujiwara
  */
 

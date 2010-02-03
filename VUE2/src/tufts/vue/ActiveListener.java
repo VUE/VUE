@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2008 Tufts University  Licensed under the
+* Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -24,7 +24,7 @@ package tufts.vue;
  * the generic version and check the type information itself in the callback.
  *
  * @author Scott Fraize
- * @version $Revision: 1.3 $ / $Date: 2008-06-30 20:52:54 $ / $Author: mike $
+ * @version $Revision: 1.4 $ / $Date: 2010-02-03 19:17:40 $ / $Author: mike $
  */
 public interface ActiveListener<T> extends java.util.EventListener {
     public void activeChanged(ActiveEvent<T> e);

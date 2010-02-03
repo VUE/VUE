@@ -1,5 +1,5 @@
  /*
- * Copyright 2003-2008 Tufts University  Licensed under the
+* Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -38,7 +38,7 @@ import javax.swing.border.*;
 /**
  * This creates an editor panel for LWNode's
  *
- * @version $Revision: 1.62 $ / $Date: 2009-03-23 02:49:49 $ / $Author: vaibhav $
+ * @version $Revision: 1.63 $ / $Date: 2010-02-03 19:17:41 $ / $Author: mike $
  */
  
 public class NodeToolPanel extends ToolPanel

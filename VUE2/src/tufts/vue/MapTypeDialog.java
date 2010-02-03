@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2008 Tufts University  Licensed under the
+* Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -27,7 +27,7 @@ import java.awt.event.*;
 import tufts.vue.filter.*;
 
 /**
- * @version $Revision: 1.11 $ / $Date: 2009-05-15 19:06:17 $ / $Author: brian $
+ * @version $Revision: 1.12 $ / $Date: 2010-02-03 19:17:41 $ / $Author: mike $
  */
 public class MapTypeDialog extends JPanel  implements ActionListener, ListSelectionListener {
 

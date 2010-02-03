@@ -1,5 +1,5 @@
  /*
- * Copyright 2003-2008 Tufts University  Licensed under the
+* Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -27,7 +27,7 @@ import javax.swing.*;
  * Display the VUE splash screen.  Show the VUE splash graphic with current version
  * text drawn on top of it,
  *
- * @version $Revision: 1.19 $ / $Date: 2009-09-21 21:31:20 $ / $Author: sfraize $ 
+ * @version $Revision: 1.20 $ / $Date: 2010-02-03 19:17:41 $ / $Author: mike $ 
  * @author  akumar03
  */
 

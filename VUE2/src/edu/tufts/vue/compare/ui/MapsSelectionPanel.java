@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2008 Tufts University  Licensed under the
+* Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -18,7 +18,7 @@
  *
  * Created on May 3, 2007, 11:17 AM
  *
- * @version $Revision: 1.43 $ / $Date: 2009-03-22 17:46:47 $ / $Author: vaibhav $
+ * @version $Revision: 1.44 $ / $Date: 2010-02-03 19:25:31 $ / $Author: mike $
  * @author dhelle01
  */
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2008 Tufts University  Licensed under the
+* Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -79,7 +79,7 @@ import edu.tufts.vue.ontology.OntType;
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
  * 
- * @version $Revision: 1.60 $ / $Date: 2009-12-14 23:48:27 $ / $Author: Sheejo
+ * @version $Revision: 1.61 $ / $Date: 2010-02-03 19:17:41 $ / $Author: Sheejo
  *          Rapheal $
  * 
  */

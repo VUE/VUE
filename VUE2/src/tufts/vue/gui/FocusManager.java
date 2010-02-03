@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2008 Tufts University  Licensed under the
+* Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -162,7 +162,7 @@ import javax.swing.JTextField;  // for test harness
  * redispatch our own FocusEvents for transferring focus, which is the second
  * part of the magic that makes this work.
  *
- * @version $Revision: 1.30 $ / $Date: 2009-09-21 21:32:23 $ / $Author: sfraize $ 
+ * @version $Revision: 1.31 $ / $Date: 2010-02-03 19:15:46 $ / $Author: mike $ 
  */
 
 // todo: can also try calling the focus owner setters instead of lying -- that might work

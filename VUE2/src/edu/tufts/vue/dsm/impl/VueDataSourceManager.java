@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2008 Tufts University  Licensed under the
+* Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -39,7 +39,7 @@ import org.xml.sax.InputSource;
  * for multi-threaded hang-proof initialization (repository configuration),
  * and event delivery to track the progress of loading.
  *
- * @version $Revision: 1.52 $ / $Date: 2009-04-24 18:54:35 $ / $Author: sfraize $  
+ * @version $Revision: 1.53 $ / $Date: 2010-02-03 19:25:34 $ / $Author: mike $  
  */
 public class VueDataSourceManager
     implements edu.tufts.vue.dsm.DataSourceManager

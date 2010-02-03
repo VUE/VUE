@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2008 Tufts University  Licensed under the
+* Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -29,7 +29,7 @@ import com.google.common.collect.HashMultiset;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.114 $ / $Date: 2009-12-24 20:41:44 $ / $Author: sfraize $
+ * @version $Revision: 1.115 $ / $Date: 2010-02-03 19:17:41 $ / $Author: mike $
  * @author Scott Fraize
  *
  */

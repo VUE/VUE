@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2008 Tufts University  Licensed under the
+* Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
  * resource types.  It also can be modified to support caching of
  * of resources for performance (todo: yes, implement a result cache).
  *
- * @version $Revision: 1.62 $ / $Date: 2009-08-06 19:22:39 $ / $Author: sfraize $
+ * @version $Revision: 1.63 $ / $Date: 2010-02-03 19:17:41 $ / $Author: mike $
  *
  */
 public class VueResources

@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2008 Tufts University  Licensed under the
+* Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -36,7 +36,7 @@ import org.apache.commons.lang.StringEscapeUtils;
  * types and doing some data-type analysis.  It also includes the ability to
  * associate a LWComponent node style with specially marked values.
  * 
- * @version $Revision: 1.24 $ / $Date: 2009-10-05 17:34:18 $ / $Author: sfraize $
+ * @version $Revision: 1.25 $ / $Date: 2010-02-03 19:13:16 $ / $Author: mike $
  * @author Scott Fraize
  */
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2008 Tufts University  Licensed under the
+* Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -34,7 +34,7 @@ import au.com.bytecode.opencsv.CSVReader;
 
 
 /**
- * @version $Revision: 1.26 $ / $Date: 2009-12-01 22:20:48 $ / $Author: mike $
+ * @version $Revision: 1.27 $ / $Date: 2010-02-03 19:13:16 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class XmlDataSource extends BrowseDataSource

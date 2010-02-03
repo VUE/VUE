@@ -1,5 +1,5 @@
  /*
- * Copyright 2003-2008 Tufts University  Licensed under the
+* Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -34,7 +34,7 @@ import java.util.Iterator;
  * @see LWPathwayList
  * @see LWPathway
  *
- * @version $Revision: 1.36 $ / $Date: 2008-12-16 19:03:38 $ / $Author: sfraize $
+ * @version $Revision: 1.37 $ / $Date: 2010-02-03 19:17:40 $ / $Author: mike $
  * @author  Scott Fraize
  */
 public class PathwayTool extends VueSimpleTool

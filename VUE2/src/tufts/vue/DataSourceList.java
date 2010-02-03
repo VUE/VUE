@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2008 Tufts University  Licensed under the
+* Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -64,7 +64,7 @@ import tufts.oki.localFiling.*;
  * user re-ordering of the data sources, which would automatically be
  * persistent.
  * 
- * @version $Revision: 1.66 $ / $Date: 2009-08-29 22:12:27 $ / $Author: sfraize $
+ * @version $Revision: 1.67 $ / $Date: 2010-02-03 19:17:41 $ / $Author: mike $
  * @author Ranjani Saigal
  */
 

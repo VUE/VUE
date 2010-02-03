@@ -1,5 +1,5 @@
  /*
- * Copyright 2003-2008 Tufts University  Licensed under the
+* Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -34,7 +34,7 @@ import tufts.vue.LinkTool.LinkModeTool;
  * This could use a re-write, along with VueToolPanel, VueTool, and the way
  * contextual toolbars are handled.
  *
- * @version $Revision: 1.81 $ / $Date: 2009-08-13 21:33:16 $ / $Author: brian $
+ * @version $Revision: 1.82 $ / $Date: 2010-02-03 19:17:41 $ / $Author: mike $
  *
  **/
 public class VueToolbarController  

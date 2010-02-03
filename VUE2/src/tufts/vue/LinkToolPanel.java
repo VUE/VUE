@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2008 Tufts University  Licensed under the
+* Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -28,7 +28,7 @@ import javax.swing.*;
 /**
  * A property editor panel for LWLink's.
  *
- * @version $Revision: 1.53 $ / $Date: 2009-03-23 02:49:36 $ / $Author: vaibhav $
+ * @version $Revision: 1.54 $ / $Date: 2010-02-03 19:17:40 $ / $Author: mike $
  * 
  */
 
