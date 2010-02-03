@@ -72,7 +72,7 @@ import tufts.vue.gui.VueMenuBar;
 /**
  * Experimental VUE applet.
  * 
- * @version $Revision: 1.23 $ / $Date: 2010-02-03 00:44:04 $ / $Author: mike $
+ * @version $Revision: 1.24 $ / $Date: 2010-02-03 05:22:54 $ / $Author: mike $
  */
 public class VueApplet extends JApplet {
 
@@ -209,22 +209,29 @@ public class VueApplet extends JApplet {
 	}
 	
 	public void ToggleAllVisible() {
-		tufts.vue.gui.DockWindow.ToggleAllVisible();
+		SwingUtilities.invokeLater(new Runnable() {public void run() {
+			tufts.vue.gui.DockWindow.ToggleAllVisible();
+		}});
 		
 	}
 	
 
 	public boolean AllWindowsHidden()
 	{
-		return tufts.vue.gui.DockWindow.AllWindowsHidden();
+			return tufts.vue.gui.DockWindow.AllWindowsHidden();
+	
 	}
 	public void ShowPreviouslyHiddenWindows()
 	{
-		tufts.vue.gui.DockWindow.ShowPreviouslyHiddenWindows();
+		SwingUtilities.invokeLater(new Runnable() {public void run() {
+			tufts.vue.gui.DockWindow.ShowPreviouslyHiddenWindows();	
+		}});
+		
 	}
 	public void HideAllDockWindows()
-	{
-		tufts.vue.gui.DockWindow.HideAllWindows();
+	{	SwingUtilities.invokeLater(new Runnable() {public void run() {
+			tufts.vue.gui.DockWindow.HideAllWindows();
+		}});
 	}
 	
 	public void stop() 
