@@ -78,7 +78,7 @@ public class AboutAction extends tufts.vue.VueAction
         
         JLabel jtf = new JLabel("<html><font color = \"#20316A\"> <br><br>"
                                 + "&nbsp;&nbsp;&nbsp;Developed by Tufts Academic Technology<br>"
-                                + "&nbsp;&nbsp;&nbsp;Copyright &copy; 2003-2008 Tufts University<br>"
+                                + "&nbsp;&nbsp;&nbsp;Copyright &copy; 2003-2010 Tufts University<br>"
   //                              + "&nbsp;&nbsp;&nbsp;Copyright &copy; 2004,2005 MIT University<br>"
                                 + "&nbsp;&nbsp;&nbsp;All Rights Reserved<br><br>"
                                 + "&nbsp;&nbsp;&nbsp;Version "+VueResources.getString("vue.version")+" <br>"
