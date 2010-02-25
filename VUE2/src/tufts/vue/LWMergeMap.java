@@ -558,12 +558,6 @@ public class LWMergeMap extends LWMap {
     public boolean nodeAlreadyPresent(LWComponent node)
     {
         
-        // creating double child nodes now...
-        /*if(getFilterOnBaseMap())
-        {
-            return false;
-        }*/
-        
         if(DEBUG_LOCAL)
         {    
           System.out.println("nodeAlreadyPresent -- getParent() " + node.getParent());
@@ -573,31 +567,28 @@ public class LWMergeMap extends LWMap {
         //if(! (node.getParent() instanceof LWMap ) )
         if (!node.atTopLevel())
             return true;
+        if(node == null) {
+        	return false;
+        }
        // if(node.getParent() instanceof LWNode && (LWNode.isImageNode((LWNode)(node.getParent()))) )
        //     return true;
-        
-        Iterator<LWComponent> i = getChildList().iterator();
-        while(i.hasNext())
-        {
-            LWComponent c = i.next();
-            if(c!=null && node!=null)
-            {    
+//        Iterator<LWComponent> i = this.getAllDescendents(ChildKind.PROPER).iterator();
+//        Iterator<LWComponent> i = this. getChildList().iterator();
+        for(LWComponent c: getAllDescendents(ChildKind.PROPER))
+        { 
               if(Util.getMergeProperty(node) != null && Util.getMergeProperty(c) != null )
-              {    
-                if(Util.getMergeProperty(node).equals(Util.getMergeProperty(c)))
+              { 
+                 if(Util.getMergeProperty(node).equals(Util.getMergeProperty(c)))
                 {
                   if(DEBUG_LOCAL)
                   {    
                     System.out.println("LWMergeMap - returning true in nodeAlreadyPresent - for (node,c) (" +
                             Util.getMergeProperty(node) +"," + Util.getMergeProperty(c) + ")");
-                  }
-                  
-                                    
-                  String sourceLabel = node.getLabel();
-               
+                  }                   
+                  //TODO: not sure why this code is here and what it is doing. should be refactored.
+                  String sourceLabel = node.getLabel();   
                   if(sourceLabel == null)
                      sourceLabel = "";
-                  
                   edu.tufts.vue.metadata.VueMetadataElement vme = new edu.tufts.vue.metadata.VueMetadataElement();
                   vme.setType(edu.tufts.vue.metadata.VueMetadataElement.OTHER);
                   vme.setObject("source: " + node.getMap().getLabel() + "," + sourceLabel);
@@ -606,17 +597,7 @@ public class LWMergeMap extends LWMap {
                   return true;
                 }
               }
-              else
-              {
-                  //System.out.println("LWMergeMap: nodeAlreadyPresent, merge property is null for " + node + " or " + c );
-                  //System.out.println("node: " + Util.getMergeProperty(node) + "c: (current) " + Util.getMergeProperty(c));
-              }
-            }
-            else
-            {
-                //System.out.println("LWMergeMap-nodeAlreadyPresent: node or c is null: (node,c) (" + node + "," + c + ")" );
-            }
-        }
+       }
         return false;
     }
     
@@ -727,49 +708,24 @@ public class LWMergeMap extends LWMap {
     {       
          
            Iterator<LWComponent> children = map.getAllDescendents(LWComponent.ChildKind.PROPER).iterator(); //map.getNodeIterator();
-           
-           while(children.hasNext()) {
-               
+           while(children.hasNext()) {             
              LWComponent component = children.next(); 
-             
              if(component instanceof LWPortal)
                  continue;
-             
-             LWNode comp = null;
-             LWImage image = null;
-             
-            /* if(component instanceof LWImage)
-             {
-               image = (LWImage)(component.duplicate());
-               add(image);
-             } */
-             
+  
              if(component instanceof LWNode || component instanceof LWImage)
              {
-               //comp=(LWNode)component;   
-              
-               //LWNode comp = (LWNode)children.next();
-               //component = children.next();
-               boolean repeat = false;
-               
-               //LWComponent original = nodeAlreadyPresent(component);
-               
-               //if(original != null)
+                boolean repeat = false;
                if(nodeAlreadyPresent(component))
                {
                  repeat = true;
                }
                LWComponent node = component.duplicate();
-               
-               
                edu.tufts.vue.metadata.VueMetadataElement vme = new edu.tufts.vue.metadata.VueMetadataElement();
                vme.setType(edu.tufts.vue.metadata.VueMetadataElement.OTHER);
-               
                String sourceLabel = node.getLabel();
-               
                if(sourceLabel == null)
                    sourceLabel = "";
-               
                String sourceMap = component.getMap().getLabel();
                
                if(sourceMap == null)
@@ -777,17 +733,14 @@ public class LWMergeMap extends LWMap {
                
                vme.setObject("source: " + sourceMap + "," + sourceLabel);
                node.getMetadataList().getMetadata().add(vme);
-             
                if(!repeat)
                {    
-                 //addNode(node);
-                 if(!excludeNodesFromBaseMap || !nodePresentOnBaseMap(node))
+                  if(!excludeNodesFromBaseMap || !nodePresentOnBaseMap(node))
                  {    
                    add(node);
                  }
                }     
              }
-             
            }
     }
         
