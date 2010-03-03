@@ -444,7 +444,7 @@ public class AnalyzerAction extends Actions.LWCAction {
 			    		node.setLocation(c.getLocation());
 			    		tufts.vue.LWLink link = new tufts.vue.LWLink(c,node);
 			    		
-			    		if (al.size() > 1)
+			    		if (al.size() > 0)
 			    		{
 			    		//	node.setFillColor(new Color())
 			    			node.setFillColor(joinNodeColor);
@@ -453,25 +453,7 @@ public class AnalyzerAction extends Actions.LWCAction {
 			    			categoryComps.add(link);
 			    		
 			    			categoryChildren.put(node, al);
-			    		}
-			    		else
-			    		{
-			    			Iterator analyzerResults = al.iterator();
-			    			AnalyzerResult res = (AnalyzerResult)analyzerResults.next();
-			    			tufts.vue.LWNode singleNode = new tufts.vue.LWNode(res.getValue());
-				    		tufts.vue.LWLink singleLink = new tufts.vue.LWLink(c,singleNode);
-				    		singleNode.setFillColor(leafNodeColor);
-				    		singleLink.setLabel(key);
-				    		Font f = node.getFont();
-		    				Font derive = f.deriveFont(((float)(10+res.getCount())));
-		    				node.setFont(derive);
-		    				link.setStrokeColor(getColorFromRelevance(res.getRelevance()));
-				    		
-		    				//Topic is a weird category so just skip it.
-				    		if (!key.equals("Topic"))
-				    		{categoryComps.add(singleNode);
-				    		categoryComps.add(singleLink);}			    		
-			    		}
+			    		}			    	
 			    	}
 			    		final LWMap active = VUE.getActiveMap();
 					    active.addChildren(categoryComps);			    
