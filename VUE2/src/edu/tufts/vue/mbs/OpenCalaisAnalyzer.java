@@ -146,15 +146,86 @@ public class OpenCalaisAnalyzer implements LWComponentAnalyzer {
 
 		return results;
 	}
+	public CalaisJavaIf prepCalais()
+	{
+		CalaisJavaIf calais = new CalaisJavaIf("xqffs8ggkmebrsehdsbt56j8");
+		calais.setOutputFormat("text/simple");
+		calais.setCalaisURL("http://api.opencalais.com/enlighten/rest");
+		//calais.setCalaisURL("http://api.opencalais.com/enlighten/calais.asmx/Enlighten");
+		calais.setVerifyCert(false);
+		
+		return calais;		
+	}
+	
+	public Multimap analyzeString(String tweet)
+	{
+		m_entities = new ArrayList<CalaisEntity>();
+		Multimap<String, AnalyzerResult> results = Multimaps
+				.newArrayListMultimap();
 
+	//	String resp_simple = downloadURL("http://service.semanticproxy.com/processurl/xqffs8ggkmebrsehdsbt56j8/simple/"
+		//			+ spec);
+		//System.out.println("TWEET:"+ tweet);
+		//URLEncoder.encode(tweet);
+		String resp_simple = null;
+		CalaisJavaIf calais = prepCalais();
+		resp_simple = calais.callEnlighten(tweet);
+
+		resp_simple = StringUtils.unescapeHTML(resp_simple);
+		System.out.println(resp_simple);
+		javax.xml.parsers.DocumentBuilderFactory factory = DocumentBuilderFactory
+				.newInstance();
+		factory.setIgnoringElementContentWhitespace(true);
+		factory.setIgnoringComments(true);
+		factory.setValidating(false);
+
+		InputStream is = null;
+		org.w3c.dom.Document doc = null;
+
+		try {
+			is = new java.io.ByteArrayInputStream(resp_simple.getBytes("UTF-8"));
+			doc = factory.newDocumentBuilder().parse((InputStream) is);
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block		
+			e.printStackTrace();
+			return results;
+		} catch (SAXException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return results;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return results;
+		} catch (ParserConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return results;
+		}
+		NodeList nodeLst = doc.getElementsByTagName("CalaisSimpleOutputFormat");
+
+		for (int s = 0; s < nodeLst.getLength(); s++) {
+
+			Node fstNode = nodeLst.item(s);
+			visit(fstNode, 0);
+		}
+
+		Iterator<CalaisEntity> it = m_entities.iterator();
+		while (it.hasNext()) {
+			CalaisEntity prop = it.next();
+			results.put(prop.getType(), new AnalyzerResult(prop.getType(), prop
+					.getName(), prop.getRelevance(), prop.getCount()));
+			
+			System.out.println("Analyzer Result : " + prop.getType() + "," + prop.getName() + "," + prop.getRelevance() + "," + prop.getCount());
+		}
+
+		return results;
+	
+	}
 	public List analyze(LWComponent c, boolean fallback) {
 		m_entities = new ArrayList<CalaisEntity>();
 		List<AnalyzerResult> results = new ArrayList<AnalyzerResult>();
-		CalaisJavaIf calais = new CalaisJavaIf("xqffs8ggkmebrsehdsbt56j8");
-
-		calais.setOutputFormat("text/simple");
-		calais.setCalaisURL(VueResources.getString("calaisUrl"));
-		calais.setVerifyCert(false);
+		CalaisJavaIf calais = prepCalais();
 
 		String context = null;
 		if (c != null) {
