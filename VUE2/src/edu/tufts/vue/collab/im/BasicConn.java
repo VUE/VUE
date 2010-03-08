@@ -407,6 +407,13 @@ public abstract class BasicConn extends AbstractFlapConn {
             	MetadataList mlist = new MetadataList();
             	mlist.add("submitted by", sn);
             	mlist.add("timestamp",now().toString());
+            	
+            	if (msg.indexOf("?") > -1)
+            		mlist.add("Type of Sentence", "question");
+            	else if (msg.indexOf("!") > -1)
+            		mlist.add("Type of Sentence", "exclamation");
+            	else
+            		mlist.add("Type of Sentence", "statement");
             	newNode.setMetadataList(mlist);
            
             	String c = senders.getProperty(sn);
