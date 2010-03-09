@@ -28,6 +28,7 @@ import java.awt.event.ComponentListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -299,21 +300,37 @@ List<AnalyzerResult> resultList = new ArrayList<AnalyzerResult>();
 resultList.add(new AnalyzerResult("foo", "result1"));
 resultList.add(new AnalyzerResult("foo", "result2"));
 */
+			
 		final Iterator<AnalyzerResult>	resultIter = resultList.iterator();
-
+		
 			
 		GUI.invokeAfterAWT(new Runnable() { public void run() {
 			if (method == NEW_NODES) {
+				
+			  HashMap<String, LWNode> nodesMap = new HashMap<String, LWNode>();
+				 for(LWComponent component: VUE.getActiveMap().getAllDescendents(
+							LWContainer.ChildKind.PROPER)) {
+					 if(component instanceof LWNode) {
+						 nodesMap.put(component.getLabel(),(LWNode)component);
+					 }
+				 }
 					final List<LWComponent>	nodes = new ArrayList<LWComponent>(),
 											links = new ArrayList<LWComponent>();
 
 				while (resultIter.hasNext()) {
 					AnalyzerResult	analyzerResult = resultIter.next();
-					LWNode			node = new LWNode(analyzerResult.getType());
-
-					nodes.add(node);
-					node.layout();
-
+					String nodeLabel = analyzerResult.getType();
+					LWNode			node;
+					if(nodesMap.containsKey(nodeLabel) && !flow.getDuplicate()) {
+						node = nodesMap.get(nodeLabel);
+						nodes.add(node);
+						
+					}	else{
+							node = new LWNode(nodeLabel);
+							nodesMap.put(nodeLabel,node);
+							nodes.add(node);
+							node.layout();
+					}
 					if (selectedNode != null) {
 						LWLink		link = new LWLink(selectedNode, node);
 
