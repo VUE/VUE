@@ -36,5 +36,8 @@
 	 	<field name="uri" type="string">
 	 		<bind-xml name="uri" node="attribute" />
 	 	</field>
+	 	<field name="duplicate" type="boolean">
+	 		<bind-xml name="duplicate" node="attribute" />
+	 	</field>
 	</class>
 </mapping>

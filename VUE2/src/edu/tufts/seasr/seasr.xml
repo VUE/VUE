@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <seasr_analytics>
 	<flow_group label="Create New Nodes" input="one"  output="map">
-		<flow label="Resource Word Count" uri="http://vue.tufts.edu/word-counts-vuetokenizer/word-counts-for-vue-using-vue-tokenizer/" url="http://vue-dl.tccs.tufts.edu:1719/service/ping" >
+		<flow label="Resource Word Count" uri="http://vue.tufts.edu/word-counts-vuetokenizer/word-counts-for-vue-using-vue-tokenizer/" url="http://vue-dl.tccs.tufts.edu:1719/service/ping" duplicate="false" >
 				<input>location</input>
 		</flow>
 	</flow_group>
 	<flow_group label="Add Metadata" input="one" output="map" >
-		<flow label="Resource Word Count" uri="http://vue.tufts.edu/word-counts-vuetokenizer/word-counts-for-vue-using-vue-tokenizer/" url="http://vue-dl.tccs.tufts.edu:1719/service/ping" >
+		<flow label="Resource Word Count" uri="http://vue.tufts.edu/word-counts-vuetokenizer/word-counts-for-vue-using-vue-tokenizer/" url="http://vue-dl.tccs.tufts.edu:1719/service/ping" duplicate="false" >
 				<input>location</input>
 		</flow>
 		<flow label="Flesch Kincaid Readability Measure" uri="http://vue.tufts.edu/readability-score/readability-score/" url="http://vue-dl.tccs.tufts.edu:1718/service/ping" >

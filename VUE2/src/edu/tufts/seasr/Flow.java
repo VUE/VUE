@@ -30,6 +30,7 @@ public class Flow {
 	String label;
 	String url;
 	String uri;
+	boolean duplicate =true;
 	
 	public void setInputList(List<String> inputList) {
 		this.inputList = inputList; 
@@ -58,7 +59,12 @@ public class Flow {
 	public String getUri(){
 		return this.uri;
 	}
-
+	public void setDuplicate(boolean duplicate) {
+		this.duplicate = duplicate;
+	}
+	public boolean getDuplicate(){
+		return this.duplicate;
+	}
 	public String toString() {
 		return getLabel();
 	}
