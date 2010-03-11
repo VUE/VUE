@@ -110,7 +110,7 @@ public class AnalyzerAction extends Actions.LWCAction {
     	 //*** MAP BASED SEARCHING ***
         //Equivalent of the are you feeling lucky feature where
         //we are going to grab a bunch of results and add them right to the map.
-        final int RESULTS_TO_ADD=5;
+        final int RESULTS_TO_ADD=10;
         int size = resourceList.size();
         
        // VUE.getSelection().clear();
@@ -192,15 +192,15 @@ public class AnalyzerAction extends Actions.LWCAction {
 			                }
 			    
     	}
-    	List<AnalyzerResult> list = analyzer.analyze(c);
-    	Iterator<AnalyzerResult> i = list.iterator();
+    //	List<AnalyzerResult> list = analyzer.analyze(c);
+  //  	Iterator<AnalyzerResult> i = list.iterator();
     	VUE.getActiveViewer().getSelection().clear();
      	//System.out.println("BLAH");
     	boolean hasResults = false;
     	String query = "";
     	final int MAX_TERMS=1;
     	int termCount = 0;
-    	while (i.hasNext() && termCount < MAX_TERMS)
+   /* 	while (i.hasNext() && termCount < MAX_TERMS)
     	{		
     		hasResults = true;
     		AnalyzerResult l = i.next();
@@ -209,7 +209,7 @@ public class AnalyzerAction extends Actions.LWCAction {
     		{ //System.out.println(l.getRelevance() + " : " + l.getValue());
     			query += l.getValue().trim() + " ";
     			termCount++;
-    		}
+    		}*/
     	/*
     	 * MK - For testing purposes I was adding Nodes of the search terms to the map.
     	 * 	if (l.getValue() !=null  && l.getValue().trim() != " " && !label.startsWith("Topic"))
@@ -222,9 +222,9 @@ public class AnalyzerAction extends Actions.LWCAction {
     			VUE.getActiveViewer().getSelection().add(link);            		
     			LayoutAction.random.act(VUE.getActiveViewer().getSelection());
     		}*/
-    	}
+    //	}
     	
-    	if (query.equals(""))
+    	//if (query.equals(""))
     		query = c.getLabel();
     	//if (!hasResults)
     	//{
@@ -471,6 +471,21 @@ public class AnalyzerAction extends Actions.LWCAction {
 					    	{
 					    		AnalyzerResult res = (AnalyzerResult) subCatIt.next();
 					    		tufts.vue.LWNode node = new tufts.vue.LWNode(res.getValue());
+					    		
+					    		MetadataList mlist = new MetadataList();
+
+					    		double rel = res.getRelevance();
+					    		if (rel < 0.25)
+					            	mlist.add("relevance", "Low");
+					    		else if (rel > 0.25 && rel < 0.50)
+					    			mlist.add("relevance", "Medium");
+					    		else if (rel > 0.50 && rel < 0.75)
+					    			mlist.add("relevance", "High");
+					    		else 
+					    			mlist.add("relevance", "Essential");
+					    		
+					    		mlist.add("relevance score",(new Double(rel)).toString());
+					    		node.setMetadataList(mlist);
 					    		tufts.vue.LWLink link = new tufts.vue.LWLink(joinNode,node);
 					    		node.setLocation(joinNode.getLocation());
 					    		node.setFillColor(leafNodeColor);
