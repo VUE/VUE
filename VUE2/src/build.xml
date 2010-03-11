@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.198 $ / $Date: 2010-01-29 22:43:08 $ / $Author: anoop $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.198 2010-01-29 22:43:08 anoop Exp $ -->
+<!-- $Revision: 1.199 $ / $Date: 2010-03-11 21:16:06 $ / $Author: mike $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.199 2010-03-11 21:16:06 mike Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -205,6 +205,7 @@
                    xsdlib_unsigned.jar                  
                    VUE-MacOSX.jar                                                    
 			  	   iText-2.1.4.jar
+		 	twitter4j-core-2.1.0.jar
   			       dom2.jar  			  	   
                    apache-commons.jar                   
                    avalon-framework-cvs-20020806.jar                   
@@ -318,6 +319,7 @@
                    xerces-2.7.1-xml-apis.jar
   				   quaqua-filechooser-only.jar
 		   		   iText-2.1.4.jar 
+					twitter4j-core-2.1.0.jar
 		   		   simplyhtml2.jar
 		  	 	   gnu-regexp-1.1.4.jar
 	   			   looks-2.1.4.jar
@@ -409,6 +411,8 @@
     <pathelement path="${lib.home}/dom.jar" />
     <pathelement path="${lib.home}/rome-0.9.jar" />
     <pathelement path="${lib.home}/iText-2.1.4.jar" />    
+
+    <pathelement path="${lib.home}/twitter4j-core-2.1.0.jar" />    
     <pathelement path="${lib.home}/simplyhtml2.jar" />   
   	<pathelement path="${lib.home}/looks-2.1.4.jar" />   
   	<pathelement path="${lib.home}/gdata-client-1.0.jar" />
