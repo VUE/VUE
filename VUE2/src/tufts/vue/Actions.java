@@ -55,6 +55,7 @@ import tufts.vue.LWComponent.HideCause;
 import tufts.vue.NodeTool.NodeModeTool;
 import tufts.vue.gui.DeleteSlideDialog;
 import tufts.vue.gui.DockWindow;
+import tufts.vue.gui.FullScreen;
 import tufts.vue.gui.GUI;
 import tufts.vue.gui.VueFileChooser;
 import tufts.vue.gui.renderer.SearchResultTableModel;
@@ -3817,7 +3818,92 @@ public class Actions implements VueConstants
             }
         };
 
+    public static final VueAction KioskScreen =
+	    new VueAction(VueResources.getString("kiosk.action"))
+	    {
+	        private final Object INIT = "init";
+	        private boolean selected;
+	
+	        boolean undoable() { return false; }
+	        protected boolean enabled() { return true; }
+	        
+	        KioskThread kt =null;//
+	        Thread t = null;// new Thread(kt);
+	        
+	        public void act() 
+	        {
+	        	if (t == null)
+	        	{
+	        		VUE.toggleFullScreen(false,true);
+	        		kt = new KioskThread();
+	        		
+	        		t = new Thread(kt);
+	        		t.setPriority(Thread.MAX_PRIORITY);
+	        		t.start();
+	        	}
+	        	else
+	        	{
+			        	VUE.toggleFullScreen(false,true);
+	        			kt.done();
+	        			t =null;
+	        			
+	        	}
+	           
+	        }
+	        @Override public Boolean getToggleState() {
+	    	return selected ? Boolean.TRUE : Boolean.FALSE;
+	        }
+	        
+	    	class KioskThread implements Runnable
+	    	{
+	    		private boolean done = false;
+	    		public void done()
+	    		{
+	    			done=true;
+	    		}
+	    		public void run()
+	    		{	    			
+                    
+	    			int dx = 0;
+	    			MapViewer mv = FullScreen.getLastActive();
+	    			MapViewer mv2 = VUE.getActiveViewer();
+	    			ZoomTool.setZoom(mv,mv2.getZoomFactor());
+    				LWMap map = VUE.getActiveMap();
+    				double maxX; 
+    				double minX;
+    				int mvWidth;
+    				
+	    			while (true)
+	    			{
+	    				if (done)
+	    					return;
+	    				
+	    				 maxX =  mv.getVisibleBounds().getMaxX();
+	     				 minX =mv.getVisibleBounds().getMinX(); 
+	     				 mvWidth = mv.getWidth();	    				
+	    				
+//	    				System.out.println("Visible Bounds Max X:" + mv.getVisibleBounds().getMaxX() + " ::: " + mv.getWidth() + " :::" + mv.getVisibleBounds().getMinX());
+	    				if ( maxX <	 mvWidth)
+	    				{	    						    				
+	    					mv.panScrollRegion((int)dx, (int)0,false);
+		    				mv2.panScrollRegion((int)dx, (int)0,false);
+	    				}
 
+	    				try {
+							Thread.sleep(20);
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+					
+						}
+						
+						dx =1;
+	    			}
+	    			
+	    		}
+	    	}
+	    };
+
+	    
     public static final VueAction ToggleFullScreen =
         new VueAction(VueResources.local("menu.view.fullscreen"), keyStroke(KeyEvent.VK_BACK_SLASH, COMMAND)) {
             public void act() {
@@ -3826,6 +3912,7 @@ public class Actions implements VueConstants
                     revertActionName(); // go back to original action
                 } else {
                     VUE.toggleFullScreen(false,true);
+            
                 }
             }
             
