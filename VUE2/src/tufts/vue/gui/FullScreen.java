@@ -37,7 +37,7 @@ import org.apache.log4j.NDC;
 /**
  * Code for providing, entering and exiting VUE full screen modes.
  *
- * @version $Revision: 1.53 $ / $Date: 2010-02-03 19:15:46 $ / $Author: mike $
+ * @version $Revision: 1.54 $ / $Date: 2010-03-11 21:23:34 $ / $Author: mike $
  *
  */
 
@@ -750,7 +750,11 @@ public class FullScreen
         
     }
 
-    
+    public static MapViewer getLastActive()
+    {
+    	return FullScreenLastActiveViewer;
+    }
+
     
     private synchronized static void exitFullScreenMode()
     {
