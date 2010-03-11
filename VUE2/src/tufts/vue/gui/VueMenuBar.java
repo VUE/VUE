@@ -44,6 +44,7 @@ import tufts.vue.Actions;
 import tufts.vue.ActiveInstance;
 import tufts.vue.DEBUG;
 import tufts.vue.Images;
+import tufts.vue.JavaAnalysisPanel;
 import tufts.vue.LWComponent;
 import tufts.vue.LWImage;
 import tufts.vue.LWLink;
@@ -90,7 +91,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.175 $ / $Date: 2010-02-03 19:15:46 $ / $Author: mike $
+ * @version $Revision: 1.176 $ / $Date: 2010-03-11 21:15:01 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -238,6 +239,16 @@ public class VueMenuBar extends javax.swing.JMenuBar
             }
         };
     
+        private final JCheckBoxMenuItem viewKiosk = new JCheckBoxMenuItem(Actions.KioskScreen) {
+            {
+                Actions.SuperScreen.trackToggler(this);
+            }
+            @Override public void setEnabled(boolean b) {
+                //Log.debug("SS SET ENABLED " + b);
+                super.setEnabled(b);
+                setVisible(b);
+            }
+        };
 
     
     Object[] arguments = { new Date(), "TestFile" };
@@ -314,7 +325,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
 
         final CreateCM createCMAction = new CreateCM(VueResources.getString("menu.windows.conanalysis"));
         final AnalyzeCM analyzeCMAction = new AnalyzeCM(VueResources.getString("menu.windows.mergemaps"));
-     
+
         // Actions added by the power team
         printAction = PrintAction.getPrintAction();
         printAction.setEnabled(false);
@@ -641,6 +652,10 @@ public class VueMenuBar extends javax.swing.JMenuBar
             viewMenu.add(splitScreenItem);
             viewMenu.add(viewSuperScreen);
         }
+        
+        if (DEBUG.TWITTER)
+        	viewMenu.add(viewKiosk);
+        
         if (!VUE.isApplet())
         	viewMenu.addSeparator();
         if (!VUE.isApplet())
@@ -935,6 +950,9 @@ public class VueMenuBar extends javax.swing.JMenuBar
         	//analysisMenu.add(analyzeCMAction);
 
         	analysisMenu.add(createWindowItem(SeasrAnalysisPanel.getSeasrAnalysisDock(), 0, VueResources.getString("menu.windows.seasr")));            
+
+        	if (DEBUG.CODE_ANALYSIS)
+        		analysisMenu.add(createWindowItem(JavaAnalysisPanel.getJavaAnalysisDock(), 0, VueResources.getString("menu.windows.java")));            
         //}
        
         
@@ -1379,3 +1397,4 @@ public class VueMenuBar extends javax.swing.JMenuBar
 	}
 
 }
+
