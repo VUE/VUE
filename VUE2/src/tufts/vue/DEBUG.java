@@ -26,7 +26,7 @@ public class DEBUG
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(DEBUG.class);
 
-    public static boolean Enabled = false; // can user turn debug switches on
+    public static boolean Enabled; // can user turn debug switches on
 
     public static boolean INIT = false; // startup / initializations
     
@@ -73,7 +73,9 @@ public class DEBUG
     public static boolean WEBSHOTS; // for Styles
     public static boolean PDF; // for PDF output
     public static boolean PROPERTY;
-    public static boolean IM;
+    public static boolean CODE_ANALYSIS=false;
+    public static boolean IM=false;
+    public static boolean TWITTER=false;
     //If you set LISTS to true you'll get the HTML code for the node in the Info Label
     //instead of the rendered HTML this should be useful for debugging, at least I hope so.
     //see my note in InspectorPane for more info. -MK
