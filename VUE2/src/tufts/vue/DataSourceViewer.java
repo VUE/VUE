@@ -1125,7 +1125,7 @@ public class DataSourceViewer extends ContentViewer
 
             final java.util.List<Resource> resourceList = new java.util.ArrayList<Resource>();
             
-            final int maxResult = 5;
+            final int maxResult = 10;
             int resultCount = 0;
             if (assetIterator != null) {
                 try {
