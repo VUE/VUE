@@ -140,8 +140,7 @@ public class OpenCalaisAnalyzer implements LWComponentAnalyzer {
 		Iterator<CalaisEntity> it = m_entities.iterator();
 		while (it.hasNext()) {
 			CalaisEntity prop = it.next();
-			results.put(prop.getType(), new AnalyzerResult(prop.getType(), prop
-					.getName(), prop.getRelevance(), prop.getCount()));
+			results.put(prop.getType(), new AnalyzerResult(prop.getType(), prop.getName(), prop.getRelevance(), prop.getCount()));
 		}
 
 		return results;
@@ -362,10 +361,10 @@ public class OpenCalaisAnalyzer implements LWComponentAnalyzer {
 				} catch (NullPointerException npe) {
 				} finally {
 					if (cString == null)
-						cString = "0.8";
+						cString = "0.0";
 				}
 
-				entity.setRelevance((Double.valueOf(cString)).intValue());
+				entity.setRelevance((Double.valueOf(cString)));
 				entity.setName(n.getFirstChild().getNodeValue());
 				m_entities.add(entity);
 			}
