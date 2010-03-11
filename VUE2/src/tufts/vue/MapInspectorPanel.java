@@ -33,7 +33,7 @@ import tufts.vue.gui.*;
  * A tabbed-pane collection of property sheets that apply
  * globally to a given map.
  *
- * @version $Revision: 1.79 $ / $Date: 2010-02-03 19:17:40 $ / $Author: mike $ 
+ * @version $Revision: 1.80 $ / $Date: 2010-03-11 21:15:36 $ / $Author: mike $ 
  *
  */
 public class MapInspectorPanel extends JPanel
@@ -57,7 +57,7 @@ public class MapInspectorPanel extends JPanel
     
     /** info tab panel **/
     private InfoPanel mInfoPanel = null;
-  //  private VueAimPanel mVueAimPanel = null;
+    private VueAimPanel mVueAimPanel = null;
     //private PathwayPane mPathPanel = null;
 
     /** description panel **/
@@ -75,6 +75,8 @@ public class MapInspectorPanel extends JPanel
     JTextField mAuthorEditor = null;
     
     private WidgetStack mapInfoStack = null;
+
+	private VueTwitterPanel mTwitterPanel;
     
     public MapInspectorPanel(DockWindow w) {
         super();
@@ -105,12 +107,16 @@ public class MapInspectorPanel extends JPanel
        //   mTabbedPane.addTab( mFilterApplyPanel.getName(), mFilterApplyPanel);
        //   mTabbedPane.addTab(mFilterCreatePanel.getName(),mFilterCreatePanel);
        // }
-        
-  //      if (DEBUG.IM)
-  //      {
-      //  	mVueAimPanel = new VueAimPanel();
-      //  	mVueAimPanel.setName(VueResources.getString("im.tabname"));
-      //  }
+       if (DEBUG.TWITTER)
+       {
+    	   mTwitterPanel = new VueTwitterPanel();
+    	   mTwitterPanel.setName(VueResources.getString("twitter.tabname"));
+       }
+       if (DEBUG.IM)
+        {
+        	mVueAimPanel = new VueAimPanel();
+        	mVueAimPanel.setName(VueResources.getString("im.tabname"));
+        }
         
         Widget.setWantsScroller(mapInfoStack, true);
         Widget.setWantsScrollerAlways(mapInfoStack, true);
@@ -119,8 +125,10 @@ public class MapInspectorPanel extends JPanel
         mapInfoStack.addPane(mInfoPanel,0f);
         mapInfoStack.addPane(mDescriptionPanel, 0f);
         mapInfoStack.addPane(metadataPanel,0f);
-      //  if (DEBUG.IM)
-        //	mapInfoStack.addPane(mVueAimPanel ,0f);
+        if (DEBUG.IM)
+        	mapInfoStack.addPane(mVueAimPanel ,0f);
+        if (DEBUG.TWITTER)
+        	mapInfoStack.addPane(mTwitterPanel,0f);
         metadataPanel.adjustColumnModel();
         
         //Widget.setWantsScroller(mapInfoStack, true);
