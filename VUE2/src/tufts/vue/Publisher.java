@@ -41,7 +41,7 @@ import java.util.*;
 
 /**
  * @author  akumar03
- * @version $Revision: 1.101 $ / $Date: 2010-02-03 19:17:41 $ / $Author: mike $
+ * @version $Revision: 1.102 $ / $Date: 2010-03-19 15:14:51 $ / $Author: anoop $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
@@ -609,9 +609,11 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         java.util.List<edu.tufts.vue.dsm.DataSource> resourceList = new ArrayList<edu.tufts.vue.dsm.DataSource>();
         for(int i=0;i<datasources.length;i++) {
             try {
-                if (datasources[i].getRepository().getType().isEqual(type)) {
-                    resourceList.add(datasources[i]);
-                }
+            	if(datasources[i].getRepository() != null) {
+            		if ((datasources[i].getRepository().getType() !=null) && (datasources[i].getRepository().getType().isEqual(type))) {
+            			resourceList.add(datasources[i]);
+            		}
+            	}
             } catch(org.osid.repository.RepositoryException ex) {
                 ex.printStackTrace();
             }
