@@ -53,8 +53,8 @@ htmloutput.pixels=Pixels
          setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
          width = VUE.getActiveMap().getPaintBounds().getWidth();
          height = VUE.getActiveMap().getPaintBounds().getHeight();
-         widthField.setText((new Double(width)).toString());
-         heightField.setText((new Double(height)).toString());
+         widthField.setText((new Integer((int)width)).toString());
+         heightField.setText((new Integer((int)height)).toString());
          widthRatio = (double)((double)width/(double)height);
          heightRatio = (double)((double)height/(double)width);
         // System.out.println("w;"+width + " h;" + height + " widthRatio;" + widthRatio+" heightRatio;"+heightRatio);
