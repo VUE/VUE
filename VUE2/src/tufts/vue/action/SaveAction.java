@@ -33,6 +33,7 @@ import java.util.zip.*;
 import tufts.vue.*;
 import tufts.Util;
 import tufts.vue.gui.GUI;
+import tufts.vue.gui.HtmlOutputDialog;
 import tufts.vue.gui.VueFrame;
 
 import static tufts.vue.Resource.*;
@@ -230,8 +231,12 @@ public class SaveAction extends VueAction
               //  new HTMLConversion().convert(file);
             
             //else if (name.endsWith(".imap"))
-            else if (name.endsWith(".html")) {
-                new ImageMap().createImageMap(file);
+            else if (name.endsWith(".html")) 
+            {            	
+            	HtmlOutputDialog hod = new HtmlOutputDialog();
+            	hod.setVisible(true);   
+            	if (hod.getReturnVal() > 0)
+            		new ImageMap().createImageMap(file, hod.getScale());
             }
 //             else if (name.endsWith(".htm")) {
 //                 writeHTMLOutline(map, file);

@@ -66,7 +66,7 @@ public class Export {
     */
 	public void createHTML(String  mapFile, String outputFile) throws Exception { 
 		LWMap map = OpenAction.loadMap(mapFile); 
-		new ImageMap().createImageMap(new File(outputFile), map);
+		new ImageMap().createImageMap(new File(outputFile), map,1.0);
 	}
 	/** A method that creates a PNG from map file. T 
     *

@@ -33,7 +33,7 @@ import tufts.vue.LWComponent.ChildKind;
 import tufts.vue.LWComponent.Order;
 
 /**
- * @version $Revision: 1.37 $ / $Date: 2010-02-03 19:13:45 $ / $Author: mike $ *
+ * @version $Revision: 1.38 $ / $Date: 2010-03-24 14:57:03 $ / $Author: mike $ *
  * @author Jay Briedis
  * 
  * Major revision: 2/17/09 -MK
@@ -73,10 +73,10 @@ public class ImageMap extends VueAction {
 		File selectedFile = ActionUtil.selectFile("Saving Imap", "html");
 
 		if (selectedFile != null)
-			createImageMap(selectedFile);
+			createImageMap(selectedFile,1.0);
 	}
 	
-	public void createImageMap(File file,LWMap map) {
+	public void createImageMap(File file,LWMap map,double zoom) {
 		String imageLocation = file.getAbsolutePath().substring(0,
 				file.getAbsolutePath().length() - 5)
 				+ ".png";
@@ -99,10 +99,10 @@ public class ImageMap extends VueAction {
 			}
 		}
  	 	imageDimensions = ImageConversion.createActiveMapPng(imageLocationFile,map,1.0);
-		createHtml(imageName, fileName,map);
+		createHtml(imageName, fileName,map,zoom);
 	}
 
-	public void createImageMap(File file) {
+	public void createImageMap(File file, double zoom) {
 		// See: VUE-536 in JIRA, If SaveAction Class still chooses "html" as the
 		// file type for image maps
 		// html file will already not be overwritten
@@ -135,8 +135,8 @@ public class ImageMap extends VueAction {
 		// createJpeg(imageLocation, "jpeg", currentMap, size);
 		// ImageConversion.createActiveMapJpeg(new File(imageLocation));
 		imageDimensions = ImageConversion.createActiveMapPng(imageLocationFile,
-				1.0);
-		createHtml(imageName, fileName);
+				zoom);
+		createHtml(imageName, fileName,zoom);
 	}
 	
 	/**
@@ -148,14 +148,14 @@ public class ImageMap extends VueAction {
 	 * 
 	 * @return Upper left and lower right corner of a rectangle.
 	 */
-	private String getRectCoords(Rectangle2D rectangle) {
+	private String getRectCoords(Rectangle2D rectangle, double zoom) {
 		if (rectangle == null) {
 			throw new IllegalArgumentException("Null 'rectangle' argument.");
 		}
-		int x1 = (int) rectangle.getX();
-		int y1 = (int) rectangle.getY();
-		int x2 = (int) rectangle.getWidth();
-		int y2 = (int) rectangle.getHeight();
+		int x1 = (int) (rectangle.getX()* zoom);
+		int y1 = (int) (rectangle.getY()* zoom);
+		int x2 = (int) (rectangle.getWidth()* zoom);
+		int y2 = (int) (rectangle.getHeight()* zoom);
 		
 		if (x2 == x1) {
 			x2++;
@@ -192,7 +192,7 @@ public class ImageMap extends VueAction {
 		return new Rectangle(ox, oy, ow, oh);
 	}
 
-	private String writeMapforContainer(LWContainer container,LWMap map) {
+	private String writeMapforContainer(LWContainer container,LWMap map, double zoom) {
 		/*
 		 * I'm using an array list to gather all the lines of the image map
 		 * so that I can push things to the top.  Intersecting areas of the image map
@@ -201,6 +201,7 @@ public class ImageMap extends VueAction {
 		 * appearing last, also you want a groups descedents to appear before the 
 		 * actual group -MK 2/16/09
 		 */
+	
 		java.util.List<String> arrayList = new ArrayList<String>();
 		//java.util.ArrayList<LWComponent> comps = new ArrayList<LWComponent>();
 		
@@ -266,7 +267,7 @@ public class ImageMap extends VueAction {
 			if (!comp.hasChildren()) {
 				arrayList.add(" <area "+href+" "+notes+" id=\"" + type
 						+ (nodeCounter++) + "\" shape=\"rect\" coords=\""
-						+ getRectCoords(getRectNode(comp)) + "\"></area>\n");
+						+ getRectCoords(getRectNode(comp),zoom) + "\"></area>\n");
 			} else {
 				Collection<LWComponent> children = comp.getAllDescendents();
 				LWComponent[] array = new LWComponent[children.size()];
@@ -287,17 +288,17 @@ public class ImageMap extends VueAction {
 						arrayList.add(0, " <area "+childHref+" "+notes+" id=\"" + type
 								+ (nodeCounter++)
 								+ "\" shape=\"rect\" coords=\""
-								+ getRectCoords(getRectNode(array[i]))
+								+ getRectCoords(getRectNode(array[i]),zoom)
 								+ "\"></area>\n");
 					}
 				}
 
 				arrayList.add(" <area "+href+" "+notes+" id=\"" + type
 						+ (nodeCounter++) + "\" shape=\"rect\" coords=\""
-						+ getRectCoords(getRectNode(comp)) + "\"></area>\n");
+						+ getRectCoords(getRectNode(comp),zoom) + "\"></area>\n");
 
 				if (comp instanceof LWGroup) {
-					String groupOutput = writeMapforContainer((LWGroup) comp,map);
+					String groupOutput = writeMapforContainer((LWGroup) comp,map,zoom);
 					arrayList.add(groupOutput);
 				}
 			}// end else
@@ -313,12 +314,12 @@ public class ImageMap extends VueAction {
 		}
 		return buf;
 	}
-    private  void createHtml(String imageName, String fileName) {
+    private  void createHtml(String imageName, String fileName,double zoom) {
     	LWMap currentMap = VUE.getActiveMap();
-    	createHtml(imageName,fileName,currentMap);
+    	createHtml(imageName,fileName,currentMap,zoom);
     }
     
-	private  void createHtml(String imageName, String fileName,LWMap currentMap) {
+	private  void createHtml(String imageName, String fileName,LWMap currentMap,double zoom) {
 
  		Rectangle2D bounds = currentMap.getMapBounds();
 
@@ -362,10 +363,10 @@ public class ImageMap extends VueAction {
 		out += "<div class=\"example2\">";
 		out += "<img class=\"map\" src=\"" + imageName + "\" width=\""
 				+ imageDimensions.getWidth() + "\" height=\""
-				+ imageDimensions.getHeight() + "\" usemap=\"#usa\">";
-		out += "<map name=\"usa\">";
+				+ imageDimensions.getHeight() + "\" usemap=\"#vuemap\">";
+		out += "<map name=\"vuemap\">";
 		nodeCounter = 0;
-		out += writeMapforContainer(currentMap,currentMap);
+		out += writeMapforContainer(currentMap,currentMap,zoom);
 		out += "\n</map></div></body></html>";
 		// write out to the selected file
 		FileWriter output = null;
