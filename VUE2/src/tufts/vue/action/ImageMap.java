@@ -33,7 +33,7 @@ import tufts.vue.LWComponent.ChildKind;
 import tufts.vue.LWComponent.Order;
 
 /**
- * @version $Revision: 1.38 $ / $Date: 2010-03-24 14:57:03 $ / $Author: mike $ *
+ * @version $Revision: 1.39 $ / $Date: 2010-03-29 13:48:48 $ / $Author: mike $ *
  * @author Jay Briedis
  * 
  * Major revision: 2/17/09 -MK
@@ -297,10 +297,10 @@ public class ImageMap extends VueAction {
 						+ (nodeCounter++) + "\" shape=\"rect\" coords=\""
 						+ getRectCoords(getRectNode(comp),zoom) + "\"></area>\n");
 
-				if (comp instanceof LWGroup) {
-					String groupOutput = writeMapforContainer((LWGroup) comp,map,zoom);
-					arrayList.add(groupOutput);
-				}
+				//if (comp instanceof LWGroup) {
+				//	String groupOutput = writeMapforContainer((LWGroup) comp,map,zoom);
+				//	arrayList.add(groupOutput);
+				//}
 			}// end else
 
 		}// end while
