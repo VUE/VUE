@@ -32,7 +32,7 @@ implements org.osid.repository.Repository
     private String description = null;
     private java.util.Vector searchTypeVector = null;
 	
-	private static final String SEARCH_URL_PREFIX = "http://artifact.tufts.edu/vue_xml/search2.asp?query=";
+	private static final String SEARCH_URL_PREFIX = "http://artifact-dev.atech.tufts.edu/vue_xml/search2.asp?searchType=Any&max_return=10&query=";
 	private static final String SEARCH_URL_SUFFIX = "&Submit=Submit";
 	
     protected Repository(String displayName,
@@ -288,6 +288,7 @@ implements org.osid.repository.Repository
         }
         catch (Throwable t)
         {
+        	t.printStackTrace();
             Utilities.log(t);
 			if (t.getMessage().equals(org.osid.OsidException.PERMISSION_DENIED)) {
 				throw new org.osid.repository.RepositoryException(org.osid.OsidException.PERMISSION_DENIED);
@@ -311,9 +312,8 @@ implements org.osid.repository.Repository
                      String s = typeNode.getFirstChild().getNodeValue();
                      key = s.substring(s.indexOf("/")+1,s.indexOf("@"));
                      if(key.equalsIgnoreCase("keywords")) key = "";
-                     else if (key.equalsIgnoreCase("course")) key="&class_num=";
                      else key = "&"+key+"=";
-                             }
+                 }
                  if(valueNode.getFirstChild() instanceof Text) {
                      value = valueNode.getFirstChild().getNodeValue();
                          }

@@ -23,15 +23,8 @@ package edu.tufts.osidimpl.repository.artifact;
 public class SearchCriteria {
     
     public String query;
-    public String course;
-    public String subject;
-    public String origin;
-    public String name;
-    public int lectureNumber;
-    public String lecturer;
-    public int maxReturns;
-    public int numHits;
-    public int pages;
+    public int maxReturn;
+    public String searchType = "Any";
     
     /** Creates a new instance of SearchCriteria */
     public SearchCriteria() {

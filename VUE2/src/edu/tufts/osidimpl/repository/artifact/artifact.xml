@@ -41,8 +41,8 @@
 		<field name="subject" type="java.lang.String" direct="true">
 			<bind-xml name="subject" type="element" />
 		</field>
-		<field name="material" type="java.lang.String" direct="true">
-			<bind-xml name="material" type="element" />
+		<field name="materialList" type="java.lang.String"  collection="arraylist">
+			<bind-xml name="material"/>
 		</field>
 		<field name="currentLocation" type="java.lang.String" direct="true">
 			<bind-xml name="currentLocation" type="element" />
@@ -59,32 +59,8 @@
 		<field name="query" type="java.lang.String" direct="true">
 			<bind-xml name="query" type="element" />
 		</field>
-		<field name="course" type="java.lang.String" direct="true">
-			<bind-xml name="course" type="element" />
-		</field>
-		<field name="subject" type="java.lang.String" direct="true">
-			<bind-xml name="subject" type="element" />
-		</field>
-		<field name="origin" type="java.lang.String" direct="true">
-			<bind-xml name="origin" type="element" />
-		</field>
-		<field name="name" type="java.lang.String" direct="true">
-			<bind-xml name="name" type="element" />
-		</field>
-		<field name="lectureNumber" type="integer" direct="true">
-			<bind-xml name="lectureNumber" type="element" />
-		</field>	
-		<field name="lecturer" type="java.lang.String" direct="true">
-			<bind-xml name="lecturer" type="element" />
-		</field>
-		<field name="maxReturns" type="integer" direct="true">
-			<bind-xml name="maxReturns" type="element" />
-		</field>
-		<field name="numHits" type="integer" direct="true">
-			<bind-xml name="numHits" type="element" />
-		</field>
-		<field name="pages" type="integer" direct="true">
-			<bind-xml name="pages" type="element" />
+		<field name="maxReturn" type="integer" direct="true">
+			<bind-xml name="max_return" type="element" />
 		</field>
 		<field name="extraTags" set-method="addObject" type="java.lang.Object" collection="vector">
 			<bind-xml matches="*" />

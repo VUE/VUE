@@ -91,7 +91,9 @@ implements org.osid.repository.AssetIterator
 				record.createPart(ArtistPartStructure.getInstance().getId(),hit.artist);
 				record.createPart(CulturePartStructure.getInstance().getId(),hit.culture);
 				record.createPart(CurrentLocationPartStructure.getInstance().getId(),hit.currentLocation);
-				record.createPart(MaterialPartStructure.getInstance().getId(),hit.material);
+				if(hit.materialList != null && hit.materialList.size() >0 ){
+					record.createPart(MaterialPartStructure.getInstance().getId(),hit.materialList.get(0));
+				}
 				record.createPart(OriginPartStructure.getInstance().getId(),hit.origin);
 				record.createPart(PeriodPartStructure.getInstance().getId(),hit.period);
 				record.createPart(SubjectPartStructure.getInstance().getId(),hit.subject);
@@ -103,6 +105,7 @@ implements org.osid.repository.AssetIterator
 		}
 		catch (Throwable t)
 		{
+			t.printStackTrace();
 			Utilities.log(t);
 			throw new org.osid.repository.RepositoryException(org.osid.OsidException.OPERATION_FAILED);
 		}

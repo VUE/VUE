@@ -28,6 +28,8 @@ package edu.tufts.osidimpl.repository.artifact;
  *
  *
  */
+
+import java.util.*;
 public class Hit {
     
     public String artifact;
@@ -39,7 +41,7 @@ public class Hit {
     public String culture;
     public String period;
     public String subject;
-    public String material;
+    public List<String> materialList;
     public String currentLocation;
     public String view;
     
@@ -55,6 +57,15 @@ public class Hit {
     public String getArtifact(){
         return artifact;
     }
+    
+    public void setMaterialList(List<String> materialList) {
+    	this.materialList = materialList;
+    }
+    
+    public List<String> getMaterialList() {
+    	return this.materialList;
+    }
+    
     public String getFullImage(){
         return fullImage;
     }
