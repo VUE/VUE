@@ -26,7 +26,7 @@
 		<field name="title" type="java.lang.String" direct="true">
 			<bind-xml name="title" type="element" />
 		</field>
-                <field name="artist" type="java.lang.String" direct="true">
+                <field name="artistList" type="java.lang.String" collection="arraylist">
 			<bind-xml name="artist" type="element" />
 		</field>
 		<field name="origin" type="java.lang.String" direct="true">

@@ -88,11 +88,17 @@ implements org.osid.repository.AssetIterator
 				record.createPart(ArtifactPartStructure.getInstance().getId(),hit.getArtifact());
 				record.createPart(ThumbnailPartStructure.getInstance().getId(),hit.getThumb());
 				record.createPart(LargeImagePartStructure.getInstance().getId(),hit.getFullImage());
-				record.createPart(ArtistPartStructure.getInstance().getId(),hit.artist);
+				if(hit.artistList != null && hit.artistList.size() > 0) {
+					for(String artist: hit.getArtistList()) {
+						record.createPart(ArtistPartStructure.getInstance().getId(),artist);
+					}
+				}
 				record.createPart(CulturePartStructure.getInstance().getId(),hit.culture);
 				record.createPart(CurrentLocationPartStructure.getInstance().getId(),hit.currentLocation);
 				if(hit.materialList != null && hit.materialList.size() >0 ){
-					record.createPart(MaterialPartStructure.getInstance().getId(),hit.materialList.get(0));
+					for(String material: hit.materialList) {
+						record.createPart(MaterialPartStructure.getInstance().getId(),material);
+					}
 				}
 				record.createPart(OriginPartStructure.getInstance().getId(),hit.origin);
 				record.createPart(PeriodPartStructure.getInstance().getId(),hit.period);

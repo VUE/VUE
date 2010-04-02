@@ -36,7 +36,7 @@ public class Hit {
     public String fullImage;
     public String thumb;
     public String title;
-    public String artist;
+    public List<String>  artistList;
     public String origin;
     public String culture;
     public String period;
@@ -65,6 +65,15 @@ public class Hit {
     public List<String> getMaterialList() {
     	return this.materialList;
     }
+    
+    public void setArtistList(List<String> artistList) {
+    	this.artistList = artistList;
+    }
+    
+    public List<String> getArtistList() {
+    	return this.artistList;
+    }
+    
     
     public String getFullImage(){
         return fullImage;
