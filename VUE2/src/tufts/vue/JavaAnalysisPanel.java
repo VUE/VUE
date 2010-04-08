@@ -1,5 +1,6 @@
 package tufts.vue;
 
+import java.awt.Checkbox;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
@@ -14,6 +15,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.geom.RectangularShape;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileReader;
 import java.io.StreamTokenizer;
 import java.util.ArrayList;
@@ -27,7 +29,6 @@ import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
-import javax.swing.filechooser.FileFilter;
 
 import tufts.vue.LWComponent;
 import tufts.vue.LWLink;
@@ -43,21 +44,27 @@ import tufts.vue.gui.VueFileChooser;
 
 public class JavaAnalysisPanel extends JPanel implements ActionListener {
 	private static final long			serialVersionUID = 1L;
-	protected static final String		ABSTRACT_KEYWORD = "abstract",
+	protected static final String		DOT_JAVA = ".java",
+										ABSTRACT_KEYWORD = "abstract",
 										CLASS_KEYWORD = "class",
 										INTERFACE_KEYWORD = "interface",
 										EXTENDS_KEYWORD = "extends",
 										IMPLEMENTS_KEYWORD = "implements",
 										METADATA_CATEGORY = "Java Analysis",
 										METADATA_KEYWORD_DECLARED = "declared",
+										METADATA_KEYWORD_INNER = "inner",
 										JAVA_ANALYSIS = VueResources.getString("analyze.java.javaAnalysis"),
 										HELP_TEXT = VueResources.getString("dockWindow.JavaAnalysis.helpText"),
-										FILE_CHOOSER_TITLE_KEY = "FileChooser.openDialogTitleText",
-										JAVA_ANALYSIS_FILE_CHOOSER_TITLE = VueResources.getString("analyze.java.openFileTitle"),
 										DEFAULT_FILE_CHOOSER_TITLE = VueResources.getString("FileChooser.openDialogTitleText"),
+										DEFAULT_FILE_CHOOSER_OPEN_BUTTON = VueResources.getString("FileChooser.openButtonText"),
+										DEFAULT_FILE_CHOOSER_OPEN_BUTTON_TOOLTIP = VueResources.getString("FileChooser.openButtonToolTipText"),
+										CHOOSE_FILES = VueResources.getString("analyze.java.chooseFiles"),
 										ANALYZE_CLASSES = VueResources.getString("analyze.java.analyzeClasses"),
+										ANALYZE_INNER_CLASSES = VueResources.getString("analyze.java.analyzeInnerClasses"),
 										ANALYZE_INTERFACES = VueResources.getString("analyze.java.analyzeInterfaces"),
+										ANALYZE_INNER_INTERFACES = VueResources.getString("analyze.java.analyzeInnerInterfaces"),
 										ANALYZE = VueResources.getString("analyze.java.analyze"),
+										ANALYZE_TOOLTIP = VueResources.getString("analyze.java.analyzeTooltip"),
 										STOP = VueResources.getString("analyze.java.stop"),
 										PARSING = VueResources.getString("analyze.java.parsing"),
 										DISPLAYING = VueResources.getString("analyze.java.displaying"),
@@ -76,7 +83,9 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 										COMMA_TOKEN = ',',
 										SEMICOLON_TOKEN = ';';
 	protected static final int			CLASSES_MASK = 1,
-										INTERFACES_MASK = 2;
+										INTERFACES_MASK = 2,
+										INNER_CLASSES_MASK = 4,
+										INNER_INTERFACES_MASK = 8;
 	protected static final int			HALF_GUTTER = 4;
 	protected static final Insets		HALF_GUTTER_INSETS = new Insets(HALF_GUTTER, HALF_GUTTER, HALF_GUTTER, HALF_GUTTER);
 	protected static DockWindow			dock = null;
@@ -84,7 +93,9 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 
 	protected JPanel					contentPanel = null;
 	protected JCheckBox					classesCheckBox = null,
-										interfacesCheckBox = null;
+										interfacesCheckBox = null,
+										innerClassesCheckBox = null,
+										innerInterfacesCheckBox = null;
 	protected JTextArea					messageTextArea = null;
 	protected JButton					analyzeButton = null;
 	protected File						lastDirectory = null;
@@ -103,35 +114,52 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 		contentPanel = new JPanel(new GridBagLayout());
 		classesCheckBox = new JCheckBox(ANALYZE_CLASSES);
 		interfacesCheckBox = new JCheckBox(ANALYZE_INTERFACES);
+		innerClassesCheckBox = new JCheckBox(ANALYZE_INNER_CLASSES);
+		innerInterfacesCheckBox = new JCheckBox(ANALYZE_INNER_INTERFACES);
 		messageTextArea = new JTextArea();
-		analyzeButton = new JButton(ANALYZE);
+		analyzeButton = new JButton(CHOOSE_FILES);
 
 		classesCheckBox.setSelected(true);
 		interfacesCheckBox.setSelected(true);
+		innerClassesCheckBox.setSelected(false);
+		innerInterfacesCheckBox.setSelected(false);
 
 		classesCheckBox.addActionListener(this);
 		interfacesCheckBox.addActionListener(this);
+		innerClassesCheckBox.addActionListener(this);
+		innerInterfacesCheckBox.addActionListener(this);
 		analyzeButton.addActionListener(this);
 
 		classesCheckBox.setFont(tufts.vue.gui.GUI.LabelFace);
 		interfacesCheckBox.setFont(tufts.vue.gui.GUI.LabelFace);
+		innerClassesCheckBox.setFont(tufts.vue.gui.GUI.LabelFace);
+		innerInterfacesCheckBox.setFont(tufts.vue.gui.GUI.LabelFace);
 		messageTextArea.setFont(tufts.vue.gui.GUI.LabelFace);
 		analyzeButton.setFont(tufts.vue.gui.GUI.LabelFace);
 
 		messageTextArea.setBackground(contentPanel.getBackground());
 
-		addToGridBag(contentPanel, classesCheckBox,    0, 0, 1, 1, GridBagConstraints.NORTHWEST, GridBagConstraints.NONE, 0.0, 0.0, HALF_GUTTER_INSETS);
-		addToGridBag(contentPanel, interfacesCheckBox, 0, 1, 1, 1, GridBagConstraints.NORTHWEST, GridBagConstraints.NONE, 0.0, 0.0, HALF_GUTTER_INSETS);
-		addToGridBag(contentPanel, messageTextArea,    0, 2, 1, 1, GridBagConstraints.CENTER,    GridBagConstraints.BOTH, 1.0, 1.0, HALF_GUTTER_INSETS);
-		addToGridBag(contentPanel, analyzeButton,      0, 3, 1, 1, GridBagConstraints.SOUTHEAST, GridBagConstraints.NONE, 0.0, 0.0, HALF_GUTTER_INSETS);
-		addToGridBag(this, contentPanel,               0, 0, 1, 1, GridBagConstraints.CENTER,    GridBagConstraints.BOTH, 1.0, 1.0, HALF_GUTTER_INSETS);
+		int			checkbox_width = (int)(innerClassesCheckBox.getPreferredSize().getHeight());
+		Insets		HALF_GUTTER_INSETS_INDENTED = new Insets(0, checkbox_width, HALF_GUTTER, HALF_GUTTER);
+
+		addToGridBag(contentPanel, classesCheckBox,         0, 0, 1, 1, GridBagConstraints.NORTHWEST, GridBagConstraints.NONE, 0.0, 0.0, HALF_GUTTER_INSETS);
+		addToGridBag(contentPanel, innerClassesCheckBox,    0, 1, 1, 1, GridBagConstraints.NORTHWEST, GridBagConstraints.NONE, 0.0, 0.0, HALF_GUTTER_INSETS_INDENTED);
+		addToGridBag(contentPanel, interfacesCheckBox,      0, 2, 1, 1, GridBagConstraints.NORTHWEST, GridBagConstraints.NONE, 0.0, 0.0, HALF_GUTTER_INSETS);
+		addToGridBag(contentPanel, innerInterfacesCheckBox, 0, 3, 1, 1, GridBagConstraints.NORTHWEST, GridBagConstraints.NONE, 0.0, 0.0, HALF_GUTTER_INSETS_INDENTED);
+		addToGridBag(contentPanel, messageTextArea,         0, 4, 1, 1, GridBagConstraints.CENTER,    GridBagConstraints.BOTH, 1.0, 1.0, HALF_GUTTER_INSETS);
+		addToGridBag(contentPanel, analyzeButton,           0, 5, 1, 1, GridBagConstraints.SOUTHEAST, GridBagConstraints.NONE, 0.0, 0.0, HALF_GUTTER_INSETS);
+		addToGridBag(this, contentPanel,                    0, 0, 1, 1, GridBagConstraints.CENTER,    GridBagConstraints.BOTH, 1.0, 1.0, HALF_GUTTER_INSETS);
 
 		if (DEBUG) {
 			contentPanel.setBackground(Color.CYAN);
 			classesCheckBox.setBackground(Color.MAGENTA);
 			classesCheckBox.setOpaque(true);
+			innerClassesCheckBox.setBackground(Color.MAGENTA);
+			innerClassesCheckBox.setOpaque(true);
 			interfacesCheckBox.setBackground(Color.MAGENTA);
 			interfacesCheckBox.setOpaque(true);
+			innerInterfacesCheckBox.setBackground(Color.MAGENTA);
+			innerInterfacesCheckBox.setOpaque(true);
 			messageTextArea.setBackground(Color.MAGENTA);
 			analyzeButton.setBackground(Color.MAGENTA);
 			analyzeButton.setOpaque(true);
@@ -142,7 +170,9 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 	public void finalize() {
 		contentPanel = null;
 		classesCheckBox = null;
+		innerClassesCheckBox = null;
 		interfacesCheckBox = null;
+		innerInterfacesCheckBox = null;
 		analyzeButton = null;
 		lastDirectory = null;
 		allNodes = null;
@@ -190,14 +220,35 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 
 			for (fileIndex = 0; fileIndex < fileCount && proceedWithAnalysis; fileIndex++) {
 				File	file = files[fileIndex];
-				int		foundCount = 0;
+				int		foundCount;
 
-				foundCount = parseSourceFile(file, mask, viewerCenterX, viewerCenterY);
+				if (file.isDirectory()) {
+					File	filesInFolder[] = file.listFiles(new JavaFileFilter());
+					int		fileInFolderCount = filesInFolder.length,
+							fileInFolderIndex;
 
-				if (foundCount > 0) {
-					totalFoundCount += foundCount;
-				} else {
-					VueUtil.alert(String.format(NO_JAVA_CLASS, file.getName()), JAVA_ANALYSIS);
+					for (fileInFolderIndex = 0; fileInFolderIndex < fileInFolderCount && proceedWithAnalysis; fileInFolderIndex++) {
+						File	fileInFolder = filesInFolder[fileInFolderIndex];
+
+						if (!fileInFolder.isDirectory()) {
+							foundCount = parseSourceFile(fileInFolder, mask, viewerCenterX, viewerCenterY);
+
+							if (foundCount > 0) {
+								totalFoundCount += foundCount;
+							} else {
+								VueUtil.alert(String.format(NO_JAVA_CLASS, file.getName()), JAVA_ANALYSIS);
+							}
+						}
+					}
+				}
+				else {
+					foundCount = parseSourceFile(file, mask, viewerCenterX, viewerCenterY);
+
+					if (foundCount > 0) {
+						totalFoundCount += foundCount;
+					} else {
+						VueUtil.alert(String.format(NO_JAVA_CLASS, file.getName()), JAVA_ANALYSIS);
+					}
 				}
 			}
 
@@ -214,7 +265,7 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 					totalFoundCount = 0;
 	
 					messageTextArea.setText("");
-					analyzeButton.setText(ANALYZE);
+					analyzeButton.setText(CHOOSE_FILES);
 					analyzeButton.setEnabled(true);
 				}});
 			}
@@ -247,16 +298,21 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 		// Open and read the file, looking for declarations of Java classes or interfaces.
 		int					foundCount = 0;
 		boolean				analyzeClasses = (mask & CLASSES_MASK) == CLASSES_MASK,
-							analyzeInterfaces = (mask & INTERFACES_MASK) == INTERFACES_MASK;
+							analyzeInterfaces = (mask & INTERFACES_MASK) == INTERFACES_MASK,
+							analyzeInnerClasses = (mask & INNER_CLASSES_MASK) == INNER_CLASSES_MASK,
+							analyzeInnerInterfaces = (mask & INNER_INTERFACES_MASK) == INNER_INTERFACES_MASK;
 
 		try {
 			FileReader		stream = new FileReader(file);
 			BufferedReader	reader = new BufferedReader(stream);
 			StreamTokenizer	tokenizer = new StreamTokenizer(reader);
 			int				tokenType;
+			String			mainName = file.getName().replace(DOT_JAVA, "");
 
 			if (DEBUG) {
-				System.out.println("!!!!!!!!!!!! in AnalyzeJava.parseSourceFile(): analyzing " + file.getName() + ".");
+				System.out.println("!!!!!!!!!!!! in AnalyzeJava.parseSourceFile(): analyzing " + file.getName() + " for" +
+					(analyzeClasses ? " classes" + (analyzeInnerClasses ? " (including inner classes)" : "") : "") +
+					(analyzeInterfaces ? (analyzeClasses ? "," : "") + " interfaces" + ((analyzeInnerInterfaces ? " (including inner interfaces)" : "")) : "") + ".");
 			}
 
 			tokenizer.wordChars(DOLLAR_TOKEN, DOLLAR_TOKEN);
@@ -308,7 +364,11 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 									}
 								}
 
-								newClass(isAbstract, className, extendsClassName, implementsInterfaceNames, x, y);
+								boolean		isInner = !className.equals(mainName);
+
+								if (analyzeInnerClasses || !isInner) {
+									newClass(isAbstract, isInner, mainName, className, extendsClassName, implementsInterfaceNames, x, y);
+								}
 							}
 						}
 
@@ -339,7 +399,11 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 									}
 								}
 
-								newInterface(isAbstract, interfaceName, extendsInterfaceNames, x, y);
+								boolean		isInner = !interfaceName.equals(mainName);
+
+								if (analyzeInnerInterfaces || !isInner) {
+									newInterface(isAbstract, isInner, mainName, interfaceName, extendsInterfaceNames, x, y);
+								}
 							}
 						}
 
@@ -375,61 +439,102 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 	}
 
 
-	protected void newClass(boolean isAbstract, String className, String extendsClassName, ArrayList<String> implementsClassNames,
+	protected void newClass(boolean isAbstract, boolean isInner, String mainName, String className, String extendsClassName, ArrayList<String> implementsInterfaceNames,
 		double x, double y) {
+		if (isInner) {
+			className = mainName + "." + className;
+		}
+
 		LWNode		classNode = findOrCreateClassNode(className, x, y);
 
 		if (DEBUG) {
-			System.out.print("!!!!!!!!!!!! in AnalyzeJava.parseSourceFile(): found " +
-				(isAbstract ? "abstract " : "") + "class " + className);
+			System.out.print("!!!!!!!!!!!! in AnalyzeJava.newClass(): found " +
+				(isAbstract ? "abstract " : "") + (isInner ? "inner " : "") +
+				"class " + className);
 		}
 
 		// This class has now been declared in a file;  set the visual cues to communicate that.
 		setIsDeclared(classNode, isAbstract);
 
+		if (isInner) {
+			setIsInner(classNode);
+		}
+
 		if (extendsClassName != null) {
-			LWNode	extendsNode = findOrCreateClassNode(extendsClassName, x, y);
+			LWNode	extendsNode = null;
+
+			if (isInner) {
+				// First see if this inner class might be extending an already defined inner class.
+				extendsNode = classHash.get(mainName + "." + extendsClassName);
+			}
+
+			if (extendsNode == null) {
+				extendsNode = findOrCreateClassNode(extendsClassName, x, y);
+			}
 
 			findOrCreateExtendsLink(classNode, extendsNode);
 
 			if (DEBUG) {
-				System.out.print(" extends " + extendsClassName);
+				System.out.print(" extends " + extendsNode.label);
 			}
 		}
 
-		if (implementsClassNames != null) {
-			Iterator<String>	iterator = implementsClassNames.iterator();
+		if (implementsInterfaceNames != null) {
+			Iterator<String>	iterator = implementsInterfaceNames.iterator();
 
 			if (DEBUG) {
 				System.out.print(" implements ");
 			}
 
 			while (iterator.hasNext()) {
-				String	implementsClassName= iterator.next();
-				LWNode	implementsNode = findOrCreateInterfaceNode(implementsClassName, x, y);
+				String	implementsInterfaceName= iterator.next();
+				LWNode	implementsNode = null;
+
+				if (isInner) {
+					// First see if this inner class might be implementing an already defined inner interface.
+					implementsNode = classHash.get(mainName + "." + implementsInterfaceName);
+				}
+
+				if (implementsNode == null) {
+					implementsNode = findOrCreateInterfaceNode(implementsInterfaceName, x, y);
+				}
 
 				findOrCreateImplementsLink(classNode, implementsNode);
 
 				if (DEBUG) {
-					System.out.print(implementsClassName + (iterator.hasNext() ? ", " : "."));
+					System.out.print(implementsNode.label + (iterator.hasNext() ? ", " : ""));
 				}
 			}
 		}
+
+		if (DEBUG) {
+			System.out.print(".");
+		}
+
 	}
 
 
-	protected void newInterface(boolean isAbstract, String interfaceName, ArrayList<String> extendsInterfaceNames,
+	protected void newInterface(boolean isAbstract, boolean isInner, String mainName, String interfaceName, ArrayList<String> extendsInterfaceNames,
 		double x, double y) {
+		if (isInner) {
+			interfaceName = mainName + "." + interfaceName;
+		}
+
 		LWNode		interfaceNode = findOrCreateInterfaceNode(interfaceName, x, y);
 
 		if (DEBUG) {
-			System.out.print("!!!!!!!!!!!! in AnalyzeJava.parseSourceFile(): found " +
-				(isAbstract ? "abstract " : "") + "interface " + interfaceName);
+			System.out.print("!!!!!!!!!!!! in AnalyzeJava.newInterface(): found " +
+				(isAbstract ? "abstract " : "") + (isInner ? "inner " : "") +
+				"interface " + interfaceName);
 		}
 
 		// This interface has now been declared in a file;  set the visual cue to communicate that.
 		// Note that declaring an interface abstract is redundant, but it is valid Java syntax.
 		setIsDeclared(interfaceNode, isAbstract);
+
+		if (isInner) {
+			setIsInner(interfaceNode);
+		}
 
 		if (extendsInterfaceNames != null) {
 			Iterator<String>	iterator = extendsInterfaceNames.iterator();
@@ -440,14 +545,27 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 
 			while (iterator.hasNext()) {
 				String	extendsInterfaceName = iterator.next();
-				LWNode	extendsNode = findOrCreateInterfaceNode(extendsInterfaceName, x, y);
+				LWNode	extendsNode = null;
+
+				if (isInner) {
+					// First see if this inner interface might be extending an already defined inner interface.
+					extendsNode = classHash.get(mainName + "." + extendsInterfaceName);
+				}
+
+				if (extendsNode == null) {
+					extendsNode = findOrCreateInterfaceNode(extendsInterfaceName, x, y);
+				}
 
 				findOrCreateExtendsLink(interfaceNode, extendsNode);
 
 				if (DEBUG) {
-					System.out.print(extendsInterfaceName + (iterator.hasNext() ? ", " : "."));
+					System.out.print(extendsNode.label + (iterator.hasNext() ? ", " : ""));
 				}
 			}
+		}
+
+		if (DEBUG) {
+			System.out.print(".");
 		}
 	}
 
@@ -555,22 +673,26 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 		if (isAbstract) {
 			node.mStrokeStyle.setTo(ABSTRACT_STYLE);
 			node.getMetadataList().add(METADATA_CATEGORY, ABSTRACT_KEYWORD);
-			isAbstract = false;
 		}
+	}
+
+
+	protected void setIsInner(LWNode node) {
+		node.getMetadataList().add(METADATA_CATEGORY, METADATA_KEYWORD_INNER);
 	}
 
 
 	protected File[] showFileChooser() {
 		File				files[] = null;
-
-		javax.swing.UIManager.put(FILE_CHOOSER_TITLE_KEY, JAVA_ANALYSIS_FILE_CHOOSER_TITLE);
+		VueFileChooser		chooser = VueFileChooser.getVueFileChooser();
 
 		try {
-			VueFileChooser	chooser = VueFileChooser.getVueFileChooser();
-
-			chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+			chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
 			chooser.setFileFilter(new JavaFileFilter());
 			chooser.setMultiSelectionEnabled(true);
+			chooser.setDialogTitle(CHOOSE_FILES);
+			chooser.setApproveButtonText(ANALYZE);
+			chooser.setApproveButtonToolTipText(ANALYZE_TOOLTIP);
 
 			if (lastDirectory != null) {
 				chooser.setCurrentDirectory(lastDirectory);
@@ -588,7 +710,9 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 		} catch(Exception ex) {
 			ex.printStackTrace();
 		} finally {
-			javax.swing.UIManager.put(FILE_CHOOSER_TITLE_KEY, DEFAULT_FILE_CHOOSER_TITLE);
+			chooser.setDialogTitle(DEFAULT_FILE_CHOOSER_TITLE);
+			chooser.setApproveButtonText(DEFAULT_FILE_CHOOSER_OPEN_BUTTON);
+			chooser.setApproveButtonToolTipText(DEFAULT_FILE_CHOOSER_OPEN_BUTTON_TOOLTIP);
 		}
 
 		return files;
@@ -601,9 +725,17 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 
 		if (source == classesCheckBox || source == interfacesCheckBox) {
 			analyzeButton.setEnabled(classesCheckBox.isSelected() || interfacesCheckBox.isSelected());
+
+			if (source == classesCheckBox) {
+				innerClassesCheckBox.setEnabled(classesCheckBox.isSelected());
+			} else if (source == interfacesCheckBox) {
+				innerInterfacesCheckBox.setEnabled(interfacesCheckBox.isSelected());
+			}
 		} else if (source == analyzeButton) {
 			int		analysisMask = (classesCheckBox.isSelected() ? CLASSES_MASK : 0) |
-						(interfacesCheckBox.isSelected() ? INTERFACES_MASK : 0);
+						(interfacesCheckBox.isSelected() ? INTERFACES_MASK : 0) |
+						(innerClassesCheckBox.isEnabled() && innerClassesCheckBox.isSelected() ? INNER_CLASSES_MASK : 0) |
+						(innerInterfacesCheckBox.isEnabled() && innerInterfacesCheckBox.isSelected() ? INNER_INTERFACES_MASK : 0);
 
 			if (analysisThread == null) {
 				analysisThread = new AnalysisThread(analysisMask);
@@ -611,7 +743,7 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 				analysisThread.start();
 			} else {
 				messageTextArea.setText("");
-				analyzeButton.setText(ANALYZE);
+				analyzeButton.setText(CHOOSE_FILES);
 				proceedWithAnalysis = false;
 				analysisThread.interrupt();
 				analysisThread = null;
@@ -655,11 +787,16 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 	}
 
 
-	protected class JavaFileFilter extends FileFilter {
+	protected class JavaFileFilter extends javax.swing.filechooser.FileFilter implements FileFilter {
+		// Note that either extending javax.swing.filechooser.FileFilter or implementing
+		// java.io.FileFilter should suffice, except that the javax.swing.filechooser.setFileFilter
+		// method insists on an argument of type javax.swing.filechooser.FileFilter, which, perversely,
+		// doesn't implement FileFilter, and the java.io.File.listFile method more correctly wants as an
+		// argument a class that implements FileFilter.  Therefore, this class does both.
 		protected static final String		JAVA_FILE_EXTENSION = ".java";
 
 		public boolean accept(File file) {
-			return file.getName().toLowerCase().endsWith(JAVA_FILE_EXTENSION);
+			return file.isDirectory() || file.getName().toLowerCase().endsWith(JAVA_FILE_EXTENSION);
 		}
 
 
@@ -668,4 +805,3 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 		}
 	}
 }
-
