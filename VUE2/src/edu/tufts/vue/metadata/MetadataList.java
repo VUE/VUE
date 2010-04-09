@@ -122,7 +122,28 @@ public class MetadataList {
       fireListChanged();
     }
     
-    public int size()
+    public void remove(String key, String value)
+    {
+    	int found = -1;
+
+        for (int i = 0; i < getCategoryListSize(); i++)
+        {
+            VueMetadataElement vme = getCategoryListElement(i);
+
+            if (vme.getKey().equals(key) && vme.getValue().equals(value))
+            {
+                found = i;
+                break;
+            }
+        }
+
+        if (found != -1)
+        {
+        	remove(found);
+        }
+    }
+
+     public int size()
     {
     	return metadataList.size();
 
@@ -217,9 +238,8 @@ public class MetadataList {
         }
         return false;
     }
-    
-    
-    public int findRCategory(String key)
+
+   public int findRCategory(String key)
     {
         int foundAt = -1;
         for(int i=0;i<getRCategoryListSize();i++)
