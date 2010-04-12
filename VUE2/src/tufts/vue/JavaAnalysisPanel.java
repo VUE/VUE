@@ -30,6 +30,8 @@ import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 
+import edu.tufts.vue.metadata.MetadataList;
+
 import tufts.vue.LWComponent;
 import tufts.vue.LWLink;
 import tufts.vue.LWMap;
@@ -51,7 +53,7 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 										EXTENDS_KEYWORD = "extends",
 										IMPLEMENTS_KEYWORD = "implements",
 										METADATA_CATEGORY = "Java Analysis",
-										METADATA_KEYWORD_DECLARED = "declared",
+										METADATA_KEYWORD_UNDECLARED = "undeclared",
 										METADATA_KEYWORD_INNER = "inner",
 										JAVA_ANALYSIS = VueResources.getString("analyze.java.javaAnalysis"),
 										HELP_TEXT = VueResources.getString("dockWindow.JavaAnalysis.helpText"),
@@ -83,8 +85,8 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 										COMMA_TOKEN = ',',
 										SEMICOLON_TOKEN = ';';
 	protected static final int			CLASSES_MASK = 1,
-										INTERFACES_MASK = 2,
-										INNER_CLASSES_MASK = 4,
+										INNER_CLASSES_MASK = 2,
+										INTERFACES_MASK = 4,
 										INNER_INTERFACES_MASK = 8;
 	protected static final int			HALF_GUTTER = 4;
 	protected static final Insets		HALF_GUTTER_INSETS = new Insets(HALF_GUTTER, HALF_GUTTER, HALF_GUTTER, HALF_GUTTER);
@@ -93,8 +95,8 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 
 	protected JPanel					contentPanel = null;
 	protected JCheckBox					classesCheckBox = null,
-										interfacesCheckBox = null,
 										innerClassesCheckBox = null,
+										interfacesCheckBox = null,
 										innerInterfacesCheckBox = null;
 	protected JTextArea					messageTextArea = null;
 	protected JButton					analyzeButton = null;
@@ -113,26 +115,26 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 
 		contentPanel = new JPanel(new GridBagLayout());
 		classesCheckBox = new JCheckBox(ANALYZE_CLASSES);
-		interfacesCheckBox = new JCheckBox(ANALYZE_INTERFACES);
 		innerClassesCheckBox = new JCheckBox(ANALYZE_INNER_CLASSES);
+		interfacesCheckBox = new JCheckBox(ANALYZE_INTERFACES);
 		innerInterfacesCheckBox = new JCheckBox(ANALYZE_INNER_INTERFACES);
 		messageTextArea = new JTextArea();
 		analyzeButton = new JButton(CHOOSE_FILES);
 
 		classesCheckBox.setSelected(true);
-		interfacesCheckBox.setSelected(true);
 		innerClassesCheckBox.setSelected(false);
+		interfacesCheckBox.setSelected(true);
 		innerInterfacesCheckBox.setSelected(false);
 
 		classesCheckBox.addActionListener(this);
-		interfacesCheckBox.addActionListener(this);
 		innerClassesCheckBox.addActionListener(this);
+		interfacesCheckBox.addActionListener(this);
 		innerInterfacesCheckBox.addActionListener(this);
 		analyzeButton.addActionListener(this);
 
 		classesCheckBox.setFont(tufts.vue.gui.GUI.LabelFace);
-		interfacesCheckBox.setFont(tufts.vue.gui.GUI.LabelFace);
 		innerClassesCheckBox.setFont(tufts.vue.gui.GUI.LabelFace);
+		interfacesCheckBox.setFont(tufts.vue.gui.GUI.LabelFace);
 		innerInterfacesCheckBox.setFont(tufts.vue.gui.GUI.LabelFace);
 		messageTextArea.setFont(tufts.vue.gui.GUI.LabelFace);
 		analyzeButton.setFont(tufts.vue.gui.GUI.LabelFace);
@@ -173,11 +175,13 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 		innerClassesCheckBox = null;
 		interfacesCheckBox = null;
 		innerInterfacesCheckBox = null;
+		messageTextArea = null;
 		analyzeButton = null;
 		lastDirectory = null;
 		allNodes = null;
 		newComps = null;
 		classHash = null;
+		analysisThread = null;
 	}
 
 
@@ -258,12 +262,12 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 
 				GUI.invokeAfterAWT(new Runnable() { public void run() {
 					displayResults();
-	
+
 					allNodes = null;
 					newComps = null;
 					classHash = null;
 					totalFoundCount = 0;
-	
+
 					messageTextArea.setText("");
 					analyzeButton.setText(CHOOSE_FILES);
 					analyzeButton.setEnabled(true);
@@ -282,11 +286,11 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 		for (LWComponent comp : comps) {
 			if (comp instanceof LWNode) {
 				String	label = comp.getLabel();
-	
+
 				if (DEBUG) {
 					System.out.println("!!!!!!!!!!!! in AnalyzeJava.nodesOnMap(): found " + label + ".");
 				}
-	
+
 				allNodes.add((LWNode)comp);
 				classHash.put(label, (LWNode)comp);
 			}
@@ -298,8 +302,8 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 		// Open and read the file, looking for declarations of Java classes or interfaces.
 		int					foundCount = 0;
 		boolean				analyzeClasses = (mask & CLASSES_MASK) == CLASSES_MASK,
-							analyzeInterfaces = (mask & INTERFACES_MASK) == INTERFACES_MASK,
 							analyzeInnerClasses = (mask & INNER_CLASSES_MASK) == INNER_CLASSES_MASK,
+							analyzeInterfaces = (mask & INTERFACES_MASK) == INTERFACES_MASK,
 							analyzeInnerInterfaces = (mask & INNER_INTERFACES_MASK) == INNER_INTERFACES_MASK;
 
 		try {
@@ -439,8 +443,8 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 	}
 
 
-	protected void newClass(boolean isAbstract, boolean isInner, String mainName, String className, String extendsClassName, ArrayList<String> implementsInterfaceNames,
-		double x, double y) {
+	protected void newClass(boolean isAbstract, boolean isInner, String mainName, String className,
+			String extendsClassName, ArrayList<String> implementsInterfaceNames, double x, double y) {
 		if (isInner) {
 			className = mainName + "." + className;
 		}
@@ -454,17 +458,13 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 		}
 
 		// This class has now been declared in a file;  set the visual cues to communicate that.
-		setIsDeclared(classNode, isAbstract);
-
-		if (isInner) {
-			setIsInner(classNode);
-		}
+		setIsDeclared(classNode, isAbstract, isInner);
 
 		if (extendsClassName != null) {
 			LWNode	extendsNode = null;
 
 			if (isInner) {
-				// First see if this inner class might be extending an already defined inner class.
+				// First see if this inner class might be extending an already-defined inner class.
 				extendsNode = classHash.get(mainName + "." + extendsClassName);
 			}
 
@@ -487,11 +487,11 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 			}
 
 			while (iterator.hasNext()) {
-				String	implementsInterfaceName= iterator.next();
+				String	implementsInterfaceName = iterator.next();
 				LWNode	implementsNode = null;
 
 				if (isInner) {
-					// First see if this inner class might be implementing an already defined inner interface.
+					// First see if this inner class might be implementing an already-defined inner interface.
 					implementsNode = classHash.get(mainName + "." + implementsInterfaceName);
 				}
 
@@ -510,12 +510,11 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 		if (DEBUG) {
 			System.out.print(".");
 		}
-
 	}
 
 
-	protected void newInterface(boolean isAbstract, boolean isInner, String mainName, String interfaceName, ArrayList<String> extendsInterfaceNames,
-		double x, double y) {
+	protected void newInterface(boolean isAbstract, boolean isInner, String mainName, String interfaceName,
+			ArrayList<String> extendsInterfaceNames, double x, double y) {
 		if (isInner) {
 			interfaceName = mainName + "." + interfaceName;
 		}
@@ -530,11 +529,7 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 
 		// This interface has now been declared in a file;  set the visual cue to communicate that.
 		// Note that declaring an interface abstract is redundant, but it is valid Java syntax.
-		setIsDeclared(interfaceNode, isAbstract);
-
-		if (isInner) {
-			setIsInner(interfaceNode);
-		}
+		setIsDeclared(interfaceNode, isAbstract, isInner);
 
 		if (extendsInterfaceNames != null) {
 			Iterator<String>	iterator = extendsInterfaceNames.iterator();
@@ -548,7 +543,7 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 				LWNode	extendsNode = null;
 
 				if (isInner) {
-					// First see if this inner interface might be extending an already defined inner interface.
+					// First see if this inner interface might be extending an already-defined inner interface.
 					extendsNode = classHash.get(mainName + "." + extendsInterfaceName);
 				}
 
@@ -595,8 +590,10 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 		return interfaceNode;
 	}
 
+
 	protected LWNode newNode(String nodeName, double x, double y, Class<? extends RectangularShape> shape, String metadata) {
-		LWNode		node = new LWNode(nodeName);
+		LWNode			node = new LWNode(nodeName);
+		MetadataList	metadataList = node.getMetadataList();
 
 		node.setShape(shape);
 		node.setCenterAt(x, y);
@@ -606,7 +603,8 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 		node.setStrokeColor(UNDECLARED_COLOR);
 		node.mStrokeStyle.setTo(NONABSTRACT_STYLE);
 
-		node.getMetadataList().add(METADATA_CATEGORY, metadata);
+		metadataList.add(METADATA_CATEGORY, metadata);
+		metadataList.add(METADATA_CATEGORY, METADATA_KEYWORD_UNDECLARED);
 
 		node.setToNaturalSize();
 
@@ -615,6 +613,30 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 		classHash.put(nodeName, node);
 
 		return node;
+	}
+
+
+	protected void setIsDeclared(LWNode node, boolean isAbstract, boolean isInner) {
+		node.setStrokeColor(DECLARED_COLOR);
+		node.setTextColor(DECLARED_COLOR);
+
+		for (LWLink link : node.getLinks()) {
+			if (link.getTail() == node) {
+				link.setStrokeColor(DECLARED_COLOR);
+				link.setTextColor(DECLARED_COLOR);
+			}
+		}
+
+		node.getMetadataList().remove(METADATA_CATEGORY, METADATA_KEYWORD_UNDECLARED);
+
+		if (isAbstract) {
+			node.mStrokeStyle.setTo(ABSTRACT_STYLE);
+			node.getMetadataList().add(METADATA_CATEGORY, ABSTRACT_KEYWORD);
+		}
+
+		if (isInner) {
+			node.getMetadataList().add(METADATA_CATEGORY, METADATA_KEYWORD_INNER);		
+		}
 	}
 
 
@@ -652,33 +674,8 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 
 			newComps.add(link);
 		}
-		
+
 		return link;
-	}
-
-
-	protected void setIsDeclared(LWNode node, boolean isAbstract) {
-		node.setStrokeColor(DECLARED_COLOR);
-		node.setTextColor(DECLARED_COLOR);
-
-		for (LWLink link : node.getLinks()) {
-			if (link.getTail() == node) {
-				link.setStrokeColor(DECLARED_COLOR);
-				link.setTextColor(DECLARED_COLOR);
-			}
-		}
-
-		node.getMetadataList().add(METADATA_CATEGORY, METADATA_KEYWORD_DECLARED);
-
-		if (isAbstract) {
-			node.mStrokeStyle.setTo(ABSTRACT_STYLE);
-			node.getMetadataList().add(METADATA_CATEGORY, ABSTRACT_KEYWORD);
-		}
-	}
-
-
-	protected void setIsInner(LWNode node) {
-		node.getMetadataList().add(METADATA_CATEGORY, METADATA_KEYWORD_INNER);
 	}
 
 
@@ -733,8 +730,8 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 			}
 		} else if (source == analyzeButton) {
 			int		analysisMask = (classesCheckBox.isSelected() ? CLASSES_MASK : 0) |
-						(interfacesCheckBox.isSelected() ? INTERFACES_MASK : 0) |
 						(innerClassesCheckBox.isEnabled() && innerClassesCheckBox.isSelected() ? INNER_CLASSES_MASK : 0) |
+						(interfacesCheckBox.isSelected() ? INTERFACES_MASK : 0) |
 						(innerInterfacesCheckBox.isEnabled() && innerInterfacesCheckBox.isSelected() ? INNER_INTERFACES_MASK : 0);
 
 			if (analysisThread == null) {
@@ -751,6 +748,7 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 		}
 	}
 
+
 	protected static void addToGridBag(Container container, Component component,
 			int gridX, int gridY, int gridWidth, int gridHeight,
 			int anchor, int fill, double weightX, double weightY,
@@ -766,11 +764,13 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 	private class AnalysisThread extends Thread {
 		int		analysisMask = 0;
 
+
 		public AnalysisThread(int analysisMask) {
 			super();
 
 			this.analysisMask = analysisMask;
 		}
+
 
 		public void run() {
 			try {
@@ -794,6 +794,7 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 		// doesn't implement FileFilter, and the java.io.File.listFile method more correctly wants as an
 		// argument a class that implements FileFilter.  Therefore, this class does both.
 		protected static final String		JAVA_FILE_EXTENSION = ".java";
+
 
 		public boolean accept(File file) {
 			return file.isDirectory() || file.getName().toLowerCase().endsWith(JAVA_FILE_EXTENSION);
