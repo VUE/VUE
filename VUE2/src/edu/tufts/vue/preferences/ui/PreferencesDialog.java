@@ -81,17 +81,17 @@ public class PreferencesDialog extends JDialog {
 		// editTable = new JTable();
 		createSplitPane();
 		createButtonPanel();
-		String[] array = new String[3];
+		String[] array = new String[2];
 		array[0] = new String(VueResources.getString("preferencedailog.vuepreference"));
 		array[1] = new String(VueResources.getString("preferences.category.mapdisplay"));
-		array[2] = new String(VueResources.getString("preferencedailog.images"));
+		//array[2] = new String(VueResources.getString("preferencedailog.images"));
 //		array[2] = new String("Metadata:");
 	//	array[3] = new String("Windows:");
 
                 try {
                     TreePath path = findByName(prefTree,array);
-                    PrefTreeNode node = (PrefTreeNode) path.getLastPathComponent();
-                    splitPane.setRightComponent(node.getPrefObject().getPreferenceUI());
+                    PrefCategoryTreeNode node = (PrefCategoryTreeNode) path.getLastPathComponent();
+//                    splitPane.setRightComponent(node.getPrefObject().getPreferenceUI());
                 } catch (Throwable t) {
                     t.printStackTrace();
                 }
