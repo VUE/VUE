@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 import java.util.prefs.*;
+
+import edu.tufts.vue.preferences.implementations.SeasrRepositoryPreference;
 import edu.tufts.vue.preferences.interfaces.VuePreference;
 
 /**
@@ -35,7 +37,8 @@ public class PreferencesManager {
 	  {
               //PreferencesManager.registerPreference(edu.tufts.vue.preferences.implementations.ImageSizePreference.class);
 		  //PreferencesManager.registerPreference(edu.tufts.vue.preferences.implementations.AutoZoomPreference.class);  		
-		  
+	        SeasrRepositoryPreference srr = edu.tufts.vue.preferences.implementations.SeasrRepositoryPreference.getInstance();
+
 		  if (tufts.Util.isWindowsPlatform())
 			  PreferencesManager.registerPreference(edu.tufts.vue.preferences.implementations.EnhancedFileChooserPreference.class);
 		  //PreferencesManager.registerPreference(edu.tufts.vue.preferences.implementations.WindowPropertiesPreference.class);
@@ -46,6 +49,7 @@ public class PreferencesManager {
 		categories.add(PreferenceConstants.METADATA_CATEGORY);
 		categories.add(PreferenceConstants.WINDOW_CATEGORY);
 		categories.add(PreferenceConstants.LANGUAGE_CATEGORY);
+		categories.add(PreferenceConstants.DATA_CATEGORY);
 	  }
 	  
 	  public static void registerPreference(Object o)

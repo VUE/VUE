@@ -37,6 +37,7 @@ public class PreferenceConstants
 		public static final String WINDOW_CATEGORY="windows";
 		public static final String FILES_CATEGORY="files";
 		public static final String FORMATTING_CATEGORY="formatting";
+		public static final String DATA_CATEGORY="data";
 		public static final String LANGUAGE_CATEGORY="language";
 		
 }
