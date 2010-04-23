@@ -18,11 +18,21 @@
  */
 package edu.tufts.seasr;
 
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.io.IOException;
+import java.io.InputStream;
 
 import org.exolab.castor.mapping.Mapping;
 import org.exolab.castor.xml.Unmarshaller;
 import org.xml.sax.InputSource;
+import java.net.URL;
+import tufts.vue.MapViewer;
+import tufts.vue.VUE;
+import edu.tufts.vue.preferences.VuePrefEvent;
+import edu.tufts.vue.preferences.VuePrefListener;
+import edu.tufts.vue.preferences.implementations.SeasrRepositoryPreference;
+import edu.tufts.vue.preferences.interfaces.VuePreference;
 
 /**
  * @author akumar03
@@ -32,7 +42,8 @@ import org.xml.sax.InputSource;
 public class SeasrConfigLoader {
 	private static Unmarshaller unmarshaller = null;
 	private static URL XML_MAPPING;
-	private static String SEASR_CONFIG = "seasr.xml";
+	private static String DEFAULT_SEASR_CONFIG = "seasr.xml";
+	private static String SEASR_CONFIG = null;
 	public static final String  CREATE_NODES = "Create New Nodes";
 	public static final String ADD_METADATA = "Add Metadata";
 	public static final String ADD_NOTES = "Add Notes";
@@ -44,8 +55,22 @@ public class SeasrConfigLoader {
 	public SeasrAnalytics loadConfig()  throws Exception  {
 		Unmarshaller unmarshaller = getUnmarshaller();
 		unmarshaller.setValidation(false);
-		SeasrAnalytics sa = (SeasrAnalytics) unmarshaller.unmarshal(new InputSource(this.getClass().getResourceAsStream(SEASR_CONFIG)));
-		return sa;
+		SEASR_CONFIG =  (String)edu.tufts.vue.preferences.implementations.SeasrRepositoryPreference.getInstance().getValue();
+	    System.out.println("Seasr config: "+SEASR_CONFIG);
+	    InputStream inputstream = null;
+	    try {
+	    	URL url  = new URL(SEASR_CONFIG);
+	    	inputstream = url.openStream();
+	    } catch(MalformedURLException mex) {
+	    	System.out.println("SeasrConfigLoader.loadConfig: "+mex);
+	    	inputstream = this.getClass().getResourceAsStream(DEFAULT_SEASR_CONFIG);
+	    } catch(IOException iox) {
+	    	System.out.println("SeasrConfigLoader.loadConfig: "+iox);
+	    	inputstream = this.getClass().getResourceAsStream(DEFAULT_SEASR_CONFIG);
+	    }  
+	    	SeasrAnalytics sa = (SeasrAnalytics) unmarshaller.unmarshal(new InputSource(inputstream));
+	    	return sa;
+	  
 	}
 	
 	public FlowGroup getFlowGroup(String label) throws Exception {
