@@ -14,15 +14,46 @@
  */
 package edu.tufts.vue.preferences.implementations;
 
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
+import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
+
+import tufts.vue.VueResources;
+import tufts.vue.VueUtil;
 
 import edu.tufts.vue.preferences.generics.BasePref;
 import edu.tufts.vue.preferences.interfaces.VuePreference;
+import edu.tufts.vue.preferences.ui.PreferencesDialog;
 
-public class StringPreference extends BasePref
+public class StringPreference extends BasePref implements ActionListener
 {
+
+	private JPanel		panel = null;
+	private JLabel		titleLabel = null;
+	private JTextArea		messageArea = null;
+	private JTextField field = new JTextField(30);
+	private JPanel innerPanel = null;
+	private JButton resetButton =null;// new JButton(VueResources.getString("button.reset.label"));
+	private JButton saveButton = null;//new JButton(VueResources.getString("button.save.label"));
 
 	private String category;
 	private String name;
@@ -79,8 +110,61 @@ public class StringPreference extends BasePref
 	}
 
 	public JComponent getPreferenceUI() {
-		// TODO Auto-generated method stub
-		return null;
+		
+		panel = new JPanel();
+		innerPanel = new JPanel();
+		resetButton = new JButton(VueResources.getString("button.reset.label"));
+		saveButton = new JButton(VueResources.getString("button.save.label"));
+		panel.setBackground(Color.WHITE);
+		panel.setLayout(new GridBagLayout());
+
+		Font				defaultFont = panel.getFont();
+		GridBagConstraints	gbConstraints = new GridBagConstraints();
+
+		titleLabel = new JLabel(getTitle());
+		titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD));
+
+		gbConstraints.gridx = 0;
+		gbConstraints.gridy = 0;
+		gbConstraints.gridwidth = 1;
+		gbConstraints.gridheight = 1;
+		gbConstraints.fill = GridBagConstraints.HORIZONTAL;
+		gbConstraints.anchor = GridBagConstraints.NORTHWEST;
+		gbConstraints.weightx = 1.0;
+		gbConstraints.weighty = 0.0;
+		gbConstraints.insets = new Insets(15, 10, 2, 2);
+		panel.add(titleLabel, gbConstraints);
+
+		messageArea = new JTextArea(getDescription());
+		messageArea.setFont(defaultFont);
+		messageArea.setColumns(30);
+		messageArea.setLineWrap(true);
+		messageArea.setWrapStyleWord(true);
+
+		gbConstraints.gridy = 1;
+		panel.add(messageArea, gbConstraints);
+
+		gbConstraints.gridy = 2;
+		gbConstraints.fill = GridBagConstraints.BOTH;
+		gbConstraints.weighty = 1.0;
+		gbConstraints.insets = new Insets(15, 30, 15, 30);
+		
+		innerPanel.setBackground(Color.white);
+		field.setText((String)this.getValue());
+		innerPanel.add(field);
+		resetButton.addActionListener(this);
+
+		saveButton.addActionListener(this);
+
+		innerPanel.add(resetButton);
+		innerPanel.add(saveButton);
+		saveButton.setEnabled(true);
+		resetButton.setEnabled(true);		
+		panel.add(innerPanel,gbConstraints);
+
+		return panel;
+		
+		
 	}
 
 	public Object getPreviousValue()
@@ -102,5 +186,16 @@ public class StringPreference extends BasePref
 		previousValue = getValue(); 		
 		p.put(getPrefName(), (String)s);
 		_fireVuePrefEvent();
+	}
+	
+	public void actionPerformed(ActionEvent e) {
+		if (e.getSource().equals(resetButton))
+		{
+			this.setValue(getDefaultValue());
+		}
+		else if (e.getSource().equals(saveButton))
+		{
+			this.setValue(field.getText());
+		}
 	}
 }
