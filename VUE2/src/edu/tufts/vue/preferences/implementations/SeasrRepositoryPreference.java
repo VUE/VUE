@@ -21,7 +21,7 @@ private static SeasrRepositoryPreference _instance;
 				  "data.SeasrRepo",
 				  "SEASR Repository",
 				  "Set the location of your SEASR repository.",
-				  (Object)(new String("http://pathtorepo")),
+				  (Object)(new String("http://vue.tufts.edu/seasr.xml")),
 				  true								  
 				  );	   
 

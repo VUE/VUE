@@ -192,6 +192,7 @@ public class StringPreference extends BasePref implements ActionListener
 		if (e.getSource().equals(resetButton))
 		{
 			this.setValue(getDefaultValue());
+			this.field.setText((String)getDefaultValue());
 		}
 		else if (e.getSource().equals(saveButton))
 		{
