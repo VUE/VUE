@@ -18,6 +18,11 @@ package edu.tufts.osidimpl.repository.artifact;
 public class RepositoryManager
 implements org.osid.repository.RepositoryManager
 {
+	public static final String NAME = "Artifact";
+	public static final String DESCRIPTION = "Tufts University Libraries Artifact Content";
+	public static final String DEFAULT_ADDRESS = "http://artifact.tufts.edu/vue_xml/search2.asp?";
+	public static final String DEFAULT_MAX_RETURN = "10";
+	
     private org.osid.OsidContext context = null;
     private java.util.Properties configuration = null;
     private org.osid.repository.Repository repository = null;
@@ -77,10 +82,12 @@ implements org.osid.repository.RepositoryManager
 			this.searchTypeVector.addElement(new Type("mit.edu","search","title"));
 			this.searchTypeVector.addElement(new Type("mit.edu","search","author"));
 			this.searchTypeVector.addElement(new Type("mit.edu","search","keyword"));
-                        this.searchTypeVector.addElement(new Type("mit.edu","search","multiField"));
+            this.searchTypeVector.addElement(new Type("mit.edu","search","multiField"));
 			this.searchTypeVector.addElement(new Type("tufts.edu","search","artifact"));
-			this.repository = new Repository("Artifact",
-											 "Tufts University Libraries Artifact Content",
+			this.repository = new Repository(NAME,
+											 DESCRIPTION,
+											 configuration.getProperty("address", DEFAULT_ADDRESS),
+											 configuration.getProperty("maxReturn",DEFAULT_MAX_RETURN),
 											 this.repositoryId,
 											 this.repositoryType,
 											 this.searchTypeVector);

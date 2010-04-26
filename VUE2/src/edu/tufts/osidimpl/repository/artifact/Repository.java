@@ -30,13 +30,18 @@ implements org.osid.repository.Repository
         private org.osid.shared.Type artifactMultiFieldSearchType = new Type("tufts.edu","search","artifact-multifield");
     private String displayName = null;
     private String description = null;
+    private String address = null;
+    private String maxReturn = null;
+    private String searchKeywordTypePrefix = "searchType=Any";
     private java.util.Vector searchTypeVector = null;
-	
+	 
 	private static final String SEARCH_URL_PREFIX = "http://artifact-dev.atech.tufts.edu/vue_xml/search2.asp?searchType=Any&max_return=10&query=";
 	private static final String SEARCH_URL_SUFFIX = "&Submit=Submit";
 	
     protected Repository(String displayName,
 						 String description,
+						 String address,
+						 String maxReturn,
 						 org.osid.shared.Id repositoryId,
 						 org.osid.shared.Type repositoryType,
 						 java.util.Vector searchTypeVector)
@@ -44,9 +49,12 @@ implements org.osid.repository.Repository
     {
         this.displayName = displayName;
         this.description = description;
+        this.address = address;
+        this.maxReturn = maxReturn;
 		this.repositoryId = repositoryId;
         this.repositoryType = repositoryType;
         this.searchTypeVector = searchTypeVector;
+        searchKeywordTypePrefix  += "&max_return="+maxReturn+"&query=";
     }
 
     public String getDisplayName()
@@ -278,7 +286,7 @@ implements org.osid.repository.Repository
 			if (searchType.isEqual(this.artifactSearchType)) {
 				query = criteria;
 			} else if(searchType.isEqual(this.keywordSearchType)) {
-                                query = SEARCH_URL_PREFIX+criteria+SEARCH_URL_SUFFIX;
+                                query = address+searchKeywordTypePrefix+criteria;
                         }  else {
                         
 				query = SEARCH_URL_PREFIX + xmlCriteriaToStringUrl(criteria) + SEARCH_URL_SUFFIX;
