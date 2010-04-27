@@ -17,27 +17,32 @@ package edu.tufts.osidimpl.repository.artifact;
 
 import javax.xml.parsers.*;
 import org.w3c.dom.*;
+
+import edu.tufts.osidimpl.repository.fedora_2_2.PID;
+
 import java.io.*;
+import java.util.Properties;
 
 public class Repository
 implements org.osid.repository.Repository
 {
+	public static final String DISPLAY_NAME = "Artifact";
     private org.osid.shared.Id repositoryId = null;
 	private org.osid.shared.Type repositoryType = null;
 	private org.osid.shared.Type assetType = new Type("tufts.edu","asset","artifact");
 	private org.osid.shared.Type artifactSearchType = new Type("tufts.edu","search","artifact");
         private org.osid.shared.Type keywordSearchType = new Type("mit.edu","search","keyword");
         private org.osid.shared.Type artifactMultiFieldSearchType = new Type("tufts.edu","search","artifact-multifield");
-    private String displayName = null;
+    private String displayName =  DISPLAY_NAME;
     private String description = null;
     private String address = null;
-    private String maxReturn = null;
     private String searchKeywordTypePrefix = "searchType=Any";
-    private java.util.Vector searchTypeVector = null;
-	 
-	private static final String SEARCH_URL_PREFIX = "http://artifact-dev.atech.tufts.edu/vue_xml/search2.asp?searchType=Any&max_return=10&query=";
+    private java.util.Vector searchTypeVector = new java.util.Vector();
+    private java.util.Properties configuration;
+    private static final String DEFAULT_ADDRESS = "http://artifact.tufts.edu/";
+	private static final String SEARCH_URL_PREFIX = DEFAULT_ADDRESS+"vue_xml/search2.asp?searchType=Any&max_return=10&query=";
 	private static final String SEARCH_URL_SUFFIX = "&Submit=Submit";
-	
+	private int maxReturn = 10;
     protected Repository(String displayName,
 						 String description,
 						 String address,
@@ -50,12 +55,14 @@ implements org.osid.repository.Repository
         this.displayName = displayName;
         this.description = description;
         this.address = address;
-        this.maxReturn = maxReturn;
 		this.repositoryId = repositoryId;
         this.repositoryType = repositoryType;
         this.searchTypeVector = searchTypeVector;
         searchKeywordTypePrefix  += "&max_return="+maxReturn+"&query=";
+        System.out.println("R: Address: "+ address);
     }
+    
+     
 
     public String getDisplayName()
     throws org.osid.repository.RepositoryException
@@ -285,13 +292,18 @@ implements org.osid.repository.Repository
                         System.out.println(criteria);
 			if (searchType.isEqual(this.artifactSearchType)) {
 				query = criteria;
-			} else if(searchType.isEqual(this.keywordSearchType)) {
-                                query = address+searchKeywordTypePrefix+criteria;
+			} else if(searchType.isEqual(this.keywordSearchType) && this.address !=null) {
+					 
+                                query = this.address+searchKeywordTypePrefix+criteria;
                         }  else {
                         
-				query = SEARCH_URL_PREFIX + xmlCriteriaToStringUrl(criteria) + SEARCH_URL_SUFFIX;
+				query = SEARCH_URL_PREFIX +  criteria  + SEARCH_URL_SUFFIX;
 			}
+			
 			Utilities.log("Artifact Query " + query);
+			System.out.println("Address:"+address);
+			System.out.println("Query:" +query);
+ 
 			return new AssetIterator(query,this.repositoryId);
         }
         catch (Throwable t)
@@ -299,6 +311,7 @@ implements org.osid.repository.Repository
         	t.printStackTrace();
             Utilities.log(t);
 			if (t.getMessage().equals(org.osid.OsidException.PERMISSION_DENIED)) {
+				t.printStackTrace();
 				throw new org.osid.repository.RepositoryException(org.osid.OsidException.PERMISSION_DENIED);
 			}
             throw new org.osid.repository.RepositoryException(org.osid.OsidException.OPERATION_FAILED);
@@ -374,7 +387,7 @@ implements org.osid.repository.Repository
         {
             throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.NULL_ARGUMENT);
         }
-        return new Properties();
+        return (org.osid.shared.Properties) new Properties();
     }
 
     public org.osid.shared.TypeIterator getPropertyTypes()
@@ -412,4 +425,6 @@ implements org.osid.repository.Repository
     {
         return false;
     }
+    
+
 }

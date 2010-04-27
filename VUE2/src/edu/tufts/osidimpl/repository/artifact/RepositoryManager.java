@@ -56,10 +56,47 @@ implements org.osid.repository.RepositoryManager
     {
 		this.configuration = configuration;
 		try {
-			Object displayName = configuration.getProperty("displayName");
-			if(displayName != null) {
-				 this.repository  = new Repository(configuration,REPOSITORY_ID_STRING);
-			}
+			org.osid.logging.LoggingManager loggingManager = (org.osid.logging.LoggingManager)org.osid.OsidLoader.getManager("org.osid.logging.LoggingManager",
+					 "comet.osidimpl.logging.plain",
+					 this.context,
+					 new java.util.Properties());
+
+					org.osid.logging.WritableLog log = null;
+					try {
+						log = loggingManager.getLogForWriting("ArtifactRepository");
+					} catch (org.osid.logging.LoggingException lex) {
+						log = loggingManager.createLog("ArtifactRepository");
+					}
+					log.assignFormatType(new Type("mit.edu","logging","plain"));
+					log.assignPriorityType(new Type("mit.edu","logging","info"));
+					Utilities.setLog(log);			
+					
+					org.osid.id.IdManager idManager = (org.osid.id.IdManager)org.osid.OsidLoader.getManager("org.osid.id.IdManager",
+					"comet.osidimpl.id.no_persist",
+					this.context,
+					new java.util.Properties());
+					Utilities.setIdManager(idManager);
+					
+					/*
+					Make on Repository
+					*/
+					this.repositoryType = new Type("edu.tufts","repository","artifact");
+					this.repositoryId = Utilities.getIdManager().getId("72012680-81CF-4E5C-A07F-07841CB97B0B-1194-000002C24B7AA681");
+//					this.searchTypeVector.addElement(new Type("mit.edu","search","title"));
+//					this.searchTypeVector.addElement(new Type("mit.edu","search","author"));
+					this.searchTypeVector.addElement(new Type("mit.edu","search","keyword"));
+//					this.searchTypeVector.addElement(new Type("mit.edu","search","multiField"));
+//					this.searchTypeVector.addElement(new Type("tufts.edu","search","artifact"));
+					this.repository = new Repository("Artifact",
+							"Tufts University Libraries Artifact Content",
+							(String) configuration.getProperty("address"),
+							(String) configuration.getProperty("maxReturn"),
+							this.repositoryId,
+							this.repositoryType,
+							this.searchTypeVector);
+					System.out.println("RM: Address: "+ configuration.getProperty("address"));
+					this.repositoryVector.addElement(this.repository);
+
         }
         catch (Throwable t)
         {
