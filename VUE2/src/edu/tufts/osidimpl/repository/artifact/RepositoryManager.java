@@ -15,6 +15,8 @@
 
 package edu.tufts.osidimpl.repository.artifact;
 
+ 
+
 public class RepositoryManager
 implements org.osid.repository.RepositoryManager
 {
@@ -22,7 +24,8 @@ implements org.osid.repository.RepositoryManager
 	public static final String DESCRIPTION = "Tufts University Libraries Artifact Content";
 	public static final String DEFAULT_ADDRESS = "http://artifact.tufts.edu/vue_xml/search2.asp?";
 	public static final String DEFAULT_MAX_RETURN = "10";
-	
+	private static final String REPOSITORY_ID_STRING = "6D6ABA4C-3B1F-4326-BBCD-A3417CCE4687-EC497099";
+    
     private org.osid.OsidContext context = null;
     private java.util.Properties configuration = null;
     private org.osid.repository.Repository repository = null;
@@ -53,48 +56,14 @@ implements org.osid.repository.RepositoryManager
     {
 		this.configuration = configuration;
 		try {
-			org.osid.logging.LoggingManager loggingManager = (org.osid.logging.LoggingManager)org.osid.OsidLoader.getManager("org.osid.logging.LoggingManager",
-																															 "comet.osidimpl.logging.plain",
-																															 this.context,
-																															 new java.util.Properties());
-			
-			org.osid.logging.WritableLog log = null;
-			try {
-				log = loggingManager.getLogForWriting("ArtifactRepository");
-			} catch (org.osid.logging.LoggingException lex) {
-				log = loggingManager.createLog("ArtifactRepository");
+			Object displayName = configuration.getProperty("displayName");
+			if(displayName != null) {
+				 this.repository  = new Repository(configuration,REPOSITORY_ID_STRING);
 			}
-			log.assignFormatType(new Type("mit.edu","logging","plain"));
-			log.assignPriorityType(new Type("mit.edu","logging","info"));
-			Utilities.setLog(log);			
-			
-			org.osid.id.IdManager idManager = (org.osid.id.IdManager)org.osid.OsidLoader.getManager("org.osid.id.IdManager",
-																									"comet.osidimpl.id.no_persist",
-																									this.context,
-																									new java.util.Properties());
-			Utilities.setIdManager(idManager);
-			
-			/*
-			 Make on Repository
-			 */
-			this.repositoryType = new Type("edu.tufts","repository","artifact");
-			this.repositoryId = Utilities.getIdManager().getId("72012680-81CF-4E5C-A07F-07841CB97B0B-1194-000002C24B7AA681");
-			this.searchTypeVector.addElement(new Type("mit.edu","search","title"));
-			this.searchTypeVector.addElement(new Type("mit.edu","search","author"));
-			this.searchTypeVector.addElement(new Type("mit.edu","search","keyword"));
-            this.searchTypeVector.addElement(new Type("mit.edu","search","multiField"));
-			this.searchTypeVector.addElement(new Type("tufts.edu","search","artifact"));
-			this.repository = new Repository(NAME,
-											 DESCRIPTION,
-											 configuration.getProperty("address", DEFAULT_ADDRESS),
-											 configuration.getProperty("maxReturn",DEFAULT_MAX_RETURN),
-											 this.repositoryId,
-											 this.repositoryType,
-											 this.searchTypeVector);
-			this.repositoryVector.addElement(this.repository);
         }
         catch (Throwable t)
         {
+        	t.printStackTrace();
             Utilities.log(t);
             if (t instanceof org.osid.repository.RepositoryException)
             {
