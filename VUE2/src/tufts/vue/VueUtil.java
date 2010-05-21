@@ -41,7 +41,7 @@ import tufts.vue.LWComponent.ChildKind;
  *
  * Various static utility methods for VUE.
  *
- * @version $Revision: 1.109 $ / $Date: 2010-02-03 19:17:41 $ / $Author: mike $
+ * @version $Revision: 1.110 $ / $Date: 2010-05-21 18:44:08 $ / $Author: brian $
  * @author Scott Fraize
  *
  */
@@ -225,8 +225,8 @@ public class VueUtil extends tufts.Util
         // We are defining a line here using the formula:
         // y = mx + b  -- m is slope, b is y-intercept (where crosses x-axis)
         
-        final boolean m1vertical = (s1x1 == s1x2);
-        final boolean m2vertical = (s2x1 == s2x2);
+        final boolean m1vertical = (Math.abs(s1x1 - s1x2) < 0.001f);
+        final boolean m2vertical = (Math.abs(s2x1 - s2x2) < 0.001f);
         final float m1;
         final float m2;
 
