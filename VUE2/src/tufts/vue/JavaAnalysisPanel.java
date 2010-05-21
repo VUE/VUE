@@ -46,6 +46,8 @@ import tufts.vue.gui.VueFileChooser;
 
 public class JavaAnalysisPanel extends JPanel implements ActionListener {
 	private static final long			serialVersionUID = 1L;
+    protected static final org.apache.log4j.Logger
+    									Log = org.apache.log4j.Logger.getLogger(JavaAnalysisPanel.class);
 	protected static final String		DOT_JAVA = ".java",
 										ABSTRACT_KEYWORD = "abstract",
 										CLASS_KEYWORD = "class",
@@ -83,7 +85,8 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 	protected static final char			DOLLAR_TOKEN = '$',
 										UNDERSCORE_TOKEN = '_',
 										COMMA_TOKEN = ',',
-										SEMICOLON_TOKEN = ';';
+										SEMICOLON_TOKEN = ';',
+										INNER_CLASS_NAME_SEPARATOR = '$';
 	protected static final int			CLASSES_MASK = 1,
 										INNER_CLASSES_MASK = 2,
 										INTERFACES_MASK = 4,
@@ -212,8 +215,7 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 						viewerCenterY = viewerCenter.getY();
 
 			if (DEBUG) {
-				System.out.println("!!!!!!!!!!!! in AnalyzeJava.actionPerformed(): analyzing " + 
-					fileCount + " file" + (fileCount == 1 ? "." : "s."));
+				Log.info("analyzing " + fileCount + " file" + (fileCount == 1 ? "." : "s."));
 			}
 
 			newComps = new ArrayList<LWComponent>();
@@ -288,7 +290,7 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 				String	label = comp.getLabel();
 
 				if (DEBUG) {
-					System.out.println("!!!!!!!!!!!! in AnalyzeJava.nodesOnMap(): found " + label + ".");
+					Log.info("nodesOnMap() found " + label + ".");
 				}
 
 				allNodes.add((LWNode)comp);
@@ -314,7 +316,7 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 			String			mainName = file.getName().replace(DOT_JAVA, "");
 
 			if (DEBUG) {
-				System.out.println("!!!!!!!!!!!! in AnalyzeJava.parseSourceFile(): analyzing " + file.getName() + " for" +
+				Log.info("parseSourceFile() analyzing " + file.getName() + " for" +
 					(analyzeClasses ? " classes" + (analyzeInnerClasses ? " (including inner classes)" : "") : "") +
 					(analyzeInterfaces ? (analyzeClasses ? "," : "") + " interfaces" + ((analyzeInnerInterfaces ? " (including inner interfaces)" : "")) : "") + ".");
 			}
@@ -445,14 +447,16 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 
 	protected void newClass(boolean isAbstract, boolean isInner, String mainName, String className,
 			String extendsClassName, ArrayList<String> implementsInterfaceNames, double x, double y) {
+		StringBuffer	debugMessage = null;
+
 		if (isInner) {
-			className = mainName + "." + className;
+			className = mainName + INNER_CLASS_NAME_SEPARATOR + className;
 		}
 
 		LWNode		classNode = findOrCreateClassNode(className, x, y);
 
 		if (DEBUG) {
-			System.out.print("!!!!!!!!!!!! in AnalyzeJava.newClass(): found " +
+			debugMessage = new StringBuffer("newClass() found " +
 				(isAbstract ? "abstract " : "") + (isInner ? "inner " : "") +
 				"class " + className);
 		}
@@ -465,7 +469,7 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 
 			if (isInner) {
 				// First see if this inner class might be extending an already-defined inner class.
-				extendsNode = classHash.get(mainName + "." + extendsClassName);
+				extendsNode = classHash.get(mainName + INNER_CLASS_NAME_SEPARATOR + extendsClassName);
 			}
 
 			if (extendsNode == null) {
@@ -475,7 +479,7 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 			findOrCreateExtendsLink(classNode, extendsNode);
 
 			if (DEBUG) {
-				System.out.print(" extends " + extendsNode.label);
+				debugMessage.append(" extends " + extendsNode.label);
 			}
 		}
 
@@ -483,7 +487,7 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 			Iterator<String>	iterator = implementsInterfaceNames.iterator();
 
 			if (DEBUG) {
-				System.out.print(" implements ");
+				debugMessage.append(" implements ");
 			}
 
 			while (iterator.hasNext()) {
@@ -492,7 +496,7 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 
 				if (isInner) {
 					// First see if this inner class might be implementing an already-defined inner interface.
-					implementsNode = classHash.get(mainName + "." + implementsInterfaceName);
+					implementsNode = classHash.get(mainName + INNER_CLASS_NAME_SEPARATOR + implementsInterfaceName);
 				}
 
 				if (implementsNode == null) {
@@ -502,27 +506,30 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 				findOrCreateImplementsLink(classNode, implementsNode);
 
 				if (DEBUG) {
-					System.out.print(implementsNode.label + (iterator.hasNext() ? ", " : ""));
+					debugMessage.append(implementsNode.label + (iterator.hasNext() ? ", " : ""));
 				}
 			}
 		}
 
 		if (DEBUG) {
-			System.out.print(".");
+			debugMessage.append(".");
+			Log.info(debugMessage.toString());
 		}
 	}
 
 
 	protected void newInterface(boolean isAbstract, boolean isInner, String mainName, String interfaceName,
 			ArrayList<String> extendsInterfaceNames, double x, double y) {
+		StringBuffer	debugMessage = null;
+
 		if (isInner) {
-			interfaceName = mainName + "." + interfaceName;
+			interfaceName = mainName + INNER_CLASS_NAME_SEPARATOR + interfaceName;
 		}
 
 		LWNode		interfaceNode = findOrCreateInterfaceNode(interfaceName, x, y);
 
 		if (DEBUG) {
-			System.out.print("!!!!!!!!!!!! in AnalyzeJava.newInterface(): found " +
+			debugMessage = new StringBuffer("newInterface() found " +
 				(isAbstract ? "abstract " : "") + (isInner ? "inner " : "") +
 				"interface " + interfaceName);
 		}
@@ -535,7 +542,7 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 			Iterator<String>	iterator = extendsInterfaceNames.iterator();
 
 			if (DEBUG) {
-				System.out.print(" extends ");
+				debugMessage.append(" extends ");
 			}
 
 			while (iterator.hasNext()) {
@@ -544,7 +551,7 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 
 				if (isInner) {
 					// First see if this inner interface might be extending an already-defined inner interface.
-					extendsNode = classHash.get(mainName + "." + extendsInterfaceName);
+					extendsNode = classHash.get(mainName + INNER_CLASS_NAME_SEPARATOR + extendsInterfaceName);
 				}
 
 				if (extendsNode == null) {
@@ -554,13 +561,14 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 				findOrCreateExtendsLink(interfaceNode, extendsNode);
 
 				if (DEBUG) {
-					System.out.print(extendsNode.label + (iterator.hasNext() ? ", " : ""));
+					debugMessage.append(extendsNode.label + (iterator.hasNext() ? ", " : ""));
 				}
 			}
 		}
 
 		if (DEBUG) {
-			System.out.print(".");
+			debugMessage.append(".");
+			Log.info(debugMessage.toString());
 		}
 	}
 
