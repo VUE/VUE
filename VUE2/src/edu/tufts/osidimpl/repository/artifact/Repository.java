@@ -59,7 +59,6 @@ implements org.osid.repository.Repository
         this.repositoryType = repositoryType;
         this.searchTypeVector = searchTypeVector;
         searchKeywordTypePrefix  += "&max_return="+maxReturn+"&query=";
-        System.out.println("R: Address: "+ address);
     }
     
      
