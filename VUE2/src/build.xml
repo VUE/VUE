@@ -1227,9 +1227,10 @@
     <target name="mac-dist-15-raw"> <make-mac-osx-application name="VUE15" plist="Info-Java15.plist"/> </target>
     
     <target name="mac-dist-nv" depends="jar-narravision" description="Creates a Mac OS X distributable Applcation directory for NarraVision.">
-       <sleep seconds="300"/> 
+    	<!--
+    	<sleep seconds="300"/>
       <make-mac-osx-application name="NarraVision" plist="Info-NarraVision.plist" jar-0="${narravision.jar}"/>
-        <!--
+       
       <extra-tasks>
         <copy file="${lib.home}/BlackShipsImages.jar" todir="${build.home}/NarraVision.app/Contents" verbose="true"/>
       </extra-tasks>
