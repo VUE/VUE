@@ -39,5 +39,5 @@ public class PreferenceConstants
 		public static final String FORMATTING_CATEGORY="formatting";
 		public static final String DATA_CATEGORY="data";
 		public static final String LANGUAGE_CATEGORY="language";
-		
+		public static final String EXPERIMENTAL_CATEGORY="experimental";
 }

@@ -87,6 +87,7 @@ import edu.tufts.vue.ontology.action.OntologyControlsOpenAction;
 import edu.tufts.vue.ontology.ui.OntologyBrowser;
 import edu.tufts.vue.preferences.VuePrefEvent;
 import edu.tufts.vue.preferences.VuePrefListener;
+import edu.tufts.vue.preferences.implementations.BooleanPreference;
 
 /**
  * The main VUE application menu bar.
@@ -951,7 +952,17 @@ public class VueMenuBar extends javax.swing.JMenuBar
 
         	analysisMenu.add(createWindowItem(SeasrAnalysisPanel.getSeasrAnalysisDock(), 0, VueResources.getString("menu.windows.seasr")));            
 
-        	if (DEBUG.CODE_ANALYSIS)
+        	BooleanPreference javaAnalysisPreference = BooleanPreference.create(
+        			edu.tufts.vue.preferences.PreferenceConstants.EXPERIMENTAL_CATEGORY,
+        			"JavaAnalysis", 
+        			VueResources.getString("analyze.java.javaAnalysis"),
+        			VueResources.getString("analyze.java.preference.description"),
+        			VueResources.getString("analyze.java.preference.message"),
+        			Boolean.FALSE,
+        			true);
+        	boolean javaAnalysisPanelEnabled = javaAnalysisPreference.isTrue();
+
+        	if (javaAnalysisPanelEnabled)
         		analysisMenu.add(createWindowItem(JavaAnalysisPanel.getJavaAnalysisDock(), 0, VueResources.getString("menu.windows.java")));            
         //}
        

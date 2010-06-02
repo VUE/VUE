@@ -25,7 +25,9 @@ import javax.swing.*;
 import javax.swing.border.*;
 
 import edu.tufts.vue.metadata.ui.MetadataEditor;
+import edu.tufts.vue.preferences.implementations.BooleanPreference;
 
+import tufts.vue.VueResources;
 import tufts.vue.filter.*;
 import tufts.vue.gui.*;
 
@@ -112,7 +114,18 @@ public class MapInspectorPanel extends JPanel
     	   mTwitterPanel = new VueTwitterPanel();
     	   mTwitterPanel.setName(VueResources.getString("twitter.tabname"));
        }
-       if (DEBUG.IM)
+
+       BooleanPreference imPreference = BooleanPreference.create(
+    		   edu.tufts.vue.preferences.PreferenceConstants.EXPERIMENTAL_CATEGORY,
+    		   "IM", 
+    		   VueResources.getString("im.title"),
+    		   VueResources.getString("im.preference.description"),
+    		   VueResources.getString("im.preference.message"),
+    		   Boolean.FALSE,
+    		   true);
+       boolean imEnabled = imPreference.isTrue();
+ 
+       if (imEnabled)
         {
         	mVueAimPanel = new VueAimPanel();
         	mVueAimPanel.setName(VueResources.getString("im.tabname"));
@@ -125,7 +138,7 @@ public class MapInspectorPanel extends JPanel
         mapInfoStack.addPane(mInfoPanel,0f);
         mapInfoStack.addPane(mDescriptionPanel, 0f);
         mapInfoStack.addPane(metadataPanel,0f);
-        if (DEBUG.IM)
+        if (imEnabled)
         	mapInfoStack.addPane(mVueAimPanel ,0f);
         if (DEBUG.TWITTER)
         	mapInfoStack.addPane(mTwitterPanel,0f);

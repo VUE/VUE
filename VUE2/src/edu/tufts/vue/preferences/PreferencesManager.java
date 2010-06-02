@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Vector;
 import java.util.prefs.*;
 
+import edu.tufts.vue.preferences.PreferenceConstants;
 import edu.tufts.vue.preferences.implementations.SeasrRepositoryPreference;
 import edu.tufts.vue.preferences.interfaces.VuePreference;
 
@@ -50,6 +51,7 @@ public class PreferencesManager {
 		categories.add(PreferenceConstants.WINDOW_CATEGORY);
 		categories.add(PreferenceConstants.LANGUAGE_CATEGORY);
 		categories.add(PreferenceConstants.DATA_CATEGORY);
+		categories.add(PreferenceConstants.EXPERIMENTAL_CATEGORY);
 	  }
 	  
 	  public static void registerPreference(Object o)
@@ -109,8 +111,4 @@ public class PreferencesManager {
 	  {
 		  java.util.prefs.Preferences.userNodeForPackage(PreferencesManager.class).addPreferenceChangeListener(pcl);
 	  }
-	 
-	
-		
-	
 }
