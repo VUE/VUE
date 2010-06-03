@@ -94,7 +94,9 @@ implements org.osid.repository.RepositoryManager
 							this.repositoryId,
 							this.repositoryType,
 							this.searchTypeVector);
-					System.out.println("RM: Address: "+ configuration.getProperty("address"));
+//					System.out.println("RM: Address: "+ configuration.getProperty("address"));
+//					System.out.println("RM: maxReturn: "+ configuration.getProperty("maxReturn"));
+					this.repositoryVector =  new java.util.Vector();
 					this.repositoryVector.addElement(this.repository);
 
         }

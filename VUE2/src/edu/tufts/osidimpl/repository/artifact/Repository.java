@@ -42,6 +42,7 @@ implements org.osid.repository.Repository
     private static final String DEFAULT_ADDRESS = "http://artifact.tufts.edu/";
 	private static final String SEARCH_URL_PREFIX = DEFAULT_ADDRESS+"vue_xml/search2.asp?searchType=Any&max_return=10&query=";
 	private static final String SEARCH_URL_SUFFIX = "&Submit=Submit";
+	private static final String QUESTION = "?";
 	private int maxReturn = 10;
     protected Repository(String displayName,
 						 String description,
@@ -293,7 +294,7 @@ implements org.osid.repository.Repository
 				query = criteria;
 			} else if(searchType.isEqual(this.keywordSearchType) && this.address !=null) {
 					 
-                                query = this.address+searchKeywordTypePrefix+criteria;
+                                query = this.address+QUESTION+searchKeywordTypePrefix+criteria;
                         }  else {
                         
 				query = SEARCH_URL_PREFIX +  criteria  + SEARCH_URL_SUFFIX;
