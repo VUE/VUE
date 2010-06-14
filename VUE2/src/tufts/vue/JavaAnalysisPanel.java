@@ -162,7 +162,7 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 		addToGridBag(contentPanel, innerInterfacesCheckBox, 0, 3, 1, 1, GridBagConstraints.NORTHWEST, GridBagConstraints.NONE, 0.0, 0.0, HALF_GUTTER_INSETS_INDENTED);
 		addToGridBag(contentPanel, messageTextArea,         0, 4, 1, 1, GridBagConstraints.CENTER,    GridBagConstraints.BOTH, 1.0, 1.0, HALF_GUTTER_INSETS);
 		addToGridBag(contentPanel, analyzeButton,           0, 5, 1, 1, GridBagConstraints.SOUTHEAST, GridBagConstraints.NONE, 0.0, 0.0, HALF_GUTTER_INSETS);
-		addToGridBag(this, contentPanel,                    0, 0, 1, 1, GridBagConstraints.CENTER,    GridBagConstraints.BOTH, 1.0, 1.0, HALF_GUTTER_INSETS);
+		addToGridBag(this,         contentPanel,            0, 0, 1, 1, GridBagConstraints.CENTER,    GridBagConstraints.BOTH, 1.0, 1.0, HALF_GUTTER_INSETS);
 
 		if (DEBUG) {
 			contentPanel.setBackground(Color.CYAN);
@@ -414,9 +414,9 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 									// in the absence of an "extents" keyword.  If that's not the case, also look at the
 									// next token to see if it is "implements".
 									if ((tokenType == StreamTokenizer.TT_WORD &&
-										tokenizer.sval.equals(IMPLEMENTS_KEYWORD)) || 
-										((tokenType = tokenizer.nextToken()) == StreamTokenizer.TT_WORD &&
-										tokenizer.sval.equals(IMPLEMENTS_KEYWORD))) {
+											tokenizer.sval.equals(IMPLEMENTS_KEYWORD)) || 
+											((tokenType = tokenizer.nextToken()) == StreamTokenizer.TT_WORD &&
+											tokenizer.sval.equals(IMPLEMENTS_KEYWORD))) {
 										boolean		parsingInterfaces = true;
 
 										implementsInterfaceNames = new ArrayList<String>();
@@ -439,7 +439,8 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 							boolean		isNotInner = className.equals(sourceName);
 
 							if (analyzeInnerClasses || isNotInner) {
-								newClass(isPublic, isAbstract, isFinal, (isNotInner ? null : sourceName), className, extendsClassName, implementsInterfaceNames, x, y);
+								newClass(isPublic, isAbstract, isFinal, (isNotInner ? null : sourceName),
+										className, extendsClassName, implementsInterfaceNames, x, y);
 							}
 						}
 					}
@@ -455,7 +456,7 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 							ArrayList<String>	extendsInterfaceNames = null;
 
 							if ((tokenType = tokenizer.nextToken()) == StreamTokenizer.TT_WORD &&
-								tokenizer.sval.equals(EXTENDS_KEYWORD)) {
+									tokenizer.sval.equals(EXTENDS_KEYWORD)) {
 								boolean		parsingInterfaces = true;
 
 								extendsInterfaceNames = new ArrayList<String>();
@@ -476,7 +477,8 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 							boolean		isNotInner = interfaceName.equals(sourceName);
 
 							if (analyzeInnerInterfaces || isNotInner) {
-								newInterface(isPublic, isAbstract, isFinal, (isNotInner ? null : sourceName), interfaceName, extendsInterfaceNames, x, y);
+								newInterface(isPublic, isAbstract, isFinal, (isNotInner ? null : sourceName),
+										interfaceName, extendsInterfaceNames, x, y);
 							}
 						}
 					}
@@ -526,13 +528,13 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 			if (accessFlags.isInterface) {
 				if (analyzeInterfaces && (analyzeInnerInterfaces || isNotInner)) {
 					newInterface(accessFlags.isPublic, accessFlags.isAbstract, accessFlags.isFinal,
-						(isNotInner ? null : sourceName), classRef.name, interfaces.names, x, y);
+							(isNotInner ? null : sourceName), classRef.name, interfaces.names, x, y);
 				}
 			} else {
 				if (analyzeClasses && (analyzeInnerClasses || isNotInner)) {
 					newClass(accessFlags.isPublic, accessFlags.isAbstract, accessFlags.isFinal,
-						(isNotInner ? null : sourceName), classRef.name, superclassRef.name,
-						(analyzeInterfaces ? interfaces.names : null), x, y);
+							(isNotInner ? null : sourceName), classRef.name, superclassRef.name,
+							(analyzeInterfaces ? interfaces.names : null), x, y);
 				}
 			}
 
@@ -571,8 +573,8 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 
 		if (DEBUG) {
 			debugMessage = new StringBuffer("newClass() found " +
-				(isPublic ? "public " : "") + (isAbstract ? "abstract " : "") + (isFinal ? "final " : "") +
-				"class " + className);
+					(isPublic ? "public " : "") + (isAbstract ? "abstract " : "") + (isFinal ? "final " : "") +
+					"class " + className);
 		}
 
 		// This class has now been declared in a file;  set the visual cues to communicate that, and add metadata.
@@ -622,8 +624,8 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 
 		if (DEBUG) {
 			debugMessage = new StringBuffer("newInterface() found " +
-				(isPublic ? "public " : "") + (isAbstract ? "abstract " : "") + (isFinal ? "final " : "") +
-				"interface " + interfaceName);
+					(isPublic ? "public " : "") + (isAbstract ? "abstract " : "") + (isFinal ? "final " : "") +
+					"interface " + interfaceName);
 		}
 
 		// This interface has now been declared in a file;  set the visual cue to communicate that.
@@ -1082,7 +1084,7 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 
 
 	private class ConstantPoolItemLong extends ConstantPoolItem {
-		public long	value;
+		public long		value;
 
 		ConstantPoolItemLong(DataInputStream stream) throws java.io.IOException {
 			value = stream.readLong();
@@ -1235,14 +1237,14 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 						nameWithoutPackage = null;
 
 		ClassRef(DataInputStream stream, ConstantPool pool) throws java.io.IOException {
-			short classIndex = stream.readShort();
+			short		classIndex = stream.readShort();
 
 			ConstantPoolItemClass	classItem = (ConstantPoolItemClass)pool.items[classIndex];
 			ConstantPoolItemUTF8	classNameItem =	(ConstantPoolItemUTF8)pool.items[classItem.nameIndex];
 
 			name = classNameItem.value.replace('/', '.');
 
-			int		packageNameLength = name.lastIndexOf('.') + 1;
+			int			packageNameLength = name.lastIndexOf('.') + 1;
 
 			nameWithoutPackage = (packageNameLength > 0 ? name.substring(packageNameLength) : name);
 
