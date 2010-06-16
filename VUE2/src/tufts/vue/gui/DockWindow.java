@@ -1425,7 +1425,7 @@ public class DockWindow
             // which is important for MacOSX window shadow.
             // Unfrotunately, this is not full-proof, but
             // adding a call to toFront seems to have fixed this?
-            if (isMacAqua && MacWindowShadowEnabled) {
+            if (isMacAqua && MacWindowShadowEnabled  && !VUE.isApplet()) {
                 GUI.invokeAfterAWT(new Runnable() { public void run() {
                     superSetVisible(true);
                     toFront();
@@ -1445,7 +1445,8 @@ public class DockWindow
     public void setVisible(boolean show) {
     	
         setVisible(show, true);
-        if (show)
+    	
+        if (show && !VUE.isApplet())
         	toFront();
     }
 
@@ -1472,22 +1473,22 @@ public class DockWindow
             return;
         }
 
-        if (show) {
+        if (show && !VUE.isApplet()) {
             if (autoUnrollOnShow && isRolledUp())
                 setRolledUp(false);
             else if (false && mUnrolledShape != null)
                 // need to show before we do this!  Will need to tweak us so that's okay to do.
                 setShapeAnimated(getX(), getY(), mUnrolledShape.width, mUnrolledShape.height);
             
-        } else if (false) {
+        } else if (false && !VUE.isApplet()) {
             if (!isRolledUp())
                 mUnrolledShape = getBounds();
             setShapeAnimated(getX(), getY(), getWidth(), 0);
         }
-            
+
         if (isVisible() == mShowing)
             return;
-        
+
         updateOnVisibilityChange();
         superSetVisible(show);
 
@@ -1508,7 +1509,7 @@ public class DockWindow
             mChildWhenHidden = null;
             mParentWhenHidden = null;
             
-            if (isMac && true || windowStackChanged) {
+            if ((isMac && true || windowStackChanged) && !VUE.isApplet()) {
                 raiseChildrenLater();
             }
         }

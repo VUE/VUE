@@ -633,8 +633,8 @@ public class VueApplet extends JApplet {
 	@SuppressWarnings("unchecked")
 	public static void addZoteroDatasource(final String collectionName, final String fileString, final boolean addToMap) {
 		sourceAdded=false;
-		AccessController.doPrivileged(new PrivilegedAction() {
-			public Object run() {
+	//	AccessController.doPrivileged(new PrivilegedAction() {
+		//	public Object run() {
 				try {				
 					DataSourceList l = DataSetViewer.getDataSetList();
 					int length = l.getModel().getSize();
@@ -649,14 +649,14 @@ public class VueApplet extends JApplet {
 							{
 								sourceAdded=true;
 								//we already have it in the list refresh it and move on...
-								SwingUtilities.invokeLater(new Runnable() { public void run() {
-									VUE.getContentDock().setVisible(true);
-									VUE.getContentPanel().showDatasetsTab();
-									VUE.getContentPanel().getDSBrowser().getDataSetViewer().setActiveDataSource(xmlds);
-									VUE.getContentPanel().getDSBrowser().getDataSetViewer().refreshBrowser();
 								
-								
-								
+								VUE.getContentDock().setVisible(true);
+								VUE.getContentPanel().showDatasetsTab();
+									
+									SwingUtilities.invokeLater(new Runnable() { public void run() {
+										VUE.getContentPanel().getDSBrowser().getDataSetViewer().setActiveDataSource(xmlds);
+										VUE.getContentPanel().getDSBrowser().getDataSetViewer().refreshBrowser();
+									}});
 								if (addToMap)
 								{
 									
@@ -666,15 +666,9 @@ public class VueApplet extends JApplet {
 									while (!added && tries < 10)
 									{
 										try
-										{
-									   
+										{									   
 											added = true;
-									
-											//	  DataAction.annotateForMap(xmlds.getSchema(), VUE.getActiveMap());
-//											xmlds.
 											List<LWComponent> nodes =  DataAction.makeRowNodes(xmlds.getSchema());
-
-											//List<tufts.vue.DataRow> nodes = xmlds.getSchema().getRows();
 									        LWMap map = VUE.getActiveMap();
 									     
 									        for(LWComponent component: nodes) {
@@ -695,16 +689,17 @@ public class VueApplet extends JApplet {
 											}
 										}
 									}
-								}
-								}});
+								}//end addToMap
+							//	}});
 								
 								//return null;
 							}
 						}
-					}
+					}//end for
 				
 					if (sourceAdded)
-						return new Object();
+						return;
+					//	return new Object();
 					String xml;
 					final tufts.vue.DataSource ds = new XmlDataSource(collectionName, fileString);	
 					Properties props = new Properties();
@@ -717,12 +712,12 @@ public class VueApplet extends JApplet {
 					final BrowseDataSource		bds = (BrowseDataSource)ds;
 					VUE.getContentDock().setVisible(true);
 					
-					SwingUtilities.invokeLater(new Runnable()
-					{	public void run()
-						{
+
 						VUE.getContentPanel().showDatasetsTab();
 						DataSetViewer.getDataSetList().addOrdered(ds);
+						SwingUtilities.invokeLater(new Runnable(){	public void run()	{						
 						VUE.getContentPanel().getDSBrowser().getDataSetViewer().setActiveDataSource(ds);									       
+						}});
 						DataSourceViewer.saveDataSourceViewer();			    			    																			
 						if (addToMap)
 						{
@@ -758,16 +753,16 @@ public class VueApplet extends JApplet {
 								}
 							}
 						}
-						}
-						});
+					//	}
+					//	});
 										
 				} catch (Exception e) {
 					e.printStackTrace();
 				}											
-				return null;		
-			}
+				//return null;		
+	//		}
 
-		});
+	//	});
 		
 		
 	}
