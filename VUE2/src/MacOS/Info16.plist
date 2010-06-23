@@ -1,95 +1,82 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist SYSTEM "file://localhost/System/Library/DTDs/PropertyList.dtd">
-<plist version="0.9">
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
 <dict>
-	<key>CFBundleName</key>
-	<string>VUE</string>
-	<key>CFBundleVersion</key>
-	<string>10.2</string>
 	<key>CFBundleAllowMixedLocalizations</key>
 	<string>true</string>
-	<key>CFBundleExecutable</key>
-	<string>JavaApplicationStub</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>vue</string>
+				<string>vpk</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>VUE.icns</string>
+			<key>CFBundleTypeName</key>
+			<string>VUE Concept Map</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+		</dict>
+	</array>
+	<key>CFBundleExecutable</key>
+	<string>JavaApplicationStub</string>
+	<key>CFBundleGetInfoString</key>
+	<string>Tufts Visual Understanding Environment</string>
+	<key>CFBundleIconFile</key>
+	<string>VUE.icns</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>VUE</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleSignature</key>
 	<string>TVUE</string>
-	<key>CFBundleGetInfoString</key>
-	<string>Tufts Visual Understanding Environment</string>
-	<key>CFBundleInfoDictionaryVersion</key>
-	<string>6.0</string>
-	<key>CFBundleIconFile</key>
-	<string>VUE.icns</string>
-	<key>CFBundleDocumentTypes</key>
-	<array>
-	  <dict>
-	    <key>CFBundleTypeExtensions</key>
-	    <array>
-	      <string>vue</string>
-	      <string>vpk</string>
-	    </array>
-	    <key>CFBundleTypeIconFile</key>
-	    <string>VUE.icns</string>
-	    <key>CFBundleTypeName</key>
-	    <string>VUE Concept Map</string>
-	    <key>CFBundleTypeRole</key>
-	    <string>Editor</string>
-	  </dict>
- 	</array>
-        
+	<key>CFBundleVersion</key>
+	<string>10.2</string>
 	<key>Java</key>
 	<dict>
-		<key>VMOptions</key>
-		<string>-Xms256m -Xmx16g -XX:MinHeapFreeRatio=20 -XX:MaxHeapFreeRatio=40 -XX:NewSize=100m -XX:MaxNewSize=100m -XX:SurvivorRatio=6 -XX:TargetSurvivorRatio=80 -XX:+CMSClassUnloadingEnabled -XX:+CMSPermGenSweepingEnabled</string>
-
-		<key>WorkingDirectory</key>
-		<string>$APP_PACKAGE/Contents/Resources/Java</string>
-
-		<key>MainClass</key>
-		<string>tufts.vue.VUE</string>
-
-		<key>JVMVersion</key>
-		<string>1.6+</string>
-
-                <key>JVMArchs</key>
-                <array>
-                  <!-- we actually don't want to do this on Snow Leopard -- there's no java 1.5 VM
-                  available and this is only useful for forcing the 32bit 1.5 JVM so we get access
-                  to the deprecated Java-Cocoa bridge as often as we can on Leopard, but we don't
-                  have a separate Snow Leopard release package -->
-                  <string>i386</string>
-                </array> 
-
 		<key>ClassPath</key>
 		<array>
-                  <string>$APP_PACKAGE/Contents/VUE.jar</string>
-                  <string>$JAVAROOT</string>
-                  <string>/System/Library/Java</string>
- 		</array>
-
-                <!-- splash file will only work for 1.6 JVMs -->
-                <key>SplashFile</key>
-                <string>$APP_PACKAGE/Contents/Resources/splash_graphic_mac.png</string>
-             
+			<string>$APP_PACKAGE/Contents/VUE.jar</string>
+			<string>$JAVAROOT</string>
+			<string>/System/Library/Java</string>
+		</array>
+		<key>JVMArchs</key>
+		<array>
+			<string>i386</string>
+		</array>
+		<key>JVMVersion</key>
+		<string>1.6+</string>
+		<key>MainClass</key>
+		<string>tufts.vue.VUE</string>
 		<key>Properties</key>
 		<dict>
-			<key>apple.laf.useScreenMenuBar</key>
+			<key>apple.awt.Antialiasing</key>
 			<string>true</string>
 			<key>apple.awt.brushMetalLook</key>
 			<string>false</string>
-			<key>com.apple.mrj.application.live-resize</key>
-			<string>false</string>
-			<key>apple.awt.Antialiasing</key>
-			<string>true</string>
 			<key>apple.awt.TextAntialiasing</key>
+			<string>true</string>
+			<key>apple.laf.useScreenMenuBar</key>
 			<string>true</string>
 			<key>com.apple.hwaccel</key>
 			<string>true</string>
 			<key>com.apple.mrj.application.growbox.intrudes</key>
 			<string>true</string>
+			<key>com.apple.mrj.application.live-resize</key>
+			<string>false</string>
 		</dict>
+		<key>SplashFile</key>
+		<string>$APP_PACKAGE/Contents/Resources/splash_graphic_mac.png</string>
+		<key>VMOptions</key>
+		<string>-Xms256m -Xmx2g -XX:MinHeapFreeRatio=20 -XX:MaxHeapFreeRatio=40 -XX:NewSize=100m -XX:MaxNewSize=100m -XX:SurvivorRatio=6 -XX:TargetSurvivorRatio=80 -XX:+CMSClassUnloadingEnabled -XX:+CMSPermGenSweepingEnabled</string>
+		<key>WorkingDirectory</key>
+		<string>$APP_PACKAGE/Contents/Resources/Java</string>
 	</dict>
 </dict>
 </plist>
