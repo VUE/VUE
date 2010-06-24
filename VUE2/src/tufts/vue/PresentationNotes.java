@@ -212,6 +212,8 @@ public class PresentationNotes {
                 dc.setPrintQuality();
 
                 // PROBLEM TOFIX: portals, when rendered as a map-slide, are not showing what's below them
+
+                dc.focused = entry.node; // needed for portals
                 
                 if (DEBUG.Enabled) {
                     Log.debug("DRAWING INTO " + dc + " g=" + graphics + " clip=" + tufts.Util.fmt(graphics.getClip()));

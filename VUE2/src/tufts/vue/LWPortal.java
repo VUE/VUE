@@ -160,11 +160,21 @@ public class LWPortal extends LWNode
         if (dc.skipDraw == this)
             return;
 
-        if (dc.focal == this) {
+        boolean printing = !(dc.isInteractive() || dc.isPresenting());
+
+        if (dc.focal == this || (printing && dc.focused == this)) {
 
             final AffineTransform zeroTransform = dc.g.getTransform();
 
-            dc.setMapDrawing();
+            if (printing) {
+                // special case for printing, where we know we're being
+                // called from a drawFit, and the mapTransform in the
+                // DrawContext is meaningless.
+                dc.g.translate(-getX(), -getY());
+            } else {
+                dc.setMapDrawing();
+            }
+            
             dc.setDrawPathways(false);
             dc.skipDraw = this;
             
