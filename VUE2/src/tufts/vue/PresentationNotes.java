@@ -211,9 +211,11 @@ public class PresentationNotes {
                 dc.setInteractive(false); // should be un-needed
                 dc.setPrintQuality();
 
-                // PROBLEM TOFIX: portals, when rendered as a map-slide, are not showing what's below them
-
-                dc.focused = entry.node; // needed for portals
+                // We set dc.focused to the node, which is needed for portals so they know to render contents in their clip-region.
+                // Normally a portal knows to do this because it's the focal (dc.focal), but in this case, the dc.focal could,
+                // at best, be the slide.  The current code actually uses NO focal in creating the DrawContext above,
+                // and I'm not changing that just now as that would require lots of regression testing of printing.  SMF 6/24/10
+                dc.focused = entry.node;
                 
                 if (DEBUG.Enabled) {
                     Log.debug("DRAWING INTO " + dc + " g=" + graphics + " clip=" + tufts.Util.fmt(graphics.getClip()));
