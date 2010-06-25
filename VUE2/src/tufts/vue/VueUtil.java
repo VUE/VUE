@@ -166,7 +166,21 @@ public class VueUtil extends tufts.Util
     }
 
     public static File getDefaultUserFolder() {
-        File userHome = new File(VUE.getSystemProperty("user.home"));
+    	
+        File userHome = null;
+        
+        if (VUE.isApplet())
+        	userHome = new File(VUE.getSystemProperty("user.home"));
+        else
+        {
+        	String userHomeString = System.getenv("VUEUSERHOME");
+        	
+        	if (userHomeString ==null || (userHomeString !=null && userHomeString.length() <1))
+            	userHome = new File(VUE.getSystemProperty("user.home"));
+        	else
+        		userHome = new File(userHomeString);
+        }
+    	
         if(userHome == null) 
             userHome = new File(VUE.getSystemProperty("java.io.tmpdir"));
         final String vueUserDir = isWindowsPlatform() ? DEFAULT_WINDOWS_FOLDER : DEFAULT_MAC_FOLDER;
