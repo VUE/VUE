@@ -1587,7 +1587,8 @@ VUEApplet.zip - ${appletMD5}
     <mkdir          dir="${dist.home}/docs/api"/>
     <javadoc sourcepath="${basedir}"
                 destdir="${dist.home}/docs/api"
-           packagenames="edu.*,org.*">
+    			maxmemory="512m"
+           packagenames="edu.*,org.*,tufts.*">
       <classpath refid="compile.classpath.common"/>
     </javadoc>
 
