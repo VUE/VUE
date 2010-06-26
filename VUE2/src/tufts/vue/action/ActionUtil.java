@@ -50,6 +50,8 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.ListCellRenderer;
+import javax.swing.plaf.FileChooserUI;
+import javax.swing.plaf.basic.BasicFileChooserUI;
 
 import java.net.URL;
 import java.net.URI;
@@ -121,32 +123,7 @@ public class ActionUtil
     	saveChooser.setDialogTitle(title);
     	saveChooser.setAcceptAllFileFilterUsed(false);    
         //chooser.set
-    	saveChooser.addPropertyChangeListener(new PropertyChangeListener()
-        {
-			public void propertyChange(PropertyChangeEvent arg0) {				
-				if (arg0.getPropertyName() == VueFileChooser.FILE_FILTER_CHANGED_PROPERTY)
-				{
-				
-					String baseName = null;
-					String extension = ((VueFileFilter)saveChooser.getFileFilter()).getExtensions()[0];  
-			        if (VUE.getActiveMap().getFile() == null)
-			        	baseName = VUE.getActiveMap().getLabel();
-			        else
-			        {			        	
-			        	baseName = VUE.getActiveMap().getLabel();
-			    		if (baseName.lastIndexOf(".") > 0)
-			    			baseName = VUE.getActiveMap().getLabel().substring(0, baseName.lastIndexOf("."));
-			    		baseName = baseName.replaceAll("\\*","") + "-copy"+"."+extension;			    		
-			        }
-			     
-			        if (fileType == null)
-			        {			        	
-			        	ActionUtil.saveChooser.setSelectedFile(new File(baseName.replaceAll("\\*", "")));			        	
-			        }
-				}
-			}
-        });
-        
+    	
         if (fileType != null && !fileType.equals("export"))
         	saveChooser.setFileFilter(new VueFileFilter(fileType)); 
         else if (fileType != null && fileType.equals("export"))
@@ -181,7 +158,16 @@ public class ActionUtil
             
             saveChooser.setFileFilter(defaultFilter); 
         }         
-
+        saveChooser.addPropertyChangeListener(new PropertyChangeListener()
+        {
+			public void propertyChange(PropertyChangeEvent arg0) {				
+				if (arg0.getPropertyName() == VueFileChooser.FILE_FILTER_CHANGED_PROPERTY)
+				{
+					adjustExtension();
+				}
+			}
+        });
+        adjustExtension();
         int option = saveChooser.showSaveDialog(VUE.getDialogParentAsFrame());//, VueResources.getString("dialog.save.title"));
         
         if (option == VueFileChooser.APPROVE_OPTION) 
@@ -221,6 +207,40 @@ public class ActionUtil
         return picked;
     }
     
+    private final static void adjustExtension()
+    {
+    	BasicFileChooserUI ui = (BasicFileChooserUI)saveChooser.getUI();
+		String name =ui.getFileName();
+
+		String baseName = null;
+		String extension = ((VueFileFilter)saveChooser.getFileFilter()).getExtensions()[0];  
+						
+		if (name == null || (name !=null && name.length() <1))
+			baseName = VUE.getActiveMap().getLabel();
+		else
+	       baseName = name;
+
+		if (name == null || (name !=null && name.length() <1))
+		{
+			if (baseName.lastIndexOf(".") > 0)
+				baseName = VUE.getActiveMap().getLabel().substring(0, baseName.lastIndexOf("."));
+		}
+		else
+		{
+			if (baseName.lastIndexOf(".") > 0)
+				baseName = baseName.substring(0, baseName.lastIndexOf("."));
+			
+		}
+		String curDir = saveChooser.getCurrentDirectory().getAbsolutePath();
+		File f = new File(curDir+File.separator + baseName + "." + extension);
+   		if (f.exists())
+   			baseName = baseName  + "-copy"+"."+extension;			    		
+   		else
+   			baseName = baseName + "." + extension;
+		      			        	
+        	ActionUtil.saveChooser.setSelectedFile(new File(baseName));			        	
+       
+    }
    
     /**A static method which displays a file chooser for the user to choose which file to open.
        It returns the selected file or null if the process didn't complete
