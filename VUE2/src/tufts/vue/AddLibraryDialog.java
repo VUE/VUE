@@ -523,7 +523,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
             
             if (xml != null) {
                 edu.tufts.vue.ui.ConfigurationUI cui =
-                        new edu.tufts.vue.ui.ConfigurationUI(new java.io.ByteArrayInputStream(xml.getBytes()));
+                        new edu.tufts.vue.ui.ConfigurationUI(new java.io.ByteArrayInputStream(xml.getBytes("UTF-8")));
                 
                 cui.setPreferredSize(new Dimension(350,(int)cui.getPreferredSize().getHeight()));
                
