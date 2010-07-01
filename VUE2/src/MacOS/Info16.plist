@@ -74,7 +74,7 @@
 		<key>SplashFile</key>
 		<string>$APP_PACKAGE/Contents/Resources/splash_graphic_mac.png</string>
 		<key>VMOptions</key>
-		<string>-Xms256m -Xmx2g -XX:MinHeapFreeRatio=20 -XX:MaxHeapFreeRatio=40 -XX:NewSize=100m -XX:MaxNewSize=100m -XX:SurvivorRatio=6 -XX:TargetSurvivorRatio=80 -XX:+CMSClassUnloadingEnabled -XX:+CMSPermGenSweepingEnabled</string>
+		<string>-Xms256m -Xmx1g</string>
 		<key>WorkingDirectory</key>
 		<string>$APP_PACKAGE/Contents/Resources/Java</string>
 	</dict>
