@@ -189,4 +189,24 @@
    </target>
 <!-- END Artifact related tasks-->
 
+	<!--Sakai related tasks --> 
+	    <target name="sakai.compile" >
+	        <javac srcdir="${src}"
+	            destdir="${build.class}"
+	            debug="${compile.debug}"
+	            deprecation="${compile.deprecation}"
+	            optimize="${compile.optimize}"
+	            listfiles="true">
+	            <classpath refid="compile.classpath.common"/>
+	            <include name="edu/tufts/osidimpl/repository/sakai/*.java"/>
+	        </javac>
+	    </target>
+	    <target name="sakai.jar" depends="sakai.compile" >
+	      <mkdir dir="${build.osid}"/>
+	     <jar zipfile="${build.osid}/SakaiRepository-1.0a.jar" update="true" compress="false" index="true">
+	      <fileset dir="${build.class}" includes="edu/tufts/osidimpl/repository/sakai/**"/>
+	    </jar>
+	   </target>
+	   
+	<!-- END Sakai related tasks-->
 </project>
