@@ -21,8 +21,12 @@ package tufts.vue;
 
 import javax.swing.JLabel;
 import javax.swing.JMenu;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
+
+
+import edu.tufts.vue.mbs.AlchemyAnalyzer;
 
 import edu.tufts.seasr.MeandreItem;
 import edu.tufts.seasr.MeandreResponse;
@@ -245,9 +249,31 @@ public class AnalyzerAction extends Actions.LWCAction {
     
     // random layout. scatters nodes at random
    // public static final AnalyzerAction yahoo = new AnalyzerAction(new YahooAnalyzer(),VueResources.getString("analyzeaction.yahoocontent"),null);
-    public static final AnalyzerAction calais = new AnalyzerAction(new OpenCalaisAnalyzer(),VueResources.getString("analyzeaction.performmapbased"),null);
-    public static final AutoTaggerAction calaisAutoTagger = new AutoTaggerAction(new OpenCalaisAnalyzer(),VueResources.getString("analyzeaction.autotag"),null);
-    public static final SemanticMapAction semanticMapAction = new SemanticMapAction(new OpenCalaisAnalyzer(),VueResources.getString("analyzeaction.semanticmap"),null);
+    public static final AnalyzerAction calais = new AnalyzerAction(new OpenCalaisAnalyzer(),VueResources.getString("analyzeaction.usingopencalais"),null);
+    public static final AutoTaggerAction calaisAutoTagger = new AutoTaggerAction(new OpenCalaisAnalyzer(),VueResources.getString("analyzeaction.usingopencalais"),null);
+	public static final SemanticMapAction calaisMapAction = new SemanticMapAction(new OpenCalaisAnalyzer(),VueResources.getString("analyzeaction.usingopencalais"),null);
+
+    private static final LWComponentAnalyzer alchemyAnalyzer = new AlchemyAnalyzerAPIKeyGuarder();
+    private static final AnalyzerAction alchemy = new AnalyzerAction(alchemyAnalyzer,VueResources.getString("analyzeaction.usingalchemyapi"),null);
+    private static final AutoTaggerAction alchemyAutoTagger = new AutoTaggerAction(alchemyAnalyzer,VueResources.getString("analyzeaction.usingalchemyapi"),null);
+    private static final SemanticMapAction alchemyMapAction = new SemanticMapAction(alchemyAnalyzer,VueResources.getString("analyzeaction.usingalchemyapi"),null);
+
+    public static final Action[] KEYWORDS_MENU_ACTIONS;
+    public static final Action[] RESOURCES_ACTIONS;
+    public static final Action[] WEB_ACTIONS;
+    static {
+        KEYWORDS_MENU_ACTIONS = new Action[2];
+        KEYWORDS_MENU_ACTIONS[0] = alchemyAutoTagger;
+        KEYWORDS_MENU_ACTIONS[1] = calaisAutoTagger;
+        RESOURCES_ACTIONS = new Action[2];
+        RESOURCES_ACTIONS[0] = alchemy;
+        RESOURCES_ACTIONS[1] = calais;
+        WEB_ACTIONS = new Action[2];
+		WEB_ACTIONS[0] = alchemyMapAction;
+        WEB_ACTIONS[1] = calaisMapAction;
+
+    }
+
  
     public static final Action luckyImageAction =
         new LWCAction(VueResources.getString("analyzeaction.luckyimage")) {
@@ -344,7 +370,7 @@ public class AnalyzerAction extends Actions.LWCAction {
 	//	JMenu calaisMenu = new JMenu("Node Analysis");
     	analyzeNodeMenu.add(calais);
     	analyzeNodeMenu.add(calaisAutoTagger);
-    	analyzeNodeMenu.add(semanticMapAction);
+    	analyzeNodeMenu.add(calaisMapAction);
     	analyzeNodeMenu.add(luckyImageAction);
     	analyzeNodeMenu.add(getSeasrMenu());
 //    	analyzeNodeMenu.add(seasr);
@@ -432,6 +458,7 @@ public class AnalyzerAction extends Actions.LWCAction {
 			    	Iterator<String> categoryIterator = list.keySet().iterator();
 			    	boolean hasResults = false;
 			    	HashMap<LWNode,Collection> categoryChildren = new HashMap<LWNode,Collection>();
+	
 			    	while (categoryIterator.hasNext())
 			    	{		
 			    		String key = categoryIterator.next();
@@ -458,51 +485,78 @@ public class AnalyzerAction extends Actions.LWCAction {
 			    		final LWMap active = VUE.getActiveMap();
 					    active.addChildren(categoryComps);			    
 					    LayoutAction.circle.act(categoryComps);
-					     
+						int layerIx = 0;
+						
+				while( categoryChildren != null ) {	 
+						HashMap<LWNode,Collection> newCategoryChildren = null;
+						HashMap<String,LWNode> newTypeHash = null; 
 					    Iterator nodeIterator = categoryChildren.keySet().iterator();
 					    while (nodeIterator.hasNext())
 					    {
+
 					    	subCatcomps.clear();
 					    	LWNode joinNode = (LWNode) nodeIterator.next();
 					    	
 					    	Collection subCategories = categoryChildren.get(joinNode);
 					    	Iterator subCatIt = subCategories.iterator();
+							
 					    	while (subCatIt.hasNext())
 					    	{
 					    		AnalyzerResult res = (AnalyzerResult) subCatIt.next();
-					    		tufts.vue.LWNode node = new tufts.vue.LWNode(res.getValue());
-					    		
-					    		MetadataList mlist = new MetadataList();
+								if( res.getSubtypes() == null || res.getSubtypes().size() <= layerIx ) {
+									tufts.vue.LWNode node = new tufts.vue.LWNode(res.getValue());
+									
+									MetadataList mlist = new MetadataList();
 
-					    		double rel = res.getRelevance();
-					    		if (rel < 0.25)
-					            	mlist.add("relevance", "Low");
-					    		else if (rel > 0.25 && rel < 0.50)
-					    			mlist.add("relevance", "Medium");
-					    		else if (rel > 0.50 && rel < 0.75)
-					    			mlist.add("relevance", "High");
-					    		else 
-					    			mlist.add("relevance", "Essential");
-					    		
-					    		mlist.add("relevance score",(new Double(rel)).toString());
-					    		node.setMetadataList(mlist);
-					    		tufts.vue.LWLink link = new tufts.vue.LWLink(joinNode,node);
-					    		node.setLocation(joinNode.getLocation());
-					    		node.setFillColor(leafNodeColor);
-					    		Font f = node.getFont();
-			    				Font derive = f.deriveFont(((float)(10+res.getCount())));
-			    				node.setFont(derive);
-			    				link.setStrokeColor(getColorFromRelevance(res.getRelevance()));
-					    		subCatcomps.add(node);
-					    		subCatcomps.add(link);				    						    		
+									double rel = res.getRelevance();
+									if (rel < 0.25)
+										mlist.add("relevance", "Low");
+									else if (rel > 0.25 && rel < 0.50)
+										mlist.add("relevance", "Medium");
+									else if (rel > 0.50 && rel < 0.75)
+										mlist.add("relevance", "High");
+									else 
+										mlist.add("relevance", "Essential");
+									
+									mlist.add("relevance score",(new Double(rel)).toString());
+									node.setMetadataList(mlist);
+									tufts.vue.LWLink link = new tufts.vue.LWLink(joinNode,node);
+									node.setLocation(joinNode.getLocation());
+									node.setFillColor(leafNodeColor);
+									Font f = node.getFont();
+									Font derive = f.deriveFont(((float)(10+res.getCount())));
+									node.setFont(derive);
+									link.setStrokeColor(getColorFromRelevance(res.getRelevance()));
+									subCatcomps.add(node);
+									subCatcomps.add(link);
+								}
+								else {
+									if( newCategoryChildren == null ) {
+										newCategoryChildren = new HashMap<LWNode,Collection>();
+										newTypeHash = new HashMap<String,LWNode>();
+									}
+									String subtypeStr = (String)res.getSubtypes().get(layerIx);
+									LWNode subtypeNode = newTypeHash.get(subtypeStr);
+									if( subtypeNode == null ) {
+										subtypeNode = new LWNode(subtypeStr);
+										subtypeNode.setLocation(joinNode.getLocation());
+										tufts.vue.LWLink link = new tufts.vue.LWLink(joinNode,subtypeNode);
+										subCatcomps.add(subtypeNode);
+										subCatcomps.add(link);
+										newTypeHash.put(subtypeStr,subtypeNode);
+										newCategoryChildren.put(subtypeNode,new ArrayList());
+									}
+									Collection subtypeCollection = newCategoryChildren.get(subtypeNode);
+									subtypeCollection.add(res);
+								}
 					    	}
 					    
-					           	active.addChildren(subCatcomps);			    
-					           	LayoutAction.search.act(subCatcomps);
-	        				    	
-	                        
-					    
-					    }		  
+					        active.addChildren(subCatcomps);			    
+					        LayoutAction.search.act(subCatcomps);
+					    }
+						layerIx++;
+						categoryChildren = newCategoryChildren;
+					}
 		    	}
 		    	finally
 		    	{
@@ -669,5 +723,43 @@ public class AnalyzerAction extends Actions.LWCAction {
 		    	 c.setNotes(info);
 		         
 		    }
+	}
+	
+	static private class AlchemyAnalyzerAPIKeyGuarder extends AlchemyAnalyzer
+	{
+	    @Override
+        public List<AnalyzerResult> analyze(LWComponent c, boolean tryFallback) {
+	        return (IsAlchemyAPIKeySet() || keyRequest()) ? super.analyze(c, tryFallback) : new java.util.ArrayList<AnalyzerResult>();
+	    }
+
+	    @Override
+        public List<AnalyzerResult> analyze(LWComponent c) {
+            return (IsAlchemyAPIKeySet() || keyRequest()) ? super.analyze(c) : new java.util.ArrayList<AnalyzerResult>();
+	    }
+
+	    @Override
+        public Multimap<String, AnalyzerResult> analyzeResource(LWComponent c) throws Exception {
+			if( !IsAlchemyAPIKeySet() )
+				keyRequest();
+			return super.analyzeResource(c);
+	    }
+
+	    private boolean keyRequest() {
+			String key = (String)edu.tufts.vue.preferences.implementations.AlchemyAPIPreference.getInstance().getValue();
+			if( null == key || "".equals(key) ) {
+				String title = VueResources.local("dialog.alchemyapikey.title"),
+					   lable = VueResources.local("dialog.alchemyapikey.label");
+
+				key = (String)VueUtil.input(VUE.getApplicationFrame(), lable, title,
+												   JOptionPane.PLAIN_MESSAGE, null, null);
+				if (null == key || key.length() <= 0)
+					return false;
+			}
+			
+
+            SetAlchemyAPIKey(key);
+
+            return true;
+	    }
 	}
 }
