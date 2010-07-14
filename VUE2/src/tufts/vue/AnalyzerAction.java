@@ -78,8 +78,10 @@ import tufts.vue.gui.Widget;
 
 import tufts.vue.VueUtil;
 
+import edu.tufts.vue.ontology.OntType;
 
 import edu.tufts.vue.metadata.MetadataList;
+import edu.tufts.vue.metadata.VueMetadataElement;
 import edu.tufts.vue.preferences.implementations.ShowAgainDialog;
 import edu.tufts.vue.ui.DefaultQueryEditor;
 import edu.tufts.seasr.SeasrConfigLoader;
@@ -520,6 +522,19 @@ public class AnalyzerAction extends Actions.LWCAction {
 									
 									mlist.add("relevance score",(new Double(rel)).toString());
 									node.setMetadataList(mlist);
+									
+									if( res.getOntologies() != null ) {
+										Iterator ontIt = res.getOntologies().iterator();
+										while( ontIt.hasNext()) {
+											OntType ontType = new OntType();
+											ontType.setLabel((String)ontIt.next());
+											ontType.setBase("");
+											VueMetadataElement vme = new VueMetadataElement();
+											vme.setObject(ontType);
+											node.getMetadataList().getMetadata().add(vme);
+										}
+									}
+									
 									tufts.vue.LWLink link = new tufts.vue.LWLink(joinNode,node);
 									node.setLocation(joinNode.getLocation());
 									node.setFillColor(leafNodeColor);
