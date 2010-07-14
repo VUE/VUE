@@ -150,7 +150,7 @@
 	<property name="thirdparty.jarfiles.names.extendedFeatures"
 		value="MERLOTOsid-1.0.jar			   
 	  		   batik-all.jar
-		  	   quaqua-filechooser-only.jar
+			   quaqua.jar
 			   gdata-client-1.0.jar
 		  	   gdata-core-1.0.jar
 		 	   fop.jar
@@ -357,6 +357,7 @@
     <pathelement path="${lib.home}/VUE-MacOSX.jar"/>
     <pathelement path="${lib.home}/castor-1.3-core.jar"/>
     <pathelement path="${lib.home}/castor-1.3-xml.jar"/>
+ 	<pathelement path="${lib.home}/quaqua.jar"/>
    <pathelement path="${lib.home}/batik-all.jar"/>
     <pathelement path="${lib.home}/fop.jar"/>
     <pathelement path="${lib.home}/plugin.jar"/>
