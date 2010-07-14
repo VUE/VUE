@@ -280,8 +280,19 @@ public class GUI
             if (!SKIP_CUSTOM_LAF) {
 
                 try {
+                	   // FileChooser:
+                    Set includes = new HashSet();
+                    includes.add("ColorChooser");
+                    includes.add("FileChooser");
+                    includes.add("Component");
+                    includes.add("Browser");
+                    includes.add("Tree");
+                    includes.add("SplitPane");
+                    
+                   ch.randelshofer.quaqua.QuaquaManager.setIncludedUIs(includes);
+
                     UIManager.setLookAndFeel("ch.randelshofer.quaqua.QuaquaLookAndFeel");
-                    System.setProperty("Quaqua.design", "panther");
+               //     System.setProperty("Quaqua.design", "panther");
                 }
                 catch (Throwable t) {
                     Log.error("Couldn't load quaqua look and feel", t);

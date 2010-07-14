@@ -150,7 +150,7 @@
 	<property name="thirdparty.jarfiles.names.extendedFeatures"
 		value="MERLOTOsid-1.0.jar			   
 	  		   batik-all.jar
-		  	   quaqua-filechooser-only.jar
+		  	   quaqua.jar
 			   gdata-client-1.0.jar
 		  	   gdata-core-1.0.jar
 		 	   fop.jar
@@ -320,7 +320,7 @@
                    saaj.jar
                    xercesImpl-2.7.1.jar
                    xerces-2.7.1-xml-apis.jar
-  				   quaqua-filechooser-only.jar
+  				   quaqua.jar
 		   		   iText-2.1.4.jar 
 					twitter4j-core-2.1.0.jar
 		   		   simplyhtml2.jar
@@ -358,6 +358,7 @@
     <pathelement path="${lib.home}/castor-1.3-core.jar"/>
     <pathelement path="${lib.home}/castor-1.3-xml.jar"/>
    <pathelement path="${lib.home}/batik-all.jar"/>
+    <pathelement path="${lib.home}/quaqua.jar"/>
     <pathelement path="${lib.home}/fop.jar"/>
     <pathelement path="${lib.home}/plugin.jar"/>
     <pathelement path="${lib.home}/fedoragentypes.jar"/>
@@ -1269,6 +1270,8 @@
         <copy file="@{jar-0}" todir="@{contents}" verbose="true"/>
         <!--copy file="@{jar-1}" todir="@{contents}" verbose="true"/-->
       	<copy file="${jnilib.home}/libquaqua.jnilib" todir="@{contents}/Resources/Java"/>
+      	<copy file="${jnilib.home}/libquaqua64.jnilib" todir="@{contents}/Resources/Java"/>
+
         <extra-tasks/>
       </sequential>
     </macrodef>
