@@ -115,7 +115,7 @@ public class AlchemyAnalyzer implements LWComponentAnalyzer {
             throw new RuntimeException("AlchemyAPI Key is not specified");
         if (null == c || null == c.getResource() || null == c.getResource().getSpec())
             throw new IllegalArgumentException("Illegal resource specified to analyze.");
-
+			
         Multimap<String, AnalyzerResult> result = Multimaps.newArrayListMultimap();
 
         Document doc = null;
@@ -135,6 +135,7 @@ public class AlchemyAnalyzer implements LWComponentAnalyzer {
                 AnalyzerResult res = parseEntity(nodeList.item(i),null);
                 if (null != res)
                     result.put(res.getType(), res);
+				
             }
             
             
@@ -238,13 +239,17 @@ public class AlchemyAnalyzer implements LWComponentAnalyzer {
          if (!isEmpty(type) && !isEmpty(value)) {
             AnalyzerResult retResults = new AnalyzerResult(type, value, relevance, count);
             if( null != subtypes ) {
-                retResults.initSubtypes();
+				retResults.initOntologies();
+				retResults.addOntologies(subtypes);
+				while( subtypes.size() > 1 ) {
+					subtypes.remove(subtypes.size()-1);
+				}
+				retResults.initSubtypes();
                 retResults.addSubtypes(subtypes);
             }
             return retResults;
         }
-
-         return null;
+        return null;
     }
 
     private String getElementValue(Node node)
