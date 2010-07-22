@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.*;
 import java.awt.*;
 import java.net.*;
+import java.nio.charset.Charset;
+
 import javax.swing.*;
 import java.text.DecimalFormat;
 
@@ -46,8 +48,10 @@ public class XmlDataSource extends BrowseDataSource
     private static final String ITEM_PATH_KEY = "item_path";
     private static final String KEY_FIELD_KEY = "key_field";
     private static final String IMAGE_FIELD_KEY = "image_field";
+    private static final String ENCODING_FIELD_KEY = "encoding_field";
 
     private static final String NONE_SELECTED = "(none selected)";
+    private static final String AUTO_SELECTED = "(auto detect)";
 
     public static final String TYPE_NAME = "XML Feed";
     
@@ -55,6 +59,8 @@ public class XmlDataSource extends BrowseDataSource
     private String itemKey;
     private String keyField;
     private String imageField = NONE_SELECTED;
+    private String encodingField = AUTO_SELECTED;
+
 
     private boolean isCSV; // hack while XmlDataSource supports both XML and flat-files
     
@@ -91,6 +97,12 @@ public class XmlDataSource extends BrowseDataSource
         try {
             if ((val = p.getProperty(KEY_FIELD_KEY)) != null)
                 setKeyField(val);
+        } catch (Throwable t) {
+            Log.error("val=" + val, t);
+        }
+        try {
+            if ((val = p.getProperty(ENCODING_FIELD_KEY)) != null)
+                setEncodingField(val);
         } catch (Throwable t) {
             Log.error("val=" + val, t);
         }
@@ -132,6 +144,13 @@ public class XmlDataSource extends BrowseDataSource
     public String getKeyField() {
         return keyField;
     }
+    
+    public String getEncodingField() {
+    	if (encodingField.equals("(auto detect)"))
+    		return "windows-1252";
+    	else
+    		return encodingField;
+    }
 
     public void setKeyField(String k) {
         if (DEBUG.DR) Log.debug("setKeyField[" + k + "]");
@@ -143,6 +162,19 @@ public class XmlDataSource extends BrowseDataSource
                 keyField = k;
         } else {
             keyField = null;
+        }
+        unloadViewer();
+    }
+    public void setEncodingField(String k) {
+        if (DEBUG.DR) Log.debug("setEncodingField[" + k + "]");
+        if (k != null) {
+            k = k.trim();
+            if (k.length() < 1)
+                encodingField = null;
+            else
+                encodingField = k;
+        } else {
+            encodingField = null;
         }
         unloadViewer();
     }
@@ -187,11 +219,26 @@ public class XmlDataSource extends BrowseDataSource
         }
         
 
+        ConfigField encodingField
+        = new ConfigField(ENCODING_FIELD_KEY
+                          ,"Read as"
+                          ,"Encoding to read data file as."
+                          ,this.encodingField // current value
+                          ,edu.tufts.vue.ui.ConfigurationUI.COMBO_BOX_CONTROL);
+        
+       // encodingField.value = new Vector();
+        SortedMap<String,Charset> sets = java.nio.charset.Charset.availableCharsets();
+        encodingField.values = new Vector();
+        encodingField.values.add(AUTO_SELECTED);
+        encodingField.values.addAll(sets.keySet());
+        
         List<ConfigField> fields = super.getConfigurationUIFields();
         if (!isCSV)
             fields.add(path);
         fields.add(keyField);
         fields.add(imageField);
+        if (isCSV)
+        	fields.add(encodingField);
         return fields;
     }
 
@@ -246,7 +293,7 @@ public class XmlDataSource extends BrowseDataSource
         // TODO: need handle this in BrowseDataSource openReader (encoding provided by user in data-source config)
         // TODO: the Open CSV CSVReader impl is horrible - doesn't handle quoted values properly!
         
-        final CSVReader dataStream = new CSVReader(new InputStreamReader(new FileInputStream(file), "windows-1252"));
+        final CSVReader dataStream = new CSVReader(new InputStreamReader(new FileInputStream(file),this.getEncodingField()));
         //final BufferedReader dataStream = new BufferedReader(new InputStreamReader(new FileInputStream(file), "windows-1252"));
 
         String[] values = readLine(dataStream);
@@ -338,6 +385,9 @@ public class XmlDataSource extends BrowseDataSource
         
         if (getKeyField() != null)
             mSchema.setKeyField(getKeyField());
+
+        if (getEncodingField() != null)
+            mSchema.setEncodingField(getEncodingField());
 
         schema.setImageField(getImageField());
         schema.setName(getDisplayName());

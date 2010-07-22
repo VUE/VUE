@@ -795,7 +795,7 @@ public class Actions implements VueConstants
      */
     public static List<LWComponent> duplicatePreservingLinks
         (final Collection<LWComponent> items,
-         final boolean recordOldParent,
+         boolean recordOldParent,
          final boolean sortByZOrder)
     {
         CopyContext.reset();

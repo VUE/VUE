@@ -64,6 +64,7 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
     private boolean mXMLRestoreUnderway;
         
     private Field mKeyField;
+    private Field mEncodingField;
 
     private final List<DataRow> mRows = new ArrayList();
 
@@ -917,6 +918,13 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
             mKeyField = getKeyFieldGuess();
         return mKeyField;
     }
+    
+    public synchronized Field getEncodingField() {
+        if (mEncodingField == null)
+        	return new Field("win", this);
+        else
+        	return mEncodingField;
+    }
 
     public synchronized String getKeyFieldName() {
         return getKeyField().getName();
@@ -927,8 +935,17 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
         mKeyField = f;
     }
     
+    public synchronized void setEncodingField(Field f) {
+        //Log.debug("setKeyField " + Util.tags(f));
+        mEncodingField = f;
+    }
+    
     public synchronized void setKeyField(String name) {
         setKeyField(getField(name));
+    }
+    
+    public synchronized void setEncodingField(String name) {
+        setEncodingField(getField(name));
     }
         
 //     public Object getSource() {

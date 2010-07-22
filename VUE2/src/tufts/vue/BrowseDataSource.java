@@ -54,6 +54,7 @@ public abstract class BrowseDataSource implements DataSource
     
     private String displayName = "(unconfigured)";
     private String address;
+    private String encoding;
     private String authenticationCookie;
     private String Id;
     private boolean isAutoConnect;

@@ -765,6 +765,9 @@
     <field name="imageField" type="string">
           <bind-xml name="imageField" node="element" />
     </field>
+    <field name="encodingField" type="string">
+          <bind-xml name="encodingField" node="element" />
+    </field>
  </class>
 <!--
 
