@@ -129,30 +129,32 @@ public class HierarchicalLayout extends Layout {
 	}
 
 	private List<LWNode> getRelated(LWNode node, List<LWNode> processedNodes) {
-		List<LWNode> relatedNodes = new ArrayList<LWNode>();
 		processedNodes.add(node);
-		Iterator<LWComponent> i = VUE.getActiveMap().getAllDescendents(
-				LWContainer.ChildKind.PROPER).iterator();
+
+		List<LWNode>		relatedNodes = new ArrayList<LWNode>();
+		Iterator<LWLink>	i = node.getLinks().iterator();
+
 		while (i.hasNext()) {
-			LWComponent c = i.next();
-			if (c instanceof LWLink) {
-				LWLink link = (LWLink) c;
-				LWComponent head = link.getHead();
-				LWComponent tail = link.getTail();
-				if (head instanceof LWNode && tail instanceof LWNode) {
-					LWNode headNode = (LWNode) head;
-					LWNode tailNode = (LWNode) tail;
-					if (!processedNodes.contains(tailNode) && headNode == node) {
-						processedNodes.add(tailNode);
-						relatedNodes.add(tailNode);
-					}
-					if (!processedNodes.contains(headNode) && tailNode == node) {
-						processedNodes.add(headNode);
-						relatedNodes.add(headNode);
-					}
+			LWLink			link = i.next();
+			LWComponent		head = link.getHead();
+			LWComponent		tail = link.getTail();
+
+			if (head instanceof LWNode && tail instanceof LWNode) {
+				LWNode		headNode = (LWNode) head;
+				LWNode		tailNode = (LWNode) tail;
+
+				if (!processedNodes.contains(tailNode) && headNode == node) {
+					processedNodes.add(tailNode);
+					relatedNodes.add(tailNode);
+				}
+
+				if (!processedNodes.contains(headNode) && tailNode == node) {
+					processedNodes.add(headNode);
+					relatedNodes.add(headNode);
 				}
 			}
 		}
+
 		return relatedNodes;
 	}
 }
