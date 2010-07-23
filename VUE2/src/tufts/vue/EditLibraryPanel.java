@@ -50,7 +50,7 @@ public class EditLibraryPanel extends JPanel implements ActionListener
 
             if (DEBUG.DR) Log.debug("OSID-XML: " + xml);
                 
-            cui = new edu.tufts.vue.ui.ConfigurationUI(new java.io.ByteArrayInputStream(xml.getBytes()));
+            cui = new edu.tufts.vue.ui.ConfigurationUI(new java.io.ByteArrayInputStream(xml.getBytes("UTF-8")));
             cui.setProperties(dataSource.getConfiguration());
                 
             updateButton.addActionListener(this);
@@ -82,7 +82,7 @@ public class EditLibraryPanel extends JPanel implements ActionListener
             
             if (DEBUG.DR) Log.debug("VUE-XML: " + xml);
             
-            cui = new edu.tufts.vue.ui.ConfigurationUI(new java.io.ByteArrayInputStream(xml.getBytes()),
+            cui = new edu.tufts.vue.ui.ConfigurationUI(new java.io.ByteArrayInputStream(xml.getBytes("UTF-8")),
                                                        uiParams.extraValuesByKey);
             
             updateButton.addActionListener(this);
