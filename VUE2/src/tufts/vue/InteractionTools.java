@@ -79,13 +79,16 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 									depthSlider = null;
 	protected JButton				zoomSelButton = null,
 									zoomMapButton = null;
-	protected JCheckBox				zoomLockCheckBox = null;
+	protected JCheckBox				zoomLockCheckBox = null,
+									usedByCheckBox = null,
+									dependsOnCheckBox = null;
 	protected JLabel				fadeLabel = null,
 									depthLabel = null,
 									zoomSelLabel = null,
 									zoomMapLabel = null;
 	protected JPanel				fadeDepthPanel = null,
 									fadeDepthInnerPanel = null,
+									dependencyInnerPanel = null,
 									zoomPanel = null,
 									zoomInnerPanel = null,
 									linePanel = null;
@@ -170,9 +173,27 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 		VUE.getSelection().addListener(depthListener);
 		addToGridBag(fadeDepthInnerPanel, depthSlider, 1, 1, 1, 1, GridBagConstraints.LINE_END, GridBagConstraints.HORIZONTAL, 1.0, 0.0, halfGutterInsets);
 
+		dependencyInnerPanel = new JPanel();
+		dependencyInnerPanel.setLayout(new GridBagLayout());
+
+		usedByCheckBox = new JCheckBox(VueResources.getString("interactionTools.usedBy"));
+		usedByCheckBox.setSelected(true);
+		usedByCheckBox.setFont(tufts.vue.gui.GUI.LabelFace);
+		usedByCheckBox.setToolTipText(VueResources.getString("interactionTools.usedBy.toolTip"));
+		usedByCheckBox.addItemListener(depthListener);
+		addToGridBag(dependencyInnerPanel, usedByCheckBox, 0, 0, 1, 2, halfGutterInsets);
+
+		dependsOnCheckBox = new JCheckBox(VueResources.getString("interactionTools.dependsOn"));
+		dependsOnCheckBox.setSelected(true);
+		dependsOnCheckBox.setFont(tufts.vue.gui.GUI.LabelFace);
+		dependsOnCheckBox.setToolTipText(VueResources.getString("interactionTools.dependsOn.toolTip"));
+		dependsOnCheckBox.addItemListener(depthListener);
+		addToGridBag(dependencyInnerPanel, dependsOnCheckBox, 1, 0, 1, 2, halfGutterInsets);
+
 		fadeDepthPanel = new JPanel();
 		fadeDepthPanel.setLayout(new GridBagLayout());
 		addToGridBag(fadeDepthPanel, fadeDepthInnerPanel, 0, 0, 1, 1, GridBagConstraints.LINE_START, GridBagConstraints.NONE, 1.0, 0.0, halfGutterInsets);
+		addToGridBag(fadeDepthPanel, dependencyInnerPanel, 0, 1, 1, 1, GridBagConstraints.LINE_START, GridBagConstraints.NONE, 1.0, 0.0, halfGutterInsets);
 
 		zoomInnerPanel = new JPanel();
 		zoomInnerPanel.setLayout(new GridBagLayout());
@@ -354,6 +375,7 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 	}
 
 
+
 	/* ChangeListener method -- slider has been moved */
 	public void stateChanged(ChangeEvent event) {
 		Object	source = event.getSource();
@@ -450,7 +472,7 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 	}
 
 	
-	protected class DepthSelectionListener implements ChangeListener, LWSelection.Listener {
+	protected class DepthSelectionListener implements ChangeListener, LWSelection.Listener, ItemListener {
 		HashSet<LWComponent>	userSelection = new HashSet<LWComponent>(),	// LWComponents selected by the user
 								deepSelection = new HashSet<LWComponent>();	// LWComponents selected by this class
 		int						previousDepth = 0;
@@ -515,7 +537,7 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 						userSelection.clear();
 					} else {
 						// Find deepSelection and add it to the GUI's selection.
-						findChildrenToDepth(userSelection, depth + 1);
+						findChildrenToDepth(userSelection, depth + 1, dependsOnCheckBox.isSelected(), usedByCheckBox.isSelected());
 						guiSelection.add(deepSelection.iterator());
 					}
 
@@ -555,7 +577,7 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 
 						// Find deepSelection.
 						deepSelection.clear();
-						findChildrenToDepth(userSelection, depth + 1);
+						findChildrenToDepth(userSelection, depth + 1, dependsOnCheckBox.isSelected(), usedByCheckBox.isSelected());
 
 						// Set the GUI's selection to userSelection (it may have gotten smaller) and add deepSelection.
 						guiSelection.setTo(userSelection);
@@ -576,7 +598,7 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 		};
 
 
-		protected void findChildrenToDepth(Collection<LWComponent> collection, int depth) {
+		protected void findChildrenToDepth(Collection<LWComponent> collection, int depth, boolean dependsOn, boolean usedBy) {
 			// Add each node to deepSelection.
 			Iterator<LWComponent>	nodes = collection.iterator();
 
@@ -590,8 +612,16 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 
 					if (depth > 1) {
 						// Add each node's links to deepSelection.
-						Iterator<LWComponent>	links = (Iterator<LWComponent>)(node.getConnected().iterator());
-
+						
+						HashSet<LWComponent> linksList = new HashSet<LWComponent>();
+						
+						if (dependsOn) 
+						   linksList.addAll(node.getHeadLinks());
+						if (usedBy) 
+						   linksList.addAll(node.getTailLinks());
+						
+						Iterator<LWComponent>	links = (Iterator<LWComponent>)(linksList).iterator();
+                        
 						while (links.hasNext()) {
 							LWComponent		link = links.next();
 
@@ -601,10 +631,22 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 						}
 
 						// Add each node's child nodes to deepSelection.
-						findChildrenToDepth(node.getLinked(), depth - 1);
+						HashSet<LWComponent> linked = new HashSet<LWComponent>();
+						if (dependsOn)
+							linked.addAll(node.getTailLinked());
+						if (usedBy)
+							linked.addAll(node.getHeadLinked());
+						
+						findChildrenToDepth(linked, depth - 1, dependsOn, usedBy);
 					}
 				}
 			}
+		}
+
+
+	
+		public void itemStateChanged(ItemEvent e) {
+			GUI.invokeAfterAWT(selectionChanged);
 		}
 	}
 }
