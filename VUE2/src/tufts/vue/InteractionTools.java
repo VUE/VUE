@@ -80,15 +80,15 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 	protected JButton				zoomSelButton = null,
 									zoomMapButton = null;
 	protected JCheckBox				zoomLockCheckBox = null,
-									usedByCheckBox = null,
-									dependsOnCheckBox = null;
+									incomingLinksCheckBox = null,
+									outgoingLinksCheckBox = null;
 	protected JLabel				fadeLabel = null,
 									depthLabel = null,
 									zoomSelLabel = null,
 									zoomMapLabel = null;
 	protected JPanel				fadeDepthPanel = null,
 									fadeDepthInnerPanel = null,
-									dependencyInnerPanel = null,
+									linkDirectionInnerPanel = null,
 									zoomPanel = null,
 									zoomInnerPanel = null,
 									linePanel = null;
@@ -173,27 +173,27 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 		VUE.getSelection().addListener(depthListener);
 		addToGridBag(fadeDepthInnerPanel, depthSlider, 1, 1, 1, 1, GridBagConstraints.LINE_END, GridBagConstraints.HORIZONTAL, 1.0, 0.0, halfGutterInsets);
 
-		dependencyInnerPanel = new JPanel();
-		dependencyInnerPanel.setLayout(new GridBagLayout());
+		linkDirectionInnerPanel = new JPanel();
+		linkDirectionInnerPanel.setLayout(new GridBagLayout());
 
-		usedByCheckBox = new JCheckBox(VueResources.getString("interactionTools.usedBy"));
-		usedByCheckBox.setSelected(true);
-		usedByCheckBox.setFont(tufts.vue.gui.GUI.LabelFace);
-		usedByCheckBox.setToolTipText(VueResources.getString("interactionTools.usedBy.toolTip"));
-		usedByCheckBox.addItemListener(depthListener);
-		addToGridBag(dependencyInnerPanel, usedByCheckBox, 0, 0, 1, 2, halfGutterInsets);
+		incomingLinksCheckBox = new JCheckBox(VueResources.getString("interactionTools.incomingLinks"));
+		incomingLinksCheckBox.setSelected(true);
+		incomingLinksCheckBox.setFont(tufts.vue.gui.GUI.LabelFace);
+		incomingLinksCheckBox.setToolTipText(VueResources.getString("interactionTools.incomingLinks.toolTip"));
+		incomingLinksCheckBox.addItemListener(depthListener);
+		addToGridBag(linkDirectionInnerPanel, incomingLinksCheckBox, 0, 0, 1, 2, halfGutterInsets);
 
-		dependsOnCheckBox = new JCheckBox(VueResources.getString("interactionTools.dependsOn"));
-		dependsOnCheckBox.setSelected(true);
-		dependsOnCheckBox.setFont(tufts.vue.gui.GUI.LabelFace);
-		dependsOnCheckBox.setToolTipText(VueResources.getString("interactionTools.dependsOn.toolTip"));
-		dependsOnCheckBox.addItemListener(depthListener);
-		addToGridBag(dependencyInnerPanel, dependsOnCheckBox, 1, 0, 1, 2, halfGutterInsets);
+		outgoingLinksCheckBox = new JCheckBox(VueResources.getString("interactionTools.outgoingLinks"));
+		outgoingLinksCheckBox.setSelected(true);
+		outgoingLinksCheckBox.setFont(tufts.vue.gui.GUI.LabelFace);
+		outgoingLinksCheckBox.setToolTipText(VueResources.getString("interactionTools.outgoingLinks.toolTip"));
+		outgoingLinksCheckBox.addItemListener(depthListener);
+		addToGridBag(linkDirectionInnerPanel, outgoingLinksCheckBox, 1, 0, 1, 2, halfGutterInsets);
 
 		fadeDepthPanel = new JPanel();
 		fadeDepthPanel.setLayout(new GridBagLayout());
 		addToGridBag(fadeDepthPanel, fadeDepthInnerPanel, 0, 0, 1, 1, GridBagConstraints.LINE_START, GridBagConstraints.NONE, 1.0, 0.0, halfGutterInsets);
-		addToGridBag(fadeDepthPanel, dependencyInnerPanel, 0, 1, 1, 1, GridBagConstraints.LINE_START, GridBagConstraints.NONE, 1.0, 0.0, halfGutterInsets);
+		addToGridBag(fadeDepthPanel, linkDirectionInnerPanel, 0, 1, 1, 1, GridBagConstraints.LINE_START, GridBagConstraints.NONE, 1.0, 0.0, halfGutterInsets);
 
 		zoomInnerPanel = new JPanel();
 		zoomInnerPanel.setLayout(new GridBagLayout());
@@ -472,7 +472,7 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 	}
 
 	
-	protected class DepthSelectionListener implements ChangeListener, LWSelection.Listener, ItemListener {
+	protected class DepthSelectionListener implements ChangeListener, ItemListener, LWSelection.Listener {
 		HashSet<LWComponent>	userSelection = new HashSet<LWComponent>(),	// LWComponents selected by the user
 								deepSelection = new HashSet<LWComponent>();	// LWComponents selected by this class
 		int						previousDepth = 0;
@@ -490,6 +490,12 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 				fireDepthChanged(source.getValue());
 				GUI.invokeAfterAWT(sliderMoved);
 			}
+		}
+
+
+		// ItemListener for link direction checkboxes
+		public void itemStateChanged(ItemEvent e) {
+			GUI.invokeAfterAWT(selectionChanged);
 		}
 
 
@@ -537,7 +543,7 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 						userSelection.clear();
 					} else {
 						// Find deepSelection and add it to the GUI's selection.
-						findChildrenToDepth(userSelection, depth + 1, dependsOnCheckBox.isSelected(), usedByCheckBox.isSelected());
+						findChildrenToDepth(userSelection, depth + 1, incomingLinksCheckBox.isSelected(), outgoingLinksCheckBox.isSelected());
 						guiSelection.add(deepSelection.iterator());
 					}
 
@@ -577,7 +583,7 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 
 						// Find deepSelection.
 						deepSelection.clear();
-						findChildrenToDepth(userSelection, depth + 1, dependsOnCheckBox.isSelected(), usedByCheckBox.isSelected());
+						findChildrenToDepth(userSelection, depth + 1, incomingLinksCheckBox.isSelected(), outgoingLinksCheckBox.isSelected());
 
 						// Set the GUI's selection to userSelection (it may have gotten smaller) and add deepSelection.
 						guiSelection.setTo(userSelection);
@@ -598,7 +604,7 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 		};
 
 
-		protected void findChildrenToDepth(Collection<LWComponent> collection, int depth, boolean dependsOn, boolean usedBy) {
+		protected void findChildrenToDepth(Collection<LWComponent> collection, int depth, boolean expandIncoming, boolean expandOutgoing) {
 			// Add each node to deepSelection.
 			Iterator<LWComponent>	nodes = collection.iterator();
 
@@ -612,18 +618,25 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 
 					if (depth > 1) {
 						// Add each node's links to deepSelection.
-						
-						HashSet<LWComponent> linksList = new HashSet<LWComponent>();
-						
-						if (dependsOn) 
-						   linksList.addAll(node.getHeadLinks());
-						if (usedBy) 
-						   linksList.addAll(node.getTailLinks());
-						
-						Iterator<LWComponent>	links = (Iterator<LWComponent>)(linksList).iterator();
-                        
-						while (links.hasNext()) {
-							LWComponent		link = links.next();
+
+						HashSet<LWComponent>	links = new HashSet<LWComponent>();
+						List<LWLink>		incomingLinks = null,
+												outgoingLinks = null;
+
+						if (expandIncoming) {
+							incomingLinks = node.getIncomingLinks();
+							links.addAll(incomingLinks);
+						}
+
+						if (expandOutgoing) {
+							outgoingLinks = node.getOutgoingLinks();
+							links.addAll(outgoingLinks);
+						}
+
+						Iterator<LWComponent>	linkIter = (Iterator<LWComponent>)(links).iterator();
+
+						while (linkIter.hasNext()) {
+							LWComponent			link = linkIter.next();
 
 							if (!userSelection.contains(link)) {
 								deepSelection.add(link);
@@ -631,22 +644,26 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 						}
 
 						// Add each node's child nodes to deepSelection.
-						HashSet<LWComponent> linked = new HashSet<LWComponent>();
-						if (dependsOn)
-							linked.addAll(node.getTailLinked());
-						if (usedBy)
-							linked.addAll(node.getHeadLinked());
-						
-						findChildrenToDepth(linked, depth - 1, dependsOn, usedBy);
+						HashSet<LWComponent>	children = new HashSet<LWComponent>();
+
+						if (expandIncoming) {
+							Collection<LWComponent>		incomingLinkedNodes = new HashSet<LWComponent>();
+
+							incomingLinkedNodes = node.getLinked(incomingLinks, incomingLinkedNodes);
+							children.addAll(incomingLinkedNodes);
+						}
+
+						if (expandOutgoing) {
+							Collection<LWComponent>		outgoingLinkedNodes = new HashSet<LWComponent>();
+
+							outgoingLinkedNodes = node.getLinked(outgoingLinks, outgoingLinkedNodes);
+							children.addAll(outgoingLinkedNodes);
+						}
+
+						findChildrenToDepth(children, depth - 1, expandIncoming, expandOutgoing);
 					}
 				}
 			}
-		}
-
-
-	
-		public void itemStateChanged(ItemEvent e) {
-			GUI.invokeAfterAWT(selectionChanged);
 		}
 	}
 }

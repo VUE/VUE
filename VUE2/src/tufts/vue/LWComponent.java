@@ -315,8 +315,8 @@ public class LWComponent
 
     /** list of links that contain us as an endpoint */
     private transient List<LWLink> mLinks;
-    private transient List<LWLink> hLinks = new ArrayList<LWLink>();
-    private transient List<LWLink> tLinks = new ArrayList<LWLink>();
+    private transient List<LWLink> mIncomingLinks = new ArrayList<LWLink>();
+    private transient List<LWLink> mOutgoingLinks = new ArrayList<LWLink>();
     
     /** list of pathways that we are a member of */
     private transient List<LWPathway> mPathways;
@@ -2813,11 +2813,11 @@ public class LWComponent
     public boolean hasLinks() {
         return mLinks != null && mLinks.size() > 0;
     }
-    public boolean hasHeadLinks() {
-        return hLinks != null && hLinks.size() > 0;
+    public boolean hasIncomingLinks() {
+        return mIncomingLinks != null && mIncomingLinks.size() > 0;
     }
-    public boolean hasTailLinks() {
-        return tLinks != null && tLinks.size() > 0;
+    public boolean hasOutgoingLinks() {
+        return mOutgoingLinks != null && mOutgoingLinks.size() > 0;
     }
     /*
     public String getMetaData()
@@ -3864,12 +3864,30 @@ public class LWComponent
             mLinks.add(link);
             notify(LWKey.LinkAdded, link); // informational only event
         }
-        if (this == link.getHead())
-        	hLinks.add(link);
-        if (this == link.getTail())
-        	tLinks.add(link);
-        
+
+		int		arrowState = link.getArrowState();
+		boolean	arrowHead = arrowState == LWLink.ARROW_HEAD || arrowState == LWLink.ARROW_BOTH,
+				arrowTail = arrowState == LWLink.ARROW_TAIL || arrowState == LWLink.ARROW_BOTH;
+
+        if (this == link.getHead()) {
+        	if (arrowHead) {
+        		mIncomingLinks.add(link);
+        	}
+
+        	if (arrowTail) {
+        		mOutgoingLinks.add(link);
+        	}
+        } else if (this == link.getTail()) {
+        	if (arrowTail) {
+        		mIncomingLinks.add(link);
+        	}
+
+        	if (arrowHead) {
+        		mOutgoingLinks.add(link);
+        	}
+        }
     }
+
     /** for tracking who's linked to us */
     void removeLinkRef(LWLink link)
     {
@@ -3878,8 +3896,8 @@ public class LWComponent
             Log.warn("removeLinkRef: " + this + " didn't contain " + link);
         clearHidden(HideCause.PRUNE); // todo: ONLY clear this if we were pruned by the given link!
         notify(LWKey.LinkRemoved, link); // informational only event
-        hLinks.remove(link);
-        tLinks.remove(link);
+        mIncomingLinks.remove(link);
+        mOutgoingLinks.remove(link);
     }
     
     /** @return us all the links who have us as one of their endpoints */
@@ -3887,12 +3905,12 @@ public class LWComponent
         return mLinks == null ? Collections.EMPTY_LIST : mLinks;
     }
     
-    public List<LWLink> getHeadLinks(){
-        return hLinks;
+    public List<LWLink> getIncomingLinks(){
+        return mIncomingLinks;
     }
     
-    public List<LWLink> getTailLinks(){
-        return tLinks;
+    public List<LWLink> getOutgoingLinks(){
+        return mOutgoingLinks;
     }
 
 //     /** get all links to us + to any descendents */
@@ -3925,32 +3943,6 @@ public class LWComponent
                 bag.add(tail);
             else if (tail == this && head != null)
                 bag.add(head);
-        }
-        return bag;
-    }
-    
-    public Collection<LWComponent> getHeadLinked() {
-    	Set bag = new HashSet(getLinks().size());
-    	for (LWLink link : getTailLinks()) {
-            final LWComponent head = link.getHead();
-            final LWComponent tail = link.getTail();
-            if (head == tail)
-                ; // ignore circular links
-            else if (tail == this && head != null)
-                bag.add(head);
-        }
-        return bag;
-    }
-
-    public Collection<LWComponent> getTailLinked() {
-    	Set bag = new HashSet(getLinks().size());
-    	for (LWLink link : getHeadLinks()) {
-            final LWComponent head = link.getHead();
-            final LWComponent tail = link.getTail();
-            if (head == tail)
-                ; // ignore circular links
-            else if (head == this && tail != null)
-                bag.add(tail);
         }
         return bag;
     }
