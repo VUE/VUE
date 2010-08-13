@@ -21,7 +21,7 @@ public class HierarchicalLayout extends Layout {
 	}
 
 	public void layout(LWSelection selection) throws Exception {
-		List<LWNode> processedNodes = new ArrayList<LWNode>();
+		HashMap<String, LWNode> processedNodes = new HashMap<String, LWNode>();
 		Iterator<LWComponent> iter = selection.iterator();
 		while (iter.hasNext()) {
 			LWComponent c = iter.next();
@@ -58,7 +58,7 @@ public class HierarchicalLayout extends Layout {
 	}
 
 	private void layoutChildren(LWNode parentNode, LWNode currentNode,
-			int size, List<LWNode> processedNodes) {
+			int size, HashMap<String, LWNode> processedNodes) {
 		double centerX = currentNode.getX() + currentNode.getWidth() / 2;
 		double centerY = currentNode.getY() + currentNode.getHeight() / 2;
 		double centerParentX = parentNode.getX() + parentNode.getWidth() / 2;
@@ -128,8 +128,8 @@ public class HierarchicalLayout extends Layout {
 
 	}
 
-	private List<LWNode> getRelated(LWNode node, List<LWNode> processedNodes) {
-		processedNodes.add(node);
+	private List<LWNode> getRelated(LWNode node, HashMap<String, LWNode> processedNodes) {
+		processedNodes.put(node.getID(), node);
 
 		List<LWNode>		relatedNodes = new ArrayList<LWNode>();
 		Iterator<LWLink>	i = node.getLinks().iterator();
@@ -143,13 +143,13 @@ public class HierarchicalLayout extends Layout {
 				LWNode		headNode = (LWNode) head;
 				LWNode		tailNode = (LWNode) tail;
 
-				if (!processedNodes.contains(tailNode) && headNode == node) {
-					processedNodes.add(tailNode);
+				if ((processedNodes.get(tailNode.getID()) == null) && headNode == node) {
+					processedNodes.put(tailNode.getID(), tailNode);
 					relatedNodes.add(tailNode);
 				}
 
-				if (!processedNodes.contains(headNode) && tailNode == node) {
-					processedNodes.add(headNode);
+				if ((processedNodes.get(headNode.getID()) == null) && tailNode == node) {
+					processedNodes.put(headNode.getID(), headNode);
 					relatedNodes.add(headNode);
 				}
 			}
