@@ -153,6 +153,27 @@ public abstract class RectangularPoly2D extends RectangularShape
             ypoints[3] = y + height/2;
         }
     }
+    
+    /** a 4 sided polygon */
+    public static class Rhombus extends RectangularPoly2D {
+        public Rhombus() { setSides(4); }
+        protected void computeVertices()
+        {
+        
+
+            xpoints[0] = x + ((double)width-(double)width*0.8);
+            ypoints[0] = y;
+            
+            xpoints[1] = x + width;
+            ypoints[1] = y;
+            
+            xpoints[3] = x;
+            ypoints[3] = y + height;
+            
+            xpoints[2] = x + ((double)width-(double)width*0.2);
+            ypoints[2] = y + height;
+        }
+    }
 
     /** a 5 sided polygon */
     public static class Pentagon extends RectangularPoly2D {
