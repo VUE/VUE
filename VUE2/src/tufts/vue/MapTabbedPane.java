@@ -16,14 +16,12 @@
 package tufts.vue;
 
 import tufts.Util;
+import tufts.vue.gui.DnDTabbedPane;
 import tufts.vue.gui.GUI;
-
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.JTabbedPane;
 import javax.swing.JScrollPane;
-import javax.swing.border.*;
-
 import java.util.Iterator;
 import java.util.ArrayList;
 
@@ -38,20 +36,24 @@ import java.util.ArrayList;
 // the focus if no other map has focus: switching tabs
 // changes the map you're looking it, and it's set to
 // the active map, but it doesn't get focus unless you click on it!
-public class MapTabbedPane extends JTabbedPane
+public class MapTabbedPane extends DnDTabbedPane
     implements LWComponent.Listener, FocusListener, MapViewer.Listener
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(MapTabbedPane.class);
     
     private final String name;
     private final Color BgColor;
+	private int overTabIndex = -1;
 
+	//private CloseTabPaneUI paneUI;
 //     //private final boolean isLeftViewer;
 //     private static MapTabbedPane leftTabs;
 //     private static MapTabbedPane rightTabs;
     
     MapTabbedPane(String name, boolean isLeft) {
         this.name = name;
+        setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
+
 //         //this.isLeftViewer = isLeft;
 //         if (isLeft)
 //             leftTabs = this;
@@ -67,7 +69,12 @@ public class MapTabbedPane extends JTabbedPane
         //VUE.addActiveListener(LWMap.class, this);
 
         EventHandler.addListener(MapViewer.Event.class, this);        
+    //	super.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
 
+		//paneUI = new CloseTabPaneUI();
+	
+
+		//super.setUI(paneUI);
         /*//getModel().
         addChangeListener(new javax.swing.event.ChangeListener() {
                 public void stateChanged(javax.swing.event.ChangeEvent e) {
