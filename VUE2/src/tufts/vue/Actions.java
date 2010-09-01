@@ -3971,6 +3971,71 @@ public class Actions implements VueConstants
             public boolean overrideIgnoreAllActions() { return true; }
     };
     
+
+        public static final Action ToggleLinks =
+            new VueAction(VueResources.local("menu.view.hideLinks"), keyStroke(KeyEvent.VK_L, CTRL_ALT)) {
+            public void act() {
+            	Actions.toggleLinkVisiblity();
+            }
+            
+            public Boolean getToggleState() {
+                return areLinksFiltered();
+            }
+        };
+            	
+        /*
+         * I think because of the way this is proposed to work
+         * we can't maintain a static state we have to always calculate the state
+         * based on the selection. -MK
+         */
+        static void toggleLinkVisiblity() {
+
+        	boolean filtered = areLinksFiltered();
+    		LWSelection s = VUE.getSelection();
+        	if (s.size() > 0) {
+        		Iterator it = s.iterator();
+        		for (LWComponent c : s) {
+    				if (c instanceof LWLink) {
+    					((LWLink)c).setFiltered(!filtered);
+    				}
+    			}
+        	}
+        	else 
+        	for (LWComponent c : VUE.getActiveViewer().getMap().getAllDescendents()) {
+               if (c instanceof LWLink)
+                    ((LWLink)c).setFiltered(!filtered);
+            }
+        	VUE.getActiveViewer().repaint();
+    	}
+        
+        static Boolean areLinksFiltered()
+        {
+        	LWSelection s = VUE.getSelection();
+        	if (s.size() > 0) {
+        		Iterator it = s.iterator();
+        		for (LWComponent c : s) {
+    				if (c instanceof LWLink) {
+    					boolean isFiltered = ((LWLink)c).isFiltered();
+    					
+    					if (isFiltered)
+    						return true;
+    				}
+    			}
+        		return false;
+        	}
+        	else 
+        	for (LWComponent c : VUE.getActiveViewer().getMap().getAllDescendents()) 
+        	{
+        		if (c instanceof LWLink)        	
+                {
+                    boolean isFiltered = ((LWLink)c).isFiltered();
+                    
+                    if (isFiltered)
+                    	return true;
+                }
+        	}
+        	return false;
+        }
     public static final VueAction TogglePruning =
         new VueAction(VueResources.local("menu.view.pruning"), keyStroke(KeyEvent.VK_J, COMMAND)) {
         public void act() {

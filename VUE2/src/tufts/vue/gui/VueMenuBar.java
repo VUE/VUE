@@ -300,6 +300,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         ////////////////////////////////////////////////////////////////////////////////////
 
         final JMenuItem splitScreenItem = new JCheckBoxMenuItem(Actions.ToggleSplitScreen);
+        final JMenuItem toggleLinksItem = new JCheckBoxMenuItem(Actions.ToggleLinks);
         final JMenuItem toggleSlideIconsItem = makeLinkedCheckBox(Actions.ToggleSlideIcons);
         final JMenuItem togglePruningItem = new JCheckBoxMenuItem(Actions.TogglePruning);
 
@@ -672,7 +673,9 @@ public class VueMenuBar extends javax.swing.JMenuBar
         
         viewMenu.add(togglePruningItem);
         viewMenu.add(Actions.ClearAllPruning);
-        
+
+        viewMenu.add(toggleLinksItem);
+//        viewMenu.add(Actions.unhideLinks);
         // JAVA BUG: ADDING A JMenuItem (maybe just JCheckBoxMenuItem)
         // already constructe, instead of letting the menu code do it
         // itself, breaks the display of accelerators in the item:
