@@ -36,7 +36,7 @@ import java.util.ArrayList;
 // the focus if no other map has focus: switching tabs
 // changes the map you're looking it, and it's set to
 // the active map, but it doesn't get focus unless you click on it!
-public class MapTabbedPane extends DnDTabbedPane
+public class MapTabbedPane extends JTabbedPane//extends DnDTabbedPane
     implements LWComponent.Listener, FocusListener, MapViewer.Listener
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(MapTabbedPane.class);
