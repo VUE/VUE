@@ -155,7 +155,7 @@ public class EditLibraryPanel extends JPanel implements ActionListener
     }
 
     
-    private void addField(StringBuilder b, String key, String title, String description, String value, int uiControl, int max)
+    public static void addField(StringBuilder b, String key, String title, String description, String value, int uiControl, int max)
     {
         b.append("<field>");
 

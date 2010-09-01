@@ -26,9 +26,11 @@ import tufts.vue.LWLink;
 import tufts.vue.LWMap;
 import tufts.vue.MapDropTarget;
 import static tufts.vue.MapDropTarget.*;
+import tufts.vue.ds.DataTree.Criteria;
 import tufts.vue.ds.DataTree.DataNode;
 import tufts.vue.ds.DataTree.RowNode;
 import tufts.vue.ds.DataTree.AllRowsNode;
+import tufts.vue.ds.DataTree.SmartSearch;
 
 import java.util.List;
 import java.util.Collection;
@@ -52,6 +54,7 @@ class DataDropHandler extends MapDropTarget.DropHandler
 
     /** the dropping DataNode -- note that these are not VUE nodes, they're nodes from the VUE DataTree JTree impl */
     private final DataNode droppingDataItem;
+    private final DataTree dataTree;
 
     @Override public String toString() {
         return droppingDataItem.toString();
@@ -59,6 +62,7 @@ class DataDropHandler extends MapDropTarget.DropHandler
 
     DataDropHandler(DataNode n, DataTree tree) {
         droppingDataItem = n;
+        dataTree =tree;
     }
 
     /** DropHandler */
@@ -127,13 +131,17 @@ class DataDropHandler extends MapDropTarget.DropHandler
                 if (droppingDataItem.getField() != null)
                     undoName += " (" + droppingDataItem.getField().getName() + ")";
                 drop.viewer.getMap().getUndoManager().mark(undoName);
-//             } catch (Throwable t) {
-//                 Log.error("servicing drop: " + drop, t);
-//             } finally {
-//                 GUI.clearWaitCursor();
-//             }
-//         }});
-
+                
+             
+                //DEAL WITH MATRIX DATA AND ADD LINK WHEN APPROPRIATE
+                if (droppingDataItem.getSchema().isMatrixDataSet)
+                {
+               
+                	GUI.invokeAfterAWT(new Runnable() { public void run() {
+                	dataTree.applyMatrixRelations(newNodes);
+                	}});
+                }
+                            
         return true;
     }
 

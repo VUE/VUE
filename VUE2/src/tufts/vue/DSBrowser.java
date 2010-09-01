@@ -15,28 +15,16 @@
 
 package tufts.vue;
 
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.util.Locale;
-
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.DefaultListModel;
-import javax.swing.JComponent;
-
-import edu.tufts.vue.dsm.DataSourceManager;
-
-import tufts.vue.DataSourceViewer.MiscActionMouseListener;
 import tufts.vue.ds.XmlDataSource;
 import tufts.vue.gui.DockWindow;
 import tufts.vue.gui.GUI;
 import tufts.vue.gui.Widget;
-import tufts.vue.gui.WidgetStack;
 import tufts.vue.ui.AssociationsPane;
 
 
@@ -97,9 +85,10 @@ public class DSBrowser extends ContentBrowser {
 		XmlDataSource	ds = new XmlDataSource("", null);
 
 		try {
-			String			xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><configuration><field><key>name</key><title>Display Name</title><description>Name for this datasource</description><default>DEFAULT_NAME</default><mandatory>true</mandatory><maxChars></maxChars><ui>0</ui></field><field><key>address</key><title>Address</title><description>RSS Url</description><default>DEFAULT_ADDRESS</default><mandatory>true</mandatory><maxChars>1000</maxChars><ui>8</ui></field></configuration>";
+			String			xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><configuration><field><key>name</key><title>Display Name</title><description>Name for this datasource</description><default>DEFAULT_NAME</default><mandatory>true</mandatory><maxChars></maxChars><ui>0</ui></field><field><key>address</key><title>Address</title><description>RSS Url</description><default>DEFAULT_ADDRESS</default><mandatory>true</mandatory><maxChars>1000</maxChars><ui>8</ui><field><key>matrix</key><title>Import as Matrix Data</title><description>Read as Matrix Data</description><default>false</default><mandatory>true</mandatory><maxChars></maxChars><ui>3</ui></field></field></configuration>";
 			String			name = ds.getDisplayName();
 			String			address = ds.getAddress();
+
 
 			xml = xml.replaceFirst("DEFAULT_NAME", (name != null ? name : ""));
 			xml = xml.replaceFirst("DEFAULT_ADDRESS", (address != null ? address : ""));
@@ -126,6 +115,8 @@ public class DSBrowser extends ContentBrowser {
 
 				bds.setDisplayName(p.getProperty("name"));
 				bds.setAddress(p.getProperty("address"));
+				ds.setMatrixField(p.getProperty("matrix"));								
+				
 			}
 		} catch (Throwable t) {
 			t.printStackTrace();
@@ -135,6 +126,7 @@ public class DSBrowser extends ContentBrowser {
 	}
 
 
+	
 	class MiscActionMouseListener extends MouseAdapter {
 		public void mouseClicked(MouseEvent event) {
 			addLibraryAction.actionPerformed(null);

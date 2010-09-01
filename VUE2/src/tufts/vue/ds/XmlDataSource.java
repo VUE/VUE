@@ -17,21 +17,13 @@ package tufts.vue.ds;
 
 import tufts.vue.*;
 import tufts.vue.ds.XMLIngest.XmlSchema;
-import tufts.Util;
-
 import java.util.*;
 import java.io.*;
 import java.util.List;
-import java.util.*;
 import java.awt.*;
-import java.net.*;
 import java.nio.charset.Charset;
-
 import javax.swing.*;
-import java.text.DecimalFormat;
-
-import static tufts.vue.ds.XMLIngest.*;
-
+import edu.tufts.vue.ui.ConfigurationUI;
 import au.com.bytecode.opencsv.CSVReader;
 
 
@@ -43,13 +35,18 @@ public class XmlDataSource extends BrowseDataSource
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(XmlDataSource.class);
     
-    private final List<Resource> mItems = new ArrayList();
+    private final List<Resource> mItems = new ArrayList<Resource>();
 
     private static final String ITEM_PATH_KEY = "item_path";
     private static final String KEY_FIELD_KEY = "key_field";
     private static final String IMAGE_FIELD_KEY = "image_field";
     private static final String ENCODING_FIELD_KEY = "encoding_field";
+    private static final String MATRIX_FIELD_KEY = "matrix";
+    private static final String MATRIX_ROW_KEY ="matrixRow";
+    private static final String MATRIX_COL_KEY ="matrixCol";
+    private static final String MATRIX_RELATION_KEY="matrixRelation";
 
+    
     private static final String NONE_SELECTED = "(none selected)";
     private static final String AUTO_SELECTED = "(auto detect)";
 
@@ -60,6 +57,12 @@ public class XmlDataSource extends BrowseDataSource
     private String keyField;
     private String imageField = NONE_SELECTED;
     private String encodingField = AUTO_SELECTED;
+   
+    private String matrixField = "false";
+    private String matrixRowField = NONE_SELECTED;
+    private String matrixColField = NONE_SELECTED;
+    private String matrixRelField = NONE_SELECTED;
+
 
 
     private boolean isCSV; // hack while XmlDataSource supports both XML and flat-files
@@ -107,8 +110,32 @@ public class XmlDataSource extends BrowseDataSource
             Log.error("val=" + val, t);
         }
         try {
+            if ((val = p.getProperty(MATRIX_FIELD_KEY)) != null)
+                setMatrixField(val);
+        } catch (Throwable t) {
+            Log.error("val=" + val, t);
+        }
+        try {
             if ((val = p.getProperty(IMAGE_FIELD_KEY)) != null)
                 setImageField(val);
+        } catch (Throwable t) {
+            Log.error("val=" + val, t);
+        }
+        try {
+            if ((val = p.getProperty(MATRIX_ROW_KEY)) != null)
+                setMatrixRowField(val);
+        } catch (Throwable t) {
+            Log.error("val=" + val, t);
+        }
+        try {
+            if ((val = p.getProperty(MATRIX_COL_KEY)) != null)
+                setMatrixColField(val);
+        } catch (Throwable t) {
+            Log.error("val=" + val, t);
+        }
+        try {
+            if ((val = p.getProperty(MATRIX_RELATION_KEY)) != null)
+                setMatrixRelField(val);
         } catch (Throwable t) {
             Log.error("val=" + val, t);
         }
@@ -145,6 +172,22 @@ public class XmlDataSource extends BrowseDataSource
         return keyField;
     }
     
+    public String getMatrixField() {
+        return matrixField;
+    }
+    
+    public String getMatrixRowField() {
+        return matrixRowField;
+    }
+    
+    public String getMatrixColField() {
+        return matrixColField;
+    }
+    
+    public String getMatrixRelField() {
+        return matrixRelField;
+    }
+    
     public String getEncodingField() {
     	if (encodingField.equals("(auto detect)"))
     		return "windows-1252";
@@ -178,7 +221,66 @@ public class XmlDataSource extends BrowseDataSource
         }
         unloadViewer();
     }
+
+    public void setMatrixField(String k) {
+        if (DEBUG.DR) Log.debug("setMatrixField[" + k + "]");
+        if (k != null) {
+            k = k.trim();
+            if (k.length() < 1)
+                matrixField = null;
+            else
+                matrixField = k;
+        } else {
+            matrixField = null;
+        }
+        unloadViewer();
+    }
     
+    public void setMatrixColField(String k) {
+        if (DEBUG.DR) Log.debug("setMatrixColField[" + k + "]");
+        if (k != null) {
+            k = k.trim();
+            if (k.length() < 1)
+                matrixColField = null;
+            else
+                matrixColField = k;
+        } else {
+            matrixColField = null;
+        }
+
+
+      //  unloadViewer();
+    }
+    
+    public void setMatrixRelField(String k) {
+        if (DEBUG.DR) Log.debug("setMatrixColField[" + k + "]");
+        if (k != null) {
+            k = k.trim();
+            if (k.length() < 1)
+                matrixRelField = null;
+            else
+                matrixRelField = k;
+        } else {
+            matrixRelField = null;
+        }            
+
+
+    //    unloadViewer();
+    }
+    public void setMatrixRowField(String k) {
+        if (DEBUG.DR) Log.debug("setMatrixRowField[" + k + "]");
+        if (k != null) {
+            k = k.trim();
+            if (k.length() < 1)
+                matrixRowField = null;
+            else
+                matrixRowField = k;
+        } else {
+            matrixRowField = null;
+        }
+      //  unloadViewer();
+    }
+
     @Override public java.util.List<ConfigField> getConfigurationUIFields() {
         
         ConfigField path
@@ -239,6 +341,13 @@ public class XmlDataSource extends BrowseDataSource
         fields.add(imageField);
         if (isCSV)
         	fields.add(encodingField);
+        
+        List<ConfigField> mFields = null;
+        if (this.getMatrixField().equals("true"))
+        {
+        	mFields = this.getMatrixConfigurationUIFields(headerValues);
+        	fields.addAll(mFields);
+        }
         return fields;
     }
 
@@ -335,7 +444,164 @@ public class XmlDataSource extends BrowseDataSource
         return schema;
     }
     
-    private Schema mSchema;
+    private String[] headerValues = null;
+    
+    public Schema ingestMatrixCSV(Schema schema, String file, boolean hasColumnTitles) throws java.io.IOException
+    {
+    	final boolean isMatrixDataset = true;
+        //final Schema schema = new Schema(file);
+        //final CSVReader reader = new CSVReader(new FileReader(file));
+        // TODO: need an encoding Win/Mac encoding toggle
+        // TODO: need handle this in BrowseDataSource openReader (encoding provided by user in data-source config)
+        // TODO: the Open CSV CSVReader impl is horrible - doesn't handle quoted values properly!
+        
+        final CSVReader dataStream = new CSVReader(new InputStreamReader(new FileInputStream(file),this.getEncodingField()));
+        //final BufferedReader dataStream = new BufferedReader(new InputStreamReader(new FileInputStream(file), "windows-1252"));
+        
+        String[] values = readLine(dataStream);
+        headerValues = new String[values.length];
+        headerValues  = values.clone();
+
+        if (schema == null) {
+            //if (DEBUG.SCHEMA) Log.debug("no current schema, instancing new");
+
+            schema = Schema.getNewAuthorityInstance(Resource.instance(file), getGUID(), getDisplayName());
+
+        } else {
+            if (DEBUG.SCHEMA) Log.debug("reloading schema " + schema);
+            schema.setResource(Resource.instance(file));
+        }
+        schema.flushData();
+        
+        if (values == null)
+            throw new IOException(file + ": empty file?");
+
+        if (hasColumnTitles) 
+        {
+        	if (isMatrixDataset && 
+        			(this.matrixColField.equals(NONE_SELECTED) || 
+        			this.matrixRowField.equals(NONE_SELECTED) ||
+        			this.matrixRelField.equals(NONE_SELECTED)))
+        	{
+    			UIParams params = this.getXMLforMatrix(values);
+    			boolean proceed = false;
+    			
+        	    ConfigurationUI cui = new edu.tufts.vue.ui.ConfigurationUI(new java.io.ByteArrayInputStream(params.xml.getBytes()),params.extraValuesByKey);
+    			cui.setPreferredSize(new Dimension(350, (int)cui.getPreferredSize().getHeight()));
+                
+                if (VueUtil.option(VUE.getDialogParent(),
+                        cui,
+                        VueResources.getString("optiondialog.configuration.message"),
+                        javax.swing.JOptionPane.DEFAULT_OPTION,
+                        javax.swing.JOptionPane.PLAIN_MESSAGE,
+                        new Object[] {
+                	VueResources.getString("optiondialog.configuration.continue"), VueResources.getString("optiondialog.configuration.cancel")
+                },
+                VueResources.getString("optiondialog.configuration.continue")) == 1) {
+					proceed = false;
+				} else {
+					setConfiguration(cui.getProperties());
+			        DataSourceViewer.saveDataSourceViewer();
+				}
+        	}
+            schema.ensureFields(this,values,isMatrixDataset);
+            values = readLine(dataStream);
+        } else {
+            schema.ensureFields(values.length);
+        }
+
+        if (values == null)
+            throw new IOException(file + ": has column names, but no data");
+
+        do {
+
+            schema.addMatrixRow(this,values);
+            
+        } while ((values = readLine(dataStream)) != null);
+
+        dataStream.close();
+
+        schema.notifyAllRowsAdded();
+
+        return schema;
+    }
+    
+  
+    private UIParams getXMLforMatrix(String[] values)
+    {
+        final UIParams params = new UIParams();
+        final StringBuilder b = new StringBuilder();
+        //final String address = dataSource.getAddress();
+            
+        b.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+        b.append("<configuration>\n");
+        final java.util.Map<String,Vector> extraValuesMap = new java.util.HashMap();
+        for (ConfigField f : getMatrixConfigurationUIFields(values)) {
+                EditLibraryPanel.addField(b, f.key, f.title, f.description, f.value, f.uiControl, f.maxLen);
+                if (f.values != null)
+                    extraValuesMap.put(f.key, f.values);
+            }
+        params.extraValuesByKey = extraValuesMap;
+
+        
+
+        b.append("</configuration>");
+
+        
+        params.xml=b.toString();
+        return params;
+    }
+   
+    private static class UIParams {
+        String xml;
+        // possible enumerated types, indexed by key field
+        Map<String,Vector> extraValuesByKey = Collections.EMPTY_MAP;
+    }
+    
+    private java.util.List<ConfigField> getMatrixConfigurationUIFields(String[] values) {
+    	java.util.List<ConfigField> fields = new ArrayList<ConfigField>();
+    	
+    	ConfigField field1
+        = new ConfigField(MATRIX_ROW_KEY
+                          ,"Select row from data"
+                          ,"Read CSV as relational matrix"
+                          ,this.matrixRowField // current value
+                          ,edu.tufts.vue.ui.ConfigurationUI.COMBO_BOX_CONTROL);
+
+    	List l = Arrays.asList(values);
+    	//l.add(0, NONE_SELECTED);
+    	
+        field1.values = new Vector(l);
+        
+    	fields.add(field1);
+
+    	ConfigField field2
+        = new ConfigField(MATRIX_COL_KEY
+                          ,"Select column from data"
+                          ,"Read CSV as relational matrix"
+                          ,this.matrixColField // current value
+                          ,edu.tufts.vue.ui.ConfigurationUI.COMBO_BOX_CONTROL);
+    	
+        field2.values = new Vector(l);
+        
+    	fields.add(field2);
+    	
+    	ConfigField field3
+        = new ConfigField(MATRIX_RELATION_KEY
+                          ,"Select relationship from data"
+                          ,"Read CSV as relational matrix"
+                          ,this.matrixRelField // current value
+                          ,edu.tufts.vue.ui.ConfigurationUI.COMBO_BOX_CONTROL);
+
+        field3.values = new Vector(l);
+        
+    	fields.add(field3);
+
+    	
+		return fields;
+	}
+
+	private Schema mSchema;
     
     public Schema getSchema()
     {
@@ -357,8 +623,10 @@ public class XmlDataSource extends BrowseDataSource
 
             // Note: for CSV data, we pass in the existing schema, permitting it
             // to be re-loaded, and preserving existing runtime Schema references.
-            
-            schema = ingestCSV(mSchema, getAddress(), true);
+            if (getMatrixField().equals("true"))
+            	schema = ingestMatrixCSV(mSchema, getAddress(), true);
+            else	
+            	schema = ingestCSV(mSchema, getAddress(), true);
             mSchema = schema;
             isCSV = true;
         } else {
@@ -388,6 +656,7 @@ public class XmlDataSource extends BrowseDataSource
 
         if (getEncodingField() != null)
             mSchema.setEncodingField(getEncodingField());
+
 
         schema.setImageField(getImageField());
         schema.setName(getDisplayName());

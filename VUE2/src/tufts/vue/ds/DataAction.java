@@ -892,7 +892,7 @@ public final class DataAction
         String titleField;
             
         // Make a guess at what might be the best field to use for the node label text
-        if (schema.getRowCount() <= 42 && schema.hasField("title")) {
+        if (schema.getRowCount() <= 42 && (schema.hasField("title") || schema.hasField("Title"))) {
             // if we have hundreds of nodes, title may be too long to use -- the key
             // field may well be shorter.
             titleField = "title";

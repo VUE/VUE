@@ -65,10 +65,10 @@ public class DataTree extends javax.swing.JTree
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(DataTree.class);
     
-    private final Schema mSchema;
+    protected final Schema mSchema;
 
     private DataNode mRootNode;
-    private DataNode mAllRowsNode;
+    protected DataNode mAllRowsNode;
     private DataNode mSelectedSearchNode;
     private final JLabel mNewRowsLabel = new JLabel();
     private final JLabel mChangedRowsLabel = new JLabel();
@@ -285,20 +285,33 @@ public class DataTree extends javax.swing.JTree
     	try {
             annotateForMap(mActiveMap);
 
-            LWSelection newNodes = null;
+            
             
             if (mNewRowsCheckBox.isSelected()) {
                 addMissingRowsToMap(mActiveMap);
                 
-                newNodes = VUE.getSelection().clone();
+                final LWSelection newNodes = VUE.getSelection().clone();
+                
+                if (mSchema.isMatrixDataSet)
+                {
+                	GUI.invokeAfterAWT(new Runnable() { public void run() {
+                    	applyMatrixRelations(newNodes);
+                    	}});
+                }
             }
             
             if (mChangedRowsCheckBox.isSelected()) {
                 applyDataUpdatesToMap(mActiveMap);
-                
+                final LWSelection newNodes = VUE.getSelection().clone();
+
                 if (newNodes != null) {
                     VUE.getSelection().add(newNodes);
                 }
+                
+                if (mSchema.isMatrixDataSet)
+                	GUI.invokeAfterAWT(new Runnable() { public void run() {
+                    	applyMatrixRelations(newNodes);
+                    	}});
             }
         } catch (Throwable t) {
             Log.warn("updateMap", t);
@@ -308,6 +321,66 @@ public class DataTree extends javax.swing.JTree
         
     }
 
+    public synchronized void applyMatrixRelations(List<LWComponent> newNodes)
+    {
+    	List<MatrixRelationship> relations = mSchema.matrixRelations;
+    	
+    	for (LWComponent newNode: newNodes)
+    	{
+        	String trueName = newNode.getRawData().getString(Schema.MATRIX_NAME_FIELD);
+
+        	for (MatrixRelationship relation: relations)
+        	{
+        		if (relation.getFromLabel().equals(trueName) || relation.getToLabel().equals(trueName))
+        		{
+        			                			                			
+        			for (DataNode n : mAllRowsNode.getChildren()) {
+     		         	RowNode rn = (RowNode)n;
+        		     if (rn.isMapPresent()) {
+
+        		         	String potentialTargetName = rn.getRow().getValue(Schema.MATRIX_NAME_FIELD);
+        		         	if (potentialTargetName.equals(relation.getToLabel()) || potentialTargetName.equals(relation.getFromLabel()))
+        		         	{	                		         	
+        		         		//try to find a place to draw it.
+        		                final Collection<LWComponent> searchSet = VUE.getActiveViewer().getMap().getAllDescendents(LWComponent.ChildKind.EDITABLE);
+        		                final Criteria criteria = dataNodeToSearchCriteria(rn);
+        		                SmartSearch currentSearch = new SmartSearch();
+        		                currentSearch.addCriteria(criteria);
+        		                List<LWComponent> hits = currentSearch.search(searchSet);
+
+        		                for (LWComponent hit: hits)
+        		                {
+        		                	LWLink link = null;
+        		                	if (newNode.getLabel().equals(hit.getLabel()))
+        		                		continue;
+        		                	
+        		                	if (relation.getFromLabel().equals(trueName))
+        		                	{
+        		                		if (!newNode.getLinked().contains(hit))
+        		                			link = new LWLink(newNode,hit);
+        		                	}
+        		                	else
+        		                	{
+        		                		if (!hit.getLinked().contains(newNode))
+        		                			link = new LWLink(hit,newNode);
+
+        		                	}
+        		                	if (link !=null)
+        		                	{        		                		
+        		                		link.setLabel(relation.getRelationLabel());
+    		                			link.setAsDataLink(relation.getRelationLabel());
+        		                		VUE.getActiveViewer().getMap().add(link);
+        		                	}
+        		                }
+        		         	} 
+        		     	}
+        			 } // for each data node
+
+        		}
+        	}
+    	}
+    }
+    
     private void enableUpdateButton() {
         mUpdateButton.setEnabled((mNewRowsCheckBox.isEnabled() && mNewRowsCheckBox.isSelected()) ||
             (mChangedRowsCheckBox.isEnabled() && mChangedRowsCheckBox.isSelected()));
@@ -726,7 +799,7 @@ public class DataTree extends javax.swing.JTree
         selection.setWithStyle(hits, desc, styleRecord);
     }
 
-    private Criteria dataNodeToSearchCriteria(final DataNode treeNode) {
+    public Criteria dataNodeToSearchCriteria(final DataNode treeNode) {
 
         final Field field = treeNode.getField();
         final String fieldName = field == null ? null : field.getName();
@@ -777,7 +850,7 @@ public class DataTree extends javax.swing.JTree
 
     // todo: better to move all this Search stuff to a DataSearch.java or some such.
     
-    private abstract static class Criteria {
+    public abstract static class Criteria {
         boolean matches(LWComponent c) {
             throw new UnsupportedOperationException("unimplemented matches in " + this);
         }
@@ -1452,7 +1525,8 @@ public class DataTree extends javax.swing.JTree
                 }
             };
                     
-        
+        //The current data model doesn't make sense for matrix data and so it's not going to make a ton of sense
+        if (!DataTree.this.mSchema.isMatrixDataSet)
         for (Field field : sortedFields) {
             
 //             if (field.isSingleton())
