@@ -3865,26 +3865,27 @@ public class LWComponent
             notify(LWKey.LinkAdded, link); // informational only event
         }
 
-		int		arrowState = link.getArrowState();
-		boolean	arrowHead = arrowState == LWLink.ARROW_HEAD || arrowState == LWLink.ARROW_BOTH,
-				arrowTail = arrowState == LWLink.ARROW_TAIL || arrowState == LWLink.ARROW_BOTH;
+        int     arrowState = link.getArrowState();    
+        boolean arrowHead = arrowState == LWLink.ARROW_HEAD,
+                arrowTail = arrowState == LWLink.ARROW_TAIL,
+                arrowNonDirectional = arrowState == LWLink.ARROW_BOTH || arrowState == LWLink.ARROW_NONE;
 
         if (this == link.getHead()) {
-        	if (arrowHead) {
-        		mIncomingLinks.add(link);
-        	}
+            if (arrowHead || arrowNonDirectional) {
+                mIncomingLinks.add(link);
+            }
 
-        	if (arrowTail) {
-        		mOutgoingLinks.add(link);
-        	}
+            if (arrowTail || arrowNonDirectional) {
+                mOutgoingLinks.add(link);
+            }
         } else if (this == link.getTail()) {
-        	if (arrowTail) {
-        		mIncomingLinks.add(link);
-        	}
+            if (arrowTail || arrowNonDirectional) {
+                mIncomingLinks.add(link);
+            }
 
-        	if (arrowHead) {
-        		mOutgoingLinks.add(link);
-        	}
+            if (arrowHead || arrowNonDirectional) {
+                mOutgoingLinks.add(link);
+            }
         }
     }
 
