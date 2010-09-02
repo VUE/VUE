@@ -197,7 +197,7 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 		outgoingLinksCheckBox.setFont(tufts.vue.gui.GUI.LabelFace);
 		outgoingLinksCheckBox.setToolTipText(VueResources.getString("interactionTools.outgoingLinks.toolTip"));
 		outgoingLinksCheckBox.addItemListener(depthListener);
-		addToGridBag(linkDirectionPanel, outgoingLinksCheckBox, 3, 0, 1, 1,  GridBagConstraints.LINE_START, GridBagConstraints.NONE, 0.0, 0.0, new Insets(0, HALF_GUTTER, 0, 0));
+		addToGridBag(linkDirectionPanel, outgoingLinksCheckBox, 3, 0, 1, 1, GridBagConstraints.LINE_START, GridBagConstraints.NONE, 0.0, 0.0, new Insets(0, HALF_GUTTER, 0, 0));
 
 		addToGridBag(depthInnerPanel, linkDirectionPanel, 0, 1, 1, 1, GridBagConstraints.LINE_START, GridBagConstraints.NONE, 0.0, 0.0, halfGutterInsets);
 
@@ -684,53 +684,28 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 					if (depth > 1) {
 						// Add each node's links to deepSelection.
 
-						HashSet<LWComponent>	links = new HashSet<LWComponent>();
-						List<LWLink>			allLinks = null,
-												incomingLinks = null,
-												outgoingLinks = null;
+						List<LWLink>			links = null;
 
 						if (expandIncoming && expandOutgoing) {
-							allLinks = node.getLinks();
-							links.addAll(allLinks);
+							links = node.getLinks();
 						} else if (expandIncoming) {
-							incomingLinks = node.getIncomingLinks();
-							links.addAll(incomingLinks);
+							links = node.getIncomingLinks();
 						} else if (expandOutgoing) {
-							outgoingLinks = node.getOutgoingLinks();
-							links.addAll(outgoingLinks);
+							links = node.getOutgoingLinks();
 						}
 
-						Iterator<LWComponent>	linkIter = (Iterator<LWComponent>)(links).iterator();
-
-						while (linkIter.hasNext()) {
-							LWComponent			link = linkIter.next();
-
+						for (LWLink link : links) {
 							if (!userSelection.contains(link)) {
 								deepSelection.add(link);
 							}
 						}
 
 						// Add each node's child nodes to deepSelection.
-						HashSet<LWComponent>	children = new HashSet<LWComponent>();
+						Collection<LWComponent>	linkedNodes = new HashSet<LWComponent>();
 
-						if (expandIncoming && expandOutgoing) {
-							Collection<LWComponent>		allLinkedNodes = new HashSet<LWComponent>();
+						node.getLinked(links, linkedNodes);
 
-							allLinkedNodes = node.getLinked(allLinks, allLinkedNodes);
-							children.addAll(allLinkedNodes);
-						} else if (expandIncoming) {
-							Collection<LWComponent>		incomingLinkedNodes = new HashSet<LWComponent>();
-
-							incomingLinkedNodes = node.getLinked(incomingLinks, incomingLinkedNodes);
-							children.addAll(incomingLinkedNodes);
-						} else if (expandOutgoing) {
-							Collection<LWComponent>		outgoingLinkedNodes = new HashSet<LWComponent>();
-
-							outgoingLinkedNodes = node.getLinked(outgoingLinks, outgoingLinkedNodes);
-							children.addAll(outgoingLinkedNodes);
-						}
-
-						findChildrenToDepth(children, depth - 1, expandIncoming, expandOutgoing);
+						findChildrenToDepth(linkedNodes, depth - 1, expandIncoming, expandOutgoing);
 					}
 				}
 			}
