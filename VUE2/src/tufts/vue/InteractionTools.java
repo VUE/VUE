@@ -608,7 +608,7 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 						userSelection.clear();
 					} else {
 						// Find deepSelection and add it to the GUI's selection.
-						findChildrenToDepth(userSelection, depth + 1, incomingLinksCheckBox.isSelected(), outgoingLinksCheckBox.isSelected());
+						findChildrenToDepth(userSelection, depth, incomingLinksCheckBox.isSelected(), outgoingLinksCheckBox.isSelected());
 						guiSelection.add(deepSelection.iterator());
 					}
 
@@ -648,7 +648,7 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 
 						// Find deepSelection.
 						deepSelection.clear();
-						findChildrenToDepth(userSelection, depth + 1, incomingLinksCheckBox.isSelected(), outgoingLinksCheckBox.isSelected());
+						findChildrenToDepth(userSelection, depth, incomingLinksCheckBox.isSelected(), outgoingLinksCheckBox.isSelected());
 
 						// Set the GUI's selection to userSelection (it may have gotten smaller) and add deepSelection.
 						guiSelection.setTo(userSelection);
@@ -669,19 +669,55 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 		};
 
 
-		protected void findChildrenToDepth(Collection<LWComponent> collection, int depth, boolean expandIncoming, boolean expandOutgoing) {
-			// Add each node to deepSelection.
-			Iterator<LWComponent>	nodes = collection.iterator();
+		protected void findChildrenToDepth(Collection<LWComponent> comps, int depth, boolean expandIncoming, boolean expandOutgoing) {
+			for (LWComponent comp : comps) {
+				Class		compClass = comp.getClass();
 
-			while (nodes.hasNext()) {
-				LWComponent		node = nodes.next();
+				if (compClass == LWLink.class) {
+					LWLink		link = (LWLink)comp;
 
-				if (node.getClass() == LWNode.class) {
+					LWComponent				head = link.getHead(),
+											tail = link.getTail();
+					int						arrowState = link.getArrowState();
+					HashSet<LWComponent>	linkedComps = new HashSet<LWComponent>();
+
+					if (expandIncoming) {
+						if (arrowState != LWLink.ARROW_HEAD) {
+							linkedComps.add(head);
+						}
+
+						if (arrowState != LWLink.ARROW_TAIL) {
+							linkedComps.add(tail);
+						}
+					}
+
+					if (expandOutgoing) {
+						if (arrowState != LWLink.ARROW_TAIL) {
+							linkedComps.add(head);
+						}
+
+						if (arrowState != LWLink.ARROW_HEAD) {
+							linkedComps.add(tail);
+						}
+					}
+
+					if (!linkedComps.isEmpty()) {
+						boolean		linkInUserSelection = userSelection.contains(link);
+
+						if (!linkInUserSelection) {
+							deepSelection.add(link);
+						}
+
+						findChildrenToDepth(linkedComps, depth - (linkInUserSelection ? 1 : 0), expandIncoming, expandOutgoing);
+					}
+				} else if (compClass == LWNode.class) {
+					LWNode		node = (LWNode)comp;
+
 					if (!userSelection.contains(node)) {
 						deepSelection.add(node);
 					}
 
-					if (depth > 1) {
+					if (depth > 0) {
 						// Add each node's links to deepSelection.
 
 						List<LWLink>			links = null;
