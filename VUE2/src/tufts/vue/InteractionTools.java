@@ -685,15 +685,17 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 						// Add each node's links to deepSelection.
 
 						HashSet<LWComponent>	links = new HashSet<LWComponent>();
-						List<LWLink>		incomingLinks = null,
+						List<LWLink>			allLinks = null,
+												incomingLinks = null,
 												outgoingLinks = null;
 
-						if (expandIncoming) {
+						if (expandIncoming && expandOutgoing) {
+							allLinks = node.getLinks();
+							links.addAll(allLinks);
+						} else if (expandIncoming) {
 							incomingLinks = node.getIncomingLinks();
 							links.addAll(incomingLinks);
-						}
-
-						if (expandOutgoing) {
+						} else if (expandOutgoing) {
 							outgoingLinks = node.getOutgoingLinks();
 							links.addAll(outgoingLinks);
 						}
@@ -711,14 +713,17 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 						// Add each node's child nodes to deepSelection.
 						HashSet<LWComponent>	children = new HashSet<LWComponent>();
 
-						if (expandIncoming) {
+						if (expandIncoming && expandOutgoing) {
+							Collection<LWComponent>		allLinkedNodes = new HashSet<LWComponent>();
+
+							allLinkedNodes = node.getLinked(allLinks, allLinkedNodes);
+							children.addAll(allLinkedNodes);
+						} else if (expandIncoming) {
 							Collection<LWComponent>		incomingLinkedNodes = new HashSet<LWComponent>();
 
 							incomingLinkedNodes = node.getLinked(incomingLinks, incomingLinkedNodes);
 							children.addAll(incomingLinkedNodes);
-						}
-
-						if (expandOutgoing) {
+						} else if (expandOutgoing) {
 							Collection<LWComponent>		outgoingLinkedNodes = new HashSet<LWComponent>();
 
 							outgoingLinkedNodes = node.getLinked(outgoingLinks, outgoingLinkedNodes);

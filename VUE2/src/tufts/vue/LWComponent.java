@@ -315,8 +315,6 @@ public class LWComponent
 
     /** list of links that contain us as an endpoint */
     private transient List<LWLink> mLinks;
-    private transient List<LWLink> mIncomingLinks = new ArrayList<LWLink>();
-    private transient List<LWLink> mOutgoingLinks = new ArrayList<LWLink>();
     
     /** list of pathways that we are a member of */
     private transient List<LWPathway> mPathways;
@@ -2813,12 +2811,6 @@ public class LWComponent
     public boolean hasLinks() {
         return mLinks != null && mLinks.size() > 0;
     }
-    public boolean hasIncomingLinks() {
-        return mIncomingLinks != null && mIncomingLinks.size() > 0;
-    }
-    public boolean hasOutgoingLinks() {
-        return mOutgoingLinks != null && mOutgoingLinks.size() > 0;
-    }
     /*
     public String getMetaData()
     {
@@ -3864,29 +3856,6 @@ public class LWComponent
             mLinks.add(link);
             notify(LWKey.LinkAdded, link); // informational only event
         }
-
-        int     arrowState = link.getArrowState();    
-        boolean arrowHead = arrowState == LWLink.ARROW_HEAD,
-                arrowTail = arrowState == LWLink.ARROW_TAIL,
-                arrowNonDirectional = arrowState == LWLink.ARROW_BOTH || arrowState == LWLink.ARROW_NONE;
-
-        if (this == link.getHead()) {
-            if (arrowHead || arrowNonDirectional) {
-                mIncomingLinks.add(link);
-            }
-
-            if (arrowTail || arrowNonDirectional) {
-                mOutgoingLinks.add(link);
-            }
-        } else if (this == link.getTail()) {
-            if (arrowTail || arrowNonDirectional) {
-                mIncomingLinks.add(link);
-            }
-
-            if (arrowHead || arrowNonDirectional) {
-                mOutgoingLinks.add(link);
-            }
-        }
     }
 
     /** for tracking who's linked to us */
@@ -3897,21 +3866,63 @@ public class LWComponent
             Log.warn("removeLinkRef: " + this + " didn't contain " + link);
         clearHidden(HideCause.PRUNE); // todo: ONLY clear this if we were pruned by the given link!
         notify(LWKey.LinkRemoved, link); // informational only event
-        mIncomingLinks.remove(link);
-        mOutgoingLinks.remove(link);
     }
     
     /** @return us all the links who have us as one of their endpoints */
     public List<LWLink> getLinks(){
         return mLinks == null ? Collections.EMPTY_LIST : mLinks;
     }
-    
+
     public List<LWLink> getIncomingLinks(){
-        return mIncomingLinks;
+    	// Note: it's inefficient to call getIncomingLinks() AND getOutgoingLinks() because bi-directional
+    	// links will be returned by both and you'll double-process them.  If you want both incoming and
+    	// outgoing links just call getLinks() and there won't be duplicates.
+        List<LWLink> incomingLinks = new ArrayList<LWLink>();
+
+        for (LWLink link : getLinks()) {
+            int     arrowState = link.getArrowState();    
+            boolean arrowHead = arrowState == LWLink.ARROW_HEAD,
+                    arrowTail = arrowState == LWLink.ARROW_TAIL,
+                    arrowNonDirectional = arrowState == LWLink.ARROW_BOTH || arrowState == LWLink.ARROW_NONE;
+
+            if (this == link.getHead()) {
+                if (arrowHead || arrowNonDirectional) {
+                    incomingLinks.add(link);
+                }
+            } else if (this == link.getTail()) {
+                if (arrowTail || arrowNonDirectional) {
+                    incomingLinks.add(link);
+                }
+            }
+        }
+
+        return incomingLinks;
     }
-    
+
     public List<LWLink> getOutgoingLinks(){
-        return mOutgoingLinks;
+    	// Note: it's inefficient to call getIncomingLinks() AND getOutgoingLinks() because bi-directional
+    	// links will be returned by both and you'll double-process them.  If you want both incoming and
+    	// outgoing links just call getLinks() and there won't be duplicates.
+        List<LWLink> outgoingLinks = new ArrayList<LWLink>();
+
+        for (LWLink link : getLinks()) {
+            int     arrowState = link.getArrowState();    
+            boolean arrowHead = arrowState == LWLink.ARROW_HEAD,
+                    arrowTail = arrowState == LWLink.ARROW_TAIL,
+                    arrowNonDirectional = arrowState == LWLink.ARROW_BOTH || arrowState == LWLink.ARROW_NONE;
+
+            if (this == link.getHead()) {
+                if (arrowTail || arrowNonDirectional) {
+                    outgoingLinks.add(link);
+                }
+            } else if (this == link.getTail()) {
+                if (arrowHead || arrowNonDirectional) {
+                    outgoingLinks.add(link);
+                }
+            }
+        }
+
+        return outgoingLinks;
     }
 
 //     /** get all links to us + to any descendents */
