@@ -608,7 +608,7 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 						userSelection.clear();
 					} else {
 						// Find deepSelection and add it to the GUI's selection.
-						findChildrenToDepth(userSelection, depth, incomingLinksCheckBox.isSelected(), outgoingLinksCheckBox.isSelected());
+						findChildrenToDepth(userSelection, depth, incomingLinksCheckBox.isSelected(), outgoingLinksCheckBox.isSelected(), new Hashtable<LWComponent, Integer>());
 						guiSelection.add(deepSelection.iterator());
 					}
 
@@ -648,7 +648,7 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 
 						// Find deepSelection.
 						deepSelection.clear();
-						findChildrenToDepth(userSelection, depth, incomingLinksCheckBox.isSelected(), outgoingLinksCheckBox.isSelected());
+						findChildrenToDepth(userSelection, depth, incomingLinksCheckBox.isSelected(), outgoingLinksCheckBox.isSelected(), new Hashtable<LWComponent, Integer>());
 
 						// Set the GUI's selection to userSelection (it may have gotten smaller) and add deepSelection.
 						guiSelection.setTo(userSelection);
@@ -669,79 +669,66 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 		};
 
 
-		protected void findChildrenToDepth(Collection<LWComponent> comps, int depth, boolean expandIncoming, boolean expandOutgoing) {
+		protected void findChildrenToDepth(Collection<LWComponent> comps, int depth, boolean expandIncoming, boolean expandOutgoing, Hashtable<LWComponent, Integer> alreadyVisited) {
 			for (LWComponent comp : comps) {
-				Class		compClass = comp.getClass();
+				Integer		alreadyVisitedAtLevel = alreadyVisited.get(comp);
 
-				if (compClass == LWLink.class) {
-					LWLink		link = (LWLink)comp;
+				// If this component has already been visited at a higher depth, don't revisit it.
+				if (alreadyVisitedAtLevel == null || alreadyVisitedAtLevel.intValue() < depth) {
+					alreadyVisited.put(comp, new Integer(depth));
 
-					LWComponent				head = link.getHead(),
-											tail = link.getTail();
-					int						arrowState = link.getArrowState();
-					HashSet<LWComponent>	linkedComps = new HashSet<LWComponent>();
+					boolean		compIsUserSelected = userSelection.contains(comp),
+								compIsLink =  (comp.getClass() == LWLink.class);
+					int 		nextDepth = depth - (compIsLink ? (compIsUserSelected ? 1 : 0) : 1);
 
-					if (expandIncoming) {
-						if (arrowState != LWLink.ARROW_HEAD) {
-							linkedComps.add(head);
+		
+					if (!compIsUserSelected) {
+						deepSelection.add(comp);
+					}
+
+					if (compIsLink) {
+						// Recurse for link's endpoints.
+
+						LWLink		link = (LWLink)comp;
+
+						LWComponent				head = link.getHead(),
+												tail = link.getTail();
+						int						arrowState = link.getArrowState();
+						HashSet<LWComponent>	compsToTraverse = new HashSet<LWComponent>();
+
+						if (head != null &&
+								(expandIncoming && arrowState != LWLink.ARROW_HEAD ||
+								expandOutgoing && arrowState != LWLink.ARROW_TAIL)) {
+							compsToTraverse.add(head);
 						}
 
-						if (arrowState != LWLink.ARROW_TAIL) {
-							linkedComps.add(tail);
+						if (tail != null && 
+								(expandIncoming && arrowState != LWLink.ARROW_TAIL ||
+								expandOutgoing && arrowState != LWLink.ARROW_HEAD)) {
+							compsToTraverse.add(tail);
+						}
+
+						if (!compsToTraverse.isEmpty()) {
+							findChildrenToDepth(compsToTraverse, nextDepth, expandIncoming, expandOutgoing, alreadyVisited);
 						}
 					}
 
-					if (expandOutgoing) {
-						if (arrowState != LWLink.ARROW_TAIL) {
-							linkedComps.add(head);
-						}
+					if (nextDepth > -1) {
+						// Recurse for component's links.
 
-						if (arrowState != LWLink.ARROW_HEAD) {
-							linkedComps.add(tail);
-						}
-					}
-
-					if (!linkedComps.isEmpty()) {
-						boolean		linkInUserSelection = userSelection.contains(link);
-
-						if (!linkInUserSelection) {
-							deepSelection.add(link);
-						}
-
-						findChildrenToDepth(linkedComps, depth - (linkInUserSelection ? 1 : 0), expandIncoming, expandOutgoing);
-					}
-				} else if (compClass == LWNode.class) {
-					LWNode		node = (LWNode)comp;
-
-					if (!userSelection.contains(node)) {
-						deepSelection.add(node);
-					}
-
-					if (depth > 0) {
-						// Add each node's links to deepSelection.
-
-						List<LWLink>			links = null;
+						HashSet<LWComponent>		linksToTraverse = new HashSet<LWComponent>();
 
 						if (expandIncoming && expandOutgoing) {
-							links = node.getLinks();
+							linksToTraverse.addAll(comp.getLinks());
 						} else if (expandIncoming) {
-							links = node.getIncomingLinks();
+							linksToTraverse.addAll(comp.getIncomingLinks());
 						} else if (expandOutgoing) {
-							links = node.getOutgoingLinks();
+							linksToTraverse.addAll(comp.getOutgoingLinks());
 						}
 
-						for (LWLink link : links) {
-							if (!userSelection.contains(link)) {
-								deepSelection.add(link);
-							}
+						if (!linksToTraverse.isEmpty()) {
+							findChildrenToDepth(linksToTraverse, nextDepth, expandIncoming, expandOutgoing, alreadyVisited);
 						}
-
-						// Add each node's child nodes to deepSelection.
-						Collection<LWComponent>	linkedNodes = new HashSet<LWComponent>();
-
-						node.getLinked(links, linkedNodes);
-
-						findChildrenToDepth(linkedNodes, depth - 1, expandIncoming, expandOutgoing);
 					}
 				}
 			}
