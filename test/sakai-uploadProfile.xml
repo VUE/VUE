@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<managerImpl name="Sakai" osid="org.osid.repository.RepositoryManager"
+             version="2.0">
+  <!--Provide the package name where the Manager is impemented.-->
+
+  <packagename>edu.tufts.osidimpl.repository.sakai</packagename>
+  <configuration>
+		<property key="sakaiDisplayName" value="Sakai"/>
+		<property key="sakaiUsername" value="admin"/>
+		<property key="sakaiPassword" value="VueSakai2007!"/>
+		<property key="sakaiHost" value="http://vue-dl.tccs.tufts.edu"/>
+		<property key="sakaiPort" value="8180"/>
+  </configuration>
+  
+    <allassets any="true" repositoryid="vue-dl.tccs.tufts.edu.Virtual-Root-Identifier" assetid="/group/VUE/"/>
+    <contentget assetid="/group/VUE/iitkgp.jpg" class="edu.tufts.osidimpl.testing.sakai.GetContentHelper"/>
+  <contentupdate assetid="/group/VUE/" class="edu.tufts.osidimpl.testing.sakai.UpdateContentHelper"/>
+
+</managerImpl>

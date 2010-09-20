@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/class.xsl" type="text/xsl"?>
+<jcsc>
+  <package>rj.tools.jcsc.ui</package>
+  <class>JavaDocTab</class>
+  <methods>5</methods>
+  <author><![CDATA[Ralph Jocham]]></author>
+  <count>1</count>
+  <ncss>43</ncss>
+  <lines>114</lines>
+  <unittestclasses>0</unittestclasses>
+  <unittests>0</unittests>
+  <violation>
+    <rule>
+      <name>MaxNumberOfNCSSPerMethod</name>
+      <severity>4</severity>
+      <category>Metrics</category>
+    </rule>
+    <classname>JavaDocTab</classname>
+    <package>rj.tools.jcsc.ui</package>
+    <line>70</line>
+    <column>32</column>
+    <message><![CDATA[method declaration 'setRules' has too many NCSS (27) - 25 are allowed]]></message>
+    <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\ui\JavaDocTab.java</source>
+  </violation>
+  <metric>
+    <method>>
+      <name>JavaDocTab.constructor()</name>
+      <line>42</line>
+      <column>11</column>
+      <ncss>3</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>JavaDocTab.initUI()</name>
+      <line>49</line>
+      <column>24</column>
+      <ncss>1</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>JavaDocTab.getName()</name>
+      <line>59</line>
+      <column>26</column>
+      <ncss>2</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>JavaDocTab.setRules()</name>
+      <line>70</line>
+      <column>32</column>
+      <ncss>27</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>JavaDocTab.getExamplePane()</name>
+      <line>109</line>
+      <column>39</column>
+      <ncss>2</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+</jcsc>

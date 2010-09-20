@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Configuration hints to the UI in a caller of the Repository OSID for Google local 
+
+ui codes:
+
+0	Single line text clear
+1	Single line text masked
+2	Multi-line text
+3	Boolean
+4	Integer
+5	Float
+6	Datetime
+7	Duration
+
+-->
+<configuration>
+	<field>
+		<key>licenseKey</key>
+		<title>Google license key</title>
+		<description>Enter your license key provided by Google</description>
+		<default></default>
+		<mandatory>true</mandatory>
+		<maxChars></maxChars>
+		<ui>0</ui>
+	</field>
+</configuration>

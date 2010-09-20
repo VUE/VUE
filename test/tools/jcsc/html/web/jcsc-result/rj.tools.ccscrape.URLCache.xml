@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/class.xsl" type="text/xsl"?>
+<jcsc>
+  <package>rj.tools.ccscrape</package>
+  <class>URLCache</class>
+  <methods>5</methods>
+  <author><![CDATA[Ralph Jocham]]></author>
+  <count>1</count>
+  <ncss>40</ncss>
+  <lines>118</lines>
+  <unittestclasses>0</unittestclasses>
+  <unittests>0</unittests>
+  <violation>
+    <rule>
+      <name>MethodDeclarationThrows</name>
+      <severity>4</severity>
+      <category>JavaDoc</category>
+    </rule>
+    <classname>URLCache</classname>
+    <package>rj.tools.ccscrape</package>
+    <line>60</line>
+    <column>33</column>
+    <message><![CDATA[public method declaration JavaDoc does not provide the required '@throws' tag]]></message>
+    <source>C:\cygwin\home\jcsc\src\rj\tools\ccscrape\URLCache.java</source>
+  </violation>
+  <metric>
+    <method>>
+      <name>URLCache.constructor()</name>
+      <line>48</line>
+      <column>11</column>
+      <ncss>2</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>URLCache.getFile()</name>
+      <line>60</line>
+      <column>24</column>
+      <ncss>6</ncss>
+      <ccn>2</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>URLCache.release()</name>
+      <line>78</line>
+      <column>24</column>
+      <ncss>4</ncss>
+      <ccn>2</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>URLCache.isLocal()</name>
+      <line>88</line>
+      <column>28</column>
+      <ncss>2</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>URLCache.makeLocalCopy()</name>
+      <line>93</line>
+      <column>31</column>
+      <ncss>15</ncss>
+      <ccn>2</ccn>
+    </method>
+  </metric>
+</jcsc>

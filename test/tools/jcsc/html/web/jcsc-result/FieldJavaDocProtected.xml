@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet href="xsl/rule.xsl" type="text/xsl"?>
+<jcsc>
+  <category>JavaDoc</category>
+  <rule>FieldJavaDocProtected</rule>
+  <violations>
+    <violation>
+      <rule>
+        <name>FieldJavaDocProtected</name>
+        <severity>4</severity>
+        <category>JavaDoc</category>
+      </rule>
+      <classname>SelectDialog</classname>
+      <package>rj.tools.util.ui</package>
+      <line>78</line>
+      <column>4</column>
+      <message><![CDATA[protected field declaration does not have a JavaDoc]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\util\ui\SelectDialog.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>FieldJavaDocProtected</name>
+        <severity>4</severity>
+        <category>JavaDoc</category>
+      </rule>
+      <classname>SelectDialog</classname>
+      <package>rj.tools.util.ui</package>
+      <line>79</line>
+      <column>4</column>
+      <message><![CDATA[protected field declaration does not have a JavaDoc]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\util\ui\SelectDialog.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>FieldJavaDocProtected</name>
+        <severity>4</severity>
+        <category>JavaDoc</category>
+      </rule>
+      <classname>SelectDialog</classname>
+      <package>rj.tools.util.ui</package>
+      <line>84</line>
+      <column>4</column>
+      <message><![CDATA[protected field declaration does not have a JavaDoc]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\util\ui\SelectDialog.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>FieldJavaDocProtected</name>
+        <severity>4</severity>
+        <category>JavaDoc</category>
+      </rule>
+      <classname>SelectDialog</classname>
+      <package>rj.tools.util.ui</package>
+      <line>85</line>
+      <column>4</column>
+      <message><![CDATA[protected field declaration does not have a JavaDoc]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\util\ui\SelectDialog.java</source>
+    </violation>
+  </violations>
+</jcsc>

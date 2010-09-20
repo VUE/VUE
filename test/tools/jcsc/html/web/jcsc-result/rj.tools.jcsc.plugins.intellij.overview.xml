@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/overview.xsl" type="text/xsl"?>
+<jcsc>
+  <overview>
+    <packagename>rj.tools.jcsc.plugins.intellij</packagename>
+    <packagecount>0</packagecount>
+    <name>rj.tools.jcsc.plugins.intellij</name>
+    <classcount>8</classcount>
+    <methodscount>118</methodscount>
+    <violationscount>8</violationscount>
+    <linecount>2058</linecount>
+    <ncsscount>866</ncsscount>
+    <functionpointscount>16.339622641509433</functionpointscount>
+    <unittestclasscount>0</unittestclasscount>
+    <unittestscount>0</unittestscount>
+    <severitylevel>4</severitylevel>
+    <worstclasses>
+      <worst>
+        <class>rj.tools.jcsc.plugins.intellij.OverviewPanel</class>
+        <count>3</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.plugins.intellij.JCSCOptions</class>
+        <count>2</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.plugins.intellij.JCSCResultPanel</class>
+        <count>2</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.plugins.intellij.OptionsPanel</class>
+        <count>1</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.plugins.intellij.IntellijJCSC</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.plugins.intellij.IntellijJCSCImpl</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.plugins.intellij.JCSCAction</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.plugins.intellij.SourceLineSelector</class>
+        <count>0</count>
+        <author><![CDATA[jochamrm]]></author>
+      </worst>
+    </worstclasses>
+  </overview>
+</jcsc>

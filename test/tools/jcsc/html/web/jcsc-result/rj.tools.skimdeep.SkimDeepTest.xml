@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/class.xsl" type="text/xsl"?>
+<jcsc>
+  <package>rj.tools.skimdeep</package>
+  <class>SkimDeepTest</class>
+  <methods>4</methods>
+  <author><![CDATA[jochamrm]]></author>
+  <count>0</count>
+  <ncss>20</ncss>
+  <lines>49</lines>
+  <unittestclasses>1</unittestclasses>
+  <unittests>3</unittests>
+  <metric>
+    <method>>
+      <name>SkimDeepTest.setUp()</name>
+      <line>18</line>
+      <column>25</column>
+      <ncss>3</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>SkimDeepTest.testParse()</name>
+      <line>24</line>
+      <column>26</column>
+      <ncss>5</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>SkimDeepTest.testOwningClassCount()</name>
+      <line>34</line>
+      <column>37</column>
+      <ncss>4</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>SkimDeepTest.testDependingClassCount()</name>
+      <line>42</line>
+      <column>40</column>
+      <ncss>4</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+</jcsc>

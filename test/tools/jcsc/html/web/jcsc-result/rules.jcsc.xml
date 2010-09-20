@@ -1,0 +1,567 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet href="xsl/rules.xsl" type="text/xsl"?>
+<jcsc version="__0.96__" date="2004-01-21 13:11:33">
+   <rules>
+      <rule name="CtorJavaDocPackage" category="JavaDoc" enabled="true">
+         <type>boolean</type>
+         <value>false</value>
+         <severity>4</severity>
+      </rule>
+      <rule name="MaxNumberOfNCSSPerConstructor" category="Metrics" enabled="true">
+         <type>integer</type>
+         <value>25</value>
+         <severity>4</severity>
+      </rule>
+      <rule name="FieldJavaDocPackage" category="JavaDoc" enabled="true">
+         <type>boolean</type>
+         <value>false</value>
+         <severity>4</severity>
+      </rule>
+      <rule name="AllowedComplexLoopExpression" category="General" enabled="true">
+         <type>regexp</type>
+         <value>has(Next|More(Elements|Tokens))</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="MethodDeclarationReturn" category="JavaDoc" enabled="true">
+         <type>boolean</type>
+         <value>true</value>
+         <severity>4</severity>
+      </rule>
+      <rule name="CtorJavaDocProtected" category="JavaDoc" enabled="true">
+         <type>boolean</type>
+         <value>true</value>
+         <severity>4</severity>
+      </rule>
+      <rule name="IFPacRegExp" category="Field" enabled="true">
+         <type>regexp</type>
+         <value>m[A-Z0-9][\w\d]*</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="CMetPubRegExp" category="Method" enabled="true">
+         <type>regexp</type>
+         <value>[a-z][\w\d]*</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="FMetProRegExp" category="Method" enabled="true">
+         <type>regexp</type>
+         <value>[a-z][\w\d]*</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="ClassNameRegExp" category="General" enabled="true">
+         <type>regexp</type>
+         <value>[A-Z][\w\d]*</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="CtorDeclarationThrows" category="JavaDoc" enabled="true">
+         <type>boolean</type>
+         <value>true</value>
+         <severity>4</severity>
+      </rule>
+      <rule name="MethodJavaDocProtected" category="JavaDoc" enabled="true">
+         <type>boolean</type>
+         <value>true</value>
+         <severity>4</severity>
+      </rule>
+      <rule name="IFPriRegExp" category="Field" enabled="true">
+         <type>regexp</type>
+         <value>m[A-Z0-9][\w\d]*</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="LineLength" category="General" enabled="true">
+         <type>integer</type>
+         <value>119</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="SpaceAfterStatementKeyword" category="General" enabled="true">
+         <type>boolean</type>
+         <value>true</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="EmptyFinallyBlockAllowed" category="General" enabled="true">
+         <type>boolean</type>
+         <value>false</value>
+         <severity>5</severity>
+      </rule>
+      <rule name="LVRegExp" category="Field" enabled="true">
+         <type>regexp</type>
+         <value>[a-z][\w\d]*</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="MaxNumberOfCCNPerMethod" category="Metrics" enabled="true">
+         <type>integer</type>
+         <value>5</value>
+         <severity>4</severity>
+      </rule>
+      <rule name="NestedTypeBlockPlaceRule" category="General" enabled="true">
+         <type>multichoice</type>
+         <choices>
+            <choice>Beginning of Class</choice>
+            <choice>End of Class</choice>
+         </choices>
+         <value>End of Class</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="IMetPriRegExp" category="Method" enabled="true">
+         <type>regexp</type>
+         <value>[a-z][\w\d]*</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="AllowDotStarImport" category="General" enabled="true">
+         <type>boolean</type>
+         <value>false</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="MethodJavaDocPackage" category="JavaDoc" enabled="true">
+         <type>boolean</type>
+         <value>false</value>
+         <severity>4</severity>
+      </rule>
+      <rule name="TypeHeaderExpression" category="General" enabled="true">
+         <type>regexp-multiline</type>
+         <value>/\*
+ \* Copyright \(C\) 1999-2005 Ralph Jocham
+ \* This program is free software; you can redistribute it and/or
+ \* modify it under the terms of the GNU General Public License
+ \* as published by the Free Software Foundation; either version 2
+ \* of the License, or \(at your option\) any later version\.
+ \* *
+ \* This program is distributed in the hope that it will be useful,
+ \* but WITHOUT ANY WARRANTY; without even the implied warranty of
+ \* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE\.  See the
+ \* GNU General Public License for more details\.
+ \* *
+ \* You should have received a copy of the GNU General Public License
+ \* along with this program; if not, write to the Free Software
+ \* Foundation, Inc\., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA\.
+ \*/</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="CFPriRegExp" category="Field" enabled="true">
+         <type>regexp</type>
+         <value>s[A-Z0-9][\w\d]*</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="FieldJavaDocPublic" category="JavaDoc" enabled="true">
+         <type>boolean</type>
+         <value>true</value>
+         <severity>4</severity>
+      </rule>
+      <rule name="FCMetProRegExp" category="Method" enabled="true">
+         <type>regexp</type>
+         <value>[a-z][\w\d]*</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="FCMetPriRegExp" category="Method" enabled="true">
+         <type>regexp</type>
+         <value>[a-z][\w\d]*</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="TypeDeclarationVersion" category="JavaDoc" enabled="true">
+         <type>boolean</type>
+         <value>true</value>
+         <severity>4</severity>
+      </rule>
+      <rule name="ConditionalExpression" category="General" enabled="true">
+         <type>boolean</type>
+         <value>true</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="FCFPacRegExp" category="Field" enabled="true">
+         <type>regexp</type>
+         <value>[A-Z][A-Z0-9_]*</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="SwitchRequiresDefault" category="General" enabled="true">
+         <type>boolean</type>
+         <value>true</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="FieldJavaDocProtected" category="JavaDoc" enabled="true">
+         <type>boolean</type>
+         <value>true</value>
+         <severity>4</severity>
+      </rule>
+      <rule name="FinParaRegExp" category="Method" enabled="true">
+         <type>regexp</type>
+         <value>[a-z][\w\d]*</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="FCFPriRegExp" category="Field" enabled="true">
+         <type>regexp</type>
+         <value>[A-Z][A-Z0-9_]*</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="FMetPubRegExp" category="Method" enabled="true">
+         <type>regexp</type>
+         <value>[a-z][\w\d]*</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="FCFPubRegExp" category="Field" enabled="true">
+         <type>regexp</type>
+         <value>[A-Z][A-Z0-9_]*</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="MethodBlockPlaceRule" category="Method" enabled="true">
+         <type>multichoice</type>
+         <choices>
+            <choice>Method Block Before Field Block</choice>
+            <choice>Method Block After Field Block</choice>
+         </choices>
+         <value>Method Block After Field Block</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="OnlyThrowSubclassedException" category="Method" enabled="true">
+         <type>boolean</type>
+         <value>true</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="LabelNameRegExp" category="General" enabled="true">
+         <type>regexp</type>
+         <value>[A-Z][A-Z0-9_]*</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="PackageNameRegExp" category="General" enabled="true">
+         <type>regexp</type>
+         <value>[a-z0-9.]+</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="OnlyCapitalLForLong" category="General" enabled="true">
+         <type>boolean</type>
+         <value>true</value>
+         <severity>4</severity>
+      </rule>
+      <rule name="MethodDeclarationModifierOrder" category="Method" enabled="true">
+         <type>boolean</type>
+         <value>true</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="IFPubRegExp" category="Field" enabled="true">
+         <type>regexp</type>
+         <value>m[A-Z0-9][\w\d]*</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="FieldOrderRule" category="Field" enabled="true">
+         <type>multichoice</type>
+         <choices>
+            <choice>No Order</choice>
+            <choice>Pub->Pro->Pac->Pri</choice>
+            <choice>Pri->Pac->Pro->Pub</choice>
+            <choice>Static Final->Static->Inst</choice>
+         </choices>
+         <value>Static Final->Static->Inst</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="FieldDeclarationModifierOrder" category="Field" enabled="true">
+         <type>boolean</type>
+         <value>true</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="FMetPacRegExp" category="Method" enabled="true">
+         <type>regexp</type>
+         <value>[a-z][\w\d]*</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="FCMetPubRegExp" category="Method" enabled="true">
+         <type>regexp</type>
+         <value>[a-z][\w\d]*</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="CtorJavaDocPrivate" category="JavaDoc" enabled="true">
+         <type>boolean</type>
+         <value>false</value>
+         <severity>4</severity>
+      </rule>
+      <rule name="CMetPacRegExp" category="Method" enabled="true">
+         <type>regexp</type>
+         <value>[a-z][\w\d]*</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="EmptyCatchBlockAllowed" category="General" enabled="true">
+         <type>boolean</type>
+         <value>false</value>
+         <severity>5</severity>
+      </rule>
+      <rule name="CFPacRegExp" category="Field" enabled="true">
+         <type>regexp</type>
+         <value>s[A-Z0-9][\w\d]*</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="RegExpPrefixForMethodReturingBoolean" category="Method" enabled="true">
+         <type>regexp</type>
+         <value>(accept|is|has|are|assert|shall|boolean).*</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="IFProRegExp" category="Field" enabled="true">
+         <type>regexp</type>
+         <value>m[A-Z0-9][\w\d]*</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="StringLiteralAllowed" category="General" enabled="true">
+         <type>boolean</type>
+         <value>true</value>
+         <severity>2</severity>
+      </rule>
+      <rule name="TabsAllowed" category="General" enabled="true">
+         <type>boolean</type>
+         <value>false</value>
+         <severity>4</severity>
+      </rule>
+      <rule name="CFProRegExp" category="Field" enabled="true">
+         <type>regexp</type>
+         <value>s[A-Z0-9][\w\d]*</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="FCFProRegExp" category="Field" enabled="true">
+         <type>regexp</type>
+         <value>[A-Z][A-Z0-9_]*</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="AnonymousClassMethodJavaDoc" category="JavaDoc" enabled="true">
+         <type>boolean</type>
+         <value>false</value>
+         <severity>4</severity>
+      </rule>
+      <rule name="ApplyJavaDocRulesInInnerClasses" category="JavaDoc" enabled="true">
+         <type>boolean</type>
+         <value>false</value>
+         <severity>3</severity>
+      </rule>      
+      <rule name="ParaRegExp" category="Method" enabled="true">
+         <type>regexp</type>
+         <value>[a-z][\w\d]*</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="MaxNumberOfCCNPerConstructor" category="Metrics" enabled="true">
+         <type>integer</type>
+         <value>5</value>
+         <severity>4</severity>
+      </rule>
+      <rule name="FMetPriRegExp" category="Method" enabled="true">
+         <type>regexp</type>
+         <value>[a-z][\w\d]*</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="AllowPublicField" category="Field" enabled="true">
+         <type>boolean</type>
+         <value>false</value>
+         <severity>5</severity>
+      </rule>
+      <rule name="OpenBraceNewLine" category="General" enabled="true">
+         <type>boolean</type>
+         <value>true</value>
+         <severity>4</severity>
+      </rule>
+      <rule name="CMetPriRegExp" category="Method" enabled="true">
+         <type>regexp</type>
+         <value>[a-z][\w\d]*</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="UnitTestsRegExp" category="Unittest" enabled="true">
+         <type>regexp</type>
+         <value>test[\w\d]+</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="OnlyOneFieldDeclarationPerLine" category="Field" enabled="true">
+         <type>boolean</type>
+         <value>true</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="IMetProRegExp" category="Method" enabled="true">
+         <type>regexp</type>
+         <value>[a-z][\w\d]*</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="IMetPubRegExp" category="Method" enabled="true">
+         <type>regexp</type>
+         <value>[a-z][\w\d]*</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="AbstractClassNameRegExp" category="General" enabled="true">
+         <type>regexp</type>
+         <value>[A-Z][\w\d]*</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="CtorDeclarationParam" category="JavaDoc" enabled="true">
+         <type>boolean</type>
+         <value>true</value>
+         <severity>4</severity>
+      </rule>
+      <rule name="MethodOrderRule" category="Method" enabled="true">
+         <type>multichoice</type>
+         <choices>
+            <choice>No Order</choice>
+            <choice>Pub->Pro->Pac->Pri</choice>
+            <choice>Pri->Pac->Pro->Pub</choice>
+            <choice>Ctor->Inst->Static</choice>
+            <choice>Ctor->Static->Inst</choice>
+            <choice>Static Final->Static->Inst</choice>
+         </choices>
+         <value>Static Final->Static->Inst</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="MethodDeclarationParam" category="JavaDoc" enabled="true">
+         <type>boolean</type>
+         <value>true</value>
+         <severity>4</severity>
+      </rule>
+      <rule name="OnlySubclassedCatchBlock" category="General" enabled="true">
+         <type>boolean</type>
+         <value>true</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="IMetPacRegExp" category="Method" enabled="true">
+         <type>regexp</type>
+         <value>[a-z][\w\d]*</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="InterfaceCheckAbstract" category="General" enabled="true">
+         <type>boolean</type>
+         <value>true</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="MethodDeclarationThrows" category="JavaDoc" enabled="true">
+         <type>boolean</type>
+         <value>true</value>
+         <severity>4</severity>
+      </rule>
+      <rule name="BracesAroundSingleLineStatement" category="General" enabled="true">
+         <type>boolean</type>
+         <value>true</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="EmptyStringLiteralAllowed" category="General" enabled="true">
+         <type>boolean</type>
+         <value>true</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="FieldBlockPlaceRule" category="Field" enabled="true">
+         <type>multichoice</type>
+         <choices>
+            <choice>Field Block Before Method Block</choice>
+            <choice>Field Block After Method Block</choice>
+         </choices>
+         <value>Field Block Before Method Block</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="FCMetPacRegExp" category="Method" enabled="true">
+         <type>regexp</type>
+         <value>[a-z][\w\d]*</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="CFPubRegExp" category="Field" enabled="true">
+         <type>regexp</type>
+         <value>s[A-Z0-9][\w\d]*</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="DontReturnTypeHashtable" category="Method" enabled="true">
+         <type>boolean</type>
+         <value>true</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="MethodJavaDocPublic" category="JavaDoc" enabled="true">
+         <type>boolean</type>
+         <value>true</value>
+         <severity>4</severity>
+      </rule>
+      <rule name="MaxNumberOfArgumentsPerConstructor" category="General" enabled="true">
+         <type>integer</type>
+         <value>5</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="FieldJavaDocPrivate" category="JavaDoc" enabled="true">
+         <type>boolean</type>
+         <value>false</value>
+         <severity>4</severity>
+      </rule>
+      <rule name="InterfaceNameRegExp" category="General" enabled="true">
+         <type>regexp</type>
+         <value>[A-Z][\w\d]*</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="TypeDeclarationAuthor" category="JavaDoc" enabled="true">
+         <type>boolean</type>
+         <value>true</value>
+         <severity>4</severity>
+      </rule>
+      <rule name="DontReturnTypeVector" category="Method" enabled="true">
+         <type>boolean</type>
+         <value>true</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="AllowPackageField" category="Field" enabled="true">
+         <type>boolean</type>
+         <value>true</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="CMetProRegExp" category="Method" enabled="true">
+         <type>regexp</type>
+         <value>[a-z][\w\d]*</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="TypeDeclarationModifierOrder" category="General" enabled="true">
+         <type>boolean</type>
+         <value>true</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="JavaDocTagOrder" category="JavaDoc" enabled="true">
+         <type>boolean</type>
+         <value>true</value>
+         <severity>4</severity>
+      </rule>
+      <rule name="AssignmentInConditionalExpression" category="General" enabled="true">
+         <type>boolean</type>
+         <value>false</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="MaxNumberOfArgumentsPerMethod" category="Method" enabled="true">
+         <type>integer</type>
+         <value>5</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="AllowProtectedField" category="Field" enabled="true">
+         <type>boolean</type>
+         <value>true</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="CheckArrayAtType" category="Field" enabled="true">
+         <type>boolean</type>
+         <value>true</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="NestedTypeDeclarationModifierOrder" category="General" enabled="true">
+         <type>boolean</type>
+         <value>true</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="MethodVoidNoReturn" category="JavaDoc" enabled="true">
+         <type>boolean</type>
+         <value>true</value>
+         <severity>4</severity>
+      </rule>
+      <rule name="UnitTestClassRegExp" category="Unittest" enabled="true">
+         <type>regexp</type>
+         <value>((junit.framework.)?TestCase)|SorterTestCase</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="MethodJavaDocPrivate" category="JavaDoc" enabled="true">
+         <type>boolean</type>
+         <value>false</value>
+         <severity>4</severity>
+      </rule>
+      <rule name="SemicolonAfterTypeDeclaration" category="General" enabled="true">
+         <type>boolean</type>
+         <value>false</value>
+         <severity>3</severity>
+      </rule>
+      <rule name="CtorJavaDocPublic" category="JavaDoc" enabled="true">
+         <type>boolean</type>
+         <value>true</value>
+         <severity>4</severity>
+      </rule>
+      <rule name="MaxNumberOfNCSSPerMethod" category="Metrics" enabled="true">
+         <type>integer</type>
+         <value>25</value>
+         <severity>4</severity>
+      </rule>
+   </rules>
+</jcsc>

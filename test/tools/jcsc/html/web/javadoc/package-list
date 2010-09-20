@@ -1,0 +1,10 @@
+rj.tools.argumentprocessor
+rj.tools.jcsc
+rj.tools.jcsc.ant
+rj.tools.jcsc.formatter
+rj.tools.jcsc.plugins.intellij
+rj.tools.jcsc.rules
+rj.tools.jcsc.sorter
+rj.tools.jcsc.ui
+rj.tools.util
+rj.tools.util.ui

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/overview.xsl" type="text/xsl"?>
+<jcsc>
+  <overview>
+    <packagename>rj.tools.util</packagename>
+    <packagecount>0</packagecount>
+    <name>rj.tools.util</name>
+    <classcount>8</classcount>
+    <methodscount>65</methodscount>
+    <violationscount>2</violationscount>
+    <linecount>1359</linecount>
+    <ncsscount>397</ncsscount>
+    <functionpointscount>7.490566037735849</functionpointscount>
+    <unittestclasscount>2</unittestclasscount>
+    <unittestscount>4</unittestscount>
+    <severitylevel>4</severitylevel>
+    <worstclasses>
+      <worst>
+        <class>rj.tools.util.JavaDocParser</class>
+        <count>2</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.util.Checker</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.util.DecimalNumberDocument</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.util.FileFinder</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.util.FileIO</class>
+        <count>0</count>
+        <author><![CDATA[Ian F Darwin, Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.util.SubstitutionInputStream</class>
+        <count>0</count>
+        <author><![CDATA[jochamrm]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.util.FileFinderTest</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.util.SubstitutionInputStreamTest</class>
+        <count>0</count>
+        <author><![CDATA[jochamrm]]></author>
+      </worst>
+    </worstclasses>
+  </overview>
+</jcsc>

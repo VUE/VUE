@@ -1,0 +1,47 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <title>DontThrowException</title>
+      
+  <meta http-equiv="content-type"
+ content="text/html; charset=ISO-8859-1">
+</head>
+  <body>
+ <tt><b><font color="#009900">// This rule specifies whether you are allowed 
+to throw<br>
+// Exceptions of type Exception.<br>
+ // Exception is the base class of all exception and<br>
+// therefore very generic and not meaningfull. It is hard<br>
+// for the client to determine what went wrong. With<br>
+// specialized exception you know exactly what is going on. <br>
+ // If this rule is enabled you have to throw subclasses of<br>
+// Exception.</font><br>
+ <br>
+ <font color="#009900">// Throwing of Exception</font><br>
+ public void print(String printer) throws Exception<br>
+ {<br>
+ &nbsp; &nbsp; ... <br>
+ &nbsp; &nbsp; &nbsp;// printer couldn't be found<br>
+ &nbsp; &nbsp; throw new Exception("Printer not found");<br>
+ &nbsp; &nbsp; ...<br>
+ &nbsp; &nbsp; &nbsp;// printer has no paper<br>
+ &nbsp;&nbsp; &nbsp; throw new Exception("Printer has no paper");<br>
+ &nbsp; &nbsp; ...<br>
+ }<br>
+ <br>
+ <font color="#009900">// Throwing of specialized Exceptions</font><br>
+  public void print(String printer) throws NoPrinterException,<br>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;OutOfPaperException<br>
+  {<br>
+  &nbsp; &nbsp; ... <br>
+  &nbsp; &nbsp; &nbsp;// printer couldn't be found<br>
+  &nbsp; &nbsp; throw new NoPrinterException("Printer not found");<br>
+  &nbsp; &nbsp; ...<br>
+  &nbsp; &nbsp; // printer has no paper<br>
+  &nbsp;&nbsp; &nbsp;throw new OutOfPaperException("Printer has no paper");<br>
+  &nbsp; &nbsp; ...<br>
+  }<br>
+ </b></tt> <br>
+</body>
+</html>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/package.xsl" type="text/xsl"?>
+<jcsc>
+  <classlist>
+    <package>rj.tools.jcsc.plugins.netbeans</package>
+    <classes>
+      <class>rj.tools.jcsc.plugins.netbeans.CheckAction</class>
+      <class>rj.tools.jcsc.plugins.netbeans.NetBeansOutputStream</class>
+      <class>rj.tools.jcsc.plugins.netbeans.RulesAction</class>
+    </classes>
+  </classlist>
+</jcsc>

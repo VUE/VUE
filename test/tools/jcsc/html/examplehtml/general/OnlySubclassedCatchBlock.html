@@ -1,0 +1,44 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <title>DotStarImport</title>
+  <meta http-equiv="content-type"
+ content="text/html; charset=ISO-8859-1">
+</head>
+<body>
+<tt><b><font color="#009900">// This rule specifies whether you are
+allowed to use<br>
+// (java.lang.)Exception and (java.lang.)Throwable<br>
+// as the types in catch blocks.<br>
+// These type are very generic and might indicate<br>
+// an unproper exception handling.<br>
+// In general it is better to deal with the specialized<br>
+// exception.<br>
+</font><br>
+<font color="#000000"> public void doSomething()<br>
+{<br>
+</font><font color="#009900">&nbsp;&nbsp;&nbsp;&nbsp;// Generic catch
+-- could be any exception<br>
+</font><font color="#000000">&nbsp;&nbsp;&nbsp;&nbsp;try<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;thisIsDangerous();<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;catch(Exception e)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;dealWithIt(e);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+</font><font color="#009900">&nbsp;&nbsp;&nbsp;&nbsp;// Specific catch
+-- we know what is going on<br>
+</font><font color="#000000">&nbsp;&nbsp;&nbsp;&nbsp;try<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;thisIsDangerous();<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;catch(FileNotFoundException e)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;dealWithIt(e);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+}<br>
+</font></b></tt>
+</body>
+</html>

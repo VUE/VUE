@@ -1,0 +1,366 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <title>JCSC - Overview</title>
+  <meta name="description"
+ content="JCSC is a powerful tool to check source code against a highly definable coding standard and potential bad code.
+The standard covers naming conventions for class, interfaces, fields, parameter, ... . Also the structural layout of the type (class/interface) can be defined. Like where to place fields, either before or after the methods and in which order. The order can be defined through the visibility or by type (instance, class, constant). The same is applicable for methods. Each of those rules is highly customizable. Readability is enhanced by defining where to put white spaces in the code and when to use braces. The existence of correct JavaDoc can be enforced and various levels. Apart from that, it finds weaknesses in the the code -- potential bugs -- like empty catch/finally block, switch without default, throwing of type 'Exception', slow code, ... .  JCSC is inspired by lint.">
+  <meta name="keywords"
+ content="free, open source, GNU, Java, JavaDoc, coding standard, coding, standard, source code, developer, programming, project, software, tab, catch block, unreadable, violation, violations, checkstyle, jcsc.sourceforge.net">
+</head>
+<body>
+<table bgcolor="#ccccff" border="0" width="100%">
+  <tbody>
+    <tr>
+      <td align="center" bgcolor="#ffffff" valign="middle" width="21%"><a
+ href="overview.html"><img src="images/JCSC.gif" alt="JCSC" border="0"
+ height="94" width="180"> </a> </td>
+      <td align="right" valign="bottom" width="79%">&nbsp;
+      <p align="right"><i><b><font color="#ffffff" size="5">Check and
+feel better about your code!</font></b></i></p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p align="center"> <b>(c) 1999-2005 by Ralph Jocham (<a
+ href="mailto:rjocham72@netscape.net">rjocham72@netscape.net</a>)</b><br>
+<b>JCSC is released under the terms of the <a
+ href="http://www.gnu.org/copyleft/gpl.html">GNU General Public License</a></b></p>
+<p>
+<table border="0" cellpadding="8" cellspacing="0" width="100%">
+  <tbody>
+    <tr>
+      <td bgcolor="#ccccff" height="100%" valign="top" width="21%"><b><a
+ href="overview.html"><img alt="" src="images/square.gif" align="middle"
+ border="0" height="9" hspace="5" vspace="5" width="9">JCSC</a></b>
+      <ul>
+        <li><a href="overview.html#overview">Overview</a></li>
+        <li><a href="overview.html#performedchecks">Performed Checks</a></li>
+        <li><a href="overview.html#testimonials">Testimonials</a><br>
+        </li>
+      </ul>
+      <p><b><a href="documentation.html"><img alt=""
+ src="images/square.gif" align="middle" border="0" height="9" hspace="5"
+ vspace="5" width="9">Documentation</a></b></p>
+      <ul>
+        <li><a href="documentation.html#usage">Usage</a></li>
+        <li><a href="documentation.html#rules">Rules</a></li>
+        <li><a href="documentation.html#update">Update</a></li>
+        <li><a href="javadoc/index.html">JavaDoc</a></li>
+        <li><a href="jcsc-result/index.html">JCSC of JCSC</a><br>
+        </li>
+      </ul>
+      <p><b><a href="extensions.html"><img alt=""
+ src="images/square.gif" align="middle" border="0" height="9" hspace="5"
+ vspace="5" width="9">Extensions</a></b><br>
+      </p>
+      <ul>
+        <li><a href="extensions.html#ruleseditorui">Rules Editor UI</a><br>
+        </li>
+        <li><a href="extensions.html#ant">Ant</a></li>
+        <li><a href="extensions.html#intellijidea">IntelliJ IDEA</a><br>
+        </li>
+        <li><a href="extensions.html#cruisecontrol">CruiseControl</a><br>
+        </li>
+      </ul>
+      <p><b><a href="howtoget.html"><img alt="" src="images/square.gif"
+ align="middle" border="0" height="9" hspace="5" vspace="5" width="9">How
+to get</a></b></p>
+      <ul>
+        <li><a href="howtoget.html#download">Download</a></li>
+        <li><a href="howtoget.html#installation">Installation</a></li>
+        <li><a href="howtoget.html#developers">Developers</a></li>
+      </ul>
+      <p><b><a href="http://sourceforge.net/projects/jcsc"><img alt=""
+ src="images/square.gif" align="middle" border="0" height="9" hspace="5"
+ vspace="5" width="9"></a></b><b><a
+ href="http://sourceforge.net/projects/jcsc">General<br>
+      </a></b> </p>
+      <ul>
+        <li><a href="http://sourceforge.net/projects/jcsc">Project Page</a></li>
+        <li> <a href="http://sourceforge.net/cvs/?group_id=53346">CVS
+Repository</a></li>
+        <li><a href="screenshots.html">Screenshots</a></li>
+        <li><a href="CHANGELOG">Changelog</a></li>
+        <li><a href="donate.html">Donate</a><br>
+        </li>
+      </ul>
+      <b><a href="http://sourceforge.net/projects/jcsc"><img
+ src="images/square.gif" alt="" align="middle" border="0" height="9"
+ hspace="5" vspace="5" width="9"></a></b><b><a
+ href="http://jcsc.sourceforge.net/tools/RemoteTools.html">Remote Tools</a><br>
+      <br>
+      </b>
+      <table width="80%">
+        <tbody>
+          <tr align="left">
+            <td align="left"> <a href="http://sourceforge.net"> <img
+ src="http://sourceforge.net/sflogo.php?group_id=53346&amp;type=5"
+ heigth="62" alt="SourceForge Logo" border="0" height="45" width="160"></a>
+            </td>
+          </tr>
+          <tr align="left">
+            <td align="left"> <a
+ href="http://ant.apache.org/projects.html"><img src="images/ant.gif"
+ alt="" style="border: 0px solid ; width: 160px; height: 98px;"></a> </td>
+          </tr>
+          <tr align="left">
+            <td align="left"> <a
+ href="http://opensource.org/docs/certification_mark.php"><img
+ src="images/osi-certified-120x100.png" alt="" title=""
+ style="border: 0px solid ; width: 160px; height: 100px;"></a> </td>
+          </tr>
+        </tbody>
+      </table>
+      </td>
+      <td width="1%"> <br>
+      </td>
+      <td valign="top" width="78%">
+      <h1>JCSC</h1>
+      <h2><a name="overview"></a>Overview</h2>
+      <p>JCSC is a powerful tool to check source code against a highly
+definable coding standard and potential bad code.<br>
+The standard covers naming conventions for class, interfaces,
+fields, parameter, ... . Also the structural layout of the type
+(class/interface) can be defined. Like where to place fields,
+either before or after the methods and in which order. The order can
+be defined through the visibility or by type (instance, class,
+constant). The same is applicable for methods. Each of those rules is
+highly customizable. Readability is enhanced by defining where to
+put white spaces in the code and when to use braces. The existence of
+correct JavaDoc can be enforced and various levels. Apart from that, it
+finds weaknesses in the the code -- potential bugs -- like empty
+catch/finally block, switch without default, throwing of type
+'Exception', slow code, ...<b> . </b>&nbsp;JCSC is inspired by lint.</p>
+      <p>JCSC features a graphical UI for easy rule configuration,
+a command line interface, an Ant <a href="../ant/JCSCTask.html">task</a>
+which
+produces a JavaDoc <a href="extensions.html#ant">style</a> webpage and
+is <a href="http://cruisecontrol.sourceforge.net">CruiseControl</a>
+compatible (see <a href="screenshots.html#cruisecontrol">screenshot</a>).
+Also, the <a href="http://www.kclee.com/clemens/java/javancss/">NCSS/CCN</a>
+metrics
+have been added for easier code quality assesment. Plugin for IntelliJ <a
+ href="http://www.jetbrains.com/idea/index.html">IDEA</a> enables ad
+hoc checking from within the IDE. (see <a
+ href="screenshots.html#IntelliJPlugin">screenshot</a>) </p>
+      <p style="text-align: left;">Currently JCSC supports over 100
+enforceable rules -- this is not all and there is more to come!</p>
+      <p style="text-align: left;"><span
+ style="color: rgb(204, 0, 0); font-weight: bold;">NEW</span>:&nbsp;
+Full
+support of the JDK 1.5 (Java 5) language. The rules editor is now a web
+start application; see <span style="font-weight: bold;">Remote Tools</span>
+or&nbsp; click here <a
+ href="http://jcsc.sourceforge.net/tools/webstart/jcsc/jcsc.jnlp">JCSC
+Web Start</a>.<br>
+      <br>
+      <span style="font-weight: bold;">Tested platforms</span>: Windows
+(with and without cygwin), Linux, Mac OS X<br>
+      </p>
+      <h2><a name="performedchecks"></a>Performed Checks in a Nutshell</h2>
+      <p>The default checking rules adhere to the Sun Code Conventions
+with some additional auditing for weak code. (see <a
+ href="http://java.sun.com/docs/codeconv/">Sun Code Conventions for the
+Java Programming Language</a>)</p>
+      <p>Each of those checks can be either switched on/off, or be
+configured (see <a href="documentation.html#rules">Rules</a>)</p>
+      <h3>General Checks</h3>
+      <ul>
+        <li>correct class/interface header</li>
+        <li>line length</li>
+        <li>NCCS (non commenting source statements = real code) count
+for class</li>
+        <li>NCSS checking for method length</li>
+        <li>CCN (cyclomatic complexity number) checking for methods<br>
+        </li>
+        <li>tabulators in source code allowed</li>
+        <li><font face="Courier New">.* imports </font> allowed or
+use fully qualified imports</li>
+        <li>only catch subclassed exceptions; not Throwable and
+Exception<br>
+        </li>
+        <li>check declaration modifier order (also in nested classes)</li>
+        <li>interface are not declared abstract<br>
+        </li>
+        <li>'<font face="Courier New">l</font>' for long values allowed
+('<font face="Courier New">l</font>' if often mistaken&nbsp; for '<font
+ face="Courier New">1</font>' -&gt; use '<font face="Courier New">L</font>';
+i.e. <font face="Courier New">40l</font> or <font face="Courier New">40L</font>)</li>
+        <li>space after statement (<font face="Courier New">if, else,
+while, ...</font>)</li>
+        <li>throwing of 'Exception' or only of subclasses types allowed</li>
+        <li>only catching of specialized Exeptions (not Throwable,
+Exception) is allowed<br>
+        </li>
+        <li>switch statement requires default</li>
+        <li>assignments in conditional expressions allowed (<font
+ face="Courier New">if (a = 5)</font>)</li>
+        <li>allow '<font face="Courier New">get</font>' prefix for
+method returning a boolean or enforce '<font face="Courier New">is</font>',
+'<font face="Cumberland">has</font>', '<font face="Courier New">are</font>'
+instead</li>
+        <li>allow type '<font face="Courier New">Vector</font>' to be
+returned, use '<font face="Courier New">List</font>' or '<font
+ face="Courier New">Collection</font>' instead; new faster Collection
+API</li>
+        <li>allow type '<font face="Cumberland">Hashtable</font>' to
+be returned, use '<font face="Courier New">HashMap</font>'
+instead;&nbsp; new faster Collection API</li>
+        <li>allow String literals or only constants (<font
+ face="Courier New">final static String</font>) in code. Important
+for internationalization</li>
+        <li>empty catch block allowed or indicated</li>
+        <li>empty finally block allowed or indicated</li>
+        <li>complex loop expression allowed or customizable</li>
+        <li>conditional expression allowed or indicated<br>
+        </li>
+        <li>number of arguments of method calls; too many arguments
+indicate procedural programming</li>
+        <li>semicolon after type declaration allowed (this is C++)</li>
+        <li>single line block without '<font face="Courier New">{</font>',
+'<font face="Courier New">}</font>' allowed (<font face="Courier New">if,
+else, ...</font>)</li>
+        <li>Array specifier at type (ie. <font face="Courier New">
+String[]</font> names and not <font face="Courier New"> String names[]</font>)</li>
+        <li>allow <font face="Courier New">public</font>, <font
+ face="Courier New"> protected</font> or <font face="Courier New">
+package private</font> fields</li>
+        <li>only one declaration per line</li>
+        <li>allow public fields or not</li>
+        <li>check [] at type and not at field name</li>
+        <li>indicate when too many&nbsp; parameters are passed</li>
+        <li><b>...</b><br>
+        </li>
+      </ul>
+      <h3>Naming Checks using regexps for </h3>
+      <ul>
+        <li>package</li>
+        <li>class</li>
+        <li>interface</li>
+        <li>abstract class</li>
+        <li>label</li>
+        <li>instance field (separate regexps for different visibility)</li>
+        <li>class (<font face="Courier New">static</font>) field
+(separate regexps for different visibility)</li>
+        <li>constant (<font face="Courier New">final static</font>)
+field (separate regexps for different visibility)</li>
+        <li>local variables</li>
+        <li>instance method name (separate regexps for different
+visibility)</li>
+        <li>class (<font face="Courier New">static</font>) method name
+(separate regexps for different visibility)</li>
+        <li>final method name (separate regexps for different
+visibility)</li>
+        <li>final class (<font face="Courier New">static</font>) method
+name (separate regexps for different visibility)</li>
+        <li>argument</li>
+        <li>final argument</li>
+        <li><b>...</b><br>
+        </li>
+      </ul>
+      <h3>Placing Rule Checks for method, fields and inner classes in
+class/interface</h3>
+      <ul>
+        <li>Fields before/after methods</li>
+        <li>Method order
+          <ul>
+            <li>no order</li>
+            <li>by visibility; public-&gt;protected-&gt;package
+private-&gt;private or vice versa</li>
+            <li>by type; constructor-&gt;static-&gt;instance or any
+other permutation of the three</li>
+          </ul>
+        </li>
+        <li>Field order
+          <ul>
+            <li>no order</li>
+            <li>by visibility; public-&gt;protected-&gt;package
+private-&gt;private or vice versa</li>
+            <li>by type; static final-&gt;static-&gt;instance</li>
+          </ul>
+        </li>
+        <li>Inner classes/interface at end or beginning of class</li>
+      </ul>
+      <h3>JavaDoc Checking for</h3>
+      <ul>
+        <li>Each of the JavaDoc rules can be customized for different
+visiblities<br>
+        </li>
+        <li>Type Delcaration (class/interface)</li>
+        <ul>
+          <li>@author</li>
+          <li>@version</li>
+        </ul>
+        <li>Constructor Declaration</li>
+        <ul>
+          <li>@param</li>
+          <li>@throws</li>
+        </ul>
+        <li>Method Declaration</li>
+        <ul>
+          <li>@param</li>
+          <li>@throws</li>
+          <li>@return (considers void methods)</li>
+          <li>switch JavaDoc checking on/off for anonymous inner classes<br>
+          </li>
+        </ul>
+        <li>Field Declaration</li>
+        <li>Correct order of JavaDoc Tags</li>
+      </ul>
+      <h3>Metrics</h3>
+      <ul>
+        <li>NCSS&nbsp; (non commenting source statements- real code)
+are being calculated for the whole project, individual classes and
+methods</li>
+        <li>CNN (cyclomatic complexity number - possible number of
+pathes through a method) are generated for all methods and constructiors</li>
+      </ul>
+      <h2><a name="testimonials"></a>Testimonials</h2>
+      <table style="text-align: left; width: 735px; height: 230px;"
+ border="0" cellpadding="2" cellspacing="2">
+        <tbody>
+          <tr>
+            <td style="vertical-align: top;"><a
+ href="http://www.valtech.com"><img
+ style="border: 0px solid ; width: 128px; height: 60px;"
+ alt="www.valtech.com" src="images/valtech.gif" align="middle"></a></td>
+            <td style="vertical-align: top;">As a consultant with an
+agile approach who often works in regulated environments I find using
+JCSC under CruiseControl to be invaluable tool for both managing code
+quality and providing an audit trail of compliance to standards. <br>
+            <br>
+Keith Thomas, Consultant <a href="http://www.valtech.com">Valtech</a>
+(Keith.Thomas@valtech.com)<br>
+            <br>
+            </td>
+          </tr>
+          <tr>
+            <td style="vertical-align: top;"><a
+ href="http://www.amazon.com/exec/obidos/tg/detail/-/0131002872/qid=1070557649/sr=8-1/ref=sr_8_1/102-6039830-3640940?v=glance&amp;n=507846"><img
+ style="border: 0px solid ; width: 68px; height: 90px;"
+ alt="Thinking in Java 3rd ed." src="images/TIJ3rd.jpg"></a><br>
+            </td>
+            <td style="vertical-align: top;"><a
+ href="http://www.bruceeckel.com/">Bruce Eckel</a> used JCSC to
+validate the code examples in his 3rd edition of <a
+ href="http://www.amazon.com/exec/obidos/tg/detail/-/0131002872/qid=1070557649/sr=8-1/ref=sr_8_1/102-6039830-3640940?v=glance&amp;n=507846">Thinking
+in Java</a><br>
+See B: Java Programming Guidlines / Implementation<br>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <br>
+      <hr>
+      <p>Last updated on<!--webbot bot="Timestamp" S-Type="EDITED"
+S-Format="%Y-%m-%d %H:%M" startspan -->
+2004-04-23 20:34<!--webbot bot="Timestamp" i-CheckSum="25492" endspan -->
+      </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</p>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet href="xsl/rule.xsl" type="text/xsl"?>
+<jcsc>
+  <category>Field</category>
+  <rule>CheckArrayAtType</rule>
+  <violations>
+    <violation>
+      <rule>
+        <name>CheckArrayAtType</name>
+        <severity>3</severity>
+        <category>Field</category>
+      </rule>
+      <classname>CCParser</classname>
+      <package>rj.tools.ccscrape</package>
+      <line>54</line>
+      <column>19</column>
+      <message><![CDATA['[]' on array declarations should be grouped  with the type rather than the variable name,  e.g. 'int[] x' rather than 'int x[]']]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\ccscrape\CCParser.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>CheckArrayAtType</name>
+        <severity>3</severity>
+        <category>Field</category>
+      </rule>
+      <classname>CCParser</classname>
+      <package>rj.tools.ccscrape</package>
+      <line>104</line>
+      <column>19</column>
+      <message><![CDATA['[]' on array declarations should be grouped  with the type rather than the variable name,  e.g. 'int[] x' rather than 'int x[]']]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\ccscrape\CCParser.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>CheckArrayAtType</name>
+        <severity>3</severity>
+        <category>Field</category>
+      </rule>
+      <classname>MetricsTab</classname>
+      <package>rj.tools.jcsc.ui</package>
+      <line>73</line>
+      <column>18</column>
+      <message><![CDATA['[]' on array declarations should be grouped  with the type rather than the variable name,  e.g. 'int[] x' rather than 'int x[]']]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\ui\MetricsTab.java</source>
+    </violation>
+  </violations>
+</jcsc>

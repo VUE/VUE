@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/class.xsl" type="text/xsl"?>
+<jcsc>
+  <package>rj.tools.util</package>
+  <class>FileFinderTest</class>
+  <methods>5</methods>
+  <author><![CDATA[Ralph Jocham]]></author>
+  <count>0</count>
+  <ncss>22</ncss>
+  <lines>83</lines>
+  <unittestclasses>1</unittestclasses>
+  <unittests>2</unittests>
+  <metric>
+    <method>>
+      <name>FileFinderTest.FileFilter.accept()</name>
+      <line>43</line>
+      <column>74</column>
+      <ncss>4</ncss>
+      <ccn>3</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>FileFinderTest.setUp()</name>
+      <line>38</line>
+      <column>25</column>
+      <ncss>6</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>FileFinderTest.tearDown()</name>
+      <line>59</line>
+      <column>28</column>
+      <ncss>1</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>FileFinderTest.testGetDirectories()</name>
+      <line>63</line>
+      <column>35</column>
+      <ncss>4</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>FileFinderTest.testGetFiles()</name>
+      <line>75</line>
+      <column>29</column>
+      <ncss>3</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+</jcsc>

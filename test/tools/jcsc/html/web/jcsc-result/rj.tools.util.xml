@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/package.xsl" type="text/xsl"?>
+<jcsc>
+  <classlist>
+    <package>rj.tools.util</package>
+    <classes>
+      <class>rj.tools.util.Checker</class>
+      <class>rj.tools.util.DecimalNumberDocument</class>
+      <class>rj.tools.util.FileFinder</class>
+      <class>rj.tools.util.FileFinderTest</class>
+      <class>rj.tools.util.FileIO</class>
+      <class>rj.tools.util.JavaDocParser</class>
+      <class>rj.tools.util.SubstitutionInputStream</class>
+      <class>rj.tools.util.SubstitutionInputStreamTest</class>
+    </classes>
+  </classlist>
+</jcsc>

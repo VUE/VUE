@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/class.xsl" type="text/xsl"?>
+<jcsc>
+  <package>rj.tools.jcsc.sorter</package>
+  <class>PrioritySorterTest</class>
+  <methods>3</methods>
+  <author><![CDATA[Ralph Jocham]]></author>
+  <count>0</count>
+  <ncss>22</ncss>
+  <lines>71</lines>
+  <unittestclasses>1</unittestclasses>
+  <unittests>1</unittests>
+  <metric>
+    <method>>
+      <name>PrioritySorterTest.suite()</name>
+      <line>38</line>
+      <column>29</column>
+      <ncss>4</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>PrioritySorterTest.constructor()</name>
+      <line>52</line>
+      <column>11</column>
+      <ncss>2</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>PrioritySorterTest.testSort()</name>
+      <line>57</line>
+      <column>25</column>
+      <ncss>10</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+</jcsc>

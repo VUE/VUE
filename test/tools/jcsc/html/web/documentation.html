@@ -1,0 +1,523 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <title>JCSC - Documentation</title>
+  <meta content="text/html; charset=ISO-8859-1"
+ http-equiv="content-type">
+</head>
+<body>
+<table bgcolor="#ccccff" border="0" width="100%">
+  <tbody>
+    <tr>
+      <td align="center" bgcolor="#ffffff" valign="middle" width="21%"><a
+ href="overview.html"><img alt="JCSC" src="images/JCSC.gif" border="0"
+ height="94" width="180"> </a> </td>
+      <td align="right" valign="bottom" width="79%">&nbsp;
+      <p align="right"><i><b><font color="#ffffff" size="5">Check and
+feel better about your code!</font></b></i></p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p align="center"> <b>(c) 1999-2005 by Ralph Jocham (<a
+ href="mailto:rjocham72@netscape.net">rjocham72@netscape.net</a>)</b><br>
+<b>JCSC is released under the terms of the <a
+ href="http://www.gnu.org/copyleft/gpl.html">GNU General Public License</a></b></p>
+<p>
+<table border="0" cellpadding="8" cellspacing="0" width="100%">
+  <tbody>
+    <tr>
+      <td bgcolor="#ccccff" height="100%" valign="top" width="21%"> <a
+ href="overview.html"><img src="images/square.gif" alt="" align="middle"
+ border="0" height="9" hspace="5" vspace="5" width="9"><span
+ style="font-weight: bold;">JCSC</span></a>
+      <ul>
+        <li><a href="overview.html#overview">Overview</a></li>
+        <li><a href="overview.html#performedchecks">Performed Checks</a></li>
+        <li><a href="overview.html#testimonials">Testimonials</a></li>
+      </ul>
+      <p><b><a href="documentation.html"><img src="images/square.gif"
+ alt="" align="middle" border="0" height="9" hspace="5" vspace="5"
+ width="9">Documentation</a></b></p>
+      <ul>
+        <li><a href="documentation.html#usage">Usage</a></li>
+        <li><a href="documentation.html#rules">Rules</a></li>
+        <li><a href="documentation.html#update">Update</a></li>
+        <li><a href="javadoc/index.html">JavaDoc</a></li>
+        <li><a href="jcsc-result/index.html">JCSC of JCSC</a><br>
+        </li>
+      </ul>
+      <p><b><a href="extensions.html"><img src="images/square.gif"
+ alt="" align="middle" border="0" height="9" hspace="5" vspace="5"
+ width="9">Extensions</a></b><br>
+      </p>
+      <ul>
+        <li><a href="extensions.html#ruleseditorui">Rules Editor UI</a><br>
+        </li>
+        <li><a href="extensions.html#ant">Ant</a></li>
+        <li><a href="extensions.html#intellijidea">IntelliJ IDEA</a><br>
+        </li>
+        <li><a href="extensions.html#cruisecontrol">CruiseControl</a><br>
+        </li>
+      </ul>
+      <p><b><a href="howtoget.html"><img src="images/square.gif" alt=""
+ align="middle" border="0" height="9" hspace="5" vspace="5" width="9">How
+to get</a></b></p>
+      <ul>
+        <li><a href="howtoget.html#download">Download</a></li>
+        <li><a href="howtoget.html#installation">Installation</a></li>
+        <li><a href="howtoget.html#developers">Developers</a></li>
+      </ul>
+      <p><b><a href="http://sourceforge.net/projects/jcsc"><img
+ src="images/square.gif" alt="" align="middle" border="0" height="9"
+ hspace="5" vspace="5" width="9"></a></b><b><a
+ href="http://sourceforge.net/projects/jcsc">General<br>
+      </a></b> </p>
+      <ul>
+        <li><a href="http://sourceforge.net/projects/jcsc">Project Page</a></li>
+        <li> <a href="http://sourceforge.net/cvs/?group_id=53346">CVS
+Repository</a></li>
+        <li><a href="screenshots.html">Screenshots</a></li>
+        <li><a href="CHANGELOG">Changelog</a></li>
+        <li><a href="donate.html">Donate</a></li>
+      </ul>
+      <b><a href="http://sourceforge.net/projects/jcsc"><img
+ src="images/square.gif" alt="" align="middle" border="0" height="9"
+ hspace="5" vspace="5" width="9"></a></b><b><a
+ href="http://jcsc.sourceforge.net/tools/RemoteTools.html">Remote Tools</a><br>
+      <br>
+      </b>
+      <table widht="80%">
+        <tbody>
+          <tr align="left">
+            <td align="left"> <a href="http://sourceforge.net"> <img
+ alt="SourceForge Logo" heigth="62"
+ src="http://sourceforge.net/sflogo.php?group_id=53346&amp;type=5"
+ border="0" height="45" width="160"></a> </td>
+          </tr>
+          <tr align="left">
+            <td align="left"> <a
+ href="http://ant.apache.org/projects.html"><img
+ style="border: 0px solid ; width: 160px; height: 98px;" alt=""
+ src="images/ant.gif"></a> </td>
+          </tr>
+          <tr align="left">
+            <td align="left"> <a
+ href="http://opensource.org/docs/certification_mark.php"><img
+ style="border: 0px solid ; width: 160px; height: 100px;" title=""
+ alt="" src="images/osi-certified-120x100.png"></a> </td>
+          </tr>
+        </tbody>
+      </table>
+      </td>
+      <td width="1%"> <br>
+      </td>
+      <td valign="top" width="78%">
+      <h1>Documentation</h1>
+      <h2><a name="usage"></a>Usage</h2>
+      <h3>Command Line<br>
+      </h3>
+      <p>After you have installed it, you can use it like any other
+command. Be aware that the command line <tt>jcsc </tt>tool can not be
+used to scan a whole folder recursively; for that you have to use the
+JCSC Ant task. If you use the <tt>-r</tt> flag, JCSC looks first into
+the JCSC_HOME/rules folder, if it is not found there it tries to find
+it
+using the absolute path.<br>
+      </p>
+      <font face="Courier New"><span style="font-style: italic;">jcsc</span>
+[option] &lt;file&gt;|stream</font>
+      <p>Replace <span
+ style="font-style: italic; font-family: monospace;">jcsc </span>with
+either <span style="font-family: monospace;">jcsc.bat</span> or <span
+ style="font-family: monospace;">jcsc.sh</span> depending on your
+platform<span style="font-style: italic; font-family: monospace;"><br>
+      </span></p>
+      <font face="Courier New"><span style="font-style: italic;"></span></font>
+      <p>with&nbsp; the option being:</p>
+      <blockquote> <font face="Courier New"> -h : show the help<br>
+-r &lt;rule&gt; :the rule file is read from the file system<br>
+-j &lt;rule&gt; :the rule file is read from the jcsc.jar file </font> </blockquote>
+      <h4>Example Output</h4>
+      <p><font face="Courier New" size="2">$ jcsc -r jcsc.jcsc.xml
+JCSCTask.java<br>
+      <br>
+Violations:<br>
+      <br>
+JCSCTask.java:55:100:line is too long 0..80 characters are
+allowed:LineLength:3<br>
+JCSCTask.java:56:92:line is too long 0..80 characters are
+allowed:LineLength:3<br>
+JCSCTask.java:147:50:conditional expression (?:) are not
+allowed:ConditionalExpression:3<br>
+JCSCTask.java:158:55:conditional expression (?:) are not
+allowed:ConditionalExpression:3<br>
+JCSCTask.java:169:56:conditional expression (?:) are not
+allowed:ConditionalExpression:3<br>
+JCSCTask.java:262:86:line is too long 0..80 characters are
+allowed:LineLength:3<br>
+JCSCTask.java:290:81:line is too long 0..80 characters are
+allowed:LineLength:3<br>
+JCSCTask.java:334:91:line is too long 0..80 characters are
+allowed:LineLength:3<br>
+      </font><font face="Courier New" size="2">JCSCTask.java:218:empty
+catch block, this is normally an error:EmptyCatchBlock:3<br>
+      </font><font face="Courier New" size="2">JCSCTask.</font><font
+ face="Courier New" size="2">java:225:empty finally block, this is
+normally an error:EmptyFinallyBlock:3<br>
+      </font><font face="Courier New" size="2">JCSCTask.</font><font
+ face="Courier New" size="2">java:229:method return 'boolean' and
+starts with 'get' it should start with 'is' or
+'has':RegExpPrefixForMethodReturningboolen:3<br>
+      </font><font face="Courier New" size="2">JCSCTask.</font><font
+ face="Courier New" size="2">java:231:A space after statement keyword
+'while' is mandatory:SpaceAfterStatementKeywoard:3<br>
+      </font><font face="Courier New" size="2">JCSCTask.</font><font
+ face="Courier New" size="2">java:231:statement following 'while' is
+not in '{' ... '}' which is source of many
+errors:BraceAroundSingleLineStatement:3<br>
+      </font><font face="Courier New" size="2">JCSCTask.java:340:96:line
+is too long 0..80 characters are allowed:LineLength:3<br>
+JCSCTask.java:346:91:line is too long 0..80 characters are
+allowed:LineLength:3<br>
+[...]<br>
+JCSCTask.java:1070:15:conditional expression (?:) are not
+allowed:ConditionalExpression:3<br>
+JCSCTask.java:1077:15:conditional expression (?:) are not
+allowed:ConditionalExpression:3<br>
+      <br>
+46 violation(s) found<br>
+      <br>
+Metrics:<br>
+      <br>
+84:37:JCSCTask.setRules():NCSS-2:CCN-1<br>
+94:35:JCSCTask.setFile():NCSS-4:CCN-1<br>
+107:51:JCSCTask.setStartpackage():NCSS-4:CCN-2<br>
+122:59:JCSCTask.setResultsformatter():NCSS-2:CCN-1<br>
+133:37:JCSCTask.setDestdir():NCSS-3:CCN-1<br>
+145:39:JCSCTask.setWorstCount():NCSS-2:CCN-1<br>
+156:40:JCSCTask.setStartDate():NCSS-2:CCN-1<br>
+167:41:JCSCTask.setFailValue():NCSS-2:CCN-1<br>
+176:37:JCSCTask.addFileSet():NCSS-3:CCN-1<br>
+187:30:JCSCTask.getFiles():NCSS-18:CCN-5<br>
+228:24:JCSCTask.execute():NCSS-7:CCN-2<br>
+244:40:JCSCTask.getFile():NCSS-5:CCN-3<br>
+257:43:JCSCTask.checkForTooManyViolations():NCSS-3:CCN-3<br>
+267:32:JCSCTask.parameterCheck():NCSS-23:CCN-10<br>
+327:37:JCSCTask.batchParameterCheck():NCSS-13:CCN-4<br>
+354:53:JCSCTask.throwExceptionIfError():NCSS-3:CCN-3<br>
+368:40:JCSCTask.executeFile():NCSS-6:CCN-3<br>
+391:44:JCSCTask.executeFiles():NCSS-7:CCN-2<br>
+409:49:JCSCTask.parseSingleFileFromBatch():NCSS-11:CCN-3<br>
+435:53:JCSCTask.convertAuthors2String():NCSS-8:CCN-3<br>
+458:40:JCSCTask.parseSingleFile():NCSS-10:CCN-2<br>
+483:33:JCSCTask.isFileSetSet():NCSS-2:CCN-1<br>
+495:42:JCSCTask.isResultsFormatterSet():NCSS-2:CCN-1<br>
+506:38:JCSCTask.isStartPackageSet():NCSS-2:CCN-1<br>
+518:33:JCSCTask.isDestDirSet():NCSS-2:CCN-1<br>
+529:35:JCSCTask.isStartDateSet():NCSS-2:CCN-1<br>
+540:35:JCSCTask.isFailValueSet():NCSS-2:CCN-1<br>
+545:51:JCSCTask.createResultsFormatter():NCSS-9:CCN-3<br>
+568:25:JCSCTask.getRules():NCSS-10:CCN-3<br>
+599:48:JCSCTask.getOutputFileName():NCSS-8:CCN-1<br>
+619:45:JCSCTask.getPackageName():NCSS-7:CCN-1<br>
+638:43:JCSCTask.getClassName():NCSS-5:CCN-1<br>
+647:34:JCSCTask.convertDate2Long():NCSS-13:CCN-1<br>
+670:26:JCSCTask.getPackageMap():NCSS-2:CCN-1<br>
+682:50:JCSCTask.add2PackageMap():NCSS-19:CCN-2<br>
+720:66:JCSCTask.add2IndexMap():NCSS-9:CCN-2<br>
+745:76:JCSCTask.add2ViolationsMap():NCSS-2:CCN-1<br>
+755:52:JCSCTask.writeConsoleOverview():NCSS-10:CCN-1<br>
+838:55:JCSCTask.Comparator.compare():NCSS-4:CCN-1<br>
+775:26:JCSCTask.writeXML():NCSS-56:CCN-5<br>
+873:41:JCSCTask.writePackageOverviewXml():NCSS-23:CCN-3<br>
+919:34:JCSCTask.writeOverviewXml():NCSS-21:CCN-2<br>
+953:68:JCSCTask.writeWorstClassesXml():NCSS-10:CCN-2<br>
+971:32:JCSCTask.getPackageCount():NCSS-2:CCN-1<br>
+976:30:JCSCTask.getClassCount():NCSS-7:CCN-2<br>
+991:31:JCSCTask.getMethodCount():NCSS-7:CCN-2<br>
+1006:34:JCSCTask.getViolationCount():NCSS-7:CCN-2<br>
+1021:29:JCSCTask.getNCSSCount():NCSS-7:CCN-2<br>
+1036:38:JCSCTask.getUnitTestClassCount():NCSS-7:CCN-2<br>
+1051:33:JCSCTask.getUnitTestCount():NCSS-7:CCN-2<br>
+1066:49:JCSCTask.calculateAvgViolationsPerNcss():NCSS-2:CCN-1<br>
+1073:50:JCSCTask.calculateAvgViolationsPerClass():NCSS-2:CCN-1<br>
+      <br>
+Total NCSS count&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : 449<br>
+Total Methods count&nbsp;&nbsp; : 52<br>
+Unit Test Class count : 0<br>
+Unit Tests count&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : 0<br>
+      </font></p>
+      <h3>Rules Editor</h3>
+Just run the <tt>ruleseditor</tt> script in the JCSC_HOME/bin folder.
+Per default you &nbsp;read the default settings which are stored in the
+jar file. You can modify these and save them into a file. Also you can
+open an existing file, either from within the UI or by passing the
+rules
+file name as an argument.<br>
+      <h3>Ant</h3>
+If you are familar with <tt>Ant</tt> then read <a
+ href="../ant/JCSCTask.html">this.</a> Otherwise checkout the Ant
+website at <a href="http://jakarta.apache.org/ant/">http://jakarta.apache.org/ant/<br>
+      </a>
+      <h4>Example Output</h4>
+See <b>example 2</b> from the '<a href="../ant/JCSCTask.html">this</a>'
+link above.<br>
+      <br>
+      <tt>$ ant -buildfile jcsc.xml all<br>
+/cygdrive/e/jakarta-ant-1.5/lib/xml-apis.jar:/cygdrive/e/jakarta-ant-1.5/lib/xercesImpl.jar:/cygdriv<br>
+e/e/jakarta-ant-1.5/lib/optional.jar:/cygdrive/e/jakarta-ant-1.5/lib/gnu-regexp.jar:/cygdrive/e/jaka<br>
+rta-ant-1.5/lib/ant.jar:/cygdrive/e/jakarta-ant-1.5/lib/JCSC.jar:/cygdrive/e/jaxp-1.1/jaxp.jar:/cygd<br>
+rive/e/jaxp-1.1/crimson.jar:/cygdrive/e/jaxp-1.1/xalan.ja:/cygdrive/e/jakarta-ant/lib/ant.jar:/cygdr<br>
+ive/e/jakarta-ant/lib/jakarta-ant-1.4.1-optional.jar:/cygdrive/c/java/jdk1.3/lib/tools.jar<br>
+e:\jakarta-ant-1.5\lib\xml-apis.jar;e:\jakarta-ant-1.5\lib\xercesImpl.jar;e:\jakarta-ant-1.5\lib\opt<br>
+ional.jar;e:\jakarta-ant-1.5\lib\gnu-regexp.jar;e:\jakarta-ant-1.5\lib\ant.jar;e:\jakarta-ant-1.5\li<br>
+b\JCSC.jar;e:\jaxp-1.1\jaxp.jar;e:\jaxp-1.1\crimson.jar;e:\jaxp-1.1\xalan.ja;e:\jakarta-ant\lib\ant.<br>
+jar;e:\jakarta-ant\lib\jakarta-ant-1.4.1-optional.jar<br>
+Buildfile: jcsc.xml<br>
+      <br>
+all:<br>
+&nbsp;&nbsp;&nbsp;&nbsp; [jcsc] Package
+Count:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+10<br>
+&nbsp;&nbsp;&nbsp;&nbsp; [jcsc] Class
+Count:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+26<br>
+&nbsp;&nbsp;&nbsp;&nbsp; [jcsc] Methods
+Count:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+281<br>
+&nbsp;&nbsp;&nbsp;&nbsp; [jcsc] Total Violations Count :&nbsp; 153<br>
+&nbsp;&nbsp;&nbsp;&nbsp; [jcsc] Avg Violations per Class: 5.8846154<br>
+&nbsp;&nbsp;&nbsp;&nbsp; [jcsc] Total NCSS
+Count:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3430<br>
+&nbsp;&nbsp;&nbsp;&nbsp; [jcsc] Avg Violations per NCSS:&nbsp;
+0.044606414<br>
+&nbsp;&nbsp;&nbsp;&nbsp; [jcsc] Unit Test Class
+Count:&nbsp;&nbsp;&nbsp; 2<br>
+&nbsp;&nbsp;&nbsp;&nbsp; [jcsc] Unit Tests
+Count:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 83<br>
+      <br>
+BUILD SUCCESSFUL<br>
+      </tt><br>
+The resulting XML files can be found in the folder specified by the Ant
+task. The XML can be viewed via XSL compliant browsers.Tested with
+Mozilla 1+ and IE6. <b>IE needs to have the SP1 in order to work
+correctly</b>. If you have problems and not IE SP1 then open your IE
+browser and choose <tt>Tools-&gt;Windows Update</tt> from the menu.
+The
+web page guides you how to do the update.<br>
+      <h3>Metrics</h3>
+      <ul>
+        <li><b>NCSS</b></li>
+      </ul>
+      <blockquote>NCSS is an acronym for Non Commenting Source
+Statements. This number represents pure functionality code lines in a
+source file. Comparing this number and the violations count, the
+quality
+can be eassier assest. (for more informations on this topic <a
+ href="http://www.kclee.com/clemens/java/javancss">go here</a>)<br>
+      </blockquote>
+      <ul>
+        <li><b>CCN</b></li>
+      </ul>
+      <blockquote>CCN is an acronym for Cyclomatic Complexity Number.
+This number indicates the number in how many branches the flow is split.<br>
+Each method has a CCN of 1 per default. (for more information on this
+topic <a href="http://www.kclee.com/clemens/java/javancss/">go here</a>)<br>
+      </blockquote>
+      <h2><a name="rules"></a>Rules</h2>
+      <p>The rules for checking a stored in a XML file.&nbsp; This XML
+is easy to read:<br>
+      </p>
+      <p style="font-family: monospace; font-weight: bold;"><span
+ style="color: rgb(0, 153, 0);">01 </span>&lt;<span
+ style="color: rgb(0, 0, 153);">jcsc </span>version="<span
+ style="color: rgb(153, 0, 0);">__0.95__</span>" date="<span
+ style="color: rgb(153, 0, 0);">2003-06-18 09:01:13</span>"&gt;<br>
+      <span style="color: rgb(0, 153, 0);">02 &nbsp;&nbsp; </span>&lt;<span
+ style="color: rgb(0, 0, 153);">rules</span>&gt;<br>
+      <span style="color: rgb(0, 153, 0);">03 &nbsp; &nbsp;&nbsp; </span>&lt;<span
+ style="color: rgb(0, 0, 153);">rule </span>name="<span
+ style="color: rgb(153, 0, 0);">CFProRegExp</span>" category="<span
+ style="color: rgb(153, 0, 0);">Field</span>" enabled="<span
+ style="color: rgb(153, 0, 0);">true</span>"&gt;<br>
+      <span style="color: rgb(0, 153, 0);">04 &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp; </span>&lt;<span style="color: rgb(0, 0, 153);">type</span>&gt;<span
+ style="color: rgb(153, 0, 0);">regexp</span>&lt;/<span
+ style="color: rgb(0, 0, 153);">type</span>&gt;<br>
+      <span style="color: rgb(0, 153, 0);">05 &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp; </span>&lt;<span style="color: rgb(0, 0, 153);">value</span>&gt;<span
+ style="color: rgb(153, 0, 0);">s[A-Z0-9][\w\d]*</span>&lt;/<span
+ style="color: rgb(0, 0, 153);">value</span>&gt;<br>
+      <span style="color: rgb(0, 153, 0);">06 &nbsp; &nbsp;&nbsp;
+&nbsp; </span>&lt;<span style="color: rgb(0, 0, 153);">severity</span>&gt;<span
+ style="color: rgb(153, 0, 0);">3</span>&lt;/<span
+ style="color: rgb(0, 0, 153);">severity</span>&gt;<br>
+      <span style="color: rgb(0, 153, 0);">07 &nbsp; &nbsp;&nbsp; </span>&lt;/<span
+ style="color: rgb(0, 0, 153);">rule</span>&gt;<br>
+      <span style="color: rgb(0, 153, 0);">08 &nbsp;&nbsp; &nbsp; </span>&lt;<span
+ style="color: rgb(0, 0, 153);">rule </span>name="<span
+ style="color: rgb(153, 0, 0);">NestedTypeBlockPlaceRule</span>"
+category="<span style="color: rgb(153, 0, 0);">General</span>" enabled="<span
+ style="color: rgb(153, 0, 0);">true</span>"&gt;<br>
+      <span style="color: rgb(0, 153, 0);">09 &nbsp; &nbsp; &nbsp;
+&nbsp; </span>&lt;<span style="color: rgb(0, 0, 153);">type</span>&gt;<span
+ style="color: rgb(153, 0, 0);">multichoice</span>&lt;/<span
+ style="color: rgb(0, 0, 153);">type</span>&gt;<br>
+      <span style="color: rgb(0, 153, 0);">10
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>&lt;<span
+ style="color: rgb(0, 0, 153);">choices</span>&gt;<br>
+      <span style="color: rgb(0, 153, 0);">11 &nbsp; &nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp; </span>&lt;<span
+ style="color: rgb(0, 0, 153);">choice</span>&gt;<span
+ style="color: rgb(153, 0, 0);">Beginning of Class</span>&lt;/<span
+ style="color: rgb(0, 0, 153);">choice</span>&gt;<br>
+      <span style="color: rgb(0, 153, 0);">12 &nbsp;&nbsp;&nbsp; &nbsp;
+&nbsp; &nbsp; </span>&lt;<span style="color: rgb(0, 0, 153);">choice</span>&gt;<span
+ style="color: rgb(153, 0, 0);">End of Class</span>&lt;/<span
+ style="color: rgb(0, 0, 153);">choice</span>&gt;<br>
+      <span style="color: rgb(0, 153, 0);">13 &nbsp; &nbsp; &nbsp;
+&nbsp; </span>&lt;/<span style="color: rgb(0, 0, 153);">choices</span>&gt;<br>
+      <span style="color: rgb(0, 153, 0);">14 &nbsp;&nbsp; &nbsp;
+&nbsp;&nbsp; </span>&lt;<span style="color: rgb(0, 0, 153);">value</span>&gt;<span
+ style="color: rgb(153, 0, 0);">End of Class</span>&lt;/<span
+ style="color: rgb(0, 0, 153);">value</span>&gt;<br>
+      <span style="color: rgb(0, 153, 0);">15 &nbsp;&nbsp; &nbsp;
+&nbsp;&nbsp; </span>&lt;<span style="color: rgb(0, 0, 153);">severity</span>&gt;<span
+ style="color: rgb(153, 0, 0);">3</span>&lt;/<span
+ style="color: rgb(0, 0, 153);">severity</span>&gt;<br>
+      <span style="color: rgb(0, 153, 0);">16 &nbsp;&nbsp;&nbsp;&nbsp; </span>&lt;/<span
+ style="color: rgb(0, 0, 153);">rule</span>&gt;<br>
+      <span style="color: rgb(0, 153, 0);">17</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+...<br>
+      <span style="color: rgb(0, 153, 0);">18 &nbsp;&nbsp; </span>&lt;/<span
+ style="color: rgb(0, 0, 153);">rules</span>&gt;<br>
+      <span style="color: rgb(0, 153, 0);">19 </span>&lt;/<span
+ style="color: rgb(0, 0, 153);">jcsc</span>&gt;<br>
+      </p>
+      <p>Line 01: start of the JCSC rules file showing the version of
+JCSC and the timestamp when it was saved for the last time<br>
+Line 02: starting of the rules block<br>
+Line 03: start of a rule showing the name (maps to the key on the
+Ruleseditor UI) the category it belongs to&nbsp; and whether it is
+enabled<br>
+Line 04: shows the type; in this case a regular expression<br>
+Line 05: shows the value of the specified type<br>
+Line 06: shows the severity; each rule can have a severity from 1-5
+with 1=lowest and 5=highest<br>
+Line 07: end of rule<br>
+Line 08: start of a rule<br>
+Line 09: show the type; in this case multichoice (ie combo box) this
+rule requires a block of choices<br>
+Line 10: start of choices block<br>
+Line 11: choice<br>
+Line 12: choice<br>
+Line 13: end of choices block<br>
+Line 14: shows the value which has to be on of the choices block<br>
+Line 15: shows the severity<br>
+Line 16: end of rule<br>
+Line 17: more rules<br>
+Line 18: end of rules block<br>
+Line 19: end of JCSC rules file<br>
+      </p>
+      <p>Allowed types (Lines <span
+ style="font-family: monospace; font-weight: bold; color: rgb(0, 153, 0);">04</span>,<span
+ style="font-family: monospace; color: rgb(0, 153, 0); font-weight: bold;">09</span>)
+are:<br>
+      </p>
+      <ul>
+        <li><span style="font-weight: bold;">regexp</span>: value is a
+regexp string</li>
+        <li><span style="font-weight: bold;">regexp-multinline</span>:
+value is a regexp string spanning several lines</li>
+        <li><span style="font-weight: bold;">integer</span>: value is a
+integer number</li>
+        <li><span style="font-weight: bold;">boolean</span>: values are
+either true or false</li>
+        <li><span style="font-weight: bold;">multichoice</span>: value
+is on of the choices</li>
+      </ul>
+      <p>You can place your own rules into the <font face="Courier New">jcsc.jar</font>
+file and access them with the <font face="Courier New">-j</font>
+option.</p>
+      <h2><a name="update"></a>Update</h2>
+      <h3>General</h3>
+There are multiple ways to update you current JCSC installation, here
+is one:<br>
+      <ol>
+        <li>rename the <tt>JCSC</tt> folder to which <tt>JCSC_HOME</tt>
+points to <tt>oldJCSC</tt></li>
+        <li>download the latest version</li>
+        <li>expand it to the location <tt>JCSC_HOME</tt> is pointing</li>
+        <li>move custom files from <tt>oldJCSC</tt> to <tt>JCSC</tt></li>
+        <li>backup or delete <tt>oldJCSC</tt> folder<br>
+        </li>
+      </ol>
+      <h3>Rules File</h3>
+      <h4>0.97 to 0.98</h4>
+One rule '<span style="font-family: monospace;">ApplyJavaDocRulesInnerClass</span>'
+has been added. Open your existing rules files (<span
+ style="font-family: monospace;">*.jcsc.xml</span>), define the new
+rule in the JavaDoc tab and save it. This adds the new rule to the
+rules XML file.<br>
+      <h4>0.96 to 0.97</h4>
+No changes to the rules file.<br>
+      <h4>0.95 to 0.96</h4>
+The <span style="font-family: monospace;">&lt;priority&gt;/&lt;/priority&gt;</span>
+tag has been renamed to <span style="font-family: monospace;">&lt;severity&gt;</span>
+ie. <span style="font-family: monospace;">&lt;/severity&gt;</span>. In
+your rules XML files replace all occurences of <span
+ style="font-family: monospace;">&lt;priority&gt;</span> with <span
+ style="font-family: monospace;">&lt;severity&gt;</span> and <span
+ style="font-family: monospace;">&lt;/priority&gt;</span> with <span
+ style="font-family: monospace;">&lt;/severity&gt;</span>.<br>
+      <h4>0.94 to 0.95</h4>
+In the JCSC_HOME/bin folder is a <span style="font-family: monospace;">convert</span>
+script. Run this to convert the <span style="font-family: monospace;">.jcsc</span>
+properties file into a <span style="font-family: monospace;">.jcsc.xml</span>
+file.<br>
+      <br>
+Usage for Win:<span style="font-family: monospace;"> convert.bat
+&lt;old&gt;.jcsc</span><br>
+Usage for Nix: <span style="font-family: monospace;">convert.sh
+&lt;old&gt;.jcsc</span><br>
+      <br>
+A <span style="font-family: monospace;"><span
+ style="font-weight: bold;">&lt;old&gt;.jcsc.xml</span> usable for JCSC
+0.95</span>will be created<br>
+      <h4>0.93 to 0.94</h4>
+Open the existing one and set the new rules and save them.<br>
+      <h4>0.92 to 0.93</h4>
+The best thing to do is the following:<br>
+      <ol>
+        <li>Diff (with any diff program) the old <tt>JCSC_HOME/rules/jcsc.jcsc</tt>
+file with the new one (i.e version 0.92 with 0.93); this gives you an
+overview about what rules have been added and which have been moved or
+modified.</li>
+        <li>Using this knowledge you then can modify your own <tt>.jcsc</tt>
+file.</li>
+        <li>Sorry for this painfull process -- a migration tool would
+be nice ;)</li>
+      </ol>
+      <ol>
+      </ol>
+      <hr>
+      <p>Last updated on<!--webbot bot="Timestamp" S-Type="EDITED"
+S-Format="%Y-%m-%d %H:%M" startspan -->
+2005-07-01 18::12<!--webbot bot="Timestamp" i-CheckSum="26324" endspan -->
+      </p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="top"><br>
+      </td>
+      <td valign="top"><br>
+      </td>
+      <td valign="top"><br>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</p>
+</body>
+</html>

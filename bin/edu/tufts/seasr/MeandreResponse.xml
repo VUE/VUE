@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mapping>
+	<class name="edu.tufts.seasr.MeandreResponse">
+		<map-to xml="meandre_response" />
+		<field name="meandreItemList" type="edu.tufts.seasr.MeandreItem" collection="arraylist">
+			<bind-xml name="meandre_item"  node="element"/>
+		</field>
+	</class>	
+	<class name="edu.tufts.seasr.MeandreItem">
+	 	<map-to xml="meandre_item" />
+	 	<field name="meandreUriName" type="string">
+	 		<bind-xml name="meandre_uri_name" node="element" />
+	 	</field>
+	 	<field name="meandreUri" type="string">
+	 		<bind-xml name="meandre_uri" node="element" />
+	 	</field>
+	 	<field name="description" type="string">
+	 		<bind-xml name="description" node="element" />
+	 	</field>
+	</class>
+</mapping>

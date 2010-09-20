@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/overview.xsl" type="text/xsl"?>
+<jcsc>
+  <overview>
+    <packagename>rj.tools.ccscrape.ui</packagename>
+    <packagecount>0</packagecount>
+    <name>rj.tools.ccscrape.ui</name>
+    <classcount>3</classcount>
+    <methodscount>52</methodscount>
+    <violationscount>12</violationscount>
+    <linecount>1115</linecount>
+    <ncsscount>625</ncsscount>
+    <functionpointscount>11.79245283018868</functionpointscount>
+    <unittestclasscount>1</unittestclasscount>
+    <unittestscount>1</unittestscount>
+    <severitylevel>4</severitylevel>
+    <worstclasses>
+      <worst>
+        <class>rj.tools.ccscrape.ui.ScrapePanel</class>
+        <count>10</count>
+        <author><![CDATA[jochamrm]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.ccscrape.ui.CCScrapeFrame</class>
+        <count>2</count>
+        <author><![CDATA[jochamrm]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.ccscrape.ui.ScrapePanelTest</class>
+        <count>0</count>
+        <author><![CDATA[jochamrm]]></author>
+      </worst>
+    </worstclasses>
+  </overview>
+</jcsc>

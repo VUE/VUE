@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/package.xsl" type="text/xsl"?>
+<jcsc>
+  <classlist>
+    <package>rj.tools.jcsc.ant</package>
+    <classes>
+      <class>rj.tools.jcsc.ant.BatchResult</class>
+      <class>rj.tools.jcsc.ant.JCSCTask</class>
+      <class>rj.tools.jcsc.ant.JCSCTaskTest</class>
+      <class>rj.tools.jcsc.ant.OverviewStatistics</class>
+      <class>rj.tools.jcsc.ant.PackageStatistics</class>
+      <class>rj.tools.jcsc.ant.ParseFile</class>
+      <class>rj.tools.jcsc.ant.WorstElement</class>
+      <class>rj.tools.jcsc.ant.WorstStatistics</class>
+    </classes>
+  </classlist>
+</jcsc>

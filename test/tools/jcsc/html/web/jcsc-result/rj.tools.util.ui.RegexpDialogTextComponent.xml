@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/class.xsl" type="text/xsl"?>
+<jcsc>
+  <package>rj.tools.util.ui</package>
+  <class>RegexpDialogTextComponent</class>
+  <methods>3</methods>
+  <author><![CDATA[Ralph Jocham]]></author>
+  <count>0</count>
+  <ncss>5</ncss>
+  <lines>49</lines>
+  <unittestclasses>0</unittestclasses>
+  <unittests>0</unittests>
+  <metric>
+    <method>>
+      <name>RegexpDialogTextComponent.setExpressionText()</name>
+      <line>33</line>
+      <column>45</column>
+      <ncss>1</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>RegexpDialogTextComponent.getExpressionText()</name>
+      <line>40</line>
+      <column>36</column>
+      <ncss>1</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>RegexpDialogTextComponent.isMultiLine()</name>
+      <line>48</line>
+      <column>31</column>
+      <ncss>1</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+</jcsc>

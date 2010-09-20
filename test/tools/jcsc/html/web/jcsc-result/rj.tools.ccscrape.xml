@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/package.xsl" type="text/xsl"?>
+<jcsc>
+  <classlist>
+    <package>rj.tools.ccscrape</package>
+    <classes>
+      <class>rj.tools.ccscrape.CCParser</class>
+      <class>rj.tools.ccscrape.CCParserTest</class>
+      <class>rj.tools.ccscrape.Monitor</class>
+      <class>rj.tools.ccscrape.MonitorEvent</class>
+      <class>rj.tools.ccscrape.MonitorListener</class>
+      <class>rj.tools.ccscrape.MonitorTest</class>
+      <class>rj.tools.ccscrape.Status</class>
+      <class>rj.tools.ccscrape.StatusTest</class>
+      <class>rj.tools.ccscrape.URLCache</class>
+      <class>rj.tools.ccscrape.URLCacheTest</class>
+    </classes>
+  </classlist>
+</jcsc>

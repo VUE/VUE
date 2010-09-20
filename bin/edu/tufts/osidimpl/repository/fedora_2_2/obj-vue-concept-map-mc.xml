@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- edited with XMLSPY v5 rel. 2 U (http://www.xmlspy.com) by Sandy Payette (Cornell University) -->
+<!---************************************************************************-->
+<!-- SAMPLE FEDORA DIGITAL OBJECT ENCODED USING METS    -->
+<!---************************************************************************-->
+<METS:mets xmlns:METS="http://www.loc.gov/METS/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:fedoraAudit="http://fedora.comm.nsdlib.org/audit" xmlns:xlink="http://www.w3.org/TR/xlink" xsi:schemaLocation="http://www.loc.gov/standards/METS/ http://www.fedora.info/definitions/1/0/mets-fedora-ext.xsd" OBJID="d:213" TYPE="FedoraObject" LABEL="Sample Concept Map" PROFILE="TUFTS_VUE_CONCEPT_MAP">
+  <!---*******************************************************************************************************************************************-->
+  <!--  FEDORA SYSTEM METADATA: -->
+  <!---*******************************************************************************************************************************************-->
+  <METS:metsHdr ID="H1" CREATEDATE="%file.created%" LASTMODDATE="%file.created%" RECORDSTATUS="A">
+    <METS:agent ID="A1" ROLE="CREATOR" TYPE="INDIVIDUAL">
+      <METS:name>%creator.name%</METS:name>
+      <METS:note/>
+    </METS:agent>
+    <METS:agent ID="A2" ROLE="CUSTODIAN" TYPE="ORGANIZATION">
+      <METS:name>Tufts University</METS:name>
+      <METS:note>Under the custodianship of Tufts University</METS:note>
+    </METS:agent>
+    <METS:agent ID="A3" ROLE="CUSTODIAN" TYPE="OTHER">
+      <METS:name> Tufts Content Repository System</METS:name>
+      <METS:note> Digital Object is under the custodianship of the Tufts content repository system </METS:note>
+    </METS:agent>
+  </METS:metsHdr>
+  <!---*******************************************************************************************************************************************-->
+  <!---User-Defined XML METADATA DATASTREAMS-->
+  <!---*******************************************************************************************************************************************-->
+  <METS:dmdSecFedora ID="DC" STATUS="A">
+    <METS:descMD ID="DC1.0" CREATED="%file.created%">
+      <METS:mdWrap MIMETYPE="text/xml" MDTYPE="OTHER" LABEL="Dublin Core for the Document object">
+        <METS:xmlData>
+          <oai_dc:dc xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/elements/1.1/">
+      		%dc.Metadata%
+          </oai_dc:dc>
+        </METS:xmlData>
+      </METS:mdWrap>
+    </METS:descMD>
+  </METS:dmdSecFedora>
+  <!---*******************************************************************************************************************************************-->
+  <!--- DATASTREAMS:  EXTERNAL-REFERENCED CONTENT and REPOSITORY-MANAGED CONTENT-->
+  <!---*******************************************************************************************************************************************-->
+  <METS:fileSec>
+    <METS:fileGrp ID="DATASTREAMS">
+      <METS:fileGrp ID="DS1" STATUS="">
+        <!--exhibit xml file -->
+        <METS:file ID="DS1.0" CREATED="%file.created%" MIMETYPE="application/zip" OWNERID="M" STATUS="">
+          <METS:FLocat LOCTYPE="URL" xlink:href="%file.location%" xlink:title="%file.title%"/>
+        </METS:file>
+      </METS:fileGrp>
+    </METS:fileGrp>
+  </METS:fileSec>
+  <!---*******************************************************************************************************************************************-->
+  <!--- FEDORA DATASTREAM BINDING MAPS  -->
+  <!--  In Fedora the METS structure maps are associated with the DISSEMINATOR mechanisms (see METS:behaviorSec).-->
+  <!---*******************************************************************************************************************************************-->
+  <METS:structMap ID="S1" TYPE="fedora:dsBindingMap">
+    <METS:div TYPE="demo:77" LABEL="DS Binding Map for text transform mechanism">
+      <METS:div TYPE="ZIP_ARCHIVE" LABEL="Archive file to be delivered" ORDER="0">
+        <METS:fptr FILEID="DS1"/>
+      </METS:div>
+    </METS:div>
+  </METS:structMap>
+
+  <!---*******************************************************************************************************************************************-->
+  <!--- DISSEMINATORS-->
+  <!-- A disseminator provides a "behavior-centric" view of the object.  It has an attribute STRUCTID -->
+  <!-- which is an IDREF to a mechanism-specific structMap.  The structMap labels datastreams in -->
+  <!-- a manner that is understood by the mechanism defined in the disseminator.  -->
+  <!-- -->
+  <!---*******************************************************************************************************************************************-->
+  <!--- THE NSDL EXHIBIT DISSEMINATOR -->
+  <!---*******************************************************************************************************************************************-->
+  <METS:behaviorSec ID="DISS1" STATUS="A">
+    <METS:serviceBinding ID="DISS1.0" STRUCTID="S1" BTYPE="demo:211" CREATED="2003-06-10T17:17:19" LABEL="Tufts VUE Concept Map Disseminator">
+      <!-- Use xlink to point to a Fedora Behavior Definition object which is stored as a separate METS object.-->
+      <!--The Behavior Definition object stores WSDL interface descriptions that formally define the set methods to which -->
+      <!-- the disseminator subscribes -->
+      <METS:interfaceMD LABEL="Tufts VUE Concept Map Behavior Definition" LOCTYPE="URN" xlink:href="demo:211"/>
+      <!--Use xlink  to point to the Behavior Mechanism object which will be stored as a separate METS object.-->
+      <!--The Behavior Mechanism object stores WSDL bindings to run methods described in Behavior Definition object.-->
+      <METS:serviceBindMD LABEL="IMS Service Mechanism" LOCTYPE="URN" xlink:href="demo:212"/>
+    </METS:serviceBinding>
+  </METS:behaviorSec>
+</METS:mets>

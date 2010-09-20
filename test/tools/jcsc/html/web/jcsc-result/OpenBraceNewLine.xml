@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet href="xsl/rule.xsl" type="text/xsl"?>
+<jcsc>
+  <category>General</category>
+  <rule>OpenBraceNewLine</rule>
+  <violations>
+    <violation>
+      <rule>
+        <name>OpenBraceNewLine</name>
+        <severity>4</severity>
+        <category>General</category>
+      </rule>
+      <classname>IntellijJCSCImpl</classname>
+      <package>rj.tools.jcsc.plugins.intellij</package>
+      <line>16</line>
+      <column>82</column>
+      <message><![CDATA[is a '{' which must be on the next line]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\plugins\intellij\IntellijJCSCImpl.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>OpenBraceNewLine</name>
+        <severity>4</severity>
+        <category>General</category>
+      </rule>
+      <classname>StreamPumper</classname>
+      <package>rj.tools.jcsc.plugins.intellij</package>
+      <line>13</line>
+      <column>35</column>
+      <message><![CDATA[is a '{' which must be on the next line]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\plugins\intellij\StreamPumper.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>OpenBraceNewLine</name>
+        <severity>4</severity>
+        <category>General</category>
+      </rule>
+      <classname>StreamPumper</classname>
+      <package>rj.tools.jcsc.plugins.intellij</package>
+      <line>30</line>
+      <column>43</column>
+      <message><![CDATA[is a '{' which must be on the next line]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\plugins\intellij\StreamPumper.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>OpenBraceNewLine</name>
+        <severity>4</severity>
+        <category>General</category>
+      </rule>
+      <classname>StreamPumper</classname>
+      <package>rj.tools.jcsc.plugins.intellij</package>
+      <line>31</line>
+      <column>27</column>
+      <message><![CDATA[is a '{' which must be on the next line]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\plugins\intellij\StreamPumper.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>OpenBraceNewLine</name>
+        <severity>4</severity>
+        <category>General</category>
+      </rule>
+      <classname>StreamPumper</classname>
+      <package>rj.tools.jcsc.plugins.intellij</package>
+      <line>34</line>
+      <column>47</column>
+      <message><![CDATA[is a '{' which must be on the next line]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\plugins\intellij\StreamPumper.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>OpenBraceNewLine</name>
+        <severity>4</severity>
+        <category>General</category>
+      </rule>
+      <classname>StreamPumper</classname>
+      <package>rj.tools.jcsc.plugins.intellij</package>
+      <line>37</line>
+      <column>41</column>
+      <message><![CDATA[is a '{' which must be on the next line]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\plugins\intellij\StreamPumper.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>OpenBraceNewLine</name>
+        <severity>4</severity>
+        <category>General</category>
+      </rule>
+      <classname>StreamPumper</classname>
+      <package>rj.tools.jcsc.plugins.intellij</package>
+      <line>43</line>
+      <column>23</column>
+      <message><![CDATA[is a '{' which must be on the next line]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\plugins\intellij\StreamPumper.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>OpenBraceNewLine</name>
+        <severity>4</severity>
+        <category>General</category>
+      </rule>
+      <classname>StreamPumper</classname>
+      <package>rj.tools.jcsc.plugins.intellij</package>
+      <line>44</line>
+      <column>13</column>
+      <message><![CDATA[is a '{' which must be on the next line]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\plugins\intellij\StreamPumper.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>OpenBraceNewLine</name>
+        <severity>4</severity>
+        <category>General</category>
+      </rule>
+      <classname>StreamPumper</classname>
+      <package>rj.tools.jcsc.plugins.intellij</package>
+      <line>45</line>
+      <column>34</column>
+      <message><![CDATA[is a '{' which must be on the next line]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\plugins\intellij\StreamPumper.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>OpenBraceNewLine</name>
+        <severity>4</severity>
+        <category>General</category>
+      </rule>
+      <classname>StreamPumper</classname>
+      <package>rj.tools.jcsc.plugins.intellij</package>
+      <line>49</line>
+      <column>43</column>
+      <message><![CDATA[is a '{' which must be on the next line]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\plugins\intellij\StreamPumper.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>OpenBraceNewLine</name>
+        <severity>4</severity>
+        <category>General</category>
+      </rule>
+      <classname>StreamPumper</classname>
+      <package>rj.tools.jcsc.plugins.intellij</package>
+      <line>51</line>
+      <column>35</column>
+      <message><![CDATA[is a '{' which must be on the next line]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\plugins\intellij\StreamPumper.java</source>
+    </violation>
+  </violations>
+</jcsc>
