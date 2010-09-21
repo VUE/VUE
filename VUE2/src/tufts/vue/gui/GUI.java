@@ -264,7 +264,7 @@ public class GUI
         if (false)
             installUIDefaults();
 
-        if (VUE.isApplet())
+        if (VUE.isApplet() || Util.isUnixPlatform())
         {
         	   try {
         		   UIManager.put("ClassLoader", LookUtils.class.getClassLoader());
