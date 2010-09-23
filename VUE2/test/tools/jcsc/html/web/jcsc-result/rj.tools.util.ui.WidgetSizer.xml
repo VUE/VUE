@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/class.xsl" type="text/xsl"?>
+<jcsc>
+  <package>rj.tools.util.ui</package>
+  <class>WidgetSizer</class>
+  <methods>1</methods>
+  <author><![CDATA[Ralph Jocham]]></author>
+  <count>0</count>
+  <ncss>15</ncss>
+  <lines>61</lines>
+  <unittestclasses>0</unittestclasses>
+  <unittests>0</unittests>
+  <metric>
+    <method>>
+      <name>WidgetSizer.alignToMaxWidth()</name>
+      <line>39</line>
+      <column>62</column>
+      <ncss>11</ncss>
+      <ccn>4</ccn>
+    </method>
+  </metric>
+</jcsc>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/package.xsl" type="text/xsl"?>
+<jcsc>
+  <classlist>
+    <package>rj.tools.util.ui</package>
+    <classes>
+      <class>rj.tools.util.ui.AboutDialog</class>
+      <class>rj.tools.util.ui.AboutDialogTest</class>
+      <class>rj.tools.util.ui.AboutPanel</class>
+      <class>rj.tools.util.ui.AnimatedLabel</class>
+      <class>rj.tools.util.ui.AnimatedLabelTest</class>
+      <class>rj.tools.util.ui.RegexpDialog</class>
+      <class>rj.tools.util.ui.RegexpDialogTextComponent</class>
+      <class>rj.tools.util.ui.SelectDialog</class>
+      <class>rj.tools.util.ui.TextFieldButton</class>
+      <class>rj.tools.util.ui.WidgetSizer</class>
+      <class>rj.tools.util.ui.WidgetSizerTest</class>
+    </classes>
+  </classlist>
+</jcsc>

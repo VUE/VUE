@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/overview.xsl" type="text/xsl"?>
+<jcsc>
+  <overview>
+    <packagename>rj.tools.jcsc.plugins.netbeans</packagename>
+    <packagecount>0</packagecount>
+    <name>rj.tools.jcsc.plugins.netbeans</name>
+    <classcount>3</classcount>
+    <methodscount>19</methodscount>
+    <violationscount>15</violationscount>
+    <linecount>510</linecount>
+    <ncsscount>167</ncsscount>
+    <functionpointscount>3.150943396226415</functionpointscount>
+    <unittestclasscount>0</unittestclasscount>
+    <unittestscount>0</unittestscount>
+    <severitylevel>4</severitylevel>
+    <worstclasses>
+      <worst>
+        <class>rj.tools.jcsc.plugins.netbeans.CheckAction</class>
+        <count>12</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.plugins.netbeans.RulesAction</class>
+        <count>2</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.plugins.netbeans.NetBeansOutputStream</class>
+        <count>1</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+    </worstclasses>
+  </overview>
+</jcsc>

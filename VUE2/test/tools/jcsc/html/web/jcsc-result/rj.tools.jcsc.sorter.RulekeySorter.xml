@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/class.xsl" type="text/xsl"?>
+<jcsc>
+  <package>rj.tools.jcsc.sorter</package>
+  <class>RulekeySorter</class>
+  <methods>3</methods>
+  <author><![CDATA[Ralph Jocham]]></author>
+  <count>0</count>
+  <ncss>20</ncss>
+  <lines>79</lines>
+  <unittestclasses>0</unittestclasses>
+  <unittests>0</unittests>
+  <metric>
+    <method>>
+      <name>RulekeySorter.setViolations()</name>
+      <line>43</line>
+      <column>45</column>
+      <ncss>2</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>RulekeySorter.sort()</name>
+      <line>51</line>
+      <column>21</column>
+      <ncss>4</ncss>
+      <ccn>3</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>RulekeySorter.RulekeyComparator.compare()</name>
+      <line>71</line>
+      <column>46</column>
+      <ncss>4</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+</jcsc>

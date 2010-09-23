@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/class.xsl" type="text/xsl"?>
+<jcsc>
+  <package>rj.tools.jcsc.plugins.intellij</package>
+  <class>SourceLineSelector</class>
+  <methods>1</methods>
+  <author><![CDATA[jochamrm]]></author>
+  <count>0</count>
+  <ncss>3</ncss>
+  <lines>33</lines>
+  <unittestclasses>0</unittestclasses>
+  <unittests>0</unittests>
+  <metric>
+    <method>>
+      <name>SourceLineSelector.selectLine()</name>
+      <line>32</line>
+      <column>35</column>
+      <ncss>1</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+</jcsc>

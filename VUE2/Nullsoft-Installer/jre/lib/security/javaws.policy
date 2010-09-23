@@ -1,0 +1,6 @@
+// @(#)javaws.policy	1.7 00/09/18
+
+grant codeBase "file:${jnlpx.home}/javaws.jar" {
+    permission java.security.AllPermission;
+};
+

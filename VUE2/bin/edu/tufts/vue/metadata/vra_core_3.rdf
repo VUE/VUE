@@ -1,0 +1,498 @@
+<rdf:RDF
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+    xmlns:dc="http://purl.org/dc/elements/1.1/" >
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#technique">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:label xml:lang="en">Technique</rdfs:label>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Literal"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#Series">
+    <rdf:type rdf:resource="http://www.w3.org/2000/01/rdf-schema#Class"/>
+    <rdfs:subClassOf rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Work"/>
+    <rdfs:comment>A Series</rdfs:comment>
+    <rdfs:label xml:lang="en">Series</rdfs:label>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/artstor#nationality">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Entity"/>
+    <rdfs:label xml:lang="en">nationality</rdfs:label>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#locationCreationSite">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:subPropertyOf rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#location"/>
+    <rdfs:label xml:lang="en">Location (Creation Site)</rdfs:label>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#relation">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:label xml:lang="en">Relation</rdfs:label>
+    <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2000/01/rdf-schema#seeAlso"/>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+    <rdfs:range rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Relation"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#measurements">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:label xml:lang="en">Measurements</rdfs:label>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Literal"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/artstor#sourceLocation">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+    <rdfs:label xml:lang="en">Source Location</rdfs:label>
+    <rdfs:subPropertyOf rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#source"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#completion">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+    <rdfs:label xml:lang="en">completion</rdfs:label>
+    <rdfs:subPropertyOf rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#date"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/artstor#filename">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/artstor#MediaFile"/>
+    <rdfs:label xml:lang="en">filename</rdfs:label>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/artstor#lpsid">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/artstor#MediaFile"/>
+    <rdfs:label xml:lang="en">lpsid</rdfs:label>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#Image">
+    <rdf:type rdf:resource="http://www.w3.org/2000/01/rdf-schema#Class"/>
+    <rdfs:comment>An image record is used for the visual surrogates of objects</rdfs:comment>
+    <rdfs:label xml:lang="en">Image</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#Work">
+    <rdf:type rdf:resource="http://www.w3.org/2000/01/rdf-schema#Class"/>
+    <rdfs:comment>A work record is used for physical or created objects</rdfs:comment>
+    <rdfs:label xml:lang="en">Work</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/artstor#lps">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/artstor#MediaFile"/>
+    <rdfs:label xml:lang="en">lps</rdfs:label>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#material">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:label xml:lang="en">Material</rdfs:label>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://www.w3.org/2001/vcard-rdf/3.0#given">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/person#Person"/>
+    <rdfs:label>given name</rdfs:label>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#corporateName">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Entity"/>
+    <rdfs:label xml:lang="en">corporateName</rdfs:label>
+    <rdfs:subPropertyOf rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#creator"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#locationDiscoverySite">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:subPropertyOf rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#location"/>
+    <rdfs:label xml:lang="en">Location (Discovery Site)</rdfs:label>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/artstor#metadataCreationDate">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+    <rdfs:label xml:lang="en">Metadata Creation Date</rdfs:label>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#culture">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:label xml:lang="en">Culture</rdfs:label>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Literal"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#creator">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:label xml:lang="en">Creator</rdfs:label>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+    <rdfs:range rdf:resource="http://web.mit.edu/simile/2003/10/person#Person"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/artstor#authority">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+    <rdfs:label xml:lang="en">authority</rdfs:label>
+    <rdfs:subPropertyOf rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#subject"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#alteration">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+    <rdfs:label xml:lang="en">alteration</rdfs:label>
+    <rdfs:subPropertyOf rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#date"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/artstor#geographic">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+    <rdfs:label xml:lang="en">geographic</rdfs:label>
+    <rdfs:subPropertyOf rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#subject"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#stylePeriod">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:label xml:lang="en">Style/Period</rdfs:label>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Literal"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#typeAAT">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:label xml:lang="en">VRA type</rdfs:label>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/artstor#height">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/artstor#MediaFile"/>
+    <rdfs:label xml:lang="en">height</rdfs:label>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#titleVariant">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:label xml:lang="en">Title (Variant)</rdfs:label>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+    <rdfs:subPropertyOf rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#title"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#support">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+    <rdfs:label xml:lang="en">support</rdfs:label>
+    <rdfs:subPropertyOf rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#material"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/artstor#width">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/artstor#MediaFile"/>
+    <rdfs:label xml:lang="en">width</rdfs:label>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/artstor#hasMediaFile">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+    <rdfs:label xml:lang="en">hasMediaFile</rdfs:label>
+    <rdfs:range rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#MediaFile"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#locationCurrentSite">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:subPropertyOf rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#location"/>
+    <rdfs:label xml:lang="en">Location (Current Site)</rdfs:label>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/artstor#objectId">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+    <rdfs:label xml:lang="en">object Id</rdfs:label>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/artstor#vitalDates">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Entity"/>
+    <rdfs:label xml:lang="en">Vital Dates</rdfs:label>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#LargerEntity">
+    <rdf:type rdf:resource="http://www.w3.org/2000/01/rdf-schema#Class"/>
+    <rdfs:comment>A work</rdfs:comment>
+    <rdfs:label xml:lang="en">Larger Entity</rdfs:label>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/artstor#imageSource">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+    <rdfs:label xml:lang="en">image source</rdfs:label>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#measurementsDimensions">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:label xml:lang="en">Measurements (dimensions)</rdfs:label>
+    <rdfs:subPropertyOf rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#measurements"/>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Literal"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#design">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+    <rdfs:label xml:lang="en">design</rdfs:label>
+    <rdfs:subPropertyOf rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#date"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#rights">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2000/01/rdf-schema#seeAlso"/>
+    <rdfs:label xml:lang="en">Rights</rdfs:label>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#source">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2000/01/rdf-schema#seeAlso"/>
+    <rdfs:label xml:lang="en">Source</rdfs:label>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#location">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:label xml:lang="en">Location</rdfs:label>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/artstor#url">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/artstor#MediaFile"/>
+    <rdfs:label xml:lang="en">url</rdfs:label>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#date">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:label xml:lang="en">Date</rdfs:label>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Literal"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#idCurrentRepository">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:label xml:lang="en">ID (Current Repository)</rdfs:label>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Literal"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#description">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:label xml:lang="en">Description</rdfs:label>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Literal"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/artstor#topic">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+    <rdfs:label xml:lang="en">topic</rdfs:label>
+    <rdfs:subPropertyOf rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#subject"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="">
+    <rdfs:comment>Draft vocabulary for VRA in RDFS</rdfs:comment>
+    <dc:creator>Andy Seaborne</dc:creator>
+    <dc:subject></dc:subject>
+    <dc:publisher>SIMILE</dc:publisher>
+    <dc:title>VRA/RDFS vocabulary</dc:title>
+    <dc:description></dc:description>
+    <dc:date>2003-10-14</dc:date>
+    <dc:format>RDF</dc:format>
+    <dc:identifier rdf:resource="#"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#Record">
+    <rdf:type rdf:resource="http://www.w3.org/2000/01/rdf-schema#Class"/>
+    <rdfs:comment>A record is the superclass for Works and Images</rdfs:comment>
+    <rdfs:label xml:lang="en">Record</rdfs:label>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/artstor#imageId">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+    <rdfs:label xml:lang="en">imageId</rdfs:label>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/artstor#serverurl">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/artstor#MediaFile"/>
+    <rdfs:label xml:lang="en">serverurl</rdfs:label>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#locationFormerSite">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:subPropertyOf rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#location"/>
+    <rdfs:label xml:lang="en">Location (Former Site)</rdfs:label>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#group">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:label xml:lang="en">Group</rdfs:label>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Literal"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/artstor#MediaFile">
+    <rdf:type rdf:resource="http://www.w3.org/2000/01/rdf-schema#Class"/>
+    <rdfs:label xml:lang="en">MediaFile</rdfs:label>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#attribution">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:label xml:lang="en">Attribution</rdfs:label>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Entity"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Literal"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#school">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:label xml:lang="en">School</rdfs:label>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Literal"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#Entity">
+    <rdf:type rdf:resource="http://www.w3.org/2000/01/rdf-schema#Class"/>
+    <rdfs:label xml:lang="en">Entity</rdfs:label>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#role">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:label xml:lang="en">Role</rdfs:label>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Entity"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Literal"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#dynasty">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:label xml:lang="en">Dynasty</rdfs:label>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Literal"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#type">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:SubPropertyOf rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#type"/>
+    <rdfs:label xml:lang="en">VRA record type</rdfs:label>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/artstor#inCollection">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+    <rdfs:label xml:lang="en">In Collection</rdfs:label>
+    <rdfs:label xml:lang="en">inCollection</rdfs:label>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#subject">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:label xml:lang="en">Subject</rdfs:label>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Resource"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#style">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:subPropertyOf rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#stylePeriod"/>
+    <rdfs:label xml:lang="en">Style</rdfs:label>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Literal"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#period">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:subPropertyOf rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#stylePeriod"/>
+    <rdfs:label xml:lang="en">Period</rdfs:label>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Literal"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#movement">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:label xml:lang="en">Movement</rdfs:label>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Literal"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#locationCurrentRepository">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:subPropertyOf rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#location"/>
+    <rdfs:label xml:lang="en">Location (Current Repository)</rdfs:label>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#locationFormerRepository">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:subPropertyOf rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#location"/>
+    <rdfs:label xml:lang="en">Location (Former Repository)</rdfs:label>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#personalName">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Entity"/>
+    <rdfs:label xml:lang="en">Personal Name</rdfs:label>
+    <rdfs:subPropertyOf rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#creator"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#titleTranslation">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:label xml:lang="en">Title (Translation)</rdfs:label>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+    <rdfs:subPropertyOf rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#titleVariant"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://www.w3.org/2001/vcard-rdf/3.0#family">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/person#Person"/>
+    <rdfs:label xml:lang="en">family name</rdfs:label>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/person#birth">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/person#Person"/>
+    <rdfs:label>Birth</rdfs:label>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/artstor#metadataUpdateDate">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Image"/>
+    <rdfs:label xml:lang="en">Metadata Update Date</rdfs:label>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#measurementsResolution">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:label xml:lang="en">Measurements (resolution)</rdfs:label>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Literal"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#measurementsFormat">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:label xml:lang="en">Measurements (format)</rdfs:label>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Literal"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/person#death">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/person#Person"/>
+    <rdfs:label>Death</rdfs:label>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#idFormerAccession">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:label xml:lang="en">ID (Former Accession)</rdfs:label>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Literal"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/artstor#mediafileFormat">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/artstor#MediaFile"/>
+    <rdfs:label xml:lang="en">Mediafile Format</rdfs:label>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#restoration">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+    <rdfs:label xml:lang="en">restoration</rdfs:label>
+    <rdfs:subPropertyOf rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#date"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#idFormerRepository">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:label xml:lang="en">ID (Former Repository)</rdfs:label>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Literal"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#idCurrentAccession">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:label xml:lang="en">ID (Current Accession)</rdfs:label>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Literal"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/person#Person">
+    <rdf:type rdf:resource="http://www.w3.org/2000/01/rdf-schema#Class"/>
+    <rdfs:label xml:lang="en">Person</rdfs:label>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#beginning">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+    <rdfs:label xml:lang="en">beginning</rdfs:label>
+    <rdfs:subPropertyOf rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#date"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://www.w3.org/2001/vcard-rdf/3.0#FN">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/person#Person"/>
+    <rdfs:label xml:lang="en">Full name</rdfs:label>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/artstor#resolution">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/artstor#MediaFile"/>
+    <rdfs:label xml:lang="en">resolution</rdfs:label>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#creation">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+    <rdfs:label xml:lang="en">creation</rdfs:label>
+    <rdfs:subPropertyOf rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#date"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#medium">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+    <rdfs:label xml:lang="en">medium</rdfs:label>
+    <rdfs:subPropertyOf rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#material"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#title">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:label xml:lang="en">Title</rdfs:label>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Literal"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://web.mit.edu/simile/2003/10/vraCore3#id">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdfs:label xml:lang="en">ID</rdfs:label>
+    <rdfs:domain rdf:resource="http://web.mit.edu/simile/2003/10/vraCore3#Record"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Literal"/>
+  </rdf:Description>
+</rdf:RDF>

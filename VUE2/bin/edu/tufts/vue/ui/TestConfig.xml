@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Configuration hints to the UI in a caller of the Repository OSID for Google local 
+
+ui codes:
+
+0	Single line text clear
+1	Single line text masked
+2	Multi-line text
+3	Boolean
+4	Integer
+5	Float
+6	Datetime
+7	Duration
+
+-->
+<configuration>
+	<field>
+		<key>field1</key>
+		<title>title1</title>
+		<description>Some prompt</description>
+		<default></default>
+		<mandatory>true</mandatory>
+		<maxChars></maxChars>
+		<ui>0</ui>
+	</field>
+	<field>
+		<key>field2</key>
+		<title>title one</title>
+		<description>A different prompt</description>
+		<default>default</default>
+		<mandatory>true</mandatory>
+		<maxChars>10</maxChars>
+		<ui>0</ui>
+	</field>
+	<field>
+		<key>password</key>
+		<title>Password</title>
+		<description>Short prompt</description>
+		<default></default>
+		<mandatory>false</mandatory>
+		<maxChars></maxChars>
+		<ui>1</ui>
+	</field>
+	<field>
+		<key>textarea</key>
+		<title>Description</title>
+		<description>Enter description</description>
+		<default>This is some long text that is designed to show on more than one line in the edit control.</default>
+		<mandatory>false</mandatory>
+		<maxChars></maxChars>
+		<ui>2</ui>
+	</field>
+	<field>
+		<key>boolean</key>
+		<title>Do Something</title>
+		<description>Enter true or false</description>
+		<default></default>
+		<mandatory>false</mandatory>
+		<maxChars></maxChars>
+		<ui>3</ui>
+	</field>
+	<field>
+		<key>someinteger</key>
+		<title>Numeral</title>
+		<description>Enter some numeral</description>
+		<default></default>
+		<mandatory>false</mandatory>
+		<maxChars></maxChars>
+		<ui>4</ui>
+	</field>
+	<field>
+		<key>somefloat</key>
+		<title>Number</title>
+		<description>Enter some number</description>
+		<default>5.7</default>
+		<mandatory>false</mandatory>
+		<maxChars></maxChars>
+		<ui>5</ui>
+	</field>
+	<field>
+		<key>somedate</key>
+		<title>Date</title>
+		<description>Enter some date</description>
+		<default></default>
+		<mandatory>true</mandatory>
+		<maxChars></maxChars>
+		<ui>6</ui>
+	</field>
+	<field>
+		<key>someduration</key>
+		<title>Duration</title>
+		<description>Enter some duration</description>
+		<default></default>
+		<mandatory>false</mandatory>
+		<maxChars></maxChars>
+		<ui>7</ui>
+	</field>
+</configuration>

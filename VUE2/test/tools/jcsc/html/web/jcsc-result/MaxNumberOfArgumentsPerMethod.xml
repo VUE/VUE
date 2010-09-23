@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet href="xsl/rule.xsl" type="text/xsl"?>
+<jcsc>
+  <category>Method</category>
+  <rule>MaxNumberOfArgumentsPerMethod</rule>
+  <violations>
+    <violation>
+      <rule>
+        <name>MaxNumberOfArgumentsPerMethod</name>
+        <severity>3</severity>
+        <category>Method</category>
+      </rule>
+      <classname>OverviewStatistics</classname>
+      <package>rj.tools.jcsc.ant</package>
+      <line>274</line>
+      <column>44</column>
+      <message><![CDATA[method declaration 'add2PackageMap' has too many arguments - 5 are allowed]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\ant\OverviewStatistics.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>MaxNumberOfArgumentsPerMethod</name>
+        <severity>3</severity>
+        <category>Method</category>
+      </rule>
+      <classname>JCSCTableCellRenderer</classname>
+      <package>rj.tools.jcsc.plugins.intellij</package>
+      <line>354</line>
+      <column>73</column>
+      <message><![CDATA[method declaration 'getTableCellRendererComponent' has too many arguments - 5 are allowed]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\plugins\intellij\JCSCResultPanel.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>MaxNumberOfArgumentsPerMethod</name>
+        <severity>3</severity>
+        <category>Method</category>
+      </rule>
+      <classname>TableCellRenderer</classname>
+      <package>rj.tools.util.ui</package>
+      <line>143</line>
+      <column>76</column>
+      <message><![CDATA[method declaration 'getTableCellRendererComponent' has too many arguments - 5 are allowed]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\util\ui\AboutPanel.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>MaxNumberOfArgumentsPerMethod</name>
+        <severity>3</severity>
+        <category>Method</category>
+      </rule>
+      <classname>DefaultTableCellRenderer</classname>
+      <package>rj.tools.util.ui</package>
+      <line>422</line>
+      <column>76</column>
+      <message><![CDATA[method declaration 'getTableCellRendererComponent' has too many arguments - 5 are allowed]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\util\ui\SelectDialog.java</source>
+    </violation>
+  </violations>
+</jcsc>

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/overview.xsl" type="text/xsl"?>
+<jcsc>
+  <overview>
+    <packagename>rj.tools.ccscrape</packagename>
+    <packagecount>0</packagecount>
+    <name>rj.tools.ccscrape</name>
+    <classcount>10</classcount>
+    <methodscount>57</methodscount>
+    <violationscount>21</violationscount>
+    <linecount>1098</linecount>
+    <ncsscount>389</ncsscount>
+    <functionpointscount>7.339622641509434</functionpointscount>
+    <unittestclasscount>4</unittestclasscount>
+    <unittestscount>17</unittestscount>
+    <severitylevel>4</severitylevel>
+    <worstclasses>
+      <worst>
+        <class>rj.tools.ccscrape.Monitor</class>
+        <count>14</count>
+        <author><![CDATA[jochamrm]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.ccscrape.CCParser</class>
+        <count>2</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.ccscrape.MonitorEvent</class>
+        <count>2</count>
+        <author><![CDATA[jochamrm]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.ccscrape.MonitorListener</class>
+        <count>2</count>
+        <author><![CDATA[jochamrm]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.ccscrape.URLCache</class>
+        <count>1</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.ccscrape.Status</class>
+        <count>0</count>
+        <author><![CDATA[jochamrm]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.ccscrape.CCParserTest</class>
+        <count>0</count>
+        <author><![CDATA[jochamrm]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.ccscrape.MonitorTest</class>
+        <count>0</count>
+        <author><![CDATA[jochamrm]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.ccscrape.StatusTest</class>
+        <count>0</count>
+        <author><![CDATA[jochamrm]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.ccscrape.URLCacheTest</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+    </worstclasses>
+  </overview>
+</jcsc>

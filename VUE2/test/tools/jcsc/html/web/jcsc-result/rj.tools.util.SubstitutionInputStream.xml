@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/class.xsl" type="text/xsl"?>
+<jcsc>
+  <package>rj.tools.util</package>
+  <class>SubstitutionInputStream</class>
+  <methods>4</methods>
+  <author><![CDATA[jochamrm]]></author>
+  <count>0</count>
+  <ncss>33</ncss>
+  <lines>104</lines>
+  <unittestclasses>0</unittestclasses>
+  <unittests>0</unittests>
+  <metric>
+    <method>>
+      <name>SubstitutionInputStream.constructor()</name>
+      <line>43</line>
+      <column>11</column>
+      <ncss>9</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>SubstitutionInputStream.read()</name>
+      <line>74</line>
+      <column>20</column>
+      <ncss>2</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>SubstitutionInputStream.resetCount()</name>
+      <line>79</line>
+      <column>28</column>
+      <ncss>2</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>SubstitutionInputStream.getValue()</name>
+      <line>84</line>
+      <column>25</column>
+      <ncss>9</ncss>
+      <ccn>3</ccn>
+    </method>
+  </metric>
+</jcsc>

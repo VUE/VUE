@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/overview.xsl" type="text/xsl"?>
+<jcsc>
+  <overview>
+    <rules>rules/jcsc.jcsc.xml</rules>
+    <timestamp>Wed Jul 06 21:19:31 PDT 2005</timestamp>
+    <packagename>Overview</packagename>
+    <packagecount>14</packagecount>
+    <classcount>100</classcount>
+    <methodscount>1086</methodscount>
+    <violationscount>120</violationscount>
+    <linecount>20970</linecount>
+    <ncsscount>7671</ncsscount>
+    <functionpointscount>144.7358490566038</functionpointscount>
+    <unittestclasscount>27</unittestclasscount>
+    <unittestscount>148</unittestscount>
+    <severitylevel>4</severitylevel>
+    <worstclasses>
+      <worst>
+        <class>rj.tools.util.ui.SelectDialog</class>
+        <count>29</count>
+        <author><![CDATA[Ralph Jocham (jochamrm)]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.ccscrape.Monitor</class>
+        <count>14</count>
+        <author><![CDATA[jochamrm]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.ccscrape.ui.ScrapePanel</class>
+        <count>10</count>
+        <author><![CDATA[jochamrm]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.skimdeep.ui.SkimDeepFrame</class>
+        <count>6</count>
+        <author><![CDATA[jochamrm]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.ant.JCSCTask</class>
+        <count>5</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.rules.Properties2Xml</class>
+        <count>4</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.ui.AbstractJcscTab</class>
+        <count>4</count>
+        <author><![CDATA[ Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.formatter.XMLResultsFormatter</class>
+        <count>3</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.plugins.intellij.OverviewPanel</class>
+        <count>3</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.rules.XMLRulesMap</class>
+        <count>3</count>
+        <author><![CDATA[  Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.ccscrape.CCParser</class>
+        <count>2</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.ccscrape.MonitorEvent</class>
+        <count>2</count>
+        <author><![CDATA[jochamrm]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.ccscrape.MonitorListener</class>
+        <count>2</count>
+        <author><![CDATA[jochamrm]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.ccscrape.ui.CCScrapeFrame</class>
+        <count>2</count>
+        <author><![CDATA[jochamrm]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.plugins.intellij.JCSCOptions</class>
+        <count>2</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.plugins.intellij.JCSCResultPanel</class>
+        <count>2</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.rules.RulesHandler</class>
+        <count>2</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.ui.RulesDialog</class>
+        <count>2</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.ui.XMLI18nMap</class>
+        <count>2</count>
+        <author><![CDATA[  Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.skimdeep.ParsedJarFile</class>
+        <count>2</count>
+        <author><![CDATA[jochamrm]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.util.JavaDocParser</class>
+        <count>2</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.util.ui.AboutPanel</class>
+        <count>2</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.ccscrape.URLCache</class>
+        <count>1</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.Return</class>
+        <count>1</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.Violation</class>
+        <count>1</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.ant.BatchResult</class>
+        <count>1</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.ant.OverviewStatistics</class>
+        <count>1</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.plugins.intellij.OptionsPanel</class>
+        <count>1</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.rules.Rule</class>
+        <count>1</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.ui.GeneralTab</class>
+        <count>1</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+    </worstclasses>
+  </overview>
+</jcsc>

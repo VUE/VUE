@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/class.xsl" type="text/xsl"?>
+<jcsc>
+  <package>rj.tools.jcsc.ui</package>
+  <class>RegexpActionListener</class>
+  <methods>5</methods>
+  <author><![CDATA[Ralph Jocham]]></author>
+  <count>0</count>
+  <ncss>34</ncss>
+  <lines>105</lines>
+  <unittestclasses>0</unittestclasses>
+  <unittests>0</unittests>
+  <metric>
+    <method>>
+      <name>RegexpActionListener.constructor()</name>
+      <line>46</line>
+      <column>11</column>
+      <ncss>4</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>RegexpActionListener.constructor()</name>
+      <line>59</line>
+      <column>11</column>
+      <ncss>5</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>RegexpActionListener.constructor()</name>
+      <line>74</line>
+      <column>11</column>
+      <ncss>4</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>RegexpActionListener.actionPerformed()</name>
+      <line>89</line>
+      <column>45</column>
+      <ncss>4</ncss>
+      <ccn>2</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>RegexpActionListener.createRegexp()</name>
+      <line>97</line>
+      <column>48</column>
+      <ncss>5</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+</jcsc>

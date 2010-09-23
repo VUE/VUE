@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="src/java"/>
+	<classpathentry kind="src" path="src/test"/>
+	<classpathentry kind="src" path="java"/>
+	<classpathentry kind="lib" path="C:/Documents and Settings/akumar03/workspace/foundry-components.jar"/>
+	<classpathentry kind="lib" path="C:/Documents and Settings/akumar03/workspace/meandre-server-1.4.7.jar"/>
+	<classpathentry kind="lib" path="C:/Documents and Settings/akumar03/workspace/protobuf-java-2.0.3.jar"/>
+	<classpathentry kind="lib" path="C:/Documents and Settings/akumar03/workspace/opennlp-tools-1.3.0.jar"/>
+	<classpathentry kind="output" path="target/classes"/>
+</classpath>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/class.xsl" type="text/xsl"?>
+<jcsc>
+  <package>rj.tools.util</package>
+  <class>DecimalNumberDocument</class>
+  <methods>1</methods>
+  <author><![CDATA[Ralph Jocham]]></author>
+  <count>0</count>
+  <ncss>12</ncss>
+  <lines>63</lines>
+  <unittestclasses>0</unittestclasses>
+  <unittests>0</unittests>
+  <metric>
+    <method>>
+      <name>DecimalNumberDocument.insertString()</name>
+      <line>45</line>
+      <column>65</column>
+      <ncss>7</ncss>
+      <ccn>3</ccn>
+    </method>
+  </metric>
+</jcsc>

@@ -1,0 +1,50 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <title>FieldOrder</title>
+  <meta http-equiv="content-type"
+ content="text/html; charset=ISO-8859-1">
+</head>
+<body>
+<tt><b><font color="#009900">// This rule specifies in how the field declarations<br>
+// are grouped within the field block.<br>
+// There are 4 choices:<br>
+// 1. No order<br>
+// 2. First public, protected, package and finally private<br>
+// 3. First private, package, protected and finally public<br>
+// 4. First static final, then static and finally instance<br>
+</font><br>
+<font color="#009900">// Option 1</font><br>
+public class Option1<br>
+{<br>
+<font color="#009900">&nbsp; &nbsp; // however you like it</font><br>
+}<br>
+<br>
+<font color="#009900">// Option 2</font><br>
+public class Option2<br>
+{<br>
+&nbsp;&nbsp; &nbsp;public static int publicField;<br>
+&nbsp; &nbsp; protected int protectedField;<br>
+&nbsp; &nbsp; package final static int packageField;<br>
+&nbsp; &nbsp; private int private Field;<br>
+}<br>
+<br>
+<font color="#009900">// Option 3</font><br>
+public class Option3<br>
+{<br>
+&nbsp; &nbsp; private int privateField;<br>
+&nbsp; &nbsp; package final static int packageField;<br>
+&nbsp; &nbsp; protected int protectedField;<br>
+&nbsp; &nbsp; public static int publicField;<br>
+}<br>
+<br>
+<font color="#009900">// Option 4</font><br>
+public class Option4<br>
+{<br>
+&nbsp; &nbsp; public final static int CONSTANT;<br>
+&nbsp; &nbsp; protected static int instanceCount;<br>
+&nbsp; &nbsp; private int secret;<br>
+}<br>
+</b></tt>
+</body>
+</html>

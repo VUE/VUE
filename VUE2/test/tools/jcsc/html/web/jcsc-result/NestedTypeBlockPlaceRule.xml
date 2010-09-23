@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet href="xsl/rule.xsl" type="text/xsl"?>
+<jcsc>
+  <category>General</category>
+  <rule>NestedTypeBlockPlaceRule</rule>
+  <violations>
+    <violation>
+      <rule>
+        <name>NestedTypeBlockPlaceRule</name>
+        <severity>3</severity>
+        <category>General</category>
+      </rule>
+      <classname>Return</classname>
+      <package>rj.tools.jcsc</package>
+      <line>-1</line>
+      <column>-1</column>
+      <message><![CDATA[nested type in class 'Return' must not be declared at the beginning of the class , you have to place them at the end of the class]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\Return.java</source>
+    </violation>
+  </violations>
+</jcsc>

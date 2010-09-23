@@ -1,0 +1,91 @@
+<html>
+<head>
+<title>OKI Filing API CabUtil Demos</title>
+</head>
+<body>
+<p>
+<h1>OKI Filing API demos: Cabinet utilities</h1>
+</p>
+<p>
+Four  utilities are provided here.
+<ul>
+<li><b>CabList</b> - a cabinet lister
+<li><b>CabViewer</b> - a cabinet viewer (Java Swing GUI)
+<li><b>CabSync</b> - a cabinet synchronizer
+<li><b>CabSyncViewer</b> - a visual cabinet synchronizer (Java Swing GUI)
+</ul>
+</p>
+<h2>Building</h2>The script <code><b>build.sh</b></code> will compile
+everything (it runs javac *.java and dumps the classes the build
+directory).  It must be run in the current directory.  This script
+ALSO conveniently jars all the OKI code needed to support running the
+file demos, and puts it in <code>filingAll.jar</code>, which is all
+you will need to run all these demos.  So either set your classpath to
+filingAll.jar, or run <br><code>java -cp filingAll.jar <i>(cabdemo of
+your choice -- see below)</i></code>
+<h2>Running</h2>
+
+Simply run <b><code>java CabList <i>cabinet1</i></code></b> to run.<br>
+E.g.:<dd><b><code>java CabList /tmp</code></b></dd>
+or if you haven't set your classpath:<br>
+<dd><b><code>java -cp filingAll.jar CabList /tmp</code></b></dd>
+<br>
+CabList and and CabViewer can be given multiple cabinet arguments to
+view.  The CabSync and CabSyncViewer both take two cabinet arguments
+exactly.  These two also take additional option arguments:
+<ul>
+<li><b>-verbose</b>: turn on some info messages
+<li><b>-debug</b>: turn on debugging messages
+</ul>
+CabSyncViewer also takes:
+<ul>
+<li><b>-poll <i>seconds</i></b>: number of seconds between automatic checks for changes in the cabinet.  Default is 30.  Setting to 0 will turn off polling.
+<li><b>-show_ghosts</b>: an alternative way to display cabinets with their potential entries.  (Originally implemented as
+a way to see more about what's going on in a smaller display with only the local directory showing).
+</ul>
+<h2>Cabinet Specifiers</h2>
+
+You can use the name of any local directory as a cabinet, and it will
+be accessed through the local filesystem implementation (Lfs).  For
+the moment, these utilities have piggy-backed off the URL spec for
+accessing other implementations.  If you specify a cabinet as an ftp
+url, e.g. <code>ftp:///tmp</code> or
+<nobr><code>ftp://host:port/tmp</code></nobr>, the remote filesystem
+interface will be used (Rfs), although it will NOT contact a server --
+this is just a way to test the working order of some of the Rfs code
+without having to have a server around (so host and port are ignored
+for ftp URL's).  If you specify an HTTP URL, these utilities will
+actually attempt to contact a ROMI server.  So,
+<code>http://localhost:2500/tmp</code> will look for a server on your
+local machine running at port 2500 and then ask it for /tmp.  Be sure
+you've specified a policy file for both your server and client that is
+going to allow you access.  A default policy file in this directory,
+all.policy, which these utilities use if you don't specify another
+policy file, sets up the client side for total access.  You can
+override this by specifying the
+<code>java.security.policy</code> property on the java command line.
+<h2>CabSync & CabSyncViewer</h2>
+
+These utilities are usable, though not appropriate for significant
+use.  These are demonstration applications.  In particular, if
+an error occurs in transmission -- e.g., you drop your network
+connection, you could be left with partial files.  CabSync is a single
+pass command sync line utility that acts like a CabSyncViewer that's
+requested a single sync and then exited (they use the same underlying
+code).
+<h2>The CabSyncViewer GUI</h2>
+
+Items in <b><font color="red">red</font></b> are old compaired to the other
+cabinet, and will be overwritten on sync.  Items in <b><font
+color=green>green</font></b> are new, and will be copied on top of
+something else on a sync.  Items in <b><font color=orange>orange</font></b>
+are in conflict and are ignored -- you have to resolve those yourself.
+Items displayed faintly are "ghosts" (if you turn on
+<nobr>-show_ghosts</nobr>) and represent items that will exist after
+you sync.  Turning on "AutoSync" will cause a sync to happen as soon
+as any changes are detected.  The Upload/Download buttons synchronize
+only items that would result in moving data either up from the local
+cabinet or down from the remote cabinet.  Currently, files beginning
+with "." are completey ignored -- neither displayed or synchronized.
+<p>
+</body>

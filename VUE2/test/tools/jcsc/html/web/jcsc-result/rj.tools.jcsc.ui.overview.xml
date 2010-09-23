@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/overview.xsl" type="text/xsl"?>
+<jcsc>
+  <overview>
+    <packagename>rj.tools.jcsc.ui</packagename>
+    <packagecount>0</packagecount>
+    <name>rj.tools.jcsc.ui</name>
+    <classcount>15</classcount>
+    <methodscount>141</methodscount>
+    <violationscount>12</violationscount>
+    <linecount>2884</linecount>
+    <ncsscount>1131</ncsscount>
+    <functionpointscount>21.339622641509433</functionpointscount>
+    <unittestclasscount>1</unittestclasscount>
+    <unittestscount>2</unittestscount>
+    <severitylevel>4</severitylevel>
+    <worstclasses>
+      <worst>
+        <class>rj.tools.jcsc.ui.AbstractJcscTab</class>
+        <count>4</count>
+        <author><![CDATA[ Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.ui.RulesDialog</class>
+        <count>2</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.ui.XMLI18nMap</class>
+        <count>2</count>
+        <author><![CDATA[  Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.ui.GeneralTab</class>
+        <count>1</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.ui.JavaDocTab</class>
+        <count>1</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.ui.MethodTab</class>
+        <count>1</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.ui.MetricsTab</class>
+        <count>1</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.ui.ExamplePanel</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.ui.FieldTab</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.ui.JcscTab</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.ui.RegexpActionListener</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.ui.RulesPanel</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.ui.UIString</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.ui.UnitTestTab</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.ui.XMLI18nMapTest</class>
+        <count>0</count>
+        <author><![CDATA[ Ralph Jocham]]></author>
+      </worst>
+    </worstclasses>
+  </overview>
+</jcsc>

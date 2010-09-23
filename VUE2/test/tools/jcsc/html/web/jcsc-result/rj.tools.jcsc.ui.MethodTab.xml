@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/class.xsl" type="text/xsl"?>
+<jcsc>
+  <package>rj.tools.jcsc.ui</package>
+  <class>MethodTab</class>
+  <methods>5</methods>
+  <author><![CDATA[Ralph Jocham]]></author>
+  <count>1</count>
+  <ncss>62</ncss>
+  <lines>135</lines>
+  <unittestclasses>0</unittestclasses>
+  <unittests>0</unittests>
+  <violation>
+    <rule>
+      <name>MaxNumberOfNCSSPerMethod</name>
+      <severity>4</severity>
+      <category>Metrics</category>
+    </rule>
+    <classname>MethodTab</classname>
+    <package>rj.tools.jcsc.ui</package>
+    <line>89</line>
+    <column>32</column>
+    <message><![CDATA[method declaration 'setRules' has too many NCSS (30) - 25 are allowed]]></message>
+    <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\ui\MethodTab.java</source>
+  </violation>
+  <metric>
+    <method>>
+      <name>MethodTab.constructor()</name>
+      <line>61</line>
+      <column>11</column>
+      <ncss>3</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>MethodTab.initUI()</name>
+      <line>68</line>
+      <column>24</column>
+      <ncss>1</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>MethodTab.getName()</name>
+      <line>78</line>
+      <column>26</column>
+      <ncss>2</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>MethodTab.setRules()</name>
+      <line>89</line>
+      <column>32</column>
+      <ncss>30</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>MethodTab.getExamplePane()</name>
+      <line>131</line>
+      <column>39</column>
+      <ncss>2</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+</jcsc>

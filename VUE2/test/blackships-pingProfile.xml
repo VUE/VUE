@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<managerImpl name="Ping" osid="org.osid.repository.RepositoryManager"
+             version="2.0">
+  <!--Provide the package name where the Manager is impemented.-->
+
+  <packagename>edu.mit.visualizingcultures.repository.blackships</packagename>
+
+  <!--Use the repositories element to test object returned by RepsitoryManager.getRepositories().  If the ordered attribute is true, order must match.  If the exact attribute is true, there can be no repositories extra or missing-->
+
+  <!--Not using attributes since harder to test (await market need)-->
+
+  <repositories any="true"/>
+</managerImpl>

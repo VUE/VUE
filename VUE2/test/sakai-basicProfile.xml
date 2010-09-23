@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<managerImpl name="Sakai" osid="org.osid.repository.RepositoryManager"
+             version="2.0">
+  <!--Provide the package name where the Manager is impemented.-->
+
+  <packagename>edu.tufts.osidimpl.repository.sakai</packagename>
+  <configuration>
+		<property key="sakaiUsername" value="admin"/>
+		<property key="sakaiPassword" value="admin"/>
+		<property key="sakaiHost" value="localhost"/>
+		<property key="sakaiPort" value="8080"/>
+  </configuration>
+  
+
+  <!--Use the repositories element to test object returned by RepsitoryManager.getRepositories().  If the ordered attribute is true, order must match.  If the exact attribute is true, there can be no repositories extra or missing-->
+
+  <!--Not using attributes since harder to test (await market need)-->
+
+  <repositories exact="true" ordered="true">
+    <!--Add one repository element per repository you want to confirm-->
+
+    <repository>
+      <!--The Repository's display name; this will drive a literal string comparison-->
+
+      <displayname>Sakai</displayname>
+
+      <!--The Repository's description; this will drive a literal string comparison-->
+
+      <description />
+
+      <!--The string value of the Repository's id-->
+
+      <id>localhost.Virtual-Root-Identifier</id>
+
+      <!--The Repository's type in the format: domain/keyword@authority-->
+
+      <type>repository/contentHosting@sakaiproject.org</type>
+    </repository>
+  </repositories>
+
+  <!--To test whether a repository can be returned using only its id.-->
+
+  <repositorybyid id="localhost.Virtual-Root-Identifier" />
+
+  <!--To test whether the RepositoryManager returns the Repository Types you expect, add one or more type element values.  Note the current approach tests for the same order and does not fail if there are more types than what you specify.-->
+
+  <repositorytypes>
+    <type>repository/contentHosting@sakaiproject.org</type>
+  </repositorytypes>
+
+  <!--to test whether the expected repositories are returned.  If the auto attribute is "true", test will expect to be able to get all repositories and use their types to validate this method.-->
+
+  <repositoriesbytype auto="true" />
+
+  <!--To test if a repository supports specific search types.  Note the test requires the ability to get a repository by id.-->
+
+  <searchtypes repositoryid="localhost.Virtual-Root-Identifier">
+    <type>search/keyword@mit.edu</type>
+    <type>search/title@mit.edu</type>
+  </searchtypes>
+
+</managerImpl>

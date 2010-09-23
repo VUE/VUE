@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet href="xsl/rule.xsl" type="text/xsl"?>
+<jcsc>
+  <category>JavaDoc</category>
+  <rule>MethodDeclarationParam</rule>
+  <violations>
+    <violation>
+      <rule>
+        <name>MethodDeclarationParam</name>
+        <severity>4</severity>
+        <category>JavaDoc</category>
+      </rule>
+      <classname>Monitor</classname>
+      <package>rj.tools.ccscrape</package>
+      <line>140</line>
+      <column>59</column>
+      <message><![CDATA[public method declaration JavaDoc does not provide the required '@param' tag for all parameters]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\ccscrape\Monitor.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>MethodDeclarationParam</name>
+        <severity>4</severity>
+        <category>JavaDoc</category>
+      </rule>
+      <classname>Monitor</classname>
+      <package>rj.tools.ccscrape</package>
+      <line>145</line>
+      <column>62</column>
+      <message><![CDATA[public method declaration JavaDoc does not provide the required '@param' tag for all parameters]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\ccscrape\Monitor.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>MethodDeclarationParam</name>
+        <severity>4</severity>
+        <category>JavaDoc</category>
+      </rule>
+      <classname>MonitorListener</classname>
+      <package>rj.tools.ccscrape</package>
+      <line>19</line>
+      <column>51</column>
+      <message><![CDATA[public method declaration JavaDoc does not provide the required '@param' tag for all parameters]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\ccscrape\MonitorListener.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>MethodDeclarationParam</name>
+        <severity>4</severity>
+        <category>JavaDoc</category>
+      </rule>
+      <classname>SelectDialog</classname>
+      <package>rj.tools.util.ui</package>
+      <line>87</line>
+      <column>41</column>
+      <message><![CDATA[public static method declaration JavaDoc does not provide the required '@param' tag for all parameters]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\util\ui\SelectDialog.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>MethodDeclarationParam</name>
+        <severity>4</severity>
+        <category>JavaDoc</category>
+      </rule>
+      <classname>SelectDialog</classname>
+      <package>rj.tools.util.ui</package>
+      <line>477</line>
+      <column>66</column>
+      <message><![CDATA[public method declaration JavaDoc does not provide the required '@param' tag for all parameters]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\util\ui\SelectDialog.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>MethodDeclarationParam</name>
+        <severity>4</severity>
+        <category>JavaDoc</category>
+      </rule>
+      <classname>SelectDialog</classname>
+      <package>rj.tools.util.ui</package>
+      <line>577</line>
+      <column>43</column>
+      <message><![CDATA[public method declaration JavaDoc does not provide the required '@param' tag for all parameters]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\util\ui\SelectDialog.java</source>
+    </violation>
+  </violations>
+</jcsc>

@@ -1,0 +1,89 @@
+<resultset>
+<asset objid="001">
+<!-- This asset is an object with an XML file that represents the Piazza D'Oro at Hadrian's Villa in Italy. -->
+   <record label="default">
+      <part label="Asset Definition" name="getFullAssetDef" action="http://repo.lib.virginia.edu:18080/fedora/get/uva-lib:95746/uva-lib-bdef:109/getAssetDefs?childPid=uva-lib:93374" mime="text/XML"/>
+      <part label="Preview" name="getPreview" action="http://repo.lib.virginia.edu:18080/fedora/get/uva-lib:93374/uva-lib-bdef:100/getPreview" mime="text/plain"/>  -->
+      <part label="Label" name="getLabel" action="http://repo.lib.virginia.edu:18080/fedora/get/uva-lib:93374/uva-lib-bdef:100/getLabel" mime="text/plain"/>
+      <part label="Description" name="getDescription" action="http://repo.lib.virginia.edu:18080/fedora/get/uva-lib:93374/uva-lib-bdef:101/getDC" mime="text/XML"/>
+      <part label="Full View" name="getFullView" action="http://repo.lib.virginia.edu:18080/fedora/get/uva-lib:93374/uva-lib-bdef:100/getFullView?pid=uva-lib:93374" mime="text/html"/> 
+      <part label="Default Content" name="getDefaultContent" action="http://repo.lib.virginia.edu:18080/fedora/get/uva-lib:93374/uva-lib-bdef:100/getDefaultContent" mime="text/XML"/>
+   </record>
+</asset>
+
+<asset objid="002">
+<!-- This asset is an image object that represents one view of the Piazza D'Oro at Hadrian's Villa in Italy. -->
+   <record label="default">
+      <part label="Asset Definition" name="getFullAssetDef" action="http://repo.lib.virginia.edu:18080/fedora/get/uva-lib:95746/uva-lib-bdef:109/getAssetDefs?parentPid=uva-lib:93374&amp;childPid=uva-lib:95746" mime="text/XML"/>
+<!--       <part label="Preview" name="getPreview" action="http://repo.lib.virginia.edu:18080/fedora/get/uva-lib:95746/uva-lib-bdef:100/getPreview" mime="image/jpeg"/>  -->
+      <part label="Label" name="getLabel" action="http://repo.lib.virginia.edu:18080/fedora/get/uva-lib:95746/uva-lib-bdef:100/getLabel" mime="text/plain"/>
+      <part label="Description" name="getDescription" action="http://repo.lib.virginia.edu:18080/fedora/get/uva-lib:95746/uva-lib-bdef:101/getDC"/>
+      <part label="Full View" name="getFullView" action="http://repo.lib.virginia.edu:18080/fedora/get/uva-lib:95746/uva-lib-bdef:100/getFullView" mime="image/jpeg"/>
+      <part label="Default Content" name="getDefaultContent" action="http://repo.lib.virginia.edu:18080/fedora/get/uva-lib:95746/uva-lib-bdef:100/getDefaultContent" mime="image/MrSid"/>
+   </record>
+
+   <record label="basicImage">
+      <part label="Thumbnail" name="getThumbnail" action="http://repo.lib.virginia.edu:18080/fedora/get/uva-lib:95746/uva-lib-bdef:100/getPreview" mime="image/jpeg"/>
+      <part label="Screen Size" name="getScreenSize" action="http://repo.lib.virginia.edu:18080/fedora/get/uva-lib:95746/uva-lib-bdef:100/getFullView" mime="image/jpeg"/>
+      <part label="Max Size" name="getMaxSize" action="http://repo.lib.virginia.edu:18080/fedora/get/uva-lib:95746/uva-lib-bdef:100/getDefaultContent" mime="image/MrSid"/>
+      <part label="Dynamic View" name="getDynamicView" action="http://repo.lib.virginia.edu:18080/fedora/get/uva-lib:95746/uva-lib-bdef:102/getImageViewer?parentPid=uva-lib:93374&amp;childPid=uva-lib:95746" mime="application/java"/>
+   </record>
+   <record label="metadata">
+      <part label="Descriptive Metadata" name="getDescMetadata" action="http://repo.lib.virginia.edu:18080/fedora/get/uva-lib:93374/uva-lib-bdef:108/getChildDescMeta?childPid=uva-lib:95746&amp;parentPid=uva-lib:93374" mime="text/xml"/>
+      <part label="Administrative Metadata" name="getAdminMetadata" action="http://repo.lib.virginia.edu:18080/fedora/get/uva-lib:95746/uva-lib-bdef:101/getAdminMeta" mime="text/xml"/>
+   </record>
+</asset>
+
+<asset objid="003">
+
+<!-- Default, basicImage, and Metadata Asset Definition -->
+
+	<record label="default">
+	<!-- These six fields represent a basic or default level functionality for every object that subscribes to an Asset Definition -->
+
+	<!-- "Asset Definition" returns a packet of Asset Definitions; the packet represents the full Asset Definition, not simply the Default defintion -->
+		<part label="Asset Definition" name="getFullAssetDef" action="http://repo.lib.virginia.edu:18080/fedora/get/uva-lib:95746/uva-lib-bdef:109/getAssetDefs?childPid=uva-lib:93374" mime="text/XML"/>
+
+      <!-- "Preview" returns a text string; think of "preview" as a plain text introduction to the object -->
+		<part label="Preview" name="getPreview" action="http://repo.lib.virginia.edu:18080/fedora/get/uva-lib:93374/uva-lib-bdef:100/getPreview" mime="text/plain"/>
+
+      <!-- "Label" returns a text string; "label" is the plain text name of the object -->
+		<part label="Label" name="getLabel" action="http://repo.lib.virginia.edu:18080/fedora/get/uva-lib:93374/uva-lib-bdef:100/getLabel" mime="text/plain"/>
+
+      <!-- "Description" returns an xml stream; "description" is an xml stream of Dublin Core descriptive metadata;  -->
+		<part label="Description" name="getDescription" action="http://repo.lib.virginia.edu:18080/fedora/get/uva-lib:93374/uva-lib-bdef:101/getDC" mime="text/xml"/>
+
+      <!-- "Full view" returns an html page; "full view" is the html -->
+		<part label="Full View" name="getFullView" action="http://repo.lib.virginia.edu:18080/fedora/get/uva-lib:93374/uva-lib-bdef:100/getFullView?pid=uva-lib:93374" mime="text/html"/>
+
+      <!-- "Default Content" returns an stream of content; the MIME type returned must be defined by the content provider; "default content" returns the requested object -->
+		<part label="Default Content" name="getDefaultContent" action="http://repo.lib.virginia.edu:18080/fedora/get/uva-lib:93374/uva-lib-bdef:100/getDefaultContent" mime="variable"/>
+	</record>
+
+
+	<record label="basicImage">
+	<!-- the basicImage record defines a standard set (4/5 methods) of functionality for all image objects that subscribe to this Asset Definition -->
+	<!-- In all cases, the MIME type returned must be defined by the content provider -->
+
+		<!-- "Thumbnail" returns a thumbnail of the image object. -->
+		<part label="Thumbnail" name="getThumbnail" action="http://repo.lib.virginia.edu:18080/fedora/get/uva-lib:95746/uva-lib-bdef:100/getPreview" mime="variable"/>
+
+		<!-- "Screen Size" returns an screen sized (define?) image of the image object. -->
+		<part label="Screen Size" name="getScreenSize" action="http://repo.lib.virginia.edu:18080/fedora/get/uva-lib:95746/uva-lib-bdef:100/getFullView" mime="variable"/>
+
+		<!-- "Max Size" returns the largest available image of the image object. -->
+		<part label="Max Size" name="getMaxSize" action="http://repo.lib.virginia.edu:18080/fedora/get/uva-lib:95746/uva-lib-bdef:100/getDefaultContent" mime="variable"/>
+
+		<!-- "Dynamic View" returns an application for manipulating the image object-->
+		<part label="Dynamic View" name="getDynamicView" action="http://repo.lib.virginia.edu:18080/fedora/get/uva-lib:95746/uva-lib-bdef:102/getImageViewer?parentPid=uva-lib:93374&amp;childPid=uva-lib:95746" mime="variable"/>
+	</record>
+
+	<record name="metadata">
+		<!-- Metadata fields provide a means for obtaining xml streams of additional metadata (non-Dublin Core) for every object that subscribes to an Asset Definition -->
+		<!-- The following are two examples of non-Dublin Core metadata -->
+					<part Name="Descriptive Metadata" name="getDescMetadata" action="http://repo.lib.virginia.edu:18080/fedora/get/uva-lib:93374/uva-lib-bdef:101/getDescMeta" mime="text/XML"/>
+					<part Name="Administrative Metadata" name="getAdminMetadata" action="http://repo.lib.virginia.edu:18080/fedora/get/uva-lib:93374/uva-lib-bdef:101/getAdminMeta" mime="text/XML"/>
+	</record>
+
+</asset>
+</resultset>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/package.xsl" type="text/xsl"?>
+<jcsc>
+  <classlist>
+    <package>rj.tools.jcsc</package>
+    <classes>
+      <class>rj.tools.jcsc.BatchSummary</class>
+      <class>rj.tools.jcsc.JcscAdditionalTest</class>
+      <class>rj.tools.jcsc.JcscFieldTest</class>
+      <class>rj.tools.jcsc.JcscGeneralTest</class>
+      <class>rj.tools.jcsc.JcscJDK15Test</class>
+      <class>rj.tools.jcsc.JcscJavaDocTest</class>
+      <class>rj.tools.jcsc.JcscMethodTest</class>
+      <class>rj.tools.jcsc.JcscMetricsTest</class>
+      <class>rj.tools.jcsc.JcscUnitTest</class>
+      <class>rj.tools.jcsc.MethodMetric</class>
+      <class>rj.tools.jcsc.ResultsFormatter</class>
+      <class>rj.tools.jcsc.Return</class>
+      <class>rj.tools.jcsc.TriStateBoolean</class>
+      <class>rj.tools.jcsc.Violation</class>
+      <class>rj.tools.jcsc.ViolationsSorter</class>
+    </classes>
+  </classlist>
+</jcsc>

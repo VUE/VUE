@@ -1,0 +1,79 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <title>Allow Public Fields</title>
+  <meta http-equiv="content-type"
+ content="text/html; charset=ISO-8859-1">
+</head>
+<body>
+<b><font color="#33cc00"><tt><font color="#009900">// This rule
+specifies whether public fields are allowed<br>
+// or not.<br>
+// In general no class should expose its internal data<br>
+// structures. This is also called 'Information Hiding'. <br>
+// You should provide get- and set methods to access value<br>
+// of data elements but not the data element itself.<br>
+// Later changes of the type are very expensive if not<br>
+// impossible. This rule applies for both isntance and<br>
+// class (static) fields. Public constants (static final)<br>
+// are allowed.<br>
+<br>
+// Public fields exposing the data type<br>
+<font color="#000000">public class Coordinate<br>
+{<br>
+&nbsp;&nbsp;&nbsp; public static int count = 0; <span
+ style="color: rgb(0, 153, 0);">// count of all instances</span><br>
+&nbsp; &nbsp; public int x;<br>
+&nbsp; &nbsp; public int y;<br>
+}</font><br>
+<br>
+// Data type hidden; access with methods<br>
+// You can easily exchange the data type<br>
+// if needed.<br>
+<font color="#000000">public class Coordinate<br>
+{<br>
+<font color="#009900">&nbsp; &nbsp; // old version<br>
+&nbsp;&nbsp;&nbsp; // private static int count = 0;<br>
+&nbsp; &nbsp; // private int x;<br>
+&nbsp; &nbsp; // private int y;<br>
+</font><br>
+&nbsp;&nbsp;&nbsp; public void incrementCount() {count++;}<br>
+&nbsp;&nbsp;&nbsp; public int getCount() { return count; }<br>
+<br>
+<font color="#009900">&nbsp;&nbsp;&nbsp; /** @deprecated */</font><br>
+&nbsp;&nbsp;&nbsp; public void setX(int x) {this.x = x;}<br>
+</font></font></tt></font></b><font color="#009900"><b><tt>&nbsp;&nbsp;&nbsp;
+/** @deprecated */</tt></b></font><b><font color="#33cc00"><tt><font
+ color="#009900"><font color="#000000"><br>
+&nbsp;&nbsp;&nbsp; public int getX() {return (int) this.x;}<br>
+</font></font></tt></font></b><font color="#009900"><b><tt>&nbsp;&nbsp;&nbsp;
+/** @deprecated */</tt></b></font><font color="#000000"><b><tt><br>
+&nbsp;&nbsp;&nbsp; public void setY(int y) {this.y = y;}</tt></b></font><b><font
+ color="#33cc00"><tt><font color="#009900"><font color="#000000"><br>
+</font></font></tt></font></b><font color="#009900"><b><tt>&nbsp;&nbsp;&nbsp;
+/** @deprecated */</tt></b></font><b><font color="#33cc00"><tt><font
+ color="#009900"><font color="#000000"><br>
+&nbsp; &nbsp; public int getY() {return (int) this.y;}<br>
+<br>
+<font color="#009900">&nbsp;&nbsp;&nbsp; // new version</font><br>
+&nbsp;&nbsp;&nbsp; private double x;<br>
+&nbsp;&nbsp;&nbsp; private double y;<br>
+<br>
+</font></font></tt></font></b><b><font color="#33cc00"><tt><font
+ color="#009900"><font color="#000000">&nbsp;&nbsp;&nbsp; public void
+setX(double x) {this.x = x;}<br>
+</font></font></tt></font></b><b><font color="#33cc00"><tt><font
+ color="#009900"><font color="#000000">&nbsp;&nbsp;&nbsp; public double
+getX() {return this.x;}<br>
+<br>
+</font></font></tt></font></b><font color="#000000"><b><tt>&nbsp;&nbsp;&nbsp;
+public void setY(double y) {this.y = y;}</tt></b></font><b><font
+ color="#33cc00"><tt><font color="#009900"><font color="#000000"><br>
+</font></font></tt></font></b><b><font color="#33cc00"><tt><font
+ color="#009900"><font color="#000000">&nbsp; &nbsp; public double
+getY() {return this.y;}</font></font></tt></font></b><br>
+<b><font color="#33cc00"><tt><font color="#009900"><font color="#000000">}</font><br>
+</font><br>
+</tt></font></b>
+</body>
+</html>

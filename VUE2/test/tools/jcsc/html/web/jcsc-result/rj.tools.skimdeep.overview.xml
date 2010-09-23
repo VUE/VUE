@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/overview.xsl" type="text/xsl"?>
+<jcsc>
+  <overview>
+    <packagename>rj.tools.skimdeep</packagename>
+    <packagecount>0</packagecount>
+    <name>rj.tools.skimdeep</name>
+    <classcount>4</classcount>
+    <methodscount>36</methodscount>
+    <violationscount>3</violationscount>
+    <linecount>651</linecount>
+    <ncsscount>208</ncsscount>
+    <functionpointscount>3.9245283018867925</functionpointscount>
+    <unittestclasscount>2</unittestclasscount>
+    <unittestscount>7</unittestscount>
+    <severitylevel>3</severitylevel>
+    <worstclasses>
+      <worst>
+        <class>rj.tools.skimdeep.ParsedJarFile</class>
+        <count>2</count>
+        <author><![CDATA[jochamrm]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.skimdeep.SkimDeep</class>
+        <count>1</count>
+        <author><![CDATA[jochamrm]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.skimdeep.ParsedJarFileTest</class>
+        <count>0</count>
+        <author><![CDATA[jochamrm]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.skimdeep.SkimDeepTest</class>
+        <count>0</count>
+        <author><![CDATA[jochamrm]]></author>
+      </worst>
+    </worstclasses>
+  </overview>
+</jcsc>
