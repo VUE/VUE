@@ -1086,7 +1086,7 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
             name = name.trim();
             if (isMatrixData)
             {
-            	String[] matrixEntities = {ds.getMatrixRowField(),ds.getMatrixColField(),ds.getMatrixRelField()};
+            	String[] matrixEntities = {ds.getMatrixRowField(),ds.getMatrixColField(),ds.getMatrixRelField(),ds.getMatrixPivotField()};
 
             	if (isMatrixData && org.apache.commons.lang.ArrayUtils.contains(matrixEntities, name))
 	            {	matrixColNums.put(name, index);
@@ -1270,7 +1270,7 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
         addRow(row);
     }
 
-    private HashMap<String,Integer> existingRows = new HashMap<String,Integer>();
+    protected HashMap<String,Integer> existingRows = null;
     List<MatrixRelationship> matrixRelations = new ArrayList<MatrixRelationship>();
     public boolean isMatrixDataSet = false;
     protected void addMatrixRow(XmlDataSource ds, String[] values) {
@@ -1346,6 +1346,61 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
         	if (!values[matrixColNums.get(rowName)].equals(values[matrixColNums.get(colName)]))
         	matrixRelations.add(new MatrixRelationship(values[matrixColNums.get(rowName)],values[matrixColNums.get(colName)],values[matrixColNums.get(relName)]));
         }
+        return;
+        
+    }
+    
+    protected void addWideMatrixRow(XmlDataSource ds, String[] values) {
+
+    	int matrixSize = new Integer(ds.getMatrixSizeField()).intValue();
+    	int rowCount = this.getRowCount();
+    	
+    	System.out.println("Matrix Size :" + matrixSize);
+    	//skip partial rows
+    	if (values.length < matrixSize)
+    		return;
+    	
+
+    	isMatrixDataSet=true;
+    	
+    	int pivotNum = 0;
+    	String thisCol = "";
+    	DataRow fromRow = null;
+    	
+    	if (rowCount < matrixSize)
+    	{	    		
+    		fromRow = new DataRow(this);
+	        String matrixPivot = ds.getMatrixPivotField();
+	        pivotNum = matrixColNums.get(matrixPivot);
+	        thisCol = values[matrixColNums.get(matrixPivot)];
+	        fromRow.addValue(matrixNameField, thisCol);
+    	        
+	        for (int i= pivotNum + 1; i < pivotNum + matrixSize + 1; i++)
+	        { 
+	        	if (thisCol.equals(ds.headerValues[i]))
+	        		continue;
+	        	matrixRelations.add(new MatrixRelationship(thisCol,ds.headerValues[i],values[i]));
+	
+	        }
+
+	        //add everything before the matrix as metadata
+	        for (int i=0; i < pivotNum+1; i++)
+	        {
+	        	fromRow.addValue(new Field(ds.headerValues[i],this), values[i]);
+	        }
+	        
+	        //add everything after the matrix as metadata
+	        for (int i = pivotNum+ matrixSize +1; i < values.length; i ++)
+	        {
+	        	fromRow.addValue(new Field(ds.headerValues[i],this), values[i]);
+	        }
+	    
+	        addRow(fromRow);
+    	}
+    	
+    	//for (MatrixRelationship mr : matrixRelations)
+    	//	System.out.println("Matrix Relationship : " + mr.getFromLabel() + " , " + mr.getRelationLabel() + " , " + mr.getToLabel());
+    	
         return;
         
     }

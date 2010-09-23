@@ -781,6 +781,18 @@
      <field name="matrixRelField" type="string">
           <bind-xml name="matrixRelField" node="element" />
     </field>
+    <field name="matrixFormatField" type="string">
+          <bind-xml name="matrixFormatField" node="element" />
+    </field>
+    <field name="matrixPivotField" type="string">
+          <bind-xml name="matrixPivotField" node="element" />
+    </field>
+        <field name="matrixStartRowField" type="string">
+          <bind-xml name="matrixStartRowField" node="element" />
+    </field>
+        <field name="matrixSizeField" type="string">
+          <bind-xml name="matrixSizeField" node="element" />
+    </field>
  </class>
 <!--
 

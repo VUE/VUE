@@ -45,10 +45,18 @@ public class XmlDataSource extends BrowseDataSource
     private static final String MATRIX_ROW_KEY ="matrixRow";
     private static final String MATRIX_COL_KEY ="matrixCol";
     private static final String MATRIX_RELATION_KEY="matrixRelation";
+    private static final String MATRIX_FORMAT_KEY ="matrixFormat";
+    private static final String MATRIX_PIVOT_KEY ="matrixPivot";
+    private static final String MATRIX_STARTROW_KEY ="matrixStartRow";
+    private static final String MATRIX_MATRIXSIZE_KEY ="matrixSize";
+
 
     
     private static final String NONE_SELECTED = "(none selected)";
     private static final String AUTO_SELECTED = "(auto detect)";
+
+    private static final String WIDE = "wide";
+    private static final String TALL = "tall";
 
     public static final String TYPE_NAME = "XML Feed";
     
@@ -62,6 +70,12 @@ public class XmlDataSource extends BrowseDataSource
     private String matrixRowField = NONE_SELECTED;
     private String matrixColField = NONE_SELECTED;
     private String matrixRelField = NONE_SELECTED;
+    private String matrixFormatField = NONE_SELECTED;
+    private String matrixPivotField = NONE_SELECTED;
+    private String matrixStartRowField = "";
+    private String matrixSizeField = "";
+
+
 
 
 
@@ -134,11 +148,36 @@ public class XmlDataSource extends BrowseDataSource
             Log.error("val=" + val, t);
         }
         try {
+            if ((val = p.getProperty(MATRIX_FORMAT_KEY)) != null)
+                setMatrixColField(val);
+        } catch (Throwable t) {
+            Log.error("val=" + val, t);
+        }
+        try {
+            if ((val = p.getProperty(MATRIX_PIVOT_KEY)) != null)
+                setMatrixPivotField(val);
+        } catch (Throwable t) {
+            Log.error("val=" + val, t);
+        }
+        try {
+            if ((val = p.getProperty(MATRIX_STARTROW_KEY)) != null)
+                setMatrixStartRowField(val);
+        } catch (Throwable t) {
+            Log.error("val=" + val, t);
+        }
+        try {
             if ((val = p.getProperty(MATRIX_RELATION_KEY)) != null)
                 setMatrixRelField(val);
         } catch (Throwable t) {
             Log.error("val=" + val, t);
         }
+        try {
+            if ((val = p.getProperty(MATRIX_MATRIXSIZE_KEY)) != null)
+                setMatrixSizeField(val);
+        } catch (Throwable t) {
+            Log.error("val=" + val, t);
+        }
+
     }
     
     @Override
@@ -186,6 +225,22 @@ public class XmlDataSource extends BrowseDataSource
     
     public String getMatrixRelField() {
         return matrixRelField;
+    }
+    
+    public String getMatrixFormatField() {
+        return matrixFormatField;
+    }
+    
+    public String getMatrixPivotField() {
+        return matrixPivotField;
+    }
+    
+    public String getMatrixSizeField() {
+        return matrixSizeField;
+    }
+    
+    public String getMatrixStartRowField() {
+        return matrixStartRowField;
     }
     
     public String getEncodingField() {
@@ -252,8 +307,70 @@ public class XmlDataSource extends BrowseDataSource
       //  unloadViewer();
     }
     
+    public void setMatrixFormatField(String k) {
+        if (DEBUG.DR) Log.debug("setMatrixFormatField[" + k + "]");
+        if (k != null) {
+            k = k.trim();
+            if (k.length() < 1)
+                matrixFormatField = null;
+            else
+                matrixFormatField = k;
+        } else {
+            matrixFormatField = null;
+        }
+
+
+      //  unloadViewer();
+    }
+    
+    public void setMatrixPivotField(String k) {
+        if (DEBUG.DR) Log.debug("setMatrixFormatField[" + k + "]");
+        if (k != null) {
+            k = k.trim();
+            if (k.length() < 1)
+                matrixPivotField = null;
+            else
+                matrixPivotField = k;
+        } else {
+            matrixPivotField = null;
+        }
+
+
+      //  unloadViewer();
+    }
+    public void setMatrixSizeField(String k) {
+        if (DEBUG.DR) Log.debug("setMatrixSizeField[" + k + "]");
+        if (k != null) {
+            k = k.trim();
+            if (k.length() < 1)
+                matrixSizeField = null;
+            else
+                matrixSizeField = k;
+        } else {
+            matrixSizeField = null;
+        }
+
+
+      //  unloadViewer();
+    }
+    public void setMatrixStartRowField(String k) {
+        if (DEBUG.DR) Log.debug("setMatrixStartRowField[" + k + "]");
+        if (k != null) {
+            k = k.trim();
+            if (k.length() < 1)
+                matrixStartRowField = null;
+            else
+                matrixStartRowField = k;
+        } else {
+            matrixStartRowField = null;
+        }
+
+
+      //  unloadViewer();
+    }
+    
     public void setMatrixRelField(String k) {
-        if (DEBUG.DR) Log.debug("setMatrixColField[" + k + "]");
+        if (DEBUG.DR) Log.debug("setMatrixRelField[" + k + "]");
         if (k != null) {
             k = k.trim();
             if (k.length() < 1)
@@ -335,17 +452,23 @@ public class XmlDataSource extends BrowseDataSource
         encodingField.values.addAll(sets.keySet());
         
         List<ConfigField> fields = super.getConfigurationUIFields();
+
         if (!isCSV)
             fields.add(path);
         fields.add(keyField);
         fields.add(imageField);
+
         if (isCSV)
         	fields.add(encodingField);
         
         List<ConfigField> mFields = null;
         if (this.getMatrixField().equals("true"))
         {
-        	mFields = this.getMatrixConfigurationUIFields(headerValues);
+        	if (this.getMatrixFormatField().equals(TALL))
+        		mFields = this.getMatrixConfigurationUIFields(headerValues);
+        	else
+        		mFields = this.getWideMatrixConfigurationUIFields(headerValues);
+        	
         	fields.addAll(mFields);
         }
         return fields;
@@ -444,17 +567,18 @@ public class XmlDataSource extends BrowseDataSource
         return schema;
     }
     
-    private String[] headerValues = null;
-    
+    protected String[] headerValues = null;
+   
     public Schema ingestMatrixCSV(Schema schema, String file, boolean hasColumnTitles) throws java.io.IOException
     {
     	final boolean isMatrixDataset = true;
+    	int matrixSize = 0;
         //final Schema schema = new Schema(file);
         //final CSVReader reader = new CSVReader(new FileReader(file));
         // TODO: need an encoding Win/Mac encoding toggle
         // TODO: need handle this in BrowseDataSource openReader (encoding provided by user in data-source config)
         // TODO: the Open CSV CSVReader impl is horrible - doesn't handle quoted values properly!
-        
+    	
         final CSVReader dataStream = new CSVReader(new InputStreamReader(new FileInputStream(file),this.getEncodingField()));
         //final BufferedReader dataStream = new BufferedReader(new InputStreamReader(new FileInputStream(file), "windows-1252"));
         
@@ -478,34 +602,91 @@ public class XmlDataSource extends BrowseDataSource
 
         if (hasColumnTitles) 
         {
-        	if (isMatrixDataset && 
+        	if (isMatrixDataset)
+        	{
+        		int n=0;
+        		
+        		if (this.matrixFormatField.equals(NONE_SELECTED))
+        		{        			
+        			JPanel p = new JPanel();
+        			p.setLayout(new BorderLayout());
+        			
+        			JLabel label = new JLabel();
+        			label.setIcon(VueResources.getImageIcon("widetall"));
+        			JLabel label2 = new JLabel("Is the matrix format wide or tall?");
+        			p.add(label,BorderLayout.CENTER);
+        			p.add(label2,BorderLayout.SOUTH);
+
+        			//Custom button text
+        			Object[] options = {"Wide",
+        			                    "Tall"};
+        			n = JOptionPane.showOptionDialog(VUE.getApplicationFrame(),
+        			    p,
+        			    "Define Matrix Format",
+        			    JOptionPane.YES_NO_OPTION,
+        			    JOptionPane.PLAIN_MESSAGE,
+        			    null,
+        			    options,
+        			    options[1]);
+        			
+        			if (n==0)
+        				this.setMatrixFormatField(WIDE);
+        			else
+        				this.setMatrixFormatField(TALL);
+        		} //matrix format
+        		
+        		if (this.matrixFormatField.equals(TALL) &&
         			(this.matrixColField.equals(NONE_SELECTED) || 
         			this.matrixRowField.equals(NONE_SELECTED) ||
         			this.matrixRelField.equals(NONE_SELECTED)))
-        	{
-    			UIParams params = this.getXMLforMatrix(values);
-    			boolean proceed = false;
-    			
-        	    ConfigurationUI cui = new edu.tufts.vue.ui.ConfigurationUI(new java.io.ByteArrayInputStream(params.xml.getBytes()),params.extraValuesByKey);
-    			cui.setPreferredSize(new Dimension(350, (int)cui.getPreferredSize().getHeight()));
-                
-                if (VueUtil.option(VUE.getDialogParent(),
-                        cui,
-                        VueResources.getString("optiondialog.configuration.message"),
-                        javax.swing.JOptionPane.DEFAULT_OPTION,
-                        javax.swing.JOptionPane.PLAIN_MESSAGE,
-                        new Object[] {
-                	VueResources.getString("optiondialog.configuration.continue"), VueResources.getString("optiondialog.configuration.cancel")
-                },
-                VueResources.getString("optiondialog.configuration.continue")) == 1) {
-					proceed = false;
-				} else {
-					setConfiguration(cui.getProperties());
-			        DataSourceViewer.saveDataSourceViewer();
-				}
+        		{
+	    			UIParams params = this.getXMLforMatrix(values);
+	    			boolean proceed = false;
+	    			
+	        	    ConfigurationUI cui = new edu.tufts.vue.ui.ConfigurationUI(new java.io.ByteArrayInputStream(params.xml.getBytes()),params.extraValuesByKey);
+	    			cui.setPreferredSize(new Dimension(350, (int)cui.getPreferredSize().getHeight()));
+	                
+	                if (VueUtil.option(VUE.getDialogParent(),
+	                        cui,
+	                        VueResources.getString("optiondialog.configuration.message"),
+	                        javax.swing.JOptionPane.DEFAULT_OPTION,
+	                        javax.swing.JOptionPane.PLAIN_MESSAGE,
+	                        new Object[] {
+	                	VueResources.getString("optiondialog.configuration.continue"), VueResources.getString("optiondialog.configuration.cancel")
+	                },
+	                VueResources.getString("optiondialog.configuration.continue")) == 1) {
+						proceed = false;
+					} else {
+						setConfiguration(cui.getProperties());
+				        DataSourceViewer.saveDataSourceViewer();
+					}
+        		}
+        		else if (this.matrixFormatField.equals(WIDE) && (this.matrixPivotField.equals(NONE_SELECTED)))
+        		{
+        			UIParams params = this.getXMLforWideMatrix(values);
+	    			boolean proceed = false;
+	    			
+	        	    ConfigurationUI cui = new edu.tufts.vue.ui.ConfigurationUI(new java.io.ByteArrayInputStream(params.xml.getBytes()),params.extraValuesByKey);
+	    			cui.setPreferredSize(new Dimension(450, (int)cui.getPreferredSize().getHeight()));
+	                
+	                if (VueUtil.option(VUE.getDialogParent(),
+	                        cui,
+	                        VueResources.getString("optiondialog.configuration.message"),
+	                        javax.swing.JOptionPane.DEFAULT_OPTION,
+	                        javax.swing.JOptionPane.PLAIN_MESSAGE,
+	                        new Object[] {
+	                	VueResources.getString("optiondialog.configuration.continue"), VueResources.getString("optiondialog.configuration.cancel")
+	                },
+	                VueResources.getString("optiondialog.configuration.continue")) == 1) {
+						proceed = false;
+					} else {
+						setConfiguration(cui.getProperties());
+				        DataSourceViewer.saveDataSourceViewer();
+					}
+        		}
         	}
-            schema.ensureFields(this,values,isMatrixDataset);
-            values = readLine(dataStream);
+	        schema.ensureFields(this,values,isMatrixDataset);
+	        values = readLine(dataStream);
         } else {
             schema.ensureFields(values.length);
         }
@@ -513,10 +694,13 @@ public class XmlDataSource extends BrowseDataSource
         if (values == null)
             throw new IOException(file + ": has column names, but no data");
 
+        schema.existingRows = new HashMap<String,Integer>();
         do {
-
-            schema.addMatrixRow(this,values);
-            
+			if (this.matrixFormatField.equals(TALL))
+	            schema.addMatrixRow(this,values);
+	        else
+		        schema.addWideMatrixRow(this,values);
+	
         } while ((values = readLine(dataStream)) != null);
 
         dataStream.close();
@@ -526,7 +710,31 @@ public class XmlDataSource extends BrowseDataSource
         return schema;
     }
     
-  
+    private UIParams getXMLforWideMatrix(String[] values)
+    {
+        final UIParams params = new UIParams();
+        final StringBuilder b = new StringBuilder();
+        //final String address = dataSource.getAddress();
+            
+        b.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+        b.append("<configuration>\n");
+        final java.util.Map<String,Vector> extraValuesMap = new java.util.HashMap();
+        for (ConfigField f : getWideMatrixConfigurationUIFields(values)) {
+                EditLibraryPanel.addField(b, f.key, f.title, f.description, f.value, f.uiControl, f.maxLen);
+                if (f.values != null)
+                    extraValuesMap.put(f.key, f.values);
+            }
+        params.extraValuesByKey = extraValuesMap;
+
+        
+
+        b.append("</configuration>");
+
+        
+        params.xml=b.toString();
+        return params;
+    }
+    
     private UIParams getXMLforMatrix(String[] values)
     {
         final UIParams params = new UIParams();
@@ -557,6 +765,45 @@ public class XmlDataSource extends BrowseDataSource
         // possible enumerated types, indexed by key field
         Map<String,Vector> extraValuesByKey = Collections.EMPTY_MAP;
     }
+    
+    private java.util.List<ConfigField> getWideMatrixConfigurationUIFields(String[] values) {
+    	java.util.List<ConfigField> fields = new ArrayList<ConfigField>();
+    	
+    	ConfigField field1
+        = new ConfigField(MATRIX_PIVOT_KEY
+                          ,"What is the pivot attribute of the matrix?"
+                          ,"Read CSV as relational matrix"
+                          ,this.matrixPivotField // current value
+                          ,edu.tufts.vue.ui.ConfigurationUI.COMBO_BOX_CONTROL);
+
+    	List l = Arrays.asList(values);
+    	//l.add(0, NONE_SELECTED);
+    	
+        field1.values = new Vector(l);
+        
+    	fields.add(field1);
+
+    /*	ConfigField field2
+        = new ConfigField(MATRIX_STARTROW_KEY
+                          ,"What row # contains the header?"
+                          ,"Read CSV as relational matrix"
+                          ,this.matrixStartRowField // current value
+                          ,edu.tufts.vue.ui.ConfigurationUI.SINGLE_LINE_CLEAR_TEXT_CONTROL);
+    	
+//        field2.values = new Vector(l);
+        
+    	fields.add(field2);
+*/
+    	ConfigField field3
+        = new ConfigField(MATRIX_MATRIXSIZE_KEY
+                          ,"What is the size of the matrix (ex: 8x8)?"
+                          ,"Read CSV as relational matrix"
+                          ,this.matrixSizeField // current value
+                          ,edu.tufts.vue.ui.ConfigurationUI.SINGLE_LINE_CLEAR_TEXT_CONTROL);
+    	
+    	fields.add(field3);
+		return fields;
+	}
     
     private java.util.List<ConfigField> getMatrixConfigurationUIFields(String[] values) {
     	java.util.List<ConfigField> fields = new ArrayList<ConfigField>();

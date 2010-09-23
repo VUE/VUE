@@ -341,6 +341,7 @@ public class DataTree extends javax.swing.JTree
         		         	String potentialTargetName = rn.getRow().getValue(Schema.MATRIX_NAME_FIELD);
         		         	if (potentialTargetName.equals(relation.getToLabel()) || potentialTargetName.equals(relation.getFromLabel()))
         		         	{	                		         	
+		                		System.out.println("Relation : " + relation.getFromLabel() + "," + relation.getToLabel());
         		         		//try to find a place to draw it.
         		                final Collection<LWComponent> searchSet = VUE.getActiveViewer().getMap().getAllDescendents(LWComponent.ChildKind.EDITABLE);
         		                final Criteria criteria = dataNodeToSearchCriteria(rn);
@@ -351,25 +352,44 @@ public class DataTree extends javax.swing.JTree
         		                for (LWComponent hit: hits)
         		                {
         		                	LWLink link = null;
+        		                	LWLink link2 = null;
         		                	if (newNode.getLabel().equals(hit.getLabel()))
         		                		continue;
         		                	
+        		                
         		                	if (relation.getFromLabel().equals(trueName))
         		                	{
-        		                		if (!newNode.getLinked().contains(hit))
+        		                		boolean skip =false;
+        		                		Collection<LWLink> links = newNode.getLinks();
+        		                		
+        		                		for (LWLink link1 : links)
+        		                		{
+        		                			//if (link1.getFarNavPoint(hit))
+        		                				skip = true;
+        		                		}
+        		                		
+        		                		if (!skip)
         		                			link = new LWLink(newNode,hit);
-        		                	}
-        		                	else
+        		                	} 
+        		                	
+        		                	if  (relation.getToLabel().equals(trueName))
         		                	{
-        		                		if (!hit.getLinked().contains(newNode))
-        		                			link = new LWLink(hit,newNode);
+        		                		if (!hit.hasLinkTo(newNode))
+        		                			link2 = new LWLink(hit,newNode);
 
         		                	}
+        		                	
         		                	if (link !=null)
-        		                	{        		                		
+        		                	{        	
         		                		link.setLabel(relation.getRelationLabel());
     		                			link.setAsDataLink(relation.getRelationLabel());
         		                		VUE.getActiveViewer().getMap().add(link);
+        		                	}
+        		                	if (link2 !=null)
+        		                	{        	
+        		                		link2.setLabel(relation.getRelationLabel());
+    		                			link2.setAsDataLink(relation.getRelationLabel());
+        		                		VUE.getActiveViewer().getMap().add(link2);
         		                	}
         		                }
         		         	} 
@@ -1156,6 +1176,7 @@ public class DataTree extends javax.swing.JTree
 
         int _newRowCount = 0;
         int _changedRowCount = 0;
+     //   if (mAllRowsNode.getChildren() !=null)
         for (DataNode n : mAllRowsNode.getChildren()) {
             if (!n.isMapPresent())
                 _newRowCount++;
