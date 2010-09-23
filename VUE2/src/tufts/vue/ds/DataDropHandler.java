@@ -134,11 +134,15 @@ class DataDropHandler extends MapDropTarget.DropHandler
                 
              
                 //DEAL WITH MATRIX DATA AND ADD LINK WHEN APPROPRIATE
+                
                 if (droppingDataItem.getSchema().isMatrixDataSet)
                 {
-               
+                	
                 	GUI.invokeAfterAWT(new Runnable() { public void run() {
-                	dataTree.applyMatrixRelations(newNodes);
+
+                	
+                		dataTree.applyMatrixRelations(newNodes);
+                	
                 	}});
                 }
                             

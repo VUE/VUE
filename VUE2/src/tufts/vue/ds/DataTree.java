@@ -321,10 +321,14 @@ public class DataTree extends javax.swing.JTree
         
     }
 
+    int call =0;
     public synchronized void applyMatrixRelations(List<LWComponent> newNodes)
     {
+    	//System.out.println("APPLY MATRIX RELATIONS : " + call++);
     	List<MatrixRelationship> relations = mSchema.matrixRelations;
-    	
+    	//for (MatrixRelationship relation: relations)
+    	//	System.out.println("Relations : " + relation.getFromLabel() + ", " + relation.getToLabel());    	
+    
     	for (LWComponent newNode: newNodes)
     	{
         	String trueName = newNode.getRawData().getString(Schema.MATRIX_NAME_FIELD);
@@ -332,16 +336,16 @@ public class DataTree extends javax.swing.JTree
         	for (MatrixRelationship relation: relations)
         	{
         		if (relation.getFromLabel().equals(trueName) || relation.getToLabel().equals(trueName))
-        		{
-        			                			                			
+        		{        			                			                			
         			for (DataNode n : mAllRowsNode.getChildren()) {
      		         	RowNode rn = (RowNode)n;
+     		         	
         		     if (rn.isMapPresent()) {
 
         		         	String potentialTargetName = rn.getRow().getValue(Schema.MATRIX_NAME_FIELD);
         		         	if (potentialTargetName.equals(relation.getToLabel()) || potentialTargetName.equals(relation.getFromLabel()))
         		         	{	                		         	
-		                		System.out.println("Relation : " + relation.getFromLabel() + "," + relation.getToLabel());
+		                		//System.out.println("Relation : " + relation.getFromLabel() + "," + relation.getToLabel());
         		         		//try to find a place to draw it.
         		                final Collection<LWComponent> searchSet = VUE.getActiveViewer().getMap().getAllDescendents(LWComponent.ChildKind.EDITABLE);
         		                final Criteria criteria = dataNodeToSearchCriteria(rn);
@@ -353,44 +357,44 @@ public class DataTree extends javax.swing.JTree
         		                {
         		                	LWLink link = null;
         		                	LWLink link2 = null;
+        		                	
         		                	if (newNode.getLabel().equals(hit.getLabel()))
         		                		continue;
+        		                	        		                
+        		                	if (relation.getFromLabel().equals(trueName) && !newNode.hasDirectedLinkTo(hit))
+        		                			link = new LWLink(newNode,hit);
+        		                	
+        		                	if  (relation.getToLabel().equals(trueName) && !hit.hasDirectedLinkTo(newNode))
+        		                			link2 = new LWLink(hit,newNode);        		                	
+
+        		                	LWSelection sel = VUE.getSelection();
+    		                		VUE.getSelection().clear();
         		                	
         		                
-        		                	if (relation.getFromLabel().equals(trueName))
-        		                	{
-        		                		boolean skip =false;
-        		                		Collection<LWLink> links = newNode.getLinks();
+        		               
         		                		
-        		                		for (LWLink link1 : links)
-        		                		{
-        		                			//if (link1.getFarNavPoint(hit))
-        		                				skip = true;
-        		                		}
-        		                		
-        		                		if (!skip)
-        		                			link = new LWLink(newNode,hit);
-        		                	} 
-        		                	
-        		                	if  (relation.getToLabel().equals(trueName))
-        		                	{
-        		                		if (!hit.hasLinkTo(newNode))
-        		                			link2 = new LWLink(hit,newNode);
-
-        		                	}
-        		                	
         		                	if (link !=null)
         		                	{        	
         		                		link.setLabel(relation.getRelationLabel());
-    		                			link.setAsDataLink(relation.getRelationLabel());
-        		                		VUE.getActiveViewer().getMap().add(link);
+    		                			link.setAsDataLink(relation.getRelationLabel());        		                		    		                		
+    		                			VUE.getActiveViewer().getMap().add(link);        		                		
+        		                		VUE.getSelection().add(link);       
+        		                		//System.out.println("Add Link 1 : " + link.toString() + " :: " + call + " :: " + newNode.toString() + " ::: " + hit.toString());
         		                	}
+        		                	
+        		              
         		                	if (link2 !=null)
         		                	{        	
         		                		link2.setLabel(relation.getRelationLabel());
     		                			link2.setAsDataLink(relation.getRelationLabel());
-        		                		VUE.getActiveViewer().getMap().add(link2);
+        		                		VUE.getActiveViewer().getMap().add(link2);        		            
+        		                		VUE.getSelection().add(link2);        		                		
+        		                		//System.out.println("Add Link 2 : " + link2.toString() + " :: " + call + " :: " + newNode.toString() + " ::: " + hit.toString());
         		                	}
+        		                	
+        		                	if (hit.hasMultipleLinksTo(newNode) && VUE.getSelection().size() >0)
+        		                		tufts.vue.Actions.LinkMakeQuadCurved.act();
+        		                	
         		                }
         		         	} 
         		     	}

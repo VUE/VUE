@@ -694,6 +694,7 @@ public class XmlDataSource extends BrowseDataSource
         if (values == null)
             throw new IOException(file + ": has column names, but no data");
 
+        //Clear this out so we can properly cleanly dataset.
         schema.existingRows = new HashMap<String,Integer>();
         do {
 			if (this.matrixFormatField.equals(TALL))
