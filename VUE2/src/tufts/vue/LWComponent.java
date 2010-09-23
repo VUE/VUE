@@ -4232,6 +4232,37 @@ public class LWComponent
                 return true;
         return false;
     }
+    /** @return true if there are any links between us and the given component */
+    public boolean hasDirectedLinkTo(LWComponent c)
+    {
+        if (c == null || mLinks == null)
+            return false;
+        
+        for (LWLink link : mLinks)
+        {
+        	LWComponent tail = link.getTail();
+            if (link.hasEndpoint(c) && tail.equals(c))
+                return true;
+        }
+        return false;
+    }
+    
+    /** @return true if there are any links between us and the given component */
+    public boolean hasMultipleLinksTo(LWComponent c)
+    {
+        if (c == null || mLinks == null)
+            return false;
+        
+        int count = 0;
+        for (LWLink link : mLinks)
+            if (link.hasEndpoint(c))
+                count++;
+        
+        if (count >1)
+        	return true;
+        else
+        	return false;
+    }
 
     /** @return true of this component has any connections (links) to the given component.
      *  LWLink overrides to include it's endpoints in the definition of "connected" to.
