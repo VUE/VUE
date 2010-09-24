@@ -1381,7 +1381,8 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
 	        	if (thisCol.equals(ds.headerValues[i]))
 	        		continue;
 	        	//System.out.println("RELATION " + (values[i].equals("0")));
-	        	if (!(values[i].equals("0")))
+	        	System.out.println("ds.getMatrixIgnore " + ds.getMatrixIgnoreField());
+	        	if (!(values[i].equals(ds.getMatrixIgnoreField())))
 	        		matrixRelations.add(new MatrixRelationship(thisCol,ds.headerValues[i],values[i]));
 	
 	        }
@@ -1438,7 +1439,7 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
   //  	tempTable=null;
     }
     
-    private HashMap<String,DataRow> tempTable = new HashMap<String,DataRow>();
+    TreeMap<String,DataRow> tempTable = new TreeMap<String,DataRow>();
 
     private DataRow getRowFromHash(String key)
     {

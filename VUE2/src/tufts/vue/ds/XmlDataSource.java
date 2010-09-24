@@ -49,6 +49,7 @@ public class XmlDataSource extends BrowseDataSource
     private static final String MATRIX_PIVOT_KEY ="matrixPivot";
     private static final String MATRIX_STARTROW_KEY ="matrixStartRow";
     private static final String MATRIX_MATRIXSIZE_KEY ="matrixSize";
+    private static final String MATRIX_IGNORE_KEY ="matrixIgnore";
 
 
     
@@ -74,6 +75,8 @@ public class XmlDataSource extends BrowseDataSource
     private String matrixPivotField = NONE_SELECTED;
     private String matrixStartRowField = "";
     private String matrixSizeField = "";
+    private String matrixIgnoreField = "0";
+
 
 
 
@@ -177,6 +180,12 @@ public class XmlDataSource extends BrowseDataSource
         } catch (Throwable t) {
             Log.error("val=" + val, t);
         }
+        try {
+            if ((val = p.getProperty(MATRIX_IGNORE_KEY)) != null)
+                setMatrixIgnoreField(val);
+        } catch (Throwable t) {
+            Log.error("val=" + val, t);
+        }
 
     }
     
@@ -233,6 +242,9 @@ public class XmlDataSource extends BrowseDataSource
     
     public String getMatrixPivotField() {
         return matrixPivotField;
+    }
+    public String getMatrixIgnoreField() {
+        return matrixIgnoreField;
     }
     
     public String getMatrixSizeField() {
@@ -317,6 +329,22 @@ public class XmlDataSource extends BrowseDataSource
                 matrixFormatField = k;
         } else {
             matrixFormatField = null;
+        }
+
+
+      //  unloadViewer();
+    }
+    
+    public void setMatrixIgnoreField(String k) {
+        if (DEBUG.DR) Log.debug("setMatrixIgnoreField[" + k + "]");
+        if (k != null) {
+            k = k.trim();
+            if (k.length() < 1)
+                matrixIgnoreField = null;
+            else
+                matrixIgnoreField = k;
+        } else {
+            matrixIgnoreField = null;
         }
 
 
@@ -696,6 +724,8 @@ public class XmlDataSource extends BrowseDataSource
 
         //Clear this out so we can properly cleanly dataset.
         schema.existingRows = new HashMap<String,Integer>();
+        schema.tempTable = new TreeMap<String,DataRow>();
+
         do {
 			if (this.matrixFormatField.equals(TALL))
 	            schema.addMatrixRow(this,values);
@@ -775,7 +805,7 @@ public class XmlDataSource extends BrowseDataSource
     	
     	ConfigField field1
         = new ConfigField(MATRIX_PIVOT_KEY
-                          ,"What is the pivot attribute of the matrix?"
+                          ,"What is the pivot attribute?"
                           ,"Read CSV as relational matrix"
                           ,this.matrixPivotField // current value
                           ,edu.tufts.vue.ui.ConfigurationUI.COMBO_BOX_CONTROL);
@@ -800,12 +830,21 @@ public class XmlDataSource extends BrowseDataSource
 */
     	ConfigField field3
         = new ConfigField(MATRIX_MATRIXSIZE_KEY
-                          ,"What is the size of the matrix (ex: 8x8)?"
+                          ,"# of rows/cols in matrix?"
                           ,"Read CSV as relational matrix"
                           ,this.matrixSizeField // current value
                           ,edu.tufts.vue.ui.ConfigurationUI.SINGLE_LINE_CLEAR_TEXT_CONTROL);
     	
     	fields.add(field3);
+    	
+    	ConfigField field4
+        = new ConfigField(MATRIX_IGNORE_KEY
+                          ,"Ignore matching relations"
+                          ,"Read CSV as relational matrix"
+                          ,this.matrixIgnoreField // current value
+                          ,edu.tufts.vue.ui.ConfigurationUI.SINGLE_LINE_CLEAR_TEXT_CONTROL);
+    	
+    	fields.add(field4);
 		return fields;
 	}
     
