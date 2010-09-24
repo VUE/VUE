@@ -704,6 +704,9 @@ public class XmlDataSource extends BrowseDataSource
 	
         } while ((values = readLine(dataStream)) != null);
 
+        if (this.matrixFormatField.equals(WIDE))
+        	schema.convertToRows();
+        
         dataStream.close();
 
         schema.notifyAllRowsAdded();

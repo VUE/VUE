@@ -1343,19 +1343,20 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
         		existingRows.put(values[matrixColNums.get(colName)], new Integer(toRow.mmap.size()));
         	}
         
-        	if (!values[matrixColNums.get(rowName)].equals(values[matrixColNums.get(colName)]))
-        	matrixRelations.add(new MatrixRelationship(values[matrixColNums.get(rowName)],values[matrixColNums.get(colName)],values[matrixColNums.get(relName)]));
+        	
+        	if (!values[matrixColNums.get(rowName)].equals(values[matrixColNums.get(colName)]) && !(values[matrixColNums.get(relName)].equals("0")))
+        		matrixRelations.add(new MatrixRelationship(values[matrixColNums.get(rowName)],values[matrixColNums.get(colName)],values[matrixColNums.get(relName)]));
         }
         return;
         
     }
-    
+    int i=0;
     protected void addWideMatrixRow(XmlDataSource ds, String[] values) {
 
     	int matrixSize = new Integer(ds.getMatrixSizeField()).intValue();
-    	int rowCount = this.getRowCount();
+    	int rowCount = tempTable.values().size();
     	
-    	System.out.println("Matrix Size :" + matrixSize);
+    //	System.out.println("Matrix Size :" + matrixSize);
     	//skip partial rows
     	if (values.length < matrixSize)
     		return;
@@ -1379,7 +1380,9 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
 	        { 
 	        	if (thisCol.equals(ds.headerValues[i]))
 	        		continue;
-	        	matrixRelations.add(new MatrixRelationship(thisCol,ds.headerValues[i],values[i]));
+	        	//System.out.println("RELATION " + (values[i].equals("0")));
+	        	if (!(values[i].equals("0")))
+	        		matrixRelations.add(new MatrixRelationship(thisCol,ds.headerValues[i],values[i]));
 	
 	        }
 
@@ -1392,17 +1395,58 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
 	        //add everything after the matrix as metadata
 	        for (int i = pivotNum+ matrixSize +1; i < values.length; i ++)
 	        {
+	        	
 	        	fromRow.addValue(new Field(ds.headerValues[i],this), values[i]);
 	        }
 	    
-	        addRow(fromRow);
+	        //addRow(fromRow);
+	    //    System.out.println("ADD TO HASH : " + thisCol + " ::: " + matrixColNums.get(matrixPivot));
+	        addRowToHash(thisCol,fromRow);
+	        
+	        
+	      
+    	}
+    	else
+    	{
+    		 //add everything after the matrix as metadata
+	        for (int i = pivotNum+2; i < matrixSize; i++)
+	        {
+	        	//System.out.println("val : " + values[i] + " ::: "+ ds.headerValues[i]);
+	        	DataRow r = tempTable.remove(ds.headerValues[i]);
+	        	r.addValue(new Field(values[0],this),values[i]);
+	        	tempTable.put(ds.headerValues[i], r);
+//	        	fromRow.addValue(new Field(ds.headerValues[i],this), values[i]);
+	        }
+	    //    System.out.println("END OF ROW");
+    	}
+    	//we're passed the point of using this for the matrix so use it as metadata.
+    	
+        return;        
+    }
+    
+    protected void convertToRows()
+    {
+    	int i=0;
+    	for (DataRow r : tempTable.values())
+    	{
+    		//System.out.println(i++);
+    		if (r !=null)
+    			addRow(r);
     	}
     	
-    	//for (MatrixRelationship mr : matrixRelations)
-    	//	System.out.println("Matrix Relationship : " + mr.getFromLabel() + " , " + mr.getRelationLabel() + " , " + mr.getToLabel());
-    	
-        return;
-        
+    	tempTable.clear();
+  //  	tempTable=null;
+    }
+    
+    private HashMap<String,DataRow> tempTable = new HashMap<String,DataRow>();
+
+    private DataRow getRowFromHash(String key)
+    {
+    	return tempTable.get(key);
+    }
+    private void addRowToHash(String key, DataRow val)
+    {
+    	tempTable.put(key, val);
     }
 
     /** called by schema loaders to notify the Schema that all the rows have been loaded (and any final analysis can be completed) */
