@@ -113,7 +113,7 @@ public class RecentlyUsedColorsManager
 		else
 		{
 			//if it's not in the list add it to the top and deal with it later
-			list.add(s);
+			list.add(1,s);
 		}
 		
 		//trim list if necessary...
