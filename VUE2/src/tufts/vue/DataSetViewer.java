@@ -295,8 +295,10 @@ public class DataSetViewer extends ContentViewer {
 		if (!editInfoDockWindow.isVisible())
 			positionEditInfoWindow();
 		refreshEditInfo(ds, true);
+		editInfoDockWindow.setWidth(500);
 		editInfoDockWindow.setVisible(true);
 		editInfoDockWindow.raise();
+		
 	}
 
 	static void initUI() {
