@@ -11,6 +11,7 @@ function setMaxAppletSize()
 function getAppletHeight()
 {
 	var appletHeight;
+	
 	var topToolbarHeight = 20;
 
 
