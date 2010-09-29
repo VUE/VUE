@@ -247,7 +247,8 @@
                    xmlrpc-1.1.jar                                      
                    simplyhtml2.jar    
                    gnu-regexp-1.1.4.jar
-  				   looks-2.1.4.jar  				   
+  				   looks-2.1.4.jar  
+			       bsh-core-2.0b4.jar
                    "/>
 
 <!-- added quaqua-filechooser-only.jar to the above on 2006-12-08 MK -->
@@ -331,6 +332,7 @@
   				   json.jar
 				   AlchemyAPI.jar
   	 			   calais.jar
+			  	   bsh-core-2.0b4.jar
                    "/>
                                                                                                           
   <path id="compile.classpath.common">
@@ -422,6 +424,7 @@
     <pathelement path="${lib.home}/twitter4j-core-2.1.0.jar" />    
     <pathelement path="${lib.home}/simplyhtml2.jar" />   
   	<pathelement path="${lib.home}/looks-2.1.4.jar" />   
+  	<pathelement path="${lib.home}/bsh-core-2.0b4.jar" />     	
   	<pathelement path="${lib.home}/gdata-client-1.0.jar" />
   	<pathelement path="${lib.home}/gdata-core-1.0.jar" />
     <pathelement path="${lib.home}/gnu-regexp-1.1.4.jar"/>
