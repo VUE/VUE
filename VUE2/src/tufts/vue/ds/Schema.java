@@ -1434,12 +1434,14 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
     	}
     	else
     	{
+    		 String matrixPivot = ds.getMatrixPivotField();
+ 	        pivotNum = matrixColNums.get(matrixPivot);
     		 //add everything after the matrix as metadata
-	        for (int i = pivotNum+2; i < matrixSize; i++)
+	        for (int i = pivotNum+1; i < matrixSize; i++)
 	        {
 	        	//System.out.println("val : " + values[i] + " ::: "+ ds.headerValues[i]);
 	        	DataRow r = tempTable.remove(ds.headerValues[i]);
-	        	r.addValue(new Field(values[0],this),values[i]);
+	        	r.addValue(new Field(values[pivotNum],this),values[i]);
 	        	tempTable.put(ds.headerValues[i], r);
 //	        	fromRow.addValue(new Field(ds.headerValues[i],this), values[i]);
 	        }
