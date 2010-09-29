@@ -50,6 +50,7 @@ public class XmlDataSource extends BrowseDataSource
     private static final String MATRIX_STARTROW_KEY ="matrixStartRow";
     private static final String MATRIX_MATRIXSIZE_KEY ="matrixSize";
     private static final String MATRIX_IGNORE_KEY ="matrixIgnore";
+    private static final String MATRIX_RELPROCESS_KEY ="matrixRelProcess";
 
 
     
@@ -75,7 +76,8 @@ public class XmlDataSource extends BrowseDataSource
     private String matrixPivotField = NONE_SELECTED;
     private String matrixStartRowField = "";
     private String matrixSizeField = "";
-    private String matrixIgnoreField = "0";
+    private String matrixIgnoreField = "";
+    private String matrixRelProcessField = "";
 
 
 
@@ -186,6 +188,12 @@ public class XmlDataSource extends BrowseDataSource
         } catch (Throwable t) {
             Log.error("val=" + val, t);
         }
+        try {
+            if ((val = p.getProperty(MATRIX_RELPROCESS_KEY)) != null)
+                setMatrixRelProcessField(val);
+        } catch (Throwable t) {
+            Log.error("val=" + val, t);
+        }
 
     }
     
@@ -255,6 +263,10 @@ public class XmlDataSource extends BrowseDataSource
         return matrixStartRowField;
     }
     
+    public String getMatrixRelProcessField() {
+        return matrixRelProcessField;
+    }
+    
     public String getEncodingField() {
     	if (encodingField.equals("(auto detect)"))
     		return "windows-1252";
@@ -318,7 +330,21 @@ public class XmlDataSource extends BrowseDataSource
 
       //  unloadViewer();
     }
-    
+    public void setMatrixRelProcessField(String k) {
+        if (DEBUG.DR) Log.debug("setMatrixRelProcessField[" + k + "]");
+        if (k != null) {
+            k = k.trim();
+            if (k.length() < 1)
+                matrixRelProcessField = null;
+            else
+                matrixRelProcessField = k;
+        } else {
+            matrixRelProcessField = null;
+        }
+
+
+      //  unloadViewer();
+    }
     public void setMatrixFormatField(String k) {
         if (DEBUG.DR) Log.debug("setMatrixFormatField[" + k + "]");
         if (k != null) {
@@ -597,10 +623,28 @@ public class XmlDataSource extends BrowseDataSource
     
     protected String[] headerValues = null;
    
+    private static String readFileAsString(String filePath)
+    throws java.io.IOException{
+        StringBuffer fileData = new StringBuffer(1000);
+        BufferedReader reader = new BufferedReader(
+                new FileReader(filePath));
+        char[] buf = new char[1024];
+        int numRead=0;
+        while((numRead=reader.read(buf)) != -1){
+            String readData = String.valueOf(buf, 0, numRead);
+            fileData.append(readData);
+            buf = new char[1024];
+        }
+        reader.close();
+        return fileData.toString();
+    }
+
+
     public Schema ingestMatrixCSV(Schema schema, String file, boolean hasColumnTitles) throws java.io.IOException
     {
     	final boolean isMatrixDataset = true;
     	int matrixSize = 0;
+    	
         //final Schema schema = new Schema(file);
         //final CSVReader reader = new CSVReader(new FileReader(file));
         // TODO: need an encoding Win/Mac encoding toggle
@@ -632,6 +676,7 @@ public class XmlDataSource extends BrowseDataSource
         {
         	if (isMatrixDataset)
         	{
+        		
         		int n=0;
         		
         		if (this.matrixFormatField.equals(NONE_SELECTED))
@@ -722,6 +767,13 @@ public class XmlDataSource extends BrowseDataSource
         if (values == null)
             throw new IOException(file + ": has column names, but no data");
 
+    	String scriptFile = this.getMatrixRelProcessField();
+        if (scriptFile !=null && scriptFile.length() > 1)
+    	{
+    		//System.out.println(scriptFile);
+    		schema.scriptTemplate = XmlDataSource.readFileAsString(scriptFile);
+    	}
+		
         //Clear this out so we can properly cleanly dataset.
         schema.existingRows = new HashMap<String,Integer>();
         schema.tempTable = new TreeMap<String,DataRow>();
@@ -839,12 +891,21 @@ public class XmlDataSource extends BrowseDataSource
     	
     	ConfigField field4
         = new ConfigField(MATRIX_IGNORE_KEY
-                          ,"Ignore matching relations"
+                          ,"Ignore matching relations (opt.)"
                           ,"Read CSV as relational matrix"
                           ,this.matrixIgnoreField // current value
                           ,edu.tufts.vue.ui.ConfigurationUI.SINGLE_LINE_CLEAR_TEXT_CONTROL);
     	
     	fields.add(field4);
+    	
+    	ConfigField field5
+        = new ConfigField(MATRIX_RELPROCESS_KEY
+                          ,"Script to process relation (opt.)"
+                          ,"Read CSV as relational matrix"
+                          ,this.matrixRelProcessField// current value
+                          ,edu.tufts.vue.ui.ConfigurationUI.FILECHOOSER_CONTROL);
+    	
+    	fields.add(field5);
 		return fields;
 	}
     

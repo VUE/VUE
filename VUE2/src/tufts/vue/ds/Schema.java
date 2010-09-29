@@ -28,6 +28,9 @@ import tufts.vue.LWComponent;
 
 import org.xml.sax.InputSource;
 
+import bsh.EvalError;
+import bsh.Interpreter;
+
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 
@@ -1351,8 +1354,10 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
         
     }
     int i=0;
+    String scriptTemplate;
     protected void addWideMatrixRow(XmlDataSource ds, String[] values) {
-
+    	String script = scriptTemplate;
+    	final Interpreter interpreter = new Interpreter();
     	int matrixSize = new Integer(ds.getMatrixSizeField()).intValue();
     	int rowCount = tempTable.values().size();
     	
@@ -1381,9 +1386,29 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
 	        	if (thisCol.equals(ds.headerValues[i]))
 	        		continue;
 	        	//System.out.println("RELATION " + (values[i].equals("0")));
-	        	System.out.println("ds.getMatrixIgnore " + ds.getMatrixIgnoreField());
+	        //	System.out.println("ds.getMatrixIgnore " + ds.getMatrixIgnoreField());
 	        	if (!(values[i].equals(ds.getMatrixIgnoreField())))
-	        		matrixRelations.add(new MatrixRelationship(thisCol,ds.headerValues[i],values[i]));
+	        	{
+	        		Object res="";
+	        		if (scriptTemplate !=null)
+	        		{
+		        		try {
+//		        			System.out.println("before : " + scriptTemplate);
+		        			script = scriptTemplate.replaceAll("(\\$rel)", values[i]);
+	//	        			System.out.println(script);
+							interpreter.eval(script);
+							res = interpreter.get("result");
+						//	System.out.println(res.toString());
+						} catch (EvalError e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+	        		}
+	        		else
+	        			res = values[i];
+
+	        		matrixRelations.add(new MatrixRelationship(thisCol,ds.headerValues[i],res.toString()));
+	        	}
 	
 	        }
 
