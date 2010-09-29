@@ -772,6 +772,12 @@
     <field name="matrixField" type="string">
           <bind-xml name="matrixField" node="element" />
     </field>
+    <field name="matrixIgnoreField" type="string">
+          <bind-xml name="matrixIgnoreField" node="element" />
+    </field>
+    <field name="matrixRelProcessField" type="string">
+          <bind-xml name="matrixRelProcessField" node="element" />
+    </field>    
      <field name="matrixRowField" type="string">
           <bind-xml name="matrixRowField" node="element" />
     </field>
