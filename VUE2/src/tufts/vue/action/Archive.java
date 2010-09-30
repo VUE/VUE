@@ -662,10 +662,19 @@ public class Archive
 
      */
     
-    public static void writeArchive(LWMap map, File archive)
-        throws java.io.IOException
+    // HO 29/09/2010 BEGIN *******************
+    // public static void writeArchive(LWMap map, File archive)
+        // throws java.io.IOException
+    public static void writeArchive(LWMap map, File archive, File... startedWith)
+    	throws java.io.IOException
+    // HO 29/09/2010 END *******************
     {
         Log.info("Writing archive package " + archive);
+        
+        // HO 27/09/2010 BEGIN *******************
+        boolean bVueFile = false;
+        boolean bVpak = false;
+        // HO 27/09/2010 END *******************
 
 //         final String label = map.getLabel();
 //         final String mapName;
@@ -676,10 +685,22 @@ public class Archive
 
         final String label = archive.getName();
         final String mapName;
-        if (label.endsWith(VueUtil.VueArchiveExtension))
-            mapName = label.substring(0, label.length() - 4);
-        else
+        // HO 28/09/2010 BEGIN *******************
+        // if (label.endsWith(VueUtil.VueArchiveExtension)) {
+        if ((label.endsWith(VueUtil.VueArchiveExtension)) || (label.endsWith(VueUtil.VueExtension))) {
+        // HO 28/09/2010 END *******************
+            mapName = label.substring(0, label.length() - 4);           
+        } else {
             mapName = label;
+        }
+        
+        // HO 27/09/2010 BEGIN *******************
+        if (label.endsWith(VueUtil.VueArchiveExtension)) {
+        	bVpak = true;
+        } else if (label.endsWith(VueUtil.VueExtension)) {
+        	bVueFile = true; 
+        }
+        // HO 27/09/2010 END *******************
         
 
         final String dirName = mapName + ".vdr";
@@ -706,6 +727,67 @@ public class Archive
                 // already open and we find it), then archive THAT out as a tmp .vpk file,
                 // and add that to to archive uncompressed, converting the .vue resource
                 // to a .vpk resource.
+                
+                // HO 27/09/2010 BEGIN ********************************
+                boolean bVue = false;
+                boolean bWormhole = false;
+                LWMap theMap = null;
+                String sourcePath = sourceFile.getAbsolutePath();
+                
+                if (sourceFile.getName().endsWith(VueUtil.VueExtension)) {
+                	System.out.println("Yes, it's a VUE file all right");
+                	bVue = true;
+                    if (r.getClass().equals(tufts.vue.WormholeResource.class)) {
+                    	System.out.println("it's a wormhole!");
+                    	bWormhole = true;
+                    }
+                	
+                	if (bWormhole == false) {                		
+                		theMap = OpenAction.loadMap(sourcePath);
+                		String saveAsFile = sourcePath.substring(0, sourcePath.length() - 4);
+                		saveAsFile = saveAsFile + VueUtil.VueArchiveExtension;
+                		File newSourceFile = new File(saveAsFile);
+                		writeArchive(theMap, newSourceFile);
+                	} else if (bWormhole == true) {
+                		if (startedWith.length > 0) {
+                			String fileWeStartedWith = startedWith[0].getAbsolutePath();
+                			String fileWeHaveNow = sourceFile.getAbsolutePath();
+                			if (!fileWeStartedWith.substring(0, fileWeStartedWith.length() - 4).equals(fileWeHaveNow.substring(0, fileWeHaveNow.length() - 4))) {
+                				theMap = OpenAction.loadMap(sourceFile.getAbsolutePath());
+                        		String saveAsFile = sourcePath.substring(0, sourcePath.length() - 4);
+                        		saveAsFile = saveAsFile + VueUtil.VueArchiveExtension;
+                        		File newSourceFile = new File(saveAsFile);
+                				writeArchive(theMap, newSourceFile, archive);
+                			} else {
+                				continue;
+                			}
+                		} else {
+                			theMap = OpenAction.loadMap(sourceFile.getAbsolutePath());
+                    		String saveAsFile = sourcePath.substring(0, sourcePath.length() - 4);
+                    		saveAsFile = saveAsFile + VueUtil.VueArchiveExtension;
+                    		File newSourceFile = new File(saveAsFile);
+                			writeArchive(theMap, newSourceFile, archive);
+                		}
+                	}
+                }
+
+                
+                /* if (bVue) {
+                	// HO 27/09/2010 todo save this as a .vpk not a .vue
+                	//String basicSourceFileName = sourceFile.getAbsolutePath().substring(0, sourceFile.getAbsolutePath().length() - 4);
+                	//String newSourceFileName = basicSourceFileName + VueUtil.VueArchiveExtension;
+                	LWMap theMap = new LWMap(sourceFile.getName());
+                	theMap.setFile(sourceFile);
+                	writeArchive(theMap, sourceFile);
+                } */
+                // first, check and see if the resource is a WormholeResource
+                // what we want to happen is that the .vue file gets saved to the local directory
+                // then archived as a .vpk
+                // and its WormholeResources reset
+                // but, shouldn't we be checking the local directory anyway on opening a map?
+                
+                
+                // HO 27/09/2010 END **********************************
 
                 if (sourceFile == null) {
                     Log.info("skipped: " + description);
@@ -794,6 +876,20 @@ public class Archive
         Log.info("Wrote " + archive);
 
     }
+    
+    // HO 29/09/2010 BEGIN ******************
+    /* private File prepareSourceFileForArchiving(File sourceFile) {
+    	if (sourceFile == null)
+    		return null;
+    	
+    	String sourcePath = sourceFile.getAbsolutePath();
+    	LWMap theMap = OpenAction.loadMap(sourcePath);
+    	String saveAsFile = sourcePath.substring(0, sourcePath.length() - 4);
+    	saveAsFile = saveAsFile + VueUtil.VueArchiveExtension;
+    	File newSourceFile = new File(saveAsFile);
+    	return newSourceFile;
+    } */
+    // HO 29/09/2010 END ********************
 
 //     /**
 //      * @deprecated - doesn't need to be this complicated, and makes ensuring uniquely named
