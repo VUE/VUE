@@ -537,7 +537,9 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         //if (DEBUG.RESOURCE) out("parseAndInit, mURL=" + mURL + "; mFile=" + mFile);
 
         if (isPackaged()) {
-            
+            // HO 06/10/2010 BEGIN ***********
+        	// MAKE SURE THIS IS TRUE
+        	// HO 06/10/2010 BEGIN ***********
             setDataFile((File) getPropertyValue(PACKAGE_FILE), FILE_UNKNOWN);
             if (mFile != null)
                 Log.warn("mFile != null" + this, new IllegalStateException(toString()));
