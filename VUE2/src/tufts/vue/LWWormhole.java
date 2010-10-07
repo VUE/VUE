@@ -444,14 +444,31 @@ public class LWWormhole implements VueConstants {
 		// resource actually exists (which it should,
 		// because we just created it), load the map
 		// belonging to that file and make it the target map
-		if (targFile.exists() == true) {
+		// HO 01/10/2010 BEGIN 
+		// file.exists() doesn't do well with files that aren't
+		// in the current directory, it's a Java thing
+		//if (targFile.exists() == true) {
+		// HO 01/10/2010 END
 			try {
-				targMap = OpenAction.loadMap(targetSpec);
+				if (targFile != null) {
+					targMap = OpenAction.loadMap(targetSpec);
+				} /* else {
+					targetSpec = wr.getRelativeURI();
+					if (targetSpec == null) {
+						wr.recordRelativeTo(actualSourceMap.getFile().getParentFile().toURI());
+						targetSpec = wr.getRelativeURI();
+					}
+					if (targetSpec != "") {
+						targMap = OpenAction.loadMap(targetSpec);
+					}
+				} */
 			} catch (Exception e) {
 				// do nothing
 				return false;
 			}
-		}
+		// HO 01/10/2010 BEGIN 
+		//}
+		// HO 01/10/2010 END 
 		
 		// if we now have a target map
 		if (targMap != null)
