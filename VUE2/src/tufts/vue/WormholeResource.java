@@ -472,7 +472,9 @@ public class WormholeResource extends URLResource {
         }        
 
         if (isPackaged()) {
-            
+        	// HO 06/10/2010 BEGIN ***********
+        	// MAKE SURE THIS IS TRUE
+        	// HO 06/10/2010 BEGIN ***********
             setDataFile((File) getPropertyValue(PACKAGE_FILE), FILE_UNKNOWN);
             if (mFile != null)
                 Log.warn("mFile != null" + this, new IllegalStateException(toString()));
@@ -716,6 +718,13 @@ public class WormholeResource extends URLResource {
      * it's the most reliable string to give back to the underlying OS
      * for opening a local file.  */
         public String getSpec() {
+        // HO 06/10/2010 BEGIN **********
+        if (this.spec.equals(SPEC_UNSET)) {
+        	if ((this.getTargetFilename() != null) && (this.getTargetFilename() != "")) {
+        		return this.getTargetFilename();
+        	}
+        }
+        // HO 06/10/2010 END **********
         return this.spec;
     }  
         
@@ -1128,20 +1137,25 @@ public class WormholeResource extends URLResource {
     		return;
 
         final URI relativeURI = rebuildURI(relative);
+        final URI absoluteURI = root.resolve(relativeURI);
         //final URI absoluteURI = theCurrentRoot.resolve(relativeURI);
-        final URI absoluteURI = new URI(currentSpec);
+        // because this was being overwritten with relative files
+        // inappropriately
+        final URI fixedAbsoluteURI = new URI(currentSpec);
         
 
         if (DEBUG.RESOURCE) {
             System.out.print(TERM_PURPLE);
+            Resource.dumpURI(fixedAbsoluteURI, "fixed absolute:");
             Resource.dumpURI(absoluteURI, "resolved absolute:");
             Resource.dumpURI(relativeURI, "from relative:");
             System.out.print(TERM_CLEAR);
         }
         
-        if (absoluteURI != null) {
+        if (fixedAbsoluteURI != null) {
 
-            final File file = new File(absoluteURI);
+            final File file = new File(fixedAbsoluteURI);
+            final File relativeFile = new File(absoluteURI);
 
             if (file.canRead()) {
                 // only change the spec if we can actually find the file (todo: test Vista -- does canRead work?)
@@ -1149,6 +1163,12 @@ public class WormholeResource extends URLResource {
                 Log.info(TERM_PURPLE + "resolved " + relativeURI.getPath() + " to: " + file + TERM_CLEAR);
                 setRelativeURI(relativeURI);
                 setSpecByFile(file);
+            } else if (relativeFile.canRead()) {
+                // only change the spec if we can actually find the file (todo: test Vista -- does canRead work?)
+                if (DEBUG.RESOURCE) setDebugProperty("relative URI", relativeURI);
+                Log.info(TERM_PURPLE + "resolved " + relativeURI.getPath() + " to: " + file + TERM_CLEAR);
+                setRelativeURI(relativeURI);
+                setSpecByFile(relativeFile);
             } else {
                 out_warn(TERM_RED + "can't find data relative to " + root + " at " + relative + "; can't read " + file + TERM_CLEAR);
                 // todo: should probably delete the relative property key/value at this point
@@ -1159,6 +1179,21 @@ public class WormholeResource extends URLResource {
     	} catch (URISyntaxException e) {
     		e.printStackTrace();
     	}
+    }
+    
+    @Override
+    public void recordRelativeTo(URI root)
+    {
+        setRelativeURI(findRelativeURI(root));
+    }
+   
+    
+    public String getRelativeURI() {
+    	if (mRelativeURI != null)
+    		return mRelativeURI.toString();
+    	else
+    		return null;
+        
     }
     
 
