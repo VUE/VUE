@@ -292,6 +292,7 @@ public class Archive
                     // make sure it tests for the former first
                     if (r instanceof WormholeResource) {
                         ((WormholeResource)r).setPackageFile(localFile, archiveFile);
+                        ((WormholeResource)r).setOriginatingFilename(archiveFile);
                         // HO 05/10/2010 END
                     } else if (r instanceof URLResource) {
                         ((URLResource)r).setPackageFile(localFile, archiveFile);
@@ -328,6 +329,7 @@ public class Archive
                         		}
                         	}*/
                     		((WormholeResource)r).setSpec(fileNameWeWant);
+                    		((WormholeResource)r).setOriginatingFilename(archiveFile);
                     	}
                     	
                     	
@@ -928,39 +930,7 @@ public class Archive
             				// of the name of the file we were in the middle of
             				// archiving when we got to this point
             				writeArchive(theMap, sourceFile, archive);
-            			} else { // HO 11/10/2010 
-            				// get a copy of the resource we're processing
-                        	/* Resource theResource = r;
-                        	// double-check that this is a wormhole
-                            if (bWormhole == true) {
-                            	// downcast the current resource into a WormholeResource
-                            	// to gain access to its properties
-                            	WormholeResource wr = (WormholeResource)r;
-                            	// we already know what filename this resource should be pointing to
-                            	URI newTargetMapURI = sourceFile.toURI();
-                            	// we already know what component this resource should be pointing to
-                            	URI targetComponentURI = new URI(wr.getComponentURIString());
-                            	// get the originating map and replace its file extension
-                            	// with a .vpk one
-                            	// though this may not be necessary...
-                            	String originatingMap = archive.getAbsolutePath();
-                            	String newOriginatingMap = originatingMap.substring(0, originatingMap.length() - 4);
-                            	newOriginatingMap = newOriginatingMap + VueUtil.VueArchiveExtension;
-                            	URI newOriginatingMapURI = new URI(newOriginatingMap);
-                            	// we already know what the originating component is
-                            	URI originatingComponentURI = new URI(wr.getOriginatingComponentURIString());
-                            	// now create a new resource
-                            	Resource newRes = new LWMap("dummy map").getResourceFactory().get(newTargetMapURI,
-                            			targetComponentURI, newOriginatingMapURI, 
-                            			originatingComponentURI, true);	
-                            	
-                            	if (newRes != null) {
-                            		Item anItem = new Item(newRes);
-                            		items.add(anItem);
-                            		String aPackageEntryName = generatePackageFileName(newRes, uniqueEntryNames);
-                            		manifest.add(new PropertyEntry(newRes.getSpec(), aPackageEntryName));
-                            	}
-                            } */ 
+            			} else { // HO 11/10/2010             				
             				// If both the files are the same, skip it and move on.
             				continue;
             			} 
@@ -1001,10 +971,11 @@ public class Archive
                 	URI targetComponentURI = new URI(wr.getComponentURIString());
                 	// get the originating map and replace its file extension
                 	// with a .vpk one
-                	String originatingMap = wr.getOriginatingFilename();
+                	/*String originatingMap = wr.getOriginatingFilename();
                 	String newOriginatingMap = originatingMap.substring(0, originatingMap.length() - 4);
                 	newOriginatingMap = newOriginatingMap + VueUtil.VueArchiveExtension;
-                	URI newOriginatingMapURI = new URI(newOriginatingMap);
+                	URI newOriginatingMapURI = new URI(newOriginatingMap);*/
+                	URI newOriginatingMapURI = new URI(archive.getAbsolutePath());
                 	// we already know what the originating component is
                 	URI originatingComponentURI = new URI(wr.getOriginatingComponentURIString());
                 	
