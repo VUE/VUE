@@ -203,7 +203,14 @@ public abstract class LWIcon extends Rectangle2D.Float
         final MapViewer viewer = VUE.getActiveViewer();
         if (viewer != null && viewer.getCursor() == RESOURCE_CURSOR)
         {
-            viewer.setTopCursor(VueToolbarController.getActiveTool().getCursor());
+        	// HO 11/10/2010 BEGIN **********
+        	try {
+        		viewer.setTopCursor(VueToolbarController.getActiveTool().getCursor());
+        	} catch (NullPointerException e) {
+        		// to avoid crashes
+        		e.printStackTrace();
+        	}
+        	// HO 11/10/2010 BEGIN **********
         }
     }
     public static void displayRolloverResource() {
