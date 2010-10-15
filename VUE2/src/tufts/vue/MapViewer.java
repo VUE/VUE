@@ -541,7 +541,14 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
     public void setTopCursor(Cursor cursor) {
         setCursor(cursor);
-        getTopLevelAncestor().setCursor(cursor);
+        // HO 11/10/2010 BEGIN **********
+        try {
+        	getTopLevelAncestor().setCursor(cursor);
+        } catch (NullPointerException e) {
+        	// I don't think this error is worth crashing over
+        	e.printStackTrace();
+        }
+        // HO 11/10/2010 END **********
     }
     
     private int mViewChangeCount = 0;
