@@ -189,13 +189,21 @@ public class LWMap extends LWContainer
 // //         addChild(mInternalLayer);
 
     }
-    
-    // HO 15/09/2010 BEGIN ***********
+
     /**
      * A method to reconstruct wormholes after a file
      * location change, triggered by a label change.
      */
     public void constructWormholes() {
+    	
+    	// HO 11/10/2010 BEGIN *****************
+    	// the wormhole reconstruction is taken care of 
+    	// during the saving and opening of a .vpk file anyway
+    	if (this.isArchiveMap()) {
+    		System.out.println("I'm in the file " + this.getFile().getName());
+    		return;
+    	}
+    	// HO 11/10/2010 END *****************
     	
 		// find all the wormhole nodes in this map
         Collection<LWWormholeNode> coll = getAllWormholeNodes();
