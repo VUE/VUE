@@ -53,6 +53,10 @@ public class Archive
     private static final String MAP_ARCHIVE_KEY = "@(#)TUFTS-VUE-ARCHIVE";    
     private static final String SPEC_KEY = "spec=";
     private static final int SPEC_KEY_LEN = SPEC_KEY.length();
+    // HO 17/10/2010 BEGIN ***************
+    private static final String STARTED_WITH_KEY = "startedWith=";
+    private static final int STARTED_WITH_KEY_LEN = STARTED_WITH_KEY.length();
+    // HO 17/10/2010 BEGIN ***************
 
     public static boolean isVueIMSCPArchive(File file) {
         if (!file.getName().toLowerCase().endsWith(".zip"))
@@ -139,6 +143,10 @@ public class Archive
         ZipEntry entry;
         ZipEntry mapEntry = null;
         String mapFile = null;
+
+        // HO 20/10/2010 BEGIN ************ damn it's satisfying to type that
+        String startedWith = "";
+        // HO 20/10/2010 BEGIN ************
         
         while ( (entry = zin.getNextEntry()) != null ) {
 
@@ -157,8 +165,14 @@ public class Archive
         	final String location = startLocation;
         	// HO 07/10/2010 END
             final String comment = Archive.getComment(entry);
-
+            
             if (comment != null) {
+                // HO 17/10/2010 BEGIN ***************
+                if (comment.endsWith(VueUtil.VueArchiveExtension)) {
+                	startedWith = comment.substring(comment.indexOf(STARTED_WITH_KEY) + STARTED_WITH_KEY_LEN);
+                	System.out.println(startedWith);
+                }
+                // HO 17/10/2010 END ***************
                 if (comment.startsWith(MAP_ARCHIVE_KEY)) {
                     mapEntry = entry;
                     mapFile = location;
@@ -190,11 +204,19 @@ public class Archive
         // could be passed to URLResource.XML_completed, which it could check to know if
         // it should wait on attempting to initialize.
         
+        // HO 20/10/2010 BEGIN **************
+        /* final LWMap map =
+            ActionUtil.unmarshallMap(new File(mapFile),
+                                     new ArchiveMapUnmarshalHandler(zipFile + "(" + mapEntry + ")",
+                                                                    zipFile,
+                                                                    packagedResources)); */
         final LWMap map =
             ActionUtil.unmarshallMap(new File(mapFile),
                                      new ArchiveMapUnmarshalHandler(zipFile + "(" + mapEntry + ")",
                                                                     zipFile,
-                                                                    packagedResources));
+                                                                    packagedResources,
+                                                                    startedWith));
+        // HO 20/10/2010 END **************
 
         map.setFile(zipFile);
         map.markAsSaved();
@@ -206,11 +228,25 @@ public class Archive
     {
         final Map<String,String> packagedResources;
         final File archiveFile;
+        // HO 20/10/2010 BEGIN ************
+        final String targetFile;
+        // HO 20/10/2010 END ************
         
-        ArchiveMapUnmarshalHandler(Object source, File archiveFile, Map<String,String> resourcesFoundInPackage) {
+        // HO 20/10/2010 BEGIN ************
+        // ArchiveMapUnmarshalHandler(Object source, File archiveFile, Map<String,String> resourcesFoundInPackage) {
+        ArchiveMapUnmarshalHandler(Object source, File archiveFile, Map<String,String> resourcesFoundInPackage,
+        		String... startedWith) {
+        // HO 20/10/2010 END ************
             super(source, Resource.MANAGED_UNMARSHALLING);
             this.packagedResources = resourcesFoundInPackage;
             this.archiveFile = archiveFile;
+            // HO 20/10/2010 BEGIN ************
+            if (startedWith.length > 0) {
+            	this.targetFile = startedWith[0];
+            } else {
+            	this.targetFile = "";
+            }
+            // HO 20/10/2010 END ************
         }
 
         /** skip setFile -- we're going to use the package file */
@@ -305,39 +341,13 @@ public class Archive
                     if (DEBUG.Enabled) Log.debug("No archive entry matching: " + r.getSpec());
                     // HO 15/10/2010 BEGIN ************
                     if (r instanceof WormholeResource) {
-                    	//File fileWeWant = new File(r.getSpec());
-                    	String fileNameWeWant = r.getSpec();
-                    	if (fileNameWeWant.endsWith(VueUtil.VueExtension)) {
-                    		fileNameWeWant = fileNameWeWant.substring(0, fileNameWeWant.length() - 4);
-                    		//File theParent = archiveFile.getParentFile();
-                    		// the context for setting this resource as a package file
-                    		//String strContextWeWant = theParent + "/" + fileNameWeWant + VueUtil.VueArchiveExtension;
-                    		//File contextWeWant = new File(strContextWeWant);
-                    		
-                    		//fileNameWeWant = fileNameWeWant + "$map.vue";
-                    		fileNameWeWant = fileNameWeWant + VueUtil.VueArchiveExtension;
-                    		System.out.println(fileNameWeWant);
-                    		/*String[] filesInParent = theParent.list();
-                    		for (int i=0; i < filesInParent.length; i++) {
-                        		System.out.println(filesInParent[i]);
-                        		if (filesInParent[i].equals(fileNameWeWant)) {
-                        			fileNameWeWant = theParent + "/" + fileNameWeWant;
-                        			System.out.println(fileNameWeWant);
-                        			((WormholeResource)r).setSpec(fileNameWeWant);
-                        			File localFileWeWant = new File(fileNameWeWant);
-                        			((WormholeResource)r).setPackageFile(localFileWeWant, contextWeWant);
-                        		}
-                        	}*/
-                    		((WormholeResource)r).setSpec(fileNameWeWant);
-                    		((WormholeResource)r).setOriginatingFilename(archiveFile);
+                    	// HO 20/10/2010 BEGIN ************
+                    		if (this.targetFile != "") {
+                    			((WormholeResource)r).setSpec(this.targetFile);
+                    			((WormholeResource)r).setOriginatingFilename(archiveFile);
+                    		}
+                    		// HO 20/10/2010 END ************
                     	}
-                    	
-                    	
-                    	
-                    	
-                    	
-                    }
-                    // HO 15/10/2010 END ************
                 }
             }
         }
@@ -797,6 +807,13 @@ public class Archive
     {
         Log.info("Writing archive package " + archive);
         
+        // HO 17/10/2010 BEGIN ***********
+        String fileWeStartedWith = "";
+        if (startedWith.length > 0) {
+        	fileWeStartedWith = startedWith[0].getAbsolutePath();
+        }
+        // HO 17/10/2010 END *************
+        
         // HO 27/09/2010 BEGIN *******************
         // flag whether we are currently handling a .vue file
         boolean bVueFile = false;
@@ -911,10 +928,7 @@ public class Archive
             		// if it's a wormhole, we don't want to get into an infinite
             		// loop whereby the source file is always packaging up the
             		// target file which then has to pack up the source file.
-            		if (startedWith.length > 0) {
-            			// if we got to this point starting from *another* file,
-            			// get the name of that file
-            			String fileWeStartedWith = startedWith[0].getAbsolutePath();
+            		if (fileWeStartedWith != "") {
             			// the full path of the source file we're currently
             			// trying to package
             			String fileWeHaveNow = sourceFile.getAbsolutePath();
@@ -1017,12 +1031,22 @@ public class Archive
 
         final ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(archive)));
         final ZipEntry mapEntry = new ZipEntry(dirName + "/" + mapName + "$map.vue");
-        final String comment = MAP_ARCHIVE_KEY + "; VERSION: 2;"
+        // HO 17/10/2010 BEGIN *****************
+        /* final String comment = MAP_ARCHIVE_KEY + "; VERSION: 2;"
             + " Saved " + new Date() + " by " + VUE.getName() + " built " + Version.AllInfo + "; items=" + items.size() + ";"
             + ">" // /usr/bin/what terminatior
             //+ "\n\tmap-name(" + mapName + ")"
             //+ "\n\tunique-resources(" + resources.size() + ")"
             ;
+            */
+        final String comment = MAP_ARCHIVE_KEY + "; VERSION: 2;"
+        + " Saved " + new Date() + " by " + VUE.getName() + " built " + Version.AllInfo + "; items=" + items.size() + ";"
+        + ">" // /usr/bin/what terminatior
+        + "\n\t" + STARTED_WITH_KEY + fileWeStartedWith 
+        //+ "\n\tmap-name(" + mapName + ")"
+        //+ "\n\tunique-resources(" + resources.size() + ")"
+        ;
+        // HO 17/10/2010 END *****************
         Archive.setComment(mapEntry, comment);
         zos.putNextEntry(mapEntry);
 
