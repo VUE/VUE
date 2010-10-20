@@ -798,6 +798,10 @@ public class Archive
 
      */
     
+    // HO 20/10/2010 BEGIN **************
+    private static File originalFile = null;
+    // HO 20/10/2010 END **************
+    
     // HO 29/09/2010 BEGIN *******************
     // public static void writeArchive(LWMap map, File archive)
         // throws java.io.IOException
@@ -806,6 +810,12 @@ public class Archive
     // HO 29/09/2010 END *******************
     {
         Log.info("Writing archive package " + archive);
+        
+        // HO 20/10/2010 BEGIN **************
+        if (startedWith.length == 0) {
+        	originalFile = map.getFile();
+        }
+        // HO 20/10/2010 END **************
         
         // HO 17/10/2010 BEGIN ***********
         String fileWeStartedWith = "";
@@ -816,16 +826,13 @@ public class Archive
         
         // HO 27/09/2010 BEGIN *******************
         // flag whether we are currently handling a .vue file
-        boolean bVueFile = false;
-        // flag whether we are currently handling a .vpk file
-        boolean bVpak = false;
+        //boolean bVueFile = false;
         // HO 27/09/2010 END *******************
 
         final String label = archive.getName();
         final String mapName;
         // HO 07/10/2010 BEGIN *******************
         if (label.endsWith(VueUtil.VueArchiveExtension)) {
-        	bVpak = true;
         	// HO 07/10/2010 END *******************
             mapName = label.substring(0, label.length() - 4);           
         } else {
@@ -833,9 +840,9 @@ public class Archive
         }
         
         // HO 27/09/2010 BEGIN *******************
-        if (label.endsWith(VueUtil.VueExtension)) {
+        /* if (label.endsWith(VueUtil.VueExtension)) {
         	bVueFile = true; 
-        }
+        } */
         // HO 27/09/2010 END *******************
         
 
@@ -857,6 +864,8 @@ public class Archive
             try {
             	// this resource isn't a .vue file until we know otherwise
                 boolean bVue = false;
+                // it also isn't a .vpk file until we know otherwise
+                boolean bVpk = false;
                 // this resource isn't a WormholeResource until we know otherwise
                 boolean bWormhole = false;
                 // the Map object
@@ -871,22 +880,46 @@ public class Archive
                 if (sourcePath.endsWith(VueUtil.VueExtension)) {
                 	// flag that we're dealing with a .vue file
                 	bVue = true;
-                	// now check and see if the resource is a WormholeResource
-                    if (r.getClass().equals(tufts.vue.WormholeResource.class)) {
-                    	// if so flag it
-                    	bWormhole = true;
-                    }
-                	
-                	// so if the resource's actual source file is a .vue file
-                    if (bVue == true) {
-                    	// replace the file extension with a .vpk file type
-                		String saveAsFile = sourcePath.substring(0, sourcePath.length() - 4);
-                		saveAsFile = saveAsFile + VueUtil.VueArchiveExtension;
-                		// create a new file object with the same name and location
-                		// as the source file, but of type .vpk
-                		newSourceFile = new File(saveAsFile);
-                	} 
+                } else if (sourcePath.endsWith(VueUtil.VueArchiveExtension)) {
+                	bVpk = true;
                 }
+                
+            	// now check and see if the resource is a WormholeResource
+                if (r.getClass().equals(tufts.vue.WormholeResource.class)) {
+                	// if so flag it
+                	bWormhole = true;
+                }
+                	
+            	// so if the resource's actual source file is a .vue file
+                if (bVue == true) {
+                	// replace the file extension with a .vpk file type
+            		String saveAsFile = sourcePath.substring(0, sourcePath.length() - 4);
+            		saveAsFile = saveAsFile + VueUtil.VueArchiveExtension;
+            		// create a new file object with the same name and location
+            		// as the source file, but of type .vpk
+            		newSourceFile = new File(saveAsFile);
+            	} else if (bVpk == true) {
+            		// check and see if the directory is the same as
+            		// the one we want to save to
+            		/* File theParent = r.getActiveDataFile().getParentFile();
+            		String strParent = theParent.toString();
+            		System.out.println(strParent);
+            		String strNewParent = "";
+            		File parentParent = null;
+            		String strName = r.getActiveDataFile().getName();
+            		String strNewName = "";
+            		// if it's in an archive folder but that archive folder
+            		// doesn't match the one we want to write to
+            		if ((!strParent.endsWith(dirName)) && (strParent.endsWith(".vdr"))) {
+            			parentParent = theParent.getParentFile();
+            			strNewParent = parentParent.toString();
+            			strNewParent = strNewParent + "/" + dirName;
+            			System.out.println(strNewParent);
+            			strNewName = strNewParent + "/" + strName;
+            			System.out.println(strNewName);
+            			newSourceFile = new File(strNewName);
+            		} */
+            	}
                 
                 // if we don't so far have a source file object derived from
                 // the resource's source file
@@ -909,7 +942,14 @@ public class Archive
                 // flag it as missing and continue
          		} else if (!sourceFile.exists()) {
                     Log.warn("Missing local file: " + sourceFile + "; for " + r);
-                    continue;
+                    // HO 20/10/2010 BEGIN ******
+                    // temporary fix - nonlocal files sometimes fail the
+                    // existence test
+                    // continue;
+                    if (bVpk == false) {
+                    	continue;
+                    }
+                    // HO 20/10/2010 END ******
                 }
 
                 // todo: if source file is a .vue file, could load the map (faster if is
@@ -917,7 +957,7 @@ public class Archive
                 // and add that to to archive uncompressed, converting the .vue resource
                 // to a .vpk resource.
          // if source file is a .vue file,   	
-         if (bVue == true) {
+         if ((bVue == true) || (bVpk == true)) {
         	 	// check and see if the current resource is a WormholeResource
             	if (bWormhole == false) { 
             		// source file is a .vue file, so we're loading the map
@@ -932,18 +972,31 @@ public class Archive
             			// the full path of the source file we're currently
             			// trying to package
             			String fileWeHaveNow = sourceFile.getAbsolutePath();
+            			String strOriginalFile = "";
+            			if (originalFile != null) {
+            				strOriginalFile = originalFile.getAbsolutePath();
+            			}
                 		// See if the starting file
                 		// is the same as the file we're trying to package up.
             			// Lop off the file extension in case it got changed from
             			// .vue to .vpk along the way - it's still the same file.
             			if (!fileWeStartedWith.substring(0, fileWeStartedWith.length() - 4).equals(fileWeHaveNow.substring(0, fileWeHaveNow.length() - 4))) {
-            				// if the two files are different, go ahead and package this one up.
-            				// load the map,
-            				theMap = OpenAction.loadMap(fileWeHaveNow);
-            				// and archive it out as a .vpk file, making a note
-            				// of the name of the file we were in the middle of
-            				// archiving when we got to this point
-            				writeArchive(theMap, sourceFile, archive);
+            				// HO 20/10/2010 BEGIN **************
+            				// if the filename was changed, we also don't want
+            				// to end up pointing at the wrong file
+            				if(!fileWeHaveNow.equals(strOriginalFile)) {
+            					// HO 20/10/2010 END **************
+            					// if the two files are different, go ahead and package this one up.
+            					// load the map,
+            					theMap = OpenAction.loadMap(fileWeHaveNow);
+            					// and archive it out as a .vpk file, making a note
+            					// of the name of the file we were in the middle of
+            					// archiving when we got to this point
+            					writeArchive(theMap, sourceFile, archive);
+            				} else {
+            					// If both the files are the same, skip it and move on.
+                				continue;
+            				}
             			} else { // HO 11/10/2010             				
             				// If both the files are the same, skip it and move on.
             				continue;
