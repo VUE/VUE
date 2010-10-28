@@ -267,7 +267,27 @@ public abstract class RectangularPoly2D extends RectangularShape
             ypoints[7] = y + yInset;
         }
     }
-
+    /** a point sideways Chevron */  
+    public static class Chevron extends RectangularPoly2D {  
+    	  public Chevron() { setSides(6); }  
+    	  public int getContentGravity() { return CENTER; }  
+          protected void computeVertices()  
+           {  
+            
+             xpoints[0] = x + ((double)width-(double)width*0.2);  
+             ypoints[0] = y;         
+             xpoints[1] = x + width;  
+             ypoints[1] = y + (height/2);     
+             xpoints[2] = x + ((double)width-(double)width*0.2);  
+             ypoints[2] = y + height;   
+             xpoints[3] = x;  
+             ypoints[3] = y + height;  
+             xpoints[4] = x + (double)width*0.2;  
+             ypoints[4] = y + (height/2);  
+             xpoints[5] = x;  
+             ypoints[5] = y;             
+           }      
+     }  
     public void setSides(int sides)
     {
         if (sides < 3 || sides > 8)
