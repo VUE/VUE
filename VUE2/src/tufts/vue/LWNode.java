@@ -1451,7 +1451,7 @@ public class LWNode extends LWContainer
                 content.x = margin;
                 content.y = (float) (shapeHeight - content.height) / 2;
             } else if (gravity == RectangularPoly2D.WEST) {
-                content.x = (shapeWidth - content.width) + margin;
+                content.x = (shapeWidth - content.width) - margin;
                 content.y = (float) Math.floor((shapeHeight - content.height) / 2);
             } else if (gravity == RectangularPoly2D.NORTH) {
                 content.x = (shapeWidth  - content.width) / 2;
