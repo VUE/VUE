@@ -236,7 +236,7 @@ public class SaveAction extends VueAction
             	HtmlOutputDialog hod = new HtmlOutputDialog();
             	hod.setVisible(true);   
             	if (hod.getReturnVal() > 0)
-            		new ImageMap().createImageMap(file, hod.getScale());
+            		new ImageMap().createImageMap(file, hod.getScale(), hod.getFormat());
             }
 //             else if (name.endsWith(".htm")) {
 //                 writeHTMLOutline(map, file);

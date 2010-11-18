@@ -73,7 +73,7 @@ public class ImageMap extends VueAction {
 		File selectedFile = ActionUtil.selectFile("Saving Imap", "html");
 
 		if (selectedFile != null)
-			createImageMap(selectedFile,1.0);
+			createImageMap(selectedFile,1.0,"png");
 	}
 	
 	public void createImageMap(File file,LWMap map,double zoom) {
@@ -102,7 +102,7 @@ public class ImageMap extends VueAction {
 		createHtml(imageName, fileName,map,zoom);
 	}
 
-	public void createImageMap(File file, double zoom) {
+	public void createImageMap(File file, double zoom, String format) {
 		// See: VUE-536 in JIRA, If SaveAction Class still chooses "html" as the
 		// file type for image maps
 		// html file will already not be overwritten
@@ -112,10 +112,10 @@ public class ImageMap extends VueAction {
 		// file.getName().length()-5)+"-for-image-map"+".jpeg";
 		String imageLocation = file.getAbsolutePath().substring(0,
 				file.getAbsolutePath().length() - 5)
-				+ ".png";
+				+ "." + format;
 		String imageName = file.getName().substring(0,
 				file.getName().length() - 5)
-				+ ".png";
+				+ "." + format;
 		String fileName = file.getAbsolutePath().substring(0,
 				file.getAbsolutePath().length() - 5)
 				+ ".html";
@@ -134,7 +134,12 @@ public class ImageMap extends VueAction {
 
 		// createJpeg(imageLocation, "jpeg", currentMap, size);
 		// ImageConversion.createActiveMapJpeg(new File(imageLocation));
-		imageDimensions = ImageConversion.createActiveMapPng(imageLocationFile,
+		
+		if (format.equals("jpeg"))
+			imageDimensions = ImageConversion.createActiveMapJpeg(imageLocationFile,
+					zoom);
+		else
+			imageDimensions = ImageConversion.createActiveMapPng(imageLocationFile,
 				zoom);
 		createHtml(imageName, fileName,zoom);
 	}
