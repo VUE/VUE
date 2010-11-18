@@ -281,17 +281,38 @@ public class GUI
 
                 try {
                 	   // FileChooser:
-             //       Set includes = new HashSet();
-             //       includes.add("ColorChooser");
-            //        includes.add("FileChooser");
-            //        includes.add("Component");
-//           //         includes.add("Browser");
- //                   includes.add("Tree");
-  //                  includes.add("SplitPane");
+                    Set includes = new HashSet();
+                    includes.add("ColorChooser");
+                    includes.add("FileChooser");
+                    includes.add("PopupMenu");
+                    includes.add("ComboBox");
+                    includes.add("Tree");
+                    includes.add("SplitPane");
+                  //  includes.add("Menu");
+                   includes.add("MenuItem");
+                   
+                   // includes.add("List");	
+                   // includes.add("Browser");
+                   // includes.add("Button");
+                   // includes.add("CheckBox");
+                   // includes.add("DesktopPane");
+                   // includes.add("EditorPane");
+                   // includes.add("FormattedTextField");
+                   // includes.add("Label");
+                   // includes.add("MenuBar");
+                   // includes.add("OptionPane");
+                   // includes.add("Panel");
+                   // includes.add("RadioButton");	
+                    includes.add("RootPane");
+                    includes.add("ScrollBar");
                     
-                   //ch.randelshofer.quaqua.QuaquaManager.setIncludedUIs(includes);
-                	UIManager.setLookAndFeel("ch.randelshofer.quaqua.QuaquaLookAndFeel");
-                    System.setProperty("Quaqua.design", "panther");
+                    
+                   ch.randelshofer.quaqua.QuaquaManager.setIncludedUIs(includes);
+               	UIManager.setLookAndFeel("ch.randelshofer.quaqua.QuaquaLookAndFeel");
+            //    System.setProperty("Quaqua.design", "panther");
+            
+                	//UIManager.setLookAndFeel(ch.randelshofer.quaqua.QuaquaManager.getLookAndFeel());
+                    //System.setProperty("Quaqua.design", "panther");
                 }
                 catch (Throwable t) {
                     Log.error("Couldn't load quaqua look and feel", t);
