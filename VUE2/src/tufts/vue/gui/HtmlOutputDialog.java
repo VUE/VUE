@@ -8,6 +8,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -36,6 +37,8 @@ htmloutput.pixels=Pixels
 	private JButton cancelButton = new JButton(VueResources.getString("htmloutput.cancel"));
 	private JLabel widthLabel = new JLabel(VueResources.getString("htmloutput.width"));
 	private JLabel heightLabel = new JLabel(VueResources.getString("htmloutput.height"));
+	private JLabel formatLabel = new JLabel(VueResources.getString("htmloutput.format"));
+	private JComboBox formatBox = new JComboBox();
 	private JTextField widthField = new JTextField();
 	private JTextField heightField = new JTextField();
 	private double widthRatio;
@@ -74,12 +77,14 @@ htmloutput.pixels=Pixels
 		widthField.addKeyListener(this);
 		heightField.addKeyListener(this);
 		okButton.addActionListener(this);
+		cancelButton.addActionListener(this);
 	}
 	
 	private void buildUI()
 	{
 		 JPanel panel = new JPanel(new MigLayout("fill","[80][80][80]","[20]"));
-		 panel.add(new JLabel("Dimensions"),"gaptop 3");
+		 JLabel dimLabel = new JLabel(VueResources.getString("htmloutput.dimensions"));
+		 panel.add(dimLabel,"gaptop 3");
 		 panel.add(new JSeparator(),       "growx, wrap, gaptop 3");
 		 panel.add(widthLabel,"gap 10");
 		 panel.add(widthField,"growx");
@@ -87,6 +92,11 @@ htmloutput.pixels=Pixels
 		 panel.add(heightLabel,"gap 10");
 		 panel.add(heightField,"growx");		 
 		 panel.add(heightPixels,"gap 10, wrap");
+		 panel.add(formatLabel,"gap 10");
+		 formatBox.addItem("PNG");		 
+		 formatBox.addItem("JPEG");
+		 panel.add(formatBox,"gap 10, wrap");
+		 
 		
 		 JPanel p = new JPanel(new MigLayout(""));
 		 p.add(cancelButton, "sg, tag cancel");
@@ -97,6 +107,12 @@ htmloutput.pixels=Pixels
 		 this.pack();
 
 	}
+	
+	public String getFormat()
+	{
+		return formatBox.getSelectedItem().toString().toLowerCase();
+	}
+	
 	public double getScale()
 	{
 		String wText = widthField.getText();
