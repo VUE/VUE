@@ -309,10 +309,10 @@ public class NodeTool extends VueTool
             creationNode.setAutoSized(false);
             setActiveWhileDownKeyCode(KeyEvent.VK_X); 
             //HO 23/06/2010 BEGIN *********************
-            File fileName = new File("/Users/helenoliver/Documents/chii_whistling.tiff");
+            /* File fileName = new File("/Users/helenoliver/Documents/chii_whistling.tiff");
             if ((fileName != null) && (fileName.exists())) {
             	creationNode.setResource(fileName);
-            }
+            } */
             	
             
           //HO 23/06/2010 END *********************
