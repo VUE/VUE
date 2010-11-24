@@ -18,6 +18,7 @@ package tufts.vue;
 import sun.tools.tree.SuperExpression;
 import tufts.Util;
 import static tufts.Util.fmt;
+import tufts.vue.ibisimage.*;
 import tufts.vue.shape.RectangularPoly2D;
                        
 import edu.tufts.vue.preferences.PreferencesManager;
@@ -161,6 +162,7 @@ public class LWNode extends LWContainer
     public LWNode(String label) {
         this(label, 0, 0);
     }
+
     LWNode(String label, RectangularShape shape) {
         this(label, 0, 0, shape);
     }
@@ -265,30 +267,6 @@ public class LWNode extends LWContainer
         }
         
     };
-
-    
-
-    /*
-    public static final Key KEY_Shape = new Key("node.shape", KeyType.STYLE) {
-            Property getSlot(LWComponent c) { return ((LWNode)c).mShape; }
-        };
-    public class ShapeProperty extends Property<RectangularShape> {
-        ShapeProperty(Key key) {
-            super(key);
-            // leave as null?
-            //value = new Rectangle2D.Float();
-        }
-        
-        final RectangularShape get() { return value; }
-    }
-    private final ShapeProperty mShape = new ShapeProperty(KEY_Shape); // { }
-    */
-
-        
-    
-//     private static RectangularShape cloneShape(Object shape) {
-//         return (RectangularShape) ((RectangularShape)shape).clone();
-//     }
 
     /**
      * @param shapeClass -- a class object this is a subclass of RectangularShape
