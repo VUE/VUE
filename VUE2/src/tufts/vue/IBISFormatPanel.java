@@ -34,10 +34,10 @@ public class IBISFormatPanel extends JPanel
 {
 	//	Resource panes
     private final IBISNodeToolPanel ibisNodeToolPanel;
-    private final FillToolPanel fillToolPanel;
-    private final LinkToolPanel linkToolPanel;
-    private final ArrowToolPanel arrowToolPanel;
-    private final TextToolPanel textToolPanel;
+    // private final FillToolPanel fillToolPanel;
+    // private final LinkToolPanel linkToolPanel;
+    // private final ArrowToolPanel arrowToolPanel;
+    // private final TextToolPanel textToolPanel;
     
 	public IBISFormatPanel()
 	{									
@@ -46,29 +46,29 @@ public class IBISFormatPanel extends JPanel
 		this.setFocusable(false);
      
 		ibisNodeToolPanel = new IBISNodeToolPanel();
-		fillToolPanel = new FillToolPanel();
-		linkToolPanel = new LinkToolPanel();
-		arrowToolPanel = new ArrowToolPanel();
-		textToolPanel = new TextToolPanel();
+		// fillToolPanel = new FillToolPanel();
+		// linkToolPanel = new LinkToolPanel();
+		// arrowToolPanel = new ArrowToolPanel();
+		// textToolPanel = new TextToolPanel();
 		
         this.add(ibisNodeToolPanel);
-        this.add(new JSeparator(SwingConstants.VERTICAL));
+        // this.add(new JSeparator(SwingConstants.VERTICAL));
         
-        this.add(fillToolPanel);
-        this.add(new JSeparator(SwingConstants.VERTICAL));
+        // this.add(fillToolPanel);
+        // this.add(new JSeparator(SwingConstants.VERTICAL));
         
-        this.add(linkToolPanel);       
-        this.add(new JSeparator(SwingConstants.VERTICAL));
+        // this.add(linkToolPanel);       
+        // this.add(new JSeparator(SwingConstants.VERTICAL));
         
-        this.add(arrowToolPanel);
-        this.add(new JSeparator(SwingConstants.VERTICAL));
+        // this.add(arrowToolPanel);
+        // this.add(new JSeparator(SwingConstants.VERTICAL));
         
-        this.add(textToolPanel);
+        // this.add(textToolPanel);
 	}
 	
-	public TextToolPanel getTextPropsPane()
+	/* public TextToolPanel getTextPropsPane()
     {
     	return textToolPanel;
-    }
+    } */
 }
 
