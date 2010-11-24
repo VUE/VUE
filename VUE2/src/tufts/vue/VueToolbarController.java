@@ -130,7 +130,9 @@ public class VueToolbarController
         final int ONTOLOGY_LINK_POSITION=1;
         
         Map buttons = getToolbar().getToolButtons();
+        // HO 29/10/2010 BEGIN TEST **********
         PaletteButton parentButton = (PaletteButton)buttons.get(nodeTool.getParentTool().getID());
+        // HO 29/10/2010 BEGIN TEST **********
         PaletteButton parentLinkButton = (PaletteButton)buttons.get(linkTool.getParentTool().getID());
         Component[] c = parentButton.mPopup.getComponents();
         ontologyNodeComponent = c[ONTOLOGY_NODE_POSITION];
