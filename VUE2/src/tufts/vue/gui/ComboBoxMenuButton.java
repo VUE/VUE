@@ -129,6 +129,9 @@ public abstract class ComboBoxMenuButton<T> extends JComboBox
             }
         } else {
             icon = makeIcon((T) value);
+            // HO 18/11/2010 BEGIN **************
+            
+            // HO 18/11/2010 END **************
         }
         if (mIconCache == null)
             mIconCache = new HashMap();
@@ -136,6 +139,44 @@ public abstract class ComboBoxMenuButton<T> extends JComboBox
         mIconCache.put((T) value, icon == null ? NO_ICON : icon);
         return icon;
     }
+    
+    // 18/11/2010 BEGIN **************
+    /* protected ImageIcon getIconForValue(Object value)
+    {
+        ImageIcon icon = null;
+
+        if (mIconCache != null)
+            icon = (ImageIcon)mIconCache.get(value);
+
+        if (icon == NO_ICON)
+            return null;
+
+        if (icon != null)
+            return icon;
+
+        if (value instanceof Action) {
+            Action a = (Action) value;
+            icon = (ImageIcon) a.getValue(Action.SMALL_ICON);
+            if (icon == null) {
+                value = a.getValue(VALUE_KEY);
+                icon = (ImageIcon)makeIcon((T) value);
+                //a.putValue(Action.SMALL_ICON, icon); // warning: side effect
+            }
+        } else {
+            icon = (ImageIcon)makeIcon((T) value);
+            // HO 18/11/2010 BEGIN **************
+            
+            // HO 18/11/2010 END **************
+        }
+        if (mIconCache == null)
+            mIconCache = new HashMap();
+        //System.out.println("Loading cache for [" + value + "] with " + icon);
+        mIconCache.put((T) value, icon == null ? NO_ICON : icon);
+        return icon;
+    } */   
+    
+    
+    // 18/11/2010 END ****************
     
     /** override if there is a custom menu item */
     protected Object runCustomChooser() {
