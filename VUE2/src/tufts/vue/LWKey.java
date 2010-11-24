@@ -47,6 +47,9 @@ public interface LWKey {
     public LWComponent.Key FontStyle =  LWComponent.KEY_FontStyle;
     public LWComponent.Key Alignment =  LWComponent.KEY_Alignment;
     public LWComponent.Key Shape = LWNode.KEY_Shape;
+    // HO 27/10/2010 BEGIN ***************************
+    public LWComponent.Key IBISSymbol = LWIBISNode.KEY_IBISSymbol;
+    // HO 27/10/2010 END ***************************
 
     public LWComponent.Key Label = LWComponent.KEY_Label;
     public LWComponent.Key Notes = LWComponent.KEY_Notes;
