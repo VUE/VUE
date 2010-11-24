@@ -159,6 +159,10 @@ public abstract class VueTool extends AbstractAction
         setToolTipText(getAttribute("tooltip"));
 
         Icon rawIcon =  VueResources.getImageIcon(mID+".raw");
+        // HO 18/11/2010 BEGIN ****************
+
+        // HO 18/11/2010 END ****************
+        
         if (rawIcon != null) {
             setGeneratedIcons(rawIcon);
         } else {
