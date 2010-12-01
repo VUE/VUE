@@ -82,7 +82,7 @@ public class LWIBISNode extends LWNode
     private transient boolean isRectShape = true;
     
     // HO 03/11/2010 BEGIN *************
-    private transient boolean isIBISImage = true;
+    private transient boolean isIBISNode = true;
     // HO 03/11/2010 END *************
 
     private transient Line2D.Float mIconDivider = new Line2D.Float(); // vertical line between icon block & node label / children
@@ -331,14 +331,32 @@ public class LWIBISNode extends LWNode
         if (IsSameImage(mIBISImage, image))
             return;
 
-        final Object old = mIBISImage;
-        isIBISImage = (image instanceof LWImage);
-        mIBISImage = image;
-        mIBISImage.setFrame(0, 0, getWidth(), getHeight());
-        this.addChild(mIBISImage);
-        layout(LWKey.IBISSymbol);
-        // HO 03/11/2010 shouldn't need to update links?
-        updateConnectedLinks(null);
+        final IBISImage old = (IBISImage)mIBISImage;
+        isIBISNode = (image instanceof IBISImage);
+
+        if (mIBISImage == null) {
+        	mIBISImage = image;
+        	//mIBISImage.setFrame(0, 0, getWidth(), getHeight());
+            
+            //this.addChild(mIBISImage);
+        	this.setResource(mIBISImage.getResource());
+            //layout(LWKey.IBISSymbol);
+            // HO 03/11/2010 shouldn't need to update links?
+            //updateConnectedLinks(null);
+        }
+        
+        
+        // HO 01/12/2010 BEGIN out with the old
+        if (old != null) {
+        	Resource resource = image.getResource();
+        	this.setResource(resource);
+        	mIBISImage = image;
+        }
+        	else {
+        // HO 01/12/2010 END
+
+        	}
+      
         notify(LWKey.IBISSymbol, new Undoable(old) { void undo() { setImageInstance((LWImage)old); }} );
         
     } 
@@ -449,9 +467,9 @@ public class LWIBISNode extends LWNode
             if (lw1 instanceof tufts.vue.LWImage) {
                 LWImage ll1 = (LWImage) lw1;
                 LWImage ll2 = (LWImage) lw2;
-                return
-                    ll1.getWidth() == ll2.getWidth() &&
-                    ll1.getHeight() == ll2.getHeight();
+                return 
+                	ll1.getResource().getActiveDataFile().equals(ll2.getResource().getActiveDataFile());
+
             } else
                 return true;
         } else
