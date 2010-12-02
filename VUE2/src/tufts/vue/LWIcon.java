@@ -16,6 +16,7 @@
 package tufts.vue;
 
 import tufts.vue.gui.TextRow;
+import tufts.vue.ibisimage.IBISImage;
 import tufts.vue.ui.ResourceIcon;
 
 import java.awt.*;
@@ -554,11 +555,28 @@ public abstract class LWIcon extends Rectangle2D.Float
         }
 
         boolean isShowing() {
-        	if (IconPref.getResourceIconValue())
-        		return mLWC.hasResource();
-        	else 
-        		return false;
+        	if (IconPref.getResourceIconValue()) {
+        		// HO 02/12/2010 BEGIN ****************
+        		// return mLWC.hasResource();
+        		return ((mLWC.hasResource()) && (!isIBISImage()));
+        		} else {
+        			return false;
+        		}
+        	
+        		// HO 02/12/2010 END ****************
         	}
+        
+        boolean isIBISImage() {
+        	boolean bIBIS = false;
+        	if (!(mLWC instanceof LWIBISNode))
+        		return bIBIS; 
+        	
+        	LWIBISNode nod = (LWIBISNode)mLWC;
+        	if (nod.getImage() != null) {
+        		bIBIS = true;
+        	}
+        	return bIBIS;
+        }
 
      //   void doDoubleClickAction() {}
          void doDoubleClickAction() {

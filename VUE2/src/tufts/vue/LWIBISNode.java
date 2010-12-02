@@ -128,6 +128,7 @@ public class LWIBISNode extends LWNode
     	}
     	// make sure the fill color is white
     	this.setFillColor(java.awt.Color.white);
+    	this.setStrokeWidth(0);
     }
 
     LWIBISNode(String label, RectangularShape shape) {
