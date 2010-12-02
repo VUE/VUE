@@ -111,35 +111,13 @@ public class LWIBISNode extends LWNode
     
     LWIBISNode(String label, float x, float y, RectangularShape shape)
     {
-        super(label, x, y, shape);
-        // HO 23/11/2010 BEGIN ******************
-    	/* initNode();
-        super.label = label; // make sure label initially set for debugging
-        setFillColor(DEFAULT_NODE_FILL);
-        if (shape == null)
-            setShape(tufts.vue.shape.RoundRect2D.class);
-          //setShape(new RoundRectangle2D.Float(0,0, 10,10, 20,20));
-        else if (shape != null)
-            setShapeInstance(shape);
-        setStrokeWidth(DEFAULT_NODE_STROKE_WIDTH);
-        setStrokeColor(DEFAULT_NODE_STROKE_COLOR);
-        setLocation(x, y);
-        this.width = NEEDS_DEFAULT;
-        this.height = NEEDS_DEFAULT;
-        setFont(DEFAULT_NODE_FONT);
-        setLabel(label); */ 
-        // HO 23/11/2010 END ******************
-        
+        super(label, x, y, shape);        
     }
     
     public LWIBISNode(String label) {
-    	// HO 23/11/2010 BEGIN ******************
-        //this(label, 0, 0);
     	super(label);
-        // HO 23/11/2010 END ******************
     }
-    // HO 10/11/2010 BEGIN ***************
-    // for constructing IBIS nodes
+
     public LWIBISNode(String label, IBISImage image) {
     	this(label, 0, 0);
     	if(image == null) {
@@ -148,29 +126,21 @@ public class LWIBISNode extends LWNode
     	} else if (image != null) {
     		setImageInstance(image);
     	}
+    	// make sure the fill color is white
+    	this.setFillColor(java.awt.Color.white);
     }
-    // HO 10/11/2010 END ***************
+
     LWIBISNode(String label, RectangularShape shape) {
-    	// HO 23/11/2010 BEGIN ******************
-        //this(label, 0, 0, shape);
     	super(label, shape);
-        // HO 23/11/2010 END ******************
     }
     
     LWIBISNode(String label, float x, float y) {
-    	// HO 23/11/2010 BEGIN ******************
-        //this(label, x, y, null);
     	super(label, x, y);
-        // HO 23/11/2010 END ******************
     }
     
     LWIBISNode(String label, Resource resource)
     {
-    	// HO 23/11/2010 BEGIN ******************
-    	/* this(label, 0, 0);
-        setResource(resource); */
     	super(label, resource);
-        // HO 23/11/2010 END ******************
     }
   
     public static final Key KEY_Shape =
