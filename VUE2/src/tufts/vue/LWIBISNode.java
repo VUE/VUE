@@ -18,6 +18,10 @@ package tufts.vue;
 import sun.tools.tree.SuperExpression;
 import tufts.Util;
 import static tufts.Util.fmt;
+import tufts.vue.LWComponent.Alignment;
+import tufts.vue.LWComponent.CopyContext;
+import tufts.vue.LWComponent.Flag;
+import tufts.vue.LWIBISNode.Column;
 import tufts.vue.ibisimage.*;
 import tufts.vue.shape.RectangularPoly2D;
                        
@@ -32,6 +36,7 @@ import java.util.Collection;
 import java.util.List;
 import java.awt.*;
 import java.awt.geom.*;
+
 import javax.swing.ImageIcon;
 
 /**
@@ -42,7 +47,7 @@ import javax.swing.ImageIcon;
 // features (multiple columns).
 // todo: "text" nodes are currently a total hack
 
-public class LWIBISNode extends LWNode
+public class LWIBISNode extends LWContainer
 {
     protected static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LWIBISNode.class);
 
@@ -64,11 +69,9 @@ public class LWIBISNode extends LWNode
     //------------------------------------------------------------------
     
     
-    // HO 23/11/2010 BEGIN ******************
     /** 0 based with current local width/height */
-    // protected RectangularShape mShape;
-    // protected boolean isAutoSized = true; // compute size from label & children
-    // HO 23/11/2010 END ******************
+    protected RectangularShape mShape;
+    protected boolean isAutoSized = true; // compute size from label & children
     
     // HO 03/11/2010 BEGIN ******************
     protected LWImage mIBISImage;
@@ -109,13 +112,157 @@ public class LWIBISNode extends LWNode
         enableProperty(KEY_Alignment);
     }
     
+    @Override protected void drawImpl(DrawContext dc)
+    {
+        if (!isFiltered()) {
+            // Desired functionality is that if this node is filtered, we don't draw it, of course.
+            // But also, even if this node is filtered, we still draw any children who are
+            // NOT filtered -- we just drop out the parent background.
+            drawNode(dc);
+        }
+            
+        //-------------------------------------------------------
+        // Draw any children
+        //-------------------------------------------------------
+            
+        if (hasChildren()) {
+            //if (isZoomedFocus()) dc.g.setComposite(ZoomTransparency);
+            drawChildren(dc);
+        }
+
+        // even if filtered, we indicate if it's selected, as it *shouldn't* be selected
+        // if it's filtered, but we'll want to know if that is happening.
+
+        if (isSelected() && dc.isInteractive() && dc.focal != this)
+            drawSelection(dc);
+        
+    }
+    
     LWIBISNode(String label, float x, float y, RectangularShape shape)
     {
-        super(label, x, y, shape);        
+        // HO 06/12/2010 BEGIN *********
+        initNode();
+        super.label = label; // make sure label initially set for debugging
+        setFillColor(DEFAULT_NODE_FILL);
+        if (shape == null)
+            setShape(tufts.vue.shape.RoundRect2D.class);
+          //setShape(new RoundRectangle2D.Float(0,0, 10,10, 20,20));
+        else if (shape != null)
+            setShapeInstance(shape);
+        setStrokeWidth(DEFAULT_NODE_STROKE_WIDTH);
+        setStrokeColor(DEFAULT_NODE_STROKE_COLOR);
+        setLocation(x, y);
+        this.width = NEEDS_DEFAULT;
+        this.height = NEEDS_DEFAULT;
+        setFont(DEFAULT_NODE_FONT);
+        setLabel(label); 
+    	// HO 06/12/2010 END ************
     }
     
     public LWIBISNode(String label) {
-    	super(label);
+    	this(label, 0, 0);
+    }
+    
+    /**
+     * if asText is true, make this a text node, and isTextNode should return true.
+     * If asText is false, do the minimum to this node such that isTextNode will
+     * no longer return true.
+     */
+    public void setAsTextNode(boolean asText)
+    {
+        if (asText) {
+            setShape(java.awt.geom.Rectangle2D.Float.class); // now enforced
+            disableProperty(LWKey.Shape);
+            setFillColor(COLOR_TRANSPARENT);
+            setFont(DEFAULT_TEXT_FONT);
+        } else {
+            enableProperty(LWKey.Shape);
+            setFillColor(DEFAULT_NODE_FILL);
+        }
+        if (asText)
+            setAutoSized(true);
+    }
+    
+    @Override
+    public boolean handleDoubleClick(MapMouseEvent e)
+    {
+
+        //if (this instanceof LWPortal) // hack: clean this up -- maybe move all below to LWComponent...
+            //return super.handleDoubleClick(e);
+        
+        final Point2D.Float localPoint = e.getLocalPoint(this);
+        final float cx = localPoint.x;
+        final float cy = localPoint.y;
+
+        if (textBoxHit(cx, cy)) {
+            // TODO: refactor w/MapViewer mouse handing & VueTool handling code
+            // e.g.: this does NOT want to happen with the presentation tool.
+            e.getViewer().activateLabelEdit(this);
+        } else {
+            if (!mIconBlock.handleDoubleClick(e)) {
+                // by default, a double-click anywhere else in
+                // node opens the resource
+                if (hasResource()) {
+                    getResource().displayContent();
+                }
+            }
+        }
+        return true;
+    }
+    
+    @Override
+    public boolean supportsUserLabel() { return true; }
+    
+    @Override
+    public boolean supportsUserResize() {
+        if (isTextNode())
+            return !isAutoSized(); // could be confusing, as once is shrunk down, can't resize again w/out undo
+        else
+            return true;
+    }
+    
+    @Override
+    protected List<LWComponent> sortForIncomingZOrder(Collection<? extends LWComponent> toAdd)
+    {
+        // Use the YSorter -- as we stack out children, this will then
+        // display them in the same vertical order they had wherever
+        // they came from.  Only guaranteed to make sense when all the
+        // incoming nodes are on the same parent/canvas, (the same
+        // coordinate space).
+        
+        return java.util.Arrays.asList(sort(toAdd, YSorter));
+    }
+    
+    /** @return false if this is a text node */
+    @Override
+    public boolean supportsChildren() {
+//         if (hasFlag(Flag.SLIDE_STYLE) && isImageNode(this))
+//             return false;
+//         else
+        if (hasFlag(Flag.SLIDE_STYLE) && hasResource() && getResource().isImage()) {
+            // so a text item that links to an image is allowed to have an
+            // image dropped into it (ideally, it would only allow the image with the same resource)
+            return true;
+        } else
+            return !isTextNode();
+    }
+    
+    @Override
+    public boolean isExternalResourceLinkForPresentations() {
+        return hasResource() && !hasChildren() && !iconShowing() && getStyle() != null;
+        // may even need to check if this has the LINK slide style in particular
+    }
+    
+    @Override
+    protected void removeChildImpl(LWComponent c)
+    {
+        c.setScale(1.0); // just in case, get everything
+        super.removeChildImpl(c);
+    }
+    
+    @Override
+    public void initTextBoxLocation(TextBox textBox) {
+        textBox.setBoxLocation(relativeLabelX(), relativeLabelY());
     }
 
     public LWIBISNode(String label, IBISImage image) {
@@ -132,16 +279,155 @@ public class LWIBISNode extends LWNode
     }
 
     LWIBISNode(String label, RectangularShape shape) {
-    	super(label, shape);
+    	this(label, 0, 0, shape);
     }
     
     LWIBISNode(String label, float x, float y) {
-    	super(label, x, y);
+    	// HO 06/12/2010 BEGIN *************
+    	// super(label, x, y);
+    	this(label, x, y, null);
+    	// HO 06/12/2010 END *************
     }
     
     LWIBISNode(String label, Resource resource)
     {
-    	super(label, resource);
+        this(label, 0, 0);
+        setResource(resource);
+    }
+    
+    @Override
+    public int getFocalMargin() {
+        return -10;
+    }
+    
+    @Override
+    public void setCollapsed(boolean collapsed) {
+
+        if (COLLAPSE_IS_GLOBAL)
+            throw new Error("collapse is set to global impl");
+        
+        if (hasFlag(Flag.COLLAPSED) != collapsed) {
+            setFlag(Flag.COLLAPSED, collapsed);
+            layout(KEY_Collapsed);
+            notify(KEY_Collapsed, !collapsed);
+        }
+
+        // if we run into problems with children being visible / pickable anywhere, we
+        // could always make all descendents additionally hidden via a new
+        // HideCause.COLLAPSED, but they're currently being successfully truncated by an
+        // appropriatly false return in from LWComponent.hasPicks(), or a excluded from
+        // the list returned by LWComponent.getPickList().  The drawback to apply
+        // an additional HideCause to all descendents would be the generation of
+        // lots of events on collapse, tho we would no longer need isAncestorCollapsed().
+    }
+    
+    @Override
+    public void addChildren(java.util.Collection<? extends LWComponent> children, Object context)
+    {
+        if (!mXMLRestoreUnderway && !hasResource() && !hasChildren() && children.size() == 1) {
+            final LWComponent first = Util.getFirst(children);
+            if (first instanceof LWImage) {
+                // we do this BEFORE calling super.addChildren, so the soon to be
+                // added LWImage will know to auto-update itself to node icon status
+                // in it's setParent (or we could call first.updateNodeIconStatus
+                // directly if we made it public)
+                
+                // don't call setResource, or our special LWIBISNode impl will auto
+                // install the image as a node icon, and then addChildren will add
+                // it a second time.
+                
+                // TODO: however, this not undoable...  so we'll want to do this
+                // after...
+                
+                // TODO: Also, dragging OUT a non-attached image to the map, but
+                // canceling the drag, triggers this code in the re-add, and
+                // then the image gets 'stuck' as a node icon.
+                
+                takeResource(first.getResource());
+            }
+            
+        }
+        
+        super.addChildren(children, context);
+        // HO 22/09/2010 BEGIN ****************
+        reparentWormholeNode(children);
+
+        // HO 22/09/2010 END ****************
+        
+        //Log.info("ADDED CHILDREN: " + Util.tags(iterable));
+
+    }
+    
+    @Override
+    public void XML_completed(Object context) {
+        super.XML_completed(context);
+        if (hasChildren()) {
+            if (DEBUG.WORK||DEBUG.XML||DEBUG.LAYOUT) Log.debug("XML_completed: scaling down LWIBISNode children in: " + this);
+            for (LWComponent c : getChildren()) {
+                if (isScaledChildType(c))
+                    c.setScale(ChildScale);
+            }
+
+            if (hasResource() && getChild(0) instanceof LWImage) {
+                final LWImage image = (LWImage) getChild(0);
+                final Resource IR = image.getResource();
+                final Resource r = getResource();
+                
+                if (r != null && IR != null && r != IR && r.equals(IR)) {
+
+                    // node & image start with same instance of a Resource object when
+                    // intially created, but two instances are created during
+                    // persistance.  This restore the single instance condition upon
+                    // restore.  The Resource owned by the image takes priority, as it's
+                    // going to have the most complete & up to date meta-data.
+
+                    // This should work fine (it's the same state things are in when
+                    // image nodes are initially created), tho we should watch for
+                    // side-effects with filtering & meta-data, or even possible
+                    // threading issues, in case this brings to light other bugs we
+                    // haven't caught yet. SMF 2008-04-01
+                    
+                    takeResource(IR);
+                    
+                }
+
+            }
+            
+        }
+
+    }
+    
+    @Override
+    public boolean isManagingChildLocations() {
+        return true;
+    }
+    
+    /** @return true -- a node is always considered to have content */
+    @Override
+    public boolean hasContent() {
+        return true;
+    }
+    
+    public LWImage getImage() {
+        if (isImageNode(this))
+            return (LWImage) getChild(0);
+        else
+            return null;
+    }
+    
+    public RectangularShape getXMLshape() {
+        return mShape;
+    }
+    
+    @Override
+    protected void addChildImpl(LWComponent c, Object context)
+    {
+        // must set the scale before calling the super
+        // handler, as scale must be in place before
+        // notifyHierarchyChanging/Changed calls.
+        if (isScaledChildType(c))
+            c.setScale(LWIBISNode.ChildScale);
+        super.addChildImpl(c, context);
     }
   
     public static final Key KEY_Shape =
@@ -290,6 +576,157 @@ public class LWIBISNode extends LWNode
         } catch (Throwable t) {
             tufts.Util.printStackTrace(t);
         }
+    }
+    
+    @Override
+    public boolean isTextNode() {
+
+        // todo: "text" node should display no note icon, but display
+        // the note if any when any part of it is rolled over.  Just
+        // what a text node is is a bit confusing right now, but it's
+        // useful guess for now.
+        
+        return isLikelyTextNode() && mShape instanceof Rectangle2D;
+    }
+    
+    @Override
+    public void setToNaturalSize() {
+    	Size m = this.getMinimumSize();
+        setSize(m.width, m.height);
+    }
+    
+    @Override
+    public Object getTypeToken() {
+        return isTextNode() ? TYPE_TEXT : super.getTypeToken();
+    }
+    
+    @Override
+    public boolean isLikelyTextNode() {
+
+        // SMF 2008-04-25: This is a hack for VUE-822 until the underlying bug can be
+        // found ("text" nodes being created with non-rectangular shapes).  The
+        // PresentationTool is going to call this directly. These are all the conditions
+        // from the original isTextNode, less the check for the shape.  We're not just
+        // changing isTextNode as getTypeToken relies on it, and allowing shapes into
+        // text nodes would changed EditorManager behaivor for how style properties are
+        // used to load tool states and copy/apply style values.
+        
+        return getClass() == LWIBISNode.class // sub-classes don't count
+            && isTranslucent()
+            && !hasChildren()
+            && !inPathway(); // heuristic to exclude LWIBISNode portals (not likely to just put a piece of text alone on a pathway)
+    }
+    
+    @Override
+    protected Point2D getZeroSouthEastCorner() {
+        if (isRectShape)
+            return super.getZeroSouthEastCorner();
+
+        // find out where a line drawn from our local center to our
+        // lower right bounding box intersects the lower right edge of
+        // our local shape
+        
+        final float[] corner =
+            VueUtil.computeIntersection(getWidth() / 2, getHeight() / 2,
+                                        getWidth(), getHeight(),
+                                        mShape,
+                                        null);
+
+        return new Point2D.Float(corner[0], corner[1]);
+    }
+    
+    protected boolean intersectsImpl(final Rectangle2D mapRect)
+    {
+        if (isRectShape) {
+            // if we're a rect-ish shape, the standard bounding-box impl will do
+            // (it will over-include the corners on round-rects, but that's okay)
+            return super.intersectsImpl(mapRect);
+        } else {
+            // TODO: only use the fast reject if this is for paint-clip testing?  already overkill?
+            if (super.intersectsImpl(mapRect) == false) {
+                return false; // fast-reject
+            } else {
+                return getZeroShape().intersects(transformMapToZeroRect(mapRect));
+            }
+        }
+        
+    }
+
+    protected boolean containsImpl(float x, float y, PickContext pc) {
+        if (isRectShape) {
+            // won't be perfect for round-rect at big scales, but good
+            // enough, and takes into account stroke width
+            return super.containsImpl(x, y, pc);
+        } else if (super.containsImpl(x, y, pc)) {
+            
+            // above was a fast-reject check on the bounding box, now check the actual shape:
+            
+            // TODO: need to figure out a way to compenstate for stroke width on
+            // arbitrary shapes.  (This is only noticable when zoomed up to massive
+            // scales with large stroke widths). We could compute a connector and check
+            // the distance^2 against the (strokeWidth/2)^2, and in that case we could
+            // override pickDistance if we want near picking of nodes, tho I don't think
+            // we need that.
+            
+            return mShape.contains(x, y);
+        } else
+            return false;
+    }
+    
+    protected void layoutImpl(Object triggerKey) {
+        layoutNode(triggerKey, new Size(getWidth(), getHeight()), null);
+    }
+    
+    /**
+     * @param shape a new instance of a shape for us to use: should be a clone and not an original
+     */
+    protected void setShapeInstance(RectangularShape shape)
+    {
+        if (DEBUG.CASTOR) System.out.println("SETSHAPE " + shape.getClass() + " in " + this + " " + shape);
+
+        if (IsSameShape(mShape, shape))
+            return;
+
+        final Object old = mShape;
+        isRectShape = (shape instanceof Rectangle2D || shape instanceof RoundRectangle2D);
+        mShape = shape;
+        mShape.setFrame(0, 0, getWidth(), getHeight());
+        layout(LWKey.Shape);
+        updateConnectedLinks(null);
+        notify(LWKey.Shape, new Undoable(old) { void undo() { setShapeInstance((RectangularShape)old); }} );
+        
+    }
+    
+    public void setXMLshape(RectangularShape shape) {
+        setShapeInstance(shape);
+    }
+    
+    @Override
+    public void setLocation(float x, float y)
+    {
+        super.setLocation(x, y);
+
+        // Must lay-out children seperately from layout() -- if we
+        // just call layout here we'll recurse when setting the
+        // location of our children as they they try and notify us
+        // back that we need to layout.
+        
+        layoutChildren();
+    }
+    
+    /**
+     * Need to be able to do this seperately from layout -- this
+     * get's called everytime a node's location is changed so
+     * that's it's children will follow along with it.
+     *
+     * Children are laid out relative to the parent, but given
+     * absolute map coordinates.  Note that because if this, anytime
+     * we're computing a location for a child, we have to factor in
+     * the current scale factor of the parent.
+     */
+    
+    void layoutChildren() {
+        layoutChildren(null, 0f, false);
     }
     
     /**
@@ -478,7 +915,66 @@ public class LWIBISNode extends LWNode
         }
 
     }
+    
+    public void setResource(final Resource r)
+    {
+        super.setResource(r);
+        if (r == null || mXMLRestoreUnderway)
+            return;
+
+        //=============================================================================
+        // LWImage ise dramatically simplified by just creating a new one when the
+        // resource changes.  We don't have to to deal with async undo stuff(?)  That
+        // could be one case where we preserve the aspect for the new content.  We'd
+        // still want to do a duplicate in case of any styling/title/notes info.
+        // =============================================================================
+
+        LWImage newImageIcon = null;
+
+        boolean rebuildImageIcon = true;
+        
+        if (getChild(0) instanceof LWImage) {
+            final LWImage image0 = (LWImage) getChild(0);
+            if (DEBUG.IMAGE) out("checking for resource sync to image @child(0): " + image0);
+            if (r.isImage()) {
+                if (image0.isNodeIcon() && !r.equals(image0.getResource())) { // we already know r can't be null
+                    deleteChildPermanently(image0);
+                    newImageIcon = LWImage.createNodeIcon(image0, r);
+                }
+            } else {
+                deleteChildPermanently(image0);
+            }
+        } else if (r.isImage()) {
+            newImageIcon = LWImage.createNodeIcon(r); 
+        }
+
+        if (newImageIcon != null) {
+            addChild(newImageIcon);
+            sendToBack(newImageIcon);
+        }
+        
+    }
     // HO 22/09/2010 END ******************
+    
+    /**
+     * @param shapeClass -- a class object this is a subclass of RectangularShape
+     */
+    public void setShape(Class<? extends RectangularShape> shapeClass) {
+
+        if (mShape != null && IsSameShape(mShape.getClass(), shapeClass))
+            return;
+
+        // todo: could skip instancing unless we actually go to draw ourselves (lazy
+        // create the instance) -- it's completely useless for LWIBISNodes serving as style
+        // holders to create the instance, tho then we would need to keep a ref
+        // to the class object...
+
+        try {
+            setShapeInstance(shapeClass.newInstance());
+        } catch (Throwable t) {
+            tufts.Util.printStackTrace(t);
+        }
+    }
 
     private void loadAssetToVueMetadata(Osid2AssetResource r)
         throws org.osid.repository.RepositoryException
@@ -556,8 +1052,21 @@ public class LWIBISNode extends LWNode
     private void setSizeNoLayout(float w, float h)
     {
         if (DEBUG.LAYOUT) out("*** setSizeNoLayout " + w + "x" + h);
+        // HO 06/12/2010 BEGIN *******************
+        // super.setSizeImpl(w, h, false);
         super.setSizeImpl(w, h, false);
+        // HO 06/12/2010 END *******************
         mShape.setFrame(0, 0, getWidth(), getHeight());
+    }
+    
+    protected final void setSizeImpl(float w, float h, boolean internal)
+    {
+        if (DEBUG.LAYOUT) out("*** setSize         " + w + "x" + h);
+        if (isAutoSized() && (w > this.width || h > this.height)) // does this handle scaling?
+            setAutomaticAutoSized(false);
+        layoutNode(LWKey.Size,
+                   new Size(getWidth(), getHeight()),
+                   new Size(w, h));
     }
 
     /**
@@ -676,7 +1185,10 @@ public class LWIBISNode extends LWNode
             // ??? todo: cleaner move this to layoutBoxed, and have layout methods handle
             // the auto-size check (min gets set to request if request is bigger), as
             // layout_centered has to compute that now anyway.
-            mIconDivider.setLine(IconMargin, MarginLinePadY, IconMargin, newHeight-MarginLinePadY);
+            // HO 06/12/2010 BEGIN *********************
+            //mIconDivider.setLine(IconMargin, MarginLinePadY, IconMargin, newHeight-MarginLinePadY);
+            mIconDivider.setLine(newWidth - IconMargin, MarginLinePadY, newWidth - IconMargin, newHeight-MarginLinePadY);
+            // HO 06/12/2010 END *********************
             // mIconDivider set by layoutCentered in the other case
         }
 
@@ -690,6 +1202,75 @@ public class LWIBISNode extends LWNode
         }
         
         inLayout = false;
+    }
+    
+    /** @return the current size of the label object, providing a margin of error
+     * on the width given sometime java bugs in computing the accurate length of a
+     * a string in a variable width font. */
+    
+    protected Size getTextSize() {
+
+        if (WrapText) {
+            Size s = new Size(getLabelBox().getSize());
+            //s.width += 3;
+            return s;
+        } else {
+
+            // TODO: Check if this hack still needed in current JVM's
+        
+            // getSize somtimes a bit bigger thatn preferred size & more accurate
+            // This is gross, but gives us best case data: we want the largest in width,
+            // and smallest in height, as reported by BOTH getSize and getPreferredSize.
+
+            Size s = new Size(getLabelBox().getPreferredSize());
+            Size ps = new Size(getLabelBox().getSize());
+            //if (ps.width > s.width) 
+            //    s.width = s.width; // what the hell
+            if (ps.height < s.height)
+                s.height = ps.height;
+            s.width *= TextWidthFudgeFactor;
+            s.width += 3;
+            return s;
+        }
+    } 
+    
+    /** If true, compute node size from label & children */
+    @Override
+    public boolean isAutoSized() {
+        if (WrapText)
+            return false; // LAYOUT-NEW
+        else
+            return isAutoSized;
+    }
+    
+    @Override
+    public void setAutoSized(boolean makeAutoSized)
+    {
+        if (WrapText) return; // LAYOUT-NEW
+        
+        if (isAutoSized == makeAutoSized)
+            return;
+        if (DEBUG.LAYOUT) out("*** setAutoSized " + makeAutoSized);
+
+        // We only need an undo event if going from not-autosized to
+        // autosized: i.e.: it wasn't an automatic shift triggered via
+        // set size. Because size events aren't delieverd if autosized
+        // is on (which would normally notice the size change), we need
+        // to remember the old size manually here if turning autosized
+        // back on)
+
+        Object old = null;
+        if (makeAutoSized)
+            old = new Point2D.Float(this.width, this.height);
+        isAutoSized = makeAutoSized;
+        if (isAutoSized && !inLayout)
+            layout();
+        if (makeAutoSized)
+            notify("node.autosized", new Undoable(old) {
+                    void undo() {
+                        Point2D.Float p = (Point2D.Float) old;
+                        setSize(p.x, p.y);
+                    }});
     }
 
     private int getTextWidth() {
@@ -858,7 +1439,7 @@ public class LWIBISNode extends LWNode
          * Initial position is 0,0.  Regions are all normalized to offsets from 0,0.
          * Construct node content layout object: layout the regions for
          * icons, label & children.  Does NOT do the final layout (setting
-         * LWNode member variables, laying out the child nodes, etc, until
+         * LWIBISNode member variables, laying out the child nodes, etc, until
          * layoutTargts() is called).
          */
         NodeContent()
@@ -904,7 +1485,7 @@ public class LWIBISNode extends LWNode
             }
         }
 
-        /** do the center-layout for the actual targets (LWNode state) of our regions */
+        /** do the center-layout for the actual targets (LWIBISNode state) of our regions */
         void layoutTargets() {
             if (DEBUG.LAYOUT) out("*** laying out targets");
             mLabelPos.setLocation(x + rLabel.x, y + rLabel.y);
@@ -974,6 +1555,21 @@ public class LWIBISNode extends LWNode
     private NodeContent getLaidOutNodeContent()
     {
         return _lastNodeContent = new NodeContent();
+    }
+    
+    // good for single column layout only.  layout code is in BAD NEED of complete re-architecting.
+    protected float getMaxChildSpan()
+    {
+        java.util.Iterator i = getChildIterator();
+        float maxWidth = 0;
+        
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            float w = c.getLocalBorderWidth();
+            if (w > maxWidth)
+                maxWidth = w;
+        }
+        return childOffsetX() + maxWidth + ChildPadX;
     }
     
     private Size layoutBoxed(Size request, Size oldSize, Object triggerKey) {
@@ -1061,6 +1657,77 @@ public class LWIBISNode extends LWNode
         }
         
     }
+    
+    //-----------------------------------------------------------------------------
+    // I think these are done dynamically instead of always using
+    // mLabelPos.x and mLabelPos.y because we haven't always done a
+    // layout when we need this?  Is that true?  Does this have
+    // anything to do with activating an edit box on a newly created
+    // node?
+    //-----------------------------------------------------------------------------
+    
+    protected float relativeLabelX()
+    {
+        if (isCenterLayout) { // non-rectangular shapes
+            return mLabelPos.x;
+        } else if (iconShowing()) {
+            return LabelPositionXWhenIconShowing;
+        } else {
+            // horizontally center if no icons
+
+            if (WrapText) {
+                return mLabelPos.x;
+            } else {
+                // todo problem: pre-existing default alignment w/out icons
+                // is center label, left children: when we move to generally
+                // suporting left/center/right alignment, that configuration won't
+                // be supported: we may need a special "old-style" alignment style
+                if (mAlignment.get() == Alignment.LEFT && hasFlag(Flag.SLIDE_STYLE)) {
+                    return ChildPadX;
+                } else if (mAlignment.get() == Alignment.RIGHT) {
+                    return (this.width - getTextSize().width) - 1;
+                } else {
+                    // CENTER:
+                    // Doing this risks slighly moving the damn TextBox just as you edit it.
+                    final float offset = (this.width - getTextSize().width) / 2;
+                    return offset + 1;
+                }
+            }
+        }
+    }
+    
+    /** Duplicate this node.
+     * @return the new node -- will have the same style (visible properties) of the old node */
+    @Override
+    public LWIBISNode duplicate(CopyContext cc)
+    {
+        LWIBISNode newNode = (LWIBISNode) super.duplicate(cc);
+        // make sure shape get's set with old size:
+        if (DEBUG.STYLE) out("re-adjusting size during duplicate to set shape size");
+        newNode.setSize(super.getWidth(), super.getHeight()); 
+        return newNode;
+    }
+    
+    public static boolean isTextNode(LWComponent c) {
+        if (c instanceof LWIBISNode)
+            return ((LWIBISNode)c).isTextNode();
+        else
+            return false;
+    }
+
+    /**
+     * This is consulted during LAYOUT, which can effect the size of the node.
+     * So if anything happens that changes what this returns, the node has
+     * to be laid out again.  (E.g., if we turn them all of with a pref,
+     * all nodes need to be re-laid out / resized
+     */
+    protected boolean iconShowing()
+    {    	
+//         if (hasFlag(Flag.SLIDE_STYLE) || isTextNode()) // VUE-1220 - never hide resource icon, even on slides
+//             return false;
+//          else
+        return !hasFlag(Flag.INTERNAL) && mIconBlock.isShowing(); // remember not current till after a layout
+    }
 
     //----------------------------------------------------------------------------------------
     // Crap.  We need the max child width first to know the min width for wrapped text,
@@ -1099,7 +1766,11 @@ public class LWIBISNode extends LWNode
         
         float iconWidth = IconWidth;
         float iconHeight = IconHeight;
-        float iconX = IconPadLeft;
+        // HO 06/12/2010 BEGIN ***********
+        //float iconX = IconPadLeft;
+        // position the icon block on the right
+        float iconX = (float)(min.width - mIconBlock.getWidth()) - IconPadRight;
+        // HO 06/12/2010 END ***********
 
         float iconPillarX = iconX;
         float iconPillarY = IconPillarPadY;
@@ -1356,6 +2027,164 @@ public class LWIBISNode extends LWNode
 //         }
         return result;
     }
+    
+    public static boolean isImageNode(LWComponent c) {
+        if (c instanceof LWIBISNode) {
+            final LWIBISNode node = (LWIBISNode) c;
+            final LWComponent childZero = node.getChild(0);
+            return childZero instanceof LWImage && childZero.hasResource() && childZero.getResource().equals(node.getResource());
+        } else
+            return false;
+    }
+    
+    // If nColumn == 1, it does center layout.  minWidth only meant for single column
+    protected void layoutChildrenGrid(float baseX, float baseY, Size result, int nColumn, float minWidth)
+    {
+        float y = baseY;
+        float totalWidth = 0;
+        float maxHeight = 0;
+        
+        Column[] cols = new Column[nColumn];
+        java.util.Iterator i = getChildIterator();
+        int curCol = 0;
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            if (cols[curCol] == null)
+                cols[curCol] = new Column(minWidth);
+            cols[curCol].addChild(c);
+            if (++curCol >= nColumn)
+                curCol = 0;
+        }
+
+        float colX = baseX;
+        float colY = baseY;
+        for (int x = 0; x < cols.length; x++) {
+            Column col = cols[x];
+            if (col == null)
+                break;
+            col.layout(colX, colY, nColumn == 1);
+            colX += col.width + ChildHorizontalGap;
+            totalWidth += col.width + ChildHorizontalGap;
+            if (col.height > maxHeight)
+                maxHeight = col.height;
+        }
+        // peel back the last gap as no more columns to right
+        totalWidth -= ChildHorizontalGap;
+
+        if (result != null) {
+            result.width = totalWidth;
+            result.height = maxHeight;
+        }
+    }
+    
+    class Column extends java.util.ArrayList<LWComponent>
+    {
+        float width;
+        float height;
+
+        Column(float minWidth) {
+            width = minWidth;
+        }
+
+        void layout(float baseX, float baseY, boolean center)
+        {
+            float y = baseY;
+            Iterator i = iterator();
+            while (i.hasNext()) {
+                LWComponent c = (LWComponent) i.next();
+                if (center)
+                    c.setLocation(baseX + (width - c.getLocalBorderWidth())/2, y);
+                else
+                    c.setLocation(baseX, y);
+                y += c.getHeight();
+                y += ChildVerticalGap * getScale();
+            }
+            height = y - baseY;
+        }
+
+        void addChild(LWComponent c)
+        {
+            super.add(c);
+            float w = c.getLocalBorderWidth();
+            if (w > width)
+                width = w;
+        }
+    }
+
+    
+    protected void layoutChildrenSingleColumn(float baseX, float baseY, Size result)
+    {
+        float y = baseY;
+        float maxWidth = 0;
+        boolean first = true;
+
+        for (LWComponent c : getChildren()) {
+            if (c instanceof LWLink) // todo: don't allow adding of links into a manged layout node!
+                continue;
+            if (c.isHidden())
+                continue;
+            if (first)
+                first = false;
+            else
+                y += ChildVerticalGap * getScale();
+            c.setLocation(baseX, y);
+            y += c.getLocalHeight();
+
+            if (result != null) {
+                // track max width
+                float w = c.getLocalBorderWidth();
+                if (w > maxWidth)
+                    maxWidth = w;
+            }
+        }
+
+        if (result != null) {
+            result.width = maxWidth;
+            result.height = (y - baseY);
+        }
+    }
+    
+    protected void layoutChildrenColumnAligned(float baseX, float baseY, Size result)
+    {
+        float maxWidth = 0;
+
+        for (LWComponent c : getChildren()) {
+            if (c instanceof LWLink) // todo: don't allow adding of links into a manged layout node!
+                continue;
+            float w = c.getLocalBorderWidth();
+            if (w > maxWidth)
+                maxWidth = w;
+        }
+
+        // TODO: need to re-arch to handle center/right alignment: e.g., removing widest
+        // child doesn't do a re-layout, and on parent drag-resize, layout is falling behind
+        
+        float maxLayoutWidth = Math.max(maxWidth, getWidth() - baseX*2);
+        
+        float y = baseY;
+        boolean first = true;
+        for (LWComponent c : getChildren()) {
+            if (c instanceof LWLink) // todo: don't allow adding of links into a manged layout node!
+                continue;
+            if (first)
+                first = false;
+            else
+                y += ChildVerticalGap * getScale();
+
+            if (mAlignment.get() == Alignment.RIGHT)
+                c.setLocation(baseX + maxLayoutWidth - c.getLocalWidth(), y);
+            else if (mAlignment.get() == Alignment.CENTER)
+                c.setLocation(baseX + (maxLayoutWidth - c.getLocalWidth()) / 2, y);
+            else
+                c.setLocation(baseX, y);
+            y += c.getLocalHeight();
+        }
+
+        if (result != null) {
+            result.width = maxWidth;
+            result.height = (y - baseY);
+        }
+    }
 
     /** Draw without rendering any textual glyphs, possibly without children, possibly as a rectanlge only */
     private void drawNodeWithReducedLOD(final DrawContext dc, final float renderScale)
@@ -1406,6 +2235,34 @@ public class LWIBISNode extends LWNode
                 drawLODTextLine(dc);
         }
                 
+    }
+    
+    @Override
+    public RectangularShape getZeroShape() {
+        return mShape;
+    }
+    
+    @Override
+    protected void drawChildren(DrawContext dc) {
+        if (isCollapsed()) {
+            if (COLLAPSE_IS_GLOBAL == false) {
+                // draw an indicator on this individual node showing that it's collapsed
+                dc.g.setStroke(STROKE_ONE);
+                dc.g.setColor(getRenderFillColor(dc));
+                final int bottom = (int) (getHeight() + getStrokeWidth() / 2f + 2.5f);
+                dc.g.drawLine(1, bottom, (int) (getWidth() - 0.5f), bottom);
+            }
+            return;
+        } else
+            super.drawChildren(dc);
+    }
+    
+    @Override
+    public boolean isCollapsed() {
+        if (COLLAPSE_IS_GLOBAL)
+            return isGlobalCollapsed;
+        else
+            return super.isCollapsed();
     }
 
     private void drawLODTextLine(final DrawContext dc) {
@@ -1528,6 +2385,20 @@ public class LWIBISNode extends LWNode
         }
 
     }
+    
+    protected void drawLabel(DrawContext dc)
+    {
+        float lx = relativeLabelX();
+        float ly = relativeLabelY();
+        dc.g.translate(lx, ly);
+        //if (DEBUG.CONTAINMENT) System.out.println("*** " + this + " drawing label at " + lx + "," + ly);
+        this.labelBox.draw(dc);
+        dc.g.translate(-lx, -ly);
+        
+        // todo: this (and in LWLink) is a hack -- can't we
+        // do this relative to the node?
+        //this.labelBox.setMapLocation(getX() + lx, getY() + ly);
+    }
 
     private void drawNodeDecorations(DrawContext dc)
     {
@@ -1546,6 +2417,26 @@ public class LWIBISNode extends LWNode
                 g.draw(mIconDivider);
             }
         }
+    }
+    
+    public boolean handleSingleClick(MapMouseEvent e)
+    {
+        final Point2D.Float localPoint = e.getLocalPoint(this);
+        final float cx = localPoint.x;
+        final float cy = localPoint.y;
+        
+    	 if (!textBoxHit(cx, cy)) 
+    	 {
+             return mIconBlock.handleSingleClick(e);
+    	 }
+         return false;
+    }
+    
+    @Override
+    public void mouseOver(MapMouseEvent e)
+    {
+        if (iconShowing())
+            mIconBlock.checkAndHandleMouseOver(e);
     }
 
     private float childOffsetX() {
@@ -1583,8 +2474,13 @@ public class LWIBISNode extends LWNode
 
     private static final int IconGutterWidth = 26;
 
-    private static final int IconPadLeft = 2;
-    private static final int IconPadRight = 0;
+    // HO 06/12/2010 BEGIN ********************
+    // private static final int IconPadLeft = 2;
+    // private static final int IconPadRight = 0;
+    private static final int IconPadLeft = 0;
+    private static final int IconPadRight = 2;
+    // HO 06/12/2010 END ********************
+    
     private static final int IconWidth = IconGutterWidth - IconPadLeft; // 22 is min width that will fit "www" in our icon font
     private static final int IconHeight = VueResources.getInt("node.icon.height", 14);
 
@@ -1631,7 +2527,17 @@ public class LWIBISNode extends LWNode
      * Note special case: this creates a node with autoSized set to false -- this is probably for backward compat with old save files */
     public LWIBISNode()
     {
-        super();
+        initNode();
+        isRectShape = true;
+        isAutoSized = false;
+        // I think we may only need this default shape setting for backward compat with old save files.
+        mShape = new java.awt.geom.Rectangle2D.Float();
+
+        // Force the creation of the TextBox (this.labelBox).
+        // We need this for now to make sure wrapped text nodes don't unwrap
+        // to one line on restore. I think the TextBox needs to pick up our size
+        // before setLabel for it to work.
+        //getLabelBox(); LAYOUT-NEW
     }
 
     /**
@@ -1643,6 +2549,26 @@ public class LWIBISNode extends LWNode
         LWIBISNode n = new LWIBISNode();
         n.isAutoSized = true;
         return n;
+    }
+    
+    protected float relativeLabelY()
+    {
+        if (isCenterLayout) {
+            return mLabelPos.y;
+        } else if (hasChildren()) {
+            return EdgePadY;
+        } else {
+            
+            if (false && WrapText)
+                return mLabelPos.y;
+            else {
+                // Doing this risks slighly moving the damn TextBox just as you edit it.
+                // Tho querying the underlying TextBox for it's size every time
+                // we repaint this object is pretty gross also (e.g., every drag)
+                return (this.height - getTextSize().height) / 2;
+            }
+            
+        }
     }
     
     

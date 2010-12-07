@@ -1089,6 +1089,8 @@ public class LWNode extends LWContainer
                    new Size(getWidth(), getHeight()),
                    new Size(w, h));
     }
+    
+    // HO 06/12/2010 END ***************
 
     private void setSizeNoLayout(float w, float h)
     {
@@ -1832,7 +1834,6 @@ public class LWNode extends LWContainer
         }
             
         mIconBlock.setLocation(iconPillarX, iconPillarY);
-
     }
 
     /**
