@@ -47,7 +47,8 @@ import javax.swing.ImageIcon;
 // features (multiple columns).
 // todo: "text" nodes are currently a total hack
 
-public class LWIBISNode extends LWContainer
+//public class LWIBISNode extends LWContainer
+public class LWIBISNode extends LWNode
 {
     protected static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LWIBISNode.class);
 
@@ -1769,7 +1770,8 @@ public class LWIBISNode extends LWContainer
         // HO 06/12/2010 BEGIN ***********
         //float iconX = IconPadLeft;
         // position the icon block on the right
-        float iconX = (float)(min.width - mIconBlock.getWidth()) - IconPadRight;
+        //float iconX = (float)(min.width - mIconBlock.getWidth()) - IconPadRight;
+        float iconX = (float)(this.width - mIconBlock.getWidth());
         // HO 06/12/2010 END ***********
 
         float iconPillarX = iconX;

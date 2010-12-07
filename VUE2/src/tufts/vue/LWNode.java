@@ -1080,7 +1080,10 @@ public class LWNode extends LWContainer
         super.removeChildImpl(c);
     }
     
-    @Override protected final void setSizeImpl(float w, float h, boolean internal)
+    // HO 07/12/2010 BEGIN ***************
+    //@Override protected final void setSizeImpl(float w, float h, boolean internal)
+    @Override protected void setSizeImpl(float w, float h, boolean internal)
+    // HO 07/12/2010 END ***************
     {
         if (DEBUG.LAYOUT) out("*** setSize         " + w + "x" + h);
         if (isAutoSized() && (w > this.width || h > this.height)) // does this handle scaling?
