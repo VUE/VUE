@@ -2209,7 +2209,7 @@ public class VUE
         ibisFormattingPanel = new IBISFormatPanel();
         if (ibisFormatDock == null || VUE.isApplet())
         {
-        	ibisFormatDock = GUI.createDockWindow("Blorf",true,true);
+        	ibisFormatDock = GUI.createDockWindow("dockWindow.ibis.title",true,true);
         	ibisFormatDock.setContent(ibisFormattingPanel);
         }
         // HO 24/06/2010 END ****************

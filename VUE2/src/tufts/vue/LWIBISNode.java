@@ -143,7 +143,10 @@ public class LWIBISNode extends LWNode
     {
         // HO 06/12/2010 BEGIN *********
         initNode();
-        super.label = label; // make sure label initially set for debugging
+        // HO 07/12/2010 BEGIN ***************
+        //super.label = label; // make sure label initially set for debugging
+        super.setLabel(label, true);
+        // HO 07/12/2010 END ***************
         setFillColor(DEFAULT_NODE_FILL);
         if (shape == null)
             setShape(tufts.vue.shape.RoundRect2D.class);
@@ -188,8 +191,10 @@ public class LWIBISNode extends LWNode
     public boolean handleDoubleClick(MapMouseEvent e)
     {
 
-        //if (this instanceof LWPortal) // hack: clean this up -- maybe move all below to LWComponent...
+        // HO 08/12/2010 BEGIN ********
+    	//if (this instanceof LWPortal) // hack: clean this up -- maybe move all below to LWComponent...
             //return super.handleDoubleClick(e);
+    	// HO 08/12/2010 END ********
         
         final Point2D.Float localPoint = e.getLocalPoint(this);
         final float cx = localPoint.x;
@@ -258,7 +263,10 @@ public class LWIBISNode extends LWNode
     protected void removeChildImpl(LWComponent c)
     {
         c.setScale(1.0); // just in case, get everything
-        super.removeChildImpl(c);
+        // HO 07/12/2010 BEGIN ***************
+        //super.removeChildImpl(c);
+        super.removeChildImpl(c, true);
+        // HO 07/12/2010 BEGIN ***************
     }
     
     @Override
@@ -349,7 +357,11 @@ public class LWIBISNode extends LWNode
             
         }
         
-        super.addChildren(children, context);
+        // HO 22/09/2010 BEGIN ****************
+        //super.addChildren(children, context);
+        super.addChildren(children, context, true);
+        // HO 22/09/2010 BEGIN ****************
+        
         // HO 22/09/2010 BEGIN ****************
         reparentWormholeNode(children);
 
@@ -361,7 +373,10 @@ public class LWIBISNode extends LWNode
     
     @Override
     public void XML_completed(Object context) {
-        super.XML_completed(context);
+    	// HO 08/12/2010 BEGIN ****************
+    	//super.XML_completed(context);
+        super.XML_completed(context, true);
+        // HO 08/12/2010 END ****************
         if (hasChildren()) {
             if (DEBUG.WORK||DEBUG.XML||DEBUG.LAYOUT) Log.debug("XML_completed: scaling down LWIBISNode children in: " + this);
             for (LWComponent c : getChildren()) {
@@ -428,7 +443,10 @@ public class LWIBISNode extends LWNode
         // notifyHierarchyChanging/Changed calls.
         if (isScaledChildType(c))
             c.setScale(LWIBISNode.ChildScale);
-        super.addChildImpl(c, context);
+        // HO 08/12/2010 BEGIN **************
+        //super.addChildImpl(c, context);
+        super.addChildImpl(c, context, true);
+        // HO 08/12/2010 BEGIN **************
     }
   
     public static final Key KEY_Shape =
@@ -598,7 +616,10 @@ public class LWIBISNode extends LWNode
     
     @Override
     public Object getTypeToken() {
-        return isTextNode() ? TYPE_TEXT : super.getTypeToken();
+    	// HO 08/12/2010 BEGIN ***********
+    	//return isTextNode() ? TYPE_TEXT : super.getTypeToken();
+        return isTextNode() ? TYPE_TEXT : super.getTypeToken(true);
+        // HO 08/12/2010 END ***********
     }
     
     @Override
@@ -621,7 +642,10 @@ public class LWIBISNode extends LWNode
     @Override
     protected Point2D getZeroSouthEastCorner() {
         if (isRectShape)
-            return super.getZeroSouthEastCorner();
+        	// HO 08/12/2010 BEGIN *****************
+            //return super.getZeroSouthEastCorner();
+        	return super.getZeroSouthEastCorner(true);
+        	// HO 08/12/2010 BEGIN *****************
 
         // find out where a line drawn from our local center to our
         // lower right bounding box intersects the lower right edge of
@@ -641,10 +665,16 @@ public class LWIBISNode extends LWNode
         if (isRectShape) {
             // if we're a rect-ish shape, the standard bounding-box impl will do
             // (it will over-include the corners on round-rects, but that's okay)
-            return super.intersectsImpl(mapRect);
+        	// HO 08/12/2010 BEGIN ******************
+            //return super.intersectsImpl(mapRect);
+        	return super.intersectsImpl(mapRect, true);
+            // HO 08/12/2010 END ******************
         } else {
             // TODO: only use the fast reject if this is for paint-clip testing?  already overkill?
-            if (super.intersectsImpl(mapRect) == false) {
+        	// HO 08/12/2010 BEGIN ******************
+            //if (super.intersectsImpl(mapRect) == false) {
+        	if (super.intersectsImpl(mapRect, true) == false) {
+            	// HO 08/12/2010 END ******************
                 return false; // fast-reject
             } else {
                 return getZeroShape().intersects(transformMapToZeroRect(mapRect));
@@ -657,9 +687,12 @@ public class LWIBISNode extends LWNode
         if (isRectShape) {
             // won't be perfect for round-rect at big scales, but good
             // enough, and takes into account stroke width
-            return super.containsImpl(x, y, pc);
-        } else if (super.containsImpl(x, y, pc)) {
-            
+        	// HO 08/12/2010 BEGIN ***********
+            //return super.containsImpl(x, y, pc);
+        	return super.containsImpl(x, y, pc, true);
+        //} else if (super.containsImpl(x, y, pc)) {
+        } else if (super.containsImpl(x, y, pc, true)) {
+        	// HO 08/12/2010 END ***********
             // above was a fast-reject check on the bounding box, now check the actual shape:
             
             // TODO: need to figure out a way to compenstate for stroke width on
@@ -705,7 +738,10 @@ public class LWIBISNode extends LWNode
     @Override
     public void setLocation(float x, float y)
     {
-        super.setLocation(x, y);
+        // HO 08/12/2010 BEGIN **********
+    	//super.setLocation(x, y);
+    	super.setLocation(x, y, true);
+    	// HO 08/12/2010 END **********
 
         // Must lay-out children seperately from layout() -- if we
         // just call layout here we'll recurse when setting the
@@ -919,7 +955,10 @@ public class LWIBISNode extends LWNode
     
     public void setResource(final Resource r)
     {
-        super.setResource(r);
+        // HO 08/12/2010 BEGIN ***************
+    	//super.setResource(r);
+    	super.setResource(r, true);
+    	// HO 08/12/2010 END ***************
         if (r == null || mXMLRestoreUnderway)
             return;
 
@@ -1054,10 +1093,14 @@ public class LWIBISNode extends LWNode
     {
         if (DEBUG.LAYOUT) out("*** setSizeNoLayout " + w + "x" + h);
         // HO 06/12/2010 BEGIN *******************
-        // super.setSizeImpl(w, h, false);
-        super.setSizeImpl(w, h, false);
+        //super.setSizeImpl(w, h, false);
+        super.setSizeImpl(w, h, false, true);
         // HO 06/12/2010 END *******************
         mShape.setFrame(0, 0, getWidth(), getHeight());
+    }
+    
+    public Size getMinimumSize() {
+        return mMinSize;
     }
     
     protected final void setSizeImpl(float w, float h, boolean internal)
@@ -1702,7 +1745,10 @@ public class LWIBISNode extends LWNode
     @Override
     public LWIBISNode duplicate(CopyContext cc)
     {
-        LWIBISNode newNode = (LWIBISNode) super.duplicate(cc);
+        // HO 08/12/2010 BEGIN ***************
+    	//LWIBISNode newNode = (LWIBISNode) super.duplicate(cc);
+    	LWIBISNode newNode = (LWIBISNode) super.duplicate(cc, true);
+    	// HO 08/12/2010 END ***************
         // make sure shape get's set with old size:
         if (DEBUG.STYLE) out("re-adjusting size during duplicate to set shape size");
         newNode.setSize(super.getWidth(), super.getHeight()); 
@@ -1771,7 +1817,9 @@ public class LWIBISNode extends LWNode
         //float iconX = IconPadLeft;
         // position the icon block on the right
         //float iconX = (float)(min.width - mIconBlock.getWidth()) - IconPadRight;
-        float iconX = (float)(this.width - mIconBlock.getWidth());
+        //float iconX = (float)(this.width - mIconBlock.getWidth());
+        // float iconX = (float)(Math.max(min.width, request.width) - mIconBlock.getWidth() - IconPadRight);
+        float iconX = IconPadRight;
         // HO 06/12/2010 END ***********
 
         float iconPillarX = iconX;
@@ -1802,6 +1850,21 @@ public class LWIBISNode extends LWNode
                 height = Math.max(min.height, request.height);
             iconPillarY = height / 2 - totalIconHeight / 2;
         }
+        
+        //if (!isRectShape) {
+            float width;
+            if (isAutoSized()) {
+                width = min.width;
+            }
+            else {
+            	if (request == null)
+            		width = min.width;
+            	else
+            		width = Math.max(min.width, request.width);
+            }
+            //iconPillarX = width - (float)mIconBlock.getWidth() - iconX;
+            iconPillarX = width - (float)mIconBlock.getWidth();
+        //}
             
         mIconBlock.setLocation(iconPillarX, iconPillarY);
 
@@ -2255,16 +2318,25 @@ public class LWIBISNode extends LWNode
                 dc.g.drawLine(1, bottom, (int) (getWidth() - 0.5f), bottom);
             }
             return;
-        } else
-            super.drawChildren(dc);
+        } else {
+        	// HO 08/12/2010 BEGIN ***********
+            //super.drawChildren(dc);
+        	super.drawChildren(dc, true);
+            // HO 08/12/2010 END ***********
+        }
     }
     
     @Override
     public boolean isCollapsed() {
-        if (COLLAPSE_IS_GLOBAL)
+        if (COLLAPSE_IS_GLOBAL) {
             return isGlobalCollapsed;
-        else
-            return super.isCollapsed();
+        }
+        else {
+        	// HO 08/12/2010 BEGIN *********
+            //return super.isCollapsed();
+        	return super.isCollapsed(true);
+            // HO 08/12/2010 BEGIN *********
+        }
     }
 
     private void drawLODTextLine(final DrawContext dc) {
@@ -2476,12 +2548,8 @@ public class LWIBISNode extends LWNode
 
     private static final int IconGutterWidth = 26;
 
-    // HO 06/12/2010 BEGIN ********************
-    // private static final int IconPadLeft = 2;
-    // private static final int IconPadRight = 0;
-    private static final int IconPadLeft = 0;
-    private static final int IconPadRight = 2;
-    // HO 06/12/2010 END ********************
+    private static final int IconPadLeft = 2;
+    private static final int IconPadRight = 0;
     
     private static final int IconWidth = IconGutterWidth - IconPadLeft; // 22 is min width that will fit "www" in our icon font
     private static final int IconHeight = VueResources.getInt("node.icon.height", 14);

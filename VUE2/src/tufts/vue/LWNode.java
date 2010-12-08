@@ -875,6 +875,85 @@ public class LWNode extends LWContainer
             c.setScale(LWNode.ChildScale);
         super.addChildImpl(c, context);
     }
+    
+    // HO 07/12/2010 BEGIN ***************
+    // forwarding functions
+    protected void setLabel(String label, boolean bForwarding) {
+    	if (bForwarding)
+    		super.label = label;
+    }
+    
+    protected void removeChildImpl(LWComponent c, boolean bForwarding)
+    {
+        if (bForwarding)
+        	super.removeChildImpl(c);
+    }
+    
+    public void addChildren(java.util.Collection<? extends LWComponent> children, Object context, boolean bForwarding)
+    {
+    	if(bForwarding)
+    		super.addChildren(children, context);
+    }
+
+    public void XML_completed(Object context, boolean bForwarding) {
+    	if (bForwarding)
+    		super.XML_completed(context);
+    }
+    
+    protected void addChildImpl(LWComponent c, Object context, boolean bForwarding)
+    {
+        if (bForwarding)
+        	super.addChildImpl(c, context);
+    }
+    
+    public Object getTypeToken(boolean bForwarding) {
+        return super.getTypeToken();
+    }
+    
+    protected Point2D getZeroSouthEastCorner(boolean bForwarding) {
+        return super.getZeroSouthEastCorner();
+    }
+    
+    protected boolean intersectsImpl(final Rectangle2D mapRect, boolean bForwarding)
+    {
+         return super.intersectsImpl(mapRect);
+    }
+    
+    protected boolean containsImpl(float x, float y, PickContext pc, boolean bForwarding) {
+        return super.containsImpl(x, y, pc);
+    }
+    
+    public void setLocation(float x, float y, boolean bForwarding)
+    {
+        super.setLocation(x, y);
+    }
+    
+    public void setResource(final Resource r, boolean bForwarding)
+    {
+        if (bForwarding)
+        	super.setResource(r);
+    }
+    
+    public LWNode duplicate(CopyContext cc, boolean bForwarding)
+    {
+        return (LWNode) super.duplicate(cc);
+    }
+    
+    protected void drawChildren(DrawContext dc, boolean bForwarding) {
+        super.drawChildren(dc);
+    }
+    
+    public boolean isCollapsed(boolean bForwarding) {
+        return super.isCollapsed();
+    }
+    
+    protected void setSizeImpl(float w, float h, boolean internal, boolean bForwarding)
+    {
+        if (bForwarding)
+        	super.setSizeImpl(w, h, internal);
+    }
+    
+    // HO 07/12/2010 END ***************
 
     @Override
     public void addChildren(java.util.Collection<? extends LWComponent> children, Object context)
