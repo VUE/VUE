@@ -1539,15 +1539,18 @@ public class LWIBISNode extends LWNode
             if (rIcons != null) {
             	// HO 08/12/2010 BEGIN **************
                 //mIconBlock.setLocation(x + rIcons.x, y + rIcons.y);
-            	mIconBlock.setLocation((width-(x + rIcons.x)), y + rIcons.y);
-            	//mIconBlock.setLocation((width-(rIcons.width)), y + rIcons.y);
+            	float theX = width - (x + rIcons.x);
+            	mIconBlock.setLocation(theX, y + rIcons.y);
                 // HO 08/12/2010 END **************
                 // Set divider line to height of the content, at right of icon block
             	// HO 08/12/2010 BEGIN **************
                 //mIconDivider.setLine(mIconBlock.x + mIconBlock.width, this.y,
                                      //mIconBlock.x + mIconBlock.width, this.y + this.height);
-            	mIconDivider.setLine((width-(mIconBlock.x + IconPadLeft)), this.y,
-                        (width-(mIconBlock.x + IconPadLeft)), this.y + this.height);
+            	float newX = theX - IconPadLeft;
+            	//mIconDivider.setLine((width-(theX + IconPadLeft)), this.y,
+                        //(width-(mIconBlock.x + IconPadLeft)), this.y + this.height);
+            	mIconDivider.setLine(newX, this.y,
+                        newX, this.y + this.height);
                 // HO 08/12/2010 END **************
             }
             if (rChildren != null) {
@@ -1826,11 +1829,6 @@ public class LWIBISNode extends LWNode
         float iconHeight = IconHeight;
         // HO 06/12/2010 BEGIN ***********
         //float iconX = IconPadLeft;
-        // position the icon block on the right
-        //float iconX = (float)(min.width - mIconBlock.getWidth()) - IconPadRight;
-        //float iconX = (float)(this.width - mIconBlock.getWidth());
-        // float iconX = (float)(Math.max(min.width, request.width) - mIconBlock.getWidth() - IconPadRight);
-        //float iconX = IconPadRight;
         // HO 06/12/2010 END ***********
 
         // this will be the X position of the Icon pillar, funnily enough
@@ -1839,11 +1837,6 @@ public class LWIBISNode extends LWNode
 
         float totalIconHeight = (float) mIconBlock.getHeight();
         float iconPillarHeight = totalIconHeight + IconPillarPadY * 2;
-        
-        // HO 08/12/2010 BEGIN ***********
-        //float totalIconWidth = (float) mIconBlock.getWidth();
-        //float iconPillarWidth = totalIconWidth;
-        // HO 08/12/2010 END ***********
 
         // if the minimal height is less than needed to accommodate
         // the icon pillar, we need to make sure that the minimal
@@ -1860,15 +1853,6 @@ public class LWIBISNode extends LWNode
                 centerY = IconPillarPadY+IconPillarFudgeY;
             iconPillarY = centerY;
         }
-        
-        // HO 08/12/2010 BEGIN ***********
-        // if the minimal width is less than needed to accommodate
-        // the icon margin, we need to make sure that the minimal
-        // width becomes at least as wide as the icon margin
-        if (min.width < IconMargin) {
-            min.width += IconMargin - min.width;
-        } 
-        // HO 08/12/2010 END ***********
             
         if (!isRectShape) {
             float height;
@@ -1878,29 +1862,16 @@ public class LWIBISNode extends LWNode
                 height = Math.max(min.height, request.height);
             iconPillarY = height / 2 - totalIconHeight / 2;
         }
-        
-        //if (!isRectShape) {
-            float width = Math.max(min.width, this.width);
-            /*if (isAutoSized()) {
-            	// HO 08/12/2010 BEGIN ******
-                if (min.width > this.width)
-                	width = min.width;
-                else
-                	width = this.width;
-                // HO 08/12/2010 BEGIN ******
-            }
-            else {
-            	if (request == null)
-            		width = min.width;
-            	else
-            		width = Math.max(min.width, request.width);
-            }*/
-            //iconPillarX = width - (float)mIconBlock.getWidth() - iconX;
-            //iconPillarX = width - iconPillarWidth;
-            iconPillarX = width - IconWidth;
-        //}
-            
-        mIconBlock.setLocation(iconPillarX, iconPillarY);
+
+        float width = Math.max(min.width, this.width);
+
+        // I really don't think we can reliably set this at this point
+        // because it's one thing if it's on the left: it's always going
+        // to be a fixed distance from the left. But if it's on the right,
+        // if the width isn't certain we can't be certain where it will go.
+        iconPillarX = width - IconWidth;
+      
+        //mIconBlock.setLocation(iconPillarX, iconPillarY);
 
     }
 
