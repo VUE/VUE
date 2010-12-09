@@ -1505,33 +1505,69 @@ public class LWIBISNode extends LWNode
          */
         NodeContent()
         {
-            if (hasLabel()) {
+        	// HO 09/12/2010 BEGIN ******
+        	if (hasLabel()) {
                 Size text = getTextSize();
                 rLabel.width = text.width;
                 rLabel.height = text.height;
-                rLabel.x = ChildPadX;
-                this.width = ChildPadX + text.width;
-                this.height = text.height;
+            }
+        	if (hasChildren() && !isCollapsed()) {
+                Size children = layoutChildren(new Size(), 0f, true);
+                float childx = ChildPadX;
+                float childy = ChildPadY;
+                rChildren = new Rectangle2D.Float(childx,childy, children.width, children.height);
+
+                // can set absolute height based on label height & children height
+                this.height = Math.max(rLabel.height, children.height) + ChildPadY;
+                
+                // make sure we're wide enough for the children in case children wider than label
+                // fitWidth(rLabel.x + children.width); // as we're 0 based, rLabel.x == width of gap at left of children
+                // make sure label is in the right place 
+                rLabel.x = childx + children.width + ChildPadX;
+                rLabel.y = childy;
+                fitWidth(rLabel.x + getTextSize().width + ChildPadX + children.width);
+                // HO 09/12/2010 END ******
+            }
+        	// HO 09/12/2010 END ******
+        	if (hasLabel()) {
+                if (!hasChildren()) {
+                	rLabel.x = ChildPadX;
+                	this.width = rLabel.x + getTextSize().width;
+                	this.height = getTextSize().height;
+                }
             } 
             if (iconShowing()) {
                 rIcons = new Rectangle2D.Float(0, 0, mIconBlock.width, mIconBlock.height);
                 this.width += mIconBlock.width;
                 this.width += ChildPadX; // add space at right of label to match space at left
                 // move label to right to make room for icon block at left
-                rLabel.x += mIconBlock.width;
+                // HO 09/12/2010 BEGIN ******
+                //rLabel.x += mIconBlock.width;
+                // or vice versa for icon blocks on the right
+                rLabel.x -= mIconBlock.width;
+                // HO 09/12/2010 END ******
             }
-            if (hasChildren() && !isCollapsed()) {
+            /*if (hasChildren() && !isCollapsed()) {
                 Size children = layoutChildren(new Size(), 0f, true);
-                float childx = rLabel.x;
-                float childy = rLabel.height + ChildPadY;
+                // HO 09/12/2010 BEGIN ******
+                //float childx = rLabel.x;
+                float childx = ChildPadX;
+                //float childy = rLabel.height + ChildPadY;
+                float childy = ChildPadY;
                 rChildren = new Rectangle2D.Float(childx,childy, children.width, children.height);
 
                 // can set absolute height based on label height & children height
-                this.height = rLabel.height + ChildPadY + children.height;
-
+                //this.height = rLabel.height + ChildPadY + children.height;
+                this.height = Math.max(rLabel.height, children.height) + ChildPadY;
+                
                 // make sure we're wide enough for the children in case children wider than label
-                fitWidth(rLabel.x + children.width); // as we're 0 based, rLabel.x == width of gap at left of children
-            }
+                // fitWidth(rLabel.x + children.width); // as we're 0 based, rLabel.x == width of gap at left of children
+                // make sure label is in the right place 
+                rLabel.x = childx + children.width + ChildPadX;
+                rLabel.y = childy;
+                fitWidth(rLabel.x + getTextSize().width + ChildPadX + children.width);
+                // HO 09/12/2010 END ******
+            }*/
             
             if (rIcons != null) {
                 fitHeight(mIconBlock.height);
@@ -1549,7 +1585,17 @@ public class LWIBISNode extends LWNode
         /** do the center-layout for the actual targets (LWIBISNode state) of our regions */
         void layoutTargets() {
             if (DEBUG.LAYOUT) out("*** laying out targets");
+            // HO 09/12/2010 BEGIN **********
+            /* float labelPosX = ChildPadX;
+            float labelPosY = ChildPadY;
+            if (rChildren != null)  {
+            	labelPosX = x + rChildren.x + rChildren.width;
+            	labelPosY = y + rChildren.y;
+            }
+            mLabelPos.setLocation(x + labelPosX, y + labelPosY); */
+            // HO 09/12/2010 END **********
             mLabelPos.setLocation(x + rLabel.x, y + rLabel.y);
+            
             if (rIcons != null) {
             	// HO 08/12/2010 BEGIN **************
                 //mIconBlock.setLocation(x + rIcons.x, y + rIcons.y);
@@ -1811,7 +1857,7 @@ public class LWIBISNode extends LWNode
             //return LabelPositionXWhenIconShowing;
         	float theOffset = 0f;
         	// now if there's a child, it should be on the left
-        	if (hasChildren()) {
+        	if (hasChildren())  {
         		theOffset += EdgePadX + calculateChildWidth();
         	}
         	// now pad the label on the left
@@ -1840,7 +1886,7 @@ public class LWIBISNode extends LWNode
                 	// the below will just center it
                 	// however we need to test at this point to see if there are children
                 	float theOffset = 0f;
-                	if (hasChildren()) {
+                	if (hasChildren())  {
                 		theOffset += EdgePadX + getMaxChildSpan() + LabelPadLeft;
                 	} else {
                 		theOffset += (this.width - getTextSize().width) / 2;
