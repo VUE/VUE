@@ -1544,7 +1544,8 @@ public class LWIBISNode extends LWNode
                 // HO 09/12/2010 BEGIN ******
                 //rLabel.x += mIconBlock.width;
                 // or vice versa for icon blocks on the right
-                rLabel.x -= mIconBlock.width;
+                // or not
+                // rLabel.x -= mIconBlock.width;
                 // HO 09/12/2010 END ******
             }
             /*if (hasChildren() && !isCollapsed()) {
@@ -1599,14 +1600,17 @@ public class LWIBISNode extends LWNode
             if (rIcons != null) {
             	// HO 08/12/2010 BEGIN **************
                 //mIconBlock.setLocation(x + rIcons.x, y + rIcons.y);
-            	float theX = width - (x + rIcons.x);
-            	mIconBlock.setLocation(theX, y + rIcons.y);
+            	rIcons.x = width - rIcons.width;
+            	//float theX = width - (x + rIcons.x);
+            	//mIconBlock.setLocation(theX, y + rIcons.y);
+            	mIconBlock.setLocation(x + rIcons.x, y + rIcons.y);
                 // HO 08/12/2010 END **************
                 // Set divider line to height of the content, at right of icon block
             	// HO 08/12/2010 BEGIN **************
                 //mIconDivider.setLine(mIconBlock.x + mIconBlock.width, this.y,
                                      //mIconBlock.x + mIconBlock.width, this.y + this.height);
-            	float newX = theX - IconPadLeft;
+            	//float newX = theX - IconPadLeft;
+            	float newX = (x + rIcons.x) - ChildPadX;
             	//mIconDivider.setLine((width-(theX + IconPadLeft)), this.y,
                         //(width-(mIconBlock.x + IconPadLeft)), this.y + this.height);
             	mIconDivider.setLine(newX, this.y,
