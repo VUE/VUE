@@ -1525,7 +1525,10 @@ public class LWIBISNode extends LWNode
                 // make sure label is in the right place 
                 rLabel.x = childx + children.width + ChildPadX;
                 rLabel.y = childy;
-                fitWidth(rLabel.x + getTextSize().width + ChildPadX + children.width);
+                // HO 10/12/2010 BEGIN ******
+                //fitWidth(rLabel.x + getTextSize().width + ChildPadX + children.width);
+                fitWidth(rLabel.x + LabelPadLeft + getTextSize().width + LabelPadRight);
+                // HO 10/12/2010 END ******
                 // HO 09/12/2010 END ******
             }
         	// HO 09/12/2010 END ******
@@ -1769,7 +1772,7 @@ public class LWIBISNode extends LWNode
         min.width = child.width + text.width;
 
         float textHeight = EdgePadY + text.height + EdgePadY;
-        float childHeight = EdgePadY + child.height + EdgePadY;
+        //float childHeight = EdgePadY + child.height + EdgePadY;
         
         min.height = EdgePadY + text.height + EdgePadY;
         //min.height = Math.max(textHeight, childHeight);
@@ -1787,7 +1790,12 @@ public class LWIBISNode extends LWNode
             //float dividerY = EdgePadY + text.height;
         	float dividerY = EdgePadY + min.height; 
             //double stubX = LabelPositionXWhenIconShowing + text.width;
-        	double stubX = EdgePadX + child.width + LabelPadLeft + text.width;
+        	// HO 10/12/2010 BEGIN **********
+        	//double stubX = EdgePadX + child.width + LabelPadLeft + text.width;
+        	//double stubX = child.width + LabelPadLeft + text.width;
+        	double stubX = child.width + LabelPadLeft + text.width + LabelPadRight;
+        	//double stubX = EdgePadX + child.width + EdgePadX + text.width;
+        	// HO 10/12/2010 BEGIN **********
             // HO 09/12/2010 END **********
             double stubHeight = DividerStubAscent;
 
@@ -1862,7 +1870,10 @@ public class LWIBISNode extends LWNode
         	float theOffset = 0f;
         	// now if there's a child, it should be on the left
         	if (hasChildren())  {
-        		theOffset += EdgePadX + calculateChildWidth();
+        		// HO 10/12/2010 BEGIN **********
+        		//theOffset += EdgePadX + calculateChildWidth();
+        		theOffset += calculateChildWidth();
+        		// HO 10/12/2010 END *************
         	}
         	// now pad the label on the left
         	theOffset += LabelPadLeft;
@@ -1891,7 +1902,10 @@ public class LWIBISNode extends LWNode
                 	// however we need to test at this point to see if there are children
                 	float theOffset = 0f;
                 	if (hasChildren())  {
-                		theOffset += EdgePadX + getMaxChildSpan() + LabelPadLeft;
+                		// HO 10/12/2010 BEGIN *****************
+                		//theOffset += EdgePadX + getMaxChildSpan() + LabelPadLeft;
+                		theOffset += calculateChildWidth() + LabelPadLeft;
+                		// HO 09/12/2010 END *****************
                 	} else {
                 		theOffset += (this.width - getTextSize().width) / 2;
                 	}
@@ -1970,7 +1984,11 @@ public class LWIBISNode extends LWNode
         final float childSpan = childOffsetX() + children.width + ChildPadX;
 
         // HO 09/12/2010 BEGIN ******************
+        // HO 10/12/2010 BEGIN ******************
         float textWidth = LabelPadLeft + getTextSize().width + LabelPadRight;
+        //float textWidth = getTextSize().width;
+        //float textWidth = getTextSize().width + LabelPadRight;
+        // HO 09/12/2010 END ******************
         float iconWidth = 0f;
         if (iconShowing())
         	iconWidth += IconMargin;
