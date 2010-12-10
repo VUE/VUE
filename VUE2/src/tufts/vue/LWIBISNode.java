@@ -1771,8 +1771,8 @@ public class LWIBISNode extends LWNode
         float textHeight = EdgePadY + text.height + EdgePadY;
         float childHeight = EdgePadY + child.height + EdgePadY;
         
-        //min.height = EdgePadY + text.height + EdgePadY;
-        min.height = Math.max(textHeight, childHeight);
+        min.height = EdgePadY + text.height + EdgePadY;
+        //min.height = Math.max(textHeight, childHeight);
         // HO 09/12/2010 END **********
 
         // *** set icon Y position in all cases to a centered vertical
