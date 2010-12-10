@@ -1867,17 +1867,17 @@ public class LWIBISNode extends LWNode
         	// HO 09/12/2010 BEGIN ************
         	// no change, but the value is now label left-padding
             //return LabelPositionXWhenIconShowing;
-        	float theOffset = 0f;
+        	float xOffset = 0f;
         	// now if there's a child, it should be on the left
         	if (hasChildren())  {
         		// HO 10/12/2010 BEGIN **********
         		//theOffset += EdgePadX + calculateChildWidth();
-        		theOffset += calculateChildWidth();
+        		xOffset += calculateChildWidth();
         		// HO 10/12/2010 END *************
         	}
         	// now pad the label on the left
-        	theOffset += LabelPadLeft;
-        	return theOffset;
+        	xOffset += LabelPadLeft;
+        	return xOffset;
         	// HO 09/12/2010 END ************
         } else {
             // horizontally center if no icons
@@ -1900,18 +1900,18 @@ public class LWIBISNode extends LWNode
                 	// we want it left-aligned, but positioned to the right of any children
                 	// the below will just center it
                 	// however we need to test at this point to see if there are children
-                	float theOffset = 0f;
+                	float xOffset = 0f;
                 	if (hasChildren())  {
                 		// HO 10/12/2010 BEGIN *****************
                 		//theOffset += EdgePadX + getMaxChildSpan() + LabelPadLeft;
-                		theOffset += calculateChildWidth() + LabelPadLeft;
+                		xOffset += calculateChildWidth() + LabelPadLeft;
                 		// HO 09/12/2010 END *****************
                 	} else {
-                		theOffset += (this.width - getTextSize().width) / 2;
+                		xOffset += (this.width - getTextSize().width) / 2;
                 	}
                 	//theOffset += ((this.width - getTextSize().width) / 2);
                 	//final float offset = (this.width - getTextSize().width) / 2;
-                	final float offset = theOffset;
+                	final float offset = xOffset;
                 	 // float childSpace = getMaxChildSpan();
                 	// final float offset = childSpace;
                 	// not sure that all the required space is included in here...
@@ -1969,8 +1969,11 @@ public class LWIBISNode extends LWNode
     private void layoutBoxed_children(Size min, Size labelText) {
         if (DEBUG.LAYOUT) out("*** layoutBoxed_children; min=" + min + " text=" + labelText);
 
-        mBoxedLayoutChildY = EdgePadY + labelText.height; // must set before layoutChildren, as may be used in childOffsetY()
-
+        // HO 10/12/2010 BEGIN ************
+        //mBoxedLayoutChildY = EdgePadY + labelText.height; // must set before layoutChildren, as may be used in childOffsetY()
+        mBoxedLayoutChildY = EdgePadY;
+        // HO 10/12/2010 BEGIN ************
+        
         float minWidth;
         if (false && isPresentationContext()) {
             minWidth = Math.max(labelText.width, getWidth()-20);
@@ -2715,21 +2718,26 @@ public class LWIBISNode extends LWNode
             //System.out.println("\tchildPos.x=" + mChildPos.x);
             return mChildPos.x;
         }
-        // HO 09/12/2010 I think this is another of our suspects
-        return iconShowing() ? ChildOffsetX : ChildPadX;
+        // HO 10/12/2010 BEGIN *************
+        //return iconShowing() ? ChildOffsetX : ChildPadX;
+        return ChildPadX;
+        // HO 10/12/2010 END ************
     }
     private float childOffsetY() {
         if (isCenterLayout) {
             return mChildPos.y;
         }
-        float baseY;
+        float baseY = 0f;
         if (iconShowing()) {
             baseY = mBoxedLayoutChildY;
             if (DEBUG.LAYOUT) out("*** childOffsetY starting with precomputed " + baseY + " to produce " + (baseY + ChildOffsetY));
         } else {
-            final TextBox labelBox = getLabelBox();
+        	// HO 10/12/2010 BEGIN ******************
+            /* final TextBox labelBox = getLabelBox();
             int labelHeight = labelBox == null ? 12 : labelBox.getHeight();
-            baseY = relativeLabelY() + labelHeight;
+            baseY = relativeLabelY() + labelHeight; */
+        	//baseY = relativeLabelY();
+            // HO 10/12/2010 END ******************
         }
         baseY += ChildOffsetY;
         return baseY;
@@ -2778,11 +2786,12 @@ public class LWIBISNode extends LWNode
     // HO 09/12/2010 BEGIN ******************
     //private static final int ChildOffsetX = IconMargin + LabelPadLeft; // X offset of children when icon showing
     //private static final int ChildOffsetX = LabelPadLeft + IconMargin + LabelPadRight; // X offset of children when icon showing
-    private static final int ChildOffsetX = LabelPadLeft; // X offset of children when icon showing
+    //private static final int ChildOffsetX = LabelPadLeft; // X offset of children when icon showing
+    private static final int ChildPadX = 5; // min space at left/right of children
+    private static final int ChildOffsetX = ChildPadX; // X offset of children when icon showing
     // HO 09/12/2010 END ******************
     private static final int ChildOffsetY = 4; // how far children down from bottom of label divider line
     private static final int ChildPadY = ChildOffsetY;
-    private static final int ChildPadX = 5; // min space at left/right of children
     private static final int ChildVerticalGap = 3; // vertical space between children
     private static final int ChildHorizontalGap = 3; // horizontal space between children
     private static final int ChildrenPadBottom = ChildPadX - ChildVerticalGap; // make same as space at right
