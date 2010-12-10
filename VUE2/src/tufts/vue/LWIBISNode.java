@@ -1730,7 +1730,10 @@ public class LWIBISNode extends LWNode
     private float calculateChildWidth() {
     	// this only works for column-aligned nodes
     	float childWidth = 0f;
-    	if (hasChildren()) {
+    	// HO 10/12/2010 BEGIN *************
+    	// if (hasChildren()) {
+    	if (hasChildren() && !isCollapsed()) {
+    		// HO 10/12/2010 END *********
     		childWidth += getMaxChildSpan();
     	}
     	
@@ -1740,7 +1743,11 @@ public class LWIBISNode extends LWNode
     private float calculateChildHeight() {
     	// this only works for column-aligned nodes
     	float childHeight = 0f;
-    	if (hasChildren()) {
+    	// this only works for column-aligned nodes
+    	// HO 10/12/2010 BEGIN *************
+    	// if (hasChildren()) {
+    	if (hasChildren() && !isCollapsed()) {
+    		// HO 10/12/2010 END *********
     		childHeight += getMaxChildHeight();
     	}
     	
@@ -1750,6 +1757,14 @@ public class LWIBISNode extends LWNode
     private Size calculateChildSize() {
     	Size theSize = new Size(calculateChildWidth(), calculateChildHeight());
     	return theSize;
+    }
+    
+    private float getIconWidth() {
+    	float theWidth = 0f;
+    	if (iconShowing()) {
+    		theWidth = IconMargin;
+    	}
+    	return theWidth;
     }
     // HO 09/12/2010 END **********
 
@@ -1764,12 +1779,18 @@ public class LWIBISNode extends LWNode
         final Size child = calculateChildSize();
         // HO 09/12/2010 END **********
         final Size text = getTextSize();
+        // HO 10/12/2010 BEGIN **********
+        final float iconWidth = getIconWidth();
+        // HO 10/12/2010 END **********
 
         // make sure the node is at least wide enough to contain the text
         // so far we may only have the label        
         // HO 09/12/2010 BEGIN **********
         // min.width = text.width;
-        min.width = child.width + text.width;
+        // HO 10/12/2010 BEGIN **********
+        //min.width = child.width + text.width;
+        min.width = child.width + text.width + iconWidth;
+        // HO 10/12/2010 BEGIN **********
 
         float textHeight = EdgePadY + text.height + EdgePadY;
         //float childHeight = EdgePadY + child.height + EdgePadY;
@@ -1793,7 +1814,8 @@ public class LWIBISNode extends LWNode
         	// HO 10/12/2010 BEGIN **********
         	//double stubX = EdgePadX + child.width + LabelPadLeft + text.width;
         	//double stubX = child.width + LabelPadLeft + text.width;
-        	double stubX = child.width + LabelPadLeft + text.width + LabelPadRight;
+        	//double stubX = child.width + LabelPadLeft + text.width + LabelPadRight;
+        	double stubX = child.width + LabelPadLeft + text.width + LabelPadRight + getIconWidth();
         	//double stubX = EdgePadX + child.width + EdgePadX + text.width;
         	// HO 10/12/2010 BEGIN **********
             // HO 09/12/2010 END **********
