@@ -1527,7 +1527,7 @@ public class LWIBISNode extends LWNode
                 rLabel.y = childy;
                 // HO 10/12/2010 BEGIN ******
                 //fitWidth(rLabel.x + getTextSize().width + ChildPadX + children.width);
-                fitWidth(rLabel.x + LabelPadLeft + getTextSize().width + LabelPadRight);
+                fitWidth(rLabel.x + getTotalTextWidth());
                 // HO 10/12/2010 END ******
                 // HO 09/12/2010 END ******
             }
@@ -1710,7 +1710,10 @@ public class LWIBISNode extends LWNode
             if (w > maxHeight)
                 maxHeight = w;
         }
+        // HO 10/12/2010 BEGIN *********
         return childOffsetY() + maxHeight + ChildPadY;
+        //return childOffsetY() + maxHeight + ChildPadY + ChildrenPadBottom;
+        // HO 10/12/2010 END *********
     }    
     // HO 09/12/2010 END ***************
     
@@ -1727,7 +1730,7 @@ public class LWIBISNode extends LWNode
     }
     
     // HO 09/12/2010 BEGIN **********
-    private float calculateChildWidth() {
+    private float calculateTotalChildWidth() {
     	// this only works for column-aligned nodes
     	float childWidth = 0f;
     	// HO 10/12/2010 BEGIN *************
@@ -1740,7 +1743,7 @@ public class LWIBISNode extends LWNode
     	return childWidth;
     }
     
-    private float calculateChildHeight() {
+    private float calculateTotalChildHeight() {
     	// this only works for column-aligned nodes
     	float childHeight = 0f;
     	// this only works for column-aligned nodes
@@ -1754,17 +1757,29 @@ public class LWIBISNode extends LWNode
     	return childHeight;
     }
     
-    private Size calculateChildSize() {
-    	Size theSize = new Size(calculateChildWidth(), calculateChildHeight());
+    private Size calculateTotalChildSize() {
+    	Size theSize = new Size(calculateTotalChildWidth(), calculateTotalChildHeight());
     	return theSize;
     }
     
-    private float getIconWidth() {
+    private float getTotalIconBlockWidth() {
     	float theWidth = 0f;
     	if (iconShowing()) {
     		theWidth = IconMargin;
     	}
     	return theWidth;
+    }
+    
+    private float getTotalTextHeight() {
+    	Size textSize = getTextSize();
+    	float textHeight = EdgePadY + textSize.height + EdgePadY;
+    	return textHeight;
+    }
+    
+    private float getTotalTextWidth() {
+    	Size textSize = getTextSize();
+    	float textWidth = LabelPadLeft + textSize.width + LabelPadRight;
+    	return textWidth;
     }
     // HO 09/12/2010 END **********
 
@@ -1776,11 +1791,11 @@ public class LWIBISNode extends LWNode
     	// the right-aligned label?
     	final Size min = new Size();
         // HO 09/12/2010 BEGIN **********
-        final Size child = calculateChildSize();
+        final Size child = calculateTotalChildSize();
         // HO 09/12/2010 END **********
         final Size text = getTextSize();
         // HO 10/12/2010 BEGIN **********
-        final float iconWidth = getIconWidth();
+        final float iconWidth = getTotalIconBlockWidth();
         // HO 10/12/2010 END **********
 
         // make sure the node is at least wide enough to contain the text
@@ -1792,11 +1807,16 @@ public class LWIBISNode extends LWNode
         min.width = child.width + text.width + iconWidth;
         // HO 10/12/2010 BEGIN **********
 
-        float textHeight = EdgePadY + text.height + EdgePadY;
+        //float textHeight = EdgePadY + text.height + EdgePadY;
+        float textHeight = getTotalTextHeight();
         //float childHeight = EdgePadY + child.height + EdgePadY;
         
-        min.height = EdgePadY + text.height + EdgePadY;
-        //min.height = Math.max(textHeight, childHeight);
+        //min.height = EdgePadY + text.height + EdgePadY;
+        // HO 10/12/2010 BEGIN **********
+        //min.height = textHeight;
+        float childHeight = calculateTotalChildHeight();
+        min.height = Math.max(textHeight, childHeight);
+        // HO 10/12/2010 BEGIN **********
         // HO 09/12/2010 END **********
 
         // *** set icon Y position in all cases to a centered vertical
@@ -1815,7 +1835,7 @@ public class LWIBISNode extends LWNode
         	//double stubX = EdgePadX + child.width + LabelPadLeft + text.width;
         	//double stubX = child.width + LabelPadLeft + text.width;
         	//double stubX = child.width + LabelPadLeft + text.width + LabelPadRight;
-        	double stubX = child.width + LabelPadLeft + text.width + LabelPadRight + getIconWidth();
+        	double stubX = child.width + getTotalTextWidth() + iconWidth;
         	//double stubX = EdgePadX + child.width + EdgePadX + text.width;
         	// HO 10/12/2010 BEGIN **********
             // HO 09/12/2010 END **********
@@ -1894,7 +1914,7 @@ public class LWIBISNode extends LWNode
         	if (hasChildren())  {
         		// HO 10/12/2010 BEGIN **********
         		//theOffset += EdgePadX + calculateChildWidth();
-        		xOffset += calculateChildWidth();
+        		xOffset += calculateTotalChildWidth();
         		// HO 10/12/2010 END *************
         	}
         	// now pad the label on the left
@@ -1926,7 +1946,7 @@ public class LWIBISNode extends LWNode
                 	if (hasChildren())  {
                 		// HO 10/12/2010 BEGIN *****************
                 		//theOffset += EdgePadX + getMaxChildSpan() + LabelPadLeft;
-                		xOffset += calculateChildWidth() + LabelPadLeft;
+                		xOffset += calculateTotalChildWidth() + LabelPadLeft;
                 		// HO 09/12/2010 END *****************
                 	} else {
                 		xOffset += (this.width - getTextSize().width) / 2;
@@ -2010,7 +2030,7 @@ public class LWIBISNode extends LWNode
 
         // HO 09/12/2010 BEGIN ******************
         // HO 10/12/2010 BEGIN ******************
-        float textWidth = LabelPadLeft + getTextSize().width + LabelPadRight;
+        float textWidth = getTotalTextWidth();
         //float textWidth = getTextSize().width;
         //float textWidth = getTextSize().width + LabelPadRight;
         // HO 09/12/2010 END ******************
@@ -2025,8 +2045,19 @@ public class LWIBISNode extends LWNode
             min.width = neededWidth;
         // HO 09/12/2010 END ******************
         
-        min.height += children.height;
-        min.height += ChildOffsetY + ChildrenPadBottom; // additional space below last child before bottom of node
+        // HO 10/12/2010 BEGIN ******************
+        // the major height bug
+        float neededHeight = Math.max(getTextSize().height, children.height);
+        //float neededHeight = Math.max(getTextSize().height, calculateTotalChildHeight());
+        //float neededHeight = Math.max(getTextSize().height, children.height, calculateTotalChildHeight());
+        //min.height += children.height;
+        min.height = neededHeight;
+        // HO 10/12/2010 END ******************
+        
+        
+        //min.height += ChildOffsetY + ChildrenPadBottom;
+        min.height += ChildOffsetY + ChildrenPadBottom;
+        min.height += childOffsetY() + ChildPadY; // additional space below last child before bottom of node
     }
 
     /** will CHANGE min */
