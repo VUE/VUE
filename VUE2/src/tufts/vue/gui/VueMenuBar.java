@@ -755,7 +755,6 @@ public class VueMenuBar extends javax.swing.JMenuBar
      // HO 07/07/2010 END *******************
         // HO 27/08/2010 BEGIN *******************
         contentMenu.add(addWormholeToExistingMapItem);
-        contentMenu.addSeparator();
         // HO 27/08/2010 END *******************
         contentMenu.addSeparator();
         contentMenu.add(removeResourceItem);

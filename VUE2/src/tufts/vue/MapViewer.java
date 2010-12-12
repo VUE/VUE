@@ -5340,12 +5340,18 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
     	sSinglePopup.addSeparator();
     	sAddURLItem = sSinglePopup.add(Actions.AddURLAction);
+    	// HO 12/12/2010 BEGIN **************
+    	sSinglePopup.addSeparator();
+    	// HO 12/12/2010 END ****************
     	// HO O7/07/2010 ********************************
     	sAddWormholeItem = sSinglePopup.add(Actions.AddWormholeToNewMapAction);
     	// HO O7/07/2010 ********************************
     	// HO 27/08/2010 ********************************
     	sAddWormholeToExistingMapItem = sSinglePopup.add(Actions.AddWormholeToExistingMapAction);
     	// HO 27/08/2010 ********************************
+    	// HO 12/12/2010 BEGIN **************
+    	sSinglePopup.addSeparator();
+    	// HO 12/12/2010 END ****************
     	sAddFileItem = sSinglePopup.add(Actions.AddFileAction);
     	sSinglePopup.add(AnalyzerAction.luckyImageAction);
     	sRemoveResourceItem = sSinglePopup.add(Actions.RemoveResourceAction);
