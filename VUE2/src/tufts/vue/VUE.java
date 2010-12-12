@@ -594,6 +594,9 @@ public class VUE
         VueMenuBar.RootMenuBar.linkMenu.setEnabled(enable); 
        
         Actions.NewNode.setEnabled(enable);
+        // HO 12/12/2010 BEGIN **********
+        Actions.NewIBISNode.setEnabled(enable);
+        // HO 12/12/2010 END **********
         Actions.NewRichText.setEnabled(enable);
         
         VueMenuBar.RootMenuBar.playbackMenu.setEnabled(enable);

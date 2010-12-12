@@ -164,7 +164,12 @@ public class LWIBISNode extends LWNode
     }
     
     public LWIBISNode(String label) {
-    	this(label, 0, 0);
+    	// HO 12/12/2010 BEGIN ************
+    	//this(label, 0, 0);
+    	// this(label, 0, 0, null);
+    	this (label, new tufts.vue.ibisimage.IBISAcceptedIssueImage());
+    	// HO 12/12/2010 END ************
+    	
     }
     
     /**
@@ -589,6 +594,12 @@ public class LWIBISNode extends LWNode
 
         if (mIBISImage != null && IsSameImage(mIBISImage.getClass(), imageClass))
             return;
+        
+        // HO 12/12/2010 BEGIN **************
+        //if (imageClass == null)
+        	//imageClass = IBISAcceptedIssueImage.class;
+        // HO 12/12/2010 END **************
+
 
         try {
             setImageInstance(imageClass.newInstance());

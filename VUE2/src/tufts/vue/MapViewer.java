@@ -21,6 +21,7 @@ import static tufts.Util.*;
 
 import tufts.vue.LinkTool.ComboModeTool;
 import tufts.vue.NodeTool.NodeModeTool;
+import tufts.vue.IBISNodeTool.IBISNodeModeTool;
 import tufts.vue.gui.GUI;
 import tufts.vue.gui.DockWindow;
 import tufts.vue.gui.FocusManager;
@@ -224,6 +225,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     private final VueTool TextTool = null;//VueTool.getInstance(tufts.vue.TextTool.class);
     //private final NodeTool NodeTool = (NodeTool) VueTool.getInstance(tufts.vue.NodeTool.class);
     private final VueTool NodeModeTool = VueTool.getInstance(tufts.vue.NodeTool.NodeModeTool.class);
+    // HO 12/12/2010 BEGIN *********
+    private final VueTool IBISNodeModeTool = VueTool.getInstance(tufts.vue.IBISNodeTool.IBISNodeModeTool.class);
+    // HO 12/12/2010 END *********
     private final VueTool RichTextTool =VueTool.getInstance(tufts.vue.RichTextTool.class);
     private final VueTool BrowseTool = VueTool.getInstance(tufts.vue.SelectionTool.Browse.class);
     private final VueTool ToolPresentation = VueTool.getInstance(tufts.vue.PresentationTool.class);
@@ -5502,6 +5506,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
     	sSinglePopup.addSeparator();
     	sSinglePopup.add(Actions.NewNode);
+    	// HO 12/12/2010 ********************************
+    	sSinglePopup.add(Actions.NewIBISNode);
+    	// HO 12/12/2010 ********************************
     	sSinglePopup.add(Actions.NewRichText);
     	sAddURLItem = sSinglePopup.add(Actions.AddURLAction);
     	// HO O7/07/2010 ********************************
@@ -8302,6 +8309,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 if (!mLabelEditWasActiveAtMousePress) {
                     if (activeTool == NodeModeTool && oneClickNodePref.isTrue())
                         Actions.NewNode.fire(e);
+                    // HO 12/12/2010 BEGIN ***********
+                    if (activeTool == IBISNodeModeTool && oneClickNodePref.isTrue())
+                        Actions.NewIBISNode.fire(e);
+                    // HO 12/12/2010 END ***********
                     else if (activeTool == TextTool)
                         Actions.NewRichText.fire(e);
                     else if (activeTool == RichTextTool)

@@ -49,6 +49,7 @@ import javax.swing.KeyStroke;
 import org.apache.commons.lang.ArrayUtils;
 
 import tufts.Util;
+import tufts.vue.IBISNodeTool.IBISNodeModeTool;
 import tufts.vue.LWComponent.ChildKind;
 import tufts.vue.LWComponent.Flag;
 import tufts.vue.LWComponent.HideCause;
@@ -4237,6 +4238,16 @@ public class Actions implements VueConstants
             return NodeModeTool.createNewNode();
         }
     };
+    
+    // HO 12/12/2010 BEGIN ***************
+    public static final VueAction NewIBISNode =
+        new NewItemAction(VueResources.local("menu.content.addIBISnode"), keyStroke(KeyEvent.VK_S, COMMAND)) {
+            @Override
+            LWComponent createNewItem() {
+                return IBISNodeModeTool.createNewNode();
+            }
+        };
+    // HO 12/12/2010 END ***************
 
     //This doesn't really make a lot of sense to have 2 methods do the
     //same thing but my MapViewer.java is a bit decomposed at the moment so
@@ -4253,6 +4264,9 @@ public class Actions implements VueConstants
 
     public static final Action[] NEW_OBJECT_ACTIONS = {
         NewNode,
+        // HO 12/12/2010 BEGIN *********
+        NewIBISNode,
+        // HO 12/12/2010 END ***********
         NewRichText,
         //AddImageAction,
         //AddFileAction,

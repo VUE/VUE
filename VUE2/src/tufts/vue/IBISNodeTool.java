@@ -215,7 +215,10 @@ public class IBISNodeTool extends VueTool
         
         /** @return a new node initialized to internal VUE defaults -- ignore tool states */
         public static LWIBISNode createDefaultNode(String label) {
+        	// HO 12/12/2010 BEGIN ***************
             return new LWIBISNode(label);
+        	//return new LWIBISNode(label, new tufts.vue.ibisimage.IBISAcceptedIssueImage());
+            // HO 12/12/2010 END *****************
         }
         
         /** @return a "text" node initialized to the current style in the VUE editors.
