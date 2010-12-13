@@ -60,6 +60,7 @@ import tufts.vue.gui.FullScreen;
 import tufts.vue.gui.GUI;
 import tufts.vue.gui.VueFileChooser;
 import tufts.vue.gui.renderer.SearchResultTableModel;
+import tufts.vue.ibisimage.IBISImage;
 import edu.tufts.vue.metadata.MetadataList;
 import edu.tufts.vue.preferences.ui.PreferencesDialog;
 
@@ -3563,8 +3564,11 @@ public class Actions implements VueConstants
 
         @Override
         boolean enabledFor(LWSelection s) {
+        	// HO 12/12/2010 disable for LWIBISImage - no, don't.
             return s.containsType(LWImage.class)
                 || s.containsType(LWNode.class); // todo: really, only image nodes, but we have no key for that
+            
+            //return (((s.containsType(LWImage.class) || s.containsType(LWNode.class)) && (!s.containsType(LWIBISNode.class)))); // todo: really, only image nodes, but we have no key for that
         }
         
         protected void imageAct(LWImage im, Object actionKey) {

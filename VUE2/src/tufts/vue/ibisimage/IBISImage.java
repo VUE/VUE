@@ -4,6 +4,7 @@ import java.awt.*;
 import java.io.*;
 
 import tufts.vue.*;
+import tufts.vue.LWComponent.Flag;
 import tufts.vue.ibisicon.*;
 
 public abstract class IBISImage extends LWImage {
@@ -19,6 +20,7 @@ public abstract class IBISImage extends LWImage {
 	
 	public IBISImage(Resource r) {
 		super(r);
+		super.setSizeImpl(64,64, true);
 	}
 	
 	// HO 18/11/2010 BEGIN ***************
@@ -30,5 +32,6 @@ public abstract class IBISImage extends LWImage {
 	public abstract void setIcon();
 	
 	public abstract IBISImageIcon getIcon();
+
 	
 }

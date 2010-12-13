@@ -46,6 +46,7 @@ import tufts.vue.DEBUG;
 import tufts.vue.Images;
 import tufts.vue.JavaAnalysisPanel;
 import tufts.vue.LWComponent;
+import tufts.vue.LWIBISNode;
 import tufts.vue.LWImage;
 import tufts.vue.LWLink;
 import tufts.vue.LWMap;
@@ -81,6 +82,7 @@ import tufts.vue.action.PublishActionFactory;
 import tufts.vue.action.SaveAction;
 import tufts.vue.action.ShortcutsAction;
 import tufts.vue.action.ShowURLAction;
+import tufts.vue.ibisimage.IBISImage;
 import edu.tufts.vue.dataset.QuickImportAction;
 import edu.tufts.vue.dsm.impl.VueDataSourceManager;
 import edu.tufts.vue.ontology.action.OntologyControlsOpenAction;
@@ -747,18 +749,18 @@ public class VueMenuBar extends javax.swing.JMenuBar
         final JMenuItem removeResourceItem = new JMenuItem(Actions.RemoveResourceAction);
         final JMenuItem removeResourceKeepImageItem = new JMenuItem(Actions.RemoveResourceKeepImageAction);
         
+        contentMenu.addSeparator();
         contentMenu.add(addFileItem);
-        contentMenu.add(addURLItem);
-     // HO 07/07/2010 BEGIN *******************
+        contentMenu.add(addURLItem);        
+        contentMenu.add(removeResourceItem);
+        contentMenu.add(removeResourceKeepImageItem);
+        // HO 07/07/2010 BEGIN *******************
         contentMenu.addSeparator();
         contentMenu.add(addWormholeItem);
-     // HO 07/07/2010 END *******************
+        // HO 07/07/2010 END *******************
         // HO 27/08/2010 BEGIN *******************
         contentMenu.add(addWormholeToExistingMapItem);
         // HO 27/08/2010 END *******************
-        contentMenu.addSeparator();
-        contentMenu.add(removeResourceItem);
-        contentMenu.add(removeResourceKeepImageItem);
         
         
         formatMenu.addMenuListener(new MenuListener(){        	
@@ -787,17 +789,34 @@ public class VueMenuBar extends javax.swing.JMenuBar
 			}});
         contentMenu.addMenuListener(new MenuListener(){
 			public void menuCanceled(MenuEvent e) {/* no op	*/}
-			public void menuDeselected(MenuEvent e) {/*no op */}
+			public void menuDeselected(MenuEvent e) 
+			{/*no op */ 
+				System.out.println("Deselected!");
+				}
 			public void menuSelected(MenuEvent e) {handleActivation();}
 			private void handleActivation()
 			{
 				LWComponent c =VUE.getActiveComponent();
-				if (c instanceof LWNode)
+
+				// HO 13/12/2010 BEGIN ***********
+				//if (c instanceof LWNode)
+				if ((c instanceof LWNode) && (!(c instanceof LWIBISNode)))
+				// HO 13/12/2010 END ***********
 				{
 					if ((c).hasResource())
 					{
 						final Resource resource = c.getResource();
-						removeResourceItem.setEnabled(true);
+						// HO 13/12/2010 BEGIN ***********
+						if (!(c instanceof LWIBISNode)) {
+							// HO 13/12/2010 END ***********
+							removeResourceItem.setEnabled(true);
+						} else {
+							addFileItem.setEnabled(false);
+							addURLItem.setEnabled(false);
+							removeResourceItem.setEnabled(false);
+							removeResourceKeepImageItem.setEnabled(false);
+						}
+						// HO 13/12/2010 END ***********
 						if (c.hasChildren())
 			        	{
 			        		List<LWComponent> children = c.getChildren();
@@ -811,17 +830,28 @@ public class VueMenuBar extends javax.swing.JMenuBar
 			    					LWImage image = ((LWImage)comp);
 			        				if (image.getResource().equals(resource))
 			        				{
-			        					removeResourceKeepImageItem.setEnabled(true);
-			        					enabled=true;
-			        					break;
+			        					// HO 13/12/2010 BEGIN ************
+			        					if (!(c instanceof LWIBISNode)) {
+			        						// HO 13/12/2010 END ************
+			        						removeResourceKeepImageItem.setEnabled(true);
+			        						enabled=true;
+			        						break;
+			        					}
 			        				}
 			        			}
 			        		}
 			        		if (!enabled)
 			        			removeResourceKeepImageItem.setEnabled(false);
 			        	}
-					
-						
+											
+						// HO 13/12/2010 BEGIN ***********
+						if (c instanceof LWIBISNode) {
+							addFileItem.setEnabled(false);
+							addURLItem.setEnabled(false);
+							removeResourceItem.setEnabled(false);
+							removeResourceKeepImageItem.setEnabled(false);
+						}
+						// HO 13/12/2010 END ***********
 						addFileItem.setLabel(VueResources.getString("mapViewer.componentMenu.replaceFile.label"));
 						addURLItem.setLabel(VueResources.getString("mapViewer.componentMenu.replaceURL.label"));
 						// HO 07/07/2010 BEGIN *****************
@@ -845,6 +875,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
 						// HO 27/08/2010 END *********************
 					}
 				}
+				
 			}});
         
   //      contentMenu.addSeparator();

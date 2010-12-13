@@ -61,6 +61,11 @@ public class LWIBISNode extends LWNode
     public static final int   DEFAULT_NODE_STROKE_WIDTH = VueResources.getInt("node.strokeWidth");
     public static final Color DEFAULT_NODE_STROKE_COLOR = VueResources.getColor("node.strokeColor");
     public static final Font  DEFAULT_TEXT_FONT = VueResources.getFont("text.font");
+    // HO 12/12/2010 BEGIN ************
+    public static final float DEFAULT_IMAGE_SIZE = 64f;
+    public static final float DEFAULT_IMAGE_HEIGHT = 64f;
+    public static final float DEFAULT_IMAGE_WIDTH = 64f;
+    // HO 12/12/2010 BEGIN ************
     
     /** how much smaller children are than their immediately enclosing parent (is cumulative) */
     static final float ChildScale = VueResources.getInt("node.child.scale", 75) / 100f;
@@ -306,7 +311,10 @@ public class LWIBISNode extends LWNode
     LWIBISNode(String label, Resource resource)
     {
         this(label, 0, 0);
-        setResource(resource);
+        // HO 13/12/2010 BEGIN *************
+        //setResource(resource);
+        setDefaultSizeResource(resource);
+        // HO 06/12/2010 END *************
     }
     
     @Override
@@ -586,6 +594,20 @@ public class LWIBISNode extends LWNode
     
     // HO 27/10/2010 END **********************
     
+    // HO 12/12/2010 BEGIN ************
+    private void setImageToDefaultSize() {
+    	if (mIBISImage != null) {
+    		// mIBISImage.setMaxDimension(64);
+            mIBISImage.setMaxDimension(DEFAULT_IMAGE_SIZE);
+            //if (mIBISImage.isNodeIcon()) {
+                mIBISImage.clearHidden(HideCause.IMAGE_ICON_OFF);
+                layout("imageIconShow");
+                VUE.getActiveViewer().repaintSelection();
+            //}
+    	}
+    }
+    // HO 12/12/2010 BEGIN ************
+    
     // HO 03/11/2010 BEGIN *****************************
     /**
      * @param imageClass -- a class object this is a subclass of LWImage
@@ -603,6 +625,9 @@ public class LWIBISNode extends LWNode
 
         try {
             setImageInstance(imageClass.newInstance());
+            // HO 12/12/2010 BEGIN **************
+            //setImageToDefaultSize();
+            // HO 12/12/2010 END **************
         } catch (Throwable t) {
             tufts.Util.printStackTrace(t);
         }
@@ -795,7 +820,10 @@ public class LWIBISNode extends LWNode
         	//mIBISImage.setFrame(0, 0, getWidth(), getHeight());
             
             //this.addChild(mIBISImage);
-        	this.setResource(mIBISImage.getResource());
+        	// HO 13/12/2010 BEGIN ***************        	
+        	//this.setResource(mIBISImage.getResource());
+        	setDefaultSizeResource(mIBISImage.getResource());
+        	// HO 13/12/2010 END ***************
             //layout(LWKey.IBISSymbol);
             // HO 03/11/2010 shouldn't need to update links?
             //updateConnectedLinks(null);
@@ -805,7 +833,10 @@ public class LWIBISNode extends LWNode
         // HO 01/12/2010 BEGIN out with the old
         if (old != null) {
         	Resource resource = image.getResource();
-        	this.setResource(resource);
+        	// HO 13/12/2010 BEGIN ***************
+        	//this.setResource(resource);
+        	setDefaultSizeResource(resource);
+        	// HO 13/12/2010 END ***************
         	mIBISImage = image;
         }
         	else {
@@ -816,6 +847,15 @@ public class LWIBISNode extends LWNode
         notify(LWKey.IBISSymbol, new Undoable(old) { void undo() { setImageInstance((LWImage)old); }} );
         
     } 
+    
+    // HO 13/12/2010 BEGIN ***************
+    private void setDefaultSizeResource(Resource res) {
+    	res.setProperty(Resource.IMAGE_WIDTH, DEFAULT_IMAGE_WIDTH);
+    	res.setProperty(Resource.IMAGE_HEIGHT, DEFAULT_IMAGE_HEIGHT);
+    	this.setResource(res);
+    }
+    // HO 13/12/2010 BEGIN ***************
+    
     // HO 03/11/2010 END *****************************
     
     // HO 15/11/2010 BEGIN *****************************

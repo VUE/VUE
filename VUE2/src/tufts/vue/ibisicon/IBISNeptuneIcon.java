@@ -5,7 +5,10 @@ import java.io.File;
 import tufts.vue.*;
 
 public class IBISNeptuneIcon extends IBISImageIcon {
+	// HO 13/12/2010 BEGIN ************
 	private static File mImageFile = VueResources.getFile("IBISNodeTool.neptune.raw");
+	//private static File mImageFile = VueResources.getFile("IBISNodeTool.neptune.icon");
+	// HO 13/12/2010 END ************
 	
 	public IBISNeptuneIcon() {
 		super(mImageFile.toString());
