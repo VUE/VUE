@@ -172,7 +172,7 @@ public class LWIBISNode extends LWNode
     	// HO 12/12/2010 BEGIN ************
     	//this(label, 0, 0);
     	// this(label, 0, 0, null);
-    	this (label, new tufts.vue.ibisimage.IBISAcceptedIssueImage());
+    	this (label, new tufts.vue.ibisimage.IBISIssueImage());
     	// HO 12/12/2010 END ************
     	
     }
@@ -288,7 +288,7 @@ public class LWIBISNode extends LWNode
     	this(label, 0, 0);
     	if(image == null) {
     		// if there's no image, assign the default
-    		setImage(IBISAcceptedIssueImage.class);
+    		setImage(IBISIssueImage.class);
     	} else if (image != null) {
     		setImageInstance(image);
     	}
@@ -619,7 +619,7 @@ public class LWIBISNode extends LWNode
         
         // HO 12/12/2010 BEGIN **************
         //if (imageClass == null)
-        	//imageClass = IBISAcceptedIssueImage.class;
+        	//imageClass = IBISIssueImage.class;
         // HO 12/12/2010 END **************
 
 

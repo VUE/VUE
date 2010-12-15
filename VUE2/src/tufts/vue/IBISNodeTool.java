@@ -145,7 +145,7 @@ public class IBISNodeTool extends VueTool
     public static class IBISNodeModeTool extends VueTool
     {
     	// HO 10/11/2010 BEGIN ***************
-    	private LWIBISNode creationNode = new LWIBISNode("", new tufts.vue.ibisimage.IBISAcceptedIssueImage());
+    	private LWIBISNode creationNode = new LWIBISNode("", new tufts.vue.ibisimage.IBISIssueImage());
 
     	// HO 10/11/2010 END ***************
 
@@ -217,7 +217,7 @@ public class IBISNodeTool extends VueTool
         public static LWIBISNode createDefaultNode(String label) {
         	// HO 12/12/2010 BEGIN ***************
             return new LWIBISNode(label);
-        	//return new LWIBISNode(label, new tufts.vue.ibisimage.IBISAcceptedIssueImage());
+        	//return new LWIBISNode(label, new tufts.vue.ibisimage.IBISIssueImage());
             // HO 12/12/2010 END *****************
         }
         

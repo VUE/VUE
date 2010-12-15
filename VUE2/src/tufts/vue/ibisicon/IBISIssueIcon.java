@@ -4,11 +4,11 @@ import java.io.File;
 
 import tufts.vue.*;
 
-public class IBISAcceptedIssueIcon extends IBISImageIcon {
+public class IBISIssueIcon extends IBISImageIcon {
 	
-	private static File mImageFile = VueResources.getFile("IBISNodeTool.accepted_issue.raw");
+	private static File mImageFile = VueResources.getFile("IBISNodeTool.issue.raw");
 	
-	public IBISAcceptedIssueIcon() {
+	public IBISIssueIcon() {
 		super(mImageFile.toString());
 	}
 	
