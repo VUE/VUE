@@ -6,14 +6,14 @@ import java.io.*;
 import tufts.vue.*;
 import tufts.vue.ibisicon.*;
 
-public class IBISPlutoImage extends IBISImage {
+public class IBISAnswer_AcceptedImage extends IBISImage {
 	
-	private static File mImageFile = VueResources.getFile("IBISNodeTool.pluto.raw");
+	private static File mImageFile = VueResources.getFile("IBISNodeTool.answer_accepted.raw");
 	private static Resource mImageResource = new LWMap("dummy map").getResourceFactory().get(mImageFile);
 	
 	private IBISImageIcon mIcon = null;
 	
-	public IBISPlutoImage() {
+	public IBISAnswer_AcceptedImage() {
 		super(mImageResource);
 		this.setIcon();
 	}
@@ -40,7 +40,7 @@ public class IBISPlutoImage extends IBISImage {
 	
 	public void setIcon() {
 		
-		mIcon = new IBISPlutoIcon();
+		mIcon = new IBISAnswer_AcceptedIcon();
 	}
 	
 	public IBISImageIcon getIcon() {

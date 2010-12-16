@@ -4,10 +4,10 @@ import java.io.File;
 
 import tufts.vue.*;
 
-public class IBISPlutoIcon extends IBISImageIcon {
-	private static File mImageFile = VueResources.getFile("IBISNodeTool.pluto.raw");
+public class IBISIssue_InsolubleIcon extends IBISImageIcon {
+	private static File mImageFile = VueResources.getFile("IBISNodeTool.issue_insoluble.raw");
 	
-	public IBISPlutoIcon() {
+	public IBISIssue_InsolubleIcon() {
 		super(mImageFile.toString());
 	}
 	

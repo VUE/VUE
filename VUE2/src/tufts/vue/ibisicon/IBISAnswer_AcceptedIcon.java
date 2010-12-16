@@ -4,10 +4,10 @@ import java.io.File;
 
 import tufts.vue.*;
 
-public class IBISSaturnIcon extends IBISImageIcon {
-	private static File mImageFile = VueResources.getFile("IBISNodeTool.saturn.raw");
+public class IBISAnswer_AcceptedIcon extends IBISImageIcon {
+	private static File mImageFile = VueResources.getFile("IBISNodeTool.answer_accepted.raw");
 	
-	public IBISSaturnIcon() {
+	public IBISAnswer_AcceptedIcon() {
 		super(mImageFile.toString());
 	}
 	

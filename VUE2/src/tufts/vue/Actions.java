@@ -36,9 +36,11 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -60,7 +62,7 @@ import tufts.vue.gui.FullScreen;
 import tufts.vue.gui.GUI;
 import tufts.vue.gui.VueFileChooser;
 import tufts.vue.gui.renderer.SearchResultTableModel;
-import tufts.vue.ibisimage.IBISImage;
+import tufts.vue.ibisimage.*;
 import edu.tufts.vue.metadata.MetadataList;
 import edu.tufts.vue.preferences.ui.PreferencesDialog;
 
@@ -1928,6 +1930,56 @@ public class Actions implements VueConstants
         	c.setResource(nullResource);                  
         }
     };
+    
+    // HO 16/12/2010 BEGIN *****************
+    public static final String IBIS_TYPE="ibisType";
+    
+    private static class IBISStatusAction extends LWCAction {
+        Class<? extends LWImage> imageClass;
+        String ibisType;
+    	
+        IBISStatusAction(String name) {
+            super(VueResources.getString(name + ".cssName"));
+            setImageClass(name);
+            setIbisType(name);
+        }
+        IBISStatusAction(String name, KeyStroke shortcut) {
+            super(VueResources.getString(name + ".cssName"), shortcut);
+            setImageClass(name);
+            setIbisType(name);
+        }
+        
+        void setIbisType(String name) {
+        	String ibisType = VueResources.getString(name + ".type");
+        	this.ibisType = ibisType;
+        	this.putValue(IBIS_TYPE, ibisType);
+        }
+        
+        void setImageClass(String name) {
+        	String imageClassName = VueResources.getString(name + ".imageClass");
+            try {
+				this.imageClass = (Class<? extends LWImage>) IBISNodeTool.class.getClassLoader().loadClass(imageClassName);
+			} catch (ClassNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        }
+
+        @Override
+        boolean enabledFor(LWSelection s) {
+        	// HO 12/12/2010 disable for LWIBISImage - no, don't.
+            return s.containsType(LWImage.class)
+                || s.containsType(LWNode.class); // todo: really, only image nodes, but we have no key for that
+            
+            //return (((s.containsType(LWImage.class) || s.containsType(LWNode.class)) && (!s.containsType(LWIBISNode.class)))); // todo: really, only image nodes, but we have no key for that
+        }
+
+        @Override public void act(LWIBISNode ib) {
+            ib.setImage(imageClass);
+        }
+           
+    }
+    // HO 16/12/2010 END *******************
 
     //m.add(Actions.AddURLAction);
 //    m.add(Actions.RemoveResourceAction);
@@ -3681,6 +3733,29 @@ public class Actions implements VueConstants
         IMAGE_MENU_ACTIONS[i++] = ImageShow;
 
     }
+    
+    // HO 16/12/2010 BEGIN ************
+    // HO 16/12/2010 BEGIN ************
+    public static final Action[][] IBIS_TYPE_MENUS;
+    /** the IBIS type map with subtool as key **/       
+    private static final String IbisTypes[]=VueResources.getStringArray("IBISNodeTool.subtools");    
+    private static final int maxPossStatuses = 5;
+    // HO 16/12/2010 END ************
+    static {
+
+    	IBIS_TYPE_MENUS = new Action[IbisTypes.length][maxPossStatuses];
+
+        int i = 0;
+
+        for (int x = 0; x < IbisTypes.length; x++) {
+        	String IbisSubTypes[]=VueResources.getStringArray("IBISNodeTool." + IbisTypes[x] + ".subtypes");
+        	for (int y = 0; y < IbisSubTypes.length; y++) {
+        		IBIS_TYPE_MENUS[x][y] = new IBISStatusAction("IBISNodeTool." + IbisSubTypes[y]);
+        	}
+        }
+
+    }
+    // HO 16/12/2010 END **************
 
     /** @return the next biggest size, unless the image icon is currently hidden, in which case return same size */
     private static int getBiggerSize(LWImage c)
@@ -4367,7 +4442,8 @@ public class Actions implements VueConstants
             super(name, shortDescription, keyStroke, icon);
             init();
         }
-        LWCAction(String name, KeyStroke keyStroke, String iconName) {
+
+		LWCAction(String name, KeyStroke keyStroke, String iconName) {
             super(name, keyStroke, iconName);
             init();
         }
@@ -4509,8 +4585,12 @@ public class Actions implements VueConstants
         void act(LWComponent c) {
             if (c instanceof LWLink)
                 act((LWLink)c);
+            // HO 17/12/2010 BEGIN ***********
+            else if (c instanceof LWIBISNode)
+                act((LWIBISNode)c);
+            // HO 17/12/2010 END ***********
             else if (c instanceof LWNode)
-                act((LWNode)c);
+                act((LWNode)c);           
             else if (c instanceof LWImage)
                 act((LWImage)c);
             else if (c instanceof LWSlide)
@@ -4522,6 +4602,9 @@ public class Actions implements VueConstants
         
         void act(LWLink c) { ignoredDebug(c); }
         void act(LWNode c) { ignoredDebug(c); }
+        // HO 17/12/2010 BEGIN ***********
+        void act(LWIBISNode c) { ignoredDebug(c); }
+        // HO 17/12/2010 END ***********
         void act(LWImage c) { ignoredDebug(c); }
         void act(LWSlide c) { ignoredDebug(c); }
 

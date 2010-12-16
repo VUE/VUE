@@ -1,14 +1,13 @@
 package tufts.vue.ibisicon;
 
-import java.awt.Image;
 import java.io.File;
 
 import tufts.vue.*;
 
-public class IBISRejectedAnswerIcon extends IBISImageIcon {
-	private static File mImageFile = VueResources.getFile("IBISNodeTool.rejected_answer.raw");
+public class IBISConArgument_FailingIcon extends IBISImageIcon {
+	private static File mImageFile = VueResources.getFile("IBISNodeTool.con_argument_failing.raw");
 	
-	public IBISRejectedAnswerIcon() {
+	public IBISConArgument_FailingIcon() {
 		super(mImageFile.toString());
 	}
 	

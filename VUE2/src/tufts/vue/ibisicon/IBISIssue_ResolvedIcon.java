@@ -4,13 +4,13 @@ import java.io.File;
 
 import tufts.vue.*;
 
-public class IBISNeptuneIcon extends IBISImageIcon {
+public class IBISIssue_ResolvedIcon extends IBISImageIcon {
 	// HO 13/12/2010 BEGIN ************
-	private static File mImageFile = VueResources.getFile("IBISNodeTool.neptune.raw");
+	private static File mImageFile = VueResources.getFile("IBISNodeTool.issue_resolved.raw");
 	//private static File mImageFile = VueResources.getFile("IBISNodeTool.neptune.icon");
 	// HO 13/12/2010 END ************
 	
-	public IBISNeptuneIcon() {
+	public IBISIssue_ResolvedIcon() {
 		super(mImageFile.toString());
 	}
 	

@@ -6,14 +6,14 @@ import java.io.*;
 import tufts.vue.*;
 import tufts.vue.ibisicon.*;
 
-public class IBISRejectedAnswerImage extends IBISImage {
+public class IBISProArgument_DominantImage extends IBISImage {
 	
-	private static File mImageFile = VueResources.getFile("IBISNodeTool.rejected_answer.raw");
+	private static File mImageFile = VueResources.getFile("IBISNodeTool.pro_argument_dominant.raw");
 	private static Resource mImageResource = new LWMap("dummy map").getResourceFactory().get(mImageFile);
 	
 	private IBISImageIcon mIcon = null;
 	
-	public IBISRejectedAnswerImage() {
+	public IBISProArgument_DominantImage() {
 		super(mImageResource);
 		this.setIcon();
 	}
@@ -40,7 +40,7 @@ public class IBISRejectedAnswerImage extends IBISImage {
 	
 	public void setIcon() {
 		
-		mIcon = new IBISRejectedAnswerIcon();
+		mIcon = new IBISProArgumentIcon();
 	}
 	
 	public IBISImageIcon getIcon() {

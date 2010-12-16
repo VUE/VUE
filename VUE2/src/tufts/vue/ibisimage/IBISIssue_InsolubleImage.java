@@ -6,17 +6,14 @@ import java.io.*;
 import tufts.vue.*;
 import tufts.vue.ibisicon.*;
 
-public class IBISNeptuneImage extends IBISImage {
+public class IBISIssue_InsolubleImage extends IBISImage {
 	
-	// HO 13/12/2010 BEGIN ************
-	//private static File mImageFile = VueResources.getFile("IBISNodeTool.neptune.raw");
-	private static File mImageFile = VueResources.getFile("IBISNodeTool.neptune.image");
-	// HO 13/12/2010 END ************
+	private static File mImageFile = VueResources.getFile("IBISNodeTool.issue_insoluble.raw");
 	private static Resource mImageResource = new LWMap("dummy map").getResourceFactory().get(mImageFile);
 	
 	private IBISImageIcon mIcon = null;
 	
-	public IBISNeptuneImage() {
+	public IBISIssue_InsolubleImage() {
 		super(mImageResource);
 		this.setIcon();
 	}
@@ -43,7 +40,7 @@ public class IBISNeptuneImage extends IBISImage {
 	
 	public void setIcon() {
 		
-		mIcon = new IBISNeptuneIcon();
+		mIcon = new IBISIssue_InsolubleIcon();
 	}
 	
 	public IBISImageIcon getIcon() {
