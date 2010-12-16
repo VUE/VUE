@@ -36,6 +36,7 @@ import java.util.Collection;
 import java.util.List;
 import java.awt.*;
 import java.awt.geom.*;
+import java.io.File;
 
 import javax.swing.ImageIcon;
 
@@ -104,6 +105,21 @@ public class LWIBISNode extends LWNode
     private transient boolean isCenterLayout = false;// todo: get rid of this and use mChildPos, etc for boxed layout also
 
     private java.awt.Dimension textSize = null; // only for use with wrapped text
+    
+    private Class<? extends LWImage> mNodeImageClass = null;
+    private String mIBISType = null;
+    
+    // HO 16/12/2010 BEGIN *************
+    public enum IBISType {
+        ISSUE,
+
+        ANSWER, 
+            
+        PRO_ARGUMENT,
+
+        CON_ARGUMENT
+    }
+    // HO 16/12/2010 END *****************
 
 
     private final LWIcon.Block mIconBlock =
@@ -2962,6 +2978,77 @@ public class LWIBISNode extends LWNode
             
         }
     }
+    
+    public Class<? extends LWImage> getNodeImageClass() {
+    	return mNodeImageClass;
+    }
+    
+    public void setNodeImageClass(Class<? extends LWImage> theClass) {
+    	mNodeImageClass = theClass;
+    }
+    
+    public String getIBISType() {
+    	return mIBISType;
+    }
+    
+    public void setIBISType(String theType) {
+    	mIBISType = theType;
+    }
+    
+    // HO 16/12/2010 BEGIN ***********
+    public void determineNodeImageAndType () {
+    	File thisImage = this.getResource().getActiveDataFile();
+    	if (thisImage.equals(new IBISIssueImage().getImageFile())) {
+    		setIBISType(VueResources.getString("IBISNodeTool.issue.type"));
+    		setNodeImageClass(IBISIssueImage.class);
+    	} else if (thisImage.equals(new IBISIssue_ResolvedImage().getImageFile())) {
+    		setIBISType(VueResources.getString("IBISNodeTool.issue_resolved.type"));
+    		setNodeImageClass(IBISIssue_ResolvedImage.class);
+    	} else if (thisImage.equals(new IBISIssue_InsolubleImage().getImageFile())) {
+    		setIBISType(VueResources.getString("IBISNodeTool.issue_insoluble.type"));
+    		setNodeImageClass(IBISIssue_InsolubleImage.class);
+    	} else if (thisImage.equals(new IBISIssue_RejectedImage().getImageFile())) {
+    		setIBISType(VueResources.getString("IBISNodeTool.issue_rejected.type"));
+    		setNodeImageClass(IBISIssue_RejectedImage.class);
+    	}	else if (thisImage.equals(new IBISAnswerImage().getImageFile())) {
+    		setIBISType(VueResources.getString("IBISNodeTool.answer.type"));
+    		setNodeImageClass(IBISAnswerImage.class);
+    	}	else if (thisImage.equals(new IBISAnswer_AcceptedImage().getImageFile())) {
+    		setIBISType(VueResources.getString("IBISNodeTool.answer_accepted.type"));
+    		setNodeImageClass(IBISAnswer_AcceptedImage.class);
+    	} else if (thisImage.equals(new IBISAnswer_LikelyImage().getImageFile())) {
+    		setIBISType(VueResources.getString("IBISNodeTool.answer_likely.type"));
+    		setNodeImageClass(IBISAnswer_LikelyImage.class);
+    	} else if (thisImage.equals(new IBISAnswer_UnlikelyImage().getImageFile())) {
+    		setIBISType(VueResources.getString("IBISNodeTool.answer_unlikely.type"));
+    		setNodeImageClass(IBISAnswer_UnlikelyImage.class);
+    	} else if (thisImage.equals(new IBISAnswer_RejectedImage().getImageFile())) {
+    		setIBISType(VueResources.getString("IBISNodeTool.answer_rejected.type"));
+    		setNodeImageClass(IBISAnswer_RejectedImage.class);
+    	} else if (thisImage.equals(new IBISProArgumentImage().getImageFile())) {
+    		setIBISType(VueResources.getString("IBISNodeTool.pro_argument.type"));
+    		setNodeImageClass(IBISProArgumentImage.class);
+    	} else if (thisImage.equals(new IBISProArgument_DominantImage().getImageFile())) {
+    		setIBISType(VueResources.getString("IBISNodeTool.pro_argument_dominant.type"));
+    		setNodeImageClass(IBISProArgument_DominantImage.class);
+    	} else if (thisImage.equals(new IBISProArgument_FailingImage().getImageFile())) {
+    		setIBISType(VueResources.getString("IBISNodeTool.pro_argument_failing.type"));
+    		setNodeImageClass(IBISProArgument_FailingImage.class);
+    	} else if (thisImage.equals(new IBISConArgumentImage().getImageFile())) {
+    		setIBISType(VueResources.getString("IBISNodeTool.con_argument.type"));
+    		setNodeImageClass(IBISConArgumentImage.class);
+    	} else if (thisImage.equals(new IBISConArgument_DominantImage().getImageFile())) {
+    		setIBISType(VueResources.getString("IBISNodeTool.con_argument_dominant.type"));
+    		setNodeImageClass(IBISConArgument_DominantImage.class);
+    	} else if (thisImage.equals(new IBISConArgument_FailingImage().getImageFile())) {
+    		setIBISType(VueResources.getString("IBISNodeTool.con_argument_failing.type"));
+    		setNodeImageClass(IBISConArgument_FailingImage.class);
+    	} else {
+    		setIBISType(null);
+    		setNodeImageClass(null);
+    	}
+    }
+    // HO 16/12/2010 END ***********
     
     
     
