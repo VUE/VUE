@@ -1939,12 +1939,12 @@ public class Actions implements VueConstants
         String ibisType;
     	
         IBISStatusAction(String name) {
-            super(VueResources.getString(name + ".cssName"));
+            super(VueResources.getString(name + ".name"));
             setImageClass(name);
             setIbisType(name);
         }
         IBISStatusAction(String name, KeyStroke shortcut) {
-            super(VueResources.getString(name + ".cssName"), shortcut);
+            super(VueResources.getString(name + ".name"), shortcut);
             setImageClass(name);
             setIbisType(name);
         }
