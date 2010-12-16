@@ -5243,17 +5243,23 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 		sMultiPopup.addSeparator();
 		sMultiPopup.add(Actions.RemoveResourceAction);
 		if (VUE.getSelection().allOfType(LWNode.class)) {
-			sMultiPopup.add(AnalyzerAction.luckyImageAction);
+			// HO 17/12/2010 BEGIN **********
+			if (!(VUE.getSelection().containsType(LWIBISNode.class)))
+			// HO 17/12/2010 END ************
+				sMultiPopup.add(AnalyzerAction.luckyImageAction);
 		}
+		// HO 17/12/2010 BEGIN ************
+		if (VUE.getSelection().allOfType(LWIBISNode.class)) {
+			sMultiPopup.addSeparator();
+    		sMultiPopup.add(createFlatIBISMenu());    			
+		}
+
+		// HO 17/12/2010 END ************
 
 		sMultiPopup.addSeparator();
 		sMultiPopup.add(Actions.ZoomToSelection);
 		sMultiPopup.add(Actions.ZoomFit);
 		sMultiPopup.add(Actions.ZoomActual);
-		
-		// HO 17/12/2010 YOU WOULD ADD THE IBIS IMAGE MENU
-		// RIGHT AROUND HERE
-		// use menu.ibis, and have a routine to select which of IBIS_TYPE_MENUS to pick
 
 		sMultiPopup.addSeparator();
 		sMultiPopup.add(GUI.buildMenu(VueResources.getString("menu.image"), Actions.IMAGE_MENU_ACTIONS));
@@ -5297,6 +5303,28 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
 		return sMultiPopup;
     }
+    
+    // HO 16/12/2010 BEGIN ***************
+    private JMenu createFlatIBISMenu() {
+		JMenu flatIBISMenu = new JMenu(VueResources.getString("menu.ibis"));
+		
+		for (int i=0; i<Actions.IBIS_TYPE_MENUS.length; i++) {
+			for(int j=0; j<Actions.IBIS_TYPE_MENUS[i].length; j++) {
+				if (Actions.IBIS_TYPE_MENUS[i][j] != null) {
+					flatIBISMenu.add(Actions.IBIS_TYPE_MENUS[i][j]);
+				}
+			}
+			// unless this is the last item in the menu
+			// (in which case a separator will be added next anyway)
+			// stick a separator in here to divide up the IBIS types
+			if (i<(Actions.IBIS_TYPE_MENUS.length - 1))
+				flatIBISMenu.addSeparator();
+		}
+		
+		return flatIBISMenu;
+
+    }
+    // HO 16/12/2010 END ***************
 
 
     private static JMenuItem sAddFileItem;
@@ -5348,12 +5376,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     	// HO 12/12/2010 BEGIN **************
     	sSinglePopup.addSeparator();
     	// HO 12/12/2010 END ****************
-    	// HO O7/07/2010 ********************************
     	sAddWormholeItem = sSinglePopup.add(Actions.AddWormholeToNewMapAction);
-    	// HO O7/07/2010 ********************************
-    	// HO 27/08/2010 ********************************
     	sAddWormholeToExistingMapItem = sSinglePopup.add(Actions.AddWormholeToExistingMapAction);
-    	// HO 27/08/2010 ********************************
     	// HO 13/12/2010 BEGIN **************
     	if (!(c instanceof LWIBISNode)) {
     		// HO 12/12/2010 BEGIN **************
@@ -5366,35 +5390,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     	}
     	// HO 16/12/2010 BEGIN ************
     	if (c instanceof LWIBISNode) {
-    		// HO 17/12/2010 SEE OTHER DATE COMMENT FOR
-    		// HOW TO BUILD THE RELEVANT MENU HERE
-    		
-    		// HO 17/12/2010 YOU WOULD ADD THE IBIS IMAGE MENU
-    		// RIGHT AROUND HERE
-    		// use menu.ibis, and have a routine to select which of IBIS_TYPE_MENUS to pick
-    		// first, work out what kind of image it is
-    		((LWIBISNode) c).determineNodeImageAndType();
-    		String thisType = ((LWIBISNode) c).getIBISType();
-    		int i=0;
-    		int menuLength=0;
-    		for (i=0; i<Actions.IBIS_TYPE_MENUS.length; i++) {
-    			if (Actions.IBIS_TYPE_MENUS[i][0].getValue(Actions.IBIS_TYPE).equals(thisType)) {
-    				// weed out null menu items from this multidimensional
-    				// array bit
-    				for(int j=0; j<Actions.IBIS_TYPE_MENUS[i].length; j++) {
-    					if (Actions.IBIS_TYPE_MENUS[i][j] != null) {
-    						menuLength+=1;
-    					}
-    				}
-    				Action theseActions[] = new Action[menuLength];
-    				System.arraycopy(Actions.IBIS_TYPE_MENUS[i], 0, theseActions, 0, menuLength);
-    				sSinglePopup.add(GUI.buildMenu(VueResources.getString("menu.ibis"), theseActions));
-    				break;
-    			}
-    		}
-    		// then cycle through all the menu types till you find it
-    		// and when you do, build it and add it here
-    		//sMultiPopup.add(GUI.buildMenu(VueResources.getString("menu.ibis"), Actions.IBIS_TYPE_MENUS));
+    		// add a separator
+    		sSinglePopup.addSeparator();
+    		sSinglePopup.add(createContextSensitiveIBISMenu(c));    		
     	}
     	// HO 16/12/2010 END ************
     	// HO 13/12/2010 END **************
@@ -5416,11 +5414,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     	sSinglePopup.addSeparator();
     	sSinglePopup.add(AnalyzerAction.calais);
     	sSinglePopup.add(AnalyzerAction.semanticMapAction);
-
-    	//sSinglePopup.addSeparator();
-    	//JMenu analyzeNodeMenu = new JMenu(VueResources.getString("mapviewer.analyze.node"));
-    	//AnalyzerAction.buildSubMenu(analyzeNodeMenu);
-    	//sSinglePopup.add(analyzeNodeMenu);
 
         sSinglePopup.addSeparator();
     	sSinglePopup.add(Actions.AddPathwayItem);
@@ -5506,6 +5499,36 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 			}
         }
     }
+    
+    // HO 16/12/2010 BEGIN ***************
+    private JMenu createContextSensitiveIBISMenu(LWComponent c) {
+    	JMenu theMenu = null;
+		// work out what kind of IBIS node this is
+		((LWIBISNode) c).determineNodeImageAndType();
+		String thisType = ((LWIBISNode) c).getIBISType();
+		// find the right menu array for this type and strip out
+		// null array items
+		int i=0;
+		int menuLength=0;
+		for (i=0; i<Actions.IBIS_TYPE_MENUS.length; i++) {
+			if (Actions.IBIS_TYPE_MENUS[i][0].getValue(Actions.IBIS_TYPE).equals(thisType)) {
+				// weed out null menu items from this multidimensional
+				// array bit
+				for(int j=0; j<Actions.IBIS_TYPE_MENUS[i].length; j++) {
+					if (Actions.IBIS_TYPE_MENUS[i][j] != null) {
+						menuLength+=1;
+					}
+				}
+				Action theseActions[] = new Action[menuLength];
+				System.arraycopy(Actions.IBIS_TYPE_MENUS[i], 0, theseActions, 0, menuLength);
+				// use the stripped array to build the appropriate menu
+				theMenu = GUI.buildMenu(VueResources.getString("menu.ibis"), theseActions);
+				break;
+    			}
+    		}
+		return theMenu;
+    }
+    // HO 16/12/2010 END *****************
 
     private void buildSingleSelectionLinkPopup(LWComponent c)
     {
