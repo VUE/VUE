@@ -8,7 +8,7 @@ import tufts.vue.ibisicon.*;
 
 public class IBISConArgumentImage extends IBISImage {
 	
-	private static File mImageFile = VueResources.getFile("IBISNodeTool.con_argument.raw");
+	private static File mImageFile = VueResources.getFile("IBISNodeTool.con_argument.image");
 	private static Resource mImageResource = new LWMap("dummy map").getResourceFactory().get(mImageFile);
 	
 	private IBISImageIcon mIcon = null;
