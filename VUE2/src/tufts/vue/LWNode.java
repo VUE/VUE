@@ -1434,10 +1434,8 @@ public class LWNode extends LWContainer
      */
     private void layoutContentInShape(RectangularShape shape, NodeContent content)
     {
-//        final float width = (float) shape.getWidth();
-//        final float height = (float) shape.getHeight();
-    	 final float shapeWidth = (float) shape.getWidth();  
-         final float shapeHeight = (float) shape.getHeight();  
+    	final float shapeWidth = (float) shape.getWidth();
+        final float shapeHeight = (float) shape.getHeight();
         final float margin = 0.5f; // safety so 100% sure will be in-bounds
         boolean content_laid_out = false;
 
@@ -1466,8 +1464,8 @@ public class LWNode extends LWContainer
         }
         if (!content_laid_out) {
             // default is center layout
-            content.x = (width - content.width) / 2;
-            content.y = (height - content.height) / 2;
+            content.x = (shapeWidth - content.width) / 2;
+            content.y = (shapeHeight - content.height) / 2;
         }
     }
 
