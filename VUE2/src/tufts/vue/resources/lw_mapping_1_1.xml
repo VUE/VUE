@@ -326,6 +326,15 @@
 		</field> 			
 	</class> -->
 	<!-- HO 01/09/2010 END -->
+	
+	<!-- HO 17/12/2010 BEGIN -->
+	<class name="tufts.vue.LWIBISNode" extends="tufts.vue.LWNode">
+		<map-to xml="IBISNode"/>
+		<field name="ibisImage" type="tufts.vue.LWImage">
+			<bind-xml name="ibisImage" node="element"/>
+		</field> 	
+	</class>	
+	<!-- HO 17/12/2010 END -->
         
 	<class name="tufts.vue.LWImage" extends="tufts.vue.LWComponent">
 		<map-to xml="image"/>
@@ -333,6 +342,102 @@
 			<bind-xml name="offset" node="element"/>
 		</field>
 	</class>
+	
+	<!-- HO 17/12/2010 BEGIN -->
+	<class name="tufts.vue.ibisimage.IBISImage" extends="tufts.vue.LWImage">
+		<map-to xml="IBISImage"/>	
+	</class>
+	<class name="tufts.vue.ibisimage.IBISIssueImage" extends="tufts.vue.ibisimage.IBISImage">
+		<map-to xml="IBISIssueImage"/>	
+		<field name="saveImageFile">
+        	<bind-xml name="saveImageFile" node="element"/>
+        </field>
+	</class>
+	<class name="tufts.vue.ibisimage.IBISIssue_InsolubleImage" extends="tufts.vue.ibisimage.IBISImage">
+		<map-to xml="IBISIssue_InsolubleImage"/>	
+		<field name="saveImageFile">
+        	<bind-xml name="saveImageFile" node="element"/>
+        </field>
+	</class>
+	<class name="tufts.vue.ibisimage.IBISIssue_RejectedImage" extends="tufts.vue.ibisimage.IBISImage">
+		<map-to xml="IBISIssue_RejectedImage"/>	
+		<field name="saveImageFile">
+        	<bind-xml name="saveImageFile" node="element"/>
+        </field>
+	</class>
+	<class name="tufts.vue.ibisimage.IBISIssue_ResolvedImage" extends="tufts.vue.ibisimage.IBISImage">
+		<map-to xml="IBISIssue_ResolvedImage"/>	
+		<field name="saveImageFile">
+        	<bind-xml name="saveImageFile" node="element"/>
+        </field>
+	</class>
+	<class name="tufts.vue.ibisimage.IBISAnswerImage" extends="tufts.vue.ibisimage.IBISImage">
+		<map-to xml="IBISAnswerImage"/>	
+		<field name="saveImageFile">
+        	<bind-xml name="saveImageFile" node="element"/>
+        </field>
+	</class>
+		<class name="tufts.vue.ibisimage.IBISAnswer_AcceptedImage" extends="tufts.vue.ibisimage.IBISImage">
+		<map-to xml="IBISAnswer_AcceptedImage"/>	
+		<field name="saveImageFile">
+        	<bind-xml name="saveImageFile" node="element"/>
+        </field>
+	</class>	
+	<class name="tufts.vue.ibisimage.IBISAnswer_LikelyImage" extends="tufts.vue.ibisimage.IBISImage">
+		<map-to xml="IBISAnswer_LikelyImage"/>	
+		<field name="saveImageFile">
+        	<bind-xml name="saveImageFile" node="element"/>
+        </field>
+	</class>
+	<class name="tufts.vue.ibisimage.IBISAnswer_RejectedImage" extends="tufts.vue.ibisimage.IBISImage">
+		<map-to xml="IBISAnswer_RejectedImage"/>	
+		<field name="saveImageFile">
+        	<bind-xml name="saveImageFile" node="element"/>
+        </field>
+	</class>
+	<class name="tufts.vue.ibisimage.IBISAnswer_UnlikelyImage" extends="tufts.vue.ibisimage.IBISImage">
+		<map-to xml="IBISAnswer_UnlikelyImage"/>	
+		<field name="saveImageFile">
+        	<bind-xml name="saveImageFile" node="element"/>
+        </field>
+	</class>
+	<class name="tufts.vue.ibisimage.IBISProArgumentImage" extends="tufts.vue.ibisimage.IBISImage">
+		<map-to xml="IBISProArgumentImage"/>	
+		<field name="saveImageFile">
+        	<bind-xml name="saveImageFile" node="element"/>
+        </field>
+	</class>
+	<class name="tufts.vue.ibisimage.IBISProArgument_DominantImage" extends="tufts.vue.ibisimage.IBISImage">
+		<map-to xml="IBISProArgument_DominantImage"/>	
+		<field name="saveImageFile">
+        	<bind-xml name="saveImageFile" node="element"/>
+        </field>
+	</class>
+	<class name="tufts.vue.ibisimage.IBISProArgument_FailingImage" extends="tufts.vue.ibisimage.IBISImage">
+		<map-to xml="IBISProArgument_FailingImage"/>	
+		<field name="saveImageFile">
+        	<bind-xml name="saveImageFile" node="element"/>
+        </field>
+	</class>
+	<class name="tufts.vue.ibisimage.IBISConArgumentImage" extends="tufts.vue.ibisimage.IBISImage">
+		<map-to xml="IBISConArgumentImage"/>	
+		<field name="saveImageFile">
+        	<bind-xml name="saveImageFile" node="element"/>
+        </field>
+	</class>
+	<class name="tufts.vue.ibisimage.IBISConArgument_DominantImage" extends="tufts.vue.ibisimage.IBISImage">
+		<map-to xml="IBISConArgument_DominantImage"/>	
+		<field name="saveImageFile">
+        	<bind-xml name="saveImageFile" node="element"/>
+        </field>
+	</class>
+	<class name="tufts.vue.ibisimage.IBISConArgument_FailingImage" extends="tufts.vue.ibisimage.IBISImage">
+		<map-to xml="IBISConArgument_FailingImage"/>	
+		<field name="saveImageFile">
+        	<bind-xml name="saveImageFile" node="element"/>
+        </field>
+	</class>
+	<!-- HO 17/12/2010 END -->
 	
 	<class name="tufts.vue.LWLink" extends="tufts.vue.LWComponent">
 		<map-to xml="link"/>

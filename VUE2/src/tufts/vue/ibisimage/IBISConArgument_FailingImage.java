@@ -13,9 +13,17 @@ public class IBISConArgument_FailingImage extends IBISImage {
 	
 	private IBISImageIcon mIcon = null;
 	
+	// HO 17/12/2010 BEGIN ***********
+	private String saveImageFile = "";
+	// HO 17/12/2010 END *************
+	
 	public IBISConArgument_FailingImage() {
 		super(mImageResource);
 		this.setIcon();
+		// HO 17/12/2010 BEGIN ***********
+		// persistence only
+		this.setSaveImageFile(mImageFile.toString());
+		// HO 17/12/2010 END *************
 	}
 	
 	public void setImageFile(File f) {
@@ -26,7 +34,17 @@ public class IBISConArgument_FailingImage extends IBISImage {
 	public File getImageFile() {
 		
 		return mImageFile;
-	} 
+	}
+	
+    /** persistance only */
+    public String getSaveImageFile() {
+        return saveImageFile == null ? null : saveImageFile.toString();
+    }
+
+    /** persistance only */
+    public void setSaveImageFile(String path) {
+        saveImageFile = path;
+    }
 	
 	public void setImageResource(Resource r) {
 		

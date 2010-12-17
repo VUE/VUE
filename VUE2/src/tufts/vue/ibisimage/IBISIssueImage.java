@@ -13,14 +13,18 @@ public class IBISIssueImage extends IBISImage {
 	
 	private IBISImageIcon mIcon = null;
 	
+	// HO 17/12/2010 BEGIN ***********
+	private String saveImageFile = "";
+	// HO 17/12/2010 END *************
+	
 	public IBISIssueImage() {
 		super(mImageResource);
 		this.setIcon();
-		
-		// HO 18/11/2010 BEGIN ***********
-		Image img = this.getIcon().getImage();
-		System.out.println(img);
-		// HO 18/11/2010 END ***********
+
+		// HO 17/12/2010 BEGIN ***********
+		// persistence only
+		this.setSaveImageFile(mImageFile.toString());
+		// HO 17/12/2010 END *************
 	}
 	
 	public void setImageFile(File f) {
@@ -32,6 +36,16 @@ public class IBISIssueImage extends IBISImage {
 		
 		return mImageFile;
 	} 
+	
+    /** persistance only */
+    public String getSaveImageFile() {
+        return saveImageFile == null ? null : saveImageFile.toString();
+    }
+
+    /** persistance only */
+    public void setSaveImageFile(String path) {
+        saveImageFile = path;
+    }
 	
 	public void setImageResource(Resource r) {
 		

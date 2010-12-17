@@ -13,9 +13,17 @@ public class IBISIssue_InsolubleImage extends IBISImage {
 	
 	private IBISImageIcon mIcon = null;
 	
+	// HO 17/12/2010 BEGIN ***********
+	private String saveImageFile = "";
+	// HO 17/12/2010 END *************
+	
 	public IBISIssue_InsolubleImage() {
 		super(mImageResource);
 		this.setIcon();
+		// HO 17/12/2010 BEGIN ***********
+		// persistence only
+		this.setSaveImageFile(mImageFile.toString());
+		// HO 17/12/2010 END *************
 	}
 	
 	public void setImageFile(File f) {
@@ -27,6 +35,16 @@ public class IBISIssue_InsolubleImage extends IBISImage {
 		
 		return mImageFile;
 	} 
+	
+    /** persistance only */
+    public String getSaveImageFile() {
+        return saveImageFile == null ? null : saveImageFile.toString();
+    }
+
+    /** persistance only */
+    public void setSaveImageFile(String path) {
+        saveImageFile = path;
+    }
 	
 	public void setImageResource(Resource r) {
 		

@@ -81,7 +81,7 @@ public class LWIBISNode extends LWNode
     protected boolean isAutoSized = true; // compute size from label & children
     
     // HO 03/11/2010 BEGIN ******************
-    protected LWImage mIBISImage;
+    protected LWImage ibisImage;
     // HO 03/11/2010 END ******************
 
     //-----------------------------------------------------------------------------
@@ -106,19 +106,18 @@ public class LWIBISNode extends LWNode
 
     private java.awt.Dimension textSize = null; // only for use with wrapped text
     
-    private Class<? extends LWImage> mNodeImageClass = null;
+    private Class<? extends LWImage> nodeImageClass = null;
     private String mIBISType = null;
     
     // HO 16/12/2010 BEGIN *************
-    public enum IBISType {
-        ISSUE,
-
-        ANSWER, 
-            
-        PRO_ARGUMENT,
-
-        CON_ARGUMENT
+    public LWImage getIbisImage() {
+    	return ibisImage;
     }
+    
+    public void setIbisImage(LWImage theImage) {
+    	ibisImage = theImage;
+    }
+    
     // HO 16/12/2010 END *****************
 
 
@@ -563,8 +562,8 @@ public class LWIBISNode extends LWNode
         @Override
         public Class<? extends LWImage> getValue(LWIBISNode c) {
             try {
-            	if (c.mIBISImage != null)
-            		return c.mIBISImage.getClass();
+            	if (c.ibisImage != null)
+            		return c.ibisImage.getClass();
             	else
             		return null;
             } catch (NullPointerException e) {
@@ -612,11 +611,11 @@ public class LWIBISNode extends LWNode
     
     // HO 12/12/2010 BEGIN ************
     private void setImageToDefaultSize() {
-    	if (mIBISImage != null) {
-    		// mIBISImage.setMaxDimension(64);
-            mIBISImage.setMaxDimension(DEFAULT_IMAGE_SIZE);
-            //if (mIBISImage.isNodeIcon()) {
-                mIBISImage.clearHidden(HideCause.IMAGE_ICON_OFF);
+    	if (ibisImage != null) {
+    		// ibisImage.setMaxDimension(64);
+            ibisImage.setMaxDimension(DEFAULT_IMAGE_SIZE);
+            //if (ibisImage.isNodeIcon()) {
+                ibisImage.clearHidden(HideCause.IMAGE_ICON_OFF);
                 layout("imageIconShow");
                 VUE.getActiveViewer().repaintSelection();
             //}
@@ -630,7 +629,7 @@ public class LWIBISNode extends LWNode
      */
     public void setImage(Class<? extends LWImage> imageClass) {
 
-        if (mIBISImage != null && IsSameImage(mIBISImage.getClass(), imageClass))
+        if (ibisImage != null && IsSameImage(ibisImage.getClass(), imageClass))
             return;
         
         // HO 12/12/2010 BEGIN **************
@@ -825,20 +824,20 @@ public class LWIBISNode extends LWNode
     {
         if (DEBUG.CASTOR) System.out.println("IMAGE " + image.getClass() + " in " + this + " " + image);
 
-        if (IsSameImage(mIBISImage, image))
+        if (IsSameImage(ibisImage, image))
             return;
 
-        final IBISImage old = (IBISImage)mIBISImage;
+        final IBISImage old = (IBISImage)ibisImage;
         isIBISNode = (image instanceof IBISImage);
 
-        if (mIBISImage == null) {
-        	mIBISImage = image;
-        	//mIBISImage.setFrame(0, 0, getWidth(), getHeight());
+        if (ibisImage == null) {
+        	ibisImage = image;
+        	//ibisImage.setFrame(0, 0, getWidth(), getHeight());
             
-            //this.addChild(mIBISImage);
+            //this.addChild(ibisImage);
         	// HO 13/12/2010 BEGIN ***************        	
-        	this.setResource(mIBISImage.getResource());
-        	//setDefaultSizeResource(mIBISImage.getResource());
+        	this.setResource(ibisImage.getResource());
+        	//setDefaultSizeResource(ibisImage.getResource());
         	// HO 13/12/2010 END ***************
             //layout(LWKey.IBISSymbol);
             // HO 03/11/2010 shouldn't need to update links?
@@ -853,7 +852,7 @@ public class LWIBISNode extends LWNode
         	//this.setResource(resource);
         	setDefaultSizeResource(resource);
         	// HO 13/12/2010 END ***************
-        	mIBISImage = image;
+        	ibisImage = image;
         }
         	else {
         // HO 01/12/2010 END
@@ -881,7 +880,7 @@ public class LWIBISNode extends LWNode
     }
                                                      
     public LWImage getXMLIBISImage() {
-        return mIBISImage;
+        return ibisImage;
     }
     // HO 15/11/2010 END *****************************
 
@@ -2980,11 +2979,11 @@ public class LWIBISNode extends LWNode
     }
     
     public Class<? extends LWImage> getNodeImageClass() {
-    	return mNodeImageClass;
+    	return nodeImageClass;
     }
     
     public void setNodeImageClass(Class<? extends LWImage> theClass) {
-    	mNodeImageClass = theClass;
+    	nodeImageClass = theClass;
     }
     
     public String getIBISType() {
