@@ -20,7 +20,7 @@ public abstract class IBISImage extends LWImage {
 	
 	public IBISImage(Resource r) {
 		super(r);
-		super.setSizeImpl(64,64, true);
+		//super.setSizeImpl(64,64, true);
 	}
 	
 	// HO 18/11/2010 BEGIN ***************

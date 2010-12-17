@@ -5325,6 +5325,21 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
     }
     // HO 16/12/2010 END ***************
+    
+    // HO 17/12/2010 BEGIN ***************
+    private JMenu createIBISTypeMenu() {
+		JMenu ibisTypeMenu = new JMenu(VueResources.getString("menu.ibis.type"));
+		
+		for (int i=0; i<Actions.IBIS_TYPE_MENUS.length; i++) {
+			if (Actions.IBIS_TYPE_MENUS[i][0] != null) {
+				ibisTypeMenu.add(Actions.IBIS_TYPE_MENUS[i][0]);
+			}
+		}
+		
+		return ibisTypeMenu;
+
+    }
+    // HO 17/12/2010 END ***************
 
 
     private static JMenuItem sAddFileItem;
@@ -5392,7 +5407,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     	if (c instanceof LWIBISNode) {
     		// add a separator
     		sSinglePopup.addSeparator();
-    		sSinglePopup.add(createContextSensitiveIBISMenu(c));    		
+    		// HO 17/12/2010 BEGIN *********
+    		sSinglePopup.add(createIBISTypeMenu());
+    		sSinglePopup.add(createContextSensitiveIBISMenu(c));    
+    		//sSinglePopup.add(createFlatIBISMenu());
+    		// HO 17/12/2010 END ***********
     	}
     	// HO 16/12/2010 END ************
     	// HO 13/12/2010 END **************

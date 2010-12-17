@@ -481,6 +481,12 @@ public class Actions implements VueConstants
             VUE.displayMap((LWMap)hierarchyMap);
         }
         
+        // HO 17/12/2010 BEGIN ********
+        public void act(LWIBISNode n) {
+        	act((LWNode)n);
+        }
+        // HO 17/12/2010 END ********
+        
         boolean enabledFor(LWSelection s) {
             return s.size() == 1 && s.first() instanceof LWNode;
         }
@@ -735,6 +741,12 @@ public class Actions implements VueConstants
                 		return false;
                 	}
                 public void act(LWNode c) { c.setToNaturalSize();}
+                
+                // HO 17/12/2010 BEGIN ********
+                public void act(LWIBISNode n) {
+                	act((LWNode)n);
+                }
+                // HO 17/12/2010 END ********
             };    
     
     /** Helper for menu creation.  Null's indicate good places
@@ -760,6 +772,12 @@ public class Actions implements VueConstants
         public void act(LWNode c) {
             c.setAutoSized(true);
         }
+        
+        // HO 17/12/2010 BEGIN ********
+        public void act(LWIBISNode n) {
+        	act((LWNode)n);
+        }
+        // HO 17/12/2010 END ********
     };
     
     /** Helper for menu creation.  Null's indicate good places
@@ -3597,6 +3615,12 @@ public class Actions implements VueConstants
                     i.setToNaturalSize();
               
             }
+            
+            // HO 17/12/2010 BEGIN ********
+            public void act(LWIBISNode n) {
+            	act((LWNode)n);
+            }
+            // HO 17/12/2010 END ********
         };
 
     private static class ImageSizeAction extends LWCAction {
@@ -3680,7 +3704,13 @@ public class Actions implements VueConstants
             final LWImage image = n.getImage();
             if (image != null)
                 act(image);
-        }            
+        }  
+        
+        // HO 17/12/2010 BEGIN ********
+        public void act(LWIBISNode n) {
+        	act((LWNode)n);
+        }
+        // HO 17/12/2010 END ********
     }
 
     private static final Object IMAGE_BIGGER = "bigger";

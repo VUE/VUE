@@ -328,8 +328,8 @@ public class LWIBISNode extends LWNode
     {
         this(label, 0, 0);
         // HO 13/12/2010 BEGIN *************
-        //setResource(resource);
-        setDefaultSizeResource(resource);
+        setResource(resource);
+        //setDefaultSizeResource(resource);
         // HO 06/12/2010 END *************
     }
     
@@ -837,8 +837,8 @@ public class LWIBISNode extends LWNode
             
             //this.addChild(mIBISImage);
         	// HO 13/12/2010 BEGIN ***************        	
-        	//this.setResource(mIBISImage.getResource());
-        	setDefaultSizeResource(mIBISImage.getResource());
+        	this.setResource(mIBISImage.getResource());
+        	//setDefaultSizeResource(mIBISImage.getResource());
         	// HO 13/12/2010 END ***************
             //layout(LWKey.IBISSymbol);
             // HO 03/11/2010 shouldn't need to update links?
