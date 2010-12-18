@@ -1,6 +1,7 @@
 package tufts.vue.ibisimage;
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.*;
 
 import tufts.vue.*;
@@ -8,7 +9,10 @@ import tufts.vue.ibisicon.*;
 
 public class IBISAnswer_AcceptedImage extends IBISImage {
 	
-	private static File mImageFile = VueResources.getFile("IBISNodeTool.answer_accepted.raw");
+	//private static File mImageFile = VueResources.getFile("IBISNodeTool.answer_accepted.raw");
+	//private static Resource mImageResource = new LWMap("dummy map").getResourceFactory().get(mImageFile);
+	private static BufferedImage mImage = VueResources.getBufferedImage("IBISNodeTool.answer_accepted.image");
+	private static File mImageFile = createImageFile(VueResources.getString("IBISNodeTool.answer_accepted.image.filename"), mImage);
 	private static Resource mImageResource = new LWMap("dummy map").getResourceFactory().get(mImageFile);
 	
 	private IBISImageIcon mIcon = null;
@@ -49,6 +53,10 @@ public class IBISAnswer_AcceptedImage extends IBISImage {
 	public void setImageResource(Resource r) {
 		
 		mImageResource = r;
+	}
+		
+	public void setImageResource(File f) {
+		mImageResource = new LWMap("dummy map").getResourceFactory().get(f);
 	}
 	
 	public Resource getImageResource() {

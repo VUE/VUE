@@ -1,6 +1,7 @@
 package tufts.vue.ibisimage;
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.*;
 
 import tufts.vue.*;
@@ -8,10 +9,10 @@ import tufts.vue.ibisicon.*;
 
 public class IBISIssue_ResolvedImage extends IBISImage {
 	
-	// HO 13/12/2010 BEGIN ************
-	//private static File mImageFile = VueResources.getFile("IBISNodeTool.neptune.raw");
-	private static File mImageFile = VueResources.getFile("IBISNodeTool.issue_resolved.image");
-	// HO 13/12/2010 END ************
+	//private static File mImageFile = VueResources.getFile("IBISNodeTool.issue_resolved.image");
+	//private static Resource mImageResource = new LWMap("dummy map").getResourceFactory().get(mImageFile);
+	private static BufferedImage mImage = VueResources.getBufferedImage("IBISNodeTool.issue_resolved.image");
+	private static File mImageFile = createImageFile(VueResources.getString("IBISNodeTool.issue_resolved.image.filename"), mImage);
 	private static Resource mImageResource = new LWMap("dummy map").getResourceFactory().get(mImageFile);
 	
 	private IBISImageIcon mIcon = null;
@@ -53,6 +54,10 @@ public class IBISIssue_ResolvedImage extends IBISImage {
 		
 		mImageResource = r;
 	}
+		
+	public void setImageResource(File f) {
+		mImageResource = new LWMap("dummy map").getResourceFactory().get(f);
+	}	
 	
 	public Resource getImageResource() {
 		

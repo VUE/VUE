@@ -9,13 +9,7 @@ import tufts.vue.ibisicon.*;
 
 public class IBISIssueImage extends IBISImage {
 	
-	
-	
-	// HO 17/12/2010 BEGIN EMERGENCY ******
-	//private static File mImageFile = VueResources.getFile("IBISNodeTool.issue.image");
 	private static BufferedImage mImage = VueResources.getBufferedImage("IBISNodeTool.issue.image");
-	// HO 17/12/2010 END EMERGENCY ******
-	//private static Resource mImageResource = new LWMap("dummy map").getResourceFactory().get(mImageFile);
 	private static File mImageFile = createImageFile(VueResources.getString("IBISNodeTool.issue.image.filename"), mImage);
 	private static Resource mImageResource = new LWMap("dummy map").getResourceFactory().get(mImageFile);
 	
@@ -35,9 +29,9 @@ public class IBISIssueImage extends IBISImage {
 		// HO 17/12/2010 END *************
 	}
 	
-	public IBISIssueImage(Resource r) {
+	/* public IBISIssueImage(Resource r) {
 		super(r);
-	}
+	} */
 	
 	/* private File createImageFile() {
 		// create a new file in a cache directory under the home directory
