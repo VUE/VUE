@@ -1,24 +1,25 @@
 package tufts.vue.ibisicon;
 
 import java.io.File;
+import java.awt.*;
 
 import tufts.vue.*;
 
 public class IBISAnswerIcon extends IBISImageIcon {
 	
-	private static File mImageFile = VueResources.getFile("IBISNodeTool.answer.raw");
+	private static Image mImage = VueResources.getImage("IBISNodeTool.answer.raw");
 	
 	public IBISAnswerIcon() {
-		super(mImageFile.toString());
+		super(mImage);
 	}
 	
-	public void setImageFile(File f) {
+	public void setImage(Image i) {
 		
-		mImageFile = f;
+		mImage = i;
 	}
 	
-	public File getImageFile() {
+	public Image getImage() {
 		
-		return mImageFile;
+		return mImage;
 	}
 }

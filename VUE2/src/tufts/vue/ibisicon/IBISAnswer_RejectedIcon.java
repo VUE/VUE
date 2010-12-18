@@ -6,19 +6,19 @@ import java.io.File;
 import tufts.vue.*;
 
 public class IBISAnswer_RejectedIcon extends IBISImageIcon {
-	private static File mImageFile = VueResources.getFile("IBISNodeTool.answer_rejected.raw");
+	private static Image mImage = VueResources.getImage("IBISNodeTool.answer_rejected.raw");
 	
 	public IBISAnswer_RejectedIcon() {
-		super(mImageFile.toString());
+		super(mImage);
 	}
 	
-	public void setImageFile(File f) {
+	public void setImage(Image i) {
 		
-		mImageFile = f;
+		mImage = i;
 	}
 	
-	public File getImageFile() {
+	public Image getImage() {
 		
-		return mImageFile;
+		return mImage;
 	}
 }

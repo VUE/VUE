@@ -1,23 +1,24 @@
 package tufts.vue.ibisicon;
 
 import java.io.File;
+import java.awt.*;
 
 import tufts.vue.*;
 
 public class IBISIssue_InsolubleIcon extends IBISImageIcon {
-	private static File mImageFile = VueResources.getFile("IBISNodeTool.issue_insoluble.raw");
+	private static Image mImage = VueResources.getImage("IBISNodeTool.issue_insoluble.raw");
 	
 	public IBISIssue_InsolubleIcon() {
-		super(mImageFile.toString());
+		super(mImage);
 	}
 	
-	public void setImageFile(File f) {
+	public void setImage(Image i) {
 		
-		mImageFile = f;
+		mImage = i;
 	}
 	
-	public File getImageFile() {
+	public Image getImage() {
 		
-		return mImageFile;
+		return mImage;
 	}
 }
