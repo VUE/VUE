@@ -142,7 +142,7 @@ public abstract class Resource implements Cloneable
         public Resource get(java.net.URI mapURI, java.net.URI componentURI, java.net.URI otherMapURI, java.net.URI otherComponentURI, boolean bForeSaving) {
         	return postProcess(WormholeResource.create(mapURI, componentURI, otherMapURI, otherComponentURI, bForeSaving), mapURI);
         }
-        // HO 11/08/2010 END ********************        
+        // HO 11/08/2010 END ********************  
         public Resource get(java.io.File file) {
             // someday this may return something like a FileResource (which could make
             // use of a LocalCabinetResource, if we upgraded that API to be useful

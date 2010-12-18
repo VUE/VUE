@@ -1,5 +1,7 @@
 package tufts.vue.ibisicon;
 
+import java.awt.Image;
+
 import tufts.vue.*;
 
 import javax.swing.ImageIcon;
@@ -16,5 +18,9 @@ public class IBISImageIcon extends ImageIcon {
 	
 	public IBISImageIcon(String strImageFileName) {
 		super(strImageFileName);
+	}
+	
+	public IBISImageIcon(Image theImage) {
+		super(theImage);
 	}
 }
