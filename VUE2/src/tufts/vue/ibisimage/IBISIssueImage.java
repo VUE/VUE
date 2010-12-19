@@ -11,6 +11,7 @@ public class IBISIssueImage extends IBISImage {
 	
 	private static BufferedImage mImage = VueResources.getBufferedImage("IBISNodeTool.issue.image");
 	private static File mImageFile = createImageFile(VueResources.getString("IBISNodeTool.issue.image.filename"), mImage);
+
 	private static Resource mImageResource = new LWMap("dummy map").getResourceFactory().get(mImageFile);
 	
 	private IBISImageIcon mIcon = null;
@@ -21,34 +22,17 @@ public class IBISIssueImage extends IBISImage {
 	
 	public IBISIssueImage() {
 		super(mImageResource);
-		this.setIcon();
+		// HO 19/12/2010 BEGIN ************
+		mImageResource.setProperty(Resource.IMAGE_WIDTH, DEFAULT_IMAGE_WIDTH);
+    	mImageResource.setProperty(Resource.IMAGE_HEIGHT, DEFAULT_IMAGE_HEIGHT);
+    	// HO 19/12/2010 END ************
+    	this.setIcon();
 
 		// HO 17/12/2010 BEGIN ***********
 		// persistence only
 		this.setSaveImageFile(mImageFile.toString());
 		// HO 17/12/2010 END *************
 	}
-	
-	/* public IBISIssueImage(Resource r) {
-		super(r);
-	} */
-	
-	/* private File createImageFile() {
-		// create a new file in a cache directory under the home directory
-		File imgFile = new File(super.getCacheDir(), VueResources.getString("IBISNodeTool.issue.image.filename"));
-		try {
-			// use the image to create a file, 
-			// or get the existing one
-			if (super.writeImageToJPG(imgFile, mImage)) 
-				return imgFile;
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return null;
-		} finally {
-			return imgFile;
-		}
-	} */
 	
 	public void setImageFile(File f) {
 	

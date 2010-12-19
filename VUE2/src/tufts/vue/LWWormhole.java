@@ -1096,8 +1096,10 @@ public class LWWormhole implements VueConstants {
     	setTargetWormholeNode(createTargetWormholeNode());    	
     	
     	// label them (dummy labels for now)
-    	setComponentLabels("source node", "target node");
-    	setWormholeNodeLabels("source wormhole", "target wormhole");
+    	// HO 19/12/2010 BEGIN *******************
+    	//setComponentLabels("source node", "target node");
+    	//setWormholeNodeLabels("source wormhole", "target wormhole");
+    	// HO 19/12/2010 END *******************
 	}
 	
 	/**

@@ -326,10 +326,7 @@ public class LWIBISNode extends LWNode
     LWIBISNode(String label, Resource resource)
     {
         this(label, 0, 0);
-        // HO 13/12/2010 BEGIN *************
         setResource(resource);
-        //setDefaultSizeResource(resource);
-        // HO 06/12/2010 END *************
     }
     
     @Override
@@ -631,18 +628,9 @@ public class LWIBISNode extends LWNode
 
         if (ibisImage != null && IsSameImage(ibisImage.getClass(), imageClass))
             return;
-        
-        // HO 12/12/2010 BEGIN **************
-        //if (imageClass == null)
-        	//imageClass = IBISIssueImage.class;
-        // HO 12/12/2010 END **************
-
 
         try {
             setImageInstance(imageClass.newInstance());
-            // HO 12/12/2010 BEGIN **************
-            //setImageToDefaultSize();
-            // HO 12/12/2010 END **************
         } catch (Throwable t) {
             tufts.Util.printStackTrace(t);
         }
@@ -832,26 +820,15 @@ public class LWIBISNode extends LWNode
 
         if (ibisImage == null) {
         	ibisImage = image;
-        	//ibisImage.setFrame(0, 0, getWidth(), getHeight());
-            
-            //this.addChild(ibisImage);
-        	// HO 13/12/2010 BEGIN ***************        	
+       	
         	this.setResource(ibisImage.getResource());
-        	//setDefaultSizeResource(ibisImage.getResource());
-        	// HO 13/12/2010 END ***************
-            //layout(LWKey.IBISSymbol);
-            // HO 03/11/2010 shouldn't need to update links?
-            //updateConnectedLinks(null);
         }
         
         
         // HO 01/12/2010 BEGIN out with the old
         if (old != null) {
         	Resource resource = image.getResource();
-        	// HO 13/12/2010 BEGIN ***************
-        	//this.setResource(resource);
-        	setDefaultSizeResource(resource);
-        	// HO 13/12/2010 END ***************
+        	this.setResource(resource);
         	ibisImage = image;
         }
         	else {
@@ -862,14 +839,6 @@ public class LWIBISNode extends LWNode
         notify(LWKey.IBISSymbol, new Undoable(old) { void undo() { setImageInstance((LWImage)old); }} );
         
     } 
-    
-    // HO 13/12/2010 BEGIN ***************
-    private void setDefaultSizeResource(Resource res) {
-    	res.setProperty(Resource.IMAGE_WIDTH, DEFAULT_IMAGE_WIDTH);
-    	res.setProperty(Resource.IMAGE_HEIGHT, DEFAULT_IMAGE_HEIGHT);
-    	this.setResource(res);
-    }
-    // HO 13/12/2010 BEGIN ***************
     
     // HO 03/11/2010 END *****************************
     
