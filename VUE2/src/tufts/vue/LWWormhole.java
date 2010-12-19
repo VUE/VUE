@@ -1099,6 +1099,7 @@ public class LWWormhole implements VueConstants {
     	// HO 19/12/2010 BEGIN *******************
     	//setComponentLabels("source node", "target node");
     	//setWormholeNodeLabels("source wormhole", "target wormhole");
+    	setWormholeNodeLabel(getTargetWormholeNode(), VueResources.getString("wormhole.node.target.label.default"));
     	// HO 19/12/2010 END *******************
 	}
 	
@@ -1131,7 +1132,10 @@ public class LWWormhole implements VueConstants {
 	 * @return the LWNode that will be the target component.
 	 */
 	public LWNode createDefaultTargetNode() {
-		LWNode theNode = new LWNode("target node");
+		// HO 19/12/2010 BEGIN ***************
+		String strLabel = VueResources.getString("wormhole.node.label.default");
+		LWNode theNode = new LWNode(strLabel);
+		// HO 19/12/2010 END ***************
 		return theNode;
 	}
 	
