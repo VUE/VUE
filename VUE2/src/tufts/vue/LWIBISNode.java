@@ -817,6 +817,11 @@ public class LWIBISNode extends LWNode
 
         final IBISImage old = (IBISImage)ibisImage;
         isIBISNode = (image instanceof IBISImage);
+        
+        // HO 22/12/2010 BEGIN **************
+        //if (isIBISNode)
+        	//image.setNodeIcon(true);
+        // HO 22/12/2010 END **************
 
         if (ibisImage == null) {
         	ibisImage = image;
@@ -1012,7 +1017,10 @@ public class LWIBISNode extends LWNode
             final LWImage image0 = (LWImage) getChild(0);
             if (DEBUG.IMAGE) out("checking for resource sync to image @child(0): " + image0);
             if (r.isImage()) {
-                if (image0.isNodeIcon() && !r.equals(image0.getResource())) { // we already know r can't be null
+            	// HO 22/12/2010 BEGIN **********
+                //if (image0.isNodeIcon() && !r.equals(image0.getResource())) { // we already know r can't be null
+            	if (!r.equals(image0.getResource())) { // we already know r can't be null
+                	// HO 22/12/2010 END **********
                     deleteChildPermanently(image0);
                     newImageIcon = LWImage.createNodeIcon(image0, r);
                 }

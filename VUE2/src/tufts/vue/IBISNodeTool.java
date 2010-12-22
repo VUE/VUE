@@ -22,10 +22,12 @@ import java.util.Iterator;
 import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JMenu;
 import javax.swing.JPanel;
 
 import tufts.Util;
 //HO 23/06/2010 END *********************
+//import tufts.vue.Actions.IBISStatusAction;
 import tufts.vue.LWComponent.ChildKind;
 import tufts.vue.NodeTool.SubTool;
 import tufts.vue.NodeTool.SubTool.ShapeIcon;
@@ -146,9 +148,10 @@ public class IBISNodeTool extends VueTool
     {
     	// HO 10/11/2010 BEGIN ***************
     	private LWIBISNode creationNode = new LWIBISNode("", new tufts.vue.ibisimage.IBISIssueImage());
-
     	// HO 10/11/2010 END ***************
-
+    	// HO 22/12/2010 BEGIN *************
+    	private IBISImage[][] creationImages = initIBISImages();
+    	// HO 22/12/2010 END *************
     	public IBISNodeModeTool()
     	{
             super();
@@ -157,6 +160,38 @@ public class IBISNodeTool extends VueTool
             
             setActiveWhileDownKeyCode(KeyEvent.VK_X);   
     	}
+    	
+        // HO 22/12/2010 BEGIN ***************
+        private IBISImage[][] initIBISImages() {
+        	int maxPossStatuses = 5;
+        	String IbisTypes[]=VueResources.getStringArray("IBISNodeTool.subtools");  
+        	IBISImage[][] IBIS_IMAGES = new IBISImage[IbisTypes.length][maxPossStatuses];
+
+            int i = 0;
+
+            for (int x = 0; x < IbisTypes.length; x++) {
+            	String IbisSubTypes[]=VueResources.getStringArray("IBISNodeTool." + IbisTypes[x] + ".subtypes");
+            	for (int y = 0; y < IbisSubTypes.length; y++) {            		
+            		try {
+            			if (IbisSubTypes[y] != null)
+            				IBIS_IMAGES[x][y] = (IBISImage) Class.forName(VueResources.getString("IBISNodeTool." + IbisSubTypes[y] + ".imageClass")).newInstance();
+					} catch (InstantiationException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (IllegalAccessException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (ClassNotFoundException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+            	}
+            }
+            
+            return IBIS_IMAGES;
+
+        }
+        // HO 22/12/2010 END ***************
     	
     	@Override
         public Class getSelectionType() { return LWIBISNode.class; }
