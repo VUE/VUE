@@ -2894,8 +2894,12 @@ public class LWIBISNode extends LWNode
     private static final int IconPadBottom = (int) IconAscent;
     private static final int IconMinY = IconPadLeft;
 
-    private static final int LabelPadLeft = 8; // Was 6 in VUE 1.5; fixed distance to right of iconMargin dividerLine
-    private static final int LabelPadRight = 8; // Was 6 in VUE 1.5; minimum gap to right of text before right edge of node
+    // HO 22/12/2010 BEGIN *****************
+    //private static final int LabelPadLeft = 8; // Was 6 in VUE 1.5; fixed distance to right of iconMargin dividerLine
+    //private static final int LabelPadRight = 8; // Was 6 in VUE 1.5; minimum gap to right of text before right edge of node
+    private static final int LabelPadLeft = 2; // Was 6 in VUE 1.5; fixed distance to right of iconMargin dividerLine
+    private static final int LabelPadRight = 2; // Was 6 in VUE 1.5; minimum gap to right of text before right edge of node
+    // HO 22/12/2010 END *****************
     private static final int LabelPadX = LabelPadLeft;
     private static final int LabelPadY = EdgePadY;
     // HO 09/12/2010 BEGIN ************
@@ -2909,8 +2913,11 @@ public class LWIBISNode extends LWNode
     // HO 09/12/2010 BEGIN ******************
     //private static final int ChildOffsetX = IconMargin + LabelPadLeft; // X offset of children when icon showing
     //private static final int ChildOffsetX = LabelPadLeft + IconMargin + LabelPadRight; // X offset of children when icon showing
-    //private static final int ChildOffsetX = LabelPadLeft; // X offset of children when icon showing
+    //private static final int ChildOffsetX = LabelPadLeft; // X offset of children when icon showing    
+    // HO 22/12/2010 BEGIN *****************
     private static final int ChildPadX = 5; // min space at left/right of children
+    //private static final int ChildPadX = 2; // min space at left/right of children
+    // HO 22/12/2010 END *****************
     private static final int ChildOffsetX = ChildPadX; // X offset of children when icon showing
     // HO 09/12/2010 END ******************
     private static final int ChildOffsetY = 4; // how far children down from bottom of label divider line
