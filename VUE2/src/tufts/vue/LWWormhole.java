@@ -1352,6 +1352,10 @@ public class LWWormhole implements VueConstants {
 		// auto-save both maps
 		SaveAction.saveMap(sourceMap);
 		SaveAction.saveMap(targetMap);
+		
+		// HO 22/12/2010 BEGIN ***********
+		OpenAction.displayMapSpecial(targetMapFile);
+		// HO 22/12/2010 END *************
 	}
 	
 	/**
