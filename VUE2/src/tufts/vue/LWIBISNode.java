@@ -1306,12 +1306,13 @@ public class LWIBISNode extends LWNode
     
     protected Size getTextSize() {
 
-        if (WrapText) {
+    	// HO 22/12/2010 BEGIN ********************
+    	/* if (WrapText) {
             Size s = new Size(getLabelBox().getSize());
             //s.width += 3;
             return s;
-        } else {
-
+        } else { */
+        	// HO 22/12/2010 END ********************
             // TODO: Check if this hack still needed in current JVM's
         
             // getSize somtimes a bit bigger thatn preferred size & more accurate
@@ -1327,22 +1328,28 @@ public class LWIBISNode extends LWNode
             s.width *= TextWidthFudgeFactor;
             s.width += 3;
             return s;
-        }
+         // HO 22/12/2010 BEGIN ********************
+            //}
+         // HO 22/12/2010 END ********************
     } 
     
     /** If true, compute node size from label & children */
     @Override
     public boolean isAutoSized() {
-        if (WrapText)
-            return false; // LAYOUT-NEW
-        else
+    	// HO 22/12/2010 BEGIN ********************
+    	//if (WrapText)
+            //return false; // LAYOUT-NEW
+       // else
+        	// HO 22/12/2010 end ********************
             return isAutoSized;
     }
     
     @Override
     public void setAutoSized(boolean makeAutoSized)
     {
-        if (WrapText) return; // LAYOUT-NEW
+    	// HO 22/12/2010 BEGIN ********************
+    	//if (WrapText) return; // LAYOUT-NEW
+    	// HO 22/12/2010 END ********************
         
         if (isAutoSized == makeAutoSized)
             return;
@@ -1370,9 +1377,11 @@ public class LWIBISNode extends LWNode
     }
 
     private int getTextWidth() {
-        if (WrapText)
-            return labelBox.getWidth();
-        else
+    	// HO 22/12/2010 BEGIN ********************
+        //if (WrapText)
+            //return labelBox.getWidth();
+        //else
+        	// HO 22/12/2010 END ********************
             return Math.round(getTextSize().width);
     }
 
@@ -1755,9 +1764,11 @@ public class LWIBISNode extends LWNode
     private Size layoutBoxed(Size request, Size oldSize, Object triggerKey) {
         final Size min;
         
-        if (WrapText)
-            min = layoutBoxed_floating_text(request, oldSize, triggerKey);
-        else
+        // HO 22/12/2010 BEGIN ********************
+        //if (WrapText)
+            //min = layoutBoxed_floating_text(request, oldSize, triggerKey);
+        //else
+        	// HO 22/12/2010 END ********************
             min = layoutBoxed_vanilla(request);
 
         return min;
@@ -1895,19 +1906,23 @@ public class LWIBISNode extends LWNode
     {
         Size text = getTextSize();
         
-        if (hasChildren()) {
+     // HO 22/12/2010 BEGIN ********************
+        /* if (hasChildren()) {
             mLabelPos.y = EdgePadY;
-        } else {
+        } else { */
             // only need this in case of small font sizes and an icon
             // is showing -- if so, center label vertically in row with the first icon
             // Actually, no: center in whole node -- gak, we really want both,
             // but only to a certian threshold -- what a hack!
             //float textHeight = getLabelBox().getPreferredSize().height;
             //mLabelPos.y = (this.height - textHeight) / 2;
+        	// HO 22/12/2010 END ********************
             mLabelPos.y = (this.height - text.height) / 2;
-        }
-
-        if (iconShowing()) {
+         // HO 22/12/2010 BEGIN ********************    
+    	//}
+ // HO 22/12/2010 END ********************
+     // HO 22/12/2010 BEGIN ********************
+        /* if (iconShowing()) {
             //layoutBoxed_icon(request, min, newTextSize);
             // TODO:
             // need to center label between the icon block and the RHS
@@ -1924,7 +1939,8 @@ public class LWIBISNode extends LWNode
                 mLabelPos.x = (this.width - text.width) / 2 + 1;
             else
                 mLabelPos.x = 200; // marked bad because unused in this case
-        }
+        } */
+     // HO 22/12/2010 END ********************
         
     }
     
@@ -1959,18 +1975,22 @@ public class LWIBISNode extends LWNode
         } else {
             // horizontally center if no icons
 
-            if (WrapText) {
+        	// HO 22/12/2010 BEGIN ********************
+        	/* if (WrapText) {
                 return mLabelPos.x;
-            } else {
+            } else { */
+            	// HO 22/12/2010 END ********************
                 // todo problem: pre-existing default alignment w/out icons
                 // is center label, left children: when we move to generally
                 // suporting left/center/right alignment, that configuration won't
                 // be supported: we may need a special "old-style" alignment style
-                if (mAlignment.get() == Alignment.LEFT && hasFlag(Flag.SLIDE_STYLE)) {
+        	// HO 22/12/2010 BEGIN ********************
+                /* if (mAlignment.get() == Alignment.LEFT && hasFlag(Flag.SLIDE_STYLE)) {
                     return ChildPadX;
                 } else if (mAlignment.get() == Alignment.RIGHT) {
                     return (this.width - getTextSize().width) - 1;
-                } else {
+                } else { */
+                	// HO 22/12/2010 END ********************
                     // CENTER:
                     // Doing this risks slighly moving the damn TextBox just as you edit it.
                 	// HO 09/12/2010 BEGIN *****************
@@ -1996,8 +2016,12 @@ public class LWIBISNode extends LWNode
                 	
                     
                     return offset + 1;
-                }
-            }
+                 // HO 22/12/2010 BEGIN ********************
+                //}
+             // HO 22/12/2010 END ********************
+             // HO 22/12/2010 BEGIN ********************
+            //}
+        	// HO 22/12/2010 END ********************
         }
     }
     
@@ -2929,22 +2953,28 @@ public class LWIBISNode extends LWNode
     
     protected float relativeLabelY()
     {
-        if (isCenterLayout) {
+    	if (isCenterLayout) {
             return mLabelPos.y;
-        } else if (hasChildren()) {
+        } // HO 22/12/2010 BEGIN ********************
+    	/*
+    	else if (hasChildren()) {
             return EdgePadY;
         } else {
             
             if (false && WrapText)
                 return mLabelPos.y;
-            else {
+                */
+            	// HO 22/12/2010 END ********************
+            else { 
                 // Doing this risks slighly moving the damn TextBox just as you edit it.
                 // Tho querying the underlying TextBox for it's size every time
                 // we repaint this object is pretty gross also (e.g., every drag)
                 return (this.height - getTextSize().height) / 2;
-            }
-            
-        }
+             }
+    	// HO 22/12/2010 BEGIN ********************
+        /*    
+        }*/
+    	// HO 22/12/2010 END ********************
     }
     
     public Class<? extends LWImage> getNodeImageClass() {
