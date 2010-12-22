@@ -108,8 +108,8 @@ public class WormholeResource extends URLResource {
         return new WormholeResource(mapURI, componentURI);
     }
     
-    static WormholeResource create(java.net.URI mapURI, java.net.URI componentURI, java.net.URI originatingMapURI, java.net.URI originatingComponentURI, boolean bForeSaving) {
-        return new WormholeResource(mapURI, componentURI, originatingMapURI, originatingComponentURI, bForeSaving);
+    static WormholeResource create(java.net.URI mapURI, java.net.URI componentURI, java.net.URI originatingMapURI, java.net.URI originatingComponentURI) {
+        return new WormholeResource(mapURI, componentURI, originatingMapURI, originatingComponentURI);
     }    
 
     /** 
@@ -152,7 +152,7 @@ public class WormholeResource extends URLResource {
      * @param componentURI, the URI of the component to focus on when we open that map
      * 
      */
-    private WormholeResource(URI mapURI, URI componentURI, URI originatingMapURI, URI originatingComponentURI, boolean bForeSaving) {
+    private WormholeResource(URI mapURI, URI componentURI, URI originatingMapURI, URI originatingComponentURI) {
         setBForeSaving(true);
     	init();
     	setTargetFilename(mapURI.toString());

@@ -22,10 +22,6 @@ public class IBISIssueImage extends IBISImage {
 	
 	public IBISIssueImage() {
 		super(mImageResource);
-		// HO 19/12/2010 BEGIN ************
-		mImageResource.setProperty(Resource.IMAGE_WIDTH, DEFAULT_IMAGE_WIDTH);
-    	mImageResource.setProperty(Resource.IMAGE_HEIGHT, DEFAULT_IMAGE_HEIGHT);
-    	// HO 19/12/2010 END ************
     	this.setIcon();
 
 		// HO 17/12/2010 BEGIN ***********

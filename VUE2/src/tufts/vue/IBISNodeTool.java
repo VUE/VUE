@@ -275,11 +275,11 @@ public class IBISNodeTool extends VueTool
     // HO 28/10/2010 END ****************
     
     // HO 11/11/2010 BEGIN ***********
-    public Class<? extends LWImage>[] getAllImageClasses() {
-        Class<? extends LWImage>[] classes = new Class[getSubToolIDs().size()];
+    public Class<? extends IBISImage>[] getAllImageClasses() {
+        Class<? extends IBISImage>[] classes = new Class[getSubToolIDs().size()];
         int i = 0;
         for (Object o : getAllImageValues())
-            classes[i++] = ((LWImage)o).getClass();
+            classes[i++] = ((IBISImage)o).getClass();
         return classes;
     }
     
@@ -297,14 +297,14 @@ public class IBISNodeTool extends VueTool
     }
     // HO 11/11/2010 END ****************
     
-    public LWImage getNamedImage(String name)
+    public IBISImage getNamedImage(String name)
     {
         if (mSubToolMap.isEmpty())
             throw new Error("uninitialized sub-tools");
         
         for (VueTool t : mSubToolMap.values()) {
             if (name.equalsIgnoreCase(t.getAttribute("cssName"))) {
-                return ((IBISSubTool)t).getImage();
+                return (IBISImage) ((IBISSubTool)t).getImage();
             }
         }
         return null;
@@ -337,7 +337,7 @@ public class IBISNodeTool extends VueTool
                 	// stick the kitten image in there as a stub
                 		// File fileName = new File("/Users/helenoliver/Documents/chii_whistling.tiff");
                 		// void act(LWNode n) { n.setResource(fileName);}
-                		void act(LWIBISNode n) { n.setImageInstance(getImageInstance()); }
+                		void act(LWIBISNode n) { n.setImageInstance((IBISImage) getImageInstance()); }
                 	
                     };
                 //imageSetterAction.putValue("property.key", LWKey.Shape);

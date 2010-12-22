@@ -107,7 +107,7 @@ public abstract class Resource implements Cloneable
         Resource get(java.net.URI mapURI, java.net.URI componentURI);
         // HO 16/07/2010 BEGIN **************
         // HO 11/08/2010 BEGIN **************
-        Resource get(java.net.URI mapURI, java.net.URI componentURI, java.net.URI otherMapURI, java.net.URI otherComponentURI, boolean bForeSaving);
+        Resource get(java.net.URI mapURI, java.net.URI componentURI, java.net.URI otherMapURI, java.net.URI otherComponentURI);
         // HO 11/08/2010 BEGIN **************
 
         Resource get(java.io.File file);
@@ -139,8 +139,8 @@ public abstract class Resource implements Cloneable
         }
         // HO 16/07/2010 END ********************
         // HO 11/08/2010 BEGIN *****************
-        public Resource get(java.net.URI mapURI, java.net.URI componentURI, java.net.URI otherMapURI, java.net.URI otherComponentURI, boolean bForeSaving) {
-        	return postProcess(WormholeResource.create(mapURI, componentURI, otherMapURI, otherComponentURI, bForeSaving), mapURI);
+        public Resource get(java.net.URI mapURI, java.net.URI componentURI, java.net.URI otherMapURI, java.net.URI otherComponentURI) {
+        	return postProcess(WormholeResource.create(mapURI, componentURI, otherMapURI, otherComponentURI), mapURI);
         }
         // HO 11/08/2010 END ********************  
         public Resource get(java.io.File file) {

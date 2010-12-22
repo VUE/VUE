@@ -44,9 +44,16 @@ public class LWImage extends LWComponent
 
     public static final boolean SLIDE_LABELS = false;
     
-    private static final int DefaultIconMaxSide = 128;
-    private static final int DefaultWidth = 128;
-    private static final int DefaultHeight = 128;
+    // HO 21/12/2010 BEGIN *********************
+    // resorted to this after massive override/rewrite attempt
+    // while running out of time.
+    //private static final int DefaultIconMaxSide = 128;
+    //private static final int DefaultWidth = 128;
+    //private static final int DefaultHeight = 128;
+    private static final int DefaultIconMaxSide = 64;
+    private static final int DefaultWidth = 64;
+    private static final int DefaultHeight = 64;
+    // HO 21/12/2010 END *********************
     
     private final static int MinWidth = 16;
     private final static int MinHeight = 16;

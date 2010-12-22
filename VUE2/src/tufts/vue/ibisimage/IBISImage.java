@@ -16,11 +16,6 @@ public abstract class IBISImage extends LWImage {
 	protected static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(IBISImage.class);
 	
 	private IBISImageIcon mIcon = null;
-	// HO 19/12/2010 BEGIN ************
-    public static final float DEFAULT_IMAGE_SIZE = 64f;
-    public static final float DEFAULT_IMAGE_HEIGHT = 64f;
-    public static final float DEFAULT_IMAGE_WIDTH = 64f;
-    // HO 19/12/2010 END ************
 	
 	public IBISImage() {
 		

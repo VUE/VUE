@@ -798,54 +798,30 @@ public class Archive
 
      */
     
-    // HO 20/10/2010 BEGIN **************
     private static File originalFile = null;
-    // HO 20/10/2010 END **************
     
-    // HO 29/09/2010 BEGIN *******************
-    // public static void writeArchive(LWMap map, File archive)
-        // throws java.io.IOException
     public static void writeArchive(LWMap map, File archive, File... startedWith)
     	throws java.io.IOException
-    // HO 29/09/2010 END *******************
     {
         Log.info("Writing archive package " + archive);
         
-        // HO 20/10/2010 BEGIN **************
         if (startedWith.length == 0) {
         	originalFile = map.getFile();
         }
-        // HO 20/10/2010 END **************
         
-        // HO 17/10/2010 BEGIN ***********
         String fileWeStartedWith = "";
         if (startedWith.length > 0) {
         	fileWeStartedWith = startedWith[0].getAbsolutePath();
         }
-        // HO 17/10/2010 END *************
-        
-        // HO 27/09/2010 BEGIN *******************
-        // flag whether we are currently handling a .vue file
-        //boolean bVueFile = false;
-        // HO 27/09/2010 END *******************
 
         final String label = archive.getName();
         final String mapName;
-        // HO 07/10/2010 BEGIN *******************
         if (label.endsWith(VueUtil.VueArchiveExtension)) {
-        	// HO 07/10/2010 END *******************
             mapName = label.substring(0, label.length() - 4);           
         } else {
             mapName = label;
         }
         
-        // HO 27/09/2010 BEGIN *******************
-        /* if (label.endsWith(VueUtil.VueExtension)) {
-        	bVueFile = true; 
-        } */
-        // HO 27/09/2010 END *******************
-        
-
         final String dirName = mapName + ".vdr";
 
         //-----------------------------------------------------------------------------
@@ -898,28 +874,10 @@ public class Archive
             		// create a new file object with the same name and location
             		// as the source file, but of type .vpk
             		newSourceFile = new File(saveAsFile);
-            	} else if (bVpk == true) {
-            		// check and see if the directory is the same as
-            		// the one we want to save to
-            		/* File theParent = r.getActiveDataFile().getParentFile();
-            		String strParent = theParent.toString();
-            		System.out.println(strParent);
-            		String strNewParent = "";
-            		File parentParent = null;
-            		String strName = r.getActiveDataFile().getName();
-            		String strNewName = "";
-            		// if it's in an archive folder but that archive folder
-            		// doesn't match the one we want to write to
-            		if ((!strParent.endsWith(dirName)) && (strParent.endsWith(".vdr"))) {
-            			parentParent = theParent.getParentFile();
-            			strNewParent = parentParent.toString();
-            			strNewParent = strNewParent + "/" + dirName;
-            			System.out.println(strNewParent);
-            			strNewName = strNewParent + "/" + strName;
-            			System.out.println(strNewName);
-            			newSourceFile = new File(strNewName);
-            		} */
-            	}
+            		// HO 19/12/2010 BEGIN *********
+            		bVpk = true;
+            		// HO 19/12/2010 END ***********
+            	} 
                 
                 // if we don't so far have a source file object derived from
                 // the resource's source file
@@ -1038,36 +996,23 @@ public class Archive
                 	URI targetComponentURI = new URI(wr.getComponentURIString());
                 	// get the originating map and replace its file extension
                 	// with a .vpk one
-                	/*String originatingMap = wr.getOriginatingFilename();
-                	String newOriginatingMap = originatingMap.substring(0, originatingMap.length() - 4);
-                	newOriginatingMap = newOriginatingMap + VueUtil.VueArchiveExtension;
-                	URI newOriginatingMapURI = new URI(newOriginatingMap);*/
                 	URI newOriginatingMapURI = new URI(archive.getAbsolutePath());
                 	// we already know what the originating component is
                 	URI originatingComponentURI = new URI(wr.getOriginatingComponentURIString());
                 	
                 	Resource newRes = new LWMap("dummy map").getResourceFactory().get(newTargetMapURI,
                 			targetComponentURI, newOriginatingMapURI, 
-                			originatingComponentURI, true);
+                			originatingComponentURI);
                 	
                 	if (newRes != null)
                 		theResource = newRes;
                 } 
                 
-                // final Item item = new Item(entry, r, sourceFile);
             	final Item item = new Item(entry, theResource, sourceFile);
-                // HO 08/10/2010 END
-
-                
-                
-                //Log.info("created: " + entry + "; " + description);
 
                 items.add(item);
                 
-                // HO 08/10/2010 BEGIN
-                // manifest.add(new PropertyEntry(r.getSpec(), packageEntryName));
                 manifest.add(new PropertyEntry(theResource.getSpec(), packageEntryName));
-                // HO 08/10/2010 END
                 
                 if (DEBUG.Enabled) Log.info("created: " + item);
 
@@ -1085,19 +1030,10 @@ public class Archive
         final ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(archive)));
         final ZipEntry mapEntry = new ZipEntry(dirName + "/" + mapName + "$map.vue");
         // HO 17/10/2010 BEGIN *****************
-        /* final String comment = MAP_ARCHIVE_KEY + "; VERSION: 2;"
-            + " Saved " + new Date() + " by " + VUE.getName() + " built " + Version.AllInfo + "; items=" + items.size() + ";"
-            + ">" // /usr/bin/what terminatior
-            //+ "\n\tmap-name(" + mapName + ")"
-            //+ "\n\tunique-resources(" + resources.size() + ")"
-            ;
-            */
         final String comment = MAP_ARCHIVE_KEY + "; VERSION: 2;"
         + " Saved " + new Date() + " by " + VUE.getName() + " built " + Version.AllInfo + "; items=" + items.size() + ";"
         + ">" // /usr/bin/what terminatior
         + "\n\t" + STARTED_WITH_KEY + fileWeStartedWith 
-        //+ "\n\tmap-name(" + mapName + ")"
-        //+ "\n\tunique-resources(" + resources.size() + ")"
         ;
         // HO 17/10/2010 END *****************
         Archive.setComment(mapEntry, comment);
@@ -1156,20 +1092,6 @@ public class Archive
         Log.info("Wrote " + archive);
 
     }
-    
-    // HO 29/09/2010 BEGIN ******************
-    /* private File prepareSourceFileForArchiving(File sourceFile) {
-    	if (sourceFile == null)
-    		return null;
-    	
-    	String sourcePath = sourceFile.getAbsolutePath();
-    	LWMap theMap = OpenAction.loadMap(sourcePath);
-    	String saveAsFile = sourcePath.substring(0, sourcePath.length() - 4);
-    	saveAsFile = saveAsFile + VueUtil.VueArchiveExtension;
-    	File newSourceFile = new File(saveAsFile);
-    	return newSourceFile;
-    } */
-    // HO 29/09/2010 END ********************
 
 //     /**
 //      * @deprecated - doesn't need to be this complicated, and makes ensuring uniquely named

@@ -1281,14 +1281,14 @@ public class LWWormhole implements VueConstants {
 		// if we ever want to implement a kind of wormhole resource
 		// that knows about both source and target.
 		setSourceResource(sourceWormholeNode.getResourceFactory().get(sourceResourceMapURI, sourceResourceComponentURI,
-					targetResourceMapURI, targetResourceComponentURI, bSaving));
+					targetResourceMapURI, targetResourceComponentURI));
 		//if (targetWormholeNode != null)
 			//setTargetResource(targetWormholeNode.getResourceFactory().get(targetResourceMapURI, targetResourceComponentURI));
 		// HO we could use the following two lines of code
 		// if we ever want to implement a kind of wormhole resource
 		// that knows about both source and target.	
 		setTargetResource(targetWormholeNode.getResourceFactory().get(targetResourceMapURI, targetResourceComponentURI,
-					sourceResourceMapURI, sourceResourceComponentURI, bSaving));
+					sourceResourceMapURI, sourceResourceComponentURI));
 	}
 	
 	/**
