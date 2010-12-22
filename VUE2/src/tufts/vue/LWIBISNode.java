@@ -1568,7 +1568,10 @@ public class LWIBISNode extends LWNode
                 // fitWidth(rLabel.x + children.width); // as we're 0 based, rLabel.x == width of gap at left of children
                 // make sure label is in the right place 
                 rLabel.x = childx + children.width + ChildPadX;
-                rLabel.y = childy;
+                // HO 22/12/2010 BEGIN **********
+                //rLabel.y = childy;
+                rLabel.y = (this.height - rLabel.height) / 2;
+                // HO 22/12/2010 END ************
                 // HO 10/12/2010 BEGIN ******
                 //fitWidth(rLabel.x + getTextSize().width + ChildPadX + children.width);
                 fitWidth(rLabel.x + getTotalTextWidth());
