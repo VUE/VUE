@@ -292,7 +292,7 @@ public class GUI
                    includes.add("MenuItem");
                    
                    // includes.add("List");	
-                   // includes.add("Browser");
+                    includes.add("Browser");
                    // includes.add("Button");
                    // includes.add("CheckBox");
                    // includes.add("DesktopPane");
