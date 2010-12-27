@@ -407,6 +407,7 @@ public class LWWormhole implements VueConstants {
 		} catch (NullPointerException e) {
 			return false;
 		}
+
 		// if the node has a parent map, make it the source map
 		if (actualSourceMap != null) {
 			setSourceMap(actualSourceMap);
@@ -450,8 +451,16 @@ public class LWWormhole implements VueConstants {
 		//if (targFile.exists() == true) {
 		// HO 01/10/2010 END
 			try {
-				if (targFile != null) {
-					targMap = OpenAction.loadMap(targetSpec);
+				if (!targFile.isFile()) {
+					String strTargName = targFile.getName();
+					String strLocalParent = new File(actualSourceMap.getLabel()).getParent();
+					targFile = new File(strLocalParent, strTargName);
+					if (targFile.isFile()) {
+						targetSpec = targFile.getAbsolutePath();
+						targMap = OpenAction.loadMap(targetSpec);
+					}
+					else
+						return false;
 				} /* else {
 					targetSpec = wr.getRelativeURI();
 					if (targetSpec == null) {

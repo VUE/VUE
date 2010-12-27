@@ -23,6 +23,7 @@ import tufts.vue.filter.*;
 import tufts.vue.ds.Schema;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.*;
 import java.awt.Dimension;
 import java.awt.geom.Point2D;
@@ -135,7 +136,9 @@ public class LWMap extends LWContainer
 					// if the latest file matches the stored file,
 					// nothing has really changed
 				if ((e.getName().equals("label")) && (e.getSource().getClass().equals(tufts.vue.LWMap.class))) {
-					constructWormholes();
+					if (!bConstructingWormholes) {
+						constructWormholes();
+					}
 				}
 			}}); 
         // HO 15/09/2010 END *******************
@@ -189,6 +192,10 @@ public class LWMap extends LWContainer
 // //         addChild(mInternalLayer);
 
     }
+    
+    // HO 24/12/2010 BEGIN **********
+    public static boolean bConstructingWormholes = false;
+    // HO 24/12/2010 END ************
 
     /**
      * A method to reconstruct wormholes after a file
@@ -196,39 +203,87 @@ public class LWMap extends LWContainer
      */
     public void constructWormholes() {
     	
-    	// HO 11/10/2010 BEGIN *****************
-    	// the wormhole reconstruction is taken care of 
-    	// during the saving and opening of a .vpk file anyway
-    	if (this.isArchiveMap()) {
-    		System.out.println("I'm in the file " + this.getFile().getName());
-    		return;
-    	}
+    	bConstructingWormholes = true;
+
     	// HO 11/10/2010 END *****************
+			// find all the wormhole nodes in this map
+	        Collection<LWWormholeNode> coll = getAllWormholeNodes();
+	        // if we found any wormhole nodes
+			if (coll != null) {
+				// iterate through them all
+				for (LWWormholeNode wn : coll) {
+						// if the node has a resource
+			            if (wn.hasResource()) {
+			            	// get the resource from the node
+			            	Resource r = wn.getResource();
+			            	// check to make sure the resource is a wormhole resource
+			            	if (r.getClass().equals(tufts.vue.WormholeResource.class)) {
+			            		// if it is, downcast it to create a proper WormholeResource object
+			            		WormholeResource wr = (WormholeResource)r;
+			                	// recreate the wormhole
+			                	LWWormhole wh = new LWWormhole(wn, wr);
+			                	// if the wormhole wasn't created to completion, rub it out
+			                	if (wh.getBCancelled() == true) {
+			                			wh = null;
+			                	}
+			                }
+			            }
+			    }
+			}
+			
+			bConstructingWormholes = false;
+    }
+    
+    private String checkForLocalTargetFile(String strTargetParent, String strTargetName) {
+    	boolean bPresent = false;
+    	boolean bVueFile = false;
+    	boolean bVpk = false;
+    	String strVueTarget = strTargetName.substring(0, strTargetName.length() - 4) + VueUtil.VueExtension;
+    	String strVpkTarget = strTargetName.substring(0, strTargetName.length() - 4) + VueUtil.VueArchiveExtension;
+    	String strLookAgain = "";
+    	String strActualTarget = "";
     	
-		// find all the wormhole nodes in this map
-        Collection<LWWormholeNode> coll = getAllWormholeNodes();
-        // if we found any wormhole nodes
-		if (coll != null) {
-			// iterate through them all
-			for (LWWormholeNode wn : coll) {
-					// if the node has a resource
-		            if (wn.hasResource()) {
-		            	// get the resource from the node
-		            	Resource r = wn.getResource();
-		            	// check to make sure the resource is a wormhole resource
-		            	if (r.getClass().equals(tufts.vue.WormholeResource.class)) {
-		            		// if it is, downcast it to create a proper WormholeResource object
-		            		WormholeResource wr = (WormholeResource)r;
-		                	// recreate the wormhole
-		                	LWWormhole wh = new LWWormhole(wn, wr);
-		                	// if the wormhole wasn't created to completion, rub it out
-		                	if (wh.getBCancelled() == true) {
-		                			wh = null;
-		                	}
-		                }
-		            }
+    	if (strTargetName.endsWith(VueUtil.VueExtension)) {
+    		bVueFile = true;
+    		strLookAgain = strVpkTarget;
+    	}
+    	else if (strTargetName.endsWith(VueUtil.VueArchiveExtension)) {
+    		bVpk = true;
+    		strLookAgain = strVueTarget;
+    	}
+    	
+		File dir = new File(strTargetParent);
+
+		String[] children = dir.list();
+		if (children == null) {
+		    // Either dir does not exist or is not a directory
+		} else {
+		    for (int i=0; i<children.length; i++) {
+		        // Get filename of file or directory
+		        String filename = children[i];
+		        if(filename.equals(strTargetName)) {
+		        	// the target file exists								        	
+		        	bPresent = true;
+		        	strActualTarget = strTargetName;
+		        	break;
+		        }
 		    }
-		}    	
+		    // if we didn't find it, check and see if it's in the opposite format
+		    if (bPresent == false) {
+			    for (int i=0; i<children.length; i++) {
+			        // Get filename of file or directory
+			        String filename = children[i];
+			        if(filename.equals(strLookAgain)) {
+			        	// the target file exists								        	
+			        	bPresent = true;
+			        	strActualTarget = strLookAgain;
+			        	break;
+			        }
+			    }
+		    }
+		}
+		
+		return strActualTarget;
     }
     // HO 15/09/2010 END ************    
     

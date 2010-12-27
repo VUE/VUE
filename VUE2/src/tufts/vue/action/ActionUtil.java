@@ -53,6 +53,7 @@ import javax.swing.ListCellRenderer;
 import javax.swing.plaf.FileChooserUI;
 import javax.swing.plaf.basic.BasicFileChooserUI;
 
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URI;
 import java.util.HashMap;
@@ -839,8 +840,21 @@ public class ActionUtil
     {
         if (file.isDirectory())
             throw new MapException("is a directory, not a map file: " + file);
-        if (!file.exists())
-            throw new FileNotFoundException("does not exist");
+        if (!file.exists()) {
+        	// HO 24/12/2010 BEGIN ************
+        	// Mac does weird stuff by looking in the working folder
+        	// so if we want the really absolute path we have to get the path...
+        	try {
+				file = new File(new URI(file.getPath()));
+			} catch (URISyntaxException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        	if (!file.isFile()) {
+        		// HO 24/12/2010 BEGIN ************
+        		throw new FileNotFoundException("does not exist");
+        	}
+        }
         if (file.length() == 0)
             throw new EmptyFileException();
          

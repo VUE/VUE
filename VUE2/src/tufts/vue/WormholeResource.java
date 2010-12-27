@@ -87,10 +87,6 @@ public class WormholeResource extends URLResource {
     /** See tufts.vue.URLResource - reimplementation of private member */
     private ArrayList<PropertyEntry> mXMLpropertyList;  
     
-    // HO 06/09/2010 BEGIN ***************
-    private boolean bForeSaving = false;
-    // HO 06/09/2010 END ***************
-    
     /* static WormholeResource create(String spec) {
         return new WormholeResource(spec);
     }
@@ -153,7 +149,6 @@ public class WormholeResource extends URLResource {
      * 
      */
     private WormholeResource(URI mapURI, URI componentURI, URI originatingMapURI, URI originatingComponentURI) {
-        setBForeSaving(true);
     	init();
     	setTargetFilename(mapURI.toString());
         setComponentURIString(componentURI.toString());
@@ -358,10 +353,22 @@ public class WormholeResource extends URLResource {
         if (type == FILE_UNKNOWN) {
             if (DEBUG.IO) out("testing " + file);
             if (!file.exists()) {
-                // todo: could attempt decodings if a '%' is present
-                // todo: if any SPECIAL chars present, could attempt encoding in all formats and then DECODING to at least the platform format
-                out_warn(TERM_RED + "no such active data file: " + file + TERM_CLEAR);
-                return FILE_UNKNOWN;
+            	// HO 24/12/2010 BEGIN ************
+            	// Mac does weird stuff by looking in the working folder
+            	// so if we want the really absolute path we have to get the path...
+            	try {
+    				file = new File(new URI(file.getPath()));
+    			} catch (URISyntaxException e) {
+    				// TODO Auto-generated catch block
+    				e.printStackTrace();
+    			}
+            	if (!file.isFile()) {
+            		// HO 24/12/2010 BEGIN ************ {
+            			// todo: could attempt decodings if a '%' is present
+            			// todo: if any SPECIAL chars present, could attempt encoding in all formats and then DECODING to at least the platform format
+            			out_warn(TERM_RED + "no such active data file: " + file + TERM_CLEAR);
+                		return FILE_UNKNOWN;
+            	}
             }
         }
         
@@ -1008,7 +1015,7 @@ public class WormholeResource extends URLResource {
     /**
      * @param originatingFile, the originating file in this wormhole.
      */
-    public void setOriginatingFilename(File originatingFile) {
+    public void setOriginatingFilename(File originatingFile) {    	
     	originatingFilename = originatingFile.getAbsolutePath();
     }
     
@@ -1072,14 +1079,6 @@ public class WormholeResource extends URLResource {
 
         //if (DEBUG.RESOURCE) out("setSpec: complete; " + this);
     }    
-    
-    public void setBForeSaving(boolean b) {
-    	bForeSaving = b;
-    }
-    
-    public boolean getBForeSaving() {
-    	return bForeSaving;
-    }
     
     @Override
     protected void initFinal(Object context) 

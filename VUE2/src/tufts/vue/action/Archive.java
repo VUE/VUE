@@ -17,13 +17,13 @@ package tufts.vue.action;
 
 import java.io.*;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.*;
 import java.util.zip.*;
 
 import tufts.Util;
 import tufts.vue.DEBUG;
-import tufts.vue.LWWormholeNode;
 import tufts.vue.VueUtil;
 import tufts.vue.Version;
 import tufts.vue.VUE;
@@ -34,7 +34,6 @@ import tufts.vue.Images;
 import tufts.vue.IMSCP;
 import tufts.vue.LWComponent;
 import tufts.vue.LWMap;
-import tufts.vue.WormholeResource;
 
 import static tufts.vue.Resource.*;
 
@@ -53,10 +52,6 @@ public class Archive
     private static final String MAP_ARCHIVE_KEY = "@(#)TUFTS-VUE-ARCHIVE";    
     private static final String SPEC_KEY = "spec=";
     private static final int SPEC_KEY_LEN = SPEC_KEY.length();
-    // HO 17/10/2010 BEGIN ***************
-    private static final String STARTED_WITH_KEY = "startedWith=";
-    private static final int STARTED_WITH_KEY_LEN = STARTED_WITH_KEY.length();
-    // HO 17/10/2010 BEGIN ***************
 
     public static boolean isVueIMSCPArchive(File file) {
         if (!file.getName().toLowerCase().endsWith(".zip"))
@@ -143,36 +138,13 @@ public class Archive
         ZipEntry entry;
         ZipEntry mapEntry = null;
         String mapFile = null;
-
-        // HO 20/10/2010 BEGIN ************ damn it's satisfying to type that
-        String startedWith = "";
-        // HO 20/10/2010 BEGIN ************
         
         while ( (entry = zin.getNextEntry()) != null ) {
 
-        	// HO 07/10/2010 BEGIN
-        	String startLocation = unzipEntryToFile(zin, entry, unpackingDir);
-        	String startComment = Archive.getComment(entry);
-        	String narrowComment = startComment.substring(startComment.indexOf(SPEC_KEY) + SPEC_KEY_LEN);
-        	if ((!startComment.startsWith(MAP_ARCHIVE_KEY))  && (narrowComment.endsWith(VueUtil.VueArchiveExtension))) {
-        		//startLocation.replace(VueUtil.VueExtension, VueUtil.VueArchiveExtension);
-        		String properLocation = startLocation.substring(0, startLocation.length() - 4);
-            	properLocation = properLocation + VueUtil.VueArchiveExtension;
-            	startLocation = properLocation;
-        	}
-        	
-        	// final String location = unzipEntryToFile(zin, entry, unpackingDir);
-        	final String location = startLocation;
-        	// HO 07/10/2010 END
+            final String location = unzipEntryToFile(zin, entry, unpackingDir);
             final String comment = Archive.getComment(entry);
-            
+
             if (comment != null) {
-                // HO 17/10/2010 BEGIN ***************
-                if (comment.endsWith(VueUtil.VueArchiveExtension)) {
-                	startedWith = comment.substring(comment.indexOf(STARTED_WITH_KEY) + STARTED_WITH_KEY_LEN);
-                	System.out.println(startedWith);
-                }
-                // HO 17/10/2010 END ***************
                 if (comment.startsWith(MAP_ARCHIVE_KEY)) {
                     mapEntry = entry;
                     mapFile = location;
@@ -181,9 +153,8 @@ public class Archive
                 } else {
                     String spec = comment.substring(comment.indexOf(SPEC_KEY) + SPEC_KEY_LEN);
                     Log.info("             [" + spec + "]"); // todo: revert to debug level eventually
-                    if (packagedResources.put(spec, location) != null) {
+                    if (packagedResources.put(spec, location) != null)
                         Log.warn("repeated resource spec in archive! [" + spec + "]");
-                    }
                     //Log.debug("       spec= " + spec);
                 }
             } else {
@@ -204,19 +175,11 @@ public class Archive
         // could be passed to URLResource.XML_completed, which it could check to know if
         // it should wait on attempting to initialize.
         
-        // HO 20/10/2010 BEGIN **************
-        /* final LWMap map =
-            ActionUtil.unmarshallMap(new File(mapFile),
-                                     new ArchiveMapUnmarshalHandler(zipFile + "(" + mapEntry + ")",
-                                                                    zipFile,
-                                                                    packagedResources)); */
         final LWMap map =
             ActionUtil.unmarshallMap(new File(mapFile),
                                      new ArchiveMapUnmarshalHandler(zipFile + "(" + mapEntry + ")",
                                                                     zipFile,
-                                                                    packagedResources,
-                                                                    startedWith));
-        // HO 20/10/2010 END **************
+                                                                    packagedResources));
 
         map.setFile(zipFile);
         map.markAsSaved();
@@ -228,25 +191,11 @@ public class Archive
     {
         final Map<String,String> packagedResources;
         final File archiveFile;
-        // HO 20/10/2010 BEGIN ************
-        final String targetFile;
-        // HO 20/10/2010 END ************
         
-        // HO 20/10/2010 BEGIN ************
-        // ArchiveMapUnmarshalHandler(Object source, File archiveFile, Map<String,String> resourcesFoundInPackage) {
-        ArchiveMapUnmarshalHandler(Object source, File archiveFile, Map<String,String> resourcesFoundInPackage,
-        		String... startedWith) {
-        // HO 20/10/2010 END ************
+        ArchiveMapUnmarshalHandler(Object source, File archiveFile, Map<String,String> resourcesFoundInPackage) {
             super(source, Resource.MANAGED_UNMARSHALLING);
             this.packagedResources = resourcesFoundInPackage;
             this.archiveFile = archiveFile;
-            // HO 20/10/2010 BEGIN ************
-            if (startedWith.length > 0) {
-            	this.targetFile = startedWith[0];
-            } else {
-            	this.targetFile = "";
-            }
-            // HO 20/10/2010 END ************
         }
 
         /** skip setFile -- we're going to use the package file */
@@ -278,40 +227,7 @@ public class Archive
         private void patchResourcesForPackage() {
 
             for (Resource r : map.getAllResources()) {
-                // HO 07/10/2010 BEGIN ***********
-            	// MAKE SURE THIS HAS A SPEC
-                // handled in WormholeResource
-            	String firstSpec = r.getSpec();
-            	String secondSpec = firstSpec;
-            	String thirdSpec;
-            	String fourthSpec;
-            	String theSpec = packagedResources.get(firstSpec);
-            	if (theSpec == null) {
-            		if (firstSpec.endsWith(VueUtil.VueExtension)) {
-            			secondSpec = firstSpec.substring(0, firstSpec.length()-4); 
-            			secondSpec = secondSpec + VueUtil.VueArchiveExtension; 
-            			theSpec = packagedResources.get(secondSpec);
-            			// HO 11/10/2010 BEGIN **********
-            			/* if (theSpec == null) {
-            				if(secondSpec.startsWith("file:")) {
-            					thirdSpec = secondSpec.substring(5, secondSpec.length());
-            					theSpec = packagedResources.get(thirdSpec);
-            					if(theSpec == null) {
-            						if(firstSpec.startsWith("file:")) {
-            							fourthSpec = firstSpec.substring(5, firstSpec.length());
-            							theSpec = packagedResources.get(fourthSpec);
-            						}
-            					}
-            				}
-            			} */
-            			// HO 11/10/2010 END **********
-            		}
-            	}
-            	
-            	//final String packageCacheFile = packagedResources.get(r.getSpec());
-            	final String packageCacheFile = theSpec;
-            	// HO 07/10/2010 END ***********
-                
+                final String packageCacheFile = packagedResources.get(r.getSpec());
                 if (packageCacheFile != null) {
                     //Log.debug("Found packaged resource: " + r + "; " + packageCacheFile);
                     if (DEBUG.Enabled) Log.debug("patching packaged resource: " + packageCacheFile + "; into " + r);
@@ -323,14 +239,7 @@ public class Archive
                     if (DEBUG.RESOURCE && !localPath.equals(packageCacheFile))
                         Log.info("       localized file path: " + localPath);
 
-                    /// HO 05/10/2010 BEGIN
-                    // a WormholeResource is a URLResource so 
-                    // make sure it tests for the former first
-                    if (r instanceof WormholeResource) {
-                        ((WormholeResource)r).setPackageFile(localFile, archiveFile);
-                        ((WormholeResource)r).setOriginatingFilename(archiveFile);
-                        // HO 05/10/2010 END
-                    } else if (r instanceof URLResource) {
+                    if (r instanceof URLResource) {
                         ((URLResource)r).setPackageFile(localFile, archiveFile);
                     } else {
                         Log.warn("package file fallback for unknown resource type, impl in question: " + Util.tags(r) + "; " + localFile);
@@ -339,15 +248,6 @@ public class Archive
                     }
                 } else {
                     if (DEBUG.Enabled) Log.debug("No archive entry matching: " + r.getSpec());
-                    // HO 15/10/2010 BEGIN ************
-                    if (r instanceof WormholeResource) {
-                    	// HO 20/10/2010 BEGIN ************
-                    		if (this.targetFile != "") {
-                    			((WormholeResource)r).setSpec(this.targetFile);
-                    			((WormholeResource)r).setOriginatingFilename(archiveFile);
-                    		}
-                    		// HO 20/10/2010 END ************
-                    	}
                 }
             }
         }
@@ -736,12 +636,7 @@ public class Archive
             //packageName = packageName.replace('+', '-');
 //         }
         
-        // HO 07/10/2010 BEGIN 
-        // if it's a .vue file, and a wormhole resource, we want to parcel it as a .vpk
-            if (r.getClass().equals(WormholeResource.class)) {
-            	packageName = packageName.replace(VueUtil.VueExtension, VueUtil.VueArchiveExtension);   
-            }
-        // HO 07/10/2010 END 
+        
         return packageName;
     }
 
@@ -753,33 +648,9 @@ public class Archive
         Item(ZipEntry e, Resource r, File f) {
             entry = e; resource = r; dataFile = f;
         }
-        
-        Item(Resource r) {
-        	entry = null;
-        	resource = r;
-        	dataFile = null;
-        }
 
         public String toString() {
-        	// HO 14/10/2010
-        	String strEntry;
-        	String strDataFile;
-        	
-        	if (entry == null) {
-        		strEntry = "";
-        	} else {
-        		strEntry = entry.toString();
-        	}
-        	
-        	/* if (dataFile == null) {
-        		strDataFile = "";
-        	} else {
-        		strDataFile = dataFile.toString();
-        	} */
-        	
-        	// HO 14/10/2010
-            //return "Item[" + entry.toString() + "; " + resource + "; " + dataFile + "]";
-        	return "Item[" + strEntry + "; " + resource + "; " + dataFile + "]";
+            return "Item[" + entry.toString() + "; " + resource + "; " + dataFile + "]";
         }
     }
                     
@@ -790,38 +661,29 @@ public class Archive
      * Entries for Resource data in the zip archive are annotated with their original
      * Resource spec, so they can be identified on unpacking, and associated with their
      * original aResources.
-     * HO 08/10/2010 - Has the optional parameter vararg startedWith, which in practice is 0 or 1
-     * File objects. If you are packaging resources into one archive file
-     * and one of the resources you're packaging turns out to be a .vue file, 
-     * you can recurse back to the beginning of the function, passing in the
-     * first file you were packaging up using the startedWith parameter.
 
      */
     
-    private static File originalFile = null;
-    
-    public static void writeArchive(LWMap map, File archive, File... startedWith)
-    	throws java.io.IOException
+    public static void writeArchive(LWMap map, File archive)
+        throws java.io.IOException
     {
         Log.info("Writing archive package " + archive);
-        
-        if (startedWith.length == 0) {
-        	originalFile = map.getFile();
-        }
-        
-        String fileWeStartedWith = "";
-        if (startedWith.length > 0) {
-        	fileWeStartedWith = startedWith[0].getAbsolutePath();
-        }
+
+//         final String label = map.getLabel();
+//         final String mapName;
+//         if (label.endsWith(".vue"))
+//             mapName = label.substring(0, label.length() - 4);
+//         else
+//             mapName = label;
 
         final String label = archive.getName();
         final String mapName;
-        if (label.endsWith(VueUtil.VueArchiveExtension)) {
-            mapName = label.substring(0, label.length() - 4);           
-        } else {
+        if (label.endsWith(VueUtil.VueArchiveExtension))
+            mapName = label.substring(0, label.length() - 4);
+        else
             mapName = label;
-        }
         
+
         final String dirName = mapName + ".vdr";
 
         //-----------------------------------------------------------------------------
@@ -838,181 +700,56 @@ public class Archive
         for (Resource r : uniqueResources) {
 
             try {
-            	// this resource isn't a .vue file until we know otherwise
-                boolean bVue = false;
-                // it also isn't a .vpk file until we know otherwise
-                boolean bVpk = false;
-                // this resource isn't a WormholeResource until we know otherwise
-                boolean bWormhole = false;
-                // the Map object
-                LWMap theMap = null;
-                // we get the source file from the resource, but we might
-                // have to change its format
-                File newSourceFile = null;
-                
-                // get the full path of the resource's actual source file
-                String sourcePath = r.getActiveDataFile().getAbsolutePath();
-                // if the actual source file is a .vue type
-                if (sourcePath.endsWith(VueUtil.VueExtension)) {
-                	// flag that we're dealing with a .vue file
-                	bVue = true;
-                } else if (sourcePath.endsWith(VueUtil.VueArchiveExtension)) {
-                	bVpk = true;
-                }
-                
-            	// now check and see if the resource is a WormholeResource
-                if (r.getClass().equals(tufts.vue.WormholeResource.class)) {
-                	// if so flag it
-                	bWormhole = true;
-                }
-                	
-            	// so if the resource's actual source file is a .vue file
-                if (bVue == true) {
-                	// replace the file extension with a .vpk file type
-            		String saveAsFile = sourcePath.substring(0, sourcePath.length() - 4);
-            		saveAsFile = saveAsFile + VueUtil.VueArchiveExtension;
-            		// create a new file object with the same name and location
-            		// as the source file, but of type .vpk
-            		newSourceFile = new File(saveAsFile);
-            		// HO 19/12/2010 BEGIN *********
-            		bVpk = true;
-            		// HO 19/12/2010 END ***********
-            	} 
-                
-                // if we don't so far have a source file object derived from
-                // the resource's source file
-                if (newSourceFile == null)
-                	// try to take the source file directly from the resource
-                	// without changing it
-                	newSourceFile = r.getActiveDataFile();
-                
-            	// now whatever file we've got will be our source file for this resource
-                final File sourceFile = newSourceFile;
-            	
-            	final String description = "" + (DEBUG.Enabled ? r : r.getSpec());
-            	
-                // if we haven't got a source file for this resource,
-         		// flag it as skipped and record the file name
-         		if (sourceFile == null) {
-                    Log.info("skipped: " + description);
-                    continue;
-                // if there's actually no such file, 
-                // flag it as missing and continue
-         		} else if (!sourceFile.exists()) {
-                    Log.warn("Missing local file: " + sourceFile + "; for " + r);
-                    // HO 20/10/2010 BEGIN ******
-                    // temporary fix - nonlocal files sometimes fail the
-                    // existence test
-                    // continue;
-                    if (bVpk == false) {
-                    	continue;
-                    }
-                    // HO 20/10/2010 END ******
-                }
+
+                final File sourceFile = r.getActiveDataFile();
+                // HO 24/12/2010 BEGIN *************
+                // if it's a .vue or .vpk file, don't include it in the archive
+                // the source file is likely to be null if it's a .vue type, so just carry on
+                if (sourceFile == null)
+                	continue;
+                if ((sourceFile.getName().endsWith(VueUtil.VueExtension)) || (sourceFile.getName().endsWith(VueUtil.VueArchiveExtension)))
+                	continue;
+                // HO 24/12/2010 END ***************
+                final String description = "" + (DEBUG.Enabled ? r : r.getSpec());
 
                 // todo: if source file is a .vue file, could load the map (faster if is
                 // already open and we find it), then archive THAT out as a tmp .vpk file,
                 // and add that to to archive uncompressed, converting the .vue resource
                 // to a .vpk resource.
-         // if source file is a .vue file,   	
-         if ((bVue == true) || (bVpk == true)) {
-        	 	// check and see if the current resource is a WormholeResource
-            	if (bWormhole == false) { 
-            		// source file is a .vue file, so we're loading the map
-            		theMap = OpenAction.loadMap(sourcePath);
-            		// and then archiving THAT out as a .vpk file with the same name and location
-            		writeArchive(theMap, sourceFile);
-            	} else if (bWormhole == true) {
-            		// if it's a wormhole, we don't want to get into an infinite
-            		// loop whereby the source file is always packaging up the
-            		// target file which then has to pack up the source file.
-            		if (fileWeStartedWith != "") {
-            			// the full path of the source file we're currently
-            			// trying to package
-            			String fileWeHaveNow = sourceFile.getAbsolutePath();
-            			String strOriginalFile = "";
-            			if (originalFile != null) {
-            				strOriginalFile = originalFile.getAbsolutePath();
-            			}
-                		// See if the starting file
-                		// is the same as the file we're trying to package up.
-            			// Lop off the file extension in case it got changed from
-            			// .vue to .vpk along the way - it's still the same file.
-            			if (!fileWeStartedWith.substring(0, fileWeStartedWith.length() - 4).equals(fileWeHaveNow.substring(0, fileWeHaveNow.length() - 4))) {
-            				// HO 20/10/2010 BEGIN **************
-            				// if the filename was changed, we also don't want
-            				// to end up pointing at the wrong file
-            				if(!fileWeHaveNow.equals(strOriginalFile)) {
-            					// HO 20/10/2010 END **************
-            					// if the two files are different, go ahead and package this one up.
-            					// load the map,
-            					theMap = OpenAction.loadMap(fileWeHaveNow);
-            					// and archive it out as a .vpk file, making a note
-            					// of the name of the file we were in the middle of
-            					// archiving when we got to this point
-            					writeArchive(theMap, sourceFile, archive);
-            				} else {
-            					// If both the files are the same, skip it and move on.
-                				continue;
-            				}
-            			} else { // HO 11/10/2010             				
-            				// If both the files are the same, skip it and move on.
-            				continue;
-            			} 
-            		} else {
-            			// if this method wasn't called in the middle of
-            			// packaging up another file, just carry on
-            			// open the map,
-            			theMap = OpenAction.loadMap(sourcePath);
-            			// and archive it out as a .vpk file, making a note
-        				// of the name of the file we were in the middle of
-        				// archiving when we got to this point
-            			writeArchive(theMap, sourceFile, archive);
-            		}
-            	}
-            }
 
+                if (sourceFile == null) {
+                    Log.info("skipped: " + description);
+                    continue;
+                } else if (!sourceFile.exists()) {
+                	// HO 24/12/2010 BEGIN ************
+                	// note: yes, I have no life.
+                	// Mac does weird stuff by looking in the working folder
+                	// so if we want the really absolute path we have to get the path...
+                	File file = null;
+                	try {
+        				file = new File(new URI(sourceFile.getPath()));
+        			} catch (URISyntaxException e) {
+        				// TODO Auto-generated catch block
+        				e.printStackTrace();
+        			}
+                	if (!file.isFile()) {
+                		// HO 24/12/2010 BEGIN ************
+                		Log.warn("Missing local file: " + sourceFile + "; for " + r);
+                		continue;
+                	} 
+                }
+            
                 final String packageEntryName = generatePackageFileName(r, uniqueEntryNames);
 
                 final ZipEntry entry = new ZipEntry(dirName + "/" + packageEntryName);
                 Archive.setComment(entry, "\t" + SPEC_KEY + r.getSpec());
 
+                final Item item = new Item(entry, r, sourceFile);
                 
-                // HO 08/10/2010 BEGIN
-                // if it's a WormholeResource,
-                // recreate the resource using the
-                // new .vpk type file names
-                
-                // resource to add to the collection of items
-            	Resource theResource = r;
-            	
-                if (bWormhole == true) {
-                	// downcast the current resource into a WormholeResource
-                	// to gain access to its properties
-                	WormholeResource wr = (WormholeResource)r;
-                	// we already know what filename this resource should be pointing to
-                	URI newTargetMapURI = sourceFile.toURI();
-                	// we already know what component this resource should be pointing to
-                	URI targetComponentURI = new URI(wr.getComponentURIString());
-                	// get the originating map and replace its file extension
-                	// with a .vpk one
-                	URI newOriginatingMapURI = new URI(archive.getAbsolutePath());
-                	// we already know what the originating component is
-                	URI originatingComponentURI = new URI(wr.getOriginatingComponentURIString());
-                	
-                	Resource newRes = new LWMap("dummy map").getResourceFactory().get(newTargetMapURI,
-                			targetComponentURI, newOriginatingMapURI, 
-                			originatingComponentURI);
-                	
-                	if (newRes != null)
-                		theResource = newRes;
-                } 
-                
-            	final Item item = new Item(entry, theResource, sourceFile);
+                //Log.info("created: " + entry + "; " + description);
 
                 items.add(item);
-                
-                manifest.add(new PropertyEntry(theResource.getSpec(), packageEntryName));
+                manifest.add(new PropertyEntry(r.getSpec(), packageEntryName));
                 
                 if (DEBUG.Enabled) Log.info("created: " + item);
 
@@ -1029,13 +766,12 @@ public class Archive
 
         final ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(archive)));
         final ZipEntry mapEntry = new ZipEntry(dirName + "/" + mapName + "$map.vue");
-        // HO 17/10/2010 BEGIN *****************
         final String comment = MAP_ARCHIVE_KEY + "; VERSION: 2;"
-        + " Saved " + new Date() + " by " + VUE.getName() + " built " + Version.AllInfo + "; items=" + items.size() + ";"
-        + ">" // /usr/bin/what terminatior
-        + "\n\t" + STARTED_WITH_KEY + fileWeStartedWith 
-        ;
-        // HO 17/10/2010 END *****************
+            + " Saved " + new Date() + " by " + VUE.getName() + " built " + Version.AllInfo + "; items=" + items.size() + ";"
+            + ">" // /usr/bin/what terminatior
+            //+ "\n\tmap-name(" + mapName + ")"
+            //+ "\n\tunique-resources(" + resources.size() + ")"
+            ;
         Archive.setComment(mapEntry, comment);
         zos.putNextEntry(mapEntry);
 
@@ -1069,18 +805,8 @@ public class Archive
                 Log.info("writing: " + item.entry);
             
             try {
-            	// HO 14/10/2010 
-                //zos.putNextEntry(item.entry);
-            	if (item.entry != null) {
-            		zos.putNextEntry(item.entry);
-            	}
-            	
-            	if (item.dataFile != null) {
-            		copyBytesToZip(item.dataFile, zos);
-            	}
-                
-                // HO 14/10/2010 
-                
+                zos.putNextEntry(item.entry);
+                copyBytesToZip(item.dataFile, zos);
             } catch (Throwable t) {
                 Log.error("Failed to archive item: " + item, t);
             }
