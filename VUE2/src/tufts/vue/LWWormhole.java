@@ -340,9 +340,6 @@ public class LWWormhole implements VueConstants {
     	// get the source component's parent map and make it the source map
     	setSourceMap(sourceComponent.getParentOfType(LWMap.class));
     	
-    	// now duplicate the current node and make it the target node
-    	//setTargetComponent(createDuplicateTargetComponent());
-    	
     	// create a default-style target node
     	setTargetComponent(createDefaultTargetNode());
     	
@@ -358,18 +355,20 @@ public class LWWormhole implements VueConstants {
     	// the target node
     	LWNode theNode = null;
     	
+    	// HO 27/12/2010 BEGIN **************
+    	// if the map has no file object at this point,
+    	// alert the user and return
+    	boolean bHasFile = makeSureMapHasFile(sourceMap);
+    	if (bHasFile == false)
+    		return false;
+    	// HO 27/12/2010 END ****************
+    	
     	// ask them to choose a new or existing map for the target map
     	if (bNew == true) {
     		theMap = askSelectNewTargetMap(sourceMap);
     	} else {
     			// ask them to choose a place to put the target node
     			theMap = askSelectExistingTargetMap(sourceMap);
-    			// get the map file
-    			File theFile = null;
-    			if (theMap != null) {
-    				theFile = theMap.getFile();
-    			}
-
     		}
     	
     	// if we haven't got a target map at this point,
@@ -377,13 +376,53 @@ public class LWWormhole implements VueConstants {
     	if (theMap == null)
     		return false;
     	// otherwise, set what we got as the new target map
-    	else
+    	else {
     		setTargetMap(theMap);
+	    	// HO 27/12/2010 BEGIN **************
+	    	// if the map has no file object at this point,
+	    	// alert the user and return
+	    	bHasFile = makeSureMapHasFile(theMap);
+	    	if (bHasFile == false)
+	    		return false;
+	    	// HO 27/12/2010 END ****************
+    	}
     	
         // set the file objects for the source and target maps
     	setSourceAndTargetMapFiles();
     	// if we got this far we've succeeded
     	return true;
+	}
+	
+	/**
+	 * A function to check whether the map has a data file yet, and,
+	 * if not, alert the user.
+	 * @param theMap
+	 * @return true if the map has a data file, false otherwise
+	 */
+	private boolean makeSureMapHasFile(LWMap theMap) {
+		boolean hasFile = true;
+		
+		File theFile = null;
+		if (theMap != null) {
+			theFile = theMap.getFile();
+	    	// HO 27/12/2010 BEGIN **************
+	    	// If at this point, we have a null target map file,
+	    	// that probably means somebody tried to save it straight
+	    	// into .vpk format, which means that at the point we need it,
+	    	// we don't have a file object. For now, alert them to
+	    	// save as .vue and start again.
+	    	if (theFile == null) {
+	    		VueUtil.alert((Component)VUE.getApplicationFrame(),
+	                    VueResources.local("dialog.savewormholetovpk.message"), 
+	                    VueResources.local("dialog.savewormholetovpk.title"), 
+	                    JOptionPane.ERROR_MESSAGE);
+	    		
+	    		hasFile = false;
+	    	} 	    		
+	    	// HO 27/12/2010 END ****************
+		}
+		
+		return hasFile;
 	}
 	
 	private boolean pointsToSameMap(WormholeResource wr) {
