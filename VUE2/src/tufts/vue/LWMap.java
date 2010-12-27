@@ -194,6 +194,8 @@ public class LWMap extends LWContainer
     }
     
     // HO 24/12/2010 BEGIN **********
+    // if we're already in the process of constructing wormholes,
+    // we need to flag it or we'll get into an infinite loop
     public static boolean bConstructingWormholes = false;
     // HO 24/12/2010 END ************
 
@@ -202,7 +204,7 @@ public class LWMap extends LWContainer
      * location change, triggered by a label change.
      */
     public void constructWormholes() {
-    	
+  	
     	bConstructingWormholes = true;
 
     	// HO 11/10/2010 END *****************
@@ -286,74 +288,6 @@ public class LWMap extends LWContainer
 		return strActualTarget;
     }
     // HO 15/09/2010 END ************    
-    
-    // HO 24/08/2010 BEGIN ***********
-    /**
-     * A method to reconstruct wormholes after saving a file.
-     * After saving the file is the only time when this can reliably be done,
-     * as Resources don't cope well with files that don't fully exist yet
-     * @param beingSavedTo, the File that the current map is being saved to
-     */
-    public void constructWormholesFollowingSave(File beingSavedTo) {
-    	
-    	// input validation
-    	if (beingSavedTo == null)
-    		return;
-    	
-    	// get the name of the file it's being saved to
-    	String beingSavedToName = beingSavedTo.getName();
-
-    	// get the directory it's being saved to
-    	File mapSaveDirectory = beingSavedTo.getParentFile();
-    	
-    	// get the root folder
-    	final URI root = Resource.toCanonicalFile(mapSaveDirectory).toURI();
-        
-        if (DEBUG.Enabled) Log.debug("updating any wormhole resources being changed to: " + root);
-    	
-		// find all the wormhole nodes in this map
-        Collection<LWWormholeNode> coll = getAllWormholeNodes();
-        // if we found any wormhole nodes
-		if (coll != null) {
-			// iterate through them all
-			for (LWWormholeNode wn : coll) {
-					// if the node has a resource
-		            if (wn.hasResource()) {
-		            	// get the resource from the node
-		            	Resource r = wn.getResource();
-		            	// check to make sure the resource is a wormhole resource
-		            	if (r.getClass().equals(tufts.vue.WormholeResource.class)) {
-		            		// if it is, downcast it to create a proper WormholeResource object
-		            		WormholeResource wr = (WormholeResource)r;
-		            		// now get the file that is SUPPOSED to be the source file for this wormhole
-		            		String origFile = wr.getOriginatingFilename();
-		            		// make sure it's a reasonable filename and if not, break out
-		            		if (origFile == null)
-		            			break;
-		            		if ((origFile.equals(Resource.SPEC_UNSET)) || (origFile.equals("")))
-		            			break;
-		            		File theFile = new File(origFile);
-		            		// get the parent folder of the supposed source file
-		                	String originatingParent = theFile.getParent() + "/";
-		                	// get the name of the supposed source file
-		                	String originatingName = theFile.getName();
-		                	// if either of these don't match the file being saved to
-		                	if ((!originatingParent.equals(root.toString())) || (!originatingName.equals(beingSavedToName))) {
-		                		// find the source component within this map
-		                		LWComponent sourceComp = findChildByURIString(wr.getOriginatingComponentURIString());
-		                		// recreate the wormhole
-		                		LWWormhole wh = new LWWormhole(wn, wr, beingSavedTo, sourceComp);
-		                		// if the wormhole wasn't created to completion, rub it out
-		                		if (wh.getBCancelled() == true) {
-		                			wh = null;
-		                		}
-		                	}
-		            	}
-		            }
-			}
-		}    	
-    }
-    // HO 24/08/2010 END ************
 
     // if/when we support maps embedded in maps, we'll want to have these return something real / make not final
     @Override public final float getX() { return 0; }

@@ -1015,7 +1015,7 @@ public class WormholeResource extends URLResource {
     /**
      * @param originatingFile, the originating file in this wormhole.
      */
-    public void setOriginatingFilename(File originatingFile) {    	
+    public void setOriginatingFilename(File originatingFile) { 
     	originatingFilename = originatingFile.getAbsolutePath();
     }
     

@@ -385,6 +385,25 @@ public class LWWormhole implements VueConstants {
     	// if we got this far we've succeeded
     	return true;
 	}
+	
+	private boolean pointsToSameMap(WormholeResource wr) {
+		boolean bSameMap = false;
+		String strSpec = wr.getSystemSpec();
+		String strOriginatingFile = wr.getOriginatingFilename();
+		String strPossPrefix = "file:";
+		if (strSpec.equals(wr.SPEC_UNSET))
+			strSpec = wr.getTargetFilename();
+		
+		if (strSpec.startsWith(strPossPrefix))
+			strSpec = strSpec.substring(strPossPrefix.length(), strSpec.length());
+		if (strOriginatingFile.startsWith(strPossPrefix))
+			strOriginatingFile = strOriginatingFile.substring(strPossPrefix.length(), strOriginatingFile.length());
+		
+		if (strSpec.equals(strOriginatingFile))
+			bSameMap = true;
+		
+		return bSameMap;
+	}
 
 	/**
 	 * A function for extrapolating source and target components,
@@ -400,6 +419,13 @@ public class LWWormhole implements VueConstants {
 	 * @author Helen Oliver
 	 */
 	private boolean extrapolateComponentsMapsAndNodes(LWWormholeNode wn, WormholeResource wr) {
+		// validate input
+		if ((wn == null) || (wr == null))
+			return false;
+		// check and see if the original source and target were
+		// actually pointing to the same map
+		boolean bSameMap = pointsToSameMap(wr);
+		
 		// Start by extrapolating the source map from the node parent
 		LWMap actualSourceMap = null;
 		try {
@@ -415,69 +441,14 @@ public class LWWormhole implements VueConstants {
 			return false;
 		}
 		
-		// first we extrapolate the target
-		// which is easy because it's in the resource we have
-		// get the target file path from the resource
-		// HO 03/09/2010 BEGIN - just calling getSpec() can cause
-		// any file.exists() tests to return false even when the file
-		// blatantly exists
-		String targetSpec = "";
-		try {
-			targetSpec = wr.getSystemSpec();
-			if (targetSpec == "")
-				return false;
-		} catch(NullPointerException e) {
-			return false;
-		}
-
-		// if it's null or an empty string, we can't
-		// extrapolate anything from it
-		if ((targetSpec == null) || (targetSpec == ""))
-			return false;
-		
-		// to ward off FileNotFoundExceptions later on,
-		// create a target file using the path extracted
-		// from the resource
-		File targFile = new File(targetSpec);
-		// now instantiate a target map
+		// if the resource's source and target are the same map, 
+		// we set the target map to the source
 		LWMap targMap = null;
-		// if the target file extracted from the wormhole
-		// resource actually exists (which it should,
-		// because we just created it), load the map
-		// belonging to that file and make it the target map
-		// HO 01/10/2010 BEGIN 
-		// file.exists() doesn't do well with files that aren't
-		// in the current directory, it's a Java thing
-		//if (targFile.exists() == true) {
-		// HO 01/10/2010 END
-			try {
-				if (!targFile.isFile()) {
-					String strTargName = targFile.getName();
-					String strLocalParent = new File(actualSourceMap.getLabel()).getParent();
-					targFile = new File(strLocalParent, strTargName);
-					if (targFile.isFile()) {
-						targetSpec = targFile.getAbsolutePath();
-						targMap = OpenAction.loadMap(targetSpec);
-					}
-					else
-						return false;
-				} /* else {
-					targetSpec = wr.getRelativeURI();
-					if (targetSpec == null) {
-						wr.recordRelativeTo(actualSourceMap.getFile().getParentFile().toURI());
-						targetSpec = wr.getRelativeURI();
-					}
-					if (targetSpec != "") {
-						targMap = OpenAction.loadMap(targetSpec);
-					}
-				} */
-			} catch (Exception e) {
-				// do nothing
-				return false;
-			}
-		// HO 01/10/2010 BEGIN 
-		//}
-		// HO 01/10/2010 END 
+		if (bSameMap)
+			targMap = actualSourceMap;
+		else // if not the same, go ahead and extrapolate the target map from the resource
+			targMap = extrapolateTargetMap(wr);
+
 		
 		// if we now have a target map
 		if (targMap != null)
@@ -567,6 +538,65 @@ public class LWWormhole implements VueConstants {
 
     	// if we got this far we have succeeded
     	return true;
+	}
+	
+	/**
+	 * Function to extract the target map from a given WormholeResource.
+	 * Assumption is that we know the source map by this point.
+	 * If the map can't be found in the stated target, we look in the local
+	 * folder. Then give up.
+	 * @param wr, the WormholeResource from which to extract the target map.
+	 * @return targMap, the target map if successfully extrapolated, null if not.
+	*/
+	private LWMap extrapolateTargetMap(WormholeResource wr) {
+		// validate input
+		if (wr == null)
+			return null;
+		
+		// now instantiate a target map
+		LWMap targMap = null;
+
+		// get the target file path from the resource
+		String targetSpec = "";
+		try {
+			targetSpec = wr.getSystemSpec();
+			if (targetSpec == "")
+				return null;
+		} catch(NullPointerException e) {
+			return null;
+		}
+
+		// if it's null or an empty string, we can't
+		// extrapolate anything from it
+		if ((targetSpec == null) || (targetSpec == ""))
+			return null;
+		
+		// to ward off FileNotFoundExceptions later on,
+		// create a target file using the path extracted
+		// from the resource
+		File targFile = new File(targetSpec);
+		// 24/12/2010 BEGIN ********
+		//if we can't find the file, check for one with the same name
+		// in the local folder
+			try {
+				if (!targFile.isFile()) {
+					String strTargName = targFile.getName();
+					String strLocalParent = new File(sourceMap.getLabel()).getParent();
+					targFile = new File(strLocalParent, strTargName);
+				} 
+				// 24/12/2010 END ***************
+			} catch (Exception e) {
+				// do nothing
+				return null;
+			}
+			if (targFile.isFile()) {
+				targetSpec = targFile.getAbsolutePath();
+				targMap = OpenAction.loadMap(targetSpec);
+			}
+			else // if we still can't find it, give up
+				return null;
+			
+			return targMap;
 	}
 	
 	private boolean extrapolateDuringReparent(LWWormholeNode wn, WormholeResource wr, String prevURI, LWComponent newParent) {
