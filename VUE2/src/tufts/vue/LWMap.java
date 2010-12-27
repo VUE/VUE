@@ -120,6 +120,10 @@ public class LWMap extends LWContainer
 
     private static final String InitLabel = "<map-during-XML-restoration>";
     
+    // HO 27/12/2010 BEGIN ***********
+    private String mPrettyLabel = "";
+    // HO 27/12/2010 END *************
+    
     // only to be used during a restore from persisted
     public LWMap() {
         initMap();
@@ -136,6 +140,7 @@ public class LWMap extends LWContainer
 					// if the latest file matches the stored file,
 					// nothing has really changed
 				if ((e.getName().equals("label")) && (e.getSource().getClass().equals(tufts.vue.LWMap.class))) {
+					// HO 27/12/2010 END ****************
 					if (!bConstructingWormholes) {
 						constructWormholes();
 					}
@@ -204,6 +209,14 @@ public class LWMap extends LWContainer
      * location change, triggered by a label change.
      */
     public void constructWormholes() {
+    	
+    	// HO 27/12/2010 BEGIN **********
+    	// if the label has only been changed to the
+    	// 'pretty' label, nothing's really changed,
+    	// so skip it
+    	if (this.getLabel().equals(this.getPrettyLabel()))
+    		return;
+    	// HO 27/12/2010 END ************
   	
     	bConstructingWormholes = true;
 
@@ -373,7 +386,20 @@ public class LWMap extends LWContainer
         if (mFile != null) {
         	// HO 15/09/2010 BEGIN **********************************
             //setLabel(mFile.getName()); // todo: don't let this be undoable!
+        	// a label change triggers a refresh of any wormholes
+        	// (this is the most efficient way to do it)
+        	// and if we save a file under the same name, but in
+        	// a different location, it won't refresh properly,
+        	// so we have to set the label to the absolute path
             setLabel(mFile.getAbsolutePath()); // todo: don't let this be undoable!
+            // HO 27/12/2010 BEGIN ********
+            // after setting the label to the absolute path,
+            // we need to change it back to just the filename,
+            // because the labels get much too wide which means
+            // that you have to page between maps
+            setPrettyLabel();
+            setLabel(this.getPrettyLabel());
+            // HO 27/12/2010 END **********
             // HO 15/09/2010 END **********************************
             final File parentDir = mFile.getParentFile();
             mSaveLocation = parentDir.toString();
@@ -396,6 +422,14 @@ public class LWMap extends LWContainer
 //                                 mSaveLocationURI);
 //         }
         
+    }
+    
+    private void setPrettyLabel() {
+    	mPrettyLabel = mFile.getName();
+    }
+    
+    private String getPrettyLabel() {
+    	return mPrettyLabel;
     }
 
     /** persistance only */
