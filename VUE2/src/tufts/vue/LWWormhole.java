@@ -966,7 +966,7 @@ public class LWWormhole implements VueConstants {
      
         if (!Util.isMacPlatform()) {
             switch (response) {
-            // the NO_OPTION (add to this map)
+            // the NO_OPTION (add to same map)
             case 0: response = 1; break;
             // the CANCEL option
             case 1: response = 2; break;
@@ -979,7 +979,7 @@ public class LWWormhole implements VueConstants {
             case 0: response = 0; break;
             // the CANCEL option
             case 1: response = 2; break;
-            // the NO_OPTION (add to this map)
+            // the NO_OPTION (add to same map)
             case 2: response = 1; break;
             }
         }
@@ -1003,7 +1003,10 @@ public class LWWormhole implements VueConstants {
     	final Object[] defaultOrderButtons = { "Choose Target Map", "Cancel"};
     	final Object[] macOrderButtons = { "Cancel", "Choose Target Map"};
 
-        Component c = setScreen(map);
+        // HO 04/01/2011 BEGIN *************
+    	// to ward off IllegalComponentStateException
+    	Component c = setScreen(map);
+    	// HO 04/01/2011 END *************
         
         int response = VueUtil.option
             (c,
@@ -1062,6 +1065,7 @@ public class LWWormhole implements VueConstants {
         if (VUE.inNativeFullScreen())
             VUE.toggleFullScreen();
         
+
         Component c = VUE.getDialogParent();
         
         if (VUE.getDialogParent() != null)
@@ -1069,8 +1073,15 @@ public class LWWormhole implements VueConstants {
         	//Get the screen size
         	Toolkit toolkit = Toolkit.getDefaultToolkit();
         	Dimension screenSize = toolkit.getScreenSize();
-
-        	Point p = c.getLocationOnScreen();
+            // HO 04/01/2011 BEGIN **************
+        	Point p = null;
+            try {
+            	//p = c.getLocationOnScreen();
+            	p = c.getLocation(null);
+            } catch (Exception e) {
+            	c = null;
+            }
+                // HO 04/01/2011 END **************
         	
         	if ((p.x + c.getWidth() > screenSize.width) ||
         			(p.y + c.getHeight() > screenSize.height))
@@ -1096,8 +1107,8 @@ public class LWWormhole implements VueConstants {
      * @return the map selected by the user.
      */
     private LWMap askSelectExistingTargetMap(LWMap map) {
-    	final Object[] defaultOrderButtons = { "This Map", "Cancel", "Choose Target Map"};
-    	final Object[] macOrderButtons = { "Choose Target Map", "Cancel", "This Map"};
+    	final Object[] defaultOrderButtons = { "Same Map", "Cancel", "Choose Target Map"};
+    	final Object[] macOrderButtons = { "Choose Target Map", "Cancel", "Same Map"};
 
     	Component c = setScreen(map);
         
@@ -1114,7 +1125,7 @@ public class LWWormhole implements VueConstants {
      
         if (!Util.isMacPlatform()) {
             switch (response) {
-            // the NO_OPTION (add to this map)
+            // the NO_OPTION (add to same map)
             case 0: response = 1; break;
             // the CANCEL option
             case 1: response = 2; break;
@@ -1127,7 +1138,7 @@ public class LWWormhole implements VueConstants {
             case 0: response = 0; break;
             // the CANCEL option
             case 1: response = 2; break;
-            // the NO_OPTION (add to this map)
+            // the NO_OPTION (add to same map)
             case 2: response = 1; break;
             }
         }
@@ -1136,7 +1147,7 @@ public class LWWormhole implements VueConstants {
             // choose a target map
         	LWMap newTargetMap = openExistingMap();
         	return newTargetMap;
-        } else if (response == JOptionPane.NO_OPTION) { // This Map
+        } else if (response == JOptionPane.NO_OPTION) { // Same Map
             // place the target component in the current map
             SaveAction.saveMap(map, false, false);
             return map;

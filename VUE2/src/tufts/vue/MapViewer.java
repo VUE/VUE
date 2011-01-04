@@ -551,7 +551,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         	getTopLevelAncestor().setCursor(cursor);
         } catch (NullPointerException e) {
         	// I don't think this error is worth crashing over
-        	e.printStackTrace();
+        	// do nothing
+        	//e.printStackTrace();
         }
         // HO 11/10/2010 END **********
     }

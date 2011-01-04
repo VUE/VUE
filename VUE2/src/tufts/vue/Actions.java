@@ -4604,14 +4604,31 @@ public class Actions implements VueConstants
         void act(Iterator<LWComponent> i) {
             while (i.hasNext()) {
                 LWComponent c = i.next();
+                
 //                 if (hierarchicalAction() && c.isAncestorSelected()) {
 //                     // If has no parent, must already have been acted on to get that way.
 //                     // If parent is selected, action will happen via it's parent.
 //                     continue;
 //                 }
+                
                 act(c);
             }
         }
+        // HO 04/01/2011 BEGIN ************
+        /* void act(Iterator<LWComponent> i) {
+            while (i.hasNext()) {
+                LWComponent c = i.next();
+                
+//                 if (hierarchicalAction() && c.isAncestorSelected()) {
+//                     // If has no parent, must already have been acted on to get that way.
+//                     // If parent is selected, action will happen via it's parent.
+//                     continue;
+//                 }
+                
+                act(c);
+            }
+        } */
+        // HO 04/01/2011 END ************
         void act(LWComponent c) {
             if (c instanceof LWLink)
                 act((LWLink)c);

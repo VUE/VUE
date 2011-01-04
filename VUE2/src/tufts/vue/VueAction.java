@@ -18,6 +18,7 @@ package tufts.vue;
 
 import tufts.Util;
 
+import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.Iterator;
 import java.util.ArrayList;
@@ -370,7 +371,12 @@ public class VueAction extends javax.swing.AbstractAction
             }
         } catch (DeniedException e) {
             Log.info("Denied: " + this + "; " + e.getMessage());
-        } catch (Throwable t) {
+       // HO 04/01/2011 BEGIN **************
+        } catch (ConcurrentModificationException e) {
+        	Log.info("Concurrent Modification: " + this + "; " + e.getMessage());
+        }
+        // HO 04/01/2011 END **************
+        catch (Throwable t) {
             synchronized (System.err) {
                 System.err.println("*** VueAction: exception during action [" + getActionName() + "]");
                 System.err.println("*** VueAction: " + getClass());
