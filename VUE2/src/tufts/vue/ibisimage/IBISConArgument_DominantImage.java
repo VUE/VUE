@@ -66,7 +66,7 @@ public class IBISConArgument_DominantImage extends IBISImage {
 	
 	public void setIcon() {
 		
-		mIcon = new IBISProArgumentIcon();
+		mIcon = new IBISConArgument_DominantIcon();
 	}
 	
 	public IBISImageIcon getIcon() {

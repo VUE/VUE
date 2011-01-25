@@ -66,7 +66,7 @@ public class IBISAnswer_UnlikelyImage extends IBISImage {
 	
 	public void setIcon() {
 		
-		mIcon = new IBISAnswer_AcceptedIcon();
+		mIcon = new IBISAnswer_UnlikelyIcon();
 	}
 	
 	public IBISImageIcon getIcon() {
