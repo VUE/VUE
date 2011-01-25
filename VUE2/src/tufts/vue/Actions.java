@@ -1401,23 +1401,6 @@ public class Actions implements VueConstants
 
                 if (option == null || option.length() <= 0)
                     return;
-                
-                /*
-                 * At one point I was trying to do something clever if you tried to type a url with GET parameters
-                 * into the Add URL box but it seems to have caused more problems then it solved at this point.
-                 */
-               /* if (option.indexOf("?") > 0)
-                {
-                	String encoded = option.substring(option.indexOf("?")+1);
-                	
-                	encoded = URLEncoder.encode(encoded);
-
-                	option = option.substring(0,option.indexOf("?")+1) + encoded;
-                }*/
-              //  if (!option.startsWith("http://") || !option.startsWith("https://") || !option.startsWith("file://"))
-                //	option = "http://" + option;
-                //int option = chooser.showOpenDialog(tufts.vue.VUE.getDialogParent());
-                //if (option != null && option.length() > 0) {
 
             	URI uri = null;
             	
@@ -1454,10 +1437,7 @@ public class Actions implements VueConstants
                           	VUE.setActive(LWComponent.class, this, null);
                             LWNode node = NodeModeTool.createNewNode();
                             Resource resource = c.getResourceFactory().get(uri);
-                            //node.setStyle(c.getStyle());                    
-                            //LWNode node= new LWNode(resource.getTitle());                  
-                            
-                            //node.addChild(image);
+
                             VUE.getActiveViewer().getDropFocal().dropChild(node);
                             
                             node.setLabel(uri.toString());
