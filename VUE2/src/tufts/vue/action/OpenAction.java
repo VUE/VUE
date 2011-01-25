@@ -90,21 +90,6 @@ public class OpenAction extends VueAction
     
     public static void displayMap(File file) {
         VUE.displayMap(file);
-        /*
-        if (file != null) {
-        	RecentlyOpenedFilesManager rofm = RecentlyOpenedFilesManager.getInstance();
-            rofm.updateRecentlyOpenedFiles(file.getAbsolutePath());
-            VUE.activateWaitCursor();
-            try {
-                LWMap loadedMap = loadMap(file.getAbsolutePath());
-                VUE.displayMap(loadedMap);
-            } finally {
-                VUE.clearWaitCursor();
-                VUE.getPathwayPanel().updateEnabledStates();
-                
-            }            
-        }
-        */
     }
 
 //     public static boolean isVueIMSCPArchive(File file) {
