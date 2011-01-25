@@ -806,17 +806,11 @@ public class VueMenuBar extends javax.swing.JMenuBar
 					if ((c).hasResource())
 					{
 						final Resource resource = c.getResource();
-						// HO 13/12/2010 BEGIN ***********
-						if (!(c instanceof LWIBISNode)) {
-							// HO 13/12/2010 END ***********
-							removeResourceItem.setEnabled(true);
-						} else {
-							addFileItem.setEnabled(false);
-							addURLItem.setEnabled(false);
-							removeResourceItem.setEnabled(false);
-							removeResourceKeepImageItem.setEnabled(false);
-						}
-						// HO 13/12/2010 END ***********
+						addFileItem.setEnabled(false);
+						addURLItem.setEnabled(false);
+						removeResourceItem.setEnabled(false);
+						removeResourceKeepImageItem.setEnabled(false);
+
 						if (c.hasChildren())
 			        	{
 			        		List<LWComponent> children = c.getChildren();
