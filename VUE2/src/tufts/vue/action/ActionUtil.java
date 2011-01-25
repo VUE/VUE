@@ -217,7 +217,14 @@ public class ActionUtil
 		String extension = ((VueFileFilter)saveChooser.getFileFilter()).getExtensions()[0];  
 						
 		if (name == null || (name !=null && name.length() <1))
-			baseName = VUE.getActiveMap().getLabel();
+			// HO 24/01/2011 BEGIN *************
+			// try/catch block added
+			try {
+				baseName = VUE.getActiveMap().getLabel();
+			} catch (NullPointerException e) {
+				baseName = name;
+			}
+			// HO 24/01/2011 END *************
 		else
 	       baseName = name;
 
@@ -851,7 +858,7 @@ public class ActionUtil
 				e.printStackTrace();
 			}
         	if (!file.isFile()) {
-        		// HO 24/12/2010 BEGIN ************
+        		// HO 24/12/2010 END ************
         		throw new FileNotFoundException("does not exist");
         	}
         }
