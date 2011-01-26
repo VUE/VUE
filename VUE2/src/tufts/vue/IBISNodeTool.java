@@ -252,10 +252,19 @@ public class IBISNodeTool extends VueTool
         /** @return a "text" node initialized to the current style in the VUE editors.
         [old: Will adjust text size for current zoom level]
     */
+    	// HO 26/01/2011 BEGIN **********
+    	// TODO get rid of this - it doesn't belong in an IBIS node
+    	// HO 26/01/2011 END ********** 
     public static LWText createRichTextNode(String text)
     {
         LWText node = buildRichTextNode(text);
-        node.getRichLabelBox(true).overrideTextColor(FontEditorPanel.mTextColorButton.getColor());
+        // HO 26/01/2011 BEGIN ***************
+        try {
+        	node.getRichLabelBox(true).overrideTextColor(FontEditorPanel.mTextColorButton.getColor());
+        } catch (NullPointerException e){
+        	e.printStackTrace();
+        }
+        // HO 26/01/2011 END ***************
         node.setAutoSized(false);
         node.setSize(150,5);        
         return node;
@@ -264,7 +273,10 @@ public class IBISNodeTool extends VueTool
         /** @return a "text" node initialized to the current style in the VUE editors.
         [old: Will adjust text size for current zoom level]
 	    */
-	    public static LWIBISNode createTextNode(String text)
+    	// HO 26/01/2011 BEGIN **********
+    	// TODO get rid of this - it doesn't belong in an IBIS node
+    	// HO 26/01/2011 END **********    
+    	public static LWIBISNode createTextNode(String text)
 	    {
 	        LWIBISNode node = buildTextNode(text);
 	        EditorManager.targetAndApplyCurrentProperties(node);
@@ -287,10 +299,16 @@ public class IBISNodeTool extends VueTool
         }
         
         // deprecate - use createDefaultTextNode 
+        // HO 26/01/2011 BEGIN **********
+        // TODO get rid of this - it doesn't belong in an IBIS node
+        // HO 26/01/2011 END **********
         public static LWIBISNode buildTextNode(String text) {
             return createDefaultTextNode(text);
         }
         
+        // HO 26/01/2011 BEGIN **********
+        // TODO get rid of this - it doesn't belong in an IBIS node
+        // HO 26/01/2011 END **********
         public static LWText buildRichTextNode(String s) {
             LWText text = new LWText();
             text.setLabel(s);            
