@@ -185,8 +185,6 @@ public class LWIBISNode extends LWNode
     
     public LWIBISNode(String label) {
     	// HO 12/12/2010 BEGIN ************
-    	//this(label, 0, 0);
-    	// this(label, 0, 0, null);
     	this (label, new tufts.vue.ibisimage.IBISIssueImage());
     	// HO 12/12/2010 END ************
     	
@@ -267,9 +265,6 @@ public class LWIBISNode extends LWNode
     /** @return false if this is a text node */
     @Override
     public boolean supportsChildren() {
-//         if (hasFlag(Flag.SLIDE_STYLE) && isImageNode(this))
-//             return false;
-//         else
         if (hasFlag(Flag.SLIDE_STYLE) && hasResource() && getResource().isImage()) {
             // so a text item that links to an image is allowed to have an
             // image dropped into it (ideally, it would only allow the image with the same resource)

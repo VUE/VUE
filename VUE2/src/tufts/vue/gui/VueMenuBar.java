@@ -849,10 +849,10 @@ public class VueMenuBar extends javax.swing.JMenuBar
 						addFileItem.setLabel(VueResources.getString("mapViewer.componentMenu.replaceFile.label"));
 						addURLItem.setLabel(VueResources.getString("mapViewer.componentMenu.replaceURL.label"));
 						// HO 07/07/2010 BEGIN *****************
-						addWormholeItem.setLabel("Wormhole");
+						addWormholeItem.setLabel(VueResources.getString("mapViewer.componentMenu.addWormholeNew"));
 						// HO 07/07/2010 END *****************
 						// HO 27/08/2010 BEGIN *****************
-						addWormholeToExistingMapItem.setLabel("Wormhole");
+						addWormholeToExistingMapItem.setLabel(VueResources.getString("mapViewer.componentMenu.addWormholeExisting"));
 						// HO 27/08/2010 END *****************
 					}
 					else
@@ -862,10 +862,10 @@ public class VueMenuBar extends javax.swing.JMenuBar
 						addFileItem.setLabel(VueResources.getString("mapViewer.componentMenu.addFile.label"));
 						addURLItem.setLabel(VueResources.getString("mapViewer.componentMenu.addURL.label"));
 						// HO 07/07/2010 BEGIN *********************
-						addWormholeItem.setLabel("Wormhole");
+						addWormholeItem.setLabel(VueResources.getString("mapViewer.componentMenu.addWormholeNew"));
 						// HO 07/07/2010 END *********************
 						// HO 27/08/2010 BEGIN *********************
-						addWormholeToExistingMapItem.setLabel("Wormhole");
+						addWormholeToExistingMapItem.setLabel(VueResources.getString("mapViewer.componentMenu.addWormholeExisting"));
 						// HO 27/08/2010 END *********************
 					}
 				}

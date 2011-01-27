@@ -387,13 +387,8 @@ public class IBISNodeTool extends VueTool
         public VueAction getImageSetterAction() {
             if (imageSetterAction == null) {
                 imageSetterAction = new Actions.LWCAction(getToolName(), new IBISNodeIcon(getIconInstance())) {
-                	// stick the kitten image in there as a stub
-                		// File fileName = new File("/Users/helenoliver/Documents/chii_whistling.tiff");
-                		// void act(LWNode n) { n.setResource(fileName);}
-                		void act(LWIBISNode n) { n.setImageInstance((IBISImage) getImageInstance()); }
-                	
+                		void act(LWIBISNode n) { n.setImageInstance((IBISImage) getImageInstance()); }               	
                     };
-                //imageSetterAction.putValue("property.key", LWKey.Shape);
                 imageSetterAction.putValue("property.value", getImage()); // this may be handy
                 // key is from: MenuButton.ValueKey
             }
@@ -506,12 +501,7 @@ public class IBISNodeTool extends VueTool
                 sHeight = nearestEven(ToolIcon.Height / 2);
             
             sHeight--; // new priority: for even veritcal alignment in the combo-box -- SMF 2007-05-01
-            
-            /* sShapeGradient = new GradientPaint(sWidth/2,0,sShapeColorLight, sWidth/2,sHeight/2,sShapeColor,true); */ // horizontal dark center
-            //sShapeGradient = new GradientPaint(sWidth/2,0,sShapeColor, sWidth/2,sHeight/2,sShapeColorLight,true); // horizontal light center
-            //sShapeGradient = new GradientPaint(0,sHeight/2,sShapeColor.brighter(), sWidth/2,sHeight/2,sShapeColor,true); // vertical
-            //sShapeGradient = new GradientPaint(0,0,sShapeColor.brighter(), sWidth/2,sHeight/2,sShapeColor,true); // diagonal
-            
+                       
         }
 
         // HO 15/11/2010 BEGIN *************

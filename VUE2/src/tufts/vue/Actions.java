@@ -1525,7 +1525,7 @@ public class Actions implements VueConstants
         
 
         /* HO 07/07/2010 BEGIN ********************/
-        public static final LWCAction AddWormholeToNewMapAction = new LWCAction("Add Wormhole Into New Map") {
+        public static final LWCAction AddWormholeToNewMapAction = new LWCAction(VueResources.local("mapViewer.componentMenu.addWormholeNew")) {
         	
         	boolean undoable() { return false; } // label editor handles the undo
         	
@@ -1577,7 +1577,7 @@ public class Actions implements VueConstants
       };
       
       /* HO 07/07/2010 BEGIN ********************/
-      public static final LWCAction AddWormholeToExistingMapAction = new LWCAction("Add Wormhole Into Existing Map") {
+      public static final LWCAction AddWormholeToExistingMapAction = new LWCAction(VueResources.local("mapViewer.componentMenu.addWormholeExisting")) {
       	
       	boolean undoable() { return false; } // label editor handles the undo
       	
