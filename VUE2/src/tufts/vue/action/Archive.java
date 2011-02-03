@@ -816,6 +816,11 @@ public class Archive
         zos.close();
 
         Log.info("Wrote " + archive);
+        
+        // HO 03/02/2011 BEGIN *******************
+        // see if opening the .vpk automatically is any help.
+        openVuePackage(archive);
+        // HO 03/02/2011 END *******************
 
     }
 
