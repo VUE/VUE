@@ -819,10 +819,25 @@ public class Archive
         
         // HO 03/02/2011 BEGIN *******************
         // see if opening the .vpk automatically is any help.
-        openVuePackage(archive);
+        //OpenAction.loadMap(archive.toString());
+        //openVuePackage(archive);
+        //OpenAction.displayMap(archive);
+        //VUE.displayMap(archive);
+        if (!bAutoOpeningMap)
+        	autoOpenMap(archive);
         // HO 03/02/2011 END *******************
 
     }
+    
+    // HO 07/02/2011 BEGIN **********
+    public static boolean bAutoOpeningMap = false;
+    
+    private static void autoOpenMap(File archive) {
+    	bAutoOpeningMap = true;
+    	VUE.displayMap(archive);
+    	bAutoOpeningMap = false;
+    }
+    // HO 07/02/2011 END **********
 
 //     /**
 //      * @deprecated - doesn't need to be this complicated, and makes ensuring uniquely named

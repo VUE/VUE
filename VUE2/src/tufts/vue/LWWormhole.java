@@ -184,6 +184,10 @@ public class LWWormhole implements VueConstants {
 	 */
 	public void init(LWComponent c, boolean bNew) 
     {
+		// HO 08/02/2011 BEGIN ***************
+		findAndSaveAllOpenMaps();
+		// HO 08/02/2011 END ***************
+		
     	// we are cancelled until we have successfully
 		// constructed the whole wormhole
 		setBCancelled(true);
@@ -217,7 +221,11 @@ public class LWWormhole implements VueConstants {
 	 */
 	public void init(LWWormholeNode wn, WormholeResource wr) 
     {
-    	// we are cancelled until we have successfully
+		// HO 08/02/2011 BEGIN ***************
+		findAndSaveAllOpenMaps();
+		// HO 08/02/2011 END ***************
+		
+		// we are cancelled until we have successfully
 		// constructed the whole wormhole
 		setBCancelled(true);
 		// extrapolate the components, maps, and nodes
@@ -248,7 +256,11 @@ public class LWWormhole implements VueConstants {
 	 */
 	public void init(LWWormholeNode wn, WormholeResource wr, String prevURI, LWComponent newParent) 
     {
-    	// we are cancelled until we have successfully
+		// HO 08/02/2011 BEGIN ***************
+		findAndSaveAllOpenMaps();
+		// HO 08/02/2011 END ***************
+		
+		// we are cancelled until we have successfully
 		// constructed the whole wormhole
 		setBCancelled(true);
 		
@@ -282,7 +294,11 @@ public class LWWormhole implements VueConstants {
 	 */
 	public void init(LWWormholeNode wn, WormholeResource wr, File beingSavedTo, LWComponent c) 
     {
-    	// yes this is during a save
+		// HO 08/02/2011 BEGIN ***************
+		findAndSaveAllOpenMaps();
+		// HO 08/02/2011 END ***************
+		
+		// yes this is during a save
 		setBSaving(true);
 		// we are cancelled until we have successfully
 		// constructed the whole wormhole
@@ -654,6 +670,9 @@ public class LWWormhole implements VueConstants {
 		}
 		// if the node has a parent map, make it the source map
 		if (actualSourceMap != null) {
+			// HO 08/02/2011 BEGIN ***************
+    		SaveAction.saveMap(actualSourceMap);
+    		// HO 08/02/2011 END ***************
 			setSourceMap(actualSourceMap);
 		} else {
 			return false;
@@ -1954,6 +1973,23 @@ public class LWWormhole implements VueConstants {
 			}
 		}	
 	}
+	
+	// HO 08/02/2011 BEGIN *********************
+	/**
+	 * A routine to find and save all the open
+	 * maps
+	 */
+	public void findAndSaveAllOpenMaps() {
+		
+		// get all the open maps
+		Collection<LWMap> coll = VUE.getAllMaps();
+		for (LWMap map: coll) {
+			if (map.isModified())
+				// here's the current map, save it
+				SaveAction.saveMap(map);
+		}	
+	}
+	// HO 08/02/2011 END *********************
 	
 	/**
 	 * A routine to reset the wormhole resource of a component that is not necessarily

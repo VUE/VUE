@@ -468,6 +468,9 @@ public class WormholeResource extends URLResource {
         	}
         }
         
+        // HO 04/02/2011 this would be a good place
+        // to start a collection of previous target
+        // filenames to use as breadcrumbs
         if (targetFilename == null) {
             Log.error(new Throwable("cannot initialize resource " + Util.tags(this) + " without a target file: " + Util.tags(targetFilename)));
             return;

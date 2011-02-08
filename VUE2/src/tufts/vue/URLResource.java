@@ -173,28 +173,9 @@ public class URLResource extends Resource implements XMLUnmarshalListener
             return;
         }
         if (DEBUG.RESOURCE) dumpField("setSpecByFile; type=" + knownType, file);
-        //if (DEBUG.RESOURCE && DEBUG.META) dumpField("setSpecByFile; type=" + knownType, file);
 
         if (mURL != null)
             mURL = null;
-
-
-//         if (knownType == FILE_UNKNOWN) {
-            
-//             // This works on XP and Vista as of at least Java6 for standard file links
-//             // (.lnk files), and recognizes .url's as links (isLink()=true), but .url's
-//             // link locations are always null. None of this appears to work on all on
-//             // the Mac, tho I've only tested Java5 there (Java6 not production release
-//             // yet)
-        
-//             try {
-//                 ShellFolder sf = ShellFolder.getShellFolder(file);
-//                 if (sf.isLink())
-//                     Util.printStackTrace("GOT LINK: " + file + " --> " + sf.getLinkLocation());
-//             } catch (Throwable t) {
-//                 t.printStackTrace();
-//             }
-//         }
         
         setFile(file, knownType);
         

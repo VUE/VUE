@@ -18,6 +18,7 @@ package tufts.vue;
 import sun.tools.tree.SuperExpression;
 import tufts.Util;
 import static tufts.Util.fmt;
+import tufts.vue.action.SaveAction;
 import tufts.vue.ibisimage.*;
 import tufts.vue.shape.RectangularPoly2D;
                        
@@ -998,6 +999,9 @@ public class LWNode extends LWContainer
         	final LWComponent first = Util.getFirst(children);
         	if (first instanceof LWWormholeNode) {
         		System.out.println("Woot! It's a wormhole node!");
+        		// HO 08/02/2011 BEGIN ***************
+        		//SaveAction.saveMap(this.getParentOfType(LWMap.class));
+        		// HO 08/02/2011 END ***************
         		LWWormholeNode wn = (LWWormholeNode)first;
         		WormholeResource wr = (WormholeResource)wn.getResource();
         		String strURI = "";
