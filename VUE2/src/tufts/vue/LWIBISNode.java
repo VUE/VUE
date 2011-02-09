@@ -960,7 +960,7 @@ public class LWIBISNode extends LWNode
     // HO 03/11/2010 END ******************
     
     // HO 22/09/2010 BEGIN ******************
-    private void reparentWormholeNode(java.util.Collection<? extends LWComponent> children) {
+    /* private void reparentWormholeNode(java.util.Collection<? extends LWComponent> children) {
         if (!mXMLRestoreUnderway) {
         	final LWComponent first = Util.getFirst(children);
         	if (first instanceof LWWormholeNode) {
@@ -986,7 +986,42 @@ public class LWIBISNode extends LWNode
         	}
         }
 
+    } */
+    
+    // HO 22/09/2010 BEGIN ******************
+    private void reparentWormholeNode(java.util.Collection<? extends LWComponent> children) {
+        if (!mXMLRestoreUnderway) {
+        	final LWComponent first = Util.getFirst(children);
+        	if (first instanceof LWWormholeNode) {
+        		LWWormholeNode wn = (LWWormholeNode)first;
+        		WormholeResource wr = (WormholeResource)wn.getResource();
+        		String strURI = "";
+        		try	{
+        			strURI = wr.getOriginatingComponentURIString();
+        		} catch(NullPointerException e) {
+        			return;
+        		}
+        		
+        		// if we have an originating component URI,
+        		// and it doesn't match this component's URI,
+        		// we need to recreate the wormhole
+        		if (strURI != null) {
+        			if(!strURI.equals(this.getURIString())) {
+        				// flag that we're creating a wormhole on this map
+        				LWMap parentMap = this.getParentOfType(LWMap.class);
+        				parentMap.bConstructingWormholes = true;
+        				// create the wormhole
+        				LWWormhole worm = new LWWormhole(wn, wr, strURI, this);
+        				// flag that we're done creating the wormhole
+        				parentMap.bConstructingWormholes = false;
+        				takeResource(wn.getResource());
+        			}
+        		}
+        	}
+        }
+
     }
+    // HO 22/09/2010 END ******************
     
     public void setResource(final Resource r)
     {
