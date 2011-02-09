@@ -214,6 +214,17 @@ public class LWMap extends LWContainer
     	// if the label has only been changed to the
     	// 'pretty' label, nothing's really changed,
     	// so skip it
+    	// HO 09/02/2011 BEGIN *************
+    	// if the 'pretty' label hasn't been set, also
+    	// nothing has been changed? Has it? Are we 
+    	// wasting cycles on this?
+    	// Oops. No. I totally broke it is what happened.
+    	//if (this.getPrettyLabel().equals(""))
+    		//return;
+    	// how about:
+    	if (this.bConstructingWormholes)
+    		return;
+    	// HO 09/02/2011 END *************
     	if (this.getLabel().equals(this.getPrettyLabel()))
     		return;
     	// HO 27/12/2010 END ************

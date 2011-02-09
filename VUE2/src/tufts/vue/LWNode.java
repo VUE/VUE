@@ -998,10 +998,6 @@ public class LWNode extends LWContainer
         if (!mXMLRestoreUnderway) {
         	final LWComponent first = Util.getFirst(children);
         	if (first instanceof LWWormholeNode) {
-        		System.out.println("Woot! It's a wormhole node!");
-        		// HO 08/02/2011 BEGIN ***************
-        		//SaveAction.saveMap(this.getParentOfType(LWMap.class));
-        		// HO 08/02/2011 END ***************
         		LWWormholeNode wn = (LWWormholeNode)first;
         		WormholeResource wr = (WormholeResource)wn.getResource();
         		String strURI = "";
@@ -1016,7 +1012,13 @@ public class LWNode extends LWContainer
         		// we need to recreate the wormhole
         		if (strURI != null) {
         			if(!strURI.equals(this.getURIString())) {
+        				// flag that we're creating a wormhole on this map
+        				LWMap parentMap = this.getParentOfType(LWMap.class);
+        				parentMap.bConstructingWormholes = true;
+        				// create the wormhole
         				LWWormhole worm = new LWWormhole(wn, wr, strURI, this);
+        				// flag that we're done creating the wormhole
+        				parentMap.bConstructingWormholes = false;
         				takeResource(wn.getResource());
         			}
         		}
