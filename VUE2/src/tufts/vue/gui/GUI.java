@@ -308,8 +308,9 @@ public class GUI
                     
                     
                    ch.randelshofer.quaqua.QuaquaManager.setIncludedUIs(includes);
+                   //System.setProperty("Quaqua.design", "panther");
                	UIManager.setLookAndFeel("ch.randelshofer.quaqua.QuaquaLookAndFeel");
-            //    System.setProperty("Quaqua.design", "panther");
+            
             
                 	//UIManager.setLookAndFeel(ch.randelshofer.quaqua.QuaquaManager.getLookAndFeel());
                     //System.setProperty("Quaqua.design", "panther");
