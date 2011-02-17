@@ -824,9 +824,19 @@ public class Archive
         //OpenAction.displayMap(archive);
         //VUE.displayMap(archive);
         if (!bAutoOpeningMap) {
-        	autoOpenMap(archive);
-        // HO 03/02/2011 END *******************
-        	
+        	autoOpenMap(archive);        		
+    		// get all the open maps
+    		Collection<LWMap> coll = VUE.getAllMaps();
+    		for (LWMap aMap: coll) {
+    			if (aMap.equals(map)) {
+    				// here's the map we started with, close it
+    				// and do not prompt to save it, because
+    				// we just *did* save it, as a .vpk
+    				VUE.closeMapSilently(map, true);
+    				break;
+    			}
+    		}	
+        // HO 03/02/2011 END *******************        	
         }
 
     }

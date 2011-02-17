@@ -3188,8 +3188,18 @@ public class VUE
          	Dimension screenSize = toolkit.getScreenSize();
          	
          	
-         	
-         	Point p = c.getLocationOnScreen();
+         	// HO 17/02/2011 BEGIN ***********
+         	//Point p = c.getLocationOnScreen();
+         	//Point p = getComponentLocation(c);
+        	Point p = null;
+        	
+        	try {
+        		// it's not always showing on screen
+        		p = c.getLocationOnScreen();
+        	} catch(IllegalArgumentException e) {
+        		p = c.getLocation(null);
+        	}
+         	// HO 17/02/2011 END *************
          	
          	if ((p.x + c.getWidth() > screenSize.width) ||
          			(p.y + c.getHeight() > screenSize.height))
@@ -3245,10 +3255,19 @@ public class VUE
         	//Get the screen size
         	Toolkit toolkit = Toolkit.getDefaultToolkit();
         	Dimension screenSize = toolkit.getScreenSize();
+        	        	
+        	// HO 17/02/2011 BEGIN ***********
+         	//Point p = c.getLocationOnScreen();
+        	// Point p = getComponentLocation(c);
+        	Point p = null;
         	
-        	
-        	
-        	Point p = c.getLocationOnScreen();
+        	try {
+        		// it's not always showing on screen
+        		p = c.getLocationOnScreen();
+        	} catch(Exception e) {
+        		p = c.getLocation(null);
+        	}
+         	// HO 17/02/2011 END *************
         	
         	if ((p.x + c.getWidth() > screenSize.width) ||
         			(p.y + c.getHeight() > screenSize.height))
@@ -3308,6 +3327,52 @@ public class VUE
     public static void closeMap(LWMap map) {
         closeMap(map,false);
     }
+    
+    // HO 17/02/2011 BEGIN ***********
+    public static void closeMapSilently(LWMap map, boolean reverting) {
+        
+    	if (!reverting)
+    	{
+    		try{    		 
+    			mMapTabsLeft.closeMap(map);
+			} catch(ArrayIndexOutOfBoundsException abe){}
+    			
+			try {
+    			if (mMapTabsRight != null)
+					mMapTabsRight.closeMap(map);
+			} catch(ArrayIndexOutOfBoundsException abe){}
+    	}
+    	else
+    	{
+			mMapTabsLeft.closeMap(map);
+			if (mMapTabsRight != null)
+				mMapTabsRight.closeMap(map);
+    	}    	
+    	if (mMapTabsRight !=null)
+    	{
+    		int selectedIndex = mMapTabsRight.getTabCount();
+    		if(selectedIndex>0){
+    			setMapActionsEnabled(true);
+    		}else{
+    		setMapActionsEnabled(false);
+    		}
+    	}
+    	else if (mMapTabsLeft == null)
+    	{
+    		setMapActionsEnabled(false);    		
+    	}
+    	else
+    	{
+    		int selectedIndex = mMapTabsLeft.getTabCount();
+    		if(selectedIndex>0){
+    			setMapActionsEnabled(true);
+    		}else{
+    		setMapActionsEnabled(false);
+    		}
+    	}
+
+    }        
+    // HO 17/02/2011 END *************
     
     public static void closeMap(LWMap map, boolean reverting) {
     
@@ -3372,6 +3437,21 @@ public class VUE
 //    	}
 
     }
+    
+    // HO 17/02/2011 BEGIN ***********
+    public static Point getComponentLocation(Component c) {
+    	Point p = null;
+    	
+    	try {
+    		// it's not always showing on screen
+    		p = c.getLocationOnScreen();
+    	} catch(IllegalArgumentException e) {
+    		p = c.getLocation(null);
+    	}
+    	
+    	return p;
+    }
+ 	// HO 17/02/2011 END *************
     
     // HO 19/08/2010 BEGIN *************************
     /**
