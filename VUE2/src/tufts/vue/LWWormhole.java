@@ -185,7 +185,12 @@ public class LWWormhole implements VueConstants {
 	public void init(LWComponent c, boolean bNew) 
     {
 		// HO 08/02/2011 BEGIN ***************
-		findAndSaveAllOpenMaps();
+		Collection<LWMap> coll = findAndSaveAllOpenMaps();
+		
+		/* for (LWMap map: coll) {
+			File tehFile = map.getFile();
+			System.out.println(tehFile);
+		} */
 		// HO 08/02/2011 END ***************
 		
     	// we are cancelled until we have successfully
@@ -353,35 +358,75 @@ public class LWWormhole implements VueConstants {
 		// get the current node/link/group/component/whatever
     	// and save it as the source component
     	setSourceComponent(c);
+    	// HO 16/02/2011 BEGIN ****************
     	// get the source component's parent map and make it the source map
+    	// temporary - we'll change this after we get the file
     	setSourceMap(sourceComponent.getParentOfType(LWMap.class));
+    	// HO 16/02/2011 END ****************
     	
     	// create a default-style target node
     	setTargetComponent(createDefaultTargetNode());
-    	
+    	 	
     	// ask the user to save the current map
-    	boolean b = askSaveSourceMap(sourceMap);
+    	
+    	// HO 15/02/2011 BEGIN ****************
+    	//boolean b = askSaveSourceMap(sourceMap);
+    	//File f = askSaveSourceMap(sourceMap);
+    	LWMap m = askSaveSourceMap(sourceMap);
+    	
     	// if the current map wasn't saved for any reason,
     	// return
-    	if (b == false)
+    	//if (b == false)
+    	if (m == null) {
     		return false;
+    	} //else {
+    		//setSourceMapFile(f);
+    		// create a new map out of the target file
+    		//setSourceMap(LWMap.create(f.toURI().toString()));
+    		// HO 15/02/2011 END ****************
+    		// HO 16/02/2011 BEGIN ****************
+    		// if this is a new map, assuming it's been
+    		// saved as a .vpk, the original source
+    		// component won't be the component in the .vpk
+    		// so we have to find the copy of it and make
+    		// that the source component.
+    		// There will be only one LWNode in a new map.
+    		/* if (bNew) {
+	    		Iterator iter = sourceMap.getChildIterator();
+	    		while(iter.hasNext()) {
+	    			LWContainer node = (LWContainer)iter.next();
+	    			System.out.println(node.toString());
+	    		}
+    		} */
+    		// HO 16/02/2011 END ****************
+    		
+    	//}
+    	
+    	// the target file
+    	File theFile = null;
+    	// HO 15/02/2011 END ****************
     	
     	// the target map
     	LWMap theMap = null;
     	// the target node
-    	LWNode theNode = null;
+    	//LWNode theNode = null;
     	
     	// HO 27/12/2010 BEGIN **************
     	// if the map has no file object at this point,
     	// alert the user and return
-    	boolean bHasFile = makeSureMapHasFile(sourceMap);
-    	if (bHasFile == false)
-    		return false;
+    	//boolean bHasFile = makeSureMapHasFile(sourceMap);
+    	//if (bHasFile == false)
+    		//return false;
     	// HO 27/12/2010 END ****************
     	
     	// ask them to choose a new or existing map for the target map
     	if (bNew == true) {
-    		theMap = askSelectNewTargetMap(sourceMap);
+    		// HO 15/02/2011 BEGIN ****************
+    		//theMap = askSelectNewTargetMap(sourceMap);
+    		theMap = askSelectNewTargetMap(new LWMap(""), false);
+    		// create a new map out of the target file
+    		//theMap = LWMap.create(theFile.toURI().toString());
+    		// HO 15/02/2011 END ****************
     	} else {
     			// ask them to choose a place to put the target node
     			theMap = askSelectExistingTargetMap(sourceMap);
@@ -397,7 +442,7 @@ public class LWWormhole implements VueConstants {
 	    	// HO 27/12/2010 BEGIN **************
 	    	// if the map has no file object at this point,
 	    	// alert the user and return
-	    	bHasFile = makeSureMapHasFile(theMap);
+	    	boolean bHasFile = makeSureMapHasFile(theMap);
 	    	if (bHasFile == false)
 	    		return false;
 	    	// HO 27/12/2010 END ****************
@@ -956,7 +1001,7 @@ public class LWWormhole implements VueConstants {
 	 * false otherwise
      * Returns true if either they save it or say go ahead and close w/out saving.
      */
-    private boolean askSaveSourceMap(LWMap map) {
+    private LWMap askSaveSourceMap(LWMap map) {
     	// Give them a choice of Yes (0), or a No (1) labelled Cancel (2) 
     	final Object[] defaultOrderButtons = { "Save As...", VueResources.getString("optiondialog.revertlastsave.cancel"),VueResources.getString("optiondialog.savechages.save")};
     	final Object[] macOrderButtons = { VueResources.getString("optiondialog.savechages.save"),VueResources.getString("optiondialog.revertlastsave.cancel"), "Save As..."};
@@ -1004,13 +1049,19 @@ public class LWWormhole implements VueConstants {
         }
         
         if (response == JOptionPane.YES_OPTION) { // Save
-            return SaveAction.saveMap(map);
+        	// HO 15/02/2011 BEGIN ***********
+            // return SaveAction.saveMap(map);
+        	return SaveAction.saveMap(map, false, false, false);
+            // HO 15/02/2011 END ***********
         } else if (response == JOptionPane.NO_OPTION) { // Save As
             // save not necessarily in the default location
-            return SaveAction.saveMap(map, true, false);
+        	// HO 15/02/2011 BEGIN ***********
+        	//return SaveAction.saveMap(map, true, false);
+            return SaveAction.saveMap(map, true, false, false);
+            // HO 15/02/2011 END ***********
         } else // anything else (Cancel or dialog window closed)
-            return false;
-    }	
+            return null;
+    }
     
     /**
      * A function to prompt the user to select a new map
@@ -1018,7 +1069,65 @@ public class LWWormhole implements VueConstants {
      * @param map, the LWMap we are currently in
      * @return the map selected by the user
      */
-    private LWMap askSelectNewTargetMap(LWMap map) {
+   private LWMap askSelectNewTargetMap(LWMap map, boolean b) {
+    	final Object[] defaultOrderButtons = { "Choose Target Map", "Cancel"};
+    	final Object[] macOrderButtons = { "Cancel", "Choose Target Map"};
+
+        // HO 04/01/2011 BEGIN *************
+    	// to ward off IllegalComponentStateException
+    	Component c = setScreen(map);
+    	// HO 04/01/2011 END *************
+        
+        int response = VueUtil.option
+            (c,
+             "Please choose a target map.",
+             "Choose Target Map",
+             JOptionPane.OK_CANCEL_OPTION,
+             JOptionPane.PLAIN_MESSAGE,
+             Util.isMacPlatform() ? macOrderButtons : defaultOrderButtons,             
+             VueResources.getString("Choose Target")
+             );
+        
+     
+        if (!Util.isMacPlatform()) {
+            switch (response) {
+            // the NO_OPTION (choose target map)
+            case 0: response = 1; break;
+            // the CANCEL option
+            case 1: response = 0; break;
+            }
+        } else { 
+            switch (response) {
+            // the OK_OPTION (choose a target map)
+            case 0: response = 1; break;
+            // the CANCEL option
+            case 1: response = 0; break;
+            }
+        }
+        
+        if (response == JOptionPane.OK_OPTION) { // Save
+        	LWMap newTargetMap = SaveAction.saveMap(map, true, false, false);
+        	// prompt to save
+        	if (newTargetMap != null) {
+        		// now we have our target map
+        		return newTargetMap;
+        	} else {
+        		return null;
+        	}
+        } else // anything else (Cancel or dialog window closed) 
+        	{
+            return null;
+        }
+
+    }	    
+    
+    /**
+     * A function to prompt the user to select a new map
+     * into which to target this wormhole
+     * @param map, the LWMap we are currently in
+     * @return the map selected by the user
+     */
+   private LWMap askSelectNewTargetMap(LWMap map) {
     	final Object[] defaultOrderButtons = { "Choose Target Map", "Cancel"};
     	final Object[] macOrderButtons = { "Cancel", "Choose Target Map"};
 
@@ -1979,15 +2088,17 @@ public class LWWormhole implements VueConstants {
 	 * A routine to find and save all the open
 	 * maps
 	 */
-	public void findAndSaveAllOpenMaps() {
+	public Collection<LWMap> findAndSaveAllOpenMaps() {
 		
 		// get all the open maps
 		Collection<LWMap> coll = VUE.getAllMaps();
 		for (LWMap map: coll) {
-			if (map.isModified())
+			if ((map.isModified()) && (map.getFile() != null))
 				// here's the current map, save it
 				SaveAction.saveMap(map);
 		}	
+		
+		return coll;
 	}
 	// HO 08/02/2011 END *********************
 	

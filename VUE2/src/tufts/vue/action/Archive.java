@@ -823,9 +823,11 @@ public class Archive
         //openVuePackage(archive);
         //OpenAction.displayMap(archive);
         //VUE.displayMap(archive);
-        if (!bAutoOpeningMap)
+        if (!bAutoOpeningMap) {
         	autoOpenMap(archive);
         // HO 03/02/2011 END *******************
+        	
+        }
 
     }
     
