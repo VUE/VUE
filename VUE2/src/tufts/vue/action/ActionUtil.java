@@ -138,10 +138,18 @@ public class ActionUtil
         }
         else
         {
-            VueFileFilter defaultFilter = new VueFileFilter(VueFileFilter.VUE_DESCRIPTION);
+            // HO 18/02/2011 BEGIN *************
+        	// making .vpk the default choice now
+        	//VueFileFilter defaultFilter = new VueFileFilter(VueFileFilter.VUE_DESCRIPTION);
+        	VueFileFilter defaultFilter = new VueFileFilter(VueFileFilter.VPK_DESCRIPTION);
+        	// HO 18/02/2011 END *************
             
             saveChooser.addChoosableFileFilter(defaultFilter);  
-            saveChooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.VPK_DESCRIPTION));
+            // HO 18/02/2011 BEGIN *************
+        	// making .vpk the default choice now
+            // saveChooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.VPK_DESCRIPTION));
+            saveChooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.VUE_DESCRIPTION));
+            // HO 18/02/2011 END *************
         //SIMILE    chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.SIMILE_DESCRIPTION));
             saveChooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.IMAGEMAP_DESCRIPTION));
             saveChooser.addChoosableFileFilter(new VueFileFilter("PDF"));
