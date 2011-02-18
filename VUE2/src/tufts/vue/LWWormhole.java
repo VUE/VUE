@@ -1051,13 +1051,13 @@ public class LWWormhole implements VueConstants {
         if (response == JOptionPane.YES_OPTION) { // Save
         	// HO 15/02/2011 BEGIN ***********
             // return SaveAction.saveMap(map);
-        	return SaveAction.saveMap(map, false, false, false);
+        	return SaveAction.saveMapSpecial(map, false, false);
             // HO 15/02/2011 END ***********
         } else if (response == JOptionPane.NO_OPTION) { // Save As
             // save not necessarily in the default location
         	// HO 15/02/2011 BEGIN ***********
         	//return SaveAction.saveMap(map, true, false);
-            return SaveAction.saveMap(map, true, false, false);
+            return SaveAction.saveMapSpecial(map, true, false);
             // HO 15/02/2011 END ***********
         } else // anything else (Cancel or dialog window closed)
             return null;
@@ -1106,7 +1106,7 @@ public class LWWormhole implements VueConstants {
         }
         
         if (response == JOptionPane.OK_OPTION) { // Save
-        	LWMap newTargetMap = SaveAction.saveMap(map, true, false, false);
+        	LWMap newTargetMap = SaveAction.saveMapSpecial(map, true, false);
         	// prompt to save
         	if (newTargetMap != null) {
         		// now we have our target map
@@ -1289,7 +1289,11 @@ public class LWWormhole implements VueConstants {
      */
     private LWMap openExistingMap() {
     	// prompt the user to open the map
-    	File file = ActionUtil.openFile("Open Map", VueFileFilter.VUE_DESCRIPTION);
+    	// HO 18/02/2011 BEGIN ******************
+    	// default file type is now .vpk
+    	// File file = ActionUtil.openFile("Open Map", VueFileFilter.VUE_DESCRIPTION);
+    	File file = ActionUtil.openFile("Open Map", VueFileFilter.VPK_DESCRIPTION);
+    	// HO 18/02/2011 END ******************
         
     	// if they didn't open a map for any reason
         if (file == null)

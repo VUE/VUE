@@ -975,7 +975,11 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
         if(e.getSource() == baseBrowseButton)
         {
             VueFileChooser choose = VueFileChooser.getVueFileChooser();
-            choose.setFileFilter(new VueFileFilter(VueFileFilter.VUE_DESCRIPTION));
+            // HO 18/02/2011 BEGIN ***********
+            // default file type is now .vpk
+            //choose.setFileFilter(new VueFileFilter(VueFileFilter.VUE_DESCRIPTION));
+            choose.setFileFilter(new VueFileFilter(VueFileFilter.VPK_DESCRIPTION));
+            // HO 18/02/2011 END ***********
             choose.showDialog(this,VueResources.getString("dialog.setbasemap.title"));
             selectedBaseFile = choose.getSelectedFile();
             if(selectedBaseFile != null)

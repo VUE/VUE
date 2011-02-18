@@ -321,7 +321,7 @@ public class SaveAction extends VueAction
     /**
      * @return true if success, false if not
      */      
-    public static LWMap saveMap(LWMap map, boolean saveAs, boolean export, boolean dummy)
+    public static LWMap saveMapSpecial(LWMap map, boolean saveAs, boolean export)
     {
         Log.info("saveMap: " + map);        
         
@@ -377,6 +377,11 @@ public class SaveAction extends VueAction
             }
             else if (name.endsWith(".xml") || name.endsWith(".vue")) {
                 ActionUtil.marshallMap(file, map);
+                // HO 18/02/2011 BEGIN **********
+                if (!bAutoOpeningMap) {
+                	autoOpenMap(file);  
+                }
+                // HO 18/02/2011 END ************
             }
             else if (name.endsWith(".jpeg") || name.endsWith(".jpg"))
                 ImageConversion.createActiveMapJpeg(file,VueResources.getDouble("imageExportFactor"));
@@ -527,10 +532,18 @@ public class SaveAction extends VueAction
 
         return null;
     }    
-    
-    
-    
+        
     // HO 15/02/2011 END ******************
+    
+    // HO 07/02/2011 BEGIN **********
+    public static boolean bAutoOpeningMap = false;
+    
+    private static void autoOpenMap(File theFile) {
+    	bAutoOpeningMap = true;
+    	VUE.displayMap(theFile);
+    	bAutoOpeningMap = false;
+    }
+    // HO 07/02/2011 END **********
 
 
     private static void writeHTMLOutline(LWMap map, File file)

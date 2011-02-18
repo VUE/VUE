@@ -57,7 +57,11 @@ public class OpenAction extends VueAction
             openUnderway = true;
         }
         try {
-            File[] file = ActionUtil.openMultipleFiles("Open Map", VueFileFilter.VUE_DESCRIPTION);
+        	// HO 18/02/2011 BEGIN ******************
+        	// default file type is now .vpk
+            // File[] file = ActionUtil.openMultipleFiles("Open Map", VueFileFilter.VUE_DESCRIPTION);
+        	File[] file = ActionUtil.openMultipleFiles("Open Map", VueFileFilter.VPK_DESCRIPTION);
+            // HO 18/02/2011 END ******************
             
             if (file == null)
             	return;
