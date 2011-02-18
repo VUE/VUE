@@ -832,8 +832,14 @@ public class Archive
     				// here's the map we started with, close it
     				// and do not prompt to save it, because
     				// we just *did* save it, as a .vpk
-    				VUE.closeMapSilently(map, true);
-    				break;
+    				// but check and make sure that we're closing
+    				// a different file first!
+    				File aFile = aMap.getFile();
+    				if ((aFile == null) || (aFile != archive)) {
+    				//if (!aMap.getFile().equals(archive)) {
+    					VUE.closeMapSilently(map, true);
+    					break;
+    				}
     			}
     		}	
         // HO 03/02/2011 END *******************        	
