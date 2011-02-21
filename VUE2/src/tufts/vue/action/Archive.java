@@ -852,7 +852,10 @@ public class Archive
     
     private static void autoOpenMap(File archive) {
     	bAutoOpeningMap = true;
-    	VUE.displayMap(archive);
+    	// HO 20/02/2011 BEGIN **********
+    	// VUE.displayMap(archive);
+    	VUE.displayMapSpecial(archive);
+    	// HO 20/02/2011 END **********
     	bAutoOpeningMap = false;
     }
     // HO 07/02/2011 END **********
