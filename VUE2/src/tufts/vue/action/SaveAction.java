@@ -481,7 +481,10 @@ public class SaveAction extends VueAction
             }
             else if (name.endsWith(VueUtil.VueArchiveExtension))
             {
-                Archive.writeArchive(map, file);
+                // HO 20/02/2011 BEGIN **********
+            	//Archive.writeArchive(map, file);
+            	Archive.writeArchiveSpecial(map, file);
+            	// HO 20/02/2011 END **********
                 
             } else {
                 Log.warn("Unknown save type for filename extension: " + name);

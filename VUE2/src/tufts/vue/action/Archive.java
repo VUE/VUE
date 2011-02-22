@@ -818,6 +818,175 @@ public class Archive
         Log.info("Wrote " + archive);
         
         // HO 03/02/2011 BEGIN *******************
+		map.setFile(archive);
+        // HO 20/02/2011 END **************
+
+    }
+    
+    /**
+
+     * Write the map to the given file as a Zip archive, along with all unique resources
+     * for which data can be found locally (local user files, or local image cache).
+     * Entries for Resource data in the zip archive are annotated with their original
+     * Resource spec, so they can be identified on unpacking, and associated with their
+     * original aResources.
+
+     */
+    
+    public static void writeArchiveSpecial(LWMap map, File archive)
+        throws java.io.IOException
+    {
+        Log.info("Writing archive package " + archive);
+
+//         final String label = map.getLabel();
+//         final String mapName;
+//         if (label.endsWith(".vue"))
+//             mapName = label.substring(0, label.length() - 4);
+//         else
+//             mapName = label;
+
+        final String label = archive.getName();
+        final String mapName;
+        if (label.endsWith(VueUtil.VueArchiveExtension))
+            mapName = label.substring(0, label.length() - 4);
+        else
+            mapName = label;
+        
+
+        final String dirName = mapName + ".vdr";
+
+        //-----------------------------------------------------------------------------
+        // Find source data-files for all unique resources
+        //-----------------------------------------------------------------------------
+        
+        final Collection<Resource> uniqueResources = map.getAllUniqueResources();
+        final Collection<PropertyEntry> manifest = new ArrayList();
+        final List<Item> items = new ArrayList();
+        final Set<String> uniqueEntryNames = new HashSet();
+
+        Archive.UniqueNameFailsafeCount = 1;  // note: static variable -- not threadsafe
+        
+        for (Resource r : uniqueResources) {
+
+            try {
+
+                final File sourceFile = r.getActiveDataFile();
+                // HO 24/12/2010 BEGIN *************
+                // if it's a .vue or .vpk file, don't include it in the archive
+                // the source file is likely to be null if it's a .vue type, so just carry on
+                if (sourceFile == null)
+                	continue;
+                if ((sourceFile.getName().endsWith(VueUtil.VueExtension)) || (sourceFile.getName().endsWith(VueUtil.VueArchiveExtension)))
+                	continue;
+                // HO 24/12/2010 END ***************
+                final String description = "" + (DEBUG.Enabled ? r : r.getSpec());
+
+                // todo: if source file is a .vue file, could load the map (faster if is
+                // already open and we find it), then archive THAT out as a tmp .vpk file,
+                // and add that to to archive uncompressed, converting the .vue resource
+                // to a .vpk resource.
+
+                if (sourceFile == null) {
+                    Log.info("skipped: " + description);
+                    continue;
+                } else if (!sourceFile.exists()) {
+                	// HO 24/12/2010 BEGIN ************
+                	// note: yes, I have no life.
+                	// Mac does weird stuff by looking in the working folder
+                	// so if we want the really absolute path we have to get the path...
+                	File file = null;
+                	try {
+        				file = new File(new URI(sourceFile.getPath()));
+        			} catch (URISyntaxException e) {
+        				// TODO Auto-generated catch block
+        				e.printStackTrace();
+        			}
+                	if (!file.isFile()) {
+                		// HO 24/12/2010 BEGIN ************
+                		Log.warn("Missing local file: " + sourceFile + "; for " + r);
+                		continue;
+                	} 
+                }
+            
+                final String packageEntryName = generatePackageFileName(r, uniqueEntryNames);
+
+                final ZipEntry entry = new ZipEntry(dirName + "/" + packageEntryName);
+                Archive.setComment(entry, "\t" + SPEC_KEY + r.getSpec());
+
+                final Item item = new Item(entry, r, sourceFile);
+                
+                //Log.info("created: " + entry + "; " + description);
+
+                items.add(item);
+                manifest.add(new PropertyEntry(r.getSpec(), packageEntryName));
+                
+                if (DEBUG.Enabled) Log.info("created: " + item);
+
+            } catch (Throwable t) {
+                Log.error("writeArchiveSpecial: failed to handle " + Util.tags(r), t);
+            }
+                
+        }
+
+
+        //-----------------------------------------------------------------------------
+        // Write the map to the archive
+        //-----------------------------------------------------------------------------
+
+        final ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(archive)));
+        final ZipEntry mapEntry = new ZipEntry(dirName + "/" + mapName + "$map.vue");
+        final String comment = MAP_ARCHIVE_KEY + "; VERSION: 2;"
+            + " Saved " + new Date() + " by " + VUE.getName() + " built " + Version.AllInfo + "; items=" + items.size() + ";"
+            + ">" // /usr/bin/what terminatior
+            //+ "\n\tmap-name(" + mapName + ")"
+            //+ "\n\tunique-resources(" + resources.size() + ")"
+            ;
+        Archive.setComment(mapEntry, comment);
+        zos.putNextEntry(mapEntry);
+
+        final Writer mapOut = new OutputStreamWriter(zos);
+
+        // TODO: need to handle a map marshalling failure, in which case we want to
+        // abandon writing the entire archive -- this will require a big reorg here --
+        // we need to write the entire archive to a tmp archive first, and only create
+        // the new file if everything succeeds.
+
+        try {
+            map.setArchiveManifest(manifest);
+            ActionUtil.marshallMapToWriter(map, mapOut);
+        } catch (Throwable t) {
+            Log.error(t);
+            throw new RuntimeException(t);
+        } finally {
+            // TODO: do NOT reset this if this map is already a packaged map...
+            map.setArchiveManifest(null);
+        }
+
+        //-----------------------------------------------------------------------------
+        // Write the resources to the archive
+        //-----------------------------------------------------------------------------
+        
+        for (Item item : items) {
+
+            if (DEBUG.Enabled)
+                Log.debug("writing: " + item);
+            else
+                Log.info("writing: " + item.entry);
+            
+            try {
+                zos.putNextEntry(item.entry);
+                copyBytesToZip(item.dataFile, zos);
+            } catch (Throwable t) {
+                Log.error("Failed to archive item: " + item, t);
+            }
+        }
+        
+        zos.closeEntry();
+        zos.close();
+
+        Log.info("Wrote " + archive);
+        
+        // HO 03/02/2011 BEGIN *******************
         // see if opening the .vpk automatically is any help.
         //OpenAction.loadMap(archive.toString());
         //openVuePackage(archive);
@@ -835,10 +1004,15 @@ public class Archive
     				// but check and make sure that we're closing
     				// a different file first!
     				File aFile = aMap.getFile();
-    				if ((aFile == null) || (aFile != archive)) {
+    				// HO 21/02/2011 BEGIN ****************
+    				//if ((aFile == null) || (aFile != archive)) {
+    				if (aFile == null) {
+    					// HO 21/02/2011 END *******************
     				//if (!aMap.getFile().equals(archive)) {
     					VUE.closeMapSilently(map, true);
     					break;
+    				} else if (aFile != archive) {
+    					aMap.setFile(archive);    					
     				}
     			}
     		}	
