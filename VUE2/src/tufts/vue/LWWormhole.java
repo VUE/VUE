@@ -716,7 +716,10 @@ public class LWWormhole implements VueConstants {
 		// if the node has a parent map, make it the source map
 		if (actualSourceMap != null) {
 			// HO 08/02/2011 BEGIN ***************
+			// HO 22/02/2011 BEGIN ***************
     		SaveAction.saveMap(actualSourceMap);
+			//actualSourceMap = SaveAction.saveMapSpecial(actualSourceMap);
+    		// HO 22/02/2011 END ***************
     		// HO 08/02/2011 END ***************
 			setSourceMap(actualSourceMap);
 		} else {
@@ -1164,9 +1167,13 @@ public class LWWormhole implements VueConstants {
         }
         
         if (response == JOptionPane.OK_OPTION) { // Save
+        	// HO 22/02/2011 BEGIN **************
         	LWMap newTargetMap = new LWMap("new target map");
+        	//newTargetMap = SaveAction.saveMapSpecial(newTargetMap, true, false);
         	// prompt to save
         	if (SaveAction.saveMap(newTargetMap, true, false) == true) {
+        	//if (newTargetMap != null) {
+    		// HO 22/02/2011 END **************
         		// now we have our target map
         		return newTargetMap;
         	} else {
@@ -1277,8 +1284,11 @@ public class LWWormhole implements VueConstants {
         	return newTargetMap;
         } else if (response == JOptionPane.NO_OPTION) { // Same Map
             // place the target component in the current map
+        	// HO 22/02/2011 BEGIN **************
             SaveAction.saveMap(map, false, false);
-            return map;
+        	//map = SaveAction.saveMapSpecial(map, false, false);
+            // HO 22/02/2011 END **************
+        	return map;
         } else // anything else (Cancel or dialog window closed)
             return null;
     }	
@@ -1571,8 +1581,12 @@ public class LWWormhole implements VueConstants {
 		// set the resources in the right components
 		setResources();
 		// auto-save both maps
-		SaveAction.saveMap(sourceMap);
-		SaveAction.saveMap(targetMap);
+		// HO 22/02/2011 BEGIN **************
+		//SaveAction.saveMap(sourceMap);
+		//SaveAction.saveMap(targetMap);
+		SaveAction.saveMapSpecial(sourceMap);
+		SaveAction.saveMapSpecial(targetMap);
+		// HO 22/02/2011 END **************
 		
 		// HO 22/12/2010 BEGIN ***********
 		OpenAction.displayMapSpecial(targetMapFile);
@@ -1605,8 +1619,12 @@ public class LWWormhole implements VueConstants {
 		replaceExistingWormholeResource(targetWormholeNode, targetResource, targetMap);
 
 		// save both maps
+		// HO 22/02/2011 BEGIN *************
 		SaveAction.saveMap(sourceMap);
-		SaveAction.saveMap(targetMap); 
+		SaveAction.saveMap(targetMap);
+		//SaveAction.saveMapSpecial(sourceMap);
+		//SaveAction.saveMapSpecial(targetMap);
+		// HO 22/02/2011 END *************
 		// now reload and redisplay both maps (necessary when
 		// making changes to an open map that is not also
 		// the active map)
@@ -1630,8 +1648,12 @@ public class LWWormhole implements VueConstants {
 		replaceExistingWormholeResource(targetWormholeNode, targetResource, targetMap);
 
 		// re-save the maps (unfortunately this has to be done, clumsy as it is)
+		// HO 22/02/2011 BEGIN ************
 		SaveAction.saveMap(sourceMap, false, false);
 		SaveAction.saveMap(targetMap, false, false); 
+		//SaveAction.saveMapSpecial(sourceMap, false, false);
+		//SaveAction.saveMapSpecial(targetMap, false, false); 
+		// HO 22/02/2011 END ***************
 		// now reload and redisplay both maps (necessary when
 		// making changes to an open map that is not also
 		// the active map)
@@ -1674,8 +1696,12 @@ public class LWWormhole implements VueConstants {
 			// and replace the old resource with the new one
 			replaceExistingWormholeResource(targetWormholeNode, targetResource, targetMap);
 			// save both maps
+			// HO 22/02/2011 BEGIN ************
 			SaveAction.saveMap(sourceMap);
 			SaveAction.saveMap(targetMap); 
+			//SaveAction.saveMapSpecial(sourceMap);
+			//SaveAction.saveMapSpecial(targetMap);
+			// HO 22/02/2011 END **************
 			// now reload and redisplay the *other* map (necessary when
 			// making changes to an open map that is not also
 			// the active map)
@@ -1702,8 +1728,12 @@ public class LWWormhole implements VueConstants {
 			// and replace the old resource with the new one
 			replaceExistingWormholeResource(sourceWormholeNode, sourceResource, sourceMap);
 			// save both maps
+			// HO 22/02/2011 BEGIN **************
 			SaveAction.saveMap(sourceMap);
 			SaveAction.saveMap(targetMap); 
+			//SaveAction.saveMapSpecial(sourceMap);
+			//SaveAction.saveMapSpecial(targetMap); 
+			// HO 22/02/2011 END ****************
 			// now reload and redisplay the *other* map (necessary when
 			// making changes to an open map that is not also
 			// the active map)
@@ -2097,9 +2127,13 @@ public class LWWormhole implements VueConstants {
 		// get all the open maps
 		Collection<LWMap> coll = VUE.getAllMaps();
 		for (LWMap map: coll) {
-			if ((map.isModified()) && (map.getFile() != null))
+			if ((map.isModified()) && (map.getFile() != null)) {
 				// here's the current map, save it
+				// HO 22/02/2011 BEGIN ************
 				SaveAction.saveMap(map);
+				//SaveAction.saveMapSpecial(map);
+				// HO 22/02/2011 END **************
+			}
 		}	
 		
 		return coll;
