@@ -669,13 +669,6 @@ public class Archive
     {
         Log.info("Writing archive package " + archive);
 
-//         final String label = map.getLabel();
-//         final String mapName;
-//         if (label.endsWith(".vue"))
-//             mapName = label.substring(0, label.length() - 4);
-//         else
-//             mapName = label;
-
         final String label = archive.getName();
         final String mapName;
         if (label.endsWith(VueUtil.VueArchiveExtension))
@@ -996,26 +989,33 @@ public class Archive
         	autoOpenMap(archive);        		
     		// get all the open maps
     		Collection<LWMap> coll = VUE.getAllMaps();
-    		for (LWMap aMap: coll) {
-    			if (aMap.equals(map)) {
-    				// here's the map we started with, close it
-    				// and do not prompt to save it, because
-    				// we just *did* save it, as a .vpk
-    				// but check and make sure that we're closing
-    				// a different file first!
-    				File aFile = aMap.getFile();
-    				// HO 21/02/2011 BEGIN ****************
-    				//if ((aFile == null) || (aFile != archive)) {
-    				if (aFile == null) {
-    					// HO 21/02/2011 END *******************
-    				//if (!aMap.getFile().equals(archive)) {
-    					VUE.closeMapSilently(map, true);
-    					break;
-    				} else if (aFile != archive) {
-    					aMap.setFile(archive);    					
-    				}
-    			}
-    		}	
+	    		for (LWMap aMap: coll) {
+	    			if (aMap.equals(map)) {
+	    				// here's the map we started with, close it
+	    				// and do not prompt to save it, because
+	    				// we just *did* save it, as a .vpk
+	    				// but check and make sure that we're closing
+	    				// a different file first!
+	    				File aFile = aMap.getFile();
+	    				// HO 21/02/2011 BEGIN ****************
+	    				//if ((aFile == null) || (aFile != archive)) {
+	    	    		// HO 23/02/2011 BEGIN ************
+	    	    		// we only need to close a map if we have more than one map open
+	    				//if (aFile == null) {
+	    				if ((aFile == null) && (coll.size() > 1)) {
+	    					// HO 23/02/2011 END ************
+	    					// HO 21/02/2011 END *******************
+	    				//if (!aMap.getFile().equals(archive)) {
+	    					VUE.closeMapSilently(map, true);
+	    					break;
+	    				} else if (aFile != archive) {
+	    					aMap.setFile(archive);    					
+	    				}
+	    				aFile = null;
+	    			}
+	    			aMap = null;
+	    		}	
+	    		coll = null;
         // HO 03/02/2011 END *******************        	
         }
 
@@ -1027,7 +1027,7 @@ public class Archive
     private static void autoOpenMap(File archive) {
     	bAutoOpeningMap = true;
     	// HO 20/02/2011 BEGIN **********
-    	// VUE.displayMap(archive);
+    	//VUE.displayMap(archive);
     	VUE.displayMapSpecial(archive);
     	// HO 20/02/2011 END **********
     	bAutoOpeningMap = false;

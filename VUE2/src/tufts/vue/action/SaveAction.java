@@ -333,8 +333,7 @@ public class SaveAction extends VueAction
         
         File file = map.getFile();
         // HO 22/02/2011 BEGIN *****************
-        LWMap initMap = map;
-        String strInitMapLabel = initMap.getLabel();
+        String strInitMapLabel = map.getLabel();
         File initFile = file;
         // HO 22/02/2011 END *****************
         int response = -1;
@@ -404,40 +403,19 @@ public class SaveAction extends VueAction
 	            			//if (aMap.equals(map)) {
 	            				// and it's not got the same label
 	            				// it must be the original map
-	            				if(aMap.getLabel().equals(strInitMapLabel))
+	            				if(aMap.getLabel().equals(strInitMapLabel)) {
 	            					// so close it
 	            					VUE.closeMapSilently(aMap, false);
-	            			//}
+	            					initFile = null;
+	            				}
+	            			aMap = null;
 	            		}
                 	}
+                	coll = null;
                 	
                 }
                 // HO 22/02/2011 END ********** 
 
-
-        		// get all the open maps
-        		/* Collection<LWMap> coll = VUE.getAllMaps();
-        		for (LWMap aMap: coll) {
-        			if (aMap.equals(map)) {
-        				// here's the map we started with, close it
-        				// and do not prompt to save it, because
-        				// we just *did* save it, as a .vpk
-        				// but check and make sure that we're closing
-        				// a different file first!
-        				File aFile = aMap.getFile();
-        				// HO 21/02/2011 BEGIN ****************
-        				//if ((aFile == null) || (aFile != archive)) {
-        				if (aFile == null) {
-        					// HO 21/02/2011 END *******************
-        				//if (!aMap.getFile().equals(archive)) {
-        					VUE.closeMapSilently(map, true);
-        					break;
-        				} else if (aFile != file) {
-        					aMap.setFile(file);    					
-        				}
-        			}
-        		} */
-                // HO 22/02/2011 END ************
             }
             else if (name.endsWith(".jpeg") || name.endsWith(".jpg"))
                 ImageConversion.createActiveMapJpeg(file,VueResources.getDouble("imageExportFactor"));
@@ -600,6 +578,7 @@ public class SaveAction extends VueAction
     private static void autoOpenMap(File theFile) {
     	bAutoOpeningMap = true;
     	VUE.displayMapSpecial(theFile);
+    	//VUE.displayMap(theFile);
     	bAutoOpeningMap = false;
     }
     // HO 07/02/2011 END **********

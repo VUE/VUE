@@ -228,7 +228,7 @@ public class LWMap extends LWContainer
 			// find all the wormhole nodes in this map
 	        Collection<LWWormholeNode> coll = getAllWormholeNodes();
 	        // if we found any wormhole nodes
-			if (coll != null) {
+			if (coll.size() > 0) {
 				// iterate through them all
 				for (LWWormholeNode wn : coll) {
 						// if the node has a resource
@@ -242,13 +242,19 @@ public class LWMap extends LWContainer
 			                	// recreate the wormhole
 			                	LWWormhole wh = new LWWormhole(wn, wr);
 			                	// if the wormhole wasn't created to completion, rub it out
-			                	if (wh.getBCancelled() == true) {
+			                	// HO 23/02/2010 BEGIN ************
+			                	// rub it out anyway, a wormhole is not needed after it's been created
+			                	//if (wh.getBCancelled() == true) {
+			                		// HO 23/02/2010 END ************
 			                			wh = null;
-			                	}
+			                	//}
 			                }
+			            	r = null;
 			            }
+			            wn = null;
 			    }
 			}
+			coll = null;
 			
 			bConstructingWormholes = false;
     }

@@ -184,21 +184,19 @@ public class LWWormhole implements VueConstants {
 	 */
 	public void init(LWComponent c, boolean bNew) 
     {
-		// HO 08/02/2011 BEGIN ***************
-		Collection<LWMap> coll = findAndSaveAllOpenMaps();
-		
-		/* for (LWMap map: coll) {
-			File tehFile = map.getFile();
-			System.out.println(tehFile);
-		} */
-		// HO 08/02/2011 END ***************
-		
     	// we are cancelled until we have successfully
 		// constructed the whole wormhole
 		setBCancelled(true);
+		// HO 08/02/2011 BEGIN ***************
+		Collection<LWMap> coll = findAndSaveAllOpenMaps();
+		// HO 08/02/2011 END ***************
+		
 		boolean b = createComponentsAndMaps(c, bNew);
 		// if they stopped here, no need to go any further
 		if (b == false) {
+			// flag construction process as over for both maps
+			flagEndOfConstruction(sourceMap);
+			flagEndOfConstruction(targetMap);
 			return;	
 		}
 
@@ -215,7 +213,23 @@ public class LWWormhole implements VueConstants {
     	addAllListeners();
     	// if we got this far we're okay and not cancelled
     	setBCancelled(false);
+    	
+    	// flag end of construction process
+    	flagEndOfConstruction(sourceMap);
+    	flagEndOfConstruction(targetMap);
     }
+	
+	// HO 23/02/2011 BEGIN **********
+	private void flagStartOfConstruction(LWMap map) {
+		if (map != null)
+			map.bConstructingWormholes = true;
+	}
+	
+	private void flagEndOfConstruction(LWMap map) {
+		if (map != null)
+			map.bConstructingWormholes = false;
+	}
+	// HO 23/02/2011 END ************
 	
 	/**
 	 * Initializes the wormhole by extrapolating the needed information
@@ -372,80 +386,50 @@ public class LWWormhole implements VueConstants {
     	// HO 15/02/2011 BEGIN ****************
     	//boolean b = askSaveSourceMap(sourceMap);
     	//File f = askSaveSourceMap(sourceMap);
-    	LWMap m = askSaveSourceMap(sourceMap);
+    	LWMap srcMap = askSaveSourceMap(sourceMap);
     	
     	// if the current map wasn't saved for any reason,
     	// return
-    	//if (b == false)
-    	if (m == null) {
+    	if (srcMap == null) {
     		return false;
-    	} //else {
-    		//setSourceMapFile(f);
-    		// create a new map out of the target file
-    		//setSourceMap(LWMap.create(f.toURI().toString()));
-    		// HO 15/02/2011 END ****************
-    		// HO 16/02/2011 BEGIN ****************
-    		// if this is a new map, assuming it's been
-    		// saved as a .vpk, the original source
-    		// component won't be the component in the .vpk
-    		// so we have to find the copy of it and make
-    		// that the source component.
-    		// There will be only one LWNode in a new map.
-    		/* if (bNew) {
-	    		Iterator iter = sourceMap.getChildIterator();
-	    		while(iter.hasNext()) {
-	    			LWContainer node = (LWContainer)iter.next();
-	    			System.out.println(node.toString());
-	    		}
-    		} */
-    		// HO 16/02/2011 END ****************
-    		
-    	//}
+    	} else {
+    		// set what we got as the new source map
+    		setSourceMap(srcMap);
+    		// now that we have the map, flag that we are
+    		// in the process of creating its wormholes
+    		flagStartOfConstruction(srcMap);
+    	}
     	
     	// the target file
-    	File theFile = null;
+    	File targFile = null;
     	// HO 15/02/2011 END ****************
     	
     	// the target map
-    	LWMap theMap = null;
-    	// the target node
-    	//LWNode theNode = null;
-    	
-    	// HO 27/12/2010 BEGIN **************
-    	// if the map has no file object at this point,
-    	// alert the user and return
-    	//boolean bHasFile = makeSureMapHasFile(sourceMap);
-    	//if (bHasFile == false)
-    		//return false;
-    	// HO 27/12/2010 END ****************
+    	LWMap targMap = null;
     	
     	// ask them to choose a new or existing map for the target map
     	if (bNew == true) {
     		// HO 15/02/2011 BEGIN ****************
     		//theMap = askSelectNewTargetMap(sourceMap);
-    		theMap = askSelectNewTargetMap(new LWMap(""), false);
+    		targMap = askSelectNewTargetMap(new LWMap(""), false);
     		// create a new map out of the target file
     		//theMap = LWMap.create(theFile.toURI().toString());
     		// HO 15/02/2011 END ****************
     	} else {
     			// ask them to choose a place to put the target node
-    			theMap = askSelectExistingTargetMap(sourceMap);
+    			targMap = askSelectExistingTargetMap(sourceMap);
     		}
     	
     	// if we haven't got a target map at this point,
     	// we've failed, so return
-    	if (theMap == null)
+    	if (targMap == null)
     		return false;
     	// otherwise, set what we got as the new target map
     	else {
-    		setTargetMap(theMap);
-	    	// HO 27/12/2010 BEGIN **************
-	    	// if the map has no file object at this point,
-	    	// alert the user and return
-	    	boolean bHasFile = makeSureMapHasFile(theMap);
-	    	if (bHasFile == false)
-	    		return false;
-	    	// HO 27/12/2010 END ****************
+    		setTargetMap(targMap);
+    		// now that we have the map, flag that we are
+    		// in the process of creating its wormholes
+    		flagStartOfConstruction(targMap);
     	}
     	
         // set the file objects for the source and target maps
@@ -2114,7 +2098,9 @@ public class LWWormhole implements VueConstants {
 				c.setSelected(true);
 				break;
 			}
+			map = null;
 		}	
+		coll = null;
 	}
 	
 	// HO 08/02/2011 BEGIN *********************
