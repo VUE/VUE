@@ -36,7 +36,8 @@ import java.util.ArrayList;
 // the focus if no other map has focus: switching tabs
 // changes the map you're looking it, and it's set to
 // the active map, but it doesn't get focus unless you click on it!
-public class MapTabbedPane extends DnDTabbedPane
+//public class MapTabbedPane extends DnDTabbedPane
+public class MapTabbedPane extends JTabbedPane
     implements LWComponent.Listener, FocusListener, MapViewer.Listener
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(MapTabbedPane.class);
@@ -127,11 +128,6 @@ public class MapTabbedPane extends DnDTabbedPane
 
     @Override
     public void setSelectedIndex(final int index) {
-
-//         if (index < 0) {
-//             Log.debug("invalid tab index: " + index);
-//             return;
-//         }
         
 	super.setSelectedIndex(index);
         
@@ -222,11 +218,14 @@ public class MapTabbedPane extends DnDTabbedPane
     }
 
     private String viewerToTabTitle(MapViewer viewer) {
+    	
 
-        if (DEBUG.WORK)
+        if (DEBUG.WORK) {
             return mapToTabTitle(viewer.getMap());
-        else
+        }
+        else {
             return mapToTabTitle(viewer.getMap()) + " (" + ZoomTool.prettyZoomPercent(viewer.getZoomFactor()) + ")";
+        }
         /*
         
         String title = mapToTabTitle(viewer.getMap());
@@ -301,12 +300,23 @@ public class MapTabbedPane extends DnDTabbedPane
 
         if (false) {
             String tabTitle = viewerToTabTitle(viewer);
-            if (tabTitle == null)
+            if (tabTitle == null) {
                 tabTitle = "unknown";
+            }
             System.out.println("Adding tab '" + tabTitle + "' component=" + c);
-            addTab(tabTitle, c);
+        	// HO 28/02/2011 adding try/catch block
+        	try {
+        		addTab(tabTitle, c);
+        	} catch(ArrayIndexOutOfBoundsException abe) {
+        		// do nothing
+        	}
         } else {
-            addTab(viewerToTabTitle(viewer), c);
+        	// HO 28/02/2011 adding try/catch block
+        	try {
+        		addTab(viewerToTabTitle(viewer), c);
+        	} catch(ArrayIndexOutOfBoundsException abe) {
+        		// do nothing
+        	}
         }
         
         LWMap map = viewer.getMap();
@@ -422,73 +432,73 @@ public class MapTabbedPane extends DnDTabbedPane
     }
 
     public void closeMap(LWMap map) {
-        if (DEBUG.FOCUS) out("closeMap " + map);
-        
-        int mapTabIndex = findTabWithMap(map);
-        MapViewer viewer = getViewerAt(mapTabIndex);
-
-        if (DEBUG.FOCUS) out("closeMap"
-                             + "\n\t   indexOfMap=" + mapTabIndex
-                             + "\n\tviewerAtIndex=" + viewer
-                             + "\n\t activeViewer=" + VUE.getActiveViewer());
-        
-        // Note: if we close out the last tab (while it's selected), the selected index
-        // must change, and the JTabbedPane acts sanely, delivers change events, and
-        // causes the MapViewer in the previously second-to-last-tab, now in the last
-        // tab, to gain focus.  However, if any OTHER tab is removed, technically the
-        // selected index can (and does) stay the same, which makes sense, except the
-        // selected ITEM is now different, and JTabbedPane is completely ignorant of
-        // this, and does nothing, and delivers focus to nothing, so we must handle that
-        // manually.  This also reveals a weaknes the DefaultSingleSelectionModel, which
-        // has no code to deal with the case of a selected item from change out from
-        // under the selected index.  So what we need to do is make sure the right
-        // MapViewer forcably grabs the focus.
-        
-        /**
-         * for more info on why the windows exception was added to to the below statement 
-         * see https://vue-forums.uit.tufts.edu/posts/list/484.pages
-         */
-        boolean forceFocusTransfer = Util.isWindowsPlatform() ? true : false;
-
-        if (viewer == VUE.getActiveViewer()) {
-
-            // If this is the active viewer, we may need to manage
-            // a focus transfer.
-            
-            // Apparently, even sometimes when it's the last tab that changes, JTabbedPane fails
-            // to tansfer focus, so we do this always...
-            //if (mapTabIndex != getTabCount() - 1)
-                forceFocusTransfer = true;
-                
-            // Immediately make sure nothing can refer this this viewer.
-            //VUE.setActive(MapViewer.class, this, null);
-
-            // we might want to force notification even if selection is already empty:
-            // we want all listeners, particularly the actions, to
-            // update in case this is last map open
-            VUE.getSelection().clear();
-        }
-
-        // HO 22/02/2011 BEGIN ***********
-        // added try/catch block
-        try {
-        	removeTabAt(mapTabIndex);
-        } catch (IndexOutOfBoundsException e) {
-        	// do nothing... for now
-        }
-        // HO 22/02/2011 END ***********
-
-        if (forceFocusTransfer) {
-            int selectedIndex = getSelectedIndex();
-            // the newly selected tab doesn't always get the focus:
-            if (DEBUG.FOCUS) out("closeMap force focus transfer to new selected tab index: " + selectedIndex);
-            if (selectedIndex >= 0)
-                getViewerAt(selectedIndex).grabVueApplicationFocus("closeMap", null);
-            else
-                VUE.setActive(MapViewer.class, this, null); // no open viewers
-                
-        }
-    }
+	    if (DEBUG.FOCUS) out("closeMap " + map);
+	    
+	    int mapTabIndex = findTabWithMap(map);
+	    MapViewer viewer = getViewerAt(mapTabIndex);
+	
+	    if (DEBUG.FOCUS) out("closeMap"
+	                         + "\n\t   indexOfMap=" + mapTabIndex
+	                         + "\n\tviewerAtIndex=" + viewer
+	                         + "\n\t activeViewer=" + VUE.getActiveViewer());
+	    
+	    // Note: if we close out the last tab (while it's selected), the selected index
+	    // must change, and the JTabbedPane acts sanely, delivers change events, and
+	    // causes the MapViewer in the previously second-to-last-tab, now in the last
+	    // tab, to gain focus.  However, if any OTHER tab is removed, technically the
+	    // selected index can (and does) stay the same, which makes sense, except the
+	    // selected ITEM is now different, and JTabbedPane is completely ignorant of
+	    // this, and does nothing, and delivers focus to nothing, so we must handle that
+	    // manually.  This also reveals a weaknes the DefaultSingleSelectionModel, which
+	    // has no code to deal with the case of a selected item from change out from
+	    // under the selected index.  So what we need to do is make sure the right
+	    // MapViewer forcably grabs the focus.
+	    
+	    /**
+	     * for more info on why the windows exception was added to to the below statement 
+	     * see https://vue-forums.uit.tufts.edu/posts/list/484.pages
+	     */
+	    boolean forceFocusTransfer = Util.isWindowsPlatform() ? true : false;
+	
+	    if (viewer == VUE.getActiveViewer()) {
+	
+	        // If this is the active viewer, we may need to manage
+	        // a focus transfer.
+	        
+	        // Apparently, even sometimes when it's the last tab that changes, JTabbedPane fails
+	        // to tansfer focus, so we do this always...
+	        //if (mapTabIndex != getTabCount() - 1)
+	            forceFocusTransfer = true;
+	            
+	        // Immediately make sure nothing can refer this this viewer.
+	        //VUE.setActive(MapViewer.class, this, null);
+	
+	        // we might want to force notification even if selection is already empty:
+	        // we want all listeners, particularly the actions, to
+	        // update in case this is last map open
+	        VUE.getSelection().clear();
+	    }
+	
+	    // HO 22/02/2011 BEGIN ***********
+	    // added try/catch block
+	    try {
+	    	removeTabAt(mapTabIndex);
+	    } catch (IndexOutOfBoundsException e) {
+	    	// do nothing... for now
+	    }
+	    // HO 22/02/2011 END ***********
+	
+	    if (forceFocusTransfer) {
+	        int selectedIndex = getSelectedIndex();
+	        // the newly selected tab doesn't always get the focus:
+	        if (DEBUG.FOCUS) out("closeMap force focus transfer to new selected tab index: " + selectedIndex);
+	        if (selectedIndex >= 0)
+	            getViewerAt(selectedIndex).grabVueApplicationFocus("closeMap", null);
+	        else
+	            VUE.setActive(MapViewer.class, this, null); // no open viewers
+	            
+	    }
+	}
         
     public void paintComponent(Graphics g) {
         ((Graphics2D)g).setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING,

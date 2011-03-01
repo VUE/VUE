@@ -530,9 +530,15 @@ public class SaveAction extends VueAction
             Log.debug("Save completed for " + file);
             if (!VUE.isApplet())
             {
+                // HO 28/02/2011 BEGIN *********************
+            	//VueUtil.alert("in saveMapSpecial(LWMap, boolean) about to set frame", "here");
+            	// HO 28/02/2011 END *********************
             	VueFrame frame = (VueFrame)VUE.getMainWindow();
             	String title = VUE.getName() + ": " + name;                      
             	frame.setTitle(title);
+                // HO 28/02/2011 BEGIN *********************
+            	//VueUtil.alert("in saveMapSpecial(LWMap, boolean) just set title", "here");
+            	// HO 28/02/2011 END *********************
             }
             if (name.endsWith(".vue"))
             {
@@ -540,8 +546,15 @@ public class SaveAction extends VueAction
              rofm.updateRecentlyOpenedFiles(file.getAbsolutePath());
             }
             // HO 16/02/2011 BEGIN **********
-            if (map.getFile() == null)
+            if (map.getFile() == null) {
+                // HO 28/02/2011 BEGIN *********************
+            	//VueUtil.alert("in saveMapSpecial(LWMap, boolean) about to set map file", "here");
+            	// HO 28/02/2011 END *********************
             	map.setFile(file);
+                // HO 28/02/2011 BEGIN *********************
+            	//VueUtil.alert("in saveMapSpecial(LWMap, boolean) just set map file", "here");
+            	// HO 28/02/2011 END *********************
+            }
             // HO 16/02/2011 END **********
             return map;
 
@@ -558,6 +571,9 @@ public class SaveAction extends VueAction
             }
             if (e != t)
                 Log.error("Exception attempting to save file " + file + ": " + e);
+         // HO 28/02/2011 BEGIN *********************
+        	//VueUtil.alert("in saveMapSpecial(LWMap, boolean) exception saving file", "here");
+        	// HO 28/02/2011 END *********************
             VueUtil.alert(String.format(Locale.getDefault(),VueResources.getString("saveaction.savemap.error")+ "\"%s\";\n"+VueResources.getString("saveaction.targetfiel")+"\n\n"+VueResources.getString("saveaction.problem"),
                                         map.getLabel(), file, Util.formatLines(e.toString(), 80)),
                           "Problem Saving Map");

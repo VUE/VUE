@@ -1064,24 +1064,26 @@ public class LWWormhole implements VueConstants {
     	// to ward off IllegalComponentStateException
     	Component c = setScreen(map);
     	// HO 04/01/2011 END *************
-        
+
         int response = VueUtil.option
-            (c,
-             "Please choose a target map.",
-             "Choose Target Map",
-             JOptionPane.OK_CANCEL_OPTION,
-             JOptionPane.PLAIN_MESSAGE,
-             Util.isMacPlatform() ? macOrderButtons : defaultOrderButtons,             
-             VueResources.getString("Choose Target")
-             );
-        
-     
+        (c,
+         "Please choose a target map.",
+         "Choose Target Map",
+         JOptionPane.OK_CANCEL_OPTION,
+         JOptionPane.PLAIN_MESSAGE,
+         Util.isMacPlatform() ? macOrderButtons : defaultOrderButtons,             
+         "Choose Target"
+         );
+    	// HO 28/02/2011 END ****************
+
         if (!Util.isMacPlatform()) {
             switch (response) {
-            // the NO_OPTION (choose target map)
-            case 0: response = 1; break;
+            // HO 28/02/2011 BEGIN ************
+            // the OK_OPTION (choose target map)
+            case 0: response = 0; break;
             // the CANCEL option
-            case 1: response = 0; break;
+            case 1: response = 1; break;
+            // HO 28/02/2011 END ***************
             }
         } else { 
             switch (response) {
@@ -1136,10 +1138,10 @@ public class LWWormhole implements VueConstants {
      
         if (!Util.isMacPlatform()) {
             switch (response) {
-            // the NO_OPTION (choose target map)
-            case 0: response = 1; break;
+            // the OK_OPTION (choose target map)
+            case 0: response = 0; break;
             // the CANCEL option
-            case 1: response = 0; break;
+            case 1: response = 1; break;
             }
         } else { 
             switch (response) {
