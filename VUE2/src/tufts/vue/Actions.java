@@ -3863,6 +3863,10 @@ public class Actions implements VueConstants
         // with currently displayed map name
         boolean undoable() { return false; }
         public void act() {
+        	// HO 01/03/2011 BEGIN *********
+        	//LWMap activeMap = VUE.getActiveMap();
+        	//VueUtil.alert("VUE thinks active map is " + activeMap, "blorf");
+        	// HO 01/03/2011 END *********
             VUE.closeMap(VUE.getActiveMap());
         }
     };

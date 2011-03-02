@@ -435,7 +435,13 @@ public class MapTabbedPane extends JTabbedPane
 	    if (DEBUG.FOCUS) out("closeMap " + map);
 	    
 	    int mapTabIndex = findTabWithMap(map);
+	    // HO 01/03/2011 BEGIN **********************
+	    //VueUtil.alert("mapTabIndex for " + map + " is " + mapTabIndex, "tabs");
+	    // HO 01/03/2011 END **********************
 	    MapViewer viewer = getViewerAt(mapTabIndex);
+	 // HO 01/03/2011 BEGIN **********************
+	    //VueUtil.alert("viewer is " + viewer, "tabs");
+	    // HO 01/03/2011 END **********************
 	
 	    if (DEBUG.FOCUS) out("closeMap"
 	                         + "\n\t   indexOfMap=" + mapTabIndex

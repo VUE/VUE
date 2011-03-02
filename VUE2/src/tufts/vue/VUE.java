@@ -3329,6 +3329,10 @@ public class VUE
     }
     
     public static void closeMapSilently(LWMap map, boolean reverting) {
+    	
+    	// HO 01/03/2011 BEGIN *********
+    	//VueUtil.alert("Starting closeMapSilently", "blorf");
+    	// HO 01/03/2011 END *********
 	    
 		if (!reverting)
 		{
@@ -3369,38 +3373,86 @@ public class VUE
 			setMapActionsEnabled(false);
 			}
 		}
+		
+		// HO 01/03/2011 BEGIN *********
+    	//VueUtil.alert("Starting closeMapSilently", "blorf");
+    	// HO 01/03/2011 END *********
 	
 	}
     
         public static void closeMap(LWMap map, boolean reverting) {
+        	
+        	// HO 01/03/2011 BEGIN *********
+        	//VueUtil.alert("Starting closeMap", "blorf");
+        	// HO 01/03/2011 END *********
 	    
 	    	if (!reverting)
 	    	{
+	    		// HO 01/03/2011 BEGIN *********
+	        	//VueUtil.alert("closeMap, not reverting", "blorf");
+	        	// HO 01/03/2011 END *********
 	    		if (askSaveIfModified(map)) {
 	    			 try{
+	    				// HO 01/03/2011 BEGIN *********
+	    		        	//VueUtil.alert("closeMap, not reverting, closing mMapTabsLeft", "blorf");
+	    		        	// HO 01/03/2011 END *********
 	    		 
 	    			mMapTabsLeft.closeMap(map);
+	    			// HO 01/03/2011 BEGIN *********
+		        	//VueUtil.alert("closeMap, not reverting, closed mMapTabsLeft", "blorf");
+		        	// HO 01/03/2011 END *********
 	    			}
-	    			catch(ArrayIndexOutOfBoundsException abe){}
+	    			catch(ArrayIndexOutOfBoundsException abe){
+	    				// HO 01/03/2011 BEGIN *********
+    		        	//VueUtil.alert("closeMap, not reverting, exception closing mMapTabsLeft", "blorf");
+    		        	// HO 01/03/2011 END *********
+	    			}
 	    			try
 	    			{
-	    				if (mMapTabsRight != null)
+	    				if (mMapTabsRight != null) {
+	    					// HO 01/03/2011 BEGIN *********
+	    		        	//VueUtil.alert("closeMap, not reverting, closing mMapTabsRight", "blorf");
+	    		        	// HO 01/03/2011 END *********
 	    					mMapTabsRight.closeMap(map);
+	    					// HO 01/03/2011 BEGIN *********
+	    		        	//VueUtil.alert("closeMap, not reverting, closed mMapTabsRight", "blorf");
+	    		        	// HO 01/03/2011 END *********
+	    				}
 	    			}
-	    			catch(ArrayIndexOutOfBoundsException abe){}
+	    			catch(ArrayIndexOutOfBoundsException abe){
+	    				// HO 01/03/2011 BEGIN *********
+    		        	//VueUtil.alert("closeMap, not reverting, exception closing mMapTabsRight", "blorf");
+    		        	// HO 01/03/2011 END *********
+	    			}
 	    		 
 	    		}
 	    	}
 	    	else
 	    	{
 	    		if (askIfRevertOK(map)) {
+	    			// HO 01/03/2011 BEGIN *********
+		        	//VueUtil.alert("closeMap, asked revert, closing mMapTabsLeft", "blorf");
+		        	// HO 01/03/2011 END *********
 	    			mMapTabsLeft.closeMap(map);
-	    			if (mMapTabsRight != null)
+	    			// HO 01/03/2011 BEGIN *********
+		        	//VueUtil.alert("closeMap, asked revert, closed mMapTabsLeft", "blorf");
+		        	// HO 01/03/2011 END *********
+	    			if (mMapTabsRight != null) {
+	    				// HO 01/03/2011 BEGIN *********
+    		        	//VueUtil.alert("closeMap, asked revert, closing mMapTabsRight", "blorf");
+    		        	// HO 01/03/2011 END *********
 	    				mMapTabsRight.closeMap(map);
+	    				// HO 01/03/2011 BEGIN *********
+    		        	//VueUtil.alert("closeMap, asked revert, closed mMapTabsRight", "blorf");
+    		        	// HO 01/03/2011 END *********
+	    			}
 	    		}	
 	    	}    	
 	    	if (mMapTabsRight !=null)
 	    	{
+	    		// HO 01/03/2011 BEGIN *********
+	        	//VueUtil.alert("closeMap, mMapTabsRight not null", "blorf");
+	        	// HO 01/03/2011 END *********
 	    		int selectedIndex = mMapTabsRight.getTabCount();
 	    		if(selectedIndex>0){
 	    			setMapActionsEnabled(true);
@@ -3410,10 +3462,16 @@ public class VUE
 	    	}
 	    	else if (mMapTabsLeft == null)
 	    	{
+	    		// HO 01/03/2011 BEGIN *********
+	        	//VueUtil.alert("closeMap, mMapTabsLeft not null", "blorf");
+	        	// HO 01/03/2011 END *********
 	    		setMapActionsEnabled(false);    		
 	    	}
 	    	else
 	    	{
+	    		// HO 01/03/2011 BEGIN *********
+	        	//VueUtil.alert("closeMap, else", "blorf");
+	        	// HO 01/03/2011 END *********
 	    		int selectedIndex = mMapTabsLeft.getTabCount();
 	    		if(selectedIndex>0){
 	    			setMapActionsEnabled(true);
@@ -3422,17 +3480,9 @@ public class VUE
 	    		}
 	    	}
 	
-	//    	if(selectedIndex>0){
-	//    		VueMenuBar.RootMenuBar.saveAction.setEnabled(true);
-	//        	VueMenuBar.RootMenuBar.saveAsAction.setEnabled(true);
-	//        	VueMenuBar.RootMenuBar.publishMenu.setEnabled(true);
-	//        	Actions.Revert.setEnabled(true);
-	//    	}else{
-	//    		VueMenuBar.RootMenuBar.saveAction.setEnabled(false);
-	//        	VueMenuBar.RootMenuBar.saveAsAction.setEnabled(false);
-	//        	VueMenuBar.RootMenuBar.publishMenu.setEnabled(false);
-	//        	Actions.Revert.setEnabled(false);
-	//    	}
+	    	// HO 01/03/2011 BEGIN *********
+	    	//VueUtil.alert("Ending closeMap", "blorf");
+	    	// HO 01/03/2011 END *********
 	
 	    }
     
@@ -3582,13 +3632,9 @@ public class VUE
 	        				//abe.printStackTrace();
 	        			//}
 	                }
-                // HO 03/01/2011 BEGIN **********
-                //map = null;
                 break;
                 // HO 01/03/2011 END ***************
             }
-            // HO 03/01/2011 BEGIN **********
-            //map = null;
         }
         
         // if the map wasn't already open we don't need to do anything more
@@ -3727,12 +3773,8 @@ public class VUE
                 } catch (IndexOutOfBoundsException e) {
                 	// do nothing... for now
                 }
-                // HO 03/01/2011 BEGIN **********
-                //map = null;
                 break;
             }
-            // HO 03/01/2011 BEGIN **********
-            //map = null;
         } 
 
         // now recreate both viewers
@@ -3896,13 +3938,9 @@ public class VUE
                     	//abe.printStackTrace();
                     //}
                 }
-                // HO 03/01/2011 BEGIN **********
-                //map = null;
                 return;
                 // HO 01/03/2011 END ******************
             }
-            // HO 03/01/2011 BEGIN **********
-            //map = null;
         }
 
         final RecentlyOpenedFilesManager rofm = RecentlyOpenedFilesManager.getInstance();
@@ -4097,8 +4135,6 @@ public class VUE
                 // TODO: pop dialog asking to revert existing if there any changes.
                 //break;
             }
-            // HO 03/01/2011 BEGIN **********
-            //map = null;
         } 
 
      // HO 28/02/2011 BEGIN *********************

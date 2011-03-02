@@ -144,6 +144,10 @@ public class SaveAction extends VueAction
         } else if (export) {
             file = ActionUtil.selectFile("Export Map", "export");
         }
+        
+        // HO 01/03/2011 BEGIN *****************
+        //VueUtil.alert("In SaveAction.saveMap(LWMap, boolean, boolean)", "blorf");
+        // HO 01/03/2011 END *****************
             
         if (file == null) {
             //GUI.clearWaitCursor();
@@ -360,6 +364,10 @@ public class SaveAction extends VueAction
         } else if (export) {
             file = ActionUtil.selectFile("Export Map", "export");
         }
+        
+     // HO 01/03/2011 BEGIN *****************
+        //VueUtil.alert("In SaveAction.saveMapSpecial", "blorf");
+        // HO 01/03/2011 END *****************
             
         if (file == null) {
             //GUI.clearWaitCursor();
@@ -382,13 +390,18 @@ public class SaveAction extends VueAction
             else if (name.endsWith(".xml") || name.endsWith(".vue")) {
                 ActionUtil.marshallMap(file, map);
 
-                	
+             // HO 01/03/2011 BEGIN *****************
+		        //VueUtil.alert("In SaveAction.saveMapSpecial about to open map", "blorf");
+		        // HO 01/03/2011 END *****************	
                 // HO 18/02/2011 BEGIN **********
                 // and then open the new one
                 if (!bAutoOpeningMap) {
                 	autoOpenMap(file);  
                 }
                 // HO 18/02/2011 END ************
+             // HO 01/03/2011 BEGIN *****************
+		        //VueUtil.alert("In SaveAction.saveMapSpecial opened map", "blorf");
+		        // HO 01/03/2011 END *****************
                 
                 // HO 22/02/2011 BEGIN **********  
                 // close the old map, if there is one
@@ -405,7 +418,13 @@ public class SaveAction extends VueAction
 	            				// it must be the original map
 	            				if(aMap.getLabel().equals(strInitMapLabel)) {
 	            					// so close it
+	            			        // HO 01/03/2011 BEGIN *****************
+	            			        //VueUtil.alert("In SaveAction.saveMapSpecial about to close map", "blorf");
+	            			        // HO 01/03/2011 END *****************
 	            					VUE.closeMapSilently(aMap, false);
+	            					// HO 01/03/2011 BEGIN *****************
+	            			        //VueUtil.alert("In SaveAction.saveMapSpecial about to close map", "blorf");
+	            			        // HO 01/03/2011 END *****************
 	            					initFile = null;
 	            				}
 	            			aMap = null;
