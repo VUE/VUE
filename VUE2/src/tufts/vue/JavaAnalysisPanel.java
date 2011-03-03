@@ -553,7 +553,7 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 
 		if (allNodes.size() > 0) {
 			LayoutAction.circle.act(allNodes);
-			LayoutAction.hierarchical.act(allNodes);
+			LayoutAction.hierarchical2.act(allNodes);
 		}
 
 		VUE.getSelection().setTo(allNodes);

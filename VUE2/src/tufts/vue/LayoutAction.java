@@ -106,6 +106,11 @@ public abstract  class LayoutAction extends Actions.LWCAction
         boolean enabledFor(LWSelection selection ) { return true;}
     };
     
+    public static final LayoutAction hierarchical2 = new LayoutAction(new HierarchicalLayout2(), VueResources.getString("menu.format.layout.hierarchical2"), KeyEvent.VK_SLASH) {
+        boolean supportsSingleMover() { return false; }
+        boolean enabledFor(LWSelection selection ) { return true;}
+    };
+    
     public static final LayoutAction cluster = new LayoutAction(new ClusterLayout(),VueResources.getString("menu.format.layout.cluster"), KeyEvent.VK_SEMICOLON) {
         boolean supportsSingleMover() { return false; }
         boolean enabledFor(LWSelection selection ) { return true;}
@@ -130,6 +135,7 @@ public abstract  class LayoutAction extends Actions.LWCAction
     	cluster,
         Actions.MakeCluster,
         hierarchical,
+        hierarchical2,
         force,
         null,
         Actions.PullInLinked,

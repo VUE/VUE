@@ -965,8 +965,9 @@ public class VueMenuBar extends javax.swing.JMenuBar
         			true);
         	boolean javaAnalysisPanelEnabled = javaAnalysisPreference.isTrue();
 
-        	if (javaAnalysisPanelEnabled)
-        		analysisMenu.add(createWindowItem(JavaAnalysisPanel.getJavaAnalysisDock(), 0, VueResources.getString("menu.windows.java")));            
+        	if (javaAnalysisPanelEnabled) {
+        		analysisMenu.add(createWindowItem(JavaAnalysisPanel.getJavaAnalysisDock(), 0, VueResources.getString("menu.windows.java")));
+        	}
         //}
        
         

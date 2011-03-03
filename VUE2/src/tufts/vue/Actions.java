@@ -3256,30 +3256,30 @@ public class Actions implements VueConstants
 //         };
     
     
-    public static final LWCAction MakeDataLinks = new LWCAction(VueResources.local("menu.format.layout.makedatalinks"), keyStroke(KeyEvent.VK_SLASH, ALT)) {
-            boolean enabledFor(LWSelection s) { return s.size() == 1; } // just one for now
-            Collection<? extends LWComponent> linkTargets = null;
-
-            @Override
-            public void act(LWSelection s) {
-                
-                //tufts.vue.ds.DataAction.addDataLinksForNodes(getMap(), s, linkTargets);
-            }
+//     public static final LWCAction MakeDataLinks = new LWCAction(VueResources.local("menu.format.layout.makedatalinks"), keyStroke(KeyEvent.VK_SLASH, ALT)) {
+//             boolean enabledFor(LWSelection s) { return s.size() == 1; } // just one for now
+//             Collection<? extends LWComponent> linkTargets = null;
+// 
 //             @Override
 //             public void act(LWSelection s) {
-//                 // we re-use linkTargets below, so we don't need to re-build the list for every node in the selection
-//                 linkTargets = tufts.vue.ds.DataAction.getLinkTargets(s.first().getMap());
-//                 super.act(s);
+//                 
+//                 //tufts.vue.ds.DataAction.addDataLinksForNodes(getMap(), s, linkTargets);
 //             }
-//             @Override
-//             public void act(LWNode c) {
-//                 tufts.vue.ds.DataAction.addDataLinksForNode(c, linkTargets);
-// //                 tufts.vue.ds.DataAction.addDataLinksForNodes(c.getMap(),
-// //                                                              java.util.Collections.singletonList(c),
-// //                                                              c.getDataValueField());
-                    
-//             }
-        };
+// //             @Override
+// //             public void act(LWSelection s) {
+// //                 // we re-use linkTargets below, so we don't need to re-build the list for every node in the selection
+// //                 linkTargets = tufts.vue.ds.DataAction.getLinkTargets(s.first().getMap());
+// //                 super.act(s);
+// //             }
+// //             @Override
+// //             public void act(LWNode c) {
+// //                 tufts.vue.ds.DataAction.addDataLinksForNode(c, linkTargets);
+// // //                 tufts.vue.ds.DataAction.addDataLinksForNodes(c.getMap(),
+// // //                                                              java.util.Collections.singletonList(c),
+// // //                                                              c.getDataValueField());
+//                     
+// //             }
+//         };
 
 
     public static final ArrangeAction MakeRow = new ArrangeAction(VueResources.local("menu.format.arrange.makerow"), keyStroke(KeyEvent.VK_1, ALT)) {
