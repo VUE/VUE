@@ -72,23 +72,28 @@ public class HierarchicalLayout2 extends HierarchicalLayout {
 				LWNode				child = null,
 									parent = null;
 
+				// If an link has a single arrow, the link points to the parent.  Otherwise, consider
+				// the node on the other end of the link to be a child (for the purposes of no-arrow and
+				// double-arrow links).
+				// It's true that most trees usually point from parent to child, but this works the opposite
+				// because that's what Java Analysis expects.
 				if (node.equals(head)) {
 					if (tail instanceof LWNode) {
-						if (arrowState == LWLink.ARROW_HEAD) {
-							child = (LWNode)tail;
-						}
-						else if (arrowState == LWLink.ARROW_TAIL) {
+						if (arrowState == LWLink.ARROW_TAIL) {
 							parent = (LWNode)tail;
+						}
+						else {
+							child = (LWNode)tail;
 						}
 					}
 				}
 				else if (node.equals(tail)) {
 					if (head instanceof LWNode) {
-						if (arrowState == LWLink.ARROW_TAIL) {
-							child = (LWNode)head;
-						}
-						else if (arrowState == LWLink.ARROW_HEAD) {
+						if (arrowState == LWLink.ARROW_HEAD) {
 							parent = (LWNode)head;
+						}
+						else {
+							child = (LWNode)head;
 						}
 					}
 				}
