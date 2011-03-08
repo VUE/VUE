@@ -641,9 +641,7 @@ public class VUE
         }
     };
     
-
-
-    public static LWMap getActiveMap() { return ActiveMapHandler.getActive(); }
+    public static LWMap getActiveMap() {return ActiveMapHandler.getActive(); }
     public static LWPathway getActivePathway() { return ActivePathwayHandler.getActive(); }
     public static LWPathway.Entry getActiveEntry() { return ActivePathwayEntryHandler.getActive(); }
     public static MapViewer getActiveViewer() { return ActiveViewerHandler.getActive(); }
@@ -652,6 +650,31 @@ public class VUE
     public static LWMap.Layer getActiveLayer() { return ActiveLayerHandler.getActive(); }
     public static tufts.vue.DataSource getActiveDataSource() { return ActiveDataSourceHandler.getActive(); }
 
+    // HO 08/03/2011 BEGIN ****************
+    public static LWMap getMapInActiveTab() {
+    	LWMap activeMap = null;
+    	int idx = -1;
+    	MapTabbedPane lPane = null;
+    	MapTabbedPane rPane = null;
+
+		lPane = getLeftTabbedPane();
+		rPane = getRightTabbedPane();
+		if (lPane != null) {
+			idx = lPane.getSelectedIndex();
+			if (idx >= 0)
+				activeMap = lPane.getMapAt(idx);
+		}
+		else {
+			idx = rPane.getSelectedIndex();
+			if (idx >= 0)
+				activeMap = rPane.getMapAt(idx);
+		}
+		//VueUtil.alert("Selected index is " + idx, "woez");
+
+		return activeMap;
+    }
+    // HO 08/03/2011 END ******************
+    
     public static LWComponent getActiveFocal() {
         MapViewer viewer = getActiveViewer();
         if (viewer != null)
