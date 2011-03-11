@@ -289,7 +289,10 @@ public class SaveAction extends VueAction
             	String title = VUE.getName() + ": " + name;                      
             	frame.setTitle(title);
             }
-            if (name.endsWith(".vue"))
+            // HO 11/03/2011 BEGIN *****************
+            //if (name.endsWith(".vue"))
+            if ((name.endsWith(".vue")) || (name.endsWith(VueUtil.VueArchiveExtension)))
+        	// HO 11/03/2011 END *****************
             {
              RecentlyOpenedFilesManager rofm = RecentlyOpenedFilesManager.getInstance();
              rofm.updateRecentlyOpenedFiles(file.getAbsolutePath());
@@ -559,7 +562,10 @@ public class SaveAction extends VueAction
             	//VueUtil.alert("in saveMapSpecial(LWMap, boolean) just set title", "here");
             	// HO 28/02/2011 END *********************
             }
-            if (name.endsWith(".vue"))
+            // HO 11/03/2011 BEGIN *****************
+            //if (name.endsWith(".vue"))
+            if ((name.endsWith(".vue")) || (name.endsWith(VueUtil.VueArchiveExtension)))
+        	// HO 11/03/2011 END *****************
             {
              RecentlyOpenedFilesManager rofm = RecentlyOpenedFilesManager.getInstance();
              rofm.updateRecentlyOpenedFiles(file.getAbsolutePath());

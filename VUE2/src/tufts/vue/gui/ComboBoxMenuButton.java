@@ -19,6 +19,7 @@ import tufts.vue.DEBUG;
 import tufts.vue.VueAction;
 import tufts.vue.LWComponent;
 import tufts.vue.LWPropertyChangeEvent;
+import tufts.vue.VueUtil;
 
 import java.io.*;
 import java.awt.*;

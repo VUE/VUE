@@ -17,6 +17,7 @@
 package tufts.vue;
 
 import tufts.Util;
+import tufts.vue.gui.GUI;
 
 import java.util.ConcurrentModificationException;
 import java.util.List;
@@ -29,6 +30,7 @@ import java.awt.event.InputEvent;
 import java.awt.event.ActionEvent;
 import javax.swing.Action;
 import javax.swing.AbstractButton;
+import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 import javax.swing.Icon;
 
@@ -332,7 +334,8 @@ public class VueAction extends javax.swing.AbstractAction
         
     public void actionPerformed(ActionEvent ae)
     {
-        if (DEBUG.EVENTS) {
+    	
+    	if (DEBUG.EVENTS) {
             System.out.println("\n===============================================================================================================");
             try { dumpEvent(ae); } catch (Throwable t) { t.printStackTrace(); }
         }
@@ -355,7 +358,6 @@ public class VueAction extends javax.swing.AbstractAction
         try {
 
             if (isUserEnabled()) {
-                
                 act();
 
                 final Boolean state = getToggleState();
@@ -462,6 +464,7 @@ public class VueAction extends javax.swing.AbstractAction
 
     public void fire(java.awt.event.KeyEvent e) {
         e.consume();
+
         fire((Object)e);
     }
     
