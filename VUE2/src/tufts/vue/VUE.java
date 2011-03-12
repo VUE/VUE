@@ -3506,6 +3506,15 @@ public class VUE
 	    	// HO 01/03/2011 BEGIN *********
 	    	//VueUtil.alert("Ending closeMap", "blorf");
 	    	// HO 01/03/2011 END *********
+	    	// HO 12/03/2011 BEGIN ************
+	    	// if there are no tabs open, open a new, empty tab automatically
+	    	// so that we never have a totally empty screen
+	    	// (works around the focus problem)
+	    	int leftIndex = mMapTabsLeft.getTabCount();
+	    	int rightIndex = mMapTabsRight.getTabCount();
+	    	if ((leftIndex == 0) && (rightIndex == 0))
+	    		VUE.displayMap(new LWMap(VueResources.getString("vue.main.newmap")));
+	    	// HO 12/03/2011 END **************
 	
 	    }
     

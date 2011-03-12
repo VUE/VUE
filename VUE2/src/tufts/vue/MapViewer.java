@@ -102,7 +102,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                , java.awt.event.KeyListener
                , java.awt.event.MouseListener
                , java.awt.event.MouseMotionListener
-               , java.awt.event.MouseWheelListener               
+               , java.awt.event.MouseWheelListener   
                , FocusManager.GlobalMouseListener
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(MapViewer.class);
@@ -604,7 +604,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // and the only help we could provide to coalesce them would be to set a limit on the
         // temporal frequency that view's can be recorded.
 
-        if (DEBUG.PRESENT || DEBUG.SCROLL)
+    	if (DEBUG.PRESENT || DEBUG.SCROLL)
             out("anim=" + isAnimating
                 + ", restoring=" + mViewRestoring
                 + ", dragging=" + sDragUnderway
@@ -6667,7 +6667,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
 
         
-    public void eventRaised(FocusManager.GlobalMouseEvent e) {
+        public void eventRaised(FocusManager.GlobalMouseEvent e) {
 
 //         if (mViewWasJustRestored) {
 //             mViewWasJustRestored = false;
@@ -6678,9 +6678,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         //if (DEBUG.Enabled) out(TERM_CYAN + "*** IGNORING " + e + TERM_CLEAR);
         
         //if (DEBUG.Enabled) out(e);
-        if (e.event.getID() == MouseEvent.MOUSE_RELEASED)
-            trackViewChanges("globalMouseRelease");
-    }
+        	
+        	if (e.event.getID() == MouseEvent.MOUSE_RELEASED) {
+        		trackViewChanges("globalMouseRelease");
+        	}
+    } 
         
     private LWComponent hitComponent = null;
     private Point2D originAtDragStart;
@@ -8629,12 +8631,15 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         // in these cases, do NOT request the keyboard focus: either we just got it, our we
         // want to let an active on-map text edit keep it.
-        if (id == FocusEvent.FOCUS_GAINED)
+        if (id == FocusEvent.FOCUS_GAINED) {
             requestFocus = false;
-        else if (id == MouseEvent.MOUSE_ENTERED && hasActiveTextEdit())
+        }
+        else if (id == MouseEvent.MOUSE_ENTERED && hasActiveTextEdit()) {
             requestFocus = false;
-        else if (id == MouseEvent.MOUSE_PRESSED && GUI.isMenuPopup(event))
+        }
+        else if (id == MouseEvent.MOUSE_PRESSED && GUI.isMenuPopup(event)) {
             requestFocus = false;
+        }
         else if (focusOwner == this || focusOwner == getRootPane()) {
             // If we're already focused and request focus, it's possible to lose focus!
             // This can happen when moved to a separate Window (for full-screen), that
@@ -8648,10 +8653,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // or: stop grabbing on MOUSE_ENTERED completely (ah: but if we do that, we don't get
         // focus back after the pop-up is gone)
             
-            
         if (requestFocus) {
 
             if (DEBUG.FOCUS) out("GVAF: requesting focus");
+
             requestFocus();
             
             // When kbd focus switches to the viewer via mouseEntered from a text field such as
