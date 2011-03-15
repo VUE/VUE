@@ -167,8 +167,8 @@ public class FontEditorPanel extends JPanel
             comboSize.height -= 2; // if too small (eg, -3), will trigger major swing layout bug
             mFontCombo.setMaximumSize(comboSize);
         }
-        if (GUI.isMacAqua())
-            mFontCombo.setBorder(new EmptyBorder(1,0,0,0));
+      //  if (GUI.isMacAqua())
+      //      mFontCombo.setBorder(new EmptyBorder(1,0,0,0));
 
         fontPropertyHandler = new FontPropertyHandler(mFontCombo);
         mFontCombo.setMaximumRowCount(30);
@@ -932,12 +932,12 @@ public class FontEditorPanel extends JPanel
 
     public void addNotify()
     {
-        if (GUI.isMacAqua()) {
+    //    if (GUI.isMacAqua()) {
             // font size edit box asymmetrically tall if left to default
-            Dimension d = mSizeField.getPreferredSize();
-            d.height += 1;
-            mSizeField.setMaximumSize(d);
-        }
+      //      Dimension d = mSizeField.getPreferredSize();
+       //     d.height += 1;
+        //    mSizeField.setMaximumSize(d);
+       // }
         
         /* still to risky
         Dimension comboSize = mFontCombo.getPreferredSize();
