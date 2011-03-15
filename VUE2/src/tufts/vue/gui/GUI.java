@@ -284,15 +284,11 @@ public class GUI
                     Set includes = new HashSet();
                     includes.add("ColorChooser");
                     includes.add("FileChooser");
-                    includes.add("PopupMenu");
-                    includes.add("ComboBox");
+                    includes.add("Component");
+                    includes.add("Browser");
                     includes.add("Tree");
                     includes.add("SplitPane");
-                  //  includes.add("Menu");
-                   includes.add("MenuItem");
-                   
-                   // includes.add("List");	
-                    includes.add("Browser");
+
                    // includes.add("Button");
                    // includes.add("CheckBox");
                    // includes.add("DesktopPane");
@@ -303,8 +299,6 @@ public class GUI
                    // includes.add("OptionPane");
                    // includes.add("Panel");
                    // includes.add("RadioButton");	
-                    includes.add("RootPane");
-                    includes.add("ScrollBar");
                     
                     
                    ch.randelshofer.quaqua.QuaquaManager.setIncludedUIs(includes);
