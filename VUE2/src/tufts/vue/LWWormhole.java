@@ -1583,7 +1583,9 @@ public class LWWormhole implements VueConstants {
 		// HO 11/03/2011 BEGIN *************
 		// if the source and target maps are the same,
 		// saving the same map twice is unnecessary
-		if (!sourceMap.equals(targetMap))
+		// HO 15/03/2011 BEGIN ***********
+		//if (!sourceMap.equals(targetMap))
+			// HO 15/03/2011 END ***********
 			OpenAction.displayMapSpecial(targetMapFile);
 		// HO 11/03/2011 END
 		// HO 22/12/2010 END *************
@@ -1616,12 +1618,19 @@ public class LWWormhole implements VueConstants {
 
 		// save both maps
 		// HO 22/02/2011 BEGIN *************
+		// HO 15/03/2011 BEGIN *************
 		SaveAction.saveMap(sourceMap);
+		//SaveAction.saveMapSpecial(sourceMap);
+		// HO 15/03/2011 END *************
 		// HO 11/03/2011 BEGIN *************
 		// if the source and target maps are the same,
 		// saving the same map twice is unnecessary
-		if (!sourceMap.equals(targetMap))
+		// HO 15/03/2011 BEGIN *************
+		if (!sourceMap.equals(targetMap)) {
 			SaveAction.saveMap(targetMap);
+			//SaveAction.saveMapSpecial(targetMap);
+		}
+			// HO 15/03/2011 END *************
 		// HO 11/03/2011 END ******************
 		//SaveAction.saveMapSpecial(sourceMap);
 		//SaveAction.saveMapSpecial(targetMap);
@@ -1629,12 +1638,19 @@ public class LWWormhole implements VueConstants {
 		// now reload and redisplay both maps (necessary when
 		// making changes to an open map that is not also
 		// the active map)
+		// HO 15/03/2011 BEGIN *************
 		OpenAction.displayMapSpecial(sourceMapFile);
+		//OpenAction.displayMap(sourceMapFile);
+		// HO 15/03/2011 END *************
 		// HO 11/03/2011 BEGIN *************
 		// if the source and target maps are the same,
 		// saving the same map twice is unnecessary
-		if (!sourceMap.equals(targetMap))
-			OpenAction.displayMapSpecial(targetMapFile);	
+		// HO 15/03/2011 BEGIN *************
+		if (!sourceMap.equals(targetMap)) {
+			OpenAction.displayMapSpecial(targetMapFile);
+			//OpenAction.displayMap(targetMapFile);	
+		}
+			// HO 15/03/2011 END *************
 		// HO 11/03/2011 END
 	}
 	
@@ -1729,7 +1745,9 @@ public class LWWormhole implements VueConstants {
 			// HO 11/03/2011 BEGIN *************
 			// if the source and target maps are the same,
 			// saving the same map twice is unnecessary
-			if (!sourceMap.equals(targetMap))
+			// HO 15/03/2011 BEGIN ***********
+			//if (!sourceMap.equals(targetMap))
+				// HO 15/03/2011 END ***********
 				OpenAction.displayMapSpecial(targetMapFile);	
 			// HO 11/03/2011 END ***************
 		}
@@ -1771,7 +1789,9 @@ public class LWWormhole implements VueConstants {
 			// HO 11/03/2011 BEGIN *************
 			// if the source and target maps are the same,
 			// saving the same map twice is unnecessary
-			if (!sourceMap.equals(targetMap))
+			// HO 15/03/2011 BEGIN ***********
+			//if (!sourceMap.equals(targetMap))
+				// HO 15/03/2011 END ***********
 				OpenAction.displayMapSpecial(sourceMapFile);	
 			// HO 11/03/2011 END *************
 		}
