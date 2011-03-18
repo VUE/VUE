@@ -72,7 +72,7 @@ public class HierarchicalLayout2 extends HierarchicalLayout {
 				LWNode				child = null,
 									parent = null;
 
-				// If an link has a single arrow, the link points to the parent.  Otherwise, consider
+				// If a link has a single arrow, the link points to the parent.  Otherwise, consider
 				// the node on the other end of the link to be a child (for the purposes of no-arrow and
 				// double-arrow links).
 				// It's true that most trees usually point from parent to child, but this works the opposite
