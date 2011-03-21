@@ -113,8 +113,14 @@ public class MapTabbedPane extends JTabbedPane
 
             // for non-aqua UI's, we change the selected tab color
             
-            if (mWasSelected >= 0)
-                setForegroundAt(mWasSelected, Color.darkGray);
+            if (mWasSelected >= 0) {           	
+            	// HO 21/03/2011 BEGIN *************
+            	int maxTabs = getTabCount() - 1;
+            	if (mWasSelected <= maxTabs) {
+            		// HO 21/03/2011 END *************
+            		setForegroundAt(mWasSelected, Color.darkGray);
+            	}
+        	}
             
             if (selected >= 0) {
                 setForegroundAt(selected, Color.black);
