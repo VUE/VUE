@@ -16,6 +16,7 @@
 package tufts.vue.action;
 
 import tufts.Util;
+import tufts.vue.MapTabbedPane;
 import tufts.vue.VueUtil;
 import tufts.vue.VUE;
 import tufts.vue.UrlAuthentication;
@@ -56,6 +57,7 @@ import javax.swing.plaf.basic.BasicFileChooserUI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URI;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Locale;
 import java.awt.Component;
@@ -199,14 +201,23 @@ public class ActionUtil
                 picked = new File(fileName);
             }
             
-            if (picked.exists()) {            	
-                int n = VueUtil.confirm(null, VueResources.getString("replaceFile.text") + " \'" + picked.getName() + "\'", 
-                        VueResources.getString("replaceFile.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-                  
-                if (n == JOptionPane.NO_OPTION){
-                	picked = null;                	
-                	saveChooser.showDialog(VUE.getDialogParentAsFrame(), VueResources.getString("dialog.save.title"));                	
-                }
+            if (picked.exists()) {   
+            	
+            	// HO 23/03/2011 BEGIN **************
+            	if (isMapAlreadyOpen(fileName) == true) {
+    				VueUtil.alert(fileName + " " + VueResources.getString("alreadyOpenFile.text"), VueResources.getString("alreadyOpenFile.title"));
+    				picked = null;
+            	} else {
+            	// HO 23/03/2011 END **************
+	            	
+	                int n = VueUtil.confirm(null, VueResources.getString("replaceFile.text") + " \'" + picked.getName() + "\'", 
+	                        VueResources.getString("replaceFile.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+	                  
+	                if (n == JOptionPane.NO_OPTION){
+	                	picked = null;                	
+	                	saveChooser.showDialog(VUE.getDialogParentAsFrame(), VueResources.getString("dialog.save.title"));                	
+	                }
+            	}
             } 
             
             if (picked != null)
@@ -215,6 +226,40 @@ public class ActionUtil
         
         return picked;
     }
+    
+    // HO 23/03/2011 BEGIN ***********************
+    private static boolean isMapAlreadyOpen(String fileName) {
+    	// input validation
+    	if ((fileName == null) || (fileName == ""))
+    		return false;
+    	boolean bOpen = false;
+    	
+    	// find the map that's being saved
+    	LWMap mapBeingSaved = VUE.getMapInActiveTab();
+		// get all the open maps
+		Collection<LWMap> coll = VUE.getAllMaps();
+		for (LWMap map: coll) {
+			// make sure this isn't the map we're trying to save
+			if(!map.equals(mapBeingSaved)) {
+				// get the file belonging to this map
+    			File theFile = map.getFile();
+    			// if this map has a file
+    			if (theFile!=null) {
+    				// get the full name and compare it to the one we're trying to save
+    				String theFileName = theFile.getAbsolutePath();
+        			if(theFileName.equals(fileName)) {
+        				// it is already open
+        				bOpen = true; 
+        				break;
+        			}
+    			}
+			}
+		} // end of for loop
+		
+		return bOpen;
+    }
+    
+    // HO 23/03/2011 END *************************
     
     private final static void adjustExtension()
     {

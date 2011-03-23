@@ -204,8 +204,6 @@ public class VUE
     	//returnToMapButton = null;
     	mergeMapsControlPanel = null;
     	
-    //	pathwayDock = null;
-    //	pathwayDock = null;
     	formatDock = null;
     	// HO 24/06/2010 BEGIN *********
     	ibisFormatDock = null;
@@ -221,10 +219,6 @@ public class VUE
     	mergeMapsControlPanel = null;
     	interactionToolsPanel = null;
     	contentPanel = null;
-    //	EditorManager.destroy();
-   // 	VueToolbarController.destroyController();
-   // 	VUE.getActiveViewer().destroyContextMenus();
-    	//
 
     }
     /** simplest form of threadsafe static lazy initializer: for CategoryModel */
