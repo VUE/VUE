@@ -470,11 +470,20 @@ public class LWWormhole implements VueConstants {
 		return hasFile;
 	}
 	
+	// HO 25/03/2011 BEGIN ****************
+	// enormous waste of time.
 	private boolean pointsToSameMap(WormholeResource wr) {
 		boolean bSameMap = false;
 		String strSpec = wr.getSystemSpec();
 		String strOriginatingFile = wr.getOriginatingFilename();
+		
 		String strPossPrefix = "file:";
+		// HO 28/03/2011 BEGIN *************
+		String strBackSlashPrefix = "\\\\";
+		String strBackSlash = "\\";
+		String strForwardSlashPrefix = "////";
+		String strForwardSlash = "/";
+		// HO 28/03/2011 END *************
 		if (strSpec.equals(wr.SPEC_UNSET))
 			strSpec = wr.getTargetFilename();
 		
@@ -483,11 +492,33 @@ public class LWWormhole implements VueConstants {
 		if (strOriginatingFile.startsWith(strPossPrefix))
 			strOriginatingFile = strOriginatingFile.substring(strPossPrefix.length(), strOriginatingFile.length());
 		
+		// HO 28/03/2011 BEGIN *************
+		if (strSpec.startsWith(strBackSlashPrefix))
+			strSpec = strSpec.substring(strBackSlashPrefix.length(), strSpec.length());
+		if (strOriginatingFile.startsWith(strBackSlashPrefix))
+			strOriginatingFile = strOriginatingFile.substring(strBackSlashPrefix.length(), strOriginatingFile.length());
+		
+		if (strSpec.startsWith(strForwardSlashPrefix))
+			strSpec = strSpec.substring(strForwardSlashPrefix.length(), strSpec.length());
+		if (strOriginatingFile.startsWith(strForwardSlashPrefix))
+			strOriginatingFile = strOriginatingFile.substring(strForwardSlashPrefix.length(), strOriginatingFile.length());
+		// HO 28/03/2011 END *************
+		
 		if (strSpec.equals(strOriginatingFile))
 			bSameMap = true;
+		else if ((strSpec.contains(strForwardSlash)) && (strOriginatingFile.contains(strBackSlash))) {
+			strSpec = strSpec.replaceAll(strForwardSlash, strBackSlashPrefix);
+		}
+		else if ((strSpec.contains(strBackSlash)) && (strOriginatingFile.contains(strForwardSlash))) {
+			strOriginatingFile = strOriginatingFile.replaceAll(strForwardSlash, strBackSlashPrefix);
+		}
 		
+		if (strSpec.equals(strOriginatingFile))
+			bSameMap = true;
+					
 		return bSameMap;
-	}
+	} 
+	// HO 25/03/2011 END ****************
 
 	/**
 	 * A function for extrapolating source and target components,
