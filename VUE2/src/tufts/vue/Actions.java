@@ -4338,7 +4338,8 @@ public class Actions implements VueConstants
     
     // HO 12/12/2010 BEGIN ***************
     public static final VueAction NewIBISNode =
-        new NewItemAction(VueResources.local("menu.content.addIBISnode"), keyStroke(KeyEvent.VK_S, COMMAND)) {
+    	// HO 30/03/2011 changed letter from S to I
+        new NewItemAction(VueResources.local("menu.content.addIBISnode"), keyStroke(KeyEvent.VK_I, COMMAND)) {
             @Override
             LWComponent createNewItem() {
                 return IBISNodeModeTool.createNewNode();
