@@ -232,7 +232,11 @@ public class LWIBISNode extends LWNode
                 // by default, a double-click anywhere else in
                 // node opens the resource
                 if (hasResource()) {
-                    getResource().displayContent();
+                	// 30/03/2011 BEGIN *******
+                	// we just want to skip this for IBIS images
+                	//getResource().displayContent();
+                	// 30/03/2011 END *******
+                    
                 }
             }
         }
