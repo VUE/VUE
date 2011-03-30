@@ -356,9 +356,12 @@ public class DockWindow
      */
     public DockWindow(String title, Window owner, JComponent content, boolean asToolbar, boolean showCloseButton)
     {
-    	// As of Java 6 we no longer need this for linux support.
-        //if (!VUE.isApplet() && Util.isUnixPlatform()) {
-    	if (false) {
+    	/*
+    	 * The DialogPeer implementation for DockWindow addresses
+    	 * The bug described here on Linux : 
+    	 * Read this topic online: http://vue-forums.uit.tufts.edu/posts/list/957.page#3658
+    	 */
+        if (!VUE.isApplet() && Util.isUnixPlatform()) {    	
             
             _peer = new DialogPeer(VUE.getApplicationFrame(), title, !ON_TOP, !DECORATED);
             
