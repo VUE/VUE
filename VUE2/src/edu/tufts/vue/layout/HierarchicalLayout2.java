@@ -9,10 +9,21 @@ import tufts.vue.LWNode;
 import tufts.vue.LWSelection;
 
 public class HierarchicalLayout2 extends HierarchicalLayout {
+	protected boolean					mInverted;
 	private static final long			serialVersionUID = 1L;
 	protected static final org.apache.log4j.Logger
 										Log = org.apache.log4j.Logger.getLogger(HierarchicalLayout2.class);
-	protected boolean					DEBUG_LOCAL = false;
+	protected static final boolean		DEBUG_LOCAL = false;
+
+
+	public HierarchicalLayout2() {
+		this(false);
+	}
+
+
+	public HierarchicalLayout2(boolean inverted) {
+		mInverted = inverted;
+	}
 
 
 	public void layout(LWSelection selection) throws Exception {
@@ -72,14 +83,11 @@ public class HierarchicalLayout2 extends HierarchicalLayout {
 				LWNode				child = null,
 									parent = null;
 
-				// If a link has a single arrow, the link points to the parent.  Otherwise, consider
-				// the node on the other end of the link to be a child (for the purposes of no-arrow and
-				// double-arrow links).
-				// It's true that most trees usually point from parent to child, but this works the opposite
-				// because that's what Java Analysis expects.
+				// If the link has one arrow, the arrow points to the child.  If the link has zero
+				// or two arrows, consider the node on the other end of the link to be the child.
 				if (node.equals(head)) {
 					if (tail instanceof LWNode) {
-						if (arrowState == LWLink.ARROW_TAIL) {
+						if (arrowState == LWLink.ARROW_HEAD) {
 							parent = (LWNode)tail;
 						}
 						else {
@@ -89,7 +97,7 @@ public class HierarchicalLayout2 extends HierarchicalLayout {
 				}
 				else if (node.equals(tail)) {
 					if (head instanceof LWNode) {
-						if (arrowState == LWLink.ARROW_HEAD) {
+						if (arrowState == LWLink.ARROW_TAIL) {
 							parent = (LWNode)head;
 						}
 						else {
@@ -150,13 +158,14 @@ public class HierarchicalLayout2 extends HierarchicalLayout {
 		// Arrange nodes in layers below (children);
 		HierarchyLayer	childLayer = layer.getChildLayer();
 		float			childLayerCenterY = layerCenterY,
-						previousLayerHeight = layer.getHeight();
+						previousLayerHeight = layer.getHeight(),
+						invert = (mInverted ? -1 : 1);
 
 		while (childLayer != null) {
 			float		childLayerHeight = childLayer.getHeight();
 
-			childLayerCenterY += (previousLayerHeight / 2) + (childLayerHeight / 2 ) +
-				(2 * Math.min(previousLayerHeight, childLayerHeight));
+			childLayerCenterY += invert * ((previousLayerHeight / 2) + (childLayerHeight / 2 ) +
+				(2 * Math.min(previousLayerHeight, childLayerHeight)));
 			childLayer.layout(layerCenterX, childLayerCenterY);
 			childLayer = childLayer.getChildLayer();
 			previousLayerHeight = childLayerHeight;
@@ -171,8 +180,8 @@ public class HierarchicalLayout2 extends HierarchicalLayout {
 		while (parentLayer != null) {
 			float		parentLayerHeight = parentLayer.getHeight();
 
-			parentLayerCenterY -=  (previousLayerHeight / 2) + (parentLayerHeight / 2 ) +
-				2 * Math.min(previousLayerHeight, parentLayerHeight);
+			parentLayerCenterY -= invert * ((previousLayerHeight / 2) + (parentLayerHeight / 2 ) +
+				(2 * Math.min(previousLayerHeight, parentLayerHeight)));
 			parentLayer.layout(layerCenterX, parentLayerCenterY);
 			parentLayer = parentLayer.getParentLayer();
 			previousLayerHeight = parentLayerHeight;
