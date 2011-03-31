@@ -5328,6 +5328,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     // HO 16/12/2010 END ***************
     
     // HO 17/12/2010 BEGIN ***************
+    // creates the menu for changing a node from one IBIS type to another
     private JMenu createIBISTypeMenu() {
 		JMenu ibisTypeMenu = new JMenu(VueResources.getString("menu.ibis.type"));
 		
@@ -5341,6 +5342,22 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
     }
     // HO 17/12/2010 END ***************
+    
+ // HO 31/03/2011 BEGIN ***************
+    // creates the menu for creating a new IBIS node of a specific type
+    private JMenu createNewIBISTypeMenu() {
+		JMenu newIbisTypeMenu = new JMenu(VueResources.getString("menu.content.addIBISnode"));
+		
+		for (int i=0; i<Actions.NEW_IBIS_TYPE_MENUS.length; i++) {
+			if (Actions.NEW_IBIS_TYPE_MENUS[i][0] != null) {
+				newIbisTypeMenu.add(Actions.NEW_IBIS_TYPE_MENUS[i][0]);
+			}
+		}
+		
+		return newIbisTypeMenu;
+
+    }
+    // HO 31/03/2011 END ***************
 
 
     private static JMenuItem sAddFileItem;
@@ -6031,6 +6048,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             });
             sMapPopup.addSeparator();
             GUI.addToMenu(sMapPopup, Actions.NEW_OBJECT_ACTIONS);
+            // HO 31/03/2011 BEGIN ****************
+            sMapPopup.add(createNewIBISTypeMenu());
+            // HO 31/03/2011 END ****************
 
             sMapPopup.addSeparator();
             sMapPopup.add(Actions.ZoomFit);
@@ -7569,6 +7589,19 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         public void mouseDragged(MouseEvent e) {
 
             if (DEBUG.VIEWER) _mouse = e.getPoint();
+            
+            // HO 30/03/2011 BEGIN ***********
+            /* System.out.println("Button is " + e.getButton());
+            // make a note of what the active tool was
+            VueTool wasActiveTool = activeTool;
+            // if they clicked and dragged the right mouse button,
+            // automatically use the LinkTool and change back
+            // when we're done
+            if (e.getButton() == 3) { 
+            	//System.out.println(activeTool.getClass());
+            	activateTool(VueTool.getInstance(LinkTool.LinkModeTool.class));
+            } */
+            // HO 30/03/2011 END *************
 
             if (DEBUG.MOUSE && DEBUG.DND) System.out.println("[" + e.paramString() + "] on " + e.getSource().getClass().getName());
 

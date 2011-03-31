@@ -1978,6 +1978,36 @@ public class Actions implements VueConstants
            
     }
     // HO 16/12/2010 END *******************
+    
+    // HO 16/12/2010 BEGIN *****************    
+    private static class NewIBISStatusAction extends NewItemAction {
+        Class<? extends LWImage> imageClass;
+        String ibisType;
+    	
+        NewIBISStatusAction(String name, KeyStroke shortcut) {
+            super(VueResources.getString(name + ".name"), shortcut);
+            setImageClass(name);
+            setIbisType(name);
+        }
+        
+        void setIbisType(String name) {
+        	String ibisType = VueResources.getString(name + ".type");
+        	this.ibisType = ibisType;
+        	this.putValue(IBIS_TYPE, ibisType);
+        }
+        
+        void setImageClass(String name) {
+        	String imageClassName = VueResources.getString(name + ".imageClass");
+            try {
+				this.imageClass = (Class<? extends LWImage>) IBISNodeTool.class.getClassLoader().loadClass(imageClassName);
+			} catch (ClassNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        }
+           
+    }
+    // HO 16/12/2010 END *******************
 
     //m.add(Actions.AddURLAction);
 //    m.add(Actions.RemoveResourceAction);
@@ -3747,6 +3777,9 @@ public class Actions implements VueConstants
     // HO 16/12/2010 BEGIN ************
     // HO 16/12/2010 BEGIN ************
     public static final Action[][] IBIS_TYPE_MENUS;
+    // HO 31/03/2011 BEGIN ***********
+    public static final Action[][] NEW_IBIS_TYPE_MENUS;
+    // HO 31/03/2011 END ************
     /** the IBIS type map with subtool as key **/       
     private static final String IbisTypes[]=VueResources.getStringArray("IBISNodeTool.subtools");    
     private static final int maxPossStatuses = 5;
@@ -3766,6 +3799,30 @@ public class Actions implements VueConstants
 
     }
     // HO 16/12/2010 END **************
+    // HO 31/03/2011 BEGIN ************
+    static {
+
+    	NEW_IBIS_TYPE_MENUS = new Action[IbisTypes.length][maxPossStatuses];
+
+        int i = 0;
+
+        for (int x = 0; x < IbisTypes.length; x++) {
+        	String IbisSubTypes[]=VueResources.getStringArray("IBISNodeTool." + IbisTypes[x] + ".subtypes");
+        	for (int y = 0; y < IbisSubTypes.length; y++) {
+        		//NEW_IBIS_TYPE_MENUS[x][y] = new NewIBISStatusAction("IBISNodeTool." + IbisSubTypes[y]);
+        		NEW_IBIS_TYPE_MENUS[x][y] = new NewIBISStatusAction(VueResources.local("IBISNodeTool." + IbisSubTypes[y]), keyStroke(KeyEvent.VK_I, COMMAND)) {
+                    @Override
+                    LWComponent createNewItem() {
+                        LWIBISNode theNode = IBISNodeModeTool.createNewNode();
+                        theNode.setImage(this.imageClass);
+                        return theNode;
+                    }
+                };
+        	}
+        }
+
+    }
+    // HO 31/03/2011 END **************
 
     /** @return the next biggest size, unless the image icon is currently hidden, in which case return same size */
     private static int getBiggerSize(LWImage c)
