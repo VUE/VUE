@@ -95,6 +95,17 @@ public class Actions implements VueConstants
     static final private KeyStroke keyStroke(int vk, int mod) {
         return KeyStroke.getKeyStroke(vk, mod);
     }
+    // HO 01/04/2011 BEGIN ****************
+    static final private KeyStroke keyStroke(String vk, int mod) {
+    	// if it's null, give it a dummy value and continue
+    	// this is to be used when retrieving the keystroke value programmatically
+    	// and there may not be one
+    	if (vk == null)
+    		vk = "73"; // the letter I
+    		
+    	return KeyStroke.getKeyStroke(Integer.parseInt(vk), mod);
+    }
+    // HO 01/04/2011 END ****************
     static final private KeyStroke keyStroke(int vk) {
         return keyStroke(vk, 0);
     }
@@ -3810,7 +3821,9 @@ public class Actions implements VueConstants
         	String IbisSubTypes[]=VueResources.getStringArray("IBISNodeTool." + IbisTypes[x] + ".subtypes");
         	for (int y = 0; y < IbisSubTypes.length; y++) {
         		//NEW_IBIS_TYPE_MENUS[x][y] = new NewIBISStatusAction("IBISNodeTool." + IbisSubTypes[y]);
-        		NEW_IBIS_TYPE_MENUS[x][y] = new NewIBISStatusAction(VueResources.local("IBISNodeTool." + IbisSubTypes[y]), keyStroke(KeyEvent.VK_I, COMMAND)) {
+        		
+        		//NEW_IBIS_TYPE_MENUS[x][y] = new NewIBISStatusAction(VueResources.local("IBISNodeTool." + IbisSubTypes[y]), keyStroke(VueResources.getString("IBISNodeTool." + IbisTypes[x] + ".keystroke"), COMMAND)) {
+        		NEW_IBIS_TYPE_MENUS[x][y] = new NewIBISStatusAction(VueResources.local("IBISNodeTool." + IbisSubTypes[y]), null) {
                     @Override
                     LWComponent createNewItem() {
                         LWIBISNode theNode = IBISNodeModeTool.createNewNode();
@@ -4420,13 +4433,29 @@ public class Actions implements VueConstants
     public static final Action[] NEW_OBJECT_ACTIONS = {
         NewNode,
         // HO 12/12/2010 BEGIN *********
-        NewIBISNode,
+        //NewIBISNode,
         // HO 12/12/2010 END ***********
         NewRichText,
         //AddImageAction,
         //AddFileAction,
         //NewSlide
     };
+    
+    // HO 01/04/2011 BEGIN ******
+    public static final Action[] NEW_IBIS_TYPE_ACTIONS = getNewIBISTypeActions();
+    
+	private static Action[] getNewIBISTypeActions() {
+		Action[] newIBISTypeActions = new Action[NEW_IBIS_TYPE_MENUS.length];
+	    for (int i=0; i<NEW_IBIS_TYPE_MENUS.length; i++) {
+			if (NEW_IBIS_TYPE_MENUS[i][0] != null) {
+				newIBISTypeActions[i] = NEW_IBIS_TYPE_MENUS[i][0];
+			}
+		}
+	    
+	    return newIBISTypeActions;
+	}
+	
+	// HO 01/04/2011 END ******
     
     static class NewItemAction extends VueAction {
         static LWComponent lastItem = null;

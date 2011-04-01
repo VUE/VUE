@@ -735,6 +735,9 @@ public class VueMenuBar extends javax.swing.JMenuBar
         // Build Content Menu
         ////////////////////////////////////////////////////////////////////////////////////
         GUI.addToMenu(contentMenu, Actions.NEW_OBJECT_ACTIONS);
+        // HO 01/04/2011 BEGIN **********
+        contentMenu.add(buildMenu("menu.content.addIBISnode", Actions.NEW_IBIS_TYPE_ACTIONS));
+        // HO 01/04/2011 END ************
         
         final JMenuItem addFileItem = new JMenuItem(Actions.AddFileAction);
         final JMenuItem addURLItem = new JMenuItem(Actions.AddURLAction);
@@ -1089,7 +1092,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         	windowMenu.add(createWindowItem(VUE.getFormatDock(), KeyEvent.VK_1,VueResources.getString("menu.windows.formatpalette")));
         // HO 25/06/2010 BEGIN ********************
         if (VUE.getIBISFormatDock() != null)
-        	windowMenu.add(createWindowItem(VUE.getIBISFormatDock(), KeyEvent.VK_I, VueResources.getString("menu.windows.ibismenu")));
+        	windowMenu.add(createWindowItem(VUE.getIBISFormatDock(), KeyEvent.VK_B, VueResources.getString("menu.windows.ibismenu")));
         // HO 25/06/2010 END ************************
         windowMenu.addSeparator();                
         if (VUE.getInfoDock() !=null)
