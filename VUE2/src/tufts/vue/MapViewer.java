@@ -6718,6 +6718,21 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         public void mousePressed(MouseEvent e) {
 
             mouseConsumed = false;
+            
+            // HO 30/03/2011 BEGIN ***********
+            // if they clicked and dragged while shift was down,
+            // automatically use the LinkTool and change back
+            // when we're done
+            boolean bShiftDown = false;
+            VueTool wasActiveTool = null;
+            if (e.isShiftDown()) {
+            	bShiftDown = true;
+            	//System.out.println(activeTool.getClass());
+            	// make a note of what the active tool was
+                wasActiveTool = activeTool;
+            	activateTool(VueTool.getInstance(LinkTool.LinkModeTool.class));
+            } 
+            // HO 30/03/2011 END *************
 
             final boolean wasFocusOwner;
          
@@ -6793,6 +6808,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 LWIcon.displayRolloverResource();
                 mouseConsumed = true;
                 e.consume();
+                // HO 04/04/2011 BEGIN ***********
+                resetActiveTool(bShiftDown, activeTool, wasActiveTool);
+                // HO 04/04/2011 END ************
                 return;
             }
             //=============================================================================
@@ -6804,12 +6822,18 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
             if (activeTool.handleMousePressed(mme)) {
                 activeToolAteMousePress = true;
+                // HO 04/04/2011 BEGIN ***********
+                resetActiveTool(bShiftDown, activeTool, wasActiveTool);
+                // HO 04/04/2011 END ************
                 return;
             }
             
             if (e.getButton() == 0 && (e.getModifiersEx() & InputEvent.BUTTON2_DOWN_MASK) != 0) {
                 // sometimes pressing the mouse-wheel sends an event that looks like this
                 tufts.vue.ZoomTool.setZoomFit();
+                // HO 04/04/2011 BEGIN ***********
+                resetActiveTool(bShiftDown, activeTool, wasActiveTool);
+                // HO 04/04/2011 END ************
                 return;
             }
             
@@ -6833,13 +6857,15 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 return;
             }
             
-            
             if (e.getButton() == MouseEvent.BUTTON1 && activeTool.supportsSelection()) {
                 //-------------------------------------------------------
                 // Check for hits on selection control points
                 //-------------------------------------------------------
                 hitOnSelectionHandle = checkAndHandleControlPointPress(mme);
                 if (hitOnSelectionHandle) {
+                    // HO 04/04/2011 BEGIN ***********
+                	resetActiveTool(bShiftDown, activeTool, wasActiveTool);
+                    // HO 04/04/2011 END ************
                     return;
                 }
             }
@@ -6916,6 +6942,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 // a context menu depending on what's in selection.
                 //-------------------------------------------------------
                 displayContextMenu(e, hitComponent);
+                // HO 04/04/2011 BEGIN ***********
+                resetActiveTool(bShiftDown, activeTool, wasActiveTool);
+                // HO 04/04/2011 END ************
                 return;
             }
             else if (hitComponent != null && hitComponent == mFocal) {
@@ -7060,7 +7089,24 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 dragOffset.setLocation(dragComponent.getX() - mapX,
                                        dragComponent.getY() - mapY);
             
+            // HO 04/04/2011 BEGIN ***********
+            resetActiveTool(bShiftDown, activeTool, wasActiveTool);
+            // HO 04/04/2011 END ************
+            
         }
+        
+        // HO 04/04/2011 BEGIN ***********
+        // if the shift key was down during a click and drag event,
+        // we automatically set the active tool to LinkTool and then
+        // set it back once the drag is over
+        private void resetActiveTool(boolean bShiftDown, VueTool activeTool, VueTool wasActiveTool) {
+	        if (bShiftDown) {
+	        	if ((activeTool != wasActiveTool) && (wasActiveTool != null)) {
+	        		activateTool(wasActiveTool);
+	        	}
+	        }
+        }
+        // HO 04/04/2011 END ************
         
         /**
          * Context menus in the VUE applet after a restart of the applet on MAC get hammered 
@@ -7591,22 +7637,28 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             if (DEBUG.VIEWER) _mouse = e.getPoint();
             
             // HO 30/03/2011 BEGIN ***********
-            /* System.out.println("Button is " + e.getButton());
-            // make a note of what the active tool was
-            VueTool wasActiveTool = activeTool;
-            // if they clicked and dragged the right mouse button,
+            // if they clicked and dragged while shift was down,
             // automatically use the LinkTool and change back
             // when we're done
-            if (e.getButton() == 3) { 
+            boolean bShiftDown = false;
+            VueTool wasActiveTool = null;
+            if (e.isShiftDown()) {
+            	bShiftDown = true;
             	//System.out.println(activeTool.getClass());
+            	// make a note of what the active tool was
+                wasActiveTool = activeTool;
             	activateTool(VueTool.getInstance(LinkTool.LinkModeTool.class));
-            } */
+            } 
             // HO 30/03/2011 END *************
 
             if (DEBUG.MOUSE && DEBUG.DND) System.out.println("[" + e.paramString() + "] on " + e.getSource().getClass().getName());
 
-            if (mouseConsumed)
+            if (mouseConsumed) {
+            	// HO 04/04/2011 BEGIN ***********
+                resetActiveTool(bShiftDown, activeTool, wasActiveTool);
+                // HO 04/04/2011 END ************
                 return;
+            }
 
             clearRollover();
             //System.out.println("drag " + drags++);
@@ -7618,6 +7670,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 if (isSystemDragStart(e)) {
                     startSystemDrag(e);
                     // we'll get no more mouseDragged, and no mouseReleased
+                    // HO 04/04/2011 BEGIN ***********
+                    resetActiveTool(bShiftDown, activeTool, wasActiveTool);
+                    // HO 04/04/2011 END ************
                     return;
                 }
 
@@ -7653,6 +7708,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     lastDrag.setLocation(currentMousePosition);
                 } else
                     System.err.println("null originAtDragStart -- drag skipped!");
+                // HO 04/04/2011 BEGIN ***********
+                resetActiveTool(bShiftDown, activeTool, wasActiveTool);
+                // HO 04/04/2011 END ************
                 return;
             }
             
@@ -7678,8 +7736,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             final MapMouseEvent mme = new MapMouseEvent(e, mapX, mapY, draggedSelectorBox, false);
             
             
-            if (!dragSelectorEnabled(mme) && !activeTool.supportsResizeControls()) 
+            if (!dragSelectorEnabled(mme) && !activeTool.supportsResizeControls()) {
+            	// HO 04/04/2011 BEGIN ***********
+                resetActiveTool(bShiftDown, activeTool, wasActiveTool);
+                // HO 04/04/2011 END ************
                 return;
+            }
             // todo: dragControls could be skipped! [WAS TRUE W/OUT RESIZE CONTROL CHECK ABOVE]
             // todo serious: now text tool leaves a dragged box around!
             
@@ -7690,6 +7752,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 //-------------------------------------------------------
                 scrollToMouse(e);
                 dragResizeSelectorBox(screenX, screenY);
+                // HO 04/04/2011 BEGIN ***********
+                resetActiveTool(bShiftDown, activeTool, wasActiveTool);
+                // HO 04/04/2011 END ************
                 return;
             } else {
                 draggedSelectorBox = null;
@@ -7715,6 +7780,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
                 if (Math.abs(dx) < 3 && Math.abs(dy) < 3) {
                     if (DEBUG.MOUSE) out("delaying drag start with dx="+dx + " dy="+dy);
+                    // HO 04/04/2011 BEGIN ***********
+                    resetActiveTool(bShiftDown, activeTool, wasActiveTool);
+                    // HO 04/04/2011 END ************
                     return;
                 }
 
@@ -7847,8 +7915,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     clearIndicated();
             }
             
-            if (dragComponent == null && dragControl == null)
+            if (dragComponent == null && dragControl == null) {
+            	// HO 04/04/2011 BEGIN ***********
+                resetActiveTool(bShiftDown, activeTool, wasActiveTool);
+                // HO 04/04/2011 END ************
                 return;
+            }
             
             if (OPTIMIZED_REPAINT == false) {
                 
@@ -7964,6 +8036,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 
                 
             }
+            // HO 04/04/2011 BEGIN ***********
+            resetActiveTool(bShiftDown, activeTool, wasActiveTool);
+            // HO 04/04/2011 END ************
         }
         
         /*
@@ -7979,6 +8054,21 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             sDragUnderway = false;
             if (DEBUG.MOUSE) out("[" + e.paramString() + "]");
             
+            // HO 30/03/2011 BEGIN ***********
+            // if they clicked and dragged while shift was down,
+            // automatically use the LinkTool and change back
+            // when we're done
+            boolean bShiftDown = false;
+            VueTool wasActiveTool = null;
+            if (e.isShiftDown()) {
+            	bShiftDown = true;
+            	//System.out.println(activeTool.getClass());
+            	// make a note of what the active tool was
+                wasActiveTool = activeTool;
+            	activateTool(VueTool.getInstance(LinkTool.LinkModeTool.class));
+            } 
+            // HO 30/03/2011 END *************
+            
             viewer.setAutoscrolls(true); // in case had been cleared for panning
             setLastMousePoint(e.getX(), e.getY());
             
@@ -7988,6 +8078,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             if (mouseWasDragged && dragControl != null) {
                 dragControl.controlPointDropped(dragControlIndex, mme);
             }
+            
             else if (!mouseConsumed && activeTool.handleMouseReleased(mme)) {
                 repaint();
             }
@@ -8112,6 +8203,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             // handles while dragging (this is to put them back if we werent)
             // use selection repaint region?
             //repaint();
+            // HO 04/04/2011 BEGIN ***********
+            resetActiveTool(bShiftDown, activeTool, wasActiveTool);
+            // HO 04/04/2011 END ************
             
         }
         
