@@ -21,6 +21,7 @@ import static tufts.Util.fmt;
 import tufts.vue.LWComponent.Alignment;
 import tufts.vue.LWComponent.CopyContext;
 import tufts.vue.LWComponent.Flag;
+import tufts.vue.LWComponent.HideCause;
 import tufts.vue.LWIBISNode.Column;
 import tufts.vue.ibisimage.*;
 import tufts.vue.shape.RectangularPoly2D;
@@ -627,13 +628,59 @@ public class LWIBISNode extends LWNode
 
         if (ibisImage != null && IsSameImage(ibisImage.getClass(), imageClass))
             return;
+        
+        // HO 05/04/2011 BEGIN ****************
+        // make sure new image is same size as previous image
+        Size prevSize = getCurrentIBISImageSize();
+        // HO 05/04/2011 END ****************
 
         try {
             setImageInstance(imageClass.newInstance());
         } catch (Throwable t) {
             tufts.Util.printStackTrace(t);
         }
+                
+        // HO 05/04/2011 BEGIN ****************
+        // make sure new image is same size as previous image
+        setImageToSize(prevSize);
+        // HO 05/04/2011 END ****************        
     }
+    
+    // HO 05/04/2011 BEGIN ************
+    // records the size of the current IBIS image, if there is one
+    private Size getCurrentIBISImageSize() {
+    	Size curSize = null;
+    	
+        if (ibisImage != null) {
+        	for (LWComponent c : getChildren()) {
+        		if (c.hasResource()) {
+	                if (c.getResource().getSpec().equals(ibisImage.getResource().getSpec())) {
+	                    curSize = new Size(c.getWidth(), c.getHeight());
+	                    break;
+	                }
+        		}
+            }
+        }
+        
+        return curSize;
+    }
+    
+    private void setImageToSize(Size theSize) {
+    	// input validation
+    	if (theSize == null)
+    		return;
+    	
+    	// extract previous size params as floats
+    	float newHeight = (float) theSize.getHeight();
+    	float newWidth = (float) theSize.getWidth();
+    	// apply this to the current image
+    	// (which we assume is an IBIS image, but whatever)
+    	LWImage image = getImage();
+        if (image != null) {
+        	image.setSize(newWidth, newHeight); 
+        }
+    }
+    // HO 05/04/2011 END **************
     
     @Override
     public boolean isTextNode() {
