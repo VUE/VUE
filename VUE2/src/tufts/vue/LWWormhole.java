@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Vector;
 
 import javax.swing.JOptionPane;
 
@@ -686,6 +687,13 @@ public class LWWormhole implements VueConstants {
 		if ((targetSpec == null) || (targetSpec == ""))
 			return null;
 		
+		// now we extrapolate the target component
+		// by getting the component URI string from the resource
+		String compString = wr.getComponentURIString();
+		// if the resource doesn't have a component string it's broken
+		if ((compString == null) || (compString == ""))
+			return null;
+		
 		// to ward off FileNotFoundExceptions later on,
 		// create a target file using the path extracted
 		// from the resource
@@ -708,11 +716,67 @@ public class LWWormhole implements VueConstants {
 				targetSpec = targFile.getAbsolutePath();
 				targMap = OpenAction.loadMap(targetSpec);
 			}
-			else // if we still can't find it, give up
-				return null;
-			
+			else {// if we still can't find it, search all the subfolders
+				Vector v = new Vector();
+				v = fileExistInPath(targFile.getParent(), targFile.getName(), v);
+			    Iterator itr = v.iterator();
+
+			    LWComponent targetComp = null;
+			    while(itr.hasNext()) {
+			    	File f = (File)itr.next();
+			    	String s = f.getAbsolutePath();
+			    	LWMap map = OpenAction.loadMap(s);
+					// see if this is the right map
+			    	// by looking to see if the target component is in it
+					targetComp = map.findChildByURIString(compString);
+					// if we found it, this is the right map
+					if (targetComp != null) {
+						targMap = map;
+						break;
+					}
+			     }
+			}
+							
 			return targMap;
 	}
+	
+
+
+		/**
+
+		* @param top_level_dir
+
+		* @param file_to_search
+
+		* @param v
+
+		* @return Vector
+
+		*/
+
+		public static Vector fileExistInPath(String top_level_dir, String file_to_search, Vector v) {
+
+			File f = new File(top_level_dir);	
+			File[] dir = f.listFiles();	
+			if (dir != null) {	
+				for (int i = 0; i < dir.length; i++) {
+					File file_test = dir[i];
+					if (file_test.isFile()) {	
+						if (file_test.getName().equals(file_to_search)) {
+							System.out.println("File Name :" + file_test);
+							//v.add(top_level_dir);	
+							v.add(new File(top_level_dir, file_test.getName()));
+						}
+					} else if(file_test.isDirectory()){	
+						fileExistInPath(file_test.getAbsolutePath(), file_to_search, v);
+					}
+				}
+			} else {	
+				System.out.println("null list of files");
+			}	
+			return v;
+
+		}
 	
 	private boolean extrapolateDuringReparent(LWWormholeNode wn, WormholeResource wr, String prevURI, LWComponent newParent) {
 		// input validation
