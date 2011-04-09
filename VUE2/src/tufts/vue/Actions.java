@@ -3762,8 +3762,14 @@ public class Actions implements VueConstants
     
 
     private static final int ImageSizes[] = { 1024, 768, 640, 512, 384, 256, 128, 64, 32, 16 };
-
+    // HO 08/04/2011 BEGIN *********
+    private static final int IBISImageSizes[] = { 64, 32 };
+    // HO 08/04/2011 END **********
+    
     public static final Action[] IMAGE_MENU_ACTIONS;
+    // HO 08/04/2011 BEGIN *********
+    public static final Action[] IBIS_IMAGE_MENU_ACTIONS;
+    // HO 08/04/2011 END **********
     public static final Action[] NODE_FORMAT_MENU_ACTIONS = {ResizeNode};
 
     static {
@@ -3784,6 +3790,27 @@ public class Actions implements VueConstants
         IMAGE_MENU_ACTIONS[i++] = ImageShow;
 
     }
+    
+    // HO 08/04/2011 BEGIN *******
+    static {
+
+        IBIS_IMAGE_MENU_ACTIONS = new Action[IBISImageSizes.length + 3];
+
+        int i = 0;
+        
+        //IBIS_IMAGE_MENU_ACTIONS[i++] = ImageBigger; // we all know x64 is bigger
+        //IBIS_IMAGE_MENU_ACTIONS[i++] = ImageSmaller; // and x32 is smaller
+        IBIS_IMAGE_MENU_ACTIONS[i++] = ImageToNaturalSize;
+
+        for (int x = 0; x < IBISImageSizes.length; x++) {
+            IBIS_IMAGE_MENU_ACTIONS[i++] = new ImageSizeAction(IBISImageSizes[x]);
+        }
+
+        IBIS_IMAGE_MENU_ACTIONS[i++] = ImageHide;
+        IBIS_IMAGE_MENU_ACTIONS[i++] = ImageShow;
+
+    }
+    // HO 08/04/2011 END ********
     
     // HO 16/12/2010 BEGIN ************
     // HO 16/12/2010 BEGIN ************

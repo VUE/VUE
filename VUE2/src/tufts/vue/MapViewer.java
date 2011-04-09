@@ -5263,7 +5263,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 		sMultiPopup.add(Actions.ZoomActual);
 
 		sMultiPopup.addSeparator();
-		sMultiPopup.add(GUI.buildMenu(VueResources.getString("menu.image"), Actions.IMAGE_MENU_ACTIONS));
+		// HO 08/04/2011 BEGIN *********
+		if (VUE.getSelection().allOfType(LWIBISNode.class))
+			sMultiPopup.add(GUI.buildMenu(VueResources.getString("menu.ibisimage"), Actions.IBIS_IMAGE_MENU_ACTIONS));
+		else 
+		// HO 08/04/2011 END ***********
+			sMultiPopup.add(GUI.buildMenu(VueResources.getString("menu.image"), Actions.IMAGE_MENU_ACTIONS));
 		sMultiPopup.add(GUI.buildMenu(VueResources.getString("menu.align"), Actions.ALIGN_MENU_ACTIONS));
 		sMultiPopup.add(GUI.buildMenu(VueResources.getString("menu.arrange"), Actions.ARRANGE_MENU_ACTIONS));
 		sMultiPopup.add(GUI.buildMenu(VueResources.getString("menu.layout"),LayoutAction.LAYOUT_ACTIONS));
@@ -5439,7 +5444,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     	sSinglePopup.add(Actions.ZoomActual);
 
         sSinglePopup.addSeparator();
-        sSinglePopup.add(GUI.buildMenu(VueResources.getString("menu.image"), Actions.IMAGE_MENU_ACTIONS));
+        // HO 08/04/2011 BEGIN *********
+		if (VUE.getSelection().allOfType(LWIBISNode.class))
+			sSinglePopup.add(GUI.buildMenu(VueResources.getString("menu.ibisimage"), Actions.IBIS_IMAGE_MENU_ACTIONS));
+		else
+			// HO 08/04/2011 END *********
+			sSinglePopup.add(GUI.buildMenu(VueResources.getString("menu.image"), Actions.IMAGE_MENU_ACTIONS));
+		
         sSinglePopup.add(GUI.buildMenu(VueResources.getString("menu.arrange"), Actions.ARRANGE_MENU_ACTIONS));
         sSinglePopup.add(GUI.buildMenu(VueResources.getString("menu.layout"),LayoutAction.LAYOUT_ACTIONS));
 
@@ -5784,8 +5795,14 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     	 sSinglePopup.add(Actions.ZoomActual);
 
     	 sSinglePopup.addSeparator();
-    	 sSinglePopup.add(GUI.buildMenu(VueResources.getString("menu.image"), Actions.IMAGE_MENU_ACTIONS));
-    	 sSinglePopup.add(arrangeMenu);
+    	 // HO 08/04/2011 BEGIN *********
+ 		 if (VUE.getSelection().allOfType(LWIBISNode.class))
+ 			 sSinglePopup.add(GUI.buildMenu(VueResources.getString("menu.ibisimage"), Actions.IBIS_IMAGE_MENU_ACTIONS));
+ 		 else
+ 			sSinglePopup.add(GUI.buildMenu(VueResources.getString("menu.image"), Actions.IMAGE_MENU_ACTIONS));
+ 		// HO 08/04/2011 END *********
+ 		 
+ 		 sSinglePopup.add(arrangeMenu);
 
     	 sSinglePopup.addSeparator();
     	 sSinglePopup.add(Actions.AddPathwayItem);

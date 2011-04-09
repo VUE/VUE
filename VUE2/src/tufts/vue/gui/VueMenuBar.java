@@ -114,6 +114,10 @@ public class VueMenuBar extends javax.swing.JMenuBar
     public static JMenu arrangeMenu = null;
     public static JMenu alignMenu = null;
     public static JMenu layoutMenu = null;
+    // HO 08/04/2011 BEGIN *********
+    public static JMenu imageMenu = null;
+    public static JMenu ibisImageMenu = null;
+    // HO 08/04/2011 END **********
     public static JMenu linkMenu = null;
     public static JMenu playbackMenu = null;
     public boolean isMenuEnableFontFlg = false;
@@ -289,6 +293,12 @@ public class VueMenuBar extends javax.swing.JMenuBar
         layoutMenu = makeMenu(VueResources.getString("menu.layout"));
         layoutMenu.setEnabled(false);        
         
+        // HO 08/04/2011 BEGIN *********
+        imageMenu = makeMenu(VueResources.getString("menu.image"));
+        imageMenu.setEnabled(false);
+        ibisImageMenu = makeMenu(VueResources.getString("menu.ibisimage"));
+        ibisImageMenu.setEnabled(false);
+        // HO 08/04/2011 END **********
         linkMenu = makeMenu(VueResources.getString("menu.link"));
         linkMenu.setEnabled(false); 
         final JMenu helpMenu = add(makeMenu(VueResources.getString("menu.help")));
@@ -712,6 +722,10 @@ public class VueMenuBar extends javax.swing.JMenuBar
         buildMenu(alignMenu, Actions.ALIGN_MENU_ACTIONS);
         buildMenu(arrangeMenu, Actions.ARRANGE_MENU_ACTIONS);
         buildMenu(layoutMenu,LayoutAction.LAYOUT_ACTIONS);
+        // HO 08/04/2011 BEGIN *********
+        buildMenu(imageMenu, Actions.IMAGE_MENU_ACTIONS);
+        buildMenu(ibisImageMenu, Actions.IBIS_IMAGE_MENU_ACTIONS);
+        // HO 08/04/2011 END ***********
         buildMenu(linkMenu, Actions.LINK_MENU_ACTIONS);
         transformMenu.add(Actions.FontBigger);
         transformMenu.add(Actions.FontSmaller);
@@ -720,7 +734,12 @@ public class VueMenuBar extends javax.swing.JMenuBar
         transformMenu.add(Actions.FontUnderline);
         formatMenu.add(buildMenu("menu.node",Actions.NODE_FORMAT_MENU_ACTIONS));
         formatMenu.add(transformMenu);
-        formatMenu.add(buildMenu("menu.image", Actions.IMAGE_MENU_ACTIONS));
+        // HO 08/04/2011 BEGIN *********
+        //formatMenu.add(buildMenu("menu.image", Actions.IMAGE_MENU_ACTIONS));
+        //formatMenu.add(buildMenu("menu.ibisimage", Actions.IBIS_IMAGE_MENU_ACTIONS));
+        formatMenu.add(imageMenu);
+        formatMenu.add(ibisImageMenu);
+        // HO 08/04/2011 END ***********			 
         formatMenu.add(linkMenu);
         formatMenu.add(alignMenu);
         formatMenu.add(arrangeMenu);
@@ -788,6 +807,19 @@ public class VueMenuBar extends javax.swing.JMenuBar
 						transformMenu.setEnabled(true);
 					}
 				}
+				
+				// HO 08/04/2011 BEGIN ********
+				if (selection.allOfType(LWIBISNode.class))
+				{
+					imageMenu.setEnabled(false);
+					ibisImageMenu.setEnabled(true);
+				}
+				else
+				{
+					imageMenu.setEnabled(true);
+					ibisImageMenu.setEnabled(false);
+				}
+				// HO 08/04/2011 END **********
 				
 			}});
         contentMenu.addMenuListener(new MenuListener(){

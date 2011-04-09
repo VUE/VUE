@@ -197,7 +197,11 @@ public class LWImage extends LWComponent
     }
 
     /** used by Actions to size the image */
+    // HO 08/04/2011 BEGIN ************
     void setMaxDimension(final float max)
+    // need the visibility for LWImage
+    //protected void setMaxDimension(final float max)
+    // HO 08/04/2011 END ************
     {
         //========================================================================================
         // [FIXED]: if an image has an icon in cache, and we're creating a NEW RESOURCE,

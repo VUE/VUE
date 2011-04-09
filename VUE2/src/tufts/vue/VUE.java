@@ -585,6 +585,9 @@ public class VUE
         VueMenuBar.RootMenuBar.arrangeMenu.setEnabled(enable); 
         VueMenuBar.RootMenuBar.alignMenu.setEnabled(enable); 
         VueMenuBar.RootMenuBar.layoutMenu.setEnabled(enable); 
+        // HO 08/04/2011 BEGIN **********
+        VueMenuBar.RootMenuBar.ibisImageMenu.setEnabled(enable); 
+        // HO 08/04/2011 END **********
         VueMenuBar.RootMenuBar.linkMenu.setEnabled(enable); 
        
         Actions.NewNode.setEnabled(enable);
