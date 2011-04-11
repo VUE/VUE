@@ -73,6 +73,7 @@ import java.net.*;
  * @version $Revision: 1.142 $ / $Date: 2010-02-03 19:13:45 $ / $Author: mike $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
+ * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2011
  */
 
 public class ActionUtil
@@ -204,6 +205,8 @@ public class ActionUtil
             if (picked.exists()) {   
             	
             	// HO 23/03/2011 BEGIN **************
+            	// check and see if this map is already open.
+            	// if it is, explain that we can't open it again.
             	if (isMapAlreadyOpen(fileName) == true) {
     				VueUtil.alert(fileName + " " + VueResources.getString("alreadyOpenFile.text"), VueResources.getString("alreadyOpenFile.title"));
     				picked = null;
@@ -228,10 +231,19 @@ public class ActionUtil
     }
     
     // HO 23/03/2011 BEGIN ***********************
+    /**
+     * A function to check whether a map is already open.
+     * @param fileName, a String representing the map to check.
+     * @return true if the map is already open, false otherwise.
+     * @author Helen Oliver, Imperial College London
+     */
     private static boolean isMapAlreadyOpen(String fileName) {
     	// input validation
     	if ((fileName == null) || (fileName == ""))
     		return false;
+    	
+    	// flag whether the map is open or not (assume not
+    	// until proven otherwise)
     	boolean bOpen = false;
     	
     	// find the map that's being saved
@@ -257,8 +269,7 @@ public class ActionUtil
 		} // end of for loop
 		
 		return bOpen;
-    }
-    
+    }    
     // HO 23/03/2011 END *************************
     
     private final static void adjustExtension()
@@ -903,7 +914,7 @@ public class ActionUtil
         if (!file.exists()) {
         	// HO 24/12/2010 BEGIN ************
         	// Mac does weird stuff by looking in the working folder
-        	// so if we want the really absolute path we have to get the path...
+        	// so if we want the really absolute path we first have to get the path...
         	try {
 				file = new File(new URI(file.getPath()));
 			} catch (URISyntaxException e) {

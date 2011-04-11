@@ -46,6 +46,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
  * The icon region displays a tool-tip on rollover and may handle double-click.
  *
  * @version $Revision: 1.71 $ / $Date: 2007/11/22 07:28:50 $ / $Author: sfraize $
+ * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2011
  *
  */
 

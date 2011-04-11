@@ -12,6 +12,7 @@
  * or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
+
 package tufts.vue;
 
 import java.applet.AppletContext;
@@ -120,6 +121,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * we want to see there (including menus, toolbars, etc).
  *
  * @version $Revision: 1.714 $ / $Date: 2010-02-03 19:17:40 $ / $Author: mike $ 
+ * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2011
  */
 
 public class VUE

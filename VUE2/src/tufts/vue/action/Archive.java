@@ -41,6 +41,7 @@ import static tufts.vue.Resource.*;
  * Code related to identifying, creating and unpacking VUE archives.
  *
  * @version $Revision: 1.14 $ / $Date: 2010-02-03 19:13:45 $ / $Author: mike $ 
+ * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2011
  */
 public class Archive
 {
@@ -717,7 +718,7 @@ public class Archive
                 	// HO 24/12/2010 BEGIN ************
                 	// note: yes, I have no life.
                 	// Mac does weird stuff by looking in the working folder
-                	// so if we want the really absolute path we have to get the path...
+                	// so if we want the really absolute path we first have to get the path...
                 	File file = null;
                 	try {
         				file = new File(new URI(sourceFile.getPath()));
@@ -726,7 +727,7 @@ public class Archive
         				e.printStackTrace();
         			}
                 	if (!file.isFile()) {
-                		// HO 24/12/2010 BEGIN ************
+                		// HO 24/12/2010 END ************
                 		Log.warn("Missing local file: " + sourceFile + "; for " + r);
                 		continue;
                 	} 
@@ -811,8 +812,9 @@ public class Archive
         Log.info("Wrote " + archive);
         
         // HO 03/02/2011 BEGIN *******************
+        // make sure the map has this file set
 		map.setFile(archive);
-        // HO 20/02/2011 END **************
+        // HO 20/02/2011 END **********************
 
     }
     
@@ -823,20 +825,18 @@ public class Archive
      * Entries for Resource data in the zip archive are annotated with their original
      * Resource spec, so they can be identified on unpacking, and associated with their
      * original aResources.
-
-     */
-    
+	 * This is the same as writeArchive(LWMap map, File archive), except that it
+	 * automatically opens the map after saving, and if there is an original .vue file
+	 * from which the archive was created, it closes that so as to make the new
+	 * archive the new working file.
+	 * @param map, the LWMap to save as a Zip archive
+	 * @param archive, the Zip File to save the map to
+	 * @author Helen Oliver
+     */    
     public static void writeArchiveSpecial(LWMap map, File archive)
         throws java.io.IOException
     {
         Log.info("Writing archive package " + archive);
-
-//         final String label = map.getLabel();
-//         final String mapName;
-//         if (label.endsWith(".vue"))
-//             mapName = label.substring(0, label.length() - 4);
-//         else
-//             mapName = label;
 
         final String label = archive.getName();
         final String mapName;
@@ -886,7 +886,7 @@ public class Archive
                 	// HO 24/12/2010 BEGIN ************
                 	// note: yes, I have no life.
                 	// Mac does weird stuff by looking in the working folder
-                	// so if we want the really absolute path we have to get the path...
+                	// so if we want the really absolute path we first have to get the path...
                 	File file = null;
                 	try {
         				file = new File(new URI(sourceFile.getPath()));
@@ -895,7 +895,7 @@ public class Archive
         				e.printStackTrace();
         			}
                 	if (!file.isFile()) {
-                		// HO 24/12/2010 BEGIN ************
+                		// HO 24/12/2010 END ************
                 		Log.warn("Missing local file: " + sourceFile + "; for " + r);
                 		continue;
                 	} 
@@ -907,8 +907,6 @@ public class Archive
                 Archive.setComment(entry, "\t" + SPEC_KEY + r.getSpec());
 
                 final Item item = new Item(entry, r, sourceFile);
-                
-                //Log.info("created: " + entry + "; " + description);
 
                 items.add(item);
                 manifest.add(new PropertyEntry(r.getSpec(), packageEntryName));
@@ -930,9 +928,7 @@ public class Archive
         final ZipEntry mapEntry = new ZipEntry(dirName + "/" + mapName + "$map.vue");
         final String comment = MAP_ARCHIVE_KEY + "; VERSION: 2;"
             + " Saved " + new Date() + " by " + VUE.getName() + " built " + Version.AllInfo + "; items=" + items.size() + ";"
-            + ">" // /usr/bin/what terminatior
-            //+ "\n\tmap-name(" + mapName + ")"
-            //+ "\n\tunique-resources(" + resources.size() + ")"
+            + ">" 
             ;
         Archive.setComment(mapEntry, comment);
         zos.putNextEntry(mapEntry);
@@ -980,16 +976,16 @@ public class Archive
         Log.info("Wrote " + archive);
         
         // HO 03/02/2011 BEGIN *******************
-        // see if opening the .vpk automatically is any help.
-        //OpenAction.loadMap(archive.toString());
-        //openVuePackage(archive);
-        //OpenAction.displayMap(archive);
-        //VUE.displayMap(archive);
+        // Open the map automatically, if we're not already doing so.
+        // Close the original .vue file the archive was created from,
+        // if it's open.
         if (!bAutoOpeningMap) {
+        	// auto-open
         	autoOpenMap(archive);        		
     		// get all the open maps
     		Collection<LWMap> coll = VUE.getAllMaps();
 	    		for (LWMap aMap: coll) {
+	    			// if it's the same map
 	    			if (aMap.equals(map)) {
 	    				// here's the map we started with, close it
 	    				// and do not prompt to save it, because
@@ -997,24 +993,23 @@ public class Archive
 	    				// but check and make sure that we're closing
 	    				// a different file first!
 	    				File aFile = aMap.getFile();
-	    				// HO 21/02/2011 BEGIN ****************
-	    				//if ((aFile == null) || (aFile != archive)) {
 	    	    		// HO 23/02/2011 BEGIN ************
 	    	    		// we only need to close a map if we have more than one map open
-	    				//if (aFile == null) {
 	    				if ((aFile == null) && (coll.size() > 1)) {
 	    					// HO 23/02/2011 END ************
-	    					// HO 21/02/2011 END *******************
-	    				//if (!aMap.getFile().equals(archive)) {
 	    					VUE.closeMapSilently(map, true);
 	    					break;
 	    				} else if (aFile != archive) {
+	    					// if it's a different map, set this file to it
 	    					aMap.setFile(archive);    					
 	    				}
+	    				// nullify because this was causing memory leaks
 	    				aFile = null;
 	    			}
+	    			// nullify because this was causing memory leaks
 	    			aMap = null;
 	    		}	
+	    		// nullify because this was causing memory leaks
 	    		coll = null;
         // HO 03/02/2011 END *******************        	
         }
@@ -1022,14 +1017,24 @@ public class Archive
     }
     
     // HO 07/02/2011 BEGIN **********
+    // flags if we are already in the process of auto-opening a map
     public static boolean bAutoOpeningMap = false;
     
+    /**
+     * A routine to automatically open the map we just saved as a Zip archive.
+     * @param archive, the file to open
+     * @author Helen Oliver
+     */
     private static void autoOpenMap(File archive) {
+    	// flag that we are in the process of opening a map
     	bAutoOpeningMap = true;
+    	
     	// HO 20/02/2011 BEGIN **********
     	//VUE.displayMap(archive);
     	VUE.displayMapSpecial(archive);
     	// HO 20/02/2011 END **********
+    	
+    	// flag end of the process of opening the map
     	bAutoOpeningMap = false;
     }
     // HO 07/02/2011 END **********

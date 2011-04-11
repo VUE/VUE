@@ -35,6 +35,7 @@ import java.lang.ref.WeakReference;
  * deleted or its modified time changes.
  *
  * @author <a href="mailto:jacob.dreyer@geosoft.no">Jacob Dreyer</a>
+ * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2011
  */   
 public class MapFileMonitor
 {

@@ -39,6 +39,7 @@ import javax.swing.Icon;
  * @see Actions.LWCAction for actions that use the selection
  *
  * @version $Revision: 1.52 $ / $Date: 2010-02-03 19:17:41 $ / $Author: mike $ 
+ * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2011
  */
 public class VueAction extends javax.swing.AbstractAction
 {

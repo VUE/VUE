@@ -20,6 +20,7 @@
  * Created on January 10, 2007, 11:14 AM
  *
  * @author Daniel J. Heller
+ * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2011
  */
 
 package tufts.vue;

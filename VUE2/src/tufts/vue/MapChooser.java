@@ -19,6 +19,7 @@
  * Author: dhelle01
  *
  * Created on January 4, 2007, 5:31 PM
+ * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2011
  *
  */
 

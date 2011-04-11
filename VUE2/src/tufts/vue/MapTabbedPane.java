@@ -13,6 +13,10 @@
  * permissions and limitations under the License.
  */
 
+/**
+ * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2011
+ */
+
 package tufts.vue;
 
 import tufts.Util;

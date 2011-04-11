@@ -50,6 +50,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
  *
  * @version $Revision: 1.531 $ / $Date: 2010-02-03 19:17:40 $ / $Author: mike $
  * @author Scott Fraize
+ * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2011
  */
 
 // todo: on init, we need to force the constraint of size being set before

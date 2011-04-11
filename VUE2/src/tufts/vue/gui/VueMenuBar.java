@@ -96,6 +96,7 @@ import edu.tufts.vue.preferences.implementations.BooleanPreference;
  *
  * @version $Revision: 1.176 $ / $Date: 2010-03-11 21:15:01 $ / $Author: mike $
  * @author Scott Fraize
+ * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2011
  */
 public class VueMenuBar extends javax.swing.JMenuBar
     implements java.awt.event.FocusListener
@@ -115,7 +116,9 @@ public class VueMenuBar extends javax.swing.JMenuBar
     public static JMenu alignMenu = null;
     public static JMenu layoutMenu = null;
     // HO 08/04/2011 BEGIN *********
+    // menu for Image sizing actions
     public static JMenu imageMenu = null;
+    // a menu with fewer sizes for IBIS images
     public static JMenu ibisImageMenu = null;
     // HO 08/04/2011 END **********
     public static JMenu linkMenu = null;
@@ -294,8 +297,10 @@ public class VueMenuBar extends javax.swing.JMenuBar
         layoutMenu.setEnabled(false);        
         
         // HO 08/04/2011 BEGIN *********
+        // create the menu for Image sizing/hiding actions actions
         imageMenu = makeMenu(VueResources.getString("menu.image"));
         imageMenu.setEnabled(false);
+        // the same menu, with fewer size choices for IBIS images
         ibisImageMenu = makeMenu(VueResources.getString("menu.ibisimage"));
         ibisImageMenu.setEnabled(false);
         // HO 08/04/2011 END **********
@@ -723,7 +728,9 @@ public class VueMenuBar extends javax.swing.JMenuBar
         buildMenu(arrangeMenu, Actions.ARRANGE_MENU_ACTIONS);
         buildMenu(layoutMenu,LayoutAction.LAYOUT_ACTIONS);
         // HO 08/04/2011 BEGIN *********
+        // create the menu for image sizing
         buildMenu(imageMenu, Actions.IMAGE_MENU_ACTIONS);
+        // create a menu with fewer sizes for IBIS images
         buildMenu(ibisImageMenu, Actions.IBIS_IMAGE_MENU_ACTIONS);
         // HO 08/04/2011 END ***********
         buildMenu(linkMenu, Actions.LINK_MENU_ACTIONS);
@@ -755,11 +762,13 @@ public class VueMenuBar extends javax.swing.JMenuBar
         ////////////////////////////////////////////////////////////////////////////////////
         GUI.addToMenu(contentMenu, Actions.NEW_OBJECT_ACTIONS);
         // HO 01/04/2011 BEGIN **********
+        // a menu for adding IBIS nodes
         contentMenu.add(buildMenu("menu.content.addIBISnode", Actions.NEW_IBIS_TYPE_ACTIONS));
         // HO 01/04/2011 END ************
         
         final JMenuItem addFileItem = new JMenuItem(Actions.AddFileAction);
         final JMenuItem addURLItem = new JMenuItem(Actions.AddURLAction);
+        // menus for adding wormholes
         // HO 07/07/2010 BEGIN *******************
         final JMenuItem addWormholeItem = new JMenuItem(Actions.AddWormholeToNewMapAction);
         // HO 07/07/2010 BEGIN *******************
@@ -777,6 +786,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         contentMenu.add(removeResourceItem);
         contentMenu.add(removeResourceKeepImageItem);
         // HO 07/07/2010 BEGIN *******************
+        // separate an area for the Wormhole menu items
         contentMenu.addSeparator();
         contentMenu.add(addWormholeItem);
         // HO 07/07/2010 END *******************
@@ -809,6 +819,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
 				}
 				
 				// HO 08/04/2011 BEGIN ********
+				// if IBIS node selected, enable menu
+				// with restricted choice of sizes
 				if (selection.allOfType(LWIBISNode.class))
 				{
 					imageMenu.setEnabled(false);
@@ -816,6 +828,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
 				}
 				else
 				{
+					// if non-IBIS node selected, enable
+					// menu with full set of size choices
 					imageMenu.setEnabled(true);
 					ibisImageMenu.setEnabled(false);
 				}
@@ -834,6 +848,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
 				LWComponent c =VUE.getActiveComponent();
 
 				// HO 13/12/2010 BEGIN ***********
+				// if this is a node that's not an IBIS node
 				//if (c instanceof LWNode)
 				if ((c instanceof LWNode) && (!(c instanceof LWIBISNode)))
 				// HO 13/12/2010 END ***********
@@ -860,6 +875,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
 			        				if (image.getResource().equals(resource))
 			        				{
 			        					// HO 13/12/2010 BEGIN ************
+			        					// IBIS nodes shouldn't have the option
+			        					// to remove the resource
 			        					if (!(c instanceof LWIBISNode)) {
 			        						// HO 13/12/2010 END ************
 			        						removeResourceKeepImageItem.setEnabled(true);
@@ -874,6 +891,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
 			        	}
 											
 						// HO 13/12/2010 BEGIN ***********
+						// if this is an IBIS node, we don't want
+						// to be able to add files or URLs or remove the resource
 						if (c instanceof LWIBISNode) {
 							addFileItem.setEnabled(false);
 							addURLItem.setEnabled(false);
@@ -884,6 +903,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
 						addFileItem.setLabel(VueResources.getString("mapViewer.componentMenu.replaceFile.label"));
 						addURLItem.setLabel(VueResources.getString("mapViewer.componentMenu.replaceURL.label"));
 						// HO 07/07/2010 BEGIN *****************
+						// add the wormhole items to the menu
 						addWormholeItem.setLabel(VueResources.getString("mapViewer.componentMenu.addWormholeNew"));
 						// HO 07/07/2010 END *****************
 						// HO 27/08/2010 BEGIN *****************
@@ -1123,6 +1143,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         if (VUE.getFormatDock() != null)        
         	windowMenu.add(createWindowItem(VUE.getFormatDock(), KeyEvent.VK_1,VueResources.getString("menu.windows.formatpalette")));
         // HO 25/06/2010 BEGIN ********************
+        // a menu of IBIS type icons
         if (VUE.getIBISFormatDock() != null)
         	windowMenu.add(createWindowItem(VUE.getIBISFormatDock(), KeyEvent.VK_I, VueResources.getString("menu.windows.ibismenu")));
         // HO 25/06/2010 END ************************

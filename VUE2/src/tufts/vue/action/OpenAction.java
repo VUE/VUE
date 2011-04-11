@@ -24,6 +24,7 @@ package tufts.vue.action;
 /**
  *
  * @author  akumar03
+ * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2011
  */
 import java.io.*;
 import java.util.zip.*;
@@ -86,6 +87,7 @@ public class OpenAction extends VueAction
      * A routine to update the display of an open map
      * that was changed while it was not the active map.
      * @param file, the File object belonging to this map
+     * @author Helen Oliver
      */
     public static void displayMapSpecial(File file) {
         VUE.displayMapSpecial(file);

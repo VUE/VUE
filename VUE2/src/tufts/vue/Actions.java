@@ -13,6 +13,10 @@
  * permissions and limitations under the License.
  */
 
+/**
+ * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2011
+ */
+
 package tufts.vue;
 
 import java.awt.Component;
@@ -76,6 +80,8 @@ import edu.tufts.vue.preferences.ui.PreferencesDialog;
  *
  * @author Scott Fraize
  * @version March 2004
+ * 
+ * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2011
  */
 
 public class Actions implements VueConstants

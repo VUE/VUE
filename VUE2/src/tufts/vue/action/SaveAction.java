@@ -43,6 +43,7 @@ import static tufts.vue.Resource.*;
  *
  * @author akumar03
  * @author Scott Fraize
+ * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2011
  */
 public class SaveAction extends VueAction
 {
@@ -144,13 +145,8 @@ public class SaveAction extends VueAction
         } else if (export) {
             file = ActionUtil.selectFile("Export Map", "export");
         }
-        
-        // HO 01/03/2011 BEGIN *****************
-        //VueUtil.alert("In SaveAction.saveMap(LWMap, boolean, boolean)", "blorf");
-        // HO 01/03/2011 END *****************
             
         if (file == null) {
-            //GUI.clearWaitCursor();
             try {
                 return false;
             } finally {
@@ -290,12 +286,13 @@ public class SaveAction extends VueAction
             	frame.setTitle(title);
             }
             // HO 11/03/2011 BEGIN *****************
+            // make sure that newly saved archive files also get added to the Recent Files list
             //if (name.endsWith(".vue"))
             if ((name.endsWith(".vue")) || (name.endsWith(VueUtil.VueArchiveExtension)))
         	// HO 11/03/2011 END *****************
             {
-             RecentlyOpenedFilesManager rofm = RecentlyOpenedFilesManager.getInstance();
-             rofm.updateRecentlyOpenedFiles(file.getAbsolutePath());
+            	RecentlyOpenedFilesManager rofm = RecentlyOpenedFilesManager.getInstance();
+            	rofm.updateRecentlyOpenedFiles(file.getAbsolutePath());
             }
             return true;
 
@@ -326,7 +323,19 @@ public class SaveAction extends VueAction
     
     // HO 15/02/2011 BEGIN ****************
     /**
-     * @return true if success, false if not
+     * A function to auto-open a map immediately after saving.
+     * Previously, when you saved in .vpk format, the original
+     * .vue map would remain the active map and the new .vpk would
+     * not open. It behaved like an export. Since making the .vpk
+     * format the default, this is unintuitive behaviour.
+     * This function auto-opens the new .vpk file and closes
+     * the original .vue, if there is one.
+     * @param map, the LWMap being saved
+     * @param saveAs, true if the map may need to be saved under a new name,
+     * false if using the original name
+     * @param export, true if we are exporting the map, false otherwise
+     * @return the newly-saved LWMap object
+     * @author Helen Oliver
      */      
     public static LWMap saveMapSpecial(LWMap map, boolean saveAs, boolean export)
     {
@@ -334,18 +343,21 @@ public class SaveAction extends VueAction
         
         GUI.activateWaitCursor();         
        
-        
+        // input validation
         if (map == null)
             return null;
         
         File file = map.getFile();
         // HO 22/02/2011 BEGIN *****************
+        // get the name of the map we started with
         String strInitMapLabel = map.getLabel();
+        // the file we started with
         File initFile = file;
         // HO 22/02/2011 END *****************
         int response = -1;
+        
+        // show the Save dialog
         if (map.getSaveFileModelVersion() == 0) {
-
         	final Object[] defaultOrderButtons = { VueResources.getString("saveaction.saveacopy"),VueResources.getString("saveaction.save")};
             Object[] messageObject = {map.getLabel()};
         	response = VueUtil.option
@@ -359,21 +371,16 @@ public class SaveAction extends VueAction
              );
         }
         
+        // respond to user input
         if (response == 0) {
             saveAs=true;
         } if ((saveAs || file == null) && !export) {
-            //file = ActionUtil.selectFile("Save Map", "vue");
             file = ActionUtil.selectFile("Save Map", null);
         } else if (export) {
             file = ActionUtil.selectFile("Export Map", "export");
         }
-        
-     // HO 01/03/2011 BEGIN *****************
-        //VueUtil.alert("In SaveAction.saveMapSpecial", "blorf");
-        // HO 01/03/2011 END *****************
             
         if (file == null) {
-            //GUI.clearWaitCursor();
             try {
                 return null;
             } finally {
@@ -381,9 +388,8 @@ public class SaveAction extends VueAction
             }
         }
 
-        try {
-        	         	
-            Log.info("saveMap: target[" + file + "]");
+        try {        	         	
+            Log.info("saveMapSpecial: target[" + file + "]");
             
             final String name = file.getName().toLowerCase();
 
@@ -393,18 +399,13 @@ public class SaveAction extends VueAction
             else if (name.endsWith(".xml") || name.endsWith(".vue")) {
                 ActionUtil.marshallMap(file, map);
 
-             // HO 01/03/2011 BEGIN *****************
-		        //VueUtil.alert("In SaveAction.saveMapSpecial about to open map", "blorf");
-		        // HO 01/03/2011 END *****************	
                 // HO 18/02/2011 BEGIN **********
-                // and then open the new one
+                // and then open the new map, if it's not
+                // already in the process of being opened
                 if (!bAutoOpeningMap) {
                 	autoOpenMap(file);  
                 }
                 // HO 18/02/2011 END ************
-             // HO 01/03/2011 BEGIN *****************
-		        //VueUtil.alert("In SaveAction.saveMapSpecial opened map", "blorf");
-		        // HO 01/03/2011 END *****************
                 
                 // HO 22/02/2011 BEGIN **********  
                 // close the old map, if there is one
@@ -415,24 +416,19 @@ public class SaveAction extends VueAction
                 	if (coll.size() > 1) {
                 	// cycle through them
 	            		for (LWMap aMap: coll) {
-	            			// if this open map is our map
-	            			//if (aMap.equals(map)) {
-	            				// and it's not got the same label
+	            				// if this open map hasn't got the same label
 	            				// it must be the original map
 	            				if(aMap.getLabel().equals(strInitMapLabel)) {
-	            					// so close it
-	            			        // HO 01/03/2011 BEGIN *****************
-	            			        //VueUtil.alert("In SaveAction.saveMapSpecial about to close map", "blorf");
-	            			        // HO 01/03/2011 END *****************
+	            					// so close it without prompting
 	            					VUE.closeMapSilently(aMap, false);
-	            					// HO 01/03/2011 BEGIN *****************
-	            			        //VueUtil.alert("In SaveAction.saveMapSpecial about to close map", "blorf");
-	            			        // HO 01/03/2011 END *****************
+	            					// nullify this because it was causing memory leaks
 	            					initFile = null;
 	            				}
+            				// nullify this because it was causing memory leaks
 	            			aMap = null;
 	            		}
                 	}
+                	// nullify this because it was causing memory leaks
                 	coll = null;
                 	
                 }
@@ -449,7 +445,6 @@ public class SaveAction extends VueAction
             else if (name.endsWith(".pdf"))
             {
             	PresentationNotes.createMapAsPDF(file);
-                //new PDFTransform().convert(file);
             }
             else if (name.endsWith(".zip"))
             {   Vector resourceVector = new Vector();
@@ -461,9 +456,7 @@ public class SaveAction extends VueAction
                     
             			URLResource resource = (URLResource) component.getResource();                    
                 
-            			//   	if(resource.getType() == Resource.URL) {
             			try {
-                        // File file = new File(new URL(resource.getSpec()).getFile());
                         if(resource.isLocalFile()) {
                         	String spec = resource.getSpec();                        	                        
                         	System.out.println(resource.getSpec());
@@ -538,7 +531,8 @@ public class SaveAction extends VueAction
             else if (name.endsWith(VueUtil.VueArchiveExtension))
             {
                 // HO 20/02/2011 BEGIN **********
-            	//Archive.writeArchive(map, file);
+            	// if it's a .vpk file we need to make sure we close and auto-open
+            	// appropriately
             	Archive.writeArchiveSpecial(map, file);
             	// HO 20/02/2011 END **********
                 
@@ -552,33 +546,22 @@ public class SaveAction extends VueAction
             Log.debug("Save completed for " + file);
             if (!VUE.isApplet())
             {
-                // HO 28/02/2011 BEGIN *********************
-            	//VueUtil.alert("in saveMapSpecial(LWMap, boolean) about to set frame", "here");
-            	// HO 28/02/2011 END *********************
             	VueFrame frame = (VueFrame)VUE.getMainWindow();
             	String title = VUE.getName() + ": " + name;                      
             	frame.setTitle(title);
-                // HO 28/02/2011 BEGIN *********************
-            	//VueUtil.alert("in saveMapSpecial(LWMap, boolean) just set title", "here");
-            	// HO 28/02/2011 END *********************
             }
             // HO 11/03/2011 BEGIN *****************
+            // make sure new .vpk files appear in the Recent Files list
             //if (name.endsWith(".vue"))
             if ((name.endsWith(".vue")) || (name.endsWith(VueUtil.VueArchiveExtension)))
         	// HO 11/03/2011 END *****************
             {
-             RecentlyOpenedFilesManager rofm = RecentlyOpenedFilesManager.getInstance();
-             rofm.updateRecentlyOpenedFiles(file.getAbsolutePath());
+            	RecentlyOpenedFilesManager rofm = RecentlyOpenedFilesManager.getInstance();
+            	rofm.updateRecentlyOpenedFiles(file.getAbsolutePath());
             }
             // HO 16/02/2011 BEGIN **********
             if (map.getFile() == null) {
-                // HO 28/02/2011 BEGIN *********************
-            	//VueUtil.alert("in saveMapSpecial(LWMap, boolean) about to set map file", "here");
-            	// HO 28/02/2011 END *********************
             	map.setFile(file);
-                // HO 28/02/2011 BEGIN *********************
-            	//VueUtil.alert("in saveMapSpecial(LWMap, boolean) just set map file", "here");
-            	// HO 28/02/2011 END *********************
             }
             // HO 16/02/2011 END **********
             return map;
@@ -592,13 +575,9 @@ public class SaveAction extends VueAction
                 Log.error("Save Failed: " + e);
             } else {
                 Log.error("Save failed for \"" + file + "\"; ", e);
-                //tufts.Util.printStackTrace(e);
             }
             if (e != t)
                 Log.error("Exception attempting to save file " + file + ": " + e);
-         // HO 28/02/2011 BEGIN *********************
-        	//VueUtil.alert("in saveMapSpecial(LWMap, boolean) exception saving file", "here");
-        	// HO 28/02/2011 END *********************
             VueUtil.alert(String.format(Locale.getDefault(),VueResources.getString("saveaction.savemap.error")+ "\"%s\";\n"+VueResources.getString("saveaction.targetfiel")+"\n\n"+VueResources.getString("saveaction.problem"),
                                         map.getLabel(), file, Util.formatLines(e.toString(), 80)),
                           "Problem Saving Map");
@@ -609,17 +588,27 @@ public class SaveAction extends VueAction
         }
 
         return null;
-    }    
-        
+    }            
     // HO 15/02/2011 END ******************
     
     // HO 07/02/2011 BEGIN **********
+    // flags whether or not we are already in the process of
+    // opening the map
     public static boolean bAutoOpeningMap = false;
     
+    /**
+     * A routine to automatically open a map
+     * @param theFile, the file to open
+     * @author Helen Oliver
+     */
     private static void autoOpenMap(File theFile) {
+    	// flag start of the process of opening the map
     	bAutoOpeningMap = true;
+    	
+    	// open the map even if it is not the active map
     	VUE.displayMapSpecial(theFile);
-    	//VUE.displayMap(theFile);
+    	
+    	// flag end of the process of opening the map
     	bAutoOpeningMap = false;
     }
     // HO 07/02/2011 END **********
@@ -744,10 +733,16 @@ public class SaveAction extends VueAction
     }
     
     // HO 22/02/2011 BEGIN ************
+    /**
+     * A routine to save a map that may not be the active map
+     * @param map, the LWMap to save
+     * @return the LWMap that has been saved
+     * @author Helen Oliver
+     */
     public static LWMap saveMapSpecial(LWMap map) {
         return saveMapSpecial(map, false,false);
     }
-    // HO 22/02/2011 END ************
+    // HO 22/02/2011 END *************
     
     public static boolean PACKAGE_DEBUG = false;
 

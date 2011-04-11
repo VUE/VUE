@@ -81,7 +81,6 @@ public abstract class IBISImage extends LWImage {
     
 	public static File createImageFile(String theFile, BufferedImage theImage) {
 		// create a new file in a cache directory under the home directory
-		// HO 18/12/2010 BEGIN SET BREAKPOINT HERE *********
 		File imgFile = new File(createCacheDirectory(), theFile);
 		try {
 			// use the image to create a file, 

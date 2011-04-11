@@ -61,6 +61,7 @@ import java.io.File;
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
  * @version $Revision: 1.262 $ / $Date: 2010-02-03 19:17:41 $ / $Author: mike $
+ * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2011
  */
 
 public class LWMap extends LWContainer

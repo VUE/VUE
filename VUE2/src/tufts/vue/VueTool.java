@@ -34,6 +34,7 @@ import java.awt.event.*;
  * to cleaning up the VueTool code & it's supporting GUI classes.
  *
  * @version $Revision: 1.87 $ / $Date: 2010-02-03 19:17:41 $ / $Author: mike $
+ * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2011
  */
 
 public abstract class VueTool extends AbstractAction
