@@ -298,12 +298,6 @@ public class LWMap extends LWContainer
 		if (strCompareString.startsWith(strPossPrefix))
 			strCompareString = strCompareString.substring(strPossPrefix.length(), strCompareString.length());
 
-		if (strCompareString.startsWith(strBackSlashPrefix))
-			strCompareString = strCompareString.substring(strBackSlashPrefix.length(), strCompareString.length());
-		
-		if (strCompareString.startsWith(strForwardSlashPrefix))
-			strCompareString = strCompareString.substring(strForwardSlashPrefix.length(), strCompareString.length());
-
 		// get filename to compare to
 		String strThisFilename = "";
 		if (mFile != null)
@@ -312,16 +306,24 @@ public class LWMap extends LWContainer
 		// trim putative gubbins away
 		if (strThisFilename.startsWith(strPossPrefix))
 			strThisFilename = strThisFilename.substring(strPossPrefix.length(), strThisFilename.length());
-
-		if (strThisFilename.startsWith(strBackSlashPrefix))
-			strThisFilename = strThisFilename.substring(strBackSlashPrefix.length(), strThisFilename.length());
 		
-		if (strThisFilename.startsWith(strForwardSlashPrefix))
-			strThisFilename = strThisFilename.substring(strForwardSlashPrefix.length(), strThisFilename.length());
+		// deal with red-herring Windoze string mismatches
+		if (!strCompareString.equals(strThisFilename)) {
+			if (strCompareString.startsWith(strForwardSlash))
+				strCompareString = strCompareString.substring(strForwardSlash.length(), strCompareString.length());
+			if (strThisFilename.startsWith(strForwardSlash))
+				strThisFilename = strThisFilename.substring(strForwardSlash.length(), strThisFilename.length());
+			
+			// Should be strBackSlash but there's a bug in Java if you can believe that...
+			if ((strCompareString.contains(strForwardSlash)) && (strThisFilename.contains(strBackSlash)))
+				strCompareString = strCompareString.replaceAll(strForwardSlash, strBackSlashPrefix);
+			else if ((strCompareString.contains(strBackSlash)) && (strThisFilename.contains(strForwardSlash)))
+				strThisFilename = strThisFilename.replaceAll(strForwardSlash, strBackSlashPrefix);
+		}
 		
 		if (!strCompareString.equals(strThisFilename))
 			bChanged = true;
-    	
+
     	return bChanged;
     }
     
