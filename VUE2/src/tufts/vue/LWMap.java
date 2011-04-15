@@ -230,6 +230,10 @@ public class LWMap extends LWContainer
 	        Collection<LWWormholeNode> coll = getAllWormholeNodes();
 	        // if we found any wormhole nodes
 			if (coll.size() > 0) {
+				// HO 14/04/2011 BEGIN ******
+				// assume no changes have been made
+        		boolean bChanged = false;
+				// HO 14/04/2011 END ********
 				// iterate through them all
 				for (LWWormholeNode wn : coll) {
 						// if the node has a resource
@@ -240,15 +244,24 @@ public class LWMap extends LWContainer
 			            	if (r.getClass().equals(tufts.vue.WormholeResource.class)) {
 			            		// if it is, downcast it to create a proper WormholeResource object
 			            		WormholeResource wr = (WormholeResource)r;
-			                	// recreate the wormhole
-			                	LWWormhole wh = new LWWormhole(wn, wr);
-			                	// if the wormhole wasn't created to completion, rub it out
-			                	// HO 23/02/2010 BEGIN ************
-			                	// rub it out anyway, a wormhole is not needed after it's been created
-			                	//if (wh.getBCancelled() == true) {
-			                		// HO 23/02/2010 END ************
-			                			wh = null;
-			                	//}
+			            		// HO 14/04/2011 BEGIN *********
+			            		if (!bChanged)
+			            			bChanged = compareToWormholeResourceContents(wn, wr, bChanged);
+			            		
+			            		// and compare it to the originating map URI in wr
+			            		// and if nothing has changed on the originating side,
+			            		// there is no need to recreate the wormhole
+			            		if (bChanged) {
+			            		// HO 14/04/2011 END *********
+				                	// recreate the wormhole
+				                	LWWormhole wh = new LWWormhole(wn, wr);
+				                	// if the wormhole wasn't created to completion, rub it out
+				                	// HO 23/02/2010 BEGIN ************
+				                	// rub it out anyway, a wormhole is not needed after it's been created
+				                	//if (wh.getBCancelled() == true) {
+				                		// HO 23/02/2010 END ************
+				                			wh = null;
+			                	}
 			                }
 			            	r = null;
 			            }
@@ -259,6 +272,60 @@ public class LWMap extends LWContainer
 			
 			bConstructingWormholes = false;
     }
+    
+    // HO 15/04/2011 BEGIN *********
+    private boolean compareToWormholeResourceContents(LWWormholeNode wn, WormholeResource wr, boolean b) {
+    	boolean bChanged = b;
+    	
+    	// get wn's parent component URI
+		String parentComponentURIString = wn.getParent().getURI().toString();
+		// and compare it to the originating component URI in wr
+		String thisComponentURIString = wr.getOriginatingComponentURIString();
+		if (!parentComponentURIString.equals(thisComponentURIString))
+			bChanged = true;
+		// and get wn's map filename
+		String origMapURIString = wr.getOriginatingFilename();
+		String strCompareString = origMapURIString;
+		// extra gubbins to trim from original map name
+		
+		String strPossPrefix = "file:";
+		String strBackSlashPrefix = "\\\\";
+		String strBackSlash = "\\";
+		String strForwardSlashPrefix = "////";
+		String strForwardSlash = "/";
+		
+		// trim putative gubbins away
+		if (strCompareString.startsWith(strPossPrefix))
+			strCompareString = strCompareString.substring(strPossPrefix.length(), strCompareString.length());
+
+		if (strCompareString.startsWith(strBackSlashPrefix))
+			strCompareString = strCompareString.substring(strBackSlashPrefix.length(), strCompareString.length());
+		
+		if (strCompareString.startsWith(strForwardSlashPrefix))
+			strCompareString = strCompareString.substring(strForwardSlashPrefix.length(), strCompareString.length());
+
+		// get filename to compare to
+		String strThisFilename = "";
+		if (mFile != null)
+			strThisFilename = mFile.getAbsolutePath();
+		
+		// trim putative gubbins away
+		if (strThisFilename.startsWith(strPossPrefix))
+			strThisFilename = strThisFilename.substring(strPossPrefix.length(), strThisFilename.length());
+
+		if (strThisFilename.startsWith(strBackSlashPrefix))
+			strThisFilename = strThisFilename.substring(strBackSlashPrefix.length(), strThisFilename.length());
+		
+		if (strThisFilename.startsWith(strForwardSlashPrefix))
+			strThisFilename = strThisFilename.substring(strForwardSlashPrefix.length(), strThisFilename.length());
+		
+		if (!strCompareString.equals(strThisFilename))
+			bChanged = true;
+    	
+    	return bChanged;
+    }
+    
+    // HO 15/04/2011 END *********
     
     private String checkForLocalTargetFile(String strTargetParent, String strTargetName) {
     	boolean bPresent = false;

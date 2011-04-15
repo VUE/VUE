@@ -724,8 +724,16 @@ public class LWWormhole implements VueConstants {
 			try {
 				if (!targFile.isFile()) {
 					String strTargName = targFile.getName();
-					String strLocalParent = new File(sourceMap.getLabel()).getParent();
-					targFile = new File(strLocalParent, strTargName);
+					// HO 15/04/2011 BEGIN **********
+					//String strLocalParent = new File(sourceMap.getLabel()).getParent();
+					String strLocalParent = "";
+					if (sourceMap.getFile() != null)
+						strLocalParent = new File(sourceMap.getFile().getAbsolutePath()).getParent();
+					if ((strLocalParent != null) && (strLocalParent != ""))	
+						targFile = new File(strLocalParent, strTargName);
+					else
+						return null;
+						// HO 15/04/2011 END **********
 				} 
 				// 24/12/2010 END ***************
 			} catch (Exception e) {
@@ -2300,33 +2308,57 @@ public class LWWormhole implements VueConstants {
 	 * in the active map, following a change to one of the wormhole's filenames or
 	 * locations.
 	 * @param theComponent, the component that contains the WormholeResource to be changed
-	 * @param theResource, the WormholeResource that will replace the existing one
+	 * @param newResource, the WormholeResource that will replace the existing one
 	 * @param theMap, the map that contains the component that contains the resource that swallowed the fly
 	 */
-	public void replaceExistingWormholeResource(LWComponent theComponent, Resource theResource, LWMap theMap) {
+	public void replaceExistingWormholeResource(LWComponent theComponent, Resource newResource, LWMap theMap) {
 		// make sure the other map can't take the focus away from this one
 		VUE.setActive(LWMap.class, this, theMap);
 		
 		// select the component that's getting the resource
 		findAndSelectComponentAmongOpenMaps(theComponent);
 		// get the resource that that component already has
-        Resource r = theComponent.getResource();
+        Resource activeResource = theComponent.getResource();
         // if the resource we passed in isn't null,
         // replace the resource we just got from the
         // component with the one we passed in
-        if (theResource != null)
-            r = theResource;
+        // start by assuming the two resources are  the same
+        boolean bTheSame = true;
+        if (newResource != null) {
+        	// HO 14/04/2011 BEGIN *********
+        	if (activeResource != null) {
+        		WormholeResource ar = (WormholeResource) activeResource;
+        		WormholeResource nr = (WormholeResource) newResource;
+        		if (!ar.getComponentURIString().equals(nr.getComponentURIString()))
+        			bTheSame = false;
+        		else if (!ar.getOriginatingComponentURIString().equals(nr.getOriginatingComponentURIString()))
+        			bTheSame = false;
+        		else if (!ar.getOriginatingFilename().equals(nr.getOriginatingFilename()))
+        			bTheSame = false;
+        		else if (!ar.getSpec().equals(nr.getSpec()))
+        			bTheSame = false;
+        	}
+        	// HO 14/04/2011 END *********
+            activeResource = newResource;
+        }
 	
         // but if both resources are null,
         // we've got nothing to work with so return
-        if (r == null)
+        if (activeResource == null)
             return;
+        
+        // HO 14/04/2011 BEGIN *********
+        // if both resources are the same,
+        // we also have nothing to work with so return
+        if (bTheSame == true)
+        	return;
+        // HO 14/04/2011 END *********
 
         // Make sure nothing can refer to this component.
         VUE.setActive(LWComponent.class, this, null);
         // set the component's resource to the most recent
         // valid resource.
-        theComponent.setResource(r);        
+        theComponent.setResource(activeResource);        
         // make sure nothing can take the focus from this component.
         VUE.setActive(LWComponent.class, this, theComponent);                                                 	
     

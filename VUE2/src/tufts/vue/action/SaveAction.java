@@ -339,7 +339,7 @@ public class SaveAction extends VueAction
      */      
     public static LWMap saveMapSpecial(LWMap map, boolean saveAs, boolean export)
     {
-        Log.info("saveMap: " + map);        
+        Log.info("saveMapSpecial: " + map);        
         
         GUI.activateWaitCursor();         
        
