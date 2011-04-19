@@ -3930,9 +3930,6 @@ public class VUE
         			//try {
         				closeMap(getActiveMap());
         			//} catch(ArrayIndexOutOfBoundsException abe) {
-        				// HO 01/03/2011 BEGIN ************
-                    	//VueUtil.alert("HO 01/03/2011 exception in displayMapSpecial", "HERE");
-                    	// HO 01/03/2011 end ************
         				//abe.printStackTrace();
         			//}
         		} 
@@ -3953,9 +3950,6 @@ public class VUE
             		//try {
             			mMapTabsLeft.setSelectedIndex(i);
             		//} catch (ArrayIndexOutOfBoundsException abe) {
-                    	// HO 01/03/2011 BEGIN ************
-                    	//VueUtil.alert("HO 01/03/2011 exception in displayMapSpecial", "HERE");
-                    	// HO 01/03/2011 end ************
                     	//abe.printStackTrace();
                     //}
             	}
@@ -3963,9 +3957,6 @@ public class VUE
                 	//try {
                 		mMapTabsRight.setSelectedIndex(i);
                 	//} catch (ArrayIndexOutOfBoundsException abe) {
-                    	// HO 01/03/2011 BEGIN ************
-                    	//VueUtil.alert("HO 01/03/2011 exception in displayMapSpecial", "HERE");
-                    	// HO 01/03/2011 end ************
                     	//abe.printStackTrace();
                     //}
                 }
@@ -3980,37 +3971,16 @@ public class VUE
         LWMap loadedMap = null;
         boolean alerted = false;
         try {
-        	// HO 28/02/2011 BEGIN *********************
-        	//VueUtil.alert("displayMap(File) about to load map", "here");
-        	// HO 28/02/2011 END *********************
             loadedMap = OpenAction.loadMap(file.getAbsolutePath());
-            // HO 28/02/2011 BEGIN *********************
-        	//VueUtil.alert("displayMap(File) loaded map", "here");
-        	// HO 28/02/2011 END *********************
             alerted = true; // OpenAction.loadMap now always alerts
             if (loadedMap != null) {
-            	// HO 28/02/2011 BEGIN *********************
-            	//VueUtil.alert("displayMap(File) about to display map", "here");
-            	// HO 28/02/2011 END *********************
                 VUE.displayMap(loadedMap);   
-             // HO 28/02/2011 BEGIN *********************
-            	//VueUtil.alert("displayMap(File) displayed map", "here");
-            	// HO 28/02/2011 END *********************
             }
             VUE.getMetadataSearchMainPanel().fillSavedSearch();
-         // HO 28/02/2011 BEGIN *********************
-        	//VueUtil.alert("displayMap(File) filled saved search", "here");
-        	// HO 28/02/2011 END *********************
         } catch (Throwable t) {
-        	// HO 28/02/2011 BEGIN *********************
-        	//VueUtil.alert("displayMap(File) caught throwable " + t, "here");
-        	// HO 28/02/2011 END *********************
             Util.printStackTrace(t, "failed to load map[" + file + "]");
             VUE.clearWaitCursor();
             alerted = true;
-         // HO 28/02/2011 BEGIN *********************
-        	//VueUtil.alert("displayMap(File) alerted " + t, "here");
-        	// HO 28/02/2011 END *********************
             VueUtil.alert(VueResources.getString("dialog.failedtoloadmap.message")+" " + file + "  \n"
                           + (t.getCause() == null ? t : t.getCause()),
                           VueResources.getString("dialog.failedtoloadmap.message")+" "+ file);
@@ -4018,9 +3988,6 @@ public class VUE
             VUE.clearWaitCursor();
         }
         if (loadedMap == null && !alerted) {
-        	// HO 28/02/2011 BEGIN *********************
-        	//VueUtil.alert("displayMap(File) loadedMap is null ", "here");
-        	// HO 28/02/2011 END *********************
             VueUtil.alert(VueResources.getString("dialog.failedtoloadmap.message")+" "+ file + "  \n", VueResources.getString("dialog.failedtoloadmap.message") + file);  
         }
 
