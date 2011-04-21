@@ -889,7 +889,9 @@ public class VueMenuBar extends javax.swing.JMenuBar
 			        		if (!enabled)
 			        			removeResourceKeepImageItem.setEnabled(false);
 			        	}
-											
+																	
+						addFileItem.setLabel(VueResources.getString("mapViewer.componentMenu.replaceFile.label"));
+						addURLItem.setLabel(VueResources.getString("mapViewer.componentMenu.replaceURL.label"));
 						// HO 13/12/2010 BEGIN ***********
 						// if this is an IBIS node, we don't want
 						// to be able to add files or URLs or remove the resource
@@ -900,8 +902,6 @@ public class VueMenuBar extends javax.swing.JMenuBar
 							removeResourceKeepImageItem.setEnabled(false);
 						}
 						// HO 13/12/2010 END ***********
-						addFileItem.setLabel(VueResources.getString("mapViewer.componentMenu.replaceFile.label"));
-						addURLItem.setLabel(VueResources.getString("mapViewer.componentMenu.replaceURL.label"));
 						// HO 07/07/2010 BEGIN *****************
 						// add the wormhole items to the menu
 						addWormholeItem.setLabel(VueResources.getString("mapViewer.componentMenu.addWormholeNew"));

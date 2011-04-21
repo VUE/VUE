@@ -5300,7 +5300,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 		sMultiPopup.add(AnalyzerAction.calaisAutoTagger);
 
 		sMultiPopup.addSeparator();
-		sMultiPopup.add(Actions.RemoveResourceAction);
+		// HO 21/04/2011 BEGIN **********
+		if (!(VUE.getSelection().containsType(LWIBISNode.class)))
+			// HO 21/04/2011 END ***********
+			sMultiPopup.add(Actions.RemoveResourceAction);
 		if (VUE.getSelection().allOfType(LWNode.class)) {
 			// HO 17/12/2010 BEGIN **********
 			if (!(VUE.getSelection().containsType(LWIBISNode.class)))
@@ -5467,8 +5470,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     	sSinglePopup.add(Actions.ContextKeywordAction);
     	sSinglePopup.add(AnalyzerAction.calaisAutoTagger);
 
-    	sSinglePopup.addSeparator();
-    	sAddURLItem = sSinglePopup.add(Actions.AddURLAction);
+    	// HO 21/04/2011 BEGIN **************
+    	if (!(c instanceof LWIBISNode)) {
+    		// HO 21/04/2011 END *************
+    		sSinglePopup.addSeparator();
+    		sAddURLItem = sSinglePopup.add(Actions.AddURLAction);
+    	}
     	// HO 12/12/2010 BEGIN **************
     	sSinglePopup.addSeparator();
     	// HO 12/12/2010 END ****************
@@ -5547,13 +5554,15 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     		// HO 13/12/2010 END **************
         		sRemoveResourceKeepImageItem.setEnabled(false);
         	// HO 13/12/2010 BEGIN **************
-        	if (sAddFileItem != null)
+        	if (sAddFileItem != null) {
     		// HO 13/12/2010 END **************
         		sAddFileItem.setLabel(VueResources.getString("mapViewer.componentMenu.addFile.label"));
+        	}
         	// HO 13/12/2010 BEGIN **************
-        	if (sAddURLItem != null)
+        	if (sAddURLItem != null) {
     		// HO 13/12/2010 END **************
         		sAddURLItem.setLabel(VueResources.getString("mapViewer.componentMenu.addURL.label"));
+        	}
         } else {
             // HO 13/12/2010 BEGIN **************
         	if (sRemoveResourceItem != null)
@@ -5654,16 +5663,24 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
      	sSinglePopup.add(Actions.ContextNotesAction);
    	    sSinglePopup.add(Actions.ContextKeywordAction);
 
-        sSinglePopup.addSeparator();
-    	sAddURLItem = sSinglePopup.add(Actions.AddURLAction);
+   	    // HO 21/04/2011 BEGIN **************
+    	if (!(c instanceof LWIBISNode)) {
+    		// HO 21/04/2011 END ************
+    		sSinglePopup.addSeparator();
+    		sAddURLItem = sSinglePopup.add(Actions.AddURLAction);
+    	}
     	// HO O7/07/2010 ********************************
     	sAddWormholeItem = sSinglePopup.add(Actions.AddWormholeToNewMapAction);
     	// HO O7/07/2010 ********************************
     	// HO 27/08/2010 ********************************
     	sAddWormholeToExistingMapItem = sSinglePopup.add(Actions.AddWormholeToExistingMapAction);
     	// HO 27/08/2010 ********************************
-   	    sAddFileItem = sSinglePopup.add(Actions.AddFileAction);
-    	sRemoveResourceItem = sSinglePopup.add(Actions.RemoveResourceAction);
+    	// HO 21/04/2011 BEGIN **********
+		if (!(VUE.getSelection().containsType(LWIBISNode.class))) {
+			// HO 21/04/2011 END **********
+			sAddFileItem = sSinglePopup.add(Actions.AddFileAction);
+			sRemoveResourceItem = sSinglePopup.add(Actions.RemoveResourceAction);
+		}
 
     	sSinglePopup.addSeparator();
     	sSinglePopup.add(Actions.ZoomToSelection);
