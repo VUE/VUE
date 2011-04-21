@@ -308,6 +308,56 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         
         if (DEBUG.INIT||DEBUG.FOCUS) out("CONSTRUCTED.");
     }
+    
+    // HO 21/04/2011 BEGIN **************
+    public MapViewer(LWMap map, String instanceName, boolean bFitFocal)
+    {
+        this.instanceName = instanceName;
+        this.activeTool = VUE.getActiveSubTool();
+        if (activeTool == null) {
+            // default tool is first in list
+            activeTool = VueTool.getTools().get(0);
+        }
+        this.mapDropTarget = new MapDropTarget(this); // new CanvasDropHandler
+        this.setDropTarget(new java.awt.dnd.DropTarget(this,
+                                                       MapDropTarget.ACCEPTABLE_DROP_TYPES,
+                                                       mapDropTarget));
+        this.inputHandler = this;
+        this.viewer = this;
+        setName(instanceName);
+        //setFocusable(false);
+        setOpaque(true);
+        setLayout(null);
+
+        if (map != null) {
+            //if (map.getFillColor() != null) setBackground(map.getFillColor());
+        	// HO 21/04/2011 BEGIN *******
+            //loadFocal(map);
+        	// we do not want maps to be resized without our consent!
+        	loadFocal(map, bFitFocal);
+            // HO 21/04/2011 END **********
+        
+            //-------------------------------------------------------
+            // If this map was just restored, there might
+            // have been an existing userZoom or userOrigin
+            // set -- we honor that last user configuration here.
+            //-------------------------------------------------------
+            if (!AutoZoomToMapOnLoad && map.getUserZoom() != 1.0)
+                setZoomFactor(getMap().getUserZoom(), false, null, false);
+        }
+        // draggedSelectionGroup is always a selected component as
+        // it's only used when it IS the selection
+        // There was some reason we need to have the set -- what was it?
+        draggedSelectionGroup.setSelected(true);
+
+//         GUI.invokeAfterAWT(new Runnable() { public void run() {
+//             // for fully thread-safe construction, do not add listeners till after we're constructed.
+//             addListeners();
+//         }});
+        
+        if (DEBUG.INIT||DEBUG.FOCUS) out("CONSTRUCTED.");
+    }    
+    // HO 21/04/2011 END ****************
 
     private static boolean AutoZoomEnabled = edu.tufts.vue.preferences.implementations.AutoZoomPreference.getInstance().isTrue();
     private static boolean AutoZoomEnabledInPresentations = PresentationTool.AutoZoomPreference.isTrue();
@@ -882,7 +932,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     public void setSize(Dimension d) {
         if (DEBUG.SCROLL) out("setSize", fmt(d));
         // new Throwable("SETSIZE " + out(d)).printStackTrace();
-        super.setSize(d);
+        	super.setSize(d);
     }
     
     
@@ -1557,6 +1607,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     public void loadFocal(LWComponent focal) {
         loadFocal(focal, true, false);
     }
+    
+    // HO 21/04/2011 BEGIN **********
+    /** actually load the new focal but without resizing */
+    public void loadFocal(LWComponent focal, boolean bFitFocal) {
+        loadFocal(focal, bFitFocal, false);
+    }
+    // HO 21/04/2011 END **********
 
     private static boolean focalAllowsScrollBars(LWComponent focal) {
         return focal instanceof LWMap;
@@ -8206,7 +8263,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             //-------------------------------------------------------
             // reset all in-drag only state
             //-------------------------------------------------------
-            
             adjustCanvasSize();
             // now that scroll region has been adjust to fit everything,
             // scroll to visible anything we may have dropped off the edge

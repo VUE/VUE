@@ -996,6 +996,10 @@ public class LWNode extends LWContainer
     
     // HO 22/09/2010 BEGIN ******************
     private void reparentWormholeNode(java.util.Collection<? extends LWComponent> children) {
+        // HO 21/04/2011 BEGIN **********
+        // also set flag at application level
+        VUE.bConstructingWormholes = true;
+        // HO 21/04/2011 END ************
         if (!mXMLRestoreUnderway) {
         	final LWComponent first = Util.getFirst(children);
         	if (first instanceof LWWormholeNode) {
@@ -1025,6 +1029,10 @@ public class LWNode extends LWContainer
         		}
         	}
         }
+        // HO 21/04/2011 BEGIN **********
+        // also set flag at application level
+        VUE.bConstructingWormholes = false;
+        // HO 21/04/2011 END ************
 
     }
     // HO 22/09/2010 END ******************

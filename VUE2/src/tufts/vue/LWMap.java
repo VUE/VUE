@@ -224,6 +224,11 @@ public class LWMap extends LWContainer
     	// HO 27/12/2010 END ************
   	
     	bConstructingWormholes = true;
+        // HO 21/04/2011 BEGIN **********
+        // flag start and end of process of constructing wormholes
+        // at application level, in order to suppress unwanted behaviour
+        VUE.bConstructingWormholes = true;
+        // HO 21/04/2011 END ************
 
     	// HO 11/10/2010 END *****************
 			// find all the wormhole nodes in this map
@@ -271,6 +276,11 @@ public class LWMap extends LWContainer
 			coll = null;
 			
 			bConstructingWormholes = false;
+	        // HO 21/04/2011 BEGIN **********
+	        // flag start and end of process of constructing wormholes
+	        // at application level, in order to suppress unwanted behaviour
+	        VUE.bConstructingWormholes = false;
+	        // HO 21/04/2011 END ************
     }
     
     // HO 15/04/2011 BEGIN *********

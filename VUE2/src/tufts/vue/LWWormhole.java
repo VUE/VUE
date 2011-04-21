@@ -2297,7 +2297,7 @@ public class LWWormhole implements VueConstants {
 				//SaveAction.saveMapSpecial(map);
 				// HO 22/02/2011 END **************
 			}
-		}	
+		}
 		
 		return coll;
 	}

@@ -537,8 +537,9 @@ public class MapViewport extends JViewport
         }
 
         if (allowGrowth) {
-            if (grew)
-                setCanvasSize(canvas);
+            if (grew) {
+            	setCanvasSize(canvas);
+            }
             if (moved)
                 viewer.setMapOriginOffset(ox, oy);
         }

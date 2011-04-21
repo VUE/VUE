@@ -3541,9 +3541,6 @@ public class VUE
      * @author Helen Oliver
      */
     public static void displayMapSpecial(File file) {
-    	// HO 28/02/2011 BEGIN *********************
-    	//VueUtil.alert("In displayMapSpecial(File)", "here");
-    	// HO 28/02/2011 END *********************
 
         if (VUE.isStartupUnderway() || DEBUG.INIT || DEBUG.IO) Log.info("displayMapSpecial " + Util.tags(file));
 
@@ -3580,9 +3577,6 @@ public class VUE
         	 */
         	if (isActiveViewerOnLeft())
         	{
-        		// HO 28/02/2011 BEGIN *********************
-            	//VueUtil.alert("In displayMapSpecial(File), active viewer is on left", "here");
-            	// HO 28/02/2011 END *********************
         		if ((mMapTabsLeft != null) && 
         				mMapTabsLeft.getTabCount() == 1 && 
         				(getActiveMap() != null) && 
@@ -3591,9 +3585,6 @@ public class VUE
         		{
         			try
         			{
-                		// HO 28/02/2011 BEGIN *********************
-                    	//VueUtil.alert("In displayMapSpecial(File), about to close map", "here");
-                    	// HO 28/02/2011 END *********************
         				closeMap(getActiveMap());
         			}
         			catch(ArrayIndexOutOfBoundsException abe)
@@ -3605,9 +3596,6 @@ public class VUE
         	
         	} else 
         	{
-        		// HO 28/02/2011 BEGIN *********************
-            	//VueUtil.alert("In displayMapSpecial(File), active viewer is not on left", "here");
-            	// HO 28/02/2011 END *********************
         		if ((mMapTabsRight != null) && 
             			mMapTabsRight.getTabCount() == 1 && 
             			(getActiveMap() != null) && 
@@ -3630,9 +3618,6 @@ public class VUE
 
         // look and see if the map is already open
         // (it should be)
-        // HO 28/02/2011 BEGIN *********************
-    	//VueUtil.alert("In displayMapSpecial(File), about to see if map is already open", "here");
-    	// HO 28/02/2011 END *********************
         for (int i = 0; i < mMapTabsLeft.getTabCount(); i++) {
             LWMap map = mMapTabsLeft.getMapAt(i);
             if (map == null)
@@ -3647,9 +3632,6 @@ public class VUE
 	                	//try {
 	                		mMapTabsLeft.setSelectedIndex(i);
 	                	//} catch(ArrayIndexOutOfBoundsException abe) {
-	                    	// HO 01/03/2011 BEGIN ************
-	                    	//VueUtil.alert("HO 01/03/2011 exception in displayMapSpecial", "HERE");
-	                    	// HO 01/03/2011 end ************
 	        				//abe.printStackTrace();
 	        			//}
 	                }
@@ -3657,9 +3639,6 @@ public class VUE
 	                	//try {
 	                		mMapTabsRight.setSelectedIndex(i);
 	                	//} catch(ArrayIndexOutOfBoundsException abe) {
-	                    	// HO 01/03/2011 BEGIN ************
-	                    	//VueUtil.alert("HO 01/03/2011 exception in displayMapSpecial", "HERE");
-	                    	// HO 01/03/2011 end ************
 	        				//abe.printStackTrace();
 	        			//}
 	                }
@@ -3670,59 +3649,32 @@ public class VUE
         
         // if the map wasn't already open we don't need to do anything more
         if (openMap == null) {
-            
-            // HO 28/02/2011 BEGIN *********************
-           	//VueUtil.alert("In displayMapSpecial(File), openMap was null", "here");
-           	// HO 28/02/2011 END *********************
         	return;
         }
 
         final RecentlyOpenedFilesManager rofm = RecentlyOpenedFilesManager.getInstance();
         rofm.updateRecentlyOpenedFiles(file.getAbsolutePath());
         
-        
-        // HO 28/02/2011 BEGIN *********************
-       	//VueUtil.alert("In displayMapSpecial(File), rofm updated", "here");
-       	// HO 28/02/2011 END *********************
-        
         VUE.activateWaitCursor();
         LWMap loadedMap = null;
         boolean alerted = false;
         try {
             
-            // HO 28/02/2011 BEGIN *********************
-           	//VueUtil.alert("In displayMapSpecial(File), about to load map", "here");
-           	// HO 28/02/2011 END *********************
         	loadedMap = OpenAction.loadMap(file.getAbsolutePath());
-            
-            // HO 28/02/2011 BEGIN *********************
-           	//VueUtil.alert("In displayMapSpecial(File), map loaded", "here");
-           	// HO 28/02/2011 END *********************
             alerted = true; // OpenAction.loadMap now always alerts
             if (loadedMap != null) {
             	// HO 27/02/2011 BEGIN ***********
             	try {
-                
-                // HO 28/02/2011 BEGIN *********************
-               	//VueUtil.alert("In displayMapSpecial(File), loadedMap is not null", "here");
-               	// HO 28/02/2011 END *********************
                 VUE.displayMapSpecial(loadedMap); 
             	} catch(ArrayIndexOutOfBoundsException e) {
-            		//VueUtil.alert("Yep, it's somewhere in displayMapSpecial(LWMap), all right.", e);
             	}
                 // HO 27/02/2011 END ************
             }
             VUE.getMetadataSearchMainPanel().fillSavedSearch();
         } catch (Throwable t) {
-        	// HO 28/02/2011 BEGIN *********************
-        	//VueUtil.alert("displayMapSpecial(File) caught throwable " + t, "here");
-        	// HO 28/02/2011 END *********************
             Util.printStackTrace(t, "failed to load map[" + file + "]");
             VUE.clearWaitCursor();
             alerted = true;
-         // HO 28/02/2011 BEGIN *********************
-        	//VueUtil.alert("displayMapSpecial(File) alerted " + t, "here");
-        	// HO 28/02/2011 END *********************
             VueUtil.alert(VueResources.getString("dialog.failedtoloadmap.message")+" " + file + "  \n"
                           + (t.getCause() == null ? t : t.getCause()),
                           VueResources.getString("dialog.failedtoloadmap.message")+" "+ file);
@@ -3730,16 +3682,8 @@ public class VUE
             VUE.clearWaitCursor();
         }
         if (loadedMap == null && !alerted) {
-        	// HO 28/02/2011 BEGIN *********************
-        	//VueUtil.alert("displayMapSpecial(File) loadedMap is null", "here");
-        	// HO 28/02/2011 END *********************
             VueUtil.alert(VueResources.getString("dialog.failedtoloadmap.message")+" "+ file + "  \n", VueResources.getString("dialog.failedtoloadmap.message") + file);    
         }
-        
-        
-        // HO 28/02/2011 BEGIN *********************
-       	//VueUtil.alert("In displayMapSpecial(File), completed", "here");
-       	// HO 28/02/2011 END *********************
 
     }
     
@@ -3809,8 +3753,12 @@ public class VUE
         } 
 
         // now recreate both viewers
-        leftViewer = new MapViewer(pMap, "*LEFT");
-        rightViewer = new MapViewer(pMap, "right");
+        // HO 21/04/2011 BEGIN **************
+        //leftViewer = new MapViewer(pMap, "*LEFT");
+        //rightViewer = new MapViewer(pMap, "right");
+        leftViewer = new MapViewer(pMap, "*LEFT", false);
+        rightViewer = new MapViewer(pMap, "right", false);
+        // HO 21/04/2011 END **************
 
         // Start them both off unfocusable, so we get no
         // focus transfers until we're ready to decide what
@@ -4141,9 +4089,6 @@ public class VUE
 
         
         if (leftViewer == null) {
-        	// HO 28/02/2011 BEGIN *********************
-        	//VueUtil.alert("in displayMap(Map), leftViewer is not null", "here");
-        	// HO 28/02/2011 END *********************
             leftViewer = new MapViewer(pMap, "*LEFT");
             rightViewer = new MapViewer(pMap, "right");
 
@@ -4154,37 +4099,19 @@ public class VUE
             rightViewer.setFocusable(false);
 
             if (DEBUG.FOCUS) {
-            	// HO 28/02/2011 BEGIN *********************
-            	//VueUtil.alert("in displayMap(Map) DEBUG.FOCUS", "here");
-            	// HO 28/02/2011 END *********************
                 out("currently active viewer: " + getActiveViewer());
                 out("created new left viewer: " + leftViewer);
             }
-         // HO 28/02/2011 BEGIN *********************
-        	//VueUtil.alert("in displayMap(Map) about to add leftViewer to mMapTabsLeft", "here");
-        	// HO 28/02/2011 END *********************
 
             mMapTabsLeft.addViewer(leftViewer);
-         // HO 28/02/2011 BEGIN *********************
-        	//VueUtil.alert("in displayMap(Map) added leftViewer to mMapTabsLeft", "here");
-        	// HO 28/02/2011 END *********************
         	
             if (mMapTabsRight != null) {
-                // HO 28/02/2011 BEGIN *********************
-            	//VueUtil.alert("in displayMap(Map) mapTabsRight is not null", "here");
-            	// HO 28/02/2011 END *********************
             	mMapTabsRight.addViewer(rightViewer);
-            	// HO 28/02/2011 BEGIN *********************
-            	//VueUtil.alert("in displayMap(Map) added rightViewer to mMapTabsRight", "here");
-            	// HO 28/02/2011 END *********************
             }
 
         }
         
         if (isActiveViewerOnLeft()) {
-        	// HO 28/02/2011 BEGIN *********************
-        	//VueUtil.alert("in displayMap(Map) activeViewer is on left", "here");
-        	// HO 28/02/2011 END *********************
         	// HO 28/02/2011 adding try/catch block
         	try {
         		mMapTabsLeft.setSelectedComponent(leftViewer);
@@ -4192,9 +4119,6 @@ public class VUE
         		// do nothing
         	}
         } else if (mMapTabsRight != null){
-        	// HO 28/02/2011 BEGIN *********************
-        	//VueUtil.alert("in displayMap(Map) mMapTabsRight is not null", "here");
-        	// HO 28/02/2011 END *********************
         	// HO 28/02/2011 adding try/catch block
         	try {
         		mMapTabsRight.setSelectedComponent(rightViewer);
@@ -4210,9 +4134,6 @@ public class VUE
         	if (LWPathway.isShowingSlideIcons())
         		LWPathway.toggleSlideIcons();
         }    
-     // HO 28/02/2011 BEGIN *********************
-        //VueUtil.alert("in displayMap(Map) about to return leftViewer", "here");
-    	// HO 28/02/2011 END *********************
         return leftViewer;
     }
 
@@ -4518,6 +4439,12 @@ public class VUE
         //else
         return VUE.ApplicationFrame;
     }
+    
+    // HO 21/04/2011 BEGIN **********
+    // flag start and end of process of constructing wormholes
+    // in order to suppress unwanted behaviour
+    public static boolean bConstructingWormholes = false;
+    // HO 21/04/2011 END ************
 
 
     /** @return a new JWindow, parented to the root VUE window */
