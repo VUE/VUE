@@ -3628,7 +3628,9 @@ public class VUE
                 openMap = map;
                 // HO 01/03/2011 BEGIN ************
                 // adding try/catch blocks
-	                if (isActiveViewerOnLeft()) {
+                // HO 28/04/2011 BEGIN *********
+                // all this does is annoyingly switch between tabs
+	                /* if (isActiveViewerOnLeft()) {
 	                	//try {
 	                		mMapTabsLeft.setSelectedIndex(i);
 	                	//} catch(ArrayIndexOutOfBoundsException abe) {
@@ -3641,7 +3643,8 @@ public class VUE
 	                	//} catch(ArrayIndexOutOfBoundsException abe) {
 	        				//abe.printStackTrace();
 	        			//}
-	                }
+	                } */
+	             // HO 28/04/2011 END *********
                 break;
                 // HO 01/03/2011 END ***************
             }
@@ -3779,8 +3782,10 @@ public class VUE
         if (mMapTabsRight != null) 
         	mMapTabsRight.addViewer(rightViewer); 
         
+        // HO 28/04/2011 BEGIN **********
+        // all this does is annoyingly change the focus to the wrong map
         // now set the focus appropriately
-        if (isActiveViewerOnLeft()) {
+        /* if (isActiveViewerOnLeft()) {
         	// HO 28/02/2011 adding try/catch block
         	try {
         		mMapTabsLeft.setSelectedComponent(leftViewer);
@@ -3794,7 +3799,8 @@ public class VUE
         	} catch(ArrayIndexOutOfBoundsException e) {
         		// do nothing
         	}
-        } 
+        } */
+        // HO 28/04/2011 END **********
 
         diagPop();
         
