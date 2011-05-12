@@ -191,9 +191,9 @@ public class LWWormhole implements VueConstants {
 		init(wn, wr, prevURI, newParent);
 	}
 	
-	public LWWormhole(LWWormholeNode wn, WormholeResource wr, File beingSavedTo, LWComponent c) {
+	/* public LWWormhole(LWWormholeNode wn, WormholeResource wr, File beingSavedTo, LWComponent c) {
 		init(wn, wr, beingSavedTo, c);
-	}
+	} */
 		
 	/**
 	 * Initializes the wormhole.
@@ -332,7 +332,7 @@ public class LWWormhole implements VueConstants {
 	 * @param beingSavedTo, the new File that the source map is being saved to
 	 * @param c, the LWComponent that is the source component
 	 */
-	public void init(LWWormholeNode wn, WormholeResource wr, File beingSavedTo, LWComponent c) 
+	/* public void init(LWWormholeNode wn, WormholeResource wr, File beingSavedTo, LWComponent c) 
     {
 		// HO 08/02/2011 BEGIN ***************
 		findAndSaveAllOpenMaps();
@@ -361,7 +361,7 @@ public class LWWormhole implements VueConstants {
     	
     	// if we got this far we're okay
     	setBCancelled(false);
-    }	
+    } */	
 	
 	/**
 	 * Adds the listeners to the maps on instantiation
@@ -407,7 +407,10 @@ public class LWWormhole implements VueConstants {
     	// HO 15/02/2011 BEGIN ****************
     	//boolean b = askSaveSourceMap(sourceMap);
     	//File f = askSaveSourceMap(sourceMap);
-    	LWMap srcMap = askSaveSourceMap(sourceMap);
+    	// HO 11/05/2011
+    	Component comp = setScreen(sourceMap);
+    	//LWMap srcMap = askSaveSourceMap(sourceMap);
+    	LWMap srcMap = askSaveSourceMap(sourceMap, comp);
     	
     	// if the current map wasn't saved for any reason,
     	// return
@@ -432,7 +435,31 @@ public class LWWormhole implements VueConstants {
     	if (bNew == true) {
     		// HO 15/02/2011 BEGIN ****************
     		//theMap = askSelectNewTargetMap(sourceMap);
-    		targMap = askSelectNewTargetMap(new LWMap(""), false);
+    		// HO 11/05/2011 BEGIN ****************
+    		targMap = askSelectNewTargetMap(new LWMap(""), comp);
+    		// reset the focus back to the source map 
+    		MapViewer leftViewer = null;
+    		MapTabbedPane leftPane = null;
+            MapViewer rightViewer = null;
+            MapTabbedPane rightPane = null;
+                if (VUE.isActiveViewerOnLeft()) {
+                	leftPane = VUE.getLeftTabbedPane();
+                	int i = leftPane.findTabWithMap(srcMap);
+                	//leftViewer = leftPane.getViewerAt(i);
+                	//leftPane.setSelectedComponent(leftViewer);
+                	//leftPane.setSelectedIndex(i);
+                	leftPane.setSelectedMap(srcMap);
+            		//VUE.getLeftTabbedPane().setSelectedMap(srcMap);
+                }
+                else {
+                	rightPane = VUE.getRightTabbedPane();
+                	int i = rightPane.findTabWithMap(srcMap);
+                	//rightViewer = rightPane.getViewerAt(i);
+                	//rightPane.setSelectedComponent(rightViewer);
+                	rightPane.setSelectedIndex(i);
+                	//VUE.getRightTabbedPane().setSelectedMap(srcMap);
+                } 
+    		// HO 11/05/2011 END ****************
     		// create a new map out of the target file
     		//theMap = LWMap.create(theFile.toURI().toString());
     		// HO 15/02/2011 END ****************
@@ -505,8 +532,15 @@ public class LWWormhole implements VueConstants {
 		String strForwardSlashPrefix = "////";
 		String strForwardSlash = "/";
 		// HO 28/03/2011 END *************
+		// if the spec was not set, replace it with the last known filename
 		if (strSpec.equals(wr.SPEC_UNSET))
 			strSpec = wr.getTargetFilename();
+		
+		// HO 12/05/2011 BEGIN *******
+		// strip wrongly-formatted spaces so they don't gum up the comparison
+		strSpec = stripHtmlSpaceCodes(strSpec);
+		strOriginatingFile = stripHtmlSpaceCodes(strOriginatingFile);		
+		// HO 12/05/2011 END *********
 		
 		if (strSpec.startsWith(strPossPrefix))
 			strSpec = strSpec.substring(strPossPrefix.length(), strSpec.length());
@@ -717,6 +751,9 @@ public class LWWormhole implements VueConstants {
 		// to ward off FileNotFoundExceptions later on,
 		// create a target file using the path extracted
 		// from the resource
+		// HO 12/05/2011 BEGIN *********
+		targetSpec = stripHtmlSpaceCodes(targetSpec);
+		// HO 12/05/2011 END *********
 		File targFile = new File(targetSpec);
 		// 24/12/2010 BEGIN ********
 		//if we can't find the file, check for one with the same name
@@ -833,52 +870,74 @@ public class LWWormhole implements VueConstants {
 			return false;
 		}
 		
-		// first we extrapolate the target
-		// which is easy because it's in the resource we have
-		// get the target file path from the resource
-		// HO 03/09/2010 BEGIN - just calling getSpec() can cause
-		// any file.exists() tests to return false even when the file
-		// blatantly exists
-		String targetSpec = "";
-		try {
-			targetSpec = wr.getSystemSpec();
-			if (targetSpec == "")
-				return false;
-		} catch(NullPointerException e) {
-			return false;
-		}
-
-		// if it's null or an empty string, we can't
-		// extrapolate anything from it
-		if ((targetSpec == null) || (targetSpec == ""))
-			return false;
-		
-		// to ward off FileNotFoundExceptions later on,
-		// create a target file using the path extracted
-		// from the resource
-		File targFile = new File(targetSpec);
 		// now instantiate a target map
 		LWMap targMap = null;
-		// if the target file extracted from the wormhole
-		// resource actually exists (which it should,
-		// because we just created it), load the map
-		// belonging to that file and make it the target map
-		if (targFile.exists() == true) {
+		
+		// HO 12/05/2011 BEGIN ******
+		// if this points to the same map, easy
+		if (pointsToSameMap(wr)) {
+			targMap = actualSourceMap;
+			setTargetMap(targMap);
+		} else {			
+			// HO 12/05/2011 END *******
+			
+			// first we extrapolate the target
+			// which is easy because it's in the resource we have
+			// get the target file path from the resource
+			// HO 03/09/2010 BEGIN - just calling getSpec() can cause
+			// any file.exists() tests to return false even when the file
+			// blatantly exists
+			String targetSpec = "";
 			try {
-				targMap = OpenAction.loadMap(targetSpec);
-			} catch (Exception e) {
-				// do nothing
+				targetSpec = wr.getSystemSpec();
+				// if the spec was not set, replace it with the last known filename
+				if (targetSpec.equals(wr.SPEC_UNSET))
+					targetSpec = wr.getTargetFilename();
+				
+				if (targetSpec == "")
+					return false;
+
+			} catch(NullPointerException e) {
 				return false;
 			}
+	
+			// if it's null or an empty string, we can't
+			// extrapolate anything from it
+			if ((targetSpec == null) || (targetSpec == ""))
+				return false;
+			
+			// HO 12/05/2011 BEGIN *******
+			// strip away wrongly-formatted spaces
+			targetSpec = stripHtmlSpaceCodes(targetSpec);			
+			// HO 12/05/2011 END ********
+			
+			// to ward off FileNotFoundExceptions later on,
+			// create a target file using the path extracted
+			// from the resource
+			// HO
+			File targFile = new File(targetSpec);
+			
+			// if the target file extracted from the wormhole
+			// resource actually exists (which it should,
+			// because we just created it), load the map
+			// belonging to that file and make it the target map
+			if (targFile.exists() == true) {
+				try {
+					targMap = OpenAction.loadMap(targetSpec);
+				} catch (Exception e) {
+					// do nothing
+					return false;
+				}
+			}
+			
+			// if we now have a target map
+			if (targMap != null)
+				// set it as our target map component
+				setTargetMap(targMap);
+			else
+				// but if we don't have a map, we failed
+				return false;
 		}
-		
-		// if we now have a target map
-		if (targMap != null)
-			// set it as our target map component
-			setTargetMap(targMap);
-		else
-			// but if we don't have a map, we failed
-			return false;
 		
 		// now we extrapolate the target component
 		// by getting the component URI string from the resource
@@ -966,7 +1025,7 @@ public class LWWormhole implements VueConstants {
 	 * @param c, the source component
 	 * @return
 	 */
-	private boolean extrapolateDuringSave(LWWormholeNode wn, WormholeResource wr, File beingSavedTo, LWComponent c) {
+	/* private boolean extrapolateDuringSave(LWWormholeNode wn, WormholeResource wr, File beingSavedTo, LWComponent c) {
 		// input validation
 		if (beingSavedTo == null)
 			return false;
@@ -1102,7 +1161,7 @@ public class LWWormhole implements VueConstants {
 
     	// if we got this far we have succeeded
     	return true;
-	}	
+	} */
 	
 	/**
 	 * Ask the user to save the source map.
@@ -1111,7 +1170,9 @@ public class LWWormhole implements VueConstants {
 	 * false otherwise
      * Returns true if either they save it or say go ahead and close w/out saving.
      */
-    private LWMap askSaveSourceMap(LWMap map) {
+	// HO 11/05/2011
+    //private LWMap askSaveSourceMap(LWMap map) {
+	private LWMap askSaveSourceMap(LWMap map, Component c) {
     	// Give them a choice of Yes (0), or a No (1) labelled Cancel (2) 
     	final Object[] defaultOrderButtons = { "Save As...", VueResources.getString("optiondialog.revertlastsave.cancel"),VueResources.getString("optiondialog.savechages.save")};
     	final Object[] macOrderButtons = { VueResources.getString("optiondialog.savechages.save"),VueResources.getString("optiondialog.revertlastsave.cancel"), "Save As..."};
@@ -1124,7 +1185,7 @@ public class LWWormhole implements VueConstants {
             // return true;
     	// HO 13/08/2010 END
 
-        Component c = setScreen(map);
+        //Component c = setScreen(map);
         
         int response = VueUtil.option
             (c,
@@ -1179,17 +1240,26 @@ public class LWWormhole implements VueConstants {
      * @param map, the LWMap we are currently in
      * @return the map selected by the user
      */
-   private LWMap askSelectNewTargetMap(LWMap map, boolean b) {
+ // HO 11/05/2011 BEGIN ************
+   //private LWMap askSelectNewTargetMap(LWMap map, boolean b) {
+    private LWMap askSelectNewTargetMap(LWMap map, Component focusComp) {
+	// HO 11/05/2011 END ************
     	final Object[] defaultOrderButtons = { "Choose Target Map", "Cancel"};
     	final Object[] macOrderButtons = { "Cancel", "Choose Target Map"};
 
         // HO 04/01/2011 BEGIN *************
     	// to ward off IllegalComponentStateException
-    	Component c = setScreen(map);
+    	// HO 11/05/2011 BEGIN ************
+    	//Component c = setScreen(map);
+    	//Component c = setScreen(focusComp);
+    	// HO 11/05/2011 END ************
     	// HO 04/01/2011 END *************
 
         int response = VueUtil.option
-        (c,
+        (// HO 11/05/2011 BEGIN ************
+        		focusComp,
+        		//VUE.getDialogParent(),
+        		// HO 11/05/2011 END ************
          "Please choose a target map.",
          "Choose Target Map",
          JOptionPane.OK_CANCEL_OPTION,
@@ -1239,7 +1309,8 @@ public class LWWormhole implements VueConstants {
      * @param map, the LWMap we are currently in
      * @return the map selected by the user
      */
-   private LWMap askSelectNewTargetMap(LWMap map) {
+   // HO 11/05/2011 BEGIN ************
+   /* private LWMap askSelectNewTargetMap(LWMap map) {
     	final Object[] defaultOrderButtons = { "Choose Target Map", "Cancel"};
     	final Object[] macOrderButtons = { "Cancel", "Choose Target Map"};
 
@@ -1293,7 +1364,56 @@ public class LWWormhole implements VueConstants {
             return null;
         }
 
-    }	    
+    } */	
+    /**
+     * A routine to prepare the screen to show a dialog box
+     * @param comp, the LWComponent we are currently in
+     * @return c, the Component that is a parent for a dialog box
+     */
+    private Component setScreen(LWComponent comp) {
+    	// input validation
+    	if (comp == null)
+    		return null;
+    	
+        // todo: won't need this if full screen is child of root frame
+        if (VUE.inNativeFullScreen())
+            VUE.toggleFullScreen();
+        
+
+        Component c = VUE.getDialogParent();
+        
+        if (VUE.getDialogParent() != null)
+        {
+        	//Get the screen size
+        	Toolkit toolkit = Toolkit.getDefaultToolkit();
+        	Dimension screenSize = toolkit.getScreenSize();
+            // HO 04/01/2011 BEGIN **************
+        	Point p = null;
+            try {
+            	//p = c.getLocationOnScreen();
+            	p = c.getLocation(null);
+            } catch (Exception e) {
+            	c = null;
+            }
+                // HO 04/01/2011 END **************
+        	
+        	if ((p.x + c.getWidth() > screenSize.width) ||
+        			(p.y + c.getHeight() > screenSize.height))
+        	{
+        		c = null;
+        	}
+        }
+        
+        /* final String debug;
+
+        if (DEBUG.EVENTS || DEBUG.UNDO)
+            debug = "\n[modifications="+comp.getModCount()+"]";
+        else
+            debug = ""; */
+        
+        return c;
+    }
+   // HO 11/05/2011 END ************
     
     /**
      * A routine to prepare the screen to show a dialog box
@@ -1820,7 +1940,7 @@ public class LWWormhole implements VueConstants {
 	 * which only knows about one side of the wormhole,
 	 * not both
 	 */
-	public void selectivelyResetResources() {
+	/* public void selectivelyResetResources() {
 		// first check which map has changed, and reset that
 		// if the source map file has changed, reset it
 		// and reset its file
@@ -1900,7 +2020,7 @@ public class LWWormhole implements VueConstants {
 			// the active map)
 				OpenAction.displayMapSpecial(sourceMapFile);	
 		}
-	}
+	} */
 	
 	/**
 	 * @return false if the source and target map files have not changed,
@@ -2094,6 +2214,23 @@ public class LWWormhole implements VueConstants {
 	public void setSourceResourceComponentURI(URI theURI) {
 		sourceResourceComponentURI = theURI;
 	}
+	
+	// HO 12/05/2011 BEGIN *********
+	/**
+	 * @param stripThis, a String representing a filename that has its spaces
+	 * in the HTML format
+	 * @return the same String, html space codes replaced with single spaces
+	 */
+	private String stripHtmlSpaceCodes(String stripThis) {
+		String strStripped = "";
+		String strPeskySpace = "%20";
+		String strCleanSpace = " ";
+
+		strStripped = stripThis.replaceAll(strPeskySpace, strCleanSpace);
+		
+		return strStripped;		
+	}
+	// HO 12/05/2011 END ***********
 	
 	/**
 	 * @return sourceResourceComponentURI, the source wormhole node's component resource URI

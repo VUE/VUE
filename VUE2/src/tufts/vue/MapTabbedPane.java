@@ -24,6 +24,8 @@ import tufts.vue.gui.DnDTabbedPane;
 import tufts.vue.gui.GUI;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
+
 import javax.swing.JTabbedPane;
 import javax.swing.JScrollPane;
 import java.util.Iterator;
@@ -427,15 +429,30 @@ public class MapTabbedPane extends JTabbedPane
         setSelectedIndex(findTabWithMap(map));
     }
     
-        
-    private int findTabWithMap(LWMap map) {
+       
+ // HO 11/05/2011 BEGIN ******
+    //private int findTabWithMap(LWMap map) {
+    public int findTabWithMap(LWMap map) {
+    	// HO 11/05/2011 END ******
         int tabs = getTabCount();
         for (int i = 0; i < tabs; i++) {
             LWMap m = getMapAt(i);
+            
+            // HO 11/05/2011 BEGIN ******
+            // guard against false negatives by comparing files
+            File f = m.getFile();
+            File fMap = map.getFile();            
+            // HO 11/05/2011 END *******
+
             if (m != null && m == map) {
                 //System.out.println(this + " found map " + map + " at index " + i);
                 return i;
+            } // HO 11/05/2011 BEGIN ******
+            else if (f != null && fMap != null && f.equals(fMap)) {
+            	return i;
             }
+            // HO 11/05/2011 END ******
+
         }
         Log.error(this + ": failed to find map " + map + " at any index");
         return -1;
