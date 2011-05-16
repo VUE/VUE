@@ -1666,7 +1666,10 @@ public class LWIBISNode extends LWNode
                 // make sure we're wide enough for the children in case children wider than label
                 // fitWidth(rLabel.x + children.width); // as we're 0 based, rLabel.x == width of gap at left of children
                 // make sure label is in the right place 
-                rLabel.x = childx + children.width + ChildPadX;
+                // HO 16/05/2011 BEGIN *********
+                //rLabel.x = childx + children.width + ChildPadX;
+                rLabel.x = getBasicChildWidth();
+                // HO 16/05/2011 END *********
                 // HO 22/12/2010 BEGIN **********
                 //rLabel.y = childy;
                 // HO 16/05/2011 BEGIN *********
@@ -1886,7 +1889,8 @@ public class LWIBISNode extends LWNode
                 maxWidth = w;
         }
         
-        return childOffsetX() + maxWidth + ChildPadX;
+        // return childOffsetX() + maxWidth + ChildPadX;
+        return ChildPadX + maxWidth + ChildPadX;
     }
     
     // HO 16/05/2011 END *********
