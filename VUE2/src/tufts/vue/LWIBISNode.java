@@ -1680,7 +1680,11 @@ public class LWIBISNode extends LWNode
                 // HO 22/12/2010 END ************
                 // HO 10/12/2010 BEGIN ******
                 //fitWidth(rLabel.x + getTextSize().width + ChildPadX + children.width);
-                fitWidth(rLabel.x + getTotalTextWidth());
+                // fitWidth(rLabel.x + getTotalTextWidth());
+                float basicWidth = rLabel.x + getTotalTextWidth();
+                float childWidth = calculateTotalChildWidth();
+                // fitWidth(Math.max(basicWidth, childWidth));
+                this.width = Math.max(basicWidth, childWidth);
                 // HO 10/12/2010 END ******
                 // HO 09/12/2010 END ******
             }
