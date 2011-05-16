@@ -1843,6 +1843,43 @@ public class LWIBISNode extends LWNode
         return childOffsetX() + maxWidth + ChildPadX;
     }
     
+    
+    // HO 16/05/2011 BEGIN *******
+    protected float getBasicChildHeight() {
+    	boolean b = (hasChildren() && !isCollapsed());
+    	float maxHeight = 0;
+    	
+    	if (b) {
+            LWImage im = this.getIbisImage();
+            float w = im.getLocalBorderHeight();
+            if (w > maxHeight)
+            	maxHeight = w;
+    	}
+    	
+    	float textHeight = getTotalTextHeight();
+        maxHeight = Math.max(maxHeight, textHeight);
+    	
+        return childOffsetY() + maxHeight + ChildPadY;
+    }
+    
+    // good for single column layout only.  layout code is in BAD NEED of complete re-architecting.
+    protected float getBasicChildWidth()
+    {
+    	boolean b = (hasChildren() && !isCollapsed());
+        float maxWidth = 0;
+        
+        if (b) {
+        	LWImage im = this.getIbisImage();
+            float w = im.getLocalBorderWidth();
+            if (w > maxWidth)
+                maxWidth = w;
+        }
+        
+        return childOffsetX() + maxWidth + ChildPadX;
+    }
+    
+    // HO 16/05/2011 END *********
+    
     // HO 09/12/2010 BEGIN *************
     // good for single column layout only.  layout code is in BAD NEED of complete re-architecting.
     protected float getMaxChildHeight()
@@ -1852,6 +1889,7 @@ public class LWIBISNode extends LWNode
         
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
+
             float w = c.getLocalBorderHeight();
             if (w > maxHeight)
                 maxHeight = w;
@@ -1910,6 +1948,13 @@ public class LWIBISNode extends LWNode
     	return theSize;
     }
     
+    // HO 16/05/2011 BEGIN **********
+    private Size calculateBasicChildSize() {
+    	Size theSize = new Size(getBasicChildWidth(), getBasicChildHeight());
+    	return theSize;
+    }
+    // HO 16/05/2011 END ************
+    
     private float getTotalIconBlockWidth() {
     	float theWidth = 0f;
     	if (iconShowing()) {
@@ -1940,11 +1985,17 @@ public class LWIBISNode extends LWNode
     	final Size min = new Size();
         // HO 09/12/2010 BEGIN **********
         final Size child = calculateTotalChildSize();
+        // HO 16/05/2011 BEGIN **********
+        final Size basic = calculateBasicChildSize();
+        // HO 16/05/2011 END ***********
         // HO 09/12/2010 END **********
         final Size text = getTextSize();
         // HO 10/12/2010 BEGIN **********
         final float iconWidth = getTotalIconBlockWidth();
         // HO 10/12/2010 END **********
+        // HO 16/05/2011 BEGIN **********
+        final float basicWidthWithText = basic.width + text.width;
+        // HO 16/05/2011 END **********
 
         // make sure the node is at least wide enough to contain the text
         // so far we may only have the label        
@@ -1952,7 +2003,15 @@ public class LWIBISNode extends LWNode
         // min.width = text.width;
         // HO 10/12/2010 BEGIN **********
         //min.width = child.width + text.width;
-        min.width = child.width + text.width + iconWidth;
+        // HO 16/05/2011 BEGIN **********
+        // min.width = child.width + text.width + iconWidth;
+        // if the children are wider than the IBIS icon plus text, fit
+        // the node width to the children,
+        // but if the IBIS icon plus text is wider than the children,
+        // fit the node width to the IBIS icon plus text
+        float widthWithoutIcon = Math.max(child.width, basicWidthWithText);
+        min.width = widthWithoutIcon + iconWidth;
+        // HO 16/05/2011 END **********
         // HO 10/12/2010 BEGIN **********
 
         //float textHeight = EdgePadY + text.height + EdgePadY;
@@ -1983,7 +2042,10 @@ public class LWIBISNode extends LWNode
         	//double stubX = EdgePadX + child.width + LabelPadLeft + text.width;
         	//double stubX = child.width + LabelPadLeft + text.width;
         	//double stubX = child.width + LabelPadLeft + text.width + LabelPadRight;
-        	double stubX = child.width + getTotalTextWidth() + iconWidth;
+        	// HO 16/05/2011 BEGIN **********
+        	// double stubX = child.width + getTotalTextWidth() + iconWidth;
+        	double stubX = widthWithoutIcon + LabelPadLeft + LabelPadRight + iconWidth;
+        	// HO 16/05/2011 END **********
         	//double stubX = EdgePadX + child.width + EdgePadX + text.width;
         	// HO 10/12/2010 BEGIN **********
             // HO 09/12/2010 END **********
@@ -2067,7 +2129,10 @@ public class LWIBISNode extends LWNode
         	if (hasChildren())  {
         		// HO 10/12/2010 BEGIN **********
         		//theOffset += EdgePadX + calculateChildWidth();
-        		xOffset += calculateTotalChildWidth();
+        		// HO 16/05/2011 BEGIN ******
+        		//xOffset += calculateTotalChildWidth();
+        		xOffset += getBasicChildWidth();
+        		// HO 16/05/2011 END ******
         		// HO 10/12/2010 END *************
         	}
         	// now pad the label on the left
@@ -2103,7 +2168,10 @@ public class LWIBISNode extends LWNode
                 	if (hasChildren())  {
                 		// HO 10/12/2010 BEGIN *****************
                 		//theOffset += EdgePadX + getMaxChildSpan() + LabelPadLeft;
-                		xOffset += calculateTotalChildWidth() + LabelPadLeft;
+                		// HO 16/05/2011 BEGIN ******
+                		//xOffset += calculateTotalChildWidth() + LabelPadLeft;
+                		xOffset += getBasicChildWidth() + LabelPadLeft;
+                		// HO 16/05/2011 END ******
                 		// HO 09/12/2010 END *****************
                 	} else {
                 		xOffset += (this.width - getTextSize().width) / 2;
@@ -2198,7 +2266,16 @@ public class LWIBISNode extends LWNode
         float iconWidth = 0f;
         if (iconShowing())
         	iconWidth += IconMargin;
-        float neededWidth = childSpan + textWidth + iconWidth;
+        // HO 16/05/2011 BEGIN ******************
+        // figure out which is wider: the children,
+        // or the basic icon plus text width.
+        // Fit the whole thing to whichever is wider.
+        float basicWidth = getBasicChildWidth() + textWidth;
+        float neededWidthWithoutIcon = Math.max(basicWidth, childSpan);
+        //float neededWidth = childSpan + textWidth + iconWidth;
+        float neededWidth = neededWidthWithoutIcon + iconWidth;
+        // HO 16/05/2011 END ******************
+        
         
         //if (min.width < childSpan)
             //min.width = childSpan;
@@ -3078,7 +3155,20 @@ public class LWIBISNode extends LWNode
                 // Doing this risks slighly moving the damn TextBox just as you edit it.
                 // Tho querying the underlying TextBox for it's size every time
                 // we repaint this object is pretty gross also (e.g., every drag)
-                return (this.height - getTextSize().height) / 2;
+            	// HO 16/05/2011 BEGIN ************
+            	// here's what we have to set
+            	// determine what the height of this would be without anything else
+            	float basicHeight = getBasicChildHeight();
+            	float totalHeight = this.height;
+            	float basicLabelPos = (basicHeight - getTextSize().height) / 2;
+            	float totalLabelPos = (totalHeight - getTextSize().height) / 2;
+            	
+                // return (this.height - getTextSize().height) / 2;
+            	if (this.hasChildren())
+            		return basicLabelPos;
+            	else
+            		return totalLabelPos;
+                // HO 16/05/2011 END **************
              }
     	// HO 22/12/2010 BEGIN ********************
         /*    
