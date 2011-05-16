@@ -1669,7 +1669,11 @@ public class LWIBISNode extends LWNode
                 rLabel.x = childx + children.width + ChildPadX;
                 // HO 22/12/2010 BEGIN **********
                 //rLabel.y = childy;
-                rLabel.y = (this.height - rLabel.height) / 2;
+                // HO 16/05/2011 BEGIN *********
+                // rLabel.y = (this.height - rLabel.height) / 2;
+                rLabel.y = childy + ((getBasicChildHeight() - rLabel.height) / 2);
+                //rLabel.y = (getBasicChildHeight() - rLabel.height) / 2;
+                // HO 16/05/2011 END ************
                 // HO 22/12/2010 END ************
                 // HO 10/12/2010 BEGIN ******
                 //fitWidth(rLabel.x + getTextSize().width + ChildPadX + children.width);
@@ -1859,7 +1863,14 @@ public class LWIBISNode extends LWNode
     	float textHeight = getTotalTextHeight();
         maxHeight = Math.max(maxHeight, textHeight);
     	
-        return childOffsetY() + maxHeight + ChildPadY;
+        // return childOffsetY() + maxHeight + ChildPadY;
+        float pad = 0;
+        if (iconShowing()) {
+            pad = mBoxedLayoutChildY;
+        } 
+        pad = pad + ChildOffsetY;
+        
+        return pad + maxHeight + ChildPadY;
     }
     
     // good for single column layout only.  layout code is in BAD NEED of complete re-architecting.
