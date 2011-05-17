@@ -556,16 +556,19 @@ public abstract class LWIcon extends Rectangle2D.Float
         }
 
         boolean isShowing() {
+        	
         	if (IconPref.getResourceIconValue()) {
         		// HO 02/12/2010 BEGIN ****************
+        		// if it's an IBIS image, suppress the resource icon
         		// return mLWC.hasResource();
         		return ((mLWC.hasResource()) && (!isIBISImage()));
-        		} else {
+    		} 
+        	else {
         			return false;
-        		}
+    		}
         	
-        		// HO 02/12/2010 END ****************
-        	}
+        	// HO 02/12/2010 END ****************
+        }
         
         boolean isIBISImage() {
         	boolean bIBIS = false;
@@ -1578,6 +1581,10 @@ public abstract class LWIcon extends Rectangle2D.Float
             // TODO performance: getting complicated: compute in layout (and check for all text nodes, not just first)
             // Will need to make sure layout() is called when removing items from nodes: only appears to be called upon adding
             if (IconPref.getHierarchyIconValue()) {
+            	// HO 17/05/2011 BEGIN ****************
+            	if (isIBISImage())
+            		return false;
+            	// HO 17/05/2011 END ****************
                 if (mLWC.numChildren() == 1) {
                     LWComponent child0 = mLWC.getChild(0);
                     if (child0.isTextNode() || LWNode.isImageNode(mLWC))
@@ -1589,6 +1596,20 @@ public abstract class LWIcon extends Rectangle2D.Float
             }
             return false;
         }
+        
+        // HO 17/05/2011 BEGIN *******
+        boolean isIBISImage() {
+        	boolean bIBIS = false;
+        	if (!(mLWC instanceof LWIBISNode))
+        		return bIBIS; 
+        	
+        	LWIBISNode nod = (LWIBISNode)mLWC;
+        	if (nod.getImage() != null) {
+        		bIBIS = true;
+        	}
+        	return bIBIS;
+        }
+        // HO 17/05/2011 END *********
 
 //         @Override
 //         void layout() {
