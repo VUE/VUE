@@ -3279,7 +3279,10 @@ public class LWComponent
 
     
     
-    void takeFillColor(Color color) {
+    // HO 18/05/2011 BEGIN *********
+    //void takeFillColor(Color color) {
+	protected void takeFillColor(Color color) {
+    	// HO 18/05/2011 END *********
         mFillColor.take(color);
     }
 

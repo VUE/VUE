@@ -67,9 +67,14 @@ public class LWIBISNode extends LWNode
     // public static final Font  DEFAULT_TEXT_FONT = VueResources.getFont("text.font");
     // HO 18/05/2011 END ******************
     // HO 12/12/2010 BEGIN ************
-    public static final float DEFAULT_IMAGE_SIZE = 64f;
+	// HO 18/05/2011 BEGIN ******************
+    /* public static final float DEFAULT_IMAGE_SIZE = 64f;
     public static final float DEFAULT_IMAGE_HEIGHT = 64f;
-    public static final float DEFAULT_IMAGE_WIDTH = 64f;
+    public static final float DEFAULT_IMAGE_WIDTH = 64f; */
+	public static final float DEFAULT_IMAGE_SIZE = 32f;
+    public static final float DEFAULT_IMAGE_HEIGHT = 32f;
+    public static final float DEFAULT_IMAGE_WIDTH = 32f;
+    // HO 18/05/2011 END ******************
     // HO 12/12/2010 BEGIN ************
     
     /** how much smaller children are than their immediately enclosing parent (is cumulative) */
@@ -1130,7 +1135,11 @@ public class LWIBISNode extends LWNode
                 deleteChildPermanently(image0);
             }
         } else if (r.isImage()) {
-            newImageIcon = LWImage.createNodeIcon(r); 
+        	// HO 18/05/2011 BEGIN ********
+            // newImageIcon = LWImage.createNodeIcon(r); 
+            newImageIcon = LWImage.createNodeIcon(r, IBISImage.getDefaultIconMaxSide(), IBISImage.getDefaultWidth(),
+            		IBISImage.getDefaultHeight()); 
+            // HO 18/05/2011 END *********
         }
 
         if (newImageIcon != null) {

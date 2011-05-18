@@ -51,9 +51,13 @@ public class LWImage extends LWComponent
     //private static final int DefaultIconMaxSide = 128;
     //private static final int DefaultWidth = 128;
     //private static final int DefaultHeight = 128;
-    private static final int DefaultIconMaxSide = 64;
-    private static final int DefaultWidth = 64;
-    private static final int DefaultHeight = 64;
+    private static final int BasicImageMaxSide = 128;
+    private static final int BasicImageWidth = 128;
+    private static final int BasicImageHeight = 128;
+    
+    private static int DefaultIconMaxSide = BasicImageMaxSide;
+    private static int DefaultWidth = BasicImageWidth;
+    private static int DefaultHeight = BasicImageHeight;
     // HO 21/12/2010 END *********************
     
     private final static int MinWidth = 16;
@@ -83,6 +87,20 @@ public class LWImage extends LWComponent
             Log.warn("making LWImage: may not be image content: " + r);
         setResource(r);
     }
+    
+    // HO 18/05/2011 BEGIN *******
+    public LWImage(Resource r, int iconMaxSide, int width, int height) {
+    	DefaultIconMaxSide = iconMaxSide;
+    	DefaultWidth = width;
+    	DefaultHeight = height;
+        initImage();
+        if (r == null)
+            throw new IllegalArgumentException("resource is not image content: " + r);
+        if (!r.isImage())
+            Log.warn("making LWImage: may not be image content: " + r);
+        setResource(r);
+    }
+    // HO 18/05/2011 END *********
 
     static LWImage create(Resource r) {
         return new LWImage(r);
@@ -91,11 +109,30 @@ public class LWImage extends LWComponent
 
     public static LWImage createNodeIcon(Resource r) {
         if (DEBUG.IMAGE) Log.debug("createNodeIcon: " + r);
+    	// HO 18/05/2011 BEGIN ********
+    	DefaultIconMaxSide = BasicImageMaxSide;
+    	DefaultWidth = BasicImageWidth;
+    	DefaultHeight = BasicImageHeight;
+    	// HO 18/05/2011 END *********
         final LWImage icon = new LWImage();
         icon.setNodeIcon(true);
         icon.setResource(r);
         return icon;
     }
+    // HO 18/05/2011 BEGIN **********
+    public static LWImage createNodeIcon(Resource r, int iconSide, int width, int height) {
+        if (DEBUG.IMAGE) Log.debug("createNodeIcon: " + r);
+    	DefaultIconMaxSide = iconSide;
+    	DefaultWidth = width;
+    	DefaultHeight = height;
+    	// HO 18/05/2011 END *********
+        final LWImage icon = new LWImage();
+        icon.setNodeIcon(true);
+        icon.setResource(r);
+        return icon;
+    }    
+    
+    // HO 18/05/2011 END ************
     static LWImage createNodeIcon(LWImage i, Resource r) {
         if (DEBUG.IMAGE) Log.debug("createNodeIcon: " + i + "; " + r);
         final LWImage icon = (LWImage) i.duplicate(); // copy styling, title & notes

@@ -15,6 +15,24 @@ public abstract class IBISImage extends LWImage {
 	
 	protected static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(IBISImage.class);
 	
+	// HO 18/05/2011 BEGIN *******
+	protected static final int DefaultIconMaxSide = 32;
+    protected static final int DefaultWidth = 32;
+    protected static final int DefaultHeight = 32;
+    
+    public static int getDefaultIconMaxSide() {
+    	return DefaultIconMaxSide;
+    }
+    
+    public static int getDefaultWidth() {
+    	return DefaultWidth;
+    }
+    
+    public static int getDefaultHeight() {
+    	return DefaultHeight;
+    }
+    // HO 18/05/2011 END *******
+    
 	private IBISImageIcon mIcon = null;
 	
 	public IBISImage() {
@@ -22,7 +40,10 @@ public abstract class IBISImage extends LWImage {
 	}
 	
 	public IBISImage(Resource r) {
-		super(r);
+		// HO 18/05/2011 BEGIN *******
+		//super(r);
+		super(r, DefaultIconMaxSide, DefaultWidth, DefaultHeight);
+		// HO 18/05/2011 END *******
 	}
 	
 	public abstract void setIcon();
@@ -95,5 +116,9 @@ public abstract class IBISImage extends LWImage {
 			return imgFile;
 		}
 	}
+	
+	// HO 18/05/2011 BEGIN **********
+
+	// HO 18/05/2011 END ************
 	
 }
