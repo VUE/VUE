@@ -53,17 +53,19 @@ import javax.swing.ImageIcon;
 //public class LWIBISNode extends LWContainer
 public class LWIBISNode extends LWNode
 {
-    protected static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LWIBISNode.class);
+	// HO 18/05/2011 BEGIN ******************
+	// protected static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LWIBISNode.class);
 
-    public static final Object TYPE_TEXT = "textNode";
+    // public static final Object TYPE_TEXT = "textNode";
     
-    final static boolean WrapText = false; // under development
+    // final static boolean WrapText = false; // under development
     
-    public static final Font  DEFAULT_NODE_FONT = VueResources.getFont("node.font");
-    public static final Color DEFAULT_NODE_FILL = VueResources.getColor("node.fillColor");
-    public static final int   DEFAULT_NODE_STROKE_WIDTH = VueResources.getInt("node.strokeWidth");
-    public static final Color DEFAULT_NODE_STROKE_COLOR = VueResources.getColor("node.strokeColor");
-    public static final Font  DEFAULT_TEXT_FONT = VueResources.getFont("text.font");
+    // public static final Font  DEFAULT_NODE_FONT = VueResources.getFont("node.font");
+    // public static final Color DEFAULT_NODE_FILL = VueResources.getColor("node.fillColor");
+    // public static final int   DEFAULT_NODE_STROKE_WIDTH = VueResources.getInt("node.strokeWidth");
+    // public static final Color DEFAULT_NODE_STROKE_COLOR = VueResources.getColor("node.strokeColor");
+    // public static final Font  DEFAULT_TEXT_FONT = VueResources.getFont("text.font");
+    // HO 18/05/2011 END ******************
     // HO 12/12/2010 BEGIN ************
     public static final float DEFAULT_IMAGE_SIZE = 64f;
     public static final float DEFAULT_IMAGE_HEIGHT = 64f;
@@ -79,8 +81,10 @@ public class LWIBISNode extends LWNode
     
     
     /** 0 based with current local width/height */
-    protected RectangularShape mShape;
-    protected boolean isAutoSized = true; // compute size from label & children
+    // HO 18/05/2011 BEGIN ******************
+    // protected RectangularShape mShape;
+    //protected boolean isAutoSized = true; // compute size from label & children
+    // HO 18/05/2011 END ******************
     
     // HO 03/11/2010 BEGIN ******************
     protected LWImage ibisImage;
@@ -89,24 +93,29 @@ public class LWIBISNode extends LWNode
     //-----------------------------------------------------------------------------
     // consider moving all the below stuff into a layout object
 
-    private transient float mBoxedLayoutChildY;
+    // HO 18/05/2011 BEGIN ******************
+    // private transient float mBoxedLayoutChildY;
 
-    private transient boolean isRectShape = true;
+    // private transient boolean isRectShape = true;
+    // HO 18/05/2011 END ******************
     
     // HO 03/11/2010 BEGIN *************
     private transient boolean isIBISNode = true;
     // HO 03/11/2010 END *************
 
-    private transient Line2D.Float mIconDivider = new Line2D.Float(); // vertical line between icon block & node label / children
-    private transient Point2D.Float mLabelPos = new Point2D.Float(); // for use with irregular node shapes
-    private transient Point2D.Float mChildPos = new Point2D.Float(); // for use with irregular node shapes
+    // HO 18/05/2011 BEGIN ******************
+    // private transient Line2D.Float mIconDivider = new Line2D.Float(); // vertical line between icon block & node label / children    
+    // private transient Point2D.Float mLabelPos = new Point2D.Float(); // for use with irregular node shapes
+    // private transient Point2D.Float mChildPos = new Point2D.Float(); // for use with irregular node shapes
+    
+    // private transient Size mMinSize;
 
-    private transient Size mMinSize;
-
-    private transient boolean inLayout = false;
-    private transient boolean isCenterLayout = false;// todo: get rid of this and use mChildPos, etc for boxed layout also
-
-    private java.awt.Dimension textSize = null; // only for use with wrapped text
+    // private transient boolean inLayout = false;
+    
+    // private transient boolean isCenterLayout = false;// todo: get rid of this and use mChildPos, etc for boxed layout also
+    
+    // private java.awt.Dimension textSize = null; // only for use with wrapped text
+    // HO 18/05/2011 END ******************
     
     private Class<? extends LWImage> nodeImageClass = null;
     private String mIBISType = null;
@@ -123,11 +132,13 @@ public class LWIBISNode extends LWNode
     // HO 16/12/2010 END *****************
 
 
-    private final LWIcon.Block mIconBlock =
+    // HO 18/05/2011 BEGIN ******************
+    /* private final LWIcon.Block mIconBlock =
         new LWIcon.Block(this,
                          IconWidth, IconHeight,
                          null,
-                         LWIcon.Block.VERTICAL);
+                         LWIcon.Block.VERTICAL); */
+    // HO 18/05/2011 END ******************
 
     
 

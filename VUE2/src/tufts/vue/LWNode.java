@@ -110,31 +110,41 @@ public class LWNode extends LWContainer
 
     //-----------------------------------------------------------------------------
     // consider moving all the below stuff into a layout object
+    // HO 18/05/2011 BEGIN ******************
+    // private transient float mBoxedLayoutChildY;
+    protected transient float mBoxedLayoutChildY;
+    // private transient boolean isRectShape = true;
+    protected transient boolean isRectShape = true;
+    // private transient Line2D.Float mIconDivider = new Line2D.Float();
+    protected transient Line2D.Float mIconDivider = new Line2D.Float(); // vertical line between icon block & node label / children
+    // private transient Point2D.Float mLabelPos = new Point2D.Float();
+    protected transient Point2D.Float mLabelPos = new Point2D.Float(); // for use with irregular node shapes
+    // private transient Point2D.Float mChildPos = new Point2D.Float(); 
+    protected transient Point2D.Float mChildPos = new Point2D.Float(); // for use with irregular node shapes
+    
+    //private transient Size mMinSize;
+    protected transient Size mMinSize;
+    
+    // private transient boolean inLayout = false;
+    protected transient boolean inLayout = false;
+    // private transient boolean isCenterLayout = false;
+    protected transient boolean isCenterLayout = false;// todo: get rid of this and use mChildPos, etc for boxed layout also
+    // private java.awt.Dimension textSize = null; 
+    protected java.awt.Dimension textSize = null; // only for use with wrapped text
+    
 
-    //private transient Line2D dividerUnderline = new Line2D.Float();
-    //private transient Line2D dividerStub = new Line2D.Float();
-    private transient float mBoxedLayoutChildY;
 
-    private transient boolean isRectShape = true;
-
-    private transient Line2D.Float mIconDivider = new Line2D.Float(); // vertical line between icon block & node label / children
-    private transient Point2D.Float mLabelPos = new Point2D.Float(); // for use with irregular node shapes
-    private transient Point2D.Float mChildPos = new Point2D.Float(); // for use with irregular node shapes
-
-    private transient Size mMinSize;
-
-    private transient boolean inLayout = false;
-    private transient boolean isCenterLayout = false;// todo: get rid of this and use mChildPos, etc for boxed layout also
-
-    private java.awt.Dimension textSize = null; // only for use with wrapped text
-
-
-    private final LWIcon.Block mIconBlock =
+    /* private final LWIcon.Block mIconBlock =
+        new LWIcon.Block(this,
+                         IconWidth, IconHeight,
+                         null,
+                         LWIcon.Block.VERTICAL); */
+    protected final LWIcon.Block mIconBlock =
         new LWIcon.Block(this,
                          IconWidth, IconHeight,
                          null,
                          LWIcon.Block.VERTICAL);
-
+    // HO 18/05/2011 END ******************
     
 
     private void initNode() {
