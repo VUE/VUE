@@ -58,6 +58,7 @@ public class LWImage extends LWComponent
     private static int DefaultIconMaxSide = BasicImageMaxSide;
     private static int DefaultWidth = BasicImageWidth;
     private static int DefaultHeight = BasicImageHeight;
+    private static boolean bUnsized = true;
     // HO 21/12/2010 END *********************
     
     private final static int MinWidth = 16;
@@ -67,13 +68,17 @@ public class LWImage extends LWComponent
 
     // point on AWT thread where the undo queue was before an async load operation was triggered
     private volatile Object mAWTUndoMark;
-
+    
     private void initImage() {
         disableProperty(LWKey.FontSize); // prevent 0 font size warnings (font not used on images)
         takeFillColor(null);
         takeSize(DefaultWidth, DefaultHeight);
-        setFlag(Flag.UNSIZED);
-    }
+        // HO 18/05/2011 BEGIN ********
+        if (bUnsized)
+        // HO 18/05/2011 END **********
+        	setFlag(Flag.UNSIZED);
+        
+    }    
     
     public LWImage() {
         initImage();
@@ -113,6 +118,7 @@ public class LWImage extends LWComponent
     	DefaultIconMaxSide = BasicImageMaxSide;
     	DefaultWidth = BasicImageWidth;
     	DefaultHeight = BasicImageHeight;
+    	bUnsized = true;
     	// HO 18/05/2011 END *********
         final LWImage icon = new LWImage();
         icon.setNodeIcon(true);
@@ -125,6 +131,7 @@ public class LWImage extends LWComponent
     	DefaultIconMaxSide = iconSide;
     	DefaultWidth = width;
     	DefaultHeight = height;
+    	bUnsized = false;
     	// HO 18/05/2011 END *********
         final LWImage icon = new LWImage();
         icon.setNodeIcon(true);
@@ -236,7 +243,10 @@ public class LWImage extends LWComponent
 
     /** used by Actions to size the image */
     // HO 08/04/2011 BEGIN ************
-    void setMaxDimension(final float max)
+    // HO 18/05/2011 BEGIN ************
+    // void setMaxDimension(final float max)
+    protected void setMaxDimension(final float max)
+    // HO 18/05/2011 END ************
     // need the visibility for LWImage
     //protected void setMaxDimension(final float max)
     // HO 08/04/2011 END ************

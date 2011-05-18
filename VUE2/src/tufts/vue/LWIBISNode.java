@@ -92,7 +92,8 @@ public class LWIBISNode extends LWNode
     // HO 18/05/2011 END ******************
     
     // HO 03/11/2010 BEGIN ******************
-    protected LWImage ibisImage;
+    // protected LWImage ibisImage;
+    protected IBISImage ibisImage;
     // HO 03/11/2010 END ******************
 
     //-----------------------------------------------------------------------------
@@ -126,12 +127,18 @@ public class LWIBISNode extends LWNode
     private String mIBISType = null;
     
     // HO 16/12/2010 BEGIN *************
+    // HO 18/05/2011 BEGIN *************
     public LWImage getIbisImage() {
+    // public IBISImage getIbisImage() {
+    	// HO 18/05/2011 END *************
     	return ibisImage;
     }
     
     public void setIbisImage(LWImage theImage) {
-    	ibisImage = theImage;
+    	// HO 18/05/2011 BEGIN *******
+    	// ibisImage = theImage;
+    	ibisImage = (IBISImage) theImage;
+    	// HO 18/05/2011 END *******
     }
     
     // HO 16/12/2010 END *****************
@@ -887,7 +894,10 @@ public class LWIBISNode extends LWNode
         // HO 22/12/2010 END **************
 
         if (ibisImage == null) {
-        	ibisImage = image;
+        	// HO 18/05/2011 BEGIN ******
+        	// ibisImage = image;
+        	ibisImage = (IBISImage) image;
+        	// HO 18/05/2011 END ******
        	
         	this.setResource(ibisImage.getResource());
         }
@@ -897,7 +907,10 @@ public class LWIBISNode extends LWNode
         if (old != null) {
         	Resource resource = image.getResource();
         	this.setResource(resource);
-        	ibisImage = image;
+        	// HO 18/05/2011 BEGIN ******
+        	// ibisImage = image;
+        	ibisImage = (IBISImage) image;
+        	// HO 18/05/2011 END ******
         }
         	else {
         // HO 01/12/2010 END
@@ -1907,8 +1920,12 @@ public class LWIBISNode extends LWNode
         float maxWidth = 0;
         
         if (b) {
-        	LWImage im = this.getIbisImage();
-            float w = im.getLocalBorderWidth();
+        	// HO 18/05/2011 BEGIN ********
+        	//LWImage im = this.getIbisImage();
+        	IBISImage im = (IBISImage) this.getIbisImage();
+            // float w = im.getLocalBorderWidth();
+        	float w = im.getWidth();
+        	// HO 18/05/2011 END ********
             if (w > maxWidth)
                 maxWidth = w;
         }
