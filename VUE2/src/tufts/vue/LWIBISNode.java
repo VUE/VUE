@@ -1894,8 +1894,12 @@ public class LWIBISNode extends LWNode
     	float maxHeight = 0;
     	
     	if (b) {
-            LWImage im = this.getIbisImage();
-            float w = im.getLocalBorderHeight();
+    		// HO 19/05/2011 BEGIN ********
+            // LWImage im = this.getIbisImage();
+    		IBISImage im = (IBISImage) this.getIbisImage();
+            // float w = im.getLocalBorderHeight();
+    		float w = im.getHeight();
+            // HO 19/05/2011 END ********
             if (w > maxHeight)
             	maxHeight = w;
     	}

@@ -98,6 +98,7 @@ public class LWImage extends LWComponent
     	DefaultIconMaxSide = iconMaxSide;
     	DefaultWidth = width;
     	DefaultHeight = height;
+    	bUnsized = false;
         initImage();
         if (r == null)
             throw new IllegalArgumentException("resource is not image content: " + r);
