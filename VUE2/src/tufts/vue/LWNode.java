@@ -889,7 +889,15 @@ public class LWNode extends LWContainer
     }
     
     // HO 07/12/2010 BEGIN ***************
-    // forwarding functions
+    // forwarding functions    
+    public Color getRenderFillColor(DrawContext dc, boolean bForwarding) {
+    	return super.getRenderFillColor(dc);
+    }
+    
+    public Color getFillColor(boolean bForwarding) {
+    	return super.getFillColor();
+    }
+    
     protected void setLabel(String label, boolean bForwarding) {
     	if (bForwarding)
     		super.label = label;

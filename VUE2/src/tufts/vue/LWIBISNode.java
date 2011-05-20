@@ -3328,6 +3328,53 @@ public class LWIBISNode extends LWNode
     }
     // HO 16/12/2010 END ***********
     
+    // HO 20/05/2011 BEGIN *********
+    @Override
+    public Color getRenderFillColor(DrawContext dc)
+    {
+        if (DEBUG.LAYOUT) if (!isAutoSized()) return Color.green; // LAYOUT-NEW
+
+        if (dc == null || dc.focal == this) // TextBox or presentation focal
+        	// HO 20/05/2011 BEGIN *********
+            // return super.getRenderFillColor(dc);
+        	return super.getRenderFillColor(dc, true);
+        	// HO 20/05/2011 END *********
+        
+        // TODO: cleanup using new ColorProperty methods & super.getRenderFillColor with drawContext
+        // Also add/move Util.darkColor to ColorProperty
+        // TODO: need a getFirstAncestorFillColor, which will ignore transparents (groups, transparent colors)
+        // and return the first color found -- then can skip check of getparent being an instanceof LWNode
+        // HO 20/05/2011 BEGIN *********
+        // Color fillColor = super.getFillColor();
+        Color fillColor = super.getFillColor(true);
+
+        // if this is a node with no other nodes as parents, and
+        // it has more than one child (the 1st child would be the IBIS image
+        // it needs to go dark so the user can see the bounds
+        if ((getParent() instanceof LWMap.Layer) && (numChildren() > 1)) {
+            if (fillColor != null) {
+                Color parentFill = getParent().getRenderFillColor(dc);
+                if (parentFill != null && !parentFill.equals(Color.black) && parentFill.getAlpha() != 0 && fillColor.equals(parentFill)) {
+                    // If our fill is the same as our parents, we darken it, unless our parent is already entirely black,
+                    // or entirely transparent.
+                    fillColor = VueUtil.darkerColor(fillColor);
+                }
+            }
+        } else if (getParent() instanceof LWNode) {
+            	// HO 20/05/2011 END *********
+                if (fillColor != null) {
+                    Color parentFill = getParent().getRenderFillColor(dc);
+                    if (parentFill != null && !parentFill.equals(Color.black) && parentFill.getAlpha() != 0 && fillColor.equals(parentFill)) {
+                        // If our fill is the same as our parents, we darken it, unless our parent is already entirely black,
+                        // or entirely transparent.
+                        fillColor = VueUtil.darkerColor(fillColor);
+                }
+            }
+        }
+        
+        return fillColor;
+    }
+    // HO 20/05/2011 END ***********
     
     
 }
