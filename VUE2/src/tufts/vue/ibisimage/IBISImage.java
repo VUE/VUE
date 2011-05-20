@@ -16,20 +16,20 @@ public abstract class IBISImage extends LWImage {
 	protected static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(IBISImage.class);
 	
 	// HO 18/05/2011 BEGIN *******
-	protected static final int DefaultIconMaxSide = 32;
-    protected static final int DefaultWidth = 32;
-    protected static final int DefaultHeight = 32;
+	protected static int IBISIconMaxSide = 32;
+    protected static int IBISDefaultWidth = 32;
+    protected static int IBISDefaultHeight = 32;
     
-    public static int getDefaultIconMaxSide() {
-    	return DefaultIconMaxSide;
+    public static int getIBISIconMaxSide() {
+    	return IBISIconMaxSide;
     }
     
-    public static int getDefaultWidth() {
-    	return DefaultWidth;
+    public static int getIBISDefaultWidth() {
+    	return IBISDefaultWidth;
     }
     
-    public static int getDefaultHeight() {
-    	return DefaultHeight;
+    public static int getIBISDefaultHeight() {
+    	return IBISDefaultHeight;
     }
     // HO 18/05/2011 END *******
     
@@ -42,9 +42,18 @@ public abstract class IBISImage extends LWImage {
 	public IBISImage(Resource r) {
 		// HO 18/05/2011 BEGIN *******
 		//super(r);
-		super(r, DefaultIconMaxSide, DefaultWidth, DefaultHeight);
+		super(r, IBISIconMaxSide, IBISDefaultWidth, IBISDefaultHeight, false);
 		// HO 18/05/2011 END *******
 	}
+	
+    // HO 20/05/2011 BEGIN *******
+    public IBISImage(Resource r, int iconMaxSide, int width, int height, boolean unsized) {
+    	super(r, iconMaxSide, width, height, unsized);
+    	IBISIconMaxSide = iconMaxSide;
+    	IBISDefaultWidth = width;
+    	IBISDefaultHeight = height;
+    }
+    // HO 20/05/2011 END *********
 	
 	public abstract void setIcon();
 	

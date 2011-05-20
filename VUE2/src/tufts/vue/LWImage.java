@@ -55,10 +55,18 @@ public class LWImage extends LWComponent
     private static final int BasicImageWidth = 128;
     private static final int BasicImageHeight = 128;
     
-    private static int DefaultIconMaxSide = BasicImageMaxSide;
-    private static int DefaultWidth = BasicImageWidth;
-    private static int DefaultHeight = BasicImageHeight;
-    private static boolean bUnsized = true;
+    protected static int DefaultIconMaxSide = BasicImageMaxSide;
+    protected static int DefaultWidth = BasicImageWidth;
+    protected static int DefaultHeight = BasicImageHeight;
+    protected static boolean bUnsized = true;
+    
+    public void setBUnsized(boolean b) {
+    	bUnsized = b;
+    }
+    
+    public boolean getBUnsized() {
+    	return bUnsized;
+    }
     // HO 21/12/2010 END *********************
     
     private final static int MinWidth = 16;
@@ -94,11 +102,11 @@ public class LWImage extends LWComponent
     }
     
     // HO 18/05/2011 BEGIN *******
-    public LWImage(Resource r, int iconMaxSide, int width, int height) {
+    public LWImage(Resource r, int iconMaxSide, int width, int height, boolean unsized) {
     	DefaultIconMaxSide = iconMaxSide;
     	DefaultWidth = width;
     	DefaultHeight = height;
-    	bUnsized = false;
+    	bUnsized = unsized;
         initImage();
         if (r == null)
             throw new IllegalArgumentException("resource is not image content: " + r);

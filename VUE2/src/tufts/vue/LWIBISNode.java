@@ -1150,8 +1150,8 @@ public class LWIBISNode extends LWNode
         } else if (r.isImage()) {
         	// HO 18/05/2011 BEGIN ********
             // newImageIcon = LWImage.createNodeIcon(r); 
-            newImageIcon = LWImage.createNodeIcon(r, IBISImage.getDefaultIconMaxSide(), IBISImage.getDefaultWidth(),
-            		IBISImage.getDefaultHeight()); 
+            newImageIcon = LWImage.createNodeIcon(r, IBISImage.getIBISIconMaxSide(), IBISImage.getIBISDefaultWidth(),
+            		IBISImage.getIBISDefaultHeight()); 
             // HO 18/05/2011 END *********
         }
 
@@ -1896,9 +1896,11 @@ public class LWIBISNode extends LWNode
     	if (b) {
     		// HO 19/05/2011 BEGIN ********
             // LWImage im = this.getIbisImage();
-    		IBISImage im = (IBISImage) this.getIbisImage();
+    		// IBISImage im = (IBISImage) this.getIbisImage();
+    		LWComponent c = getChild(0);
             // float w = im.getLocalBorderHeight();
-    		float w = im.getHeight();
+    		float w = c.getLocalBorderHeight();
+    		// float w = im.getHeight();
             // HO 19/05/2011 END ********
             if (w > maxHeight)
             	maxHeight = w;
@@ -1926,9 +1928,10 @@ public class LWIBISNode extends LWNode
         if (b) {
         	// HO 18/05/2011 BEGIN ********
         	//LWImage im = this.getIbisImage();
-        	IBISImage im = (IBISImage) this.getIbisImage();
+        	//IBISImage im = (IBISImage) this.getIbisImage();
             // float w = im.getLocalBorderWidth();
-        	float w = im.getWidth();
+        	LWComponent c = getChild(0);
+            float w = c.getLocalBorderWidth();
         	// HO 18/05/2011 END ********
             if (w > maxWidth)
                 maxWidth = w;
