@@ -975,6 +975,11 @@ public class Archive
 
         Log.info("Wrote " + archive);
         
+        // HO 25/05/2011 BEGIN *******************
+        // make sure the map has this file set
+		map.setFile(archive);
+        // HO 25/05/2011 END **********************
+        
         // HO 03/02/2011 BEGIN *******************
         // Open the map automatically, if we're not already doing so.
         // Close the original .vue file the archive was created from,
@@ -997,7 +1002,7 @@ public class Archive
 	    	    		// we only need to close a map if we have more than one map open
 	    				if ((aFile == null) && (coll.size() > 1)) {
 	    					// HO 23/02/2011 END ************
-	    					VUE.closeMapSilently(map, true);
+	    					VUE.closeMapSilently(map, false);
 	    					break;
 	    				} else if (aFile != archive) {
 	    					// if it's a different map, set this file to it
@@ -1030,8 +1035,11 @@ public class Archive
     	bAutoOpeningMap = true;
     	
     	// HO 20/02/2011 BEGIN **********
-    	//VUE.displayMap(archive);
+    	// HO 25/05/2011 BEGIN **********
+    	// VUE.displayMap(archive);
+    	// still use displaymapspecial for now
     	VUE.displayMapSpecial(archive);
+    	// HO 25/05/2011 END **********
     	// HO 20/02/2011 END **********
     	
     	// flag end of the process of opening the map

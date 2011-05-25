@@ -1221,13 +1221,16 @@ public class LWWormhole implements VueConstants {
         
         if (response == JOptionPane.YES_OPTION) { // Save
         	// HO 15/02/2011 BEGIN ***********
-            // return SaveAction.saveMap(map);
-        	return SaveAction.saveMapSpecial(map, false, false);
+        	// HO 25/05/2011 swapped
+            //return SaveAction.saveMap(map);
+        	//return SaveAction.saveMapSpecial(map, false, false);
+        	return SaveAction.saveMapSpecial(map, true, false);
             // HO 15/02/2011 END ***********
         } else if (response == JOptionPane.NO_OPTION) { // Save As
             // save not necessarily in the default location
         	// HO 15/02/2011 BEGIN ***********
-        	//return SaveAction.saveMap(map, true, false);
+        	// HO 25/05/2011 swapped
+        	//return SaveAction.saveMap(map);
             return SaveAction.saveMapSpecial(map, true, false);
             // HO 15/02/2011 END ***********
         } else // anything else (Cancel or dialog window closed)
