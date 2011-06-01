@@ -11,6 +11,9 @@ import tufts.vue.*;
 import tufts.vue.LWComponent.Flag;
 import tufts.vue.ibisicon.*;
 
+import org.apache.batik.dom.svg.*;
+import org.apache.batik.*;
+
 public abstract class IBISImage extends LWImage {
 	
 	protected static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(IBISImage.class);
@@ -94,10 +97,56 @@ public abstract class IBISImage extends LWImage {
     	else
     		return true;
     }
+    
+    // HO 26/05/2011 BEGIN **********  
+    private static String getFileExtension(File file) {
+    	// input validation
+    	if (file == null)
+    		return "";
 
-    public static BufferedImage readImageFromFile(File file) 
+    	// get file extension
+    	String fileName = file.getName();
+    	int mid= fileName.lastIndexOf(".");
+    	String ext=fileName.substring(mid+1,fileName.length()); 
+    	
+    	return ext;
+    }
+    
+    public static boolean writeImageToFile (File file,BufferedImage bufferedImage) 
     throws IOException {
+    	// input validation
+    	if (file == null)
+    		return false;
+    	
+    	String strExtn = getFileExtension(file);
+    	
+	 	// if the file doesn't already exist, create it	
+	 	if (readImageFromFile(file) == null)
+	 			return ImageIO.write(bufferedImage,strExtn,file);
+	 	else
+	 		return true;
+    }
+    
+    /* public static BufferedImage readImageFromSVGFile(File file) {
     	BufferedImage theImage = null;
+    	
+		try {
+			//SVGRasterizer r = new SVGRasterizer(file.toURI().toString());
+			// HO 31/05/2011 BEGIN *****
+			//theImage = r.createBufferedImage();
+			//theImage = r.createJPG(file);
+			MyTranscoder transcoder = new MyTranscoder();
+		    BufferedImage image = transcoder.getThatImage(file.toString());
+		} catch(Exception e) {
+			
+		} finally {
+			return theImage;
+		}
+    } */
+    
+    public static BufferedImage readImageFromImageIO(File file) {
+    	BufferedImage theImage = null;
+    	
     	try {
     		theImage = ImageIO.read(file);
     		//return theImage;
@@ -108,6 +157,21 @@ public abstract class IBISImage extends LWImage {
     		return theImage;
     	}
     }
+    // HO 26/05/2011 END ************
+
+    public static BufferedImage readImageFromFile(File file) 
+    throws IOException {
+    	BufferedImage theImage = null;
+    	// HO 26/05/2011 BEGIN ************
+    	/* if (file.getName().endsWith(".svg")) {
+    		theImage = readImageFromSVGFile(file);
+    		return theImage;
+    	} else { */   	
+	    	theImage = readImageFromImageIO(file);
+	    	return theImage;
+    	// }
+    	// HO 26/05/2011 END ************
+    }
     
 	public static File createImageFile(String theFile, BufferedImage theImage) {
 		// create a new file in a cache directory under the home directory
@@ -115,8 +179,11 @@ public abstract class IBISImage extends LWImage {
 		try {
 			// use the image to create a file, 
 			// or get the existing one
-			if (writeImageToJPG(imgFile, theImage)) 
+			// HO 26/05/2011 BEGIN **********
+			//if (writeImageToJPG(imgFile, theImage)) 
+			if (writeImageToFile(imgFile, theImage))
 				return imgFile;
+			// HO 26/05/2011 END **********
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -129,5 +196,7 @@ public abstract class IBISImage extends LWImage {
 	// HO 18/05/2011 BEGIN **********
 
 	// HO 18/05/2011 END ************
+	
+
 	
 }

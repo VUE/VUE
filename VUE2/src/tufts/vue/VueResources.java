@@ -47,6 +47,9 @@ import javax.swing.JFileChooser;
 import javax.swing.JTabbedPane;
 import javax.swing.UIManager;
 
+import tufts.vue.ibisimage.MyTranscoder;
+import tufts.vue.ibisimage.SVGRasterizer;
+
 import com.sun.org.apache.xalan.internal.xsltc.runtime.Hashtable;
 
 import edu.tufts.vue.preferences.implementations.LanguagePreference;
@@ -421,12 +424,88 @@ public class VueResources
     private static ImageIcon loadImageIcon(String file) {
         return loadImageIcon(sResourceBundle.getClass(), file);
     }
+    
+    // HO 26/05/2011 BEGIN **********  
+    private static String getFileExtension(String file) {
+    	// input validation
+    	if (file == null)
+    		return "";
+
+    	// get file extension
+    	int mid= file.lastIndexOf(".");
+    	String ext=file.substring(mid+1,file.length()); 
+    	
+    	return ext;
+    }
+    
+    public static BufferedImage readImageFromSVGFile(File file) {
+    	BufferedImage theImage = null;
+    	
+		try {
+			SVGRasterizer r = new SVGRasterizer(file.toURI().toString());
+			theImage = r.createBufferedImage();
+		} catch(Exception e) {
+			
+		} finally {
+			return theImage;
+		}
+    }
+    
+    /* public static BufferedImage readImageFromSVGFile(String strFile) {
+    	BufferedImage theImage = null;
+    	
+		try {
+			SVGRasterizer r = new SVGRasterizer(strFile);
+			// HO 31/05/2011 BEGIN ********
+			theImage = r.createBufferedImage();
+			// HO 31/05/2011 END ********
+		} catch(Exception e) {
+			e.printStackTrace();
+		} finally {
+			return theImage;
+		}
+    } */
+    
+    /* public static BufferedImage readImageFromSVGFile(File file, String strFile) {
+    	BufferedImage theImage = null;
+    	
+		try {
+			//SVGRasterizer r = new SVGRasterizer(strFile);
+			// HO 31/05/2011 BEGIN ********
+			// theImage = r.createBufferedImage();
+			//theImage = r.createJPG(file);
+			tufts.vue.ibisimage.MyTranscoder transcoder = new tufts.vue.ibisimage.MyTranscoder();
+		    BufferedImage image = transcoder.getThatImage(strFile);
+			// HO 31/05/2011 END ********
+		} catch(Exception e) {
+			e.printStackTrace();
+		} finally {
+			return theImage;
+		}
+    } */
+    // HO 26/05/2011 END **************
+    
 
     private static ImageIcon loadImageIcon(Class clazz, String file) {
         ImageIcon icon = null;
         //debug("\tloadImageIcon["+ file + "]");
         try {
             URL resource = clazz.getResource(file);
+            // HO 26/05/2011 BEGIN *******
+            String strExtn = getFileExtension(file);
+            /* if (strExtn.equals("svg")) {
+            	//File theFile = new File(file);
+            	// HO 31/05/2011 BEGIN ********
+            	// BufferedImage img = readImageFromSVGFile(resource.toString());
+            	BufferedImage img = readImageFromSVGFile(new File(resource.toString()), resource.toString());
+            	// HO 31/05/2011 END ********
+            	icon = new ImageIcon(img);
+                if (icon.getImageLoadStatus() != MediaTracker.COMPLETE)
+                    alert("Unable to load image resource " + file +";");
+                else
+                	return icon;
+            } */
+            // HO 26/05/2011 END *********
             //if (DEBUG.INIT) System.out.println("\tURL[" + resource + "]");
             if (resource != null) {
                 icon = new ImageIcon(resource);

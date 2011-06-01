@@ -5315,7 +5315,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 			sMultiPopup.addSeparator();
     		sMultiPopup.add(createFlatIBISMenu());    			
 		}
-
 		// HO 17/12/2010 END ************
 
 		sMultiPopup.addSeparator();
@@ -5495,6 +5494,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     	if (c instanceof LWIBISNode) {
     		// add a separator
     		sSinglePopup.addSeparator();
+    		// HO 01/06/2011 BEGIN *********
+			sSinglePopup.add(GUI.buildMenu(VueResources.getString("menu.ibisimage"), Actions.IBIS_IMAGE_MENU_ACTIONS));
+    		// HO 01/06/2011 END ***********
     		// HO 17/12/2010 BEGIN *********
     		sSinglePopup.add(createIBISTypeMenu());
     		sSinglePopup.add(createContextSensitiveIBISMenu(c));    
@@ -5510,11 +5512,14 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         sSinglePopup.addSeparator();
         // HO 08/04/2011 BEGIN *********
-		if (VUE.getSelection().allOfType(LWIBISNode.class))
+        // HO 01/06/2011 BEGIN **********
+		/* if (VUE.getSelection().allOfType(LWIBISNode.class))
 			sSinglePopup.add(GUI.buildMenu(VueResources.getString("menu.ibisimage"), Actions.IBIS_IMAGE_MENU_ACTIONS));
-		else
+		else */
+        if (!VUE.getSelection().allOfType(LWIBISNode.class))
 			// HO 08/04/2011 END *********
 			sSinglePopup.add(GUI.buildMenu(VueResources.getString("menu.image"), Actions.IMAGE_MENU_ACTIONS));
+		// HO 01/06/2011 END **********
 		
         sSinglePopup.add(GUI.buildMenu(VueResources.getString("menu.arrange"), Actions.ARRANGE_MENU_ACTIONS));
         sSinglePopup.add(GUI.buildMenu(VueResources.getString("menu.layout"),LayoutAction.LAYOUT_ACTIONS));
