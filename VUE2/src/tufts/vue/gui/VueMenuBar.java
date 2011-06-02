@@ -120,6 +120,10 @@ public class VueMenuBar extends javax.swing.JMenuBar
     public static JMenu imageMenu = null;
     // a menu with fewer sizes for IBIS images
     public static JMenu ibisImageMenu = null;
+    // HO 01/06/2011 BEGIN ********
+    // impossible to enable this at the same time as ibisImageMenu
+    //public static JMenu contextSensitiveIBISMenu = null;    
+    // HO 01/06/2011 END *********
     // HO 08/04/2011 END **********
     public static JMenu linkMenu = null;
     public static JMenu playbackMenu = null;
@@ -304,6 +308,11 @@ public class VueMenuBar extends javax.swing.JMenuBar
         ibisImageMenu = makeMenu(VueResources.getString("menu.ibisimage"));
         ibisImageMenu.setEnabled(false);
         // HO 08/04/2011 END **********
+        // HO 01/06/2011 BEGIN *******
+        // impossible to enable this at the same time as ibisImageMenu
+        // contextSensitiveIBISMenu = createContextSensitiveIBISMenu(null);
+        // contextSensitiveIBISMenu.setEnabled(false);
+        // HO 01/06/2011 END *********
         linkMenu = makeMenu(VueResources.getString("menu.link"));
         linkMenu.setEnabled(false); 
         final JMenu helpMenu = add(makeMenu(VueResources.getString("menu.help")));
@@ -732,6 +741,10 @@ public class VueMenuBar extends javax.swing.JMenuBar
         buildMenu(imageMenu, Actions.IMAGE_MENU_ACTIONS);
         // create a menu with fewer sizes for IBIS images
         buildMenu(ibisImageMenu, Actions.IBIS_IMAGE_MENU_ACTIONS);
+        // HO 01/06/2011 BEGIN ********
+        // impossible to enable this at the same time as ibisImageMenu
+        // contextSensitiveIBISMenu.setEnabled(true);
+        // HO 01/06/2011 END *********
         // HO 08/04/2011 END ***********
         buildMenu(linkMenu, Actions.LINK_MENU_ACTIONS);
         transformMenu.add(Actions.FontBigger);
@@ -746,6 +759,10 @@ public class VueMenuBar extends javax.swing.JMenuBar
         //formatMenu.add(buildMenu("menu.ibisimage", Actions.IBIS_IMAGE_MENU_ACTIONS));
         formatMenu.add(imageMenu);
         formatMenu.add(ibisImageMenu);
+        // HO 01/06/2011 BEGIN ********
+        // impossible to enable this at the same time as ibisImageMenu
+        // formatMenu.add(contextSensitiveIBISMenu);
+        // HO 01/06/2011 END ***********
         // HO 08/04/2011 END ***********			 
         formatMenu.add(linkMenu);
         formatMenu.add(alignMenu);
@@ -825,6 +842,13 @@ public class VueMenuBar extends javax.swing.JMenuBar
 				{
 					imageMenu.setEnabled(false);
 					ibisImageMenu.setEnabled(true);
+			        // HO 01/06/2011 BEGIN ********
+					// impossible to enable this at the same time as ibisImageMenu
+					//formatMenu.remove(contextSensitiveIBISMenu);
+			        // contextSensitiveIBISMenu = createContextSensitiveIBISMenu(selection.first());
+			        //formatMenu.add(contextSensitiveIBISMenu);
+			        // contextSensitiveIBISMenu.setEnabled(true);			        
+			        // HO 01/06/2011 END *******
 				}
 				else
 				{
@@ -832,9 +856,12 @@ public class VueMenuBar extends javax.swing.JMenuBar
 					// menu with full set of size choices
 					imageMenu.setEnabled(true);
 					ibisImageMenu.setEnabled(false);
+					// HO 01/06/2011 BEGIN ********
+					// impossible to enable this at the same time as ibisImageMenu
+			        // contextSensitiveIBISMenu.setEnabled(false);			        
+			        // HO 01/06/2011 END *******
 				}
-				// HO 08/04/2011 END **********
-				
+				// HO 08/04/2011 END **********				
 			}});
         contentMenu.addMenuListener(new MenuListener(){
 			public void menuCanceled(MenuEvent e) {/* no op	*/}
@@ -1516,6 +1543,44 @@ public class VueMenuBar extends javax.swing.JMenuBar
 		isMenuEnableFontFlg = enable;
 		
 	}
+	
+    // HO 16/12/2010 BEGIN ***************
+    private JMenu createContextSensitiveIBISMenu(LWComponent c) {
+    	JMenu theMenu = null;
+    	String thisType = "";
+    	// HO 01/06/2011 BEGIN ******
+    	if (c == null) {
+    		thisType = VueResources.getString("IBISNodeTool.issue.type");
+    	} else {	    		
+	    	// HO 01/06/2011 END ********
+			// work out what kind of IBIS node this is
+			((LWIBISNode) c).determineNodeImageAndType();
+			thisType = ((LWIBISNode) c).getIBISType();
+    	}
+		// find the right menu array for this type and strip out
+		// null array items
+		int i=0;
+		int menuLength=0;
+		for (i=0; i<Actions.IBIS_TYPE_MENUS.length; i++) {
+			if (Actions.IBIS_TYPE_MENUS[i][0].getValue(Actions.IBIS_TYPE).equals(thisType)) {
+				// weed out null menu items from this multidimensional
+				// array bit
+				for(int j=0; j<Actions.IBIS_TYPE_MENUS[i].length; j++) {
+					if (Actions.IBIS_TYPE_MENUS[i][j] != null) {
+						menuLength+=1;
+					}
+				}
+				Action theseActions[] = new Action[menuLength];
+				System.arraycopy(Actions.IBIS_TYPE_MENUS[i], 0, theseActions, 0, menuLength);
+				// use the stripped array to build the appropriate menu
+				theMenu = GUI.buildMenu(VueResources.getString("menu.ibis"), theseActions);
+				break;
+    			}
+    		}
+		theMenu.setEnabled(true);
+		return theMenu;
+    }
+    // HO 16/12/2010 END *****************
 
 }
 

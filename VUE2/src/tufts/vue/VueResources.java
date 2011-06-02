@@ -47,9 +47,6 @@ import javax.swing.JFileChooser;
 import javax.swing.JTabbedPane;
 import javax.swing.UIManager;
 
-import tufts.vue.ibisimage.MyTranscoder;
-import tufts.vue.ibisimage.SVGRasterizer;
-
 import com.sun.org.apache.xalan.internal.xsltc.runtime.Hashtable;
 
 import edu.tufts.vue.preferences.implementations.LanguagePreference;
@@ -438,7 +435,7 @@ public class VueResources
     	return ext;
     }
     
-    public static BufferedImage readImageFromSVGFile(File file) {
+    /* public static BufferedImage readImageFromSVGFile(File file) {
     	BufferedImage theImage = null;
     	
 		try {
@@ -449,7 +446,7 @@ public class VueResources
 		} finally {
 			return theImage;
 		}
-    }
+    } */
     
     /* public static BufferedImage readImageFromSVGFile(String strFile) {
     	BufferedImage theImage = null;
