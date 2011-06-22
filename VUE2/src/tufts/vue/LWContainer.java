@@ -425,7 +425,6 @@ public abstract class LWContainer extends LWComponent
         // of LWPathway.setEntries)
         
         layout();
-        updateConnectedLinks(null);
     }
 
 //     @Override

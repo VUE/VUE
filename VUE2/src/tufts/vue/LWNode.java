@@ -329,7 +329,6 @@ public class LWNode extends LWContainer
         mShape = shape;
         mShape.setFrame(0, 0, getWidth(), getHeight());
         layout(LWKey.Shape);
-        updateConnectedLinks(null);
         notify(LWKey.Shape, new Undoable(old) { void undo() { setShapeInstance((RectangularShape)old); }} );
         
     }

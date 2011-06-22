@@ -3110,6 +3110,8 @@ public class LWComponent
             //if (mSlideIconBounds != null)
             //    mSlideIconBounds.x = Float.NaN; // invalidate
         }
+
+        updateConnectedLinks(null);
     }
 
     protected boolean validateInitialValues() {
