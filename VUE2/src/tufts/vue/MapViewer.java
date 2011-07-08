@@ -5470,7 +5470,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     	sSinglePopup.add(AnalyzerAction.calaisAutoTagger);
 
     	// HO 21/04/2011 BEGIN **************
-    	if (!(c instanceof LWIBISNode)) {
+    	// HO 08/07/2011 BEGIN **************
+    	// if (!(c instanceof LWIBISNode)) {
+    	if ((!(c instanceof LWIBISNode)) && (!(c instanceof LWWormholeNode))) {
+    		// HO 08/07/2011 END **************
     		// HO 21/04/2011 END *************
     		sSinglePopup.addSeparator();
     		sAddURLItem = sSinglePopup.add(Actions.AddURLAction);
@@ -5481,7 +5484,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     	sAddWormholeItem = sSinglePopup.add(Actions.AddWormholeToNewMapAction);
     	sAddWormholeToExistingMapItem = sSinglePopup.add(Actions.AddWormholeToExistingMapAction);
     	// HO 13/12/2010 BEGIN **************
-    	if (!(c instanceof LWIBISNode)) {
+    	// HO 08/07/2011 BEGIN ***********
+    	// if (!(c instanceof LWIBISNode)) {
+    	if ((!(c instanceof LWIBISNode)) && (!(c instanceof LWWormholeNode))){
+    		// HO 08/07/2011 END ***********
     		// HO 12/12/2010 BEGIN **************
     		sSinglePopup.addSeparator();
     		// HO 12/12/2010 END ****************	
@@ -5669,7 +5675,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
    	    sSinglePopup.add(Actions.ContextKeywordAction);
 
    	    // HO 21/04/2011 BEGIN **************
-    	if (!(c instanceof LWIBISNode)) {
+   	    // HO 08/07/2011 BEGIN *************
+    	// if (!(c instanceof LWIBISNode)) {
+   	 if ((!(c instanceof LWIBISNode)) && (!(c instanceof LWWormholeNode))) {
+    		// HO 08/07/2011 END *************
     		// HO 21/04/2011 END ************
     		sSinglePopup.addSeparator();
     		sAddURLItem = sSinglePopup.add(Actions.AddURLAction);
@@ -5681,7 +5690,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     	sAddWormholeToExistingMapItem = sSinglePopup.add(Actions.AddWormholeToExistingMapAction);
     	// HO 27/08/2010 ********************************
     	// HO 21/04/2011 BEGIN **********
-		if (!(VUE.getSelection().containsType(LWIBISNode.class))) {
+    	// HO 08/07/2011 BEGIN *********
+		if ((!(VUE.getSelection().containsType(LWIBISNode.class))) && (!(VUE.getSelection().containsType(LWWormholeNode.class)))){
+			// HO 08/07/2011 END *********
 			// HO 21/04/2011 END **********
 			sAddFileItem = sSinglePopup.add(Actions.AddFileAction);
 			sRemoveResourceItem = sSinglePopup.add(Actions.RemoveResourceAction);

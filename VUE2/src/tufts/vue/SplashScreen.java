@@ -79,10 +79,18 @@ public class SplashScreen extends Frame
               super.paintIcon(c,g,x,y);
               g.setColor(charcoal);
               g.setFont(new Font("Verdana", Font.PLAIN, 11));
-              g.drawString(VueResources.getString("splashscreen.title"),172,165);
-              g.drawString(VueResources.getString("splashscreen.developedby"),202,185);
-              g.drawString((char)169+" "+VueResources.getString("vue.build.date")+" Tufts University", 240,205);
-              g.drawString("Version "+VueResources.getString("vue.version"),95,215);
+              // HO 08/07/2011 BEGIN ***********
+              //g.drawString(VueResources.getString("splashscreen.title"),172,165);
+              g.drawString(VueResources.getString("splashscreen.title"),172,145);
+              //g.drawString(VueResources.getString("splashscreen.developedby"),202,185);
+              g.drawString(VueResources.getString("splashscreen.developedby"),202,165);
+              // g.drawString((char)169+" "+VueResources.getString("vue.build.date")+" Tufts University", 240,205);
+              g.drawString((char)169+" "+VueResources.getString("vue.build.date")+" Tufts University", 240,185);
+              g.drawString(VueResources.getString("vue4design.version"),90,225);
+              g.drawString(VueResources.getString("splashscreen.developedby.additions"),105,205);
+              g.drawString((char)169+" "+VueResources.getString("vue4design.build.date")+" Imperial College London", 190,225);              
+              // HO 08/07/2011 END ************
+              
               
           } 
         };

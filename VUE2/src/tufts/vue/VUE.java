@@ -982,8 +982,8 @@ public class VUE
     private static boolean SKIP_DR = false; // don't load DRBrowser, no splash & no startup map
     private static boolean SKIP_CAT = false; // don't load category model
     // HO 18/06/2010 DEBUG BEGIN ***************************
-    //private static boolean SKIP_SPLASH = false;
-    private static boolean SKIP_SPLASH = true;
+    private static boolean SKIP_SPLASH = false;
+    //private static boolean SKIP_SPLASH = true;
     // HO 18/06/2010 DEBUG END *****************************
     private static boolean SKIP_EDITOR_MANAGER = false;
     private static boolean SKIP_RDF_INDEX = false;
@@ -4312,14 +4312,13 @@ public class VUE
             if (DEBUG.Enabled) Log.debug("got current version id [" + version + "]");
             final String currentVersion = VueResources.getString("vue.version").trim();
             final String newVersion = version.trim();
-            if (!isHigherVersion(currentVersion, newVersion))
+            // HO 08/07/2011 BEGIN *********
+            // we don't want to show this on VUE4Design
+            /* if (!isHigherVersion(currentVersion, newVersion))
             {
             	//final ShowAgainDialog sad = new ShowAgainDialog(VUE.getApplicationFrame(),"checkForNewVersion2","New Release Available","Remind me later",(String)null);
             	final ShowAgainDialog sad = new ShowAgainDialog(VUE.getApplicationFrame(),"checkForNewVersion2","New Release Available","Get latest version","Close Window");
             	JPanel panel = new JPanel(new GridLayout(1,1));
-            	/*JLabel vLabel = new  JLabel("<html>A newer version of VUE is available ("
-                                            + newVersion
-                                            + ") &nbsp; <font color=\"#20316A\"><u>Get the latest version</u></font></html", JLabel.LEFT);*/
             	JLabel vLabel = new  JLabel("<html>"+VueResources.getString("jlabel.newversion") +" ("
                         + newVersion
                         + ") &nbsp; <font color=\"#20316A\"></html", JLabel.LEFT);
@@ -4360,7 +4359,8 @@ public class VUE
                 }
     
                 
-              }
+              } */
+         // HO 08/07/2011 END *********
         }catch(Throwable t) {
             Log.error("Error Checking latest VUE release:", t);
         }

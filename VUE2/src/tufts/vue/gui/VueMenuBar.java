@@ -56,6 +56,7 @@ import tufts.vue.LWPathwayList;
 import tufts.vue.LWPortal;
 import tufts.vue.LWSelection;
 import tufts.vue.LWText;
+import tufts.vue.LWWormholeNode;
 import tufts.vue.LayoutAction;
 import tufts.vue.MapTabbedPane;
 import tufts.vue.MapViewer;
@@ -877,7 +878,10 @@ public class VueMenuBar extends javax.swing.JMenuBar
 				// HO 13/12/2010 BEGIN ***********
 				// if this is a node that's not an IBIS node
 				//if (c instanceof LWNode)
-				if ((c instanceof LWNode) && (!(c instanceof LWIBISNode)))
+				// HO 08/07/2011 BEGIN **********
+				// if ((c instanceof LWNode) && (!(c instanceof LWIBISNode)))
+				if ((c instanceof LWNode) && (!(c instanceof LWIBISNode)) && (!(c instanceof LWWormholeNode)))
+					// HO 08/07/2011 END **********
 				// HO 13/12/2010 END ***********
 				{
 					if ((c).hasResource())
@@ -922,7 +926,10 @@ public class VueMenuBar extends javax.swing.JMenuBar
 						// HO 13/12/2010 BEGIN ***********
 						// if this is an IBIS node, we don't want
 						// to be able to add files or URLs or remove the resource
-						if (c instanceof LWIBISNode) {
+						// HO 08/07/2011 BEGIN *****************
+						// if (c instanceof LWIBISNode) {
+						if ((c instanceof LWIBISNode) || (c instanceof LWWormholeNode)) {
+							// HO 08/07/2011 END ****************
 							addFileItem.setEnabled(false);
 							addURLItem.setEnabled(false);
 							removeResourceItem.setEnabled(false);
