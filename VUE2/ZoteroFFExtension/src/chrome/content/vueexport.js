@@ -17,7 +17,6 @@
 var VUEExport = new function() {
 	var fileLocation = "";
    	var zPane = null;
-	var installLocation ="";
 	var pathsep ="/";
 	var win = null;
 	var userag = null;
@@ -421,12 +420,22 @@ var VUEExport = new function() {
 	     if (launchVUE)
 	     {
 	    	
-		 initializeExportFileLocation();
 	       
 	       /**
 		* Open a new browser TAB for VUE
 		*/
-	       newTab(installLocation + pathsep + "{7e8ac0b1-774a-4974-9579-eb83a447f7bf}" + pathsep + "VueApplet.html");
+
+			Components.utils.import("resource://gre/modules/AddonManager.jsm");
+			var extension_id="{7e8ac0b1-774a-4974-9579-eb83a447f7bf}";
+						 			
+			AddonManager.getAddonByID(extension_id, function(addon) {
+			
+				var installLocation = addon.getResourceURI("VueApplet.html").spec;
+				var browser = top.document.getElementById("content");
+				var newtab = browser.addTab(installLocation);
+				browser.selectedTab = newtab;
+
+			});
 	       notLoaded = false;
 	       win = window;
 	       var frontWindow = Components.classes["@mozilla.org/embedcomp/window-watcher;1"].
@@ -477,12 +486,9 @@ var VUEExport = new function() {
 	 * INIT EXPORT FILE LOCATION
 	 */        
 	function initializeExportFileLocation() {
-		 var extensionManager = Components.classes["@mozilla.org/extensions/manager;1"].
-			  getService(Components.interfaces.nsIExtensionManager);
-		 // todo: is there any component that can dynamically
-				// determine the extension id?
-		 installLocation = extensionManager.getInstallLocation("{7e8ac0b1-774a-4974-9579-eb83a447f7bf}").location.path;
-	     
+
+		
+     
 		 var file = Components.classes["@mozilla.org/file/directory_service;1"].
 		 getService(Components.interfaces.nsIProperties).
 		 get("ProfD", Components.interfaces.nsIFile);
@@ -532,7 +538,7 @@ var VUEExport = new function() {
 
 	function vueTabSelected(event)
 	{
-		
+		/*
 	  var browser = gBrowser.selectedTab.linkedBrowser;
 	  // browser is the XUL element of the browser that's just been selected
 	  if (browser.currentURI.spec.match(/VueApplet.html$/))
@@ -575,7 +581,7 @@ var VUEExport = new function() {
 				  }
 				}
 		
-	  }
+	  }*/
 	}
 
 	function init()

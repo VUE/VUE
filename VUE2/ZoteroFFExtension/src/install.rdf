@@ -5,9 +5,10 @@
 	<Description about="urn:mozilla:install-manifest">
 		<em:id>{7e8ac0b1-774a-4974-9579-eb83a447f7bf}</em:id>
 		<em:name>Export from Zotero To Tufts VUE</em:name>
-		<em:version>1.0</em:version>
+		<em:version>2.0</em:version>
 		<em:description>Export items to table for VUE text import</em:description>
-		<em:creator>UIT, Academic Technology<br/>Tufts University</em:creator>
+		<em:creator>UIT Tufts University</em:creator>
+		<em:unpack>true</em:unpack>		
 		<!--<em:updateURL></em:updateURL> -->
 		<em:type>2</em:type> <!-- type=extension -->
 		
@@ -26,8 +27,8 @@
 		<em:targetApplication>
 			<Description>            		 
 				<em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
-				<em:minVersion>2.0</em:minVersion>
-				<em:maxVersion>3.*.*</em:maxVersion>
+				<em:minVersion>4.0</em:minVersion>
+				<em:maxVersion>8.*.*</em:maxVersion>
 			</Description>
 		</em:targetApplication>
 	</Description>
