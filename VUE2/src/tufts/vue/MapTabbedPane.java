@@ -338,6 +338,44 @@ public class MapTabbedPane extends JTabbedPane
         // care to hear from it's children)
         updateTitleTextAt(indexOfComponent(c)); // first time just needed for tooltip
     }
+    
+    // HO 28/07/2011 BEGIN ***********
+    public void addViewer(MapViewer viewer, int i) {
+        
+        Component c = new tufts.vue.gui.MapScrollPane(viewer);
+
+        if (false) {
+            String tabTitle = viewerToTabTitle(viewer);
+            if (tabTitle == null) {
+                tabTitle = "unknown";
+            }
+            System.out.println("Adding tab '" + tabTitle + "' component=" + c);
+        	// HO 28/02/2011 adding try/catch block
+        	try {
+        		addTab(tabTitle, c);
+        	} catch(ArrayIndexOutOfBoundsException abe) {
+        		// do nothing
+        	}
+        } else {
+        	// HO 28/02/2011 adding try/catch block
+        	try {
+        		//addTab(viewerToTabTitle(viewer), c);
+        		insertTab(viewerToTabTitle(viewer), null, c, null, i);
+        	} catch(ArrayIndexOutOfBoundsException abe) {
+        		// do nothing
+        	}
+        }
+        
+        LWMap map = viewer.getMap();
+        map.addLWCListener(this, LWKey.MapFilter, LWKey.Label);
+        // todo perf: we should be able to ask to listen only
+        // for events from this object directly (that we don't
+        // care to hear from it's children)
+        updateTitleTextAt(indexOfComponent(c)); // first time just needed for tooltip
+    }
+    
+    
+    // HO 28/07/2011 END *************
         
     /*
     // put BACKINGSTORE mode on a diag switch and test performance difference -- the

@@ -408,9 +408,49 @@ public class LWWormhole implements VueConstants {
     	//boolean b = askSaveSourceMap(sourceMap);
     	//File f = askSaveSourceMap(sourceMap);
     	// HO 11/05/2011
+    	// HO 27/07/2011 BEGIN test ***********
+    	MapViewer viewer = null;
+        if (
+                VUE.isActiveViewerOnLeft() 
+                )
+                {
+                    //viewer = VUE.getLeftTabbedPane().getSelectedViewer();
+        			viewer = VUE.getLeftTabbedPane().getViewerWithMap(sourceMap);
+                }
+        else if (VUE.isActiveViewerOnRight()) {
+        	viewer = VUE.getRightTabbedPane().getSelectedViewer();
+        }
+        // HO 27/07/2011 END ***********
     	Component comp = setScreen(sourceMap);
+    	// HO 27/07/2011 BEGIN test ***********
+        if (
+                VUE.isActiveViewerOnLeft() 
+                )
+                {
+                    //viewer = VUE.getLeftTabbedPane().getSelectedViewer();
+        			viewer = VUE.getLeftTabbedPane().getViewerWithMap(sourceMap);
+                }
+        else if (VUE.isActiveViewerOnRight()) {
+        	viewer = VUE.getRightTabbedPane().getSelectedViewer();
+        }
+        // HO 27/07/2011 END ***********
     	//LWMap srcMap = askSaveSourceMap(sourceMap);
-    	LWMap srcMap = askSaveSourceMap(sourceMap, comp);
+    	// HO 02/07/2011 begin ************
+    	// LWMap srcMap = askSaveSourceMap(sourceMap, comp);
+    	LWMap srcMap = SaveAction.saveMapSpecial(sourceMap, false, false);
+    	// HO 02/07/2011 END ************
+    	// HO 27/07/2011 BEGIN test ***********
+        if (
+                VUE.isActiveViewerOnLeft() 
+                )
+                {
+                    //viewer = VUE.getLeftTabbedPane().getSelectedViewer();
+        			viewer = VUE.getLeftTabbedPane().getViewerWithMap(sourceMap);
+                }
+        else if (VUE.isActiveViewerOnRight()) {
+        	viewer = VUE.getRightTabbedPane().getSelectedViewer();
+        }
+        // HO 27/07/2011 END ***********
     	
     	// if the current map wasn't saved for any reason,
     	// return
@@ -1255,15 +1295,29 @@ public class LWWormhole implements VueConstants {
         // HO 04/01/2011 BEGIN *************
     	// to ward off IllegalComponentStateException
     	// HO 11/05/2011 BEGIN ************
-    	//Component c = setScreen(map);
+    	Component c = setScreen(map);
     	//Component c = setScreen(focusComp);
     	// HO 11/05/2011 END ************
     	// HO 04/01/2011 END *************
+    	// HO 27/07/2011 BEGIN test ***********
+    	MapViewer viewer = null;
+        if (
+                VUE.isActiveViewerOnLeft() 
+                )
+                {
+                    //viewer = VUE.getLeftTabbedPane().getSelectedViewer();
+        			viewer = VUE.getLeftTabbedPane().getViewerWithMap(sourceMap);
+                }
+        else if (VUE.isActiveViewerOnRight()) {
+        	viewer = VUE.getRightTabbedPane().getSelectedViewer();
+        }
+        // HO 27/07/2011 END ***********
 
         int response = VueUtil.option
         (// HO 11/05/2011 BEGIN ************
-        		focusComp,
-        		//VUE.getDialogParent(),
+        		//viewer,
+        		// VUE.getDialogParent(),
+        		c,
         		// HO 11/05/2011 END ************
          "Please choose a target map.",
          "Choose Target Map",

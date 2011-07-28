@@ -982,8 +982,8 @@ public class VUE
     private static boolean SKIP_DR = false; // don't load DRBrowser, no splash & no startup map
     private static boolean SKIP_CAT = false; // don't load category model
     // HO 18/06/2010 DEBUG BEGIN ***************************
-    private static boolean SKIP_SPLASH = false;
-    //private static boolean SKIP_SPLASH = true;
+    //private static boolean SKIP_SPLASH = false;
+    private static boolean SKIP_SPLASH = true;
     // HO 18/06/2010 DEBUG END *****************************
     private static boolean SKIP_EDITOR_MANAGER = false;
     private static boolean SKIP_RDF_INDEX = false;
@@ -3662,13 +3662,51 @@ public class VUE
         LWMap loadedMap = null;
         boolean alerted = false;
         try {
-            
+        	// HO 27/07/2011 BEGIN test ***********
+        	MapViewer viewer = null;
+            if (
+                    VUE.isActiveViewerOnLeft() 
+                    )
+                    {
+                        //viewer = VUE.getLeftTabbedPane().getSelectedViewer();
+            			viewer = VUE.getLeftTabbedPane().getViewerWithMap(openMap);
+                    }
+            else if (VUE.isActiveViewerOnRight()) {
+            	viewer = VUE.getRightTabbedPane().getSelectedViewer();
+            }
+            // HO 27/07/2011 END ***********
         	loadedMap = OpenAction.loadMap(file.getAbsolutePath());
+        	// HO 27/07/2011 BEGIN test ***********
+            if (
+                    VUE.isActiveViewerOnLeft() 
+                    )
+                    {
+                        //viewer = VUE.getLeftTabbedPane().getSelectedViewer();
+            			viewer = VUE.getLeftTabbedPane().getViewerWithMap(openMap);
+            			viewer = VUE.getLeftTabbedPane().getViewerWithMap(loadedMap);
+                    }
+            else if (VUE.isActiveViewerOnRight()) {
+            	viewer = VUE.getRightTabbedPane().getSelectedViewer();
+            }
+            // HO 27/07/2011 END ***********
             alerted = true; // OpenAction.loadMap now always alerts
             if (loadedMap != null) {
             	// HO 27/02/2011 BEGIN ***********
             	try {
                 VUE.displayMapSpecial(loadedMap); 
+            	// HO 27/07/2011 BEGIN test ***********
+                if (
+                        VUE.isActiveViewerOnLeft() 
+                        )
+                        {
+                            //viewer = VUE.getLeftTabbedPane().getSelectedViewer();
+                			viewer = VUE.getLeftTabbedPane().getViewerWithMap(openMap);
+                			viewer = VUE.getLeftTabbedPane().getViewerWithMap(loadedMap);
+                        }
+                else if (VUE.isActiveViewerOnRight()) {
+                	viewer = VUE.getRightTabbedPane().getSelectedViewer();
+                }
+                // HO 27/07/2011 END ***********
             	} catch(ArrayIndexOutOfBoundsException e) {
             	}
                 // HO 27/02/2011 END ************
@@ -3703,6 +3741,10 @@ public class VUE
         
         MapViewer leftViewer = null;
         MapViewer rightViewer = null;
+        // HO 28/07/2011 BEGIN ********
+        int lastLeftIndex = -1;
+        int lastRightIndex = -1;
+        // HO 28/07/2011 END **********
         
         // go through the left tabs and see if the map is open in any of them
         for (int i = 0; i < mMapTabsLeft.getTabCount(); i++) {
@@ -3717,6 +3759,10 @@ public class VUE
             // the map we're looking for...
             if (existingFile != null && existingFile.equals(pMap.getFile())) {
                 // you found it
+            	// HO 28/07/2011 BEGIN ********
+            	// make a note of the last index
+            	lastLeftIndex = i;
+            	// HO 28/07/2011 END ********
             	// get the left viewer that contains this map
             	leftViewer = mMapTabsLeft.getViewerAt(i);
                 // HO 28/02/2011 BEGIN ***********
@@ -3741,6 +3787,10 @@ public class VUE
             File existingFile = map.getFile();
             if (existingFile != null && existingFile.equals(pMap.getFile())) {
                 // you found it
+            	// HO 28/07/2011 BEGIN ********
+            	// make a note of the last index
+            	lastRightIndex = i;
+            	// HO 28/07/2011 END ********
             	// setting the right viewer here
             	rightViewer = mMapTabsRight.getViewerAt(i);
                 // HO 28/02/2011 BEGIN ***********
@@ -3776,11 +3826,28 @@ public class VUE
         }
 
         // replace the left viewer with a new one
-        mMapTabsLeft.addViewer(leftViewer);
-
+    	// HO 28/07/2011 BEGIN ********
+    	// make a note of the last index
+    	if (lastLeftIndex == -1)
+    	// HO 28/07/2011 END ********
+    		mMapTabsLeft.addViewer(leftViewer);
+    	// HO 28/07/2011 BEGIN ********
+    	else
+    		mMapTabsLeft.addViewer(leftViewer, lastLeftIndex);
+    		// HO 28/07/2011 END ********
+    		
         // if there is a right viewer, replace it with the new one
-        if (mMapTabsRight != null) 
-        	mMapTabsRight.addViewer(rightViewer); 
+        if (mMapTabsRight != null) {
+        	// HO 28/07/2011 BEGIN ********
+        	// make a note of the last index    	
+        	if (lastRightIndex == -1)
+        	// HO 28/07/2011 END ********
+        		mMapTabsRight.addViewer(rightViewer); 
+        	// HO 28/07/2011 BEGIN ********
+        	else
+        		mMapTabsRight.addViewer(rightViewer, lastRightIndex);
+        		// HO 28/07/2011 END ********
+        }
         
         // HO 28/04/2011 BEGIN **********
         // all this does is annoyingly change the focus to the wrong map

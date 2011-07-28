@@ -29,6 +29,7 @@ import tufts.vue.gui.MapScrollPane;
 import tufts.vue.gui.TimedASComponent;
 import tufts.vue.gui.VuePopupFactory;
 import tufts.vue.gui.WindowDisplayAction;
+import tufts.vue.gui.FocusManager.GlobalMouseEvent;
 import tufts.vue.ibisimage.IBISImage;
 import static tufts.vue.MapDropTarget.*;
 import tufts.vue.NodeTool;
@@ -103,8 +104,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                , java.awt.event.KeyListener
                , java.awt.event.MouseListener
                , java.awt.event.MouseMotionListener
-               , java.awt.event.MouseWheelListener   
-               , FocusManager.GlobalMouseListener
+               , java.awt.event.MouseWheelListener 
+               // HO 12/07/2011 BEGIN ***********
+               // , FocusManager.GlobalMouseListener
+               , EventHandler.Listener<GlobalMouseEvent> 
+               // HO 12/07/2011 END *************
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(MapViewer.class);
     
@@ -389,7 +393,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         VUE.addActiveListener(VueTool.class, this);
         VUE.addActiveListener(MapViewer.class, this);
         VUE.addActiveListener(LWPathway.Entry.class, this);
-        EventHandler.addListener(FocusManager.GlobalMouseEvent.class, this);
+        // HO 12/07/2011 BEGIN ************
+        // EventHandler.addListener(FocusManager.GlobalMouseEvent.class, this);
+        EventHandler.addListener(AWTEvent.class, this);
+        // HO 12/07/2011 END ************
         addKeyListener(inputHandler);
         addMouseListener(inputHandler);
         addMouseMotionListener(inputHandler);
@@ -425,7 +432,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         ActiveInstance.removeListener(VueTool.class, this);
         ActiveInstance.removeListener(MapViewer.class, this);
         ActiveInstance.removeListener(LWPathway.Entry.class, this);
-        EventHandler.removeListener(FocusManager.GlobalMouseEvent.class, this);
+        // HO 12/07/2011 BEGIN *********
+        //EventHandler.removeListener(FocusManager.GlobalMouseEvent.class, this);
+        EventHandler.removeListener(AWTEvent.class, this);
+        // HO 12/07/2011 END *********
         removeKeyListener(inputHandler);
         removeMouseListener(inputHandler);
         removeMouseMotionListener(inputHandler);
@@ -655,17 +665,22 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // and the only help we could provide to coalesce them would be to set a limit on the
         // temporal frequency that view's can be recorded.
 
-    	if (DEBUG.PRESENT || DEBUG.SCROLL)
+    	// HO 12/07/2011 BEGIN *********
+    	/* if (DEBUG.PRESENT || DEBUG.SCROLL)
             out("anim=" + isAnimating
                 + ", restoring=" + mViewRestoring
                 + ", dragging=" + sDragUnderway
-                + ", globalMousing=" + FocusManager.isMouseDown());
+                + ", globalMousing=" + FocusManager.isMouseDown()); */
+    	// HO 12/07/2011 END *********
         
         return isAnimating
             || mViewRestoring
             || sDragUnderway
             || mKeyIsPressing
-            || FocusManager.isMouseDown()
+         // HO 12/07/2011 BEGIN *********
+            // || FocusManager.isMouseDown()
+            //|| AWTEvent.isMouseDown()
+            // HO 12/07/2011 END *********
             || (inScrollPane && mViewport.isAdjusting())
             //|| VUE.isStartupUnderway()
             //|| (inScrollPane && (mViewport.getWidth() <= 0 || mViewport.getHeight() <= 0))
@@ -6795,7 +6810,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
 
         
+        // HO 12/07/2011 BEGIN **********
         public void eventRaised(FocusManager.GlobalMouseEvent e) {
+        //public void eventRaised(AWTEvent e) {
+        	// HO 12/07/2011 END **********
 
 //         if (mViewWasJustRestored) {
 //             mViewWasJustRestored = false;
@@ -6807,9 +6825,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         
         //if (DEBUG.Enabled) out(e);
         	
-        	if (e.event.getID() == MouseEvent.MOUSE_RELEASED) {
+        	/* if (e.event.getID() == MouseEvent.MOUSE_RELEASED) {
         		trackViewChanges("globalMouseRelease");
-        	}
+        	} */
+        	// HO 12/07/2011 END **********
     } 
         
     private LWComponent hitComponent = null;
@@ -8776,7 +8795,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
     //} old InputHandler close
     
-    private final Runnable focusIndicatorRepaint = new Runnable() { public void run() { mFocusIndicator.repaint(); }};
+    private final Runnable focusIndicatorRepaint = new Runnable() { public void run() { 
+    	mFocusIndicator.repaint(); 
+    	}
+    };
     
     public void activeChanged(ActiveEvent e, MapViewer viewer) {
         // We delay the repaint request for the focus indicator on this event because normally, it

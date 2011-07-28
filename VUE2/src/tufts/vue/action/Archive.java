@@ -24,6 +24,7 @@ import java.util.zip.*;
 
 import tufts.Util;
 import tufts.vue.DEBUG;
+import tufts.vue.MapViewer;
 import tufts.vue.VueUtil;
 import tufts.vue.Version;
 import tufts.vue.VUE;
@@ -985,8 +986,33 @@ public class Archive
         // Close the original .vue file the archive was created from,
         // if it's open.
         if (!bAutoOpeningMap) {
+        	// HO 27/07/2011 BEGIN test ***********
+        	MapViewer viewer = null;
+            if (
+                    VUE.isActiveViewerOnLeft() 
+                    )
+                    {
+                        //viewer = VUE.getLeftTabbedPane().getSelectedViewer();
+            			viewer = VUE.getLeftTabbedPane().getViewerWithMap(map);
+                    }
+            else if (VUE.isActiveViewerOnRight()) {
+            	viewer = VUE.getRightTabbedPane().getSelectedViewer();
+            }
+            // HO 27/07/2011 END ***********
         	// auto-open
-        	autoOpenMap(archive);        		
+        	autoOpenMap(archive);      
+        	// HO 27/07/2011 BEGIN test ***********
+            if (
+                    VUE.isActiveViewerOnLeft() 
+                    )
+                    {
+                        //viewer = VUE.getLeftTabbedPane().getSelectedViewer();
+            			viewer = VUE.getLeftTabbedPane().getViewerWithMap(map);
+                    }
+            else if (VUE.isActiveViewerOnRight()) {
+            	viewer = VUE.getRightTabbedPane().getSelectedViewer();
+            }
+            // HO 27/07/2011 END ***********
     		// get all the open maps
     		Collection<LWMap> coll = VUE.getAllMaps();
 	    		for (LWMap aMap: coll) {

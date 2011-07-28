@@ -365,7 +365,9 @@ public class GUI
         ContentFace = new GUI.Face("Arial", Font.PLAIN, 14, null); // shows underscores below underline
         //ContentFace = new GUI.Face("Verdana", Font.PLAIN, 13, null); // underline hides underscores
 
-        FocusManager.install();
+        // HO 12/07/2011 BEGIN ********
+        //FocusManager.install();
+        // HO 12/07/2011 END ********
         
         //tufts.Util.executeIfFound("tufts.vue.gui.WindowManager", "install", null);
 
