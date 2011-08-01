@@ -988,15 +988,17 @@ public class Archive
         if (!bAutoOpeningMap) {
         	// HO 27/07/2011 BEGIN test ***********
         	MapViewer viewer = null;
+        	MapViewer aviewer = null;
             if (
                     VUE.isActiveViewerOnLeft() 
                     )
                     {
-                        //viewer = VUE.getLeftTabbedPane().getSelectedViewer();
+                        aviewer = VUE.getLeftTabbedPane().getSelectedViewer();
             			viewer = VUE.getLeftTabbedPane().getViewerWithMap(map);
                     }
             else if (VUE.isActiveViewerOnRight()) {
-            	viewer = VUE.getRightTabbedPane().getSelectedViewer();
+            	// viewer = VUE.getRightTabbedPane().getSelectedViewer();
+            	viewer = VUE.getRightTabbedPane().getViewerWithMap(map);
             }
             // HO 27/07/2011 END ***********
         	// auto-open
@@ -1006,11 +1008,12 @@ public class Archive
                     VUE.isActiveViewerOnLeft() 
                     )
                     {
-                        //viewer = VUE.getLeftTabbedPane().getSelectedViewer();
+                        aviewer = VUE.getLeftTabbedPane().getSelectedViewer();
             			viewer = VUE.getLeftTabbedPane().getViewerWithMap(map);
                     }
             else if (VUE.isActiveViewerOnRight()) {
-            	viewer = VUE.getRightTabbedPane().getSelectedViewer();
+            	// viewer = VUE.getRightTabbedPane().getSelectedViewer();
+            	viewer = VUE.getRightTabbedPane().getViewerWithMap(map);
             }
             // HO 27/07/2011 END ***********
     		// get all the open maps

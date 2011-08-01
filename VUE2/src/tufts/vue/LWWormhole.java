@@ -410,15 +410,17 @@ public class LWWormhole implements VueConstants {
     	// HO 11/05/2011
     	// HO 27/07/2011 BEGIN test ***********
     	MapViewer viewer = null;
+    	MapViewer aviewer = null;
         if (
                 VUE.isActiveViewerOnLeft() 
                 )
                 {
-                    //viewer = VUE.getLeftTabbedPane().getSelectedViewer();
+                    aviewer = VUE.getLeftTabbedPane().getSelectedViewer();
         			viewer = VUE.getLeftTabbedPane().getViewerWithMap(sourceMap);
                 }
         else if (VUE.isActiveViewerOnRight()) {
-        	viewer = VUE.getRightTabbedPane().getSelectedViewer();
+        	// viewer = VUE.getRightTabbedPane().getSelectedViewer();
+        	viewer = VUE.getRightTabbedPane().getViewerWithMap(sourceMap);
         }
         // HO 27/07/2011 END ***********
     	Component comp = setScreen(sourceMap);
@@ -427,11 +429,12 @@ public class LWWormhole implements VueConstants {
                 VUE.isActiveViewerOnLeft() 
                 )
                 {
-                    //viewer = VUE.getLeftTabbedPane().getSelectedViewer();
+                    aviewer = VUE.getLeftTabbedPane().getSelectedViewer();
         			viewer = VUE.getLeftTabbedPane().getViewerWithMap(sourceMap);
                 }
         else if (VUE.isActiveViewerOnRight()) {
-        	viewer = VUE.getRightTabbedPane().getSelectedViewer();
+        	// viewer = VUE.getRightTabbedPane().getSelectedViewer();
+        	viewer = VUE.getRightTabbedPane().getViewerWithMap(sourceMap);
         }
         // HO 27/07/2011 END ***********
     	//LWMap srcMap = askSaveSourceMap(sourceMap);
@@ -444,11 +447,12 @@ public class LWWormhole implements VueConstants {
                 VUE.isActiveViewerOnLeft() 
                 )
                 {
-                    //viewer = VUE.getLeftTabbedPane().getSelectedViewer();
+                    aviewer = VUE.getLeftTabbedPane().getSelectedViewer();
         			viewer = VUE.getLeftTabbedPane().getViewerWithMap(sourceMap);
                 }
         else if (VUE.isActiveViewerOnRight()) {
-        	viewer = VUE.getRightTabbedPane().getSelectedViewer();
+        	// viewer = VUE.getRightTabbedPane().getSelectedViewer();
+        	viewer = VUE.getRightTabbedPane().getViewerWithMap(sourceMap);
         }
         // HO 27/07/2011 END ***********
     	
@@ -1301,15 +1305,17 @@ public class LWWormhole implements VueConstants {
     	// HO 04/01/2011 END *************
     	// HO 27/07/2011 BEGIN test ***********
     	MapViewer viewer = null;
+    	MapViewer aviewer = null;
         if (
                 VUE.isActiveViewerOnLeft() 
                 )
                 {
-                    //viewer = VUE.getLeftTabbedPane().getSelectedViewer();
+                    aviewer = VUE.getLeftTabbedPane().getSelectedViewer();
         			viewer = VUE.getLeftTabbedPane().getViewerWithMap(sourceMap);
                 }
         else if (VUE.isActiveViewerOnRight()) {
-        	viewer = VUE.getRightTabbedPane().getSelectedViewer();
+        	// viewer = VUE.getRightTabbedPane().getSelectedViewer();
+        	viewer = VUE.getRightTabbedPane().getViewerWithMap(sourceMap);
         }
         // HO 27/07/2011 END ***********
 

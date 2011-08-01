@@ -3664,15 +3664,17 @@ public class VUE
         try {
         	// HO 27/07/2011 BEGIN test ***********
         	MapViewer viewer = null;
+        	MapViewer aviewer = null;
             if (
                     VUE.isActiveViewerOnLeft() 
                     )
                     {
-                        //viewer = VUE.getLeftTabbedPane().getSelectedViewer();
+                        aviewer = VUE.getLeftTabbedPane().getSelectedViewer();
             			viewer = VUE.getLeftTabbedPane().getViewerWithMap(openMap);
                     }
             else if (VUE.isActiveViewerOnRight()) {
-            	viewer = VUE.getRightTabbedPane().getSelectedViewer();
+            	// viewer = VUE.getRightTabbedPane().getSelectedViewer();
+            	viewer = VUE.getRightTabbedPane().getViewerWithMap(openMap);
             }
             // HO 27/07/2011 END ***********
         	loadedMap = OpenAction.loadMap(file.getAbsolutePath());
@@ -3681,12 +3683,13 @@ public class VUE
                     VUE.isActiveViewerOnLeft() 
                     )
                     {
-                        //viewer = VUE.getLeftTabbedPane().getSelectedViewer();
+                        aviewer = VUE.getLeftTabbedPane().getSelectedViewer();
             			viewer = VUE.getLeftTabbedPane().getViewerWithMap(openMap);
             			viewer = VUE.getLeftTabbedPane().getViewerWithMap(loadedMap);
                     }
             else if (VUE.isActiveViewerOnRight()) {
-            	viewer = VUE.getRightTabbedPane().getSelectedViewer();
+            	// viewer = VUE.getRightTabbedPane().getSelectedViewer();
+            	viewer = VUE.getRightTabbedPane().getViewerWithMap(loadedMap);
             }
             // HO 27/07/2011 END ***********
             alerted = true; // OpenAction.loadMap now always alerts
@@ -3699,12 +3702,12 @@ public class VUE
                         VUE.isActiveViewerOnLeft() 
                         )
                         {
-                            //viewer = VUE.getLeftTabbedPane().getSelectedViewer();
+                            aviewer = VUE.getLeftTabbedPane().getSelectedViewer();
                 			viewer = VUE.getLeftTabbedPane().getViewerWithMap(openMap);
                 			viewer = VUE.getLeftTabbedPane().getViewerWithMap(loadedMap);
                         }
                 else if (VUE.isActiveViewerOnRight()) {
-                	viewer = VUE.getRightTabbedPane().getSelectedViewer();
+                	viewer = VUE.getRightTabbedPane().getViewerWithMap(loadedMap);
                 }
                 // HO 27/07/2011 END ***********
             	} catch(ArrayIndexOutOfBoundsException e) {
@@ -3744,6 +3747,8 @@ public class VUE
         // HO 28/07/2011 BEGIN ********
         int lastLeftIndex = -1;
         int lastRightIndex = -1;
+        int lastLeftSelected = -1;
+        int lastRightSelected = -1;
         // HO 28/07/2011 END **********
         
         // go through the left tabs and see if the map is open in any of them
@@ -3765,6 +3770,7 @@ public class VUE
             	// HO 28/07/2011 END ********
             	// get the left viewer that contains this map
             	leftViewer = mMapTabsLeft.getViewerAt(i);
+            	lastLeftSelected = mMapTabsLeft.getSelectedIndex();
                 // HO 28/02/2011 BEGIN ***********
                 // added try/catch block
                 try {
@@ -3793,6 +3799,7 @@ public class VUE
             	// HO 28/07/2011 END ********
             	// setting the right viewer here
             	rightViewer = mMapTabsRight.getViewerAt(i);
+            	lastRightSelected = mMapTabsRight.getSelectedIndex();
                 // HO 28/02/2011 BEGIN ***********
                 // added try/catch block
                 try {
@@ -3832,8 +3839,13 @@ public class VUE
     	// HO 28/07/2011 END ********
     		mMapTabsLeft.addViewer(leftViewer);
     	// HO 28/07/2011 BEGIN ********
-    	else
+    	else {
     		mMapTabsLeft.addViewer(leftViewer, lastLeftIndex);
+    		// HO 01/08/2011 BEGIN ************
+    		if (mMapTabsLeft.getTabCount() > lastLeftSelected)
+    			mMapTabsLeft.setSelectedIndex(lastLeftSelected);
+            // HO 01/08/2011 END ************
+    	}
     		// HO 28/07/2011 END ********
     		
         // if there is a right viewer, replace it with the new one
@@ -3846,28 +3858,12 @@ public class VUE
         	// HO 28/07/2011 BEGIN ********
         	else
         		mMapTabsRight.addViewer(rightViewer, lastRightIndex);
+    		// HO 01/08/2011 BEGIN ************
+    		if (mMapTabsRight.getTabCount() > lastRightSelected)
+    			mMapTabsRight.setSelectedIndex(lastRightSelected);
+            // HO 01/08/2011 END ************
         		// HO 28/07/2011 END ********
         }
-        
-        // HO 28/04/2011 BEGIN **********
-        // all this does is annoyingly change the focus to the wrong map
-        // now set the focus appropriately
-        /* if (isActiveViewerOnLeft()) {
-        	// HO 28/02/2011 adding try/catch block
-        	try {
-        		mMapTabsLeft.setSelectedComponent(leftViewer);
-        	} catch(ArrayIndexOutOfBoundsException e) {
-        		// do nothing
-        	}
-        } else if (mMapTabsRight != null){
-        	// HO 28/02/2011 adding try/catch block
-        	try {
-        		mMapTabsRight.setSelectedComponent(rightViewer);
-        	} catch(ArrayIndexOutOfBoundsException e) {
-        		// do nothing
-        	}
-        } */
-        // HO 28/04/2011 END **********
 
         diagPop();
         
