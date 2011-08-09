@@ -3683,8 +3683,6 @@ public class VUE
                     VUE.isActiveViewerOnLeft() 
                     )
                     {
-                        aviewer = VUE.getLeftTabbedPane().getSelectedViewer();
-            			viewer = VUE.getLeftTabbedPane().getViewerWithMap(openMap);
             			viewer = VUE.getLeftTabbedPane().getViewerWithMap(loadedMap);
                     }
             else if (VUE.isActiveViewerOnRight()) {
@@ -3702,8 +3700,6 @@ public class VUE
                         VUE.isActiveViewerOnLeft() 
                         )
                         {
-                            aviewer = VUE.getLeftTabbedPane().getSelectedViewer();
-                			viewer = VUE.getLeftTabbedPane().getViewerWithMap(openMap);
                 			viewer = VUE.getLeftTabbedPane().getViewerWithMap(loadedMap);
                         }
                 else if (VUE.isActiveViewerOnRight()) {

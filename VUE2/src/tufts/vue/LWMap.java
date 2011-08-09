@@ -124,6 +124,9 @@ public class LWMap extends LWContainer
     // HO 27/12/2010 BEGIN ***********
     private String mPrettyLabel = "";
     // HO 27/12/2010 END *************
+    // HO 03/08/2011 BEGIN ***********
+    private String mAbsoluteLabel = "";
+    // HO 03/08/2011 END *************
     
     // only to be used during a restore from persisted
     public LWMap() {
@@ -222,6 +225,12 @@ public class LWMap extends LWContainer
     	if (this.getLabel().equals(this.getPrettyLabel()))
     		return;
     	// HO 27/12/2010 END ************
+    	
+    	// HO 03/08/2011 BEGIN ***********
+    	boolean labelChangeRequired = labelChangeRequired();
+    	if (!labelChangeRequired)
+    		return;
+    	// HO 03/08/2011 END ************
   	
     	bConstructingWormholes = true;
         // HO 21/04/2011 BEGIN **********
@@ -469,9 +478,48 @@ public class LWMap extends LWContainer
     public File getFile() {
         return mFile;
     }
+    
+    /**
+     * A function to check and see whether a label change is required.
+     * If the filename and location are the same as the label already,
+     * we don't need to change anything.
+     * @return true if the File name or location have changed requiring a change in the label,
+     * false otherwise.
+     * 
+     * @author Helen Oliver
+     */
+    private boolean labelChangeRequired() {
+    	boolean bChanging = true;
+    	
+        /* if ((mFile != null) && (file != null) ){
+        	// path of new file for comparison
+        	String strCompPath = file.getAbsolutePath();
+        	// name of new file for comparison
+        	String strCompName = file.getName();
+        	// compare new file path with previous file path
+	        if (strCompPath.equals(mFile.getAbsolutePath())) {
+	        	// having established that the new file path matches the previous file path,
+	        	// if the current label matches either the new file path
+	        	// or the new file name, there is no need to change the label
+	        	if ((strCompPath.equals(this.label)) || (strCompName.equals(this.label)))
+	        		bChanging = false;
+	        }
+        } */
+    	
+    	if ((this.label.equals(mAbsoluteLabel)) || (this.label.equals(mPrettyLabel)))
+    		bChanging = false;
+        
+        return bChanging;
+    }
 
     public void setFile(File file) {
         Log.debug("setFile " + file);
+        // HO 02/08/2011 BEGIN *********
+        // no need to force a label change,
+        // and consequent costly construction of wormholes,
+        // if the file path is actually the same
+        // boolean labelChangeRequired = labelChangeRequired(file);
+        // HO 02/08/2011 END *********
         mFile = file;
         if (mFile != null) {
         	// HO 15/09/2010 BEGIN **********************************
@@ -481,14 +529,28 @@ public class LWMap extends LWContainer
         	// and if we save a file under the same name, but in
         	// a different location, it won't refresh properly,
         	// so we have to set the label to the absolute path
-            setLabel(mFile.getAbsolutePath()); // todo: don't let this be undoable!
-            // HO 27/12/2010 BEGIN ********
-            // after setting the label to the absolute path,
-            // we need to change it back to just the filename,
-            // because the labels get much too wide which means
-            // that you have to page between maps
-            setPrettyLabel();
-            setLabel(this.getPrettyLabel());
+        	// HO 02/08/2011 BEGIN *************
+        	//if (labelChangeRequired) {
+	            setLabel(mFile.getAbsolutePath()); // todo: don't let this be undoable!
+	            // HO 03/08/2011 BEGIN *********
+	            // make sure it recreates the wormholes at this point at least
+	            // but even this can be redundant...
+	            //labelChangeRequired = labelChangeRequired(file);
+	            	//constructWormholes();
+	            // HO 03/08/2011 END ************
+	            // HO 27/12/2010 BEGIN ********
+	            // after setting the label to the absolute path,
+	            // we need to change it back to just the filename,
+	            // because the labels get much too wide which means
+	            // that you have to page between maps
+	            setPrettyLabel();
+	            // HO 03/08/2011 BEGIN *********
+	            // make a record of the last absolute path set
+	            setAbsoluteLabel();
+	            // HO 03/08/2011 END *********
+	            setLabel(this.getPrettyLabel());
+        	//}
+            // HO 02/08/2011 END *************
             // HO 27/12/2010 END **********
             // HO 15/09/2010 END **********************************
             final File parentDir = mFile.getParentFile();
@@ -514,13 +576,55 @@ public class LWMap extends LWContainer
         
     }
     
+    /**
+     * A method to set the "pretty" label,
+     * that is, the label showing the filename
+     * instead of the full path.
+     * Gets the name of this map's file, if it has one.
+     * @author Helen Oliver
+     */
     private void setPrettyLabel() {
-    	mPrettyLabel = mFile.getName();
+    	if (mFile != null)
+    		mPrettyLabel = mFile.getName();
     }
     
-    private String getPrettyLabel() {
-    	return mPrettyLabel;
+    /**
+     * A method to return the "pretty" label,
+     * that is, the label showing the filename
+     * instead of the full path.
+     * @return mPrettyLabel, a String representing the name of this
+     * map's file, if it has one.
+     * @author Helen Oliver
+     */
+    private String getPrettyLabel() {    	
+    	return mPrettyLabel;    	
     }
+    
+    // HO 03/08/2011 BEGIN *************
+    /**
+     * A method to set the "absolute" label,
+     * that is, the label showing the absolute path
+     * instead of just the filename
+     * Gets the absolute path of this map's file, if it has one.
+     * @author Helen Oliver
+     */
+    private void setAbsoluteLabel() {
+    	if (mFile != null)
+    		mAbsoluteLabel = mFile.getAbsolutePath();
+    }
+    
+    /**
+     * A method to return the "absolute" label,
+     * that is, the label showing the absolute path
+     * instead of just the filename.
+     * @return mAbsoluteLabel, a String representing the absolute path of this
+     * map's file, if it has one.
+     * @author Helen Oliver
+     */
+    private String getAbsoluteLabel() {    	
+    	return mAbsoluteLabel;    	
+    }
+    // HO 03/08/2011 END *************
 
     /** persistance only */
     public String getSaveLocation() {

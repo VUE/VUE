@@ -209,7 +209,8 @@ public class LWWormhole implements VueConstants {
 		// constructed the whole wormhole
 		setBCancelled(true);
 		// HO 08/02/2011 BEGIN ***************
-		Collection<LWMap> coll = findAndSaveAllOpenMaps();
+		// Collection<LWMap> coll = findAndSaveAllOpenMaps(); 
+		findAndSaveAllOpenMaps();
 		// HO 08/02/2011 END ***************
 		
 		boolean b = createComponentsAndMaps(c, bNew);
@@ -234,6 +235,9 @@ public class LWWormhole implements VueConstants {
     	addAllListeners();
     	// if we got this far we're okay and not cancelled
     	setBCancelled(false);
+    	
+    	// against memory leaks
+    	// coll = null;
     	
     	// flag end of construction process
     	flagEndOfConstruction(sourceMap);
@@ -825,12 +829,15 @@ public class LWWormhole implements VueConstants {
 				targetSpec = targFile.getAbsolutePath();
 				targMap = OpenAction.loadMap(targetSpec);
 			}
-			else {// if we still can't find it, search all the subfolders
-				Vector v = new Vector();
-				v = fileExistInPath(targFile.getParent(), targFile.getName(), v);
-			    Iterator itr = v.iterator();
+			else {// if we still can't find it, search all the subfolders				
+				// HO 09/08/2011 BEGIN **********
+				// Vector v = new Vector();
+				// v = fileExistInPath(targFile.getParent(), targFile.getName(), v);
+				targMap = fileExistInPath(targFile.getParent(), targFile.getParent(), targFile.getName(), compString);
+				
+			    // Iterator itr = v.iterator();
 
-			    LWComponent targetComp = null;
+			    /* LWComponent targetComp = null;
 			    while(itr.hasNext()) {
 			    	File f = (File)itr.next();
 			    	String s = f.getAbsolutePath();
@@ -843,47 +850,103 @@ public class LWWormhole implements VueConstants {
 						targMap = map;
 						break;
 					}
-			     }
+			     } */
 			}
-							
+			// HO 09/08/2011 END **********				
 			return targMap;
+	}
+	
+	private static LWMap checkIfRightMap(File f, String compString) {
+    	if (f == null)
+    		return null;
+    	
+    	LWMap targMap = null;
+    	
+    	String s = f.getAbsolutePath();
+    	LWMap map = OpenAction.loadMap(s);
+		// see if this is the right map
+    	// by looking to see if the target component is in it
+		LWComponent targetComp = map.findChildByURIString(compString);
+		// if we found it, this is the right map
+		if (targetComp != null) {
+			targMap = map;
+		}
+		
+		return targMap;
 	}
 	
 
 
 		/**
 
-		* @param top_level_dir
+		* @param root_dir, the top of the file structure where we first started looking for the file
+		* @param top_level_dir, the parent directory we are searching in now
 
-		* @param file_to_search
+		* @param file_to_search, the file we are searching for
 
-		* @param v
+		* @param compString, the UURI of the target component
 
-		* @return Vector
+		* @return LWMap, the map if we find the one with the target component, null otherwise
 
 		*/
-
-		public static Vector fileExistInPath(String top_level_dir, String file_to_search, Vector v) {
-
+		// HO 09/08/2011 BEGIN **********
+		public static LWMap fileExistInPath(String root_dir, String top_level_dir, String file_to_search, String compString) {
+			String strRootDir = root_dir;
+			// HO 09/08/2011 END **********
+			LWMap theMap = null;
+			// get the files in the current directory
 			File f = new File(top_level_dir);	
 			File[] dir = f.listFiles();	
+			// if we have a list of files, cycle through them
 			if (dir != null) {	
 				for (int i = 0; i < dir.length; i++) {
 					File file_test = dir[i];
+					// HO 09/08/2011 BEGIN *******
+					// don't waste time on Subversion folders
+					if (".svn".equals(dir[i].getName().toString())) {
+						continue;
+					}
+					// don't waste time on the Trash folder
+					if (".Trash".equals(dir[i].getName().toString())) {
+						continue;
+					}
+					// HO 09/08/2011 END *********
 					if (file_test.isFile()) {	
 						if (file_test.getName().equals(file_to_search)) {
 							System.out.println("File Name :" + file_test);
 							//v.add(top_level_dir);	
-							v.add(new File(top_level_dir, file_test.getName()));
+							//v.add(new File(top_level_dir, file_test.getName()));
+							theMap = checkIfRightMap(file_test, compString);
+							if (theMap != null) 
+								break;
 						}
 					} else if(file_test.isDirectory()){	
-						fileExistInPath(file_test.getAbsolutePath(), file_to_search, v);
+						// HO 09/08/2011 BEGIN *********
+						// do not go more than 6 levels below the directory structure
+						/* int count;
+						File countFile = file_test;
+						for (count = 0; count <=6; count++) {
+							String stepUp = countFile.getParent();
+							if (stepUp.equals(strRootDir)) {
+								break;
+							} else {
+								countFile = new File(stepUp);
+							}
+						}
+						if (count < 7) { */
+							// HO 09/08/2011 END ***********
+							theMap = fileExistInPath(strRootDir, file_test.getAbsolutePath(), file_to_search, compString);
+							if (theMap != null)
+								break;
+						/* } else {
+							continue;
+						} */
 					}
 				}
 			} else {	
 				System.out.println("null list of files");
 			}	
-			return v;
+			return theMap;
 
 		}
 	
@@ -2487,7 +2550,10 @@ public class LWWormhole implements VueConstants {
 	 * A routine to find and save all the open
 	 * maps
 	 */
-	public Collection<LWMap> findAndSaveAllOpenMaps() {
+	// HO 02/08/2011 BEGIN *************
+	//public Collection<LWMap> findAndSaveAllOpenMaps() {
+	public void findAndSaveAllOpenMaps() {
+		// HO 02/08/2011 END *************
 		
 		// get all the open maps
 		Collection<LWMap> coll = VUE.getAllMaps();
@@ -2499,9 +2565,11 @@ public class LWWormhole implements VueConstants {
 				//SaveAction.saveMapSpecial(map);
 				// HO 22/02/2011 END **************
 			}
+			map = null;
 		}
 		
-		return coll;
+		coll = null;
+		//return coll;
 	}
 	// HO 08/02/2011 END *********************
 	
