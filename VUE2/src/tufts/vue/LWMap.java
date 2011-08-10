@@ -348,6 +348,26 @@ public class LWMap extends LWContainer
     
     // HO 15/04/2011 END *********
     
+    // HO 10/08/2011 BEGIN *********
+    /**
+     * A function to deselect all currently selected descendents in the target map.
+     * @author Helen Oliver
+     */
+    public void deselectCurrentSelection() {
+    	// get everything in the map and if it's selected,
+    	// deselect it
+		Iterator iter = this.getAllDescendents().iterator();
+		while(iter.hasNext()) {
+			LWComponent nextComp = (LWComponent) iter.next();
+			if (nextComp.isSelected())
+				nextComp.setSelected(false);
+			
+			// against memory leaks
+			nextComp = null;			
+		}
+    }    
+    // HO 10/08/2011 END ***********
+    
     private String checkForLocalTargetFile(String strTargetParent, String strTargetName) {
     	boolean bPresent = false;
     	boolean bVueFile = false;

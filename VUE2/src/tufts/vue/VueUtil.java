@@ -105,28 +105,6 @@ public class VueUtil extends tufts.Util
                     loadMap.setFile(null);
                 }
                 
-                
-//                 try {
-//                     File file = new File(new java.net.URL(platformURL).getFile());
-//                     if(file.exists()) {
-//                         tufts.vue.VUE.displayMap(file);
-//                     } else{
-//                         LWMap loadMap = tufts.vue.action.OpenAction.loadMap(new java.net.URL(platformURL));
-//                         tufts.vue.VUE.displayMap(loadMap);
-//                         loadMap.setFile(null);
-//                     }
-//                 } catch (java.net.MalformedURLException e) {
-//                     Log.error(e + " " + platformURL);
-//                     e.printStackTrace();
-//                     try {
-//                         tufts.vue.VUE.displayMap(new File(platformURL));
-//                     } catch (Exception ex) {
-//                         System.out.println(ex + " " + platformURL);
-//                         tufts.Util.openURL(platformURL);
-//                     }
-//                 } catch(Exception ex) {
-//                     ex.printStackTrace();
-//                 }
                 return;
             }
         }

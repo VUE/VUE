@@ -3532,6 +3532,38 @@ public class VUE
     }
  	// HO 17/02/2011 END *************
     
+    // HO 10/08/2011 BEGIN *************
+    /**
+     * A function to close a contentless active map if VUE is running as an applet
+     * @return true if VUE is running as an applet, false otherwise
+     */
+    private static boolean closeActiveMapIfApplet() {
+        if (VUE.isApplet())
+        {
+        	if (	(getActiveMap() != null) && 
+    				!getActiveMap().hasContent() && 
+    				getActiveMap().getFile() == null)
+    		{
+    			try
+    			{
+    				closeMap(getActiveMap());
+    			}
+    			catch(ArrayIndexOutOfBoundsException abe)
+    			{
+    				abe.printStackTrace();
+    			} finally {
+    				return true;
+    			}
+    		}
+        	
+        	return true;
+        } else {
+        	return false;
+        }
+    }
+    
+    // HO 10/08/2011 END ***************
+    
     // HO 19/08/2010 BEGIN *************************
     /**
      * A method for refreshing an open but non-active map after its file
@@ -3552,25 +3584,10 @@ public class VUE
 
         if (file == null)
             return;
-
-        if (VUE.isApplet())
-        {
-        	if (	(getActiveMap() != null) && 
-    				!getActiveMap().hasContent() && 
-    				getActiveMap().getFile() == null)
-    		{
-    			try
-    			{
-    				closeMap(getActiveMap());
-    			}
-    			catch(ArrayIndexOutOfBoundsException abe)
-    			{
-    				abe.printStackTrace();
-    			}
-    		}
-        }
-        else
-        {
+        
+        // HO 10/08/2011 BEGIN *************
+        if (!closeActiveMapIfApplet()) {
+        // HO 10/08/2011 END *************
         	/*
         	 * If there is 1 map open, and it has no content and hasn't been saved yet close it.
         	 * requested in vue-520 
@@ -3664,12 +3681,10 @@ public class VUE
         try {
         	// HO 27/07/2011 BEGIN test ***********
         	MapViewer viewer = null;
-        	MapViewer aviewer = null;
             if (
                     VUE.isActiveViewerOnLeft() 
                     )
                     {
-                        aviewer = VUE.getLeftTabbedPane().getSelectedViewer();
             			viewer = VUE.getLeftTabbedPane().getViewerWithMap(openMap);
                     }
             else if (VUE.isActiveViewerOnRight()) {
@@ -3890,23 +3905,9 @@ public class VUE
         if (file == null)
             return;
 
-        if (VUE.isApplet())
-        {
-        	if (	(getActiveMap() != null) && 
-    				!getActiveMap().hasContent() && 
-    				getActiveMap().getFile() == null)
-    		{
-    			try
-    			{
-    				closeMap(getActiveMap());
-    			}
-    			catch(ArrayIndexOutOfBoundsException abe)
-    			{
-    				abe.printStackTrace();
-    			}
-    		}
-        }
-        else
+        // HO 10/08/2011 BEGIN *********
+        if (!closeActiveMapIfApplet())
+    	// HO 10/08/2011 END *********
         {
         	/*
         	 * If there is 1 map open, and it has no content and hasn't been saved yet close it.
@@ -4022,23 +4023,9 @@ public class VUE
         if (url == null)
             return;
 
-        if (VUE.isApplet())
-        {
-        	if (	(getActiveMap() != null) && 
-    				!getActiveMap().hasContent() && 
-    				getActiveMap().getFile() == null)
-    		{
-    			try
-    			{
-    				closeMap(getActiveMap());
-    			}
-    			catch(ArrayIndexOutOfBoundsException abe)
-    			{
-    				abe.printStackTrace();
-    			}
-    		}
-        }
-        else
+        // HO 10/08/2011 BEGIN *********
+        if (!closeActiveMapIfApplet())
+    	// HO 10/08/2011 END *********
         {
         	/*
         	 * If there is 1 map open, and it has no content and hasn't been saved yet close it.

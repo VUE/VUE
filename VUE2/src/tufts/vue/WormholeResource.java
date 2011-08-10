@@ -27,6 +27,7 @@ import tufts.vue.*;
 import tufts.vue.gui.GUI;
 import java.net.*;
 import java.awt.Image;
+import java.awt.Point;
 import java.io.*;
 import java.util.regex.*;
 
@@ -106,23 +107,27 @@ public class WormholeResource extends URLResource {
     /** See tufts.vue.URLResource - reimplementation of private member */
     private ArrayList<PropertyEntry> mXMLpropertyList;  
     
-    /* static WormholeResource create(String spec) {
-        return new WormholeResource(spec);
-    }
-    static WormholeResource create(URL url) {
-        return new WormholeResource(url.toString());
-    }
-    static WormholeResource create(URI uri) {
-        return new WormholeResource(uri.toString());
-    }
-    static WormholeResource create(File file) {
-        return new WormholeResource(file);
-    } */
-    
+    /**
+     * Creates a WormholeResource given the URI of a target map and the URI of a target component.
+     * @param mapURI, the URI of the target map.
+     * @param componentURI, the URI of the target component.
+     * @return a new WormholeResource.
+     * @author Helen Oliver
+     */
     static WormholeResource create(java.net.URI mapURI, java.net.URI componentURI) {
         return new WormholeResource(mapURI, componentURI);
     }
     
+    /**
+     * Creates a WormholeResource given the URIs of a target map and a source map,
+     * and the URIs of a target component and a source component.
+     * @param mapURI, the URI of the target map.
+     * @param componentURI, the URI of the target component.
+     * @param originatingMapURI, the URI of the source map.
+     * @param originatingComponentURI, the URI of the source component.
+     * @return a new WormholeResource.
+     * @author Helen Oliver
+     */
     static WormholeResource create(java.net.URI mapURI, java.net.URI componentURI, java.net.URI originatingMapURI, java.net.URI originatingComponentURI) {
         return new WormholeResource(mapURI, componentURI, originatingMapURI, originatingComponentURI);
     }    
@@ -131,7 +136,7 @@ public class WormholeResource extends URLResource {
      * @param spec, the String holding the spec for this Wormhole resource
      * which will become the linked-to map file link
      * @param componentURIString, the URI String of the component to focus on when we open that map
-     * 
+     * @author Helen Oliver
      */
     private WormholeResource(String spec, String componentURIString) {
         init();
@@ -148,7 +153,7 @@ public class WormholeResource extends URLResource {
      * @param mapURI, the map URI for this Wormhole resource
      * which will become the linked-to map file link
      * @param componentURI, the URI of the component to focus on when we open that map
-     * 
+     * @author Helen Oliver
      */
     private WormholeResource(URI mapURI, URI componentURI) {
         init();
@@ -157,7 +162,6 @@ public class WormholeResource extends URLResource {
         // HO 06/09/2010 BEGIN *************************
         super.setSpec(mapURI.toString());
         this.setSpec(mapURI.toString());
-        //this.setSpec(mapURI.toString());
         // HO 06/09/2010 END *************************
     }
     
@@ -165,7 +169,9 @@ public class WormholeResource extends URLResource {
      * @param mapURI, the map URI for this Wormhole resource
      * which will become the linked-to map file link
      * @param componentURI, the URI of the component to focus on when we open that map
-     * 
+     * @param originatingMapURI, the map URI for the source map
+     * @param originatingComponentURI, the URI for the source component
+     * @author Helen Oliver
      */
     private WormholeResource(URI mapURI, URI componentURI, URI originatingMapURI, URI originatingComponentURI) {
     	init();
@@ -174,7 +180,6 @@ public class WormholeResource extends URLResource {
         // HO 06/09/2010 BEGIN *******************
         super.setSpec(mapURI.toString());
         this.setSpec(mapURI.toString());
-        //this.setSpec(mapURI.toString());
         // HO 06/09/2010 BEGIN *******************
         setOriginatingComponentURIString(originatingComponentURI.toString());
         this.setOriginatingFilename(originatingMapURI.toString());
@@ -184,7 +189,7 @@ public class WormholeResource extends URLResource {
      * @param file, the file for this Wormhole resource
      * which will become the linked-to map file link
      * @param component, the component to focus on when we open that map
-     * 
+     * @author Helen Oliver
      */
     private WormholeResource(File file, URI componentURI) {
         init();
@@ -193,7 +198,6 @@ public class WormholeResource extends URLResource {
         // HO 06/09/2010 BEGIN ********************
         super.setSpecByFile(file);
         this.setSpecByFile(file);
-        //this.setSpecByFile(file);  
         // HO 06/09/2010 END ********************
     }
     
@@ -204,7 +208,7 @@ public class WormholeResource extends URLResource {
      * @param originatingFile, the originating file for this Wormhole resource
      * @param originatingComponentURI, the component to focus on when we open the
      * originating map
-     * 
+     * @author Helen Oliver
      */
     private WormholeResource(File file, URI componentURI,
     		File originatingFile, URI originatingComponentURI) {
@@ -213,8 +217,7 @@ public class WormholeResource extends URLResource {
         setComponentURIString(componentURI.toString());
         // HO 06/09/2010 BEGIN *****************
         super.setSpecByFile(file);
-        this.setSpecByFile(file);
-        //this.setSpecByFile(file);    
+        this.setSpecByFile(file); 
         // HO 06/09/2010 END *****************
         setOriginatingComponentURIString(originatingComponentURI.toString());
         setOriginatingFilename(originatingFile);
@@ -228,21 +231,29 @@ public class WormholeResource extends URLResource {
         init();
     } 
     
+    /**
+     * Given the path string to the target file, constructs a WormholeResource.
+     * @param spec, a String representing the path to the target file
+     * @author Helen Oliver
+     */
     private WormholeResource(String spec) {
         init();
         // HO 06/09/2010 BEGIN ****************
         super.setSpec(spec);
         this.setSpec(spec);
-        //this.setSpec(spec);
         // HO 06/09/2010 END ****************
     }
     
+    /**
+     * Given the target File object, constructs the WormholeResource
+     * @param file. the target File object
+     * @author Helen Oliver
+     */
     private WormholeResource(File file) {
         init();
         // HO 06/09/2010 BEGIN ****************
         super.setSpecByFile(file);
         this.setSpecByFile(file);
-        //this.setSpecByFile(file);
         // HO 06/09/2010 END ****************
     }
     
@@ -748,6 +759,8 @@ public class WormholeResource extends URLResource {
      * for opening a local file.  */
         public String getSpec() {
         // HO 06/10/2010 BEGIN **********
+        	// if the spec is unset, but we have the previous target filename
+        	// persisted, use that
         if (this.spec.equals(SPEC_UNSET)) {
         	if ((this.getTargetFilename() != null) && (this.getTargetFilename() != "")) {
         		return this.getTargetFilename();
@@ -946,6 +959,10 @@ public class WormholeResource extends URLResource {
 }
     
     // HO 03/09/2010 BEGIN ****************
+    /**
+     * A function to return the system spec representing the target file.
+     * @return systemSpec, a String containing the path to the target file.
+     */
     public String getSystemSpec() {
     	Object contentRef = getBrowseReference();
     	String systemSpec = contentRef.toString();
@@ -953,11 +970,62 @@ public class WormholeResource extends URLResource {
     }
     // HO 03/09/2010 END ****************
 
+    // HO 10/08/2011 BEGIN ****************
+    /**
+     * A function to find the map we just opened
+     * by finding the selected tab index and getting the map
+     * at that index.
+     * @return the LWMap that we just opened.
+     * @Author Helen Oliver
+     */
+    private LWMap findMapWeJustOpened() {
+    	LWMap theMap = null;
+    	
+        MapTabbedPane tabbedPane = null;
+        int sel = -1;
+        
+        if (VUE.isActiveViewerOnLeft())
+        {
+			tabbedPane = VUE.getLeftTabbedPane();
+        }
+        else if (VUE.isActiveViewerOnRight()) {
+        	tabbedPane = VUE.getRightTabbedPane();
+        }
+        sel = tabbedPane.getSelectedIndex();
+        // now we can get the map from the selected position
+        if (sel >= 0)
+        	theMap = tabbedPane.getMapAt(sel);
+        
+        return theMap;
+    }
+    
+    /**
+     * A function to select the target component.
+     * @author Helen Oliver
+     */
+    private void selectTargetComponent() {
+        // get the map we just opened
+        LWMap theMap = findMapWeJustOpened();
+        LWComponent theComponent = null;
+        
+        // now find the target component
+        if (theMap != null)
+        	theComponent = theMap.findChildByURIString(componentURIString);
+        // although this might be one of those with a dangling target
+		if (theComponent != null) {
+			// but if it isn't, deselect anything that's currently selected
+			theMap.deselectCurrentSelection();
+			// and select the target component
+			theComponent.setSelected(true);					
+		}
+    }    
+    // HO 10/08/2011 END ****************
     
     /**
      * reimplementation of URLResource.displayContent()
      * This one, after opening a Map, also has to find the target
      * component and focus on that
+     * @author Helen Oliver
      */
     public void displayContent() {
         final Object contentRef = getBrowseReference();
@@ -969,22 +1037,11 @@ public class WormholeResource extends URLResource {
         try {
             markAccessAttempt();
             VueUtil.openURL(systemSpec);
-    		Collection<LWMap> coll = VUE.getAllMaps();
-    		for (LWMap map: coll) {
-    			LWComponent theComponent = map.findChildByURIString(componentURIString);
-    			if (theComponent != null) {
-    				//theComponent.setSelected(true);
-    				int x = (int)theComponent.getX();
-    				int y = (int)theComponent.getY();
-    				VUE.getActiveViewer().screenToFocalPoint(x, y);
-    			}
-    		}
-            //LWComponent theComponent = VUE.getActiveMap().findChildByURIString(componentURIString);
-            // To set the focus on the target node
-            //VUE.getActiveViewer().switchFocal(theComponent);
-            //VUE.setActive(LWComponent.class, this, theComponent);
-            //theComponent.setSelected(true);
-            //VUE.getActiveViewer().getSelection().setTo(theComponent);
+            // HO 10/08/2011 BEGIN **********
+            // make sure that when the map opens, the target component
+            // (if it still exists) is selected
+            selectTargetComponent();
+            // HO 10/08/2011 END ************
 
             // access successful is not currently very meaningful,
             // as we don't know if the openURL failed or not.
@@ -997,76 +1054,97 @@ public class WormholeResource extends URLResource {
     }
     
     /**
+     * A function to set the target file.
      * @param targetFile, the target file in this wormhole.
+     * @author Helen Oliver
      */
     public void setTargetFilename(File targetFile) {
     	targetFilename = targetFile.getAbsolutePath();
     }
     
     /**
+     * A function to set the absolute path of the target file.
      * @param targetFilename, the target file in this wormhole.
+     * @author Helen Oliver
      */
     public void setTargetFilename(String theTargetFilename) {
     	targetFilename = theTargetFilename;
     }    
     
     /**
+     * A function to return the absolute path of the target file.
      * @return targetFilename, the absolute path of the target file in
      * this wormhole.
+     * @author Helen Oliver
      */
     public String getTargetFilename() {
     	return targetFilename;
     }
     
     /**
+     * A function to set the URI string for the target component.
      * @param theComponentURIString, the URI String for the LWComponent we want to focus on
      * once we've opened the map.
+     * @author Helen Oliver
      */
     public void setComponentURIString(String theComponentURIString) {
     	componentURIString = theComponentURIString;
     }
     
     /**
+     * A function to return the URI string for the target component.
      * @return componentURIString, the URI String for the LWComponent we want to focus on
      * once we've opened the map.
+     * @author Helen Oliver
      */
     public String getComponentURIString() {
     	return componentURIString;
     }
     
     /**
+     * A function to set the absolute path of the originating file
+     * from the File object itself.
      * @param originatingFile, the originating file in this wormhole.
+     * @author Helen Oliver
      */
     public void setOriginatingFilename(File originatingFile) { 
     	originatingFilename = originatingFile.getAbsolutePath();
     }
     
     /**
-     * @param originatingFilename, the originating file in this wormhole.
+     * A function to set the absolute path of the source file.
+     * @param originatingFilename, a String representing the absolute path of the source file.
+     * @author Helen Oliver
      */
     public void setOriginatingFilename(String theOriginatingFilename) {
     	originatingFilename = theOriginatingFilename;
     }    
     
     /**
-     * @return originatingFilename, the absolute path of the originating file in
+     * A function to return the absolute path of the source file.
+     * @return originatingFilename, a String representing the absolute path of the source file in
      * this wormhole.
+     * @author Helen Oliver
      */
     public String getOriginatingFilename() {
     	return originatingFilename;
     }
     
     /**
+     * A function to set the URI string for the target component.
      * @param theComponentURIString, the URI String for the LWComponent we want to focus on
      * once we've opened the originating map.
+     * @author Helen Oliver
      */
     public void setOriginatingComponentURIString(String theComponentURIString) {
     	originatingComponentURIString = theComponentURIString;
     }
     
     /**
+     * A function to return the URI string for the target component.
      * @return originatingComponentURIString, the URI String for the LWComponent we want to focus on
      * once we've opened the map.
+     * @author Helen Oliver
      */
     public String getOriginatingComponentURIString() {
     	return originatingComponentURIString;
@@ -1114,9 +1192,9 @@ public class WormholeResource extends URLResource {
     {
         // Even if the existing original resource exists, we always
         // choose the relative / "local" version, if it can be found.
-    	// erm, no we don't.... we want the opposite where 
-    	// a WormholeResource is concerned.
-    	// So I guess this is to find the relative / "local" version.
+    	// HO erm, no we don't.... we want the opposite where 
+    	// a WormholeResource is concerned. Especially since, if this
+    	// couldn't find a local file object, it would create a bogus one.
     	
     	try {
     	
