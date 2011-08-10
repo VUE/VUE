@@ -981,16 +981,9 @@ public class WormholeResource extends URLResource {
     private LWMap findMapWeJustOpened() {
     	LWMap theMap = null;
     	
-        MapTabbedPane tabbedPane = null;
+        MapTabbedPane tabbedPane = VUE.getCurrentTabbedPane();
         int sel = -1;
         
-        if (VUE.isActiveViewerOnLeft())
-        {
-			tabbedPane = VUE.getLeftTabbedPane();
-        }
-        else if (VUE.isActiveViewerOnRight()) {
-        	tabbedPane = VUE.getRightTabbedPane();
-        }
         sel = tabbedPane.getSelectedIndex();
         // now we can get the map from the selected position
         if (sel >= 0)
@@ -999,6 +992,32 @@ public class WormholeResource extends URLResource {
         return theMap;
     }
     
+    /**
+     * A method to move the screen to the target component.
+     * @param theMap, the target LWMap
+     * @param theComponent, the target LWComponent
+     * @author Helen Oliver
+     */
+    private void moveScreenToTargetComponent(LWMap theMap, LWComponent theComponent) {
+    	// input validation
+    	if ((theMap == null) || (theComponent == null))
+    		return;
+    	
+    	// find the right viewer
+    	MapViewer viewer = VUE.getCurrentTabbedPane().getViewerWithMap(theMap);
+        
+        // find the component's location
+    	double dx = theComponent.getLocation().getX();
+        double dy = theComponent.getLocation().getY();
+        Double doubleX = new Double(dx);
+        Double doubleY = new Double(dy);
+        int x = doubleX.intValue();
+        int y = doubleY.intValue();
+        
+        // make sure that location is shown on the screen
+        viewer.screenToMapPoint(x, y);
+    }
+  
     /**
      * A function to select the target component.
      * @author Helen Oliver
@@ -1016,9 +1035,12 @@ public class WormholeResource extends URLResource {
 			// but if it isn't, deselect anything that's currently selected
 			theMap.deselectCurrentSelection();
 			// and select the target component
-			theComponent.setSelected(true);					
+			theComponent.setSelected(true);	
+			// make sure the target component is showing on the screen
+	    	moveScreenToTargetComponent(theMap, theComponent);
 		}
-    }    
+    }  
+
     // HO 10/08/2011 END ****************
     
     /**

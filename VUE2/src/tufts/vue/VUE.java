@@ -3026,6 +3026,25 @@ public class VUE
         return getLeftTabbedPane();
     }
     
+    /**
+     * Finds the current tabbed pane, left or right depending on the active viewer.
+     * @return theTabbedPane, the current tabbed pane.
+     * @author Helen Oliver
+     */
+    public static MapTabbedPane getCurrentTabbedPane() {
+    	MapTabbedPane theTabbedPane = null;
+    	
+        if (isActiveViewerOnLeft())
+        {
+			theTabbedPane = getLeftTabbedPane();
+        }
+        else if (isActiveViewerOnRight()) {
+        	theTabbedPane = getRightTabbedPane();
+        }
+        
+        return theTabbedPane;
+    }
+    
     public static MapTabbedPane getLeftTabbedPane() {
         return mMapTabsLeft;
     }
