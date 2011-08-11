@@ -252,6 +252,32 @@ public class LWComponent
             throw new Error("disabled");
         isGlobalCollapsed = !isGlobalCollapsed;
     }
+    
+    // HO 10/08/2011 BEGIN *********
+    /**
+     * A function to deselect all currently selected descendents in the target map.
+     * @return true if anything actually was selected, false otherwise
+     * @author Helen Oliver
+     */
+    public boolean deselectCurrentSelection() {
+    	// get everything in the map and if it's selected,
+    	// deselect it
+    	
+    	boolean bSomethingWasSelected = false;
+		Iterator iter = this.getAllDescendents().iterator();
+		while(iter.hasNext()) {
+			LWComponent nextComp = (LWComponent) iter.next();
+			if (nextComp.isSelected()) {
+				bSomethingWasSelected = true;
+				nextComp.setSelected(false);
+			}
+			// against memory leaks
+			nextComp = null;			
+		}
+		
+		return bSomethingWasSelected;
+    }    
+    // HO 10/08/2011 END ***********
 
     public interface Listener extends java.util.EventListener {
         public void LWCChanged(LWCEvent e);

@@ -188,6 +188,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     /** an alias for the global selection, reset to null when we're not the active map */
     protected LWSelection VueSelection = null;
+    // HO 11/08/2011 BEGIN **********
+    protected LWSelection WormholeSelection = null;
+    // HO 11/08/2011 END ************
     /** a group that contains everything in the current selection.
      *  Used for doing operations on the entire group (selection) at once */
     protected final LWGroup draggedSelectionGroup = LWGroup.createTemporary(VUE.ModelSelection);
@@ -510,6 +513,16 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     public LWSelection getSelection() {
         return VueSelection;
     }
+    
+    // HO 11/08/2011 BEGIN *********
+    public LWSelection getWormholeSelection() {
+    	return WormholeSelection;
+    }
+    
+    public void setWormholeSelection(LWSelection theSelection) {
+    	WormholeSelection = theSelection;
+    }
+    // HO 11/08/2011 END ***********
 
     MapDropTarget getMapDropTarget() {
         return mapDropTarget;
@@ -5189,6 +5202,22 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         VueSelection.setSelectionSourceFocal(getFocal());
         VueSelection.setTo(c);
     }
+    // HO 11/08/2011 BEGIN ***********
+    protected void selectionAddWormhole(LWComponent c) {
+    	if (WormholeSelection == null)
+    		WormholeSelection = new LWSelection();
+        WormholeSelection.setSource(this);
+        WormholeSelection.setSelectionSourceFocal(getFocal());
+        WormholeSelection.setTo(c);
+    }
+    protected void selectionClearWormhole() {
+    	if (WormholeSelection == null)
+    		return;
+        WormholeSelection.setSource(this);
+        WormholeSelection.setSelectionSourceFocal(getFocal());
+        WormholeSelection.clear();
+    }
+    // HO 11/08/2011 END *************
     protected void selectionSet(java.util.Collection bag) {
         VueSelection.setSource(this);
         VueSelection.setSelectionSourceFocal(getFocal());
@@ -8836,8 +8865,15 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // why are we checking this again if we just checked it???
         if (activeViewer != this) {
             LWMap oldActiveMap = null;
-            if (activeViewer != null)
+            // HO 11/08/2011 BEGIN *********
+            LWSelection wormholeSelection = null;
+            MapViewer oldActiveViewer = null;
+            // HO 11/08/2011 END ***********
+            if (activeViewer != null) {
                 oldActiveMap = activeViewer.getMap();
+                wormholeSelection = activeViewer.getWormholeSelection();
+                oldActiveViewer = activeViewer;
+            }
             VUE.setActive(MapViewer.class, this, this);
             if (mFocal != null)
                 mFocal.getChangeSupport().setPriorityListener(this);
@@ -8861,6 +8897,19 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 resizeControl.active = false;
                 // clear and notify since the selected map changed.
                 VUE.ModelSelection.clear();
+                // HO 11/08/2011 BEGIN *********
+                if (wormholeSelection != null) {
+                	LWComponent targetComp = wormholeSelection.first();
+                	if (targetComp != null) {
+                		if (VueSelection == null)
+                			VueSelection = new LWSelection();
+                		VueSelection.setTo(targetComp);
+                	}
+                	if (oldActiveViewer != null)
+                		oldActiveViewer.setWormholeSelection(null);
+                	
+                }
+                // HO 11/08/2011 END *********
                 //VUE.ModelSelection.clearAndNotify(); // why must we force a notification here?
             }
         }

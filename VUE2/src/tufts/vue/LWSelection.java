@@ -372,7 +372,11 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     {
         if (notifyUnderway())
             return false;
-        if (!c.isSelected()) {
+        // HO 11/08/2011 BEGIN ********
+        // A component can be selected but still not be included in THIS selection
+        if (!contains(c)) {
+        // if (!c.isSelected()) {
+        	// HO 11/08/2011 END *******
             if (addSilent(c) && !isClone) {
                 clearStyleRecord(); // any selection changes break association with the style record
                 notifyListeners();
@@ -492,7 +496,11 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
 
         if (DEBUG.SELECTION) debug("add: " + c);
         
-        if (!c.isSelected()) {
+        // HO 11/08/2011 BEGIN ***********
+        //if (!c.isSelected()) {
+        // a component can be selected and still not be in this selection
+        if (!contains(c)) {
+        	// HO 11/08/2011 END **********
             if (!isClone) c.setSelected(true);
             super.add(c);
             mBounds = null;
@@ -621,6 +629,14 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     {
         if (clearSilent())
             notifyListeners();
+        // HO 11/08/2011 BEGIN ***********
+        /* else {
+        	LWComponent theComp = getSelectionSourceFocal();
+        	if (theComp != null)
+        		theComp.deselectCurrentSelection();
+        	
+        } */
+        // HO 11/08/2011 END *************
     }
 
     public synchronized void reselect() {
@@ -645,8 +661,18 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     {
         mDescription = "";
         clearStyleRecord();
-        if (isEmpty())
+        if (isEmpty()) {
+            // HO 11/08/2011 BEGIN ***********
+
+            	/* LWComponent theComp = getSelectionSourceFocal();
+            	if (theComp != null) {
+            		return theComp.deselectCurrentSelection();
+            		
+            		} */
+
+            // HO 11/08/2011 END *************
             return false;
+        }
         if (notifyUnderway())
             return false;
 
