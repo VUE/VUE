@@ -1022,7 +1022,7 @@ public class WormholeResource extends URLResource {
      * A function to select the target component.
      * @author Helen Oliver
      */
-    private void selectTargetComponent() {
+    private void selectTargetComponent(boolean bSameMap) {
         // get the map we just opened
         LWMap theMap = findMapWeJustOpened();
         LWComponent theComponent = null;
@@ -1033,7 +1033,8 @@ public class WormholeResource extends URLResource {
         // although this might be one of those with a dangling target
 		if (theComponent != null) {
 			// but if it isn't, deselect anything that's currently selected
-			theMap.deselectCurrentSelection();
+			if (!bSameMap)
+				theMap.deselectCurrentSelection();
 			// and select the target component
 			theComponent.setSelected(true);	
 			// make sure the target component is showing on the screen
@@ -1042,6 +1043,80 @@ public class WormholeResource extends URLResource {
     }  
 
     // HO 10/08/2011 END ****************
+    
+	// HO 12/05/2011 BEGIN *********
+	/**
+	 * @param stripThis, a String representing a filename that has its spaces
+	 * in the HTML format
+	 * @return the same String, html space codes replaced with single spaces
+	 */
+	private String stripHtmlSpaceCodes(String stripThis) {
+		String strStripped = "";
+		String strPeskySpace = "%20";
+		String strCleanSpace = " ";
+
+		strStripped = stripThis.replaceAll(strPeskySpace, strCleanSpace);
+		
+		return strStripped;		
+	}
+	// HO 12/05/2011 END ***********
+    
+	// HO 25/03/2011 BEGIN ****************
+	// enormous waste of time.
+	private boolean pointsToSameMap() {
+		boolean bSameMap = false;
+		String strSpec = this.getSystemSpec();
+		String strOriginatingFile = this.getOriginatingFilename();
+		
+		String strPossPrefix = "file:";
+		// HO 28/03/2011 BEGIN *************
+		String strBackSlashPrefix = "\\\\";
+		String strBackSlash = "\\";
+		String strForwardSlashPrefix = "////";
+		String strForwardSlash = "/";
+		// HO 28/03/2011 END *************
+		// if the spec was not set, replace it with the last known filename
+		if (strSpec.equals(SPEC_UNSET))
+			strSpec = this.getTargetFilename();
+		
+		// HO 12/05/2011 BEGIN *******
+		// strip wrongly-formatted spaces so they don't gum up the comparison
+		strSpec = stripHtmlSpaceCodes(strSpec);
+		strOriginatingFile = stripHtmlSpaceCodes(strOriginatingFile);		
+		// HO 12/05/2011 END *********
+		
+		if (strSpec.startsWith(strPossPrefix))
+			strSpec = strSpec.substring(strPossPrefix.length(), strSpec.length());
+		if (strOriginatingFile.startsWith(strPossPrefix))
+			strOriginatingFile = strOriginatingFile.substring(strPossPrefix.length(), strOriginatingFile.length());
+		
+		// HO 28/03/2011 BEGIN *************
+		if (strSpec.startsWith(strBackSlashPrefix))
+			strSpec = strSpec.substring(strBackSlashPrefix.length(), strSpec.length());
+		if (strOriginatingFile.startsWith(strBackSlashPrefix))
+			strOriginatingFile = strOriginatingFile.substring(strBackSlashPrefix.length(), strOriginatingFile.length());
+		
+		if (strSpec.startsWith(strForwardSlashPrefix))
+			strSpec = strSpec.substring(strForwardSlashPrefix.length(), strSpec.length());
+		if (strOriginatingFile.startsWith(strForwardSlashPrefix))
+			strOriginatingFile = strOriginatingFile.substring(strForwardSlashPrefix.length(), strOriginatingFile.length());
+		// HO 28/03/2011 END *************
+		
+		if (strSpec.equals(strOriginatingFile))
+			bSameMap = true;
+		else if ((strSpec.contains(strForwardSlash)) && (strOriginatingFile.contains(strBackSlash))) {
+			strSpec = strSpec.replaceAll(strForwardSlash, strBackSlashPrefix);
+		}
+		else if ((strSpec.contains(strBackSlash)) && (strOriginatingFile.contains(strForwardSlash))) {
+			strOriginatingFile = strOriginatingFile.replaceAll(strForwardSlash, strBackSlashPrefix);
+		}
+		
+		if (strSpec.equals(strOriginatingFile))
+			bSameMap = true;
+					
+		return bSameMap;
+	} 
+	// HO 25/03/2011 END ****************
     
     /**
      * reimplementation of URLResource.displayContent()
@@ -1058,11 +1133,15 @@ public class WormholeResource extends URLResource {
         
         try {
             markAccessAttempt();
-            VueUtil.openURL(systemSpec);
+            // HO 11/08/2011 BEGIN *********
+            boolean bSameMap = pointsToSameMap();
+            if (!bSameMap)
+            // HO 11/08/2011 END ***********
+            	VueUtil.openURL(systemSpec);
             // HO 10/08/2011 BEGIN **********
             // make sure that when the map opens, the target component
             // (if it still exists) is selected
-            selectTargetComponent();
+            selectTargetComponent(bSameMap);
             // HO 10/08/2011 END ************
 
             // access successful is not currently very meaningful,
