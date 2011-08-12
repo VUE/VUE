@@ -417,7 +417,11 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         boolean changed = false;
         while (i.hasNext()) {
             c = i.next();
-            if (!c.isSelected() && c.isDrawn()) {
+            // HO 11/08/2011 BEGIN ********
+            // A component can be selected but still not be included in THIS selection
+            if (!contains(c) && c.isDrawn()) {
+            // if (!c.isSelected() && c.isDrawn()) {
+            	// HO 11/08/2011 END *******
                 if (addSilent(c))
                     changed = true;
             }
@@ -442,7 +446,11 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         boolean changed = false;
         boolean removed = false;
         for (LWComponent c : iterable) {
-            if (c.isSelected()) {
+            // HO 11/08/2011 BEGIN ********
+            // A component can be selected but still not be included in THIS selection
+            if (!contains(c)) {
+            // if (!c.isSelected()) {
+            	// HO 11/08/2011 END *******
                 changed = true;
                 removed = true;
                 removeSilent(c);
