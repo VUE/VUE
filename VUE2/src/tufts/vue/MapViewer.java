@@ -34,6 +34,7 @@ import tufts.vue.ibisimage.IBISImage;
 import static tufts.vue.MapDropTarget.*;
 import tufts.vue.NodeTool;
 
+import java.net.URI;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -189,7 +190,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     /** an alias for the global selection, reset to null when we're not the active map */
     protected LWSelection VueSelection = null;
     // HO 11/08/2011 BEGIN **********
-    protected LWSelection WormholeSelection = null;
+    protected static LWSelection WormholeSelection = null;
     // HO 11/08/2011 END ************
     /** a group that contains everything in the current selection.
      *  Used for doing operations on the entire group (selection) at once */
@@ -2044,7 +2045,25 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         	
         if (VUE.getActiveMap() != mMap) {
             if (DEBUG.FOCUS) out("NULLING SELECTION");
-            VueSelection = null; // insurance: nothing should be happening here if we're not active
+            // HO 15/08/2011 BEGIN ********
+            LWMap theMap = VUE.getActiveMap();
+            if ((theMap != null) && (WormholeSelection != null)) {
+            	LWComponent theComp = WormholeSelection.first();
+            	if (theComp != null) {
+            		URI theURI = theComp.getURI();
+            		LWComponent aComp = theMap.findChildByURI(theURI);
+            		if (aComp != null) {
+            			WormholeSelection.clear();
+            			WormholeSelection.setTo(theComp);
+            			VueSelection = WormholeSelection;
+            		} else {
+            			VueSelection = null;
+            		}
+            	}
+            } else {
+            	// HO 15/08/2011 END **********
+            	VueSelection = null; // insurance: nothing should be happening here if we're not active
+            }
         } else {
             if (VueSelection != VUE.ModelSelection) {
                 if (DEBUG.FOCUS) out("*** Pointing to selection");
@@ -5232,6 +5251,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         VueSelection.setSource(this);
         VueSelection.setSelectionSourceFocal(getFocal());
         VueSelection.clear();
+        // HO 15/08/2011 BEGIN ********
+        selectionClearWormhole();
+        // HO 15/08/2011 END *********
     }
     protected void selectionToggle(LWComponent c) {
         VueSelection.setSource(this);
@@ -8866,13 +8888,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         if (activeViewer != this) {
             LWMap oldActiveMap = null;
             // HO 11/08/2011 BEGIN *********
-            LWSelection wormholeSelection = null;
-            MapViewer oldActiveViewer = null;
+            LWSelection wormholeSelection = WormholeSelection;
+            MapViewer oldActiveViewer = activeViewer;
             // HO 11/08/2011 END ***********
             if (activeViewer != null) {
                 oldActiveMap = activeViewer.getMap();
-                wormholeSelection = activeViewer.getWormholeSelection();
-                oldActiveViewer = activeViewer;
             }
             VUE.setActive(MapViewer.class, this, this);
             if (mFocal != null)
@@ -8880,17 +8900,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             else
                 Log.warn("Active viewer has no focal: " + this);
             // TODO: VUE.getSelection().setPriorityListener(this);
-                
-            // hierarchy view switching: TODO: make an active map listener instead of this(?)
-            /*
-              if (VUE.getHierarchyTree() != null) {
-              if (this.map instanceof LWHierarchyMap)
-              VUE.getHierarchyTree().setHierarchyModel(((LWHierarchyMap)this.map).getHierarchyModel());
-              else
-              VUE.getHierarchyTree().setHierarchyModel(null);
-              // end of addition by Daisuke
-              }
-            */
                 
             if (oldActiveMap != mMap) {
                 if (DEBUG.FOCUS) out("GVAF: oldActive=" + oldActiveMap + " active=" + mMap + " CLEARING SELECTION");
@@ -8904,9 +8913,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 		if (VueSelection == null)
                 			VueSelection = new LWSelection();
                 		VueSelection.setTo(targetComp);
+                		//VUE.ModelSelection.setTo(targetComp);
                 	}
-                	if (oldActiveViewer != null)
-                		oldActiveViewer.setWormholeSelection(null);
+                	//if (oldActiveViewer != null)
+                		//oldActiveViewer.setWormholeSelection(null);
+                	//if (WormholeSelection != null)
+                		//WormholeSelection.clear();
                 	
                 }
                 // HO 11/08/2011 END *********

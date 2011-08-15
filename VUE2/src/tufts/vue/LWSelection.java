@@ -419,8 +419,8 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
             c = i.next();
             // HO 11/08/2011 BEGIN ********
             // A component can be selected but still not be included in THIS selection
-            if (!contains(c) && c.isDrawn()) {
-            // if (!c.isSelected() && c.isDrawn()) {
+            if ((!contains(c)) && (c.isDrawn())) {
+            // if ((!c.isSelected()) && (c.isDrawn()){
             	// HO 11/08/2011 END *******
                 if (addSilent(c))
                     changed = true;
@@ -448,7 +448,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         for (LWComponent c : iterable) {
             // HO 11/08/2011 BEGIN ********
             // A component can be selected but still not be included in THIS selection
-            if (!contains(c)) {
+            if (contains(c)) {
             // if (!c.isSelected()) {
             	// HO 11/08/2011 END *******
                 changed = true;
