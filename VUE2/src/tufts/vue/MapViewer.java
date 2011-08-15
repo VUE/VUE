@@ -2013,6 +2013,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
     
     public void selectionChanged(LWSelection s) {
+    	
+    	LWMap theMap = null;
+    	LWComponent aComp = null;
 
         // todo: is overkill to do this for every open viewer (there are two for each map
         // opened) every time the selection changes
@@ -2046,16 +2049,17 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         if (VUE.getActiveMap() != mMap) {
             if (DEBUG.FOCUS) out("NULLING SELECTION");
             // HO 15/08/2011 BEGIN ********
-            LWMap theMap = VUE.getActiveMap();
+            theMap = VUE.getActiveMap();
             if ((theMap != null) && (WormholeSelection != null)) {
             	LWComponent theComp = WormholeSelection.first();
             	if (theComp != null) {
             		URI theURI = theComp.getURI();
-            		LWComponent aComp = theMap.findChildByURI(theURI);
+            		aComp = theMap.findChildByURI(theURI);
             		if (aComp != null) {
             			WormholeSelection.clear();
             			WormholeSelection.setTo(theComp);
             			VueSelection = WormholeSelection;
+            			
             		} else {
             			VueSelection = null;
             		}
@@ -2071,6 +2075,39 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             }
         }
         repaintSelection();
+        // HO 15/08/2011 BEGIN *******
+        if (aComp != null) {
+        	//moveScreenToTargetComponent(theMap, aComp);
+        	/* Rectangle2D theBounds = VueSelection.getBounds();
+        	if (theBounds != null)
+        		mapToScreenRect(theBounds);*/
+        	//scrollToVisible(aComp);
+        	setZoomedFocus(aComp);
+        }
+        // HO 15/08/2011 END ********
+    }
+    
+    /**
+     * A method to move the screen to the target component.
+     * @param theMap, the target LWMap
+     * @param theComponent, the target LWComponent
+     * @author Helen Oliver
+     */
+    private void moveScreenToTargetComponent(LWMap theMap, LWComponent theComponent) {
+    	// input validation
+    	if ((theMap == null) || (theComponent == null))
+    		return;
+        
+        // find the component's location
+    	double dx = theComponent.getLocation().getX();
+        double dy = theComponent.getLocation().getY();
+        Double doubleX = new Double(dx);
+        Double doubleY = new Double(dy);
+        int x = doubleX.intValue();
+        int y = doubleY.intValue();
+        
+        // make sure that location is shown on the screen
+        screenToMapPoint(x, y);
     }
     
     /** update the regions of both the old selection & the new selection */
