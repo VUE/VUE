@@ -1032,23 +1032,16 @@ public class WormholeResource extends URLResource {
         	theComponent = theMap.findChildByURIString(componentURIString);
         // although this might be one of those with a dangling target
 		if (theComponent != null) {
-			// but if it isn't, deselect anything that's currently selected
-			//if (!bSameMap)
-				//theMap.deselectCurrentSelection();
-			// and select the target component
-			//theComponent.setSelected(true);
 			// for good measure
 			MapViewer theViewer = VUE.getActiveViewer();
+			// HO 17/08/2011 BEGIN ********
+			// set this as the viewer's target component
+			theViewer.setTargetComponent(theComponent);
+			// HO 17/08/2011 END **********
+			// clear the wormhole selection
 			theViewer.selectionClearWormhole();
+			// set the wormhole selection to the target component
 			theViewer.selectionAddWormhole(theComponent);
-	    	/* MapViewer leftViewer = VUE.getLeftTabbedPane().getViewerWithMap(theMap);
-	    	if (leftViewer != null)
-	    		leftViewer.selectionAdd(theComponent);
-	    	MapViewer rightViewer = VUE.getRightTabbedPane().getViewerWithMap(theMap);
-	    	if (rightViewer != null)
-	    		rightViewer.selectionAdd(theComponent); */
-			// make sure the target component is showing on the screen
-	    	moveScreenToTargetComponent(theMap, theComponent);
 		}
     }  
 

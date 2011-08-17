@@ -190,7 +190,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     /** an alias for the global selection, reset to null when we're not the active map */
     protected LWSelection VueSelection = null;
     // HO 11/08/2011 BEGIN **********
-    protected static LWSelection WormholeSelection = null;
+    protected LWSelection WormholeSelection = null;
+    protected static LWComponent TargetComponent = null;
     // HO 11/08/2011 END ************
     /** a group that contains everything in the current selection.
      *  Used for doing operations on the entire group (selection) at once */
@@ -522,6 +523,14 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     public void setWormholeSelection(LWSelection theSelection) {
     	WormholeSelection = theSelection;
+    }
+    
+    public LWComponent getTargetComponent() {
+    	return TargetComponent;
+    }
+    
+    public void setTargetComponent(LWComponent theComponent) {
+    	TargetComponent = theComponent;
     }
     // HO 11/08/2011 END ***********
 
@@ -2013,10 +2022,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
     
     public void selectionChanged(LWSelection s) {
-    	
-    	LWMap theMap = null;
-    	LWComponent aComp = null;
-
         // todo: is overkill to do this for every open viewer (there are two for each map
         // opened) every time the selection changes
 
@@ -2048,31 +2053,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         	
         if (VUE.getActiveMap() != mMap) {
             if (DEBUG.FOCUS) out("NULLING SELECTION");
-            // HO 15/08/2011 BEGIN ********
-            theMap = VUE.getActiveMap();
-            if ((theMap != null) && (WormholeSelection != null)) {
-            	LWComponent theComp = WormholeSelection.first();
-            	if (theComp != null) {
-            		URI theURI = theComp.getURI();
-            		aComp = theMap.findChildByURI(theURI);
-            		if (aComp != null) {
-            			WormholeSelection.clear();
-            			WormholeSelection.setTo(theComp);
-            			// HO 17/08/2011 BEGIN *********
-            			VueSelection = WormholeSelection;
-            			//VueSelection = null;
-            			// HO 17/08/2011 END *********
-            			
-            		} else {
-            			VueSelection = null;
-            		}
-            	} else {
-            		VueSelection = null;
-            	}
-            } else {
-            	// HO 15/08/2011 END **********
-            	VueSelection = null; // insurance: nothing should be happening here if we're not active
-            }
+            VueSelection = null; // insurance: nothing should be happening here if we're not active
         } else {
             if (VueSelection != VUE.ModelSelection) {
                 if (DEBUG.FOCUS) out("*** Pointing to selection");
@@ -2080,39 +2061,46 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             }
         }
         repaintSelection();
-        // HO 15/08/2011 BEGIN *******
+        // HO 17/08/2011 BEGIN ********
+        // if we got here through a wormhole,
+        // focus on the target component
+        LWComponent aComp = targetComponentToFocusOn();
         if (aComp != null) {
-        	//moveScreenToTargetComponent(theMap, aComp);
-        	/* Rectangle2D theBounds = VueSelection.getBounds();
-        	if (theBounds != null)
-        		mapToScreenRect(theBounds);*/
-        	//scrollToVisible(aComp);
-        	//setZoomedFocus(aComp);
+        	setZoomedFocus(aComp);
         }
-        // HO 15/08/2011 END ********
+        // HO 17/08/2011 BEGIN ********
     }
     
+    // HO 17/08/2011 BEGIN ********
     /**
-     * A method to move the screen to the target component.
-     * @param theMap, the target LWMap
-     * @param theComponent, the target LWComponent
+     * A function to check whether we need to focus on the
+     * target component of a wormhole.
+     * @return the target component if it is found in this map
+     * and we are trying to reach it through a wormhole,
+     * null otherwise.
      * @author Helen Oliver
      */
-    private void moveScreenToTargetComponent(LWMap theMap, LWComponent theComponent) {
-    	// input validation
-    	if ((theMap == null) || (theComponent == null))
-    		return;
-        
-        // find the component's location
-    	double dx = theComponent.getLocation().getX();
-        double dy = theComponent.getLocation().getY();
-        Double doubleX = new Double(dx);
-        Double doubleY = new Double(dy);
-        int x = doubleX.intValue();
-        int y = doubleY.intValue();
-        
-        // make sure that location is shown on the screen
-        screenToMapPoint(x, y);
+    private LWComponent targetComponentToFocusOn() {
+    	// component we would focus on
+    	LWComponent aComp = null;
+
+	    LWMap theMap = VUE.getActiveMap();
+	    if ((theMap != null) && (TargetComponent != null)) {
+	    		URI theURI = TargetComponent.getURI();
+	    		// see if this map contains the target component
+	    		aComp = theMap.findChildByURI(theURI);
+	    } 
+	    
+	    // if the target component was found in the active map,
+	    // and the wormhole selection still exists,
+	    // that means this is the right map and the right component,
+	    // and we are trying to reach them through a wormhole,
+	    // therefore we need to focus on the component
+	    if ((aComp != null) && (WormholeSelection != null)) {
+	    	return aComp;
+	    } else {
+	    	return null;
+	    }
     }
     
     /** update the regions of both the old selection & the new selection */
@@ -4817,6 +4805,14 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         } else
         for (LWComponent c : selection) {
 
+//             if (c instanceof LWSlide && !c.isMoveable()) {
+//                 // hack for slides, which are currently not proper children of anyone
+//                 // (prevents selection of a slide icon from drawing a selection
+//                 // drag frame for the 0,0 based slide, which isn't really on
+//                 // any map -- it's owned by the pathway).
+//                 continue;
+//             }
+
             if (mFocalParent != null) {
                 /*
                 if (c == mFocalParent) {
@@ -5285,9 +5281,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         VueSelection.setSource(this);
         VueSelection.setSelectionSourceFocal(getFocal());
         VueSelection.clear();
-        // HO 15/08/2011 BEGIN ********
-        selectionClearWormhole();
-        // HO 15/08/2011 END *********
     }
     protected void selectionToggle(LWComponent c) {
         VueSelection.setSource(this);
@@ -8922,11 +8915,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         if (activeViewer != this) {
             LWMap oldActiveMap = null;
             // HO 11/08/2011 BEGIN *********
-            LWSelection wormholeSelection = WormholeSelection;
-            MapViewer oldActiveViewer = activeViewer;
+            LWSelection wormholeSelection = null;
+            MapViewer oldActiveViewer = null;
             // HO 11/08/2011 END ***********
             if (activeViewer != null) {
                 oldActiveMap = activeViewer.getMap();
+                wormholeSelection = activeViewer.getWormholeSelection();
+                oldActiveViewer = activeViewer;
             }
             VUE.setActive(MapViewer.class, this, this);
             if (mFocal != null)
@@ -8934,6 +8929,17 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             else
                 Log.warn("Active viewer has no focal: " + this);
             // TODO: VUE.getSelection().setPriorityListener(this);
+                
+            // hierarchy view switching: TODO: make an active map listener instead of this(?)
+            /*
+              if (VUE.getHierarchyTree() != null) {
+              if (this.map instanceof LWHierarchyMap)
+              VUE.getHierarchyTree().setHierarchyModel(((LWHierarchyMap)this.map).getHierarchyModel());
+              else
+              VUE.getHierarchyTree().setHierarchyModel(null);
+              // end of addition by Daisuke
+              }
+            */
                 
             if (oldActiveMap != mMap) {
                 if (DEBUG.FOCUS) out("GVAF: oldActive=" + oldActiveMap + " active=" + mMap + " CLEARING SELECTION");
@@ -8947,12 +8953,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 		if (VueSelection == null)
                 			VueSelection = new LWSelection();
                 		VueSelection.setTo(targetComp);
-                		//VUE.ModelSelection.setTo(targetComp);
                 	}
-                	//if (oldActiveViewer != null)
-                		//oldActiveViewer.setWormholeSelection(null);
-                	//if (WormholeSelection != null)
-                		//WormholeSelection.clear();
+                	if (oldActiveViewer != null)
+                		oldActiveViewer.setWormholeSelection(null);
                 	
                 }
                 // HO 11/08/2011 END *********
