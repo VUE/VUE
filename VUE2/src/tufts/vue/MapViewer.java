@@ -2058,11 +2058,16 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             		if (aComp != null) {
             			WormholeSelection.clear();
             			WormholeSelection.setTo(theComp);
+            			// HO 17/08/2011 BEGIN *********
             			VueSelection = WormholeSelection;
+            			//VueSelection = null;
+            			// HO 17/08/2011 END *********
             			
             		} else {
             			VueSelection = null;
             		}
+            	} else {
+            		VueSelection = null;
             	}
             } else {
             	// HO 15/08/2011 END **********
@@ -2082,7 +2087,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         	if (theBounds != null)
         		mapToScreenRect(theBounds);*/
         	//scrollToVisible(aComp);
-        	setZoomedFocus(aComp);
+        	//setZoomedFocus(aComp);
         }
         // HO 15/08/2011 END ********
     }
@@ -4811,14 +4816,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             atLeastOneVisible = true;
         } else
         for (LWComponent c : selection) {
-
-//             if (c instanceof LWSlide && !c.isMoveable()) {
-//                 // hack for slides, which are currently not proper children of anyone
-//                 // (prevents selection of a slide icon from drawing a selection
-//                 // drag frame for the 0,0 based slide, which isn't really on
-//                 // any map -- it's owned by the pathway).
-//                 continue;
-//             }
 
             if (mFocalParent != null) {
                 /*
