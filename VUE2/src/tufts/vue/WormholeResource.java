@@ -1042,6 +1042,10 @@ public class WormholeResource extends URLResource {
 			theViewer.selectionClearWormhole();
 			// set the wormhole selection to the target component
 			theViewer.selectionAddWormhole(theComponent);
+			// HO 17/08/2011 BEGIN *********
+			// if (bSameMap)
+				// theViewer.selectionSet(theComponent);
+			// HO 1708/2011 END ************
 		}
     }  
 

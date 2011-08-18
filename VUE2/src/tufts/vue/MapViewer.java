@@ -190,7 +190,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     /** an alias for the global selection, reset to null when we're not the active map */
     protected LWSelection VueSelection = null;
     // HO 11/08/2011 BEGIN **********
+    /** the WormholeSelection is the LWSelection that contains the target component
+     * of the wormhole we followed to get here, if any
+     */
     protected LWSelection WormholeSelection = null;
+    /** the TargetComponent is the target component of the wormhole 
+     * that we followed to get here, if any
+     */
     protected static LWComponent TargetComponent = null;
     // HO 11/08/2011 END ************
     /** a group that contains everything in the current selection.
@@ -517,18 +523,42 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
     
     // HO 11/08/2011 BEGIN *********
+    /**
+     * Gets the WormholeSelection, which contains
+     * the target component if we got here through a wormhole.
+     * @return WormholeSelection, the LWSelection containing the target component.
+     * @author Helen Oliver
+     */
     public LWSelection getWormholeSelection() {
     	return WormholeSelection;
     }
     
+    /**
+     * Sets the WormholeSelection, which contains
+     * the target component if we got here through a wormhole.
+     * @param theSelection, the LWSelection containing the target component
+     * @author Helen Oliver
+     */
     public void setWormholeSelection(LWSelection theSelection) {
     	WormholeSelection = theSelection;
     }
     
+    /**
+     * Gets the target component if we got here through a wormhole.
+     * @return TargetComponent, the LWComponent that is the target component
+     * of a wormhole.
+     * @author Helen Oliver
+     */
     public LWComponent getTargetComponent() {
     	return TargetComponent;
     }
     
+    /**
+     * Sets the target component of a wormhole.
+     * @param theComponent, the LWComponent that is the target
+     * component of a wormhole.
+     * @author Helen Oliver
+     */
     public void setTargetComponent(LWComponent theComponent) {
     	TargetComponent = theComponent;
     }
@@ -2064,14 +2094,24 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // HO 17/08/2011 BEGIN ********
         // if we got here through a wormhole,
         // focus on the target component
-        LWComponent aComp = targetComponentToFocusOn();
-        if (aComp != null) {
-        	setZoomedFocus(aComp);
-        }
+        focusOnTargetComponent();
         // HO 17/08/2011 BEGIN ********
     }
     
     // HO 17/08/2011 BEGIN ********
+    /**
+     * A function to set the focus on the target component,
+     * if we got here through a wormhole.
+     * @author Helen Oliver
+     */
+    private void focusOnTargetComponent() {
+    	// see if there actually is a target component
+        LWComponent aComp = targetComponentToFocusOn();
+        // if there is, focus on it
+        if (aComp != null) {
+        	setZoomedFocus(aComp);
+        }
+    }
     /**
      * A function to check whether we need to focus on the
      * target component of a wormhole.
@@ -2102,6 +2142,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 	    	return null;
 	    }
     }
+    // HO 17/08/2011 END ********
     
     /** update the regions of both the old selection & the new selection */
     public void repaintSelection() {
@@ -3053,7 +3094,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         repaint();
     }
 
-    private void setZoomedFocus(LWComponent c) {
+    // HO 17/08/2011 BEGIN ***********
+    // private void setZoomedFocus(LWComponent c) {
+    public void setZoomedFocus(LWComponent c) {
+    	// HO 17/08/2011 END ***********
 
         if (DEBUG.PICK) out("setZoomedFocus " + c);
         
@@ -8911,7 +8955,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
     private void becomeActiveViewer() {
         MapViewer activeViewer = VUE.getActiveViewer();
-        // why are we checking this again if we just checked it???
         if (activeViewer != this) {
             LWMap oldActiveMap = null;
             // HO 11/08/2011 BEGIN *********
@@ -8920,49 +8963,73 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             // HO 11/08/2011 END ***********
             if (activeViewer != null) {
                 oldActiveMap = activeViewer.getMap();
+                // get the active viewer's current wormhole selection
                 wormholeSelection = activeViewer.getWormholeSelection();
+                // make a note of the active viewer in case it changes
                 oldActiveViewer = activeViewer;
             }
             VUE.setActive(MapViewer.class, this, this);
+            MapViewer newActive = VUE.getActiveViewer();
             if (mFocal != null)
                 mFocal.getChangeSupport().setPriorityListener(this);
             else
                 Log.warn("Active viewer has no focal: " + this);
             // TODO: VUE.getSelection().setPriorityListener(this);
                 
-            // hierarchy view switching: TODO: make an active map listener instead of this(?)
-            /*
-              if (VUE.getHierarchyTree() != null) {
-              if (this.map instanceof LWHierarchyMap)
-              VUE.getHierarchyTree().setHierarchyModel(((LWHierarchyMap)this.map).getHierarchyModel());
-              else
-              VUE.getHierarchyTree().setHierarchyModel(null);
-              // end of addition by Daisuke
-              }
-            */
-                
             if (oldActiveMap != mMap) {
                 if (DEBUG.FOCUS) out("GVAF: oldActive=" + oldActiveMap + " active=" + mMap + " CLEARING SELECTION");
                 resizeControl.active = false;
                 // clear and notify since the selected map changed.
                 VUE.ModelSelection.clear();
-                // HO 11/08/2011 BEGIN *********
-                if (wormholeSelection != null) {
-                	LWComponent targetComp = wormholeSelection.first();
-                	if (targetComp != null) {
-                		if (VueSelection == null)
-                			VueSelection = new LWSelection();
-                		VueSelection.setTo(targetComp);
-                	}
-                	if (oldActiveViewer != null)
-                		oldActiveViewer.setWormholeSelection(null);
-                	
-                }
-                // HO 11/08/2011 END *********
-                //VUE.ModelSelection.clearAndNotify(); // why must we force a notification here?
+                // HO 17/08/2011 BEGIN *********
+                setVueSelectionToWormholeSelection(wormholeSelection, oldActiveViewer);
+                // HO 17/08/2011 END *********
             }
         }
     }
+    
+    // HO 17/08/2011 BEGIN *******
+    /**
+     * A routine to set this viewer's selection to the target component
+     * of a wormhole.
+     * @param wormholeSelection, the wormhole selection which may contain the target component
+     * @param prevViewer, the viewer whose wormhole selection needs to be cleared after setting
+     * this viewer's selection
+     * @author Helen Oliver
+     */
+    private void setVueSelectionToWormholeSelection(LWSelection wormholeSelection, MapViewer prevViewer) {
+    	// if the wormhole selection exists,
+        if (wormholeSelection != null) {
+        	// the target component must be its first member
+        	LWComponent targetComp = wormholeSelection.first();
+        	// if the component exists in the wormhole selection,
+        	if (targetComp != null) {
+        		// then check to see if the selection for this viewer exists,
+        		// and if not, instantiate it
+        		if (VueSelection == null)
+        			VueSelection = new LWSelection();
+        		// set the selection for this viewer to the target component
+        		VueSelection.setTo(targetComp);
+        	}
+        	// now that we have selected the target component,
+        	// the wormhole selection is not needed any more for
+        	// the viewer in question
+        	setWormholeSelectionToNull(prevViewer);
+        	
+        }
+    }
+    
+    /**
+     * A routine to set a viewer's WormholeSelection to null
+     * @param theViewer, the MapViewer that needs its WormholeSelection set to null.
+     * @author Helen Oliver
+     */
+    private void setWormholeSelectionToNull(MapViewer theViewer) {
+    	if (theViewer != null)
+    		theViewer.setWormholeSelection(null);
+    }
+    
+    // HO 17/08/2011 END *********
     
     public void grabVueApplicationFocus(String from, ComponentEvent event) {
         if (DEBUG.FOCUS || DEBUG.VIEWER) {
