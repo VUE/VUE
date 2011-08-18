@@ -3660,6 +3660,7 @@ public class LWComponent
     
     
     public final void addChild(LWComponent c) {
+
         addChildren(Collections.singletonList(c), ADD_DEFAULT);
     }
 

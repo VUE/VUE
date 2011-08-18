@@ -2612,11 +2612,62 @@ public class LWMap extends LWContainer
             //isLayered = true;
             super.addChildren(children, context);
         } else if (/*isLayered() &&*/ mActiveLayer != null) {
+            // HO 18/08/2011 BEGIN *********
+        	correctActiveLayer(children);
+            // HO 18/08/2011 END *********
             mActiveLayer.addChildren(children, context);
         } else {
             super.addChildren(children, context);
         }
     }
+    
+    // HO 18/08/2011 BEGIN *********
+    /**
+     * A routine to check whether the active layer is in this map,
+     * and if it's not, find the right layer or create a new one
+     * and set the active layer to one we know is in this map
+     * @param children, a Collection of LWComponents; in the scenario where
+     * this routine is called, only the first item in the collection is relevant
+     * @author Helen Oliver
+     */
+    private void correctActiveLayer(Collection<? extends LWComponent> children) {
+    	// the current active layer
+    	LWMap.Layer currentActiveLayer = mActiveLayer;
+    	// the new layer
+    	LWMap.Layer newLayer = null;
+    	// find out what map actually contains the active layer
+    	LWMap layerParentMap = mActiveLayer.getParentOfType(LWMap.class);
+    	// if the active layer isn't actually in this map, something is wrong
+    	if (layerParentMap != this) {
+    		// get the component that started all this
+    		LWComponent theComponent = null;
+    		// make sure the collection really exists
+    		if (children != null)
+    			theComponent = Util.getFirst(children);
+    		else // but if there's no collection, just go straight to adding a new layer
+    			newLayer = this.addLayer(VueResources.getString("layer.newlayer"));
+    		
+    		// as long as the component actually exists (it will be the first one)
+    		if (theComponent != null) {
+    			// get the layer that component is in
+    			newLayer = theComponent.getLayer();
+    			// if the component isn't actually in a layer, create a new layer
+    			if (newLayer == null) {
+    				newLayer = this.addLayer(VueResources.getString("layer.newlayer"));
+    			} else { // if the component is in a layer, check and see what map that layer is in
+    				LWMap aMap = newLayer.getParentOfType(LWMap.class);
+    				// if the layer it's in is not in this map, create a new layer
+    				if (aMap != this) {
+    					newLayer = this.addLayer(VueResources.getString("layer.newlayer"));
+    				}
+    			}
+    			// set the layer to be the active layer, then we know for sure
+    			// that it's in this map
+    			this.setActiveLayer(newLayer);
+    		}
+    	}        
+    }
+    // HO 18/08/2011 END *********
     
     @Override
     protected void addChildImpl(LWComponent c, Object context) {
