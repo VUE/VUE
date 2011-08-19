@@ -987,29 +987,12 @@ public class Archive
         // if it's open.
         if (!bAutoOpeningMap) {
         	// HO 27/07/2011 BEGIN test ***********
-        	MapViewer viewer = null;
-            if (
-                    VUE.isActiveViewerOnLeft() 
-                    )
-                    {
-            			viewer = VUE.getLeftTabbedPane().getViewerWithMap(map);
-                    }
-            else if (VUE.isActiveViewerOnRight()) {
-            	viewer = VUE.getRightTabbedPane().getViewerWithMap(map);
-            }
+        	MapViewer viewer = VUE.getCurrentTabbedPane().getViewerWithMap(map);
             // HO 27/07/2011 END ***********
         	// auto-open
         	autoOpenMap(archive);      
         	// HO 27/07/2011 BEGIN test ***********
-            if (
-                    VUE.isActiveViewerOnLeft() 
-                    )
-                    {
-            			viewer = VUE.getLeftTabbedPane().getViewerWithMap(map);
-                    }
-            else if (VUE.isActiveViewerOnRight()) {
-            	viewer = VUE.getRightTabbedPane().getViewerWithMap(map);
-            }
+        	viewer = VUE.getCurrentTabbedPane().getViewerWithMap(map);
             // HO 27/07/2011 END ***********
     		// get all the open maps
     		Collection<LWMap> coll = VUE.getAllMaps();

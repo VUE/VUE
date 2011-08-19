@@ -413,28 +413,11 @@ public class LWWormhole implements VueConstants {
     	//File f = askSaveSourceMap(sourceMap);
     	// HO 11/05/2011
     	// HO 27/07/2011 BEGIN test ***********
-    	MapViewer viewer = null;
-        if (
-                VUE.isActiveViewerOnLeft() 
-                )
-                {
-        			viewer = VUE.getLeftTabbedPane().getViewerWithMap(sourceMap);
-                }
-        else if (VUE.isActiveViewerOnRight()) {
-        	viewer = VUE.getRightTabbedPane().getViewerWithMap(sourceMap);
-        }
+    	MapViewer viewer = VUE.getCurrentTabbedPane().getViewerWithMap(sourceMap);
         // HO 27/07/2011 END ***********
     	Component comp = setScreen(sourceMap);
     	// HO 27/07/2011 BEGIN test ***********
-        if (
-                VUE.isActiveViewerOnLeft() 
-                )
-                {
-        			viewer = VUE.getLeftTabbedPane().getViewerWithMap(sourceMap);
-                }
-        else if (VUE.isActiveViewerOnRight()) {
-        	viewer = VUE.getRightTabbedPane().getViewerWithMap(sourceMap);
-        }
+    	viewer = VUE.getCurrentTabbedPane().getViewerWithMap(sourceMap);
         // HO 27/07/2011 END ***********
     	//LWMap srcMap = askSaveSourceMap(sourceMap);
     	// HO 02/07/2011 begin ************
@@ -442,15 +425,7 @@ public class LWWormhole implements VueConstants {
     	LWMap srcMap = SaveAction.saveMapSpecial(sourceMap, false, false);
     	// HO 02/07/2011 END ************
     	// HO 27/07/2011 BEGIN test ***********
-        if (
-                VUE.isActiveViewerOnLeft() 
-                )
-                {
-        			viewer = VUE.getLeftTabbedPane().getViewerWithMap(sourceMap);
-                }
-        else if (VUE.isActiveViewerOnRight()) {
-        	viewer = VUE.getRightTabbedPane().getViewerWithMap(sourceMap);
-        }
+    	viewer = VUE.getCurrentTabbedPane().getViewerWithMap(sourceMap);
         // HO 27/07/2011 END ***********
     	
     	// if the current map wasn't saved for any reason,
@@ -1360,19 +1335,7 @@ public class LWWormhole implements VueConstants {
     	// HO 11/05/2011 END ************
     	// HO 04/01/2011 END *************
     	// HO 27/07/2011 BEGIN test ***********
-    	MapViewer viewer = null;
-    	MapViewer aviewer = null;
-        if (
-                VUE.isActiveViewerOnLeft() 
-                )
-                {
-                    aviewer = VUE.getLeftTabbedPane().getSelectedViewer();
-        			viewer = VUE.getLeftTabbedPane().getViewerWithMap(sourceMap);
-                }
-        else if (VUE.isActiveViewerOnRight()) {
-        	// viewer = VUE.getRightTabbedPane().getSelectedViewer();
-        	viewer = VUE.getRightTabbedPane().getViewerWithMap(sourceMap);
-        }
+    	MapViewer viewer = VUE.getCurrentTabbedPane().getViewerWithMap(sourceMap);
         // HO 27/07/2011 END ***********
 
         int response = VueUtil.option

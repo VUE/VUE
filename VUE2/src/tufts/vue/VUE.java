@@ -3699,30 +3699,11 @@ public class VUE
         boolean alerted = false;
         try {
         	// HO 27/07/2011 BEGIN test ***********
-        	MapViewer viewer = null;
-            if (
-                    VUE.isActiveViewerOnLeft() 
-                    )
-                    {
-            			viewer = VUE.getLeftTabbedPane().getViewerWithMap(openMap);
-                    }
-            else if (VUE.isActiveViewerOnRight()) {
-            	// viewer = VUE.getRightTabbedPane().getSelectedViewer();
-            	viewer = VUE.getRightTabbedPane().getViewerWithMap(openMap);
-            }
+        	MapViewer viewer = getCurrentTabbedPane().getViewerWithMap(openMap);
             // HO 27/07/2011 END ***********
         	loadedMap = OpenAction.loadMap(file.getAbsolutePath());
         	// HO 27/07/2011 BEGIN test ***********
-            if (
-                    VUE.isActiveViewerOnLeft() 
-                    )
-                    {
-            			viewer = VUE.getLeftTabbedPane().getViewerWithMap(loadedMap);
-                    }
-            else if (VUE.isActiveViewerOnRight()) {
-            	// viewer = VUE.getRightTabbedPane().getSelectedViewer();
-            	viewer = VUE.getRightTabbedPane().getViewerWithMap(loadedMap);
-            }
+            viewer = getCurrentTabbedPane().getViewerWithMap(openMap);
             // HO 27/07/2011 END ***********
             alerted = true; // OpenAction.loadMap now always alerts
             if (loadedMap != null) {
@@ -3730,15 +3711,7 @@ public class VUE
             	try {
                 VUE.displayMapSpecial(loadedMap); 
             	// HO 27/07/2011 BEGIN test ***********
-                if (
-                        VUE.isActiveViewerOnLeft() 
-                        )
-                        {
-                			viewer = VUE.getLeftTabbedPane().getViewerWithMap(loadedMap);
-                        }
-                else if (VUE.isActiveViewerOnRight()) {
-                	viewer = VUE.getRightTabbedPane().getViewerWithMap(loadedMap);
-                }
+                viewer = VUE.getCurrentTabbedPane().getViewerWithMap(loadedMap);
                 // HO 27/07/2011 END ***********
             	} catch(ArrayIndexOutOfBoundsException e) {
             	}

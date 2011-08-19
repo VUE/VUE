@@ -109,6 +109,18 @@ public class LWComponent
     private static final Object CAUSE_PATHWAY = "cause_pathway";
     //private static final Object CAUSE_PERSIST = "cause_persist";
     
+    // HO 19/08/2011 BEGIN *********
+    private double zoomFactor = 0;
+    
+    public void setZoomFactor(double zoom) {
+    	zoomFactor = zoom;
+    }
+    
+    public double getZoomFactor() {
+    	return zoomFactor;
+    }
+    // HO 19/08/2011 END *********
+    
 
     public enum HideCause {
         /** each subclass of LWComponent can use this for it's own purposes */

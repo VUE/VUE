@@ -2091,10 +2091,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             }
         }
         repaintSelection();
+        
         // HO 17/08/2011 BEGIN ********
         // if we got here through a wormhole,
         // focus on the target component
-        focusOnTargetComponent();
+        //focusOnTargetComponent();
         // HO 17/08/2011 BEGIN ********
     }
     
@@ -2109,6 +2110,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         LWComponent aComp = targetComponentToFocusOn();
         // if there is, focus on it
         if (aComp != null) {
+        	//setZoomlessFocus(aComp);
         	setZoomedFocus(aComp);
         }
     }
@@ -3121,6 +3123,128 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         }
     }
+    
+    // HO 19/08/2011 BEGIN ***********
+    public void setZoomlessFocus(LWComponent c) {
+    	// HO 17/08/2011 END ***********
+
+        if (DEBUG.PICK) out("setZoomlessFocus " + c);
+        
+        if (c == null) {
+            if (mRollover != null) {
+                mRollover.setZoomedFocus(null);
+                mRollover = null;
+            }
+        } else {
+
+            final AffineTransform zt = computeZoomlessFocusTransform(c);
+
+            if (zt != null) {
+                if (mRollover != null) {
+                    if (DEBUG.Enabled) Log.warn("fallback clear of zoomed-focus on " + mRollover);
+                    mRollover.setZoomedFocus(null);
+                }
+                mRollover = c;
+                mRollover.setZoomedFocus(zt);
+            }
+
+        }
+    }
+    private AffineTransform computeZoomlessFocusTransform(LWComponent c)
+    {
+        // final double netZoom = getZoomFactor();
+    	LWMap targMap = c.getParentOfType(LWMap.class);
+    	MapViewer targViewer = VUE.getCurrentTabbedPane().getViewerWithMap(targMap);
+    	final double netZoom = targViewer.getZoomFactor();
+    	final double compZoom = c.getZoomFactor();
+    	if (compZoom != netZoom) {
+    		c.setZoomFactor(netZoom);
+    	}
+        
+        if (DEBUG.Enabled) out("computeZoomFocusFactor: " + netZoom);
+
+        if (netZoom <= 0)
+            return null;
+
+        //-----------------------------------------------------------------------------
+
+        final double halfWidth = c.getWidth() / 2;
+        final double halfHeight = c.getHeight() / 2;
+        final double localScale = c.getScale();
+
+        // Zoom on-center.
+                    
+        // To make this simple, we first translate to the local center (our center
+        // location in parent coords, compensating for any of our own scale), then apply
+        // the new zoomed scale, then translate back out by our raw width.  This isn't
+        // done often, so no point in over optimizing.
+
+        final AffineTransform nodeTX = new AffineTransform();
+        final AffineTransform testTX = new AffineTransform();
+
+        // Translate to local center:
+        nodeTX.translate(c.getX() + halfWidth * localScale,
+                         c.getY() + halfHeight * localScale);
+
+        // we need this if this node is not an immediate child of LWMap
+        // it's redundant if it is
+        testTX.translate(c.getMapX() + halfWidth * localScale,
+                         c.getMapY() + halfHeight * localScale);
+
+        // zoom at center
+        nodeTX.scale(netZoom, netZoom);
+        testTX.scale(netZoom, netZoom);
+        
+        // translate back half way (and since we're translating at the new zoom, the
+        // same absolute transform values will work)
+        nodeTX.translate(-halfWidth, -halfHeight);
+        testTX.translate(-halfWidth, -halfHeight);
+
+        //-----------------------------------------------------------------------------
+        // Now keep us within the visible area
+        //-----------------------------------------------------------------------------
+
+        final Rectangle2D visible = getVisibleMapBounds();
+
+        final double nodeX = testTX.getTranslateX();
+        final double nodeY = testTX.getTranslateY();
+        final double nodeRight = nodeX + c.getWidth() * netZoom;
+        final double nodeBottom = nodeY + c.getHeight() * netZoom;
+        
+        final double visibleRight = visible.getX() + visible.getWidth();
+        final double visibleBottom = visible.getY() + visible.getHeight();
+        
+        final AffineTransform working = (AffineTransform) nodeTX.clone();
+
+        working.scale(1/netZoom, 1/netZoom); // we need to apply the adjustment back at original scale
+            
+        // as we've already limited the max zoom to something that will fit the object entirely
+        // in the visible display area, we now know we'll only need to move it one of either
+        // left/right, and one of either up/down.
+
+        if (nodeX < visible.getX()) {
+            // move right to keep from going off left edge of screen:
+            working.translate(visible.getX() - nodeX, 0);
+        }
+        else if (nodeRight > visibleRight) {
+            // move left to keep from going off right edge of screen:
+            working.translate(- (nodeRight - visibleRight), 0);
+        }
+        
+        if (nodeY < visible.getY()) {
+            // move down to keep from going up off top edge of screen
+            working.translate(0, visible.getY() - nodeY);
+        }
+        else if (nodeBottom > visibleBottom) {
+            // move up to keep from going up off bottom edge of screen
+            working.translate(0, - (nodeBottom - visibleBottom));
+        }
+        
+        working.scale(netZoom, netZoom); // restore scale
+        
+        return working;
+    }
+    // HO 19/08/2011 END *************
 
 
     private AffineTransform computeZoomFocusTransform(LWComponent c)
