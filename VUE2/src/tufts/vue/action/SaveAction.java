@@ -336,8 +336,11 @@ public class SaveAction extends VueAction
      * @param export, true if we are exporting the map, false otherwise
      * @return the newly-saved LWMap object
      * @author Helen Oliver
-     */      
-    public static LWMap saveMapSpecial(LWMap map, boolean saveAs, boolean export)
+     */ 
+    // HO 22/08/2011 BEGIN ***************
+    // public static LWMap saveMapSpecial(LWMap map, boolean saveAs, boolean export)
+    public static LWMap saveMapSpecial(LWMap map, boolean saveAs, boolean export, String caption)
+    // HO 22/08/2011 END ***************
     {
         Log.info("saveMapSpecial: " + map);        
         
@@ -375,7 +378,10 @@ public class SaveAction extends VueAction
         if (response == 0) {
             saveAs=true;
         } if ((saveAs || file == null) && !export) {
-            file = ActionUtil.selectFile("Save Map", null);
+        	// HO 22/08/2011 BEGIN ***************
+            // file = ActionUtil.selectFile("Save Map", null);
+        	file = ActionUtil.selectFile(caption, null);
+            // HO 22/08/2011 END ***************
         } else if (export) {
             file = ActionUtil.selectFile("Export Map", "export");
         }
@@ -740,7 +746,10 @@ public class SaveAction extends VueAction
      * @author Helen Oliver
      */
     public static LWMap saveMapSpecial(LWMap map) {
-        return saveMapSpecial(map, false,false);
+    	// HO 22/02/2011 BEGIN ************
+        // return saveMapSpecial(map, false,false);
+    	return saveMapSpecial(map, false,false, "Save Map");
+        // HO 22/02/2011 END ************
     }
     // HO 22/02/2011 END *************
     

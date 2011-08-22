@@ -1033,7 +1033,10 @@ public class WormholeResource extends URLResource {
         // although this might be one of those with a dangling target
 		if (theComponent != null) {
 			// for good measure
-			MapViewer theViewer = VUE.getActiveViewer();
+			// HO 22/08/2011 BEGIN *************
+			// MapViewer theViewer = VUE.getActiveViewer();
+			MapViewer theViewer = VUE.getCurrentTabbedPane().getViewerWithMap(theMap);
+			// HO 22/08/2011 END *************
 			// HO 17/08/2011 BEGIN ********
 			// set this as the viewer's target component
 			theViewer.setTargetComponent(theComponent);
@@ -1043,8 +1046,8 @@ public class WormholeResource extends URLResource {
 			// set the wormhole selection to the target component
 			theViewer.selectionAddWormhole(theComponent);
 			// HO 17/08/2011 BEGIN *********
-			// if (bSameMap)
-				// theViewer.selectionSet(theComponent);
+			if (bSameMap)
+				theViewer.selectionSet(theComponent);
 			// HO 1708/2011 END ************
 		}
     }  

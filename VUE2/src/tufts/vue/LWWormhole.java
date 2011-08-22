@@ -422,7 +422,10 @@ public class LWWormhole implements VueConstants {
     	//LWMap srcMap = askSaveSourceMap(sourceMap);
     	// HO 02/07/2011 begin ************
     	// LWMap srcMap = askSaveSourceMap(sourceMap, comp);
-    	LWMap srcMap = SaveAction.saveMapSpecial(sourceMap, false, false);
+    	// HO 22/08/2011 BEGIN **********
+    	// LWMap srcMap = SaveAction.saveMapSpecial(sourceMap, false, false);
+    	LWMap srcMap = SaveAction.saveMapSpecial(sourceMap, false, false, "Save Source Map");
+    	// HO 22/08/2011 END **********
     	// HO 02/07/2011 END ************
     	// HO 27/07/2011 BEGIN test ***********
     	viewer = VUE.getCurrentTabbedPane().getViewerWithMap(sourceMap);
@@ -1299,7 +1302,10 @@ public class LWWormhole implements VueConstants {
         	// HO 25/05/2011 swapped
             //return SaveAction.saveMap(map);
         	// HO 20/06/2011 BEGIN ***********
-        	return SaveAction.saveMapSpecial(map, false, false);
+        	// HO 22/08/2011 BEGIN **********
+        	// return SaveAction.saveMapSpecial(map, false, false);
+        	return SaveAction.saveMapSpecial(map, false, false, "Save Source Map");
+        	// HO 22/08/2011 END **********
         	// return SaveAction.saveMapSpecial(map, true, false);
         	// HO 20/06/2011 END ***********
             // HO 15/02/2011 END ***********
@@ -1308,7 +1314,10 @@ public class LWWormhole implements VueConstants {
         	// HO 15/02/2011 BEGIN ***********
         	// HO 25/05/2011 swapped
         	//return SaveAction.saveMap(map);
-            return SaveAction.saveMapSpecial(map, true, false);
+        	// HO 22/08/2011 BEGIN **********
+            // return SaveAction.saveMapSpecial(map, true, false);
+        	return SaveAction.saveMapSpecial(map, true, false, "Save Source Map");
+            // HO 22/08/2011 END **********
             // HO 15/02/2011 END ***********
         } else // anything else (Cancel or dialog window closed)
             return null;
@@ -1324,55 +1333,62 @@ public class LWWormhole implements VueConstants {
    //private LWMap askSelectNewTargetMap(LWMap map, boolean b) {
     private LWMap askSelectNewTargetMap(LWMap map, Component focusComp) {
 	// HO 11/05/2011 END ************
-    	final Object[] defaultOrderButtons = { "Choose Target Map", "Cancel"};
-    	final Object[] macOrderButtons = { "Cancel", "Choose Target Map"};
+    	// HO 22/08/2011 BEGIN ***************
+    	//final Object[] defaultOrderButtons = { "Choose Target Map", "Cancel"};
+    	//final Object[] macOrderButtons = { "Cancel", "Choose Target Map"};
 
         // HO 04/01/2011 BEGIN *************
     	// to ward off IllegalComponentStateException
     	// HO 11/05/2011 BEGIN ************
-    	Component c = setScreen(map);
+    	//Component c = setScreen(map);
     	//Component c = setScreen(focusComp);
     	// HO 11/05/2011 END ************
     	// HO 04/01/2011 END *************
+    	// HO 22/08/2011 END ***************
     	// HO 27/07/2011 BEGIN test ***********
-    	MapViewer viewer = VUE.getCurrentTabbedPane().getViewerWithMap(sourceMap);
+    	// HO 22/08/2011 BEGIN ***************
+    	// MapViewer viewer = VUE.getCurrentTabbedPane().getViewerWithMap(sourceMap);
         // HO 27/07/2011 END ***********
-
-        int response = VueUtil.option
-        (// HO 11/05/2011 BEGIN ************
+    	
+    	//int response = VueUtil.option
+        // (// HO 11/05/2011 BEGIN ************
         		//viewer,
         		// VUE.getDialogParent(),
-        		c,
+        		//c,
         		// HO 11/05/2011 END ************
-         "Please choose a target map.",
-         "Choose Target Map",
-         JOptionPane.OK_CANCEL_OPTION,
-         JOptionPane.PLAIN_MESSAGE,
-         Util.isMacPlatform() ? macOrderButtons : defaultOrderButtons,             
-         "Choose Target"
-         );
+         //"Please choose a target map.",
+         //"Choose Target Map",
+         //JOptionPane.OK_CANCEL_OPTION,
+         //JOptionPane.PLAIN_MESSAGE,
+         //Util.isMacPlatform() ? macOrderButtons : defaultOrderButtons,             
+         //"Choose Target"
+         //);
     	// HO 28/02/2011 END ****************
 
-        if (!Util.isMacPlatform()) {
-            switch (response) {
+        //if (!Util.isMacPlatform()) {
+            //switch (response) {
             // HO 28/02/2011 BEGIN ************
             // the OK_OPTION (choose target map)
-            case 0: response = 0; break;
+            //case 0: response = 0; break;
             // the CANCEL option
-            case 1: response = 1; break;
+            //case 1: response = 1; break;
             // HO 28/02/2011 END ***************
-            }
-        } else { 
-            switch (response) {
+           // }
+        //} else { 
+            //switch (response) {
             // the OK_OPTION (choose a target map)
-            case 0: response = 1; break;
+            //case 0: response = 1; break;
             // the CANCEL option
-            case 1: response = 0; break;
-            }
-        }
+            //case 1: response = 0; break;
+            //}
+        //}
         
-        if (response == JOptionPane.OK_OPTION) { // Save
-        	LWMap newTargetMap = SaveAction.saveMapSpecial(map, true, false);
+        //if (response == JOptionPane.OK_OPTION) { // Save
+        	// HO 22/08/2011 END ***************
+    		// HO 22/08/2011 BEGIN **********
+        	// LWMap newTargetMap = SaveAction.saveMapSpecial(map, true, false);
+    		LWMap newTargetMap = SaveAction.saveMapSpecial(map, true, false, "Save Target Map");
+        	// HO 22/08/2011 END **********
         	// prompt to save
         	if (newTargetMap != null) {
         		// now we have our target map
@@ -1380,10 +1396,10 @@ public class LWWormhole implements VueConstants {
         	} else {
         		return null;
         	}
-        } else // anything else (Cancel or dialog window closed) 
-        	{
-            return null;
-        }
+       //} else // anything else (Cancel or dialog window closed) 
+        	//{
+            //return null;
+        //}
 
     }	    
     
