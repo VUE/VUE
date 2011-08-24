@@ -7442,6 +7442,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 	                    // have happen if user is toggling the selection.
 	                    //-------------------------------------------------------
 	                    selectionClear();
+	                    // HO 24/08/2011 begin ********
+	                    repaint();
+	                    // HO 24/08/2011 END *********
 	                    //repaint(); // if selection handles not on, we need manual repaint here
 	                                
             	}
