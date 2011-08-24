@@ -9088,7 +9088,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             if (activeViewer != null) {
                 oldActiveMap = activeViewer.getMap();
                 // get the active viewer's current wormhole selection
-                wormholeSelection = activeViewer.getWormholeSelection();
+                // HO 23/08/2011 BEGIN ***********
+                // wormholeSelection = activeViewer.getWormholeSelection();
+                wormholeSelection = this.getWormholeSelection();
+                // HO 23/08/2011 END ***********
                 // make a note of the active viewer in case it changes
                 oldActiveViewer = activeViewer;
             }
