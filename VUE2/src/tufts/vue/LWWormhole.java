@@ -37,6 +37,8 @@ import java.util.Vector;
 
 import javax.swing.JOptionPane;
 
+import edu.tufts.vue.layout.Layout;
+
 import tufts.Util;
 import tufts.vue.LWComponent.ChildKind;
 import tufts.vue.NodeTool.NodeModeTool;
@@ -45,6 +47,8 @@ import tufts.vue.action.OpenAction;
 import tufts.vue.action.SaveAction;
 
 public class LWWormhole implements VueConstants {
+	
+	private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LWWormhole.class);
 	
 	/**
 	 * The component that will be the starting point
@@ -1699,13 +1703,134 @@ public class LWWormhole implements VueConstants {
 		return theNode;
 	}
 	
+	// HO 25/08/2011 BEGIN ********
+	/**
+	 * A routine to paste the target component in the
+	 * default location in the target map.
+	 * @param theMap, the target LWMap.
+	 * @author Helen Oliver
+	 */
+	private void pasteTargetComponent(LWMap theMap) {
+		// input validation
+		if (theMap != null) {
+			// paste the target component in the default location
+			// in the target map
+			theMap.pasteChild(targetComponent);
+		}
+	}
+	
+	/**
+	 * A routine to check and see if a given map is open,
+	 * and if it is, to repaint it.
+	 * @param theMap, the LWMap to repaint if it's open.
+	 * @author Helen Oliver
+	 */
+	private void repaintMapIfOpen(LWMap theMap) {
+		// input validation
+		if (theMap == null)
+			return;
+        
+		// get the viewer the map is in, if any
+		MapViewer viewer = VUE.getCurrentTabbedPane().getViewerWithMap(theMap);
+		// if there is a viewer, repaint it
+        if (viewer != null)
+        	viewer.repaint();
+	}
+	
+	/**
+	 * A routine to ripple out a selection of nodes.
+	 * @param selection, an LWSelection containing the set of nodes to ripple out.
+	 * @author Helen Oliver
+	 */
+	private void rippleOutNodes(LWSelection selection) {
+		// input validation
+		if (selection == null)
+			return;
+		
+		// get the layout
+		Layout layout = new edu.tufts.vue.layout.ListRandomLayout();
+		
+        // cycle through the set of nodes, which will be an artificial
+		// selection consisting of the target node and one other node
+		Iterator i = selection.iterator();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            try {
+            	// ripple out the nodes
+                layout.layout(selection);
+            } catch(Throwable t) {
+                Log.debug("LWWormhole.rippleOutNodes: "+t.getMessage());
+                 tufts.Util.printStackTrace(t);
+            }
+
+        }
+	}
+	
+	/**
+	 * A function to create an LWSelection containing the target node
+	 * and one other node.
+	 * @param nextNode, the other LWNode to add to the selection.
+	 * @return selection, the LWSelection containing the target node and one other node.
+	 * @author Helen Oliver
+	 */
+	private LWSelection selectTargetAndOneOtherNode(LWNode nextNode) {
+		// instantiate selection
+        LWSelection selection = new LWSelection();
+        // if the other node is valid, add it to the selection
+        if (nextNode != null)
+        	selection.add(nextNode);
+        // if the target node exists, add it to the selection
+        if (targetComponent != null)
+        	selection.add(targetComponent);
+        
+        // return the selection
+        return selection;
+	}
+	
+	/**
+	 * A routine to make sure the target node doesn't overlap
+	 * with any existing nodes
+	 * @param theMap, the target map
+	 * @author Helen Oliver
+	 */
+	private void makeSureTargetNodeDoesNotOverlap(LWMap theMap) {
+		// input validation
+		if (theMap == null)
+			return;
+		
+		// get all the nodes in the target map
+		Iterator iter = targetMap.getAllNodesIterator();
+		// cycle through all the nodes in the target map
+		while (iter.hasNext()) {
+			LWNode nextNode = (LWNode) iter.next();
+			// if the next node isn't the target node
+			if (nextNode != targetComponent) {
+				// check that it isn't overlapping with the target node
+				boolean bOverlapping = VueUtil.checkCollision(nextNode, targetComponent);
+				// but if it does overlap
+				if (bOverlapping) {
+					// create an artificial selection containing this node and the target node
+		            LWSelection selection = selectTargetAndOneOtherNode(nextNode);
+		            // ripple them out
+		            rippleOutNodes(selection);
+		            // if the target map is open, repaint it
+		            repaintMapIfOpen(theMap);
+				}
+			}
+		}
+	}
+	// HO 25/08/2011 END **********
+	
 	/**
 	 * A stub for functionality to position the target component
 	 * in the target map.
 	 * @param parentMap, the map into which to paste this component.
 	 */
 	public void positionTargetComponent(LWMap parentMap) {
-		parentMap.pasteChild(targetComponent);
+		// HO 25/08/2011 BEGIN ******
+		pasteTargetComponent(parentMap);
+		makeSureTargetNodeDoesNotOverlap(parentMap);		
+		// HO 25/08/2011 END ********
 	}
 	
 	/**
