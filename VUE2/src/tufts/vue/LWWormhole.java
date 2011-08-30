@@ -1773,7 +1773,10 @@ public class LWWormhole implements VueConstants {
 	 * @return selection, the LWSelection containing the target node and one other node.
 	 * @author Helen Oliver
 	 */
-	private LWSelection selectTargetAndOneOtherNode(LWNode nextNode) {
+	// HO 30/08/2011 BEGIN *************
+	// private LWSelection selectTargetAndOneOtherNode(LWNode nextNode) {
+	private LWSelection selectTargetAndOneOtherNode(LWComponent nextNode) {
+		// HO 30/08/2011 END *************
 		// instantiate selection
         LWSelection selection = new LWSelection();
         // if the other node is valid, add it to the selection
@@ -1799,23 +1802,56 @@ public class LWWormhole implements VueConstants {
 			return;
 		
 		// get all the nodes in the target map
-		Iterator iter = targetMap.getAllNodesIterator();
+		// HO 30/08/2011 BEGIN *************
+		Iterator iter = targetMap.getChildIterator();
 		// cycle through all the nodes in the target map
-		while (iter.hasNext()) {
-			LWNode nextNode = (LWNode) iter.next();
-			// if the next node isn't the target node
-			if (nextNode != targetComponent) {
-				// check that it isn't overlapping with the target node
-				boolean bOverlapping = VueUtil.checkCollision(nextNode, targetComponent);
-				// but if it does overlap
-				if (bOverlapping) {
-					// create an artificial selection containing this node and the target node
-		            LWSelection selection = selectTargetAndOneOtherNode(nextNode);
-		            // ripple them out
-		            rippleOutNodes(selection);
-		            // if the target map is open, repaint it
-		            repaintMapIfOpen(theMap);
+		while (iter.hasNext()) {			
+			// LWNode nextNode = (LWNode) iter.next();
+			LWComponent nextComp = (LWComponent) iter.next();			
+			// if the next component isn't the target node
+			if (nextComp != targetComponent) {
+					rippleOutOverlap(nextComp, targetMap);
 				}
+		}
+
+	}
+	
+	private void rippleOutOverlap(LWComponent nextNode, LWMap theMap) {
+		if (nextNode.getClass() == LWMap.Layer.class) {
+			LWMap.Layer theLayer = (LWMap.Layer) nextNode;
+			rippleOutLayer(theLayer, theMap);
+			return;
+		} 
+		
+		// check that it isn't overlapping with the target node
+		boolean bOverlapping = VueUtil.checkCollision(nextNode, targetComponent);
+		// HO 30/08/2011 BEGIN *********
+		if (!bOverlapping)
+			bOverlapping = VueUtil.checkCollision(targetComponent, nextNode);
+		// HO 30/08/2011 END *********
+		// but if it does overlap
+		if (bOverlapping) {
+			// create an artificial selection containing this node and the target node
+            LWSelection selection = selectTargetAndOneOtherNode(nextNode);
+            // ripple them out
+            rippleOutNodes(selection);
+            // if the target map is open, repaint it
+            repaintMapIfOpen(theMap);
+		}
+	}
+	
+	private void rippleOutLayer(LWMap.Layer theLayer, LWMap theMap) {
+		// input validation
+		if ((theLayer == null) || (theMap == null))
+			return;
+		
+		// iterate through all the components in the layer
+		Iterator iter = theLayer.getChildIterator();
+		while (iter.hasNext()) {
+			LWComponent nextComp = (LWComponent) iter.next();
+			// we don't want to bother rippling out links at this stage
+			if (nextComp.getClass() != LWLink.class) {
+				rippleOutOverlap(nextComp, targetMap);
 			}
 		}
 	}
