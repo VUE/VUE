@@ -1494,8 +1494,9 @@ public class LWWormhole implements VueConstants {
             // HO 04/01/2011 BEGIN **************
         	Point p = null;
             try {
-            	//p = c.getLocationOnScreen();
-            	p = c.getLocation(null);
+            	// p = c.getLocationOnScreen();            	
+            	// p = new Point((int)comp.getX(), (int)comp.getY());
+            	//p = c.getLocation(null);
             } catch (Exception e) {
             	c = null;
             }
@@ -1578,7 +1579,10 @@ public class LWWormhole implements VueConstants {
     	final Object[] defaultOrderButtons = { "Same Map", "Cancel", "Choose Target Map"};
     	final Object[] macOrderButtons = { "Choose Target Map", "Cancel", "Same Map"};
 
-    	Component c = setScreen(map);
+    	// HO 31/08/2011 BEGIN *********
+    	// Component c = setScreen(map);
+    	Component c = setScreen(sourceComponent);
+    	// HO 31/08/2011 END *********
         
         int response = VueUtil.option
             (c,
