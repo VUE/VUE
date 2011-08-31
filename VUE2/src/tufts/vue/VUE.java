@@ -3753,6 +3753,10 @@ public class VUE
         int lastLeftSelected = -1;
         int lastRightSelected = -1;
         // HO 28/07/2011 END **********
+        // HO 31/08/2011 BEGIN ********
+        double lastLeftZoomFactor = 0.0;
+        double lastRightZoomFactor = 0.0;
+        // HO 31/08/2011 END *********
         
         // go through the left tabs and see if the map is open in any of them
         for (int i = 0; i < mMapTabsLeft.getTabCount(); i++) {
@@ -3774,6 +3778,9 @@ public class VUE
             	// get the left viewer that contains this map
             	leftViewer = mMapTabsLeft.getViewerAt(i);
             	lastLeftSelected = mMapTabsLeft.getSelectedIndex();
+            	// HO 31/08/2011 BEGIN ********
+            	lastLeftZoomFactor = leftViewer.getZoomFactor();
+            	// HO 31/08/2011 END ********
                 // HO 28/02/2011 BEGIN ***********
                 // added try/catch block
                 try {
@@ -3804,6 +3811,9 @@ public class VUE
             	rightViewer = mMapTabsRight.getViewerAt(i);
             	lastRightSelected = mMapTabsRight.getSelectedIndex();
                 // HO 28/02/2011 BEGIN ***********
+            	// HO 31/08/2011 BEGIN ********
+            	lastRightZoomFactor = rightViewer.getZoomFactor();
+            	// HO 31/08/2011 END ********
                 // added try/catch block
                 try {
                 	// and remove it
@@ -3819,9 +3829,18 @@ public class VUE
         // HO 21/04/2011 BEGIN **************
         //leftViewer = new MapViewer(pMap, "*LEFT");
         //rightViewer = new MapViewer(pMap, "right");
+        // HO 31/08/2011 BEGIN **************
         leftViewer = new MapViewer(pMap, "*LEFT", false);
         rightViewer = new MapViewer(pMap, "right", false);
+        //leftViewer = new MapViewer(pMap, "*LEFT", true);
+        //rightViewer = new MapViewer(pMap, "right", true);
+        // HO 31/08/2011 END **************
         // HO 21/04/2011 END **************
+        
+    	// HO 31/08/2011 BEGIN ********
+        // make sure it stays at the same zoom factor it was at before
+        restoreZoomFactors(lastLeftZoomFactor, leftViewer, lastRightZoomFactor, rightViewer);
+    	// HO 31/08/2011 END ********
 
         // Start them both off unfocusable, so we get no
         // focus transfers until we're ready to decide what
@@ -3880,6 +3899,42 @@ public class VUE
         return leftViewer;
     }    
     // HO 19/08/2010 END *************************
+    
+	// HO 31/08/2011 BEGIN ********
+    /**
+     * A routine to restore a MapViewer's zoom factor to a given value
+     * @param lastZoomFactor, a double representing the last zoom factor of this viewer
+     * @param viewer, the viewer to set to a given zoom factor
+     * @author Helen Oliver
+     */
+    private static void restoreZoomFactor(double lastZoomFactor, MapViewer viewer) {
+    	// input validation
+    	if (viewer == null)
+    		return;
+    	
+	    // make sure it stays at the same zoom factor it was at before
+	    if (lastZoomFactor != 0.0) {
+	    	viewer.setZoomFactor(lastZoomFactor, false, null, false);        	
+	    }
+    }
+    
+    /** 
+     * A routine to restore zoom factors in both the left and the right viewers
+     * @param lastLeftZoomFactor, a double representing the last zoom factor for the left viewer
+     * @param leftViewer, the left MapViewer
+     * @param lastRightZoomFactor, a double representing the last zoom factor for the right viewer
+     * @param rightViewer, the right MapViewer
+     * @author Helen Oliver
+     */
+    private static void restoreZoomFactors(double lastLeftZoomFactor, MapViewer leftViewer,
+    		double lastRightZoomFactor, MapViewer rightViewer) {
+    	// HO 31/08/2011 BEGIN ********
+        // make sure it stays at the same zoom factor it was at before
+        restoreZoomFactor(lastLeftZoomFactor, leftViewer);
+        restoreZoomFactor(lastRightZoomFactor, rightViewer);
+    	// HO 31/08/2011 END ********
+    }
+	// HO 31/08/2011 END ********
     
     /**
      * If we already have open a map tied to the given file, display it.

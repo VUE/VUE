@@ -1679,7 +1679,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     // HO 21/04/2011 BEGIN **********
     /** actually load the new focal but without resizing */
     public void loadFocal(LWComponent focal, boolean bFitFocal) {
-        loadFocal(focal, bFitFocal, false);
+    	loadFocal(focal, bFitFocal, false);
     }
     // HO 21/04/2011 END **********
 
