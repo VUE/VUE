@@ -107,7 +107,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                , java.awt.event.MouseMotionListener
                , java.awt.event.MouseWheelListener 
                // HO 12/07/2011 BEGIN ***********
-               // , FocusManager.GlobalMouseListener
+               , FocusManager.GlobalMouseListener
                , EventHandler.Listener<GlobalMouseEvent> 
                // HO 12/07/2011 END *************
 {
@@ -405,7 +405,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         VUE.addActiveListener(MapViewer.class, this);
         VUE.addActiveListener(LWPathway.Entry.class, this);
         // HO 12/07/2011 BEGIN ************
-        // EventHandler.addListener(FocusManager.GlobalMouseEvent.class, this);
+        EventHandler.addListener(FocusManager.GlobalMouseEvent.class, this);
         EventHandler.addListener(AWTEvent.class, this);
         // HO 12/07/2011 END ************
         addKeyListener(inputHandler);
@@ -444,7 +444,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         ActiveInstance.removeListener(MapViewer.class, this);
         ActiveInstance.removeListener(LWPathway.Entry.class, this);
         // HO 12/07/2011 BEGIN *********
-        //EventHandler.removeListener(FocusManager.GlobalMouseEvent.class, this);
+        EventHandler.removeListener(FocusManager.GlobalMouseEvent.class, this);
         EventHandler.removeListener(AWTEvent.class, this);
         // HO 12/07/2011 END *********
         removeKeyListener(inputHandler);
@@ -719,11 +719,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // temporal frequency that view's can be recorded.
 
     	// HO 12/07/2011 BEGIN *********
-    	/* if (DEBUG.PRESENT || DEBUG.SCROLL)
+    	if (DEBUG.PRESENT || DEBUG.SCROLL)
             out("anim=" + isAnimating
                 + ", restoring=" + mViewRestoring
                 + ", dragging=" + sDragUnderway
-                + ", globalMousing=" + FocusManager.isMouseDown()); */
+                + ", globalMousing=" + FocusManager.isMouseDown()); 
     	// HO 12/07/2011 END *********
         
         return isAnimating
@@ -731,7 +731,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             || sDragUnderway
             || mKeyIsPressing
          // HO 12/07/2011 BEGIN *********
-            // || FocusManager.isMouseDown()
+            || FocusManager.isMouseDown()
             //|| AWTEvent.isMouseDown()
             // HO 12/07/2011 END *********
             || (inScrollPane && mViewport.isAdjusting())
@@ -2109,6 +2109,19 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     	// see if there actually is a target component
         LWComponent aComp = targetComponentToFocusOn();
         // if there is, focus on it
+        if (aComp != null) {
+        	// HO 31/08/2011 BEGIN ***********
+        	panToComponent(aComp);
+        	// HO 31/08/2011 END ***********
+        }
+    }
+    
+    /**
+     * A method to pan to a given component.
+     * @param aComp, the LWComponent to pan to.
+     * @author Helen Oliver
+     */
+    public void panToComponent(LWComponent aComp) {
         if (aComp != null) {
         	// HO 31/08/2011 BEGIN ***********
         	int x = (int) aComp.getX();
@@ -6951,9 +6964,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         
         //if (DEBUG.Enabled) out(e);
         	
-        	/* if (e.event.getID() == MouseEvent.MOUSE_RELEASED) {
+        	if (e.event.getID() == MouseEvent.MOUSE_RELEASED) {
         		trackViewChanges("globalMouseRelease");
-        	} */
+        	} 
         	// HO 12/07/2011 END **********
     } 
         

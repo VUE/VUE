@@ -1568,6 +1568,15 @@ public class Actions implements VueConstants
         	        		//theWormhole.getTargetWormholeNode().setResource(theWormhole.getTargetResource());
         	        		VUE.setActive(LWComponent.class, this, theWormhole.getSourceComponent());
         	        		// HO 30/07/2010 END
+        	        		// HO 01/09/2011 BEGIN ********
+        	            	// make sure focus goes back onto source node
+        	        		LWMap theMap = (LWMap) theWormhole.getSourceMap();
+        	            	MapViewer viewer = VUE.getCurrentTabbedPane().getViewerWithMap(theMap);
+        	        		if (viewer != null) {
+        	        			viewer.panToComponent(theWormhole.getSourceComponent());
+        	        			viewer.repaint();
+        	        		}	
+        	        		// HO 01/09/2011 END **********
         	        	}
                         // not tested
                     	else if (theWormhole.getSourceComponent() instanceof LWSlide)

@@ -25,6 +25,8 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -237,6 +239,7 @@ public class LWWormhole implements VueConstants {
     	
     	// add the listeners
     	addAllListeners();
+		
     	// if we got this far we're okay and not cancelled
     	setBCancelled(false);
     	
@@ -419,9 +422,11 @@ public class LWWormhole implements VueConstants {
     	// HO 27/07/2011 BEGIN test ***********
     	MapViewer viewer = VUE.getCurrentTabbedPane().getViewerWithMap(sourceMap);
         // HO 27/07/2011 END ***********
-    	Component comp = setScreen(sourceMap);
+    	// HO 02/09/2011 BEGIN ************
+    	//Component comp = setScreen(sourceMap);
     	// HO 27/07/2011 BEGIN test ***********
-    	viewer = VUE.getCurrentTabbedPane().getViewerWithMap(sourceMap);
+    	//viewer = VUE.getCurrentTabbedPane().getViewerWithMap(sourceMap);
+    	// HO 02/09/2011 END ************
         // HO 27/07/2011 END ***********
     	//LWMap srcMap = askSaveSourceMap(sourceMap);
     	// HO 02/07/2011 begin ************
@@ -459,7 +464,10 @@ public class LWWormhole implements VueConstants {
     		// HO 15/02/2011 BEGIN ****************
     		//theMap = askSelectNewTargetMap(sourceMap);
     		// HO 11/05/2011 BEGIN ****************
-    		targMap = askSelectNewTargetMap(new LWMap(""), comp);
+    		// HO 02/09/2011 BEGIN *************
+    		// targMap = askSelectNewTargetMap(new LWMap(""), comp);
+    		targMap = askSelectNewTargetMap(new LWMap(""));
+    		// HO 02/09/2011 END *************
     		// reset the focus back to the source map 
     		MapViewer leftViewer = null;
     		MapTabbedPane leftPane = null;
@@ -868,6 +876,7 @@ public class LWWormhole implements VueConstants {
 		public static LWMap fileExistInPath(String root_dir, String top_level_dir, String file_to_search, String compString) {
 			String strRootDir = root_dir;
 			// HO 09/08/2011 END **********
+			int depth_limit = 6;
 			LWMap theMap = null;
 			// get the files in the current directory
 			File f = new File(top_level_dir);	
@@ -897,10 +906,10 @@ public class LWWormhole implements VueConstants {
 						}
 					} else if(file_test.isDirectory()){	
 						// HO 09/08/2011 BEGIN *********
-						// do not go more than 6 levels below the directory structure
-						/* int count;
+						// limit number of levels we go below the directory structure
+						int count;
 						File countFile = file_test;
-						for (count = 0; count <=6; count++) {
+						for (count = 0; count <=depth_limit; count++) {
 							String stepUp = countFile.getParent();
 							if (stepUp.equals(strRootDir)) {
 								break;
@@ -908,14 +917,14 @@ public class LWWormhole implements VueConstants {
 								countFile = new File(stepUp);
 							}
 						}
-						if (count < 7) { */
+						if (count < (depth_limit+1)) { 
 							// HO 09/08/2011 END ***********
 							theMap = fileExistInPath(strRootDir, file_test.getAbsolutePath(), file_to_search, compString);
 							if (theMap != null)
 								break;
-						/* } else {
+						} else {
 							continue;
-						} */
+						} 
 					}
 				}
 			} else {	
@@ -1335,7 +1344,10 @@ public class LWWormhole implements VueConstants {
      */
  // HO 11/05/2011 BEGIN ************
    //private LWMap askSelectNewTargetMap(LWMap map, boolean b) {
-    private LWMap askSelectNewTargetMap(LWMap map, Component focusComp) {
+	// HO 02/09/2011 BEGIN **********
+    // private LWMap askSelectNewTargetMap(LWMap map, Component focusComp) {
+	private LWMap askSelectNewTargetMap(LWMap map) {
+    	// HO 02/09/2011 END **********
 	// HO 11/05/2011 END ************
     	// HO 22/08/2011 BEGIN ***************
     	//final Object[] defaultOrderButtons = { "Choose Target Map", "Cancel"};
@@ -1496,7 +1508,7 @@ public class LWWormhole implements VueConstants {
             try {
             	// p = c.getLocationOnScreen();            	
             	// p = new Point((int)comp.getX(), (int)comp.getY());
-            	//p = c.getLocation(null);
+            	p = c.getLocation(null);
             } catch (Exception e) {
             	c = null;
             }
@@ -1546,7 +1558,8 @@ public class LWWormhole implements VueConstants {
         	Point p = null;
             try {
             	//p = c.getLocationOnScreen();
-            	p = c.getLocation(null);
+            	p = c.getLocation();
+            	//p = c.getLocation(null);
             } catch (Exception e) {
             	c = null;
             }

@@ -17,6 +17,7 @@ package tufts.vue.action;
 
 import tufts.Util;
 import tufts.vue.MapTabbedPane;
+import tufts.vue.MapViewer;
 import tufts.vue.VueUtil;
 import tufts.vue.VUE;
 import tufts.vue.UrlAuthentication;
@@ -47,6 +48,7 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -61,6 +63,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Locale;
 import java.awt.Component;
+import java.awt.geom.Rectangle2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.*;
@@ -115,12 +118,11 @@ public class ActionUtil
     
     /**A static method which displays a file chooser for the user to choose which file to save into.
        It returns the selected file or null if the process didn't complete*/
-    protected static VueFileChooser saveChooser = null;        
+    protected static VueFileChooser saveChooser = null;     
     public static File selectFile(String title, final String fileType)
     {
         File picked = null;
        
-    	
         	saveChooser =  VueFileChooser.getVueFileChooser();
     		
     	

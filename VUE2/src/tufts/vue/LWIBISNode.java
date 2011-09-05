@@ -1253,7 +1253,10 @@ public class LWIBISNode extends LWNode
     }
 
     static boolean isScaledChildType(LWComponent c) {
-        return c instanceof LWIBISNode || c instanceof LWSlide; // slide testing
+    	// HO 05/09/2011 BEGIN ****************
+        // return c instanceof LWIBISNode || c instanceof LWSlide; // slide testing
+    	return c instanceof LWNode || c instanceof LWSlide; // slide testing
+        // HO 05/09/2011 END ****************
     }
 
     private void setSizeNoLayout(float w, float h)
@@ -2744,8 +2747,18 @@ public class LWIBISNode extends LWNode
                 continue;
             if (first)
                 first = false;
-            else
+            else {
+            	// HO 05/09/2011 BEGIN *********
+            	// make sure that a child doesn't overlap the text
+            	// if the lowest point where a child would be placed
+            	// is higher than the bottom of the text, drop it down.
+            	// (If the child in question is the IBIS image,
+            	// we wouldn't have ended up here)
+            	float hh = Math.max(getTotalTextHeight(), y);
+            	y = hh;
+            	// HO 05/09/2011 END ***********
                 y += ChildVerticalGap * getScale();
+            }
             c.setLocation(baseX, y);
             y += c.getLocalHeight();
 
