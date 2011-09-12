@@ -583,9 +583,9 @@ public abstract class LWIcon extends Rectangle2D.Float
         	} */
         	if (mLWC instanceof LWIBISNode) {
         		bIBIS = true;
-        	} else if ((mLWC instanceof LWWormholeNode) && (mLWC.parent instanceof LWIBISNode)) {
-        		bIBIS = true;
-        	} else {
+        	} //else if ((mLWC instanceof LWWormholeNode) && (mLWC.parent instanceof LWIBISNode)) {
+        		//bIBIS = true; }
+        	else {
         		System.out.println("huh?");
         	}
         	// HO 12/09/2011 END *********
