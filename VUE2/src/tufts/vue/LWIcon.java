@@ -572,13 +572,23 @@ public abstract class LWIcon extends Rectangle2D.Float
         
         boolean isIBISImage() {
         	boolean bIBIS = false;
-        	if (!(mLWC instanceof LWIBISNode))
+        	// HO 12/09/2011 BEGIN *********
+        	/* if (!(mLWC instanceof LWIBISNode))
         		return bIBIS; 
+        	
         	
         	LWIBISNode nod = (LWIBISNode)mLWC;
         	if (nod.getImage() != null) {
         		bIBIS = true;
+        	} */
+        	if (mLWC instanceof LWIBISNode) {
+        		bIBIS = true;
+        	} else if ((mLWC instanceof LWWormholeNode) && (mLWC.parent instanceof LWIBISNode)) {
+        		bIBIS = true;
+        	} else {
+        		System.out.println("huh?");
         	}
+        	// HO 12/09/2011 END *********
         	return bIBIS;
         }
 
@@ -1600,13 +1610,23 @@ public abstract class LWIcon extends Rectangle2D.Float
         // HO 17/05/2011 BEGIN *******
         boolean isIBISImage() {
         	boolean bIBIS = false;
-        	if (!(mLWC instanceof LWIBISNode))
+        	// HO 12/09/2011 BEGIN *********
+        	/* if (!(mLWC instanceof LWIBISNode))
         		return bIBIS; 
+        	
         	
         	LWIBISNode nod = (LWIBISNode)mLWC;
         	if (nod.getImage() != null) {
         		bIBIS = true;
+        	} */
+        	if (mLWC instanceof LWIBISNode) {
+        		bIBIS = true;
+        	} else if ((mLWC instanceof LWWormholeNode) && (mLWC.parent instanceof LWIBISNode)) {
+        		bIBIS = true;
+        	} else {
+        		System.out.println("huh?");
         	}
+        	// HO 12/09/2011 END *********
         	return bIBIS;
         }
         // HO 17/05/2011 END *********

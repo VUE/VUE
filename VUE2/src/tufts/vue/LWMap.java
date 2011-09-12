@@ -24,6 +24,8 @@ import tufts.vue.ds.Schema;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 import java.util.*;
 import java.awt.Dimension;
 import java.awt.geom.Point2D;
@@ -34,6 +36,9 @@ import java.awt.Graphics2D;
 import java.awt.print.Printable;
 import java.awt.print.PageFormat;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.io.RandomAccessFile;
 
 /**
  * This is the top-level VUE model class.

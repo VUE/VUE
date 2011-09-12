@@ -68,6 +68,8 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.*;
 import java.net.*;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 
 /**
  * A class which defines utility methods for any of the action class.
@@ -964,8 +966,11 @@ public class ActionUtil
                 
             if (file != null) {
             
-                if (charsetEncoding != null)
-                    reader = new InputStreamReader(new FileInputStream(file), charsetEncoding);
+                if (charsetEncoding != null) {
+                    
+                  reader = new InputStreamReader(new FileInputStream(file), charsetEncoding);
+                    
+                }
                 else
                     reader = new FileReader(file); // could default to UTF-8
                 
