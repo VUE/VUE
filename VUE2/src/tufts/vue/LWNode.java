@@ -15,7 +15,9 @@
 
 package tufts.vue;
 
-import sun.tools.tree.SuperExpression;
+//HO 20/09/2011 BEGIN *****************
+// import sun.tools.tree.SuperExpression;
+//HO 20/09/2011 END *****************
 import tufts.Util;
 import static tufts.Util.fmt;
 import tufts.vue.action.SaveAction;

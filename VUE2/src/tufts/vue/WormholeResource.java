@@ -28,6 +28,7 @@ import tufts.vue.gui.GUI;
 import java.net.*;
 import java.awt.Image;
 import java.awt.Point;
+import java.awt.event.MouseEvent;
 import java.io.*;
 import java.util.regex.*;
 
@@ -1046,8 +1047,14 @@ public class WormholeResource extends URLResource {
 			// set the wormhole selection to the target component
 			theViewer.selectionAddWormhole(theComponent);
 			// HO 17/08/2011 BEGIN *********
-			if (bSameMap)
+			if (bSameMap) {
 				theViewer.selectionSet(theComponent);
+				
+				// HO 13/09/2011 BEGIN *********
+				theViewer.repaintSelection();
+				//theViewer.repaint();
+				// HO 13/09/2011 END *********
+			} 
 			// HO 1708/2011 END ************
 		}
     }  
@@ -1145,7 +1152,9 @@ public class WormholeResource extends URLResource {
             markAccessAttempt();
             // HO 11/08/2011 BEGIN *********
             boolean bSameMap = pointsToSameMap();
+            // HO 13/09/2011 BEGIN *********
             if (!bSameMap)
+            	// HO 13/09/2011 END *********
             // HO 11/08/2011 END ***********
             	VueUtil.openURL(systemSpec);
             // HO 10/08/2011 BEGIN **********
