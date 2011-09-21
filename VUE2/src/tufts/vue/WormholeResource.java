@@ -1128,6 +1128,20 @@ public class WormholeResource extends URLResource {
 			strOriginatingFile = strOriginatingFile.replaceAll(strForwardSlash, strBackSlashPrefix);
 		}
 		
+		// HO 21/09/2011 BEGIN ************
+		// if one string starts with a back or forward slash and the other doesn't, strip off 
+		// the one that does
+		if ((strSpec.startsWith(strBackSlash)) && (!strOriginatingFile.startsWith(strBackSlash))) {
+			strSpec = strSpec.substring(strBackSlash.length(), strSpec.length());
+		} else if ((strOriginatingFile.startsWith(strBackSlash)) && (!strSpec.startsWith(strBackSlash))) {
+			strOriginatingFile = strOriginatingFile.substring(strBackSlash.length(), strOriginatingFile.length());
+		} else if ((strSpec.startsWith(strForwardSlash)) && (!strOriginatingFile.startsWith(strForwardSlash))) {
+			strSpec = strSpec.substring(strForwardSlash.length(), strSpec.length());
+		} else if ((strOriginatingFile.startsWith(strForwardSlash)) && (!strSpec.startsWith(strForwardSlash))) {
+			strOriginatingFile = strOriginatingFile.substring(strForwardSlash.length(), strOriginatingFile.length());
+		}				
+		// HO 21/09/2011 END ************
+		
 		if (strSpec.equals(strOriginatingFile))
 			bSameMap = true;
 					
