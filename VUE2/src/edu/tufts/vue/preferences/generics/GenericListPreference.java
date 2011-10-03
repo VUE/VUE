@@ -124,9 +124,9 @@ public abstract class GenericListPreference extends BasePref implements ListSele
 
  	/** interface VuePreference */
 	public String getValue() {
-		Preferences	p = Preferences.userNodeForPackage(getPrefRoot());
-
-		return p.get(getPrefName(), getDefaultValue());
+		return Preferences.userNodeForPackage(getPrefRoot()).get(getPrefName(),
+			Preferences.systemNodeForPackage(getPrefRoot()).get(getPrefName(),
+			getDefaultValue()));
 	}
 
 	/** interface VuePreference */

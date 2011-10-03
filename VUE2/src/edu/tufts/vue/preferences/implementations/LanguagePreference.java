@@ -184,9 +184,9 @@ public class LanguagePreference extends edu.tufts.vue.preferences.generics.Gener
 	}
 
 	public String getCode() {
-		Preferences	p = Preferences.userNodeForPackage(getPrefRoot());
-
-		return p.get(getPrefName() + ".code", Locale.getDefault().toString());	// will be lang_COUNTRY e.g. en_US
+		return Preferences.userNodeForPackage(getPrefRoot()).get(getPrefName() + ".code",
+			Preferences.systemNodeForPackage(getPrefRoot()).get(getPrefName() + ".code",
+			Locale.getDefault().toString()));
 	}
 
 	public void setCode(String string) {
