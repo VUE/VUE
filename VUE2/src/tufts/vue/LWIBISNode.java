@@ -128,6 +128,11 @@ public class LWIBISNode extends LWNode
     private Class<? extends LWImage> nodeImageClass = null;
     private String mIBISType = null;
     
+	// HO 26/10/2011 BEGIN *********
+	// for the record, the default image size
+	Size defaultIBISSize = new Size(32, 32);
+	// HO 26/10/2011 END ***********
+    
     // HO 16/12/2010 BEGIN *************
     // HO 18/05/2011 BEGIN *************
     public LWImage getIbisImage() {
@@ -659,6 +664,12 @@ public class LWIBISNode extends LWNode
         // make sure new image is same size as previous image
         Size prevSize = getCurrentIBISImageSize();
         // HO 05/04/2011 END ****************
+    	// HO 26/10/2011 BEGIN *********
+    	// if the size is null for any reason,
+    	// we want to set it to the default size
+    	if (prevSize == null)
+    		prevSize = defaultIBISSize;
+    	// HO 26/10/2011 END ***********
 
         try {
             setImageInstance(imageClass.newInstance());
@@ -680,7 +691,10 @@ public class LWIBISNode extends LWNode
         if (ibisImage != null) {
         	for (LWComponent c : getChildren()) {
         		if (c.hasResource()) {
-	                if (c.getResource().getSpec().equals(ibisImage.getResource().getSpec())) {
+        			// HO 26/10/2011 BEGIN *********************
+	                // if (c.getResource().getSpec().equals(ibisImage.getResource().getSpec())) {
+        			if (c.getResource().getTitle().equals(ibisImage.getResource().getTitle())) {
+	                	// HO 26/10/2011 END *********************
 	                    curSize = new Size(c.getWidth(), c.getHeight());
 	                    break;
 	                }
@@ -692,6 +706,7 @@ public class LWIBISNode extends LWNode
     }
     
     private void setImageToSize(Size theSize) {
+    	
     	// input validation
     	if (theSize == null)
     		return;
@@ -1031,7 +1046,10 @@ public class LWIBISNode extends LWNode
                 LWImage ll1 = (LWImage) lw1;
                 LWImage ll2 = (LWImage) lw2;
                 return 
-                	ll1.getResource().getActiveDataFile().equals(ll2.getResource().getActiveDataFile());
+                	// HO 26/10/2011 BEGIN *********
+                	//ll1.getResource().getActiveDataFile().equals(ll2.getResource().getActiveDataFile());
+                	ll1.getResource().getTitle().equals(ll2.getResource().getTitle());
+             // HO 26/10/2011 END *********
 
             } else
                 return true;
