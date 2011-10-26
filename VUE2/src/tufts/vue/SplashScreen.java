@@ -86,9 +86,9 @@ public class SplashScreen extends Frame
               g.drawString(VueResources.getString("splashscreen.developedby"),202,165);
               // g.drawString((char)169+" "+VueResources.getString("vue.build.date")+" Tufts University", 240,205);
               g.drawString((char)169+" "+VueResources.getString("vue.build.date")+" Tufts University", 240,185);
-              g.drawString(VueResources.getString("vue4design.version"),90,225);
+              g.drawString(VueResources.getString("designVUE.version"),90,225);
               g.drawString(VueResources.getString("splashscreen.developedby.additions"),105,205);
-              g.drawString((char)169+" "+VueResources.getString("vue4design.build.date")+" Imperial College London", 190,225);              
+              g.drawString((char)169+" "+VueResources.getString("designVUE.build.date")+" Imperial College London", 190,225);              
               // HO 08/07/2011 END ************
               
               

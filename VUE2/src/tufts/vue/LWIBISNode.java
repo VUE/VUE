@@ -3273,8 +3273,12 @@ public class LWIBISNode extends LWNode
     // HO 16/12/2010 BEGIN ***********
     public void determineNodeImageAndType () {
     	// HO 11/04/2011 BEGIN ************
-    	File thisImage = this.getResource().getActiveDataFile();
-    	String strImageName = thisImage.getName();
+    	// HO 26/10/2011 BEGIN *************
+    	// File thisImage = this.getResource().getActiveDataFile();
+    	//String strImageName = thisImage.getName();
+    	String strImageName = this.getResource().getTitle();
+    	// HO 26/10/2011 END *************
+    	
     	//if (thisImage.equals(new IBISIssueImage().getImageFile())) {
     	if (strImageName.equals(new IBISIssueImage().getImageFile().getName())) {
     		setIBISType(VueResources.getString("IBISNodeTool.issue.type"));

@@ -82,12 +82,12 @@ public class AboutAction extends tufts.vue.VueAction
   //                              + "&nbsp;&nbsp;&nbsp;Copyright &copy; 2004,2005 MIT University<br>"
                                 + "&nbsp;&nbsp;&nbsp;All Rights Reserved<br><br>"
                                 // HO 08/07/2011 BEGIN ***********
-                                + "&nbsp;&nbsp;&nbsp;Vue4Design edition by the Design Engineering Group<br>"
+                                + "&nbsp;&nbsp;&nbsp;designVUE edition by the Design Engineering Group<br>"
                                 + "&nbsp;&nbsp;&nbsp;Copyright &copy; 2010-2011 Imperial College London<br>"
   //                              + "&nbsp;&nbsp;&nbsp;Copyright &copy; 2004,2005 MIT University<br>"
                                 + "&nbsp;&nbsp;&nbsp;All Rights Reserved<br><br>"
                                 //+ "&nbsp;&nbsp;&nbsp;Version "+VueResources.getString("vue.version")+" <br>"
-                                + "&nbsp;&nbsp;&nbsp;"+VueResources.getString("vue4design.version")+" <br>"
+                                + "&nbsp;&nbsp;&nbsp;"+VueResources.getString("designVUE.version")+" <br>"
                                 // HO 08/07/2011 END *************
                                 + "&nbsp;&nbsp;&nbsp;Built " + Version.Date + " at " + Version.Time
                                 + debugInfo
