@@ -1122,6 +1122,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.userGuide.label"), VueResources.getString("helpMenu.userGuide.url")));        
         helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.feedback.label"), VueResources.getString("helpMenu.feedback.url")));
         helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.vueWebsite.label"), VueResources.getString("helpMenu.vueWebsite.url")));
+        
       
       /*
        * This feature was removed from the VUE website because of a security issue in the web-feature, it doesn't make 
@@ -1129,7 +1130,13 @@ public class VueMenuBar extends javax.swing.JMenuBar
        *  helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.mymaps.label"), VueResources.getString("helpMenu.mymaps.url"))); 
        */                
         
+        // 31/10/2011 BEGIN ****************
         helpMenu.addSeparator();
+        helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.designVUEUserGuide.label"), VueResources.getString("helpMenu.designVUEUserGuide.url")));
+        helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.designVUEfeedback.label"), VueResources.getString("helpMenu.designVUEfeedback.url")));
+        // 31/10/2011 END ******************
+        helpMenu.addSeparator();
+        
 /*        helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.releaseNotes.label"), VueResources.getURL("helpMenu.releaseNotes.file"),
                 new String("ReleaseNotes_" + VueResources.getString("vue.version") + ".htm").replace(' ', '_')
                 ));

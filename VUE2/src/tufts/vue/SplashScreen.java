@@ -78,30 +78,18 @@ public class SplashScreen extends Frame
               Calendar calendar = new GregorianCalendar();
               super.paintIcon(c,g,x,y);
               g.setColor(charcoal);
-           // HO 28/10/2011 BEGIN ***********
+              // HO 28/10/2011 BEGIN ***********
               g.setFont(new Font("Verdana", Font.PLAIN, 20));
-              g.drawString("design", 142, 90);
-              // HO 28/10/2011 END ***********
+              g.drawString("design", 142, 90);    
               g.setFont(new Font("Verdana", Font.PLAIN, 11));
-              // HO 08/07/2011 BEGIN ***********
-              // g.drawString(VueResources.getString("designVUE.version"),90,225);
               g.drawString(VueResources.getString("designVUE.version"),132,145);
-              // g.drawString(VueResources.getString("splashscreen.developedby.additions"),105,205);
               g.drawString(VueResources.getString("splashscreen.developedby.additions"),132,156);
-              g.drawString("Imperial College London",132,167);
-              //g.drawString((char)169+" "+VueResources.getString("designVUE.build.date")+" Imperial College London", 190,225);   
+              g.drawString("Imperial College London",132,167);   
               g.drawString("Copyright " + (char)169+" 2010-2011 Imperial College London", 132,178);  
-              //g.drawString(VueResources.getString("splashscreen.title"),172,165);
-              // g.drawString(VueResources.getString("splashscreen.title"),172,145);
-              // g.drawString(VueResources.getString("splashscreen.title"),90,225);
               g.drawString(VueResources.getString("splashscreen.title"),132,200);
-              //g.drawString(VueResources.getString("splashscreen.developedby"),202,185);
-              g.drawString(VueResources.getString("splashscreen.developedby"),132,211);
-              // g.drawString((char)169+" "+VueResources.getString("vue.build.date")+" Tufts University", 240,205);
-              //g.drawString((char)169+" "+VueResources.getString("vue.build.date")+" Tufts University", 240,185);
-              //g.drawString((char)169+" "+VueResources.getString("vue.build.date")+" Tufts University", 190,225);         
+              g.drawString(VueResources.getString("splashscreen.developedby"),132,211);        
               g.drawString((char)169+" "+VueResources.getString("vue.build.date")+" Tufts University", 132,222); 
-              // HO 08/07/2011 END ************
+              // HO 28/10/2011 END ***********
               
               
           } 

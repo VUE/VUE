@@ -19,13 +19,21 @@ import tufts.vue.VueUtil;
 import tufts.vue.VueResources;
 import tufts.vue.Version;
 
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Font;
+import java.awt.Graphics;
 import java.awt.Window;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.MouseEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+
 import javax.swing.AbstractAction;
+import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 import javax.swing.JLabel;
 import javax.swing.JDialog;
@@ -67,8 +75,21 @@ public class AboutAction extends tufts.vue.VueAction
         backPanel.setMinimumSize(new Dimension(275,147));
         
         JPanel aboutusPanel = new JPanel();
-        JLabel spLabel = new JLabel(VueResources.getImageIcon("aboutVue"));
-        
+        // HO 31/10/2011 BEGIN *******
+        final Color charcoal = new Color(36,36,36);
+        ImageIcon icon = new ImageIcon(VueResources.getURL("aboutVue")) {
+            public void paintIcon(Component c, Graphics g, int x, int y) {
+                super.paintIcon(c,g,x,y);
+                g.setColor(charcoal);
+                // HO 28/10/2011 BEGIN ***********
+                g.setFont(new Font("Verdana", Font.PLAIN, 20));
+                g.drawString("design", 132, 45); 
+            }
+        };
+        // JLabel spLabel = new JLabel(VueResources.getImageIcon("aboutVue"));
+        JLabel spLabel = new JLabel(icon);
+        // HO 31/10/2011 END ******************
+                
         String debugInfo = "";
         if (tufts.vue.DEBUG.Enabled)
             debugInfo = "<br>&nbsp;&nbsp;&nbsp;"
@@ -77,22 +98,17 @@ public class AboutAction extends tufts.vue.VueAction
                 + Version.Platform;
         
         JLabel jtf = new JLabel("<html><font color = \"#20316A\"> <br><br>"
-                                + "&nbsp;&nbsp;&nbsp;Developed by Tufts Academic Technology<br>"
-                                + "&nbsp;&nbsp;&nbsp;Copyright &copy; 2003-2010 Tufts University<br>"
-  //                              + "&nbsp;&nbsp;&nbsp;Copyright &copy; 2004,2005 MIT University<br>"
-                                + "&nbsp;&nbsp;&nbsp;All Rights Reserved<br><br>"
-                                // HO 08/07/2011 BEGIN ***********
-                                + "&nbsp;&nbsp;&nbsp;designVUE edition by the Design Engineering Group<br>"
-                                + "&nbsp;&nbsp;&nbsp;Copyright &copy; 2010-2011 Imperial College London<br>"
-  //                              + "&nbsp;&nbsp;&nbsp;Copyright &copy; 2004,2005 MIT University<br>"
-                                + "&nbsp;&nbsp;&nbsp;All Rights Reserved<br><br>"
-                                //+ "&nbsp;&nbsp;&nbsp;Version "+VueResources.getString("vue.version")+" <br>"
-                                + "&nbsp;&nbsp;&nbsp;"+VueResources.getString("designVUE.version")+" <br>"
-                                // HO 08/07/2011 END *************
-                                + "&nbsp;&nbsp;&nbsp;Built " + Version.Date + " at " + Version.Time
-                                + debugInfo
-                                + "<br><br>"
-                                + "&nbsp;&nbsp;&nbsp;<u>http://vue.tufts.edu</u><br>"
+        						// HO 31/10/2011 BEGIN ***********
+                				+ "&nbsp;&nbsp;&nbsp;designVUE beta<br>"
+                				+ "&nbsp;&nbsp;&nbsp;Developed by Design Engineering Group<br>"
+                				+ "&nbsp;&nbsp;&nbsp;Imperial College London<br>"
+                				+ "&nbsp;&nbsp;&nbsp;Copyright &copy; 2010-2011 Imperial College London<br>"
+                				+ "&nbsp;&nbsp;&nbsp;All Rights Reserved<br><br>"
+                				+ "&nbsp;&nbsp;&nbsp;VISUAL UNDERSTANDING ENVIRONMENT<br>"
+                				+ "&nbsp;&nbsp;&nbsp;Developed by Tufts Academic Technology<br>"
+                				+ "&nbsp;&nbsp;&nbsp;Copyright &copy; 2003-2010 Tufts University<br>"
+                				+ "&nbsp;&nbsp;&nbsp;All Rights Reserved<br><br>"
+                				// HO 31/10/2011 END ***********
                                 + "</font></html>");
   
         JPanel labelPanel = new JPanel();
