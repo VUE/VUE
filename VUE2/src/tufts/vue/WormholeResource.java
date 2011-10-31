@@ -1051,7 +1051,11 @@ public class WormholeResource extends URLResource {
 				theViewer.selectionSet(theComponent);
 				
 				// HO 13/09/2011 BEGIN *********
+				// HO 26/10/2011 BEGIN ********
+				// not sure if this is causing the focus bounce
+				// that MA pointed out?
 				theViewer.repaintSelection();
+				// HO 26/10/2011 END *********
 				//theViewer.repaint();
 				// HO 13/09/2011 END *********
 			} 

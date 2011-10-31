@@ -2095,7 +2095,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // HO 17/08/2011 BEGIN ********
         // if we got here through a wormhole,
         // focus on the target component
+        // HO 26/10/2011 BEGIN **********
+        // test to see if this is what's causing the display to jump
         focusOnTargetComponent();
+     // HO 26/10/2011 END **********
         // HO 17/08/2011 BEGIN ********
     }
     
@@ -2155,7 +2158,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 	    // and we are trying to reach them through a wormhole,
 	    // therefore we need to focus on the component
 	    if ((aComp != null) && (WormholeSelection != null)) {
+	    	// HO 26/10/2011 BEGIN *******
+	    	// set wormhole selection to null
+	    	// so this doesn't cause focus jumps any more
+	    	WormholeSelection = null;
 	    	return aComp;
+	    	// HO 26/10/2011 END *********
 	    } else {
 	    	return null;
 	    }
@@ -7336,7 +7344,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 	                    //-------------------------------------------------------
 	                    selectionClear();
 	                    // HO 24/08/2011 begin ********
+	                    // HO 26/10/2011 BEGIN ******
+	                    // wondering if the repaint is causing the display to jump
 	                    repaint();
+	                    // HO 26/10/2011 END *********
 	                    // HO 24/08/2011 END *********
 	                    //repaint(); // if selection handles not on, we need manual repaint here
 	                                

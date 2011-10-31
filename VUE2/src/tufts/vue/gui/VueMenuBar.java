@@ -1505,8 +1505,12 @@ public class VueMenuBar extends javax.swing.JMenuBar
                                 + "\nEnd report: " + new java.util.Date() + ".\n";
                         }
                             
+                        // HO 28/10/2011 BEGIN *********
+                        /* final String subject =
+                            "VUE Log Report from " + VUE.getSystemProperty("user.name"); */
                         final String subject =
-                            "VUE Log Report from " + VUE.getSystemProperty("user.name");
+                            "designVUE Log Report from " + VUE.getSystemProperty("user.name");
+                        // HO 28/10/2011 END *********
                         
                         try {
                             VueUtil.openURL(Util.makeQueryURL("mailto:" + ReportAddress,
