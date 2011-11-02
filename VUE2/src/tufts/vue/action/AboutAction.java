@@ -99,7 +99,7 @@ public class AboutAction extends tufts.vue.VueAction
         
         JLabel jtf = new JLabel("<html><font color = \"#20316A\"> <br><br>"
         						// HO 31/10/2011 BEGIN ***********
-                				+ "&nbsp;&nbsp;&nbsp;designVUE beta<br>"
+                				+ "&nbsp;&nbsp;&nbsp;designVUE beta version 1.03.1<br>"
                 				+ "&nbsp;&nbsp;&nbsp;Developed by Design Engineering Group<br>"
                 				+ "&nbsp;&nbsp;&nbsp;Imperial College London<br>"
                 				+ "&nbsp;&nbsp;&nbsp;Copyright &copy; 2010-2011 Imperial College London<br>"
