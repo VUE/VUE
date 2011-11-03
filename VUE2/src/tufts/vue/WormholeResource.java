@@ -24,6 +24,7 @@ import java.util.*;
 import tufts.Util;
 import static tufts.Util.*;
 import tufts.vue.*;
+import tufts.vue.action.OpenAction;
 import tufts.vue.gui.GUI;
 import java.net.*;
 import java.awt.Image;
@@ -1106,10 +1107,15 @@ public class WormholeResource extends URLResource {
 		strOriginatingFile = stripHtmlSpaceCodes(strOriginatingFile);		
 		// HO 12/05/2011 END *********
 		
-		if (strSpec.startsWith(strPossPrefix))
-			strSpec = strSpec.substring(strPossPrefix.length(), strSpec.length());
-		if (strOriginatingFile.startsWith(strPossPrefix))
-			strOriginatingFile = strOriginatingFile.substring(strPossPrefix.length(), strOriginatingFile.length());
+		// HO 03/11/2011 BEGIN **********
+		strSpec = LWMap.stripFilePrefixFromPathString(strSpec);
+		strOriginatingFile = LWMap.stripFilePrefixFromPathString(strOriginatingFile);
+		
+		//if (strSpec.startsWith(strPossPrefix))
+			//strSpec = strSpec.substring(strPossPrefix.length(), strSpec.length());
+		//if (strOriginatingFile.startsWith(strPossPrefix))
+			//strOriginatingFile = strOriginatingFile.substring(strPossPrefix.length(), strOriginatingFile.length());
+		// HO 03/11/2011 END **********
 		
 		// HO 28/03/2011 BEGIN *************
 		if (strSpec.startsWith(strBackSlashPrefix))
@@ -1159,7 +1165,10 @@ public class WormholeResource extends URLResource {
      * component and focus on that
      * @author Helen Oliver
      */
+	// HO 03/11/2011 BEGIN **********
     public void displayContent() {
+	//public void displayContent(LWMap sourceMap) {
+    	// HO 03/11/2011 END **********
         final Object contentRef = getBrowseReference();
 
         out("displayContent: " + Util.tags(contentRef));
@@ -1171,10 +1180,17 @@ public class WormholeResource extends URLResource {
             // HO 11/08/2011 BEGIN *********
             boolean bSameMap = pointsToSameMap();
             // HO 13/09/2011 BEGIN *********
-            if (!bSameMap)
+            // HO 03/11/2011 BEGIN*********
+            if (!bSameMap) {
             	// HO 13/09/2011 END *********
             // HO 11/08/2011 END ***********
-            	VueUtil.openURL(systemSpec);
+            	try {
+            		VueUtil.openURL(systemSpec);
+            	} catch (IOException e) {
+            		System.out.println("Gotcha");
+            	}
+            }
+            // HO 03/11/2011 END *********
             // HO 10/08/2011 BEGIN **********
             // make sure that when the map opens, the target component
             // (if it still exists) is selected

@@ -2462,10 +2462,18 @@ public class Images
     {
         Handle imageData = null;
 
-        if (imageSRC.resource != null)
-            imageSRC.resource.getProperties().holdChanges();
+        // HO 03/11/2011 BEGIN **************
+        // moving this into try/catch block
+        // if (imageSRC.resource != null)
+            // imageSRC.resource.getProperties().holdChanges();
+        // HO 03/11/2011 END **************
 
         try {
+            // HO 03/11/2011 BEGIN **************
+            // moving this into try/catch block
+            if (imageSRC.resource != null)
+                imageSRC.resource.getProperties().holdChanges();
+            // HO 03/11/2011 END **************
             imageData = readImageInAvailableMemory(imageSRC, relay);
         } catch (Throwable t) {
             

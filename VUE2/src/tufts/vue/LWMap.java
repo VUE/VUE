@@ -132,6 +132,20 @@ public class LWMap extends LWContainer
     // HO 03/08/2011 BEGIN ***********
     private String mAbsoluteLabel = "";
     // HO 03/08/2011 END *************
+        
+    // HO 03/11/2011 BEGIN **********
+    private static String strPossPrefix = "file:";
+	private static String strBackSlashPrefix = "\\\\";
+	private static String strBackSlash = "\\";
+	private static String strForwardSlashPrefix = "////";
+	private static String strForwardSlash = "/";
+	private static String strPossPrefixPlusForwardSlash = strPossPrefix + strForwardSlash;
+	// wormholes are sometimes not getting constructed
+	// when they should
+	// flag that an attempt has been made
+	// to construct the wormholes for this map
+	private static boolean bWormholesConstructed = false; 
+	// HO 03/11/2011 END **********
     
     // only to be used during a restore from persisted
     public LWMap() {
@@ -227,13 +241,26 @@ public class LWMap extends LWContainer
     	if (this.bConstructingWormholes)
     		return;
     	// HO 09/02/2011 END *************
-    	if (this.getLabel().equals(this.getPrettyLabel()))
-    		return;
+    	if (this.getLabel().equals(this.getPrettyLabel())) {
+    		// HO 03/11/2011 BEGIN *******
+    		// wormholes are sometimes not getting constructed
+    		// when they should
+    		// check if an attempt has been made
+    		// to construct the wormholes for this map
+    		if (bWormholesConstructed)
+    			// HO 03/11/2011 END *******
+    			return;
+    	}
     	// HO 27/12/2010 END ************
     	
     	// HO 03/08/2011 BEGIN ***********
     	boolean labelChangeRequired = labelChangeRequired();
-    	if (!labelChangeRequired)
+    	// HO 03/11/2011 BEGIN *******
+    	// make sure that at least one attempt has been made
+    	// to construct wormholes
+    	// if (!labelChangeRequired)
+    	if ((!labelChangeRequired) && (bWormholesConstructed))
+    		// HO 03/11/2011 END *******
     		return;
     	// HO 03/08/2011 END ************
   	
@@ -253,6 +280,13 @@ public class LWMap extends LWContainer
 				// assume no changes have been made
         		boolean bChanged = false;
 				// HO 14/04/2011 END ********
+        		// HO 03/11/2011 BEGIN *******
+        		// wormholes are sometimes not getting constructed
+        		// when they should
+        		// flag that an attempt has been made
+        		// to construct the wormholes for this map
+        		bWormholesConstructed = true;        		
+        		// HO 03/11/2011 END *********
 				// iterate through them all
 				for (LWWormholeNode wn : coll) {
 						// if the node has a resource
@@ -297,6 +331,37 @@ public class LWMap extends LWContainer
 	        // HO 21/04/2011 END ************
     }
     
+    // HO 03/11/2011 BEGIN ***********
+    static String stripFilePrefixFromPathString(String strToStrip) {
+		
+		// trim putative gubbins away
+		if (strToStrip.startsWith(strPossPrefixPlusForwardSlash))
+			strToStrip = strToStrip.substring(strPossPrefixPlusForwardSlash.length(), strToStrip.length());
+		
+		if (strToStrip.startsWith(strPossPrefix))
+			strToStrip = strToStrip.substring(strPossPrefix.length(), strToStrip.length());
+    	
+    	return strToStrip;
+    }
+    // HO 03/11/2011 END ***********
+    
+	// HO 12/05/2011 BEGIN *********
+	/**
+	 * @param stripThis, a String representing a filename that has its spaces
+	 * in the HTML format
+	 * @return the same String, html space codes replaced with single spaces
+	 */
+	private String stripHtmlSpaceCodes(String stripThis) {
+		String strStripped = "";
+		String strPeskySpace = "%20";
+		String strCleanSpace = " ";
+
+		strStripped = stripThis.replaceAll(strPeskySpace, strCleanSpace);
+		
+		return strStripped;		
+	}
+	// HO 12/05/2011 END ***********    
+    
     // HO 15/04/2011 BEGIN *********
     private boolean compareToWormholeResourceContents(LWWormholeNode wn, WormholeResource wr, boolean b) {
     	boolean bChanged = b;
@@ -311,32 +376,62 @@ public class LWMap extends LWContainer
 		String origMapURIString = wr.getOriginatingFilename();
 		String strCompareString = origMapURIString;
 		// extra gubbins to trim from original map name
+
+		// HO 03/11/2011 BEGIN **********
+		strCompareString = stripFilePrefixFromPathString(strCompareString);
 		
-		String strPossPrefix = "file:";
-		String strBackSlashPrefix = "\\\\";
-		String strBackSlash = "\\";
-		String strForwardSlashPrefix = "////";
-		String strForwardSlash = "/";
-		
-		// trim putative gubbins away
-		if (strCompareString.startsWith(strPossPrefix))
-			strCompareString = strCompareString.substring(strPossPrefix.length(), strCompareString.length());
+		//if (strCompareString.startsWith(strPossPrefix))
+			//strCompareString = strCompareString.substring(strPossPrefix.length(), strCompareString.length());
+		// HO 03/11/2011 END **********
 
 		// get filename to compare to
 		String strThisFilename = "";
 		if (mFile != null)
 			strThisFilename = mFile.getAbsolutePath();
 		
+		// HO 03/11/2011 BEGIN **********
 		// trim putative gubbins away
-		if (strThisFilename.startsWith(strPossPrefix))
-			strThisFilename = strThisFilename.substring(strPossPrefix.length(), strThisFilename.length());
+		//if (strThisFilename.startsWith(strPossPrefix))
+			//strThisFilename = strThisFilename.substring(strPossPrefix.length(), strThisFilename.length());
+		
+		// strip wrongly-formatted spaces so they don't gum up the comparison
+		strThisFilename = stripHtmlSpaceCodes(strThisFilename);
+		strCompareString = stripHtmlSpaceCodes(strCompareString);		
+		
+		strThisFilename = stripFilePrefixFromPathString(strThisFilename);
+		// HO 03/11/2011 END **********
 		
 		// deal with red-herring Windoze string mismatches
 		if (!strCompareString.equals(strThisFilename)) {
-			if (strCompareString.startsWith(strForwardSlash))
+			// HO 03/11/2011 BEGIN **********
+			if (strCompareString.startsWith(strBackSlashPrefix))
+				strCompareString = strCompareString.substring(strBackSlashPrefix.length(), strCompareString.length());
+			if (strThisFilename.startsWith(strBackSlashPrefix))
+				strThisFilename = strThisFilename.substring(strBackSlashPrefix.length(), strThisFilename.length());
+			
+			if (strCompareString.startsWith(strForwardSlashPrefix))
+				strCompareString = strCompareString.substring(strForwardSlashPrefix.length(), strCompareString.length());
+			if (strThisFilename.startsWith(strForwardSlashPrefix))
+				strThisFilename = strThisFilename.substring(strForwardSlashPrefix.length(), strThisFilename.length());
+			
+			// if (strCompareString.startsWith(strForwardSlash))
+				// strCompareString = strCompareString.substring(strForwardSlash.length(), strCompareString.length());
+			// if (strThisFilename.startsWith(strForwardSlash))
+				// strThisFilename = strThisFilename.substring(strForwardSlash.length(), strThisFilename.length());
+			// HO 21/09/2011 BEGIN ************
+			// if one string starts with a back or forward slash and the other doesn't, strip off 
+			// the one that does
+			if ((strCompareString.startsWith(strBackSlash)) && (!strThisFilename.startsWith(strBackSlash))) {
+				strCompareString = strCompareString.substring(strBackSlash.length(), strCompareString.length());
+			} else if ((strThisFilename.startsWith(strBackSlash)) && (!strCompareString.startsWith(strBackSlash))) {
+				strThisFilename = strThisFilename.substring(strBackSlash.length(), strThisFilename.length());
+			} else if ((strCompareString.startsWith(strForwardSlash)) && (!strThisFilename.startsWith(strForwardSlash))) {
 				strCompareString = strCompareString.substring(strForwardSlash.length(), strCompareString.length());
-			if (strThisFilename.startsWith(strForwardSlash))
+			} else if ((strThisFilename.startsWith(strForwardSlash)) && (!strCompareString.startsWith(strForwardSlash))) {
 				strThisFilename = strThisFilename.substring(strForwardSlash.length(), strThisFilename.length());
+			}				
+			// HO 21/09/2011 END ************
+			// HO 03/11/2011 END **********
 			
 			// Should be strBackSlash but there's a bug in Java if you can believe that...
 			if ((strCompareString.contains(strForwardSlash)) && (strThisFilename.contains(strBackSlash)))

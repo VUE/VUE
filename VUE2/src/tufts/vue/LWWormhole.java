@@ -174,6 +174,15 @@ public class LWWormhole implements VueConstants {
 	 * default is false
 	 */
 	private boolean bSaving = false;
+	    
+    // HO 03/11/2011 BEGIN **********
+    private String strPossPrefix = "file:";
+	private String strBackSlashPrefix = "\\\\";
+	private String strBackSlash = "\\";
+	private String strForwardSlashPrefix = "////";
+	private String strForwardSlash = "/";
+	private String strPossPrefixPlusForwardSlash = strPossPrefix + strForwardSlash;
+	// HO 03/11/2011 END **********
 
 	public LWWormhole() {
 		// TODO Auto-generated constructor stub
@@ -555,14 +564,7 @@ public class LWWormhole implements VueConstants {
 		boolean bSameMap = false;
 		String strSpec = wr.getSystemSpec();
 		String strOriginatingFile = wr.getOriginatingFilename();
-		
-		String strPossPrefix = "file:";
-		// HO 28/03/2011 BEGIN *************
-		String strBackSlashPrefix = "\\\\";
-		String strBackSlash = "\\";
-		String strForwardSlashPrefix = "////";
-		String strForwardSlash = "/";
-		// HO 28/03/2011 END *************
+
 		// if the spec was not set, replace it with the last known filename
 		if (strSpec.equals(wr.SPEC_UNSET))
 			strSpec = wr.getTargetFilename();
@@ -573,10 +575,13 @@ public class LWWormhole implements VueConstants {
 		strOriginatingFile = stripHtmlSpaceCodes(strOriginatingFile);		
 		// HO 12/05/2011 END *********
 		
-		if (strSpec.startsWith(strPossPrefix))
-			strSpec = strSpec.substring(strPossPrefix.length(), strSpec.length());
-		if (strOriginatingFile.startsWith(strPossPrefix))
-			strOriginatingFile = strOriginatingFile.substring(strPossPrefix.length(), strOriginatingFile.length());
+		// HO 03/11/2011 BEGIN *****************
+		strSpec = sourceMap.stripFilePrefixFromPathString(strSpec);
+		strOriginatingFile = sourceMap.stripFilePrefixFromPathString(strOriginatingFile);
+		//if (strSpec.startsWith(strPossPrefix))
+			//strSpec = strSpec.substring(strPossPrefix.length(), strSpec.length());
+		//if (strOriginatingFile.startsWith(strPossPrefix))
+			//strOriginatingFile = strOriginatingFile.substring(strPossPrefix.length(), strOriginatingFile.length());
 		
 		// HO 28/03/2011 BEGIN *************
 		if (strSpec.startsWith(strBackSlashPrefix))
@@ -589,6 +594,7 @@ public class LWWormhole implements VueConstants {
 		if (strOriginatingFile.startsWith(strForwardSlashPrefix))
 			strOriginatingFile = strOriginatingFile.substring(strForwardSlashPrefix.length(), strOriginatingFile.length());
 		// HO 28/03/2011 END *************
+		// HO 03/11/2011 END *****************
 		
 		if (strSpec.equals(strOriginatingFile))
 			bSameMap = true;
