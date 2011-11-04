@@ -680,14 +680,35 @@ public class LWWormhole implements VueConstants {
 		// if we didn't get a target component out of this, 
 		// we can't build a wormhole, so flag failure
 		// and return
-		if (targetComp == null)
-			return false;
+		// HO 04/11/2011 BEGIN *******
+		// if it's just the component that's missing
+		// then we want to use that in an alert
+		// rather than just abandoning the thing
+		// only to get a confusing message later
+		// now instantiate the source component which we are about to extrapolate
+		LWComponent sourceComp = null;
+		
+		if (targetComp == null) {
+			sourceComp = actualSourceMap.findChildByURIString(wr.getOriginatingComponentURIString());
+			// if we found the component, set it to be the source component
+			if (sourceComp != null) {
+				setSourceComponent(sourceComp);
+				setSourceWormholeNode(wn);
+				// in this case we have a source component
+				// but no target, so we can work with this
+				return true;
+			} else {
+				// we have neither a source nor a target,
+				// so we can't do a thing with it
+				return false;
+			}
+		}
+		// HO 04/11/2011 END *******
 		
 		// if we got this far, we have a target component
 		setTargetComponent(targetComp);
 		
-		// now instantiate the source component which we are about to extrapolate
-		LWComponent sourceComp = null;
+
 		
 		// now look at the target component and see if we can extrapolate
 		// whether it's the right one (just in case the component has more
@@ -2008,7 +2029,28 @@ public class LWWormhole implements VueConstants {
 		try {
 		setSourceResourceMapURI(targetMapFile.toURI());
 		setTargetResourceMapURI(sourceMapFile.toURI());
-		setSourceResourceComponentURI(targetComponent.getURI());
+		// HO 04/11/2011 BEGIN **********
+		// we don't want to abandon the wormhole
+		// if all that's missing is the target 
+		// component, we want to instead give
+		// an informative error message.
+		if (targetComponent != null) {
+		// HO 04/11/2011 END **********
+			setSourceResourceComponentURI(targetComponent.getURI());
+			// HO 04/11/2011 BEGIN **********
+		} else {
+			String strMissingTargetNode = "NOTFOUND";
+			URI missingURI = null;
+			try {
+				missingURI = new URI(strMissingTargetNode);
+			} catch (URISyntaxException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			setSourceResourceComponentURI(missingURI);
+		}
+		// HO 04/11/2011 END **********
+			
 		setTargetResourceComponentURI(sourceComponent.getURI());
 		} catch (NullPointerException e) {
 			throw new NullPointerException(e.getMessage());
@@ -2030,9 +2072,20 @@ public class LWWormhole implements VueConstants {
 			//setTargetResource(targetWormholeNode.getResourceFactory().get(targetResourceMapURI, targetResourceComponentURI));
 		// HO we could use the following two lines of code
 		// if we ever want to implement a kind of wormhole resource
-		// that knows about both source and target.	
-		setTargetResource(targetWormholeNode.getResourceFactory().get(targetResourceMapURI, targetResourceComponentURI,
+		// that knows about both source and target.
+		// HO 04/11/2011 BEGIN **********
+		if (targetWormholeNode != null) {
+		// HO 04/11/2011 END **********
+			setTargetResource(targetWormholeNode.getResourceFactory().get(targetResourceMapURI, targetResourceComponentURI,
 					sourceResourceMapURI, sourceResourceComponentURI));
+			// HO 04/11/2011 BEGIN **********
+		} else {
+			// have to use the source wormhole node's resource factory
+			// if the real one is not available
+			setTargetResource(sourceWormholeNode.getResourceFactory().get(targetResourceMapURI, targetResourceComponentURI,
+					sourceResourceMapURI, sourceResourceComponentURI));			
+		}
+		// HO 04/11/2011 END **********
 	}
 	
 	/**
@@ -2124,7 +2177,19 @@ public class LWWormhole implements VueConstants {
 		// first reset the maps
 		try {
 			setSourceMap(sourceComponent.getParentOfType(LWMap.class));
-			setTargetMap(targetComponent.getParentOfType(LWMap.class));
+			// HO 04/11/2011 BEGIN *********
+			if (targetComponent != null)
+			// HO 04/11/2011 END **********
+				setTargetMap(targetComponent.getParentOfType(LWMap.class));
+			// HO 04/11/2011 BEGIN *********
+			else
+				// this seems redundant, but
+				// the targetMap should actually have
+				// been set by now so this will
+				// throw the appropriate exception if it hasn't.
+				setTargetMap(targetMap);
+			// HO 04/11/2011 END *********
+			
 		} catch (NullPointerException e) {
 			throw new NullPointerException(e.getMessage());
 		}
@@ -2137,7 +2202,14 @@ public class LWWormhole implements VueConstants {
 		// now use this information to recreate the resources
 		createResources();
 		replaceExistingWormholeResource(sourceWormholeNode, sourceResource, sourceMap);
-		replaceExistingWormholeResource(targetWormholeNode, targetResource, targetMap);
+		// HO 04/11/2011 BEGIN **********
+		if (targetWormholeNode != null)
+		// HO 04/11/2011 END **********
+			replaceExistingWormholeResource(targetWormholeNode, targetResource, targetMap);
+		// HO 04/11/2011 BEGIN **********
+		else
+			replaceExistingWormholeResource(null, targetResource, targetMap);
+		// HO 04/11/2011 END **********
 
 		// save both maps
 		// HO 22/02/2011 BEGIN *************
@@ -2743,8 +2815,18 @@ public class LWWormhole implements VueConstants {
 		
 		// select the component that's getting the resource
 		findAndSelectComponentAmongOpenMaps(theComponent);
-		// get the resource that that component already has
-        Resource activeResource = theComponent.getResource();
+		// HO 04/11/2011 BEGIN **********
+		Resource activeResource = null;
+		if (theComponent != null) {
+			// HO 04/11/2011 END **********
+			// get the resource that that component already has
+			 activeResource = theComponent.getResource();
+			// HO 04/11/2011 BEGIN **********
+		} else {
+			return;
+		}
+		// HO 04/11/2011 END **********
+
         // if the resource we passed in isn't null,
         // replace the resource we just got from the
         // component with the one we passed in

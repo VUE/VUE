@@ -1175,6 +1175,18 @@ public class WormholeResource extends URLResource {
 
         final String systemSpec = contentRef.toString();
         
+        // HO 04/11/2011 BEGIN ********
+        File fileForName = new File(systemSpec);
+        String strFileName = fileForName.getName();
+        String strTargetNodeFound = getComponentURIString();
+        if (strTargetNodeFound.equals("NOTFOUND")) {
+        	Log.warn("displayContent " + tufts.Util.tags(systemSpec), new IOException());
+            VueUtil.alert(null, VueResources.getString("openaction.missingtargetnode.error") 
+            		+ "\n " + strFileName, VueResources.getString("openaction.missingtargetnode.title"));
+        }
+        	
+        // HO 04/11/2011 END ********
+        
         try {
             markAccessAttempt();
             // HO 11/08/2011 BEGIN *********
