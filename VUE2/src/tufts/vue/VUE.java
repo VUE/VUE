@@ -4760,4 +4760,6 @@ public class VUE
 	public static DRBrowser getDRBrowser() {
 		return contentPanel.getDRBrowser();
 	}
+	
+
 }
