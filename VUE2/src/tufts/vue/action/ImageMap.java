@@ -250,7 +250,20 @@ public class ImageMap extends VueAction {
 		        	href ="";
 	            else if(res.equals("null"))
 	        	   href = "";
-	           else 
+		        // HO 24/11/2011 BEGIN *************
+	            else if (res.getClass().equals(WormholeResource.class)) {
+	            	WormholeResource wr = (WormholeResource) res;
+	            	File fullpath = new File(wr.getSystemSpec());
+	            	String strFileName = fullpath.getName();
+	            	if (!strFileName.endsWith(".html")) {
+	            		int pos = strFileName.indexOf(".");
+	            		strFileName = strFileName.substring(0, pos);
+	            		strFileName = strFileName + ".html";	            		
+	            	}
+	            	href = "href=\"" + strFileName + "\" target=\"_blank\"";
+	            }	            	
+		        // HO 24/11/2011 END *************
+	            else 
 	        	   href = "href=\"" + res.getSpec() + "\" target=\"_blank\"";
             
             String notes ="";
@@ -282,6 +295,19 @@ public class ImageMap extends VueAction {
 					        	childHref ="";
 				            else if(childRes.equals("null"))
 				        	   childHref = "";
+					        // HO 24/11/2011 BEGIN *************
+				            else if (childRes.getClass().equals(WormholeResource.class)) {
+				            	WormholeResource wr = (WormholeResource) childRes;
+				            	File fullpath = new File(wr.getSystemSpec());
+				            	String strFileName = fullpath.getName();
+				            	if (!strFileName.endsWith(".html")) {
+				            		int pos = strFileName.indexOf(".");
+				            		strFileName = strFileName.substring(0, pos);
+				            		strFileName = strFileName + ".html";				            		
+				            	}
+				            	childHref = "href=\"" + strFileName + "\" target=\"_blank\"";	
+				            }	            	
+					        // HO 24/11/2011 END *************
 				           else 
 				        	   childHref = "href=\"" + childRes.getSpec() + "\" target=\"_blank\"";	
 						   
