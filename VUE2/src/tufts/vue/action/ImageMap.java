@@ -33,6 +33,7 @@ import tufts.vue.LWComponent.ChildKind;
 import tufts.vue.LWComponent.Order;
 
 /**
+ * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2011
  * @version $Revision: 1.39 $ / $Date: 2010-03-29 13:48:48 $ / $Author: mike $ *
  * @author Jay Briedis
  * 
@@ -52,6 +53,12 @@ import tufts.vue.LWComponent.Order;
  * its as simple as pointing to a URL.
  * 
  * Also I'd really like to add some simple templating as having the HTML in java is really cumbersome.
+ * 
+ * 
+ */
+
+/**
+
  */
 public class ImageMap extends VueAction {
 
@@ -252,15 +259,7 @@ public class ImageMap extends VueAction {
 	        	   href = "";
 		        // HO 24/11/2011 BEGIN *************
 	            else if (res.getClass().equals(WormholeResource.class)) {
-	            	WormholeResource wr = (WormholeResource) res;
-	            	File fullpath = new File(wr.getSystemSpec());
-	            	String strFileName = fullpath.getName();
-	            	if (!strFileName.endsWith(".html")) {
-	            		int pos = strFileName.indexOf(".");
-	            		strFileName = strFileName.substring(0, pos);
-	            		strFileName = strFileName + ".html";	            		
-	            	}
-	            	href = "href=\"" + strFileName + "\" target=\"_blank\"";
+	            	href = derivePseudoWormholeHref((WormholeResource) res);
 	            }	            	
 		        // HO 24/11/2011 END *************
 	            else 
@@ -283,29 +282,35 @@ public class ImageMap extends VueAction {
 						+ getRectCoords(getRectNode(comp),zoom) + "\"></area>\n");
 			} else {
 				Collection<LWComponent> children = comp.getAllDescendents();
+				// HO 25/11/2011 BEGIN *************
+				// if any of the first-level children of this node
+				// are wormhole nodes, we need to give this node
+				// an anchor so that it can be found as a target
+			  	String sourceAnchor = deriveSourceNodeAnchor(comp);
+			  	// HO 25/11/2011 END *************
 				LWComponent[] array = new LWComponent[children.size()];
 				children.toArray(array);
 				for (int i = array.length - 1; i >= 0; i--) 
 				{
 					if (array[i] instanceof LWNode)
 					{
+							// HO 25/11/2011 BEGIN *************
+							// if any of the first-level children of this node
+							// are wormhole nodes, we need to give this node
+							// an anchor so that it can be found as a target
+						  	String childAnchor = deriveSourceNodeAnchor(array[i]);
+						  	// HO 25/11/2011 END *************
 						  String childHref;
+
 						  Resource childRes = array[i].getResource();
 						   if (childRes == null)
 					        	childHref ="";
 				            else if(childRes.equals("null"))
 				        	   childHref = "";
 					        // HO 24/11/2011 BEGIN *************
+						   // if the resource is a WormholeResource
 				            else if (childRes.getClass().equals(WormholeResource.class)) {
-				            	WormholeResource wr = (WormholeResource) childRes;
-				            	File fullpath = new File(wr.getSystemSpec());
-				            	String strFileName = fullpath.getName();
-				            	if (!strFileName.endsWith(".html")) {
-				            		int pos = strFileName.indexOf(".");
-				            		strFileName = strFileName.substring(0, pos);
-				            		strFileName = strFileName + ".html";				            		
-				            	}
-				            	childHref = "href=\"" + strFileName + "\" target=\"_blank\"";	
+				            	childHref = derivePseudoWormholeHref((WormholeResource) childRes);
 				            }	            	
 					        // HO 24/11/2011 END *************
 				           else 
@@ -315,13 +320,22 @@ public class ImageMap extends VueAction {
 								+ (nodeCounter++)
 								+ "\" shape=\"rect\" coords=\""
 								+ getRectCoords(getRectNode(array[i]),zoom)
-								+ "\"></area>\n");
+								// HO 25/11/2011 BEGIN *************
+								// + "\"></area>\n");
+								+ "\">"
+								+ childAnchor + "</area>\n");
+								// HO 25/11/2011 END *************
 					}
 				}
 
 				arrayList.add(" <area "+href+" "+notes+" id=\"" + type
 						+ (nodeCounter++) + "\" shape=\"rect\" coords=\""
-						+ getRectCoords(getRectNode(comp),zoom) + "\"></area>\n");
+						+ getRectCoords(getRectNode(comp),zoom)
+						// HO 25/11/2011 BEGIN *************
+						// + "\"></area>\n");
+						+ "\">"
+						+ sourceAnchor + "</area>\n");
+						// HO 25/11/2011 END *************
 
 				//if (comp instanceof LWGroup) {
 				//	String groupOutput = writeMapforContainer((LWGroup) comp,map,zoom);
@@ -344,6 +358,96 @@ public class ImageMap extends VueAction {
     	LWMap currentMap = VUE.getActiveMap();
     	createHtml(imageName,fileName,currentMap,zoom);
     }
+    
+    // HO 25/11/2011 BEGIN *************
+    /**
+     * A function to take just the filename off a file's full path,
+     * and replace the filetype with ".html" if it's not that type already.
+     * @param fullpath, the File to get the name of and change type to .html
+     * @return A String representing just the name of the file, ending with ".html"
+     * @author Helen Oliver
+     */
+    private String getTargetFileAsHTMLFileName(File fullpath) {
+     	// then just use the filename, not the path,
+     	// because .html links will only work if the target
+     	// file is in the same directory
+     	String strFileName = fullpath.getName();
+     	// if it doesn't already end in .html, chop off
+     	// the ending and replace it with .html
+     	if (!strFileName.endsWith(".html")) {
+     		int pos = strFileName.indexOf(".");
+     		strFileName = strFileName.substring(0, pos);
+     		strFileName = strFileName + ".html";				            		
+     	}    	
+     	
+     	return strFileName;
+    }
+    
+    /*
+     * A function to take a WormholeResource,
+     * and extract the target filename (just the name, target files must
+     * be in same directory) and the UURI for the target node, which is
+     * used as an anchor.
+     * @param wr, a WormholeResource
+     * @return a String containing the href to the target file and the anchor
+     * of the target node
+     * @author Helen Oliver
+     */
+    private String derivePseudoWormholeHref (WormholeResource wr) {
+    	String childHref = "";
+    	
+    	// input validation
+    	if ((wr == null) || (!wr.getClass().equals(WormholeResource.class)))
+    		return childHref;
+    	
+     	// get the target filename from it
+     	File fullpath = new File(wr.getSystemSpec());
+     	// then just use the filename, not the path,
+     	// because .html links will only work if the target
+     	// file is in the same directory
+     	String strFileName = getTargetFileAsHTMLFileName(fullpath);
+     	// get the target node's UURI out of the WormholeResource
+     	String strTargetAnchor = wr.getComponentURIString();
+     	// create link to target map anchored to target node
+     	childHref = "href=\"" + strFileName + "#" + strTargetAnchor + "\"";	
+     	
+     	return childHref;
+    }
+    
+    /**
+     * A function to figure out if this component has any
+     * first-level children that are wormhole wodes, and if so,
+     * extract the source node UURI from the wormhole,
+     * and use it as an anchor to the passed-in component
+     * @param comp, the component to add an anchor to if it
+     * turns out to be a source node for one or more wormhole nodes
+     * @return a String which is an anchor made out of the
+     * UURI that this component had in its original
+     * .vue or .vpk format
+     * @author Helen Oliver
+     */    
+    private String deriveSourceNodeAnchor(LWComponent comp) {
+    	String sourceNodeAnchor = "";
+    	
+    	// get all the first-level children that are wormhole nodes
+    	Iterable<LWWormholeNode> theWormholeNodes = comp.getChildrenOfType(LWWormholeNode.class);
+    	// if there are any, the current node is a source node,
+    	// so construct an anchor for it
+    	if (theWormholeNodes.iterator().hasNext()) {
+    		// any one will do
+    		LWWormholeNode nextWormhole = theWormholeNodes.iterator().next();
+    		// extract the resource
+    		WormholeResource wr = (WormholeResource) nextWormhole.getResource();
+    		// use the originating component's UURI to create an anchor
+        	sourceNodeAnchor = "<a name=\"";
+        	sourceNodeAnchor = sourceNodeAnchor + wr.getOriginatingComponentURIString();
+        	sourceNodeAnchor = sourceNodeAnchor + "\"></a>";
+    	}
+    	// even if there are multiple wormhole nodes as first-level children,
+    	// they all have the same parent, so we only need one UURI to set as an anchor
+    	return sourceNodeAnchor;
+    }
+     // HO 25/11/2011 END *************
     
 	private  void createHtml(String imageName, String fileName,LWMap currentMap,double zoom) {
 
