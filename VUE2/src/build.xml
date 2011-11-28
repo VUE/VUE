@@ -64,7 +64,7 @@
   <property name="target.version" value="1.5"/>
   <property name="MacDist" value="MacDist"/>
   <property name="MacDist16" value="MacDist16"/>
-  <property name="jre.home" value="${build.home}/../jre/jre6_u29"/>
+  <property name="jre.home" value="/home/vue/jre/jre6_u29/jre6"/>
   <!-- NarraVision.jar is just a copy of VUE.jar.  On the PC, It detects via
        the classpath if it's called anything with "NarraVision" in the
        name to decide if it should run with MIT features -->
