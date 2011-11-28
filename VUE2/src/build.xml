@@ -64,7 +64,7 @@
   <property name="target.version" value="1.5"/>
   <property name="MacDist" value="MacDist"/>
   <property name="MacDist16" value="MacDist16"/>
-
+  <property name="jre.home" value="${build.home}/../jre/jre6_u29"/>
   <!-- NarraVision.jar is just a copy of VUE.jar.  On the PC, It detects via
        the classpath if it's called anything with "NarraVision" in the
        name to decide if it should run with MIT features -->
@@ -73,6 +73,7 @@
 	<property name="vueapplet-pack.jar"        value="${build.home}/VUEApplet.pack"/>
   <property name="vue-linux.jar"        value="${build.home}/VUE-linux.jar"/>
   <property name="narravision.jar"      value="${build.home}/NarraVision.jar"/>
+	
 
 <!--  ==================== Compilation Control Options ==================== -->
 <!--
@@ -521,7 +522,6 @@
 
   	<copy file="${basedir}/edu/tufts/seasr/seasr.xml" todir="${build.class}/edu/tufts/seasr" verbose="true"/>
   	<copy file="${basedir}/edu/tufts/seasr/seasr_mapping.xml" todir="${build.class}/edu/tufts/seasr" verbose="true"/>
-
     <!-- Determine if Java 1.4 is available on this machine -->
     <condition property="java1.4.present"> 
       <equals arg1="${ant.java.version}" arg2="1.4" /> 
@@ -1529,7 +1529,10 @@ VUEApplet.zip - ${appletMD5}
           <taskdef name="nsis" classname="net.sf.nsisant.Task">
             <classpath location="/home/vue/nsis/nsis-2.42/ant/nsisant-1.2.jar"/>
            </taskdef>
-           
+		  <copy todir="${basedir}/../Nullsoft-installer/jre">
+  			<fileset dir="${jre.home}"/>
+	  	  </copy>
+
            <!--creating installer using nullsoft-->
            <nsis script="../Nullsoft-Installer/vue.nsi" verbosity="4" out="build.log" noconfig="yes"> 
            </nsis>
