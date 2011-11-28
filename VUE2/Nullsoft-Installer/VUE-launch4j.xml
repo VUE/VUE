@@ -11,8 +11,8 @@
   <supportUrl></supportUrl>
   <customProcName>true</customProcName>
   <stayAlive>false</stayAlive>
-  <manifest>C:\Users\Admin\workspace\VUE2\Nullsoft-Installer\VUE-launcher.exe.manifest</manifest>
-  <icon>C:\Users\Admin\workspace\VUE2\Nullsoft-Installer\VUE.ico</icon>
+  <manifest>C:\Users\MikeK\workspace\tuftsvue\trunk\VUE2\Nullsoft-Installer\VUE-launcher.exe.manifest</manifest>
+  <icon>C:\Users\MikeK\workspace\tuftsvue\trunk\VUE2\Nullsoft-Installer\VUE.ico</icon>
   <jre>
     <path>./jre</path>
     <minVersion>1.6.0_13</minVersion>
@@ -20,6 +20,6 @@
     <jdkPreference>preferJre</jdkPreference>
     <initialHeapSize>128</initialHeapSize>
     <maxHeapSize>1024</maxHeapSize>
-    <opt>-Xms256m -Xmx1g -XX:MinHeapFreeRatio=20 -XX:MaxHeapFreeRatio=40 -XX:NewSize=100m -XX:MaxNewSize=100m -XX:SurvivorRatio=6 -XX:TargetSurvivorRatio=80 -XX:+CMSClassUnloadingEnabled -XX:+CMSPermGenSweepingEnabled</opt>
+    <opt>-Xms256m -Xmx1g -XX:MinHeapFreeRatio=20 -XX:MaxHeapFreeRatio=40 -XX:NewSize=100m -XX:MaxNewSize=100m -XX:SurvivorRatio=6 -XX:TargetSurvivorRatio=80 -XX:+CMSClassUnloadingEnabled -XX:+CMSPermGenSweepingEnabled -Dsun.java2d.d3d=false</opt>
   </jre>
 </launch4jConfig>
