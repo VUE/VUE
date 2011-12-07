@@ -192,9 +192,8 @@ public class Export {
         	} catch(Exception ex) {
         		exporter.export(inputFile,outputFile,args[2]);
         	}
-        }  
+        } else {  
         	exporter.export(inputFile, outputFile,0);
-       
-       }
-	
+        }
+	}
 }
