@@ -79,28 +79,30 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 									depthSlider = null;
 	protected JButton				zoomSelButton = null,
 									zoomMapButton = null;
-	protected JCheckBox				zoomLockCheckBox = null;
-	protected JLabel				fadeLabel = null,
-									depthLabel = null,
+	protected JCheckBox				zoomLockCheckBox = null,
+									incomingLinksCheckBox = null,
+									outgoingLinksCheckBox = null;
+	protected JLabel				linksLabel = null,
 									zoomSelLabel = null,
 									zoomMapLabel = null;
-	protected JPanel				fadeDepthPanel = null,
-									fadeDepthInnerPanel = null,
+	protected JPanel				fadePanel = null,
+									fadeInnerPanel = null,
+									depthPanel = null,
+									depthInnerPanel = null,
+									linkDirectionPanel = null,
 									zoomPanel = null,
 									zoomInnerPanel = null,
-									linePanel = null;
+									linePanel = null,
+									depthSpacerPanel = null,
+									zoomSpacerPanel = null;
 	protected WidgetStack			widgetStack = null;
 
 
 	public InteractionTools(DockWindow dw) {
 		Insets						halfGutterInsets = new Insets(HALF_GUTTER, HALF_GUTTER, HALF_GUTTER, HALF_GUTTER);
 
-		fadeDepthInnerPanel = new JPanel();
-		fadeDepthInnerPanel.setLayout(new GridBagLayout());
-
-		fadeLabel = new JLabel(VueResources.getString("interactionTools.opacity"), SwingConstants.RIGHT);
-		fadeLabel.setFont(tufts.vue.gui.GUI.LabelFace);
-		addToGridBag(fadeDepthInnerPanel, fadeLabel, 0, 0, 1, 1, GridBagConstraints.LINE_END, halfGutterInsets);
+		fadeInnerPanel = new JPanel();
+		fadeInnerPanel.setLayout(new GridBagLayout());
 
 		fadeSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 100);
 
@@ -129,13 +131,16 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 		fadeSlider.setPaintLabels(true);
 		fadeSlider.setSnapToTicks(false);
 		fadeSlider.setMinimumSize(fadeSlider.getPreferredSize());
-		fadeSlider.setToolTipText(VueResources.getString("interactionTools.opacity.toolTip"));
+		fadeSlider.setToolTipText(VueResources.getString("interactionTools.fade.toolTip"));
 		fadeSlider.addChangeListener(this);
-		addToGridBag(fadeDepthInnerPanel, fadeSlider, 1, 0, 1, 1, GridBagConstraints.LINE_END, GridBagConstraints.HORIZONTAL, 1.0, 0.0, halfGutterInsets);
+		addToGridBag(fadeInnerPanel, fadeSlider, 0, 0, 1, 1, GridBagConstraints.LINE_END, GridBagConstraints.HORIZONTAL, 1.0, 0.0, halfGutterInsets);
 
-		depthLabel = new JLabel(VueResources.getString("interactionTools.depth"), SwingConstants.RIGHT);
-		depthLabel.setFont(tufts.vue.gui.GUI.LabelFace);
-		addToGridBag(fadeDepthInnerPanel, depthLabel, 0, 1, 1, 1, GridBagConstraints.LINE_END, halfGutterInsets);
+		fadePanel = new JPanel();
+		fadePanel.setLayout(new GridBagLayout());
+		addToGridBag(fadePanel, fadeInnerPanel, 0, 0, 1, 1, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL, 1.0, 0.0, halfGutterInsets);
+
+		depthInnerPanel = new JPanel();
+		depthInnerPanel.setLayout(new GridBagLayout());
 
 		depthSlider = new JSlider(JSlider.HORIZONTAL, DEPTH_SLIDER_MIN, DEPTH_SLIDER_MAX, DEPTH_SLIDER_MIN);
 
@@ -168,36 +173,65 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 		depthSlider.setToolTipText(VueResources.getString("interactionTools.depth.toolTip"));
 		depthSlider.addChangeListener(depthListener);
 		VUE.getSelection().addListener(depthListener);
-		addToGridBag(fadeDepthInnerPanel, depthSlider, 1, 1, 1, 1, GridBagConstraints.LINE_END, GridBagConstraints.HORIZONTAL, 1.0, 0.0, halfGutterInsets);
+		addToGridBag(depthInnerPanel, depthSlider, 0, 0, 1, 1, GridBagConstraints.LINE_END, GridBagConstraints.HORIZONTAL, 1.0, 0.0, halfGutterInsets);
 
-		fadeDepthPanel = new JPanel();
-		fadeDepthPanel.setLayout(new GridBagLayout());
-		addToGridBag(fadeDepthPanel, fadeDepthInnerPanel, 0, 0, 1, 1, GridBagConstraints.LINE_START, GridBagConstraints.NONE, 1.0, 0.0, halfGutterInsets);
+		linkDirectionPanel = new JPanel();
+		linkDirectionPanel.setLayout(new GridBagLayout());
+
+		depthSpacerPanel = new JPanel();
+		addToGridBag(linkDirectionPanel, depthSpacerPanel, 0, 0, 1, 1, GridBagConstraints.LINE_START, GridBagConstraints.NONE, 0.0, 0.0, new Insets(0, 0, 0, 0));
+
+		linksLabel = new JLabel(VueResources.getString("interactionTools.linkDirection.label"), SwingConstants.RIGHT);
+		linksLabel.setFont(tufts.vue.gui.GUI.LabelFace);
+		addToGridBag(linkDirectionPanel, linksLabel, 1, 0, 1, 1, GridBagConstraints.LINE_START, GridBagConstraints.NONE, 0.0, 0.0, new Insets(0, 0, 0, HALF_GUTTER));
+
+		incomingLinksCheckBox = new JCheckBox(VueResources.getString("interactionTools.incomingLinks"));
+		incomingLinksCheckBox.setSelected(true);
+		incomingLinksCheckBox.setFont(tufts.vue.gui.GUI.LabelFace);
+		incomingLinksCheckBox.setToolTipText(VueResources.getString("interactionTools.incomingLinks.toolTip"));
+		incomingLinksCheckBox.addItemListener(depthListener);
+		addToGridBag(linkDirectionPanel, incomingLinksCheckBox, 2, 0, 1, 1, GridBagConstraints.LINE_START, GridBagConstraints.NONE, 0.0, 0.0, new Insets(0, HALF_GUTTER, 0, HALF_GUTTER));
+
+		outgoingLinksCheckBox = new JCheckBox(VueResources.getString("interactionTools.outgoingLinks"));
+		outgoingLinksCheckBox.setSelected(true);
+		outgoingLinksCheckBox.setFont(tufts.vue.gui.GUI.LabelFace);
+		outgoingLinksCheckBox.setToolTipText(VueResources.getString("interactionTools.outgoingLinks.toolTip"));
+		outgoingLinksCheckBox.addItemListener(depthListener);
+		addToGridBag(linkDirectionPanel, outgoingLinksCheckBox, 3, 0, 1, 1, GridBagConstraints.LINE_START, GridBagConstraints.NONE, 0.0, 0.0, new Insets(0, HALF_GUTTER, 0, 0));
+
+		addToGridBag(depthInnerPanel, linkDirectionPanel, 0, 1, 1, 1, GridBagConstraints.LINE_START, GridBagConstraints.NONE, 0.0, 0.0, halfGutterInsets);
+
+		depthPanel = new JPanel();
+		depthPanel.setLayout(new GridBagLayout());
+		addToGridBag(depthPanel, depthInnerPanel, 0, 0, 1, 1, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL, 1.0, 0.0, halfGutterInsets);
 
 		zoomInnerPanel = new JPanel();
 		zoomInnerPanel.setLayout(new GridBagLayout());
 
+		zoomSpacerPanel = new JPanel();
+		addToGridBag(zoomInnerPanel, zoomSpacerPanel, 0, 0, 1, 2, GridBagConstraints.LINE_START, GridBagConstraints.NONE, 0.0, 0.0, new Insets(0, 0, 0, 0));
+
 		zoomSelLabel = new JLabel(VueResources.getString("interactionTools.zoomSel.label"), SwingConstants.RIGHT);
 		zoomSelLabel.setFont(tufts.vue.gui.GUI.LabelFace);
-		addToGridBag(zoomInnerPanel, zoomSelLabel, 0, 0, 1, 1, GridBagConstraints.LINE_END, halfGutterInsets);
+		addToGridBag(zoomInnerPanel, zoomSelLabel, 1, 0, 1, 1, GridBagConstraints.LINE_END, halfGutterInsets);
 
 		zoomSelButton = new JButton();
 		zoomSelButton.setFont(tufts.vue.gui.GUI.LabelFace);
 		zoomSelButton.setText(VueResources.getString("interactionTools.zoomSel"));
 		zoomSelButton.setToolTipText(VueResources.getString("interactionTools.zoomSel.toolTip"));
 		zoomSelButton.addActionListener(this);
-		addToGridBag(zoomInnerPanel, zoomSelButton, 1, 0, 1, 1, GridBagConstraints.LINE_END, GridBagConstraints.HORIZONTAL, 1.0, 0.0, halfGutterInsets);
+		addToGridBag(zoomInnerPanel, zoomSelButton, 2, 0, 1, 1, GridBagConstraints.LINE_END, GridBagConstraints.HORIZONTAL, 1.0, 0.0, halfGutterInsets);
 
 		zoomMapLabel = new JLabel(VueResources.getString("interactionTools.zoomMap.label"), SwingConstants.RIGHT);
 		zoomMapLabel.setFont(tufts.vue.gui.GUI.LabelFace);
-		addToGridBag(zoomInnerPanel, zoomMapLabel, 0, 1, 1, 1, GridBagConstraints.LINE_END, halfGutterInsets);
+		addToGridBag(zoomInnerPanel, zoomMapLabel, 1, 1, 1, 1, GridBagConstraints.LINE_END, halfGutterInsets);
 
 		zoomMapButton = new JButton();
 		zoomMapButton.setFont(tufts.vue.gui.GUI.LabelFace);
 		zoomMapButton.setText(VueResources.getString("interactionTools.zoomMap"));
 		zoomMapButton.setToolTipText(VueResources.getString("interactionTools.zoomMap.toolTip"));
 		zoomMapButton.addActionListener(this);
-		addToGridBag(zoomInnerPanel, zoomMapButton, 1, 1, 1, 1, GridBagConstraints.LINE_END, GridBagConstraints.HORIZONTAL, 1.0, 0.0, halfGutterInsets);
+		addToGridBag(zoomInnerPanel, zoomMapButton, 2, 1, 1, 1, GridBagConstraints.LINE_END, GridBagConstraints.HORIZONTAL, 1.0, 0.0, halfGutterInsets);
 
 		linePanel = new JPanel() {
 			public static final long		serialVersionUID = 1;
@@ -217,22 +251,47 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 
 		linePanel.setPreferredSize(linePanelSize);
 		linePanel.setMinimumSize(linePanelSize);
-		addToGridBag(zoomInnerPanel, linePanel, 2, 0, 1, 2, halfGutterInsets);
+		addToGridBag(zoomInnerPanel, linePanel, 3, 0, 1, 2, halfGutterInsets);
 
 		zoomLockCheckBox = new JCheckBox(VueResources.getString("interactionTools.auto"));
 		zoomLockCheckBox.setFont(tufts.vue.gui.GUI.LabelFace);
 		zoomLockCheckBox.setToolTipText(VueResources.getString("interactionTools.auto.toolTip"));
 		zoomLockCheckBox.addItemListener(this);
-		addToGridBag(zoomInnerPanel, zoomLockCheckBox, 3, 0, 1, 2, halfGutterInsets);
+		addToGridBag(zoomInnerPanel, zoomLockCheckBox, 4, 0, 1, 2, halfGutterInsets);
 
 		zoomPanel = new JPanel();
 		zoomPanel.setLayout(new GridBagLayout());
 		addToGridBag(zoomPanel, zoomInnerPanel, 0, 0, 1, 1, GridBagConstraints.LINE_START, GridBagConstraints.NONE, 1.0, 0.0, halfGutterInsets);
 
 		widgetStack = new WidgetStack(VueResources.getString("dockWindow.interactionTools.title"));
-		widgetStack.addPane(VueResources.getString("interactionTools.fadeAndDepthWidget"), fadeDepthPanel);
+		widgetStack.addPane(VueResources.getString("interactionTools.fadeWidget"), fadePanel);
+		widgetStack.addPane(VueResources.getString("interactionTools.depthWidget"), depthPanel);
 		widgetStack.addPane(VueResources.getString("interactionTools.zoomWidget"), zoomPanel);
 		dw.setContent(widgetStack);
+
+		// Line up the labels on the depth and zoom widgets.
+
+		Dimension	linksPrefSize = linksLabel.getPreferredSize();
+		int			depthExcessWidth = linksPrefSize.width - Math.max(zoomSelLabel.getPreferredSize().width, zoomMapLabel.getPreferredSize().width),
+					depthPrefWidth = 0,
+					zoomPrefWidth = 0;
+
+		if (depthExcessWidth > 0) {				// depth widget labels are wider
+			zoomPrefWidth = depthExcessWidth;
+		} else if (depthExcessWidth < 0){		// zoom widget labels are wider
+			depthPrefWidth = -depthExcessWidth;
+		}										// otherwise, they are the same width
+
+		Dimension	depthPrefSize = new Dimension(depthPrefWidth, linksPrefSize.height),
+					zoomPrefSize = new Dimension(zoomPrefWidth, linePanelSize.height);
+
+		// Not only MUST minimum AND preferred sizes be set, they MUST be set IN THAT ORDER, and the panels MUST be opaque.
+		depthSpacerPanel.setMinimumSize(depthPrefSize);
+		depthSpacerPanel.setPreferredSize(depthPrefSize);
+		depthSpacerPanel.setOpaque(true);
+		zoomSpacerPanel.setMinimumSize(zoomPrefSize);
+		zoomSpacerPanel.setPreferredSize(zoomPrefSize);
+		zoomSpacerPanel.setOpaque(true);
 
 		validate();
 
@@ -247,24 +306,36 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 			zoomMapButton.setOpaque(true);
 			zoomLockCheckBox.setBackground(Color.CYAN);
 			zoomLockCheckBox.setOpaque(true);
-			fadeLabel.setBackground(Color.CYAN);
-			fadeLabel.setOpaque(true);
-			depthLabel.setBackground(Color.CYAN);
-			depthLabel.setOpaque(true);
+			incomingLinksCheckBox.setOpaque(true);
+			incomingLinksCheckBox.setBackground(Color.CYAN);
+			outgoingLinksCheckBox.setOpaque(true);
+			outgoingLinksCheckBox.setBackground(Color.CYAN);
+			linkDirectionPanel.setOpaque(true);
+			linkDirectionPanel.setBackground(Color.YELLOW);
+			linksLabel.setBackground(Color.CYAN);
+			linksLabel.setOpaque(true);
 			zoomSelLabel.setBackground(Color.CYAN);
 			zoomSelLabel.setOpaque(true);
 			zoomMapLabel.setBackground(Color.CYAN);
 			zoomMapLabel.setOpaque(true);
-			fadeDepthPanel.setBackground(Color.YELLOW);
-			fadeDepthPanel.setOpaque(true);
-			fadeDepthInnerPanel.setBackground(Color.MAGENTA);
-			fadeDepthInnerPanel.setOpaque(true);
+			fadePanel.setBackground(Color.YELLOW);
+			fadePanel.setOpaque(true);
+			fadeInnerPanel.setBackground(Color.MAGENTA);
+			fadeInnerPanel.setOpaque(true);
+			depthPanel.setBackground(Color.YELLOW);
+			depthPanel.setOpaque(true);
+			depthInnerPanel.setBackground(Color.MAGENTA);
+			depthInnerPanel.setOpaque(true);
 			zoomPanel.setBackground(Color.YELLOW);
 			zoomPanel.setOpaque(true);
 			zoomInnerPanel.setBackground(Color.MAGENTA);
 			zoomInnerPanel.setOpaque(true);
 			linePanel.setBackground(Color.CYAN);
 			linePanel.setOpaque(true);
+			depthSpacerPanel.setOpaque(true);
+			depthSpacerPanel.setBackground(Color.GREEN);
+			zoomSpacerPanel.setOpaque(true);
+			zoomSpacerPanel.setBackground(Color.GREEN);
 		}
 
 		setVisible(true);
@@ -276,15 +347,21 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 		zoomSelButton = null;
 		zoomMapButton = null;
 		zoomLockCheckBox = null;
-		fadeLabel = null;
-		depthLabel = null;
+		incomingLinksCheckBox = null;
+		outgoingLinksCheckBox = null;
+		linksLabel = null;
 		zoomSelLabel = null;
 		zoomMapLabel = null;
-		fadeDepthPanel = null;
-		fadeDepthInnerPanel = null;
+		fadePanel = null;
+		fadeInnerPanel = null;
+		depthPanel = null;
+		depthInnerPanel = null;
+		linkDirectionPanel = null;
 		zoomPanel = null;
 		zoomInnerPanel = null;
 		linePanel = null;
+		depthSpacerPanel = null;
+		zoomSpacerPanel = null;
 		widgetStack = null;
 	}
 
@@ -450,7 +527,7 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 	}
 
 	
-	protected class DepthSelectionListener implements ChangeListener, LWSelection.Listener {
+	protected class DepthSelectionListener implements ChangeListener, ItemListener, LWSelection.Listener {
 		HashSet<LWComponent>	userSelection = new HashSet<LWComponent>(),	// LWComponents selected by the user
 								deepSelection = new HashSet<LWComponent>();	// LWComponents selected by this class
 		int						previousDepth = 0;
@@ -468,6 +545,22 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 				fireDepthChanged(source.getValue());
 				GUI.invokeAfterAWT(sliderMoved);
 			}
+		}
+
+
+		// ItemListener for link direction checkboxes
+		public void itemStateChanged(ItemEvent event) {
+			JCheckBox	source = (JCheckBox)event.getSource();
+
+			if (source == incomingLinksCheckBox &&
+					!incomingLinksCheckBox.isSelected() && !outgoingLinksCheckBox.isSelected()) {
+				outgoingLinksCheckBox.setSelected(true);
+			} else if (source == outgoingLinksCheckBox &&
+					!outgoingLinksCheckBox.isSelected() && !incomingLinksCheckBox.isSelected()) {
+				incomingLinksCheckBox.setSelected(true);
+			}
+
+			GUI.invokeAfterAWT(selectionChanged);
 		}
 
 
@@ -515,7 +608,7 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 						userSelection.clear();
 					} else {
 						// Find deepSelection and add it to the GUI's selection.
-						findChildrenToDepth(userSelection, depth + 1);
+						findChildrenToDepth(userSelection, depth, incomingLinksCheckBox.isSelected(), outgoingLinksCheckBox.isSelected(), new Hashtable<LWComponent, Integer>());
 						guiSelection.add(deepSelection.iterator());
 					}
 
@@ -555,7 +648,7 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 
 						// Find deepSelection.
 						deepSelection.clear();
-						findChildrenToDepth(userSelection, depth + 1);
+						findChildrenToDepth(userSelection, depth, incomingLinksCheckBox.isSelected(), outgoingLinksCheckBox.isSelected(), new Hashtable<LWComponent, Integer>());
 
 						// Set the GUI's selection to userSelection (it may have gotten smaller) and add deepSelection.
 						guiSelection.setTo(userSelection);
@@ -576,32 +669,66 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 		};
 
 
-		protected void findChildrenToDepth(Collection<LWComponent> collection, int depth) {
-			// Add each node to deepSelection.
-			Iterator<LWComponent>	nodes = collection.iterator();
+		protected void findChildrenToDepth(Collection<LWComponent> comps, int depth, boolean expandIncoming, boolean expandOutgoing, Hashtable<LWComponent, Integer> alreadyVisited) {
+			for (LWComponent comp : comps) {
+				Integer		alreadyVisitedAtLevel = alreadyVisited.get(comp);
 
-			while (nodes.hasNext()) {
-				LWComponent		node = nodes.next();
+				// If this component has already been visited at a higher depth, don't revisit it.
+				if (alreadyVisitedAtLevel == null || alreadyVisitedAtLevel.intValue() < depth) {
+					alreadyVisited.put(comp, new Integer(depth));
 
-				if (node.getClass() == LWNode.class) {
-					if (!userSelection.contains(node)) {
-						deepSelection.add(node);
+					boolean		compIsUserSelected = userSelection.contains(comp),
+								compIsLink =  (comp.getClass() == LWLink.class);
+					int 		nextDepth = depth - (compIsLink ? (compIsUserSelected ? 1 : 0) : 1);
+
+		
+					if (!compIsUserSelected) {
+						deepSelection.add(comp);
 					}
 
-					if (depth > 1) {
-						// Add each node's links to deepSelection.
-						Iterator<LWComponent>	links = (Iterator<LWComponent>)(node.getConnected().iterator());
+					if (compIsLink) {
+						// Recurse for link's endpoints.
 
-						while (links.hasNext()) {
-							LWComponent		link = links.next();
+						LWLink		link = (LWLink)comp;
 
-							if (!userSelection.contains(link)) {
-								deepSelection.add(link);
-							}
+						LWComponent				head = link.getHead(),
+												tail = link.getTail();
+						int						arrowState = link.getArrowState();
+						HashSet<LWComponent>	compsToTraverse = new HashSet<LWComponent>();
+
+						if (head != null &&
+								(expandIncoming && arrowState != LWLink.ARROW_HEAD ||
+								expandOutgoing && arrowState != LWLink.ARROW_TAIL)) {
+							compsToTraverse.add(head);
 						}
 
-						// Add each node's child nodes to deepSelection.
-						findChildrenToDepth(node.getLinked(), depth - 1);
+						if (tail != null && 
+								(expandIncoming && arrowState != LWLink.ARROW_TAIL ||
+								expandOutgoing && arrowState != LWLink.ARROW_HEAD)) {
+							compsToTraverse.add(tail);
+						}
+
+						if (!compsToTraverse.isEmpty()) {
+							findChildrenToDepth(compsToTraverse, nextDepth, expandIncoming, expandOutgoing, alreadyVisited);
+						}
+					}
+
+					if (nextDepth > -1) {
+						// Recurse for component's links.
+
+						HashSet<LWComponent>		linksToTraverse = new HashSet<LWComponent>();
+
+						if (expandIncoming && expandOutgoing) {
+							linksToTraverse.addAll(comp.getLinks());
+						} else if (expandIncoming) {
+							linksToTraverse.addAll(comp.getIncomingLinks());
+						} else if (expandOutgoing) {
+							linksToTraverse.addAll(comp.getOutgoingLinks());
+						}
+
+						if (!linksToTraverse.isEmpty()) {
+							findChildrenToDepth(linksToTraverse, nextDepth, expandIncoming, expandOutgoing, alreadyVisited);
+						}
 					}
 				}
 			}

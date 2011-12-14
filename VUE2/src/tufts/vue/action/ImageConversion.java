@@ -54,13 +54,16 @@ public class ImageConversion extends VueAction {
     {   
         try
         {
-            if (DEBUG.IO || DEBUG.IMAGE)
+          //  if (DEBUG.IO || DEBUG.IMAGE)
                 System.out.println("ImageIO.write " + image + " fmt=" + format + " to " + location);
-            Iterator<ImageWriter> iter = ImageIO.getImageWritersByFormatName(JPEG);
+            Iterator<ImageWriter> iter = ImageIO.getImageWritersByFormatName(format);
             ImageWriter writer =  iter.next();
             ImageWriteParam iwp = writer.getDefaultWriteParam();
-            iwp.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
-            iwp.setCompressionQuality(1); 
+            if (format.equals("jpeg"))
+            {
+            	iwp.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+            	iwp.setCompressionQuality(1); 
+            }
             FileImageOutputStream output = new FileImageOutputStream(location);            
             writer.setOutput(output);
             IIOImage iioImage = new IIOImage((RenderedImage)image, null, null);
@@ -73,11 +76,14 @@ public class ImageConversion extends VueAction {
     }
     
     /**A method which sets up for converting the active viewer to a Jpeg file*/
-    public static void createActiveMapJpeg(File location, double zoomFactor)
+    public static Dimension createActiveMapJpeg(File location, double zoomFactor)
     {
         // todo: jpeg output quality is poor; see:
         // http://www.universalwebservices.net/web-programming-resources/java/adjust-jpeg-image-compression-quality-when-saving-images-in-java
-        convert(VUE.getActiveMap().getAsImage(zoomFactor), location, JPEG);
+    	BufferedImage bi = VUE.getActiveMap().getAsImage(zoomFactor);
+    	convert(bi, location, JPEG);
+    	 Dimension d = new Dimension(bi.getWidth(),bi.getHeight());
+         return d;
     }
     
     /**A method which sets up for converting the active viewer to a Jpeg file*/

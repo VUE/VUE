@@ -5459,7 +5459,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
 		sMultiPopup.addSeparator();
 		sMultiPopup.add(Actions.ContextKeywordAction);
-		sMultiPopup.add(AnalyzerAction.calaisAutoTagger);
+		sMultiPopup.add(GUI.buildMenu(VueResources.getString("analyzeaction.autotag"), AnalyzerAction.KEYWORDS_MENU_ACTIONS));
 
 		sMultiPopup.addSeparator();
 		// HO 21/04/2011 BEGIN **********
@@ -5629,7 +5629,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     	sSinglePopup.addSeparator();
     	sSinglePopup.add(Actions.ContextNotesAction);
     	sSinglePopup.add(Actions.ContextKeywordAction);
-    	sSinglePopup.add(AnalyzerAction.calaisAutoTagger);
+    	sSinglePopup.add(GUI.buildMenu(VueResources.getString("analyzeaction.autotag"), AnalyzerAction.KEYWORDS_MENU_ACTIONS));
 
     	// HO 21/04/2011 BEGIN **************
     	// HO 08/07/2011 BEGIN **************
@@ -5698,8 +5698,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     	}
 
     	sSinglePopup.addSeparator();
-    	sSinglePopup.add(AnalyzerAction.calais);
-    	sSinglePopup.add(AnalyzerAction.semanticMapAction);
+    	//sSinglePopup.add(AnalyzerAction.calais);
+    	//sSinglePopup.add(AnalyzerAction.semanticMapAction);
+    	sSinglePopup.add(GUI.buildMenu(VueResources.getString("analyzeaction.performmapbased"), AnalyzerAction.RESOURCES_ACTIONS));
+    	sSinglePopup.add(GUI.buildMenu(VueResources.getString("analyzeaction.semanticmap"), AnalyzerAction.WEB_ACTIONS));
 
         sSinglePopup.addSeparator();
     	sSinglePopup.add(Actions.AddPathwayItem);

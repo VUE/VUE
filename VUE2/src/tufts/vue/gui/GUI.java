@@ -54,6 +54,8 @@ import javax.swing.text.SimpleAttributeSet;
 import com.jgoodies.looks.LookUtils;
 import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 
+import ch.randelshofer.quaqua.QuaquaManager;
+
 /**
  * Various constants for GUI variables and static method helpers.
  *
@@ -264,7 +266,7 @@ public class GUI
         if (false)
             installUIDefaults();
 
-        if (VUE.isApplet())
+        if (VUE.isApplet() || Util.isUnixPlatform())
         {
         	   try {
         		   UIManager.put("ClassLoader", LookUtils.class.getClassLoader());
@@ -280,8 +282,34 @@ public class GUI
             if (!SKIP_CUSTOM_LAF) {
 
                 try {
-                    UIManager.setLookAndFeel("ch.randelshofer.quaqua.QuaquaLookAndFeel");
-                    System.setProperty("Quaqua.design", "panther");
+                	
+                	Set includes = new HashSet();
+                	includes.add("ColorChooser");
+                	includes.add("FileChooser");
+                	includes.add("Component");
+                	// includes.add("ComboBox");	                     
+                	includes.add("Browser");
+                	includes.add("Tree");
+                	includes.add("SplitPane");
+
+                	// includes.add("Button");
+                	// includes.add("CheckBox");
+                	// includes.add("DesktopPane");
+                	// includes.add("EditorPane");
+                	// includes.add("FormattedTextField");
+                	// includes.add("Label");
+                	// includes.add("MenuBar");
+                	// includes.add("OptionPane");
+                	// includes.add("Panel");
+                	// includes.add("RadioButton");
+                	
+                	ch.randelshofer.quaqua.QuaquaManager.setIncludedUIs(includes);
+                	
+                	 UIManager.setLookAndFeel("ch.randelshofer.quaqua.QuaquaLookAndFeel");
+                    // System.setProperty("Quaqua.design", "panther");
+                    
+                  //UIManager.setLookAndFeel(ch.randelshofer.quaqua.QuaquaManager.getLookAndFeel());
+                    //System.setProperty("Quaqua.design", "panther");
                 }
                 catch (Throwable t) {
                     Log.error("Couldn't load quaqua look and feel", t);

@@ -322,7 +322,6 @@ public class LWNode extends LWContainer
         mShape = shape;
         mShape.setFrame(0, 0, getWidth(), getHeight());
         layout(LWKey.Shape);
-        updateConnectedLinks(null);
         notify(LWKey.Shape, new Undoable(old) { void undo() { setShapeInstance((RectangularShape)old); }} );
         
     }
@@ -1567,8 +1566,9 @@ public class LWNode extends LWContainer
      */
     private void layoutContentInShape(RectangularShape shape, NodeContent content)
     {
-        final float width = (float) shape.getWidth();
-        final float height = (float) shape.getHeight();
+	 	          final float shapeWidth = (float) shape.getWidth();
+	 	          final float shapeHeight = (float) shape.getHeight();
+	 	          
         final float margin = 0.5f; // safety so 100% sure will be in-bounds
         boolean content_laid_out = false;
 
@@ -1576,20 +1576,20 @@ public class LWNode extends LWContainer
             int gravity = ((RectangularPoly2D)shape).getContentGravity();
             content_laid_out = true;
             if (gravity == RectangularPoly2D.CENTER) {
-                content.x = (width - content.width) / 2;
-                content.y = (height - content.height) / 2;
+                content.x = (shapeWidth - content.width) / 2;
+                content.y = (shapeHeight - content.height) / 2;
             } else if (gravity == RectangularPoly2D.EAST) {
                 content.x = margin;
-                content.y = (float) (height - content.height) / 2;
+                content.y = (float) (shapeHeight - content.height) / 2;
             } else if (gravity == RectangularPoly2D.WEST) {
-                content.x = (width - content.width) + margin;
-                content.y = (float) Math.floor((height - content.height) / 2);
+                content.x = (shapeWidth - content.width) - margin;
+                content.y = (float) Math.floor((shapeHeight - content.height) / 2);
             } else if (gravity == RectangularPoly2D.NORTH) {
-                content.x = (width - content.width) / 2;
+                content.x = (shapeWidth - content.width) / 2;
                 content.y = margin;
             } else if (gravity == RectangularPoly2D.SOUTH) {
-                content.x = (width - content.width) / 2;
-                content.y = (height - content.height) - margin;
+                content.x = (shapeWidth - content.width) / 2;
+                content.y = (shapeHeight - content.height) - margin;
             } else {
                 Log.error(new Error("Unsupported content gravity " + gravity + " on shape " + shape + "; defaulting to CENTER"));
                 content_laid_out = false;
@@ -1597,8 +1597,8 @@ public class LWNode extends LWContainer
         }
         if (!content_laid_out) {
             // default is center layout
-            content.x = (width - content.width) / 2;
-            content.y = (height - content.height) / 2;
+            content.x = (shapeWidth - content.width) / 2;
+            content.y = (shapeHeight - content.height) / 2;
         }
     }
 

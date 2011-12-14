@@ -1010,4 +1010,3 @@ public class MapInspectorPanel extends JPanel
 
 
 
-

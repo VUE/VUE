@@ -109,6 +109,13 @@ public class WormholeResource extends URLResource {
     /** See tufts.vue.URLResource - reimplementation of private member */
     private ArrayList<PropertyEntry> mXMLpropertyList;  
     
+	// HO 28/03/2011 BEGIN *************
+	private final String strBackSlashPrefix = "\\\\";
+	private final String strBackSlash = "\\";
+	private final String strForwardSlashPrefix = "////";
+	private final String strForwardSlash = "/";
+	// HO 28/03/2011 END *************
+    
     /**
      * Creates a WormholeResource given the URI of a target map and the URI of a target component.
      * @param mapURI, the URI of the target map.
@@ -1091,12 +1098,7 @@ public class WormholeResource extends URLResource {
 		String strOriginatingFile = this.getOriginatingFilename();
 		
 		String strPossPrefix = "file:";
-		// HO 28/03/2011 BEGIN *************
-		String strBackSlashPrefix = "\\\\";
-		String strBackSlash = "\\";
-		String strForwardSlashPrefix = "////";
-		String strForwardSlash = "/";
-		// HO 28/03/2011 END *************
+
 		// if the spec was not set, replace it with the last known filename
 		if (strSpec.equals(SPEC_UNSET))
 			strSpec = this.getTargetFilename();
@@ -1108,56 +1110,64 @@ public class WormholeResource extends URLResource {
 		// HO 12/05/2011 END *********
 		
 		// HO 03/11/2011 BEGIN **********
+		// one of these may have a "file:" prefix and the other may not
 		strSpec = LWMap.stripFilePrefixFromPathString(strSpec);
 		strOriginatingFile = LWMap.stripFilePrefixFromPathString(strOriginatingFile);
 		
-		//if (strSpec.startsWith(strPossPrefix))
-			//strSpec = strSpec.substring(strPossPrefix.length(), strSpec.length());
-		//if (strOriginatingFile.startsWith(strPossPrefix))
-			//strOriginatingFile = strOriginatingFile.substring(strPossPrefix.length(), strOriginatingFile.length());
-		// HO 03/11/2011 END **********
-		
-		// HO 28/03/2011 BEGIN *************
-		if (strSpec.startsWith(strBackSlashPrefix))
-			strSpec = strSpec.substring(strBackSlashPrefix.length(), strSpec.length());
-		if (strOriginatingFile.startsWith(strBackSlashPrefix))
-			strOriginatingFile = strOriginatingFile.substring(strBackSlashPrefix.length(), strOriginatingFile.length());
-		
-		if (strSpec.startsWith(strForwardSlashPrefix))
-			strSpec = strSpec.substring(strForwardSlashPrefix.length(), strSpec.length());
-		if (strOriginatingFile.startsWith(strForwardSlashPrefix))
-			strOriginatingFile = strOriginatingFile.substring(strForwardSlashPrefix.length(), strOriginatingFile.length());
-		// HO 28/03/2011 END *************
+		// HO 14/12/2011 BEGIN *******
+		// leading slashes may be in different numbers
+		// so just strip them all off
+		strSpec = stripPrefixSlashes(strSpec, false);
+		strOriginatingFile = stripPrefixSlashes(strOriginatingFile, false);
+		// HO 14/12/2011 END *********
 		
 		if (strSpec.equals(strOriginatingFile))
 			bSameMap = true;
+		// the slashes in the paths may still be going in different directions
 		else if ((strSpec.contains(strForwardSlash)) && (strOriginatingFile.contains(strBackSlash))) {
 			strSpec = strSpec.replaceAll(strForwardSlash, strBackSlashPrefix);
 		}
 		else if ((strSpec.contains(strBackSlash)) && (strOriginatingFile.contains(strForwardSlash))) {
 			strOriginatingFile = strOriginatingFile.replaceAll(strForwardSlash, strBackSlashPrefix);
 		}
-		
-		// HO 21/09/2011 BEGIN ************
-		// if one string starts with a back or forward slash and the other doesn't, strip off 
-		// the one that does
-		if ((strSpec.startsWith(strBackSlash)) && (!strOriginatingFile.startsWith(strBackSlash))) {
-			strSpec = strSpec.substring(strBackSlash.length(), strSpec.length());
-		} else if ((strOriginatingFile.startsWith(strBackSlash)) && (!strSpec.startsWith(strBackSlash))) {
-			strOriginatingFile = strOriginatingFile.substring(strBackSlash.length(), strOriginatingFile.length());
-		} else if ((strSpec.startsWith(strForwardSlash)) && (!strOriginatingFile.startsWith(strForwardSlash))) {
-			strSpec = strSpec.substring(strForwardSlash.length(), strSpec.length());
-		} else if ((strOriginatingFile.startsWith(strForwardSlash)) && (!strSpec.startsWith(strForwardSlash))) {
-			strOriginatingFile = strOriginatingFile.substring(strForwardSlash.length(), strOriginatingFile.length());
-		}				
-		// HO 21/09/2011 END ************
-		
+				
+		// finally we should have stripped away any false negatives
 		if (strSpec.equals(strOriginatingFile))
 			bSameMap = true;
 					
 		return bSameMap;
 	} 
 	// HO 25/03/2011 END ****************
+	
+	// HO 14/12/2011 BEGIN *********
+	/**
+	 * A function to strip off any back or forward slashes from a file path
+	 * @param strStrip, the String representing the file path, to be stripped of leading slashes
+	 * @param bTrimming, false if we are going to try to trim this, true otherwise
+	 * @return a String representing the file path, recursing until
+	 * stripped of all leading slashes
+	 * @author Helen Oliver
+	 */
+	private String stripPrefixSlashes(String strStrip, boolean bTrimming) {
+		// HO 24/12/2011 BEGIN ********
+		// keep trimming until we can't any more
+		bTrimming = false;
+		// HO 24/12/2011 END ********
+		if (strStrip.startsWith(strBackSlash)) {
+			strStrip = strStrip.substring(strBackSlash.length(), strStrip.length());
+			bTrimming = true;
+		} else if (strStrip.startsWith(strForwardSlash)) {
+			strStrip = strStrip.substring(strForwardSlash.length(), strStrip.length());
+			bTrimming = true;
+		} 
+		
+		if (bTrimming == true) {
+			strStrip = stripPrefixSlashes(strStrip, bTrimming);
+		} 
+
+		return strStrip;
+	}
+	// HO 14/12/2011 END **********
     
     /**
      * reimplementation of URLResource.displayContent()

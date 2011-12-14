@@ -28,6 +28,9 @@ import tufts.vue.LWComponent;
 
 import org.xml.sax.InputSource;
 
+import bsh.EvalError;
+import bsh.Interpreter;
+
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 
@@ -64,6 +67,7 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
     private boolean mXMLRestoreUnderway;
         
     private Field mKeyField;
+    private Field mEncodingField;
 
     private final List<DataRow> mRows = new ArrayList();
 
@@ -917,6 +921,13 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
             mKeyField = getKeyFieldGuess();
         return mKeyField;
     }
+    
+    public synchronized Field getEncodingField() {
+        if (mEncodingField == null)
+        	return new Field("win", this);
+        else
+        	return mEncodingField;
+    }
 
     public synchronized String getKeyFieldName() {
         return getKeyField().getName();
@@ -927,8 +938,17 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
         mKeyField = f;
     }
     
+    public synchronized void setEncodingField(Field f) {
+        //Log.debug("setKeyField " + Util.tags(f));
+        mEncodingField = f;
+    }
+    
     public synchronized void setKeyField(String name) {
         setKeyField(getField(name));
+    }
+    
+    public synchronized void setEncodingField(String name) {
+        setEncodingField(getField(name));
     }
         
 //     public Object getSource() {
@@ -1012,7 +1032,7 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
         return mFields.containsKey(f.getName());
     }
     
-    
+    public static final String MATRIX_NAME_FIELD="Title";
     public synchronized String getName() {
 
         if (mName != null) {
@@ -1044,7 +1064,16 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
 //             return o.toString();
     }
 
+   // private String[] matrixEntities = {"FromName","ToName","FlowAmount"};
+    private HashMap<String,Integer> matrixColNums = new HashMap<String,Integer>();
+    private HashMap<String,Integer> matrixMetadataCols = new HashMap<String, Integer>();
+    private Field matrixNameField = new Field(MATRIX_NAME_FIELD,this);
+    
     public synchronized void ensureFields(String[] names) {
+    	ensureFields(null,names,false);
+    	
+    }
+    public void ensureFields(XmlDataSource ds, String[] names, boolean isMatrixData) {
 
         if (DEBUG.SCHEMA) {
             Log.debug("ensureFields:");
@@ -1052,12 +1081,29 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
             Log.debug("ensureFields; existingFields:");
             Util.dump(mFields);
         }
+        if (isMatrixData)
+        	addField(matrixNameField);
         
+        int index = 0;
         for (String name : names) {
             name = name.trim();
+            if (isMatrixData)
+            {
+            	String[] matrixEntities = {ds.getMatrixRowField(),ds.getMatrixColField(),ds.getMatrixRelField(),ds.getMatrixPivotField()};
+
+            	if (isMatrixData && org.apache.commons.lang.ArrayUtils.contains(matrixEntities, name))
+	            {	matrixColNums.put(name, index);
+	            	index++;
+	            	continue;
+	            } else if  (isMatrixData && !org.apache.commons.lang.ArrayUtils.contains(matrixEntities, name))
+	            	matrixMetadataCols.put(name,index);
+            }
+            
+         
             if (!mFields.containsKey(name)) {
                 addField(new Field(name, this));
             }
+            index++;
         }
 
         // TODO: if any fields already exists and are NOT named in names, we at least
@@ -1203,7 +1249,6 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
         return debug.toString();
     }
     
-
     protected void addRow(DataRow row) {
         mRows.add(row);
     }
@@ -1226,6 +1271,210 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
             row.addValue(field, value);
         }
         addRow(row);
+    }
+
+    protected HashMap<String,Integer> existingRows = null;
+    List<MatrixRelationship> matrixRelations = new ArrayList<MatrixRelationship>();
+    public boolean isMatrixDataSet = false;
+    protected void addMatrixRow(XmlDataSource ds, String[] values) {
+
+    	isMatrixDataSet=true;
+        DataRow fromRow = new DataRow(this);
+
+        Collection<Integer> colNums = matrixColNums.values();
+
+        //HANDLE FROM SIDE OF RELATIONSHIP
+        String rowName = ds.getMatrixRowField();
+        String colName = ds.getMatrixColField();
+        String relName = ds.getMatrixRelField();
+        
+        fromRow.addValue(matrixNameField, values[matrixColNums.get(rowName)]);
+        
+        for (Field field : getFields()) {
+        	
+        	if (field.getName().equals(MATRIX_NAME_FIELD))
+        		continue;
+        	
+        	int valCol = this.matrixMetadataCols.get(field.getName()).intValue();
+        	
+            
+            fromRow.addValue(field, values[valCol]);
+
+        }
+       	
+
+        if (existingRows.get(values[matrixColNums.get(rowName)]) == null)
+        {
+        	addRow(fromRow);
+        	existingRows.put(values[matrixColNums.get(rowName)], new Integer(fromRow.mmap.size()));
+        } else 
+        {
+        	//it's currently in as a ToRow replace it
+        	int valCount = existingRows.get(values[matrixColNums.get(rowName)]);
+        	if (valCount < fromRow.mmap.size())
+        	{
+        		//remove the existing row, add new one.
+        		existingRows.remove(values[matrixColNums.get(rowName)]);
+        		existingRows.put(values[matrixColNums.get(rowName)], new Integer(fromRow.mmap.size()));
+        		
+        		for (DataRow r: getRows())
+        		{
+        			if (r.getValue(MATRIX_NAME_FIELD).equals(values[matrixColNums.get(rowName)]))
+        			{
+        				getRows().remove(r);
+        				break;
+        			}
+        		}
+        		
+        		addRow(fromRow);
+        	}
+        }
+        
+        //HANDLE TO SIDE OF RELATIONSHIP
+      //don't add self-referntial relationships.
+        if (!values[matrixColNums.get(rowName)].equals(values[matrixColNums.get(colName)]))
+        {
+        	DataRow toRow = new DataRow(this);
+        
+        	toRow.addValue(matrixNameField, values[matrixColNums.get(colName)]);
+
+        //toRow won't have any fields :(
+   
+        	if (existingRows.get(values[matrixColNums.get(colName)]) == null)
+        	{
+        		addRow(toRow);
+        		existingRows.put(values[matrixColNums.get(colName)], new Integer(toRow.mmap.size()));
+        	}
+        
+        	
+        	if (!values[matrixColNums.get(rowName)].equals(values[matrixColNums.get(colName)]) && !(values[matrixColNums.get(relName)].equals("0")))
+        		matrixRelations.add(new MatrixRelationship(values[matrixColNums.get(rowName)],values[matrixColNums.get(colName)],values[matrixColNums.get(relName)]));
+        }
+        return;
+        
+    }
+    int i=0;
+    String scriptTemplate;
+    protected void addWideMatrixRow(XmlDataSource ds, String[] values) {
+    	String script = scriptTemplate;
+    	final Interpreter interpreter = new Interpreter();
+    	int matrixSize = new Integer(ds.getMatrixSizeField()).intValue();
+    	int rowCount = tempTable.values().size();
+    	
+    //	System.out.println("Matrix Size :" + matrixSize);
+    	//skip partial rows
+    	if (values.length < matrixSize)
+    		return;
+    	
+
+    	isMatrixDataSet=true;
+    	
+    	int pivotNum = 0;
+    	String thisCol = "";
+    	DataRow fromRow = null;
+    	
+    	if (rowCount < matrixSize)
+    	{	    		
+    		fromRow = new DataRow(this);
+	        String matrixPivot = ds.getMatrixPivotField();
+	        pivotNum = matrixColNums.get(matrixPivot);
+	        thisCol = values[matrixColNums.get(matrixPivot)];
+	        fromRow.addValue(matrixNameField, thisCol);
+    	        
+	        for (int i= pivotNum + 1; i < pivotNum + matrixSize + 1; i++)
+	        { 
+	        	if (thisCol.equals(ds.headerValues[i]))
+	        		continue;
+	        	//System.out.println("RELATION " + (values[i].equals("0")));
+	        //	System.out.println("ds.getMatrixIgnore " + ds.getMatrixIgnoreField());
+	        	if (!(values[i].equals(ds.getMatrixIgnoreField())))
+	        	{
+	        		Object res="";
+	        		if (scriptTemplate !=null)
+	        		{
+		        		try {
+//		        			System.out.println("before : " + scriptTemplate);
+		        			script = scriptTemplate.replaceAll("(\\$rel)", values[i]);
+	//	        			System.out.println(script);
+							interpreter.eval(script);
+							res = interpreter.get("result");
+						//	System.out.println(res.toString());
+						} catch (EvalError e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+	        		}
+	        		else
+	        			res = values[i];
+
+	        		matrixRelations.add(new MatrixRelationship(thisCol,ds.headerValues[i],res.toString()));
+	        	}
+	
+	        }
+
+	        //add everything before the matrix as metadata
+	        for (int i=0; i < pivotNum+1; i++)
+	        {
+	        	fromRow.addValue(new Field(ds.headerValues[i],this), values[i]);
+	        }
+	        
+	        //add everything after the matrix as metadata
+	        for (int i = pivotNum+ matrixSize +1; i < values.length; i ++)
+	        {
+	        	
+	        	fromRow.addValue(new Field(ds.headerValues[i],this), values[i]);
+	        }
+	    
+	        //addRow(fromRow);
+	    //    System.out.println("ADD TO HASH : " + thisCol + " ::: " + matrixColNums.get(matrixPivot));
+	        addRowToHash(thisCol,fromRow);
+	        
+	        
+	      
+    	}
+    	else
+    	{
+    		 String matrixPivot = ds.getMatrixPivotField();
+ 	        pivotNum = matrixColNums.get(matrixPivot);
+    		 //add everything after the matrix as metadata
+	        for (int i = pivotNum+1; i < matrixSize; i++)
+	        {
+	        	//System.out.println("val : " + values[i] + " ::: "+ ds.headerValues[i]);
+	        	DataRow r = tempTable.remove(ds.headerValues[i]);
+	        	r.addValue(new Field(values[pivotNum],this),values[i]);
+	        	tempTable.put(ds.headerValues[i], r);
+//	        	fromRow.addValue(new Field(ds.headerValues[i],this), values[i]);
+	        }
+	    //    System.out.println("END OF ROW");
+    	}
+    	//we're passed the point of using this for the matrix so use it as metadata.
+    	
+        return;        
+    }
+    
+    protected void convertToRows()
+    {
+    	int i=0;
+    	for (DataRow r : tempTable.values())
+    	{
+    		//System.out.println(i++);
+    		if (r !=null)
+    			addRow(r);
+    	}
+    	
+    	tempTable.clear();
+  //  	tempTable=null;
+    }
+    
+    TreeMap<String,DataRow> tempTable = new TreeMap<String,DataRow>();
+
+    private DataRow getRowFromHash(String key)
+    {
+    	return tempTable.get(key);
+    }
+    private void addRowToHash(String key, DataRow val)
+    {
+    	tempTable.put(key, val);
     }
 
     /** called by schema loaders to notify the Schema that all the rows have been loaded (and any final analysis can be completed) */
@@ -1388,7 +1637,7 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
 
 /** a row impl that handles flat tables as well as Xml style variable "rows" or item groups */
 //class DataRow extends tufts.vue.MetaMap {
-final class DataRow implements Relation.Scannable {
+final class DataRow implements Relation.Scannable{
 
     final tufts.vue.MetaMap mmap = new tufts.vue.MetaMap();
 
@@ -1480,6 +1729,5 @@ final class DataRow implements Relation.Scannable {
     tufts.vue.MetaMap getData() {
         return mmap;
     }
-    
     
 }

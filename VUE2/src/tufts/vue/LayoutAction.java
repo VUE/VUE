@@ -36,9 +36,13 @@ public abstract  class LayoutAction extends Actions.LWCAction
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LayoutAction.class);
     private Layout layout = new edu.tufts.vue.layout.ListRandomLayout();
     
-    private LayoutAction(edu.tufts.vue.layout.Layout layout, String name,int keyCode) {
-        super(name, KeyStroke.getKeyStroke(keyCode, Actions.ALT));
+    private LayoutAction(edu.tufts.vue.layout.Layout layout, String name, int keyCode, int modifiers) {
+        super(name, KeyStroke.getKeyStroke(keyCode, modifiers));
         this.layout = layout;  
+    }
+    
+    private LayoutAction(edu.tufts.vue.layout.Layout layout, String name, int keyCode) {
+    	this(layout, name, keyCode, Actions.ALT);
     }
     
     private LayoutAction(edu.tufts.vue.layout.Layout layout, String name,KeyStroke keyStroke) {
@@ -106,6 +110,16 @@ public abstract  class LayoutAction extends Actions.LWCAction
         boolean enabledFor(LWSelection selection ) { return true;}
     };
     
+    public static final LayoutAction hierarchical2 = new LayoutAction(new HierarchicalLayout2(), VueResources.getString("menu.format.layout.hierarchical2"), KeyEvent.VK_SLASH) {
+        boolean supportsSingleMover() { return false; }
+        boolean enabledFor(LWSelection selection ) { return true;}
+    };
+    
+    public static final LayoutAction hierarchical3 = new LayoutAction(new HierarchicalLayout2(true), VueResources.getString("menu.format.layout.hierarchical3"), KeyEvent.VK_SLASH, Actions.ALT | Actions.SHIFT) {
+        boolean supportsSingleMover() { return false; }
+        boolean enabledFor(LWSelection selection ) { return true;}
+    };
+    
     public static final LayoutAction cluster = new LayoutAction(new ClusterLayout(),VueResources.getString("menu.format.layout.cluster"), KeyEvent.VK_SEMICOLON) {
         boolean supportsSingleMover() { return false; }
         boolean enabledFor(LWSelection selection ) { return true;}
@@ -130,6 +144,8 @@ public abstract  class LayoutAction extends Actions.LWCAction
     	cluster,
         Actions.MakeCluster,
         hierarchical,
+        hierarchical2,
+        hierarchical3,
         force,
         null,
         Actions.PullInLinked,

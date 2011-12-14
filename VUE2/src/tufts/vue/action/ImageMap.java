@@ -80,7 +80,11 @@ public class ImageMap extends VueAction {
 		File selectedFile = ActionUtil.selectFile("Saving Imap", "html");
 
 		if (selectedFile != null)
-			createImageMap(selectedFile,1.0);
+			// HO 28/11/2011 BEGIN *******
+			// merging with latest version of mainstream VUE
+			//createImageMap(selectedFile,1.0);
+			createImageMap(selectedFile,1.0,"png");
+			// HO 28/11/2011 END **********
 	}
 	
 	public void createImageMap(File file,LWMap map,double zoom) {
@@ -109,7 +113,11 @@ public class ImageMap extends VueAction {
 		createHtml(imageName, fileName,map,zoom);
 	}
 
-	public void createImageMap(File file, double zoom) {
+	// HO 28/11/2011 BEGIN *********
+	// public void createImageMap(File file,double zoom) {
+	// merging with latest version of mainstream VUE
+	public void createImageMap(File file, double zoom, String format) {
+		// HO 28/11/2011 END ********
 		// See: VUE-536 in JIRA, If SaveAction Class still chooses "html" as the
 		// file type for image maps
 		// html file will already not be overwritten
@@ -119,10 +127,18 @@ public class ImageMap extends VueAction {
 		// file.getName().length()-5)+"-for-image-map"+".jpeg";
 		String imageLocation = file.getAbsolutePath().substring(0,
 				file.getAbsolutePath().length() - 5)
-				+ ".png";
+				// HO 28/11/2011 BEGIN *****
+				// merging with latest version of mainstream VUE
+				// + ".png";
+				 + "." + format;
+				// HO 28/11/2011 END ******
 		String imageName = file.getName().substring(0,
 				file.getName().length() - 5)
-				+ ".png";
+				// HO 28/11/2011 BEGIN *****
+				// merging with latest version of mainstream VUE
+				// + ".png";
+				 + "." + format;
+				// HO 28/11/2011 END ******
 		String fileName = file.getAbsolutePath().substring(0,
 				file.getAbsolutePath().length() - 5)
 				+ ".html";
@@ -141,6 +157,12 @@ public class ImageMap extends VueAction {
 
 		// createJpeg(imageLocation, "jpeg", currentMap, size);
 		// ImageConversion.createActiveMapJpeg(new File(imageLocation));
+		// HO 28/11/2011 BEGIN *******
+		// merging with mainstream VUE
+		 if (format.equals("jpeg"))
+			 imageDimensions = ImageConversion.createActiveMapJpeg(imageLocationFile, zoom);
+		else		
+		// HO 28/11/2011 END *********
 		imageDimensions = ImageConversion.createActiveMapPng(imageLocationFile,
 				zoom);
 		createHtml(imageName, fileName,zoom);

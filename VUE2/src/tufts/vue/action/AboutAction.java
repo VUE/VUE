@@ -1,5 +1,5 @@
 /*
-* Copyright 2003-2010 Tufts University  Licensed under the
+* Copyright 2003-2011 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -105,8 +105,8 @@ public class AboutAction extends tufts.vue.VueAction
                 				+ "&nbsp;&nbsp;&nbsp;Copyright &copy; 2010-2011 Imperial College London<br>"
                 				+ "&nbsp;&nbsp;&nbsp;All Rights Reserved<br><br>"
                 				+ "&nbsp;&nbsp;&nbsp;VISUAL UNDERSTANDING ENVIRONMENT<br>"
-                				+ "&nbsp;&nbsp;&nbsp;Developed by Tufts Academic Technology<br>"
-                				+ "&nbsp;&nbsp;&nbsp;Copyright &copy; 2003-2010 Tufts University<br>"
+                				+ "&nbsp;&nbsp;&nbsp;Developed by Tufts University<br>"
+                				+ "&nbsp;&nbsp;&nbsp;Copyright &copy; 2003-2011 Tufts University<br>"
                 				+ "&nbsp;&nbsp;&nbsp;All Rights Reserved<br><br>"
                 				// HO 31/10/2011 END ***********
                                 + "</font></html>");

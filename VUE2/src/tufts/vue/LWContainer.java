@@ -26,6 +26,7 @@ import java.awt.Color;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
+
 /**
  * Manage a group of children within a parent.
  *
@@ -424,7 +425,6 @@ public abstract class LWContainer extends LWComponent
         // of LWPathway.setEntries)
         
         layout();
-        updateConnectedLinks(null);
     }
 
 //     @Override

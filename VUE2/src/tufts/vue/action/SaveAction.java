@@ -236,7 +236,11 @@ public class SaveAction extends VueAction
             	HtmlOutputDialog hod = new HtmlOutputDialog();
             	hod.setVisible(true);   
             	if (hod.getReturnVal() > 0)
-            		new ImageMap().createImageMap(file, hod.getScale());
+            		// HO 28/11/2011 BEGIN **********
+            		// new ImageMap().createImageMap(file, hod.getScale());
+            		// merging with current VUE release
+            		new ImageMap().createImageMap(file, hod.getScale(), hod.getFormat());
+            		// HO 28/11/2011 END **********
             }
 //             else if (name.endsWith(".htm")) {
 //                 writeHTMLOutline(map, file);
@@ -505,7 +509,7 @@ public class SaveAction extends VueAction
             	HtmlOutputDialog hod = new HtmlOutputDialog();
             	hod.setVisible(true);   
             	if (hod.getReturnVal() > 0)
-            		new ImageMap().createImageMap(file, hod.getScale());
+            		new ImageMap().createImageMap(file, hod.getScale(), hod.getFormat());
             }
 
             else if(name.endsWith(".rdf"))

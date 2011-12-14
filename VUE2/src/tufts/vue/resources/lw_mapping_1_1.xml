@@ -66,7 +66,9 @@
   <class name="tufts.vue.shape.RectangularPoly2D$Diamond"><map-to xml="diamond"/></class>
   <class name="tufts.vue.shape.RectangularPoly2D$Hexagon"><map-to xml="hexagon"/></class>
   <class name="tufts.vue.shape.RectangularPoly2D$Pentagon"><map-to xml="pentagon"/></class>
+   <class name="tufts.vue.shape.RectangularPoly2D$Chevron"><map-to xml="chevron"/></class>
   <class name="tufts.vue.shape.RectangularPoly2D$Octagon"><map-to xml="octagon"/></class>
+  <class name="tufts.vue.shape.RectangularPoly2D$Rhombus"><map-to xml="rhombus"/></class>
   <class name="tufts.vue.shape.RoundRect2D"><map-to xml="roundRect"/>
     <field name="arcwidth" direct="true"><bind-xml node="attribute"/></field>
     <field name="archeight" direct="true"><bind-xml node="attribute"/></field>
@@ -960,6 +962,39 @@
     <field name="imageField" type="string">
           <bind-xml name="imageField" node="element" />
     </field>
+    <field name="encodingField" type="string">
+		<bind-xml name="encodingField" node="element" />
+	</field>
+	<field name="matrixField" type="string">
+	 	           <bind-xml name="matrixField" node="element" />
+	 	     </field>
+	 	      <field name="matrixIgnoreField" type="string">
+	 	           <bind-xml name="matrixIgnoreField" node="element" />
+	 	     </field>
+	 	     <field name="matrixRelProcessField" type="string">
+	 	           <bind-xml name="matrixRelProcessField" node="element" />
+	 	     </field>
+	 	      <field name="matrixRowField" type="string">
+	 	           <bind-xml name="matrixRowField" node="element" />
+	 	     </field>
+	 	      <field name="matrixColField" type="string">
+	 	           <bind-xml name="matrixColField" node="element" />
+	 	     </field>
+	 	      <field name="matrixRelField" type="string">
+	 	           <bind-xml name="matrixRelField" node="element" />
+	     	</field>
+	     	<field name="matrixFormatField" type="string">
+	 	           <bind-xml name="matrixFormatField" node="element" />
+	 	     </field>
+	 	     <field name="matrixPivotField" type="string">
+	 	           <bind-xml name="matrixPivotField" node="element" />
+	 	     </field>
+	 	         <field name="matrixStartRowField" type="string">
+	 	           <bind-xml name="matrixStartRowField" node="element" />
+	 	     </field>
+	 	         <field name="matrixSizeField" type="string">
+	 	           <bind-xml name="matrixSizeField" node="element" />
+	 	     </field>
  </class>
 <!--
 

@@ -65,10 +65,10 @@ public class DataTree extends javax.swing.JTree
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(DataTree.class);
     
-    private final Schema mSchema;
+    protected final Schema mSchema;
 
     private DataNode mRootNode;
-    private DataNode mAllRowsNode;
+    protected DataNode mAllRowsNode;
     private DataNode mSelectedSearchNode;
     private final JLabel mNewRowsLabel = new JLabel();
     private final JLabel mChangedRowsLabel = new JLabel();
@@ -285,20 +285,33 @@ public class DataTree extends javax.swing.JTree
     	try {
             annotateForMap(mActiveMap);
 
-            LWSelection newNodes = null;
+            
             
             if (mNewRowsCheckBox.isSelected()) {
                 addMissingRowsToMap(mActiveMap);
                 
-                newNodes = VUE.getSelection().clone();
+                final LWSelection newNodes = VUE.getSelection().clone();
+                
+                if (mSchema.isMatrixDataSet)
+                {
+                	GUI.invokeAfterAWT(new Runnable() { public void run() {
+                    	applyMatrixRelations(newNodes);
+                    	}});
+                }
             }
             
             if (mChangedRowsCheckBox.isSelected()) {
                 applyDataUpdatesToMap(mActiveMap);
-                
+                final LWSelection newNodes = VUE.getSelection().clone();
+
                 if (newNodes != null) {
                     VUE.getSelection().add(newNodes);
                 }
+                
+                if (mSchema.isMatrixDataSet)
+                	GUI.invokeAfterAWT(new Runnable() { public void run() {
+                    	applyMatrixRelations(newNodes);
+                    	}});
             }
         } catch (Throwable t) {
             Log.warn("updateMap", t);
@@ -308,6 +321,90 @@ public class DataTree extends javax.swing.JTree
         
     }
 
+    int call =0;
+    public synchronized void applyMatrixRelations(List<LWComponent> newNodes)
+    {
+    	//System.out.println("APPLY MATRIX RELATIONS : " + call++);
+    	List<MatrixRelationship> relations = mSchema.matrixRelations;
+    	//for (MatrixRelationship relation: relations)
+    	//	System.out.println("Relations : " + relation.getFromLabel() + ", " + relation.getToLabel());    	
+    
+    	for (LWComponent newNode: newNodes)
+    	{
+        	String trueName = newNode.getRawData().getString(Schema.MATRIX_NAME_FIELD);
+
+        	for (MatrixRelationship relation: relations)
+        	{
+        		if (relation.getFromLabel().equals(trueName) || relation.getToLabel().equals(trueName))
+        		{        			                			                			
+        			for (DataNode n : mAllRowsNode.getChildren()) {
+     		         	RowNode rn = (RowNode)n;
+     		         	
+        		     if (rn.isMapPresent()) {
+
+        		         	String potentialTargetName = rn.getRow().getValue(Schema.MATRIX_NAME_FIELD);
+        		         	if (potentialTargetName.equals(relation.getToLabel()) || potentialTargetName.equals(relation.getFromLabel()))
+        		         	{	                		         	
+		                		//System.out.println("Relation : " + relation.getFromLabel() + "," + relation.getToLabel());
+        		         		//try to find a place to draw it.
+        		                final Collection<LWComponent> searchSet = VUE.getActiveViewer().getMap().getAllDescendents(LWComponent.ChildKind.EDITABLE);
+        		                final Criteria criteria = dataNodeToSearchCriteria(rn);
+        		                SmartSearch currentSearch = new SmartSearch();
+        		                currentSearch.addCriteria(criteria);
+        		                List<LWComponent> hits = currentSearch.search(searchSet);
+
+        		                for (LWComponent hit: hits)
+        		                {
+        		                	LWLink link = null;
+        		                	LWLink link2 = null;
+        		                	
+        		                	if (newNode.getLabel().equals(hit.getLabel()))
+        		                		continue;
+        		                	        		                
+        		                	if (relation.getFromLabel().equals(trueName) && !newNode.hasDirectedLinkTo(hit))
+        		                			link = new LWLink(newNode,hit);
+        		                	
+        		                	if  (relation.getToLabel().equals(trueName) && !hit.hasDirectedLinkTo(newNode))
+        		                			link2 = new LWLink(hit,newNode);        		                	
+
+        		                	LWSelection sel = VUE.getSelection();
+    		                		VUE.getSelection().clear();
+        		                	
+        		                
+        		               
+        		                		
+        		                	if (link !=null)
+        		                	{        	
+        		                		link.setLabel(relation.getRelationLabel());
+    		                			link.setAsDataLink(relation.getRelationLabel());        		                		    		                		
+    		                			VUE.getActiveViewer().getMap().add(link);        		                		
+        		                		VUE.getSelection().add(link);       
+        		                		//System.out.println("Add Link 1 : " + link.toString() + " :: " + call + " :: " + newNode.toString() + " ::: " + hit.toString());
+        		                	}
+        		                	
+        		              
+        		                	if (link2 !=null)
+        		                	{        	
+        		                		link2.setLabel(relation.getRelationLabel());
+    		                			link2.setAsDataLink(relation.getRelationLabel());
+        		                		VUE.getActiveViewer().getMap().add(link2);        		            
+        		                		VUE.getSelection().add(link2);        		                		
+        		                		//System.out.println("Add Link 2 : " + link2.toString() + " :: " + call + " :: " + newNode.toString() + " ::: " + hit.toString());
+        		                	}
+        		                	
+        		                	if (hit.hasMultipleLinksTo(newNode) && VUE.getSelection().size() >0)
+        		                		tufts.vue.Actions.LinkMakeQuadCurved.act();
+        		                	
+        		                }
+        		         	} 
+        		     	}
+        			 } // for each data node
+
+        		}
+        	}
+    	}
+    }
+    
     private void enableUpdateButton() {
         mUpdateButton.setEnabled((mNewRowsCheckBox.isEnabled() && mNewRowsCheckBox.isSelected()) ||
             (mChangedRowsCheckBox.isEnabled() && mChangedRowsCheckBox.isSelected()));
@@ -726,7 +823,7 @@ public class DataTree extends javax.swing.JTree
         selection.setWithStyle(hits, desc, styleRecord);
     }
 
-    private Criteria dataNodeToSearchCriteria(final DataNode treeNode) {
+    public Criteria dataNodeToSearchCriteria(final DataNode treeNode) {
 
         final Field field = treeNode.getField();
         final String fieldName = field == null ? null : field.getName();
@@ -777,7 +874,7 @@ public class DataTree extends javax.swing.JTree
 
     // todo: better to move all this Search stuff to a DataSearch.java or some such.
     
-    private abstract static class Criteria {
+    public abstract static class Criteria {
         boolean matches(LWComponent c) {
             throw new UnsupportedOperationException("unimplemented matches in " + this);
         }
@@ -1083,6 +1180,7 @@ public class DataTree extends javax.swing.JTree
 
         int _newRowCount = 0;
         int _changedRowCount = 0;
+     //   if (mAllRowsNode.getChildren() !=null)
         for (DataNode n : mAllRowsNode.getChildren()) {
             if (!n.isMapPresent())
                 _newRowCount++;
@@ -1452,7 +1550,8 @@ public class DataTree extends javax.swing.JTree
                 }
             };
                     
-        
+        //The current data model doesn't make sense for matrix data and so it's not going to make a ton of sense
+        if (!DataTree.this.mSchema.isMatrixDataSet)
         for (Field field : sortedFields) {
             
 //             if (field.isSingleton())
@@ -2190,15 +2289,7 @@ public class DataTree extends javax.swing.JTree
     //private static final Icon UniqueValueOffMapIcon = makeIcon(0x29BF, 16, Color.lightGray, 0, -1);
     private static final Icon UniqueValueOnMapIcon = makeIcon(0x229A, 16, VueConstants.COLOR_SELECTION, 0, 0);
     private static final Icon UniqueValueOffMapIcon = makeIcon(0x229A, 16, Color.lightGray, 0, 0);
-    
-    // 29BE: â¦¾
-    // 29BF: â¦¿
-    // 25C9: â—‰ 
-    // 25CE: â—Ž
-    // 229A: âŠš
-    // 25E6: â—¦
-    // 229D: âŠ�
-    // 229B: âŠ›    
+     
 
 
     
@@ -2476,4 +2567,3 @@ public class DataTree extends javax.swing.JTree
 //         Log.debug("PRODUCED META-DATA IN " + field);
 
 //     }
-

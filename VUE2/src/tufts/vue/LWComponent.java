@@ -2883,6 +2883,7 @@ public class LWComponent
     public boolean hasLinks() {
         return mLinks != null && mLinks.size() > 0;
     }
+   
     /*
     public String getMetaData()
     {
@@ -3182,6 +3183,8 @@ public class LWComponent
             //if (mSlideIconBounds != null)
             //    mSlideIconBounds.x = Float.NaN; // invalidate
         }
+        
+        updateConnectedLinks(null);
     }
 
     protected boolean validateInitialValues() {
@@ -3932,7 +3935,9 @@ public class LWComponent
             mLinks.add(link);
             notify(LWKey.LinkAdded, link); // informational only event
         }
+    
     }
+
     /** for tracking who's linked to us */
     void removeLinkRef(LWLink link)
     {
@@ -3941,11 +3946,64 @@ public class LWComponent
             Log.warn("removeLinkRef: " + this + " didn't contain " + link);
         clearHidden(HideCause.PRUNE); // todo: ONLY clear this if we were pruned by the given link!
         notify(LWKey.LinkRemoved, link); // informational only event
+
     }
     
     /** @return us all the links who have us as one of their endpoints */
     public List<LWLink> getLinks(){
         return mLinks == null ? Collections.EMPTY_LIST : mLinks;
+    }
+    
+    public List<LWLink> getIncomingLinks(){
+    	// Note: it's inefficient to call getIncomingLinks() AND getOutgoingLinks() because bi-directional
+	 	         // links will be returned by both and you'll double-process them.  If you want both incoming and
+	 	         // outgoing links just call getLinks() and there won't be duplicates.
+	 	         List<LWLink> incomingLinks = new ArrayList<LWLink>();
+	 	 
+	 	         for (LWLink link : getLinks()) {
+	 	             int     arrowState = link.getArrowState();
+	 	             boolean arrowHead = arrowState == LWLink.ARROW_HEAD,
+	 	                     arrowTail = arrowState == LWLink.ARROW_TAIL,
+	 	                     arrowNonDirectional = arrowState == LWLink.ARROW_BOTH || arrowState == LWLink.ARROW_NONE;
+	 	 
+	 	             if (this == link.getHead()) {
+	 	                 if (arrowHead || arrowNonDirectional) {
+	 	                     incomingLinks.add(link);
+	 	                 }
+	 	             } else if (this == link.getTail()) {
+	 	                 if (arrowTail || arrowNonDirectional) {
+	 	                     incomingLinks.add(link);
+	 	                 }
+	 	             }
+	 	         }
+	 	 
+	 	         return incomingLinks;
+    }
+
+    public List<LWLink> getOutgoingLinks(){
+    	// Note: it's inefficient to call getIncomingLinks() AND getOutgoingLinks() because bi-directional
+	 	         // links will be returned by both and you'll double-process them.  If you want both incoming and
+	 	         // outgoing links just call getLinks() and there won't be duplicates.
+	 	         List<LWLink> outgoingLinks = new ArrayList<LWLink>();
+	 	 
+	 	         for (LWLink link : getLinks()) {
+	 	             int     arrowState = link.getArrowState();
+	 	             boolean arrowHead = arrowState == LWLink.ARROW_HEAD,
+	 	                     arrowTail = arrowState == LWLink.ARROW_TAIL,
+	 	                     arrowNonDirectional = arrowState == LWLink.ARROW_BOTH || arrowState == LWLink.ARROW_NONE;
+	 	 
+	 	             if (this == link.getHead()) {
+	 	                 if (arrowTail || arrowNonDirectional) {
+	 	                     outgoingLinks.add(link);
+	 	                 }
+	 	             } else if (this == link.getTail()) {
+	 	                 if (arrowHead || arrowNonDirectional) {
+	 	                     outgoingLinks.add(link);
+	 	                 }
+	 	             }
+	 	         }
+	 	 
+	 	         return outgoingLinks;
     }
 
 //     /** get all links to us + to any descendents */
@@ -3980,7 +4038,7 @@ public class LWComponent
                 bag.add(head);
         }
         return bag;
-    }
+    } 
 
     /** @return all nodes that are *probable* clustering targets for this node.  Currently,
      * this usually means most or all of the nodes this node is linked to */
@@ -4255,6 +4313,38 @@ public class LWComponent
                 return true;
         return false;
     }
+    
+    /** @return true if there are any links between us and the given component */
+	 	     public boolean hasDirectedLinkTo(LWComponent c)
+	 	     {
+	 	         if (c == null || mLinks == null)
+	 	             return false;
+	 	 
+	 	         for (LWLink link : mLinks)
+	 	         {
+	 	                 LWComponent tail = link.getTail();
+	 	             if (link.hasEndpoint(c) && tail.equals(c))
+	 	                 return true;
+	 	         }
+	 	         return false;
+	 	     }
+	 	 
+	 	     /** @return true if there are any links between us and the given component */
+	 	     public boolean hasMultipleLinksTo(LWComponent c)
+	 	     {
+	 	         if (c == null || mLinks == null)
+	 	             return false;
+	 	 
+	 	         int count = 0;
+	 	         for (LWLink link : mLinks)
+	 	             if (link.hasEndpoint(c))
+	 	                 count++;
+	 	 
+	 	         if (count >1)
+	 	                 return true;
+	 	         else
+	 	                 return false;
+	 	     }    
 
     /** @return true of this component has any connections (links) to the given component.
      *  LWLink overrides to include it's endpoints in the definition of "connected" to.
