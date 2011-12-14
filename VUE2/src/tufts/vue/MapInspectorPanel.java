@@ -115,21 +115,8 @@ public class MapInspectorPanel extends JPanel
     	   mTwitterPanel.setName(VueResources.getString("twitter.tabname"));
        }
 
-       BooleanPreference imPreference = BooleanPreference.create(
-    		   edu.tufts.vue.preferences.PreferenceConstants.EXPERIMENTAL_CATEGORY,
-    		   "IM", 
-    		   VueResources.getString("im.title"),
-    		   VueResources.getString("im.preference.description"),
-    		   VueResources.getString("im.preference.message"),
-    		   Boolean.FALSE,
-    		   true);
-       boolean imEnabled = imPreference.isTrue();
- 
-       if (imEnabled)
-        {
-        	mVueAimPanel = new VueAimPanel();
-        	mVueAimPanel.setName(VueResources.getString("im.tabname"));
-        }
+        mVueAimPanel = new VueAimPanel();
+        mVueAimPanel.setName(VueResources.getString("im.tabname"));
         
         Widget.setWantsScroller(mapInfoStack, true);
         Widget.setWantsScrollerAlways(mapInfoStack, true);
@@ -138,8 +125,7 @@ public class MapInspectorPanel extends JPanel
         mapInfoStack.addPane(mInfoPanel,0f);
         mapInfoStack.addPane(mDescriptionPanel, 0f);
         mapInfoStack.addPane(metadataPanel,0f);
-        if (imEnabled)
-        	mapInfoStack.addPane(mVueAimPanel ,0f);
+        mapInfoStack.addPane(mVueAimPanel ,0f);
         if (DEBUG.TWITTER)
         	mapInfoStack.addPane(mTwitterPanel,0f);
         metadataPanel.adjustColumnModel();

@@ -954,20 +954,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         	//analysisMenu.add(analyzeCMAction);
 
         	analysisMenu.add(createWindowItem(SeasrAnalysisPanel.getSeasrAnalysisDock(), 0, VueResources.getString("menu.windows.seasr")));            
-
-        	BooleanPreference javaAnalysisPreference = BooleanPreference.create(
-        			edu.tufts.vue.preferences.PreferenceConstants.EXPERIMENTAL_CATEGORY,
-        			"JavaAnalysis", 
-        			VueResources.getString("analyze.java.javaAnalysis"),
-        			VueResources.getString("analyze.java.preference.description"),
-        			VueResources.getString("analyze.java.preference.message"),
-        			Boolean.FALSE,
-        			true);
-        	boolean javaAnalysisPanelEnabled = javaAnalysisPreference.isTrue();
-
-        	if (javaAnalysisPanelEnabled) {
-        		analysisMenu.add(createWindowItem(JavaAnalysisPanel.getJavaAnalysisDock(), 0, VueResources.getString("menu.windows.java")));
-        	}
+        	analysisMenu.add(createWindowItem(JavaAnalysisPanel.getJavaAnalysisDock(), 0, VueResources.getString("menu.windows.java")));
         //}
        
         
