@@ -488,7 +488,11 @@ public class TextBox extends JTextPane
         if (DEBUG.TEXT) 
         	out("copyStyle " + c);
         SimpleAttributeSet a = new SimpleAttributeSet();
-        if (TestHarness || c instanceof LWNode && ((LWNode)c).isTextNode())
+        // HO 16/12/2011 BEGIN ********
+        if (c instanceof LWObliqueNode)
+        	StyleConstants.setAlignment(a, StyleConstants.ALIGN_CENTER);
+        // HO 16/12/2011 END ********
+        else if (TestHarness || c instanceof LWNode && ((LWNode)c).isTextNode())
             StyleConstants.setAlignment(a, StyleConstants.ALIGN_LEFT);
         // HO 12/12/2010 BEGIN ***********
         else if (c instanceof LWIBISNode)

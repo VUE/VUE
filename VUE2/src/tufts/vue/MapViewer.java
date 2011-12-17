@@ -22,6 +22,7 @@ import static tufts.Util.*;
 import tufts.vue.LinkTool.ComboModeTool;
 import tufts.vue.NodeTool.NodeModeTool;
 import tufts.vue.IBISNodeTool.IBISNodeModeTool;
+import tufts.vue.ObliqueStrategiesNodeTool.ObliqueStrategiesNodeModeTool;
 import tufts.vue.gui.GUI;
 import tufts.vue.gui.DockWindow;
 import tufts.vue.gui.FocusManager;
@@ -245,6 +246,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     // HO 12/12/2010 BEGIN *********
     private final VueTool IBISNodeModeTool = VueTool.getInstance(tufts.vue.IBISNodeTool.IBISNodeModeTool.class);
     // HO 12/12/2010 END *********
+    // HO 16/12/2011 BEGIN *******
+    private final VueTool ObliqueStrategiesNodeModeTool = VueTool.getInstance(tufts.vue.ObliqueStrategiesNodeTool.ObliqueStrategiesNodeModeTool.class);
+    // HO 16/12/2011 END **********
     private final VueTool RichTextTool =VueTool.getInstance(tufts.vue.RichTextTool.class);
     private final VueTool BrowseTool = VueTool.getInstance(tufts.vue.SelectionTool.Browse.class);
     private final VueTool ToolPresentation = VueTool.getInstance(tufts.vue.PresentationTool.class);
@@ -5912,6 +5916,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     	// HO 12/12/2010 ********************************
     	sSinglePopup.add(Actions.NewIBISNode);
     	// HO 12/12/2010 ********************************
+    	// HO 16/12/2011 BEGIN ********
+    	sSinglePopup.add(Actions.NewObliqueStrategiesDeck);
+    	// HO 16/12/2011 END **********
     	sSinglePopup.add(Actions.NewRichText);
     	sAddURLItem = sSinglePopup.add(Actions.AddURLAction);
     	// HO O7/07/2010 ********************************
@@ -6323,6 +6330,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             // HO 31/03/2011 BEGIN ****************
             sMapPopup.add(createNewIBISTypeMenu());
             // HO 31/03/2011 END ****************
+            // HO 16/12/2011 BEGIN **********
+            sMapPopup.addSeparator();
+            sMapPopup.add(Actions.NewObliqueStrategiesDeck);
+            // HO 16/12/2011 END **********
 
             sMapPopup.addSeparator();
             sMapPopup.add(Actions.ZoomFit);
@@ -8850,6 +8861,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     if (activeTool == IBISNodeModeTool && oneClickNodePref.isTrue())
                         Actions.NewIBISNode.fire(e);
                     // HO 12/12/2010 END ***********
+                    // HO 16/12/2011 BEGIN ********
+                    if (activeTool == ObliqueStrategiesNodeModeTool && oneClickNodePref.isTrue())
+                    	Actions.NewObliqueStrategiesDeck.fire(e);
+                    // HO 16/12/2011 END *********
                     else if (activeTool == TextTool)
                         Actions.NewRichText.fire(e);
                     else if (activeTool == RichTextTool)

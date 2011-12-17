@@ -600,6 +600,9 @@ public class VUE
         // HO 12/12/2010 BEGIN **********
         Actions.NewIBISNode.setEnabled(enable);
         // HO 12/12/2010 END **********
+        // HO 16/12/2011 BEGIN *******
+        Actions.NewObliqueStrategiesDeck.setEnabled(enable);
+        // HO 16/12/2011 END ********
         Actions.NewRichText.setEnabled(enable);
         
         VueMenuBar.RootMenuBar.playbackMenu.setEnabled(enable);

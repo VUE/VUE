@@ -47,6 +47,10 @@ import tufts.vue.Images;
 import tufts.vue.JavaAnalysisPanel;
 import tufts.vue.LWComponent;
 import tufts.vue.LWIBISNode;
+// HO 16/12/2011 BEGIN ******
+import tufts.vue.LWObliqueNode;
+import tufts.vue.ObliqueStrategiesDeck;
+// HO 16/12/2011 END *******
 import tufts.vue.LWImage;
 import tufts.vue.LWLink;
 import tufts.vue.LWMap;
@@ -787,6 +791,10 @@ public class VueMenuBar extends javax.swing.JMenuBar
         // a menu for adding IBIS nodes
         contentMenu.add(buildMenu("menu.content.addIBISnode", Actions.NEW_IBIS_TYPE_ACTIONS));
         // HO 01/04/2011 END ************
+        // HO 16/12/2011 BEGIN ********
+        contentMenu.addSeparator();
+        contentMenu.add(Actions.NewObliqueStrategiesDeck);
+        // HO 16/12/2011 END ********
         
         final JMenuItem addFileItem = new JMenuItem(Actions.AddFileAction);
         final JMenuItem addURLItem = new JMenuItem(Actions.AddURLAction);

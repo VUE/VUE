@@ -56,6 +56,7 @@ import tufts.vue.LWComponent.ChildKind;
 import tufts.vue.LWComponent.Flag;
 import tufts.vue.LWComponent.HideCause;
 import tufts.vue.NodeTool.NodeModeTool;
+import tufts.vue.ObliqueStrategiesNodeTool.ObliqueStrategiesNodeModeTool;
 import tufts.vue.gui.DeleteSlideDialog;
 import tufts.vue.gui.DockWindow;
 import tufts.vue.gui.FullScreen;
@@ -4519,6 +4520,21 @@ return areLinksFiltered();
             }
         };
     // HO 12/12/2010 END ***************
+        
+     // HO 16/12/2011 BEGIN ******
+        public static final VueAction NewObliqueStrategiesDeck =
+        	// HO 30/03/2011 changed letter from S to I
+            new NewItemAction(VueResources.local("menu.content.addObliqueStrategiesDeck"), keyStroke(KeyEvent.VK_Q, ALT)) {
+                boolean bArray = true;
+        		@Override
+                LWComponent createNewItem() {
+                    LWObliqueNode[] newDeck = ObliqueStrategiesNodeModeTool.createNewDeck();
+                    
+                    int rnd = 1 + (int)(Math.random() * ((100 - 1) + 1));
+                    return newDeck[rnd];
+                }
+            };  
+     // HO 16/12/2011 END ******
 
     //This doesn't really make a lot of sense to have 2 methods do the
     //same thing but my MapViewer.java is a bit decomposed at the moment so
@@ -4629,7 +4645,6 @@ return areLinksFiltered();
         LWComponent createNewItem() {
             throw new UnsupportedOperationException("NewItemAction: unimplemented create");
         }
-        
         
     }
     
@@ -4814,6 +4829,10 @@ return areLinksFiltered();
             else if (c instanceof LWIBISNode)
                 act((LWIBISNode)c);
             // HO 17/12/2010 END ***********
+            // HO 16/12/2011 BEGIN ******
+            else if (c instanceof LWObliqueNode)
+            	act((LWObliqueNode)c);
+            // HO 16/12/2011 END *******
             else if (c instanceof LWNode)
                 act((LWNode)c);           
             else if (c instanceof LWImage)
@@ -4830,6 +4849,9 @@ return areLinksFiltered();
         // HO 17/12/2010 BEGIN ***********
         void act(LWIBISNode c) { ignoredDebug(c); }
         // HO 17/12/2010 END ***********
+        // HO 16/12/2011 BEGIN ******
+        void act(LWObliqueNode c) { ignoredDebug(c); }
+        // HO 16/12/2011 END ******
         void act(LWImage c) { ignoredDebug(c); }
         void act(LWSlide c) { ignoredDebug(c); }
 
