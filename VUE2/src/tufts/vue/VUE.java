@@ -3719,6 +3719,9 @@ public class VUE
             if (loadedMap != null) {
             	// HO 27/02/2011 BEGIN ***********
             	try {
+                    // HO 21/12/2011 BEGIN ********
+                	loadedMap.lockFileForReadingAndWriting();
+                    // HO 21/12/2011 END ******
                 VUE.displayMapSpecial(loadedMap); 
             	// HO 27/07/2011 BEGIN test ***********
                 viewer = VUE.getCurrentTabbedPane().getViewerWithMap(loadedMap);
@@ -4045,6 +4048,9 @@ public class VUE
             loadedMap = OpenAction.loadMap(file.getAbsolutePath());
             alerted = true; // OpenAction.loadMap now always alerts
             if (loadedMap != null) {
+                // HO 21/12/2011 BEGIN ********
+            	loadedMap.lockFileForReadingAndWriting();
+                // HO 21/12/2011 END ******
                 VUE.displayMap(loadedMap);   
             }
             VUE.getMetadataSearchMainPanel().fillSavedSearch();
@@ -4136,8 +4142,12 @@ public class VUE
         boolean alerted = false;
         try {
             loadedMap = OpenAction.loadMap(url);
-            if (loadedMap != null)
+            if (loadedMap != null) {
+                // HO 21/12/2011 BEGIN ********
+            	loadedMap.lockFileForReadingAndWriting();
+                // HO 21/12/2011 END ******
                 VUE.displayMap(loadedMap);
+            }
         } catch (Throwable t) {
         	// HO 28/02/2011 BEGIN *********************
         	//VueUtil.alert("displayMap(URL) caught throwable " + t, "here");

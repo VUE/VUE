@@ -23,6 +23,8 @@ package tufts.vue.action;
 
 
 import javax.swing.*;
+
+import java.awt.Component;
 import java.awt.event.*;
 import java.io.*;
 import java.net.URI;
@@ -121,6 +123,13 @@ public class SaveAction extends VueAction
             return false;
         
         File file = map.getFile();
+        
+        // HO 21/12/2011 BEGIN *****
+        boolean bWritable = checkIfFileIsWritable(file);
+        if (bWritable == false)
+        	return false;
+        // HO 21/12/2011 END ********
+
         int response = -1;
         if (map.getSaveFileModelVersion() == 0) {
 
@@ -325,6 +334,23 @@ public class SaveAction extends VueAction
         return false;
     }
     
+    
+    
+    // HO 21/12/2011 BEGIN ******
+    private static boolean checkIfFileIsWritable(File file) {
+	    if (file.canWrite()) {
+	    	System.out.println("yes it's writable");
+	    	return true;
+	    } else {
+	    	JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
+	                "Someone already has this file open.", 
+	                "Can't save", 
+	                JOptionPane.ERROR_MESSAGE);
+	    	return false;
+	    }
+    }
+    // HO 21/12/2011 END ********
+    
     // HO 15/02/2011 BEGIN ****************
     /**
      * A function to auto-open a map immediately after saving.
@@ -355,6 +381,12 @@ public class SaveAction extends VueAction
             return null;
         
         File file = map.getFile();
+        // HO 21/12/2011 BEGIN *****
+        boolean bWritable = checkIfFileIsWritable(file);
+        if (bWritable == false)
+        	return null;
+        // HO 21/12/2011 END ********
+        
         // HO 22/02/2011 BEGIN *****************
         // get the name of the map we started with
         String strInitMapLabel = map.getLabel();

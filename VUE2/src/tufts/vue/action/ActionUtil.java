@@ -945,6 +945,14 @@ public class ActionUtil
             file = f;
         }
     }
+    
+    // HO 21/12/2011 BEGIN ******
+    private static java.nio.channels.FileLock lock = null;
+    
+    public java.nio.channels.FileLock getLock() {
+    	return lock;
+    }
+    // HO 21/12/2011 END ********
 
     private static MapReader getMapReaderForURL(URL url, String charsetEncoding, boolean allowRedirects)
         throws java.io.IOException
@@ -961,18 +969,34 @@ public class ActionUtil
             throw new MapException("cannot open " + file + ": is directory");
         
         Reader reader = null;
+
         
         try {
                 
             if (file != null) {
             
                 if (charsetEncoding != null) {
-                    
-                  reader = new InputStreamReader(new FileInputStream(file), charsetEncoding);
-                    
+                  // HO 21/12/2011 BEGIN *********** 
+                	
+                	 // reader = new InputStreamReader(new FileInputStream(file), charsetEncoding);
+                	FileInputStream in = new FileInputStream(file);     
+                	// RandomAccessFile in = new RandomAccessFile(file, "rw");
+                	//try {
+                		//lock = in.getChannel().lock();
+                		//lock = in.getChannel().tryLock(0L, Long.MAX_VALUE, true);
+                		try {
+                			reader = new InputStreamReader(in, charsetEncoding);
+                		} catch (Exception e) {
+                			e.printStackTrace();
+                		}
+                	//} catch (Exception e) {
+                		//e.printStackTrace();
+                	//}
+                  // HO 21/12/2011 END ***********   
                 }
-                else
+                else {
                     reader = new FileReader(file); // could default to UTF-8
+                }
                 
             } else {
 
@@ -992,11 +1016,11 @@ public class ActionUtil
                     // url = redirectURL;
                 }
                 
-                if (charsetEncoding != null)
+                if (charsetEncoding != null) {
                     reader = new InputStreamReader(UrlAuthentication.getAuthenticatedStream(url), charsetEncoding);
-                else
+                } else {
                     reader = new InputStreamReader(UrlAuthentication.getAuthenticatedStream(url)); // could default to UTF-8
-
+                }
  
             }
         

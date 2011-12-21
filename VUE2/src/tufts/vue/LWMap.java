@@ -663,18 +663,32 @@ public class LWMap extends LWContainer
             takeResource(null);
         }
 
-
-
-// Don't handle relativzation here.  On save, handle vie makeReadyForSaving, and on restore,
-// handle in XML_completed.
-//         if (false && mFile != null && !mXMLRestoreUnderway) { // not turned on yet
-//             // only do this on save: will be handled in completeXMLRestore
-//             // for restores
-//             relativizeResources(getAllDescendents(ChildKind.ANY),
-//                                 mSaveLocationURI);
-//         }
+        // HO 21/12/2011 BEGIN ********
+        lockFileForReadingAndWriting();
+        // HO 21/12/2011 END ******
         
     }
+    
+    // HO 21/12/2011 BEGIN ********
+    public void lockFileForReadingAndWriting() {
+    	File theFile = mFile;
+    	if (mFile != null) {
+    		try {
+		    	// first, nobody can read the file
+		    	theFile.setReadable(false);
+		    	// then, only the owner can read the file
+		    	theFile.setReadable(true, true);
+		    	// first, nobody can write to the file
+		    	theFile.setWritable(false);
+		    	// then, only the owner can write to the file
+		    	theFile.setWritable(true, true);
+    		} catch (SecurityException se) {
+    			se.printStackTrace();
+    		}
+    	}
+    	
+    }
+    // HO 21/12/2011 END ******
     
     /**
      * A method to set the "pretty" label,

@@ -258,6 +258,12 @@
 		<map-to xml="portal"/>
 	</class>
 	
+	<!-- HO 21/12/2011 BEGIN -->
+	<class name="tufts.vue.LWObliqueNode" extends="tufts.vue.LWNode">
+		<map-to xml="node"/>
+	</class>	
+	<!-- HO 21/12/2011 END -->
+	
 	<!-- HO 19/07/2010 BEGIN -->
 	<class name="tufts.vue.LWWormholeNode" extends="tufts.vue.LWNode">
 		<map-to xml="WormholeNode"/>
