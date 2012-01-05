@@ -125,9 +125,11 @@ public class SaveAction extends VueAction
         File file = map.getFile();
         
         // HO 21/12/2011 BEGIN *****
-        boolean bWritable = checkIfFileIsWritable(file);
-        if (bWritable == false)
-        	return false;
+        if (file != null) {
+	        boolean bWritable = VUE.checkIfFileIsWritable(file, false);
+	        if (bWritable == false)
+	        	return false;
+        }
         // HO 21/12/2011 END ********
 
         int response = -1;
@@ -172,9 +174,23 @@ public class SaveAction extends VueAction
             if (name.endsWith(".rli.xml")) {
                 new IMSResourceList().convert(map,file);
             }
-            else if (name.endsWith(".xml") || name.endsWith(".vue")) {
+            // HO 05/01/2012 BEGIN *******
+            // else if (name.endsWith(".xml") || name.endsWith(".vue")) {
+            else if (name.endsWith(".xml")) {
+            	// HO 05/01/2012 END *******
                 ActionUtil.marshallMap(file, map);
             }
+            // HO 05/01/2012 BEGIN *******
+            else if (name.endsWith(".vue")) {
+            	// HO 05/01/2012 BEGIN *******
+                VUE.deletePreviousLockFile(map, name);
+                // HO 05/01/2012 END ********* 
+            	ActionUtil.marshallMap(file, map);                
+                // HO 05/01/2012 BEGIN *******
+                VUE.createLockFile(file, false);
+                // HO 05/01/2012 END *********              
+            }
+            // HO 05/01/2012 END *********
             else if (name.endsWith(".jpeg") || name.endsWith(".jpg"))
                 ImageConversion.createActiveMapJpeg(file,VueResources.getDouble("imageExportFactor"));
             else if (name.endsWith(".png"))
@@ -196,7 +212,6 @@ public class SaveAction extends VueAction
             		if(component.hasResource() && (component.getResource() instanceof URLResource)){
                     
             			URLResource resource = (URLResource) component.getResource();                    
-                
             			//   	if(resource.getType() == Resource.URL) {
             			try {
                         // File file = new File(new URL(resource.getSpec()).getFile());
@@ -282,7 +297,14 @@ public class SaveAction extends VueAction
             }
             else if (name.endsWith(VueUtil.VueArchiveExtension))
             {
-                Archive.writeArchive(map, file);
+            	// HO 05/01/2012 BEGIN *******
+                VUE.deletePreviousLockFile(map, name);
+                // HO 05/01/2012 END ********* 
+            		
+            	Archive.writeArchive(map, file);
+            	
+                VUE.createLockFile(file, false);
+                // HO 05/01/2012 END *********
                 
             } else {
                 Log.warn("Unknown save type for filename extension: " + name);
@@ -336,20 +358,7 @@ public class SaveAction extends VueAction
     
     
     
-    // HO 21/12/2011 BEGIN ******
-    private static boolean checkIfFileIsWritable(File file) {
-	    if (file.canWrite()) {
-	    	System.out.println("yes it's writable");
-	    	return true;
-	    } else {
-	    	JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
-	                "Someone already has this file open.", 
-	                "Can't save", 
-	                JOptionPane.ERROR_MESSAGE);
-	    	return false;
-	    }
-    }
-    // HO 21/12/2011 END ********
+
     
     // HO 15/02/2011 BEGIN ****************
     /**
@@ -382,7 +391,7 @@ public class SaveAction extends VueAction
         
         File file = map.getFile();
         // HO 21/12/2011 BEGIN *****
-        boolean bWritable = checkIfFileIsWritable(file);
+        boolean bWritable = VUE.checkIfFileIsWritable(file, false);
         if (bWritable == false)
         	return null;
         // HO 21/12/2011 END ********
@@ -462,7 +471,7 @@ public class SaveAction extends VueAction
 	            				// it must be the original map
 	            				if(aMap.getLabel().equals(strInitMapLabel)) {
 	            					// so close it without prompting
-	            					VUE.closeMapSilently(aMap, false);
+	    	    					VUE.closeMapSilently(map, false);
 	            					// nullify this because it was causing memory leaks
 	            					initFile = null;
 	            				}

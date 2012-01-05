@@ -3961,7 +3961,8 @@ public class Actions implements VueConstants
             		return;
             	}
                 	LWMap map = tufts.vue.VUE.getActiveMap();
-                	VUE.closeMap(map,true);
+					VUE.closeMap(map,true);
+                	
                 	tufts.vue.action.OpenAction.reloadMap(map);                	
                                 
             }
@@ -3975,10 +3976,12 @@ public class Actions implements VueConstants
         	// HO 07/03/2011 BEGIN ***************
         	LWMap activeMap = VUE.getMapInActiveTab();
         	
-			if (activeMap != null)
-				VUE.closeMap(activeMap);
-			else
+			if (activeMap != null) {
+				VUE.closeMap(activeMap);				
+			}
+			else {
 				VUE.closeMap(VUE.getActiveMap());
+			}
         	// HO 07/03/2011 BEGIN ***************
 
         }

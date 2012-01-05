@@ -663,32 +663,10 @@ public class LWMap extends LWContainer
             takeResource(null);
         }
 
-        // HO 21/12/2011 BEGIN ********
-        lockFileForReadingAndWriting();
-        // HO 21/12/2011 END ******
+
         
     }
     
-    // HO 21/12/2011 BEGIN ********
-    public void lockFileForReadingAndWriting() {
-    	File theFile = mFile;
-    	if (mFile != null) {
-    		try {
-		    	// first, nobody can read the file
-		    	theFile.setReadable(false);
-		    	// then, only the owner can read the file
-		    	theFile.setReadable(true, true);
-		    	// first, nobody can write to the file
-		    	theFile.setWritable(false);
-		    	// then, only the owner can write to the file
-		    	theFile.setWritable(true, true);
-    		} catch (SecurityException se) {
-    			se.printStackTrace();
-    		}
-    	}
-    	
-    }
-    // HO 21/12/2011 END ******
     
     /**
      * A method to set the "pretty" label,

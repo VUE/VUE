@@ -1715,7 +1715,14 @@ public class Images
         void dispose() {
             // assist GC -- may help it run slightly faster:
             imageSRC = null;
-            relay.flushForGC();
+            // HO 04/01/2012 BEGIN ******
+            // adding try/catch block
+            try {
+            	relay.flushForGC();
+            } catch (NullPointerException e) {
+            	e.printStackTrace();
+            }
+            // HO 04/01/2012 END ******
             relay = null;
         }
 
@@ -2461,18 +2468,24 @@ public class Images
     private static Handle loadImageAndCache(final ImageSource imageSRC, final Listener relay)
     {
         Handle imageData = null;
+        
+        // HO 04/01/2012 BEGIN *********
+        // input validation
+        if (imageSRC == null)
+        	return imageData;
+        // HO 04/01/2012 END ***********
 
         // HO 03/11/2011 BEGIN **************
         // moving this into try/catch block
-        // if (imageSRC.resource != null)
-            // imageSRC.resource.getProperties().holdChanges();
+        if (imageSRC.resource != null)
+            imageSRC.resource.getProperties().holdChanges();
         // HO 03/11/2011 END **************
 
         try {
             // HO 03/11/2011 BEGIN **************
             // moving this into try/catch block
-            if (imageSRC.resource != null)
-                imageSRC.resource.getProperties().holdChanges();
+            //if (imageSRC.resource != null)
+                //imageSRC.resource.getProperties().holdChanges();
             // HO 03/11/2011 END **************
             imageData = readImageInAvailableMemory(imageSRC, relay);
         } catch (Throwable t) {
@@ -2480,6 +2493,7 @@ public class Images
             if (DEBUG.IMAGE) Util.printStackTrace(t);
 
             RawCache.remove(imageSRC.key);
+
             
             if (relay != null) {
                 String msg;
@@ -2515,16 +2529,18 @@ public class Images
 
                 // this is the one place we deliver caught exceptions
                 // during image loading:
-                relay.gotImageError(imageSRC.original, msg);
+	                relay.gotImageError(imageSRC.original, msg);
+	
+	                if (dumpTrace)
+	                    Log.warn(imageSRC + ":", t);
+	                else
+	                    Log.warn(imageSRC + ": " + t);
 
-                if (dumpTrace)
-                    Log.warn(imageSRC + ":", t);
-                else
-                    Log.warn(imageSRC + ": " + t);
             }
 
-            if (imageSRC.resource != null)
-                imageSRC.resource.getProperties().releaseChanges();
+	            if (imageSRC.resource != null)
+	                imageSRC.resource.getProperties().releaseChanges();
+
         }
 
         if (relay != null && imageData != null) {
