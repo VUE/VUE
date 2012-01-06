@@ -3647,32 +3647,16 @@ public class VUE
             if (existingFile != null && existingFile.equals(file)) {
                 if (DEBUG.Enabled) out("displayMap found existing open map " + map + " matching file " + file);
                 openMap = map;
-                // HO 01/03/2011 BEGIN ************
-                // adding try/catch blocks
-                // HO 28/04/2011 BEGIN *********
-                // all this does is annoyingly switch between tabs
-	                /* if (isActiveViewerOnLeft()) {
-	                	//try {
-	                		mMapTabsLeft.setSelectedIndex(i);
-	                	//} catch(ArrayIndexOutOfBoundsException abe) {
-	        				//abe.printStackTrace();
-	        			//}
-	                }
-	                else {
-	                	//try {
-	                		mMapTabsRight.setSelectedIndex(i);
-	                	//} catch(ArrayIndexOutOfBoundsException abe) {
-	        				//abe.printStackTrace();
-	        			//}
-	                } */
-	             // HO 28/04/2011 END *********
                 break;
-                // HO 01/03/2011 END ***************
             }
         }
         
         // if the map wasn't already open we don't need to do anything more
         if (openMap == null) {
+        	// HO 06/01/2012 BEGIN ********
+        	// except delete any lock files
+        	deleteLockFile(file);
+        	// HO 06/01/2012 END ********
         	return;
         }
 
