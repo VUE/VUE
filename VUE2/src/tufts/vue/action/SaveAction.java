@@ -170,6 +170,9 @@ public class SaveAction extends VueAction
             Log.info("saveMap: target[" + file + "]");
             
             final String name = file.getName().toLowerCase();
+            // HO 06/01/2012 BEGIN ******
+            final File newFile = file;
+            // HO 06/01/2012 END ********
 
             if (name.endsWith(".rli.xml")) {
                 new IMSResourceList().convert(map,file);
@@ -183,7 +186,7 @@ public class SaveAction extends VueAction
             // HO 05/01/2012 BEGIN *******
             else if (name.endsWith(".vue")) {
             	// HO 05/01/2012 BEGIN *******
-                VUE.deletePreviousLockFile(map, name);
+                VUE.deletePreviousLockFile(map, newFile);
                 // HO 05/01/2012 END ********* 
             	ActionUtil.marshallMap(file, map);                
                 // HO 05/01/2012 BEGIN *******
@@ -298,7 +301,7 @@ public class SaveAction extends VueAction
             else if (name.endsWith(VueUtil.VueArchiveExtension))
             {
             	// HO 05/01/2012 BEGIN *******
-                VUE.deletePreviousLockFile(map, name);
+                VUE.deletePreviousLockFile(map, newFile);
                 // HO 05/01/2012 END ********* 
             		
             	Archive.writeArchive(map, file);

@@ -4117,7 +4117,9 @@ public class VUE
     	File targetDir = theFile.getParentFile();
     	// get the substring to match against
 		String strName = theFile.getName();
-		String strMatchingSubstring = strName.substring(0, strName.length() - 4);
+		//String strMatchingSubstring = strName.substring(0, strName.length() - 4);
+		// actually keep the file extension after all
+		String strMatchingSubstring = strName;
 		strMatchingSubstring = "." + strMatchingSubstring + ".";
 		// get the username to match against
 		String strMatchingUsername = System.getProperty("user.name");
@@ -4176,8 +4178,7 @@ public class VUE
      * for the current user.
      * @param theFile, the File object for which to determine the prefix.
      * @return a String consisting of the current user's username,
-     * followed by a dot, followed by the name of the File object sans
-     * extension, followed by a dot.
+     * followed by a dot, followed by the name of the File object, followed by a dot.
      * @author Helen Oliver
      */
     private static String lockFilePrefixForCurrentUser(File theFile) {
@@ -4189,7 +4190,8 @@ public class VUE
 		String strLockFilePrefix = System.getProperty("user.name");
 		// and use the name of the file being locked too, minus the file extension
 		String strName = theFile.getName();
-		strName = strName.substring(0, strName.length() - 4);
+		// actually keep the file extension after all
+		//strName = strName.substring(0, strName.length() - 4);
 		// combine the two and hey presto, a lock file prefix
 		strLockFilePrefix = strLockFilePrefix + "." + strName + ".";
 		
@@ -4211,18 +4213,30 @@ public class VUE
      * lock file, when saving to a new file.
      * @param map, the LWMap which may or may not have a File that needs to be released
      * from any existing locks.
-     * @param name, a String representing the name of the new file-to-be
+     * @param newFile, the new file-to-be
      * @author Helen Oliver
      */
-    public static void deletePreviousLockFile(LWMap map, String name) {
+    public static void deletePreviousLockFile(LWMap map, File newFile) {
     	// input validation
     	if (map == null)
     		return;
     	
+    	String newName = newFile.getName();
+    	String newPath = newFile.getParentFile().toString();
+    	
     	File mapFile = map.getFile();
+    	
     	if (mapFile != null) {
-    		if (!mapFile.getName().equals(name))
-    			deleteLockFile(map.getFile());
+    		String oldName = mapFile.getName();
+        	String oldPath = mapFile.getParentFile().toString();
+        	
+    		// if they have different names
+    		if (!oldName.toLowerCase().equals(newName.toLowerCase())) {
+    			deleteLockFile(mapFile);
+    		} else if (!oldPath.toLowerCase().equals(newPath.toLowerCase())) {
+    			// if they have the same name but are on different paths
+    			deleteLockFile(mapFile);    			
+    		}
     	}
     }
     // HO 04/01/2012 END **********
