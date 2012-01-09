@@ -80,6 +80,7 @@ import tufts.vue.action.AboutAction;
 import tufts.vue.action.AnalyzeCM;
 import tufts.vue.action.CreateCM;
 import tufts.vue.action.ExitAction;
+import tufts.vue.action.FileLockAction;
 import tufts.vue.action.OpenAction;
 import tufts.vue.action.OpenURLAction;
 import tufts.vue.action.PrintAction;
@@ -353,8 +354,10 @@ public class VueMenuBar extends javax.swing.JMenuBar
         
         importMenu = makeMenu(VueResources.getString("menu.file.import"));        
         final  QuickImportAction quickImport = new QuickImportAction();
+        // HO 09/01/2012 BEGIN ********
+        final FileLockAction lockFile = new FileLockAction();
+        // HO 09/01/2012 END **********
         publishMenu = makeMenu(VueResources.getString("menu.windows.publish"));        
-        //final JMenu publishAction =  Publish.getPublishMenu();
 
         final CreateCM createCMAction = new CreateCM(VueResources.getString("menu.windows.conanalysis"));
         final AnalyzeCM analyzeCMAction = new AnalyzeCM(VueResources.getString("menu.windows.mergemaps"));
@@ -548,18 +551,19 @@ public class VueMenuBar extends javax.swing.JMenuBar
         fileMenu.add(Actions.Revert);
         Actions.Revert.setEnabled(false);
         fileMenu.addSeparator();
-     //   fileMenu.add(Actions.ZoteroAction);
-        //fileMenu.add(exportAction);
+        
+        // HO 09/01/2012 BEGIN ********
+        fileMenu.add(lockFile);
+        fileMenu.addSeparator();
+        // HO 09/01/2012 END **********
 
         fileMenu.add(quickImport);
 
-        //publishMenu.setEnabled(false);
         if (!VUE.isApplet())
         	fileMenu.add(publishMenu);
         	
         pdfExportMenu = new JMenu(VueResources.getString("menu.windows.exporthandouts"));
         pdfExportMenu.setEnabled(false);
-        //pdfExportMenu.add(Actions.MapAsPDF);
         final JMenuItem fullPageSlideNotesItem = new JMenuItem(Actions.FullPageSlideNotes);
         final JMenuItem slides8PerPageItem = new JMenuItem(Actions.Slides8PerPage);
         final JMenuItem speakerNotes1Item = new JMenuItem(Actions.SpeakerNotes1);

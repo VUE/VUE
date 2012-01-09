@@ -126,7 +126,7 @@ public class SaveAction extends VueAction
         
         // HO 21/12/2011 BEGIN *****
         if (file != null) {
-	        boolean bWritable = VUE.checkIfFileIsWritable(file, false);
+	        boolean bWritable = FileLockAction.checkIfFileIsWritable(file, false);
 	        if (bWritable == false)
 	        	return false;
         }
@@ -186,11 +186,11 @@ public class SaveAction extends VueAction
             // HO 05/01/2012 BEGIN *******
             else if (name.endsWith(".vue")) {
             	// HO 05/01/2012 BEGIN *******
-                VUE.deletePreviousLockFile(map, newFile);
+                FileLockAction.deletePreviousLockFile(map, newFile);
                 // HO 05/01/2012 END ********* 
             	ActionUtil.marshallMap(file, map);                
                 // HO 05/01/2012 BEGIN *******
-                VUE.createLockFile(file, false);
+                FileLockAction.createLockFile(file, false);
                 // HO 05/01/2012 END *********              
             }
             // HO 05/01/2012 END *********
@@ -301,12 +301,12 @@ public class SaveAction extends VueAction
             else if (name.endsWith(VueUtil.VueArchiveExtension))
             {
             	// HO 05/01/2012 BEGIN *******
-                VUE.deletePreviousLockFile(map, newFile);
+                FileLockAction.deletePreviousLockFile(map, newFile);
                 // HO 05/01/2012 END ********* 
             		
             	Archive.writeArchive(map, file);
             	
-                VUE.createLockFile(file, false);
+                FileLockAction.createLockFile(file, false);
                 // HO 05/01/2012 END *********
                 
             } else {
@@ -394,7 +394,7 @@ public class SaveAction extends VueAction
         
         File file = map.getFile();
         // HO 21/12/2011 BEGIN *****
-        boolean bWritable = VUE.checkIfFileIsWritable(file, false);
+        boolean bWritable = FileLockAction.checkIfFileIsWritable(file, false);
         if (bWritable == false)
         	return null;
         // HO 21/12/2011 END ********

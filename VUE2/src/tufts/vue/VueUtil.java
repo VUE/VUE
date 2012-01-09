@@ -16,6 +16,7 @@
 package tufts.vue;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.*;
 import java.awt.*;
@@ -43,6 +44,7 @@ import tufts.vue.LWComponent.ChildKind;
  *
  * @version $Revision: 1.110 $ / $Date: 2010-05-21 18:44:08 $ / $Author: brian $
  * @author Scott Fraize
+ * @author Helen Oliver, Imperial College London revisions added & initialled 2010-2012
  *
  */
 public class VueUtil extends tufts.Util
@@ -201,8 +203,6 @@ public class VueUtil extends tufts.Util
         in.close();
         out.close();
     }
-
-
 
     /**
      * Compute the intersection point of two lines, as defined
