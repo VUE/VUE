@@ -224,68 +224,6 @@ public class OpenAction extends VueAction
         
     }
 
-//     private static LWMap unpackVueArchive(File file)
-//         throws java.io.IOException,
-//                java.util.zip.ZipException
-//     {
-//         Log.info("Unpacking VUE zip archive: " + file);
-//         final ZipFile zipFile = new ZipFile(file);
-        
-//         //Vector<Resource> resourceVector = new Vector();
-//         //File resourceFolder = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separator+IMSCP.RESOURCE_FILES);
-//         //if(resourceFolder.exists() || resourceFolder.mkdir()) {
-        
-//         final ZipInputStream zin = new ZipInputStream(new FileInputStream(file));
-//         ZipEntry entry;
-//         ZipEntry mapEntry = null;
-//         String mapFile = null;
-
-//         final String unpackingDir = VUE.getSystemProperty("java.io.tmpdir"); // or, could use same dir a current package file is at
-        
-        
-//         while ( (entry = zin.getNextEntry()) != null ) {
-
-//             String location = unzip(zin, entry, unpackingDir);
-
-//             final String comment = SaveAction.getComment(entry);
-
-//             if (comment != null && comment.startsWith(SaveAction.MapArchiveKey)) {
-//                 mapEntry = entry;
-//                 mapFile = location;
-//                 Log.debug("Found map in archive: " + entry + "; at " + location);
-                
-//             }
-
-            
-//             //unzip(zin, entry, null);
-            
-// //             //if (DEBUG.IO) System.out.println("ZipEntry: " + e.getName());  
-// //             if(!e.getName().equalsIgnoreCase(IMSCP.MAP_FILE) && !e.getName().equalsIgnoreCase(IMSCP.MANIFEST_FILE)){
-// //                 // todo: may want to add a Resource.Factory.get(ZipEntry) method
-// //                 Resource resource = Resource.getFactory().get(e.getName());
-// //                 resourceVector.add(resource);
-// //                 //if (DEBUG.IO) System.out.println("Resource: " + resource);
-// //             }
-//         }
-//         zin.close();
-           
-// //         File mapFile  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separator+IMSCP.MAP_FILE);
-// //         LWMap map = ActionUtil.unmarshallMap(mapFile);
-// //         map.setFile(null);
-// //         map.setLabel(ZIP_IMPORT_LABEL);
-// //         for (Resource r : resourceVector) {
-// //             replaceResource(map, r,
-// //                             Resource.getFactory().get(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separator+r.getSpec()));
-// //             //new URLResource(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separator+r.getSpec()));
-// //         }
-
-// //         map.markAsSaved();
-
-//         return ActionUtil.unmarshallMap(new File(mapFile));
-
-//         //return null;
-//     }
-
 //     /**
 //      * @param location -- if null, entry will be unzipped in local (current) working directory,
 //      * otherwise, entry will be unzipped at the given path location in the file system.

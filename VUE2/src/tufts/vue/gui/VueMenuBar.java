@@ -559,6 +559,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         // HO 09/01/2012 BEGIN ********
         fileMenu.add(fileLockAction);
         fileMenu.add(Actions.UnlockFile);
+        fileMenu.add(Actions.RefreshFile);
         fileMenu.addSeparator();
         // HO 09/01/2012 END **********
 

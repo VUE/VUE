@@ -4007,7 +4007,6 @@ public class Actions implements VueConstants
 	    			if (activeMap != null) {
 	    				File theFile = activeMap.getFile();
 	    				FileLockAction.deleteLockFile(theFile, true);
-	    				
 	    				Log.info("UnlockFile: completed.");
 	    			}
                 } finally {
@@ -4015,6 +4014,46 @@ public class Actions implements VueConstants
                 }
             }
         };
+
+        private static boolean refreshUnderway = false;
+        public static final Action RefreshFile =
+            new VueAction(VueResources.local("menu.file.refresh")) {
+                // todo: listen to map viewer display event to tag
+                // with currently displayed map name
+                boolean undoable() { return false; }
+	            protected boolean enabled() { return true; }
+                public void act() {
+                    synchronized (LOCK) {
+                        if (refreshUnderway)
+                            return;
+                        refreshUnderway = true;
+                    }
+                    try {
+    	            	LWMap activeMap = VUE.getMapInActiveTab();
+    	            	
+    	    			if (activeMap != null) {
+	    	            	if (activeMap.getFile() == null)
+	    	            	{
+	    	            		VueUtil.alert(VUE.getApplicationFrame(),
+	    	            				                      VueResources.local("dialog.refresh.message"),
+	    	            				                      VueResources.local("dialog.refresh.title"),
+	    	            				                      JOptionPane.PLAIN_MESSAGE);
+	    	              
+	    	            		return;
+	    	            	}
+	    	            	
+	    	            	VUE.closeMapForRefresh(activeMap);
+    	                	
+    	                	VUE.displayMapForRefresh(activeMap.getFile());    
+    	                	
+    	    				Log.info("RefreshFile: completed.");
+
+    	    			}
+                    } finally {
+                        refreshUnderway = false;                    
+                    }
+                }
+            };        
 
     // HO 10/01/2012 END **********
         

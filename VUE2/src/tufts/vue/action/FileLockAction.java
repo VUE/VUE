@@ -139,7 +139,7 @@ public class FileLockAction extends VueAction
      * false otherwise.
      * @author Helen Oliver
      */
-    private static File isFileLockedByCurrentUser(File theFile) {
+    public static File isFileLockedByCurrentUser(File theFile) {
     	File lockFile = null;
     	
     	// input validation

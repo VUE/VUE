@@ -565,6 +565,7 @@ public class VUE
         // HO 10/01/2012 BEGIN ********
         VueMenuBar.RootMenuBar.fileLockAction.setEnabled(enable);
         Actions.UnlockFile.setEnabled(enable);
+        Actions.RefreshFile.setEnabled(enable);
         // HO 10/01/2012 END **********
         if (VUE.isApplet() && VueApplet.isZoteroApplet())
         	Actions.SaveCopyToZotero.setEnabled(enable);
@@ -3229,6 +3230,103 @@ public class VUE
    //          return true;
              
     }
+    
+    /**
+     * A routine to ask if refreshing to the latest saved version 
+     * (not necessarily the latest saved by the current user)
+     * is OK. This is for use in a collaborative situation where
+     * locks are being passed back and forth.
+     * @param map, the map to be refreshed, or not
+     * @return true if it's OK to refresh, false otherwise
+     * @author Helen Oliver
+     */
+    private static boolean askIfRefreshOK(LWMap map)
+    {
+    	final Object[] defaultOrderButtons = 
+    	{ VueResources.getString("optiondialog.refreshlastsave.yes"),
+    			VueResources.getString("optiondialog.refreshlastsave.cancel")};
+    	
+    	 if (!map.isModified())
+             return true;
+    	 
+    	   // todo: won't need this if full screen is child of root frame
+         if (inNativeFullScreen())
+             toggleFullScreen();
+         
+         Component c = VUE.getDialogParent();
+         
+         if (VUE.getDialogParent() != null)
+         {
+         	//Get the screen size
+         	Toolkit toolkit = Toolkit.getDefaultToolkit();
+         	Dimension screenSize = toolkit.getScreenSize();
+
+        	Point p = null;
+        	
+        	try {
+        		// it's not always showing on screen
+        		p = c.getLocationOnScreen();
+        	} catch(IllegalArgumentException e) {
+        		p = c.getLocation(null);
+        	}
+         	
+         	if ((p.x + c.getWidth() > screenSize.width) ||
+         			(p.y + c.getHeight() > screenSize.height))
+         	{
+         		c = null;
+         	}
+         }
+         
+         String displayName = getDisplayNameOfUserWhoHasLock(map);
+         displayName = " " + displayName + "?";
+         
+         int response = VueUtil.option
+             (c,
+              VueResources.getString("optiondialog.refreshlastsave.message") + displayName,      
+              VueResources.getString("optiondialog.refreshlastsave.title") + displayName,
+              JOptionPane.YES_NO_OPTION,
+              JOptionPane.PLAIN_MESSAGE,
+              defaultOrderButtons,             
+              VueResources.getString("optiondialog.refreshlastsave.cancel")
+              );
+         
+               
+         // If they change focus to another button, then hit "return"
+         // (v.s. "space" for kbd button press), do action of button
+         // that had focus instead of always save?
+         
+         if (response == JOptionPane.YES_OPTION) { // Save
+             return true;
+         } else if (response == JOptionPane.NO_OPTION) { // Don't Save
+             // don't save -- just close
+             return false;
+         } else // anything else (Cancel or dialog window closed)
+             return false;
+    }
+    
+    /**
+     * A function to get the display name
+     * of whatever user has a lock on a map's file
+     * @param map, the map that is locked
+     * @return "you" if the current user has the lock,
+     * or the username of the other user that has the lock
+     * @author Helen Oliver
+     */
+    private static String getDisplayNameOfUserWhoHasLock(LWMap map) {
+        String userWhoHasLock = "";
+        File theFile = map.getFile();
+        File lockFile = FileLockAction.isFileLockedByOtherUser(theFile);
+        if (lockFile == null) {
+       	 lockFile = FileLockAction.isFileLockedByCurrentUser(theFile);
+       	 if (lockFile != null)
+       		 userWhoHasLock = "you";
+        } else {
+       	 userWhoHasLock = FileLockAction.userWhoHasLockedAFile(lockFile);
+        }
+        
+        return userWhoHasLock;
+    }
+    
     private static boolean askIfRevertOK(LWMap map)
     {
     	final Object[] defaultOrderButtons = { VueResources.getString("optiondialog.revertlastsave.yes"),VueResources.getString("optiondialog.revertlastsave.cancel")};
@@ -3510,6 +3608,57 @@ public class VUE
 	    	// HO 12/03/2011 END **************
 	
 	    }
+        
+        // HO 10/01/2012 BEGIN *******
+        public static void closeMapForRefresh(LWMap map) {
+        	
+        	if (askIfRefreshOK(map)) {
+				 try {
+					 	mMapTabsLeft.closeMap(map);
+	    		} catch(ArrayIndexOutOfBoundsException abe){ }
+	    			
+	    		try {
+	    				if (mMapTabsRight != null) {
+	    					mMapTabsRight.closeMap(map);
+	    				}
+	    			} catch(ArrayIndexOutOfBoundsException abe){ }
+        	}
+   	
+	    	if (mMapTabsRight !=null)
+	    	{
+	    		int selectedIndex = mMapTabsRight.getTabCount();
+	    		if(selectedIndex>0){
+	    			setMapActionsEnabled(true);
+	    		}else{
+	    		setMapActionsEnabled(false);
+	    		}
+	    	}
+	    	else if (mMapTabsLeft == null)
+	    	{
+	    		setMapActionsEnabled(false);    		
+	    	}
+	    	else
+	    	{
+	    		int selectedIndex = mMapTabsLeft.getTabCount();
+	    		if(selectedIndex>0){
+	    			setMapActionsEnabled(true);
+	    		}else{
+	    		setMapActionsEnabled(false);
+	    		}
+	    	}
+	
+	    	// HO 12/03/2011 BEGIN ************
+	    	// if there are no tabs open, open a new, empty tab automatically
+	    	// so that we never have a totally empty screen
+	    	// (works around the focus problem)
+	    	int leftIndex = mMapTabsLeft.getTabCount();
+	    	int rightIndex = mMapTabsRight.getTabCount();
+	    	if ((leftIndex == 0) && (rightIndex == 0))
+	    		VUE.displayMap(new LWMap(VueResources.getString("vue.main.newmap")));
+	    	// HO 12/03/2011 END **************
+	
+	    }        
+        // HO 10/01/2012 END *********
     
     // HO 17/02/2011 BEGIN ***********
     public static Point getComponentLocation(Component c) {
@@ -3579,51 +3728,9 @@ public class VUE
         if (file == null)
             return;
         
-        // HO 10/08/2011 BEGIN *************
-        if (!closeActiveMapIfApplet()) {
-        // HO 10/08/2011 END *************
-        	/*
-        	 * If there is 1 map open, and it has no content and hasn't been saved yet close it.
-        	 * requested in vue-520 
-        	 */
-        	if (isActiveViewerOnLeft())
-        	{
-        		if ((mMapTabsLeft != null) && 
-        				mMapTabsLeft.getTabCount() == 1 && 
-        				(getActiveMap() != null) && 
-        				!getActiveMap().hasContent() && 
-        				getActiveMap().getFile() == null)
-        		{
-        			try
-        			{
-        				closeMap(getActiveMap());
-        			}
-        			catch(ArrayIndexOutOfBoundsException abe)
-        			{
-        				abe.printStackTrace();
-        			}
-        		}
-        	
-        	
-        	} else 
-        	{
-        		if ((mMapTabsRight != null) && 
-            			mMapTabsRight.getTabCount() == 1 && 
-            			(getActiveMap() != null) && 
-            			!getActiveMap().hasContent() && 
-            			getActiveMap().getFile() == null) {
-        			// HO 27/02/2011 BEGIN **************
-        			// adding try/catch block
-        			try {
-        				closeMap(getActiveMap());
-        			} catch(ArrayIndexOutOfBoundsException abe) {
-        				abe.printStackTrace();
-        			}
-        			// HO 27/02/2011 END *****************
-        		}
-            	
-        	}
-        } 
+        // HO 10/01/2012 BEGIN *****
+        closeContentlessMap();
+        // HO 10/01/2012 END *******
         
         LWMap openMap = null;
 
@@ -3650,8 +3757,9 @@ public class VUE
         	return;
         }
 
-        final RecentlyOpenedFilesManager rofm = RecentlyOpenedFilesManager.getInstance();
-        rofm.updateRecentlyOpenedFiles(file.getAbsolutePath());
+        // HO 10/01/2012 BEGIN *******
+        addToRecentlyOpenedFilesList(file);
+        // HO 10/01/2012 END ********
         
         VUE.activateWaitCursor();
         LWMap loadedMap = null;
@@ -3854,11 +3962,9 @@ public class VUE
 
         diagPop();
         
-        if (VUE.isApplet())
-        {
-        	if (LWPathway.isShowingSlideIcons())
-        		LWPathway.toggleSlideIcons();
-        } 
+        // HO 10/01/2012 BEGIN *********
+        toggleSlideIconsIfApplet();
+        // HO 10/01/2012 END ***********
 
         // return the viewer
         return leftViewer;
@@ -3901,29 +4007,16 @@ public class VUE
     }
 	// HO 31/08/2011 END ********
     
- 
-    
 
+    // HO 10/01/2012 BEGIN *******
     
     /**
-     * If we already have open a map tied to the given file, display it.
-     * Otherwise, open it anew and display it.
+     * A routine to close a contentless map:
+     * that is, there is one map open, it has no content,
+     * and it hasn't been saved yet.
      */
-    public static void displayMap(File file) {
-        if (VUE.isStartupUnderway() || DEBUG.INIT || DEBUG.IO) Log.info("displayMap " + Util.tags(file));
-
-        // Call initDataSources again just in case a user can make it to the file
-        // open-recent menu before the data sources finish loading on the remaining
-        // "main" thread.  If it's still running, we'll just block until it's done, as
-        // this method is synchronized.
-        initDataSources();
-
-        if (file == null)
-            return;
-
-        // HO 10/08/2011 BEGIN *********
+    private static void closeContentlessMap() {
         if (!closeActiveMapIfApplet())
-    	// HO 10/08/2011 END *********
         {
         	/*
         	 * If there is 1 map open, and it has no content and hasn't been saved yet close it.
@@ -3955,17 +4048,215 @@ public class VUE
             			(getActiveMap() != null) && 
             			!getActiveMap().hasContent() && 
             			getActiveMap().getFile() == null) {
-        			// HO 01/03/2011
-        			// adding try/catch block 
-        			//try {
         				closeMap(getActiveMap());
-        			//} catch(ArrayIndexOutOfBoundsException abe) {
-        				//abe.printStackTrace();
-        			//}
         		} 
             	
         	}
         }
+    }
+    
+    /**
+     * If we already have open a map tied to the given file, display it,
+     * but without changing the lock files.
+     * As this is a refresh we will always have open this map.
+     */
+    public static void displayMapForRefresh(File file) {
+        if (VUE.isStartupUnderway() || DEBUG.INIT || DEBUG.IO) Log.info("displayMapForRefresh " + Util.tags(file));
+
+        // Call initDataSources again just in case a user can make it to the file
+        // open-recent menu before the data sources finish loading on the remaining
+        // "main" thread.  If it's still running, we'll just block until it's done, as
+        // this method is synchronized.
+        initDataSources();
+
+        if (file == null)
+            return;
+
+        closeContentlessMap();
+
+        for (int i = 0; i < mMapTabsLeft.getTabCount(); i++) {
+            LWMap map = mMapTabsLeft.getMapAt(i);
+            if (map == null)
+                continue;
+            File existingFile = map.getFile();
+            if (existingFile != null && existingFile.equals(file)) {
+                if (DEBUG.Enabled) out("displayMapForRefresh found existing open map " + map + " matching file " + file);
+            	// HO 10/01/2012 BEGIN *****
+                setSelectedIndexForActiveViewer(i);
+                // HO 10/01/2012 END *******
+                return;
+            }
+        }
+
+        // HO 10/01/2012 BEGIN *******
+        addToRecentlyOpenedFilesList(file);
+        // HO 10/01/2012 END ********
+        
+        VUE.activateWaitCursor();
+        LWMap loadedMap = null;
+        boolean alerted = false;
+        try {
+            loadedMap = OpenAction.loadMap(file.getAbsolutePath());
+            alerted = true; // OpenAction.loadMap now always alerts
+            if (loadedMap != null) {
+                VUE.displayMapForRefresh(loadedMap);   
+            }
+            VUE.getMetadataSearchMainPanel().fillSavedSearch();
+        } catch (Throwable t) {
+            Util.printStackTrace(t, "failed to load map[" + file + "]");
+            VUE.clearWaitCursor();
+            alerted = true;
+            VueUtil.alert(VueResources.getString("dialog.failedtoloadmap.message")+" " + file + "  \n"
+                          + (t.getCause() == null ? t : t.getCause()),
+                          VueResources.getString("dialog.failedtoloadmap.message")+" "+ file);
+        } finally {
+            VUE.clearWaitCursor();
+        }
+        if (loadedMap == null && !alerted) {
+            VueUtil.alert(VueResources.getString("dialog.failedtoloadmap.message")+" "+ file + "  \n", VueResources.getString("dialog.failedtoloadmap.message") + file);  
+        }
+
+    } 
+    
+    /**
+     * Create a new viewer and display the given map in it.
+     * Use only during refresh - does not tamper with existing lock files
+     */
+    public static MapViewer displayMapForRefresh(LWMap pMap) {
+        if (VUE.isStartupUnderway() || DEBUG.Enabled) out("displayMapForRefresh " + pMap);
+        
+        diagPush("displayMapForRefresh");
+        if (DEBUG.INIT) out(pMap.toString());
+        MapViewer leftViewer = null;
+        MapViewer rightViewer = null;
+        
+        for (int i = 0; i < mMapTabsLeft.getTabCount(); i++) {
+            LWMap map = mMapTabsLeft.getMapAt(i);
+            if (map == null)
+                continue;
+            File existingFile = map.getFile();
+            if (existingFile != null && existingFile.equals(pMap.getFile())) {
+                Util.printStackTrace("warning: found open map with same file: " + map);
+            }
+        } 
+        
+        if (leftViewer == null) {
+            leftViewer = new MapViewer(pMap, "*LEFT");
+            rightViewer = new MapViewer(pMap, "right");
+
+            // Start them both off unfocusable, so we get no
+            // focus transfers until we're ready to decide what
+            // wants to get the focus.
+            leftViewer.setFocusable(false);
+            rightViewer.setFocusable(false);
+
+            if (DEBUG.FOCUS) {
+                out("currently active viewer: " + getActiveViewer());
+                out("created new left viewer: " + leftViewer);
+            }
+
+            mMapTabsLeft.addViewer(leftViewer);
+        	
+            if (mMapTabsRight != null) {
+            	mMapTabsRight.addViewer(rightViewer);
+            }
+
+        }
+        
+        // HO 10/01/2012 BEGIN *******
+        setSelectedViewer(leftViewer, rightViewer);
+        // HO 10/01/2012 END *********
+
+        diagPop();
+        
+        // HO 10/01/2012 BEGIN *********
+        toggleSlideIconsIfApplet();
+        // HO 10/01/2012 END ***********
+        
+        return leftViewer;
+    }
+    
+    /**
+     * A routine to set the selected viewer, depending
+     * on which is the currently active viewer
+     * @param leftViewer, the left viewer
+     * @param rightViewer, the right viewer
+     */
+    private static void setSelectedViewer(MapViewer leftViewer, MapViewer rightViewer) {
+        if (isActiveViewerOnLeft()) {
+        	// HO 28/02/2011 adding try/catch block
+        	try {
+        		mMapTabsLeft.setSelectedComponent(leftViewer);
+        	} catch(ArrayIndexOutOfBoundsException e) {
+        		// do nothing
+        	}
+        } else if (mMapTabsRight != null){
+        	// HO 28/02/2011 adding try/catch block
+        	try {
+        		mMapTabsRight.setSelectedComponent(rightViewer);
+        	} catch(ArrayIndexOutOfBoundsException e) {
+        		// do nothing
+        	}
+        }
+    }
+    
+    /**
+     * A routine to set the selected index for the active viewer,
+     * whether that is the right or the left viewer.
+     * @param i, the number of the index to select for the active viewer.
+     */
+    private static void setSelectedIndexForActiveViewer(int i) {
+	    	if (isActiveViewerOnLeft()) {
+				mMapTabsLeft.setSelectedIndex(i);
+	    	}
+	    	else {
+	    		mMapTabsRight.setSelectedIndex(i);
+	    	}
+    }
+    
+    /**
+     * A routine to add a given file to the recently opened files list
+     * @param theFile, the File to add to the recently opened files list
+     */
+    private static void addToRecentlyOpenedFilesList(File theFile) {
+    	final RecentlyOpenedFilesManager rofm = RecentlyOpenedFilesManager.getInstance();
+        rofm.updateRecentlyOpenedFiles(theFile.getAbsolutePath());
+    }
+    
+    /**
+     * A routine to toggle the slide icons if VUE
+     * is running as an applet
+     */
+    private static void toggleSlideIconsIfApplet() {
+        if (VUE.isApplet())
+        {
+        	if (LWPathway.isShowingSlideIcons())
+        		LWPathway.toggleSlideIcons();
+        } 
+    }
+    // HO 10/01/2012 END *********
+    
+
+    
+    /**
+     * If we already have open a map tied to the given file, display it.
+     * Otherwise, open it anew and display it.
+     */
+    public static void displayMap(File file) {
+        if (VUE.isStartupUnderway() || DEBUG.INIT || DEBUG.IO) Log.info("displayMap " + Util.tags(file));
+
+        // Call initDataSources again just in case a user can make it to the file
+        // open-recent menu before the data sources finish loading on the remaining
+        // "main" thread.  If it's still running, we'll just block until it's done, as
+        // this method is synchronized.
+        initDataSources();
+
+        if (file == null)
+            return;
+
+        // HO 10/01/2012 BEGIN ******
+        closeContentlessMap();
+        // HO 10/01/2012 END ********
 
         for (int i = 0; i < mMapTabsLeft.getTabCount(); i++) {
             LWMap map = mMapTabsLeft.getMapAt(i);
@@ -3974,29 +4265,17 @@ public class VUE
             File existingFile = map.getFile();
             if (existingFile != null && existingFile.equals(file)) {
                 if (DEBUG.Enabled) out("displayMap found existing open map " + map + " matching file " + file);
-                // HO 01/03/2011 BEGIN ******************
-                // adding try/catch block
-            	if (isActiveViewerOnLeft()) {
-            		//try {
-            			mMapTabsLeft.setSelectedIndex(i);
-            		//} catch (ArrayIndexOutOfBoundsException abe) {
-                    	//abe.printStackTrace();
-                    //}
-            	}
-                else {
-                	//try {
-                		mMapTabsRight.setSelectedIndex(i);
-                	//} catch (ArrayIndexOutOfBoundsException abe) {
-                    	//abe.printStackTrace();
-                    //}
-                }
+            	// HO 10/01/2012 BEGIN *****
+                setSelectedIndexForActiveViewer(i);
+                // HO 10/01/2012 END *******
                 return;
-                // HO 01/03/2011 END ******************
             }
         }
 
-        final RecentlyOpenedFilesManager rofm = RecentlyOpenedFilesManager.getInstance();
-        rofm.updateRecentlyOpenedFiles(file.getAbsolutePath());
+        // HO 10/01/2012 BEGIN *******
+        addToRecentlyOpenedFilesList(file);
+        // HO 10/01/2012 END ********
+        
         VUE.activateWaitCursor();
         LWMap loadedMap = null;
         boolean alerted = false;
@@ -4042,56 +4321,9 @@ public class VUE
         if (url == null)
             return;
 
-        // HO 10/08/2011 BEGIN *********
-        if (!closeActiveMapIfApplet())
-    	// HO 10/08/2011 END *********
-        {
-        	/*
-        	 * If there is 1 map open, and it has no content and hasn't been saved yet close it.
-        	 * requested in vue-520 
-        	 */
-        	if (isActiveViewerOnLeft())
-        	{
-        		if ((mMapTabsLeft != null) && 
-        				mMapTabsLeft.getTabCount() == 1 && 
-        				(getActiveMap() != null) && 
-        				!getActiveMap().hasContent() && 
-        				getActiveMap().getFile() == null)
-        		{
-        			try
-        			{
-        				closeMap(getActiveMap());
-        			}
-        			catch(ArrayIndexOutOfBoundsException abe)
-        			{
-        				abe.printStackTrace();
-        			}
-        		}
-        	
-        	
-        	} else 
-        	{
-        		if ((mMapTabsRight != null) && 
-            			mMapTabsRight.getTabCount() == 1 && 
-            			(getActiveMap() != null) && 
-            			!getActiveMap().hasContent() && 
-            			getActiveMap().getFile() == null) {
-        			// HO 01/03/2011 BEGIN ****************
-        			// adding try/catch block
-        			//try {
-        				closeMap(getActiveMap());
-        			//} catch(ArrayIndexOutOfBoundsException abe)
-        			//{
-        				// HO 01/03/2011 BEGIN ************
-                    	//VueUtil.alert("HO 01/03/2011 exception in displayMapSpecial", "HERE");
-                    	// HO 01/03/2011 end ************
-        				//abe.printStackTrace();
-        			//}
-            		// HO 01/03/2011 END ****************
-        		}
-            	
-        	}
-        }
+        // HO 10/01/2012 BEGIN ******
+        closeContentlessMap();
+        // HO 10/01/2012 END *******
 
         VUE.activateWaitCursor();
         LWMap loadedMap = null;
@@ -4177,29 +4409,16 @@ public class VUE
 
         }
         
-        if (isActiveViewerOnLeft()) {
-        	// HO 28/02/2011 adding try/catch block
-        	try {
-        		mMapTabsLeft.setSelectedComponent(leftViewer);
-        	} catch(ArrayIndexOutOfBoundsException e) {
-        		// do nothing
-        	}
-        } else if (mMapTabsRight != null){
-        	// HO 28/02/2011 adding try/catch block
-        	try {
-        		mMapTabsRight.setSelectedComponent(rightViewer);
-        	} catch(ArrayIndexOutOfBoundsException e) {
-        		// do nothing
-        	}
-        }
+        // HO 10/01/2012 BEGIN *******
+        setSelectedViewer(leftViewer, rightViewer);
+        // HO 10/01/2012 END *********
 
         diagPop();
         
-        if (VUE.isApplet())
-        {
-        	if (LWPathway.isShowingSlideIcons())
-        		LWPathway.toggleSlideIcons();
-        }    
+        // HO 10/01/2012 BEGIN *********
+        toggleSlideIconsIfApplet();
+        // HO 10/01/2012 END ***********
+        
         return leftViewer;
     }
 
