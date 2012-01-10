@@ -28,6 +28,7 @@ import java.awt.event.*;
 import javax.swing.*;
 
 import tufts.vue.*;
+import tufts.vue.gui.VueMenuBar;
 import tufts.Util;
 
 public class FileLockAction extends VueAction
@@ -85,7 +86,7 @@ public class FileLockAction extends VueAction
         try {
         	init();
         	
-        	createLockFile(mFile, bOpening);      
+        	createLockFile(mFile, bOpening, true);      
         	
             Log.info(e.getActionCommand() + ": completed.");
         } finally {
@@ -331,9 +332,11 @@ public class FileLockAction extends VueAction
      * @param theFile, the File object to be locked.
      * @param bOpening, true if we are in the process of opening a file,
      * false otherwise.
+     * @param bNotifying, true if we are notifying the user that the file has been locked,
+     * false otherwise.
      * @author Helen Oliver
      */
-    public static void createLockFile(File theFile, boolean bOpening) {
+    public static void createLockFile(File theFile, boolean bOpening, boolean bNotifying) {
    
     	if (theFile != null) {
     		try {
@@ -363,6 +366,12 @@ public class FileLockAction extends VueAction
 		    					lockFile = File.createTempFile(strLockFilePrefix, strLockFileSuffix, lockFileDirectory);
 		    					// make sure the lock file gets deleted when the virtual machine terminates
 		    					lockFile.deleteOnExit();
+		    					if (bNotifying) {
+		    						JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
+		    				                "File locked.\n",
+		    			                "File locked", 
+		    			                JOptionPane.INFORMATION_MESSAGE);
+		    					}
 		    				} catch (IOException e) {
 		    					e.printStackTrace();
 		    				}
@@ -372,6 +381,13 @@ public class FileLockAction extends VueAction
 	    			} 
     		} catch (SecurityException se) {
     			se.printStackTrace();
+    		}
+    	} else { // there's no file object
+    		if (bNotifying) { // if we are notifying the user of the lock's success or failure, show message
+    			JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
+    	                "There is no file to lock.",
+                    "No file object", 
+                    JOptionPane.WARNING_MESSAGE);
     		}
     	}
     	
@@ -393,9 +409,48 @@ public class FileLockAction extends VueAction
     	// routine to figure out if there's a lock file,
     	// and delete it if there is
     	File lockFile = isFileLockedByCurrentUser(theFile);
-    	if (lockFile != null)
-    		lockFile.delete();
+    	if (lockFile != null) {
+    		lockFile.delete();    		
+    	}
     }
+    
+    /**
+     * A method to find the current user's lock file
+     * on the given File object, if there is one, and
+     * delete it
+     * @param theFile, the File object for which to find and
+     * delete the current user's lock file, if there is one
+     * @param bShowingMessage, true if we are showing the user a message
+     * @author Helen Oliver
+     */
+    public static void deleteLockFile(File theFile, boolean bShowingMessage) {
+    	// routine to figure out if there's a lock file,
+    	// and delete it if there is
+    	File lockFile = isFileLockedByCurrentUser(theFile);
+    	if (lockFile != null) {
+    		lockFile.delete();    	
+			JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
+	                "File unlocked.\n"
+                	+ "Your changes may be overwritten by other users.",
+                "File unlocked", 
+                JOptionPane.WARNING_MESSAGE);
+    	} else {
+    		lockFile = isFileLockedByOtherUser(theFile);
+    		if (lockFile != null) {
+    			String strUserWithLock = userWhoHasLockedAFile(lockFile);
+    			JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
+	                strUserWithLock + " has locked this file for writing.\n"
+                	+ "You cannot unlock this file.",
+                "File locked by other user", 
+                JOptionPane.WARNING_MESSAGE);
+    		} else {
+    			JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
+    	                "There is no file to unlock.",
+                    "No file object", 
+                    JOptionPane.WARNING_MESSAGE);
+    		}
+    	}
+    }    
     
     // HO 21/12/2011 BEGIN ******
     public static boolean checkIfFileIsWritable(File file, boolean bOpening) {

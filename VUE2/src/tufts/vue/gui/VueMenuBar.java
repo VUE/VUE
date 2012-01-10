@@ -113,6 +113,9 @@ public class VueMenuBar extends javax.swing.JMenuBar
     private static JCheckBoxMenuItem fullScreenToolbarItem = null;
     public static SaveAction saveAction = null;
     public static SaveAction saveAsAction = null;
+    // HO 10/01/2012 BEGIN *******
+    public static FileLockAction fileLockAction = null;    
+    // HO 10/01/2012 END *********
     public static JMenu importMenu = null;
     public static JMenu publishMenu = null;
     public static PrintAction printAction  = null;
@@ -355,7 +358,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
         importMenu = makeMenu(VueResources.getString("menu.file.import"));        
         final  QuickImportAction quickImport = new QuickImportAction();
         // HO 09/01/2012 BEGIN ********
-        final FileLockAction lockFile = new FileLockAction();
+        fileLockAction = new FileLockAction();
+        fileLockAction.setEnabled(false);
         // HO 09/01/2012 END **********
         publishMenu = makeMenu(VueResources.getString("menu.windows.publish"));        
 
@@ -553,7 +557,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
         fileMenu.addSeparator();
         
         // HO 09/01/2012 BEGIN ********
-        fileMenu.add(lockFile);
+        fileMenu.add(fileLockAction);
+        fileMenu.add(Actions.UnlockFile);
         fileMenu.addSeparator();
         // HO 09/01/2012 END **********
 

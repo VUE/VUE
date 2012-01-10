@@ -190,7 +190,7 @@ public class SaveAction extends VueAction
                 // HO 05/01/2012 END ********* 
             	ActionUtil.marshallMap(file, map);                
                 // HO 05/01/2012 BEGIN *******
-                FileLockAction.createLockFile(file, false);
+                FileLockAction.createLockFile(file, false, false);
                 // HO 05/01/2012 END *********              
             }
             // HO 05/01/2012 END *********
@@ -306,7 +306,7 @@ public class SaveAction extends VueAction
             		
             	Archive.writeArchive(map, file);
             	
-                FileLockAction.createLockFile(file, false);
+                FileLockAction.createLockFile(file, false, false);
                 // HO 05/01/2012 END *********
                 
             } else {

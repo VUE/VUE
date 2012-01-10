@@ -57,6 +57,7 @@ import tufts.vue.LWComponent.Flag;
 import tufts.vue.LWComponent.HideCause;
 import tufts.vue.NodeTool.NodeModeTool;
 import tufts.vue.ObliqueStrategiesNodeTool.ObliqueStrategiesNodeModeTool;
+import tufts.vue.action.FileLockAction;
 import tufts.vue.gui.DeleteSlideDialog;
 import tufts.vue.gui.DockWindow;
 import tufts.vue.gui.FullScreen;
@@ -3986,6 +3987,37 @@ public class Actions implements VueConstants
 
         }
     };
+    // HO 10/01/2012 BEGIN ********
+    private static final Object LOCK = new Object();
+    private static boolean unlockUnderway = false;
+    public static final Action UnlockFile =
+        new VueAction(VueResources.local("menu.file.unlock")) {
+            // todo: listen to map viewer display event to tag
+            // with currently displayed map name
+            boolean undoable() { return false; }
+            public void act() {
+                synchronized (LOCK) {
+                    if (unlockUnderway)
+                        return;
+                    unlockUnderway = true;
+                }
+                try {
+	            	LWMap activeMap = VUE.getMapInActiveTab();
+	            	
+	    			if (activeMap != null) {
+	    				File theFile = activeMap.getFile();
+	    				FileLockAction.deleteLockFile(theFile, true);
+	    				
+	    				Log.info("UnlockFile: completed.");
+	    			}
+                } finally {
+                    unlockUnderway = false;                    
+                }
+            }
+        };
+
+    // HO 10/01/2012 END **********
+        
     public static final Action Undo =
     new VueAction(VueResources.local("action.undo"), keyStroke(KeyEvent.VK_Z, COMMAND), ":general/Undo") {
         boolean undoable() { return false; }
@@ -3997,9 +4029,7 @@ public class Actions implements VueConstants
         boolean undoable() { return false; }
         public void act() { VUE.getUndoManager().redo(); }
     };
-    
-    
-    
+        
     
     //-------------------------------------------------------
     // Zoom actions

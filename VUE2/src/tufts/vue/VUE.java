@@ -562,6 +562,10 @@ public class VUE
         //Util.printStackTrace("ENABLED MAP ACTIONS " + enable);    	
         VueMenuBar.RootMenuBar.saveAction.setEnabled(enable);
         VueMenuBar.RootMenuBar.saveAsAction.setEnabled(enable);
+        // HO 10/01/2012 BEGIN ********
+        VueMenuBar.RootMenuBar.fileLockAction.setEnabled(enable);
+        Actions.UnlockFile.setEnabled(enable);
+        // HO 10/01/2012 END **********
         if (VUE.isApplet() && VueApplet.isZoteroApplet())
         	Actions.SaveCopyToZotero.setEnabled(enable);
         VueMenuBar.RootMenuBar.publishMenu.setEnabled(enable);
@@ -3705,7 +3709,7 @@ public class VUE
         MapViewer rightViewer = null;
         
         // HO 21/12/2011 BEGIN ********
-    	FileLockAction.createLockFile(pMap.getFile(), true);
+    	FileLockAction.createLockFile(pMap.getFile(), true, false);
         // HO 21/12/2011 END ******
     	
         // HO 28/07/2011 BEGIN ********
@@ -4134,7 +4138,7 @@ public class VUE
         MapViewer rightViewer = null;
         
         // HO 21/12/2011 BEGIN ********
-        FileLockAction.createLockFile(pMap.getFile(), true);
+        FileLockAction.createLockFile(pMap.getFile(), true, false);
         // HO 21/12/2011 END ******
         
         for (int i = 0; i < mMapTabsLeft.getTabCount(); i++) {
