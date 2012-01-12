@@ -3278,7 +3278,10 @@ public class VUE
          }
          
          String displayName = getDisplayNameOfUserWhoHasLock(map);
-         displayName = " " + displayName + "?";
+         if (displayName == "")
+        	 displayName = displayName + "?";
+         else
+        	 displayName = " by " + displayName + "?";
          
          int response = VueUtil.option
              (c,

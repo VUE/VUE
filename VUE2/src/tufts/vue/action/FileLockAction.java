@@ -151,10 +151,10 @@ public class FileLockAction extends VueAction
     	// directory to look in
     	File targetDir = theFile.getParentFile();
     	// get the name to match against
-    	String strMatchingName = lockFileName(theFile);
+    	String strMatchingName = lockFilePrefix(theFile);
     	if (targetDir.isDirectory()) {
     		// get all the VUE lock files in the directory
-			File[] dir = targetDir.listFiles(new FileLockAction.VueLockFileFilter());	
+			File[] dir = targetDir.listFiles(appropriateFilter(theFile));	
 			
 			// if we have a list of files, cycle through them
 			if (dir != null) {	
@@ -163,7 +163,7 @@ public class FileLockAction extends VueAction
 					File file_test = dir[i];
 					String strNextFilename = file_test.getName().toString();
 						
-						if (strNextFilename.startsWith(strMatchingName)) {
+						if (strNextFilename.equals(strMatchingName + lockFileSuffix(theFile.getName()))) {
 								String strUserName = userWhoHasLockedAFile(file_test);
 								if ((strUserName != "") && (strUserName.equals(System.getProperty("user.name")))) {
 									lockFile = file_test;
@@ -228,13 +228,13 @@ public class FileLockAction extends VueAction
     	// directory to look in
     	File targetDir = theFile.getParentFile();
 
-		String strMatchingName = lockFileName(theFile);
+		String strMatchingName = lockFilePrefix(theFile);
 		// get the username to match against
 		String strMatchingUsername = System.getProperty("user.name");
 		// now go through the directory
     	if (targetDir.isDirectory()) {
     		// get all the files in the directory
-			File[] dir = targetDir.listFiles(new FileLockAction.VueLockFileFilter());	
+			File[] dir = targetDir.listFiles(appropriateFilter(theFile));	
 			
 			// if we have a list of files, cycle through them
 			if (dir != null) {	
@@ -242,7 +242,7 @@ public class FileLockAction extends VueAction
 					// get the next file in the directory
 					File file_test = dir[i];
 					String strNextFilename = file_test.getName().toString();
-						if (strNextFilename.startsWith(strMatchingName)) {
+						if (strNextFilename.equals(strMatchingName + lockFileSuffix(theFile.getName()))) {
 								String strUserName = userWhoHasLockedAFile(file_test);
 								if ((strUserName != "") && (!strUserName.equals(System.getProperty("user.name")))) {
 									lockFile = file_test;
@@ -261,17 +261,19 @@ public class FileLockAction extends VueAction
      * A function to determine what the lock file prefix should be
      * for the current user.
      * @param theFile, the File object for which to determine the prefix.
-     * @return a String consisting of the current user's username,
-     * followed by a dot, followed by the name of the File object, followed by a dot.
+     * @return a String representing the lock file prefix
      * @author Helen Oliver
      */
-    private static String lockFileName(File theFile) {
+    private static String lockFilePrefix(File theFile) {
     	// input validation
     	if (theFile == null)
     		return null;
 
 		// and use the name of the file being locked too
 		String strLockFileName = theFile.getName();
+		
+		// strip off the existing suffix
+		strLockFileName = strLockFileName.substring(0, strLockFileName.length() - 4);
 		
 		return strLockFileName;
     }
@@ -361,10 +363,10 @@ public class FileLockAction extends VueAction
 	    				// if the file is writable for this user
 	    				if (bWritable) {
 		    				// create a temporary file so the prefix is the current user name
-	    					String strLockFileName = lockFileName(theFile);
+	    					String strLockFileName = lockFilePrefix(theFile);
 		    				String strLockFilePrefix = strLockFileName;
 		    				// get appropriate suffix for lock file suffix
-		    				String strLockFileSuffix = lockFileSuffix(strLockFileName);
+		    				String strLockFileSuffix = lockFileSuffix(theFile.getName());
 		    				// if the file is of a type that can't be locked,
 		    				// notify the user and return 
 		    				if (strLockFileSuffix.equals(UNLOCKABLE_FILE)) {
@@ -385,7 +387,8 @@ public class FileLockAction extends VueAction
 		    				// now create the lock file in the right directory
 		    				try {
 		    					// create the lock file
-		    					lockFile = File.createTempFile(strLockFilePrefix, strLockFileSuffix, lockFileDirectory);
+		    					//lockFile = File.createTempFile(strLockFilePrefix, strLockFileSuffix, lockFileDirectory);
+		    					lockFile = new File(lockFileDirectory, strLockFilePrefix + strLockFileSuffix);
 		    					// write the username to the lock file
 		    					BufferedWriter bw = new BufferedWriter(new FileWriter(lockFile));
 		    		    	    bw.write(System.getProperty("user.name"));
@@ -516,14 +519,47 @@ public class FileLockAction extends VueAction
     // HO 21/12/2011 END ********
     // HO 05/01/2012 END **************    
     
+    /**
+     * A function to return the right kind of file extension
+     * filter for a given file.
+     * @param theFile, the file for which we need the right extension filter
+     * @return either a VueLockFileFilter or a VueArchiveLockFileFilter,
+     * according to the file type
+     * @author Helen Oliver
+     */
+    private static FileFilter appropriateFilter(File theFile) {
+    	if (theFile == null)
+    		return null;
+    	
+    	String strFileName = theFile.getName();
+    	if (strFileName.endsWith(VueUtil.VueExtension))
+    		return new VueLockFileFilter();
+    	
+    	else if (strFileName.endsWith(VueUtil.VueArchiveExtension))
+    		return new VueArchiveLockFileFilter();
+    	
+    	return null;
+    	
+    }
+    
     static class VueLockFileFilter implements FileFilter {
 
   	  public boolean accept(File pathname) {
 
-  	    if ((pathname.getName().endsWith(VueUtil.VueLockExtension)) || (pathname.getName().endsWith(VueUtil.VueArchiveLockExtension)))
+  	    if (pathname.getName().endsWith(VueUtil.VueLockExtension)) 
   	      return true;
   	    return false;
   	  }
   	}
+    
+    static class VueArchiveLockFileFilter implements FileFilter {
+
+    	  public boolean accept(File pathname) {
+
+    	    if (pathname.getName().endsWith(VueUtil.VueArchiveLockExtension))
+    	      return true;
+    	    return false;
+    	  }
+    	}
     
 }
