@@ -148,11 +148,11 @@ public class FileLockAction extends VueAction
     	
     	// directory to look in
     	File targetDir = theFile.getParentFile();
-    	// get the prefix to match against
-    	String strMatchingPrefix = lockFilePrefixForCurrentUser(theFile);
+    	// get the name to match against
+    	String strMatchingName = lockFileName(theFile);
     	if (targetDir.isDirectory()) {
-    		// get all the files in the directory
-			File[] dir = targetDir.listFiles();	
+    		// get all the VUE lock files in the directory
+			File[] dir = targetDir.listFiles(new FileLockAction.VueLockFileFilter());	
 			
 			// if we have a list of files, cycle through them
 			if (dir != null) {	
@@ -160,14 +160,14 @@ public class FileLockAction extends VueAction
 					// get the next file in the directory
 					File file_test = dir[i];
 					String strNextFilename = file_test.getName().toString();
-					// check and see if it actually is a lock file
-					if (strNextFilename.endsWith(lockFileSuffix())) {
 						
-						if (strNextFilename.startsWith(strMatchingPrefix)) {
-								lockFile = file_test;
-								break;
+						if (strNextFilename.startsWith(strMatchingName)) {
+								String strUserName = userWhoHasLockedAFile(file_test);
+								if ((strUserName != "") && (strUserName.equals(System.getProperty("user.name")))) {
+									lockFile = file_test;
+									break;
+								}
 						}
-					}
 				}
 			}
     	}
@@ -175,6 +175,37 @@ public class FileLockAction extends VueAction
 		return lockFile;
 
     }
+    
+    /**
+     * A function to open the lock file, read a line from it,
+     * and return the line. The line will be the name
+     * of the user that has the lock on the file.
+     * @param lockFile, the lock file
+     * @return an empty string if there's nothing in the lock file
+     * or something goes wrong in the reading of it;
+     * or the username of the user who has the lock if there is a line in there
+     * @author Helen Oliver
+     */
+    public static String userWhoHasLockedAFile(File lockFile) {
+    	// the user name-to-be
+    	String strUserWithLock = "";
+    	
+    	// open the file and read a line from it
+    	try {
+	    	BufferedReader br = new BufferedReader(new FileReader(lockFile));
+	    	strUserWithLock = br.readLine();
+	    	br.close();
+    	} catch (FileNotFoundException e) {
+    		e.printStackTrace();
+    	} catch (IOException e) {
+    		e.printStackTrace();
+    	}
+        
+    	// return what we read from the file
+    	return strUserWithLock;
+    }
+    
+
     
     /**
      * Function to determine whether a file is locked by another user.
@@ -194,18 +225,14 @@ public class FileLockAction extends VueAction
     	
     	// directory to look in
     	File targetDir = theFile.getParentFile();
-    	// get the substring to match against
-		String strName = theFile.getName();
-		//String strMatchingSubstring = strName.substring(0, strName.length() - 4);
-		// actually keep the file extension after all
-		String strMatchingSubstring = strName;
-		strMatchingSubstring = "." + strMatchingSubstring + ".";
+
+		String strMatchingName = lockFileName(theFile);
 		// get the username to match against
 		String strMatchingUsername = System.getProperty("user.name");
 		// now go through the directory
     	if (targetDir.isDirectory()) {
     		// get all the files in the directory
-			File[] dir = targetDir.listFiles();	
+			File[] dir = targetDir.listFiles(new FileLockAction.VueLockFileFilter());	
 			
 			// if we have a list of files, cycle through them
 			if (dir != null) {	
@@ -213,23 +240,13 @@ public class FileLockAction extends VueAction
 					// get the next file in the directory
 					File file_test = dir[i];
 					String strNextFilename = file_test.getName().toString();
-					// first check that it's a lock file
-					if (strNextFilename.endsWith(lockFileSuffix())) {
-						// if it's locked by another user it will NOT
-						// start with this user's name
-						if (!strNextFilename.startsWith(strMatchingUsername)) {
-							// but it WILL contain the current filename,
-							// but not at the beginning.
-							int pos = strNextFilename.indexOf(strMatchingSubstring);
-							// so if it's there, and it's not at the beginning,
-							// then all we have to do is check that it ends
-							// with the right suffix
-							if (pos >= 1) {
-								lockFile = file_test;
-								break;
-							}
+						if (strNextFilename.startsWith(strMatchingName)) {
+								String strUserName = userWhoHasLockedAFile(file_test);
+								if ((strUserName != "") && (!strUserName.equals(System.getProperty("user.name")))) {
+									lockFile = file_test;
+									break;
+								}
 						}
-					}
 				}
 			}
     	}
@@ -237,20 +254,6 @@ public class FileLockAction extends VueAction
     	return lockFile;
     }
     
-    /**
-     * A function to return the username of whoever has locked
-     * a given file.
-     * @param lockFile, the lock file in question
-     * @return a String representing the user name of the lock file owner
-     * @author Helen Oliver
-     */
-    public static String userWhoHasLockedAFile(File lockFile) {
-    	String strName = lockFile.getName();
-    	int pos = strName.indexOf(".");
-    	String strUserName = strName.substring(0, pos);
-    	
-    	return strUserName;
-    }
     
     /**
      * A function to determine what the lock file prefix should be
@@ -260,21 +263,15 @@ public class FileLockAction extends VueAction
      * followed by a dot, followed by the name of the File object, followed by a dot.
      * @author Helen Oliver
      */
-    private static String lockFilePrefixForCurrentUser(File theFile) {
+    private static String lockFileName(File theFile) {
     	// input validation
     	if (theFile == null)
     		return null;
-    	
-    	// build a lock file for this user, beginning with their username
-		String strLockFilePrefix = System.getProperty("user.name");
-		// and use the name of the file being locked too, minus the file extension
-		String strName = theFile.getName();
-		// actually keep the file extension after all
-		//strName = strName.substring(0, strName.length() - 4);
-		// combine the two and hey presto, a lock file prefix
-		strLockFilePrefix = strLockFilePrefix + "." + strName + ".";
+
+		// and use the name of the file being locked too
+		String strLockFileName = theFile.getName();
 		
-		return strLockFilePrefix;
+		return strLockFileName;
     }
     
     /**
@@ -355,7 +352,7 @@ public class FileLockAction extends VueAction
 	    				// if the file is writable for this user
 	    				if (bWritable) {
 		    				// create a temporary file so the prefix is the current user name
-		    				String strLockFilePrefix = lockFilePrefixForCurrentUser(theFile);
+		    				String strLockFilePrefix = lockFileName(theFile);
 		    				// and the suffix is "vlk" for VUE lock file
 		    				String strLockFileSuffix = lockFileSuffix();
 		    				// and the directory is the same one as the file is in
@@ -364,6 +361,10 @@ public class FileLockAction extends VueAction
 		    				try {
 		    					// create the lock file
 		    					lockFile = File.createTempFile(strLockFilePrefix, strLockFileSuffix, lockFileDirectory);
+		    					// write the username to the lock file
+		    					BufferedWriter bw = new BufferedWriter(new FileWriter(lockFile));
+		    		    	    bw.write(System.getProperty("user.name"));
+		    		    	    bw.close();
 		    					// make sure the lock file gets deleted when the virtual machine terminates
 		    					lockFile.deleteOnExit();
 		    					if (bNotifying) {
@@ -489,5 +490,15 @@ public class FileLockAction extends VueAction
     }
     // HO 21/12/2011 END ********
     // HO 05/01/2012 END **************    
+    
+    static class VueLockFileFilter implements FileFilter {
+
+  	  public boolean accept(File pathname) {
+
+  	    if (pathname.getName().endsWith(lockFileSuffix()))
+  	      return true;
+  	    return false;
+  	  }
+  	}
     
 }
