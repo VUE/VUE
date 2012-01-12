@@ -35,6 +35,8 @@ public class FileLockAction extends VueAction
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(FileLockAction.class);
     
+    private static final String UNLOCKABLE_FILE = "NOLOCK";
+    
     public FileLockAction(String label) {
         super(label, null, ":general/Lock");
     }
@@ -276,11 +278,18 @@ public class FileLockAction extends VueAction
     
     /**
      * A function to return the suffix for the VUE lock file type.
-     * @return a String representing the suffix for the VUE lock file type.
+     * @return a String representing the suffix for the VUE lock file type,
+     * or a constant 
      * @author Helen Oliver
      */
-    private static String lockFileSuffix() {
-    	String strLockFileSuffix = ".vlk";
+    private static String lockFileSuffix(String strFileName) {
+    	String strLockFileSuffix = UNLOCKABLE_FILE;
+    	
+    	if (strFileName.endsWith(VueUtil.VueExtension))
+    		strLockFileSuffix = VueUtil.VueLockExtension;
+    	else if (strFileName.endsWith(VueUtil.VueArchiveExtension))
+    		strLockFileSuffix = VueUtil.VueArchiveLockExtension;
+
     	return strLockFileSuffix;
     }
     
@@ -352,9 +361,25 @@ public class FileLockAction extends VueAction
 	    				// if the file is writable for this user
 	    				if (bWritable) {
 		    				// create a temporary file so the prefix is the current user name
-		    				String strLockFilePrefix = lockFileName(theFile);
-		    				// and the suffix is "vlk" for VUE lock file
-		    				String strLockFileSuffix = lockFileSuffix();
+	    					String strLockFileName = lockFileName(theFile);
+		    				String strLockFilePrefix = strLockFileName;
+		    				// get appropriate suffix for lock file suffix
+		    				String strLockFileSuffix = lockFileSuffix(strLockFileName);
+		    				// if the file is of a type that can't be locked,
+		    				// notify the user and return 
+		    				if (strLockFileSuffix.equals(UNLOCKABLE_FILE)) {
+		    					// only show this if we are notifying the user
+		    					if (bNotifying) {
+			    					JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
+			    			                strLockFileName + " cannot be locked.\n"
+			    			                + "Only files of type .VUE and .VPK can be locked.",
+			    			                "File cannot be locked.", 
+			    			                JOptionPane.WARNING_MESSAGE);
+		    					}
+		    					
+		    					return;
+		    				}
+		    					
 		    				// and the directory is the same one as the file is in
 		    				File lockFileDirectory = theFile.getParentFile();
 		    				// now create the lock file in the right directory
@@ -495,7 +520,7 @@ public class FileLockAction extends VueAction
 
   	  public boolean accept(File pathname) {
 
-  	    if (pathname.getName().endsWith(lockFileSuffix()))
+  	    if ((pathname.getName().endsWith(VueUtil.VueLockExtension)) || (pathname.getName().endsWith(VueUtil.VueArchiveLockExtension)))
   	      return true;
   	    return false;
   	  }

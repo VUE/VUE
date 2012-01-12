@@ -55,6 +55,10 @@ public class VueUtil extends tufts.Util
     public static final String DEFAULT_MAC_FOLDER = ".vue_2";
     public static final String VueExtension = VueResources.getString("vue.extension", ".vue");
     public static final String VueArchiveExtension = VueResources.getString("vue.archive.extension", ".vpk");
+    // HO 12/01/2012 BEGIN ***********
+    public static final String VueLockExtension = VueResources.getString("vue.lock.extension", ".vle");
+    public static final String VueArchiveLockExtension = VueResources.getString("vue.archive.lock.extension", ".vlk");
+    // HO 12/01/2012 END *************
     private static String currentDirectoryPath = "";
     
     public static void openURL(String platformURL)

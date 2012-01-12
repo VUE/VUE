@@ -124,13 +124,9 @@ public class SaveAction extends VueAction
         
         File file = map.getFile();
         
-        // HO 21/12/2011 BEGIN *****
-        if (file != null) {
-	        boolean bWritable = FileLockAction.checkIfFileIsWritable(file, false);
-	        if (bWritable == false)
-	        	return false;
-        }
-        // HO 21/12/2011 END ********
+        // HO 12/01/2012 BEGIN ******
+        boolean bWritable = true;
+        // HO 12/01/2012 END *******
 
         int response = -1;
         if (map.getSaveFileModelVersion() == 0) {
@@ -153,6 +149,24 @@ public class SaveAction extends VueAction
         } if ((saveAs || file == null) && !export) {
             //file = ActionUtil.selectFile("Save Map", "vue");
             file = ActionUtil.selectFile("Save Map", null);
+            // HO 12/01/2012 BEGIN ******
+            if (file != null) {
+    	        File lockFile = FileLockAction.isFileLockedByOtherUser(file);
+    	        if (lockFile != null) {
+    		    	String strUserWithLock = FileLockAction.userWhoHasLockedAFile(lockFile);
+
+			    	JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
+			                strUserWithLock + " has locked the file\n"
+		                	+ file.getAbsolutePath() + "\nfor writing.\n"
+		                	+ "Your changes will not be saved.",
+		                "File locked by other user.", 
+		                JOptionPane.ERROR_MESSAGE);
+			    	
+			    	return false;
+    	        } 
+
+            } 
+            // HO 12/01/2012 END ********
         } else if (export) {
             file = ActionUtil.selectFile("Export Map", "export");
         }
@@ -168,6 +182,25 @@ public class SaveAction extends VueAction
         try {
         	         	
             Log.info("saveMap: target[" + file + "]");
+            
+            // HO 12/01/2012 BEGIN ******
+            if (file != null) {
+    	        File lockFile = FileLockAction.isFileLockedByOtherUser(file);
+    	        if (lockFile != null) {
+    		    	String strUserWithLock = FileLockAction.userWhoHasLockedAFile(lockFile);
+
+			    	JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
+			                strUserWithLock + " has locked the file\n"
+		                	+ file.getAbsolutePath() + "\nfor writing.\n"
+		                	+ "Your changes will not be saved.",
+		                "File locked by other user.", 
+		                JOptionPane.ERROR_MESSAGE);
+			    	
+			    	return false;
+    	        } 
+
+            } 
+            // HO 12/01/2012 END ********
             
             final String name = file.getName().toLowerCase();
             // HO 06/01/2012 BEGIN ******
