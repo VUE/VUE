@@ -358,7 +358,7 @@ public class FileLockAction extends VueAction
 	    				return;
 	    			} else {
 	    				// if the file is writable at all
-	    				boolean bWritable = checkIfFileIsWritable(theFile, bOpening);
+	    				boolean bWritable = checkIfFileIsWritable(theFile, bOpening, bNotifying);
 	    			
 	    				// if the file is writable for this user
 	    				if (bWritable) {
@@ -397,7 +397,7 @@ public class FileLockAction extends VueAction
 		    					lockFile.deleteOnExit();
 		    					if (bNotifying) {
 		    						JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
-		    				                "File locked.\n",
+		    				                theFile.getName() + " locked.",
 		    			                "File locked", 
 		    			                JOptionPane.INFORMATION_MESSAGE);
 		    					}
@@ -412,7 +412,8 @@ public class FileLockAction extends VueAction
     			se.printStackTrace();
     		}
     	} else { // there's no file object
-    		if (bNotifying) { // if we are notifying the user of the lock's success or failure, show message
+    		if ((bNotifying) && (!bOpening)) { // if we are notifying the user of the lock's success or failure, 
+    			// and we are not in the process of opening another file, show message
     			JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
     	                "There is no file to lock.",
                     "No file object", 
@@ -482,7 +483,13 @@ public class FileLockAction extends VueAction
     }    
     
     // HO 21/12/2011 BEGIN ******
-    public static boolean checkIfFileIsWritable(File file, boolean bOpening) {
+    /**
+     * A function to check whether the file is writable
+     * @param file, the file to check
+     * @param bOpening, true if we are in the process of opening a file, false if not
+     * @param bNotifying, true if we are notifying the user of the status, false if not
+     */
+    public static boolean checkIfFileIsWritable(File file, boolean bOpening, boolean bNotifying) {
     	File lockFile = isFileWritableByCurrentUser(file);
     	
 	    // if it's writable, we either get back null or a
@@ -491,27 +498,33 @@ public class FileLockAction extends VueAction
 	    	System.out.println("yes it's writable");
 	    	return true;
 	    } else if (lockFile.equals(file)) {
-	    	JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
-	                "That file is not writable.", 
-	                "Can't save", 
-	                JOptionPane.ERROR_MESSAGE);
+	    	if (bNotifying) {
+		    	JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
+		                "That file is not writable.", 
+		                "Can't save", 
+		                JOptionPane.ERROR_MESSAGE);
+	    	}
 	    	return false;
 	    } else {
 	    	String strUserWithLock = userWhoHasLockedAFile(lockFile);
 	    	if (!bOpening) {
-		    	JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
-		                strUserWithLock + " has locked the file\n"
-	                	+ file.getAbsolutePath() + "\nfor writing.\n"
-	                	+ "Your changes will not be saved.",
-	                "File locked by other user.", 
-	                JOptionPane.ERROR_MESSAGE);
-	    	} else {
-		    	JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
-		                strUserWithLock + " has locked the file\n"
+	    		if (bNotifying) {
+			    	JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
+			                strUserWithLock + " has locked the file\n"
 		                	+ file.getAbsolutePath() + "\nfor writing.\n"
-		                	+ "You will not be able to save any changes.",
+		                	+ "Your changes will not be saved.",
 		                "File locked by other user.", 
-		                JOptionPane.WARNING_MESSAGE);
+		                JOptionPane.ERROR_MESSAGE);
+	    		}
+	    	} else {
+	    		if (bNotifying) {
+			    	JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
+			                strUserWithLock + " has locked the file\n"
+			                	+ file.getAbsolutePath() + "\nfor writing.\n"
+			                	+ "You will not be able to save any changes.",
+			                "File locked by other user.", 
+			                JOptionPane.WARNING_MESSAGE);
+	    		}
 	    	}
 	    	return false;
 	    }

@@ -187,14 +187,17 @@ public class SaveAction extends VueAction
             if (file != null) {
     	        File lockFile = FileLockAction.isFileLockedByOtherUser(file);
     	        if (lockFile != null) {
-    		    	String strUserWithLock = FileLockAction.userWhoHasLockedAFile(lockFile);
-
-			    	JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
-			                strUserWithLock + " has locked the file\n"
-		                	+ file.getAbsolutePath() + "\nfor writing.\n"
-		                	+ "Your changes will not be saved.",
-		                "File locked by other user.", 
-		                JOptionPane.ERROR_MESSAGE);
+    	        	// we don't want to notify while we're in the middle of wormholes
+    	        	if (!VUE.bConstructingWormholes) {
+	    		    	String strUserWithLock = FileLockAction.userWhoHasLockedAFile(lockFile);
+	
+				    	JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
+				                strUserWithLock + " has locked the file\n"
+			                	+ file.getAbsolutePath() + "\nfor writing.\n"
+			                	+ "Your changes will not be saved.",
+			                "File locked by other user.", 
+			                JOptionPane.ERROR_MESSAGE);
+    	        	}
 			    	
 			    	return false;
     	        } 
@@ -427,7 +430,7 @@ public class SaveAction extends VueAction
         
         File file = map.getFile();
         // HO 21/12/2011 BEGIN *****
-        boolean bWritable = FileLockAction.checkIfFileIsWritable(file, false);
+        boolean bWritable = FileLockAction.checkIfFileIsWritable(file, false, false);
         if (bWritable == false)
         	return null;
         // HO 21/12/2011 END ********

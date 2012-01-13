@@ -1564,6 +1564,10 @@ public class VUE
     private static final boolean ToolbarAtTopScreen = false && VueUtil.isMacPlatform();
 
     private static void buildApplicationInterface() {
+    	
+    	// HO 13/01/2012 BEGIN *******
+    	bBuildingApplicationInterface = true;
+    	// HO 13/01/2012 END *******
 
         //-------------------------------------------------------
         // Create the tabbed panes for the viewers
@@ -2025,6 +2029,10 @@ public class VUE
             		ibisFormatDock.setVisible(true);
         	}
         	// HO 24/06/2010 END ******************
+        	
+        	// HO 13/01/2012 BEGIN *******
+        	bBuildingApplicationInterface = false;
+        	// HO 13/01/2012 END *******
         
     }
     
@@ -4373,7 +4381,8 @@ public class VUE
         MapViewer rightViewer = null;
         
         // HO 21/12/2011 BEGIN ********
-        FileLockAction.createLockFile(pMap.getFile(), true, false);
+        boolean bNotifying = ((!bConstructingWormholes) && (!bBuildingApplicationInterface));
+        FileLockAction.createLockFile(pMap.getFile(), true, bNotifying);
         // HO 21/12/2011 END ******
         
         for (int i = 0; i < mMapTabsLeft.getTabCount(); i++) {
@@ -4733,6 +4742,9 @@ public class VUE
     // in order to suppress unwanted behaviour
     public static boolean bConstructingWormholes = false;
     // HO 21/04/2011 END ************
+    // HO 13/01/2012 BEGIN *******
+    public static boolean bBuildingApplicationInterface = false;
+    // HO 13/01/2012 END ********
 
 
     /** @return a new JWindow, parented to the root VUE window */
