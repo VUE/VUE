@@ -30,6 +30,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 import edu.tufts.vue.preferences.implementations.ShowIconsPreference;
 import edu.tufts.vue.preferences.interfaces.VuePreference;
     
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Collection;
 import java.util.List;
@@ -1019,6 +1020,9 @@ public class LWNode extends LWContainer
         // also set flag at application level
         VUE.bConstructingWormholes = true;
         // HO 21/04/2011 END ************
+        // HO 18/01/2012 BEGIN *******
+        VUE.locksAlreadyNotified = new Hashtable();
+        // HO 18/01/2012 END *********
         if (!mXMLRestoreUnderway) {
         	final LWComponent first = Util.getFirst(children);
         	if (first instanceof LWWormholeNode) {
@@ -1052,6 +1056,9 @@ public class LWNode extends LWContainer
         // also set flag at application level
         VUE.bConstructingWormholes = false;
         // HO 21/04/2011 END ************
+        // HO 18/01/2012 BEGIN *******
+        VUE.locksAlreadyNotified = new Hashtable();
+        // HO 18/01/2012 END *********
 
     }
     // HO 22/09/2010 END ******************

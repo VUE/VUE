@@ -391,14 +391,16 @@ public class FileLockAction extends VueAction
 		    					lockFile = new File(lockFileDirectory, strLockFilePrefix + strLockFileSuffix);
 		    					// write the username to the lock file
 		    					BufferedWriter bw = new BufferedWriter(new FileWriter(lockFile));
-		    		    	    bw.write(System.getProperty("user.name"));
+		    		    	    String strCurrentUser = System.getProperty("user.name");
+		    		    	    String strFileName = theFile.getName();
+		    					bw.write(strCurrentUser);
 		    		    	    bw.close();
 		    					// make sure the lock file gets deleted when the virtual machine terminates
 		    					lockFile.deleteOnExit();
-		    					if (bNotifying) {
+		    					if ((bNotifying) && (!bOpening)) {
 		    						JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
-		    				                theFile.getName() + " locked.",
-		    			                "File locked", 
+		    				             "You have locked the file " + strFileName + ".",
+		    			                "File locked by " + strCurrentUser, 
 		    			                JOptionPane.INFORMATION_MESSAGE);
 		    					}
 		    				} catch (IOException e) {
@@ -506,24 +508,13 @@ public class FileLockAction extends VueAction
 	    	}
 	    	return false;
 	    } else {
-	    	String strUserWithLock = userWhoHasLockedAFile(lockFile);
 	    	if (!bOpening) {
 	    		if (bNotifying) {
-			    	JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
-			                strUserWithLock + " has locked the file\n"
-		                	+ file.getAbsolutePath() + "\nfor writing.\n"
-		                	+ "Your changes will not be saved.",
-		                "File locked by other user.", 
-		                JOptionPane.ERROR_MESSAGE);
+			    	notifyThatFileIsLocked(file, lockFile);
 	    		}
 	    	} else {
 	    		if (bNotifying) {
-			    	JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
-			                strUserWithLock + " has locked the file\n"
-			                	+ file.getAbsolutePath() + "\nfor writing.\n"
-			                	+ "You will not be able to save any changes.",
-			                "File locked by other user.", 
-			                JOptionPane.WARNING_MESSAGE);
+	    			notifyThatFileIsLocked(file, lockFile);
 	    		}
 	    	}
 	    	return false;
@@ -564,6 +555,26 @@ public class FileLockAction extends VueAction
   	    return false;
   	  }
   	}
+    
+    // HO 18/01/2012 BEGIN *******
+    /**
+     * A method to show a notification that a given file is locked,
+     * and by whom.
+     * @param file, the File that is locked
+     * @param lockFile, the lock file in question
+     * @author Helen Oliver
+     */
+    public static void notifyThatFileIsLocked(File file, File lockFile) {
+    	String strUserWithLock = userWhoHasLockedAFile(lockFile);
+    	
+    	JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
+                strUserWithLock + " has locked the file\n"
+            	+ file.getName() + "\nfor writing.\n"
+            	+ "Your changes will not be saved.",
+            "File locked by other user.", 
+            JOptionPane.ERROR_MESSAGE);
+    }
+    // HO 18/01/2012 END *********
     
     static class VueArchiveLockFileFilter implements FileFilter {
 

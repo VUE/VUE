@@ -270,6 +270,9 @@ public class LWMap extends LWContainer
         // at application level, in order to suppress unwanted behaviour
         VUE.bConstructingWormholes = true;
         // HO 21/04/2011 END ************
+        // HO 18/01/2012 BEGIN *******
+        VUE.locksAlreadyNotified = new Hashtable();
+        // HO 18/01/2012 END *********
 
     	// HO 11/10/2010 END *****************
 			// find all the wormhole nodes in this map
@@ -329,6 +332,9 @@ public class LWMap extends LWContainer
 	        // at application level, in order to suppress unwanted behaviour
 	        VUE.bConstructingWormholes = false;
 	        // HO 21/04/2011 END ************
+	        // HO 18/01/2012 BEGIN *******
+	        VUE.locksAlreadyNotified = null;
+	        // HO 18/01/2012 END *********
     }
     
     // HO 03/11/2011 BEGIN ***********

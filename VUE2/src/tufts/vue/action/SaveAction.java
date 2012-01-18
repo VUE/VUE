@@ -153,14 +153,9 @@ public class SaveAction extends VueAction
             if (file != null) {
     	        File lockFile = FileLockAction.isFileLockedByOtherUser(file);
     	        if (lockFile != null) {
-    		    	String strUserWithLock = FileLockAction.userWhoHasLockedAFile(lockFile);
-
-			    	JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
-			                strUserWithLock + " has locked the file\n"
-		                	+ file.getAbsolutePath() + "\nfor writing.\n"
-		                	+ "Your changes will not be saved.",
-		                "File locked by other user.", 
-		                JOptionPane.ERROR_MESSAGE);
+    	        	// HO 18/01/2012 BEGIN ********
+    		    	FileLockAction.notifyThatFileIsLocked(file, lockFile);
+    		    	// HO 18/01/2012 END ********
 			    	
 			    	return false;
     	        } 
@@ -188,15 +183,17 @@ public class SaveAction extends VueAction
     	        File lockFile = FileLockAction.isFileLockedByOtherUser(file);
     	        if (lockFile != null) {
     	        	// we don't want to notify while we're in the middle of wormholes
-    	        	if (!VUE.bConstructingWormholes) {
-	    		    	String strUserWithLock = FileLockAction.userWhoHasLockedAFile(lockFile);
-	
-				    	JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
-				                strUserWithLock + " has locked the file\n"
-			                	+ file.getAbsolutePath() + "\nfor writing.\n"
-			                	+ "Your changes will not be saved.",
-			                "File locked by other user.", 
-			                JOptionPane.ERROR_MESSAGE);
+    	        	if (!VUE.bConstructingWormholes)  {
+    	        		FileLockAction.notifyThatFileIsLocked(file, lockFile);
+				    	// HO 18/01/2012 BEGIN *********
+    	        	} else {
+    	        		String strFilePath = file.getAbsolutePath();
+    	        		if (!VUE.locksAlreadyNotified.containsKey(strFilePath)) {
+    	        			
+    	    		    	FileLockAction.notifyThatFileIsLocked(file, lockFile);
+    				    	
+    				    	VUE.locksAlreadyNotified.put(strFilePath, true);
+    	        		}
     	        	}
 			    	
 			    	return false;
@@ -394,6 +391,8 @@ public class SaveAction extends VueAction
 
         return false;
     }
+    
+
     
     
     

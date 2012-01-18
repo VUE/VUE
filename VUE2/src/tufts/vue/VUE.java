@@ -4745,6 +4745,9 @@ public class VUE
     // HO 13/01/2012 BEGIN *******
     public static boolean bBuildingApplicationInterface = false;
     // HO 13/01/2012 END ********
+    // HO 18/01/2012 BEGIN ********
+    public static Hashtable locksAlreadyNotified = null;
+    // HO 18/01/2012 END **********
 
 
     /** @return a new JWindow, parented to the root VUE window */
