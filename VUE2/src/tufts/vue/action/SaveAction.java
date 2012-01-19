@@ -126,6 +126,7 @@ public class SaveAction extends VueAction
         
         // HO 12/01/2012 BEGIN ******
         boolean bWritable = true;
+        boolean bAlreadyNotified = false;
         // HO 12/01/2012 END *******
 
         int response = -1;
@@ -153,12 +154,28 @@ public class SaveAction extends VueAction
             if (file != null) {
     	        File lockFile = FileLockAction.isFileLockedByOtherUser(file);
     	        if (lockFile != null) {
-    	        	// HO 18/01/2012 BEGIN ********
-    		    	FileLockAction.notifyThatFileIsLocked(file, lockFile);
-    		    	// HO 18/01/2012 END ********
+	        		// HO 19/01/2012 BEGIN *****
+	        		//LWMap openMap = VUE.isThisMapAlreadyOpen(file);
+	        		//if (openMap == null)
+	        		// HO 19/01/2012 END ******
+	        			// HO 18/01/2012 BEGIN ********
+	        			FileLockAction.notifyThatFileIsLocked(file, lockFile);
+				    	// HO 19/01/2012 BEGIN *******
+				    	FileLockAction.notifyTargetFilesThatAreLocked(map);
+				    	// HO 19/01/2012 END *********
+    		    		// HO 18/01/2012 END ********
 			    	
 			    	return false;
-    	        } 
+    	        } else {
+			    	// HO 19/01/2012 BEGIN *******
+    	        	if (!VUE.bConstructingWormholes) {
+    	        		if (!bAlreadyNotified) {
+    	        			FileLockAction.notifyTargetFilesThatAreLocked(map);
+    	        			bAlreadyNotified = true;
+    	        		}
+    	        	}
+			    	// HO 19/01/2012 END *********
+    	        }
 
             } 
             // HO 12/01/2012 END ********
@@ -184,11 +201,23 @@ public class SaveAction extends VueAction
     	        if (lockFile != null) {
     	        	// we don't want to notify while we're in the middle of wormholes
     	        	if (!VUE.bConstructingWormholes)  {
-    	        		FileLockAction.notifyThatFileIsLocked(file, lockFile);
+	        			FileLockAction.notifyThatFileIsLocked(file, lockFile);
+				    	// HO 19/01/2012 BEGIN *******
+				    	FileLockAction.notifyTargetFilesThatAreLocked(map);
+				    	// HO 19/01/2012 END *********
     	        	} 
 			    	
 			    	return false;
-    	        } 
+    	        } else {
+    	        	if (!VUE.bConstructingWormholes) {
+    	        		if (!bAlreadyNotified) {
+    	        			// HO 19/01/2012 BEGIN *******
+    	        			FileLockAction.notifyTargetFilesThatAreLocked(map);
+    	        			bAlreadyNotified = true;
+    	        			// HO 19/01/2012 END *********
+    	        		}
+    	        	}
+    	        }
 
             } 
             // HO 12/01/2012 END ********
@@ -214,7 +243,7 @@ public class SaveAction extends VueAction
                 // HO 05/01/2012 END ********* 
             	ActionUtil.marshallMap(file, map);                
                 // HO 05/01/2012 BEGIN *******
-                FileLockAction.createLockFile(file, false, false);
+                FileLockAction.createLockFile(file, map, false, false);
                 // HO 05/01/2012 END *********              
             }
             // HO 05/01/2012 END *********
@@ -330,7 +359,7 @@ public class SaveAction extends VueAction
             		
             	Archive.writeArchive(map, file);
             	
-                FileLockAction.createLockFile(file, false, false);
+                FileLockAction.createLockFile(file, map, false, false);
                 // HO 05/01/2012 END *********
                 
             } else {
@@ -420,7 +449,7 @@ public class SaveAction extends VueAction
         
         File file = map.getFile();
         // HO 21/12/2011 BEGIN *****
-        boolean bWritable = FileLockAction.checkIfFileIsWritable(file, false, false);
+        boolean bWritable = FileLockAction.checkIfFileIsWritable(file, map, false, false);
         if (bWritable == false)
         	return null;
         // HO 21/12/2011 END ********

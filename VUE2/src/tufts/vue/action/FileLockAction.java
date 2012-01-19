@@ -53,6 +53,7 @@ public class FileLockAction extends VueAction
     
     private boolean bOpening;
     private File mFile;
+    private LWMap mMap;
     
     public void setFile(File theFile) {
     	mFile = theFile;
@@ -60,6 +61,14 @@ public class FileLockAction extends VueAction
     
     public File getFile() {
     	return mFile;
+    }
+    
+    public void setMap(LWMap theMap) {
+    	mMap = theMap;
+    }
+    
+    public LWMap getMap() {
+    	return mMap;
     }
     
     public void setOpening(boolean opening) {
@@ -88,7 +97,7 @@ public class FileLockAction extends VueAction
         try {
         	init();
         	
-        	createLockFile(mFile, bOpening, true);      
+        	createLockFile(mFile, mMap, bOpening, true);      
         	
             Log.info(e.getActionCommand() + ": completed.");
         } finally {
@@ -338,13 +347,14 @@ public class FileLockAction extends VueAction
      * by someone else. Otherwise it will be
      * locked by the current user.
      * @param theFile, the File object to be locked.
+     * @param theMap, the Map with the locked File object.
      * @param bOpening, true if we are in the process of opening a file,
      * false otherwise.
      * @param bNotifying, true if we are notifying the user that the file has been locked,
      * false otherwise.
      * @author Helen Oliver
      */
-    public static void createLockFile(File theFile, boolean bOpening, boolean bNotifying) {
+    public static void createLockFile(File theFile, LWMap theMap, boolean bOpening, boolean bNotifying) {
    
     	if (theFile != null) {
     		try {
@@ -358,7 +368,7 @@ public class FileLockAction extends VueAction
 	    				return;
 	    			} else {
 	    				// if the file is writable at all
-	    				boolean bWritable = checkIfFileIsWritable(theFile, bOpening, bNotifying);
+	    				boolean bWritable = checkIfFileIsWritable(theFile, theMap, bOpening, bNotifying);
 	    			
 	    				// if the file is writable for this user
 	    				if (bWritable) {
@@ -488,21 +498,26 @@ public class FileLockAction extends VueAction
     /**
      * A function to check whether the file is writable
      * @param file, the file to check
+     * @param theMap, the LWMap that goes with this file
      * @param bOpening, true if we are in the process of opening a file, false if not
      * @param bNotifying, true if we are notifying the user of the status, false if not
      */
-    public static boolean checkIfFileIsWritable(File file, boolean bOpening, boolean bNotifying) {
+    public static boolean checkIfFileIsWritable(File file, LWMap theMap, boolean bOpening, boolean bNotifying) {
     	File lockFile = isFileWritableByCurrentUser(file);
     	
 	    // if it's writable, we either get back null or a
     	// File object that is NOT the same one we sent in
     	if (lockFile == null) {
-	    	System.out.println("yes it's writable");
+	    	if (bNotifying) {
+		    	// HO 19/01/2012 BEGIN *******
+		    	notifyTargetFilesThatAreLocked(theMap);
+		    	// HO 19/01/2012 END *********
+	    	}
 	    	return true;
 	    } else if (lockFile.equals(file)) {
 	    	if (bNotifying) {
 		    	JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
-		                "That file is not writable.", 
+		                file.getName() + " is not writable.", 
 		                "Can't save", 
 		                JOptionPane.ERROR_MESSAGE);
 	    	}
@@ -511,10 +526,16 @@ public class FileLockAction extends VueAction
 	    	if (!bOpening) {
 	    		if (bNotifying) {
 			    	notifyThatFileIsLocked(file, lockFile);
+			    	// HO 19/01/2012 BEGIN *******
+			    	notifyTargetFilesThatAreLocked(theMap);
+			    	// HO 19/01/2012 END *********
 	    		}
 	    	} else {
 	    		if (bNotifying) {
 	    			notifyThatFileIsLocked(file, lockFile);
+			    	// HO 19/01/2012 BEGIN *******
+			    	notifyTargetFilesThatAreLocked(theMap);
+			    	// HO 19/01/2012 END *********
 	    		}
 	    	}
 	    	return false;
@@ -574,6 +595,68 @@ public class FileLockAction extends VueAction
             	+ "Wormholes in this file will not be updated.\n",
             "File locked by other user.", 
             JOptionPane.ERROR_MESSAGE);
+    }
+    
+    /**
+     * A method to take a map we know is locked,
+     * check through it for wormholes,
+     * and check if each target file is locked by someone else,
+     * and notify the user if it is.
+     * @param map, the LWMap we know is locked
+     * @author Helen Oliver
+     */
+    public static void notifyTargetFilesThatAreLocked(LWMap map) {
+    	Collection<LWWormholeNode> coll = map.getAllWormholeNodes();
+    	
+    	Vector fileNames = new Vector();
+    	
+        // if we found any wormhole nodes
+		if (coll.size() > 0) {
+			// iterate through them all
+			for (LWWormholeNode wn : coll) {
+					// if the node has a resource
+		            if (wn.hasResource()) {
+		            	// get the resource from the node
+		            	Resource r = wn.getResource();
+		            	// check to make sure the resource is a wormhole resource
+		            	if (r.getClass().equals(tufts.vue.WormholeResource.class)) {
+		            		// if it is, downcast it to create a proper WormholeResource object
+		            		WormholeResource wr = (WormholeResource)r;
+		            		String theSpec = wr.getSystemSpec();
+		            		File potentiallyLockedFile = new File(theSpec);
+		            		File lockFile = isFileWritableByCurrentUser(potentiallyLockedFile);
+		            		if ((lockFile != null) && (lockFile != potentiallyLockedFile)) {
+		            			fileNames.add(potentiallyLockedFile.getName());
+		            		}
+		                }
+		            	r = null;
+		            }
+		            wn = null;
+		    }
+		}
+		coll = null;
+		
+		String strNamesToShow = "";
+		
+		if (!fileNames.isEmpty()) {
+			int i;
+			int j = fileNames.size() - 1;
+			for (i = 0; i <= j; i++) {
+				String strNextName = fileNames.elementAt(i).toString();
+				strNamesToShow = strNamesToShow + strNextName + "\n";				
+			}
+		}
+		
+		if (strNamesToShow != "") {
+			JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
+	                "The following files are locked for writing:\n"
+					+ strNamesToShow
+	            	+ "Wormholes in these files will not be updated.\n",
+	            "File locked by other user.", 
+	            JOptionPane.ERROR_MESSAGE);
+		}
+		
+		
     }
     // HO 18/01/2012 END *********
     

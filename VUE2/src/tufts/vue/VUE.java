@@ -3828,7 +3828,7 @@ public class VUE
         MapViewer rightViewer = null;
         
         // HO 21/12/2011 BEGIN ********
-    	FileLockAction.createLockFile(pMap.getFile(), true, false);
+    	FileLockAction.createLockFile(pMap.getFile(), pMap, true, false);
         // HO 21/12/2011 END ******
     	
         // HO 28/07/2011 BEGIN ********
@@ -3998,6 +3998,34 @@ public class VUE
 	    if (lastZoomFactor != 0.0) {
 	    	viewer.setZoomFactor(lastZoomFactor, false, null, false);        	
 	    }
+    }
+    
+    /**
+     * A function to figure out if this map is already open
+     * @param theMapFile, the file we are trying to match
+     * to a map that may or may not be already open
+     * @return openMap, an LWMap that is null if it's
+     * not open, otherwise, the open map
+     * @author Helen Oliver
+     */
+    public static LWMap isThisMapAlreadyOpen(File theMapFile) {
+        LWMap openMap = null;
+
+        // look and see if the map is already open
+        // (it should be)
+        for (int i = 0; i < mMapTabsLeft.getTabCount(); i++) {
+            LWMap map = mMapTabsLeft.getMapAt(i);
+            if (map == null)
+                continue;
+            File existingFile = map.getFile();
+            if (existingFile != null && existingFile.equals(theMapFile)) {
+                if (DEBUG.Enabled) out("displayMap found existing open map " + map + " matching file " + theMapFile);
+                openMap = map;
+                break;
+            }
+        }
+        
+        return openMap;
     }
     
     /** 
@@ -4382,7 +4410,7 @@ public class VUE
         
         // HO 21/12/2011 BEGIN ********
         boolean bNotifying = ((!bConstructingWormholes) && (!bBuildingApplicationInterface));
-        FileLockAction.createLockFile(pMap.getFile(), true, bNotifying);
+        FileLockAction.createLockFile(pMap.getFile(), pMap, true, bNotifying);
         // HO 21/12/2011 END ******
         
         for (int i = 0; i < mMapTabsLeft.getTabCount(); i++) {
