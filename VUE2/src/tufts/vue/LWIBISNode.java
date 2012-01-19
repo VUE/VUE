@@ -1093,9 +1093,15 @@ public class LWIBISNode extends LWNode
     private void reparentWormholeNode(java.util.Collection<? extends LWComponent> children) {
         // HO 21/04/2011 BEGIN **********
         // also set flag at application level
-        VUE.bConstructingWormholes = true;
+    	// HO 19/01/2012 BEGIN *******
+    	// embarrassing hack
+    	boolean bAlreadyConstructingWormholes = VUE.bConstructingWormholes;
+    	if (!bAlreadyConstructingWormholes) {
+    		// HO 19/01/2012 END ********
+    		VUE.bConstructingWormholes = true;
+    	}
         // HO 18/01/2012 BEGIN *******
-        VUE.locksAlreadyNotified = new Hashtable();
+        //VUE.locksAlreadyNotified = new Hashtable();
         // HO 18/01/2012 END *********
         // HO 21/04/2011 END ************
         if (!mXMLRestoreUnderway) {
@@ -1130,10 +1136,15 @@ public class LWIBISNode extends LWNode
         }
         // HO 21/04/2011 BEGIN **********
         // also set flag at application level
-        VUE.bConstructingWormholes = false;
+    	// HO 19/01/2012 BEGIN *******
+    	// embarrassing hack
+    	if (!bAlreadyConstructingWormholes) {
+    		// HO 19/01/2012 END ********
+    		VUE.bConstructingWormholes = false;
+    	}
         // HO 21/04/2011 END ************
         // HO 18/01/2012 BEGIN *******
-        VUE.locksAlreadyNotified = null;
+        //VUE.locksAlreadyNotified = null;
         // HO 18/01/2012 END *********
     }
     // HO 22/09/2010 END ******************

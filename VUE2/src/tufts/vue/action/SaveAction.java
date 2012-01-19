@@ -185,16 +185,7 @@ public class SaveAction extends VueAction
     	        	// we don't want to notify while we're in the middle of wormholes
     	        	if (!VUE.bConstructingWormholes)  {
     	        		FileLockAction.notifyThatFileIsLocked(file, lockFile);
-				    	// HO 18/01/2012 BEGIN *********
-    	        	} else {
-    	        		String strFilePath = file.getAbsolutePath();
-    	        		if (!VUE.locksAlreadyNotified.containsKey(strFilePath)) {
-    	        			
-    	    		    	FileLockAction.notifyThatFileIsLocked(file, lockFile);
-    				    	
-    				    	VUE.locksAlreadyNotified.put(strFilePath, true);
-    	        		}
-    	        	}
+    	        	} 
 			    	
 			    	return false;
     	        } 

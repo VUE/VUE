@@ -4746,7 +4746,7 @@ public class VUE
     public static boolean bBuildingApplicationInterface = false;
     // HO 13/01/2012 END ********
     // HO 18/01/2012 BEGIN ********
-    public static Hashtable locksAlreadyNotified = null;
+    //public static Hashtable locksAlreadyNotified = null;
     // HO 18/01/2012 END **********
 
 

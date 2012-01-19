@@ -570,7 +570,8 @@ public class FileLockAction extends VueAction
     	JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
                 strUserWithLock + " has locked the file\n"
             	+ file.getName() + "\nfor writing.\n"
-            	+ "Your changes will not be saved.",
+            	+ "Your changes will not be saved.\n"
+            	+ "Wormholes in this file will not be updated.\n",
             "File locked by other user.", 
             JOptionPane.ERROR_MESSAGE);
     }

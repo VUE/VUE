@@ -271,7 +271,7 @@ public class LWMap extends LWContainer
         VUE.bConstructingWormholes = true;
         // HO 21/04/2011 END ************
         // HO 18/01/2012 BEGIN *******
-        VUE.locksAlreadyNotified = new Hashtable();
+        //VUE.locksAlreadyNotified = new Hashtable();
         // HO 18/01/2012 END *********
 
     	// HO 11/10/2010 END *****************
@@ -333,7 +333,7 @@ public class LWMap extends LWContainer
 	        VUE.bConstructingWormholes = false;
 	        // HO 21/04/2011 END ************
 	        // HO 18/01/2012 BEGIN *******
-	        VUE.locksAlreadyNotified = null;
+	        //VUE.locksAlreadyNotified = null;
 	        // HO 18/01/2012 END *********
     }
     

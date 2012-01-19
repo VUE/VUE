@@ -262,13 +262,17 @@ public class LWWormhole implements VueConstants {
 	
 	// HO 23/02/2011 BEGIN **********
 	private void flagStartOfConstruction(LWMap map) {
-		if (map != null)
+		if (map != null) {
 			map.bConstructingWormholes = true;
+			VUE.bConstructingWormholes = true;
+		}
 	}
 	
 	private void flagEndOfConstruction(LWMap map) {
-		if (map != null)
+		if (map != null) {
 			map.bConstructingWormholes = false;
+			VUE.bConstructingWormholes = false;
+		}
 	}
 	// HO 23/02/2011 END ************
 	
