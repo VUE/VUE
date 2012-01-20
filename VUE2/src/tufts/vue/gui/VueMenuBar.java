@@ -102,7 +102,7 @@ import edu.tufts.vue.preferences.implementations.BooleanPreference;
  *
  * @version $Revision: 1.176 $ / $Date: 2010-03-11 21:15:01 $ / $Author: mike $
  * @author Scott Fraize
- * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2011
+ * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2012
  */
 public class VueMenuBar extends javax.swing.JMenuBar
     implements java.awt.event.FocusListener
@@ -560,6 +560,9 @@ public class VueMenuBar extends javax.swing.JMenuBar
         fileMenu.add(fileLockAction);
         fileMenu.add(Actions.UnlockFile);
         fileMenu.add(Actions.RefreshFile);
+        // HO 20/01/2012 BEGIN ******
+        fileMenu.add(Actions.QuickRefreshFile);
+        // HO 20/01/2012 END ******
         fileMenu.addSeparator();
         // HO 09/01/2012 END **********
 

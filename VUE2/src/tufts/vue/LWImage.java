@@ -33,7 +33,7 @@ import java.awt.AlphaComposite;
  * size image inside a node to represent it's resource.
  *
  * @version $Revision: 1.82 $ / $Date: 2007/11/19 06:20:27 $ / $Author: sfraize $
- * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2011
+ * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2012
  */
 
 public class LWImage extends LWComponent

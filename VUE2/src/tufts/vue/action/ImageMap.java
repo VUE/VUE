@@ -33,7 +33,7 @@ import tufts.vue.LWComponent.ChildKind;
 import tufts.vue.LWComponent.Order;
 
 /**
- * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2011
+ * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2012
  * @version $Revision: 1.39 $ / $Date: 2010-03-29 13:48:48 $ / $Author: mike $ *
  * @author Jay Briedis
  * 

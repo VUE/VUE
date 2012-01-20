@@ -42,7 +42,7 @@ import static tufts.vue.Resource.*;
  * Code related to identifying, creating and unpacking VUE archives.
  *
  * @version $Revision: 1.14 $ / $Date: 2010-02-03 19:13:45 $ / $Author: mike $ 
- * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2011
+ * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2012
  */
 public class Archive
 {

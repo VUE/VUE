@@ -81,8 +81,14 @@ public class FileLockAction extends VueAction
     
     private void init() {
     	LWMap activeMap = VUE.getMapInActiveTab();
-    	if (activeMap != null)
-    		setFile(activeMap.getFile());
+    	if (activeMap != null) {
+    		File activeFile = activeMap.getFile();
+    		//if (activeFile == null) {
+    			//activeFile = new File(activeMap.getSaveFile());
+    		//}
+    		setFile(activeFile);
+    		setMap(activeMap);
+    	}
     	setOpening(false);
     }
     

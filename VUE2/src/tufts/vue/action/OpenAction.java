@@ -24,7 +24,7 @@ package tufts.vue.action;
 /**
  *
  * @author  akumar03
- * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2011
+ * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2012
  */
 import java.io.*;
 import java.util.zip.*;

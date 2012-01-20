@@ -183,58 +183,14 @@ public final class DrawContext
     }
     
     public void setBackgroundFill(Color c) {
-        //if (DEBUG.IMAGE) out("setFill: " + c);
         fillColor = c;
     }
-    
-
-    /** set up for drawing a model: adjust to the current zoom and offset.
-     * MapViewer, MapPanner, VueTool, etc, to use.*/
-    // todo: change to single setMapDrawing(boolean)
-    /*
-    public void setMapDrawing() {
-        if (rawTransform != null)
-            throw new Error("DrawContext: map paramaters already established");
-        
-        //if (!inMapDraw) {
-            rawTransform = g.getTransform();
-            g.translate(offsetX, offsetY);
-            g.scale(zoom, zoom);
-            mapTransform = g.getTransform();
-            setMasterClip(g.getClip());
-            //System.out.println("DC SCALE TO " + zoom);
-            //System.out.println("DC SCALE TO " + g.getTransform());
-            //inMapDraw = true;
-            //}
-    }
-    public void resetMapDrawing() {
-        if (mapTransform != null)
-            g.setTransform(mapTransform);
-        else
-            throw new Error("DrawContext: initial map transform not established");
-    }
-    public void setRawDrawing() {
-        //if (inMapDraw) {
-            if (rawTransform == null)
-                throw new IllegalStateException("attempt to revert to raw draw in a derivative DrawContext");
-            //System.out.println("DC REVER TO " + savedTransform);
-            g.setTransform(rawTransform);
-            //setMasterClip(rawClip);
-            //            inMapDraw = false;
-            //        }
-    }
-    
-    */
 
     public boolean isAnimating() {
         return isAnimating;
     }
     public void setAnimating(boolean animating) {
         isAnimating = animating;
-//         if (animating)
-//             quality = QUALITY_DRAFT;
-//         else
-//             quality = QUALITY_NORMAL;
     }
     
     public void setMapDrawing() {

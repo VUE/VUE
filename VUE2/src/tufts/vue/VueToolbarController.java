@@ -35,7 +35,7 @@ import tufts.vue.LinkTool.LinkModeTool;
  * contextual toolbars are handled.
  *
  * @version $Revision: 1.82 $ / $Date: 2010-02-03 19:17:41 $ / $Author: mike $
- * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2011
+ * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2012
  *
  **/
 public class VueToolbarController  

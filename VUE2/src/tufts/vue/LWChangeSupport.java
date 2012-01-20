@@ -321,7 +321,11 @@ public class LWChangeSupport
      */
     static synchronized void dispatchLWCEvent(Object source, List listeners, LWCEvent e)
     {
-        if (sEventDepth > 5) // guestimate max based on current architecture -- increase if you need to
+        // HO 20/01/2012 BEGIN *********
+    	final int EST_MAX_EVENT_DEPTH = 10;
+    	//if (sEventDepth > 5) // guestimate max based on current architecture -- increase if you need to
+    	if (sEventDepth > EST_MAX_EVENT_DEPTH) // guestimate max based on current architecture -- increase if you need to
+    		// HO 20/01/2012 END *********
             throw new IllegalStateException("eventDepth=" + sEventDepth
                                             + ", assumed looping on delivery of "
                                             + e + " in " + source + " to " + listeners);

@@ -47,7 +47,7 @@ import javax.swing.ImageIcon;
  *
  * @version $Revision: 1.262 $ / $Date: 2010-02-03 19:17:41 $ / $Author: mike $
  * @author Scott Fraize
- * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2011
+ * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2012
  */
 
 // todo: node layout code could use cleanup, as well as additional layout

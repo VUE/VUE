@@ -38,7 +38,7 @@ import javax.swing.ImageIcon;
 
  *
  * @version $Revision: 1.97 $ / $Date: 2010-02-03 19:17:41 $ / $Author: mike $
- * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2011
+ * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2012
  */
 
 public abstract class Resource implements Cloneable

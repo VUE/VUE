@@ -66,7 +66,7 @@ import java.io.RandomAccessFile;
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
  * @version $Revision: 1.262 $ / $Date: 2010-02-03 19:17:41 $ / $Author: mike $
- * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2011
+ * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2012
  */
 
 public class LWMap extends LWContainer
@@ -300,14 +300,17 @@ public class LWMap extends LWContainer
 			            	if (r.getClass().equals(tufts.vue.WormholeResource.class)) {
 			            		// if it is, downcast it to create a proper WormholeResource object
 			            		WormholeResource wr = (WormholeResource)r;
-			            		// HO 14/04/2011 BEGIN *********
-			            		if (!bChanged)
+			            		// HO 14/04/2011 BEGIN *********			            		
+			            		if (!bChanged) 
 			            			bChanged = compareToWormholeResourceContents(wn, wr, bChanged);
-			            		
+			            					            		
 			            		// and compare it to the originating map URI in wr
 			            		// and if nothing has changed on the originating side,
 			            		// there is no need to recreate the wormhole
-			            		if (bChanged) {
+			            			// HO 20/01/2012 BEGIN ********
+			            		//if (bChanged) {
+			            		if ((bChanged) || (Actions.refreshUnderway)) {
+			            			// HO 20/01/2012 END ********
 			            		// HO 14/04/2011 END *********
 				                	// recreate the wormhole
 				                	LWWormhole wh = new LWWormhole(wn, wr);

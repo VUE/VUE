@@ -31,7 +31,7 @@ import edu.tufts.vue.ontology.ui.OntologySelectionEvent;
 /**
  * VueTool for creating LWNodes.  Methods for creating default new nodes based on
  * tool states, and for handling the drag-create of new nodes.
- * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2011
+ * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2012
  */
 
 public class NodeTool extends VueTool

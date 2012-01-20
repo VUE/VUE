@@ -79,7 +79,7 @@ import edu.tufts.vue.preferences.ui.PreferencesDialog;
  * @author Scott Fraize
  * @version March 2004
  * 
- * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2011
+ * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2012
  */
 
 public class Actions implements VueConstants
@@ -4014,8 +4014,48 @@ public class Actions implements VueConstants
                 }
             }
         };
+        
+        public static boolean quickRefreshUnderway = false;
+        public static final Action QuickRefreshFile =
+            new VueAction(VueResources.local("menu.file.quickrefresh")) {
+                // todo: listen to map viewer display event to tag
+                // with currently displayed map name
+                boolean undoable() { return false; }
+	            protected boolean enabled() { return true; }
+                public void act() {
+                    synchronized (LOCK) {
+                        if (quickRefreshUnderway)
+                            return;
+                        quickRefreshUnderway = true;
+                    }
+                    try {
+    	            	LWMap activeMap = VUE.getMapInActiveTab();
+    	            	
+    	    			if (activeMap != null) {
+	    	            	if (activeMap.getFile() == null)
+	    	            	{
+	    	            		VueUtil.alert(VUE.getApplicationFrame(),
+	    	            				                      VueResources.local("dialog.quickrefresh.message"),
+	    	            				                      VueResources.local("dialog.quickrefresh.title"),
+	    	            				                      JOptionPane.PLAIN_MESSAGE);
+	    	              
+	    	            		return;
+	    	            	}
+	    	            	
+	    	            	VUE.closeMapForRefresh(activeMap);
+    	                	
+    	                	VUE.displayMapForRefresh(activeMap.getFile());    
+    	                	
+    	    				Log.info("QuickRefreshFile: completed.");
 
-        private static boolean refreshUnderway = false;
+    	    			}
+                    } finally {
+                        quickRefreshUnderway = false;                    
+                    }
+                }
+            }; 
+
+        public static boolean refreshUnderway = false;
         public static final Action RefreshFile =
             new VueAction(VueResources.local("menu.file.refresh")) {
                 // todo: listen to map viewer display event to tag

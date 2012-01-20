@@ -45,7 +45,7 @@ import static tufts.vue.Resource.*;
  *
  * @author akumar03
  * @author Scott Fraize
- * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2011
+ * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2012
  */
 public class SaveAction extends VueAction
 {
@@ -400,9 +400,13 @@ public class SaveAction extends VueAction
             }
             if (e != t)
                 Log.error("Exception attempting to save file " + file + ": " + e);
-            VueUtil.alert(String.format(Locale.getDefault(),VueResources.getString("saveaction.savemap.error")+ "\"%s\";\n"+VueResources.getString("saveaction.targetfiel")+"\n\n"+VueResources.getString("saveaction.problem"),
-                                        map.getLabel(), file, Util.formatLines(e.toString(), 80)),
-                          "Problem Saving Map");
+            // HO 20/01/2012 BEGIN ********
+            if (!VUE.bConstructingWormholes) {
+            	// HO 20/01/2012 END ********
+                VueUtil.alert(String.format(Locale.getDefault(),VueResources.getString("saveaction.savemap.error")+ "\"%s\";\n"+VueResources.getString("saveaction.targetfiel")+"\n\n"+VueResources.getString("saveaction.problem"),
+                        map.getLabel(), file, Util.formatLines(e.toString(), 80)),
+                "Problem Saving Map");
+            }
         } finally {
             GUI.invokeAfterAWT(new Runnable() { public void run() {
                 GUI.clearWaitCursor();
@@ -687,9 +691,11 @@ public class SaveAction extends VueAction
             }
             if (e != t)
                 Log.error("Exception attempting to save file " + file + ": " + e);
-            VueUtil.alert(String.format(Locale.getDefault(),VueResources.getString("saveaction.savemap.error")+ "\"%s\";\n"+VueResources.getString("saveaction.targetfiel")+"\n\n"+VueResources.getString("saveaction.problem"),
-                                        map.getLabel(), file, Util.formatLines(e.toString(), 80)),
-                          "Problem Saving Map");
+            // HO 20/01/2012 BEGIN ********
+            // VueUtil.alert(String.format(Locale.getDefault(),VueResources.getString("saveaction.savemap.error")+ "\"%s\";\n"+VueResources.getString("saveaction.targetfiel")+"\n\n"+VueResources.getString("saveaction.problem"),
+                                        // map.getLabel(), file, Util.formatLines(e.toString(), 80)),
+                          // "Problem Saving Map");
+         // HO 20/01/2012 END ********
         } finally {
             GUI.invokeAfterAWT(new Runnable() { public void run() {
                 GUI.clearWaitCursor();

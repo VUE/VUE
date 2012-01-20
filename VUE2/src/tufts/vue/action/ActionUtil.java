@@ -78,7 +78,7 @@ import java.nio.channels.FileLock;
  * @version $Revision: 1.142 $ / $Date: 2010-02-03 19:13:45 $ / $Author: mike $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2011
+ * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2012
  */
 
 public class ActionUtil

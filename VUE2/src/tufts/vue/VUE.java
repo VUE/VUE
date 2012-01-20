@@ -127,7 +127,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * we want to see there (including menus, toolbars, etc).
  *
  * @version $Revision: 1.714 $ / $Date: 2010-02-03 19:17:40 $ / $Author: mike $ 
- * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2011
+ * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2012
  */
 
 public class VUE
@@ -566,6 +566,7 @@ public class VUE
         VueMenuBar.RootMenuBar.fileLockAction.setEnabled(enable);
         Actions.UnlockFile.setEnabled(enable);
         Actions.RefreshFile.setEnabled(enable);
+        Actions.QuickRefreshFile.setEnabled(enable);
         // HO 10/01/2012 END **********
         if (VUE.isApplet() && VueApplet.isZoteroApplet())
         	Actions.SaveCopyToZotero.setEnabled(enable);

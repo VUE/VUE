@@ -85,7 +85,7 @@ import osid.dr.*;
  *
  * @author Scott Fraize
  * @version $Revision: 1.668 $ / $Date: 2010-02-03 19:17:40 $ / $Author: mike $ 
- * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2011
+ * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2012
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete

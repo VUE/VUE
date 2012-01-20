@@ -100,7 +100,7 @@ import javax.swing.text.*;
  *
  * @author Scott Fraize
  * @version $Revision: 1.69 $ / $Date: 2010-02-03 19:17:40 $ / $Author: mike $
- * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2011
+ * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2012
  *
  */
 
