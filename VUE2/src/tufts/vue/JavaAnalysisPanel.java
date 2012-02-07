@@ -95,7 +95,9 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 	protected static final char			DOLLAR_TOKEN = '$',
 										UNDERSCORE_TOKEN = '_',
 										COMMA_TOKEN = ',',
-										SEMICOLON_TOKEN = ';';
+										SEMICOLON_TOKEN = ';',
+										LEFT_ANGLE_TOKEN = '<',
+										RIGHT_ANGLE_TOKEN = '>';
 	protected static final int			CLASSES_MASK = 1,
 										INNER_CLASSES_MASK = 2,
 										INTERFACES_MASK = 4,
@@ -366,7 +368,6 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 		FileReader		stream = new FileReader(file);
 		BufferedReader	reader = new BufferedReader(stream);
 		StreamTokenizer	tokenizer = new StreamTokenizer(reader);
-		int				tokenType;
 		String			sourceName = filename.replace(JavaSourceFileFilter.FILE_EXTENSION, "");
 
 		if (DEBUG) {
@@ -381,14 +382,14 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 		tokenizer.slashSlashComments(true);
 		tokenizer.slashStarComments(true);
 
-		while ((tokenType = tokenizer.nextToken()) != StreamTokenizer.TT_EOF) {
-			if (tokenType == SEMICOLON_TOKEN) {
+		while (tokenizer.nextToken() != StreamTokenizer.TT_EOF) {
+			if (tokenizer.ttype == SEMICOLON_TOKEN) {
 				// This is the end of a declaration (or statement), so the public, abstract and final
 				// keywords -- if they had been found -- are not applicable for the next declaration.
 				isPublic = false;
 				isAbstract = false;
 				isFinal = false;
-			} else if (tokenType == StreamTokenizer.TT_WORD) {
+			} else if (tokenizer.ttype == StreamTokenizer.TT_WORD) {
 				if (tokenizer.sval.equals(PUBLIC_KEYWORD)) {
 					isPublic = true;
 				} else if (tokenizer.sval.equals(ABSTRACT_KEYWORD)) {
@@ -397,38 +398,41 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 					isFinal = true;
 				} else if (tokenizer.sval.equals(CLASS_KEYWORD)) {
 					if (analyzeClasses) {
-						if ((tokenType = tokenizer.nextToken()) == StreamTokenizer.TT_WORD) {
+						if (tokenizer.nextToken() == StreamTokenizer.TT_WORD) {
 							String				className = tokenizer.sval,
 												extendsClassName = null;
 							ArrayList<String>	implementsInterfaceNames = null;
 
-							if ((tokenType = tokenizer.nextToken()) == StreamTokenizer.TT_WORD) {
+							skipGeneric(tokenizer);
+
+							if (tokenizer.nextToken() == StreamTokenizer.TT_WORD) {
 								if (tokenizer.sval.equals(EXTENDS_KEYWORD)) {
-									if ((tokenType = tokenizer.nextToken()) == StreamTokenizer.TT_WORD) {
+									if (tokenizer.nextToken() == StreamTokenizer.TT_WORD) {
 										extendsClassName = tokenizer.sval;
+										skipGeneric(tokenizer);
 									}
+								} else {
+									// If the current token isn't extends, it might be implements -- push it back
+									// into the stream so it will be ready to be taken out of the stream again below.
+									tokenizer.pushBack();
 								}
 
 								if (analyzeInterfaces) {
-									// Look at the current token first to see if it is "implements", which could happen
-									// in the absence of an "extents" keyword.  If that's not the case, also look at the
-									// next token to see if it is "implements".
-									if ((tokenType == StreamTokenizer.TT_WORD &&
-											tokenizer.sval.equals(IMPLEMENTS_KEYWORD)) || 
-											((tokenType = tokenizer.nextToken()) == StreamTokenizer.TT_WORD &&
-											tokenizer.sval.equals(IMPLEMENTS_KEYWORD))) {
+									if (tokenizer.nextToken() == StreamTokenizer.TT_WORD &&
+											tokenizer.sval.equals(IMPLEMENTS_KEYWORD)) {
 										boolean		parsingInterfaces = true;
 
 										implementsInterfaceNames = new ArrayList<String>();
 
 										while (parsingInterfaces) {
-											if ((tokenType = tokenizer.nextToken()) == StreamTokenizer.TT_WORD) {
+											if (tokenizer.nextToken() == StreamTokenizer.TT_WORD) {
 												implementsInterfaceNames.add(tokenizer.sval);
+												skipGeneric(tokenizer);
 											} else {
 												parsingInterfaces = false;
 											}
 
-											if ((tokenType = tokenizer.nextToken()) != COMMA_TOKEN) {
+											if (tokenizer.nextToken() != COMMA_TOKEN) {
 												parsingInterfaces = false;
 											}
 										}
@@ -451,24 +455,27 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 					isFinal = false;
 				} else if (tokenizer.sval.equals(INTERFACE_KEYWORD)) {
 					if (analyzeInterfaces) {
-						if ((tokenType = tokenizer.nextToken()) == StreamTokenizer.TT_WORD) {
+						if (tokenizer.nextToken() == StreamTokenizer.TT_WORD) {
 							String				interfaceName = tokenizer.sval;
 							ArrayList<String>	extendsInterfaceNames = null;
 
-							if ((tokenType = tokenizer.nextToken()) == StreamTokenizer.TT_WORD &&
+							skipGeneric(tokenizer);
+
+							if (tokenizer.nextToken() == StreamTokenizer.TT_WORD &&
 									tokenizer.sval.equals(EXTENDS_KEYWORD)) {
 								boolean		parsingInterfaces = true;
 
 								extendsInterfaceNames = new ArrayList<String>();
 
 								while (parsingInterfaces) {
-									if ((tokenType = tokenizer.nextToken()) == StreamTokenizer.TT_WORD) {
+									if (tokenizer.nextToken() == StreamTokenizer.TT_WORD) {
 										extendsInterfaceNames.add(tokenizer.sval);
+										skipGeneric(tokenizer);
 									} else {
 										parsingInterfaces = false;
 									}
 
-									if ((tokenType = tokenizer.nextToken()) != COMMA_TOKEN) {
+									if (tokenizer.nextToken() != COMMA_TOKEN) {
 										parsingInterfaces = false;
 									}
 								}
@@ -492,6 +499,25 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 		}
 
 		return foundCount;
+	}
+
+
+	protected void skipGeneric(StreamTokenizer tokenizer) throws java.io.IOException {
+		// Skip over generic (eg <E> or <K,V> or <Map.Entry<K,V>>) if present.
+
+		if (tokenizer.nextToken() != LEFT_ANGLE_TOKEN) {
+			tokenizer.pushBack();
+		} else {
+			int		depth = 1;
+
+			while ((tokenizer.nextToken() != RIGHT_ANGLE_TOKEN) || depth > 1) {
+				if (tokenizer.ttype == LEFT_ANGLE_TOKEN) {
+					depth += 1;
+				} else if (tokenizer.ttype == RIGHT_ANGLE_TOKEN) {
+					depth -= 1;
+				}
+			}
+		}
 	}
 
 
