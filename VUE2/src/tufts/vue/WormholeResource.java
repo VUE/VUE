@@ -1363,8 +1363,8 @@ public class WormholeResource extends URLResource {
         parseAndInit();
     }
     
-    @Override
-    public void restoreRelativeTo(URI root) 
+    //@Override
+    /* public void restoreRelativeTo(URI root) 
     {
         // Even if the existing original resource exists, we always
         // choose the relative / "local" version, if it can be found.
@@ -1389,12 +1389,12 @@ public class WormholeResource extends URLResource {
             setProperty(FILE_RELATIVE, relative);
         }
         
-        System.out.println("Component URI string is: " + getComponentURIString());
+        System.out.println("Component URI string is: " + getComponentURIString()); */
     	
     	// now we need to know what the spec is currently
     	// to see if it needs to be reset or not.
-    	String currentSpec = this.getTargetFilename();
-    	/* File currentRoot = null;
+    	/* String currentSpec = this.getTargetFilename();
+    	File currentRoot = null;
     	URI theCurrentRoot = null;
     	if ((currentSpec != null) && (currentSpec != "")) { 	
     		File curFile = new File(currentSpec);
@@ -1408,7 +1408,7 @@ public class WormholeResource extends URLResource {
     		return;
     	} */
     	
-    	if ((currentSpec == null) || (currentSpec == ""))
+    	/* if ((currentSpec == null) || (currentSpec == ""))
     		return;
 
         final URI relativeURI = rebuildURI(relative);
@@ -1454,13 +1454,13 @@ public class WormholeResource extends URLResource {
     	} catch (URISyntaxException e) {
     		e.printStackTrace();
     	}
-    }
+    } */ 
     
     @Override
-    public void recordRelativeTo(URI root)
+    /* public void recordRelativeTo(URI root)
     {
         setRelativeURI(findRelativeURI(root));
-    }
+    } */
    
     
     public String getRelativeURI() {

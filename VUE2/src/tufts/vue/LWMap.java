@@ -37,6 +37,7 @@ import java.awt.print.Printable;
 import java.awt.print.PageFormat;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
 
@@ -395,8 +396,10 @@ public class LWMap extends LWContainer
 
 		// get filename to compare to
 		String strThisFilename = "";
-		if (mFile != null)
+		if (mFile != null) {
+			
 			strThisFilename = mFile.getAbsolutePath();
+		}
 		
 		// HO 03/11/2011 BEGIN **********
 		// trim putative gubbins away

@@ -48,6 +48,7 @@ import tufts.vue.action.ActionUtil;
 import tufts.vue.action.OpenAction;
 import tufts.vue.action.SaveAction;
 
+
 public class LWWormhole implements VueConstants {
 	
 	private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LWWormhole.class);
@@ -772,6 +773,133 @@ public class LWWormhole implements VueConstants {
     	return true;
 	}
 	
+	/** 
+	 * A function to take in a WormholeResource and return a 
+	 * target file path String
+	 * @param wr, the WormholeResource containing the target path
+	 * @return a String representing the target file path
+	 * @author Helen Oliver
+	 */
+	private String getTargetFilePathFromResource(WormholeResource wr) {
+		// get the target file path from the resource
+		String targetSpec = "";
+		try {
+			targetSpec = wr.getSystemSpec();
+		} catch(NullPointerException e) {
+			return targetSpec;
+		}
+		
+		return targetSpec;
+	}
+	
+	/**
+	 * A function to get the URI of the parent path of the source map.
+	 * @return the URI of the parent path of the source map.
+	 * @author Helen Oliver
+	 */
+	private URI getParentURIOfSourceMap() {
+		// if the source map actually has a file,
+		// get its parent path
+		String strSourceParent = "";
+		URI sourceParent = null;
+		
+		if (sourceMap.getFile() != null) {
+			strSourceParent = new File(sourceMap.getFile().getAbsolutePath()).getParent();
+			// make sure spaces are replaced with HTML codes
+			strSourceParent = replaceHtmlSpaceCodes(strSourceParent);
+		}
+		// if the source file has a parent path, turn it into a URI
+		if ((strSourceParent != null) && (strSourceParent != ""))	{
+			try {
+				sourceParent = new URI(strSourceParent);
+			} catch (URISyntaxException e) {
+				// do nothing
+			}
+		}
+		
+		return sourceParent;
+	}
+	
+	/**
+	 * Convenience function to take in a String and return a URI
+	 * @param s, the String to turn into a URI
+	 * @return a URI made from String s
+	 * @author Helen Oliver
+	 */
+	private URI getURIFromString(String s) {
+		// input validation
+		if ((s == null) || (s == ""))
+			return null;
+		
+		URI theURI = null;
+		
+		// replace spaces with HTML codes 
+		s = replaceHtmlSpaceCodes(s);
+		
+		try {
+			theURI = new URI(s);
+		} catch (URISyntaxException e) {
+			// return null
+			return null;
+		}
+		
+		return theURI;
+	}
+	
+	/**
+	 * A function to resolve the URI of the target file
+	 * relative to the source file.
+	 * @param targetURI, the (presumed relative) URI of the target file
+	 * @return a File in a location relative to the source file
+	 * @author Helen Oliver
+	 */
+	private File resolveTargetRelativeToSource(URI targetURI) {
+		// input validation
+		if (targetURI == null)
+			return null;
+		
+		// the target File object, we hope
+		File targFile = null;
+		
+		// HO 16/02/2012 BEGIN ************
+		// if that file can't be found, try resolving it relative
+		// to the current source root
+		// if the source map actually has a file,
+		// get its parent path
+		URI sourceParent = getParentURIOfSourceMap();
+		String strSourceParent = sourceParent.toString();
+		// resolve the relativized target URI to the
+		// root of the source map
+		targetURI.resolve(strSourceParent);
+		if (targetURI != null)
+			targFile = new File(targetURI);
+		
+		return targFile;
+		
+		// HO 16/02/2012 END ************
+	}
+	
+	/**
+	 * Convenience method to return the parent path of
+	 * the source map as a String.
+	 * @return a String representation of the parent path
+	 * of the source map.
+	 * @author Helen Oliver
+	 */
+	private String getSourceParentPath() {
+		String strSourceParent = "";
+		// if the source map actually has a file,
+		// get its parent path
+		URI sourceParent = getParentURIOfSourceMap();
+		
+		if (sourceParent != null) {
+			strSourceParent = sourceParent.toString();
+			strSourceParent = stripHtmlSpaceCodes(strSourceParent);
+		}
+		
+		return strSourceParent;
+	}
+ 	
 	/**
 	 * Function to extract the target map from a given WormholeResource.
 	 * Assumption is that we know the source map by this point.
@@ -789,14 +917,9 @@ public class LWWormhole implements VueConstants {
 		LWMap targMap = null;
 
 		// get the target file path from the resource
-		String targetSpec = "";
-		try {
-			targetSpec = wr.getSystemSpec();
-			if (targetSpec == "")
-				return null;
-		} catch(NullPointerException e) {
-			return null;
-		}
+		String targetSpec = getTargetFilePathFromResource(wr);
+		// create a URI from it
+		URI targetURI = getURIFromString(targetSpec);
 
 		// if it's null or an empty string, we can't
 		// extrapolate anything from it
@@ -813,61 +936,141 @@ public class LWWormhole implements VueConstants {
 		// to ward off FileNotFoundExceptions later on,
 		// create a target file using the path extracted
 		// from the resource
-		// HO 12/05/2011 BEGIN *********
-		targetSpec = stripHtmlSpaceCodes(targetSpec);
-		// HO 12/05/2011 END *********
+				
+		// HO 13/02/2012 BEGIN ********
+		// get the source file's parent path
+		String strSourceParent = getSourceParentPath();		
+		// first, make a note of the absolute target path
+		String absoluteTargetSpec = targetSpec;
+		// try to relativize the target path based on the source path
+		targetSpec = relativizeTargetSpec(targetSpec);
+		// HO 13/02/2012 END **********
+		
+		// now try to instantiate the file
 		File targFile = new File(targetSpec);
-		// 24/12/2010 BEGIN ********
-		//if we can't find the file, check for one with the same name
-		// in the local folder
+		
+		// HO 16/02/2012 BEGIN ************
+		// if that file can't be found, try resolving it relative
+		// to the current source root
+		if (!targFile.isFile())
+			targFile = resolveTargetRelativeToSource(targetURI);
+		
+		// HO 16/02/2012 END ************
+		
+			//if we still can't find the file, check for one with the same name
+			// in the local folder
 			try {
 				if (!targFile.isFile()) {
+					// get just the file name
 					String strTargName = targFile.getName();
-					// HO 15/04/2011 BEGIN **********
-					//String strLocalParent = new File(sourceMap.getLabel()).getParent();
-					String strLocalParent = "";
-					if (sourceMap.getFile() != null)
-						strLocalParent = new File(sourceMap.getFile().getAbsolutePath()).getParent();
-					if ((strLocalParent != null) && (strLocalParent != ""))	
-						targFile = new File(strLocalParent, strTargName);
-					else
+					if ((strSourceParent != null) && (strSourceParent != ""))	
+						// if we got the parent path, create a file out of it
+						targFile = new File(strSourceParent, strTargName);
+					else // but if there isn't a parent path, we can't do anything, so return null
 						return null;
-						// HO 15/04/2011 END **********
 				} 
-				// 24/12/2010 END ***************
 			} catch (Exception e) {
-				// do nothing
+				// do nothing, just return null
 				return null;
-			}
-			if (targFile.isFile()) {
-				targetSpec = targFile.getAbsolutePath();
+			} 
+			if (targFile.isFile()) {	
+				targetSpec = stripHtmlSpaceCodes(targFile.toString());
+				// if we found the target file in the local folder, open it
 				targMap = OpenAction.loadMap(targetSpec);
 			}
-			else {// if we still can't find it, search all the subfolders				
-				// HO 09/08/2011 BEGIN **********
-				// Vector v = new Vector();
-				// v = fileExistInPath(targFile.getParent(), targFile.getName(), v);
+			else {
+				// if we still can't find it, search all the subfolders				
 				targMap = fileExistInPath(targFile.getParent(), targFile.getParent(), targFile.getName(), compString);
-				
-			    // Iterator itr = v.iterator();
-
-			    /* LWComponent targetComp = null;
-			    while(itr.hasNext()) {
-			    	File f = (File)itr.next();
-			    	String s = f.getAbsolutePath();
-			    	LWMap map = OpenAction.loadMap(s);
-					// see if this is the right map
-			    	// by looking to see if the target component is in it
-					targetComp = map.findChildByURIString(compString);
-					// if we found it, this is the right map
-					if (targetComp != null) {
-						targMap = map;
-						break;
+				// as a last resort, use the absolute path?
+				if (targMap == null) {
+					// HO 13/02/2012 BEGIN ********
+					// try to relativize the target path based on the source path
+					targFile = new File(absoluteTargetSpec);
+					if (targFile.isFile()) {
+						// finally in desperation, we try looking for the target
+						// file in the absolute path
+						targMap = OpenAction.loadMap(absoluteTargetSpec);
 					}
-			     } */
-			}
-			// HO 09/08/2011 END **********				
+					// HO 13/02/2012 END **********
+				}
+			}			
 			return targMap;
+	}
+	
+	/**
+	 * A function to take a possibly-absolute path for the target map,
+	 * and relativize it to the source map.
+	 * @param targetSpec, the possibly-absolute path for the target map
+	 * @return a String representing the relative path
+	 */
+	private String relativizeTargetSpec(String targetSpec) {
+		
+		targetSpec = replaceHtmlSpaceCodes(targetSpec);
+		
+		URI targetURI = null;
+		
+		try {
+			targetURI = new URI(targetSpec);
+			if (targetURI != null) {
+				// if the URI is already relative, return the 
+				// String that was passed in
+				if (!targetURI.isAbsolute()) {
+					return targetSpec;
+				}
+			}
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+			return "";
+		}
+		
+		// HO 13/02/2012 BEGIN ********
+		// try to relativize the target path based on the source path
+		URI sourceBaseURI = getParentURIOfSourceMap();
+		String relative = "";
+		if (sourceBaseURI != null) {
+			// if it's already relative, return what we passed in
+			//if (!targetURI.isAbsolute()) {
+				relative = new File(sourceBaseURI.relativize(targetURI)).getPath();
+				System.out.println(relative);
+			//} else {
+				//return targetSpec;
+			//}
+		}
+		
+		/*File relFile = new File(relative);
+		File relParent = relFile.getParentFile();
+		if (relParent == null) {
+			targetSpec = sourceBase + System.getProperty("file.separator") + relative;
+		}*/
+		// targetSpec = targFile.getAbsolutePath();
+		//targetSpec = sourceBase + System.getProperty("file.separator") + relative;
+		
+		// clean out any space codes
+		targetSpec = stripHtmlSpaceCodes(targetSpec);
+		
+		return targetSpec;
+		// HO 13/02/2012 END **********
+	}
+	
+	private String relativizeTargetSpec(LWMap theSource, LWMap theTarget) {
+		
+		URI targetURI = theTarget.getFile().toURI();
+		
+		// HO 13/02/2012 BEGIN ********
+		// try to relativize the target path based on the source path
+		File sourceBaseFile = theSource.getFile();
+		String sourceBase = "";
+		String relative = "";
+		if (sourceBaseFile != null) {
+			sourceBase = sourceBaseFile.getParentFile().toString();
+			relative = new File(sourceBase).toURI().relativize(targetURI).getPath();
+			System.out.println(relative);
+		}
+		// targetSpec = targFile.getAbsolutePath();
+		//targetSpec = sourceBase + System.getProperty("file.separator") + relative;
+		
+		return relative;
+		// HO 13/02/2012 END **********
 	}
 	
 	private static LWMap checkIfRightMap(File f, String compString) {
@@ -2031,8 +2234,36 @@ public class LWWormhole implements VueConstants {
 	 */
 	public void setResourceURIs() {
 		try {
+			// HO 13/02/2012 BEGIN ********
+			/* String strRelativeTarget = relativizeTargetSpec(sourceMap, targetMap);
+			String strRelativeSource = relativizeTargetSpec(targetMap, sourceMap);
+			URI relativeTargetURI = null;
+			URI relativeSourceURI = null;
+			try {
+				relativeTargetURI = new URI(strRelativeTarget);
+				relativeSourceURI = new URI(strRelativeSource);
+			} catch (URISyntaxException e) {
+				// do nothing
+			}
+			
+			if (relativeTargetURI == null) {
+				setSourceResourceMapURI(targetMapFile.toURI());
+				
+			} else {
+				setSourceResourceMapURI(relativeTargetURI);
+			}
+			
+			if (relativeSourceURI == null) {
+				setTargetResourceMapURI(sourceMapFile.toURI());
+			} else {
+				setTargetResourceMapURI(relativeSourceURI);
+			} */
+			
+			// HO 13/02/2012 END ********
+			
 		setSourceResourceMapURI(targetMapFile.toURI());
 		setTargetResourceMapURI(sourceMapFile.toURI());
+
 		// HO 04/11/2011 BEGIN **********
 		// we don't want to abandon the wormhole
 		// if all that's missing is the target 
@@ -2591,6 +2822,22 @@ public class LWWormhole implements VueConstants {
 		return strStripped;		
 	}
 	// HO 12/05/2011 END ***********
+	// HO 13/02/2012 BEGIN *********
+	/**
+	 * @param encodeThis, a String representing a filename that has its spaces
+	 * without HTML codes
+	 * @return the same String, single spaces replaced with html space codes 
+	 */
+	private String replaceHtmlSpaceCodes(String encodeThis) {
+		String strEncoded = "";
+		String strPeskySpace = " ";
+		String strEncodedSpace = "%20";
+
+		strEncoded = encodeThis.replaceAll(strPeskySpace, strEncodedSpace);
+		
+		return strEncoded;		
+	}
+	// HO 13/02/2012 END ***********
 	
 	/**
 	 * @return sourceResourceComponentURI, the source wormhole node's component resource URI
