@@ -1207,7 +1207,19 @@ public class WormholeResource extends URLResource {
             	// HO 13/09/2011 END *********
             // HO 11/08/2011 END ***********
             	try {
-            		VueUtil.openURL(systemSpec);
+            		// HO 17/02/2012 BEGIN *******
+            		File theFile = new File(systemSpec);
+            		if (theFile.isFile()) {
+            			VueUtil.openURL(systemSpec);
+            		} else {
+            			URI systemSpecURI = VueUtil.getURIFromString(systemSpec);
+            			theFile = resolveTargetRelativeToSource(systemSpecURI);
+            			// String strResolvedSystemSpec = systemSpecURI.toString();
+            			if (theFile.isFile()) {
+            				VueUtil.openURL(theFile.toString());
+            			}
+            		}
+            		// HO 17/02/2012 END ********
             	} catch (IOException e) {
             		System.out.println("Gotcha");
             	}
@@ -1228,6 +1240,69 @@ public class WormholeResource extends URLResource {
 
         tufts.vue.gui.VueFrame.setLastOpenedResource(this);
     }
+    
+	/**
+	 * A function to resolve the URI of the target file
+	 * relative to the source file.
+	 * @param targetURI, the (presumed relative) URI of the target file
+	 * @return a File in a location relative to the source file
+	 * @author Helen Oliver
+	 */
+	private File resolveTargetRelativeToSource(URI targetURI) {
+		// input validation
+		if (targetURI == null)
+			return null;
+		
+		// the target File object, we hope
+		File targFile = null;
+		
+		// HO 16/02/2012 BEGIN ************
+		// if that file can't be found, try resolving it relative
+		// to the current source root
+		// if the source map actually has a file,
+		// get its parent path
+		URI sourceParent = getParentURIOfSourceMap();
+		String strSourceParent = sourceParent.toString();
+		// resolve the relativized target URI to the
+		// root of the source map
+		URI resolvedTargetParentURI = targetURI.resolve(strSourceParent);
+		String strResolvedTargetParent = VueUtil.getStringFromURI(resolvedTargetParentURI);
+		String strRelativeTarget = VueUtil.getStringFromURI(targetURI);
+		
+		if (targetURI != null)
+			targFile = new File(strResolvedTargetParent, strRelativeTarget);
+		
+		return targFile;
+		
+		// HO 16/02/2012 END ************
+	}
+	
+	/**
+	 * A function to get the URI of the parent path of the source map.
+	 * @return the URI of the parent path of the source map.
+	 * @author Helen Oliver
+	 */
+	private URI getParentURIOfSourceMap() {
+		// if the source map actually has a file,
+		// get its parent path
+		String strSourceParent = "";
+		URI sourceParent = null;
+		
+		strSourceParent = new File(getOriginatingFilename()).getParent();
+
+		// if the source file has a parent path, turn it into a URI
+		if ((strSourceParent != null) && (strSourceParent != ""))	{
+			// make sure spaces are replaced with HTML codes
+			strSourceParent = VueUtil.replaceHtmlSpaceCodes(strSourceParent);
+			try {
+				sourceParent = new URI(strSourceParent);
+			} catch (URISyntaxException e) {
+				// do nothing
+			}
+		}
+		
+		return sourceParent;
+	}
     
     /**
      * A function to set the target file.

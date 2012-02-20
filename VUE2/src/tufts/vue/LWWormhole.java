@@ -576,8 +576,8 @@ public class LWWormhole implements VueConstants {
 		
 		// HO 12/05/2011 BEGIN *******
 		// strip wrongly-formatted spaces so they don't gum up the comparison
-		strSpec = stripHtmlSpaceCodes(strSpec);
-		strOriginatingFile = stripHtmlSpaceCodes(strOriginatingFile);		
+		strSpec = VueUtil.stripHtmlSpaceCodes(strSpec);
+		strOriginatingFile = VueUtil.stripHtmlSpaceCodes(strOriginatingFile);		
 		// HO 12/05/2011 END *********
 		
 		// HO 03/11/2011 BEGIN *****************
@@ -805,11 +805,11 @@ public class LWWormhole implements VueConstants {
 		
 		if (sourceMap.getFile() != null) {
 			strSourceParent = new File(sourceMap.getFile().getAbsolutePath()).getParent();
-			// make sure spaces are replaced with HTML codes
-			strSourceParent = replaceHtmlSpaceCodes(strSourceParent);
 		}
 		// if the source file has a parent path, turn it into a URI
 		if ((strSourceParent != null) && (strSourceParent != ""))	{
+			// make sure spaces are replaced with HTML codes
+			strSourceParent = VueUtil.replaceHtmlSpaceCodes(strSourceParent);
 			try {
 				sourceParent = new URI(strSourceParent);
 			} catch (URISyntaxException e) {
@@ -820,31 +820,7 @@ public class LWWormhole implements VueConstants {
 		return sourceParent;
 	}
 	
-	/**
-	 * Convenience function to take in a String and return a URI
-	 * @param s, the String to turn into a URI
-	 * @return a URI made from String s
-	 * @author Helen Oliver
-	 */
-	private URI getURIFromString(String s) {
-		// input validation
-		if ((s == null) || (s == ""))
-			return null;
-		
-		URI theURI = null;
-		
-		// replace spaces with HTML codes 
-		s = replaceHtmlSpaceCodes(s);
-		
-		try {
-			theURI = new URI(s);
-		} catch (URISyntaxException e) {
-			// return null
-			return null;
-		}
-		
-		return theURI;
-	}
+
 	
 	/**
 	 * A function to resolve the URI of the target file
@@ -870,9 +846,18 @@ public class LWWormhole implements VueConstants {
 		String strSourceParent = sourceParent.toString();
 		// resolve the relativized target URI to the
 		// root of the source map
-		targetURI.resolve(strSourceParent);
-		if (targetURI != null)
-			targFile = new File(targetURI);
+		URI resolvedTargetParentURI = targetURI.resolve(strSourceParent);
+		String strResolvedTargetParent = VueUtil.getStringFromURI(resolvedTargetParentURI);
+		String strRelativeTarget = VueUtil.getStringFromURI(targetURI);
+				
+		// HO 20/02/2012 BEGIN PROBLEM HERE IS
+		// THAT URI IS NOT ABSOLUTE
+		// AND IT THROWS AN ILLEGALARGUMENTEXCEPTION
+		//if ((targetURI != null) && (resolvedTargetURI != null)) {
+			//strSourceParent = VueUtil.stripHtmlSpaceCodes(strSourceParent);
+			
+			targFile = new File(strResolvedTargetParent, strRelativeTarget);
+		//}
 		
 		return targFile;
 		
@@ -894,7 +879,7 @@ public class LWWormhole implements VueConstants {
 		
 		if (sourceParent != null) {
 			strSourceParent = sourceParent.toString();
-			strSourceParent = stripHtmlSpaceCodes(strSourceParent);
+			strSourceParent = VueUtil.stripHtmlSpaceCodes(strSourceParent);
 		}
 		
 		return strSourceParent;
@@ -919,7 +904,7 @@ public class LWWormhole implements VueConstants {
 		// get the target file path from the resource
 		String targetSpec = getTargetFilePathFromResource(wr);
 		// create a URI from it
-		URI targetURI = getURIFromString(targetSpec);
+		URI targetURI = VueUtil.getURIFromString(targetSpec);
 
 		// if it's null or an empty string, we can't
 		// extrapolate anything from it
@@ -974,7 +959,7 @@ public class LWWormhole implements VueConstants {
 				return null;
 			} 
 			if (targFile.isFile()) {	
-				targetSpec = stripHtmlSpaceCodes(targFile.toString());
+				targetSpec = VueUtil.stripHtmlSpaceCodes(targFile.toString());
 				// if we found the target file in the local folder, open it
 				targMap = OpenAction.loadMap(targetSpec);
 			}
@@ -1005,7 +990,7 @@ public class LWWormhole implements VueConstants {
 	 */
 	private String relativizeTargetSpec(String targetSpec) {
 		
-		targetSpec = replaceHtmlSpaceCodes(targetSpec);
+		targetSpec = VueUtil.replaceHtmlSpaceCodes(targetSpec);
 		
 		URI targetURI = null;
 		
@@ -1046,7 +1031,7 @@ public class LWWormhole implements VueConstants {
 		//targetSpec = sourceBase + System.getProperty("file.separator") + relative;
 		
 		// clean out any space codes
-		targetSpec = stripHtmlSpaceCodes(targetSpec);
+		targetSpec = VueUtil.stripHtmlSpaceCodes(targetSpec);
 		
 		return targetSpec;
 		// HO 13/02/2012 END **********
@@ -1233,7 +1218,7 @@ public class LWWormhole implements VueConstants {
 			
 			// HO 12/05/2011 BEGIN *******
 			// strip away wrongly-formatted spaces
-			targetSpec = stripHtmlSpaceCodes(targetSpec);			
+			targetSpec = VueUtil.stripHtmlSpaceCodes(targetSpec);			
 			// HO 12/05/2011 END ********
 			
 			// to ward off FileNotFoundExceptions later on,
@@ -2235,35 +2220,47 @@ public class LWWormhole implements VueConstants {
 	public void setResourceURIs() {
 		try {
 			// HO 13/02/2012 BEGIN ********
-			/* String strRelativeTarget = relativizeTargetSpec(sourceMap, targetMap);
+			String strRelativeTarget = relativizeTargetSpec(sourceMap, targetMap);
 			String strRelativeSource = relativizeTargetSpec(targetMap, sourceMap);
+			// strip any space codes and replace them with HTML codes
+			strRelativeTarget = VueUtil.replaceHtmlSpaceCodes(strRelativeTarget);
+			strRelativeSource = VueUtil.replaceHtmlSpaceCodes(strRelativeSource);
+			// the URIs-to-be
 			URI relativeTargetURI = null;
 			URI relativeSourceURI = null;
 			try {
 				relativeTargetURI = new URI(strRelativeTarget);
 				relativeSourceURI = new URI(strRelativeSource);
 			} catch (URISyntaxException e) {
-				// do nothing
+				e.printStackTrace();				
 			}
 			
+			// if we didn't get a URI out of this,
+			// just use the absolute files
 			if (relativeTargetURI == null) {
 				setSourceResourceMapURI(targetMapFile.toURI());
 				
 			} else {
+				// otherwise use the relative ones
 				setSourceResourceMapURI(relativeTargetURI);
 			}
 			
+			// if we didn't get a URI out of this,
+			// just use the absolute files
 			if (relativeSourceURI == null) {
 				setTargetResourceMapURI(sourceMapFile.toURI());
 			} else {
+				// otherwise use the relative ones
 				setTargetResourceMapURI(relativeSourceURI);
-			} */
+			} 
+			
+			//setSourceResourceMapURI(targetMapFile.toURI());
+			//setTargetResourceMapURI(sourceMapFile.toURI());
 			
 			// HO 13/02/2012 END ********
 			
-		setSourceResourceMapURI(targetMapFile.toURI());
-		setTargetResourceMapURI(sourceMapFile.toURI());
 
+		// now set the component URIs
 		// HO 04/11/2011 BEGIN **********
 		// we don't want to abandon the wormhole
 		// if all that's missing is the target 
@@ -2301,8 +2298,12 @@ public class LWWormhole implements VueConstants {
 		// HO we could use the following two lines of code
 		// if we ever want to implement a kind of wormhole resource
 		// that knows about both source and target.
+		// HO 20/02/2012 BEGIN *********
+		// setSourceResource(sourceWormholeNode.getResourceFactory().get(sourceResourceMapURI, sourceResourceComponentURI,
+					// targetResourceMapURI, targetResourceComponentURI));
 		setSourceResource(sourceWormholeNode.getResourceFactory().get(sourceResourceMapURI, sourceResourceComponentURI,
-					targetResourceMapURI, targetResourceComponentURI));
+				sourceMapFile.toURI(), targetResourceComponentURI));
+		// HO 20/02/2012 END *********
 		//if (targetWormholeNode != null)
 			//setTargetResource(targetWormholeNode.getResourceFactory().get(targetResourceMapURI, targetResourceComponentURI));
 		// HO we could use the following two lines of code
@@ -2311,8 +2312,12 @@ public class LWWormhole implements VueConstants {
 		// HO 04/11/2011 BEGIN **********
 		if (targetWormholeNode != null) {
 		// HO 04/11/2011 END **********
+			// HO 20/02/2012 BEGIN *********
+			// setTargetResource(targetWormholeNode.getResourceFactory().get(targetResourceMapURI, targetResourceComponentURI,
+					// sourceResourceMapURI, sourceResourceComponentURI));
 			setTargetResource(targetWormholeNode.getResourceFactory().get(targetResourceMapURI, targetResourceComponentURI,
-					sourceResourceMapURI, sourceResourceComponentURI));
+					targetMapFile.toURI(), sourceResourceComponentURI));
+			// HO 20/02/2012 END *********
 			// HO 04/11/2011 BEGIN **********
 		} else {
 			// have to use the source wormhole node's resource factory
@@ -2806,38 +2811,7 @@ public class LWWormhole implements VueConstants {
 		sourceResourceComponentURI = theURI;
 	}
 	
-	// HO 12/05/2011 BEGIN *********
-	/**
-	 * @param stripThis, a String representing a filename that has its spaces
-	 * in the HTML format
-	 * @return the same String, html space codes replaced with single spaces
-	 */
-	private String stripHtmlSpaceCodes(String stripThis) {
-		String strStripped = "";
-		String strPeskySpace = "%20";
-		String strCleanSpace = " ";
 
-		strStripped = stripThis.replaceAll(strPeskySpace, strCleanSpace);
-		
-		return strStripped;		
-	}
-	// HO 12/05/2011 END ***********
-	// HO 13/02/2012 BEGIN *********
-	/**
-	 * @param encodeThis, a String representing a filename that has its spaces
-	 * without HTML codes
-	 * @return the same String, single spaces replaced with html space codes 
-	 */
-	private String replaceHtmlSpaceCodes(String encodeThis) {
-		String strEncoded = "";
-		String strPeskySpace = " ";
-		String strEncodedSpace = "%20";
-
-		strEncoded = encodeThis.replaceAll(strPeskySpace, strEncodedSpace);
-		
-		return strEncoded;		
-	}
-	// HO 13/02/2012 END ***********
 	
 	/**
 	 * @return sourceResourceComponentURI, the source wormhole node's component resource URI

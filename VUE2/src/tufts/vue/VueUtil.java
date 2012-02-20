@@ -17,6 +17,8 @@ package tufts.vue;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.*;
 import java.awt.*;
@@ -133,6 +135,90 @@ public class VueUtil extends tufts.Util
             tufts.Util.openURL(platformURL);
         }
     }
+    
+	// HO 13/02/2012 BEGIN *********
+	/**
+	 * A function to take in a filename String with spaces,
+	 * and replace them with HTML-encoded spaces
+	 * @param encodeThis, a String representing a filename that has its spaces
+	 * without HTML codes
+	 * @return the same String, single spaces replaced with html space codes 
+	 * @author Helen Oliver
+	 */
+	public static String replaceHtmlSpaceCodes(String encodeThis) {
+		String strEncoded = "";
+		String strPeskySpace = " ";
+		String strEncodedSpace = "%20";
+
+		strEncoded = encodeThis.replaceAll(strPeskySpace, strEncodedSpace);
+		
+		return strEncoded;		
+	}
+	
+	/**
+	 * Convenience function to take in a String and return a URI
+	 * @param s, the String to turn into a URI
+	 * @return a URI made from String s
+	 * @author Helen Oliver
+	 */
+	public static URI getURIFromString(String s) {
+		// input validation
+		if ((s == null) || (s == ""))
+			return null;
+		
+		URI theURI = null;
+		
+		// replace spaces with HTML codes 
+		s = replaceHtmlSpaceCodes(s);
+		
+		try {
+			theURI = new URI(s);
+		} catch (URISyntaxException e) {
+			// return null
+			return null;
+		}
+		
+		return theURI;
+	}
+	
+	/**
+	 * Convenience function to take in a URI and return a String
+	 * @param u, the URI to turn into a String
+	 * @return a String made from URI u
+	 * @author Helen Oliver
+	 */
+	public static String getStringFromURI(URI u) {
+		// input validation
+		if (u == null) 
+			return "";
+		
+		String theString = "";
+		
+		// replace spaces with HTML codes 
+		theString = stripHtmlSpaceCodes(u.toString());
+		
+		return theString;
+	}
+	// HO 12/05/2011 BEGIN *********
+	/**
+	 * A function to take in a filename String, strip out the HTML-encoded
+	 * spaces, and replace them with single spaces
+	 * @param stripThis, a String representing a filename that has its spaces
+	 * in the HTML format
+	 * @return the same String, html space codes replaced with single spaces
+	 * @author Helen Oliver
+	 */
+	public static String stripHtmlSpaceCodes(String stripThis) {
+		String strStripped = "";
+		String strPeskySpace = "%20";
+		String strCleanSpace = " ";
+
+		strStripped = stripThis.replaceAll(strPeskySpace, strCleanSpace);
+		
+		return strStripped;		
+	}
+	// HO 12/05/2011 END ***********
+	// HO 13/02/2012 END ***********
     
     public static void  setCurrentDirectoryPath(String cdp) {
         currentDirectoryPath = cdp;
