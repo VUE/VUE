@@ -1132,8 +1132,20 @@ public class WormholeResource extends URLResource {
 		}
 				
 		// finally we should have stripped away any false negatives
-		if (strSpec.equals(strOriginatingFile))
+		if (strSpec.equals(strOriginatingFile)) {
 			bSameMap = true;
+		} else {
+			// HO 21/02/2012 BEGIN ********
+			// finally make sure the reason they aren't the same
+			// isn't because one is just relativized
+			URI specURI = VueUtil.getURIFromString(strSpec);
+			if (!specURI.isAbsolute()) {
+				if (strOriginatingFile.endsWith(strSpec)) {
+					bSameMap = true;
+				}
+			}
+			// HO 21/02/2012 END **********
+		}
 					
 		return bSameMap;
 	} 
