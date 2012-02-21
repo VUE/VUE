@@ -822,47 +822,7 @@ public class LWWormhole implements VueConstants {
 	
 
 	
-	/**
-	 * A function to resolve the URI of the target file
-	 * relative to the source file.
-	 * @param targetURI, the (presumed relative) URI of the target file
-	 * @return a File in a location relative to the source file
-	 * @author Helen Oliver
-	 */
-	private File resolveTargetRelativeToSource(URI targetURI) {
-		// input validation
-		if (targetURI == null)
-			return null;
-		
-		// the target File object, we hope
-		File targFile = null;
-		
-		// HO 16/02/2012 BEGIN ************
-		// if that file can't be found, try resolving it relative
-		// to the current source root
-		// if the source map actually has a file,
-		// get its parent path
-		URI sourceParent = getParentURIOfSourceMap();
-		String strSourceParent = sourceParent.toString();
-		// resolve the relativized target URI to the
-		// root of the source map
-		URI resolvedTargetParentURI = targetURI.resolve(strSourceParent);
-		String strResolvedTargetParent = VueUtil.getStringFromURI(resolvedTargetParentURI);
-		String strRelativeTarget = VueUtil.getStringFromURI(targetURI);
-				
-		// HO 20/02/2012 BEGIN PROBLEM HERE IS
-		// THAT URI IS NOT ABSOLUTE
-		// AND IT THROWS AN ILLEGALARGUMENTEXCEPTION
-		//if ((targetURI != null) && (resolvedTargetURI != null)) {
-			//strSourceParent = VueUtil.stripHtmlSpaceCodes(strSourceParent);
-			
-			targFile = new File(strResolvedTargetParent, strRelativeTarget);
-		//}
-		
-		return targFile;
-		
-		// HO 16/02/2012 END ************
-	}
+
 	
 	/**
 	 * Convenience method to return the parent path of
@@ -938,7 +898,7 @@ public class LWWormhole implements VueConstants {
 		// if that file can't be found, try resolving it relative
 		// to the current source root
 		if (!targFile.isFile())
-			targFile = resolveTargetRelativeToSource(targetURI);
+			targFile = VueUtil.resolveTargetRelativeToSource(targetURI, getParentURIOfSourceMap());
 		
 		// HO 16/02/2012 END ************
 		

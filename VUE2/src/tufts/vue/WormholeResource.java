@@ -1213,7 +1213,7 @@ public class WormholeResource extends URLResource {
             			VueUtil.openURL(systemSpec);
             		} else {
             			URI systemSpecURI = VueUtil.getURIFromString(systemSpec);
-            			theFile = resolveTargetRelativeToSource(systemSpecURI);
+            			theFile = VueUtil.resolveTargetRelativeToSource(systemSpecURI, getParentURIOfActiveMap());
             			// String strResolvedSystemSpec = systemSpecURI.toString();
             			if (theFile.isFile()) {
             				VueUtil.openURL(theFile.toString());
@@ -1248,7 +1248,7 @@ public class WormholeResource extends URLResource {
 	 * @return a File in a location relative to the source file
 	 * @author Helen Oliver
 	 */
-	private File resolveTargetRelativeToSource(URI targetURI) {
+	/* private File resolveTargetRelativeToSource(URI targetURI) {
 		// input validation
 		if (targetURI == null)
 			return null;
@@ -1275,8 +1275,39 @@ public class WormholeResource extends URLResource {
 		return targFile;
 		
 		// HO 16/02/2012 END ************
-	}
+	} */
 	
+	/**
+	 * A function to get the URI of the parent path of the active map.
+	 * @return the URI of the parent path of the active map.
+	 * @author Helen Oliver
+	 */
+	private URI getParentURIOfActiveMap() {
+		// if the active map actually has a file,
+		// get its parent path
+		String strActiveParent = "";
+		URI activeParent = null;
+		
+		File activeMapFile = VUE.getActiveMap().getFile();
+		if (activeMapFile == null)
+			return null;
+		
+		strActiveParent = activeMapFile.getParent();
+
+		// if the source file has a parent path, turn it into a URI
+		if ((strActiveParent != null) && (strActiveParent != ""))	{
+			// make sure spaces are replaced with HTML codes
+			strActiveParent = VueUtil.replaceHtmlSpaceCodes(strActiveParent);
+			try {
+				activeParent = new URI(strActiveParent);
+			} catch (URISyntaxException e) {
+				// do nothing
+			}
+		}
+		
+		return activeParent;
+	}
+    
 	/**
 	 * A function to get the URI of the parent path of the source map.
 	 * @return the URI of the parent path of the source map.
