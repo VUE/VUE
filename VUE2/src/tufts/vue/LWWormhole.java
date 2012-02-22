@@ -885,6 +885,10 @@ public class LWWormhole implements VueConstants {
 		if ((targetSpec == null) || (targetSpec == ""))
 			return null;
 		
+		// record the original versions of the target file path and spec
+		String originalTargetSpec = targetSpec;
+		URI originalTargetURI = targetURI;
+		
 		// now we extrapolate the target component
 		// by getting the component URI string from the resource
 		String compString = wr.getComponentURIString();
@@ -899,22 +903,20 @@ public class LWWormhole implements VueConstants {
 		// HO 13/02/2012 BEGIN ********
 		// get the source file's parent path
 		String strSourceParent = getSourceParentPath();		
-		// first, make a note of the absolute target path
-		//String absoluteTargetSpec = targetSpec;
+
+		// FIRST ATTEMPT
 		// try to relativize the target path based on the source path
 		targetSpec = relativizeTargetSpec(targetSpec);
 		// HO 13/02/2012 END **********
 		
-		// now try to instantiate the file
+		// now try to instantiate the file relative to the source
 		File targFile = new File(targetSpec);
 		
 		// HO 16/02/2012 BEGIN ************
-		// if that file can't be found, try resolving it relative
-		// to the current source root
+		// if that file can't be found after relativizing it
+		// to the source, try resolving it against the source
 		if (!targFile.isFile())
 			targFile = VueUtil.resolveTargetRelativeToSource(targetURI, getParentURIOfSourceMap());
-		
-		// HO 16/02/2012 END ************
 		
 			//if we still can't find the file, check for one with the same name
 			// in the local folder
@@ -932,24 +934,31 @@ public class LWWormhole implements VueConstants {
 				// do nothing, just return null
 				return null;
 			} 
+			// if we found the target file in the local folder, open it
 			if (targFile.isFile()) {	
 				targetSpec = VueUtil.stripHtmlSpaceCodes(targFile.toString());
 				// if we found the target file in the local folder, open it
 				targMap = OpenAction.loadMap(targetSpec);
 			}
 			else {
-				// if we still can't find it, search all the subfolders				
+				// if we still can't find it in the local folder, 
+				// search all the subfolders				
 				targMap = fileExistInPath(targFile.getParent(), targFile.getParent(), targFile.getName(), compString);
-				// as a last resort, use the absolute path?
+				// and if we still can't find it after:
+				// relativizing it against the source path
+				// resolving it against the source path
+				// looking in the local folder
+				// looking 6 folders down from the local folder
+				// then at last, in desperation,
+				// try the original given path
 				if (targMap == null) {
 					// HO 13/02/2012 BEGIN ********
-					// try to relativize the target path based on the source path
-					//targFile = new File(absoluteTargetSpec);
-					//if (targFile.isFile()) {
-						// finally in desperation, we try looking for the target
-						// file in the absolute path
-						//targMap = OpenAction.loadMap(absoluteTargetSpec);
-					//}
+					// try to use the original target file
+					originalTargetSpec = VueUtil.stripHtmlSpaceCodes(originalTargetSpec);
+					targFile = new File(originalTargetSpec);
+					if (targFile.isFile()) {
+						targMap = OpenAction.loadMap(originalTargetSpec);
+					}
 					// HO 13/02/2012 END **********
 				}
 			}			

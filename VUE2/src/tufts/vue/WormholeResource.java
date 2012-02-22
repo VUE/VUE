@@ -1142,7 +1142,7 @@ public class WormholeResource extends URLResource {
 			if (!specURI.isAbsolute()) {
 				if (strOriginatingFile.endsWith(strSpec)) {
 					bSameMap = true;
-				}
+				} 
 			}
 			// HO 21/02/2012 END **********
 		}
