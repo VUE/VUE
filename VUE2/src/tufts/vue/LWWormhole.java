@@ -47,6 +47,8 @@ import tufts.vue.NodeTool.NodeModeTool;
 import tufts.vue.action.ActionUtil;
 import tufts.vue.action.OpenAction;
 import tufts.vue.action.SaveAction;
+//import tufts.vue.action.FileLockAction.VueArchiveLockFileFilter;
+//import tufts.vue.action.FileLockAction.VueLockFileFilter;
 
 
 public class LWWormhole implements VueConstants {
@@ -610,8 +612,20 @@ public class LWWormhole implements VueConstants {
 			strOriginatingFile = strOriginatingFile.replaceAll(strForwardSlash, strBackSlashPrefix);
 		}
 		
-		if (strSpec.equals(strOriginatingFile))
+		if (strSpec.equals(strOriginatingFile)) {
 			bSameMap = true;
+		} else {
+			// HO 21/02/2012 BEGIN ********
+			// finally make sure the reason they aren't the same
+			// isn't because one is just relativized
+			URI specURI = VueUtil.getURIFromString(strSpec);
+			if (!specURI.isAbsolute()) {
+				if (strOriginatingFile.endsWith(strSpec)) {
+					bSameMap = true;
+				}
+			}
+			// HO 21/02/2012 END **********
+		}
 					
 		return bSameMap;
 	} 
@@ -886,7 +900,7 @@ public class LWWormhole implements VueConstants {
 		// get the source file's parent path
 		String strSourceParent = getSourceParentPath();		
 		// first, make a note of the absolute target path
-		String absoluteTargetSpec = targetSpec;
+		//String absoluteTargetSpec = targetSpec;
 		// try to relativize the target path based on the source path
 		targetSpec = relativizeTargetSpec(targetSpec);
 		// HO 13/02/2012 END **********
@@ -930,12 +944,12 @@ public class LWWormhole implements VueConstants {
 				if (targMap == null) {
 					// HO 13/02/2012 BEGIN ********
 					// try to relativize the target path based on the source path
-					targFile = new File(absoluteTargetSpec);
-					if (targFile.isFile()) {
+					//targFile = new File(absoluteTargetSpec);
+					//if (targFile.isFile()) {
 						// finally in desperation, we try looking for the target
 						// file in the absolute path
-						targMap = OpenAction.loadMap(absoluteTargetSpec);
-					}
+						//targMap = OpenAction.loadMap(absoluteTargetSpec);
+					//}
 					// HO 13/02/2012 END **********
 				}
 			}			
@@ -1059,7 +1073,10 @@ public class LWWormhole implements VueConstants {
 			LWMap theMap = null;
 			// get the files in the current directory
 			File f = new File(top_level_dir);	
-			File[] dir = f.listFiles();	
+			// HO 22/02/2012 BEGIN *********
+			// File[] dir = f.listFiles();	
+			File[] dir = f.listFiles(appropriateFilter(file_to_search));
+			// HO 22/02/2012 END *********
 			// if we have a list of files, cycle through them
 			if (dir != null) {	
 				for (int i = 0; i < dir.length; i++) {
@@ -1112,6 +1129,64 @@ public class LWWormhole implements VueConstants {
 			return theMap;
 
 		}
+		
+	    /**
+	     * A function to return the right kind of file extension
+	     * filter for a given file.
+	     * @param strFileName, the filename String for which we need the right extension filter
+	     * @return either a VueLockFileFilter or a VueArchiveLockFileFilter,
+	     * according to the file type
+	     * @author Helen Oliver
+	     */
+	    private static FileFilter appropriateFilter(String strFileName) {
+	    	if ((strFileName == null) || (strFileName == ""))
+	    		return null;
+	    	
+	    	if (strFileName.endsWith(VueUtil.VueExtension))
+	    		return new VueFileOrDirectoryFilter();
+	    	
+	    	else if (strFileName.endsWith(VueUtil.VueArchiveExtension))
+	    		return new VueArchiveFileOrDirectoryFilter();
+	    	
+	    	return null;
+	    	
+	    }
+	    
+	    /* static class VueFileFilter implements FileFilter {
+
+	    	  public boolean accept(File pathname) {
+
+	    	    if (pathname.getName().endsWith(VueUtil.VueExtension)) 
+	    	      return true;
+	    	    return false;
+	    	  }
+	    	} */
+	    
+	    static class VueArchiveFileOrDirectoryFilter implements FileFilter {
+
+	    	  public boolean accept(File pathname) {
+
+	    	    if (pathname.getName().endsWith(VueUtil.VueArchiveExtension)) 
+	    	      return true;
+	    	    else if (pathname.isDirectory())
+	    	    	return true;
+	    	    
+	    	    return false;
+	    	  }
+	    	}
+	    
+	    static class VueFileOrDirectoryFilter implements FileFilter {
+
+	    	  public boolean accept(File pathname) {
+
+	    	    if (pathname.getName().endsWith(VueUtil.VueExtension)) 
+	    	      return true;
+	    	    else if (pathname.isDirectory())
+	    	    	return true;
+	    	    
+	    	    return false;
+	    	  }
+	    	}
 	
 	private boolean extrapolateDuringReparent(LWWormholeNode wn, WormholeResource wr, String prevURI, LWComponent newParent) {
 		// input validation
