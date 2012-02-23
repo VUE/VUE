@@ -1229,6 +1229,34 @@ public class WormholeResource extends URLResource {
             			// String strResolvedSystemSpec = systemSpecURI.toString();
             			if (theFile.isFile()) {
             				VueUtil.openURL(theFile.toString());
+            			} else {
+            				// if we still can't find it in the local folder, 
+            				// search all the subfolders	
+            				String strParentPath = getParentPathOfActiveMap();
+            				String strSourceName = getFilenameOfActiveMap();
+            				String strTargetName = theFile.getName();
+            				
+            				LWMap targMap = VueUtil.targetFileExistInPath(strParentPath, strParentPath, strTargetName, getComponentURIString());
+            				// and if we still can't find it after:
+            				// relativizing it against the source path
+            				// resolving it against the source path
+            				// looking in the local folder
+            				// looking 6 folders down from the local folder
+            				// then at last, in desperation,
+            				// try the original given path
+            				if (targMap == null) {
+            					// HO 13/02/2012 BEGIN ********
+            					// alert that you can't find it
+            					VueUtil.alert("Can't find the file " + strTargetName +".\n"
+            							+ "Try the Refresh command from the File menu.", "Target Not Found");
+            					
+            					// HO 13/02/2012 END **********
+            				} else {            					
+            					theFile = targMap.getFile();
+
+            					if (theFile.isFile()) 
+                    				VueUtil.openURL(theFile.toString());
+            				}
             			}
             		}
             		// HO 17/02/2012 END ********
@@ -1288,6 +1316,55 @@ public class WormholeResource extends URLResource {
 		
 		// HO 16/02/2012 END ************
 	} */
+    
+	/**
+	 * A function to get the filename of the parent path of the active map.
+	 * @return the String of the filename of the active map.
+	 * @author Helen Oliver
+	 */
+	private String getFilenameOfActiveMap() {
+		// if the active map actually has a file,
+		// get its parent path
+		String strActiveName = "";
+		
+		File activeMapFile = VUE.getActiveMap().getFile();
+		if (activeMapFile == null)
+			return null;
+		
+		strActiveName = activeMapFile.getName();
+
+		// if the source file has a name
+		if ((strActiveName != null) && (strActiveName != ""))	{
+			// make sure spaces are replaced with HTML codes
+			strActiveName = VueUtil.stripHtmlSpaceCodes(strActiveName);
+		}
+		
+		return strActiveName;
+	}
+	/**
+	 * A function to get the STring of the parent path of the active map.
+	 * @return the String of the parent path of the active map.
+	 * @author Helen Oliver
+	 */
+	private String getParentPathOfActiveMap() {
+		// if the active map actually has a file,
+		// get its parent path
+		String strActiveParent = "";
+		
+		File activeMapFile = VUE.getActiveMap().getFile();
+		if (activeMapFile == null)
+			return null;
+		
+		strActiveParent = activeMapFile.getParent();
+
+		// if the source file has a parent path
+		if ((strActiveParent != null) && (strActiveParent != ""))	{
+			// make sure spaces are replaced with HTML codes
+			strActiveParent = VueUtil.stripHtmlSpaceCodes(strActiveParent);
+		}
+		
+		return strActiveParent;
+	}
 	
 	/**
 	 * A function to get the URI of the parent path of the active map.
@@ -1588,6 +1665,8 @@ public class WormholeResource extends URLResource {
     		return null;
         
     }
+    
+    
     
 
 }

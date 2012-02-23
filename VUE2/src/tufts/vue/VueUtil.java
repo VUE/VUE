@@ -16,6 +16,7 @@
 package tufts.vue;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -39,6 +40,7 @@ import edu.tufts.vue.metadata.MetadataList;
 import edu.tufts.vue.metadata.VueMetadataElement;
 import tufts.vue.VueResources;
 import tufts.vue.LWComponent.ChildKind;
+import tufts.vue.action.OpenAction;
 
 /**
  *
@@ -135,6 +137,177 @@ public class VueUtil extends tufts.Util
             tufts.Util.openURL(platformURL);
         }
     }
+    
+	/**
+
+	* @param root_dir, the top of the file structure where we first started looking for the file
+	* @param top_level_dir, the parent directory we are searching in now
+
+	* @param file_to_search, the file we are searching for: filtered
+	* to be a .vue or .vpk file
+
+	* @param compString, the UURI of the target component
+
+	* @return LWMap, the map if we find the one with the target component, null otherwise
+	* @author Helen Oliver
+
+	*/
+	// HO 09/08/2011 BEGIN **********
+	public static LWMap targetFileExistInPath(String root_dir, String top_level_dir, String file_to_search, String compString) {
+		String strRootDir = root_dir;
+		// HO 09/08/2011 END **********
+		int depth_limit = 6;
+		LWMap theMap = null;
+		// get the files in the current directory
+		File f = new File(top_level_dir);	
+		// HO 22/02/2012 BEGIN *********
+		// File[] dir = f.listFiles();	
+		File[] dir = f.listFiles(appropriateFilter(file_to_search));
+		// HO 22/02/2012 END *********
+		// if we have a list of files, cycle through them
+		if (dir != null) {	
+			for (int i = 0; i < dir.length; i++) {
+				File file_test = dir[i];
+				// HO 09/08/2011 BEGIN *******
+				// don't waste time on Subversion folders
+				if (".svn".equals(dir[i].getName().toString())) {
+					continue;
+				}
+				// don't waste time on the Trash folder
+				if (".Trash".equals(dir[i].getName().toString())) {
+					continue;
+				}
+				// HO 09/08/2011 END *********
+				if (file_test.isFile()) {	
+					if (file_test.getName().equals(file_to_search)) {
+						System.out.println("File Name :" + file_test);
+						//v.add(top_level_dir);	
+						//v.add(new File(top_level_dir, file_test.getName()));
+						theMap = checkIfMapContainsTargetNode(file_test, compString);
+						if (theMap != null) 
+							break;
+					}
+				} else if(file_test.isDirectory()){	
+					// HO 09/08/2011 BEGIN *********
+					// limit number of levels we go below the directory structure
+					int count;
+					File countFile = file_test;
+					for (count = 0; count <=depth_limit; count++) {
+						String stepUp = countFile.getParent();
+						if (stepUp.equals(strRootDir)) {
+							break;
+						} else {
+							countFile = new File(stepUp);
+						}
+					}
+					if (count < (depth_limit+1)) { 
+						// HO 09/08/2011 END ***********
+						theMap = targetFileExistInPath(strRootDir, file_test.getAbsolutePath(), file_to_search, compString);
+						if (theMap != null)
+							break;
+					} else {
+						continue;
+					} 
+				}
+			}
+		} else {	
+			System.out.println("null list of files");
+		}	
+		return theMap;
+
+	}
+	
+	
+    /**
+     * Convenience class to return a file filter for either
+     * a .vpk file or a directory.
+     * @author Helen Oliver
+     *
+     */
+	public static class VueArchiveFileOrDirectoryFilter implements FileFilter {
+
+  	  public boolean accept(File pathname) {
+
+  	    if (pathname.getName().endsWith(VueUtil.VueArchiveExtension)) 
+  	      return true;
+  	    else if (pathname.isDirectory())
+  	    	return true;
+  	    
+  	    return false;
+  	  }
+  	}
+  
+    /**
+     * Convenience class to return a file filter for either
+     * a .vue file or a directory.
+     * @author Helen Oliver
+     *
+     */
+	public static class VueFileOrDirectoryFilter implements FileFilter {
+
+  	  public boolean accept(File pathname) {
+
+  	    if (pathname.getName().endsWith(VueUtil.VueExtension)) 
+  	      return true;
+  	    else if (pathname.isDirectory())
+  	    	return true;
+  	    
+  	    return false;
+  	  }
+  	}
+	
+    /**
+     * A function to return the right kind of file extension
+     * filter for a given file.
+     * @param strFileName, the filename String for which we need the right extension filter
+     * @return either a filter for a .vue file or a directory,
+     * or a filter for a .vpk file or a directory,
+     * according to the file type
+     * @author Helen Oliver
+     */
+    public static FileFilter appropriateFilter(String strFileName) {
+    	if ((strFileName == null) || (strFileName == ""))
+    		return null;
+    	
+    	if (strFileName.endsWith(VueUtil.VueExtension))
+    		return new VueFileOrDirectoryFilter();
+    	
+    	else if (strFileName.endsWith(VueUtil.VueArchiveExtension))
+    		return new VueArchiveFileOrDirectoryFilter();
+    	
+    	return null;
+    	
+    }
+	
+	
+	/**
+	 * A function to check whether a given Map file
+	 * contains the right target node, identified by
+	 * the UURI string.
+	 * @param f, the File to check for the presence of the target node.
+	 * @param compString, the UURI string identifying the target node.
+	 * @return the LWMap that contains the target node if it's found,
+	 * null if it's not.
+	 * @author Helen Oliver
+	 */
+	public static LWMap checkIfMapContainsTargetNode(File f, String compString) {
+    	if (f == null)
+    		return null;
+    	
+    	LWMap targMap = null;
+    	
+    	String s = f.getAbsolutePath();
+    	LWMap map = OpenAction.loadMap(s);
+		// see if this is the right map
+    	// by looking to see if the target component is in it
+		LWComponent targetComp = map.findChildByURIString(compString);
+		// if we found it, this is the right map
+		if (targetComp != null) {
+			targMap = map;
+		}
+		
+		return targMap;
+	}
     
 	// HO 13/02/2012 BEGIN *********
 	/**
@@ -1256,5 +1429,6 @@ class VOptionPane extends JOptionPane
 
 		return result;
         }
+	
 }
 
