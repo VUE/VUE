@@ -47,9 +47,6 @@ import tufts.vue.NodeTool.NodeModeTool;
 import tufts.vue.action.ActionUtil;
 import tufts.vue.action.OpenAction;
 import tufts.vue.action.SaveAction;
-//import tufts.vue.action.FileLockAction.VueArchiveLockFileFilter;
-//import tufts.vue.action.FileLockAction.VueLockFileFilter;
-
 
 public class LWWormhole implements VueConstants {
 	
@@ -177,15 +174,15 @@ public class LWWormhole implements VueConstants {
 	 * default is false
 	 */
 	private boolean bSaving = false;
-	    
-    // HO 03/11/2011 BEGIN **********
-    private String strPossPrefix = "file:";
+
+    // daft string manipulation constants
+	private String strPossPrefix = "file:";
 	private String strBackSlashPrefix = "\\\\";
 	private String strBackSlash = "\\";
 	private String strForwardSlashPrefix = "////";
 	private String strForwardSlash = "/";
 	private String strPossPrefixPlusForwardSlash = strPossPrefix + strForwardSlash;
-	// HO 03/11/2011 END **********
+
 
 	public LWWormhole() {
 		// TODO Auto-generated constructor stub
@@ -201,17 +198,25 @@ public class LWWormhole implements VueConstants {
 		init(c, bNew);
 	}
 	
+	/**
+	 * Wormhole constructor.
+	 * @param wn, the wormhole node from which to extrapolate a Wormhole
+	 * @param wr, the wormhole resource contained in the wormhole node
+	 */
 	public LWWormhole(LWWormholeNode wn, WormholeResource wr) {
 		init(wn, wr);
 	}
 	
+	/**
+	 * Wormhole constructor.
+	 * @param wn, the wormhole node from which to extrapolate a Wormhole
+	 * @param wr, the wormhole resource contained in the wormhole node
+	 * @param prevURI, the previous URI of the parent component of the wormhole node
+	 * @param newParent, the new parent LWComponent of the wormhole node
+	 */
 	public LWWormhole(LWWormholeNode wn, WormholeResource wr, String prevURI, LWComponent newParent) {
 		init(wn, wr, prevURI, newParent);
 	}
-	
-	/* public LWWormhole(LWWormholeNode wn, WormholeResource wr, File beingSavedTo, LWComponent c) {
-		init(wn, wr, beingSavedTo, c);
-	} */
 		
 	/**
 	 * Initializes the wormhole.
@@ -226,11 +231,10 @@ public class LWWormhole implements VueConstants {
     	// we are cancelled until we have successfully
 		// constructed the whole wormhole
 		setBCancelled(true);
-		// HO 08/02/2011 BEGIN ***************
-		// Collection<LWMap> coll = findAndSaveAllOpenMaps(); 
+		// any maps that are already open, auto-save them
 		findAndSaveAllOpenMaps();
-		// HO 08/02/2011 END ***************
 		
+		// create the components and maps
 		boolean b = createComponentsAndMaps(c, bNew);
 		// if they stopped here, no need to go any further
 		if (b == false) {
@@ -255,15 +259,16 @@ public class LWWormhole implements VueConstants {
     	// if we got this far we're okay and not cancelled
     	setBCancelled(false);
     	
-    	// against memory leaks
-    	// coll = null;
-    	
     	// flag end of construction process
     	flagEndOfConstruction(sourceMap);
     	flagEndOfConstruction(targetMap);
     }
 	
-	// HO 23/02/2011 BEGIN **********
+	/**
+	 * A routine to flag, at module and global levels,
+	 * that wormholes are being constructed in a particular map.
+	 * @param map, the LWMap in which wormholes are being constructed.
+	 */
 	private void flagStartOfConstruction(LWMap map) {
 		if (map != null) {
 			map.bConstructingWormholes = true;
@@ -271,13 +276,17 @@ public class LWWormhole implements VueConstants {
 		}
 	}
 	
+	/**
+	 * A routine to flag, at module and global levels,
+	 * that wormhole construction has completed in a particular map.
+	 * @param map, the LWMap in which wormholes have completed construction.
+	 */
 	private void flagEndOfConstruction(LWMap map) {
 		if (map != null) {
 			map.bConstructingWormholes = false;
 			VUE.bConstructingWormholes = false;
 		}
 	}
-	// HO 23/02/2011 END ************
 	
 	/**
 	 * Initializes the wormhole by extrapolating the needed information
@@ -288,9 +297,8 @@ public class LWWormhole implements VueConstants {
 	 */
 	public void init(LWWormholeNode wn, WormholeResource wr) 
     {
-		// HO 08/02/2011 BEGIN ***************
+		// all maps that are already open must be saved
 		findAndSaveAllOpenMaps();
-		// HO 08/02/2011 END ***************
 		
 		// we are cancelled until we have successfully
 		// constructed the whole wormhole
@@ -303,12 +311,14 @@ public class LWWormhole implements VueConstants {
 		if (b == false)
 			return;	
 
+		// reset the newly-reconstructed resources
 		resetResources();
     	
 		// add the listeners
     	addAllListeners();
 
     	// if we got this far we're okay
+    	// and the process was not cancelled before completion
     	setBCancelled(false);
     }	
 	
@@ -323,9 +333,8 @@ public class LWWormhole implements VueConstants {
 	 */
 	public void init(LWWormholeNode wn, WormholeResource wr, String prevURI, LWComponent newParent) 
     {
-		// HO 08/02/2011 BEGIN ***************
+		// any open maps, auto-save them
 		findAndSaveAllOpenMaps();
-		// HO 08/02/2011 END ***************
 		
 		// we are cancelled until we have successfully
 		// constructed the whole wormhole
@@ -342,6 +351,7 @@ public class LWWormhole implements VueConstants {
 		if (b == false)
 			return;	
 
+		// reset the newly-reconstructed resources
 		resetResources();
     	
 		// add the listeners
@@ -350,45 +360,6 @@ public class LWWormhole implements VueConstants {
     	// if we got this far we're okay
     	setBCancelled(false);
     }	
-	
-	/**
-	 * Initializes the wormhole by extrapolating the needed information
-	 * from a LWWormholeNode and a WormholeResource.
-	 * @param wn, the LWWormholeNode we're going to use to extrapolate the wormhole
-	 * @param wr, the WormholeResource in this LWWormholeNode
-	 * @param beingSavedTo, the new File that the source map is being saved to
-	 * @param c, the LWComponent that is the source component
-	 */
-	/* public void init(LWWormholeNode wn, WormholeResource wr, File beingSavedTo, LWComponent c) 
-    {
-		// HO 08/02/2011 BEGIN ***************
-		findAndSaveAllOpenMaps();
-		// HO 08/02/2011 END ***************
-		
-		// yes this is during a save
-		setBSaving(true);
-		// we are cancelled until we have successfully
-		// constructed the whole wormhole
-		setBCancelled(true);
-		// input validation
-		if ((wn == null) || (wr == null) || (beingSavedTo == null) || (c == null))
-			return;
-		// extrapolate the components, maps, and nodes
-		// from the wormhole node and wormhole resource passed in
-		// and the new file to be saved to
-		boolean b = extrapolateDuringSave(wn, wr, beingSavedTo, c);
-		// if they stopped here, no need to go any further
-		if (b == false)
-			return;	
-
-		resetResourcesDuringSave();
-		
-		// add the listeners
-    	addAllListeners();
-    	
-    	// if we got this far we're okay
-    	setBCancelled(false);
-    } */	
 	
 	/**
 	 * Adds the listeners to the maps on instantiation
@@ -420,41 +391,19 @@ public class LWWormhole implements VueConstants {
 		// get the current node/link/group/component/whatever
     	// and save it as the source component
     	setSourceComponent(c);
-    	// HO 16/02/2011 BEGIN ****************
     	// get the source component's parent map and make it the source map
     	// temporary - we'll change this after we get the file
     	setSourceMap(sourceComponent.getParentOfType(LWMap.class));
-    	// HO 16/02/2011 END ****************
     	
     	// create a default-style target node
     	setTargetComponent(createDefaultTargetNode());
     	 	
-    	// ask the user to save the current map
-    	
-    	// HO 15/02/2011 BEGIN ****************
-    	//boolean b = askSaveSourceMap(sourceMap);
-    	//File f = askSaveSourceMap(sourceMap);
-    	// HO 11/05/2011
-    	// HO 27/07/2011 BEGIN test ***********
+    	// get the MapViewer that goes with the source map
     	MapViewer viewer = VUE.getCurrentTabbedPane().getViewerWithMap(sourceMap);
-        // HO 27/07/2011 END ***********
-    	// HO 02/09/2011 BEGIN ************
-    	//Component comp = setScreen(sourceMap);
-    	// HO 27/07/2011 BEGIN test ***********
-    	//viewer = VUE.getCurrentTabbedPane().getViewerWithMap(sourceMap);
-    	// HO 02/09/2011 END ************
-        // HO 27/07/2011 END ***********
-    	//LWMap srcMap = askSaveSourceMap(sourceMap);
-    	// HO 02/07/2011 begin ************
-    	// LWMap srcMap = askSaveSourceMap(sourceMap, comp);
-    	// HO 22/08/2011 BEGIN **********
-    	// LWMap srcMap = SaveAction.saveMapSpecial(sourceMap, false, false);
+        // now silently save the source map
     	LWMap srcMap = SaveAction.saveMapSpecial(sourceMap, false, false, "Save Source Map");
-    	// HO 22/08/2011 END **********
-    	// HO 02/07/2011 END ************
-    	// HO 27/07/2011 BEGIN test ***********
+    	// get the right viewer again (would it have changed??)
     	viewer = VUE.getCurrentTabbedPane().getViewerWithMap(sourceMap);
-        // HO 27/07/2011 END ***********
     	
     	// if the current map wasn't saved for any reason,
     	// return
@@ -470,50 +419,42 @@ public class LWWormhole implements VueConstants {
     	
     	// the target file
     	File targFile = null;
-    	// HO 15/02/2011 END ****************
     	
     	// the target map
     	LWMap targMap = null;
     	
     	// ask them to choose a new or existing map for the target map
-    	if (bNew == true) {
-    		// HO 15/02/2011 BEGIN ****************
-    		//theMap = askSelectNewTargetMap(sourceMap);
-    		// HO 11/05/2011 BEGIN ****************
-    		// HO 02/09/2011 BEGIN *************
-    		// targMap = askSelectNewTargetMap(new LWMap(""), comp);
+    	if (bNew == true) { // if they want the target to be in a new map
     		targMap = askSelectNewTargetMap(new LWMap(""));
-    		// HO 02/09/2011 END *************
     		// reset the focus back to the source map 
+    		// the viewer and pane on the left
     		MapViewer leftViewer = null;
     		MapTabbedPane leftPane = null;
+    		// the viewer and pane on the right
             MapViewer rightViewer = null;
             MapTabbedPane rightPane = null;
-                if (VUE.isActiveViewerOnLeft()) {
-                	leftPane = VUE.getLeftTabbedPane();
-                	int i = leftPane.findTabWithMap(srcMap);
-                	//leftViewer = leftPane.getViewerAt(i);
-                	//leftPane.setSelectedComponent(leftViewer);
-                	//leftPane.setSelectedIndex(i);
-                	leftPane.setSelectedMap(srcMap);
-            		//VUE.getLeftTabbedPane().setSelectedMap(srcMap);
-                }
-                else {
-                	rightPane = VUE.getRightTabbedPane();
-                	int i = rightPane.findTabWithMap(srcMap);
-                	//rightViewer = rightPane.getViewerAt(i);
-                	//rightPane.setSelectedComponent(rightViewer);
-                	rightPane.setSelectedIndex(i);
-                	//VUE.getRightTabbedPane().setSelectedMap(srcMap);
-                } 
-    		// HO 11/05/2011 END ****************
-    		// create a new map out of the target file
-    		//theMap = LWMap.create(theFile.toURI().toString());
-    		// HO 15/02/2011 END ****************
-    	} else {
-    			// ask them to choose a place to put the target node
-    			targMap = askSelectExistingTargetMap(sourceMap);
-    		}
+            // if the active viewer is on the left, get them
+            // from the left side
+            if (VUE.isActiveViewerOnLeft()) {
+            	leftPane = VUE.getLeftTabbedPane();
+            	// find the tab that contains the source map
+            	int i = leftPane.findTabWithMap(srcMap);
+            	// make sure the source map tab is selected
+            	leftPane.setSelectedMap(srcMap);
+            }
+            else {
+            	// if the active viewer is on the right,
+            	// get the viewer and pane from the right side
+            	rightPane = VUE.getRightTabbedPane();
+            	// find the tab that contains the source map
+            	int i = rightPane.findTabWithMap(srcMap);
+            	// make sure the source map tab is selected
+            	rightPane.setSelectedIndex(i);
+            } 
+    	} else { // if they want the target to be in an existing map
+			// ask them to choose a file to be the target file
+			targMap = askSelectExistingTargetMap(sourceMap);
+		}
     	
     	// if we haven't got a target map at this point,
     	// we've failed, so return
@@ -545,7 +486,6 @@ public class LWWormhole implements VueConstants {
 		File theFile = null;
 		if (theMap != null) {
 			theFile = theMap.getFile();
-	    	// HO 27/12/2010 BEGIN **************
 	    	// If at this point, we have a null target map file,
 	    	// that probably means somebody tried to save it straight
 	    	// into .vpk format, which means that at the point we need it,
@@ -559,52 +499,57 @@ public class LWWormhole implements VueConstants {
 	    		
 	    		hasFile = false;
 	    	} 	    		
-	    	// HO 27/12/2010 END ****************
 		}
 		
 		return hasFile;
 	}
 	
-	// HO 25/03/2011 BEGIN ****************
-	// enormous waste of time.
+	/**
+	 * A function to work out whether the target map is the same
+	 * as the source map.
+	 * @param wr, the WormholeResource containing the source and target maps.
+	 * @return true if the source and target maps are the same,
+	 * false otherwise.
+	 */
 	private boolean pointsToSameMap(WormholeResource wr) {
+		// assume it's not the same map until proven otherwise
 		boolean bSameMap = false;
+		// get the target path from the WormholeResource
 		String strSpec = wr.getSystemSpec();
+		// get the source path from the WormholeResource
 		String strOriginatingFile = wr.getOriginatingFilename();
 
 		// if the spec was not set, replace it with the last known filename
 		if (strSpec.equals(wr.SPEC_UNSET))
 			strSpec = wr.getTargetFilename();
 		
-		// HO 12/05/2011 BEGIN *******
-		// strip wrongly-formatted spaces so they don't gum up the comparison
+		// prevent mixups based on encoding
 		strSpec = VueUtil.stripHtmlSpaceCodes(strSpec);
 		strOriginatingFile = VueUtil.stripHtmlSpaceCodes(strOriginatingFile);		
-		// HO 12/05/2011 END *********
 		
-		// HO 03/11/2011 BEGIN *****************
+		// remove red-herring file prefixes
 		strSpec = sourceMap.stripFilePrefixFromPathString(strSpec);
 		strOriginatingFile = sourceMap.stripFilePrefixFromPathString(strOriginatingFile);
-		//if (strSpec.startsWith(strPossPrefix))
-			//strSpec = strSpec.substring(strPossPrefix.length(), strSpec.length());
-		//if (strOriginatingFile.startsWith(strPossPrefix))
-			//strOriginatingFile = strOriginatingFile.substring(strPossPrefix.length(), strOriginatingFile.length());
-		
-		// HO 28/03/2011 BEGIN *************
+
+		// strip off any leading backslashes
 		if (strSpec.startsWith(strBackSlashPrefix))
 			strSpec = strSpec.substring(strBackSlashPrefix.length(), strSpec.length());
 		if (strOriginatingFile.startsWith(strBackSlashPrefix))
 			strOriginatingFile = strOriginatingFile.substring(strBackSlashPrefix.length(), strOriginatingFile.length());
 		
+		// strip off any leading forward slashes
 		if (strSpec.startsWith(strForwardSlashPrefix))
 			strSpec = strSpec.substring(strForwardSlashPrefix.length(), strSpec.length());
 		if (strOriginatingFile.startsWith(strForwardSlashPrefix))
 			strOriginatingFile = strOriginatingFile.substring(strForwardSlashPrefix.length(), strOriginatingFile.length());
-		// HO 28/03/2011 END *************
-		// HO 03/11/2011 END *****************
-		
+
+		// if at this point the two strings match,
+		// then the source and target maps are the same,
+		// so we can return
 		if (strSpec.equals(strOriginatingFile))
 			bSameMap = true;
+		
+		// but if they don't match, flip the back and forward slashes till they match in both filenames
 		else if ((strSpec.contains(strForwardSlash)) && (strOriginatingFile.contains(strBackSlash))) {
 			strSpec = strSpec.replaceAll(strForwardSlash, strBackSlashPrefix);
 		}
@@ -612,24 +557,26 @@ public class LWWormhole implements VueConstants {
 			strOriginatingFile = strOriginatingFile.replaceAll(strForwardSlash, strBackSlashPrefix);
 		}
 		
+		// if the two strings match now, the source and target maps are the same
 		if (strSpec.equals(strOriginatingFile)) {
 			bSameMap = true;
 		} else {
-			// HO 21/02/2012 BEGIN ********
 			// finally make sure the reason they aren't the same
 			// isn't because one is just relativized
 			URI specURI = VueUtil.getURIFromString(strSpec);
+			// if we have a relativized path, check it
 			if (!specURI.isAbsolute()) {
+				// if the (absolute) source file path ends with
+				// the relative path, then they are in fact the same
 				if (strOriginatingFile.endsWith(strSpec)) {
 					bSameMap = true;
 				}
 			}
-			// HO 21/02/2012 END **********
 		}
 					
 		return bSameMap;
 	} 
-	// HO 25/03/2011 END ****************
+
 
 	/**
 	 * A function for extrapolating source and target components,
@@ -664,6 +611,7 @@ public class LWWormhole implements VueConstants {
 		if (actualSourceMap != null) {
 			setSourceMap(actualSourceMap);
 		} else {
+			// if it doesn't have a parent map, we're hosed.
 			return false;
 		}
 		
@@ -696,22 +644,18 @@ public class LWWormhole implements VueConstants {
 		// but if we do have a component URI string, we can
 		// use it to find the target component in the target map
 		LWComponent targetComp = targMap.findChildByURIString(compString);
-		// if we didn't get a target component out of this, 
-		// we can't build a wormhole, so flag failure
-		// and return
-		// HO 04/11/2011 BEGIN *******
-		// if it's just the component that's missing
-		// then we want to use that in an alert
-		// rather than just abandoning the thing
-		// only to get a confusing message later
+
 		// now instantiate the source component which we are about to extrapolate
 		LWComponent sourceComp = null;
 		
+		// if we didn't find the target component, search for the
+		// source component in the source map
 		if (targetComp == null) {
 			sourceComp = actualSourceMap.findChildByURIString(wr.getOriginatingComponentURIString());
 			// if we found the component, set it to be the source component
 			if (sourceComp != null) {
 				setSourceComponent(sourceComp);
+				// and set the node as the source node
 				setSourceWormholeNode(wn);
 				// in this case we have a source component
 				// but no target, so we can work with this
@@ -722,13 +666,10 @@ public class LWWormhole implements VueConstants {
 				return false;
 			}
 		}
-		// HO 04/11/2011 END *******
 		
-		// if we got this far, we have a target component
+		// if we got this far, we have a target component		
 		setTargetComponent(targetComp);
-		
-
-		
+				
 		// now look at the target component and see if we can extrapolate
 		// whether it's the right one (just in case the component has more
 		// than one wormhole node
@@ -798,6 +739,7 @@ public class LWWormhole implements VueConstants {
 		// get the target file path from the resource
 		String targetSpec = "";
 		try {
+			// get the recorded file spec from the resource
 			targetSpec = wr.getSystemSpec();
 		} catch(NullPointerException e) {
 			return targetSpec;
@@ -817,6 +759,7 @@ public class LWWormhole implements VueConstants {
 		String strSourceParent = "";
 		URI sourceParent = null;
 		
+		// as long as the source map has a file, get its parent path
 		if (sourceMap.getFile() != null) {
 			strSourceParent = new File(sourceMap.getFile().getAbsolutePath()).getParent();
 		}
@@ -834,7 +777,49 @@ public class LWWormhole implements VueConstants {
 		return sourceParent;
 	}
 	
-
+	/**
+	 * A function to take a possibly-absolute path for the target map,
+	 * and relativize it to the source map.
+	 * @param targetSpec, the possibly-absolute path for the target map
+	 * @return a String representing the relative path
+	 * @author Helen Oliver
+	 */
+	private String relativizeTargetSpec(String targetSpec) {
+		
+		// clean out HTML codes
+		targetSpec = VueUtil.replaceHtmlSpaceCodes(targetSpec);
+		
+		URI targetURI = null;
+		
+		try {
+			// create a URI out of the spec we have
+			targetURI = new URI(targetSpec);
+			if (targetURI != null) {
+				// if the URI is already relative, return the 
+				// String that was passed in
+				if (!targetURI.isAbsolute()) {
+					return targetSpec;
+				}
+			}
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+			return "";
+		}
+		
+		// if the URI wasn't already relative, try to relativize the target path based on the source path
+		URI sourceBaseURI = getParentURIOfSourceMap();
+		String relative = "";
+		if (sourceBaseURI != null) {
+			// if it's already relative, return what we passed in
+			relative = new File(sourceBaseURI.relativize(targetURI)).getPath();
+			System.out.println(relative);
+		}
+		
+		// clean out any space codes before returning as a String
+		targetSpec = VueUtil.stripHtmlSpaceCodes(targetSpec);
+		
+		return targetSpec;
+	}
 	
 
 	
@@ -846,11 +831,13 @@ public class LWWormhole implements VueConstants {
 	 * @author Helen Oliver
 	 */
 	private String getSourceParentPath() {
+		// the source parent path-to-be
 		String strSourceParent = "";
 		// if the source map actually has a file,
 		// get its parent path
 		URI sourceParent = getParentURIOfSourceMap();
 		
+		// so if we have a parent, re-encode it as a String
 		if (sourceParent != null) {
 			strSourceParent = sourceParent.toString();
 			strSourceParent = VueUtil.stripHtmlSpaceCodes(strSourceParent);
@@ -863,7 +850,7 @@ public class LWWormhole implements VueConstants {
 	 * Function to extract the target map from a given WormholeResource.
 	 * Assumption is that we know the source map by this point.
 	 * If the map can't be found in the stated target, we look in the local
-	 * folder. Then give up.
+	 * folder. Then some folders above that. Then give up.
 	 * @param wr, the WormholeResource from which to extract the target map.
 	 * @return targMap, the target map if successfully extrapolated, null if not.
 	*/
@@ -896,37 +883,86 @@ public class LWWormhole implements VueConstants {
 		if ((compString == null) || (compString == ""))
 			return null;
 		
-		// to ward off FileNotFoundExceptions later on,
-		// create a target file using the path extracted
-		// from the resource
-				
-		// HO 13/02/2012 BEGIN ********
+		targMap = findTargetMap(targetSpec, compString);
+			
+		return targMap;
+	}
+	
+	/**
+	 * A function to find the target map, relativized,
+	 * and searching within several folders above and below the source
+	 * @param targetSpec
+	 * @param compString
+	 * @return the LWMap that is the target map
+	 */
+	private LWMap findTargetMap(String targetSpec, String compString) {
+		// input validation
+		if ((targetSpec == null) || (targetSpec == ""))
+			return null;
+		
+		if ((compString == null) || (compString == ""))
+			return null;
+		
+		// the target map to return
+		LWMap targMap = null;
+		
+		// create a URI from it
+		URI targetURI = VueUtil.getURIFromString(targetSpec);
+		
 		// get the source file's parent path
-		String strSourceParent = getSourceParentPath();		
-
+		String strSourceParent = getSourceParentPath();	
+		
+		// record the original versions of the target file path and spec
+		String originalTargetSpec = targetSpec;
+		URI originalTargetURI = targetURI;
+		
 		// FIRST ATTEMPT
 		// try to relativize the target path based on the source path
-		targetSpec = relativizeTargetSpec(targetSpec);
-		// HO 13/02/2012 END **********
-		
+		targetSpec = relativizeTargetSpec(targetSpec);		
 		// now try to instantiate the file relative to the source
 		File targFile = new File(targetSpec);
+		// if it's a valid file, check and see if the target node
+		// exists in it
+		if (targFile.isFile()) {
+			targMap = VueUtil.checkIfMapContainsTargetNode(targFile, compString);
+			// if we found the map, return it
+			if (targMap != null)
+				return targMap;
+		}
 		
-		// HO 16/02/2012 BEGIN ************
+		// SECOND ATTEMPT
 		// if that file can't be found after relativizing it
 		// to the source, try resolving it against the source
-		if (!targFile.isFile())
+		if ((!targFile.isFile()) || (targMap == null))
 			targFile = VueUtil.resolveTargetRelativeToSource(targetURI, getParentURIOfSourceMap());
+			// if it's a valid file, check and see if the target node
+			// exists in it
+			if (targFile.isFile()) {
+				targMap = VueUtil.checkIfMapContainsTargetNode(targFile, compString);
+				// if we found the map, return it
+				if (targMap != null)
+					return targMap;
+			}
 		
+			// THIRD ATTEMPT	
 			//if we still can't find the file, check for one with the same name
 			// in the local folder
 			try {
-				if (!targFile.isFile()) {
+				if ((!targFile.isFile()) || (targMap == null)) {
 					// get just the file name
 					String strTargName = targFile.getName();
-					if ((strSourceParent != null) && (strSourceParent != ""))	
+					if ((strSourceParent != null) && (strSourceParent != "")) {	
 						// if we got the parent path, create a file out of it
 						targFile = new File(strSourceParent, strTargName);
+						// if it's a valid file, check and see if the target node
+						// exists in it
+						if (targFile.isFile()) {
+							targMap = VueUtil.checkIfMapContainsTargetNode(targFile, compString);
+							// if we found the map, return it
+							if (targMap != null)
+								return targMap;
+						}
+					}
 					else // but if there isn't a parent path, we can't do anything, so return null
 						return null;
 				} 
@@ -934,118 +970,54 @@ public class LWWormhole implements VueConstants {
 				// do nothing, just return null
 				return null;
 			} 
-			// if we found the target file in the local folder, open it
-			if (targFile.isFile()) {	
-				targetSpec = VueUtil.stripHtmlSpaceCodes(targFile.toString());
-				// if we found the target file in the local folder, open it
-				targMap = OpenAction.loadMap(targetSpec);
-			}
-			else {
+			if ((!targFile.isFile()) || (targMap == null))  {
+				// FOURTH ATTEMPT
 				// if we still can't find it in the local folder, 
-				// search all the subfolders				
+				// search all the subfolders	
 				targMap = VueUtil.targetFileExistInPath(targFile.getParent(), targFile.getParent(), targFile.getName(), compString);
-				// and if we still can't find it after:
-				// relativizing it against the source path
-				// resolving it against the source path
-				// looking in the local folder
-				// looking 6 folders down from the local folder
-				// then at last, in desperation,
+				// if we found the map, return it
+				if (targMap != null)
+					return targMap;
+			}
+			if ((!targFile.isFile()) || (targMap == null))  {
+				// FIFTH ATTEMPT
+				// if we couldn't find it in the subfolders,
+				// search the above-folders (will not look through any of their subfolders)
+				targMap = VueUtil.targetFileExistAbovePath(targFile.getParent(), targFile.getParent(), targFile.getName(), compString);
+				// if we found the map, return it
+				if (targMap != null)
+					return targMap;
+			}
+			if ((!targFile.isFile()) || (targMap == null))  {
+				// SIXTH ATTEMPT
 				// try the original given path
-				if (targMap == null) {
-					// HO 13/02/2012 BEGIN ********
-					// try to use the original target file
-					originalTargetSpec = VueUtil.stripHtmlSpaceCodes(originalTargetSpec);
-					targFile = new File(originalTargetSpec);
-					if (targFile.isFile()) {
-						targMap = OpenAction.loadMap(originalTargetSpec);
-					}
-					// HO 13/02/2012 END **********
+				// try to use the original target file
+				originalTargetSpec = VueUtil.stripHtmlSpaceCodes(originalTargetSpec);
+				targFile = new File(originalTargetSpec);
+				// if we found it, open it
+				if (targFile.isFile()) {
+					targMap = VueUtil.checkIfMapContainsTargetNode(targFile, compString);
 				}
-			}			
+			}		
+			// if we're still null at this point, we're hosed
 			return targMap;
 	}
 	
 	/**
-	 * A function to take a possibly-absolute path for the target map,
-	 * and relativize it to the source map.
-	 * @param targetSpec, the possibly-absolute path for the target map
-	 * @return a String representing the relative path
+	 * A function to extrapolate a wormhole when a WormholeNode
+	 * is being reparented from one Node to another
+	 * @param wn, the WormholeNode that is being reparented
+	 * @param wr, the WormholeResource in the wormhole node
+	 * @param prevURI, the URI of the previous parent node
+	 * @param newParent, the new parent LWComponent
+	 * @return
 	 */
-	private String relativizeTargetSpec(String targetSpec) {
-		
-		targetSpec = VueUtil.replaceHtmlSpaceCodes(targetSpec);
-		
-		URI targetURI = null;
-		
-		try {
-			targetURI = new URI(targetSpec);
-			if (targetURI != null) {
-				// if the URI is already relative, return the 
-				// String that was passed in
-				if (!targetURI.isAbsolute()) {
-					return targetSpec;
-				}
-			}
-		} catch (URISyntaxException e) {
-			e.printStackTrace();
-			return "";
-		}
-		
-		// HO 13/02/2012 BEGIN ********
-		// try to relativize the target path based on the source path
-		URI sourceBaseURI = getParentURIOfSourceMap();
-		String relative = "";
-		if (sourceBaseURI != null) {
-			// if it's already relative, return what we passed in
-			//if (!targetURI.isAbsolute()) {
-				relative = new File(sourceBaseURI.relativize(targetURI)).getPath();
-				System.out.println(relative);
-			//} else {
-				//return targetSpec;
-			//}
-		}
-		
-		/*File relFile = new File(relative);
-		File relParent = relFile.getParentFile();
-		if (relParent == null) {
-			targetSpec = sourceBase + System.getProperty("file.separator") + relative;
-		}*/
-		// targetSpec = targFile.getAbsolutePath();
-		//targetSpec = sourceBase + System.getProperty("file.separator") + relative;
-		
-		// clean out any space codes
-		targetSpec = VueUtil.stripHtmlSpaceCodes(targetSpec);
-		
-		return targetSpec;
-		// HO 13/02/2012 END **********
-	}
-	
-	private String relativizeTargetSpec(LWMap theSource, LWMap theTarget) {
-		
-		URI targetURI = theTarget.getFile().toURI();
-		
-		// HO 13/02/2012 BEGIN ********
-		// try to relativize the target path based on the source path
-		File sourceBaseFile = theSource.getFile();
-		String sourceBase = "";
-		String relative = "";
-		if (sourceBaseFile != null) {
-			sourceBase = sourceBaseFile.getParentFile().toString();
-			relative = new File(sourceBase).toURI().relativize(targetURI).getPath();
-			System.out.println(relative);
-		}
-		// targetSpec = targFile.getAbsolutePath();
-		//targetSpec = sourceBase + System.getProperty("file.separator") + relative;
-		
-		return relative;
-		// HO 13/02/2012 END **********
-	}
-	
 	private boolean extrapolateDuringReparent(LWWormholeNode wn, WormholeResource wr, String prevURI, LWComponent newParent) {
 		// input validation
 		if ((wn == null) || (wr == null) || (newParent == null))
 			return false;
 		
+		// set the new parent to be the source component
 		setSourceComponent(newParent);
 		
 		// Start by extrapolating the source map from the node parent
@@ -1057,84 +1029,12 @@ public class LWWormhole implements VueConstants {
 		}
 		// if the node has a parent map, make it the source map
 		if (actualSourceMap != null) {
-			// HO 08/02/2011 BEGIN ***************
-			// HO 22/02/2011 BEGIN ***************
+			// make sure the source map is saved
     		SaveAction.saveMap(actualSourceMap);
-			//actualSourceMap = SaveAction.saveMapSpecial(actualSourceMap);
-    		// HO 22/02/2011 END ***************
-    		// HO 08/02/2011 END ***************
+			// set it as the source map
 			setSourceMap(actualSourceMap);
 		} else {
 			return false;
-		}
-		
-		// now instantiate a target map
-		LWMap targMap = null;
-		
-		// HO 12/05/2011 BEGIN ******
-		// if this points to the same map, easy
-		if (pointsToSameMap(wr)) {
-			targMap = actualSourceMap;
-			setTargetMap(targMap);
-		} else {			
-			// HO 12/05/2011 END *******
-			
-			// first we extrapolate the target
-			// which is easy because it's in the resource we have
-			// get the target file path from the resource
-			// HO 03/09/2010 BEGIN - just calling getSpec() can cause
-			// any file.exists() tests to return false even when the file
-			// blatantly exists
-			String targetSpec = "";
-			try {
-				targetSpec = wr.getSystemSpec();
-				// if the spec was not set, replace it with the last known filename
-				if (targetSpec.equals(wr.SPEC_UNSET))
-					targetSpec = wr.getTargetFilename();
-				
-				if (targetSpec == "")
-					return false;
-
-			} catch(NullPointerException e) {
-				return false;
-			}
-	
-			// if it's null or an empty string, we can't
-			// extrapolate anything from it
-			if ((targetSpec == null) || (targetSpec == ""))
-				return false;
-			
-			// HO 12/05/2011 BEGIN *******
-			// strip away wrongly-formatted spaces
-			targetSpec = VueUtil.stripHtmlSpaceCodes(targetSpec);			
-			// HO 12/05/2011 END ********
-			
-			// to ward off FileNotFoundExceptions later on,
-			// create a target file using the path extracted
-			// from the resource
-			// HO
-			File targFile = new File(targetSpec);
-			
-			// if the target file extracted from the wormhole
-			// resource actually exists (which it should,
-			// because we just created it), load the map
-			// belonging to that file and make it the target map
-			if (targFile.exists() == true) {
-				try {
-					targMap = OpenAction.loadMap(targetSpec);
-				} catch (Exception e) {
-					// do nothing
-					return false;
-				}
-			}
-			
-			// if we now have a target map
-			if (targMap != null)
-				// set it as our target map component
-				setTargetMap(targMap);
-			else
-				// but if we don't have a map, we failed
-				return false;
 		}
 		
 		// now we extrapolate the target component
@@ -1146,6 +1046,46 @@ public class LWWormhole implements VueConstants {
 		if ((compString == null) || (compString == ""))
 			return false;
 		
+		// now instantiate a target map
+		LWMap targMap = null;
+		
+		// if this points to the same map, easy
+		if (pointsToSameMap(wr)) {
+			targMap = actualSourceMap;
+			setTargetMap(targMap);
+		} else {						
+			// first we extrapolate the target
+			// just by using the resource we have
+			// (assume this is correct)
+			String targetSpec = "";
+			try {
+				targetSpec = wr.getSystemSpec();
+				// if the spec was not set, replace it with the last known filename
+				if (targetSpec.equals(wr.SPEC_UNSET))
+					targetSpec = wr.getTargetFilename();
+								
+				// if it's null or an empty string, we can't
+				// extrapolate anything from it
+				if ((targetSpec == null) || (targetSpec == ""))
+					return false;
+
+			} catch(NullPointerException e) {
+				return false;
+			}
+
+			// strip away wrongly-formatted spaces
+			targetSpec = VueUtil.stripHtmlSpaceCodes(targetSpec);	
+			targMap = findTargetMap(targetSpec, compString);
+
+			// if we now have a target map
+			if (targMap != null)
+				// set it as our target map component
+				setTargetMap(targMap);
+			else
+				// but if we don't have a map, we failed
+				return false;
+		}
+				
 		// but if we do have a component URI string, we can
 		// use it to find the target component in the target map
 		LWComponent targetComp = targMap.findChildByURIString(compString);
@@ -1158,9 +1098,10 @@ public class LWWormhole implements VueConstants {
 		// if we got this far, we have a target component
 		setTargetComponent(targetComp);
 		
+		// not sure it helps to set wormhole types any more
 		wn.setWormholeType(LWWormholeNode.WormholeType.SOURCE.toString());
+		// but set the passed-in node as the source node
 		setSourceWormholeNode(wn);
-		//LWWormholeNode targNode = createTargetWormholeNode();
 		
 		// now look at the target component and see if we can extrapolate
 		// whether it's the right one (just in case the component has more
@@ -1219,8 +1160,6 @@ public class LWWormhole implements VueConstants {
 	 * false otherwise
      * Returns true if either they save it or say go ahead and close w/out saving.
      */
-	// HO 11/05/2011
-    //private LWMap askSaveSourceMap(LWMap map) {
 	private LWMap askSaveSourceMap(LWMap map, Component c) {
     	// Give them a choice of Yes (0), or a No (1) labelled Cancel (2) 
     	final Object[] defaultOrderButtons = { "Save As...", VueResources.getString("optiondialog.revertlastsave.cancel"),VueResources.getString("optiondialog.savechages.save")};
@@ -1233,8 +1172,6 @@ public class LWWormhole implements VueConstants {
     	// if (!map.isModified() || !map.hasContent())
             // return true;
     	// HO 13/08/2010 END
-
-        //Component c = setScreen(map);
         
         int response = VueUtil.option
             (c,
@@ -1269,27 +1206,11 @@ public class LWWormhole implements VueConstants {
         }
         
         if (response == JOptionPane.YES_OPTION) { // Save
-        	// HO 15/02/2011 BEGIN ***********
-        	// HO 25/05/2011 swapped
-            //return SaveAction.saveMap(map);
-        	// HO 20/06/2011 BEGIN ***********
-        	// HO 22/08/2011 BEGIN **********
-        	// return SaveAction.saveMapSpecial(map, false, false);
+        	// save the map
         	return SaveAction.saveMapSpecial(map, false, false, "Save Source Map");
-        	// HO 22/08/2011 END **********
-        	// return SaveAction.saveMapSpecial(map, true, false);
-        	// HO 20/06/2011 END ***********
-            // HO 15/02/2011 END ***********
         } else if (response == JOptionPane.NO_OPTION) { // Save As
             // save not necessarily in the default location
-        	// HO 15/02/2011 BEGIN ***********
-        	// HO 25/05/2011 swapped
-        	//return SaveAction.saveMap(map);
-        	// HO 22/08/2011 BEGIN **********
-            // return SaveAction.saveMapSpecial(map, true, false);
         	return SaveAction.saveMapSpecial(map, true, false, "Save Source Map");
-            // HO 22/08/2011 END **********
-            // HO 15/02/2011 END ***********
         } else // anything else (Cancel or dialog window closed)
             return null;
     }
@@ -1300,145 +1221,19 @@ public class LWWormhole implements VueConstants {
      * @param map, the LWMap we are currently in
      * @return the map selected by the user
      */
- // HO 11/05/2011 BEGIN ************
-   //private LWMap askSelectNewTargetMap(LWMap map, boolean b) {
-	// HO 02/09/2011 BEGIN **********
-    // private LWMap askSelectNewTargetMap(LWMap map, Component focusComp) {
 	private LWMap askSelectNewTargetMap(LWMap map) {
-    	// HO 02/09/2011 END **********
-	// HO 11/05/2011 END ************
-    	// HO 22/08/2011 BEGIN ***************
-    	//final Object[] defaultOrderButtons = { "Choose Target Map", "Cancel"};
-    	//final Object[] macOrderButtons = { "Cancel", "Choose Target Map"};
-
-        // HO 04/01/2011 BEGIN *************
-    	// to ward off IllegalComponentStateException
-    	// HO 11/05/2011 BEGIN ************
-    	//Component c = setScreen(map);
-    	//Component c = setScreen(focusComp);
-    	// HO 11/05/2011 END ************
-    	// HO 04/01/2011 END *************
-    	// HO 22/08/2011 END ***************
-    	// HO 27/07/2011 BEGIN test ***********
-    	// HO 22/08/2011 BEGIN ***************
-    	// MapViewer viewer = VUE.getCurrentTabbedPane().getViewerWithMap(sourceMap);
-        // HO 27/07/2011 END ***********
-    	
-    	//int response = VueUtil.option
-        // (// HO 11/05/2011 BEGIN ************
-        		//viewer,
-        		// VUE.getDialogParent(),
-        		//c,
-        		// HO 11/05/2011 END ************
-         //"Please choose a target map.",
-         //"Choose Target Map",
-         //JOptionPane.OK_CANCEL_OPTION,
-         //JOptionPane.PLAIN_MESSAGE,
-         //Util.isMacPlatform() ? macOrderButtons : defaultOrderButtons,             
-         //"Choose Target"
-         //);
-    	// HO 28/02/2011 END ****************
-
-        //if (!Util.isMacPlatform()) {
-            //switch (response) {
-            // HO 28/02/2011 BEGIN ************
-            // the OK_OPTION (choose target map)
-            //case 0: response = 0; break;
-            // the CANCEL option
-            //case 1: response = 1; break;
-            // HO 28/02/2011 END ***************
-           // }
-        //} else { 
-            //switch (response) {
-            // the OK_OPTION (choose a target map)
-            //case 0: response = 1; break;
-            // the CANCEL option
-            //case 1: response = 0; break;
-            //}
-        //}
-        
-        //if (response == JOptionPane.OK_OPTION) { // Save
-        	// HO 22/08/2011 END ***************
-    		// HO 22/08/2011 BEGIN **********
-        	// LWMap newTargetMap = SaveAction.saveMapSpecial(map, true, false);
-    		LWMap newTargetMap = SaveAction.saveMapSpecial(map, true, false, "Save Target Map");
-        	// HO 22/08/2011 END **********
-        	// prompt to save
-        	if (newTargetMap != null) {
-        		// now we have our target map
-        		return newTargetMap;
-        	} else {
-        		return null;
-        	}
-       //} else // anything else (Cancel or dialog window closed) 
-        	//{
-            //return null;
-        //}
+		// save silently
+		LWMap newTargetMap = SaveAction.saveMapSpecial(map, true, false, "Save Target Map");
+		// if the map exists
+    	if (newTargetMap != null) {
+    		// now we have our target map
+    		return newTargetMap;
+    	} else {
+    		return null;
+    	}
 
     }	    
-    
-    /**
-     * A function to prompt the user to select a new map
-     * into which to target this wormhole
-     * @param map, the LWMap we are currently in
-     * @return the map selected by the user
-     */
-   // HO 11/05/2011 BEGIN ************
-   /* private LWMap askSelectNewTargetMap(LWMap map) {
-    	final Object[] defaultOrderButtons = { "Choose Target Map", "Cancel"};
-    	final Object[] macOrderButtons = { "Cancel", "Choose Target Map"};
-
-        // HO 04/01/2011 BEGIN *************
-    	// to ward off IllegalComponentStateException
-    	Component c = setScreen(map);
-    	// HO 04/01/2011 END *************
-        
-        int response = VueUtil.option
-            (c,
-             "Please choose a target map.",
-             "Choose Target Map",
-             JOptionPane.OK_CANCEL_OPTION,
-             JOptionPane.PLAIN_MESSAGE,
-             Util.isMacPlatform() ? macOrderButtons : defaultOrderButtons,             
-             VueResources.getString("Choose Target")
-             );
-        
-     
-        if (!Util.isMacPlatform()) {
-            switch (response) {
-            // the OK_OPTION (choose target map)
-            case 0: response = 0; break;
-            // the CANCEL option
-            case 1: response = 1; break;
-            }
-        } else { 
-            switch (response) {
-            // the OK_OPTION (choose a target map)
-            case 0: response = 1; break;
-            // the CANCEL option
-            case 1: response = 0; break;
-            }
-        }
-        
-        if (response == JOptionPane.OK_OPTION) { // Save
-        	// HO 22/02/2011 BEGIN **************
-        	LWMap newTargetMap = new LWMap("new target map");
-        	//newTargetMap = SaveAction.saveMapSpecial(newTargetMap, true, false);
-        	// prompt to save
-        	if (SaveAction.saveMap(newTargetMap, true, false) == true) {
-        	//if (newTargetMap != null) {
-    		// HO 22/02/2011 END **************
-        		// now we have our target map
-        		return newTargetMap;
-        	} else {
-        		return null;
-        	}
-        } else // anything else (Cancel or dialog window closed) 
-        	{
-            return null;
-        }
-
-    } */	
+	
     /**
      * A routine to prepare the screen to show a dialog box
      * @param comp, the LWComponent we are currently in
@@ -1453,7 +1248,6 @@ public class LWWormhole implements VueConstants {
         if (VUE.inNativeFullScreen())
             VUE.toggleFullScreen();
         
-
         Component c = VUE.getDialogParent();
         
         if (VUE.getDialogParent() != null)
@@ -1461,16 +1255,12 @@ public class LWWormhole implements VueConstants {
         	//Get the screen size
         	Toolkit toolkit = Toolkit.getDefaultToolkit();
         	Dimension screenSize = toolkit.getScreenSize();
-            // HO 04/01/2011 BEGIN **************
         	Point p = null;
             try {
-            	// p = c.getLocationOnScreen();            	
-            	// p = new Point((int)comp.getX(), (int)comp.getY());
             	p = c.getLocation(null);
             } catch (Exception e) {
             	c = null;
             }
-                // HO 04/01/2011 END **************
         	
         	if ((p.x + c.getWidth() > screenSize.width) ||
         			(p.y + c.getHeight() > screenSize.height))
@@ -1479,16 +1269,8 @@ public class LWWormhole implements VueConstants {
         	}
         }
         
-        /* final String debug;
-
-        if (DEBUG.EVENTS || DEBUG.UNDO)
-            debug = "\n[modifications="+comp.getModCount()+"]";
-        else
-            debug = ""; */
-        
         return c;
     }
-   // HO 11/05/2011 END ************
     
     /**
      * A routine to prepare the screen to show a dialog box
@@ -1512,16 +1294,13 @@ public class LWWormhole implements VueConstants {
         	//Get the screen size
         	Toolkit toolkit = Toolkit.getDefaultToolkit();
         	Dimension screenSize = toolkit.getScreenSize();
-            // HO 04/01/2011 BEGIN **************
+
         	Point p = null;
             try {
-            	//p = c.getLocationOnScreen();
             	p = c.getLocation();
-            	//p = c.getLocation(null);
             } catch (Exception e) {
             	c = null;
             }
-                // HO 04/01/2011 END **************
         	
         	if ((p.x + c.getWidth() > screenSize.width) ||
         			(p.y + c.getHeight() > screenSize.height))
@@ -1550,10 +1329,7 @@ public class LWWormhole implements VueConstants {
     	final Object[] defaultOrderButtons = { "Same Map", "Cancel", "Choose Target Map"};
     	final Object[] macOrderButtons = { "Choose Target Map", "Cancel", "Same Map"};
 
-    	// HO 31/08/2011 BEGIN *********
-    	// Component c = setScreen(map);
     	Component c = setScreen(sourceComponent);
-    	// HO 31/08/2011 END *********
         
         int response = VueUtil.option
             (c,
@@ -1592,10 +1368,7 @@ public class LWWormhole implements VueConstants {
         	return newTargetMap;
         } else if (response == JOptionPane.NO_OPTION) { // Same Map
             // place the target component in the current map
-        	// HO 22/02/2011 BEGIN **************
             SaveAction.saveMap(map, false, false);
-        	//map = SaveAction.saveMapSpecial(map, false, false);
-            // HO 22/02/2011 END **************
         	return map;
         } else // anything else (Cancel or dialog window closed)
             return null;
@@ -1607,11 +1380,8 @@ public class LWWormhole implements VueConstants {
      */
     private LWMap openExistingMap() {
     	// prompt the user to open the map
-    	// HO 18/02/2011 BEGIN ******************
     	// default file type is now .vpk
-    	// File file = ActionUtil.openFile("Open Map", VueFileFilter.VUE_DESCRIPTION);
     	File file = ActionUtil.openFile("Open Map", VueFileFilter.VPK_DESCRIPTION);
-    	// HO 18/02/2011 END ******************
         
     	// if they didn't open a map for any reason
         if (file == null)
@@ -1635,11 +1405,7 @@ public class LWWormhole implements VueConstants {
     	setTargetWormholeNode(createTargetWormholeNode());    	
     	
     	// label them (dummy labels for now)
-    	// HO 19/12/2010 BEGIN *******************
-    	//setComponentLabels("source node", "target node");
-    	//setWormholeNodeLabels("source wormhole", "target wormhole");
     	setWormholeNodeLabel(getTargetWormholeNode(), VueResources.getString("wormhole.node.target.label.default"));
-    	// HO 19/12/2010 END *******************
 	}
 	
 	/**
@@ -1671,14 +1437,11 @@ public class LWWormhole implements VueConstants {
 	 * @return the LWNode that will be the target component.
 	 */
 	public LWNode createDefaultTargetNode() {
-		// HO 19/12/2010 BEGIN ***************
 		String strLabel = VueResources.getString("wormhole.node.label.default");
 		LWNode theNode = new LWNode(strLabel);
-		// HO 19/12/2010 END ***************
 		return theNode;
 	}
 	
-	// HO 25/08/2011 BEGIN ********
 	/**
 	 * A routine to paste the target component in the
 	 * default location in the target map.
@@ -1748,10 +1511,7 @@ public class LWWormhole implements VueConstants {
 	 * @return selection, the LWSelection containing the target node and one other node.
 	 * @author Helen Oliver
 	 */
-	// HO 30/08/2011 BEGIN *************
-	// private LWSelection selectTargetAndOneOtherNode(LWNode nextNode) {
 	private LWSelection selectTargetAndOneOtherNode(LWComponent nextNode) {
-		// HO 30/08/2011 END *************
 		// instantiate selection
         LWSelection selection = new LWSelection();
         // if the other node is valid, add it to the selection
@@ -1777,11 +1537,9 @@ public class LWWormhole implements VueConstants {
 			return;
 		
 		// get all the nodes in the target map
-		// HO 30/08/2011 BEGIN *************
 		Iterator iter = targetMap.getChildIterator();
 		// cycle through all the nodes in the target map
 		while (iter.hasNext()) {			
-			// LWNode nextNode = (LWNode) iter.next();
 			LWComponent nextComp = (LWComponent) iter.next();			
 			// if the next component isn't the target node
 			if (nextComp != targetComponent) {
@@ -1791,6 +1549,12 @@ public class LWWormhole implements VueConstants {
 
 	}
 	
+	/**
+	 * A routine to detect components overlapping another
+	 * component, and ripple them out.
+	 * @param nextNode, the component that may be overlapping
+	 * @param theMap
+	 */
 	private void rippleOutOverlap(LWComponent nextNode, LWMap theMap) {
 		if (nextNode.getClass() == LWMap.Layer.class) {
 			LWMap.Layer theLayer = (LWMap.Layer) nextNode;
@@ -1800,10 +1564,8 @@ public class LWWormhole implements VueConstants {
 		
 		// check that it isn't overlapping with the target node
 		boolean bOverlapping = VueUtil.checkCollision(nextNode, targetComponent);
-		// HO 30/08/2011 BEGIN *********
 		if (!bOverlapping)
 			bOverlapping = VueUtil.checkCollision(targetComponent, nextNode);
-		// HO 30/08/2011 END *********
 		// but if it does overlap
 		if (bOverlapping) {
 			// create an artificial selection containing this node and the target node
@@ -1815,6 +1577,12 @@ public class LWWormhole implements VueConstants {
 		}
 	}
 	
+	/**
+	 * A routine to iterate through the components in a layer
+	 * and make sure they're not overlapping the target node
+	 * @param theLayer
+	 * @param theMap
+	 */
 	private void rippleOutLayer(LWMap.Layer theLayer, LWMap theMap) {
 		// input validation
 		if ((theLayer == null) || (theMap == null))
@@ -1830,7 +1598,6 @@ public class LWWormhole implements VueConstants {
 			}
 		}
 	}
-	// HO 25/08/2011 END **********
 	
 	/**
 	 * A stub for functionality to position the target component
@@ -1838,10 +1605,8 @@ public class LWWormhole implements VueConstants {
 	 * @param parentMap, the map into which to paste this component.
 	 */
 	public void positionTargetComponent(LWMap parentMap) {
-		// HO 25/08/2011 BEGIN ******
 		pasteTargetComponent(parentMap);
 		makeSureTargetNodeDoesNotOverlap(parentMap);		
-		// HO 25/08/2011 END ********
 	}
 	
 	/**
@@ -1958,9 +1723,9 @@ public class LWWormhole implements VueConstants {
 	 */
 	public void setResourceURIs() {
 		try {
-			// HO 13/02/2012 BEGIN ********
-			String strRelativeTarget = relativizeTargetSpec(sourceMap, targetMap);
-			String strRelativeSource = relativizeTargetSpec(targetMap, sourceMap);
+			// relativize both in terms of the source
+			String strRelativeTarget = VueUtil.relativizeTargetSpec(sourceMap, targetMap);
+			String strRelativeSource = VueUtil.relativizeTargetSpec(targetMap, sourceMap);
 			// strip any space codes and replace them with HTML codes
 			strRelativeTarget = VueUtil.replaceHtmlSpaceCodes(strRelativeTarget);
 			strRelativeSource = VueUtil.replaceHtmlSpaceCodes(strRelativeSource);
@@ -1993,22 +1758,14 @@ public class LWWormhole implements VueConstants {
 				setTargetResourceMapURI(relativeSourceURI);
 			} 
 			
-			//setSourceResourceMapURI(targetMapFile.toURI());
-			//setTargetResourceMapURI(sourceMapFile.toURI());
-			
-			// HO 13/02/2012 END ********
-			
 
 		// now set the component URIs
-		// HO 04/11/2011 BEGIN **********
 		// we don't want to abandon the wormhole
 		// if all that's missing is the target 
 		// component, we want to instead give
 		// an informative error message.
 		if (targetComponent != null) {
-		// HO 04/11/2011 END **********
 			setSourceResourceComponentURI(targetComponent.getURI());
-			// HO 04/11/2011 BEGIN **********
 		} else {
 			String strMissingTargetNode = "NOTFOUND";
 			URI missingURI = null;
@@ -2020,7 +1777,6 @@ public class LWWormhole implements VueConstants {
 			}
 			setSourceResourceComponentURI(missingURI);
 		}
-		// HO 04/11/2011 END **********
 			
 		setTargetResourceComponentURI(sourceComponent.getURI());
 		} catch (NullPointerException e) {
@@ -2032,39 +1788,19 @@ public class LWWormhole implements VueConstants {
 	 * Convenience method to set the source and target resources.
 	 */
 	public void createResources() {
-		//if (sourceWormholeNode != null)
-			//setSourceResource(sourceWormholeNode.getResourceFactory().get(sourceResourceMapURI, sourceResourceComponentURI));
-		// HO we could use the following two lines of code
-		// if we ever want to implement a kind of wormhole resource
-		// that knows about both source and target.
-		// HO 20/02/2012 BEGIN *********
-		// setSourceResource(sourceWormholeNode.getResourceFactory().get(sourceResourceMapURI, sourceResourceComponentURI,
-					// targetResourceMapURI, targetResourceComponentURI));
+
 		setSourceResource(sourceWormholeNode.getResourceFactory().get(sourceResourceMapURI, sourceResourceComponentURI,
 				sourceMapFile.toURI(), targetResourceComponentURI));
-		// HO 20/02/2012 END *********
-		//if (targetWormholeNode != null)
-			//setTargetResource(targetWormholeNode.getResourceFactory().get(targetResourceMapURI, targetResourceComponentURI));
-		// HO we could use the following two lines of code
-		// if we ever want to implement a kind of wormhole resource
-		// that knows about both source and target.
-		// HO 04/11/2011 BEGIN **********
+
 		if (targetWormholeNode != null) {
-		// HO 04/11/2011 END **********
-			// HO 20/02/2012 BEGIN *********
-			// setTargetResource(targetWormholeNode.getResourceFactory().get(targetResourceMapURI, targetResourceComponentURI,
-					// sourceResourceMapURI, sourceResourceComponentURI));
 			setTargetResource(targetWormholeNode.getResourceFactory().get(targetResourceMapURI, targetResourceComponentURI,
 					targetMapFile.toURI(), sourceResourceComponentURI));
-			// HO 20/02/2012 END *********
-			// HO 04/11/2011 BEGIN **********
 		} else {
 			// have to use the source wormhole node's resource factory
 			// if the real one is not available
 			setTargetResource(sourceWormholeNode.getResourceFactory().get(targetResourceMapURI, targetResourceComponentURI,
 					sourceResourceMapURI, sourceResourceComponentURI));			
 		}
-		// HO 04/11/2011 END **********
 	}
 	
 	/**
@@ -2099,17 +1835,7 @@ public class LWWormhole implements VueConstants {
 					if(bFileChanged == false)
 						return;
 					
-					// reset only those resources
-					// that need to be reset
-					// i.e. if only one map has changed,
-					// there's no need to repaint both
-					// HO 22/09/2010 BEGIN *************
-					// this only works if the resources don't contain
-					// info about the originating map and component,
-					// and now they do have to contain that
-					//selectivelyResetResources();
 					resetResources();
-					// HO 22/09/2010 END *************
 			}}); 
 	}
 	
@@ -2126,24 +1852,11 @@ public class LWWormhole implements VueConstants {
 		// set the resources in the right components
 		setResources();
 		// auto-save both maps
-		// HO 22/02/2011 BEGIN **************
-		//SaveAction.saveMap(sourceMap);
-		//SaveAction.saveMap(targetMap);
 		SaveAction.saveMapSpecial(sourceMap);
-		// HO 11/03/2011 BEGIN *************
 		// if the source and target maps are the same,
 		// saving the same map twice is unnecessary
 		if (!sourceMap.equals(targetMap))
 			SaveAction.saveMapSpecial(targetMap);
-		// HO 11/03/2011 END ***************
-		// HO 22/02/2011 END **************
-		
-		// HO 22/12/2010 BEGIN ***********
-		// HO 16/03/2011 BEGIN ***********
-		// this should be redundant because saveMapSpecial includes a call to this
-			//OpenAction.displayMapSpecial(targetMapFile);
-			// HO 16/03/2011 END ***********
-		// HO 22/12/2010 END *************
 	}
 	
 	/**
@@ -2156,18 +1869,16 @@ public class LWWormhole implements VueConstants {
 		// first reset the maps
 		try {
 			setSourceMap(sourceComponent.getParentOfType(LWMap.class));
-			// HO 04/11/2011 BEGIN *********
 			if (targetComponent != null)
-			// HO 04/11/2011 END **********
 				setTargetMap(targetComponent.getParentOfType(LWMap.class));
-			// HO 04/11/2011 BEGIN *********
+
 			else
 				// this seems redundant, but
 				// the targetMap should actually have
 				// been set by now so this will
 				// throw the appropriate exception if it hasn't.
 				setTargetMap(targetMap);
-			// HO 04/11/2011 END *********
+
 			
 		} catch (NullPointerException e) {
 			throw new NullPointerException(e.getMessage());
@@ -2181,51 +1892,28 @@ public class LWWormhole implements VueConstants {
 		// now use this information to recreate the resources
 		createResources();
 		replaceExistingWormholeResource(sourceWormholeNode, sourceResource, sourceMap);
-		// HO 04/11/2011 BEGIN **********
+
 		if (targetWormholeNode != null)
-		// HO 04/11/2011 END **********
 			replaceExistingWormholeResource(targetWormholeNode, targetResource, targetMap);
-		// HO 04/11/2011 BEGIN **********
 		else
 			replaceExistingWormholeResource(null, targetResource, targetMap);
-		// HO 04/11/2011 END **********
 
-		// save both maps
-		// HO 22/02/2011 BEGIN *************
-		// HO 15/03/2011 BEGIN *************
 		SaveAction.saveMap(sourceMap);
-		//SaveAction.saveMapSpecial(sourceMap);
-		// HO 15/03/2011 END *************
-		// HO 11/03/2011 BEGIN *************
 		// if the source and target maps are the same,
 		// saving the same map twice is unnecessary
-		// HO 15/03/2011 BEGIN *************
 		if (!sourceMap.equals(targetMap)) {
 			SaveAction.saveMap(targetMap);
-			//SaveAction.saveMapSpecial(targetMap);
 		}
-			// HO 15/03/2011 END *************
-		// HO 11/03/2011 END ******************
-		//SaveAction.saveMapSpecial(sourceMap);
-		//SaveAction.saveMapSpecial(targetMap);
-		// HO 22/02/2011 END *************
 		// now reload and redisplay both maps (necessary when
 		// making changes to an open map that is not also
 		// the active map)
-		// HO 15/03/2011 BEGIN *************
 		OpenAction.displayMapSpecial(sourceMapFile);
-		//OpenAction.displayMap(sourceMapFile);
-		// HO 15/03/2011 END *************
-		// HO 11/03/2011 BEGIN *************
+
 		// if the source and target maps are the same,
 		// saving the same map twice is unnecessary
-		// HO 15/03/2011 BEGIN *************
 		if (!sourceMap.equals(targetMap)) {
-			OpenAction.displayMapSpecial(targetMapFile);
-			//OpenAction.displayMap(targetMapFile);	
+			OpenAction.displayMapSpecial(targetMapFile);	
 		}
-			// HO 15/03/2011 END *************
-		// HO 11/03/2011 END
 	}
 	
 	/**
@@ -2244,118 +1932,25 @@ public class LWWormhole implements VueConstants {
 		replaceExistingWormholeResource(targetWormholeNode, targetResource, targetMap);
 
 		// re-save the maps (unfortunately this has to be done, clumsy as it is)
-		// HO 22/02/2011 BEGIN ************
+
 		SaveAction.saveMap(sourceMap, false, false);
-		// HO 11/03/2011 BEGIN *************
+
 		// if the source and target maps are the same,
 		// saving the same map twice is unnecessary
 		if (!sourceMap.equals(targetMap))
 			SaveAction.saveMap(targetMap, false, false); 
-		// HO 11/03/2011 END ***********
-		//SaveAction.saveMapSpecial(sourceMap, false, false);
-		//SaveAction.saveMapSpecial(targetMap, false, false); 
-		// HO 22/02/2011 END ***************
+
 		// now reload and redisplay both maps (necessary when
 		// making changes to an open map that is not also
 		// the active map)
 		OpenAction.displayMapSpecial(sourceMapFile);
-		// HO 11/03/2011 BEGIN *************
+
 		// if the source and target maps are the same,
 		// saving the same map twice is unnecessary
 		if (!sourceMap.equals(targetMap))
 			OpenAction.displayMapSpecial(targetMapFile);	
-		// HO 11/03/2011 END *****************
+
 	}	
-	
-	/**
-	 * A method to reset only those resources which are necessary
-	 * (e.g. if several maps are open but only one has changed,
-	 * reset only the resources pertaining to that map)
-	 * This only works if you are using the kind of resource
-	 * which only knows about one side of the wormhole,
-	 * not both
-	 */
-	/* public void selectivelyResetResources() {
-		// first check which map has changed, and reset that
-		// if the source map file has changed, reset it
-		// and reset its file
-		if (!sourceMap.getFile().equals(sourceMapFile)) {
-			setSourceMap(sourceComponent.getParentOfType(LWMap.class));
-			// now reset the file
-			setSourceMapFile(sourceMap.getFile());
-			// if the source map file has changed,
-			// that needs to be reflected in the target resource
-			// so if the URI the source map file has doesn't equal
-			// the one the target has got for it, reset the target one
-			if (!sourceMapFile.toURI().equals(targetResourceMapURI)) {
-				setTargetResourceMapURI(sourceMapFile.toURI());
-			}
-			// now use this information to recreate the resources
-			if (targetWormholeNode != null) {
-				// HO 22/09/2010 BEGIN *****************
-				setTargetResource(targetWormholeNode.getResourceFactory().get(targetResourceMapURI, targetResourceComponentURI));
-				//setTargetResource(targetWormholeNode.getResourceFactory().get(targetResourceMapURI, targetResourceComponentURI,
-						//sourceResourceMapURI, sourceResourceComponentURI, false));
-				// HO 22/09/2010 END *****************
-				
-			}
-			// and replace the old resource with the new one
-			replaceExistingWormholeResource(targetWormholeNode, targetResource, targetMap);
-			// save both maps
-			// HO 22/02/2011 BEGIN ************
-			SaveAction.saveMap(sourceMap);
-			// HO 11/03/2011 BEGIN *************
-			// if the source and target maps are the same,
-			// saving the same map twice is unnecessary
-			if (!sourceMap.equals(targetMap))
-				SaveAction.saveMap(targetMap); 
-			// HO 11/03/2011 END *****************
-			//SaveAction.saveMapSpecial(sourceMap);
-			//SaveAction.saveMapSpecial(targetMap);
-			// HO 22/02/2011 END **************
-			// now reload and redisplay the *other* map (necessary when
-			// making changes to an open map that is not also
-			// the active map)
-				OpenAction.displayMapSpecial(targetMapFile);	
-		}
-		// if the target map file has changed, reset it
-		if (!targetMap.getFile().equals(targetMapFile)) {
-			setTargetMap(targetComponent.getParentOfType(LWMap.class));
-			setTargetMapFile(targetMap.getFile());
-			// if the target map file has changed,
-			// that needs to be reflected in the source resource
-			// so if the URI the target map file has doesn't equal
-			// the one the source has got for it, reset the source one
-			if (!targetMapFile.toURI().equals(sourceResourceMapURI))
-				setSourceResourceMapURI(targetMapFile.toURI());
-			// now use this information to recreate the resources
-			if (sourceWormholeNode != null) {
-				// HO 22/09/2010 BEGIN *****************
-				setSourceResource(sourceWormholeNode.getResourceFactory().get(sourceResourceMapURI, sourceResourceComponentURI));
-				//setSourceResource(sourceWormholeNode.getResourceFactory().get(sourceResourceMapURI, sourceResourceComponentURI,
-						//targetResourceMapURI, targetResourceComponentURI, false));
-				// HO 22/09/2010 END *****************
-			}
-			// and replace the old resource with the new one
-			replaceExistingWormholeResource(sourceWormholeNode, sourceResource, sourceMap);
-			// save both maps
-			// HO 22/02/2011 BEGIN **************
-			SaveAction.saveMap(sourceMap);
-			// HO 11/03/2011 BEGIN *************
-			// if the source and target maps are the same,
-			// saving the same map twice is unnecessary
-			if (!sourceMap.equals(targetMap))
-				SaveAction.saveMap(targetMap); 
-			// HO 11/03/2011 END ***********
-			//SaveAction.saveMapSpecial(sourceMap);
-			//SaveAction.saveMapSpecial(targetMap); 
-			// HO 22/02/2011 END ****************
-			// now reload and redisplay the *other* map (necessary when
-			// making changes to an open map that is not also
-			// the active map)
-				OpenAction.displayMapSpecial(sourceMapFile);	
-		}
-	} */
 	
 	/**
 	 * @return false if the source and target map files have not changed,
@@ -2737,33 +2332,24 @@ public class LWWormhole implements VueConstants {
 		coll = null;
 	}
 	
-	// HO 08/02/2011 BEGIN *********************
 	/**
 	 * A routine to find and save all the open
 	 * maps
 	 */
-	// HO 02/08/2011 BEGIN *************
-	//public Collection<LWMap> findAndSaveAllOpenMaps() {
 	public void findAndSaveAllOpenMaps() {
-		// HO 02/08/2011 END *************
 		
 		// get all the open maps
 		Collection<LWMap> coll = VUE.getAllMaps();
 		for (LWMap map: coll) {
 			if ((map.isModified()) && (map.getFile() != null)) {
 				// here's the current map, save it
-				// HO 22/02/2011 BEGIN ************
 				SaveAction.saveMap(map);
-				//SaveAction.saveMapSpecial(map);
-				// HO 22/02/2011 END **************
 			}
 			map = null;
 		}
 		
 		coll = null;
-		//return coll;
 	}
-	// HO 08/02/2011 END *********************
 	
 	/**
 	 * A routine to reset the wormhole resource of a component that is not necessarily
@@ -2779,17 +2365,14 @@ public class LWWormhole implements VueConstants {
 		
 		// select the component that's getting the resource
 		findAndSelectComponentAmongOpenMaps(theComponent);
-		// HO 04/11/2011 BEGIN **********
+
 		Resource activeResource = null;
 		if (theComponent != null) {
-			// HO 04/11/2011 END **********
 			// get the resource that that component already has
 			 activeResource = theComponent.getResource();
-			// HO 04/11/2011 BEGIN **********
 		} else {
 			return;
 		}
-		// HO 04/11/2011 END **********
 
         // if the resource we passed in isn't null,
         // replace the resource we just got from the
@@ -2797,7 +2380,6 @@ public class LWWormhole implements VueConstants {
         // start by assuming the two resources are  the same
         boolean bTheSame = true;
         if (newResource != null) {
-        	// HO 14/04/2011 BEGIN *********
         	if (activeResource != null) {
         		WormholeResource ar = (WormholeResource) activeResource;
         		WormholeResource nr = (WormholeResource) newResource;
@@ -2810,7 +2392,6 @@ public class LWWormhole implements VueConstants {
         		else if (!ar.getSpec().equals(nr.getSpec()))
         			bTheSame = false;
         	}
-        	// HO 14/04/2011 END *********
             activeResource = newResource;
         }
 	
@@ -2819,12 +2400,10 @@ public class LWWormhole implements VueConstants {
         if (activeResource == null)
             return;
         
-        // HO 14/04/2011 BEGIN *********
         // if both resources are the same,
         // we also have nothing to work with so return
         if (bTheSame == true)
         	return;
-        // HO 14/04/2011 END *********
 
         // Make sure nothing can refer to this component.
         VUE.setActive(LWComponent.class, this, null);

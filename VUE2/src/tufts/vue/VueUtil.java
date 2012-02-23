@@ -17,6 +17,7 @@ package tufts.vue;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -217,6 +218,97 @@ public class VueUtil extends tufts.Util
 
 	}
 	
+	/**
+
+	* @param base_dir, the bottom of the file structure where we first started looking for the file
+	* @param next_level_dir, the parent directory we are searching in now
+
+	* @param file_to_search, the file we are searching for: filtered
+	* to be a .vue or .vpk file
+
+	* @param compString, the UURI of the target component
+
+	* @return LWMap, the map if we find the one with the target component, null otherwise
+	* @author Helen Oliver
+
+	*/
+	// HO 09/08/2011 BEGIN **********
+	public static LWMap targetFileExistAbovePath(String base_dir, String next_level_dir, String file_to_search, String compString) {
+		String strBaseDir = base_dir;
+		// HO 09/08/2011 END **********
+		int height_limit = 6;
+		LWMap theMap = null;
+		
+		File f = new File(next_level_dir);
+		
+		for (int j = 0; j < height_limit; j++) {
+			if (f != null) {
+				// get the files in this directory
+				File[] dir = f.listFiles(appropriateFilter(file_to_search));
+				// HO 22/02/2012 END *********
+				// if we have a list of files, cycle through them
+				if (dir != null) {	
+					for (int i = 0; i < dir.length; i++) {
+						File file_test = dir[i];
+						// HO 09/08/2011 BEGIN *******
+						// don't waste time on Subversion folders
+						if (".svn".equals(dir[i].getName().toString())) {
+							continue;
+						}
+						// don't waste time on the Trash folder
+						if (".Trash".equals(dir[i].getName().toString())) {
+							continue;
+						}
+						// HO 09/08/2011 END *********
+						if (file_test.isFile()) {	
+							if (file_test.getName().equals(file_to_search)) {
+								System.out.println("File Name :" + file_test);
+								//v.add(top_level_dir);	
+								//v.add(new File(top_level_dir, file_test.getName()));
+								theMap = checkIfMapContainsTargetNode(file_test, compString);
+								if (theMap != null) 
+									break;
+							}
+						} else if(file_test.isDirectory()){	
+							// do nothing - don't look in directories
+						}
+					}
+				} else {	
+					System.out.println("null list of files");
+				}
+				
+				f = f.getParentFile();
+			}
+		}
+		return theMap;
+
+	}
+	
+    /**
+     * Convenience class to return a filename filter for a specific file.
+     * @author Helen Oliver
+     *
+     */
+	public static class SpecificFilenameFilter implements FilenameFilter {
+  		String specificName = "";
+  		
+  		public SpecificFilenameFilter(String strSpecificName) { 
+  			this.specificName = strSpecificName; 
+  		} 
+
+  	  public boolean accept(File pathname, String strFilename) {  		
+  	    if (strFilename.equals(specificName))
+  	    	return true;
+  	    
+  	    // make sure it's not a matter of mixed encodings
+  	    strFilename = stripHtmlSpaceCodes(strFilename);
+  	    if (strFilename.equals(specificName))
+  	    	return true;
+  	    
+  	    return false;
+  	  }
+  	}
+	
 	
     /**
      * Convenience class to return a file filter for either
@@ -277,8 +369,7 @@ public class VueUtil extends tufts.Util
     	
     	return null;
     	
-    }
-	
+    }	
 	
 	/**
 	 * A function to check whether a given Map file
@@ -397,6 +488,35 @@ public class VueUtil extends tufts.Util
 		
 		// HO 16/02/2012 END ************
 	}
+	
+	/**
+	 * A function to take a source LWMap and a target LWMap
+	 * ad relativize the target's file path to the source's file path
+	 * @param theSource, the source LWMap
+	 * @param theTarget, the target LWMap
+	 * @return a String representing the relativized target path
+	 * @author Helen Oliver
+	 */
+	public static String relativizeTargetSpec(LWMap theSource, LWMap theTarget) {
+		
+		URI targetURI = theTarget.getFile().toURI();
+		
+		// HO 13/02/2012 BEGIN ********
+		// try to relativize the target path based on the source path
+		File sourceBaseFile = theSource.getFile();
+		String sourceBase = "";
+		String relative = "";
+		if (sourceBaseFile != null) {
+			sourceBase = sourceBaseFile.getParentFile().toString();
+			relative = new File(sourceBase).toURI().relativize(targetURI).getPath();
+			System.out.println(relative);
+		}
+		
+		return relative;
+		// HO 13/02/2012 END **********
+	}
+	
+
 	
 	/**
 	 * Convenience function to take in a URI and return a String

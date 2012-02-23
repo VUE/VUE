@@ -1211,52 +1211,76 @@ public class WormholeResource extends URLResource {
         
         try {
             markAccessAttempt();
-            // HO 11/08/2011 BEGIN *********
+            // see if it's pointing to itself
             boolean bSameMap = pointsToSameMap();
-            // HO 13/09/2011 BEGIN *********
-            // HO 03/11/2011 BEGIN*********
+            // the target map object
+            LWMap targMap = null;
+            // if it's not pointing to itself
             if (!bSameMap) {
-            	// HO 13/09/2011 END *********
-            // HO 11/08/2011 END ***********
             	try {
-            		// HO 17/02/2012 BEGIN *******
+            		// create a file from the system spec
             		File theFile = new File(systemSpec);
+            		// FIRST ATTEMPT
+            		// if we have a file, open it without question
             		if (theFile.isFile()) {
             			VueUtil.openURL(systemSpec);
             		} else {
+            			// SECOND ATTEMPT
+            			// necessary variables
+        				String strParentPath = getParentPathOfActiveMap();
+        				String strSourceName = getFilenameOfActiveMap();
+        				String strTargetName = theFile.getName();
+            			// if we don't have a file, resolve it relative to the source map
             			URI systemSpecURI = VueUtil.getURIFromString(systemSpec);
-            			theFile = VueUtil.resolveTargetRelativeToSource(systemSpecURI, getParentURIOfActiveMap());
-            			// String strResolvedSystemSpec = systemSpecURI.toString();
+            			URI sourceMapURI = getParentURIOfActiveMap();
+            			theFile = VueUtil.resolveTargetRelativeToSource(systemSpecURI, sourceMapURI);
+            			// if this gives us the file, check further
             			if (theFile.isFile()) {
-            				VueUtil.openURL(theFile.toString());
-            			} else {
-            				// if we still can't find it in the local folder, 
-            				// search all the subfolders	
-            				String strParentPath = getParentPathOfActiveMap();
-            				String strSourceName = getFilenameOfActiveMap();
-            				String strTargetName = theFile.getName();
-            				
-            				LWMap targMap = VueUtil.targetFileExistInPath(strParentPath, strParentPath, strTargetName, getComponentURIString());
-            				// and if we still can't find it after:
-            				// relativizing it against the source path
-            				// resolving it against the source path
-            				// looking in the local folder
-            				// looking 6 folders down from the local folder
-            				// then at last, in desperation,
-            				// try the original given path
-            				if (targMap == null) {
-            					// HO 13/02/2012 BEGIN ********
-            					// alert that you can't find it
-            					VueUtil.alert("Can't find the file " + strTargetName +".\n"
-            							+ "Try the Refresh command from the File menu.", "Target Not Found");
-            					
-            					// HO 13/02/2012 END **********
-            				} else {            					
-            					theFile = targMap.getFile();
-
-            					if (theFile.isFile()) 
-                    				VueUtil.openURL(theFile.toString());
+            				// see if the target node is in this map
+            				targMap = VueUtil.checkIfMapContainsTargetNode(theFile, getComponentURIString());
+            				// if the target node was found in this map, open it
+            				if (targMap != null) {
+            					// record the relativized spec
+            					recordRelativizedSpecChange(theFile, sourceMapURI);
+            					VueUtil.openURL(theFile.toString());    
             				}
+            			} 
+            			// THIRD ATTEMPT
+            			if ((!theFile.isFile()) || (targMap == null)) {
+            				// if we still can't find it in the local folder, 
+            				// search all the subfolders	            				
+            				targMap = VueUtil.targetFileExistInPath(strParentPath, strParentPath, strTargetName, getComponentURIString());
+            				// if the target node was found in this map, open it
+            				if (targMap != null) {
+            					// record the relativized spec
+            					theFile = targMap.getFile();
+            					recordRelativizedSpecChange(theFile, sourceMapURI);
+            					VueUtil.openURL(theFile.toString());    
+            				}
+            			} 
+            			// FOURTH ATTEMPT
+            			if ((!theFile.isFile()) || (targMap == null)) {
+            				// look in the above-folders
+        					targMap = VueUtil.targetFileExistAbovePath(strParentPath, strParentPath, strTargetName, getComponentURIString());
+            				// if the target node was found in this map, open it
+            				if (targMap != null) {
+            					// record the relativized spec
+            					theFile = targMap.getFile();
+            					recordRelativizedSpecChange(theFile, sourceMapURI);
+            					VueUtil.openURL(theFile.toString());    
+            				}
+            			}
+            			// by this time, we're in trouble because
+            			// we absolutely can't find it
+            			// if it's the file that's not found, alert appropriately
+            			if (!theFile.isFile()) {
+    						// alert that you can't find it
+    						VueUtil.alert("Can't find the file " + strTargetName +".\n"
+    							+ "Try the Refresh command from the File menu.", "Target Not Found");            				
+            			} else if ((theFile.isFile()) && (targMap == null)) {
+            				// open it with no alert
+            				recordRelativizedSpecChange(theFile, sourceMapURI);            				
+            				VueUtil.openURL(theFile.toString()); 
             			}
             		}
             		// HO 17/02/2012 END ********
@@ -1280,6 +1304,66 @@ public class WormholeResource extends URLResource {
 
         tufts.vue.gui.VueFrame.setLastOpenedResource(this);
     }
+    
+    /**
+     * A function to relativize a changed spec
+     * and record the change.
+     * @param theFile, the File object to relativize
+     * @param sourceMapURI, the URI of the source map against
+     * which the file parameter is to be relativized
+     * @author Helen Oliver
+     */
+    private void recordRelativizedSpecChange(File theFile, URI sourceMapURI) {
+    	// input validation
+    	if ((theFile == null) || (sourceMapURI == null))
+    		return;
+    	
+    	// record the relativized spec
+		String strRelativeSpec = relativizeTargetSpec(theFile.getPath(), sourceMapURI);
+		super.setSpec(strRelativeSpec);
+		this.setSpec(strRelativeSpec);
+    }
+    
+    /**
+	 * A function to take a possibly-absolute path for the target map,
+	 * and relativize it to the source map.
+	 * @param targetSpec, the possibly-absolute path for the target map
+	 * @param sourceMapURI, the URI for the source map
+	 * @return a String representing the relative path
+	 * @author Helen Oliver
+	 */
+	private String relativizeTargetSpec(String targetSpec, URI sourceMapURI) {
+		
+		targetSpec = VueUtil.replaceHtmlSpaceCodes(targetSpec);
+		
+		URI targetURI = null;
+		
+		try {
+			targetURI = new URI(targetSpec);
+			if (targetURI != null) {
+				// if the URI is already relative, return the 
+				// String that was passed in
+				if (!targetURI.isAbsolute()) {
+					return targetSpec;
+				}
+			}
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+			return "";
+		}
+		
+		// try to relativize the target path based on the source path
+		String relative = "";
+		if (sourceMapURI != null) {
+				relative = new File(sourceMapURI.relativize(targetURI)).getPath();
+				System.out.println(relative);
+		}
+		
+		// clean out any space codes
+		targetSpec = VueUtil.stripHtmlSpaceCodes(targetSpec);
+		
+		return targetSpec;
+	}
     
 	/**
 	 * A function to resolve the URI of the target file
