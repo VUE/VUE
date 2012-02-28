@@ -19,8 +19,13 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.List;
 import java.util.*;
 import java.awt.*;
@@ -65,6 +70,19 @@ public class VueUtil extends tufts.Util
     public static final String VueArchiveLockExtension = VueResources.getString("vue.archive.lock.extension", ".vlk");
     // HO 12/01/2012 END *************
     private static String currentDirectoryPath = "";
+    
+    // HO 24/02/2012 BEGIN ********
+    // string manipulation constants
+	private static String strPossPrefix = "file:";
+	private static String strBackSlashPrefix = "\\\\";
+	private static String strBackSlash = "\\";
+	private static String strForwardSlashPrefix = "////";
+	private static String strForwardSlash = "/";
+	// I know. Don't say it.
+	private static String strPossPrefixPlusForwardSlash = strPossPrefix + strForwardSlash;	
+	private static String strFileProtocol = strPossPrefixPlusForwardSlash + strForwardSlash + strForwardSlash;
+	private static String theColon = ":";
+    // HO 24/02/2012 END **********
     
     public static void openURL(String platformURL)
         throws java.io.IOException
@@ -244,7 +262,7 @@ public class VueUtil extends tufts.Util
 		for (int j = 0; j < height_limit; j++) {
 			if (f != null) {
 				// get the files in this directory
-				File[] dir = f.listFiles(appropriateFilter(file_to_search));
+				File[] dir = f.listFiles(appropriateFilterNoDirectories(file_to_search));
 				// HO 22/02/2012 END *********
 				// if we have a list of files, cycle through them
 				if (dir != null) {	
@@ -269,16 +287,17 @@ public class VueUtil extends tufts.Util
 								if (theMap != null) 
 									break;
 							}
-						} else if(file_test.isDirectory()){	
-							// do nothing - don't look in directories
-						}
+						} 
 					}
 				} else {	
 					System.out.println("null list of files");
 				}
-				
-				f = f.getParentFile();
+								
 			}
+			if (f == null)
+				break;
+			
+			f = f.getParentFile();
 		}
 		return theMap;
 
@@ -301,7 +320,7 @@ public class VueUtil extends tufts.Util
   	    	return true;
   	    
   	    // make sure it's not a matter of mixed encodings
-  	    strFilename = stripHtmlSpaceCodes(strFilename);
+  	    strFilename = decodeURIToString(strFilename);
   	    if (strFilename.equals(specificName))
   	    	return true;
   	    
@@ -328,6 +347,41 @@ public class VueUtil extends tufts.Util
   	    return false;
   	  }
   	}
+	
+    /**
+     * Convenience class to return a file filter for a .vue file only,
+     * no frills.
+     * @author Helen Oliver
+     *
+     */
+	public static class VueFileOnlyFilter implements FileFilter {
+
+  	  public boolean accept(File pathname) {
+
+  	    if (pathname.getName().endsWith(VueUtil.VueExtension)) 
+  	      return true;
+  	    
+  	    return false;
+  	  }
+  	}
+	
+    /**
+     * Convenience class to return a file filter for a .vpk file only,
+     * no frills.
+     * @author Helen Oliver
+     *
+     */
+	public static class VueArchiveFileOnlyFilter implements FileFilter {
+
+  	  public boolean accept(File pathname) {
+
+  	    if (pathname.getName().endsWith(VueUtil.VueArchiveExtension)) 
+  	      return true;
+  	    
+  	    return false;
+  	  }
+  	}
+	
   
     /**
      * Convenience class to return a file filter for either
@@ -351,6 +405,29 @@ public class VueUtil extends tufts.Util
     /**
      * A function to return the right kind of file extension
      * filter for a given file.
+     * @param strFileName, the filename String for which we need the right extension filter
+     * @return either a filter for a .vue file,
+     * or a filter for a .vpk file,
+     * according to the file type
+     * @author Helen Oliver
+     */
+    public static FileFilter appropriateFilterNoDirectories(String strFileName) {
+    	if ((strFileName == null) || (strFileName == ""))
+    		return null;
+    	
+    	if (strFileName.endsWith(VueUtil.VueExtension))
+    		return new VueFileOnlyFilter();
+    	
+    	else if (strFileName.endsWith(VueUtil.VueArchiveExtension))
+    		return new VueArchiveFileOnlyFilter();
+    	
+    	return null;
+    	
+    }
+	
+    /**
+     * A function to return the right kind of file extension
+     * filter for a given file, also including directories.
      * @param strFileName, the filename String for which we need the right extension filter
      * @return either a filter for a .vue file or a directory,
      * or a filter for a .vpk file or a directory,
@@ -389,6 +466,12 @@ public class VueUtil extends tufts.Util
     	
     	String s = f.getAbsolutePath();
     	LWMap map = OpenAction.loadMap(s);
+    	// HO 28/02/2012 BEGIN ********
+    	// this can return null because of
+    	// backward compatibility issues
+    	if (map == null)
+    		return null;
+    	// HO 28/02/2012 END **********
 		// see if this is the right map
     	// by looking to see if the target component is in it
 		LWComponent targetComp = map.findChildByURIString(compString);
@@ -419,7 +502,79 @@ public class VueUtil extends tufts.Util
 		return strEncoded;		
 	}
 	
+    /** 
+     * A function to strip the file protocol from a String
+     * representing a file path.
+     * @param strToStrip, the String from which to remove the file protocol.
+     * @return the String stripped of the file protocol.
+     * @author Helen Oliver
+     */
+	public static String stripFilePrefixFromPathString(String strToStrip) {
+		
+		// trim putative gubbins away
+		if (strToStrip.startsWith(strFileProtocol))
+			strToStrip = strToStrip.substring(strFileProtocol.length(), strToStrip.length());
+		
+		if (strToStrip.startsWith(strPossPrefixPlusForwardSlash))
+			strToStrip = strToStrip.substring(strPossPrefixPlusForwardSlash.length(), strToStrip.length());
+		
+		if (strToStrip.startsWith(strPossPrefix))
+			strToStrip = strToStrip.substring(strPossPrefix.length(), strToStrip.length());
+    	
+    	return strToStrip;
+    }
+	
+	/**
+	 * A function to work out if a String, representing a file path
+	 * to be turned into a URL, needs to have the file protocol
+	 * prepended to it.
+	 * @param theString, the String representing a file path
+	 * to be turned into a URL
+	 * @return the String with the file protocol prepended to it
+	 * if appropriate.
+	 * @author Helen Oliver
+	 */
+	public static String prependFileProtocol(String theString) {
+		// input validation
+		if ((theString == null) || (theString == ""))
+			return null;
+		
+		String secondChar = theString.substring(1,2);
+		
+		// if there's a colon as the second character of the string,
+		// it probably needs a file protocol prepending to it.
+		if (theColon.equals(secondChar)) {
+			theString = strFileProtocol + theString;
+		}
+		
+		return theString;		
+	}
+	
+	/**
+	 * Convenience function to take in a String and return a String
+	 * encoded to make it suitable for a URI
+	 * @param s, the String to turn into a URI-encoded String
+	 * @return a String encoded for URI, made from String s
+	 * @author Helen Oliver
+	 */
+	public static String encodeStringForURI(String s) {
+		// input validation
+		if ((s == null) || (s == ""))
+			return null;
+		
+		// make sure the string being encoded is "clean"
+		// so characters don't get double-encoded
+		s = decodeURIToString(s);
 
+		s = prependFileProtocol(s);
+		try {
+			s = URLEncoder.encode(s, System.getProperty("file.encoding"));
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+
+		return s;
+	}
 	
 	/**
 	 * Convenience function to take in a String and return a URI
@@ -434,17 +589,67 @@ public class VueUtil extends tufts.Util
 		
 		URI theURI = null;
 		
+		// HO 27/02/2012 BEGIN ******
+		// make sure String is "clean" (decoded) 
+		// before proceeding
+		s = decodeURIToString(s);
+		// HO 27/02/2012 END ********
+		
+		// HO 24/02/2012 BEGIN ******
 		// replace spaces with HTML codes 
-		s = replaceHtmlSpaceCodes(s);
+		// HO 27/02/2012 BEGIN *********
+		s = prependFileProtocol(s);
+		try {
+			s = URLEncoder.encode(s, System.getProperty("file.encoding"));
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+		//s = replaceHtmlSpaceCodes(s);
+		
+		boolean bMalformed = false;
+		// HO 27/02/2012 END *********
 		
 		try {
-			theURI = new URI(s);
-		} catch (URISyntaxException e) {
-			// return null
-			return null;
-		}
-		
+				theURI = new URI(s);
+				} catch (URISyntaxException e) {
+					e.printStackTrace();
+					return null;
+				} catch (NullPointerException e) {
+					e.printStackTrace();
+					return null;
+				} catch (IllegalArgumentException e){
+					e.printStackTrace();
+					return null;
+				}
+				
 		return theURI;
+	}
+	
+	// HO 27/02/2012 BEGIN ********	
+	/**
+	 * Convenience method to decode a string and
+	 * strip the file protocol from it, if need be.
+	 * @param theString, the String to decode
+	 * @return theString decoded and stripped of 
+	 * its file protocol
+	 * @author Helen Oliver
+	 */
+	public static String decodeURIToString(String theString) {
+		// input validation
+		if ((theString == null) || (theString == ""))
+			return null;
+		
+				
+		try {
+			theString = URLDecoder.decode(theString, System.getProperty("file.encoding"));
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		theString = VueUtil.stripFilePrefixFromPathString(theString);
+		// HO 27/02/2012 END ********
+		
+		return theString;
 	}
 	
 	/**
@@ -490,6 +695,74 @@ public class VueUtil extends tufts.Util
 	}
 	
 	/**
+	 * A convenience method to display a wait cursor
+	 * while searching for the target file among the subfolders.
+	 * @param root_dir, the top of the file structure where we first started looking for the file
+	 * @param top_level_dir, a String representing the parent directory in an iteration
+	 * @param file_to_search, a String representing the filename to search for
+	 * @param compString, the target component URI string
+	 * @return targMap, the LWMap if it was found, null otherwise
+	 * @author Helen Oliver
+	 */
+	public static LWMap findTargetInSubfolders(String root_dir, String top_level_dir, String file_to_search, String compString) {
+		// input validation
+		if ((root_dir == null) || (root_dir == ""))
+			return null;
+		if ((top_level_dir == null) || (top_level_dir == ""))
+			return null;
+		if ((file_to_search == null) || (file_to_search == ""))
+			return null;
+		if ((compString == null) || (compString == ""))
+			return null;
+		
+		LWMap targMap = null;
+		
+		MapViewer viewer = VUE.getActiveViewer();
+		try {
+			viewer.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+			targMap = VueUtil.targetFileExistInPath(root_dir, top_level_dir, file_to_search, compString);
+		} finally {
+			viewer.setCursor(Cursor.getDefaultCursor());
+		}
+		
+		return targMap;
+	}
+	
+	/**
+	 * A convenience method to display a wait cursor
+	 * while searching for the target file above the current path.
+	 * @param root_dir, the top of the file structure where we first started looking for the file
+	 * @param top_level_dir, a String representing the parent directory in an iteration
+	 * @param file_to_search, a String representing the filename to search for
+	 * @param compString, the target component URI string
+	 * @return targMap, the LWMap if it was found, null otherwise
+	 * @author Helen Oliver
+	 */
+	public static LWMap findTargetAboveCurrentPath(String root_dir, String top_level_dir, String file_to_search, String compString) {
+		// input validation
+		if ((root_dir == null) || (root_dir == ""))
+			return null;
+		if ((top_level_dir == null) || (top_level_dir == ""))
+			return null;
+		if ((file_to_search == null) || (file_to_search == ""))
+			return null;
+		if ((compString == null) || (compString == ""))
+			return null;
+		
+		LWMap targMap = null;
+		
+		MapViewer viewer = VUE.getActiveViewer();
+		try {
+			viewer.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+			targMap = VueUtil.targetFileExistAbovePath(root_dir, top_level_dir, file_to_search, compString);
+		} finally {
+			viewer.setCursor(Cursor.getDefaultCursor());
+		}
+		
+		return targMap;
+	}
+	
+	/**
 	 * A function to take a source LWMap and a target LWMap
 	 * ad relativize the target's file path to the source's file path
 	 * @param theSource, the source LWMap
@@ -504,12 +777,15 @@ public class VueUtil extends tufts.Util
 		// HO 13/02/2012 BEGIN ********
 		// try to relativize the target path based on the source path
 		File sourceBaseFile = theSource.getFile();
-		String sourceBase = "";
+		String strSourceBase = "";
 		String relative = "";
 		if (sourceBaseFile != null) {
-			sourceBase = sourceBaseFile.getParentFile().toString();
-			relative = new File(sourceBase).toURI().relativize(targetURI).getPath();
-			System.out.println(relative);
+			File sourceBase = sourceBaseFile.getParentFile();
+			if (sourceBase != null) {
+				strSourceBase = sourceBase.toString();
+				relative = new File(strSourceBase).toURI().relativize(targetURI).getPath();
+				System.out.println(relative);
+			}
 		}
 		
 		return relative;
@@ -529,10 +805,20 @@ public class VueUtil extends tufts.Util
 		if (u == null) 
 			return "";
 		
-		String theString = "";
+		String theString = u.toString();
+		
+		// HO 27/02/2012 BEGIN ********		
+		try {
+			theString = URLDecoder.decode(theString, System.getProperty("file.encoding"));
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		theString = VueUtil.stripFilePrefixFromPathString(theString);
+		// HO 27/02/2012 END ********
 		
 		// replace spaces with HTML codes 
-		theString = stripHtmlSpaceCodes(u.toString());
+		//theString = stripHtmlSpaceCodes(u.toString());
 		
 		return theString;
 	}

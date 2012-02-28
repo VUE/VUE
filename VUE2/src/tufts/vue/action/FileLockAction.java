@@ -179,8 +179,9 @@ public class FileLockAction extends VueAction
 					String strNextFilename = file_test.getName().toString();
 						
 						if (strNextFilename.equals(strMatchingName + lockFileSuffix(theFile.getName()))) {
-								String strUserName = userWhoHasLockedAFile(file_test);
-								if ((strUserName != "") && (strUserName.equals(System.getProperty("user.name")))) {
+								String strLockedUserName = userWhoHasLockedAFile(file_test);
+								String strCurrentUserName = System.getProperty("user.name");
+								if ((strLockedUserName != "") && (strLockedUserName.equals(strCurrentUserName))) {
 									lockFile = file_test;
 									break;
 								}

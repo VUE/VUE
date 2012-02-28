@@ -187,8 +187,16 @@ public class WormholeResource extends URLResource {
     	setTargetFilename(mapURI.toString());
         setComponentURIString(componentURI.toString());
         // HO 06/09/2010 BEGIN *******************
-        super.setSpec(mapURI.toString());
-        this.setSpec(mapURI.toString());
+        // HO 28/02/2012 BEGIN **********
+        // see if this improves the aesthetics at all
+        String strTarget = mapURI.toString();
+        String strDisplayTarget = VueUtil.decodeURIToString(strTarget);
+        
+        //super.setSpec(mapURI.toString());
+        super.setSpec(strDisplayTarget);
+        //this.setSpec(mapURI.toString());
+        this.setSpec(strDisplayTarget);
+        // HO 28/02/2012 END ************
         // HO 06/09/2010 BEGIN *******************
         setOriginatingComponentURIString(originatingComponentURI.toString());
         this.setOriginatingFilename(originatingMapURI.toString());
@@ -1103,16 +1111,10 @@ public class WormholeResource extends URLResource {
 		if (strSpec.equals(SPEC_UNSET))
 			strSpec = this.getTargetFilename();
 		
-		// HO 12/05/2011 BEGIN *******
-		// strip wrongly-formatted spaces so they don't gum up the comparison
-		strSpec = stripHtmlSpaceCodes(strSpec);
-		strOriginatingFile = stripHtmlSpaceCodes(strOriginatingFile);		
-		// HO 12/05/2011 END *********
-		
-		// HO 03/11/2011 BEGIN **********
-		// one of these may have a "file:" prefix and the other may not
-		strSpec = LWMap.stripFilePrefixFromPathString(strSpec);
-		strOriginatingFile = LWMap.stripFilePrefixFromPathString(strOriginatingFile);
+		// HO 27/02/2012 BEGIN ********
+		strSpec = VueUtil.decodeURIToString(strSpec);
+		strOriginatingFile = VueUtil.decodeURIToString(strOriginatingFile);
+		// HO 27/02/2012 END ********
 		
 		// HO 14/12/2011 BEGIN *******
 		// leading slashes may be in different numbers
@@ -1195,9 +1197,19 @@ public class WormholeResource extends URLResource {
 
         out("displayContent: " + Util.tags(contentRef));
 
-        final String systemSpec = contentRef.toString();
+        // HO 27/02/2012 BEGIN ********
+        // final String systemSpec = contentRef.toString();
+        final String systemSpec = VueUtil.decodeURIToString(contentRef.toString());
+        // HO 27/02/2012 END *********
         
+		// necessary variables
+		// create a file from the system spec
+		File theFile = new File(systemSpec);
+		String strParentPath = getParentPathOfActiveMap();
+		String strSourceName = getFilenameOfActiveMap();
+		String strTargetName = theFile.getName();		
         // HO 04/11/2011 BEGIN ********
+
         File fileForName = new File(systemSpec);
         String strFileName = fileForName.getName();
         String strTargetNodeFound = getComponentURIString();
@@ -1218,18 +1230,13 @@ public class WormholeResource extends URLResource {
             // if it's not pointing to itself
             if (!bSameMap) {
             	try {
-            		// create a file from the system spec
-            		File theFile = new File(systemSpec);
             		// FIRST ATTEMPT
             		// if we have a file, open it without question
             		if (theFile.isFile()) {
             			VueUtil.openURL(systemSpec);
             		} else {
             			// SECOND ATTEMPT
-            			// necessary variables
-        				String strParentPath = getParentPathOfActiveMap();
-        				String strSourceName = getFilenameOfActiveMap();
-        				String strTargetName = theFile.getName();
+
             			// if we don't have a file, resolve it relative to the source map
             			URI systemSpecURI = VueUtil.getURIFromString(systemSpec);
             			URI sourceMapURI = getParentURIOfActiveMap();
@@ -1248,8 +1255,11 @@ public class WormholeResource extends URLResource {
             			// THIRD ATTEMPT
             			if ((!theFile.isFile()) || (targMap == null)) {
             				// if we still can't find it in the local folder, 
-            				// search all the subfolders	            				
-            				targMap = VueUtil.targetFileExistInPath(strParentPath, strParentPath, strTargetName, getComponentURIString());
+            				// search all the subfolders	    
+            				// HO 28/02/2012 BEGIN *******
+            				File targFile = new File(systemSpec);
+        					targMap = VueUtil.findTargetInSubfolders(strParentPath, strParentPath, strTargetName, getComponentURIString());
+        					// HO 28/02/2012 END *******
             				// if the target node was found in this map, open it
             				if (targMap != null) {
             					// record the relativized spec
@@ -1261,7 +1271,10 @@ public class WormholeResource extends URLResource {
             			// FOURTH ATTEMPT
             			if ((!theFile.isFile()) || (targMap == null)) {
             				// look in the above-folders
-        					targMap = VueUtil.targetFileExistAbovePath(strParentPath, strParentPath, strTargetName, getComponentURIString());
+            				// HO 28/02/2012 BEGIN *******
+            				File targFile = new File(systemSpec);
+        					targMap = VueUtil.findTargetAboveCurrentPath(strParentPath, strParentPath, strTargetName, getComponentURIString());
+        					// HO 28/02/2012 END *******
             				// if the target node was found in this map, open it
             				if (targMap != null) {
             					// record the relativized spec
@@ -1320,6 +1333,9 @@ public class WormholeResource extends URLResource {
     	
     	// record the relativized spec
 		String strRelativeSpec = relativizeTargetSpec(theFile.getPath(), sourceMapURI);
+		// HO 27/02/2012 BEGIN *******
+		strRelativeSpec = VueUtil.decodeURIToString(strRelativeSpec);
+		// HO 27/02/2012 END ********
 		super.setSpec(strRelativeSpec);
 		this.setSpec(strRelativeSpec);
     }
@@ -1334,7 +1350,7 @@ public class WormholeResource extends URLResource {
 	 */
 	private String relativizeTargetSpec(String targetSpec, URI sourceMapURI) {
 		
-		targetSpec = VueUtil.replaceHtmlSpaceCodes(targetSpec);
+		targetSpec = VueUtil.encodeStringForURI(targetSpec);
 		
 		URI targetURI = null;
 		
@@ -1359,8 +1375,9 @@ public class WormholeResource extends URLResource {
 				System.out.println(relative);
 		}
 		
-		// clean out any space codes
-		targetSpec = VueUtil.stripHtmlSpaceCodes(targetSpec);
+		// HO 27/02/2012 BEGIN *******
+		targetSpec = VueUtil.decodeURIToString(targetSpec);
+		// HO 27/02/2012 END *********
 		
 		return targetSpec;
 	}
@@ -1419,8 +1436,9 @@ public class WormholeResource extends URLResource {
 
 		// if the source file has a name
 		if ((strActiveName != null) && (strActiveName != ""))	{
-			// make sure spaces are replaced with HTML codes
-			strActiveName = VueUtil.stripHtmlSpaceCodes(strActiveName);
+			// HO 27/02/2012 BEGIN *********
+			strActiveName = VueUtil.decodeURIToString(strActiveName);
+			// HO 27/02/2012 END **********
 		}
 		
 		return strActiveName;
@@ -1443,8 +1461,11 @@ public class WormholeResource extends URLResource {
 
 		// if the source file has a parent path
 		if ((strActiveParent != null) && (strActiveParent != ""))	{
+			// HO 27/02/2012 BEGIN ********			
+			strActiveParent = VueUtil.decodeURIToString(strActiveParent);
 			// make sure spaces are replaced with HTML codes
-			strActiveParent = VueUtil.stripHtmlSpaceCodes(strActiveParent);
+			// strActiveParent = VueUtil.stripHtmlSpaceCodes(strActiveParent);
+			// HO 27/02/2012 END ********
 		}
 		
 		return strActiveParent;
@@ -1469,13 +1490,11 @@ public class WormholeResource extends URLResource {
 
 		// if the source file has a parent path, turn it into a URI
 		if ((strActiveParent != null) && (strActiveParent != ""))	{
+			// HO 27/02/2012 BEGIN *********
 			// make sure spaces are replaced with HTML codes
-			strActiveParent = VueUtil.replaceHtmlSpaceCodes(strActiveParent);
-			try {
-				activeParent = new URI(strActiveParent);
-			} catch (URISyntaxException e) {
-				// do nothing
-			}
+			//strActiveParent = VueUtil.replaceHtmlSpaceCodes(strActiveParent);
+			activeParent = VueUtil.getURIFromString(strActiveParent);
+			// HO 27/02/2012 END ************
 		}
 		
 		return activeParent;
@@ -1497,12 +1516,7 @@ public class WormholeResource extends URLResource {
 		// if the source file has a parent path, turn it into a URI
 		if ((strSourceParent != null) && (strSourceParent != ""))	{
 			// make sure spaces are replaced with HTML codes
-			strSourceParent = VueUtil.replaceHtmlSpaceCodes(strSourceParent);
-			try {
-				sourceParent = new URI(strSourceParent);
-			} catch (URISyntaxException e) {
-				// do nothing
-			}
+			strSourceParent = VueUtil.encodeStringForURI(strSourceParent);
 		}
 		
 		return sourceParent;

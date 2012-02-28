@@ -628,7 +628,19 @@ public abstract class LWIcon extends Rectangle2D.Float
             
             final tufts.vue.Resource r = mLWC.getResource();
             final boolean hasTitle = (r.getTitle() != null && !r.getTitle().equals(r.getLocationName()));
-            final String prettyResource = r.getLocationName();
+            // HO 28/02/2012 BEGIN ***********
+            // see if it's a WormholeResource
+            String prettyResourceToBe = "";
+            if (mLWC.getResource().getClass().equals(WormholeResource.class)) {
+            	prettyResourceToBe = r.getLocationName();
+            	prettyResourceToBe = VueUtil.decodeURIToString(prettyResourceToBe);
+            } else {
+            	prettyResourceToBe = r.getLocationName();
+            }
+            	            	
+            // final String prettyResource = r.getLocationName();
+            final String prettyResource = prettyResourceToBe;
+            // HO 28/02/2012 END ***********
             ttResource.setIcon(r.getTinyIcon());
             ttResource.setVerticalTextPosition(SwingConstants.TOP);
             ttResource.setText(

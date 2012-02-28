@@ -160,8 +160,8 @@ public class JarHeapSetter
 	// VUE forums suggest that about half the available heap
 	// memory is good to set as maximum in order to scale
 	// up to handle loads of images... may want to double
-	// this, see if it improves performance
-    private final static int RECOMMENDED_HEAP = 511;
+	// this (was orig 511), see if it improves performance
+    private final static int RECOMMENDED_HEAP = 1023;
     // HO 08/11/2011 END **********
 
     public static void main(String[] args) throws Exception {

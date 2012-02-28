@@ -21,6 +21,7 @@
 package tufts.vue;
 
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Toolkit;
@@ -28,8 +29,11 @@ import java.awt.event.ActionEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.*;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLDecoder;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
@@ -522,14 +526,12 @@ public class LWWormhole implements VueConstants {
 		// if the spec was not set, replace it with the last known filename
 		if (strSpec.equals(wr.SPEC_UNSET))
 			strSpec = wr.getTargetFilename();
-		
-		// prevent mixups based on encoding
-		strSpec = VueUtil.stripHtmlSpaceCodes(strSpec);
-		strOriginatingFile = VueUtil.stripHtmlSpaceCodes(strOriginatingFile);		
-		
-		// remove red-herring file prefixes
-		strSpec = sourceMap.stripFilePrefixFromPathString(strSpec);
-		strOriginatingFile = sourceMap.stripFilePrefixFromPathString(strOriginatingFile);
+			
+		// HO 27/02/2012 BEGIN ********
+		strSpec = VueUtil.decodeURIToString(strSpec);
+		strOriginatingFile = VueUtil.decodeURIToString(strOriginatingFile);
+		// HO 27/02/2012 END ********
+
 
 		// strip off any leading backslashes
 		if (strSpec.startsWith(strBackSlashPrefix))
@@ -765,14 +767,10 @@ public class LWWormhole implements VueConstants {
 		}
 		// if the source file has a parent path, turn it into a URI
 		if ((strSourceParent != null) && (strSourceParent != ""))	{
-			// make sure spaces are replaced with HTML codes
-			strSourceParent = VueUtil.replaceHtmlSpaceCodes(strSourceParent);
-			try {
-				sourceParent = new URI(strSourceParent);
-			} catch (URISyntaxException e) {
-				// do nothing
+			// make sure spaces are replaced with HTML codes	
+			// HO 24/02/2012 BEGIN *******
+				sourceParent = VueUtil.getURIFromString(strSourceParent);
 			}
-		}
 		
 		return sourceParent;
 	}
@@ -787,23 +785,15 @@ public class LWWormhole implements VueConstants {
 	private String relativizeTargetSpec(String targetSpec) {
 		
 		// clean out HTML codes
-		targetSpec = VueUtil.replaceHtmlSpaceCodes(targetSpec);
+		URI targetURI = VueUtil.getURIFromString(targetSpec);
 		
-		URI targetURI = null;
-		
-		try {
-			// create a URI out of the spec we have
-			targetURI = new URI(targetSpec);
-			if (targetURI != null) {
-				// if the URI is already relative, return the 
-				// String that was passed in
-				if (!targetURI.isAbsolute()) {
-					return targetSpec;
-				}
+
+		if (targetURI != null) {
+			// if the URI is already relative, return the 
+			// String that was passed in
+			if (!targetURI.isAbsolute()) {
+				return targetSpec;
 			}
-		} catch (URISyntaxException e) {
-			e.printStackTrace();
-			return "";
 		}
 		
 		// if the URI wasn't already relative, try to relativize the target path based on the source path
@@ -815,8 +805,10 @@ public class LWWormhole implements VueConstants {
 			System.out.println(relative);
 		}
 		
-		// clean out any space codes before returning as a String
-		targetSpec = VueUtil.stripHtmlSpaceCodes(targetSpec);
+		// HO 27/02/2012 BEGIN ************
+		//targetSpec = VueUtil.stripHtmlSpaceCodes(targetSpec);
+		targetSpec = VueUtil.decodeURL(targetSpec);
+		// HO 27/02/2012 END *************
 		
 		return targetSpec;
 	}
@@ -840,7 +832,11 @@ public class LWWormhole implements VueConstants {
 		// so if we have a parent, re-encode it as a String
 		if (sourceParent != null) {
 			strSourceParent = sourceParent.toString();
-			strSourceParent = VueUtil.stripHtmlSpaceCodes(strSourceParent);
+			// HO 27/02/2012 BEGIN ********			
+			strSourceParent = VueUtil.decodeURIToString(strSourceParent);
+			// HO 27/02/2012 END ********
+			// HO 24/02/2012 BEGIN ******
+			// HO 24/02/2012 BEGIN ********
 		}
 		
 		return strSourceParent;
@@ -921,6 +917,8 @@ public class LWWormhole implements VueConstants {
 		targetSpec = relativizeTargetSpec(targetSpec);		
 		// now try to instantiate the file relative to the source
 		File targFile = new File(targetSpec);
+		// get just the file name
+		String strTargName = targFile.getName();
 		// if it's a valid file, check and see if the target node
 		// exists in it
 		if (targFile.isFile()) {
@@ -949,8 +947,6 @@ public class LWWormhole implements VueConstants {
 			// in the local folder
 			try {
 				if ((!targFile.isFile()) || (targMap == null)) {
-					// get just the file name
-					String strTargName = targFile.getName();
 					if ((strSourceParent != null) && (strSourceParent != "")) {	
 						// if we got the parent path, create a file out of it
 						targFile = new File(strSourceParent, strTargName);
@@ -973,9 +969,11 @@ public class LWWormhole implements VueConstants {
 			if ((!targFile.isFile()) || (targMap == null))  {
 				// FOURTH ATTEMPT
 				// if we still can't find it in the local folder, 
-				// search all the subfolders	
-				targMap = VueUtil.targetFileExistInPath(targFile.getParent(), targFile.getParent(), targFile.getName(), compString);
-				// if we found the map, return it
+				// search all the subfolders
+					// HO 28/02/2012 BEGIN *******
+					targMap = VueUtil.findTargetInSubfolders(strSourceParent, strSourceParent, strTargName, compString);
+					// HO 28/02/2012 END *******					
+					// if we found the map, return it
 				if (targMap != null)
 					return targMap;
 			}
@@ -983,7 +981,9 @@ public class LWWormhole implements VueConstants {
 				// FIFTH ATTEMPT
 				// if we couldn't find it in the subfolders,
 				// search the above-folders (will not look through any of their subfolders)
-				targMap = VueUtil.targetFileExistAbovePath(targFile.getParent(), targFile.getParent(), targFile.getName(), compString);
+				// HO 28/02/2012 BEGIN *******
+				targMap = VueUtil.findTargetAboveCurrentPath(strSourceParent, strSourceParent, strTargName, compString);
+				// HO 28/02/2012 END *******
 				// if we found the map, return it
 				if (targMap != null)
 					return targMap;
@@ -992,7 +992,7 @@ public class LWWormhole implements VueConstants {
 				// SIXTH ATTEMPT
 				// try the original given path
 				// try to use the original target file
-				originalTargetSpec = VueUtil.stripHtmlSpaceCodes(originalTargetSpec);
+				originalTargetSpec = VueUtil.decodeURIToString(originalTargetSpec);
 				targFile = new File(originalTargetSpec);
 				// if we found it, open it
 				if (targFile.isFile()) {
@@ -1726,9 +1726,9 @@ public class LWWormhole implements VueConstants {
 			// relativize both in terms of the source
 			String strRelativeTarget = VueUtil.relativizeTargetSpec(sourceMap, targetMap);
 			String strRelativeSource = VueUtil.relativizeTargetSpec(targetMap, sourceMap);
-			// strip any space codes and replace them with HTML codes
-			strRelativeTarget = VueUtil.replaceHtmlSpaceCodes(strRelativeTarget);
-			strRelativeSource = VueUtil.replaceHtmlSpaceCodes(strRelativeSource);
+			// encode as URIs
+			strRelativeTarget = VueUtil.encodeStringForURI(strRelativeTarget);
+			strRelativeSource = VueUtil.encodeStringForURI(strRelativeSource);
 			// the URIs-to-be
 			URI relativeTargetURI = null;
 			URI relativeSourceURI = null;

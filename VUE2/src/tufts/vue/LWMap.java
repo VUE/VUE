@@ -24,6 +24,7 @@ import tufts.vue.ds.Schema;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLDecoder;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.util.*;
@@ -40,6 +41,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
+import java.io.UnsupportedEncodingException;
 
 /**
  * This is the top-level VUE model class.
@@ -342,17 +344,7 @@ public class LWMap extends LWContainer
     }
     
     // HO 03/11/2011 BEGIN ***********
-    static String stripFilePrefixFromPathString(String strToStrip) {
-		
-		// trim putative gubbins away
-		if (strToStrip.startsWith(strPossPrefixPlusForwardSlash))
-			strToStrip = strToStrip.substring(strPossPrefixPlusForwardSlash.length(), strToStrip.length());
-		
-		if (strToStrip.startsWith(strPossPrefix))
-			strToStrip = strToStrip.substring(strPossPrefix.length(), strToStrip.length());
-    	
-    	return strToStrip;
-    }
+
     // HO 03/11/2011 END ***********
     
 	// HO 12/05/2011 BEGIN *********
@@ -388,7 +380,12 @@ public class LWMap extends LWContainer
 		// extra gubbins to trim from original map name
 
 		// HO 03/11/2011 BEGIN **********
-		strCompareString = stripFilePrefixFromPathString(strCompareString);
+		// HO 27/02/2012 BEGIN ********
+		
+		strCompareString = VueUtil.decodeURIToString(strCompareString);
+		// 		strCompareString = VueUtil.stripFilePrefixFromPathString(strCompareString);
+		// HO 27/02/2012 END ********
+
 		
 		//if (strCompareString.startsWith(strPossPrefix))
 			//strCompareString = strCompareString.substring(strPossPrefix.length(), strCompareString.length());
@@ -407,11 +404,17 @@ public class LWMap extends LWContainer
 			//strThisFilename = strThisFilename.substring(strPossPrefix.length(), strThisFilename.length());
 		
 		// strip wrongly-formatted spaces so they don't gum up the comparison
-		strThisFilename = stripHtmlSpaceCodes(strThisFilename);
-		strCompareString = stripHtmlSpaceCodes(strCompareString);		
+		//strThisFilename = stripHtmlSpaceCodes(strThisFilename);
+		//strCompareString = stripHtmlSpaceCodes(strCompareString);		
 		
-		strThisFilename = stripFilePrefixFromPathString(strThisFilename);
+		
 		// HO 03/11/2011 END **********
+		// HO 27/02/2012 BEGIN ********
+		
+		strThisFilename = VueUtil.decodeURIToString(strThisFilename);
+		//strThisFilename = VueUtil.stripFilePrefixFromPathString(strThisFilename);
+		// HO 27/02/2012 END ********
+		
 		
 		// deal with red-herring Windoze string mismatches
 		if (!strCompareString.equals(strThisFilename)) {
