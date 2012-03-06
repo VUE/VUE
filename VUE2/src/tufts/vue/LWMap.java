@@ -382,7 +382,7 @@ public class LWMap extends LWContainer
 		// HO 03/11/2011 BEGIN **********
 		// HO 27/02/2012 BEGIN ********
 		
-		strCompareString = VueUtil.decodeURIToString(strCompareString);
+		strCompareString = VueUtil.decodeURIStringToString(strCompareString);
 		// 		strCompareString = VueUtil.stripFilePrefixFromPathString(strCompareString);
 		// HO 27/02/2012 END ********
 
@@ -411,7 +411,7 @@ public class LWMap extends LWContainer
 		// HO 03/11/2011 END **********
 		// HO 27/02/2012 BEGIN ********
 		
-		strThisFilename = VueUtil.decodeURIToString(strThisFilename);
+		strThisFilename = VueUtil.decodeURIStringToString(strThisFilename);
 		//strThisFilename = VueUtil.stripFilePrefixFromPathString(strThisFilename);
 		// HO 27/02/2012 END ********
 		

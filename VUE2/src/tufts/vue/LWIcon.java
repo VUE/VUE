@@ -633,7 +633,7 @@ public abstract class LWIcon extends Rectangle2D.Float
             String prettyResourceToBe = "";
             if (mLWC.getResource().getClass().equals(WormholeResource.class)) {
             	prettyResourceToBe = r.getLocationName();
-            	prettyResourceToBe = VueUtil.decodeURIToString(prettyResourceToBe);
+            	prettyResourceToBe = VueUtil.decodeURIStringToString(prettyResourceToBe);
             } else {
             	prettyResourceToBe = r.getLocationName();
             }

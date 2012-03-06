@@ -247,14 +247,14 @@ public class LWWormhole implements VueConstants {
 			flagEndOfConstruction(targetMap);
 			return;	
 		}
-
+		
 		// create the wormhole nodes
 		createWormholeNodes();
     	
 		// position the components in the maps
 		placeComponents();
 
-    	// set the resources
+		// set the resources
     	setWormholeResources();
     	
     	// add the listeners
@@ -528,8 +528,8 @@ public class LWWormhole implements VueConstants {
 			strSpec = wr.getTargetFilename();
 			
 		// HO 27/02/2012 BEGIN ********
-		strSpec = VueUtil.decodeURIToString(strSpec);
-		strOriginatingFile = VueUtil.decodeURIToString(strOriginatingFile);
+		strSpec = VueUtil.decodeURIStringToString(strSpec);
+		strOriginatingFile = VueUtil.decodeURIStringToString(strOriginatingFile);
 		// HO 27/02/2012 END ********
 
 
@@ -833,7 +833,7 @@ public class LWWormhole implements VueConstants {
 		if (sourceParent != null) {
 			strSourceParent = sourceParent.toString();
 			// HO 27/02/2012 BEGIN ********			
-			strSourceParent = VueUtil.decodeURIToString(strSourceParent);
+			strSourceParent = VueUtil.decodeURIStringToString(strSourceParent);
 			// HO 27/02/2012 END ********
 			// HO 24/02/2012 BEGIN ******
 			// HO 24/02/2012 BEGIN ********
@@ -913,11 +913,8 @@ public class LWWormhole implements VueConstants {
 		URI originalTargetURI = targetURI;
 		
 		// FIRST ATTEMPT
-		// try to relativize the target path based on the source path
-		targetSpec = relativizeTargetSpec(targetSpec);		
-		// now try to instantiate the file relative to the source
+		// try to open the file in situ
 		File targFile = new File(targetSpec);
-		// get just the file name
 		String strTargName = targFile.getName();
 		// if it's a valid file, check and see if the target node
 		// exists in it
@@ -929,10 +926,50 @@ public class LWWormhole implements VueConstants {
 		}
 		
 		// SECOND ATTEMPT
+		// try to relativize the target path based on the source path
+		// HO 02/03/2012 BEGIN *********
+		//targetSpec = relativizeTargetSpec(targetSpec);	
+		String basePath = sourceMap.getFile().getAbsolutePath();
+		String pathSeparator = System.getProperty("file.separator");
+		String relativeTargetSpec = VueUtil.getRelativePathByStringManipulation(targetSpec, basePath, pathSeparator);
+		//String relativeTargetSpec = relativizeTargetSpec(targetSpec);
+		if (relativeTargetSpec != "") {
+			// update the target spec and URI
+			// to reflect the relativization
+			targetSpec = relativeTargetSpec;
+			targetURI = VueUtil.getURIFromString(targetSpec);
+			// now try to instantiate the file in situ,
+			// which won't likely work
+			targFile = new File(targetSpec);
+		}
+		// get just the file name
+		//String strTargName = targFile.getName();
+		// if it's a valid file, check and see if the target node
+		// exists in it
+		if (targFile.isFile()) {
+			targMap = VueUtil.checkIfMapContainsTargetNode(targFile, compString);
+			// if we found the map, return it
+			if (targMap != null)
+				return targMap;
+		}
+				
+		// THIRD ATTEMPT
 		// if that file can't be found after relativizing it
 		// to the source, try resolving it against the source
-		if ((!targFile.isFile()) || (targMap == null))
+		if ((!targFile.isFile()) || (targMap == null)) {
+			// HO 02/03/2012 BEGIN *********
+			//targFile = VueUtil.resolveTargetRelativeToSource(targetURI, getParentURIOfSourceMap());	
 			targFile = VueUtil.resolveTargetRelativeToSource(targetURI, getParentURIOfSourceMap());
+			//String strTargName = targFile.getName();
+			//String basePath = sourceMap.getFile().getAbsolutePath();
+			//String pathSeparator = System.getProperty("file.separator");
+			//String relativeTargetSpec = VueUtil.getRelativePath(targetSpec, basePath, pathSeparator);
+			//if (relativeTargetSpec != "") {
+				//targFile = new File(relativeTargetSpec);
+			//}
+		}
+			// HO 02/03/2012 END *********
+			
 			// if it's a valid file, check and see if the target node
 			// exists in it
 			if (targFile.isFile()) {
@@ -942,7 +979,7 @@ public class LWWormhole implements VueConstants {
 					return targMap;
 			}
 		
-			// THIRD ATTEMPT	
+			// FOURTH ATTEMPT	
 			//if we still can't find the file, check for one with the same name
 			// in the local folder
 			try {
@@ -967,7 +1004,7 @@ public class LWWormhole implements VueConstants {
 				return null;
 			} 
 			if ((!targFile.isFile()) || (targMap == null))  {
-				// FOURTH ATTEMPT
+				// FIFTH ATTEMPT
 				// if we still can't find it in the local folder, 
 				// search all the subfolders
 					// HO 28/02/2012 BEGIN *******
@@ -978,7 +1015,7 @@ public class LWWormhole implements VueConstants {
 					return targMap;
 			}
 			if ((!targFile.isFile()) || (targMap == null))  {
-				// FIFTH ATTEMPT
+				// SIXTH ATTEMPT
 				// if we couldn't find it in the subfolders,
 				// search the above-folders (will not look through any of their subfolders)
 				// HO 28/02/2012 BEGIN *******
@@ -988,7 +1025,7 @@ public class LWWormhole implements VueConstants {
 				if (targMap != null)
 					return targMap;
 			}
-			if ((!targFile.isFile()) || (targMap == null))  {
+			/*if ((!targFile.isFile()) || (targMap == null))  {
 				// SIXTH ATTEMPT
 				// try the original given path
 				// try to use the original target file
@@ -998,7 +1035,7 @@ public class LWWormhole implements VueConstants {
 				if (targFile.isFile()) {
 					targMap = VueUtil.checkIfMapContainsTargetNode(targFile, compString);
 				}
-			}		
+			}	*/	
 			// if we're still null at this point, we're hosed
 			return targMap;
 	}
@@ -1724,19 +1761,36 @@ public class LWWormhole implements VueConstants {
 	public void setResourceURIs() {
 		try {
 			// relativize both in terms of the source
-			String strRelativeTarget = VueUtil.relativizeTargetSpec(sourceMap, targetMap);
-			String strRelativeSource = VueUtil.relativizeTargetSpec(targetMap, sourceMap);
+			// HO 02/03/2012 BEGIN ************
+			//String strRelativeTarget = VueUtil.relativizeTargetSpec(sourceMap, targetMap);
+			String strSeparator = System.getProperty("file.separator");
+			String strTargetPath = targetMap.getFile().getAbsolutePath();
+			String strSourcePath = sourceMap.getFile().getAbsolutePath();
+			String strRelativeTarget = VueUtil.getRelativePathByStringManipulation(strTargetPath, strSourcePath, strSeparator);
+			//String strRelativeTarget = VueUtil.relativizeTargetSpec(sourceMap, targetMap);
+			//String strRelativeSource = VueUtil.relativizeTargetSpec(targetMap, sourceMap);
+			String strRelativeSource = VueUtil.getRelativePathByStringManipulation(strSourcePath, strTargetPath, strSeparator);
+			// HO 02/03/2012 END **************
 			// encode as URIs
-			strRelativeTarget = VueUtil.encodeStringForURI(strRelativeTarget);
-			strRelativeSource = VueUtil.encodeStringForURI(strRelativeSource);
 			// the URIs-to-be
 			URI relativeTargetURI = null;
 			URI relativeSourceURI = null;
-			try {
-				relativeTargetURI = new URI(strRelativeTarget);
-				relativeSourceURI = new URI(strRelativeSource);
-			} catch (URISyntaxException e) {
-				e.printStackTrace();				
+			
+			if (strRelativeTarget != "") {
+				strRelativeTarget = VueUtil.encodeStringForURI(strRelativeTarget);
+				try {
+					relativeTargetURI = new URI(strRelativeTarget);
+				} catch (URISyntaxException e) {
+					e.printStackTrace();				
+				}
+			}
+			if (strRelativeSource != "") {
+				strRelativeSource = VueUtil.encodeStringForURI(strRelativeSource);
+				try {
+					relativeSourceURI = new URI(strRelativeSource);
+				} catch (URISyntaxException e) {
+					e.printStackTrace();				
+				}
 			}
 			
 			// if we didn't get a URI out of this,
@@ -1845,6 +1899,7 @@ public class LWWormhole implements VueConstants {
 	 * and setting them in the wormhole nodes
 	 */
 	public void setWormholeResources() {
+		
 		// set the resource URIs
 		setResourceURIs();
 		// create the resources
@@ -1857,6 +1912,7 @@ public class LWWormhole implements VueConstants {
 		// saving the same map twice is unnecessary
 		if (!sourceMap.equals(targetMap))
 			SaveAction.saveMapSpecial(targetMap);
+		
 	}
 	
 	/**

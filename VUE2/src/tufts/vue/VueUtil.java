@@ -28,6 +28,7 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.List;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.awt.*;
 import java.awt.geom.Point2D;
 import java.awt.geom.Line2D;
@@ -37,6 +38,9 @@ import javax.swing.*;
 import javax.swing.border.*;
 
 import javax.swing.JColorChooser;
+
+import org.apache.commons.io.FilenameUtils;
+
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.awt.event.ActionEvent;
@@ -47,6 +51,8 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 import tufts.vue.VueResources;
 import tufts.vue.LWComponent.ChildKind;
 import tufts.vue.action.OpenAction;
+
+import org.apache.commons.io.*;
 
 /**
  *
@@ -124,14 +130,60 @@ public class VueUtil extends tufts.Util
                 final File file = Resource.getLocalFileIfPresent(platformURL);
 
                 if (file != null) {
+                	// HO 02/03/2012 BEGIN **********
+        			//VueUtil.alert("local file wasn't null, about to display map " + platformURL, "Progress");
+        			// HO 02/03/2012 END ********** 
                     // TODO: displayMap should be changed to take either a URL or a random url/path spec-string,
                     // NOT a local file, as we can open maps at the other end of HTTP url's, and we need an
                     // object that abstracts both.
                     tufts.vue.VUE.displayMap(file);
+                 // HO 02/03/2012 BEGIN **********
+        			//VueUtil.alert("local file wasn't null, just displayed map " + platformURL, "Progress");
+        			// HO 02/03/2012 END ********** 
                 } else {
-                    final LWMap loadMap = tufts.vue.action.OpenAction.loadMap(new java.net.URL(platformURL));
-                    tufts.vue.VUE.displayMap(loadMap);
-                    loadMap.setFile(null);
+                	// HO 02/03/2012 BEGIN **********
+                	LWMap theMap = null;
+        			//VueUtil.alert("local file was null, about to create URL " + platformURL, "Progress");
+        			java.net.URL newURL = null;
+        			try {
+        				newURL = new java.net.URL(platformURL);     
+        			} catch (MalformedURLException e) {
+        				//VueUtil.alert("Ohnoes, it's a MalformedURLException!", "Progress");
+        			}
+        			//VueUtil.alert("local file was null, just created URL " + platformURL, "Progress");
+        			if (newURL != null) {
+        				//VueUtil.alert("local file was null, about to load map " + newURL, "Progress");
+        				theMap = tufts.vue.action.OpenAction.loadMap(newURL);
+        				//VueUtil.alert("local file was null, just loaded map " + newURL, "Progress");
+        			}
+        			final LWMap loadMap = theMap;	
+        			//final LWMap loadMap = tufts.vue.action.OpenAction.loadMap(new java.net.URL(platformURL));
+        			// HO 02/03/2012 END ********** 
+                 // HO 02/03/2012 BEGIN **********
+        			//VueUtil.alert("local file was null, just loaded map " + loadMap, "Progress");
+        			// HO 02/03/2012 END ********** 
+        			// HO 02/03/2012 BEGIN **********
+        			//VueUtil.alert("local file was null, about to display map " + loadMap, "Progress");
+        			if (loadMap != null) {
+        			// HO 02/03/2012 END ********** 
+        				tufts.vue.VUE.displayMap(loadMap);
+                        // HO 02/03/2012 BEGIN **********
+            			//VueUtil.alert("local file was null, just displayed map " + loadMap, "Progress");
+            			// HO 02/03/2012 END ********** 
+            			// HO 02/03/2012 BEGIN **********
+            			//VueUtil.alert("local file was null, setting file to null " + loadMap, "Progress");
+            			// HO 02/03/2012 END ********** 
+                        loadMap.setFile(null);
+                     // HO 02/03/2012 BEGIN **********
+            			//VueUtil.alert("local file was null, just set file to null " + loadMap, "Progress");
+            			// HO 02/03/2012 END ********** 
+        			}
+        			else {
+        				// HO 02/03/2012 BEGIN **********
+            			//VueUtil.alert("loadMap was null", "Progress");
+            			// HO 02/03/2012 END ********** 
+        			}
+        				
                 }
                 
                 return;
@@ -152,10 +204,145 @@ public class VueUtil extends tufts.Util
             // already handled in Util.openURL
             //if (isMacPlatform() && platformURL.startsWith("/"))
             //    platformURL = "file:" + platformURL;
-                
+        	// HO 02/03/2012 BEGIN **********
+			//VueUtil.alert("about to open platformURL " + platformURL, "Progress");
+			// HO 02/03/2012 END **********    
             tufts.Util.openURL(platformURL);
+         // HO 02/03/2012 BEGIN **********
+			//VueUtil.alert("just opened platformURL " + platformURL, "Progress");
+			// HO 02/03/2012 END ********** 
         }
     }
+    
+	/**
+
+	* @param root_dir, the top of the file structure where we first started looking for the file
+	* @param top_level_dir, the parent directory we are searching in now
+
+	* @param file_to_search, the file we are searching for: filtered
+	* to be a .vue or .vpk file
+
+	* @return a File of the desired name if it is found,
+	* without checking to make sure the target node is inside
+	* @author Helen Oliver
+
+	*/
+	public static File lazyTargetFileExistInPath(String root_dir, String top_level_dir, String file_to_search) {
+		String strRootDir = root_dir;
+		int depth_limit = 6;
+		File theFile = null;
+		// get the files in the current directory
+		File f = new File(top_level_dir);	
+		File[] dir = f.listFiles(appropriateFilter(file_to_search));
+		// if we have a list of files, cycle through them
+		if (dir != null) {	
+			for (int i = 0; i < dir.length; i++) {
+				File file_test = dir[i];
+				// don't waste time on Subversion folders
+				if (".svn".equals(dir[i].getName().toString())) {
+					continue;
+				}
+				// don't waste time on the Trash folder
+				if (".Trash".equals(dir[i].getName().toString())) {
+					continue;
+				}
+				if (file_test.isFile()) {	
+					if (file_test.getName().equals(file_to_search)) {
+						System.out.println("File Name :" + file_test);
+						theFile = file_test;
+						break;
+					}
+				} else if(file_test.isDirectory()){	
+					// limit number of levels we go below the directory structure
+					int count;
+					File countFile = file_test;
+					for (count = 0; count <=depth_limit; count++) {
+						String stepUp = countFile.getParent();
+						if (stepUp.equals(strRootDir)) {
+							break;
+						} else {
+							countFile = new File(stepUp);
+						}
+					}
+					if (count < (depth_limit+1)) { 
+						theFile = lazyTargetFileExistInPath(strRootDir, file_test.getAbsolutePath(), file_to_search);
+						if (theFile != null)
+							break;
+					} else {
+						continue;
+					} 
+				}
+			}
+		} else {	
+			System.out.println("null list of files");
+		}	
+		return theFile;
+
+	}
+	
+	/**
+
+	* A function to look up to a certain number (6, but you can change this if you want)
+	* of folders above the current folder for a file of a certain name.
+	* It doesn't look in the subfolders. If it finds a file with the desired name,
+	* it doesn't look a gift horse in the mouth, it just assumes it's the right one.
+	* @param base_dir, the bottom of the file structure where we first started looking for the file
+	* @param next_level_dir, the parent directory we are searching in now
+	* @param file_to_search, the file we are searching for: filtered
+	* to be a .vue or .vpk file
+	* @param compString, the UURI of the target component
+	* @return LWMap, the map if we find the one with the target component, null otherwise
+	* @author Helen Oliver
+
+	*/
+	public static File lazyTargetFileExistAbovePath(String base_dir, String next_level_dir, String file_to_search) {
+		String strBaseDir = base_dir;
+
+		int height_limit = 6;
+		LWMap theMap = null;
+		
+		File theFile = null;
+		
+		File f = new File(next_level_dir);
+		
+		for (int j = 0; j < height_limit; j++) {
+			if (f != null) {
+				// get the files in this directory
+				File[] dir = f.listFiles(appropriateFilterNoDirectories(file_to_search));
+				// if we have a list of files, cycle through them
+				if (dir != null) {	
+					for (int i = 0; i < dir.length; i++) {
+						File file_test = dir[i];
+						// don't waste time on Subversion folders
+						if (".svn".equals(dir[i].getName().toString())) {
+							continue;
+						}
+						// don't waste time on the Trash folder
+						if (".Trash".equals(dir[i].getName().toString())) {
+							continue;
+						}
+						if (file_test.isFile()) {	
+							if (file_test.getName().equals(file_to_search)) {
+								// we found it, or at least its doppelganger
+								System.out.println("File Name :" + file_test);
+								theFile = file_test;
+								break;
+							}
+						} 
+					}
+				} else {	
+					System.out.println("null list of files");
+				}
+								
+			}
+			if (f == null)
+				break;
+			
+			f = f.getParentFile();
+		}
+		return theFile;
+
+	}
     
 	/**
 
@@ -294,6 +481,10 @@ public class VueUtil extends tufts.Util
 				}
 								
 			}
+			// HO 06/03/2012 BEGIN *******
+			if (theMap != null)
+				break;
+			// HO 06/03/2012 END ********
 			if (f == null)
 				break;
 			
@@ -320,7 +511,7 @@ public class VueUtil extends tufts.Util
   	    	return true;
   	    
   	    // make sure it's not a matter of mixed encodings
-  	    strFilename = decodeURIToString(strFilename);
+  	    strFilename = decodeURIStringToString(strFilename);
   	    if (strFilename.equals(specificName))
   	    	return true;
   	    
@@ -502,6 +693,36 @@ public class VueUtil extends tufts.Util
 		return strEncoded;		
 	}
 	
+	/**
+	 * A function to get the URI of the parent path of a map.
+	 * @param theMap, the LWMap for which to find the parent URI.
+	 * @return the URI of the parent path of the map.
+	 * @author Helen Oliver
+	 */
+	public static URI getParentURIOfMap(LWMap theMap) {
+		// input validation
+		if (theMap == null)
+			return null;
+		
+		// if the map actually has a file,
+		// get its parent path
+		String strParent = "";
+		URI parentURI = null;
+		
+		// as long as the map has a file, get its parent path
+		if (theMap.getFile() != null) {
+			strParent = new File(theMap.getFile().getAbsolutePath()).getParent();
+		}
+		// if the file has a parent path, turn it into a URI
+		if ((strParent != null) && (strParent != ""))	{
+			// make sure spaces are replaced with HTML codes	
+			// HO 24/02/2012 BEGIN *******
+				parentURI = VueUtil.getURIFromString(strParent);
+			}
+		
+		return parentURI;
+	}
+	
     /** 
      * A function to strip the file protocol from a String
      * representing a file path.
@@ -564,7 +785,7 @@ public class VueUtil extends tufts.Util
 		
 		// make sure the string being encoded is "clean"
 		// so characters don't get double-encoded
-		s = decodeURIToString(s);
+		s = decodeURIStringToString(s);
 
 		s = prependFileProtocol(s);
 		try {
@@ -592,7 +813,7 @@ public class VueUtil extends tufts.Util
 		// HO 27/02/2012 BEGIN ******
 		// make sure String is "clean" (decoded) 
 		// before proceeding
-		s = decodeURIToString(s);
+		s = decodeURIStringToString(s);
 		// HO 27/02/2012 END ********
 		
 		// HO 24/02/2012 BEGIN ******
@@ -627,14 +848,14 @@ public class VueUtil extends tufts.Util
 	
 	// HO 27/02/2012 BEGIN ********	
 	/**
-	 * Convenience method to decode a string and
+	 * Convenience method to decode a string that was encoded for a URI and
 	 * strip the file protocol from it, if need be.
 	 * @param theString, the String to decode
 	 * @return theString decoded and stripped of 
 	 * its file protocol
 	 * @author Helen Oliver
 	 */
-	public static String decodeURIToString(String theString) {
+	public static String decodeURIStringToString(String theString) {
 		// input validation
 		if ((theString == null) || (theString == ""))
 			return null;
@@ -730,6 +951,39 @@ public class VueUtil extends tufts.Util
 	
 	/**
 	 * A convenience method to display a wait cursor
+	 * while searching for the target file among the subfolders.
+	 * If it finds a file with a matching name, it doesn't look a gift
+	 * horse in the mouth.
+	 * @param root_dir, the top of the file structure where we first started looking for the file
+	 * @param top_level_dir, a String representing the parent directory in an iteration
+	 * @param file_to_search, a String representing the filename to search for
+	 * @return the target file if it was found, or null.
+	 * @author Helen Oliver
+	 */
+	public static File lazyFindTargetInSubfolders(String root_dir, String top_level_dir, String file_to_search) {
+		// input validation
+		if ((root_dir == null) || (root_dir == ""))
+			return null;
+		if ((top_level_dir == null) || (top_level_dir == ""))
+			return null;
+		if ((file_to_search == null) || (file_to_search == ""))
+			return null;
+		
+		File theFile = null;
+		
+		MapViewer viewer = VUE.getActiveViewer();
+		try {
+			viewer.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+			theFile = VueUtil.lazyTargetFileExistInPath(root_dir, top_level_dir, file_to_search);
+		} finally {
+			viewer.setCursor(Cursor.getDefaultCursor());
+		}
+		
+		return theFile;
+	}
+	
+	/**
+	 * A convenience method to display a wait cursor
 	 * while searching for the target file above the current path.
 	 * @param root_dir, the top of the file structure where we first started looking for the file
 	 * @param top_level_dir, a String representing the parent directory in an iteration
@@ -763,6 +1017,39 @@ public class VueUtil extends tufts.Util
 	}
 	
 	/**
+	 * A convenience method to display a wait cursor
+	 * while searching for the target file above the current path.
+	 * If it finds a file with a matching name, it doesn't look a gift horse in the mouth,
+	 * just assumes that that's the right file.
+	 * @param root_dir, the top of the file structure where we first started looking for the file
+	 * @param top_level_dir, a String representing the parent directory in an iteration
+	 * @param file_to_search, a String representing the filename to search for
+	 * @return the File with the matching name, if one was found, null otherwise.
+	 * @author Helen Oliver
+	 */
+	public static File lazyFindTargetAboveCurrentPath(String root_dir, String top_level_dir, String file_to_search) {
+		// input validation
+		if ((root_dir == null) || (root_dir == ""))
+			return null;
+		if ((top_level_dir == null) || (top_level_dir == ""))
+			return null;
+		if ((file_to_search == null) || (file_to_search == ""))
+			return null;
+		
+		File theFile = null;
+		
+		MapViewer viewer = VUE.getActiveViewer();
+		try {
+			viewer.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+			theFile = VueUtil.lazyTargetFileExistAbovePath(root_dir, top_level_dir, file_to_search);
+		} finally {
+			viewer.setCursor(Cursor.getDefaultCursor());
+		}
+		
+		return theFile;
+	}
+	
+	/**
 	 * A function to take a source LWMap and a target LWMap
 	 * ad relativize the target's file path to the source's file path
 	 * @param theSource, the source LWMap
@@ -792,6 +1079,135 @@ public class VueUtil extends tufts.Util
 		// HO 13/02/2012 END **********
 	}
 	
+	// HO 02/03/2012 BEGIN ***********	
+	/**
+     * Get the relative path from one file to another, specifying the directory separator. 
+     * If one of the provided resources does not exist, it is assumed to be a file unless it ends with '/' or
+     * '\'.
+     * 
+     * @param target targetPath is calculated to this file
+     * @param base basePath is calculated from this file
+     * @param separator directory separator. The platform default is not assumed so that we can test Unix behaviour when running on Windows (for example)
+     * @return
+     */
+    public static String getRelativePathByStringManipulation(String targetPath, String basePath, String pathSeparator) {
+
+        // Normalize the paths
+		String normalizedTargetPath = targetPath;
+		String normalizedBasePath = basePath;
+		try {
+			// normalizedTargetPath = FilenameUtils.normalizeNoEndSeparator(targetPath);
+			//normalizedTargetPath = FilenameUtils.normalize(targetPath);
+		} catch (Exception e) {
+			VueUtil.alert(e.getMessage(), "Normalized target pagh");
+		}
+		try {
+			//normalizedBasePath = FilenameUtils.normalizeNoEndSeparator(basePath);
+		} catch (Exception e) {
+			VueUtil.alert(e.getMessage(), "Normalized base path");
+		}
+
+        // Undo the changes to the separators made by normalization
+        /* if (pathSeparator.equals("/")) {
+        	// HO 02/03/2012 BEGIN **********
+    		VueUtil.alert("about to change the target path separators to unix","Progress");
+    		// HO 02/03/2012 END **********
+            normalizedTargetPath = FilenameUtils.separatorsToUnix(normalizedTargetPath);
+         // HO 02/03/2012 BEGIN **********
+    		VueUtil.alert("just changed the target path separators to unix","Progress");
+    		// HO 02/03/2012 END **********
+    		// HO 02/03/2012 BEGIN **********
+    		VueUtil.alert("about to change the base path separators to unix","Progress");
+    		// HO 02/03/2012 END **********
+            normalizedBasePath = FilenameUtils.separatorsToUnix(normalizedBasePath);
+         // HO 02/03/2012 BEGIN **********
+    		VueUtil.alert("just changed the base path separators to unix","Progress");
+    		// HO 02/03/2012 END **********
+
+        } else if (pathSeparator.equals("\\")) {
+        	// HO 02/03/2012 BEGIN **********
+    		VueUtil.alert("about to change the target path separators to windows","Progress");
+    		// HO 02/03/2012 END **********
+            normalizedTargetPath = FilenameUtils.separatorsToWindows(normalizedTargetPath);
+         // HO 02/03/2012 BEGIN **********
+    		VueUtil.alert("just changed the target path separators to windows","Progress");
+    		// HO 02/03/2012 END **********
+    		// HO 02/03/2012 BEGIN **********
+    		VueUtil.alert("about to change the base path separators to windows","Progress");
+    		// HO 02/03/2012 END **********
+            normalizedBasePath = FilenameUtils.separatorsToWindows(normalizedBasePath);
+         // HO 02/03/2012 BEGIN **********
+    		VueUtil.alert("just changed the base path separators to windows","Progress");
+    		// HO 02/03/2012 END **********
+
+        } else {
+            throw new IllegalArgumentException("Unrecognised dir separator '" + pathSeparator + "'");
+        } */
+
+        String[] base = normalizedBasePath.split(Pattern.quote(pathSeparator));
+        String[] target = normalizedTargetPath.split(Pattern.quote(pathSeparator));
+
+        // First get all the common elements. Store them as a string,
+        // and also count how many of them there are.
+        StringBuffer common = new StringBuffer();
+
+        int commonIndex = 0;
+        while (commonIndex < target.length && commonIndex < base.length
+                && target[commonIndex].equals(base[commonIndex])) {
+            common.append(target[commonIndex] + pathSeparator);
+            commonIndex++;
+        }
+
+		if (commonIndex == 0) {
+            // No single common path element. This most
+            // likely indicates differing drive letters, like C: and D:.
+            // These paths cannot be relativized.
+            /*throw new PathResolutionException("No common path element found for '" + normalizedTargetPath + "' and '" + normalizedBasePath
+                    + "'"); */
+        	return "";
+        }  
+
+        // The number of directories we have to backtrack depends on whether the base is a file or a dir
+        // For example, the relative path from
+        //
+        // /foo/bar/baz/gg/ff to /foo/bar/baz
+        // 
+        // ".." if ff is a file
+        // "../.." if ff is a directory
+        //
+        // The following is a heuristic to figure out if the base refers to a file or dir. It's not perfect, because
+        // the resource referred to by this path may not actually exist, but it's the best I can do
+        boolean baseIsFile = true;
+
+        File baseResource = new File(normalizedBasePath);
+
+        if (baseResource.exists()) {
+            baseIsFile = baseResource.isFile();
+
+        } else if (basePath.endsWith(pathSeparator)) {
+            baseIsFile = false;
+        }
+
+        StringBuffer relative = new StringBuffer();
+
+        if (base.length != commonIndex) {
+            int numDirsUp = baseIsFile ? base.length - commonIndex - 1 : base.length - commonIndex;
+
+            for (int i = 0; i < numDirsUp; i++) {
+                relative.append(".." + pathSeparator);
+            }
+        }
+        relative.append(normalizedTargetPath.substring(common.length()));
+        return relative.toString();
+    }
+
+
+    static class PathResolutionException extends RuntimeException {
+        PathResolutionException(String msg) {
+            super(msg);
+        }
+    }    
+    // HO 02/03/2012 END ***********		
 
 	
 	/**

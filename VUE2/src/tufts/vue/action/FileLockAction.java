@@ -21,6 +21,7 @@
 package tufts.vue.action;
 
 import java.io.*;
+import java.net.URI;
 import java.util.zip.*;
 import java.util.*;
 import java.awt.Component;
@@ -128,21 +129,50 @@ public class FileLockAction extends VueAction
      */
     public static File isFileWritableByCurrentUser(File theFile) {
     	File lockFile = null;
-    	
+    	// HO 02/03/2012 BEGIN **********
+		VUE.currentnum = 1;
+		// HO 02/03/2012 END **********
     	// input validation
     	if (theFile == null) {
     		return lockFile;
     	}
     	
+    	// HO 02/03/2012 BEGIN **********
+		VUE.currentnum = 2;
+		// HO 02/03/2012 END **********
+    	
     	// if for whatever reason the file has been set not-writable,
     	// return the original file
-    	boolean bWritable = theFile.canWrite();
-    	if (bWritable == false)
-    		return theFile;
+		// HO 05/03/2012 BEGIN *******
+		// boolean bWritable = theFile.canWrite();
+		boolean bWritable = false;
+		try {
+			bWritable = theFile.canWrite();
+		} catch (SecurityException e) {
+			VUE.currentnum = 21;
+			return theFile;
+		}
+		// HO 05/03/2012 END **********
     	
+    	// HO 02/03/2012 BEGIN **********
+		VUE.currentnum = 3;
+		// HO 02/03/2012 END **********
+    	if (bWritable == false) {
+    		// HO 02/03/2012 BEGIN **********
+			VUE.currentnum = 4;
+			// HO 02/03/2012 END **********
+    		return theFile;
+    	}
+    	
+    	// HO 02/03/2012 BEGIN **********
+		VUE.currentnum = 5;
+		// HO 02/03/2012 END **********
     	// check and see if the file is locked by another user
     	lockFile = isFileLockedByOtherUser(theFile);
-    	
+    	// HO 02/03/2012 BEGIN **********
+		VUE.currentnum = 6;
+		// HO 02/03/2012 END **********
+    	    	
     	return lockFile;
     }
     
@@ -162,12 +192,34 @@ public class FileLockAction extends VueAction
     	// input validation
     	if (theFile == null)
     		return lockFile;
-    	
+
+		// HO 02/03/2012 END **********
     	// directory to look in
     	File targetDir = theFile.getParentFile();
+    	if (targetDir == null) {
+    		VUE.othernum = 31;
+    		return null;
+    	}
+    	// HO 02/03/2012 BEGIN **********
     	// get the name to match against
     	String strMatchingName = lockFilePrefix(theFile);
-    	if (targetDir.isDirectory()) {
+    	
+    	
+		// HO 05/03/2012 BEGIN ********
+		boolean bDirectory = false;
+		try {
+			bDirectory = targetDir.isDirectory();
+		} catch (SecurityException e) {
+			VUE.othernum = 61;
+			return null;
+		}
+		
+		// if (targetDir.isDirectory()) {
+		if (bDirectory) {
+		// HO 05/03/2012 END ******** 
+    		// HO 05/03/2012 BEGIN ********
+    		VUE.firsttargetdir = targetDir.toString();
+    		// HO 05/03/2012 END *********
     		// get all the VUE lock files in the directory
 			File[] dir = targetDir.listFiles(appropriateFilter(theFile));	
 			
@@ -238,17 +290,30 @@ public class FileLockAction extends VueAction
     	File lockFile = null;
     	
     	// input validation
-    	if (theFile == null)
+    	if (theFile == null) {
     		return lockFile;
+    	}
     	
     	// directory to look in
     	File targetDir = theFile.getParentFile();
+    	if (targetDir == null) {
+    		return null;
+    	}
 
 		String strMatchingName = lockFilePrefix(theFile);
-		// get the username to match against
-		String strMatchingUsername = System.getProperty("user.name");
 		// now go through the directory
-    	if (targetDir.isDirectory()) {
+		// HO 05/03/2012 BEGIN ********
+		boolean bDirectory = false;
+		try {
+			bDirectory = targetDir.isDirectory();
+		} catch (SecurityException e) {
+			VUE.othernum = 61;
+			return null;
+		}
+		
+		// if (targetDir.isDirectory()) {
+		if (bDirectory) {
+		// HO 05/03/2012 END ********   	
     		// get all the files in the directory
 			File[] dir = targetDir.listFiles(appropriateFilter(theFile));	
 			
@@ -363,6 +428,7 @@ public class FileLockAction extends VueAction
      */
     public static void createLockFile(File theFile, LWMap theMap, boolean bOpening, boolean bNotifying) {
    
+		
     	if (theFile != null) {
     		try {
     				File lockFile = isFileLockedByCurrentUser(theFile);
@@ -441,6 +507,8 @@ public class FileLockAction extends VueAction
     	}
     	
     }
+    
+    
     // HO 21/12/2011 END ****** 
     
     
@@ -510,18 +578,37 @@ public class FileLockAction extends VueAction
      * @param bNotifying, true if we are notifying the user of the status, false if not
      */
     public static boolean checkIfFileIsWritable(File file, LWMap theMap, boolean bOpening, boolean bNotifying) {
-    	File lockFile = isFileWritableByCurrentUser(file);
+    	// HO 02/03/2012 BEGIN **********
+		VUE.writablenum = 1;
+		// HO 02/03/2012 END **********
+		// HO 05/03/2012 BEGIN ********
+		File lockFile = isFileWritableByCurrentUser(file);
+		// HO 05/03/2012 END *********
+    	// HO 02/03/2012 BEGIN **********
+		VUE.writablenum = 2;
+		// HO 02/03/2012 END **********// HO 02/03/2012 BEGIN **********
+		VUE.writablenum = 3;
+		// HO 02/03/2012 END **********
     	
 	    // if it's writable, we either get back null or a
     	// File object that is NOT the same one we sent in
     	if (lockFile == null) {
 	    	if (bNotifying) {
+	    		 // HO 02/03/2012 BEGIN **********
+	    		VUE.writablenum = 4;
+	    			// HO 02/03/2012 END **********
 		    	// HO 19/01/2012 BEGIN *******
 		    	notifyTargetFilesThatAreLocked(theMap);
 		    	// HO 19/01/2012 END *********
+		    	// HO 02/03/2012 BEGIN **********
+		    	VUE.writablenum = 5;
+    			// HO 02/03/2012 END **********
 	    	}
 	    	return true;
 	    } else if (lockFile.equals(file)) {
+	    	// HO 02/03/2012 BEGIN **********
+	    	VUE.writablenum = 6;
+			// HO 02/03/2012 END **********
 	    	if (bNotifying) {
 		    	JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
 		                file.getName() + " is not writable.", 
@@ -532,17 +619,35 @@ public class FileLockAction extends VueAction
 	    } else {
 	    	if (!bOpening) {
 	    		if (bNotifying) {
+	    			// HO 02/03/2012 BEGIN **********
+	    			VUE.writablenum = 7;
+	    			// HO 02/03/2012 END **********
 			    	notifyThatFileIsLocked(file, lockFile);
+			    	// HO 02/03/2012 BEGIN **********
+			    	VUE.writablenum = 8;
+	    			// HO 02/03/2012 END **********
 			    	// HO 19/01/2012 BEGIN *******
 			    	notifyTargetFilesThatAreLocked(theMap);
 			    	// HO 19/01/2012 END *********
+			    	// HO 02/03/2012 BEGIN **********
+			    	VUE.writablenum = 9;
+	    			// HO 02/03/2012 END **********
 	    		}
 	    	} else {
 	    		if (bNotifying) {
+	    			// HO 02/03/2012 BEGIN **********
+	    			VUE.writablenum = 10;
+	    			// HO 02/03/2012 END **********
 	    			notifyThatFileIsLocked(file, lockFile);
+	    			// HO 02/03/2012 BEGIN **********
+	    			VUE.writablenum = 11;
+	    			// HO 02/03/2012 END **********
 			    	// HO 19/01/2012 BEGIN *******
 			    	notifyTargetFilesThatAreLocked(theMap);
 			    	// HO 19/01/2012 END *********
+			    	// HO 02/03/2012 BEGIN **********
+			    	VUE.writablenum = 12;
+	    			// HO 02/03/2012 END **********
 	    		}
 	    	}
 	    	return false;
@@ -613,9 +718,18 @@ public class FileLockAction extends VueAction
      * @author Helen Oliver
      */
     public static void notifyTargetFilesThatAreLocked(LWMap map) {
+    	// HO 02/03/2012 BEGIN **********
+		VUE.notifynum = 1;
+		// HO 02/03/2012 END **********
     	Collection<LWWormholeNode> coll = map.getAllWormholeNodes();
+    	// HO 02/03/2012 BEGIN **********
+		VUE.notifynum = 2;
+		// HO 02/03/2012 END **********
     	
     	Vector fileNames = new Vector();
+    	// HO 02/03/2012 BEGIN **********
+		VUE.notifynum = 3;
+		// HO 02/03/2012 END **********
     	
         // if we found any wormhole nodes
 		if (coll.size() > 0) {
@@ -628,12 +742,31 @@ public class FileLockAction extends VueAction
 		            	// check to make sure the resource is a wormhole resource
 		            	if (r.getClass().equals(tufts.vue.WormholeResource.class)) {
 		            		// if it is, downcast it to create a proper WormholeResource object
-		            		WormholeResource wr = (WormholeResource)r;
+		            		WormholeResource wr = (WormholeResource)r;		            		
 		            		String theSpec = wr.getSystemSpec();
-		            		File potentiallyLockedFile = new File(theSpec);
+		            		// HO 05/03/2012 BEGIN ************
+		            		// HO 02/03/2012 BEGIN **********
+			    			VUE.notifynum = 4;
+			    			// HO 02/03/2012 END **********
+		            		//File potentiallyLockedFile = new File(theSpec);
+		            		File potentiallyLockedFile = findRelativizedFileToLock(theSpec, map);
+		            		// HO 05/03/2012 END ************
+		            		// HO 02/03/2012 BEGIN **********
+			    			VUE.notifynum = 5;
+			    			VUE.biggestnum = 0;
+			    			// HO 02/03/2012 END **********
 		            		File lockFile = isFileWritableByCurrentUser(potentiallyLockedFile);
+		            		// HO 02/03/2012 BEGIN **********
+			    			VUE.notifynum = 6;
+			    			// HO 02/03/2012 END **********
 		            		if ((lockFile != null) && (lockFile != potentiallyLockedFile)) {
+		            			// HO 02/03/2012 BEGIN **********
+		    	    			VUE.notifynum = 7;
+		    	    			// HO 02/03/2012 END **********
 		            			fileNames.add(potentiallyLockedFile.getName());
+		            			// HO 02/03/2012 BEGIN **********
+		    	    			VUE.notifynum = 8;
+		    	    			// HO 02/03/2012 END **********
 		            		}
 		                }
 		            	r = null;
@@ -644,8 +777,14 @@ public class FileLockAction extends VueAction
 		coll = null;
 		
 		String strNamesToShow = "";
+		// HO 02/03/2012 BEGIN **********
+		VUE.notifynum = 9;
+		// HO 02/03/2012 END **********
 		
 		if (!fileNames.isEmpty()) {
+			// HO 02/03/2012 BEGIN **********
+			VUE.notifynum = 10;
+			// HO 02/03/2012 END **********
 			int i;
 			int j = fileNames.size() - 1;
 			for (i = 0; i <= j; i++) {
@@ -662,10 +801,104 @@ public class FileLockAction extends VueAction
 	            "File locked by other user.", 
 	            JOptionPane.ERROR_MESSAGE);
 		}
+		// HO 02/03/2012 BEGIN **********
+		VUE.notifynum = 11;
+		// HO 02/03/2012 END **********
 		
 		
     }
-    // HO 18/01/2012 END *********
+    
+    /**
+     * A function to find the relativized target file
+     * that may or may not be locked.
+     * @param targetSpec, a String spec in search of a file
+     * @param baseMap, the map relative to which the Spec is
+     * @return theFile, the relativized target file that may or may not be locked
+     * @author Helen Oliver
+     */
+    public static File findRelativizedFileToLock(String targetSpec, LWMap baseMap) {
+    	// input validation
+    	if ((targetSpec == null) || (targetSpec == ""))
+    		return null;
+    	if (baseMap == null)
+    		return null;
+    	
+    	// turn the URI into a String in case of character clashes
+    	String systemSpec = VueUtil.decodeURIStringToString(targetSpec);
+    	
+    	// create a file from the spec
+    	File theFile = new File(systemSpec);
+    	// save the original
+    	File origFile = theFile;
+    	
+    	// get the parent path of the base map
+    	URI theMapURI = VueUtil.getParentURIOfMap(baseMap);  
+    	// parent path of base map as a string
+    	String strParentPath = baseMap.getFile().getParent();
+    	// name of target file
+    	String strTargetName = theFile.getName();
+		
+		// FIRST ATTEMPT
+		// resolve the file relative to the source map
+    	// get the URI from the system spec
+		URI systemSpecURI = VueUtil.getURIFromString(systemSpec);
+		// use the URI to resolve it against the base map
+		theFile = VueUtil.resolveTargetRelativeToSource(systemSpecURI, theMapURI);
+		// if this gives us the file, return it
+		if (theFile.isFile()) {
+			// if the file has the right name, just assume it is
+			// the right file
+			return theFile;
+		} 
+		// SECOND ATTEMPT	
+		//if we still can't find the file, check for one with the same name
+		// in the local folder
+		try {
+				if ((strParentPath != null) && (strParentPath != "")) {	
+					// if we got the parent path, create a file out of it
+					theFile = new File(strParentPath, strTargetName);
+					// if it's a valid file, check and see if the target node
+					// exists in it
+					if (theFile.isFile()) {
+						return theFile;
+					}
+			} 
+		} catch (Exception e) {
+			// do nothing
+		} 
+		// THIRD ATTEMPT
+		if (!theFile.isFile())  {
+			// if we still can't find it in the local folder, 
+			// search all the subfolders	    
+			File targFile = VueUtil.lazyFindTargetInSubfolders(strParentPath, strParentPath, strTargetName);
+			// if a matching filename was found, return it
+			if (targFile != null) {
+				return theFile;
+			}
+		} 
+		
+		// FOURTH ATTEMPT
+		if (!theFile.isFile()) {
+			// look in the above-folders
+			File targFile = VueUtil.lazyFindTargetAboveCurrentPath(strParentPath, strParentPath, strTargetName);
+			// if the target node was found in this map, open it
+			if (targFile != null) {
+				// return the file
+				return theFile;
+			}
+		} 
+			
+    	// LAST ATTEMPT		
+		// if the file can't be relativized, maybe it can be
+		// found in its original location
+		if (origFile.isFile()) {
+			return theFile;
+		} 
+
+		// by this time, we're in trouble because
+		// we absolutely can't find it
+		return null;
+    }
     
     static class VueArchiveLockFileFilter implements FileFilter {
 

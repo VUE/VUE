@@ -4285,18 +4285,32 @@ public class VUE
     public static void displayMap(File file) {
         if (VUE.isStartupUnderway() || DEBUG.INIT || DEBUG.IO) Log.info("displayMap " + Util.tags(file));
 
+        // HO 02/03/2012 BEGIN **********
+		int count = 1;
+		// HO 02/03/2012 END **********
         // Call initDataSources again just in case a user can make it to the file
         // open-recent menu before the data sources finish loading on the remaining
         // "main" thread.  If it's still running, we'll just block until it's done, as
         // this method is synchronized.
         initDataSources();
+        // HO 02/03/2012 BEGIN **********
+		count = 2;
+		// HO 02/03/2012 END **********
 
         if (file == null)
             return;
+        
+        // HO 02/03/2012 BEGIN **********
+		count = 3;
+		// HO 02/03/2012 END **********
 
         // HO 10/01/2012 BEGIN ******
         closeContentlessMap();
         // HO 10/01/2012 END ********
+        
+        // HO 02/03/2012 BEGIN **********
+		count = 4;
+		// HO 02/03/2012 END **********
 
         for (int i = 0; i < mMapTabsLeft.getTabCount(); i++) {
             LWMap map = mMapTabsLeft.getMapAt(i);
@@ -4304,31 +4318,61 @@ public class VUE
                 continue;
             File existingFile = map.getFile();
             if (existingFile != null && existingFile.equals(file)) {
+            	// HO 02/03/2012 BEGIN **********
+        		count = 5;
+        		// HO 02/03/2012 END **********
                 if (DEBUG.Enabled) out("displayMap found existing open map " + map + " matching file " + file);
             	// HO 10/01/2012 BEGIN *****
                 setSelectedIndexForActiveViewer(i);
                 // HO 10/01/2012 END *******
+                // HO 02/03/2012 BEGIN **********
+        		count = 6;
+        		// HO 02/03/2012 END **********
                 return;
             }
         }
 
+        // HO 02/03/2012 BEGIN **********
+		count = 7;
+		// HO 02/03/2012 END **********
         // HO 10/01/2012 BEGIN *******
         addToRecentlyOpenedFilesList(file);
         // HO 10/01/2012 END ********
+        // HO 02/03/2012 BEGIN **********
+		count = 8;
+		// HO 02/03/2012 END **********
         
         VUE.activateWaitCursor();
         LWMap loadedMap = null;
         boolean alerted = false;
         try {
+        	// HO 02/03/2012 BEGIN **********
+    		count = 9;
+    		// HO 02/03/2012 END **********
             loadedMap = OpenAction.loadMap(file.getAbsolutePath());
+            // HO 02/03/2012 BEGIN **********
+    		count = 10;
+    		// HO 02/03/2012 END **********
             alerted = true; // OpenAction.loadMap now always alerts
             if (loadedMap != null) {
+            	// HO 02/03/2012 BEGIN **********
+        		count = 11;
+        		// HO 02/03/2012 END **********
                 // HO 21/12/2011 BEGIN ********
             	//loadedMap.lockFileForReadingAndWriting();
                 // HO 21/12/2011 END ******
                 VUE.displayMap(loadedMap);   
+                // HO 02/03/2012 BEGIN **********
+        		count = 12;
+        		// HO 02/03/2012 END **********
             }
+            // HO 02/03/2012 BEGIN **********
+    		count = 13;
+    		// HO 02/03/2012 END **********
             VUE.getMetadataSearchMainPanel().fillSavedSearch();
+            // HO 02/03/2012 BEGIN **********
+    		count = 14;
+    		// HO 02/03/2012 END **********
         } catch (Throwable t) {
             Util.printStackTrace(t, "failed to load map[" + file + "]");
             VUE.clearWaitCursor();
@@ -4336,6 +4380,21 @@ public class VUE
             VueUtil.alert(VueResources.getString("dialog.failedtoloadmap.message")+" " + file + "  \n"
                           + (t.getCause() == null ? t : t.getCause()),
                           VueResources.getString("dialog.failedtoloadmap.message")+" "+ file);
+            // HO 02/03/2012 BEGIN **********
+			VueUtil.alert("count = " + count,"Progress");
+			VueUtil.alert("bigcount = " + bigcount,"Progress");
+			VueUtil.alert("biggestcount = " + biggestcount,"Progress");
+			VueUtil.alert("writablenum = " + writablenum,"Progress");
+			VueUtil.alert("notifynum = " + notifynum,"Progress");
+			VueUtil.alert("biggestnum = " + biggestnum,"Progress");
+			VueUtil.alert("currentnum = " + currentnum,"Progress");
+			VueUtil.alert("othernum = " + othernum,"Progress");						
+			VueUtil.alert("potentialnum = " + potentialnum,"Progress");
+			//VueUtil.alert("biggestnum in isFileWritableByCurrentUser = " + biggestnum,"Progress");
+			//VueUtil.alert("biggestnum in isFileLockedByOtherUser = " + biggestnum,"Progress");
+			VueUtil.alert("target dir in isFileLockedByCurrentUser = " + firsttargetdir,"Progress");
+			VueUtil.alert("target dir in isFileLockedByOtherUser = " + displaythistargetdirfromfilelockaction,"Progress");
+			// HO 02/03/2012 END **********
         } finally {
             VUE.clearWaitCursor();
         }
@@ -4397,6 +4456,19 @@ public class VUE
         }
         
     }
+    
+    // HO 02/03/2012 BEGIN *********
+    static char bigcount = 'a';
+    public static char biggestcount = 'a';
+    public static int biggestnum = 0;
+    public static int currentnum = 0;
+    public static int othernum = 0;
+    public static int notifynum = 0;
+    public static int writablenum = 0;
+    public static int potentialnum = 0;
+    public static String firsttargetdir = "";
+    public static String displaythistargetdirfromfilelockaction = "";
+    // HO 02/03/2012 END ************
 
     /**
      * Create a new viewer and display the given map in it.
@@ -4404,14 +4476,31 @@ public class VUE
     public static MapViewer displayMap(LWMap pMap) {
         if (VUE.isStartupUnderway() || DEBUG.Enabled) out("displayMap " + pMap);
         
+        // HO 02/03/2012 BEGIN **********
+		bigcount = 'a';
+		// HO 02/03/2012 END **********
         diagPush("displayMap");
+     // HO 02/03/2012 BEGIN **********
+		bigcount = 'o';
+		// HO 02/03/2012 END **********
         if (DEBUG.INIT) out(pMap.toString());
+        // HO 02/03/2012 BEGIN **********
+		bigcount = 'p';
+		// HO 02/03/2012 END **********
         MapViewer leftViewer = null;
         MapViewer rightViewer = null;
         
         // HO 21/12/2011 BEGIN ********
+        // HO 02/03/2012 BEGIN **********
+		bigcount = 'q';
+		// HO 02/03/2012 END **********
         boolean bNotifying = ((!bConstructingWormholes) && (!bBuildingApplicationInterface));
+        // HO 02/03/2012 BEGIN **********
+		bigcount = 'r';
         FileLockAction.createLockFile(pMap.getFile(), pMap, true, bNotifying);
+        // HO 02/03/2012 BEGIN **********
+		bigcount = 'b';
+		// HO 02/03/2012 END **********
         // HO 21/12/2011 END ******
         
         for (int i = 0; i < mMapTabsLeft.getTabCount(); i++) {
@@ -4427,38 +4516,79 @@ public class VUE
             }
         } 
         
+     // HO 02/03/2012 BEGIN **********
+		bigcount = 'c';
+		// HO 02/03/2012 END **********
+        
         if (leftViewer == null) {
+        	// HO 02/03/2012 BEGIN **********
+    		bigcount = 'd';
+    		// HO 02/03/2012 END **********
             leftViewer = new MapViewer(pMap, "*LEFT");
             rightViewer = new MapViewer(pMap, "right");
+         // HO 02/03/2012 BEGIN **********
+    		bigcount = 'e';
+    		// HO 02/03/2012 END **********
 
             // Start them both off unfocusable, so we get no
             // focus transfers until we're ready to decide what
             // wants to get the focus.
             leftViewer.setFocusable(false);
             rightViewer.setFocusable(false);
+         // HO 02/03/2012 BEGIN **********
+    		bigcount = 'f';
+    		// HO 02/03/2012 END **********
 
             if (DEBUG.FOCUS) {
                 out("currently active viewer: " + getActiveViewer());
                 out("created new left viewer: " + leftViewer);
             }
 
+         // HO 02/03/2012 BEGIN **********
+    		bigcount = 'g';
+    		// HO 02/03/2012 END **********
             mMapTabsLeft.addViewer(leftViewer);
+         // HO 02/03/2012 BEGIN **********
+    		bigcount = 'h';
+    		// HO 02/03/2012 END **********
         	
             if (mMapTabsRight != null) {
+            	// HO 02/03/2012 BEGIN **********
+        		bigcount = 'i';
+        		// HO 02/03/2012 END **********
             	mMapTabsRight.addViewer(rightViewer);
+            	// HO 02/03/2012 BEGIN **********
+        		bigcount = 'j';
+        		// HO 02/03/2012 END **********
             }
 
         }
         
+     // HO 02/03/2012 BEGIN **********
+		bigcount = 'k';
+		// HO 02/03/2012 END **********
+        
         // HO 10/01/2012 BEGIN *******
         setSelectedViewer(leftViewer, rightViewer);
         // HO 10/01/2012 END *********
+        
+     // HO 02/03/2012 BEGIN **********
+		bigcount = 'l';
+		// HO 02/03/2012 END **********
 
         diagPop();
+        
+     // HO 02/03/2012 BEGIN **********
+		bigcount = 'm';
+		// HO 02/03/2012 END **********
         
         // HO 10/01/2012 BEGIN *********
         toggleSlideIconsIfApplet();
         // HO 10/01/2012 END ***********
+        
+     // HO 02/03/2012 BEGIN **********
+		bigcount = 'n';
+		// HO 02/03/2012 END **********
         
         return leftViewer;
     }
