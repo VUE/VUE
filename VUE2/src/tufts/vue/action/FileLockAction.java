@@ -845,7 +845,7 @@ public class FileLockAction extends VueAction
 		// use the URI to resolve it against the base map
 		theFile = VueUtil.resolveTargetRelativeToSource(systemSpecURI, theMapURI);
 		// if this gives us the file, return it
-		if (theFile.isFile()) {
+		if ((theFile != null) && (theFile.isFile())) {
 			// if the file has the right name, just assume it is
 			// the right file
 			return theFile;
@@ -867,7 +867,7 @@ public class FileLockAction extends VueAction
 			// do nothing
 		} 
 		// THIRD ATTEMPT
-		if (!theFile.isFile())  {
+		if ((theFile != null) && (!theFile.isFile()))  {
 			// if we still can't find it in the local folder, 
 			// search all the subfolders	    
 			File targFile = VueUtil.lazyFindTargetInSubfolders(strParentPath, strParentPath, strTargetName);
@@ -878,7 +878,7 @@ public class FileLockAction extends VueAction
 		} 
 		
 		// FOURTH ATTEMPT
-		if (!theFile.isFile()) {
+		if ((theFile != null) && (!theFile.isFile())) {
 			// look in the above-folders
 			File targFile = VueUtil.lazyFindTargetAboveCurrentPath(strParentPath, strParentPath, strTargetName);
 			// if the target node was found in this map, open it
@@ -891,8 +891,8 @@ public class FileLockAction extends VueAction
     	// LAST ATTEMPT		
 		// if the file can't be relativized, maybe it can be
 		// found in its original location
-		if (origFile.isFile()) {
-			return theFile;
+		if ((origFile != null) && (origFile.isFile())) {
+			return origFile;
 		} 
 
 		// by this time, we're in trouble because

@@ -915,10 +915,16 @@ public class LWWormhole implements VueConstants {
 		// FIRST ATTEMPT
 		// try to open the file in situ
 		File targFile = new File(targetSpec);
+		// HO 07/03/2012 BEGIN *******
+		// the file in the next-most-likely location
+		File nextLikelyFile = targFile;
+		// HO 07/03/2012 END *********
+		// just the name of the target
 		String strTargName = targFile.getName();
-		// if it's a valid file, check and see if the target node
-		// exists in it
+		
+		// Start with the file in the originally-stated target location.
 		if (targFile.isFile()) {
+			// if there's a file there, see if it contains the target node.
 			targMap = VueUtil.checkIfMapContainsTargetNode(targFile, compString);
 			// if we found the map, return it
 			if (targMap != null)
@@ -926,13 +932,14 @@ public class LWWormhole implements VueConstants {
 		}
 		
 		// SECOND ATTEMPT
+		// if we couldn't find the file with the target node in
+		// the originally-stated location,
 		// try to relativize the target path based on the source path
-		// HO 02/03/2012 BEGIN *********
-		//targetSpec = relativizeTargetSpec(targetSpec);	
+		// HO 02/03/2012 BEGIN *********	
 		String basePath = sourceMap.getFile().getAbsolutePath();
 		String pathSeparator = System.getProperty("file.separator");
 		String relativeTargetSpec = VueUtil.getRelativePathByStringManipulation(targetSpec, basePath, pathSeparator);
-		//String relativeTargetSpec = relativizeTargetSpec(targetSpec);
+		// if we actually got back a relative location, use it
 		if (relativeTargetSpec != "") {
 			// update the target spec and URI
 			// to reflect the relativization
@@ -940,104 +947,140 @@ public class LWWormhole implements VueConstants {
 			targetURI = VueUtil.getURIFromString(targetSpec);
 			// now try to instantiate the file in situ,
 			// which won't likely work
-			targFile = new File(targetSpec);
+			// HO 07/03/2012 BEGIN ********
+			//targFile = new File(targetSpec);
+			nextLikelyFile = new File(targetSpec);
+			// HO 07/03/2012 END ********
 		}
-		// get just the file name
-		//String strTargName = targFile.getName();
 		// if it's a valid file, check and see if the target node
 		// exists in it
-		if (targFile.isFile()) {
-			targMap = VueUtil.checkIfMapContainsTargetNode(targFile, compString);
+		// HO 07/03/2012 BEGIN ********
+		//if (targFile.isFile()) {
+		if ((nextLikelyFile != null) && (nextLikelyFile.isFile())) {
+			// targMap = VueUtil.checkIfMapContainsTargetNode(targFile, compString);
+			targMap = VueUtil.checkIfMapContainsTargetNode(nextLikelyFile, compString);
+			// HO 07/03/2012 END ********			
 			// if we found the map, return it
-			if (targMap != null)
+			if (targMap != null) {
 				return targMap;
+			} else {
+				// if the previous file in the originally
+				// stated location was valid but didn't contain
+				// the target node, it's more likely to be the
+				// right file than this relativized one which
+				// probably couldn't even be instantiated.
+				// But if there is no file from the originally
+				// stated location, prioritize the one in
+				// this location.
+				if (!targFile.isFile()) {
+					targFile = nextLikelyFile;
+				}
+			}
 		}
 				
 		// THIRD ATTEMPT
 		// if that file can't be found after relativizing it
 		// to the source, try resolving it against the source
 		if ((!targFile.isFile()) || (targMap == null)) {
-			// HO 02/03/2012 BEGIN *********
-			//targFile = VueUtil.resolveTargetRelativeToSource(targetURI, getParentURIOfSourceMap());	
-			targFile = VueUtil.resolveTargetRelativeToSource(targetURI, getParentURIOfSourceMap());
-			//String strTargName = targFile.getName();
-			//String basePath = sourceMap.getFile().getAbsolutePath();
-			//String pathSeparator = System.getProperty("file.separator");
-			//String relativeTargetSpec = VueUtil.getRelativePath(targetSpec, basePath, pathSeparator);
-			//if (relativeTargetSpec != "") {
-				//targFile = new File(relativeTargetSpec);
-			//}
+			// HO 07/03/2012 BEGIN ********
+			// targFile = VueUtil.resolveTargetRelativeToSource(targetURI, getParentURIOfSourceMap());
+			nextLikelyFile = VueUtil.resolveTargetRelativeToSource(targetURI, getParentURIOfSourceMap());
+			// HO 07/03/2012 END ********
 		}
-			// HO 02/03/2012 END *********
-			
-			// if it's a valid file, check and see if the target node
-			// exists in it
-			if (targFile.isFile()) {
-				targMap = VueUtil.checkIfMapContainsTargetNode(targFile, compString);
-				// if we found the map, return it
-				if (targMap != null)
-					return targMap;
-			}
 		
-			// FOURTH ATTEMPT	
-			//if we still can't find the file, check for one with the same name
-			// in the local folder
-			try {
-				if ((!targFile.isFile()) || (targMap == null)) {
-					if ((strSourceParent != null) && (strSourceParent != "")) {	
-						// if we got the parent path, create a file out of it
-						targFile = new File(strSourceParent, strTargName);
-						// if it's a valid file, check and see if the target node
-						// exists in it
-						if (targFile.isFile()) {
-							targMap = VueUtil.checkIfMapContainsTargetNode(targFile, compString);
-							// if we found the map, return it
-							if (targMap != null)
-								return targMap;
+		// if it's a valid file, check and see if the target node
+		// exists in it
+		// HO 07/03/2012 BEGIN ********
+		//if (targFile.isFile()) {
+		if ((nextLikelyFile != null) && (nextLikelyFile.isFile())) {		
+			// targMap = VueUtil.checkIfMapContainsTargetNode(targFile, compString);
+			targMap = VueUtil.checkIfMapContainsTargetNode(nextLikelyFile, compString);
+			// HO 07/03/2012 END ********
+			// if we found the map, return it
+			if (targMap != null) {
+				return targMap;
+			} else {
+				// this is the most likely place to find
+				// a valid file
+				targFile = nextLikelyFile;
+			}
+		}
+		
+		// FOURTH ATTEMPT	
+		//if we still can't find the file, check for one with the same name
+		// in the local folder
+		try {
+			if ((!targFile.isFile()) || (targMap == null)) {
+				if ((strSourceParent != null) && (strSourceParent != "")) {	
+					// if we got the parent path, create a file out of it
+					// HO 07/03/2012 BEGIN ********
+					//targFile = new File(strSourceParent, strTargName);
+					nextLikelyFile = new File(strSourceParent, strTargName);
+					// if it's a valid file, check and see if the target node
+					// exists in it
+					//if (targFile.isFile()) {
+					if ((nextLikelyFile != null) && (nextLikelyFile.isFile())) {
+						// targMap = VueUtil.checkIfMapContainsTargetNode(targFile, compString);
+						targMap = VueUtil.checkIfMapContainsTargetNode(nextLikelyFile, compString);
+						// HO 07/03/2012 END *********
+						// if we found the map, return it
+						if (targMap != null) {
+							return targMap;
+						} else { // the relativized target file is more likely to be valid
+							if (!targFile.isFile()) // but if it doesn't exist, this one becomes the priority
+								targFile = nextLikelyFile;
 						}
 					}
-					else // but if there isn't a parent path, we can't do anything, so return null
-						return null;
-				} 
-			} catch (Exception e) {
-				// do nothing, just return null
-				return null;
+				}
+				else // but if there isn't a parent path, we can't do anything, so return null
+					return null;
 			} 
-			if ((!targFile.isFile()) || (targMap == null))  {
-				// FIFTH ATTEMPT
-				// if we still can't find it in the local folder, 
-				// search all the subfolders
-					// HO 28/02/2012 BEGIN *******
-					targMap = VueUtil.findTargetInSubfolders(strSourceParent, strSourceParent, strTargName, compString);
-					// HO 28/02/2012 END *******					
-					// if we found the map, return it
-				if (targMap != null)
-					return targMap;
-			}
-			if ((!targFile.isFile()) || (targMap == null))  {
-				// SIXTH ATTEMPT
-				// if we couldn't find it in the subfolders,
-				// search the above-folders (will not look through any of their subfolders)
-				// HO 28/02/2012 BEGIN *******
-				targMap = VueUtil.findTargetAboveCurrentPath(strSourceParent, strSourceParent, strTargName, compString);
-				// HO 28/02/2012 END *******
+		} catch (Exception e) {
+			// do nothing, just return null
+			return null;
+		}
+		
+		// only proceed now if we don't have a valid target file at all
+		if (!targFile.isFile()) {
+			// FIFTH ATTEMPT
+			// if we still can't find it in the local folder, 
+			// search all the subfolders,
+			// but do it without opening a can of worms
+			// HO 07/03/2012 BEGIN *******
+			// targMap = VueUtil.findTargetInSubfolders(strSourceParent, strSourceParent, strTargName, compString);
+			nextLikelyFile = VueUtil.lazyFindTargetInSubfolders(strSourceParent, strSourceParent, strTargName);
+			if ((nextLikelyFile != null) && (nextLikelyFile.isFile())) {
+				targFile = nextLikelyFile;
+				String s = nextLikelyFile.getAbsolutePath();
+				targMap = OpenAction.loadMap(s);
+				// HO 07/03/2012 END *******					
 				// if we found the map, return it
 				if (targMap != null)
 					return targMap;
 			}
-			/*if ((!targFile.isFile()) || (targMap == null))  {
-				// SIXTH ATTEMPT
-				// try the original given path
-				// try to use the original target file
-				originalTargetSpec = VueUtil.decodeURIToString(originalTargetSpec);
-				targFile = new File(originalTargetSpec);
-				// if we found it, open it
-				if (targFile.isFile()) {
-					targMap = VueUtil.checkIfMapContainsTargetNode(targFile, compString);
-				}
-			}	*/	
-			// if we're still null at this point, we're hosed
-			return targMap;
+		}
+		
+		// only proceed now if we don't have a valid target file at all
+		if (!targFile.isFile()) {
+			// SIXTH ATTEMPT
+			// if we couldn't find it in the subfolders,
+			// search the above-folders (will not look through any of their subfolders)
+			// HO 07/03/2012 BEGIN *******
+			// targMap = VueUtil.findTargetAboveCurrentPath(strSourceParent, strSourceParent, strTargName, compString);
+			nextLikelyFile = VueUtil.lazyFindTargetAboveCurrentPath(strSourceParent, strSourceParent, strTargName);
+			if ((nextLikelyFile != null) && (nextLikelyFile.isFile())) {
+				targFile = nextLikelyFile;
+				String s = nextLikelyFile.getAbsolutePath();
+				targMap = OpenAction.loadMap(s);
+				// HO 07/03/2012 END *******
+				// if we found the map, return it
+				if (targMap != null)
+					return targMap;
+			}
+		}
+
+		// if we're still null at this point, we're hosed
+		return targMap;
 	}
 	
 	/**

@@ -4285,32 +4285,14 @@ public class VUE
     public static void displayMap(File file) {
         if (VUE.isStartupUnderway() || DEBUG.INIT || DEBUG.IO) Log.info("displayMap " + Util.tags(file));
 
-        // HO 02/03/2012 BEGIN **********
-		int count = 1;
-		// HO 02/03/2012 END **********
         // Call initDataSources again just in case a user can make it to the file
         // open-recent menu before the data sources finish loading on the remaining
         // "main" thread.  If it's still running, we'll just block until it's done, as
         // this method is synchronized.
         initDataSources();
-        // HO 02/03/2012 BEGIN **********
-		count = 2;
-		// HO 02/03/2012 END **********
 
         if (file == null)
             return;
-        
-        // HO 02/03/2012 BEGIN **********
-		count = 3;
-		// HO 02/03/2012 END **********
-
-        // HO 10/01/2012 BEGIN ******
-        closeContentlessMap();
-        // HO 10/01/2012 END ********
-        
-        // HO 02/03/2012 BEGIN **********
-		count = 4;
-		// HO 02/03/2012 END **********
 
         for (int i = 0; i < mMapTabsLeft.getTabCount(); i++) {
             LWMap map = mMapTabsLeft.getMapAt(i);
@@ -4318,61 +4300,31 @@ public class VUE
                 continue;
             File existingFile = map.getFile();
             if (existingFile != null && existingFile.equals(file)) {
-            	// HO 02/03/2012 BEGIN **********
-        		count = 5;
-        		// HO 02/03/2012 END **********
                 if (DEBUG.Enabled) out("displayMap found existing open map " + map + " matching file " + file);
             	// HO 10/01/2012 BEGIN *****
                 setSelectedIndexForActiveViewer(i);
                 // HO 10/01/2012 END *******
-                // HO 02/03/2012 BEGIN **********
-        		count = 6;
-        		// HO 02/03/2012 END **********
                 return;
             }
         }
 
-        // HO 02/03/2012 BEGIN **********
-		count = 7;
-		// HO 02/03/2012 END **********
         // HO 10/01/2012 BEGIN *******
         addToRecentlyOpenedFilesList(file);
         // HO 10/01/2012 END ********
-        // HO 02/03/2012 BEGIN **********
-		count = 8;
-		// HO 02/03/2012 END **********
         
         VUE.activateWaitCursor();
         LWMap loadedMap = null;
         boolean alerted = false;
         try {
-        	// HO 02/03/2012 BEGIN **********
-    		count = 9;
-    		// HO 02/03/2012 END **********
             loadedMap = OpenAction.loadMap(file.getAbsolutePath());
-            // HO 02/03/2012 BEGIN **********
-    		count = 10;
-    		// HO 02/03/2012 END **********
             alerted = true; // OpenAction.loadMap now always alerts
             if (loadedMap != null) {
-            	// HO 02/03/2012 BEGIN **********
-        		count = 11;
-        		// HO 02/03/2012 END **********
                 // HO 21/12/2011 BEGIN ********
             	//loadedMap.lockFileForReadingAndWriting();
                 // HO 21/12/2011 END ******
                 VUE.displayMap(loadedMap);   
-                // HO 02/03/2012 BEGIN **********
-        		count = 12;
-        		// HO 02/03/2012 END **********
             }
-            // HO 02/03/2012 BEGIN **********
-    		count = 13;
-    		// HO 02/03/2012 END **********
             VUE.getMetadataSearchMainPanel().fillSavedSearch();
-            // HO 02/03/2012 BEGIN **********
-    		count = 14;
-    		// HO 02/03/2012 END **********
         } catch (Throwable t) {
             Util.printStackTrace(t, "failed to load map[" + file + "]");
             VUE.clearWaitCursor();
@@ -4380,21 +4332,7 @@ public class VUE
             VueUtil.alert(VueResources.getString("dialog.failedtoloadmap.message")+" " + file + "  \n"
                           + (t.getCause() == null ? t : t.getCause()),
                           VueResources.getString("dialog.failedtoloadmap.message")+" "+ file);
-            // HO 02/03/2012 BEGIN **********
-			VueUtil.alert("count = " + count,"Progress");
-			VueUtil.alert("bigcount = " + bigcount,"Progress");
-			VueUtil.alert("biggestcount = " + biggestcount,"Progress");
-			VueUtil.alert("writablenum = " + writablenum,"Progress");
-			VueUtil.alert("notifynum = " + notifynum,"Progress");
-			VueUtil.alert("biggestnum = " + biggestnum,"Progress");
-			VueUtil.alert("currentnum = " + currentnum,"Progress");
-			VueUtil.alert("othernum = " + othernum,"Progress");						
-			VueUtil.alert("potentialnum = " + potentialnum,"Progress");
-			//VueUtil.alert("biggestnum in isFileWritableByCurrentUser = " + biggestnum,"Progress");
-			//VueUtil.alert("biggestnum in isFileLockedByOtherUser = " + biggestnum,"Progress");
-			VueUtil.alert("target dir in isFileLockedByCurrentUser = " + firsttargetdir,"Progress");
-			VueUtil.alert("target dir in isFileLockedByOtherUser = " + displaythistargetdirfromfilelockaction,"Progress");
-			// HO 02/03/2012 END **********
+
         } finally {
             VUE.clearWaitCursor();
         }

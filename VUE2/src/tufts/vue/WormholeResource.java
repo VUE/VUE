@@ -1191,10 +1191,7 @@ public class WormholeResource extends URLResource {
      * component and focus on that
      * @author Helen Oliver
      */
-	// HO 03/11/2011 BEGIN **********
     public void displayContent() {
-	//public void displayContent(LWMap sourceMap) {
-    	// HO 03/11/2011 END **********
         final Object contentRef = getBrowseReference();
 
         out("displayContent: " + Util.tags(contentRef));
@@ -1206,21 +1203,34 @@ public class WormholeResource extends URLResource {
         
 		// necessary variables
 		// create a file from the system spec
-		File theFile = new File(systemSpec);
+        // this is the last known existent file
+		File lastKnownFile = new File(systemSpec);
+		// the moving-target file
+		File targFile = null;
+		// the string representing the parent path of the active map
+		// (from which we should have entered this bit of code)
+		// which is effectively the source map
 		String strParentPath = getParentPathOfActiveMap();
+		// the parent URI of the currently active map
+		// which is effectively the source map
 		URI sourceMapURI = getParentURIOfActiveMap();
+		// the name of the currently active map
+		// which is effectively the source map
 		String strSourceName = getFilenameOfActiveMap();
-		String strTargetName = theFile.getName();		
+		// the moving-target name (always the same really)
+		String strTargetName = lastKnownFile.getName();		
         // HO 04/11/2011 BEGIN ********
 
+		// create a new file from the spec we've got
         File fileForName = new File(systemSpec);
+        // get the name of that file, redundant as it is
         String strFileName = fileForName.getName();
-        String strTargetNodeFound = getComponentURIString();
+        /* String strTargetNodeFound = getComponentURIString();
         if (strTargetNodeFound.equals("NOTFOUND")) {
         	Log.warn("displayContent " + tufts.Util.tags(systemSpec), new IOException());
             VueUtil.alert(null, VueResources.getString("openaction.missingtargetnode.error") 
             		+ "\n " + strFileName, VueResources.getString("openaction.missingtargetnode.title"));
-        }
+        } */
         	
         // HO 04/11/2011 END ********
         
@@ -1235,36 +1245,33 @@ public class WormholeResource extends URLResource {
             	try {
             		// FIRST ATTEMPT
             		// if we have a file, open it without question
-            		if (theFile.isFile()) {
+            		if ((lastKnownFile != null) && (lastKnownFile.isFile())) {
         				// see if the target node is in this map
-        				targMap = VueUtil.checkIfMapContainsTargetNode(theFile, getComponentURIString());
+        				targMap = VueUtil.checkIfMapContainsTargetNode(lastKnownFile, getComponentURIString());
         				// if the target node was found in this map, open it
         				if (targMap != null) {
         					// record the relativized spec
-        					recordRelativizedSpecChange(theFile, sourceMapURI);
-        					// HO 02/03/2012 BEGIN*******
-        					VueUtil.openURL(theFile.toString());  
-        					//MapViewer theViewer = VUE.displayMapSpecial(targMap);
-        					// HO 02/03/2012 END*******
+        					recordRelativizedSpecChange(lastKnownFile, sourceMapURI);
+        					// and now open it
+        					VueUtil.openURL(lastKnownFile.toString());  
         				}
             		} 
 
         			// SECOND ATTEMPT
         			// if we don't have a file, resolve it relative to the source map
         			URI systemSpecURI = VueUtil.getURIFromString(systemSpec);
-        			theFile = VueUtil.resolveTargetRelativeToSource(systemSpecURI, sourceMapURI);
+        			targFile = VueUtil.resolveTargetRelativeToSource(systemSpecURI, sourceMapURI);
         			// if this gives us the file, check further
-        			if (theFile.isFile()) {
+        			if ((targFile != null) && (targFile.isFile())) {
+        				lastKnownFile = targFile;
         				// see if the target node is in this map
-        				targMap = VueUtil.checkIfMapContainsTargetNode(theFile, getComponentURIString());
+        				targMap = VueUtil.checkIfMapContainsTargetNode(lastKnownFile, getComponentURIString());
         				// if the target node was found in this map, open it
         				if (targMap != null) {
         					// record the relativized spec
-        					recordRelativizedSpecChange(theFile, sourceMapURI);
-        					// HO 02/03/2012 BEGIN*******
-        					VueUtil.openURL(theFile.toString());  
-        					//MapViewer theViewer = VUE.displayMapSpecial(targMap);
-        					// HO 02/03/2012 END*******
+        					recordRelativizedSpecChange(lastKnownFile, sourceMapURI);
+        					// open the file
+        					VueUtil.openURL(lastKnownFile.toString());  
         				}
         			} 
         			
@@ -1272,79 +1279,94 @@ public class WormholeResource extends URLResource {
         			//if we still can't find the file, check for one with the same name
         			// in the local folder
         			try {
-        				if ((!theFile.isFile()) || (targMap == null)) {
+        				// if we don't have a file or a map with a node
+        				if (((lastKnownFile != null) && (!lastKnownFile.isFile())) || (targMap == null)) {
+        					// if we have a parent path
         					if ((strParentPath != null) && (strParentPath != "")) {	
-        						// if we got the parent path, create a file out of it
-        						theFile = new File(strParentPath, strTargetName);
+        						// create a file out of the parent path
+        						targFile = new File(strParentPath, strTargetName);
         						// if it's a valid file, check and see if the target node
         						// exists in it
-        						if (theFile.isFile()) {
-        							targMap = VueUtil.checkIfMapContainsTargetNode(theFile, getComponentURIString());
+        						if (targFile.isFile()) {
+        							targMap = VueUtil.checkIfMapContainsTargetNode(lastKnownFile, getComponentURIString());
         							// if we found the map, return it
-        							if (targMap != null)
+        							if (targMap != null) {
         	        					// record the relativized spec
-        	        					recordRelativizedSpecChange(theFile, sourceMapURI);
-        	        					// HO 02/03/2012 BEGIN*******
-        	        					VueUtil.openURL(theFile.toString());  
-        						}
-        					}
-        				} 
+        	        					recordRelativizedSpecChange(lastKnownFile, sourceMapURI);
+        	        					// open the file
+        	        					VueUtil.openURL(lastKnownFile.toString());  
+        							} else { // if we haven't already got
+        								// a location for the target file,
+        								// this one (in the local folder) is the next
+        								// choice if it exists
+        								if ((lastKnownFile != null) && (!lastKnownFile.isFile())) 
+        									lastKnownFile = targFile;
+        							}
+    							}
+        							
+    						}
+    					}
         			} catch (Exception e) {
         				// do nothing
         			} 
         			
         			// FOURTH ATTEMPT
-        			if ((!theFile.isFile()) || (targMap == null)) {
+        			//if ((!theFile.isFile()) || (targMap == null)) {
+        			if ((lastKnownFile != null) && (!lastKnownFile.isFile())) { 
         				// if we still can't find it in the local folder, 
-        				// search all the subfolders	    
-        				// HO 28/02/2012 BEGIN *******
-        				File targFile = new File(systemSpec);
-    					targMap = VueUtil.findTargetInSubfolders(strParentPath, strParentPath, strTargetName, getComponentURIString());
-    					// HO 28/02/2012 END *******
+        				// do a lazy search of all the subfolders            				
+        				// HO 07/03/2012 BEGIN *********
+        				// File targFile = new File(systemSpec);
+    					//targMap = VueUtil.findTargetInSubfolders(strParentPath, strParentPath, strTargetName, getComponentURIString());
+    					targFile = VueUtil.lazyFindTargetInSubfolders(strParentPath, strParentPath, strTargetName);
+        				
         				// if the target node was found in this map, open it
-        				if (targMap != null) {
+        				//if (targMap != null) {
+    					if ((targFile != null) && (targFile.isFile())) {
+        					// HO 07/03/2012 END *********
         					// record the relativized spec
-        					theFile = targMap.getFile();
-        					recordRelativizedSpecChange(theFile, sourceMapURI);
-        					// HO 02/03/2012 BEGIN*******
-        					VueUtil.openURL(theFile.toString());  
-        					//MapViewer theViewer = VUE.displayMapSpecial(targMap);
-        					// HO 02/03/2012 END*******
+        					//theFile = targMap.getFile();
+    						lastKnownFile = targFile;
+        					recordRelativizedSpecChange(lastKnownFile, sourceMapURI);
+        					// open the file
+        					VueUtil.openURL(lastKnownFile.toString());  
         				}
         			} 
         			
         			// FIFTH ATTEMPT
-        			if ((!theFile.isFile()) || (targMap == null)) {
+        			//if ((!theFile.isFile()) || (targMap == null)) {
+        			if ((lastKnownFile != null) && (!lastKnownFile.isFile())) {
         				// look in the above-folders
-        				// HO 28/02/2012 BEGIN *******
-        				File targFile = new File(systemSpec);
-    					targMap = VueUtil.findTargetAboveCurrentPath(strParentPath, strParentPath, strTargetName, getComponentURIString());
-    					// HO 28/02/2012 END *******
-        				// if the target node was found in this map, open it
-        				if (targMap != null) {
+        				// HO 07/03/2012 BEGIN **********
+        				//File targFile = new File(systemSpec);
+    					//targMap = VueUtil.findTargetAboveCurrentPath(strParentPath, strParentPath, strTargetName, getComponentURIString());
+    					targFile = VueUtil.lazyFindTargetAboveCurrentPath(strParentPath, strParentPath, strTargetName);
+        				
+        				//if (targMap != null) {
+    					if ((targFile != null) && (targFile.isFile())) {
+        					// HO 07/03/2012 END **********
         					// record the relativized spec
-        					theFile = targMap.getFile();
-        					recordRelativizedSpecChange(theFile, sourceMapURI);
-        					// HO 02/03/2012 BEGIN*******
-        					VueUtil.openURL(theFile.toString());  
-        					//MapViewer theViewer = VUE.displayMapSpecial(targMap);
-        					// HO 02/03/2012 END*******   
+        					//theFile = targMap.getFile();
+    						lastKnownFile = targFile;
+        					recordRelativizedSpecChange(lastKnownFile, sourceMapURI);
+        					// open the file
+        					VueUtil.openURL(lastKnownFile.toString());   
         				}
         			}
         			// by this time, we're in trouble because
         			// we absolutely can't find it
         			// if it's the file that's not found, alert appropriately
-        			if (!theFile.isFile()) {
+        			if ((lastKnownFile != null) && (!lastKnownFile.isFile())) {
 						// alert that you can't find it
 						VueUtil.alert("Can't find the file " + strTargetName +".\n"
-							+ "Try the Refresh command from the File menu.", "Target Not Found");            				
-        			} else if ((theFile.isFile()) && (targMap == null)) {
+							+ "Try the Refresh command from the File menu.", "Target File Not Found");            				
+        			} else if (((lastKnownFile != null) && (lastKnownFile.isFile())) && (targMap == null)) {
         				// open it with no alert
-        				recordRelativizedSpecChange(theFile, sourceMapURI);            				
-        				// HO 02/03/2012 BEGIN*******
-    					VueUtil.openURL(theFile.toString());  
-    					//MapViewer theViewer = VUE.displayMapSpecial(targMap);
-    					// HO 02/03/2012 END*******
+        				recordRelativizedSpecChange(lastKnownFile, sourceMapURI); 
+        				// alert that you can't find it
+						VueUtil.alert("Can't find " + systemSpec + " with the target node in the expected location.\n"
+							+ "Opening the nearest file found with the name " + strTargetName +".", "Target Node Not Found");           				
+    					VueUtil.openURL(lastKnownFile.toString());  
         			}
 
             		// HO 17/02/2012 END ********
