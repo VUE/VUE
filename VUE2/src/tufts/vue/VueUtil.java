@@ -1197,7 +1197,12 @@ public class VueUtil extends tufts.Util
                 relative.append(".." + pathSeparator);
             }
         }
-        relative.append(normalizedTargetPath.substring(common.length()));
+        try {
+        	relative.append(normalizedTargetPath.substring(common.length()));
+        } catch (StringIndexOutOfBoundsException e) {
+        	return "";
+        }
+        
         return relative.toString();
     }
 
