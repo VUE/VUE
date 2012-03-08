@@ -526,56 +526,9 @@ public class LWWormhole implements VueConstants {
 		// if the spec was not set, replace it with the last known filename
 		if (strSpec.equals(wr.SPEC_UNSET))
 			strSpec = wr.getTargetFilename();
-			
-		// HO 27/02/2012 BEGIN ********
-		strSpec = VueUtil.decodeURIStringToString(strSpec);
-		strOriginatingFile = VueUtil.decodeURIStringToString(strOriginatingFile);
-		// HO 27/02/2012 END ********
-
-
-		// strip off any leading backslashes
-		if (strSpec.startsWith(strBackSlashPrefix))
-			strSpec = strSpec.substring(strBackSlashPrefix.length(), strSpec.length());
-		if (strOriginatingFile.startsWith(strBackSlashPrefix))
-			strOriginatingFile = strOriginatingFile.substring(strBackSlashPrefix.length(), strOriginatingFile.length());
 		
-		// strip off any leading forward slashes
-		if (strSpec.startsWith(strForwardSlashPrefix))
-			strSpec = strSpec.substring(strForwardSlashPrefix.length(), strSpec.length());
-		if (strOriginatingFile.startsWith(strForwardSlashPrefix))
-			strOriginatingFile = strOriginatingFile.substring(strForwardSlashPrefix.length(), strOriginatingFile.length());
-
-		// if at this point the two strings match,
-		// then the source and target maps are the same,
-		// so we can return
-		if (strSpec.equals(strOriginatingFile))
-			bSameMap = true;
-		
-		// but if they don't match, flip the back and forward slashes till they match in both filenames
-		else if ((strSpec.contains(strForwardSlash)) && (strOriginatingFile.contains(strBackSlash))) {
-			strSpec = strSpec.replaceAll(strForwardSlash, strBackSlashPrefix);
-		}
-		else if ((strSpec.contains(strBackSlash)) && (strOriginatingFile.contains(strForwardSlash))) {
-			strOriginatingFile = strOriginatingFile.replaceAll(strForwardSlash, strBackSlashPrefix);
-		}
-		
-		// if the two strings match now, the source and target maps are the same
-		if (strSpec.equals(strOriginatingFile)) {
-			bSameMap = true;
-		} else {
-			// finally make sure the reason they aren't the same
-			// isn't because one is just relativized
-			URI specURI = VueUtil.getURIFromString(strSpec);
-			// if we have a relativized path, check it
-			if (!specURI.isAbsolute()) {
-				// if the (absolute) source file path ends with
-				// the relative path, then they are in fact the same
-				if (strOriginatingFile.endsWith(strSpec)) {
-					bSameMap = true;
-				}
-			}
-		}
-					
+		bSameMap = VueUtil.pointsToSameMap(strSpec, strOriginatingFile);
+								
 		return bSameMap;
 	} 
 

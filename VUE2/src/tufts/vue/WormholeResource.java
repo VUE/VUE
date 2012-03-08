@@ -1101,89 +1101,28 @@ public class WormholeResource extends URLResource {
 	// HO 12/05/2011 END ***********
     
 	// HO 25/03/2011 BEGIN ****************
-	// enormous waste of time.
+	/**
+	 * Calls a function to use string manipulation to figure out
+	 * whether the originating file path and the target spec
+	 * actually point to the same map.
+	 * @return true if they point to the same map,
+	 * false otherwise.
+	 * @author Helen Oliver
+	 */
 	private boolean pointsToSameMap() {
 		boolean bSameMap = false;
 		String strSpec = this.getSystemSpec();
 		String strOriginatingFile = this.getOriginatingFilename();
-		
-		String strPossPrefix = "file:";
 
 		// if the spec was not set, replace it with the last known filename
 		if (strSpec.equals(SPEC_UNSET))
 			strSpec = this.getTargetFilename();
 		
-		// HO 27/02/2012 BEGIN ********
-		strSpec = VueUtil.decodeURIStringToString(strSpec);
-		strOriginatingFile = VueUtil.decodeURIStringToString(strOriginatingFile);
-		// HO 27/02/2012 END ********
-		
-		// HO 14/12/2011 BEGIN *******
-		// leading slashes may be in different numbers
-		// so just strip them all off
-		strSpec = stripPrefixSlashes(strSpec, false);
-		strOriginatingFile = stripPrefixSlashes(strOriginatingFile, false);
-		// HO 14/12/2011 END *********
-		
-		if (strSpec.equals(strOriginatingFile))
-			bSameMap = true;
-		// the slashes in the paths may still be going in different directions
-		else if ((strSpec.contains(strForwardSlash)) && (strOriginatingFile.contains(strBackSlash))) {
-			strSpec = strSpec.replaceAll(strForwardSlash, strBackSlashPrefix);
-		}
-		else if ((strSpec.contains(strBackSlash)) && (strOriginatingFile.contains(strForwardSlash))) {
-			strOriginatingFile = strOriginatingFile.replaceAll(strForwardSlash, strBackSlashPrefix);
-		}
-				
-		// finally we should have stripped away any false negatives
-		if (strSpec.equals(strOriginatingFile)) {
-			bSameMap = true;
-		} else {
-			// HO 21/02/2012 BEGIN ********
-			// finally make sure the reason they aren't the same
-			// isn't because one is just relativized
-			URI specURI = VueUtil.getURIFromString(strSpec);
-			if (!specURI.isAbsolute()) {
-				if (strOriginatingFile.endsWith(strSpec)) {
-					bSameMap = true;
-				} 
-			}
-			// HO 21/02/2012 END **********
-		}
+		bSameMap = VueUtil.pointsToSameMap(strSpec, strOriginatingFile);
 					
 		return bSameMap;
 	} 
 	// HO 25/03/2011 END ****************
-	
-	// HO 14/12/2011 BEGIN *********
-	/**
-	 * A function to strip off any back or forward slashes from a file path
-	 * @param strStrip, the String representing the file path, to be stripped of leading slashes
-	 * @param bTrimming, false if we are going to try to trim this, true otherwise
-	 * @return a String representing the file path, recursing until
-	 * stripped of all leading slashes
-	 * @author Helen Oliver
-	 */
-	private String stripPrefixSlashes(String strStrip, boolean bTrimming) {
-		// HO 24/12/2011 BEGIN ********
-		// keep trimming until we can't any more
-		bTrimming = false;
-		// HO 24/12/2011 END ********
-		if (strStrip.startsWith(strBackSlash)) {
-			strStrip = strStrip.substring(strBackSlash.length(), strStrip.length());
-			bTrimming = true;
-		} else if (strStrip.startsWith(strForwardSlash)) {
-			strStrip = strStrip.substring(strForwardSlash.length(), strStrip.length());
-			bTrimming = true;
-		} 
-		
-		if (bTrimming == true) {
-			strStrip = stripPrefixSlashes(strStrip, bTrimming);
-		} 
-
-		return strStrip;
-	}
-	// HO 14/12/2011 END **********
     
     /**
      * reimplementation of URLResource.displayContent()
@@ -1243,6 +1182,9 @@ public class WormholeResource extends URLResource {
             // if it's not pointing to itself
             if (!bSameMap) {
             	try {
+            		// HO 08/03/2012 BEGIN *********
+            		VueUtil.alert("In WormholeResource, about to make first attempt", "Progress");
+            		// HO 08/03/2012 END ********		
             		// FIRST ATTEMPT
             		// if we have a file, open it without question
             		if ((lastKnownFile != null) && (lastKnownFile.isFile())) {
@@ -1263,6 +1205,9 @@ public class WormholeResource extends URLResource {
         			targFile = VueUtil.resolveTargetRelativeToSource(systemSpecURI, sourceMapURI);
         			// if this gives us the file, check further
         			if ((targFile != null) && (targFile.isFile())) {
+                		// HO 08/03/2012 BEGIN *********
+                		VueUtil.alert("In WormholeResource, about to make second attempt", "Progress");
+                		// HO 08/03/2012 END ********
         				lastKnownFile = targFile;
         				// see if the target node is in this map
         				targMap = VueUtil.checkIfMapContainsTargetNode(lastKnownFile, getComponentURIString());
@@ -1281,6 +1226,9 @@ public class WormholeResource extends URLResource {
         			try {
         				// if we don't have a file or a map with a node
         				if (((lastKnownFile != null) && (!lastKnownFile.isFile())) || (targMap == null)) {
+                    		// HO 08/03/2012 BEGIN *********
+                    		VueUtil.alert("In WormholeResource, about to make third attempt", "Progress");
+                    		// HO 08/03/2012 END ********
         					// if we have a parent path
         					if ((strParentPath != null) && (strParentPath != "")) {	
         						// create a file out of the parent path
@@ -1288,13 +1236,13 @@ public class WormholeResource extends URLResource {
         						// if it's a valid file, check and see if the target node
         						// exists in it
         						if (targFile.isFile()) {
-        							targMap = VueUtil.checkIfMapContainsTargetNode(lastKnownFile, getComponentURIString());
+        							targMap = VueUtil.checkIfMapContainsTargetNode(targFile, getComponentURIString());
         							// if we found the map, return it
         							if (targMap != null) {
         	        					// record the relativized spec
-        	        					recordRelativizedSpecChange(lastKnownFile, sourceMapURI);
+        	        					recordRelativizedSpecChange(targFile, sourceMapURI);
         	        					// open the file
-        	        					VueUtil.openURL(lastKnownFile.toString());  
+        	        					VueUtil.openURL(targFile.toString());  
         							} else { // if we haven't already got
         								// a location for the target file,
         								// this one (in the local folder) is the next
@@ -1323,6 +1271,9 @@ public class WormholeResource extends URLResource {
         				// if the target node was found in this map, open it
         				//if (targMap != null) {
     					if ((targFile != null) && (targFile.isFile())) {
+    	            		// HO 08/03/2012 BEGIN *********
+    	            		VueUtil.alert("In WormholeResource, about to make fourth attempt", "Progress");
+    	            		// HO 08/03/2012 END ********
         					// HO 07/03/2012 END *********
         					// record the relativized spec
         					//theFile = targMap.getFile();
@@ -1336,6 +1287,9 @@ public class WormholeResource extends URLResource {
         			// FIFTH ATTEMPT
         			//if ((!theFile.isFile()) || (targMap == null)) {
         			if ((lastKnownFile != null) && (!lastKnownFile.isFile())) {
+                		// HO 08/03/2012 BEGIN *********
+                		VueUtil.alert("In WormholeResource, about to make fifth attempt", "Progress");
+                		// HO 08/03/2012 END ********
         				// look in the above-folders
         				// HO 07/03/2012 BEGIN **********
         				//File targFile = new File(systemSpec);

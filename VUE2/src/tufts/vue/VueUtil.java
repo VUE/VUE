@@ -907,7 +907,14 @@ public class VueUtil extends tufts.Util
 		//if ((targetURI != null) && (resolvedTargetURI != null)) {
 			//strSourceParent = VueUtil.stripHtmlSpaceCodes(strSourceParent);
 			
+		// HO 08/03/2012 BEGIN *********
+			// targFile = new File(strResolvedTargetParent, strRelativeTarget);
+		try {
 			targFile = new File(strResolvedTargetParent, strRelativeTarget);
+		} catch (IllegalArgumentException e) {
+			return null;
+		}
+			// HO 08/03/2012 END *********
 		//}
 		
 		return targFile;
@@ -1205,6 +1212,105 @@ public class VueUtil extends tufts.Util
         
         return relative.toString();
     }
+    
+    // HO 08/05/2011 BEGIN ****************
+	/**
+	 * A function to use string manipulation to
+	 * work out whether two wormholes point to 
+	 * each other in the same map.
+	 * @param strTargetSpec, the spec of the target file as a String
+	 * @param strOriginatingFile, the source filename as a string
+	 * @return true if both wormholes point to each other in 
+	 * the same map, false otherwise
+	 * @author Helen Oliver
+	 */
+	public static boolean pointsToSameMap(String strTargetSpec, String strOriginatingFile) {
+		// assume they're not the same until proven otherwise
+		boolean bSameMap = false;
+		
+		//input validation
+		if ((strTargetSpec == null) || (strTargetSpec == ""))
+			return false;		
+		if ((strOriginatingFile == null) || (strOriginatingFile == ""))
+			return false;
+		
+		String strPossPrefix = "file:";
+		
+		// make sure they're formatted with string encoding,
+		// not URI encoding
+		strTargetSpec = VueUtil.decodeURIStringToString(strTargetSpec);
+		strOriginatingFile = VueUtil.decodeURIStringToString(strOriginatingFile);
+		
+		// leading slashes may be in different numbers
+		// so just strip them all off
+		strTargetSpec = stripPrefixSlashes(strTargetSpec, false);
+		strOriginatingFile = stripPrefixSlashes(strOriginatingFile, false);
+		
+		// if they're the same at this point, we're done
+		if (strTargetSpec.equals(strOriginatingFile)) {
+			bSameMap = true;
+		}
+		// the slashes in the paths may still be going in different directions
+		else if ((strTargetSpec.contains(strForwardSlash)) && (strOriginatingFile.contains(strBackSlash))) {
+			strTargetSpec = strTargetSpec.replaceAll(strForwardSlash, strBackSlashPrefix);
+		}
+		else if ((strTargetSpec.contains(strBackSlash)) && (strOriginatingFile.contains(strForwardSlash))) {
+			strOriginatingFile = strOriginatingFile.replaceAll(strForwardSlash, strBackSlashPrefix);
+		}
+				
+		// finally we should have stripped away any false negatives
+		if (strTargetSpec.equals(strOriginatingFile)) {
+			bSameMap = true;
+		} else {
+			// finally make sure the reason they aren't the same
+			// isn't because one is just relativized
+			URI specURI = VueUtil.getURIFromString(strTargetSpec);
+			// check if the URI is not absolute
+			if (!specURI.isAbsolute()) {
+				// if not, and the source file path ends with the
+				// target path, it's still the same map
+				if (strOriginatingFile.endsWith(strTargetSpec)) {
+					bSameMap = true;
+				} 
+			}
+		}
+					
+		return bSameMap;
+	} 
+	
+	/**
+	 * A function to strip off any back or forward slashes from a file path
+	 * @param strStrip, the String representing the file path, to be stripped of leading slashes
+	 * @param bTrimming, false if we are going to try to trim this, true otherwise
+	 * @return a String representing the file path, recursing until
+	 * stripped of all leading slashes
+	 * @author Helen Oliver
+	 */
+	private static String stripPrefixSlashes(String strStrip, boolean bTrimming) {
+		// input validation
+		if ((strStrip == null) || (strStrip == ""))
+			return strStrip;
+
+		// keep trimming until we can't any more
+		bTrimming = false;
+
+		// take off one back or forward slash at a time
+		if (strStrip.startsWith(strBackSlash)) {
+			strStrip = strStrip.substring(strBackSlash.length(), strStrip.length());
+			bTrimming = true;
+		} else if (strStrip.startsWith(strForwardSlash)) {
+			strStrip = strStrip.substring(strForwardSlash.length(), strStrip.length());
+			bTrimming = true;
+		} 
+		
+		// recurse till done
+		if (bTrimming == true) {
+			strStrip = stripPrefixSlashes(strStrip, bTrimming);
+		} 
+
+		return strStrip;
+	}
+	// HO 08/05/2012 END ****************
 
 
     static class PathResolutionException extends RuntimeException {
