@@ -1134,18 +1134,7 @@ public class WormholeResource extends URLResource {
         final Object contentRef = getBrowseReference();
 
         out("displayContent: " + Util.tags(contentRef));
-
-        // HO 27/02/2012 BEGIN ********
-        // final String systemSpec = contentRef.toString();
-        final String systemSpec = VueUtil.decodeURIStringToString(contentRef.toString());
-        // HO 27/02/2012 END *********
         
-		// necessary variables
-		// create a file from the system spec
-        // this is the last known existent file
-		File lastKnownFile = new File(systemSpec);
-		// the moving-target file
-		File targFile = null;
 		// the string representing the parent path of the active map
 		// (from which we should have entered this bit of code)
 		// which is effectively the source map
@@ -1156,6 +1145,25 @@ public class WormholeResource extends URLResource {
 		// the name of the currently active map
 		// which is effectively the source map
 		String strSourceName = getFilenameOfActiveMap();
+		
+        // HO 27/02/2012 BEGIN ********
+		// make sure the spec URI is in String format
+		String strDecodedSpec = VueUtil.decodeURIStringToString(contentRef.toString());
+		// make sure the slashes in the spec URI are going in the same direction
+		// as the ones in the parent path of the active map
+		strDecodedSpec = VueUtil.switchSlashDirection(strParentPath, strDecodedSpec);
+        // final String systemSpec = contentRef.toString();
+        //final String systemSpec = VueUtil.decodeURIStringToString(contentRef.toString());
+		final String systemSpec = strDecodedSpec;
+        // HO 27/02/2012 END *********
+        
+		// necessary variables
+		// create a file from the system spec
+        // this is the last known existent file
+		File lastKnownFile = new File(systemSpec);
+		// the moving-target file
+		File targFile = null;
+
 		// the moving-target name (always the same really)
 		String strTargetName = lastKnownFile.getName();		
         // HO 04/11/2011 BEGIN ********
@@ -1361,10 +1369,13 @@ public class WormholeResource extends URLResource {
     	// record the relativized spec
     	// HO 02/03/2012 BEGIN *********
 		//String strRelativeSpec = relativizeTargetSpec(theFile.getPath(), sourceMapURI);
-    	String targetPath = theFile.getAbsolutePath();
-    	String basePath = VueUtil.decodeURIStringToString(sourceMapURI.toString());
-    	String pathSeparator = System.getProperty("file.separator");
-    	String strRelativeSpec = VueUtil.getRelativePathByStringManipulation(targetPath, basePath, pathSeparator);
+    	// HO 09/03/2012 BEGIN ********
+    	// String targetPath = theFile.getAbsolutePath();
+    	// String basePath = VueUtil.decodeURIStringToString(sourceMapURI.toString());
+    	// String pathSeparator = System.getProperty("file.separator");
+    	// String strRelativeSpec = VueUtil.getRelativePathByStringManipulation(targetPath, basePath, pathSeparator);
+    	String strRelativeSpec = relativizeTargetSpec(theFile, sourceMapURI);
+    	// HO 09/03/2012 END **********
 		// HO 27/02/2012 BEGIN *******
 		//strRelativeSpec = VueUtil.decodeURIToString(strRelativeSpec);
 		// HO 27/02/2012 END ********
@@ -1377,45 +1388,31 @@ public class WormholeResource extends URLResource {
     /**
 	 * A function to take a possibly-absolute path for the target map,
 	 * and relativize it to the source map.
-	 * @param targetSpec, the possibly-absolute path for the target map
-	 * @param sourceMapURI, the URI for the source map
+	 * @param theTargetFile, the File of the target map
+	 * @param sourceMapURI, the URI of the source map
 	 * @return a String representing the relative path
 	 * @author Helen Oliver
 	 */
-	private String relativizeTargetSpec(String targetSpec, URI sourceMapURI) {
+	private String relativizeTargetSpec(File theTargetFile, URI sourceMapURI) {		
+		// input validation
+		if (theTargetFile == null)
+			return "";
+		if (sourceMapURI == null)
+			return "";
 		
-		// HO 02/03/2012 BEGIN *********
-		targetSpec = VueUtil.encodeStringForURI(targetSpec);
-		
-		URI targetURI = null;
-		// HO 02/03/2012 END **********
-		
+		File theSourceFile = new File(VueUtil.getStringFromURI(sourceMapURI));
+		String strParentPath = theSourceFile.getParent();
+		URI parentURI = null;
 		try {
-			targetURI = new URI(targetSpec);
-			if (targetURI != null) {
-				// if the URI is already relative, return the 
-				// String that was passed in
-				if (!targetURI.isAbsolute()) {
-					return targetSpec;
-				}
-			}
+			parentURI = new URI(VueUtil.encodeStringForURI(strParentPath));
 		} catch (URISyntaxException e) {
-			e.printStackTrace();
 			return "";
 		}
+		String strTargetSpec = theTargetFile.toString();
 		
-		// try to relativize the target path based on the source path
-		String relative = "";
-		if (sourceMapURI != null) {
-				relative = new File(sourceMapURI.relativize(targetURI)).getPath();
-				System.out.println(relative);
-		}
+		String strRelativizedSpec = VueUtil.relativizeUnknownTargetSpec(strParentPath, parentURI, strTargetSpec);
 		
-		// HO 27/02/2012 BEGIN *******
-		targetSpec = VueUtil.decodeURIStringToString(targetSpec);
-		// HO 27/02/2012 END *********
-		
-		return targetSpec;
+		return strRelativizedSpec;
 	}
 	
 

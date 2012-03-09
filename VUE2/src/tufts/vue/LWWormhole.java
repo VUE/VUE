@@ -731,39 +731,20 @@ public class LWWormhole implements VueConstants {
 	/**
 	 * A function to take a possibly-absolute path for the target map,
 	 * and relativize it to the source map.
+	 * Use this local method when we don't necessarily
+	 * know where the target map is.
 	 * @param targetSpec, the possibly-absolute path for the target map
 	 * @return a String representing the relative path
 	 * @author Helen Oliver
 	 */
-	private String relativizeTargetSpec(String targetSpec) {
+	private String relativizeTargetSpecWhenTargetMapNotKnown(String targetSpec) {
 		
-		// clean out HTML codes
-		URI targetURI = VueUtil.getURIFromString(targetSpec);
-		
-
-		if (targetURI != null) {
-			// if the URI is already relative, return the 
-			// String that was passed in
-			if (!targetURI.isAbsolute()) {
-				return targetSpec;
-			}
-		}
-		
-		// if the URI wasn't already relative, try to relativize the target path based on the source path
+		// HO 09/03/2012 BEGIN ******
+		String strParentPath = getParentPathOfSourceMap();
 		URI sourceBaseURI = getParentURIOfSourceMap();
-		String relative = "";
-		if (sourceBaseURI != null) {
-			// if it's already relative, return what we passed in
-			relative = new File(sourceBaseURI.relativize(targetURI)).getPath();
-			System.out.println(relative);
-		}
+		String strRelativizedSpec = VueUtil.relativizeUnknownTargetSpec(strParentPath, sourceBaseURI, targetSpec);
 		
-		// HO 27/02/2012 BEGIN ************
-		//targetSpec = VueUtil.stripHtmlSpaceCodes(targetSpec);
-		targetSpec = VueUtil.decodeURL(targetSpec);
-		// HO 27/02/2012 END *************
-		
-		return targetSpec;
+		return strRelativizedSpec;
 	}
 	
 
@@ -775,7 +756,7 @@ public class LWWormhole implements VueConstants {
 	 * of the source map.
 	 * @author Helen Oliver
 	 */
-	private String getSourceParentPath() {
+	private String getParentPathOfSourceMap() {
 		// the source parent path-to-be
 		String strSourceParent = "";
 		// if the source map actually has a file,
@@ -855,12 +836,19 @@ public class LWWormhole implements VueConstants {
 		// the target map to return
 		LWMap targMap = null;
 		
+		// get the source file's parent path
+		String strSourceParent = getParentPathOfSourceMap();	
+		
+		// HO 09/03/2012 BEGIN *******
+		// make sure the spec is formatted as a String
+		targetSpec = VueUtil.decodeURIStringToString(targetSpec);
+		// make sure the slashes are going in the same direction
+		targetSpec = VueUtil.switchSlashDirection(strSourceParent, targetSpec);
+		// HO 09/03/2012 END *********
+		
 		// create a URI from it
 		URI targetURI = VueUtil.getURIFromString(targetSpec);
-		
-		// get the source file's parent path
-		String strSourceParent = getSourceParentPath();	
-		
+				
 		// record the original versions of the target file path and spec
 		String originalTargetSpec = targetSpec;
 		URI originalTargetURI = targetURI;
@@ -891,12 +879,15 @@ public class LWWormhole implements VueConstants {
 		// HO 02/03/2012 BEGIN *********	
 		String basePath = sourceMap.getFile().getAbsolutePath();
 		String pathSeparator = System.getProperty("file.separator");
-		String relativeTargetSpec = VueUtil.getRelativePathByStringManipulation(targetSpec, basePath, pathSeparator);
+		// HO 09/03/2012 BEGIN *********
+		// String relativeTargetSpec = VueUtil.getRelativePathByStringManipulation(targetSpec, basePath, pathSeparator);
+		String strRelativeTargetSpec = relativizeTargetSpecWhenTargetMapNotKnown(targetSpec);
+		// HO 09/03/2012 END *********
 		// if we actually got back a relative location, use it
-		if (relativeTargetSpec != "") {
+		if (strRelativeTargetSpec != "") {
 			// update the target spec and URI
 			// to reflect the relativization
-			targetSpec = relativeTargetSpec;
+			targetSpec = strRelativeTargetSpec;
 			targetURI = VueUtil.getURIFromString(targetSpec);
 			// now try to instantiate the file in situ,
 			// which won't likely work
@@ -1762,10 +1753,12 @@ public class LWWormhole implements VueConstants {
 			String strSeparator = System.getProperty("file.separator");
 			String strTargetPath = targetMap.getFile().getAbsolutePath();
 			String strSourcePath = sourceMap.getFile().getAbsolutePath();
-			String strRelativeTarget = VueUtil.getRelativePathByStringManipulation(strTargetPath, strSourcePath, strSeparator);
-			//String strRelativeTarget = VueUtil.relativizeTargetSpec(sourceMap, targetMap);
-			//String strRelativeSource = VueUtil.relativizeTargetSpec(targetMap, sourceMap);
-			String strRelativeSource = VueUtil.getRelativePathByStringManipulation(strSourcePath, strTargetPath, strSeparator);
+			// HO 09/03/2012 BEGIN ******
+			// String strRelativeTarget = VueUtil.getRelativePathByStringManipulation(strTargetPath, strSourcePath, strSeparator);			
+			String strRelativeTarget = VueUtil.relativizeTargetSpec(sourceMap, targetMap);			
+			String strRelativeSource = VueUtil.relativizeTargetSpec(targetMap, sourceMap);
+			// String strRelativeSource = VueUtil.getRelativePathByStringManipulation(strSourcePath, strTargetPath, strSeparator);
+			// HO 09/03/2012 END ******
 			// HO 02/03/2012 END **************
 			// encode as URIs
 			// the URIs-to-be

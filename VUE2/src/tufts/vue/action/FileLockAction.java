@@ -823,8 +823,15 @@ public class FileLockAction extends VueAction
     	if (baseMap == null)
     		return null;
     	
+    	// parent path of base map as a string
+    	String strParentPath = baseMap.getFile().getParent();
+    	
     	// turn the URI into a String in case of character clashes
     	String systemSpec = VueUtil.decodeURIStringToString(targetSpec);
+    	// HO 09/03/2012 BEGIN ********
+    	// make sure slashes are going in the same direction
+    	systemSpec = VueUtil.switchSlashDirection(strParentPath, systemSpec);
+    	// HO 09/03/2012 END **********
     	
     	// create a file from the spec
     	File theFile = new File(systemSpec);
@@ -832,9 +839,8 @@ public class FileLockAction extends VueAction
     	File origFile = theFile;
     	
     	// get the parent path of the base map
-    	URI theMapURI = VueUtil.getParentURIOfMap(baseMap);  
-    	// parent path of base map as a string
-    	String strParentPath = baseMap.getFile().getParent();
+    	URI parentMapURI = VueUtil.getParentURIOfMap(baseMap);  
+    	
     	// name of target file
     	String strTargetName = theFile.getName();
 		
@@ -843,7 +849,7 @@ public class FileLockAction extends VueAction
     	// get the URI from the system spec
 		URI systemSpecURI = VueUtil.getURIFromString(systemSpec);
 		// use the URI to resolve it against the base map
-		theFile = VueUtil.resolveTargetRelativeToSource(systemSpecURI, theMapURI);
+		theFile = VueUtil.resolveTargetRelativeToSource(systemSpecURI, parentMapURI);
 		// if this gives us the file, return it
 		if ((theFile != null) && (theFile.isFile())) {
 			// if the file has the right name, just assume it is

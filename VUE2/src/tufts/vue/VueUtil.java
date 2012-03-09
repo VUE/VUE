@@ -1086,6 +1086,52 @@ public class VueUtil extends tufts.Util
 		// HO 13/02/2012 END **********
 	}
 	
+	/**
+	 * A function to take a possibly-absolute path for the target map,
+	 * and relativize it to the source map.
+	 * Use this local method when we don't necessarily
+	 * know where the target map is.
+	 * @param strParentPath, the parent file path of the source map
+	 * @param sourceBaseURI, a URI of the parent file path of the source map
+	 * @param targetSpec, the possibly-absolute path for the target map
+	 * @return a String representing the relative path
+	 * @author Helen Oliver
+	 */
+	public static String relativizeUnknownTargetSpec(String strParentPath, URI sourceBaseURI, String targetSpec) {
+		
+		// HO 09/03/2012 BEGIN ******
+		targetSpec = decodeURIStringToString(targetSpec);
+		targetSpec = switchSlashDirection(strParentPath, targetSpec);
+		// 09/03/2012 END ***********
+		
+		// clean out HTML codes
+		URI targetURI = getURIFromString(targetSpec);
+		
+
+		if (targetURI != null) {
+			// if the URI is already relative, return the 
+			// String that was passed in
+			if (!targetURI.isAbsolute()) {
+				return targetSpec;
+			}
+		}
+		
+		// if the URI wasn't already relative, try to relativize the target path based on the source path
+		String relative = "";
+		if (sourceBaseURI != null) {
+			// if it's already relative, return what we passed in
+			relative = new File(sourceBaseURI.relativize(targetURI)).getPath();
+			System.out.println(relative);
+		}
+		
+		// HO 27/02/2012 BEGIN ************
+		//targetSpec = VueUtil.stripHtmlSpaceCodes(targetSpec);
+		targetSpec = decodeURL(targetSpec);
+		// HO 27/02/2012 END *************
+		
+		return targetSpec;
+	}
+	
 	// HO 02/03/2012 BEGIN ***********	
 	/**
      * Get the relative path from one file to another, specifying the directory separator. 
@@ -1277,6 +1323,38 @@ public class VueUtil extends tufts.Util
 					
 		return bSameMap;
 	} 
+	
+	/**
+	 * A function to make sure the slashes in two different Strings
+	 * are going in the same direction.
+	 * @param strRightDirection, the String in which the slashes are going in the right direction
+	 * @param strWrongDirection, the String in which the slashes are going in the wrong direction
+	 * @return a String representing strWrongDirection after its slashes have been switched so 
+	 * that they're going in the same direction as the ones in strRightDirection
+	 * @author Helen Oliver
+	 */
+	public static String switchSlashDirection(String strRightDirection, String strWrongDirection) {
+		// the String to return
+		String strCorrectedDirection = "";
+		
+		// input validation
+		if ((strRightDirection == null) || (strRightDirection == ""))
+			return strCorrectedDirection;
+		if ((strWrongDirection == null) || (strWrongDirection == ""))
+			return strCorrectedDirection;
+		
+		// the slashes in the paths may be going in different directions
+		if ((strWrongDirection.contains(strForwardSlash)) && (strRightDirection.contains(strBackSlash))) {
+			strCorrectedDirection = strWrongDirection.replace(strForwardSlash, strBackSlash);
+		}
+		else if ((strWrongDirection.contains(strBackSlash)) && (strRightDirection.contains(strForwardSlash))) {
+			strCorrectedDirection = strWrongDirection.replace(strBackSlash, strForwardSlash);
+		} else {
+			strCorrectedDirection = strWrongDirection;
+		}
+		
+		return strCorrectedDirection;
+	}
 	
 	/**
 	 * A function to strip off any back or forward slashes from a file path
