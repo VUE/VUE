@@ -103,7 +103,7 @@ public abstract class RectangularPoly2D extends RectangularShape
     /** a point to the right triangle */
     public static class Flag extends RectangularPoly2D {
         public Flag() { setSides(3); }
-        public int getContentGravity() { return EAST; }
+        public int getContentGravity() { return WEST; }
         protected void computeVertices()
         {
             xpoints[0] = x;
@@ -119,7 +119,7 @@ public abstract class RectangularPoly2D extends RectangularShape
     /** a point to the left triangle */
     public static class Flag2 extends RectangularPoly2D {
         public Flag2() { setSides(3); }
-        public int getContentGravity() { return WEST; }
+        public int getContentGravity() { return EAST; }
         protected void computeVertices()
         {
             xpoints[0] = x;
@@ -547,7 +547,7 @@ public abstract class RectangularPoly2D extends RectangularShape
 
     public String toString()
     {
-        return getClass().getName() + "@" + Integer.toHexString(hashCode()) + "[sides=" + sides + " " + x + "," + y + " " + width + "x" + height + "]";
+    	return getClass().getName() + "@" + Integer.toHexString(hashCode()) + "[sides=" + sides + " " + x + "," + y + " " + width + ", " + height + "]";
     }
     
     class PolyIterator implements PathIterator
