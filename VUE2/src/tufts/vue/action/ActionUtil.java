@@ -757,13 +757,19 @@ public class ActionUtil
         final java.util.Date date = new java.util.Date();
         final String today = new java.text.SimpleDateFormat("yyyy-MM-dd").format(date);
 
-        String headerText = VueResources.getString("vue.version") + " concept-map (" + name + ") " + today;
+        // HO 13/03/2012 BEGIN ***********
+        // String headerText = VueResources.getString("vue.version") + " concept-map (" + name + ") " + today;
+        String headerText = VueResources.getString("designVUE.version") + " concept-map (" + name + ") " + today;
+        // HO 13/03/2012 END ***********
         
         headerText = org.apache.commons.lang.StringEscapeUtils.escapeXml(headerText);
         
-        writer.write("<!-- Tufts VUE " + headerText + " -->\n");
+        // HO 13/03/2012 BEGIN **********
+        // writer.write("<!-- Tufts VUE " + headerText + " -->\n");
+        writer.write("<!-- designVUE " + headerText + " -->\n");
         
-        writer.write("<!-- Tufts VUE: http://vue.tufts.edu/ -->\n");
+        writer.write("<!-- designVUE: http://www3.imperial.ac.uk/designengineering/tools/designvue/ -->\n");
+        // HO 13/03/2012 END **********
         
         writer.write(VUE_COMMENT_START
                      + " VUE mapping "
@@ -1421,7 +1427,10 @@ class MapUnmarshalHandler implements UnmarshalListener {
                                         file, map.getModelVersion(), LWMap.getCurrentModelVersion())
                           + "\n"+ VueResources.getString("actionutil.notifyversion.savedversion") +"\n" + savingVersion
                           + "\n"+VueResources.getString("actionutil.notifyversion.currentversion")+"\n        " + VueResources.getString("actionutil.notifyversion.vuebuilt") + tufts.vue.Version.AllInfo
-                          + " (public v" + VueResources.getString("vue.version") + ")"
+                          // HO 13/03/2012 BEGIN ********
+                          // + " (public v" + VueResources.getString("vue.version") + ")"
+                          + " (public v" + VueResources.getString("designVUE.version") + ")"
+                          // HO 13/03/2012 END **********
                           + "\n"
                           + "\n"+VueResources.getString("actionutil.notifyversion.displaymap")
                           + "\n"+VueResources.getString("actionutil.notifyversion.corruptmap")

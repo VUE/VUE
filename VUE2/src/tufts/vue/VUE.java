@@ -1089,7 +1089,10 @@ public class VUE
                  + ", FreeMemory=" + VueUtil.abbrevBytes(Runtime.getRuntime().freeMemory())
                  );
 
-        Log.info("VUE version: " + VueResources.getString("vue.version"));
+        // HO 13/03/2012 BEGIN *******
+        // Log.info("VUE version: " + VueResources.getString("vue.version"));
+        Log.info("VUE version: " + VueResources.getString("designVUE.version"));
+        // HO 13/03/2012 END *********
         Log.info("Current Working Directory: " + getSystemProperty("user.dir"));
 
         String host = System.getenv("HOST");
@@ -4698,7 +4701,10 @@ public class VUE
             XPathExpression  xSession= xPath.compile("/current_release/version/text()");
             String version = xSession.evaluate(inputSource);
             if (DEBUG.Enabled) Log.debug("got current version id [" + version + "]");
-            final String currentVersion = VueResources.getString("vue.version").trim();
+            // HO 13/03/2012 BEGIN *********
+            // final String currentVersion = VueResources.getString("vue.version").trim();
+            final String currentVersion = VueResources.getString("designVUE.version").trim();
+            // HO 13/03/2012 END ***********
             final String newVersion = version.trim();
             // HO 08/07/2011 BEGIN *********
             // we don't want to show this on designVUE
