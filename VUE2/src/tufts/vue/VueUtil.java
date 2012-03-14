@@ -272,10 +272,21 @@ public class VueUtil extends tufts.Util
 						continue;
 					} 
 				}
+				// HO 14/03/2012 BEGIN ******
+				// an effort to plug memory leaks
+				file_test = null;
+				// HO 14/03/2012 END ********
 			}
 		} else {	
 			System.out.println("null list of files");
-		}	
+		}
+		
+		// HO 14/03/2012 BEGIN ******
+		// an effort to plug memory leaks
+		dir = null;
+		f = null;
+		// HO 14/03/2012 END ********
+		
 		return theFile;
 
 	}
@@ -329,10 +340,18 @@ public class VueUtil extends tufts.Util
 								break;
 							}
 						} 
+						// HO 14/03/2012 BEGIN ******
+						// an effort to plug memory leaks
+						file_test = null;
+						// HO 14/03/2012 END ********
 					}
 				} else {	
 					System.out.println("null list of files");
 				}
+				// HO 14/03/2012 BEGIN ******
+				// an effort to plug memory leaks
+				dir = null;
+				// HO 14/03/2012 END ********
 								
 			}
 			if (f == null)
@@ -340,6 +359,12 @@ public class VueUtil extends tufts.Util
 			
 			f = f.getParentFile();
 		}
+		
+		// HO 14/03/2012 BEGIN ******
+		// an effort to plug memory leaks
+		f = null;
+		// HO 14/03/2012 END ********
+		
 		return theFile;
 
 	}
@@ -415,10 +440,22 @@ public class VueUtil extends tufts.Util
 						continue;
 					} 
 				}
+				
+				// HO 14/03/2012 BEGIN ******
+				// an effort to plug memory leaks
+				file_test = null;
+				// HO 14/03/2012 END ********
 			}
 		} else {	
 			System.out.println("null list of files");
 		}	
+		
+		// HO 14/03/2012 BEGIN ******
+		// an effort to plug memory leaks
+		dir = null;
+		f = null;
+		// HO 14/03/2012 END ********
+		
 		return theMap;
 
 	}
@@ -475,10 +512,18 @@ public class VueUtil extends tufts.Util
 									break;
 							}
 						} 
+						// HO 14/03/2012 BEGIN ******
+						// an effort to plug memory leaks
+						file_test = null;
+						// HO 14/03/2012 END ********
 					}
 				} else {	
 					System.out.println("null list of files");
 				}
+				// HO 14/03/2012 BEGIN ******
+				// an effort to plug memory leaks
+				dir = null;
+				// HO 14/03/2012 END ********
 								
 			}
 			// HO 06/03/2012 BEGIN *******
@@ -490,6 +535,12 @@ public class VueUtil extends tufts.Util
 			
 			f = f.getParentFile();
 		}
+		
+		// HO 14/03/2012 BEGIN ******
+		// an effort to plug memory leaks
+		f = null;
+		// HO 14/03/2012 END ********
+		
 		return theMap;
 
 	}

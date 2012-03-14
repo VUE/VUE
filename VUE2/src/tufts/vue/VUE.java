@@ -4309,6 +4309,10 @@ public class VUE
                 // HO 10/01/2012 END *******
                 return;
             }
+            // HO 14/03/2012 BEGIN *******
+            // an effort to stop memory leaks
+            existingFile = null;
+            // HO 14/03/2012 END ********
         }
 
         // HO 10/01/2012 BEGIN *******
