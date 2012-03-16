@@ -839,15 +839,26 @@ public class FileLockAction extends VueAction
     	File origFile = theFile;
     	
     	// get the parent path of the base map
-    	URI parentMapURI = VueUtil.getParentURIOfMap(baseMap);  
+    	URI parentMapURI = VueUtil.getParentURIOfMap(baseMap); 
+    	// the parent path as a string
     	
     	// name of target file
     	String strTargetName = theFile.getName();
-		
-		// FIRST ATTEMPT
-		// resolve the file relative to the source map
+		    	
+		// HO 16/03/2012 BEGIN *******
     	// get the URI from the system spec
-		URI systemSpecURI = VueUtil.getURIFromString(systemSpec);
+    	// URI systemSpecURI = VueUtil.getURIFromString(systemSpec);
+    	
+		// FIRST ATTEMPT
+		// resolve the file relative to the source map    	
+		// see if the file is valid "in situ"
+		if ((theFile != null) && (theFile.isFile()))
+			return theFile;
+				
+		// SECOND ATTEMPT
+		// HO 16/03/2012 END *********
+		// try to resolve it relative to the source map
+		URI systemSpecURI = VueUtil.getURIFromString(targetSpec);
 		// use the URI to resolve it against the base map
 		theFile = VueUtil.resolveTargetRelativeToSource(systemSpecURI, parentMapURI);
 		// if this gives us the file, return it
@@ -856,7 +867,7 @@ public class FileLockAction extends VueAction
 			// the right file
 			return theFile;
 		} 
-		// SECOND ATTEMPT	
+		// THIRD ATTEMPT	
 		//if we still can't find the file, check for one with the same name
 		// in the local folder
 		try {
@@ -872,7 +883,7 @@ public class FileLockAction extends VueAction
 		} catch (Exception e) {
 			// do nothing
 		} 
-		// THIRD ATTEMPT
+		// FOURTH ATTEMPT
 		if ((theFile != null) && (!theFile.isFile()))  {
 			// if we still can't find it in the local folder, 
 			// search all the subfolders	    
@@ -883,7 +894,7 @@ public class FileLockAction extends VueAction
 			}
 		} 
 		
-		// FOURTH ATTEMPT
+		// FIFTH ATTEMPT
 		if ((theFile != null) && (!theFile.isFile())) {
 			// look in the above-folders
 			File targFile = VueUtil.lazyFindTargetAboveCurrentPath(strParentPath, strParentPath, strTargetName);
@@ -897,9 +908,9 @@ public class FileLockAction extends VueAction
     	// LAST ATTEMPT		
 		// if the file can't be relativized, maybe it can be
 		// found in its original location
-		if ((origFile != null) && (origFile.isFile())) {
-			return origFile;
-		} 
+		//if ((origFile != null) && (origFile.isFile())) {
+			//return origFile;
+		//} 
 
 		// by this time, we're in trouble because
 		// we absolutely can't find it

@@ -893,7 +893,11 @@ public class LWWormhole implements VueConstants {
 			// which won't likely work
 			// HO 07/03/2012 BEGIN ********
 			//targFile = new File(targetSpec);
-			nextLikelyFile = new File(targetSpec);
+			try {
+				nextLikelyFile = new File(targetSpec);
+			} catch (IllegalArgumentException e) {
+				nextLikelyFile = null;
+			}
 			// HO 07/03/2012 END ********
 		}
 		// if it's a valid file, check and see if the target node

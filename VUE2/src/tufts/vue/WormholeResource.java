@@ -1328,7 +1328,7 @@ public class WormholeResource extends URLResource {
         				// alert that you can't find it
 						VueUtil.alert("Can't find " + systemSpec + " with the target node in the expected location.\n"
 							+ "Opening the nearest file found with the name " + strTargetName +".", "Target Node Not Found");           				
-    					VueUtil.openURL(lastKnownFile.toString());  
+						VueUtil.openURL(lastKnownFile.toString());  
         			}
 
             		// HO 17/02/2012 END ********
@@ -1352,6 +1352,53 @@ public class WormholeResource extends URLResource {
 
         tufts.vue.gui.VueFrame.setLastOpenedResource(this);
     }
+    
+    // HO 16/03/2012 BEGIN***********    
+    /**
+     * A function to check whether a map is already open.
+     * @param targMap, the LWMap to check for.
+     * @return true if the map is already open, false otherwise.
+     * @author Helen Oliver, Imperial College London
+     */
+    private static boolean isMapAlreadyOpen(LWMap targMap) {
+    	// input validation
+    	if (targMap == null)
+    		return false;
+    	
+    	// flag whether the map is open or not (assume not
+    	// until proven otherwise)
+    	boolean bOpen = false;
+    	
+    	// get the file belonging to the target map
+    	File targFile = targMap.getFile();
+    	String targPath = "";
+    	if (targFile != null) {
+    		targPath = targFile.getAbsolutePath();
+    	}
+    	
+		// get all the open maps
+		Collection<LWMap> coll = VUE.getAllMaps();
+		for (LWMap map: coll) {
+			// make sure this isn't the map we're trying to open
+			if ((!map.equals(targMap)) && (targFile != null)) {
+				// get the file belonging to this map
+    			File theFile = map.getFile();
+    			// if this map has a file
+    			if (theFile!=null) {
+    				// get the full name and compare it to the one we're trying to save
+    				String theFileName = theFile.getAbsolutePath();
+        			if(theFileName.equals(targPath)) {
+        				// it is already open
+        				bOpen = true; 
+        				break;
+        			}
+    			}
+			}
+		} // end of for loop
+		
+		return bOpen;
+    }    
+    // HO 16/03/2012 END *************************
     
     /**
      * A function to relativize a changed spec
