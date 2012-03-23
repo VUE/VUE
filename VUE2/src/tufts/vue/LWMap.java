@@ -374,89 +374,62 @@ public class LWMap extends LWContainer
 		String thisComponentURIString = wr.getOriginatingComponentURIString();
 		if (!parentComponentURIString.equals(thisComponentURIString))
 			bChanged = true;
-		// and get wn's map filename
-		String origMapURIString = wr.getOriginatingFilename();
-		String strCompareString = origMapURIString;
-		// extra gubbins to trim from original map name
-
-		// HO 03/11/2011 BEGIN **********
-		// HO 27/02/2012 BEGIN ********
 		
-		strCompareString = VueUtil.decodeURIStringToString(strCompareString);
-		// 		strCompareString = VueUtil.stripFilePrefixFromPathString(strCompareString);
-		// HO 27/02/2012 END ********
-
+		// HO 22/03/2012 BEGIN *********
+		// first, get the originating file name
+		String strOriginatingFile = VueUtil.decodeURIStringToString(wr.getOriginatingFilename());
+		File origFile = new File(strOriginatingFile);
+		String strOriginatingFilename = "";
+		if (origFile != null)
+			strOriginatingFilename = origFile.getName();
 		
-		//if (strCompareString.startsWith(strPossPrefix))
-			//strCompareString = strCompareString.substring(strPossPrefix.length(), strCompareString.length());
-		// HO 03/11/2011 END **********
-
 		// get filename to compare to
 		String strThisFilename = "";
 		if (mFile != null) {
-			
-			strThisFilename = mFile.getAbsolutePath();
+             strThisFilename = mFile.getName();
 		}
 		
-		// HO 03/11/2011 BEGIN **********
-		// trim putative gubbins away
-		//if (strThisFilename.startsWith(strPossPrefix))
-			//strThisFilename = strThisFilename.substring(strPossPrefix.length(), strThisFilename.length());
+		// if the originating filename doesn't
+		// compare with the current filename, there's
+		// been a change
+		if(!strOriginatingFilename.equals(strThisFilename))
+			return true;
+					
+		// deleted string comparison of originating filename 
+		// and the absolute path of mFile
+		// instead, try to instantiate the file at
+		// the relative target path
+		String strRelativeTargetPath = VueUtil.decodeURIStringToString(wr.getSystemSpec());
+		File targFile = new File(strRelativeTargetPath);
+		// if it's a relative path,
+		// we won't be able to construct a file from it,
+		// but it might be absolute sometimes;
+		// in any case, if it's a valid file at this path,
+		// nothing's changed
+		if ((targFile != null) && (targFile.isFile()))
+			return false;
 		
-		// strip wrongly-formatted spaces so they don't gum up the comparison
-		//strThisFilename = stripHtmlSpaceCodes(strThisFilename);
-		//strCompareString = stripHtmlSpaceCodes(strCompareString);		
-		
-		
-		// HO 03/11/2011 END **********
-		// HO 27/02/2012 BEGIN ********
-		
-		strThisFilename = VueUtil.decodeURIStringToString(strThisFilename);
-		//strThisFilename = VueUtil.stripFilePrefixFromPathString(strThisFilename);
-		// HO 27/02/2012 END ********
-		
-		
-		// deal with red-herring Windoze string mismatches
-		if (!strCompareString.equals(strThisFilename)) {
-			// HO 03/11/2011 BEGIN **********
-			if (strCompareString.startsWith(strBackSlashPrefix))
-				strCompareString = strCompareString.substring(strBackSlashPrefix.length(), strCompareString.length());
-			if (strThisFilename.startsWith(strBackSlashPrefix))
-				strThisFilename = strThisFilename.substring(strBackSlashPrefix.length(), strThisFilename.length());
-			
-			if (strCompareString.startsWith(strForwardSlashPrefix))
-				strCompareString = strCompareString.substring(strForwardSlashPrefix.length(), strCompareString.length());
-			if (strThisFilename.startsWith(strForwardSlashPrefix))
-				strThisFilename = strThisFilename.substring(strForwardSlashPrefix.length(), strThisFilename.length());
-			
-			// if (strCompareString.startsWith(strForwardSlash))
-				// strCompareString = strCompareString.substring(strForwardSlash.length(), strCompareString.length());
-			// if (strThisFilename.startsWith(strForwardSlash))
-				// strThisFilename = strThisFilename.substring(strForwardSlash.length(), strThisFilename.length());
-			// HO 21/09/2011 BEGIN ************
-			// if one string starts with a back or forward slash and the other doesn't, strip off 
-			// the one that does
-			if ((strCompareString.startsWith(strBackSlash)) && (!strThisFilename.startsWith(strBackSlash))) {
-				strCompareString = strCompareString.substring(strBackSlash.length(), strCompareString.length());
-			} else if ((strThisFilename.startsWith(strBackSlash)) && (!strCompareString.startsWith(strBackSlash))) {
-				strThisFilename = strThisFilename.substring(strBackSlash.length(), strThisFilename.length());
-			} else if ((strCompareString.startsWith(strForwardSlash)) && (!strThisFilename.startsWith(strForwardSlash))) {
-				strCompareString = strCompareString.substring(strForwardSlash.length(), strCompareString.length());
-			} else if ((strThisFilename.startsWith(strForwardSlash)) && (!strCompareString.startsWith(strForwardSlash))) {
-				strThisFilename = strThisFilename.substring(strForwardSlash.length(), strThisFilename.length());
-			}				
-			// HO 21/09/2011 END ************
-			// HO 03/11/2011 END **********
-			
-			// Should be strBackSlash but there's a bug in Java if you can believe that...
-			if ((strCompareString.contains(strForwardSlash)) && (strThisFilename.contains(strBackSlash)))
-				strCompareString = strCompareString.replaceAll(strForwardSlash, strBackSlashPrefix);
-			else if ((strCompareString.contains(strBackSlash)) && (strThisFilename.contains(strForwardSlash)))
-				strThisFilename = strThisFilename.replaceAll(strForwardSlash, strBackSlashPrefix);
+		// try resolving the target path relative to 
+		// the source path
+		String strSourceParentPath = mFile.getParent();
+		URI targetURI = null;
+		URI sourceParentURI = null;
+		try {
+			targetURI = new URI(VueUtil.encodeStringForURI(strRelativeTargetPath));
+			sourceParentURI = new URI(VueUtil.encodeStringForURI(strSourceParentPath));
+			targFile = VueUtil.resolveTargetRelativeToSource(targetURI, sourceParentURI);
+		} catch(URISyntaxException e) {
+			// do nothing
 		}
 		
-		if (!strCompareString.equals(strThisFilename))
+		// if we now have a valid file, nothing's changed
+		// but if we don't, something's changed
+		if ((targFile != null) && (targFile.isFile())) {
+			bChanged = bChanged;
+		} else {
 			bChanged = true;
+		}
+		// HO 22/03/2012 END *********
 
     	return bChanged;
     }
