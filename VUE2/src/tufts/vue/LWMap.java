@@ -440,8 +440,16 @@ public class LWMap extends LWContainer
     	boolean bPresent = false;
     	boolean bVueFile = false;
     	boolean bVpk = false;
+    	// HO 23/03/2012 BEGIN ****
+    	// adding new file type
+    	boolean bVdk = false;
+    	// HO 23/03/2012 END ******
     	String strVueTarget = strTargetName.substring(0, strTargetName.length() - 4) + VueUtil.VueExtension;
     	String strVpkTarget = strTargetName.substring(0, strTargetName.length() - 4) + VueUtil.VueArchiveExtension;
+    	// HO 23/03/2012 BEGIN ****
+    	// adding new file type
+    	String strVdkTarget = strTargetName.substring(0, strTargetName.length() - 4) + VueUtil.designVueArchiveExtension;
+    	// HO 23/03/2012 END ******
     	String strLookAgain = "";
     	String strActualTarget = "";
     	
@@ -453,6 +461,12 @@ public class LWMap extends LWContainer
     		bVpk = true;
     		strLookAgain = strVueTarget;
     	}
+    	// HO 23/03/2012 BEGIN *****
+    	else if (strTargetName.endsWith(VueUtil.designVueArchiveExtension)) {
+    		bVdk = true;
+    		strLookAgain = strVdkTarget;
+    	}
+    	// HO 23/03/2012 END *******
     	
 		File dir = new File(strTargetParent);
 

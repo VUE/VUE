@@ -70,7 +70,11 @@ public class Archive
 
 
     public static boolean isVuePackage(File file) {
-        return file.getName().toLowerCase().endsWith(VueUtil.VueArchiveExtension);
+    	// HO 23/03/2012 BEGIN *********
+    	// adding .vdk file type
+        // return file.getName().toLowerCase().endsWith(VueUtil.VueArchiveExtension);
+    	return (file.getName().toLowerCase().endsWith(VueUtil.VueArchiveExtension) || (file.getName().toLowerCase().endsWith(VueUtil.designVueArchiveExtension)));
+        // HO 23/03/2012 END *********
     }
 
     /**
@@ -673,7 +677,10 @@ public class Archive
 
         final String label = archive.getName();
         final String mapName;
-        if (label.endsWith(VueUtil.VueArchiveExtension))
+        // HO 23/03/2012 BEGIN *******
+        // if (label.endsWith(VueUtil.VueArchiveExtension))
+        if ((label.endsWith(VueUtil.VueArchiveExtension)) || (label.endsWith(VueUtil.designVueArchiveExtension)))
+        	// HO 23/03/2012 END *******
             mapName = label.substring(0, label.length() - 4);
         else
             mapName = label;
@@ -704,6 +711,11 @@ public class Archive
                 	continue;
                 if ((sourceFile.getName().endsWith(VueUtil.VueExtension)) || (sourceFile.getName().endsWith(VueUtil.VueArchiveExtension)))
                 	continue;
+                // HO 23/03/2012 BEGIN ********
+                // if it's a .vdk file, don't include it in the archive
+                if (sourceFile.getName().endsWith(VueUtil.designVueArchiveExtension))
+                	continue;
+                // HO 23/03/2012 END **********
                 // HO 24/12/2010 END ***************
                 final String description = "" + (DEBUG.Enabled ? r : r.getSpec());
 
@@ -841,7 +853,10 @@ public class Archive
 
         final String label = archive.getName();
         final String mapName;
-        if (label.endsWith(VueUtil.VueArchiveExtension))
+        // HO 23/03/2012 BEGIN ********
+        // if (label.endsWith(VueUtil.VueArchiveExtension))
+        if ((label.endsWith(VueUtil.VueArchiveExtension)) || (label.endsWith(VueUtil.designVueArchiveExtension)))
+        	// HO 23/03/2012 END ********
             mapName = label.substring(0, label.length() - 4);
         else
             mapName = label;
@@ -872,6 +887,10 @@ public class Archive
                 	continue;
                 if ((sourceFile.getName().endsWith(VueUtil.VueExtension)) || (sourceFile.getName().endsWith(VueUtil.VueArchiveExtension)))
                 	continue;
+                // HO 23/03/2012 BEGIN ********
+                if (sourceFile.getName().endsWith(VueUtil.designVueArchiveExtension))
+                	continue;
+                // HO 23/03/2012 END *********
                 // HO 24/12/2010 END ***************
                 final String description = "" + (DEBUG.Enabled ? r : r.getSpec());
 
@@ -1001,7 +1020,7 @@ public class Archive
 	    			if (aMap.equals(map)) {
 	    				// here's the map we started with, close it
 	    				// and do not prompt to save it, because
-	    				// we just *did* save it, as a .vpk
+	    				// we just *did* save it, as a .vpk or .vdk
 	    				// but check and make sure that we're closing
 	    				// a different file first!
 	    				File aFile = aMap.getFile();

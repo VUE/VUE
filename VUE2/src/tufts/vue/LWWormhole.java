@@ -236,7 +236,9 @@ public class LWWormhole implements VueConstants {
 		// constructed the whole wormhole
 		setBCancelled(true);
 		// any maps that are already open, auto-save them
-		findAndSaveAllOpenMaps();
+		// HO 27/03/2012 BEGIN *********
+		// findAndSaveAllOpenMaps();
+		// HO 27/03/2012 END *********
 		
 		// create the components and maps
 		boolean b = createComponentsAndMaps(c, bNew);
@@ -405,7 +407,10 @@ public class LWWormhole implements VueConstants {
     	// get the MapViewer that goes with the source map
     	MapViewer viewer = VUE.getCurrentTabbedPane().getViewerWithMap(sourceMap);
         // now silently save the source map
-    	LWMap srcMap = SaveAction.saveMapSpecial(sourceMap, false, false, "Save Source Map");
+    	// HO 27/03/2012 BEGIN *********
+    	// LWMap srcMap = SaveAction.saveMapSpecial(sourceMap, false, false, "Save Source Map");
+    	LWMap srcMap = sourceMap;
+    	// HO 27/03/2012 END *********
     	// get the right viewer again (would it have changed??)
     	viewer = VUE.getCurrentTabbedPane().getViewerWithMap(sourceMap);
     	
@@ -1409,7 +1414,11 @@ public class LWWormhole implements VueConstants {
     private LWMap openExistingMap() {
     	// prompt the user to open the map
     	// default file type is now .vpk
-    	File file = ActionUtil.openFile("Open Map", VueFileFilter.VPK_DESCRIPTION);
+    	// HO 23/03/2012 BEGIN *******
+    	// default file type is now .vdk
+    	// File file = ActionUtil.openFile("Open Map", VueFileFilter.VPK_DESCRIPTION);
+    	File file = ActionUtil.openFile("Open Map", VueFileFilter.VDK_DESCRIPTION);
+    	// HO 23/03/2012 END ********
         
     	// if they didn't open a map for any reason
         if (file == null)
@@ -1900,11 +1909,14 @@ public class LWWormhole implements VueConstants {
 		// set the resources in the right components
 		setResources();
 		// auto-save both maps
+		// HO 27/03/2012 BEGIN *********
 		SaveAction.saveMapSpecial(sourceMap);
+		
 		// if the source and target maps are the same,
 		// saving the same map twice is unnecessary
 		if (!sourceMap.equals(targetMap))
 			SaveAction.saveMapSpecial(targetMap);
+		// HO 27/03/2012 END *********
 		
 	}
 	

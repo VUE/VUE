@@ -1124,6 +1124,13 @@ public class LWIBISNode extends LWNode
         				// flag that we're creating a wormhole on this map
         				LWMap parentMap = this.getParentOfType(LWMap.class);
         				parentMap.bConstructingWormholes = true;
+        				// HO 27/03/2012 BEGIN ******
+        				if (wn.getLabel().equals(VueResources.getString("wormhole.node.target.label.default"))) {
+        					wn.setLabel("Green Ideas Sleep Easily");
+        					String theLabel = wn.getLabel();
+        					System.out.println(theLabel);
+        				}
+        				// HO 27/03/2012 END ********
         				// create the wormhole
         				LWWormhole worm = new LWWormhole(wn, wr, strURI, this);
         				// flag that we're done creating the wormhole

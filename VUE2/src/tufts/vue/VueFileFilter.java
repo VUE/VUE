@@ -32,6 +32,10 @@ public class VueFileFilter extends javax.swing.filechooser.FileFilter
 	public static final String ZIP_DESCRIPTION=VueResources.getString("vueFileFilter.zip.text");
 	public static final String PNG_DESCRIPTION=VueResources.getString("vueFileFilter.png.text");
 	public static final String VPK_DESCRIPTION=VueResources.getString("vueFileFilter.vpk.text");
+	// HO 23/02/2012 BEGIN *************
+	public static final String VDK_DESCRIPTION=VueResources.getString("vueFileFilter.vdk.text");
+	public static final String designVuePackage = VueUtil.designVueArchiveExtension.substring(1);
+	// HO 23/02/2012 END *************
 
     public static final String VuePackage = VueUtil.VueArchiveExtension.substring(1);
     
@@ -48,7 +52,14 @@ public class VueFileFilter extends javax.swing.filechooser.FileFilter
             txt = {"txt"},
             zip = {"zip"},
             rli = {"rli.xml"},
-            VuePackageExt = { VuePackage };
+            // HO 23/03/2012 BEGIN *****
+            // adding new file type
+            // VuePackageExt = { VuePackage };
+            VuePackageExt = { VuePackage },
+            designVuePackageExt = { designVuePackage };
+			// HO 23/03/2012 END *****
+			
+            
     
     private final String[] extensions;
     private final String description;
@@ -78,6 +89,12 @@ public class VueFileFilter extends javax.swing.filechooser.FileFilter
         
         else if (description.equalsIgnoreCase(VPK_DESCRIPTION))
             extensions = VuePackageExt;
+        
+        // HO 23/03/2012 BEGIN ******
+        // adding new file type
+        else if (description.equalsIgnoreCase(VDK_DESCRIPTION))
+            extensions = designVuePackageExt;
+        // HO 23/03/2012 END *******
         
         else if (description.equalsIgnoreCase(SVG_DESCRIPTION))
           extensions = svg;

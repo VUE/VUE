@@ -351,7 +351,10 @@ public class SaveAction extends VueAction
                index.write(writer);
                writer.close();
             }
-            else if (name.endsWith(VueUtil.VueArchiveExtension))
+            // HO 23/03/2012 BEGIN **********
+            // else if (name.endsWith(VueUtil.VueArchiveExtension))
+            else if ((name.endsWith(VueUtil.VueArchiveExtension)) || (name.endsWith(VueUtil.designVueArchiveExtension)))
+            	// HO 23/03/2012 END **********
             {
             	// HO 05/01/2012 BEGIN *******
                 FileLockAction.deletePreviousLockFile(map, newFile);
@@ -379,7 +382,10 @@ public class SaveAction extends VueAction
             // HO 11/03/2011 BEGIN *****************
             // make sure that newly saved archive files also get added to the Recent Files list
             //if (name.endsWith(".vue"))
-            if ((name.endsWith(".vue")) || (name.endsWith(VueUtil.VueArchiveExtension)))
+            // HO 23/03/2012 BEGIN **********
+            // if ((name.endsWith(".vue")) || (name.endsWith(VueUtil.VueArchiveExtension)))
+            if ((name.endsWith(".vue")) || (name.endsWith(VueUtil.VueArchiveExtension)) || (name.endsWith(VueUtil.designVueArchiveExtension)))
+            	// HO 23/03/2012 END **********
         	// HO 11/03/2011 END *****************
             {
             	RecentlyOpenedFilesManager rofm = RecentlyOpenedFilesManager.getInstance();
@@ -429,7 +435,9 @@ public class SaveAction extends VueAction
      * .vue map would remain the active map and the new .vpk would
      * not open. It behaved like an export. Since making the .vpk
      * format the default, this is unintuitive behaviour.
-     * This function auto-opens the new .vpk file and closes
+     * (Note: the default is now .vdk, which is a .vpk 
+     * with an extension that classic VUE won't recognize)
+     * This function auto-opens the new .vdk file and closes
      * the original .vue, if there is one.
      * @param map, the LWMap being saved
      * @param saveAs, true if the map may need to be saved under a new name,
@@ -641,7 +649,11 @@ public class SaveAction extends VueAction
                index.write(writer);
                writer.close();
             }
-            else if (name.endsWith(VueUtil.VueArchiveExtension))
+            // HO 23/03/2012 BEGIN *********
+            // adding a new file type
+            // else if (name.endsWith(VueUtil.VueArchiveExtension))
+            else if ((name.endsWith(VueUtil.VueArchiveExtension)) || (name.endsWith(VueUtil.designVueArchiveExtension)))
+            	// HO 23/03/2012 END ********
             {
                 // HO 20/02/2011 BEGIN **********
             	// if it's a .vpk file we need to make sure we close and auto-open
@@ -666,7 +678,11 @@ public class SaveAction extends VueAction
             // HO 11/03/2011 BEGIN *****************
             // make sure new .vpk files appear in the Recent Files list
             //if (name.endsWith(".vue"))
-            if ((name.endsWith(".vue")) || (name.endsWith(VueUtil.VueArchiveExtension)))
+            // HO 23/03/2012 BEGIN **********
+            // make sure new .vdk files appear in the Recent Files list too
+            // if ((name.endsWith(".vue")) || (name.endsWith(VueUtil.VueArchiveExtension)))
+            if ((name.endsWith(".vue")) || (name.endsWith(VueUtil.VueArchiveExtension)) || (name.endsWith(VueUtil.designVueArchiveExtension)))
+            	// HO 23/03/2012 END **********
         	// HO 11/03/2011 END *****************
             {
             	RecentlyOpenedFilesManager rofm = RecentlyOpenedFilesManager.getInstance();
@@ -877,7 +893,11 @@ public class SaveAction extends VueAction
         final LWMap map = ActionUtil.unmarshallMap(new File(args[0]));
         Log.debug("MAIN: Unmarshalled map: " + map);
 
-        Archive.writeArchive(map, new File(map.getLabel().substring(0, map.getLabel().length() - 4) + VueUtil.VueArchiveExtension));
+        // HO 23/03/2012 BEGIN ******
+        // default file type is now .vdk
+        // Archive.writeArchive(map, new File(map.getLabel().substring(0, map.getLabel().length() - 4) + VueUtil.VueArchiveExtension));
+        Archive.writeArchive(map, new File(map.getLabel().substring(0, map.getLabel().length() - 4) + VueUtil.designVueArchiveExtension));
+        // HO 23/03/2012 END **********
         //writeArchive(map, new File("test" + VueUtil.VueArchiveExtension));
 
         

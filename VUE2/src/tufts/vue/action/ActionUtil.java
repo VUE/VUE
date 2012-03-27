@@ -148,13 +148,18 @@ public class ActionUtil
             // HO 18/02/2011 BEGIN *************
         	// making .vpk the default choice now
         	//VueFileFilter defaultFilter = new VueFileFilter(VueFileFilter.VUE_DESCRIPTION);
-        	VueFileFilter defaultFilter = new VueFileFilter(VueFileFilter.VPK_DESCRIPTION);
+        	// HO 23/02/2012 BEGIN *************
+        	// VueFileFilter defaultFilter = new VueFileFilter(VueFileFilter.VPK_DESCRIPTION);
+        	VueFileFilter defaultFilter = new VueFileFilter(VueFileFilter.VDK_DESCRIPTION);
+        	// HO 23/02/2012 END *************
         	// HO 18/02/2011 END *************
             
             saveChooser.addChoosableFileFilter(defaultFilter);  
             // HO 18/02/2011 BEGIN *************
         	// making .vpk the default choice now
-            // saveChooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.VPK_DESCRIPTION));
+            // HO 23/02/2012 BEGIN *************
+            saveChooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.VPK_DESCRIPTION));
+            // HO 23/02/2012 END *************
             saveChooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.VUE_DESCRIPTION));
             // HO 18/02/2011 END *************
         //SIMILE    chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.SIMILE_DESCRIPTION));

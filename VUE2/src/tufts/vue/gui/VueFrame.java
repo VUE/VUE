@@ -410,7 +410,11 @@ public class VueFrame extends javax.swing.JFrame
 
     public void setTitle(String title)
     {
-       if (title.endsWith(".vpk") || title.endsWith(".vue"))
+        // HO 23/03/2012 BEGIN ******
+    	// adding new .vdk file type
+    	// if (title.endsWith(".vpk") || title.endsWith(".vue"))
+    	if (title.endsWith(".vpk") || title.endsWith(".vue") || title.endsWith(".vdk"))
+    		// HO 23/03/2012 END ******
     	   super.setTitle(title);
     }
     private void out(String s) {

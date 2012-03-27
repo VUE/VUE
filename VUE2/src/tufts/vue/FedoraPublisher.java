@@ -96,11 +96,19 @@ public class FedoraPublisher {
         System.out.println("Saving archive to repository: "+map.getFile());
         //check if the file ends with vpk extension
         String  mapName = map.getFile().getName();
-        if(mapName.endsWith(VueUtil.VueArchiveExtension)){
+        // HO 23/03/2012 BEGIN ********
+        // adding new .vdk file type for designVUE only
+        // if(mapName.endsWith(VueUtil.VueArchiveExtension)){
+        if((mapName.endsWith(VueUtil.VueArchiveExtension)) || (mapName.endsWith(VueUtil.designVueArchiveExtension))){
+        	// HO 23/03/2012 END ********
             addObjectToRepository(ds,VUE_CM,map.getFile(),map,map);
         } else {
             String archiveFilePath = map.getFile().getAbsolutePath();
-            archiveFilePath = archiveFilePath.substring(0,archiveFilePath.length()-4)+VueUtil.VueArchiveExtension;
+            // HO 23/03/2012 BEGIN ********
+            // default file type is now .vdk
+            // archiveFilePath = archiveFilePath.substring(0,archiveFilePath.length()-4)+VueUtil.VueArchiveExtension;
+            archiveFilePath = archiveFilePath.substring(0,archiveFilePath.length()-4)+VueUtil.designVueArchiveExtension;
+            // HO 23/03/2012 END *************
             File archiveFile = new File(archiveFilePath);
             tufts.vue.action.Archive.writeArchive(map,archiveFile);
             System.out.println("Writing Archival Object:"+archiveFile);

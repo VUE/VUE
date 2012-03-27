@@ -71,9 +71,15 @@ public class VueUtil extends tufts.Util
     public static final String DEFAULT_MAC_FOLDER = ".vue_2";
     public static final String VueExtension = VueResources.getString("vue.extension", ".vue");
     public static final String VueArchiveExtension = VueResources.getString("vue.archive.extension", ".vpk");
+    // HO 23/03/2012 BEGIN ********
+    public static final String designVueArchiveExtension = VueResources.getString("designvue.archive.extension", ".vdk");
+    // HO 23/03/2012 END **********
     // HO 12/01/2012 BEGIN ***********
     public static final String VueLockExtension = VueResources.getString("vue.lock.extension", ".vle");
     public static final String VueArchiveLockExtension = VueResources.getString("vue.archive.lock.extension", ".vlk");
+    // HO 23/03/2012 BEGIN *******
+    public static final String designVueArchiveLockExtension = VueResources.getString("designvue.archive.lock.extension", ".dlk");
+    // HO 23/03/2012 END *********
     // HO 12/01/2012 END *************
     private static String currentDirectoryPath = "";
     
@@ -117,6 +123,9 @@ public class VueUtil extends tufts.Util
                      
             if (lowCaseURL.endsWith(VueExtension) ||
                 lowCaseURL.endsWith(VueArchiveExtension) ||
+                // HO 23/03/2012 BEGIN *******
+                lowCaseURL.endsWith(designVueArchiveExtension) ||
+                // HO 23/03/2012 END ********
                 lowCaseURL.endsWith(".zip") ||
                 (DEBUG.Enabled && lowCaseURL.endsWith(".xml")))
             {
@@ -221,7 +230,7 @@ public class VueUtil extends tufts.Util
 
 	* @param file_to_search, the file we are searching for: filtered
 	* to be a .vue or .vpk file
-
+	* or a .vdk file
 	* @return a File of the desired name if it is found,
 	* without checking to make sure the target node is inside
 	* @author Helen Oliver
@@ -301,6 +310,7 @@ public class VueUtil extends tufts.Util
 	* @param next_level_dir, the parent directory we are searching in now
 	* @param file_to_search, the file we are searching for: filtered
 	* to be a .vue or .vpk file
+	* or a .vdk file
 	* @param compString, the UURI of the target component
 	* @return LWMap, the map if we find the one with the target component, null otherwise
 	* @author Helen Oliver
@@ -376,7 +386,7 @@ public class VueUtil extends tufts.Util
 
 	* @param file_to_search, the file we are searching for: filtered
 	* to be a .vue or .vpk file
-
+	* or a .vdk file
 	* @param compString, the UURI of the target component
 
 	* @return LWMap, the map if we find the one with the target component, null otherwise
@@ -467,7 +477,7 @@ public class VueUtil extends tufts.Util
 
 	* @param file_to_search, the file we are searching for: filtered
 	* to be a .vue or .vpk file
-
+	* or a .vdk file
 	* @param compString, the UURI of the target component
 
 	* @return LWMap, the map if we find the one with the target component, null otherwise
@@ -591,6 +601,25 @@ public class VueUtil extends tufts.Util
   	}
 	
     /**
+     * Convenience class to return a file filter for either
+     * a .vdk file or a directory.
+     * @author Helen Oliver
+     *
+     */
+	public static class DesignVueArchiveFileOrDirectoryFilter implements FileFilter {
+
+  	  public boolean accept(File pathname) {
+
+  	    if (pathname.getName().endsWith(VueUtil.designVueArchiveExtension)) 
+  	      return true;
+  	    else if (pathname.isDirectory())
+  	    	return true;
+  	    
+  	    return false;
+  	  }
+  	}
+	
+    /**
      * Convenience class to return a file filter for a .vue file only,
      * no frills.
      * @author Helen Oliver
@@ -624,6 +653,23 @@ public class VueUtil extends tufts.Util
   	  }
   	}
 	
+    /**
+     * Convenience class to return a file filter for a .vdk file only,
+     * no frills.
+     * @author Helen Oliver
+     *
+     */
+	public static class DesignVueArchiveFileOnlyFilter implements FileFilter {
+
+  	  public boolean accept(File pathname) {
+
+  	    if (pathname.getName().endsWith(VueUtil.designVueArchiveExtension)) 
+  	      return true;
+  	    
+  	    return false;
+  	  }
+  	}
+	
   
     /**
      * Convenience class to return a file filter for either
@@ -650,6 +696,7 @@ public class VueUtil extends tufts.Util
      * @param strFileName, the filename String for which we need the right extension filter
      * @return either a filter for a .vue file,
      * or a filter for a .vpk file,
+     * or a filter for a .vdk file
      * according to the file type
      * @author Helen Oliver
      */
@@ -663,6 +710,11 @@ public class VueUtil extends tufts.Util
     	else if (strFileName.endsWith(VueUtil.VueArchiveExtension))
     		return new VueArchiveFileOnlyFilter();
     	
+    	// HO 23/03/2012 BEGIN ******
+    	else if (strFileName.endsWith(VueUtil.designVueArchiveExtension))
+    		return new DesignVueArchiveFileOnlyFilter();
+    	// HO 23/03/2012 END *******
+    	
     	return null;
     	
     }
@@ -673,6 +725,7 @@ public class VueUtil extends tufts.Util
      * @param strFileName, the filename String for which we need the right extension filter
      * @return either a filter for a .vue file or a directory,
      * or a filter for a .vpk file or a directory,
+     * or a filter for a .vdk file or a directory,
      * according to the file type
      * @author Helen Oliver
      */
@@ -685,6 +738,11 @@ public class VueUtil extends tufts.Util
     	
     	else if (strFileName.endsWith(VueUtil.VueArchiveExtension))
     		return new VueArchiveFileOrDirectoryFilter();
+    	
+    	// HO 23/03/2012 BEGIN ******
+    	else if (strFileName.endsWith(VueUtil.designVueArchiveExtension))
+    		return new DesignVueArchiveFileOrDirectoryFilter();
+    	// HO 23/03/2012 END ********
     	
     	return null;
     	

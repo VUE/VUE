@@ -979,7 +979,11 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
             // HO 18/02/2011 BEGIN ***********
             // default file type is now .vpk
             //choose.setFileFilter(new VueFileFilter(VueFileFilter.VUE_DESCRIPTION));
-            choose.setFileFilter(new VueFileFilter(VueFileFilter.VPK_DESCRIPTION));
+            // HO 23/03/2012 BEGIN ********
+            // default file type is now .vdk
+            // choose.setFileFilter(new VueFileFilter(VueFileFilter.VPK_DESCRIPTION));
+            choose.setFileFilter(new VueFileFilter(VueFileFilter.VDK_DESCRIPTION));
+            // HO 23/03/2012 END ********
             // HO 18/02/2011 END ***********
             choose.showDialog(this,VueResources.getString("dialog.setbasemap.title"));
             selectedBaseFile = choose.getSelectedFile();

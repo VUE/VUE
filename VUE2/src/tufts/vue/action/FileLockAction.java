@@ -372,6 +372,10 @@ public class FileLockAction extends VueAction
     		strLockFileSuffix = VueUtil.VueLockExtension;
     	else if (strFileName.endsWith(VueUtil.VueArchiveExtension))
     		strLockFileSuffix = VueUtil.VueArchiveLockExtension;
+    	// HO 23/03/2012 BEGIN *******
+    	else if (strFileName.endsWith(VueUtil.designVueArchiveExtension))
+    		strLockFileSuffix = VueUtil.designVueArchiveLockExtension;
+    	// HO 23/03/2012 END *********
 
     	return strLockFileSuffix;
     }
@@ -457,7 +461,7 @@ public class FileLockAction extends VueAction
 		    					if (bNotifying) {
 			    					JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
 			    			                strLockFileName + " cannot be locked.\n"
-			    			                + "Only files of type .VUE and .VPK can be locked.",
+			    			                + "Only files of type .VUE, .VPK and .VDK can be locked.",
 			    			                "File cannot be locked.", 
 			    			                JOptionPane.WARNING_MESSAGE);
 		    					}
@@ -660,7 +664,7 @@ public class FileLockAction extends VueAction
      * A function to return the right kind of file extension
      * filter for a given file.
      * @param theFile, the file for which we need the right extension filter
-     * @return either a VueLockFileFilter or a VueArchiveLockFileFilter,
+     * @return either a VueLockFileFilter or a VueArchiveLockFileFilter or a DesignVueArchiveLockFileFilter,
      * according to the file type
      * @author Helen Oliver
      */
@@ -674,6 +678,11 @@ public class FileLockAction extends VueAction
     	
     	else if (strFileName.endsWith(VueUtil.VueArchiveExtension))
     		return new VueArchiveLockFileFilter();
+    	
+    	// HO 23/03/2012 BEGIN ******
+    	else if (strFileName.endsWith(VueUtil.designVueArchiveExtension))
+    		return new DesignVueArchiveLockFileFilter();
+    	// HO 23/03/2012 END ********
     	
     	return null;
     	
@@ -926,5 +935,18 @@ public class FileLockAction extends VueAction
     	    return false;
     	  }
     	}
+    
+    // HO 23/03/2012 BEGIN ******
+    // adding new .vdk file type
+    static class DesignVueArchiveLockFileFilter implements FileFilter {
+
+  	  public boolean accept(File pathname) {
+
+  	    if (pathname.getName().endsWith(VueUtil.designVueArchiveLockExtension))
+  	      return true;
+  	    return false;
+  	  }
+  	}
+    // HO 23/03/2012 END ********
     
 }

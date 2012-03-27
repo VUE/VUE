@@ -1189,10 +1189,7 @@ public class WormholeResource extends URLResource {
             LWMap targMap = null;
             // if it's not pointing to itself
             if (!bSameMap) {
-            	try {
-            		// HO 08/03/2012 BEGIN *********
-            		VueUtil.alert("In WormholeResource, about to make first attempt", "Progress");
-            		// HO 08/03/2012 END ********		
+            	try {	
             		// FIRST ATTEMPT
             		// if we have a file, open it without question
             		if ((lastKnownFile != null) && (lastKnownFile.isFile())) {
@@ -1213,9 +1210,6 @@ public class WormholeResource extends URLResource {
         			targFile = VueUtil.resolveTargetRelativeToSource(systemSpecURI, sourceMapURI);
         			// if this gives us the file, check further
         			if ((targFile != null) && (targFile.isFile())) {
-                		// HO 08/03/2012 BEGIN *********
-                		VueUtil.alert("In WormholeResource, about to make second attempt", "Progress");
-                		// HO 08/03/2012 END ********
         				lastKnownFile = targFile;
         				// see if the target node is in this map
         				targMap = VueUtil.checkIfMapContainsTargetNode(lastKnownFile, getComponentURIString());
@@ -1234,9 +1228,6 @@ public class WormholeResource extends URLResource {
         			try {
         				// if we don't have a file or a map with a node
         				if (((lastKnownFile != null) && (!lastKnownFile.isFile())) || (targMap == null)) {
-                    		// HO 08/03/2012 BEGIN *********
-                    		VueUtil.alert("In WormholeResource, about to make third attempt", "Progress");
-                    		// HO 08/03/2012 END ********
         					// if we have a parent path
         					if ((strParentPath != null) && (strParentPath != "")) {	
         						// create a file out of the parent path
@@ -1279,9 +1270,6 @@ public class WormholeResource extends URLResource {
         				// if the target node was found in this map, open it
         				//if (targMap != null) {
     					if ((targFile != null) && (targFile.isFile())) {
-    	            		// HO 08/03/2012 BEGIN *********
-    	            		VueUtil.alert("In WormholeResource, about to make fourth attempt", "Progress");
-    	            		// HO 08/03/2012 END ********
         					// HO 07/03/2012 END *********
         					// record the relativized spec
         					//theFile = targMap.getFile();
@@ -1295,9 +1283,6 @@ public class WormholeResource extends URLResource {
         			// FIFTH ATTEMPT
         			//if ((!theFile.isFile()) || (targMap == null)) {
         			if ((lastKnownFile != null) && (!lastKnownFile.isFile())) {
-                		// HO 08/03/2012 BEGIN *********
-                		VueUtil.alert("In WormholeResource, about to make fifth attempt", "Progress");
-                		// HO 08/03/2012 END ********
         				// look in the above-folders
         				// HO 07/03/2012 BEGIN **********
         				//File targFile = new File(systemSpec);

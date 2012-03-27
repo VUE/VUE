@@ -378,7 +378,11 @@ public class MapChooser extends JDialog implements ActionListener{
               // HO 18/02/2011 BEGIN ******************
           	  // default file type is now .vpk
               // chooseFile.setFileFilter(new VueFileFilter(VueFileFilter.VUE_DESCRIPTION));
-              chooseFile.setFileFilter(new VueFileFilter(VueFileFilter.VPK_DESCRIPTION));
+              // HO 23/03/2012 BEGIN *****
+              // default file type is now .vdk
+              // chooseFile.setFileFilter(new VueFileFilter(VueFileFilter.VPK_DESCRIPTION));
+              chooseFile.setFileFilter(new VueFileFilter(VueFileFilter.VDK_DESCRIPTION));
+              // HO 23/03/2012 END *******              
               // HO 18/02/2011 END ******************
               chooseFile.showDialog(this,VueResources.getString("dialog.select.title"));
               selectedFile = chooseFile.getSelectedFile();

@@ -67,7 +67,11 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     	VueResources.getString("publisher.publishinfo4"),
     	VueResources.getString("publisher.publishinfo5")};
     
-    public static final String[] MODE_LABELS = {VueResources.getString("publisher.maponly"),VueResources.getString("publisher.mapandresources"),VueResources.getString("publisher.vpk")};
+    // HO 23/03/2012 BEGIN *********
+    // public static final String[] MODE_LABELS = {VueResources.getString("publisher.maponly"),VueResources.getString("publisher.mapandresources"),VueResources.getString("publisher.vpk")};
+    // adding new .vdk file type
+    public static final String[] MODE_LABELS = {VueResources.getString("publisher.maponly"),VueResources.getString("publisher.mapandresources"),VueResources.getString("publisher.vpk"), VueResources.getString("publisher.vdk")};
+    // HO 23/03/2012 END **********
     
     private static final String NEXT_BUTTON_TEXT    = VueResources.getString("button.next.label");
     private static final String BACK_BUTTON_TEXT    = "< "+ VueResources.getString("button.back.label");

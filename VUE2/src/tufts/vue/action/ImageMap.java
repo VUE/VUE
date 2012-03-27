@@ -445,7 +445,7 @@ public class ImageMap extends VueAction {
      * turns out to be a source node for one or more wormhole nodes
      * @return a String which is an anchor made out of the
      * UURI that this component had in its original
-     * .vue or .vpk format
+     * .vue or .vpk or .vdk format
      * @author Helen Oliver
      */    
     private String deriveSourceNodeAnchor(LWComponent comp) {

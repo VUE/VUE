@@ -61,7 +61,11 @@ public class OpenAction extends VueAction
         	// HO 18/02/2011 BEGIN ******************
         	// default file type is now .vpk
             // File[] file = ActionUtil.openMultipleFiles("Open Map", VueFileFilter.VUE_DESCRIPTION);
-        	File[] file = ActionUtil.openMultipleFiles("Open Map", VueFileFilter.VPK_DESCRIPTION);
+        	// HO 23/03/2012 BEGIN *******
+        	// default file type is now .vdk
+        	// File[] file = ActionUtil.openMultipleFiles("Open Map", VueFileFilter.VPK_DESCRIPTION);
+        	File[] file = ActionUtil.openMultipleFiles("Open Map", VueFileFilter.VDK_DESCRIPTION);
+        	// HO 23/03/2012 END *********
             // HO 18/02/2011 END ******************
             
             if (file == null)
@@ -110,26 +114,12 @@ public class OpenAction extends VueAction
 //             return false;
 //         }
 //     }
-
-
-//     public static boolean isVueArchive(File file) {
-//         return file.getName().toLowerCase().endsWith(VueUtil.VueArchiveExtension);
-//     }
     
     
     public static LWMap loadMap(java.net.URL url) {
         try {
-        	// HO 02/03/2012 BEGIN **********
-    		//VueUtil.alert("inside loadMap about to make debug statement for " + url, "Progress");
-    		// HO 02/03/2012 END ********** 
             if (DEBUG.CASTOR) Log.debug("Unmarshalling from " + url);
-         // HO 02/03/2012 BEGIN **********
-			//VueUtil.alert("About to unmarshall map " + url, "Progress");
-			// HO 02/03/2012 END ********** 
             LWMap map = ActionUtil.unmarshallMap(url);
-         // HO 02/03/2012 BEGIN **********
-			//VueUtil.alert("just unmarshalled map " + map, "Progress");
-			// HO 02/03/2012 END ********** 
             return map;
         } catch (Exception e) {
             Log.error("loadMap " + tufts.Util.tags(url), e);
@@ -419,13 +409,8 @@ public class OpenAction extends VueAction
         }
         System.out.println("@@@Done.");
 
-//         if (map != null) {
-//             //SaveAction.writeArchive(map, new File("test.var"));
-//             //createVUEArchive(map, new File("test.var"));
-//         }
 
-        
-
+       
 //         String file = args.length == 0 ? "test.xml" : args[0];
 //         System.err.println("Attempting to read map from " + file);
 //         DEBUG.Enabled = true;
