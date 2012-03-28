@@ -4170,8 +4170,19 @@ public class VUE
         
         diagPush("displayMapForRefresh");
         if (DEBUG.INIT) out(pMap.toString());
+        
         MapViewer leftViewer = null;
         MapViewer rightViewer = null;
+        
+        // HO 28/03/2012 BEGIN ********
+        int lastLeftIndex = -1;
+        int lastRightIndex = -1;
+        int lastLeftSelected = -1;
+        int lastRightSelected = -1;
+
+        double lastLeftZoomFactor = 0.0;
+        double lastRightZoomFactor = 0.0;
+        // HO 28/03/2012 END *********
         
         for (int i = 0; i < mMapTabsLeft.getTabCount(); i++) {
             LWMap map = mMapTabsLeft.getMapAt(i);
@@ -4179,13 +4190,63 @@ public class VUE
                 continue;
             File existingFile = map.getFile();
             if (existingFile != null && existingFile.equals(pMap.getFile())) {
-                Util.printStackTrace("warning: found open map with same file: " + map);
+                // you found it
+            	// HO 28/03/2012 BEGIN ********
+            	// make a note of the last index
+            	lastLeftIndex = i;
+            	// get the left viewer that contains this map
+            	leftViewer = mMapTabsLeft.getViewerAt(i);
+            	lastLeftSelected = mMapTabsLeft.getSelectedIndex();
+            	
+            	lastLeftZoomFactor = leftViewer.getZoomFactor();
+                try {
+                	// and remove it
+                	mMapTabsLeft.remove(leftViewer);
+                } catch (IndexOutOfBoundsException e) {
+                	// do nothing... for now
+                }
+                break;
+            	// HO 28/03/2012 END ********
+            }
+        } 
+        
+        // HO 28/03/2012 BEGIN ********
+        // do the same for the right tab: look for the right tab
+        // that contains this map and remove the viewer at that tab
+        for (int i = 0; i < mMapTabsRight.getTabCount(); i++) {
+            LWMap map = mMapTabsRight.getMapAt(i);
+            if (map == null)
+                continue;
+            File existingFile = map.getFile();
+            if (existingFile != null && existingFile.equals(pMap.getFile())) {
+                // you found it
+            	// make a note of the last index
+            	lastRightIndex = i;
+            	// setting the right viewer here
+            	rightViewer = mMapTabsRight.getViewerAt(i);
+            	lastRightSelected = mMapTabsRight.getSelectedIndex();
+            	lastRightZoomFactor = rightViewer.getZoomFactor();
+                // added try/catch block
+                try {
+                	// and remove it
+                	mMapTabsRight.remove(rightViewer);
+                } catch (IndexOutOfBoundsException e) {
+                	// do nothing... for now
+                }
+                break;
             }
         } 
         
         if (leftViewer == null) {
-            leftViewer = new MapViewer(pMap, "*LEFT");
-            rightViewer = new MapViewer(pMap, "right");
+        	// HO 28/03/2012 BEGIN ********
+            // leftViewer = new MapViewer(pMap, "*LEFT");
+            // rightViewer = new MapViewer(pMap, "right");
+        	leftViewer = new MapViewer(pMap, "*LEFT", false);
+            rightViewer = new MapViewer(pMap, "right", false);
+            
+            // make sure it stays at the same zoom factor it was at before
+            restoreZoomFactors(lastLeftZoomFactor, leftViewer, lastRightZoomFactor, rightViewer);
+            // HO 28/03/2012 END ***********
 
             // Start them both off unfocusable, so we get no
             // focus transfers until we're ready to decide what
@@ -4197,18 +4258,39 @@ public class VUE
                 out("currently active viewer: " + getActiveViewer());
                 out("created new left viewer: " + leftViewer);
             }
-
-            mMapTabsLeft.addViewer(leftViewer);
+            
+            // replace the left viewer with a new one
+        	// HO 28/03/2012 BEGIN ********
+            // mMapTabsLeft.addViewer(leftViewer);
+        	// make a note of the last index
+        	if (lastLeftIndex == -1)
+        		mMapTabsLeft.addViewer(leftViewer);
+        	else {
+        		mMapTabsLeft.addViewer(leftViewer, lastLeftIndex);
+        		if (mMapTabsLeft.getTabCount() > lastLeftSelected)
+        			mMapTabsLeft.setSelectedIndex(lastLeftSelected);
+        	}
         	
+            // if (mMapTabsRight != null) {
+            	// mMapTabsRight.addViewer(rightViewer);
+            // }
+            // if there is a right viewer, replace it with the new one
             if (mMapTabsRight != null) {
-            	mMapTabsRight.addViewer(rightViewer);
+            	// make a note of the last index    	
+            	if (lastRightIndex == -1)
+            		mMapTabsRight.addViewer(rightViewer); 
+            	else
+            		mMapTabsRight.addViewer(rightViewer, lastRightIndex);
+        		if (mMapTabsRight.getTabCount() > lastRightSelected)
+        			mMapTabsRight.setSelectedIndex(lastRightSelected);
             }
 
         }
-        
+                
         // HO 10/01/2012 BEGIN *******
-        setSelectedViewer(leftViewer, rightViewer);
+        // setSelectedViewer(leftViewer, rightViewer);
         // HO 10/01/2012 END *********
+        // HO 28/03/2012 END ********
 
         diagPop();
         
