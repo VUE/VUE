@@ -4042,9 +4042,12 @@ public class Actions implements VueConstants
 	    	            		return;
 	    	            	}
 	    	            	
-	    	            	VUE.closeMapForRefresh(activeMap);
+	    	            	// HO 28/03/2012 BEGIN ******
+	    	            	//VUE.closeMapForRefresh(activeMap);
     	                	
-    	                	VUE.displayMapForRefresh(activeMap.getFile());    
+    	                	//VUE.displayMapForRefresh(activeMap.getFile()); 
+	    	            	VUE.displayMapForRefresh(activeMap, activeMap.getFile());
+    	                	// HO 28/03/2012 END ******
     	                	
     	    				Log.info("QuickRefreshFile: completed.");
 
@@ -4082,9 +4085,12 @@ public class Actions implements VueConstants
 	    	            		return;
 	    	            	}
 	    	            	
-	    	            	VUE.closeMapForRefresh(activeMap);
+	    	            	// HO 28/03/2012 BEGIN ******
+	    	            	//VUE.closeMapForRefresh(activeMap);
     	                	
-    	                	VUE.displayMapForRefresh(activeMap.getFile());    
+    	                	//VUE.displayMapForRefresh(activeMap.getFile()); 
+	    	            	VUE.displayMapForRefresh(activeMap, activeMap.getFile());
+    	                	// HO 28/03/2012 END ****** 
     	                	
     	    				Log.info("RefreshFile: completed.");
 

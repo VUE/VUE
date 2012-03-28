@@ -250,7 +250,10 @@ public class LWMap extends LWContainer
     		// when they should
     		// check if an attempt has been made
     		// to construct the wormholes for this map
-    		if (bWormholesConstructed)
+    		// HO 28/03/2012 BEGIN ******
+    		// if (bWormholesConstructed)
+    		if ((bWormholesConstructed) && (!Actions.refreshUnderway))
+    			// HO 28/03/2012 END ******
     			// HO 03/11/2011 END *******
     			return;
     	}
@@ -262,7 +265,10 @@ public class LWMap extends LWContainer
     	// make sure that at least one attempt has been made
     	// to construct wormholes
     	// if (!labelChangeRequired)
-    	if ((!labelChangeRequired) && (bWormholesConstructed))
+    	// HO 28/03/2012 BEGIN *******
+    	// if ((!labelChangeRequired) && (bWormholesConstructed))
+    	if ((!labelChangeRequired) && (bWormholesConstructed) && (!Actions.refreshUnderway))
+    		// HO 28/03/2012 END *******
     		// HO 03/11/2011 END *******
     		return;
     	// HO 03/08/2011 END ************

@@ -3846,84 +3846,101 @@ public class VUE
         double lastRightZoomFactor = 0.0;
         // HO 31/08/2011 END *********
         
+        // HO 23/03/2012 BEGIN *******
+        lastLeftSelected = mMapTabsLeft.getSelectedIndex();
+        lastLeftIndex = findMapInTabbedPane(mMapTabsLeft, pMap);
+        leftViewer = mMapTabsLeft.getViewerAt(lastLeftIndex);
+        lastLeftZoomFactor = leftViewer.getZoomFactor();
+        try {
+        	// and remove it
+        	mMapTabsLeft.remove(leftViewer);
+        } catch (IndexOutOfBoundsException e) {
+        	// do nothing... for now
+        }
+        
+        lastRightSelected = mMapTabsRight.getSelectedIndex();
+        lastRightIndex = findMapInTabbedPane(mMapTabsRight, pMap);
+        rightViewer = mMapTabsRight.getViewerAt(lastRightIndex);
+        lastRightZoomFactor = rightViewer.getZoomFactor();
+        try {
+        	// and remove it
+        	mMapTabsRight.remove(rightViewer);
+        } catch (IndexOutOfBoundsException e) {
+        	// do nothing... for now
+        }
         // go through the left tabs and see if the map is open in any of them
-        for (int i = 0; i < mMapTabsLeft.getTabCount(); i++) {
+        // for (int i = 0; i < mMapTabsLeft.getTabCount(); i++) {
         	// see if this is our map
-            LWMap map = mMapTabsLeft.getMapAt(i);
+            //LWMap map = mMapTabsLeft.getMapAt(i);
             // if there's no map here keep going
-            if (map == null)
-                continue;
+            //if (map == null)
+                //continue;
             // otherwise, get the map file
-            File existingFile = map.getFile();
+            //File existingFile = map.getFile();
             // if the map file exists and is the same as the file for
             // the map we're looking for...
-            if (existingFile != null && existingFile.equals(pMap.getFile())) {
+            //if (existingFile != null && existingFile.equals(pMap.getFile())) {
                 // you found it
             	// HO 28/07/2011 BEGIN ********
             	// make a note of the last index
-            	lastLeftIndex = i;
+            	//lastLeftIndex = i;
             	// HO 28/07/2011 END ********
             	// get the left viewer that contains this map
-            	leftViewer = mMapTabsLeft.getViewerAt(i);
-            	lastLeftSelected = mMapTabsLeft.getSelectedIndex();
+            	//leftViewer = mMapTabsLeft.getViewerAt(i);
+            	//lastLeftSelected = mMapTabsLeft.getSelectedIndex();
             	// HO 31/08/2011 BEGIN ********
-            	lastLeftZoomFactor = leftViewer.getZoomFactor();
+            	//lastLeftZoomFactor = leftViewer.getZoomFactor();
             	// HO 31/08/2011 END ********
                 // HO 28/02/2011 BEGIN ***********
                 // added try/catch block
-                try {
+                //try {
                 	// and remove it
-                	mMapTabsLeft.remove(leftViewer);
-                } catch (IndexOutOfBoundsException e) {
+                	//mMapTabsLeft.remove(leftViewer);
+                //} catch (IndexOutOfBoundsException e) {
                 	// do nothing... for now
-                }
+                //}
                 // HO 28/02/2011 END ***********
-                break;
-            }
-        } 
+                //break;
+            //}
+        // } 
+        // HO 23/03/2012 END *********
+        
+
 
         // do the same for the right tab: look for the right tab
         // that contains this map and remove the viewer at that tab
-        for (int i = 0; i < mMapTabsRight.getTabCount(); i++) {
-            LWMap map = mMapTabsRight.getMapAt(i);
-            if (map == null)
-                continue;
-            File existingFile = map.getFile();
-            if (existingFile != null && existingFile.equals(pMap.getFile())) {
+        //for (int i = 0; i < mMapTabsRight.getTabCount(); i++) {
+            //LWMap map = mMapTabsRight.getMapAt(i);
+            //if (map == null)
+                //continue;
+            //File existingFile = map.getFile();
+            //if (existingFile != null && existingFile.equals(pMap.getFile())) {
                 // you found it
             	// HO 28/07/2011 BEGIN ********
             	// make a note of the last index
-            	lastRightIndex = i;
+            	//lastRightIndex = i;
             	// HO 28/07/2011 END ********
             	// setting the right viewer here
-            	rightViewer = mMapTabsRight.getViewerAt(i);
-            	lastRightSelected = mMapTabsRight.getSelectedIndex();
+            	//rightViewer = mMapTabsRight.getViewerAt(i);
+            	//lastRightSelected = mMapTabsRight.getSelectedIndex();
                 // HO 28/02/2011 BEGIN ***********
             	// HO 31/08/2011 BEGIN ********
-            	lastRightZoomFactor = rightViewer.getZoomFactor();
+            	//lastRightZoomFactor = rightViewer.getZoomFactor();
             	// HO 31/08/2011 END ********
                 // added try/catch block
-                try {
+                //try {
                 	// and remove it
-                	mMapTabsRight.remove(rightViewer);
-                } catch (IndexOutOfBoundsException e) {
+                	//mMapTabsRight.remove(rightViewer);
+                //} catch (IndexOutOfBoundsException e) {
                 	// do nothing... for now
-                }
-                break;
-            }
-        } 
+                //}
+                //break;
+            //}
+        //} 
 
         // now recreate both viewers
-        // HO 21/04/2011 BEGIN **************
-        //leftViewer = new MapViewer(pMap, "*LEFT");
-        //rightViewer = new MapViewer(pMap, "right");
-        // HO 31/08/2011 BEGIN **************
         leftViewer = new MapViewer(pMap, "*LEFT", false);
         rightViewer = new MapViewer(pMap, "right", false);
-        //leftViewer = new MapViewer(pMap, "*LEFT", true);
-        //rightViewer = new MapViewer(pMap, "right", true);
-        // HO 31/08/2011 END **************
-        // HO 21/04/2011 END **************
         
     	// HO 31/08/2011 BEGIN ********
         // make sure it stays at the same zoom factor it was at before
@@ -3985,6 +4002,44 @@ public class VUE
         return leftViewer;
     }    
     // HO 19/08/2010 END *************************
+    
+    // HO 23/03/2012 BEGIN ******
+    private static int findMapInTabbedPane(MapTabbedPane theMapTabs, LWMap pMap) {
+    	// input validation
+    	if ((theMapTabs == null) || (pMap == null))
+    		return -1;
+    	
+    	int lastIndex = -1;
+    	int lastSelected = -1;
+    	MapViewer theMapViewer = null;
+    	
+    	// go through the tabs and see if the map is open in any of them
+        for (int i = 0; i < theMapTabs.getTabCount(); i++) {
+        	// see if this is our map
+            LWMap map = theMapTabs.getMapAt(i);
+            // if there's no map here keep going
+            if (map == null)
+                continue;
+            // otherwise, get the map file
+            File existingFile = map.getFile();
+            // if the map file exists and is the same as the file for
+            // the map we're looking for...
+            if (existingFile != null && existingFile.equals(pMap.getFile())) {
+                // you found it
+            	// make a note of the last index
+            	lastIndex = i;
+            	// get the left viewer that contains this map
+            	theMapViewer = theMapTabs.getViewerAt(i);
+            	lastSelected = theMapTabs.getSelectedIndex();
+
+                break;
+            }
+        } 
+        
+        return lastIndex;
+    }
+    
+    // HO 23/03/2012 END *******
     
 	// HO 31/08/2011 BEGIN ********
     /**
@@ -4103,7 +4158,10 @@ public class VUE
      * but without changing the lock files.
      * As this is a refresh we will always have open this map.
      */
-    public static void displayMapForRefresh(File file) {
+    // HO 23/03/2012 BEGIN ********
+    // public static void displayMapForRefresh(File file) {
+    public static void displayMapForRefresh(LWMap pMap, File file) {
+    	// HO 23/03/2012 END ********
         if (VUE.isStartupUnderway() || DEBUG.INIT || DEBUG.IO) Log.info("displayMapForRefresh " + Util.tags(file));
 
         // Call initDataSources again just in case a user can make it to the file
@@ -4112,9 +4170,37 @@ public class VUE
         // this method is synchronized.
         initDataSources();
 
-        if (file == null)
+        // HO 23/03/2012 BEGIN ********
+        // if (file == null)
+        if ((file == null) || (pMap == null))
+        	// HO 23/03/2012 END ********
             return;
 
+        // HO 23/03/2012 BEGIN ********
+        MapViewer leftViewer = null;
+        MapViewer rightViewer = null;
+        
+        int lastLeftIndex = -1;
+        int lastRightIndex = -1;
+        int lastLeftSelected = -1;
+        int lastRightSelected = -1;
+
+        double lastLeftZoomFactor = 0.0;
+        double lastRightZoomFactor = 0.0;
+        
+        lastLeftSelected = mMapTabsLeft.getSelectedIndex();
+        lastLeftIndex = findMapInTabbedPane(mMapTabsLeft, pMap);
+        leftViewer = mMapTabsLeft.getViewerAt(lastLeftIndex);
+        lastLeftZoomFactor = leftViewer.getZoomFactor();
+        
+        lastRightSelected = mMapTabsRight.getSelectedIndex();
+        lastRightIndex = findMapInTabbedPane(mMapTabsRight, pMap);
+        rightViewer = mMapTabsRight.getViewerAt(lastRightIndex);
+        lastRightZoomFactor = rightViewer.getZoomFactor();
+        
+        closeMapForRefresh(pMap);
+        // HO 28/03/2012 END *********
+        
         closeContentlessMap();
 
         for (int i = 0; i < mMapTabsLeft.getTabCount(); i++) {
@@ -4142,7 +4228,11 @@ public class VUE
             loadedMap = OpenAction.loadMap(file.getAbsolutePath());
             alerted = true; // OpenAction.loadMap now always alerts
             if (loadedMap != null) {
-                VUE.displayMapForRefresh(loadedMap);   
+            	// HO 28/03/2012 BEGIN ********
+                // VUE.displayMapForRefresh(loadedMap); 
+            	VUE.displayMapForRefresh(loadedMap, lastLeftIndex, lastLeftSelected, lastLeftZoomFactor,
+            			lastRightIndex, lastRightSelected, lastRightZoomFactor);
+             // HO 28/03/2012 END ********
             }
             VUE.getMetadataSearchMainPanel().fillSavedSearch();
         } catch (Throwable t) {
@@ -4165,131 +4255,59 @@ public class VUE
      * Create a new viewer and display the given map in it.
      * Use only during refresh - does not tamper with existing lock files
      */
-    public static MapViewer displayMapForRefresh(LWMap pMap) {
+    // HO 28/03/2012 BEGIN ********
+    // public static MapViewer displayMapForRefresh(LWMap pMap) {
+    public static MapViewer displayMapForRefresh(LWMap pMap, int lastLeftIndex, int lastLeftSelected, double lastLeftZoomFactor,
+    		int lastRightIndex, int lastRightSelected, double lastRightZoomFactor) {
+    	// HO 28/03/2012 END ********
         if (VUE.isStartupUnderway() || DEBUG.Enabled) out("displayMapForRefresh " + pMap);
         
         diagPush("displayMapForRefresh");
         if (DEBUG.INIT) out(pMap.toString());
         
-        MapViewer leftViewer = null;
-        MapViewer rightViewer = null;
-        
         // HO 28/03/2012 BEGIN ********
-        int lastLeftIndex = -1;
-        int lastRightIndex = -1;
-        int lastLeftSelected = -1;
-        int lastRightSelected = -1;
-
-        double lastLeftZoomFactor = 0.0;
-        double lastRightZoomFactor = 0.0;
-        // HO 28/03/2012 END *********
-        
-        for (int i = 0; i < mMapTabsLeft.getTabCount(); i++) {
-            LWMap map = mMapTabsLeft.getMapAt(i);
-            if (map == null)
-                continue;
-            File existingFile = map.getFile();
-            if (existingFile != null && existingFile.equals(pMap.getFile())) {
-                // you found it
-            	// HO 28/03/2012 BEGIN ********
-            	// make a note of the last index
-            	lastLeftIndex = i;
-            	// get the left viewer that contains this map
-            	leftViewer = mMapTabsLeft.getViewerAt(i);
-            	lastLeftSelected = mMapTabsLeft.getSelectedIndex();
-            	
-            	lastLeftZoomFactor = leftViewer.getZoomFactor();
-                try {
-                	// and remove it
-                	mMapTabsLeft.remove(leftViewer);
-                } catch (IndexOutOfBoundsException e) {
-                	// do nothing... for now
-                }
-                break;
-            	// HO 28/03/2012 END ********
-            }
-        } 
-        
-        // HO 28/03/2012 BEGIN ********
-        // do the same for the right tab: look for the right tab
-        // that contains this map and remove the viewer at that tab
-        for (int i = 0; i < mMapTabsRight.getTabCount(); i++) {
-            LWMap map = mMapTabsRight.getMapAt(i);
-            if (map == null)
-                continue;
-            File existingFile = map.getFile();
-            if (existingFile != null && existingFile.equals(pMap.getFile())) {
-                // you found it
-            	// make a note of the last index
-            	lastRightIndex = i;
-            	// setting the right viewer here
-            	rightViewer = mMapTabsRight.getViewerAt(i);
-            	lastRightSelected = mMapTabsRight.getSelectedIndex();
-            	lastRightZoomFactor = rightViewer.getZoomFactor();
-                // added try/catch block
-                try {
-                	// and remove it
-                	mMapTabsRight.remove(rightViewer);
-                } catch (IndexOutOfBoundsException e) {
-                	// do nothing... for now
-                }
-                break;
-            }
-        } 
-        
-        if (leftViewer == null) {
-        	// HO 28/03/2012 BEGIN ********
-            // leftViewer = new MapViewer(pMap, "*LEFT");
-            // rightViewer = new MapViewer(pMap, "right");
-        	leftViewer = new MapViewer(pMap, "*LEFT", false);
-            rightViewer = new MapViewer(pMap, "right", false);
+        MapViewer leftViewer = new MapViewer(pMap, "*LEFT", false);
+        MapViewer rightViewer = new MapViewer(pMap, "right", false);
             
-            // make sure it stays at the same zoom factor it was at before
-            restoreZoomFactors(lastLeftZoomFactor, leftViewer, lastRightZoomFactor, rightViewer);
-            // HO 28/03/2012 END ***********
+        // make sure it stays at the same zoom factor it was at before
+        restoreZoomFactors(lastLeftZoomFactor, leftViewer, lastRightZoomFactor, rightViewer);
 
-            // Start them both off unfocusable, so we get no
-            // focus transfers until we're ready to decide what
-            // wants to get the focus.
-            leftViewer.setFocusable(false);
-            rightViewer.setFocusable(false);
+        // Start them both off unfocusable, so we get no
+        // focus transfers until we're ready to decide what
+        // wants to get the focus.
+        leftViewer.setFocusable(false);
+        rightViewer.setFocusable(false);
 
-            if (DEBUG.FOCUS) {
-                out("currently active viewer: " + getActiveViewer());
-                out("created new left viewer: " + leftViewer);
-            }
-            
-            // replace the left viewer with a new one
-        	// HO 28/03/2012 BEGIN ********
-            // mMapTabsLeft.addViewer(leftViewer);
-        	// make a note of the last index
-        	if (lastLeftIndex == -1)
-        		mMapTabsLeft.addViewer(leftViewer);
-        	else {
-        		mMapTabsLeft.addViewer(leftViewer, lastLeftIndex);
-        		if (mMapTabsLeft.getTabCount() > lastLeftSelected)
-        			mMapTabsLeft.setSelectedIndex(lastLeftSelected);
-        	}
-        	
-            // if (mMapTabsRight != null) {
-            	// mMapTabsRight.addViewer(rightViewer);
-            // }
-            // if there is a right viewer, replace it with the new one
-            if (mMapTabsRight != null) {
-            	// make a note of the last index    	
-            	if (lastRightIndex == -1)
-            		mMapTabsRight.addViewer(rightViewer); 
-            	else
-            		mMapTabsRight.addViewer(rightViewer, lastRightIndex);
-        		if (mMapTabsRight.getTabCount() > lastRightSelected)
-        			mMapTabsRight.setSelectedIndex(lastRightSelected);
-            }
-
+        if (DEBUG.FOCUS) {
+            out("currently active viewer: " + getActiveViewer());
+            out("created new left viewer: " + leftViewer);
         }
-                
+            
+        // replace the left viewer with a new one
+    	// make a note of the last index
+    	if (lastLeftIndex == -1)
+    		mMapTabsLeft.addViewer(leftViewer);
+    	else {
+    		mMapTabsLeft.addViewer(leftViewer, lastLeftIndex);
+    		if (mMapTabsLeft.getTabCount() > lastLeftSelected)
+    			mMapTabsLeft.setSelectedIndex(lastLeftSelected);
+    	}
+        	
+        // if there is a right viewer, replace it with the new one
+        if (mMapTabsRight != null) {
+        	// make a note of the last index    	
+        	if (lastRightIndex == -1)
+        		mMapTabsRight.addViewer(rightViewer); 
+        	else
+        		mMapTabsRight.addViewer(rightViewer, lastRightIndex);
+    		if (mMapTabsRight.getTabCount() > lastRightSelected)
+    			mMapTabsRight.setSelectedIndex(lastRightSelected);
+        }
+
         // HO 10/01/2012 BEGIN *******
         // setSelectedViewer(leftViewer, rightViewer);
         // HO 10/01/2012 END *********
+        
         // HO 28/03/2012 END ********
 
         diagPop();
