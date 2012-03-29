@@ -1051,7 +1051,7 @@ public class LWNode extends LWContainer
         				parentMap.bConstructingWormholes = true;
         				// HO 27/03/2012 BEGIN ******
         				if (wn.getLabel().equals(VueResources.getString("wormhole.node.target.label.default"))) {
-        					wn.setLabel("Green Ideas Sleep Easily");
+        					wn.setLabel("      ");
         					String theLabel = wn.getLabel();
         					System.out.println(theLabel);
         				}
