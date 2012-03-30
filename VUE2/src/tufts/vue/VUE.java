@@ -4100,7 +4100,11 @@ public class VUE
     	// HO 31/08/2011 BEGIN ********
         // make sure it stays at the same zoom factor it was at before
         restoreZoomFactor(lastLeftZoomFactor, leftViewer);
-        restoreZoomFactor(lastRightZoomFactor, rightViewer);
+        // HO 30/03/2012 BEGIN ********
+        // the right one seemed to be resetting it to 1.0 each time
+        // restoreZoomFactor(lastRightZoomFactor, rightViewer);
+        restoreZoomFactor(lastLeftZoomFactor, rightViewer);
+        // HO 30/03/2012 END *********
     	// HO 31/08/2011 END ********
     }
 	// HO 31/08/2011 END ********
