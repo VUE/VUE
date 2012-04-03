@@ -27,6 +27,7 @@
     at which point it's ready to go as a Mac OS X app.  Just drop the folder
     into /Applications (or wherever you like), double-click it and
     you're off and running.
+      test
   </description>
 
 <!-- $Revision: 1.201 $ / $Date: 2010-04-23 20:59:52 $ / $Author: mike $ -->
