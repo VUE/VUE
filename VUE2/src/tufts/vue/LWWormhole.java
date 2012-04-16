@@ -318,7 +318,7 @@ public class LWWormhole implements VueConstants {
 		// if they stopped here, no need to go any further
 		if (b == false)
 			return;	
-
+		
 		// reset the newly-reconstructed resources
 		resetResources();
     	
@@ -693,6 +693,7 @@ public class LWWormhole implements VueConstants {
 			return false;
 
     	// if we got this far we have succeeded
+
     	return true;
 	}
 	
@@ -1452,8 +1453,22 @@ public class LWWormhole implements VueConstants {
     	setTargetWormholeNode(createTargetWormholeNode());    	
     	
     	// label them (dummy labels for now)
-    	setWormholeNodeLabel(getTargetWormholeNode(), VueResources.getString("wormhole.node.target.label.default"));
+    	// HO 16/04/2012 BEGIN ********
+    	// setWormholeNodeLabel(getTargetWormholeNode(), VueResources.getString("wormhole.node.target.label.default"));
+    	labelWormholeNodes();
+    	// HO 16/04/2012 END ********
 	}
+    
+    /**
+     * A method to label the source and target wormholes
+     * with the labels of their respective target maps
+     */
+    private void labelWormholeNodes() {
+    	if ((sourceWormholeNode != null) && (targetMapFile != null))
+    		sourceWormholeNode.setLabel(targetMapFile.getName());
+    	if ((targetWormholeNode != null) && (sourceMapFile != null))
+    		targetWormholeNode.setLabel(sourceMapFile.getName());
+    }
 	
 	/**
 	 * A method to add the wormhole nodes to their components
@@ -1970,6 +1985,10 @@ public class LWWormhole implements VueConstants {
 			replaceExistingWormholeResource(targetWormholeNode, targetResource, targetMap);
 		else
 			replaceExistingWormholeResource(null, targetResource, targetMap);
+		
+		// HO 16/04/2012 BEGIN ****
+		labelWormholeNodes();
+		// HO 16/04/2012 END ******
 
 		SaveAction.saveMap(sourceMap);
 		// if the source and target maps are the same,
