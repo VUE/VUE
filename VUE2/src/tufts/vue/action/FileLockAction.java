@@ -566,8 +566,8 @@ public class FileLockAction extends VueAction
                 JOptionPane.WARNING_MESSAGE);
     		} else {
     			JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
-    	                "There is no file to unlock.",
-                    "No file object", 
+    	                "This file is not locked.",
+                    "No lock file", 
                     JOptionPane.WARNING_MESSAGE);
     		}
     	}
@@ -804,10 +804,11 @@ public class FileLockAction extends VueAction
 		
 		if (strNamesToShow != "") {
 			JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
-	                "The following files are locked for writing:\n"
+	                "The following Target Maps are locked for writing:\n"
 					+ strNamesToShow
-	            	+ "Wormholes in these files will not be updated.\n",
-	            "File locked by other user.", 
+	            	+ "If you change the name or location of this map,\n"
+	            	+ "the Wormholes in these files will not be updated.\n",
+	            "Target Maps locked by other user(s).", 
 	            JOptionPane.ERROR_MESSAGE);
 		}
 		// HO 02/03/2012 BEGIN **********

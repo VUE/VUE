@@ -304,7 +304,9 @@ public class LWWormhole implements VueConstants {
 	public void init(LWWormholeNode wn, WormholeResource wr) 
     {
 		// all maps that are already open must be saved
-		findAndSaveAllOpenMaps();
+		// HO 16/04/2012 BEGIN ********
+		//findAndSaveAllOpenMaps();
+		// HO 16/04/2012 END ******
 		
 		// we are cancelled until we have successfully
 		// constructed the whole wormhole
@@ -340,7 +342,9 @@ public class LWWormhole implements VueConstants {
 	public void init(LWWormholeNode wn, WormholeResource wr, String prevURI, LWComponent newParent) 
     {
 		// any open maps, auto-save them
-		findAndSaveAllOpenMaps();
+		// HO 16/04/2012 BEGIN *******
+		// findAndSaveAllOpenMaps();
+		// HO 16/04/2012 END *********
 		
 		// we are cancelled until we have successfully
 		// constructed the whole wormhole
@@ -479,6 +483,10 @@ public class LWWormhole implements VueConstants {
     	
         // set the file objects for the source and target maps
     	setSourceAndTargetMapFiles();
+    	// HO 16/04/2012 BEGIN ******
+    	if ((sourceMapFile == null) || (targetMapFile == null))
+    		return false;
+    	// HO 16/04/2012 END *******
     	// if we got this far we've succeeded
     	return true;
 	}
@@ -1063,7 +1071,9 @@ public class LWWormhole implements VueConstants {
 		// if the node has a parent map, make it the source map
 		if (actualSourceMap != null) {
 			// make sure the source map is saved
-    		SaveAction.saveMap(actualSourceMap);
+			// HO 16/04/2012 BEGIN *******
+    		// SaveAction.saveMap(actualSourceMap);
+    		// HO 16/04/2012 END *******
 			// set it as the source map
 			setSourceMap(actualSourceMap);
 		} else {
@@ -1910,6 +1920,8 @@ public class LWWormhole implements VueConstants {
 		setResources();
 		// auto-save both maps
 		// HO 27/03/2012 BEGIN *********
+		// note: creating wormholes is not undoable
+		// because of the auto-save
 		SaveAction.saveMapSpecial(sourceMap);
 		
 		// if the source and target maps are the same,

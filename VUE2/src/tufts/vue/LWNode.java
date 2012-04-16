@@ -1050,7 +1050,11 @@ public class LWNode extends LWContainer
         				LWMap parentMap = this.getParentOfType(LWMap.class);
         				parentMap.bConstructingWormholes = true;
         				// HO 27/03/2012 BEGIN ******
-        				if (wn.getLabel().equals(VueResources.getString("wormhole.node.target.label.default"))) {
+        				// HO 16/04/2012 BEGIN ******
+        				String strLabel = wn.getLabel();
+        				
+        				if ((strLabel != null) && (strLabel.equals(VueResources.getString("wormhole.node.target.label.default")))) {
+        					// HO 16/04/2012 BEGIN ******
         					wn.setLabel("      ");
         					String theLabel = wn.getLabel();
         					System.out.println(theLabel);
