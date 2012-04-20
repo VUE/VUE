@@ -1692,6 +1692,10 @@ public class LWWormhole implements VueConstants {
     			sourceMap.getURI().toString(), targetComponent.getURI().toString(),
     			targetMap.getURI().toString(), LWWormholeNode.WormholeType.SOURCE);
     	
+    	// HO 20/04/2012 BEGIN *****
+    	theWormholeNode.setFillColor(sourceComponent.getFillColor());
+    	// HO 20/04/2012 END *******
+    	
     	return theWormholeNode;
 	}
 	
@@ -1704,6 +1708,10 @@ public class LWWormhole implements VueConstants {
     	LWWormholeNode theWormholeNode = new LWWormholeNode(sourceComponent.getURI().toString(),
     			sourceMap.getURI().toString(), targetComponent.getURI().toString(),
     			targetMap.getURI().toString(), LWWormholeNode.WormholeType.TARGET);
+    	
+    	// HO 20/04/2012 BEGIN *****
+    	theWormholeNode.setFillColor(VueResources.getColor("node.fillColor"));
+    	// HO 20/04/2012 END *******
     	
     	return theWormholeNode;
 	}
@@ -1766,7 +1774,10 @@ public class LWWormhole implements VueConstants {
 	 */
 	public void placeWormholeNodeAsChild(LWComponent theComponent, LWWormholeNode theWormholeNode) {
 		if ((!theComponent.equals(null)) && (!theWormholeNode.equals(null))) {
-			theComponent.addChild(theWormholeNode);
+			// HO 20/04/2012 BEGIN *******
+			// theComponent.addChild(theWormholeNode);
+			theComponent.dropChild(theWormholeNode);
+			// HO 20/04/2012 END *******
 		}
 	}
 	

@@ -1437,7 +1437,7 @@ public class LWIBISNode extends LWNode
 
         if (isCenterLayout == false) {
             // layout label last in case size is bigger than min and label is centered
-            layoutBoxed_label();
+            setYPositionOfLabel();
 
             // ??? todo: cleaner move this to layoutBoxed, and have layout methods handle
             // the auto-size check (min gets set to request if request is bigger), as
@@ -2124,14 +2124,16 @@ public class LWIBISNode extends LWNode
         // HO 16/05/2011 END **********
         // HO 10/12/2010 BEGIN **********
 
-        //float textHeight = EdgePadY + text.height + EdgePadY;
+        // figure out how much height the text area needs,
+        // including padding
         float textHeight = getTotalTextHeight();
-        //float childHeight = EdgePadY + child.height + EdgePadY;
-        
-        //min.height = EdgePadY + text.height + EdgePadY;
+
         // HO 10/12/2010 BEGIN **********
-        //min.height = textHeight;
+        // figure out how much height the children need,
+        // including padding
         float childHeight = calculateTotalChildHeight();
+        // the minimum height is either the text height
+        // or the child height, whichever is higher
         min.height = Math.max(textHeight, childHeight);
         // HO 10/12/2010 BEGIN **********
         // HO 09/12/2010 END **********
@@ -2145,22 +2147,21 @@ public class LWIBISNode extends LWNode
             min.width += LabelPadLeft;
         } else {
         	// HO 09/12/2010 BEGIN **********
-            //float dividerY = EdgePadY + text.height;
+        	// text or child height, plus padding
         	float dividerY = EdgePadY + min.height; 
-            //double stubX = LabelPositionXWhenIconShowing + text.width;
         	// HO 10/12/2010 BEGIN **********
-        	//double stubX = EdgePadX + child.width + LabelPadLeft + text.width;
-        	//double stubX = child.width + LabelPadLeft + text.width;
-        	//double stubX = child.width + LabelPadLeft + text.width + LabelPadRight;
         	// HO 16/05/2011 BEGIN **********
-        	// double stubX = child.width + getTotalTextWidth() + iconWidth;
+        	// now take the minimum width without icons,
+        	// add the icon width to it,
+        	// and pad it left and right
         	double stubX = widthWithoutIcon + LabelPadLeft + LabelPadRight + iconWidth;
         	// HO 16/05/2011 END **********
-        	//double stubX = EdgePadX + child.width + EdgePadX + text.width;
         	// HO 10/12/2010 BEGIN **********
             // HO 09/12/2010 END **********
             double stubHeight = DividerStubAscent;
 
+            // now take the minimum width, plus icon width,
+            // plus padding left and right, and pad the icons on the left
             min.width = (float)stubX + IconPadLeft; // be symmetrical with left padding
         }
 
@@ -2175,133 +2176,82 @@ public class LWIBISNode extends LWNode
         return min;
     }
 
-    /** set mLabelPos */
-    private void layoutBoxed_label()
+    /** set mLabelPos 
+     * This sets the vertical position of the label
+     * by figuring out how much height is left after
+     * allowing for the height of the label,
+     * and dividing it by two,
+     * so that the label is vertically centered
+     * HO 17/04/2012 - was named layoutBoxed_label(),
+     * renaming to setYPositionOfLabel()
+     */
+    private void setYPositionOfLabel()
     {
-        Size text = getTextSize();
+        // figure out the size of the text label
+    	Size text = getTextSize();
         
-     // HO 22/12/2010 BEGIN ********************
-        /* if (hasChildren()) {
-            mLabelPos.y = EdgePadY;
-        } else { */
-            // only need this in case of small font sizes and an icon
-            // is showing -- if so, center label vertically in row with the first icon
-            // Actually, no: center in whole node -- gak, we really want both,
-            // but only to a certian threshold -- what a hack!
-            //float textHeight = getLabelBox().getPreferredSize().height;
-            //mLabelPos.y = (this.height - textHeight) / 2;
-        	// HO 22/12/2010 END ********************
-            mLabelPos.y = (this.height - text.height) / 2;
-         // HO 22/12/2010 BEGIN ********************    
-    	//}
- // HO 22/12/2010 END ********************
-     // HO 22/12/2010 BEGIN ********************
-        /* if (iconShowing()) {
-            //layoutBoxed_icon(request, min, newTextSize);
-            // TODO:
-            // need to center label between the icon block and the RHS
-            // we currently need more space at the RHS.
-            // does relativeLabelX even use this in this case?
-            // really: do something that isn't a total freakin hack like all our current layout code.
-            //mLabelPos.x = LabelPositionXWhenIconShowing;
-            mLabelPos.x = -100;  // marked bad because should never see this this: is IGNORED if icon is showing
-        } else {
-            //-------------------------------------------------------
-            // horizontally center if no icons
-            //-------------------------------------------------------
-            if (WrapText)
-                mLabelPos.x = (this.width - text.width) / 2 + 1;
-            else
-                mLabelPos.x = 200; // marked bad because unused in this case
-        } */
-     // HO 22/12/2010 END ********************
-        
+        // vertically center the label
+    	mLabelPos.y = (this.height - text.height) / 2;
+    	
     }
     
-    //-----------------------------------------------------------------------------
-    // I think these are done dynamically instead of always using
-    // mLabelPos.x and mLabelPos.y because we haven't always done a
-    // layout when we need this?  Is that true?  Does this have
-    // anything to do with activating an edit box on a newly created
-    // node?
-    //-----------------------------------------------------------------------------
+
     
+    /**
+     * A function to figure out the relative X-position of the label.
+     * @return a float representing the relative X-position of the label.
+     */
     protected float relativeLabelX()
     {
-        if (isCenterLayout) { // non-rectangular shapes
+        //-----------------------------------------------------------------------------
+        // I think these are done dynamically instead of always using
+        // mLabelPos.x and mLabelPos.y because we haven't always done a
+        // layout when we need this?  Is that true?  Does this have
+        // anything to do with activating an edit box on a newly created
+        // node?
+        //-----------------------------------------------------------------------------
+    	
+        // if the node is a non-rectangular shape,
+    	// the label is in the center, so (apparently)
+    	// the x-position has already been set
+    	if (isCenterLayout) { // non-rectangular shapes
             return mLabelPos.x;
-        } else if (iconShowing()) {
-        	// HO 09/12/2010 BEGIN ************
-        	// no change, but the value is now label left-padding
-            //return LabelPositionXWhenIconShowing;
+        } else if (iconShowing()) { // if there is an icon in this (rectangular) node
+        	// first, set the offset to no offset, the extreme left
         	float xOffset = 0f;
-        	// now if there's a child, it should be on the left
+        	// now if there's a child, it will be on the left
+        	// so figure out its width, and add it to the offset
         	if (hasChildren())  {
-        		// HO 10/12/2010 BEGIN **********
-        		//theOffset += EdgePadX + calculateChildWidth();
-        		// HO 16/05/2011 BEGIN ******
-        		//xOffset += calculateTotalChildWidth();
         		xOffset += getBasicChildWidth();
-        		// HO 16/05/2011 END ******
-        		// HO 10/12/2010 END *************
         	}
         	// now pad the label on the left
         	xOffset += LabelPadLeft;
+        	// now we have a position which is to the right of the children,
+        	// slightly padded
         	return xOffset;
-        	// HO 09/12/2010 END ************
-        } else {
-            // horizontally center if no icons
-
-        	// HO 22/12/2010 BEGIN ********************
-        	/* if (WrapText) {
-                return mLabelPos.x;
-            } else { */
-            	// HO 22/12/2010 END ********************
-                // todo problem: pre-existing default alignment w/out icons
-                // is center label, left children: when we move to generally
-                // suporting left/center/right alignment, that configuration won't
-                // be supported: we may need a special "old-style" alignment style
-        	// HO 22/12/2010 BEGIN ********************
-                /* if (mAlignment.get() == Alignment.LEFT && hasFlag(Flag.SLIDE_STYLE)) {
-                    return ChildPadX;
-                } else if (mAlignment.get() == Alignment.RIGHT) {
-                    return (this.width - getTextSize().width) - 1;
-                } else { */
-                	// HO 22/12/2010 END ********************
-                    // CENTER:
-                    // Doing this risks slighly moving the damn TextBox just as you edit it.
-                	// HO 09/12/2010 BEGIN *****************
-                	// we want it left-aligned, but positioned to the right of any children
-                	// the below will just center it
-                	// however we need to test at this point to see if there are children
-                	float xOffset = 0f;
+        } else { // horizontally center if no icons
+        			// once again, start with an offset of no offset,
+        			// the extreme left
+            		float xOffset = 0f;
+            		// if there are children, get their width 
+            		// and add the left-label padding
+            		// so that the offset is to the right of the children,
+            		// slightly padded
                 	if (hasChildren())  {
-                		// HO 10/12/2010 BEGIN *****************
-                		//theOffset += EdgePadX + getMaxChildSpan() + LabelPadLeft;
-                		// HO 16/05/2011 BEGIN ******
-                		//xOffset += calculateTotalChildWidth() + LabelPadLeft;
                 		xOffset += getBasicChildWidth() + LabelPadLeft;
-                		// HO 16/05/2011 END ******
-                		// HO 09/12/2010 END *****************
                 	} else {
+                		// if there are no children, horizontally center it
+                		// by figuring out the width of the text,
+                		// subtracting that from the node's width,
+                		// and dividing that by two
                 		xOffset += (this.width - getTextSize().width) / 2;
                 	}
-                	//theOffset += ((this.width - getTextSize().width) / 2);
-                	//final float offset = (this.width - getTextSize().width) / 2;
+
                 	final float offset = xOffset;
-                	 // float childSpace = getMaxChildSpan();
-                	// final float offset = childSpace;
-                	// not sure that all the required space is included in here...
-                	// HO 09/12/2010 END *****************
                 	
-                    
+                    // add one, to pad where the icons would
+                	// otherwise have been
                     return offset + 1;
-                 // HO 22/12/2010 BEGIN ********************
-                //}
-             // HO 22/12/2010 END ********************
-             // HO 22/12/2010 BEGIN ********************
-            //}
-        	// HO 22/12/2010 END ********************
         }
     }
     

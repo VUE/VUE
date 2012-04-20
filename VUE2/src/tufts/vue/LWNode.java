@@ -1398,7 +1398,7 @@ public class LWNode extends LWContainer
 
         if (isCenterLayout == false) {
             // layout label last in case size is bigger than min and label is centered
-            layoutBoxed_label();
+            setYPositionOfLabel();
 
             // ??? todo: cleaner move this to layoutBoxed, and have layout methods handle
             // the auto-size check (min gets set to request if request is bigger), as
@@ -1837,8 +1837,11 @@ public class LWNode extends LWContainer
         return min;
     }
 
-    /** set mLabelPos */
-    private void layoutBoxed_label()
+    /** set mLabelPos 
+     * HO 17/04/2012 - was named layoutBoxed_label(),
+     * renaming to setYPositionOfLabel()
+     * */
+    private void setYPositionOfLabel()
     {
         Size text = getTextSize();
         
@@ -1853,7 +1856,24 @@ public class LWNode extends LWContainer
             //mLabelPos.y = (this.height - textHeight) / 2;
             mLabelPos.y = (this.height - text.height) / 2;
         }
-
+        
+        setXPositionOfLabel(text);
+        
+    }
+    
+    /**
+     * A method to set the X position of the label.
+     * Refactored from layoutBoxed_label(), which is now
+     * called setYPositionOfLabel().
+     * @param text, the Size of the text label we are
+     * trying to position
+     * @author Helen Oliver
+     */
+    private void setXPositionOfLabel(Size text) {
+    	// input validation
+    	if (text == null)
+    		return;
+    	
         if (iconShowing()) {
             //layoutBoxed_icon(request, min, newTextSize);
             // TODO:
@@ -1872,8 +1892,8 @@ public class LWNode extends LWContainer
             else
                 mLabelPos.x = 200; // marked bad because unused in this case
         }
-        
     }
+    
 
     //----------------------------------------------------------------------------------------
     // Crap.  We need the max child width first to know the min width for wrapped text,
@@ -2427,7 +2447,7 @@ public class LWNode extends LWContainer
         // TODO: need a getFirstAncestorFillColor, which will ignore transparents (groups, transparent colors)
         // and return the first color found -- then can skip check of getparent being an instanceof LWNode
         Color fillColor = super.getFillColor();
-        if (getParent() instanceof LWNode) {
+         if (getParent() instanceof LWNode) {
             if (fillColor != null) {
                 Color parentFill = getParent().getRenderFillColor(dc);
                 if (parentFill != null && !parentFill.equals(Color.black) && parentFill.getAlpha() != 0 && fillColor.equals(parentFill)) {
