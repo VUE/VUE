@@ -122,6 +122,9 @@ public class LWComponent
     // HO 19/08/2011 END *********
     
 
+    /**
+     * An enumeration of all the reasons why a component could be hidden.
+     */
     public enum HideCause {
         /** each subclass of LWComponent can use this for it's own purposes */
         DEFAULT
@@ -255,9 +258,12 @@ public class LWComponent
     public static final float NEEDS_DEFAULT = Float.MIN_VALUE;
     public static final java.util.List<LWComponent> NO_CHILDREN = Collections.EMPTY_LIST;
      	
+    /** flags whether all the components in the map are collapsed, or just this one */
     public static final boolean COLLAPSE_IS_GLOBAL = true;
-    
-    protected static boolean isGlobalCollapsed = false;
+    /** flags whether this particular component is collapsed within the 
+     * context of a global collapse 
+     */
+    protected static boolean isGlobalCollapsed = false; 
 
     static void toggleGlobalCollapsed() {
         if (!COLLAPSE_IS_GLOBAL)
@@ -342,6 +348,7 @@ public class LWComponent
     protected transient BasicStroke stroke = STROKE_ZERO;
     //protected transient boolean selected = false;
 
+    /** An int containing the bits that tell us whether or not this component is hidden */
     protected int mHideBits = 0x0; // any bit set means we're hidden (not managed by undo)
     //protected int mFilterBits = 0x0; // may need this to get pathway filtering not in conflict with search filtering
     protected volatile int mFlags = 0x0; // explicitly set/cleared: not managed by undo
@@ -2575,17 +2582,23 @@ public class LWComponent
 
     
 
+    /**
+     * A function to return a singleton label box.
+     * @return the TextBox that will serve as the label box,
+   	 * using the appropriate String for a label.
+     */
     protected tufts.vue.TextBox getLabelBox()
     {
-        try {
+        try {	// create the label box as a singleton
             if (this.labelBox == null) {
                 synchronized (this) {
                     if (this.labelBox == null)
+                    	// create the TextBox with whatever String we are using
+                    	// for a label
                         this.labelBox = new tufts.vue.TextBox(this, this.label);
                 }
             }
         } catch (Throwable t) {
-            //Util.printStackTrace(t, "failed to init labelBox for " + this);
             Log.error("failed to init labelBox for " + this, t);
         }
             
@@ -7049,6 +7062,10 @@ public class LWComponent
             notify(key, oldValue ? Boolean.TRUE : Boolean.FALSE);
     }
 
+    /**
+     * A method to notify an event to all relevant listeners.
+     * @param what, a String representing the event that triggered this notification
+     */
     protected void notify(String what)
     {
         // todo: we still need both src & component? (this,this)
@@ -7243,6 +7260,11 @@ public class LWComponent
     }
     
 
+    /**
+     * A function to check whether a particular flag is set.
+     * @param flag, the Flag to check
+     * @return true if the Flag is set, false otherwise
+     */
     public boolean hasFlag(Flag flag) {
         return (mFlags & flag.bit) != 0;
     }
@@ -7264,11 +7286,18 @@ public class LWComponent
         // than just LWNode's to support a collapsed state.
     }
     
+    /**
+     * A function to work out whether this component is collapsed.
+     * @return true if this component is collapsed,
+     * false otherwise
+     */
     public boolean isCollapsed() {
-        if (COLLAPSE_IS_GLOBAL)
+    	// if all components are collapsed, treat this
+    	// one like all the others
+        if (COLLAPSE_IS_GLOBAL) 
             return false; // LWNode overrides
         //return isGlobalCollapsed;
-        else
+        else	// if this component is flagged as collapsed
             return hasFlag(Flag.COLLAPSED);
     }
 
@@ -7347,30 +7376,57 @@ public class LWComponent
         setHidden(HideCause.DEFAULT, !visible);
     }
     
+    /**
+     * A method to hide or unhide a component
+     * @param cause, the property change that triggered this hiding
+     * @param hide, true if the component is to be hidden, false if
+     * it is to be unhidden
+     */
     public void setHidden(HideCause cause, boolean hide) {
-        if (hide)
+        if (hide) // if we are supposed to hide this component, flag it as hidden
             setHidden(cause);
         else
             clearHidden(cause);
     }
     
+    /**
+     * A method to flag this component as hidden or not hidden
+     * @param cause, the HideCause that triggered this flagging
+     */
     public void setHidden(HideCause cause) {
         if (DEBUG.EVENTS) out("setHidden " + cause);
+        // if this component is already flagged as hidden,
+        // or the HideCause passed in says it is to be hidden,
+        // flag it as hidden, otherwise flag it as not hidden
         setHideBits(mHideBits | cause.bit);
     }
     
+    /**
+     * A method to clear the hidden flag for this component
+     * @param cause, the HideCause that triggered this clearing
+     */
     public void clearHidden(HideCause cause) {
-        //Log.debug(this, new Throwable("clearHidden"));
         if (DEBUG.EVENTS) out("clrHidden " + cause);
+        // a bitwise and on the hiding flags versus
+        // the complement of the HideCause
         setHideBits(mHideBits & ~cause.bit);
     }
 
+    /**
+     * A method to set the hidden or unhidden bits for this
+     * component.
+     * @param bits, an int representing the bit to set.=
+     */
     private void setHideBits(int bits) {
+    	// check if this component is already hidden
         final boolean wasHidden = isHidden();
+        // set the bit according to what was passed in
+        // (any bit means we're hidden)
         mHideBits = bits;
+        // if setting the bit has changed the hidden status of this
+        // component, notify the change
         if (wasHidden != isHidden())
             notify(LWKey.Hidden);
-        //notify(LWKey.Hidden, wasHidden); // if we need it to be undoable
     }
 
     /**

@@ -68,6 +68,7 @@ public abstract class LWIcon extends Rectangle2D.Float
 			Boolean.TRUE,
 			true);
     
+    /** the component that is displaying these icons */
     protected LWComponent mLWC;
     protected final Color mColor;
     protected float mMinWidth;
@@ -81,6 +82,7 @@ public abstract class LWIcon extends Rectangle2D.Float
     // cache each of the boolean values.  Alot happens just to get the single boolean bit
     // value out for each of icon preferencs, and this code is called constantly during
     // map drawing.
+    /** The ShowIconsPreference */
     public static final ShowIconsPreference IconPref = new ShowIconsPreference();
 
     static {
@@ -122,10 +124,11 @@ public abstract class LWIcon extends Rectangle2D.Float
         this(lwc, TextColor);
     }
 
-//     public static ShowIconsPreference getShowIconPreference()
-//     {
-//     	return IconPref;
-//     }
+    /**
+     * A method to set the xy location of an icon.
+     * @param x, a float representing the x location of the icon
+     * @param y, a float representing the y location of the icon
+     */
     public void setLocation(float x, float y)
     {
         super.x = x;
@@ -180,6 +183,7 @@ public abstract class LWIcon extends Rectangle2D.Float
 
     void layout() {} // subclasses can check for changes in here
     
+    /** true if a given LWIcon is showing on this occasion, false otherwise */
     abstract boolean isShowing();
     abstract void doSingleClickAction();
     abstract void doDoubleClickAction();
@@ -242,11 +246,13 @@ public abstract class LWIcon extends Rectangle2D.Float
         
         private LWComponent mLWC;
         
+        /** The set of icons that can be displayed in the icon block */
         private LWIcon[] mIcons = new LWIcon[7];
 
         //final private boolean mCoordsNodeLocal;
         //final private boolean mCoordsNoShrink; // don't let icon's get less than 100% zoom
         final private boolean mNoShrink; // don't let icon's get less than 100% zoom
+        /** true if the icons are to be stacked vertically; false otherwise */
         private boolean mVertical;
         private final float mIconWidth;
         private final float mIconHeight;
@@ -350,28 +356,39 @@ public abstract class LWIcon extends Rectangle2D.Float
          */
         void layout()
         {
-            if (mVertical) {
+            // if the icons are to be stacked vertically
+        	if (mVertical) {
+        		// the rectangle has no height at this point
                 super.height = 0;
+                // if layout is vertical, the y coordinate is the
+                // same for every icon
                 float iconY = super.y;
+                // go through the set of icons that could be shown
                 for (int i = 0; i < mIcons.length; i++) {
                     LWIcon icon = mIcons[i];
+                    // if this particular icon is showing in this situation
                     if (icon.isShowing()) {
+                    	// lay it out
                         icon.layout();
+                        // locate it according to the stipulated x and y positions
                         icon.setLocation(x, iconY);
+                        // extend the y position to make room for this
+                        // icon plus 3 points' padding
                         iconY += icon.height+3;
+                        // extend the height by the same amount
                         super.height += icon.height+3;
                     }
                 }
-            } else {
-                super.width = 0;
-                float iconX = super.x;
-                for (int i = 0; i < mIcons.length; i++) {
+            } else { // if it's not a vertical layout, that means horizontal
+                super.width = 0; // at this point it has no width
+                float iconX = super.x; // it starts at the stipulated x position
+                for (int i = 0; i < mIcons.length; i++) { // go through the set of icons that could be showing
                     LWIcon icon = mIcons[i];
-                    if (icon.isShowing()) {
-                        icon.layout();
-                        icon.setLocation(iconX, y);
-                        iconX += icon.width+3;
-                        super.width += icon.width+3;
+                    if (icon.isShowing()) { // if this particular icon is showing right now,
+                        icon.layout(); // lay it out
+                        icon.setLocation(iconX, y); // place it at the stipulated x and y positions
+                        iconX += icon.width+3; // extend the x position to make room for this icon plus padding
+                        super.width += icon.width+3; // extend the width by the same amount
                     }
                 }
             }
@@ -555,40 +572,46 @@ public abstract class LWIcon extends Rectangle2D.Float
             layout();
         }
 
+        /**
+         * Works out whether or not the Resource icon should
+         * be showing
+         * @return true if the Resource icon should be showing,
+         * false otherwise
+         */
         boolean isShowing() {
         	
+        	// get the preference setting for the Resource icon
         	if (IconPref.getResourceIconValue()) {
         		// HO 02/12/2010 BEGIN ****************
-        		// if it's an IBIS image, suppress the resource icon
+        		// if the node has a resource, show the icon,
+        		// unless it's an IBIS node
         		// return mLWC.hasResource();
-        		return ((mLWC.hasResource()) && (!isIBISImage()));
+        		return ((mLWC.hasResource()) && (!isIBISNode()));
+        		// HO 02/12/2010 END ****************
     		} 
         	else {
         			return false;
-    		}
-        	
-        	// HO 02/12/2010 END ****************
+    		}        	
         }
         
-        boolean isIBISImage() {
+        /**
+         * A function to work out whether the component
+         * displaying these icons is an IBIS node
+         * @return true if the component is an IBIS node,
+         * false otherwise
+         * @author Helen Oliver
+         */
+        boolean isIBISNode() {
+        	// default assumption is that it's not an IBIS node
         	boolean bIBIS = false;
-        	// HO 12/09/2011 BEGIN *********
-        	/* if (!(mLWC instanceof LWIBISNode))
-        		return bIBIS; 
         	
-        	
-        	LWIBISNode nod = (LWIBISNode)mLWC;
-        	if (nod.getImage() != null) {
-        		bIBIS = true;
-        	} */
+        	// if the component is an IBIS node,
+        	// flag it as such
         	if (mLWC instanceof LWIBISNode) {
         		bIBIS = true;
-        	} //else if ((mLWC instanceof LWWormholeNode) && (mLWC.parent instanceof LWIBISNode)) {
-        		//bIBIS = true; }
-        	else {
-        		// do nothing...
-        	}
-        	// HO 12/09/2011 END *********
+        	} 
+        	
+        	// return flag
         	return bIBIS;
         }
 

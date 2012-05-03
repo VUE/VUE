@@ -3791,10 +3791,10 @@ public class VUE
             if (loadedMap != null) {
             	// HO 27/02/2011 BEGIN ***********
             	try {
-                VUE.displayMapSpecial(loadedMap); 
-            	// HO 27/07/2011 BEGIN test ***********
-                viewer = VUE.getCurrentTabbedPane().getViewerWithMap(loadedMap);
-                // HO 27/07/2011 END ***********
+            		VUE.displayMapSpecial(loadedMap); 
+            		// HO 27/07/2011 BEGIN test ***********
+            		viewer = VUE.getCurrentTabbedPane().getViewerWithMap(loadedMap);
+            		// HO 27/07/2011 END ***********
             	} catch(ArrayIndexOutOfBoundsException e) {
             	}
                 // HO 27/02/2011 END ************

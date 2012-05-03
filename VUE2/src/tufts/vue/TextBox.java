@@ -129,6 +129,7 @@ public class TextBox extends JTextPane
     private final Rectangle2D.Float mBounds = new Rectangle2D.Float();
     private boolean wasOpaque; /** were we opaque before we started an edit? */
     private MutableAttributeSet mAttributeSet;
+    /** Maximum character width in baseline-relative coordinates */
     private float mMaxCharWidth;
     private float mMaxWordWidth;
     
@@ -139,23 +140,28 @@ public class TextBox extends JTextPane
         this(lwc, null);
     }
 
+    /**
+     * Constructs a TextBox using a LWComponent and a String
+     * @param lwc, the LWComponent that the TextBox will go into
+     * @param text, the String that will be the text that goes in the TextBox
+     */
     TextBox(LWComponent lwc, String text)
     {
         if (DEBUG.TEXT && DEBUG.LAYOUT) tufts.Util.printClassTrace("tufts.vue.", "NEW TextBox, txt=" + text);
         if (TestDebug||DEBUG.TEXT) out("NEW [" + text + "] " + lwc);
         
+        // the parent component
         this.lwc = lwc;
         //setBorder(javax.swing.border.LineBorder.createGrayLineBorder());
         // don't set border -- adds small margin that screws us up, especially
         // at high scales
-        setDragEnabled(false);
-        setBorder(null);
-        if (text != null)
+        setDragEnabled(false); 	// you can't drag a TextBox
+        setBorder(null);		// margin screws up layout
+        if (text != null)		// if the text content has been initialized, set it with what was passed in
             setText(text);
-        setMargin(null);
+        setMargin(null);	// no margin to screw us up
         setOpaque(false); // don't bother to paint background
-        setVisible(true);
-        addMouseListener(this);
+        setVisible(true);	
         
         //setFont(SmallFont);
         // PC text pane will pick this font up up as style for
@@ -165,9 +171,13 @@ public class TextBox extends JTextPane
 
         //setContentType("text/rtf"); for attributes + unicode, but will need lots of work
 
+        // add all the listeners
+        addMouseListener(this);
         addKeyListener(this);
         addFocusListener(this);
         getDocument().addDocumentListener(this);
+        
+        // set the size
         setSize(getPreferredSize());
         if (VueUtil.isWindowsPlatform() && SelectionColor != null)
             setSelectionColor(SelectionColor);
@@ -407,18 +417,23 @@ public class TextBox extends JTextPane
     }
 
     @Override
+    /**
+     * @param text, the String to display
+     */
     public void setText(String text)
     {
-        if (getDocument() == null) {
+        // fetch the model associated with the editor,
+    	// bringing the TextBox to the state required to be an editor
+    	if (getDocument() == null) {
             out("creating new document");
+            // associate the editor with a default styled text document
             setStyledDocument(new DefaultStyledDocument());
         }
-        /*try {
-            doc.insertString(0, text, null);
-        } catch (Exception e) {
-            System.err.println(e);
-            }*/ 
+
         if (TestDebug||DEBUG.TEXT) out("setText[" + text + "]");
+        // remove the contents of the current document,
+        // and replace them by parsing the given string 
+        // using the current EditorKit
         super.setText(text);
         copyStyle(this.lwc);
         if (WrapText) {
@@ -460,14 +475,32 @@ public class TextBox extends JTextPane
     {
     	setFontAttributes(a,f,null);
     }
+    
+    /**
+     * A method to set the font attributes.
+     * @param a, the MutableAttributeSet to be applied to this TextBox.
+     * @param f, the Font whose attributes we want to copy.
+     * @param c, the parent LWComponent.
+     */
     private static void setFontAttributes(MutableAttributeSet a, Font f, LWComponent c)
     {
+    	// input validation
+    	if ((a == null) || (f == null))
+    		return;
+    	
     	if (DEBUG.TEXT)
     		System.out.println("setFontAttribnutes " + f);
+    	// copy the Font's family into the MutableAttributeSet
         StyleConstants.setFontFamily(a, f.getFamily());
+        // copy the Font's size into the MutableAttributeSet
         StyleConstants.setFontSize(a, f.getSize());
+        // set the MutableAttributeSet as Italic or not, according to the Font
         StyleConstants.setItalic(a, f.isItalic());
+        // set the MutableAttributeSet as Bold or not, according to the Font
         StyleConstants.setBold(a, f.isBold());
+        
+       // if the parent component's text is underlined,
+       // underline this too
        if (c !=null)
        {
     	   String s =  c.mFontUnderline.get();
@@ -479,33 +512,87 @@ public class TextBox extends JTextPane
     	   
        }
     }
+    
+    /**
+     * A method to copy the alignment style encoded
+     * in our owning LWComponent - called every time copyStyle is called
+     * @param c, the parent LWComponent
+     * @param a, the SimpleAttributeSet we are using
+     */
+    void copyAlignmentStyle(LWComponent c, SimpleAttributeSet a) {
+    	// input validation
+    	if (a == null)
+    		a = new SimpleAttributeSet();
+    	if (c == null) {
+    		StyleConstants.setAlignment(a, StyleConstants.ALIGN_CENTER);
+    		return;
+    	}
+    		   	
+        // handle alignment
+        // Oblique Strategies node labels are centered
+        if (c instanceof LWObliqueNode)
+        	StyleConstants.setAlignment(a, StyleConstants.ALIGN_CENTER);
+        // text Node labels are left-aligned
+        else if (TestHarness || c instanceof LWNode && ((LWNode)c).isTextNode())
+            StyleConstants.setAlignment(a, StyleConstants.ALIGN_LEFT);
+        // IBIS node labels are left-aligned
+        else if (c instanceof LWIBISNode)
+        	StyleConstants.setAlignment(a, StyleConstants.ALIGN_LEFT);
+        else	// all other node labels are centered
+        	StyleConstants.setAlignment(a, StyleConstants.ALIGN_CENTER);
+    	
+    }
+    
+    /**
+     * A method to copy the font style encoded 
+     * in our owning LWComponent - called every time copyStyle is called
+     * @param c, the parent LWComponent
+     * @param a, the MutableAttributeSet to which to apply the properties
+     * @return the Font to be used
+     */
+    Font copyFontStyle(LWComponent c, MutableAttributeSet a) {
+    	// input validation
+    	if ((a == null) || (c == null))
+			return null;
+    		
+        // match the font color
+    	StyleConstants.setForeground(a, c.getTextColor());
+    	// match the font
+        Font font = c.getFont();
+        // match the font details
+        setFontAttributes(a, font,c);
+        
+        return font;
+    }
 
     
-    // this called every time setText is called to ensure we get
-    // the font style encoded in our owning LWComponent
+    /**
+     * A method to ensure we get the font style encoded in our owning LWComponent
+     * - called every time setText is called
+     * @param c, the parent LWComponent
+     */
     void copyStyle(LWComponent c)
     {
         if (DEBUG.TEXT) 
         	out("copyStyle " + c);
         SimpleAttributeSet a = new SimpleAttributeSet();
-        // HO 16/12/2011 BEGIN ********
-        if (c instanceof LWObliqueNode)
-        	StyleConstants.setAlignment(a, StyleConstants.ALIGN_CENTER);
-        // HO 16/12/2011 END ********
-        else if (TestHarness || c instanceof LWNode && ((LWNode)c).isTextNode())
-            StyleConstants.setAlignment(a, StyleConstants.ALIGN_LEFT);
-        // HO 12/12/2010 BEGIN ***********
-        else if (c instanceof LWIBISNode)
-        	StyleConstants.setAlignment(a, StyleConstants.ALIGN_LEFT);
-        // HO 12/12/2010 END ***********
-        else
-        	StyleConstants.setAlignment(a, StyleConstants.ALIGN_CENTER);
-        StyleConstants.setForeground(a, c.getTextColor());
-        final Font font = c.getFont();
-        setFontAttributes(a, font,c);
+        
+        // HO 01/05/2012 BEGIN *****
+        // refactored into its own function
+        copyAlignmentStyle(c, a);
+        // HO 01/05/2012 END *******
+        
+        // HO 01/05/2012 BEGIN *****
+        // refactored into its own function
+        final Font font = copyFontStyle(c, a);
+        // HO 01/05/2012 END *******
 
+        // fetch the document associated with the editor
         StyledDocument doc = getStyledDocument();
         if (DEBUG.TEXT) getPreferredSize();
+        // params: no offset; offset of the end position of the text (which
+        // keeps track of changes automatically); the attribute set;
+        // don't replace
         doc.setParagraphAttributes(0, doc.getEndPosition().getOffset(), a, false);
         if (DEBUG.TEXT) getPreferredSize();
         computeMinimumWidth(font, lwc.getLabel());
@@ -522,8 +609,14 @@ public class TextBox extends JTextPane
     }
 
 
-    /** compute mMaxWordWidth and mMaxCharWidth */
+    /** 
+     * compute mMaxWordWidth and mMaxCharWidth 
+     * @param font, the Font of the text whose width we're calculating
+     * @param text, the text String
+     */
     private void computeMinimumWidth(Font font, String text) {
+    	// get the maximum character bounds width in baseline-relative coordinates
+    	// (font rotations can, rarely, cause text baselines to be rotated)
         mMaxCharWidth = (float) font.getMaxCharBounds(DefaultFontContext).getWidth();
         try {
             mMaxWordWidth = maxWordWidth(font, text);
@@ -533,10 +626,23 @@ public class TextBox extends JTextPane
     }
 
     private static final boolean DebugWord = false;
+    
+    /** Approximate width padding for long label strings */
     private static final int BigWordLen = 9;
+    
+    /**
+     * A function to calculate the maximum word witdh
+     * @param font, the Font of the label we're trying to calculate
+     * @param text, the String to appear on the label
+     * @return a float representing the widest necessary width
+     * for the words in the String in the given Font
+     */
     private float maxWordWidth(Font font, String text) {
 
-        if (text == null || text.length() == 0)
+        // if it's an empty string, there's no
+    	// point distinguishing the word width
+    	// from the character width
+    	if (text == null || text.length() == 0)
             return mMaxCharWidth;
 
         if (text.length() > 512) // provide a rough figure if string is long
@@ -779,17 +885,37 @@ public class TextBox extends JTextPane
     }
     
     @Override
+    /**
+     * A function to get the preferred size (funnily enough)
+     * @return the preferred Dimension of the TextBox.
+     */
     public Dimension getPreferredSize() {
         Dimension s;
+        // HO 30/04/2012 BEGIN ******
+        int defaultWidth = 200;
+        int defaultHeight = 100;
+        int roomForCursor = 1;
+        // HO 30/04/2012 END *******
         try {
             // Is this failing due to this being accessed from an ImgLoader thread?
             s = super.getPreferredSize();
         } catch (Throwable t) {
             Log.error("getPreferredSize", t);
-            s = new Dimension(200,100);
+            // HO 30/04/2012 BEGIN ******
+            // just say no to magic numbers
+            // s = new Dimension(200,100);
+            s = new Dimension(defaultWidth, defaultHeight);
+            // HO 30/04/2012 END ******
         }
-        if (getParent() != null)
-            s.width += 1; // leave room for cursor, which at least on mac gets clipped if at EOL
+        
+        if (getParent() != null) {
+        	// HO 30/04/2012 BEGIN ******
+            // just say no to magic numbers
+            // s.width += 1; 
+        	s.width += roomForCursor;// leave room for cursor, which at least on mac gets clipped if at EOL
+        	// HO 30/04/2012 END ******
+        }
+        
         if (TestDebug) out("getPrefer", s);
         return s;
     }
@@ -1222,8 +1348,11 @@ public class TextBox extends JTextPane
 	private void displayContextMenu(MouseEvent e) {
         getPopup(e).show(e.getComponent(), e.getX(), e.getY());
 	}
+	/** The TextBox's context menu */
 	private JPopupMenu m = null;
+	/** Copy menu item */
 	private final JMenuItem copyItem = new JMenuItem(VueResources.getString("richtextbox.menu.copy"));
+	/** Paste menu item */
 	private final JMenuItem pasteItem = new JMenuItem(VueResources.getString("richtextbox.menu.paste"));
 	private JPopupMenu getPopup(MouseEvent e) 
 	{			        

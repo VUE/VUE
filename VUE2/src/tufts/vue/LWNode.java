@@ -95,6 +95,7 @@ public class LWNode extends LWContainer
     final static boolean WrapText = false; // under development
     
     public static final Font  DEFAULT_NODE_FONT = VueResources.getFont("node.font");
+    /** The default fill colour */
     public static final Color DEFAULT_NODE_FILL = VueResources.getColor("node.fillColor");
     public static final int   DEFAULT_NODE_STROKE_WIDTH = VueResources.getInt("node.strokeWidth");
     public static final Color DEFAULT_NODE_STROKE_COLOR = VueResources.getColor("node.strokeColor");
@@ -109,17 +110,19 @@ public class LWNode extends LWContainer
     
     /** 0 based with current local width/height */
     protected RectangularShape mShape;
-    protected boolean isAutoSized = true; // compute size from label & children
+    /** boolean, true if size is to be computed from label & children */
+    protected boolean isAutoSized = true;
 
     //-----------------------------------------------------------------------------
     // consider moving all the below stuff into a layout object
     // HO 18/05/2011 BEGIN ******************
-    // private transient float mBoxedLayoutChildY;
-    protected transient float mBoxedLayoutChildY;
-    // private transient boolean isRectShape = true;
-    protected transient boolean isRectShape = true;
-    // private transient Line2D.Float mIconDivider = new Line2D.Float();
-    protected transient Line2D.Float mIconDivider = new Line2D.Float(); // vertical line between icon block & node label / children
+    // scopes changed from private to protected so derived classes can benefit
+    /** float representing y coordinate of child nodes, when node is in boxed layout */
+    protected transient float mBoxedLayoutChildY; 
+    /** boolean, true if the node shape is a rectangle */
+    protected transient boolean isRectShape = true;	
+    /** vertical line between icon block & node label/children */
+    protected transient Line2D.Float mIconDivider = new Line2D.Float(); 
     // private transient Point2D.Float mLabelPos = new Point2D.Float();
     protected transient Point2D.Float mLabelPos = new Point2D.Float(); // for use with irregular node shapes
     // private transient Point2D.Float mChildPos = new Point2D.Float(); 
@@ -128,7 +131,7 @@ public class LWNode extends LWContainer
     //private transient Size mMinSize;
     protected transient Size mMinSize;
     
-    // private transient boolean inLayout = false;
+    /** true if we are already in the process of doing a layout; false otherwise. */
     protected transient boolean inLayout = false;
     // private transient boolean isCenterLayout = false;
     protected transient boolean isCenterLayout = false;// todo: get rid of this and use mChildPos, etc for boxed layout also
@@ -150,15 +153,31 @@ public class LWNode extends LWContainer
     // HO 18/05/2011 END ******************
     
 
+    /**
+     * Initializes the node by enabling
+     * property keys.
+     */
     private void initNode() {
+    	// can set the alignment of the node
         enableProperty(KEY_Alignment);
     }
     
+    /**
+     * Constructs a LWNode with a label, xy coordinates,
+     * and a default rectangular shape.
+     * @param label, the String which will appear on the label.
+     * @param x, a float representing the node's x coordinate.
+     * @param y, a float representing the node's y coordinate.
+     * @param shape, a RectangularShape. Pass in a null to use the default shape.
+     */
     LWNode(String label, float x, float y, RectangularShape shape)
     {
         initNode();
         super.label = label; // make sure label initially set for debugging
+        // give the node the default colour
         setFillColor(DEFAULT_NODE_FILL);
+        // if no valid rectangle shape was passed in, use the default
+        // of a RoundRect2D.
         if (shape == null)
             setShape(tufts.vue.shape.RoundRect2D.class);
           //setShape(new RoundRectangle2D.Float(0,0, 10,10, 20,20));
@@ -174,16 +193,40 @@ public class LWNode extends LWContainer
         
     }
     
+    /**
+     * Constructs a LWNode using only a label.
+     * @param label, the String that will appear on the label.
+     */
     public LWNode(String label) {
         this(label, 0, 0);
     }
 
+    /**
+     * Constructs a LWNode using a label and the default
+     * RectangularShape.
+     * @param label, the String that will appear on the label.
+     * @param shape, the RectangularShape to give to the node.
+     */
     LWNode(String label, RectangularShape shape) {
         this(label, 0, 0, shape);
     }
+    
+    /**
+     * Constructs a LWNode using a label and an xy location.
+     * Will set the node's shape to null.
+     * @param label, the String that will appear on the label.
+     * @param x, the float containing the x coordinate of the node's location.
+     * @param y, the float containing the y coordinate of the node's location.
+     */
     LWNode(String label, float x, float y) {
         this(label, x, y, null);
     }
+    
+    /**
+     * Constructs a LWNode using a label and a Resource.
+     * @param label, the String that will appear on the label.
+     * @param resource, the Resource for the node to display or contain.
+     */
     LWNode(String label, Resource resource)
     {
         this(label, 0, 0);
@@ -284,18 +327,21 @@ public class LWNode extends LWContainer
     };
 
     /**
+     * A method to change the shape of the node.
      * @param shapeClass -- a class object this is a subclass of RectangularShape
      */
     public void setShape(Class<? extends RectangularShape> shapeClass) {
 
-        if (mShape != null && IsSameShape(mShape.getClass(), shapeClass))
+        // if the shape has been set, and the shape passed in is
+    	// the same shape as the one that's already been set,
+    	// stop here.
+    	if (mShape != null && IsSameShape(mShape.getClass(), shapeClass))
             return;
 
         // todo: could skip instancing unless we actually go to draw ourselves (lazy
         // create the instance) -- it's completely useless for LWNodes serving as style
         // holders to create the instance, tho then we would need to keep a ref
         // to the class object...
-
         try {
             setShapeInstance(shapeClass.newInstance());
         } catch (Throwable t) {
@@ -309,18 +355,21 @@ public class LWNode extends LWContainer
     protected void setShapeInstance(RectangularShape shape)
     {
         if (DEBUG.CASTOR) System.out.println("SETSHAPE " + shape.getClass() + " in " + this + " " + shape);
-        //System.out.println("SETSHAPE bounds " + shape.getBounds());
-        //if (shape instanceof RoundRectangle2D.Float) {
-        //RoundRectangle2D.Float rr = (RoundRectangle2D.Float) shape;
-        //    System.out.println("RR arcs " + rr.getArcWidth() +"," + rr.getArcHeight());
-        //}
 
+        // if it's the same shape we already have, 
+        // stop here, there's nothing to set
         if (IsSameShape(mShape, shape))
             return;
 
+        // make a note of the original shape
         final Object old = mShape;
+        // check if the new shape a rectangle or not,
+        // and flag that this is or is not now a rectangular node
         isRectShape = (shape instanceof Rectangle2D || shape instanceof RoundRectangle2D);
+        // set the node shape to the new shape
         mShape = shape;
+        // the new shape includes a frame matching the current width
+        // and height, at position 0
         mShape.setFrame(0, 0, getWidth(), getHeight());
         layout(LWKey.Shape);
         notify(LWKey.Shape, new Undoable(old) { void undo() { setShapeInstance((RectangularShape)old); }} );
@@ -469,7 +518,7 @@ public class LWNode extends LWContainer
         // todo cleanup: this is a fudgey computation: IconPad / PadTop not always used!
         final float lx = relativeLabelX() - IconPadRight;
         final float ly = relativeLabelY() - PadTop;
-        final Size size = getTextSize();
+        final Size size = getLabelSize();
         final float h = size.height + PadTop;
         final float w = size.width + IconPadRight;
         //float height = getLabelBox().getHeight() + PadTop;
@@ -731,19 +780,35 @@ public class LWNode extends LWContainer
             return false;
     }
 
+    /**
+     * A function to compare two Shapes to see if they're the same.
+     * @param s1, the first Shape
+     * @param s2, the second Shape
+     * @return true if the two Shapes are the same, false otherwise.
+     */
     private static boolean IsSameShape(Shape s1, Shape s2) {
+    	// both shapes need to be non-null for a valid comparison
         if (s1 == null || s2 == null)
             return false;
+        
+        // if the two Shapes are the same class
         if (s1.getClass() == s2.getClass()) {
+        	// if the first shape is a RoundRectangle2D,
+        	// compare the arcs on the corners of both rectangles,
+        	// round or not, and only if they're the same
+        	// width and height are the two Shapes the same
             if (s1 instanceof java.awt.geom.RoundRectangle2D) {
+            	// cast them both to RoundRectangle2Ds
                 RoundRectangle2D rr1 = (RoundRectangle2D) s1;
                 RoundRectangle2D rr2 = (RoundRectangle2D) s2;
+                // compare the widths and heights of the arcs
+                // on the corners of the two rectangles
                 return
                     rr1.getArcWidth() == rr2.getArcWidth() &&
                     rr1.getArcHeight() == rr2.getArcHeight();
-            } else
+            } else	// if they're not RoundRectangle2Ds no further comparison is needed
                 return true;
-        } else
+        } else	// if they're not the same class, no further comparison is needed
             return false;
     }
 
@@ -1100,14 +1165,21 @@ public class LWNode extends LWContainer
     
     
     @Override
+    /**
+     * @param r, the Resource to set within this node.
+     */
     public void setResource(final Resource r)
     {
-        super.setResource(r);
+        // set the resource as normal
+    	super.setResource(r);
+    	// if the resource is invalid,
+    	// or the file is in the middle of being restored
+    	// from XML, stop there
         if (r == null || mXMLRestoreUnderway)
             return;
 
         //=============================================================================
-        // LWImage ise dramatically simplified by just creating a new one when the
+        // LWImage is dramatically simplified by just creating a new one when the
         // resource changes.  We don't have to to deal with async undo stuff(?)  That
         // could be one case where we preserve the aspect for the new content.  We'd
         // still want to do a duplicate in case of any styling/title/notes info.
@@ -1117,10 +1189,16 @@ public class LWNode extends LWContainer
 
         boolean rebuildImageIcon = true;
         
+        // if the first child of this node is an LWImage
         if (getChild(0) instanceof LWImage) {
+        	// take the first child of that image
             final LWImage image0 = (LWImage) getChild(0);
             if (DEBUG.IMAGE) out("checking for resource sync to image @child(0): " + image0);
+            // if the resource we're setting is an image resource
             if (r.isImage()) {
+            	// if the first child of the image is a node icon, 
+            	// and it's not the same as the resource we're setting, 
+            	// permanently delete the first child of the image
                 if (image0.isNodeIcon() && !r.equals(image0.getResource())) { // we already know r can't be null
                     deleteChildPermanently(image0);
                     //image0.setNodeIconResource(r);
@@ -1265,44 +1343,36 @@ public class LWNode extends LWContainer
     }
     
     @Override
+    /**
+     * A method to lay out the node according to its
+     * current width and height.
+     * @param triggerKey, an Object representing the property change
+     * that triggered this layout.
+     */
     protected void layoutImpl(Object triggerKey) {
+    	// lay out the node according to the property change that
+    	// triggered the layout, the current size of the node,
+    	// and the requested new size (which is null this time)
         layoutNode(triggerKey, new Size(getWidth(), getHeight()), null);
     }
-
+    
     /**
-     * @param triggerKey - the property change that triggered this layout
-     * @param curSize - the current size of the node
-     * @param request - the requested new size of the node
+     * Convenience method for laying out the icon block
      */
-    private void layoutNode(Object triggerKey, Size curSize, Size request)
-    {
-        if (inLayout) {
-            if (DEBUG.Enabled) {
-                if (DEBUG.LAYOUT)
-                    new Throwable("ALREADY IN LAYOUT " + this).printStackTrace();
-                else
-                    Log.warn("already in layout: " + this);
-            }
-            return;
-        }
-        inLayout = true;
-        if (DEBUG.LAYOUT) {
-            String msg = "*** layoutNode, trigger="+triggerKey
-                + " cur=" + curSize
-                + " request=" + request
-                + " isAutoSized=" + isAutoSized();
-            if (DEBUG.META)
-                Util.printClassTrace("tufts.vue.LW", msg + " " + this);
-            else
-                out(msg);
-        }
-
-
-        mIconBlock.layout(); // in order to compute the size & determine if anything showing
-
+    private void layoutIconBlock() {
+    	mIconBlock.layout(); // in order to compute the size & determine if anything showing
+    }
+    
+    /**
+     * A method to calculate the height of the label box
+     */
+    private void calculateHeightOfLabelBox() {
+    	// of we have a label box
         if (DEBUG.LAYOUT && labelBox != null) {
             // do NOT call getLabelBox -- has caching side effect
+        	// the preferred height of the label box
             final int prefHeight = labelBox.getPreferredSize().height;
+            // the actual height of the label box
             final int realHeight = labelBox.getHeight();
             // NOTE: prefHeight often a couple of pixels less than getHeight
             if (prefHeight != realHeight) {
@@ -1311,13 +1381,70 @@ public class LWNode extends LWContainer
                           + "\n\trealHeight=" + realHeight);
             }
         }
-
+    }
+    
+    /**
+     * A method to flag the collapse of this node and any children
+     * @param triggerKey - the property change that triggered a layout
+     */
+    private void flagCollapseOfNodeAndChildren(Object triggerKey) {
         if (triggerKey == Flag.COLLAPSED) {
-            final boolean collapsed = isCollapsed();
+
+            // work out whether this particular node is flagged to be collapsed
+        	final boolean collapsed = isCollapsed();
+        	// hide or unhide all this node's children, according to
+        	// whether it is flagged to be collapsed or not
             for (LWComponent c : getChildren()) {
                 c.setHidden(HideCause.COLLAPSED, collapsed);
             }
         }
+    }
+
+    /**
+     * @param triggerKey - the property change that triggered this layout
+     * @param currentSize - the current size of the node
+     * @param requestedNewSize - the requested new size of the node
+     */
+    // HO 30/04/2012 BEGIN ********
+    // private void layoutNode(Object triggerKey, Size curSize, Size request)
+    private void layoutNode(Object triggerKey, Size currentSize, Size requestedNewSize)
+    // HO 30/04/2012 END ********
+    {
+        // If we are already in the process of doing a layout,
+    	// log appropriately and return.
+    	if (inLayout) {
+            if (DEBUG.Enabled) {
+                if (DEBUG.LAYOUT)
+                    new Throwable("ALREADY IN LAYOUT " + this).printStackTrace();
+                else
+                    Log.warn("already in layout: " + this);
+            }
+            return;
+        }
+    	// If we were not already in the process of doing a layout,
+    	// flag that we are now
+        inLayout = true;
+        // emit appropriate debug messages
+        if (DEBUG.LAYOUT) {
+            String msg = "*** layoutNode, trigger="+triggerKey
+                + " cur=" + currentSize
+                + " request=" + requestedNewSize
+                + " isAutoSized=" + isAutoSized();
+            if (DEBUG.META)
+                Util.printClassTrace("tufts.vue.LW", msg + " " + this);
+            else
+                out(msg);
+        }
+
+        // HO 27/04/2012 BEGIN *******
+        // lay out the icon block
+        layoutIconBlock();
+
+        // if we already have a label box, figure out what height it should be
+        calculateHeightOfLabelBox();
+
+        // if we're here because the node has been collapsed, flag this
+        flagCollapseOfNodeAndChildren(triggerKey);
 
         // The current width & height is at this moment still a
         // "request" size -- e.g., the user may have attempted to drag
@@ -1332,66 +1459,60 @@ public class LWNode extends LWContainer
         // layoutBoxed, if anything else, we use layoutCeneter
         //-------------------------------------------------------
 
-        final Size min;
+        // HO 30/04/2012 BEGIN ******
+        // final Size min;
+        final Size minimumNodeSize;
+        // HO 30/04/2012 END ******
 
-//         if (isRectShape) {
-//             isCenterLayout = false;
-//             min = layoutBoxed(request, curSize, triggerKey);
-//             if (request == null)
-//                 request = curSize;
-//         } else {
-//             isCenterLayout = true;
-//             if (request == null)
-//                 request = curSize;
-//             min = layoutCentered(request);
-//         }
-
+        // if it's not a rectangular node,
+        // it's centered in whatever shape
         isCenterLayout = !isRectShape;
 
-//         if (isRectShape) {
-//             isCenterLayout = (mAlignment.get() == Alignment.CENTER);
-//         } else {
-//             isCenterLayout = true;
-//         }
-
         if (isCenterLayout) {
-            if (request == null)
-                request = curSize;
-            min = layoutCentered(request);
+        	// keep it the same size unless user has resized
+        	// HO 30/04/2012 BEGIN ********
+            requestedNewSize = setRequestedNewSize(requestedNewSize, currentSize);
+        	// HO 30/04/2012 END **********
+            
+            // if node is not rectangular, use centered layout
+            minimumNodeSize = layoutCentered(requestedNewSize);
         } else {
-            min = layoutBoxed(request, curSize, triggerKey);
-            if (request == null)
-                request = curSize;
+        	// if node is rectangular, use boxed layout
+            minimumNodeSize = layoutBoxed(requestedNewSize, currentSize, triggerKey);
+            
+            // keep it the same size unless user has resized
+        	// HO 30/04/2012 BEGIN ********
+            requestedNewSize = setRequestedNewSize(requestedNewSize, currentSize);
+        	// HO 30/04/2012 END **********
         }
         
+        mMinSize = new Size(minimumNodeSize);
 
-        mMinSize = new Size(min);
-
-        if (DEBUG.LAYOUT) out("*** layout computed minimum=" + min);
+        if (DEBUG.LAYOUT) out("*** layout computed minimum=" + minimumNodeSize);
 
         // If the size gets set to less than or equal to
         // minimize size, lock back into auto-sizing.
-        if (request.height <= min.height && request.width <= min.width)
+        if (requestedNewSize.height <= minimumNodeSize.height && requestedNewSize.width <= minimumNodeSize.width)
             setAutomaticAutoSized(true);
         
         final float newWidth;
         final float newHeight;
 
         if (isAutoSized()) {
-            newWidth = min.width;
-            newHeight = min.height;
+            newWidth = minimumNodeSize.width;
+            newHeight = minimumNodeSize.height;
         } else {
             // we always compute the minimum size, and
             // never let us get smaller than that -- so
             // only use given size if bigger than min size.
-            if (request.width > min.width)
-                newWidth = request.width;
+            if (requestedNewSize.width > minimumNodeSize.width)
+                newWidth = requestedNewSize.width;
             else
-                newWidth = min.width;
-            if (request.height > min.height)
-                newHeight = request.height;
+                newWidth = minimumNodeSize.width;
+            if (requestedNewSize.height > minimumNodeSize.height)
+                newHeight = requestedNewSize.height;
             else
-                newHeight = min.height;
+                newHeight = minimumNodeSize.height;
         }
 
         setSizeNoLayout(newWidth, newHeight);
@@ -1418,16 +1539,33 @@ public class LWNode extends LWContainer
         
         inLayout = false;
     }
-
-    /** @return the current size of the label object, providing a margin of error
-     * on the width given sometime java bugs in computing the accurate length of a
-     * a string in a variable width font. */
     
-    protected Size getTextSize() {
+    /**
+     * Convenience method for setting requested new size of node
+     * @param requestedNewSize, the user-requested new Size of the node
+     * @param currentSize, the current Size of the node
+     */
+    private Size setRequestedNewSize(Size requestedNewSize, Size currentSize) {
+    	// keep it the same size unless user has resized
+        if (requestedNewSize == null)
+            requestedNewSize = currentSize;
+        
+        return requestedNewSize;
+    }
+
+    /** 
+     * A function to calculate the current size of the label object.
+     * Refactored 30/04/2012 HO - changed name from getTextSize().
+     * @return the current size of the label object, providing a margin of error
+     * on the width given sometime java bugs in computing the accurate length of a
+     * a string in a variable width font. */    
+    protected Size getLabelSize() {
 
         if (WrapText) {
+        	// if text is wrapped, just return the
+        	// current size of the label box, with
+        	// no fudge factor (why? - HO 30/04/2012)
             Size s = new Size(getLabelBox().getSize());
-            //s.width += 3;
             return s;
         } else {
 
@@ -1453,7 +1591,7 @@ public class LWNode extends LWContainer
         if (WrapText)
             return labelBox.getWidth();
         else
-            return Math.round(getTextSize().width);
+            return Math.round(getLabelSize().width);
     }
 
     
@@ -1660,7 +1798,7 @@ public class LWNode extends LWContainer
         NodeContent()
         {
             if (hasLabel()) {
-                Size text = getTextSize();
+                Size text = getLabelSize();
                 rLabel.width = text.width;
                 rLabel.height = text.height;
                 rLabel.x = ChildPadX;
@@ -1782,15 +1920,22 @@ public class LWNode extends LWContainer
         setSize(m.width, m.height);
     }
     
-    private Size layoutBoxed(Size request, Size oldSize, Object triggerKey) {
-        final Size min;
+    /**
+     * A function to lay out a rectangular node.
+     * @param requestedNewSize, the requested (by user action) new Size of the node
+     * @param oldSize, the previous Size of the node
+     * @param triggerKey, an Object representing the key that triggered this layout
+     * @return minimumNodeSize, the minimum node Size after the layout
+     */
+    private Size layoutBoxed(Size requestedNewSize, Size oldSize, Object triggerKey) {
+        final Size minimumNodeSize;
         
         if (WrapText)
-            min = layoutBoxed_floating_text(request, oldSize, triggerKey);
+            minimumNodeSize = layoutBoxed_floating_text(requestedNewSize, oldSize, triggerKey);
         else
-            min = layoutBoxed_vanilla(request);
+            minimumNodeSize = layoutBoxed_vanilla(requestedNewSize);
 
-        return min;
+        return minimumNodeSize;
 
     }
 
@@ -1798,11 +1943,11 @@ public class LWNode extends LWContainer
     /** @return new minimum size of node */
     private Size layoutBoxed_vanilla(final Size request)
     {
-        final Size min = new Size();
-        final Size text = getTextSize();
+        final Size minimumNodeSize = new Size();
+        final Size text = getLabelSize();
 
-        min.width = text.width;
-        min.height = EdgePadY + text.height + EdgePadY;
+        minimumNodeSize.width = text.width;
+        minimumNodeSize.height = EdgePadY + text.height + EdgePadY;
 
         // *** set icon Y position in all cases to a centered vertical
         // position, but never such that baseline is below bottom of
@@ -1810,7 +1955,7 @@ public class LWNode extends LWContainer
         // down a bit to be centered with the label!
 
         if (!iconShowing()) {
-            min.width += LabelPadLeft;
+            minimumNodeSize.width += LabelPadLeft;
         } else {
             float dividerY = EdgePadY + text.height;
             //double stubX = LabelPositionXWhenIconShowing + (text.width * TextWidthFudgeFactor);
@@ -1822,19 +1967,19 @@ public class LWNode extends LWContainer
             //dividerStub.setLine(stubX, dividerY, stubX, dividerY - stubHeight);
 
             ////height = PadTop + (float)dividerY + IconDescent; // for aligning 1st icon with label bottom
-            min.width = (float)stubX + IconPadLeft; // be symmetrical with left padding
+            minimumNodeSize.width = (float)stubX + IconPadLeft; // be symmetrical with left padding
             //width += IconPadLeft;
         }
 
         if (hasChildren() && !isCollapsed()) {
             if (DEBUG.LAYOUT) out("*** textSize b4 layoutBoxed_children: " + text);
-            layoutBoxed_children(min, text);
+            layoutBoxed_children(minimumNodeSize, text);
         }
         
         if (iconShowing())
-            layoutBoxed_icon(request, min, text);
+            layoutBoxed_icon(request, minimumNodeSize, text);
         
-        return min;
+        return minimumNodeSize;
     }
 
     /** set mLabelPos 
@@ -1843,7 +1988,7 @@ public class LWNode extends LWContainer
      * */
     private void setYPositionOfLabel()
     {
-        Size text = getTextSize();
+        Size text = getLabelSize();
         
         if (hasChildren()) {
             mLabelPos.y = EdgePadY;
@@ -2549,10 +2694,17 @@ public class LWNode extends LWContainer
     
 
     @Override
+    /**
+     * A function to work out if this node is collapsed.
+     * @return true if the node is collapsed, false otherwise.
+     */
     public boolean isCollapsed() {
+    	// if all the components in the map are collapsed
         if (COLLAPSE_IS_GLOBAL)
+        	// if this particular node is collapsed within
+        	// the context of a global collapse
             return isGlobalCollapsed;
-        else
+        else // check whether this particular node is collapsed
             return super.isCollapsed();
     }
     
@@ -2813,11 +2965,11 @@ public class LWNode extends LWContainer
                 if (mAlignment.get() == Alignment.LEFT && hasFlag(Flag.SLIDE_STYLE)) {
                     return ChildPadX;
                 } else if (mAlignment.get() == Alignment.RIGHT) {
-                    return (this.width - getTextSize().width) - 1;
+                    return (this.width - getLabelSize().width) - 1;
                 } else {
                     // CENTER:
                     // Doing this risks slighly moving the damn TextBox just as you edit it.
-                    final float offset = (this.width - getTextSize().width) / 2;
+                    final float offset = (this.width - getLabelSize().width) / 2;
                     return offset + 1;
                 }
 //                 if (hasFlag(Flag.SLIDE_STYLE)) {
@@ -2852,7 +3004,7 @@ public class LWNode extends LWContainer
                 // Doing this risks slighly moving the damn TextBox just as you edit it.
                 // Tho querying the underlying TextBox for it's size every time
                 // we repaint this object is pretty gross also (e.g., every drag)
-                return (this.height - getTextSize().height) / 2;
+                return (this.height - getLabelSize().height) / 2;
             }
             
         }
@@ -2973,20 +3125,19 @@ public class LWNode extends LWContainer
     private static final int IconPillarFudgeY = 4; // attempt to get top icon to align with top of 1st caps char in label text box
 
     /** for castor restore, internal default's and duplicate use only
-     * Note special case: this creates a node with autoSized set to false -- this is probably for backward compat with old save files */
+     * Note special case: this creates a node with autoSized set to false -- 
+     * this is probably for backward compat with old save files 
+     */
     public LWNode()
     {
         initNode();
+        // give it the default rectangle shape
         isRectShape = true;
+        // node size will *not* be computed according
+        // to sizes of label and children
         isAutoSized = false;
         // I think we may only need this default shape setting for backward compat with old save files.
         mShape = new java.awt.geom.Rectangle2D.Float();
-
-        // Force the creation of the TextBox (this.labelBox).
-        // We need this for now to make sure wrapped text nodes don't unwrap
-        // to one line on restore. I think the TextBox needs to pick up our size
-        // before setLabel for it to work.
-        //getLabelBox(); LAYOUT-NEW
     }
 
     /**

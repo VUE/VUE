@@ -966,7 +966,7 @@ public class LWIBISNode extends LWNode
         // todo cleanup: this is a fudgey computation: IconPad / PadTop not always used!
         final float lx = relativeLabelX() - IconPadRight;
         final float ly = relativeLabelY() - PadTop;
-        final Size size = getTextSize();
+        final Size size = getLabelSize();
         final float h = size.height + PadTop;
         final float w = size.width + IconPadRight;
         //float height = getLabelBox().getHeight() + PadTop;
@@ -1482,7 +1482,7 @@ public class LWIBISNode extends LWNode
      * on the width given sometime java bugs in computing the accurate length of a
      * a string in a variable width font. */
     
-    protected Size getTextSize() {
+    protected Size getLabelSize() {
 
     	// HO 22/12/2010 BEGIN ********************
     	/* if (WrapText) {
@@ -1560,7 +1560,7 @@ public class LWIBISNode extends LWNode
             //return labelBox.getWidth();
         //else
         	// HO 22/12/2010 END ********************
-            return Math.round(getTextSize().width);
+            return Math.round(getLabelSize().width);
     }
 
     
@@ -1730,7 +1730,7 @@ public class LWIBISNode extends LWNode
         {
         	// HO 09/12/2010 BEGIN ******
         	if (hasLabel()) {
-                Size text = getTextSize();
+                Size text = getLabelSize();
                 rLabel.width = text.width;
                 rLabel.height = text.height;
             }
@@ -1772,8 +1772,8 @@ public class LWIBISNode extends LWNode
         	if (hasLabel()) {
                 if (!hasChildren()) {
                 	rLabel.x = ChildPadX;
-                	this.width = rLabel.x + getTextSize().width;
-                	this.height = getTextSize().height;
+                	this.width = rLabel.x + getLabelSize().width;
+                	this.height = getLabelSize().height;
                 }
             } 
             if (iconShowing()) {
@@ -2074,13 +2074,13 @@ public class LWIBISNode extends LWNode
     }
     
     private float getTotalTextHeight() {
-    	Size textSize = getTextSize();
+    	Size textSize = getLabelSize();
     	float textHeight = EdgePadY + textSize.height + EdgePadY;
     	return textHeight;
     }
     
     private float getTotalTextWidth() {
-    	Size textSize = getTextSize();
+    	Size textSize = getLabelSize();
     	float textWidth = LabelPadLeft + textSize.width + LabelPadRight;
     	return textWidth;
     }
@@ -2099,7 +2099,7 @@ public class LWIBISNode extends LWNode
         final Size basic = calculateBasicChildSize();
         // HO 16/05/2011 END ***********
         // HO 09/12/2010 END **********
-        final Size text = getTextSize();
+        final Size text = getLabelSize();
         // HO 10/12/2010 BEGIN **********
         final float iconWidth = getTotalIconBlockWidth();
         // HO 10/12/2010 END **********
@@ -2188,7 +2188,7 @@ public class LWIBISNode extends LWNode
     private void setYPositionOfLabel()
     {
         // figure out the size of the text label
-    	Size text = getTextSize();
+    	Size text = getLabelSize();
         
         // vertically center the label
     	mLabelPos.y = (this.height - text.height) / 2;
@@ -2244,7 +2244,7 @@ public class LWIBISNode extends LWNode
                 		// by figuring out the width of the text,
                 		// subtracting that from the node's width,
                 		// and dividing that by two
-                		xOffset += (this.width - getTextSize().width) / 2;
+                		xOffset += (this.width - getLabelSize().width) / 2;
                 	}
 
                 	final float offset = xOffset;
@@ -2345,7 +2345,7 @@ public class LWIBISNode extends LWNode
         
         // HO 10/12/2010 BEGIN ******************
         // the major height bug
-        float neededHeight = Math.max(getTextSize().height, children.height);
+        float neededHeight = Math.max(getLabelSize().height, children.height);
         //float neededHeight = Math.max(getTextSize().height, calculateTotalChildHeight());
         //float neededHeight = Math.max(getTextSize().height, children.height, calculateTotalChildHeight());
         //min.height += children.height;
@@ -3230,8 +3230,8 @@ public class LWIBISNode extends LWNode
             	// determine what the height of this would be without anything else
             	float basicHeight = getBasicChildHeight();
             	float totalHeight = this.height;
-            	float basicLabelPos = (basicHeight - getTextSize().height) / 2;
-            	float totalLabelPos = (totalHeight - getTextSize().height) / 2;
+            	float basicLabelPos = (basicHeight - getLabelSize().height) / 2;
+            	float totalLabelPos = (totalHeight - getLabelSize().height) / 2;
             	
                 // return (this.height - getTextSize().height) / 2;
             	if (this.hasChildren())

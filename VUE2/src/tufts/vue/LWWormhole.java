@@ -1435,8 +1435,20 @@ public class LWWormhole implements VueConstants {
         if (file == null)
             return null;
         
+        // HO 03/05/2012 BEGIN *******
+        // see if this existing map is already open
+        // and if it is, save it
+        LWMap saveMap = VUE.isThisMapAlreadyOpen(file);
+        if (saveMap != null) {
+        	if (saveMap.isModified())
+        		SaveAction.saveMap(saveMap);
+        }
+        
+        // HO 03/05/2012 END *********
+        
         // load the map file
         LWMap theMap = OpenAction.loadMap(file.getAbsolutePath());
+
         // return the map file we have loaded    
         return theMap; 
         

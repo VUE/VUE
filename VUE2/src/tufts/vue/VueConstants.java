@@ -33,7 +33,8 @@ import java.awt.font.FontRenderContext;
 // todo: move most of this stuff to prefs
 public interface VueConstants
 {
-    public static final FontRenderContext DefaultFontContext = new FontRenderContext(null, true, false);
+    // a container for the information needed to correctly measure text
+	public static final FontRenderContext DefaultFontContext = new FontRenderContext(null, true, false);
    
     //static Font DefaultFont = new Font("SansSerif", Font.PLAIN, 18);
     static Font FixedFont = new Font("Courier", Font.BOLD, 12);

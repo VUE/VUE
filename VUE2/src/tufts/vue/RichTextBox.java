@@ -1111,6 +1111,11 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
      //   s.height = (int)(s.height * VUE.getActiveViewer().getZoomFactor());
     //	s.height=(int) this.getBoxBounds().getHeight();
     
+    // HO 24/04/2012 BEGIN *******
+    if (s == null)
+    	s = new Dimension();
+    // HO 24/04/2012 END *********
+    
    if (this.getBoxBounds() !=null && s.height < this.getBoxBounds().getHeight())
    {
     	s.height = (int)this.getBoxBounds().getHeight();

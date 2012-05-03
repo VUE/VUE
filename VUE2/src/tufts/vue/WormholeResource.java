@@ -19,21 +19,29 @@ package tufts.vue;
  * @author  Helen Oliver, Imperial College London revisions added & initialled 2010-2012
  */
 
-import java.util.*;
+import static tufts.Util.TERM_CLEAR;
+import static tufts.Util.TERM_CYAN;
+import static tufts.Util.TERM_GREEN;
+import static tufts.Util.TERM_PURPLE;
+import static tufts.Util.TERM_RED;
+
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import tufts.Util;
-import static tufts.Util.*;
-import tufts.vue.*;
-import tufts.vue.action.OpenAction;
-import tufts.vue.gui.GUI;
-import java.net.*;
-import java.awt.Image;
-import java.awt.Point;
-import java.awt.event.MouseEvent;
-import java.io.*;
-import java.util.regex.*;
-
-import org.apache.commons.io.*;
 
 public class WormholeResource extends URLResource {
 	/** See tufts.vue.URLResource - reimplementation of private member */
@@ -1141,7 +1149,10 @@ public class WormholeResource extends URLResource {
 		String strParentPath = getParentPathOfActiveMap();
 		// the parent URI of the currently active map
 		// which is effectively the source map
-		URI sourceMapURI = getParentURIOfActiveMap();
+		URI sourceMapParentURI = getParentURIOfActiveMap();		
+		// HO 03/05/2012 BEGIN ******
+		URI sourceMapURI = getURIOfActiveMap();
+		// HO 03/05/2012 END ********
 		// the name of the currently active map
 		// which is effectively the source map
 		String strSourceName = getFilenameOfActiveMap();
@@ -1207,7 +1218,7 @@ public class WormholeResource extends URLResource {
         			// SECOND ATTEMPT
         			// if we don't have a file, resolve it relative to the source map
         			URI systemSpecURI = VueUtil.getURIFromString(systemSpec);
-        			targFile = VueUtil.resolveTargetRelativeToSource(systemSpecURI, sourceMapURI);
+        			targFile = VueUtil.resolveTargetRelativeToSource(systemSpecURI, sourceMapParentURI);
         			// if this gives us the file, check further
         			if ((targFile != null) && (targFile.isFile())) {
         				lastKnownFile = targFile;
@@ -1434,6 +1445,10 @@ public class WormholeResource extends URLResource {
 		
 		File theSourceFile = new File(VueUtil.getStringFromURI(sourceMapURI));
 		String strParentPath = theSourceFile.getParent();
+		// HO 03/05/2012 BEGIN *******
+		if (strParentPath == null)
+			strParentPath = theSourceFile.toString();
+		// HO 03/05/2012 END *********
 		URI parentURI = null;
 		try {
 			parentURI = new URI(VueUtil.encodeStringForURI(strParentPath));
@@ -1565,6 +1580,22 @@ public class WormholeResource extends URLResource {
 		}
 		
 		return activeParent;
+	}
+	
+	/**
+	 * A function to get the URI of the active map.
+	 * @return the URI of the active map.
+	 * @author Helen Oliver
+	 */
+	private URI getURIOfActiveMap() {
+		
+		File activeMapFile = VUE.getActiveMap().getFile();
+		if (activeMapFile == null)
+			return null;
+		
+		URI activeMapURI = VueUtil.getURIFromString(activeMapFile.toString());
+		
+		return activeMapURI;
 	}
     
 	/**

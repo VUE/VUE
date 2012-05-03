@@ -99,7 +99,7 @@ public class LWPortal extends LWNode
     //@Override protected void layout(Object triggerKey, Size curSize, Size request) {} // overkill: shrinks to nothing?
     /** override to so we aren't constrainted by LWNode's minimum size */
     @Override
-    protected Size getTextSize() { return Size.None; }
+    protected Size getLabelSize() { return Size.None; }
 
     @Override
     protected void userSetSize(float width, float height, MapMouseEvent e)
