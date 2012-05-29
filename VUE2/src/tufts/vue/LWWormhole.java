@@ -192,6 +192,19 @@ public class LWWormhole implements VueConstants {
 		// TODO Auto-generated constructor stub
 	}
 	
+	// HO 28/05/2012 BEGIN ***********
+	/**
+	 * rhb hack
+	 */
+	public LWWormhole(LWComponent c, LWComponent t) {
+		init(c, t);
+	}
+	
+	public LWWormhole(LWComponent c, LWComponent t, float x1, float y1, float x2, float y2) {
+		init(c, t, x1, y1, x2, y2);
+	}	
+	// HO 28/05/2012 END ************
+	
 	/**
 	 * Wormhole constructor.
 	 * @param c, the LWComponent to which to add the wormhole.
@@ -221,6 +234,94 @@ public class LWWormhole implements VueConstants {
 	public LWWormhole(LWWormholeNode wn, WormholeResource wr, String prevURI, LWComponent newParent) {
 		init(wn, wr, prevURI, newParent);
 	}
+	
+	// HO 28/05/2012 BEGIN ********
+	/**
+	 * rhb hack
+	 */
+	public void init(LWComponent c, LWComponent t) 
+    {
+    	// we are cancelled until we have successfully
+		// constructed the whole wormhole
+		setBCancelled(true);
+		findAndSaveAllOpenMaps();
+		setSourceComponent(c);
+    	setSourceMap(sourceComponent.getParentOfType(LWMap.class));
+		setTargetComponent(t);
+		setTargetMap(targetComponent.getParentOfType(LWMap.class));
+		setSourceAndTargetMapFiles();
+
+		
+		// create the wormhole nodes
+		//createWormholeNodes();
+		setSourceWormholeNode(createSourceWormholeNode());
+    	setTargetWormholeNode(createTargetWormholeNodeRHB());    	
+
+    	
+		// position the components in the maps
+		placeComponents();
+
+		// set the resources
+    	setWormholeResources();
+    	
+    	// add the listeners
+    	addAllListeners();
+		
+    	// if we got this far we're okay and not cancelled
+    	setBCancelled(false);
+    	
+    	// flag end of construction process
+    	flagEndOfConstruction(sourceMap);
+    	flagEndOfConstruction(targetMap);
+    }
+	
+	public void init(LWComponent c, LWComponent t, float x1, float y1, float x2, float y2) 
+    {
+    	// we are cancelled until we have successfully
+		// constructed the whole wormhole
+		setBCancelled(true);
+		findAndSaveAllOpenMaps();
+		setSourceComponent(c);
+    	setSourceMap(sourceComponent.getParentOfType(LWMap.class));
+		setTargetComponent(t);
+		setTargetMap(targetComponent.getParentOfType(LWMap.class));
+		setSourceAndTargetMapFiles();
+    
+		setSourceWormholeNode(createSourceWormholeNode());
+    	setTargetWormholeNode(createTargetWormholeNodeRHB());    	
+    	
+		sourceWormholeNode.setLocation(x1, y1);
+		sourceMap.addNode(sourceWormholeNode);
+		sourceWormholeNode.setShape(java.awt.geom.Ellipse2D.Float.class);
+		sourceWormholeNode.setFillColor(null);
+		sourceWormholeNode.setStrokeWidth(1);
+		LWLink k1 = new LWLink(sourceComponent, sourceWormholeNode);
+		sourceMap.addLink(k1);
+		targetWormholeNode.setLocation(x2, y2);
+		targetMap.addNode(targetWormholeNode);
+		targetWormholeNode.setShape(java.awt.geom.Ellipse2D.Float.class);
+		targetWormholeNode.setFillColor(null);
+		targetWormholeNode.setStrokeWidth(1);
+		LWLink k2 = new LWLink(targetWormholeNode, targetComponent);
+		targetMap.addLink(k2);
+    	
+		//makeSureTargetNodeDoesNotOverlap(targetMap);		
+
+		// set the resources
+    	setWormholeResources();
+    	
+    	// add the listeners
+    	addAllListeners();
+		
+    	// if we got this far we're okay and not cancelled
+    	setBCancelled(false);
+    	
+    	// flag end of construction process
+    	flagEndOfConstruction(sourceMap);
+    	flagEndOfConstruction(targetMap);
+    }	
+	
+	// HO 28/05/2012 END **********
 		
 	/**
 	 * Initializes the wormhole.
@@ -544,61 +645,106 @@ public class LWWormhole implements VueConstants {
 								
 		return bSameMap;
 	} 
-
-
+	
 	/**
-	 * A function for extrapolating source and target components,
-	 * maps, and nodes from a single LWWormholeNode and the
-	 * WormholeResource in that node.
-	 * This works even if the WormholeResource doesn't know about both
-	 * sides of the wormhole.
-	 * It does not work if you do this just before saving.
-	 * @param wn, the LWWormholeNode that we will use to extrapolate the wormhole
-	 * @param wr, the WormholeResource in wn that we will use to extrapolate the wormhole
-	 * @return false if the components, maps, and nodes weren't successfully created,
-	 * true if they were.
+	 * A function for extrapolating and setting the source map.
+	 * @param wn, the LWWormholeNode located in the source map
+	 * @return the LWMap that is the source map.
 	 * @author Helen Oliver
 	 */
-	private boolean extrapolateComponentsMapsAndNodes(LWWormholeNode wn, WormholeResource wr) {
+	private LWMap extrapolateAndSetSourceMap(LWWormholeNode wn) {
 		// validate input
-		if ((wn == null) || (wr == null))
-			return false;
-		// check and see if the original source and target were
-		// actually pointing to the same map
-		boolean bSameMap = pointsToSameMap(wr);
+		if (wn == null) 
+			return null;
 		
 		// Start by extrapolating the source map from the node parent
 		LWMap actualSourceMap = null;
 		try {
 			actualSourceMap = wn.getParentOfType(LWMap.class);
 		} catch (NullPointerException e) {
-			return false;
+			return null;
 		}
 
 		// if the node has a parent map, make it the source map
 		if (actualSourceMap != null) {
 			setSourceMap(actualSourceMap);
+			return actualSourceMap;
 		} else {
 			// if it doesn't have a parent map, we're hosed.
-			return false;
+			return null;
 		}
+	}
+	
+	/**
+	 * A function for extrapolating and setting the target map.
+	 * @param bSameMap, a boolean which is true if the source and target maps
+	 * are the same, false otherwise.
+	 * @param wr, the WormholeResource that is contained in the target map.
+	 * @return the LWMap that is the target map.
+	 * @author Helen Oliver
+	 */
+	private LWMap extrapolateAndSetTargetMap(boolean bSameMap, WormholeResource wr) {
+		// input validation
+		if (wr == null)
+			return null;
 		
-		// if the resource's source and target are the same map, 
-		// we set the target map to the source
 		LWMap targMap = null;
-		if (bSameMap)
-			targMap = actualSourceMap;
+		
+		if (bSameMap) // if target and source maps are the same, problem solved
+			targMap = (LWMap) getSourceMap();
 		else // if not the same, go ahead and extrapolate the target map from the resource
 			targMap = extrapolateTargetMap(wr);
 
 		
 		// if we now have a target map
-		if (targMap != null)
+		if (targMap != null) {
 			// set it as our target map component
 			setTargetMap(targMap);
+			return targMap;
+		}
 		else
 			// but if we don't have a map, we failed
-			return false;
+			return null;
+		
+	}
+	
+	/**
+	 * A function to search for the source component in the source map.
+	 * @param actualSourceMap, the LWMap that we are searching
+	 * @param wr, the WormholeResource identifying the source component
+	 * @return the source LWComponent found in the source map.
+	 * @author Helen Oliver
+	 */
+	private LWComponent searchForSourceComponentInSourceMap(LWMap actualSourceMap, WormholeResource wr) {
+		// input validation
+		if ((actualSourceMap == null) || (wr == null))
+			return null;
+		
+		LWComponent sourceComp = actualSourceMap.findChildByURIString(wr.getOriginatingComponentURIString());
+		// if we found the component, set it to be the source component
+		if (sourceComp != null) {
+			setSourceComponent(sourceComp);
+			// return the source node
+			return sourceComp;
+		} else {
+			// we have neither a source nor a target,
+			// so we can't do a thing with it
+			return null;
+		}
+
+	}
+	
+	/**
+	 * A function to extrapolate the target component
+	 * @param wr, the WormholeResource that identifies the target component
+	 * @param targMap, the target LWMap
+	 * @return the target LWComponent
+	 * @author Helen Oliver
+	 */
+	private LWComponent extrapolateTargetComponent(WormholeResource wr, LWMap targMap) {
+		// input validation
+		if ((wr == null) || (targMap == null))
+			return null;
 		
 		// now we extrapolate the target component
 		// by getting the component URI string from the resource
@@ -607,37 +753,36 @@ public class LWWormhole implements VueConstants {
 		// we can't extrapolate enough information to create
 		// the wormhole, so flag failure and return
 		if ((compString == null) || (compString == ""))
-			return false;
+			return null;
 		
 		// but if we do have a component URI string, we can
 		// use it to find the target component in the target map
 		LWComponent targetComp = targMap.findChildByURIString(compString);
-
-		// now instantiate the source component which we are about to extrapolate
+		return targetComp;
+	}
+	
+	/**
+	 * A function to extrapolate, and set, the source LWComponent,
+	 * and both the source and target wormhole nodes.
+	 * The object is to look at the target component and see if we can extrapolate
+	 * whether it's the right one, in case the component has more
+	 * than one wormhole node, by cycling through all the wormhole nodes that are contained
+	 * within the target component.
+	 * @param targetComp, the target LWComponent
+	 * @param actualSourceMap, the source LWMap
+	 * @param wn, the LWWormholeNode associated with the source node
+	 * @return the LWComponent that is the source component
+	 * @author Helen Oliver
+	 */
+	private LWComponent extrapolateAndSetSourceComponentAndWormholeNodes(LWComponent targetComp, LWMap actualSourceMap,
+			LWWormholeNode wn) {
+		// input validation
+		if ((targetComp == null) || (actualSourceMap == null) || (wn == null))
+			return null;
+		
+		// the putative source component
 		LWComponent sourceComp = null;
 		
-		// if we didn't find the target component, search for the
-		// source component in the source map
-		if (targetComp == null) {
-			sourceComp = actualSourceMap.findChildByURIString(wr.getOriginatingComponentURIString());
-			// if we found the component, set it to be the source component
-			if (sourceComp != null) {
-				setSourceComponent(sourceComp);
-				// and set the node as the source node
-				setSourceWormholeNode(wn);
-				// in this case we have a source component
-				// but no target, so we can work with this
-				return true;
-			} else {
-				// we have neither a source nor a target,
-				// so we can't do a thing with it
-				return false;
-			}
-		}
-		
-		// if we got this far, we have a target component		
-		setTargetComponent(targetComp);
-				
 		// now look at the target component and see if we can extrapolate
 		// whether it's the right one (just in case the component has more
 		// than one wormhole node
@@ -687,10 +832,165 @@ public class LWWormhole implements VueConstants {
 			}
 		}
 		
+		return sourceComp;
+	}
+	
+	/**
+	 * A function to extrapolate, and set, the target wormhole node
+	 * if (as in a DRed map being reopened) it isn't nested in the target component.
+	 * @param actualTargetMap, the target LWMap
+	 * @param wr, the WormholeResource whose LWWormholeNode we are looking for
+	 * @return the LWWormholeNode that contains the target wormhole resource
+	 * @author Helen Oliver
+	 */
+	private LWWormholeNode extrapolateAndSetTargetWormholeNodeFromTargetMap(LWMap actualTargetMap,
+			WormholeResource wr) {
+		// input validation
+		if ((actualTargetMap == null) || (wr == null))
+			return null;
+		
+		// the putative target wormhole node
+		LWWormholeNode targetWormholeNode = null;
+		
+		// now look at the target map and see if we can find
+		// the target wormhole node
+		// Start by getting all the wormhole nodes that are contained
+		// within the target map
+		Collection<LWWormholeNode> wormholeNodes = actualTargetMap.getAllWormholeNodes();
+		// iterate through all the wormhole nodes
+		for(LWWormholeNode nextNode :wormholeNodes) {
+			// if the node contains a resource
+			if (nextNode.hasResource()) {
+				// get the resource contained in the node
+				Resource r = nextNode.getResource();
+					// check and see if the resource in this node is a wormhole resource
+					if (r.getClass().equals(tufts.vue.WormholeResource.class)) {
+						// so we need to see if that resource is the one we're looking for
+						WormholeResource worm = (WormholeResource)r;
+						// compare the values - if the UUIDs match in both
+						// directions, then the resources are at least pointing
+						// to each other
+						String strWeAreLookingFor = wr.getComponentURIString();
+						String strWeAreLookingAt = worm.getOriginatingComponentURIString();
+						// now the other way
+						String strTheyAreLookingFor = wr.getOriginatingComponentURIString();
+						String strTheyAreLookingAt = worm.getComponentURIString();
+						
+						// if one target node has several wormholes,
+						// it is possible that we could have selected the wrong
+						// LWWormholeNode. There is not much we can do about that
+						// in the current state. One possible way - store wormhole
+						// node ID as part of the resource? Painful.
+						if ((strWeAreLookingFor.equals(strWeAreLookingAt)) 
+							&& (strTheyAreLookingFor.equals(strTheyAreLookingAt))) {
+							nextNode.setWormholeType(LWWormholeNode.WormholeType.TARGET.toString());
+							setTargetWormholeNode(nextNode);
+							// the value to return
+							targetWormholeNode = nextNode;
+							break;
+						}
+
+					}
+				
+			} // end of nextNode.hasResource() if block
+		} // end of nextNode loop
+		
+		return targetWormholeNode;
+	}
+
+	/**
+	 * A function for extrapolating source and target components,
+	 * maps, and nodes from a single LWWormholeNode and the
+	 * WormholeResource in that node.
+	 * This works even if the WormholeResource doesn't know about both
+	 * sides of the wormhole.
+	 * It does not work if you do this just before saving.
+	 * @param wn, the LWWormholeNode that we will use to extrapolate the wormhole
+	 * @param wr, the WormholeResource in wn that we will use to extrapolate the wormhole
+	 * @return false if the components, maps, and nodes weren't successfully created,
+	 * true if they were.
+	 * @author Helen Oliver
+	 */
+	private boolean extrapolateComponentsMapsAndNodes(LWWormholeNode wn, WormholeResource wr) {
+		// validate input
+		if ((wn == null) || (wr == null))
+			return false;
+		// check and see if the original source and target were
+		// actually pointing to the same map
+		boolean bSameMap = pointsToSameMap(wr);
+		
+		// HO 29/05/2012 BEGIN ********
+		// set the source and target maps
+		LWMap actualSourceMap = extrapolateAndSetSourceMap(wn);
+		// if there's no source map, we're hosed.
+		if (actualSourceMap == null)
+			return false;
+		
+		LWMap targMap = extrapolateAndSetTargetMap(bSameMap, wr);
+		// if there's no target map, we're hosed.
+		if (targMap == null)
+			return false;
+		
+		LWComponent targetComp = extrapolateTargetComponent(wr, targMap);
+
+		// now instantiate the source component which we are about to extrapolate
+		// HO 29/05/2012 BEGIN ********
+		LWComponent sourceComp = searchForSourceComponentInSourceMap(actualSourceMap, wr);
+		if (targetComp == null) {
+			if (sourceComp != null) {
+				// we have a source component but no target,
+				// and we can work with this
+				setSourceWormholeNode(wn);
+				return true;
+			} else {
+				return false;	// we have neither a source nor a target component
+			}
+		}		
+		// HO 29/05/2012 END ********
+		
+		// if we got this far, we have a target component		
+		setTargetComponent(targetComp);
+		
+		// HO 29/05/2012 BEGIN ********
+		sourceComp = extrapolateAndSetSourceComponentAndWormholeNodes(targetComp, actualSourceMap, wn);
+		// HO 29/05/2012 END ********
+		
 		// if we didn't manage to set the source component,
 		// we've failed so flag failure and return
-		if (sourceComp == null)
-			return false;
+		// HO 29/05/2012 BEGIN **********
+		// either that or we have a DRed map on our hands
+		// in which case the sourceComp won't have been found
+		// because we've been searching it on the assumption it has a parent
+		if (sourceComp == null) {
+			// return false;
+			// check if it's there but just doesn't have a parent
+			sourceComp = actualSourceMap.findChildByURIString(wr.getOriginatingComponentURIString());
+			if (sourceComp == null)
+				return false;
+			else {	// after all that, if it's there but doesn't have a parent, this is probably a DRed map
+				// so, we need to make sure the source and target wormhole nodes are set and they both have parents
+				System.out.println("placeholder");
+				// need to set the source component
+				setSourceComponent(sourceComp);
+				// set the originally passed-in wormhole node
+				// to be the source wormhole node
+				wn.setWormholeType(LWWormholeNode.WormholeType.SOURCE.toString());
+				setSourceWormholeNode(wn);
+				// at this point we most likely don't have a target wormhole node either because
+				// we most likely are reading in a DRedMap, so, let's see if we can find the
+				// target wormhole node in the map
+				// assuming of course that we actually have a target component
+				// which we should if we have got this far
+				if (targetComp != null) {
+					LWWormholeNode targetWormholeNode = extrapolateAndSetTargetWormholeNodeFromTargetMap(targMap, wr);
+					// if we have a target component but no wormhole node, disaster! irretrievably damned
+					if (targetWormholeNode == null) 
+						return false;
+				}
+			}
+		}
+		
+		// HO 29/05/2012 END ************
 
     	// if we got this far we have succeeded
 
@@ -1014,6 +1314,9 @@ public class LWWormhole implements VueConstants {
 			if ((nextLikelyFile != null) && (nextLikelyFile.isFile())) {
 				targFile = nextLikelyFile;
 				String s = nextLikelyFile.getAbsolutePath();
+				// HO 03/05/2012 BEGIN ******
+				VueUtil.saveMapIfAlreadyOpen(targFile);
+				// HO 03/05/2012 END ********
 				targMap = OpenAction.loadMap(s);
 				// HO 07/03/2012 END *******					
 				// if we found the map, return it
@@ -1033,6 +1336,9 @@ public class LWWormhole implements VueConstants {
 			if ((nextLikelyFile != null) && (nextLikelyFile.isFile())) {
 				targFile = nextLikelyFile;
 				String s = nextLikelyFile.getAbsolutePath();
+				// HO 03/05/2012 BEGIN ******
+				VueUtil.saveMapIfAlreadyOpen(targFile);
+				// HO 03/05/2012 END ********
 				targMap = OpenAction.loadMap(s);
 				// HO 07/03/2012 END *******
 				// if we found the map, return it
@@ -1438,12 +1744,7 @@ public class LWWormhole implements VueConstants {
         // HO 03/05/2012 BEGIN *******
         // see if this existing map is already open
         // and if it is, save it
-        LWMap saveMap = VUE.isThisMapAlreadyOpen(file);
-        if (saveMap != null) {
-        	if (saveMap.isModified())
-        		SaveAction.saveMap(saveMap);
-        }
-        
+        VueUtil.saveMapIfAlreadyOpen(file);        
         // HO 03/05/2012 END *********
         
         // load the map file
@@ -1515,6 +1816,13 @@ public class LWWormhole implements VueConstants {
 		LWNode theNode = new LWNode(strLabel);
 		return theNode;
 	}
+	
+	// HO 28/05/2012 BEGIN *********
+	public LWNode createDefaultTargetNodeRHB() {
+		LWNode theNode = new LWNode("Element Decomposed");
+		return theNode;
+	}	
+	// HO 28/05/2012 END ***********
 	
 	/**
 	 * A routine to paste the target component in the
@@ -1727,6 +2035,21 @@ public class LWWormhole implements VueConstants {
     	
     	return theWormholeNode;
 	}
+	
+	// HO 28/05/2012 BEGIN *********
+	public LWWormholeNode createTargetWormholeNodeRHB() {
+		// Use these to construct the target wormhole node
+    	LWWormholeNode theWormholeNode = new LWWormholeNode(sourceComponent.getURI().toString(),
+    			sourceMap.getURI().toString(), targetComponent.getURI().toString(),
+    			targetMap.getURI().toString(), LWWormholeNode.WormholeType.TARGET);
+    	
+    	// HO 20/04/2012 BEGIN *****
+    	theWormholeNode.setFillColor(targetComponent.getFillColor());
+    	// HO 20/04/2012 END *******
+    	
+    	return theWormholeNode;
+	}
+	// HO 28/05/2012 END ***********
 	
 	/**
 	 * Convenience method for setting the labels on the source and target

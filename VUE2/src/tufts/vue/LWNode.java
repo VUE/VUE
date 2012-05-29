@@ -92,7 +92,10 @@ public class LWNode extends LWContainer
 
     public static final Object TYPE_TEXT = "textNode";
     
-    final static boolean WrapText = false; // under development
+    // HO 14/05/2012 BEGIN ********
+    //final static boolean WrapText = false; // under development
+    final static boolean WrapText = true; // under development
+    // HO 14/05/2012 END *********
     
     public static final Font  DEFAULT_NODE_FONT = VueResources.getFont("node.font");
     /** The default fill colour */
@@ -2171,11 +2174,18 @@ public class LWNode extends LWContainer
     // full width of node, but then snaps back to min-size on re-layout!
 
     // todo: may not need all three args
-    private Size layoutBoxed_floating_text(Size request, Size curSize, Object triggerKey)
+    /**
+     * A function to lay out the label box to the size implicitly requested by the user's input
+     * @param requestedNewSize, the new Size implicitly requested by the user's input
+     * @param curSize, the current Size of the label box
+     * @param triggerKey, the key Object that triggered this layout
+     * @return the new Size of the label box after the layout
+     */
+    private Size layoutBoxed_floating_text(Size requestedNewSize, Size curSize, Object triggerKey)
     {
-        if (DEBUG.LAYOUT) out("*** layoutBoxed_floating_text, req="+request + " cur=" + curSize + " trigger=" + triggerKey);
+        if (DEBUG.LAYOUT) out("*** layoutBoxed_floating_text, req="+requestedNewSize + " cur=" + curSize + " trigger=" + triggerKey);
 
-        final Size min = new Size(); // the minimum size of the Node
+        final Size minimumSize = new Size(); // the minimum size of the Node
 
         getLabelBox(); // make sure labelBox is set
 
@@ -2183,15 +2193,27 @@ public class LWNode extends LWContainer
         // start building up minimum width & height
         //------------------------------------------------------------------
         
+        // if the icon block is being displayed,
+        // start by making the node at least wide enough to 
+        // contain the icon block
         if (iconShowing())
-            min.width = LabelPositionXWhenIconShowing;
-        else
-            min.width = LabelPadLeft;
-        min.width += LabelPadRight;
-        min.height = EdgePadY + EdgePadY;
+            minimumSize.width = LabelPositionXWhenIconShowing;
+        else // but if there's no icon block, make the node just wide enough to pad the label on the left
+            minimumSize.width = LabelPadLeft;
+        // now we have enough room for either the icon block plus left-hand label padding,
+        // or (if no icons) just the left-hand label padding
+        // so we add padding to the right of the label
+        minimumSize.width += LabelPadRight;
+        // and now we pad the label above and below too
+        minimumSize.height = EdgePadY + EdgePadY;
 
-        final float textPadWidth = min.width;
-        final float textPadHeight = min.height;
+        // now the node is just big enough to accommodate
+        // the icon block if there is one,
+        // and the label padding,
+        // so make a note of how much room is needed
+        // for the padding alone
+        final float textPadWidth = minimumSize.width;
+        final float textPadHeight = minimumSize.height;
 
         //------------------------------------------------------------------
         // adjust minimum width & height for text size and requested size
@@ -2204,14 +2226,14 @@ public class LWNode extends LWContainer
         // this node, otherwise, resizeRequest is false and some
         // property is changing that may effect the size of the node
 
-        if (request == null) {
+        if (requestedNewSize == null) {
             resizeRequest = false;
-            request = curSize;
+            requestedNewSize = curSize;
         } else
             resizeRequest = true;
 
         if (hasChildren())
-            request.fitWidth(getMaxChildSpan());
+            requestedNewSize.fitWidth(getMaxChildSpan());
 
         //if (request.width <= MIN_SIZE && request.height <= MIN_SIZE) {
         if (curSize.width == NEEDS_DEFAULT) { // NEEDS_DEFAULT meaningless now: will never be true (oh, only on restore?)
@@ -2232,8 +2254,8 @@ public class LWNode extends LWContainer
                 // fit the text to the new size as best we can.
                 // (we're most likely drag-resizing the node)
                 
-                newTextSize.width = request.width - textPadWidth;
-                newTextSize.height = request.height - textPadHeight;
+                newTextSize.width = requestedNewSize.width - textPadWidth;
+                newTextSize.height = requestedNewSize.height - textPadHeight;
                 newTextSize.fitWidth(labelBox.getMaxWordWidth());
 
 
@@ -2305,8 +2327,8 @@ public class LWNode extends LWContainer
         newTextSize.height = labelBox.getHeight();
         this.textSize = newTextSize.dim();
         
-        min.height += newTextSize.height;
-        min.width += newTextSize.width;
+        minimumSize.height += newTextSize.height;
+        minimumSize.width += newTextSize.width;
 
         //-------------------------------------------------------
         // Now that we have our minimum width and height, layout
@@ -2314,7 +2336,7 @@ public class LWNode extends LWContainer
         //-------------------------------------------------------
 
         if (hasChildren()) {
-            layoutBoxed_children(min, newTextSize);
+            layoutBoxed_children(minimumSize, newTextSize);
             /*
             if (mChildScale != ChildScale || request.height > min.height) {
                 // if there's extra space, zoom all children to occupy it
@@ -2327,9 +2349,9 @@ public class LWNode extends LWContainer
         }
 
         if (iconShowing())
-            layoutBoxed_icon(request, min, newTextSize);
+            layoutBoxed_icon(requestedNewSize, minimumSize, newTextSize);
             
-        return min;
+        return minimumSize;
     }
 
     /** override's superclass impl of {@link XMLUnmarshalListener} -- fix's up text size */

@@ -3279,15 +3279,32 @@ public class LWMap extends LWContainer
 	// HO 20/07/2010 END
 	
 	// HO 21/07/2010 BEGIN 
+	/**
+	 * A method to find a child of this map by its UURI string
+	 * @param theURIString, a String containing the child's URI field
+	 * @return the child LWComponent that is identified by theURIString
+	 * @author Helen Oliver
+	 */
 	public LWComponent findChildByURIString(String theURIString) {
 		Iterator iter = this.getAllDescendents().iterator();
+		// HO 24/05/2012 BEGIN *********
+		LWComponent nextComponent = null;
+		// HO 24/05/2012 END *********
+		
         while(iter.hasNext()) {
-        	LWComponent nextComponent = (LWComponent)iter.next();
+        	nextComponent = (LWComponent)iter.next();
         	URI nextURI = nextComponent.getURI();
         	if (nextURI.toString().equals(theURIString)) {
         		return nextComponent;
+        	} else { // HO 24/05/2012 BEGIN *********
+        		nextComponent = null;	// attempting to reduce memory leaks
+        		// HO 24/05/2012 END *********
         	}
         }
+        
+        // HO 24/05/2012 BEGIN *********
+        iter = null;
+        // HO 24/05/2012 END *********
         // if we got this far there's nothing to return
         return null;
 	}

@@ -51,6 +51,7 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 import tufts.vue.VueResources;
 import tufts.vue.LWComponent.ChildKind;
 import tufts.vue.action.OpenAction;
+import tufts.vue.action.SaveAction;
 
 import org.apache.commons.io.*;
 
@@ -765,6 +766,14 @@ public class VueUtil extends tufts.Util
     	LWMap targMap = null;
     	
     	String s = f.getAbsolutePath();
+        // HO 03/05/2012 BEGIN *******
+        // see if this existing map is already open
+        // and if it is, save it
+    	// are we sure we want to do this?
+    	// the balance of probabilities are that it's
+    	// the right map...
+        saveMapIfAlreadyOpen(f);        
+        // HO 03/05/2012 END *********
     	LWMap map = OpenAction.loadMap(s);
     	// HO 28/02/2012 BEGIN ********
     	// this can return null because of
@@ -782,6 +791,31 @@ public class VueUtil extends tufts.Util
 		
 		return targMap;
 	}
+	
+	// HO 04/05/2012 BEGIN ******
+    /**
+     * A method to find a map that may already be open
+     * and, if found, save it.
+     * @param file, the File we want to save if open.
+     * @author Helen Oliver
+     */
+    public static void saveMapIfAlreadyOpen(File file) {
+    	// input validation
+    	if (file == null)
+    		return;
+    	
+        // HO 03/05/2012 BEGIN *******
+        // see if this existing map is already open
+        // and if it is, save it
+        LWMap saveMap = VUE.isThisMapAlreadyOpen(file);
+        if (saveMap != null) {
+        	if (saveMap.isModified())
+        		SaveAction.saveMap(saveMap);
+        }
+       
+        // HO 03/05/2012 END *********
+    }	
+	// HO 04/05/2012 END ********
     
 	// HO 13/02/2012 BEGIN *********
 	/**

@@ -2634,8 +2634,11 @@ public class Images
 
     // todo: this probably wants to move to a resource impl class
     private static void setDateValue(Resource r, String name, long value) {
-        if (value > 0)
+    	// HO 11/05/2012 BEGIN *********
+        if (value > 0) {
             r.setProperty(name, new java.util.Date(value).toString());
+        }
+     // HO 11/05/2012 END *********
         // todo: set raw value for compares, but allow prop displayer to convert it?
         // or put a raw Date object in there?
     }

@@ -1485,11 +1485,12 @@ public class LWIBISNode extends LWNode
     protected Size getLabelSize() {
 
     	// HO 22/12/2010 BEGIN ********************
-    	/* if (WrapText) {
+    	// HO 14/05/2012 BEGIN *********
+    	if (WrapText) {
             Size s = new Size(getLabelBox().getSize());
-            //s.width += 3;
             return s;
-        } else { */
+        } else { 
+    	// HO 14/05/2012 END *********
         	// HO 22/12/2010 END ********************
             // TODO: Check if this hack still needed in current JVM's
         
@@ -1506,6 +1507,7 @@ public class LWIBISNode extends LWNode
             s.width *= TextWidthFudgeFactor;
             s.width += 3;
             return s;
+        }
          // HO 22/12/2010 BEGIN ********************
             //}
          // HO 22/12/2010 END ********************
@@ -1515,9 +1517,11 @@ public class LWIBISNode extends LWNode
     @Override
     public boolean isAutoSized() {
     	// HO 22/12/2010 BEGIN ********************
-    	//if (WrapText)
-            //return false; // LAYOUT-NEW
-       // else
+    	// HO 14/05/2012 BEGIN *********
+    	if (WrapText)
+            return false; // LAYOUT-NEW
+       else
+    	// HO 14/05/2012 END *********
         	// HO 22/12/2010 end ********************
             return isAutoSized;
     }
@@ -1526,7 +1530,9 @@ public class LWIBISNode extends LWNode
     public void setAutoSized(boolean makeAutoSized)
     {
     	// HO 22/12/2010 BEGIN ********************
-    	//if (WrapText) return; // LAYOUT-NEW
+    	// HO 14/05/2012 BEGIN *********
+    	if (WrapText) return; // LAYOUT-NEW
+    	// HO 14/05/2012 END *********
     	// HO 22/12/2010 END ********************
         
         if (isAutoSized == makeAutoSized)
@@ -1556,9 +1562,11 @@ public class LWIBISNode extends LWNode
 
     private int getTextWidth() {
     	// HO 22/12/2010 BEGIN ********************
-        //if (WrapText)
-            //return labelBox.getWidth();
-        //else
+    	// HO 14/05/2012 BEGIN *********
+        if (WrapText)
+            return labelBox.getWidth();
+        else
+    	// HO 14/05/2012 END *********
         	// HO 22/12/2010 END ********************
             return Math.round(getLabelSize().width);
     }
@@ -2011,17 +2019,30 @@ public class LWIBISNode extends LWNode
     }    
     // HO 09/12/2010 END ***************
     
-    private Size layoutBoxed(Size request, Size oldSize, Object triggerKey) {
-        final Size min;
+    // HO 21/05/2012 BEGIN ************
+    // private Size layoutBoxed(Size request, Size oldSize, Object triggerKey) {
+    /**
+     * A function to lay out the node in a rectangular shape.
+     * @param requestedSize, the new Size implicitly requested as a result of user input
+     * @param oldSize, the previous Size of the node
+     * @param triggerKey, the trigger Object that prompted this layout
+     * @return the Size of the node after the layout
+     */
+    private Size layoutBoxed(Size requestedSize, Size oldSize, Object triggerKey) {    	
+        // final Size min;
+    	final Size minimumSize;
+        // HO 21/05/2012 END ************
         
         // HO 22/12/2010 BEGIN ********************
-        //if (WrapText)
-            //min = layoutBoxed_floating_text(request, oldSize, triggerKey);
-        //else
+     // HO 14/05/2012 BEGIN *********
+        if (WrapText)
+            minimumSize = layoutBoxed_floating_text(requestedSize, oldSize, triggerKey);
+        else
+     // HO 14/05/2012 BEGIN *********
         	// HO 22/12/2010 END ********************
-            min = layoutBoxed_vanilla(request);
+            minimumSize = layoutBoxed_vanilla(requestedSize);
 
-        return min;
+        return minimumSize;
 
     }
     
@@ -2301,8 +2322,11 @@ public class LWIBISNode extends LWNode
         if (DEBUG.LAYOUT) out("*** layoutBoxed_children; min=" + min + " text=" + labelText);
 
         // HO 10/12/2010 BEGIN ************
-        //mBoxedLayoutChildY = EdgePadY + labelText.height; // must set before layoutChildren, as may be used in childOffsetY()
-        mBoxedLayoutChildY = EdgePadY;
+        // HO 21/05/2012 BEGIN ***********
+        // I'm not so sure 
+        mBoxedLayoutChildY = EdgePadY + labelText.height; // must set before layoutChildren, as may be used in childOffsetY()
+        // mBoxedLayoutChildY = EdgePadY;
+        // HO 21/05/2012 END ***********
         // HO 10/12/2010 BEGIN ************
         
         float minWidth;
@@ -3215,11 +3239,13 @@ public class LWIBISNode extends LWNode
     	/*
     	else if (hasChildren()) {
             return EdgePadY;
-        } else {
+        } // HO 14/05/2012 BEGIN *********
+        */
+        else {
             
             if (false && WrapText)
                 return mLabelPos.y;
-                */
+         // HO 14/05/2012 END *********
             	// HO 22/12/2010 END ********************
             else { 
                 // Doing this risks slighly moving the damn TextBox just as you edit it.
@@ -3240,6 +3266,7 @@ public class LWIBISNode extends LWNode
             		return totalLabelPos;
                 // HO 16/05/2011 END **************
              }
+        }
     	// HO 22/12/2010 BEGIN ********************
         /*    
         }*/
