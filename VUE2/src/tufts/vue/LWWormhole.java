@@ -936,6 +936,10 @@ public class LWWormhole implements VueConstants {
 		// now instantiate the source component which we are about to extrapolate
 		// HO 29/05/2012 BEGIN ********
 		LWComponent sourceComp = searchForSourceComponentInSourceMap(actualSourceMap, wr);
+		// HO 06/06/2012 BEGIN **********
+		// in case we have to look for this again
+		LWComponent sourceCompInMap = sourceComp;
+		// HO 06/06/2012 END ************
 		if (targetComp == null) {
 			if (sourceComp != null) {
 				// we have a source component but no target,
@@ -964,7 +968,11 @@ public class LWWormhole implements VueConstants {
 		if (sourceComp == null) {
 			// return false;
 			// check if it's there but just doesn't have a parent
-			sourceComp = actualSourceMap.findChildByURIString(wr.getOriginatingComponentURIString());
+			// HO 06/06/2012 BEGIN *********
+			// use the one we found in the map
+			if (sourceCompInMap != null) 
+				sourceComp = sourceCompInMap;
+			// HO 06/06/2012 END *********
 			if (sourceComp == null)
 				return false;
 			else {	// after all that, if it's there but doesn't have a parent, this is probably a DRed map

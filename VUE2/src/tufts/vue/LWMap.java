@@ -368,18 +368,123 @@ public class LWMap extends LWContainer
 		
 		return strStripped;		
 	}
-	// HO 12/05/2011 END ***********    
+	// HO 12/05/2011 END *********** 
+	
+	// HO 08/06/2012 BEGIN *********
+	/**
+	 * A function to work out whether a given LWComponent is
+	 * linked to a given LWWormholeNode, in either direction.
+	 * @param wn, the LWWormholeNode for which to check links.
+	 * @param componentURIString, the UURI string of the component we think
+	 * may be linked to this wormhole node.
+	 * @param theComp, the LWComponent that could be pointing to this LWWormholeNode.
+	 * @return true if the wormhole node is linked to a given component,
+	 * false otherwise.
+	 * @author Helen Oliver
+	 */
+	private boolean checkIfWormholeNodeIsLinkedToComponent(LWWormholeNode wn, String componentURIString, LWComponent theComp) {
+		// input validation
+		if ((wn == null) || (componentURIString == null) || (componentURIString == "") || (theComp == null))
+			return false;
+		
+		boolean bLinked = false;
+		// get the components linked to the far end of this wormhole node
+		Collection<LWComponent> coll = wn.getLinked();
+		// iterate through 'em
+		Iterator iter = coll.iterator();
+		while(iter.hasNext()) {
+			LWComponent nextComp = (LWComponent)iter.next();
+			String strNextURI = nextComp.getURIString();
+			if (strNextURI.equals(componentURIString)) {
+				bLinked = true;
+				break;
+			}
+			// prevent memory leaks
+			nextComp = null;
+		}
+		// prevent memory leaks
+		coll = null;
+		
+		// if it's linked, that's all we need to know so return true
+		if (bLinked == true)
+			return true;
+		
+		// reverse it, and see if the component we're looking for is pointing to this wormhole node
+		coll = theComp.getLinked();
+		// iterate through 'em
+		iter = coll.iterator();
+		while(iter.hasNext()) {
+			LWComponent nextComp = (LWComponent)iter.next();
+			String strNextURI = nextComp.getURIString();
+			if (strNextURI.equals(componentURIString)) {
+				bLinked = true;
+				break;
+			}
+			// prevent memory leaks
+			nextComp = null;
+		}
+		// prevent memory leaks
+		coll = null;
+		
+		// and now return true or false
+		return bLinked;
+	}
+	// HO 08/06/2012 END **********
     
     // HO 15/04/2011 BEGIN *********
     private boolean compareToWormholeResourceContents(LWWormholeNode wn, WormholeResource wr, boolean b) {
     	boolean bChanged = b;
     	
     	// get wn's parent component URI
+    	// HO 06/06/2012 BEGIN todo: if this is a DRed map the parent we get
+    	// may be the map, not a parent component... change the comparison to
+    	// do another test
 		String parentComponentURIString = wn.getParent().getURI().toString();
 		// and compare it to the originating component URI in wr
 		String thisComponentURIString = wr.getOriginatingComponentURIString();
-		if (!parentComponentURIString.equals(thisComponentURIString))
-			bChanged = true;
+		// if the actual parent component isn't the same as the 
+		// saved source component, the wormhole may have changed
+		if (!parentComponentURIString.equals(thisComponentURIString)) {
+			//bChanged = true;
+			// HO 08/06/2012 BEGIN *******
+			// before we conclude that it's changed,
+			// deal with the possibility that it's a DRed map in which case
+			// the wormhole node might not be a child of another node.
+			// So first, check and see if the parent is actually the map, or a layer.
+			LWComponent parentComp = wn.getParent();
+			if ((parentComp.getClass().equals(LWMap.class)) || (parentComp.getClass().equals(Layer.class))) {
+				// so now we know the parent is a map or layer rather than a node,
+				// but there is still the question of whether something's changed.
+				// If it's a DRed map the node will still be there,
+				// just the WormholeNode won't be a child of it.
+				// Look and see if the source component is in this map.
+				LWMap parentMap = wn.getParentOfType(LWMap.class);
+				LWComponent actualSourceComp = parentMap.findChildByURIString(thisComponentURIString);
+				
+				// if the source component isn't found, something has indeed changed
+				if (actualSourceComp == null) {
+					return true;
+				} else {// if it's there, we need to figure out if they're joined by a link
+					boolean bLinked = checkIfWormholeNodeIsLinkedToComponent(wn, thisComponentURIString, actualSourceComp);
+									
+					// if the source component is still linked to the wormhole node,
+					// then it's still the source component and hasn't changed
+					if (bLinked == true)
+						bChanged = bChanged;
+					else
+						bChanged = true;
+				}
+			} else { //if the parent component isn't a map or layer, something has changed
+				bChanged = true;
+			}
+			
+			
+		}
+		
+		// if it's changed at this point, that's all we need to know
+		if (bChanged == true)
+			return true;
+		// HO 08/06/2012 END *********
 		
 		// HO 22/03/2012 BEGIN *********
 		// first, get the originating file name
