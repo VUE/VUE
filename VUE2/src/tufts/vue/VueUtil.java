@@ -772,9 +772,16 @@ public class VueUtil extends tufts.Util
     	// are we sure we want to do this?
     	// the balance of probabilities are that it's
     	// the right map...
-        saveMapIfAlreadyOpen(f);        
+    	// HO 11/06/2012 BEGIN ********
+        // saveMapIfAlreadyOpen(f);  
+    	// if the map is already open, we do not want
+    	// to waste memory unmarshalling it
+    	LWMap map = saveMapIfAlreadyOpen(f);
         // HO 03/05/2012 END *********
-    	LWMap map = OpenAction.loadMap(s);
+    	//LWMap map = OpenAction.loadMap(s);
+    	if (map == null)
+    		map = OpenAction.loadMap(s);
+    	// HO 11/06/2012 END ********
     	// HO 28/02/2012 BEGIN ********
     	// this can return null because of
     	// backward compatibility issues
@@ -797,12 +804,16 @@ public class VueUtil extends tufts.Util
      * A method to find a map that may already be open
      * and, if found, save it.
      * @param file, the File we want to save if open.
+     * @return the LWMap if it was already open, null otherwise.
      * @author Helen Oliver
      */
-    public static void saveMapIfAlreadyOpen(File file) {
+	// HO 11/06/2012 BEGIN ********
+    // public static void saveMapIfAlreadyOpen(File file) {
+	public static LWMap saveMapIfAlreadyOpen(File file) {
+    	// HO 11/06/2012 END ********
     	// input validation
     	if (file == null)
-    		return;
+    		return null;
     	
         // HO 03/05/2012 BEGIN *******
         // see if this existing map is already open
@@ -812,6 +823,10 @@ public class VueUtil extends tufts.Util
         	if (saveMap.isModified())
         		SaveAction.saveMap(saveMap);
         }
+        
+        // HO 11/06/2012 BEGIN ********
+        return saveMap;
+        // HO 11/06/2012 END ********
        
         // HO 03/05/2012 END *********
     }	

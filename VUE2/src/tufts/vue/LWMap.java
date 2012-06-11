@@ -329,6 +329,9 @@ public class LWMap extends LWContainer
 				                	//if (wh.getBCancelled() == true) {
 				                		// HO 23/02/2010 END ************
 				                			wh = null;
+				                			// HO 11/06/2012 BEGIN *****
+				                			wr = null;
+				                			// HO 11/06/2012 END *******
 			                	}
 			                }
 			            	r = null;
