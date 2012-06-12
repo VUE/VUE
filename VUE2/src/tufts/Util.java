@@ -136,25 +136,27 @@ public class Util
         if (osn.startsWith("mac".toUpperCase())) {
             MacPlatform = true;
 
-            final String FORCE_LEOPARD_PROP = "tufts.Util.debug.setLeo";
-            
-            String leoFlag = System.getProperty(FORCE_LEOPARD_PROP);
-            if (DEBUG && leoFlag != null) {
-                out("Property " + FORCE_LEOPARD_PROP + " is set -- forcing OSisMacLeopard=true");                
+            Float osVersionNumber = Float.parseFloat(OSVersion.substring(0,4));
+
+            final String PROP_FORCE_OSX_VERSION = "tufts.Util.debug.setOSX";
+            final String osxFlag = System.getProperty(PROP_FORCE_OSX_VERSION);
+            if (DEBUG && osxFlag != null) {
+                out("Property " + PROP_FORCE_OSX_VERSION + " is set to " + osxFlag);
+                out("Mac OS X major version IS OVERRIDING-> " + osVersionNumber);
+                osVersionNumber = Float.parseFloat(osxFlag.substring(0,4));
+            }
+
+            if (DEBUG) out("Mac OS X major version number (float): " + osVersionNumber);
+            if (osVersionNumber >= 10.5) // Really this is a "leopard or later" flag
                 OSisMacLeopard = true;
-            } else {
-                Float osVersionNumber = Float.parseFloat(OSVersion.substring(0,4));
-                if (DEBUG) out("Mac OS X major version number (float): " + osVersionNumber);
-                if (osVersionNumber >= 10.5) // Really this is a "leopard or later" flag
-                    OSisMacLeopard = true;
-                else
-                    OSisMacLeopard = false;
+            else
+                OSisMacLeopard = false;
                 // OSisMacLeopard = // Really this is a "leopard (10.5) or later" flag
                 //     OSVersion.startsWith("10.5") || // Leopard
                 //     OSVersion.startsWith("10.6") || // Snow Leopard
                 //     OSVersion.startsWith("10.7")    // Lion
                 //     ;
-            }
+
             if (DEBUG) out(String.format("Mac Leopard (10.5) or later = %s", OSisMacLeopard));
             String mrj = System.getProperty("mrj.version");
             int i = 0;
