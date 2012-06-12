@@ -2001,6 +2001,11 @@ public class Actions implements VueConstants
         void act(LWComponent c) {
             // todo: throw interal exception if c not in active map
             // todo: not working in slide viewer...
+
+            // BUG: can happen on hitting enter in the search box when a single node selected SMF logged 2012-06-10 19:40.28 Sunday SFAir.local
+            // Fixed by changing SearchTextField key handlers to operate on keyPressed v.s. keyReleased and being sure to consume the event.
+            //if (VUE.mSearchTextField.hasFocus()) return;
+            
             VUE.getActiveViewer().activateLabelEdit(c);
         }
     };
