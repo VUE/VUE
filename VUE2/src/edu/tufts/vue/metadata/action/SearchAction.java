@@ -31,6 +31,7 @@ import tufts.vue.*;
 import tufts.vue.LWComponent.HideCause;
 import tufts.vue.LWMap.Layer;
 import tufts.vue.gui.GUI;
+import tufts.Util;
 
 /*
  * SearchAction.java
@@ -39,11 +40,14 @@ import tufts.vue.gui.GUI;
  *
  * @author dhelle01
  */
-public class SearchAction extends AbstractAction {
-   
-    private final static boolean DEBUG_LOCAL = false; 
+public class SearchAction extends AbstractAction
+{
 
-    private final static boolean MARQUEE = true;
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(SearchAction.class);    
+   
+    private final static boolean DEBUG_LOCAL = false;
+
+    private final static boolean MARQUEE = true;  // do not change -- no longer supported as false
     
     // note: default for other nested nodes is currently to treat
     // them as stand alone components for purposes of search
@@ -64,15 +68,15 @@ public class SearchAction extends AbstractAction {
     public static final int CLUSTER_ACTION = 4;
     public static final int LINK_ACTION = 5;
     
-    public static final int SEARCH_SELECTED_MAP = 0;
-    public static final int SEARCH_ALL_OPEN_MAPS = 1;
+    public static final String SEARCH_SELECTED_MAP = "search-selected-map";
+    public static final String SEARCH_ALL_OPEN_MAPS = "search-all-open-maps";
     
     public static final int AND = 0;
     public static final int OR = 1;
     
     private int crossTermOperator = AND;
     
-    private List<List<URI>> finds = null;
+    //private List<List<URI>> finds = null;
     
     private List<String> tags;
     private Query query;
@@ -83,11 +87,12 @@ public class SearchAction extends AbstractAction {
     
     private JTextField searchInput;
     private edu.tufts.vue.rdf.RDFIndex index;
+    //private static final edu.tufts.vue.rdf.RDFIndex index = null; // disabled for now
     
     private int searchType = FIELD;
     private List<VueMetadataElement> searchTerms;
     
-    private int searchLocationType = SEARCH_SELECTED_MAP;
+    private String searchLocationType = SEARCH_SELECTED_MAP;
     
     //enable for show or hide (for now until GUI dropdown installed)
     private int resultsType = SHOW_ACTION;
@@ -159,37 +164,45 @@ public class SearchAction extends AbstractAction {
         textOnly = set;
     }
     
-    public void runIndex()
+    private void runIndex()
     {
-        Thread t = new Thread() {
-            public void run() {
-             index = new  edu.tufts.vue.rdf.RDFIndex();
-                //index.index(VUE.getActiveMap());
-                
-             if(searchLocationType == SEARCH_ALL_OPEN_MAPS)
-             { 
-            
-                    if(DEBUG_LOCAL)
-                    { 
-                      System.out.println("SearchAction: Searching all open maps...");
+        if (true) {
+            // This appears undeeded for at least standard searches... are there any searches that require this?
+            // There may be synchronization issues, and most importantly, this.index is RESET TO A NEW
+            // EMPTY INDEX when search results are displayed.
+            return;
+        }
+
+        // Also, there is no control over this thread:
+
+        /*-------------------------------------------------------
+         * Disbaled SMF 2012-06-12 16:20.56 Tuesday SFAir.local
+        
+        new Thread() {
+                public void run() {
+                    if (DEBUG.SEARCH) Log.debug("Running index of SearchAction creation...");
+                    
+                    SearchAction.this.index = new edu.tufts.vue.rdf.RDFIndex();
+                    
+                    // //index.index(VUE.getActiveMap());
+                    
+                    if (searchLocationType == SEARCH_ALL_OPEN_MAPS) { 
+                        if (DEBUG_LOCAL || DEBUG.SEARCH) Log.debug("Searching all open maps...");
+                        Iterator<LWMap> maps = VUE.getAllMaps().iterator();
+                        while (maps.hasNext())
+                            index.index(maps.next(),metadataOnly,everything,false);
+                    }    
+                    else { // default is SEARCH_SELECTED_MAP
+                        if(VUE.getActiveMap()!=null){
+                            index.index(VUE.getActiveMap(),metadataOnly,everything,true);
+                        }
                     }
-          
-                    Iterator<LWMap> maps = VUE.getLeftTabbedPane().getAllMaps();
-                    while(maps.hasNext())
-                    {   
-                         index.index(maps.next(),metadataOnly,everything,false);
-                    }
-             }    
-             else // default is SEARCH_SELECTED_MAP
-             {
-            	 if(VUE.getActiveMap()!=null){
-                    index.index(VUE.getActiveMap(),metadataOnly,everything,true);
-            	 }
-             }
-                
+                    if (DEBUG.SEARCH) Log.debug("SearchAction index completed.");
+                }
             }
-        };
-        t.start(); 
+        .start();
+
+        -------------------------------------------------------*/
     }
     
     public void loadKeywords(String searchString) {
@@ -337,21 +350,11 @@ public class SearchAction extends AbstractAction {
         
     }
     
-    public void performSearch(final int searchLocationType) 
+    // note: performSearch determines if this is actually a seperate thread [ THAT APPARENTLY NOT IMPLEMENTED -- SMF 2012-06-12 ]
+    public void runSearchThread(String searchLocationType)
     {
-       //Thread t = new Thread()
-       //{
-       //    public void run()
-       //    {
-             runSearchThread(searchLocationType);               
-       //    }
-       //};
-       //t.start();
-    }   
-    
-    // note: performSearch determines if this is actually a seperate thread
-    public void runSearchThread(int searchLocationType)
-    {      	
+        if (DEBUG.SEARCH) Log.debug("runSearchThread: locationType=" + searchLocationType);
+        
         if(searchType == QUERY && crossTermOperator == AND)
         {        	
             createQuery();
@@ -361,49 +364,45 @@ public class SearchAction extends AbstractAction {
         {      
             createQueries();
         }
-       // else // todo: for gathering text into its own list
+
+        /*-------------------------------------------------------*
+         * SMF: WAS ALREADY COMMENTED OUT:
+         *-------------------------------------------------------*
+           
+        // else // todo: for gathering text into its own list
              // hmm seems to suggest a superclass for Query?
-        /*if(searchType == QUERY && crossTermOperation == OR)
-        {
-            getSearchStrings();
-        }*/
-        
+        // if(searchType == QUERY && crossTermOperation == OR)
+        // {
+        //     getSearchStrings();
+        // }
         // edu.tufts.vue.rdf.RDFIndex.getDefaultIndex().index(VUE.getActiveMap());
+        *-------------------------------------------------------*/
         
+        final long t0 = System.currentTimeMillis();
         
-        long t0 = System.currentTimeMillis();
-        
-        synchronized(index) { 
-        if(DEBUG.RDF)System.out.println("Time at the beginning: "+(System.currentTimeMillis()-t0));
-        index.remove(index);
-        
-        if(searchLocationType == SEARCH_ALL_OPEN_MAPS)
-        { 
-            
-          if(DEBUG_LOCAL)
-          {
-              System.out.println("SearchAction: Searching all open maps...");
-          }
-          
-          Iterator<LWMap> maps = VUE.getLeftTabbedPane().getAllMaps();
-          while(maps.hasNext())
-          {
-              index.index(maps.next(),metadataOnly,everything,false);
-          }
-        }    
-        else // default is SEARCH_SELECTED_MAP
-        {    
-          index.index(VUE.getActiveMap(),metadataOnly,everything,true);
-        }
-        
-        
-        if(DEBUG_LOCAL)
-        {    
-          System.out.println("SearchAction: index - " + index);
-        }
-        if(DEBUG.RDF)System.out.println("Performed Index:"+(System.currentTimeMillis()-t0));
+        /*-------------------------------------------------------
+         * SMF DISABLED 2012-06-12 16:24.25 Tuesday SFAir.local
+         */
+        if (DEBUG.SEARCH || DEBUG.RDF) Log.debug("Indexing with RDFIndex...");
+        //synchronized(this.index) { // thread currently unused
+        if (true) {
+            this.index.remove(index);
+            if (searchLocationType == SEARCH_ALL_OPEN_MAPS) { 
+                    if(DEBUG_LOCAL) System.out.println("SearchAction: Searching all open maps...");
+                    for (LWMap map : VUE.getAllMaps())
+                        index.index(map, metadataOnly, everything, false);
+            } else {// default is SEARCH_SELECTED_MAP
+                index.index(VUE.getActiveMap(), metadataOnly, everything, true);
+            }
+            if (DEBUG.SEARCH) Log.debug("Done indexing.");
+            if(DEBUG_LOCAL) System.out.println("SearchAction: index - " + index);
+            if(DEBUG.RDF)System.out.println("Performed Index:"+(System.currentTimeMillis()-t0));
         } // end synchronized block
-        finds = new ArrayList<List<URI>>();
+
+        /*-------------------------------------------------------*/
+        
+        final List<List<URI>> finds = new ArrayList<List<URI>>();
+        //this.finds = new ArrayList<List<URI>>();
         
         List<URI> found = null;
         
@@ -558,225 +557,214 @@ public class SearchAction extends AbstractAction {
         return VueResources.getString("searchgui.search");
     }
     
-    public void setLocationType(int type)
+    public void setLocationType(String type)
     {
         searchLocationType = type;
     }
     
-    public void actionPerformed(ActionEvent e) {
+    public void performSearch(final String searchLocationType)
+    {
+        runSearchThread(searchLocationType);               
         
-       // runIndex();
+        // Thread t = new Thread() {
+        //         public void run() { runSearchThread(searchLocationType); }
+        //     };
+        // t.start();
+    }   
+    
+    public void actionPerformed(ActionEvent e)
+    {
+        if (DEBUG.SEARCH || DEBUG.RDF) Log.debug("actionPerformed, ae=" + e);
         
-        index = new  edu.tufts.vue.rdf.RDFIndex();
-        //edu.tufts.vue.rdf.VueIndexedObjectsMap.clear();
+        tufts.vue.gui.GUI.activateWaitCursor();
+
+        // // runIndex();
+        // Is this index being used?  SMF 2012-06-12 16:12.59 Tuesday SFAir.local
+        this.index = new edu.tufts.vue.rdf.RDFIndex();
+        // // edu.tufts.vue.rdf.VueIndexedObjectsMap.clear();
         
         VUE.getSelection().clear();
 
-        if(searchType == FIELD)
-        {
-          revertSelections();
-          loadKeywords(searchInput.getText());
+        if(searchType == FIELD) {
+            revertSelections();
+            loadKeywords(searchInput.getText());
         }
         performSearch(searchLocationType);
-        
+
+        tufts.vue.gui.GUI.clearWaitCursor();
     }
     
-    public void displaySearchResults()
+    private void displayAllMapsSearchResults()
     {
-        if(searchLocationType == SEARCH_ALL_OPEN_MAPS)
-        {
-            Iterator<LWMap> allOpenMaps = VUE.getLeftTabbedPane().getAllMaps();
+        final Iterator<LWMap> allOpenMaps = VUE.getAllMaps().iterator();
             
-            LWMap searchResultMap = new LWMap("Search Result #" + searchResultsMaps++);
+        final LWMap searchResultMap = new LWMap("Search Result #" + searchResultsMaps++);
             
-            while(allOpenMaps.hasNext())
-            {
-                Iterator<LWComponent> components = allOpenMaps.next().getAllDescendents(LWComponent.ChildKind.EDITABLE).iterator();   
-                while(components.hasNext())
-                {
-                    LWComponent next = components.next();
-                    if(comps.contains(next))
-                    {
+        while(allOpenMaps.hasNext()) {
+            Iterator<LWComponent> components = allOpenMaps.next().getAllDescendents(LWComponent.ChildKind.EDITABLE).iterator();   
+            while(components.hasNext()) {
+                LWComponent next = components.next();
+                if(comps.contains(next)) {
                         
-                       LWComponent duplicate = next.duplicate();
-                       LWComponent parent = next.getParent();
-                       if(parent !=null && !comps.contains(parent))
-                       {
-                         if(parent instanceof LWNode)
-                         {    
-                           duplicate.setLocation(parent.getLocation());
-                         }
+                    LWComponent duplicate = next.duplicate(); // why are we duplicating for this???  was this a bad cut/paste from the copy code?
+                    LWComponent parent = next.getParent();
+                    if(parent !=null && !comps.contains(parent)) {
+                        if(parent instanceof LWNode) {    
+                            duplicate.setLocation(parent.getLocation());
+                        }
                          
-                         
-                         if(LWNode.isImageNode(parent))
-                         {
-                           if(!comps.contains(parent))
-                           {
-                               LWComponent dup = parent.duplicate();
-                               if(!(dup instanceof LWSlide) && !dup.hasFlag(LWComponent.Flag.SLIDE_STYLE)
-                                 && (!(dup.hasAncestorOfType(LWSlide.class))) )  
-                                 searchResultMap.add(dup);
-                           }
-                         }   
-                         else
-                         {    
-                           if(!(duplicate instanceof LWSlide) && !duplicate.hasFlag(LWComponent.Flag.SLIDE_STYLE)
-                              && (!(duplicate.hasAncestorOfType(LWSlide.class))) )    
-                             searchResultMap.add(duplicate);
-                         }
-                         
-                         /*if(next.hasFlag(LWComponent.Flag.SLIDE_STYLE))
-                         {
-                            LWSlide slide = (LWSlide)next.getParentOfType(LWSlide.class);
-                            //searchResultMap.add(slide);
-                            searchResultMap.add(slide.getSourceNode());
-                         }*/
-                         
-                       } 
-
-                    }
+                        if (LWNode.isImageNode(parent)) {
+                            if(!comps.contains(parent)) {
+                                LWComponent dup = parent.duplicate();
+                                if(!(dup instanceof LWSlide) && !dup.hasFlag(LWComponent.Flag.SLIDE_STYLE)
+                                   && (!(dup.hasAncestorOfType(LWSlide.class))) )  
+                                    searchResultMap.add(dup);
+                            }
+                        } else {    
+                            if(!(duplicate instanceof LWSlide) && !duplicate.hasFlag(LWComponent.Flag.SLIDE_STYLE)
+                               && (!(duplicate.hasAncestorOfType(LWSlide.class))) )    
+                                searchResultMap.add(duplicate);
+                        }
+                        /*if(next.hasFlag(LWComponent.Flag.SLIDE_STYLE))
+                          {
+                          LWSlide slide = (LWSlide)next.getParentOfType(LWSlide.class);
+                          //searchResultMap.add(slide);
+                          searchResultMap.add(slide.getSourceNode());
+                          }*/
+                    } 
                 }
             }
-            
-            VUE.displayMap(searchResultMap);
-            
-            return;
         }
-        
-        if(resultsType == COPY_ACTION)
-        {
-            LWMap searchResultMap = new LWMap("Search Result " + searchResultsMaps++);
+        VUE.displayMap(searchResultMap);
+    }
+    
+    private void produceSearchResultCopyMap() {
+        LWMap searchResultMap = new LWMap("Search Result " + searchResultsMaps++);
             
-            HashMap<LWComponent,LWComponent> duplicates = new HashMap<LWComponent,LWComponent>();
+        HashMap<LWComponent,LWComponent> duplicates = new HashMap<LWComponent,LWComponent>();
             
-            Iterator<LWComponent> components = VUE.getActiveMap().getAllDescendents(LWComponent.ChildKind.EDITABLE).iterator();   
-            while(components.hasNext())
+        Iterator<LWComponent> components = VUE.getActiveMap().getAllDescendents(LWComponent.ChildKind.EDITABLE).iterator();   
+        while(components.hasNext())
             {
                 LWComponent next = components.next();
                 if(comps.contains(next))
-                {
-                   LWComponent duplicate = next.duplicate();
+                    {
+                        LWComponent duplicate = next.duplicate();
                    
-                   duplicates.put(next,duplicate);
+                        duplicates.put(next,duplicate);
                    
-                   LWComponent parent = next.getParent();
-                   if(parent !=null && !comps.contains(parent))
-                   {
-                       if(parent instanceof LWNode)
-                       {    
-                         duplicate.setLocation(parent.getLocation());
-                       }
+                        LWComponent parent = next.getParent();
+                        if(parent !=null && !comps.contains(parent))
+                            {
+                                if(parent instanceof LWNode)
+                                    {    
+                                        duplicate.setLocation(parent.getLocation());
+                                    }
                        
-                       /*if(next instanceof LWLink)
-                       {
-                         LWLink link = (LWLink)next;
-                         LWComponent head = link.getHead();
-                         if(head != null && comps.contains(head))
-                             ((LWLink)duplicate).setHead(head); // OOPS needs to be
-                                                                // head's duplicate
-                         LWComponent tail = link.getTail();
-                         if(tail != null && comps.contains(tail))
-                             ((LWLink)duplicate).setTail(tail); // double OOPS
-                       }*/
+                                /*if(next instanceof LWLink)
+                                  {
+                                  LWLink link = (LWLink)next;
+                                  LWComponent head = link.getHead();
+                                  if(head != null && comps.contains(head))
+                                  ((LWLink)duplicate).setHead(head); // OOPS needs to be
+                                  // head's duplicate
+                                  LWComponent tail = link.getTail();
+                                  if(tail != null && comps.contains(tail))
+                                  ((LWLink)duplicate).setTail(tail); // double OOPS
+                                  }*/
                        
                       
                        
-                       // do we need this code any more? see
-                       // "raw image" search bug in jira
-                       // if we do, links may have to be handled
-                       // correctly for these nodes as well
-                       if(LWNode.isImageNode(parent))
-                       {
-                         if(!comps.contains(parent))
-                         {
-                               if(!(parent instanceof LWSlide) && !parent.hasFlag(LWComponent.Flag.SLIDE_STYLE)
-                                 && (!parent.hasAncestorOfType(LWSlide.class)))   
-                                 searchResultMap.add(parent.duplicate());
-                         }
-                       }   
-                       else
-                       {    
-                           if(!(duplicate instanceof LWSlide) && !duplicate.hasFlag(LWComponent.Flag.SLIDE_STYLE)
-                               && (!(duplicate.hasAncestorOfType(LWSlide.class))))  
-                             searchResultMap.add(duplicate);
-                       }
+                                // do we need this code any more? see
+                                // "raw image" search bug in jira
+                                // if we do, links may have to be handled
+                                // correctly for these nodes as well
+                                if(LWNode.isImageNode(parent))
+                                    {
+                                        if(!comps.contains(parent))
+                                            {
+                                                if(!(parent instanceof LWSlide) && !parent.hasFlag(LWComponent.Flag.SLIDE_STYLE)
+                                                   && (!parent.hasAncestorOfType(LWSlide.class)))   
+                                                    searchResultMap.add(parent.duplicate());
+                                            }
+                                    }   
+                                else
+                                    {    
+                                        if(!(duplicate instanceof LWSlide) && !duplicate.hasFlag(LWComponent.Flag.SLIDE_STYLE)
+                                           && (!(duplicate.hasAncestorOfType(LWSlide.class))))  
+                                            searchResultMap.add(duplicate);
+                                    }
 
                        
-                   }
+                            }
                   
-                }
+                    }
             }
             
             
-            Iterator<LWComponent> components2 = VUE.getActiveMap().getAllDescendents(LWComponent.ChildKind.EDITABLE).iterator(); 
-            while(components2.hasNext())
+        Iterator<LWComponent> components2 = VUE.getActiveMap().getAllDescendents(LWComponent.ChildKind.EDITABLE).iterator(); 
+        while(components2.hasNext())
             {
-                       LWComponent next = components2.next();
+                LWComponent next = components2.next();
                 
-                       if(next instanceof LWLink && duplicates.get(next) != null)
-                       {
-                         LWLink link = (LWLink)next;
-                         LWComponent head = link.getHead();
-                         if(head != null && comps.contains(head))
-                             ((LWLink)duplicates.get(next)).setHead(duplicates.get(head)); 
-                         LWComponent tail = link.getTail();
-                         if(tail != null && comps.contains(tail))
-                             ((LWLink)duplicates.get(next)).setTail(duplicates.get(tail)); 
-                       }
+                if(next instanceof LWLink && duplicates.get(next) != null)
+                    {
+                        LWLink link = (LWLink)next;
+                        LWComponent head = link.getHead();
+                        if(head != null && comps.contains(head))
+                            ((LWLink)duplicates.get(next)).setHead(duplicates.get(head)); 
+                        LWComponent tail = link.getTail();
+                        if(tail != null && comps.contains(tail))
+                            ((LWLink)duplicates.get(next)).setTail(duplicates.get(tail)); 
+                    }
             }
             
-            VUE.displayMap(searchResultMap);
+        VUE.displayMap(searchResultMap);
             
-            return; 
-        }
+    }
         
-        if(DEBUG_LOCAL)
-        {
-          System.out.println("SearchAction: comps size after perform search - " + comps.size());
+    public void displaySearchResults()
+    {
+        if (DEBUG_LOCAL || DEBUG.SEARCH) Log.debug("displaySearchResults: result set at start: " + Util.tags(comps));
+        
+        if (searchLocationType == SEARCH_ALL_OPEN_MAPS) {
+            displayAllMapsSearchResults();
+            return;
+        }
+
+        if (resultsType == COPY_ACTION) {
+            produceSearchResultCopyMap();
+            return;
         }
         
         revertGlobalSearchSelection();
         globalResultsType = resultsType;
         
-        ArrayList<LWComponent> images = new ArrayList<LWComponent>();
-        Iterator<LWComponent> compsIterator = comps.iterator();
-        while(compsIterator.hasNext())
-        {
-            LWComponent current = compsIterator.next();
-            if(current instanceof LWNode)
-            {
-                LWNode currentNode = (LWNode)current;
-                if(LWNode.isImageNode(currentNode))
-                {
-                    images.add(currentNode.getImage());
-                }
+        final Collection<LWComponent> images = new HashSet<LWComponent>();
+
+        for (LWComponent c : comps) {
+            if (c instanceof LWNode && LWNode.isImageNode(c))
+                images.add(((LWNode)c).getImage());
+            
+            if (c instanceof LWImage) {
+                LWImage image = (LWImage) c;
+                if (image.isNodeIcon() && image.getParent() != null)
+                    images.add(image.getParent());
             }
             
-            /*if(current.hasFlag(LWComponent.Flag.SLIDE_STYLE))
-            {
-                            LWSlide slide = (LWSlide)current.getParentOfType(LWSlide.class);
-                            images.add(slide);
-                            //LWNode source  = ((LWNode)slide.getSourceNode());
-                            //images.add(source);
-                            if(LWNode.isImageNode(source))
-                            {
-                                images.add(source.getImage());
-                            }
-                            
+            /*if(current.hasFlag(LWComponent.Flag.SLIDE_STYLE)) {
+                    LWSlide slide = (LWSlide)current.getParentOfType(LWSlide.class);
+                    images.add(slide);
+                    //LWNode source  = ((LWNode)slide.getSourceNode());
+                    //images.add(source);
+                    if(LWNode.isImageNode(source))
+                         images.add(source.getImage());
             }*/
-            
-            if(current instanceof LWImage)
-            {
-                LWImage currentImage = (LWImage)current;
-                if(currentImage.isNodeIcon() && currentImage.getParent() != null)
-                {
-                  images.add(currentImage.getParent());
-                }
-            }
-            
         }
         
         comps.addAll(images);
+        
+        if (DEBUG_LOCAL || DEBUG.SEARCH) Log.debug("displaySearchResults: results with images: " + Util.tags(comps));
         
         if((resultsType == SELECT_ACTION || resultsType == CLUSTER_ACTION || resultsType == LINK_ACTION) && DO_NOT_SELECT_SLIDE_COMPONENTS)
         {
@@ -846,150 +834,121 @@ public class SearchAction extends AbstractAction {
         
         // also hide or show elements inside of groups when group is also
         // in the search results set
-        if(resultsType == HIDE_ACTION || resultsType == SHOW_ACTION )
-        {
+        if(resultsType == HIDE_ACTION || resultsType == SHOW_ACTION ) {
             List<LWComponent> groupDescendants = new ArrayList<LWComponent>();
-            
             Iterator<LWComponent> groupSearch = comps.iterator();
             
-            while(groupSearch.hasNext())
-            {
+            while(groupSearch.hasNext()) {
                 LWComponent next = groupSearch.next();
-                if(next instanceof LWGroup)
-                {
+                if(next instanceof LWGroup) {
                     // todo: don't add duplicates!'
                     groupDescendants.addAll(next.getAllDescendents(LWComponent.ChildKind.EDITABLE));
                 }
             }
-            
             comps.addAll(groupDescendants);
         }
         
-        if(resultsType == HIDE_ACTION || resultsType == SELECT_ACTION || resultsType == CLUSTER_ACTION || resultsType == LINK_ACTION)
-        {    
-            
-          Iterator<LWComponent> it3 = comps.iterator();  
-            
-          while(it3.hasNext())
-          {
-             if(resultsType == SELECT_ACTION || resultsType == CLUSTER_ACTION || resultsType == LINK_ACTION)
-             {
-               if(MARQUEE == false)
-               {
-                 it3.next().setSelected(true);
-               }
-               else
-               {
-                 LWComponent comp = it3.next();
-                 LWMap.Layer compLayer = comp.getLayer();
-                 
-                 if(!(compLayer != null && compLayer.isHidden()) && !(comp instanceof LWSlide) && !comp.hasFlag(LWComponent.Flag.SLIDE_STYLE)
-                   && (!(comp.hasAncestorOfType(LWSlide.class))))  
-                   VUE.getSelection().add(comp);
-               }
-             }
-             if(resultsType == HIDE_ACTION)
-             {
-               // VUE-892 -- switch back to setFiltered (needs change in LWImage to work for image nodes, but this
-               // will handle child nodes/images correctly in non image nodes)
-               //it.next().setHidden(LWComponent.HideCause.DEFAULT);
-                 
-                 
-               LWComponent comp = it3.next();
-                 
-               if(!(comp instanceof LWSlide) && !comp.hasFlag(LWComponent.Flag.SLIDE_STYLE)
-                 && (!(comp.hasAncestorOfType(LWSlide.class))) && !(comp instanceof LWGroup) )  
-                   comp.setFiltered(true);
-             }
-          }
-        }
-        
         globalResults = comps;
-        
-        if(resultsType == SHOW_ACTION)
-        {    
-          
-          Iterator<LWComponent> it4 = comps.iterator();  
-            
-          if(AUTO_SHOW_NESTED_IMAGES)
-          {    
-            // checking all children of nodes in search results to see if they
-            // are images or image nodes
-            // to be done: for select, possibly actually remove selection for any 
-            // children of search results
-            // also to be done: image or image node results should also show
-            // parents (but not non image results)
-            List<LWComponent> toBeAdded = new ArrayList<LWComponent>();  
-            
-            while(it4.hasNext())
-            {
-              LWComponent current = it4.next();
-              Iterator<LWComponent> children = current.getAllDescendents().iterator();
-              while(children.hasNext())
-              {
-                  LWComponent next = children.next();
-                  if (( (next instanceof LWImage) || LWNode.isImageNode(next))
-                       && !comps.contains(next) )
-                  {
-                    toBeAdded.add(next);         
-                  }
-              }
-            }
-          
-            Iterator<LWComponent> addThese = toBeAdded.iterator();
-            while(addThese.hasNext())
-            {
-              comps.add(addThese.next());
-            }
-          }
-            
-            
-          //globalHides = // opposite of comps
 
-          // todo: really, we want to do this on VISIBLE, not EDITABLE (e.g., even
-          // filter locked objects), but we would need to change all other duplicate code
-          // references, and then regression test.
-          //Collection<LWComponent> allComps = tufts.vue.VUE.getActiveMap().getAllDescendents(LWComponent.ChildKind.VISIBLE);
+        if (resultsType == SELECT_ACTION || resultsType == CLUSTER_ACTION || resultsType == LINK_ACTION) {
+            final List<LWComponent> toAdd = new ArrayList<LWComponent>(comps.size());
+            for (LWComponent c : comps) {
+                LWMap.Layer layer = c.getLayer();
+                if(!(layer != null && layer.isHidden()) &&
+                   !(c instanceof LWSlide) &&
+                   !c.hasFlag(LWComponent.Flag.SLIDE_STYLE) &&
+                   (!(c.hasAncestorOfType(LWSlide.class))))  
+                    toAdd.add(c);
+            }
+            VUE.getSelection().add(toAdd);
+        } else if (resultsType == HIDE_ACTION) {
+            for (LWComponent c : comps) {
+                // VUE-892 -- switch back to setFiltered (needs change in LWImage to work for image nodes, but this
+                // will handle child nodes/images correctly in non image nodes)
+                //it.next().setHidden(LWComponent.HideCause.DEFAULT);
+                if(!(c instanceof LWSlide) &&
+                   !c.hasFlag(LWComponent.Flag.SLIDE_STYLE) &&
+                   !c.hasAncestorOfType(LWSlide.class) &&
+                   !(c instanceof LWGroup) )  
+                    c.setFiltered(true);
+            }
+        } else if(resultsType == SHOW_ACTION) {    
           
-          Collection<LWComponent> allComps = tufts.vue.VUE.getActiveMap().getAllDescendents(LWComponent.ChildKind.EDITABLE);
-          globalHides = new ArrayList();
-          Iterator<LWComponent> allIt = allComps.iterator();
-          while(allIt.hasNext())
-          {
-              LWComponent comp = allIt.next();
-              if(!comps.contains(comp))
-              {
-                  if(DEBUG_LOCAL)
-                  {
-                      System.out.println("SearchAction adding " + comp.getLabel() + " to globalHides and hiding");
-                  }
+            Iterator<LWComponent> it4 = comps.iterator();  
+            
+            if(AUTO_SHOW_NESTED_IMAGES) {    
+                // checking all children of nodes in search results to see if they
+                // are images or image nodes
+                // to be done: for select, possibly actually remove selection for any 
+                // children of search results
+                // also to be done: image or image node results should also show
+                // parents (but not non image results)
+                List<LWComponent> toBeAdded = new ArrayList<LWComponent>();  
+            
+                while(it4.hasNext()) {
+                    LWComponent current = it4.next();
+                    Iterator<LWComponent> children = current.getAllDescendents().iterator();
+                    while(children.hasNext())
+                        {
+                            LWComponent next = children.next();
+                            if (( (next instanceof LWImage) || LWNode.isImageNode(next))
+                                && !comps.contains(next) )
+                                {
+                                    toBeAdded.add(next);         
+                                }
+                        }
+                }
+          
+                Iterator<LWComponent> addThese = toBeAdded.iterator();
+                while(addThese.hasNext())
+                    comps.add(addThese.next());
+            }
+            
+            
+            //globalHides = // opposite of comps
+
+            // todo: really, we want to do this on VISIBLE, not EDITABLE (e.g., even
+            // filter locked objects), but we would need to change all other duplicate code
+            // references, and then regression test.
+            //Collection<LWComponent> allComps = tufts.vue.VUE.getActiveMap().getAllDescendents(LWComponent.ChildKind.VISIBLE);
+          
+            Collection<LWComponent> allComps = tufts.vue.VUE.getActiveMap().getAllDescendents(LWComponent.ChildKind.EDITABLE);
+            globalHides = new ArrayList();
+            Iterator<LWComponent> allIt = allComps.iterator();
+            while(allIt.hasNext())
+                {
+                    LWComponent comp = allIt.next();
+                    if(!comps.contains(comp))
+                        {
+                            if(DEBUG_LOCAL)
+                                {
+                                    System.out.println("SearchAction adding " + comp.getLabel() + " to globalHides and hiding");
+                                }
                   
-                  // VUE-892 -- switch back to setFiltered (needs change in LWImage to work for image nodes, but this
-                  // will handle child nodes/images correctly in non image nodes)
-                  //comp.setHidden(LWComponent.HideCause.DEFAULT);
-                  if(!(comp instanceof LWSlide) && !comp.hasFlag(LWComponent.Flag.SLIDE_STYLE)
-                    && (!(comp.hasAncestorOfType(LWSlide.class))) && !(comp instanceof LWGroup) )  
-                  {
-                      comp.setFiltered(true); // SHOW/HIDE
-                    globalHides.add(comp);
-                  }
-              }
+                            // VUE-892 -- switch back to setFiltered (needs change in LWImage to work for image nodes, but this
+                            // will handle child nodes/images correctly in non image nodes)
+                            //comp.setHidden(LWComponent.HideCause.DEFAULT);
+                            if(!(comp instanceof LWSlide) && !comp.hasFlag(LWComponent.Flag.SLIDE_STYLE)
+                               && (!(comp.hasAncestorOfType(LWSlide.class))) && !(comp instanceof LWGroup) )  
+                                {
+                                    comp.setFiltered(true); // SHOW/HIDE
+                                    globalHides.add(comp);
+                                }
+                        }
 
-          }
-        }
-        else if(resultsType == HIDE_ACTION)
-        {
-          globalHides = comps; 
-        }    
-        
-        if (resultsType == CLUSTER_ACTION) {
-        	Cluster2Layout layout = new Cluster2Layout();
+                }
+        } else if (resultsType == HIDE_ACTION) {
 
-        	layout.layout(VUE.getSelection());
+            globalHides = comps;
+            
+        } else if (resultsType == CLUSTER_ACTION) {
+            
+            Cluster2Layout layout = new Cluster2Layout();
+            layout.layout(VUE.getSelection());
             VUE.getUndoManager().mark(VueResources.getString("searchgui.cluster"));
-        }
-
-        if (resultsType == LINK_ACTION) {
+            
+        } else if (resultsType == LINK_ACTION) {
+            
             // Create a new node, name it based on the search, and link the selected nodes to it.
             GUI.invokeAfterAWT(new Runnable() { public void run() {
                 LWSelection                      selection = VUE.getSelection();
