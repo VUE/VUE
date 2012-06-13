@@ -844,16 +844,21 @@ public class SearchTextField extends JTextField implements FocusListener {
         if (isWindows) {
             final int h = textField.getHeight();
             final int w = textField.getWidth();
-            g.drawImage(arrowImg, 5, h / 2 - 5, arrowImg.getWidth(null),
+            final int arrowWidth = arrowImg.getWidth(null);
+            g.drawImage(arrowImg, 5, h / 2 - 5,
+                        arrowWidth,
                         arrowImg.getHeight(null), this);
             if (!mouse_over) {				
-                g.drawImage(searchImg, w - 20, h / 2 - 8, searchImg
-                            .getWidth(null), searchImg.getHeight(null), this);
+                g.drawImage(searchImg, w - 20, h / 2 - 8,
+                            searchImg.getWidth(null),
+                            searchImg.getHeight(null), this);
             } else {
-                g.drawImage(searchOVImg, w - 20, h / 2 - 8, searchOVImg
-                            .getWidth(null), searchOVImg.getHeight(null), this);
+                g.drawImage(searchOVImg, w - 20, h / 2 - 8,
+                            searchOVImg.getWidth(null),
+                            searchOVImg.getHeight(null), this);
             }
-
+            // TODO: need to check and tweak statusOffsetX for Windows -- SMF 2012-06-13
+            statusOffsetX = 5 + arrowWidth + 3;
         } else if (Util.isMacTiger()) {
             final int h = textField.getHeight();
             final int w = textField.getWidth();
@@ -867,7 +872,7 @@ public class SearchTextField extends JTextField implements FocusListener {
                             clearImg.getWidth(null),
                             clearImg.getHeight(null), this);
             }
-            statusOffsetX = indent + spyglassWidth + 2;
+            statusOffsetX = indent + spyglassWidth + 3;
             //statusOffsetX = indent + 2;
             // if(mouse_over){
             // g.drawImage(searchTigerImgOv,5,h/2-7,
