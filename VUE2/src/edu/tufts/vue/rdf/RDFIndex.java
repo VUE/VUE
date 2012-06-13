@@ -37,7 +37,7 @@ import com.hp.hpl.jena.sparql.core.*;
 import com.hp.hpl.jena.graph.*;
 import com.hp.hpl.jena.query.*;
 
-public class RDFIndex extends ModelCom
+public class RDFIndex extends com.hp.hpl.jena.rdf.model.impl.ModelCom
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(RDFIndex.class);
     
@@ -66,20 +66,22 @@ public class RDFIndex extends ModelCom
     
     public RDFIndex(com.hp.hpl.jena.graph.Graph base) {
         super(base);
-        Log.debug("created from " + tufts.Util.tags(base));
+        if (DEBUG.RDF || DEBUG.SEARCH) Log.debug("instanced from " + tufts.Util.tags(base));
     }
+
+    private static final String DefaultVueQuery =
+          "PREFIX vue: <" + VUE_ONTOLOGY + ">"
+        + "SELECT ?resource ?keyword "
+        + "WHERE{"
+        + " ?resource ?x ?keyword } ";
+    
     
     public RDFIndex() {
         super(com.hp.hpl.jena.graph.Factory.createDefaultGraph());
         // creating dummy query object. to make the search faster;
-         String queryString =
-                "PREFIX vue: <"+VUE_ONTOLOGY+">"+
-                "SELECT ?resource ?keyword " +
-                "WHERE{" +
-                "      ?resource ?x ?keyword  } ";
-        query = QueryFactory.create(queryString);
+        query = QueryFactory.create(DefaultVueQuery);
         qe = QueryExecutionFactory.create(query, this);
-        Log.debug("created");
+        if (DEBUG.RDF || DEBUG.SEARCH) Log.debug("instanced w/default VUE query[" + DefaultVueQuery + "]");
     }
     
     public void index(LWMap map)
@@ -100,11 +102,11 @@ public class RDFIndex extends ModelCom
         }
         
         long t0 = System.currentTimeMillis();
-        if(DEBUG.RDF)System.out.println("INDEX - begin index: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
+        if(DEBUG.RDF) Log.debug("index: begin: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
         
         
-        com.hp.hpl.jena.rdf.model.Resource mapR = this.createResource(map.getURI().toString());
-        if(DEBUG.RDF)System.out.println("INDEX - create resource for map: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
+        final com.hp.hpl.jena.rdf.model.Resource mapR = this.createResource(map.getURI().toString());
+        if(DEBUG.RDF) Log.debug("index: create resource for map: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
         
         try {
             addProperty(mapR,idOf,map.getID());
@@ -112,7 +114,7 @@ public class RDFIndex extends ModelCom
             if(map.getLabel() != null){
                 addProperty(mapR,labelOf,map.getLabel());
             }
-            if(DEBUG.RDF) System.out.println("INDEX - added properties for map: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
+            if(DEBUG.RDF) Log.debug("index: added properties for map: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
             
             Collection<LWComponent> descendents = null;
             
@@ -146,12 +148,12 @@ public class RDFIndex extends ModelCom
                 }
             }    
             
-            if(DEBUG.RDF)System.out.println("INDEX - after indexing all components: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
+            if(DEBUG.RDF) Log.debug("index: after indexing all components: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
             
         } catch(Exception ex) {
-            System.out.println("RDFIndex.index: "+ex);
+            Log.error("index", ex);
         }
-        if(DEBUG.RDF) System.out.println("Size of index:"+this.size());
+        if(DEBUG.RDF) Log.debug("index: done -- size="+this.size());
     }
     
     /***
@@ -246,74 +248,72 @@ public class RDFIndex extends ModelCom
         return search(queryString);
     }
     
-    public void save() {
-        
-    }
+    public void save() { }
+    public void read() { }
     
-    public void read() {
-        
-        
-    }
-    
-    public void rdfize(LWComponent component,com.hp.hpl.jena.rdf.model.Resource mapR)
+    /* was public */
+    private void rdfize(LWComponent component,com.hp.hpl.jena.rdf.model.Resource mapR)
     {
         rdfize(component,mapR,false);
     }
     
-    public void rdfize(LWComponent component,com.hp.hpl.jena.rdf.model.Resource mapR,boolean metadataOnly) {
-        com.hp.hpl.jena.rdf.model.Resource r = this.createResource(component.getURI().toString());
+    /* was public */
+    private void rdfize(LWComponent component,com.hp.hpl.jena.rdf.model.Resource mapR,boolean metadataOnly) {
+        final com.hp.hpl.jena.rdf.model.Resource r = this.createResource(component.getURI().toString());
         try {
-            
-            if(!metadataOnly)
-            {    
-//              addProperty(r,idOf,component.getID());
-              if(component.getLabel() != null){
-                  addProperty(r,labelOf,component.getLabel());
-              }
-              if(VueResources.getString("rdf.rdfize.color").equals("TRUE") && component.getXMLfillColor() != null) {
-                  addProperty(r,colorOf,component.getXMLfillColor());
-              } 
-              if(component.getNotes() != null)
-              {
-                  addProperty(r,notesOf,component.getNotes());
-              }
-              
-              tufts.vue.Resource res = component.getResource();
-              if(res !=null)
-              {
-//                 PropertyMap map = res.getProperties();
-//                 javax.swing.table.TableModel model = map.getTableModel();
-
-                javax.swing.table.TableModel model = res.getProperties().getTableModel();
-              
-                for(int i=0;i<model.getRowCount();i++)
-                {
-                  addProperty(r,contentPropertyOf,"" + model.getValueAt(i, 1));
+            if(!metadataOnly) {    
+                // addProperty(r,idOf,component.getID());
+                if(component.getLabel() != null){
+                    addProperty(r,labelOf,component.getLabel());
                 }
-              }
-              
-              
+                if(VueResources.getString("rdf.rdfize.color").equals("TRUE") && component.getXMLfillColor() != null) {
+                    addProperty(r,colorOf,component.getXMLfillColor());
+                } 
+                if(component.getNotes() != null) {
+                    addProperty(r,notesOf,component.getNotes());
+                }
+                final tufts.vue.Resource res = component.getResource();
+                if(res !=null) {
+                    // PropertyMap map = res.getProperties();
+                    // javax.swing.table.TableModel model = map.getTableModel();
+                    final javax.swing.table.TableModel model = res.getProperties().getTableModel();
+                    for(int i=0;i<model.getRowCount();i++)  {
+                        addProperty(r,contentPropertyOf,"" + model.getValueAt(i, 1));
+                    }
+                }
             }
             
             com.hp.hpl.jena.rdf.model.Statement statement = this.createStatement(r,childOf,mapR);
             
             addStatement(statement);
             
-           List<VueMetadataElement> metadata = component.getMetadataList().getMetadata();
-            Iterator<VueMetadataElement> i = metadata.iterator();
-            while(i.hasNext()) {
-                VueMetadataElement element = i.next();
-                if(DEBUG.RDF) System.out.println("Resouece: "+r+" Element:"+element+" class of element:"+element.getClass());
-                if(element.getObject() != null)
-                {
-                    String encodedKey = getEncodedKey(element.getKey());
-                    statement = this.createStatement(r,createPropertyFromKey(encodedKey),element.getValue());
+            final List<VueMetadataElement> metadata = component.getMetadataList().getMetadata();
+            for (VueMetadataElement element : metadata) {
+                if(DEBUG.RDF && DEBUG.META) Log.debug(r + " " + tufts.Util.tags(element));
+                if (element.getObject() != null) {
+                    final String encodedKey = getEncodedKey(element.getKey());
+                    statement = this.createStatement(r, createPropertyFromKey(encodedKey), element.getValue());
+                    addStatement(statement);
+                } else {
+                    Log.warn(r + ": null element object: no statement");
+                    // the old code would just re-add whatever "statement" was last set to!
                 }
-                    //statement = this.createStatement(r,createPropertyFromKey(element.getKey()),element.getObject().toString());
-                addStatement(statement);
+                //statement = this.createStatement(r,createPropertyFromKey(element.getKey()),element.getObject().toString());
+                //addStatement(statement);
             }
+            // Iterator<VueMetadataElement> i = metadata.iterator();
+            // while(i.hasNext()) {
+            //     VueMetadataElement element = i.next();
+            //     if(DEBUG.RDF) Log.debug(r + " " + tufts.Util.tags(element));
+            //     if(element.getObject() != null) {
+            //         String encodedKey = getEncodedKey(element.getKey());
+            //         statement = this.createStatement(r,createPropertyFromKey(encodedKey),element.getValue());
+            //     }
+            //     //statement = this.createStatement(r,createPropertyFromKey(element.getKey()),element.getObject().toString());
+            //     addStatement(statement);
+            // }
         } catch(Exception ex) {
-            System.out.println("RDFIndex.rdfize: "+ex);
+            Log.warn("rdfize " + ex);
             ex.printStackTrace();
         }
     }
