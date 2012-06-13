@@ -94,6 +94,8 @@ public class DEBUG
     public static boolean QUARTILE; // quartile import
     
     public static boolean ANNOTATE; // data annotations
+    
+    public static boolean SEARCH; // overlaps with RDF
 
     public static  void setAllEnabled(boolean enabled) {
         for (Field f : Fields)
