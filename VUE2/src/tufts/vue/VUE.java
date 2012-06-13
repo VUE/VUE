@@ -114,6 +114,8 @@ import edu.tufts.vue.preferences.implementations.MetadataSchemaPreference;
 import edu.tufts.vue.preferences.implementations.ShowAgainDialog;
 import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
 
+import javax.swing.plaf.ProgressBarUI;
+
 /**
  * Vue application class.
  * Create an application frame and layout all the components
@@ -170,7 +172,9 @@ public class VUE
     private static ContentPanel contentPanel = null;
     private static JPopupMenu popup;
     private static JPopupMenu editPopup;
-    private static SearchTextField mSearchtextFld = new SearchTextField();
+
+    static final SearchTextField mSearchTextField = new SearchTextField();
+    
     public static final int FIRST_TAB_STOP = 6;   
     //public static JCheckBoxMenuItem  resetSettingsMenuItem;
     public static ExpandSelectionControl depthSelectionControl = null;
@@ -2341,10 +2345,49 @@ public class VUE
         	interactionToolsPanel.addExpandSelectionListener(depthSelectionControl);
         }
      
+        //final JComponent searchField = new SearchTextField();
+        final JComponent searchField = mSearchTextField;
+        
+        // final javax.swing.ImageIcon searchTigerImg = VueResources.getImageIcon("search.tiger.searchicon");
+        // searchPanelGBC.gridx = 0;
+        // searchPanelGBC.weightx = 1;
+        // searchPanelGBC.anchor = GridBagConstraints.WEST;
+        // searchPanelGBC.fill = GridBagConstraints.NONE;
+        // searchPanel.add(new JLabel(searchTigerImg));
+        
         searchPanelGBC.gridx = 1;
+        searchPanelGBC.anchor = GridBagConstraints.EAST;
         searchPanelGBC.fill = GridBagConstraints.HORIZONTAL;
         searchPanelGBC.weightx = 1.0;
-        searchPanel.add(mSearchtextFld, searchPanelGBC);
+        searchPanel.add(searchField, searchPanelGBC);
+
+        
+        // JProgressBar searchProgress = new JProgressBar();
+        
+        // // JProgressBar searchProgress = new JProgressBar() {
+        // //         int paints = 0;
+        // //         @Override
+        // //         public void paint(Graphics g) {
+        // //             if (paints++ % 4 == 0) super.paint(g);
+        // //             setEnabled(false);
+        // //         }
+        // //     };
+        
+        // // ProgressBarUI pbui = searchProgress.getUI();
+        // // searchProgress.setUI(null);
+        // // Log.info("***PBUI**** = " + pbui);
+
+        // searchProgress.setIndeterminate(true);
+        // searchProgress.putClientProperty("JProgressBar.style", "circular");
+        // searchProgress.setBorderPainted(false);
+        // //searchProgress.setEnabled(false);
+        // searchProgress.setVisible(false);
+
+        // Log.info("PBWIDTH=" + searchProgress.getWidth());
+        // searchPanel.add(searchProgress);
+        // if (DEBUG.BOXES||DEBUG.SEARCH) searchPanel.setBackground(Color.red);
+
+        //searchProgress.setUI(pbui);
 
         if (!VUE.isApplet()) {
             gBC.fill = GridBagConstraints.HORIZONTAL;			
@@ -2701,6 +2744,11 @@ public class VUE
         DockWindow curDW = null;
         while (--nextLayout > 0) {
             curDW = preShown[nextLayout];
+            if (curDW == null) {
+                // This will happen if we run with -nodr
+                Log.debug("Missing DockWindow at index " + nextLayout);
+                continue;
+            }
             if (squeezeDown && !didSqueeze) {
                 didSqueeze = true;
                 toRightDW.addChild(curDW);
