@@ -307,36 +307,47 @@ public class MetadataSearchMainGUI extends JPanel
             ItemListener searchTypesListener = new ItemListener() {
                 public void itemStateChanged(ItemEvent ie) {
                     if (ie.getStateChange() == ItemEvent.SELECTED) {
+
+                        // This would all better be handled via events instead
+                        // of this direct calling into SearchTextField hack stuff.
+                        
                         if (ie.getItem().equals(SEARCH_EVERYTHING)) {
                             setEverythingSearch();
                             SearchTextField.searcheveryWhereMenuItem.setSelected(true);	
-                            SearchTextField.labelMenuItem.setSelected(false);
-                            SearchTextField.keywordMenuItem.setSelected(false);
-                            SearchTextField.categoryKeywordMenuItem.setSelected(false); 
+                            // SearchTextField.labelMenuItem.setSelected(false);
+                            // SearchTextField.keywordMenuItem.setSelected(false);
+                            // SearchTextField.categoryKeywordMenuItem.setSelected(false); 
+                            SearchTextField.updateSearchType();
                         }
 
                         if (ie.getItem().equals(SEARCH_LABELS_ONLY)) {
                             setLabelSearch();
-                            SearchTextField.searcheveryWhereMenuItem.setSelected(false);	
                             SearchTextField.labelMenuItem.setSelected(true);
-                            SearchTextField.keywordMenuItem.setSelected(false);
-                            SearchTextField.categoryKeywordMenuItem.setSelected(false); 
+                            // SearchTextField.searcheveryWhereMenuItem.setSelected(false);	
+                            // SearchTextField.labelMenuItem.setSelected(true);
+                            // SearchTextField.keywordMenuItem.setSelected(false);
+                            // SearchTextField.categoryKeywordMenuItem.setSelected(false); 
+                            SearchTextField.updateSearchType();
                         }
 
                         if (ie.getItem().equals(SEARCH_ALL_KEYWORDS)) {
                             setAllMetadataSearch();
-                            SearchTextField.searcheveryWhereMenuItem.setSelected(false);	
-                            SearchTextField.labelMenuItem.setSelected(false);
                             SearchTextField.keywordMenuItem.setSelected(true);
-                            SearchTextField.categoryKeywordMenuItem.setSelected(false); 
+                            // SearchTextField.searcheveryWhereMenuItem.setSelected(false);	
+                            // SearchTextField.labelMenuItem.setSelected(false);
+                            // SearchTextField.keywordMenuItem.setSelected(true);
+                            // SearchTextField.categoryKeywordMenuItem.setSelected(false); 
+                            SearchTextField.updateSearchType();
                         }
 
                         if (ie.getItem().equals(SEARCH_CATEGORIES_AND_KEYWORDS)) {
                             setCategorySearch();
-                            SearchTextField.searcheveryWhereMenuItem.setSelected(false);	
-                            SearchTextField.labelMenuItem.setSelected(false);
-                            SearchTextField.keywordMenuItem.setSelected(false);
                             SearchTextField.categoryKeywordMenuItem.setSelected(true);                          
+                            // SearchTextField.searcheveryWhereMenuItem.setSelected(false);	
+                            // SearchTextField.labelMenuItem.setSelected(false);
+                            // SearchTextField.keywordMenuItem.setSelected(false);
+                            // SearchTextField.categoryKeywordMenuItem.setSelected(true);                          
+                            SearchTextField.updateSearchType();
                         }
                     }
                 }
@@ -632,9 +643,11 @@ public class MetadataSearchMainGUI extends JPanel
 						System.out.println("MetadataSearchMainGUI.searchButton's actionPerformed()");
 					}
 
-					// Perform the action.
-					JButton btn = new JButton(termsAction);
-					btn.doClick();
+                                        termsAction.actionPerformed(new ActionEvent(this, 0, "searchFromPanelButton"));
+
+					// // Perform the action.
+					// JButton btn = new JButton(termsAction);
+					// btn.doClick();
 				}
 			});
 
@@ -1845,9 +1858,11 @@ public class MetadataSearchMainGUI extends JPanel
         	 System.out.println("MetadataSearchMainGUI.searchButtonAction()");
          }
 
-         JButton btn = new JButton();
-         btn.setAction(termsAction);
-         btn.doClick(); 
+         termsAction.actionPerformed(new ActionEvent(this, 0, "searchFromMethod"));
+         
+         // JButton btn = new JButton();
+         // btn.setAction(termsAction);
+         // btn.doClick(); 
     }
 
 
