@@ -17,7 +17,6 @@
 package edu.tufts.vue.metadata;
 
 import edu.tufts.vue.ontology.*;
-import edu.tufts.vue.rdf.RDFIndex;
 
 import java.net.*;
 
