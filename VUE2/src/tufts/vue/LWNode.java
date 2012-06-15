@@ -93,8 +93,8 @@ public class LWNode extends LWContainer
     public static final Object TYPE_TEXT = "textNode";
     
     // HO 14/05/2012 BEGIN ********
-    final static boolean WrapText = false; // under development // 15/06/2012 turning this off for Evgeny Volkov's build
-    // final static boolean WrapText = true; // under development
+    // final static boolean WrapText = false; // under development // 15/06/2012 turning this off for Evgeny Volkov's build
+    final static boolean WrapText = true; // under development
     // HO 14/05/2012 END *********
     
     public static final Font  DEFAULT_NODE_FONT = VueResources.getFont("node.font");

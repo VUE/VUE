@@ -579,8 +579,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
         
         // HO 14/06/2012 BEGIN ******
         // HO 15/06/2012 - turning this off for Evgeny Volkov's build
-        // if (!VUE.isApplet())
-        	// fileMenu.add(beanshellAction);
+        if (!VUE.isApplet())
+        	fileMenu.add(beanshellAction);
         // HO 15/06/2012 END
         // HO 14/06/2012 END ********
         	
