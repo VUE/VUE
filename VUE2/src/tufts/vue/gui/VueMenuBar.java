@@ -118,6 +118,9 @@ public class VueMenuBar extends javax.swing.JMenuBar
     // HO 10/01/2012 END *********
     public static JMenu importMenu = null;
     public static JMenu publishMenu = null;
+    // HO 14/06/2012 BEGIN *******
+    public static ShowURLAction beanshellAction = null;
+    // HO 14/06/2012 END *********
     public static PrintAction printAction  = null;
     public static JMenu pdfExportMenu = null;
     public static JMenu transformMenu = null;
@@ -361,7 +364,10 @@ public class VueMenuBar extends javax.swing.JMenuBar
         fileLockAction = new FileLockAction();
         fileLockAction.setEnabled(false);
         // HO 09/01/2012 END **********
-        publishMenu = makeMenu(VueResources.getString("menu.windows.publish"));        
+        publishMenu = makeMenu(VueResources.getString("menu.windows.publish"));    
+        // HO 14/06/2012 BEGIN *******
+        beanshellAction = new ShowURLAction(VueResources.getString("menu.windows.beanshell"), VueResources.getString("menu.windows.beanshell.url"));
+        // HO 14/06/2012 END *********
 
         final CreateCM createCMAction = new CreateCM(VueResources.getString("menu.windows.conanalysis"));
         final AnalyzeCM analyzeCMAction = new AnalyzeCM(VueResources.getString("menu.windows.mergemaps"));
@@ -570,6 +576,13 @@ public class VueMenuBar extends javax.swing.JMenuBar
 
         if (!VUE.isApplet())
         	fileMenu.add(publishMenu);
+        
+        // HO 14/06/2012 BEGIN ******
+        // HO 15/06/2012 - turning this off for Evgeny Volkov's build
+        // if (!VUE.isApplet())
+        	// fileMenu.add(beanshellAction);
+        // HO 15/06/2012 END
+        // HO 14/06/2012 END ********
         	
         pdfExportMenu = new JMenu(VueResources.getString("menu.windows.exporthandouts"));
         pdfExportMenu.setEnabled(false);

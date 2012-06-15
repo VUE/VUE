@@ -45,8 +45,8 @@ public class LWText extends LWComponent {
 	private String richLabel = null;
     //protected RectangularShape mShape;
 	// HO 14/05/2012 BEGIN ********
-	// public static final boolean WrapText = false;
-	public static final boolean WrapText = true;
+	public static final boolean WrapText = false; // 15/06/2012 turning this off for Evgeny Volkov's build
+	// public static final boolean WrapText = true;
 	// HO 14/05/2012 END ********
 
 	protected boolean isAutoSized = false; // compute size from label &

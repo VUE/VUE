@@ -121,6 +121,10 @@ import edu.tufts.vue.preferences.implementations.MetadataSchemaPreference;
 import edu.tufts.vue.preferences.implementations.ShowAgainDialog;
 import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
 
+// HO 12/06/2012 BEGIN *******
+import bsh.Interpreter;
+// HO 12/06/2012 END ********
+
 /**
  * Vue application class.
  * Create an application frame and layout all the components
@@ -1320,7 +1324,17 @@ public class VUE
 
     static void initApplication()
     {
-        final Window splashScreen;
+        // HO 12/06/2012 BEGIN ******
+    	Interpreter inter = new Interpreter();
+    	try {
+    		inter.eval("setAccessibility(true)");
+    		inter.eval("server(7777)");
+    	} catch (Exception e) {
+    		e.printStackTrace();
+    	}
+    	// HO 12/06/2012 END ********
+    	
+    	final Window splashScreen;
         
         
         if (VUE.isApplet())

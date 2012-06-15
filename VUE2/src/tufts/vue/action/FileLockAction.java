@@ -43,13 +43,13 @@ public class FileLockAction extends VueAction
     }
     
     public FileLockAction(File theFile, boolean bOpening) {
-        this("Lock");
+        this(VueResources.getString("menu.file.lock"));
         setFile(theFile);
         setOpening(bOpening);
     }
     
     public FileLockAction() {
-        this("Lock");
+        this(VueResources.getString("menu.file.lock"));
     }
     
     private boolean bOpening;
