@@ -3218,6 +3218,7 @@ public class LWIBISNode extends LWNode
         // to one line on restore. I think the TextBox needs to pick up our size
         // before setLabel for it to work.
         //getLabelBox(); LAYOUT-NEW
+
     }
 
     /**

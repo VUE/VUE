@@ -164,6 +164,10 @@ public class VUE
     
     private static tufts.vue.ui.SlideViewer slideViewer;
     
+    // HO 18/06/2012 BEGIN ********
+    public static boolean WRAP_TEXT = false;
+    // HO 18/06/2012 END **********
+    
     // TODO: get rid of this
     public static boolean  dropIsLocal = false;
     
@@ -594,6 +598,9 @@ public class VUE
         Actions.ToggleFullScreen.setEnabled(enable);
         Actions.ToggleSplitScreen.setEnabled(enable);
         Actions.ToggleSlideIcons.setEnabled(enable);
+        // HO 18/06/2012 BEGIN ****
+        Actions.ToggleTextWrap.setEnabled(enable);
+        // HO 18/06/2012 END *****
         Actions.TogglePruning.setEnabled(enable);
         Actions.ToggleAutoZoom.setEnabled(enable);
         
@@ -1321,10 +1328,17 @@ public class VUE
             VDSM.startRepositoryConfiguration(null);
         }
     }
-
-    static void initApplication()
-    {
-        // HO 12/06/2012 BEGIN ******
+    
+    // HO 18/06/2012 BEGIN *******
+    /**
+     * Initializes the Beanshell server
+     * so the user can later run the console
+     * and import .dre maps exported from DRed
+     * @author Helen Oliver
+     * @author Rob Bracewell
+     */
+    private static void initBeanshell() {
+    	// HO 12/06/2012 BEGIN ******
     	Interpreter inter = new Interpreter();
     	try {
     		inter.eval("setAccessibility(true)");
@@ -1332,6 +1346,14 @@ public class VUE
     	} catch (Exception e) {
     		e.printStackTrace();
     	}
+    	// HO 12/06/2012 END ********
+    }
+    // HO 18/06/2012 END *********
+
+    static void initApplication()
+    {
+        // HO 12/06/2012 BEGIN ******
+    	initBeanshell();
     	// HO 12/06/2012 END ********
     	
     	final Window splashScreen;

@@ -76,6 +76,7 @@ import tufts.vue.VueResources;
 import tufts.vue.VueTool;
 import tufts.vue.VueToolbarController;
 import tufts.vue.VueUtil;
+// import tufts.vue.action.ABAAnalyzerAction;
 import tufts.vue.action.AboutAction;
 import tufts.vue.action.AnalyzeCM;
 import tufts.vue.action.CreateCM;
@@ -121,6 +122,10 @@ public class VueMenuBar extends javax.swing.JMenuBar
     // HO 14/06/2012 BEGIN *******
     public static ShowURLAction beanshellAction = null;
     // HO 14/06/2012 END *********
+    // HO 15/06/2012 BEGIN ******
+    // experimental
+    //public static ABAAnalyzerAction abaAnalyzerAction = null;
+    // HO 15/06/2012 END *********
     public static PrintAction printAction  = null;
     public static JMenu pdfExportMenu = null;
     public static JMenu transformMenu = null;
@@ -340,6 +345,9 @@ public class VueMenuBar extends javax.swing.JMenuBar
         final JMenuItem splitScreenItem = new JCheckBoxMenuItem(Actions.ToggleSplitScreen);
         final JMenuItem toggleLinksItem = new JCheckBoxMenuItem(Actions.ToggleLinks);
         final JMenuItem toggleSlideIconsItem = makeLinkedCheckBox(Actions.ToggleSlideIcons);
+        // HO 18/06/2012 BEGIN *********
+        final JMenuItem toggleTextWrapItem = makeLinkedCheckBox(Actions.ToggleTextWrap);
+        // HO 18/06/2012 END ***********
         final JMenuItem togglePruningItem = new JCheckBoxMenuItem(Actions.TogglePruning);
 
         final JMenuItem toggleAutoZoomItem = makeCheckBox(Actions.ToggleAutoZoom);
@@ -368,6 +376,10 @@ public class VueMenuBar extends javax.swing.JMenuBar
         // HO 14/06/2012 BEGIN *******
         beanshellAction = new ShowURLAction(VueResources.getString("menu.windows.beanshell"), VueResources.getString("menu.windows.beanshell.url"));
         // HO 14/06/2012 END *********
+        // HO 15/06/2012 BEGIN *******
+        // experimental
+        //abaAnalyzerAction = new ABAAnalyzerAction();
+        // HO 15/06/2012 END **********
 
         final CreateCM createCMAction = new CreateCM(VueResources.getString("menu.windows.conanalysis"));
         final AnalyzeCM analyzeCMAction = new AnalyzeCM(VueResources.getString("menu.windows.mergemaps"));
@@ -581,6 +593,10 @@ public class VueMenuBar extends javax.swing.JMenuBar
         // HO 15/06/2012 - turning this off for Evgeny Volkov's build
         if (!VUE.isApplet())
         	fileMenu.add(beanshellAction);
+        
+        // experimental
+        // if (!VUE.isApplet())
+        	// fileMenu.add(abaAnalyzerAction);
         // HO 15/06/2012 END
         // HO 14/06/2012 END ********
         	
@@ -688,6 +704,10 @@ public class VueMenuBar extends javax.swing.JMenuBar
         {   editMenu.addSeparator();
             editMenu.add(Actions.Preferences);
         }
+        // HO 18/06/2012 BEGIN ********
+        editMenu.addSeparator();
+        editMenu.add(toggleTextWrapItem);
+        // HO 18/06/2012 END **********
         
         if (DEBUG.IMAGE)
             editMenu.add(Images.ClearCacheAction);

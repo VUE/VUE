@@ -969,6 +969,11 @@ public abstract class LWContainer extends LWComponent
     /** same us using: for (LWNode node : getDescendentsOfType(LWNode.class)) { ... } */
     @Override
     public Iterator<LWNode> getAllNodesIterator()    { return getDescendentsOfType(LWNode.class).iterator(); }
+    
+    // HO 15/06/2012 BEGIN *********
+    public Iterator<LWIBISNode> getAllIBISNodesIterator()    { return getDescendentsOfType(LWIBISNode.class).iterator(); }
+    // HO 15/06/2012 END ***********
+    
     /** same as using: for (LWLink link : getDescendentsOfType(LWLink.class)) { ... } */
     @Override
     public Iterator<LWLink> getAllLinksIterator()    { return getDescendentsOfType(LWLink.class).iterator(); }

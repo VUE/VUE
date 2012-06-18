@@ -4387,7 +4387,25 @@ public class Actions implements VueConstants
             public boolean overrideIgnoreAllActions() { return true; }
         };
 
-    
+// HO 18/06/2012 BEGIN ********
+        public static final VueAction ToggleTextWrap =
+            new VueAction(VueResources.local("menu.edit.textwrap"), keyStroke(KeyEvent.VK_W, SHIFT+COMMAND)) {
+                public void act() {
+                    VUE.WRAP_TEXT = !(VUE.WRAP_TEXT);
+                    LWNode.WrapText = VUE.WRAP_TEXT;
+                    LWText.WrapText = VUE.WRAP_TEXT;
+                    
+                    VUE.getActiveFocal().notify(this, LWKey.Repaint);
+                }
+
+                @Override
+                public Boolean getToggleState() {
+                    return VUE.WRAP_TEXT;
+                }    
+                
+                public boolean overrideIgnoreAllActions() { return true; }
+            };        
+// HO 18/06/2012 END **********
 
     public static final Action ToggleSplitScreen =
         new VueAction(VueResources.local("menu.view.splitscreen"), keyStroke(KeyEvent.VK_BACK_SLASH, COMMAND+SHIFT)) {
