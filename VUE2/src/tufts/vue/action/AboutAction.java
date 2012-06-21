@@ -100,7 +100,7 @@ public class AboutAction extends tufts.vue.VueAction
         JLabel jtf = new JLabel("<html><font color = \"#20316A\"> <br><br>"
         						// HO 31/10/2011 BEGIN ***********
         						// HO 15/06/2012 BEGIN ************
-        						+ "&nbsp;&nbsp;&nbsp;designVUE beta version 1.04.2<br>"
+        						+ "&nbsp;&nbsp;&nbsp;designVUE beta version 1.04.2b<br>"
         						// interim release for Evgeny Volkov is numbered 1.04.1.b
         						//+ "&nbsp;&nbsp;&nbsp;designVUE beta version 1.04.1.b<br>"
         						// HO 15/06/2012 END ************
