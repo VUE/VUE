@@ -1785,10 +1785,40 @@ public class LWWormhole implements VueConstants {
      * with the labels of their respective target maps
      */
     private void labelWormholeNodes() {
-    	if ((sourceWormholeNode != null) && (targetMapFile != null))
-    		sourceWormholeNode.setLabel(targetMapFile.getName());
-    	if ((targetWormholeNode != null) && (sourceMapFile != null))
-    		targetWormholeNode.setLabel(sourceMapFile.getName());
+    	if ((sourceWormholeNode != null) && (targetMapFile != null)) {
+    		// HO 21/06/2012 begin - if label looks like it's not a filename,
+    		// don't change it cos someone must have relabelled it
+    		if (isLabelAVueTypeFilename(sourceWormholeNode.getLabel()))
+    			sourceWormholeNode.setLabel(targetMapFile.getName());
+    	}
+    	if ((targetWormholeNode != null) && (sourceMapFile != null)) {
+    		if (isLabelAVueTypeFilename(targetWormholeNode.getLabel()))
+    			targetWormholeNode.setLabel(sourceMapFile.getName());
+    	}
+    }
+    
+    /**
+     * A function to check if a label (or any string really)
+     * ends with a .vue, .vdk, or .vpk file suffix
+     * @param strLabel, a String representing the label (or any string really)
+     * @return true if it ends with a vue-type file suffix, false otherwise
+     * @author Helen Oliver
+     */
+    private boolean isLabelAVueTypeFilename(String strLabel) {
+    	if ((strLabel == null) || (strLabel == ""))
+    		return false;
+    	
+    	if (strLabel.endsWith(VueUtil.designVueArchiveExtension))
+    		return true;
+    	
+    	if (strLabel.endsWith(VueUtil.VueArchiveExtension))
+    		return true;
+    	
+    	if (strLabel.endsWith(VueUtil.VueExtension))
+    		return true;
+    	
+    	return false;
+    	
     }
 	
 	/**
