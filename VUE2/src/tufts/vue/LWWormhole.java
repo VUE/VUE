@@ -1776,24 +1776,40 @@ public class LWWormhole implements VueConstants {
     	// label them (dummy labels for now)
     	// HO 16/04/2012 BEGIN ********
     	// setWormholeNodeLabel(getTargetWormholeNode(), VueResources.getString("wormhole.node.target.label.default"));
-    	labelWormholeNodes();
+    	// HO 22/06/2012 BEGIN *******
+    	labelWormholeNodes(true);
+    	// HO 22/06/2012 END
     	// HO 16/04/2012 END ********
 	}
     
     /**
      * A method to label the source and target wormholes
      * with the labels of their respective target maps
+     * @param bCreatingNew, true if we are creating
+     * these wormholes new, false if they already existed.
      */
-    private void labelWormholeNodes() {
+    private void labelWormholeNodes(boolean bCreatingNew) {
     	if ((sourceWormholeNode != null) && (targetMapFile != null)) {
-    		// HO 21/06/2012 begin - if label looks like it's not a filename,
-    		// don't change it cos someone must have relabelled it
-    		if (isLabelAVueTypeFilename(sourceWormholeNode.getLabel()))
+    		// HO 22/06/2012 BEGIN *********
+    		if (bCreatingNew) {
     			sourceWormholeNode.setLabel(targetMapFile.getName());
+    		} else {
+	    		// HO 22/06/2012 END *********
+	    		// HO 21/06/2012 begin - if label looks like it's not a filename,
+	    		// don't change it cos someone must have relabelled it
+	    		if (isLabelAVueTypeFilename(sourceWormholeNode.getLabel()))
+	    			sourceWormholeNode.setLabel(targetMapFile.getName());
+    		}
     	}
     	if ((targetWormholeNode != null) && (sourceMapFile != null)) {
-    		if (isLabelAVueTypeFilename(targetWormholeNode.getLabel()))
+    		// HO 22/06/2012 BEGIN *********
+    		if (bCreatingNew) {
     			targetWormholeNode.setLabel(sourceMapFile.getName());
+    		} else {
+    		// HO 22/06/2012 END *********
+	    		if (isLabelAVueTypeFilename(targetWormholeNode.getLabel()))
+	    			targetWormholeNode.setLabel(sourceMapFile.getName());
+    		}
     	}
     }
     
@@ -2371,7 +2387,10 @@ public class LWWormhole implements VueConstants {
 			replaceExistingWormholeResource(null, targetResource, targetMap);
 		
 		// HO 16/04/2012 BEGIN ****
-		labelWormholeNodes();
+		// HO 22/06/2012 BEGIN *******
+		// labelWormholeNodes();
+		labelWormholeNodes(false);
+		// HO 22/06/2012 END ********
 		// HO 16/04/2012 END ******
 
 		SaveAction.saveMap(sourceMap);

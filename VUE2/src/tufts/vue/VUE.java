@@ -45,6 +45,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.BindException;
 import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
@@ -1340,7 +1341,7 @@ public class VUE
     private static void initBeanshell() {
     	// HO 12/06/2012 BEGIN ******
     	Interpreter inter = new Interpreter();
-    	try {
+    	try {   		
     		inter.eval("setAccessibility(true)");
     		inter.eval("server(7777)");
     	} catch (Exception e) {
