@@ -85,6 +85,7 @@ public class Util
     private static float javaVersion = 1.0f;
     
     private static int MacMRJVersion = -1;
+    private static float MacOSXVersion = 0f;
 
     private static boolean DEBUG = false;
 
@@ -145,6 +146,8 @@ public class Util
                 out("Mac OS X major version IS OVERRIDING-> " + osVersionNumber);
                 osVersionNumber = Float.parseFloat(osxFlag.substring(0,4));
             }
+
+            Util.MacOSXVersion = osVersionNumber;
 
             if (DEBUG) out("Mac OS X major version number (float): " + osVersionNumber);
             if (osVersionNumber >= 10.5) // Really this is a "leopard or later" flag
@@ -324,6 +327,12 @@ public class Util
     /** return mac runtime for java version.  Will return -1 if we're not running on mac platform. */
     public static int getMacMRJVersion() {
         return MacMRJVersion;
+    }
+    
+    /** @return Mac OS X Major Version Number (significant to 1 decimal place) -- e.g., values 10.4 thru 10.8, etc
+     * Will return 0 if not Mac Platform */
+    public static float getMacOSXVersion() {
+        return MacOSXVersion;
     }
     
     public static String getPlatformName() {
