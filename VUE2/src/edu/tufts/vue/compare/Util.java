@@ -74,67 +74,42 @@ public class Util {
         mergeProperty = property;
     }
     
+    private static final boolean SelectionMethodEnabled = !VueResources.getString("merge.ontologyType.gui").equals("OFF");
+    private static final String StaticMergeType = VueResources.getString("merge.ontologyType");
+    
     public static String getMergeProperty(LWComponent comp)
     {
-        
-        String selectionMethod = VueResources.getString("merge.ontologyType.gui");
-        
-        if(selectionMethod.equals("OFF"))
-        {    
-        
-          String mergeType = tufts.vue.VueResources.getString("merge.ontologyType");
-        
-          if(DEBUG)
-          {
-            System.out.println("edu.tufts.vue.compare.Util merge.ontologyType: " + mergeType);
-          }
-        
-          if(mergeType.equals("LABEL"))
-          {
-            mergeProperty = LABEL;
-          }
-          else
-          if(mergeType.equals("TYPE"))
-          {
-            mergeProperty = TYPE;
-          }
-          else
-          if(mergeType.equals("BOTH"))
-          {
-            mergeProperty = BOTH;
-          }
-          else
-          if(mergeType.equals("NONE"))
-            return  comp.getLabel();
-          else
-          {
-            if(comp.getMetadataList().containsOntologicalType(mergeType))
-            {
-                return mergeType + "-" + comp.getLabel();
+        if (SelectionMethodEnabled) {
+            
+                 if (mergeProperty == LABEL) return comp.getLabel();     
+            else if (mergeProperty == TYPE)  return comp.getMetadataList().getOntologyListString();     
+            else if (mergeProperty == BOTH)  return comp.getLabel() + "|" + comp.getMetadataList().getOntologyListString();
+                 
+        } else {
+            // SMF: Inspecting 2012-05-09 16:29.43 Wednesday SFAir.local:
+            /** VueResources.properties: merge.ontologyType.gui=ON */
+            // Don't know if this value was ever tested "OFF" or if this code below
+            // is still working.  It's strange -- was this stuff ever driven
+            // entirely statically via resources?
+
+            final String mergeType = StaticMergeType;
+            
+            if (DEBUG) { System.out.println("edu.tufts.vue.compare.Util merge.ontologyType: " + mergeType); }
+            
+                 if (mergeType.equals("LABEL")) { mergeProperty = LABEL; }
+            else if (mergeType.equals("TYPE"))  { mergeProperty = TYPE; }
+            else if (mergeType.equals("BOTH"))  { mergeProperty = BOTH; }
+            else if (mergeType.equals("NONE"))  { return comp.getLabel(); }
+            else {
+                if (comp.getMetadataList().containsOntologicalType(mergeType)) {
+                    return mergeType + "-" + comp.getLabel();
+                } else {
+                    return comp.getLabel();
+                }
             }
-            else
-            {
-                return comp.getLabel();
-            }
-          }
         }
 
-        if(mergeProperty == LABEL)
-        {
-           return comp.getLabel();     
-        }
-            
-        if(mergeProperty == TYPE)
-        {
-           return comp.getMetadataList().getOntologyListString();     
-        }
-            
-        if(mergeProperty == BOTH)
-        {
-           return comp.getLabel() + "|" + comp.getMetadataList().getOntologyListString();    
-        }
-        
+        // Always default to label
         return comp.getLabel();
-    
     }
 }
