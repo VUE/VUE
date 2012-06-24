@@ -1619,27 +1619,27 @@ public class DockWindow
         }    	
     }
     
+    // "flicker" our invisible anchor.  As the anchor is an extreme workaround hack
+    // specific to getting Java MDI interfaces to work on Mac Leopard, the code in this
+    // method, tho it could use logic cleanup to elimiate redundancy, I'm not going to touch.
+    // We're assuming we still need to do this hack in Lion and later OS's as well,
+    // that that would need testing to determine for sure.  SMF 2012-06-16.
     public static void flickerAnchorDock()
     {
         if (VUE.usingAnchorDock() == false)
             return;
         
-    	  if (!VUE.isApplet() && Util.isMacLeopard() && VUE.getAnchorDock().isVisible())
-          {
+    	  if (!VUE.isApplet() && Util.isMacLeopard() && VUE.getAnchorDock().isVisible()) {
           	VUE.getAnchorDock().setVisible(false);
-          
           }
-         
-         
-
-          if (!VUE.isApplet() && Util.isMacLeopard())
-          {	
+          if (!VUE.isApplet() && Util.isMacLeopard()) {	
           	VUE.getAnchorDock().setVisible(true);
           	VUE.getAnchorDock().toFront();
           }
           return;
     }
     private boolean isPointFullyOnScreen(Point p, Dimension size, Dimension screenSize)
+        
     {
     	int rightCorner =  (int)p.getX() + (int)size.getWidth();
     	int bottomCorner = (int)p.getY() + (int)size.getHeight();
@@ -2328,12 +2328,15 @@ public class DockWindow
 
         superSetLocation(x, y);
         
-        if (isMac == false && mChild != null) {
+        // SMF RE-ENABLED MAC DRAGGING 2012-06-24 -- the performance
+        // is not so much of an issue now, and the mac-hacks
+        // (cocoa-bridge) are no longer available going forward.
+        
+        if (/*isMac == false &&*/ mChild != null) {
             
             // Manually move all of our children (and their children).  This works
             // beauftifly smoothly on PC, and gets terribly behind on Mac unless we set
             // up the native OSX to handle it.
-
             updateAllChildLocations();
         }
     }
