@@ -2328,12 +2328,12 @@ public class DockWindow
 
         superSetLocation(x, y);
         
-        // SMF RE-ENABLED MAC DRAGGING 2012-06-24 -- the performance
-        // is not so much of an issue now, and the mac-hacks
-        // (cocoa-bridge) are no longer available going forward.
+        // SMF 2012-06-24: RE-ENABLED NON-COCOA MAC DRAGGING -- the performance is not
+        // so much of an issue now, and the mac-hacks (cocoa-bridge) are not
+        // available on current systems / going forward.
         
-        if (/*isMac == false &&*/ mChild != null) {
-            
+        //if (isMac == false && mChild != null) {
+        if (mChild != null && !(isMac && Util.isMacCocoaSupported())) {
             // Manually move all of our children (and their children).  This works
             // beauftifly smoothly on PC, and gets terribly behind on Mac unless we set
             // up the native OSX to handle it.
