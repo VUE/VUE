@@ -96,6 +96,8 @@ public class DEBUG
     public static boolean ANNOTATE; // data annotations
     
     public static boolean SEARCH; // overlaps with RDF
+    
+    public static boolean MERGE; // Merge Maps
 
     public static  void setAllEnabled(boolean enabled) {
         for (Field f : Fields)
