@@ -28,6 +28,9 @@ package tufts.vue;
  * This class is for data-sources where all the content want's to be seen, based
  * on the configuration.  E.g., a local directory, a list of user favorites, a remote FTP
  * site, an RSS feed, etc.
+ *
+ * Do not confuse with edu.tufts.vue.dsm.impl.VueDataSource.  The
+ * historical naming of both classes is unforunate.
  * 
  * @version $Revision: 1.16 $ / $Date: 2010-02-03 19:17:41 $ / $Author: mike $
  * @author  rsaigal
@@ -38,6 +41,8 @@ import tufts.vue.DEBUG;
 
 import javax.swing.JComponent;
 
+//class DataSourceVue {} // for log tagging to differenate from edu.tufts.vue.dsm.impl.VueDataSource
+    
 public abstract class VueDataSource implements DataSource
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(VueDataSource.class);
@@ -236,7 +241,8 @@ public abstract class VueDataSource implements DataSource
     }
     
     private void out(String s) {
-        Log.debug(getClass().getSimpleName() + "[" + getDisplayName() + "] " + s);
+        //Log.debug(getClass().getSimpleName() + "[" + getDisplayName() + "] " + s);
+        Log.debug("{" + getDisplayName() + "} " + s);
     }
 
 
