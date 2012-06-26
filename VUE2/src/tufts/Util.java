@@ -343,7 +343,15 @@ public class Util
         return OSVersion;
     }
     
+    /** @return true if this is Mac OS X Leopard or *later*: E.g., Snow Leopard, Lion, Mountian Lion, etc
+     * -- this named method kept for backward compatability
+     * @deprecated
+     */
     public static boolean isMacLeopard() {
+        return OSisMacLeopard;
+    }
+    /** @return true if this is Mac OS X Leopard or *later*: E.g., Snow Leopard, Lion, Mountian Lion, etc */
+    public static boolean isMacLeopardOrLater() {
         return OSisMacLeopard;
     }
        
