@@ -217,13 +217,16 @@ public class VueDataSourceManager
                 continue;
             
             Log.debug("configuring " + ds);
-            
-            new Thread(String.format("%s@%07x %8.8s",
-                                     ds.getClass().getSimpleName(),
-                                     System.identityHashCode(ds),
-                                     ds.getRepositoryDisplayName()))
-            {
-                @Override public void run() {
+
+            // final String threadName = String.format("%s@%08x %8.8s",
+            //                                         ds.getClass().getSimpleName(),
+            //                                         System.identityHashCode(ds),
+            //                                         ds.getRepositoryDisplayName()))
+            final String threadName = String.format("conf:ds@%08x", System.identityHashCode(ds));
+
+            new Thread(threadName) {
+                @Override
+                public void run() {
                     try {
                         
                         try {
@@ -234,10 +237,10 @@ public class VueDataSourceManager
                             ((VueDataSource)ds).assignRepositoryConfiguration();
                             
                             if (tufts.vue.DEBUG.DR)
-                            Log.info(String.format("configured %-32s %s",
+                            Log.info(String.format("configured %-33s %s",
                                                    '"' + ds.getRepositoryDisplayName() + '"',
                                                    VueDataSource.idString(ds.getRepositoryId())));
-                            Log.info(String.format("configured %-32s %s",
+                            Log.info(String.format("configured %-33s %s",
                                                    '"' + ds.getRepositoryDisplayName() + '"',
                                                    ds.getRepository()));
                             //getRepositoryID(ds);
