@@ -18,9 +18,14 @@ import tufts.Util;
 import tufts.vue.PropertyEntry;
 import java.util.*;
 
+class DataSourceImp {} // for log tagging to differeniate from tufts.vue.VueDataSource
+/**
+ * Do not confuse with tufts.vue.VueDataSource
+ */
 public class VueDataSource implements edu.tufts.vue.dsm.DataSource
 {
-    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(VueDataSource.class);
+    
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(DataSourceImp.class);
     
     private edu.tufts.vue.dsm.OsidFactory factory = null;
     private Vector<PropertyEntry> _propertyList = null;
@@ -110,7 +115,7 @@ public class VueDataSource implements edu.tufts.vue.dsm.DataSource
         try {
             provider = this.factory.getInstalledProvider(this.providerId);
         } catch (org.osid.provider.ProviderException pe) {
-            Log.error(this + " no Provider with Id " + idString(providerId) + "; " + pe);
+            Log.warn(this + " no Provider with Id " + idString(providerId) + "; " + pe.getClass().getSimpleName() + ": " + pe.getMessage());
             return false;
         }
         
@@ -198,7 +203,7 @@ public class VueDataSource implements edu.tufts.vue.dsm.DataSource
     throws org.osid.provider.ProviderException
     {
         if (this.repositoryManager == null) {
-            Log.error("setRelatedValues: null repositoryManager; aborting init of " + this);
+            Log.warn("no repositoryManager; " + this + "; can't setRelatedValues");
             return;
         }
         
@@ -590,7 +595,7 @@ public class VueDataSource implements edu.tufts.vue.dsm.DataSource
 //             Log.debug("  properties: " + properties);
         
         if (this.repositoryManager == null) {
-            Log.error("null repositoryManager; " + this + "; skipping assignConfiguration.");
+            Log.warn("no repositoryManager; " + this + "; can't assignConfiguration");
         } else {
             // This is what may try network access and can possibly hang if there's a problem:
             this.repositoryManager.assignConfiguration(properties);
@@ -602,8 +607,9 @@ public class VueDataSource implements edu.tufts.vue.dsm.DataSource
     @Override
     public String toString() {
         try {
-            return String.format("%s@%07x[%-32s; %s]",
-                                 getClass().getSimpleName(),
+            return String.format("%s@%08x[%-32s; %s]",
+                                 // we print class in lower case to distinguish from tufts.vue.VueDataSource
+                                 getClass().getSimpleName().toLowerCase(), 
                                  System.identityHashCode(this),
                                  '"' + getRepositoryDisplayName() + '"',
                                  getRepository());
