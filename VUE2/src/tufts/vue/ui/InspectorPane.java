@@ -741,7 +741,7 @@ public class InspectorPane extends WidgetStack
 
         //final MetaMap data = (node == null ? null : node.getRawData());
 
-        final String desc = findProperty(r, data, "Description", "Summary");
+        final String desc = findProperty(r, data, "DescriptionSummary", "Description", "Summary");
             
         final String summary;
         
@@ -793,6 +793,7 @@ public class InspectorPane extends WidgetStack
     {
         final StringBuilder b = new StringBuilder(128);
         final String title = r.getTitle();
+
         if (title != null) {
             b.append("<b>");
             // note that the title should already have been HTML UNescaped when set:
@@ -937,9 +938,19 @@ public class InspectorPane extends WidgetStack
 
         if (title == null && desc == null)
             return null;
-                
+
         if (desc == null || desc.indexOf("<style") < 0) {
             // only add a title if no style sheet present ("complex content" e.g., jackrabbit jira)
+
+            // final String thumb = findProperty(r, data, "@Thumb", "thumbnailURL");
+            // if (thumb != null) {
+            //     // Note we're dealing with ANCIENT java text-pane HTML...
+            //     //buf.append("<img valign=middle src=");
+            //     buf.append("<img align=middle src=");
+            //     buf.append(thumb);
+            //     buf.append(">");
+            //     //buf.append("<br>");
+            // }
 
             if (title != null) {
                 buf.append("<b><font size=+1>"); // note: h1/h2 are useless here.  font+1 a bit more than we want tho...
@@ -947,7 +958,7 @@ public class InspectorPane extends WidgetStack
                 buf.append("</font></b>");
             }
             
-            String published = findProperty(r, data, "Published", "pubDate", "dc:date", "Date", "Created");
+            final String published = findProperty(r, data, "Published", "pubDate", "dc:date", "Date", "Created", "DateUpdated");
                 
             if (published != null) {
                 buf.append("<br>\n");
