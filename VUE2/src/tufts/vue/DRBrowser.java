@@ -112,6 +112,7 @@ public class DRBrowser extends ContentBrowser
 
     final DockWindow dockWindow;
 
+    private JComponent loadingComponent;
     private JLabel loadingLabel;
 
     private DataSourceViewer DSV;
@@ -132,22 +133,23 @@ public class DRBrowser extends ContentBrowser
 
         if (delayedLoading) {
             
-//          if (Util.isMacLeopard()) {
-//              JProgressBar bar = new JProgressBar();
-//              bar.setAlignmentX(SwingConstants.CENTER); // no effect
-//              bar.setIndeterminate(true);
-//              bar.putClientProperty("JProgressBar.style", "circular");
-//              bar.setString("Loading...");// no effect
-//              bar.setStringPainted(true); // no effect
-//              add(bar);
-//          }
+            final String LoadingMessage = VueResources.getString("dockWindow.Resources.loading.label");
 
-             loadingLabel = new JLabel(VueResources.getString("dockWindow.Resources.loading.label"), SwingConstants.CENTER);
-             loadingLabel.setMinimumSize(new Dimension(150, 80));
-             loadingLabel.setBorder(new EmptyBorder(8,0,8,0));
-             GUI.apply(GUI.StatusFace, loadingLabel);
-             librariesPane.add(loadingLabel);
+            if (Util.isMacLeopardOrLater()) {
+                // todo: StatusLabel was made public just for us here: move to tufts.gui as a util class
+                // (and make the params named via sub-constructors -- e.g., StatusLabel.Spin(msg)
+                loadingComponent = new DataSourceViewer.StatusLabel(LoadingMessage, true, true);
+                loadingComponent.setBorder(GUI.makeSpace(12,0,12,0));
+            } else {
+                loadingLabel = new JLabel(LoadingMessage, SwingConstants.CENTER);
+                loadingLabel.setMinimumSize(new Dimension(150, 80));
+                loadingLabel.setBorder(GUI.makeSpace(16,0,16,0));
+                GUI.apply(GUI.StatusFace, loadingLabel);
+                loadingComponent = loadingLabel;
+            }
 
+            librariesPane.add(loadingComponent);
+            
          } else {
              loadDataSourceViewer();
          }
@@ -195,8 +197,8 @@ public class DRBrowser extends ContentBrowser
             DSV = new DataSourceViewer(this);
             DSV.setName("Data Source Viewer");
 
-            if (loadingLabel != null)
-                librariesPane.remove(loadingLabel);
+            if (loadingComponent != null)
+                librariesPane.remove(loadingComponent);
 
             librariesPane.add(DSV);
 
