@@ -13,22 +13,19 @@
  * permissions and limitations under the License.
  */
 
-/**
- *
- * RDFIndex.java
- *
- * @author akumar03
- * @author Daniel J. Heller
- *
- */
-
 package edu.tufts.vue.rdf;
 
 import java.util.*;
 import java.io.*;
 import java.net.*;
+
+import tufts.vue.DEBUG;
+import tufts.vue.LWComponent;
+import tufts.vue.LWPathway;
+import tufts.vue.LWMap;
+import tufts.vue.VueResources;
+import tufts.vue.VueUtil;
 import edu.tufts.vue.metadata.*;
-import tufts.vue.*;
 
 import edu.tufts.vue.ontology.*;
 import edu.tufts.vue.metadata.*;
@@ -37,28 +34,50 @@ import com.hp.hpl.jena.sparql.core.*;
 import com.hp.hpl.jena.graph.*;
 import com.hp.hpl.jena.query.*;
 
+/**
+ *
+ * RDFIndex.java
+ *
+ * RDFIndex mainly makes use of Apache Jena for VUE map searching.  This RDF approach is overkill for
+ * VUE's current search needs, but originally began as an effort to create larger, peristent multi-map
+ * indicies.  That effort was not completed.  The resulting implementation that uses this
+ * class creates a new RDFIndex for every new search (over one map or multiple maps), and then runs
+ * the search on that fresh index.
+ *
+ * We do get one very nice feature for free -- the ability to write out a full .rdf file containing
+ * a set map data, although the current impl below tosses out the the key names from OSID meta-data
+ * -- just the values are written out, all called "property".
+ *
+ * -- Scott Fraize 2012-06-25
+ *
+ * @author akumar03
+ * @author Daniel J. Heller
+ *
+ */
+
 public class RDFIndex extends com.hp.hpl.jena.rdf.model.impl.ModelCom
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(RDFIndex.class);
     
     public static final int MAX_SIZE = VueResources.getInt("rdf.index.size");
-    public static final boolean AUTO_INDEX= VueResources.getBool("rdf.index.auto");
+    //public static final boolean AUTO_INDEX= VueResources.getBool("rdf.index.auto"); // never implememnted
     public static final String INDEX_FILE = VueUtil.getDefaultUserFolder()+File.separator+VueResources.getString("rdf.index.file");
     public static final String ONT_SEPARATOR = "#";
     public static final String VUE_ONTOLOGY = Constants.ONTOLOGY_URL+ONT_SEPARATOR;
-    com.hp.hpl.jena.rdf.model.Property idOf = createProperty(VUE_ONTOLOGY,Constants.ID);
-    com.hp.hpl.jena.rdf.model.Property labelOf = createProperty(VUE_ONTOLOGY,Constants.LABEL);
-    com.hp.hpl.jena.rdf.model.Property childOf = createProperty(VUE_ONTOLOGY,Constants.CHILD);
-    com.hp.hpl.jena.rdf.model.Property authorOf = createProperty(VUE_ONTOLOGY,Constants.AUTHOR);
-    com.hp.hpl.jena.rdf.model.Property colorOf = createProperty(VUE_ONTOLOGY,Constants.COLOR);
-    com.hp.hpl.jena.rdf.model.Property notesOf = createProperty(VUE_ONTOLOGY,Constants.NOTES);
-    com.hp.hpl.jena.rdf.model.Property contentPropertyOf = createProperty(VUE_ONTOLOGY,Constants.CONTENT_INFO_PROPERTY);
-    com.hp.hpl.jena.rdf.model.Property hasTag = createProperty(VUE_ONTOLOGY,Constants.TAG);
+    
+    final com.hp.hpl.jena.rdf.model.Property idOf = createProperty(VUE_ONTOLOGY,Constants.ID);
+    final com.hp.hpl.jena.rdf.model.Property labelOf = createProperty(VUE_ONTOLOGY,Constants.LABEL);
+    final com.hp.hpl.jena.rdf.model.Property childOf = createProperty(VUE_ONTOLOGY,Constants.CHILD);
+    final com.hp.hpl.jena.rdf.model.Property authorOf = createProperty(VUE_ONTOLOGY,Constants.AUTHOR);
+    final com.hp.hpl.jena.rdf.model.Property colorOf = createProperty(VUE_ONTOLOGY,Constants.COLOR);
+    final com.hp.hpl.jena.rdf.model.Property notesOf = createProperty(VUE_ONTOLOGY,Constants.NOTES);
+    final com.hp.hpl.jena.rdf.model.Property contentPropertyOf = createProperty(VUE_ONTOLOGY,Constants.CONTENT_INFO_PROPERTY);
+    final com.hp.hpl.jena.rdf.model.Property hasTag = createProperty(VUE_ONTOLOGY,Constants.TAG);
     
     private static RDFIndex defaultIndex;
-    private boolean isAutoIndexing = AUTO_INDEX;
     private  com.hp.hpl.jena.query.Query query;
     private QueryExecution qe;
+    // private boolean isAutoIndexing = AUTO_INDEX; // never implemented
     
     // could also index objects in LWComponent when get ID
     private static boolean INDEX_OBJECTS_HERE = true;
@@ -75,7 +94,6 @@ public class RDFIndex extends com.hp.hpl.jena.rdf.model.impl.ModelCom
         + "WHERE{"
         + " ?resource ?x ?keyword } ";
     
-    
     public RDFIndex() {
         super(com.hp.hpl.jena.graph.Factory.createDefaultGraph());
         // creating dummy query object. to make the search faster;
@@ -84,71 +102,58 @@ public class RDFIndex extends com.hp.hpl.jena.rdf.model.impl.ModelCom
         if (DEBUG.RDF || DEBUG.SEARCH) Log.debug("instanced w/default VUE query[" + DefaultVueQuery + "]");
     }
     
-    public void index(LWMap map)
-    {
+    public void index(LWMap map) {
         index(map,false,false,true);
     }
-    
-    public void index(LWMap map,boolean metadataOnly)
-    {
+    public void index(LWMap map,boolean metadataOnly) {
         index(map,metadataOnly,false,true);
     }
     
-    public void index(LWMap map,boolean metadataOnly,boolean searchEverything,boolean shouldClearMap) {
-        
-        if(INDEX_OBJECTS_HERE && shouldClearMap)
-        {
+    public void index(LWMap map,boolean metadataOnly,boolean searchEverything,boolean shouldClearMap)
+    {
+        if (INDEX_OBJECTS_HERE && shouldClearMap)
             VueIndexedObjectsMap.clear();
-        }
         
-        long t0 = System.currentTimeMillis();
-        if(DEBUG.RDF) Log.debug("index: begin: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
-        
+        if (DEBUG.RDF) Log.debug("index: begin; freeMem=: "+Runtime.getRuntime().freeMemory());
         
         final com.hp.hpl.jena.rdf.model.Resource mapR = this.createResource(map.getURI().toString());
-        if(DEBUG.RDF) Log.debug("index: create resource for map: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
+        
+        if (DEBUG.RDF) Log.debug("index: create resource for map; freeMem=: "+Runtime.getRuntime().freeMemory());
         
         try {
-            addProperty(mapR,idOf,map.getID());
-            addProperty(mapR,authorOf,System.getProperty("user.name"));
-            if(map.getLabel() != null){
+            addProperty(mapR, idOf, map.getID());
+            addProperty(mapR, authorOf, System.getProperty("user.name"));
+            if (map.hasLabel())
                 addProperty(mapR,labelOf,map.getLabel());
-            }
-            if(DEBUG.RDF) Log.debug("index: added properties for map: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
+
+            if (DEBUG.RDF) Log.debug("index: added properties for map; freeMem="+Runtime.getRuntime().freeMemory());
             
-            Collection<LWComponent> descendents = null;
+            final Collection<LWComponent> searchSet;
             
-            if(!searchEverything)
-            {
-                descendents = map.getAllDescendents();
-            }
-            else
-            {
-                descendents = map.getAllDescendents(LWComponent.ChildKind.ANY);
+            if (searchEverything) {
+                // E.g., this will search everything incuding Slides
+                searchSet = map.getAllDescendents(LWComponent.ChildKind.ANY);
+            } else {
+                searchSet = map.getAllDescendents();
             }
             
-            for(LWComponent comp: descendents)
-            {
+            for (LWComponent c : searchSet) {
+
+                if (c instanceof LWPathway || c instanceof LWMap.Layer)
+                    continue;
                 
-                if(INDEX_OBJECTS_HERE)
-                {
-                  VueIndexedObjectsMap.setID(comp.getURI(),comp);
-                }
+                if (INDEX_OBJECTS_HERE)
+                    VueIndexedObjectsMap.setID(c.getURI(), c);
                 
-                if(!( (comp instanceof LWPathway) || (comp instanceof LWMap.Layer) ))
-                {
-                  if(metadataOnly)
-                  {
-                    rdfize(comp,mapR,true);   
-                  }
-                  else
-                  {    
-                    rdfize(comp,mapR);
-                  }
+                load_VUE_component_to_RDF_index(c, mapR, metadataOnly);
+
+                if (size() > MAX_SIZE) {
+                    Log.warn("Maximum fail-safe search capacity reached: not all nodes will be searchable. (See property rdf.index.size)");
+                    break;
                 }
             }    
             
-            if(DEBUG.RDF) Log.debug("index: after indexing all components: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
+            if (DEBUG.RDF) Log.debug("index: after indexing all components; freeMem="+Runtime.getRuntime().freeMemory());
             
         } catch(Exception ex) {
             Log.error("index", ex);
@@ -251,45 +256,62 @@ public class RDFIndex extends com.hp.hpl.jena.rdf.model.impl.ModelCom
     public void save() { }
     public void read() { }
     
-    /* was public */
-    private void rdfize(LWComponent component,com.hp.hpl.jena.rdf.model.Resource mapR)
-    {
-        rdfize(component,mapR,false);
+    /* was public "rdfize" */
+    private void load_VUE_component_to_RDF_index(LWComponent component,com.hp.hpl.jena.rdf.model.Resource mapR) {
+        //rdfize(component,mapR,false);
+        load_VUE_component_to_RDF_index(component, mapR, false);
     }
+
+    private static final boolean RDFIZE_COLOR = VueResources.getString("rdf.rdfize.color").equals("TRUE");
     
-    /* was public */
-    private void rdfize(LWComponent component,com.hp.hpl.jena.rdf.model.Resource mapR,boolean metadataOnly) {
+    /* was public "rdfize" */
+    
+    /** Extract relevant data of interest from the given VUE component,
+     // loading it into a new jena.rdf.model.Resource, and add that to
+     // the RDF property tree as a child of the given mapRootResource */
+    
+    private void load_VUE_component_to_RDF_index
+        (tufts.vue.LWComponent component,
+         com.hp.hpl.jena.rdf.model.Resource mapRootResource,
+         boolean metadataOnly)
+    {
         final com.hp.hpl.jena.rdf.model.Resource r = this.createResource(component.getURI().toString());
         try {
-            if(!metadataOnly) {    
+            if (!metadataOnly) {    
                 // addProperty(r,idOf,component.getID());
-                if(component.getLabel() != null){
-                    addProperty(r,labelOf,component.getLabel());
-                }
-                if(VueResources.getString("rdf.rdfize.color").equals("TRUE") && component.getXMLfillColor() != null) {
-                    addProperty(r,colorOf,component.getXMLfillColor());
-                } 
-                if(component.getNotes() != null) {
-                    addProperty(r,notesOf,component.getNotes());
-                }
+
+                if (component.hasLabel())
+                    addProperty(r, labelOf, component.getLabel());
+
+                if (component.hasNotes())
+                    addProperty(r, notesOf, component.getNotes());
+
+                if (RDFIZE_COLOR && component.getXMLfillColor() != null) 
+                    addProperty(r, colorOf, component.getXMLfillColor());
+
                 final tufts.vue.Resource res = component.getResource();
-                if(res !=null) {
-                    // PropertyMap map = res.getProperties();
-                    // javax.swing.table.TableModel model = map.getTableModel();
-                    final javax.swing.table.TableModel model = res.getProperties().getTableModel();
-                    for(int i=0;i<model.getRowCount();i++)  {
-                        addProperty(r,contentPropertyOf,"" + model.getValueAt(i, 1));
+                if (res != null) {
+                    // for (Map.Entry e : res.getProperties().entries())
+                    // Note that we do not currently have a way to search on Resource keys
+                    // -- these are never accessed -- just values.
+                    
+                    for (Object value : res.getProperties().values()) {
+                        if (value != null)
+                            addProperty(r, contentPropertyOf, value.toString());
                     }
+                    // final javax.swing.table.TableModel model = res.getProperties().getTableModel();
+                    // for(int i=0;i<model.getRowCount();i++) // note: column 0 is key, column 1 is value
+                    //     addProperty(r,contentPropertyOf,"" + model.getValueAt(i, 1));
                 }
             }
             
-            com.hp.hpl.jena.rdf.model.Statement statement = this.createStatement(r,childOf,mapR);
+            com.hp.hpl.jena.rdf.model.Statement statement = this.createStatement(r, childOf, mapRootResource);
             
             addStatement(statement);
             
             final List<VueMetadataElement> metadata = component.getMetadataList().getMetadata();
             for (VueMetadataElement element : metadata) {
-                if(DEBUG.RDF && DEBUG.META) Log.debug(r + " " + tufts.Util.tags(element));
+                if (DEBUG.RDF && DEBUG.META) Log.debug(r + " " + tufts.Util.tags(element));
                 if (element.getObject() != null) {
                     final String encodedKey = getEncodedKey(element.getKey());
                     statement = this.createStatement(r, createPropertyFromKey(encodedKey), element.getValue());
@@ -345,16 +367,17 @@ public class RDFIndex extends com.hp.hpl.jena.rdf.model.impl.ModelCom
         }
     }
     
-    public void startAutoIndexing() {
-        isAutoIndexing = true;
-    }
+    // A concept of auto-indexing was never implemented -- SMF 2012-06-25
+    // public void startAutoIndexing() {
+    //     isAutoIndexing = true;
+    // }
+    // public void stopAutoIndexing() {
+    //     isAutoIndexing = false;
+    // }
     
-    public void stopAutoIndexing() {
-        isAutoIndexing = false;
-    }
-    
+    // don't see this called anywhere...
     public void regenerate() {
-        System.out.println("Before Indexing size: "+size());
+        Log.info("regenerate: before Indexing size: "+size());
         List stmtList  = listStatements().toList();
         for(int i = 0;i<stmtList.size();i++) {
             com.hp.hpl.jena.rdf.model.Statement statementI = (com.hp.hpl.jena.rdf.model.Statement)stmtList.get(i);
@@ -365,8 +388,18 @@ public class RDFIndex extends com.hp.hpl.jena.rdf.model.impl.ModelCom
                 }
             }
         }
-        System.out.println("After Indexing size: "+size());
-        
+        Log.info("regenerate: after Indexing size: "+size());
+    }
+    // don't see this called anywhere except above...
+    private boolean compareStatements(com.hp.hpl.jena.rdf.model.Statement stmt1,com.hp.hpl.jena.rdf.model.Statement stmt2) {
+             if (!stmt1.getSubject().toString().equals(stmt2.getSubject().toString()))
+            return false;
+        else if (!stmt1.getObject().toString().equals(stmt2.getObject().toString()))
+            return false;
+        else if (!stmt1.getPredicate().toString().equals(stmt2.getPredicate().toString()))
+            return false;
+        else
+            return true;
     }
     
     public  com.hp.hpl.jena.rdf.model.Property createPropertyFromKey(String key) throws Exception {
@@ -380,18 +413,7 @@ public class RDFIndex extends com.hp.hpl.jena.rdf.model.impl.ModelCom
         return createProperty(words[0]+"#",words[1]);
     }
     
-    private boolean compareStatements(com.hp.hpl.jena.rdf.model.Statement stmt1,com.hp.hpl.jena.rdf.model.Statement stmt2) {
-        if(!stmt1.getSubject().toString().equals(stmt2.getSubject().toString())) {
-            
-            return false;
-        }
-        if(!stmt1.getObject().toString().equals(stmt2.getObject().toString())) {
-            return false;
-        }if(!stmt1.getPredicate().toString().equals(stmt2.getPredicate().toString())) {
-            return false;
-        }
-        return true;
-    }
+    // Note that while VUE.java currently has code to call this, it's never used.  SMF 2012-06-25
     private static RDFIndex createDefaultIndex() {
         defaultIndex = new RDFIndex(com.hp.hpl.jena.graph.Factory.createGraphMem());
         try {
