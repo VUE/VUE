@@ -248,8 +248,8 @@ public class SaveAction extends VueAction
                final String selectionType = VueResources.getString("rdf.export.selection");
                
                if (selectionType.equals("ALL")) {
-                 for (LWMap map : VUE.getAllMaps())
-                     index.index(map);
+                 for (LWMap someMap : VUE.getAllMaps())
+                     index.index(someMap);
                }
                else if (selectionType.equals("ACTIVE"))
                    index.index(VUE.getActiveMap());  
