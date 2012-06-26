@@ -1177,9 +1177,9 @@ public class DataSourceViewer extends ContentViewer
             
             if (resourceList.size() == 0) {
                 if (assetIterator == null)
-                    results = new StatusLabel("Empty results for " + mSearchString, false, false);
+                    results = new StatusLabel("Empty results for " + mSearchString);
                 else
-                    results = new StatusLabel("No results for " + mSearchString, false, false);
+                    results = new StatusLabel("No results for " + mSearchString);
             } else {
             	
                 results = new ResourceList(resourceList, title);
@@ -1332,11 +1332,13 @@ public class DataSourceViewer extends ContentViewer
     private static JLabel SearchingLabel;
     private static final boolean UseSingleScrollPane = true;
     
-    private static class StatusLabel extends JPanel {
-        private JLabel label = null;
-        private JLabel waitIcon = null;
+    public static class StatusLabel extends JPanel {
+        private static final Icon SlowSpinningIcon = VueResources.getIcon("dsv.statuspanel.waitIcon");
         
-        StatusLabel(String s, boolean center, boolean useIcon) {
+        private final JLabel label;
+        private final JComponent waitIcon;
+
+        public StatusLabel(String s, boolean center, boolean useIcon) {
             super();
             
             if (center) {
@@ -1350,18 +1352,35 @@ public class DataSourceViewer extends ContentViewer
             //setBackground(VueResources.getColor("dsv.statuspanel.bgColor"));
             setBackground(SystemColor.control);
             if (useIcon) {
-                waitIcon = new JLabel(VueResources.getImageIcon("dsv.statuspanel.waitIcon"));
+                if (Util.isMacLeopard()) {
+                    final JProgressBar spinner = new JProgressBar();
+                    spinner.setIndeterminate(true);
+                    spinner.putClientProperty("JProgressBar.style", "circular");
+                    waitIcon = spinner;
+                } else {
+                    waitIcon = new JLabel(SlowSpinningIcon);
+                }
                 this.add(waitIcon);
-            }
+            } else
+                waitIcon = null;
+
             label = new JLabel(s);
+            GUI.apply(GUI.StatusFace, label);
+            
+            if (!useIcon && Util.isMacLeopard()) {
+                // match icon width & height so text is aligned with labels that have icons
+                //label.setBorder(GUI.makeSpace(1,23,1,0));
+                // match icon height so search box doesn't change height when "no results" comes back
+                label.setBorder(GUI.makeSpace(1,0,1,0));
+            }
+            
             this.add(label);
             
             //setMinimumSize(new Dimension(getWidth(), WidgetStack.TitleHeight+14));
             //setPreferredSize(new Dimension(getWidth(), WidgetStack.TitleHeight+14));
         }
-        StatusLabel(String s, boolean center) {
-            this(s,center,true);
-        }
+        StatusLabel(String s, boolean center) { this(s,center,true); }
+        StatusLabel(String s) { this(s,false,false); }
 
         public void removeIcon() {
             if (waitIcon != null)
@@ -1640,9 +1659,9 @@ public class DataSourceViewer extends ContentViewer
             
             if (resourceList.size() == 0) {
                 if (assetIterator == null)
-                    results = new StatusLabel("Empty results for " + mSearchString, false, false);
+                    results = new StatusLabel("Empty results for " + mSearchString);
                 else
-                    results = new StatusLabel("No results for " + mSearchString, false, false);
+                    results = new StatusLabel("No results for " + mSearchString);
             } else {
                 results = new ResourceList(resourceList, title);
             }
