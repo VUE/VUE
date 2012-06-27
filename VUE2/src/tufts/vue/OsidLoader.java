@@ -75,8 +75,34 @@ package tufts.vue;
  * Licensed under the {@link org.osid.SidImplementationLicenseMIT MIT
  * O.K.I&#46; OSID Definition License}.
  * </p>
+ *
+ *
+ * SMF 2012-06-26 It appears this class is NOT USED, and I dont know if it ever was. The impl we DO use is
+ * edu.mit.osidimpl.OsidLoader from MIT-OTS-NO_PROVIDER.jar (called by us in
+ * edu.tufts.vue.dsm.impl.VueOsidFactory), tho the source for that isn't in our tree.  Note there are multiple
+ * (many, even) OsidLoader classes that can be found in different packages in different jar files.
+ *
  */
 public class OsidLoader implements java.io.Serializable {
+//public class OsidLoader extends edu.mit.osidimpl.OsidLoader {
+
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(OsidLoader.class);
+
+    public static org.osid.OsidManager getManager
+        (
+         String osidPackageManagerName,
+         String implPackageName,
+         org.osid.OsidContext context,
+         java.util.Properties additionalConfiguration
+         )
+        throws org.osid.OsidException
+    {
+        // This isn't helping us..
+        //return edu.mit.osidimpl.OsidLoader.getManager(osidPackageManagerName, implPackageName, context, additionalConfiguration);
+        return _ancient_getManager(osidPackageManagerName, implPackageName, context, additionalConfiguration);
+    }
+    
+    
     /**
      * Returns an instance of the org.osid.OsidManager of the OSID specified by the OSID
      * package org.osid.OsidManager interface name and the implementation package name.
@@ -131,11 +157,20 @@ public class OsidLoader implements java.io.Serializable {
      *         org.osid.OsidException#ERROR_ASSIGNING_CONFIGURATION
      *         ERROR_ASSIGNING_CONFIGURATION}
      */
-    public static org.osid.OsidManager getManager(
-        String osidPackageManagerName, String implPackageName,
-        org.osid.OsidContext context,
-        java.util.Properties additionalConfiguration)
-        throws org.osid.OsidException {
+
+    public static org.osid.OsidManager _ancient_getManager
+        (
+         String osidPackageManagerName,
+         String implPackageName,
+         org.osid.OsidContext context,
+         java.util.Properties additionalConfiguration
+         )
+        throws org.osid.OsidException
+    {
+
+        Log.info("getManager(...)");
+        if (DEBUG.DR) tufts.Util.printStackTrace("getManager");
+        
         try {
             if ((null != context) && (null != osidPackageManagerName) &&
                     (null != implPackageName)) {
@@ -253,23 +288,34 @@ System.out.println("mcn " + managerClassName);
         return cName;
     }
 
-    private static java.util.Properties getConfiguration(
-        org.osid.OsidManager manager) throws org.osid.OsidException {
+    private static java.util.Properties getConfiguration(org.osid.OsidManager manager)
+        throws org.osid.OsidException
+    {
+        Log.info("getConfiguration");
+        //if (DEBUG.DR) tufts.Util.printStackTrace("getConfiguration");
+                
         java.util.Properties properties = null;
 
         if (null != manager) {
             Class managerClass = manager.getClass();
 
+            Log.info("managerClass: " + managerClass);
+
             try {
                 String managerClassName = managerClass.getName();
                 int index = managerClassName.lastIndexOf(".");
 
-                if (-1 != index) {
+                if (-1 != index)
                     managerClassName = managerClassName.substring(index + 1);
-                }
 
-                java.io.InputStream is = managerClass.getResourceAsStream(managerClassName +
-                        ".properties");
+                Log.info("managerClassName: " + managerClassName);
+
+                //final String propsName = managerClassName + ".properties";
+                final String propsName = "osid.properties";
+
+                Log.info("properties: " + propsName + " (reading...)");
+
+                java.io.InputStream is = managerClass.getResourceAsStream(propsName);
 
                 if (null != is) {
                     properties = new java.util.Properties();
@@ -278,6 +324,8 @@ System.out.println("mcn " + managerClassName);
             } catch (Throwable ex) {
             }
         }
+
+        if (DEBUG.DR) Log.debug("getConfiguration returns " + properties);
 
         return properties;
     }
