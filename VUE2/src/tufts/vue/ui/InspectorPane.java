@@ -741,7 +741,7 @@ public class InspectorPane extends WidgetStack
 
         //final MetaMap data = (node == null ? null : node.getRawData());
 
-        final String desc = findProperty(r, data, "DescriptionSummary", "Description", "Summary");
+        final String desc = findProperty(r, data, "descriptionSummary", "Description", "Summary");
             
         final String summary;
         
@@ -958,7 +958,7 @@ public class InspectorPane extends WidgetStack
                 buf.append("</font></b>");
             }
             
-            final String published = findProperty(r, data, "Published", "pubDate", "dc:date", "Date", "Created", "DateUpdated");
+            final String published = findProperty(r, data, "Published", "pubDate", "dc:date", "Date", "Created", "dateUpdated");
                 
             if (published != null) {
                 buf.append("<br>\n");
