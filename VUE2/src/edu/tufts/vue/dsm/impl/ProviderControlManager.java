@@ -85,9 +85,12 @@ public class ProviderControlManager
         // (skip this if we move to a per-user home directory based provider install dir)
 
         try {
-            // Make readable & writeable to everyone:
-            installDir.setReadable(true, false);
-            installDir.setWritable(true, false);
+            // Make readable & writeable to everyone [these only since Java 1.6]
+            //installDir.setReadable(true, false);
+            //installDir.setWritable(true, false);
+            final Object[] args = { Boolean.TRUE, Boolean.FALSE };
+            tufts.Util.execute(installDir, "java.io.File", "setReadable", args);
+            tufts.Util.execute(installDir, "java.io.File", "setWritable", args);
         } catch (Throwable t) {
             Log.warn("Couldn't set modes on install dir: " + installDir + "; " + t);
         }
