@@ -143,6 +143,7 @@ public class DEBUG
                     try {
                         Field debugField = clazz.getDeclaredField("DEBUG");
                         Log.info("found: " + debugField);
+                        debugField.setAccessible(true);
                         if (setFlag(debugField, true))
                             handled = true;
                     } catch (Exception e) {
@@ -155,6 +156,7 @@ public class DEBUG
                         // to looking up the logger itself via class name.
                         Field logField = clazz.getDeclaredField("Log");
                         Log.info("found: " + logField);
+                        logField.setAccessible(true);
                         //org.apache.log4j.Logger log = logField.get(null);
                         ((org.apache.log4j.Logger) logField.get(null))
                             .setLevel(org.apache.log4j.Level.DEBUG);
