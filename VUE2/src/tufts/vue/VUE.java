@@ -178,10 +178,12 @@ public class VUE
     public static final int FIRST_TAB_STOP = 6;   
     //public static JCheckBoxMenuItem  resetSettingsMenuItem;
     public static ExpandSelectionControl depthSelectionControl = null;
-    public static JPanel searchPanel = new JPanel(new GridBagLayout());  
+    public static JPanel searchPanel = new JPanel(new GridBagLayout());
+
+
+    /** this was for VUE applet -- currently unused */
     public static void finalizeDocks()
     {
-    
     	//SwingUtilities.invokeLater(new Runnable() { public void run() {
     	//inspectorPane.removeAll();
     //	inspectorPane = null;
@@ -233,6 +235,7 @@ public class VUE
     public static  edu.tufts.vue.metadata.CategoryModel getCategoryModel() {
         return HolderCM._CategoryModel;
     }
+    // Can't find anywhere in code-base this is currently used -- was it ever? SMF 2012-06-25
     public static edu.tufts.vue.rdf.RDFIndex getRDFIndex() {
         return SKIP_RDF_INDEX ? null : HolderRDFIndex._RDFIndex;
     }
@@ -899,7 +902,7 @@ public class VUE
             //MasterLogPattern.setConversionPattern("@%6r [%t] %5p %c %x %m%n");
         }
 
-        // This will enabled it for every logger in any jar, which is tons of stuff.
+        // This will enable it for every logger in any jar, which is tons of stuff.
         // Logger.getRootLogger().setLevel(Level.DEBUG);
         
         TuftsLog.setLevel(Level.DEBUG);
@@ -1842,29 +1845,59 @@ public class VUE
         //
         //-----------------------------------------------------------------------------
 
+        
+        positionDockWindows(screen);
 
-        // order the windows left to right for the top dock
-        List<DockWindow> acrossTopList = new ArrayList<DockWindow>();
-        /*{
-            MapInspector,
-            //GUI.isSmallScreen() ? null : fontDock,
-            pathwayDock,
-            //formatDock,
-            DR_BROWSER_DOCK,
-            ObjectInspector,
-            //resourceDock,
-        };
-          */
+        mapInspectorPanel.metadataPanel.refresh();
+        
+    
+        	//I'm just putting a comment in here becuase this seems odd to me, and I wanted it to be clear it was intentional.
+        	//"As we move away from a "datasource" centric vision of VUE, the "Content" window should be collapsed when launching VUE"
+        	//This will only take effect the first time VUE is started or when preference to remember window position is disabled.
+        	// -MK
+
+        	if (!formatDock.getWindowProperties().isEnabled())
+        	{
+        		formatDock.setLowerLeftCorner(VueResources.getInt("formatting.location.x"),
+        			VueResources.getInt("formatting.location.y")+100);
+//        	formatDock.setLocation(,
+  //                                     );        	
+        	
+        		DockWindow.flickerAnchorDock();
+            	if (!VUE.isApplet())
+            		formatDock.setVisible(true);
+        	}
+        
+    }
+
+    /**
+     * There are two main cases to deal with: windows that have no saved position (as when VUE is
+     * run the first time, or the window position saving preference is turned off) -- these must be
+     * given a reasonable initial position.
+     *
+     * The other case is to restore the old user size and position of the
+     * window.
+     *
+     * Care must be taken that these two cases don't run into conflict, in particular accidentally
+     * giving a "resonable" position to a window that was supposed to be restored, and/or moving
+     * windows around in front of the user after they appear on the screen. 
+     */
+    
+    private static void positionDockWindows(final tufts.vue.gui.Screen screen)
+    {
+        // by default, order the windows left to right across the top
+        final List<DockWindow> acrossTopList = new ArrayList<DockWindow>();
+        
         if (!MapInspector.getWindowProperties().isEnabled() || !MapInspector.getWindowProperties().isWindowVisible())
-        	acrossTopList.add(MapInspector);        
+            acrossTopList.add(MapInspector);        
        
         if (!pathwayDock.getWindowProperties().isEnabled() || !pathwayDock.getWindowProperties().isWindowVisible())
-        	acrossTopList.add(pathwayDock);
+            acrossTopList.add(pathwayDock);
         
-//        if (!DR_BROWSER_DOCK.getWindowProperties().isEnabled() || !DR_BROWSER_DOCK.getWindowProperties().isWindowVisible())
-//        	acrossTopList.add(DR_BROWSER_DOCK);        
+        // if (!DR_BROWSER_DOCK.getWindowProperties().isEnabled() || !DR_BROWSER_DOCK.getWindowProperties().isWindowVisible())
+        //     acrossTopList.add(DR_BROWSER_DOCK);        
         if (!ObjectInspector.getWindowProperties().isEnabled() || !ObjectInspector.getWindowProperties().isWindowVisible())
-        	acrossTopList.add(ObjectInspector);
+            acrossTopList.add(ObjectInspector);
         
        // if (!metaDataSearchDock.getWindowProperties().isEnabled() || !metaDataSearchDock.getWindowProperties().isWindowVisible())
        // 	acrossTopList.add(metaDataSearchDock);
@@ -1889,68 +1922,59 @@ public class VUE
         if (pannerDock != null)
             pannerDock.setLowerRightCorner(screen.rightIn, screen.bottomIn);
         
-        if (DockWindow.getTopDock() != null)
+        if (DockWindow.getTopDock() != null) {
+            // This was for old experimental GUI code -- getTopDock() always returns null these days -- SMF 2012
             prepareForTopDockDisplay(acrossTop);
-        if (acrossTop.length > 0)
-        {
+        }
         
-        // Run after AWT to ensure all peers to have been created & shown                
-        	GUI.invokeAfterAWT(new Runnable() { public void run() {
-        		positionForDocking(acrossTop);
-        	}});
-       }
+        if (acrossTop.length > 0) {
+            // Run after AWT to ensure all peers to have been created & shown
+            GUI.invokeAfterAWT(new Runnable() { public void run() {
+                // TODO: doesn't appear to be allowing old state to rule as is supposed to:
+                assignDefaultPositions(acrossTop);
+                if (!VUE.isApplet())
+                    DockWindow.RestoreAllWindowStates();
+            }});
+        }
         
-//         if (false) {
-//             // old positioning code
-//             int inspectorx = ApplicationFrame.getX() + ApplicationFrame.getWidth();
-//             MapInspector.suggestLocation(inspectorx, ApplicationFrame.getY());
-//             ObjectInspector.suggestLocation(inspectorx, ApplicationFrame.getY() + MapInspector.getHeight() );
-//             pannerDock.suggestLocation(ApplicationFrame.getX() - pannerDock.getWidth(), ApplicationFrame.getY());
-//         }
+        // restoreSavedDockWindowPositions();
+        // If we do this here, positionForDocking could run after us, blowing away our restore positions...
         
-        //restore window
-        if (!VUE.isApplet())
-        {
-        	pathwayDock.positionWindowFromProperties();
-
-        	formatDock.positionWindowFromProperties();
-
-        	if (slideDock != null)
-        		slideDock.positionWindowFromProperties();
-        	pannerDock.positionWindowFromProperties();
-        	MapInspector.positionWindowFromProperties();
-        	metaDataSearchDock.positionWindowFromProperties();
-        	interactionToolsDock.positionWindowFromProperties();
-        	if (contentDock != null)
-        		contentDock.positionWindowFromProperties();
-        	mergeMapsDock.positionWindowFromProperties();
-        	ObjectInspector.positionWindowFromProperties();
-        	if (outlineDock != null)
-        		outlineDock.positionWindowFromProperties();       
-        	if (layersDock != null)
-        		layersDock.positionWindowFromProperties(); 
-        }   
-        mapInspectorPanel.metadataPanel.refresh();
-        
-    
-        	//I'm just putting a comment in here becuase this seems odd to me, and I wanted it to be clear it was intentional.
-        	//"As we move away from a "datasource" centric vision of VUE, the "Content" window should be collapsed when launching VUE"
-        	//This will only take effect the first time VUE is started or when preference to remember window position is disabled.
-        	// -MK
-
-        	if (!formatDock.getWindowProperties().isEnabled())
-        	{
-        		formatDock.setLowerLeftCorner(VueResources.getInt("formatting.location.x"),
-        			VueResources.getInt("formatting.location.y")+100);
-//        	formatDock.setLocation(,
-  //                                     );        	
-        	
-        		DockWindow.flickerAnchorDock();
-            	if (!VUE.isApplet())
-            		formatDock.setVisible(true);
-        	}
-        
+        // // old positioning code
+        // int inspectorx = ApplicationFrame.getX() + ApplicationFrame.getWidth();
+        // MapInspector.suggestLocation(inspectorx, ApplicationFrame.getY());
+        // ObjectInspector.suggestLocation(inspectorx, ApplicationFrame.getY() + MapInspector.getHeight() );
+        // pannerDock.suggestLocation(ApplicationFrame.getX() - pannerDock.getWidth(), ApplicationFrame.getY());
     }
+
+    private static void saveAllWindowProperties() {
+        DockWindow.SaveAllWindowStates();
+        ApplicationFrame.saveWindowProperties();
+    }
+    
+    // private static void restoreSavedDockWindowPositions() {
+    //     if (!VUE.isApplet()) {
+    //         // Restore the size & position of windows
+    //         // to check: are we affected by Lion+ app window auto-restore?
+    //         pathwayDock.positionWindowFromProperties();
+    //         formatDock.positionWindowFromProperties();
+            
+    //         if (slideDock != null)
+    //             slideDock.positionWindowFromProperties();
+    //         pannerDock.positionWindowFromProperties();
+    //         MapInspector.positionWindowFromProperties();
+    //         metaDataSearchDock.positionWindowFromProperties();
+    //         interactionToolsDock.positionWindowFromProperties();
+    //         if (contentDock != null)
+    //             contentDock.positionWindowFromProperties();
+    //         mergeMapsDock.positionWindowFromProperties();
+    //         ObjectInspector.positionWindowFromProperties();
+    //         if (outlineDock != null)
+    //             outlineDock.positionWindowFromProperties();       
+    //         if (layersDock != null)
+    //             layersDock.positionWindowFromProperties(); 
+    //     }   
+    // }
     
     protected static void createDockWindows()
     {
@@ -2178,14 +2202,17 @@ public class VUE
         //-----------------------------------------------------------------------------
 
         VUE.UseLeopardAnchor =
-               Util.isMacLeopard()
+               Util.getMacOSXVersion() >= 10.5 // Leopard
+            && Util.getMacOSXVersion() <= 10.6 // Snow Leopard
+            //Util.isMacLeopard()
             && Util.getJavaVersion() >= 1.5f
             && DockWindow.useManagedWindowHacks()
             && !VUE.isApplet();
 
         // 2009-07-23 SMF: Current Mac OS X 1.5 JVM appears to NOT need the Leopard anchor,
         // but java 1.6 JVM still does.  This just with one test -- we'll need to keep
-        // an eye on this.
+        // an eye on this. SMF 2012-06-16: Lion appears not to need the anchor -- disabled
+        // for Lion + future versions -- only tested java version "1.6.0_33" 64bit.
 
         if (VUE.UseLeopardAnchor) {
             // Workaround for DockWindow's going behind the VUE Window on Leopard bug, especially
@@ -2701,16 +2728,14 @@ public class VUE
     }
 
     /**
-     * Get the given windows displayed, but off screen, ready to be moved
-     * into position.
+     * This used to be called "positionForDocking" when we we're using the idea of ui DockRegions.
      */
-    // todo: this no longer as to do with our DockRegions: is just use for positioning
-    public static void positionForDocking(DockWindow[] preShown) {
+    public static void assignDefaultPositions(DockWindow[] preShown) {
         // Set last in preSown at the right, moving back up list
         // setting them to the left of that, and then set first in
         // preShown at left edge of screen
 
-        if (DEBUG.DOCK) Log.debug("positionForDocking " + Arrays.asList(preShown));
+        if (DEBUG.DOCK) Log.debug("assignDefaultPositions " + Arrays.asList(preShown));
         if (DEBUG.INIT || (DEBUG.DOCK && DEBUG.META)) Util.printStackTrace("\n\nSTARTING PLACEMENT");
 
         final tufts.vue.gui.Screen screen = GUI.getScreenForWindow(null);
@@ -3055,27 +3080,6 @@ public class VUE
         }
     }
 
-    private static void saveAllWindowProperties() {
-        pathwayDock.saveWindowProperties();
-        if (formatDock != null)
-            formatDock.saveWindowProperties();
-        if (slideDock != null)
-            slideDock.saveWindowProperties();
-        pannerDock.saveWindowProperties();
-        MapInspector.saveWindowProperties();
-        ObjectInspector.saveWindowProperties();
-        metaDataSearchDock.saveWindowProperties();
-        interactionToolsDock.saveWindowProperties();
-        if (contentDock != null)
-            contentDock.saveWindowProperties();
-        mergeMapsDock.saveWindowProperties();
-        if (outlineDock != null)
-            outlineDock.saveWindowProperties();
-        if (layersDock != null)
-            layersDock.saveWindowProperties();
-        ApplicationFrame.saveWindowProperties();
-    }
-    
     /**
      * If any open maps have been modified and not saved, run
      * dialogs to determine what to do.
