@@ -40,7 +40,7 @@ public class ProviderControlManager
     
     private String runtimeRoot = null;
 
-    public static boolean DEBUG = false;
+    private static boolean DEBUG = false;
 
     //private void trace(String s) { Log.info(System.identityHashCode(this) + ": " + s); }
     private void trace(String s) { Log.info(s); }
