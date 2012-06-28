@@ -695,7 +695,7 @@
   <!-- Create a classpath based on all the 3rd party jarfiles -->
   <path id="thirdparty.jarfiles.classpath">
     <filelist dir="${lib.home}" files="${thirdparty.jarfiles.names}"/>
-  	<filelist dir="${lib.home}" files="${thirdparty.jarfiles.names.extendedFeatures}"/>
+    <filelist dir="${lib.home}" files="${thirdparty.jarfiles.names.extendedFeatures}"/>
   </path>
 
 <!-- ==================== Vue JAR files ================================ -->
@@ -1092,6 +1092,7 @@
 
   <target name="jar-lib"
           description="Create VUE-lib.jar - a separate jar file containing the kitchen-sink set of third party libraries to run VUE (dev convenience target).">
+    <!-- Note: this pathcovert is for the debug output only.  It isn't used in the zipping... -->
     <pathconvert pathsep=" " property="info.jarfiles" refid="thirdparty.jarfiles.classpath"/>
     <echo message="Jaring: ${info.jarfiles}"/>
     <!-- There is a bunch of of crap in the lib file we really don't need: figure out how to exclude. -->
@@ -1101,6 +1102,7 @@
       <!-- zipgroupfileset is extremely picky and limited: each one can name one dir & one string represeting names from that dir,
         and cannont include sub-items, such as a filelist, which would have been a bit cleaner for an ordered set of jar files. -->
       <zipgroupfileset dir="${lib.home}" includes="${thirdparty.jarfiles.names}"/>
+      <zipgroupfileset dir="${lib.home}" includes="${thirdparty.jarfiles.names.extendedFeatures}"/>
     </jar>
   </target>
 
@@ -1129,6 +1131,29 @@
            target="${target.version}"
            >
       <include name="maclib/**/*.java"/>
+    </javac>
+    <jar destfile="${lib.home}/VUE-MacOSX.jar" compress="true" index="false" update="false">
+      <fileset dir="maclib/classes" includes="tufts/macosx/**"/>
+    </jar>
+  </target>
+  <target name="mac-lib-safe" depends="prepare"
+          description="Create a minimal library containing Mac OS X specific noop calls for building w/out the deprecated cocoa classes">
+    <!-- Build for stuff that makes use of the Apple com.apple.cocoa.{application,foundation}.* classes
+         that reside in /System/Library/Java in Mac OS X, which can access native OS X features via
+         classes such as NSWindow, NSApplcation, etc. -->
+    <mkdir dir="maclib/classes"/>
+    <javac srcdir="${basedir}" 
+           destdir="maclib/classes"
+             debug="${compile.debug}"
+        deprecation="${compile.deprecation}"
+           optimize="${compile.optimize}"
+           listfiles="yes"
+           classpath="${lib.home}/log4j-1.2.12.jar"
+           source="${target.version}"
+           target="${target.version}"
+           >
+      <include name="maclib/MacOSX16Safe.java"/>
+      <include name="maclib/MacOSX.java"/>
     </javac>
     <jar destfile="${lib.home}/VUE-MacOSX.jar" compress="true" index="false" update="false">
       <fileset dir="maclib/classes" includes="tufts/macosx/**"/>
@@ -1540,19 +1565,19 @@ VUEApplet.zip - ${appletMD5}
            </nsis>
          
          <!-- copying and zipping windows installer -->   
-          <delete dir="${basedir}/installer/Vue_Installer.zip"/>
-          <copy file="../Nullsoft-Installer/VUE.exe" todir="${basedir}/installer"/>
+         <delete dir="${basedir}/installer/Vue_Installer.zip"/>
+         <copy file="../Nullsoft-Installer/VUE.exe" todir="${basedir}/installer"/>
            <zip destfile="${basedir}/installer/VUE_Installer.zip">
             <zipfileset dir="${basedir}/installer/" includes="VUE.exe" filemode="755"/>
          </zip>
 	 
-   	 	 <checksum file="${release.home}/VUEApplet.zip" property="appletMD5"/>
+         <checksum file="${release.home}/VUEApplet.zip" property="appletMD5"/>
          <checksum file="${release.home}/VUE.zip" property="genericMD5"/>
-		 <checksum file="${release.home}/VUE-Java16.app.zip" property="mac16MD5"/>   	
+         <checksum file="${release.home}/VUE-Java16.app.zip" property="mac16MD5"/>   	
          <checksum file="${release.home}/VUE.app.zip" property="macMD5"/>
          <checksum file="${release.home}/VUE_src.zip" property="srcMD5"/>
          <checksum file="${basedir}/installer/VUE_Installer.zip" property="installerMD5"/>
-           <echo file="${release.home}/checksum.txt" >
+         <echo file="${release.home}/checksum.txt" >
 VUE.zip - ${genericMD5}
 VUE.app.zip- ${macMD5}
 VUE-Java16.app.zip- ${mac16MD5}
