@@ -326,6 +326,7 @@ public class DockWindow
     }
 
     //private static final boolean ManagedWindows = !Util.isMacLeopard();
+    /** note that there are no good "non-managed" options -- this flag from historical tests */
     private static boolean ManagedWindows = true;
     private static final boolean ON_TOP = true;
     private static final boolean DECORATED = true;
@@ -385,6 +386,9 @@ public class DockWindow
 
             // Using frames NOT on-top is fairly useless tho
             //_peer = new FramePeer(title, ON_TOP, DECORATED && !asToolbar);
+
+            // On Mac Lion -- using DialogPeer in this config can cause the entire app to dissapear
+            // from "mission control" overviews (probably the ON_TOP is doing it)
         }
         _win = (Window) _peer;
 
@@ -1214,6 +1218,20 @@ public class DockWindow
         // this is overkill / could even be problematic.
         ensureViewerHasFocus(); 
     }
+    
+    public synchronized static void RestoreAllWindowStates() {
+        if (DEBUG.DOCK) Log.debug("-----------RestoreAllDockWindowStates-----------");
+        for (DockWindow dw : AllWindows) {
+            dw.positionWindowFromProperties();
+        }
+    }
+    
+    public synchronized static void SaveAllWindowStates() {
+        if (DEBUG.DOCK) Log.debug("-----------SaveAllDockWindowStates-----------");
+        for (DockWindow dw : AllWindows) {
+            dw.saveWindowProperties();
+        }
+    }
 
     public synchronized static void DeactivateAllWindows() {
         if (DEBUG.Enabled) Log.debug("deactivate all");
@@ -1556,67 +1574,72 @@ public class DockWindow
     
     public void saveWindowProperties()
     {   
-     	Dimension size = null;
+     	final Point p;
+     	final Dimension size;
      	
      	if (isRolledUp)
-     		size = new Dimension((int)mUnrolledShape.getWidth(),(int)mUnrolledShape.getHeight());
+            size = new Dimension((int)mUnrolledShape.getWidth(),(int)mUnrolledShape.getHeight());
      	else
-     		size = getSize();
-     	Point p;
+            size = getSize();
+        
+     	if (isShowing()) {
+            p = _win.getLocationOnScreen();
+     	} else {
+            // Cannot query the "location on screen" of a hidden window -- throws exception
+            p = _win.getLocation(); // may be a problem for multi-monitor?
+          //p = new Point(-1,-1);
+        }
      	
-     	if (isShowing())
-     		p = _win.getLocationOnScreen();
-     	else
-     		p = new Point(-1,-1);
-     	
-     	wpp.updateWindowProperties(isShowing(), (int)size.getWidth(), (int)size.getHeight(), (int)p.getX(), (int)p.getY(),isRolledUp);
+     	wpp.updateWindowProperties(isShowing(),
+                                   size.width, size.height,
+                                   p.x, p.y,
+                                   isRolledUp);
     }
 
     public void positionWindowFromProperties()
     {
-    	if (wpp.isEnabled() && (wpp.isWindowVisible() || wpp.isRolledUp())) {
-            Point p = wpp.getWindowLocationOnScreen();
-            Dimension size = wpp.getWindowSize();
-            Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
-            if (((int)p.getX()) > -1 && isPointFullyOnScreen(p,size,screenSize)) {
-                
+        if (!wpp.isEnabled())
+            return;
+        
+        final Point p = wpp.getWindowLocationOnScreen();
+        final Dimension size = wpp.getWindowSize();
+        final Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
+        
+    	if (wpp.isWindowVisible() || wpp.isRolledUp()) {
+            if (p.x > -1 && isPointFullyOnScreen(p,size,screenSize)) {
                 if (isToolbar) // ignore size on toolbars: they always get their designed size
-                    setLocation((int)p.getX(),(int)p.getY());
+                    setLocation(p.x, p.y);
                 else
-                    setBounds((int)p.getX(),(int)p.getY(),(int)size.getWidth(),(int)size.getHeight());
+                    setBounds(p.x, p.y, size.width, size.height);
     		
-                if (wpp.isRolledUp())
-                    {
-                        mUnrolledShape = new Rectangle((int)p.getX(),(int)p.getY(),(int)size.getWidth(),(int)size.getHeight());
-                        showRolledUp();
-                    }
-                else
-                    setVisible(wpp.isWindowVisible());    		
-            }    	
-            else
-                {
-                    if (wpp.isWindowVisible())
-                        {
-                            //System.out.println("OTHER");
-                            suggestLocation((int)p.getX(),(int)p.getY());
-
-                            if (wpp.isRolledUp())
-                                {        			
-                                    mUnrolledShape = new Rectangle((int)p.getX(),(int)p.getY(),(int)size.getWidth(),(int)size.getHeight());
-                                    DockWindow.flickerAnchorDock();
-                                    showRolledUp();
-                                    
-
-                                }
-                            else
-                            {
-                            	DockWindow.flickerAnchorDock();
-                            	setVisible(wpp.isWindowVisible());
-                            }
-                        }    	
-    			
+                if (wpp.isRolledUp()) {
+                    mUnrolledShape = new Rectangle(p.x, p.y, size.width, size.height);
+                    showRolledUp();
+                } else
+                    setVisible(wpp.isWindowVisible());
+                
+            } else if (wpp.isWindowVisible()) {
+                //System.out.println("OTHER");
+                suggestLocation(p.x, p.y);
+                
+                if (wpp.isRolledUp()) {        			
+                    mUnrolledShape = new Rectangle((int)p.getX(),(int)p.getY(),(int)size.getWidth(),(int)size.getHeight());
+                    DockWindow.flickerAnchorDock();
+                    showRolledUp();
                 }
-        }    	
+                else {
+                    DockWindow.flickerAnchorDock();
+                    setVisible(wpp.isWindowVisible());
+                }
+            }
+        }
+        else {
+            // Even if window is not visible, suggest it's last location.  Using "suggest" means if
+            // it's off the main screen, it will move it onto the main screen, so this won't work
+            // for multi-monitor locations, but this is a failsafe to make sure windows don't get
+            // lost.
+            suggestLocation(p.x, p.y);
+        }
     }
     
     // "flicker" our invisible anchor.  As the anchor is an extreme workaround hack
@@ -3979,7 +4002,7 @@ public class DockWindow
         //out("suggesting location " + x + "," + y + " in limits " + limit);
         if (x + getWidth() > limit.width)
             x = limit.width - getWidth();
-        if (x < limit.x)
+        if (x < limit.x && x != 0)
             x = limit.x;
         if (y + getHeight() > limit.height)
             y = limit.height - getHeight();
