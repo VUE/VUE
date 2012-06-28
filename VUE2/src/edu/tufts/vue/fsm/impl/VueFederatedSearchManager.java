@@ -24,6 +24,7 @@ public class VueFederatedSearchManager
 implements edu.tufts.vue.fsm.FederatedSearchManager
 {
 	private edu.tufts.vue.fsm.SourcesAndTypesManager sourcesAndTypesManager = VueSourcesAndTypesManager.getInstance();
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(VueFederatedSearchManager.class);
 	
 	private static final String FILE_NOT_FOUND_MESSAGE = "Cannot find or open ";
 	private static final String EXTENSIONS_TAG = "extensions";
@@ -72,6 +73,7 @@ implements edu.tufts.vue.fsm.FederatedSearchManager
 			//System.out.println("target filename " + targetFilename);
 			String installDirectory = tufts.vue.VueResources.getString("dataSourceInstallDirectory");
 			//System.out.println("install Directory " + installDirectory);
+                        Log.info("listing " + installDirectory + " to find \"" + targetFilename + "\"");
 			java.io.File root = new java.io.File(installDirectory);
 			java.io.File[] files = root.listFiles();
 			if (files != null) {
@@ -88,7 +90,8 @@ implements edu.tufts.vue.fsm.FederatedSearchManager
 				}			
 			}
 		} catch (Exception ex) {
-			edu.tufts.vue.util.Logger.log(ex);
+                    Log.warn(ex);
+                    edu.tufts.vue.util.Logger.log(ex);
 		}
 
 		// add the default file in the user's home folder
