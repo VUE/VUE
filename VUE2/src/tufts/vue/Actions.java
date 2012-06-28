@@ -3623,7 +3623,7 @@ public class Actions implements VueConstants
             		//acrossTop[VUE.acrossTop.length+1] = VUE.getInteractionToolsDock();
             		VUE.getFormatDock().setLocation(150,150);
             		VUE.getMergeMapsDock().setLocation(150,150);
-            		VUE.positionForDocking(acrossTop);
+            		VUE.assignDefaultPositions(acrossTop);
             	}});
             }
         };
