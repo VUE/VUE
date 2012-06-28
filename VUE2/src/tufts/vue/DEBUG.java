@@ -129,17 +129,50 @@ public class DEBUG
             return;
 
         for (int i = 0; i < args.length; i++) {
-            String a = args[i].toUpperCase();
 
+            String symbol = args[i];
             boolean handled = false;
-            for (Field f : Fields) {
-                if (f.getName().toUpperCase().startsWith(a) && setFlag(f, true)) {
-                    handled = true;
-                    break;
+            
+            if (symbol.charAt(0) == '+') {
+                symbol = symbol.substring(1);
+                Log.info("attempting debug for class " + symbol);
+                Class clazz;
+                try {
+                    clazz = Class.forName(symbol);
+                    Log.info("found: " + clazz);
+                    try {
+                        Field debugField = clazz.getDeclaredField("DEBUG");
+                        Log.info("found: " + debugField);
+                        if (setFlag(debugField, true))
+                            handled = true;
+                    } catch (Exception e) {
+                        Log.info(e);
+                    }
+                    if (false)  {
+                        // currently meaningless as we already set to Level.DEBUG for all classes
+                        // tufts.vue.* and edu.tufts.*, where we use the "Log" convention, and
+                        // it's also normally private, not public.  Could try changing this
+                        // to looking up the logger itself via class name.
+                        Field logField = clazz.getDeclaredField("Log");
+                        Log.info("found: " + logField);
+                        //org.apache.log4j.Logger log = logField.get(null);
+                        ((org.apache.log4j.Logger) logField.get(null))
+                            .setLevel(org.apache.log4j.Level.DEBUG);
+                    }
+                } catch (Exception e) {
+                    Log.info(e);
+                }
+            } else {
+                symbol = symbol.toUpperCase();
+                for (Field f : Fields) {
+                    if (f.getName().toUpperCase().startsWith(symbol) && setFlag(f, true)) {
+                        handled = true;
+                        break;
+                    }
                 }
             }
             if (!handled)
-                Log.info(String.format("didn't understand debug flag \"%s\"", args[i]));
+                Log.info(String.format("couldn't handle debug flag \"%s\"", args[i]));
         }
     }
 
@@ -148,7 +181,8 @@ public class DEBUG
         try {
             f.setBoolean(null, enabled);
             success = true;
-            Log.info(f.getName() + " = " + enabled);
+            Log.info(f.getDeclaringClass().getName() + "/" + f.getName() + " = " + enabled);
+            //Log.info(f.getName() + " = " + enabled);
         } catch (IllegalAccessException e) {
             Log.warn("reflection problem", e);
         }
