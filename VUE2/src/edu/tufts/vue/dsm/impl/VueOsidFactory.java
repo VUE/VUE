@@ -20,6 +20,7 @@ package edu.tufts.vue.dsm.impl;
  */
 
 import java.util.Properties;
+
 import org.osid.*;
 import org.osid.provider.*;
 import org.osid.shared.*;
@@ -27,7 +28,7 @@ import org.osid.shared.*;
 import tufts.vue.VueResources;
 
 public class VueOsidFactory
-implements edu.tufts.vue.dsm.OsidFactory
+    implements edu.tufts.vue.dsm.OsidFactory
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(VueOsidFactory.class);
     
@@ -38,71 +39,125 @@ implements edu.tufts.vue.dsm.OsidFactory
     private static final java.util.Vector keyVector = new java.util.Vector();
     private static final java.util.Vector managerVector = new java.util.Vector();
 	
-    private static ProviderControlManager providerControlManager;
+    private static org.osid.provider.ProviderControlManager PCM;
     private static ProviderInvocationManager providerInvocationManager;
     private static ProviderInstallationManager providerInstallationManager;
     private static ProviderLookupManager providerLookupManager;
     
-    private static final edu.tufts.vue.dsm.OsidFactory osidFactory = new VueOsidFactory();
+    private static final edu.tufts.vue.dsm.OsidFactory SingletonOsidFactory = new VueOsidFactory();
 
-	
+
     /** Note that this is not safe against calls from multiple threads the first time... */
     public static edu.tufts.vue.dsm.OsidFactory getInstance()
         throws org.osid.provider.ProviderException
     {
-        if (providerControlManager == null) {
-
-            try {
-                final String repoURL = VueResources.getString("repository_url");
-                final String contextKey = "OSIDRepositoryURL";
-                Log.info("repository_url = " + repoURL);
-                osidContext.assignContext(contextKey, repoURL);
-                Log.info("repository_url assigned to " + osidContext + " as \"" + contextKey + "\"");
-            } catch (OsidException e) {
-                edu.tufts.vue.util.Logger.log("Assigning to context: this error should never happen");
-                throw new org.osid.provider.ProviderException(org.osid.OsidException.CONFIGURATION_ERROR);
-            }
-
-            final Properties extraConfig = new Properties();
-
-            //extraConfig.put("foo", "bar");
-            //extraConfig.put("root", "/0tmp");
-            try {
-
-                // If this fails, all OSID data sources will fail.
-                // BUG: this is where we fail if /Library/OsidProviders cannot be created.
-                // Note: Technically, the /Library/OSID may also be used.
-
-                // In any case, for backward compatability, it will be crucial to move any existing
-                // /Library/OsidProviders to /Library/Caches/OsidProviders BEFORE DOING THIS in order to find
-                // any pre-installed providers, as we do not have access to the edu.mit.osidimpl.OsidLoader
-                // implementation, where we could add code to check both places, or perhaps better, move them
-                // to ~/Library, tho sharing OSID impls across users isn't HORRIBLE -- it's the way it *should*
-                // work -- always the latest impl code for everyone...
-
-                providerControlManager = (ProviderControlManager)
-                        // tufts.vue.OsidLoader.getManager("org.osid.provider.ProviderControlManager", 
-                    edu.mit.osidimpl.OsidLoader.getManager("org.osid.provider.ProviderControlManager", 
-                                                             "edu.mit.osidimpl.provider.repository",
-                                                             osidContext, 
-                                                             extraConfig);
-                
-                Log.info("ProviderControlManager found: " + providerControlManager + "; props=" + extraConfig);
-                
-                providerInvocationManager = providerControlManager.getProviderInvocationManager();
-                providerLookupManager = providerControlManager.getProviderLookupManager();
-                providerInstallationManager = providerControlManager.getProviderInstallationManager();
-            }
-            // catch (LinkageError e) {
-            //     // in case edu.mit.osidimpl missing...
-            // }
-            catch (OsidException e) {
-                edu.tufts.vue.util.Logger.log("Cannot load ProviderInvocationManager: " + e.getMessage());
-                throw new org.osid.provider.ProviderException(org.osid.OsidException.CONFIGURATION_ERROR);
-            }
+        if (PCM == null) {
+            Log.debug("initializeVOF...");
+            initializeVOF();
+            Log.debug("initializeVOF complete.");
         }
-        return osidFactory;
+        return SingletonOsidFactory;
     }
+
+    private static void initializeVOF()
+        throws org.osid.provider.ProviderException
+    {
+        try {
+            final String repoURL = VueResources.getString("repository_url");
+            final String contextKey = "OSIDRepositoryURL";
+            Log.info("repository_url = " + repoURL);
+            osidContext.assignContext(contextKey, repoURL);
+            Log.info("repository_url assigned to " + osidContext + " as \"" + contextKey + "\"");
+        } catch (OsidException e) {
+            edu.tufts.vue.util.Logger.log("Assigning to context: this error should never happen");
+            throw new org.osid.provider.ProviderException(org.osid.OsidException.CONFIGURATION_ERROR);
+            //throw new Error("Assigning to context: this error should never happen");
+        }
+        
+        // if (false && tufts.Util.isMacPlatform()) {
+        //     checkAndUpdateProviderInstallLocation();
+        // }
+
+        try {
+            initializeOSIDs();
+        }
+        // catch (LinkageError e) {
+        //     // in case edu.mit.osidimpl missing...
+        // }
+        catch (OsidException e) {
+            edu.tufts.vue.util.Logger.log("Cannot load ProviderInvocationManager: " + e.getMessage());
+            throw new org.osid.provider.ProviderException(org.osid.OsidException.CONFIGURATION_ERROR);
+        }
+    }
+
+
+    /** If successful, VueOsidFactory.PCM will be non-null (ProviderControlManager) */
+    private static void initializeOSIDs()
+        throws OsidException
+    {
+        Log.debug("initializeOSIDs");
+        
+        // If this fails, all OSID data sources via providers will fail.
+                
+        // BUG: this is where we fail if /Library/OsidProviders cannot be created (from key "root" in
+        // osid.properties) Note: dataSourceInstallDirectory=/Library/OSID in VueResources.properties, which is
+        // referenced in edu.tufts.vue.fsm.impl.VueFederatedSearchManager.getXMLFilenames(), which is called in
+        // it's constructor.  We instance one of these in tufts.vue.DataSourceViewer.  VFSM looks for an
+        // "Extensions.xml" for query-editor related stuff.
+
+        // NOTE: There are multiple OsidLoader classes in multiple packages.
+
+        Log.info("OsidLoader: " + edu.mit.osidimpl.OsidLoader.class);
+
+        // Note that the input properties appear to be completely ignored -- they're never passed
+        // down anywhere or init to anything.
+        final Properties extraConfig = new Properties();
+        // extraConfig.put("test", "I am a test property");
+
+        final String PCM_package;
+
+        if (true || tufts.Util.isMacPlatform()) {
+            // Technically, we shouldn't need our VuePCM override class on
+            // non-mac platforms, but we're leaving it in for its additional
+            // diagnostics.
+            PCM_package = VueOsidFactory.class.getPackage().getName(); // "edu.tufts.vue.dsm.impl"
+        } else {
+            // This impl  (edu.mit.osidimpl.provider.repository.ProviderControlManager), is coming from TuftsOsidProivder.jar
+            PCM_package = "edu.mit.osidimpl.provider.repository";
+        }
+                    
+        VueOsidFactory.PCM = (org.osid.provider.ProviderControlManager)
+                // tufts.vue.OsidLoader.getManager("org.osid.provider.ProviderControlManager",  // tufts.vue.OsidLoader impl never completed...
+            edu.mit.osidimpl.OsidLoader.getManager("org.osid.provider.ProviderControlManager", 
+                                                   PCM_package,
+                                                   osidContext, 
+                                                   extraConfig);
+
+                
+        Log.info("OsidLoader found ProviderControlManager " + PCM
+                 //+ "; root=[" + PCM.getConfiguration("root") + "]"  // protected method
+                 + "; props=" + extraConfig);
+                
+        // These impls (edu.mit.osidimpl.provider.repository.*), are coming from TuftsOsidProivder.jar
+        
+        // Note that the calls below here can trigger recursion to call back to our getInstance(),
+        // so PCM must have been globally set just before.
+        
+        //Log.debug("getProviderInvocationManager()");
+        providerInvocationManager = PCM.getProviderInvocationManager();
+        Log.info("PCM found     ProviderInvocationManager " + providerInvocationManager);
+
+        //Log.debug("getProviderLookupManager()");
+        providerLookupManager = PCM.getProviderLookupManager();
+        Log.info("PCM found         ProviderLookupManager " + providerLookupManager);
+                
+        //Log.debug("getProviderInstallationManager()");
+        providerInstallationManager = PCM.getProviderInstallationManager();
+        Log.info("PCM found   ProviderInstallationManager " + providerInstallationManager);
+    }
+
+    
+    
 	
 	public static void setOsidLoaderOsidContext(org.osid.OsidContext context)
 	{
