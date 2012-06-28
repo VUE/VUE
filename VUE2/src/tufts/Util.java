@@ -95,7 +95,7 @@ public class Util
     static {
 
         if (!DEBUG)
-            DEBUG = System.getProperty("tufts.Util.debug") != null;
+            DEBUG = (System.getProperty("tufts.Util.debug") != null);
            
         final String osName = System.getProperty("os.name");
         final String osArch = System.getProperty("os.arch");
