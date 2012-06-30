@@ -208,15 +208,16 @@ public class Util
             TERM_BLUE   = "\033[1;34m";
             TERM_PURPLE = "\033[1;35m";
             TERM_CYAN   = "\033[1;36m";
+            TERM_BOLD   = "\033[1m";
             TERM_CLEAR  = "\033[m";
         } else {
-            TERM_RED = TERM_GREEN = TERM_YELLOW = TERM_BLUE = TERM_PURPLE = TERM_CYAN = TERM_CLEAR = "";
+            TERM_RED = TERM_GREEN = TERM_YELLOW = TERM_BLUE = TERM_PURPLE = TERM_CYAN = TERM_BOLD = TERM_CLEAR = "";
         }
         //printStackTrace("TERM[" + term + "]");
     }
     
     /** Common escape codes for terminal text colors.  Set to empty string unless on a color terminal */
-    public static final String TERM_RED, TERM_GREEN, TERM_YELLOW, TERM_BLUE, TERM_PURPLE, TERM_CYAN, TERM_CLEAR;
+    public static final String TERM_RED, TERM_GREEN, TERM_YELLOW, TERM_BLUE, TERM_PURPLE, TERM_CYAN, TERM_BOLD, TERM_CLEAR;
 
     private static void out(String s) {
         if (Log.isDebugEnabled())
@@ -2625,7 +2626,8 @@ public class Util
             return "null";
 
         //return quote((String) o);
-        return TERM_RED + quote((String)s) + TERM_CLEAR;
+        //return TERM_RED + quote((String)s) + TERM_CLEAR;
+        return TERM_BOLD + quote((String)s) + TERM_CLEAR;
     }
     
     /**
@@ -2650,6 +2652,12 @@ public class Util
             int[] ia = (int[]) o;
             return String.format("int[%d]=%s", ia.length, Arrays.toString(ia));
         }
+        
+        if (o instanceof String[]) {
+            return Arrays.toString((String[]) o);
+            // String[] sa = (String[]) o;
+            // return String.format("String[%d]%s", sa.length, Arrays.toString(sa));
+        }
             
         final String type = o.getClass().getName();
         final String simpleType = o.getClass().getSimpleName();
@@ -2659,7 +2667,8 @@ public class Util
         try {
             if (o instanceof Collection) {
                 final int size = ((Collection)o).size();
-                txt = "size=" + size;
+                if (size != 1)
+                    txt = "size=" + size;
                 final Object item;
                 if (size == 0)
                     item = null;
@@ -2668,16 +2677,19 @@ public class Util
                 else
                     item = ((Collection)o).toArray()[0];
                 if (item != null) {
-                    if (size == 1) 
-                        txt += "; only=" + tags(item);  // note: recursion
+                    if (txt == null)
+                        txt = "";
                     else
-                        txt += "; first=" + tags(item);  // note: recursion
+                        txt += "; ";
+                    if (size == 1) 
+                        txt += "only=" + tags(item);  // note: recursion
+                    else
+                        txt += "first=" + tags(item);  // note: recursion
 //                     if (size == 1) 
 //                         txt += "; " + tags(item);
 //                     else
 //                         txt += "type[0]=" + item.getClass().getName();
                 }
-
             }
             else if (o instanceof java.awt.image.BufferedImage) {
                 final BufferedImage bi = (BufferedImage) o;
