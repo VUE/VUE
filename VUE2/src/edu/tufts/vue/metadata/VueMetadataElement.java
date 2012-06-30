@@ -17,6 +17,7 @@
 package edu.tufts.vue.metadata;
 
 import edu.tufts.vue.ontology.*;
+import tufts.Util;
 
 import java.net.*;
 
@@ -29,9 +30,10 @@ import java.net.*;
  */
 public final class VueMetadataElement {
     
-   public final static String NONE_ONT = "http://vue.tufts.edu/vue.rdfs#none"; 
+    //public final static String NONE_ONT = "http://vue.tufts.edu/vue.rdfs#none"; 
+    public final static String NONE_ONT = edu.tufts.vue.rdf.RDFIndex.VueTermOntologyNone;
     
-   private static final boolean DEBUG_LOCAL = false; 
+   private static final boolean DEBUG = false; 
     
    private String value;
    private String key;
@@ -44,6 +46,8 @@ public final class VueMetadataElement {
    public static final int SEARCH_STATEMENT = 3;
    public static final int OTHER = 4;
    public static final int RESOURCE_CATEGORY = 5;
+
+    private static final String[] _Types = {"TAG", "CAT", "ONTO", "SEARCH", "OTHER", "ResCat" };
    
    public static final String ONT_SEPARATOR = "#";
    
@@ -58,18 +62,13 @@ public final class VueMetadataElement {
     }
                                                          
    
-   public Object getObject()
-   {
+   public Object getObject() {
        return obj;
    }
    
    public void setObject(Object obj)
    {
-       
-       if(DEBUG_LOCAL)
-       {
-           System.out.println("VueMetadataElement setObject -, key,value " + obj +"," + key + "," + value);
-       }
+       if (DEBUG) System.out.println("VueMetadataElement setObject -, key,value " + obj +"," + key + "," + value);
        
        this.obj = obj;
        if(obj instanceof String)
@@ -97,40 +96,41 @@ public final class VueMetadataElement {
        }
    }
    
-   public String getValue()
-   {
+   public String getValue() {
        return value;
    }
    
-   public String getKey()
-   {
+   public String getKey() {
        return key;
    }
    
-   public void setKey(String key)
-   {
-       this.key = key;
+   public void setKey(final String newKey) {
+       if (NONE_ONT.equals(newKey)) {
+           this.key = NONE_ONT;
+           // performance hack: on deserialize, make objects have same identity
+           // (also allows tossing this input string)
+           // todo someday: do for schema's in general...
+       } else {
+           this.key = newKey;
+       }
        // object gets reset from persistence in setType
    }
    
-   public void setValue(String value)
-   {
+   public void setValue(String value) {
        this.value = value;
        // object gets reset from persistence in setType
    }
    
-    private static final boolean DEBUG = false;
-   
-   public void setType(int type)
+    /**
+     * warning: this has significant side effects -- it might change this.key and this.obj!
+     * This may be a persistance hack?
+     */
+    public void setType(int type)
    {
-       
-       if(DEBUG_LOCAL)
-       {
-           System.out.println("VueMetadataElement setType -, key,value " + type +"," + key + "," + value);
-       }
-       
+       if (DEBUG) { System.out.println("VueMetadataElement setType -, key,value " + type +"," + key + "," + value); }
        this.type = type;
-       if( ( (type == CATEGORY) ||type == RESOURCE_CATEGORY || (type == ONTO_TYPE) ) && (obj == null) )
+       
+       if (obj == null && (type == CATEGORY || type == RESOURCE_CATEGORY || type == ONTO_TYPE))
        {
            int len = (VUE_ONT + "#").length();
            if (DEBUG) System.out.println("VueMetadataElement setType -- getKey, getValue: " + getKey() + "," + getValue());
@@ -158,8 +158,7 @@ public final class VueMetadataElement {
        }
    }
 
-   public int getType()
-   {
+   public int getType() {
        return type;
    }
    
@@ -180,7 +179,12 @@ public final class VueMetadataElement {
    }
 
     public String toString() {
-        return key + "=" + value;
+        final String tname =
+            (type >= 0 && type < _Types.length)
+            ? _Types[type]
+            : ("Type" + type + "?");
+        
+        return "Vme[" + tname + " " + key + "=" + Util.tags(value) + ", o=" + Util.tags(obj) + "]";
             
     }
    
