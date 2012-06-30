@@ -33,7 +33,9 @@ import java.awt.event.MouseEvent;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
@@ -615,7 +617,7 @@ public class SearchTextField extends JTextField implements FocusListener {
     private static final int S_TEXT_ONLY = 0x2;
     private static final int S_META_ONLY = 0x4;
     private static final int S_EVERYTHING = 0x8;
-    private static final int S_NONE_IS_SPECIAL = 0x16;
+    private static final int S_NONE_IS_SPECIAL = 0x16; // refers to #none in VueTermOntologyNone
     
     private void kickOffSearch(final String typeKey, final int flags)
     {
@@ -644,39 +646,43 @@ public class SearchTextField extends JTextField implements FocusListener {
             //progress.setVisible(false);
         }});
     }
-    
+
     private void _runSearch(final String typeKey, final int flags)
     {
-        // HOLY CHRIST: just instancing a SearchAction creates a thread which
-        // creates an RDF index, and runs an RND index job on the current map /
-        // or across all maps, depending on search type.
-
         if (DEBUG.Enabled) Log.debug("_runSearch[" + typeKey + "] flags=" + flags);
         
         //editSettingsMenuItem.setSelected(false);
         // resetSettingsMenuItem.setSelected(false);
-        final List<VueMetadataElement> searchTerms = new ArrayList<VueMetadataElement>();
+        
         final VueMetadataElement vme = new VueMetadataElement();
 
-        final String inputText = getText();
-        
-        final String statementObject[] = {
-            VueResources.getString("metadata.vue.url") + "#none",
-            inputText,
+        final String genericSearchStatement[] = {
+            edu.tufts.vue.rdf.RDFIndex.VueTermOntologyNone,  /* i.e.: http://vue.tufts.edu/vue.rdfs#none */
+            getText(),
             edu.tufts.vue.rdf.Query.Qualifier.CONTAINS.toString() };
-        vme.setObject(statementObject);
+
+        vme.setObject(genericSearchStatement); // why does VME enclose a search type?
+        // Note: VME will have set itself type CATEGORY when passing String[] to
+        // setObject -- be sure to reset to SEARCH_STATEMENT *after* this.
         vme.setType(VueMetadataElement.SEARCH_STATEMENT);
-        searchTerms.add(vme);
+        // Note, however, SEARCH_STATEMENT doesnt appear as a condition case in codebase -- must be a default?
+
+        if (DEBUG.SEARCH) Log.debug("Search term: " + vme);
+
+        final List<VueMetadataElement> searchTerms = Collections.singletonList(vme);
         
         final SearchAction termsAction = new SearchAction(searchTerms);
-        
+
         termsAction.setBasic            (0 != (flags & S_BASIC));
         termsAction.setTextOnly         (0 != (flags & S_TEXT_ONLY));
         termsAction.setMetadataOnly     (0 != (flags & S_META_ONLY));
         termsAction.setEverything       (0 != (flags & S_EVERYTHING));
-        termsAction.setNoneIsSpecial    (0 != (flags & S_NONE_IS_SPECIAL));
+        termsAction.setNoneIsSpecial    (0 != (flags & S_NONE_IS_SPECIAL)); // refers to #none in VueTermOntologyNone
         
-        termsAction.setOperator(VUE.getMetadataSearchMainPanel().getSelectedOperator());
+        //termsAction.setOperator(VUE.getMetadataSearchMainPanel().getSelectedOperator());
+        // we only have a single term -- operator shouldn't matter, but in SearchAction,
+        // AND works with single query, OR with a query list (???)
+        //termsAction.setOperator(SearchAction.AND);
         
         if (VUE.getMetadataSearchMainPanel() != null)
             setTermsAction(termsAction);
@@ -688,13 +694,7 @@ public class SearchTextField extends JTextField implements FocusListener {
         // on construction is blown away at that point.
         termsAction.actionPerformed(new ActionEvent(this, 0, "searchFromField"));        
 
-        // I think this was just a hack to call actionPerformed:
-        // JButton btn = new JButton();
-        // btn.setAction(termsAction);
-        // btn.doClick();
-
         //progress.setVisible(false);
-        
     }
 
     private void updateMetaDataGUI(String typeKey)
