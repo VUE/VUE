@@ -510,6 +510,7 @@ public class ActionUtil
      */
     public static void marshallMap(File targetFile, LWMap map) {
         File tmpFile = null;
+
         try {
             tmpFile  = File.createTempFile(targetFile.getName() + "$new",
                                            ".vue",
@@ -526,18 +527,20 @@ public class ActionUtil
         }
         //if (DEBUG.EnableD) Log.debug("
 
-        File backup = null;
-        try {
-            final String backupName = String.format(".~%s", targetFile.getName());
-            //if (DEBUG.IO) Log.debug(String.format("creating backup named [%s]", backupName));
-            backup = new File(targetFile.getParent(), backupName);
-            if (backup.delete())  // Required on Win32 or rename will fail
-                Log.info("  deleted prior backup: " + backup);
-            Log.info("renaming old to backup: " + backup);
-            if (!targetFile.renameTo(backup))
-                Log.warn("failed to make backup of " + targetFile);
-        } catch (Throwable t) {
-            Log.warn("backup failed: " + backup, t);
+        if (targetFile.exists()) {
+            File backup = null;
+            try {
+                final String backupName = String.format(".~%s", targetFile.getName());
+                //if (DEBUG.IO) Log.debug(String.format("creating backup named [%s]", backupName));
+                backup = new File(targetFile.getParent(), backupName);
+                if (backup.delete())  // Required on Win32 or rename will fail
+                    Log.info("  deleted prior backup: " + backup);
+                Log.info("renaming old to backup: " + backup);
+                if (!targetFile.renameTo(backup))
+                    Log.warn("failed to make backup of " + targetFile);
+            } catch (Throwable t) {
+                Log.warn("backup failed: " + backup, t);
+            }
         }
         
         Log.info("renaming new to target: " + targetFile);
