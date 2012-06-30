@@ -922,9 +922,10 @@ public class MetadataSearchMainGUI extends JPanel
             if (row == 0 && searchTerms.size() == 0) {
                 VueMetadataElement vme = new VueMetadataElement();                
                 String statementObject[] = {
-                        VueResources.getString("metadata.vue.url") + "#none",
-                        "",
-                        edu.tufts.vue.rdf.Query.Qualifier.CONTAINS.toString() };
+                    edu.tufts.vue.rdf.RDFIndex.VueTermOntologyNone,
+                    //VueResources.getString("metadata.vue.url") + "#none",
+                    "",
+                    edu.tufts.vue.rdf.Query.Qualifier.CONTAINS.toString() };
                 vme.setObject(statementObject);
                 vme.setType(VueMetadataElement.SEARCH_STATEMENT);                
                 searchTerms.add(vme);
@@ -1115,11 +1116,10 @@ public class MetadataSearchMainGUI extends JPanel
                         .getImageIcon("metadata.editor.add.up"));
                 VueMetadataElement newElement = new VueMetadataElement();
                 String statementObject[] = {
-                        VueResources.getString("metadata.vue.url")
-                                + "#none",
-                        "",
-                        edu.tufts.vue.rdf.Query.Qualifier.STARTS_WITH
-                                .toString() };
+                    edu.tufts.vue.rdf.RDFIndex.VueTermOntologyNone,
+                    //VueResources.getString("metadata.vue.url") + "#none",
+                    "",
+                    edu.tufts.vue.rdf.Query.Qualifier.STARTS_WITH.toString() };
                 newElement.setObject(statementObject);
                 newElement.setType(VueMetadataElement.SEARCH_STATEMENT);                
                 searchTerms.add(newElement);                
@@ -1311,7 +1311,7 @@ public class MetadataSearchMainGUI extends JPanel
         // termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
     }
     
-    public int getSelectedOperator() {        
+    public String getSelectedOperator() {        
         if(strAndOrType.equals(VueResources.getString("searchgui.and"))){
             return SearchAction.AND;
         }else{
@@ -1819,7 +1819,8 @@ public class MetadataSearchMainGUI extends JPanel
          if(data.getDataList()!=null){        	 
              termsAction = new SearchAction(data.getDataList());
          }
-         int iAndOr = 0;
+         //int iAndOr = 0;
+         final String iAndOr;
          String andOrStr = data.getAndOrType();
          if(andOrStr.equals(VueResources.getString("searchgui.and"))){
          iAndOr = SearchAction.AND;
