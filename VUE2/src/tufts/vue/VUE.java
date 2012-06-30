@@ -829,14 +829,12 @@ public class VUE
 //         }
 
         if (DEBUG.Enabled) {
-            GUI.invokeAfterAWT(new Runnable() {
-                    public void run() {
-                        Thread.currentThread().setName("*AWT*");
-                        //Thread.currentThread().setName(Util.TERM_RED + "*AWT*" + Util.TERM_CLEAR);
-                    }
-                });
+            GUI.invokeAfterAWT(new Runnable() { public void run() {
+                // This, of course, must run in the AWT thread to do what we want:
+                Thread.currentThread().setName("*AWT*");
+                //Thread.currentThread().setName(Util.TERM_RED + "*AWT*" + Util.TERM_CLEAR);
+            } });
         }
-        
     }
 
     /** initialize based on command line args, and the initlaize the GUI */
@@ -1381,7 +1379,7 @@ public class VUE
         //VUE.clearWaitCursor();
 
         
-        if (!SKIP_DR)
+        if (!SKIP_DR) // SKIP_CAT?
             getCategoryModel(); // load the category model
 
         Log.debug("initApplication completed.");
@@ -2360,13 +2358,23 @@ public class VUE
         //framesPerSecond.setMajorTickSpacing(6);
         //framesPerSecond.setPaintTicks(true);
 
-        GridBagConstraints	searchPanelGBC = new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0,
-        						GridBagConstraints.EAST, GridBagConstraints.NONE,
-        						new Insets(0, 0, 0, 8), 0, 0);
+        final int leftPad = 4;
+        final int rightPad = 4;
+
+        final GridBagConstraints searchPanelGBC =
+            new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0,
+                                   GridBagConstraints.EAST,
+                                   GridBagConstraints.NONE,
+                                   new Insets(0,leftPad,0,rightPad),
+                                   0, 0);
 
         depthSelectionControl = new ExpandSelectionControl();
         searchPanel.add(depthSelectionControl, searchPanelGBC);
 
+        // This empty border will align search field with the MapViewer below on Mac OS X.
+        // We'll probably want to tweak this by a few pixels either way for Windows.
+        //searchPanel.setBorder(GUI.makeSpace(0,0,0,13-rightPad));
+        
         if (interactionToolsPanel != null) {
         	depthSelectionControl.addExpandSelectionListener(interactionToolsPanel);
         	interactionToolsPanel.addExpandSelectionListener(depthSelectionControl);
@@ -2388,41 +2396,15 @@ public class VUE
         searchPanelGBC.weightx = 1.0;
         searchPanel.add(searchField, searchPanelGBC);
 
-        
-        // JProgressBar searchProgress = new JProgressBar();
-        
-        // // JProgressBar searchProgress = new JProgressBar() {
-        // //         int paints = 0;
-        // //         @Override
-        // //         public void paint(Graphics g) {
-        // //             if (paints++ % 4 == 0) super.paint(g);
-        // //             setEnabled(false);
-        // //         }
-        // //     };
-        
-        // // ProgressBarUI pbui = searchProgress.getUI();
-        // // searchProgress.setUI(null);
-        // // Log.info("***PBUI**** = " + pbui);
-
-        // searchProgress.setIndeterminate(true);
-        // searchProgress.putClientProperty("JProgressBar.style", "circular");
-        // searchProgress.setBorderPainted(false);
-        // //searchProgress.setEnabled(false);
-        // searchProgress.setVisible(false);
-
-        // Log.info("PBWIDTH=" + searchProgress.getWidth());
-        // searchPanel.add(searchProgress);
-        // if (DEBUG.BOXES||DEBUG.SEARCH) searchPanel.setBackground(Color.red);
-
-        //searchProgress.setUI(pbui);
-
         if (!VUE.isApplet()) {
             gBC.fill = GridBagConstraints.HORIZONTAL;			
             gBC.gridx = 4;
             gBC.gridy = 0;
             gBC.weightx = 1.0;
             gBC.insets = new Insets(0, 0, 0, 0);
-        	toolbarPanel.add(searchPanel, gBC);		
+            toolbarPanel.add(searchPanel, gBC);
+            // Need to add a tiny bit of pad at right:
+            //if (DEBUG.Enabled) toolbarPanel.add(new JLabel(" "));
         }
 
         if (DEBUG.INIT) out("created ToolBar");
