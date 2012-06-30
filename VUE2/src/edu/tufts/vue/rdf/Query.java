@@ -27,8 +27,14 @@
 package edu.tufts.vue.rdf;
 
 import java.util.*;
+import tufts.Util;
 
 public class Query  {
+
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(Query.class);
+
+    private static boolean DEBUG = true;
+    
     public enum Operation { AND , OR }
     public enum Qualifier {STARTS_WITH, CONTAINS,MATCH, WITHOUT,MATCH_CASE};
     private boolean regex = true;
@@ -40,11 +46,13 @@ public class Query  {
     }
     
     public void addCriteria(String key,String value) {
+        if (DEBUG) Log.debug("addCriteria " + key + "=" + Util.tags(value));
         Criteria criteria = new Criteria(key,value);
         criteriaList.add(criteria);
     }
     
-    public void addCriteria(String key,String value,String condition){
+    public void addCriteria(String key, String value, String condition){
+        if (DEBUG) Log.debug("addCriteria " + key + "=" + Util.tags(value) + " cond=" + condition);
         Criteria criteria = new Criteria(key,value,Qualifier.valueOf(condition));
         criteriaList.add(criteria);
     }
@@ -88,6 +96,10 @@ public class Query  {
             this.value = value;
             this.qualifier  =     qualifier;
         }
+
+        // public String toString() {
+        //     return "Criteria[" + key + "=" + value + "]; qual=" + qualifier;
+        // }
     }
     
 }
