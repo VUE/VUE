@@ -96,7 +96,12 @@ public class LWMap extends LWContainer
     /* user map types -- is this still used? **/
     //private UserMapType[] mUserTypes;
     
-    private long mChanges = 0;    // guaranteed >= actual change count
+    /** the number of "changes" since we last saved.  E.g., on deserialization, and after saves, this is 0. */
+    private long mChanges = 0;
+    /** just like mChages, but this is never reset to zero.  E.g., caches that depend on map state can use
+     * this to see if the map has changed -- e.g., RDFIndex. */
+    private long mChangeState = 0;
+    
     private Rectangle2D.Float mCachedBounds = null;
     
     
@@ -309,6 +314,7 @@ public class LWMap extends LWContainer
         if (DEBUG.Enabled) Log.debug("explicitly marking as modified: " + this);
         if (mChanges == 0)
             mChanges = 1;
+        mChangeState++;
         // notify with an event mark as not for repaint (and set same bit on "repaint" event)
     }
     public void markAsSaved() {
@@ -320,6 +326,11 @@ public class LWMap extends LWContainer
     }
     long getModCount() { return mChanges; }
 
+    /** just like getModCount / mChanges, but this is never reset to zero.  E.g., caches that depend on map state can use
+     * this to see if the map has changed -- e.g., RDFIndex. */
+    public long getChangeState() {
+        return mChangeState;
+    }
     
     /**
      * getLWCFilter()
@@ -2307,6 +2318,7 @@ public class LWMap extends LWContainer
         }
         
         mChanges++;
+        mChangeState++;
 
         if (DEBUG.UNDO) {
             //String msg = "MARKED TO +" + mChanges + " WITH OLD VALUE: " + Util.tags(e.oldValue) + "; " + e;
