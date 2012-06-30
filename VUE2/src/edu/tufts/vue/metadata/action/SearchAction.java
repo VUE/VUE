@@ -33,18 +33,20 @@ import tufts.vue.LWMap.Layer;
 import tufts.vue.gui.GUI;
 import tufts.Util;
 
-/*
+/**
  * SearchAction.java
  *
  * Created on July 27, 2007, 2:21 PM
  *
  * @author dhelle01
+ *
+ * Todo: RDF is overkill for our purposes -- a simple parameterized traversal would be
+ * much simpler.
  */
 public class SearchAction extends AbstractAction
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(SearchAction.class);
 
-    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(SearchAction.class);    
-   
     private final static boolean DEBUG_LOCAL = false;
 
     private final static boolean MARQUEE = true;  // do not change -- no longer supported as false
@@ -58,8 +60,8 @@ public class SearchAction extends AbstractAction
     private final static boolean DO_NOT_SELECT_NESTED_IMAGES = true;
     private final static boolean DO_NOT_SELECT_SLIDE_COMPONENTS = true;
     
-    private static final int TYPE_FIELD = 0;
-    private static final int TYPE_QUERY = 1;
+    private static final String TYPE_FIELD = "<search-type-field>";
+    private static final String TYPE_QUERY = "<search-type-query>";
     
     public static final int SHOW_ACTION = 0;
     public static final int HIDE_ACTION = 1;
@@ -71,26 +73,19 @@ public class SearchAction extends AbstractAction
     public static final String SEARCH_SELECTED_MAP = "<search-selected-map>";
     public static final String SEARCH_ALL_OPEN_MAPS = "<search-all-open-maps>";
     
-    public static final int AND = 0;
-    public static final int OR = 1;
+    public static final String AND = "<and>";
+    public static final String OR = "<or>";
     
-    private int crossTermOperator = AND;
+    private final List<VueMetadataElement> searchTerms;
+    private final String searchType;
     
-    //private List<List<URI>> finds = null;
+    private String crossTermOperator = AND;
     
     private List<String> tags;
-    private Query query;
-    private List<Query> queryList;
-    //private List<LWComponent> comps;
     private static List<LWComponent> globalResults;
     private static List<LWComponent> globalHides;
     
     private JTextField searchInput;
-    private edu.tufts.vue.rdf.RDFIndex index; // probably doesn't need to be an instace var either
-    //private static final edu.tufts.vue.rdf.RDFIndex index = null;
-    
-    private int searchType = TYPE_FIELD;
-    private List<VueMetadataElement> searchTerms;
     
     private String searchLocationType = SEARCH_SELECTED_MAP;
     
@@ -111,6 +106,10 @@ public class SearchAction extends AbstractAction
     
     private boolean everything = false;
     private boolean searchBtnClicked = false;
+
+    private static edu.tufts.vue.rdf.RDFIndex lastMapIndex;
+    private static tufts.vue.LWMap lastIndexedMap;
+    private static long lastIndexedMapState = -1;
     
     // Wierdly, SearchTextField does not use this constructor / FIELD type, but MetadataaSearchMainGUI does...
     public SearchAction(JTextField searchInput) {
@@ -118,9 +117,10 @@ public class SearchAction extends AbstractAction
         this.searchInput = searchInput;
         runIndex();
         searchType = TYPE_FIELD; 
+        this.searchTerms = Collections.EMPTY_LIST;
     }
     
-    public SearchAction(java.util.List<edu.tufts.vue.metadata.VueMetadataElement> searchTerms)
+    public SearchAction(List<edu.tufts.vue.metadata.VueMetadataElement> searchTerms)
     {  
         super(VueResources.getString("searchgui.search"));
         runIndex();
@@ -136,7 +136,14 @@ public class SearchAction extends AbstractAction
         this.everything = everything;
     }
     
-    public void setOperator(int operator) {
+    public void setOperator(int op) {
+        if (op == 0) setOperator(AND);
+        else if (op == 1) setOperator(OR);
+        else setOperator("bad op value: " + op);
+    }
+    public void setOperator(String operator) {
+        if (operator != AND && operator != OR)
+            throw new Error("invalid x-term-operator: " + operator);
         crossTermOperator = operator;
     }
     
@@ -208,176 +215,152 @@ public class SearchAction extends AbstractAction
         
     }
     
-    public void createQuery()
-    {
-        query = new Query();
-        textToFind = new ArrayList<String>();
-        Iterator<VueMetadataElement> criterias = searchTerms.iterator();
-        actualCriteriaAdded = false;
-        while(criterias.hasNext())
-        {
-            VueMetadataElement criteria = criterias.next();
-            if(DEBUG_LOCAL)
-            {    
-              System.out.println("SearchAction adding criteria - getKey(), getValue() " + criteria.getKey() + "," + criteria.getValue());
-            }
-           // query.addCriteria(criteria.getKey(),criteria.getValue());
-            String[] statement = (String[])(criteria.getObject());
-            
-            if(setBasic != true) 
-            {  
-                
-              if(DEBUG_LOCAL) {    
-                System.out.println("query setBasic != true");
-                System.out.println("criteria.getKey() " + criteria.getKey());
-                System.out.println("RDFIndex.VUE_ONTOLOGY+ none " + RDFIndex.VUE_ONTOLOGY+"none");
-                System.out.println("text only = " + textOnly);
-              }
-              if(criteria.getKey().equals("http://vue.tufts.edu/vue.rdfs#"+"none") && treatNoneSpecially)
-              {
-                //System.out.println("adding criteria * ...");  
-                  
-                //query.addCriteria("*",criteria.getValue(),statement[2]);
-                textToFind.add(criteria.getValue());
-              }   
-              else if(textOnly)
-              {
-                textToFind.add(criteria.getValue()); 
-              }
-              else
-              {    
-                query.addCriteria(criteria.getKey(),criteria.getValue(),"CONTAINS");  
-                //query.addCriteria(criteria.getKey(),criteria.getValue(),statement[2]); // would be nice to be able to say
-                // query condition here -- could do as subclass of VueMetadataElement? getCondition()? then a search
-                // can be metadata too..
-                actualCriteriaAdded = true;
-              }
-            }
-            else
-            {
-              query.addCriteria(RDFIndex.VUE_ONTOLOGY+Constants.LABEL,criteria.getValue(),"CONTAINS");
-              //System.out.println("query -- setBasic == true");
-              //query.addCriteria(RDFIndex.VUE_ONTOLOGY+Constants.LABEL,criteria.getValue(),statement[2]); // see comments just above
-              actualCriteriaAdded = true;
-            }
-        }
-        
-        if(DEBUG_LOCAL)
-        {
-          System.out.println("SearchAction: query - " + query.createSPARQLQuery());
-        }
-        
-    }
-    
-    public void createQueries()
-    {
-        queryList = new ArrayList<Query>();
 
-        //query = new Query();
-        textToFind = new ArrayList<String>();
-        Iterator<VueMetadataElement> criterias = searchTerms.iterator();
+    private static final String AS_ONE_QUERY = "as-one-query(logical-and)";
+    private static final String AS_MULTIPLE_QUERIES = "as-query-list(logical-or)";
+
+    /*
+     * this has been boiled down, tho still needs a rewrite -- way to complex
+     */
+    private List<Query> makeQueryFromCriteria
+        (final List<VueMetadataElement> terms,
+         final String resultType)
+    {
+        Query query = new Query();  // note: most of the time, this won't even be used...
+        final List<Query> queryList;
+
+        if (resultType == AS_ONE_QUERY)
+            queryList = null;
+        else 
+            queryList = new ArrayList<Query>();
+        
+        this.textToFind = new ArrayList<String>(); // NOTE SIDE EFFECT
         actualCriteriaAdded = false;
-        while(criterias.hasNext())
-        {
-            Query currentQuery = new Query();
-            
-            
-            VueMetadataElement criteria = criterias.next();
-            if(DEBUG_LOCAL)
-            {    
-              System.out.println("SearchAction adding criteria - getKey(), getValue() " + criteria.getKey() + "," + criteria.getValue());
-            }
-           // query.addCriteria(criteria.getKey(),criteria.getValue());
-            String[] statement = (String[])(criteria.getObject());
-            
-            if(setBasic != true) 
-            {  
-                
-              if(DEBUG_LOCAL)
-              {    
-                System.out.println("query setBasic != true");
-                System.out.println("criteria.getKey() " + criteria.getKey());
-                System.out.println("RDFIndex.VUE_ONTOLOGY+ none " + RDFIndex.VUE_ONTOLOGY+"none");
-                System.out.println("text only = " + textOnly);
-              }
-              if(criteria.getKey().equals("http://vue.tufts.edu/vue.rdfs#"+"none") && treatNoneSpecially)
-              {
-                //System.out.println("adding criteria * ...");  
-                  
-                //query.addCriteria("*",criteria.getValue(),statement[2]);
-                textToFind.add(criteria.getValue());
-              }   
-              else if(textOnly)
-              {
-                textToFind.add(criteria.getValue()); 
-              }
-              else
-              {    
-                currentQuery.addCriteria(criteria.getKey(),criteria.getValue(),"CONTAINS");
-                // currentQuery.addCriteria(criteria.getKey(),criteria.getValue(),statement[2]); // would be nice to be able to say
-                // query condition here -- could do as subclass of VueMetadataElement? getCondition()? then a search
-                // can be metadata too..
-                actualCriteriaAdded = true;
-              }
-            }
-            else
-            {
-              //System.out.println("query -- setBasic == true");
-              currentQuery.addCriteria(RDFIndex.VUE_ONTOLOGY+Constants.LABEL,criteria.getValue(),"CONTAINS");
-              // currentQuery.addCriteria(RDFIndex.VUE_ONTOLOGY+Constants.LABEL,criteria.getValue(),statement[2]); // see comments just above
-              actualCriteriaAdded = true;
-            }
-            
-            queryList.add(currentQuery);
+
+        if (DEBUG.SEARCH) {
+            Log.debug("makeQueryFromCriteria: " + Util.tags(resultType) + "; terms="
+                      + (terms.size() == 1 ? terms.get(0) : Util.tags(terms)));
         }
         
-        if(DEBUG_LOCAL)
+        for (VueMetadataElement criteria : terms)
         {
-          for(int i=0;i<queryList.size();i++)
-          {
-            System.out.println("SearchAction: query - " + "i: " + queryList.get(i).createSPARQLQuery());
-          }
-        }        
+            if (DEBUG.SEARCH) Log.debug("processing criteria: " + criteria);
+
+            // [DAN] query.addCriteria(criteria.getKey(),criteria.getValue());
+            final String[] statement = (String[])(criteria.getObject());
+
+            if (setBasic != true) {  
+                if (DEBUG.SEARCH) {    
+                    Log.debug("query setBasic != true -- more than simple label-contains");
+                    Log.debug("RDFIndex.VUE_ONTOLOGY+none=[" + RDFIndex.VUE_ONTOLOGY+"none]");
+                }
+                if (this.treatNoneSpecially && criteria.getKey().equals(RDFIndex.VueTermOntologyNone)) {
+                    if (DEBUG.SEARCH) Log.debug("using manual textToFind: #none is special & no term (query will be empty)");
+                    // [DAN] query.addCriteria("*",criteria.getValue(),statement[2]);
+                    textToFind.add(criteria.getValue());
+                    // The Query object won't even be used!
+                }   
+                else if (this.textOnly) {
+                    if (DEBUG.SEARCH) Log.debug("using manual textToFind: textOnly=true (query will be empty)");
+                    textToFind.add(criteria.getValue()); 
+                    // The Query object won't even be used!
+                }
+                else {
+                    query.addCriteria(criteria.getKey(), criteria.getValue(), "CONTAINS");  
+                    // [DAN] query.addCriteria(criteria.getKey(),criteria.getValue(),statement[2]); // would be nice to be able to say
+                    // [DAN] query condition here -- could do as subclass of VueMetadataElement? getCondition()? then a search
+                    // [DAN] can be metadata too..
+                    actualCriteriaAdded = true;
+                }
+            }
+            else {
+                query.addCriteria(RDFIndex.VUE_ONTOLOGY+Constants.LABEL, criteria.getValue(), "CONTAINS");
+                // [DAN] query.addCriteria(RDFIndex.VUE_ONTOLOGY+Constants.LABEL,criteria.getValue(),statement[2]); // see comments just above
+                actualCriteriaAdded = true;
+            }
+            if (queryList != null) {
+                // Instead of continuing to add criteria to the current query, add this
+                // single-criteria query to the list, and start next iteration with a fresh query.
+                if (query != null) {
+                    queryList.add(query);
+                    query = new Query();
+                }
+            }
+        }
         
-        
+        if (DEBUG.SEARCH) {
+            // Note that most of the time, all the queries are empty and won't even be used!
+            if (queryList != null) {
+                int i = 0;
+                for (Query q : queryList)
+                    Log.debug("query " + (i++) + ": " + q.createSPARQLQuery());
+            } else {
+                Log.debug("query: " + (query == null ? "<NO QUERY>" : query.createSPARQLQuery()));
+            }
+        }
+
+        if (queryList == null) {
+            return query == null ? null : Collections.singletonList(query);
+        } else
+            return queryList;
+    }
+
+    /** create one query with multiple criteria */
+    private Query createQuery_Logical_And(List<VueMetadataElement> terms)
+    {
+        return makeQueryFromCriteria(terms, AS_ONE_QUERY).get(0);
     }
     
-    private void runSearch(String searchLocationType)
+    /** create one query for each criteria */
+    private List<Query> createQueries_Logical_Or(List<VueMetadataElement> terms)
     {
-        if (DEBUG.SEARCH) Log.debug("runSearch: locationType=" + searchLocationType);
+        return makeQueryFromCriteria(terms, AS_MULTIPLE_QUERIES);
+    }
+    
+    private void runSearch(final String where)
+    {
+        if (DEBUG.SEARCH) Log.debug("runSearch:\n\twhere=" + where + "\n\ttype=" + this.searchType + "\n\tterms=" + searchTerms);
+
+        Query query = null;
+        List<Query> queryList = null;
         
         if (searchType == TYPE_QUERY) {
-            if (crossTermOperator == SearchAction.AND)
-                createQuery();
-            else if (crossTermOperator == SearchAction.OR)
-                // "todo: AND in first query" -- what'd Dan mean by this?
-                createQueries();
+            if (DEBUG.SEARCH) Log.debug("operator=" + crossTermOperator);
+            // The was designed was if it's AND, we create a single query, but if OR,
+            // we create multiple queries.
+            if (crossTermOperator == SearchAction.AND) {
+                query = createQuery_Logical_And(searchTerms);
+            } else if (crossTermOperator == SearchAction.OR) {
+                // Dan had said: "todo: AND in first query" -- what'd he mean by this?
+                // What it seems we could be missing is to handle the OR case via a single query...
+                queryList = createQueries_Logical_Or(searchTerms);
+            }
         }
 
         /*-------------------------------------------------------*
          * SMF: WAS ALREADY COMMENTED OUT:
          *-------------------------------------------------------*
-           
         // else // todo: for gathering text into its own list
-             // hmm seems to suggest a superclass for Query?
+        // // hmm seems to suggest a superclass for Query?
         // if(searchType == QUERY && crossTermOperation == OR)
-        // {
         //     getSearchStrings();
-        // }
         // edu.tufts.vue.rdf.RDFIndex.getDefaultIndex().index(VUE.getActiveMap());
         *-------------------------------------------------------*/
         
         /*-------------------------------------------------------
-         * SMF DISABLED SYNCHRONIED 2012-06-12 16:24.25 Tuesday SFAir.local
-         */
-        if (DEBUG.SEARCH || DEBUG.RDF) Log.debug("Indexing with RDFIndex...");
+         * SMF DISABLED SYNCHRONIED 2012-06-12 16:24.25 Tuesday SFAir.local */
         //synchronized(this.index) { // thread currently unused
-        if (true) { // old sync block
+        
+        // The last working impl always created a new RDFIndex from scratch.  We normally still do this unless
+        // the last index was from the same map and the map is in EXACTLY the same state it was when that index
+        // was run.
+        final edu.tufts.vue.rdf.RDFIndex index;
 
+        if (true) { // old sync block
             //-----------------------------------------------------------------------------
             // I presume this is a means of just clearing the entire index? Shouldn't
             // it already be new, fresh, and empty?
-            this.index.remove(this.index); 
+            //this.index.remove(this.index); 
             //-----------------------------------------------------------------------------
 
             // TODO: indexing pulls list of all components from map -- for big maps we could speed this up by
@@ -386,13 +369,28 @@ public class SearchAction extends AbstractAction
             
             if (searchLocationType == SEARCH_ALL_OPEN_MAPS) { 
                 if(DEBUG_LOCAL || DEBUG.SEARCH) Log.debug("Searching all open maps...");
-                for (LWMap map : VUE.getAllMaps())
+                index = new RDFIndex();
+                for (LWMap map : VUE.getAllMaps()) {
+                    if (DEBUG.SEARCH || DEBUG.RDF) Log.debug("Adding to RDFIndex: " + map);
                     index.index(map, metadataOnly, everything, false);
-            } else {
-                // default is SEARCH_SELECTED_MAP
-                index.index(VUE.getActiveMap(), metadataOnly, everything, true);
+                }
+                if (DEBUG.SEARCH || DEBUG.RDF || DEBUG_LOCAL) Log.debug("Done indexing all maps.");
+            } else { // default is SEARCH_SELECTED_MAP
+
+                final LWMap map = VUE.getActiveMap();
+
+                if (map == lastIndexedMap && map.getChangeState() == lastIndexedMapState) {
+                    index = lastMapIndex;
+                } else {
+                    if (DEBUG.SEARCH || DEBUG.RDF || DEBUG_LOCAL) Log.debug("Indexing " + map);
+                    index = new RDFIndex();
+                    lastIndexedMap = map;
+                    lastIndexedMapState = map.getChangeState();
+                    lastMapIndex = index;
+                    index.index(map, metadataOnly, everything, true);
+                    if (DEBUG.SEARCH || DEBUG.RDF || DEBUG_LOCAL) Log.debug("Done indexing " + map);
+                }
             }
-            if (DEBUG.SEARCH || DEBUG.RDF || DEBUG_LOCAL) Log.debug("Done indexing.");
         } // end synchronized block
 
         /*-------------------------------------------------------*/
@@ -422,6 +420,7 @@ public class SearchAction extends AbstractAction
             }
             
             boolean firstFinds = true;
+            // This textToFind hack and it's creator should both be tossed into the realms of hell to burn for eternity.
             if (textToFind.size() != 0) {
                 List<URI> found = null;
                 Iterator<String> textIterator = textToFind.iterator(); 
@@ -525,38 +524,35 @@ public class SearchAction extends AbstractAction
         searchLocationType = type;
     }
     
-    public void performSearch(final String searchLocationType)
+    private void performSearch(final String searchLocationType)
     {
-        runSearch(searchLocationType);               
-        
-        // Thread t = new Thread() {
-        //         public void run() { runSearchThread(searchLocationType); }
-        //     };
-        // t.start();
-    }   
-    
-    public void actionPerformed(ActionEvent e)
-    {
-        if (DEBUG.SEARCH || DEBUG.RDF) Log.debug("actionPerformed, ae=" + e);
-        
-        tufts.vue.gui.GUI.activateWaitCursor();
-
         // // runIndex();
-        // Is this index being used?  SMF 2012-06-12 16:12.59 Tuesday SFAir.local
-        this.index = new edu.tufts.vue.rdf.RDFIndex();
+        //this.index = new edu.tufts.vue.rdf.RDFIndex();
         // // edu.tufts.vue.rdf.VueIndexedObjectsMap.clear();
         
         VUE.getSelection().clear();
 
-        if(searchType == TYPE_FIELD) {
+        if (searchType == TYPE_FIELD) {
             revertSelections();
             loadKeywords(searchInput.getText());
         }
-        performSearch(searchLocationType);
-
-        tufts.vue.gui.GUI.clearWaitCursor();
-    }
+        runSearch(searchLocationType);               
+    }   
     
+    public void actionPerformed(ActionEvent ae)
+    {
+        if (DEBUG.SEARCH || DEBUG.RDF) Log.debug("actionPerformed, ae=" + ae);
+        
+        tufts.vue.gui.GUI.activateWaitCursor();
+        try {
+            performSearch(searchLocationType);
+        } catch (Throwable t) {
+            Log.error("search error, src=(" + ae + ")", t);
+        } finally {
+            tufts.vue.gui.GUI.clearWaitCursor();
+        }
+    }
+
     private void displayAllMapsSearchResults(final List<LWComponent> comps)
     {
         final Iterator<LWMap> allOpenMaps = VUE.getAllMaps().iterator();
@@ -907,8 +903,8 @@ public class SearchAction extends AbstractAction
 
                         newNodeName.append(value);
 
-                        if (!key.equals("http://vue.tufts.edu/vue.rdfs#none")) {
-                        	newNode.addDataValue(key, value);
+                        if (!key.equals(RDFIndex.VueTermOntologyNone)) {
+                            newNode.addDataValue(key, value);
                         }
                     }
 
