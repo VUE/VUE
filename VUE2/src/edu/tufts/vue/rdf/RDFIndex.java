@@ -24,6 +24,7 @@ import tufts.vue.LWComponent;
 import tufts.vue.LWPathway;
 import tufts.vue.LWMap;
 import tufts.vue.VueResources;
+import tufts.Util;
 import tufts.vue.VueUtil;
 import edu.tufts.vue.metadata.*;
 
@@ -63,7 +64,13 @@ public class RDFIndex extends com.hp.hpl.jena.rdf.model.impl.ModelCom
     //public static final boolean AUTO_INDEX= VueResources.getBool("rdf.index.auto"); // never implememnted
     public static final String INDEX_FILE = VueUtil.getDefaultUserFolder()+File.separator+VueResources.getString("rdf.index.file");
     public static final String ONT_SEPARATOR = "#";
-    public static final String VUE_ONTOLOGY = Constants.ONTOLOGY_URL+ONT_SEPARATOR;
+    public static final String VUE_ONTOLOGY = Constants.ONTOLOGY_URL + ONT_SEPARATOR;
+    public static final String VUE_GENERAL = VueResources.getString("metadata.vue.url") + ONT_SEPARATOR;
+
+    /** i.e.: http://vue.tufts.edu/vue.rdfs#none */
+    public static final String VueTermOntologyNone = VUE_GENERAL + "none";
+    
+    final com.hp.hpl.jena.rdf.model.Property _propertyNone = createProperty(VUE_GENERAL, "none");
     
     final com.hp.hpl.jena.rdf.model.Property idOf = createProperty(VUE_ONTOLOGY,Constants.ID);
     final com.hp.hpl.jena.rdf.model.Property labelOf = createProperty(VUE_ONTOLOGY,Constants.LABEL);
@@ -73,32 +80,31 @@ public class RDFIndex extends com.hp.hpl.jena.rdf.model.impl.ModelCom
     final com.hp.hpl.jena.rdf.model.Property notesOf = createProperty(VUE_ONTOLOGY,Constants.NOTES);
     final com.hp.hpl.jena.rdf.model.Property contentPropertyOf = createProperty(VUE_ONTOLOGY,Constants.CONTENT_INFO_PROPERTY);
     final com.hp.hpl.jena.rdf.model.Property hasTag = createProperty(VUE_ONTOLOGY,Constants.TAG);
-    
+
+
     private static RDFIndex defaultIndex;
     private  com.hp.hpl.jena.query.Query query;
     private QueryExecution qe;
-    // private boolean isAutoIndexing = AUTO_INDEX; // never implemented
     
     // could also index objects in LWComponent when get ID
     private static boolean INDEX_OBJECTS_HERE = true;
-    //private boolean shouldClearMap = true;
+    
+    private static final String DefaultVueQuery =
+          "PREFIX vue: <"+VUE_ONTOLOGY+">"
+        + "SELECT ?resource ?keyword "
+        + "WHERE{"
+        + " ?resource ?x ?keyword } ";
     
     public RDFIndex(com.hp.hpl.jena.graph.Graph base) {
         super(base);
         if (DEBUG.RDF || DEBUG.SEARCH) Log.debug("instanced from " + tufts.Util.tags(base));
     }
 
-    private static final String DefaultVueQuery =
-          "PREFIX vue: <" + VUE_ONTOLOGY + ">"
-        + "SELECT ?resource ?keyword "
-        + "WHERE{"
-        + " ?resource ?x ?keyword } ";
-    
     public RDFIndex() {
         super(com.hp.hpl.jena.graph.Factory.createDefaultGraph());
         // creating dummy query object. to make the search faster;
-        query = QueryFactory.create(DefaultVueQuery);
-        qe = QueryExecutionFactory.create(query, this);
+        this.query = QueryFactory.create(DefaultVueQuery);
+        this.qe = QueryExecutionFactory.create(query, this);
         if (DEBUG.RDF || DEBUG.SEARCH) Log.debug("instanced w/default VUE query[" + DefaultVueQuery + "]");
     }
     
@@ -116,15 +122,15 @@ public class RDFIndex extends com.hp.hpl.jena.rdf.model.impl.ModelCom
         
         if (DEBUG.RDF) Log.debug("index: begin; freeMem=: "+Runtime.getRuntime().freeMemory());
         
-        final com.hp.hpl.jena.rdf.model.Resource mapR = this.createResource(map.getURI().toString());
+        final com.hp.hpl.jena.rdf.model.Resource mapRoot = this.createResource(map.getURI().toString());
         
         if (DEBUG.RDF) Log.debug("index: create resource for map; freeMem=: "+Runtime.getRuntime().freeMemory());
         
         try {
-            addProperty(mapR, idOf, map.getID());
-            addProperty(mapR, authorOf, System.getProperty("user.name"));
+            addProperty(mapRoot, idOf, map.getID());
+            addProperty(mapRoot, authorOf, System.getProperty("user.name"));
             if (map.hasLabel())
-                addProperty(mapR,labelOf,map.getLabel());
+                addProperty(mapRoot, labelOf,map.getLabel());
 
             if (DEBUG.RDF) Log.debug("index: added properties for map; freeMem="+Runtime.getRuntime().freeMemory());
             
@@ -145,7 +151,7 @@ public class RDFIndex extends com.hp.hpl.jena.rdf.model.impl.ModelCom
                 if (INDEX_OBJECTS_HERE)
                     VueIndexedObjectsMap.setID(c.getURI(), c);
                 
-                load_VUE_component_to_RDF_index(c, mapR, metadataOnly);
+                load_VUE_component_to_RDF_index(c, mapRoot, metadataOnly);
 
                 if (size() > MAX_SIZE) {
                     Log.warn("Maximum fail-safe search capacity reached: not all nodes will be searchable. (See property rdf.index.size)");
@@ -160,6 +166,8 @@ public class RDFIndex extends com.hp.hpl.jena.rdf.model.impl.ModelCom
         }
         if(DEBUG.RDF) Log.debug("index: done -- size="+this.size());
     }
+
+    private static final String NO_KEYWORD = "<no-keyword>";
     
     /***
      * 
@@ -167,99 +175,74 @@ public class RDFIndex extends com.hp.hpl.jena.rdf.model.impl.ModelCom
      *  in single argument search(String)
      * 
      * */
-    public List<URI> search(String keyword,String queryString)
+    public List<URI> search(String keyword, String queryString)
     {
-        long t0 = System.currentTimeMillis();
-        if(DEBUG.RDF) System.out.println("SEARCH- beginning of search: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
+        if (DEBUG.SEARCH) Log.debug("SEARCH;    keyword=" + Util.tags(keyword) + " queryString:\n" + Util.tags(queryString));
         
-        List<URI> r = new ArrayList<URI>();
-        if(DEBUG.RDF) System.out.println("SEARCH- created arraylist and query string: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
+        final List<URI> resultSet = new ArrayList<URI>();
         
-        query = QueryFactory.create(queryString);
-        qe = QueryExecutionFactory.create(query, this);
-        if(DEBUG.RDF) System.out.println("SEARCH- created query "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
+        this.query = QueryFactory.create(queryString);
+        if (DEBUG.SEARCH) Log.debug("qf created " + Util.tag(query) + "; memory=" + Runtime.getRuntime().freeMemory());
+        if (DEBUG.SEARCH) Log.debug("Query[" + query + "]");
+        this.qe = QueryExecutionFactory.create(query, this);
+        if (DEBUG.SEARCH) Log.debug("created QEF " + qe + "; memory=" + Runtime.getRuntime().freeMemory());
+        final ResultSet results = qe.execSelect();
+        if (DEBUG.SEARCH) Log.debug("execSelect returned; memory=" + Runtime.getRuntime().freeMemory());
         
-        ResultSet results = qe.execSelect();
-        if(DEBUG.RDF) System.out.println("SEARCH- executed query: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
-        
-        while(results.hasNext())  {
-            QuerySolution qs = results.nextSolution();
+        while (results.hasNext())  {
+            final QuerySolution qs = results.nextSolution();
+            if (DEBUG.SEARCH) Log.debug("qSol " + qs);
             try {
-                
-                String fullKeyword = qs.getLiteral("keyword").toString();
-                
-                int slashLocation = fullKeyword.indexOf("#");
-                int keywordLocation = fullKeyword.toString().toLowerCase().
-                                          lastIndexOf(keyword.toString().toLowerCase());
-                
-                if(keywordLocation > slashLocation)
-                {
-                  r.add(new URI(qs.getResource("resource").toString()));
+                if (keyword != NO_KEYWORD) {
+                    final String fullKeyword = qs.getLiteral("keyword").toString();
+                    final int slashLocation = fullKeyword.indexOf("#");
+                    final int keywordLocation = fullKeyword.toString().toLowerCase().
+                        lastIndexOf(keyword.toString().toLowerCase());
+                    if (keywordLocation <= slashLocation)
+                        continue;
+                    // if (keywordLocation > slashLocation)
+                    //     resultSet.add(new URI(qs.getResource("resource").toString()));
                 }
-            }catch(Throwable t) {
-                t.printStackTrace();
+                resultSet.add(new URI(qs.getResource("resource").toString()));
+            } catch (Throwable t) {
+                Log.warn("handling QuerySolution " + qs, t);
             }
         }
         qe.close();
-        return r;
-   
+        return resultSet;
     }
     
-    public List<URI> search(String queryString)
+    public List<URI> search(String queryString) {
+        return search(NO_KEYWORD, queryString);
+    }
+    
+    public List<URI> search(Query query) {
+        if (DEBUG.SEARCH) Log.debug("search; query=" + Util.tags(query));
+        final String queryString = query.createSPARQLQuery();
+        return search(queryString);
+    }
+    
+    public List<URI> searchAllResources(String keyword)
     {
+        if (DEBUG.SEARCH) Log.debug("searchAllResources " + Util.tags(keyword));
         
-        long t0 = System.currentTimeMillis();
-        if(DEBUG.RDF) System.out.println("SEARCH- beginning of search: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
-        
-        List<URI> r = new ArrayList<URI>();
-        if(DEBUG.RDF) System.out.println("SEARCH- created arraylist and query string: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
-        
-        
-        query = QueryFactory.create(queryString);
-        qe = QueryExecutionFactory.create(query, this);
-        if(DEBUG.RDF) System.out.println("SEARCH- created query "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
-        
-        ResultSet results = qe.execSelect();
-        if(DEBUG.RDF) System.out.println("SEARCH- executed query: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
-        
-        while(results.hasNext())  {
-            QuerySolution qs = results.nextSolution();
-            try {
-                r.add(new URI(qs.getResource("resource").toString()));
-            }catch(Throwable t) {
-                t.printStackTrace();
-            }
-        }
-        qe.close();
-        return r;
-    }
-    
-    
-    
-    public List<URI> searchAllResources(String keyword) {
-        
-        String queryString =
+        final String queryString =
                 "PREFIX vue: <"+VUE_ONTOLOGY+">"+
                 "SELECT ?resource ?keyword " +
                 "WHERE{" +
-                "      ?resource ?x ?keyword FILTER regex(?keyword,\""+keyword+ "\",\"i\") } ";
-        
+                " ?resource ?x ?keyword FILTER regex(?keyword,\""+keyword+ "\",\"i\") } ";
+
+        //if (DEBUG.SEARCH) Log.debug("searchAllResources " + Util.tags(keyword) + "  " + queryString);
         return search(keyword,queryString);
-    }
-    
-    public List<URI> search(Query query) 
-    {
-        String queryString = query.createSPARQLQuery();
-        return search(queryString);
     }
     
     public void save() { }
     public void read() { }
     
     /* was public "rdfize" */
-    private void load_VUE_component_to_RDF_index(LWComponent component,com.hp.hpl.jena.rdf.model.Resource mapR) {
+    private void load_VUE_component_to_RDF_index(final LWComponent component, final com.hp.hpl.jena.rdf.model.Resource mapRoot) {
         //rdfize(component,mapR,false);
-        load_VUE_component_to_RDF_index(component, mapR, false);
+        load_VUE_component_to_RDF_index(component, mapRoot, false);
     }
 
     private static final boolean RDFIZE_COLOR = VueResources.getString("rdf.rdfize.color").equals("TRUE");
@@ -271,9 +254,9 @@ public class RDFIndex extends com.hp.hpl.jena.rdf.model.impl.ModelCom
      // the RDF property tree as a child of the given mapRootResource */
     
     private void load_VUE_component_to_RDF_index
-        (tufts.vue.LWComponent component,
-         com.hp.hpl.jena.rdf.model.Resource mapRootResource,
-         boolean metadataOnly)
+        (final tufts.vue.LWComponent component,
+         final com.hp.hpl.jena.rdf.model.Resource mapRootResource,
+         final boolean metadataOnly)
     {
         final com.hp.hpl.jena.rdf.model.Resource r = this.createResource(component.getURI().toString());
         try {
@@ -296,52 +279,69 @@ public class RDFIndex extends com.hp.hpl.jena.rdf.model.impl.ModelCom
                     // -- these are never accessed -- just values.
                     
                     for (Object value : res.getProperties().values()) {
-                        if (value != null)
-                            addProperty(r, contentPropertyOf, value.toString());
+                        if (value != null) {
+                            final String strValue = value.toString();
+                            if (strValue == null || strValue.length() <= 0) {
+                                // as all of these properties will have the same key, there's
+                                // no point in allowing us to check for presence of an empty value
+                                continue;
+                            }
+                            // todo: this means that all resource properties have the same keyword name: "property",
+                            // and thus we can never do a search of the form "author=bob" amongst resource properties...
+                            addProperty(r, contentPropertyOf, strValue);
+                        }
                     }
                     // final javax.swing.table.TableModel model = res.getProperties().getTableModel();
                     // for(int i=0;i<model.getRowCount();i++) // note: column 0 is key, column 1 is value
                     //     addProperty(r,contentPropertyOf,"" + model.getValueAt(i, 1));
                 }
             }
+
+            if (DEBUG.SEARCH && DEBUG.RDF) Log.debug("processing " + component);
             
-            com.hp.hpl.jena.rdf.model.Statement statement = this.createStatement(r, childOf, mapRootResource);
-            
-            addStatement(statement);
+            addStatement(createStatement(r, childOf, mapRootResource));
             
             final List<VueMetadataElement> metadata = component.getMetadataList().getMetadata();
-            for (VueMetadataElement element : metadata) {
-                if (DEBUG.RDF && DEBUG.META) Log.debug(r + " " + tufts.Util.tags(element));
-                if (element.getObject() != null) {
-                    final String encodedKey = getEncodedKey(element.getKey());
-                    statement = this.createStatement(r, createPropertyFromKey(encodedKey), element.getValue());
-                    addStatement(statement);
+            for (VueMetadataElement vme : metadata) {
+                if (DEBUG.SEARCH && DEBUG.RDF) Log.debug("scan " + vme);
+                if (vme.getObject() != null) {
+                    final String key = vme.getKey();
+                    final String strValue = vme.getValue();
+                    if (vme.getKey() == VueTermOntologyNone) {
+                        // Checking object identity is optimization.  
+                        if (strValue != null && strValue.length() > 0) {
+                            // Another optimization: this being a "none" term (no keyword), don't bother with empty values
+                            addStatement(createStatement(r, _propertyNone, strValue));
+                        }
+                    } else {
+                        
+                        // todo: kind of waste to create/fetch these constantly: if we keep this RDF indexing,
+                        // someday we could just go ahead and put the RDF property right in the VME object.
+                        // (And pre-encode all keys and/or only allow encoded keys in all meta-data
+                        // data-structures)  Note that in current superclass impl, createProperty will
+                        // return the existing Property object if the name matches.
+                        
+                        // Note that we do NOT want to skip empty values, as we have a non-empty key, and a
+                        // search for a key with an empty value might be a valid search type someday (if we had
+                        // the UI to support it).
+                        
+                        final String encodedKey = getEncodedKey(key);
+                        addStatement(createStatement(r, createPropertyFromKey(encodedKey), strValue));
+                    }
                 } else {
                     Log.warn(r + ": null element object: no statement");
-                    // the old code would just re-add whatever "statement" was last set to!
-                }
+                 }
                 //statement = this.createStatement(r,createPropertyFromKey(element.getKey()),element.getObject().toString());
                 //addStatement(statement);
             }
-            // Iterator<VueMetadataElement> i = metadata.iterator();
-            // while(i.hasNext()) {
-            //     VueMetadataElement element = i.next();
-            //     if(DEBUG.RDF) Log.debug(r + " " + tufts.Util.tags(element));
-            //     if(element.getObject() != null) {
-            //         String encodedKey = getEncodedKey(element.getKey());
-            //         statement = this.createStatement(r,createPropertyFromKey(encodedKey),element.getValue());
-            //     }
-            //     //statement = this.createStatement(r,createPropertyFromKey(element.getKey()),element.getObject().toString());
-            //     addStatement(statement);
-            // }
-        } catch(Exception ex) {
-            Log.warn("rdfize " + ex);
-            ex.printStackTrace();
+        } catch (Exception ex) {
+            Log.warn("LWComponent->RDF", ex);
         }
     }
     
     public void addStatement(com.hp.hpl.jena.rdf.model.Statement statement)  throws Exception {
-        if(size() < MAX_SIZE) {
+        if (size() < MAX_SIZE) {
+            if (DEBUG.SEARCH && DEBUG.META) Log.debug("addStatement: " + statement);
             super.add(statement);
         } else {
             throw new Exception("Size of index: "+size()+ " exceeds MAX_SIZE: "+MAX_SIZE);
@@ -349,8 +349,8 @@ public class RDFIndex extends com.hp.hpl.jena.rdf.model.impl.ModelCom
     }
     
     public void addProperty(com.hp.hpl.jena.rdf.model.Resource r, com.hp.hpl.jena.rdf.model.Property p,String value) throws Exception {
-        if(size() <MAX_SIZE) {
-            r.addProperty(p,value);
+        if (size() <MAX_SIZE) {
+            r.addProperty(p, value);
         } else {
             throw new Exception("Size of index: "+size()+ " exceeds MAX_SIZE: "+MAX_SIZE);
         }
@@ -401,18 +401,42 @@ public class RDFIndex extends com.hp.hpl.jena.rdf.model.impl.ModelCom
         else
             return true;
     }
-    
-    public  com.hp.hpl.jena.rdf.model.Property createPropertyFromKey(String key) throws Exception {
-        String words[] = key.split(ONT_SEPARATOR);
-        if (words.length == 1) {
-            return createProperty(VUE_ONTOLOGY+"#",key);
-        } else if(words.length < 1){
-            
-            throw new Exception("createPropertyFromKey: The key format is wrong. key - "+key);
+
+    @Override public com.hp.hpl.jena.rdf.model.Property createProperty(final String nameSpace, final String localName)
+    {
+        final com.hp.hpl.jena.rdf.model.Property p = super.createProperty(nameSpace, localName);
+        
+        if (DEBUG.SEARCH && DEBUG.RDF) {
+            final String propName;
+            if (p instanceof com.hp.hpl.jena.rdf.model.impl.PropertyImpl)
+                propName = "PropertyImpl";
+            else
+                propName = p.getClass().getName();
+            Log.debug("createProperty " + Util.tags(nameSpace)
+                      + String.format("+%-18s= %s@%08X[%s]",
+                                      Util.tags(localName), // note need extra padding for escape codes here:
+                                      propName,
+                                      System.identityHashCode(p),
+                                      p.toString()));
         }
-        return createProperty(words[0]+"#",words[1]);
+        return p;
     }
     
+    public com.hp.hpl.jena.rdf.model.Property createPropertyFromKey(String key) throws Exception {
+        if (DEBUG.SEARCH && DEBUG.RDF) Log.debug("createPropertyFromKey " + Util.tags(key));
+        final com.hp.hpl.jena.rdf.model.Property p;
+        final String words[] = key.split(ONT_SEPARATOR);
+        if (words.length == 1) {
+            p = createProperty(VUE_ONTOLOGY+"#",key);
+        } else if (words.length < 1){
+            throw new Exception("createPropertyFromKey: The key format is wrong. key - "+key);
+        } else {
+            p = createProperty(words[0]+"#",words[1]);
+        }
+        //if (DEBUG.SEARCH) Log.debug("created jena property " + Util.tags(p));
+        return p;
+    }
+
     // Note that while VUE.java currently has code to call this, it's never used.  SMF 2012-06-25
     private static RDFIndex createDefaultIndex() {
         defaultIndex = new RDFIndex(com.hp.hpl.jena.graph.Factory.createGraphMem());
