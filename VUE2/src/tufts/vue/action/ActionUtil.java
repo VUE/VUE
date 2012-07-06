@@ -453,14 +453,14 @@ public class ActionUtil
                 
                 if (key != null &&
                     (key.startsWith(tufts.vue.Resource.RUNTIME_PREFIX) ||
-                    (key.startsWith(tufts.vue.Resource.DEBUG_PREFIX) ||
+                     key.startsWith(tufts.vue.Resource.DEBUG_PREFIX) ||
                      key.startsWith(tufts.vue.Resource.HIDDEN_RUNTIME_PREFIX) 
-                     )))
+                     ))
                 {
-                    if (DEBUG.XML) Log.debug("Skipping marshal of " + Util.tags(o));
+                    if (DEBUG.XML) Log.debug(" no-marshal " + Util.tags(o));
                     return false;
                 } else {
-                    if (DEBUG.XML) Log.debug("Marshalling " + Util.tags(o));
+                    if (DEBUG.XML) Log.debug("marshalling " + Util.tags(o));
                     return true;
                 }
             } catch (Throwable t) {
