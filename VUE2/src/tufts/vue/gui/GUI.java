@@ -3210,7 +3210,49 @@ public class GUI
             }
         }
     }
-        
+
+
+    // From: https://developer.apple.com/library/mac/#technotes/tn2007/tn2196.html
+    // Create a Layout component that will ensure the buttons abut each other
+    public static JComponent createLayoutComponent(java.util.List<JButton> segmentButtons)
+    {
+        Box layoutBox = Box.createHorizontalBox();
+        for(JButton button : segmentButtons) {
+            layoutBox.add(button);
+        }
+        return layoutBox;
+    }
+
+    public static AbstractButton createSegmentButton(String style, String position, ButtonGroup buttonGrp, String label)
+    {
+        final AbstractButton button = new JToggleButton();
+        button.putClientProperty("JButton.buttonType", style);
+        button.putClientProperty("JButton.segmentPosition", position);
+        button.setLabel(label);
+        buttonGrp.add(button);
+        return button;
+    }
+
+    // Bottleneck for creating the buttons for the button group
+    public static java.util.List<AbstractButton> createSegmentButtonsWithStyle(int numButtons, ButtonGroup buttonGrp, String style)
+    {
+        // Allocate a list of JButtons
+        java.util.List<AbstractButton> buttons = new ArrayList<AbstractButton>();
+        if (numButtons == 1) {
+            // If 1 button is requested, then it gets the "only" segment position
+            buttons.add(createSegmentButton(style, "only", buttonGrp, ""));
+        } else {
+            // If more than 1 button is requested, then
+            // the first one gets "first" the last one gets "last" and the rest get "middle"
+            buttons.add(createSegmentButton(style, "first", buttonGrp, ""));
+            for(int i = 0; i < buttons.size() - 2; ++i) {
+                buttons.add(createSegmentButton(style, "middle", buttonGrp, ""));
+            }
+            buttons.add(createSegmentButton(style, "last", buttonGrp, ""));
+        }
+        return buttons;
+    }
+    
     
 
         
