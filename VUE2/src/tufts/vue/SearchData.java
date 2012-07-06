@@ -16,9 +16,13 @@
 package tufts.vue;
 
 import java.util.List;
+import tufts.Util;
 
 import edu.tufts.vue.metadata.VueMetadataElement;
+
 public class SearchData {
+
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(SearchData.class);    
 
 	private String searchSaveName;
 	
@@ -127,34 +131,27 @@ public class SearchData {
 
 	}
 
-	public String toString() {
+    public String toString() {
+        final StringBuilder b = new StringBuilder();
 
-		StringBuffer sb = new StringBuffer();
-
-		sb.append(" { Search Details --");
-
-		sb.append("searchType: " + getSearchType());
-
-		sb.append(", ");
-
-		sb.append("mapType: " + getMapType());
-
-		sb.append(", ");
-
-		sb.append("resultType: " + getResultType());
-
-		sb.append(", ");
-
-		sb.append("andOrType: " + getAndOrType());
-		
-		sb.append(", ");
-
-		sb.append("dataList: " + getDataList());
-
-		sb.append(". } \n");
-
-		return sb.toString();
-
-	}
+        //b.append("SearchData");
+        b.append("[type=");
+        b.append(Util.tags(getSearchType()));
+        b.append(" loc=");
+        b.append(Util.tags(getMapType()));
+        b.append(" action=");
+        b.append(Util.tags(getResultType()));
+        b.append(" op=");
+        b.append(Util.tags(getAndOrType()));
+        b.append(" name=");
+        b.append(Util.tags(searchSaveName));
+        b.append(" terms:");
+        for (VueMetadataElement vme : getDataList()) {
+            b.append("\n\t\t");
+            b.append(vme);
+        }
+        //b.append("]");
+        return b.toString();
+    }
 
 }
