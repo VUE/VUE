@@ -311,7 +311,9 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         add(c);
     }
 
-    public void setDescription(String s) {
+    // note: this not helpful as a public, as most sets immediately generate an event,
+    // and we don't leave intermediate state about in the selection
+    protected void setDescription(String s) {
         mDescription = s;
     }
     
@@ -327,6 +329,11 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     {
         //if (DEBUG.SELECTION||DEBUG.PERF) Log.debug("setTo: " + Util.tags(bag));
         setImpl(bag, null, description, styleRecord);
+    }
+    
+    public void setWithDescription(Iterable bag, String description)
+    {
+        setImpl(bag, null, description, null);
     }
     
     public void setTo(Iterator i) {
