@@ -87,6 +87,18 @@ public abstract class Resource implements Cloneable
                
         return c == '@' || c == '#';
     }
+    
+    /** runtime property keys do *not* persist */
+    public static boolean isRuntimePropertyKey(String key) {
+        try {
+            final char c0 = key.charAt(0);
+            final char c1 = key.charAt(1);
+            return c0 == '~' || c0 == '#' || (c0 == '@' && c1 == '@');
+        } catch (Throwable t) {
+            if (DEBUG.Enabled) Log.warn("short key? " + Util.tags(key) + "; " + t);
+        }
+        return false;
+    }
 
 
     /**
@@ -145,7 +157,11 @@ public abstract class Resource implements Cloneable
             Resource r = new Osid2AssetResource(asset, context);
             try {
                 //if (DEBUG.DR && repository != null) r.addProperty("~Repository", repository.getDisplayName());
-                if (repository != null) r.setHiddenProperty("Repository", repository.getDisplayName());
+                if (repository != null) {
+                    r.setHiddenProperty("osid.impl", repository.getClass().getName());
+                    r.setHiddenProperty("osid.name", repository.getDisplayName());
+                    //r.setHiddenProperty("osid.id", repository.getProviderId()); // not on interface?
+                }
             } catch (Throwable t) {
                 Log.warn(Util.tags(r), t);
             }
@@ -311,7 +327,7 @@ public abstract class Resource implements Cloneable
         setProperty(RUNTIME_PREFIX + key, value);
     }
     
-    /** hidden properties are neither displayed at runtime, nor persisted */
+    /** hidden properties are not displayed at runtime, although they are persisted  */
     public void setHiddenProperty(String key, Object value) {
         setProperty(HIDDEN_PREFIX + key, value);
     }
