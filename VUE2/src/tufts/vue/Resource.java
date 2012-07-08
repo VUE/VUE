@@ -99,6 +99,17 @@ public abstract class Resource implements Cloneable
         }
         return false;
     }
+    
+    /** @return true if this is not a user property (e.g., is hidden or runtime) */
+    public static boolean isInternalPropertyKey(String key) {
+        try {
+            final char c = key.charAt(0);
+            return c == '@' || c == '#' || c == '~';
+        } catch (Throwable t) {
+            if (DEBUG.Enabled) Log.warn("short-key? " + Util.tags(key) + "; " + t);
+        }
+        return false;
+    }
 
 
     /**
