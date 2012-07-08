@@ -1652,6 +1652,11 @@ public class GUI
         invokeAfterAWT(new Runnable() { public void run() { postEvent(e); }});
     }
 
+    /** make sure there's a colon on the end of the string.  E.g., some localized resource
+     * strings have the colon built in (inappropriately) -- this helps deal with that */
+    public static String ensureColon(String s) {
+        return s.endsWith(":") ? s : (s + ":");
+    }
 
     public static void dumpSizes(Component c) {
         dumpSizes(c, "");
@@ -1739,7 +1744,8 @@ public class GUI
         } else if (c instanceof java.awt.Dimension) {
             Dimension d = (Dimension) c;
             title = "w="+ d.width + " h=" + d.height;
-        }
+        } else if (c instanceof ComboKey)
+            title = ((ComboKey)c).key;
         
 
         name = baseObjectName(c);
@@ -1755,7 +1761,8 @@ public class GUI
             int ni = text.indexOf('\n');
             if (ni > 1 && !DEBUG.META)
                 text = text.substring(0,ni) + "...";
-        }
+        } else if (c instanceof ComboKey)
+            text = ((ComboKey)c).localized;
         
         if (text != null)
             name += "[" + text + "]";
@@ -1903,6 +1910,18 @@ public class GUI
             return false;
     }
  
+    /** a key that provides the localized text for the key as a toString -- useful for using with JComboBoxes */
+    public static final class ComboKey {
+        public final String key;
+        public final String localized;
+        public ComboKey(String k) {
+            key = k; 
+            localized = VueResources.getString(key);
+        }
+        public String toString() { return localized; }
+        
+    }
+    
     //-----------------------------------------------------------------------------
     
     private static class LocalData extends DataFlavor {
