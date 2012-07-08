@@ -84,15 +84,14 @@ public class LWMap extends LWContainer
     // todo: change to arbirary meta-data, and add modification date & user-name of modifier
     private String mDateCreated;
     
-    /** the current Map Filter **/
-    LWCFilter mLWCFilter;
+    // /** the current Map Filter **/
+    // LWCFilter mLWCFilter;
     
     /** Metadata for Publishing **/
     PropertyMap metadata = new PropertyMap();
     
-    /* Map Metadata-  this is for adding specific metadata and filtering **/
-    MapFilterModel  mapFilterModel = new MapFilterModel();
-    
+    /* @deprecated - Map Metadata-  this is for adding specific metadata and filtering **/
+    // MapFilterModel  mapFilterModel = new MapFilterModel();
     /* user map types -- is this still used? **/
     //private UserMapType[] mUserTypes;
     
@@ -128,7 +127,7 @@ public class LWMap extends LWContainer
     public LWMap() {
         initMap();
         setLabel(InitLabel);
-        mLWCFilter = new LWCFilter(this);
+        //mLWCFilter = new LWCFilter(this);
         // on restore, set to 0 initially: if has a model version in the save file,
         // it will be overwritten
         setModelVersion(0); 
@@ -143,7 +142,7 @@ public class LWMap extends LWContainer
         setFont(FONT_DEFAULT);
         setLabel(label);
         mPathways = new LWPathwayList(this);
-        mLWCFilter = new LWCFilter(this);
+        //mLWCFilter = new LWCFilter(this);
         // Always do markDate, then markAsSaved as the last items in the constructor:
         // (otherwise this map will look like it's user-modified when it first displays)
         markDate();
@@ -332,139 +331,134 @@ public class LWMap extends LWContainer
         return mChangeState;
     }
     
-    /**
-     * getLWCFilter()
-     * This gets the current LWC filter
-     **/
-    public LWCFilter getLWCFilter() {
-        return mLWCFilter;
-    }
+    /** @deprecated this api / LWCFilter is no longer used -- always return false */
+    public final boolean isCurrentlyFiltered() { return false; }
+    /** @deprecated this api / LWCFilter is no longer used -- always return null */
+    public final LWCFilter getLWCFilter() { return null; }
+    /** @deprecated this api / LWCFilter is no longer used -- always return null */
+    public final UserMapType[] getUserMapTypes() { return null; }
+    /** @deprecated this api / LWCFilter is no longer used -- always dump exception */
+    public final void setUserMapTypes(UserMapType[] x) { Log.warn("UserMapType deprecated: " + Util.tags(x), new Throwable("HERE")); }
     
-    /** @return true if this map currently conditionally displaying
-     * it's components based on a filter */
-    public boolean isCurrentlyFiltered() {
-        return mLWCFilter != null && mLWCFilter.isFilterOn() && mLWCFilter.hasPersistentAction();
-    }
-    
-    /**
-     * This tells us there's a new LWCFilter or filter state in effect
-     * for the filtering of node's & links.
-     * This should be called anytime the filtering is to change, even if we
-     * already have our filter set to the given filter.  We will
-     * apply / clear as appropriate to the state of the filter.
-     * @param LWCFilter the filter to install and/or update against
-     **/
-    private boolean filterWasOn = false; // workaround for filter bug
-    public void setLWCFilter(LWCFilter filter) {
-        out("setLWCFilter: " + filter);
-        mLWCFilter = filter;
-        applyFilter();
-    }
-    
-    public  void clearFilter() {
-        out("clearFilter: cur=" + mLWCFilter);
-        
-         if (mLWCFilter.getFilterAction() == LWCFilter.ACTION_SELECT)
-             VUE.getSelection().clear();
-         
-        for (LWComponent c : getAllDescendents())
-            c.setFiltered(false);
-        
-        mLWCFilter.setFilterOn(false);       
-        notify(LWKey.MapFilter);
-    }
-    
-    public  void applyFilter()
-    {
-        if (mLWCFilter.getFilterAction() == LWCFilter.ACTION_SELECT)
-            VUE.getSelection().clear();
-
-        for (LWComponent c : getAllDescendents()) {
-            if (!(c instanceof LWNode) && !(c instanceof LWLink)) // why are we only doing nodes & links?
-                continue;
-            
-            boolean state = mLWCFilter.isMatch(c);
-            if (mLWCFilter.isLogicalNot())
-                state = !state;
-
-            if (mLWCFilter.getFilterAction() == LWCFilter.ACTION_HIDE)
-                c.setFiltered(state);
-            else if (mLWCFilter.getFilterAction() == LWCFilter.ACTION_SHOW)
-                c.setFiltered(!state);
-            else if (mLWCFilter.getFilterAction() == LWCFilter.ACTION_SELECT) {
-                if (state)
-                    VUE.getSelection().add(c);
-            }
-        }
-        filterWasOn = true;
-        mLWCFilter.setFilterOn(true);
-        notify(LWKey.MapFilter); // only MapTabbedPane wants to know this, to display a filtered icon...
-    }
-    
-    /**
-     * getUserMapTypes
-     * This returns an array of available map types for this
-     * map.
-     * @return UserMapType [] the array of map types
-     **/
-    public UserMapType [] getUserMapTypes() {
-        throw new UnsupportedOperationException("de-implemented");
-        //return mUserTypes;
-    }
-    
-    /**
-     * \Types if(filterTable.isEditing()) {
-     * filterTable.getCellEditor(filterTable.getEditingRow(),filterTable.getEditingColumn()).stopCellEditing();
-     * System.out.println("Focus Lost: Row="+filterTable.getEditingRow()+ "col ="+ filterTable.getEditingColumn());
-     * }
-     * filterTable.removeEditor();
-     * This sets the array of UserMapTypes for teh map
-     *  @param pTypes - uthe array of UserMapTypes
-     **/
-    public void setUserMapTypes( UserMapType [] pTypes) {
-        throw new UnsupportedOperationException("de-implemented");
-        //mUserTypes = pTypes;
-        //validateUserMapTypes();
-    }
-    
-    /*
-     * validateUserMapTypes
-     * Searches the list of LW Compone
-    private void validateUserMapTypes() {
-     
-        java.util.List list = getAllDescendents();
-     
-        Iterator it = list.iterator();
-        while (it.hasNext()) {
-            LWComponent c = (LWComponent) it.next();
-            if ( c.getUserMapType() != null)  {
-                // Check that type still exists...
-                UserMapType type = c.getUserMapType();
-                if( !hasUserMapType( type) ) {
-                    c.setUserMapType( null);
-                }
-            }
-        }
-    }
-     **/
-    
-    /*
-     * hasUserMapType
-     * This method verifies that the UserMapType exists for this Map.
-     * @return boolean true if exists; false if not
-     
-    private boolean hasUserMapType( UserMapType pType) {
-        boolean found = false;
-        if( mUserTypes != null) {
-            for( int i=0; i< mUserTypes.length; i++) {
-                if( pType.getID().equals( mUserTypes[i].getID() ) ) {
-                    return true;
-                }
-            }
-        }
-        return found;
-    }
-     **/
+    // SMF Summer 2012 commented out below en-masse: LWCFilter no longer used
+    // /**
+    //  * getLWCFilter()
+    //  * This gets the current LWC filter
+    //  **/
+    // public LWCFilter getLWCFilter() {
+    //     return mLWCFilter;
+    // }
+    // /** @return true if this map currently conditionally displaying
+    //  * it's components based on a filter */
+    // public boolean isCurrentlyFiltered() {
+    //     return mLWCFilter != null && mLWCFilter.isFilterOn() && mLWCFilter.hasPersistentAction();
+    // }
+    // /**
+    //  * This tells us there's a new LWCFilter or filter state in effect
+    //  * for the filtering of node's & links.
+    //  * This should be called anytime the filtering is to change, even if we
+    //  * already have our filter set to the given filter.  We will
+    //  * apply / clear as appropriate to the state of the filter.
+    //  * @param LWCFilter the filter to install and/or update against
+    //  **/
+    // private boolean filterWasOn = false; // workaround for filter bug
+    // public void setLWCFilter(LWCFilter filter) {
+    //     out("setLWCFilter: " + filter);
+    //     mLWCFilter = filter;
+    //     applyFilter();
+    // }
+    // public  void clearFilter() {
+    //     out("clearFilter: cur=" + mLWCFilter);
+    //      if (mLWCFilter.getFilterAction() == LWCFilter.ACTION_SELECT)
+    //          VUE.getSelection().clear();
+    //     for (LWComponent c : getAllDescendents())
+    //         c.setFiltered(false);
+    //     mLWCFilter.setFilterOn(false);       
+    //     notify(LWKey.MapFilter);
+    // }
+    // public  void applyFilter()
+    // {
+    //     if (mLWCFilter.getFilterAction() == LWCFilter.ACTION_SELECT)
+    //         VUE.getSelection().clear();
+    //     for (LWComponent c : getAllDescendents()) {
+    //         if (!(c instanceof LWNode) && !(c instanceof LWLink)) // why are we only doing nodes & links?
+    //             continue;
+    //         boolean state = mLWCFilter.isMatch(c);
+    //         if (mLWCFilter.isLogicalNot())
+    //             state = !state;
+    //         if (mLWCFilter.getFilterAction() == LWCFilter.ACTION_HIDE)
+    //             c.setFiltered(state);
+    //         else if (mLWCFilter.getFilterAction() == LWCFilter.ACTION_SHOW)
+    //             c.setFiltered(!state);
+    //         else if (mLWCFilter.getFilterAction() == LWCFilter.ACTION_SELECT) {
+    //             if (state)
+    //                 VUE.getSelection().add(c);
+    //         }
+    //     }
+    //     filterWasOn = true;
+    //     mLWCFilter.setFilterOn(true);
+    //     notify(LWKey.MapFilter); // only MapTabbedPane wants to know this, to display a filtered icon...
+    // }
+    // /**
+    //  * getUserMapTypes [was related to LWCfilter]
+    //  * This returns an array of available map types for this
+    //  * map.
+    //  * @return UserMapType [] the array of map types
+    //  **/
+    // public UserMapType [] getUserMapTypes() {
+    //     throw new UnsupportedOperationException("de-implemented");
+    //     //return mUserTypes;
+    // }
+    // /**
+    //  * setUserMapTypes -- was related to LWCFilter
+    //  * \Types if(filterTable.isEditing()) {
+    //  * filterTable.getCellEditor(filterTable.getEditingRow(),filterTable.getEditingColumn()).stopCellEditing();
+    //  * System.out.println("Focus Lost: Row="+filterTable.getEditingRow()+ "col ="+ filterTable.getEditingColumn());
+    //  * }
+    //  * filterTable.removeEditor();
+    //  * This sets the array of UserMapTypes for teh map
+    //  *  @param pTypes - uthe array of UserMapTypes
+    //  **/
+    // public void setUserMapTypes( UserMapType [] pTypes) {
+    //     throw new UnsupportedOperationException("de-implemented");
+    //     //mUserTypes = pTypes;
+    //     //validateUserMapTypes();
+    // }
+    //---------------------------------------------------------------------------------------------------
+    // This stuff was previously commented out already:
+    //---------------------------------------------------------------------------------------------------
+    // /*
+    //  * validateUserMapTypes
+    //  * Searches the list of LW Compone
+    // private void validateUserMapTypes() {
+    //     java.util.List list = getAllDescendents();
+    //     Iterator it = list.iterator();
+    //     while (it.hasNext()) {
+    //         LWComponent c = (LWComponent) it.next();
+    //         if ( c.getUserMapType() != null)  {
+    //             // Check that type still exists...
+    //             UserMapType type = c.getUserMapType();
+    //             if( !hasUserMapType( type) ) {
+    //                 c.setUserMapType( null);
+    //             }
+    //         }
+    //     }
+    // } **/
+    // /*
+    //  * hasUserMapType
+    //  * This method verifies that the UserMapType exists for this Map.
+    //  * @return boolean true if exists; false if not
+    // private boolean hasUserMapType( UserMapType pType) {
+    //     boolean found = false;
+    //     if( mUserTypes != null) {
+    //         for( int i=0; i< mUserTypes.length; i++) {
+    //             if( pType.getID().equals( mUserTypes[i].getID() ) ) {
+    //                 return true;
+    //             }
+    //         }
+    //     }
+    //     return found;
+    // } **/
     
     // todo: change this to arbitrary meta-data
     public String getAuthor() {
@@ -512,41 +506,45 @@ public class LWMap extends LWContainer
     				mMinConnections,
     				mMaxConnections;
 
+    // TODO: would be nice if this info were cached instead of computing
+    // it every time we change the active map!  Or better yet, ONLY
+    // if the MapInspectorPanel is actually visibile.
     protected void countChildren(LWComponent c) {
     	for (LWComponent child : c.getChildren()) {
-			if (child instanceof LWGroup) {
-				mGroupCount++;
-			} else if (child instanceof LWNode) {
-				mNodeCount++;
+            if (child instanceof LWGroup) {
+                mGroupCount++;
+            } else if (child instanceof LWNode) {
+                mNodeCount++;
 
             	int		connections = 0;
 
             	for (LWLink link: child.getLinks()) {
-    				LWComponent		head = link.getPersistHead(),
-    								tail = link.getPersistTail();
+                    LWComponent		head = link.getPersistHead(),
+                        tail = link.getPersistTail();
 
-    				if (head != null && tail != null && head instanceof LWNode && tail instanceof LWNode) {
-    					connections++;
-    				}
+                    if (head != null && tail != null && head instanceof LWNode && tail instanceof LWNode) {
+                        connections++;
+                    }
             	}
 
                 if (mMinConnections == -1 || connections < mMinConnections) {
-                	mMinConnections = connections;
+                    mMinConnections = connections;
                 }
 
                 if (connections > mMaxConnections) {
-                	mMaxConnections = connections;
+                    mMaxConnections = connections;
                 }
 
                 mConnectionCount += connections;
-			} else if (child instanceof LWLink) {
-				mLinkCount++;
-			}
+            } else if (child instanceof LWLink) {
+                mLinkCount++;
+            }
 
-			countChildren(child);
+            countChildren(child);
     	}
     }
 
+    /** the formatting should be in MapInspectorPanel, not LWMap */
     public String getObjectStatistics() {
     	mNodeCount = 0;
     	mLinkCount = 0;
@@ -585,14 +583,16 @@ public class LWMap extends LWContainer
         this.metadata = metadata;
     }
     
+    /** @deprecated -- no longer used -- always returns null for old persistance compatability */
     public MapFilterModel getMapFilterModel() {
-        return mapFilterModel;
+        return null;
+        //return mapFilterModel;
     }
-    
-    public void setMapFilterModel(MapFilterModel mapFilterModel) {
-        //out("setMapFilterModel " + mapFilterModel);
-        this.mapFilterModel = mapFilterModel;
-    }
+    // /** @deprecated -- MapFilterModel no longer in use */
+    // public void setMapFilterModel(MapFilterModel mapFilterModel) {
+    //     //out("setMapFilterModel " + mapFilterModel);
+    //     this.mapFilterModel = mapFilterModel;
+    // }
     
     public LWPathwayList getPathwayList() {
         return mPathways;
