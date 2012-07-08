@@ -25,6 +25,8 @@ import java.util.WeakHashMap;
  * Created on July 19, 2007, 3:39 PM
  *
  * @author dhelle01
+ *
+ * @deprecated UNSAFE / INAPPROPRIATE -- WeakHashMap means search results could be GC's before we examine them!
  */
 public class VueIndexedObjectsMap {
     
