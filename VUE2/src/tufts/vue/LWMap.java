@@ -2711,14 +2711,13 @@ public class LWMap extends LWContainer
     private List searchArrLst = new ArrayList();
 
 	public List getSearchArrLst() {
-		if (DEBUG.Enabled)
-			System.out.println("get : " +searchArrLst.toString());
-		return searchArrLst;
-	}
+            return searchArrLst;
+        }
 
 	public void setSearchArrLst(List searchArrLst) {
-		if (DEBUG.Enabled)
-			System.out.println("set : " +searchArrLst.toString());
-		this.searchArrLst = searchArrLst;
+            if (DEBUG.SEARCH || DEBUG.RDF) {
+                Log.debug("setSearchArrLst " + searchArrLst);
+            }
+            this.searchArrLst = searchArrLst;
 	}
 }
