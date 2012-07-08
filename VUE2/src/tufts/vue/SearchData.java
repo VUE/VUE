@@ -20,120 +20,74 @@ import tufts.Util;
 
 import edu.tufts.vue.metadata.VueMetadataElement;
 
+/**
+ * For saving and restoring searches.  Also used a runtime as a reference to the
+ * saved search.  TODO: some of these fields are using LOCALIZED save values,
+ * which is a bug.  It means a map with saved searches from a different locale
+ * than VUE currently has set will not properly restore the searches.
+ */
 public class SearchData {
 
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(SearchData.class);    
 
-	private String searchSaveName;
+    private String searchSaveName;
+    private String searchType;
+    private String mapType;
+    private String resultType;
+    private String andOrType;
+    private List<VueMetadataElement> dataList;
+
+    public SearchData() {}
+
+    public SearchData(String searchSaveName, String searchType, String mapType, String resultType,
+                      String andOrType, List<VueMetadataElement> dataList) {
+        super();
+        this.searchSaveName = searchSaveName;
+        this.searchType = searchType;
+        this.mapType = mapType;
+        this.resultType = resultType;
+        this.andOrType = andOrType;
+        this.dataList = dataList;
+    }
 	
-	private String searchType;
-
-	private String mapType;
-
-	private String resultType;
-
-	private String andOrType;
-
-	private List<VueMetadataElement> dataList;
-
-	public SearchData() {
-
-	}
-
-	public SearchData(String searchSaveName, String searchType, String mapType, String resultType,
-			String andOrType, List<VueMetadataElement> dataList) {
-
-		super();
-		
-		this.searchSaveName = searchSaveName;
-		
-		this.searchType = searchType;
-
-		this.mapType = mapType;
-
-		this.resultType = resultType;
-
-		this.andOrType = andOrType;
-
-		this.dataList = dataList;
-
-	}
-	
-	public String getSearchSaveName() {
-
-		return searchSaveName;
-
-	}
-
-	public void setSearchSaveName(String searchSaveName) {
-
-		this.searchSaveName = searchSaveName;
-
-	}
-	
-	public String getSearchType() {
-
-		return searchType;
-
-	}
-
-	public void setSearchType(String searchType) {
-
-		this.searchType = searchType;
-
-	}
-
-	public String getMapType() {
-
-		return mapType;
-
-	}
-
-	public void setMapType(String mapType) {
-
-		this.mapType = mapType;
-
-	}
-
-	public String getResultType() {
-
-		return resultType;
-
-	}
-
-	public void setResultType(String resultType) {
-
-		this.resultType = resultType;
-
-	}
-
-	public String getAndOrType() {
-
-		return andOrType;
-
-	}
-
-	public void setAndOrType(String andOrType) {
-
-		this.andOrType = andOrType;
-
-	}
-
-	public List<VueMetadataElement> getDataList() {
-
-		return dataList;
-
-	}
-
-	public void setDataList(List<VueMetadataElement> dataList) {
-
-		this.dataList = dataList;
-
-	}
-
+    public String getSearchSaveName() {
+        return searchSaveName;
+    }
+    public void setSearchSaveName(String searchSaveName) {
+        this.searchSaveName = searchSaveName;
+    }
+    public String getSearchType() {
+        return searchType;
+    }
+    public void setSearchType(String searchType) {
+        this.searchType = searchType;
+    }
+    public String getMapType() {
+        return mapType;
+    }
+    public void setMapType(String mapType) {
+        this.mapType = mapType;
+    }
+    public String getResultType() {
+        return resultType;
+    }
+    public void setResultType(String resultType) {
+        this.resultType = resultType;
+    }
+    public String getAndOrType() {
+        return andOrType;
+    }
+    public void setAndOrType(String andOrType) {
+        this.andOrType = andOrType;
+    }
+    public List<VueMetadataElement> getDataList() {
+        return dataList;
+    }
+    public void setDataList(List<VueMetadataElement> dataList) {
+        this.dataList = dataList;
+    }
     public String toString() {
         final StringBuilder b = new StringBuilder();
-
         //b.append("SearchData");
         b.append("[type=");
         b.append(Util.tags(getSearchType()));
