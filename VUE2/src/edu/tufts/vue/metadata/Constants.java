@@ -28,7 +28,11 @@ public class Constants {
    public static final String AUTHOR = "author";
    public static final String COLOR = "color";
    public static final String NOTES = "notes";
-   public static final String CONTENT_INFO_PROPERTY = "property";
+   public static final String CONTENT_INFO_PROPERTY = "property"; // leave as same for now in case any 3rd party dependencies
+    //public static final String CONTENT_INFO_PROPERTY = "vrkey"; // VUE content resource property key
+    // Todo: could create at least two new domains (sub-domains of VUE): 1 for "public" resource
+    // data -- a name-space where all the OSID meta-data collides, and and another for the meta-data
+    // that VUE adds to resources.
    public static final String TAG ="tag";
     
 }
