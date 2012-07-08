@@ -447,16 +447,14 @@ public class ActionUtil
             try {
                 // TODO: create a ConditionalMarshalling interface for embedding this logic
                 // in the client classes so it's not kept here.
+
+                // Note that ALL objects pass through here...
+                
                 String key = null;
-                if (o instanceof tufts.vue.PropertyEntry)
+                if (o.getClass() == tufts.vue.PropertyEntry.class) // is final class
                     key = ((tufts.vue.PropertyEntry)o).getEntryKey();
                 
-                if (key != null &&
-                    (key.startsWith(tufts.vue.Resource.RUNTIME_PREFIX) ||
-                     key.startsWith(tufts.vue.Resource.DEBUG_PREFIX) ||
-                     key.startsWith(tufts.vue.Resource.HIDDEN_RUNTIME_PREFIX) 
-                     ))
-                {
+                if (key != null && tufts.vue.Resource.isRuntimePropertyKey(key)) {
                     if (DEBUG.XML) Log.debug(" no-marshal " + Util.tags(o));
                     return false;
                 } else {
