@@ -2220,15 +2220,19 @@ public class LWComponent
     }
     
     /**
-     * @return true if should be hidden due to a currently applied filter, false if not
+     * @return true if should not be drawn due to a currently applied filter, false if not.
+     * Note that FILTERING is diffrent than HIDING via a HideCause.  A hidden node
+     * hides all of its children, but a filtered not does not (which can create
+     * some strange visual situations, but there you have it).
      **/
     public boolean isFiltered() {
         return hasFlag(Flag.FILTERED);
     }
 
     /**
-     * This sets the flag for the component so that it is either
-     * hidden or visible based on a match to the active LWCFilter
+     * [This sets the flag for the component so that it is either
+     * hidden or visible based on a match to the active LWCFilter.]
+     * 2012: are LWCFilters still used?
      **/
     public void setFiltered(boolean filtered) {
         if (DEBUG.Enabled) Log.debug("setFiltered " + filtered + "; " + this);
