@@ -1688,6 +1688,8 @@ public class DataSourceViewer extends ContentViewer
 //         }
 //         //mSearchThreadGroup.interrupt(); 
         
+        // todo minor bug: if search string is too long, it can be left out of the UI
+        // pending results area entirely while the search is running (we just see the spinner)
         final String searchString = "\"" + queryEditor.getSearchDisplayName() + "\"";
         final WidgetStack resultsStack = new WidgetStack("searchResults " + searchString);
         final org.osid.repository.Repository[] repositories = sourcesAndTypesManager.getRepositoriesToSearch();
