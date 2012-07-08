@@ -126,6 +126,8 @@ public class LWComponent
             ,COLLAPSED
             /** we're an LWImage that's a node-icon image, and we're hidden */
             ,IMAGE_ICON_OFF
+            // /** a search result has temporarily hidden us */
+            // ,SEARCH
                 ;
         final int bit = 1 << ordinal();
         final Object type;
@@ -1475,7 +1477,9 @@ public class LWComponent
     
     /** set a generic property in the model -- users of this API need to ensure the keys
      * they're using are unique with respect to any other potential users of this API.
-     * Setting a property value to null removes the property */
+     * Setting a property value to null removes the property. This is basically "cookies"
+     * for LWComponents at runtime.
+     */
     public void setClientData(Object key, Object o) {
         if (mClientData == null) {
             if (o == null) // storing null means remove value
@@ -2705,12 +2709,13 @@ public class LWComponent
     
     /** return a type name for this LWComponent */
     public String getComponentTypeLabel() {
-        String name = getClass().getName();
+        final String name = getClass().getName();
         if (name.startsWith("tufts.vue.LW"))
-            name = name.substring(12);
+            return name.substring(12);
         else if (name.startsWith("tufts.vue."))
-            name = name.substring(10);
-        return name;
+            return name.substring(10);
+        else
+            return name;
     }
 
     String toName() {
@@ -5107,16 +5112,19 @@ public class LWComponent
     //-----------------------------------------------------------------------------
     
 
-    /** @return uri
-     * returns an unique uri for a component. If component already has one it is returned else an new uri is created and returned.
-     * At present uris will be created through rdf index
+    /**
+     * @return java.net.URI
+     *
+     * returns a unique URI for a component. If component already has one it is returned else an new uri is created and returned.
+     * Would be nice if these were somehow persistenly unique via specified naming authorities.  As they're currently
+     * not, this is kind of overkill for simple runtime unique indexing string lookups. These *are* persisted in
+     * in save files, tho I'm not sure if there's any point in doing so.
      */
-    public URI getURI() {
+    public java.net.URI getURI() {
         //if (isStyle) return null;
         if (uri == null) {
             try {
                 uri = new URI(edu.tufts.vue.rdf.RDFIndex.getUniqueId());
-                //edu.tufts.vue.rdf.VueIndexedObjectsMap.setID(uri, this);
             } catch (Throwable t) {
                 tufts.Util.printStackTrace(t, "Failed to create an uri for  "+label);
             }
