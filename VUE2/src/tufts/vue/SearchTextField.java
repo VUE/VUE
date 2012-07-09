@@ -50,6 +50,9 @@ import tufts.vue.gui.GUI;
 import edu.tufts.vue.metadata.VueMetadataElement;
 import edu.tufts.vue.metadata.action.SearchAction;
 
+// TODO: THIS SHOULD IGNORE SEARCH-PANEL SEARCH DOMAIN -- always do current map
+
+// TODO: DECOUPLE ENTIRELY FROM SEARCH PANEL -- either only allow select, or perhaps select/hide
 
 // Would be nice to have SearchBox that includes a SearchTextField + indeterminate progress bar.
 // public class SearchTextField extends javax.swing.JPanel {
@@ -213,8 +216,8 @@ public class SearchTextField extends JTextField implements FocusListener {
              if (searcheveryWhereMenuItem.isSelected()) return searcheveryWhereMenuItem;
         else if (labelMenuItem.isSelected())            return labelMenuItem;
         else if (keywordMenuItem.isSelected())          return keywordMenuItem;
-        else if (categoryKeywordMenuItem.isSelected())  return categoryKeywordMenuItem;
         else if (categoriesMenuItem.isSelected())       return categoriesMenuItem;
+        else if (categoryKeywordMenuItem.isSelected())  return categoryKeywordMenuItem;
         else
             return searcheveryWhereMenuItem;
     }
@@ -233,19 +236,12 @@ public class SearchTextField extends JTextField implements FocusListener {
         };
 
     private void runSearch() {
-        if (searcheveryWhereMenuItem.isSelected()) {
-            setSearchEverywhereAction();
-        } else if (labelMenuItem.isSelected()) {
-            setLabelSettingsAction();
-        } else if (keywordMenuItem.isSelected()) {
-            setKeywordSettingsAction();
-        } else if (categoryKeywordMenuItem.isSelected()) {
-            setKeywordCategorySettingsAction();
-        } else if (categoriesMenuItem.isSelected()) {
-            setCategorySettingsAction();
-        } else {
-            setSearchEverywhereAction();
-        }
+               if (searcheveryWhereMenuItem.isSelected()) {     setSearchEverywhereAction();
+        } else if (labelMenuItem.isSelected()) {                setLabelSettingsAction();
+        } else if (keywordMenuItem.isSelected()) {              setKeywordSettingsAction();
+        } else if (categoriesMenuItem.isSelected()) {           setCategorySettingsAction();
+        } else if (categoryKeywordMenuItem.isSelected()) {      setKeywordCategorySettingsAction();
+        } else {                                                setSearchEverywhereAction(); }
         //else if(editSettingsMenuItem.isSelected()){
         //setEditSettingsAction(); }
     }
@@ -489,19 +485,19 @@ public class SearchTextField extends JTextField implements FocusListener {
         labelMenuItem             = makeCheck("search.popup.labels");
         keywordMenuItem           = makeCheck("search.popup.keywords");
         categoriesMenuItem        = makeCheck("search.popup.categories");
-        categoryKeywordMenuItem   = makeCheck("searchgui.categories_keywords");
+        categoryKeywordMenuItem   = makeCheck("searchgui.categories_keywords"); // MAKES NO SENSE W/OUT UI FOR IT
         // searchgui.* property key: would better to have one set of property keys for this and MetadaataSearchMainGUI.java
 
         editSettingsMenuItem      = makeCheck("search.popup.edit.search.settings"); // note this one is NOT part of the group below
 
         searcheveryWhereMenuItem.setSelected(true);
 
-        ButtonGroup exclusives = new ButtonGroup();
+        final ButtonGroup exclusives = new ButtonGroup();
         exclusives.add(searcheveryWhereMenuItem);
         exclusives.add(labelMenuItem);
         exclusives.add(keywordMenuItem);
         exclusives.add(categoriesMenuItem);
-        exclusives.add(categoryKeywordMenuItem);
+        //exclusives.add(categoryKeywordMenuItem); // MAKES NO SENSE W/OUT UI FOR IT
     }
 
     private JMenuItem popAdd(ActionListener actionListener, String key) {
@@ -550,7 +546,7 @@ public class SearchTextField extends JTextField implements FocusListener {
             categoriesMenuItem.addActionListener(actionListener);
             popup.add(categoriesMenuItem);
         }
-        popup.add(categoryKeywordMenuItem);
+        // popup.add(categoryKeywordMenuItem);
         popup.addSeparator();
         popup.add(editSettingsMenuItem);
 
@@ -758,29 +754,34 @@ public class SearchTextField extends JTextField implements FocusListener {
         // resetSettingsMenuItem.setSelected(false);
     }
 
-	private void setTermsAction(SearchAction termsAction) {
-		if (VUE.getMetadataSearchMainPanel().mapCmbBox != null
-				&& VUE.getMetadataSearchMainPanel().mapCmbBox.getSelectedItem() != null
-				&& VUE.getMetadataSearchMainPanel().mapCmbBox
-						.getSelectedItem()
-						.toString()
-						.trim()
-						.equals(
-								VUE.getMetadataSearchMainPanel().ALL_MAPS_STRING)) {
-			termsAction.setLocationType(SearchAction.SEARCH_ALL_OPEN_MAPS);
-		} else {
-			termsAction.setLocationType(SearchAction.SEARCH_SELECTED_MAP);
-		}
-		if (VUE.getMetadataSearchMainPanel().resultCmbBox != null
-				&& VUE.getMetadataSearchMainPanel().resultCmbBox
-						.getSelectedItem() != null) {
-			String resultsTypeChoice = VUE.getMetadataSearchMainPanel().resultCmbBox
-					.getSelectedItem().toString().trim();
-			termsAction.setResultsType(resultsTypeChoice);
-		} else {
-			termsAction.setResultsType("Select");
-		}
-	}
+    private void setTermsAction(SearchAction termsAction) {
+        // Only ever search the currently active map when using the search field
+        
+        // Not working? Is this being pulled from elsewhere?
+        termsAction.setLocationType(SearchAction.SEARCH_SELECTED_MAP);
+        
+        // Only ever search the currently active map when using the search field
+        // if (VUE.getMetadataSearchMainPanel().mapCmbBox != null &&
+        //     VUE.getMetadataSearchMainPanel().mapCmbBox.getSelectedItem() != null &&
+        //     VUE.getMetadataSearchMainPanel().mapCmbBox.getSelectedItem().toString().trim().equals
+        //     (VUE.getMetadataSearchMainPanel().ALL_MAPS_STRING)) {
+        //     termsAction.setLocationType(SearchAction.SEARCH_ALL_OPEN_MAPS);
+        // } else {
+        //     termsAction.setLocationType(SearchAction.SEARCH_SELECTED_MAP);
+        // }
+
+        final javax.swing.JComboBox resultChoice = VUE.getMetadataSearchMainPanel().resultCmbBox;
+        
+        if (resultChoice != null && resultChoice.getSelectedItem() != null) {
+            // Perhaps also only allow the "select" type?
+            //Log.info("GSE: " + GUI.name(resultChoice.getSelectedItem()));
+            termsAction.setResultAction(resultChoice.getSelectedItem());
+        } else {
+            // holy christ -- old code using the string "Select" wouldn't
+            // have worked in any other languages!
+            termsAction.setResultAction(SearchAction.RA_SELECT);
+        }
+    }
 
 	private void createEditPopupMenu() {
 		if (editPopup == null) {
