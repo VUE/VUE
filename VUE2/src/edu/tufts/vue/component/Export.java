@@ -98,7 +98,7 @@ public class Export {
 	public void createRDF(String  mapFile, String outputFile) throws Exception {
 	    LWMap map = OpenAction.loadMap(mapFile);
 		RDFIndex index = new  RDFIndex();
-		index.index(map);
+		index.indexMap(map);
 		FileWriter writer = new FileWriter(new File(outputFile));
         index.write(writer);
         writer.close();
