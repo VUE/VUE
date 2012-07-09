@@ -898,7 +898,7 @@ public class DataTree extends javax.swing.JTree
         
     }
 
-    public static class SchemaMatch extends Criteria {
+    public static final class SchemaMatch extends Criteria {
         final Schema schema;
         public SchemaMatch(Schema s) {
             schema = s;
@@ -911,7 +911,7 @@ public class DataTree extends javax.swing.JTree
         }
     }
 
-    public static class FieldMatch extends Criteria {
+    public static final class FieldMatch extends Criteria {
         final Field field;
         public FieldMatch(Field f) {
             field = f;
@@ -929,7 +929,7 @@ public class DataTree extends javax.swing.JTree
         }
     }
     
-    public static class KeyMatch extends Criteria {
+    public static final class KeyMatch extends Criteria {
         final String key;
         public KeyMatch(String fieldName) {
             key = fieldName;
@@ -947,7 +947,7 @@ public class DataTree extends javax.swing.JTree
         }
     }
     
-    public static class ValueMatch extends Criteria {
+    public static final class ValueMatch extends Criteria {
         final String key;
         final String value;
         public ValueMatch(String k, String v) {
@@ -972,7 +972,7 @@ public class DataTree extends javax.swing.JTree
      * A multiple criteria search that is automagically smart about how to create boolean
      * AND and OR groups to create reasonable searches.
      */
-    public static class SmartSearch /*extends Crtieria*/ {
+    public static final class SmartSearch /*extends Crtieria*/ {
 
         /** a boolean AND group of OR lists for each key used in any key=value searches present */
         final Multimap<String,Criteria> criteriaByKey = Multimaps.newHashMultimap();
