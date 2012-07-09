@@ -6711,8 +6711,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 if(!(hitComponent instanceof LWNode)  && !(hitComponent instanceof LWText)
                    && !(hitComponent instanceof LWLink) && !(hitComponent instanceof LWImage)
                    && !(hitComponent instanceof LWSlide )
-                   && (SearchAction.getGlobalResultsType() != SearchAction.SHOW_ACTION) 
-                   && (SearchAction.getGlobalResultsType() != SearchAction.HIDE_ACTION))
+                   && (SearchAction.getGlobalResultsType() != SearchAction.RA_SHOW) 
+                   && (SearchAction.getGlobalResultsType() != SearchAction.RA_HIDE))
                 {
                   SearchAction.revertGlobalSearchSelection();
                 }
