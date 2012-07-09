@@ -244,17 +244,20 @@ public class SaveAction extends VueAction
             else if(name.endsWith(".rdf"))
             {
                final edu.tufts.vue.rdf.RDFIndex index = new edu.tufts.vue.rdf.RDFIndex();
+
+               // Note this is a (the) case where the RDFIndex doesn't need a mapping
+               // of result hits to LWComponents (e.g, the old VueIndexedObjectsMap)
                
                final String selectionType = VueResources.getString("rdf.export.selection");
                
                if (selectionType.equals("ALL")) {
-                 for (LWMap someMap : VUE.getAllMaps())
-                     index.index(someMap);
+                 for (LWMap nextMap : VUE.getAllMaps())
+                     index.indexAdd(nextMap);
                }
-               else if (selectionType.equals("ACTIVE"))
-                   index.index(VUE.getActiveMap());  
+               else if (selectionType.equals("ACTIVE")) // Hardcoded to this case in VueResources.properties
+                   index.indexMap(VUE.getActiveMap());  
                else 
-                   index.index(VUE.getActiveMap());
+                   index.indexMap(VUE.getActiveMap());
 
                FileWriter writer = new FileWriter(file);
                index.write(writer);
@@ -298,7 +301,11 @@ public class SaveAction extends VueAction
             }
             if (e != t)
                 Log.error("Exception attempting to save file " + file + ": " + e);
-            VueUtil.alert(String.format(Locale.getDefault(),VueResources.getString("saveaction.savemap.error")+ "\"%s\";\n"+VueResources.getString("saveaction.targetfiel")+"\n\n"+VueResources.getString("saveaction.problem"),
+            
+            VueUtil.alert(String.format(Locale.getDefault(),
+                                        VueResources.getString("saveaction.savemap.error") + " \"%s\";\n" +
+                                        VueResources.getString("saveaction.targetfiel") + "\n\n" +
+                                        VueResources.getString("saveaction.problem"),
                                         map.getLabel(), file, Util.formatLines(e.toString(), 80)),
                           "Problem Saving Map");
         } finally {
