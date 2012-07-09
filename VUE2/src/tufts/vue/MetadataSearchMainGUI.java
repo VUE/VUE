@@ -208,7 +208,7 @@ public class MetadataSearchMainGUI extends JPanel
     public MetadataSearchMainGUI(DockWindow w) {
         super();
 
-        if (Util.isMacLeopard() && DEBUG.Enabled && true) {
+        if (Util.isMacLeopard() && DEBUG.Enabled && false) {
             //final String bStyle = "segmented";
             //final String bStyle = "segmentedCapsule";
             //final String bStyle = "segmentedTextured";
