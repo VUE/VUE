@@ -19,7 +19,7 @@ import tufts.Util;
 import tufts.vue.*;
 import tufts.vue.gui.*;
 import tufts.vue.NotePanel;
-import tufts.vue.filter.NodeFilterEditor;
+//import tufts.vue.filter.NodeFilterEditor;
 import tufts.vue.ActiveEvent;
 
 import java.util.*;
@@ -424,23 +424,24 @@ public class InspectorPane extends WidgetStack
         
     }
 
+    private static final String ItemsSelectedFmt = VueResources.getString("infowindow.itemselected");
+
     private void loadMultiSelection(final LWSelection s)
     {
         loadedEntry = null;
         hideAllPanes();
         mKeywords.loadKeywords(null);
-        // todo: actually pull mTypes out of LWSelection to count types of each kind
-        String txt = String.format(VueResources.getString("infowindow.itemselected"), s.size());
-        setTitleItem(txt);
-        //String txt = String.format("<html><center>%d items selected", s.size());
-        if (s.getDescription().length() > 0)
-            txt = "<html>" + txt + " " + s.getDescription();
-            //txt = txt + " " + s.getDescription();
-        //txt = "<html><center>" + txt + " " + s.getDescription();
 
-        GUI.invokeAfterAWT(new Runnable() { public void run() {
-            mSelectionInfo.setText(countObjects(s));
-        }});
+        setTitleItem(String.format(ItemsSelectedFmt, s.size()));
+
+        final String desc = getSelectionDescription(s);
+
+        if (DEBUG.Enabled) Log.debug("selection-description: " + Util.tags(desc));
+
+        // why after AWT?
+        //GUI.invokeAfterAWT(new Runnable() { public void run() {
+            mSelectionInfo.setText(desc);
+            //}});
  
         mLabelPane.loadLabel(s);
         Widget.show(mLabelPane); // connect up to schematic-field style node?
@@ -450,26 +451,77 @@ public class InspectorPane extends WidgetStack
 
     }
 
-    protected String countObjects(LWSelection sel) {
-        int	nodeCount = 0,
-            linkCount = 0,
-		    groupCount = 0;
 
-        for (LWComponent comp : sel) {
-			if (comp instanceof LWNode) {
-				nodeCount++;
-			} else if (comp instanceof LWLink) {
-				linkCount++;
-			} else if (comp instanceof LWGroup) {
-				groupCount++;
-			}
+    private static final String SelectionStatsFmt = VueResources.getString("mapinspectorpanel.objectStats.format");
+    private static final String WordNodes = VueResources.getString("mapinspectorpanel.objectStats.nodes");
+    private static final String WordLinks = VueResources.getString("mapinspectorpanel.objectStats.links");
+    private static final String WordGroups = VueResources.getString("mapinspectorpanel.objectStats.groups");
+
+    private static final String DescriptionFormat = "<html>%s&nbsp;%d&nbsp;&nbsp;&nbsp; %s&nbsp;%d&nbsp;&nbsp;&nbsp; %s&nbsp;%d</html>";
+
+    private static final String SP = "&nbsp;";
+    private static final String SP3 = "&nbsp;&nbsp;&nbsp; ";
+        
+    protected static String getSelectionDescription(final LWSelection s)
+    {
+        final StringBuilder b = new StringBuilder(40);
+
+        // todo: could actually call getTypes() on LWSelection to count types of each kind 
+
+        final int nodeCount = s.count(LWNode.class);
+        final int linkCount = s.count(LWLink.class);
+        final int groupCount = s.count(LWGroup.class);
+
+        b.append("<html><b>");
+        if (nodeCount > 0) {
+            b.append(WordNodes);
+            b.append(SP);
+            b.append(s.count(LWNode.class));
+            b.append(SP3);
         }
+        if (linkCount > 0) {
+            b.append(WordLinks);
+            b.append(SP);
+            b.append(s.count(LWLink.class));
+            b.append(SP3);
+        }
+        if (groupCount > 0) {
+            b.append(WordGroups);
+            b.append(SP);
+            b.append(s.count(LWGroup.class));
+        }
+        if (s.getDescription() != null) {
+            b.append("<br>");
+            b.append(s.getDescription());
+        }
+        b.append("</html>");
 
-        return String.format(Locale.getDefault(), VueResources.getString("mapinspectorpanel.objectStats.format"),
-        		VueResources.getString("mapinspectorpanel.objectStats.nodes"), nodeCount,
-        		VueResources.getString("mapinspectorpanel.objectStats.links"), linkCount,
-        		VueResources.getString("mapinspectorpanel.objectStats.groups"), groupCount);
+        return b.toString();
     }
+    
+    // Selection already keeps counts:
+    // return String.format(Locale.getDefault(), SelectionStatsFmt,
+    //                      WordNodes, s.count(LWNode.class),
+    //                      WordLinks, s.count(LWLink.class),
+    //                      WordGroups, s.count(LWGroup.class));
+    // protected String countObjects(LWSelection sel) {
+    //     int	nodeCount = 0,
+    //         linkCount = 0,
+    //     	    groupCount = 0;
+    //     for (LWComponent comp : sel) {
+    //     		if (comp instanceof LWNode) {
+    //     			nodeCount++;
+    //     		} else if (comp instanceof LWLink) {
+    //     			linkCount++;
+    //     		} else if (comp instanceof LWGroup) {
+    //     			groupCount++;
+    //     		}
+    //     }
+    //     return String.format(Locale.getDefault(), VueResources.getString("mapinspectorpanel.objectStats.format"),
+    //     		VueResources.getString("mapinspectorpanel.objectStats.nodes"), nodeCount,
+    //     		VueResources.getString("mapinspectorpanel.objectStats.links"), linkCount,
+    //     		VueResources.getString("mapinspectorpanel.objectStats.groups"), groupCount);
+    // }
     
     private void loadAllNodePanes(LWComponent c) {
 
