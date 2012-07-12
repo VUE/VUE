@@ -1768,7 +1768,7 @@ public class Util
     }
     
     public static void dumpCollection(Collection c) {
-        System.out.println("Collection of size: " + c.size() + " (" + tag(c) + ")");
+        System.out.println("collection-size(" + c.size() + "): " + tag(c));
         try {
             dumpIterator(c.iterator());
         } catch (Throwable t) {
@@ -2026,6 +2026,17 @@ public class Util
         }
     }
 
+    public static String upCaseInitial(String s) {
+        if (s == null || s.length() < 1)
+            return s;
+        final char c0 = s.charAt(0);
+        if (Character.isUpperCase(c0))
+            return s;
+        else
+            return Character.toUpperCase(c0) + s.substring(1);
+    }
+        
+    
     public static String upperCaseWords(String s)
     {
         //if (DEBUG) out("UCW in["+s+"]");
