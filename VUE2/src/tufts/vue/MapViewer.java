@@ -667,6 +667,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 //             GUI.invokeAfterAWT(ViewChangeTracker);
 //         }
 //     }
+
+    // /** generic PAN event, designed to cause the MapPanner to repaint itself */
+    // public void firePanEvent() {
+    //     fireViewerEvent(Event.PAN, "genericRepaintRequest");
+    // }
     
     protected void fireViewerEvent(int id, String cause) {
         if (VUE.getActiveViewer() == this)
@@ -1677,13 +1682,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
 
     private static void preCacheMap(final LWMap map) {
-        if (DEBUG.Enabled) Log.debug("pre-caching " + map);
+        if (DEBUG.Enabled) Log.debug("scanning for content to pre-cache in " + map);
 
         final Set<LWComponent> toCache = new LinkedHashSet();
         
         try {
             for (LWPathway pathway : map.getPathwayList()) {
-                if (DEBUG.Enabled) Log.debug("pre-caching " + pathway);
+                if (DEBUG.Enabled) Log.debug("pre-cache pathway " + pathway);
                 
                 // this won't grab non-slide elements on the pathway:
                 //toCache.addAll(pathway.getAllDescendents(LWComponent.ChildKind.ANY))
@@ -1712,7 +1717,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         if (!Images.lowMemoryConditions()) {
             if (DEBUG.IMAGE) Util.dump(toCache);
             VUE.invokeAfterAWT(new Runnable() { public void run() {
-                Log.info("caching " + map.getLabel() + ": " + Util.tags(toCache));
+                Log.info("pre-cache run " + Util.quote(map.getLabel()) + ": " + Util.tags(toCache));
                 for (LWComponent c : toCache) {
                     try {
                         c.preCacheImpl();
@@ -2386,9 +2391,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     
     /**
-     * Handle events coming off the LWMap we're displaying.
-     * For most actions this repaints.  It tracks deletiions
-     * for updating the current rollover zoom.
+     * Handle events coming off the LWMap we're displaying.  For most
+     * actions this repaints.  It tracks deletiions for updating the
+     * current rollover zoom.  Todo: this method needs major refactoring.
      */
     public void LWCChanged(LWCEvent e) {
         if (DEBUG.EVENTS && DEBUG.PAINT) out(e);
@@ -2580,8 +2585,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 // todo: more than one component is in this event (e.g., it's a group add/remove)
                 // for full repaint optimization, will want to repaint the bounds of all those children.
                 repaint();
-            } else {
+            } else if (OPTIMIZED_REPAINT) {
                 repaintMapRegionAdjusted(e.getComponent().getBounds());
+            } else {
+                // repaintMapRegionAdjusted will just repaint when OPTIMIZED_REPAINT is false,
+                // tho we don't have to getBounds as above:
+                repaint();
             }
         }
     }
