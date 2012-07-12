@@ -75,6 +75,10 @@ public class LWText extends LWComponent {
 	    }
 	public String getRichText()
 	{
+            if (richLabelBox == null) {
+                Log.warn("getRichText: box was null");
+                return "";
+            } else
 		return richLabelBox.getRichText();
 	}
 	
