@@ -19,6 +19,10 @@ import java.util.List;
 import tufts.Util;
 
 import edu.tufts.vue.metadata.VueMetadataElement;
+import edu.tufts.vue.metadata.action.SearchAction;
+import edu.tufts.vue.metadata.action.SearchAction.ResultOp;
+import edu.tufts.vue.metadata.action.SearchAction.Operator;
+import tufts.vue.gui.GUI;
 
 /**
  * For saving and restoring searches.  Also used a runtime as a reference to the
@@ -33,22 +37,22 @@ public class SearchData {
     private String searchSaveName;
     private String searchType;
     private String mapType;
-    private String resultType;
-    private String andOrType;
+    private Operator opLogical;
+    private ResultOp opResult;
     private List<VueMetadataElement> dataList;
 
     public SearchData() {}
 
-    public SearchData(String searchSaveName, String searchType, String mapType, String resultType,
-                      String andOrType, List<VueMetadataElement> dataList) {
-        super();
-        this.searchSaveName = searchSaveName;
-        this.searchType = searchType;
-        this.mapType = mapType;
-        this.resultType = resultType;
-        this.andOrType = andOrType;
-        this.dataList = dataList;
-    }
+    // public SearchData(String searchSaveName, String searchType, String mapType, String resultType,
+    //                   String andOrType, List<VueMetadataElement> dataList) {
+    //     super();
+    //     this.searchSaveName = searchSaveName;
+    //     this.searchType = searchType;
+    //     this.mapType = mapType;
+    //     this.resultType = resultType;
+    //     this.andOrType = andOrType;
+    //     this.dataList = dataList;
+    // }
 	
     public String getSearchSaveName() {
         return searchSaveName;
@@ -68,18 +72,69 @@ public class SearchData {
     public void setMapType(String mapType) {
         this.mapType = mapType;
     }
+    /** @deprecated -- for castor persistance only */
     public String getResultType() {
-        return resultType;
+        return opResult.key; 
     }
-    public void setResultType(String resultType) {
-        this.resultType = resultType;
+    /** for runtime -- no bean naming convention so castor will ignore */
+    public ResultOp resultOp() {
+        return opResult;
     }
+    /** for runtime -- no bean naming convention so castor will ignore */
+    public void putResultOp(ResultOp resultKey) {
+        this.opResult = resultKey;
+    }
+    /** @deprecated -- for castor persistance only */
+    public void setResultType(String savedValue) {
+        putResultOp(decodeSavedResultOp(savedValue));
+    }
+    /**
+     * All saved searches up till summer 2012 used the LOCALIZED string value of the result-action
+     * type! That was a bug -- restoring searches properly only ever worked if we're in the same locale.
+     *
+     * RA_SELECT is returned as a default if the string cannot be understood.
+     */
+    private static ResultOp decodeSavedResultOp(String saved)
+    {
+        ResultOp matched;
+
+        // first try key (2012 saves onward)
+        matched = ResultOp.KeyMap.get(saved);
+        //if (matched != null) Log.debug("matched key " + Util.tags(savedString) + " to " + GUI.name(matched));
+
+        // then try matching against localized values (all save files prior to summer 2012)
+        if (matched == null) {
+            matched = ResultOp.ValueMap.get(saved);
+            //if (matched != null) Log.debug("matched localized value " + Util.tags(savedString) + " to " + GUI.name(matched));
+        }
+        return matched == null ? SearchAction.RA_SELECT : matched;
+    }
+    
+    /** for runtime -- no bean naming convention so castor will ignore */
+    public Operator logicalOp() {
+        return this.opLogical;
+    }
+
+    /** for runtime -- no bean naming convention so castor will ignore */
+    public void putLogicalOp(Operator op) {
+        this.opLogical = op;
+    }
+    /** @deprecated -- for castor persistance only */
     public String getAndOrType() {
-        return andOrType;
+        return this.opLogical.key;
     }
-    public void setAndOrType(String andOrType) {
-        this.andOrType = andOrType;
+    /** @deprecated -- for castor persistance only */
+    public void setAndOrType(String savedValue) {
+        this.opLogical = decodeSavedLogicalOp(savedValue);
     }
+    /** check keys, then localized values -- backward compat for old save files.  Defaults to OR on failures */
+    private static Operator decodeSavedLogicalOp(String saved) {
+        if (Operator.AND.key.equals(saved) || Operator.AND.localized.equals(saved))
+            return Operator.AND;
+        else
+            return Operator.OR;
+    }
+    
     public List<VueMetadataElement> getDataList() {
         return dataList;
     }
