@@ -81,6 +81,11 @@ public class RDFIndex extends com.hp.hpl.jena.rdf.model.impl.ModelCom
     /** name-space used for all VUE node fields (e.g., label,notes) as well as all "proper" meta-data (not tufts.vue.Resource meta-data) */
     public static final String VUE_ONTOLOGY = Constants.ONTOLOGY_URL + ONT_SEPARATOR;
 
+    /** Include actual keyword names from tufts.vue.Resource properties as opposed to just putting all values under keyword contentPropertyOf.
+     * These will be put in the a VUE_OSID namespace -- either determined from the osid, or put in a general unknown-osid namespace.
+     * Todo: not exactly the right thing to do for pure web/http URLResources or local file Resources. */
+    private static final boolean INDEX_VUE_RESOURCE_KEYWORDS = DEBUG.TEST;
+    
     // The naming convetion here is that a "namespace" has the # at the end, but a "prefix" does not.
     // E.g., a namespace is ready to just have a label/keyword appended, and a prefix might have further
     // URL path depth added to it first.
@@ -94,11 +99,6 @@ public class RDFIndex extends com.hp.hpl.jena.rdf.model.impl.ModelCom
     /** If true, index slides and slide content.  Currently, all slide content is filtered out on the result side anyway. */
     private static final boolean INDEX_SLIDES = false;
     
-    /** Include actual keyword names from tufts.vue.Resource properties as opposed to just putting all values under keyword contentPropertyOf.
-     * These will be put in the a VUE_OSID namespace -- either determined from the osid, or put in a general unknown-osid namespace.
-     * Todo: not exactly the right thing to do for pure web/http URLResources or local file Resources. */
-    private static final boolean INDEX_VUE_RESOURCE_KEYWORDS = false;
-    
     final com.hp.hpl.jena.rdf.model.Property _propertyNone = createProperty(VUE_GENERAL_NAMESPACE, "none");
 
     final com.hp.hpl.jena.rdf.model.Property idOf = createProperty(VUE_ONTOLOGY,Constants.ID);
@@ -108,7 +108,7 @@ public class RDFIndex extends com.hp.hpl.jena.rdf.model.impl.ModelCom
     final com.hp.hpl.jena.rdf.model.Property colorOf = createProperty(VUE_ONTOLOGY,Constants.COLOR);
     final com.hp.hpl.jena.rdf.model.Property notesOf = createProperty(VUE_ONTOLOGY,Constants.NOTES);
     final com.hp.hpl.jena.rdf.model.Property contentPropertyOf = createProperty(VUE_ONTOLOGY,Constants.CONTENT_INFO_PROPERTY);
-    final com.hp.hpl.jena.rdf.model.Property hasTag = createProperty(VUE_ONTOLOGY,Constants.TAG);
+    // final com.hp.hpl.jena.rdf.model.Property hasTag = createProperty(VUE_ONTOLOGY,Constants.TAG); // Unused: shows up as Text
 
     /** will contain the URI's of everything indexed in the map, unless this is a global index,
      * in which case it will contain the merged URI's from all maps */
