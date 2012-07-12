@@ -143,7 +143,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         addSilent(c);
     }
 
-    /** create a temporary selection that contains just the given components */
+    /** create a temporary selection that contains just the given components.  Does NOT auto-compute statistics. */
     public LWSelection(java.util.List<? extends LWComponent> list) {
         isClone = true;
         super.addAll(list);
