@@ -1910,16 +1910,73 @@ public class GUI
             return false;
     }
  
-    /** a key that provides the localized text for the key as a toString -- useful for using with JComboBoxes */
-    public static final class ComboKey {
+    /**
+     * This is basically a dynamic enum type with one significant value associated with each enum key (the localized string)
+     * Arrays/collections of these are useful with JComboBox's.
+     */
+
+    // would be nice to include a persistance string method and tune class for subclassing for type safety
+    public static class ComboKey {
+        // private static final Map<Class,Map> KeyMaps = new HashMap();
+        // private static final Map<Class,Map> ValueMaps = new HashMap();
+
+        private static int count = 1;
+        
         public final String key;
+        /** the VueResources.getString(keY) lookup value -- often GUI text that has been localized */
         public final String localized;
-        public ComboKey(String k) {
-            key = k; 
-            localized = VueResources.getString(key);
+        /** this is a MASTER ordinal amongst ALL sub-types -- for convenience of a numeric runtime constant only */
+        public final int ordinal; 
+
+        // /** stats for each subclass type */ protected class Stats {
+        //     final Map<String,? extends ComboKey> KeyMap = new LinkedHashMap();
+        //     final Map<String,? extends ComboKey> ValueMap = new HashMap();
+        //     int count = 0; // for ordinals
+        // }
+        // Can't override a static to get data, to get All, or anything...
+        
+        public ComboKey(String k, Map keyMap, Map valueMap) {
+            key = k;
+            final String s = VueResources.getString(key);
+            localized = (s == null ? key : s);
+            if (keyMap != null && keyMap.put(key, this) != null)
+                throw new Error("duplicate key [" + key + "] for dynamic enum type " + Util.quote(getClass().getSimpleName()) + "; " + Util.tags(this));
+            if (valueMap != null)
+                valueMap.put(localized, this);
+            ordinal = count++; // could use keyMap.size()
+            // todo: force all keys lowercase for lookups
+            //KeyMaps.put(getClass(), keyMap); // will be called for every instance, but that's okay
         }
+
+        public ComboKey(String k) { this(k, null, null); }
+        
+        /** @return localized text -- not good for debugging, but good for a JComboBox */
         public String toString() { return localized; }
         
+        public String toDebug() { return getClass().getSimpleName() + "<" + key + ">"; }
+
+        /** when implementing an All() in subclasses to return all declared instances, throw this error if key-map is empty */
+        /**/public static class InitError extends Error { public InitError(Class clazz) {
+            super("no keys yet for: " + clazz.getSimpleName() + "\n\treference instance(s) of " + clazz.getName() + " earlier in calling code to force classloading");
+        }}
+        // public static Object[] All(Class clazz) { // is static: must pass in sub-type
+        //     if (data().KeyMap.isEmpty())
+        //         throw new Error("fix your init-order with a declaration change: declared instances haven't been referenced yet");
+        //     return data().KeyMap.values().toArray();
+        // }
+        // public ComboKey(String k, Class clazz) {
+        // }
+        // public static Map<String,? extends ComboKey> keyMap() {
+        //     return KeyMaps.get(getClass());
+        // }
+        
+        // Doesn't make lots of sense as non-static methods:
+        // public <T extends ComboKey> T decode(String input, Class<T> clazz) {
+        //     return (T) KeyMaps.get(clazz).get(input);
+        // }
+        // public <T extends ComboKey> T decode(String input) {
+        //     return (T) decode(input, getClass());
+        // }
     }
     
     //-----------------------------------------------------------------------------
@@ -3251,6 +3308,49 @@ public class GUI
         buttonGrp.add(button);
         return button;
     }
+
+    // public static class ButtonBox extends Box {
+    //     final ButtonGroup group;
+    //     ButtonBox(ButtonGroup group) {
+    //     }
+    // }
+        
+
+    /**
+     * Style is one of: "segmented", "segmentedCapsule", "segmentedTextured", "segmentedRoundRect"
+     * @see https://developer.apple.com/library/mac/#technotes/tn2007/tn2196.html
+     *
+     * It saves created ButtonGroup in the Box using a JComponent client property with key ButtonGroup.class.
+     */
+    public static Box createButtonBox(final String style, final Object[] labelStringables) {
+        final Box box = Box.createHorizontalBox();
+        final ButtonGroup buttonGroup = new ButtonGroup();
+
+        box.putClientProperty(ButtonGroup.class, buttonGroup);
+
+        String position = "first";
+        int count = 1;
+        for (Object o : labelStringables) {
+            final AbstractButton b = createSegmentButton(style, position, buttonGroup, Util.upCaseInitial(o.toString()));
+            if (o instanceof ComboKey) {
+                b.setName(((ComboKey)o).key);
+                b.putClientProperty(ComboKey.class, o);
+            }
+            b.putClientProperty("segment.value", o);
+            b.setFocusPainted(false);
+            // b.setMargin(EmptyInsets); // no effect
+            b.setFont(tufts.vue.gui.GUI.LabelFace);
+            if (count == 1)
+                b.setSelected(true);
+            box.add(b);
+            if (++count == labelStringables.length)
+                position = "last";
+            else
+                position = "middle";
+        }
+        return box;
+    }
+    
 
     // Bottleneck for creating the buttons for the button group
     public static java.util.List<AbstractButton> createSegmentButtonsWithStyle(int numButtons, ButtonGroup buttonGrp, String style)
