@@ -227,8 +227,7 @@ public class LWMap extends LWContainer
     
     
     
-    @Override
-    String getDiagnosticLabel() {
+    @Override String getDiagnosticLabel() {
         return "Map: " + getLabel();
     }
     
@@ -1094,24 +1093,14 @@ public class LWMap extends LWContainer
         }
     }
 
-//     /** todo: remove this -- all maps should now be layered */
-//     boolean isLayered() {
-//         //if (!VUE.VUE3_LAYERS) return false;
-//         return isLayered;
-//     }
-
     public LWContainer getActiveContainer() {
-        //if (!VUE.VUE3_LAYERS) return null;
         return mActiveLayer == null ? this : mActiveLayer;
     }
     
     public Layer getActiveLayer() {
-        //if (!VUE.VUE3_LAYERS) return null;
         return mActiveLayer;
     }
-
     public Layer addLayer(String name) {
-        //if (!VUE.VUE3_LAYERS) return null;
         Layer layer = new Layer(name);
         addChild(layer);
         return layer;
@@ -1164,7 +1153,7 @@ public class LWMap extends LWContainer
         if (mXMLRestoreUnderway) {
             return super.getXMLChildList();
         } else {
-            //if (!VUE.VUE3_LAYERS) return getChildren();
+            // Layer handling
             if (hasChildren()) {
                 List childrenInAllLayers = new ArrayList();
                 //childrenInAllLayers.addAll(mChildren);
@@ -1186,7 +1175,7 @@ public class LWMap extends LWContainer
     public java.util.List<? extends LWComponent> getXMLLayers() {
         if (mXMLRestoreUnderway) {
             return mLayers;
-        } else { //if (VUE.VUE3_LAYERS) {
+        } else { // Layer handling
             if (Util.containsOnly(mChildren, Layer.class)) {
                 // this should always be the case unless of model up-leakage
                 return mChildren;
@@ -1202,8 +1191,6 @@ public class LWMap extends LWContainer
     }
 
     private boolean reparentAllToLayers() {
-
-        //if (!VUE.VUE3_LAYERS) return false;
 
         boolean addedLayers = false;
 
@@ -2644,7 +2631,7 @@ public class LWMap extends LWContainer
     
     
     public String toString() {
-        StringBuilder buf = new StringBuilder("LWMap[v");
+        final StringBuilder buf = new StringBuilder("LWMap[v");
         buf.append(getSaveFileModelVersion());
         buf.append(' ');
         buf.append(getLabel());
@@ -2686,7 +2673,7 @@ public class LWMap extends LWContainer
     
     
     /**
-     * @return the current data-model version
+     * @return the current data-model version -- how the LWComponent hierarchy is organized and what their coordinates mean
      *
      * Model version 0: absolute children: pre-model versions / unknown (assumed all absolute coordinates)
      * Model version 1: relative children, including groups (excepting link members)
@@ -2697,27 +2684,45 @@ public class LWMap extends LWContainer
      */
     public static int getCurrentModelVersion() {
         return 5;
-        //return VUE.VUE3_LAYERS ? 5 : 4;
     }
     
     
     // Moved KEY_PresentationColor to the bottom of the file -- seems
     // to be helping with the sporadic javac failures -- SMF 2008-04-09
-    
     private final ColorProperty mPresentationColor = new ColorProperty(KEY_PresentationColor, new java.awt.Color(32,32,32));
     public static final Key KEY_PresentationColor = new Key("presentation.color", KeyType.STYLE)
         { final Property getSlot(LWMap c) { return c.mPresentationColor; } };
     
     private List searchArrLst = new ArrayList();
+    public List getSearchArrLst() { return searchArrLst; }
+    public void setSearchArrLst(List searchArrLst) {
+        if (DEBUG.SEARCH || DEBUG.RDF) Log.debug("setSearchArrLst " + searchArrLst);
+        this.searchArrLst = searchArrLst;
+    }
 
-	public List getSearchArrLst() {
-            return searchArrLst;
-        }
+    // /** LWMergeMap purge */ public List<LWMap> getMapList() { return null; }
+    // /** LWMergeMap purge */ public void setMapListSelectionType(int choice) {}
+    // /** LWMergeMap purge */ public int getMapListSelectionType(int choice) { return 0; }
 
-	public void setSearchArrLst(List searchArrLst) {
-            if (DEBUG.SEARCH || DEBUG.RDF) {
-                Log.debug("setSearchArrLst " + searchArrLst);
-            }
-            this.searchArrLst = searchArrLst;
-	}
+    private int _mergeMapBugCount = 0;
+    
+    /**
+     * Any XML tag found in a save file that does not match a mapping in from the current mapping file shows
+     * up here -- they appear to always be instances of org.exolab.castor.types.AnyNode
+     *
+     * This overrride here checks for *Boundaries XML tags to ignore (that only ocurred at the
+     * LWMap level) that came from persisted LWMergeMaps, that could grow to include over three (3)
+     * million of them in at least one document case.
+     */
+    @Override public final void addObject(Object o)
+    {
+        if (o instanceof org.exolab.castor.types.AnyNode && ((org.exolab.castor.types.AnyNode)o).getLocalName().endsWith("Boundaries")) {
+            // Christ -- there are more than THREE MILLION of them in our bug-revealing customer map ForcesTrialAlicePulman.vue
+            // Note: we to NOT want to call o.toString() for that many -- it's dramatically slow.
+            if (_mergeMapBugCount++ % 100000 == 0)
+                Log.info("restoring: " + _mergeMapBugCount + " XML <*Boundaries> ignored...");
+        } else
+            super.addObject(o);
+    }
+    
 }
