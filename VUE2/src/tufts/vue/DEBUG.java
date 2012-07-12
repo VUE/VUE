@@ -81,9 +81,6 @@ public class DEBUG
 
     public static boolean DR; // digital repository & data sources
     
-    public static boolean META; // generic toggle to use in combination with other flags
-    
-    public static boolean TRACE; // enhanced (yet slow) log4j logger tracing
     
     public static boolean RDF;
     
@@ -98,7 +95,13 @@ public class DEBUG
     public static boolean SEARCH; // overlaps with RDF
     
     public static boolean MERGE; // Merge Maps
+    
+    public static boolean TEST; // for testing of experimental/provisional/new feature code
 
+    public static boolean TRACE; // insane stack-tracking (and slow) log4j logger tracing
+    public static boolean META; // generic toggle to use in combination with other flags
+    public static boolean MEGA; // generic toggle to use in combination with other flags
+    
     public static  void setAllEnabled(boolean enabled) {
         for (Field f : Fields)
             setFlag(f, enabled);
