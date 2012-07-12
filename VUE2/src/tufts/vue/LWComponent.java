@@ -48,6 +48,10 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
+ * This class is way too big.  A bunch of inner classes could be separated out (e.g., Key, maybe
+ * Property, property event change raising (notify), etc).  Beyond that, it could use a major separation of
+ * concerns (e.g., rendering, persistance, "dataSet" meta-data?).
+ *
  * @version $Revision: 1.531 $ / $Date: 2010-02-03 19:17:40 $ / $Author: mike $
  * @author Scott Fraize
  */
@@ -284,9 +288,8 @@ public class LWComponent
     // xAnchor/yAnchor, which could even be a list of actions to perform every time the
     // object is laid out, or it's parent resizes.
     
-    //private boolean isFiltered = false;
-    
-    private MetadataList metadataList = new MetadataList();
+    //private MetadataList metadataList = new MetadataList();
+    private MetadataList metadataList = null;
     private static final NodeFilter NEEDS_NODE_FILTER = new NodeFilter();
     private NodeFilter nodeFilter = NEEDS_NODE_FILTER;
     private URI uri;
@@ -853,13 +856,13 @@ public class LWComponent
     }
 
     /**
-     * This class allows us to define an arbitrary property for a LWComponent, and
-     * define a default set of setters and getters that automatically handle stuff like
-     * undo and positing change notifications.  It is also essential in allowin us to
-     * easily attach meta-data to the property itself: e.g., it's locked, it's
-     * overriding a parent style value, it's caching some related computed value, etc.
+     * This class allows us to define an arbitrary property for a LWComponent, and define a default
+     * set of setters and getters that automatically handle stuff like undo and positing change
+     * notifications.  It also allows us to easily attach meta-data to the property itself: e.g.,
+     * it's locked, it's overriding a parent style value, it's caching some related computed value,
+     * etc.
      */
-    public abstract class Property<T> {
+    protected abstract class Property<T> {
         
         final Key key;
         protected T value;
@@ -890,8 +893,18 @@ public class LWComponent
             final Object oldValue = this.value;
             take(newValue);
             onChange();
-            // todo: if (alive()) ?
+
+            // RAISE CHANGE EVENT (for observers -- e.g., repaint, UndoManager, editors, etc)
+            // maybe: if (alive()) ?
             LWComponent.this.notify(this.key, oldValue);
+            
+            // note: if could handle event raising in Key class, we could make this class static.
+            // Tho then to bind to a particular property on a particular LWComponent, you'd need a
+            // Binding object.  Do we actually bind directly to individual Property instance's
+            // anywhere? (Answer: seems no -- was just able to make this class protected instead of
+            // public) Could we possibly change class hierarchy such that LWComponent.Key is typed, and
+            // subclassed for the various types, and then do away with the Property class hierarchy
+            // entirely? -- SMF 2012
         }
 
         /** This JUST changes the stored value: no notifications of any kind will be triggered, no undo recorded. */
@@ -1759,8 +1772,10 @@ public class LWComponent
 
     /**
      * Provided for subclass impl's that need to support final members, which can use a
-     * pre-constructed empty object in their override of duplicate v.s. relying on the
-     * default use of newInstance via calls to super.duplicate. 
+     * pre-constructed empty object in their override of duplicate v.s. relying on the default use
+     * of newInstance via calls to super.duplicate. Technically, this also permits any subclass of
+     * instance of LWComponent to "duplicate" an instance of different subclass, and only the
+     * compatible properties will copy themselves over.
      */
     protected <Ts extends LWComponent> Ts duplicateTo(Ts c, CopyContext cc)
     {
@@ -1778,7 +1793,7 @@ public class LWComponent
 
         c.dupeMetaData(this);
 
-        c.copyStyle(this);
+        c.copyStyle(this); // this copies over all compatiable Property values
 
         c.setAutoSized(isAutoSized()); // may be sensitive to order of operations during init
         
@@ -1805,13 +1820,15 @@ public class LWComponent
         return c;
     }
 
-    private void dupeMetaData(LWComponent src) {
-        // duplicate original style meta-data list
-        final List<edu.tufts.vue.metadata.VueMetadataElement> srcVMD = src.getMetadataList().getMetadata();
-        final List<edu.tufts.vue.metadata.VueMetadataElement> targetVMD = getMetadataList().getMetadata();
-        for (VueMetadataElement vme : srcVMD)
-            targetVMD.add(vme);
-
+    private void dupeMetaData(LWComponent src)
+    {
+        if (this.metadataList != null) {
+            // duplicate original style meta-data list
+            final List<VueMetadataElement> srcVMD = src.getMetadataList().getMetadata();
+            final List<VueMetadataElement> targetVMD = this.metadataList.getMetadata();
+            for (VueMetadataElement vme : srcVMD)
+                targetVMD.add(vme);
+        }
         // duplicate data-set data
         if (src.mDataMap != null)
             mDataMap = src.mDataMap.clone();
@@ -1999,7 +2016,15 @@ public class LWComponent
     public void takeAllDataValues(MetaMap map) {
         setPersistDataMap(map);
 
-        // TODO PERFORMANCE: GET RID OF THIS:
+        //----------------------------------------------------------------------------------------
+        // TODO: GET RID OF THIS DUPLICATION.  This is done so that these can be UI editable and so
+        // RDFIndex will index these, making them searchable. Of course, only the COPIES are
+        // editable -- the originals stay the same.  But adding these to the RDFIndex directly from
+        // the mDataMap would be trivial to add in RDFIndex.java, and do we really need/want to be
+        // able to edit them?  Of course, what we really want is to get rid of the
+        // VueMetaDataElement and related MetadataList classes completely.
+        // ----------------------------------------------------------------------------------------
+        
         getMetadataList().add(map.entries()); // duplicate in old meta-data for now
     }
 
@@ -2154,69 +2179,39 @@ public class LWComponent
 
     
     /**
-     *
-     * Metadata List for use with RDF Index
-     * It is sufficient for the minimal RDF functionality
-     * to be able to retrieve this list from the LWComponent
-     * using this method and add elements directly to the list as needed.
-     * LWComponent may choose to create notifications/modifcations
-     * for any data added directly through LWComponent itself
-     * in future.
-     *
+     * Metadata List for use with RDF Index It is sufficient for the minimal RDF functionality to
+     * be able to retrieve this list from the LWComponent using this method and add elements
+     * directly to the list as needed.  LWComponent may choose to create notifications/modifcations
+     * for any data added directly through LWComponent itself in future.
      **/
-     public MetadataList getMetadataList()
-     {
-         return metadataList;
-     }
-     
-     public void setMetadataList(MetadataList list)
-     {
-         metadataList = list;
-     }
-    
-    
-    public boolean hasMetaData()
-    {
-        return hasMetaData(edu.tufts.vue.metadata.VueMetadataElement.CATEGORY);
+    public MetadataList getMetadataList() {
+        if (metadataList == null)
+            metadataList = new MetadataList();
+        return metadataList;
     }
-    
-    public String getMetaDataAsHTML()
-    {
-        return getMetaDataAsHTML(edu.tufts.vue.metadata.VueMetadataElement.CATEGORY);
-    }
-    
-    /**
-     *
-     * see edu.tufts.vue.metadata.VueMetadataElement for metadata types
-     *
-     **/
+    /** see edu.tufts.vue.metadata.VueMetadataElement for metadata types **/
     public boolean hasMetaData(int type) {
-        if(metadataList != null)
-        {
-          return metadataList.hasMetadata(type);
-        }
-        else
-        {
-          return false;
-        }
+        if (metadataList != null)
+            return metadataList.hasMetadata(type);
+        else 
+            return false;
        // return ( (metadataList != null) && (getMetaDataAsHTML().length() > 0) );
     }
-    
-    /**
-     *
-     * see edu.tufts.vue.metadata.VueMetadataElement for metadata types
-     *
-     **/
+    public void setMetadataList(MetadataList list) {
+        metadataList = list;
+    }
+    public boolean hasMetaData() {
+        return hasMetaData(edu.tufts.vue.metadata.VueMetadataElement.CATEGORY);
+    }
+    public String getMetaDataAsHTML() {
+        return getMetaDataAsHTML(edu.tufts.vue.metadata.VueMetadataElement.CATEGORY);
+    }
+    /** see edu.tufts.vue.metadata.VueMetadataElement for metadata types */
     public String getMetaDataAsHTML(int type) {
-        
-        if(metadataList != null)
-        {
-          return metadataList.getMetadataAsHTML(type);
-        }
+        if (metadataList != null)
+            return metadataList.getMetadataAsHTML(type);
         else
-        {
-          return "";
-        }
+            return "";
     }
     
     /**
@@ -2235,7 +2230,7 @@ public class LWComponent
      * 2012: are LWCFilters still used?
      **/
     public void setFiltered(boolean filtered) {
-        if (DEBUG.Enabled) Log.debug("setFiltered " + filtered + "; " + this);
+        //if (DEBUG.Enabled) Log.debug("setFiltered " + filtered + "; " + this);
         setFlag(Flag.FILTERED, filtered);
     }
 
@@ -2730,7 +2725,7 @@ public class LWComponent
     }
     
     
-    /**
+    /** @deprecated
      * left in for (possible future) backward file compatibility
      * do nothing with this data anymore for now.
      **/
@@ -2744,12 +2739,12 @@ public class LWComponent
         return nodeFilter;
     }
 
-    /** for persistance */
+    /** @deprecated -- for persistance */
     public void setXMLnodeFilter(NodeFilter nodeFilter) {
         this.nodeFilter = nodeFilter;
     }
     
-    /** return null if the node filter is empty, so we don't bother with entry in the save file */
+    /** @deprecated -- return null if the node filter is empty, so we don't bother with entry in the save file */
     public NodeFilter getXMLnodeFilter() {
         if (mXMLRestoreUnderway) {
             // in case validation is on:
@@ -6927,7 +6922,7 @@ public class LWComponent
      * A third party can ask this object to raise an event
      * on behalf of the source.
      */
-    void notify(Object source, String what)
+    public void notify(Object source, String what)
     {
         notifyLWCListeners(new LWCEvent(source, this, what));
     }
@@ -7503,14 +7498,23 @@ public class LWComponent
         
         return true;
     }
-    
 
-    /** pesistance default */
-    public void addObject(Object obj)
-    {
-        System.err.println("Unhandled XML obj: " + obj);
+    /** any XML tag found in a save file that does not match a mapping in from the current mapping file shows
+     * up here -- they appear to always be instances of org.exolab.castor.types.AnyNode */
+    public void addObject(final Object o) {
+        final String s = o.toString();
+        final String name;
+        if (o instanceof String)
+            name = "String[";
+        else
+            name = Util.tag(o);
+        
+        if (s.length() > 1024)
+            Log.info(this + " ignoring XML: " + name + "[" + s.substring(0,1024) + "...x" + s.length());
+        else
+            Log.info(this + " ignoring XML: " + name + s + "]");
     }
-
+    
 
     /** interface {@link XMLUnmarshalListener} -- does nothing here */
     public void XML_initialized(Object context) {
