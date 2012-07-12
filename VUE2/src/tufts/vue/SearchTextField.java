@@ -667,46 +667,77 @@ public class SearchTextField extends JTextField implements FocusListener {
 
         final List<VueMetadataElement> searchTerms = Collections.singletonList(vme);
         
-        final SearchAction termsAction = new SearchAction(searchTerms);
+        final SearchAction search = new SearchAction(searchTerms);
 
-        termsAction.setBasic            (0 != (flags & S_BASIC));
-        termsAction.setTextOnly         (0 != (flags & S_TEXT_ONLY));
-        termsAction.setMetadataOnly     (0 != (flags & S_META_ONLY));
-        termsAction.setEverything       (0 != (flags & S_EVERYTHING));
-        termsAction.setNoneIsSpecial    (0 != (flags & S_NONE_IS_SPECIAL)); // refers to #none in VueTermOntologyNone
+        search.setBasic            (0 != (flags & S_BASIC));
+        search.setTextOnly         (0 != (flags & S_TEXT_ONLY));
+        search.setMetadataOnly     (0 != (flags & S_META_ONLY));
+        search.setEverything       (0 != (flags & S_EVERYTHING));
+        search.setNoneIsSpecial    (0 != (flags & S_NONE_IS_SPECIAL)); // refers to #none in VueTermOntologyNone
         
-        //termsAction.setOperator(VUE.getMetadataSearchMainPanel().getSelectedOperator());
+        //search.setOperator(VUE.getMetadataSearchMainPanel().getSelectedOperator());
         // we only have a single term -- operator shouldn't matter, but in SearchAction,
         // AND works with single query, OR with a query list (???)
-        //termsAction.setOperator(SearchAction.AND);
+        //search.setOperator(SearchAction.AND);
         
-        if (VUE.getMetadataSearchMainPanel() != null)
-            setTermsAction(termsAction);
+        // // TODO: do we really want to turn this off completely?
+        // if (VUE.getMetadataSearchMainPanel() != null)
+        //     initFromGUI(search);
+        // else: ONLY ALLOW SELECT FOR NOW
+        
+        search.setResultAction(SearchAction.RA_SELECT);
 
-        // ActionEvet arg is ignored.
-        // Note that another empty RDFIndex is created in this method
-        // and assigned to the SearchAction "index" member -- so
-        // the prior index that used to be created via a thread
-        // on construction is blown away at that point.
-        termsAction.actionPerformed(new ActionEvent(this, 0, "searchFromField"));        
+        search.fire(this, getClass().getName());
 
         //progress.setVisible(false);
     }
 
+    /**
+    private void initFromGUI(SearchAction termsAction) {
+        // Only ever search the currently active map when using the search field
+        
+        // Not working? Is this being pulled from elsewhere?
+        termsAction.setLocationType(SearchAction.SEARCH_SELECTED_MAP);
+        
+        // Only ever search the currently active map when using the search field
+        // if (VUE.getMetadataSearchMainPanel().mapCmbBox != null &&
+        //     VUE.getMetadataSearchMainPanel().mapCmbBox.getSelectedItem() != null &&
+        //     VUE.getMetadataSearchMainPanel().mapCmbBox.getSelectedItem().toString().trim().equals
+        //     (VUE.getMetadataSearchMainPanel().ALL_MAPS_STRING)) {
+        //     termsAction.setLocationType(SearchAction.SEARCH_ALL_OPEN_MAPS);
+        // } else {
+        //     termsAction.setLocationType(SearchAction.SEARCH_SELECTED_MAP);
+        // }
+
+        final javax.swing.JComboBox resultChoice = VUE.getMetadataSearchMainPanel().resultCmbBox;
+        
+        if (resultChoice != null && resultChoice.getSelectedItem() != null) {
+            // Perhaps also only allow the "select" type?
+            //Log.info("GSE: " + GUI.name(resultChoice.getSelectedItem()));
+            termsAction.setResultAction(resultChoice.getSelectedItem());
+        } else {
+            // holy christ -- old code using the string "Select" wouldn't
+            // have worked in any other languages!
+            termsAction.setResultAction(SearchAction.RA_SELECT);
+        }
+    }
+    */
+
     private void updateMetaDataGUI(String typeKey)
     {
-        //VUE.getMetadataSearchMainGUI().setVisible(false);
-        if (typeKey != null) {
-            inUpdate = true;
-            try {
-                VUE.getMetadataSearchMainPanel().searchTypeCmbBox
-                    .setSelectedItem(VueResources.local(typeKey));
-            } catch (Exception e) {
-                Log.debug("MetaDataGUI update", e);
-            } finally {
-                inUpdate = false;
-            }
-        }
+        if (DEBUG.Enabled) Log.debug("no longer syncing search-fields type with crap-tastic MetadataSearchMainGUI");
+        // //VUE.getMetadataSearchMainGUI().setVisible(false);
+        // if (typeKey != null) {
+        //     inUpdate = true;
+        //     try {
+        //         VUE.getMetadataSearchMainPanel().searchTypeCmbBox
+        //             .setSelectedItem(VueResources.local(typeKey));
+        //     } catch (Exception e) {
+        //         Log.debug("MetaDataGUI update", e);
+        //     } finally {
+        //         inUpdate = false;
+        //     }
+        // }
     }
 
     /** set the given search type, and possibly launch / re-launch a search if there's currenlty valid input */
@@ -752,35 +783,6 @@ public class SearchTextField extends JTextField implements FocusListener {
             VUE.getMetadataSearchMainGUI().setVisible(false);
         }
         // resetSettingsMenuItem.setSelected(false);
-    }
-
-    private void setTermsAction(SearchAction termsAction) {
-        // Only ever search the currently active map when using the search field
-        
-        // Not working? Is this being pulled from elsewhere?
-        termsAction.setLocationType(SearchAction.SEARCH_SELECTED_MAP);
-        
-        // Only ever search the currently active map when using the search field
-        // if (VUE.getMetadataSearchMainPanel().mapCmbBox != null &&
-        //     VUE.getMetadataSearchMainPanel().mapCmbBox.getSelectedItem() != null &&
-        //     VUE.getMetadataSearchMainPanel().mapCmbBox.getSelectedItem().toString().trim().equals
-        //     (VUE.getMetadataSearchMainPanel().ALL_MAPS_STRING)) {
-        //     termsAction.setLocationType(SearchAction.SEARCH_ALL_OPEN_MAPS);
-        // } else {
-        //     termsAction.setLocationType(SearchAction.SEARCH_SELECTED_MAP);
-        // }
-
-        final javax.swing.JComboBox resultChoice = VUE.getMetadataSearchMainPanel().resultCmbBox;
-        
-        if (resultChoice != null && resultChoice.getSelectedItem() != null) {
-            // Perhaps also only allow the "select" type?
-            //Log.info("GSE: " + GUI.name(resultChoice.getSelectedItem()));
-            termsAction.setResultAction(resultChoice.getSelectedItem());
-        } else {
-            // holy christ -- old code using the string "Select" wouldn't
-            // have worked in any other languages!
-            termsAction.setResultAction(SearchAction.RA_SELECT);
-        }
     }
 
 	private void createEditPopupMenu() {
