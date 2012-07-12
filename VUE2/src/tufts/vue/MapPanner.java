@@ -145,16 +145,17 @@ public class MapPanner extends javax.swing.JPanel
             if (this.map != null)
                 this.map.removeLWCListener(this);
             this.map = map;
-            if (DEBUG.Enabled)
-                this.map.addLWCListener(this);
-            else
-                this.map.addLWCListener(this, LWKey.UserActionCompleted);
+            // if (DEBUG.Enabled) this.map.addLWCListener(this); else // GAA -- very confusing...
+            this.map.addLWCListener(this, LWKey.UserActionCompleted, LWKey.Repaint);
         }
     }
 
     public void LWCChanged(LWCEvent e) {
-        if (DEBUG.DYNAMIC_UPDATE || e.key == LWKey.UserActionCompleted || e.key == LWKey.RepaintAsync)
-            repaint();
+        repaint();
+        // //if (DEBUG.Enabled) Log.debug("LWCChanged: " + e);
+        // Log.info("LWCChanged: " + e);
+        // if (DEBUG.DYNAMIC_UPDATE || e.key == LWKey.UserActionCompleted || e.key == LWKey.RepaintAsync)
+        //     repaint();
     }
 
     public void mousePressed(MouseEvent e)
