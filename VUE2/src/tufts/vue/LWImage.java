@@ -69,8 +69,13 @@ public class LWImage extends LWComponent
     }
     // HO 21/12/2010 END *********************
     
-    private final static int MinWidth = 16;
-    private final static int MinHeight = 16;
+    // HO 29/06/2012 BEGIN *******
+    // fix for RB's HTML output - Excel etc. images coming out wrong
+    //private final static int MinWidth = 16;
+    private final static int MinWidth = 8;
+    // private final static int MinHeight = 16;
+    private final static int MinHeight = 8;
+    // HO 29/06/2012 END *********
 
     private volatile ImageRef mImageRef = ImageRef.EMPTY;
 

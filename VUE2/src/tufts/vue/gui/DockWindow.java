@@ -4680,16 +4680,31 @@ public class DockWindow
         }
         
         private void installGradient(boolean vertical) {
-            if (vertical)
-                mGradient = new GradientPaint(getHeight(), 0, TopGradientColor,
-                                              0,           0, false ? Color.gray : BottomGradientColor);
-            else
-                mGradient = new GradientPaint(0,           0, TopGradientColor,
-                                              0, TitleHeight, BottomGradientColor);
+        	
+            if (vertical) {
+            	// HO 04/04/2012 BEGIN ******
+                //mGradient = new GradientPaint(getHeight(), 0, TopGradientColor,
+                                              //0,           0, false ? Color.gray : BottomGradientColor);
+            	mGradient = new GradientPaint(getHeight(), 0, TopGradientColor == null ? Color.gray : TopGradientColor,
+            								0, 			  0, BottomGradientColor == null ? Color.gray : BottomGradientColor);
+            	// HO 04/04/2012 BEGIN ******
+            }
+            else {
+            	// HO 04/04/2012 BEGIN ******
+                // mGradient = new GradientPaint(0,           0, TopGradientColor,
+                                              // 0, TitleHeight, BottomGradientColor);
+            	mGradient = new GradientPaint(0,               0, TopGradientColor == null ? Color.gray : TopGradientColor,
+            			                 0, TitleHeight, BottomGradientColor == null ? Color.gray : BottomGradientColor);
+                // HO 04/04/2012 END ******
+            }
 
             // reversed gradient
-            if (false) mGradient = new GradientPaint(0,           0, BottomGradientColor,
-                                                     0, TitleHeight, TopGradientColor);
+            // HO 04/04/2012 BEGIN ******
+            // if (false) mGradient = new GradientPaint(0,           0, BottomGradientColor,
+                                                     // 0, TitleHeight, TopGradientColor);
+            if (false) mGradient = new GradientPaint(0,              0, BottomGradientColor == null ? Color.gray : BottomGradientColor,
+            		                                 0, TitleHeight, TopGradientColor == null ? Color.gray : TopGradientColor);
+            // HO 04/04/2012 END ******
         }
 
         public void paint(Graphics g) {
