@@ -49,9 +49,10 @@ import tufts.Util;
 import tufts.vue.gui.GUI;
 import edu.tufts.vue.metadata.VueMetadataElement;
 import edu.tufts.vue.metadata.action.SearchAction;
+import edu.tufts.vue.metadata.action.SearchAction.SearchType;
+import static edu.tufts.vue.metadata.action.SearchAction.*;
 
 // TODO: THIS SHOULD IGNORE SEARCH-PANEL SEARCH DOMAIN -- always do current map
-
 // TODO: DECOUPLE ENTIRELY FROM SEARCH PANEL -- either only allow select, or perhaps select/hide
 
 // Would be nice to have SearchBox that includes a SearchTextField + indeterminate progress bar.
@@ -230,20 +231,21 @@ public class SearchTextField extends JTextField implements FocusListener {
                     // and used to activate a label edit ("Rename" action) if a single
                     // node happens to be selected on the map.
                     ke.consume();
-                    runSearch();
+                    runConfiguredSearch();
                 }
             }
         };
 
-    private void runSearch() {
-               if (searcheveryWhereMenuItem.isSelected()) {     setSearchEverywhereAction();
-        } else if (labelMenuItem.isSelected()) {                setLabelSettingsAction();
-        } else if (keywordMenuItem.isSelected()) {              setKeywordSettingsAction();
-        } else if (categoriesMenuItem.isSelected()) {           setCategorySettingsAction();
-        } else if (categoryKeywordMenuItem.isSelected()) {      setKeywordCategorySettingsAction();
-        } else {                                                setSearchEverywhereAction(); }
-        //else if(editSettingsMenuItem.isSelected()){
-        //setEditSettingsAction(); }
+    private void runConfiguredSearch() {
+             if (labelMenuItem.isSelected())            runSearch(SEARCH_ONLY_LABELS);
+        else if (keywordMenuItem.isSelected())          runSearch(SEARCH_ONLY_KEYWORDS);
+        else
+            runSearch(SEARCH_EVERYTHING);
+        // } else if (categoriesMenuItem.isSelected()) {           setCategorySettingsAction();
+        // } else if (categoryKeywordMenuItem.isSelected()) {      setKeywordCategorySettingsAction();
+        // } else {                                                setSearchEverywhereAction(); }
+        // //else if(editSettingsMenuItem.isSelected()){
+        // //setEditSettingsAction(); }
     }
 
     private final MouseAdapter MacMouseListener = 
@@ -432,6 +434,7 @@ public class SearchTextField extends JTextField implements FocusListener {
 
                         }
                     } else {
+                        if (DEBUG.Enabled) Log.debug("Windows attempting to launch actions separately", new Throwable("HERE"));
                         if (searcheveryWhereMenuItem.isSelected()) {
                             setSearchEverywhereAction();
                         }/*
@@ -578,7 +581,7 @@ public class SearchTextField extends JTextField implements FocusListener {
                 if (!hasInput())
                     resetForInput(); // be sure to first clear any grey messaging 
                 inputField.paste();
-                runSearch();
+                runConfiguredSearch();
             } else if ("search.popup.clear".equals(action)) {                  inputField.setText(MINIMUM_TEXT);
             } else if ("search.popup.searcheverywhere".equals(action)) {       setSearchEverywhereAction();
             } else if ("search.popup.edit.search.settings".equals(action)) {   setEditSettingsAction();
@@ -608,44 +611,16 @@ public class SearchTextField extends JTextField implements FocusListener {
         VUE.getActiveViewer().repaint();
     }
 
-    private static final int S_DEFAULT = 0x0;
-    private static final int S_BASIC = 0x1;
-    private static final int S_TEXT_ONLY = 0x2;
-    private static final int S_META_ONLY = 0x4;
-    private static final int S_EVERYTHING = 0x8;
-    private static final int S_NONE_IS_SPECIAL = 0x16; // refers to #none in VueTermOntologyNone
+    // private static final int S_DEFAULT = 0x0;
+    // private static final int S_BASIC = 0x1;
+    // private static final int S_TEXT_ONLY = 0x2;
+    // private static final int S_META_ONLY = 0x4;
+    // private static final int S_EVERYTHING = 0x8;
+    // private static final int S_NONE_IS_SPECIAL = 0x16; // refers to #none in VueTermOntologyNone
     
-    private void kickOffSearch(final String typeKey, final int flags)
+    private void fireSearch(SearchType domain)
     {
-        if (DEBUG.Enabled) Log.debug("Kicking off search type " + typeKey + "; text[" + getText() + "]");
-
-        if (true) {
-            // We're getting concurrent modification exceptions deep
-            // down in 3rd party RDIndex code (Jena) when we try
-            // running this later on AWT so we can do a wait cursor...
-            //progress.setVisible(true);
-            _runSearch(typeKey, flags);
-            //progress.setVisible(false);
-            return;
-        }
-
-        // Wait cursor now handled directly in SearchAction
-        
-        //progress.setVisible(true);
-        //revalidate();
-        GUI.activateWaitCursor();
-        GUI.invokeAfterAWT(new Runnable() { public void run() {
-            if (DEBUG.Enabled) Log.debug("AWT search execute of " + typeKey);
-            _runSearch(typeKey, flags);
-            if (DEBUG.Enabled) Log.debug("AWT search complete   " + typeKey);
-            GUI.clearWaitCursor();
-            //progress.setVisible(false);
-        }});
-    }
-
-    private void _runSearch(final String typeKey, final int flags)
-    {
-        if (DEBUG.Enabled) Log.debug("_runSearch[" + typeKey + "] flags=" + flags);
+        if (DEBUG.Enabled) Log.debug("fireSearch: " + Util.tags(domain));
         
         //editSettingsMenuItem.setSelected(false);
         // resetSettingsMenuItem.setSelected(false);
@@ -669,11 +644,13 @@ public class SearchTextField extends JTextField implements FocusListener {
         
         final SearchAction search = new SearchAction(searchTerms);
 
-        search.setBasic            (0 != (flags & S_BASIC));
-        search.setTextOnly         (0 != (flags & S_TEXT_ONLY));
-        search.setMetadataOnly     (0 != (flags & S_META_ONLY));
-        search.setEverything       (0 != (flags & S_EVERYTHING));
-        search.setNoneIsSpecial    (0 != (flags & S_NONE_IS_SPECIAL)); // refers to #none in VueTermOntologyNone
+        search.setParamsByType(domain);
+
+        // search.setBasic            (0 != (flags & S_BASIC));
+        // search.setTextOnly         (0 != (flags & S_TEXT_ONLY));
+        // search.setMetadataOnly     (0 != (flags & S_META_ONLY));
+        // search.setEverything       (0 != (flags & S_EVERYTHING));
+        // search.setNoneIsSpecial    (0 != (flags & S_NONE_IS_SPECIAL)); // refers to #none in VueTermOntologyNone
         
         //search.setOperator(VUE.getMetadataSearchMainPanel().getSelectedOperator());
         // we only have a single term -- operator shouldn't matter, but in SearchAction,
@@ -692,7 +669,7 @@ public class SearchTextField extends JTextField implements FocusListener {
         //progress.setVisible(false);
     }
 
-    /**
+    /*
     private void initFromGUI(SearchAction termsAction) {
         // Only ever search the currently active map when using the search field
         
@@ -723,9 +700,9 @@ public class SearchTextField extends JTextField implements FocusListener {
     }
     */
 
-    private void updateMetaDataGUI(String typeKey)
+    private void updateMetaDataGUI(SearchType domain)
     {
-        if (DEBUG.Enabled) Log.debug("no longer syncing search-fields type with crap-tastic MetadataSearchMainGUI");
+        if (DEBUG.Enabled) Log.debug("no longer syncing search-fields type with crap-tastic MetadataSearchMainGUI; domain=" +domain);
         // //VUE.getMetadataSearchMainGUI().setVisible(false);
         // if (typeKey != null) {
         //     inUpdate = true;
@@ -740,35 +717,49 @@ public class SearchTextField extends JTextField implements FocusListener {
         // }
     }
 
-    /** set the given search type, and possibly launch / re-launch a search if there's currenlty valid input */
-    private void setSearchTypeAndGo(String typeKey, int flags) {
+    // /** set the given search type, and possibly launch / re-launch a search if there's currenlty valid input */
+    // private void setSearchTypeAndGo(String typeKey, int flags) {
+    //     if (DRAW_OVER_STATUS)
+    //         repaint();
+    //     updateMetaDataGUI(typeKey);
+    //     if (hasInput())
+    //         kickOffSearch(typeKey, flags);
+    // }
+    /** run the given search type */
+    private void runSearch(SearchType domain) {
         if (DRAW_OVER_STATUS)
             repaint();
-        updateMetaDataGUI(typeKey);
+        updateMetaDataGUI(domain);
         if (hasInput())
-            kickOffSearch(typeKey, flags);
+            fireSearch(domain);
     }
                                      
-    private void setKeywordCategorySettingsAction() {
-        //categoryKeywordMenuItem.setSelected(true);
-        setSearchTypeAndGo("searchgui.categories_keywords", S_DEFAULT);
-    }
-    private void setKeywordSettingsAction() {
-        //keywordMenuItem.setSelected(true);
-        setSearchTypeAndGo("searchgui.keywords", S_TEXT_ONLY | S_META_ONLY); // badly named flags!
-    }
-    private void setLabelSettingsAction() {
-        //labelMenuItem.setSelected(true);
-        setSearchTypeAndGo("searchgui.labels", S_BASIC);
-    }
-    private void setSearchEverywhereAction() {
-        //searcheveryWhereMenuItem.setSelected(true);
-        setSearchTypeAndGo("searchgui.searcheverything", S_TEXT_ONLY);
-    }
-    private  void setCategorySettingsAction() {
+    private void setSearchEverywhereAction() { runSearch(SEARCH_EVERYTHING); }
+    private void setLabelSettingsAction() { runSearch(SEARCH_ONLY_LABELS); }
+    private void setKeywordSettingsAction() { runSearch(SEARCH_ONLY_KEYWORDS); }
+    private void setKeywordCategorySettingsAction() { runSearch(SEARCH_WITH_CATEGORIES); }
+    private void setCategorySettingsAction() {
+        Log.warn("category-only style search no longer supported");
+        runSearch(SEARCH_WITH_CATEGORIES);
         //categoriesMenuItem.setSelected(true);
-        setSearchTypeAndGo(null, S_NONE_IS_SPECIAL); // Old code didn't set have a resource key, so passing null.
+        //setSearchTypeAndGo(null, S_NONE_IS_SPECIAL); // Old code didn't set have a resource key, so passing null.
     }
+    
+    // private void setKeywordCategorySettingsAction() {
+    //     //categoryKeywordMenuItem.setSelected(true);
+    //     setSearchTypeAndGo("searchgui.categories_keywords", S_DEFAULT);}
+    // private void setKeywordSettingsAction() {
+    //     //keywordMenuItem.setSelected(true);
+    //     setSearchTypeAndGo("searchgui.keywords", S_TEXT_ONLY | S_META_ONLY); /* badly named flags!*/}
+    // private void setLabelSettingsAction() {
+    //     //labelMenuItem.setSelected(true);
+    //     setSearchTypeAndGo("searchgui.labels", S_BASIC);}
+    // private void setSearchEverywhereAction() {
+    //     //searcheveryWhereMenuItem.setSelected(true);
+    //     setSearchTypeAndGo("searchgui.searcheverything", S_TEXT_ONLY);}
+    // private  void setCategorySettingsAction() {
+    //     //categoriesMenuItem.setSelected(true);
+    //     setSearchTypeAndGo(null, S_NONE_IS_SPECIAL); /* Old code didn't set have a resource key, so passing null.*/ }
 
 
     private void setEditSettingsAction() {
@@ -789,48 +780,35 @@ public class SearchTextField extends JTextField implements FocusListener {
 		if (editPopup == null) {
 			editPopup = new JPopupMenu();
 			ActionListener actionListener = new PopupActionListener();
-
-			JMenuItem clearMenuItem = new JMenuItem(VueResources
-					.getString("search.popup.clear"));
+			JMenuItem clearMenuItem = new JMenuItem(VueResources.local("search.popup.clear"));
 			clearMenuItem.addActionListener(actionListener);
 			editPopup.add(clearMenuItem);
-
-			JMenuItem resetSettingsMenuItem = new JMenuItem(VueResources
-					.getString("search.popup.reset"));
+			JMenuItem resetSettingsMenuItem = new JMenuItem(VueResources.local("search.popup.reset"));
 			resetSettingsMenuItem.addActionListener(actionListener);
 			editPopup.add(resetSettingsMenuItem);
-
-			JMenuItem selectMenuItem = new JMenuItem(VueResources
-					.getString("search.popup.select.all"));
+			JMenuItem selectMenuItem = new JMenuItem(VueResources.local("search.popup.select.all"));
 			selectMenuItem.addActionListener(actionListener);
 			editPopup.add(selectMenuItem);
-
-			JMenuItem cutMenuItem = new JMenuItem(VueResources
-					.getString("search.popup.cut"));
+			JMenuItem cutMenuItem = new JMenuItem(VueResources.local("search.popup.cut"));
 			cutMenuItem.addActionListener(actionListener);
 			// cutMenuItem.setActionCommand(DefaultEditorKit.cutAction);
 			editPopup.add(cutMenuItem);
-
-			JMenuItem copyMenuItem = new JMenuItem(VueResources
-					.getString("search.popup.copy"));
+			JMenuItem copyMenuItem = new JMenuItem(VueResources.local("search.popup.copy"));
 			copyMenuItem.addActionListener(actionListener);
 			// copyMenuItem.setActionCommand(DefaultEditorKit.copyAction);
 			editPopup.add(copyMenuItem);
-
-			JMenuItem pasteMenuItem = new JMenuItem(VueResources
-					.getString("search.popup.paste"));
+			JMenuItem pasteMenuItem = new JMenuItem(VueResources.local("search.popup.paste"));
 			pasteMenuItem.addActionListener(actionListener);
 			// pasteMenuItem.setActionCommand(DefaultEditorKit.pasteAction);
 			editPopup.add(pasteMenuItem);
-
 		}
 	}
 
-    private static final Image arrowImg = VueResources.getImageIcon("search.downarrowicon").getImage();
-    private static final Image clearImg = VueResources.getImageIcon("search.closeicon").getImage();
-    private static final Image searchImg = VueResources.getImageIcon("search.searchicon").getImage();
-    private static final Image searchOVImg = VueResources.getImageIcon("search.searchicon.ov").getImage();
-    private static final Image searchTigerImg = VueResources.getImageIcon("search.tiger.searchicon").getImage();
+    private static final Image arrowImg = VueResources.getImage("search.downarrowicon");
+    private static final Image clearImg = VueResources.getImage("search.closeicon");
+    private static final Image searchImg = VueResources.getImage("search.searchicon");
+    private static final Image searchOVImg = VueResources.getImage("search.searchicon.ov");
+    private static final Image searchTigerImg = VueResources.getImage("search.tiger.searchicon");
 
     // Image searchTigerImgOv =
     // VueResources.getImageIcon("search.tiger.searchicon.ov").getImage();
