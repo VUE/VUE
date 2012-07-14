@@ -76,6 +76,7 @@ import javax.swing.event.ChangeListener;
 public class MergeMapsChooser extends JPanel
 implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.Listener
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(MergeMapsChooser.class);
     
     private static DockWindow p;
     private LWMap activeMap;
@@ -153,9 +154,11 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
      //static int c = 0;
     //$
    
+    /** @deprecated -- I don't think this is used at all anymore -- SMF 2012-07 */
     public MergeMapsChooser() 
     {
-        
+        if (true) throw new UnsupportedOperationException("DEPRECATED");
+            
         closeButton.addActionListener(new ActionListener()
         {
             public void actionPerformed(ActionEvent e)
@@ -1152,92 +1155,104 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
     }
     
     
-    public void addMergeNodesForMap(LWMergeMap mergeMap,LWMap map,WeightAggregate weightAggregate,List<Style> styles)
+    private void addMergeNodesForMap_WITH_STYLES(LWMergeMap mergeMap,LWMap map,WeightAggregate weightAggregate,List<Style> styles)
     {
+        if (DEBUG.MERGE) Log.debug("addMergeNodesForMap_WITH_STYLES " + mergeMap + " adding " + map);
         
-        
-        
-        
-           Iterator children = map.getNodeIterator();
-           //Iterator children = map.getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
-           
-           
-           
-           while(children.hasNext()) {
-             LWNode comp = (LWNode)children.next();
-             boolean repeat = false;
-             //if(map.findByID(comp.getChildList(),Util.getMergeProperty(comp)) != null)
-             if(mergeMap.nodeAlreadyPresent(comp))
-             {
-               repeat = true;
-             }
-             LWNode node = (LWNode)comp.duplicate();
-             
-             
-             //$
-               /*List childList = node.getChildList();
-               //node.removeChildren(childList.iterator());
-               Iterator i = childList.iterator();
-               while(i.hasNext())
-               {
-                   //((LWComponent)i.next()).setVisible(false);
-                   
-                   LWComponent childComp = (LWComponent)i.next();
-                   if(childComp instanceof LWNode)
-                   {    
-                     LWNode child = (LWNode)childComp;
-                     double score = 100*weightAggregate.getNodeCount(Util.getMergeProperty(child))/weightAggregate.getCount();
-                     if(score>100)
-                     {
-                        score = 100;
-                     }
-                     if(score<0)
-                     {
-                        score = 0;
-                     }
-                     //System.out.println("mmc: score: " + score);
-                     //System.out.println("mmc: getInterval(score): " + getInterval(score));
-                     Style currStyle = styles.get(getInterval(score)-1);
-                     //System.out.println("Weighted Merge Demo: " + currStyle + " score: " + score);
-                     child.setFillColor(Style.hexToColor(currStyle.getAttribute("background")));
-                   }
-               }*/
-             //$
-             
-             //System.out.println("Weighted Merge: counts : " + Util.getMergeProperty(node) + ":" + weightAggregate.getNodeCount(Util.getMergeProperty(node)) +
-             //                   " " + weightAggregate.getCount());
-             /*double score = 100*weightAggregate.getNodeCount(Util.getMergeProperty(node))/weightAggregate.getCount();
-             if(score>100)
-             {
-               score = 100;
-             }
-             if(score<0)
-             {
-               score = 0;
-             }
-             //System.out.println("mmc: score: " + score);
-             //System.out.println("mmc: getInterval(score): " + getInterval(score));
-             Style currStyle = styles.get(getInterval(score)-1);
-             //System.out.println("Weighted Merge Demo: " + currStyle + " score: " + score);
-             node.setFillColor(Style.hexToColor(currStyle.getAttribute("background")));*/
-             if(!repeat)
-             {    
-               mergeMap.addNode(node);
-             }
-             //map.addNode(node);
-             
-             
-             // actually need an intermediate map with all nodes about to be added? or mergeMap may
-             // already have styled elements...
-             //Iterator mergeMapChildren = mergMap.getAllDescendents(LWComponent.ChildKind.PROPER).iterator();     
-             
-           }
+        for (LWNode n : map.getChildrenOfType(LWNode.class)) {
+            // note that similar LWMergeMap code, called elsewhere via fillAsVoteMerge iterates both LWImage + LWNodes...
+            if (!mergeMap.nodeAlreadyPresent(n)) {
+                // Note that JUST CHECKING THIS *USED* TO INSERT AN ANNOTATION, which may be why is was always duped,
+                // even if never added.
+                mergeMap.add(n.duplicate()); // Do we need a CopyContext / any link patching?
+            }
+        }
     }
+    
+    // public void addMergeNodesForMap_WITH_STYLES_OLD(LWMergeMap mergeMap,LWMap map,WeightAggregate weightAggregate,List<Style> styles)
+    // {
+    //     //if (DEBUG.MERGE) Log.debug("addMergeNodesForMap_LONG " + mergeMap + " adding " + map);
+        
+    //        Iterator children = map.getNodeIterator();
+    //        //Iterator children = map.getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
+           
+    //        while(children.hasNext()) {
+    //          LWNode comp = (LWNode)children.next();
+    //          boolean repeat = false;
+    //          //if(map.findByID(comp.getChildList(),Util.getMergeProperty(comp)) != null)
+    //          if(mergeMap.nodeAlreadyPresent(comp))
+    //          {
+    //            repeat = true;
+    //          }
+    //          LWNode node = (LWNode)comp.duplicate();
+             
+             
+    //          //$
+    //            /*List childList = node.getChildList();
+    //            //node.removeChildren(childList.iterator());
+    //            Iterator i = childList.iterator();
+    //            while(i.hasNext())
+    //            {
+    //                //((LWComponent)i.next()).setVisible(false);
+                   
+    //                LWComponent childComp = (LWComponent)i.next();
+    //                if(childComp instanceof LWNode)
+    //                {    
+    //                  LWNode child = (LWNode)childComp;
+    //                  double score = 100*weightAggregate.getNodeCount(Util.getMergeProperty(child))/weightAggregate.getCount();
+    //                  if(score>100)
+    //                  {
+    //                     score = 100;
+    //                  }
+    //                  if(score<0)
+    //                  {
+    //                     score = 0;
+    //                  }
+    //                  //System.out.println("mmc: score: " + score);
+    //                  //System.out.println("mmc: getInterval(score): " + getInterval(score));
+    //                  Style currStyle = styles.get(getInterval(score)-1);
+    //                  //System.out.println("Weighted Merge Demo: " + currStyle + " score: " + score);
+    //                  child.setFillColor(Style.hexToColor(currStyle.getAttribute("background")));
+    //                }
+    //            }*/
+    //          //$
+             
+    //          //System.out.println("Weighted Merge: counts : " + Util.getMergeProperty(node) + ":" + weightAggregate.getNodeCount(Util.getMergeProperty(node)) +
+    //          //                   " " + weightAggregate.getCount());
+    //          /*double score = 100*weightAggregate.getNodeCount(Util.getMergeProperty(node))/weightAggregate.getCount();
+    //          if(score>100)
+    //          {
+    //            score = 100;
+    //          }
+    //          if(score<0)
+    //          {
+    //            score = 0;
+    //          }
+    //          //System.out.println("mmc: score: " + score);
+    //          //System.out.println("mmc: getInterval(score): " + getInterval(score));
+    //          Style currStyle = styles.get(getInterval(score)-1);
+    //          //System.out.println("Weighted Merge Demo: " + currStyle + " score: " + score);
+    //          node.setFillColor(Style.hexToColor(currStyle.getAttribute("background")));*/
+    //          if(!repeat)
+    //          {    
+    //            mergeMap.addNode(node);
+    //          }
+    //          //map.addNode(node);
+             
+             
+    //          // actually need an intermediate map with all nodes about to be added? or mergeMap may
+    //          // already have styled elements...
+    //          //Iterator mergeMapChildren = mergMap.getAllDescendents(LWComponent.ChildKind.PROPER).iterator();     
+             
+    //        }
+    // }
     
     // todo: replace with LWMergeMap method -- addMergeNodesFromSourceMap, already
     // used by recreateVoteMerge method in LWMergeMap and by slider in this Class...
-    public void addMergeNodesForMap(LWMergeMap mergeMap,LWMap map,VoteAggregate voteAggregate)
+    private void addMergeNodesForMap_LOCAL(LWMergeMap mergeMap,LWMap map,VoteAggregate voteAggregate)
     {
+        if (DEBUG.MERGE) Log.debug("addMergeNodesForMap_LOCAL " + mergeMap + " adding " + map);
+        
            Iterator children = map.getNodeIterator();    
            while(children.hasNext()) {
              LWNode comp = (LWNode)children.next();
@@ -1288,7 +1303,7 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
         //System.out.println("mmc: create weight aggregate");
         WeightAggregate weightAggregate = new WeightAggregate(cms);
         
-        addMergeNodesForMap(map,baseMap,weightAggregate,nodeStyles);
+        addMergeNodesForMap_WITH_STYLES(map,baseMap,weightAggregate,nodeStyles);
         
         if(!filterChoice.isSelected())
         {
@@ -1298,7 +1313,7 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
             LWMap m = maps.next();
             if(m!=baseMap)
             {
-                addMergeNodesForMap(map,m,weightAggregate,nodeStyles);
+                addMergeNodesForMap_WITH_STYLES(map,m,weightAggregate,nodeStyles);
             }
           }
         }
@@ -1404,6 +1419,8 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
     // to merge -- perhaps name this "fill *as* vote merge map"
     public void createVoteMerge(LWMergeMap map)
     {
+        if (DEBUG.MERGE) Log.debug("createVoteMerge " + map);
+        
         ArrayList<ConnectivityMatrix> cms = new ArrayList<ConnectivityMatrix>();
         
         // why not map.getMapList()? is something wrong here?... 3/15/2007-- lets try it
@@ -1421,7 +1438,7 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
         
         //compute and create nodes in Merge Map
         
-        addMergeNodesForMap(map,baseMap,voteAggregate);
+        addMergeNodesForMap_LOCAL(map,baseMap,voteAggregate);
         
         if(!filterChoice.isSelected())
         {
@@ -1431,7 +1448,7 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
             LWMap m = maps.next();
             if(m!=baseMap)
             {
-                addMergeNodesForMap(map,m,voteAggregate);
+                addMergeNodesForMap_LOCAL(map,m,voteAggregate);
             }
           }
         }
