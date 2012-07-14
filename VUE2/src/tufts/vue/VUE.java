@@ -128,7 +128,6 @@ public class VUE
     implements VueConstants
 {
     public static final boolean VUE3 = true;
-    //public static final boolean VUE3_LAYERS = true;
     
     public static boolean BLOCKING_OSID_LOAD = edu.tufts.vue.dsm.impl.VueDataSourceManager.BLOCKING_OSID_LOAD;
     
@@ -880,8 +879,7 @@ public class VUE
 
         if (DEBUG.INIT) System.out.println("VUE: parsed args " + allArgs);
 
-        if (DEBUG.Enabled)
-            debugInit(DEBUG.TRACE || DEBUG.META);
+        if (DEBUG.Enabled) debugInit(DEBUG.TRACE);
 
     }
 
