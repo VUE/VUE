@@ -27,6 +27,7 @@
      3/28/06 SMF: MapResource becomes URLResource, as MapResource is now subclassed from it (MapResource a stub class
                   we're keeping only for backward compatability with old save files).  MapResource stub
                   replaces URLResource stub.  AssetResource also now subclasses URLResource v.s. MapResource (test this)
+     2012-07 SMF: LWMergeMap hacked out.  On restore is converted to proper LWMap.
   -->
           
 <mapping>
@@ -368,7 +369,17 @@
 	</class>
         
         <class name="tufts.vue.LWMergeMap" extends="tufts.vue.LWMap">
-            <map-to xml="LW-MERGE-MAP" />
+          <!-- Include only the "map-to" tag and leave everything else empty, so it will be ignored during
+               load.  (And we've hacked our XMLObjectFactory to actually return an LWMap when an LWMergeMap is
+               requested). SMF 2012-07 -->
+          <!-- It bas a bad idea to persist an LWMergeMap in the first place.  We're doing this now as some
+               save files of LWMergeMaps are going haywire when they're saved/resaved and growing to hundredes
+               of megabytes in size. SMF 2012-07 -->
+          <map-to xml="LW-MERGE-MAP" />
+	</class>
+            
+        <class name="tufts.vue.LWMergeMap$HIDE_FROM_CASTOR_MAPPING" extends="tufts.vue.LWMap">
+            <map-to xml="LW-MERGE-MAP-NO-LONGER-USED" />
             <field name="mapListSelectionType">
                 <bind-xml name="mapListSelectionType" node="element"/>
             </field>
