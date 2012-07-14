@@ -29,10 +29,18 @@ import javax.swing.*;
 
 import tufts.vue.*;
 import tufts.vue.LWComponent.HideCause;
+import tufts.vue.LWComponent.Flag;
 import tufts.vue.LWMap.Layer;
 import tufts.vue.gui.GUI;
 import tufts.vue.gui.GUI.ComboKey;
 import tufts.Util;
+
+// todo: #data=foo, #content=bar, #key=, etc, should search  (or: search syntax: #data/Spanish ?)
+// the entire DOMAINS of data-set data, resource meta-data, VUE keywords (if we keep that domain)
+// #data/Region=East Coast would work as well, etc.  An EMPTY SEARCH in a domain would
+// actually in fact generate a hit on ALL nodes that had ANYTHING in that domain --
+// very useful for discovering where data is in a map.  Could even allow for
+// type=node/link/group/slide/image
 
 /**
  * SearchAction.java
@@ -51,39 +59,22 @@ public class SearchAction extends AbstractAction
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(SearchAction.class);
 
-    /** search domains */
-    public static final Object SEARCH_SELECTED_MAP = "<search-domain:active-map>";
-    public static final Object SEARCH_ALL_OPEN_MAPS = "<search-domain:ALL-OPEN-MAPS>";
+    //----------------------------------------------------------------------------------------
+    // constants
+    //----------------------------------------------------------------------------------------
+    
+    public static final ComboKey SEARCH_SCOPE_CURRENT_MAP = new ComboKey("searchgui.currentmap");
+    public static final ComboKey SEARCH_SCOPE_ALL_OPEN_MAPS = new ComboKey("searchgui.allopenmaps");
 
-    /** localized enum type for the kind of search (e.g., labels, everything, etc). */
-    public static final class /*enum*/ SearchType extends ComboKey {
-        public static final Map<String,SearchType> KeyMap=new LinkedHashMap(), ValueMap=new HashMap();
-        private SearchType(String s) { super(s, KeyMap, ValueMap); }
-        public static Object[] All() {
-            if (KeyMap.isEmpty()) throw new InitError(SearchType.class);
-            return KeyMap.values().toArray();
-        }
-    }
-    /** localized enum type for the desired result operation: e.g., select, show, hide, etc */
-    public static final class /*enum*/ ResultOp extends ComboKey {
-        public static final Map<String,ResultOp> KeyMap=new LinkedHashMap(), ValueMap=new HashMap();
-        private ResultOp(String s)  { super(s, KeyMap, ValueMap); }
-        public static Object[] All() {
-            if (KeyMap.isEmpty()) throw new InitError(ResultOp.class);
-            return KeyMap.values().toArray();
-        }
-        //public static final ResultOp NEW_OP = new ResultOp("my.new.op"); // this works -- would ensure calls to All would never be empty
-    }
-
-    /** search-types: which kind of fields to include in the search. Note that Cat+Key actually modifies the search query, not the index set */
-    public static final SearchType
+    /** search-types: which kind of fields to include in the search (domains/name-spaces) Note that Cat+Key actually modifies the search query, not the index set */
+    public static final SearchAction.SearchType
         SEARCH_EVERYTHING =      new SearchType("searchgui.searcheverything"),
         SEARCH_ONLY_LABELS =     new SearchType("searchgui.labels"),
         SEARCH_ONLY_KEYWORDS =   new SearchType("searchgui.keywords"), // "VUE" keywords, which means just the VueMetadataElements / Keywords Widget
         SEARCH_WITH_CATEGORIES = new SearchType("searchgui.categories_keywords"); // search keywords with specific field labels named to search
 
     /** result-actions -- will appear in combo-boxes in order of declaration.  */
-    public static final ResultOp
+    public static final SearchAction.ResultOp
         RA_SELECT =  new ResultOp("searchgui.select"),
         RA_SHOW =    new ResultOp("searchgui.show"),
         RA_HIDE =    new ResultOp("searchgui.hide"),
@@ -91,36 +82,20 @@ public class SearchAction extends AbstractAction
         RA_LINK =    new ResultOp("searchgui.link"),
         RA_COPY =    new ResultOp("searchgui.copynewmap");
     
-    
-    // /** result-operations, take II.  Needs more ComboKey support for ROP.All() to work... */
-    // public static final class ROP extends ComboKey { private ROP(String s) { super(s /*,ROP.class*/); }
-    //     public static final ROP[] All() { return (ROP[]) ComboKey.getAll(ROP.class); }
-    //     public static final ROP
-    //         SELECT =  new ROP("searchgui.select"),
-    //         SHOW =    new ROP("searchgui.show"),
-    //         HIDE =    new ROP("searchgui.hide"),
-    //         CLUSTER = new ROP("searchgui.cluster"),
-    //         LINK =    new ROP("searchgui.link"),
-    //         COPY =    new ROP("searchgui.copynewmap");
-    //     // Declaring them in-class ensures a call to All will always report properly, even during init.
-    //     // This is probably the closest we'll ever get to a DSL in Java...  I see why Scala.
-    // }
-    
-    //----------------------------------------------------------------------------------------
-    /** AND/OR keys for setting the Operator */
-    public enum Operator {              //implements tufts.vue.KeyWithLocalized
-          AND("searchgui.and"),
-            OR("searchgui.or");
+    /** AND/OR keys for setting the cross-term logical operation */
+    public enum Operator { AND("searchgui.and"), OR("searchgui.or");
         public final String key, localized;
-        Operator(String k) {
-            key = k;
-            String s = VueResources.getString(key);
-            localized = (s == null ? key : s);
-        }
-        /** @return localized value -- not good for debugging, but good for a JComboBox */
+        Operator(String k) { key = k; localized = VueResources.local(key); }
+        /** return localized value -- handy for feeding to a JComboBox */
         public String toString() { return localized; }
     };
     public static final Object[] AllLogicOps = { Operator.OR, Operator.AND };
+    
+    /** key that SearchAction uses to put clientData in the LWMap when it owns some filtering state */
+    public static final Object RevertableState = "search.revertable.state";
+    
+    //----------------------------------------------------------------------------------------
+    // global state
     //----------------------------------------------------------------------------------------
     
     private static Collection<LWComponent> FilteredBySearch;
@@ -129,34 +104,24 @@ public class SearchAction extends AbstractAction
     private static int ResultMapCount = 1;
 
     //----------------------------------------------------------------------------------------
+    // implementation
+    //----------------------------------------------------------------------------------------
     
-    private Object searchDomain = SEARCH_SELECTED_MAP;
+    private ComboKey searchScope = SEARCH_SCOPE_CURRENT_MAP;
     private Operator crossTermOperator = Operator.AND;
     private ResultOp resultAction = RA_SELECT;
     private final List<VueMetadataElement> searchTerms;
     
-    private List<String> tags;
-    
     private List<String> textToFind = new ArrayList<String>();
     private boolean setBasic = true;
     private boolean textOnly = false;
-    private boolean everything = false;    
+    private boolean everything = false; // no longer makes functional difference
     private boolean metadataOnly = false;
     private boolean treatNoneSpecially = false;
     
     private boolean actualCriteriaAdded;
     private boolean waitCursorActivated;
     
-    //----------------------------------------------------------------------------------------
-    /** what's "MARQUEE" mean? in any case, don't change: not suppored as false */
-    private final static boolean MARQUEE = true;
-    // note: default for other nested nodes is currently to treat them as stand alone components
-    // for purposes of search considering perhaps showing parent for any component found nested
-    // within another as issue for dec19-2007 team meeting.
-    private final static boolean AUTO_SHOW_NESTED_IMAGES = true;
-    private final static boolean DO_NOT_SELECT_NESTED_IMAGES = true;
-    //----------------------------------------------------------------------------------------
-
     public SearchAction(List<edu.tufts.vue.metadata.VueMetadataElement> searchTerms, SearchType type)  {
         super(VueResources.getString("searchgui.search"));
         //searchType = TYPE_QUERY;
@@ -168,9 +133,30 @@ public class SearchAction extends AbstractAction
         this(searchTerms, null);
     }
     
+    public void fire(Object source, String sourceTag) {
+        actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, sourceTag));
+    }
+    
+    public void setLocationType(Object scope) {
+        if (scope == SEARCH_SCOPE_CURRENT_MAP || scope == SEARCH_SCOPE_ALL_OPEN_MAPS)
+            this.searchScope = (ComboKey) scope;
+        else
+            throw new IllegalArgumentException(GUI.name(scope));
+    }
+    
+    public void setOperator(Operator op) {
+        this.crossTermOperator = op;
+    }
+    
+    /** set the internal parameters automatically via the SearchType-domain */
     public void setParamsByType(SearchType type)
     {
         setBasic = textOnly = metadataOnly = everything = false;
+
+        // treatNoneSpecially is only from old versions of VUE that could do
+        // a "category" search (as opposed to "category+keywords") --
+        // todo: what this actually do when it checked for the #none type?
+        treatNoneSpecially = false; 
 
              if (type == SEARCH_ONLY_LABELS)   setBasic = true;
         else if (type == SEARCH_ONLY_KEYWORDS) textOnly = metadataOnly = true;
@@ -179,59 +165,46 @@ public class SearchAction extends AbstractAction
             ; // default: all-false
     }
     
+    /** note: everything bit is currently ignored -- we never index slides or slide content */
+    public void setEverything(boolean set) { everything = set; }
+    public void setBasic(boolean set) { setBasic = set; }
+    public void setNoneIsSpecial(boolean set) { treatNoneSpecially = set; }
+    public void setMetadataOnly(boolean set) { metadataOnly = set; }
+    public void setTextOnly(boolean set) { textOnly = set; }
+    
+    public void setResultAction(ResultOp ra) { this.resultAction = ra; }
+    /** for taking an input directly from a JComboBox where type is unknown */
+    public void setResultAction(Object ra) {
+        if (ra instanceof ResultOp)
+            setResultAction((ResultOp)ra);
+        else
+            throw new IllegalArgumentException("not a ResultOp: " + Util.tags(ra));
+    }
+    public ResultOp getResultAction() {
+        return this.resultAction;
+    }
+    
+    public String getName() {
+        return VueResources.getString("searchgui.search");
+    }
+    
     public static Object getGlobalResultsType() {
         return LastAction;
     }
     
-    /** note: this bit is currently ignored -- we never index slides or slide content */
-    public void setEverything(boolean everything) {
-        this.everything = everything;
-    }
-    
-    public void setOperator(Operator op) {
-        this.crossTermOperator = op;
-    }
-    
-    // public void setOperator(int op) {
-    //     if (op == 0) setOperator(AND);
-    //     else if (op == 1) setOperator(OR);
-    //     else setOperator("bad op value: " + op);
-    // }
-    
-    // public void setOperator(String operator) {
-    //     if (operator != AND && operator != OR)
-    //         throw new Error("invalid x-term-operator: " + operator);
-    //     crossTermOperator = operator;
-    // }
-    
-    public void setBasic(boolean basic) {
-        setBasic = basic;
-    }
-    
-    public void setNoneIsSpecial(boolean set) {
-        treatNoneSpecially = set;
-    }
-    
-    // runs special index with only metadata
-    public void setMetadataOnly(boolean set) {
-        metadataOnly = set;
-    }
-    
-    public void setTextOnly(boolean set) {
-        textOnly = set;
-    }
-    
-    public void loadKeywords(String searchString) {
-        
-        tags = new ArrayList<String>();
-        String[] parsedSpaces = searchString.split(" ");
-        for(int i=0;i<parsedSpaces.length;i++) {
-            tags.add(parsedSpaces[i]);
-        }
-        
-    }
-    
 
+    // public void loadKeywords(String searchString) {
+    //     tags = new ArrayList<String>();
+    //     String[] parsedSpaces = searchString.split(" ");
+    //     for(int i=0;i<parsedSpaces.length;i++) {
+    //         tags.add(parsedSpaces[i]);
+    //     }
+    // }
+    
+    //----------------------------------------------------------------------------------------
+    // End of the API
+    //----------------------------------------------------------------------------------------
+    
     private static final String AS_ONE_QUERY = "as-one-query(logical-and)";
     private static final String AS_MULTIPLE_QUERIES = "as-query-list(logical-or)";
 
@@ -350,16 +323,16 @@ public class SearchAction extends AbstractAction
     }
 
     private static final String INDEX_WITH_WAIT_CURSOR = "<index-with-wait-cursor>";
-    private static final String INDEX_SILENT = "<index-no-wait-cursor>";
+    private static final String INDEX_NO_WAIT_CURSOR = "<index-no-wait-cursor>";
 
     /**
-     * @return an index over given search domain (e.g., the currently active map, or all open maps)
+     * @return an index over given search scope (e.g., the currently active map, or all open maps)
      */
-    private RDFIndex getDomainIndex(final Object domain)
+    private RDFIndex getIndexForScope(final ComboKey scope)
     {
-        if (DEBUG.SEARCH) Log.debug("getDomainIndex " + Util.tags(domain));
+        if (DEBUG.SEARCH) Log.debug("getScopeIndex " + Util.tags(scope));
 
-        if (domain == SEARCH_ALL_OPEN_MAPS) { 
+        if (scope == SEARCH_SCOPE_ALL_OPEN_MAPS) { 
             if (DEBUG.SEARCH) Log.debug("indexing all open maps...");
 
             this.waitCursorActivated = true;
@@ -371,7 +344,7 @@ public class SearchAction extends AbstractAction
 
             for (LWMap map : VUE.getAllMaps()) {
                 if (DEBUG.SEARCH || DEBUG.RDF) Log.debug("adding to global index: " + map);
-                final RDFIndex mapIndex = getIndexForMap(map, !this.metadataOnly, INDEX_SILENT);
+                final RDFIndex mapIndex = getIndexForMap(map, !this.metadataOnly, INDEX_NO_WAIT_CURSOR);
                 globalIndex.addMapIndex(mapIndex);
             }
 
@@ -379,8 +352,7 @@ public class SearchAction extends AbstractAction
 
             return globalIndex;
             
-        } else {
-            // default is SEARCH_SELECTED_MAP
+        } else { // default SEARCH_SCOPE_CURRENT_MAP
             return getIndexForMap(VUE.getActiveMap(), !this.metadataOnly, INDEX_WITH_WAIT_CURSOR);
         }
     }
@@ -549,19 +521,6 @@ public class SearchAction extends AbstractAction
         return index.decodeVueResults(results);
     }
 
-    public String getName() {
-        return VueResources.getString("searchgui.search");
-    }
-    
-    public void setLocationType(Object type) {
-        searchDomain = type;
-    }
-
-    public void fire(Object source, String sourceTag) {
-        actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, sourceTag));
-    }
-    
-    
     /**
      * Entry point for running the actual search.
      */
@@ -577,15 +536,15 @@ public class SearchAction extends AbstractAction
         final LWSelection selection = VUE.getSelection();
         final LWMap activeMap = VUE.getActiveMap();
         
-        //selection.clear();
+        // selection.clear();
+        // let the selection be replaced in one fell swoop: less UI flickering
         waitCursorActivated = false;
         
         Collection<LWComponent> hits = null;
 
         try {
-            final RDFIndex index = getDomainIndex(this.searchDomain);
             // getIndex will have activated wait-cursor if new indexing took place
-            hits = runSearch(index, this.searchTerms);
+            hits = runSearch(getIndexForScope(this.searchScope), this.searchTerms);
         } catch (Throwable t) {
             Log.error("search error, src=(" + ae + ")", t);
         } finally {
@@ -593,7 +552,7 @@ public class SearchAction extends AbstractAction
         }
         
         if (DEBUG.SEARCH) {
-            Log.debug("results are in for domain " + Util.tags(searchDomain) + "; willProcessAs: " + GUI.name(resultAction));
+            Log.debug("results are in for scope " + Util.tags(searchScope) + "; willProcessAs: " + GUI.name(resultAction));
             if (true || DEBUG.RDF) {
                 // note: in may cases now, DEBUG.RDF means "DEBUG.SEARCH.EXTRA"
                 Log.debug("=raw-results:");
@@ -610,7 +569,7 @@ public class SearchAction extends AbstractAction
             return;
         }
 
-        if (searchDomain == SEARCH_ALL_OPEN_MAPS) {
+        if (searchScope == SEARCH_SCOPE_ALL_OPEN_MAPS) {
             // Only one result-action exists for this case -- essentially (or is it exactly?): RA_COPY
             selection.clear();
             displayAllMapsSearchResults(hits);
@@ -622,11 +581,11 @@ public class SearchAction extends AbstractAction
         }
     }
 
-    private void processResultsToMap
-        (final ResultOp action,
-         final Collection<LWComponent> hits,
-         final LWMap map,
-         final LWSelection selection)
+    private void processResultsToMap(
+        final ResultOp action,
+        final Collection<LWComponent> hits,
+        final LWMap map,
+        final LWSelection selection)
     {
         revertSearchState(false);
         LastAction = resultAction;
@@ -634,7 +593,7 @@ public class SearchAction extends AbstractAction
         if (hits.isEmpty()) {
             selection.clear();
         } else {
-            final Collection<LWComponent> toSelect = processHitsForAction(action, hits, map);
+            final Collection<LWComponent> toSelect = targetNodesForAction(action, hits, map);
 
             if (DEBUG.SEARCH) {
                 // note: in may cases now, DEBUG.RDF means "DEBUG.SEARCH.EXTRA"
@@ -675,6 +634,7 @@ public class SearchAction extends AbstractAction
             //VueToolbarController.getController().selectionChanged(VUE.getSelection());
             //VUE.getActiveViewer().requestFocus();
         }
+            
 
         map.notify(this, LWKey.Repaint);
 
@@ -686,147 +646,126 @@ public class SearchAction extends AbstractAction
         }
     }
 
+    /** We must use PROPER (or ANY) to see node icons (EDITABLE leaves out node-icons), ANY would
+     * include slides, which we don't want. */
+    private static final LWComponent.ChildKind SearchRelevant = LWComponent.ChildKind.PROPER;
+    
+    private static final int TARGETING_DENIED = Flag.FILTERED.bit
+        | Flag.LOCKED.bit
+        // | Flag.ICON.bit // handling separately
+        // We shouldn't ever see any these, but just in case:
+        | Flag.STYLE.bit // should never see unless index is bad (e.g., indexed ChildKind.ANY v.s. PROPER)
+        | Flag.DATA_STYLE.bit // should never see unless index is bad
+        | Flag.SLIDE_STYLE.bit // should never see unless index is bad
+        | Flag.INTERNAL.bit // should never see
+        | Flag.DELETED.bit  // should never see
+        | Flag.PRUNED.bit; // should never need (already hidden if this is set)
+            
+            
     /**
      * Take the given set of hits from the RDFIndex based search, and process them depending on the
-     * the user-selected resulting action.  Any returned collection of LWComponents are items
-     * to actually be selected, which can vary quite a bit from the LWComponents that were
-     * registered as hits.
+     * the user-selected resulting action.  Any returned collection of LWComponents are items to
+     * actually be selected, which can vary from the LWComponents that were registered as hits.
+     * (E.g., a hit on a node-icon will actually select it's parent node).
+     *
+     * At the moment, this method will also take aciton in the cases of RA_HIDE/RA_SHOW by
+     * setting the appropriate FILTERED flags.
      */
-    private Collection<LWComponent> processHitsForAction(final ResultOp action, final Collection<LWComponent> _hits, final LWMap map)
+    private Collection<LWComponent> targetNodesForAction(final ResultOp action, final Collection<LWComponent> hits, final LWMap map)
     {
-        if (DEBUG.SEARCH) Log.debug(Util.color(GUI.name(resultAction), Util.TERM_GREEN)); 
-        
-        // If an LWIMage that is a node-icon is in the list, add it's parent LWNode, and vice-versa
-        // (if an LWNode that has a node-icon is in the list, add it's node-icon LWImage).  I'm
-        // guessing we do this so if we get a hit on a node-icon LWImage, it can hit parent LWNode
-        // as we'd actually like -- don't know why the reverse case is done, however.
-        // SMF 2012
-        
-        final Set<LWComponent> comps = new HashSet<LWComponent>(_hits.size());
-        Collection<LWComponent> toSelect = null;
+        if (DEBUG.SEARCH) Log.debug(Util.color(GUI.name(resultAction), Util.TERM_GREEN));
 
-        for (LWComponent c : _hits)
-            if (!isSearchHitDenied(c))
-                comps.add(c);
+        // THE PROBLEM WITH NODE ICONS: To review this ancient and regretful hack: When a tufts.vue.Resource is
+        // set on a node that appears to be a reference to image content, we want to show that content right in
+        // the node.  To do this, we create an LWImage with an identical Resource, and add it as the first
+        // child of that node.  There are hacks abound through VUE to deal with this.  These days, these
+        // special LWImage's should also all have Flag.ICON set, a flag created for that purpose.  Note that it
+        // is of course possible to have an LWImage with a DIFFERENT resource than a node, added as a child.
+        // This is especially wierd if the node had an image-icon-node, but it was deleted -- the resulting
+        // LWImage will look exacly like a node-icon, but it won't be.
 
-        if (DEBUG.SEARCH && _hits.size() != comps.size()) {
-            Log.debug("denied search hit to " + (_hits.size()-comps.size()) + " items, new staring results:");
-            Util.dump(comps);
-        }
+        // In any case, if we are going to be SELECTING, we need to turn any hit on a node-icon image to a hit
+        // on the node.  If we are going to be FILTERING, we need the reverse: to turn any filter on a node to
+        // also filter the node-icon (or do we want it both ways then?).  We need to handle the filtering case
+        // in two places: when HIDING, we filter what we've hit, when SHOWING, we filter everything else.  When
+        // filtering everything else, we want all node-icons hit -- we can have that handled by requesting
+        // ChildKind.PROPER descendents when we ask for everything else.
 
-        final Collection<LWComponent> imageAssoc = new HashSet<LWComponent>();
-        
-        // Why do we do this at all?  Must be so that when SHOW/HIDE are used the image-icon
-        // doesn't drop out... Oh -- this is (at least) so that a hit on an node icon will ALSO hit
-        // the node, or, what we really want is for it to hit the node instead.
+        // That said, there is something else we want: in cases of SELECT/LINK/CLUSTER, lets call them
+        // TARGETING actions, we do not want to hit ANY nested content.  So a single pass to add nodes for
+        // their hit node icons, follwed by a pass to remove all nested content should work there.  Also, in
+        // the case of TARGETING actions, we only want to pick ChildKind.EDITABLE content (e.g., nothing on
+        // hidden or locked layers).  [Note that if we're were messing with the RDFindex stuff, we could have
+        // such searches initially traverse only ChildKind.EDITABLE in the first place, but RDFindex simply
+        // looks at all ChildKind.PROPER nodes).
 
-        for (LWComponent c : comps) {
-            // Note that this may be explicitly un-done below!
-            if (c instanceof LWNode && LWNode.isImageNode(c))
-                imageAssoc.add(((LWNode)c).getImage());
-            
-            if (c instanceof LWImage) {
-                LWImage image = (LWImage) c;
-                if (image.isNodeIcon() && image.getParent() != null)
-                    imageAssoc.add(image.getParent());
-            }
-            /*if(current.hasFlag(LWComponent.Flag.SLIDE_STYLE)) {
-                    LWSlide slide = (LWSlide)current.getParentOfType(LWSlide.class);
-                    images.add(slide);
-                    //LWNode source  = ((LWNode)slide.getSourceNode());
-                    //images.add(source);
-                    if(LWNode.isImageNode(source))
-                         images.add(source.getImage());
-            }*/
-        }
-        
-        if (DEBUG.SEARCH && DEBUG.META) { Log.debug("+imageAssoc:"); Util.dump(imageAssoc); }
+        final boolean doTargeting = (action == RA_SELECT || action == RA_LINK || action == RA_CLUSTER);
+        final boolean doFiltering = (action == RA_HIDE || action == RA_SHOW);
 
-        comps.addAll(imageAssoc);
-        
-        if (DEBUG.SEARCH) { Log.debug("+=imageAssoc:"); Util.dump(comps); }
-        
-        if (action == RA_SELECT || action == RA_CLUSTER || action == RA_LINK) {
-            
-            if (DO_NOT_SELECT_NESTED_IMAGES) {
-                // todo: could try and rely on LWComponent.isAncestorSelected / LWSelection.clearAncestorSelected
-                // todo: above we just added in node images -- could refactor in light of that code
-                final List<LWComponent> nesters = new ArrayList<LWComponent>();
-                for (LWComponent c : comps) {
-                    // Note: this appears to clear ALL nested items?
-                    for (LWComponent nested : c.getAllDescendents()) {
-                        if (comps.contains(nested))
-                            nesters.add(nested);
-                    }
-                    if (c instanceof LWNode && LWNode.isImageNode(c)) {
-                        // note that this UNDOES what we did above to
-                        // explicitly add these in!
-                        nesters.add(((LWNode)c).getImage());
-                    }
-                }
-                comps.removeAll(nesters);
-            }
-        }
-        
-        // If HIDE or SHOW, also filter out all elements inside any hit LWGroup's (filtering doesn't hide children)
-        // Note: getting a search hit on an LWGroup is pretty tough -- mainly just if there are any notes
-        if (action == RA_HIDE || action == RA_SHOW ) {
-            final Collection<LWComponent> groupDescendants = new HashSet<LWComponent>(); // no duplicates
-            
-            for (LWGroup group : Util.typeFilter(comps, LWGroup.class))
-                groupDescendants.addAll(group.getAllDescendents(LWComponent.ChildKind.EDITABLE));
+        if (doFiltering == doTargeting) throw new Error("impossible");
 
-            comps.addAll(groupDescendants);
-        }
-        
-        // todo: below are a bunch of loops that filter out slide/group components, but those have already
-        // been removed from the list...
+        final Collection<LWComponent> targets = new HashSet<LWComponent>(hits.size());
 
-        if (action == RA_SELECT || action == RA_CLUSTER || action == RA_LINK) {
-            final List<LWComponent> toAdd = new ArrayList<LWComponent>(comps.size());
-            for (LWComponent c : comps) {
+        if (doTargeting) {
+            // TARGETING: remove disallowed targets, and retarget node-icons to their nodes
+            for (LWComponent c : hits) {
+                // First, leave out anything even remotely hidden or locked:
+                if (c.isHidden() || c.hasAnyFlag(TARGETING_DENIED))
+                    continue;
                 final LWMap.Layer layer = c.getLayer();
-                if (layer == null || layer.isHidden() || isSearchHitDenied(c))
-                    ; // do nothing
+                if (layer == null || layer.isHidden() || layer.isLocked())
+                    continue;
+                // todo: what about being hidden via ancestors?
+                if (c.hasFlag(Flag.ICON))
+                    targets.add(c.getParent());
                 else
-                    toAdd.add(c);
+                    targets.add(c);
             }
-            toSelect = toAdd;
-        } else if (action == RA_HIDE) {
-
-            hideComponents(map, comps);
-
-        } else if (action == RA_SHOW) {
-
-            if (AUTO_SHOW_NESTED_IMAGES) {
-                // checking all children of nodes in search results to see if they are images or image nodes to
-                // be done: for select, possibly actually remove selection for any children of search results
-                // also to be done: image or image node results should also show parents (but not non image
-                // results)
-                // TODO: THIS CODE IS REPEATED ELSEWHERE!  And semantically, applied / re-applied multiple times!
-                final List<LWComponent> imageNodes2 = new ArrayList<LWComponent>();  
-                for (LWComponent c : comps) {
-                    for (LWComponent child : c.getAllDescendents()) {
-                        if ( ( (child instanceof LWImage) || LWNode.isImageNode(child)) && !comps.contains(child) ) {
-                            imageNodes2.add(child);
-                        }
+            // Now remove nested targets
+            final List<LWComponent> nested = new ArrayList<LWComponent>();
+            for (LWComponent c : targets) {
+                if (c.atTopLevel())
+                    continue;
+                for (LWComponent ancestor : c.getAncestors()) {
+                    if (targets.contains(ancestor)) {
+                        nested.add(c);
+                        break;
                     }
                 }
-                comps.addAll(imageNodes2);
             }
-          
-            // Note: VISIBLE is already PROPER, so no slides or slide content should be encountered.
-            final Collection<LWComponent> allComps = map.getAllDescendents(LWComponent.ChildKind.VISIBLE);
-            final Collection<LWComponent> toHide = new ArrayList<LWComponent>();
-            
-            for (LWComponent c : allComps)
-                if (!comps.contains(c) && isHidingAllowed(c))
-                    toHide.add(c);
-
-            hideComponents(map, toHide);
+            targets.removeAll(nested);
+            return targets;
+        } else { 
+            // FILTERING: add extra targets
+            for (LWComponent c : hits) {
+                targets.add(c);
+                if (LWNode.isImageNode(c)) {
+                    // also filter the node-icon                    
+                    targets.add(c.getChild(0)); 
+                } else if (c instanceof LWGroup) {
+                    // If a search hit is on an actual LWGroup (e.g., notes hit), and we're
+                    // FILTERING that group, we ALSO want to filter all the children.  Or, if we're
+                    // exclusively SHOWING that group, we want to make sure to show all the
+                    // children also.
+                    targets.addAll(c.getAllDescendents(SearchRelevant));
+                }
+            }
+            if (action == RA_HIDE) {
+                hideComponents(map, targets);
+            } else if (action == RA_SHOW) {
+                // compute inverse of targets for this map:
+                final Collection<LWComponent> allOnMap = map.getAllDescendents(SearchRelevant);
+                final Collection<LWComponent> toHide = new ArrayList(32);
+                
+                for (LWComponent c : allOnMap)
+                    if (!targets.contains(c))
+                        toHide.add(c);
+                
+                hideComponents(map, toHide);
+            } else
+                throw new Error(action.toString());
         }
-        
-        return toSelect;
+        return null;        
     }
 
     private static void hideComponents(LWMap map, Collection<LWComponent> toHide)
@@ -836,9 +775,9 @@ public class SearchAction extends AbstractAction
         for (LWComponent c : toHide) {
             // VUE-892 -- switch back to setFiltered from setHidden (needs change in LWImage to work for image nodes, but this
             // will handle child nodes/images correctly in non image nodes)
-            if (isHidingAllowed(c))
-                c.setFiltered(true);
+            c.setFiltered(true);
         }
+        map.setClientData(RevertableState, Integer.valueOf(toHide.size()));
     }
 
     private static void revertPreviouslyHiddenToVisible(boolean repaint)
@@ -850,6 +789,8 @@ public class SearchAction extends AbstractAction
         for (LWComponent c : FilteredBySearch)
             c.setFiltered(false);
 
+        FilteredMap.setClientData(RevertableState, null); // removes property
+        
         if (repaint) {
             // Note: this will NOT cause a viewer repaint if its current focal isn't the whole map
             FilteredMap.notify(SearchAction.class, LWKey.Repaint);
@@ -857,21 +798,6 @@ public class SearchAction extends AbstractAction
         
         FilteredBySearch = null;
         FilteredMap = null;
-    }
-
-    private static boolean isSearchHitDenied(LWComponent c) {
-        // NOTE: this should be overkill: all this stuff is has normally been removed the the comps list
-        return c.hasFlag(LWComponent.Flag.SLIDE_STYLE) || c instanceof LWSlide || c.hasAncestorOfType(LWSlide.class);
-    }
-
-    private static boolean isHidingAllowed(LWComponent c) {
-        // NOTE: this should be overkill: all this stuff is has normally been removed the the comps list
-        // note: why were groups disallowed? Was that an old issue when we used HideCause, or was
-        // it a current issue with using setFiltered?
-        if (/*c instanceof LWGroup ||*/ isSearchHitDenied(c)) 
-            return false;
-        else
-            return true;
     }
 
     private class LinkResultAction implements Runnable {
@@ -882,10 +808,7 @@ public class SearchAction extends AbstractAction
         // also incoming: searchTerms, crossTermOperator
 
         /** only meaningful if s.count(LWNode.class) > 0, otherwise nothing happens */
-        LinkResultAction(LWMap m, LWSelection s) {
-            map = m;
-            selection = s;
-        }
+        LinkResultAction(LWMap m, LWSelection s) { map = m; selection = s; }
 
         /** Create a new node, name it based on the search, and link the selected nodes to it. */
         public void run() {
@@ -937,7 +860,7 @@ public class SearchAction extends AbstractAction
                 map.addChildren(newComps);
                 if (undoManager != null)
                     undoManager.mark(VueResources.getString("searchgui.link"));
-                // tufts.vue.Actions.MakeCluster.doClusterAction(newNode, selectedNodes);
+                // @@.;tufts.vue.Actions.MakeCluster.doClusterAction(newNode, selectedNodes);
                 // undoMgr.mark(VueResources.getString("menu.format.layout.makecluster"));
                 if (activeViewer.getFocal() == map) {
                     // we check activeViewer focal just in case it might have changed to another map,
@@ -963,8 +886,8 @@ public class SearchAction extends AbstractAction
             // The outer loop looks completely redundant here -- could just iterate comps checking for EDITABLE -- SMF
             //---------------------------------------------------------------------------------------------------
 
-            for (LWComponent next : map.getAllDescendents(LWComponent.ChildKind.EDITABLE)) {
-                
+            for (LWComponent next : map.getAllDescendents(LWComponent.ChildKind.EDITABLE)) { // TODO: what kind?
+
                 if (comps.contains(next)) {
 
                     // Todo: could use copy-context to include
@@ -1135,26 +1058,6 @@ public class SearchAction extends AbstractAction
     //     } 
     // }
 
-    public void setResultAction(final ResultOp ra) {
-        this.resultAction = ra;
-    }
-    
-    public ResultOp getResultAction() {
-        return this.resultAction;
-    }
-    
-    /** for taking an input directly from a JComboBox where type is unknown */
-    public void setResultAction(Object ra_key) {
-        if (ra_key instanceof ResultOp)
-            setResultAction((ResultOp)ra_key);
-        else
-            Log.error("invalid result-action key: " + Util.tags(ra_key), new Throwable("HERE"));
-    }
-    // public void setResultActionFromSaved(String savedString) {
-    //     setResultAction(getResultActionFromSaved(savedString));
-    // }
-
-
     // TODO: should only need if from same map -- tie to an enabled Revert button
     private static void revertSearchState(boolean repaint) {
         if (LastAction == RA_HIDE || LastAction == RA_SHOW)
@@ -1196,5 +1099,28 @@ public class SearchAction extends AbstractAction
             // Note: could also consider handling this via a UserActionCompleted.
         }
     }
+
+
+    /** localized enum type for the kind of search (e.g., labels, everything, etc). */
+    public static final class /*enum*/ SearchType extends ComboKey {
+        public static final Map<String,SearchType> KeyMap=new LinkedHashMap(), ValueMap=new HashMap();
+        private SearchType(String s) { super(s, KeyMap, ValueMap); }
+        public static Object[] All() {
+            if (KeyMap.isEmpty()) throw new InitError(SearchType.class);
+            return KeyMap.values().toArray();
+        }
+    }
+    /** localized enum type for the desired result operation: e.g., select, show, hide, etc */
+    public static final class /*enum*/ ResultOp extends ComboKey {
+        public static final Map<String,ResultOp> KeyMap=new LinkedHashMap(), ValueMap=new HashMap();
+        private ResultOp(String s)  { super(s, KeyMap, ValueMap); }
+        public static Object[] All() {
+            if (KeyMap.isEmpty()) throw new InitError(ResultOp.class);
+            return KeyMap.values().toArray();
+        }
+        //public static final ResultOp NEW_OP = new ResultOp("my.new.op"); // this works -- would ensure calls to All would never be empty
+    }
+
+
 	
 }
