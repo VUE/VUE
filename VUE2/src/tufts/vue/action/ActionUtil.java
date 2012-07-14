@@ -1246,6 +1246,7 @@ public class ActionUtil
         }
         catch (Exception e) {
             tufts.Util.printStackTrace(e, "Exception restoring map from [" + url + "]: " + e.getClass().getName());
+            Log.info("map-as-is: " + Util.tags(map)); // presumably null
             map = null;
             throw new Error("Exception restoring map from [" + url + "]", e);
         }
@@ -1304,7 +1305,7 @@ class MapUnmarshalHandler implements UnmarshalListener {
             VueUtil.alert(String.format(Locale.getDefault(), VueResources.getString("actionutil.notifyversion.message")+"\n"
                                         + "\n"+VueResources.getString("actionutil.notifyversion.datamodel")+"\n",
                                         file, map.getModelVersion(), LWMap.getCurrentModelVersion())
-                          + "\n"+ VueResources.getString("actionutil.notifyversion.savedversion") +"\n" + savingVersion
+                          + "\n"+VueResources.getString("actionutil.notifyversion.savedversion") +"\n" + savingVersion
                           + "\n"+VueResources.getString("actionutil.notifyversion.currentversion")+"\n        " + VueResources.getString("actionutil.notifyversion.vuebuilt") + tufts.vue.Version.AllInfo
                           + " (public v" + VueResources.getString("vue.version") + ")"
                           + "\n"
@@ -1447,29 +1448,33 @@ final class XMLObjectFactory extends org.exolab.castor.util.DefaultObjectFactory
     @Override
     public Object createInstance(Class type, Object[] args) throws IllegalAccessException, InstantiationException {
         //System.err.println("VOF0 ASKED FOR " + type + " args=" + args);
-        Log.warn("ASKED FOR " + type + " args=" + args);
+        Log.info("*** ASKED FOR " + type + " args=" + args); // apparently never called
         return this.createInstance(type, null, null);
     }
 
     @Override
     public Object createInstance(Class type) throws IllegalAccessException, InstantiationException {
         //System.err.println("VOF1 ASKED FOR " + type);
-        Log.warn("ASKED FOR " + type);
+        Log.info("*** ASKED FOR " + type); // apparently never called
         return this.createInstance(type, null, null);
     }
 
     @Override
-    public Object createInstance(Class _type, Class[] argTypes, Object[] args)
+    public Object createInstance(final Class _type, final Class[] argTypes, final Object[] args)
         throws IllegalAccessException, InstantiationException
     {
-        Class type = _type;
             
-//         if (_type == tufts.vue.MapResource.class || _type == tufts.vue.CabinetResource.class)
-//             type = tufts.vue.URLResource.class;
-
-//         if (_type != type) {
-//             Log.info("CONVERTED " + _type + " to " + type);
-//         }
+        final Class type;
+        if (_type == tufts.vue.LWMergeMap.class) {
+            Log.info("dumping poisonious " + _type);
+            type = tufts.vue.LWMap.class;
+        }
+        // else if (_type == tufts.vue.MapResource.class || _type == tufts.vue.CabinetResource.class)
+        //     type = tufts.vue.URLResource.class;
+        else
+            type = _type;
+        
+        if (_type != type) Log.info("request for instance of " + _type.getName() + " yields: " + type);
 
         //System.err.println("VOF ASKED FOR " + type + " argTypes=" + argTypes);
         //Object o = super.createInstance(type);
@@ -1477,11 +1482,12 @@ final class XMLObjectFactory extends org.exolab.castor.util.DefaultObjectFactory
         if (DEBUG.Enabled) {
             if ((DEBUG.IO && DEBUG.META) ||
                 DEBUG.XML || DEBUG.CASTOR || (DEBUG.RESOURCE && DEBUG.META && o instanceof tufts.vue.Resource)) {
-                // don't use tags (allow toString to be called) -- unmarshalling can fail
-                // if there are side-effects (!!!) due to calling it -- this happens
-                // with a FavoritesDataSource in any case...
+                
+                // Do not use Util.tags(o) or allow toString to be called on object -- unmarshalling can fail
+                // if there are side-effects (!!!) due to calling it -- this happened at one point with an
+                // instance of FavoritesDataSource.  Util.tag(o) is fine tho.
+                
                 Log.debug("+= " + Util.tag(o));
-                //Log.debug("new " + Util.tag(o) + "; " + source); 
             }
         }
         return o;
