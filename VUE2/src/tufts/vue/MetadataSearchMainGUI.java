@@ -82,6 +82,8 @@ import edu.tufts.vue.metadata.ui.CategoryComboBoxModel;
 import edu.tufts.vue.metadata.ui.CategoryComboBoxRenderer;
 import edu.tufts.vue.ontology.OntType;
 
+// todo: really need a "search even hidden/locked" button in the search UI
+
 /**
  * A tabbed-pane collection of property sheets that apply globally to a given
  * map.
@@ -95,23 +97,31 @@ public class MetadataSearchMainGUI extends JPanel
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(MetadataSearchMainGUI.class);
 
-    public final static String SELECTED_MAP_STRING = VueResources.getString("searchgui.currentmap");
-    public final static String ALL_MAPS_STRING = VueResources.getString("searchgui.allopenmaps");
-
-    private static final Object[] SearchScopeLimited = { SEARCH_EVERYTHING,
-                                                         SEARCH_ONLY_LABELS,
-                                                         SEARCH_ONLY_KEYWORDS };
+    private static final Object[] SearchScopes = {
+        SearchAction.SEARCH_SCOPE_CURRENT_MAP,
+        SearchAction.SEARCH_SCOPE_ALL_OPEN_MAPS
+    };
+    
+    private static final Object[] SearchDomainsLimited = {
+        SearchAction.SEARCH_EVERYTHING,
+        SearchAction.SEARCH_ONLY_LABELS,
+        SearchAction.SEARCH_ONLY_KEYWORDS
+    };
     // Note: it turns out it can be crucial to access at least one of the value instances
     // before calling All() or they may not have been initialized...
-    private static final Object[] SearchScope = DEBUG.TEST ? SearchScopeLimited : SearchAction.SearchType.All();
-    //private static final String[] SearchScope = { SEARCH_EVERYTHING, SEARCH_ONLY_LABELS, SEARCH_ONLY_KEYWORDS, SEARCH_WITH_CATEGORIES };
+    private static final Object[] SearchDomainsAll = SearchAction.SearchType.All();
+    private static final Object[] SearchDomains = DEBUG.TEST ? SearchDomainsLimited : SearchDomainsAll;
+
+    private static final Object[] ResultActionsAll = SearchAction.ResultOp.All();
+    private static final Object[] ResultActionsLimited = { SearchAction.RA_SELECT, SearchAction.RA_SHOW, SearchAction.RA_HIDE }; 
+    private static final Object[] ResultActions = DEBUG.TEST ? ResultActionsLimited : ResultActionsAll;
+    private static final Object[] ResultActionsMultiMap = { SearchAction.RA_COPY };
+
+    
+    private static final Object[] LogicOps = { SearchAction.Operator.AND, SearchAction.Operator.OR };
     
 
-    //private static final Object[] LogicOps = SearchAction.AllLogicOps;
-    private static final Object[] LogicOps = { SearchAction.Operator.AND, SearchAction.Operator.OR };
-    private static final Object[] AllOpenMapsResultsTypes = { SearchAction.RA_COPY };
     private static final boolean DEBUG_LOCAL = false;
-    
 
     public final static int BUTTON_COL_WIDTH = 24;
     public final static int ROW_HEIGHT = 30;
@@ -139,10 +149,7 @@ public class MetadataSearchMainGUI extends JPanel
     public final static int LOCATIONS = 1;
     public final static int RESULTS = 2;
 
-    private static final String[] SearchDomains = { SELECTED_MAP_STRING, ALL_MAPS_STRING };
     private boolean singleLine = false;
-
-    private final static Object[] CurrentMapResultsTypes = SearchAction.ResultOp.All();
 
     static public final int ANY_MODE = 0;
     static public final int ALL_MODE = 1;
@@ -164,15 +171,15 @@ public class MetadataSearchMainGUI extends JPanel
 
     private final List<JComboBox> comboBoxes = new ArrayList<JComboBox>();
     private JPopupMenu popupMenu = new JPopupMenu();
-    private final String RENAME_STR = VueResources.getString("searchgui.rename");
-    private final String DELETE_STR = VueResources.getString("searchgui.delete");
-    private final String RESET_STR = VueResources.getString("searchgui.resetmap");
-    private final String SEARCH_STR = VueResources.getString("searchgui.search");
-    private final String SAVED_SEARCH_STR = VueResources.getString("searchgui.savedsearches");
-    private final String SAVE_SEARCH_STR = VueResources.getString("searchgui.savesearch");
-    private final String RUN_SEARCH_STR = VueResources.getString("searchgui.runsearch");
+    private final String RENAME_STR = VueResources.local("searchgui.rename");
+    private final String DELETE_STR = VueResources.local("searchgui.delete");
+    private final String RESET_STR = VueResources.local("searchgui.resetmap");
+    private final String SEARCH_STR = VueResources.local("searchgui.search");
+    private final String SAVED_SEARCH_STR = VueResources.local("searchgui.savedsearches");
+    private final String SAVE_SEARCH_STR = VueResources.local("searchgui.savesearch");
+    private final String RUN_SEARCH_STR = VueResources.local("searchgui.runsearch");
 
-    //private String strAndOrType  = VueResources.getString("searchgui.or");
+    //private String strAndOrType  = VueResources.local("searchgui.or");
     private SearchAction.Operator selectedOp = SearchAction.Operator.OR;
 
     private JPanel topPanel;
@@ -181,8 +188,8 @@ public class MetadataSearchMainGUI extends JPanel
     private JPanel tablePanel;
     private JPanel searchPanel;
 
+    private JComponent choiceScope;
     private JComponent choiceDomain;
-    private JComponent choiceFields;
     private JComponent choiceResult;
     
     private JTable searchTermsTbl;
@@ -212,8 +219,8 @@ public class MetadataSearchMainGUI extends JPanel
             //data.setAndOrType(strAndOrType);
             
             data.setSearchSaveName(searchName);
-            data.setSearchType(getChosenString(choiceFields));
-            data.setMapType(getChosenString(choiceDomain));
+            data.setMapType(getChosenString(choiceScope)); // todo: use locale-independent string, tho I've a hard time imagining anyone saving an all-maps search...
+            data.setSearchType(getChosenString(choiceDomain));
             data.putResultOp((SearchAction.ResultOp) getChosen(choiceResult));
             data.putLogicalOp(selectedOp);
             data.setDataList(searchTerms);
@@ -232,12 +239,12 @@ public class MetadataSearchMainGUI extends JPanel
     }
     private String getSearchName(int rowCount){        	
         String inputValue = (String) VueUtil.input
-            (null, VueResources.getString("searchgui.entersearchname"),
+            (null, VueResources.local("searchgui.entersearchname"),
              null, JOptionPane.PLAIN_MESSAGE, null,
-             (VueResources.getString("searchgui.search") + " "+ (rowCount+1)));
+             (VueResources.local("searchgui.search") + " "+ (rowCount+1)));
         
         if (inputValue != null && inputValue.trim().length() == 0) {
-            inputValue = VueResources.getString("searchgui.search") + " "+ (rowCount+1);
+            inputValue = VueResources.local("searchgui.search") + " "+ (rowCount+1);
         }
         return inputValue;
     }
@@ -281,7 +288,7 @@ public class MetadataSearchMainGUI extends JPanel
         if (SearchTextField.editSettingsMenuItem != null) {
         	WindowDisplayAction wda = new WindowDisplayAction(w);
             
-        	wda.setTitle(VueResources.getString("search.popup.edit.search.settings"));
+        	wda.setTitle(VueResources.local("search.popup.edit.search.settings"));
         	wda.setLinkedButton(SearchTextField.editSettingsMenuItem);
         
         	SearchTextField.editSettingsMenuItem.setAction(wda);
@@ -442,17 +449,11 @@ public class MetadataSearchMainGUI extends JPanel
             final ItemListener locationChoiceListener = new ItemListener() {
                 public void itemStateChanged(ItemEvent e) {
                     if (e.getStateChange() == ItemEvent.SELECTED) {
-                        String type = e.getItem().toString();
-                        if (type.equals(ALL_MAPS_STRING)) {
-                            //allSearch.setLocationType(SearchAction.SEARCH_ALL_OPEN_MAPS);                            
-                            termsAction.setLocationType(SearchAction.SEARCH_ALL_OPEN_MAPS);
-                            optionsPanel.switchChoices(RESULTS, AllOpenMapsResultsTypes);
-                        } else // SELECTED_MAP_STRING as current default
-                        {
-                            //allSearch.setLocationType(SearchAction.SEARCH_SELECTED_MAP);
-                            termsAction.setLocationType(SearchAction.SEARCH_SELECTED_MAP);
-                            optionsPanel.switchChoices(RESULTS, CurrentMapResultsTypes);
-                        }
+                        termsAction.setLocationType(e.getItem());
+                        if (SEARCH_SCOPE_ALL_OPEN_MAPS.equals(e.getItem()))
+                            optionsPanel.switchChoices(RESULTS, ResultActionsMultiMap);
+                        else
+                            optionsPanel.switchChoices(RESULTS, ResultActions);
                     }
                 }
             };
@@ -482,11 +483,15 @@ public class MetadataSearchMainGUI extends JPanel
         {
             label.setFont(tufts.vue.gui.GUI.LabelFace);
             
-            g.gridx = 0;
-            g.insets = labelInsets;
-            //g.insets = GUI.EmptyInsets;
-            g.weightx = 0.0;
-            optionsPanel.add(label, g); // only member reference (enclosing class)
+            if (DEBUG.TEST) {
+                ;
+            }  else {
+                g.gridx = 0;
+                g.insets = labelInsets;
+                //g.insets = GUI.EmptyInsets;
+                g.weightx = 0.0;
+                optionsPanel.add(label, g); // only member reference (enclosing class)
+            }
 
             g.gridx = 1;
             g.insets = textFieldInsets;
@@ -506,28 +511,28 @@ public class MetadataSearchMainGUI extends JPanel
         
         public MetaSearchPanel() {
 
-            final JLabel labelDomain, labelScope, labelResult;
+            final JLabel labelScope, labelDomain, labelResult;
             final GridBagConstraints gb = new GridBagConstraints();
             
             optionsPanel = new OptionsPanel(new GridBagLayout()); // on MDSMGU
             gb.fill = GridBagConstraints.HORIZONTAL;
             gb.gridy = 0; // first row starts at 0
 
-            labelDomain = new JLabel(VueResources.getString("searchgui.maps"), SwingConstants.RIGHT);            
-          //labelScope = new JLabel(VueResources.getString("searchgui.searchtype"), SwingConstants.RIGHT); // too long
-            labelScope = new JLabel(VueResources.getString("searchgui.search")+":", SwingConstants.RIGHT); // short & sweet
-            labelResult = new JLabel(GUI.ensureColon(VueResources.getString("searchgui.results")), SwingConstants.RIGHT);
+            labelScope = new JLabel(VueResources.local("searchgui.maps"), SwingConstants.RIGHT);            
+          //labelDomain = new JLabel(VueResources.local("searchgui.searchtype"), SwingConstants.RIGHT); // too long
+            labelDomain = new JLabel(VueResources.local("searchgui.search")+":", SwingConstants.RIGHT); // short & sweet
+            labelResult = new JLabel(GUI.ensureColon(VueResources.local("searchgui.results")), SwingConstants.RIGHT);
             
-            choiceDomain = getChooser(SearchDomains, locationChoiceListener, "locationTypes");
-            choiceFields = getChooser(SearchScope, searchTypesListener, "searchScope");
-            choiceResult = getChooser(CurrentMapResultsTypes, resultsTypeListener, "resultTypes");
+            choiceScope = getChooser(SearchScopes, locationChoiceListener, "searchScope");
+            choiceDomain = getChooser(SearchDomains, searchTypesListener, "searchDomain");
+            choiceResult = getChooser(ResultActions, resultsTypeListener, "resultAction");
             
             if (DEBUG.TEST) {
+                addPair(gb, labelScope, choiceScope);
                 addPair(gb, labelDomain, choiceDomain);
-                addPair(gb, labelScope, choiceFields);
             } else {
-                addPair(gb, labelScope, choiceFields);
                 addPair(gb, labelDomain, choiceDomain);
+                addPair(gb, labelScope, choiceScope);
             }
             addPair(gb, labelResult, choiceResult);
 
@@ -596,14 +601,14 @@ public class MetadataSearchMainGUI extends JPanel
             tablePanelGBC.gridx = 0;
             tablePanelGBC.gridy = 0;
 
-            if (macLeopardAndOr != null) {
-                tablePanel.add(new JLabel("HERE MY BUDDY"), tablePanelGBC);
-                tablePanelGBC.fill = GridBagConstraints.REMAINDER;
-                tablePanelGBC.anchor = GridBagConstraints.EAST;
-                tablePanel.add(macLeopardAndOr, tablePanelGBC);
-                tablePanelGBC.gridy++;
-                tablePanelGBC.fill = GridBagConstraints.HORIZONTAL;
-            }
+            // if (macLeopardAndOr != null) {
+            //     tablePanel.add(new JLabel("HERE MY BUDDY"), tablePanelGBC);
+            //     tablePanelGBC.fill = GridBagConstraints.REMAINDER;
+            //     tablePanelGBC.anchor = GridBagConstraints.EAST;
+            //     tablePanel.add(macLeopardAndOr, tablePanelGBC);
+            //     tablePanelGBC.gridy++;
+            //     tablePanelGBC.fill = GridBagConstraints.HORIZONTAL;
+            // }
             
             tablePanel.add(searchHeaderTbl, tablePanelGBC);
             tablePanelGBC.gridy++;
@@ -620,7 +625,7 @@ public class MetadataSearchMainGUI extends JPanel
             	tablePanel.setBackground(Color.BLUE);
             }
 
-            saveButton = new JButton(VueResources.getString("searchgui.save"));
+            saveButton = new JButton(VueResources.local("searchgui.save"));
             saveButton.setFont(tufts.vue.gui.GUI.LabelFace);
             saveButton.addActionListener(new ActionListener() { // TODO: CHRIST: MORE REPEATED CODE???
                     public void actionPerformed(ActionEvent e) {
@@ -629,43 +634,33 @@ public class MetadataSearchMainGUI extends JPanel
                     }
                 });
 
-            resetButton = new JButton(VueResources.getString("searchgui.resetmap"));
+            resetButton = new JButton(VueResources.local("searchgui.resetmap"));
             resetButton.setFont(tufts.vue.gui.GUI.LabelFace);
             resetButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     SearchAction.revertGlobalSearchSelectionFromMSGUI();
+                    updateEnabled();
                     VUE.getActiveViewer().repaint();
                 }
             });
 
-            searchButton = new JButton(VueResources.getString("searchgui.search"));
+            searchButton = new JButton(VueResources.local("searchgui.search"));
             searchButton.setFont(tufts.vue.gui.GUI.LabelFace);
             searchButton.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         if (searchTermsTbl.isEditing())
                             searchTermsTbl.getCellEditor().stopCellEditing();
                         
-                        //final SearchType whichFieldsToSearch = (SearchType) getChosen(choiceFields);
-                        MetadataSearchMainGUI.this.searchType = (SearchType) getChosen(choiceFields);
+                        MetadataSearchMainGUI.this.searchType = (SearchType) getChosen(choiceDomain);
                         MetadataSearchMainGUI.this.termsAction = new SearchAction(searchTerms);
                         
+                        termsAction.setLocationType(getChosen(choiceScope));
+                        termsAction.setOperator(getSelectedOperator());
                         termsAction.setParamsByType(searchType);
                         termsAction.setResultAction(getChosen(choiceResult));
-                        
-                        if (ALL_MAPS_STRING.equals(getChosenString(choiceDomain)))
-                            termsAction.setLocationType(SearchAction.SEARCH_ALL_OPEN_MAPS);
-                        else
-                            termsAction.setLocationType(SearchAction.SEARCH_SELECTED_MAP);
 
-                        termsAction.setOperator(getSelectedOperator());
-
-                        //        if (SEARCH_LABELS_ONLY.equals(fields)) { searchType = LABEL;
-                        // } else if (SEARCH_ALL_KEYWORDS.equals(fields)) { searchType = KEYWORD;
-                        // } else if (SEARCH_CATEGORIES_AND_KEYWORDS.equals(fields)) { searchType = CATEGORY;
-                        // } else { // if (SEARCH_EVERYTHING.equals(fields)) searchType = EVERYTHING;
-                        // }
-
-                        termsAction.fire(this, "searchFromPanelButton");
+                        termsAction.fire(this, "from.searchButton");
+                        updateEnabled();
                     }
                 });
 
@@ -749,7 +744,7 @@ public class MetadataSearchMainGUI extends JPanel
         // }
 
         public String getName() {
-            return VueResources.getString("searchgui.search");
+            return VueResources.local("searchgui.search");
         }
 
         private void saveInfo() {
@@ -875,7 +870,7 @@ public class MetadataSearchMainGUI extends JPanel
             add(panel);
 
             // add(searchResultTbl);
-            setName(VueResources.getString("searchgui.keywords"));
+            setName(VueResources.local("searchgui.keywords"));
         }
 
         public void actionPerformed(ActionEvent e) {
@@ -919,7 +914,7 @@ public class MetadataSearchMainGUI extends JPanel
                 VueMetadataElement vme = new VueMetadataElement();                
                 String statementObject[] = {
                     edu.tufts.vue.rdf.RDFIndex.VueTermOntologyNone,
-                    //VueResources.getString("metadata.vue.url") + "#none",
+                    //VueResources.local("metadata.vue.url") + "#none",
                     "",
                     edu.tufts.vue.rdf.Query.Qualifier.CONTAINS.toString() };
                 vme.setObject(statementObject);
@@ -1065,10 +1060,10 @@ public class MetadataSearchMainGUI extends JPanel
             selectedOp = (SearchAction.Operator) this.combo.getSelectedItem();
 
             // //if(isSelected){                
-            //     if(this.combo.getSelectedItem().toString().equals(VueResources.getString("searchgui.and"))){                    
-            //         strAndOrType = VueResources.getString("searchgui.or");
+            //     if(this.combo.getSelectedItem().toString().equals(VueResources.local("searchgui.and"))){                    
+            //         strAndOrType = VueResources.local("searchgui.or");
             //     }else{                    
-            //         strAndOrType = VueResources.getString("searchgui.and");
+            //         strAndOrType = VueResources.local("searchgui.and");
             //     }                                    
             // //}
                 
@@ -1304,7 +1299,7 @@ public class MetadataSearchMainGUI extends JPanel
     }
     
     // public String getSelectedOperator() {        
-    //     if(strAndOrType.equals(VueResources.getString("searchgui.and"))){
+    //     if(strAndOrType.equals(VueResources.local("searchgui.and"))){
     //         return SearchAction.AND;
     //     }else{
     //         return SearchAction.OR;
@@ -1442,26 +1437,26 @@ public class MetadataSearchMainGUI extends JPanel
             } else if (table.getModel().getColumnCount() == 3
                     && col == headerValueColumn) {
                 if (searchType == SEARCH_EVERYTHING) {
-                    comp.setText(VueResources.getString("advancedSearch.searcheverything"));
+                    comp.setText(VueResources.local("advancedSearch.searcheverything"));
                 }
 
                 if (searchType == SEARCH_ONLY_LABELS) {
-                    comp.setText(VueResources.getString("advancedSearch.label"));
+                    comp.setText(VueResources.local("advancedSearch.label"));
                 }
 
                 if (searchType == SEARCH_ONLY_KEYWORDS) {
-                    comp.setText(VueResources.getString("advancedSearch.keywords"));
+                    comp.setText(VueResources.local("advancedSearch.keywords"));
                 }
                 if(searchType == SEARCH_WITH_CATEGORIES){                    
-                    comp.setText(VueResources.getString("advancedSearch.category"));    
+                    comp.setText(VueResources.local("advancedSearch.category"));    
                 }                
 
             } else if ((table.getModel().getColumnCount() == 4)
                     && col == headerCategoryColumn) {                
-                comp.setText(VueResources.getString("advancedSearch.category"));
+                comp.setText(VueResources.local("advancedSearch.category"));
             } else if ((table.getModel().getColumnCount() == 4 )
                     && col == headerValueColumn){
-                comp.setText(VueResources.getString("advancedSearch.keywords"));
+                comp.setText(VueResources.local("advancedSearch.keywords"));
             }
 
             comp.setOpaque(true);
@@ -1754,6 +1749,7 @@ public class MetadataSearchMainGUI extends JPanel
 
 
         public void switchChoices(int i, Object[] choices) {
+            // note: doesn't bother to check if already has this set of choices
             final JComboBox box = comboBoxes.get(i);
             box.removeAllItems();
 
@@ -1789,20 +1785,48 @@ public class MetadataSearchMainGUI extends JPanel
         }
     }
 
+    private LWMap loadedMap;
 
-    public void fillSavedSearch() {     
+    public void activeChanged(ActiveEvent<LWMap> e) {
+    	loadActiveMapState(e.active);
+    }
+
+    public void fillSavedSearch() { // called only by VUE.java (init I presume)
+        loadActiveMapState(VUE.getActiveMap());
+    }
+
+    private static final String ResetLabel = VueResources.local("button.reset.label") + " (";
+    private static final String RedoLabel = VueResources.local("action.redo") + " (";
+
+    public void updateEnabled() {
+        if (loadedMap != null && loadedMap.hasClientData(SearchAction.RevertableState)) {
+            int hideCount = (Integer) loadedMap.getClientData(SearchAction.RevertableState);
+            resetButton.setLabel(ResetLabel + hideCount + ")");
+            resetButton.setVisible(true);
+        } else {
+            // Note: however, this means can no longer use this button to clear the selection....
+            GUI.invokeAfterAWT(new Runnable() { public void run() { // delay hiding it a tad
+                resetButton.setVisible(false);
+            }});
+            //resetButton.setLabel(RedoLabel + );
+        }
+    }
+
+    private void loadActiveMapState(final LWMap map)
+    {
+        this.loadedMap = map;
+
+        updateEnabled();
     	
     	List savedList =null;
-    	if (VUE.getActiveMap() !=null) {
-            savedList = VUE.getActiveMap().getSearchArrLst();
-            if (DEBUG.SEARCH && DEBUG.RDF) {
-                Log.debug("saved searches:", new Throwable("HERE"));
-                Util.dump(savedList);
-            }
+    	if (map != null) {
+            savedList = map.getSearchArrLst();
+            if (DEBUG.SEARCH && DEBUG.RDF) Util.dump(savedList);
         }
-        if(savedList!=null){
+        
+        if (savedList!=null){
             searchResultModel.setData((ArrayList)savedList);
-        }else{			
+        } else {
             searchResultModel.setData(null);
         }
     }
@@ -1841,11 +1865,10 @@ public class MetadataSearchMainGUI extends JPanel
 
         termsAction.setParamsByType(searchType);
 
-        termsAction.fire(this, "runSavedSearch");
+        termsAction.fire(this, "from.runSavedSearch");
+
+        updateEnabled();
     }
 
 
-    public void activeChanged(ActiveEvent<LWMap> e) {
-    	fillSavedSearch();
-    }
 }
