@@ -735,15 +735,16 @@ public class LWGroup extends LWContainer
             fill = getFillColor();
         }
 
-        if (fill != null && fill.getAlpha() != 0)  {
-            dc.g.setColor(fill);
-            dc.g.fill(getZeroShape());
-        }
-        
-        if (getStrokeWidth() > 0) {
-            dc.g.setStroke(this.stroke);
-            dc.g.setColor(getStrokeColor());
-            dc.g.draw(getZeroShape());
+        if (!isFiltered()) {
+            if (fill != null && fill.getAlpha() != 0)  {
+                dc.g.setColor(fill);
+                dc.g.fill(getZeroShape());
+            }
+            if (getStrokeWidth() > 0) {
+                dc.g.setStroke(this.stroke);
+                dc.g.setColor(getStrokeColor());
+                dc.g.draw(getZeroShape());
+            }
         }
         
         drawChildren(dc);
