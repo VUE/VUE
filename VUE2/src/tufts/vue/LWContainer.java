@@ -912,6 +912,9 @@ public abstract class LWContainer extends LWComponent
                     // we still want to process any further children who may not be filtered,
                     // and thus may still be visible, but we can ignore this child
                     // as being filtered means it's not visible or editable.
+                    
+                    // NOTE: kind of extreme for filtering have an effect this deep in the model --
+                    // would be better as part of some kind of base traversal code (for renderers, pickers, searchers)
                     child.getAllDescendents(kind, bag, order);
                     continue;
                 }
