@@ -101,12 +101,13 @@ public class RDFIndex extends com.hp.hpl.jena.rdf.model.impl.ModelCom
     
     final com.hp.hpl.jena.rdf.model.Property _propertyNone = createProperty(VUE_GENERAL_NAMESPACE, "none");
 
-    final com.hp.hpl.jena.rdf.model.Property idOf = createProperty(VUE_ONTOLOGY,Constants.ID);
-    final com.hp.hpl.jena.rdf.model.Property labelOf = createProperty(VUE_ONTOLOGY,Constants.LABEL);
-    final com.hp.hpl.jena.rdf.model.Property childOf = createProperty(VUE_ONTOLOGY,Constants.CHILD);
-    final com.hp.hpl.jena.rdf.model.Property authorOf = createProperty(VUE_ONTOLOGY,Constants.AUTHOR);
-    final com.hp.hpl.jena.rdf.model.Property colorOf = createProperty(VUE_ONTOLOGY,Constants.COLOR);
-    final com.hp.hpl.jena.rdf.model.Property notesOf = createProperty(VUE_ONTOLOGY,Constants.NOTES);
+    final com.hp.hpl.jena.rdf.model.Property idOf       = createProperty(VUE_ONTOLOGY, Constants.ID);
+    final com.hp.hpl.jena.rdf.model.Property labelOf    = createProperty(VUE_ONTOLOGY, Constants.LABEL);
+    final com.hp.hpl.jena.rdf.model.Property childOf    = createProperty(VUE_ONTOLOGY, Constants.CHILD);
+    final com.hp.hpl.jena.rdf.model.Property authorOf   = createProperty(VUE_ONTOLOGY, Constants.AUTHOR);
+    final com.hp.hpl.jena.rdf.model.Property colorOf    = createProperty(VUE_ONTOLOGY, Constants.COLOR);
+    final com.hp.hpl.jena.rdf.model.Property notesOf    = createProperty(VUE_ONTOLOGY, Constants.NOTES);
+
     final com.hp.hpl.jena.rdf.model.Property contentPropertyOf = createProperty(VUE_ONTOLOGY,Constants.CONTENT_INFO_PROPERTY);
     // final com.hp.hpl.jena.rdf.model.Property hasTag = createProperty(VUE_ONTOLOGY,Constants.TAG); // Unused: shows up as Text
 
@@ -127,9 +128,10 @@ public class RDFIndex extends com.hp.hpl.jena.rdf.model.impl.ModelCom
         super(com.hp.hpl.jena.graph.Factory.createGraphMem());
     }
 
-    /** transpose URI results to LWComponets using our internal mapping to vue components */
-    public List<LWComponent> decodeVueResults(Collection<URI> results) {
-        final List<LWComponent> hits = new ArrayList<LWComponent>(results.size()+2);
+    /** transpose URI results to LWComponents using our internal mapping to vue components
+     * Note that this will NOT remove duplicates from the input results: that should already have been done */
+    public Collection<LWComponent> decodeVueResults(Collection<URI> results) {
+        final Collection<LWComponent> hits = new ArrayList<LWComponent>(results.size()+2);
         for (URI uri : results) {
             final LWComponent c = vueComponentMap.get(uri);
             if (c != null)
@@ -266,11 +268,10 @@ public class RDFIndex extends com.hp.hpl.jena.rdf.model.impl.ModelCom
     }
                 
             // This was tried only by searchAllValues: It appears to originally have been to
-            // ignored certain keys, or maybe even values, but I can't see how it ever worked.
+            // ignore certain keys, or maybe even values, but I can't see how it ever worked.
             // ACTUALLY, it might have been to ignore jena Resouce id's in the results, as at one
             // time I can see that was a field added to the index, tho it would have eliminated
             // other text values that happened to have '#' in them.
-            //
             // try {
             //     if (substring != NO_KEYWORD) {
             //         // What the hell does this code do??  It's trying to examine the VALUE for
@@ -337,14 +338,9 @@ public class RDFIndex extends com.hp.hpl.jena.rdf.model.impl.ModelCom
         return searchWithSPARQL(genericSubstringQuery);
     }
     
-    public void save() { }
-    public void read() { }
+    // public void save() { }
+    // public void read() { }
     
-    /* was public "rdfize" */
-    private void load_VUE_component_to_RDF_index(final LWComponent component, final com.hp.hpl.jena.rdf.model.Resource mapRoot) {
-        load_VUE_component_to_RDF_index(component, mapRoot, true);
-    }
-
     private static final boolean RDFIZE_COLOR = VueResources.getBool("rdf.rdfize.color");
     
     /**
@@ -352,8 +348,8 @@ public class RDFIndex extends com.hp.hpl.jena.rdf.model.impl.ModelCom
      * jena.rdf.model.Resource, and add that to the RDF property tree as a child of the given
      * mapRootResource
      */
-    private void load_VUE_component_to_RDF_index
-        (final tufts.vue.LWComponent component,
+    private void load_VUE_component_to_RDF_index(
+         final tufts.vue.LWComponent component,
          final com.hp.hpl.jena.rdf.model.Resource mapRootResource,
          final boolean includeNodeData)
     {
@@ -371,9 +367,6 @@ public class RDFIndex extends com.hp.hpl.jena.rdf.model.impl.ModelCom
             // Load Node info (label, notes, etc) plus any tufts.vue.Resource
             // meta-data to the index.
             //------------------------------------------------------------------
-                
-            // addProperty(r,idOf,component.getID());
-
             if (component.hasLabel())
                 addProperty(r, labelOf, component.getLabel());
 
@@ -385,7 +378,7 @@ public class RDFIndex extends com.hp.hpl.jena.rdf.model.impl.ModelCom
 
             final tufts.vue.Resource res = component.getResource();
             if (res != null) {
-                String nameSpace = null;
+                String osidNS = null;
                 
                 if (INDEX_VUE_RESOURCE_KEYWORDS) {
                     final String osidProp = res.getProperty("@osid.impl");
@@ -393,18 +386,19 @@ public class RDFIndex extends com.hp.hpl.jena.rdf.model.impl.ModelCom
                     if (osid != null) {
                         if (osid.endsWith(".Repository")) {
                             osid = osid.substring(0, osid.length() - 11);
-                            nameSpace = VUE_OSID_PREFIX + osid.substring(osid.lastIndexOf('.')+1) + "#";
+                            osidNS = VUE_OSID_PREFIX + osid.substring(osid.lastIndexOf('.')+1) + "#";
                         } else {
                             // note: could use provider id...  probably even more unique than impl class
                             Log.warn("Couldn't understand @osid.impl: " + Util.tags(osidProp));
                         }
-                        //nameSpace = osid.replace(".", "/") + "#";
-                        // Need to look into what'd be more appropriate here.
+                        // Need to look into what'd be most appropriate here:
                         // ?E.g., http://vue.tufts.edu/osid/nytimes#title
                         // ?E.g., http://vue.tufts.edu/osid/nytimes/vue.rdfs#title
                     }
-                    if (nameSpace == null) {
-                        nameSpace = VUE_OSID_UNKNOWN_NAMESPACE;
+                    if (osidNS == null) {
+                        // Not exactly correct: these tufts.vue.Resources may be generic web URL's or
+                        // or local-file resources, and their data is unrelated to the OSID's
+                        osidNS = VUE_OSID_UNKNOWN_NAMESPACE;
                     }
                 }
                 
@@ -431,7 +425,7 @@ public class RDFIndex extends com.hp.hpl.jena.rdf.model.impl.ModelCom
                             // key found, which would enable us to search on specific resource properties.
                             // (E.g., author, creator, etc).
                             if (!tufts.vue.Resource.isHiddenPropertyKey(key.toString())) {
-                                addProperty(r, createProperty(nameSpace, key.toString()), strValue);
+                                addProperty(r, createProperty(osidNS, key.toString()), strValue);
                             }
                         } else {
                             // Using contentPropertyOf means that all resource properties have the same keyword name,
