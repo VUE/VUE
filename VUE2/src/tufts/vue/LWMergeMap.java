@@ -42,8 +42,6 @@ import java.util.Stack;
 public class LWMergeMap extends LWMap {
 
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LWMergeMap.class);
-
-    public static class HIDE_FROM_CASTOR_MAPPING extends LWMergeMap {}
     
     private static final boolean DEBUG_LOCAL = false;
     
@@ -202,8 +200,8 @@ public class LWMergeMap extends LWMap {
     
     /** @deprecated [DAN?] todo: deprecate and/or remove -- this was for old GUI [SMF: MergeMapsChooser is still calling tho] */
     public void setBaseMapSelectionType(int choice) { baseMapSelectionType = choice; }
-    // // todo: deprecate and/or remove -- this was for old GUI
-    // public int getBaseMapSelectionType() { return baseMapSelectionType; }
+    /** @deprecated: deprecate and/or remove -- this was for old GUI (STILL IN CASTOR MAPPING FILE) */
+    public int getBaseMapSelectionType() { return baseMapSelectionType; }
     
     public LWMap getBaseMap() { return baseMap; }
     public void setBaseMap(LWMap baseMap) { this.baseMap = baseMap; }
@@ -791,5 +789,10 @@ public class LWMergeMap extends LWMap {
     }
     
 
+    /** This class is only there to provide something for the old mapping description for LWMergeMap to refer
+     * to, which is NOT, in fact, an LWMergeMap.  Eventualy, we can get rid of this and just delete/comment out
+     * the old mapping info, but I'm leaving it for now in case we decide we need it.
+     */ public static final class HIDE_FROM_CASTOR_MAPPING extends LWMergeMap {static {if (true) throw new Error("should-never-init");}}
+    
         
 }
