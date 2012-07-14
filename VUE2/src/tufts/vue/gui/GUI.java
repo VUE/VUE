@@ -1937,7 +1937,7 @@ public class GUI
         
         public ComboKey(String k, Map keyMap, Map valueMap) {
             key = k;
-            final String s = VueResources.getString(key);
+            final String s = VueResources.local(key);
             localized = (s == null ? key : s);
             if (keyMap != null && keyMap.put(key, this) != null)
                 throw new Error("duplicate key [" + key + "] for dynamic enum type " + Util.quote(getClass().getSimpleName()) + "; " + Util.tags(this));
@@ -1978,6 +1978,23 @@ public class GUI
         //     return (T) decode(input, getClass());
         // }
     }
+
+    // Perhaps a best example:
+    // /** result-operations, take II.  Needs more ComboKey support for ROP.All() to work... */
+    // public static final class ROP extends ComboKey { private ROP(String s) { super(s /*,ROP.class*/); }
+    //     public static final ROP[] All() { return (ROP[]) ComboKey.getAll(ROP.class); }
+    //     public static final ROP
+    //         SELECT =  new ROP("searchgui.select"),
+    //         SHOW =    new ROP("searchgui.show"),
+    //         HIDE =    new ROP("searchgui.hide"),
+    //         CLUSTER = new ROP("searchgui.cluster"),
+    //         LINK =    new ROP("searchgui.link"),
+    //         COPY =    new ROP("searchgui.copynewmap");
+    //     // Declaring them in-class ensures a call to All will always report properly, even during init.
+    //     // This is probably the closest we'll ever get to a DSL in Java...  I see why Scala.
+    // }
+    
+    
     
     //-----------------------------------------------------------------------------
     
@@ -3320,6 +3337,8 @@ public class GUI
      * Style is one of: "segmented", "segmentedCapsule", "segmentedTextured", "segmentedRoundRect"
      * @see https://developer.apple.com/library/mac/#technotes/tn2007/tn2196.html
      *
+     * For each button, the clientProperty with key "segment.value" will hold the original object.
+     *
      * It saves created ButtonGroup in the Box using a JComponent client property with key ButtonGroup.class.
      */
     public static Box createButtonBox(final String style, final Object[] labelStringables) {
@@ -3339,7 +3358,9 @@ public class GUI
             b.putClientProperty("segment.value", o);
             b.setFocusPainted(false);
             // b.setMargin(EmptyInsets); // no effect
-            b.setFont(tufts.vue.gui.GUI.LabelFace);
+            b.setFont(GUI.LabelFace);
+            //b.setFont(GUI.TitleFace);
+            //b.setForeground(Color.white);
             if (count == 1)
                 b.setSelected(true);
             box.add(b);
