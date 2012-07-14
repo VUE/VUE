@@ -200,7 +200,7 @@ public class LWComponent
 
         // do we want a generalized LOCKED which means fixed,no-delete,no-duplicate?,no-reorder(forward/back),no-link?
             
-        final int bit = 1 << ordinal();
+        public final int bit = 1 << ordinal();
 
         final Object type;
 
@@ -2230,7 +2230,7 @@ public class LWComponent
      * 2012: are LWCFilters still used?
      **/
     public void setFiltered(boolean filtered) {
-        //if (DEBUG.Enabled) Log.debug("setFiltered " + filtered + "; " + this);
+        if (DEBUG.SEARCH&&DEBUG.TEST) Log.debug("setFiltered " + filtered + "; " + this);
         setFlag(Flag.FILTERED, filtered);
     }
 
@@ -7173,6 +7173,10 @@ public class LWComponent
     public boolean hasFlag(Flag flag) {
         return (mFlags & flag.bit) != 0;
     }
+    
+    public boolean hasAnyFlag(int bits) {
+        return (mFlags & bits) != 0;
+    }
 
     public void setLocked(boolean locked) {
         if (hasFlag(Flag.LOCKED) != locked) {
@@ -7181,7 +7185,7 @@ public class LWComponent
         }
     }
     
-    public boolean isLocked() {
+    public final boolean isLocked() {
         return hasFlag(Flag.LOCKED);
     }
 
