@@ -567,6 +567,7 @@ public class LWNode extends LWContainer
 //         //return hasChildren() && getChild(0) instanceof LWImage;
 //     }
 
+    /** @return true if the given node has an image-icon node in it */
     public static boolean isImageNode(LWComponent c) {
         if (c instanceof LWNode) {
             final LWNode node = (LWNode) c;
