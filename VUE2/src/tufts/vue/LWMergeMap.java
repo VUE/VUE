@@ -29,14 +29,8 @@ import edu.tufts.vue.compare.*;
 import edu.tufts.vue.style.*;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
+import edu.tufts.vue.metadata.VueMetadataElement;
 
 /** todo: this needs to turn into an LWMap builder, not a subclass of LWMap */
 public class LWMergeMap extends LWMap {
@@ -47,7 +41,7 @@ public class LWMergeMap extends LWMap {
     
     public static final int THRESHOLD_DEFAULT = 20;
     
-    // old method for recording source nodes code currently does not compile
+    // [DAN] old method for recording source nodes code currently does not compile
     // (its commented out below) - needs adjustment to 
     // LWComponent from LWNode (for both LWImage and LWNode)
     // a relatively minor fix and probably
@@ -63,9 +57,10 @@ public class LWMergeMap extends LWMap {
     private int baseMapSelectionType;
     private int visualizationSelectionType;
     
-    private String selectionText;
+    //private String selectionText;
     private LWMap baseMap;
-    private String selectChoice;
+    private Set baseMapKeys;
+    //private String selectChoice;
     private int nodeThresholdSliderValue = THRESHOLD_DEFAULT;
     private int linkThresholdSliderValue = THRESHOLD_DEFAULT;
     private boolean filterOnBaseMap;
@@ -94,14 +89,9 @@ public class LWMergeMap extends LWMap {
         return "Merge Map " + (++numberOfMaps); //+ "*";
     }
     
-    public String getLabel() {
-        return super.getLabel() + " *";
-    }
+    public String getLabel() { return super.getLabel() + " *"; }
     
-    public LWMergeMap() {
-        super(); 
-    }
-    
+    public LWMergeMap() {}
     public LWMergeMap(String label) {
         super(label);
     }
@@ -185,7 +175,7 @@ public class LWMergeMap extends LWMap {
     // [DAN?] todo: deprecate and/or remove -- this was for old GUI [SMF: MergeMapsChooser is still calling tho]
     // public String getSelectChoice() { return selectChoice; }
     /** @deprecated todo: deprecate and/or remove -- this was for old GUI (MergeMapsChooser is still calling tho) */
-    public void setSelectChoice(String choice) { selectChoice = choice; }
+    //public void setSelectChoice(String choice) { selectChoice = choice; }
     
     public void setVisualizationSelectionType(int choice) { visualizationSelectionType = choice; }
     public int getVisualizationSelectionType() { return visualizationSelectionType; }
@@ -214,46 +204,28 @@ public class LWMergeMap extends LWMap {
      * This method and the next are for legacy persistence 
      * defaults to node, even though now link has separate interval boundaries
      **/
-    public void setIntervalBoundaries(List<Double> intervalBoundaries)
-    {
+    public void setIntervalBoundaries(List<Double> intervalBoundaries) {
         this.nodeIntervalBoundaries = intervalBoundaries;
     }
-    
-    public List<Double> getIntervalBoundaries()
-    {
+    public List<Double> getIntervalBoundaries() {
         return nodeIntervalBoundaries;
     }
-    
-    public void setNodeIntervalBoundaries(List<Double> intervalBoundaries)
-    {
+    public void setNodeIntervalBoundaries(List<Double> intervalBoundaries) {
         this.nodeIntervalBoundaries = intervalBoundaries;
     }
-    
-    public List<Double> getNodeIntervalBoundaries()
-    {
+    public List<Double> getNodeIntervalBoundaries() {
         return nodeIntervalBoundaries;
     }
-    
-    
-    public void setLinkIntervalBoundaries(List<Double> intervalBoundaries)
-    {
+    public void setLinkIntervalBoundaries(List<Double> intervalBoundaries) {
         this.linkIntervalBoundaries = intervalBoundaries;
     }
-        
-    public List<Double> getLinkIntervalBoundaries()
-    {
+    public List<Double> getLinkIntervalBoundaries() {
         return linkIntervalBoundaries;
     }
-    
-    // need node and link -- read non specified as both.. 
-    
-    public void setStyleMapFile(String file)
-    {
+    public void setStyleMapFile(String file) {
         styleFile = file;
     }
-    
-    public String getStyleMapFile()
-    {
+    public String getStyleMapFile() {
         return styleFile;
     }
     
@@ -261,106 +233,149 @@ public class LWMergeMap extends LWMap {
         deleteChildrenPermanently(getChildren());
     }
 
-    // public void clearAllElements()
-    // {
-    //    // this deletion code was copied from an old version of LWComponent deletion code
-    //    // todo: probably should sync this up with whatever the menu action does.
-    //        
-    //     Iterator li = getAllDescendents().iterator();
-    //     while(li.hasNext())
-    //     {
-    //         LWComponent c = (LWComponent)li.next();
-    //         LWContainer parent = c.getParent();
-    //         if (parent == null) {
-    //             //System.out.println("DELETE: " + c + " skipping: null parent (already deleted)");
-    //         } else if (c.isDeleted()) {
-    //             //System.out.println("DELETE: " + c + " skipping (already deleted)");
-    //         } else if (parent.isDeleted()) { // after prior check, this case should be impossible now
-    //             //System.out.println("DELETE: " + c + " skipping (parent already deleted)"); // parent will call deleteChildPermanently
-    //         } else if (parent.isSelected()) { // if parent selected, it will delete it's children
-    //             //System.out.println("DELETE: " + c + " skipping - parent selected & will be deleting");
-    //         } else {
-    //             parent.deleteChildPermanently(c);
-    //         }
-    //     }
-    // }
-
-    //@Override String getDiagnosticLabel() { return "MergeMap: " + getLabel(); }
-
-    public String toString() { return "LWMerge" + super.toString().substring(2); }
-    
-    private String getAnnotationRoot(LWMap map)
-    {
-        if (map.hasLabel())
-            return "source: " + map.getLabel() + ",";
-        else
-            return "source: " + map.getDiagnosticLabel() + ",";
-
-        // //todo: looks like this may be needed in future -- may be an issue
-        // // of map list in merge maps panel -- or otherwise might require
-        // // more generic approach (certainly a seperate method either here or in 
-        // // merge maps panel or in VueMetadataElement is in order)
-        // if (mapLabel != null) {
-        //     if(mapLabel.contains(".vue")) {
-        //         mapLabel = mapLabel.substring(0,mapLabel.indexOf(".vue"));
-        //     }
-        // } else {
-        //     mapLabel = "";
-        // }
+    private void mergeInNodesForVotes(LWMap sourceMap, Map<Object,LWComponent> keysMerged, VoteAggregate voteAggregate) {
+        mergeInNodes(sourceMap, keysMerged, voteAggregate);
     }
-    
-    private void addMergeNodesFromSourceMap
-        (LWMap map,
-         VoteAggregate voteAggregate,
-         HashMap<String,LWNode> nodes)
+
+    private void mergeInNodesForWeights(LWMap sourceMap, Map<Object,LWComponent> keysMerged, WeightAggregate weightAggregate_IGNORED) {
+        mergeInNodes(sourceMap, keysMerged, null);
+    }
+
+    private void mergeInNodes(final LWMap sourceMap, final Map<Object,LWComponent> keysMerged, final VoteAggregate voteAggregate)
     {
-        final String annotationRoot = getAnnotationRoot(map);
-
-        final Collection<LWComponent> allInMap = map.getAllDescendents(LWComponent.ChildKind.PROPER);
-        //final Set<LWComponent> allAsSet = new HashSet(allInMap);
-        
-        for (LWComponent c : allInMap) {
-             if (c instanceof LWPortal)
-                 continue;
-             boolean repeat = false;
-             if (nodeAlreadyPresent(c, allInMap)) {
-                 repeat = true;
-                 // if (RECORD_SOURCE_NODES) {
-                 //     LWNode node = nodes.get(Util.getMergeProperty(comp));
-                 //     if(node.getNotes() !=null) {
-                 //         node.setNotes(node.getNotes()+"\n" + map.getLabel());
-                 //     } else {
-                 //         node.setNotes(map.getLabel());}}
-             }
-             
-             if (voteAggregate.isNodeVoteAboveThreshold(edu.tufts.vue.compare.Util.getMergeProperty(c)) ){
-                 final LWComponent node = c.duplicate();
-                 final String sourceLabel = node.hasLabel() ? node.getLabel() : "";
-                
-                 edu.tufts.vue.metadata.VueMetadataElement vme = new edu.tufts.vue.metadata.VueMetadataElement();
-                 vme.setType(edu.tufts.vue.metadata.VueMetadataElement.OTHER);
-                 vme.setObject(annotationRoot + sourceLabel);
-                 node.getMetadataList().getMetadata().add(vme);
-
-                 // So we've built up and annotated this node, but now we may not add it ... did
-                 // we really need to create it?
-                 if (!repeat) {
-                     // if(RECORD_SOURCE_NODES) {
-                     //     if(node.getNotes() !=null) {
-                     //         node.setNotes(node.getNotes()+"\n" + map.getLabel());
-                     //     } else {
-                     //         node.setNotes(map.getLabel());
-                     //     }
-                     //     nodes.put(Util.getMergeProperty(comp),node);
-                     // }; //addNode(node);
-                     if (!excludeNodesFromBaseMap || !nodePresentOnBaseMap(node)) {    
-                         this.add(node);
-                     }
-                 }
-             }
+        for (LWComponent srcNode : sourceMap.getAllDescendents(ChildKind.PROPER)) {
+            if (srcNode instanceof LWNode || srcNode instanceof LWImage) ; else continue;
+            final Object mergeKey = getMergeKey(srcNode);
+            if (mergeKey == null)
+                continue;
+            final LWComponent alreadyMerged = keysMerged.get(mergeKey);
+            if (alreadyMerged != null) {
+                annotateWithSource(sourceMap, srcNode, alreadyMerged);
+                continue;
+            }
+            //-----------------------------------------------------------------------------
+            // weightAggregate was ignored here -- is only used for styling in our caller
+            //-----------------------------------------------------------------------------
+            if (voteAggregate != null && !voteAggregate.isNodeVoteAboveThreshold(mergeKey))
+                continue;
+            
+            if (!excludeNodesFromBaseMap || !mergeKeyPresentOnBaseMap(mergeKey)) // todo: base-map check needlessly slow
+                keysMerged.put(mergeKey, copyInNode(sourceMap, srcNode));
         }
     }
-                 
+
+    /** copy the source node to this map, returning the new duplicate node */
+    private LWComponent copyInNode(LWMap sourceMap, LWComponent sourceNode) {
+        final LWComponent node = sourceNode.duplicate();
+        annotateWithSource(sourceMap, sourceNode, node);
+        super.addChild(node);
+        return node;
+    }
+
+    // TODO: NEED TO HANDLE CASES WHERE NOT ALL NODES HAVE A MERGE PROPERTY (e.g., Resource)
+
+    /** Called by MergeMapsControlPanel */
+    public void fillAsWeightMerge()
+    {
+        final ConnectivityMatrixList<ConnectivityMatrix> cms = new ConnectivityMatrixList<ConnectivityMatrix>();
+
+        final Collection<LWMap> activeMaps = getActiveMaps();
+        final LWMap baseMap = getBaseMap();
+
+        if (excludeNodesFromBaseMap)
+            this.baseMapKeys = hashMergeKeys(baseMap);
+
+        for (LWMap map : activeMaps) {
+            if (DEBUG_LOCAL) Log.debug("computing matrix adding: " + map);
+            // old comment had commented out check to skip baseMap...
+            cms.add(new ConnectivityMatrix(map));
+        }
+        
+        final List<Style> nodeStyles = new ArrayList<Style>();
+        final List<Style> linkStyles = new ArrayList<Style>();
+        
+        for(int si=0;si<5;si++) 
+            nodeStyles.add(StyleMap.getStyle("node.w" + (si +1)));
+        
+        for(int lsi=0;lsi<5;lsi++)
+            linkStyles.add(StyleMap.getStyle("link.w" + (lsi +1)));
+        
+        final WeightAggregate weightAggregate = WeightAggregate.create(cms);
+        final Map<Object,LWComponent> keysMerged = new HashMap();
+        
+        if (!excludeNodesFromBaseMap && baseMapIsActive()) {
+            // Don't know if we need to add baseMap 1st, but leaving this in
+            // instead of including in loop below just in case.
+            mergeInNodesForWeights(baseMap, keysMerged, weightAggregate /*,nodeStyles*/ ); // styles were ignored
+        }
+        
+        if (!getFilterOnBaseMap()) {
+            for (LWMap map : activeMaps) {
+                if (map == baseMap) {
+                    Log.debug("addMerge; skipping baseMap " + baseMap);
+                } else {
+                    Log.debug("addMerge;       adding map " + map);
+                    mergeInNodesForWeights(map, keysMerged, weightAggregate /*,nodeStyles*/ );
+                }
+            }
+        }
+
+        final Collection<LWComponent> allMergedNodes = getAllDescendents(ChildKind.PROPER); 
+
+        for (LWComponent c : allMergedNodes) {
+            if (c instanceof LWNode || c instanceof LWImage) continue;
+            // As we've only done addMergeNodesForMap calls up till now, everything in the map should already
+            // only be LWNodes or LWImages, but we check here just in case...
+            Log.warn("merge results pollution?: " + c);
+            //allMergedNodes.remove(c); // iterator would fail...
+        }
+        
+        // todo: use applyCSS(style) -- need to plug in formatting panel
+        
+        for (LWComponent node : allMergedNodes) {
+            if (node instanceof LWNode == false)
+                continue;
+            double score = 100 * weightAggregate.getNodeCount(getMergeKey(node))/weightAggregate.getCount();
+            if(score>100) score = 100; else if(score<0) score = 0;
+            final Style currStyle = nodeStyles.get(getNodeInterval(score)-1);
+            //todo: applyCss here instead.
+            node.setFillColor(Style.hexToColor(currStyle.getAttribute("background")));
+            java.awt.Color strokeColor = null;
+            if(currStyle.getAttribute("font-color") != null)
+                strokeColor = Style.hexToColor(currStyle.getAttribute("font-color"));
+            if (strokeColor != null)
+                node.setTextColor(strokeColor);
+        }
+
+        for (LWComponent head : allMergedNodes) {
+            final Object headKey = getMergeKey(head);
+            // Again, we're expecting that only LWImages or LWnodes are in allMergedNodes.
+            for (LWComponent tail : allMergedNodes) {
+                if (head == tail)
+                    continue;
+                final Object tailKey = getMergeKey(tail);
+                final int c = weightAggregate.getConnection(headKey, tailKey);
+                if (c <= 0)
+                    continue;
+                final int c2 = weightAggregate.getConnection(tailKey, headKey);
+                double score = 100 * c / weightAggregate.getCount();
+                // are either of these ever happenning? If so, why?
+                if (score > 100) score = 100; else if (score < 0) score = 0;
+                final Style currLinkStyle = linkStyles.get(getLinkInterval(score)-1);
+                final LWLink link = new LWLink(head, tail);
+                if (c2 > 0 && !getFilterOnBaseMap()) {
+                    link.setArrowState(LWLink.ARROW_BOTH);
+                    weightAggregate.setConnection(tailKey, headKey, 0);
+                }
+                // todo: applyCSS here
+                link.setStrokeColor(Style.hexToColor(currLinkStyle.getAttribute("background")));
+                super.addLink(link);
+                cms.addLinkSourceMapMetadata(headKey, tailKey, link);
+            }
+        }
+    }
+    
+    /** Called by MergeMapsControlPanel */
     public void fillAsVoteMerge()
     {
         final ConnectivityMatrixList<ConnectivityMatrix> matrixList = new ConnectivityMatrixList<ConnectivityMatrix>();
@@ -375,7 +390,7 @@ public class LWMergeMap extends LWMap {
             matrixList.add(new ConnectivityMatrix(map));
         }
 
-        final VoteAggregate voteAggregate = new VoteAggregate(matrixList);
+        final VoteAggregate voteAggregate = VoteAggregate.create(matrixList);
         
         voteAggregate.setNodeThreshold( (double) getNodeThresholdSliderValue() / 100.0 );
         voteAggregate.setLinkThreshold( (double) getLinkThresholdSliderValue() / 100.0 );
@@ -383,23 +398,27 @@ public class LWMergeMap extends LWMap {
         //-----------------------------------------------------------------------------
         // compute and create nodes in Merge Map
         //-----------------------------------------------------------------------------
-        
-        final HashMap<String,LWNode> nodes = new HashMap<String,LWNode>();
+
+        if (excludeNodesFromBaseMap)
+            this.baseMapKeys = hashMergeKeys(getBaseMap());
+
+        final Map<Object,LWComponent> keysMerged = new HashMap();
         
         if (!excludeNodesFromBaseMap && baseMapIsActive())
-            addMergeNodesFromSourceMap(baseMap, voteAggregate, nodes);
+            mergeInNodesForVotes(baseMap, keysMerged, voteAggregate);
         
         if (! getFilterOnBaseMap()) {
+            // TODO: CHECK THIS LOGIC: ONLY ADDING ANY MAPS IF *NOT* "filterOnBaseMap" ?
             for (LWMap map : activeMaps)
                 if (map != baseMap)
-                    addMergeNodesFromSourceMap(map, voteAggregate, nodes);
+                    mergeInNodesForVotes(map, keysMerged, voteAggregate);
         }
         
         //-----------------------------------------------------------------------------
         // compute and create links in Merge Map
         //-----------------------------------------------------------------------------
 
-        final Collection<LWComponent> allComponents = getAllDescendents(LWComponent.ChildKind.PROPER);
+        final Collection<LWComponent> allComponents = getAllDescendents(ChildKind.PROPER);
         final List<LWComponent> linkables = new ArrayList(allComponents.size() / 2);
 
         for (LWComponent c : allComponents) {
@@ -408,98 +427,41 @@ public class LWMergeMap extends LWMap {
                 linkables.add(c);
         }
 
-        // Is there a faster way to do this than O(n^2) ? Shouldn't we
-        // be able to iterate the VoteAggregate or track the above
-        // threshold relations there?
+        // Is there a faster way to do this than O(n^2) ? Shouldn't we be able to iterate the
+        // VoteAggregate or track the above threshold relations there?
 
-        for (LWComponent c1 : linkables) {
-            for (LWComponent c2 : linkables) {
-                if (c1 != c2) {
-                    final String mergeProp1 = Util.getMergeProperty(c1);
-                    final String mergeProp2 = Util.getMergeProperty(c2);
-                    if (voteAggregate.isLinkVoteAboveThreshold(mergeProp1, mergeProp2)) {
+        for (LWComponent head : linkables) {
+            final Object headKey = getMergeKey(head);
+            for (LWComponent tail : linkables) {
+                if (head != tail) {
+                    final Object tailKey = getMergeKey(tail);
+                    if (voteAggregate.isLinkVoteAboveThreshold(headKey, tailKey)) {
                         // Vote for the relation between these two nodes was above link threshold: add a new link
-                        final LWLink link = new LWLink(c1, c2);
-                        this.addLink(link);
-                        matrixList.addLinkSourceMapMetadata(mergeProp1, mergeProp2, link);
+                        final LWLink link = new LWLink(head, tail);
+                        super.addLink(link);
+                        matrixList.addLinkSourceMapMetadata(headKey, tailKey, link);
                     }
                 }
             }
         }
     }
 
-    
-    public void recreateVoteMerge() {
-        clearAllElements();
-        fillAsVoteMerge();
-    }
-    
-    // public void refillAsVoteMerge() {
-    //     clearAllElements();
-    //     fillAsVoteMerge();    
-    // }
-
-    // searchSet = this.getAllDescendents(ChildKind.PROPER);
-    
-    public boolean nodeAlreadyPresent(LWComponent node) {
-        Log.warn("refetching all descendents for " + this);
-        return nodeAlreadyPresent(node, this.getAllDescendents(ChildKind.PROPER));
-    }
-        
-    private boolean nodeAlreadyPresent(LWComponent node, Collection<LWComponent> searchSet)
-    {
-        if (node == null || !node.atTopLevel()) // this top-level check is not in nodePresentOnBaseMap -- bug or on purpose?
-            return false;
-
-        final String nodeMergeProperty = Util.getMergeProperty(node);
-
-        if (nodeMergeProperty == null)
-            return false;        
-        else
-            return propertyPresentInSet(nodeMergeProperty, searchSet);
-    }
-    
-    public boolean nodePresentOnBaseMap(LWComponent node) {
-        if (node == null) // should the top-level check also be here?
-            return false;
-
-        final String nodeMergeProperty = Util.getMergeProperty(node);
-
-        if (nodeMergeProperty == null)
-            return false;
-        else
-            return propertyPresentInSet(nodeMergeProperty, getBaseMap().getAllDescendents(ChildKind.PROPER));
-    }
-    
-    private boolean propertyPresentInSet(final String needle, final Collection<LWComponent> haystack)
-    {
-        //if(DEBUG_LOCAL) { System.out.println("nodeAlreadyPresent -- getParent() " + node.getParent()); }
-        // [DAN] also need to check if parent *will* be visible [SMF] What's this about?
-        // if(node.getParent() instanceof LWNode && (LWNode.isImageNode((LWNode)(node.getParent()))) )
-        //     return true;
-        for (LWComponent c : haystack) {
-            final String mergeProp = Util.getMergeProperty(c);
-            if (needle.equals(mergeProp)) {
-                return true;
-                // Not sure why this code is here and what it is doing. should be refactored.  Ah -- this code
-                // was doing the ANNOTATION -- in a method that's supposed to be performing a test.  This
-                // worked because ANOTHER VERSION of "addMergeNodesForMap" in MergeMapsChooser did NOT do the
-                // annotation like the one here.  Code duplication hell...
-                //
-                // And there's also edu/tufts/vue/compare/ui/MergeMapsControlPanel.java in addition
-                // to ./MergeMapsChoser.java. 
-                // String sourceLabel = node.getLabel();   
-                // if(sourceLabel == null)
-                //    sourceLabel = "";
-                // edu.tufts.vue.metadata.VueMetadataElement vme = new edu.tufts.vue.metadata.VueMetadataElement();
-                // vme.setType(edu.tufts.vue.metadata.VueMetadataElement.OTHER);
-                // vme.setObject("source: " + node.getMap().getLabel() + "," + sourceLabel);
-                // c.getMetadataList().getMetadata().add(vme);
+    private static Set hashMergeKeys(LWMap map) {
+        final Set hashedKeys = new HashSet();
+        for (LWComponent c : map.getAllDescendents(ChildKind.PROPER)) {
+            if (c instanceof LWNode || c instanceof LWImage) { // not 100% sure of this filter...
+                final Object key = getMergeKey(c);
+                if (key != null)
+                    hashedKeys.add(key);
             }
         }
-        return false;
+        return hashedKeys;
     }
-
+    
+    public boolean mergeKeyPresentOnBaseMap(Object key) {
+        return baseMapKeys.contains(key);
+    }
+    
     // todo: this should become only the default initialization method
     // for interval boundaries -- in fact: implementing 4/1/2008
     public void setIntervalBoundaries()
@@ -531,7 +493,7 @@ public class LWMergeMap extends LWMap {
         return 0;
     }
     
-    public int getLinkInterval(double score)
+    private int getLinkInterval(double score)
     {
         Iterator<Double> i = linkIntervalBoundaries.iterator();
         int count = 0;
@@ -542,233 +504,6 @@ public class LWMergeMap extends LWMap {
             count ++;
         }
         return 0;
-    }
-    
-    private void addMergeNodesForMap(LWMap map,WeightAggregate weightAggregate,List<Style> styles)
-    {       
-         
-           Iterator<LWComponent> children = map.getAllDescendents(LWComponent.ChildKind.PROPER).iterator(); //map.getNodeIterator();
-           while(children.hasNext()) {             
-             LWComponent component = children.next(); 
-             if(component instanceof LWPortal)
-                 continue;
-  
-             if(component instanceof LWNode || component instanceof LWImage)
-             {
-                boolean repeat = false;
-               if(nodeAlreadyPresent(component))
-               {
-                 repeat = true;
-               }
-               LWComponent node = component.duplicate();
-               edu.tufts.vue.metadata.VueMetadataElement vme = new edu.tufts.vue.metadata.VueMetadataElement();
-               vme.setType(edu.tufts.vue.metadata.VueMetadataElement.OTHER);
-               String sourceLabel = node.getLabel();
-               if(sourceLabel == null)
-                   sourceLabel = "";
-               String sourceMap = component.getMap().getLabel();
-               
-               if(sourceMap == null)
-                   sourceMap = "";
-               
-               vme.setObject("source: " + sourceMap + "," + sourceLabel);
-               node.getMetadataList().getMetadata().add(vme);
-               if(!repeat)
-               {    
-                  if(!excludeNodesFromBaseMap || !nodePresentOnBaseMap(node))
-                 {    
-                   add(node);
-                 }
-               }     
-             }
-           }
-    }
-        
-    public void fillAsWeightMerge()
-    {
-    
-        ConnectivityMatrixList<ConnectivityMatrix> cms = new ConnectivityMatrixList<ConnectivityMatrix>();
-        Iterator<LWMap> i = getMapList().iterator();
-        Iterator<Boolean> ci = null; 
-        if(getActiveFileList()!=null)
-          ci = getActiveFileList().iterator();
-        while(i.hasNext())
-        {
-          LWMap m = i.next();
-          if(DEBUG_LOCAL)
-          {    
-            System.out.println("LWMergeMap, computing matrix array next map is: " + m.getLabel());
-          }
-          Boolean b = Boolean.TRUE;
-          if(ci!=null && ci.hasNext())
-          {    
-             b = ci.next();
-          }
-          if(b.booleanValue()) //|| (m==getBaseMap()))
-          {
-            if(DEBUG_LOCAL)
-            {    
-              System.out.println("LWMergeMap, computing matrix array actually adding: " + m.getLabel());
-            }
-            cms.add(new ConnectivityMatrix(m));
-          }
-          else
-          {
-            if(DEBUG_LOCAL)
-            {    
-              System.out.println("LWMergeMap, computing matrix array not adding due to check box or base map (already added):" +
-                                 " (label, m == getBaseMap()) (" + m.getLabel() + "," + (m==getBaseMap()) +")");
-            }
-          }
-        }
-        
-        ArrayList<Style> nodeStyles = new ArrayList<Style>();
-        ArrayList<Style> linkStyles = new ArrayList<Style>();
-        
-        for(int si=0;si<5;si++)
-        {
-            nodeStyles.add(StyleMap.getStyle("node.w" + (si +1)));
-        }
-        
-        for(int lsi=0;lsi<5;lsi++)
-        {
-            linkStyles.add(StyleMap.getStyle("link.w" + (lsi +1)));
-        }
-        
-        WeightAggregate weightAggregate = new WeightAggregate(cms);
-        
-        if(!excludeNodesFromBaseMap && baseMapIsActive())
-        {
-          addMergeNodesForMap(getBaseMap(),weightAggregate,nodeStyles);
-        }
-        
-        if(!getFilterOnBaseMap())
-        {
-          Iterator<LWMap> maps = getMapList().iterator();
-          ci = null; 
-          if(getActiveFileList()!=null)
-            ci = getActiveFileList().iterator();
-          while(maps.hasNext())
-          {
-            LWMap m = maps.next();
-            if(DEBUG_LOCAL)
-            {
-              System.out.println("LWMergeMap: next map - " + m.getLabel());
-            }
-            Boolean b = Boolean.TRUE;
-            if(ci!=null && ci.hasNext())
-            {    
-               b = ci.next();
-            }
-            if(m!=baseMap && b.booleanValue())
-            {
-                if(DEBUG_LOCAL)
-                {    
-                  System.out.println("LWMergeMap: actually adding - " + m.getLabel());
-                }
-                addMergeNodesForMap(m,weightAggregate,nodeStyles);
-            }
-            else
-            {
-                if(DEBUG_LOCAL)
-                {    
-                  System.out.println("LWMergeMap: not adding - " + m.getLabel());
-                }
-            }
-          }
-        }
-        
-        // todo: use applyCSS(style) -- need to plug in formatting panel
-        Iterator children = getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
-        
-        while(children.hasNext())
-        {
-             LWComponent comp = (LWComponent)children.next();
-             if(DEBUG_LOCAL)
-             {    
-               System.out.println("LWMergeMap, computing colors, next component - " + comp.getLabel());
-             }
-             if(comp instanceof LWNode)
-             {
-                  LWNode node = (LWNode)comp;
-                  double score = 100*weightAggregate.getNodeCount(Util.getMergeProperty(node))/weightAggregate.getCount();
-                  if(score>100)
-                  {
-                    score = 100;
-                  }
-                  if(score<0)
-                  {
-                    score = 0;
-                  }
-                  Style currStyle = nodeStyles.get(getNodeInterval(score)-1);
-                  //todo: applyCss here instead.
-                  node.setFillColor(Style.hexToColor(currStyle.getAttribute("background")));
-                  
-                  java.awt.Color strokeColor = null;
-                  if(currStyle.getAttribute("font-color") != null)
-                  {
-                    strokeColor = Style.hexToColor(currStyle.getAttribute("font-color"));
-                  }
-                  if(strokeColor != null)
-                  {
-                    node.setTextColor(strokeColor);
-                  }
-             }
-        }
-       
-        //compute and create links in Merge Map
-        Iterator<LWComponent> children1 = getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
-        while(children1.hasNext()) {
-           LWComponent comp1 = children1.next();
-           //if(comp1 instanceof LWImage)
-           //    continue;
-           //LWNode node1 = (LWNode)comp1;
-           LWComponent node1 = comp1;
-           Iterator<LWComponent> children2 = getAllDescendents(LWComponent.ChildKind.PROPER).iterator();//getNodeIterator();
-           LWComponent node2 = null;
-           while(children2.hasNext() ) {
-               /*LWComponent*/ node2 = /*(LWNode)*/children2.next();
-               if(!((node2 instanceof LWNode) || (node2 instanceof LWImage)) )
-               {
-                   continue;
-               }
-               if(node2 != node1) {
-                  int c = weightAggregate.getConnection(Util.getMergeProperty(node1),Util.getMergeProperty(node2));
-                  int c2 = weightAggregate.getConnection(Util.getMergeProperty(node2),Util.getMergeProperty(node1));
-                  if(c > 0) {
-                    double score = 100*c/weightAggregate.getCount();
-                    
-                    // are either of these ever happenning? If so, why?
-                    if(score > 100)
-                    {
-                        score = 100;
-                    }
-                    if(score < 0)
-                    {
-                        score = 0;
-                    }
-                    
-                    Style currLinkStyle = linkStyles.get(getLinkInterval(score)-1);
-                    LWLink link = new LWLink(node1,node2);
-                    if(c2>0 && !getFilterOnBaseMap())
-                    {
-                      link.setArrowState(LWLink.ARROW_BOTH);
-                      weightAggregate.setConnection(Util.getMergeProperty(node2),Util.getMergeProperty(node1),0);
-                    }
-                    //todo: applyCSS here
-                    link.setStrokeColor(Style.hexToColor(currLinkStyle.getAttribute("background")));
-                    addLink(link);
-                    
-                    cms.addLinkSourceMapMetadata(Util.getMergeProperty(node1),Util.getMergeProperty(node2),link);
-                    
-                   //edu.tufts.vue.metadata.VueMetadataElement vme = new edu.tufts.vue.metadata.VueMetadataElement();
-                   //vme.setType(edu.tufts.vue.metadata.VueMetadataElement.OTHER);
-                   //vme.setObject("source: " + comp.getMap().getLabel() + "," + sourceLabel);
-                   //link.getMetadataList().getMetadata().add(vme);
-                  }
-               }
-           }
-        }
     }
     
     public boolean baseMapIsActive()
@@ -788,11 +523,87 @@ public class LWMergeMap extends LWMap {
         return true;
     }
     
+    private static Object getMergeKey(LWComponent c) { return edu.tufts.vue.compare.Util.getMergeProperty(c); }
+
+    /* for LWComponent.putclientData */ private static final class Counter { int count = 0; }
+    // Note that since clientData is runtime *instance* information, and not copied over on
+    // duplication, we don't have to worry about cleaning these up / having them propagate.
+
+    /*
+     * FYI: the first time this method sees @param mergeNew during a merge, it happens to be the actual
+     * duplicate of sourceNode, and it wont have any counter set yet.  Each time we see it after that,
+     * sourceNode is another node with the same merge-key, possibly from a different source map.  (BTW, the
+     * choice of which merge-key matching node to use as the actual duplication source is somewhat random: the
+     * merge process simply uses the first it comes across in the order we merge the maps.)
+     */
+    private static void annotateWithSource(LWMap sourceMap, LWComponent sourceNode, LWComponent mergeNew)
+    {
+        Counter counter = mergeNew.getClientData(Counter.class);
+        if (counter == null)
+            counter = mergeNew.putClientData(new Counter());
+        
+        String mapLabel = sourceMap.getDisplayLabel();
+        if (mapLabel.endsWith(".vue"))
+            mapLabel = mapLabel.substring(0, mapLabel.length()-4);
+
+        final String annotation = String.format("[in:%d:%s/%s/%s]",
+                                                ++counter.count,
+                                                mapLabel,
+                                                sourceNode.getID(),
+                                                sourceNode.getDisplayLabel());
+
+        if (DEBUG.TEST) {
+            if (mergeNew.hasNotes()) {
+                // note: string manips are slow -- could store a StringBuilder in the client-data
+                // and run a final baking pass at the end of all the merges.
+                mergeNew.setNotes(mergeNew.getNotes()
+                                  + (counter.count > 1 ? "\n" : "\n----\n")
+                                  + annotation);
+            } else {
+                mergeNew.setNotes(annotation);
+            }
+        }
+
+        // This apparently is a special form a meta-data annotation (#TAG?) that only shows up in the UI via a
+        // special Resource icon (which never made it to the preferences) that pulls
+        // MetadataList.getMetadataAsHTML(type) to display its rollover content.  It depends on a special
+        // format for the meta-data to be broken up and formatted in the HTML (actually, it seems to mainly
+        // strip "<word>:" off the front).  It does NOT show up in the "Keywords" InspectorPane tab.  Note that
+        // this data DOES, however, end up appaering in the RDFIndex, and this can be searched on, tho the user
+        // won't have a place to see where the hit came from except the rollover.
+            
+        final VueMetadataElement vme = new VueMetadataElement();
+        vme.setType(VueMetadataElement.OTHER);
+        final String stripped = annotation.substring(3, annotation.length()-1);
+        vme.setObject("source" + stripped);
+        mergeNew.getMetadataList().getMetadata().add(vme);
+    }
+    
+    // edu.tufts.vue.metadata.VueMetadataElement vme = new edu.tufts.vue.metadata.VueMetadataElement();
+    // vme.setType(edu.tufts.vue.metadata.VueMetadataElement.OTHER);
+    // vme.setObject("source: " + node.getMap().getLabel() + "," + sourceLabel);
+    // c.getMetadataList().getMetadata().add(vme);
+        
+    public String toString() { return "LWMerge" + super.toString().substring(2); }
+    
+    //@Override String getDiagnosticLabel() { return "MergeMap: " + getLabel(); }
+
+    
+    // // only called by old MergeMapsChooser
+    // public void recreateVoteMerge() {
+    //     clearAllElements();
+    //     fillAsVoteMerge();
+    // }
+    // public void refillAsVoteMerge() {
+    //     clearAllElements();
+    //     fillAsVoteMerge();    
+    // }
+
 
     /** This class is only there to provide something for the old mapping description for LWMergeMap to refer
      * to, which is NOT, in fact, an LWMergeMap.  Eventualy, we can get rid of this and just delete/comment out
      * the old mapping info, but I'm leaving it for now in case we decide we need it.
-     */ public static final class HIDE_FROM_CASTOR_MAPPING extends LWMergeMap {static {if (true) throw new Error("should-never-init");}}
+     */ public static final class HIDE_FROM_CASTOR_MAPPING extends LWMergeMap {static{if(true)throw new Error("should-never-init");}}
     
         
 }
