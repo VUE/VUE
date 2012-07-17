@@ -330,7 +330,7 @@ public class SearchAction extends AbstractAction
      */
     private RDFIndex getIndexForScope(final ComboKey scope)
     {
-        if (DEBUG.SEARCH) Log.debug("getScopeIndex " + Util.tags(scope));
+        if (DEBUG.SEARCH) Log.debug("getIndexForScope " + Util.tags(scope));
 
         if (scope == SEARCH_SCOPE_ALL_OPEN_MAPS) { 
             if (DEBUG.SEARCH) Log.debug("indexing all open maps...");
@@ -553,7 +553,7 @@ public class SearchAction extends AbstractAction
         
         if (DEBUG.SEARCH) {
             Log.debug("results are in for scope " + Util.tags(searchScope) + "; willProcessAs: " + GUI.name(resultAction));
-            if (true || DEBUG.RDF) {
+            if (DEBUG.RDF) {
                 // note: in may cases now, DEBUG.RDF means "DEBUG.SEARCH.EXTRA"
                 Log.debug("=raw-results:");
                 Util.dump(hits);
@@ -600,8 +600,8 @@ public class SearchAction extends AbstractAction
                 if (toSelect == null) {
                     Log.debug("nothing returned for selection.");
                 } else {
-                    Log.debug("to-select:");
-                    Util.dump(toSelect);
+                    Log.debug("to-select:" + Util.tags(toSelect));
+                    //Util.dump(toSelect);
                 }
             }
 
