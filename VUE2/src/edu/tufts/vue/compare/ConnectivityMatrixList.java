@@ -27,14 +27,14 @@ public class ConnectivityMatrixList<E> extends java.util.ArrayList<E> {
         
     private static final boolean DEBUG_LOCAL = false;
     
-    public void addLinkSourceMapMetadata(String node1,String node2,tufts.vue.LWLink link)
+    public void addLinkSourceMapMetadata(Object key1, Object key2, tufts.vue.LWLink link)
     {
         
            for(int i=0;i<size();i++)
            {
                
                E cm = get(i);
-               if(cm instanceof ConnectivityMatrix && ((ConnectivityMatrix)cm).getConnection(node1,node2) > 0)
+               if(cm instanceof ConnectivityMatrix && ((ConnectivityMatrix)cm).getConnection(key1,key2) > 0)
                {
                    String sourceLabel = ((ConnectivityMatrix)cm).getMap().getLabel();
                    
@@ -70,8 +70,8 @@ public class ConnectivityMatrixList<E> extends java.util.ArrayList<E> {
                        }
                        else
                        {
-                          String headMP = Util.getMergeProperty(head);
-                          String tailMP = Util.getMergeProperty(tail);
+                          Object headMP = Util.getMergeProperty(head);
+                          Object tailMP = Util.getMergeProperty(tail);
                           
                           int arrowState = currLink.getArrowState();
                           
@@ -80,14 +80,14 @@ public class ConnectivityMatrixList<E> extends java.util.ArrayList<E> {
                           //switch(arrowState) 
                           //{
                           //    case tufts.vue.LWLink.ARROW_HEAD:
-                          //        matches = headMP.equals(node2) && tailMP.equals(node1);
+                          //        matches = headMP.equals(key2) && tailMP.equals(key1);
                           //        break;
                           //    case tufts.vue.LWLink.ARROW_TAIL:
-                          //        matches = headMP.equals(node1) && tailMP.equals(node2);
+                          //        matches = headMP.equals(key1) && tailMP.equals(key2);
                           //        break;
                           //    case tufts.vue.LWLink.ARROW_BOTH: case tufts.vue.LWLink.ARROW_NONE:
-                                  matches = (headMP.equals(node2) && tailMP.equals(node1)) ||
-                                            (headMP.equals(node1) && tailMP.equals(node2)) ;
+                                  matches = (headMP.equals(key2) && tailMP.equals(key1)) ||
+                                            (headMP.equals(key1) && tailMP.equals(key2)) ;
                           //        break;
                           //    default:
                           //        matches = false;
