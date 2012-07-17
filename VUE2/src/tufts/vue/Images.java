@@ -902,7 +902,7 @@ public class Images
         //if (DEBUG.IMAGE) System.out.println("-------------------------------------------------------");
 
         //Log.debug("fetching image source " + imageSRC + " for " + tag(listener));
-        if (DEBUG.Enabled) Log.debug("fetching for "
+        if (DEBUG.IMAGE||DEBUG.WORK) Log.debug("fetching for "
                                      + Util.tags(when)
                                      + " to listener " + Util.tag(listener) + "; " + imageSRC);
 
@@ -1638,7 +1638,7 @@ public class Images
 //         }
         
         @Override public void execute(Runnable runnable) {
-            if (DEBUG.Enabled) Log.debug("submit " + runnable);
+            if (DEBUG.IMAGE||DEBUG.WORK) Log.debug("submit " + runnable);
             super.execute(runnable);
             
 //             if (runnable instanceof Loader) {
@@ -1786,7 +1786,7 @@ public class Images
             final Loader loader;
             
             if (imageSRC.key == null) {
-                if (DEBUG.Enabled) 
+                if (DEBUG.IMAGE||DEBUG.WORK) 
                     Util.printStackTrace("attempting to load cache w/null key: " + imageSRC);
                 else
                     Log.warn("attempting to load cache w/null key: " + imageSRC);
