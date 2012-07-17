@@ -670,18 +670,22 @@ public class MetaMap implements TableBag, XMLUnmarshalListener, tufts.vue.ds.Rel
         try {
             Schema s = getSchema();
             String t = "";
+                
             if (s != null) {
+                String keyFieldName = "";
+                try { keyFieldName = s.getKeyFieldName(); }
+                catch (Throwable tx) { keyFieldName = "["+tx+"]"; }
                 t = String.format(" %s.%s=%s",
                                   s.getName(),
                                   s.getKeyFieldName(),
-                                  Util.tags(Util.maxDisplay(getString(s.getKeyFieldName()), 50)));
+                                  Util.tags(Util.maxDisplay(getString(keyFieldName), 50)));
             }
             return String.format("MetaMap@%06x[n=%d%s]",
                                  System.identityHashCode(this),
                                  size(),
                                  t);
         } catch (Throwable t) {
-            t.printStackTrace();
+            //t.printStackTrace();
             return Util.tag(this) + "[" + t + "]";
         }
     }
