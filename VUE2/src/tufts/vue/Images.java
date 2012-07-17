@@ -3661,9 +3661,10 @@ class FileBackedImageInputStream extends ImageInputStreamImpl
             final String matcher = trimmed.substring(0, Math.min(16, trimmed.length())).toUpperCase();
 
             if (matcher.startsWith("<HTML>") || matcher.startsWith("<!DOCTYPE")) {
-                Log.warn("Stream " + stream + " contains HTML, not image data: [" + contentHead.trim() + "]");
-
-                Log.info("see cache file for HTML sample:\n\t" + file);
+                if (DEBUG.IMAGE)
+                    Log.warn("Stream " + stream + " contains HTML, not image data: [" + contentHead.trim() + "]");
+                else
+                    Log.info("Stream contains HTML, not image data: see cache file for HTML sample:\n\t" + file);
                 
                 // DEBUG: we force this readUntil to get more info on the streams that are starting
                 // with <HTML> every once in a while: we can be sure to have a cache file with a bit 
