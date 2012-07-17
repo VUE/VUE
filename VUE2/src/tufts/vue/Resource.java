@@ -95,7 +95,7 @@ public abstract class Resource implements Cloneable
             final char c1 = key.charAt(1);
             return c0 == '~' || c0 == '#' || (c0 == '@' && c1 == '@');
         } catch (Throwable t) {
-            if (DEBUG.Enabled) Log.warn("short key? " + Util.tags(key) + "; " + t);
+            //if (DEBUG.Enabled) Log.warn("short key? " + Util.tags(key) + "; " + t);
         }
         return false;
     }
@@ -106,7 +106,7 @@ public abstract class Resource implements Cloneable
             final char c = key.charAt(0);
             return c == '@' || c == '#' || c == '~';
         } catch (Throwable t) {
-            if (DEBUG.Enabled) Log.warn("short-key? " + Util.tags(key) + "; " + t);
+            //if (DEBUG.Enabled) Log.warn("short-key? " + Util.tags(key) + "; " + t);
         }
         return false;
     }
