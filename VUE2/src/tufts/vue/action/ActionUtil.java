@@ -1466,7 +1466,6 @@ final class XMLObjectFactory extends org.exolab.castor.util.DefaultObjectFactory
             
         final Class type;
         if (_type == tufts.vue.LWMergeMap.class) {
-            Log.info("dumping poisonious " + _type);
             type = tufts.vue.LWMap.class;
         }
         // else if (_type == tufts.vue.MapResource.class || _type == tufts.vue.CabinetResource.class)
