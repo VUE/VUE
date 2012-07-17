@@ -28,7 +28,7 @@ import java.awt.event.*;
 
 public class AnalyzeCM extends VueAction {
     
-    private MergeMapsChooser mmc = null;
+    //private MergeMapsChooser mmc = null;
     
     private tufts.vue.gui.DockWindow w = null;
     
@@ -85,7 +85,7 @@ public class AnalyzeCM extends VueAction {
         }*/
         
         
-        int MMC_VERSION = 1;
+        final int MMC_VERSION = 1;
         
         if(MMC_VERSION == 1)
         {
@@ -99,32 +99,29 @@ public class AnalyzeCM extends VueAction {
             w.setVisible(true);
         }
         
-        if(MMC_VERSION == 0)
-        {
-          tufts.vue.gui.DockWindow w = MergeMapsChooser.getDockWindow();
-        
-          if(w==null)
-          {
-           mmc = new MergeMapsChooser();
-           w = tufts.vue.gui.GUI.createDockWindow(VueResources.getString("dialog.mergemap.title"),mmc);
-           MergeMapsChooser.setDockWindow(w); 
-           
-           //$
-                 //MergeMapsChooser.loadDefaultStyle();
-                 //mmc.refreshSettings();
-           //$
-          }
-        
-          if(!w.isVisible())
-          {
-            if(!(VUE.getActiveMap() instanceof LWMergeMap))
-            MergeMapsChooser.loadDefaultStyle();
-            mmc.refreshSettings();
-            w.setLocation(200,200);
-            w.pack();
-            w.setVisible(true);
-          } 
-        }
+        // if(MMC_VERSION == 0)
+        // {
+        //   tufts.vue.gui.DockWindow w = MergeMapsChooser.getDockWindow();
+        //   if(w==null)
+        //   {
+        //    mmc = new MergeMapsChooser();
+        //    w = tufts.vue.gui.GUI.createDockWindow(VueResources.getString("dialog.mergemap.title"),mmc);
+        //    MergeMapsChooser.setDockWindow(w); 
+        //    //$
+        //          //MergeMapsChooser.loadDefaultStyle();
+        //          //mmc.refreshSettings();
+        //    //$
+        //   }
+        //   if(!w.isVisible())
+        //   {
+        //     if(!(VUE.getActiveMap() instanceof LWMergeMap))
+        //     MergeMapsChooser.loadDefaultStyle();
+        //     mmc.refreshSettings();
+        //     w.setLocation(200,200);
+        //     w.pack();
+        //     w.setVisible(true);
+        //   } 
+        // }
                 
     }
     
