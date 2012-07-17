@@ -1514,6 +1514,11 @@ public class LWComponent
             mClientData.put(key, o);
         }
     }
+
+    public <T> T putClientData(T o) {
+        setClientData(o.getClass(), o);
+        return o;
+    }
     
     public Object getClientData(Object key) {
         return mClientData == null ? null : mClientData.get(key);
@@ -1791,7 +1796,7 @@ public class LWComponent
         c.scale = this.scale;
         c.stroke = this.stroke; // cached info only
 
-        c.dupeMetaData(this);
+        c.copyMetaData(this);
 
         c.copyStyle(this); // this copies over all compatiable Property values
 
@@ -1820,18 +1825,18 @@ public class LWComponent
         return c;
     }
 
-    private void dupeMetaData(LWComponent src)
+    private void copyMetaData(final LWComponent source)
     {
-        if (this.metadataList != null) {
+        if (source.metadataList != null) {
             // duplicate original style meta-data list
-            final List<VueMetadataElement> srcVMD = src.getMetadataList().getMetadata();
-            final List<VueMetadataElement> targetVMD = this.metadataList.getMetadata();
+            final List<VueMetadataElement> srcVMD = source.getMetadataList().getMetadata();
+            final List<VueMetadataElement> targetVMD = this.getMetadataList().getMetadata();
             for (VueMetadataElement vme : srcVMD)
                 targetVMD.add(vme);
         }
         // duplicate data-set data
-        if (src.mDataMap != null)
-            mDataMap = src.mDataMap.clone();
+        if (source.mDataMap != null)
+            mDataMap = source.mDataMap.clone();
     }
 
     protected boolean isPresentationContext() {
@@ -2189,6 +2194,18 @@ public class LWComponent
             metadataList = new MetadataList();
         return metadataList;
     }
+    public void setMetadataList(MetadataList list) {
+        metadataList = list;
+    }
+    public void setXMLmetadataList(MetadataList list) {
+        setMetadataList(list);
+    }
+    public MetadataList getXMLmetadataList() {
+        if (mXMLRestoreUnderway)
+            return getMetadataList();
+        else
+            return metadataList;
+    }
     /** see edu.tufts.vue.metadata.VueMetadataElement for metadata types **/
     public boolean hasMetaData(int type) {
         if (metadataList != null)
@@ -2196,9 +2213,6 @@ public class LWComponent
         else 
             return false;
        // return ( (metadataList != null) && (getMetaDataAsHTML().length() > 0) );
-    }
-    public void setMetadataList(MetadataList list) {
-        metadataList = list;
     }
     public boolean hasMetaData() {
         return hasMetaData(edu.tufts.vue.metadata.VueMetadataElement.CATEGORY);
@@ -2230,7 +2244,7 @@ public class LWComponent
      * 2012: are LWCFilters still used?
      **/
     public void setFiltered(boolean filtered) {
-        if (DEBUG.SEARCH&&DEBUG.TEST) Log.debug("setFiltered " + filtered + "; " + this);
+        //if (DEBUG.SEARCH&&DEBUG.TEST) Log.debug("setFiltered " + filtered + "; " + this);
         setFlag(Flag.FILTERED, filtered);
     }
 
@@ -4754,7 +4768,11 @@ public class LWComponent
         
         final boolean skipUndo;
         if (!internal && !javax.swing.SwingUtilities.isEventDispatchThread()) {
-            if (DEBUG.Enabled) Log.info("skipping undo on non-AWT size change: " + this + "; newSize=" + w + "x" + h);
+            // There was a reason this was important to do -- I think in some cases
+            // this could leave undoable state in the undo queue after sizes changes
+            // that were really from initializations, and we do NOT want to 
+            // allow any undo back to a random pre-init size.
+            if (DEBUG.THREAD||DEBUG.UNDO||DEBUG.EVENTS) Log.info("skipping undo on non-AWT size change: " + this + "; newSize=" + w + "x" + h);
             skipUndo = true;
         } else {
             skipUndo = internal;
