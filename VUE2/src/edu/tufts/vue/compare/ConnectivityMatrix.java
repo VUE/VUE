@@ -57,6 +57,7 @@ public class ConnectivityMatrix
      * An object set that provides a fixed index value for each unique object, a count for repeat
      * objects, and fast constant lookup times for all queries.  Note that there is no error
      * checking with indexOf or count.  Use findIndex to see -1 return value for objects not in the set.
+     * Indicies and iteration order represent the preserved insertion order.
      */
     protected static class IndexedCountingSet<T> implements Iterable<T> {
         private static final int INDEX = 0, COUNT = 1;
@@ -85,8 +86,9 @@ public class ConnectivityMatrix
                     maxLen = ts.length();
             }
         }
+      //int count(T s)          { try{return map.get(s)[COUNT];}catch(Throwable t){return 0;}}
+        int count(T s)          { return map.get(s)[COUNT]; }
         int indexOf(T s)        { return map.get(s)[INDEX]; }
-        int count(T s)          { try{return map.get(s)[COUNT];}catch(Throwable t){return 0;}}
           T get(int atIndex)    { return values.get(atIndex); }
         int size()              { return unique; }
         boolean contains(T s)   { return map.containsKey(s); }
@@ -128,13 +130,6 @@ public class ConnectivityMatrix
         if (DEBUG.Enabled) Log.debug(this + " created.");
     }
     
-    /** for subclasses -- backward compat */
-    protected ConnectivityMatrix(int size) {
-        this.map = null;
-        this.keys = new IndexedCountingSet<String>();
-        this.cx = new int[size][size];
-    }
-
     public IndexedCountingSet getKeys() { return keys; }
     public boolean containsKey(String key) { return keys.contains(key); }
     public int size() { return keys.size(); }
@@ -144,8 +139,12 @@ public class ConnectivityMatrix
 
     public static final boolean isValidTarget(LWComponent c) {
         if (c != null) {
-            final Class clazz = c.getClass();
-            return clazz == tufts.vue.LWNode.class || clazz == tufts.vue.LWImage.class;
+            if (c.hasFlag(LWComponent.Flag.ICON)) {
+                return false;
+            } else {
+                final Class clazz = c.getClass();
+                return clazz == tufts.vue.LWNode.class || clazz == tufts.vue.LWImage.class;
+            }
         } else {
             return false;
         }
@@ -176,21 +175,15 @@ public class ConnectivityMatrix
                 final LWComponent head = link.getHead(); // note: will be null if pruned (or getPersistHead)
                 final LWComponent tail = link.getTail(); // note: will be null if pruned (or getPersistHead)
                 if (isValidTarget(head) && isValidTarget(tail)) {
-                    // JUST BECAUSE BOTH ARE VALID TARGETS DOES *NOT* MEAN A VALID MERGE-KEY WILL BE FOUND FOR THEM
                     try {
-                        // Note that, as of course, multiple nodes with the same property are going to
-                        // have the same index, the appropriate "size" of this matrix is the unique
-                        // labels, not the count of the number of nodes inspected (was was the old
-                        // impl with its use of this.size).
                         final int arrowState = link.getArrowState();
                         final Object headKey = getMergeKey(head);
                         final Object tailKey = getMergeKey(tail);
-                        
                         if (headKey == null || tailKey == null) {
-                            // Log.debug
+                            // Just because both are valid targets does *not* mean a valid
+                            // merge-key will be found for them.
                             continue;
                         }
-                        
                         final int headIndex = keys.findIndex(headKey);
                         final int tailIndex = keys.findIndex(tailKey);
                         
