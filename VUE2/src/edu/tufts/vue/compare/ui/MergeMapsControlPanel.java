@@ -24,11 +24,15 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import javax.swing.*;
 import javax.swing.event.*;
+
+import tufts.Util;
 import tufts.vue.*;
 import tufts.vue.gui.*;
 
 public class MergeMapsControlPanel extends JPanel implements ActiveListener<LWMap> {
     
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(MergeMapsControlPanel.class);
+
     private static final boolean DEBUG_LOCAL = false;
     
     private MapsSelectionPanel mapSelectionPanel;
@@ -38,6 +42,8 @@ public class MergeMapsControlPanel extends JPanel implements ActiveListener<LWMa
     private boolean dynamic = false;
     
     private DockWindow dw;
+
+    private boolean stopWasPressed;
     
     public MergeMapsControlPanel(final DockWindow dw) 
     {
@@ -99,170 +105,35 @@ public class MergeMapsControlPanel extends JPanel implements ActiveListener<LWMa
            }
         });
         generateButton = new JButton(VueResources.getString("dialog.mergemap.generatenewmap"));
-        generateButton.addActionListener(new ActionListener()
-        {
-           public void actionPerformed(ActionEvent e)
-           {
-               //final LWMergeMap merge = new LWMergeMap(LWMergeMap.getTitle());
+        generateButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    //final LWMergeMap merge = new LWMergeMap(LWMergeMap.getTitle());
                //merge.setMapList(mapSelectionPanel.getMapList());
                //merge.setBaseMap(mapSelectionPanel.getBaseMap());
-               
                //setMergeMapSettings(merge);
-               
-               Runnable merger = new Runnable()
-               {
-                   boolean stopped = false;
-                   
-                   public void run()
-                   {
-                      try
-                      {        
-                        generateButton.setEnabled(false);
-                        
-                        final JPanel loadingPanel = new JPanel(new BorderLayout());
-                        
-                        //LWMergeMap merge = new LWMergeMap(LWMergeMap.getTitle());
-                        //setMergeMapSettings(merge);
-                        JLabel loadingLabelImage = new JLabel(tufts.vue.VueResources.getImageIcon("dsv.statuspanel.waitIcon"));
-                        //JPanel loadingLabel = new JPanel(new BorderLayout());
-                        
-                        //VUE-1058 -- only warn on no maps for now.
-                        // this is too slow to do this here, however.
-                        // (not exactly sure why? look in MapsSelectionPanel model)
-                        // do this after the loading label starts
-                        // probably makes sense to check in the thread anyway in 
-                        // case someday are merging from networks/etc.
-                        // except.. the new getNumberOfSelections method seems
-                        // to be fast enough -- so use this for now (approaching 2.1
-                        // build rapidly..)
-                        boolean noMapsSelected = false;
-                        
-                        if(mapSelectionPanel.getNumberOfSelections() == 0)
-                        {
-                            noMapsSelected = true;
-                        }
-                        
-                        JPanel loadingLabel = new JPanel();
-                        JLabel progressLabel = new JLabel();
-                        if(noMapsSelected)
-                        {
-                          progressLabel.setText(VueResources.getString("dialog.mergemap.nomapsselected"));  
-                        }
-                        else
-                        {    
-                          progressLabel.setText(VueResources.getString("dialog.mergemap.inprogress"));
-                        }
-                        loadingLabel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
-                        
-                        if(!noMapsSelected)
-                        {    
-                          loadingLabel.add(loadingLabelImage);
-                        }
-                        loadingLabel.add(progressLabel);
-                        
-                        
-                        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-                        buttonPanel.setBorder(BorderFactory.createCompoundBorder(
-                                                BorderFactory.createEmptyBorder(0,10,0,10),
-                                                BorderFactory.createMatteBorder(1,0,0,0,new java.awt.Color(153,153,153))));
-                        
-                        JButton stopButton = new JButton(VueResources.getString("dialog.mergemap.cancel"));
-                        
-                        buttonPanel.add(stopButton);
-                        
-                        loadingPanel.add(loadingLabel);
-                        loadingPanel.add(buttonPanel,BorderLayout.SOUTH);
-                        
-                        stopButton.addActionListener(new java.awt.event.ActionListener(){
-                            public void actionPerformed(java.awt.event.ActionEvent e)
-                            {
-                                //Thread.currentThread().interrupt();
-                                //Thread.currentThread().stop();
-                                stopped = true;
-                                //dw.setContent(new JLabel("'stopped'"));
-                                dw.setContent(MergeMapsControlPanel.this);
-                                dw.repaint();
-                                generateButton.setEnabled(true);
-                            }
-                        });
-                        //loadingLabel.add(stopButton);
-                      
-                        Thread innerThread = new Thread()
-                        {
-                            public void run()
-                            {
-                               dw.setContent(loadingPanel); 
+                    final Runnable mergeMaker = new Runnable() {
+                            public void run() {
+                                stopWasPressed = false; // AWT Thread
+                                try {
+                                    runMergeProcess();
+                                } catch(Exception e) {
+                                    //stopped = true;
+                                    Log.error("mergeProcess", e); 
+                                    if(DEBUG_LOCAL) e.printStackTrace();
+                                    //use to automatically bail from window instead of using button
+                                    /*dw.setContent(MergeMapsControlPanel.this);
+                                      dw.repaint();
+                                      generateButton.setEnabled(true);*/
+                                }
                             }
                         };
-                        
-                        SwingUtilities.invokeLater(innerThread); 
-                        
-                        if(!noMapsSelected)
-                        {
-                          final LWMergeMap merge = new LWMergeMap(LWMergeMap.getTitle());
-                          setMergeMapSettings(merge);
-                      
-                          Thread innerThread2 = new Thread()
-                          {
-                            public void run()
-                            {
-                               VUE.displayMap(merge);
-                               
-                               java.util.Iterator<LWComponent> elements = merge.getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
-                               
-                               while(elements.hasNext())
-                               {
-                                   //if(elements instanceof LWNode)
-                                   //{
-                                     elements.next().layout();
-                                   //}
-                               }
-                               
-                               dw.setContent(MergeMapsControlPanel.this);
-                               dw.repaint();   
-                               generateButton.setEnabled(true); 
-                            }
-                          };
-                       
-                          if(visualizationSettingsPanel.getVisualizationSettingsType() == VisualizationSettingsPanel.VOTE)
-                            merge.fillAsVoteMerge();
-                          else
-                            merge.fillAsWeightMerge();
-                          if(!stopped)
-                          {    
-                            SwingUtilities.invokeLater(innerThread2);
-                          }
-                        }
-                               
-                     }
-                     catch(Exception e)
-                     {
-                        //stopped = true;
-                         
-                        System.out.println("MergeMaps error " + e); 
-                        
-                        if(DEBUG_LOCAL)
-                        {    
-                          e.printStackTrace();
-                        }
-                         
-                        //use to automatically bail from window instead of using button
-                        /*dw.setContent(MergeMapsControlPanel.this);
-                        dw.repaint();
-                        generateButton.setEnabled(true);*/
-                     }
-                   }
-               };
                
-               try
-               {        
-                 Thread mergeThread = new Thread(merger);
-                 mergeThread.start();
-               }
-               catch(Exception te)
-               {
-                   System.out.println("Merge Exception -- " + te);
-               }
+                    try {        
+                        Thread mergeThread = new Thread(mergeMaker);
+                        mergeThread.start();
+                    } catch(Exception te) {
+                        Log.warn("kicking mergeThread -- " + te);
+                    }
                //SwingUtilities.invokeLater(merger);
                
                /*if(visualizationSettingsPanel.getVisualizationSettingsType() == VisualizationSettingsPanel.VOTE)
@@ -299,9 +170,115 @@ public class MergeMapsControlPanel extends JPanel implements ActiveListener<LWMa
         
        // dw.setVisible(true);
     }
-    
-    public void setMergeMapSettings(LWMergeMap map)
+
+    private void runMergeProcess()
+        throws java.lang.InterruptedException
     {
+        generateButton.setEnabled(false);
+                        
+        final JPanel loadingPanel = new JPanel(new BorderLayout());
+        final JLabel loadingLabelImage = new JLabel(tufts.vue.VueResources.getImageIcon("dsv.statuspanel.waitIcon"));
+                        
+        //VUE-1058 -- only warn on no maps for now.  this is too slow to do this here, however.
+        // (not exactly sure why? look in MapsSelectionPanel model) do this after the loading
+        // label starts probably makes sense to check in the thread anyway in case someday are
+        // merging from networks/etc.  except.. the new getNumberOfSelections method seems to
+        // be fast enough -- so use this for now (approaching 2.1 build rapidly..)
+        boolean noMapsSelected = false;
+                        
+        if (mapSelectionPanel.getNumberOfSelections() == 0) {
+            // todo: also, if for all the selected maps, map.hasContent() == false
+            noMapsSelected = true;
+        }
+
+        final JPanel loadingLabel = new JPanel();
+        final JLabel progressLabel = new JLabel();
+        if(noMapsSelected) {
+            // No need to do this this: should just disable the "generate" button
+            progressLabel.setText(VueResources.getString("dialog.mergemap.nomapsselected"));  
+        } else {    
+            progressLabel.setText(VueResources.getString("dialog.mergemap.inprogress"));
+        }
+        loadingLabel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+                        
+        if (!noMapsSelected)
+            loadingLabel.add(loadingLabelImage);
+
+        loadingLabel.add(progressLabel);
+
+        final JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        buttonPanel.setBorder(BorderFactory.createCompoundBorder
+                              (BorderFactory.createEmptyBorder(0,10,0,10),
+                               BorderFactory.createMatteBorder(1,0,0,0,new java.awt.Color(153,153,153))));
+                        
+        final JButton stopButton = new JButton(Util.upCaseInitial(VueResources.local("dialog.mergemap.cancel")));
+                        
+        buttonPanel.add(stopButton);
+                        
+        loadingPanel.add(loadingLabel);
+        loadingPanel.add(buttonPanel,BorderLayout.SOUTH);
+                        
+        stopButton.addActionListener(new java.awt.event.ActionListener(){
+                public void actionPerformed(java.awt.event.ActionEvent e) {
+                    //Thread.currentThread().interrupt();
+                    //Thread.currentThread().stop();
+                    stopWasPressed = true; // AWT thread
+                    //dw.setContent(new JLabel("'stopped'"));
+                    dw.setContent(MergeMapsControlPanel.this);
+                    dw.repaint();
+                    generateButton.setEnabled(true);
+                }
+            });
+        //loadingLabel.add(stopButton);
+
+        // These Runnables let us move these code segments back
+        // to the AWT thread.
+        
+        SwingUtilities.invokeLater(new Runnable() { public void run() {
+            dw.setContent(loadingPanel);  // Run back on AWT thread
+        }});
+                        
+        if (noMapsSelected) // do we 
+            return;
+        
+        final LWMergeMap mergedMap = getConfiguredLWMergeMap();
+                            
+        final Runnable displayTask = new Runnable() {
+                public void run() {
+                    Log.info("invoke-later for displayMap " + mergedMap);
+                    mergedMap.layoutAll("MERGE-CREATED");
+                    VUE.displayMap(mergedMap);
+                    // SMF: Shouldn't have had to be laying them out AFTER display...
+                    // java.util.Iterator<LWComponent> elements = merge.getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
+                    // while(elements.hasNext()) {
+                    //     //if(elements instanceof LWNode) //{
+                    //       elements.next().layout();
+                    //     //}}
+                    dw.setContent(MergeMapsControlPanel.this);
+                    dw.repaint();   
+                    generateButton.setEnabled(true); 
+                }
+            };
+
+        // Thread.sleep(5000);
+                       
+        if(visualizationSettingsPanel.getVisualizationSettingsType() == VisualizationSettingsPanel.VOTE)
+            mergedMap.fillAsVoteMerge();
+        else
+            mergedMap.fillAsWeightMerge();
+                            
+        if (!stopWasPressed) { // technically should be synced: was set in AWT thread
+            // The only thing we actually stop is the final display.
+            SwingUtilities.invokeLater(displayTask); // run this back on AWT thread
+        }
+    }
+                        
+    
+    
+    private LWMergeMap getConfiguredLWMergeMap()
+    {
+        final LWMergeMap map = new LWMergeMap("Hello " + LWMergeMap.getTitle()); // wierd construction...
+        
         java.util.List<LWMap> mapList = mapSelectionPanel.getMapList();
         map.setMapList(mapList);
         //int baseMapIndex = mapSelectionpanel.getBaseMapIndex();
@@ -320,6 +297,8 @@ public class MergeMapsControlPanel extends JPanel implements ActiveListener<LWMa
         map.setFilterOnBaseMap(mapSelectionPanel.getFilterOnBaseMap());
         map.setExcludeNodesFromBaseMap(mapSelectionPanel.getExcludeNodesFromBaseMap());
         map.setVisualizationSelectionType(visualizationSettingsPanel.getVisualizationSettingsType());
+
+        return map;
     }
     
     public void adjustGUIToMergeMap(LWMergeMap map)
