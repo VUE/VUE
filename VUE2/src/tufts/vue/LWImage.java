@@ -355,7 +355,7 @@ public class LWImage extends LWComponent
         // whole mechanism probably really needs to passed all the way through to the
         // notify so the undo manager can detect that there?
 
-        if (DEBUG.Enabled) out("imageRefUpdate: cause=" + Util.tags(cause));
+        if (DEBUG.IMAGE||DEBUG.WORK) out("imageRefUpdate: cause=" + Util.tags(cause));
 
         if (cause == ImageRef.KICKED) {
             // doesn't work: the mark's already been made
@@ -641,7 +641,7 @@ public class LWImage extends LWComponent
 
     private ImageRef initRef(Resource r) {
         
-        if (DEBUG.Enabled) {
+        if (DEBUG.IMAGE||DEBUG.WORK) {
             out("initRef: " + r + "; props=" + r.getProperties());
             if (!java.awt.EventQueue.isDispatchThread())
                 out("initRef: NOT ON AWT: " + Thread.currentThread());
