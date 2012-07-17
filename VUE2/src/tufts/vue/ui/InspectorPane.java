@@ -128,6 +128,8 @@ public class InspectorPane extends WidgetStack
         mDescription.setBackground(Color.white);
 
         mSelectionInfo.setFont(tufts.vue.gui.GUI.StatusFace);
+        //mSelectionInfo.setFont(tufts.vue.gui.GUI.StatusFaceSmall);
+        //mSelectionInfo.setFont(VueConstants.SmallFont);
         mSelectionInfo.setForeground(Color.darkGray);
         mSelectionInfo.setBorder(GUI.WidgetInsetBorder);
 
@@ -452,15 +454,31 @@ public class InspectorPane extends WidgetStack
     }
 
 
-    private static final String SelectionStatsFmt = VueResources.getString("mapinspectorpanel.objectStats.format");
-    private static final String WordNodes = VueResources.getString("mapinspectorpanel.objectStats.nodes");
-    private static final String WordLinks = VueResources.getString("mapinspectorpanel.objectStats.links");
-    private static final String WordGroups = VueResources.getString("mapinspectorpanel.objectStats.groups");
+    private static final String SelectionStatsFmt = VueResources.local("mapinspectorpanel.objectStats.format");
+    private static final String WordNodes = VueResources.local("mapinspectorpanel.objectStats.nodes");
+    private static final String WordLinks = VueResources.local("mapinspectorpanel.objectStats.links");
+    private static final String WordGroups = VueResources.local("mapinspectorpanel.objectStats.groups");
+    private static final String WordImages = "Images:";
 
     private static final String DescriptionFormat = "<html>%s&nbsp;%d&nbsp;&nbsp;&nbsp; %s&nbsp;%d&nbsp;&nbsp;&nbsp; %s&nbsp;%d</html>";
 
-    private static final String SP = "&nbsp;";
+    private static final String SP = " ";
     private static final String SP3 = "&nbsp;&nbsp;&nbsp; ";
+    private static final String GAP = " &nbsp; ";
+
+    /** A convenience class whose toString() returns "" the first time, and real content after that.
+     * Useful for generating lines of output with separators that aren't of course wanted the first time.
+     */private static final class EmptyOnce {
+        final String s; boolean did;
+        EmptyOnce(String in) { s = in; }
+        public String toString() { if (did) return s; else { did = true; return ""; } }
+    }
+
+    //private static final EmptyOnce Gap = new EmptyOnce("<br>");
+    private static final EmptyOnce Gap = new EmptyOnce(GAP);
+    private static final String Post = "";
+    //private static final String Gap = "<ul>";
+    //private static final String Post = "</ul>";
         
     protected static String getSelectionDescription(final LWSelection s)
     {
@@ -471,25 +489,20 @@ public class InspectorPane extends WidgetStack
         final int nodeCount = s.count(LWNode.class);
         final int linkCount = s.count(LWLink.class);
         final int groupCount = s.count(LWGroup.class);
+        final int imageCount = s.count(LWImage.class);
+
+        Gap.did = false;
+
+        // Recall that <font color=green>, etc, actually works as well.  Try below if want to play w/justified labels/values.
+        // b.append("<html><b><br><table border=0 cellpadding=1><tr align=right><td>foo</td><td>barbella</td><tr><td>bizwing</td><td>box</td></table>");
 
         b.append("<html><b>");
-        if (nodeCount > 0) {
-            b.append(WordNodes);
-            b.append(SP);
-            b.append(s.count(LWNode.class));
-            b.append(SP3);
-        }
-        if (linkCount > 0) {
-            b.append(WordLinks);
-            b.append(SP);
-            b.append(s.count(LWLink.class));
-            b.append(SP3);
-        }
-        if (groupCount > 0) {
-            b.append(WordGroups);
-            b.append(SP);
-            b.append(s.count(LWGroup.class));
-        }
+        
+        if (nodeCount > 0)  { b.append(Gap).append(WordNodes) .append(SP).append(nodeCount).append(Post);  }
+        if (linkCount > 0)  { b.append(Gap).append(WordLinks) .append(SP).append(linkCount).append(Post);  }
+        if (imageCount > 0) { b.append(Gap).append(WordImages).append(SP).append(imageCount).append(Post); }
+        if (groupCount > 0) { b.append(Gap).append(WordGroups).append(SP).append(groupCount).append(Post); }
+        
         if (s.getDescription() != null) {
             b.append("<br>");
             b.append(s.getDescription());
