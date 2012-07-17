@@ -32,127 +32,208 @@ package edu.tufts.vue.compare;
 
 import java.util.*;
 import java.io.*;
-import tufts.vue.*;
+import tufts.vue.DEBUG;
+import tufts.vue.LWComponent;
+import tufts.vue.LWComponent.ChildKind;
+import tufts.vue.LWMap;
+import tufts.vue.LWNode;
+import tufts.vue.LWLink;
+import tufts.vue.LWImage;
 
 
-public class ConnectivityMatrix {
-    public static final int SIZE = 1000;
-    public static final int TRUNCATE_LENGTH = 8;
-    protected List labels = new  ArrayList(); // these labels need not be node labels
-    protected int c[][] = new int[SIZE][SIZE];
-    protected int size;
-    private LWMap map;
-    private static final boolean DEBUG = false;
+public class ConnectivityMatrix
+{
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(ConnectivityMatrix.class);
     
-    public ConnectivityMatrix() {
+    public static final int INDEX_ERROR = -1;
+
+    protected final IndexedCountingSet keys;
+    protected final int cx[][];
+    protected int scanCount = 0;
+    protected int hitCount = 0;
+    private final LWMap map;
+
+    /**
+     * An object set that provides a fixed index value for each unique object, a count for repeat
+     * objects, and fast constant lookup times for all queries.  Note that there is no error
+     * checking with indexOf or count.  Use findIndex to see -1 return value for objects not in the set.
+     */
+    protected static class IndexedCountingSet<T> implements Iterable<T> {
+        private static final int INDEX = 0, COUNT = 1;
+        // redundant data-structures for x-way lookups:
+        private final Map<T,int[]> map = new HashMap<T,int[]>();
+        private final List<T> values = new ArrayList<T>();
+        private int unique = 0;
+        private int maxLen = 0;
+        
+        void add(T s) {
+            if (s == null) {
+                if (DEBUG.Enabled) Log.warn("null value ignored in IndexedCountingSet");
+                return;
+            }
+            int[] entry = map.get(s);
+            if (entry != null) {
+                entry[COUNT]++;
+            } else {
+                entry = new int[2];
+                entry[INDEX] = unique++;
+                entry[COUNT] = 1;
+                map.put(s, entry);
+                values.add(s); // values.size() == unique
+                String ts = s.toString();
+                if (ts.length() > maxLen)
+                    maxLen = ts.length();
+            }
+        }
+        int indexOf(T s)        { return map.get(s)[INDEX]; }
+        int count(T s)          { try{return map.get(s)[COUNT];}catch(Throwable t){return 0;}}
+          T get(int atIndex)    { return values.get(atIndex); }
+        int size()              { return unique; }
+        boolean contains(T s)   { return map.containsKey(s); }
+
+        /** @return index, or -1 if not found */
+        int findIndex(T s) {
+            final int[] entry = map.get(s);
+            return entry == null ? INDEX_ERROR : entry[INDEX];
+        }
+
+        void addAll(IndexedCountingSet<T> mergeIn) {
+            for (T val : mergeIn.values)
+                add(val);
+        }
+
+        int maxLength() { return maxLen; }
+        
+        public Iterator<T> iterator()  { return values.iterator(); }
+    }
+    
+    /** for subclasses */
+    protected ConnectivityMatrix(IndexedCountingSet preComputedSet) {
+        this.map = null;
+        this.keys = preComputedSet;
+        this.cx = new int[keys.size()][keys.size()];
+        if (DEBUG.Enabled) Log.debug(this + " created from pre-computed.");
     }
     
     public ConnectivityMatrix(LWMap map) {
-        size = 0;
         this.map = map;
-        addLabels();
-        generateMatrix();
+        this.keys = new IndexedCountingSet();
+        
+        final Collection<LWComponent> allInMap = map.getAllDescendents(ChildKind.PROPER);
+        
+        indexMergeKeys(allInMap);
+        // after adding all labels, we know exactly how big to make the matrix
+        this.cx = new int[keys.size()][keys.size()];
+        generateMatrix(allInMap);
+        if (DEBUG.Enabled) Log.debug(this + " created.");
     }
-    /*
-     *The method adds labels to the connectivity matrix
-     *
-     */
     
-    private void addLabels(){
-        Iterator i = map.getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
-        while(i.hasNext()){
-            Object o = i.next();
-            if(o instanceof LWNode || o instanceof LWImage) {
-                //LWNode node = (LWNode) o;
-                if(!labels.contains(getMergeProperty((LWComponent)o))) {
-                    labels.add(getMergeProperty((LWComponent)o));
-                }
-                size++;
-            }
+    /** for subclasses -- backward compat */
+    protected ConnectivityMatrix(int size) {
+        this.map = null;
+        this.keys = new IndexedCountingSet<String>();
+        this.cx = new int[size][size];
+    }
+
+    public IndexedCountingSet getKeys() { return keys; }
+    public boolean containsKey(String key) { return keys.contains(key); }
+    public int size() { return keys.size(); }
+    public LWMap getMap() { return map; }
+    public int[][] getMatrix() { return cx; }
+    
+
+    public static final boolean isValidTarget(LWComponent c) {
+        if (c != null) {
+            final Class clazz = c.getClass();
+            return clazz == tufts.vue.LWNode.class || clazz == tufts.vue.LWImage.class;
+        } else {
+            return false;
         }
     }
-    /*
-     * creates a matrix from the map.
-     */
-    private void generateMatrix() {
-        System.out.println("Generating Connectivity matrix");
-        Iterator i = map.getAllDescendents(LWContainer.ChildKind.PROPER).iterator();
-        while (i.hasNext()) {
-            LWComponent component = (LWComponent)i.next();
-            if(component instanceof LWLink) {
-                LWLink link = (LWLink)component;
-                System.out.println("Link: "+link);
-                LWComponent n1 = link.getHead();
-                LWComponent n2 = link.getTail();
-                int arrowState = link.getArrowState();
-                if( (n1  instanceof LWNode || n1 instanceof LWImage) && ( n2 instanceof LWNode || n2 instanceof LWImage) ) {
+    
+    /**The method adds labels to the connectivity matrix */
+    private void indexMergeKeys(final Collection<LWComponent> allInMap) {
+        if (DEBUG.MERGE) Log.debug("indexing [" + Util.getMergeProperty() + "] merge keys for map " + map);
+        for (LWComponent c : allInMap) {
+            if (isValidTarget(c)) {
+                final Object key = getMergeKey(c);
+                if (key != null) {
+                    keys.add(key);
+                    hitCount++;
+                }
+                scanCount++;
+            }
+        }
+        if (DEBUG.MERGE) Log.debug(String.format("merge keys: %d valid targets scanned, %d keys found, %d unique.", scanCount, hitCount, size()));
+    }
+
+    /** set connection values for merge-key components that have a VUE map-link between them */
+    private void generateMatrix(final Collection<LWComponent> allInMap) {
+        Log.info("generateMatrix for " + tufts.Util.tags(allInMap));
+        for (LWComponent c : allInMap) {
+            if (c instanceof LWLink) {
+                final LWLink link = (LWLink) c;
+                final LWComponent head = link.getHead(); // note: will be null if pruned (or getPersistHead)
+                final LWComponent tail = link.getTail(); // note: will be null if pruned (or getPersistHead)
+                if (isValidTarget(head) && isValidTarget(tail)) {
+                    // JUST BECAUSE BOTH ARE VALID TARGETS DOES *NOT* MEAN A VALID MERGE-KEY WILL BE FOUND FOR THEM
                     try {
-                        if(arrowState == LWLink.ARROW_BOTH || arrowState == LWLink.ARROW_NONE) {
-                            c[labels.indexOf(getMergeProperty(n2))][labels.indexOf(getMergeProperty(n1))] = 1;
-                            c[labels.indexOf(getMergeProperty(n1))][labels.indexOf(getMergeProperty(n2))] =1;
-                        } else if(arrowState == LWLink.ARROW_HEAD) { // EP1 and EP2 were deprecated.
-                            c[labels.indexOf(getMergeProperty(n2))][labels.indexOf(getMergeProperty(n1))] = 1;
-                        } else    if(arrowState == LWLink.ARROW_TAIL) { // EP1 and EP2 were deprecated.
-                            c[labels.indexOf(getMergeProperty(n1))][labels.indexOf(getMergeProperty(n2))] =1;
+                        // Note that, as of course, multiple nodes with the same property are going to
+                        // have the same index, the appropriate "size" of this matrix is the unique
+                        // labels, not the count of the number of nodes inspected (was was the old
+                        // impl with its use of this.size).
+                        final int arrowState = link.getArrowState();
+                        final Object headKey = getMergeKey(head);
+                        final Object tailKey = getMergeKey(tail);
+                        
+                        if (headKey == null || tailKey == null) {
+                            // Log.debug
+                            continue;
                         }
-                    } catch(ArrayIndexOutOfBoundsException ae) {
-                        System.out.println("Connectivity Matrix Exception - skipping link: " + link);
-                        System.out.println("Exception was: " + ae);
+                        
+                        final int headIndex = keys.findIndex(headKey);
+                        final int tailIndex = keys.findIndex(tailKey);
+                        
+                        if (arrowState == LWLink.ARROW_BOTH || arrowState == LWLink.ARROW_NONE) {
+                            cx[headIndex][tailIndex] = 1;
+                            cx[tailIndex][headIndex] = 1;
+                        } else if (arrowState == LWLink.ARROW_HEAD) {
+                            cx[tailIndex][headIndex] = 1;
+                        } else if (arrowState == LWLink.ARROW_TAIL) {
+                            cx[headIndex][tailIndex] = 1;
+                        }
+                    } catch (Throwable t) {
+                        // Should never happen, but theoretically could get NPE or ArrayOutOfBounds
+                        Log.debug("exception: skipping link: " + link + "; " + t);
                     }
                 }
-                
             }
         }
-    }
-    public List getLabels() {
-        return labels;
+        //Log.info("generateMatrix complete.");
     }
     
-    public void setLabels(List labels){
-        this.labels = labels;
-    }
     
     public int getConnection(int i, int j) {
-        return c[i][j];
+        return cx[i][j];
     }
     
-    public int getConnection(String label1,String label2) {
-        int index1 = labels.indexOf(label1);
-        int index2 = labels.indexOf(label2);
-        if(index1 >= 0 && index2 >=0 ){
-            return c[index1][index2];
-        } else {
+    /** @return connection value found for these two keys, if any, otherwise 0 */
+    public int getConnection(Object key1, Object key2) {
+        final int row = keys.findIndex(key1);
+        final int col = keys.findIndex(key2);
+        if (row >= 0 && col >=0) 
+            return this.cx[row][col];
+        else 
             return 0;
-        }
     }
     
-    public void setConnection(String label1, String label2, int value) {
-        int index1 = labels.indexOf(label1);
-        int index2 = labels.indexOf(label2);
-        if(index1 >= 0 && index2 >=0 ){
-            c[index1][index2] = value;
-        }
-    }
-    public int getSize(){
-        return size;
-    }
-    public int[][] getMatrix() {
-        return c;
-    }
-    public void setMatrix(int[][] c) {
-        this.c = c;
+    public void setConnection(Object key1, Object key2, int value) {
+        final int index1 = keys.findIndex(key1);
+        final int index2 = keys.findIndex(key2);
+        if (index1 >= 0 && index2 >=0)
+            this.cx[index1][index2] = value;
     }
     
-    public LWMap getMap() {
-        return this.map;
-    }
-    public void store(OutputStream out) {
-        try {
-            out.write(this.toString().getBytes());
-        }catch(IOException ex) {
-            System.out.println("ConnectivityMatrix.store:"+ex);
-        }
-    }
     /**
      * Compares a connectivity matrix to input connectivity matrix
      * returns truf if both are same
@@ -160,57 +241,127 @@ public class ConnectivityMatrix {
      * @return boolean
      *
      */
-    
     public boolean compare(ConnectivityMatrix c2) {
-        if(c2.getSize() != size) {
+        final int size = size();
+        if(c2.size() != size) 
             return false;
-        }
         for(int i=0;i<size;i++) {
             for(int j=0;j<size;j++) {
-                if(c[i][j] != c2.getMatrix()[i][j]) {
+                if(cx[i][j] != c2.getMatrix()[i][j]) {
                     return false;
                 }
             }
         }
         return true;
     }
+
+    // public void store(OutputStream out) {
+    //     try {
+    //         out.write(this.asString().getBytes());
+    //     }catch(IOException ex) {
+    //         System.out.println("ConnectivityMatrix.store:"+ex);
+    //     }
+    // }
     
     public String toString() {
-        String output = new String();
-        // removed the first label from the output. to add it uncomment the commented lines in this function
-        //       output = "\t";   //leave the first cell empty;
-        Iterator iterator = labels.iterator();
-        while(iterator.hasNext()){
-            String label = (String)iterator.next();
-            
-            if(label == null) {
-                output += "\t";
-            } else {
-                int endIndex = Math.min(TRUNCATE_LENGTH,label.length());
-                if(endIndex != 0) {
-                    output += label.substring(0,endIndex)+"\t";
-                } else {
-                    output += "\t";
+        return getClass().getSimpleName() + "[" + size() + "^2=" + (size()*size()) + " for map " + (map==null?"<aggregate>":map) + "]";
+    }
+        
+    private static final String NewLine = System.getProperty("line.separator");
+    private static final char TAB = '\t';
+    private static final char SPACE = ' ';
+    private static final boolean LABELS_TOP = true;
+    private static final boolean LABELS_TOP_CHAR = true; // 1st-char of label only
+    private static final boolean LABELS_TOP_BIG = (LABELS_TOP && !LABELS_TOP_CHAR);
+    private static final boolean LABELS_LEFT = true;
+    
+    public String asString()
+    {
+        final int size = keys.size(); 
+
+        int capacity = size * size * 2 + size; // grid + newlines
+
+        final int maxLeftLen = Math.min(keys.maxLength(), 42); // if using tabs, better multiple of 8 less 1
+
+        // note: only really need to have have this generate to a Writer (buffered)
+        // instead of having to guess capacity to get performance.  This is
+        // normally only used to write out to a file.
+
+        if (LABELS_TOP)
+            capacity += size * (LABELS_TOP_CHAR ? 2 : 8);
+        if (LABELS_LEFT)
+            capacity += size * (maxLeftLen+1);
+
+        if (DEBUG.MERGE) {
+            Log.debug("toString:   cx.size=" + cx.length + " (max alloc matrix)");
+            Log.debug("toString: nodesSeen=" + scanCount); 
+            Log.debug("toString: keysFound=" + hitCount);
+            Log.debug("toString: keys.size=" + keys.size() + " (unique property values)");
+            Log.debug("toString:  capacity=" + capacity);
+        }
+
+        final StringBuilder b = new StringBuilder(capacity);
+        
+        
+        if (LABELS_TOP) {
+            if (LABELS_LEFT) for (int i = 0; i <= maxLeftLen; i++) b.append(' ');
+            for (Object key : this.keys) {
+                if (key != null) {
+                    if (LABELS_TOP_CHAR) {
+                        final String txt = key.toString().trim();
+                        b.append(txt.length() > 0 ? txt.charAt(0) : '?');
+                        b.append(' ');
+                    } else {
+                        final String txt = key.toString().replace('\n', ' ').trim();
+                        if (txt.length() > 7)
+                            b.append(txt, 0, 7);
+                        else
+                            b.append(txt);
+                        b.append(TAB);
+                    }
                 }
             }
+            b.append(NewLine);
         }
-        output += System.getProperty("line.separator");
-        for(int i=0;i<size;i++){
-//            output += labels.get(i)+"\t";
-            for(int j=0;j<size;j++) {
-                output  += c[i][j]+"\t";
+        
+        // Note: this used to use the input-size count, which would end up generating an unlabeled
+        // column with all zeros in them for ever node that had the a same merge-property (e.g,
+        // nodes with same label).
+        for (int row = 0; row < size; row++) {
+            if (LABELS_LEFT) {
+                // b.append(String.format("%*.*s", maxLeftLen, maxLeftLen, labels.get(i).replace('\n', ' ').trim()));
+                final String txt = this.keys.get(row).toString().replace('\n', ' ').trim();
+                if (txt.length() > maxLeftLen) {
+                    b.append(txt, 0, maxLeftLen);
+                } else {
+                    for (int i = txt.length(); i < maxLeftLen; i++)
+                        b.append(SPACE);
+                    b.append(txt);
+                }
+                // I'd be nice to have an invisible char separator at end of label here in case
+                // anyone wants to script process this data (e.g., even a tab).  Tho I suppose they
+                // could get the label-field length from the 1st index of the top-char label.
+                // (A further problem would be that labels themselves can have special chars in them)
+                b.append(SPACE);
+            } 
+            for (int col = 0; col < size; col++) {
+                if (col != 0)
+                    b.append(LABELS_TOP_BIG ? TAB : SPACE);
+                final int val = cx[row][col];
+                if (val == 0)
+                    b.append((row==col) ? '0' : '.');
+                else
+                    b.append(val);
             }
-            output +=System.getProperty("line.separator");
+            b.append(NewLine);
         }
-        return output;
+
+        if (DEBUG.MERGE) Log.debug("toString:    length=" + b.length());
+        return b.toString();
     }
     
-    private String getMergeProperty(LWComponent node) {
-        
-        if(DEBUG) {
-            System.out.println("Connectivity Matrix - getMergeProperty: " + Util.getMergeProperty(node));
-        }
-        
-        return  Util.getMergeProperty(node);
+    public static final Object getMergeKey(LWComponent node) {
+        // Log.debug("getMergeKey: " + Util.getMergeKey(node));
+        return Util.getMergeProperty(node);
     }
 }
