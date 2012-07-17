@@ -25,6 +25,7 @@
 package edu.tufts.vue.compare.ui;
 
 import edu.tufts.vue.compare.Util;
+import edu.tufts.vue.compare.Util.MP;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -52,8 +53,18 @@ import javax.swing.table.*;
 import tufts.vue.*;
 import tufts.vue.action.ActionUtil;
 import tufts.vue.gui.VueFileChooser;
+import tufts.vue.gui.GUI;
+import tufts.vue.gui.GUI.ComboKey;
 
 public class MapsSelectionPanel extends JPanel  {
+
+    private static final String[] MergePropertyChoices = {
+        VueResources.local("combobox.mergepropertychoices.label"),
+        "Resource",
+        VueResources.local("combobox.mergepropertychoices.ontologicalmembership"),
+        VueResources.local("combobox.mergepropertychoices.ontologicalmembershiplabel")
+    };
+    
     
     // probably should save settings when load LWMergeMap
     // so perhaps a second instance is warranted depending on 
@@ -251,27 +262,19 @@ public class MapsSelectionPanel extends JPanel  {
         
 		JLabel mergePropertyLabel = new JLabel(MergeProrerty);
         mergePropertyLabel.setFont(tufts.vue.gui.GUI.LabelFace);
-        String[] mergePropertyChoices = {VueResources.getString("combobox.mergepropertychoices.label"),VueResources.getString("combobox.mergepropertychoices.ontologicalmembership"),VueResources.getString("combobox.mergepropertychoices.ontologicalmembershiplabel")};
-        JComboBox mergePropertyChoice = new JComboBox(mergePropertyChoices);
+        
+        final JComboBox mergePropertyChoice = new JComboBox(MergePropertyChoices);
         
         mergePropertyChoice.addItemListener(new ItemListener(){
-           public void itemStateChanged(ItemEvent ie)
-           {
-               if(ie.getStateChange() == ItemEvent.SELECTED)
-               {
-                   if(ie.getItem().equals(VueResources.getString("combobox.mergepropertychoices.label")))
-                   {
-                       Util.setMergeProperty(Util.LABEL);
-                   }
-                   
-                   if(ie.getItem().equals(VueResources.getString("combobox.mergepropertychoices.ontologicalmembership")))
-                   {
-                       Util.setMergeProperty(Util.TYPE);
-                   }
-                   
-                   if(ie.getItem().equals(VueResources.getString("combobox.mergepropertychoices.ontologicalmembershiplabel")))
-                   {
-                       Util.setMergeProperty(Util.BOTH);
+           public void itemStateChanged(ItemEvent ie) {
+               if (ie.getStateChange() == ItemEvent.SELECTED) {
+                        if (ie.getItem().equals(MergePropertyChoices[0])) Util.setMergeProperty(MP.LABEL);
+                   else if (ie.getItem().equals(MergePropertyChoices[1])) Util.setMergeProperty(MP.RESOURCE);
+                   else if (ie.getItem().equals(MergePropertyChoices[2])) Util.setMergeProperty(MP.TYPE);
+                   else if (ie.getItem().equals(MergePropertyChoices[3])) Util.setMergeProperty(MP.BOTH); // historical name
+                   else {
+                       System.err.println("MSP unknown choice: " + ie.getItem());
+                       Util.setMergeProperty(MP.LABEL);
                    }
                }
            }
