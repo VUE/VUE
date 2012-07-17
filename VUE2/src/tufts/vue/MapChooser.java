@@ -222,7 +222,8 @@ public class MapChooser extends JDialog implements ActionListener{
                     
                     // connectivity matrix
                     ConnectivityMatrix matrix = new ConnectivityMatrix(m);
-                    String sMatrix = matrix.toString();
+                    // todo: the matrix should just write directly to the PrintWriter
+                    String sMatrix = matrix.asString();
                     File temp = File.createTempFile("ConnectivityMatrixTemp",".txt");
                     String fileName = temp.getAbsolutePath();
                     PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(fileName)));
