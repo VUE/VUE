@@ -608,7 +608,7 @@ public class ImageRef
             ensureLoading(ideal);
         } else if (!drawable.available()) {
             if (drawable == UNAVAILABLE) { // if icon load failed, must create a new one (low memory) [NOT ENOUGH!]
-                if (DEBUG.Enabled) debug("forcing full load");
+                if (DEBUG.IMAGE||DEBUG.WORK) debug("forcing full load");
                 ensureLoading(_full);
             } else if (drawable == _icon && drawable.hasError()) {
                 //****************************************************************************************
