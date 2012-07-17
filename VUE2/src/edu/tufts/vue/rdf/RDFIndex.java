@@ -246,7 +246,7 @@ public class RDFIndex extends com.hp.hpl.jena.rdf.model.impl.ModelCom
             final QuerySolution qs = results.nextSolution();
             if (DEBUG.SEARCH) {
                 final String qss = qs.toString().replaceAll("<http://vue.tufts.edu", "..."); // shorten debug output
-                Log.debug("qSol " + String.format("%.140s%s", qss, qss.length() > 140 ? ("...x"+qss.length()) : ""));
+                Log.debug("qSol " + String.format("%.190s%s", qss, qss.length() > 190 ? ("...x"+qss.length()) : ""));
             }
             if (false) {
                 // debug debug all vars from query
