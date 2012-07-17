@@ -116,24 +116,21 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         setUpGui();
     }
     
-    public WeightVisualizationSettingsPanel(final tufts.vue.MergeMapsChooser mmc) {
-        // too soon for all settings, so just load default styles here
-        loadDefaultStyles();
-        
-        int b = mmc.TAB_BORDER_SIZE;
-        setBorder(javax.swing.BorderFactory.createEmptyBorder(b,b,b,b));
-        
-        parameterChoiceMessage = new JLabel(parameterChoiceMessageString,JLabel.RIGHT) {
-            public java.awt.Dimension getPreferredSize() {
-                if(mmc!=null)
-                    return mmc.getVizLabelPreferredSize();
-                else
-                    return new java.awt.Dimension(100,30);
-            }
-        };
-        
-        setUpGui();
-    }
+    // public WeightVisualizationSettingsPanel(final tufts.vue.MergeMapsChooser mmc) {
+    //     // too soon for all settings, so just load default styles here
+    //     loadDefaultStyles();
+    //     int b = mmc.TAB_BORDER_SIZE;
+    //     setBorder(javax.swing.BorderFactory.createEmptyBorder(b,b,b,b));
+    //     parameterChoiceMessage = new JLabel(parameterChoiceMessageString,JLabel.RIGHT) {
+    //         public java.awt.Dimension getPreferredSize() {
+    //             if(mmc!=null)
+    //                 return mmc.getVizLabelPreferredSize();
+    //             else
+    //                 return new java.awt.Dimension(100,30);
+    //         }
+    //     };
+    //     setUpGui();
+    // }
     
     public void setUpGui() {
         
@@ -496,7 +493,8 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         javax.swing.JFrame f = new javax.swing.JFrame("test");
         f.setBounds(100,100,300,400);
         f.setLayout(new java.awt.GridLayout(1,1));
-        f.getContentPane().add(new WeightVisualizationSettingsPanel(null));
+        // f.getContentPane().add(new WeightVisualizationSettingsPanel(null)); // was for old MergeMapsChooser
+        f.getContentPane().add(new WeightVisualizationSettingsPanel(true)); // might work...
         f.pack();
         f.setVisible(true);
     }
