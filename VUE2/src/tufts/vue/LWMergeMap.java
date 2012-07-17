@@ -245,6 +245,7 @@ public class LWMergeMap extends LWMap {
     {
         for (LWComponent srcNode : sourceMap.getAllDescendents(ChildKind.PROPER)) {
             if (srcNode instanceof LWNode || srcNode instanceof LWImage) ; else continue;
+            if (srcNode.hasFlag(Flag.ICON)) continue;
             final Object mergeKey = getMergeKey(srcNode);
             if (mergeKey == null)
                 continue;
@@ -390,10 +391,10 @@ public class LWMergeMap extends LWMap {
             matrixList.add(new ConnectivityMatrix(map));
         }
 
-        final VoteAggregate voteAggregate = VoteAggregate.create(matrixList);
-        
-        voteAggregate.setNodeThreshold( (double) getNodeThresholdSliderValue() / 100.0 );
-        voteAggregate.setLinkThreshold( (double) getLinkThresholdSliderValue() / 100.0 );
+        final double nodeThresh = (double) getNodeThresholdSliderValue() / 100.0;
+        final double linkThresh = (double) getLinkThresholdSliderValue() / 100.0;
+
+        final VoteAggregate voteAggregate = VoteAggregate.create(matrixList, nodeThresh, linkThresh);
         
         //-----------------------------------------------------------------------------
         // compute and create nodes in Merge Map
@@ -449,6 +450,7 @@ public class LWMergeMap extends LWMap {
     private static Set hashMergeKeys(LWMap map) {
         final Set hashedKeys = new HashSet();
         for (LWComponent c : map.getAllDescendents(ChildKind.PROPER)) {
+            if (c.hasFlag(Flag.ICON)) continue;
             if (c instanceof LWNode || c instanceof LWImage) { // not 100% sure of this filter...
                 final Object key = getMergeKey(c);
                 if (key != null)
