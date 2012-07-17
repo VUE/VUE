@@ -22,33 +22,45 @@ package edu.tufts.vue.compare;
 import java.util.*;
 import tufts.vue.*;
 
-public class WeightAggregate extends ConnectivityMatrix {
-    public static final int COUNT_ERROR = -1;
-    private List<ConnectivityMatrix> matrices = new ArrayList();
-    private int mergeNodeCount[] = new int[SIZE];
-    private int count;
-    public WeightAggregate(List<ConnectivityMatrix> matrices ){
-        this.matrices  = matrices;
-        count= matrices.size();
-        mergeMatrices();
+public class WeightAggregate extends ConnectivityMatrix
+{
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(WeightAggregate.class);
+    
+    private final int count;
+
+    public static WeightAggregate create(List<ConnectivityMatrix> matrices) {
+        final IndexedCountingSet preComputed = new IndexedCountingSet();
+        for (ConnectivityMatrix matrix : matrices)
+            preComputed.addAll(matrix.keys);
+        // We pre-compute the index so the matrix aggregate will know how big
+        // of a matrix will be required to hold it all.
+        return new WeightAggregate(preComputed, matrices);
     }
     
-    /*
-     * merges connectivity matrices in the list 'matrices'
-     *
+    protected WeightAggregate(IndexedCountingSet preComputed, List<ConnectivityMatrix> matrices) {
+        super(preComputed);
+        this.count = matrices.size();
+        for (ConnectivityMatrix input : matrices)
+            mergeInConnectionValues(input);
+    }
+
+    /**
+     * This will search the input matrix for all non-zero connection values and add them to the
+     * connection value for the same two keys in this aggregate.  This will only work if the keys
+     * from the input matrix have already been merged to this aggregate, and the matrix for this
+     * aggregate has been sized to handle all of the input keys.
      */
-    private void mergeMatrices() {
-        Iterator<ConnectivityMatrix> i = matrices.iterator();
-        while(i.hasNext()){
-            ConnectivityMatrix matrix = i.next();
-            updateLabels(matrix.getLabels());
-            int matrixSize = matrix.getSize();
-            if(matrixSize > size) {
-                size = matrixSize;
-            }
-            for(int index1 = 0;index1 < getLabels().size();index1++) {
-                for(int index2= 0; index2<getLabels().size();index2++) {
-                    c[index1][index2] += matrix.getConnection((String)getLabels().get(index1),(String)getLabels().get(index2));
+    private void mergeInConnectionValues(final ConnectivityMatrix input) {
+        if (DEBUG.MERGE) Log.debug("mergeIn " + input);
+        for (int index1 = 0; index1 < input.size(); index1++) {
+            for (int index2 = 0; index2 < input.size(); index2++) {
+                final int connection = input.cx[index1][index2];
+                if (connection != 0) {
+                    final Object key1 = input.keys.get(index1);
+                    final Object key2 = input.keys.get(index2);
+                    this.cx[this.keys.indexOf(key1)]
+                           [this.keys.indexOf(key2)] += connection;
+                    // Log.debug("merged " + connection + " for " + key1 + "," + key2);
                 }
             }
         }
@@ -57,34 +69,13 @@ public class WeightAggregate extends ConnectivityMatrix {
     public ConnectivityMatrix getAggregate(){
         return this;
     }
-    // need to implement this one.
-    public LWMap getMap() {
-        return null;
+    
+    /** @return the number of nodes with the given merge-key (e.g. label) in the aggregate */        
+    public int getNodeCount(Object key) {
+        return super.keys.count(key);
     }
     
-    private void updateLabels(List<String> mLabels) {
-        Iterator<String> i = mLabels.iterator();
-        while(i.hasNext()) {
-            String mLabel = i.next();
-            if(!labels.contains(mLabel)){
-                labels.add(mLabel);
-                mergeNodeCount[labels.indexOf(mLabel)] = 1;
-            }else{
-                mergeNodeCount[labels.indexOf(mLabel)]++;
-            }
-        }
-    }
-    
-    /**
-     * gets the number of nodes with the label in the aggregate
-     * @param label label of the node
-     * @return node count
-    */        
-    public int getNodeCount(String label) {
-        if(labels.indexOf(label)>=0)
-            return mergeNodeCount[labels.indexOf(label)];
-        else return COUNT_ERROR;
-    }
+    /** @return the number of matricies summed into this aggregate */
     public int getCount() {
         return count;
     }
