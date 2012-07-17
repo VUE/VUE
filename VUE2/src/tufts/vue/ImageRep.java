@@ -315,7 +315,7 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
     }
 
     private void setHandle(Ref r, String debug) {
-        if (DEBUG.Enabled) {
+        if (DEBUG.IMAGE||DEBUG.WORK) {
             String t;
             if (r instanceof NullRef && !(r instanceof ProgressRef))
                 t = r.toString();
@@ -331,7 +331,7 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
         final Image image = imageData.image;
         
         if (image() == image) {
-            if (DEBUG.Enabled) debug(" re-cache:"+cause);
+            if (DEBUG.IMAGE||DEBUG.WORK) debug(" re-cache:"+cause);
             return;
         }
 
