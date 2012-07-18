@@ -1255,6 +1255,12 @@ public class ActionUtil
         return map;
     }
 
+    /**
+     * This class is only there to provide something for the old mapping description for LWMergeMap to refer
+     * to. XMLObjectFactory will turn it into an LWMap.  For the re-mapping to work, it must be a subclass of LWMap.
+     * Castor should never need to actuall instance or load this class.
+     */ public static final class OLD_MERGE_MAP_STUB extends tufts.vue.LWMap {static{if(true)throw new Error("should-not-classload");}}
+
 }
 
 
@@ -1459,13 +1465,14 @@ final class XMLObjectFactory extends org.exolab.castor.util.DefaultObjectFactory
         return this.createInstance(type, null, null);
     }
 
+
     @Override
     public Object createInstance(final Class _type, final Class[] argTypes, final Object[] args)
         throws IllegalAccessException, InstantiationException
     {
             
         final Class type;
-        if (_type == tufts.vue.LWMergeMap.class) {
+        if (_type == ActionUtil.OLD_MERGE_MAP_STUB.class) {
             type = tufts.vue.LWMap.class;
         }
         // else if (_type == tufts.vue.MapResource.class || _type == tufts.vue.CabinetResource.class)
