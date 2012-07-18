@@ -13,20 +13,6 @@
  * permissions and limitations under the License.
  */
 
-/**
- *
- * @author akumar03
- * The class creates a connectivity Matrix using a VUE Map.  Further information
- * on connectivity matrix can be found at
- * http://w3.antd.nist.gov/wctg/netanal/netanal_netmodels.html
- * The matrix can be used to assess the connetiving among give set of nodes.
- * A value of connetion is 1 if there is a connection between nodes
- * connection(a,b) = 1 implies there is a link from a to b
- * connection(b,a) = 1 implies there is a link from b to a
- * connection(b,a) may not be equal to connection(a,b)
- * connection(a,b) = connection(b,a) implies the link between a and b is not
- * directed.
- */
 
 package edu.tufts.vue.compare;
 
@@ -41,23 +27,41 @@ import tufts.vue.LWLink;
 import tufts.vue.LWImage;
 
 
+/**
+ * @author akumar03
+ * @author Scott Fraize re-write 2012
+ *
+ * The class creates a connectivity Matrix for a VUE map.
+ *
+ * Further information on connectivity matrix can be found:
+ * @see http://w3.antd.nist.gov/wctg/netanal/netanal_netmodels.html
+ *
+ * The matrix can be used to assess the connectivity among a given set of nodes.  A value of
+ * connetion is 1 if there is a connection between nodes:
+ * connection(a,b) = 1 implies there is a link from a to b
+ * connection(b,a) = 1 implies there is a link from b to a
+ * connection(b,a) may not be equal to connection(a,b)
+ * connection(a,b) = connection(b,a) implies the link between a and b is not directed.
+ */
 public class ConnectivityMatrix
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(ConnectivityMatrix.class);
     
     public static final int INDEX_ERROR = -1;
 
+    protected final LWMap map;
     protected final IndexedCountingSet keys;
     protected final int cx[][];
+    
     protected int scanCount = 0;
     protected int hitCount = 0;
-    private final LWMap map;
 
     /**
      * An object set that provides a fixed index value for each unique object, a count for repeat
      * objects, and fast constant lookup times for all queries.  Note that there is no error
-     * checking with indexOf or count.  Use findIndex to see -1 return value for objects not in the set.
-     * Indicies and iteration order represent the preserved insertion order.
+     * checking with indexOf or count (in typical usage, we want exceptions if we don't know what
+     * we're asking for).  Use findIndex to see -1 return value for objects not in the set.
+     * Indicies and iteration order occur in the preserved insertion order.
      */
     protected static class IndexedCountingSet<T> implements Iterable<T> {
         private static final int INDEX = 0, COUNT = 1;
@@ -109,7 +113,6 @@ public class ConnectivityMatrix
         public Iterator<T> iterator()  { return values.iterator(); }
     }
     
-    /** for subclasses */
     protected ConnectivityMatrix(IndexedCountingSet preComputedSet) {
         this.map = null;
         this.keys = preComputedSet;
@@ -124,7 +127,7 @@ public class ConnectivityMatrix
         final Collection<LWComponent> allInMap = map.getAllDescendents(ChildKind.PROPER);
         
         indexMergeKeys(allInMap);
-        // after adding all labels, we know exactly how big to make the matrix
+        // after adding all keys, we know exactly how big to make the matrix
         this.cx = new int[keys.size()][keys.size()];
         generateMatrix(allInMap);
         if (DEBUG.Enabled) Log.debug(this + " created.");
@@ -172,8 +175,8 @@ public class ConnectivityMatrix
         for (LWComponent c : allInMap) {
             if (c instanceof LWLink) {
                 final LWLink link = (LWLink) c;
-                final LWComponent head = link.getHead(); // note: will be null if pruned (or getPersistHead)
-                final LWComponent tail = link.getTail(); // note: will be null if pruned (or getPersistHead)
+                final LWComponent head = link.getHead(); // note: will be null if pruned (or use getPersistHead)
+                final LWComponent tail = link.getTail(); // note: will be null if pruned (or use getPersistHead)
                 if (isValidTarget(head) && isValidTarget(tail)) {
                     try {
                         final int arrowState = link.getArrowState();
@@ -240,9 +243,8 @@ public class ConnectivityMatrix
             return false;
         for(int i=0;i<size;i++) {
             for(int j=0;j<size;j++) {
-                if(cx[i][j] != c2.getMatrix()[i][j]) {
+                if (this.cx[i][j] != c2.cx[i][j])
                     return false;
-                }
             }
         }
         return true;
