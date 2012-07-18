@@ -53,6 +53,8 @@ public class VueAction extends javax.swing.AbstractAction
 
     protected static long currentActionTime;
 
+    public final KeyStroke keyStroke;
+
     public static List<VueAction> getAllActions() {
         return Collections.unmodifiableList(AllActionList);
     }
@@ -135,6 +137,7 @@ public class VueAction extends javax.swing.AbstractAction
     public VueAction(String name, String shortDescription, KeyStroke keyStroke, Icon icon)
     {
         super(name);
+        this.keyStroke = keyStroke;
         this.permanentName = name;
         if (shortDescription != null)
             putValue(SHORT_DESCRIPTION, shortDescription);
@@ -419,14 +422,12 @@ public class VueAction extends javax.swing.AbstractAction
         }
     }
     
-    public String getUndoName()
-    {
+    public String getUndoName() {
     	return null;
     }
     
     public String getUndoName(ActionEvent e, Throwable exception)
     {
-    	
     	String undoName = getUndoName();
     	if (undoName == null)
             undoName = e.getActionCommand();
@@ -438,12 +439,12 @@ public class VueAction extends javax.swing.AbstractAction
             else
                 undoName += " (!)";
         }
-        
         return undoName;
     }
     
     public KeyStroke getKeyStroke() {
-        return (KeyStroke) getValue(ACCELERATOR_KEY);
+        return keyStroke;
+      //return (KeyStroke) getValue(ACCELERATOR_KEY);
     }
     
     public String getKeyStrokeDescription() {
