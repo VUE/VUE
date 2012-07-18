@@ -187,7 +187,11 @@
                 <!-- field name="nodeFilter">      <bind-xml name="nodeFilter" node="element"/></field --> 
                 <field name="XMLnodeFilter">      <bind-xml name="nodeFilter" node="element"/></field>
                 
-                <field name="metadataList"/>
+                <!-- <field name="metadataList"/> -->
+                <field name="XMLmetadataList">
+                  <bind-xml name="metadata-list"/>
+                </field>
+                
                 <field name="URIString" />
                 <!-- We can save a shape interface, but it won't restore properly -->
 		<!-- field name="shape" type="java.awt.Shape">
@@ -368,64 +372,64 @@
         
 	</class>
         
-        <class name="tufts.vue.LWMergeMap" extends="tufts.vue.LWMap">
+        <class name="tufts.vue.action.ActionUtil$OLD_MERGE_MAP_STUB" extends="tufts.vue.LWMap">
           <!-- Include only the "map-to" tag and leave everything else empty, so it will be ignored during
                load.  (And we've hacked our XMLObjectFactory to actually return an LWMap when an LWMergeMap is
-               requested). SMF 2012-07 -->
+               requested). Note that the stub MUST extend LWMap for this to work.  SMF 2012-07 -->
           <!-- It bas a bad idea to persist an LWMergeMap in the first place.  We're doing this now as some
                save files of LWMergeMaps are going haywire when they're saved/resaved and growing to hundredes
                of megabytes in size. SMF 2012-07 -->
           <map-to xml="LW-MERGE-MAP" />
 	</class>
             
-        <class name="tufts.vue.LWMergeMap$HIDE_FROM_CASTOR_MAPPING" extends="tufts.vue.LWMap">
-            <map-to xml="LW-MERGE-MAP-NO-LONGER-USED" />
-            <field name="mapListSelectionType">
-                <bind-xml name="mapListSelectionType" node="element"/>
-            </field>
-            <field name="mapList" type="tufts.vue.LWMap" collection="arraylist">
-                <bind-xml name="mapList"/>
-            </field>
-            <field name="mapFileList" type="java.lang.String" collection="arraylist">
-                <bind-xml name="mapFileList" />
-            </field>
-            <field name="activeFileList" type="java.lang.Boolean" collection="arraylist">
-                <bind-xml name="activeFileList" />
-            </field>
-            <field name="baseMapSelectionType">
-                <bind-xml name="baseMapSelectionType" node="element"/>
-            </field>
-            <field name="baseMap" type="tufts.vue.LWMap" >
-                <bind-xml name="baseMap" node ="element"/>
-            </field>
-            <field name="visualizationSelectionType">
-                <bind-xml name="visualizationSelectionType" node="element"/>
-            </field>
-            <field name="filterOnBaseMap">
-                <bind-xml name="filterOnBaseMap" node="element" />
-            </field>
-            <field name="excludeNodesFromBaseMap">
-                <bind-xml name="excludeNodesFromBaseMap" node="element" />
-            </field>
-            <field name="nodeThresholdSliderValue">
-                <bind-xml name="nodeSliderValue"/>
-            </field>
-            <field name="linkThresholdSliderValue">
-                <bind-xml name="linkSliderValue"/>
-            </field>
-            <field name="intervalBoundaries" type="java.lang.Double" collection="arraylist">
-                <bind-xml name="intervalBoundaries"/>
-            </field>
-            <field name="nodeIntervalBoundaries" type="java.lang.Double" collection="arraylist">
-                <bind-xml name="nodeIntervalBoundaries"/>
-            </field>
-            <field name="linkIntervalBoundaries" type="java.lang.Double" collection="arraylist">
-                <bind-xml name="linkIntervalBoundaries"/>
-            </field>
-            <field name="styleMapFile">
-                <bind-xml name="styleMapFile" node="element"/>
-            </field>
-        </class>
+        <!-- <class name="tufts.vue.LWMergeMap$HIDE_FROM_CASTOR_MAPPING" extends="tufts.vue.LWMap"> -->
+        <!--     <map-to xml="LW-MERGE-MAP-NO-LONGER-USED" /> -->
+        <!--     <field name="mapListSelectionType"> -->
+        <!--         <bind-xml name="mapListSelectionType" node="element"/> -->
+        <!--     </field> -->
+        <!--     <field name="mapList" type="tufts.vue.LWMap" collection="arraylist"> -->
+        <!--         <bind-xml name="mapList"/> -->
+        <!--     </field> -->
+        <!--     <field name="mapFileList" type="java.lang.String" collection="arraylist"> -->
+        <!--         <bind-xml name="mapFileList" /> -->
+        <!--     </field> -->
+        <!--     <field name="activeFileList" type="java.lang.Boolean" collection="arraylist"> -->
+        <!--         <bind-xml name="activeFileList" /> -->
+        <!--     </field> -->
+        <!--     <field name="baseMapSelectionType"> -->
+        <!--         <bind-xml name="baseMapSelectionType" node="element"/> -->
+        <!--     </field> -->
+        <!--     <field name="baseMap" type="tufts.vue.LWMap" > -->
+        <!--         <bind-xml name="baseMap" node ="element"/> -->
+        <!--     </field> -->
+        <!--     <field name="visualizationSelectionType"> -->
+        <!--         <bind-xml name="visualizationSelectionType" node="element"/> -->
+        <!--     </field> -->
+        <!--     <field name="filterOnBaseMap"> -->
+        <!--         <bind-xml name="filterOnBaseMap" node="element" /> -->
+        <!--     </field> -->
+        <!--     <field name="excludeNodesFromBaseMap"> -->
+        <!--         <bind-xml name="excludeNodesFromBaseMap" node="element" /> -->
+        <!--     </field> -->
+        <!--     <field name="nodeThresholdSliderValue"> -->
+        <!--         <bind-xml name="nodeSliderValue"/> -->
+        <!--     </field> -->
+        <!--     <field name="linkThresholdSliderValue"> -->
+        <!--         <bind-xml name="linkSliderValue"/> -->
+        <!--     </field> -->
+        <!--     <field name="intervalBoundaries" type="java.lang.Double" collection="arraylist"> -->
+        <!--         <bind-xml name="intervalBoundaries"/> -->
+        <!--     </field> -->
+        <!--     <field name="nodeIntervalBoundaries" type="java.lang.Double" collection="arraylist"> -->
+        <!--         <bind-xml name="nodeIntervalBoundaries"/> -->
+        <!--     </field> -->
+        <!--     <field name="linkIntervalBoundaries" type="java.lang.Double" collection="arraylist"> -->
+        <!--         <bind-xml name="linkIntervalBoundaries"/> -->
+        <!--     </field> -->
+        <!--     <field name="styleMapFile"> -->
+        <!--         <bind-xml name="styleMapFile" node="element"/> -->
+        <!--     </field> -->
+        <!-- </class> -->
         
 	<class name="tufts.vue.LWPathwayList">
 		<map-to xml="PathwayList"/>
