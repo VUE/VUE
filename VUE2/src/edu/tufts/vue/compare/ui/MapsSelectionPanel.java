@@ -666,7 +666,7 @@ public class MapsSelectionPanel extends JPanel  {
                LWMap map = getMap(row);
                String selected = (String)openMapSelections.get(getMap(row));
                
-               if(map instanceof LWMergeMap && (selected == null || !selected.equals("Selected")) ) 
+               if(map.hasClientData(tufts.vue.MergeMapFactory.class) && (selected == null || !selected.equals("Selected")) ) 
                {
                    return false;
                }
