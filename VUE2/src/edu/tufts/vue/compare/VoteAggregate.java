@@ -13,15 +13,15 @@
  * permissions and limitations under the License.
  */
 
-/**
- *
- * @author akumar03
- */
 package edu.tufts.vue.compare;
 
 import tufts.vue.DEBUG;
 import java.util.*;
 
+/**
+ * @author akumar03
+ * @author Scott Fraize re-write 2012
+ */
 public class VoteAggregate extends WeightAggregate
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(VoteAggregate.class);
