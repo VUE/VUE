@@ -13,15 +13,15 @@
  * permissions and limitations under the License.
  */
 
-/**
- *
- * @author akumar03
- */
 package edu.tufts.vue.compare;
 
 import java.util.*;
 import tufts.vue.*;
 
+/**
+ * @author akumar03
+ * @author Scott Fraize re-write 2012
+ */
 public class WeightAggregate extends ConnectivityMatrix
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(WeightAggregate.class);
@@ -51,9 +51,10 @@ public class WeightAggregate extends ConnectivityMatrix
      * aggregate has been sized to handle all of the input keys.
      */
     private void mergeInConnectionValues(final ConnectivityMatrix input) {
-        if (DEBUG.MERGE) Log.debug("mergeIn " + input);
-        for (int index1 = 0; index1 < input.size(); index1++) {
-            for (int index2 = 0; index2 < input.size(); index2++) {
+        Log.info("mergeIn " + input);
+        final int inSize = input.size();
+        for (int index1 = 0; index1 < inSize; index1++) {
+            for (int index2 = 0; index2 < inSize; index2++) {
                 final int connection = input.cx[index1][index2];
                 if (connection != 0) {
                     final Object key1 = input.keys.get(index1);
