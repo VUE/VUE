@@ -1186,6 +1186,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
             Log.debug("processKeyEvent: already consumed " + e);
     }
     
+    /** hardwired entry-point called by FocusManager for handling unconsumed KeyEvent's */
     void doProcessKeyEvent(KeyEvent e) {
 
         // todo: need to allow BACK_SPACE to process as DELETE (esp
@@ -1200,17 +1201,16 @@ public class VueMenuBar extends javax.swing.JMenuBar
         else if (DEBUG.KEYS) Log.debug("already processed " + e);
     }
     
-    // todo: this doesn't work: safer if can get working instead of above
-    void doProcessKeyPressEventToBinding(KeyEvent e) {
-
-        if (e != alreadyProcessed) {
-            //System.out.println("VueMenuBar: doProcessKeyPressEventToBinding " + e);
-            Log.debug("KEY->BIND " + e);
-            KeyStroke ks = KeyStroke.getKeyStroke(e.getKeyCode(), e.getModifiers(), false);
-            super.processKeyBinding(ks, e, WHEN_FOCUSED, true);
-        }
-        else Log.debug("already processed " + e);
-    }
+    // // todo: this doesn't work: safer if can get working instead of above
+    // void doProcessKeyPressEventToBinding(KeyEvent e) {
+    //     if (e != alreadyProcessed) {
+    //         //System.out.println("VueMenuBar: doProcessKeyPressEventToBinding " + e);
+    //         Log.debug("KEY->BIND " + e);
+    //         KeyStroke ks = KeyStroke.getKeyStroke(e.getKeyCode(), e.getModifiers(), false);
+    //         super.processKeyBinding(ks, e, WHEN_FOCUSED, true);
+    //     }
+    //     else Log.debug("already processed " + e);
+    // }
     
     protected boolean processKeyBinding(KeyStroke ks, KeyEvent e, int condition, boolean pressed) {
         if (e.isConsumed())
@@ -1218,8 +1218,14 @@ public class VueMenuBar extends javax.swing.JMenuBar
 
         if (!pressed) // we only ever handle on key-press
             return false;
+
+        if (Actions.FocusToSearchField.keyStroke.equals(ks)) {
+            Actions.FocusToSearchField.fire(e);
+            // todo: find the right keymap to stick these kinds of non-menu actions in
+            return true;
+        }
             
-        boolean didAction = super.processKeyBinding(ks, e, condition, pressed);
+        final boolean didAction = super.processKeyBinding(ks, e, condition, pressed);
         if (DEBUG.KEYS) {
             String used = didAction ?
                 "CONSUMED " :
@@ -1228,6 +1234,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
         }
         if (didAction)
             e.consume();
+        // checking for extra keys to process here can give us "Aquired pre-used event!" stack
+        // traces from javax.swing.KeyboardManager.fireKeyboardAction if they're actually fired.
         alreadyProcessed = e;
         return didAction;
     }
