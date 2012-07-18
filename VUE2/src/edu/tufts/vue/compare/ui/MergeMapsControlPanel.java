@@ -29,9 +29,13 @@ import tufts.Util;
 import tufts.vue.*;
 import tufts.vue.gui.*;
 
-public class MergeMapsControlPanel extends JPanel implements ActiveListener<LWMap> {
+public class MergeMapsControlPanel extends JPanel /* implements ActiveListener<LWMap> */
+{
     
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(MergeMapsControlPanel.class);
+
+    /** This was for code to re-load slider settings and vote v.s weight choice from existing LWMergeMaps */
+    private static final boolean DynamicImpl = VueResources.getBool("merge.view.settings.dynamic");
 
     private static final boolean DEBUG_LOCAL = false;
     
@@ -39,7 +43,6 @@ public class MergeMapsControlPanel extends JPanel implements ActiveListener<LWMa
     private VisualizationSettingsPanel visualizationSettingsPanel;
     private JButton closeButton;
     private JButton generateButton;
-    private boolean dynamic = false;
     
     private DockWindow dw;
 
@@ -48,13 +51,6 @@ public class MergeMapsControlPanel extends JPanel implements ActiveListener<LWMa
     public MergeMapsControlPanel(final DockWindow dw) 
     {
         this.dw = dw;
-        
-        
-        String dynamicString = VueResources.getString("merge.view.settings.dynamic");
-        if(dynamicString.equals("true"))
-        {
-            dynamic = true;
-        }
         
         setLayout(new BorderLayout());
         mapSelectionPanel = MapsSelectionPanel.getMapSelectionPanel();
@@ -160,12 +156,13 @@ public class MergeMapsControlPanel extends JPanel implements ActiveListener<LWMa
         //  getRootPane().setDefaultButton(generateButton);
         //}
         
-        if(dynamic)
-        {    
-          VUE.addActiveListener(LWMap.class, this);
-          LWMap currentlyLoadedMap = VUE.getActiveMap();
-          if(currentlyLoadedMap != null && (currentlyLoadedMap instanceof LWMergeMap))
-              adjustGUIToMergeMap((LWMergeMap)currentlyLoadedMap);
+        if (DynamicImpl) {
+            Log.error("DynamicImpl disabled", new Throwable("HERE"));
+            // code not currently deployed
+            // VUE.addActiveListener(LWMap.class, this);
+            // final LWMap activeMap = VUE.getActiveMap();
+            // if (activeMap != null && (activeMap instanceof LWMergeMap)) // could install meta-data instead
+            //     adjustGUIToMergeMap((LWMergeMap)activeMap);
         }
         
        // dw.setVisible(true);
@@ -241,80 +238,88 @@ public class MergeMapsControlPanel extends JPanel implements ActiveListener<LWMa
         if (noMapsSelected) // do we 
             return;
         
-        final LWMergeMap mergedMap = getConfiguredLWMergeMap();
-                            
+                       
+        // final LWMergeMap mergedMap = getConfiguredLWMergeMap();
+        // if (visualizationSettingsPanel.getVisualizationSettingsType() == VisualizationSettingsPanel.VOTE)
+        //     mergedMap.fillAsVoteMerge();
+        // else
+        //     mergedMap.fillAsWeightMerge();
+
+        final LWMap mergedMap = createMergedMap();
+        
+        // Thread.sleep(5000);
         final Runnable displayTask = new Runnable() {
                 public void run() {
                     Log.info("invoke-later for displayMap " + mergedMap);
                     mergedMap.layoutAll("MERGE-CREATED");
+                    // mergedMap.markAsSaved();
                     VUE.displayMap(mergedMap);
-                    // SMF: Shouldn't have had to be laying them out AFTER display...
-                    // java.util.Iterator<LWComponent> elements = merge.getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
-                    // while(elements.hasNext()) {
-                    //     //if(elements instanceof LWNode) //{
-                    //       elements.next().layout();
-                    //     //}}
                     dw.setContent(MergeMapsControlPanel.this);
                     dw.repaint();   
                     generateButton.setEnabled(true); 
                 }
             };
 
-        // Thread.sleep(5000);
-                       
-        if(visualizationSettingsPanel.getVisualizationSettingsType() == VisualizationSettingsPanel.VOTE)
-            mergedMap.fillAsVoteMerge();
-        else
-            mergedMap.fillAsWeightMerge();
                             
         if (!stopWasPressed) { // technically should be synced: was set in AWT thread
             // The only thing we actually stop is the final display.
             SwingUtilities.invokeLater(displayTask); // run this back on AWT thread
         }
     }
-                        
-    
-    
-    private LWMergeMap getConfiguredLWMergeMap()
-    {
-        final LWMergeMap map = new LWMergeMap("Hello " + LWMergeMap.getTitle()); // wierd construction...
-        
-        java.util.List<LWMap> mapList = mapSelectionPanel.getMapList();
-        map.setMapList(mapList);
-        //int baseMapIndex = mapSelectionpanel.getBaseMapIndex();
-        //if(baseMapIndex)
-        map.setBaseMap(mapList.get(mapSelectionPanel.getBaseMapIndex()));
-        map.setActiveMapList(mapSelectionPanel.getCheckList());
-        // this was the default method before editable labels added (see 
-        // WeightVisualizationSettingsPanel
-        //map.setIntervalBoundaries();
-        map.setNodeIntervalBoundaries(visualizationSettingsPanel.getNodeIntervalBoundaries()); 
-        map.setLinkIntervalBoundaries(visualizationSettingsPanel.getLinkIntervalBoundaries()); 
-        map.setNodeThresholdSliderValue(visualizationSettingsPanel.getNodeThresholdSliderValue());
-        map.setLinkThresholdSliderValue(visualizationSettingsPanel.getLinkThresholdSliderValue());
-        //moved from Visualization panel to Maps Panel:
-        //map.setFilterOnBaseMap(visualizationSettingsPanel.getFilterOnBaseMap());
-        map.setFilterOnBaseMap(mapSelectionPanel.getFilterOnBaseMap());
-        map.setExcludeNodesFromBaseMap(mapSelectionPanel.getExcludeNodesFromBaseMap());
-        map.setVisualizationSelectionType(visualizationSettingsPanel.getVisualizationSettingsType());
 
-        return map;
+    private LWMap createMergedMap()
+    {
+        final java.util.List<LWMap> mapList = mapSelectionPanel.getMapList();
+
+        final LWMap baseMap = mapList.get(mapSelectionPanel.getBaseMapIndex());
+        
+        final MergeMapFactory mm = new MergeMapFactory(baseMap, mapList, mapSelectionPanel.getCheckList());
+        
+        //mm.setMapList(mapList);
+        //mm.setBaseMap(mapList.get(mapSelectionPanel.getBaseMapIndex()));
+        //mm.setActiveMapList(mapSelectionPanel.getCheckList());
+        
+        mm.setNodeIntervalBoundaries(visualizationSettingsPanel.getNodeIntervalBoundaries()); 
+        mm.setLinkIntervalBoundaries(visualizationSettingsPanel.getLinkIntervalBoundaries()); 
+        mm.setNodeThresholdSliderValue(visualizationSettingsPanel.getNodeThresholdSliderValue());
+        mm.setLinkThresholdSliderValue(visualizationSettingsPanel.getLinkThresholdSliderValue());
+        mm.setFilterOnBaseMap(mapSelectionPanel.getFilterOnBaseMap());
+        mm.setExcludeNodesFromBaseMap(mapSelectionPanel.getExcludeNodesFromBaseMap());
+        // not needed: just switch for fillAsVote v.s. fillAsWeight        
+        //mm.setVisualizationSelectionType(visualizationSettingsPanel.getVisualizationSettingsType());
+        
+        if (visualizationSettingsPanel.getVisualizationSettingsType() == VisualizationSettingsPanel.VOTE)
+            return mm.createAsVoteMerge();
+        else
+            return mm.createAsWeightMerge();
     }
     
-    public void adjustGUIToMergeMap(LWMergeMap map)
-    {
-        visualizationSettingsPanel.setNodeThresholdSliderValue(map.getNodeThresholdSliderValue());
-        visualizationSettingsPanel.setLinkThresholdSliderValue(map.getLinkThresholdSliderValue());
-        visualizationSettingsPanel.setVisualizationSettingsType(map.getVisualizationSelectionType());
-    }
+    // private LWMergeMap getConfiguredLWMergeMap()
+    // {
+    //     final LWMergeMap map = new LWMergeMap("Hello " + LWMergeMap.getTitle()); // wierd construction...
+    //     final java.util.List<LWMap> mapList = mapSelectionPanel.getMapList();
+    //     map.setMapList(mapList);
+    //     map.setBaseMap(mapList.get(mapSelectionPanel.getBaseMapIndex()));
+    //     map.setActiveMapList(mapSelectionPanel.getCheckList());
+    //     map.setNodeIntervalBoundaries(visualizationSettingsPanel.getNodeIntervalBoundaries()); 
+    //     map.setLinkIntervalBoundaries(visualizationSettingsPanel.getLinkIntervalBoundaries()); 
+    //     map.setNodeThresholdSliderValue(visualizationSettingsPanel.getNodeThresholdSliderValue());
+    //     map.setLinkThresholdSliderValue(visualizationSettingsPanel.getLinkThresholdSliderValue());
+    //     map.setFilterOnBaseMap(mapSelectionPanel.getFilterOnBaseMap());
+    //     map.setExcludeNodesFromBaseMap(mapSelectionPanel.getExcludeNodesFromBaseMap());
+    //     map.setVisualizationSelectionType(visualizationSettingsPanel.getVisualizationSettingsType()); // not needed: just switch for fillAsVote v.s. fillAsWeight
+    //     return map;
+    // }
     
-    public void activeChanged(ActiveEvent<LWMap> e)
-    {
-        //System.out.println("Merge Maps Control Panel: active changed - " + e.active);
-        if(e.active instanceof LWMergeMap)
-        {
-            adjustGUIToMergeMap((LWMergeMap)e.active);
-        }
-    }
+    // public void adjustGUIToMergeMap(LWMergeMap map) {
+    //     visualizationSettingsPanel.setNodeThresholdSliderValue(map.getNodeThresholdSliderValue());
+    //     visualizationSettingsPanel.setLinkThresholdSliderValue(map.getLinkThresholdSliderValue());
+    //     visualizationSettingsPanel.setVisualizationSettingsType(map.getVisualizationSelectionType());
+    // }
+    
+    // public void activeChanged(ActiveEvent<LWMap> e) {
+    //     if (e.active instanceof LWMergeMap)
+    //         adjustGUIToMergeMap((LWMergeMap)e.active);
+    // }
     
 }
