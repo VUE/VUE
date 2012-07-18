@@ -118,7 +118,7 @@ public class BaseMapChoiceSelector extends javax.swing.JComboBox {
             while(allMaps.hasNext())
             {
                 LWMap obj = allMaps.next();
-                if(!(obj instanceof tufts.vue.LWMergeMap))
+                if (!obj.hasClientData(tufts.vue.MergeMapFactory.class))
                    nonMergeMaps.add(obj);
             }
             return nonMergeMaps;
