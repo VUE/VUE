@@ -68,7 +68,7 @@ public class VoteVisualizationSettingsPanel extends JPanel {
         
         JLabel defineThresholdMessageLabel = new JLabel(defineThresholdMessage);
         defineThresholdMessageLabel.setFont(tufts.vue.gui.GUI.LabelFace);
-        nodeThresholdSlider = new JSlider(0,100,tufts.vue.LWMergeMap.THRESHOLD_DEFAULT);
+        nodeThresholdSlider = new JSlider(0,100,tufts.vue.MergeMapFactory.THRESHOLD_DEFAULT);
         nodeThresholdSlider.addChangeListener(new ChangeListener()
         {
             public void stateChanged(ChangeEvent e)
@@ -158,7 +158,7 @@ public class VoteVisualizationSettingsPanel extends JPanel {
         add(linkPanel);
         voteConstraints.insets = new Insets(0,40,0,0);
         
-        linkThresholdSlider = new JSlider(0,100,tufts.vue.LWMergeMap.THRESHOLD_DEFAULT);
+        linkThresholdSlider = new JSlider(0,100,tufts.vue.MergeMapFactory.THRESHOLD_DEFAULT);
         
         linkThresholdSlider.setPaintTicks(true);
         linkThresholdSlider.setMajorTickSpacing(10);
