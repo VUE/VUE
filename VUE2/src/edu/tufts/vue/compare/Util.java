@@ -71,6 +71,13 @@ public class Util {
         MergeProperty = property;
     }
 
+    // May want an isValidTarget here that does the check for LWImage/LWNode, and, at minimum, if
+    // the current merge-key is RESOURCE, filter out Flag.ICON as well.  Right now the impl filters
+    // all of those out, tho technically they could have different labels, in which case we could
+    // merge on them, tho that may be too much of a stretch.  (They could have meta-data as well,
+    // etc).  Really, tho, we should treat them as if they're not there and entirely owned by the
+    // node, as their existence is only the result of a hack.
+
     public static MP getMergeProperty() { return MergeProperty; }
     
     public static Object getMergeProperty(final LWComponent c)
