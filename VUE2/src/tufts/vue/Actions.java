@@ -3627,6 +3627,14 @@ public class Actions implements VueConstants
             	}});
             }
         };
+    public static final VueAction FocusToSearchField =
+    new VueAction(VueResources.local("dockWindow.search.title"), keyStroke(KeyEvent.VK_F, COMMAND)) {
+        boolean undoable() { return false; }
+        protected boolean enabled() { return true; }
+        public void act() {
+            VUE.mSearchTextField.requestFocus();
+        }
+    };
     public static final Action NewMap =
     new VueAction(VueResources.local("menu.file.new"), keyStroke(KeyEvent.VK_N, COMMAND+SHIFT), ":general/New") {
         private int count = 1;
