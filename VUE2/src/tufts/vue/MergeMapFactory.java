@@ -110,12 +110,13 @@ public class MergeMapFactory {
 
         annotateMap(asVote);
 
+        Log.info("created: " + outputMap + "; " + outputMap.getChild(0));
+
         baseMapKeys = null; // gc
         keysMerged.clear(); // gc
         
-        // we only allow one creation per factory in case anyone
-        // ever wants to pull the params out of this client data
-        // later.
+        // we only allow one creation per factory in case anyone ever wants
+        // to pull the params out of this client data later.
         outputMap.putClientData(this);
         
         return outputMap;
@@ -237,11 +238,21 @@ public class MergeMapFactory {
             }
         }
 
-        if (voteAggregate != null)
-            installLinksForVotes(cms, voteAggregate);
-        else
-            installLinksAndStylesForWeights(cms, weightAggregate);
+        final Collection<LWComponent> allMergedNodes = outputMap.getAllDescendents(ChildKind.PROPER); 
+
+        for (LWComponent c : allMergedNodes) {
+            if (c instanceof LWNode || c instanceof LWImage)
+                ; // this is a double-check
+            else
+                Log.warn("unexpected content in merged results: " + c);
+        }
         
+        Log.info("pre-link content: " + tufts.Util.tags(allMergedNodes));
+        
+        if (voteAggregate != null)
+            installLinksForVotes(allMergedNodes, cms, voteAggregate);
+        else
+            installLinksAndStylesForWeights(allMergedNodes, cms, weightAggregate);
     }
     
     private void mergeInNodes(final LWMap sourceMap, final VoteAggregate voteAggregate)
@@ -288,11 +299,41 @@ public class MergeMapFactory {
         keysMerged.put(mergeKey, node);
         outputMap.addChild(node);
     }
-
-    private void installLinksAndStylesForWeights(final ConnectivityMatrixList cms, final WeightAggregate weightAggregate)
-    {
-        final Collection<LWComponent> allMergedNodes = outputMap.getAllDescendents(ChildKind.PROPER); 
         
+    private void installLinksForVotes(
+         final Collection<LWComponent> allMergedNodes,
+         final ConnectivityMatrixList cms,
+         final VoteAggregate voteAggregate)
+    {
+        // Is there a faster way to do this than O(n^2) ? Shouldn't we be able to iterate the
+        // VoteAggregate or track the above threshold relations there?
+
+        for (LWComponent head : allMergedNodes) {
+            final Object headKey = getMergeKey(head);
+            for (LWComponent tail : allMergedNodes) {
+                if (head != tail) {
+                    final Object tailKey = getMergeKey(tail);
+                    if (voteAggregate.isLinkVoteAboveThreshold(headKey, tailKey)) {
+                        // Vote for the relation between these two nodes was above link threshold: add a new link
+                        final LWLink link = new LWLink(head, tail);
+                        // note: below is crazy slow... it iterates every link in each and every
+                        // input map every time.  This is to install the #TAG mostly-silent meta-data
+                        // for any link that it finds whose endpoint merge-keys are a match to
+                        // these two keys.
+                        cms.addLinkSourceMapMetadata(headKey, tailKey, link);
+                        // finally add the link
+                        outputMap.addChild(link);
+                    }
+                }
+            }
+        }
+    }
+    
+    private void installLinksAndStylesForWeights(
+         final Collection<LWComponent> allMergedNodes,
+         final ConnectivityMatrixList cms,
+         final WeightAggregate weightAggregate)
+    {
         // todo: use applyCSS(style) -- need to plug in formatting panel
         
         final List<Style> nodeStyles = new ArrayList<Style>();
@@ -344,47 +385,6 @@ public class MergeMapFactory {
             }
         }
     }
-
-        
-    private void installLinksForVotes(final ConnectivityMatrixList cms, final VoteAggregate voteAggregate)
-    {
-        //-----------------------------------------------------------------------------
-        // compute and create links in Merge Map
-        //-----------------------------------------------------------------------------
-
-        final Collection<LWComponent> allComponents = outputMap.getAllDescendents(ChildKind.PROPER);
-        final List<LWComponent> linkables = new ArrayList(allComponents.size() / 2);
-
-        for (LWComponent c : allComponents) {
-            // We only generate links between nodes and images -- tho this is a double-check
-            if (c instanceof LWNode || c instanceof LWImage)
-                linkables.add(c);
-        }
-
-        // Is there a faster way to do this than O(n^2) ? Shouldn't we be able to iterate the
-        // VoteAggregate or track the above threshold relations there?
-
-        for (LWComponent head : linkables) {
-            final Object headKey = getMergeKey(head);
-            for (LWComponent tail : linkables) {
-                if (head != tail) {
-                    final Object tailKey = getMergeKey(tail);
-                    if (voteAggregate.isLinkVoteAboveThreshold(headKey, tailKey)) {
-                        // Vote for the relation between these two nodes was above link threshold: add a new link
-                        final LWLink link = new LWLink(head, tail);
-                        // note: below is crazy slow... it iterates every link in each and every
-                        // input map every time.  This is to install the #TAG mostly-silent meta-data
-                        // for any link that it finds whose endpoint merge-keys are a match to
-                        // these two keys.
-                        cms.addLinkSourceMapMetadata(headKey, tailKey, link);
-                        // finally add the link
-                        outputMap.addChild(link);
-                    }
-                }
-            }
-        }
-    }
-    
 
     private static Set hashMergeKeys(LWMap map) {
         final Set hashedKeys = new HashSet();
@@ -439,6 +439,7 @@ public class MergeMapFactory {
         Counter counter = mergeNew.getClientData(Counter.class);
         if (counter == null)
             counter = mergeNew.putClientData(new Counter());
+        counter.count++;
         
         // We could store a list of all the actual source nodes in the client data, and annotate
         // at the end.  That could even allow us to design a fancier "merge" that somehow lets us
@@ -449,20 +450,22 @@ public class MergeMapFactory {
         if (mapLabel.endsWith(".vue"))
             mapLabel = mapLabel.substring(0, mapLabel.length()-4);
 
-        final String annotation = String.format("[in:%d:%s/%s/%s]",
-                                                ++counter.count,
+        final String annoBase = String.format("%s/%s/%s",
                                                 mapLabel,
                                                 sourceNode.getID(),
                                                 sourceNode.getDisplayLabel());
+
+        final String notesAnno = String.format("[%d:in:%s]",   counter.count, annoBase);
+        final String  metaAnno = String.format("%d:source:%s", counter.count, annoBase);
 
         if (DEBUG.TEST) {
             if (mergeNew.hasNotes()) {
                 // note: string manips are slow.
                 mergeNew.setNotes(mergeNew.getNotes()
                                   + (counter.count > 1 ? "\n" : "\n----\n")
-                                  + annotation);
+                                  + notesAnno);
             } else {
-                mergeNew.setNotes(annotation);
+                mergeNew.setNotes(notesAnno);
             }
         }
 
@@ -476,8 +479,7 @@ public class MergeMapFactory {
             
         final VueMetadataElement vme = new VueMetadataElement();
         vme.setType(VueMetadataElement.OTHER);
-        final String stripped = annotation.substring(3, annotation.length()-1);
-        vme.setObject("source" + stripped);
+        vme.setObject(metaAnno);
         mergeNew.getMetadataList().getMetadata().add(vme);
     }
 
