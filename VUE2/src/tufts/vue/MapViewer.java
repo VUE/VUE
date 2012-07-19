@@ -6006,7 +6006,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                                 where,
                                 e.isConsumed() ? " CONSUMED" : "",
                                 System.identityHashCode(e),
-                                e.paramString()));
+                                e.paramString().replaceAll("='\r'", "<CR>")));
     }
 
 //     @Override
