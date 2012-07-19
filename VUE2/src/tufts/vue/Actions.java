@@ -94,7 +94,9 @@ public class Actions implements VueConstants
     static final private KeyStroke keyStroke(int vk) {
         return keyStroke(vk, 0);
     }
-    
+    private static final String local(String resourceKey) {
+        return VueResources.local(resourceKey);
+    }
     
     //--------------------------------------------------
     // PDF Export Notes Actions
@@ -274,7 +276,6 @@ public class Actions implements VueConstants
 		}
     };
     
-
     public static final VueAction FullPageSlideNotes =
     	new VueAction(VueResources.local("menu.file.exporthandout.fullpageslidenotes")) {
 		public void act() 
@@ -3627,12 +3628,28 @@ public class Actions implements VueConstants
             	}});
             }
         };
+    /** move the input focus to the main-window search box */
     public static final VueAction FocusToSearchField =
-    new VueAction(VueResources.local("dockWindow.search.title"), keyStroke(KeyEvent.VK_F, COMMAND)) {
+    new VueAction(local("dockWindow.search.title"), keyStroke(KeyEvent.VK_F, COMMAND)) {
         boolean undoable() { return false; }
         protected boolean enabled() { return true; }
         public void act() {
             VUE.mSearchTextField.requestFocus();
+        }
+    };
+    /** Our standard text field behaviour is save on focus loss, so moving focus to another
+     * standard location accomplishes text saving.  This is handy because many text input fields
+     * allow return/enter in the string (an otherwise normally expected "done" key) and this
+     * provides a away to say "done".  And having an action that always brings focus back to the
+     * map is handy to make sure the selection is activated. */
+    public static final VueAction FocusToViewer =
+    new VueAction("Finish Editing Text", keyStroke(KeyEvent.VK_ENTER, COMMAND)) {
+        boolean undoable() { return false; }
+        protected boolean enabled() { return true; }
+        public void act() {
+            MapViewer viewer = VUE.getActiveViewer();
+            if (viewer != null)
+                viewer.requestFocus();
         }
     };
     public static final Action NewMap =
