@@ -76,6 +76,7 @@ public class GUI
     public static Font FixedFace;
     public static Font ErrorFace;
     public static Font StatusFace;
+    public static Font StatusFaceSmall;
     public static Font DataFace;
     public static Font ContentFace;
     
@@ -370,6 +371,7 @@ public class GUI
         //StatusFace = new GUI.Face(null, 0, 0, Color.darkGray, SystemColor.control);
         //StatusFace = new GUI.Face(null, 0, 0, Color.darkGray);
           StatusFace = new GUI.Face(fontName, Font.PLAIN, fontSize2, Color.darkGray);
+          StatusFaceSmall = new GUI.Face(fontName, Font.PLAIN, fontSize, Color.darkGray);
         //StatusFace = new GUI.Face(fontName, Font.PLAIN, fontSize2, Color.darkGray, SystemColor.control);
 
           ErrorFace = StatusFace;
@@ -1791,7 +1793,8 @@ public class GUI
 
     public static String eventParamString(AWTEvent e) 
     {
-        String s = "[" + e.paramString();
+        String s = "[" + e.paramString().replaceAll("='\r'", "<CR>").replaceAll("\r", "<CR>");
+        // \r carriage-return (ascii decimal=10) will cause output to overwrite itself
         if (e instanceof InputEvent) {
             if (e instanceof MouseEvent) {
                 if (((MouseEvent)e).isPopupTrigger())
