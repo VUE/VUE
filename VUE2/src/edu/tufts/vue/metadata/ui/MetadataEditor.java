@@ -82,10 +82,10 @@ import edu.tufts.vue.rdf.RDFIndex;
  *
  * @author dhelle01
  */
-public class MetadataEditor extends JPanel implements ActiveListener,
-                                                      MetadataList.MetadataListListener,
-                                                      LWSelection.Listener {
-                                                     
+public class MetadataEditor extends JPanel
+    implements ActiveListener, MetadataList.MetadataListListener, LWSelection.Listener
+{
+    private static final boolean AUTO_ADD_EMPTY = true; // leaving this on for now, tho we should refactor not to need it
     
     private static final boolean DEBUG_LOCAL = false;
     
@@ -110,9 +110,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,
     public final static int CC_ADD_RIGHT = 1;
     
     //public final static String TAG_ONT = "http://vue.tufts.edu/vue.rdfs#Tag";
-    // todo: use VueMetadataElement NONE_ONT exclusively (or perhaps put this in Ontology
-    // class itself? Maybe also might fit in rdf package)
-    public final static String NONE_ONT = "http://vue.tufts.edu/vue.rdfs#none";
+    public final static String NONE_ONT = VueMetadataElement.ONTOLOGY_NONE;
     
     public final static Border insetBorder = BorderFactory.createEmptyBorder(ROW_GAP,ROW_INSET,ROW_GAP,ROW_INSET);
     public final static Border fullBox = BorderFactory.createMatteBorder(1,1,1,1,SAVED_KEYWORD_BORDER_COLOR);
@@ -606,36 +604,37 @@ public class MetadataEditor extends JPanel implements ActiveListener,
  
         }*/
         
-        if(currentMultiples != null)
-        {
-                      
+        if(currentMultiples != null) {
           currentMultiples.getMetadataList().getMetadata().add(vme);   
-            
-          if(DEBUG_LOCAL)
-          {
-              System.out.println("ME: current multiples is not null -- addNewRow " +
-                      currentMultiples.getMetadataList().getCategoryListSize() );
-          }
- 
+          if(DEBUG_LOCAL) { System.out.println("ME: current multiples is not null -- addNewRow " + currentMultiples.getMetadataList().getCategoryListSize() ); }
         }
-        else
-        if(current !=null)
-        {    
-          MetadataEditor.this.current.getMetadataList().getMetadata().add(vme);
+        else if (/*AUTO_ADD_EMPTY &&*/ current !=null) {    
+            MetadataEditor.this.current.getMetadataList().getMetadata().add(vme);
         }
-            
         ((MetadataTableModel)metadataTable.getModel()).refresh();
     }
-    
+
     public void listChanged()
-    {   
-        //if(DEBUG_LOCAL)
-        //{
-        //    System.out.println("MetadataEditor: list changed ");
-        //}
+    {
+        // This was implemented horribly, and we don't actually need it.
         
-        ((MetadataTableModel)metadataTable.getModel()).refresh();
-        validate();
+        // THIS WAS FIRING, VERY FREQUENTLY, DURING DERSERIALIZATION AND SOMETIMES CAUSING
+        // AWT TO HANG (deep AWT cursor code hang?)
+
+        // So this was happening for EVERY SINGLE VueMetadataElement add/load ON EVERY SINGLE NODE.
+        // And since the impl has put an EMPTY VME on every node, that's at minimum once per
+        // LWComponent.  And god forbid there are, say, 10 meta-data fields on a node from a
+        // data-set -- that means 10 times per node. So with a map that has, say 500 nodes, it
+        // means 5,000 (FIVE-THOUSAND) calls to the AWT to run freaking VALIDATE() deserializing
+        // such maps...
+
+        // Furthermore, after init, we don't actually edit VME meta-data at runtime outside of the UI,
+        // meaning we don't need this at all.
+
+        // tufts.Util.printStackTrace("listChanged");
+        
+        // ((MetadataTableModel)metadataTable.getModel()).refresh();
+        // validate();
     }
     
     public boolean getEventIsOverAddLocation(MouseEvent evt)
@@ -898,16 +897,10 @@ public class MetadataEditor extends JPanel implements ActiveListener,
          current = active;
          
          
-         if(current!=null && MetadataEditor.this.current.getMetadataList().getCategoryListSize() == 0)
-         {
-           //VueMetadataElement vme = new VueMetadataElement();
-           //String[] emptyEntry = {NONE_ONT,""};
-           //vme.setObject(emptyEntry);
-           //vme.setType(VueMetadataElement.CATEGORY);
-
-           MetadataEditor.this.current.getMetadataList().getMetadata().add(VueMetadataElement.getNewCategoryElement());
-         }
-        
+         // This is what sticks a damn empty element in every node...
+         
+         if (AUTO_ADD_EMPTY && current!=null && MetadataEditor.this.current.getMetadataList().getCategoryListSize() == 0)
+             MetadataEditor.this.current.getMetadataList().getMetadata().add(VueMetadataElement.getNewCategoryElement());
 
          
          // clear focus and saved information
