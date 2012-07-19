@@ -106,7 +106,7 @@ public class VueTextPane extends JTextPane
     
     @Override
     protected void processKeyEvent(KeyEvent e) {
-        if (DEBUG.KEYS && e.getID() == KeyEvent.KEY_PRESSED) Log.debug("processKeyEvent " + e.paramString() + "; " + this);
+        if (DEBUG.KEYS && e.getID() == KeyEvent.KEY_PRESSED) Log.debug("processKeyEvent " + GUI.name(e) + "; " + this);
         // if any key activity, assume it may have changed
         // (to make sure we catch cut's and paste's as well newly input characters)
         //if (DEBUG.TEXT) debug("curTextA " + Util.tags(getText()));
