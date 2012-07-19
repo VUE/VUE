@@ -18,6 +18,7 @@ package edu.tufts.vue.metadata;
 
 import edu.tufts.vue.ontology.*;
 import tufts.Util;
+import tufts.vue.DEBUG;
 
 import java.net.*;
 
@@ -28,30 +29,31 @@ import java.net.*;
  *
  * @author dhelle01
  */
-public final class VueMetadataElement {
+public final class VueMetadataElement implements tufts.vue.XMLUnmarshalListener
+{
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(VueMetadataElement.class);
+
+    public final static String ONTOLOGY_NONE = edu.tufts.vue.rdf.RDFIndex.VueTermOntologyNone;
     
-    //public final static String NONE_ONT = "http://vue.tufts.edu/vue.rdfs#none"; 
-    public final static String NONE_ONT = edu.tufts.vue.rdf.RDFIndex.VueTermOntologyNone;
+    private static final boolean _DEBUG = false; 
     
-   private static final boolean DEBUG = false; 
-    
-   private String value;
-   private String key;
-   private Object obj;
-   private int type;
+    private String value;
+    private String key;
+    private Object obj;
+    private int type;
    
-   public static final int TAG = 0;
-   public static final int CATEGORY = 1;
-   public static final int ONTO_TYPE = 2;
-   public static final int SEARCH_STATEMENT = 3;
-   public static final int OTHER = 4;
-   public static final int RESOURCE_CATEGORY = 5;
+    public static final int TAG = 0;
+    public static final int CATEGORY = 1;
+    public static final int ONTO_TYPE = 2;
+    public static final int SEARCH_STATEMENT = 3;
+    public static final int OTHER = 4;
+    public static final int RESOURCE_CATEGORY = 5;
 
     private static final String[] _Types = {"TAG", "CAT", "ONTO", "SEARCH", "OTHER", "ResCat" };
    
-   public static final String ONT_SEPARATOR = "#";
+    public static final String ONT_SEPARATOR = "#";
    
-   public static final String VUE_ONT = Constants.ONTOLOGY_URL;//+ONT_SEPARATOR; //"vue.tufts.edu/vue.rdfs";
+    public static final String VUE_ONT = Constants.ONTOLOGY_URL;//+ONT_SEPARATOR; //"vue.tufts.edu/vue.rdfs";
 
     public VueMetadataElement() {}
     
@@ -62,54 +64,55 @@ public final class VueMetadataElement {
     }
                                                          
    
-   public Object getObject() {
-       return obj;
-   }
-   
-   public void setObject(Object obj)
-   {
-       if (DEBUG) System.out.println("VueMetadataElement setObject -, key,value " + obj +"," + key + "," + value);
-       
-       this.obj = obj;
-       if(obj instanceof String)
-       {    
-           type = TAG;
-           value = (String)obj;
-           key = VUE_ONT + "#TAG";
-       }
-       else if(obj instanceof String[])
-       {
-           type = CATEGORY;
-           value = ((String[])obj)[1];
-           key = /*VUE_ONT  + "#" + */ ((String[])obj)[0];
-       }
-       else if(obj instanceof OntType)
-       {
-           type = ONTO_TYPE;
-           OntType type = (OntType)(obj);
-           value = type.getBase() + "#" + type.getLabel();
-           key = VUE_ONT+"#ontoType";
-       }
-       else
-       {
-           type = OTHER;
-       }
-   }
-   
-   public String getValue() {
-       return value;
-   }
-   
-   public String getKey() {
-       return key;
-   }
+    public int    getType() { return type; }
+    public String getKey() { return key; }
+    public String getValue() { return value; }
+    public Object getObject() { return obj; }
+
+    public boolean hasValue() { return value != null && value.trim().length() > 0; }
+    public boolean isEmpty() { return key == ONTOLOGY_NONE && !hasValue(); }
+
+    // For castor mapping file hacks -- getters always null to remove from future save files.
+    // These sames make more sense when reading the mapping file.
+    /** for mapping backward compat*/public String      getSetterKey() { return null; }
+    /** for mapping backward compat*/public String      getSetterValue() { return null; }
+    /** for mapping backward compat*/public String      getSetterType() { return null; }
+    /** for mapping backward compat*/public void        setSetterKey(String k) { setKey(k); }
+    /** for mapping backward compat*/public void        setSetterValue(String v) { setValue(v); }
+    /** for mapping backward compat*/public void        setSetterType(String t) {
+        // This is marked as string persistance so we can always returl null
+        // in getter to remove from future save files.
+        if (t == null || t.length() < 1) {
+            System.out.println("VME: empty type in old save file: " + Util.tags(t));
+            setType(0);
+        } else {
+            setType(t.charAt(0) - '0');
+        }
+    }
+
+    // Note: setType(type) was always called LAST in the old mapping, which was importat as it has
+    // side effects to this.obj / this.key that *depended* on type.  As we want type to be 1st, not
+    // last, in the mapping / XML output, we handle that here via an XMLUnmarshalListener and
+    // vanilla get/setXMLtype.
+    
+    /** @see tufts.vue.XMLUnmarshalListener */
+    public void XML_initialized(Object context) {}
+    public void XML_completed(Object context) {
+        // This will check for applying old key patches, and initialize
+        // the horrible hack of the this.obj member.
+        setType(this.type);
+    }
+    public void XML_fieldAdded(Object context, String name, Object child) {}
+    public void XML_addNotify(Object context, String name, Object parent) {}
+
+    /** castor persist only */public void setXMLtype(int type) { this.type = type; }
+    /** castor persist only */public int getXMLtype() { return type; }
    
    public void setKey(final String newKey) {
-       if (NONE_ONT.equals(newKey)) {
-           this.key = NONE_ONT;
-           // performance hack: on deserialize, make objects have same identity
-           // (also allows tossing this input string)
-           // todo someday: do for schema's in general...
+       if (ONTOLOGY_NONE.equals(newKey)) {
+           this.key = ONTOLOGY_NONE;
+           // performance hack: on deserialize, make objects have same identity (also allows
+           // tossing this input string) todo: do for #TAG also (merge maps create lots of these)
        } else {
            this.key = newKey;
        }
@@ -120,62 +123,82 @@ public final class VueMetadataElement {
        this.value = value;
        // object gets reset from persistence in setType
    }
+
    
     /**
-     * warning: this has significant side effects -- it might change this.key and this.obj!
-     * This may be a persistance hack?
+     * warning: this has significant side effects -- it might change this.key and this.obj Possibly
+     * changing the key is part of an old patch for bad key names.  This used to mean that persistance was
+     * important: type had to come last, tho we fixed this.  This still means, however, that in using
+     * the API for this class, call order makes a difference: setType calls that happened last
+     * are different than those that happen first.
      */
     public void setType(int type)
-   {
-       if (DEBUG) { System.out.println("VueMetadataElement setType -, key,value " + type +"," + key + "," + value); }
-       this.type = type;
+    {
+        if (_DEBUG) Log.debug("setType " + type + " on: " + this);
+        this.type = type;
        
-       if (obj == null && (type == CATEGORY || type == RESOURCE_CATEGORY || type == ONTO_TYPE))
-       {
-           int len = (VUE_ONT + "#").length();
-           if (DEBUG) System.out.println("VueMetadataElement setType -- getKey, getValue: " + getKey() + "," + getValue());
-           try {
-               //old version before getBase modifications in OntType
-               //String[] pairedValue = {getKey().substring(len,getKey().length()),getValue()};
-               
-               // fix for files saved before 11/27/2007 -- file:/ prefix didn't work in
-               // rdf search, so used http://vue.tufts.edu#custom.rdfs instead.
-               if(getKey().indexOf("file") != -1 && getKey().indexOf("custom.rdfs") != -1)
-               {
-                   if(getKey().indexOf("#") != -1)
-                   {
-                       key = "http://vue.tufts.edu/custom.rdfs" + getKey().substring(getKey().indexOf("#"),getKey().length());
-                   }    
-               }
-               
-               String[] pairedValue = {getKey(),getValue()};
-               obj = pairedValue;
-               if (DEBUG) System.out.println("recover from: " + pairedValue[0] + "," + pairedValue[1]);
-           } catch (Throwable t) {
-               //tufts.Util.printStackTrace(t, this+":setType(" + type + ") key["+getKey() + "] value=[" + getValue() + "]");
-               System.err.println(this+": " + t + "; setType(" + type + ") key["+getKey() + "] value=[" + getValue() + "]");
-           }
-       }
-   }
-
-   public int getType() {
-       return type;
-   }
+        if (obj == null && (type == CATEGORY || type == RESOURCE_CATEGORY || type == ONTO_TYPE)) {
+            try {
+                // old version before getBase modifications in OntType:
+                // int len = (VUE_ONT + "#").length();
+                // String[] pairedValue = {getKey().substring(len,getKey().length()),getValue()};
+                //-----------------------------------------------------------------------------
+                // Fix for files saved before 11/27/2007 -- file:/ prefix didn't work in
+                // rdf search, so used http://vue.tufts.edu#custom.rdfs instead.
+                if (key.indexOf("file") != -1 && key.indexOf("custom.rdfs") != -1) {
+                    if (key.indexOf("#") != -1) {
+                        Log.info("patching key in: " + key + "=" + value);
+                        this.key = "http://vue.tufts.edu/custom.rdfs" + key.substring(key.indexOf("#"), key.length());
+                        Log.info(" patched key to: " + key + "=" + value);
+                    }
+                }
+                this.obj = new String[] { this.key, this.value }; // ouch -- can we say redundant?
+            } catch (Throwable t) {
+                Log.warn(this + "; setType(" + type + ");", t);
+            }
+        }
+    }
    
-   public boolean equals(Object compare)
-   {
-       if(compare instanceof VueMetadataElement)
-       {
-           VueMetadataElement vme = (VueMetadataElement)compare;
-           if(vme.getKey().equals(getKey()) && vme.getValue().equals(getValue()))
-               return true;
-           else
+    /** a messy and pain inducing hack this was */
+    public void setObject(final Object obj)
+    {
+        if (DEBUG.Enabled) Log.warn("setObject->: " + this + "; obj=" + Util.color(Util.tags(obj), Util.TERM_GREEN));
+       
+        this.obj = obj;
+        if (obj instanceof String) {
+            type = TAG;
+            value = (String) obj;
+            key = VUE_ONT + "#TAG";
+        }
+        else if (obj instanceof String[]) {
+            type = CATEGORY;
+            value = ((String[])obj)[1];
+            key = /*VUE_ONT  + "#" + */ ((String[])obj)[0];
+        }
+        else if (obj instanceof OntType) {
+            type = ONTO_TYPE;
+            OntType type = (OntType)(obj);
+            value = type.getBase() + "#" + type.getLabel();
+            key = VUE_ONT+"#ontoType";
+        }
+        else {
+            type = OTHER;
+        }
+        
+        if (DEBUG.Enabled) Log.warn("setObject=>: " + this);
+        // Util.printClassTrace("!java");
+    }
+   
+   public boolean equals(final Object other) {
+       if (other instanceof VueMetadataElement) {
+           final VueMetadataElement vme = (VueMetadataElement) other;
+           try {
+               return vme.key.equals(key) && vme.value.equals(value);
+           } catch (Throwable t) {
                return false;
-       }
-       else
-       {
+           }
+       } else 
            return false;
-       }
    }
 
     public String toString() {
@@ -183,15 +206,15 @@ public final class VueMetadataElement {
             (type >= 0 && type < _Types.length)
             ? _Types[type]
             : ("Type" + type + "?");
-        
-        return "Vme[" + tname + " " + key + "=" + Util.tags(value) + ", o=" + Util.tags(obj) + "]";
-            
+
+        final String id = String.format("%08x", System.identityHashCode(this)).substring(4);
+        return String.format("Vme_%s[%s %s=%s, o=%s]", id, tname, key, Util.tags(value), Util.tags(obj));
     }
    
    public static VueMetadataElement getNewCategoryElement()
    {
       VueMetadataElement vme = new VueMetadataElement();
-      String[] emptyEntry = {NONE_ONT,""};
+      String[] emptyEntry = {ONTOLOGY_NONE,""};
       vme.setObject(emptyEntry);
       vme.setType(VueMetadataElement.CATEGORY);
       return vme;
