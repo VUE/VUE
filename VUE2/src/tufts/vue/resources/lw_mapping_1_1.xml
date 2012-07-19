@@ -105,9 +105,39 @@
 
 
   <class name="edu.tufts.vue.metadata.VueMetadataElement">
-      <field name="value" type="java.lang.String"/>
-      <field name="key" type="java.lang.String"/>
-      <field name="type"/>
+    <!-- Note that unless/until we fix the VME crazy hack in setType, it must always be the LAST field as it
+         has side effects that depend on the other fields, and can change them.
+    -->
+    <field name="XMLtype">
+      <bind-xml name="t" node="attribute"/>
+    </field>
+    <field name="key" type="java.lang.String">
+      <bind-xml name="k" node="attribute"/>
+    </field>
+    <field name="value" type="java.lang.String">
+      <bind-xml name="v" node="attribute"/>
+    </field>
+    <!-- for backward compat with old save files: setters work, getters always return null -->
+    <field name="setterKey" type="java.lang.String">
+      <bind-xml name="key" node="element"/>
+    </field>
+    <field name="setterValue" type="java.lang.String">
+      <bind-xml name="value" node="element"/>
+    </field>
+    <field name="setterType">
+      <bind-xml name="type" node="element" type="java.lang.String"/>
+    </field>
+    <!-- <field name="type"/> above should be same as this -->
+    <!-- end backward compat with old save files -->
+  </class>
+  <class name="edu.tufts.vue.metadata.MetadataList">
+    <field name="XMLdata" collection="collection" type="edu.tufts.vue.metadata.VueMetadataElement">
+      <bind-xml name="md"/>
+    </field>
+    <!-- for backward compat with old save files: setters work, getters always return null -->
+    <field name="setterXMLdata" collection="collection" type="edu.tufts.vue.metadata.VueMetadataElement">
+      <bind-xml name="metadata"/>
+    </field>
   </class>
   
   <class name="tufts.vue.LWComponent" identity="ID">
@@ -126,6 +156,8 @@
 		<field name="created"><bind-xml name="created" node="attribute"/></field>
 		<field name="XMLnotes"><bind-xml name="notes" node="element"/></field>
 
+                <!-- This only applies to LWMap, but we put it here as we want it to come BEFORE the children in the persist order
+                 for the schema-id references it provides for subsequent dataMaps -->
 		<field name="includedSchemas" type="tufts.vue.ds.Schema" collection="collection">
 		  <bind-xml name="schema"/>
 		</field>
@@ -187,7 +219,6 @@
                 <!-- field name="nodeFilter">      <bind-xml name="nodeFilter" node="element"/></field --> 
                 <field name="XMLnodeFilter">      <bind-xml name="nodeFilter" node="element"/></field>
                 
-                <!-- <field name="metadataList"/> -->
                 <field name="XMLmetadataList">
                   <bind-xml name="metadata-list"/>
                 </field>
