@@ -2472,7 +2472,7 @@ public class Util
         synchronized (System.err) {
         synchronized (pst) {
 
-            pst.print(TERM_RED);
+            pst.print(TERM_PURPLE);
             log.println();
 
             if (message != null) {
@@ -2486,23 +2486,23 @@ public class Util
             else
                 head = t.toString();
             if (prefix == null || prefix == NO_CLASS_FILTER) {
-                pst.println(head + ";");
-                log.println(head + ";");
+                pst.print(head + ";");
+                log.print(head + ";");
             } else {
-                pst.println(head + " (stack element prefix \"" + prefix + "\") ");
-                log.println(head + " (stack element prefix \"" + prefix + "\") ");
+                pst.print(head + " (stack element prefix \"" + prefix + "\")");
+                log.print(head + " (stack element prefix \"" + prefix + "\")");
             }
 
             final long now = System.currentTimeMillis();
-            final String stamp = "\tin " + Thread.currentThread() + " at " + now + " " + new java.util.Date(now);
+            final String stamp = " in " + Thread.currentThread() + " at " + now + " " + new java.util.Date(now);
 
             pst.print(stamp);
             log.print(stamp);
 
             //pst.print(TERM_CLEAR);
             
-            if (prefix == null || prefix == NO_CLASS_FILTER)
-                prefix = "!tufts.Util.print";
+            // if (prefix == null || prefix == NO_CLASS_FILTER)
+            //     prefix = "!tufts.Util.print";
 
             StackTraceElement[] trace = t.getStackTrace();
             int skipped = 0;
@@ -2541,15 +2541,21 @@ public class Util
     }
 
     private static boolean includeInTrace(StackTraceElement trace, String prefix) {
+
+        final String where = trace.getClassName() + "." + trace.getMethodName();
+        
+        if (where.startsWith("tufts.Util.print")) // hardcoded
+            return false;
+        
+        if (prefix == null || prefix.length() == 0)
+            return true;
         
         boolean matchIsIncluded = true;
         if (prefix.charAt(0) == '!') {
             prefix = prefix.substring(1);
             matchIsIncluded = false;
         }
-
-        String where = trace.getClassName() + "." + trace.getMethodName();
-
+        
         if (where.startsWith(prefix))
             return matchIsIncluded;
         else
