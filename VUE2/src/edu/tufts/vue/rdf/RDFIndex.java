@@ -444,37 +444,81 @@ public class RDFIndex extends com.hp.hpl.jena.rdf.model.impl.ModelCom
         final List<VueMetadataElement> metadata = component.getMetadataList().getMetadata();
         for (VueMetadataElement vme : metadata) {
             if (DEBUG.SEARCH && DEBUG.RDF) Log.debug("scan " + vme);
-            if (vme.getObject() != null) {
-                // BAD SEMANTICS: we check "getObject" then just go ahead and check key & value?
-                final String key = vme.getKey();
-                final String strValue = vme.getValue();
-                if (vme.getKey() == VueTermOntologyNone) {
-                    // This is just an optimization, so checking object identity is okay (should be used that way)
-                    if (strValue != null && strValue.length() > 0) {
-                        // Optimization: this being a "none" term (no keyword), don't bother with empty values
-                        addStatement(createStatement(r, _propertyNone, strValue));
-                    }
-                } else {
-                    // todo: kind of waste to create/fetch these constantly: if we keep this RDF indexing,
-                    // someday we could just go ahead and put the RDF property right in the VME object.
-                    // (And pre-encode all keys and/or only allow encoded keys in all meta-data
-                    // data-structures)  Note that in current superclass impl, createProperty will
-                    // return the existing Property object if the name matches.
-                        
-                    // Note that we do NOT want to skip empty values, as we have a non-empty key, and a
-                    // search for a key with an empty value might be a valid search type someday (if we had
-                    // the UI to support it).
-                        
-                    final String encodedKey = getEncodedKey(key);
-                    addStatement(createStatement(r, getPropertyFromKey(encodedKey), strValue));
+            final String key = vme.getKey();
+            final String value = vme.getValue();
+
+            if (key == VueTermOntologyNone) { // also check #TAG so we don't have to encode that?
+                // This is just an optimization, so checking object identity is okay (should be used that way)
+                if (value != null && value.length() > 0) {
+                    // Optimization: this being a "none" term (no keyword), don't bother with empty values
+                    addStatement(createStatement(r, _propertyNone, value));
                 }
-            } else {
-                Log.warn(r + ": null element object: no statement");
             }
-            //statement = this.createStatement(r,createPropertyFromKey(element.getKey()),element.getObject().toString());
-            //addStatement(statement);
+            else if (key == null) {
+                Log.warn(r + ": null key: " + vme);
+            }
+            else if (key.length() == 0) {
+                Log.warn(r + ": empty key: " + vme);
+            }
+            else if (value == null) {
+                Log.warn(r + ": null value: " + vme);
+            }
+            else {
+
+                if (value.length() == 0) {
+                    // may want these if we allow searching just for the presence of key
+                    if (DEBUG.Enabled) Log.debug(r + ": indexing empty value: " + vme);
+                }
+                
+                // todo: kind of waste to create/fetch these constantly: if we keep this RDF indexing,
+                // someday we could just go ahead and put the RDF property right in the VME object.
+                // (And pre-encode all keys and/or only allow encoded keys in all meta-data
+                // data-structures)  Note that in current superclass impl, createProperty will
+                // return the existing Property object if the name matches.
+                
+                // Note that we do NOT want to skip empty values, as we have a non-empty key, and a
+                // search for a key with an empty value might be a valid search type someday (if we had
+                // the UI to support it).
+                
+                final String encodedKey = getEncodedKey(key);
+                addStatement(createStatement(r, getPropertyFromKey(encodedKey), value));
+            }
         }
     }
+    
+        // final List<VueMetadataElement> metadata = component.getMetadataList().getMetadata();
+        // for (VueMetadataElement vme : metadata) {
+        //     if (DEBUG.SEARCH && DEBUG.RDF) Log.debug("scan " + vme);
+        //     if (true || vme.getObject() != null) {
+        //         // BAD SEMANTICS: we check "getObject" then just go ahead and check key & value?
+        //         final String key = vme.getKey();
+        //         final String strValue = vme.getValue();
+        //         if (vme.getKey() == VueTermOntologyNone) { // also check #TAG so we don't have to encode that?
+        //             // This is just an optimization, so checking object identity is okay (should be used that way)
+        //             if (strValue != null && strValue.length() > 0) {
+        //                 // Optimization: this being a "none" term (no keyword), don't bother with empty values
+        //                 addStatement(createStatement(r, _propertyNone, strValue));
+        //             }
+        //         } else {
+        //             // todo: kind of waste to create/fetch these constantly: if we keep this RDF indexing,
+        //             // someday we could just go ahead and put the RDF property right in the VME object.
+        //             // (And pre-encode all keys and/or only allow encoded keys in all meta-data
+        //             // data-structures)  Note that in current superclass impl, createProperty will
+        //             // return the existing Property object if the name matches.
+                        
+        //             // Note that we do NOT want to skip empty values, as we have a non-empty key, and a
+        //             // search for a key with an empty value might be a valid search type someday (if we had
+        //             // the UI to support it).
+                        
+        //             final String encodedKey = getEncodedKey(key);
+        //             addStatement(createStatement(r, getPropertyFromKey(encodedKey), strValue));
+        //         }
+        //     } else {
+        //         Log.warn(r + ": null object: " + vme); // used to warn "no statement" -- why ignore key/value if no object in VME?
+        //     }
+        //     //statement = this.createStatement(r,createPropertyFromKey(element.getKey()),element.getObject().toString());
+        //     //addStatement(statement);
+        // }
     
     public void addStatement(com.hp.hpl.jena.rdf.model.Statement statement) {
         if (size() < MAX_SIZE) {
