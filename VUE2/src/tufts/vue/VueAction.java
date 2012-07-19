@@ -487,7 +487,7 @@ public class VueAction extends javax.swing.AbstractAction
      * @return true if the action was fired
      */
     public boolean fireIfMatching(Object source, java.awt.event.KeyEvent e) {
-        if (KeyStroke.getKeyStrokeForEvent(e).equals(getValue(ACCELERATOR_KEY))) {
+        if (KeyStroke.getKeyStrokeForEvent(e).equals(keyStroke)) {
             fire(source);
             return true;
         } else
