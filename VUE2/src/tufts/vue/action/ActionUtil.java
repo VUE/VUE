@@ -424,7 +424,7 @@ public class ActionUtil
     private static Object _loadMapping(URL mappingSource)
     //throws java.io.IOException //, org.exolab.castor.mapping.MappingException
     {
-        if (LoadedMappings.containsKey(mappingSource))
+        if (!DEBUG.CASTOR && LoadedMappings.containsKey(mappingSource))
             return (Mapping) LoadedMappings.get(mappingSource);
         Mapping mapping = new Mapping();
         if (DEBUG.IO || DEBUG.INIT) Log.debug("Loading mapping " + mappingSource + "...");
@@ -448,7 +448,7 @@ public class ActionUtil
                 // TODO: create a ConditionalMarshalling interface for embedding this logic
                 // in the client classes so it's not kept here.
 
-                // Note that ALL objects pass through here...
+                // Note that ALL objects pass through here.
                 
                 String key = null;
                 if (o.getClass() == tufts.vue.PropertyEntry.class) // is final class
