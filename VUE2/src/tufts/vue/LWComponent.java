@@ -1667,8 +1667,8 @@ public class LWComponent
      * passing flags into the dupe context.
      */
     public static class LinkPatcher {
-        private java.util.Map<LWComponent,LWComponent> mCopies = new java.util.HashMap();
-        private java.util.Map<LWComponent,LWComponent> mOriginals = new java.util.HashMap();
+        private java.util.Map<LWComponent,LWComponent> mCopies = new java.util.IdentityHashMap();
+        private java.util.Map<LWComponent,LWComponent> mOriginals = new java.util.IdentityHashMap();
 
         public LinkPatcher() {
             if (DEBUG.DND) Log.debug("LinkPatcher: created");
@@ -2201,10 +2201,15 @@ public class LWComponent
         setMetadataList(list);
     }
     public MetadataList getXMLmetadataList() {
-        if (mXMLRestoreUnderway)
+        if (mXMLRestoreUnderway) {
             return getMetadataList();
-        else
-            return metadataList;
+        } else {
+            // persist underway:
+            if (metadataList != null && metadataList.isEmpty())
+                return null;
+            else
+                return metadataList;
+        }
     }
     /** see edu.tufts.vue.metadata.VueMetadataElement for metadata types **/
     public boolean hasMetaData(int type) {
