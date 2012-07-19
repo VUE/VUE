@@ -1183,7 +1183,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         if (!e.isConsumed())
             super.processKeyEvent(e);
         else
-            Log.debug("processKeyEvent: already consumed " + e);
+            Log.debug("processKeyEvent: already consumed " + GUI.name(e));
     }
     
     /** hardwired entry-point called by FocusManager for handling unconsumed KeyEvent's */
@@ -1195,10 +1195,10 @@ public class VueMenuBar extends javax.swing.JMenuBar
         // trigger for VK_BACK_SPACE as well as VK_DELETE.
         
         if (e != alreadyProcessed) {
-            if (DEBUG.KEYS) Log.debug("doProcessKeyEvent " + e);
+            if (DEBUG.KEYS) Log.debug("doProcessKeyEvent " + GUI.name(e));
             processKeyEvent(e);
         }
-        else if (DEBUG.KEYS) Log.debug("already processed " + e);
+        else if (DEBUG.KEYS) Log.debug("already processed " + GUI.name(e));
     }
     
     // // todo: this doesn't work: safer if can get working instead of above
@@ -1219,9 +1219,12 @@ public class VueMenuBar extends javax.swing.JMenuBar
         if (!pressed) // we only ever handle on key-press
             return false;
 
+        // todo: find the right keymap to stick these kinds of non-menu actions in
         if (Actions.FocusToSearchField.keyStroke.equals(ks)) {
             Actions.FocusToSearchField.fire(e);
-            // todo: find the right keymap to stick these kinds of non-menu actions in
+            return true;
+        } else if (Actions.FocusToViewer.keyStroke.equals(ks)) {
+            Actions.FocusToViewer.fire(e);
             return true;
         }
             
@@ -1230,7 +1233,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
             String used = didAction ?
                 "CONSUMED " :
                 "NOACTION ";
-            Log.debug("processKeyBinding " + used + ks + " " + e.paramString());
+            Log.debug("processKeyBinding " + used + "[" + ks + "] " + GUI.name(e));
         }
         if (didAction)
             e.consume();
