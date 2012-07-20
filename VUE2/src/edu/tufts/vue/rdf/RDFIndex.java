@@ -464,21 +464,19 @@ public class RDFIndex extends com.hp.hpl.jena.rdf.model.impl.ModelCom
                 Log.warn(r + ": null value: " + vme);
             }
             else {
-
-                if (value.length() == 0) {
-                    // may want these if we allow searching just for the presence of key
-                    if (DEBUG.Enabled) Log.debug(r + ": indexing empty value: " + vme);
-                }
+                // if (value.length() == 0) {
+                //     // may want these if we allow searching just for the presence of key
+                //     if (DEBUG.Enabled) Log.debug(r + ": indexing empty value: " + vme);
+                // }
+                // Note that we do NOT want to skip empty values, as we have a non-empty key, and a search for
+                // a key with an empty value might be a valid search type someday (if we had the UI to support
+                // it).
                 
-                // todo: kind of waste to create/fetch these constantly: if we keep this RDF indexing,
-                // someday we could just go ahead and put the RDF property right in the VME object.
-                // (And pre-encode all keys and/or only allow encoded keys in all meta-data
-                // data-structures)  Note that in current superclass impl, createProperty will
-                // return the existing Property object if the name matches.
-                
-                // Note that we do NOT want to skip empty values, as we have a non-empty key, and a
-                // search for a key with an empty value might be a valid search type someday (if we had
-                // the UI to support it).
+                // todo: kind of waste to create/fetch these jena Property instances constantly: if we keep
+                // this RDF indexing, someday we could just go ahead and put the RDF property right in the VME
+                // object.  (And pre-encode all keys and/or only allow encoded keys in all meta-data
+                // data-structures) Note that in current superclass impl, createProperty will return the
+                // existing Property object if the name matches.
                 
                 final String encodedKey = getEncodedKey(key);
                 addStatement(createStatement(r, getPropertyFromKey(encodedKey), value));
