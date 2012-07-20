@@ -1488,12 +1488,12 @@ public class VUE
                 }
                 public boolean handleAbout() {
                     VUE.Log.debug("OSX ABOUT");
-                    new AboutAction().act();
+                    new AboutAction().fire(tufts.macosx.MacOSX.ApplicationListener.class);
                     return true;
                 }
                 public boolean handlePreferences() {
                     VUE.Log.debug("OSX PREFERENCES");
-                    Actions.Preferences.actionPerformed(null);
+                    Actions.Preferences.fire(tufts.macosx.MacOSX.ApplicationListener.class);
                     return true;
                 }
                 
