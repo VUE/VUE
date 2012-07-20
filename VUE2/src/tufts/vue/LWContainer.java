@@ -131,6 +131,20 @@ public abstract class LWContainer extends LWComponent
         return mChildren == NO_CHILDREN ? Util.EmptyIterator : mChildren.iterator();
     }
 
+    /**
+     * Layout this node as well as all descendents. This is sure to use Order.DEPTH to layout the
+     * deepeset children first (so children will already be sized propertly out when parents
+     * attempt to lay them out).
+     */
+    @Override public final void layoutAll(Object triggerKey) {
+        // We could skip the list fetch by making this a recursive descent call, tho, for the LWMap
+        // level, we want to use ChildKind.ANY to hit EVERYTHING, inckude slides on pathways, 
+        // master slides, etc.
+        for (LWComponent c : getAllDescendents(ChildKind.ANY, new ArrayList(), Order.DEPTH))
+            c.layout(triggerKey);
+        // All descendents laid out -- now lay this component out.
+        super.layout(triggerKey);
+    }
 
     /** In case the container subclass can do anything to lay out it's children
      *  (e.g., so that LWNode can override & handle chil layout).
