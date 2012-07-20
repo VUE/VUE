@@ -71,6 +71,9 @@ public abstract class LWIcon extends Rectangle2D.Float
     protected float mMinWidth;
     protected float mMinHeight;
     
+    /** the cached value of isWanted for isShowing */
+    protected boolean isLaidOut;
+    
     //------------------------------------------------------------------
     // Preferences
     // ------------------------------------------------------------------
@@ -83,31 +86,28 @@ public abstract class LWIcon extends Rectangle2D.Float
 
     static {
             IconPref.addVuePrefListener(new VuePrefListener() {
-                    public void preferenceChanged(VuePrefEvent prefEvent) {
-                        // todo: why is this being called repeatedly the first time the
-                        // icons preference pane opens?  It makes that pane VERY slow
-                        // to come up the first time.
-                        Log.debug("update icon prefs: " + prefEvent);
+                    public void preferenceChanged(VuePrefEvent pe) {
+                        // Log.info("icon prefs change notification: " + tufts.Util.tags(pe));
+                        // if (pe.getNewValue().equals(pe.getOldValue())) // Can't rely on this: values not 100% reliable
+                        //     return;
+                        Log.info("an icon display preference has changed, re-layout of all open VUE maps...");
                         for (tufts.vue.LWMap map : VUE.getAllMaps()) {
-//                             for (LWComponent c :
-//                                      map.getAllDescendents(tufts.vue.LWComponent.ChildKind.PROPER,
-//                                                            new java.util.ArrayList(),
-//                                                            tufts.vue.LWComponent.Order.DEPTH))
-//                                 {
-//                                     c.layout();
-//                                 }
-                            // layouts still handled individually for now to make sure
-                            // all nodes in unque queues and cut buffers are hit
-                            // better to handle this would be to always to a layout
-                            // when a node is entered into user space.
-                            map.notify(LWKey.Repaint);
+                            if (DEBUG.Enabled) Log.info("layout " + map);
+                            map.getUndoManager().setSuspended(true);
+                            try {
+                                map.layoutAll(LWIcon.class);
+                                map.notify(LWKey.Repaint);
+                            } catch (Throwable t) {
+                                Log.warn("layout error", t);
+                            } finally {
+                                map.getUndoManager().setSuspended(false);
+                            }
                         }
+                        if (DEBUG.Enabled) Log.info("all maps re-laid out.");
                     }        	
                 });
     }
                 
-                
-
 
     private LWIcon(LWComponent lwc, Color c) {
         // default size
@@ -178,7 +178,11 @@ public abstract class LWIcon extends Rectangle2D.Float
 
     void layout() {} // subclasses can check for changes in here
     
-    abstract boolean isShowing();
+    final boolean isShowing() {
+        return isLaidOut;
+    }
+    
+    abstract boolean isWanted();
     abstract void doSingleClickAction();
     abstract void doDoubleClickAction();
     abstract public JComponent getToolTipComponent();
@@ -277,15 +281,14 @@ public abstract class LWIcon extends Rectangle2D.Float
 
             this.mLWC = lwc;
             
-            // TODO PERF: way to heavy weight to have every node made a listener
-            // for this preference -- better to handle at the map level.  This
-            // is very slow to update.
-            IconPref.addVuePrefListener(new VuePrefListener() {
-                    public void preferenceChanged(VuePrefEvent prefEvent) {
-                        mLWC.layout();
-                    }        	
-            });
-
+            // FIXED: it was way WAY too heavy weight to have every node made a listener for this
+            // preference.  Is now handled in our static singleton listener. This is why the
+            // preferences pane use to be so slow to appear -- and the more maps open, the slower
+            // it would be.  And because of a horrible MetadataList hack, tons of meta-data
+            // html descriptions ended up being constructed for ever map paint!
+            // IconPref.addVuePrefListener(new VuePrefListener() {
+            //         public void preferenceChanged(VuePrefEvent prefEvent) { mLWC.layout(); }        	
+            // });
         }
 
         public float getIconWidth() { return mIconWidth; }
@@ -326,7 +329,7 @@ public abstract class LWIcon extends Rectangle2D.Float
         //public float getHeight() { return super.height; }
 
         boolean isShowing() {
-        	return super.width > 0 && super.height > 0;
+            return super.width > 0 && super.height > 0;
         }
 
         void setLocation(float x, float y)
@@ -346,11 +349,14 @@ public abstract class LWIcon extends Rectangle2D.Float
                 float iconY = super.y;
                 for (int i = 0; i < mIcons.length; i++) {
                     LWIcon icon = mIcons[i];
-                    if (icon.isShowing()) {
+                    if (icon.isWanted()) {
                         icon.layout();
                         icon.setLocation(x, iconY);
                         iconY += icon.height+3;
                         super.height += icon.height+3;
+                        icon.isLaidOut = true;
+                    } else {
+                        icon.isLaidOut = false;
                     }
                 }
             } else {
@@ -358,11 +364,14 @@ public abstract class LWIcon extends Rectangle2D.Float
                 float iconX = super.x;
                 for (int i = 0; i < mIcons.length; i++) {
                     LWIcon icon = mIcons[i];
-                    if (icon.isShowing()) {
+                    if (icon.isWanted()) {
                         icon.layout();
                         icon.setLocation(iconX, y);
                         iconX += icon.width+3;
                         super.width += icon.width+3;
+                        icon.isLaidOut = true;
+                    } else {
+                        icon.isLaidOut = false;
                     }
                 }
             }
@@ -546,12 +555,9 @@ public abstract class LWIcon extends Rectangle2D.Float
             layout();
         }
 
-        boolean isShowing() {
-        	if (IconPref.getResourceIconValue())
-        		return mLWC.hasResource();
-        	else 
-        		return false;
-        	}
+        boolean isWanted() {
+            return IconPref.getResourceIconValue() && mLWC.hasResource();
+        }
 
      //   void doDoubleClickAction() {}
          void doDoubleClickAction() {
@@ -956,12 +962,10 @@ public abstract class LWIcon extends Rectangle2D.Float
         Notes(LWComponent lwc, Color c) { super(lwc, c); }
         Notes(LWComponent lwc) { super(lwc); }
         
-        boolean isShowing() {
-        	if (IconPref.getNotesIconValue())
-        		return mLWC.hasNotes();
-        	else
-        		return false;
+        boolean isWanted() {
+            return IconPref.getNotesIconValue() && mLWC.hasNotes();
         }
+        
         void doSingleClickAction() {}
         void doDoubleClickAction() {
 
@@ -1089,12 +1093,9 @@ public abstract class LWIcon extends Rectangle2D.Float
         Pathway(LWComponent lwc, Color c) { super(lwc, c); }
         Pathway(LWComponent lwc) { super(lwc); }
 
-        boolean isShowing() {
-        	if (IconPref.getPathwayIconValue())
-        		return mLWC.inPathway();
-        	else
-        		return false;
-        	}
+        boolean isWanted() {
+            return IconPref.getPathwayIconValue() && mLWC.inPathway();
+        }
 
         void doDoubleClickAction() {
             tufts.vue.gui.GUI.makeVisibleOnScreen(this, PathwayPanel.class);
@@ -1209,12 +1210,11 @@ public abstract class LWIcon extends Rectangle2D.Float
         MetaData(LWComponent lwc, Color c) { super(lwc, c); }
         MetaData(LWComponent lwc) { super(lwc); }
 
-        boolean isShowing() {
-        	if (IconPref.getMetaDataIconValue())
-        		return mLWC.hasMetaData();
-        	else
-        		return false;
-        	}
+        boolean isWanted() {
+            return
+                IconPref.getMetaDataIconValue() &&
+                mLWC.hasMetaData(edu.tufts.vue.metadata.VueMetadataElement.CATEGORY);
+        }
 
         void doDoubleClickAction() {
             System.out.println(this + " Meta-Data Action?");
@@ -1277,12 +1277,11 @@ public abstract class LWIcon extends Rectangle2D.Float
         MergeSourceMetaData(LWComponent lwc, Color c) { super(lwc, c); }
         MergeSourceMetaData(LWComponent lwc) { super(lwc); }
 
-        boolean isShowing() {
-        	if (IconPref.getMetaDataIconValue())
-        		return mLWC.hasMetaData(edu.tufts.vue.metadata.VueMetadataElement.OTHER);
-        	else
-        		return false;
-        	}
+        boolean isWanted() {
+            return
+                IconPref.getMetaDataIconValue() &&
+                mLWC.hasMetaData(edu.tufts.vue.metadata.VueMetadataElement.OTHER);
+        }
 
         void doDoubleClickAction() {
             System.out.println(this + " Merge Source Meta-Data Action?");
@@ -1394,12 +1393,11 @@ public abstract class LWIcon extends Rectangle2D.Float
         OntologicalMetaData(LWComponent lwc, Color c) { super(lwc, c); }
         OntologicalMetaData(LWComponent lwc) { super(lwc); }
 
-        boolean isShowing() {
-        	if (IconPref.getMetaDataIconValue())
-        		return mLWC.hasMetaData(edu.tufts.vue.metadata.VueMetadataElement.ONTO_TYPE);
-        	else
-        		return false;
-        	}
+        boolean isWanted() {
+            return
+                IconPref.getMetaDataIconValue() && 
+                mLWC.hasMetaData(edu.tufts.vue.metadata.VueMetadataElement.ONTO_TYPE);
+        }
 
         void doDoubleClickAction() {
             System.out.println(this + " Ontological Meta-Data Action?");
@@ -1548,7 +1546,7 @@ public abstract class LWIcon extends Rectangle2D.Float
         Hierarchy(LWComponent lwc, Color c) { super(lwc, c); }
         Hierarchy(LWComponent lwc) { super(lwc); }
 
-        boolean isShowing() {
+        boolean isWanted() {
             // TODO performance: getting complicated: compute in layout (and check for all text nodes, not just first)
             // Will need to make sure layout() is called when removing items from nodes: only appears to be called upon adding
             if (IconPref.getHierarchyIconValue()) {
