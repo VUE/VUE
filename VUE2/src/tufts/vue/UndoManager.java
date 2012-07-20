@@ -943,12 +943,9 @@ public class UndoManager
     // should be run inside a synchronized block against mCleanupTasks & mLastTasks
     private void runPrioritizedCleanupTasks(boolean debug) {
         if (mCurrentUndo.size() == 0) {
-//             if (DEBUG.Enabled)
-//                 Util.printStackTrace("Running cleanup tasks with an empty undo queue: " + this);
-//             else
-                Log.info("Running cleanup tasks with an empty undo queue: " + this);
-            
-            debug = true;
+            // note: in the case of undo usage by the LWIcon class, this is now normal
+            if (DEBUG.Enabled) Log.debug("Running cleanup tasks with an empty undo queue: " + this);
+            debug = true; 
         } else if (!debug)
             debug = DEBUG.WORK || DEBUG.UNDO;
         
