@@ -152,19 +152,20 @@ public class ShowIconsPreference extends BasePref implements ItemListener
 		gbConstraints.weighty = 1;
 		panel.add(hierarchyCheckbox, gbConstraints);
 
-		resourceCheckbox.addItemListener(this);
-		//behaviorCheckbox.addItemListener(this);
-		notesCheckbox.addItemListener(this);
-		pathwayCheckbox.addItemListener(this);
-		metaDataCheckbox.addItemListener(this);
-		hierarchyCheckbox.addItemListener(this);
-
 		resourceCheckbox.setSelected(((Boolean)getValue(resourceIconName)).booleanValue());
 		//behaviorCheckbox.setSelected(((Boolean)getValue(behaviorIconName)).booleanValue());
 		notesCheckbox.setSelected(((Boolean)getValue(notesIconName)).booleanValue());
 		pathwayCheckbox.setSelected(((Boolean)getValue(pathwayIconName)).booleanValue());
 		metaDataCheckbox.setSelected(((Boolean)getValue(metaDataIconName)).booleanValue());
 		hierarchyCheckbox.setSelected(((Boolean)getValue(hierarchyIconName)).booleanValue());
+
+                // Add listeners after setting values, otherwise we get spurious initial events:
+		resourceCheckbox.addItemListener(this);
+		//behaviorCheckbox.addItemListener(this);
+		notesCheckbox.addItemListener(this);
+		pathwayCheckbox.addItemListener(this);
+		metaDataCheckbox.addItemListener(this);
+		hierarchyCheckbox.addItemListener(this);
 
 		if (DEBUG) {
 			panel.setBackground(Color.CYAN);
@@ -243,7 +244,6 @@ public class ShowIconsPreference extends BasePref implements ItemListener
 	
 	public void setValue(String prefName, Object b)
 	{
-		
 		if (prefName.equals(resourceIconName))
 			previousResourceValue = Boolean.valueOf(resourceCheckbox.isSelected());
 		//else if (prefName.equals(behaviorIconName))
@@ -256,8 +256,6 @@ public class ShowIconsPreference extends BasePref implements ItemListener
 			previousMetaDataValue = Boolean.valueOf(metaDataCheckbox.isSelected());
 		else if (prefName.equals(hierarchyIconName))	
 			previousHierarchyValue = Boolean.valueOf(hierarchyCheckbox.isSelected());		
-		 
-		
 		
 		Preferences p = Preferences.userNodeForPackage(getPrefRoot());
 		p.putBoolean(getPrefName(prefName), ((Boolean)b).booleanValue());
