@@ -299,27 +299,27 @@ public class Actions implements VueConstants
     //------------------------------------------------------------
     // Preference Action
     //------------------------------------------------------------
-    public static class PreferenceAction extends AbstractAction {
-        private static PreferencesDialog dialog = null;
+    public static final class PreferenceAction extends VueAction {
+        private PreferencesDialog dialog = null;
     	public PreferenceAction() {
-            putValue(NAME, VueResources.local("menu.edit.preferences"));
-            putValue(SHORT_DESCRIPTION, VueResources.local("menu.edit.preferences"));            
-            putValue(ACCELERATOR_KEY, keyStroke(KeyEvent.VK_COMMA, COMMAND));
+            super(VueResources.local("menu.edit.preferences"), keyStroke(KeyEvent.VK_COMMA, COMMAND));
     	}
-        public void actionPerformed(ActionEvent e) {
-            if (dialog == null)
+        public void act() {
+            if (dialog == null) {
+                Log.info("creating new preference dialog");
                 dialog = new PreferencesDialog(null,
                                                VueResources.local("menu.edit.preferences"),
                                                edu.tufts.vue.preferences.PreferencesManager.class,
                                                true, null, false);
+            }
             dialog.setVisible(true);
         }
     };
+    public static final VueAction Preferences = new PreferenceAction(); 
     //-------------------------------------------------------
     // Selection actions
     //-------------------------------------------------------
     
-    public static final Action Preferences = new PreferenceAction(); 
     	
     public static final Action SelectAll =
     new VueAction(VueResources.local("menu.edit.selectall"), keyStroke(KeyEvent.VK_A, COMMAND)) {
