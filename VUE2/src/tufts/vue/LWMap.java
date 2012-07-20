@@ -1318,26 +1318,17 @@ public class LWMap extends LWContainer
 
     /** to be called on maps that are manually created (e.g., not deserialized) before they're displayed */
     public void layoutAndValidateNewMap() {
-
         layoutAll(INIT_LAYOUT);
-        
-//         final Collection<LWComponent> all = getAllDescendents(); // todo: probably should do as order-depth
-//         layoutAll(all, INIT_LAYOUT); // will be auto-validated due to initial layout trigger
-//         //validateAll(all);
+        // final Collection<LWComponent> all = getAllDescendents(); // todo: probably should do as order-depth
+        // layoutAll(all, INIT_LAYOUT); // will be auto-validated due to initial layout trigger
+        // //validateAll(all);
     }
 
-//     private void validateAll(Collection<LWComponent> components) {
-//         for (LWComponent c : components) {
-//             c.validateInitialValues();
-//         }
-//     }
-
-    public void layoutAll(Object key) {
-        // we specify Order.DEPTH to do children first (so children will already be laid out when parents
-        // attempt to lay them out)
-        final Collection<LWComponent> all = getAllDescendents(ChildKind.ANY, new ArrayList(), Order.DEPTH);
-        layoutAll(all, key);
-    }
+    // private void validateAll(Collection<LWComponent> components) {
+    // for (LWComponent c : components) {
+    // c.validateInitialValues();
+    // }
+    // }
 
     /** note side effect: will clear all mXMLRestoreUnderway flags that are set
      *  This processes all NODES first, then all LINKS.  Then normalizes all groups just to be safe.
@@ -1345,7 +1336,7 @@ public class LWMap extends LWContainer
      * children are fully laid out before their parents, which will need the proper size of
      * the children to lay out correctly.
      */
-    private void layoutAll(final Collection<LWComponent> components, final Object key)
+    private void layoutAllAfterRestore(final Collection<LWComponent> components, final Object key)
     {
         Object layoutKey;
 
@@ -1568,7 +1559,7 @@ public class LWMap extends LWContainer
         // tmp hack: we were geting exceptions when testing just SaveAction on this code?
         //if (!tufts.vue.action.SaveAction.PACKAGE_DEBUG)
 
-        layoutAll(allRestored, INIT_LAYOUT);
+        layoutAllAfterRestore(allRestored, INIT_LAYOUT);
 
         if (DEBUG.INIT || DEBUG.IO || DEBUG.XML) Log.debug("RESTORE COMPLETED; nextID=" + mNextID.get());
         
