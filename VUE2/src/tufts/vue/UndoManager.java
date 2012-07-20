@@ -76,7 +76,8 @@ public class UndoManager
     ///** map of threads currently attched to no undo manager (events to discard) */
     //private static Map ThreadsToIgnore = Collections.synchronizedMap(new HashMap());
     
-
+    private boolean isSuspended = false;
+    
     public UndoManager(LWMap map)
     {
         mMap = map;
@@ -1271,6 +1272,10 @@ public class UndoManager
         mMap.notify(this, LWKey.UserActionCompleted);        
     }
 
+    public void setSuspended(boolean suspend) {
+        isSuspended = suspend;
+    }
+
     /**
      * Every event anywhere in the map we're listening to, including events as a result of
      * an Undo or Redo, will get delivered to us here.  If the event has an old value in
@@ -1280,6 +1285,11 @@ public class UndoManager
      */
 
     public void LWCChanged(final LWCEvent e) {
+
+        if (isSuspended) {
+            if (DEBUG.Enabled) Log.debug("suspended for: " + e);
+            return;
+        }
 
         if (e.key == LWKey.Hidden || e.key == LWKey.Collapsed) {
             // technically, we only need to flag this if the LWComponent in the event is
@@ -1296,7 +1306,7 @@ public class UndoManager
         if (mRedoUnderway) // ignore everything during redo
             return;
 
-        if (e.key == LWKey.RepaintAsync) // ignore these
+        if (e.key == LWKey.Repaint || e.key == LWKey.RepaintAsync) // ignore these
             return;
 
         if (mUndoUnderway) {
