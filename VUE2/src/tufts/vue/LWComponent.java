@@ -68,10 +68,11 @@ public class LWComponent
 
     public enum ChildKind {
 
-        /** Include any and all children in the traversable LW hierarchy, such as slides and their children -- the only
-         * way to make sure you hit every active LWComponent in the runtime related
-         * to a particular LWMap (not including the Undo queue).  This will return every LWComponent in the
-         * model that has an ID (getID).  These are all components that are persisted in some way.
+        /** Include any and all children in the traversable LW hierarchy, such as slides and their
+         * children (pathway contents), and actual layer objects -- the only way to make sure you hit
+         * every active LWComponent in the runtime related to a particular LWMap (not including the
+         * Undo queue).  This will return every LWComponent in the model that has an ID (getID).
+         * These are all components that are persisted in some way.
          */
         ANY,
 
@@ -3108,6 +3109,11 @@ public class LWComponent
     }
 
     private static final Object LAYOUT_DEFAULT = "default";
+    
+    /** Layout this component and all children, if any */
+    public void layoutAll(Object triggerKey) {
+        layout(triggerKey);
+    }
     
     /**
      * If this component supports special layout for it's children,
@@ -7056,7 +7062,7 @@ public class LWComponent
      */
     protected void prepareToRemoveFromModel() { }
 
-    /** undelete */
+    /** undelete -- called just before the UndoManager calls setParent */
     protected void restoreToModel()
     {
         // TODO: UNDELETING flag may be functionally vestigal at this point.
@@ -7069,6 +7075,12 @@ public class LWComponent
         if (DEBUG.PARENTING||DEBUG.EVENTS) out("restoreToModel: " + this);
 
         if (!isDeleted()) if (DEBUG.Enabled) out("FYI: already restored");
+
+        // we need this only in case node-icon preferences have changed since this object left the
+        // model -- otherwise nothing could have happened to this component to change it.  Any
+        // possible size/location events that could happen as a result will be ignored as this
+        // component doesn't have it's parent set yet.
+        layout(); 
 
         setDeleted(false);
 
