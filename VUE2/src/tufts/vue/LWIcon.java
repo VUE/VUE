@@ -91,21 +91,46 @@ public abstract class LWIcon extends Rectangle2D.Float
                         // if (pe.getNewValue().equals(pe.getOldValue())) // Can't rely on this: values not 100% reliable
                         //     return;
                         Log.info("an icon display preference has changed, re-layout of all open VUE maps...");
-                        for (tufts.vue.LWMap map : VUE.getAllMaps()) {
-                            if (DEBUG.Enabled) Log.info("layout " + map);
-                            map.getUndoManager().setSuspended(true);
-                            try {
-                                map.layoutAll(LWIcon.class);
-                                map.notify(LWKey.Repaint);
-                            } catch (Throwable t) {
-                                Log.warn("layout error", t);
-                            } finally {
-                                map.getUndoManager().setSuspended(false);
+                        final LWMap activeMap = VUE.getActiveMap();
+                        // refresh the active map immediatley, and other maps interspersed on AWT thread
+                        if (activeMap != null) {
+                            refreshIconsForMap(activeMap);
+                            activeMap.notify(LWKey.Repaint); // todo: shouldn't need this for MapPanner updates
+                        }
+                        for (final LWMap map : VUE.getAllMaps()) {
+                            if (map != activeMap) {
+                                tufts.vue.gui.GUI.invokeAfterAWT(new Runnable() { public void run() {                          
+                                    refreshIconsForMap(map);
+                                }});
                             }
                         }
-                        if (DEBUG.Enabled) Log.info("all maps re-laid out.");
-                    }        	
+                        //if (DEBUG.Enabled) Log.info("all maps re-laid out.");
+                        
+                    }
                 });
+                    
+    }
+
+    private static void refreshIconsForMap(final LWMap map) {
+        if (DEBUG.Enabled) Log.info("layout " + map);
+
+        final UndoManager undo = map.getUndoManager();
+        undo.setSuspended(true);
+        try {
+            map.layoutAll(LWIcon.class);
+        } catch (Throwable t) {
+            Log.warn("layout error", t);
+        } finally {
+            undo.setSuspended(false);
+        }
+        // [Bizzare issue: if there's an item in a group that has an icon state change, all visual
+        // map updates were stopping until the preferences were dismissed, when the current state
+        // was finally displayed.]  This has to do with group normalization: when a group changes,
+        // it will issue a DisperseOrNormalize cleanup task.  The MapViewer skips all repaints
+        // while there are outstanding cleanup tasks, as that is considered an "intermediate
+        // state".  Recording an undo mark (even tho there will be no events / nothing to record as
+        // events were suspended), will cause all outstanding cleanup tasks to run.
+        undo.mark();
     }
                 
 
@@ -237,7 +262,7 @@ public abstract class LWIcon extends Rectangle2D.Float
         
         private LWComponent mLWC;
         
-        private LWIcon[] mIcons = new LWIcon[7];
+        private final LWIcon[] mIcons = new LWIcon[7];
 
         //final private boolean mCoordsNodeLocal;
         //final private boolean mCoordsNoShrink; // don't let icon's get less than 100% zoom
@@ -347,8 +372,7 @@ public abstract class LWIcon extends Rectangle2D.Float
             if (mVertical) {
                 super.height = 0;
                 float iconY = super.y;
-                for (int i = 0; i < mIcons.length; i++) {
-                    LWIcon icon = mIcons[i];
+                for (LWIcon icon : mIcons) {
                     if (icon.isWanted()) {
                         icon.layout();
                         icon.setLocation(x, iconY);
@@ -362,8 +386,7 @@ public abstract class LWIcon extends Rectangle2D.Float
             } else {
                 super.width = 0;
                 float iconX = super.x;
-                for (int i = 0; i < mIcons.length; i++) {
-                    LWIcon icon = mIcons[i];
+                for (LWIcon icon : mIcons) {
                     if (icon.isWanted()) {
                         icon.layout();
                         icon.setLocation(iconX, y);
@@ -379,26 +402,22 @@ public abstract class LWIcon extends Rectangle2D.Float
 
         void draw(DrawContext dc)
         {
+            // If mCoordsNoShrink is true, never let icon size get less than 100% for images (tho
+            // also it shouldn't be allowed BIGGER than the object...)  This is experimental in
+            // that it only currently works if the block is laid out at 0,0, because we scale the
+            // DrawContext once at the top here, which will offset any non-zero locations (and we
+            // don't want the location changed, only the size).  You you place the block at > 0,0,
+            // the icons will be moved outside the node when the scale gets small enough.
 
-            // If mCoordsNoShrink is true, never let icon size get less than 100% for
-            // images (tho also it shouldn't be allowed BIGGER than the object...)  This
-            // is experimental in that it only currently works if the block is laid out
-            // at 0,0, because we scale the DrawContext once at the top here, which will
-            // offset any non-zero locations (and we don't want the location changed,
-            // only the size).  You you place the block at > 0,0, the icons will be
-            // moved outside the node when the scale gets small enough.
-
-            // Also, if the scale becomes VERY small, the icon block will be drawn
-            // bigger than the image itself.  TODO: fix all the above or handle this
-            // some other way.
+            // Also, if the scale becomes VERY small, the icon block will be drawn bigger than the
+            // image itself.  TODO: fix all the above or handle this some other way.
             
             if (mNoShrink && dc.zoom < 1)
                 dc.setAbsoluteDrawing(true);
             
-            for (int i = 0; i < mIcons.length; i++) {
-                if (mIcons[i].isShowing())
-                    mIcons[i].draw(dc);
-            }
+            for (LWIcon icon : mIcons)
+                if (icon.isShowing())
+                    icon.draw(dc);
 
             if (mNoShrink && dc.zoom < 1)
                 dc.setAbsoluteDrawing(false);
