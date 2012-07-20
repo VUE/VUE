@@ -28,13 +28,10 @@ public class VuePrefEvent extends ChangeEvent {
 		this.newValue = newValue;
 	}
 	
-	public Object getOldValue()
-	{
-		return oldValue;
-	}
-	
-	public Object getNewValue()
-	{
-		return newValue;
-	}		
+	public Object getOldValue() { return oldValue; }
+	public Object getNewValue() { return newValue; }
+
+    public String toString() {
+        return "old=" + oldValue + " new=" + newValue;
+    }
 }
