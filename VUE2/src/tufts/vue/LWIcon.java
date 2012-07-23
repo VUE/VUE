@@ -74,41 +74,56 @@ public abstract class LWIcon extends Rectangle2D.Float
     /** the cached value of isWanted for isShowing */
     protected boolean isLaidOut;
     
-    //------------------------------------------------------------------
-    // Preferences
-    // ------------------------------------------------------------------
-    // todo performance: this would be better handled via a group of individual,
-    // fast-impl BooleanPreferences, or at least by making the special ShowIconsPrefernce
-    // cache each of the boolean values.  Alot happens just to get the single boolean bit
-    // value out for each of icon preferencs, and this code is called constantly during
-    // map drawing.
-    public static final ShowIconsPreference IconPref = new ShowIconsPreference();
+    /** Note that quering the preference object for its boolean state values is a slow call.  This
+     * used to be a problem as we polled it constantly while map drawing and when the mouse was
+     * moving over objects, tho this has been fixed with that addition of isWanted in the LWIcon
+     * API, and by caching it to isLaidOut/isShowing() when a layout happens (and VUE has been
+     * fixed elsewhere to make sure it always does layouts at the needed times -- e.g., newly
+     * constructed maps must do a layout pass before any icons will appear). A single listener for
+     * all of VUE is now added to this preference in a static init block, which will re-layout all
+     * open maps whenever a change is detected. **/
+    static final ShowIconsPreference IconPref = new ShowIconsPreference();
+
+    // The above polling of the old isShowing() happened to also be made much worse by a crazy
+    // implemention detail of MetadataList, which would construct an entire HTML description of
+    // each type of meta-data and check to see if it was empty in order to tell us if any meta-data
+    // for that type was present at all, and this was being called with the same frequency
+    // described above.
 
     static {
-            IconPref.addVuePrefListener(new VuePrefListener() {
-                    public void preferenceChanged(VuePrefEvent pe) {
-                        // Log.info("icon prefs change notification: " + tufts.Util.tags(pe));
-                        // if (pe.getNewValue().equals(pe.getOldValue())) // Can't rely on this: values not 100% reliable
-                        //     return;
-                        Log.info("an icon display preference has changed, re-layout of all open VUE maps...");
-                        final LWMap activeMap = VUE.getActiveMap();
-                        // refresh the active map immediatley, and other maps interspersed on AWT thread
-                        if (activeMap != null) {
-                            refreshIconsForMap(activeMap);
-                            activeMap.notify(LWKey.Repaint); // todo: shouldn't need this for MapPanner updates
-                        }
-                        for (final LWMap map : VUE.getAllMaps()) {
-                            if (map != activeMap) {
-                                tufts.vue.gui.GUI.invokeAfterAWT(new Runnable() { public void run() {                          
-                                    refreshIconsForMap(map);
-                                }});
-                            }
-                        }
-                        //if (DEBUG.Enabled) Log.info("all maps re-laid out.");
-                        
+        // Preferences used to be very slow to open when there were lots of nodes in the VUE
+        // runtime -- the problem showed up here.  (1) ShowIconsPreference was generating a
+        // spurious change event for every checkbox in the UI whenever the pref dialog was opened
+        // [FIXED].  (2) The PreferencesDialog wasn't cached -- a new one was created every time
+        // [FIXED]. This was resulting in one all-node/all-link in all-maps re-layout per
+        // preference change per time that a the preference dialog had been opened -- so it would
+        // get slower, and slower.  And on preference dialog open, multiple THAT number by 5 -- the
+        // number of checkboxes in the UI.  Also, *every single node in existence* used to be a
+        // listener, (that was crazy), so it was generating a zillion events.  Now, this is the
+        // single lister in all of VUE for icon preference changes. [SMF -- summer 2012]
+        IconPref.addVuePrefListener(new VuePrefListener() {
+                public void preferenceChanged(VuePrefEvent pe) {
+                    // Log.info("icon prefs change notification: " + tufts.Util.tags(pe));
+                    // if (pe.getNewValue().equals(pe.getOldValue())) // Can't rely on this: values not 100% reliable
+                    //     return;
+                    Log.info("an icon display preference has changed: re-layout of all open VUE maps");
+                    final LWMap activeMap = VUE.getActiveMap();
+                    // refresh the active map immediatley, and other maps interspersed on AWT thread
+                    if (activeMap != null) {
+                        refreshIconsForMap(activeMap);
+                        activeMap.notify(LWKey.Repaint); // todo: shouldn't need this for MapPanner updates
                     }
-                });
-                    
+                    for (final LWMap map : VUE.getAllMaps()) {
+                        if (map != activeMap) {
+                            tufts.vue.gui.GUI.invokeAfterAWT(new Runnable() { public void run() {                          
+                                refreshIconsForMap(map);
+                            }});
+                        }
+                    }
+                    //if (DEBUG.Enabled) Log.info("all maps re-laid out.");
+                        
+                }
+            });
     }
 
     private static void refreshIconsForMap(final LWMap map) {
@@ -123,13 +138,17 @@ public abstract class LWIcon extends Rectangle2D.Float
         } finally {
             undo.setSuspended(false);
         }
-        // [Bizzare issue: if there's an item in a group that has an icon state change, all visual
-        // map updates were stopping until the preferences were dismissed, when the current state
-        // was finally displayed.]  This has to do with group normalization: when a group changes,
-        // it will issue a DisperseOrNormalize cleanup task.  The MapViewer skips all repaints
-        // while there are outstanding cleanup tasks, as that is considered an "intermediate
-        // state".  Recording an undo mark (even tho there will be no events / nothing to record as
-        // events were suspended), will cause all outstanding cleanup tasks to run.
+        // Bizzare issue: if there was an item in an LWGroup that had an icon state change, all
+        // visual map updates were stopping until the preferences were dismissed, when the current
+        // state was finally displayed.  This has to do with group normalization: when a group
+        // changes, it will issue a DisperseOrNormalize cleanup task.  The MapViewer skips all
+        // repaints while there are outstanding cleanup tasks, as that is considered an
+        // "intermediate state".  Recording an undo mark (even tho there will be no events /
+        // nothing to record as events were suspended), will cause all outstanding cleanup tasks to
+        // run. And we should be doing an undo mark here for good measure in any case: if somehow
+        // an event ever *were* to get through, better to create as a separate undo instead of
+        // polluting some other undo.  Note that since we've added UndoManager.setSuspended,
+        // "something getting through" should be impossible.
         undo.mark();
     }
                 
@@ -306,14 +325,13 @@ public abstract class LWIcon extends Rectangle2D.Float
 
             this.mLWC = lwc;
             
-            // FIXED: it was way WAY too heavy weight to have every node made a listener for this
-            // preference.  Is now handled in our static singleton listener. This is why the
-            // preferences pane use to be so slow to appear -- and the more maps open, the slower
-            // it would be.  And because of a horrible MetadataList hack, tons of meta-data
-            // html descriptions ended up being constructed for ever map paint!
-            // IconPref.addVuePrefListener(new VuePrefListener() {
-            //         public void preferenceChanged(VuePrefEvent prefEvent) { mLWC.layout(); }        	
-            // });
+            // FIXED: it was way WAY too heavy weight to have every node and every link made a
+            // listener for this preference.  Is now handled in our static singleton listener. This
+            // is why the preferences pane use to be so slow to appear -- and the more maps open,
+            // the slower it would be.  And because of a horrible MetadataList hack, tons of
+            // meta-data html descriptions ended up being constructed for ever map paint!
+            // IconPref.addVuePrefListener(new VuePrefListener() { public void
+            // preferenceChanged(VuePrefEvent prefEvent) { mLWC.layout(); } });
         }
 
         public float getIconWidth() { return mIconWidth; }
@@ -1019,7 +1037,7 @@ public abstract class LWIcon extends Rectangle2D.Float
         private String ttLastNotes;
         public JComponent getToolTipComponent()
         {
-            // todo: would be more efficent to list for note change
+            // todo: would be more efficent to listen for note change
             // events instead of comparing the whole string every time
             // -- especially for big notes (this goes for all the other
             // LWIcon tool tips also)
@@ -1030,10 +1048,11 @@ public abstract class LWIcon extends Rectangle2D.Float
 
                 if (size > 50 || ttLastNotes.indexOf('\n') >= 0) {
                     JTextArea ta = new JTextArea(ttLastNotes, 1, 30);
-                    ta.setFont(FONT_SMALL);
+                    //ta.setFont(FONT_SMALL);
+                    ta.setFont(FONT_MEDIUM);
                     ta.setLineWrap(true);
                     ta.setWrapStyleWord(true);
-					ta.setSize(ta.getPreferredSize());      
+                    ta.setSize(ta.getPreferredSize());      
                      //System.out.println("    size="+ta.getSize());
                     //Dimension ps = ta.getPreferredSize();
                     //System.out.println("prefsize="+ps);
