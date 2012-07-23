@@ -204,6 +204,8 @@ public class MapChooser extends JDialog implements ActionListener{
         selectedMap = map;
     }
     
+    //public void actionPerformed(ActionEvent e) { tufts.Util.printStackTrace("IS THIS BEING USED"); }
+
     public void actionPerformed(ActionEvent e)
     {
         if(e.getSource() == cancelButton)
@@ -230,6 +232,9 @@ public class MapChooser extends JDialog implements ActionListener{
                     writer.write(sMatrix);
                     writer.close();
                     VueUtil.openURL(FILE_URL + fileName);
+
+                    // I believe that the code below was so broken, or is now
+                    // so bit-rotten, that it can never have any effect...
                     
                     //metadata
                     /*PropertyMap props = m.getMetadata();
@@ -246,7 +251,7 @@ public class MapChooser extends JDialog implements ActionListener{
                     
                     int nodeCount = m.getChildList().size();
                     
-                    java.util.Iterator<LWComponent> i = m.getNodeIterator();
+                    java.util.Iterator<LWNode> i = m.getAllNodesIterator();
                     
                     
                     int jmax = 0;
@@ -259,7 +264,7 @@ public class MapChooser extends JDialog implements ActionListener{
                             jmax = rows;
                     }
                     
-                    java.util.Iterator<LWComponent> i2 = m.getNodeIterator();
+                    java.util.Iterator<LWNode> i2 = m.getAllNodesIterator();
                     
                     String categories = "";
                     String[][] metadata = new String[nodeCount][jmax];
