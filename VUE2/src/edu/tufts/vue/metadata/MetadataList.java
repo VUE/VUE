@@ -17,6 +17,7 @@
 package edu.tufts.vue.metadata;
 
 import edu.tufts.vue.ontology.*;
+import static edu.tufts.vue.metadata.VueMetadataElement.*;
 import tufts.Util;
 import tufts.vue.DEBUG;
 
@@ -65,19 +66,15 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
         // todo: this sub-list thing by type is needlessly complicated, and
         // not needed at all.
 
-        // Can only find one reference to RESOURCE_CATEGORY -- in MapInspectorPanel where
+        // Can only find one code reference to RESOURCE_CATEGORY -- in MapInspectorPanel where
         // VUE sets dcCreator meta-data if the LWMap author is edited.
-        
-        // The existence ONTO_TYPE could explain meta-data node-icons only SOMETIMES showing,
-        // as LWIcon only checks for ONTO_TYPE and OTHER.  ONTO_TYPE is created in tons of
-        // places in the code tho (via the existence of class OntType).  OTHER is created
-        // in LWMergeMap and ConnectivityMatrixList.
-
-        // In ~/Maps I found 2 instances of resourceListSize -- one map with dc:creator, and
+        // In ~/Maps I found 2 instances of type RESOURCE_CATEGORY -- one map with dc:creator, and
         // another with dc:description, which is what saved LWMap notes are using.
 
-        // There are also #TAG elements.  Sometimes the keys in VME are RDF keys.
-        // Actually it's usually, I think.  Makes for needlessly big save files.
+        // Both #none and #TAG ARE handled in the ui, but ONLY when they're type is 1 (CATEGORY) or
+        // 2 (ONTO_TYPE) -- the UI only pulls by TYPE, not key.  Of course, the combo-box no longer
+        // supports TAG, and the tag in this instance is "#Tag" not "#TAG" -- so the UI pulls up
+        // whatever is after the # if it's of a VME this.type it handles.
     }
    
     /** horrible API still called all over the place */
@@ -90,11 +87,57 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
         return dataList.size() <= 0 || (dataList.size() == 1 && dataList.get(0).isEmpty());
     }
     
-    /** is there any data of the given type in here? */
+    /** is there any data of the given type in here? this is a special call for the LWIcon UI */
     public boolean hasMetadata(int type) {
-        // return getMetadataAsHTML(type).length() > 0 // Christ!
-        return sizeForType(type) > 0;
+        return sizeForTypeHistorical(type) > 0;
+        // if (true) return getOldMetadataHTMLAsPresenceTest(type).length() > 0;
+        // final int count = countType(type);
+        // final int size = sizeForType(type);
+        // if (count != size) Log.warn("count != size for type " + type + ": " +count + " != " + size); // they don't match!!!
+        // return size > 0 && !isEmpty();
     }
+
+    private int countType(int type) {
+        int count = 0;
+        for (VueMetadataElement vme : dataList)
+            if (vme.getType() == type)
+                count++;
+        return count;
+    }
+    
+    /** note: as is from old impl: only checks for CAT/REST/ONTO, defaults to OTHER */
+    private int sizeForType(int type) {
+        return sizeForTypeHistorical(type);
+
+    }
+    
+    private int sizeForTypeHistorical(int type) {
+        switch (type) {
+        case CATEGORY:          return getCategoryListSize();
+        case ONTO_TYPE:         return getOntologyListSize();
+        case RESOURCE_CATEGORY: return getResourceListSize();
+        case OTHER:             
+        case SEARCH_STATEMENT:  
+        case TAG:
+        default:
+            return getOtherListSize();
+        }
+    }
+
+    private int sz(int type) { return sizeForTypeActual(type); }
+    
+    private int sizeForTypeActual(int type) {
+        switch (type) {
+        case TAG:               return -1;
+        case CATEGORY:          return getCategoryListSize();
+        case ONTO_TYPE:         return getOntologyListSize();
+        case SEARCH_STATEMENT:  return -1;
+        case OTHER:             return getOtherListSize();
+        case RESOURCE_CATEGORY: return getResourceListSize();
+        }
+        return Integer.MIN_VALUE;
+    }
+    
 
     private boolean unmarshalling = false;
     /** @see tufts.vue.XMLUnmarshalListener */
@@ -106,9 +149,10 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
     
     /** for castor persistance only */
     public List<VueMetadataElement> getXMLdata() {
-        if (isEmpty())
-            return null;
-        else
+        // TODO: FIX
+        // if (isEmpty())
+        //     return null;
+        // else
             return dataList;
     }
     
@@ -214,7 +258,7 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
         // what??? it's called "CategoryFirstList", yet it stores resources 1st?
         return dataList.getResourceEndIndex();
     }
-    public int getCategoryListSize() {
+    public int getCategoryListSize() { // publicly called InspectorPane
         return
             dataList.getCategoryEndIndex() -
             dataList.getResourceEndIndex();
@@ -224,7 +268,7 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
             dataList.getOntologyEndIndex() -
             dataList.getCategoryEndIndex();
     }
-    public int getOtherListSize() {
+    /*hide*/ private int getOtherListSize() {
         return
             dataList.getOtherEndIndex() - 
             dataList.getOntologyEndIndex();
@@ -273,22 +317,20 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
      * finds the first entered (last in order)
      * category element with the supplied key
      *
-     * returns -1 if not found.
-     * 
-     **/
-    public int findCategory(String key)
-    {
-        int foundAt = -1;
-        for(int i=0;i<getCategoryListSize();i++)
-        {
-            VueMetadataElement vme = getCategoryListElement(i);
-            if(vme.getKey().equals(key) && foundAt == -1)
-            {
-                foundAt = i;
+     * @return -1 if not found. **/
+    public int findCategory(String key) {
+        VueMetadataElement vme = null;
+        int i = -1;
+        try {
+            for (i=0;i<getCategoryListSize();i++) {
+                vme = getCategoryListElement(i);
+                if (key.equals(vme.key))
+                    return i;
             }
+        } catch (Throwable t) {
+            Log.error("searching for " + Util.tags(key) + " at index " + i + " with " + vme, t);
         }
-        
-        return foundAt;
+        return -1;
     }
 
     public boolean contains(VueMetadataElement vme) {
@@ -297,9 +339,7 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
     
     public boolean contains(String key, String value) 
     {
-        int foundAt = -1;
-        for(int i=0;i<getCategoryListSize();i++)
-        {
+        for(int i=0;i<getCategoryListSize();i++) {     
             VueMetadataElement vme = getCategoryListElement(i);
             if(vme.getKey().equals(key) && vme.getValue().equals(value))
                 return true;
@@ -310,123 +350,94 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
     // See MapInspectorPanel
     /*public*/ public int findRCategory(String key)
     {
-        int foundAt = -1;
-        for(int i=0;i<getResourceListSize();i++)
-        {
+        for(int i=0;i<getResourceListSize();i++) {
             VueMetadataElement vme = getResourceListElement(i);
-            if(vme.getKey().equals(key) && foundAt == -1)
-            {
-                foundAt = i;
-            }
+            if(vme.getKey().equals(key))
+                return i;
         }
-        return foundAt;
+        return -1;
     }
     
     /**
-     *
      * finds the most recently entered (last in order)
      * category element with the supplied key
-     *
-     * returns -1 if not found.
-     * 
-     **/
+     * @return -1 if not found. **/
     private int findMostRecentCategory(String key)
     {
         int foundAt = -1;
         int startPoint = ((CategoryFirstList)dataList).getResourceEndIndex();
-        for(int i=startPoint;i<getCategoryListSize();i++)
-        {
+        for(int i=startPoint;i<getCategoryListSize();i++) {
             VueMetadataElement vme = getCategoryListElement(i);
             if(vme.getKey().equals(key))
-            {
                 foundAt = i;
-            }
         }
-        
         return foundAt;
     }
     
     // See Util.java
     /*public*/ public boolean containsOntologicalType(String ontType)
     {
-        for(int i=0;i<getOntologyListSize();i++)
-        {
+        for(int i=0;i<getOntologyListSize();i++) {
             VueMetadataElement vme = getOntologyListElement(i);
             OntType type = (OntType)vme.getObject();
-            if(DEBUG_LOCAL)
-            {
-              System.out.println("MetadataList - containsOntologicalType - vme.getValue() " +
-                               vme.getValue() + " --- ontType from properties " + ontType);
-            }
+            if(DEBUG_LOCAL) Log.debug("containsOntologicalType - vme.getValue() " + vme.getValue() + " --- ontType from properties " + ontType);
             if(ontType.equals(vme.getValue()));
                 return true;
         }
         return false;
     }
 
-    /*public*/ public VueMetadataElement getCategoryListElement(int i)
+    /*public*/ public VueMetadataElement getCategoryListElement(int index)
     {
-        int index = i;
-        try
-        {        
-          if(getCategoryListSize() > 0 && index < dataList.size())
-            return dataList.get(index+((CategoryFirstList)dataList).getResourceEndIndex());
+        try {
+            if(getCategoryListSize() > 0 && index < dataList.size())
+                return dataList.get(index+((CategoryFirstList)dataList).getResourceEndIndex());
           //else
-            //return new VueMetadataElement();
+            //return new VueMetadataElement(); // SMF?
         }
-        catch(Exception e)
-        {
+        catch(Exception e) {
+            Log.warn(e);
             return null;
             //return new VueMetadataElement(); 
         }
-        
         return null;
     }
-    
-    /*hide*/ private void setCategoryListElement(int i,VueMetadataElement ele)
-    {
-        int index = i;
-        try
-        {        
-          if(getCategoryListSize() > 0 && index < dataList.size())
-            dataList.set(index+ ((CategoryFirstList)dataList).getResourceEndIndex(),ele);
-          else
-            return;
+    /*hide*/ private VueMetadataElement getResourceListElement(int index) {
+        try {        
+            if (getResourceListSize() > 0 && index < dataList.size())
+                return dataList.get(index);
+            else
+                return new VueMetadataElement();
         }
-        catch(Exception e)
-        {
-            return;
-        }
-    }
-    
-    /*hide*/ private VueMetadataElement getResourceListElement(int i)
-    {
-        int index = i;
-        try
-        {        
-          if(getResourceListSize() > 0 && index < dataList.size())
-            return dataList.get(index);
-          else
-            return new VueMetadataElement();
-        }
-        catch(Exception e)
-        {
+        catch(Exception e) {
+            Log.warn(e);
+            // WHAT???  This looks like a bunch of crap so that the MetadataEditor
+            // could be stupid & lazy.
             return new VueMetadataElement();
         }
     }
-    
-    /*hide*/ private void setResourceListElement(int i,VueMetadataElement ele)
-    {
-        int index = i;
-        try
-        {        
-          if(getResourceListSize() > 0 && index < dataList.size())
-            dataList.set(index,ele);
-          else
+    /*hide*/ private void setCategoryListElement(int index,VueMetadataElement vme) {
+        try {        
+            if (getCategoryListSize() > 0 && index < dataList.size())
+                dataList.set(index+ ((CategoryFirstList)dataList).getResourceEndIndex(),vme);
+            else
+                return;
+        }
+        catch(Exception e) {
+            Log.warn(e);
             return;
         }
-        catch(Exception e)
-        {
+    }
+    /*hide*/ private void setResourceListElement(int index, VueMetadataElement ele)
+    {
+        try {        
+            if(getResourceListSize() > 0 && index < dataList.size())
+                dataList.set(index,ele);
+            else
+                return;
+        }
+        catch(Exception e) {
+            Log.warn(e);
             return;
         }
     }
@@ -515,112 +526,263 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
         }
     }
     
-    /** note: as is from old impl: only checks for CAT/REST/ONTO, defaults to OTHER */
-    private int sizeForType(int type) {
-        if (type == VueMetadataElement.CATEGORY)
-            return getCategoryListSize();
-        else if (type == VueMetadataElement.RESOURCE_CATEGORY)
-            return getResourceListSize();
-        else if (type == VueMetadataElement.ONTO_TYPE)
-            return getOntologyListSize();
+    public String getMetadataAsHTML(int type) {
+        // Util.printStackTrace();
+        if (DEBUG.DATA || DEBUG.DR) // DR so can turn on with '^' key
+            return buildDebugHTML(type).toString();
         else
-            return getOtherListSize();
+            return buildHTMLForType(type);
     }
-    
-    public String getMetadataAsHTML(int type)
+
+    private StringBuilder buildDebugHTML(int type) {
+        final StringBuilder b = new StringBuilder();
+
+        // Old (still, actually) source-map meta-data that is put into nodes on merged-maps was
+        // supposed to be of type 4/OTHER, however apparently that never worked, and it was put in
+        // and saved out as type 0/TAG (E.g. ForcesAlicePulman.vue).  However, a bug or intentional
+        // very confusing hack had 0/TAG meta-data pulled for HTML even when meta-data of type
+        // 4/OTHER was requested.  What a mess.  Actually, the real problem may be that
+        // the TAG data actually exists in the "getOtherList()" decorator.
+        
+        final String typeName;
+        if (type >= VueMetadataElement._Types.length)
+            typeName = "<unknown:" + type + ">";
+        else
+            typeName = VueMetadataElement._Types[type];
+      //b.append("<font face=Menlo size=-2><b>"); // fixed witdth font
+        b.append("<font face=Menlo size=-0><b>"); // fixed witdth font
+        b.append("Type requested: ").append(type).append(" / ").append(typeName);
+        b.append("<br>");
+        b.append("real-sizes: ");
+        for (int i = 0; i <= 5; i++) {
+            final int sz = sizeForTypeActual(i);
+            if (sz >= 0)
+                b.append(VueMetadataElement._Types[i].toLowerCase()) .append('=') .append(sz) .append(" ");
+        }
+        b.append("<br>");
+        b.append("fake-sizes: ");
+        for (int i = 0; i <= 5; i++) {
+            final int sz = sizeForTypeHistorical(i);
+            if (sz >= 0)
+                b.append(VueMetadataElement._Types[i].toLowerCase()) .append('=') .append(sz) .append(" ");
+        }
+        int count = 0;
+        for (VueMetadataElement md: dataList) {
+            count++;
+            b.append("<br>#");
+            if (count < 10) b.append(' ');
+            b.append(count).append("  ");
+            b.append(md.getType()).append(':');
+            //b.append(String.format("%14s", md.getKey())); // not in HTML
+            final String key = md.getKey();
+            final String val = md.getValue();
+            
+            if (dataList.size() > 1)
+                for (int i = key.length(); i < 22; i++) b.append("&nbsp;");
+            
+            b.append(key).append(": ");
+            if (val == null) {
+                b.append("<font color=blue>");
+                b.append("null");
+                final Object o = md.getObject();
+                if (o != null) {
+                    boolean dumpObj = true;
+                    if (o instanceof String[]) {
+                        String s[] = (String[]) o;
+                        if (s.length == 2 && s[0] == key && s[1] == val)
+                            dumpObj = false;
+                    }
+                    if (dumpObj)
+                        b.append(" ") .append(Util.tags(o)); // [nice to pass in a "StringPainter" to tags]
+                }
+            } else {
+                b.append("<font color=red>");
+                b.append('"');
+                if (val.length() > 64)
+                    b.append(val.substring(0,64)) .append("\"...x") .append(val.length());
+                else
+                    b.append(val) .append('"');
+            }
+            b.append("</font>");
+        }
+        return b;
+    }
+
+    private String buildHTMLForType(final int typeRequest) {
+        final StringBuilder b = new StringBuilder(32);
+
+        int startSize = 0;
+        
+        if (typeRequest == OTHER) {
+            b.append("&nbsp;Merge sources:");
+            startSize = b.length();
+            for (VueMetadataElement md : dataList) {
+                if (md.type == OTHER || md.type == TAG) {
+                    if (md.value == null)
+                        continue;
+                    b.append("<br>&nbsp;");
+                    final int startLine = b.length();
+                    final String[] part;
+                    if (md.value != null && md.value.startsWith("source:")) {
+                        // handle old style pre-summer-2012 merge-map meta-data annotations
+                        part = md.value.substring(8).split(","); // map-file-name,label
+                        b.append("&bull; "); 
+                        if (part.length > 1) {
+                            b.append(part[0]).append('/');
+                            appendItalic(b, truncate(part[1].trim()));
+                        }
+                    } else {
+                        part = md.value.split("/"); // format: ID/typeChar/map-file-name/label
+                        if (part.length > 3) {
+                            if (part[1].charAt(0) == 'L') // link (also: N=node, I=image, etc)
+                                b.append("&harr; "); // horizontal double-ended arrow                            
+                            else
+                                b.append("&thinsp;&bull; "); // bullet: align under 'M' of "Merge sources"
+                            b.append(part[2]).append('/'); // map name
+                            appendItalic(b, truncate(part[3])); // node/component name
+                        }
+                    }
+                    if (b.length() == startLine)
+                        b.append(md.value); // dump all if didn't parse
+                    b.append("&nbsp;");
+                }
+            }
+        } else {
+            final boolean isSingle = (dataList.size() == 1);
+            for (VueMetadataElement md : dataList) {
+                if (md.type != typeRequest)
+                    continue;
+
+                // todo: logic is too complex: maybe split entirely into a single-WITH-KEY handler
+                // vs. non-single handler
+                
+                final boolean hasKey = !(md.key == null || md.key == ONTOLOGY_NONE || md.key == KEY_TAG);
+
+                b.append("&nbsp;");
+                if (isSingle)
+                    b.append("<font size=+0>"); // odd -- this still makes it bigger
+                else if (hasKey)
+                    b.append("<font color=gray>");
+
+                if (hasKey)
+                    b.append(shortKey(md.key)).append(": ");
+                else
+                    b.append("&bull; ");
+                if (hasKey && !isSingle) b.append("</font>");
+                if (md.value != null) {
+                    if (!hasKey || isSingle)
+                        b.append("<b>") .append(truncate(md.value)) .append("</b>");
+                    else
+                        b.append(truncate(md.value));
+                }
+                b.append("&nbsp;<br>");
+            }
+        }
+
+        if (DEBUG.Enabled && b.length() == startSize)
+            b.append(buildDebugHTML(typeRequest));
+        
+        return b.toString();
+    }
+
+    private static StringBuilder appendItalic(StringBuilder b, String s) {
+        return b.append("<i>").append(s).append("</i>");
+    }
+
+    private static String shortKey(String k) {
+        final int localPart = k.indexOf('#');
+        if (localPart > 1 && localPart < (k.length() - 1))
+            return k.substring(localPart + 1);
+        else
+            return k;
+    }
+    private static String truncate(String s) {
+        // Re: truncation: Notes wraps text via JTextArea, which won't give us HTML.  If we
+        // want text wrapping, we may be able to do it usinga table.
+        if (s.length() > 50)
+            return s.substring(0,50) + "&hellip;";
+        else
+            return s;
+    }
+
+
+    private StringBuilder getOldMetadataHTMLAsPresenceTest(int type)
     {
-        SubsetList mdList = null;
+        final StringBuilder b = new StringBuilder();
+        final SubsetList mdList;
         
         if(type == VueMetadataElement.CATEGORY)
-        {
             mdList = getCategoryList();
-        }
         else if(type == VueMetadataElement.ONTO_TYPE)
-        {
             mdList = getOntologyList();
-        }
         else
-        {
             mdList = getOtherList();
-        }
-        
-        if(mdList.size() > 0) {
-            String txt = "";
-            for (int i=0;i<mdList.size();i++) {
-                String value = mdList.get(i).getValue();
-                
-                if (DEBUG_LOCAL) Log.debug("HTML loop -- value for " + i + " type: " + type + " value: " + value);
 
-                if (value == null) {
-                    if (DEBUG.Enabled) Log.debug("null meta-data value for " + mdList.get(i));
-                    //Util.printStackTrace();
-                    continue;
-                }
+        final int size = mdList.size();
+        
+        if (size <= 0)
+            return b;
+        
+        for (int i = 0; i < size; i++) {
+            final String value = mdList.get(i).getValue();
                 
-                if(value.length() > 0)
-                {    
-                  if(type == VueMetadataElement.ONTO_TYPE)
-                  {
-                      int nameLocation = value.indexOf(VueMetadataElement.ONT_SEPARATOR);
-                      if(nameLocation > -1 && value.length() > nameLocation + 1)
-                      {
-                          value = value.substring(nameLocation + 1);
-                      }
-                  }
-                  
-                  if(type == VueMetadataElement.OTHER)
-                  {
-                     int cLocation = value.indexOf(":");
-                     if(cLocation > -1 && value.length() > cLocation + 1);
-                       value = value.substring(cLocation + 1);  
-                       
-                     int dotLocation = value.lastIndexOf(".");
-                     if(dotLocation != -1)
-                     {
-                         int commaLocation = value.indexOf(",");
-                         
-                         String endPart = "";
-                         
-                         if(commaLocation != -1 && commaLocation > dotLocation)
-                         {
-                             endPart = value.substring(commaLocation);
-                         }
-                         
-                         value = value.substring(0,dotLocation) + endPart;
-                     }
-                       
-                     value = " &nbsp; " + value;
-                  }    
-                  
-                  txt += "<br>" + value;
-                }
+            if (DEBUG_LOCAL) Log.debug("HTML loop -- value for " + i + " type: " + type + " value: " + value);
+
+            if (value == null) {
+                if (DEBUG.MEGA) Log.debug("GET-AS-HTML: null meta-data value for " + mdList.get(i));
+                //Util.printStackTrace();
+                continue;
             }
-            
-            if(txt.length() > 0)
-            {
-                if(type == VueMetadataElement.CATEGORY)
-                {    
-                  txt = "Keywords: " + txt;
+                
+            if (value.length() > 0) {    
+                b.append("<br>");
+                if (type == VueMetadataElement.ONTO_TYPE) {
+                    final int nameLocation = value.indexOf(VueMetadataElement.ONT_SEPARATOR);
+                    if(nameLocation > -1 && value.length() > nameLocation + 1) {
+                        b.append(value, nameLocation + 1, value.length()); // todo check: off by 1 anywhere?
+                        //value = value.substring(nameLocation + 1);
+                    } else
+                        b.append(value);
                 }
-                else if(type == VueMetadataElement.ONTO_TYPE)
-                {
-                  txt = "Ontological Membership: " + txt;
-                }
-                else if(type == VueMetadataElement.OTHER)
-                {
-                  //int dotLocation = txt.indexOf(".");
-                  //if(dotLocation > 0)
-                  //    txt = txt.substring(0,dotLocation);
-                  txt = MERGE_SOURCES_TITLE + txt;
-                }
+                else if(type == VueMetadataElement.OTHER) {
+                    b.append(" &nbsp; ");
+                    // This looks like it's expecting a specific format from somewhere...
+                    final int colon = value.indexOf(":");
+                    String cursor = value;
+                  // Based on indention, doesn't look like that semicolon was on purpose -- so this never worked right.
+                  // Tho again, this is another bug I'm afraid to fix as something else in this spaghetti fest might be relying on it...
+                  //if (cLocation > -1 && value.length() > cLocation + 1);
+                  //    value = value.substring(cLocation + 1);  
+                    if (colon > -1 && value.length() > colon + 1)
+                        cursor = value.substring(colon + 1);
+                    final int dot = cursor.lastIndexOf(".");
+                    if (dot != -1) {
+                        final int comma = cursor.indexOf(",");
+                        String endPart = "";
+                        if (comma != -1 && comma > dot) {
+                            endPart = cursor.substring(comma); // todo: factor down to append
+                        } 
+                        cursor = cursor.substring(0,dot) + endPart;
+                    }
+                    b.append(cursor);
+                } else
+                    b.append(value);
             }
-            
-            return txt;
-        } 
-        else 
-        {
-            return "";
         }
+            
+        if(b.length() > 0) {
+            if(type == VueMetadataElement.CATEGORY) {    
+                b.insert(0, "Keywords: ");
+            }
+            else if(type == VueMetadataElement.ONTO_TYPE) {
+                b.insert(0, "Ontological Membership: ");
+            }
+            else if(type == VueMetadataElement.OTHER) {
+                // So OTHER meta-data is, in fact, hardcoded for the purpose of merge-sources!
+                b.insert(0, MERGE_SOURCES_TITLE);
+            }
+        }
+        return b;
     }
     
     public SubsetList getCategoryList() { return categoryList; }
@@ -712,7 +874,7 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
         
         public VueMetadataElement get(int i)
         {
-           if(type == VueMetadataElement.RESOURCE_CATEGORY)
+           if (type == VueMetadataElement.RESOURCE_CATEGORY)
                return getResourceListElement(i);
            else if(type == VueMetadataElement.CATEGORY)
                return getCategoryListElement(i);
@@ -722,13 +884,12 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
                return getOtherListElement(i);            
         }
         
+        // Used in MetadataEdtior.java
         public void set(int i,VueMetadataElement ele)
         {
-           if(type == VueMetadataElement.RESOURCE_CATEGORY)
-           {
+           if (type == VueMetadataElement.RESOURCE_CATEGORY)
                setResourceListElement(i,ele);
-           } else
-           if(type == VueMetadataElement.CATEGORY)
+           else if(type == VueMetadataElement.CATEGORY)
                setCategoryListElement(i,ele);
            else if(type == VueMetadataElement.ONTO_TYPE)
                setOntologyListElement(i,ele);
@@ -763,9 +924,14 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
         private int getOtherEndIndex() { return otherEndIndex; }
       
         /** called via BOTH castor restore as well as runtime API */
-        public boolean add(final VueMetadataElement vme)
+        @Override public boolean add(final VueMetadataElement vme)
         {
             if (DEBUG.CASTOR||DEBUG.XML||DEBUG.DATA) Log.debug(Util.tag(this) + ":add: " + Util.tags(vme));
+
+            if (vme.type == VME_EMPTY_IGNORE) { 
+                //if (DEBUG.Enabled) Log.info("ignoring " + vme);
+                return true;
+            }
           
             if (vme.getObject() == null) {
                 if (DEBUG_LOCAL) Log.debug("VME object is null, (re)setting type..." + vme.getType());
@@ -776,18 +942,18 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
                 Log.debug("categoryFirstList add - catEnd,ontEnd,size(): "
                           + categoryEndIndex + "," + ontologyEndIndex + "," + size());
           
-            if (vme.getType() == VueMetadataElement.ONTO_TYPE && vme.getObject() instanceof OntType) {
+            if (vme.type == VueMetadataElement.ONTO_TYPE && vme.getObject() instanceof OntType) {
                 otherEndIndex++;
                 super.add(ontologyEndIndex++, vme);
             }
-            else if (vme.getType() == VueMetadataElement.RESOURCE_CATEGORY && vme.getObject() instanceof String[]) {
+            else if (vme.type == VueMetadataElement.RESOURCE_CATEGORY && vme.getObject() instanceof String[]) {
                 ontologyEndIndex++;
                 categoryEndIndex++;
                 otherEndIndex++;
                 super.add(rCategoryEndIndex++, vme);
                 if(DEBUG_LOCAL) Log.debug("rCategoryIndex is now: " + rCategoryEndIndex);
             }
-            else if (vme.getType() == VueMetadataElement.CATEGORY && vme.getObject() instanceof String[]) {
+            else if (vme.type == VueMetadataElement.CATEGORY && vme.getObject() instanceof String[]) {
                 ontologyEndIndex++;
                 otherEndIndex++;
                 super.add(categoryEndIndex++, vme);
@@ -808,7 +974,7 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
             return true;
         }
       
-        public VueMetadataElement remove(int i)
+        @Override public VueMetadataElement remove(int i)
         {
             // Attempt the remove 1st so that if we get a RangeCheck exception,
             // we haven't adjusted our indicies.
