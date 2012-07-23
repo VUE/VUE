@@ -167,7 +167,7 @@ public class ProviderControlManager
                 return null;
                 
             } else if (oldContents.length > 0)
-                Log.warn("Old providers dir exists, but we cannot write to it -- providers may need re-download for " + NewLibraryDir);
+                Log.warn("Old providers dir exists, but we cannot write to it: " + oldContents.length + " providers may need re-download for " + NewLibraryDir);
         }
 
         // Note that our installer, edu.mit.osidimpl.provider.installer.firstcut.Installer,
