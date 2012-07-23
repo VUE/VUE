@@ -1308,17 +1308,19 @@ class MapUnmarshalHandler implements UnmarshalListener {
         final String fileName = file.getName();
 
         if (map.getModelVersion() > LWMap.getCurrentModelVersion()) {
-            VueUtil.alert(String.format(Locale.getDefault(), VueResources.getString("actionutil.notifyversion.message")+"\n"
-                                        + "\n"+VueResources.getString("actionutil.notifyversion.datamodel")+"\n",
+            VueUtil.alert(String.format(Locale.getDefault(),
+                                        VueResources.local("actionutil.notifyversion.message")+ "\n\n" +
+                                        VueResources.local("actionutil.notifyversion.datamodel")+" \n",
                                         file, map.getModelVersion(), LWMap.getCurrentModelVersion())
-                          + "\n"+VueResources.getString("actionutil.notifyversion.savedversion") +"\n" + savingVersion
-                          + "\n"+VueResources.getString("actionutil.notifyversion.currentversion")+"\n        " + VueResources.getString("actionutil.notifyversion.vuebuilt") + tufts.vue.Version.AllInfo
-                          + " (public v" + VueResources.getString("vue.version") + ")"
+                          + "\n"+VueResources.local("actionutil.notifyversion.savedversion")   +"\n" + savingVersion
+                          + "\n"+VueResources.local("actionutil.notifyversion.currentversion") +"\n"
+                          + "        " + VueResources.local("actionutil.notifyversion.vuebuilt") + " " + tufts.vue.Version.AllInfo
+                          + " (public v" + VueResources.local("vue.version") + ")"
                           + "\n"
-                          + "\n"+VueResources.getString("actionutil.notifyversion.displaymap")
-                          + "\n"+VueResources.getString("actionutil.notifyversion.corruptmap")
+                          + "\n"+VueResources.local("actionutil.notifyversion.displaymap")
+                          + "\n"+VueResources.local("actionutil.notifyversion.corruptmap")
                           ,
-                          String.format(Locale.getDefault(),VueResources.getString("actionutil.notifyversion.versionwarning"), fileName));
+                          String.format(Locale.getDefault(),VueResources.local("actionutil.notifyversion.versionwarning"), fileName));
 
             map.setLabel(fileName + " (as available)");
             // Skip setting the file: this will force save-as if they try to save.
