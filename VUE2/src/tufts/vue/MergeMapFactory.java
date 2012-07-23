@@ -18,8 +18,8 @@
  * MergeMapFactory.java
  *
  * @created 2012-07-17 
- * @author dhelle01 (original LWMergeMap)
  * @author Scott Fraize
+ * @author dhelle01 (original LWMergeMap)
  */
 
 package tufts.vue;
@@ -57,8 +57,14 @@ public class MergeMapFactory {
     
     private int nodeThresholdSliderValue = THRESHOLD_DEFAULT;
     private int linkThresholdSliderValue = THRESHOLD_DEFAULT;
-    private boolean filterOnBaseMap;
-    private boolean excludeNodesOnBaseMap;
+
+    // these two bools represent 3 possible design configs -- would be better as single case tags:
+    // all/similarity/difference
+
+    /** default true -- include all the non-primary (base) maps */
+    private boolean includeSecondaryMaps = true;
+    /** default false  -- filter out nodes (keys) that exist on the base map */
+    private boolean excludeNodesOnBaseMap = false;
 
     public final LWMap baseMap;
     public final boolean baseMapInactive;
@@ -103,17 +109,26 @@ public class MergeMapFactory {
             throw new Error(getClass() + ": already used");
         alreadyUsed = true;
 
+        if (excludeNodesOnBaseMap && !includeSecondaryMaps)
+            throw new Error("merge-map would have no contents in this configuration");
+
         if (asVote)
             createAggregateAndFillMap(VoteAggregate.class);
         else
             createAggregateAndFillMap(WeightAggregate.class);
 
         annotateMap(asVote);
+        // Make sure to layout the new map 1st time so, for instance, any node-icons will be properly displayed:
+        outputMap.layoutAndValidateNewMap();
+        // Someday, VUE.displayMap should check for special clientData that
+        // indicates if the map has had an initializing layout, and automatically
+        // do one if a layout key isn't found.
 
         Log.info("created: " + outputMap + "; " + outputMap.getChild(0));
 
         baseMapKeys = null; // gc
         keysMerged.clear(); // gc
+        for (LWMap m : activeMaps) m.setClientData(LinksCache.class, null); // gc
         
         // we only allow one creation per factory in case anyone ever wants
         // to pull the params out of this client data later.
@@ -121,12 +136,10 @@ public class MergeMapFactory {
         
         return outputMap;
     }
-    
-    public void         setFilterOnBaseMap(boolean doFilter) { filterOnBaseMap = doFilter; }
-    public boolean      getFilterOnBaseMap() { return filterOnBaseMap; }
+
+    public void         setFilterOnBaseMap(boolean doFilter) { includeSecondaryMaps = !doFilter; }
     
     public void         setExcludeNodesFromBaseMap(boolean doExclude) { excludeNodesOnBaseMap = doExclude; }
-    public boolean      getExcludeNodesFromBaseMap() { return excludeNodesOnBaseMap; }
     
     public void         setNodeThresholdSliderValue(int value) { nodeThresholdSliderValue = value; }
     public int          getNodeThresholdSliderValue() { return nodeThresholdSliderValue; }
@@ -141,7 +154,6 @@ public class MergeMapFactory {
         if (DEBUG.MERGE) { Log.debug("nodeIntervals:"); tufts.Util.dump(nib); }
         nodeIntervalBoundaries = new ArrayList(nib);
     }
-    //public List<Double> getNodeIntervalBoundaries() { return nodeIntervalBoundaries; }
 
     public void         setLinkIntervalBoundaries(List<Double> lib) {
         if (DEBUG.MERGE) { Log.debug("linkIntervals:"); tufts.Util.dump(lib); }
@@ -149,10 +161,6 @@ public class MergeMapFactory {
     }
     public List<LWMap> getMapList() { return mapList; }
     
-    //public List<Double> getLinkIntervalBoundaries() { return linkIntervalBoundaries; }
-    //public void setMapList(List<LWMap> mapList) { this.mapList = mapList; }
-    //public void setActiveMapList(List<Boolean> activeMapList) { activeStatus = activeMapList; }
-
     private static String getNextTitle() {
         return "Merge Map " + (++CreationCount);
     }
@@ -188,7 +196,7 @@ public class MergeMapFactory {
         final VoteAggregate voteAggregate;
         final WeightAggregate weightAggregate;
         
-        final ConnectivityMatrixList<ConnectivityMatrix> cms = new ConnectivityMatrixList<ConnectivityMatrix>();
+        final ConnectivityMatrixList cms = new ConnectivityMatrixList();
 
         //-----------------------------------------------------------------------------
         // Create a connectivity matrix for each active map to be fed to the Aggregate
@@ -228,7 +236,11 @@ public class MergeMapFactory {
         } else
             mergeInNodes(baseMap, voteAggregate);
         
-        if (! getFilterOnBaseMap()) {
+        if (includeSecondaryMaps) {
+            // When we do NOT do this, it means we will look at the votes or weights from the
+            // aggregate merge-key analysis of all maps, but only ever take nodes from the base map
+            // -- nodes and links from all other maps will be ignored except for the presence of
+            // their merge keys in the matrix.
             for (LWMap map : activeMaps) {
                 if (map == baseMap) {
                     Log.info("    loop; skipping baseMap " + baseMap);
@@ -237,15 +249,17 @@ public class MergeMapFactory {
                 }
             }
         }
+        
+        // Ah: note that CHILDREN OF A MERGED NODE CAN BE ANYTHING... WE ONLY WANT THE TOP-LEVEL-CHILDREN!
+        //final Collection<LWComponent> allMergedNodes = outputMap.getAllDescendents(ChildKind.PROPER);
 
-        final Collection<LWComponent> allMergedNodes = outputMap.getAllDescendents(ChildKind.PROPER); 
-
-        for (LWComponent c : allMergedNodes) {
-            if (c instanceof LWNode || c instanceof LWImage)
-                ; // this is a double-check
-            else
-                Log.warn("unexpected content in merged results: " + c);
-        }
+        // Fetch all the top level children of the single default layer in the merge-map.  Note
+        // we're about to add links, so be sure to pass down and iterate a copy of the live
+        // list.
+        final Collection<LWComponent> allMergedNodes = new ArrayList(outputMap.getChild(0).getChildren());
+        
+        for (LWComponent c : allMergedNodes) 
+            if (isMergeSkipped(c)) Log.warn("unexpected content in merge results: " + c);
         
         Log.info("pre-link content: " + tufts.Util.tags(allMergedNodes));
         
@@ -254,6 +268,18 @@ public class MergeMapFactory {
         else
             installLinksAndStylesForWeights(allMergedNodes, cms, weightAggregate);
     }
+
+    private static boolean isMergeSkipped(LWComponent c)
+    {
+        if (c == null || c.hasFlag(Flag.ICON))
+            return true;
+        
+        final Class cc = c.getClass();
+        // to NOT allow LWPortal, which is a subclass of LWNode
+        return ! (cc == LWNode.class || cc == LWImage.class);
+    }
+    
+
     
     private void mergeInNodes(final LWMap sourceMap, final VoteAggregate voteAggregate)
     {
@@ -264,15 +290,15 @@ public class MergeMapFactory {
         final boolean isVoting = (voteAggregate != null);
                              
         for (LWComponent srcNode : sourceMap.getAllDescendents(ChildKind.PROPER)) {
-            if (srcNode.hasFlag(Flag.ICON)) continue;
-            if (srcNode instanceof LWNode || srcNode instanceof LWImage) ; else continue;
+            if (isMergeSkipped(srcNode))
+                continue;
 
             final Object mergeKey = getMergeKey(srcNode);
             if (mergeKey == null)
                 continue;
             final LWComponent alreadyMerged = keysMerged.get(mergeKey);
             if (alreadyMerged != null) {
-                annotateWithSource(sourceMap, srcNode, alreadyMerged);
+                annotateNodeSource(sourceMap, srcNode, alreadyMerged);
                 continue;
             }
             //-----------------------------------------------------------------------------
@@ -281,7 +307,7 @@ public class MergeMapFactory {
             // Note: UI is misleading: vote "style" does't just refer to coloring -- it
             // also refers to what goes in the map.
             //-----------------------------------------------------------------------------
-            if (isVoting && !voteAggregate.isNodeVoteAboveThreshold(mergeKey))
+            if (isVoting && !voteAggregate.isNodeVotedIn(mergeKey))
                 continue;
 
             if (excludeNodesOnBaseMap && baseMapKeys.contains(mergeKey))
@@ -291,13 +317,19 @@ public class MergeMapFactory {
         }
     }
 
-    /** copy the source node to the output map, returning the new duplicate node
-     * and record the mergeKey in the keysMerged map */
+    /** duplicate the source, annotate with it's source, and copy it to the
+     * output map, also recording the mergeKey in the keysMerged map */
     private void copyInNode(LWMap sourceMap, LWComponent sourceNode, Object mergeKey) {
         final LWComponent node = sourceNode.duplicate();
-        annotateWithSource(sourceMap, sourceNode, node);
+        annotateNodeSource(sourceMap, sourceNode, node);
         keysMerged.put(mergeKey, node);
         outputMap.addChild(node);
+    }
+    
+    /** takes an already duplicated link, annotates it, and adds it to the map */
+    private void copyInLink(ConnectivityMatrixList cms, Object headKey, Object tailKey, LWLink link) {
+        annotateLinkSources(cms, headKey, tailKey, link);
+        outputMap.addChild(link);
     }
         
     private void installLinksForVotes(
@@ -305,24 +337,19 @@ public class MergeMapFactory {
          final ConnectivityMatrixList cms,
          final VoteAggregate voteAggregate)
     {
-        // Is there a faster way to do this than O(n^2) ? Shouldn't we be able to iterate the
-        // VoteAggregate or track the above threshold relations there?
+        // This often used to create a seprate link for each direction: I presume that
+        // was a bug and it's been fixed.
 
         for (LWComponent head : allMergedNodes) {
             final Object headKey = getMergeKey(head);
             for (LWComponent tail : allMergedNodes) {
                 if (head != tail) {
                     final Object tailKey = getMergeKey(tail);
-                    if (voteAggregate.isLinkVoteAboveThreshold(headKey, tailKey)) {
-                        // Vote for the relation between these two nodes was above link threshold: add a new link
+                    if (voteAggregate.testAndConsumeOppositeLinkVote(headKey, tailKey)) {
+                        // This link relationship appeared on enough maps to make the vote
                         final LWLink link = new LWLink(head, tail);
-                        // note: below is crazy slow... it iterates every link in each and every
-                        // input map every time.  This is to install the #TAG mostly-silent meta-data
-                        // for any link that it finds whose endpoint merge-keys are a match to
-                        // these two keys.
-                        cms.addLinkSourceMapMetadata(headKey, tailKey, link);
-                        // finally add the link
-                        outputMap.addChild(link);
+                        link.setArrowState(LWLink.ARROW_NONE); // default is tail
+                        copyInLink(cms, headKey, tailKey, link);
                     }
                 }
             }
@@ -334,54 +361,58 @@ public class MergeMapFactory {
          final ConnectivityMatrixList cms,
          final WeightAggregate weightAggregate)
     {
-        // todo: use applyCSS(style) -- need to plug in formatting panel
-        
         final List<Style> nodeStyles = new ArrayList<Style>();
         final List<Style> linkStyles = new ArrayList<Style>();
         for(int si=0;si<5;si++) 
             nodeStyles.add(StyleMap.getStyle("node.w" + (si +1)));
         for(int lsi=0;lsi<5;lsi++)
             linkStyles.add(StyleMap.getStyle("link.w" + (lsi +1)));
-        
+
         for (LWComponent node : allMergedNodes) {
-            if (node instanceof LWNode == false)
-                continue;
-            double score = 100 * weightAggregate.getNodeCount(getMergeKey(node))/weightAggregate.getCount();
-            if(score>100) score = 100; else if(score<0) score = 0;
-            final Style currStyle = nodeStyles.get(getIntervalForNode(score)-1);
-            //todo: applyCss here instead.
-            node.setFillColor(Style.hexToColor(currStyle.getAttribute("background")));
-            java.awt.Color strokeColor = null;
-            if(currStyle.getAttribute("font-color") != null)
-                strokeColor = Style.hexToColor(currStyle.getAttribute("font-color"));
-            if (strokeColor != null)
-                node.setTextColor(strokeColor);
+            // In using our new Resource-but-default-to-Label merge, it would still might be nice
+            // if later label hits would hit the resource label as well.  They'd probably
+            // have to map to the same index, however, which would make ConnectivityMatrix
+            // much more complicated, as well as the code that uses it.
+            
+            final double score = weightAggregate.getPercentFound(node);
+            final Style style = nodeStyles.get(getIntervalForNode(score)-1);
+            final String styleColor = style.getAttribute("font-color");
+            
+            node.setFillColor(Style.hexToColor(style.getAttribute("background")));
+            if (styleColor != null)
+                node.setTextColor(Style.hexToColor(styleColor));
         }
 
         for (LWComponent head : allMergedNodes) {
             final Object headKey = getMergeKey(head);
-            // Again, we're expecting that only LWImages or LWnodes are in allMergedNodes.
             for (LWComponent tail : allMergedNodes) {
                 if (head == tail)
                     continue;
-                final Object tailKey = getMergeKey(tail);
-                final int c = weightAggregate.getConnection(headKey, tailKey);
-                if (c <= 0)
+                final Object tailKey = getMergeKey(tail);  
+                // weight: the number of maps that reflect this connection.  Note that multiple
+                // connections between the two node keys on the SAME map to NOT increase the
+                // weight.
+                final int weightAlpha = weightAggregate.getConnection(headKey, tailKey);
+                if (weightAlpha <= 0)
                     continue;
-                final int c2 = weightAggregate.getConnection(tailKey, headKey);
-                double score = 100 * c / weightAggregate.getCount();
-                // are either of these ever happenning? If so, why?
+                
+                double score = 100 * weightAlpha / weightAggregate.getCount();
+                // [DAN] are either of these ever happenning? If so, why? [SMF: if merge on 0 maps...]
                 if (score > 100) score = 100; else if (score < 0) score = 0;
-                final Style currLinkStyle = linkStyles.get(getIntervalForLink(score)-1);
+                final Style linkStyle = linkStyles.get(getIntervalForLink(score)-1);
                 final LWLink link = new LWLink(head, tail);
-                if (c2 > 0 && !getFilterOnBaseMap()) {
+
+                // If the revese (omega) connection exists, zero it out in aggregate so we don't
+                // add another link for it.
+
+                final int weightOmega = weightAggregate.getConnection(tailKey, headKey);
+                if (weightOmega > 0 && includeSecondaryMaps) { // todo: flag check looks wrong: what's base-map filter have to do with this?
                     link.setArrowState(LWLink.ARROW_BOTH);
                     weightAggregate.setConnection(tailKey, headKey, 0);
                 }
-                // todo: applyCSS here
-                link.setStrokeColor(Style.hexToColor(currLinkStyle.getAttribute("background")));
-                outputMap.addChild(link);
-                cms.addLinkSourceMapMetadata(headKey, tailKey, link);
+                link.setStrokeColor(Style.hexToColor(linkStyle.getAttribute("background")));
+                link.setStrokeWidth(weightAlpha); // weight can never be > number of maps merged
+                copyInLink(cms, headKey, tailKey, link);
             }
         }
     }
@@ -389,8 +420,7 @@ public class MergeMapFactory {
     private static Set hashMergeKeys(LWMap map) {
         final Set hashedKeys = new HashSet();
         for (LWComponent c : map.getAllDescendents(ChildKind.PROPER)) {
-            if (c.hasFlag(Flag.ICON)) continue;
-            if (c instanceof LWNode || c instanceof LWImage) {
+            if (!isMergeSkipped(c)) {
                 final Object key = getMergeKey(c);
                 if (key != null)
                     hashedKeys.add(key);
@@ -427,6 +457,15 @@ public class MergeMapFactory {
     // Note that since clientData is runtime *instance* information, and not copied over on
     // duplication, we don't have to worry about cleaning these up / having them propagate.
 
+    private void annotateNodeSource(LWMap sourceMap, LWComponent sourceNode, LWComponent newMergeNode)
+    {
+        annotate(new StringBuilder(annotationPartForMap(sourceMap)),
+                 sourceNode,
+                 newMergeNode);
+    }
+
+    private final StringBuilder _cachedBuilder = new StringBuilder();
+
     /*
      * FYI: the first time this method sees @param mergeNew during a merge, it happens to be the actual
      * duplicate of sourceNode, and it wont have any counter set yet.  Each time we see it after that,
@@ -434,54 +473,143 @@ public class MergeMapFactory {
      * choice of which merge-key matching node to use as the actual duplication source is somewhat random: the
      * merge process simply uses the first it comes across in the order we merge the maps.)
      */
-    private static void annotateWithSource(LWMap sourceMap, LWComponent sourceNode, LWComponent mergeNew)
+    private void annotate(StringBuilder mapPart, LWComponent source, LWComponent target) {
+        final StringBuilder anno = _cachedBuilder;
+
+        anno.setLength(0);
+        
+        // a problem with putting id here is then we can't search on "map-name/node-name" as ID is in way,
+        // as in "map-name/12345/node-name".
+
+        // this string is designed based on the ease of search options it provides
+        // e.g., "i/some-map" will mean all images from that map, "some-map/bob" means
+        // a node whose name begins with "bob" from some-map.
+
+        final String id = source.getID();
+
+        anno.append(id); 
+        anno.append('/').append(source.getComponentTypeLabel().charAt(0));
+        anno.append('/').append(mapPart);
+        anno.append('/').append(source.getDisplayLabel()); // todo: truncate
+
+        putMergeAnnotation(target, anno.toString());
+
+        if (target instanceof LWImage || DEBUG.TEST) { // images have no rollovers to show the data
+            // We could store a list of all the actual source nodes in the client data, and annotate
+            // at the end.  That could even allow us to design a fancier "merge" that somehow lets us
+            // combine the properties of the merged nodes, instead of the random "duplicate the 1st
+            // found" method we have now.
+            Counter counter = target.getClientData(Counter.class);
+            if (counter == null)
+                counter = target.putClientData(new Counter());
+            counter.count++;
+            final String notesAnno = String.format("[in:%d:%s]", counter.count, anno.toString());
+            if (target.hasNotes()) {
+                target.setNotes(target.getNotes()
+                                + (counter.count > 1 ? "\n" : "\n----\n")
+                                + notesAnno);
+            } else
+                target.setNotes(notesAnno);
+        }
+    }
+
+    private static String annotationPartForMap(LWMap m) {
+        final String name = m.getDisplayLabel();
+        if (name.endsWith(".vue"))
+            return name.substring(0, name.length()-4);
+        else
+            return name;
+    }
+    
+    /** cache for list of LWLink's used as a clientData key */
+    private static final class LinksCache extends ArrayList<LWLink> {
+        static List<LWLink> getLinksList(LWMap map) {
+            final List<LWLink> list = map.getClientData(LinksCache.class);
+            return list == null ? new LinksCache(map) : list;
+        }
+        /**/private LinksCache(LWMap map) {
+            // getDescendentsOfType actually generates a filtering Iterator on the whole list, not
+            // a list of the actual types desired.
+            for (LWLink link : map.getDescendentsOfType(LWLink.class))
+                add(link);
+            map.putClientData(this);
+        }
+    }
+    // todo: above generic "ListCache" w/parameterized type could be handy
+
+    /* Todo: this could be slow when merging large similar maps. It iterates every link in each and
+    * every input map that has a connection bewteen the two input keys (there was an LWLink between
+    * those two keys).  Possible changes: the call context could provide some of the source info,
+    * and/or the matrix could store a list of links at the [head][tail] / [tail][head] connection
+    * sites.  Or, we could do this once per map and create a new kind of matrix to hold it. Note
+    * that this works differently than node annotation because we do not copy actual links: we
+    * create new ones based on the presence of a link between merge-key nodes on the source
+    * maps. */
+    private void annotateLinkSources(final ConnectivityMatrixList sources, final Object key1, final Object key2, final LWLink newLink)
     {
-        Counter counter = mergeNew.getClientData(Counter.class);
-        if (counter == null)
-            counter = mergeNew.putClientData(new Counter());
-        counter.count++;
-        
-        // We could store a list of all the actual source nodes in the client data, and annotate
-        // at the end.  That could even allow us to design a fancier "merge" that somehow lets us
-        // combine the properties of the merged nodes, instead of the random "duplicate the 1st
-        // found" method we have now.
-        
-        String mapLabel = sourceMap.getDisplayLabel();
-        if (mapLabel.endsWith(".vue"))
-            mapLabel = mapLabel.substring(0, mapLabel.length()-4);
+     // final StringBuilder anno = new StringBuilder("#source:");
+        final StringBuilder annoBuf = new StringBuilder("");
+        final int tagPrefix = annoBuf.length();
 
-        final String annoBase = String.format("%s/%s/%s",
-                                                mapLabel,
-                                                sourceNode.getID(),
-                                                sourceNode.getDisplayLabel());
+        int matchCount = 0;
 
-        final String notesAnno = String.format("[%d:in:%s]",   counter.count, annoBase);
-        final String  metaAnno = String.format("%d:source:%s", counter.count, annoBase);
+        for (ConnectivityMatrix matrix : sources) {
+            
+            if (matrix.getConnection(key1, key2) <= 0)
+                continue;
 
-        if (DEBUG.TEST) {
-            if (mergeNew.hasNotes()) {
-                // note: string manips are slow.
-                mergeNew.setNotes(mergeNew.getNotes()
-                                  + (counter.count > 1 ? "\n" : "\n----\n")
-                                  + notesAnno);
-            } else {
-                mergeNew.setNotes(notesAnno);
+            final LWMap map = matrix.getMap();
+
+            annoBuf.setLength(tagPrefix);
+            annoBuf.append(annotationPartForMap(map));
+
+            final int mapPrefix = annoBuf.length();
+
+            for (final LWLink link : LinksCache.getLinksList(map)) {
+                       
+                final LWComponent head = link.getHead(); // note: affected by pruning
+                final LWComponent tail = link.getTail(); // note: affected by pruning
+                       
+                if (head == null || tail == null) {
+                    // currently shouldn't be happening -- connectivity matrix only counts
+                    // links with both, but do nothing, just in case
+                } else {
+                    final Object headMP = Util.getMergeProperty(head);
+                    final Object tailMP = Util.getMergeProperty(tail);
+                    final boolean matches =
+                        (headMP.equals(key2) && tailMP.equals(key1)) ||
+                        (headMP.equals(key1) && tailMP.equals(key2)) ;
+                    // we ignore directionality on purpose
+                    if (matches) {
+                        annoBuf.setLength(mapPrefix);
+                        annotate(annoBuf, link, newLink);
+                        matchCount++;
+                    }
+                }
             }
         }
-
-        // This apparently is a special form a meta-data annotation (#TAG?) that only shows up in the UI via a
-        // special Resource icon (which never made it to the preferences) that pulls
-        // MetadataList.getMetadataAsHTML(type) to display its rollover content.  It depends on a special
-        // format for the meta-data to be broken up and formatted in the HTML (actually, it seems to mainly
-        // strip "allBefore1stColon:" off the front).  It does NOT show up in the "Keywords" InspectorPane tab.  Note that
-        // this data DOES, however, end up appaering in the RDFIndex, and this can be searched on, tho the user
-        // won't have a place to see where the hit came from except the rollover.
-            
-        final VueMetadataElement vme = new VueMetadataElement();
-        vme.setType(VueMetadataElement.OTHER);
-        vme.setObject(metaAnno);
-        mergeNew.getMetadataList().getMetadata().add(vme);
+        if (matchCount > 1)
+            newLink.setStrokeWidth(matchCount);
+        else if (matchCount <= 0)
+            Log.warn("no sources for: " + newLink);
     }
+    
+    private static void putMergeAnnotation(final LWComponent mergeComponent, final String annotation) 
+    {
+        // Note that this meta-data does NOT show up in the "Keywords" InspectorPane tab -- it's
+        // just used in rollovers (would be better to show up somehow, uneditable, in Keywords,
+        // however).  This data will also appear in the RDFIndex, and this can be searched on, tho
+        // the user won't have a place to see where the hit came from except the rollover.
+            
+        // final VueMetadataElement vme = new VueMetadataElement();
+        // // vme.setType(VueMetadataElement.OTHER); // impl has always ended up ignoring this
+        // vme.setObject(annotation); // VME IMPL HAS ALWAYS OVERWRITTEN TYPE TO TAG WHEN DOING THIS
+        // mergeComponent.getMetadataList().getMetadata().add(vme);
+        
+        mergeComponent.getMetadataList().getMetadata()
+            .add(VueMetadataElement.createSourceTag(annotation));
+    }
+    
 
     private void annotateMap(boolean asVote)
     {
