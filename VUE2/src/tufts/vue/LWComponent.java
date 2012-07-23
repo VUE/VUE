@@ -3110,7 +3110,10 @@ public class LWComponent
 
     private static final Object LAYOUT_DEFAULT = "default";
     
-    /** Layout this component and all children, if any */
+    /** Layout this component and all children, if any.  Normally this would only be called on an
+     * LWMap, but in some cases, any component might effectively be "at the top level" while in an
+     * intermediate state, such as components in a cut-buffer before they've been pasted out to a
+     * map. */
     public void layoutAll(Object triggerKey) {
         layout(triggerKey);
     }
@@ -4779,10 +4782,11 @@ public class LWComponent
         
         final boolean skipUndo;
         if (!internal && !javax.swing.SwingUtilities.isEventDispatchThread()) {
-            // There was a reason this was important to do -- I think in some cases
-            // this could leave undoable state in the undo queue after sizes changes
-            // that were really from initializations, and we do NOT want to 
-            // allow any undo back to a random pre-init size.
+            // There was a reason this was important to do -- I think in some cases this could
+            // leave undoable state in the undo queue after sizes changes that were really from
+            // initializations, and we do NOT want to allow any undo back to a random pre-init
+            // size.  [my guess is that this had/has to do with autosized] TODO 2012: BUG: selection
+            // format action "fill to width" is no longer capture what it does via undo..
             if (DEBUG.THREAD||DEBUG.UNDO||DEBUG.EVENTS) Log.info("skipping undo on non-AWT size change: " + this + "; newSize=" + w + "x" + h);
             skipUndo = true;
         } else {
