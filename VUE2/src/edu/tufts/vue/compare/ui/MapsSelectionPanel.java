@@ -79,19 +79,19 @@ public class MapsSelectionPanel extends JPanel  {
     public static final int OPEN_MAP = 0;
     public static final int LOCAL_FILE = 1;
     
-    public String stepOneMessage = VueResources.getString("dialog.selectionpane.stepOneMessage");
-    public String stepTwoMessage = VueResources.getString("dialog.selectionpane.stepTwoMessage");
-    public String stepThreeMessage = VueResources.getString("dialog.selectionpane.stepThreeMessage");
+    public String stepOneMessage = VueResources.local("dialog.selectionpane.stepOneMessage");
+    public String stepTwoMessage = VueResources.local("dialog.selectionpane.stepTwoMessage");
+    public String stepThreeMessage = VueResources.local("dialog.selectionpane.stepThreeMessage");
 
-    public String showAllMessage = VueResources.getString("dialog.selectionpane.showAllMessage");
-    public String filterOnPrimaryMapMessage = VueResources.getString("dialog.selectionpane.filterOnPrimaryMapMessage");
-    public String excluePrimaryMapNodesMessage = VueResources.getString("dialog.selectionpane.excluePrimaryMapNodesMessage");
+    public String showAllMessage = VueResources.local("dialog.selectionpane.showAllMessage");
+    public String filterOnPrimaryMapMessage = VueResources.local("dialog.selectionpane.filterOnPrimaryMapMessage");
+    public String excluePrimaryMapNodesMessage = VueResources.local("dialog.selectionpane.excluePrimaryMapNodesMessage");
     
-    public String filterOnBaseMapMessageString = VueResources.getString("dialog.selectionpane.filterOnBaseMapMessageString");
+    public String filterOnBaseMapMessageString = VueResources.local("dialog.selectionpane.filterOnBaseMapMessageString");
     
-    private String AddMaps = VueResources.getString("dialog.selectionpane.AddMaps");
+    private String AddMaps = VueResources.local("dialog.selectionpane.AddMaps");
     
-    private String MergeProrerty = VueResources.getString("dialog.selectionpane.MergeProrerty");
+    private String MergeProrerty = VueResources.local("dialog.selectionpane.MergeProrerty");
     private JScrollPane scroll;
     private JTable maps;
     //private JTextField fileNameField;
@@ -299,7 +299,10 @@ public class MapsSelectionPanel extends JPanel  {
         
         //bottomPanel = new JPanel();
         filterOnBaseMap = new JCheckBox();
+
+        // this is no longer in UI
         JLabel filterOnBaseMapMessage = new JLabel(filterOnBaseMapMessageString);
+        
         ////filterOnBaseMapMessage.setOpaque(false);
         //bottomPanel.setOpaque(false);
         //bottomPanel.add(filterOnBaseMap);
