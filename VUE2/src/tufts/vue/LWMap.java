@@ -2678,9 +2678,10 @@ public class LWMap extends LWContainer
      * Model version 3: relative children, groups back to relative with crude node-embedding support
      * Model version 4: relative children, groups relative, link points relative to parent (no longer have absolute map location)
      * Model version 5: layers added
+     * Model version 6: meta-data persistance change: old versions of VUE can no longer see the meta-data
      */
     public static int getCurrentModelVersion() {
-        return 5;
+        return 6;
     }
     
     
