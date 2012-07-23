@@ -70,7 +70,7 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer //implem
         mRow.add(mIconLabel);
     }
     
-    //private static final Color DataSourcesColor = VueResources.getColor("gui.widget.title.resultsPane.background.top");
+    private static final Color DataSourcesColor = VueResources.getColor("gui.widget.title.resultsPane.background.top");
     
     public Component getListCellRendererComponent(JList list,
                                                   Object value,
