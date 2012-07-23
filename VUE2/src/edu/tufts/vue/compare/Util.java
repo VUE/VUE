@@ -71,25 +71,23 @@ public class Util {
         MergeProperty = property;
     }
 
-    // May want an isValidTarget here that does the check for LWImage/LWNode, and, at minimum, if
-    // the current merge-key is RESOURCE, filter out Flag.ICON as well.  Right now the impl filters
-    // all of those out, tho technically they could have different labels, in which case we could
-    // merge on them, tho that may be too much of a stretch.  (They could have meta-data as well,
-    // etc).  Really, tho, we should treat them as if they're not there and entirely owned by the
-    // node, as their existence is only the result of a hack.
-
     public static MP getMergeProperty() { return MergeProperty; }
     
     public static Object getMergeProperty(final LWComponent c)
     {
         // if (!c.hasMetaData(VueMetadataElement.ONTO_TYPE)) // don't bother with onto crap
 
-        //System.out.println("getMergeKey " + MergeProperty + " " + c);
-        
         switch (MergeProperty) {
-        case BOTH: return c.getLabel() + "|" + c.getMetadataList().getOntologyListString();
+        case BOTH: return c.getLabel() + "|" + c.getMetadataList().getOntologyListString(); // "BOTH" is historical name
         case TYPE: return c.getMetadataList().getOntologyListString(); // concats, SLOWLY, any Onto VME's?
-        case RESOURCE: return c.hasResource() ? c.getResource().getSpec() : null;
+            // RESOURCE now means node Resource if one exists, LABEL otherwise.  This also means
+            // that the label of something that has a resource will never make it into the index.
+            // Not sure what we'd want to do with a two nodes that have same label, but only one
+            // has a resource -- this means they'll be treated differently.  To treat them the
+            // same, the ConnectivityMatrix would need to get much more complicated and allow
+            // multiple keys for the same index, and would probably fan out the problem in a nasty
+            // way.
+        case RESOURCE: return c.hasResource() ? c.getResource().getSpec() : c.getLabel();
         case LABEL:
         default: return c.getLabel();
         }
