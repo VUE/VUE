@@ -3555,7 +3555,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 g.drawString(""+mPaints, 100, 600);
             }
             
-            out("painted " + DrawContext.getDebug());
+            out("slow-paint: " + DrawContext.getDebug());
             pout(String.format("paint <-[%d]%s (%.2f fps) %dms",
                                mPaints,
                                (mThisPaintIsFast?" FAST":""),
@@ -6368,7 +6368,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 else if (c == 'U') { DEBUG.UNDO = !DEBUG.UNDO; }
                 else if (c == 'V') { DEBUG.VIEWER = !DEBUG.VIEWER; }
                 else if (c == 'W') { DEBUG.WORK = !DEBUG.WORK; }
-                else if (c == 'r') { DEBUG.ROLLOVER = !DEBUG.ROLLOVER; }
+                //else if (c == 'r') { DEBUG.ROLLOVER = !DEBUG.ROLLOVER; } // 'r' now taken by tool rapid-proto
                 else if (c == 'X') { DEBUG.TEXT = !DEBUG.TEXT; }
                 else if (c == 'Z') { resetScrollRegion(); }
                 
@@ -6390,7 +6390,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 //else if (c == '&') { tufts.macosx.Screen.fadeFromBlack(); }
                 //else if (c == '@') { tufts.macosx.Screen.setMainAlpha(.5f); }
                 //else if (c == '$') { tufts.macosx.Screen.setMainAlpha(1f); }
-                else if (c == '~') { if (e.isMetaDown()) { out("debug abort."); System.exit(-1);} }
+                //else if (c == '~') { if (e.isMetaDown()) { out("debug abort."); System.exit(-1);} }
                 else if (c == '_') { DEBUG.DYNAMIC_UPDATE = !DEBUG.DYNAMIC_UPDATE; }
                 else if (c == '*') { OPTIMIZED_REPAINT = !OPTIMIZED_REPAINT; }
                 //else if (c == '\\') { VUE.toggleFullScreen(); }
