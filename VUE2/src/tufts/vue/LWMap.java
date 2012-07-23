@@ -1314,7 +1314,13 @@ public class LWMap extends LWContainer
     
     static final String NODE_INIT_LAYOUT = "INIT_NODE_LAYOUT";
     static final String LINK_INIT_LAYOUT = "INIT_LINK_LAYOUT";
-    private static final String INIT_LAYOUT = "init_layout";
+    private static final String INIT_LAYOUT = "<validating-layout>";
+
+    /** for debug when this is called on an LWMap only */
+    @Override public void layoutAll(Object trigger) {
+        Log.info("layoutAll(" + Util.tags(trigger) + ") " + this);
+        super.layoutAll(trigger);
+    }
 
     /** to be called on maps that are manually created (e.g., not deserialized) before they're displayed */
     public void layoutAndValidateNewMap() {
