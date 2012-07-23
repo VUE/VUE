@@ -153,7 +153,7 @@ public class ConnectivityMatrix
         }
     }
     
-    /**The method adds labels to the connectivity matrix */
+    /** find all merge keys based on the global merge-property set, and load them into the counting set */
     private void indexMergeKeys(final Collection<LWComponent> allInMap) {
         if (DEBUG.MERGE) Log.debug("indexing [" + Util.getMergeProperty() + "] merge keys for map " + map);
         for (LWComponent c : allInMap) {
