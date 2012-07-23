@@ -88,7 +88,7 @@ public class RDFIndex extends com.hp.hpl.jena.rdf.model.impl.ModelCom
     
     // The naming convetion here is that a "namespace" has the # at the end, but a "prefix" does not.
     // E.g., a namespace is ready to just have a label/keyword appended, and a prefix might have further
-    // URL path depth added to it first.
+    // URL path depth added to it first.  E.g.: http://vue.tufts.edu/vue.rdfs
     private static final String VUE_GENERAL_NAMESPACE = VueResources.getString("metadata.vue.url") + ONT_SEPARATOR;
     private static final String VUE_OSID_PREFIX = "http://vue.tufts.edu/osid/"; // is adding to the path this way a reasonable RDF convention?
     private static final String VUE_OSID_UNKNOWN_NAMESPACE = VUE_OSID_PREFIX + "#";
@@ -453,6 +453,8 @@ public class RDFIndex extends com.hp.hpl.jena.rdf.model.impl.ModelCom
                     // Optimization: this being a "none" term (no keyword), don't bother with empty values
                     addStatement(createStatement(r, _propertyNone, value));
                 }
+                // todo: add special property for #source as well, or refactor everything so
+                // that such relationships are pre-established and need no detecting (e.g., smarter VME)
             }
             else if (key == null) {
                 Log.warn(r + ": null key: " + vme);
