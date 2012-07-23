@@ -22,6 +22,8 @@ package edu.tufts.vue.metadata;
 public class Constants {
    public static final String ONTOLOGY_URL  = "http://vue.tufts.edu/ontology/vue.rdfs";
    public static final String RESOURCE_URL = "http://vue.tufts.edu/rdf/resource/";
+
+    // todo: make this an array of std properties
    public static final String ID = "id";
    public static final String LABEL = "label";
    public static final String CHILD  = "child";
