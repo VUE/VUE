@@ -33,27 +33,40 @@ public final class VueMetadataElement implements tufts.vue.XMLUnmarshalListener
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(VueMetadataElement.class);
 
-    public final static String ONTOLOGY_NONE = edu.tufts.vue.rdf.RDFIndex.VueTermOntologyNone;
+    static final public String ONTOLOGY_NONE = edu.tufts.vue.rdf.RDFIndex.VueTermOntologyNone;
+    static final public String ONT_SEPARATOR = "#";
+ // public static final String VUE_ONT = Constants.ONTOLOGY_URL;//+ONT_SEPARATOR; //"vue.tufts.edu/vue.rdfs";
     
-    private static final boolean _DEBUG = false; 
-    
-    private String value;
-    private String key;
-    private Object obj;
-    private int type;
-   
-    public static final int TAG = 0;
-    public static final int CATEGORY = 1;
-    public static final int ONTO_TYPE = 2;
-    public static final int SEARCH_STATEMENT = 3;
-    public static final int OTHER = 4;
-    public static final int RESOURCE_CATEGORY = 5;
+    static final String KEY_TAG = Constants.ONTOLOGY_URL + "#TAG";
+    static final String KEY_TAG_OLD = Constants.ONTOLOGY_URL + "#Tag";
+    static final String KEY_ONTO_TYPE = Constants.ONTOLOGY_URL + "#ontoType";
+    static final String KEY_SOURCE = Constants.ONTOLOGY_URL + "#source";
 
-    private static final String[] _Types = {"TAG", "CAT", "ONTO", "SEARCH", "OTHER", "ResCat" };
+    int type;
+    String key;
+    String value;
+    
+    private Object obj;
+    
+    /** don't know how TAG originally meant to be used, but a bug spent years saving maps with that
+     * meant to be OTHER, which was MERGE-SOURCE, as this */
+    static final int TAG = 0;     /** access: MetadataList */
+
+    public static final int CATEGORY = 1;
+    /** public for LWIcon presence-query only */
+    public static final int ONTO_TYPE = 2; // can barely find any old maps with this type set, lots of code refs that send us an OntType instance will cause it to be set tho
+    public static final int SEARCH_STATEMENT = 3; // tag used be search code, ends up being alias for OTHER, tho we never have these in a MetadataList
+    /** access: LWIcon */
+    public static final int OTHER = 4; // Current impl code has hardcoded this to mean "merge source meta-data", tho it always ended up being turned into TAG
+    public static final int RESOURCE_CATEGORY = 5; /// Only ever use for actual LWMap meta-data: e.g., dc:creator, set in MapInspectorPanel
+
+    static final int VME_EMPTY_IGNORE = Integer.MIN_VALUE; // mark for ignoring in MetadataList.SubsetList.add during deserialize
+    
+    static final String[] _Types = {"TAG", "CAT", "ONTO", "SEARCH", "OTHER(Merge)", "ResCat" };
    
-    public static final String ONT_SEPARATOR = "#";
-   
-    public static final String VUE_ONT = Constants.ONTOLOGY_URL;//+ONT_SEPARATOR; //"vue.tufts.edu/vue.rdfs";
+    /** an object to make most objects look okay to MetadataList (except OntoType) and
+     * prevent it from resetting type -- we should never see this key/value anywhere. */
+    private static final Object UniversalOkayObject = new String[] { "[keyPlaceHolder]", "[valuePlaceHolder]" };
 
     public VueMetadataElement() {}
     
@@ -62,6 +75,18 @@ public final class VueMetadataElement implements tufts.vue.XMLUnmarshalListener
         setValue(value);
         setType(CATEGORY);
     }
+
+    /** for merge-sources */
+    public static VueMetadataElement createSourceTag(String sourceString) {
+        final VueMetadataElement vme = new VueMetadataElement();
+        vme.type = OTHER;
+        vme.key = KEY_SOURCE;
+        vme.value = sourceString;
+        vme.obj = UniversalOkayObject;
+        // try leaving object empty: RDFIndex no longer cares, and this shouldnt show up in
+        // interactive UI
+        return vme;
+    }
                                                          
    
     public int    getType() { return type; }
@@ -69,24 +94,30 @@ public final class VueMetadataElement implements tufts.vue.XMLUnmarshalListener
     public String getValue() { return value; }
     public Object getObject() { return obj; }
 
-    public boolean hasValue() { return value != null && value.trim().length() > 0; }
+    public boolean hasValue() { return value != null && value.length() > 0; }
     public boolean isEmpty() { return key == ONTOLOGY_NONE && !hasValue(); }
 
+    // Note that for all save files prior to 2012, the deserialize call order
+    // is VALUE first, then KEY, then TYPE last.
+
     // For castor mapping file hacks -- getters always null to remove from future save files.
-    // These sames make more sense when reading the mapping file.
+    // These names make more sense when reading the mapping file.
     /** for mapping backward compat*/public String      getSetterKey() { return null; }
     /** for mapping backward compat*/public String      getSetterValue() { return null; }
     /** for mapping backward compat*/public String      getSetterType() { return null; }
     /** for mapping backward compat*/public void        setSetterKey(String k) { setKey(k); }
     /** for mapping backward compat*/public void        setSetterValue(String v) { setValue(v); }
-    /** for mapping backward compat*/public void        setSetterType(String t) {
-        // This is marked as string persistance so we can always returl null
-        // in getter to remove from future save files.
+    /** for mapping backward compat*/public void        setSetterType(String t)
+    {
+        // This is marked as a type java.lang.String in mapping file so we have a real Object we
+        // deal with, which we need in order to return null in the getter to remove from future
+        // save files.
         if (t == null || t.length() < 1) {
-            System.out.println("VME: empty type in old save file: " + Util.tags(t));
-            setType(0);
+            if (DEBUG.Enabled) Log.debug("empty type in old save file: " + Util.tags(t));
+            this.type = 0;
         } else {
-            setType(t.charAt(0) - '0');
+            // setType(t.charAt(0) - '0');
+            this.type = t.charAt(0) - '0';
         }
     }
 
@@ -100,28 +131,52 @@ public final class VueMetadataElement implements tufts.vue.XMLUnmarshalListener
     public void XML_completed(Object context) {
         // This will check for applying old key patches, and initialize
         // the horrible hack of the this.obj member.
-        setType(this.type);
+        
+        if (key == null)
+            key = KEY_TAG;
+
+        boolean isGood = true;
+        
+        if (key == ONTOLOGY_NONE || key == KEY_TAG) {
+            // these identity objects were established in setKey
+            isGood = hasValue();
+        } else if (key.equals(KEY_TAG_OLD)) {
+            key = KEY_TAG;
+            isGood = hasValue();
+        }
+
+        if (isGood)
+            setType(this.type);
+        else
+            this.type = VME_EMPTY_IGNORE; // mark for ignoring in MetadataList.SubsetList.add
+
+        //if (DEBUG.Enabled) Log.debug("      xml: " + this);
+        //if (DEBUG.Enabled) Log.debug("completed: " + this);
     }
+    
     public void XML_fieldAdded(Object context, String name, Object child) {}
     public void XML_addNotify(Object context, String name, Object parent) {}
 
     /** castor persist only */public void setXMLtype(int type) { this.type = type; }
     /** castor persist only */public int getXMLtype() { return type; }
    
-   public void setKey(final String newKey) {
-       if (ONTOLOGY_NONE.equals(newKey)) {
-           this.key = ONTOLOGY_NONE;
-           // performance hack: on deserialize, make objects have same identity (also allows
-           // tossing this input string) todo: do for #TAG also (merge maps create lots of these)
-       } else {
-           this.key = newKey;
+   public void setKey(final String key) {
+       // performance hack: esp. for deserializing, check for key constants and change them
+       // to their identity object.  Todo: change impl entirely so VME members are
+       // all final.  todo: shouldn't really need this after deserialize.
+       if (key != null && key.startsWith("http://vue.")) {
+                if (ONTOLOGY_NONE.equals(key))  this.key = ONTOLOGY_NONE;
+           else if (KEY_SOURCE.equals(key))     this.key = KEY_SOURCE;
+           else if (KEY_TAG.equals(key))        this.key = KEY_TAG;
+           else 
+               this.key = key;
        }
-       // object gets reset from persistence in setType
+       else
+           this.key = key;
    }
    
    public void setValue(String value) {
        this.value = value;
-       // object gets reset from persistence in setType
    }
 
    
@@ -134,7 +189,6 @@ public final class VueMetadataElement implements tufts.vue.XMLUnmarshalListener
      */
     public void setType(int type)
     {
-        if (_DEBUG) Log.debug("setType " + type + " on: " + this);
         this.type = type;
        
         if (obj == null && (type == CATEGORY || type == RESOURCE_CATEGORY || type == ONTO_TYPE)) {
@@ -145,7 +199,7 @@ public final class VueMetadataElement implements tufts.vue.XMLUnmarshalListener
                 //-----------------------------------------------------------------------------
                 // Fix for files saved before 11/27/2007 -- file:/ prefix didn't work in
                 // rdf search, so used http://vue.tufts.edu#custom.rdfs instead.
-                if (key.indexOf("file") != -1 && key.indexOf("custom.rdfs") != -1) {
+                if (key != null && key.indexOf("file") != -1 && key.indexOf("custom.rdfs") != -1) {
                     if (key.indexOf("#") != -1) {
                         Log.info("patching key in: " + key + "=" + value);
                         this.key = "http://vue.tufts.edu/custom.rdfs" + key.substring(key.indexOf("#"), key.length());
@@ -159,7 +213,7 @@ public final class VueMetadataElement implements tufts.vue.XMLUnmarshalListener
         }
     }
    
-    /** a messy and pain inducing hack this was */
+    /** a messy and pain inducing hack this was -- appears to rarely be called directly in VUE source, so elimination shouldn't be too bad */
     public void setObject(final Object obj)
     {
         if (DEBUG.Enabled) Log.warn("setObject->: " + this + "; obj=" + Util.color(Util.tags(obj), Util.TERM_GREEN));
@@ -168,7 +222,7 @@ public final class VueMetadataElement implements tufts.vue.XMLUnmarshalListener
         if (obj instanceof String) {
             type = TAG;
             value = (String) obj;
-            key = VUE_ONT + "#TAG";
+            key = KEY_TAG;
         }
         else if (obj instanceof String[]) {
             type = CATEGORY;
@@ -179,7 +233,7 @@ public final class VueMetadataElement implements tufts.vue.XMLUnmarshalListener
             type = ONTO_TYPE;
             OntType type = (OntType)(obj);
             value = type.getBase() + "#" + type.getLabel();
-            key = VUE_ONT+"#ontoType";
+            key = KEY_ONTO_TYPE;
         }
         else {
             type = OTHER;
