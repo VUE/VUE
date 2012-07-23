@@ -134,13 +134,27 @@ public class ProviderControlManager
     private String checkForRootDirRuntimeConfiguration()
     {
         final File oldDir = new File(OldLibraryDir);
+        final File newDir = new File(NewLibraryDir);
 
         if (oldDir.exists() && oldDir.isDirectory() && oldDir.canRead()) {
-            Log.info("Found old OsidProviders dir: " + oldDir);
-            if (DEBUG) tufts.Util.dumpArray(oldDir.listFiles());
+            final String[] oldContents = oldDir.list();
+            Log.info("Found old OsidProviders dir: " + oldDir + " contains " + oldContents.length + " files; canWrite=" + oldDir.canWrite());
+            if (DEBUG) tufts.Util.dumpArray(oldContents);
+
+            if (newDir.exists() && newDir.isDirectory() && newDir.canRead()) {
+                // In case an OLD version of VUE was later run which re-created the original dir
+                // somehow, prioritize the new directory if it has more contents than the old,
+                // or, of course, if the old isn't writeable.
+                final String newContents[] = newDir.list();
+                Log.info("Found new OsidProviders dir: " + newDir + " contains " + newContents.length + " files");
+                if (oldDir.canWrite() && newContents.length > oldContents.length) {
+                    Log.info("prioritizing new dir over old based on contents: " + NewLibraryDir);
+                    return NewLibraryDir;
+                }
+            }
 
             if (oldDir.canWrite()) {
-                
+                Log.info("old dir still writeable, keep using: " + OldLibraryDir);
                 // Leave it be -- keep using old location.  Even if the user upgrades to a new
                 // version of OS X where /Library is no longer writeable, /Library/OsidProviders
                 // should already be there -- "grandfathered" in.
@@ -150,10 +164,9 @@ public class ProviderControlManager
                 // writeable to all, and I don't see any code for that in the Installer...  If
                 // that's the case, this is still a problem going forward, and we should 
                 // consider putting this in the users home .vue_2 config directory...
-
                 return null;
                 
-            } else
+            } else if (oldContents.length > 0)
                 Log.warn("Old providers dir exists, but we cannot write to it -- providers may need re-download for " + NewLibraryDir);
         }
 
