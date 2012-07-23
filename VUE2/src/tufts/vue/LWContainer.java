@@ -136,7 +136,7 @@ public abstract class LWContainer extends LWComponent
      * deepeset children first (so children will already be sized propertly out when parents
      * attempt to lay them out).
      */
-    @Override public final void layoutAll(Object triggerKey) {
+    @Override public void layoutAll(Object triggerKey) {
         // We could skip the list fetch by making this a recursive descent call, tho, for the LWMap
         // level, we want to use ChildKind.ANY to hit EVERYTHING, inckude slides on pathways, 
         // master slides, etc.
@@ -990,18 +990,16 @@ public abstract class LWContainer extends LWComponent
     @Override
     public Iterator<LWLink> getAllLinksIterator()    { return getDescendentsOfType(LWLink.class).iterator(); }
 
-    /** same us using: for (LWNode node : getChildrenOfType(LWNode.class)) { ... } */
-    @Override
-    public Iterator<LWNode> getChildNodeIterator()    { return getChildrenOfType(LWNode.class).iterator(); }
-    /** same us using: for (LWLink link : getChildrenOfType(LWLink.class)) { ... } */
-    @Override
-    public Iterator<LWLink> getChildLinkIterator()    { return getChildrenOfType(LWLink.class).iterator(); }
-    
-
-    /** @deprecated - use getChildNodeIterator */
-    public Iterator getNodeIterator()    { return getChildNodeIterator(); }
-    /** @deprecated - use getChildLinkIterator */
-    public Iterator getLinkIterator()    { return getChildLinkIterator(); }
+    // /** same us using: for (LWNode node : getChildrenOfType(LWNode.class)) { ... } */
+    // @Override
+    // public Iterator<LWNode> getChildNodeIterator()    { return getChildrenOfType(LWNode.class).iterator(); }
+    // /** same us using: for (LWLink link : getChildrenOfType(LWLink.class)) { ... } */
+    // @Override
+    // public Iterator<LWLink> getChildLinkIterator()    { return getChildrenOfType(LWLink.class).iterator(); }
+    // /** @deprecated - use getChildNodeIterator */
+    // public Iterator getNodeIterator()    { return getChildNodeIterator(); }
+    // /** @deprecated - use getChildLinkIterator */
+    // public Iterator getLinkIterator()    { return getChildLinkIterator(); }
 
     /** @return the total number of descendents */
     @Override
