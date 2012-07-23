@@ -153,7 +153,7 @@ public class ProviderControlManager
                 }
             }
 
-            if (oldDir.canWrite()) {
+            if (oldDir.canWrite() && oldContents.length > 0) {
                 Log.info("old dir still writeable, keep using: " + OldLibraryDir);
                 // Leave it be -- keep using old location.  Even if the user upgrades to a new
                 // version of OS X where /Library is no longer writeable, /Library/OsidProviders
