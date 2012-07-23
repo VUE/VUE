@@ -73,11 +73,32 @@ public class WeightAggregate extends ConnectivityMatrix
     
     /** @return the number of nodes with the given merge-key (e.g. label) in the aggregate */        
     public int getNodeCount(Object key) {
-        return super.keys.count(key);
+        try {
+            return super.keys.count(key);
+        } catch (NullPointerException e) {
+            Log.warn("getNodeCount: key not present: " + tufts.Util.tags(key));
+            return 0;
+        }
     }
+
+    
+    /** this does not return exactly the % of maps a node is found on: a node many times
+     * on a single map will increase it's weight, yes?  todo: do I have that right?
+     * See mergeInConnectionValues... */
+    public double getPercentFound(LWComponent c) {
+
+        final int nodeCount = getNodeCount(Util.getMergeProperty(c));
+
+        if (nodeCount <= 0) {
+            Log.warn("not found w/key: " + c);
+            return 0.0;
+        }
+        return (100.0 * nodeCount) / (double) this.count;
+    }
+    
     
     /** @return the number of matricies summed into this aggregate */
     public int getCount() {
-        return count;
+        return this.count;
     }
 }
