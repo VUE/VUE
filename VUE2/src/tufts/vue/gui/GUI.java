@@ -1319,7 +1319,7 @@ public class GUI
             
             //activateWaitCursor(ViewerWithWaitCursor = VUE.getActiveViewer());
             activateWaitCursor(VUE.getApplicationFrame());
-            activateWaitCursor(getFullScreenWindow());
+            activateWaitCursor(getFullScreenWindow()); // not always working?
             for (DockWindow dw : DockWindow.AllWindows)
                 activateWaitCursor(dw.window());
 
