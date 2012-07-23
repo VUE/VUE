@@ -56,8 +56,8 @@ public class MergeMapsControlPanel extends JPanel /* implements ActiveListener<L
         mapSelectionPanel = MapsSelectionPanel.getMapSelectionPanel();
         visualizationSettingsPanel = new VisualizationSettingsPanel();
         final JTabbedPane tabs = new JTabbedPane();
-        tabs.addTab(VueResources.getString("dialog.mergemap.selectmaps"),mapSelectionPanel);
-        tabs.addTab(VueResources.getString("dialog.mergemap.visualizationsettings"),visualizationSettingsPanel);
+        tabs.addTab(VueResources.local("dialog.mergemap.selectmaps"),mapSelectionPanel);
+        tabs.addTab(VueResources.local("dialog.mergemap.visualizationsettings"),visualizationSettingsPanel);
         
         /*tabs.addPropertyChangeListener(new PropertyChangeListener()
         {
@@ -92,7 +92,7 @@ public class MergeMapsControlPanel extends JPanel /* implements ActiveListener<L
         
         
         add(tabs);
-        closeButton = new JButton(VueResources.getString("dialog.mergemap.close"));
+        closeButton = new JButton(VueResources.local("dialog.mergemap.close"));
         closeButton.addActionListener(new ActionListener()
         {
            public void actionPerformed(ActionEvent e)
@@ -100,7 +100,7 @@ public class MergeMapsControlPanel extends JPanel /* implements ActiveListener<L
                dw.setVisible(false);
            }
         });
-        generateButton = new JButton(VueResources.getString("dialog.mergemap.generatenewmap"));
+        generateButton = new JButton(VueResources.local("dialog.mergemap.generatenewmap"));
         generateButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     //final LWMergeMap merge = new LWMergeMap(LWMergeMap.getTitle());
@@ -192,9 +192,9 @@ public class MergeMapsControlPanel extends JPanel /* implements ActiveListener<L
         final JLabel progressLabel = new JLabel();
         if(noMapsSelected) {
             // No need to do this this: should just disable the "generate" button
-            progressLabel.setText(VueResources.getString("dialog.mergemap.nomapsselected"));  
+            progressLabel.setText(VueResources.local("dialog.mergemap.nomapsselected"));  
         } else {    
-            progressLabel.setText(VueResources.getString("dialog.mergemap.inprogress"));
+            progressLabel.setText(VueResources.local("dialog.mergemap.inprogress"));
         }
         loadingLabel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
                         
@@ -251,8 +251,6 @@ public class MergeMapsControlPanel extends JPanel /* implements ActiveListener<L
         final Runnable displayTask = new Runnable() {
                 public void run() {
                     Log.info("invoke-later for displayMap " + mergedMap);
-                    mergedMap.layoutAll("MERGE-CREATED");
-                    // mergedMap.markAsSaved();
                     VUE.displayMap(mergedMap);
                     dw.setContent(MergeMapsControlPanel.this);
                     dw.repaint();   
@@ -285,8 +283,6 @@ public class MergeMapsControlPanel extends JPanel /* implements ActiveListener<L
         mm.setLinkThresholdSliderValue(visualizationSettingsPanel.getLinkThresholdSliderValue());
         mm.setFilterOnBaseMap(mapSelectionPanel.getFilterOnBaseMap());
         mm.setExcludeNodesFromBaseMap(mapSelectionPanel.getExcludeNodesFromBaseMap());
-        // not needed: just switch for fillAsVote v.s. fillAsWeight        
-        //mm.setVisualizationSelectionType(visualizationSettingsPanel.getVisualizationSettingsType());
         
         if (visualizationSettingsPanel.getVisualizationSettingsType() == VisualizationSettingsPanel.VOTE)
             return mm.createAsVoteMerge();
