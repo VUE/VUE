@@ -70,7 +70,8 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer //implem
         mRow.add(mIconLabel);
     }
     
-
+    //private static final Color DataSourcesColor = VueResources.getColor("gui.widget.title.resultsPane.background.top");
+    
     public Component getListCellRendererComponent(JList list,
                                                   Object value,
                                                   int index,
@@ -84,10 +85,15 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer //implem
         if (selected) {
             bg = GUI.getTextHighlightColor();
         } else {
-            if (index % 2 == 0)
-                bg = list.getBackground();
-            else
-                bg = AlternateRowColor;
+            if (true || DEBUG.TEST) {
+                bg = SystemColor.control;
+            } else {
+                bg = DataSourcesColor;
+                //if (index % 2 == 0)
+                //     bg = list.getBackground();
+                // else
+                //     bg = AlternateRowColor;
+            }
         }
         mRow.setBackground(bg);
         mCheckBox.setBackground(bg);        
