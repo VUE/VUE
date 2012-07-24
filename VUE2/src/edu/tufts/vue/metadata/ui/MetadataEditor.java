@@ -39,6 +39,8 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellEditor;
 
+import tufts.Util;
+import tufts.vue.DEBUG;
 import tufts.vue.ActiveEvent;
 import tufts.vue.ActiveListener;
 import tufts.vue.LWComponent;
@@ -85,9 +87,11 @@ import edu.tufts.vue.rdf.RDFIndex;
 public class MetadataEditor extends JPanel
     implements ActiveListener, MetadataList.MetadataListListener, LWSelection.Listener
 {
-    private static final boolean AUTO_ADD_EMPTY = true; // leaving this on for now, tho we should refactor not to need it
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(MetadataEditor.class);
+
+    private static final boolean AUTO_ADD_EMPTY = false; // leaving this on for now, tho we should refactor not to need it
     
-    private static final boolean DEBUG_LOCAL = false;
+    private static final boolean DEBUG_LOCAL = DEBUG.PAIN;
     
     public final static String CC_ADD_LOCATION_MESSAGE = "<html> Click [+] to add this <br> custom category to your own list. </html>";
     
@@ -130,22 +134,19 @@ public class MetadataEditor extends JPanel
     private boolean focusToggle = false;
     
     private JButton autoTagButton =  new JButton(VueResources.getString("keywordPanel.autotag"));
+
+    /** EmptyVME is used to fix the nasty bug of empty data from being added to node just by selecting it */
+    private final VueMetadataElement EmptyVME = new VueMetadataElement();
    
     public MetadataEditor(tufts.vue.LWComponent current,boolean showOntologicalMembership,boolean followAllActive)
     {
-   
         //VUE-846 -- special case related to VUE-845 (see comment on opening from keyword item in menu) 
-        if(getSize().width < 100)
-        {
-   
-           setSize(new java.awt.Dimension(300,200));
-           
-        }
+        if(getSize().width < 100) 
+            setSize(new java.awt.Dimension(300,200));
         
         autoTagButton.setAction(tufts.vue.AnalyzerAction.calaisAutoTagger);
 //        autoTagButton.setLabel(VueResources.getString("keywordPanel.autotag"));
         autoTagButton.setFont(tufts.vue.gui.GUI.SmallFont);
-        
         
         this.current = current;
         // clear gui below after create table.
@@ -580,6 +581,8 @@ public class MetadataEditor extends JPanel
     
     public void addNewRow()
     {
+        if (DEBUG.PAIN) Log.debug("addNewRow, EmptyVME: " + EmptyVME);
+        
         VueMetadataElement vme = new VueMetadataElement();
         String[] emptyEntry = {NONE_ONT,""};
         vme.setObject(emptyEntry);
@@ -587,28 +590,21 @@ public class MetadataEditor extends JPanel
         //metadataTable.getModel().setValueAt(vme,metadataTable.getRowCount()+1,0);
         // wrong order?? not getting intial field in multiples and current could be
         // non empty when currentMultiples is also..
-        /*if(current !=null)
-        {    
+        /*if(current !=null) {    
           MetadataEditor.this.current.getMetadataList().getMetadata().add(vme);
-        }
-        else if(currentMultiples != null)
-        {
-                      
+        } else if(currentMultiples != null) {
           currentMultiples.getMetadataList().getMetadata().add(vme);   
-            
-          if(DEBUG_LOCAL)
-          {
+          if(DEBUG_LOCAL) {
               System.out.println("ME: current multiples is not null -- addNewRow " +
                       currentMultiples.getMetadataList().getCategoryListSize() );
-          }
- 
-        }*/
+          } }*/
         
         if(currentMultiples != null) {
-          currentMultiples.getMetadataList().getMetadata().add(vme);   
-          if(DEBUG_LOCAL) { System.out.println("ME: current multiples is not null -- addNewRow " + currentMultiples.getMetadataList().getCategoryListSize() ); }
+            currentMultiples.getMetadataList().getMetadata().add(vme);   
+            if(DEBUG_LOCAL) { System.out.println("ME: current multiples is not null -- addNewRow " + currentMultiples.getMetadataList().getCategoryListSize() ); }
         }
-        else if (/*AUTO_ADD_EMPTY &&*/ current !=null) {    
+        else if (/*AUTO_ADD_EMPTY &&*/ current != null) {
+            // If we skip this, we get infinite loop when selecting a node!
             MetadataEditor.this.current.getMetadataList().getMetadata().add(vme);
         }
         ((MetadataTableModel)metadataTable.getModel()).refresh();
@@ -712,13 +708,35 @@ public class MetadataEditor extends JPanel
         super.repaint();
       //  adjustColumnModel();
     }
+
+    private String[] getObject(VueMetadataElement vme) {
+        return vme == null ? null : (String[]) vme.getObject();
+    }
+    private String[] getObjectCurrent(int row) {
+        return getObject(current.getMetadataList().getCategoryList().get(row));
+    }
+    private String[] getObjectMulti(int row) {
+        return getObject(currentMultiples.getMetadataList().getCategoryList().get(row));
+    }
+    private String[] getObjectActive(int row) {
+        if (current != null)
+            return getObjectCurrent(row);
+        else if (currentMultiples != null)
+            return getObjectMulti(row);
+        else
+            throw new Error("no active component(s) handle");
+    }
+    /** @return the category key at the given row */
+    private String getKeyForRow(int row) {
+        return getObjectActive(row)[0];
+    }
+    private String getValueForRow(int row) {
+        return getObjectActive(row)[1];
+    }
     
     public void selectionChanged(LWSelection selection)
     {
-        if(DEBUG_LOCAL)
-        {
-            System.out.println("MDE: selection changed" + selection);
-        }
+        if (DEBUG_LOCAL) Log.debug("selection changed" + selection);
         
         if(!selection.isEmpty())
         {
@@ -784,11 +802,10 @@ public class MetadataEditor extends JPanel
                       int compCount = java.util.Collections.frequency(comp.getMetadataList().getCategoryList().getList(),next);
                       int numberToRemove = sharedCount - compCount;
                       
-                      if(DEBUG_LOCAL)
-                      {
+                      if(DEBUG_LOCAL) {
                           System.out.println("ME -- for comp - " + comp.getID());
                           System.out.println("ME -- comp count vs shared count " + compCount + "-" + sharedCount);
-                          System.out.println("ME - number of " + next.getObject() + " to remove from shared: " + numberToRemove);
+                          System.out.println("ME - number of " + getObject(next) + " to remove from shared: " + numberToRemove);
                       }
                       
                       if(sharedCount > compCount)
@@ -1008,49 +1025,51 @@ public class MetadataEditor extends JPanel
            return comp;
        }
     }
-    
-    public boolean findCategory(Object currValue,int row,int col,int n,JComboBox categories)
+
+    // Note: currValue only ever called with something from the contents of a String[] ...
+    //public boolean findCategory(Object currValue,int row,int col,int n,JComboBox categories)
+    /** @return true if we can find a proper RDF style category for the given keyName -- will also select that item in categories */
+    public boolean findCategory(final String keyName, final int _unused_row, final int _unused_col, final JComboBox categories)
     {
-    
-               boolean found = false;
+        final int msize = categories.getModel().getSize();
         
-               //if(DEBUG_LOCAL)
-               //{
-               //    System.out.println("MetadataEditor findCategory - " + currValue);
-               //}
+        if (DEBUG.PAIN) Log.debug("findCategory: lookup with: " + Util.tags(keyName));
+        // Util.printClassTrace("!java");
+
+        if (keyName == null || keyName.indexOf('#') < 0)
+            return false;
         
-               //Object currValue = table.getModel().getValueAt(row,col); //.toString();
-               //System.out.println("Editor -- currValue: " + currValue);
-               for(int i=0;i<n;i++)
-               {
-                   
-                   Object item = categories.getModel().getElementAt(i);
-                   String currLabel = "";
-                   if(currValue instanceof OntType)
-                       currLabel = ((OntType)currValue).getLabel();
-                   else
-                       currLabel = currValue.toString();
-                   
-                   if(item instanceof OntType &&
-                           (((OntType)item).getBase()+"#"+((OntType)item).getLabel()).equals(currLabel))
-                   {
-                       categories.setSelectedIndex(i);
-                       found = true;
-                   }
-                   
-               }
-               
-               return found;
-               
+        //if(DEBUG_LOCAL)  System.out.println("MetadataEditor findCategory - " + currValue);
+        //Object currValue = table.getModel().getValueAt(row,col); //.toString();
+        //System.out.println("Editor -- currValue: " + currValue);
+        
+        boolean found = false;
+        for(int i = 0; i < msize; i++) {
+            final Object item = categories.getModel().getElementAt(i);
+            //String currLabel = "";
+            // if (currValue instanceof OntType)
+            //     currLabel = ((OntType)currValue).getLabel();
+            // else currLabel = curValue.toString();
+            if (item instanceof OntType) {
+                final OntType ont = (OntType) item;
+                if (keyName.equals(ont.getBase()+"#"+ont.getLabel())) {
+                    if (DEBUG.PAIN) Log.debug("findCategory: at index " + i + " hit " + Util.tags(item));
+                    categories.setSelectedIndex(i);
+                    found = true;
+                    break;
+                    // SMF: added break, which would change this from select last to select first, tho this is a JComboBox,
+                    // and no items should be the same.
+                }
+            }
+        }
+        return found;
     }
     
     class MetadataTableRenderer extends DefaultTableCellRenderer
     {   
-        
-       private JComboBox categories = new JComboBox();
-       private edu.tufts.vue.metadata.gui.MetaButton deleteButton = new 
-               edu.tufts.vue.metadata.gui.MetaButton(MetadataEditor.this,"delete");
-       private JPanel holder = new JPanel();
+        private final JComboBox categories = new JComboBox();
+        private final JButton deleteButton = new edu.tufts.vue.metadata.gui.MetaButton(MetadataEditor.this, "delete");
+        private final JPanel holder = new JPanel();
         
        public java.awt.Component getTableCellRendererComponent(JTable table, Object value,boolean isSelected,boolean hasFocus,int row,int col)
        {
@@ -1061,135 +1080,95 @@ public class MetadataEditor extends JPanel
            categories.setRenderer(new CategoryComboBoxRenderer());
            
            comp.setLayout(new BorderLayout());
-           if(col == buttonColumn-2)
-           {
-               int n = categories.getModel().getSize();
-               
-               Object currObject = null;
-               if(current != null)
-                 currObject = current.getMetadataList().getCategoryList().get(row).getObject();
-               else if(currentMultiples!=null)
-               {    
-                 VueMetadataElement ele = currentMultiples.getMetadataList().getCategoryList().get(row);
-                 
-                 if(DEBUG_LOCAL)
-                 {
-                     System.out.println("ME - getTableCellRendererComponent - ele: " + ele);
-                 }
-                 
-                 currObject = ele.getObject();
-                 
-                 /*if(currObject !=null)
-                   currObject = ele.getObject();
-                 else
-                 {
-                   VueMetadataElement vme = VueMetadataElement.getNewCategoryElement();
-                   currentMultiples.getMetadataList().getCategoryList().set(row,vme);
-                     
-                   currObject = vme.getObject();
-                 }*/
-               }
-               
-               Object currValue = (((String[])currObject)[0]);
-               boolean found = findCategory(currValue,row,col,n,categories); 
+           if (col == buttonColumn - 2) {
+               // // Object currObject = null;
+               // // if (current != null) {
+               // //     currObject = getObjectCurrent(row);
+               // // } else if(currentMultiples!=null) {    
+               // //     final VueMetadataElement ele = currentMultiples.getMetadataList().getCategoryList().get(row);
+               // //     if (DEBUG_LOCAL) Log.debug("getTableCellRendererComponent - ele: " + ele);
+               // //     currObject = getObject(ele);
+               // //     /*if(currObject !=null)
+               // //       currObject = ele.getObject();
+               // //       else {
+               // //       VueMetadataElement vme = VueMetadataElement.getNewCategoryElement();
+               // //       currentMultiples.getMetadataList().getCategoryList().set(row,vme);
+               // //       currObject = vme.getObject(); }*/
+               // // }
+               // // Object currValue = (((String[])currObject)[0]);
+               // final String currValue = getObjectActive(row)[0];
+
+               final String key = getKeyForRow(row);
+               final boolean found = findCategory(key,row,col,categories); 
               
-               MetadataTableModel model = (MetadataTableModel)table.getModel();
+               final MetadataTableModel model = (MetadataTableModel)table.getModel();
                
-               if((found) || !model.getIsSaved(row))
-               {    
-                 model.setCategoryFound(row,true);  
+               if (found || !model.getIsSaved(row)) {
                    
-                 if(!model.getIsSaved(row) )
-                  comp.add(categories);
-                 else
-                 {
-                   String customName = currValue.toString();
-                   int ontSeparatorLocation = customName.indexOf(edu.tufts.vue.rdf.RDFIndex.ONT_SEPARATOR);
-                   if( ontSeparatorLocation != -1 && ontSeparatorLocation != customName.length() - 1)
-                   {
-                       customName = customName.substring(ontSeparatorLocation + 1,customName.length());
+                   model.setCategoryFound(row,true);
+                   if (!model.getIsSaved(row) ) {
+                       comp.add(categories);
+                   } else {
+                       String customName = key;
+                       int ontSeparatorLocation = customName.indexOf(edu.tufts.vue.rdf.RDFIndex.ONT_SEPARATOR);
+                       if( ontSeparatorLocation != -1 && ontSeparatorLocation != customName.length() - 1)
+                           customName = customName.substring(ontSeparatorLocation + 1,customName.length());
+                       JLabel custom = new JLabel(customName);
+                       custom.setFont(GUI.LabelFace);
+                       comp.add(custom);
                    }
-                   JLabel custom = new JLabel(customName);
+               }
+               else {
+                   model.setCategoryFound(row,false);  
+                   String customName = key.toString();
+                   final int ontSeparatorLocation = customName.indexOf(edu.tufts.vue.rdf.RDFIndex.ONT_SEPARATOR);
+                   if (ontSeparatorLocation != -1 && ontSeparatorLocation != customName.length() - 1)
+                       customName = customName.substring(ontSeparatorLocation + 1,customName.length());
+                   final JLabel custom = new JLabel(customName+"*");
                    custom.setFont(GUI.LabelFace);
                    comp.add(custom);
-                 }
+                   final JLabel addLabel = new JLabel("[+]");
+                   comp.add(addLabel, BorderLayout.EAST);
                }
-               else
-               {
-                 model.setCategoryFound(row,false);  
-                 String customName = currValue.toString();
-                 int ontSeparatorLocation = customName.indexOf(edu.tufts.vue.rdf.RDFIndex.ONT_SEPARATOR);
-                 if( ontSeparatorLocation != -1 && ontSeparatorLocation != customName.length() - 1)
-                 {
-                     customName = customName.substring(ontSeparatorLocation + 1,customName.length());
-                 }
-                 JLabel custom = new JLabel(customName+"*");
-                 custom.setFont(GUI.LabelFace);
-                 comp.add(custom);
-                 JLabel addLabel = new JLabel("[+]");
-                 comp.add(addLabel,BorderLayout.EAST);
-               }
-               
            }
-           else if(col == buttonColumn-1)
-           {
+           else if (col == buttonColumn-1) {
+               final boolean saved = ((MetadataTableModel)metadataTable.getModel()).getIsSaved(row);
                
-               boolean saved = ((MetadataTableModel)metadataTable.getModel()).getIsSaved(row);
-               
-               if(value instanceof VueMetadataElement)
-               {
-                   VueMetadataElement vme = (VueMetadataElement)value;
-                   if(saved == true)
-                   {
-                     JLabel custom = new JLabel(vme.getValue());
-                     custom.setFont(GUI.LabelFace);
-                     comp.add(custom);
+               if( value instanceof VueMetadataElement) {
+                   final VueMetadataElement vme = (VueMetadataElement) value;
+                   if (saved == true) {
+                       JLabel custom = new JLabel(vme.getValue());
+                       custom.setFont(GUI.LabelFace);
+                       comp.add(custom);
                    }
-                   else 
-                   if(saved == false)
-                   {
-                     JTextField field = new JTextField(vme.getValue());
-                     field.setFont(GUI.LabelFace);
-                     comp.add(field);
+                   else if(saved == false) {
+                       JTextField field = new JTextField(vme.getValue());
+                       field.setFont(GUI.LabelFace);
+                       comp.add(field);
                    }
                } 
-               else
-               {
-                   if(DEBUG_LOCAL && value != null)
-                   {
-                       System.out.println("MetadataEditor -- renderer for field not vme: " + value.getClass());
-                   }
+               else {
+                   if (DEBUG_LOCAL && value != null) Log.debug("renderer for field not vme: " + value.getClass());
                }
                  
            }
-           else if(col == buttonColumn)               
-           {
+           else if(col == buttonColumn) {
                //JLabel buttonLabel = new JLabel();
-               
                // VUE-912, put delete button back -- also add back mouselistener
                //if(row!=0)
-               //{    
                  //buttonLabel.setIcon(tufts.vue.VueResources.getImageIcon("metadata.editor.delete.up"));
-               //}
                //comp.add(buttonLabel);
-               
-               //$
-                 //comp.setOpaque(true);
-                 //comp.setBackground(java.awt.Color.RED);
-               //$
-               
+               // //comp.setOpaque(true);
+               // //comp.setBackground(java.awt.Color.RED);
                //JPanel holder = new JPanel();
                holder.add(deleteButton);
                comp.add(holder);
            }
            
            comp.setOpaque(false);
-           
            comp.setBorder(getMetadataCellBorder(row,col));
-           
            return comp;
        } 
-           
     }
     
     class MetadataTableEditor extends DefaultCellEditor
@@ -1245,43 +1224,39 @@ public class MetadataEditor extends JPanel
        }
         
         
-       private JTextField field; 
+       private final JTextField field; 
        //private JComboBox categories = new JComboBox();
        //private JLabel categoryLabel = new JLabel();
        //private JLabel notEditable = new JLabel();
        //private JPanel comp = new JPanel();
        
-       private int currentRow;
-       private edu.tufts.vue.metadata.gui.MetaButton deleteButton;
-       private edu.tufts.vue.metadata.gui.MetaButtonPanel metaButtonPanel;
-      //private JPanel tempPanel;
+        private int currentRow;
+        //private edu.tufts.vue.metadata.gui.MetaButton deleteButton;
+        private final edu.tufts.vue.metadata.gui.MetaButtonPanel metaButtonPanel;
+        //private JPanel tempPanel;
         
        public MetadataTableEditor()
        {
            super(new JTextField());
            field = (JTextField)getComponent();
            
-           //categories.setFont(GUI.LabelFace);
-           //categories.setModel(new CategoryComboBoxModel());
-           //categories.setRenderer(new CategoryComboBoxRenderer());
+           // //categories.setFont(GUI.LabelFace);
+           // //categories.setModel(new CategoryComboBoxModel());
+           // //categories.setRenderer(new CategoryComboBoxRenderer());
+           // 
+           // //tempPanel = new JPanel();//new ActionPanel(MetadataEditor.this,row);
+           // //tempPanel.setOpaque(true);
+           // //tempPanel.setBackground(java.awt.Color.BLUE);
+           // deleteButton = new edu.tufts.vue.metadata.gui.MetaButton(MetadataEditor.this,"delete");
+           // //tempPanel.add(deleteButton);
+           // // ***needs mouseListener that saves data unless point is over Button..
+           // //.addActionListener(deleteButton)
+           // //
            
-           
-           //tempPanel = new JPanel();//new ActionPanel(MetadataEditor.this,row);
-           //tempPanel.setOpaque(true);
-           //tempPanel.setBackground(java.awt.Color.BLUE);
-           deleteButton = new edu.tufts.vue.metadata.gui.MetaButton(MetadataEditor.this,"delete");
-           //tempPanel.add(deleteButton);
-           // ***needs mouseListener that saves data unless point is over Button..
-           //.addActionListener(deleteButton)
-           //
-           
-           metaButtonPanel = new 
-                   edu.tufts.vue.metadata.gui.MetaButtonPanel(MetadataEditor.this,"delete");
-           
+           metaButtonPanel = new edu.tufts.vue.metadata.gui.MetaButtonPanel(MetadataEditor.this,"delete");
        }
        
-       public int getRow()
-       {
+       public int getRow() {
            return currentRow;
        }
        
@@ -1300,8 +1275,10 @@ public class MetadataEditor extends JPanel
            return super.stopCellEditing();
        } 
         
-       public java.awt.Component getTableCellEditorComponent(final JTable table,final Object value,boolean isSelected,final int row,final int col)
+       public java.awt.Component getTableCellEditorComponent(final JTable table, final Object value, boolean isSelected, final int row, final int col)
        {
+           if (DEBUG.PAIN) Log.debug("getTableCellEditorComponent");
+           
            final JTextField field = new JTextField();
            final JComboBox categories = new JComboBox();
            categories.setFont(GUI.LabelFace);
@@ -1315,8 +1292,7 @@ public class MetadataEditor extends JPanel
            //                       edu.tufts.vue.metadata.gui.MetaButton(MetadataEditor.this,"delete");
            
            comp.addMouseListener(new MouseAdapter(){
-              public void mousePressed(MouseEvent e)
-              {
+              public void mousePressed(MouseEvent e) {
                   ((MetadataTableModel)metadataTable.getModel()).setSaved(row,true);
                   stopCellEditing();
               }
@@ -1327,378 +1303,143 @@ public class MetadataEditor extends JPanel
            notEditable.setFont(GUI.LabelFace);
            field.setFont(GUI.LabelFace);
            
-           categories.addItemListener(new ItemListener() 
-           {
-               public void itemStateChanged(ItemEvent e) 
-               {
-                   if(DEBUG_LOCAL)
-                   {    
-                      System.out.println("MetdataEditor categories item listener itemStateChanged: " + e);
-                   }
-                   
-                   
-                   if(e.getStateChange() == ItemEvent.SELECTED)
-                   {   
-                       if(e.getItem() instanceof edu.tufts.vue.metadata.gui.EditCategoryItem)
-                       {                           
-                           JDialog ecd = new JDialog(VUE.getApplicationFrame(),VueResources.getString("dialog.editcat.title"));
-                           ecd.setModal(true);
-                           ecd.add(new CategoryEditor(ecd,categories,MetadataEditor.this,current,row,col));
-                           ecd.setBounds(475,300,300,250);
-                           ecd.setVisible(true);
-                           
-                           metadataTable.getCellEditor().stopCellEditing();
-                           ((MetadataTableModel)metadataTable.getModel()).refresh();
+           categories.addFocusListener(new FocusAdapter() { public void focusLost(final java.awt.event.FocusEvent fe) {      
+               final MetadataTableModel model = (MetadataTableModel)metadataTable.getModel();
+               if (model.lastSavedRow != row)
+                   model.setSaved(row,true);
+           }});
+
+           categories.addItemListener(new ItemListener() { public void itemStateChanged(ItemEvent e) {
+               if (e.getStateChange() == ItemEvent.SELECTED && e.getItem() instanceof edu.tufts.vue.metadata.gui.EditCategoryItem) {
+                   if (DEBUG.PAIN) Log.debug("categories itemStateChanged v1: " + Util.tags(e.getItem()));
+                   final JDialog ecd = new JDialog(VUE.getApplicationFrame(), VueResources.local("dialog.editcat.title"));
+                   ecd.setModal(true);
+                   ecd.add(new CategoryEditor(ecd,categories,MetadataEditor.this,current,row,col));
+                   ecd.setBounds(475,300,300,250);
+                   ecd.setVisible(true);
+                   metadataTable.getCellEditor().stopCellEditing();
+                   ((MetadataTableModel)metadataTable.getModel()).refresh();
+               }
+           }});
+                      
+           // Note the two item listers installed: the 1st to handle EditCategoryItem, this one everything else.
+           categories.addItemListener(new ItemListener() { public void itemStateChanged(final ItemEvent ie) {
+               if (ie.getStateChange() != ItemEvent.SELECTED)
+                   return;
+               if (categories.getSelectedItem() instanceof edu.tufts.vue.metadata.gui.EditCategoryItem)
+                   return;
+
+               if (DEBUG.PAIN) Log.debug("categories itemStateChanged v2: " + Util.tags(ie.getItem()));
+                  
+               // THIS IS THE CATEGORY COMBO INPUT POINT
+
+               final OntType ontType = (OntType) categories.getSelectedItem();
+               final VueMetadataElement tableVME = (VueMetadataElement) table.getModel().getValueAt(row, buttonColumn - 1);
+                       
+               final String[] keyValuePair = {
+                   ontType.getBase() + "#" + ontType.getLabel(),
+                   tableVME.getValue()
+               };
+
+               if (DEBUG.PAIN) Log.debug("constructed key: [" + keyValuePair[0] + "]");
+
+               final VueMetadataElement vme = new VueMetadataElement();
+               vme.setObject(keyValuePair);
+               vme.setType(VueMetadataElement.CATEGORY);
+               
+               if (currentMultiples != null) {
+                   // also need to add/set for individuals in group.. todo: subclass LWGroup to do this?
+                   // in the meantime just set these by hand
+                   if (currentMultiples.getMetadataList().getCategoryListSize() > (row)) {
+                       VueMetadataElement oldVME = currentMultiples.getMetadataList().getCategoryList().get(row);  
+                          
+                       currentMultiples.getMetadataList().getCategoryList().set(row,vme);
+                        
+                       java.util.Iterator<LWComponent> multiples = currentMultiples.getAllDescendents().iterator();
+                       while(multiples.hasNext()) {
+                           LWComponent multiple = multiples.next();
+                           MetadataList.SubsetList md = multiple.getMetadataList().getCategoryList();
+                           if (md.contains(oldVME))
+                               md.set(md.indexOf(oldVME),vme);
+                           else
+                               multiple.getMetadataList().getMetadata().add(vme);
                        }
                    }
+                   else {
+                       currentMultiples.getMetadataList().getMetadata().add(vme); 
+                        
+                       java.util.Iterator<LWComponent> multiples = currentMultiples.getAllDescendents().iterator();
+                       while(multiples.hasNext()) {
+                           LWComponent multiple = multiples.next();
+                           MetadataList.SubsetList md = multiple.getMetadataList().getCategoryList();
+                           if (md.contains(vme))
+                               md.set(md.indexOf(vme),vme);
+                           else
+                               multiple.getMetadataList().getMetadata().add(vme);
+                       }
+                   }  
                }
-           });
-           
-           categories.addFocusListener(new FocusAdapter(){
-               public void focusLost(java.awt.event.FocusEvent fe)
-               {      
-                   MetadataTableModel model = (MetadataTableModel)metadataTable.getModel();
-                   if(model.lastSavedRow != row)
-                   {    
-                     model.setSaved(row,true);
-                   }
+               else if (current != null) {    
+                   if (current.getMetadataList().getCategoryListSize() > row)
+                       current.getMetadataList().getCategoryList().set(row,vme);
+                   else
+                       current.getMetadataList().getMetadata().add(vme); 
                }
-           });
-           
-           categories.addItemListener(new java.awt.event.ItemListener(){
-              public void itemStateChanged(java.awt.event.ItemEvent ie)
-              {
-                  
-                  if(ie.getStateChange()==java.awt.event.ItemEvent.SELECTED)
-                  {
-                      
-                    if(categories.getSelectedItem() instanceof edu.tufts.vue.metadata.gui.EditCategoryItem)
-                    {
-                        return;
-                    }
-                      
-                    VueMetadataElement vme = new VueMetadataElement();
-                    
-                    String[] keyValuePair = {((OntType)categories.getSelectedItem()).getBase()+"#"+((OntType)categories.getSelectedItem()).getLabel(),
-                                               ((VueMetadataElement)table.getModel().getValueAt(row,buttonColumn - 1)).getValue()};
-                    
-                    vme.setObject(keyValuePair);
-                    vme.setType(VueMetadataElement.CATEGORY);
-                    if(currentMultiples != null)
-                    {
-                      // also need to add/set for individuals in group.. todo: subclass LWGroup to do this?
-                      // in the meantime just set these by hand
-                      if(currentMultiples.getMetadataList().getCategoryListSize() > (row))
-                      {
-                        VueMetadataElement oldVME = currentMultiples.getMetadataList().getCategoryList().get(row);  
-                          
-                        currentMultiples.getMetadataList().getCategoryList().set(row,vme);
-                        
-                        java.util.Iterator<LWComponent> multiples = currentMultiples.getAllDescendents().iterator();
-                        while(multiples.hasNext())
-                        {
-                          LWComponent multiple = multiples.next();
-                          MetadataList.SubsetList md = multiple.getMetadataList().getCategoryList();
-                          if(md.contains(oldVME))
-                          {
-                              md.set(md.indexOf(oldVME),vme);
-                          }
-                          else
-                          {
-                              multiple.getMetadataList().getMetadata().add(vme);
-                          }
-                        }
-                        
-                      }
-                      else
-                      {
-                        currentMultiples.getMetadataList().getMetadata().add(vme); 
-                        
-                        java.util.Iterator<LWComponent> multiples = currentMultiples.getAllDescendents().iterator();
-                        while(multiples.hasNext())
-                        {
-                          LWComponent multiple = multiples.next();
-                          MetadataList.SubsetList md = multiple.getMetadataList().getCategoryList();
-                          if(md.contains(vme))
-                          {
-                              md.set(md.indexOf(vme),vme);
-                          }
-                          else
-                          {
-                              multiple.getMetadataList().getMetadata().add(vme);
-                          }
-                        }
-                      }  
-                    }
-                    else if(current !=null)
-                    {    
-                      if(current.getMetadataList().getCategoryListSize() > (row))
-                      {
-                        current.getMetadataList().getCategoryList().set(row,vme);
-                      }
-                      else
-                      {
-                        current.getMetadataList().getMetadata().add(vme); 
-                      }
-                    }
-                  }
-              }
-           });
+           }});
            
            field.addKeyListener(new java.awt.event.KeyAdapter(){
-              public void keyPressed(java.awt.event.KeyEvent e)
-              {
+              public void keyPressed(java.awt.event.KeyEvent e) {
                   if(e.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER)
-                  {
                       ((MetadataTableModel)metadataTable.getModel()).setSaved(row,true);
-                  }
               }
            });
            
-           field.addFocusListener(new FocusAdapter(){
-              public void focusLost(java.awt.event.FocusEvent fe)
-              {  
-                  if( ( current == null && currentMultiples == null) )
-                          //|| VUE.getActiveMap() == null || VUE.getActiveViewer() == null)
-                  {
-                      return;
-                  }
-                  
-                    if(DEBUG_LOCAL)
-                    {
-                      Object editor = metadataTable.getCellEditor();
-                      
-                      MetadataTableEditor mte = null;
-                      
-                      System.out.println("MetadataEditor -- field focus lost -- CellEditor: " + 
-                                           editor);
-                      
-                      if(editor != null)
-                      {
-                          mte = (MetadataTableEditor)editor;
-                          System.out.println("MetadataEditor -- field focus lost -- CellEditor row: " + 
-                                           mte.getRow());
-                      }
-                      
-                      
-                    }
-                  
-                  
-                   MetadataTableModel model = (MetadataTableModel)metadataTable.getModel();
-                   if(model.lastSavedRow != row)
-                   {    
-                     model.setSaved(row,true);
-                   }
-                  
-                  VUE.getActiveMap().markAsModified();
-                  
-                  if(DEBUG_LOCAL && fe != null)
-                  {    
-                     System.out.println("MDE field focus lost -- opposite component: " + fe.getOppositeComponent());
-                  }
-                  
-                  /*if(currentMultiples != null)
-                  {
-                      return;
-                  }*/
-                                    
-                  /*if(fe!= null && fe.getOppositeComponent() == categories)
-                  {
-                      return;
-                  }*/
-                  
-                  // note: fix for currentMultiples != null and focus lost off bottom of info window (not
-                  // as likely in the multiple selection case?)
-                  if(tufts.vue.gui.DockWindow.isDockWindow(fe.getOppositeComponent()) && currentMultiples == null)
-                  {
-                      model.setSaved(row,true);
-                      TableCellEditor tce = metadataTable.getCellEditor();
-                      
-                      if(tce != null)
-                      {    
-                        metadataTable.getCellEditor().stopCellEditing();
-                      }
-                  }
-                  
-                  //java.util.List<VueMetadataElement> metadata = null;
-                  MetadataList.SubsetList metadata = null;
-                  
-                  if(previousCurrent == null && current == null &&
-                       previousMultiples == null && currentMultiples ==  null)
-                  {
-                      return;
-                  }
-                  else
-                  if(previousCurrent != null && !focusToggle)
-                  {
-                     metadata = previousCurrent.getMetadataList().getCategoryList();
-                  } 
-                  else if(previousCurrent != null && !focusToggle)
-                  {
-                     metadata = previousCurrent.getMetadataList().getCategoryList();
-                  }   
-                  else 
-                  {
-                     if( currentMultiples!=null )
-                     {    
-                       metadata = currentMultiples.getMetadataList().getCategoryList();
-                     }
-                     else if( current!=null )
-                     {
-                       //going in this order should mean current == null is not
-                       // needed on selection of more than one component..
-                         
-                       metadata = current.getMetadataList().getCategoryList();   
-                     }
-                  }
-                  
-                  VueMetadataElement currentVME = null;
-                  
-                  if( (current != null && current.getMetadataList().getCategoryListSize() > 0 ) ||
-                          
-                      (currentMultiples != null && currentMultiples.getMetadataList().getCategoryListSize() > 0 )      
-                    )
-                  {
-                   currentVME = metadata.get(row);
-                  }
-                  
-                  VueMetadataElement vme = new VueMetadataElement();
-                  
-                  if(currentVME==null)
-                  {
-                     String[] emptyEntry = {NONE_ONT,field.getText()};
-                     vme.setObject(emptyEntry);
-                     vme.setType(VueMetadataElement.CATEGORY);  
-                  }
-                  else
-                  {
-                    String[] obj = (String[])currentVME.getObject();  
-                    String[] pairedValue = {obj[0],field.getText()};
-                    vme.setObject(pairedValue);
-                  }
-                  if( (current != null && current.getMetadataList().getCategoryListSize() > (row)) ||
-                     (currentMultiples != null && currentMultiples.getMetadataList().getCategoryListSize() > row) )
-                  {
-                    if(DEBUG_LOCAL)
-                    {
-                        System.out.println("ME: setting value from field -- " + row + ":" + vme.getObject() +
-                                            " " + metadata);
-                    }
-                    
-                    VueMetadataElement old = metadata.get(row);
-                    
-                    metadata.set(row,vme);
-                    
-                    if(currentMultiples != null) // !! must make sure there is more than one in group -- other
-                                                 // wise is back to base case of single selection.
-                    {
-                        java.util.Collection selection = currentMultiples.getAllDescendents();
-                        java.util.Iterator children = selection.iterator();
-                        while(children.hasNext())
-                        {
-                            LWComponent child = (LWComponent)children.next();
-                            MetadataList.SubsetList cMeta = child.getMetadataList().getCategoryList();
-                            int size = cMeta.size();
-                            if(size > 0 && cMeta.get(size-1).getValue().equals(""))
-                            {
-                                cMeta.set(size-1,vme);
-                            }
-                            // also need to set in condition where already in all the sub components?
-                            // somehow need to detect edit here.. but condition in line above this
-                            // one is not neccesarily equivalent..
-                            else
-                              if(cMeta.contains(old))
-                              {
-                                // should it always be the first index?
-                                cMeta.set(cMeta.indexOf(old),vme);
-                              }
-                              else
-                                child.getMetadataList().getMetadata().add(vme);
-                            child.layout();
-                            // also might need VUE activelistener repaint
-                        }
-                    }
-                    
-                  }
-                  else
-                  {
-                    metadata.add(vme); 
-                  }
-                  
-                  // done earlier for multiples.  // may also  need active viewer repaint
-                  if(current !=null)
-                     current.layout();
-                  
-                  
-                  VUE.getActiveViewer().repaint();
-                  
-                  metadataTable.repaint();
-              }
-              
-              public void focusGained(java.awt.event.FocusEvent fe)
-              {
-                  focusToggle = true;
-              }
+           // todo fix: note RADICALLY different behaviour of VK_ENTER v.s. focusLost
+           field.addFocusListener(new FocusAdapter() {
+                   public void focusLost(java.awt.event.FocusEvent fe) { handleFieldFocusLost(fe, row, field); }
+                   public void focusGained(java.awt.event.FocusEvent fe) { focusToggle = true; }
            });
+           
            comp.setLayout(new BorderLayout());
-           if(col == buttonColumn - 2)
-           {
-               final int n = categories.getModel().getSize();
- 
-               Object currObject = null;
+           if (col == buttonColumn - 2) {
+               // // Object currObject = null;
+               // // if(currentMultiples != null)
+               // //     currObject = currentMultiples.getMetadataList().getCategoryListElement(row).getObject();  
+               // // else if(current != null)
+               // //     currObject = current.getMetadataList().getCategoryListElement(row).getObject();
+               // final Object currObject = getObjectActive(row);
+               // final String currValue = (((String[])currObject)[0]);
+               // Object currFieldValue = (((String[])currObject)[1]);
                
-               if(currentMultiples != null)
-               {
-                 currObject = currentMultiples.getMetadataList().getCategoryListElement(row).getObject();  
-               }
-               else if(current != null)
-               {    
-                 currObject = current.getMetadataList().getCategoryListElement(row).getObject();
-               }
-               final Object currValue = (((String[])currObject)[0]);
-               Object currFieldValue = (((String[])currObject)[1]);
+               // // /*if(false) /// with new isCellEditable() logic on cell editor... {
+               // //     String displayString = currValue.toString();
+               // //     int nameIndex = displayString.indexOf("#");
+               // //     if(nameIndex != -1 && ( (nameIndex + 1)< displayString.length()) ) {
+               // //       displayString = displayString.substring(nameIndex + 1);
+               // //     }
+               // //     categoryLabel.setText(displayString);
+               // //     categoryLabel.setFont(GUI.LabelFace);
+               // //     boolean found = findCategory(currValue,row,col,n,categories);
+               // //     if(found) {    
+               // //       comp.add(categoryLabel);
+               // //     } else {
+               // //       categoryLabel.setText(categoryLabel.getText() + "*"); 
+               // //       comp.add(categoryLabel);
+               // //     }    
+               // //     comp.setBorder(getMetadataCellBorder(row,col));
+               // //     ((MetadataTableModel)table.getModel()).refresh();
+               // //     metadataTable.repaint();
+               // //     return comp; }*/
                
-               /*if(false) /// with new isCellEditable() logic on cell editor...
-               {
-                   String displayString = currValue.toString();
-                   int nameIndex = displayString.indexOf("#");
-                   if(nameIndex != -1 && ( (nameIndex + 1)< displayString.length()) ) 
-                   {
-                     displayString = displayString.substring(nameIndex + 1);
-                   }
-                   categoryLabel.setText(displayString);
-                   
-                   categoryLabel.setFont(GUI.LabelFace);
-                   
-                   boolean found = findCategory(currValue,row,col,n,categories);
-                   
-                   if(found)
-                   {    
-                     comp.add(categoryLabel);
-                   }
-                   else
-                   {
-                     categoryLabel.setText(categoryLabel.getText() + "*"); 
-                     comp.add(categoryLabel);
-                   }    
-                   comp.setBorder(getMetadataCellBorder(row,col));
-                   
-                   ((MetadataTableModel)table.getModel()).refresh();
-                   metadataTable.repaint();
-                   
-                   return comp;
-               }*/
-               findCategory(currValue,row,col,n,categories); 
-               
+               final String key = getKeyForRow(row);
 
+               findCategory(key,row,col,categories); 
                comp.add(categories);
-               
                comp.setBorder(getMetadataCellBorder(row,col));
                ((MetadataTableModel)table.getModel()).refresh();
                metadataTable.repaint();
            }
-           else
-           if(col == (buttonColumn - 1))
+           else if(col == (buttonColumn - 1))
            {
                if(value instanceof String)
                  field.setText(value.toString());
@@ -1748,6 +1489,139 @@ public class MetadataEditor extends JPanel
        }
        
     }
+
+    private void handleFieldFocusLost(final java.awt.event.FocusEvent fe, final int row, final JTextField field)
+    {
+        if (DEBUG.PAIN) Log.debug("handleFieldFocusLost, EmptyVME: " + EmptyVME);
+        
+        if( ( current == null && currentMultiples == null) ) {
+            //|| VUE.getActiveMap() == null || VUE.getActiveViewer() == null)
+            return;
+        }
+                  
+        if (DEBUG_LOCAL) {
+            Object editor = metadataTable.getCellEditor();
+            MetadataTableEditor mte = null;
+            System.out.println("MetadataEditor -- field focus lost -- CellEditor: " + editor);
+            if(editor != null) {
+                mte = (MetadataTableEditor)editor;
+                System.out.println("MetadataEditor -- field focus lost -- CellEditor row: " + mte.getRow());
+            }
+        }
+                  
+                  
+        MetadataTableModel model = (MetadataTableModel)metadataTable.getModel();
+        if(model.lastSavedRow != row) {    
+            model.setSaved(row,true);
+        }
+                  
+        VUE.getActiveMap().markAsModified();
+                  
+        if (DEBUG_LOCAL && fe != null) System.out.println("MDE field focus lost -- opposite component: " + fe.getOppositeComponent());
+                  
+        /*if(currentMultiples != null) {
+          return;
+          }if(fe!= null && fe.getOppositeComponent() == categories) {
+          return;
+          }*/
+                  
+        // note: fix for currentMultiples != null and focus lost off bottom of info window (not
+        // as likely in the multiple selection case?)
+        if(tufts.vue.gui.DockWindow.isDockWindow(fe.getOppositeComponent()) && currentMultiples == null) {
+            model.setSaved(row,true);
+            TableCellEditor tce = metadataTable.getCellEditor();
+                      
+            if(tce != null)
+                metadataTable.getCellEditor().stopCellEditing();
+        }
+                  
+        //java.util.List<VueMetadataElement> metadata = null;
+        MetadataList.SubsetList metadata = null;
+                  
+        if (previousCurrent == null && current == null && previousMultiples == null && currentMultiples ==  null) {
+            return;
+        }
+        else if (previousCurrent != null && !focusToggle)
+            metadata = previousCurrent.getMetadataList().getCategoryList();
+        else if(previousCurrent != null && !focusToggle)
+            metadata = previousCurrent.getMetadataList().getCategoryList();
+        else {
+            if (currentMultiples != null)
+                metadata = currentMultiples.getMetadataList().getCategoryList();
+            else if (current != null)
+                //going in this order should mean current == null is not
+                // needed on selection of more than one component..
+                metadata = current.getMetadataList().getCategoryList();   
+        }
+                  
+        VueMetadataElement currentVME = null;
+                  
+        if ((current != null && current.getMetadataList().getCategoryListSize() > 0 )
+            || (currentMultiples != null && currentMultiples.getMetadataList().getCategoryListSize() > 0 ) )
+            currentVME = metadata.get(row);
+                  
+        final VueMetadataElement vme = new VueMetadataElement();
+                  
+        if (currentVME == null) {
+            String[] emptyEntry = {NONE_ONT, field.getText()}; // ***** field.geText *****
+            vme.setObject(emptyEntry);
+            vme.setType(VueMetadataElement.CATEGORY);  
+        }
+        else {
+            String[] obj = (String[]) currentVME.getObject();  
+            String[] pairedValue = {obj[0], field.getText()}; // ***** field.geText *****
+            vme.setObject(pairedValue);
+        }
+        
+        if ( (current != null && current.getMetadataList().getCategoryListSize() > (row)) ||
+             (currentMultiples != null && currentMultiples.getMetadataList().getCategoryListSize() > row) ) {
+            
+            if (DEBUG_LOCAL) Log.debug("focusLost: setting value from field, row=" + row + ", obj=" + Util.tags(vme.getObject()) + " " + metadata);
+                    
+            final VueMetadataElement old = metadata.get(row);
+                    
+            metadata.set(row,vme);
+                    
+            if (currentMultiples != null) { // !! must make sure there is more than one in group -- other
+                // wise is back to base case of single selection.
+                java.util.Collection selection = currentMultiples.getAllDescendents();
+                java.util.Iterator children = selection.iterator();
+                while(children.hasNext())
+                    {
+                        LWComponent child = (LWComponent)children.next();
+                        MetadataList.SubsetList cMeta = child.getMetadataList().getCategoryList();
+                        int size = cMeta.size();
+                        if(size > 0 && cMeta.get(size-1).getValue().equals(""))
+                            cMeta.set(size-1,vme);
+                        // also need to set in condition where already in all the sub components?
+                        // somehow need to detect edit here.. but condition in line above this
+                        // one is not neccesarily equivalent..
+                        else {
+                            if (cMeta.contains(old))
+                                // should it always be the first index?
+                                cMeta.set(cMeta.indexOf(old),vme);
+                            else
+                                child.getMetadataList().getMetadata().add(vme);
+                        }
+                        child.layout();
+                        // also might need VUE activelistener repaint
+                    }
+            }
+                    
+        }
+        else {
+            metadata.add(vme); 
+        }
+                  
+        // done earlier for multiples.  // may also  need active viewer repaint
+        if(current != null)
+            current.layout();
+                  
+        VUE.getActiveViewer().repaint();
+        metadataTable.repaint();
+    }
+    
+    
     
     public Border getMetadataCellBorder(int row,int col)
     {
@@ -1896,32 +1770,19 @@ public class MetadataEditor extends JPanel
             }
          }
          
-         public void setSaved(int row,boolean isSaved)
-         {
-             
-             //Thread.dumpStack();
-             
-             if(DEBUG_LOCAL)
-             {
-                 System.out.println("MDE - table - setSaved (row,lsr) (" + row + "," + lastSavedRow + ")");
-             }
-             
-             if(row == -1)
-                 return;
-             
-             if(saved.size() <= row)
-             {
-
-                 //saved.ensureCapacity(row + 1);
-                 //for(int i = 0;i<row-saved.size() + 1;i++)
-                 for(int i = 0;i<row + 1;i++)
-                 {
-                     saved.add(Boolean.TRUE);
-                 }
-             } 
+        public void setSaved(int row,boolean isSaved) {
+            if(DEBUG_LOCAL) System.out.println("MDE - table - setSaved (row,lsr) (" + row + "," + lastSavedRow + ")");
             
-
-            saved.set(row,Boolean.valueOf(isSaved));
+            if (row == -1)
+                return;
+            
+            if (saved.size() <= row) {
+                //saved.ensureCapacity(row + 1);
+                //for(int i = 0;i<row-saved.size() + 1;i++)
+                for (int i = 0; i < row + 1; i++)
+                    saved.add(Boolean.TRUE);
+            }
+            saved.set(row, Boolean.valueOf(isSaved));
             lastSavedRow = row;
          }
          
@@ -1981,22 +1842,17 @@ public class MetadataEditor extends JPanel
 
          }
          
-         public int getColumnCount()
-         {
+         public int getColumnCount() {
              return cols;
          }
          
-         public void setColumns(int cols)
-         {
-
+         public void setColumns(int cols) {
              this.cols = cols;
              fireTableStructureChanged();
          }
          
-         public void fireTableStructureChanged()
-         {
-
-        	 super.fireTableStructureChanged();
+         public void fireTableStructureChanged() {
+             super.fireTableStructureChanged();
          }
          
          /*
@@ -2021,67 +1877,77 @@ public class MetadataEditor extends JPanel
              return true;
          }
          
-         public Object getValueAt(int row, int column)
-         {
+        public Object getValueAt(int row, int column)
+        {
+            categoryIncluded.trimToSize();
+
+            if (current == null && currentMultiples == null)
+                return "<null-VME-table-value>";
+            else if (currentMultiples != null) {
+                final int size = currentMultiples.getMetadataList().getCategoryListSize();
+                if (size == 0)
+                    addNewRow();
+                else if (size < row + 1) // what this do?
+                    return null;
+                return currentMultiples.getMetadataList().getCategoryListElement(row);
+            } else {
+                final int size = current.getMetadataList().getCategoryListSize();
+                if (size == 0)
+                    return EmptyVME; //addNewRow();
+                else if (size < row + 1) // what's this do?
+                    return null;
+            }
+            return current.getMetadataList().getCategoryListElement(row);
+        }
+        
+        public Object old_getValueAt(int row, int column)
+        {
+            categoryIncluded.trimToSize();
              
-             categoryIncluded.trimToSize();
-             
-             if(current == null && currentMultiples == null)
-                 return "null";
-             else if(currentMultiples != null)
-             {
-               /*java.util.List<VueMetadataElement> list = currentMultiples.getMetadataList().getMetadata();
-             
-               if(list.size() == 0)
-                 addNewRow();
-               else
-               if(list.size() < row + 1)
-                 return null;*/
+            if(current == null && currentMultiples == null)
+                return "null";
+            else if(currentMultiples != null) {
+                // java.util.List<VueMetadataElement> list = currentMultiples.getMetadataList().getMetadata();
+                // if(list.size() == 0)
+                //     addNewRow();
+                // else if(list.size() < row + 1)
+                //     return null;
                  
-               if(currentMultiples.getMetadataList().getCategoryListSize() == 0)
-                 addNewRow();
-               else
-                 if(currentMultiples.getMetadataList().getCategoryListSize() < row + 1)
-                   return null;
+                if (currentMultiples.getMetadataList().getCategoryListSize() == 0)
+                    addNewRow();
+                else if(currentMultiples.getMetadataList().getCategoryListSize() < row + 1)
+                    return null;
                  
-               //while(list.size() < row + 1)
-               //  addNewRow();
+                //while(list.size() < row + 1) addNewRow();
              
-               return currentMultiples.getMetadataList().getCategoryListElement(row);
-               //return current.getMetadataList().getMetadata().get(row);                 
-             }
+                return currentMultiples.getMetadataList().getCategoryListElement(row);
+                //return current.getMetadataList().getMetadata().get(row);                 
+            }
              
-             /*java.util.List<VueMetadataElement> list = current.getMetadataList().getMetadata();
+            // java.util.List<VueMetadataElement> list = current.getMetadataList().getMetadata();
+            // if(list.size() == 0)
+            //     addNewRow();
+            // else if(list.size() < row + 1)
+            //     return null;
              
-             if(list.size() == 0)
-                 addNewRow();
-             else
-             if(list.size() < row + 1)
-                 return null; */
+            if(current.getMetadataList().getCategoryListSize() == 0)
+                addNewRow();
+            else if(current.getMetadataList().getCategoryListSize() < row + 1)
+                return null;
              
-             if(current.getMetadataList().getCategoryListSize() == 0)
-                 addNewRow();
-             else
-                 if(current.getMetadataList().getCategoryListSize() < row + 1)
-                   return null;
+            // while(list.size() < row + 1) addNewRow();
              
-             //while(list.size() < row + 1)
-             //  addNewRow();
-             
-             return current.getMetadataList().getCategoryListElement(row);
-             //return current.getMetadataList().getMetadata().get(row);
-         }
+            return current.getMetadataList().getCategoryListElement(row);
+            // return current.getMetadataList().getMetadata().get(row);
+        }
          
-         public void setValueAt(Object value,int row, int column)
-         {
+         public void setValueAt(Object value,int row, int column) {
              //fireTableDataChanged(); 
          }
          
-         public void refresh()
-         {
+         public void refresh() {
              fireTableDataChanged();
          }
-         
+        
     }
-    
 }
