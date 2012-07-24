@@ -608,6 +608,8 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
         return b;
     }
 
+    private static final char SPACE = ' ', SLASH = '/';
+
     private String buildHTMLForType(final int typeRequest) {
         final StringBuilder b = new StringBuilder(32);
 
@@ -625,10 +627,10 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
                     final String[] part;
                     if (md.value != null && md.value.startsWith("source:")) {
                         // handle old style pre-summer-2012 merge-map meta-data annotations
-                        part = md.value.substring(8).split(","); // map-file-name,label
+                        part = md.value.substring(8).split(","); // format: map-file-name,label
                         b.append("&bull; "); 
                         if (part.length > 1) {
-                            b.append(part[0]).append('/');
+                            b.append(part[0]).append(SLASH);
                             appendItalic(b, truncate(part[1].trim()));
                         }
                     } else {
@@ -638,7 +640,7 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
                                 b.append("&harr; "); // horizontal double-ended arrow                            
                             else
                                 b.append("&thinsp;&bull; "); // bullet: align under 'M' of "Merge sources"
-                            b.append(part[2]).append('/'); // map name
+                            b.append(part[2]).append(SLASH); // map name
                             appendItalic(b, truncate(part[3])); // node/component name
                         }
                     }
@@ -648,14 +650,14 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
                 }
             }
         } else {
+            // todo: logic is too complex: maybe split entirely into a single-WITH-KEY handler
+            // vs. non-single handler
+            // todo: better if force all non-visual key (bulleted) items to the end of the output
             final boolean isSingle = (dataList.size() == 1);
             for (VueMetadataElement md : dataList) {
                 if (md.type != typeRequest)
                     continue;
-
-                // todo: logic is too complex: maybe split entirely into a single-WITH-KEY handler
-                // vs. non-single handler
-                
+                if (DEBUG.Enabled) b.append('\n'); // newline only for debugging the output string
                 final boolean hasKey = !(md.key == null || md.key == ONTOLOGY_NONE || md.key == KEY_TAG);
 
                 b.append("&nbsp;");
@@ -665,20 +667,24 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
                     b.append("<font color=gray>");
 
                 if (hasKey)
-                    b.append(shortKey(md.key)).append(": ");
+                    b.append(shortKey(md.key)).append(':');
                 else
-                    b.append("&bull; ");
+                    b.append("&bull;");
                 if (hasKey && !isSingle) b.append("</font>");
+                b.append(SPACE);
                 if (md.value != null) {
                     if (!hasKey || isSingle)
-                        b.append("<b>") .append(truncate(md.value)) .append("</b>");
+                        appendBold(b, truncate(md.value));
                     else
                         b.append(truncate(md.value));
                 }
                 b.append("&nbsp;<br>");
             }
+            // attempting to force a tiny last-line height to push rollover bottom edge down by a few pixels:
+            // b.append("<font size=-14 color=gray>---");  // can't get small enough: font size has floor on it
         }
-
+        // Log.debug("HTMLforType " + typeRequest + " [" + b + "]");
+        
         if (DEBUG.Enabled && b.length() == startSize)
             b.append(buildDebugHTML(typeRequest));
         
@@ -687,6 +693,9 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
 
     private static StringBuilder appendItalic(StringBuilder b, String s) {
         return b.append("<i>").append(s).append("</i>");
+    }
+    private static StringBuilder appendBold(StringBuilder b, String s) {
+        return b.append("<b>").append(s).append("</b>");
     }
 
     private static String shortKey(String k) {
@@ -697,8 +706,8 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
             return k;
     }
     private static String truncate(String s) {
-        // Re: truncation: Notes wraps text via JTextArea, which won't give us HTML.  If we
-        // want text wrapping, we may be able to do it usinga table.
+        // Re: truncation: Notes rollover wraps text via JTextArea, which won't give us HTML.  If
+        // we want text wrapping, we may be able to do it using a table.
         if (s.length() > 50)
             return s.substring(0,50) + "&hellip;";
         else
@@ -926,7 +935,9 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
         /** called via BOTH castor restore as well as runtime API */
         @Override public boolean add(final VueMetadataElement vme)
         {
-            if (DEBUG.CASTOR||DEBUG.XML||DEBUG.DATA) Log.debug(Util.tag(this) + ":add: " + Util.tags(vme));
+            if (DEBUG.Enabled) {
+                if (DEBUG.CASTOR||DEBUG.XML||DEBUG.DATA||DEBUG.PAIN) Log.debug(Util.tag(this) + ":add: " + Util.tags(vme));
+            }
 
             if (vme.type == VME_EMPTY_IGNORE) { 
                 //if (DEBUG.Enabled) Log.info("ignoring " + vme);
@@ -979,6 +990,8 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
             // Attempt the remove 1st so that if we get a RangeCheck exception,
             // we haven't adjusted our indicies.
             final VueMetadataElement removed = super.remove(i);
+            
+            if (DEBUG.PAIN) Log.debug(Util.tag(this) + ": remove index " + i + ": " + removed);
             
             if(i < rCategoryEndIndex) {
                 rCategoryEndIndex --;
