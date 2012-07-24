@@ -32,7 +32,7 @@ public class MetaButton extends tufts.vue.gui.VueButton //implements java.awt.ev
     private static boolean DEBUG_LOCAL = false;
     
     private int row;
-    private edu.tufts.vue.metadata.ui.MetadataEditor editor;
+    private final edu.tufts.vue.metadata.ui.MetadataEditor editor;
     
     public MetaButton(edu.tufts.vue.metadata.ui.MetadataEditor editor,String type)
     {
@@ -141,10 +141,14 @@ public class MetaButton extends tufts.vue.gui.VueButton //implements java.awt.ev
                }
            }
            
-           if(isValidRow)
-           {
-             metadataList.remove(selectedRow);
-             editor.getMetadataTable().repaint();
+           if(isValidRow) {
+               metadataList.remove(selectedRow);
+               editor.getMetadataTable().repaint();
+               // todo: this layout/repaint would be better triggered by some kind of model update
+               // event from MetadataLlist up through its LWComponent, which if we had could then
+               // even become undoable.
+               current.layout();
+               current.notify(MetaButton.this, tufts.vue.LWKey.Repaint);
            }
         }
     }
