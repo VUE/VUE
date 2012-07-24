@@ -42,6 +42,7 @@ public class DEBUG
     public static boolean DND; // drag & drop
     public static boolean MOUSE;
     public static boolean VIEWER; // MapViewer
+    public static boolean PAIN; // MetadataEditor, VME, etc.
     public static boolean PAINT; // painting
     public static boolean ROLLOVER; // MapViewer auto-zoom rollover
     public static boolean SCROLL; // MapViewer scroll-bars / scrolling
@@ -101,6 +102,7 @@ public class DEBUG
     public static boolean TRACE; // insane stack-tracking (and slow) log4j logger tracing
     public static boolean META; // generic toggle to use in combination with other flags
     public static boolean MEGA; // generic toggle to use in combination with other flags
+
     
     public static  void setAllEnabled(boolean enabled) {
         for (Field f : Fields)
