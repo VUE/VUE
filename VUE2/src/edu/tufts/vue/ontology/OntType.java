@@ -99,7 +99,8 @@ public class OntType implements java.io.Serializable {
     }
     
     public String toString() {
-        return "Base: "+base+" name: "+ id+" Style: "+style;
+        return "base="+base+", name="+ id;
+        //return "Base: "+base+" name: "+ id+" Style: "+style;
     }
             
 }
