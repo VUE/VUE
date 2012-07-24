@@ -466,24 +466,17 @@ public class MergeMapFactory {
 
     private final StringBuilder _cachedBuilder = new StringBuilder();
 
-    /*
-     * FYI: the first time this method sees @param mergeNew during a merge, it happens to be the actual
-     * duplicate of sourceNode, and it wont have any counter set yet.  Each time we see it after that,
-     * sourceNode is another node with the same merge-key, possibly from a different source map.  (BTW, the
-     * choice of which merge-key matching node to use as the actual duplication source is somewhat random: the
-     * merge process simply uses the first it comes across in the order we merge the maps.)
-     */
     private void annotate(StringBuilder mapPart, LWComponent source, LWComponent target) {
         final StringBuilder anno = _cachedBuilder;
 
         anno.setLength(0);
         
-        // a problem with putting id here is then we can't search on "map-name/node-name" as ID is in way,
-        // as in "map-name/12345/node-name".
+        // a problem with putting id in a "natural" place such as after the map name is then we
+        // can't search on "map-name/node-name" as ID is in way, as in "map-name/12345/node-name".
 
-        // this string is designed based on the ease of search options it provides
-        // e.g., "i/some-map" will mean all images from that map, "some-map/bob" means
-        // a node whose name begins with "bob" from some-map.
+        // this string is designed based on the ease of search options it provides e.g.,
+        // "i/some-map" will mean all images from that map, "some-map/bob" means any node whose
+        // name begins with "bob" from some-map.
 
         final String id = source.getID();
 
@@ -494,11 +487,21 @@ public class MergeMapFactory {
 
         putMergeAnnotation(target, anno.toString());
 
-        if (target instanceof LWImage || DEBUG.TEST) { // images have no rollovers to show the data
+        if (target instanceof LWImage || DEBUG.TEST) { // images have no rollovers to show the merge data
+            
             // We could store a list of all the actual source nodes in the client data, and annotate
             // at the end.  That could even allow us to design a fancier "merge" that somehow lets us
             // combine the properties of the merged nodes, instead of the random "duplicate the 1st
             // found" method we have now.
+
+             // FYI: the first time this method sees this component during a merge, it happens to
+             // be the actual duplicate of source (unless it's a link), and it wont have any
+             // counter set yet.  Each time we see it after that, source is another node with the
+             // same merge-key, possibly from a different source map.  (BTW, the choice of which
+             // merge-key matching node to use as the actual duplication source is somewhat random:
+             // the merge process simply uses the first it comes across in the order we merge the
+             // maps.)
+
             Counter counter = target.getClientData(Counter.class);
             if (counter == null)
                 counter = target.putClientData(new Counter());
