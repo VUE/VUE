@@ -161,6 +161,7 @@ public final class VueMetadataElement implements tufts.vue.XMLUnmarshalListener
     /** castor persist only */public int getXMLtype() { return type; }
    
    public void setKey(final String key) {
+       if (DEBUG.PAIN) Log.debug(this + "; setKey " + Util.tags(key));
        // performance hack: esp. for deserializing, check for key constants and change them
        // to their identity object.  Todo: change impl entirely so VME members are
        // all final.  todo: shouldn't really need this after deserialize.
@@ -176,6 +177,7 @@ public final class VueMetadataElement implements tufts.vue.XMLUnmarshalListener
    }
    
    public void setValue(String value) {
+       if (DEBUG.PAIN) Log.debug(this + "; setValue " + Util.tags(value));
        this.value = value;
    }
 
@@ -216,7 +218,7 @@ public final class VueMetadataElement implements tufts.vue.XMLUnmarshalListener
     /** a messy and pain inducing hack this was -- appears to rarely be called directly in VUE source, so elimination shouldn't be too bad */
     public void setObject(final Object obj)
     {
-        if (DEBUG.Enabled) Log.warn("setObject->: " + this + "; obj=" + Util.color(Util.tags(obj), Util.TERM_GREEN));
+        if (DEBUG.PAIN) Log.warn("setObject->: " + this + "; obj=" + Util.color(Util.tags(obj), Util.TERM_GREEN));
        
         this.obj = obj;
         if (obj instanceof String) {
@@ -240,7 +242,7 @@ public final class VueMetadataElement implements tufts.vue.XMLUnmarshalListener
         }
         
         if (DEBUG.Enabled) Log.warn("setObject=>: " + this);
-        // Util.printClassTrace("!java");
+        if (DEBUG.PAIN) Util.printClassTrace("!java");
     }
    
    public boolean equals(final Object other) {
