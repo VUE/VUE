@@ -309,10 +309,12 @@ public class LWMap extends LWContainer
     
     
     public void markAsModified() {
-        if (DEBUG.Enabled) Log.debug("explicitly marking as modified: " + this);
-        if (mChanges == 0)
-            mChanges = 1;
         mChangeState++;
+        if (DEBUG.Enabled) Log.debug("ensuring marked as modified: " + this + "; newChangeState = " + mChangeState);
+        if (mChanges == 0) {
+            mChanges = 1;
+            if (DEBUG.Enabled) Log.debug("explicit marked as modified: " + this);
+        }
         // notify with an event mark as not for repaint (and set same bit on "repaint" event)
     }
     public void markAsSaved() {
