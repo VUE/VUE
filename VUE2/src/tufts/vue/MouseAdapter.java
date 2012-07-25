@@ -49,6 +49,10 @@ public class MouseAdapter implements javax.swing.event.MouseInputListener
         if (DEBUG.MOUSE && DEBUG.META)
             System.err.println(name + "[" + e.paramString() + "] on " + e.getSource().getClass().getName());
     }
+
+    public String toString() {
+        return name;
+    }
 }
 
 
