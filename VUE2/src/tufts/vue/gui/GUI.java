@@ -1810,7 +1810,7 @@ public class GUI
     
 
     private static String baseClassName(Class clazz) {
-        return clazz.getSimpleName();
+        return clazz.getSimpleName().length() > 1 ? clazz.getSimpleName() : clazz.getName();
         //return baseClassName(clazz.getName());
     }
     private static String baseObjectName(Object o) {
