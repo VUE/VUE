@@ -18,12 +18,9 @@
  * @author akumar03
  */
 package edu.tufts.vue.metadata.gui;
+
 public class ComboBoxSeparator {
-    public static final String DEFAULT = "----------";
-    /** Creates a new instance of ComboBoxSeparator */
-    public ComboBoxSeparator() {
-    }
-    public String toString() {
-        return DEFAULT;
-    }
+    public static final String DEFAULT = "--------------";
+    public ComboBoxSeparator() {}
+    public String toString() { return DEFAULT; }
 }
