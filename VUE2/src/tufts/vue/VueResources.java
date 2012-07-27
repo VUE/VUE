@@ -73,7 +73,7 @@ public class VueResources
     protected static Map Cache = new HashMap() {
             public Object put(Object key, Object value) {
                 if (value == null) return null;
-                if (DEBUG.INIT) Log.debug("cached(" + key + ") = " + value + "");
+                if (DEBUG.INIT) Log.debug("cached(" + key + ") = " + tufts.Util.tags(value));
                 return super.put(key, value);
             }
         };
@@ -576,11 +576,13 @@ public class VueResources
              result = platformBundle.getString(key);
             }
         } catch (MissingResourceException mre) {
-            // FYI: we get tons of failures that are perfectly okay.
-            //if (DEBUG.INIT) alert("warning: didn't find String resource with key [" + pLookupKey + "]");
+            // FYI: we get tons of failures that are perfectly okay -- usually due to GUI items
+            // that are configuring and autmatically check for a bunch of standard sub-keys.  Would
+            // be nice if we could tell the real failures apart from those cases tho...  
+            // (DEBUG.INIT) alert("warning: didn't find String resource with key [" + pLookupKey + // "]");
         }
         if (DEBUG.INIT) {
-            if (DEBUG.META || result != null)
+            if (DEBUG.META /*|| result != null*/)
                 Log.debug("lookup(" + key + ") = " + (result==null?"null":"\"" + result + "\""));
         }
         return result;
