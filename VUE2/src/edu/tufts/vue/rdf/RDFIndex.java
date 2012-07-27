@@ -78,6 +78,7 @@ public class RDFIndex extends com.hp.hpl.jena.rdf.model.impl.ModelCom
     //public static final boolean AUTO_INDEX= VueResources.getBool("rdf.index.auto"); // never implememnted
     public static final String INDEX_FILE = VueUtil.getDefaultUserFolder()+File.separator+VueResources.getString("rdf.index.file");
     public static final String ONT_SEPARATOR = "#";
+    public static final char ONT_SEPARATOR_CHAR = '#';
     /** name-space used for all VUE node fields (e.g., label,notes) as well as all "proper" meta-data (not tufts.vue.Resource meta-data) */
     public static final String VUE_ONTOLOGY = Constants.ONTOLOGY_URL + ONT_SEPARATOR;
 
