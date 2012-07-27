@@ -44,7 +44,7 @@ public class CategoryModel extends ArrayList<edu.tufts.vue.ontology.Ontology>
     private String[] defaultOntologyUrls;
     
     int ontTypesCount = 0;
-    private static Map<URL,edu.tufts.vue.ontology.Ontology> ontCache = new HashMap<URL,edu.tufts.vue.ontology.Ontology>();
+    private static final Map<URL,edu.tufts.vue.ontology.Ontology> ontCache = new HashMap<URL,edu.tufts.vue.ontology.Ontology>();
     private edu.tufts.vue.ontology.Ontology customOntology;
     public CategoryModel() {
         Log.debug("Creating Category Model");
@@ -131,24 +131,24 @@ public class CategoryModel extends ArrayList<edu.tufts.vue.ontology.Ontology>
         return ontTypesCount;
     }
     
-    public void addCustomCategory(String name) {
-        OntType ontType = new OntType();
+    public OntType addCustomCategory(String name) {
+        final OntType ontType = new OntType();
         ontType.setLabel(name);
         ontType.setBase(customOntology.getBase());
         ontType.setId(customOntology.getBase()+name);
         customOntology.getOntTypes().add(ontType);
+        return ontType;
     }
     
-    public void addCustomCategory(String name,OntType value) {
+    public OntType addCustomCategory(String name,OntType value) {
         OntType ontType = new OntType();
         ontType.setLabel(name);
         ontType.setBase(customOntology.getBase());
         ontType.setId(customOntology.getBase()+name);
-        if(customOntology.getOntTypes().indexOf(value) > -1)
-        {
-          customOntology.getOntTypes().set(customOntology.getOntTypes().indexOf(value),ontType);  
-        }
+        if (customOntology.getOntTypes().indexOf(value) > -1)
+            customOntology.getOntTypes().set(customOntology.getOntTypes().indexOf(value),ontType);  
         //customOntology.getOntTypes().add(ontType);
+        return ontType;
     }
     
     public void removeCustomCategory(OntType ontType) {
