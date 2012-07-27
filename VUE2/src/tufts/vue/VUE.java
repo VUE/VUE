@@ -1844,7 +1844,7 @@ public class VUE
         
         positionDockWindows(screen);
 
-        mapInspectorPanel.metadataPanel.refresh();
+        mapInspectorPanel.metadataPanel.refreshAll();
         
     
         	//I'm just putting a comment in here becuase this seems odd to me, and I wanted it to be clear it was intentional.
