@@ -211,29 +211,25 @@ public class CategoryEditor extends JPanel
                 //categories.setSelectedItem(categories.getSelectedItem());
                 
                 ((CategoryComboBoxModel)categories.getModel()).refresh();
-                int n = categories.getModel().getSize();
-                Object currObject = null;
+                //int n = categories.getModel().getSize();
+
+                final String currentKey = metadataEditor.getKeyForRow(row);
+
+                if (currentKey != null) {
+                    MetadataEditor.selectKnownCategory(currentKey, categories);
+                    categories.repaint();
+                }
                 
-                tufts.vue.LWComponent currComponent = null;
-                
-                if(metadataEditor.getCurrentMultiples() !=null )
-                {
-                    currComponent = metadataEditor.getCurrentMultiples();
-                }
-                else if(metadataEditor.getCurrent() !=null )
-                {
-                    currComponent = metadataEditor.getCurrent();
-                }
-                else
-                {
-                    CategoryEditor.this.dialog.dispose();
-                    return;
-                }
-                        
-                currObject = currComponent.getMetadataList().getMetadata().get(row).getObject();
-                Object currValue = (((String[])currObject)[0]);
-                metadataEditor.findCategory(currValue,row,col,n,categories);
-                categories.repaint();
+                // Object currObject = null;
+                // tufts.vue.LWComponent currComponent = null;
+                // if (metadataEditor.getCurrentMultiples() !=null )
+                //     currComponent = metadataEditor.getCurrentMultiples();
+                // else if(metadataEditor.getCurrent() !=null )
+                //     currComponent = metadataEditor.getCurrent();
+                // else { CategoryEditor.this.dialog.dispose(); return;  }
+                // currObject = currComponent.getMetadataList().getMetadata().get(row).getObject();
+                // Object currValue = (((String[])currObject)[0]);
+
                 CategoryEditor.this.dialog.dispose();
             }
         });

@@ -22,27 +22,28 @@ package edu.tufts.vue.metadata.ui;
 import java.util.*;
 import javax.swing.*;
 
+import tufts.vue.DEBUG;
+
 import edu.tufts.vue.metadata.*;
 import edu.tufts.vue.ontology.*;
 
 import edu.tufts.vue.metadata.gui.*;
+
 public class CategoryComboBoxModel extends DefaultComboBoxModel {
     public static final String ERROR_LABEL = "Not Found";
+    private final CategoryModel VUE_Ontologies;
+    private final EditCategoryItem editCategory = new EditCategoryItem();
+    
     Object selectedItem;
-    CategoryModel vueCategoryModel;
-    EditCategoryItem editCategory = new EditCategoryItem();
+    
     /** Creates a new instance of CategoryComboBoxModel */
     public CategoryComboBoxModel() {
-        vueCategoryModel = tufts.vue.VUE.getCategoryModel();
+        VUE_Ontologies = tufts.vue.VUE.getCategoryModel();
         setSelectedItem(getElementAt(0));
     }
-    public Object getSelectedItem() {
-        return selectedItem;
-    }
+    public Object getSelectedItem() { return selectedItem; }
     
-    public List<Ontology> getOntologuies() {
-        return vueCategoryModel;
-    }
+    // public List<Ontology> getOntologuies() { return vueCategoryModel; }
     
     public void setSelectedItem(Object newValue) {
         selectedItem = newValue;
@@ -50,23 +51,30 @@ public class CategoryComboBoxModel extends DefaultComboBoxModel {
     
     public int getSize() {
         int count = 0;
-        for(Ontology ont: vueCategoryModel) {
+        for (Ontology ont : VUE_Ontologies) {
             count += ont.getOntTypes().size();
-            count++;
+            count++; // for spacer
         }
         count++; // for the edit item in the end
+        // System.out.println("CCMsize=" + count);
         return count;
     }
+
+    private final ComboBoxSeparator Separator = new ComboBoxSeparator();
     
     public Object getElementAt(int i) {
-        if(i == (getSize()-1)) {
+        if (i == getSize() - 1) 
             return editCategory;
-        }
-        for(Ontology ont: vueCategoryModel) {
-            if(i <ont.getOntTypes().size()) {
+
+        for (Ontology ont : VUE_Ontologies) {
+            if (i < ont.getOntTypes().size()) {
                 return ont.getOntTypes().get(i);
-            } else if(i == ont.getOntTypes().size()) {
-                return new ComboBoxSeparator();
+            } else if (i == ont.getOntTypes().size()) {
+                if (DEBUG.PAIN)
+                    return "^^^^" + ont.getLabel() + "^^^^";
+                else
+                    return Separator;
+                // todo: if getOntTypes().size() == 0, don't put in duplicate consecutive dividers
             } else {
                 i -= ont.getOntTypes().size();
                 i--; // for the divider int the middle;
@@ -75,9 +83,9 @@ public class CategoryComboBoxModel extends DefaultComboBoxModel {
         return ERROR_LABEL;
     }
     
-    public void refresh()
-    {
-        fireContentsChanged(this,0,getSize());
+    public void refresh() {
+        // System.out.println("CCM REFRESH");
+        fireContentsChanged(this, 0, getSize());
     }
 
     

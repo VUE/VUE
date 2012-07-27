@@ -16,74 +16,54 @@
 
 package edu.tufts.vue.metadata.gui;
 
+import tufts.vue.DEBUG;
+
 /**
  *
  * @author dhelle01
  * 
  */
 public class MetaButtonPanel extends javax.swing.JPanel 
-                  implements java.awt.event.MouseListener {
-
-    private static final boolean DEBUG_LOCAL = false;
+    implements java.awt.event.MouseListener
+{
+    private final String type;
+    private final edu.tufts.vue.metadata.ui.MetadataEditor editor;
+    private final MetaButton button;
     
     private int row;
-    private String type;
-    private edu.tufts.vue.metadata.ui.MetadataEditor editor;
-    private MetaButton button;
     
-    public MetaButtonPanel(edu.tufts.vue.metadata.ui.MetadataEditor editor,
-                           String type)
-    {
+    public MetaButtonPanel(edu.tufts.vue.metadata.ui.MetadataEditor editor, String type) {
+        setName(type);
         this.type = type;
         this.editor = editor;
-        button = new MetaButton(editor,type);
+        button = new MetaButton(editor, type);
+        setLayout(new java.awt.BorderLayout());
         add(button);
-        addMouseListener(this);
+        addMouseListener(this); // This has to be a listener in order for the button to get events
     }
     
-    public void setRow(int row)
-    {
+    public void setPanelRowForButtonClick(int row) {
         this.row = row;
-        button.setRow(row);
+        button.setRowForButtonClick(row);
     }
     
-    public void mousePressed(java.awt.event.MouseEvent evt)
+    public void XXXmousePressed(java.awt.event.MouseEvent evt)
     {
-
-        if(DEBUG_LOCAL)
-        {
+        if (DEBUG.PAIN) {
             java.awt.Point point = evt.getPoint();
-            System.out.println("MetaButtonPanel: component at -- " +
-                               "(point,component) --" + 
-                               "(" + point + "," + getComponentAt(point) + ")");
+            System.out.println("MetaButtonPanel: component at -- " + "(point,component) --" + "(" + point + "," + getComponentAt(point) + ")");
         }
         
         // unless over button, do save
-       ((edu.tufts.vue.metadata.ui.MetadataEditor.MetadataTableModel)editor.getMetadataTable().getModel())
-               .setSaved(row,true);
-       if(editor.getMetadataTable().getCellEditor() != null)
-         editor.getMetadataTable().getCellEditor().stopCellEditing();
-        
+        editor.getModel().setSaved(row, true);
+        if (editor.getTable().getCellEditor() != null)
+            editor.getTable().getCellEditor().stopCellEditing();
     }
     
-    public void mouseReleased(java.awt.event.MouseEvent evt)
-    {
-        
-    }
-    
-    public void mouseClicked(java.awt.event.MouseEvent evt)
-    {
-        
-    }
-    
-    public void mouseExited(java.awt.event.MouseEvent evt)
-    {
-        
-    }
-    
-    public void mouseEntered(java.awt.event.MouseEvent evt)
-    {
-        
-    }
+    public void mousePressed(java.awt.event.MouseEvent evt) { }
+    public void mouseReleased(java.awt.event.MouseEvent evt) { }
+    public void mouseClicked(java.awt.event.MouseEvent evt) { }
+    public void mouseExited(java.awt.event.MouseEvent evt) { }
+    public void mouseEntered(java.awt.event.MouseEvent evt) { }
     
 }
