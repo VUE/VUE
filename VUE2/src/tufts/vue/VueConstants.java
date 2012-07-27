@@ -62,7 +62,15 @@ public interface VueConstants
 
     // Note that "Lucida Console" on Mac OS X gets mapped to "Monaco" in any case
     
-    static Font LargeFixedFont = new Font("Lucida Sans Typewriter", Font.PLAIN, 12);
+    static Font LargeFixedFont = VueUtil.isMacPlatform()
+        ? new Font("Monaco", Font.PLAIN, 18)
+        : new Font("Lucida Console", Font.PLAIN, 18);
+    
+    static Font LargeFixedFontBold = VueUtil.isMacPlatform()
+        ? new Font("Monaco", Font.BOLD, 18)
+        : new Font("Lucida Console", Font.BOLD, 18);
+    
+    // static Font LargeFixedFont = new Font("Lucida Sans Typewriter", Font.PLAIN, 12);
 
     static Font FONT_DEFAULT = new Font("SansSerif", Font.PLAIN, 14);
     static Font FONT_MEDIUM = new Font("SansSerif", Font.PLAIN, 12);
