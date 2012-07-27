@@ -71,6 +71,7 @@ public class GUI
     public static final String FINALIZE = "GUI_FINALIZE";
     
     public static Font LabelFace; 
+    public static Font LabelFaceItalic; 
     public static Font ValueFace;
     public static Font TitleFace;
     public static Font FixedFace;
@@ -367,6 +368,8 @@ public class GUI
         ValueFace = new GUI.Face(fontName, Font.PLAIN, fontSize, Color.black);
         TitleFace = new GUI.Face(fontName, Font.BOLD, fontSize, GUI.LabelColor);
         FixedFace = new GUI.Face(fixedFont, Font.PLAIN, fontSize, GUI.LabelColor);
+        
+        LabelFaceItalic = new GUI.Face(fontName, Font.ITALIC, fontSize, GUI.LabelColor);
         
         //StatusFace = new GUI.Face(null, 0, 0, Color.darkGray, SystemColor.control);
         //StatusFace = new GUI.Face(null, 0, 0, Color.darkGray);
