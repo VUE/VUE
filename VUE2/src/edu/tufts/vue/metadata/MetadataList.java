@@ -177,7 +177,7 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
 
     public static void addListener(MetadataListListener listener) {
         // Util.printStackTrace(MetadataList.class + ":STATIC:addListener:IGNORED " + Util.tags(listener));
-        Log.info("listeners have been disabled, will not report to: " + Util.tags(listener));
+        if (DEBUG.Enabled) Log.debug("listeners no longer allowed, will not report to: " + Util.tags(listener));
         // listeners.add(listener);
     }
     
@@ -918,7 +918,7 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
     }
     
     /* Only place this is still publicly referenced is OntologicalMembershipPane.java */
-    public static class CategoryFirstList extends java.util.ArrayList<VueMetadataElement>
+    public class CategoryFirstList extends java.util.ArrayList<VueMetadataElement>
     {
         //private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(CategoryFirstList.class);
         
@@ -940,7 +940,7 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
             }
 
             if (vme.type == VME_EMPTY_IGNORE) { 
-                //if (DEBUG.Enabled) Log.info("ignoring " + vme);
+                if (!unmarshalling) Log.info("ignoring " + vme);
                 return true;
             }
           
