@@ -29,7 +29,7 @@ import java.net.*;
  *
  * @author dhelle01
  */
-public final class VueMetadataElement implements tufts.vue.XMLUnmarshalListener
+public class VueMetadataElement implements tufts.vue.XMLUnmarshalListener
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(VueMetadataElement.class);
 
@@ -38,7 +38,7 @@ public final class VueMetadataElement implements tufts.vue.XMLUnmarshalListener
  // public static final String VUE_ONT = Constants.ONTOLOGY_URL;//+ONT_SEPARATOR; //"vue.tufts.edu/vue.rdfs";
     
     static final String KEY_TAG = Constants.ONTOLOGY_URL + "#TAG";
-    static final String KEY_TAG_OLD = Constants.ONTOLOGY_URL + "#Tag";
+    static final String KEY_TAG_OLD = Constants.ONTOLOGY_URL + "#Tag"; // nicer: should be new default v.s. none
     static final String KEY_ONTO_TYPE = Constants.ONTOLOGY_URL + "#ontoType";
     static final String KEY_SOURCE = Constants.ONTOLOGY_URL + "#source";
 
@@ -68,6 +68,13 @@ public final class VueMetadataElement implements tufts.vue.XMLUnmarshalListener
      * prevent it from resetting type -- we should never see this key/value anywhere. */
     private static final Object UniversalOkayObject = new String[] { "[keyPlaceHolder]", "[valuePlaceHolder]" };
 
+    protected VueMetadataElement(int type, String key, String value, Object o) {
+        this.type = type >= 0 ? type : VME_EMPTY_IGNORE;
+        this.key = key;
+        this.value = value;
+        this.obj = o;
+    }
+
     public VueMetadataElement() {}
     
     public VueMetadataElement(String key, String value) {
@@ -96,6 +103,7 @@ public final class VueMetadataElement implements tufts.vue.XMLUnmarshalListener
 
     public boolean hasValue() { return value != null && value.length() > 0; }
     public boolean isEmpty() { return key == ONTOLOGY_NONE && !hasValue(); }
+    public boolean isKeyNone() { return key == ONTOLOGY_NONE; }
 
     // Note that for all save files prior to 2012, the deserialize call order
     // is VALUE first, then KEY, then TYPE last.
@@ -232,17 +240,21 @@ public final class VueMetadataElement implements tufts.vue.XMLUnmarshalListener
             key = /*VUE_ONT  + "#" + */ ((String[])obj)[0];
         }
         else if (obj instanceof OntType) {
+            // This does not look like it's for setting our key *based* on an OntType,
+            // it look like it's for *representing* actual OntTypes for some kind
+            // ontologies UI Dan might have worked on at some point.
             type = ONTO_TYPE;
-            OntType type = (OntType)(obj);
-            value = type.getBase() + "#" + type.getLabel();
+            value = ((OntType)obj).getAsKey(); // value is the OntType http://global-part#local *key*
             key = KEY_ONTO_TYPE;
         }
         else {
             type = OTHER;
         }
         
-        if (DEBUG.Enabled) Log.warn("setObject=>: " + this);
-        if (DEBUG.PAIN) Util.printClassTrace("!java");
+        if (DEBUG.Enabled) {
+            Log.warn("setObject=>: " + this);
+            if (DEBUG.PAIN && DEBUG.META) Util.printClassTrace("!java");
+        }
     }
    
    public boolean equals(final Object other) {
@@ -261,7 +273,7 @@ public final class VueMetadataElement implements tufts.vue.XMLUnmarshalListener
         final String tname =
             (type >= 0 && type < _Types.length)
             ? _Types[type]
-            : ("Type" + type + "?");
+            : ("type" + type + "?");
 
         final String id = String.format("%08x", System.identityHashCode(this)).substring(4);
         return String.format("Vme_%s[%s %s=%s, o=%s]", id, tname, key, Util.tags(value), Util.tags(obj));
