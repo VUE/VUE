@@ -51,7 +51,7 @@ public class VoteAggregate extends WeightAggregate
     private VoteAggregate(IndexedCountingSet preComputed, List<ConnectivityMatrix> matrices, double nodePercent, double linkPercent) {
         super(preComputed, matrices);
         // WeightAggregate superclass will have merged in all the matrices to produce counts: we save them here
-        this.linkCounts = super.cx.clone();
+        this.linkCounts = super.cx.clone();  // computeLinkVotes is about to write all over super.cx
         this.nodePercentMaps = nodePercent;
         this.linkPercentMaps = linkPercent;
         final double nodeThresh = nodePercent * (double) matrices.size();
@@ -69,8 +69,13 @@ public class VoteAggregate extends WeightAggregate
     {
         final int size = super.size();
 
-        // This will cause super.getConnection to return 0 or 1,
-        // depending on if the vote passed.
+        // This will collapse the connection count values (in super.cx) from their counts down to a
+        // 0 or 1, depending on if the vote passed (the count was at or over the threshold).
+
+        // This is nice, and was in the original code, but probably not required: At best it only
+        // gives us a slightly faster truth test. E.g., how much faster can (x == 1) be than a full
+        // "vote", which is: x > 0 && x >= (final int this.aggregateLinkThreshold) ?  In both
+        // cases, we still need to hash two strings to indicies first, then do the 2d-array access.
 
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
@@ -91,7 +96,7 @@ public class VoteAggregate extends WeightAggregate
     }
     
     /** if the alpha [head,tail] relationship was voted yes over threshold, zero out the omega
-     * [tail,head] so we can't vote for this head/tail relationship again */
+     * [tail,head] so we will only see this head/tail connection once */
     public boolean testAndConsumeOppositeLinkVote(Object headKey, Object tailKey) {
         final int ihead = super.keys.findIndex(headKey);
         final int itail = super.keys.findIndex(tailKey);
