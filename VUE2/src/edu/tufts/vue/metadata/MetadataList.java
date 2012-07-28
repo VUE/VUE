@@ -527,7 +527,6 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
     }
     
     public String getMetadataAsHTML(int type) {
-        // Util.printStackTrace();
         if (DEBUG.DATA || DEBUG.DR) // DR so can turn on with '^' key
             return buildDebugHTML(type).toString();
         else
@@ -610,85 +609,150 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
 
     private static final char SPACE = ' ', SLASH = '/';
 
-    private String buildHTMLForType(final int typeRequest) {
+    private String buildHTMLForType(final int typeRequest)
+    {
+        // Util.printStackTrace("buildHTMLForType " + typeRequest);
+        
         final StringBuilder b = new StringBuilder(32);
-
         int startSize = 0;
         
         if (typeRequest == OTHER) {
-            b.append("&nbsp;Merge sources:");
+            b.append("&nbsp;<b><font color=gray>Merge sources:</font></b>");
             startSize = b.length();
-            for (VueMetadataElement md : dataList) {
-                if (md.type == OTHER || md.type == TAG) {
-                    if (md.value == null)
-                        continue;
-                    b.append("<br>&nbsp;");
-                    final int startLine = b.length();
-                    final String[] part;
-                    if (md.value != null && md.value.startsWith("source:")) {
-                        // handle old style pre-summer-2012 merge-map meta-data annotations
-                        part = md.value.substring(8).split(","); // format: map-file-name,label
-                        b.append("&bull; "); 
-                        if (part.length > 1) {
-                            b.append(part[0]).append(SLASH);
-                            appendItalic(b, truncate(part[1].trim()));
-                        }
-                    } else {
-                        part = md.value.split("/"); // format: ID/typeChar/map-file-name/label
-                        if (part.length > 3) {
-                            if (part[1].charAt(0) == 'L') // link (also: N=node, I=image, etc)
-                                b.append("&harr; "); // horizontal double-ended arrow                            
-                            else
-                                b.append("&thinsp;&bull; "); // bullet: align under 'M' of "Merge sources"
-                            b.append(part[2]).append(SLASH); // map name
-                            appendItalic(b, truncate(part[3])); // node/component name
-                        }
-                    }
-                    if (b.length() == startLine)
-                        b.append(md.value); // dump all if didn't parse
-                    b.append("&nbsp;");
-                }
-            }
+            buildHTMLForMergeSources(b);
         } else {
-            // todo: logic is too complex: maybe split entirely into a single-WITH-KEY handler
-            // vs. non-single handler
-            // todo: better if force all non-visual key (bulleted) items to the end of the output
-            final boolean isSingle = (dataList.size() == 1);
-            for (VueMetadataElement md : dataList) {
-                if (md.type != typeRequest)
-                    continue;
-                if (DEBUG.Enabled) b.append('\n'); // newline only for debugging the output string
-                final boolean hasKey = !(md.key == null || md.key == ONTOLOGY_NONE || md.key == KEY_TAG);
-
-                b.append("&nbsp;");
-                if (isSingle)
-                    b.append("<font size=+0>"); // odd -- this still makes it bigger
-                else if (hasKey)
-                    b.append("<font color=gray>");
-
-                if (hasKey)
-                    b.append(shortKey(md.key)).append(':');
-                else
-                    b.append("&bull;");
-                if (hasKey && !isSingle) b.append("</font>");
-                b.append(SPACE);
-                if (md.value != null) {
-                    if (!hasKey || isSingle)
-                        appendBold(b, truncate(md.value));
-                    else
-                        b.append(truncate(md.value));
-                }
-                b.append("&nbsp;<br>");
-            }
+            buildHTMLForCompositeTypes(b, typeRequest);
             // attempting to force a tiny last-line height to push rollover bottom edge down by a few pixels:
             // b.append("<font size=-14 color=gray>---");  // can't get small enough: font size has floor on it
         }
-        // Log.debug("HTMLforType " + typeRequest + " [" + b + "]");
+        Log.debug("HTMLforType " + typeRequest + " [" + b + "]");
         
         if (DEBUG.Enabled && b.length() == startSize)
             b.append(buildDebugHTML(typeRequest));
         
         return b.toString();
+    }
+
+    private void buildHTMLForCompositeTypes(final StringBuilder b, final int typeRequest)
+    {
+        final List<VueMetadataElement> haveKey = new ArrayList(dataList.size());
+        final List<VueMetadataElement> haveOnlyValue = new ArrayList(dataList.size());
+            
+        for (VueMetadataElement md : dataList) {
+            // "<missing>" is a special value produced by the Schema code.  It can't be displayed
+            // for the same reason that <anythingInAngleBrackets> wont show up in the HTML, and for
+            // rollovers it's also a good indicator a not-interesting value.
+            if (md.type != typeRequest || !md.hasValue() || "<missing>".equals(md.value))
+                continue;
+            if (md.key == null || md.key == ONTOLOGY_NONE || md.key == KEY_TAG)
+                haveOnlyValue.add(md);
+            else
+                haveKey.add(md);
+        }
+        if (haveKey.size() == 1 && haveOnlyValue.size() == 0) {
+            // If single key & value, display it specially.  We may want to reserve this for
+            // the @ValueOf cases (enumerated values from a Schema), but we just do it for
+            // everything now.
+            b.append(" &nbsp; <b><font color=gray>"); 
+            b.append(shortKey(haveKey.get(0).key));
+            b.append("</font></b>: &nbsp; <br> &nbsp; <font size=+0>"); // odd -- this still makes it bigger
+            appendBold(b, haveKey.get(0).value);
+            b.append("</font> &nbsp; "); // to align, nbsp's must happen at same font size
+            // foo
+            return;
+        }
+        
+        if (haveKey.size() > 0) {
+            b.append("<b>");
+            for (VueMetadataElement md : haveKey) {
+                if (DEBUG.Enabled) b.append('\n'); // newline only for debugging the output string
+                b.append("&nbsp;<font color=gray>");
+                b.append(shortKey(md.key));
+                b.append(":</font> ");
+                b.append(truncate(md.value));
+                b.append("&nbsp;<br>");
+            }
+            b.append("</b>");
+        }
+        
+        if (haveOnlyValue.size() > 0) {
+            for (VueMetadataElement md : haveOnlyValue) {
+                if (DEBUG.Enabled) b.append('\n'); // newline only for debugging the output string
+                b.append("&nbsp;&thinsp;&bull; ");
+                appendBold(b, truncate(md.value));
+                b.append(" &nbsp; <br>");
+            }
+        }
+
+        if (haveKey.size() + haveOnlyValue.size() > 0)
+            return;
+
+        // Below is old complex code that should just be dumped, but it works okay as a failsafe to
+        // handle case of only having key(s) that have no value;
+        
+        final boolean isSingle = (dataList.size() == 1);
+        for (VueMetadataElement md : dataList) {
+            if (md.type != typeRequest)
+                continue;
+            if (DEBUG.Enabled) b.append('\n'); // newline only for debugging the output string
+            final boolean hasKey = !(md.key == null || md.key == ONTOLOGY_NONE || md.key == KEY_TAG);
+
+            b.append("&nbsp;");
+            if (isSingle)
+                b.append("<font size=+0>"); // odd -- this still makes it bigger
+            else if (hasKey)
+                b.append("<font color=gray>");
+
+            if (hasKey)
+                b.append(shortKey(md.key)).append(':');
+            else
+                b.append("&bull;");
+            if (hasKey && !isSingle) b.append("</font>");
+            b.append(SPACE);
+            if (md.value != null) {
+                if (!hasKey || isSingle)
+                    appendBold(b, truncate(md.value));
+                else
+                    b.append(truncate(md.value));
+            }
+            b.append("&nbsp;<br>");
+        }
+        
+    }
+
+    private void buildHTMLForMergeSources(final StringBuilder b)
+    {
+        for (VueMetadataElement md : dataList) {
+            if (md.type == OTHER || md.type == TAG) {
+                if (md.value == null)
+                    continue;
+                b.append("<br>&nbsp;");
+                final int startLine = b.length();
+                final String[] part;
+                if (md.value != null && md.value.startsWith("source:")) {
+                    // handle old style pre-summer-2012 merge-map meta-data annotations
+                    part = md.value.substring(8).split(","); // format: map-file-name,label
+                    b.append("&thinsp;&bull; "); 
+                    if (part.length > 1) {
+                        b.append(part[0]).append(SLASH);
+                        appendItalic(b, truncate(part[1].trim()));
+                    }
+                } else {
+                    part = md.value.split("/"); // format: ID/typeChar/map-file-name/label
+                    if (part.length > 3) {
+                        if (part[1].charAt(0) == 'L') // link (also: N=node, I=image, etc)
+                            b.append("&harr; "); // horizontal double-ended arrow                            
+                        else
+                            b.append("&thinsp;&bull; "); // bullet: align under 'M' of "Merge sources"
+                        b.append(part[2]).append(SLASH); // map name
+                        appendItalic(b, truncate(part[3])); // node/component name
+                    }
+                }
+                if (b.length() == startLine)
+                    b.append(md.value); // dump all if didn't parse
+                b.append("&nbsp;");
+            }
+        }
     }
 
     private static StringBuilder appendItalic(StringBuilder b, String s) {
