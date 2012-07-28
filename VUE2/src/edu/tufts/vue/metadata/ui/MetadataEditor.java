@@ -311,9 +311,6 @@ public class MetadataEditor extends JPanel
                     
                     if (getEventIsOverAddLocation(e)) {
 
-                        // TODO: this doesn't handle the multiples case, and should use a generalized version of the
-                        // existing code in the combo-box handler when a different category key is selected.
-
                         final int row = mdTable.rowAtPoint(e.getPoint());//evt.getY()/mdTable.getRowHeight();
                         final VueMetadataElement vme = (VueMetadataElement) model.getValueAt(row, 0);
 
@@ -324,10 +321,19 @@ public class MetadataEditor extends JPanel
                         if (DEBUG.PAIN) Log.debug("added custom cat: " + Util.tags(ontType));
 
                         // Note we edit the existing VME directly.  I think this is actually fine,
-                        // tho someday they should have all final fields.
+                        // tho someday they should have all final fields. (This is a problem
+                        // if the MetadataList ever keeps tract of when it becoms modified).
                         vme.setObject(new String[] { ontType.getAsKey(), vme.getValue() }); // ick, fix this!
-                        
+
                         if (DEBUG.PAIN) Log.debug("updated VME with new key: " + vme);
+                        
+                        if (currentMultiples == null) {
+                            // If this is the multiples case, we're editing the pre-published set, and this change
+                            // should be published to all the multiples, I believe on focus loss?
+                            current.notify(MetadataEditor.this, tufts.vue.LWKey.MetaData); // todo: undoable event
+                            //VUE.getActiveMap().markAsModified();
+                            VUE.getActiveMap().getUndoManager().mark("Metadata Category Key");
+                        }
                         
                         if (mdTable.getCellEditor() != null)
                             mdTable.getCellEditor().stopCellEditing();
@@ -1781,7 +1787,8 @@ public class MetadataEditor extends JPanel
             categoryFound.set(row, found ? Boolean.TRUE : Boolean.FALSE);
         }
          
-        @Override public int getRowCount() {
+        /** @interface javax.swing.table.TableModel */
+        public int getRowCount() {
             if (current != null) {   
                 //MetadataList.CategoryFirstList list = (MetadataList.CategoryFirstList)current.getMetadataList().getMetadata();
                 //int size = current.getMetadataList().getMetadata().size(); // [DAN comment]
@@ -1798,7 +1805,8 @@ public class MetadataEditor extends JPanel
             }   
         }
          
-        @Override public int getColumnCount() { return cols; }
+        /** @interface javax.swing.table.TableModel */
+        public int getColumnCount() { return cols; }
 
         boolean keyColumnVisible() { return cols == 3; }
          
@@ -1831,7 +1839,8 @@ public class MetadataEditor extends JPanel
             return true;
         }
          
-        @Override public VueMetadataElement getValueAt(int row, int _column_ignored_)
+        /** @interface javax.swing.table.TableModel */
+        public VueMetadataElement getValueAt(int row, int _column_ignored_)
         {
             if (current == null && currentMultiples == null) {
                 return null;
