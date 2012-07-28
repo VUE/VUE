@@ -93,7 +93,10 @@ public interface LWKey {
     /* the map filter has changed somehow */
     public String MapFilter = "map.filter";
     
+    /** the fast, non-editable Schema / data-import (google Multimap impl) based data set */
     public String DataUpdate = "data.update";
+    /** the editable VueMetadataElement / Ontology / OntType / RDF based data set */
+    public String MetaData = "meta.data";
 
     //-----------------------------------------------------------------------------
     // client-data keys:
