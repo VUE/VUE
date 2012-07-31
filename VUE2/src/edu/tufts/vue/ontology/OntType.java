@@ -75,9 +75,10 @@ public class OntType implements java.io.Serializable {
     }
 
     public String getAsKey() {
-        final StringBuilder b = new StringBuilder(this.baseURL);
+        final StringBuilder b = new StringBuilder(baseURL.length() + 2 + label.length());
+        b.append(baseURL);
         b.append('#');
-        b.append(this.label);
+        b.append(label);
         return b.toString();
     }
     
@@ -95,6 +96,8 @@ public class OntType implements java.io.Serializable {
     
     public void setBase(final String base) {
         this.base = base;
+        // NOTE: this has never done anything for vra_core_3.rdf, so the base ends up being the full filename to
+        // the jar in the application install -- is that okay?
         if (base.indexOf("/edu/tufts/vue/metadata/dces_1_1.rdf") != -1)
             baseURL = VueResources.local("metadata.dublincore.url");
      // else if (base.indexOf(edu.tufts.vue.metadata.CategoryModel.CUSTOM_METADATA_FILE) != -1)
@@ -117,7 +120,10 @@ public class OntType implements java.io.Serializable {
     
     public String toString() {
         final String xid = (id == null ? "" : id);
-        return baseURL+" for "+base+" id="+ id + (!xid.equals(label) ? (" label=" + label) : "");
+        if (baseURL != base)
+            return baseURL+" for "+base+" id="+ id + (!xid.equals(label) ? (" label=" + label) : "");
+        else
+            return base+" id="+ id + (!xid.equals(label) ? (" label=" + label) : "");
         //return "Base: "+base+" name: "+ id+" Style: "+style;
     }
             
