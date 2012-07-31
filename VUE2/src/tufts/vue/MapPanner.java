@@ -271,15 +271,17 @@ public class MapPanner extends javax.swing.JPanel
     }
     
     public void mouseWheelMoved(MouseWheelEvent e) {
-        /*
-        if (mapViewer != null)
-            mapViewer.getMouseWheelListener().mouseWheelMoved(e);
-        */
-        int rotation = e.getWheelRotation();
-        if (rotation > 0)
-            tufts.vue.ZoomTool.setZoomSmaller(null);
-        else if (rotation < 0)
-            tufts.vue.ZoomTool.setZoomBigger(null);
+        // if (mapViewer != null)
+        //     mapViewer.getMouseWheelListener().mouseWheelMoved(e);
+        final int rotation = e.getWheelRotation();
+
+        final double zoomChangeFactor = 1.0 + -rotation * 0.01; // each rotation does +/- 1.0% on current zoom factor
+        tufts.vue.ZoomTool.setZoom(mapViewer.getZoomFactor() * zoomChangeFactor);
+        
+        // if (rotation > 0)
+        //     tufts.vue.ZoomTool.setZoomSmaller(null);
+        // else if (rotation < 0)
+        //     tufts.vue.ZoomTool.setZoomBigger(null);
     }
     
     public void paintComponent(Graphics g)
