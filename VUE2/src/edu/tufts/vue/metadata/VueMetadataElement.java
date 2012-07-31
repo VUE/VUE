@@ -38,7 +38,7 @@ public class VueMetadataElement implements tufts.vue.XMLUnmarshalListener
  // public static final String VUE_ONT = Constants.ONTOLOGY_URL;//+ONT_SEPARATOR; //"vue.tufts.edu/vue.rdfs";
     
     static final String KEY_TAG = Constants.ONTOLOGY_URL + "#TAG";
-    static final String KEY_TAG_OLD = Constants.ONTOLOGY_URL + "#Tag"; // nicer: should be new default v.s. none
+    static final String KEY_TAG_OLD = Constants.ONTOLOGY_URL + "#Tag";
     static final String KEY_ONTO_TYPE = Constants.ONTOLOGY_URL + "#ontoType";
     static final String KEY_SOURCE = Constants.ONTOLOGY_URL + "#source";
 
@@ -89,7 +89,7 @@ public class VueMetadataElement implements tufts.vue.XMLUnmarshalListener
         vme.type = OTHER;
         vme.key = KEY_SOURCE;
         vme.value = sourceString;
-        vme.obj = UniversalOkayObject;
+        vme.obj = UniversalOkayObject; // note this means shared, but should never be editing these...
         // try leaving object empty: RDFIndex no longer cares, and this shouldnt show up in
         // interactive UI
         return vme;
@@ -226,7 +226,7 @@ public class VueMetadataElement implements tufts.vue.XMLUnmarshalListener
     /** a messy and pain inducing hack this was -- appears to rarely be called directly in VUE source, so elimination shouldn't be too bad */
     public void setObject(final Object obj)
     {
-        if (DEBUG.PAIN) Log.warn("setObject->: " + this + "; obj=" + Util.color(Util.tags(obj), Util.TERM_GREEN));
+        if (DEBUG.Enabled) Log.warn("setObject->: " + this + "; obj=" + Util.color(Util.tags(obj), Util.TERM_GREEN));
        
         this.obj = obj;
         if (obj instanceof String) {
@@ -253,21 +253,31 @@ public class VueMetadataElement implements tufts.vue.XMLUnmarshalListener
         
         if (DEBUG.Enabled) {
             Log.warn("setObject=>: " + this);
-            if (DEBUG.PAIN && DEBUG.META) Util.printClassTrace("!java");
+            //if (DEBUG.PAIN && DEBUG.META)
+                Util.printClassTrace("!java");
         }
     }
    
-   public boolean equals(final Object other) {
-       if (other instanceof VueMetadataElement) {
-           final VueMetadataElement vme = (VueMetadataElement) other;
-           try {
-               return vme.key.equals(key) && vme.value.equals(value);
-           } catch (Throwable t) {
-               return false;
-           }
-       } else 
-           return false;
-   }
+    @Override public int hashCode() {
+        if (value == null)
+            return key.hashCode();
+        else
+            return key.hashCode() ^ value.hashCode();
+    }
+    
+    @Override public boolean equals(final Object vme) {
+        if (vme instanceof VueMetadataElement) {
+            final VueMetadataElement other = (VueMetadataElement) vme;
+            if (this.key == other.key && this.value == other.value)
+                return true;
+            try {
+                return other.key.equals(key) && other.value.equals(value);
+            } catch (Throwable t) {
+                return false;
+            }
+        } else 
+            return false;
+    }
 
     public String toString() {
         final String tname =
