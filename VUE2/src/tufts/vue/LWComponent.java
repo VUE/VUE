@@ -544,6 +544,8 @@ public class LWComponent
 
         public final KeyType type;
 
+        public final boolean isColor;
+
         /* True this property is a sub-part of some other property */
         //public final boolean isSubProperty;
 
@@ -605,6 +607,7 @@ public class LWComponent
             this.name = name;
             this.cssName = cssName;
             this.type = keyType;
+            this.isColor = name.endsWith("color"); // todo: hack -- make more explicit
             if (InstanceCount >= Long.SIZE) {
                 this.bit = 0;
                 tufts.Util.printStackTrace(Key.class + ": " + InstanceCount + "th key created -- need to re-implement (try BitSet)");
@@ -5333,7 +5336,8 @@ public class LWComponent
     /** @return bounds to use when this is the focal */
     public Rectangle2D.Float getFocalBounds() {
         // do not include any slide icons
-        return addStrokeToBounds(getMapBounds(), 0);
+        return addStrokeToBounds(getMapBounds(), this instanceof LWImage ? 0 : 25);
+        //return getFanBounds(new Rectangle2D.Float());        
     }
     
 
