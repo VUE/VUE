@@ -408,7 +408,7 @@ public class MapInspectorPanel extends JPanel
                     vme.setType(edu.tufts.vue.metadata.VueMetadataElement.RESOURCE_CATEGORY);
                     if(currentMap.getMetadataList().findRCategory(dcCreator) != -1)
                     {
-                      mMap.getMetadataList().modify(vme);
+                      mMap.getMetadataList().replaceWith(vme);
                     }
                     else
                     {
@@ -429,7 +429,7 @@ public class MapInspectorPanel extends JPanel
                          return;
                      if(currentMap.getMetadataList().findRCategory(dcDescription) != -1)
                      {
-                       mMap.getMetadataList().modify(vme);
+                       mMap.getMetadataList().replaceWith(vme);
                      }
                      else
                      {
