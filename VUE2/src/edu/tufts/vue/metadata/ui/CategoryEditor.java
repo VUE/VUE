@@ -204,22 +204,17 @@ public class CategoryEditor extends JPanel
         
         
         
-        doneButton.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent e)
-            {
+        doneButton.addActionListener(new java.awt.event.ActionListener() { public void actionPerformed(java.awt.event.ActionEvent e) {
+                ((CategoryComboBoxModel)categories.getModel()).refreshCategoryMenu();
+                CategoryEditor.this.dialog.dispose();
+        }});
                 //categories.setSelectedItem(categories.getSelectedItem());
-                
-                ((CategoryComboBoxModel)categories.getModel()).refresh();
                 //int n = categories.getModel().getSize();
-
-                final String currentKey = metadataEditor.getKeyForRow(row);
-
-                if (currentKey != null) {
-                    MetadataEditor.selectKnownCategory(currentKey, categories);
-                    categories.repaint();
-                }
-                
+                // final String currentKey = metadataEditor.getKeyForRow(row);
+                // if (currentKey != null) {
+                //     MetadataEditor.selectKnownCategory(currentKey, categories);
+                //     categories.repaint();
+                // }
                 // Object currObject = null;
                 // tufts.vue.LWComponent currComponent = null;
                 // if (metadataEditor.getCurrentMultiples() !=null )
@@ -229,11 +224,6 @@ public class CategoryEditor extends JPanel
                 // else { CategoryEditor.this.dialog.dispose(); return;  }
                 // currObject = currComponent.getMetadataList().getMetadata().get(row).getObject();
                 // Object currValue = (((String[])currObject)[0]);
-
-                CategoryEditor.this.dialog.dispose();
-            }
-        });
-        
     }
     
     class CustomCategoryTableHeaderRenderer extends DefaultTableCellRenderer
