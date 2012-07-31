@@ -103,7 +103,6 @@ public class LWMap extends LWContainer
     
     private Rectangle2D.Float mCachedBounds = null;
     
-    
     // these for persistance use only
     private float userOriginX;
     private float userOriginY;
@@ -2262,10 +2261,44 @@ public class LWMap extends LWContainer
         if (e.isUndoable())
             markChange(e);
 
-        flushBounds(); // TODO: optimize: need a bounds event yet again
+        if (mCachedBounds != null) {
+            Rectangle2D.Float outside = null;
+            if (e.key == LWKey.UserActionCompleted) {
+                flushBounds();
+                // force re-compute / re-cache while user is likely idle, tho getPaintBounds
+                // may well have already been called my something else by then.
+                VUE.invokeAfterAWT(EnsureBoundsCacheIsFilled); // VUE/AWT ref in model: not ideal
+            }
+            // else if (e.key instanceof LWComponent.Key && ((LWComponent.Key)e.key).isColor) {
+            //     // ignore [speeds up colors, but slows down everything else: e.g., drags]
+            // }
+            else if (e.component != null && mCachedBounds.contains(outside = e.component.getPaintBounds())) {
+                // Do nothing.  Whatever happened to the component, its bounds are still inside the cached
+                // bounds.  This works for making sure GROW the bounds when needed, but it won't SHRINK them.
+                // We handle that above by forcing re-compute on UserActionCompleted.  Todo: can skip this
+                // check entirely for many events that can't touch bounds: e.g., colors.
+            }
+            else {
+                // Todo: further optimize: could have a bounds event / flag for events that can
+                // touch bounds. Note: we may only need this for the scroll-pane?  If so, maybe it
+                // should handle tracking this itself.  In any case, may NOT need it when in
+                // full-screen mode.
+                if (outside != null)
+                    mCachedBounds.add(outside);
+                else
+                    flushBounds(); 
+            }
+        }
         super.notifyLWCListeners(e);
 
     }
+
+    /** javac should be smart enough to automatically create a single instance of these closures
+     ** when used inline for its enclosing class instance (LWMap in this case) when nothing other
+     ** than "this" is used, but it's not, so here it is not inline. (For that matter, it should
+     ** simply have method references, which would erase the need for this construct entirely, but
+     ** i digress). */
+    private final Runnable EnsureBoundsCacheIsFilled = new Runnable() { public void run() { getMapBounds(); }};
     
     private void flushBounds() {
         mCachedBounds = null;
@@ -2338,18 +2371,18 @@ public class LWMap extends LWContainer
     @Override
     public Rectangle2D.Float getMapBounds() {
 
-        // TODO: OPTIMIZE!  This is getting called EIGHT (8) times per event --
-        // e.g. computing the entire bounds of the map 8 times per mouse drag when
-        // moving a component around.  All of them seem to be coming from
-        // adjustCanvasSize in MapViewer, which is being called every time we get an
-        // event.  We may finally want that isBoundsEvent flag in LWComponent.Key,
-        // either that, or have a special info-only bounds event delivered any time the
-        // bounds change, so parties interested in bounds changes (MapViewer's,
-        // LWGroup's) could pay attention to just that event.
+        // [TODO: OPTIMIZE! This is getting called EIGHT (8) times per event -- e.g. computing the entire
+        // bounds of the map 8 times per mouse drag when moving a component around.  All of them seem to be
+        // coming from adjustCanvasSize in MapViewer, which is being called every time we get an event.  We may
+        // finally want that isBoundsEvent flag in LWComponent.Key, either that, or have a special info-only
+        // bounds event delivered any time the bounds change, so parties interested in bounds changes
+        // (MapViewer's, LWGroup's) could pay attention to just that event.] [somewhat optimized now -- see
+        // where flushBounds is called]
         
         if (mCachedBounds == null) {
             //mCachedBounds = getBounds(getChildIterator(), maxLayer);
             //mCachedBounds = getPaintBounds(getChildIterator());
+            //if (DEBUG.CONTAINMENT && DEBUG.META) Log.debug("COMPUTING BOUNDS..."); // okay, this is actually pretty fast
             mCachedBounds = getPaintBounds();
             takeSize(mCachedBounds.width, mCachedBounds.height);
             //takeLocation(mCachedBounds.x, mCachedBounds.y);
@@ -2365,8 +2398,7 @@ public class LWMap extends LWContainer
             //if (!DEBUG.SCROLL && !DEBUG.CONTAINMENT)
             //mCachedBoundsOld = false;
             //if (DEBUG.CONTAINMENT && DEBUG.META)
-            if (DEBUG.CONTAINMENT && DEBUG.META)
-                Log.debug("COMPUTED BOUNDS " + Util.fmt(mCachedBounds) + "; for " + this);
+            if (DEBUG.CONTAINMENT && DEBUG.META) Log.debug("COMPUTED BOUNDS " + Util.fmt(mCachedBounds) + "; for " + this);
 
         }
         //setSize((float)bounds.getWidth(), (float)bounds.getHeight());
