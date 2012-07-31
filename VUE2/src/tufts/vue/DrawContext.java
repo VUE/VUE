@@ -499,7 +499,8 @@ public final class DrawContext
         
         setAlphaQuality(g, DEFAULT);
         setColorQuality(g, DEFAULT);
-        setFontQuality(g, DEFAULT);
+        setFontQuality(g, QUALITY);
+      //setFontQuality(g, DEFAULT);
         setAntiAlias(true);
         //setDitherQuality(g, TRUE);
         quality = QUALITY_NORMAL;
