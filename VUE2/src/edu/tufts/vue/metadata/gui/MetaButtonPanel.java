@@ -19,9 +19,8 @@ package edu.tufts.vue.metadata.gui;
 import tufts.vue.DEBUG;
 
 /**
- *
  * @author dhelle01
- * 
+ * @deprecated -- functionality moved to MetaButton.java
  */
 public class MetaButtonPanel extends javax.swing.JPanel 
     implements java.awt.event.MouseListener
@@ -47,18 +46,12 @@ public class MetaButtonPanel extends javax.swing.JPanel
         button.setRowForButtonClick(row);
     }
     
-    public void XXXmousePressed(java.awt.event.MouseEvent evt)
-    {
-        if (DEBUG.PAIN) {
-            java.awt.Point point = evt.getPoint();
-            System.out.println("MetaButtonPanel: component at -- " + "(point,component) --" + "(" + point + "," + getComponentAt(point) + ")");
-        }
-        
-        // unless over button, do save
-        editor.getModel().setSaved(row, true);
-        if (editor.getTable().getCellEditor() != null)
-            editor.getTable().getCellEditor().stopCellEditing();
-    }
+    // public void XXXmousePressed(java.awt.event.MouseEvent evt) {
+    //     // unless over button, do save
+    //     editor.getModel().setSaved(row, true);
+    //     if (editor.getTable().getCellEditor() != null)
+    //         editor.getTable().getCellEditor().stopCellEditing();
+    // }
     
     public void mousePressed(java.awt.event.MouseEvent evt) { }
     public void mouseReleased(java.awt.event.MouseEvent evt) { }
