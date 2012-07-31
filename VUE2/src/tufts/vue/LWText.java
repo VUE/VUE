@@ -22,6 +22,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.RectangularShape;
 import java.awt.geom.Point2D.Float;
+import java.awt.geom.Line2D;
 import java.util.Enumeration;
 
 import javax.swing.text.AttributeSet;
@@ -176,122 +177,106 @@ public class LWText extends LWComponent {
         return true;
     }
 
-	public void initRichTextBoxLocation(RichTextBox activeRichTextEdit) {
-		activeRichTextEdit.setBoxCenter(getWidth() / 2, getHeight() / 2);
-
-	}
+    public void initRichTextBoxLocation(RichTextBox activeRichTextEdit) {
+        activeRichTextEdit.setBoxCenter(getWidth() / 2, getHeight() / 2);
+    }
 
     /** does this support user resizing? */
     // TODO: change these "supports" calls to an arbitrary property list
     // that could have arbitrary properties added to it by plugged-in non-standard tools
     public boolean supportsUserResize() {
-    	  
-    	  
         return (VUE.getActiveViewer().hasActiveTextEdit()) ? false : true;
     }
 	
-	protected void drawNode(DrawContext dc) {
-		// -------------------------------------------------------
-		// Fill the shape (if it's not transparent)
-		// -------------------------------------------------------
+    protected void drawNode(DrawContext dc) {
+        // -------------------------------------------------------
+        // Fill the shape (if it's not transparent)
+        // -------------------------------------------------------
 
-            getZeroShape(); // will load super.mZeroBounds
+        getZeroShape(); // will load super.mZeroBounds
 
-		if (isSelected() && dc.isInteractive() && dc.focal != this) {
-			LWPathway p = VUE.getActivePathway();
-			if (p != null && p.isVisible() && p.getCurrentNode() == this) {
-				// SPECIAL CASE:
-				// as the current element on the current pathway draws a huge
-				// semi-transparent stroke around it, skip drawing our fat
-				// transparent selection stroke on this node. So we just
-				// do nothing here.
-			} else {
-				dc.g.setColor(COLOR_HIGHLIGHT);
-                                if (isTransparent()) {
-                                    dc.g.fill(grow((Rectangle2D.Float) mZeroBounds.clone(), SelectionStrokeWidth/2f));
-                                } else {
-                                    dc.g.setStroke(new BasicStroke(getStrokeWidth() + SelectionStrokeWidth));
-                                    dc.g.draw(getZeroShape());
-                                }
-			}
-		}
+        if (isSelected() && dc.isInteractive() && dc.focal != this) {
+            LWPathway p = VUE.getActivePathway();
+            if (p != null && p.isVisible() && p.getCurrentNode() == this) {
+                // SPECIAL CASE: as the current element on the current pathway draws a huge semi-transparent stroke around
+                // it, skip drawing our fat transparent selection stroke on this node. So we just do nothing here.
+            } else {
+                dc.g.setColor(COLOR_HIGHLIGHT);
+                if (isTransparent()) {
+                    dc.g.fill(grow((Rectangle2D.Float) mZeroBounds.clone(), SelectionStrokeWidth/2f));
+                } else {
+                    dc.g.setStroke(new BasicStroke(getStrokeWidth() + SelectionStrokeWidth));
+                    dc.g.draw(getZeroShape());
+                }
+            }
+        }
 
-		// if (imageIcon != null) { // experimental
-		// //imageIcon.paintIcon(null, g, (int)getX(), (int)getY());
-		// imageIcon.paintIcon(null, dc.g, 0, 0);
-		// } else
+        // if (imageIcon != null) { // experimental
+        // //imageIcon.paintIcon(null, g, (int)getX(), (int)getY());
+        // imageIcon.paintIcon(null, dc.g, 0, 0);
+        // } else
 
-		if (false && (dc.isPresenting() || isPresentationContext())) { // old-style
-			// "turn
-			// off
-			// the
-			// wrappers"
-			; // do nothing: no fill
-		} else {
-                        final Color fillColor = getFillColor();
-			if (fillColor != null && fillColor.getAlpha() != 0) { // transparent
-				// if null
-                                dc.g.setColor(fillColor);
-				// if (isZoomedFocus()) dc.g.setComposite(ZoomTransparency);
-				dc.g.fill(mZeroBounds);
-				// if (isZoomedFocus()) dc.g.setComposite(AlphaComposite.Src);
-			}
-		}
+        if (false && (dc.isPresenting() || isPresentationContext())) { // old-style
+            // "turn
+            // off
+            // the
+            // wrappers"
+            ; // do nothing: no fill
+        } else {
+            final Color fillColor = getFillColor();
+            if (fillColor != null && fillColor.getAlpha() != 0) { // transparent
+                // if null
+                dc.g.setColor(fillColor);
+                // if (isZoomedFocus()) dc.g.setComposite(ZoomTransparency);
+                dc.g.fill(mZeroBounds);
+                // if (isZoomedFocus()) dc.g.setComposite(AlphaComposite.Src);
+            }
+        }
 
-		/*
-		 * if (!isAutoSized()) { // debug g.setColor(Color.green);
-		 * g.setStroke(STROKE_ONE); g.draw(zeroShape); } else if
-		 * (false&&isRollover()) { // debug // temporary debug //g.setColor(new
-		 * Color(0,0,128)); g.setColor(Color.blue); g.draw(zeroShape); } else
-		 */
+        /*
+         * if (!isAutoSized()) { // debug g.setColor(Color.green);
+         * g.setStroke(STROKE_ONE); g.draw(zeroShape); } else if
+         * (false&&isRollover()) { // debug // temporary debug //g.setColor(new
+         * Color(0,0,128)); g.setColor(Color.blue); g.draw(zeroShape); } else
+         */
 
-		if (getStrokeWidth() > 0 /*
-									 * && !isPresentationContext() &&
-									 * !dc.isPresenting()
-									 */) { // old
-			// style
-			// "turn
-			// off
-			// the
-			// wrappers"
-			// if (LWSelection.DEBUG_SELECTION && isSelected())
-			// if (isSelected())
-			// g.setColor(COLOR_SELECTION);
-			// else
-			dc.g.setColor(getStrokeColor());
-			dc.g.setStroke(this.stroke);
-			dc.g.draw(mZeroBounds);
-		}
+        if (getStrokeWidth() > 0 /*
+                                  * && !isPresentationContext() &&
+                                  * !dc.isPresenting()
+                                  */) { // old
+            // style "turn off the wrappers" if
+            // (LWSelection.DEBUG_SELECTION && isSelected()) if
+            // (isSelected()) g.setColor(COLOR_SELECTION); else
+            dc.g.setColor(getStrokeColor());
+            dc.g.setStroke(this.stroke);
+            dc.g.draw(mZeroBounds);
+        }
 
-		// -------------------------------------------------------
-		// Draw the generated icon
-		// -------------------------------------------------------
+        // -------------------------------------------------------
+        // Draw the generated icon
+        // -------------------------------------------------------
 
-		// drawNodeDecorations(dc);
+        // drawNodeDecorations(dc);
 
-		// todo: create drawLabel, drawBorder & drawBody
-		// LWComponent methods so can automatically turn
-		// this off in MapViewer, adjust stroke color for
-		// selection, etc.
+        // todo: create drawLabel, drawBorder & drawBody LWComponent methods so can automatically turn this off in
+        // MapViewer, adjust stroke color for selection, etc.
 
-		// TODO BUG: label sometimes getting "set" w/out sending layout event --
-		// has to do with case where we pre-fill a textbox with "label", and
-		// if they type nothing we don't set a label, but that's not working
-		// entirely -- it manages to not trigger an update event, but somehow
-		// this.label is still getting set -- maybe we have to null it out
-		// manually (and maybe richLabelBox also)
+        // TODO BUG: label sometimes getting "set" w/out sending layout event -- has to do with case where we pre-fill a
+        // textbox with "label", and if they type nothing we don't set a label, but that's not working entirely -- it
+        // manages to not trigger an update event, but somehow this.label is still getting set -- maybe we have to null it
+        // out manually (and maybe richLabelBox also)
 
-		if (hasLabel() && this.richLabelBox != null
-				&& this.richLabelBox.getParent() == null) {
+        if (hasLabel() && this.richLabelBox != null
+            && this.richLabelBox.getParent() == null) {
 
-			// if parent is not null, this box is an active edit on the map
-			// and we don't want to paint it here as AWT/Swing is handling
-			// that at the moment (and at a possibly slightly different offset)
+            // if parent is not null, this box is an active edit on the map
+            // and we don't want to paint it here as AWT/Swing is handling
+            // that at the moment (and at a possibly slightly different offset)
 
-			drawLabel(dc);
-		}
+            drawLabel(dc);
+        }
 
-	}
+    }
 	public final int getAverageTextSize()
 	{
 	
@@ -342,48 +327,49 @@ public class LWText extends LWComponent {
 	    return 12;
 	}
 
-	@Override
-	protected void drawImpl(DrawContext dc) {
-		 if (dc.isLODEnabled()) {
+    @Override protected void drawImpl(DrawContext dc)
+    {
+        if (dc.isLODEnabled()) {
+            // if net on-screen point size is less than 5 for all text, we allow drawing
+            // with reduced LOD (level-of-detail)
+            final float renderScale = (float) dc.getAbsoluteScale(); 
+            final float renderFont = getAverageTextSize() * renderScale;
+            if (renderFont < 5) {
+                drawTextWithReducedLOD(dc, renderScale);
+                return; // WE'RE DONE
+            }
+        }
+        // If we're filtered, parent won't have drawn us.
+        drawNode(dc);
+    }
 
-	            // if net on-screen point size is less than 5 for all text, we allow drawing
-	            // with reduced LOD (level-of-detail)
-	        
-	            final float renderScale = (float) dc.getAbsoluteScale(); 
-	  //          this.glo       
-	            final float renderFont = (getAverageTextSize()-4) * renderScale;
-	            final boolean canSkipLabel = renderFont < 5; 
-	     
-	     
-	            if (canSkipLabel) {
-	                drawNodeWithReducedLOD(dc, renderScale);
-	                return; // WE'RE DONE
-	            }
-	        }
-		 
-		if (!isFiltered()) {
-			// Desired functionality is that if this node is filtered, we don't
-			// draw it, of course.
-			// But also, even if this node is filtered, we still draw any
-			// children who are
-			// NOT filtered -- we just drop out the parent background.
-			// dc.g.clipRect(0, 0,(int) getWidth(), getAdjustedHeight());
+    private final static Line2D.Float xline = new Line2D.Float();
 
-// 			if (!isSelected()) {
-// 				double	alpha =  VUE.getInteractionToolsPanel().getAlpha();
+    private void drawTextWithReducedLOD(final DrawContext dc, final float renderScale) {
+        if (isSelected()) {
+            dc.g.setColor(COLOR_SELECTION);
+            dc.setAbsoluteStroke(1);
+        } else {
+            dc.g.setStroke(STROKE_ONE);
+            dc.g.setColor(Color.black);
+        }
+        dc.g.draw(getZeroShape());
 
-// 		    	if (alpha != 1) {
-// 		        	// "Fade" this text.
-// 		    		dc.setAlpha(alpha);
-// 		    	}				
-// 			}
+        // imperfect, but good enough -- view in panner to test
 
-		//	if (!((SHTMLDocument)this.getRichLabelBox().getDocument()).isEditing())
-				drawNode(dc);
-		}
+        final float inc = 3f / renderScale;
+        final float screenTall = this.height - inc;
+        final float screenWide = this.width;
 
-	}
-	 private static final Shape mShape = new java.awt.geom.Rectangle2D.Float();
+        xline.setLine(inc*2, 0, screenWide-inc*2, 0);
+        for (float y = inc*2; y < screenTall; y += inc) {
+            xline.y1 = xline.y2 = y;
+            dc.g.draw(xline);
+        }
+    }
+
+    
+    //private static final Shape mShape = new java.awt.geom.Rectangle2D.Float();
 	/** Draw without rendering any textual glyphs, possibly without children, possibly as a rectanlge only */
     private void drawNodeWithReducedLOD(final DrawContext dc, final float renderScale)
     {
@@ -399,30 +385,17 @@ public class LWText extends LWComponent {
         if (isSelected()) {
             dc.g.setColor(COLOR_SELECTION);
         } else {
-
             final Color renderFill = getRenderFillColor(dc);
-
            // if (isTransparent() || renderFill.equals(getParent().getRenderFillColor(dc)))
                 hasVisibleFill = false;
-           
         }
-
         if (this.height * renderScale > 5) {
-
             // MEDIUM LEVEL OF DETAIL: retain shape & draw children
-
-          
                 drawLODTextLine(dc);
-
-          
-                
         } else {
-
             // LOWEST LEVEL OF DETAIL -- shape is always a rectangle, don't draw children
-            
                 drawLODTextLine(dc);
         }
-                
     }
 
     private void drawLODTextLine(final DrawContext dc) {
