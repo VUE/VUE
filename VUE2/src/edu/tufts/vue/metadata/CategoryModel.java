@@ -19,12 +19,16 @@
  */
 package edu.tufts.vue.metadata;
 
-import  edu.tufts.vue.ontology.*;
 import java.util.*;
 import java.net.*;
 import java.io.*;
+
+import edu.tufts.vue.ontology.*;
 import com.hp.hpl.jena.rdf.model.*;
 import com.hp.hpl.jena.ontology.*;
+
+import tufts.Util;
+import tufts.vue.DEBUG;
 
 public class CategoryModel extends ArrayList<edu.tufts.vue.ontology.Ontology>
 {
@@ -43,8 +47,9 @@ public class CategoryModel extends ArrayList<edu.tufts.vue.ontology.Ontology>
     
     private String[] defaultOntologyUrls;
     
-    int ontTypesCount = 0;
-    private static final Map<URL,edu.tufts.vue.ontology.Ontology> ontCache = new HashMap<URL,edu.tufts.vue.ontology.Ontology>();
+    int ontTypesCount = 0; // is never updated on remove, tho access API method appears to have never been used
+    private static final Map<URL,edu.tufts.vue.ontology.Ontology> ontCache = new HashMap<URL,edu.tufts.vue.ontology.Ontology>(); // is never cleared
+    
     private edu.tufts.vue.ontology.Ontology customOntology;
     public CategoryModel() {
         Log.debug("Creating Category Model");
@@ -77,9 +82,39 @@ public class CategoryModel extends ArrayList<edu.tufts.vue.ontology.Ontology>
         Thread loader = new Thread(ontologyLoader);
         loader.start();
     }
+
+    // Actually, the way to do this is to hash in the Ontology, just by label/id, and we can lookup
+    // the Ontology by OntType.base (hashed also if we like).  Leaving this in for debug.
+    @Override public boolean add(edu.tufts.vue.ontology.Ontology o) {
+        if (DEBUG.Enabled) Log.debug("add[" + size() + "] " + o.getBase() + " " + Util.tags(o.getLabel()));
+        scanOntTypes(o);
+        return super.add(o);
+    }
+    @Override public edu.tufts.vue.ontology.Ontology set(int index, edu.tufts.vue.ontology.Ontology o) {
+        if (DEBUG.Enabled) Log.debug("set[" + index + "] " + o.getBase() + " " + Util.tags(o.getLabel()));
+        // impl is messy: will add empty ontologies with numbered names to replace ones removed
+        // if (o.getBase() == null) Util.printStackTrace(); 
+        scanOntTypes(o);
+        return super.set(index, o);
+    }
+    @Override public boolean remove(Object _o) {
+        edu.tufts.vue.ontology.Ontology o = (edu.tufts.vue.ontology.Ontology) _o;
+        if (DEBUG.Enabled) Log.debug("remove " + o.getBase() + " " + Util.tags(o.getLabel()));
+        // todo: flush cache
+        return super.remove(o);
+    }
+    private void scanOntTypes(edu.tufts.vue.ontology.Ontology o) {
+        // ontTypesCount += o.getOntTypes().size(); // won't need: can ask ontTypeByKey.size()
+        for (OntType ontType : o.getOntTypes()) {
+            if (DEBUG.PAIN || DEBUG.DATA) Log.info(ontType);
+            // OntType old = ontTypeByKey.put(ontType.getAsKey(), ontType);
+            // if (old != null) Log.warn("duplicate ontType key: " + old.getAsKey());
+            // else Log.info("cached: " + ontType);
+        }
+    }
+        
     
-    public boolean isLoaded()
-    {
+    public boolean isLoaded() {
         return ontologiesLoaded;
     }
     
@@ -105,24 +140,25 @@ public class CategoryModel extends ArrayList<edu.tufts.vue.ontology.Ontology>
         //}
     }
   
-    public void  loadOntology(int location,URL url) {
+    public void loadOntology(int index, URL url) {
         if(ontCache.get(url) == null) {
             edu.tufts.vue.ontology.Ontology ontology = new RDFSOntology(url);
-            //ontTypesCount += ontology.getOntTypes().size();
-            set(location,ontology);
-            ontCache.put(url,ontology);
+            ontTypesCount += ontology.getOntTypes().size();
+            set(index, ontology);
+            ontCache.put(url, ontology);
         } else {
-            set(location,ontCache.get(url));
+            set(index, ontCache.get(url));
         }
     }
     
-    public void  loadOntology(URL url) {
+    public void loadOntology(URL url) {
         if(ontCache.get(url) == null) {
             edu.tufts.vue.ontology.Ontology ontology = new RDFSOntology(url);
             ontTypesCount += ontology.getOntTypes().size();
             add(ontology);
             ontCache.put(url,ontology);
         } else {
+            // Weird: if already loaded, we add it again to the end?  Was this a cut/paste fail from above?
             add(ontCache.get(url));
         }
     }
