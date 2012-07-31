@@ -47,9 +47,6 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
     
     private final static boolean DEBUG_LOCAL = false;
     
-    //todo: add to VueResources.properties
-    public static final String MERGE_SOURCES_TITLE = "Merged from:";
-    
     /** Note that this was a STATIC list of listeners, which is bad, crazy, bad, bad, crazy.
      * Or at least as long as it was firing for every single deserialization... */
     // private static List<MetadataListListener> listeners = new ArrayList<MetadataListListener>();
@@ -78,9 +75,8 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
     }
    
     /** horrible API still called all over the place */
-    public List<VueMetadataElement> getMetadata() {
-        return dataList;
-    }
+    public List<VueMetadataElement> getMetadata() { return dataList; }
+    public List<VueMetadataElement> getAllTypes() { return dataList; }
     
     /** is this *effectively* empty */
     public boolean isEmpty() {
@@ -175,31 +171,6 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
         return false;
     }
 
-    public static void addListener(MetadataListListener listener) {
-        // Util.printStackTrace(MetadataList.class + ":STATIC:addListener:IGNORED " + Util.tags(listener));
-        if (DEBUG.Enabled) Log.debug("listeners no longer allowed, will not report to: " + Util.tags(listener));
-        // listeners.add(listener);
-    }
-    
-    // Oops -- this disable flag was static, which means meta-data list events from other threads
-    // could tromp all over the updates from other threads (not that we really need this update at
-    // all, fortunately)
-    // private static boolean disableEvents = false;
-    private static void fireListChanged(Object tag)
-    {
-        // if (DEBUG.Enabled) Log.info("fireListChanged: " + Util.tags(tag));
-        
-        // if (disableEvents)
-        //     return;
-        // for (MetadataListListener mdl : listeners) {
-        //     try {
-        //         mdl.listChanged();
-        //     } catch (Throwable t) {
-        //         Log.warn("listener update: " + Util.tags(mdl), t);
-        //     }
-        // }
-    }
-    
     /** attempt at high-performace bulk load that triggers no GUI updates -- WARNING: ONLY ADDS TO "CATEGORY" LIST */
     public void add(Iterable<Map.Entry> kvEntries) {
         // oddly, firing list changed events get much slower as amount of total [map] meta-data increases [NOW WE KNOW WHY]
@@ -283,23 +254,25 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
     }
 
     // does this mean to report that the given element has changed?
-    public void modify(VueMetadataElement element) {
-      if(element.getType() == VueMetadataElement.CATEGORY) {
-          int i = findCategory(element.getKey());
+    public void replaceWith(VueMetadataElement newItem) {
+      if(newItem.getType() == VueMetadataElement.CATEGORY) {
+          int i = findCategory(newItem.getKey());
           if(i!=-1) {    
-              dataList.set(i,element);
+              dataList.set(i,newItem);
               fireListChanged("modify-cat");
           }
       }
-      if(element.getType() == VueMetadataElement.RESOURCE_CATEGORY) {
-          int i = findRCategory(element.getKey());
+      if(newItem.getType() == VueMetadataElement.RESOURCE_CATEGORY) {
+          int i = findRCategory(newItem.getKey());
           if(i!=-1) {    
-              dataList.set(i,element);
+              dataList.set(i,newItem);
               fireListChanged("modify-res");
           }
       }
     }
     
+    /*public int categoryIndexOfFirstWithValueAndKey(String key,String value) { }*/
+
     public VueMetadataElement get(String key) {
         int rcindex = findRCategory(key);
         int cindex = findCategory(key);
@@ -310,15 +283,9 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
         else
             return null;
     }
-    
-    /*public int categoryIndexOfFirstWithValueAndKey(String key,String value) { }*/
-
-     /**
-     * finds the first entered (last in order)
-     * category element with the supplied key
-     *
+     /** finds the first entered (last in order) category element with the supplied key
      * @return -1 if not found. **/
-    public int findCategory(String key) {
+    /*hide*/ private int findCategory(String key) {
         VueMetadataElement vme = null;
         int i = -1;
         try {
@@ -332,6 +299,17 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
         }
         return -1;
     }
+    // See MapInspectorPanel
+    /*public*/ public int findRCategory(String key)
+    {
+        for(int i=0;i<getResourceListSize();i++) {
+            VueMetadataElement vme = getResourceListElement(i);
+            if(vme.getKey().equals(key))
+                return i;
+        }
+        return -1;
+    }
+    
 
     public boolean contains(VueMetadataElement vme) {
         return contains(vme.getKey(), vme.getValue());
@@ -347,35 +325,24 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
         return false;
     }
 
-    // See MapInspectorPanel
-    /*public*/ public int findRCategory(String key)
-    {
-        for(int i=0;i<getResourceListSize();i++) {
-            VueMetadataElement vme = getResourceListElement(i);
-            if(vme.getKey().equals(key))
-                return i;
-        }
-        return -1;
-    }
+    // /**
+    //  * finds the most recently entered (last in order)
+    //  * category element with the supplied key
+    //  * @return -1 if not found. **/
+    // private int findMostRecentCategory(String key)
+    // {
+    //     int foundAt = -1;
+    //     int startPoint = ((CategoryFirstList)dataList).getResourceEndIndex();
+    //     for(int i=startPoint;i<getCategoryListSize();i++) {
+    //         VueMetadataElement vme = getCategoryListElement(i);
+    //         if(vme.getKey().equals(key))
+    //             foundAt = i;
+    //     }
+    //     return foundAt;
+    // }
     
-    /**
-     * finds the most recently entered (last in order)
-     * category element with the supplied key
-     * @return -1 if not found. **/
-    private int findMostRecentCategory(String key)
-    {
-        int foundAt = -1;
-        int startPoint = ((CategoryFirstList)dataList).getResourceEndIndex();
-        for(int i=startPoint;i<getCategoryListSize();i++) {
-            VueMetadataElement vme = getCategoryListElement(i);
-            if(vme.getKey().equals(key))
-                foundAt = i;
-        }
-        return foundAt;
-    }
-    
-    // See Util.java
-    /*public*/ public boolean containsOntologicalType(String ontType)
+    // See Util.java old code
+    /*hide*/ private boolean containsOntologicalType(String ontType)
     {
         for(int i=0;i<getOntologyListSize();i++) {
             VueMetadataElement vme = getOntologyListElement(i);
@@ -464,7 +431,7 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
         }
     }
 
-    // See Util.java -- note: was always persisted.  Now is never persisted.
+    // See Util.getMergeProperty -- note: was always persisted.  Now is never persisted.
     /*public*/ public String getOntologyListString()
     {
         String returnString = "";
@@ -607,7 +574,7 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
         return b;
     }
 
-    private static final char SPACE = ' ', SLASH = '/';
+    private static final char SPACE = ' ', SLASH = '/', NEWLINE = '\n';
 
     private String buildHTMLForType(final int typeRequest)
     {
@@ -621,7 +588,7 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
             startSize = b.length();
             buildHTMLForMergeSources(b);
         } else {
-            buildHTMLForCompositeTypes(b, typeRequest);
+            buildHTMLFilteredAndOrganized(b, typeRequest);
             // attempting to force a tiny last-line height to push rollover bottom edge down by a few pixels:
             // b.append("<font size=-14 color=gray>---");  // can't get small enough: font size has floor on it
         }
@@ -633,7 +600,8 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
         return b.toString();
     }
 
-    private void buildHTMLForCompositeTypes(final StringBuilder b, final int typeRequest)
+    /* don't include empty values, and put keyless data at the end */
+    private void buildHTMLFilteredAndOrganized(final StringBuilder b, final int typeRequest)
     {
         final List<VueMetadataElement> haveKey = new ArrayList(dataList.size());
         final List<VueMetadataElement> haveOnlyValue = new ArrayList(dataList.size());
@@ -641,7 +609,7 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
         for (VueMetadataElement md : dataList) {
             // "<missing>" is a special value produced by the Schema code.  It can't be displayed
             // for the same reason that <anythingInAngleBrackets> wont show up in the HTML, and for
-            // rollovers it's also a good indicator a not-interesting value.
+            // rollovers it's also a good indicator of a non-interesting value.
             if (md.type != typeRequest || !md.hasValue() || "<missing>".equals(md.value))
                 continue;
             if (md.key == null || md.key == ONTOLOGY_NONE || md.key == KEY_TAG)
@@ -658,16 +626,15 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
             b.append("</font></b>: &nbsp; <br> &nbsp; <font size=+0>"); // odd -- this still makes it bigger
             appendBold(b, haveKey.get(0).value);
             b.append("</font> &nbsp; "); // to align, nbsp's must happen at same font size
-            // foo
             return;
         }
         
         if (haveKey.size() > 0) {
             b.append("<b>");
             for (VueMetadataElement md : haveKey) {
-                if (DEBUG.Enabled) b.append('\n'); // newline only for debugging the output string
+                if (DEBUG.Enabled) b.append(NEWLINE); // newline for debugging -- watch whitespace impact
                 b.append("&nbsp;<font color=gray>");
-                b.append(shortKey(md.key));
+                b.append(truncate(shortKey(md.key)));
                 b.append(":</font> ");
                 b.append(truncate(md.value));
                 b.append("&nbsp;<br>");
@@ -677,7 +644,7 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
         
         if (haveOnlyValue.size() > 0) {
             for (VueMetadataElement md : haveOnlyValue) {
-                if (DEBUG.Enabled) b.append('\n'); // newline only for debugging the output string
+                if (DEBUG.Enabled) b.append(NEWLINE); // newline for debugging -- watch whitespace impact
                 b.append("&nbsp;&thinsp;&bull; ");
                 appendBold(b, truncate(md.value));
                 b.append(" &nbsp; <br>");
@@ -694,7 +661,7 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
         for (VueMetadataElement md : dataList) {
             if (md.type != typeRequest)
                 continue;
-            if (DEBUG.Enabled) b.append('\n'); // newline only for debugging the output string
+            if (DEBUG.Enabled) b.append(NEWLINE); // newline only for debugging the output string
             final boolean hasKey = !(md.key == null || md.key == ONTOLOGY_NONE || md.key == KEY_TAG);
 
             b.append("&nbsp;");
@@ -717,7 +684,6 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
             }
             b.append("&nbsp;<br>");
         }
-        
     }
 
     private void buildHTMLForMergeSources(final StringBuilder b)
@@ -769,17 +735,18 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
         else
             return k;
     }
-    private static String truncate(String s) {
+    private static String truncate(String s) { return truncate(s, 50); }
+    private static String truncate(String s, final int max) {
         // Re: truncation: Notes rollover wraps text via JTextArea, which won't give us HTML.  If
         // we want text wrapping, we may be able to do it using a table.
-        if (s.length() > 50)
-            return s.substring(0,50) + "&hellip;";
+        if (s.length() > max)
+            return s.substring(0,max) + "&hellip;";
         else
             return s;
     }
 
 
-    private StringBuilder getOldMetadataHTMLAsPresenceTest(int type)
+    private StringBuilder getOldMetadataHTML(int type)
     {
         final StringBuilder b = new StringBuilder();
         final SubsetList mdList;
@@ -844,16 +811,13 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
         }
             
         if(b.length() > 0) {
-            if(type == VueMetadataElement.CATEGORY) {    
+            if(type == CATEGORY)
                 b.insert(0, "Keywords: ");
-            }
-            else if(type == VueMetadataElement.ONTO_TYPE) {
+            else if(type == ONTO_TYPE)
                 b.insert(0, "Ontological Membership: ");
-            }
-            else if(type == VueMetadataElement.OTHER) {
-                // So OTHER meta-data is, in fact, hardcoded for the purpose of merge-sources!
-                b.insert(0, MERGE_SOURCES_TITLE);
-            }
+            else if(type == OTHER)
+                b.insert(0, "Merged from: ");
+                // So OTHER meta-data is, in fact, hardcoded for the purpose of merge-sources.
         }
         return b;
     }
@@ -970,13 +934,12 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
                setOtherListElement(i,ele);            
         }
         
-        public java.util.List getList()
+        public java.util.List getAsList()
         {
-            java.util.List returnList = new java.util.ArrayList();
-            for(int i=0;i<size();i++)
-            {
+            final java.util.List returnList = new java.util.ArrayList();
+            final int size = size();
+            for(int i=0; i < size; i++)
                 returnList.add(get(i));
-            }
             return returnList;
         }
     }
@@ -1089,8 +1052,30 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
         }
     }
     
-    public interface MetadataListListener
-    {
-       public void listChanged();
+    public static void addListener(MetadataListListener listener) {
+        // Util.printStackTrace(MetadataList.class + ":STATIC:addListener:IGNORED " + Util.tags(listener));
+        if (DEBUG.Enabled) Log.debug("listeners no longer allowed, will not report to: " + Util.tags(listener));
+        // listeners.add(listener);
     }
+    
+    // Oops -- this disable flag was static, which means meta-data list events from other threads
+    // could tromp all over the updates from other threads (not that we really need this update at
+    // all, fortunately)
+    // private static boolean disableEvents = false;
+    private static void fireListChanged(Object tag)
+    {
+        // if (DEBUG.Enabled) Log.info("fireListChanged: " + Util.tags(tag));
+        
+        // if (disableEvents)
+        //     return;
+        // for (MetadataListListener mdl : listeners) {
+        //     try {
+        //         mdl.listChanged();
+        //     } catch (Throwable t) {
+        //         Log.warn("listener update: " + Util.tags(mdl), t);
+        //     }
+        // }
+    }
+    
+    public interface MetadataListListener { public void listChanged(); }
 }
