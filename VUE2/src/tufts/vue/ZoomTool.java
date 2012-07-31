@@ -544,7 +544,7 @@ public class ZoomTool extends VueTool
     
     public static boolean setZoomBigger(Point2D focus)
     {
-        double curZoom = VUE.getActiveViewer().getZoomFactor();
+        final double curZoom = VUE.getActiveViewer().getZoomFactor();
         for (int i = 0; i < ZoomDefaults.length; i++) {
             if (ZoomDefaults[i] > curZoom) {
                 setZoom(ZoomDefaults[i], focus);
@@ -556,7 +556,7 @@ public class ZoomTool extends VueTool
     
     public static boolean setZoomSmaller(Point2D focus)
     {
-        double curZoom = VUE.getActiveViewer().getZoomFactor();
+        final double curZoom = VUE.getActiveViewer().getZoomFactor();
         for (int i = ZoomDefaults.length - 1; i >= 0; i--) {
             if (ZoomDefaults[i] < curZoom) {
                 setZoom(ZoomDefaults[i], focus);
@@ -589,6 +589,11 @@ public class ZoomTool extends VueTool
      */
     private static void setZoom(MapViewer viewer, double newZoomFactor, boolean adjustViewport, Point2D focus, boolean reset)
     {
+        if (newZoomFactor < 0.001)
+            newZoomFactor = 0.001;
+        else if (newZoomFactor > 100000)
+            newZoomFactor = 100000;
+        
         // this is much simpler as the viewer now handles adjusting for the focal point
         if (focus == DONT_FOCUS)
             focus = null;
@@ -1059,11 +1064,18 @@ public class ZoomTool extends VueTool
         double zoomPct = zoom * 100;
         if (zoomPct < 10) {
             // if < 10% zoom, show with 1 digit of decimal value if it would be non-zero
-            return VueUtil.oneDigitDecimal(zoomPct) + "%";
+            return String.format("%.1f%%", zoomPct);
+            //return VueUtil.oneDigitDecimal(zoomPct) + "%";
+        } else if (zoom >= 100) {
+            return Integer.valueOf((int) (zoom + 0.5)) + "x";
+        } else if (zoom >= 10) {
+            return String.format("%.1fx", zoom);
         } else {
             //title += (int) Math.round(zoomPct);
             return ((int)Math.floor(zoomPct + 0.49)) + "%";
         }
+        //title += 
+        //return ((int)Math.floor(zoomPct + 0.49)) + "%";
     }
     
     
