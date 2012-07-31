@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.lang.Math;
 import java.awt.*;
 import java.awt.event.*;
 import static java.awt.event.KeyEvent.*;
@@ -888,10 +889,14 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     protected void panScrollRegionImpl(int dx, int dy, boolean allowGrowth) {
         if (inScrollPane) {
+            // This pans in PIXELS
             mViewport.pan(dx, dy, allowGrowth);
             fireViewerEvent(Event.PAN, "panScrollRegion");
         } else {
-            setMapOriginOffset(mOffset.x + dx, mOffset.y + dy);
+            // Does this pan in MAP COORDINATES or pixels?  I think map.
+            // In any case, this is panning slower than scroll-pane.
+            setMapOriginOffset(mOffset.x + dx*1, mOffset.y + dy*1);
+          //setMapOriginOffset(mOffset.x + dx*2, mOffset.y + dy*2);
         }
     }
     
@@ -1208,13 +1213,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         return getFocalBounds(mFocal);
     }
 
-    private Shape getFocalClip() {
-        if (mFocal instanceof LWLink) {
-            Util.printStackTrace("Warning: use of link focal clip in " + this + "; focal=" + mFocal);
-            return mFocal.getParent().getBounds();
-        } else
-            return mFocal.getMapShape();
-    }
+    // private Shape getFocalClip() {
+    //     if (mFocal instanceof LWLink) {
+    //         Util.printStackTrace("Warning: use of link focal clip in " + this + "; focal=" + mFocal);
+    //         return mFocal.getParent().getBounds();
+    //     } else
+    //         return mFocal.getMapShape();
+    // }
 
     /**
      * Return, in Map coords, a bounding box for all the LWComponents in the
@@ -4177,6 +4182,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // fit into memory).
         
         mFocal.draw(dc);
+        // if (mFocal instanceof LWNode) mMap.draw(dc); else mFocal.draw(dc);
 
         if (mRollover != null && mRollover.hasAncestor(mFocal)) {
             drawZoomedFocus(mRollover, dc.create()).dispose();
@@ -7053,49 +7059,66 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         //private long lastRotationTime = 0;
         public void mouseWheelMoved(MouseWheelEvent e) {
 
-            if (DEBUG.MOUSE) Log.debug("-->" + GUI.eventName(e));
+            //if (DEBUG.MOUSE) Log.debug("-->" + GUI.eventName(e) + " meta=" + e.isMetaDown() + " alt=" + e.isAltDown());
+            if (DEBUG.MOUSE) Log.debug("mouseWheelMoved meta=" + e.isMetaDown() + " alt=" + e.isAltDown() + " shift=" + e.isShiftDown() + " ctrl=" + e.isControlDown());
             
-            /*
-            long now = System.currentTimeMillis();
+            /* long now = System.currentTimeMillis();
             if (now - lastRotationTime < 50) { // todo: preference
                 if (DEBUG.MOUSE) System.out.println("ignoring speedy wheel event");
-                return;
-            }
-            */
+                return; } */
 
             //if (inScrollPane && !(e.isMetaDown() || e.isAltDown())) { // too easy to accidentally zoom during presentation
-            if (!(e.isMetaDown() || e.isAltDown())) {
-                // Do not consume, and let the event be passed
-                // on to the BasicScrollPaneUI via MouseWheelRelay
-                // in MapScrollPane.
+            if (inScrollPane && !(e.isMetaDown() || e.isAltDown())) {
+                // Do not consume, and let the event be passed on to
+                // the BasicScrollPaneUI via MouseWheelRelay in
+                // MapScrollPane.
                 return;
             }
 
             e.consume();
             
-            int rotation = e.getWheelRotation(),
-                scrollX = 0,
-                scrollY = 0;
-            Object eventSource = e.getSource();
+            final int rotation = e.getWheelRotation();
+            final Object eventSource = e.getSource();
+            int scrollX = 0, scrollY = 0;
 
             if (eventSource instanceof JScrollPane) {
                 Point viewPosition = ((JScrollPane)eventSource).getViewport().getViewPosition();
                 // MouseWheelEvents are different from MouseEvents in that they are delivered to the scrollpane
-                // rather to the view.  This means that the scroll position has to be added to the event's
+                // rather than the view.  This means that the scroll position has to be added to the event's
                 // x, y because they are relative to the viewport and we need them to be relative to the map.
-
                 scrollX = viewPosition.x;
                 scrollY = viewPosition.y;
             }
 
-            Point2D cursor = new Point2D.Float(viewer.screenToMapX(e.getX() + scrollX), viewer.screenToMapY(e.getY() + scrollY));
-
-            if (rotation > 0)
-                tufts.vue.ZoomTool.setZoomSmaller(cursor);
-            else if (rotation < 0)
-                tufts.vue.ZoomTool.setZoomBigger(cursor);
+            if (e.isMetaDown()) {
+                final Point2D mouseLocation = new Point2D.Float(viewer.screenToMapX(e.getX() + scrollX), viewer.screenToMapY(e.getY() + scrollY));
+                //      if (rotation < 0) tufts.vue.ZoomTool.zoomOut(cursor);
+                // else if (rotation > 0) tufts.vue.ZoomTool.zoomIn(cursor);
+                final double zoomFactorAdjustor = 1.0 - rotation * 0.01; // each rotation does +/- 1.0%  to the zoom-factor *adjustor*
+                tufts.vue.ZoomTool.setZoom(mZoomFactor * zoomFactorAdjustor, mouseLocation);
+            } else {
+                // The invoke-later's help smooth it out / do more paints.
+                final int PanFactor = 2;
+                if (e.isShiftDown()) {
+                    panScrollRegion(rotation * PanFactor, 0);
+                    // for (int i = 0; i < rotation; i++) GUI.invokeAfterAWT(PanLeft);
+                    GUI.invokeAfterAWT(new Runnable() { public void run() { panScrollRegion(rotation * PanFactor, 0); }});
+                    GUI.invokeAfterAWT(new Runnable() { public void run() { panScrollRegion(rotation * PanFactor, 0); }});
+                } else {
+                    panScrollRegion(0, rotation * PanFactor);
+                    // for (int i = 0; i < rotation; i++) GUI.invokeAfterAWT(PanRight);
+                    GUI.invokeAfterAWT(new Runnable() { public void run() { panScrollRegion(0, rotation * PanFactor); }});
+                    GUI.invokeAfterAWT(new Runnable() { public void run() { panScrollRegion(0, rotation * PanFactor); }});
+                }
+            }
             //lastRotationTime = System.currentTimeMillis();
         }
+
+    private final Runnable PanLeft  = new Runnable() { public void run() { panScrollRegion(2, 0); } };
+    private final Runnable PanRight = new Runnable() { public void run() { panScrollRegion(0, 2); } };
+
+
+    
 
 //     private final Timer mTipTimer = new Timer("TipTimer") {
 //             @Override
@@ -8893,7 +8916,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     private static final Boolean UNSET_BOOL = new Boolean(false);
     
     private Boolean DEBUG_RENDER_QUALITY = UNSET_BOOL;
-    private Boolean DEBUG_FONT_METRICS = UNSET_BOOL; // fractional metrics looks worse to me --SF
+    // private Boolean DEBUG_FONT_METRICS = UNSET_BOOL; // fractional metrics looks worse to me --SF
+    private Boolean DEBUG_FONT_METRICS = Boolean.TRUE; // is now default
     private Boolean DEBUG_SKIP_ANTIALIAS = UNSET_BOOL;
     
     private boolean DEBUG_SHOW_ORIGIN = false;
