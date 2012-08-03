@@ -291,7 +291,7 @@ public class UndoManager
             } else if (oldValue instanceof Undoable) {
                 ((Undoable)oldValue).undo();
             } else {
-                if (false && DEBUG.Enabled) {
+                if (DEBUG.TEST) {
                     // ANIMATED UNDO CODE:
                     try {
                         Object curValue = component.getPropertyValue(propKey);
@@ -322,34 +322,27 @@ public class UndoManager
         }
 
         private void undoAnimated() {
-            // redo not working if we suspend events here...
-            // please don't tell me redo was happening by capturing
-            // the zillions of animated events...
+            // redo not working if we suspend events here...  please don't tell me redo was
+            // happening by capturing the zillions of animated events...
             
-            // Also going to be tricky: animating through changes
-            // in a bunch of nodes at the same time -- right now
-            // a group drag animates each one back into place
-            // one at a time in sequence...
+            // Also going to be tricky: animating through changes in a bunch of nodes at the same
+            // time -- right now a group drag animates each one back into place one at a time in
+            // sequence...  [ ScalarUndo, perhaps the new default, would fix this, as well as
+            // handle the zillions of location events problem, and if sharing is enabled, the
+            // network IO problem ]
 
             // Also: SEE COMMENT in LWLink.getPropertyValue
                     
             // experimental for animated presentation
             //component.getChangeSupport().setEventsSuspended();
             
-            if (oldValue instanceof Point)
-                animatedChange((Point)oldValue);
-            else if (oldValue instanceof Point2D)
-                animatedChange((Point2D)oldValue);
-            else if (oldValue instanceof Color)
-                animatedChange((Color)oldValue);
-            else if (oldValue instanceof Size)
-                animatedChange((Size)oldValue);
-            else if (oldValue instanceof Integer)
-                animatedChange((Integer)oldValue);
-            else if (oldValue instanceof Float)
-                animatedChange((Float)oldValue);
-            else if (oldValue instanceof Double)
-                animatedChange((Double)oldValue);
+                 if (oldValue instanceof Point)         animatedChange((Point)oldValue);
+            else if (oldValue instanceof Point2D)       animatedChange((Point2D)oldValue);
+            else if (oldValue instanceof Color)         animatedChange((Color)oldValue);
+            else if (oldValue instanceof Size)          animatedChange((Size)oldValue);
+            else if (oldValue instanceof Integer)       animatedChange((Integer)oldValue);
+            else if (oldValue instanceof Float)         animatedChange((Float)oldValue);
+            else if (oldValue instanceof Double)        animatedChange((Double)oldValue);
             //component.getChangeSupport().setEventsResumed();
         }
 
@@ -360,6 +353,12 @@ public class UndoManager
             VUE.getActiveViewer().paintImmediately();
             //try { Thread.sleep(100); } catch (Exception e) {}
         }
+
+        // TODO: THESE ARE CRAP: should be using a takeProperty, not setProperty, so no events are
+        // generated, and we only issue a LWKey.RepaintComponent each time (badly named tho) --
+        // perhaps RepaintImmediate, or even just Repaint if we handle it properly.  Todo: will
+        // need to find and handle any cases where the properly change effects other things, tho I
+        // only think that could be the case for font-size -> full-font-style?
 
         private void animatedChange(Size endValue) {
             Size curValue = (Size) component.getPropertyValue(propKey);
@@ -402,7 +401,7 @@ public class UndoManager
             Integer value;
             
             for (int i = 1; i < segments+1; i++) {
-                value = new Integer((int) (curValue.intValue() + inc * i));
+                value = Integer.valueOf((int) (curValue.intValue() + inc * i));
                 component.setProperty(propKey, value);
                 repaint();
             }
