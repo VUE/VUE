@@ -226,7 +226,7 @@ public class LWMap extends LWContainer
     
     
     
-    @Override String getDiagnosticLabel() {
+    @Override public String getDiagnosticLabel() {
         return "Map: " + getLabel();
     }
     
