@@ -396,7 +396,7 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
             //if (getCategoryListSize() > 0 && index < dataList.size())
             dataList.set(index, vme);
         } catch(Exception e) {
-            Log.warn("setCategoryListElement " + index + ", real=" + index + "; " + vme, e);
+            Log.warn("setCategoryListElement " + i + ", real=" + index + "; " + vme, e);
             return;
         }
     }
