@@ -87,6 +87,7 @@ public class LWNode extends LWContainer
     
     final static boolean WrapText = false; // under development
     
+    // todo: all this stuff should be in a factory some day
     public static final Font  DEFAULT_NODE_FONT = VueResources.getFont("node.font");
     public static final Color DEFAULT_NODE_FILL = VueResources.getColor("node.fillColor");
     public static final int   DEFAULT_NODE_STROKE_WIDTH = VueResources.getInt("node.strokeWidth");
@@ -231,7 +232,7 @@ public class LWNode extends LWContainer
 
         /**
          * This is overridden to allow for equivalence tests against an instance value
-         * RectangularShape, as opposed to just types of Class<? extends
+         * RectangularShape, as opposed to just types of Class<\? extends
          * RectangularShape>.
          *
          * @param other
