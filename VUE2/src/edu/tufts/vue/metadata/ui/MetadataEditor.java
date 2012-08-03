@@ -206,6 +206,10 @@ public class MetadataEditor extends JPanel
             getTableHeader().setReorderingAllowed(false);
         }
         
+        public void repaintLater() {
+            GUI.invokeAfterAWT(new Runnable() { public void run() { repaint(); }});
+        }
+                
         @Override public String getToolTipText(MouseEvent me) {
             if (getEventIsOverAddLocation(me))
                 return CC_ADD_LOCATION_MESSAGE;
@@ -926,13 +930,26 @@ public class MetadataEditor extends JPanel
                 field.setFont(GUI.LabelFace);
                 field.addFocusListener(new FocusAdapter() {
                         public void focusLost(FocusEvent fe) {
-                            if (DEBUG.PAIN) VUE.diagPush("FL" + i);
-                            handleFieldFocusLost(fe);
-                            if (DEBUG.PAIN) VUE.diagPop();
+                            if (DEBUG.Enabled) {
+                                VUE.diagPush("FL" + i);
+                                debug("focusLost (" + (editWasCanceled?"CANCELLED":"natural") + ") source_VME=" + source_VME);
+                                if (DEBUG.PAIN && fe != null) debug("opposite: " + GUI.name(fe.getOppositeComponent()));
+                            }
+                            activeTextEdit = null;
+                            if (editWasCanceled) {
+                                model.clearBulge("canceled");
+                                flush_UI_text();
+                            } else {
+                                saveChangesOnFocusLoss(fe);
+                            }
+                            activeEditRow = -1;
+                            if (DisplayChangesDuringEdit && model.keyColumnVisible())
+                                mdTable.repaintLater();
+                            if (DEBUG.Enabled) VUE.diagPop();
                         }
                         public void focusGained(FocusEvent fe) {
-                            if (DisplayChangesDuringEdit)
-                                mdTable.repaint();
+                            if (DisplayChangesDuringEdit && model.keyColumnVisible())
+                                mdTable.repaintLater();
                         }
                 });
                 field.addKeyListener(new KeyAdapter() { public void keyPressed(KeyEvent ke) {
@@ -1047,9 +1064,6 @@ public class MetadataEditor extends JPanel
         private boolean stopEditing(boolean cancel) {
             if (DEBUG.PAIN) { debug("stopCellEditing, " + (cancel?"CANCELLING":"saving")); if (DEBUG.META) Util.printClassTrace("!java"); }
             editWasCanceled = cancel;
-            activeEditRow = -1;
-            if (DisplayChangesDuringEdit)
-                mdTable.repaint();
             if (cancel) {
                 super.cancelCellEditing();
                 return true; // ignored
@@ -1141,17 +1155,9 @@ public class MetadataEditor extends JPanel
            return box;
        }
        
-        private void handleFieldFocusLost(final FocusEvent fe)
+        private void saveChangesOnFocusLoss(final FocusEvent fe)
         {
-            if (DEBUG.Enabled) debug("handleFieldFocusLost (" + (editWasCanceled?"CANCELLED":"natural") + ") source_VME=" + source_VME);
-            if (DEBUG.PAIN && fe != null) debug("opposite: " + GUI.name(fe.getOppositeComponent()));
-                  
-            MetadataEditor.this.activeTextEdit = null;
-        
-            if (editWasCanceled) {
-                model.clearBulge("canceled");
-                return;
-            }
+            //if (DEBUG.Enabled) debug("handleFieldFocusLost (" + (editWasCanceled?"CANCELLED":"natural") + ") source_VME=" + source_VME);
                 
             final int row = activeEditRow;
             if (DEBUG.PAIN) debug("row of last editor requested: " + row);
@@ -1237,6 +1243,8 @@ public class MetadataEditor extends JPanel
                 // it could have changed if this was a focus-loss on selection change, but in that
                 // case, editing should have been canceled.
                 source_list.set(row, new_VME); // WE ALWAYS WRITE OVER THE OLD VME
+
+                // BUG: DOES NOT WORK IN THE GROUP CASE
             }
 
             // todo: handle in publish
@@ -1273,8 +1281,6 @@ public class MetadataEditor extends JPanel
             //boolean canEdit = canEditWithSideEffects(object);
             boolean canEdit = canEdit(object);
             if (DEBUG.PAIN) { Log.debug("canEdit = " + canEdit); VUE.diagPop(); }
-            // if (canEdit && DisplayChangesDuringEdit)
-            //     mdTable.repaint(); // really want this in a "cellStartsEditing"
             return canEdit;
        }
         
