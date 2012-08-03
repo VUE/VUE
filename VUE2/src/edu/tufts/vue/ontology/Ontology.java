@@ -45,6 +45,7 @@ abstract public class Ontology {
     private boolean enabled = true;
     
     protected List<OntType> types = new ArrayList<OntType>();
+    
     static int ONT_COUNTER  =0;
     URL cssUrl;
     OntModel m;
@@ -57,6 +58,14 @@ abstract public class Ontology {
     public List<OntType> getOntTypes() {
         return this.types;
     }
+
+    public OntType getOntTypeByLabel(String label) {
+        for (OntType ontType : types)
+            if (label.equals(ontType.getLabel()))
+                return ontType;
+        return null;
+    }
+    
     public String getBase() {
         return this.base;
     }
