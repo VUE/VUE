@@ -76,7 +76,7 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
    
     /** horrible API still called all over the place */
     public List<VueMetadataElement> getMetadata() { return dataList; }
-    public List<VueMetadataElement> getAllTypes() { return dataList; }
+    public List<VueMetadataElement> getAll() { return dataList; }
     
     /** is this *effectively* empty */
     public boolean isEmpty() {
@@ -195,30 +195,41 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
         fireListChanged("bulk-add");
     }
     
-    /** add a new CATEGORY type */
     public void add(String key, String value) {
         addElement(new VueMetadataElement(key, value));
     }
-    
-    public void addElement(VueMetadataElement element)     {
+    public void addElement(VueMetadataElement element) {
         if (true||DEBUG_LOCAL) Log.debug("addElement " + Util.tags(element));
         dataList.add(element);
         fireListChanged("addElement");
     }
     
-    public void remove(String key, String value)
+    public VueMetadataElement get(int i) {
+    	return dataList.get(i);
+    }
+
+    public void removeCategoryType(String key, String value)
     {
-    	int found = -1;
+    	int foundIndex = -1;
 
         for (int i = 0; i < getCategoryListSize(); i++) {
             final VueMetadataElement vme = getCategoryListElement(i);
             if (vme.getKey().equals(key) && vme.getValue().equals(value)) {
-                found = i;
+                foundIndex = i;
                 break;
             }
         }
-        if (found != -1)
-            remove(found);
+        if (foundIndex != -1)
+            remove(foundIndex);
+    }
+    
+    public void remove(int i) {
+    	dataList.remove(i);
+    	fireListChanged("remove");
+    }
+    
+    public boolean removeAnyType(VueMetadataElement target) {
+        return dataList.remove(target);
     }
 
     public int size() {
@@ -245,31 +256,27 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
             dataList.getOntologyEndIndex();
     }
     
-    public void remove(int i) {
-    	dataList.remove(i);
-    	fireListChanged("remove");
-    }
-    public VueMetadataElement get(int i) {
-    	return dataList.get(i);
+    /** This replaces the first item with the same matching key, for CATEGORY and RESOURCE_CATEGORY types only.
+     * This replaces the value in the existing VME, to allow for multple replacements at once */
+    public void replaceValueForKey(VueMetadataElement hasNewValue) {
+        final int index;
+        if (hasNewValue.type == VueMetadataElement.CATEGORY)
+            index = findCategory(hasNewValue.key);
+        else if (hasNewValue.type == VueMetadataElement.RESOURCE_CATEGORY)
+            index = findRCategory(hasNewValue.key);
+        else
+            throw new UnsupportedOperationException("type of " + hasNewValue);
+        
+        if (index >= 0) {
+            //dataList.set(index, hasNewValue);
+            final VueMetadataElement hasOldValue = dataList.get(index);
+            hasOldValue.setValue(hasNewValue.value);
+            if (hasOldValue.obj instanceof String[]) // should always be the case
+                ((String[])hasOldValue.obj)[1] = hasNewValue.value;
+            fireListChanged("value-changed");
+        }
     }
 
-    // does this mean to report that the given element has changed?
-    public void replaceWith(VueMetadataElement newItem) {
-      if(newItem.getType() == VueMetadataElement.CATEGORY) {
-          int i = findCategory(newItem.getKey());
-          if(i!=-1) {    
-              dataList.set(i,newItem);
-              fireListChanged("modify-cat");
-          }
-      }
-      if(newItem.getType() == VueMetadataElement.RESOURCE_CATEGORY) {
-          int i = findRCategory(newItem.getKey());
-          if(i!=-1) {    
-              dataList.set(i,newItem);
-              fireListChanged("modify-res");
-          }
-      }
-    }
     
     /*public int categoryIndexOfFirstWithValueAndKey(String key,String value) { }*/
 
@@ -1011,32 +1018,39 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
             fireListChanged("CFL-add");
             return true;
         }
+        
+        /** We must override the default object remover to force use our indexed remover to keep
+         * the internal indices correct */
+        @Override public boolean remove(Object vme) {
+            // throw new UnsupportedOperationException("remove: " + o + "; must remove by index");
+            return remove(indexOf(vme)) != null;
+        }
       
-        @Override public VueMetadataElement remove(int i)
+        @Override public VueMetadataElement remove(final int i)
         {
+            if (i < 0) {
+                Log.warn("remove: index = " + i);
+                return null;
+            }
+            
             // Attempt the remove 1st so that if we get a RangeCheck exception,
             // we haven't adjusted our indicies.
             final VueMetadataElement removed = super.remove(i);
             
             if (DEBUG.PAIN) Log.debug(Util.tag(this) + ": remove index " + i + ": " + removed);
             
-            if(i < rCategoryEndIndex) {
-                rCategoryEndIndex --;
-                if(categoryEndIndex > 0)
-                    ontologyEndIndex--;
-                if(ontologyEndIndex > 0)
-                    ontologyEndIndex--;
-                if(otherEndIndex > 0)
-                    otherEndIndex--;
+            if (i < rCategoryEndIndex) {
+                                          rCategoryEndIndex--;
+                if (categoryEndIndex > 0) ontologyEndIndex--;
+                if (ontologyEndIndex > 0) ontologyEndIndex--;
+                if (otherEndIndex > 0)    otherEndIndex--;
             }
-            if(i < categoryEndIndex && i >= rCategoryEndIndex) {
-                categoryEndIndex--;
-                if(ontologyEndIndex > 0)
-                    ontologyEndIndex--;
-                if(otherEndIndex > 0)
-                    otherEndIndex--;
+            if (i < categoryEndIndex && i >= rCategoryEndIndex) {
+                                          categoryEndIndex--;
+                if (ontologyEndIndex > 0) ontologyEndIndex--;
+                if (otherEndIndex > 0)    otherEndIndex--;
             }
-            else if(i >= categoryEndIndex && i < ontologyEndIndex) {
+            else if (i >= categoryEndIndex && i < ontologyEndIndex) {
                 ontologyEndIndex--;
                 otherEndIndex--;
             }
@@ -1046,9 +1060,6 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
             fireListChanged("CFL-remove");
 
             return removed;
-          
-            // BUG: if this index was out of range, we've already adjusted our indicies!
-            // return super.remove(i);
         }
     }
     

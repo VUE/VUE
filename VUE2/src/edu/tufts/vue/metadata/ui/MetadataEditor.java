@@ -38,9 +38,7 @@ import javax.swing.JTextField;
 import javax.swing.ListModel;
 import javax.swing.ComboBoxModel;
 import javax.swing.border.Border;
-import javax.swing.table.AbstractTableModel;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.TableCellEditor;
+import javax.swing.table.*;
 
 import tufts.Util;
 import tufts.vue.DEBUG;
@@ -126,6 +124,14 @@ public class MetadataEditor extends JPanel
     private final MDTableModel model;
 
     private CellEditor activeTextEdit;
+    private int activeEditRow = -1;
+    private int activeEditCol = -1;
+        
+    /** table-column: these are convenience comparitors: they will change when the structure changes (BC_BUTTON should always == buttonColumn) */
+    private int TC_BUTTON, TC_TEXT, TC_COMBO;
+    
+    private static boolean DisplayChangesDuringEdit = true;
+        
     
     /**
      * If the selection was of multiple objects, it's put in this group, otherwise this is null.  This serves
@@ -135,27 +141,24 @@ public class MetadataEditor extends JPanel
      * anyway.  In fact, maybe we should make THAT the common model object: a VME list cache.
      */
     private LWGroup group;
+    private final Set<LWComponent> groupContents = new HashSet<LWComponent>();
     /** if selection was size 1, this is set to selection.first(), otherwise, null */
     private LWComponent single;
     // We could add the analysis code for these as a feature of LWSelection:
     private final Set<String> commonKeys = new HashSet<String>();
     private final List<VueMetadataElement> commonPairs = new ArrayList<VueMetadataElement>();
     
-    //private LWGroup currentMultiples;
-    
     /** the column the +/- buttons are at: changes table structure changes to display categories combo box
      * JTextField column is tested as: buttonColumn-1, JComboBox column as: buttonColumn-2 */
     private int buttonColumn = 1;
-    /** table-column: these are convenience comparitors: they will change when the structure changes (BC_BUTTON should always == buttonColumn) */
-    private int TC_BUTTON, TC_TEXT, TC_COMBO;
-
+    
     private final JButton autoTagButton =  new JButton(VueResources.local("keywordPanel.autotag"));
 
     private static final CategoryModel OntologiesList = VUE.getCategoryModel();
     private static final CategoryComboBoxModel CategoryMenuModel = new CategoryComboBoxModel();
         
     /** @see ensureModelBulge() */
-    private int PlusOneForAdd = 0;
+    private int PlusOneWhenAdding = 0;
 
     private static final String EmptyValue = "";
     private static final String[] DefaultVMEObject = new String[] { VueMetadataElement.ONTOLOGY_NONE, EmptyValue };
@@ -203,11 +206,20 @@ public class MetadataEditor extends JPanel
             getTableHeader().setReorderingAllowed(false);
         }
         
-        @Override public String getToolTipText(MouseEvent location) {
-            if (getEventIsOverAddLocation(location))
+        @Override public String getToolTipText(MouseEvent me) {
+            if (getEventIsOverAddLocation(me))
                 return CC_ADD_LOCATION_MESSAGE;
             else
                 return null;
+            // final int row = rowAtPoint(me.getPoint());
+            // final int col = columnAtPoint(me.getPoint());
+            // try {
+            //     return model.getValueAt(row, col).getKey();
+            // } catch (Exception e) {
+            //     if (DEBUG.Enabled) Log.debug("tooltip: " + e);
+            // }
+            // return null;
+            //return "Row: " + row + " Col: " + col;
         }
         // @Override public boolean getRowSelectionAllowed() { return false; }
         // @Override public boolean getColumnSelectionAllowed() { return false; }
@@ -311,35 +323,33 @@ public class MetadataEditor extends JPanel
                 {
                     if (getEventIsOverAddLocation(e)) {
                         final int row = mdTable.rowAtPoint(e.getPoint());//evt.getY()/mdTable.getRowHeight();
-                        final VueMetadataElement vme = (VueMetadataElement) model.getValueAt(row, 0);
+                        final VueMetadataElement vme = model.getValueAt(row, -1);
 
                         if (vme.getKey() == null) throw new Error("bad vme: " + vme);
                         
-                        final OntType ontType = OntologiesList.addCustomCategory(shortKey(vme.getKey()));
-
-                        if (DEBUG.Enabled) Log.debug("added custom cat: " + Util.tags(ontType));
-
-                        // Note we edit the existing VME directly.  I think this is actually fine,
-                        // tho someday they should have all final fields. (This is a problem
-                        // if the MetadataList ever keeps track of when it becomes modified).
-                        vme.setObject(new String[] { ontType.getAsKey(), vme.getValue() }); // ick, fix this!
-
-                        if (DEBUG.PAIN) Log.debug("updated VME with new key: " + vme);
-                        
-                        if (single != null) {
-                            // If this is a single item, this change made an immediate edit.  If this is the
-                            // group case, we're editing the pre-published set, and this change will issue a
-                            // notification later.
-                            single.notify(MetadataEditor.this, tufts.vue.LWKey.MetaData); // todo: undoable event
-                            VUE.getActiveMap().markAsModified();
-                            VUE.getActiveMap().getUndoManager().mark("Metadata Category Key");
+                        final OntType existing = OntologiesList.getCustomCategoryByLabel(shortKey(vme.getKey()));
+                        final OntType ontType;
+                        if (existing == null) {
+                            ontType = OntologiesList.addCustomCategory(shortKey(vme.getKey()));
+                            if (DEBUG.Enabled) Log.debug("added custom cat: " + Util.tags(ontType));
+                        } else {
+                            ontType = existing;
+                            if (DEBUG.Enabled) Log.debug("found custom cat: " + Util.tags(ontType));
                         }
+
+
+                        final VueMetadataElement customCategory_VME = freshVME(ontType.getAsKey(), vme.getValue());
+
+                        if (DEBUG.PAIN) Log.debug("updated VME with new key: " + customCategory_VME);
+
+                        publishEdit(row, customCategory_VME, "Custom Category");
                         
                         mdTable.stopAnyEditing();
                         
                         GUI.invokeAfterAWT(new Runnable() { public void run() {
                             refreshAll();
-                            OntologiesList.saveCustomOntology();
+                            if (existing == null)
+                                OntologiesList.saveCustomOntology();
                         }}); 
                     }
                 }
@@ -444,7 +454,7 @@ public class MetadataEditor extends JPanel
                 }
                 public void mousePressed(MouseEvent e) {
                     if (dispatchedInButton(e)) {
-                        addNewRow();
+                        model.ensureBulge("gui-add");
                         mdTable.editCellAt(model.getRowCount() - 1, TC_TEXT, EDIT_REQUEST); 
                         mdTable.repaint();
                     }
@@ -466,6 +476,13 @@ public class MetadataEditor extends JPanel
         
         setBorder(BorderFactory.createEmptyBorder(10,8,15,6));
         validate();
+
+        // As this can be lazily constructed, included the request for a selection listener, if this is the
+        // first time we've been created, simulate an update call from the selection.
+        GUI.invokeAfterAWT(new Runnable() { public void run() {
+            selectionChanged(VUE.getSelection());
+        }}); 
+                
     }
     
 //     @Override public Dimension getMinimumSize() { 	   
@@ -499,10 +516,15 @@ public class MetadataEditor extends JPanel
     private static VueMetadataElement emptyVME() { return freshVME(EmptyValue); }
     
     private static VueMetadataElement freshVME(String textValue) {
-        final VueMetadataElement vme = new VueMetadataElement();
-        vme.setObject(new String[] { VueMetadataElement.ONTOLOGY_NONE, textValue });
-        vme.setType(VueMetadataElement.CATEGORY);
-        return vme;
+        return freshVME(VueMetadataElement.ONTOLOGY_NONE, textValue);
+    }
+    
+    private static VueMetadataElement freshVME(String key, String text) {
+        return new VueMetadataElement(key, text); // defaults category type, inits object
+        // final VueMetadataElement vme = new VueMetadataElement();
+        // vme.setObject(new String[] { key, textValue }); // note: will force category type anyway
+        // vme.setType(VueMetadataElement.CATEGORY);
+        // return vme;
     }
     
     public boolean getEventIsOverAddLocation(MouseEvent evt)
@@ -529,10 +551,10 @@ public class MetadataEditor extends JPanel
         else
             return -1;
     }
-    
+
     public void adjustColumnModel()
     {
-        int editorWidth = MetadataEditor.this.getWidth();
+        final int editorWidth = MetadataEditor.this.getWidth();
         //if(MetadataEditor.this.getTopLevelAncestor() != null)
         //  editorWidth = MetadataEditor.this.getTopLevelAncestor().getWidth();
         
@@ -540,67 +562,70 @@ public class MetadataEditor extends JPanel
             return;
         
         if (mdTable.getModel().getColumnCount() == 2) {
-            mdTable.getColumnModel().getColumn(0).setHeaderRenderer(new MetadataTableHeaderRenderer());
-            mdTable.getColumnModel().getColumn(1).setHeaderRenderer(new MetadataTableHeaderRenderer());
+            mdTable.getColumnModel().getColumn(0).setHeaderRenderer(HeaderRenderer);
+            mdTable.getColumnModel().getColumn(1).setHeaderRenderer(HeaderRenderer);
             mdTable.getColumnModel().getColumn(0).setWidth(editorWidth-BUTTON_COL_WIDTH);
             mdTable.getColumnModel().getColumn(1).setMaxWidth(BUTTON_COL_WIDTH);   
             mdTable.getColumnModel().getColumn(1).setMinWidth(BUTTON_COL_WIDTH);   
         } else {
-            mdTable.getColumnModel().getColumn(0).setHeaderRenderer(new MetadataTableHeaderRenderer());
-            mdTable.getColumnModel().getColumn(1).setHeaderRenderer(new MetadataTableHeaderRenderer());
-            mdTable.getColumnModel().getColumn(2).setHeaderRenderer(new MetadataTableHeaderRenderer());
+            mdTable.getColumnModel().getColumn(0).setHeaderRenderer(HeaderRenderer);
+            mdTable.getColumnModel().getColumn(1).setHeaderRenderer(HeaderRenderer);
+            mdTable.getColumnModel().getColumn(2).setHeaderRenderer(HeaderRenderer);
             mdTable.getColumnModel().getColumn(0).setWidth(editorWidth/2-BUTTON_COL_WIDTH/2);
             mdTable.getColumnModel().getColumn(1).setWidth(editorWidth/2-BUTTON_COL_WIDTH/2);
             mdTable.getColumnModel().getColumn(2).setMaxWidth(BUTTON_COL_WIDTH); 
             mdTable.getColumnModel().getColumn(2).setMinWidth(BUTTON_COL_WIDTH); 
         }
-        //place holder for boolean to only create header renderers once
-        //renderersCreated = true;
     }
     
-    private String[] getObject(VueMetadataElement vme) {
-        if (vme == null) {
-            if (true||DEBUG.Enabled) Log.info("getObject GIVEN NULL VME, RETURNING DEFAULT_VME_OBJECT " + Util.tags(DefaultVMEObject));
-            return DefaultVMEObject;
-        } else
-            return (String[]) vme.getObject();
-        //return vme == null ? DefaultVMEObject : (String[]) vme.getObject();
-    }
+    // Below code was to support construct such as:
+    // final String categoryKey = getObject(source_VME)[0];
+    // Using vme.getObject() v.s. just vme.getKey() might have been attempt at one point to support OntType vme.obj,
+    // but in any case its a horrible hack.
     
-    private static final String[] NullPair = { null, null };
-    private static final String[] EmptyPair = { DefaultVMEObject[0], null };
+  //   private String[] getObject(VueMetadataElement vme) {
+  //       if (vme == null) {
+  //           if (true||DEBUG.Enabled) Log.info("getObject GIVEN NULL VME, RETURNING DEFAULT_VME_OBJECT " + Util.tags(DefaultVMEObject));
+  //           return DefaultVMEObject;
+  //       } else
+  //           return (String[]) vme.getObject();
+  //       //return vme == null ? DefaultVMEObject : (String[]) vme.getObject();
+  //   }
+    
+  //   private static final String[] NullPair = { null, null };
+  //   private static final String[] EmptyPair = { DefaultVMEObject[0], null };
 
-    private String[] getObjectSingle(int row) {
-        final int size = single.getMetadataList().getCategoryListSize();
-        if (row >= size) {
-            if (PlusOneForAdd == 1 && row == size) {
-                return DefaultVMEObject;
-            } else {
-                Log.warn("getObjectCurrent for row " + row + " returns NullPair");
-                return NullPair; // if we return EmptyPair, we'll get auto-add empty none keys again
-            }
-        } else
-            return getObject(single.getMetadataList().getCategoryList().get(row)); // don't we have this cached?
-    }
+  //   private String[] getObjectSingle(int row) {
+  //       final int size = single.getMetadataList().getCategoryListSize();
+  //       if (row >= size) {
+  //           if (PlusOneWhenAdding == 1 && row == size) {
+  //               return DefaultVMEObject;
+  //           } else {
+  //               Log.warn("getObjectCurrent for row " + row + " returns NullPair");
+  //               return NullPair; // if we return EmptyPair, we'll get auto-add empty none keys again
+  //           }
+  //       } else
+  //           return getObject(single.getMetadataList().getCategoryList().get(row)); // don't we have this cached?
+  //   }
     
-    private String[] getObjectMulti(int row) {
-        return getObject(group.getMetadataList().getCategoryList().get(row));
-    }
+  //   private String[] getObjectMulti(int row) {
+  //       return getObject(group.getMetadataList().getCategoryList().get(row));
+  //   }
 
-    private String[] getObjectActive(int row) {
-        if (single != null)
-            return getObjectSingle(row);
-        else if (group != null)
-            return getObjectMulti(row);
-        else {
-            Log.warn("no active object at row " + row);
-            return NullPair;
-        }
-    }
+  //   private String[] getObjectActive(int row) {
+  //       if (single != null)
+  //           return getObjectSingle(row);
+  //       else if (group != null)
+  //           return getObjectMulti(row);
+  //       else {
+  //           Log.warn("no active object at row " + row);
+  //           return NullPair;
+  //       }
+  //   }
     
-    /** @return the category key at the given row */
-    String getKeyForRow(int row)        { return getObjectActive(row)[0]; }
-  //String getValueForRow(int row)          { return getObjectActive(row)[1]; }
+  //   /** @return the category key at the given row */
+  //   String getKeyForRow(int row)        { return getObjectActive(row)[0]; }
+  // //String getValueForRow(int row)          { return getObjectActive(row)[1]; }
     
     public void selectionChanged(final LWSelection s)
     {
@@ -608,32 +633,35 @@ public class MetadataEditor extends JPanel
         
         this.single = null;
         this.group = null;
+        this.groupContents.clear();
 
       //mdTable.stopAnyEditing(); // will auto-save: didn't used to work in selection-change case, but is now an option
         mdTable.cancelAnyEditing();
         autoTagButton.setVisible(s.size() == 1);
-        
+
         if (s.size() > 1)
             loadMultiSelection(s);
         else
             loadSingleSelection(s.first()); // 0 or 1 elements in selection
+        // todo: model.loadSelection(s);
     }
     
     private void loadSingleSelection(LWComponent selected)
     {
         if (DEBUG.PAIN) Log.debug("loadSingleSelection: " + selected);
         
-        //this.lastSelected = current;
+        if (selected == null)
+            return;
+
         this.single = selected;
-        
-        // // This is one thing that will try and stick a damn empty element in every node...
-        // if (AUTO_ADD_EMPTY && current != null && MetadataEditor.this.current.getMetadataList().getCategoryListSize() == 0)
-        //     MetadataEditor.this.current.getMetadataList().getMetadata().add(VueMetadataElement.getNewCategoryElement());
-        if (single != null && single.getMetadataList().getCategoryListSize() == 0) // move to model
-            ensureModelBulge("selected-has-no-meta");
+
+        final boolean changed;
+        if (single.getMetadataList().getCategoryListSize() == 0) 
+            changed = model.ensureBulge("selected-has-no-meta");
         else
-            clearModelBulge("selected: reset for new md");
-        model.refresh(); // note: bulge change may have just done this
+            changed = model.clearBulge("selected: reset for new md");
+        if (!changed)
+            model.refresh();
     }
 
     private void loadMultiSelection(final LWSelection selection)
@@ -641,7 +669,17 @@ public class MetadataEditor extends JPanel
         if (selection.size() < 2) throw new Error("size<2="+selection.size());
 
         this.group = LWGroup.createTemporary(selection);
-              
+
+        // SMF: iterate getChildren: this will tag just the top-level actually selected items
+        // SMF: iterate getAllDescendents: the above PLUS their children, grandchildren, etc.
+        // SMF: Using getAllDescendents is the historical default, tho that means we can NEVER just group-tag a set of parents,
+        // If we only did the direct children, what's in the selection could still be expanded to include children,
+        // tho we don't have an action for that -- the user would have to add the children manually.
+
+        for (LWComponent c : group.getAllDescendents())
+            if (!c.hasFlag(LWComponent.Flag.ICON))
+                groupContents.add(c);
+        
         // note: a HashSet does not help us much here, except perhaps for the remove(o) calls in AbstractCollection.retainAll
         final List<VueMetadataElement> shared = new ArrayList<VueMetadataElement>();
 
@@ -649,10 +687,10 @@ public class MetadataEditor extends JPanel
         // nothing in common.  We could change this to instead show the union of all the keys, and in cases
         // where there are multiple values, display something like "Values: 27" in the value field.
 
-        for (LWComponent c : group.getAllDescendents()) { // really shouldn't be descendents!
-            // getAllTypes() will include merge-source data, tho it won't display in UI.  But it WILL exclude
-            // OTHER meta-data if found, so we don't want that.
-            // final Collection<VueMetadataElement> data = c.getMetadataList().getAllTypes();
+        for (LWComponent c : groupContents) {
+            // getAll() will include merge-source data, tho it won't display in UI.  But it WILL exclude
+            // OTHER meta-data if any is found, so we don't want that.
+         // final Collection<VueMetadataElement> data = c.getMetadataList().getAll();
             final Collection<VueMetadataElement> data = c.getMetadataList().getCategoryList().getAsList();
 
             if (data.isEmpty())
@@ -670,13 +708,13 @@ public class MetadataEditor extends JPanel
         if (DEBUG.Enabled) { Log.debug("shared: " + Util.tags(shared)); Util.dumpCollection(shared); }
         
         if (shared.isEmpty()) {
-            addNewRow();
+            model.ensureBulge("multi-is-empty");
         } else {
             // Normally, this should only go in the category list...  we only need this for the
             // data-model tho, so howbout we keep this as a separate list globally, and we never
             // have to touch the sick meta-data API again after this, yes?  The only real
             // convenience we get from the LWGroup is being able to call getAllDescendents()...
-            final List<VueMetadataElement> shareTarget = group.getMetadataList().getMetadata();
+            final List<VueMetadataElement> shareTarget = group.getMetadataList().getAll();
             for (VueMetadataElement vme : shared)
                 shareTarget.add(vme);
             //if (DEBUG.Enabled) Log.debug("cats after update" + currentMultiples.getMetadataList().getMetadataAsHTML(VueMetadataElement.CATEGORY));
@@ -693,15 +731,18 @@ public class MetadataEditor extends JPanel
     private final tufts.vue.gui.VueButton headerAddButton = new tufts.vue.gui.VueButton("keywords.button.add"); 
     private final JPanel headerAddButtonPanel = new JPanel();
     private final JLabel LabelKeyword = new JLabel(VueResources.local("jlabel.keyword")); 
+    private final JLabel LabelKeywordShared = new JLabel("Shared " + VueResources.local("jlabel.keyword"));  // todo: localize
     private final JLabel LabelCategory = new JLabel(VueResources.local("jlabel.category"));
     private final JLabel LabelEmpty = new JLabel("");
     private final Border HeaderCellBorder = GUI.makeSpace(0, CELL_HORZ_INSET+2, 0, 0);
+    
+    private final TableCellRenderer HeaderRenderer = new MDTableHeaderRenderer();
         
-    private class MetadataTableHeaderRenderer extends DefaultTableCellRenderer {  
+    private class MDTableHeaderRenderer extends DefaultTableCellRenderer {  
         // see below - getter could be supplied in stand alone class
         //static tufts.vue.gui.VueButton button = new tufts.vue.gui.VueButton("keywords.button.add");
 
-        public MetadataTableHeaderRenderer() {
+        public MDTableHeaderRenderer() {
             headerAddButton.setBorderPainted(false);
             headerAddButton.setContentAreaFilled(false);
             // headerAddButton.setBorder(javax.swing.BorderFactory.createEmptyBorder()); why?
@@ -712,6 +753,7 @@ public class MetadataEditor extends JPanel
             /*headerAddButton.addMouseListener(new java.awt.event.MouseAdapter(){ public void mousePressed(java.awt.event.MouseEvent e) {
                 if(DEBUG_LOCAL) System.out.println("MetadataEditor -- table header mouse pressed " + e); } } });*/
             LabelKeyword.setFont(GUI.LabelFace);
+            LabelKeywordShared.setFont(GUI.LabelFace);
             LabelCategory.setFont(GUI.LabelFace);
         }
        // can't do this statically in inner class but could be done from wholly separate class -
@@ -719,24 +761,14 @@ public class MetadataEditor extends JPanel
        /*static tufts.vue.gui.VueButton getButton() { return button; }*/
         @Override public java.awt.Component getTableCellRendererComponent(JTable table, Object value,boolean isSelected,boolean hasFocus,int row,int col) {
             JComponent comp = new JPanel();
-            if(col == 0) {
-                if(model.getColumnCount() == 2) {    
-                    // back to "Keywords:" -- VUE-953  
-                    comp = LabelKeyword;
-                } else {
-                    // back to "Categories" -- VUE-953
-                    //comp = new JLabel("Fields:");
-                    comp = LabelCategory;
-                }
-            }
-            else if(col == 1 && col != buttonColumn) {
-                if (model.getColumnCount() == 3)
-                    comp = LabelKeyword;
-            }
-            else if(col == buttonColumn) {
-                //comp = new JLabel();    
+            if (col == TC_TEXT) {
+                // back to "Keywords:" -- VUE-953
+                comp = (group != null) ? LabelKeywordShared : LabelKeyword;
+            } else if (col == TC_COMBO) {
+                // back to "Categories" -- VUE-953
+                comp = LabelCategory;
+            } else if (col == TC_BUTTON) {
                 //((JLabel)comp).setIcon(tufts.vue.VueResources.getImageIcon("metadata.editor.add.up"));
-                //comp = new JPanel();
                 comp = headerAddButtonPanel;
                 comp.add(headerAddButton);
             } else
@@ -754,7 +786,6 @@ public class MetadataEditor extends JPanel
     private static boolean hasKnownCategory(final String key) {
         // A guess is good enough -- users can always add items manually via "Edit Categories"
         return key != null && key.indexOf('#') > 0;
-        
         // if (keyName == null || keyName.indexOf('#') < 0)
         //     return false;
         // // todo: crazy that CategoryModel doesn't have a hash lookup for this.
@@ -765,7 +796,7 @@ public class MetadataEditor extends JPanel
         // // for (OntType ot : OntologiesList<>getOntTypes()) // any languages that do something like this?
         // return false;
     }
-        
+
     private class MDCellRenderer extends DefaultTableCellRenderer
     {   
         private final JComponent deleteButton;
@@ -799,7 +830,8 @@ public class MetadataEditor extends JPanel
 
         public java.awt.Component getTableCellRendererComponent(final JTable t, final Object _vme, boolean selected, boolean focus, final int row, final int col)
         {
-            final boolean isPlusOneEditRow = (PlusOneForAdd == 1 && row == model.getRowCount() - 1);
+            //final boolean isPlusOneEditRow = (PlusOneWhenAdding == 1 && row == model.getRowCount() - 1);
+            final boolean isPlusOneEditRow = false;
            
             if (DEBUG.PAIN) Log.debug("gTCRC: bc=" + buttonColumn + (row<10?"  ":" ") + row + "," + col + " " + _vme);
 
@@ -807,13 +839,16 @@ public class MetadataEditor extends JPanel
 
             if (TC_COMBO == col) {
                 final VueMetadataElement vme = (VueMetadataElement) _vme;
-                //final String key = getKeyForRow(row);
                 final String key = vme.getKey();
                 final boolean knownCategory = hasKnownCategory(key);
                 model.reportCategoryFound(row, knownCategory); // ick
                 setText(shortKey(key));
                 box.add(this);
-                if (!knownCategory) box.add(addLabel, BorderLayout.EAST);
+                if (DisplayChangesDuringEdit && row == activeEditRow) {
+                    ; // don't draw '+'
+                    // if (mdTable.isEditing()) ; // turn them all off
+                } else if (!knownCategory)
+                    box.add(addLabel, BorderLayout.EAST);
             }
             else if (TC_TEXT == col && (isPlusOneEditRow || _vme != null)) { // if value is null, we'll render empty box, even if PlusOneEditRow
                 final VueMetadataElement vme = (VueMetadataElement) _vme;
@@ -856,9 +891,6 @@ public class MetadataEditor extends JPanel
         private final JPanel box = new JPanel();
         private final JComboBox catCombo = new JComboBox();
         
-        private int activeEditRow;
-        private int activeEditCol;
-        
         private final edu.tufts.vue.metadata.gui.MetaButton deleteButton;
 
         private final int INSTANCE_COLUMN; // hard coded column we're meant to be rendering for
@@ -892,11 +924,17 @@ public class MetadataEditor extends JPanel
                 field = (JTextField) getComponent();
                 field.setName("MD:cellEditor-" + name);
                 field.setFont(GUI.LabelFace);
-                field.addFocusListener(new FocusAdapter() { public void focusLost(FocusEvent fe) {
-                    if (DEBUG.PAIN) VUE.diagPush("FL" + i);
-                    handleFieldFocusLost(fe);
-                    if (DEBUG.PAIN) VUE.diagPop();
-                }});
+                field.addFocusListener(new FocusAdapter() {
+                        public void focusLost(FocusEvent fe) {
+                            if (DEBUG.PAIN) VUE.diagPush("FL" + i);
+                            handleFieldFocusLost(fe);
+                            if (DEBUG.PAIN) VUE.diagPop();
+                        }
+                        public void focusGained(FocusEvent fe) {
+                            if (DisplayChangesDuringEdit)
+                                mdTable.repaint();
+                        }
+                });
                 field.addKeyListener(new KeyAdapter() { public void keyPressed(KeyEvent ke) {
                     // BTW, *sometimes* this works automatically in the JTextField, but for some reason, not always.
                     if (ke.getKeyCode() == KeyEvent.VK_ESCAPE)
@@ -972,63 +1010,33 @@ public class MetadataEditor extends JPanel
             }
                 
             final OntType ontType = (OntType) catCombo.getSelectedItem();
-            final int row = MDCellEditor.this.activeEditRow;
+            final int row = activeEditRow;
             final VueMetadataElement tableVME = model.getValueAt(row, -1); // column ignored
-                       
-            if (DEBUG.PAIN || tableVME == null) debug("VME for last request row " + row + ": " + tableVME);
+
+            if (DEBUG.Enabled) Log.debug("OntType selected: " + ontType);
+            // if (DEBUG.PAIN || tableVME == null) debug("VME for last request row " + row + ": " + tableVME);
 
             if (tableVME == null) {
                 if (DEBUG.Enabled) debug("aborting catCombo state change on null VME: probably model refresh");
                 return;
             }
-                
-            final String[] keyValuePair = {
-                ontType.getAsKey(),
-                tableVME.getValue()
-            };
+            publishEdit(activeEditRow,
+                        freshVME(ontType.getAsKey(), tableVME.getValue()),
+                        "Metadata Category Key");
 
-            if (DEBUG.PAIN) debug("constructed key: [" + keyValuePair[0] + "]");
-
-            final VueMetadataElement vme = new VueMetadataElement();
-            vme.setObject(keyValuePair);
-            vme.setType(VueMetadataElement.CATEGORY);
-               
-            if (group != null) {
-                // [Below is a mess: do all in one loop with better API calls]
-                // also need to add/set for individuals in group.. todo: subclass LWGroup to do this?
-                // in the meantime just set these by hand
-                if (group.getMetadataList().getCategoryListSize() > row) {
-                    final VueMetadataElement oldVME = group.getMetadataList().getCategoryList().get(row);  
-                    group.getMetadataList().getCategoryList().set(row,vme);
-                    for (LWComponent c : group.getAllDescendents()) {
-                        final MetadataList.SubsetList md = c.getMetadataList().getCategoryList();
-                        // md.replaceOrAdd?
-                        if (md.contains(oldVME))
-                            md.set(md.indexOf(oldVME), vme);
-                        else
-                            c.getMetadataList().getMetadata().add(vme);
-                    }
-                }
-                else {
-                    group.getMetadataList().getMetadata().add(vme); 
-                    for (LWComponent c : group.getAllDescendents()) {
-                        final MetadataList.SubsetList md = c.getMetadataList().getCategoryList();
-                        // md.replaceOrAdd?
-                        if (md.contains(vme))
-                            md.set(md.indexOf(vme), vme);
-                        else
-                            c.getMetadataList().getMetadata().add(vme);
-                    }
-                }  
-            }
-            else if (single != null) {
-                // This is wierd construction (used above as well): have an API call for all of this.  And why
-                // do we "set" on the category list, but "add" on the whole list???
-                if (single.getMetadataList().getCategoryListSize() > row)
-                    single.getMetadataList().getCategoryList().set(row,vme);
-                else
-                    single.getMetadataList().getMetadata().add(vme); 
-            }
+            // final VueMetadataElement vme = freshVME(ontType.getAsKey(), tableVME.getValue());
+            // if (DEBUG.PAIN) debug("constructed new key in: " + vme);
+            // if (group != null) {
+            //     publishGroupChange(row, vme);
+            // }
+            // else if (single != null) {
+            //     if (single.getMetadataList().getCategoryListSize() > row) {
+            //         single.getMetadataList().getCategoryList().set(row, vme);
+            //     } else {
+            //         Log.error("adding a new VME via category menu; should not happen: " + vme);
+            //         single.getMetadataList().getMetadata().add(vme);
+            //     }
+            // }
         }
 
         private boolean editWasCanceled = false;
@@ -1036,15 +1044,18 @@ public class MetadataEditor extends JPanel
         @Override public boolean stopCellEditing() { return stopEditing(false); }
         @Override public void cancelCellEditing() { stopEditing(true); }
 
-       private boolean stopEditing(boolean cancel) {
-           if (DEBUG.PAIN) { debug("stopCellEditing " + (cancel?"CANCELLING":"")); if (DEBUG.META) Util.printClassTrace("!java"); }
+        private boolean stopEditing(boolean cancel) {
+            if (DEBUG.PAIN) { debug("stopCellEditing, " + (cancel?"CANCELLING":"saving")); if (DEBUG.META) Util.printClassTrace("!java"); }
             editWasCanceled = cancel;
+            activeEditRow = -1;
+            if (DisplayChangesDuringEdit)
+                mdTable.repaint();
             if (cancel) {
                 super.cancelCellEditing();
                 return true; // ignored
             } else
                 return super.stopCellEditing();
-       }
+        }
         
         private void load_UI_text(VueMetadataElement vme) {
             source_list = null;
@@ -1079,26 +1090,30 @@ public class MetadataEditor extends JPanel
             // field.setText(vme.getValue());
         }
         
-       @Override public java.awt.Component getTableCellEditorComponent(final JTable table, final Object value, boolean isSelected, final int row, final int col)
+       @Override public java.awt.Component getTableCellEditorComponent(final JTable table, final Object _vme, boolean isSelected, final int row, final int col)
        {
-           if (DEBUG.PAIN) debug("getTableCellEditorComponent ic" + INSTANCE_COLUMN + ": " + row + "," + col + " " + value);
-           this.activeEditRow = row;
-           this.activeEditCol = col;
+           if (DEBUG.PAIN) debug("getTableCellEditorComponent ic" + INSTANCE_COLUMN + ": " + row + "," + col + " " + _vme);
+           activeEditRow = row;
+           activeEditCol = col;
+           
+           final VueMetadataElement vme = (VueMetadataElement) _vme;
            
            if (col == TC_COMBO) {
-               CategoryMenuModel.selectBestMatchQuietly(getKeyForRow(row));
+               //CategoryMenuModel.selectBestMatchQuietly(getKeyForRow(row));
+               CategoryMenuModel.selectBestMatchQuietly(vme.getKey());
                return installRenderBorder(catCombo, row, col);
            }
            else if (col == TC_TEXT) {
                //---------------------------------------------------------------------------------------------------------------
                //       THIS IS WHERE THE VueMetadataElement VALUE IS EXTRACTED FROM THE MODEL AND PUSHED TO THE UI
                //---------------------------------------------------------------------------------------------------------------
-               load_UI_text( (VueMetadataElement) value ); // copy into field
-               field.selectAll(); // Only works for newly added when put here (as opposed to invoke-later), which is actually good
+               load_UI_text( vme ); // copy into field
                GUI.invokeAfterAWT(new Runnable() { public void run() {
                    // This object is not yet in the AWT hierarchy (we haven't even returned it yet).  It
                    // normally will be alive be by the time this is run.
                    field.requestFocus();
+                   if (vme == InputVME)
+                       field.selectAll();
                }}); 
                MetadataEditor.this.activeTextEdit = this;
                // field.setBorder(null); // this will remove the focus border and cause the field to fill the entire cell
@@ -1134,11 +1149,11 @@ public class MetadataEditor extends JPanel
             MetadataEditor.this.activeTextEdit = null;
         
             if (editWasCanceled) {
-                clearModelBulge("canceled");
+                model.clearBulge("canceled");
                 return;
             }
                 
-            final int row = MDCellEditor.this.activeEditRow;
+            final int row = activeEditRow;
             if (DEBUG.PAIN) debug("row of last editor requested: " + row);
         
             final TableCellEditor editor = mdTable.getCellEditor();
@@ -1147,47 +1162,12 @@ public class MetadataEditor extends JPanel
                 if (editor != null && editor != MDCellEditor.this) {
                     debug("is not us: " + Util.tags(MDCellEditor.this));
                     if (editor instanceof MDCellEditor)
-                        debug("remote row: " + ((MDCellEditor)editor).activeEditRow);
+                        debug("remote row: " + activeEditRow);
                 }
             }
-            /*if(currentMultiples != null) { return; } if(fe!= null && fe.getOppositeComponent() == catCombo) { return; }*/
-            // // note: fix for currentMultiples != null and focus lost off bottom of info window (not
-            // // as likely in the multiple selection case?)
-            // if (tufts.vue.gui.DockWindow.isDockWindow(fe.getOppositeComponent()) && currentMultiples == null) {
-            //     model.setSaved(row,true);
-            //     if (editor != null)
-            //         editor.stopCellEditing();
-            // }
             if (editor != null)
                 editor.stopCellEditing();
                   
-            // if (lastSelected == null && current == null && previousMultiples == null && currentMultiples ==  null)
-            //     return;
-            // if (current == null && currentMultiples ==  null)
-            //     return;
-
-            // // java.util.List<VueMetadataElement> metadata
-            // final MetadataList.SubsetList metadata;
-            // // if (lastSelected != null && !focusToggle) {
-            // //     // what is this for? Looks like it has to do with attempting to be sure to re-use some old
-            // //     // state after a focus loss then focus regain.  Shouldn't be needing this hack...
-            // //     metadata = lastSelected.getMetadataList().getCategoryList();
-            // //     if (DEBUG.Enabled) Log.warn("USING PREVIOUS CURRENT " + lastSelected, new Throwable("HERE"));
-            // // } else {
-            // if (currentMultiples != null)
-            //     metadata = currentMultiples.getMetadataList().getCategoryList();
-            // else if (current != null)
-            //     metadata = current.getMetadataList().getCategoryList();
-            // else {
-            //     if (DEBUG.Enabled) Log.warn("metadata is null");
-            //     metadata = null;
-            // } //}
-            // final VueMetadataElement target_VME;
-            // if (metadata != null && row < metadata.size())
-            //     target_VME = metadata.get(row);
-            // else
-            //     target_VME = null;
-
             final String fieldText = field.getText();
             final String trimText = fieldText.trim();
 
@@ -1203,7 +1183,7 @@ public class MetadataEditor extends JPanel
             if (source_VME == InputVME) {
                 if (trimText.length() == 0) {
                     // if (DEBUG.PAIN) Log.debug("do nothing, no new text");
-                    clearModelBulge("nothing to do, no new text");
+                    model.clearBulge("nothing to do, no new text");
                     flush_UI_text(); // don't allow re-use
                     return;
                 }
@@ -1216,89 +1196,63 @@ public class MetadataEditor extends JPanel
                 //if (trimText.length() == 0 && isEmptyVME(real_VME)) {
                 if (trimText.equals(source_VME.getValue())) { // getValue can return null
                     // The trim() will allow us to eliminate whitespace on a field value by editing, but not add it.
-                    clearModelBulge("nothing to do, no significant change");
+                    model.clearBulge("nothing to do, no significant change");
                     flush_UI_text(); // don't allow re-use
                     return;
                 }
             }
 
+            // Even if nothing is now selected, we still want to process up to this point to allow
+            // for the flush_UI_text() calls above.
+            
             if (single == null && group == null)
                 return;
 
-            // if (source_VME != target_VME) {
-            //     Log.debug("mismatch:\n\tsource: " + source_VME + "\n\ttarget: " + target_VME);
-            //     if (DEBUG.Enabled) Util.printClassTrace("!java");
-            //     return;
-            // }
-                
             //----------------------------------------------------------------------------------------
             // Actually apply a change:
             //----------------------------------------------------------------------------------------
 
             final VueMetadataElement new_VME;
                   
-            //if (target_VME == null) {
             if (source_VME == InputVME) {
-                if (DEBUG.Enabled) debug("at bottom with InputVME -- creating fresh -- todo: ignoring any category menu selection for now");
-                // TODO: this should pull the value of the category selected if there is one...
+                if (DEBUG.Enabled) debug("at bottom with InputVME -- creating fresh -- ignoring any category menu selection");
+                // Leaving out the category should be fine (we don't have one in this case), as any attempt to
+                // click on the category menu (displaying "none" at this point), will focus-loss the text
+                // input, aborting the new line entirely if empty, or creating a new VME to then category edit
+                // if text is present.
                 new_VME = freshVME(trimText);
             } else {
-                new_VME = new VueMetadataElement();
-                final String categoryKey = getObject(source_VME)[0]; // copy over the old key
-                new_VME.setObject(new String[] { categoryKey, trimText }); // old crazy API
+                new_VME = freshVME(source_VME.getKey(), trimText); // copy over the old key
                 if (DEBUG.PAIN) debug("replacement VME with copied key: " + new_VME);
             }
         
-            // if ( (current != null && row < (current.getMetadataList().getCategoryListSize())) ||
-            //      (currentMultiples != null && currentMultiples.getMetadataList().getCategoryListSize() > row) ) {
             if (source_VME == InputVME) {
-                
                 if (DEBUG.PAIN) debug("appending");
                 source_list.add(new_VME);
-                if (!clearModelBulge("success: filled bulge with new data"))
+                if (!model.clearBulge("success: filled bulge with new data"))
                     model.refresh(); // should never happen, but just in case
-
             } else {
-            
-                if (DEBUG.PAIN) debug("re-inserting new_VME at row " + row + " " + Util.tags(new_VME.getObject()) + " -> " + source_list);
-                    
-                final VueMetadataElement old = source_list.get(row);
-
+                if (DEBUG.PAIN) debug("inserting new_VME at row " + row + " " + new_VME + " -> " + source_list);
                 // We're using ROW, which is from the current model, which is technically bad, because
                 // it could have changed if this was a focus-loss on selection change, but in that
                 // case, editing should have been canceled.
-                
                 source_list.set(row, new_VME); // WE ALWAYS WRITE OVER THE OLD VME
-                // If we're not handling multiples, we're already done.  If we are, we've only just changed
-                // the temporary group data, and we now need to publish the change to the selection.
-                    
-                if (group != null) {
-                    // SMF: assuming that even if only one item in group, is functionally the same as non-group case.
-                    // SMF: iterate getChildren: this will tag just the top-level actually selected items
-                    // SMF: iterate getAllDescendents: the above PLUS their children, grandchildren, etc.
-                    // SMF: Using getAllDescendents is the historical default, tho that means we can NEVER just group-tag a set of parents,
-                    // smf: Note that the same almost certainly applies to everywhere in this file we see getAllDescendents called.
-                    // whereas if we only do the direct children, what's in the selection could still be expanded to include children,
-                    // tho we don't have an action for that -- the user would have to add the children manually.
-                
-                    //for (LWComponent child : currentMultiples.getChildren()) { 
-                    for (LWComponent child : group.getAllDescendents()) { 
-                        final MetadataList.SubsetList cMeta = child.getMetadataList().getCategoryList();
-                        final int size = cMeta.size();
-                        if(size > 0 && cMeta.get(size-1).getValue().equals("")) // hackety hack hack hack
-                            cMeta.set(size-1, new_VME);
-                        // [DAN] also need to set in condition where already in all the sub components?
-                        // somehow need to detect edit here.. but condition in line above this
-                        // one is not neccesarily equivalent..
-                        else {
-                            if (cMeta.contains(old))
-                                // [DAN] should it always be the first index?
-                                cMeta.set(cMeta.indexOf(old), new_VME);
-                            else
-                                child.getMetadataList().getMetadata().add(new_VME);
-                        }
-                        child.layout();
-                    }
+            }
+
+            // todo: handle in publish
+            
+            // If we're not handling multiples, we're already done.  If we are, we've only just changed
+            // the temporary group data, and we now need to publish the change to the selection.
+            
+            if (groupContents != null) {
+                // final VueMetadataElement old = source_list.get(row);
+                for (LWComponent c : groupContents) { 
+                    final MetadataList md = c.getMetadataList();
+                    if (source_VME == InputVME)
+                        md.addElement(new_VME);
+                    else
+                        md.replaceValueForKey(new_VME);
+                    c.layout();
                 }
             }
                   
@@ -1306,7 +1260,6 @@ public class MetadataEditor extends JPanel
                 single.layout();
 
             VUE.getActiveMap().markAsModified();
-            
             // todo: would be better to issue a model repaint event
             VUE.getActiveViewer().repaint();
             mdTable.repaint();
@@ -1320,6 +1273,8 @@ public class MetadataEditor extends JPanel
             //boolean canEdit = canEditWithSideEffects(object);
             boolean canEdit = canEdit(object);
             if (DEBUG.PAIN) { Log.debug("canEdit = " + canEdit); VUE.diagPop(); }
+            // if (canEdit && DisplayChangesDuringEdit)
+            //     mdTable.repaint(); // really want this in a "cellStartsEditing"
             return canEdit;
        }
         
@@ -1356,49 +1311,39 @@ public class MetadataEditor extends JPanel
         return c;
     }
     
-    /**
-     * Set the model into a state of reporting having exactly one more piece of meta-data than the actual
-     * component/selection has in it, so that we can render/activate a cell-editor at the bottom without
-     * having to modify the actual component meta-data.  Calls are idempotent, so we don't have to 
-     * worry about overlapping / too many calls.  Todo: move methods to MDTableModel.ensureBulge/clearBulge
-     */
-    private void ensureModelBulge(String reason) {
-        if (DEBUG.PAIN) {
-            final String noneed = (PlusOneForAdd == 1) ? " (unneeded)" : "";
-            Log.debug(Util.color("temporary model bulge to +1: " + reason + noneed, Util.TERM_CYAN));
+    private void publishEdit(int row, VueMetadataElement vme, String description)
+    {
+        final VueMetadataElement oldVME = model.getValueAt(row, -1);
+
+        if (DEBUG.Enabled) {
+            Log.debug(Util.tags(description) + "; publishing change to row " + row + ": " + oldVME);
+            Log.debug(Util.tags(description) + ";      replacement for row " + row + ": " + vme);
         }
-        if (PlusOneForAdd == 0) {
-            PlusOneForAdd = 1;
-            model.refresh();
+        
+        if (group != null) {
+            for (LWComponent c : groupContents) {
+                final MetadataList.SubsetList md = c.getMetadataList().getCategoryList();
+                md.set(md.indexOf(oldVME), vme); // note: all will have same instance
+                if (DEBUG.Enabled) Log.debug("published to: " + c);
+            }
+            group.getMetadataList().getCategoryList().set(row, vme);
+            VUE.getActiveMap().notify(MetadataEditor.this, tufts.vue.LWKey.MetaData); // todo: undoable event
         }
-    }
-    private boolean clearModelBulge(String reason) {
-        if (DEBUG.PAIN) {
-            final String noneed = (PlusOneForAdd == 0) ? " (unneeded)" : "";
-            Log.debug(Util.color("clearing the +1 model bulge: " + reason + noneed, Util.TERM_CYAN));
+        else if (single != null) {
+            single.getMetadataList().getCategoryList().set(row, vme); // better: model.setVmeAt
+            // if (single.getMetadataList().getCategoryListSize() > row) {
+            //     single.getMetadataList().getCategoryList().set(row, vme);
+            // } else {
+            //     Log.error("adding a new VME via category menu; should not happen: " + vme);
+            //     single.getMetadataList().getMetadata().add(vme);
+            // }
+            single.notify(MetadataEditor.this, tufts.vue.LWKey.MetaData); // todo: undoable event
         }
-        if (PlusOneForAdd != 0) {
-            PlusOneForAdd = 0;
-            model.refresh();
-            return true;
-        } else
-            return false;
+        VUE.getActiveMap().markAsModified();
+        VUE.getActiveMap().getUndoManager().mark(description);
+        VUE.getActiveMap().notify(MetadataEditor.this, tufts.vue.LWKey.Repaint);
     }
     
-    public void addNewRow()
-    {
-        if (group != null) {
-            // not so much a problem to do this as we don't "publish" this data
-            // to the children until we detect an actual change.  Come to think of
-            // it, if we just did this ALL as multiples, w/out current, that'd be simpler...
-            if (DEBUG.PAIN) Log.debug("addNewRow: adding to multiples group");
-            group.getMetadataList().getMetadata().add(emptyVME());  // TODO: safer to bulge: we now depend on seeing InputVME in focus-lost!
-            model.refresh();
-        } else if (single != null) {
-            ensureModelBulge("addNewRow");
-        }
-    }
-
     /**
      * [DAN] watch out for current == null
      * [SMF] So what getRowCount returns is presumably important for what the UI decides to draw, if anything.
@@ -1408,9 +1353,10 @@ public class MetadataEditor extends JPanel
      **/
     public class MDTableModel extends AbstractTableModel
     {
-        private int cols = initCols(2);
-         
         private final java.util.List<Boolean> categoryFound = new java.util.ArrayList<Boolean>(32);
+
+        private int cols = initCols(2);
+        private LWComponent source;
 
         private int initCols(int cols) {
             TC_BUTTON = buttonColumn = (cols - 1); // 1 or 2
@@ -1428,10 +1374,13 @@ public class MetadataEditor extends JPanel
                 return Object.class;
         }
          
-        @Override public void setValueAt(Object value,int row, int column) { /*fireTableDataChanged();*/ }
+        @Override public void setValueAt(Object value, int row, int col) {
+            if (DEBUG.PAIN) Log.debug("  setValueAt " + row + "," + col + " " + Util.tags(value) + " (always ignored)");
+            /*fireTableDataChanged();*/
+        }
 
         private boolean wasCategoryFound(int row) { return (row >= 0 && row < categoryFound.size()) ? categoryFound.get(row) : false; }
-        // CALLED DURING RENDERING OF THE COMBO-BOX COLUMN!  Apparently is only used in one place for knowing if to render a tooltip or not
+        // CALLED DURING RENDERING OF THE COMBO-BOX COLUMN.  Apparently is only used in one place for knowing if to render a tooltip or not.
         // Is overkill complexity: could be re-calling some version of find/selectCategory based on the key found at row.
         private void reportCategoryFound(int row, boolean found) {
             if (categoryFound.size() <= row) // expand valid porition of capacity
@@ -1442,20 +1391,13 @@ public class MetadataEditor extends JPanel
          
         /** @interface javax.swing.table.TableModel */
         public int getRowCount() {
-            if (single != null) {   
-                //MetadataList.CategoryFirstList list = (MetadataList.CategoryFirstList)current.getMetadataList().getMetadata();
-                //int size = current.getMetadataList().getMetadata().size(); // [DAN comment]
-                int size = single.getMetadataList().getCategoryListSize() + PlusOneForAdd;
-                return size > 0 ? size : 1;
-            } else if (group != null) {
-                //MetadataList.CategoryFirstList list = (MetadataList.CategoryFirstList)currentMultiples.getMetadataList().getMetadata();
-                //int size = current.getMetadataList().getMetadata().size(); // [DAN comment]
-                int size = group.getMetadataList().getCategoryListSize();
-                return size > 0 ? size : 1;
-            } else { 
-                //return 1;
-                return 0;
-            }   
+            final int displayRows = getDataRowCount() + PlusOneWhenAdding;
+            // even if we're not adding, always render at least one empty row:
+            return displayRows > 0 ? displayRows : 1;
+        }
+        
+        private int getDataRowCount() {
+            return source == null ? 0 : source.getMetadataList().getCategoryListSize();
         }
          
         /** @interface javax.swing.table.TableModel */
@@ -1476,6 +1418,8 @@ public class MetadataEditor extends JPanel
         }
 
         public void refresh() {
+            this.source = (single != null ? single : group);
+            if (DEBUG.Enabled) Log.debug(getClass().getName() + ": refresh; src==" + source);
             fireTableDataChanged();
         }
         
@@ -1495,91 +1439,117 @@ public class MetadataEditor extends JPanel
         /** @interface javax.swing.table.TableModel */
         public VueMetadataElement getValueAt(int row, int _column_ignored_)
         {
-            if (single == null && group == null) {
-                return null;
-                //return "<null-VME-table-value>";
-            } else if (group != null) {
-                final int size = group.getMetadataList().getCategoryListSize();
-                if (size == 0)
-                    addNewRow(); // horrifying: model change in getValueAt
+            final int size = getDataRowCount();
+            if (DEBUG.PAIN) Log.debug(" getValueAt" + (row<10?"  ":" ") + row + "," + _column_ignored_ + " size=" + size + (PlusOneWhenAdding != 0 ? "+1":""));
+            if (source != null) {
+                if (size == 0 || row == size)
+                    return InputVME;
                 else if (row >= size) 
                     return null;
-                return group.getMetadataList().getCategoryListElement(row);
-            } else {
-                final int size = single.getMetadataList().getCategoryListSize();
-                if (size == 0 || row == (size+PlusOneForAdd))
-                    return InputVME;
-                else if (row >= size)
-                    return null;
-                return single.getMetadataList().getCategoryListElement(row);
-                // return current.getMetadataList().getMetadata().get(row);
+                return source.getMetadataList().getCategoryListElement(row);
             }
+            else Log.error(" getValueAt " + row + "," + _column_ignored_ + ": no data in model");
+            return null;
         }
 
-        public void deleteAtRow(final int selectedRow) {
-            
-            boolean multipleMode = false;
-            final LWComponent target;
-            
-            if (group != null) {
-                target = group;
-                multipleMode = true;
-            } else if (single != null)
-                target = single;
-            else
-                target = null;
-            
-            final java.util.List<VueMetadataElement> metadataList = target.getMetadataList().getMetadata();
-            final boolean isValidRow = (selectedRow >= 0) && (selectedRow < metadataList.size());
-            
-            edu.tufts.vue.metadata.VueMetadataElement vme = null;
-           
-            if (isValidRow)
-                vme = metadataList.get(selectedRow);
-           
-            if (multipleMode) {
-                for (LWComponent c : group.getAllDescendents()) {
-                    final java.util.List<edu.tufts.vue.metadata.VueMetadataElement> compMLList = c.getMetadataList().getMetadata();
-                    
-                    if (DEBUG.PAIN) Log.debug("sub component of multiples index of value: " + compMLList.indexOf(vme));
-                    
-                    if (compMLList.indexOf(vme) != -1)
-                        compMLList.remove(compMLList.indexOf(vme));
-                    
-                    // really only need to do this if the component now doesn't have any user metadata
-                    if (compMLList.size() == 0) 
-                        c.layout();
-                }
-                tufts.vue.VUE.getActiveViewer().repaint();
+        /**
+         * Set the model into a state of reporting having exactly one more piece of meta-data than the actual
+         * component/selection has in it, so that we can render/activate a cell-editor at the bottom without
+         * having to modify the actual component meta-data.  Calls are idempotent, so we don't have to 
+         * worry about overlapping / too many calls.  Todo: move methods to MDTableModel.ensureBulge/clearBulge
+         */
+        private boolean ensureBulge(String reason) {
+            if (DEBUG.PAIN) {
+                final String noneed = (PlusOneWhenAdding == 1) ? " (unneeded)" : "";
+                Log.debug(Util.color("temporary model bulge to +1: " + reason + noneed, Util.TERM_CYAN));
             }
-           
-            // IF (!tufts.vue.gui.GUI.isDoubleClick(evt)) return;
-
-            // We could take advantge of JTable editor behaviour to make a harder to delete action:
-            // On first click, let the button become the editor (and the button editor paints
-            // Color.red or something instead of the current identical fashion), and on the second
-            // click on an actual editor, do the full delete.
+            if (PlusOneWhenAdding == 0) {
+                PlusOneWhenAdding = 1;
+                refresh();
+                return true;
+            }
+            return false;
+        }
+        private boolean clearBulge(String reason) {
+            if (DEBUG.PAIN) {
+                final String noneed = (PlusOneWhenAdding == 0) ? " (unneeded)" : "";
+                Log.debug(Util.color("clearing the +1 model bulge: " + reason + noneed, Util.TERM_CYAN));
+            }
+            if (PlusOneWhenAdding != 0) {
+                PlusOneWhenAdding = 0;
+                refresh();
+                return true;
+            } else
+                return false;
+        }
+    
+        public void deleteAtRow(final int row)
+        {
+            final VueMetadataElement vme = getValueAt(row, -1);
             
-            if (isValidRow) {
-                if (DEBUG.Enabled) Log.debug("deleting selectdRow=" + selectedRow + " " + vme);
-                
-                // this should be handled by adding a removeRow to the model instead of mucking the metadataList directly here:
-                metadataList.remove(selectedRow);
-                refreshAll();
-                
-                // todo: this layout/repaint would be better triggered by some kind of model update
-                // event from MetadataLlist up through its LWComponent, which if we had could then
-                // even become undoable.
-                if (single != null) {
-                    single.layout();
-                    //current.notify(MetaButton.this, tufts.vue.LWKey.Repaint); // todo: undoable event
-                    single.notify(MDTableModel.this, tufts.vue.LWKey.MetaData); // todo: undoable event
-                    //VUE.getActiveMap().markAsModified();
-                } // TODO: neet to notify for group case!
-                VUE.getActiveMap().getUndoManager().mark("Remove Data");
+            if (DEBUG.Enabled) Log.debug("deleteAtRow " + row + " " + vme);
 
-            } else if (DEBUG.Enabled) Log.debug("invalid row for delete, ignoring, selectdRow=" + selectedRow);
-        
+            if (row < 0 || row >= getDataRowCount()) {
+                // Checking getDataRowCount() is crucial, or we could end up secretly deleting OTHER data-list
+                // items, that are further down the list than the CATEOGRY items, such as merge-source data.
+                Log.warn("invalid row for delete: " + row);
+                return;
+            }
+            if (vme == InputVME || vme == null) {
+                Log.warn("invalid for delete: " + vme);
+                return;
+            }
+            
+            if (groupContents != null) {
+                for (LWComponent c : groupContents) {
+                    final List<VueMetadataElement> md = c.getMetadataList().getAll(); // could use subesetlist?
+                    if (md.remove(vme)) {
+                        if (DEBUG.Enabled) Log.debug("multiple deleted " + vme + "; " + c.getDiagnosticLabel());
+                        if (md.size() == 0) 
+                            c.layout(); // no more meta-data: icon display may change
+                    } else {
+                        Log.warn("multiple failed to remove " + vme + "; " + c.getDiagnosticLabel());
+                    }
+                }
+            }
+            
+            // We want the below for both source == single, where we'll delete data off the actual node, and
+            // source == group, where we'll just delete out of our table-model LWGroup holder.
+            
+            if (DEBUG.Enabled) Log.debug("delete--row " + row + " " + vme);
+            
+            // How did removing by row ever work?  We're indexing into the full, unfiltered-by-type VME list.
+            // Well, if CATEGORY type really is maintained first in the list ("CategoryFirstList"), then this
+            // could work, but if it ISN'T, such as we suspect with RESOURCE type, then this will delete the
+            // wrong thing -- but the only thing with RESOURCE_CATEGORY VME types is currently the LWMap
+            // itself, so we're just getting lucky here.
+            
+            // Note that we could just use the fetched getValueAt VME from the row as a delete-key source, as
+            // opposed to our row index, but there can be multiple VME's with the same key + value (which
+            // really isn't something we should allow, but we do).  To make it feel right, if there are dupes,
+            // we need to delete the one at the actual row, instead of just the 1st one with that same
+            // key/value in the list.
+
+            final VueMetadataElement removed = source.getMetadataList().getAll().remove(row);
+            
+            if (!vme.equals(removed))
+                Log.error("BAD DELETE: " + removed + " != " + vme);
+            
+            refresh();
+            
+            // todo: someday, this layout/repaint would be better triggered by some kind of model update
+            // event from MetadataLlist up through its LWComponent, which if we had could then
+            // even become undoable.  Also, make these undoable events!
+            
+            if (single != null) {
+                single.layout();
+                single.notify(MDTableModel.this, tufts.vue.LWKey.MetaData); 
+            } else {
+                VUE.getActiveMap().notify(MDTableModel.this, tufts.vue.LWKey.MetaData);
+            }
+            
+            VUE.getActiveMap().markAsModified();
+            VUE.getActiveMap().getUndoManager().mark("Remove Data");
         }
     }
 

@@ -167,6 +167,11 @@ public class CategoryModel extends ArrayList<edu.tufts.vue.ontology.Ontology>
         return ontTypesCount;
     }
     
+    /** @return matching OntType if found, null otherwise */
+    public OntType getCustomCategoryByLabel(String label) {
+        return customOntology.getOntTypeByLabel(label);
+    }
+    
     public OntType addCustomCategory(String name) {
         final OntType ontType = new OntType();
         ontType.setLabel(name);

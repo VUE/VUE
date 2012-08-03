@@ -121,7 +121,7 @@ public class MetaButton extends javax.swing.JPanel
                     ignoreNextAction = false;
                 else
                     mdEditor.getModel().deleteAtRow(rowOfLastRequestedEditor);
-                // editor.getMetadataTable().getSelectedRow();
+                    // editor.getMetadataTable().getSelectedRow();
 
                 clickState = 0;
                 

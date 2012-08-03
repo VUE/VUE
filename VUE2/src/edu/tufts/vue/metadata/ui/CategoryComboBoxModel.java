@@ -80,27 +80,37 @@ public class CategoryComboBoxModel extends AbstractListModel implements ComboBox
         // nothing is highlighted in the menu.
     }
 
-    /** @return the index of the given fully-qualified RDF/URL style key, -1 if not found */
+    /** @return the index of the best matching fully-qualified RDF/URL style key, -1 if not found */
     public int indexOfCategoryKey(final String key)
     {
-        if (key == null || key.indexOf('#') < 0)
+        if (key == null)
             return -1;
+        // if (key == null || key.indexOf('#') < 0)
+        //     return -1;
 
-        // Todo: could guess at full keys where just the local-part matches the key name
-        
         int index = -1;
-        for (Object item : contents) {
-            index++;
-            if (item instanceof OntType) {
-                final OntType ontType = (OntType) item;
-                // if (DEBUG.PAIN) Log.debug("scan " + Util.tags(ontType));
-                if (ontType.matchesKey(key)) {
-                    // if (DEBUG.PAIN) Log.debug("found at index " + index + " hit " + Util.tags(ontType));
+
+        if (key.indexOf('#') < 0) {
+            // Guess with first full key where just the local-part matches the key name
+            for (Object item : contents) {
+                index++;
+                if (item instanceof OntType && key.equals(((OntType)item).getLabel()))
                     return index;
+            }
+        } else {
+            for (Object item : contents) {
+                index++;
+                if (item instanceof OntType) {
+                    final OntType ontType = (OntType) item;
+                    // if (DEBUG.PAIN) Log.debug("scan " + Util.tags(ontType));
+                    if (ontType.matchesKey(key)) {
+                        // if (DEBUG.PAIN) Log.debug("found at index " + index + " hit " + Util.tags(ontType));
+                        return index;
+                    }
                 }
             }
         }
-        return index;
+        return -1;
     }
     
     public void refreshCategoryMenu() {

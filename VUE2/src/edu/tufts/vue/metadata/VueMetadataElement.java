@@ -46,7 +46,7 @@ public class VueMetadataElement implements tufts.vue.XMLUnmarshalListener
     String key;
     String value;
     
-    private Object obj;
+    Object obj;
     
     /** don't know how TAG originally meant to be used, but a bug spent years saving maps with that
      * meant to be OTHER, which was MERGE-SOURCE, as this */
@@ -258,6 +258,7 @@ public class VueMetadataElement implements tufts.vue.XMLUnmarshalListener
         }
     }
    
+    /** THIS IGNORES TYPE */
     @Override public int hashCode() {
         if (value == null)
             return key.hashCode();
@@ -265,6 +266,7 @@ public class VueMetadataElement implements tufts.vue.XMLUnmarshalListener
             return key.hashCode() ^ value.hashCode();
     }
     
+    /** THIS IGNORES TYPE -- leaving as is in case of backward compat, and shouldn't matter as the keys should always vary with type */
     @Override public boolean equals(final Object vme) {
         if (vme instanceof VueMetadataElement) {
             final VueMetadataElement other = (VueMetadataElement) vme;
