@@ -396,6 +396,7 @@ public class MapInspectorPanel extends JPanel
              //mLocation.setFont(GUI.LabelFace);
 
              
+             // Mr Cut & Paste has strikes again, for the zillionth time:
              mAuthorEditor.addFocusListener(new FocusAdapter(){
                 public void focusLost(FocusEvent e)
                 {
@@ -407,13 +408,9 @@ public class MapInspectorPanel extends JPanel
                     vme.setObject(pairedValue);
                     vme.setType(edu.tufts.vue.metadata.VueMetadataElement.RESOURCE_CATEGORY);
                     if(currentMap.getMetadataList().findRCategory(dcCreator) != -1)
-                    {
-                      mMap.getMetadataList().replaceWith(vme);
-                    }
+                        mMap.getMetadataList().replaceValueForKey(vme);
                     else
-                    {
-                      mMap.getMetadataList().getMetadata().add(vme);
-                    }
+                        mMap.getMetadataList().getMetadata().add(vme);
                 }
              });
              
@@ -427,14 +424,12 @@ public class MapInspectorPanel extends JPanel
                      vme.setType(edu.tufts.vue.metadata.VueMetadataElement.RESOURCE_CATEGORY);
                      if(currentMap == null)
                          return;
-                     if(currentMap.getMetadataList().findRCategory(dcDescription) != -1)
-                     {
-                       mMap.getMetadataList().replaceWith(vme);
-                     }
+                     
+                     if (currentMap.getMetadataList().findRCategory(dcDescription) != -1)
+                         mMap.getMetadataList().replaceValueForKey(vme);
                      else
-                     {
-                       mMap.getMetadataList().getMetadata().add(vme);
-                     }
+                         mMap.getMetadataList().getMetadata().add(vme);
+
                  }
               });
 
