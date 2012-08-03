@@ -370,7 +370,7 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
             //return new VueMetadataElement(); // SMF?
         }
         catch(Exception e) {
-            Log.warn(e);
+            Log.warn("getCategoryListElement " + index, e);
             return null;
             //return new VueMetadataElement(); 
         }
@@ -384,21 +384,19 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
                 return new VueMetadataElement();
         }
         catch(Exception e) {
-            Log.warn(e);
+            Log.warn("getResourceListElement " + index, e);
             // WHAT???  This looks like a bunch of crap so that the MetadataEditor
             // could be stupid & lazy.
             return new VueMetadataElement();
         }
     }
-    /*hide*/ private void setCategoryListElement(int index,VueMetadataElement vme) {
-        try {        
-            if (getCategoryListSize() > 0 && index < dataList.size())
-                dataList.set(index+ ((CategoryFirstList)dataList).getResourceEndIndex(),vme);
-            else
-                return;
-        }
-        catch(Exception e) {
-            Log.warn(e);
+    /*hide*/ private void setCategoryListElement(int i, VueMetadataElement vme) {
+        final int index = i + dataList.getResourceEndIndex();
+        try {
+            //if (getCategoryListSize() > 0 && index < dataList.size())
+            dataList.set(index, vme);
+        } catch(Exception e) {
+            Log.warn("setCategoryListElement " + index + ", real=" + index + "; " + vme, e);
             return;
         }
     }
@@ -411,7 +409,7 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
                 return;
         }
         catch(Exception e) {
-            Log.warn(e);
+            Log.warn("setResourceListElement " + index + "; " + ele, e);
             return;
         }
     }
