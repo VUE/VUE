@@ -1352,7 +1352,8 @@ public class LWComponent
         public BasicStroke makeStroke(float width) {
             if (this == SOLID)
                 return new BasicStroke(width, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
-                //return new BasicStroke(width, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND);
+              //return new BasicStroke(width, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER);
+              //return new BasicStroke(width, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND);
             else
                 return new BasicStroke(width
                                        , BasicStroke.CAP_BUTT // anything else will mess with the dash pattern
@@ -2717,7 +2718,7 @@ public class LWComponent
         return c == null ? "" : c.getUniqueComponentTypeLabel();
     }
     
-    String getDiagnosticLabel() {
+    public String getDiagnosticLabel() {
         if (hasLabel()) {
             return getUniqueComponentTypeLabel() + ": " + getLabel().replace('\n', ' ');
         } else
