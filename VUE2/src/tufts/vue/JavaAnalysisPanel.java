@@ -749,7 +749,7 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 
 		MetadataList	metadataList = node.getMetadataList();
 
-		metadataList.remove(METADATA_CATEGORY, METADATA_KEYWORD_UNDECLARED);
+		metadataList.removeCategoryType(METADATA_CATEGORY, METADATA_KEYWORD_UNDECLARED);
 
 		if (isPublic && !metadataList.contains(METADATA_CATEGORY, PUBLIC_KEYWORD)) {
 			metadataList.add(METADATA_CATEGORY, PUBLIC_KEYWORD);		
