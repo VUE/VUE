@@ -235,6 +235,13 @@ public class LWWormhole implements VueConstants {
 		init(wn, wr, prevURI, newParent);
 	}
 	
+	// HO 07/08/2012 BEGIN ********
+	// rhb hack
+	public LWWormhole(LWComponent c, LWComponent t, float x1, float y1, float x2, float y2, String sourcestr, String targstr) {
+		init(c, t, x1, y1, x2, y2, sourcestr, targstr);
+	}	
+	// HO 07/08/2012 END *********
+	
 	// HO 28/05/2012 BEGIN ********
 	/**
 	 * rhb hack
@@ -370,6 +377,59 @@ public class LWWormhole implements VueConstants {
     	flagEndOfConstruction(sourceMap);
     	flagEndOfConstruction(targetMap);
     }
+	
+	// HO 07/08/2012 BEGIN ********
+	// rhb hack
+	public void init(LWComponent c, LWComponent t, float x1, float y1, float x2, float y2, String sourcestr, String targstr) 
+    {
+    	// we are cancelled until we have successfully
+		// constructed the whole wormhole
+		setBCancelled(true);
+		findAndSaveAllOpenMaps();
+		setSourceComponent(c);
+    	setSourceMap(sourceComponent.getParentOfType(LWMap.class));
+		setTargetComponent(t);
+		setTargetMap(targetComponent.getParentOfType(LWMap.class));
+		setSourceAndTargetMapFiles();
+    
+		setSourceWormholeNode(createSourceWormholeNode());
+    	setTargetWormholeNode(createTargetWormholeNodeRHB());    	
+    	
+		sourceWormholeNode.setLocation(x1, y1);
+		sourceMap.addNode(sourceWormholeNode);
+		sourceWormholeNode.setShape(java.awt.geom.Ellipse2D.Float.class);
+		sourceWormholeNode.setFillColor(null);
+		sourceWormholeNode.setLabel(sourcestr);
+		LWLink k1 = new LWLink(sourceComponent, sourceWormholeNode);
+		sourceMap.addLink(k1);
+		targetWormholeNode.setLocation(x2, y2);
+		targetMap.addNode(targetWormholeNode);
+		targetWormholeNode.setShape(java.awt.geom.Ellipse2D.Float.class);
+		targetWormholeNode.setFillColor(null);
+		targetWormholeNode.setLabel(targstr);
+		LWLink k2 = new LWLink(targetWormholeNode, targetComponent);
+		targetMap.addLink(k2);
+		sourceWormholeNode.setStrokeColor(java.awt.Color.WHITE);
+		targetWormholeNode.setStrokeColor(java.awt.Color.WHITE);
+    	
+		//makeSureTargetNodeDoesNotOverlap(targetMap);		
+
+		// set the resources
+    	setWormholeResources();
+    	
+    	// add the listeners
+    	addAllListeners();
+		
+    	// if we got this far we're okay and not cancelled
+    	setBCancelled(false);
+    	
+    	// flag end of construction process
+    	flagEndOfConstruction(sourceMap);
+    	flagEndOfConstruction(targetMap);
+		sourceWormholeNode.setStrokeColor(java.awt.Color.WHITE);
+		targetWormholeNode.setStrokeColor(java.awt.Color.WHITE);
+    }	
+	// HO 07/08/2012 END ********
 	
 	/**
 	 * A routine to flag, at module and global levels,
