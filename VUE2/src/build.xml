@@ -27,6 +27,7 @@
     at which point it's ready to go as a Mac OS X app.  Just drop the folder
     into /Applications (or wherever you like), double-click it and
     you're off and running.
+      test
   </description>
 
 <!-- $Revision: 1.201 $ / $Date: 2010-04-23 20:59:52 $ / $Author: mike $ -->
@@ -64,7 +65,8 @@
   <property name="target.version" value="1.5"/>
   <property name="MacDist" value="MacDist"/>
   <property name="MacDist16" value="MacDist16"/>
-
+  <property name="jre.home" value="/home/vue/jre/jre6_u29/jre6"/>
+  <property name="nullsoftjre.home" value="/home/vue/build/tuftsvue/trunk/VUE2/Nullsoft-Installer/jre"/>
   <!-- NarraVision.jar is just a copy of VUE.jar.  On the PC, It detects via
        the classpath if it's called anything with "NarraVision" in the
        name to decide if it should run with MIT features -->
@@ -73,6 +75,7 @@
 	<property name="vueapplet-pack.jar"        value="${build.home}/VUEApplet.pack"/>
   <property name="vue-linux.jar"        value="${build.home}/VUE-linux.jar"/>
   <property name="narravision.jar"      value="${build.home}/NarraVision.jar"/>
+	
 
 <!--  ==================== Compilation Control Options ==================== -->
 <!--
@@ -150,7 +153,7 @@
 	<property name="thirdparty.jarfiles.names.extendedFeatures"
 		value="MERLOTOsid-1.0.jar			   
 	  		   batik-all.jar
-		  	   quaqua-filechooser-only.jar
+			   quaqua.jar
 			   gdata-client-1.0.jar
 		  	   gdata-core-1.0.jar
 		 	   fop.jar
@@ -191,11 +194,14 @@
   	        	   xerces-2.7.1-xml-apis.jar	               	   
             	   google-collect-snapshot-20090211.jar
   				   json.jar
+				   AlchemyAPI.jar
+				   bsh-2.1b5.jar
   				   calais.jar	
 				   arq-2.5.3.jar     
                    trippi-1.1.2-core.jar
                    commons-httpclient-3.1-beta1.jar 
-				   commons-lang-2.4.jar                   
+				   commons-lang-2.4.jar 
+				commons-io-2.3.jar
                    castor-1.3-core.jar
                    castor-1.3-xml.jar
                    jaxb-api-unsigned.jar
@@ -246,7 +252,8 @@
                    xmlrpc-1.1.jar                                      
                    simplyhtml2.jar    
                    gnu-regexp-1.1.4.jar
-  				   looks-2.1.4.jar  				   
+  				   looks-2.1.4.jar  
+			       bsh-core-2.0b4.jar
                    "/>
 
 <!-- added quaqua-filechooser-only.jar to the above on 2006-12-08 MK -->
@@ -296,7 +303,8 @@
 				   joscar-0.9.3-bin.jar
                    apache-commons.jar
                    axis_1_5_3.jar
-                   commons-httpclient-3.1-beta1.jar      
+                   commons-httpclient-3.1-beta1.jar  
+				commons-io-2.3.jar
 				   commons-lang-2.4.jar
                    commons-codec-1.3.jar
                    trippi-1.1.2-core.jar
@@ -319,7 +327,7 @@
                    saaj.jar
                    xercesImpl-2.7.1.jar
                    xerces-2.7.1-xml-apis.jar
-  				   quaqua-filechooser-only.jar
+  				   quaqua.jar
 		   		   iText-2.1.4.jar 
 					twitter4j-core-2.1.0.jar
 		   		   simplyhtml2.jar
@@ -328,7 +336,10 @@
   				   google-collect-snapshot-20090211.jar
     	           miglayout-3.7.2-swing.jar
   				   json.jar
+				   AlchemyAPI.jar
+				   bsh-2.1b5.jar
   	 			   calais.jar
+			  	   bsh-core-2.0b4.jar
                    "/>
                                                                                                           
   <path id="compile.classpath.common">
@@ -350,10 +361,13 @@
   	<pathelement path="${lib.home}/TuftsOsidProvider.jar"/>
   	<pathelement path="${lib.home}/json.jar"/>
   	<pathelement path="${lib.home}/joscar-0.9.3-bin.jar"/>
+	 <pathelement path="${lib.home}/AlchemyAPI.jar"/>
+	 <pathelement path="${lib.home}/bsh-2.1b5.jar"/>
   	 <pathelement path="${lib.home}/calais.jar"/>
     <pathelement path="${lib.home}/VUE-MacOSX.jar"/>
     <pathelement path="${lib.home}/castor-1.3-core.jar"/>
     <pathelement path="${lib.home}/castor-1.3-xml.jar"/>
+ 	<pathelement path="${lib.home}/quaqua.jar"/>
    <pathelement path="${lib.home}/batik-all.jar"/>
     <pathelement path="${lib.home}/fop.jar"/>
     <pathelement path="${lib.home}/plugin.jar"/>
@@ -367,6 +381,7 @@
 
      <pathelement path="${lib.home}/trippi-1.1.2-core.jar"/>
     <pathelement path="${lib.home}/axis-ant.jar"/>
+    <pathelement path="${lib.home}/commons-io-2.3.jar"/>
     <pathelement path="${lib.home}/commons-lang-2.4.jar"/>
     <pathelement path="${lib.home}/commons-discovery.jar"/>
     <pathelement path="${lib.home}/commons-logging.jar"/>
@@ -418,6 +433,7 @@
     <pathelement path="${lib.home}/twitter4j-core-2.1.0.jar" />    
     <pathelement path="${lib.home}/simplyhtml2.jar" />   
   	<pathelement path="${lib.home}/looks-2.1.4.jar" />   
+  	<pathelement path="${lib.home}/bsh-core-2.0b4.jar" />     	
   	<pathelement path="${lib.home}/gdata-client-1.0.jar" />
   	<pathelement path="${lib.home}/gdata-core-1.0.jar" />
     <pathelement path="${lib.home}/gnu-regexp-1.1.4.jar"/>
@@ -514,7 +530,6 @@
 
   	<copy file="${basedir}/edu/tufts/seasr/seasr.xml" todir="${build.class}/edu/tufts/seasr" verbose="true"/>
   	<copy file="${basedir}/edu/tufts/seasr/seasr_mapping.xml" todir="${build.class}/edu/tufts/seasr" verbose="true"/>
-
     <!-- Determine if Java 1.4 is available on this machine -->
     <condition property="java1.4.present"> 
       <equals arg1="${ant.java.version}" arg2="1.4" /> 
@@ -972,6 +987,12 @@
   	  keystore="${keystore}"
   	  jar="../lib/commons-lang-2.4.jar">
     </signjar>
+    <signjar
+  	  alias="mykey"
+  	  storepass="vuevue"
+  	  keystore="${keystore}"
+  	  jar="../lib/commons-io-2.3.jar">
+    </signjar>
   	<signjar
   	  alias="mykey"
   	  storepass="vuevue"
@@ -1032,7 +1053,7 @@
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Built" value="${TODAY} ${TSTAMP}"/>
         <attribute name="Build-Platform" value="${os.name} ${os.version} ${os.arch}"/>
-        <attribute name="Main-Class" value="tufts.vue.VUE"/>
+        <attribute name="Main-Class" value="tufts.vue.JarHeapSetter"/>
       </manifest>
         <!-- zipfileset src="${basedir}/VUE-core.jar" excludes="**/*.properties"/ example excludes that works for one file -->
         <zipfileset src="${vue-core.jar}"/>
@@ -1266,6 +1287,7 @@
         <copy file="@{jar-0}" todir="@{contents}" verbose="true"/>
         <!--copy file="@{jar-1}" todir="@{contents}" verbose="true"/-->
       	<copy file="${jnilib.home}/libquaqua.jnilib" todir="@{contents}/Resources/Java"/>
+      	<copy file="${jnilib.home}/libquaqua64.jnilib" todir="@{contents}/Resources/Java"/>
         <extra-tasks/>
       </sequential>
     </macrodef>
@@ -1347,11 +1369,7 @@ cclass Version {
 <!-- ==================== Tasks to run VUE  ================================ -->
 
     <target name="vue" depends="" description="Run the VUE application">
-    	<!-- HO 15/06/2010 BEGIN -->
-      <!-- <java classname="tufts.vue.VUE" failonerror="true" fork="true"> -->
-    <java classname="tufts.vue.VUE" failonerror="true" fork="true">
-    	<!-- HO 15/06/2010 END -->
-    	
+      <java classname="tufts.vue.VUE" failonerror="true" fork="true">
         <!--jvmarg value="-verbosegc"/-->
         <!-- Start with min of 10MB (VUE uses this much just starting up) -->
         <jvmarg value="-Xms10m"/>
@@ -1525,7 +1543,10 @@ VUEApplet.zip - ${appletMD5}
           <taskdef name="nsis" classname="net.sf.nsisant.Task">
             <classpath location="/home/vue/nsis/nsis-2.42/ant/nsisant-1.2.jar"/>
            </taskdef>
-           
+		  <copy todir="${nullsoftjre.home}">
+  			<fileset dir="${jre.home}"/>
+	  	  </copy>
+
            <!--creating installer using nullsoft-->
            <nsis script="../Nullsoft-Installer/vue.nsi" verbosity="4" out="build.log" noconfig="yes"> 
            </nsis>

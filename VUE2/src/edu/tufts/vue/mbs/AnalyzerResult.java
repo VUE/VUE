@@ -1,8 +1,12 @@
 package edu.tufts.vue.mbs;
 
+import java.util.ArrayList;
+
 public class AnalyzerResult {
 
 	private String type;
+	private ArrayList subtypes;
+	private ArrayList ontologies;
 	private String value;
 	private double relevance;
 	private int count;
@@ -47,6 +51,30 @@ public class AnalyzerResult {
 
 	public int getCount() {
 		return count;
+	}
+	
+	public ArrayList getSubtypes() {
+		return subtypes;
+	}
+	
+	public void initSubtypes() {
+		subtypes = new ArrayList();
+	}
+	
+	public void addSubtypes(ArrayList toAdd) {
+		subtypes.addAll(toAdd);
+	}
+	
+	public ArrayList getOntologies() {
+		return ontologies;
+	}
+	
+	public void initOntologies() {
+		ontologies = new ArrayList();
+	}
+	
+	public void addOntologies(ArrayList toAdd) {
+		ontologies.addAll(toAdd);
 	}
 	
 }
