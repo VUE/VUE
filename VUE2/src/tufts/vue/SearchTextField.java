@@ -3,9 +3,9 @@
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
- * 
+ *
  * http://www.osedu.org/licenses/ECL-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an "AS IS"
  * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -71,28 +71,28 @@ public class SearchTextField extends JTextField implements FocusListener {
     public static JMenuItem editSettingsMenuItem;
 
     private static final boolean CATEGORIES_ALONE_OPTION = false;
-    
+
     private final boolean isWindows = VueUtil.isWindowsPlatform();
 
     private static JPopupMenu popup;
     private static JPopupMenu editPopup;
-    
+
     /** We keep a self reference to JTextField because we've been playing with
      * subclassing JPanel instead of JTextField */
     private final JTextField textField;
     //private final JTextField textField = new JTextField();
     //private final JProgressBar progress = new JProgressBar();
-    
+
     private JTextField subTextField; // an unxeplained hack... used in OSX Tiger, Windows?
     /** a hack to create an a smaller input area leaving room for a Mac-like spyglass icon */
-    private JTextField inputField; 
-    
+    private JTextField inputField;
+
     private boolean mouse_over = false;
 
     private static final String SEARCH_WORD = VueResources.local("search.popup.search");
     private static final String _DEFAULT_TEXT = VueResources.local("search.text.default");
     private String DEFAULT_TEXT = _DEFAULT_TEXT;
-    private String MINIMUM_TEXT = "";
+    private static String MINIMUM_TEXT = "";
 
     private static SearchTextField Singleton;
 
@@ -111,7 +111,6 @@ public class SearchTextField extends JTextField implements FocusListener {
         //add(progress);
         GUI.init();
         initMenuSettings();
-        
         if (isWindows) {
             initForPlatformWindows();
         } else {
@@ -129,7 +128,7 @@ public class SearchTextField extends JTextField implements FocusListener {
         }
 
         if (!DRAW_OVER_STATUS || Util.isMacTiger() || isWindows)
-            inputField.addFocusListener(this);            
+            inputField.addFocusListener(this);
         // progress.setIndeterminate(true);
         // progress.putClientProperty("JProgressBar.style", "circular");
         // progress.setBorderPainted(false);
@@ -143,15 +142,15 @@ public class SearchTextField extends JTextField implements FocusListener {
     }
 
     private static final boolean SUB_TEXT_HACK = false;
-    
+
     public String getText() {
         return getRawText().trim();
     }
-    
+
     public boolean hasInput() {
         return getForeground().equals(Color.black) && getText().length() > 0;
     }
-    
+
     private String getRawText() {
         if (inputField == this)
             return super.getText();
@@ -175,7 +174,7 @@ public class SearchTextField extends JTextField implements FocusListener {
             resetForInput();
         }
     }
-    
+
     /** FocusListener -- only used in certain cases */
     public void focusLost(FocusEvent e) {
         if (DEBUG.FOCUS || DEBUG.SEARCH) Log.debug("focusLost.. " + GUI.name(e));
@@ -197,7 +196,7 @@ public class SearchTextField extends JTextField implements FocusListener {
         else
             return SEARCH_WORD + " " + searchType.getLabel();
     }
-    
+
     private void updateMessage(String src) {
         if (DEBUG.SEARCH) Log.debug("updateMessage src=" + src + "; inUpdate=" + inUpdate);
         if (!inUpdate) {
@@ -222,7 +221,7 @@ public class SearchTextField extends JTextField implements FocusListener {
         else
             return searcheveryWhereMenuItem;
     }
-    
+
     private final KeyListener SearchKeyListener = new KeyAdapter() {
             public void keyPressed(KeyEvent ke) {
                 if (ke.getKeyCode() == KeyEvent.VK_ENTER) {
@@ -248,11 +247,11 @@ public class SearchTextField extends JTextField implements FocusListener {
         // //setEditSettingsAction(); }
     }
 
-    private final MouseAdapter MacMouseListener = 
+    private final MouseAdapter MacMouseListener =
         new MouseAdapter() {
                 public void mousePressed(MouseEvent e) { evalPopup(e); }
                 public void mouseReleased(MouseEvent e) { evalPopup(e); }
-                private void evalPopup(MouseEvent e) { 
+                private void evalPopup(MouseEvent e) {
                     if (e.isPopupTrigger())
                         popup.show(e.getComponent(), e.getX(), e.getY());
                     // This is pre DRAW_OVER_STATUS code now handled via FocusEvent's:
@@ -263,14 +262,14 @@ public class SearchTextField extends JTextField implements FocusListener {
                     // }
                 } };
         // comment out old code: at bottom 2012-06-12 19:42.20 Tuesday SFAir.local
-    
-    
+
+
     private void initForPlatformMacTiger() {
         createPopupMenu(isWindows);
         textField.setColumns(15);
 
         MINIMUM_TEXT = "    "; // leave room for the manual spyglass
-        
+
         if (!DRAW_OVER_STATUS)
             DEFAULT_TEXT = MINIMUM_TEXT + DEFAULT_TEXT;
 
@@ -286,7 +285,7 @@ public class SearchTextField extends JTextField implements FocusListener {
             inputField = textField;
             // Insets insets = new Insets(50, 5, 5, 50);
             // textField.setMargin(insets);
-            
+
         }
         inputField.addMouseListener(MacMouseListener);
         inputField.addKeyListener(SearchKeyListener);
@@ -304,13 +303,13 @@ public class SearchTextField extends JTextField implements FocusListener {
         // (any value will apparently do)
         textField.setColumns(12);
         this.inputField = this.textField;
-        
+
         // Appear to be ignored when using JTextField.variant=search:
         // Insets noInsets = new Insets(0, 30, 0, 25);
         // textField.setMargin(noInsets);
-        
+
         createPopupMenu(isWindows);
-        
+
         textField.putClientProperty("JTextField.variant", "search");
         textField.putClientProperty("JTextField.Search.FindPopup", this.popup);
         // use JTextField.Search.FindAction for an action instead of a pop-up when the spyglass is clicked
@@ -323,8 +322,10 @@ public class SearchTextField extends JTextField implements FocusListener {
         textField.addKeyListener(SearchKeyListener);
     }
 
-    private void initForPlatformWindows() {
+    private synchronized void initForPlatformWindows() {
         textField.setEditable(true);
+        this.inputField = this.textField;
+
         subTextField = new JTextField();
         subTextField.setBorder(null);
         subTextField.setText(VueResources.local("search.text.default"));
@@ -332,7 +333,7 @@ public class SearchTextField extends JTextField implements FocusListener {
         subTextField.setPreferredSize(new Dimension(135,18));
         textField.setPreferredSize(new Dimension(180,23)); // TODO FIX HARDCODE SIZE
         Insets noInsets = new Insets(0, 15, 0, 25);
-        textField.setMargin(noInsets);			
+        textField.setMargin(noInsets);
         subTextField.addMouseListener(new MouseAdapter() {
                 public void mouseEntered(MouseEvent e) {
                     mouse_over = false;
@@ -340,7 +341,7 @@ public class SearchTextField extends JTextField implements FocusListener {
                     textField.repaint();
                     textField.revalidate();
                 }
-                public void mouseExited(MouseEvent e) {					
+                public void mouseExited(MouseEvent e) {
                     mouse_over = false;
                     textField.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
                     textField.repaint();
@@ -365,8 +366,8 @@ public class SearchTextField extends JTextField implements FocusListener {
                 }
             });
         textField.addMouseListener(new MouseAdapter() {
-                public void mouseEntered(MouseEvent e) {					
-                    if ((e.getX() < 23)) {						
+                public void mouseEntered(MouseEvent e) {
+                    if ((e.getX() < 23)) {
                         mouse_over = false;
                         textField.setCursor(Cursor
                                   .getPredefinedCursor(Cursor.DEFAULT_CURSOR));
@@ -379,7 +380,7 @@ public class SearchTextField extends JTextField implements FocusListener {
                         .getPredefinedCursor(Cursor.TEXT_CURSOR));
                         repaint();
                         revalidate();
-                        }*/ else {						
+                        }*/ else {
                         mouse_over = true;
                         textField.setCursor(Cursor
                                   .getPredefinedCursor(Cursor.DEFAULT_CURSOR));
@@ -388,7 +389,7 @@ public class SearchTextField extends JTextField implements FocusListener {
                     }
                 }
 
-                public void mouseExited(MouseEvent e) {		
+                public void mouseExited(MouseEvent e) {
                     if ((e.getX() < 23)) {
                         mouse_over = false;
                         textField.setCursor(Cursor
@@ -410,7 +411,7 @@ public class SearchTextField extends JTextField implements FocusListener {
                     }
 
                 }
-				
+
                 public void mouseReleased(MouseEvent e) {
                     if (e.isPopupTrigger()) {
                         if ((e.getX() < 23)) {
@@ -459,13 +460,13 @@ public class SearchTextField extends JTextField implements FocusListener {
         textField.setLayout(new BorderLayout());
         //subTextField.setSize(textField.getSize());
         textField.add(subTextField, BorderLayout.CENTER);
-			
+
     }
-    
+
     private JMenuItem makeCheck(String key) {
         return makeCheck(key, VueResources.local(key));
     }
-    
+
     private JMenuItem makeCheck(String key, String label) {
         final JMenuItem item = new JCheckBoxMenuItem(label);
         item.setActionCommand(key);
@@ -483,7 +484,7 @@ public class SearchTextField extends JTextField implements FocusListener {
         //                                                 + " + "
         //                                                 + VueResources.local("search.popup.keywords"));
         // editSettingsMenuItem = new JCheckBoxMenuItem(VueResources.local("search.popup.edit.search.settings"));
-        
+
         searcheveryWhereMenuItem  = makeCheck("search.popup.searcheverywhere");
         labelMenuItem             = makeCheck("search.popup.labels");
         keywordMenuItem           = makeCheck("search.popup.keywords");
@@ -512,7 +513,7 @@ public class SearchTextField extends JTextField implements FocusListener {
         // this.popup.add(item);
         // return item;
     }
-    
+
     private JMenuItem popAdd(ActionListener actionListener, JMenuItem item, String key) {
         item.setActionCommand(key);
         if (actionListener != null)
@@ -523,7 +524,7 @@ public class SearchTextField extends JTextField implements FocusListener {
 
     /**
      * This method is for Generating Popup menu
-     * 
+     *
      * @param isWindow
      */
     private void createPopupMenu(boolean isWindows) {
@@ -557,7 +558,7 @@ public class SearchTextField extends JTextField implements FocusListener {
             popup.addSeparator();
             popAdd(al, "search.popup.clear");
             popAdd(al, "search.popup.reset");
-            popAdd(al, "search.popup.select.all");            
+            popAdd(al, "search.popup.select.all");
             popAdd(al, "search.popup.cut");
             // cutMenuItem.setActionCommand(DefaultEditorKit.cutAction);
             popAdd(al, "search.popup.copy");
@@ -579,7 +580,7 @@ public class SearchTextField extends JTextField implements FocusListener {
             } else if ("search.popup.copy".equals(action)) {                   inputField.copy();
             } else if ("search.popup.paste".equals(action)) {
                 if (!hasInput())
-                    resetForInput(); // be sure to first clear any grey messaging 
+                    resetForInput(); // be sure to first clear any grey messaging
                 inputField.paste();
                 runConfiguredSearch();
             } else if ("search.popup.clear".equals(action)) {                  inputField.setText(MINIMUM_TEXT);
@@ -596,15 +597,15 @@ public class SearchTextField extends JTextField implements FocusListener {
 
     public void setResetSettingsAction() {
         //searcheveryWhereMenuItem.setSelected(true);
-                
+
         searcheveryWhereMenuItem.setSelected(false);
         keywordMenuItem.setSelected(false);
         categoriesMenuItem.setSelected(false);
         categoryKeywordMenuItem.setSelected(false);
         labelMenuItem.setSelected(false);
-                
+
         editSettingsMenuItem.setSelected(false);
-                
+
         //VUE.getMetadataSearchMainGUI().setVisible(false);
         // resetSettingsMenuItem.setSelected(true);
         SearchAction.revertGlobalSearchSelectionFromMSGUI();
@@ -617,14 +618,14 @@ public class SearchTextField extends JTextField implements FocusListener {
     // private static final int S_META_ONLY = 0x4;
     // private static final int S_EVERYTHING = 0x8;
     // private static final int S_NONE_IS_SPECIAL = 0x16; // refers to #none in VueTermOntologyNone
-    
+
     private void fireSearch(SearchType domain)
     {
         if (DEBUG.Enabled) Log.debug("fireSearch: " + Util.tags(domain));
-        
+
         //editSettingsMenuItem.setSelected(false);
         // resetSettingsMenuItem.setSelected(false);
-        
+
         final VueMetadataElement vme = new VueMetadataElement();
 
         final String genericSearchStatement[] = {
@@ -641,7 +642,7 @@ public class SearchTextField extends JTextField implements FocusListener {
         if (DEBUG.SEARCH) Log.debug("Search term: " + vme);
 
         final List<VueMetadataElement> searchTerms = Collections.singletonList(vme);
-        
+
         final SearchAction search = new SearchAction(searchTerms);
 
         search.setParamsByType(domain);
@@ -651,17 +652,17 @@ public class SearchTextField extends JTextField implements FocusListener {
         // search.setMetadataOnly     (0 != (flags & S_META_ONLY));
         // search.setEverything       (0 != (flags & S_EVERYTHING));
         // search.setNoneIsSpecial    (0 != (flags & S_NONE_IS_SPECIAL)); // refers to #none in VueTermOntologyNone
-        
+
         //search.setOperator(VUE.getMetadataSearchMainPanel().getSelectedOperator());
         // we only have a single term -- operator shouldn't matter, but in SearchAction,
         // AND works with single query, OR with a query list (???)
         //search.setOperator(SearchAction.AND);
-        
+
         // // TODO: do we really want to turn this off completely?
         // if (VUE.getMetadataSearchMainPanel() != null)
         //     initFromGUI(search);
         // else: ONLY ALLOW SELECT FOR NOW
-        
+
         search.setResultAction(SearchAction.RA_SELECT);
 
         search.fire(this, getClass().getName());
@@ -672,10 +673,10 @@ public class SearchTextField extends JTextField implements FocusListener {
     /*
     private void initFromGUI(SearchAction termsAction) {
         // Only ever search the currently active map when using the search field
-        
+
         // Not working? Is this being pulled from elsewhere?
         termsAction.setLocationType(SearchAction.SEARCH_SELECTED_MAP);
-        
+
         // Only ever search the currently active map when using the search field
         // if (VUE.getMetadataSearchMainPanel().mapCmbBox != null &&
         //     VUE.getMetadataSearchMainPanel().mapCmbBox.getSelectedItem() != null &&
@@ -687,7 +688,7 @@ public class SearchTextField extends JTextField implements FocusListener {
         // }
 
         final javax.swing.JComboBox resultChoice = VUE.getMetadataSearchMainPanel().resultCmbBox;
-        
+
         if (resultChoice != null && resultChoice.getSelectedItem() != null) {
             // Perhaps also only allow the "select" type?
             //Log.info("GSE: " + GUI.name(resultChoice.getSelectedItem()));
@@ -733,7 +734,7 @@ public class SearchTextField extends JTextField implements FocusListener {
         if (hasInput())
             fireSearch(domain);
     }
-                                     
+
     private void setSearchEverywhereAction() { runSearch(SEARCH_EVERYTHING); }
     private void setLabelSettingsAction() { runSearch(SEARCH_ONLY_LABELS); }
     private void setKeywordSettingsAction() { runSearch(SEARCH_ONLY_KEYWORDS); }
@@ -744,7 +745,7 @@ public class SearchTextField extends JTextField implements FocusListener {
         //categoriesMenuItem.setSelected(true);
         //setSearchTypeAndGo(null, S_NONE_IS_SPECIAL); // Old code didn't set have a resource key, so passing null.
     }
-    
+
     // private void setKeywordCategorySettingsAction() {
     //     //categoryKeywordMenuItem.setSelected(true);
     //     setSearchTypeAndGo("searchgui.categories_keywords", S_DEFAULT);}
@@ -814,7 +815,7 @@ public class SearchTextField extends JTextField implements FocusListener {
     // VueResources.getImageIcon("search.tiger.searchicon.ov").getImage();
     // Image clearImgOv =
     // VueResources.getImageIcon("search.closeicon.ov").getImage();
-    
+
     protected void paintComponent(Graphics g)
     {
         // Paint the default look of the button.
@@ -829,7 +830,7 @@ public class SearchTextField extends JTextField implements FocusListener {
             g.drawImage(arrowImg, 5, h / 2 - 5,
                         arrowWidth,
                         arrowImg.getHeight(null), this);
-            if (!mouse_over) {				
+            if (!mouse_over) {
                 g.drawImage(searchImg, w - 20, h / 2 - 8,
                             searchImg.getWidth(null),
                             searchImg.getHeight(null), this);
@@ -878,8 +879,8 @@ public class SearchTextField extends JTextField implements FocusListener {
             // todo: ideally set clip region at right so can never drow over the right
             // border -- a rare case that can happen with a narrow main window.
         }
-        
-        
+
+
     }
 }
 
